@@ -382,7 +382,7 @@ export default function(t: Translation, { key = 'Value' }: ValidationOptions): {
       if (val.some((rule: any) => isEmpty(rule.apiGroups))) {
         return t('validation.roleTemplate.roleTemplateRules.missingApiGroup');
       }
-    } else if (val.some((rule: any) => isEmpty(rule.resources) && isEmpty(rule.nonResourceURLs) && isEmpty(rule.apiGroups))) {
+    } else if (val.some((rule: any) => isEmpty(rule.resources) && isEmpty(rule.nonResourceURLs))) {
       return t('validation.roleTemplate.roleTemplateRules.missingOneResource');
     }
 
