@@ -11,8 +11,9 @@ describe('Namespace picker', () => {
   });
 
   it('can filter workloads by project/namespace from the picker dropdown', { tags: '@adminUser' }, () => {
-    // filter Namespace: go to Pods > select cattle-fleet-local-system to filter by namespace > verify 'Namespace: ' appears once
-    // filter Project: go to Pods > select Project: System to filter by project > verify 'Namespace: ' more than once
+    // Verify 'Namespace: cattle-fleet-local-system' appears once when filtering by Namespace
+    // Vrify multiple namespaces within Project: System display when filtering by Project
+
     const workloadsPodPage = new WorkloadsPodsListPagePo('local');
 
     workloadsPodPage.goTo();
@@ -20,35 +21,28 @@ describe('Namespace picker', () => {
 
     cy.intercept('PUT', '/v1/userpreferences/*').as('optionSelected');
 
-    // Select 'cattle-fleet-local-system'
+    // Filter by Namespace: Select 'cattle-fleet-local-system'
     namespacePicker.toggle();
-    namespacePicker.clickOption(11, 'cattle-fleet-local-system');
-    namespacePicker.isChecked(11, 'cattle-fleet-local-system');
+    namespacePicker.clickOptionByLabel('cattle-fleet-local-system');
+    namespacePicker.isChecked('cattle-fleet-local-system');
     cy.wait('@optionSelected');
-    cy.contains('Namespace: ').should('be.visible').and('have.length', 1);
+    namespacePicker.closeDropdown();
+    workloadsPodPage.sortableTable().rowElementWithName('cattle-fleet-local-system').should('be.visible').and('have.length', 1);
 
     // clear selection: from dropdown controller
+    namespacePicker.toggle();
     namespacePicker.selectedValues().find('i').trigger('click');
-
     // 'Only User Namespaces' option should be selected after clearing
-    namespacePicker.isChecked(1, 'Only User Namespaces');
+    namespacePicker.isChecked('Only User Namespaces');
     cy.wait('@optionSelected');
 
-    // Select 'Project: System'
-    namespacePicker.clickOption(9, 'Project: System');
-    namespacePicker.isChecked(9, 'Project: System');
+    // Filter by Project: Select 'Project: System'
+    namespacePicker.clickOptionByLabel('Project: System');
+    namespacePicker.isChecked('Project: System');
     cy.wait('@optionSelected');
-
-    workloadsPodPage.sortableTable().rowElements().find('.group-tab')
-      .should('include.text', 'Namespace: ')
-      .and('have.length.gte', 2);
-
-    // clear selection: from dropdown controller
-    namespacePicker.selectedValues().find('i').trigger('click');
-
-    // 'Only User Namespaces' option should be selected after clearing
-    namespacePicker.isChecked(1, 'Only User Namespaces');
-    cy.wait('@optionSelected');
+    namespacePicker.closeDropdown();
+    workloadsPodPage.sortableTable().rowElementWithName('kube-system').should('be.visible');
+    workloadsPodPage.sortableTable().rowElementWithName('cattle-fleet-local-system').scrollIntoView().should('be.visible');
   });
 
   it('can select only one of the top 5 resource filters at a time', { tags: ['@adminUser', '@standardUser'] }, () => {
@@ -58,28 +52,28 @@ describe('Namespace picker', () => {
     namespacePicker.toggle();
 
     // Select 'All Namespaces'
-    namespacePicker.clickOption(0, 'All Namespaces');
-    namespacePicker.isChecked(0, 'All Namespaces');
+    namespacePicker.clickOptionByLabel('All Namespaces');
+    namespacePicker.isChecked('All Namespaces');
     namespacePicker.checkIcon().should('have.length', 1);
 
     // Select 'Only User Namespaces'
-    namespacePicker.clickOption(1, 'Only User Namespaces');
-    namespacePicker.isChecked(1, 'Only User Namespaces');
+    namespacePicker.clickOptionByLabel('Only User Namespaces');
+    namespacePicker.isChecked('Only User Namespaces');
     namespacePicker.checkIcon().should('have.length', 1);
 
     // Select 'Only System Namespaces'
-    namespacePicker.clickOption(2, 'Only System Namespaces');
-    namespacePicker.isChecked(2, 'Only System Namespaces');
+    namespacePicker.clickOptionByLabel('Only System Namespaces');
+    namespacePicker.isChecked('Only System Namespaces');
     namespacePicker.checkIcon().should('have.length', 1);
 
     // Select 'Only Namespaced Resources'
-    namespacePicker.clickOption(3, 'Only Namespaced Resources');
-    namespacePicker.isChecked(3, 'Only Namespaced Resources');
+    namespacePicker.clickOptionByLabel('Only Namespaced Resources');
+    namespacePicker.isChecked('Only Namespaced Resources');
     namespacePicker.checkIcon().should('have.length', 1);
 
     // Select 'Only Cluster Resources'
-    namespacePicker.clickOption(4, 'Only Cluster Resources');
-    namespacePicker.isChecked(4, 'Only Cluster Resources');
+    namespacePicker.clickOptionByLabel('Only Cluster Resources');
+    namespacePicker.isChecked('Only Cluster Resources');
     namespacePicker.checkIcon().should('have.length', 1);
   });
 
@@ -92,23 +86,23 @@ describe('Namespace picker', () => {
     namespacePicker.toggle();
 
     // Select 'Project: Default'
-    namespacePicker.clickOption(6, 'Project: Default');
-    namespacePicker.isChecked(6, 'Project: Default');
+    namespacePicker.clickOptionByLabel('Project: Default');
+    namespacePicker.isChecked('Project: Default');
     namespacePicker.checkIcon().should('have.length', 1);
 
     // Select 'default'
-    namespacePicker.clickOption(7, 'default');
-    namespacePicker.isChecked(7, 'default');
+    namespacePicker.clickOptionByLabel('default');
+    namespacePicker.isChecked('default');
     namespacePicker.checkIcon().should('have.length', 2);
 
     // Select 'Project: System'
-    namespacePicker.clickOption(9, 'Project: System');
-    namespacePicker.isChecked(9, 'Project: System');
+    namespacePicker.clickOptionByLabel('Project: System');
+    namespacePicker.isChecked('Project: System');
     namespacePicker.checkIcon().should('have.length', 3);
 
     // Select 'cattle-fleet-clusters-system'
-    namespacePicker.clickOption(10, 'cattle-fleet-clusters-system');
-    namespacePicker.isChecked(10, 'cattle-fleet-clusters-system');
+    namespacePicker.clickOptionByLabel('cattle-fleet-clusters-system');
+    namespacePicker.isChecked('cattle-fleet-clusters-system');
     namespacePicker.checkIcon().should('have.length', 4);
 
     // Checks on dropdown controller: selected value displays, number of hidden selections display, tool top is available
@@ -118,12 +112,6 @@ describe('Namespace picker', () => {
     namespacePicker.closeDropdown();
     namespacePicker.selectedValues().should('have.class', 'has-tooltip');
     namespacePicker.moreOptionsSelected().should('have.class', 'has-tooltip');
-
-    // Reset: clear selection from dropdown menu
-    namespacePicker.toggle();
-    namespacePicker.clearSelectionButton();
-    namespacePicker.isChecked(1, 'Only User Namespaces');
-    namespacePicker.checkIcon().should('have.length', 1);
   });
 
   it('can deselect options', { tags: ['@adminUser', '@standardUser'] }, () => {
@@ -133,27 +121,26 @@ describe('Namespace picker', () => {
     namespacePicker.toggle();
 
     // Select 'default' option
-    namespacePicker.clickOption(7, 'default');
-    namespacePicker.isChecked(7, 'default');
+    namespacePicker.clickOptionByLabel('default');
+    namespacePicker.isChecked('default');
     namespacePicker.checkIcon().should('have.length', 1);
 
     // clear selection from dropdown controller
     namespacePicker.selectedValues().find('i').trigger('click');
 
     // 'Only User Namespaces' option should be selected after clearing
-    namespacePicker.isChecked(1, 'Only User Namespaces');
+    namespacePicker.isChecked('Only User Namespaces');
     namespacePicker.checkIcon().should('have.length', 1);
 
     // Select 'Project: Default' option
-    namespacePicker.clickOption(6, 'Project: Default');
-    namespacePicker.isChecked(6, 'Project: Default');
+    namespacePicker.clickOptionByLabel('Project: Default');
+    namespacePicker.isChecked('Project: Default');
     namespacePicker.checkIcon().should('have.length', 1);
 
     // clear selection from dropdown menu
     namespacePicker.clearSelectionButton();
-
     // 'Only User Namespaces' option should be selected after clearing
-    namespacePicker.isChecked(1, 'Only User Namespaces');
+    namespacePicker.isChecked('Only User Namespaces');
     namespacePicker.checkIcon().should('have.length', 1);
   });
 
@@ -166,18 +153,18 @@ describe('Namespace picker', () => {
     // filter 'cattle-fleet'
     namespacePicker.searchByName('default');
     namespacePicker.getOptions().find('.ns-option').should('have.length.gte', 2);
-    namespacePicker.clickOption(0, 'Project: Default');
-    namespacePicker.isChecked(0, 'Project: Default');
+    namespacePicker.clickOptionByLabel('Project: Default');
+    namespacePicker.isChecked('Project: Default');
     namespacePicker.checkIcon().should('have.length', 1);
 
     // clear search
     namespacePicker.clearSearchFilter();
-    namespacePicker.isChecked(6, 'Project: Default');
+    namespacePicker.isChecked('Project: Default');
     namespacePicker.checkIcon().should('have.length', 1);
 
     // Reset: clear selection from dropdown menu
     namespacePicker.clearSelectionButton();
-    namespacePicker.isChecked(1, 'Only User Namespaces');
+    namespacePicker.isChecked('Only User Namespaces');
     namespacePicker.checkIcon().should('have.length', 1);
   });
 

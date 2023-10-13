@@ -12,12 +12,12 @@ export class NamespaceFilterPo extends ComponentPo {
     return this.self().get('.ns-options');
   }
 
-  clickOption(optionIndex: number, label: string) {
-    return this.getOptions().find(`[data-testid="namespaces-option-${ optionIndex }"]`).contains(label).click();
+  clickOptionByLabel(label: string) {
+    return this.getOptions().contains( new RegExp(` ${ label } `)).click();
   }
 
-  isChecked(optionIndex: number, label: string) {
-    return this.getOptions().find(`[data-testid="namespaces-option-${ optionIndex }"]`).contains(label).next('i')
+  isChecked(label: string) {
+    return this.getOptions().contains( new RegExp(` ${ label } `)).find('i')
       .then(($el) => expect($el).have.class('icon-checkmark'));
   }
 
