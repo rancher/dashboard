@@ -7,7 +7,7 @@ import FileSelector from '@shell/components/form/FileSelector.vue';
 interface Data {
   count: number,
   now: Date,
-  second:string,
+  second: string,
   minute: string,
   hour: string,
   palindromeInput: string,
@@ -29,7 +29,6 @@ export default Vue.extend<Data, any, any, any>({
   created() {
     setInterval(() => {
       this.now = new Date();
-      // this.currentTime = this.formatDate(this.now, false);
     }, 1000);
   },
   data() {
@@ -40,6 +39,7 @@ export default Vue.extend<Data, any, any, any>({
       second:               '',
       minute:               '',
       hour:                 '',
+      originJson:           '',
       parsedJson:           '',
       palindromeInput:      ''
     };
@@ -70,7 +70,7 @@ export default Vue.extend<Data, any, any, any>({
     },
     isPalindrome() {
       if (this.palindromeInput === '') {
-        return true;
+        return '';
       }
       const len = this.palindromeInput.length;
 
@@ -122,10 +122,17 @@ export default Vue.extend<Data, any, any, any>({
         this.timeCompareToCurrent = 'same';
       }
     },
-    read_and_swap_json(fileContent:FileContent) {
+    readJson(fileContent: FileContent) {
       try {
-        const jsonContent = JSON.parse(fileContent.value);
-        const swapContent:JsonContent = {};
+        this.originJson = fileContent.value;
+      } catch (error) {
+        alert(error);
+      }
+    },
+    swapJson() {
+      try {
+        const swapContent: JsonContent = {};
+        const jsonContent = JSON.parse(this.originJson);
 
         for (const key in jsonContent) {
           if (typeof jsonContent[key] !== 'object') {
@@ -135,7 +142,7 @@ export default Vue.extend<Data, any, any, any>({
             swapContent[key] = jsonContent[key];
           }
         }
-        this.parsedJson = JSON.stringify(swapContent, null, 2).trim();
+        this.parsedJson = JSON.stringify(swapContent, null, 2);
       } catch (error) {
         alert(error);
       }
@@ -173,9 +180,7 @@ export default Vue.extend<Data, any, any, any>({
         <h3>Updated Time: {{ formatDate(updatedTime, true) }}</h3>
 
         <div style="display: flex;">
-          <select
-            v-model="hour"
-          >
+          <select v-model="hour">
             <option
               value=""
               selected
@@ -226,22 +231,40 @@ export default Vue.extend<Data, any, any, any>({
           </select>
         </div>
         <h3>
-          Updated time is <span style="color: antiquewhite; font-size: 2rem;"> {{ timeCompareToCurrent }} </span>current time.
+          Updated time is <span style="color: antiquewhite; font-size: 2rem;"> {{ timeCompareToCurrent }} </span>current
+          time.
         </h3>
       </Tab>
       <Tab
         name="json value swap"
         :weight="2"
       >
-        <FileSelector
-          style="background: var(--accent-btn)"
-          label="Select a json file"
-          :include-file-name="true"
-          @selected="read_and_swap_json"
-        />
-        <pre>
-          {{ parsedJson }}
-        </pre>
+        <div style="width: 100%;">
+          <FileSelector
+            style="background: var(--input-bg-accent)"
+            label="Select a json file"
+            :include-file-name="true"
+            @selected="readJson"
+          />
+          <button
+            style="background: var(--accent-btn)"
+            type="button"
+            :disabled="originJson === ''"
+            @click="swapJson"
+          >
+            Swap json
+          </button>
+          <div style="display: flex; justify-content: space-around;">
+            <div style="padding: 10px;width: 50%;">
+              <h4>Origin json</h4>
+              <pre style="height: 50vh;">{{ originJson }} </pre>
+            </div>
+            <div style="padding: 10px;width: 50%;">
+              <h4>Swap json</h4>
+              <pre style="height: 50vh;">{{ parsedJson }}</pre>
+            </div>
+          </div>
+        </div>
       </Tab>
       <Tab
         name="palindrome"
@@ -259,8 +282,6 @@ export default Vue.extend<Data, any, any, any>({
           <span>Is the input a <strong>palindrome</strong>: <span style="color: bisque;">{{ isPalindrome }}</span></span>
         </h3>
       </Tab>
-    </tabbed>
-  </div>
-  </Tabbed>
+    </Tabbed>
   </div>
 </template>
