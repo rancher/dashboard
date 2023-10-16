@@ -23,13 +23,13 @@ export default {
 
     const leader = await hasLeader(monitoringVersion, this.$store.dispatch, this.currentCluster.id);
 
-    this.hasLeader = leader ? this.t('generic.yes') : this.t('generic.no');
+    this.hasLeader = leader ? 'Yes' : 'No';
     this.leaderChanges = await leaderChanges(monitoringVersion, this.$store.dispatch, this.currentCluster.id);
     this.failedProposals = await failedProposals(monitoringVersion, this.$store.dispatch, this.currentCluster.id);
   },
   data() {
     return {
-      hasLeader:       this.t('generic.no'),
+      hasLeader:       'No',
       leaderChanges:   0,
       failedProposals: 0
     };
@@ -46,10 +46,10 @@ export default {
     color="info"
   >
     <div class="datum">
-      <label>{{ t('etcdInfoBanner.hasLeader') }}</label> {{ hasLeader }}
+      <label>{{ t('etcdInfoBanner.hasLeader') }}</label> {{ hasLeader }},
     </div>
     <div class="datum">
-      <label>{{ t('etcdInfoBanner.leaderChanges') }}</label> {{ leaderChanges }}
+      <label>{{ t('etcdInfoBanner.leaderChanges') }}</label> {{ leaderChanges }},
     </div>
     <div class="datum">
       <label>{{ t('etcdInfoBanner.failedProposals') }}</label> {{ failedProposals }}
