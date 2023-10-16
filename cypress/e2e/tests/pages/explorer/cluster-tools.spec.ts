@@ -18,17 +18,19 @@ describe('Cluster Tools', { tags: '@adminUser' }, () => {
     clusterDashboard.clusterToolsButton().click();
 
     clusterTools.waitForPage();
-    clusterTools.featureChartCards().should('have.length', 10);
+    clusterTools.featureChartCards().should('have.length', 11);
     clusterTools.featureChartCards().eq(0).should('contain', 'Alerting Drivers');
     clusterTools.featureChartCards().eq(1).should('contain', 'CIS Benchmark');
-    clusterTools.featureChartCards().eq(2).should('contain', 'Istio');
-    clusterTools.featureChartCards().eq(3).should('contain', 'Logging');
-    clusterTools.featureChartCards().eq(4).should('contain', 'Longhorn');
-    clusterTools.featureChartCards().eq(5).should('contain', 'Monitoring');
-    clusterTools.featureChartCards().eq(6).should('contain', 'NeuVector');
-    clusterTools.featureChartCards().eq(7).should('contain', 'NeuVector Monitor');
-    clusterTools.featureChartCards().eq(8).should('contain', 'OPA Gatekeeper');
-    clusterTools.featureChartCards().eq(9).should('contain', 'Rancher Backups');
+    clusterTools.featureChartCards().eq(2).should('contain', 'Elemental');
+
+    clusterTools.featureChartCards().eq(3).should('contain', 'Istio');
+    clusterTools.featureChartCards().eq(4).should('contain', 'Logging');
+    clusterTools.featureChartCards().eq(5).should('contain', 'Longhorn');
+    clusterTools.featureChartCards().eq(6).should('contain', 'Monitoring');
+    clusterTools.featureChartCards().eq(7).should('contain', 'NeuVector');
+    clusterTools.featureChartCards().eq(8).should('contain', 'NeuVector Monitor');
+    clusterTools.featureChartCards().eq(9).should('contain', 'OPA Gatekeeper');
+    clusterTools.featureChartCards().eq(10).should('contain', 'Rancher Backups');
   });
 
   it('can deploy chart successfully', () => {
