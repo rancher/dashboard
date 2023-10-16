@@ -1,4 +1,5 @@
 <script>
+import { mapGetters } from 'vuex';
 import Tab from '@shell/components/Tabbed/Tab';
 import Tabbed from '@shell/components/Tabbed';
 import { MANAGEMENT } from '@shell/config/types';
@@ -7,6 +8,7 @@ import Loading from '@shell/components/Loading';
 import { SUBTYPE_MAPPING, CREATE_VERBS } from '@shell/models/management.cattle.io.roletemplate';
 import { NAME } from '@shell/config/product/auth';
 import { BLANK_CLUSTER } from '@shell/store/store-types.js';
+import { Banner } from '@components/Banner';
 
 const GLOBAL = SUBTYPE_MAPPING.GLOBAL.key;
 const CLUSTER = SUBTYPE_MAPPING.CLUSTER.key;
@@ -31,7 +33,7 @@ export default {
   name: 'Roles',
 
   components: {
-    Tab, Tabbed, ResourceTable, Loading
+    Tab, Tabbed, ResourceTable, Loading, Banner
   },
 
   async asyncData({ store }) {
@@ -100,6 +102,8 @@ export default {
   },
 
   computed: {
+    ...mapGetters(['releaseNotesUrl']),
+
     globalResources() {
       return this.globalRoles;
     },
@@ -181,6 +185,12 @@ export default {
         :weight="tabs[GLOBAL].weight"
         :label-key="tabs[GLOBAL].labelKey"
       >
+        <Banner
+          color="warning"
+          class="mb-20"
+        >
+          <span v-clean-html="t('rbac.globalRoles.role.restricted-admin.deprecation', { releaseNotesUrl }, true)" />
+        </Banner>
         <ResourceTable
           :schema="tabs[GLOBAL].schema"
           :rows="globalResources"
