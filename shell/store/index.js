@@ -804,14 +804,14 @@ export const actions = {
     commit('targetRoute', targetRoute);
     const sameCluster = state.clusterId && state.clusterId === id;
     const samePackage = oldPkg?.name === newPkg?.name;
+    const sameProduct = oldProduct === product;
     const isMultiCluster = getters['isMultiCluster'];
 
-    // Are we in the same cluster and package?
-    if ( sameCluster && samePackage) {
+    // Are we in the same cluster and package or product?
+    if ( sameCluster && (samePackage || sameProduct)) {
       // Do nothing, we're already connected/connecting to this cluster
       return;
     }
-
     const oldPkgClusterStore = oldPkg?.stores.find(
       (s) => getters[`${ s.storeName }/isClusterStore`]
     )?.storeName;
@@ -832,7 +832,6 @@ export const actions = {
       // so that the nav and header stay the same when going to things like prefs
       commit('clusterReady', false);
       commit('clusterId', undefined);
-
       await dispatch('cluster/unsubscribe');
       commit('cluster/reset');
 
