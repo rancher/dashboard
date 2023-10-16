@@ -32,11 +32,8 @@ jobs:
     if: "!contains( github.event.pull_request.labels.*.name, 'ci/skip-e2e')"
     strategy:
       matrix:
-        include:
-          - role: '@adminUser'
-            username: 'admin'
-          - role: '@standardUser'
-            username: 'standard_user'
+        role: [admin, standardUser]
+        specs:  [global-ui, navigation, pages]
     runs-on: ubuntu-latest
     steps:
       - uses: actions/checkout@v3
@@ -63,19 +60,16 @@ jobs:
       
       - name: Setup Rancher and user
         run: |
-          yarn e2e:prod
+          yarn e2e:prod --spec "cypress/e2e/tests/setup/**/*"
           yarn docker:local:stop
           [ "$BUILD_DASHBOARD" != "false" ] || exit 0
         env: 
           GREP_TAGS: ${{ matrix.role }}Setup
           TEST_USERNAME: admin
-          TEST_SKIP_PAGES: true
-          TEST_SKIP_NAVIGATION: true
-          TEST_SKIP_GLOBAL_UI: true
       
       - name: Run user tests
         run: |
-          yarn e2e:prod
+          yarn e2e:prod --spec "cypress/e2e/tests/${{ matrix.specs }}/**/*"
           yarn docker:local:stop
           [ "$BUILD_DASHBOARD" != "false" ] || exit 0
           mkdir -p coverage-artifacts/coverage
@@ -84,7 +78,7 @@ jobs:
         env: 
           TEST_SKIP_SETUP: true
           GREP_TAGS: ${{ matrix.role }}
-          TEST_USERNAME: ${{ matrix.username }}
+          TEST_USERNAME: ${{ matrix.role }}
         
       - name: Upload coverage
         uses: actions/upload-artifact@v3
