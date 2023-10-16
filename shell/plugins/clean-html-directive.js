@@ -26,7 +26,7 @@ DOMPurify.addHook('uponSanitizeAttribute', function(node, data) {
 });
 
 // Ensure if an 'A' tag has target=_blank that we add noopener, noreferrer and nofollow to the 'rel' attribute
-DOMPurify.addHook('afterSanitizeAttributes', (node, b, c, d) => {
+DOMPurify.addHook('afterSanitizeAttributes', (node) => {
   if (node.tagName === 'A' && node?.target === '_blank') {
     const rel = ['noopener', 'noreferrer', 'nofollow'];
     const existingRel = node.rel?.length ? node.rel.split(' ') : [];
