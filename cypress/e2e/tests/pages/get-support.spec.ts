@@ -30,8 +30,8 @@ describe('Support Page', () => {
 
     it('can click on Suse Rancher Support link', () => {
       supportPage.clickExternalSupportLinks(0);
-      cy.origin('https://www.suse.com/', () => {
-        cy.url().should('include', 'suse-rancher/support-matrix');
+      cy.origin('https://www.rancher.com/', () => {
+        cy.url().should('include', 'support');
       });
     });
 
