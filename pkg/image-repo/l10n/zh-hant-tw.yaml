@@ -68,6 +68,7 @@ harborConfig:
       placeholder: 訪問 Harbor 的使用者名稱
     version:
       label: 版本
+    harborInsecureSkipVerify: 跳過證書驗證
   formTag:
     btn:
       add: 新建標籤

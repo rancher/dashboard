@@ -68,6 +68,7 @@ harborConfig:
       placeholder: The username of access the Harbor.
     version:
       label: Version
+    harborInsecureSkipVerify: Skip TLS Verify
   formTag:
     btn:
       add: New Tag
