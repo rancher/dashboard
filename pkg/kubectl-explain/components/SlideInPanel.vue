@@ -113,9 +113,16 @@ export default {
 
       let name = getOpenAPISchemaName(schema);
 
+      // Manual fix ups where the schema group does not match the Open API one
+
       // Schemas like 'ingress' seem to have the wrong group - so try the other one with 'api'
       if (!data.definitions[name]) {
         name = name.replace(/io\.k8s\./g, 'io.k8s.api.');
+      }
+
+      // RBAC (e.g Role): io.k8s.api.authorization.rbac.v1.* -> io.k8s.api.rbac.v1.*
+      if (!data.definitions[name]) {
+        name = name.replace(/io\.k8s\.api\.authorization\.rbac/g, 'io.k8s.api.rbac');
       }
 
       if (name) {
