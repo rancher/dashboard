@@ -19,7 +19,7 @@ const ALLOWED_TAGS = [
 ];
 
 // Allow 'A' tags to keep the target=_blank attribute if they have it
-DOMPurify.addHook('uponSanitizeAttribute', function(node, data) {
+DOMPurify.addHook('uponSanitizeAttribute', (node, data) => {
   if (node.tagName === 'A' && data.attrName === 'target' && data.attrValue === '_blank') {
     data.forceKeepAttr = true;
   }
