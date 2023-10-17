@@ -96,7 +96,7 @@ export function typeOf(item) {
   }
 
   function ValidateIPaddress(ipaddress) {
-    return /^(25[0-5]|2[0-4][0-9]|[01]?[0-9][0-9]?)\.(25[0-5]|2[0-4][0-9]|[01]?[0-9][0-9]?)\.(25[0-5]|2[0-4][0-9]|[01]?[0-9][0-9]?)\.(25[0-5]|2[0-4][0-9]|[01]?[0-9][0-9]?)$/.test(ipaddress)
+    return /^(25[0-5]|2[0-4][0-9]|[01]?[0-9][0-9]?)\.(25[0-5]|2[0-4][0-9]|[01]?[0-9][0-9]?)\.(25[0-5]|2[0-4][0-9]|[01]?[0-9][0-9]?)\.(25[0-5]|2[0-4][0-9]|[01]?[0-9][0-9]?)$/.test(ipaddress);
   }
 
   let ret = TYPE_MAP[toString.call(item)] || 'object';
@@ -126,9 +126,10 @@ export function spaceship(a, b) {
 }
 
 export function octet(a, b) {
-  const num1 = Number(a.split(".").map((num) => (`000${num}`).slice(-3) ).join(""));
-  const num2 = Number(b.split(".").map((num) => (`000${num}`).slice(-3) ).join(""));
-  return num1-num2;
+  const num1 = Number(a.split('.').map((num) => (`000${ num }`).slice(-3) ).join(''));
+  const num2 = Number(b.split('.').map((num) => (`000${ num }`).slice(-3) ).join('""'));
+
+  return num1 - num2;
 }
 
 const TYPE_ORDER = {
@@ -160,7 +161,7 @@ export function compare(a, b) {
   case 'number':
     return spaceship(a, b);
   case 'octet':
-      return octet(a, b);
+    return octet(a, b);
   case 'string':
     return spaceship(a.localeCompare(b), 0);
 
