@@ -94,7 +94,19 @@ export function typeOf(item) {
   if (item === undefined) {
     return 'undefined';
   }
+
+  function ValidateIPaddress(ipaddress) {
+    return /^(25[0-5]|2[0-4][0-9]|[01]?[0-9][0-9]?)\.(25[0-5]|2[0-4][0-9]|[01]?[0-9][0-9]?)\.(25[0-5]|2[0-4][0-9]|[01]?[0-9][0-9]?)\.(25[0-5]|2[0-4][0-9]|[01]?[0-9][0-9]?)$/.test(ipaddress)
+  }
+
   let ret = TYPE_MAP[toString.call(item)] || 'object';
+
+  if (isNumeric(item)) {
+    ret = 'number';
+  }
+  if (ValidateIPaddress(item)) {
+    ret = 'octet';
+  }
 
   if (ret === 'object') {
     if (item instanceof Error) {
@@ -111,6 +123,12 @@ export function spaceship(a, b) {
   const diff = a - b;
 
   return (diff > 0) - (diff < 0);
+}
+
+export function octet(a, b) {
+  const num1 = Number(a.split(".").map((num) => (`000${num}`).slice(-3) ).join(""));
+  const num2 = Number(b.split(".").map((num) => (`000${num}`).slice(-3) ).join(""));
+  return num1-num2;
 }
 
 const TYPE_ORDER = {
@@ -141,7 +159,8 @@ export function compare(a, b) {
   case 'boolean':
   case 'number':
     return spaceship(a, b);
-
+  case 'octet':
+      return octet(a, b);
   case 'string':
     return spaceship(a.localeCompare(b), 0);
 

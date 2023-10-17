@@ -15,6 +15,13 @@ describe('fx: sort', () => {
       testSortBy(ary, key, expected);
     });
 
+    it.only.each([
+      [[{ a: '989' }, { a: '895' }, { a: '9' }], ['a'], [{ a: '9' }, { a: '895' }, { a: '989' }]],
+      [[{ a: '2.55.17.196' }, { a: '2.2.17.2' }], ['a'], [{ a: '2.2.17.2' }, { a: '2.55.17.196' }]],
+    ])('should sort by number', (ary, key, expected) => {
+      testSortBy(ary, key, expected);
+    });
+
     it.each([
       [[{ a: 1, b: 1 }, { a: 9, b: 9 }], ['a', 'b'], [{ a: 1, b: 1 }, { a: 9, b: 9 }]],
       [[{ a: 2, b: 2 }, { a: 1, b: 1 }], ['a', 'b'], [{ a: 1, b: 1 }, { a: 2, b: 2 }]],
