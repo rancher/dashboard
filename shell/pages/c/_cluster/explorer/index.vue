@@ -28,7 +28,7 @@ import {
 } from '@shell/config/table-headers';
 
 import { mapPref, PSP_DEPRECATION_BANNER } from '@shell/store/prefs';
-import { haveV1Monitoring, monitoringStatus } from '@shell/utils/monitoring';
+import { haveV1Monitoring, monitoringStatus, canViewGrafanaLink } from '@shell/utils/monitoring';
 import Tabbed from '@shell/components/Tabbed';
 import Tab from '@shell/components/Tabbed/Tab';
 import { allDashboardsExist } from '@shell/utils/grafana';
@@ -103,6 +103,10 @@ export default {
         `Determine etcd metrics`
       );
 
+      // It's not enough to check that the grafana links are working for the current user; embedded cluster-level dashboards should only be shown if the user can view the grafana endpoint
+      // https://github.com/rancher/dashboard/issues/9792
+      setPromiseResult(canViewGrafanaLink(this.$store), this, 'canViewMetrics', 'Determine Grafana Permission');
+
       if (this.currentCluster.isLocal && this.$store.getters['management/schemaFor'](MANAGEMENT.NODE)) {
         this.$store.dispatch('management/findAll', { type: MANAGEMENT.NODE });
       }
@@ -125,6 +129,7 @@ export default {
       showClusterMetrics: false,
       showK8sMetrics:     false,
       showEtcdMetrics:    false,
+      canViewMetrics:     false,
       CLUSTER_METRICS_DETAIL_URL,
       CLUSTER_METRICS_SUMMARY_URL,
       K8S_METRICS_DETAIL_URL,
@@ -346,7 +351,7 @@ export default {
     },
 
     hasMetricsTabs() {
-      return this.showClusterMetrics || this.showK8sMetrics || this.showEtcdMetrics;
+      return this.canViewMetrics && ( this.showClusterMetrics || this.showK8sMetrics || this.showEtcdMetrics);
     },
 
     hasBadge() {
