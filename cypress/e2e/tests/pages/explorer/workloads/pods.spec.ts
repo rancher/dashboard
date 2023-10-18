@@ -11,7 +11,7 @@ describe('Cluster Explorer', () => {
     describe('Pods', () => {
       const workloadsPodPage = new WorkloadsPodsListPagePo('local');
 
-      describe('Should open a terminal', { tags: ['@adminUser', '@standardUser'] }, () => {
+      describe('Should open a terminal', { tags: ['@explorer', '@admin', '@standardUser'] }, () => {
         beforeEach(() => {
           workloadsPodPage.goTo();
         });
@@ -23,7 +23,7 @@ describe('Cluster Explorer', () => {
         });
       });
 
-      describe('When cloning a pod', { tags: ['@adminUser'] }, () => {
+      describe('When cloning a pod', { tags: ['@explorer', '@admin'] }, () => {
         const { name: origPodName, namespace } = createPodBlueprint.metadata;
         const { name: clonePodName } = clonePodBlueprint.metadata;
 

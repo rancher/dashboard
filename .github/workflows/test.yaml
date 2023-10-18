@@ -31,9 +31,18 @@ jobs:
   e2e-test:
     if: "!contains( github.event.pull_request.labels.*.name, 'ci/skip-e2e')"
     strategy:
+      fail-fast: false
       matrix:
         role: [admin, standardUser]
-        specs:  [global-ui, navigation, pages]
+        feature:  [
+         '@navigation+@extensions',
+         '@charts',
+         '@explorer',
+         '@fleet',
+         '@generic+@globalSettings',
+         '@manager',
+         '@userMenu+@usersAndAuths'
+        ]
     runs-on: ubuntu-latest
     steps:
       - uses: actions/checkout@v3
@@ -60,31 +69,30 @@ jobs:
       
       - name: Setup Rancher and user
         run: |
-          yarn e2e:prod --spec "cypress/e2e/tests/setup/**/*"
-          yarn docker:local:stop
+          yarn e2e:prod
           [ "$BUILD_DASHBOARD" != "false" ] || exit 0
         env: 
-          GREP_TAGS: ${{ matrix.role }}Setup
+          GREP_TAGS: ${{ matrix.feature }}
           TEST_USERNAME: admin
+          TEST_ONLY: setup
       
       - name: Run user tests
         run: |
-          yarn e2e:prod --spec "cypress/e2e/tests/${{ matrix.specs }}/**/*"
-          yarn docker:local:stop
+          yarn e2e:prod
           [ "$BUILD_DASHBOARD" != "false" ] || exit 0
           mkdir -p coverage-artifacts/coverage
           cp coverage/e2e/coverage-final.json coverage-artifacts/coverage/coverage-e2e.json
           cp -r coverage/e2e/ coverage-artifacts/coverage/e2e/
         env: 
-          TEST_SKIP_SETUP: true
-          GREP_TAGS: ${{ matrix.role }}
+          TEST_SKIP: setup
+          GREP_TAGS: ${{ '@'}}${{ matrix.role }}+${{ matrix.feature }}
           TEST_USERNAME: ${{ matrix.role }}
         
       - name: Upload coverage
         uses: actions/upload-artifact@v3
         if: env.BUILD_DASHBOARD != 'false'
         with:
-          name: ${{github.run_number}}-${{github.run_attempt}}-coverage-${{ matrix.role }}-${{ matrix.specs }}
+          name: ${{github.run_number}}-${{github.run_attempt}}-coverage-${{ matrix.role }}-${{ matrix.feature }}
           path: coverage-artifacts/**/*
           
       - name: Upload screenshots

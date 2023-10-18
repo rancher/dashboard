@@ -2,7 +2,7 @@ import { FleetClusterListPagePo } from '@/cypress/e2e/po/pages/fleet/fleet.cattl
 import { MenuActions } from '@/cypress/support/types/menu-actions';
 
 describe('Fleet Clusters', () => {
-  describe('List', () => {
+  describe('List', { tags: ['@fleet', '@admin'] }, () => {
     let fleetClusterListPage: FleetClusterListPagePo;
 
     beforeEach(() => {

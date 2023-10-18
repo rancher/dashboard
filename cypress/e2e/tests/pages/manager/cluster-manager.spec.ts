@@ -28,7 +28,7 @@ const importGenericName = `${ clusterNamePartial }-import-generic`;
 
 const downloadsFolder = Cypress.config('downloadsFolder');
 
-describe('Cluster Manager', { testIsolation: 'off', tags: '@adminUser' }, () => {
+describe('Cluster Manager', { testIsolation: 'off', tags: ['@manager', '@admin'] }, () => {
   const clusterList = new ClusterManagerListPagePo('local');
 
   before(() => {

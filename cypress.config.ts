@@ -10,7 +10,7 @@ require('dotenv').config();
  */
 const hasCoverage = (process.env.TEST_INSTRUMENT === 'true') || false; // Add coverage if instrumented
 const testDirs = ['setup', 'pages', 'navigation', 'global-ui'];
-const skipSetup = process.env.TEST_SKIP_SETUP === 'true';
+const skipSetup = process.env.TEST_SKIP?.includes('setup') || process.env.TEST_SKIP_SETUP === 'true'; // Keep fallback for older configurations
 const baseUrl = (process.env.TEST_BASE_URL || 'https://localhost:8005').replace(/\/$/, '');
 const DEFAULT_USERNAME = 'admin';
 const username = process.env.TEST_USERNAME || DEFAULT_USERNAME;

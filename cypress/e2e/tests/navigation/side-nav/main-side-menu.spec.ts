@@ -8,19 +8,19 @@ describe('Side Menu: main', () => {
     HomePagePo.goTo();
     BurgerMenuPo.toggle();
   });
-  it('Opens and closes on menu icon click', { tags: ['@adminUser', '@standardUser'] }, () => {
+  it('Opens and closes on menu icon click', { tags: ['@navigation', '@admin', '@standardUser'] }, () => {
     BurgerMenuPo.checkOpen();
     BurgerMenuPo.toggle();
     BurgerMenuPo.checkClosed();
   });
 
-  it('Can display list of available clusters', { tags: '@adminUser' }, () => {
+  it('Can display list of available clusters', { tags: ['@navigation', '@admin'] }, () => {
     const burgerMenuPo = new BurgerMenuPo();
 
     burgerMenuPo.clusters().should('exist');
   });
 
-  it('Pinned and unpinned cluster', { tags: ['@adminUser', '@standardUser'] }, () => {
+  it('Pinned and unpinned cluster', { tags: ['@navigation', '@admin', '@standardUser'] }, () => {
     const burgerMenuPo = new BurgerMenuPo();
 
     burgerMenuPo.pinFirstCluster();
@@ -29,13 +29,13 @@ describe('Side Menu: main', () => {
     burgerMenuPo.clusterPinnedList().should('not.exist');
   });
 
-  it('Can display at least one menu category label', { tags: ['@adminUser', '@standardUser'] }, () => {
+  it('Can display at least one menu category label', { tags: ['@navigation', '@admin', '@standardUser'] }, () => {
     const burgerMenuPo = new BurgerMenuPo();
 
     burgerMenuPo.categories().should('have.length', 1);
   });
 
-  it('Should show tooltip on mouse-hover when the menu is collapsed', { tags: ['@adminUser', '@standardUser'] }, () => {
+  it('Should show tooltip on mouse-hover when the menu is collapsed', { tags: ['@navigation', '@admin', '@standardUser'] }, () => {
     const burgerMenuPo = new BurgerMenuPo();
 
     burgerMenuPo.clusters().first().trigger('mouseover');
@@ -45,7 +45,7 @@ describe('Side Menu: main', () => {
   });
 
   // TODO: #5966: Verify cause of race condition issue making navigation link not trigger
-  it.skip('Contains valid links', { tags: ['@adminUser', '@standardUser'] }, () => {
+  it.skip('Contains valid links', { tags: ['@navigation', '@admin', '@standardUser'] }, () => {
     const burgerMenuPo = new BurgerMenuPo();
     // Navigate through all the links
 

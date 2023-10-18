@@ -210,13 +210,13 @@ Reasons we are grouping our tests:
 - To add test coverage for different types of users
 - In the future support sets of tests specific to the context they run in (PR CI, overnight, etc).
 
-Tags currently in use are `@adminUser` and `@standardUser`.
+Tags currently in use are `@admin` and `@standardUser`.
 
-We use `GREP_TAGS` and `TEST_USERNAME` environment variables to execute all tests which contain @adminUser or @standardUser tags respectively:
+We use `GREP_TAGS` and `TEST_USERNAME` environment variables to execute all tests which contain @admin or @standardUser tags respectively:
 
 E.g. when running locally:
 ```
-GREP_TAGS=@adminUser TEST_USERNAME=admin yarn cy:run
+GREP_TAGS=@admin TEST_USERNAME=admin yarn cy:run
 
 OR 
 
