@@ -4,7 +4,7 @@ import isEmpty from 'lodash/isEmpty';
 import InstallRedirect from '@shell/utils/install-redirect';
 import AlertTable from '@shell/components/AlertTable';
 import { NAME, CHART_NAME } from '@shell/config/product/monitoring';
-import { CATALOG, ENDPOINTS, MONITORING } from '@shell/config/types';
+import { CATALOG, MONITORING } from '@shell/config/types';
 import { allHash } from '@shell/utils/promise';
 import { findBy } from '@shell/utils/array';
 import { getClusterPrefix } from '@shell/utils/grafana';
