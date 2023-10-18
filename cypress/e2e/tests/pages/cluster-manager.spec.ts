@@ -72,6 +72,25 @@ describe('Cluster Manager', { tags: '@adminUser' }, () => {
         detailRKE2ClusterPage.waitForPage(undefined, 'registration');
       });
 
+      it('can copy config to clipboard', () => {
+        clusterList.goTo();
+    
+        cy.intercept('POST', '*action=generateKubeconfig').as('copyKubeConfig');
+        clusterList.list().actionMenu(rke2CustomName).getMenuItem('Copy KubeConfig to Clipboard').click();
+        cy.wait('@copyKubeConfig');
+    
+        // Verify confirmation message displays and is hidden after ~3 sec
+        cy.get('.growl-text').contains('Copied KubeConfig to Clipboard').should('be.visible');
+        cy.get('.growl-text', { timeout: 4000 }).should('not.exist');
+    
+        // Skipping following assertion for now as it is failing due to Cypress' limitations with accessing the clipboard in Chrome browser and headless mode. Works in Electron browser
+        // see https://github.com/cypress-io/cypress/issues/2752
+    
+        // read text saved in the browser clipboard
+        // cy.window().its('navigator.clipboard')
+        //   .invoke('readText').should('include', rke2CustomName);
+      });
+
       it('can edit cluster and see changes afterwards', () => {
         clusterList.goTo();
         clusterList.list().actionMenu(rke2CustomName).getMenuItem('Edit Config').click();
@@ -112,6 +131,25 @@ describe('Cluster Manager', { tags: '@adminUser' }, () => {
           expect(obj.clusters[0].name).to.equal(rke2CustomName);
           expect(obj.apiVersion).to.equal('v1');
           expect(obj.kind).to.equal('Config');
+        });
+      });
+
+      it('can download YAML', () => {
+        // Delete downloads directory. Need a fresh start to avoid conflicting file names
+        cy.deleteDownloadsFolder();
+        
+        clusterList.goTo();
+        clusterList.list().actionMenu(rke2CustomName).getMenuItem('Download YAML').click();
+
+        const downloadedFilename = path.join(downloadsFolder, `${ rke2CustomName }.yaml`);
+
+        cy.readFile(downloadedFilename).then((buffer) => {
+          const obj: any = jsyaml.load(buffer);
+
+          // Basic checks on the downloaded YAML
+          expect(obj.apiVersion).to.equal('provisioning.cattle.io/v1');
+          expect(obj.metadata.annotations['field.cattle.io/description']).to.equal(rke2CustomName);
+          expect(obj.kind).to.equal('Cluster');
         });
       });
 
@@ -279,5 +317,11 @@ describe('Cluster Manager', { tags: '@adminUser' }, () => {
     clusterList.list().explore(clusterName).click();
 
     clusterDashboard.waitForPage(undefined, 'cluster-events');
+  });
+
+  it('can connect to kubectl shell', () => {
+    clusterList.goTo();
+    clusterList.list().actionMenu('local').getMenuItem('Kubectl Shell').click();
+    cy.contains('Connected').should('be.visible')
   });
 });
