@@ -165,13 +165,8 @@ describe('Cluster Manager', { testIsolation: 'off', tags: ['@manager', '@adminUs
       it('can download YAML', () => {
         // Delete downloads directory. Need a fresh start to avoid conflicting file names
         cy.deleteDownloadsFolder();
-<<<<<<< HEAD
 
         ClusterManagerListPagePo.navTo();
-=======
-        
-        clusterList.goTo();
->>>>>>> 8f3f78bdb (actions on cluster tests)
         clusterList.list().actionMenu(rke2CustomName).getMenuItem('Download YAML').click();
 
         const downloadedFilename = path.join(downloadsFolder, `${ rke2CustomName }.yaml`);
@@ -410,7 +405,6 @@ describe('Cluster Manager', { testIsolation: 'off', tags: ['@manager', '@adminUs
   });
 
   it('can connect to kubectl shell', () => {
-<<<<<<< HEAD
     ClusterManagerListPagePo.navTo();
     clusterList.list().actionMenu('local').getMenuItem('Kubectl Shell').click();
 
@@ -418,10 +412,5 @@ describe('Cluster Manager', { testIsolation: 'off', tags: ['@manager', '@adminUs
 
     shellPo.terminalStatus('Connected');
     shellPo.closeTerminal();
-=======
-    clusterList.goTo();
-    clusterList.list().actionMenu('local').getMenuItem('Kubectl Shell').click();
-    cy.contains('Connected').should('be.visible')
->>>>>>> 8f3f78bdb (actions on cluster tests)
   });
 });
