@@ -11,16 +11,11 @@ import { snakeCase } from 'lodash';
 export const getSpecPattern = (dirs: string[], envs: NodeJS.ProcessEnv): string[] => {
   // List the test directories to be included
   const activePaths = dirs
-    .map((dir) => ({
-      path:   `cypress/e2e/tests/${ dir }/**/*.spec.ts`,
-      active: !(envs[`TEST_SKIP_${ snakeCase(dir).toUpperCase() }`] === 'true')
-    }))
-    .filter(({ active }) => Boolean(active)).map(({ path }) => path);
+    .filter((dir) => !(envs[`TEST_SKIP_${ snakeCase(dir).toUpperCase() }`] === 'true'))
+    .map((dir) => `cypress/e2e/tests/${ dir }/**/*.spec.ts`);
 
   // eslint-disable-next-line no-console
   console.log(`Running tests for paths: ${ activePaths.join(', ') }`);
 
-  return [
-    ...activePaths,
-  ];
+  return activePaths;
 };
