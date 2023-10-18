@@ -112,7 +112,7 @@ export default defineConfig({
       require('@cypress/code-coverage/task')(on, config);
       require('@cypress/grep/src/plugin')(config);
       // For more info: https://www.npmjs.com/package/cypress-delete-downloads-folder
-      on('task', { removeDirectory })
+      on('task', { removeDirectory });
 
       return config;
     },
