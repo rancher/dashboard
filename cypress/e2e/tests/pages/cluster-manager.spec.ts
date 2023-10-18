@@ -74,18 +74,18 @@ describe('Cluster Manager', { tags: '@adminUser' }, () => {
 
       it('can copy config to clipboard', () => {
         clusterList.goTo();
-    
+
         cy.intercept('POST', '*action=generateKubeconfig').as('copyKubeConfig');
         clusterList.list().actionMenu(rke2CustomName).getMenuItem('Copy KubeConfig to Clipboard').click();
         cy.wait('@copyKubeConfig');
-    
+
         // Verify confirmation message displays and is hidden after ~3 sec
         cy.get('.growl-text').contains('Copied KubeConfig to Clipboard').should('be.visible');
         cy.get('.growl-text', { timeout: 4000 }).should('not.exist');
-    
+
         // Skipping following assertion for now as it is failing due to Cypress' limitations with accessing the clipboard in Chrome browser and headless mode. Works in Electron browser
         // see https://github.com/cypress-io/cypress/issues/2752
-    
+
         // read text saved in the browser clipboard
         // cy.window().its('navigator.clipboard')
         //   .invoke('readText').should('include', rke2CustomName);
@@ -137,7 +137,7 @@ describe('Cluster Manager', { tags: '@adminUser' }, () => {
       it('can download YAML', () => {
         // Delete downloads directory. Need a fresh start to avoid conflicting file names
         cy.deleteDownloadsFolder();
-        
+
         clusterList.goTo();
         clusterList.list().actionMenu(rke2CustomName).getMenuItem('Download YAML').click();
 
@@ -322,6 +322,6 @@ describe('Cluster Manager', { tags: '@adminUser' }, () => {
   it('can connect to kubectl shell', () => {
     clusterList.goTo();
     clusterList.list().actionMenu('local').getMenuItem('Kubectl Shell').click();
-    cy.contains('Connected').should('be.visible')
+    cy.contains('Connected').should('be.visible');
   });
 });
