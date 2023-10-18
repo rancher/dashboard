@@ -52,7 +52,7 @@ const vueDirective = Vue.directive;
 
 Vue.directive = function(name) {
   if (directiveNames[name]) {
-    console.log(`Can not override directive: ${ name }`);
+    console.log(`Can not override directive: ${ name }`); // eslint-disable-line no-console
 
     return;
   }
