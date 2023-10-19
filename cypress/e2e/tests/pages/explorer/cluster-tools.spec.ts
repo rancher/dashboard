@@ -27,15 +27,12 @@ describe('Cluster Tools', { tags: '@adminUser' }, () => {
     clusterTools.getChartVersion(0).invoke('text').then((el) => {
       const chartVersion = el.trim().slice(1);
 
-      const chartsPageUrl = '/c/local/apps/charts/install?repo-type=cluster&repo=rancher-charts';
       const chartType = 'rancher-alerting-drivers';
-
-      const installAlertingDriversPage = `${ chartsPageUrl }&chart=${ chartType }&version=${ chartVersion }&tools`;
-
-      const installCharts = new InstallChartsPage(installAlertingDriversPage);
+      const installAlertingDriversPage = `repo-type=cluster&repo=rancher-charts&chart=${ chartType }&version=${ chartVersion }&tools`;
+      const installCharts = new InstallChartsPage('local');
 
       clusterTools.goToInstall(0);
-      installCharts.waitForPage();
+      installCharts.waitForPage(installAlertingDriversPage);
       installCharts.nextPage();
 
       cy.intercept('POST', 'v1/catalog.cattle.io.clusterrepos/rancher-charts?action=install').as('chartInstall');
@@ -51,7 +48,7 @@ describe('Cluster Tools', { tags: '@adminUser' }, () => {
     clusterTools.waitForPage();
     clusterTools.editChart(0);
 
-    const installCharts = new InstallChartsPage();
+    const installCharts = new InstallChartsPage('local');
 
     installCharts.nextPage();
 

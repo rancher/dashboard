@@ -2,11 +2,16 @@ import PagePo from '@/cypress/e2e/po/pages/page.po';
 import AsyncButtonPo from '@/cypress/e2e/po/components/async-button.po';
 
 export class InstallChartsPage extends PagePo {
-  static url = '/c/local/apps/charts/install?repo-type=cluster&repo=rancher-charts'
+  private static createPath(clusterId: string) {
+    return `/c/${ clusterId }/apps/charts/install`;
+  }
 
-  constructor(pageUrl = InstallChartsPage.url) {
-    InstallChartsPage.url = pageUrl;
-    super(InstallChartsPage.url);
+  static goTo(clusterId: string): Cypress.Chainable<Cypress.AUTWindow> {
+    return super.goTo(InstallChartsPage.createPath(clusterId));
+  }
+
+  constructor(clusterId: string) {
+    super(InstallChartsPage.createPath(clusterId));
   }
 
   nextPage() {
