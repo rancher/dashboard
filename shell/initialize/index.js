@@ -1,7 +1,6 @@
 // Taken from @nuxt/vue-app/template/index.js
 
 import Vue from 'vue';
-import Meta from 'vue-meta';
 import ClientOnly from 'vue-client-only';
 import NoSsr from 'vue-no-ssr';
 import { createRouter } from '../config/router.js';
@@ -84,10 +83,6 @@ Object.defineProperty(Vue.prototype, '$nuxt', {
     return globalNuxt;
   },
   configurable: true
-});
-
-Vue.use(Meta, {
-  keyName: 'head', attribute: 'data-n-head', ssrAttribute: 'data-n-head-ssr', tagIDKeyName: 'hid'
 });
 
 const defaultTransition = {
