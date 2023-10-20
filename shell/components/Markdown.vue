@@ -13,8 +13,8 @@ export default {
 
   data() {
     return {
-      loaded:    false,
-      marked:    null,
+      loaded: false,
+      marked: null,
     };
   },
 
