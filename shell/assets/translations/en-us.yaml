@@ -851,9 +851,6 @@ catalog:
       keywords: Keywords
     errors:
       clusterToolExists: This chart has a fixed namespace and name. A matching <a href="{url}">application</a> has been found and any changes will be made to it.
-    banner:
-      legacy: 'PSP Removal: Before upgrading a cluster to Kubernetes 1.25+, please ensure you review your Helm applications for Pod Security Policies and update them accordingly'
-    enablePSP: Enable Pod Security Policies
     global: Global
   charts:
     all: All
@@ -1673,10 +1670,7 @@ cluster:
     os: 'You are attempting to add a {newOS} worker node to a cluster with one or more {existingOS} worker nodes: some installed apps may need to be upgraded or removed.'
     rke2-k3-reprovisioning: 'Making changes to cluster configuration may result in nodes reprovisioning. For more information see the <a target="blank" href="{docsBase}/cluster-provisioning/rke-clusters/behavior-differences-between-rke1-and-rke2/" target="_blank" rel="noopener nofollow">documentation</a>.'
     desiredNodeGroupWarning: There are 0 nodes available to run the cluster agent. The cluster will not become active until at least one node is available.
-    invalidPsps: You have one or more PodSecurityPolicy resource(s) in this cluster. Pod Security Policies are not available in Kubernetes v1.25 and will be automatically removed.
     haveArgInfo: Configuration information is not available for the selected Kubernetes version.  The options available on this screen will be limited; you may want to use the YAML editor.
-    deprecatedPsp: Pod Security Policies are deprecated as of Kubernetes v1.21, and have been removed in Kubernetes v1.25.
-    removedPsp: Pod Security Policies have been removed in Kubernetes v1.25. Use Pod Security Admission instead.
     cloudProviderAddConfig: 'On Kubernetes 1.27 or greater, the Amazon Cloud Provider requires additional configuration. See <a href="https://ranchermanager.docs.rancher.com/how-to-guides/new-user-guides/kubernetes-clusters-in-rancher-setup/set-up-cloud-providers/amazon" target="_blank" rel="noopener noreferrer nofollow">the documentation</a> for more information.'
     machinePoolError: |-
       {count, plural,
@@ -1843,9 +1837,6 @@ cluster:
       cisOverride: Changing this setting may affect cluster security as it overrides default CIS settings
       cisUnsupported: The selected Kubernetes Version no longer supports CIS Profile "{cisProfile}". Please select a supported profile. We recommend reviewing the <a href="https://docs.rke2.io/security/hardening_guide" target="_blank" rel="noopener noreferrer nofollow">documentation</a> to evaluate the impact of changing the CIS Profile.
     modal:
-      pspChange:
-        title: Pod Security Policy deprecation
-        body: <p>Kubernetes has removed support for Pod Security Policies (PSPs) starting with version 1.25. If your cluster has PodSecurityPolicy admission controller enabled via "kube-apiserver-arg.enable-admission-plugins" in Cluster YAML, it has to be <i>manually</i> removed before proceeding with the upgrade. Additionally, any PSPs that may be present in the cluster will no longer be available/enforced. Do you want to proceed?</p>
       editYamlMachinePool:
         title: Save Machine Configurations
         body: Machine Configurations define how machines in Pools are deployed.<br><br> They will be saved upfront to ensure valid Cluster YAML can be saved.
@@ -2767,8 +2758,6 @@ landing:
   whatsNewLink: "What's new in 2.8"
   learnMore: Learn More
   support: Support
-  psps: PSPs
-  deprecatedPsp: Pod Security Policies are deprecated as of Kubernetes v1.21, and have been removed in Kubernetes v1.25. You have one or more PodSecurityPolicy resource(s) in this cluster.
   community:
     title: Community Support
     docs: Docs
@@ -4342,10 +4331,6 @@ project:
   vmDefaultResourceLimit: VM Default Resource Limit
   resourceQuotas: Resource Quotas
   haveOneOwner: There must be at least one member with the Owner role.
-  psp:
-    default: Cluster Default
-    label: Pod Security Policy
-    current: "{value} (Current)"
 
 
 projectMembers:
@@ -4651,9 +4636,6 @@ rbac:
       nodetemplates-manage:
         label: Manage Node Templates
         description: Allows the user to define, edit, and remove Node Templates.
-      podsecuritypolicytemplates-manage:
-        label: Manage Pod Security Policies (PSPs)
-        description: Allows the user to define, edit, and remove PSPs.
       roles-manage:
         label: Manage Roles
         description: Allows the user to define, edit, and remove Role definitions.
@@ -7398,7 +7380,6 @@ legacy:
   globalDnsProviders: Global DNS Providers
   notifiers: Notifiers
   monitoring: Monitoring
-  psps: Pod Security Policy Templates
   secrets: Secrets
 
   project:

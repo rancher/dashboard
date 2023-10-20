@@ -12,7 +12,6 @@ import { LabeledInput } from '@components/Form/LabeledInput';
 import Loading from '@shell/components/Loading';
 import Prometheus from '@shell/chart/monitoring/prometheus';
 import Tab from '@shell/components/Tabbed/Tab';
-import ChartPsp from '@shell/components/ChartPsp';
 
 import { allHash } from '@shell/utils/promise';
 import { STORAGE_CLASS, PVC, SECRET, WORKLOAD_TYPES } from '@shell/config/types';
@@ -26,8 +25,7 @@ export default {
     LabeledInput,
     Loading,
     Prometheus,
-    Tab,
-    ChartPsp
+    Tab
   },
 
   hasTabs: true,
@@ -265,12 +263,6 @@ export default {
             />
           </div>
         </div>
-
-        <!-- Conditionally display PSP checkbox -->
-        <ChartPsp
-          :value="value"
-          :cluster="currentCluster"
-        />
       </div>
     </Tab>
     <Tab
