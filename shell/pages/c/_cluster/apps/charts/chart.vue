@@ -8,7 +8,7 @@ import DateFormatter from '@shell/components/formatter/Date';
 import isEqual from 'lodash/isEqual';
 import { CHART, REPO, REPO_TYPE, VERSION } from '@shell/config/query-params';
 import { mapGetters } from 'vuex';
-import { compatibleVersionsFor } from '@shell/utils/chart';
+import { compatibleVersionsFor } from '@shell/store/catalog';
 import TypeDescription from '@shell/components/TypeDescription';
 export default {
   components: {

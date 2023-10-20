@@ -16,7 +16,7 @@ import { Checkbox } from '@components/Form/Checkbox';
 import Select from '@shell/components/form/Select';
 import { mapPref, HIDE_REPOS, SHOW_PRE_RELEASE, SHOW_CHART_MODE } from '@shell/store/prefs';
 import { removeObject, addObject, findBy } from '@shell/utils/array';
-import { compatibleVersionsFor, filterAndArrangeCharts } from '@shell/utils/chart';
+import { compatibleVersionsFor, filterAndArrangeCharts } from '@shell/store/catalog';
 import { CATALOG } from '@shell/config/labels-annotations';
 import { isUIPlugin } from '@shell/config/uiplugins';
 
