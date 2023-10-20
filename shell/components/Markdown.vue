@@ -15,7 +15,6 @@ export default {
     return {
       loaded:    false,
       marked:    null,
-      dompurify: null,
     };
   },
 
@@ -26,15 +25,10 @@ export default {
         breaks:   true
       });
     },
-
-    sanitized() {
-      return this.dompurify.sanitize(this.html);
-    },
   },
 
   async mounted() {
     const marked = (await import(/* webpackChunkName: "markdown" */ 'marked'));
-    const dompurify = (await import(/* webpackChunkName: "markdown" */ 'dompurify')).default;
 
     const renderer = new marked.Renderer();
     const linkRenderer = renderer.link;
@@ -63,11 +57,8 @@ export default {
       return rendered;
     };
 
-    dompurify.setConfig({ ADD_ATTR: ['target'] });
-
     this.marked = marked;
     this.markedRenderer = renderer;
-    this.dompurify = dompurify;
     this.loaded = true;
     this.$emit('loaded', true);
   }
@@ -77,7 +68,7 @@ export default {
 <template>
   <div
     v-if="loaded"
-    v-clean-html="sanitized"
+    v-clean-html="html"
     class="markdown"
   />
   <Loading v-else />
