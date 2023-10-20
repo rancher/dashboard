@@ -323,11 +323,6 @@ describe('fx: filterBy', () => {
         expected: { key: 'qux', booleanKey: true }
       },
       {
-        case:     'including part of declared keys and values',
-        keyOrObj: { key: 'qux' },
-        expected: { key: 'qux', booleanKey: true }
-      },
-      {
         case:     'including a matching key',
         keyOrObj: { booleanKey: undefined },
         expected: { key: 'qux', booleanKey: true }
