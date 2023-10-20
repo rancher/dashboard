@@ -313,10 +313,17 @@ Cypress.Commands.add('requestBase64Image', (url: string) => {
  * Get a v3 / v1 resource
  * url is constructed based if resourceId is supplied or not
  */
+
 Cypress.Commands.add('getRancherResource', (prefix, resourceType, resourceId?, expectedStatusCode = 200) => {
+  let url = `${ Cypress.env('api') }/${ prefix }/${ resourceType }`;
+
+  if (resourceId) {
+    url += `/${ resourceId }`;
+  }
+
   return cy.request({
     method:  'GET',
-    url:     resourceId ? `${ Cypress.env('api') }/${ prefix }/${ resourceType }/${ resourceId }` : `${ Cypress.env('api') }/${ prefix }/${ resourceType }`,
+    url,
     headers: {
       'x-api-csrf': token.value,
       Accept:       'application/json'
