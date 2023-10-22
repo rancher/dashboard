@@ -5,8 +5,8 @@ import { WorkloadsPodsListPagePo } from '@/cypress/e2e/po/pages/explorer/workloa
 const clusterDashboard = new ClusterDashboardPagePo('local');
 const namespacePicker = new NamespaceFilterPo();
 
-describe('Namespace picker', () => {
-  beforeEach(() => {
+describe('Namespace picker', { testIsolation: 'off' }, () => {
+  before(() => {
     cy.login();
   });
 
