@@ -276,7 +276,7 @@ export default {
       this.socket.addEventListener(EVENT_MESSAGE, (e) => {
         const data = base64Decode(e.detail.data);
 
-        // Websocket message may contain multiple lines - loop through each line, one by one 
+        // Websocket message may contain multiple lines - loop through each line, one by one
         data.split('\n').forEach((line) => {
           let msg = line;
           let time = null;
