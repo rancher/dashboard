@@ -6,6 +6,11 @@ export const harborAPI = (spec = { harborVersion: '', harborServer: '' }) => {
   let { harborVersion, harborServer, store } = spec;
   let baseUrl = '';
   const request = {};
+  const checkBaseUrl = () => {
+    if (!baseUrl) {
+      throw new Error('Base URL Can Not Be Empty');
+    }
+  };
   const updateBaseUrl = () => {
     baseUrl = `/meta/harbor/${ harborServer.replace('//', '/').replace(/\/+$/, '') }/api${ harborVersion === 'v1' || !harborVersion ? '' : `/${ harborVersion }` }`;
   };
@@ -84,6 +89,8 @@ export const harborAPI = (spec = { harborVersion: '', harborServer: '' }) => {
   };
 
   const fetchSystemInfo = () => {
+    checkBaseUrl();
+
     return store.dispatch('management/request', {
       url:     `${ baseUrl }/systeminfo`,
       headers: { 'X-API-Harbor-Admin-Header': store.getters['auth/isAdmin'] },
@@ -92,6 +99,7 @@ export const harborAPI = (spec = { harborVersion: '', harborServer: '' }) => {
   };
 
   const removeProjects = (projectIds) => {
+    checkBaseUrl();
     const promises = projectIds.map((id) => store.dispatch('management/request', {
       url:     `${ baseUrl }/projects/${ id }`,
       headers: { 'X-API-Harbor-Admin-Header': store.getters['auth/isAdmin'] },
@@ -102,6 +110,8 @@ export const harborAPI = (spec = { harborVersion: '', harborServer: '' }) => {
   };
 
   const createProject = (project) => {
+    checkBaseUrl();
+
     return store.dispatch('management/request', {
       url:     `${ baseUrl }/projects`,
       headers: { 'X-API-Harbor-Admin-Header': store.getters['auth/isAdmin'] },
@@ -111,6 +121,8 @@ export const harborAPI = (spec = { harborVersion: '', harborServer: '' }) => {
   };
 
   const fetchProject = (id) => {
+    checkBaseUrl();
+
     return store.dispatch('management/request', {
       url:     `${ baseUrl }/projects/${ id }`,
       headers: { 'X-API-Harbor-Admin-Header': store.getters['auth/isAdmin'] },
@@ -119,6 +131,8 @@ export const harborAPI = (spec = { harborVersion: '', harborServer: '' }) => {
   };
 
   const fetchAdminConfig = () => {
+    checkBaseUrl();
+
     return store.dispatch('management/request', {
       url:     `${ baseUrl }/configurations`,
       headers: { 'X-API-Harbor-Admin-Header': store.getters['auth/isAdmin'] },
@@ -130,7 +144,9 @@ export const harborAPI = (spec = { harborVersion: '', harborServer: '' }) => {
     return store.dispatch('management/find', { type: MANAGEMENT.SETTING, id: 'harbor-admin-auth' });
   };
 
-  const testHarborAccount = () => {
+  const fetchAccount = () => {
+    checkBaseUrl();
+
     return store.dispatch('management/request', {
       url:     `${ baseUrl }/users/current`,
       headers: { 'X-API-Harbor-Admin-Header': store.getters['auth/isAdmin'] },
@@ -151,9 +167,8 @@ export const harborAPI = (spec = { harborVersion: '', harborServer: '' }) => {
     return setting.save();
   };
 
-  const saveHarborAccount = async(url, u, p, v) => { // for store.getters['auth/isAdmin'] user
-    const removeConfig = url === '' && u === '' && p === '';
-
+  const removeHarborAccount = async() => { // for store.getters['auth/isAdmin'] user
+    checkBaseUrl();
     const serverSetting = store.dispatch('management/find', { type: MANAGEMENT.SETTING, id: 'harbor-server-url' });
     const authSetting = store.dispatch('management/find', { type: MANAGEMENT.SETTING, id: 'harbor-admin-auth' });
     const authModeSetting = store.dispatch('management/find', { type: MANAGEMENT.SETTING, id: 'harbor-auth-mode' });
@@ -167,37 +182,12 @@ export const harborAPI = (spec = { harborVersion: '', harborServer: '' }) => {
       }, { root: true });
     }
 
-    if (removeConfig) {
-      serverSetting.value = '';
-      authSetting.vaue = '';
-      authModeSetting.value = '';
-      versionSetting.value = '';
+    serverSetting.value = '';
+    authSetting.vaue = '';
+    authModeSetting.value = '';
+    versionSetting.value = '';
 
-      return Promise.all([serverSetting.save(), authSetting.save(), authModeSetting.save(), versionSetting.save()]);
-    }
-
-    const resp = await fetchSystemInfo();
-    const data = resp.body || {};
-    const authMode = data.auth_mode;
-
-    const disabledEncryption = store.getters['management/byId'](MANAGEMENT.SETTING, SETTING.DISABLE_PASSWORD_ENCRYPT);
-
-    await store.dispatch('management/request', {
-      url:    `/v3/users?action=saveharborconfig`,
-      method: 'POST',
-      data:   {
-        serverURL: url.replace(/\/+$/, ''),
-        username:  u,
-        password:  disabledEncryption?.value === 'true' ? p : AESEncrypt(p.trim()),
-        version:   v,
-      }
-    });
-    serverSetting.value = url.replace(/\/+$/, '');
-    authSetting.vaue = u;
-    authModeSetting.value = authMode;
-    versionSetting.value = v;
-
-    return Promise.all([serverSetting.save(), authSetting.save(), authModeSetting.save(), versionSetting.save(), Promise.resolve({ harborSystemInfo: data })]);
+    return Promise.all([serverSetting.save(), authSetting.save(), authModeSetting.save(), versionSetting.save()]);
   };
 
   const syncHarborAccount = (params) => {
@@ -218,6 +208,8 @@ export const harborAPI = (spec = { harborVersion: '', harborServer: '' }) => {
   };
 
   const testEmailServer = (config) => {
+    checkBaseUrl();
+
     return store.dispatch('management/request', {
       url:     `${ baseUrl }/email/ping`,
       headers: { 'X-API-Harbor-Admin-Header': store.getters['auth/isAdmin'] },
@@ -227,6 +219,8 @@ export const harborAPI = (spec = { harborVersion: '', harborServer: '' }) => {
   };
 
   const updateAdminConfig = (config) => {
+    checkBaseUrl();
+
     return store.dispatch('management/request', {
       url:     `${ baseUrl }/configurations`,
       headers: { 'X-API-Harbor-Admin-Header': store.getters['auth/isAdmin'] },
@@ -236,6 +230,7 @@ export const harborAPI = (spec = { harborVersion: '', harborServer: '' }) => {
   };
 
   const fetchLabels = (param) => {
+    checkBaseUrl();
     const p = Object.keys(param).map((k) => `${ k }=${ param[k] }`);
 
     return store.dispatch('management/request', {
@@ -246,6 +241,8 @@ export const harborAPI = (spec = { harborVersion: '', harborServer: '' }) => {
   };
 
   const updateLabel = (label) => {
+    checkBaseUrl();
+
     return store.dispatch('management/request', {
       url:     `${ baseUrl }/labels/${ label.id }`,
       headers: { 'X-API-Harbor-Admin-Header': store.getters['auth/isAdmin'] },
@@ -255,6 +252,8 @@ export const harborAPI = (spec = { harborVersion: '', harborServer: '' }) => {
   };
 
   const createLabel = (label) => {
+    checkBaseUrl();
+
     return store.dispatch('management/request', {
       url:     `${ baseUrl }/labels`,
       headers: { 'X-API-Harbor-Admin-Header': store.getters['auth/isAdmin'] },
@@ -264,6 +263,7 @@ export const harborAPI = (spec = { harborVersion: '', harborServer: '' }) => {
   };
 
   const removeLabels = (labelIds) => {
+    checkBaseUrl();
     const promises = labelIds.map((id) => store.dispatch('management/request', {
       url:     `${ baseUrl }/labels/${ id }`,
       headers: { 'X-API-Harbor-Admin-Header': store.getters['auth/isAdmin'] },
@@ -274,6 +274,8 @@ export const harborAPI = (spec = { harborVersion: '', harborServer: '' }) => {
   };
 
   const fetchSchedule = () => {
+    checkBaseUrl();
+
     return store.dispatch('management/request', {
       url:     `${ baseUrl }/system/gc/schedule`,
       headers: { 'X-API-Harbor-Admin-Header': store.getters['auth/isAdmin'] },
@@ -282,6 +284,8 @@ export const harborAPI = (spec = { harborVersion: '', harborServer: '' }) => {
   };
 
   const updateSchedule = (s) => {
+    checkBaseUrl();
+
     return store.dispatch('management/request', {
       url:     `${ baseUrl }/system/gc/schedule`,
       headers: { 'X-API-Harbor-Admin-Header': store.getters['auth/isAdmin'] },
@@ -291,6 +295,8 @@ export const harborAPI = (spec = { harborVersion: '', harborServer: '' }) => {
   };
 
   const getProjectDetail = (id) => {
+    checkBaseUrl();
+
     return store.dispatch('management/request', {
       url:     `${ baseUrl }/projects/${ id }`,
       headers: { 'X-API-Harbor-Admin-Header': store.getters['auth/isAdmin'] },
@@ -299,6 +305,7 @@ export const harborAPI = (spec = { harborVersion: '', harborServer: '' }) => {
   };
 
   const fetchRepo = (param) => {
+    checkBaseUrl();
     const p = Object.entries(param).map((item) => `${ item[0] }=${ item[1] }`).join('&');
 
     return store.dispatch('management/request', {
@@ -309,6 +316,7 @@ export const harborAPI = (spec = { harborVersion: '', harborServer: '' }) => {
   };
 
   const deleteRepos = (names) => {
+    checkBaseUrl();
     const promises = names.map((n) => store.dispatch('management/request', {
       url:     `${ baseUrl }/repositories/${ n }`,
       headers: { 'X-API-Harbor-Admin-Header': store.getters['auth/isAdmin'] },
@@ -319,6 +327,8 @@ export const harborAPI = (spec = { harborVersion: '', harborServer: '' }) => {
   };
 
   const fetchTags = (projectId, name) => {
+    checkBaseUrl();
+
     return store.dispatch('management/request', {
       url:     `${ baseUrl }/repositories/${ name }/tags?detail=${ projectId }`,
       headers: { 'X-API-Harbor-Admin-Header': store.getters['auth/isAdmin'] },
@@ -327,6 +337,7 @@ export const harborAPI = (spec = { harborVersion: '', harborServer: '' }) => {
   };
 
   const removeTags = (repo, tags) => {
+    checkBaseUrl();
     const promises = tags.map((tag) => store.dispatch('management/request', {
       url:     `${ baseUrl }/repositories/${ repo }/tags/${ tag }`,
       headers: { 'X-API-Harbor-Admin-Header': store.getters['auth/isAdmin'] },
@@ -337,6 +348,8 @@ export const harborAPI = (spec = { harborVersion: '', harborServer: '' }) => {
   };
 
   const addTagLabels = (repo, tag, labelIds) => {
+    checkBaseUrl();
+
     return labelIds.map((labelId) => store.dispatch('management/request', {
       url:     `${ baseUrl }/repositories/${ repo }/tags/${ tag }/labels`,
       headers: { 'X-API-Harbor-Admin-Header': store.getters['auth/isAdmin'] },
@@ -346,6 +359,7 @@ export const harborAPI = (spec = { harborVersion: '', harborServer: '' }) => {
   };
 
   const removeTagLabels = (repo, tag, labelIds) => {
+    checkBaseUrl();
     const promises = labelIds.map((labelId) => store.dispatch('management/request', {
       url:     `${ baseUrl }/repositories/${ repo }/tags/${ tag }/labels/${ labelId }`,
       headers: { 'X-API-Harbor-Admin-Header': store.getters['auth/isAdmin'] },
@@ -356,6 +370,8 @@ export const harborAPI = (spec = { harborVersion: '', harborServer: '' }) => {
   };
 
   const setProjectPublic = (s, id) => {
+    checkBaseUrl();
+
     return store.dispatch('management/request', {
       url:     `${ baseUrl }/projects/${ id }`,
       headers: { 'X-API-Harbor-Admin-Header': store.getters['auth/isAdmin'] },
@@ -365,6 +381,8 @@ export const harborAPI = (spec = { harborVersion: '', harborServer: '' }) => {
   };
 
   const fetchProjectsAndImages = (q) => {
+    checkBaseUrl();
+
     return store.dispatch('management/request', {
       url:     `${ baseUrl }/search?q=${ encodeURIComponent(q) }`,
       headers: { 'X-API-Harbor-Admin-Header': store.getters['auth/isAdmin'] },
@@ -373,6 +391,8 @@ export const harborAPI = (spec = { harborVersion: '', harborServer: '' }) => {
   };
 
   const addProjectUser = (params, id) => {
+    checkBaseUrl();
+
     return store.dispatch('management/request', {
       url:     `${ baseUrl }/projects/${ id }/members`,
       headers: { 'X-API-Harbor-Admin-Header': store.getters['auth/isAdmin'] },
@@ -382,6 +402,7 @@ export const harborAPI = (spec = { harborVersion: '', harborServer: '' }) => {
   };
 
   const projectChangeRole = (id, memeberIds, params) => {
+    checkBaseUrl();
     const promises = memeberIds.map((memeberId) => store.dispatch('management/request', {
       url:     `${ baseUrl }/projects/${ id }/members/${ memeberId }`,
       headers: { 'X-API-Harbor-Admin-Header': store.getters['auth/isAdmin'] },
@@ -393,6 +414,7 @@ export const harborAPI = (spec = { harborVersion: '', harborServer: '' }) => {
   };
 
   const projectDeleteMemberRole = (id, memeberIds) => {
+    checkBaseUrl();
     const promises = memeberIds.map((memeberId) => store.dispatch('management/request', {
       url:     `${ baseUrl }/projects/${ id }/members/${ memeberId }`,
       headers: { 'X-API-Harbor-Admin-Header': store.getters['auth/isAdmin'] },
@@ -403,6 +425,7 @@ export const harborAPI = (spec = { harborVersion: '', harborServer: '' }) => {
   };
 
   const fetchProjects = (p) => {
+    checkBaseUrl();
     const params = Object.entries(p).filter((p) => p[1] !== '').map((p) => `${ p[0] }=${ p[1] }`).join('&');
 
     return store.dispatch('management/request', {
@@ -413,6 +436,7 @@ export const harborAPI = (spec = { harborVersion: '', harborServer: '' }) => {
   };
 
   const fetchLogs = (p) => {
+    checkBaseUrl();
     const params = Object.entries(p).filter((p) => p[1] !== '').map((p) => `${ p[0] }=${ p[1] }`).join('&');
 
     return store.dispatch('management/request', {
@@ -423,6 +447,8 @@ export const harborAPI = (spec = { harborVersion: '', harborServer: '' }) => {
   };
 
   const fetchProjectSummary = (projectId) => {
+    checkBaseUrl();
+
     return store.dispatch('management/request', {
       url:     `${ baseUrl }/projects/${ projectId }/summary`,
       headers: { 'X-API-Harbor-Admin-Header': store.getters['auth/isAdmin'] },
@@ -431,6 +457,7 @@ export const harborAPI = (spec = { harborVersion: '', harborServer: '' }) => {
   };
 
   const fetchProjectImages = (p) => {
+    checkBaseUrl();
     const params = Object.entries(p).map((p) => `${ p[0] }=${ p[1] }`).join('&');
 
     return store.dispatch('management/request', {
@@ -441,6 +468,7 @@ export const harborAPI = (spec = { harborVersion: '', harborServer: '' }) => {
   };
 
   const fetchProjectMembersList = (projectId, p) => {
+    checkBaseUrl();
     const params = Object.entries(p).map((p) => `${ p[0] }=${ p[1] }`).join('&');
 
     return store.dispatch('management/request', {
@@ -451,6 +479,7 @@ export const harborAPI = (spec = { harborVersion: '', harborServer: '' }) => {
   };
 
   const fetchProjectLogs = (projectId, p) => {
+    checkBaseUrl();
     const params = Object.entries(p).map((p) => `${ p[0] }=${ p[1] }`).join('&');
 
     return store.dispatch('management/request', {
@@ -476,6 +505,8 @@ export const harborAPI = (spec = { harborVersion: '', harborServer: '' }) => {
     });
   };
   const fetchCurrentHarborUser = () => {
+    checkBaseUrl();
+
     return store.dispatch('management/request', {
       url:     `${ baseUrl }/users/current`,
       headers: { 'X-API-Harbor-Admin-Header': store.getters['auth/isAdmin'] },
@@ -484,6 +515,8 @@ export const harborAPI = (spec = { harborVersion: '', harborServer: '' }) => {
   };
 
   const fetchProjectMembers = (projectId, entityName) => {
+    checkBaseUrl();
+
     return store.dispatch('management/request', {
       url:     `${ baseUrl }/projects/${ projectId }/members?entityname=${ entityName }`,
       headers: { 'X-API-Harbor-Admin-Header': store.getters['auth/isAdmin'] },
@@ -505,7 +538,9 @@ export const harborAPI = (spec = { harborVersion: '', harborServer: '' }) => {
     });
   };
 
-  const fetchConnectHarbor = (baseUrl) => {
+  const fetchSystemInfoToTest = (url, version) => {
+    const baseUrl = `/meta/harbor/${ url.replace('//', '/').replace(/\/+$/, '') }/api${ version === 'v1' || !version ? '' : `/${ version }` }`;
+
     return store.dispatch('management/request', {
       url:     `${ baseUrl }/systeminfo`,
       headers: { 'X-API-Harbor-Admin-Header': store.getters['auth/isAdmin'] },
@@ -513,9 +548,8 @@ export const harborAPI = (spec = { harborVersion: '', harborServer: '' }) => {
     });
   };
 
-  const saveHarborAccountWhenVersionOk = async(url, u, p, v, resp) => {
-    const data = resp.body || {};
-    const authMode = data.auth_mode;
+  const saveHarborAccount = async(url, u, p, v, systeminfo = {}) => {
+    const authMode = systeminfo.auth_mode;
     const disabledEncryption = store.getters['management/byId'](MANAGEMENT.SETTING, SETTING.DISABLE_PASSWORD_ENCRYPT);
 
     const serverSettingP = store.dispatch('management/find', { type: MANAGEMENT.SETTING, id: 'harbor-server-url' });
@@ -557,7 +591,7 @@ export const harborAPI = (spec = { harborVersion: '', harborServer: '' }) => {
     versionSetting.value = v;
     authModeSetting.value = authMode;
 
-    return Promise.all([serverSetting.save(), authSetting.save(), authModeSetting.save(), versionSetting.save(), Promise.resolve({ harborSystemInfo: data })]);
+    return Promise.all([serverSetting.save(), authSetting.save(), authModeSetting.save(), versionSetting.save()]);
   };
 
   request.fetchHarborServerUrl = fetchHarborServerUrl;
@@ -567,9 +601,9 @@ export const harborAPI = (spec = { harborVersion: '', harborServer: '' }) => {
   request.fetchProject = fetchProject;
   request.fetchAdminConfig = fetchAdminConfig;
   request.fetchHarborUserInfo = fetchHarborUserInfo;
-  request.testHarborAccount = testHarborAccount;
+  request.fetchAccount = fetchAccount;
   request.addWhitelist = addWhitelist;
-  request.saveHarborAccount = saveHarborAccount;
+  request.removeHarborAccount = removeHarborAccount;
   request.syncHarborAccount = syncHarborAccount;
   request.testEmailServer = testEmailServer;
   request.updateAdminConfig = updateAdminConfig;
@@ -602,13 +636,14 @@ export const harborAPI = (spec = { harborVersion: '', harborServer: '' }) => {
   request.fetchHarborVersion = fetchHarborVersion;
   request.fetchProjectMembers = fetchProjectMembers;
   request.syncHarborUser = syncHarborUser;
-  request.fetchConnectHarbor = fetchConnectHarbor;
-  request.saveHarborAccountWhenVersionOk = saveHarborAccountWhenVersionOk;
+  request.fetchSystemInfoToTest = fetchSystemInfoToTest;
+  request.saveHarborAccount = saveHarborAccount;
   request.setHarborServer = setHarborServer;
   request.setHarborVersion = setHarborVersion;
   request.initAPIRequest = initAPIRequest;
   request.fetchInsecureSkipVerify = fetchInsecureSkipVerify;
   request.getBaseUrl = getBaseUrl;
+  request.updateBaseUrl = updateBaseUrl;
 
   return request;
 };

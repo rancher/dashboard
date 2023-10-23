@@ -63,6 +63,7 @@
     "@nuxtjs/webpack-profile": "0.1.0",
     "@popperjs/core": "2.4.4",
     "ansi_up": "5.0.0",
+    "async-validator": "^4.2.5",
     "babel-plugin-module-resolver": "4.0.0",
     "browser-env": "3.3.0",
     "cidr-matcher": "^2.1.1",
