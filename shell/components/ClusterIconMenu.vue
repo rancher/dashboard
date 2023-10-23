@@ -24,7 +24,7 @@ export default {
       return this.cluster.badge?.color;
     },
     customColor() {
-      return this.hasCustomColor ?? '';
+      return this.cluster.badge?.color ?? '';
     }
   },
   methods: {

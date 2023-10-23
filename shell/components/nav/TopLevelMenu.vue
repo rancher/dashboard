@@ -271,7 +271,9 @@ export default {
     },
 
     isSelectedCluster(c) {
-      return this.currentCluster?.id === c.id;
+      const path = this.$route.path.split('/').slice()[1];
+
+      return path === 'c' && this.currentCluster?.id === c.id;
     },
 
     handler(e) {
