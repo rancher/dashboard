@@ -2,7 +2,7 @@
 import { mapGetters } from 'vuex';
 import Loading from '@shell/components/Loading';
 import { _FLAGGED, DEPRECATED, HIDDEN, FROM_TOOLS } from '@shell/config/query-params';
-import { filterAndArrangeCharts } from '@shell/utils/chart';
+import { filterAndArrangeCharts } from '@shell/store/catalog';
 import { CATALOG, MANAGEMENT, NORMAN } from '@shell/config/types';
 import { CATALOG as CATALOG_ANNOTATIONS } from '@shell/config/labels-annotations';
 import LazyImage from '@shell/components/LazyImage';

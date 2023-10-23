@@ -12,7 +12,7 @@ import { mapGetters } from 'vuex';
 import { sortBy } from '@shell/utils/sort';
 import { set } from '@shell/utils/object';
 import { mapPref, PROVISIONER, _RKE1, _RKE2 } from '@shell/store/prefs';
-import { filterAndArrangeCharts } from '@shell/utils/chart';
+import { filterAndArrangeCharts } from '@shell/store/catalog';
 import { CATALOG } from '@shell/config/labels-annotations';
 import { CAPI, MANAGEMENT, DEFAULT_WORKSPACE } from '@shell/config/types';
 import { mapFeature, RKE2 as RKE2_FEATURE } from '@shell/store/features';

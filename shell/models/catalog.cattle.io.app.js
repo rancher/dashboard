@@ -1,16 +1,15 @@
-/* eslint-disable multiline-ternary */
 import {
   NAMESPACE, NAME, REPO, REPO_TYPE, CHART, VERSION, _VIEW, FROM_TOOLS, _FLAGGED
 } from '@shell/config/query-params';
 import { CATALOG as CATALOG_ANNOTATIONS, FLEET } from '@shell/config/labels-annotations';
 import { compare, isPrerelease, sortable } from '@shell/utils/version';
-import { compatibleVersionsFor } from '@shell/utils/chart';
 import { filterBy } from '@shell/utils/array';
 import { CATALOG, MANAGEMENT, NORMAN } from '@shell/config/types';
 import { SHOW_PRE_RELEASE } from '@shell/store/prefs';
 import { set } from '@shell/utils/object';
 
 import SteveModel from '@shell/plugins/steve/steve-class';
+import { compatibleVersionsFor } from '@shell/store/catalog';
 
 export default class CatalogApp extends SteveModel {
   showMasthead(mode) {
@@ -41,48 +40,69 @@ export default class CatalogApp extends SteveModel {
   }
 
   matchingChart(includeHidden) {
-    return this.$rootGetters['catalog/chart']({
-      chart: this.spec?.chart,
+    const chart = this.spec?.chart;
+
+    if ( !chart ) {
+      return;
+    }
+
+    const chartName = chart.metadata?.name;
+    const preferRepoType = chart.metadata?.annotations?.[CATALOG_ANNOTATIONS.SOURCE_REPO_TYPE];
+    const preferRepoName = chart.metadata?.annotations?.[CATALOG_ANNOTATIONS.SOURCE_REPO_NAME];
+    const match = this.$rootGetters['catalog/chart']({
+      chartName,
+      preferRepoType,
+      preferRepoName,
       includeHidden
     });
+
+    return match;
   }
 
   get currentVersion() {
     return this.spec?.chart?.metadata?.version;
   }
 
-  /**
-   * Return possible upgrades
-   * false = does not apply (managed by fleet)
-   * null = no upgrade found
-   * string = version available to upgrade to
-   */
   get upgradeAvailable() {
-    // Things managed by fleet shouldn't show upgrade available even if there might be.
-    const isManaged = this.spec?.chart?.metadata?.annotations?.[CATALOG_ANNOTATIONS.MANAGED] ||
-    this.spec?.chart?.metadata?.annotations?.[FLEET.BUNDLE_ID];
+    // false = does not apply (managed by fleet)
+    // null = no upgrade found
+    // object = version available to upgrade to
 
-    if (isManaged) {
+    if (
+      this.spec?.chart?.metadata?.annotations?.[CATALOG_ANNOTATIONS.MANAGED] ||
+      this.spec?.chart?.metadata?.annotations?.[FLEET.BUNDLE_ID]
+    ) {
+      // Things managed by fleet shouldn't show upgrade available even if there might be.
       return false;
     }
+    const chart = this.matchingChart(false);
 
-    const matchingChart = this.matchingChart(false);
-
-    if ( !matchingChart ) {
+    if ( !chart ) {
       return null;
     }
 
     const workerOSs = this.$rootGetters['currentCluster'].workerOSs;
-    const showPreRelease = this.$rootGetters['prefs/get'](SHOW_PRE_RELEASE);
-    const currentChartVersion = this.spec?.chart?.metadata?.version;
-    const versions = !showPreRelease
-      ? matchingChart.versions?.filter((v) => !isPrerelease(v.version))
-      : compatibleVersionsFor(matchingChart, workerOSs, showPreRelease);
-    const newChartVersion = versions?.[0]?.version;
-    const isOlder = compare(currentChartVersion, newChartVersion) < 0;
 
-    if ( isOlder ) {
-      return cleanupVersion(newChartVersion);
+    const showPreRelease = this.$rootGetters['prefs/get'](SHOW_PRE_RELEASE);
+
+    const thisVersion = this.spec?.chart?.metadata?.version;
+    let versions = chart.versions;
+
+    if (!showPreRelease) {
+      versions = chart.versions.filter((v) => !isPrerelease(v.version));
+    }
+
+    versions = compatibleVersionsFor(chart, workerOSs, showPreRelease);
+
+    const newestChart = versions?.[0];
+    const newestVersion = newestChart?.version;
+
+    if ( !thisVersion || !newestVersion ) {
+      return null;
+    }
+
+    if ( compare(thisVersion, newestVersion) < 0 ) {
+      return cleanupVersion(newestVersion);
     }
 
     return null;
