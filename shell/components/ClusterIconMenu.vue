@@ -22,6 +22,9 @@ export default {
     },
     hasCustomColor() {
       return this.cluster.badge?.color;
+    },
+    customColor() {
+      return this.hasCustomColor ?? '';
     }
   },
   methods: {
@@ -56,7 +59,7 @@ export default {
       </span>
       <span
         class="custom-color-decoration"
-        :style="{'background': hasCustomColor ?? ''}"
+        :style="{'background': customColor}"
       />
       <svg
         v-if="showLocalIcon"
