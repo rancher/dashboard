@@ -11,6 +11,8 @@ jobs:
   port-issue:
     runs-on: ubuntu-latest
     if: contains(github.event.comment.body, '/backport') || contains(github.event.comment.body, '/forwardport')
+    permissions:
+      issues: write
     steps:
       - name: Check org membership
         env:
