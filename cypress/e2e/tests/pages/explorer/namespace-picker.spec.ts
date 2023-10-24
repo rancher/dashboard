@@ -16,7 +16,7 @@ describe('Namespace picker', { testIsolation: 'off' }, () => {
 
     const workloadsPodPage = new WorkloadsPodsListPagePo('local');
 
-    workloadsPodPage.goTo();
+    WorkloadsPodsListPagePo.navTo();
     workloadsPodPage.waitForPage();
 
     cy.intercept('PUT', '/v1/userpreferences/*').as('optionSelected');
