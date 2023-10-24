@@ -48,6 +48,8 @@ describe('Namespace picker', { testIsolation: 'off' }, () => {
   it('can select only one of the top 5 resource filters at a time', { tags: ['@adminUser', '@standardUser'] }, () => {
     // Verify that user can only select one of the first 5 options
 
+    cy.userPreferences({ 'ns-by-cluster': '{"local":["all://user"]}' });
+
     clusterDashboard.goTo();
     namespacePicker.toggle();
 
@@ -161,16 +163,13 @@ describe('Namespace picker', { testIsolation: 'off' }, () => {
     namespacePicker.clearSearchFilter();
     namespacePicker.isChecked('Project: Default');
     namespacePicker.checkIcon().should('have.length', 1);
-
-    // Reset: clear selection from dropdown menu
-    namespacePicker.clearSelectionButton();
-    namespacePicker.isChecked('Only User Namespaces');
-    namespacePicker.checkIcon().should('have.length', 1);
   });
 
   it('newly created project/namespace appears in namespace picker', { tags: '@adminUser' }, () => {
     const projName = `project${ +new Date() }`;
     const nsName = `namespace${ +new Date() }`;
+
+    cy.userPreferences({ 'ns-by-cluster': '{"local":["all://user"]}' });
 
     // get user id
     cy.getRancherResource('v3', 'users?me=true').then((resp: Cypress.Response<any>) => {
