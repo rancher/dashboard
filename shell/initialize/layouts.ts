@@ -1,3 +1,4 @@
+// will all of this go away after layout removal?
 import { sanitizeComponent } from '@shell/utils/nuxt';
 import blank from '@shell/layouts/blank.vue';
 import defaultLayout from '@shell/layouts/default.vue';

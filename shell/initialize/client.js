@@ -1,5 +1,5 @@
 // Taken from @nuxt/vue-app/template/client.js
-
+// File that's JS entry point on shell/vue.config
 import Vue from 'vue';
 import fetch from 'unfetch';
 import middleware from '../config/middleware.js';
@@ -28,12 +28,19 @@ const isDev = process.env.dev;
 const debug = isDev;
 
 // Fetch mixin
+// this is what supports the async fetch method present in all components (I think)
+// If assumption is correct, we will need to keep this a bit longer
+// how impactful is this in the migration to Vue 3?
 if (!Vue.__nuxt__fetch__mixin__) {
   Vue.mixin(fetchMixin);
   Vue.__nuxt__fetch__mixin__ = true;
 }
 
 // Component: <NuxtLink>
+// https://nuxt.com/docs/api/components/nuxt-link
+// <NuxtLink> is a drop-in replacement for both Vue Router's <RouterLink> component and HTML's <a> tag. It intelligently determines whether the link is internal or external and renders it accordingly with available optimizations (prefetching, default attributes, etc.)
+// I believe we can remove this and replace all the occurences in the Dashboard code
+// we would need to check each extension and replace it with <router-link>
 Vue.component(NuxtLink.name, NuxtLink);
 Vue.component('NLink', NuxtLink);
 
@@ -58,6 +65,8 @@ if ($config._app) {
 Object.assign(Vue.config, { silent: false, performance: true });
 
 if (debug) {
+  // is this bit until the end of the if condition (around line 78) just a NUXT thing?
+  // it looks like this can go away... any thoughts?
   const logs = NUXT.logs || [];
 
   if (logs.length > 0) {
@@ -70,6 +79,7 @@ if (debug) {
   }
 
   // Setup global Vue error handler
+  // this will added to the createApp method (which is imported from initialize/index.js) a bit further down as a param to catch errors
   if (!Vue.config.$nuxt) {
     const defaultErrorHandler = Vue.config.errorHandler;
 
@@ -93,6 +103,8 @@ if (debug) {
           const currentApp = vm.$root[nuxtApp];
 
           // Load error layout
+          // why is NuxtError being exported on /initialize/index.js when it's just being imported there?
+          // we can import it here and remove from there!
           let layout = (NuxtError.options || NuxtError).layout;
 
           if (typeof layout === 'function') {

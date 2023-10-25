@@ -1,5 +1,5 @@
 // Taken from @nuxt/vue-app/template/index.js
-
+// imported in initialize/client.js where the exported createApp and NuxtError are used
 import Vue from 'vue';
 import Meta from 'vue-meta';
 import ClientOnly from 'vue-client-only';
@@ -48,9 +48,14 @@ import version from '../plugins/version';
 import steveCreateWorker from '../plugins/steve-create-worker';
 
 // Component: <ClientOnly>
+// Vue component to wrap non SSR friendly components
+// used in CodeMirror.vue + in config of jest and storybook
+// believe it can be removed
 Vue.component(ClientOnly.name, ClientOnly);
 
 // TODO: Remove in Nuxt 3: <NoSsr>
+// Vue component to wrap non SSR friendly components (again....)
+// believe it can be removed
 Vue.component(NoSsr.name, {
   ...NoSsr,
   render(h, ctx) {
@@ -65,14 +70,22 @@ Vue.component(NoSsr.name, {
 });
 
 // Component: <NuxtChild>
+// This component is used for displaying the children components in a nested route.
+// this has a few hits on the code... Needs to be investigated further
 Vue.component(NuxtChild.name, NuxtChild);
 Vue.component('NChild', NuxtChild);
 
 // Component NuxtLink is imported in server.js or client.js
 
 // Component: <Nuxt>
+// The <Nuxt> component is the component you use to display your page components. Basically, this component gets replaced by what is inside your page components
+// used in shell/layouts
+// will go away once we remove nuxt layouts from the code
 Vue.component(Nuxt.name, Nuxt);
 
+// Global $nuxt object, which get's injected with nuxt properties
+// used in various places on the code (search for $nuxt)
+// this is a keeper for now
 Object.defineProperty(Vue.prototype, '$nuxt', {
   get() {
     const globalNuxt = this.$root.$options.$nuxt;
@@ -86,14 +99,22 @@ Object.defineProperty(Vue.prototype, '$nuxt', {
   configurable: true
 });
 
+// HTML Metadata manager for Vue.js
+// believe it can be removed
 Vue.use(Meta, {
   keyName: 'head', attribute: 'data-n-head', ssrAttribute: 'data-n-head-ssr', tagIDKeyName: 'hid'
 });
 
+// setup for transitions in nuxt (mode, class names that appear, etc)
+// I don't believe it's really used judging by the search of appear-active and appear-to (no hits)
+// and it's configured for page transitions
+// believe it can be removed
 const defaultTransition = {
   name: 'page', mode: 'out-in', appear: true, appearClass: 'appear', appearActiveClass: 'appear-active', appearToClass: 'appear-to'
 };
 
+// create function for nuxt/vueJS app
+// - all ssrContext things can be removed!
 async function createApp(ssrContext, config = {}) {
   const router = await createRouter(ssrContext, config);
 
@@ -119,6 +140,7 @@ async function createApp(ssrContext, config = {}) {
     store,
     router,
     nuxt: {
+      // - believe transitions config can go away!
       defaultTransition,
       transitions: [defaultTransition],
       setTransitions(transitions) {
@@ -143,6 +165,7 @@ async function createApp(ssrContext, config = {}) {
 
       err:     null,
       dateErr: null,
+      // what about this? don't really know if this is used...
       error(err) {
         err = err || null;
         app.context._errored = Boolean(err);
@@ -155,6 +178,7 @@ async function createApp(ssrContext, config = {}) {
         nuxt.dateErr = Date.now();
         nuxt.err = err;
         // Used in src/server.js
+        // - all ssrContext things can be removed!
         if (ssrContext) {
           ssrContext.nuxt.error = err;
         }
@@ -168,10 +192,13 @@ async function createApp(ssrContext, config = {}) {
   // Make app available into store via this.app
   store.app = app;
 
+  // - all ssrContext things can be removed!
   const next = ssrContext ? ssrContext.next : (location) => app.router.push(location);
   // Resolve route
   let route;
 
+  // - all ssrContext things can be removed!
+  // is this to inject route in app?
   if (ssrContext) {
     route = router.resolve(ssrContext.url).route;
   } else {
@@ -186,6 +213,7 @@ async function createApp(ssrContext, config = {}) {
     route,
     next,
     error:           app.nuxt.error.bind(app),
+    // - all ssrContext things can be removed!
     payload:         ssrContext ? ssrContext.payload : undefined,
     req:             ssrContext ? ssrContext.req : undefined,
     res:             ssrContext ? ssrContext.res : undefined,
@@ -193,6 +221,8 @@ async function createApp(ssrContext, config = {}) {
     ssrContext
   });
 
+  // helper function to inject any relevant info to multiple vue objects that are used globally
+  // keeper, I believe
   function inject(key, value) {
     if (!key) {
       throw new Error('inject(key, value) has no key provided');
@@ -232,8 +262,11 @@ async function createApp(ssrContext, config = {}) {
   }
 
   // Inject runtime config as $config
+  // keeper
   inject('config', config);
 
+  // - no need for this gating....
+  // still a keeper? useful for debug in console...
   if (process.client) {
     // Replace store state before plugins execution
     if (window.__NUXT__ && window.__NUXT__.state) {
@@ -242,6 +275,10 @@ async function createApp(ssrContext, config = {}) {
   }
 
   // Add enablePreview(previewData = {}) in context for plugins
+  // https://v2.nuxt.com/docs/features/live-preview/
+  // how relevant is this? Is this connected to SSR?
+  // is this tied to https://github.com/rancher/dashboard/blob/master/shell/components/ResourceYaml.vue#L82?
+  // - no need for this gating....
   if (process.static && process.client) {
     app.context.enablePreview = function(previewData = {}) {
       app.previewData = Object.assign({}, previewData);
@@ -254,67 +291,85 @@ async function createApp(ssrContext, config = {}) {
   //   await nuxt_plugin_portalvue_6babae27(app.context, inject);
   // }
 
+  // - no need for this gating....
   if (typeof cookieUniversalNuxt === 'function') {
     await cookieUniversalNuxt(app.context, inject);
   }
 
+  // - no need for this gating....
   if (typeof axios === 'function') {
     await axios(app.context, inject);
   }
 
+  // - no need for this gating....
   if (typeof plugins === 'function') {
     await plugins(app.context, inject);
   }
 
+  // - no need for this gating....
   if (typeof pluginsLoader === 'function') {
     await pluginsLoader(app.context, inject);
   }
 
+  // - no need for this gating....
   if (typeof axiosShell === 'function') {
     await axiosShell(app.context, inject);
   }
 
+  // - no need for this gating....
   if (process.client && typeof intNumber === 'function') {
     await intNumber(app.context, inject);
   }
 
+  // - no need for this gating....
   if (process.client && typeof positiveIntNumber === 'function') {
     await positiveIntNumber(app.context, inject);
   }
 
+  // - no need for this gating....
   if (process.client && typeof nuxtClientInit === 'function') {
     await nuxtClientInit(app.context, inject);
   }
 
+  // - no need for this gating....
   if (typeof replaceAll === 'function') {
     await replaceAll(app.context, inject);
   }
 
+  // - no need for this gating....
   if (typeof backButton === 'function') {
     await backButton(app.context, inject);
   }
 
+  // - no need for this gating....
   if (process.client && typeof plugin === 'function') {
     await plugin(app.context, inject);
   }
 
+  // - no need for this gating....
   if (process.client && typeof codeMirror === 'function') {
     await codeMirror(app.context, inject);
   }
 
+  // - no need for this gating....
   if (process.client && typeof version === 'function') {
     await version(app.context, inject);
   }
 
+  // - no need for this gating....
   if (process.client && typeof steveCreateWorker === 'function') {
     await steveCreateWorker(app.context, inject);
   }
 
+  // REMOVE!!!! not used here....
   // if (process.client && typeof formatters === 'function') {
   //   await formatters(app.context, inject);
   // }
 
   // Lock enablePreview in context
+  // - no need for this gating....
+  // https://v2.nuxt.com/docs/features/live-preview/
+  // how relevant is this? Is this connected to SSR?
   if (process.static && process.client) {
     app.context.enablePreview = function() {
       console.warn('You cannot call enablePreview() outside a plugin.'); // eslint-disable-line no-console
@@ -322,8 +377,12 @@ async function createApp(ssrContext, config = {}) {
   }
 
   // Wait for async component to be resolved first
+  // what exactly does this bit do? is it needed in createApp? does it need a promise?
+  // from my analysis, most of the code is related to error handling in vue routes
+  // can't this go to the route definition?
   await new Promise((resolve, reject) => {
     // Ignore 404s rather than blindly replacing URL in browser
+    // - no need for this gating....
     if (process.client) {
       const { route } = router.resolve(app.context.route.fullPath);
 
@@ -342,6 +401,7 @@ async function createApp(ssrContext, config = {}) {
 
       // navigated to a different route in router guard
       const unregister = router.afterEach(async(to, from) => {
+        // remove this SSR bit
         if (process.server && ssrContext && ssrContext.url) {
           ssrContext.url = to.fullPath;
         }
