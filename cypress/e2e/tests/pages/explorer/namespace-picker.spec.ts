@@ -19,13 +19,10 @@ describe('Namespace picker', { testIsolation: 'off' }, () => {
     WorkloadsPodsListPagePo.navTo();
     workloadsPodPage.waitForPage();
 
-    cy.intercept('PUT', '/v1/userpreferences/*').as('optionSelected');
-
     // Filter by Namespace: Select 'cattle-fleet-local-system'
     namespacePicker.toggle();
     namespacePicker.clickOptionByLabel('cattle-fleet-local-system');
     namespacePicker.isChecked('cattle-fleet-local-system');
-    cy.wait('@optionSelected');
     namespacePicker.closeDropdown();
     workloadsPodPage.sortableTable().rowElementWithName('cattle-fleet-local-system').should('be.visible').and('have.length', 1);
 
@@ -34,12 +31,10 @@ describe('Namespace picker', { testIsolation: 'off' }, () => {
     namespacePicker.selectedValues().find('i').trigger('click');
     // 'Only User Namespaces' option should be selected after clearing
     namespacePicker.isChecked('Only User Namespaces');
-    cy.wait('@optionSelected');
 
     // Filter by Project: Select 'Project: System'
     namespacePicker.clickOptionByLabel('Project: System');
     namespacePicker.isChecked('Project: System');
-    cy.wait('@optionSelected');
     namespacePicker.closeDropdown();
     workloadsPodPage.sortableTable().rowElementWithName('kube-system').should('be.visible');
     workloadsPodPage.sortableTable().rowElementWithName('cattle-fleet-local-system').scrollIntoView().should('be.visible');
@@ -163,13 +158,16 @@ describe('Namespace picker', { testIsolation: 'off' }, () => {
     namespacePicker.clearSearchFilter();
     namespacePicker.isChecked('Project: Default');
     namespacePicker.checkIcon().should('have.length', 1);
+
+    // Reset: clear selection from dropdown menu
+    namespacePicker.clearSelectionButton();
+    namespacePicker.isChecked('Only User Namespaces');
+    namespacePicker.checkIcon().should('have.length', 1);
   });
 
   it('newly created project/namespace appears in namespace picker', { tags: '@adminUser' }, () => {
     const projName = `project${ +new Date() }`;
     const nsName = `namespace${ +new Date() }`;
-
-    cy.userPreferences({ 'ns-by-cluster': '{"local":["all://user"]}' });
 
     // get user id
     cy.getRancherResource('v3', 'users?me=true').then((resp: Cypress.Response<any>) => {
@@ -181,6 +179,8 @@ describe('Namespace picker', { testIsolation: 'off' }, () => {
 
         // create ns
         cy.createNamespace(nsName, projId);
+
+        cy.userPreferences({ 'ns-by-cluster': '{"local":["all://user"]}' });
 
         // check ns picker
         clusterDashboard.goTo();
@@ -200,4 +200,9 @@ describe('Namespace picker', { testIsolation: 'off' }, () => {
       });
     });
   });
+
+  // after('clean up', () => {
+  //   cy.userPreferences({ 'ns-by-cluster': '{"local":["all://user"]}' });
+
+  // })
 });
