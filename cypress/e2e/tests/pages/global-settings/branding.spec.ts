@@ -64,7 +64,6 @@ describe('Branding', () => {
     brandingPage.goTo();
 
     // Set
-    // brandingPage.privateLabel().value().should(`eq ${ settings.privateLabel.original }`);
     cy.title().should('not.eq', settings.privateLabel.new);
     brandingPage.privateLabel().set(settings.privateLabel.new);
     brandingPage.applyAndWait('**/ui-pl');
