@@ -10,6 +10,23 @@ describe('Namespace picker', { testIsolation: 'off' }, () => {
     cy.login();
   });
 
+  beforeEach('set up', () => {
+    // get user id
+    cy.getRancherResource('v3', 'users?me=true').then((resp: Cypress.Response<any>) => {
+      const userId = resp.body.data[0].id.trim();
+
+      cy.setRancherResource('v1', 'userpreferences', userId, {
+        id:   userId,
+        type: 'userpreference',
+        data: {
+          cluster:         'local',
+          'group-by':      'role',
+          'ns-by-cluster': '{"local":["all://user"]}',
+        }
+      });
+    });
+  });
+
   it('can filter workloads by project/namespace from the picker dropdown', { tags: '@adminUser' }, () => {
     // Verify 'Namespace: cattle-fleet-local-system' appears once when filtering by Namespace
     // Vrify multiple namespaces within Project: System display when filtering by Project
@@ -43,8 +60,6 @@ describe('Namespace picker', { testIsolation: 'off' }, () => {
   it('can select only one of the top 5 resource filters at a time', { tags: ['@adminUser', '@standardUser'] }, () => {
     // Verify that user can only select one of the first 5 options
 
-    cy.userPreferences({ 'ns-by-cluster': '{"local":["all://user"]}' });
-
     clusterDashboard.goTo();
     namespacePicker.toggle();
 
@@ -76,8 +91,6 @@ describe('Namespace picker', { testIsolation: 'off' }, () => {
 
   it('can select multiple projects/namespaces', { tags: '@adminUser' }, () => {
     // Verify that user can select multiple options (other than the first 5 options)
-
-    cy.userPreferences({ 'ns-by-cluster': '{"local":["all://user"]}' });
 
     clusterDashboard.goTo();
     namespacePicker.toggle();
@@ -112,8 +125,6 @@ describe('Namespace picker', { testIsolation: 'off' }, () => {
   });
 
   it('can deselect options', { tags: ['@adminUser', '@standardUser'] }, () => {
-    cy.userPreferences({ 'ns-by-cluster': '{"local":["all://user"]}' });
-
     clusterDashboard.goTo();
     namespacePicker.toggle();
 
@@ -142,8 +153,6 @@ describe('Namespace picker', { testIsolation: 'off' }, () => {
   });
 
   it('can filter options by name', { tags: ['@adminUser', '@standardUser'] }, () => {
-    cy.userPreferences({ 'ns-by-cluster': '{"local":["all://user"]}' });
-
     clusterDashboard.goTo();
     namespacePicker.toggle();
 
@@ -180,8 +189,6 @@ describe('Namespace picker', { testIsolation: 'off' }, () => {
         // create ns
         cy.createNamespace(nsName, projId);
 
-        cy.userPreferences({ 'ns-by-cluster': '{"local":["all://user"]}' });
-
         // check ns picker
         clusterDashboard.goTo();
         namespacePicker.toggle();
@@ -201,8 +208,19 @@ describe('Namespace picker', { testIsolation: 'off' }, () => {
     });
   });
 
-  // after('clean up', () => {
-  //   cy.userPreferences({ 'ns-by-cluster': '{"local":["all://user"]}' });
+  after('clean up', () => {
+    // get user id
+    cy.getRancherResource('v3', 'users?me=true').then((resp: Cypress.Response<any>) => {
+      const userId = resp.body.data[0].id.trim();
 
-  // })
+      cy.setRancherResource('v1', 'userpreferences', userId, {
+        id:   userId,
+        type: 'userpreference',
+        data: {
+          cluster:         'local',
+          'ns-by-cluster': '{"local":["all://user"]}',
+        }
+      });
+    });
+  });
 });
