@@ -142,6 +142,7 @@
     "@nuxtjs/eslint-config-typescript": "6.0.1",
     "@types/copy-webpack-plugin": "^5.0.3",
     "@types/dompurify": "3.0.0",
+    "@types/is-url": "1.2.30",
     "@types/jest": "27.4.1",
     "@types/js-yaml": "^4.0.5",
     "@types/lodash": "4.14.184",
