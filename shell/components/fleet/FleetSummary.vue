@@ -6,47 +6,52 @@ import FleetStatus from '@shell/components/fleet/FleetStatus';
 const getResourceDefaultState = (labelGetter, stateKey) => {
   return {
     ready: {
-      count: 0,
-      color: STATES[STATES_ENUM.READY].color,
-      label: labelGetter(`${ stateKey }.${ STATES_ENUM.READY }`, null, STATES[STATES_ENUM.READY].label )
+      count:  0,
+      color:  STATES[STATES_ENUM.READY].color,
+      label:  labelGetter(`${ stateKey }.${ STATES_ENUM.READY }`, null, STATES[STATES_ENUM.READY].label ),
+      status: STATES_ENUM.READY
     },
     info: {
-      count: 0,
-      color: STATES[STATES_ENUM.INFO].color,
-      label: labelGetter(`${ stateKey }.${ STATES_ENUM.INFO }`, null, STATES[STATES_ENUM.INFO].label )
+      count:  0,
+      color:  STATES[STATES_ENUM.INFO].color,
+      label:  labelGetter(`${ stateKey }.${ STATES_ENUM.INFO }`, null, STATES[STATES_ENUM.INFO].label ),
+      status: STATES_ENUM.INFO
     },
     warning: {
-      count: 0,
-      color: STATES[STATES_ENUM.WARNING].color,
-      label: labelGetter(`${ stateKey }.${ STATES_ENUM.WARNING }`, null, STATES[STATES_ENUM.WARNING].label )
+      count:  0,
+      color:  STATES[STATES_ENUM.WARNING].color,
+      label:  labelGetter(`${ stateKey }.${ STATES_ENUM.WARNING }`, null, STATES[STATES_ENUM.WARNING].label ),
+      status: STATES_ENUM.WARNING
     },
     notready: {
-      count: 0,
-      color: STATES[STATES_ENUM.NOT_READY].color,
-      label: labelGetter(`${ stateKey }.${ STATES_ENUM.NOT_READY }`, null, STATES[STATES_ENUM.NOT_READY].label )
+      count:  0,
+      color:  STATES[STATES_ENUM.NOT_READY].color,
+      label:  labelGetter(`${ stateKey }.${ STATES_ENUM.NOT_READY }`, null, STATES[STATES_ENUM.NOT_READY].label ),
+      status: STATES_ENUM.NOT_READY
     },
     error: {
-      count: 0,
-      color: STATES[STATES_ENUM.ERROR].color,
-      label: labelGetter(`${ stateKey }.${ STATES_ENUM.ERROR }`, null, STATES[STATES_ENUM.ERROR].label )
-
+      count:  0,
+      color:  STATES[STATES_ENUM.ERROR].color,
+      label:  labelGetter(`${ stateKey }.${ STATES_ENUM.ERROR }`, null, STATES[STATES_ENUM.ERROR].label ),
+      status: STATES_ENUM.ERROR
     },
     errapplied: {
-      count: 0,
-      color: STATES[STATES_ENUM.ERR_APPLIED].color,
-      label: labelGetter(`${ stateKey }.${ STATES_ENUM.ERR_APPLIED }`, null, STATES[STATES_ENUM.ERR_APPLIED].label )
-
+      count:  0,
+      color:  STATES[STATES_ENUM.ERR_APPLIED].color,
+      label:  labelGetter(`${ stateKey }.${ STATES_ENUM.ERR_APPLIED }`, null, STATES[STATES_ENUM.ERR_APPLIED].label ),
+      status: STATES_ENUM.ERR_APPLIED,
     },
     waitapplied: {
-      count: 0,
-      color: STATES[STATES_ENUM.WAIT_APPLIED].color,
-      label: labelGetter(`${ stateKey }.${ STATES_ENUM.WAIT_APPLIED }`, null, STATES[STATES_ENUM.WAIT_APPLIED].label )
-
+      count:  0,
+      color:  STATES[STATES_ENUM.WAIT_APPLIED].color,
+      label:  labelGetter(`${ stateKey }.${ STATES_ENUM.WAIT_APPLIED }`, null, STATES[STATES_ENUM.WAIT_APPLIED].label ),
+      status: STATES_ENUM.WAIT_APPLIED
     },
     unknown: {
-      count: 0,
-      color: STATES[STATES_ENUM.UNKNOWN].color,
-      label: labelGetter(`${ stateKey }.${ STATES_ENUM.UNKNOWN }`, null, STATES[STATES_ENUM.UNKNOWN].label )
+      count:  0,
+      color:  STATES[STATES_ENUM.UNKNOWN].color,
+      label:  labelGetter(`${ stateKey }.${ STATES_ENUM.UNKNOWN }`, null, STATES[STATES_ENUM.UNKNOWN].label ),
+      status: STATES_ENUM.UNKNOWN
     }
   };
 };
