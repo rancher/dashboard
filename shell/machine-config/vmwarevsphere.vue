@@ -39,7 +39,17 @@ const OS_OPTIONS = [
   'linux',
   'windows'
 ];
-const DEFAULT_CFGPARAM = ['disk.enableUUID=TRUE'];
+
+export const DEFAULT_VALUES = {
+  cpuCount:                '2',
+  diskSize:                '20000',
+  memorySize:              '4096',
+  hostsystem:              '',
+  cloudConfig:             '#cloud-config\n\n',
+  gracefulShutdownTimeout: '0',
+  cfgparam:                ['disk.enableUUID=TRUE'],
+  os:                      OS_OPTIONS[0]
+};
 
 const getDefaultVappOptions = (networks) => {
   return {
@@ -214,18 +224,32 @@ export default {
       },
     ];
 
+    console.log('VALAL', this.value);
+
     if (this.mode === _CREATE && !this.value.initted) {
       Object.defineProperty(this.value, 'initted', { value: true, enumerable: false });
 
+      const {
+        cpuCount,
+        diskSize,
+        memorySize,
+        hostsystem,
+        cloudConfig,
+        gracefulShutdownTimeout,
+        cfgparam,
+        os
+      } = DEFAULT_VALUES;
+
       set(this.value, 'creationType', creationMethods[0].value);
-      set(this.value, 'cpuCount', '2');
-      set(this.value, 'diskSize', '20000');
-      set(this.value, 'memorySize', '4096');
-      set(this.value, 'hostsystem', '');
-      set(this.value, 'cloudConfig', '#cloud-config\n\n');
-      set(this.value, 'cfgparam', DEFAULT_CFGPARAM);
+      set(this.value, 'cpuCount', cpuCount);
+      set(this.value, 'diskSize', diskSize);
+      set(this.value, 'memorySize', memorySize);
+      set(this.value, 'hostsystem', hostsystem);
+      set(this.value, 'gracefulShutdownTimeout', gracefulShutdownTimeout);
+      set(this.value, 'cloudConfig', cloudConfig);
+      set(this.value, 'cfgparam', cfgparam);
       set(this.value, 'vappProperty', this.value.vappProperty);
-      set(this.value, 'os', OS_OPTIONS[0]);
+      set(this.value, 'os', os);
       Object.entries(INITIAL_VAPP_OPTIONS).forEach(([key, value]) => {
         set(this.value, key, value);
       });
@@ -325,6 +349,8 @@ export default {
     cpuCount:   integerString('value.cpuCount'),
     memorySize: integerString('value.memorySize'),
     diskSize:   integerString('value.diskSize'),
+
+    gracefulShutdownTimeout: integerString('value.gracefulShutdownTimeout'),
 
     showCloudConfigYaml() {
       return this.value.creationType !== 'legacy';
@@ -731,7 +757,10 @@ export default {
         </p>
       </h4>
       <div slot="body">
-        <div class="row">
+        <div
+          class="row"
+          data-testid="datacenter"
+        >
           <div class="col span-6">
             <LabeledSelect
               v-model="value.datacenter"
@@ -742,7 +771,10 @@ export default {
               :disabled="disabled"
             />
           </div>
-          <div class="col span-6">
+          <div
+            class="col span-6"
+            data-testid="resourcePool"
+          >
             <LabeledSelect
               v-model="value.pool"
               :loading="resourcePoolsLoading"
@@ -754,7 +786,10 @@ export default {
           </div>
         </div>
         <div class="row mt-10">
-          <div class="col span-6">
+          <div
+            class="col span-6"
+            data-testid="dataStore"
+          >
             <LabeledSelect
               v-model="value.datastore"
               :loading="dataStoresLoading"
@@ -764,7 +799,10 @@ export default {
               :disabled="disabled"
             />
           </div>
-          <div class="col span-6">
+          <div
+            class="col span-6"
+            data-testid="folder"
+          >
             <LabeledSelect
               v-model="value.folder"
               :loading="foldersLoading"
@@ -776,7 +814,10 @@ export default {
           </div>
         </div>
         <div class="row mt-10">
-          <div class="col span-12">
+          <div
+            class="col span-6"
+            data-testid="host"
+          >
             <LabeledSelect
               v-model="host"
               :loading="hostsLoading"
@@ -787,6 +828,22 @@ export default {
             />
             <p class="text-muted mt-5">
               {{ t('cluster.machineConfig.vsphere.scheduling.host.note') }}
+            </p>
+          </div>
+          <div
+            class="col span-6"
+            data-testid="gracefulShutdownTimeout"
+          >
+            <UnitInput
+              v-model="gracefulShutdownTimeout"
+              :mode="mode"
+              :label="t('cluster.machineConfig.vsphere.scheduling.gracefulShutdownTimeout.label')"
+              :suffix="t('suffix.seconds', { count: gracefulShutdownTimeout})"
+              :disabled="disabled"
+              min="0"
+            />
+            <p class="text-muted mt-5">
+              {{ t('cluster.machineConfig.vsphere.scheduling.gracefulShutdownTimeout.note') }}
             </p>
           </div>
         </div>
