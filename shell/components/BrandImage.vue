@@ -12,6 +12,10 @@ export default {
     dark: {
       type:    Boolean,
       default: false
+    },
+    supportCustomLogo: {
+      type:    Boolean,
+      default: false
     }
   },
   data() {
@@ -49,7 +53,7 @@ export default {
     },
 
     pathToBrandedImage() {
-      if (this.fileName === 'rancher-logo.svg') {
+      if (this.fileName === 'rancher-logo.svg' || this.supportCustomLogo) {
         if (this.theme === 'dark' && this.uiLogoDark) {
           return this.uiLogoDark;
         }

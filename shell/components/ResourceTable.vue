@@ -188,7 +188,7 @@ export default {
     const inStore = this.schema?.id ? this.$store.getters['currentStore'](this.schema.id) : undefined;
 
     return {
-      listGroups, listGroupMapped, inStore
+      options, listGroups, listGroupMapped, inStore
     };
   },
 
@@ -336,7 +336,7 @@ export default {
         const exists = this.groupOptions.find((g) => g.value === this._group);
 
         if (!exists) {
-          return DEFAULT_GROUP;
+          return this.groupOptions.find((g) => g.value === DEFAULT_GROUP) ? DEFAULT_GROUP : 'none';
         }
 
         return this._group;
@@ -381,13 +381,16 @@ export default {
           tooltipKey: 'resourceTable.groupBy.none',
           icon:       'icon-list-flat',
           value:      'none',
-        },
-        {
+        }
+      ];
+
+      if (!this.options?.hiddenNamespaceGroupButton) {
+        standard.push( {
           tooltipKey: this.groupTooltip,
           icon:       'icon-folder',
           value:      'namespace',
-        },
-      ];
+        });
+      }
 
       return standard.concat(this.listGroups);
     },

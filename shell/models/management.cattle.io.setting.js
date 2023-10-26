@@ -1,5 +1,12 @@
 import { ALLOWED_SETTINGS } from '@shell/config/settings';
 import HybridModel from '@shell/plugins/steve/hybrid-class';
+import { HARVESTER_NAME as HARVESTER } from '@shell/config/features';
+import {
+  _EDIT,
+  _UNFLAG,
+  AS,
+  MODE
+} from '@shell/config/query-params';
 
 export default class Setting extends HybridModel {
   get fromEnv() {
@@ -38,5 +45,23 @@ export default class Setting extends HybridModel {
         validators:     [`isHttps:${ this.metadata.name }`]
       },
     ];
+  }
+
+  goToEdit(moreQuery = {}) {
+    if (this.$rootGetters['currentProduct'].inStore === HARVESTER) {
+      location.name = `${ HARVESTER }-c-cluster-brand`;
+      location.params = { cluster: this.$rootGetters['currentCluster'].id, product: HARVESTER };
+
+      location.query = {
+        ...location.query,
+        [MODE]: _EDIT,
+        [AS]:   _UNFLAG,
+        ...moreQuery
+      };
+
+      this.currentRouter().push(location);
+    } else {
+      super.goToEdit();
+    }
   }
 }
