@@ -23,6 +23,7 @@ describe('Side Menu: main', () => {
   it('Pinned and unpinned cluster', { tags: ['@adminUser', '@standardUser'] }, () => {
     const burgerMenuPo = new BurgerMenuPo();
 
+    burgerMenuPo.pinFirstCluster();
     burgerMenuPo.clusterPinnedList().should('exist');
     burgerMenuPo.unpinFirstCluster();
     burgerMenuPo.clusterPinnedList().should('not.exist');
