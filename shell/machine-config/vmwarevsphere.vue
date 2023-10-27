@@ -224,8 +224,6 @@ export default {
       },
     ];
 
-    console.log('VALAL', this.value);
-
     if (this.mode === _CREATE && !this.value.initted) {
       Object.defineProperty(this.value, 'initted', { value: true, enumerable: false });
 
