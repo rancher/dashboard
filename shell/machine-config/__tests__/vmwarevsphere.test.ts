@@ -60,13 +60,13 @@ describe('component: vmwarevsphere', () => {
       os
     } = wrapper.vm.$options.propsData.value;
 
-    expect(cpuCount).toEqual(defaultCpuCount);
-    expect(diskSize).toEqual(defaultDiskSize);
-    expect(memorySize).toEqual(defaultMemorySize);
-    expect(hostsystem).toEqual(defaultHostsystem);
-    expect(cloudConfig).toEqual(defaultCloudConfig);
-    expect(gracefulShutdownTimeout).toEqual(defaultGracefulShutdownTimeout);
-    expect(cfgparam).toEqual(defaultCfgparam);
-    expect(os).toEqual(defaultOs);
+    expect(cpuCount).toStrictEqual(defaultCpuCount);
+    expect(diskSize).toStrictEqual(defaultDiskSize);
+    expect(memorySize).toStrictEqual(defaultMemorySize);
+    expect(hostsystem).toStrictEqual(defaultHostsystem);
+    expect(cloudConfig).toStrictEqual(defaultCloudConfig);
+    expect(gracefulShutdownTimeout).toStrictEqual(defaultGracefulShutdownTimeout);
+    expect(cfgparam).toStrictEqual(defaultCfgparam);
+    expect(os).toStrictEqual(defaultOs);
   });
 });
