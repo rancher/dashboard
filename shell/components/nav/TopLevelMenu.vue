@@ -50,7 +50,6 @@ export default {
   computed: {
     ...mapGetters(['clusterId']),
     ...mapGetters(['clusterReady', 'isRancher', 'currentCluster', 'currentProduct', 'isRancherInHarvester']),
-    ...mapGetters('type-map', ['activeProducts']),
     ...mapGetters({ features: 'features/get' }),
 
     value: {
@@ -59,9 +58,16 @@ export default {
       },
     },
 
+    sideMenuStyle() {
+      return {
+        marginBottom: this.globalBannerSettings?.footerFont,
+        marginTop:    this.globalBannerSettings?.headerFont
+      };
+    },
+
     globalBannerSettings() {
       const settings = this.$store.getters['management/all'](MANAGEMENT.SETTING);
-      const bannerSettings = settings.find((s) => s.id === SETTING.BANNERS);
+      const bannerSettings = settings?.find((s) => s.id === SETTING.BANNERS);
 
       if (bannerSettings) {
         const parsed = JSON.parse(bannerSettings.value);
@@ -104,7 +110,7 @@ export default {
         kubeClusters = kubeClusters.filter((c) => !!available[c]);
       }
 
-      return kubeClusters.map((x) => {
+      return kubeClusters?.map((x) => {
         const pCluster = pClusters?.find((c) => c.mgmt?.id === x.id);
 
         return {
@@ -120,14 +126,12 @@ export default {
           pin:             () => x.pin(),
           unpin:           () => x.unpin()
         };
-      });
+      }) || [];
     },
 
     clustersFiltered() {
       const search = (this.clusterFilter || '').toLowerCase();
-
-      const out = search ? this.clusters.filter((item) => item.label.toLowerCase().includes(search)) : this.clusters;
-
+      const out = search ? this.clusters.filter((item) => item.label?.toLowerCase().includes(search)) : this.clusters;
       const sorted = sortBy(out, ['ready:desc', 'label']);
 
       if (search) {
@@ -203,7 +207,7 @@ export default {
       const cluster = this.clusterId || this.$store.getters['defaultClusterId'];
 
       // TODO plugin routes
-      const entries = this.activeProducts.map((p) => {
+      const entries = this.$store.getters['type-map/activeProducts']?.map((p) => {
         // Try product-specific index first
         const to = p.to || {
           name:   `c-cluster-${ p.name }`,
@@ -314,22 +318,22 @@ export default {
 </script>
 <template>
   <div>
+    <!-- Overlay -->
     <div
       v-if="shown"
       class="side-menu-glass"
       @click="hide()"
     />
     <transition name="fade">
+      <!-- Side menu -->
       <div
         data-testid="side-menu"
         class="side-menu"
         :class="{'menu-open': shown, 'menu-close':!shown}"
-        :style="{'marginBottom':
-                   globalBannerSettings?.footerFont,
-                 'marginTop':
-                   globalBannerSettings?.headerFont}"
+        :style="sideMenuStyle"
         tabindex="-1"
       >
+        <!-- Logo and name -->
         <div class="title">
           <div
             data-testid="top-level-menu"
@@ -351,8 +355,11 @@ export default {
             <BrandImage file-name="rancher-logo.svg" />
           </div>
         </div>
+
+        <!-- Menu body -->
         <div class="body">
           <div>
+            <!-- Home button -->
             <nuxt-link
               class="option cluster selector home"
               :to="{ name: 'home' }"
@@ -371,6 +378,8 @@ export default {
                 {{ t('nav.home') }}
               </div>
             </nuxt-link>
+
+            <!-- Search bar -->
             <div
               v-if="showClusterSearch"
               class="clusters-search"
@@ -400,6 +409,8 @@ export default {
               </div>
             </div>
           </div>
+
+          <!-- Harvester extras -->
           <template v-if="hciApps.length">
             <div class="category" />
             <div>
@@ -416,7 +427,6 @@ export default {
                 </div>
               </a>
             </div>
-
             <div
               v-for="a in hciApps"
               :key="a.label"
@@ -435,12 +445,14 @@ export default {
             </div>
           </template>
 
+          <!-- Cluster menu -->
           <template v-if="clusters && !!clusters.length">
             <div
               ref="clusterList"
               class="clusters"
               :style="pinnedClustersHeight"
             >
+              <!-- Pinned Clusters -->
               <div
                 v-if="showPinClusters && pinFiltered.length"
                 class="clustersPinned"
@@ -490,10 +502,13 @@ export default {
                   <hr>
                 </div>
               </div>
+
+              <!-- Clusters Search result -->
               <div class="clustersList">
                 <div
-                  v-for="c in clustersFiltered"
+                  v-for="(c, index) in clustersFiltered"
                   :key="c.id"
+                  :data-testid="`top-level-menu-cluster-${index}`"
                   @click="hide()"
                 >
                   <nuxt-link
@@ -532,14 +547,18 @@ export default {
                   </span>
                 </div>
               </div>
+
+              <!-- No clusters message -->
               <div
                 v-if="(clustersFiltered.length === 0 || pinFiltered.length === 0) && searchActive"
+                data-testid="top-level-menu-no-results"
                 class="none-matching"
               >
                 {{ t('nav.search.noResults') }}
               </div>
             </div>
 
+            <!-- See all clusters -->
             <nuxt-link
               v-if="clusters.length > maxClustersToShow"
               class="clusters-all"
@@ -611,6 +630,8 @@ export default {
                 </nuxt-link>
               </div>
             </template>
+
+            <!-- App menu -->
             <template v-if="configurationApps.length">
               <div
                 class="category-title"
@@ -640,6 +661,8 @@ export default {
             </template>
           </div>
         </div>
+
+        <!-- Footer -->
         <div
           class="footer"
         >

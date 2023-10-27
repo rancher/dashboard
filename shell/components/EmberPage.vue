@@ -597,11 +597,11 @@ export default {
 
   .ember-iframe {
     border: 0;
-    left: var(--nav-width);
+    left: calc(var(--nav-width) + $app-bar-collapsed-width);
     height: calc(100vh - var(--header-height));
     position: absolute;
     top: var(--header-height);
-    width: calc(100vw - var(--nav-width));
+    width: calc(100vw - var(--nav-width) - $app-bar-collapsed-width);
     visibility: show;
   }
 

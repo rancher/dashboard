@@ -21,7 +21,7 @@ export function roleTemplateRules(rules = [], getters, errors, validatorArgs = [
     errors.push(getters['i18n/t']('validation.roleTemplate.roleTemplateRules.noResourceAndNonResource'));
   }
 
-  if (rules.some((rule) => isEmpty(rule.resources) && isEmpty(rule.nonResourceURLs) && isEmpty(rule.apiGroups))) {
+  if (rules.some((rule) => isEmpty(rule.resources) && isEmpty(rule.nonResourceURLs))) {
     errors.push(getters['i18n/t']('validation.roleTemplate.roleTemplateRules.missingOneResource'));
   }
 }

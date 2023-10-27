@@ -2,15 +2,12 @@
 import { mapGetters } from 'vuex';
 import { asciiLike, nlToBr } from '@shell/utils/string';
 import { HIDE_SENSITIVE } from '@shell/store/prefs';
+import CopyToClipboard from '@shell/components/CopyToClipboard';
 import CodeMirror from '@shell/components/CodeMirror';
 import { binarySize } from '@shell/utils/crypto';
-import CopyToClipboardText from '@shell/components/CopyToClipboardText';
 
 export default {
-  components: {
-    CopyToClipboardText,
-    CodeMirror
-  },
+  components: { CopyToClipboard, CodeMirror },
 
   props: {
     label: {
@@ -153,52 +150,55 @@ export default {
       {{ label }}
     </h5>
 
-    <div class="value-wrapper">
-      <CopyToClipboardText
-        v-if="copy && !isBinary"
-        :text="value"
-        :showLabel="false"
-        action-color=""
-      />
-      <span
-        v-if="isEmpty"
-        v-t="'detailText.empty'"
-        class="text-italic"
-      />
-      <span
-        v-else-if="isBinary"
-        class="text-italic "
-      >{{ body }}</span>
+    <span
+      v-if="isEmpty"
+      v-t="'detailText.empty'"
+      class="text-italic"
+    />
+    <span
+      v-else-if="isBinary"
+      class="text-italic"
+    >{{ body }}</span>
 
-      <CodeMirror
-        v-else-if="jsonStr"
-        :options="{mode:{name:'javascript', json:true}, lineNumbers:false, foldGutter:false, readOnly:true}"
-        :value="jsonStr"
-        :class="{'conceal': concealed}"
-      />
+    <CodeMirror
+      v-else-if="jsonStr"
+      :options="{mode:{name:'javascript', json:true}, lineNumbers:false, foldGutter:false, readOnly:true}"
+      :value="jsonStr"
+      :class="{'conceal': concealed}"
+    />
 
-      <span
-        v-else
-        v-clean-html="bodyHtml"
-        data-testid="detail-top_html"
-        :class="{'conceal': concealed, 'monospace': monospace && !isBinary}"
-      />
+    <span
+      v-else
+      v-clean-html="bodyHtml"
+      data-testid="detail-top_html"
+      :class="{'conceal': concealed, 'monospace': monospace && !isBinary}"
+    />
 
-      <template v-if="!isBinary && !jsonStr && isLong && !expanded">
-        <a
-          href="#"
-          @click.prevent="expand"
-        >{{ plusMore }}</a>
-      </template>
-    </div>
+    <template v-if="!isBinary && !jsonStr && isLong && !expanded">
+      <a
+        href="#"
+        @click.prevent="expand"
+      >{{ plusMore }}</a>
+    </template>
+
+    <CopyToClipboard
+      v-if="copy && !isBinary"
+      :text="value"
+      class="role-tertiary"
+      action-color=""
+    />
   </div>
 </template>
 
 <style lang='scss' scoped>
 .with-copy {
-  padding: 8px 0;
+  border: solid 1px var(--border);
+  border-radius: var(--border-radius);
+  padding: 10px;
   position: relative;
   background-color: var(--input-bg);
+  border-radius: var(--border-radius);
+  border: solid var(--border-width) var(--input-border);
 
   > button {
     position: absolute;
@@ -211,14 +211,5 @@ export default {
 .monospace {
   white-space: pre-wrap;
   word-wrap: break-all
-}
-
-.value-wrapper {
-  display: flex;
-  padding: 8px 20px;
-
-  &:hover {
-    background: var(--annotations-hover-bg);
-  }
 }
 </style>

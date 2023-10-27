@@ -144,6 +144,7 @@ const sidebars = {
           },
           items: [
             'extensions/usecases/top-level-product',
+            'extensions/usecases/cluster-level-product',
             {
               type:  'category',
               label: 'Node Driver',

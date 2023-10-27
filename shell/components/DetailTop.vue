@@ -336,19 +336,6 @@ export default {
 
     .annotation {
       margin-top: 10px;
-
-      h5 {
-        font-weight: bold;
-        margin-left: 20px;
-      }
-
-      .icon {
-        margin-right: 10px;
-      }
-
-      .CodeMirror-lines {
-        margin: 0;
-      }
     }
 
     .label {

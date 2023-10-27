@@ -8,7 +8,7 @@ import { MANAGEMENT, NORMAN, DEFAULT_WORKSPACE } from '@shell/config/types';
 import { _ALL_IF_AUTHED } from '@shell/plugins/dashboard-store/actions';
 import { applyProducts } from '@shell/store/type-map';
 import { findBy } from '@shell/utils/array';
-import { ClusterNotFoundError } from '@shell/utils/error';
+import { ClusterNotFoundError, RedirectToError } from '@shell/utils/error';
 import { get } from '@shell/utils/object';
 import { setFavIcon, haveSetFavIcon } from '@shell/utils/favicon';
 import dynamicPluginLoader from '@shell/pkg/dynamic-plugin-loader';
@@ -502,8 +502,10 @@ export default async function({
       }
     }
   } catch (e) {
-    if ( e instanceof ClusterNotFoundError ) {
+    if ( e.name === ClusterNotFoundError.name ) {
       return redirect(302, '/home');
+    } if ( e.name === RedirectToError.name ) {
+      return redirect(302, e.url);
     } else {
       // Sets error 500 if lost connection to API
       store.commit('setError', { error: e, locationError: new Error(store.getters['i18n/t']('nav.failWhale.authMiddleware')) });

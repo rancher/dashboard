@@ -111,8 +111,6 @@ generic:
           =1 {Matches 1 of {total, number}: "{sample}"}
           other {Matches {matched, number} of {total, number}, including "{sample}"}
         }
-  copyValue: Copy value
-  valueCopied: Value copied!
 
 locale:
   en-us: English
@@ -1679,6 +1677,7 @@ cluster:
     haveArgInfo: Configuration information is not available for the selected Kubernetes version.  The options available on this screen will be limited; you may want to use the YAML editor.
     deprecatedPsp: Pod Security Policies are deprecated as of Kubernetes v1.21, and have been removed in Kubernetes v1.25.
     removedPsp: Pod Security Policies have been removed in Kubernetes v1.25. Use Pod Security Admission instead.
+    cloudProviderAddConfig: 'On Kubernetes 1.27 or greater, the Amazon Cloud Provider requires additional configuration. See <a href="https://ranchermanager.docs.rancher.com/how-to-guides/new-user-guides/kubernetes-clusters-in-rancher-setup/set-up-cloud-providers/amazon" target="_blank" rel="noopener noreferrer nofollow">the documentation</a> for more information.'
     machinePoolError: |-
       {count, plural,
         =1 { {pool_name}: The provided value for {fields} was not found in the list of expected values. This can happen with clusters provisioned outside of Rancher or when options for the provider have changed. }
@@ -2765,7 +2764,7 @@ landing:
     cpuUsed: CPU Used
     memoryUsed: Memory Used
   seeWhatsNew: Learn more about the improvements and new capabilities in this version.
-  whatsNewLink: "What's new in 2.7"
+  whatsNewLink: "What's new in 2.8"
   learnMore: Learn More
   support: Support
   psps: PSPs
@@ -2835,7 +2834,7 @@ logging:
     dockerRootDirectory: Docker Root Directory
     systemdLogPath: systemd Log Path
     tooltip: 'Some kubernetes distributions log to <code>journald</code>. In order to collect these logs the <code>systemdLogPath</code> needs to be defined. While the <code>/run/log/journal</code> directory is used by default, some Linux distributions do not default to this path.'
-    url: '<a href="https://ranchermanager.docs.rancher.com/v2.7/integrations-in-rancher/logging/logging-helm-chart-options" target="_blank" rel="noopener nofollow noreferrer">Learn more</a>'
+    url: '<a href="https://ranchermanager.docs.rancher.com/v2.8/integrations-in-rancher/logging/logging-helm-chart-options" target="_blank" rel="noopener nofollow noreferrer">Learn more</a>'
     default: /run/log/journal
   elasticsearch:
     host: Host
@@ -4615,6 +4614,7 @@ rbac:
       restricted-admin:
         label: Restricted Administrator
         description: Restricted Admins have full control over all resources in all downstream clusters but no access to the local cluster.
+        deprecation: 'Warning: The Restricted Administrator role has been deprecated as of Rancher 2.8.0 and will be removed in a future release - Check out the <a href="{releaseNotesUrl}" target="_blank" rel="noopener noreferrer nofollow">Release Notes</a>'
       user:
         label: Standard User
         description: Standard Users can create new clusters and manage clusters and projects they have been granted access to.
@@ -5755,7 +5755,10 @@ validation:
         required: 'Port Rule [{position}] - Target Port is required'
   setting:
     serverUrl:
-      https: server-url must be https.
+      https: Server URL must be https.
+      localhost: If the Server URL is internal to the Rancher server (e.g. localhost) the downstream clusters may not be able to communicate with Rancher.
+      trailingForwardSlash: Server URL should not have a trailing forward slash.
+      url: Server URL must be an URL.
   stringLength:
     between: '"{key}" should be between {min} and {max} {max, plural, =1 {character} other {characters}}'
     exactly: '"{key}" should be {count, plural, =1 {# character} other {# characters}}'

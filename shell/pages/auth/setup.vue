@@ -18,6 +18,10 @@ import Password from '@shell/components/form/Password';
 import { applyProducts } from '@shell/store/type-map';
 import BrandImage from '@shell/components/BrandImage';
 import { waitFor } from '@shell/utils/async';
+import { Banner } from '@components/Banner';
+import FormValidation from '@shell/mixins/form-validation';
+import isUrl from 'is-url';
+import { isLocalhost } from '@shell/utils/validators/setting';
 
 const calcIsFirstLogin = (store) => {
   const firstLoginSetting = store.getters['management/byId'](MANAGEMENT.SETTING, SETTING.FIRST_LOGIN);
@@ -36,11 +40,18 @@ const calcMustChangePassword = async(store) => {
 export default {
   layout: 'unauthenticated',
 
+  mixins: [FormValidation],
+
   data() {
     return {
       passwordOptions: [
         { label: this.t('setup.useRandom'), value: true },
         { label: this.t('setup.useManual'), value: false }],
+      fvFormRuleSets: [{
+        path:       'serverUrl',
+        rootObject: this,
+        rules:      ['required', 'https', 'url', 'trailingForwardSlash']
+      }]
     };
   },
 
@@ -78,7 +89,7 @@ export default {
   },
 
   components: {
-    AsyncButton, LabeledInput, CopyToClipboard, Checkbox, RadioGroup, Password, BrandImage
+    AsyncButton, LabeledInput, CopyToClipboard, Checkbox, RadioGroup, Password, BrandImage, Banner
   },
 
   async asyncData({ route, req, store }) {
@@ -191,6 +202,10 @@ export default {
         }
       }
 
+      if (!isUrl(this.serverUrl) || this.fvGetPathErrors(['serverUrl']).length > 0) {
+        return false;
+      }
+
       return true;
     },
 
@@ -198,6 +213,10 @@ export default {
       const out = findBy(this.principals, 'me', true);
 
       return out;
+    },
+
+    showLocalhostWarning() {
+      return isLocalhost(this.serverUrl);
     }
   },
 
@@ -264,6 +283,10 @@ export default {
 
     done() {
       this.$router.replace('/');
+    },
+
+    onServerUrlChange(value) {
+      this.serverUrl = value.trim();
     },
   },
 };
@@ -368,10 +391,24 @@ export default {
                 />
               </p>
               <div class="mt-20">
+                <Banner
+                  v-if="showLocalhostWarning"
+                  color="warning"
+                  :label="t('validation.setting.serverUrl.localhost')"
+                />
+                <Banner
+                  v-for="(err, i) in fvGetPathErrors(['serverUrl'])"
+                  :key="i"
+                  color="error"
+                  :label="err"
+                />
                 <LabeledInput
                   v-model="serverUrl"
                   :label="t('setup.serverUrl.label')"
                   data-testid="setup-server-url"
+                  :rules="fvGetAndReportPathRules('serverUrl')"
+                  :required="true"
+                  @input="onServerUrlChange"
                 />
               </div>
             </template>

@@ -1,4 +1,5 @@
 <script>
+import { mapGetters } from 'vuex';
 import { MANAGEMENT, RBAC } from '@shell/config/types';
 import CruResource from '@shell/components/CruResource';
 import CreateEditView from '@shell/mixins/create-edit-view';
@@ -14,6 +15,7 @@ import { ucFirst } from '@shell/utils/string';
 import SortableTable from '@shell/components/SortableTable';
 import { _CLONE, _DETAIL } from '@shell/config/query-params';
 import { SCOPED_RESOURCES } from '@shell/config/roles';
+import { Banner } from '@components/Banner';
 
 import { SUBTYPE_MAPPING, VERBS } from '@shell/models/management.cattle.io.roletemplate';
 import Loading from '@shell/components/Loading';
@@ -60,7 +62,8 @@ export default {
     Tabbed,
     SortableTable,
     Loading,
-    Error
+    Error,
+    Banner
   },
 
   mixins: [CreateEditView, FormValidation],
@@ -162,6 +165,12 @@ export default {
   },
 
   computed: {
+    ...mapGetters(['releaseNotesUrl']),
+
+    showRestrictedAdminDeprecationBanner() {
+      return this.value.subtype === GLOBAL && this.value.id === 'restricted-admin';
+    },
+
     label() {
       return this.t(`rbac.roletemplate.subtypes.${ this.value.subtype }.label`);
     },
@@ -541,6 +550,13 @@ export default {
     @finish="save"
     @cancel="cancel"
   >
+    <Banner
+      v-if="showRestrictedAdminDeprecationBanner"
+      color="warning"
+      class="mb-20"
+    >
+      <span v-clean-html="t('rbac.globalRoles.role.restricted-admin.deprecation', { releaseNotesUrl }, true)" />
+    </Banner>
     <template v-if="isDetail">
       <SortableTable
         key-field="index"
