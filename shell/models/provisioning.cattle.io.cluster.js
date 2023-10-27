@@ -1,5 +1,5 @@
 import {
-  CAPI, MANAGEMENT, NORMAN, SNAPSHOT, HCI
+  CAPI, LOCAL_CLUSTER, MANAGEMENT, NORMAN, SNAPSHOT, HCI
 } from '@shell/config/types';
 import SteveModel from '@shell/plugins/steve/steve-class';
 import { findBy } from '@shell/utils/array';
@@ -882,5 +882,9 @@ export default class ProvCluster extends SteveModel {
 
   get hasError() {
     return this.status?.conditions?.some((condition) => condition.error === true);
+  }
+
+  get localCluster() {
+    return this.$rootGetters['management/byId'](MANAGEMENT.CLUSTER, LOCAL_CLUSTER);
   }
 }

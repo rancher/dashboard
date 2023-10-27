@@ -12,6 +12,7 @@ import {
 } from '@shell/config/query-params';
 import { ExtensionPoint, PanelLocation } from '@shell/core/types';
 import ExtensionPanel from '@shell/components/ExtensionPanel';
+import { BLANK_CLUSTER } from 'store/store-types';
 
 /**
  * Resource Detail Masthead component.
@@ -148,7 +149,7 @@ export default {
         return this.value.namespaceLocation || {
           name:   'c-cluster-product-resource-id',
           params: {
-            cluster:  this.$route.params.cluster,
+            cluster:  this.$route.params.cluster === BLANK_CLUSTER ? this.value?.localCluster?.id : this.$route.params.cluster,
             product:  this.$store.getters['productId'],
             resource: NAMESPACE,
             id:       this.$route.params.namespace
@@ -177,13 +178,16 @@ export default {
 
     project() {
       if (this.isNamespace) {
-        const id = (this.value?.metadata?.labels || {})[PROJECT];
-        const clusterId = this.$store.getters['currentCluster'].id;
+        const cluster = this.$store.getters['currentCluster'];
 
-        return this.$store.getters['management/byId'](MANAGEMENT.PROJECT, `${ clusterId }/${ id }`);
-      } else {
-        return null;
+        if (cluster) {
+          const id = (this.value?.metadata?.labels || {})[PROJECT];
+
+          return this.$store.getters['management/byId'](MANAGEMENT.PROJECT, `${ cluster.id }/${ id }`);
+        }
       }
+
+      return null;
     },
 
     banner() {
@@ -370,7 +374,7 @@ export default {
     },
 
     hideNamespaceLocation() {
-      return this.$store.getters['currentProduct'].hideNamespaceLocation;
+      return this.$store.getters['currentProduct'].hideNamespaceLocation || !this.value?.localCluster;
     },
   },
 
