@@ -397,6 +397,7 @@ export default {
             color="error"
             :label="err"
             :closable="true"
+            class="footer-error"
             @close="errors.splice(idx, 1)"
           />
         </div>
@@ -468,7 +469,6 @@ $spacer: 10px;
   flex-direction: column;
   flex: 1;
   padding: 0;
-  height: 0;
   justify-content: flex-start;
 }
 
@@ -650,6 +650,12 @@ $spacer: 10px;
     height: 100%;
     flex: 1;
   }
+}
+
+// We have to account for the absolute position of the .controls-row
+.footer-error {
+  margin-top: -40px;
+  margin-bottom: 70px;
 }
 
   .controls-row {

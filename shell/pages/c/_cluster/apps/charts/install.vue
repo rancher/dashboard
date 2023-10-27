@@ -1979,7 +1979,7 @@ export default {
   display: flex;
   flex-direction: column;
   padding: 0;
-  height: calc(100% - 112px);
+  overflow: auto;
 }
 
 .header {
