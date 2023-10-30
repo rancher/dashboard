@@ -3,23 +3,19 @@
 import Vue from 'vue';
 
 import { getMatchedComponentsInstances, getChildrenComponentInstancesUsingFetch, promisify, globalHandleError } from '../utils/nuxt';
-import NuxtError from '../layouts/error.vue';
+import NuxtError from '../components/templates/error.vue';
 import NuxtLoading from '../components/nav/GlobalLoading.vue';
 
 import '../assets/styles/app.scss';
-import { getLayouts } from './layouts';
-
-const layouts = getLayouts();
 
 export default {
   render(h) {
     const loadingEl = h('NuxtLoading', { ref: 'loading' });
 
-    const layoutEl = h(this.layout || 'nuxt');
     const templateEl = h('div', {
       domProps: { id: '__layout' },
       key:      this.layoutName
-    }, [layoutEl]);
+    }, [h('nuxt')]);
 
     return h('div', { domProps: { id: '__nuxt' } }, [
       loadingEl,
@@ -149,30 +145,7 @@ export default {
         if (typeof errorLayout === 'function') {
           errorLayout = errorLayout(this.context);
         }
-
-        this.setLayout(errorLayout);
       }
-    },
-
-    setLayout(layout) {
-      if (layout && typeof layout !== 'string') {
-        throw new Error('[nuxt] Avoid using non-string value as layout property.');
-      }
-
-      if (!layout || !layouts[`_${ layout }`]) {
-        layout = 'default';
-      }
-      this.layoutName = layout;
-      this.layout = layouts[`_${ layout }`];
-
-      return this.layout;
-    },
-    loadLayout(layout) {
-      if (!layout || !layouts[`_${ layout }`]) {
-        layout = 'default';
-      }
-
-      return Promise.resolve(layouts[`_${ layout }`]);
     },
   },
 

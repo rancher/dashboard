@@ -1,8 +1,6 @@
 <script>
 
 export default {
-  layout: 'unauthenticated',
-
   async asyncData({ redirect, store, router }) {
     await store.dispatch('auth/logout', null, { root: true });
   }

@@ -4,7 +4,6 @@
 import Vue from 'vue';
 import { createRouter } from '../config/router.js';
 import NuxtChild from '../components/nuxt/nuxt-child.js';
-import NuxtError from '../layouts/error.vue';
 import Nuxt from '../components/nuxt/nuxt.js';
 import App from './App.js';
 import { setContext, getLocation, getRouteData, normalizeError } from '../utils/nuxt';
@@ -285,4 +284,4 @@ async function createApp(config = {}) {
   };
 }
 
-export { createApp, NuxtError };
+export { createApp };

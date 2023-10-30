@@ -15,7 +15,6 @@ import {
   PluginRouteConfig, RegisterStore, UnregisterStore, CoreStoreSpecifics, CoreStoreConfig, OnNavToPackage, OnNavAwayFromPackage, OnLogOut
 } from './types';
 import coreStore, { coreStoreModule, coreStoreState } from '@shell/plugins/dashboard-store';
-import { registerLayout } from '@shell/initialize/layouts';
 
 export type ProductFunction = (plugin: IPlugin, store: any) => void;
 
@@ -120,12 +119,27 @@ export class Plugin implements IPlugin {
     const parent: string | undefined = hasParent ? parentOrRoute as string : undefined;
     const route: RouteConfig = hasParent ? optionalRoute as RouteConfig : parentOrRoute as RouteConfig;
 
+    let parentOverride;
+
+    if (!parent) {
+      // TODO: Inspecting the route object in the browser clearly indicates it's not a RouteConfig. The type needs to be changed or at least extended.
+      const typelessRoute: any = route;
+
+      if (typelessRoute.component?.layout) {
+        console.warn(`Layouts have been deprecated. We still have parent routes which use the same name and styling as the previous layouts. \n\nFound a component ${ typelessRoute.component.name } with the '${ typelessRoute.component.layout }' layout specified `); // eslint-disable-line no-console
+        parentOverride = typelessRoute.component.layout.toLowerCase();
+      } else {
+        console.warn(`Layouts have been deprecated. We still have parent routes which use the same name and styling as the previous layouts. You should specify a parent, we're currently setting the parent to 'default'`); // eslint-disable-line no-console
+        parentOverride = 'default';
+      }
+    }
+
     route.meta = {
       ...route?.meta,
       pkg: this.name,
     };
 
-    this.routes.push({ parent, route });
+    this.routes.push({ parent: parentOverride || parent, route });
   }
 
   private _addUIConfig(type: string, where: string, when: LocationConfig | string, config: any) {
@@ -268,14 +282,6 @@ export class Plugin implements IPlugin {
       }
 
       this.l10n[name].push(fn);
-    } else if (type === 'layouts') {
-      fn().then((component: any) => {
-        if (component.default) {
-          registerLayout(name, component.default);
-        } else {
-          console.error(`Failed to load layout ${ name } because the file didn't export a default component.`); // eslint-disable-line no-console
-        }
-      });
     } else {
       if (!this.types[type]) {
         this.types[type] = {};

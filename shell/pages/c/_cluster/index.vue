@@ -2,8 +2,6 @@
 import { NAME as EXPLORER } from '@shell/config/product/explorer';
 
 export default {
-  layout: 'plain',
-
   middleware({ redirect, route } ) {
     return redirect({
       name:   'c-cluster-product',
