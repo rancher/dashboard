@@ -165,7 +165,7 @@ export default {
     let cssClass = `overflow-hidden dashboard-body`;
     const out = {
       bodyAttrs: { class: `theme-${ this.theme } ${ cssClass }` },
-      title:     getVendor(),
+      title:     'Goomba', // getVendor(),
     };
 
     if (getVendor() === 'Harvester') {
