@@ -1,6 +1,5 @@
 // Taken from @nuxt/vue-app/template/App.js
 // Injected in the "app" property that is an output of createApp in initialize/index.js
-// Is this the "first render" point of the whole app?
 import Vue from 'vue';
 
 import { getMatchedComponentsInstances, getChildrenComponentInstancesUsingFetch, promisify, globalHandleError } from '../utils/nuxt';
