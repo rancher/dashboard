@@ -1,5 +1,6 @@
 // Taken from @nuxt/vue-app/template/App.js
-// Injected in the app property that is an output of createApp in initialize/index.js
+// Injected in the "app" property that is an output of createApp in initialize/index.js
+// Is this the "first render" point of the whole app?
 import Vue from 'vue';
 
 import { getMatchedComponentsInstances, getChildrenComponentInstancesUsingFetch, promisify, globalHandleError } from '../utils/nuxt';
@@ -21,6 +22,7 @@ export default {
       key:      this.layoutName
     }, [layoutEl]);
 
+    // can we kill transitions?
     const transitionEl = h('transition', {
       props: {
         name: 'layout',
@@ -29,6 +31,7 @@ export default {
       on: {
         beforeEnter(el) {
           // Ensure to trigger scroll event after calling scrollBehavior
+          // why do we need this?
           window.$nuxt.$nextTick(() => {
             window.$nuxt.$emit('triggerScroll');
           });
@@ -59,6 +62,7 @@ export default {
     // Add this.$nuxt in child instances
     this.$root.$options.$nuxt = this;
 
+    // we can kill this process.client...
     if (process.client) {
       // add to window so we can listen when ready
       window.$nuxt = this;
@@ -92,6 +96,8 @@ export default {
 
   methods: {
     refreshOnlineStatus() {
+      // we can kill this process.client...
+      // doing a search for "isOnline" on the whole codebase I cannot find any reference to it... I don't even think it's needed
       if (process.client) {
         if (typeof window.navigator.onLine === 'undefined') {
           // If the browser doesn't support connection status reports

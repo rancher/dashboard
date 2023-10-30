@@ -54,6 +54,7 @@ let app;
 let router;
 
 // Try to rehydrate SSR data from window
+// there are several hits regarding __NUXT__ on the code...
 const NUXT = window.__NUXT__ || {};
 
 const $config = nuxt.publicRuntimeConfig || {}; // eslint-disable-line no-undef
@@ -62,6 +63,8 @@ if ($config._app) {
   __webpack_public_path__ = urlJoin($config._app.cdnURL, $config._app.assetsPath); // eslint-disable-line camelcase, no-undef
 }
 
+// basic VueJS config... we should gather all that is proper VueJS and group it together so that we know
+// where they all are. Same for Nuxt config
 Object.assign(Vue.config, { silent: false, performance: true });
 
 if (debug) {
@@ -138,8 +141,10 @@ if (debug) {
 const errorHandler = Vue.config.errorHandler || console.error; // eslint-disable-line no-console
 
 // Create and mount App
+// we can remove this first arg of createApp as it ssrContext... no SSR no more
 createApp(null, nuxt.publicRuntimeConfig).then(mountApp).catch(errorHandler); // eslint-disable-line no-undef
 
+// this is used only once on the whole code and it's on the function below (mapTransitions)...
 function componentOption(component, key, ...args) {
   if (!component || !component.options || !component.options[key]) {
     return {};
@@ -153,6 +158,7 @@ function componentOption(component, key, ...args) {
   return option;
 }
 
+// can we kill transitions?
 function mapTransitions(toComponents, to, from) {
   const componentTransitions = (component) => {
     const transition = componentOption(component, 'transition', to, from) || {};
@@ -183,6 +189,7 @@ function mapTransitions(toComponents, to, from) {
   return mergedTransitions;
 }
 
+// I don't seem to know the exact purpose of this function...
 async function loadAsyncComponents(to, from, next) {
   // Check if route changed (this._routeChanged), only if the page is not an error (for validate())
   this._routeChanged = Boolean(app.nuxt.err) || from.name !== to.name;
@@ -242,6 +249,8 @@ async function loadAsyncComponents(to, from, next) {
   }
 }
 
+// If the title of the function is correct, we can kill it
+// only used on the function below ("resolveComponents")
 function applySSRData(Component, ssrData) {
   if (NUXT.serverRendered && ssrData) {
     applyAsyncData(Component, ssrData);
@@ -253,6 +262,7 @@ function applySSRData(Component, ssrData) {
 }
 
 // Get matched components
+// what does this do?
 function resolveComponents(route) {
   return flatMapComponents(route, async(Component, _, match, key, index) => {
     // If component is not resolved yet, resolve it
@@ -268,6 +278,8 @@ function resolveComponents(route) {
   });
 }
 
+// this looks like support for Nuxt middleware's (middleware prop on a component)
+// couldn't we replace this functionality (especially after removing Nuxt layouts) to something like https://markus.oberlehner.net/blog/implementing-a-simple-middleware-with-vue-router/?
 function callMiddleware(Components, context, layout) {
   let midd = ['i18n'];
   let unknownMiddleware = false;
@@ -305,6 +317,7 @@ function callMiddleware(Components, context, layout) {
   return middlewareSeries(midd, context);
 }
 
+// ???????? don't even know where to start here... a LOT going on... 250 lines function... need help understanding this. DO WE NEED ALL OF THIS?!
 async function render(to, from, next) {
   if (this._routeChanged === false && this._paramChanged === false && this._queryChanged === false) {
     return next();
@@ -563,6 +576,7 @@ async function render(to, from, next) {
 }
 
 // Fix components format in matched, it's due to code-splitting of vue-router
+// ????????
 function normalizeComponents(to, ___) {
   flatMapComponents(to, (Component, _, match, key) => {
     if (typeof Component === 'object' && !Component.options) {
@@ -576,6 +590,7 @@ function normalizeComponents(to, ___) {
   });
 }
 
+// can be removed after Cody's layout removal
 function setLayoutForNextPage(to) {
   // Set layout
   let hasError = Boolean(this.$options.nuxt.err);
@@ -592,6 +607,7 @@ function setLayoutForNextPage(to) {
   this.setLayout(layout);
 }
 
+// error handling/return
 function checkForErrors(app) {
   // Hide error component if no error
   if (app._hadError && app._dateLastError === app.$options.nuxt.dateErr) {
@@ -601,6 +617,8 @@ function checkForErrors(app) {
 
 // When navigating on a different route but the same component is used, Vue.js
 // Will not update the instance data, so we have to update $data ourselves
+// Why are we modifying this behaviour? If component is rendered, then we deal with it... It is what it is...
+// this smells like nuxt stuff...
 function fixPrepatch(to, ___) {
   if (this._routeChanged === false && this._paramChanged === false && this._queryChanged === false) {
     return;
@@ -635,6 +653,7 @@ function fixPrepatch(to, ___) {
 
     if (triggerScroll) {
       // Ensure to trigger scroll event after calling scrollBehavior
+      // what's is this scroll thing?
       window.$nuxt.$nextTick(() => {
         window.$nuxt.$emit('triggerScroll');
       });
@@ -649,6 +668,7 @@ function fixPrepatch(to, ___) {
   });
 }
 
+// more nuxt stuff ??????
 function nuxtReady(_app) {
   window.onNuxtReadyCbs.forEach((cb) => {
     if (typeof cb === 'function') {
@@ -660,6 +680,8 @@ function nuxtReady(_app) {
     window._onNuxtLoaded(_app);
   }
   // Add router hooks
+  // we've got quite a few navigation guard definitions laying around... Shouldn't all of these go to the router definition, if possible?
+  // they would easier to track down
   router.afterEach((to, from) => {
     // Wait for fixPrepatch + $data updates
     Vue.nextTick(() => _app.$nuxt.$emit('routeChanged', to, from));
@@ -672,6 +694,9 @@ const noopData = () => {
 const noopFetch = () => {};
 
 // Special hot reload with asyncData(context)
+// still don't fully understand all of these functions, but doesn't vue offer hot reload?
+// do we need all of this complexity? Even now hot reload is not perfect and have to hit refresh sometimes
+// unless I am just clueless about the code, I don't undertand why we need this complexity
 function getNuxtChildComponents($parent, $components = []) {
   $parent.$children.forEach(($child) => {
     if ($child.$vnode && $child.$vnode.data.nuxtChild && !$components.find((c) => (c.$options.__file === $child.$options.__file))) {
@@ -685,6 +710,7 @@ function getNuxtChildComponents($parent, $components = []) {
   return $components;
 }
 
+// applies same hot reload comment
 function hotReloadAPI(_app) {
   if (!module.hot) {
     return;
@@ -695,6 +721,7 @@ function hotReloadAPI(_app) {
   $components.forEach(addHotReload.bind(_app));
 }
 
+// applies same hot reload comment... on a bigger scale :P
 function addHotReload($component, depth) {
   if ($component.$vnode.data._hasHotReload) {
     return;
@@ -792,6 +819,10 @@ function addHotReload($component, depth) {
   };
 }
 
+// generally, my comment is ??????
+// again, have the feeling that a LOT of this stuff isn't needed, but still lack understanding of what this all does
+// very difficult to follow the code for me
+// final comment: We should clean ALL of this tech debt, while we still have the knowledge in our team to understand most of it...
 async function mountApp(__app) {
   // Set global variables
   app = __app.app;
@@ -805,6 +836,8 @@ async function mountApp(__app) {
     _app.$mount('#app');
 
     // Add afterEach router hooks
+    // more navigation guards definitions... If possible can we group them all under the router definition?
+    // we also a bunch on the authenticated middleware
     router.afterEach(normalizeComponents);
 
     router.afterEach(setLayoutForNextPage.bind(_app));
@@ -824,9 +857,11 @@ async function mountApp(__app) {
   };
 
   // Resolve route components
+  // doesn't vue-router handle component loading? What's so special here?
   const Components = await Promise.all(resolveComponents(app.context.route));
 
   // Enable transitions
+  // to kill, right?
   _app.setTransitions = _app.$options.nuxt.setTransitions.bind(_app);
   if (Components.length) {
     _app.setTransitions(mapTransitions(Components, router.currentRoute));
@@ -840,6 +875,7 @@ async function mountApp(__app) {
   }
 
   // Add beforeEach router hooks
+  // more navigation guards definitions..
   router.beforeEach(loadAsyncComponents.bind(_app));
   router.beforeEach(render.bind(_app));
 
