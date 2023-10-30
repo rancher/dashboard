@@ -38,8 +38,6 @@ const calcMustChangePassword = async(store) => {
 };
 
 export default {
-  layout: 'unauthenticated',
-
   mixins: [FormValidation],
 
   data() {

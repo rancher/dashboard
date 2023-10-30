@@ -3,7 +3,7 @@ export default { middleware: ['unauthenticated'] };
 </script>
 
 <template>
-  <nuxt />
+  <router-view :key="$route.path" />
 </template>
 
 <style lang="scss">

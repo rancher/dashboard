@@ -19,7 +19,7 @@ import {
   isSamePath,
   urlJoin
 } from '../utils/nuxt.js';
-import { createApp, NuxtError } from './index.js';
+import { createApp } from './index.js';
 import fetchMixin from '../mixins/fetch.client';
 import NuxtLink from '../components/nuxt/nuxt-link.client.js'; // should be included after ./index.js
 
@@ -91,17 +91,6 @@ if (debug) {
         // Show Nuxt Error Page
         if (nuxtApp && vm.$root[nuxtApp].error && info !== 'render function') {
           const currentApp = vm.$root[nuxtApp];
-
-          // Load error layout
-          let layout = (NuxtError.options || NuxtError).layout;
-
-          if (typeof layout === 'function') {
-            layout = layout(currentApp.context);
-          }
-          if (layout) {
-            await currentApp.loadLayout(layout).catch(() => {});
-          }
-          currentApp.setLayout(layout);
 
           currentApp.error(err);
         }
@@ -204,23 +193,15 @@ function resolveComponents(route) {
   });
 }
 
-function callMiddleware(Components, context, layout) {
+function callMiddleware(Components, context) {
   let midd = ['i18n'];
   let unknownMiddleware = false;
 
-  // If layout is undefined, only call global middleware
-  if (typeof layout !== 'undefined') {
-    midd = []; // Exclude global middleware if layout defined (already called before)
-    layout = sanitizeComponent(layout);
-    if (layout.options.middleware) {
-      midd = midd.concat(layout.options.middleware);
+  Components.forEach((Component) => {
+    if (Component.options.middleware) {
+      midd = midd.concat(Component.options.middleware);
     }
-    Components.forEach((Component) => {
-      if (Component.options.middleware) {
-        midd = midd.concat(Component.options.middleware);
-      }
-    });
-  }
+  });
 
   midd = midd.map((name) => {
     if (typeof name === 'function') {
@@ -290,25 +271,20 @@ async function render(to, from, next) {
 
   // If no Components matched, generate 404
   if (!Components.length) {
-    // Default layout
-    await callMiddleware.call(this, Components, app.context);
-    if (nextCalled) {
-      return;
-    }
+    // Call the authenticated middleware. This used to attempt to load the error layout but because it was missing it would:
+    // 1. load the default layout instead
+    // 2. then call the authenticated middleware
+    // 3. Authenticated middleware would then load plugins and check to see if there was a valid route and navigate to that if it existed
+    // 4. This would allow harvester cluster pages to load on page reload
+    // We should really make authenticated middleware do less...
+    await callMiddleware.call(this, [{ options: { middleware: ['authenticated'] } }], app.context);
 
-    // Load layout for error page
-    const errorLayout = (NuxtError.options || NuxtError).layout;
-    const layout = await this.loadLayout(
-      typeof errorLayout === 'function' ? errorLayout.call(NuxtError, app.context) : errorLayout
-    );
-
-    await callMiddleware.call(this, Components, app.context, layout);
     if (nextCalled) {
       return;
     }
 
     // Show error page
-    app.context.error({ statusCode: 404, message: 'This page could not be found' });
+    this.error({ statusCode: 404, message: 'This page could not be found' });
 
     return next();
   }
@@ -331,16 +307,8 @@ async function render(to, from, next) {
       return next();
     }
 
-    // Set layout
-    let layout = Components[0].options.layout;
-
-    if (typeof layout === 'function') {
-      layout = layout(app.context);
-    }
-    layout = await this.loadLayout(layout);
-
     // Call middleware for layout
-    await callMiddleware.call(this, Components, app.context, layout);
+    await callMiddleware.call(this, Components, app.context);
     if (nextCalled) {
       return;
     }
@@ -481,14 +449,6 @@ async function render(to, from, next) {
 
     globalHandleError(error);
 
-    // Load error layout
-    let layout = (NuxtError.options || NuxtError).layout;
-
-    if (typeof layout === 'function') {
-      layout = layout(app.context);
-    }
-    await this.loadLayout(layout);
-
     this.error(error);
     this.$nuxt.$emit('routeChanged', to, from, error);
     next();
@@ -507,22 +467,6 @@ function normalizeComponents(to, ___) {
 
     return Component;
   });
-}
-
-function setLayoutForNextPage(to) {
-  // Set layout
-  let hasError = Boolean(this.$options.nuxt.err);
-
-  if (this._hadError && this._dateLastError === this.$options.nuxt.dateErr) {
-    hasError = false;
-  }
-  let layout = hasError ? (NuxtError.options || NuxtError).layout : to.matched[0].components.default.options.layout;
-
-  if (typeof layout === 'function') {
-    layout = layout(app.context);
-  }
-
-  this.setLayout(layout);
 }
 
 function checkForErrors(app) {
@@ -668,31 +612,7 @@ function addHotReload($component, depth) {
 
     callMiddleware.call(this, Components, context)
       .then(() => {
-      // If layout changed
-        if (depth !== 0) {
-          return;
-        }
-
-        let layout = Component.options.layout || 'default';
-
-        if (typeof layout === 'function') {
-          layout = layout(context);
-        }
-        if (this.layoutName === layout) {
-          return;
-        }
-        const promise = this.loadLayout(layout);
-
-        promise.then(() => {
-          this.setLayout(layout);
-          Vue.nextTick(() => hotReloadAPI(this));
-        });
-
-        return promise;
-      })
-
-      .then(() => {
-        return callMiddleware.call(this, Components, context, this.layout);
+        return callMiddleware.call(this, Components, context);
       })
 
       .then(() => {
@@ -740,8 +660,6 @@ async function mountApp(__app) {
     // Add afterEach router hooks
     router.afterEach(normalizeComponents);
 
-    router.afterEach(setLayoutForNextPage.bind(_app));
-
     router.afterEach(fixPrepatch.bind(_app));
 
     // Listen for first Vue update
@@ -784,7 +702,6 @@ async function mountApp(__app) {
   // First render on client-side
   const clientFirstMount = () => {
     normalizeComponents(router.currentRoute, router.currentRoute);
-    setLayoutForNextPage.call(_app, router.currentRoute);
     checkForErrors(_app);
     // Don't call fixPrepatch.call(_app, router.currentRoute, router.currentRoute) since it's first render
     mount();

@@ -441,7 +441,6 @@ export default {
 
     <div class="rd-header-right">
       <component :is="navHeaderRight" />
-
       <div
         v-if="showFilter"
         class="top"

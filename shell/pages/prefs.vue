@@ -18,7 +18,6 @@ import { addObject } from '@shell/utils/array';
 import LocaleSelector from '@shell/components/LocaleSelector';
 
 export default {
-  layout:     'plain',
   components: {
     BackLink, ButtonGroup, LabeledSelect, Checkbox, LandingPagePreference, LocaleSelector
   },

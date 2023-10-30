@@ -4,7 +4,6 @@ import { mapGetters, mapState } from 'vuex';
 import { stringify } from '@shell/utils/error';
 
 export default {
-  layout: 'home',
 
   components: { BrandImage },
 

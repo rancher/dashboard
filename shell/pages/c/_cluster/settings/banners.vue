@@ -53,8 +53,6 @@ const DEFAULT_BANNER_SETTING = {
 };
 
 export default {
-  layout: 'authenticated',
-
   components: {
     Checkbox,
     Loading,

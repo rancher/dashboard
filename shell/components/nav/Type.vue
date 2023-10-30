@@ -1,7 +1,6 @@
 <script>
 import Favorite from '@shell/components/nav/Favorite';
 import { FAVORITE, USED } from '@shell/store/type-map';
-import { linkActiveClass } from '@shell/config/router';
 
 const showFavoritesFor = [FAVORITE, USED];
 
@@ -31,7 +30,6 @@ export default {
       near:     false,
       over:     false,
       menuPath: this.type.route ? this.$router.resolve(this.type.route)?.route?.path : undefined,
-      linkActiveClass
     };
   },
 
@@ -134,7 +132,7 @@ export default {
     :to="type.route"
     tag="li"
     class="child nav-type"
-    :class="{'root': isRoot, [`depth-${depth}`]: true, [linkActiveClass]: isCurrent}"
+    :class="{'root': isRoot, [`depth-${depth}`]: true, 'router-link-active': isCurrent}"
     :exact="type.exact"
   >
     <a

@@ -10,7 +10,6 @@ import { isRancherPrime } from '@shell/config/version';
 import { hasCspAdapter } from 'mixins/brand';
 
 export default {
-  layout: 'home',
 
   components: {
     BannerGraphic,
