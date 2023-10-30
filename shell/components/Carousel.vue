@@ -181,7 +181,7 @@ export default {
               :label="slide.repoName"
               color="slider-badge mb-20"
             />
-            <h1>{{ slide.chartNameDisplay }} {{ i + 1 }}</h1>
+            <h1>{{ slide.chartNameDisplay }}</h1>
             <p>{{ slide.chartDescription }}</p>
           </div>
         </div>
@@ -282,6 +282,7 @@ export default {
   .slide-content {
     display: flex;
     padding: 30px;
+    height: 100%;
 
     .slide-img {
       width: 150px;
