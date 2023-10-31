@@ -15,31 +15,30 @@ describe('Home Page', () => {
       HomePagePo.goToAndWaitForGet();
     });
 
-    it('Can navigate to What\'s new page', { tags: ['@adminUser', '@standardUser'] }, () => {
+    it('Can navigate to release notes page for latest Rancher version', { tags: ['@adminUser', '@standardUser'] }, () => {
     /**
      * Verify changelog banner is hidden after clicking link
      * Verify release notes link is valid github page
+     * Verify correct Rancher version is displayed
      */
-      const text: string[] = [];
 
       homePage.restoreAndWait();
 
-      homePage.whatsNewBannerLink().invoke('text').then((el) => {
-        text.push(el);
-      });
+      cy.getRancherResource('v1', 'management.cattle.io.settings', 'server-version').then((resp: Cypress.Response<any>) => {
+        const rancherVersion = resp.body['value'].split('-', 1)[0].slice(1);
 
-      homePage.changelog().self().invoke('text').then((el) => {
-        expect(el).contains(text[0]);
-      });
+        homePage.changelog().self().contains('Learn more about the improvements and new capabilities in this version.');
+        homePage.whatsNewBannerLink().contains(`What's new in ${ rancherVersion }`);
 
-      homePage.whatsNewBannerLink().invoke('attr', 'href').then((releaseNotesUrl) => {
-        cy.request(releaseNotesUrl).then((res) => {
-          expect(res.status).equals(200);
+        homePage.whatsNewBannerLink().invoke('attr', 'href').then((releaseNotesUrl) => {
+          cy.request(releaseNotesUrl).then((res) => {
+            expect(res.status).equals(200);
+          });
         });
-      });
 
-      homePage.whatsNewBannerLink().click();
-      homePage.changelog().self().should('not.exist');
+        homePage.whatsNewBannerLink().click();
+        homePage.changelog().self().should('not.exist');
+      });
     });
 
     it('Can navigate to Preferences page', { tags: ['@adminUser', '@standardUser'] }, () => {
