@@ -653,6 +653,10 @@ asyncButton:
     action: Save
     success: Saved
     waiting: Saving&hellip;
+  editAndContinue:
+    action: Save and Continue
+    success: Saved
+    waiting: Saving&hellip;
   enable:
     action: Enable
     success: Enabled
@@ -1137,6 +1141,7 @@ cluster:
     nodeRole:
       label: Node Role
       detail: Choose what roles the node will have in the cluster.  The cluster needs to have at least one node with each role.
+      warning: The cluster needs to have at least one node with each role to be usable.
     advanced:
       label: Advanced
       detail: Additional control over how the node will be registered.  These values will often need to be different for each node registered.
@@ -1672,6 +1677,7 @@ cluster:
     haveArgInfo: Configuration information is not available for the selected Kubernetes version.  The options available on this screen will be limited; you may want to use the YAML editor.
     deprecatedPsp: Pod Security Policies are deprecated as of Kubernetes v1.21, and have been removed in Kubernetes v1.25.
     removedPsp: Pod Security Policies have been removed in Kubernetes v1.25. Use Pod Security Admission instead.
+    cloudProviderAddConfig: 'On Kubernetes 1.27 or greater, the Amazon Cloud Provider requires additional configuration. See <a href="https://ranchermanager.docs.rancher.com/how-to-guides/new-user-guides/kubernetes-clusters-in-rancher-setup/set-up-cloud-providers/amazon" target="_blank" rel="noopener noreferrer nofollow">the documentation</a> for more information.'
     machinePoolError: |-
       {count, plural,
         =1 { {pool_name}: The provided value for {fields} was not found in the list of expected values. This can happen with clusters provisioned outside of Rancher or when options for the provider have changed. }
@@ -1840,6 +1846,9 @@ cluster:
       pspChange:
         title: Pod Security Policy deprecation
         body: <p>Kubernetes has removed support for Pod Security Policies (PSPs) starting with version 1.25. If your cluster has PodSecurityPolicy admission controller enabled via "kube-apiserver-arg.enable-admission-plugins" in Cluster YAML, it has to be <i>manually</i> removed before proceeding with the upgrade. Additionally, any PSPs that may be present in the cluster will no longer be available/enforced. Do you want to proceed?</p>
+      editYamlMachinePool:
+        title: Save Machine Configurations
+        body: Machine Configurations define how machines in Pools are deployed.<br><br> They will be saved upfront to ensure valid Cluster YAML can be saved.
     snapshots:
       suffix: Snapshots per node
     systemService:
@@ -1888,8 +1897,20 @@ cluster:
       toolTip: "This can be either a fixed number of nodes (e.g. 1) at a time or a percentage (e.g. 10%)"
     drain:
       label: Drain Nodes
-      toolTip: Draining preemptively removes the pods on each node so there are no running workloads on the nodes being upgraded.  Upgrading without draining is faster and causes less shuffling around, but pods may still be restarted depending on the upgrade being performed.
-    deleteEmptyDir: "By default, pods using emptyDir volumes will be deleted on upgrade. Operations reliant on emptyDir volumes persisting through the pod's lifecycle may be impacted."
+      toolTip: Draining preemptively removes the pods on each node so there are no running workloads on the nodes being upgraded.  Upgrading without draining is faster and causes less shuffling around, but pods may still be restarted depending on the upgrade being performed. 
+      deleteEmptyDir: 
+        warning: "By default, pods using emptyDir volumes will be deleted on upgrade. Operations reliant on emptyDir volumes persisting through the pod's lifecycle may be impacted."
+        label: Delete pods using emptyDir volumes
+        tooltip: emptyDir volumes are often used for ephemeral data, but the data will be permanently deleted.  Draining will fail if this is not set and there are pods using emptyDir.
+      force:
+        label: Delete standalone pods
+        tooltip: Delete standalone pods which are not managed by a Workload controller (Deployment, Job, etc).  Draining will fail if this is not set and there are standalone pods.
+      gracePeriod:
+        checkboxLabel: Override pod termination grace periods
+        inputLabel: Grace Period
+      timeout:
+        checkboxLabel: Timeout after
+        inputLabel: Drain Timeout
     truncateHostnames: Truncate hostnames to 15 characters for NetBIOS compatibility.
     address:
       tooltip: Cluster networking values cannot be changed after the cluster is created.
@@ -2743,7 +2764,7 @@ landing:
     cpuUsed: CPU Used
     memoryUsed: Memory Used
   seeWhatsNew: Learn more about the improvements and new capabilities in this version.
-  whatsNewLink: "What's new in 2.7"
+  whatsNewLink: "What's new in 2.8"
   learnMore: Learn More
   support: Support
   psps: PSPs
@@ -2813,7 +2834,7 @@ logging:
     dockerRootDirectory: Docker Root Directory
     systemdLogPath: systemd Log Path
     tooltip: 'Some kubernetes distributions log to <code>journald</code>. In order to collect these logs the <code>systemdLogPath</code> needs to be defined. While the <code>/run/log/journal</code> directory is used by default, some Linux distributions do not default to this path.'
-    url: '<a href="https://rancher.com/docs/rancher/v2.6/en/logging/helm-chart-options/" target="_blank" rel="noopener nofollow noreferrer">Learn more</a>'
+    url: '<a href="https://ranchermanager.docs.rancher.com/v2.8/integrations-in-rancher/logging/logging-helm-chart-options" target="_blank" rel="noopener nofollow noreferrer">Learn more</a>'
     default: /run/log/journal
   elasticsearch:
     host: Host
@@ -4593,6 +4614,7 @@ rbac:
       restricted-admin:
         label: Restricted Administrator
         description: Restricted Admins have full control over all resources in all downstream clusters but no access to the local cluster.
+        deprecation: 'Warning: The Restricted Administrator role has been deprecated as of Rancher 2.8.0 and will be removed in a future release - Check out the <a href="{releaseNotesUrl}" target="_blank" rel="noopener noreferrer nofollow">Release Notes</a>'
       user:
         label: Standard User
         description: Standard Users can create new clusters and manage clusters and projects they have been granted access to.
@@ -5712,6 +5734,7 @@ validation:
       missingResource: You must specify a Resource for each resource grant
       missingApiGroup: You must specify an API Group for each resource grant
       missingOneResource: You must specify at least one Resource, Non-Resource URL or API Group for each resource grant
+      noResourceAndNonResource: Each rule may contain Resources or Non-Resource URLs but not both
   service:
     externalName:
       none: External Name is required on an ExternalName Service.
@@ -5732,7 +5755,10 @@ validation:
         required: 'Port Rule [{position}] - Target Port is required'
   setting:
     serverUrl:
-      https: server-url must be https.
+      https: Server URL must be https.
+      localhost: If the Server URL is internal to the Rancher server (e.g. localhost) the downstream clusters may not be able to communicate with Rancher.
+      trailingForwardSlash: Server URL should not have a trailing forward slash.
+      url: Server URL must be an URL.
   stringLength:
     between: '"{key}" should be between {min} and {max} {max, plural, =1 {character} other {characters}}'
     exactly: '"{key}" should be {count, plural, =1 {# character} other {# characters}}'
@@ -7058,7 +7084,6 @@ advancedSettings:
     'auth-user-session-ttl-minutes': 'Custom TTL (in minutes) on a user auth session.'
     'auth-token-max-ttl-minutes': 'Max TTL (in minutes) for all authentication tokens. When set to 0, the token never expires.'
     'kubeconfig-generate-token': 'Automatically generate tokens for users when a kubeconfig is requested.'
-    'kubeconfig-token-ttl-minutes': 'TTL used for tokens generated via the CLI. Deprecated: This setting will be removed, and kubeconfig-default-token-ttl-minutes will be used for all kubeconfig tokens.'
     'kubeconfig-default-token-ttl-minutes': 'TTL (in minutes) applied on all kubeconfig tokens. When set to 0, the token never expires.'
     'rke-metadata-config': 'Configure RKE metadata refresh parameters.'
     'ui-banners': 'Classification banner is used to display a custom fixed banner in the header, footer, or both.'

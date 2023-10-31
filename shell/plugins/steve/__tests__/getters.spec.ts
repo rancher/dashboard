@@ -68,8 +68,14 @@ describe('steve: getters', () => {
     it('returns a string with a single filter statement applied if a single filter statement is applied', () => {
       expect(urlOptionsGetter('foo', { filter: { bar: 'baz' } })).toBe('foo?bar=baz');
     });
+    it('returns a string with a single filter statement applied and formatted for steve if a single filter statement is applied and the url starts with "/v1"', () => {
+      expect(urlOptionsGetter('/v1/foo', { filter: { bar: 'baz' } })).toBe('/v1/foo?filter=bar=baz&exclude=metadata.managedFields');
+    });
     it('returns a string with a multiple filter statements applied if a single filter statement is applied', () => {
       expect(urlOptionsGetter('foo', { filter: { bar: 'baz', far: 'faz' } })).toBe('foo?bar=baz&far=faz');
+    });
+    it('returns a string with a multiple filter statements applied and formatted for steve if a single filter statement is applied and the url starts with "/v1"', () => {
+      expect(urlOptionsGetter('/v1/foo', { filter: { bar: 'baz', far: 'faz' } })).toBe('/v1/foo?filter=bar=baz&far=faz&exclude=metadata.managedFields');
     });
     it('returns a string with an exclude statement for "bar" and "metadata.managedFields" if excludeFields is a single element array with the string "bar" and the url starts with "/v1/"', () => {
       expect(urlOptionsGetter('/v1/foo', { excludeFields: ['bar'] })).toBe('/v1/foo?exclude=bar&exclude=metadata.managedFields');
@@ -86,8 +92,17 @@ describe('steve: getters', () => {
     it('returns a string with a sorting criteria if the sort option is provided', () => {
       expect(urlOptionsGetter('foo', { sortBy: 'bar' })).toBe('foo?sort=bar');
     });
+    it('returns a string with a sorting criteria formatted for steve if the sort option is provided and the url starts with "/v1"', () => {
+      expect(urlOptionsGetter('/v1/foo', { sortBy: 'bar' })).toBe('/v1/foo?exclude=metadata.managedFields&sort=bar');
+    });
     it('returns a string with a sorting criteria if the sort option is provided and an order if sortOrder is provided', () => {
       expect(urlOptionsGetter('foo', { sortBy: 'bar', sortOrder: 'baz' })).toBe('foo?sort=bar&order=baz');
+    });
+    it('returns a string with a sorting criteria formatted for steve if the sort option is provided and an order if sortOrder is provided and the url starts with "/v1"', () => {
+      expect(urlOptionsGetter('/v1/foo', { sortBy: 'bar', sortOrder: 'baz' })).toBe('/v1/foo?exclude=metadata.managedFields&sort=bar');
+    });
+    it('returns a string with a sorting criteria formatted for steve if the sort option is provided and an order if sortOrder is "desc" and the url starts with "/v1"', () => {
+      expect(urlOptionsGetter('/v1/foo', { sortBy: 'bar', sortOrder: 'desc' })).toBe('/v1/foo?exclude=metadata.managedFields&sort=-bar');
     });
   });
 });

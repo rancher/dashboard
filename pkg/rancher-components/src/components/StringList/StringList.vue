@@ -82,6 +82,13 @@ export default Vue.extend({
         return {} as ErrorMessages;
       },
     },
+    /**
+     * Enables bulk addition and defines the delimiter to split the input string.
+     */
+    bulkAdditionDelimiter: {
+      type:    RegExp,
+      default: null,
+    }
   },
   data() {
     return {
@@ -125,13 +132,9 @@ export default Vue.extend({
   },
 
   methods: {
-    onChange(value: string) {
+    onChange(value: string, index?: number) {
       this.value = value;
-
-      const items = [
-        ...this.items,
-        this.value
-      ];
+      const items = this.addValueToItems(this.items, value, index);
 
       this.toggleError(
         'duplicate',
@@ -321,10 +324,7 @@ export default Vue.extend({
       const value = this.value?.trim();
 
       if (value) {
-        const items = [
-          ...this.items,
-          value,
-        ];
+        const items = this.addValueToItems(this.items, value);
 
         if (!hasDuplicatedStrings(items, this.caseSensitive)) {
           this.updateItems(items);
@@ -343,12 +343,8 @@ export default Vue.extend({
       const value = this.value?.trim();
 
       if (value) {
-        const items = [...this.items];
-        const index = findStringIndex(items, item, false);
-
-        if (index !== -1) {
-          items[index] = value;
-        }
+        const index = findStringIndex(this.items, item, false);
+        const items = index !== -1 ? this.addValueToItems(this.items, value, index) : this.items;
 
         if (!hasDuplicatedStrings(items, this.caseSensitive)) {
           this.updateItems(items);
@@ -358,6 +354,49 @@ export default Vue.extend({
       if (closeInput) {
         this.toggleEditMode(false);
       }
+    },
+
+    /**
+     * Add a new or update an exiting item in the items list.
+     *
+     * @param items The current items list.
+     * @param value The new value to be added.
+     * @param index The list index of the item to be updated (optional).
+     * @returns Updated items list.
+     */
+    addValueToItems(items: string[], value: string, index?: number): string[] {
+      const updatedItems = [...items];
+
+      // Add new item
+      if (index === undefined) {
+        if (this.bulkAdditionDelimiter && value.search(this.bulkAdditionDelimiter) >= 0) {
+          updatedItems.push(...this.splitBulkValue(value));
+        } else {
+          updatedItems.push(value);
+        }
+      } else { // Update existing item
+        if (this.bulkAdditionDelimiter && value.search(this.bulkAdditionDelimiter) >= 0) {
+          updatedItems.splice(index, 1, ...this.splitBulkValue(value));
+        } else {
+          updatedItems[index] = value;
+        }
+      }
+
+      return updatedItems;
+    },
+
+    /**
+     * Split the value by the defined delimiter and remove empty strings.
+     *
+     * @param value The value to be split.
+     * @returns Array containing split values.
+     */
+    splitBulkValue(value: string): string[] {
+      return value
+        .split(this.bulkAdditionDelimiter)
+        .filter((item) => {
+          return item.trim().length > 0;
+        });
     },
 
     /**
@@ -393,7 +432,7 @@ export default Vue.extend({
       @dblclick="onClickEmptyBody()"
     >
       <div
-        v-for="item in items"
+        v-for="(item, index) in items"
         :key="item"
         :ref="item"
         :class="{
@@ -421,7 +460,7 @@ export default Vue.extend({
           :data-testid="`item-edit-${item}`"
           class="edit-input static"
           :value="value != null ? value : item"
-          @input="onChange($event)"
+          @input="onChange($event, index)"
           @blur.prevent="updateItem(item)"
           @keydown.native.enter="updateItem(item, !errors.duplicate)"
         />

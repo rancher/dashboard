@@ -55,7 +55,7 @@ export default {
       this.controlPlane && out.push('--controlplane');
       this.worker && out.push('--worker');
       this.address && out.push(`--address ${ sanitizeIP(this.address) }`);
-      this.internalAddress && out.push(`--internal-address ${ sanitizeValue(this.internalAddress) }`);
+      this.internalAddress && out.push(`--internal-address ${ sanitizeIP(this.internalAddress) }`);
       this.nodeName && out.push(`--node-name ${ sanitizeValue(this.nodeName) }`);
 
       for ( const key in this.labels ) {
@@ -169,6 +169,12 @@ export default {
       <Checkbox
         v-model="worker"
         label-key="model.machine.role.worker"
+      />
+      <Banner
+        v-if="!etcd || !controlPlane || !worker"
+        data-testid="node-role-warning"
+        color="warning"
+        :label="t('cluster.custom.nodeRole.warning')"
       />
     </InfoBox>
 

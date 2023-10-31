@@ -319,7 +319,11 @@ export default {
             builtin:        !!p.builtin,
           };
 
-          all.push(item);
+          // Built-in plugins can chose to be hidden - used where we implement as extensions
+          // but don't want to shows them individually on the extensions page
+          if (!(item.builtin && rancher[UI_PLUGIN_CHART_ANNOTATIONS.HIDDEN_BUILTIN])) {
+            all.push(item);
+          }
         }
       });
 

@@ -2,6 +2,7 @@
 As a full example of an Extension as top-level product, let's start with the definition of `product.ts` config:
 
 ```ts
+// ./index.ts
 import { importTypes } from '@rancher/auto-import';
 import { IPlugin } from '@shell/core/types';
 import extensionRouting from './routing/extension-routing';
@@ -26,6 +27,7 @@ export default function(plugin: IPlugin) {
 The `product.ts` config will then define the product and which "pages/views" we want to add, such as:
 
 ```ts
+// ./product.ts
 import { IPlugin } from '@shell/core/types';
 
 // this is the definition of a "blank cluster" for Rancher Dashboard
@@ -99,11 +101,14 @@ export function init($plugin: IPlugin, store: any) {
 ```
 
 
-One above example we are registering 2 pages: a resource page called `YOUR_K8S_RESOURCE_NAME` and a custom page called `CUSTOM_PAGE_NAME`. These need to be reflected in the routes definition that is provided to the `addRoutes` method.
+In the example above, we are registering 2 pages: a resource page called `YOUR_K8S_RESOURCE_NAME` and a custom page called `CUSTOM_PAGE_NAME`. These need to be reflected in the routes definition that is provided to the `addRoutes` method.
+
+> Note: For more information on routing for a Top-level-product, check [here](../api/nav/routing.md#routes-definition-for-an-extension-as-a-top-level-product)
 
 The `/routing/extension-routing.ts` would then be defined like:
 
 ```ts
+// ./routing/extension-routing.ts
 // definition of a "blank cluster" in Rancher Dashboard
 const BLANK_CLUSTER = '_';
 
@@ -173,4 +178,4 @@ const routes = [
 export default routes;
 ```
 
-A full working example of this code, which can be deployed as an Extension on you Rancher Dashboard, can be found on the [Rancher examples repo](https://github.com/rancher/ui-plugin-examples). Just follow the instructions described on the [README](https://github.com/rancher/ui-plugin-examples#readme) on how to the repo to Rancher Dasboard.
+A full working example of this code, which can be deployed as an Extension on you Rancher Dashboard, can be found on the [Rancher examples repo](https://github.com/rancher/ui-plugin-examples). Just follow the instructions described on the [README](https://github.com/rancher/ui-plugin-examples#readme) on how to add the repo to Rancher Dasboard.

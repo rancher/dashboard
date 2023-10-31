@@ -82,14 +82,16 @@ export default {
     },
 
     async fetchDeps() {
-      try {
-        const am = await this.$store.dispatch('cluster/find', { type: ENDPOINTS, id: `${ this.monitoringNamespace }/${ this.alertServiceEndpoint }` });
+      if (this.$store.getters['cluster/canList'](ENDPOINTS)) {
+        try {
+          const am = await this.$store.dispatch('cluster/find', { type: ENDPOINTS, id: `${ this.monitoringNamespace }/${ this.alertServiceEndpoint }` });
 
-        if (!isEmpty(am) && !isEmpty(am.subsets)) {
-          this.alertManagerPoller.start();
+          if (!isEmpty(am) && !isEmpty(am.subsets)) {
+            this.alertManagerPoller.start();
+          }
+        } catch {
+
         }
-      } catch {
-
       }
     },
   }

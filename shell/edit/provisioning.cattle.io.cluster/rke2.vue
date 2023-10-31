@@ -864,7 +864,7 @@ export default {
   },
 
   created() {
-    this.registerBeforeHook(this.saveMachinePools, 'save-machine-pools');
+    this.registerBeforeHook(this.saveMachinePools, 'save-machine-pools', 1);
     this.registerBeforeHook(this.setRegistryConfig, 'set-registry-config');
     this.registerAfterHook(this.cleanupMachinePools, 'cleanup-machine-pools');
     this.registerAfterHook(this.saveRoleBindings, 'save-role-bindings');
@@ -1159,6 +1159,7 @@ export default {
       }
 
       const name = `pool${ ++this.lastIdx }`;
+
       const pool = {
         id:     name,
         config,
@@ -1179,6 +1180,7 @@ export default {
             kind: this.machineConfigSchema.attributes?.kind,
             name: null,
           },
+          drainBeforeDelete: true
         },
       };
 
@@ -1233,7 +1235,23 @@ export default {
 
     async saveMachinePools(hookContext) {
       if (hookContext === CONTEXT_HOOK_EDIT_YAML) {
-        return;
+        await new Promise((resolve, reject) => {
+          this.$store.dispatch('cluster/promptModal', {
+            component:      'GenericPrompt',
+            componentProps: {
+              title:     this.t('cluster.rke2.modal.editYamlMachinePool.title'),
+              body:      this.t('cluster.rke2.modal.editYamlMachinePool.body'),
+              applyMode: 'editAndContinue',
+              confirm:   (confirmed) => {
+                if (confirmed) {
+                  resolve();
+                } else {
+                  reject(new Error('User Cancelled'));
+                }
+              }
+            },
+          });
+        });
       }
 
       const finalPools = [];
@@ -2555,7 +2573,7 @@ export default {
             v-if="get(rkeConfig, 'upgradeStrategy.controlPlaneDrainOptions.deleteEmptyDirData')"
             color="warning"
           >
-            {{ t('cluster.rke2.deleteEmptyDir', {}, true) }}
+            {{ t('cluster.rke2.drain.deleteEmptyDir.warning', {}, true) }}
           </Banner>
           <div class="row">
             <div class="col span-6">

@@ -1,5 +1,5 @@
 import {
-  clone, get, getter, isEmpty, toDictionary
+  clone, get, getter, isEmpty, toDictionary, remove, diff, definedKeys
 } from '@shell/utils/object';
 
 describe('fx: get', () => {
@@ -129,7 +129,7 @@ describe('fx: isEmpty', () => {
   });
 });
 
-describe('fX: toDictionary', () => {
+describe('fx: toDictionary', () => {
   it('should return a dictionary from an array', () => {
     const array = ['a', 'b', 'c'];
     const asd = (value: string) => value.toUpperCase();
@@ -140,5 +140,90 @@ describe('fX: toDictionary', () => {
     const result = toDictionary(array, asd);
 
     expect(result).toStrictEqual(expectation);
+  });
+});
+
+describe('fx: remove', () => {
+  it.each([
+    [{}, '', {}],
+    [{}, 'not_there', {}],
+    [{}, 'not.there.again', {}],
+    [{ level1: true }, 'level1', {}],
+    [{ level1: true }, 'not_there', { level1: true }],
+    [{ level1: { level2: true } }, 'level1.level2', { level1: { } }],
+    [{ level1: { level2: true, other: true } }, 'level1.level2', { level1: { other: true } }],
+    [{ level1: { level2: true }, other: true }, 'level1.level2', { level1: { }, other: true }],
+    [{ level1: { level2: true }, other: true }, 'not_there.level1.level2', { level1: { level2: true }, other: true }],
+    [{ level1: { level2: true }, other: true }, 'level1', { other: true }],
+  ])('should evaluate %p as %p', (obj, path, expected) => {
+    const result = remove(obj, path);
+
+    expect(result).toStrictEqual(expected);
+  });
+});
+
+describe('fx: diff', () => {
+  it('should return an object including only the differences between two objects', () => {
+    const from = {
+      foo: 'bar',
+      baz: 'bang',
+    };
+    const to = {
+      foo:  'bar',
+      bang: 'baz'
+    };
+
+    const result = diff(from, to);
+    const expected = {
+      baz:  null,
+      bang: 'baz'
+    };
+
+    expect(result).toStrictEqual(expected);
+  });
+  it('should return an object and dot characters in object should still be respected', () => {
+    const from = {};
+    const to = { foo: { 'bar.baz': 'bang' } };
+
+    const result = diff(from, to);
+    const expected = { foo: { 'bar.baz': 'bang' } };
+
+    expect(result).toStrictEqual(expected);
+  });
+});
+
+describe('fx: definedKeys', () => {
+  it('should return an array of keys within an array', () => {
+    const obj = {
+      foo: 'bar',
+      baz: 'bang',
+    };
+
+    const result = definedKeys(obj);
+    const expected = ['"foo"', '"baz"'];
+
+    expect(result).toStrictEqual(expected);
+  });
+  it('should return an array of keys with primitive values and their full nested path', () => {
+    const obj = {
+      foo: 'bar',
+      baz: { bang: 'bop' },
+    };
+
+    const result = definedKeys(obj);
+    const expected = ['"foo"', '"baz"."bang"'];
+
+    expect(result).toStrictEqual(expected);
+  });
+  it('should return an array of keys with primitive values and their full nested path with quotation marks to escape keys with dots in them', () => {
+    const obj = {
+      foo: 'bar',
+      baz: { 'bang.bop': 'beep' },
+    };
+
+    const result = definedKeys(obj);
+    const expected = ['"foo"', '"baz"."bang.bop"'];
+
+    expect(result).toStrictEqual(expected);
   });
 });

@@ -17,7 +17,6 @@ import { isRancherPrime } from '@shell/config/version';
 import Pinned from '@shell/components/nav/Pinned';
 
 export default {
-
   components: {
     BrandImage,
     ClusterIconMenu,
@@ -38,7 +37,7 @@ export default {
       maxClustersToShow: MENU_MAX_CLUSTERS,
       emptyCluster:      BLANK_CLUSTER,
       showPinClusters:   false,
-      searchActive:      false
+      searchActive:      false,
     };
   },
 
@@ -51,7 +50,6 @@ export default {
   computed: {
     ...mapGetters(['clusterId']),
     ...mapGetters(['clusterReady', 'isRancher', 'currentCluster', 'currentProduct', 'isRancherInHarvester']),
-    ...mapGetters('type-map', ['activeProducts']),
     ...mapGetters({ features: 'features/get' }),
 
     value: {
@@ -60,6 +58,31 @@ export default {
       },
     },
 
+    sideMenuStyle() {
+      return {
+        marginBottom: this.globalBannerSettings?.footerFont,
+        marginTop:    this.globalBannerSettings?.headerFont
+      };
+    },
+
+    globalBannerSettings() {
+      const settings = this.$store.getters['management/all'](MANAGEMENT.SETTING);
+      const bannerSettings = settings?.find((s) => s.id === SETTING.BANNERS);
+
+      if (bannerSettings) {
+        const parsed = JSON.parse(bannerSettings.value);
+        const {
+          showFooter, showHeader, bannerFooter, bannerHeader
+        } = parsed;
+
+        return {
+          headerFont: showHeader === 'true' ? this.pxToEm(bannerHeader.fontSize) : '0px',
+          footerFont: showFooter === 'true' ? this.pxToEm(bannerFooter.fontSize) : '0px'
+        };
+      }
+
+      return undefined;
+    },
     legacyEnabled() {
       return this.features(LEGACY);
     },
@@ -87,8 +110,8 @@ export default {
         kubeClusters = kubeClusters.filter((c) => !!available[c]);
       }
 
-      return kubeClusters.map((x) => {
-        const pCluster = pClusters?.find((c) => c.mgmt.id === x.id);
+      return kubeClusters?.map((x) => {
+        const pCluster = pClusters?.find((c) => c.mgmt?.id === x.id);
 
         return {
           id:              x.id,
@@ -103,14 +126,12 @@ export default {
           pin:             () => x.pin(),
           unpin:           () => x.unpin()
         };
-      });
+      }) || [];
     },
 
     clustersFiltered() {
       const search = (this.clusterFilter || '').toLowerCase();
-
-      const out = search ? this.clusters.filter((item) => item.label.toLowerCase().includes(search)) : this.clusters;
-
+      const out = search ? this.clusters.filter((item) => item.label?.toLowerCase().includes(search)) : this.clusters;
       const sorted = sortBy(out, ['ready:desc', 'label']);
 
       if (search) {
@@ -186,7 +207,7 @@ export default {
       const cluster = this.clusterId || this.$store.getters['defaultClusterId'];
 
       // TODO plugin routes
-      const entries = this.activeProducts.map((p) => {
+      const entries = this.$store.getters['type-map/activeProducts']?.map((p) => {
         // Try product-specific index first
         const to = p.to || {
           name:   `c-cluster-${ p.name }`,
@@ -239,6 +260,19 @@ export default {
   },
 
   methods: {
+    /**
+     * Converts a pixel value to an em value based on the default font size.
+     * @param {number} elementFontSize - The font size of the element in pixels.
+     * @param {number} [defaultFontSize=14] - The default font size in pixels.
+     * @returns {string} The converted value in em units.
+     */
+    pxToEm(elementFontSize, defaultFontSize = 14) {
+      const lineHeightInPx = 2 * parseInt(elementFontSize);
+      const lineHeightInEm = lineHeightInPx / defaultFontSize;
+
+      return `${ lineHeightInEm }em`;
+    },
+
     handler(e) {
       if (e.keyCode === KEY.ESCAPE ) {
         this.hide();
@@ -284,18 +318,22 @@ export default {
 </script>
 <template>
   <div>
+    <!-- Overlay -->
     <div
       v-if="shown"
       class="side-menu-glass"
       @click="hide()"
     />
     <transition name="fade">
+      <!-- Side menu -->
       <div
         data-testid="side-menu"
         class="side-menu"
         :class="{'menu-open': shown, 'menu-close':!shown}"
+        :style="sideMenuStyle"
         tabindex="-1"
       >
+        <!-- Logo and name -->
         <div class="title">
           <div
             data-testid="top-level-menu"
@@ -317,8 +355,11 @@ export default {
             <BrandImage file-name="rancher-logo.svg" />
           </div>
         </div>
+
+        <!-- Menu body -->
         <div class="body">
           <div>
+            <!-- Home button -->
             <nuxt-link
               class="option cluster selector home"
               :to="{ name: 'home' }"
@@ -337,6 +378,8 @@ export default {
                 {{ t('nav.home') }}
               </div>
             </nuxt-link>
+
+            <!-- Search bar -->
             <div
               v-if="showClusterSearch"
               class="clusters-search"
@@ -366,6 +409,8 @@ export default {
               </div>
             </div>
           </div>
+
+          <!-- Harvester extras -->
           <template v-if="hciApps.length">
             <div class="category" />
             <div>
@@ -382,7 +427,6 @@ export default {
                 </div>
               </a>
             </div>
-
             <div
               v-for="a in hciApps"
               :key="a.label"
@@ -401,12 +445,14 @@ export default {
             </div>
           </template>
 
+          <!-- Cluster menu -->
           <template v-if="clusters && !!clusters.length">
             <div
               ref="clusterList"
               class="clusters"
               :style="pinnedClustersHeight"
             >
+              <!-- Pinned Clusters -->
               <div
                 v-if="showPinClusters && pinFiltered.length"
                 class="clustersPinned"
@@ -456,10 +502,13 @@ export default {
                   <hr>
                 </div>
               </div>
+
+              <!-- Clusters Search result -->
               <div class="clustersList">
                 <div
-                  v-for="c in clustersFiltered"
+                  v-for="(c, index) in clustersFiltered"
                   :key="c.id"
+                  :data-testid="`top-level-menu-cluster-${index}`"
                   @click="hide()"
                 >
                   <nuxt-link
@@ -498,14 +547,18 @@ export default {
                   </span>
                 </div>
               </div>
+
+              <!-- No clusters message -->
               <div
                 v-if="(clustersFiltered.length === 0 || pinFiltered.length === 0) && searchActive"
+                data-testid="top-level-menu-no-results"
                 class="none-matching"
               >
                 {{ t('nav.search.noResults') }}
               </div>
             </div>
 
+            <!-- See all clusters -->
             <nuxt-link
               v-if="clusters.length > maxClustersToShow"
               class="clusters-all"
@@ -577,6 +630,8 @@ export default {
                 </nuxt-link>
               </div>
             </template>
+
+            <!-- App menu -->
             <template v-if="configurationApps.length">
               <div
                 class="category-title"
@@ -606,6 +661,8 @@ export default {
             </template>
           </div>
         </div>
+
+        <!-- Footer -->
         <div
           class="footer"
         >
@@ -663,25 +720,25 @@ export default {
   $option-padding-left: 14px;
   $option-height: $icon-size + $option-padding + $option-padding;
 
-  .menu {
-    position: absolute;
-    width: $app-bar-collapsed-width;
-    height: 54px;
-    top: 0;
-    grid-area: menu;
-    cursor: pointer;
-    display: flex;
-    align-items: center;
-    justify-content: center;
-
-    .menu-icon {
-      width: 25px;
-      height: 25px;
-      fill: var(--header-btn-text);
-    }
-  }
-
   .side-menu {
+    .menu {
+      position: absolute;
+      width: $app-bar-collapsed-width;
+      height: 54px;
+      top: 0;
+      grid-area: menu;
+      cursor: pointer;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+
+      .menu-icon {
+        width: 25px;
+        height: 25px;
+        fill: var(--header-btn-text);
+      }
+    }
+
     position: fixed;
     top: 0;
     left: 0px;

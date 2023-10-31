@@ -141,14 +141,6 @@ export default {
             }).then((setting) => setting.save());
           }
         }
-      } else if (!neu) {
-        const brandSetting = findBy(this.globalSettings, 'id', SETTING.BRAND);
-
-        if (brandSetting && brandSetting.value !== '') {
-          // 2) There should not be a brand... but there is a brand setting
-          brandSetting.value = '';
-          brandSetting.save();
-        }
       }
     }
   },

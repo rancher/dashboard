@@ -7,8 +7,8 @@ import { SETTING } from '@shell/config/settings';
 export function filterOnlyKubernetesClusters(mgmtClusters, store) {
   const openHarvesterContainerWorkload = store.getters['features/get']('harvester-baremetal-container-workload');
 
-  return mgmtClusters.filter((c) => {
-    return openHarvesterContainerWorkload ? true : !c.isHarvester;
+  return mgmtClusters?.filter((c) => {
+    return openHarvesterContainerWorkload ? true : !isHarvesterCluster(c);
   });
 }
 

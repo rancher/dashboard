@@ -120,9 +120,6 @@ export default {
       systemInformation.jsMemory.value += `, ${ this.t('about.diagnostic.systemInformation.memUsedJsHeapSize', { usedJSHeapSize: window?.performance?.memory?.usedJSHeapSize }) }`;
     }
 
-    // scroll logs container to the bottom
-    this.scrollLogsToBottom();
-
     return {
       systemInformation,
       topFifteenForResponseTime: null,
@@ -130,14 +127,7 @@ export default {
       finalCounts:               null,
       includeResponseTimes:      true,
       storeMapping:              this.$store?._modules?.root?.state,
-      latestLogs:                console.logs // eslint-disable-line no-console
     };
-  },
-
-  watch: {
-    latestLogs() {
-      this.scrollLogsToBottom();
-    }
   },
 
   computed: {
@@ -147,14 +137,6 @@ export default {
   },
 
   methods: {
-    scrollLogsToBottom() {
-      this.$nextTick(() => {
-        const logsContainer = document.querySelector('.logs-container');
-
-        logsContainer.scrollTop = logsContainer.scrollHeight;
-      });
-    },
-
     generateKey(data) {
       const randomize = Math.random() * 10000;
 
@@ -166,7 +148,6 @@ export default {
       const fileName = 'rancher-diagnostic-data.json';
       const data = {
         systemInformation: this.systemInformation,
-        logs:              this.latestLogs,
         storeMapping:      this.parseStoreData(this.storeMapping),
         resourceCounts:    this.finalCounts,
         responseTimes:     this.responseTimes
@@ -409,26 +390,6 @@ export default {
           </tbody>
         </table>
       </div>
-    </div>
-
-    <!-- Logs -->
-    <div class="mb-40">
-      <h2 class="mb-20">
-        {{ t('about.diagnostic.logs.subtitle') }}
-      </h2>
-      <ul class="logs-container">
-        <li
-          v-for="logEntry in latestLogs"
-          :key="generateKey(logEntry.timestamp)"
-          :class="logEntry.type"
-        >
-          <span class="log-entry-type">{{ logEntry.type }} :: </span>
-          <span
-            v-for="(arg, i) in logEntry.data"
-            :key="i"
-          >{{ arg }}</span>
-        </li>
-      </ul>
     </div>
 
     <PromptModal />

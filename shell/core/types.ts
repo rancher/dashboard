@@ -102,7 +102,7 @@ export type Action = {
   icon?: string;
   multiple?: boolean;
   enabled?: Function | boolean;
-  invoke: (opts: ActionOpts, resources: any[]) => void | boolean | Promise<boolean>;
+  invoke: (opts: ActionOpts, resources: any[], globals?: any) => void | boolean | Promise<boolean>;
 };
 
 /** Definition of a panel (options that can be passed when defining an extension panel enhancement) */
@@ -324,6 +324,11 @@ export interface ConfigureTypeOptions {
   isRemovable?: boolean;
 
   /**
+   * Resources of this type can be edited
+   */
+  isEditable?: boolean;
+
+  /**
    * This type should be grouped by namespaces when displayed in a table
    */
   namespaced?: boolean;
@@ -344,15 +349,17 @@ export interface ConfigureTypeOptions {
   showState?: boolean;
 
   /**
+   * Define where this type/page should navigate to (menu entry routing)
+   */
+  customRoute?: Object;
+
+  /**
    * Leaving these here for completeness but I don't think these should be advertised as useable to plugin creators.
    */
   // alias
-  // customRoute
-  // customRoute
   // depaginate
   // graphConfig
   // hasGraph
-  // isEditable
   // limit
   // listGroups
   // localOnly
@@ -379,7 +386,7 @@ export interface ConfigureVirtualTypeOptions extends ConfigureTypeOptions {
   /**
    * The route that this type should correspond to {@link PluginRouteConfig} {@link RouteConfig}
    */
-  route: PluginRouteConfig | RouteConfig;
+  route: PluginRouteConfig | RouteConfig | Object;
 }
 
 export interface DSLReturnType {
@@ -567,3 +574,8 @@ export interface IPlugin {
    */
   DSL(store: any, productName: string): DSLReturnType;
 }
+
+// Internal interface
+// Built-in extensions may use this, but external extensions should not, as this is subject to change
+// Defined as any for now
+export type IInternal = any;

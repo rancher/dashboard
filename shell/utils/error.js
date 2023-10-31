@@ -1,9 +1,24 @@
 import { isArray } from '@shell/utils/array';
 
 export class ClusterNotFoundError extends Error {
+  static name = 'ClusterNotFoundError'
+
   constructor(message) {
     super(message);
-    this.name = 'ClusterNotFoundError';
+    this.name = ClusterNotFoundError.name;
+  }
+}
+
+/**
+ * An error occurred and the user should be redirected to a certain location (where this is handled)
+ */
+export class RedirectToError extends Error {
+  static name = 'RedirectToError'
+
+  constructor(message, url) {
+    super(message);
+    this.url = url;
+    this.name = RedirectToError.name;
   }
 }
 

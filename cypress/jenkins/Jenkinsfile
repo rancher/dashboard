@@ -34,8 +34,9 @@ node {
                 $class: 'GitSCM',
                 branches: [[name: "*/${corralBranch}"]],
                 extensions: scm.extensions + [[$class: 'CleanCheckout']],
-                userRemoteConfigs: [[url: corralRepo]]
+                userRemoteConfigs: [[url: 'https://github.com/'+corralRepo]]
               ])
+              sh 'git --no-pager branch'
               def ciFilename = "dashboard-tests.yaml"
               def ciConfigContents = env.CORRAL_PACKAGE_CONFIG
               if (ciConfigContents != null) {
@@ -45,6 +46,8 @@ node {
         }
         try {
           stage('Run Tests') {
+              sh 'pwd'
+              sh 'ls -al cypress/jenkins'
               sh 'cypress/jenkins/init.sh'
           }
         } catch (err) {
@@ -64,6 +67,9 @@ node {
         try {
           stage('Clean Test Environment') {  
             sh "${WORKSPACE}/bin/corral delete ci"
+            if ("${env.JOB_TYPE}" == "recurring") {
+              sh "${WORKSPACE}/bin/corral delete rancher"
+            }
           }
         } catch(err) {
           echo "Error: " + err

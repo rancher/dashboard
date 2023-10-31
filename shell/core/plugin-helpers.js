@@ -85,6 +85,9 @@ function checkExtensionRouteBinding($route, locationConfig, context) {
           // also handle "mode" in a separate way because it mainly depends on query params
           } else if (param === 'mode') {
             res = checkRouteMode($route, locationConfigParam);
+          } else if (param === 'resource') {
+            // Match exact resource but also allow resource of '*' to match any resource
+            res = (params[param] && locationConfigParam === '*') || locationConfigParam === params[param];
           } else if (param === 'context') {
             // Need all keys and values to match
             res = isEqual(locationConfigParam, context);
