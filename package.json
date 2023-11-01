@@ -126,8 +126,7 @@
     "xterm-addon-search": "0.10.0",
     "xterm-addon-web-links": "0.7.0",
     "xterm-addon-webgl": "0.13.0",
-    "yaml": "2.0.0",
-    "@unhead/vue": "1.8.1"
+    "yaml": "2.0.0"
   },
   "devDependencies": {
     "@babel/plugin-proposal-optional-chaining": "7.14.5",
