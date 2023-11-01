@@ -53,8 +53,6 @@ export const NODE = 'node';
 export const NETWORK_POLICY = 'networking.k8s.io.networkpolicy';
 export const POD = 'pod';
 export const POD_DISRUPTION_BUDGET = 'policy.poddisruptionbudget';
-export const PSP = 'policy.podsecuritypolicy';
-export const PSPS = 'policy.podsecuritypolicies';
 export const PV = 'persistentvolume';
 export const PVC = 'persistentvolumeclaim';
 export const RESOURCE_QUOTA = 'resourcequota';
@@ -183,8 +181,6 @@ export const MANAGEMENT = {
   TOKEN:                         'management.cattle.io.token',
   GLOBAL_ROLE:                   'management.cattle.io.globalrole',
   GLOBAL_ROLE_BINDING:           'management.cattle.io.globalrolebinding',
-  POD_SECURITY_POLICY_TEMPLATE:  'management.cattle.io.podsecuritypolicytemplate',
-  PSP_TEMPLATE_BINDING:          'management.cattle.io.podsecuritypolicytemplateprojectbinding',
   PSA:                           'management.cattle.io.podsecurityadmissionconfigurationtemplate',
   MANAGED_CHART:                 'management.cattle.io.managedchart',
   USER_NOTIFICATION:             'management.cattle.io.rancherusernotification',

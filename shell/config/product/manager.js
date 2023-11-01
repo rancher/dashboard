@@ -54,22 +54,10 @@ export function init(store) {
     route:      { name: 'c-cluster-manager-cloudCredential' },
   });
 
-  virtualType({
-    labelKey:   'legacy.psps',
-    name:       'pod-security-policies',
-    group:      'Root',
-    namespaced: false,
-    weight:     5,
-    icon:       'folder',
-    route:      { name: 'c-cluster-manager-pages-page', params: { cluster: 'local', page: 'pod-security-policies' } },
-    exact:      true
-  });
-
   basicType([
     CAPI.RANCHER_CLUSTER,
     'cloud-credentials',
     'drivers',
-    'pod-security-policies',
   ]);
 
   configureType(CAPI.RANCHER_CLUSTER, {
@@ -131,7 +119,6 @@ export function init(store) {
     CAPI.MACHINE_SET,
     CAPI.MACHINE,
     CATALOG.CLUSTER_REPO,
-    'pod-security-policies',
     MANAGEMENT.PSA
   ], 'advanced');
 

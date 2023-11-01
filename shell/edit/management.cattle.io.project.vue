@@ -5,7 +5,6 @@ import CreateEditView from '@shell/mixins/create-edit-view';
 import FormValidation from '@shell/mixins/form-validation';
 import CruResource from '@shell/components/CruResource';
 import Labels from '@shell/components/form/Labels';
-import LabeledSelect from '@shell/components/form/LabeledSelect';
 import ResourceQuota from '@shell/components/form/ResourceQuota/Project';
 import { HARVESTER_TYPES, RANCHER_TYPES } from '@shell/components/form/ResourceQuota/shared';
 import Tab from '@shell/components/Tabbed/Tab';
@@ -21,26 +20,15 @@ import { Banner } from '@components/Banner';
 
 export default {
   components: {
-    ContainerResourceLimit, CruResource, Labels, LabeledSelect, NameNsDescription, ProjectMembershipEditor, ResourceQuota, Tabbed, Tab, Banner
+    ContainerResourceLimit, CruResource, Labels, NameNsDescription, ProjectMembershipEditor, ResourceQuota, Tabbed, Tab, Banner
   },
 
   mixins: [CreateEditView, FormValidation],
-  async fetch() {
-    if ( this.$store.getters['management/canList'](MANAGEMENT.POD_SECURITY_POLICY_TEMPLATE) ) {
-      this.allPSPs = await this.$store.dispatch('management/findAll', { type: MANAGEMENT.POD_SECURITY_POLICY_TEMPLATE });
-    }
-
-    // User can only change the PSP if the user has permissions to see the binding schema for PSP Templates
-    const pspBindingSchema = this.$store.getters['management/schemaFor'](MANAGEMENT.PSP_TEMPLATE_BINDING);
-
-    this.canEditPSPBindings = !!pspBindingSchema;
-  },
   data() {
     this.$set(this.value, 'spec', this.value.spec || {});
     this.$set(this.value.spec, 'podSecurityPolicyTemplateId', this.value.status?.podSecurityPolicyTemplateId || '');
 
     return {
-      allPSPs:                          [],
       projectRoleTemplateBindingSchema: this.$store.getters[`management/schemaFor`](MANAGEMENT.PROJECT_ROLE_TEMPLATE_BINDING),
       createLocation:                   {
         name:   'c-cluster-product-resource-create',
@@ -57,7 +45,6 @@ export default {
       HARVESTER_TYPES,
       RANCHER_TYPES,
       fvFormRuleSets:     [{ path: 'spec.displayName', rules: ['required'] }],
-      canEditPSPBindings: true,
     };
   },
   computed: {
@@ -89,31 +76,6 @@ export default {
 
     isK3s() {
       return (this.currentCluster?.spec?.kubernetesVersion || '').includes('k3s');
-    },
-
-    pspOptions() {
-      if ( this.isK3s || !this.currentCluster.spec.defaultPodSecurityPolicyTemplateName ) {
-        return null;
-      }
-
-      const out = [{ label: this.t('project.psp.default'), value: '' }];
-
-      if ( this.allPSPs ) {
-        for ( const pspt of this.allPSPs ) {
-          out.push({
-            label: pspt.nameDisplay,
-            value: pspt.id,
-          });
-        }
-      }
-
-      const cur = this.value.status?.podSecurityPolicyTemplateId;
-
-      if ( cur && !out.find((x) => x.value === cur) ) {
-        out.unshift({ label: this.t('project.psp.current', { value: cur }), value: cur });
-      }
-
-      return out;
     },
 
     isHarvester() {
@@ -223,19 +185,6 @@ export default {
       :normalize-name="false"
       :rules="{ name: fvGetAndReportPathRules('spec.displayName'), namespace: [], description: [] }"
     />
-    <div class="row mb-20">
-      <div class="col span-3">
-        <LabeledSelect
-          v-if="pspOptions"
-          v-model="value.spec.podSecurityPolicyTemplateId"
-          class="psp"
-          :mode="mode"
-          :options="pspOptions"
-          :disabled="!canEditPSPBindings"
-          :label="t('project.psp.label')"
-        />
-      </div>
-    </div>
     <Tabbed :side-tabs="true">
       <Tab
         v-if="canViewMembers"

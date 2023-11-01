@@ -1,14 +1,11 @@
 <script>
 import UnitInput from '@shell/components/form/UnitInput';
-import ChartPsp from '@shell/components/ChartPsp';
 import { Checkbox } from '@components/Form/Checkbox';
 import { mapGetters } from 'vuex';
 
 export default {
-  components: {
-    UnitInput, ChartPsp, Checkbox
-  },
-  props: {
+  components: { UnitInput, Checkbox },
+  props:      {
     value: {
       type:    Object,
       default: () => {
@@ -59,12 +56,6 @@ export default {
         />
       </div>
     </div>
-
-    <!-- Conditionally display PSP checkbox -->
-    <ChartPsp
-      :value="value"
-      :cluster="currentCluster"
-    />
 
     <template v-if="crdValues">
       <!-- gatekeeper versions <1.0.2 do not have this option -->

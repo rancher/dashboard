@@ -6,7 +6,6 @@ import YamlEditor from '@shell/components/YamlEditor';
 import { mapGetters } from 'vuex';
 import FileSelector from '@shell/components/form/FileSelector';
 import { Banner } from '@components/Banner';
-import ChartPsp from '@shell/components/ChartPsp';
 
 const defaultOverlayFile = `#apiVersion: install.istio.io/v1alpha1
 #kind: IstioOperator
@@ -54,8 +53,7 @@ export default {
     Checkbox,
     FileSelector,
     YamlEditor,
-    Banner,
-    ChartPsp
+    Banner
   },
 
   props: {
@@ -140,13 +138,6 @@ export default {
 
 <template>
   <div>
-    <!-- Conditionally display PSP checkbox -->
-    <ChartPsp
-      :value="value"
-      :title="t('catalog.chart.global')"
-      :cluster="currentCluster"
-    />
-
     <h3>
       {{ t('istio.titles.components') }}
     </h3>
