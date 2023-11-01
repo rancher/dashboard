@@ -7,16 +7,16 @@ import {
   FAVORITE_TYPES
 } from '@shell/store/prefs';
 import { getVersionInfo } from '@shell/utils/version';
-import { addObjects, replaceWith, clear, addObject } from '@shell/utils/array';
+import {
+  addObjects, replaceWith, clear, addObject, sameContents
+} from '@shell/utils/array';
 import { sortBy } from '@shell/utils/sort';
 import { ucFirst } from '@shell/utils/string';
 
-import {
-  HCI, CATALOG, UI, SCHEMA, COUNT
-} from '@shell/config/types';
+import { HCI, CATALOG, UI, SCHEMA } from '@shell/config/types';
 import { HARVESTER_NAME as HARVESTER } from '@shell/config/features';
 import { NAME as EXPLORER } from '@shell/config/product/explorer';
-import { BASIC, FAVORITE, USED } from '@shell/store/type-map';
+import { TYPE_MODES } from '@shell/store/type-map';
 import { NAME as NAVLINKS } from '@shell/config/product/navlinks';
 import Group from '@shell/components/nav/Group';
 
@@ -31,7 +31,7 @@ export default {
   },
 
   created() {
-    this.queueUpdate = debounce(this.getGroups, 500);
+    this.queueUpdate = debounce(this.getGroups, 250);
 
     this.getGroups();
   },
@@ -42,24 +42,25 @@ export default {
   },
 
   watch: {
-    counts(a, b) {
-      if ( a !== b ) {
+
+    /**
+     * Keep this simple, we're only interested in new / removed schemas
+     */
+    allSchemasIds(a, b) {
+      if ( !sameContents(a, b) ) {
         this.queueUpdate();
       }
     },
 
-    allSchemas(a, b) {
-      if ( a !== b ) {
+    allNavLinksKey(a, b) {
+      if ( !sameContents(a, b) ) {
         this.queueUpdate();
       }
     },
 
-    allNavLinks(a, b) {
-      if ( a !== b ) {
-        this.queueUpdate();
-      }
-    },
-
+    /**
+     * Note - There's no watch on prefs, so this only catches in session changes
+     */
     favoriteTypes(a, b) {
       if ( !isEqual(a, b) ) {
         this.queueUpdate();
@@ -73,34 +74,28 @@ export default {
     },
 
     productId(a, b) {
-      if ( !isEqual(a, b) ) {
+      if ( a !== b) {
         // Immediately update because you'll see it come in later
         this.getGroups();
       }
     },
 
+    // Queue namespaceMode and namespaces
+    // Changes to namespaceMode can also change namespaces, so keep this simple and execute both in a shortened queue
+
     namespaceMode(a, b) {
-      if ( !isEqual(a, b) ) {
-        // Immediately update because you'll see it come in later
-        this.getGroups();
+      if ( a !== b ) {
+        this.queueUpdate();
       }
     },
 
     namespaces(a, b) {
       if ( !isEqual(a, b) ) {
-        // Immediately update because you'll see it come in later
-        this.getGroups();
+        this.queueUpdate();
       }
     },
 
     clusterReady(a, b) {
-      if ( !isEqual(a, b) ) {
-        // Immediately update because you'll see it come in later
-        this.getGroups();
-      }
-    },
-
-    product(a, b) {
       if ( !isEqual(a, b) ) {
         // Immediately update because you'll see it come in later
         this.getGroups();
@@ -174,7 +169,7 @@ export default {
       return this.$store.getters['cluster/all'](UI.NAV_LINK);
     },
 
-    allSchemas() {
+    allSchemasIds() {
       const managementReady = this.managementReady;
       const product = this.currentProduct;
 
@@ -182,33 +177,19 @@ export default {
         return [];
       }
 
-      return this.$store.getters[`${ product.inStore }/all`](SCHEMA);
-    },
-
-    counts() {
-      const managementReady = this.managementReady;
-      const product = this.currentProduct;
-
-      if ( !managementReady || !product ) {
-        return {};
-      }
-
-      const inStore = product.inStore;
-
-      // So that there's something to watch for updates
-      if ( this.$store.getters[`${ inStore }/haveAll`](COUNT) ) {
-        const counts = this.$store.getters[`${ inStore }/all`](COUNT)[0].counts;
-
-        return counts;
-      }
-
-      return {};
+      // This does take some up-front time, however avoids an even more costly getGroups call
+      return this.$store.getters[`${ product.inStore }/all`](SCHEMA).map((s) => s.id).sort();
     },
 
     namespaces() {
       return this.$store.getters['activeNamespaceCache'];
     },
+
+    allNavLinksKey() {
+      return this.allNavLinks.map((a) => a.id);
+    },
   },
+
   methods: {
     /**
      * Fetch navigation by creating groups from product schemas
@@ -227,13 +208,6 @@ export default {
       }
 
       const currentProduct = this.$store.getters['productId'];
-      let namespaces = null;
-
-      if ( !this.$store.getters['isAllNamespaces'] ) {
-        const namespacesObject = this.$store.getters['namespaces']();
-
-        namespaces = Object.keys(namespacesObject);
-      }
 
       // Always show cluster-level types, regardless of the namespace filter
       const namespaceMode = 'both';
@@ -255,7 +229,8 @@ export default {
       // This should already have come into the list from above, but in case it hasn't...
       addObject(loadProducts, currentProduct);
 
-      this.getProductsGroups(out, loadProducts, namespaceMode, namespaces, productMap);
+      this.getProductsGroups(out, loadProducts, namespaceMode, productMap);
+
       this.getExplorerGroups(out);
 
       replaceWith(this.groups, ...sortBy(out, ['weight:desc', 'label']));
@@ -263,12 +238,12 @@ export default {
       this.gettingGroups = false;
     },
 
-    getProductsGroups(out, loadProducts, namespaceMode, namespaces, productMap) {
+    getProductsGroups(out, loadProducts, namespaceMode, productMap) {
       const clusterId = this.$store.getters['clusterId'];
       const currentType = this.$route.params.resource || '';
 
       for ( const productId of loadProducts ) {
-        const modes = [BASIC];
+        const modes = [TYPE_MODES.BASIC];
 
         if ( productId === NAVLINKS ) {
           // Navlinks produce their own top-level nav items so don't need to show it as a product.
@@ -276,14 +251,16 @@ export default {
         }
 
         if ( productId === EXPLORER ) {
-          modes.push(FAVORITE);
-          modes.push(USED);
+          modes.push(TYPE_MODES.FAVORITE);
+          modes.push(TYPE_MODES.USED);
         }
 
-        for ( const mode of modes ) {
-          const types = this.$store.getters['type-map/allTypes'](productId, mode) || {};
+        // Get all types for all modes
+        const typesByMode = this.$store.getters['type-map/allTypes'](productId, modes);
 
-          const more = this.$store.getters['type-map/getTree'](productId, mode, types, clusterId, namespaceMode, namespaces, currentType);
+        for ( const mode of modes ) {
+          const types = typesByMode[mode] || {};
+          const more = this.$store.getters['type-map/getTree'](productId, mode, types, clusterId, namespaceMode, currentType);
 
           if ( productId === EXPLORER || !this.isExplorer ) {
             addObjects(out, more);

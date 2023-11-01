@@ -1,8 +1,8 @@
 <script>
 import Favorite from '@shell/components/nav/Favorite';
-import { FAVORITE, USED } from '@shell/store/type-map';
+import { TYPE_MODES } from '@shell/store/type-map';
 
-const showFavoritesFor = [FAVORITE, USED];
+const showFavoritesFor = [TYPE_MODES.FAVORITE, TYPE_MODES.USED];
 
 export default {
 
@@ -90,12 +90,23 @@ export default {
     },
 
     showCount() {
-      return typeof this.type.count !== 'undefined';
+      return typeof this.count !== 'undefined';
     },
 
     namespaceIcon() {
       return this.type.namespaced;
     },
+
+    count() {
+      if (typeof this.type.count !== 'undefined') {
+        return this.type.count;
+      }
+
+      const inStore = this.$store.getters['currentStore'](this.type.name);
+
+      return this.$store.getters[`${ inStore }/count`]({ name: this.type.name });
+    }
+
   },
 
   methods: {
@@ -162,7 +173,7 @@ export default {
           v-if="namespaceIcon"
           class="icon icon-namespace namespaced"
         />
-        {{ type.count }}
+        {{ count }}
       </span>
     </a>
   </n-link>

@@ -155,10 +155,48 @@ export const NAMESPACED = 'namespaced';
 export const CLUSTER_LEVEL = 'cluster';
 export const BOTH = 'both';
 
-export const ALL = 'all';
-export const BASIC = 'basic';
-export const FAVORITE = 'favorite';
-export const USED = 'used';
+export const TYPE_MODES = {
+  /**
+   * allTypes usage: All resource types
+   *
+   * getTree usage: Remove ignored schemas, resources not applicable to ns, etc
+   */
+  ALL:      'all',
+  /**
+   * Represents resource types that should be shown at the top of the side nav.
+   *
+   * For example all fixed resource types above `More Resources` in the cluster explorer
+   *
+   * These will always be shown in the side nav
+   *
+   * allTypes usage: Resources that are in a group
+   *
+   * getTree usage: Remove ignored schemas, resources not applicable to ns, etc
+   */
+  BASIC:    'basic',
+  /**
+   * Represents any type of resource type that has been favourited
+   *
+   * These will always be shown in the side nav.
+   *
+   * allTypes usage: Resource types that have been favorited
+   *
+   * getTree usage: Remove ignored schemas, resources not applicable to ns, etc
+   */
+  FAVORITE: 'favorite',
+  /**
+   * Represents no virtual or spoofed types that have a count.
+   *
+   * For example the `More Resource` in the cluster explorer
+   *
+   * These will be shown in the side nav if there are resources in the ns filter OR the resource is not namespaces
+   *
+   * allTypes usage: All resource types that are not virtual or spoofed
+   *
+   * getTree usage: Remove types with no counts. Remove ignored schemas, resources not applicable to ns, etc
+   */
+  USED:     'used',
+};
 
 export const ROOT = 'root';
 
@@ -535,7 +573,8 @@ export const getters = {
   },
 
   getTree(state, getters, rootState, rootGetters) {
-    return (productId, mode, allTypes, clusterId, namespaceMode, namespaces, currentType, search) => {
+    // Name the function so it's easily discernible on performance tracing
+    return function getTree(productId, mode, allTypes, clusterId, namespaceMode, currentType, search) {
       // getTree has four modes:
       // - `basic` matches data types that should always be shown even if there
       //    are 0 of them.
@@ -545,7 +584,7 @@ export const getters = {
       // - `favorite` matches starred types.
       // namespaceMode: 'namespaced', 'cluster', or 'both'
       // namespaces: null means all, otherwise it will be an array of specific namespaces to include
-      const isBasic = mode === BASIC;
+      const isBasic = mode === TYPE_MODES.BASIC;
 
       let searchRegex;
 
@@ -578,7 +617,8 @@ export const getters = {
           continue;
         }
 
-        const count = _matchingCounts(typeObj, namespaces);
+        const inStore = rootGetters.currentStore(typeObj.name);
+        const count = rootGetters[`${ inStore }/count`](typeObj);
         const groupForBasicType = getters.groupForBasicType(productId, typeObj.name);
 
         if ( typeObj.id === currentType ) {
@@ -586,7 +626,7 @@ export const getters = {
         } else if ( isBasic && !groupForBasicType ) {
           // If we want the basic tree only return basic types;
           continue;
-        } else if ( mode === USED && count <= 0 ) {
+        } else if ( mode === TYPE_MODES.USED && count <= 0 ) {
           // If there's none of this type, ignore this entry when viewing only in-use types
           // Note: count is sometimes null, which is <= 0.
           continue;
@@ -594,7 +634,7 @@ export const getters = {
 
         const label = typeObj.labelKey ? rootGetters['i18n/t'](typeObj.labelKey) || typeObj.label : typeObj.label;
 
-        const labelDisplay = highlightLabel(label, typeObj.count, typeObj.schema);
+        const labelDisplay = highlightLabel(label, count, typeObj.schema);
 
         if ( !labelDisplay ) {
           // Search happens in highlight and returns null if not found
@@ -605,10 +645,10 @@ export const getters = {
 
         if ( isBasic ) {
           group = _ensureGroup(root, groupForBasicType, true);
-        } else if ( mode === FAVORITE ) {
+        } else if ( mode === TYPE_MODES.FAVORITE ) {
           group = _ensureGroup(root, 'starred');
           group.weight = 1000;
-        } else if ( mode === USED ) {
+        } else if ( mode === TYPE_MODES.USED ) {
           group = _ensureGroup(root, `inUse::${ getters.groupLabelFor(typeObj.schema) }`);
         } else {
           group = _ensureGroup(root, typeObj.schema || typeObj.group || ROOT);
@@ -641,7 +681,6 @@ export const getters = {
           label,
           labelDisplay,
           mode:     typeObj.mode,
-          count,
           exact:    typeObj.exact || false,
           namespaced,
           route,
@@ -811,69 +850,110 @@ export const getters = {
     });
   },
 
+  /**
+   * Given many things, create a list of menu items per schema given the mode
+   *
+   */
   allTypes(state, getters, rootState, rootGetters) {
-    return (product, mode = ALL) => {
+    // Name the function so it's easily discernible on performance tracing
+    return function allTypes(product, modes = [TYPE_MODES.ALL]) {
       const module = findBy(state.products, 'name', product)?.inStore;
       const schemas = rootGetters[`${ module }/all`](SCHEMA);
+      const isLocal = !rootGetters.currentCluster?.isLocal;
+      const isRancher = rootGetters.isRancher;
       const counts = rootGetters[`${ module }/all`](COUNT)?.[0]?.counts || {};
-      const isDev = rootGetters['prefs/get'](VIEW_IN_API);
-      const isBasic = mode === BASIC;
 
       const out = {};
 
+      // For performance reasons this must be super quick to iterate over.
+      // For each schema...
+      // 1) Determine if it's applicable given the mode
+      // 2) For each applicable mode create a `Type` entry
       for ( const schema of schemas ) {
+        let schemaModes = { };
+
+        modes.forEach((m) => {
+          schemaModes[m] = true;
+        });
+
         const attrs = schema.attributes || {};
-        const count = counts[schema.id];
-        const label = getters.labelFor(schema, count);
-        const weight = getters.typeWeightFor(schema?.id || label, isBasic);
         const typeOptions = getters['optionsFor'](schema);
 
-        if ( isBasic ) {
-          // These are separate ifs so that things with no kind can still be basic
-          if ( !getters.groupForBasicType(product, schema.id) ) {
-            continue;
-          }
-        } else if ( mode === FAVORITE && !getters.isFavorite(schema.id) ) {
-          continue;
-        } else if ( !attrs.kind ) {
-          // Skip the schemas that aren't top-level types
-          continue;
-        } else if ( typeof typeOptions.ifRancherCluster !== 'undefined' && typeOptions.ifRancherCluster !== rootGetters.isRancher ) {
-          continue;
-        } else if (typeOptions.localOnly && !rootGetters.currentCluster?.isLocal) {
+        schemaModes[TYPE_MODES.BASIC] = schemaModes[TYPE_MODES.BASIC] && getters.groupForBasicType(product, schema.id);
+
+        if (Object.values(schemaModes).every((s) => !s)) {
           continue;
         }
 
-        out[schema.id] = {
-          label,
-          mode,
-          weight,
-          schema,
-          name:        schema.id,
-          namespaced:  typeOptions.namespaced === null ? attrs.namespaced : typeOptions.namespaced,
-          count:       count ? count.summary.count || 0 : null,
-          byNamespace: count ? count.namespaces : {},
-          revision:    count ? count.revision : null,
-          route:       typeOptions.customRoute
-        };
+        schemaModes[TYPE_MODES.FAVORITE] = schemaModes[TYPE_MODES.FAVORITE] && getters.isFavorite(schema.id);
+
+        if (Object.values(schemaModes).every((s) => !s)) {
+          continue;
+        }
+
+        const onlyBasic = schemaModes[TYPE_MODES.BASIC] && modes.length === 1;
+
+        // This clause is only valid for non-basic modes. So if we have only basic... skip it
+        if (!onlyBasic) {
+          const invalidType = !attrs.kind ||
+          (typeof typeOptions.ifRancherCluster !== 'undefined' && typeOptions.ifRancherCluster !== isRancher) ||
+          (typeOptions.localOnly && isLocal);
+
+          if (invalidType) {
+            // Remove anything not basic
+            schemaModes = { [TYPE_MODES.BASIC]: schemaModes[TYPE_MODES.BASIC] };
+          }
+        }
+
+        // This is an expensive request to make, so only do it if we really need to
+        let label;
+
+        Object.entries(schemaModes).forEach(([mode, enabled]) => {
+          if (!enabled) {
+            return;
+          }
+
+          if (!out[mode]) {
+            out[mode] = {};
+          }
+
+          if (!label) {
+            label = getters.labelFor(schema, counts[schema.id]);
+          }
+
+          out[mode][schema.id] = {
+            label,
+            mode,
+            weight:     getters.typeWeightFor(schema?.id || label, mode === TYPE_MODES.BASIC),
+            schema,
+            name:       schema.id,
+            namespaced: typeOptions.namespaced === null ? attrs.namespaced : typeOptions.namespaced,
+            route:      typeOptions.customRoute
+          };
+        });
       }
 
+      const nonUsedModes = modes.filter((m) => m !== TYPE_MODES.USED);
+      const isDev = rootGetters['prefs/get'](VIEW_IN_API);
+
       // Add virtual and spoofed types
-      if ( mode !== USED ) {
+      if ( nonUsedModes.length ) {
         const virtualTypes = state.virtualTypes[product] || [];
         const spoofedTypes = state.spoofedTypes[product] || [];
         const allTypes = [...virtualTypes, ...spoofedTypes];
+        const virtSpoofedModes = [...nonUsedModes];
 
         for ( const type of allTypes ) {
           const item = clone(type);
           const id = item.name;
-          const weight = type.weight || getters.typeWeightFor(item.label, isBasic);
 
           // Is there a virtual/spoofed type override for schema type?
           // Currently used by harvester, this should be investigated and removed if possible
-          if (out[id]) {
-            delete out[id];
-          }
+          virtSpoofedModes.forEach((mode) => {
+            if (out[mode]?.[id]) {
+              delete out[mode][id];
+            }
+          });
 
           if ( item['public'] === false && !isDev ) {
             continue;
@@ -916,14 +996,13 @@ export const getters = {
             continue;
           }
 
-          if ( isBasic && !getters.groupForBasicType(product, id) ) {
-            continue;
-          } else if ( mode === FAVORITE && !getters.isFavorite(id) ) {
-            continue;
+          if (virtSpoofedModes.includes(TYPE_MODES.BASIC) && !getters.groupForBasicType(product, id) ) {
+            virtSpoofedModes.splice(virtSpoofedModes.indexOf(TYPE_MODES.BASIC), 1);
           }
 
-          item.mode = mode;
-          item.weight = weight;
+          if (virtSpoofedModes.includes(TYPE_MODES.FAVORITE) && !getters.isFavorite(id) ) { // mode === TYPE_MODES.FAVORITE &&
+            virtSpoofedModes.splice(virtSpoofedModes.indexOf(TYPE_MODES.FAVORITE), 1);
+          }
 
           // Ensure labelKey is taken into account... with a mock count
           // This is harmless if the translation doesn't require count
@@ -934,7 +1013,17 @@ export const getters = {
             item.label = item.label || item.name;
           }
 
-          out[id] = item;
+          virtSpoofedModes.forEach((mode) => {
+            const isBasic = mode === TYPE_MODES.BASIC;
+            const weight = type.weight || getters.typeWeightFor(item.label, isBasic);
+
+            item.mode = mode;
+            item.weight = weight;
+            if (!out[mode]) {
+              out[mode] = {};
+            }
+            out[mode][id] = item;
+          });
         }
       }
 
@@ -1682,22 +1771,6 @@ function _sortGroup(tree, mode) {
       _sortGroup(entry, mode);
     }
   }
-}
-
-function _matchingCounts(typeObj, namespaces) {
-  // That was easy
-  if ( !typeObj.namespaced || !typeObj.byNamespace || namespaces === null || typeObj.count === null) {
-    return typeObj.count;
-  }
-
-  let out = 0;
-
-  // Otherwise start with 0 and count up
-  for ( const namespace of namespaces ) {
-    out += typeObj.byNamespace[namespace]?.count || 0;
-  }
-
-  return out;
 }
 
 function _applyMapping(objOrValue, mappings, keyField, cache, defaultFn) {
