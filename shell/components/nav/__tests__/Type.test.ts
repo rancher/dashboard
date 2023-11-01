@@ -16,6 +16,12 @@ describe('component: Type', () => {
         mocks:     {
           $route:  { path: 'whatever' },
           $router: { resolve: () => ({ route: { path: 'whatever' } }) },
+          $store:  {
+            getters: {
+              currentStore:    () => 'cluster',
+              'cluster/count': () => 1,
+            }
+          }
         },
       });
 
@@ -31,6 +37,12 @@ describe('component: Type', () => {
         mocks:     {
           $route:  { hash: 'whatever' },
           $router: { resolve: () => ({ route: { path: 'whatever' } }) },
+          $store:  {
+            getters: {
+              currentStore:    () => 'cluster',
+              'cluster/count': () => 1,
+            }
+          }
         },
       });
 
@@ -67,6 +79,12 @@ describe('component: Type', () => {
             path: 'whatever',
           },
           $router: { resolve: () => ({ route: { path: 'many/parts' } }) },
+          $store:  {
+            getters: {
+              currentStore:    () => 'cluster',
+              'cluster/count': () => 1,
+            }
+          }
         },
       });
 
@@ -101,6 +119,12 @@ describe('component: Type', () => {
             path: currentPath,
           },
           $router: { resolve: () => ({ route: { path: menuPath } }) },
+          $store:  {
+            getters: {
+              currentStore:    () => 'cluster',
+              'cluster/count': () => 1,
+            }
+          }
         },
       });
 
@@ -126,6 +150,12 @@ describe('component: Type', () => {
             path: currentPath,
           },
           $router: { resolve: () => ({ route: { path: menuPath } }) },
+          $store:  {
+            getters: {
+              currentStore:    () => 'cluster',
+              'cluster/count': () => 1,
+            }
+          }
         },
       });
 
