@@ -1,6 +1,8 @@
 <script>
 import { KUBERNETES, PROJECT } from '@shell/config/labels-annotations';
-import { FLEET, NAMESPACE, MANAGEMENT, HELM } from '@shell/config/types';
+import {
+  FLEET, NAMESPACE, MANAGEMENT, HELM, LOCAL_CLUSTER
+} from '@shell/config/types';
 import ButtonGroup from '@shell/components/ButtonGroup';
 import { BadgeState } from '@components/BadgeState';
 import { Banner } from '@components/Banner';
@@ -374,7 +376,7 @@ export default {
     },
 
     hideNamespaceLocation() {
-      return this.$store.getters['currentProduct'].hideNamespaceLocation || !this.value?.localCluster;
+      return this.$store.getters['currentProduct'].hideNamespaceLocation || !this.$store.getters['management/byId'](MANAGEMENT.CLUSTER, LOCAL_CLUSTER);
     },
   },
 
