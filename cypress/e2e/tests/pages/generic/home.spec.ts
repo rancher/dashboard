@@ -8,10 +8,9 @@ const homeClusterList = homePage.list();
 const provClusterList = new ClusterManagerListPagePo('local');
 
 describe('Home Page', () => {
-  describe('Home Page', () => {
-    beforeEach(() => {
+  describe('Home Page', { testIsolation: 'off' }, () => {
+    before(() => {
       cy.login();
-
       HomePagePo.goToAndWaitForGet();
     });
 
@@ -60,7 +59,7 @@ describe('Home Page', () => {
      * Click the restore link
      * Verify banners display on home page
      */
-
+      HomePagePo.navTo();
       homePage.restoreAndWait();
 
       homePage.bannerGraphic().graphicBanner().should('be.visible');
@@ -129,6 +128,7 @@ describe('Home Page', () => {
       const clusterManagerPage = new ClusterManagerListPagePo('_');
       const genericCreateClusterPage = new ClusterManagerImportGenericPagePo('_');
 
+      HomePagePo.navTo();
       homePage.manageButton().click();
       clusterManagerPage.waitForPage();
 
@@ -145,7 +145,7 @@ describe('Home Page', () => {
     /**
      * Filter rows in the cluster list
      */
-
+      HomePagePo.navTo();
       homeClusterList.resourceTable().sortableTable().filter('random text');
       homeClusterList.resourceTable().sortableTable().rowElements().should((el) => {
         expect(el).to.contain.text('There are no rows which match your search query.');
@@ -160,17 +160,13 @@ describe('Home Page', () => {
 
   describe('Support Links', { tags: ['@generic', '@adminUser', '@standardUser'] }, () => {
     // Click the support links and verify user lands on the correct page
-    before(() => {
-      cy.login();
-    });
     beforeEach(() => {
+      cy.login();
       HomePagePo.goTo();
     });
-    it.skip('can click on Docs link', () => {
-      homePage.supportLinks().should('have.length', 6);
 
-      // click Docs link -- this test will sometimes fail due to https://github.com/rancher/rancher-docs/issues/727
-      // skipping this test until issue is resolved
+    it('can click on Docs link', () => {
+      homePage.supportLinks().should('have.length', 6);
       homePage.clickSupportLink(0, true);
       cy.origin('https://ranchermanager.docs.rancher.com', () => {
         cy.url().should('include', 'ranchermanager.docs.rancher.com');
@@ -201,8 +197,7 @@ describe('Home Page', () => {
       });
     });
 
-    // this hits the same error as the home page test
-    it.skip('can click on Get Started link', () => {
+    it('can click on Get Started link', () => {
     // click Get Started link
       homePage.clickSupportLink(4, true);
       cy.url().should('include', 'ranchermanager.docs.rancher.com/getting-started/overview');
