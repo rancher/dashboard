@@ -12,4 +12,8 @@ export default class ClusterDashboardPagePo extends PagePo {
   constructor(clusterId: string) {
     super(ClusterDashboardPagePo.createPath(clusterId));
   }
+
+  clusterToolsButton(): Cypress.Chainable {
+    return cy.get('.tools-button').contains('Cluster Tools');
+  }
 }
