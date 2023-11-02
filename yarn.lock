@@ -3291,7 +3291,7 @@
   dependencies:
     "@unhead/schema" "1.8.2"
 
-"@unhead/vue@^1.8.2":
+"@unhead/vue@1.8.2":
   version "1.8.2"
   resolved "https://registry.yarnpkg.com/@unhead/vue/-/vue-1.8.2.tgz#68596443544a690a26bdcd43f328fb9b1a56a0a1"
   integrity sha512-EcXw7Q++GFcsaJhZ9s6SdRnyVGelOqfhY5/xOt7FfWnTkYGqBaOxWhTrIvNSThh58lkMnAxCr/azI/z6pBVNgw==
