@@ -31,6 +31,11 @@
         </button>
       </div>
     </div>
+    <Banner
+      v-if="methodNotSupported"
+      color="warning"
+      :label="t('imageRepoSection.adminConfigPage.methodNotSupported', {auth: authMode, rancherAuthMode: rancherAuthMode})"
+    />
     <div>
       <div class="row mb-20">
         <div class="col span-12">
@@ -134,6 +139,11 @@
         :disabled="loading"
         @click="save"
       />
+      <AsyncButton
+        mode="delete"
+        class="btn bg-error"
+        @click="removeHarborAccount"
+      />
     </div>
     <div
       v-show="currentView === 'changePwd'"
@@ -165,6 +175,34 @@ import { harborAPI } from '../api/image-repo.js';
 import { Banner } from '@components/Banner';
 import { stringify } from '@shell/utils/error';
 import Schema from 'async-validator';
+import { mapGetters } from 'vuex';
+
+const supportAccountSyncAuthModes = [
+  {
+    rancherAuthMode: 'keycloak_user',
+    harborAuthMode:  'db_auth',
+  },
+  {
+    rancherAuthMode: 'local',
+    harborAuthMode:  'db_auth',
+  },
+  {
+    rancherAuthMode: 'activedirectory_user_uid',
+    harborAuthMode:  'db_auth',
+  },
+  {
+    rancherAuthMode: 'activedirectory_user_uid',
+    harborAuthMode:  'ldap_auth',
+  },
+  {
+    rancherAuthMode: 'openldap_user_uid',
+    harborAuthMode:  'db_auth',
+  },
+  {
+    rancherAuthMode: 'openldap_user_uid',
+    harborAuthMode:  'ldap_auth',
+  },
+];
 
 const urlReg = /^http(s)?:\/\/.+/i;
 
@@ -190,43 +228,7 @@ export default {
   },
 
   async fetch() {
-    const harborAPIRequest = harborAPI({ store: this.$store });
-
-    const versionP = harborAPIRequest.fetchHarborVersion();
-
-    const harborServerP = harborAPIRequest.fetchHarborServerUrl();
-
-    const insecureSkipVerifyP = harborAPIRequest.fetchInsecureSkipVerify();
-
-    const [version, harborServer, insecureSkipVerifySetting] = await Promise.all([versionP, harborServerP, insecureSkipVerifyP]);
-
-    if (harborServer.value) {
-      await harborAPIRequest.initAPIRequest(version.value, harborServer.value);
-      const harborUser = await harborAPIRequest.fetchHarborUserInfo();
-
-      this.harborConfig.username = harborUser.value;
-    }
-
-    this.harborAPIRequest = harborAPIRequest;
-    if (version.value) {
-      this.harborConfig.version = version.value;
-    } else {
-      this.harborConfig.version = 'v1';
-    }
-
-    this.harborConfig.url = harborServer.value;
-    this.harborConfig.insecureSkipVerify = insecureSkipVerifySetting.value === 'true';
-    this.insecureSkipVerifySetting = insecureSkipVerifySetting;
-    if (this.harborConfig.url && this.harborConfig.username) {
-      try {
-        await this.testHarborAccount();
-        if (this.harborAccountValid) {
-          this.mode = 'view';
-        }
-      } catch (err) {
-        // do nothing
-      }
-    }
+    await this.initForm();
   },
 
   data() {
@@ -288,7 +290,95 @@ export default {
       currentView:               'view', // view, edit, changePwd
     };
   },
+  computed: {
+    ...mapGetters({ me: 'auth/me', principalId: 'auth/principalId' }),
+    authMode() {
+      const m = this.harborSysntemInfo?.auth_mode ?? '';
+
+      return m.split('_')[0].toUpperCase();
+    },
+    rancherAuthMode() {
+      return this.principalId?.split(':')[0].toUpperCase();
+    },
+    methodNotSupported() {
+      const rancherAuthMode = this.principalId?.split(':')[0];
+      const authMode = this.harborSysntemInfo?.auth_mode;
+
+      if (!authMode) {
+        return false;
+      }
+
+      return !supportAccountSyncAuthModes.some((m) => m.rancherAuthMode === rancherAuthMode && m.harborAuthMode === authMode);
+    }
+  },
   methods: {
+    async initForm() {
+      this.harborAccountValid = false;
+      const harborAPIRequest = harborAPI({ store: this.$store });
+
+      const versionP = harborAPIRequest.fetchHarborVersion();
+
+      const harborServerP = harborAPIRequest.fetchHarborServerUrl();
+
+      const insecureSkipVerifyP = harborAPIRequest.fetchInsecureSkipVerify();
+
+      const [version, harborServer, insecureSkipVerifySetting] = await Promise.all([versionP, harborServerP, insecureSkipVerifyP]);
+
+      if (harborServer.value) {
+        await harborAPIRequest.initAPIRequest(version.value, harborServer.value);
+        const harborUser = await harborAPIRequest.fetchHarborUserInfo();
+
+        this.harborConfig.username = harborUser.value;
+      }
+
+      this.harborAPIRequest = harborAPIRequest;
+      if (version.value) {
+        this.harborConfig.version = version.value;
+      } else {
+        this.harborConfig.version = 'v1';
+      }
+
+      this.harborConfig.url = harborServer.value;
+      this.harborConfig.insecureSkipVerify = insecureSkipVerifySetting.value === 'true';
+      this.insecureSkipVerifySetting = insecureSkipVerifySetting;
+      if (this.harborConfig.url && this.harborConfig.username) {
+        try {
+          await harborAPIRequest.fetchSystemInfo();
+        } catch (err) {
+          this.mode = 'edit';
+          this.currentView = 'edit';
+          this.errors = [this.t('harborConfig.validate.unableAccess')];
+
+          return;
+        }
+        try {
+          await this.testHarborAccount();
+          this.mode = 'view';
+          this.currentView = 'view';
+        } catch (err) {
+          this.mode = 'edit';
+          this.currentView = 'edit';
+          this.errors = [err];
+        }
+
+        return;
+      }
+
+      this.mode = 'edit';
+      this.currentView = 'edit';
+    },
+    async removeHarborAccount(cb) {
+      this.loading = true;
+      try {
+        await this.harborAPIRequest.removeHarborAccount();
+        cb(true);
+      } catch (err) {
+        this.errors = [stringify(err)];
+        cb(false);
+      }
+      this.loading = false;
+      await this.initForm();
+    },
     async save(cb) {
       this.loading = true;
       try {
@@ -361,7 +451,7 @@ export default {
       return results.find((r) => r.status === 'fulfilled' && r.value)?.value;
     },
     async testHarborAccount() {
-      const account = await this.harborAPIRequest.fetchAccount();
+      const account = await this.harborAPIRequest.fetchCurrentHarborUser();
 
       if (account.has_admin_role || account.sysadmin_flag) {
         this.harborAccountValid = true;

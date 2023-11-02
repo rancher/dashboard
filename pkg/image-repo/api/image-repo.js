@@ -144,16 +144,6 @@ export const harborAPI = (spec = { harborVersion: '', harborServer: '' }) => {
     return store.dispatch('management/find', { type: MANAGEMENT.SETTING, id: 'harbor-admin-auth' });
   };
 
-  const fetchAccount = () => {
-    checkBaseUrl();
-
-    return store.dispatch('management/request', {
-      url:     `${ baseUrl }/users/current`,
-      headers: { 'X-API-Harbor-Admin-Header': store.getters['auth/isAdmin'] },
-      method:  'GET',
-    });
-  };
-
   const addWhitelist = async(ip) => {
     const setting = await store.dispatch('management/find', { type: MANAGEMENT.SETTING, id: 'whitelist-domain' });
 
@@ -169,21 +159,23 @@ export const harborAPI = (spec = { harborVersion: '', harborServer: '' }) => {
 
   const removeHarborAccount = async() => { // for store.getters['auth/isAdmin'] user
     checkBaseUrl();
-    const serverSetting = store.dispatch('management/find', { type: MANAGEMENT.SETTING, id: 'harbor-server-url' });
-    const authSetting = store.dispatch('management/find', { type: MANAGEMENT.SETTING, id: 'harbor-admin-auth' });
-    const authModeSetting = store.dispatch('management/find', { type: MANAGEMENT.SETTING, id: 'harbor-auth-mode' });
+    const [serverSetting, authSetting, authModeSetting] = await Promise.all([
+      store.dispatch('management/find', { type: MANAGEMENT.SETTING, id: 'harbor-server-url' }),
+      store.dispatch('management/find', { type: MANAGEMENT.SETTING, id: 'harbor-admin-auth' }),
+      store.dispatch('management/find', { type: MANAGEMENT.SETTING, id: 'harbor-auth-mode' })
+    ]);
     let versionSetting;
 
     try {
-      versionSetting = store.dispatch('management/find', { type: MANAGEMENT.SETTING, id: 'harbor-version' });
+      versionSetting = await store.dispatch('management/find', { type: MANAGEMENT.SETTING, id: 'harbor-version' });
     } catch (err) {
-      versionSetting = store.dispatch('management/create', {
+      versionSetting = await store.dispatch('management/create', {
         type: MANAGEMENT.SETTING, value: '', metadata: { name: 'harbor-version' }
       }, { root: true });
     }
 
     serverSetting.value = '';
-    authSetting.vaue = '';
+    authSetting.value = '';
     authModeSetting.value = '';
     versionSetting.value = '';
 
@@ -493,7 +485,7 @@ export const harborAPI = (spec = { harborVersion: '', harborServer: '' }) => {
     const disabledEncryption = store.getters['management/byId'](MANAGEMENT.SETTING, SETTING.DISABLE_PASSWORD_ENCRYPT);
     const data = {
       ...params,
-      newPassword: disabledEncryption?.value === 'true' ? params.oldPassword : AESEncrypt(params.oldPassword.trim()),
+      newPassword: disabledEncryption?.value === 'true' ? params.oldPassword : AESEncrypt(params.newPassword.trim()),
       oldPassword: disabledEncryption?.value === 'true' ? params.oldPassword : AESEncrypt(params.oldPassword.trim())
     };
 
@@ -601,7 +593,6 @@ export const harborAPI = (spec = { harborVersion: '', harborServer: '' }) => {
   request.fetchProject = fetchProject;
   request.fetchAdminConfig = fetchAdminConfig;
   request.fetchHarborUserInfo = fetchHarborUserInfo;
-  request.fetchAccount = fetchAccount;
   request.addWhitelist = addWhitelist;
   request.removeHarborAccount = removeHarborAccount;
   request.syncHarborAccount = syncHarborAccount;
