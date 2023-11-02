@@ -3268,6 +3268,39 @@
     "@typescript-eslint/types" "4.33.0"
     eslint-visitor-keys "^2.0.0"
 
+"@unhead/dom@1.8.2":
+  version "1.8.2"
+  resolved "https://registry.yarnpkg.com/@unhead/dom/-/dom-1.8.2.tgz#84c9d90627492e9537e9334f1f5304234653076b"
+  integrity sha512-wyWf2bFItWvWHdfv8BlIyS7fcPYQBhJkwvkCjf3D7bnTXrd2ZyoUck07x3XApFiZavW8KD+A3S6jS39f/h4lBw==
+  dependencies:
+    "@unhead/schema" "1.8.2"
+    "@unhead/shared" "1.8.2"
+
+"@unhead/schema@1.8.2":
+  version "1.8.2"
+  resolved "https://registry.yarnpkg.com/@unhead/schema/-/schema-1.8.2.tgz#717e7e3876e502482863dce268524f9ac745c0dc"
+  integrity sha512-bpCv8ualep2aqbhkBXUKfhYICi35+Pb1CBc5v6oJHHJgHKBIAbBQpbpi14amRMnRuSYDeSOCEM6SV8OJntcNDA==
+  dependencies:
+    hookable "^5.5.3"
+    zhead "^2.2.4"
+
+"@unhead/shared@1.8.2":
+  version "1.8.2"
+  resolved "https://registry.yarnpkg.com/@unhead/shared/-/shared-1.8.2.tgz#4536044d000bd829852ceaa539b5427830792fc3"
+  integrity sha512-GDrUDN3x2anpNQQOgjmKjpi2ygNsBAwok9C6Z1YCeM2YtjF1lhqF9cTCXaapNEq81FkC0R0LTgnVxa/HJ4n3lQ==
+  dependencies:
+    "@unhead/schema" "1.8.2"
+
+"@unhead/vue@^1.8.2":
+  version "1.8.2"
+  resolved "https://registry.yarnpkg.com/@unhead/vue/-/vue-1.8.2.tgz#68596443544a690a26bdcd43f328fb9b1a56a0a1"
+  integrity sha512-EcXw7Q++GFcsaJhZ9s6SdRnyVGelOqfhY5/xOt7FfWnTkYGqBaOxWhTrIvNSThh58lkMnAxCr/azI/z6pBVNgw==
+  dependencies:
+    "@unhead/schema" "1.8.2"
+    "@unhead/shared" "1.8.2"
+    hookable "^5.5.3"
+    unhead "1.8.2"
+
 "@vue/babel-helper-vue-jsx-merge-props@^1.4.0":
   version "1.4.0"
   resolved "https://registry.yarnpkg.com/@vue/babel-helper-vue-jsx-merge-props/-/babel-helper-vue-jsx-merge-props-1.4.0.tgz#8d53a1e21347db8edbe54d339902583176de09f2"
@@ -8942,6 +8975,11 @@ hogan.js@3.0.2:
   dependencies:
     mkdirp "0.3.0"
     nopt "1.0.10"
+
+hookable@^5.5.3:
+  version "5.5.3"
+  resolved "https://registry.yarnpkg.com/hookable/-/hookable-5.5.3.tgz#6cfc358984a1ef991e2518cb9ed4a778bbd3215d"
+  integrity sha512-Yc+BQe8SvoXH1643Qez1zqLRmbA5rCL+sSmk6TVos0LWVfNIB7PGncdlId77WzLGSIB5KaWgTaNTs2lNVEI6VQ==
 
 hoopy@^0.1.4:
   version "0.1.4"
@@ -15117,6 +15155,16 @@ unfetch@4.2.0:
   resolved "https://registry.yarnpkg.com/unfetch/-/unfetch-4.2.0.tgz#7e21b0ef7d363d8d9af0fb929a5555f6ef97a3be"
   integrity sha512-F9p7yYCn6cIW9El1zi0HI6vqpeIvBsr3dSuRO6Xuppb1u5rXpCPmMvLSyECLhybr9isec8Ohl0hPekMVrEinDA==
 
+unhead@1.8.2:
+  version "1.8.2"
+  resolved "https://registry.yarnpkg.com/unhead/-/unhead-1.8.2.tgz#97598439deaec7efb987cc6818b51a25f980c1fd"
+  integrity sha512-f7Ha07cT+cgYav06tRNKxUrOZ722QtvYExn0McE68DYUGUM2boPCxXWlHcZXpSAbOj5OQI5AwQE5Xb3Qp2dWDQ==
+  dependencies:
+    "@unhead/dom" "1.8.2"
+    "@unhead/schema" "1.8.2"
+    "@unhead/shared" "1.8.2"
+    hookable "^5.5.3"
+
 unicode-canonical-property-names-ecmascript@^2.0.0:
   version "2.0.0"
   resolved "https://registry.yarnpkg.com/unicode-canonical-property-names-ecmascript/-/unicode-canonical-property-names-ecmascript-2.0.0.tgz#301acdc525631670d39f6146e0e77ff6bbdebddc"
@@ -16218,3 +16266,8 @@ yorkie@^2.0.0:
     is-ci "^1.0.10"
     normalize-path "^1.0.0"
     strip-indent "^2.0.0"
+
+zhead@^2.2.4:
+  version "2.2.4"
+  resolved "https://registry.yarnpkg.com/zhead/-/zhead-2.2.4.tgz#87cd1e2c3d2f465fa9f43b8db23f9716dfe6bed7"
+  integrity sha512-8F0OI5dpWIA5IGG5NHUg9staDwz/ZPxZtvGVf01j7vHqSyZ0raHY+78atOVxRqb73AotX22uV1pXt3gYSstGag==
