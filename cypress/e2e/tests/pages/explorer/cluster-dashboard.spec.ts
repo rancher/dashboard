@@ -152,14 +152,18 @@ describe('Cluster Dashboard', { tags: '@adminUser' }, () => {
     clusterTools.waitForPage();
     cy.contains('Connected');
 
+    ClusterDashboardPagePo.navTo('local');
+
     // Check events
     clusterDashboard.eventslist().resourceTable().sortableTable().rowElements()
-      .should('have.length.gte', 1);
+      .should('have.length.gte', 2);
 
     clusterDashboard.fullEventsLink().click();
 
     const events = new EventsPagePo('local');
 
     events.waitForPage();
+    events.eventslist().resourceTable().sortableTable().rowElements()
+      .should('have.length.gte', 2);
   });
 });
