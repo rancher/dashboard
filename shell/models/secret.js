@@ -6,21 +6,22 @@ import { SERVICE_ACCOUNT } from '@shell/config/types';
 import { set } from '@shell/utils/object';
 import { NAME as MANAGER } from '@shell/config/product/manager';
 import SteveModel from '@shell/plugins/steve/steve-class';
+import { NEVER_ADD } from 'utils/create-yaml';
 
 export const TYPES = {
-  OPAQUE:           'Opaque',
-  SERVICE_ACCT:     'kubernetes.io/service-account-token',
-  DOCKER:           'kubernetes.io/dockercfg',
-  DOCKER_JSON:      'kubernetes.io/dockerconfigjson',
-  BASIC:            'kubernetes.io/basic-auth',
-  SSH:              'kubernetes.io/ssh-auth',
-  TLS:              'kubernetes.io/tls',
-  BOOTSTRAP:        'bootstrap.kubernetes.io/token',
-  ISTIO_TLS:        'istio.io/key-and-cert',
-  HELM_RELEASE:     'helm.sh/release.v1',
-  FLEET_CLUSTER:    'fleet.cattle.io/cluster-registration-values',
+  OPAQUE: 'Opaque',
+  SERVICE_ACCT: 'kubernetes.io/service-account-token',
+  DOCKER: 'kubernetes.io/dockercfg',
+  DOCKER_JSON: 'kubernetes.io/dockerconfigjson',
+  BASIC: 'kubernetes.io/basic-auth',
+  SSH: 'kubernetes.io/ssh-auth',
+  TLS: 'kubernetes.io/tls',
+  BOOTSTRAP: 'bootstrap.kubernetes.io/token',
+  ISTIO_TLS: 'istio.io/key-and-cert',
+  HELM_RELEASE: 'helm.sh/release.v1',
+  FLEET_CLUSTER: 'fleet.cattle.io/cluster-registration-values',
   CLOUD_CREDENTIAL: 'provisioning.cattle.io/cloud-credential',
-  RKE_AUTH_CONFIG:  'rke.cattle.io/auth-config'
+  RKE_AUTH_CONFIG: 'rke.cattle.io/auth-config'
 };
 
 export default class Secret extends SteveModel {
@@ -41,7 +42,7 @@ export default class Secret extends SteveModel {
   }
 
   get issuer() {
-    const { metadata:{ annotations = {} } } = this;
+    const { metadata: { annotations = {} } } = this;
 
     if (annotations[CERTMANAGER.ISSUER]) {
       return annotations[CERTMANAGER.ISSUER];
@@ -82,7 +83,7 @@ export default class Secret extends SteveModel {
     if (this.isCertificate) {
       const eightDays = 691200000;
 
-      if (this.timeTilExpiration > eightDays ) {
+      if (this.timeTilExpiration > eightDays) {
         return '';
       } else if (this.timeTilExpiration > 0) {
         return 'text-warning';
@@ -97,21 +98,21 @@ export default class Secret extends SteveModel {
   get details() {
     const out = [
       {
-        label:   this.t('secret.type'),
+        label: this.t('secret.type'),
         content: this.typeDisplay
       }
     ];
 
-    if ( this._type === TYPES.SERVICE_ACCT ) {
+    if (this._type === TYPES.SERVICE_ACCT) {
       const name = this.metadata?.annotations?.[KUBERNETES.SERVICE_ACCOUNT_NAME];
 
-      if ( name ) {
+      if (name) {
         out.push({
-          label:         'Service Account',
-          formatter:     'LinkName',
+          label: 'Service Account',
+          formatter: 'LinkName',
           formatterOpts: {
-            value:     name,
-            type:      SERVICE_ACCOUNT,
+            value: name,
+            type: SERVICE_ACCOUNT,
             namespace: this.namespace,
           },
           content: name,
@@ -121,24 +122,24 @@ export default class Secret extends SteveModel {
 
     if (this.cn) {
       out.push({
-        label:   this.t('secret.certificate.cn'),
-        content: this.plusMoreNames ? `${ this.cn } ${ this.t('secret.certificate.plusMore', { n: this.plusMoreNames }) }` : this.cn
+        label: this.t('secret.certificate.cn'),
+        content: this.plusMoreNames ? `${this.cn} ${this.t('secret.certificate.plusMore', { n: this.plusMoreNames })}` : this.cn
       });
     }
 
     if (this.issuer) {
       out.push({
-        label:   this.t('secret.certificate.issuer'),
+        label: this.t('secret.certificate.issuer'),
         content: this.issuer
       });
     }
 
     if (this.notAfter) {
       out.push({
-        label:         'Expires',
-        formatter:     'Date',
+        label: 'Expires',
+        formatter: 'Date',
         formatterOpts: { class: this.dateClass },
-        content:       this.notAfter
+        content: this.notAfter
       });
     }
 
@@ -146,11 +147,11 @@ export default class Secret extends SteveModel {
   }
 
   get canUpdate() {
-    if ( !this.hasLink('update') ) {
+    if (!this.hasLink('update')) {
       return false;
     }
 
-    if ( this._type === TYPES.SERVICE_ACCT ) {
+    if (this._type === TYPES.SERVICE_ACCT) {
       return false;
     }
 
@@ -163,7 +164,7 @@ export default class Secret extends SteveModel {
       ...Object.keys(this.binaryData || [])
     ];
 
-    if ( !keys.length ) {
+    if (!keys.length) {
       return '(none)';
     }
 
@@ -197,11 +198,11 @@ export default class Secret extends SteveModel {
       }
     } else if (this._type === TYPES.TLS) {
       return this.certInfo || this.keysDisplay;
-    } else if ( this._type === TYPES.BASIC ) {
+    } else if (this._type === TYPES.BASIC) {
       return base64Decode(this.data.username);
-    } else if ( this._type === TYPES.SSH ) {
+    } else if (this._type === TYPES.SSH) {
       return this.sshUser;
-    } else if ( this._type === TYPES.SERVICE_ACCT ) {
+    } else if (this._type === TYPES.SERVICE_ACCT) {
       return this.metadata?.annotations?.['kubernetes.io/service-account.name'];
     }
 
@@ -209,28 +210,28 @@ export default class Secret extends SteveModel {
   }
 
   get sshUser() {
-    if ( this._type !== TYPES.SSH ) {
+    if (this._type !== TYPES.SSH) {
       return null;
     }
 
     const pub = base64Decode(this.data['ssh-publickey']);
 
-    if ( !pub ) {
+    if (!pub) {
       return null;
     }
 
-    if ( pub.startsWith('----') ) {
+    if (pub.startsWith('----')) {
       // PEM format
       const match = pub.match(/from OpenSSH by ([^"]+)"/);
 
-      if ( match ) {
+      if (match) {
         return match[1];
       }
-    } else if ( pub.startsWith('ssh-') ) {
+    } else if (pub.startsWith('ssh-')) {
       // OpenSSH format
       const parts = pub.replace(/\n/g, '').split(/\s+/);
 
-      if ( parts && parts.length === 3 ) {
+      if (parts && parts.length === 3) {
         return parts[2];
       }
     }
@@ -242,7 +243,7 @@ export default class Secret extends SteveModel {
     const type = this._type || '';
     const fallback = type.replace(/^kubernetes.io\//, '');
 
-    return this.$rootGetters['i18n/withFallback'](`secret.types."${ type }"`, null, fallback);
+    return this.$rootGetters['i18n/withFallback'](`secret.types."${type}"`, null, fallback);
   }
 
   // parse TLS certs and return issuer, notAfter, cn, sans
@@ -256,7 +257,7 @@ export default class Secret extends SteveModel {
       let first = pem;
 
       if (certs.length > 1) {
-        first = `${ certs[0] }${ END_MARKER }`;
+        first = `${certs[0]}${END_MARKER}`;
       }
 
       try {
@@ -291,7 +292,7 @@ export default class Secret extends SteveModel {
 
   // use for + n more name display
   get unrepeatedSans() {
-    if (this._type === TYPES.TLS ) {
+    if (this._type === TYPES.TLS) {
       if (this.certInfo?.sans?.filter) {
         const commonBases = this.certInfo?.sans.filter((name) => name.indexOf('*.') === 0 || name.indexOf('www.') === 0).map((name) => name.substr(name.indexOf('.')));
         const displaySans = removeObjects(this.certInfo?.sans, commonBases);
@@ -320,7 +321,7 @@ export default class Secret extends SteveModel {
   get decodedData() {
     const out = {};
 
-    for ( const k in this.data || {} ) {
+    for (const k in this.data || {}) {
       out[k] = base64Decode(this.data[k]);
     }
 
@@ -331,30 +332,52 @@ export default class Secret extends SteveModel {
     return (key, value) => { // or (mapOfNewData)
       const isMap = key && typeof key === 'object';
 
-      if ( !this.data || isMap ) {
+      if (!this.data || isMap) {
         set(this, 'data', {});
       }
 
       let neu;
 
-      if ( isMap ) {
+      if (isMap) {
         neu = key;
       } else {
         neu = { [key]: value };
       }
 
-      for ( const k in neu ) {
+      for (const k in neu) {
         // The key is quoted so that keys like '.dockerconfigjson' that contain dot don't get parsed into an object path
-        set(this.data, `"${ k }"`, base64Encode(neu[k]));
+        set(this.data, `"${k}"`, base64Encode(neu[k]));
       }
     };
   }
 
   get doneRoute() {
-    if ( this.$rootGetters['currentProduct'].name === MANAGER ) {
+    if (this.$rootGetters['currentProduct'].name === MANAGER) {
       return 'c-cluster-manager-secret';
     } else {
       return 'c-cluster-product-resource';
     }
+  }
+
+  cleanForSave(data) {
+
+    console.log('cleanForSave', data);
+
+    // There are some properties in ACTIVELY_REMOVE 
+    // that should be removed from the data
+    const val = super._cleanForSave(data);
+
+    const fieldsToRemove = [...NEVER_ADD];
+
+    for (const field of fieldsToRemove) {
+      console.log('cleanForSave', field, val[field]);
+      if (val[field] !== undefined) {
+        console.log('Removing', field, val[field]);
+        delete val[field];
+      }
+    }
+
+    return val;
+
   }
 }

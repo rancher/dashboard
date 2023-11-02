@@ -58,9 +58,7 @@ export const deploymentCreateRequest = {
               privileged:               false,
               allowPrivilegeEscalation: false
             },
-            _init:        false,
             volumeMounts: [],
-            __active:     true,
             image:        'nginx'
           }
         ],

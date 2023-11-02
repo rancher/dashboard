@@ -1,5 +1,6 @@
 import { DESCRIPTION } from '@shell/config/labels-annotations';
 import HybridModel from './hybrid-class';
+import { ACTIVELY_REMOVE, NEVER_ADD } from 'utils/create-yaml';
 
 export default class SteveModel extends HybridModel {
   get name() {
@@ -27,5 +28,17 @@ export default class SteveModel extends HybridModel {
     }
 
     this._description = value;
+  }
+
+  cleanForSave(data) {
+    const val = super.cleanForSave(data);
+
+    const fieldsToRemove = [...NEVER_ADD, ...ACTIVELY_REMOVE];
+
+    for (const field of fieldsToRemove) {
+      _.unset(val, field);
+    }
+
+    return val;
   }
 }

@@ -3,6 +3,7 @@ import { colorForState, stateDisplay } from '@shell/plugins/dashboard-store/reso
 import { NODE, WORKLOAD_TYPES } from '@shell/config/types';
 import { escapeHtml, shortenedImage } from '@shell/utils/string';
 import WorkloadService from '@shell/models/workload.service';
+import { NEVER_ADD_CONTAINER_FIELDS } from 'utils/create-yaml';
 
 export const WORKLOAD_PRIORITY = {
   [WORKLOAD_TYPES.DEPLOYMENT]:             1,
@@ -255,5 +256,33 @@ export default class Pod extends WorkloadService {
 
       return Promise.reject(e);
     });
+  }
+
+  removeContainerField(container) {
+    for (const field of NEVER_ADD_CONTAINER_FIELDS) {
+      _.unset(container, field);
+    }
+
+    return container;
+  }
+
+  cleanForSave(data) {
+    const val = super.cleanForSave(data);
+
+    // remove fields from array of spec.template.spec.containers
+    if (val.spec?.containers) {
+      val.spec.containers.forEach((container) => {
+        this.removeContainerField(container);
+      });
+    }
+
+    // remove fields from initContainers
+    if (val.spec?.initContainers) {
+      val.spec.initContainers.forEach((container) => {
+        this.removeContainerField(container);
+      });
+    }
+
+    return val;
   }
 }

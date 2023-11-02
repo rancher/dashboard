@@ -6,6 +6,8 @@ import day from 'dayjs';
 import { convertSelectorObj, matching, matches } from '@shell/utils/selector';
 import { SEPARATOR } from '@shell/config/workload';
 import WorkloadService from '@shell/models/workload.service';
+import { NEVER_ADD_CONTAINER_FIELDS } from 'utils/create-yaml';
+import _ from 'lodash';
 
 export const defaultContainer = {
   imagePullPolicy: 'Always',
@@ -64,7 +66,7 @@ export default class Workload extends WorkloadService {
       });
     }
 
-    insertAt(out, 0, { divider: true }) ;
+    insertAt(out, 0, { divider: true });
 
     insertAt(out, 0, {
       action:  'openShell',
@@ -121,17 +123,17 @@ export default class Workload extends WorkloadService {
     vm.$set(this, 'spec', spec);
   }
 
-  toggleRollbackModal( workload = this ) {
+  toggleRollbackModal(workload = this) {
     this.$dispatch('promptModal', {
       componentProps: { workload },
       component:      'RollbackWorkloadDialog'
     });
   }
 
-  async rollBackWorkload( cluster, workload, type, rollbackRequestData ) {
+  async rollBackWorkload(cluster, workload, type, rollbackRequestData) {
     const rollbackRequestBody = JSON.stringify(rollbackRequestData);
 
-    if ( Array.isArray( workload ) ) {
+    if (Array.isArray(workload)) {
       throw new TypeError(this.t('promptRollback.multipleWorkloadError'));
     }
     const namespace = workload.metadata.namespace;
@@ -173,7 +175,7 @@ export default class Workload extends WorkloadService {
   }
 
   get state() {
-    if ( this.spec?.paused === true ) {
+    if (this.spec?.paused === true) {
       return 'paused';
     }
 
@@ -183,8 +185,8 @@ export default class Workload extends WorkloadService {
   async openShell() {
     const pods = await this.matchingPods();
 
-    for ( const pod of pods ) {
-      if ( pod.isRunning ) {
+    for (const pod of pods) {
+      if (pod.isRunning) {
         pod.openShell();
 
         return;
@@ -257,7 +259,7 @@ export default class Workload extends WorkloadService {
     switch (type) {
     case WORKLOAD_TYPES.DEPLOYMENT:
     case WORKLOAD_TYPES.REPLICA_SET:
-      out.push( {
+      out.push({
         nullable:       false,
         path:           'spec.replicas',
         required:       true,
@@ -282,7 +284,7 @@ export default class Workload extends WorkloadService {
       });
       break;
     case WORKLOAD_TYPES.CRON_JOB:
-      out.push( {
+      out.push({
         nullable:       false,
         path:           'spec.schedule',
         required:       true,
@@ -354,7 +356,7 @@ export default class Workload extends WorkloadService {
       const FACTORS = [60, 60, 24];
       const LABELS = ['sec', 'min', 'hour', 'day'];
 
-      if ( startTime ) {
+      if (startTime) {
         out.push({
           label:         'Started',
           content:       startTime,
@@ -372,12 +374,12 @@ export default class Workload extends WorkloadService {
 
         let i = 0;
 
-        while ( diff >= FACTORS[i] && i < FACTORS.length ) {
+        while (diff >= FACTORS[i] && i < FACTORS.length) {
           diff /= FACTORS[i];
           i++;
         }
 
-        if ( diff < 5 ) {
+        if (diff < 5) {
           label = Math.floor(diff * 10) / 10;
         } else {
           label = Math.floor(diff);
@@ -388,7 +390,7 @@ export default class Workload extends WorkloadService {
 
         out.push({ label: 'Duration', content: label });
       }
-    } else if ( type === WORKLOAD_TYPES.CRON_JOB ) {
+    } else if (type === WORKLOAD_TYPES.CRON_JOB) {
       out.push({
         label:     'Last Scheduled Time',
         content:   this?.status?.lastScheduleTime,
@@ -396,7 +398,7 @@ export default class Workload extends WorkloadService {
       });
     }
 
-    out.push( {
+    out.push({
       label:     'Image',
       content:   this.imageNames,
       formatter: 'PodImages'
@@ -436,7 +438,7 @@ export default class Workload extends WorkloadService {
   redeploy() {
     const now = (new Date()).toISOString().replace(/\.\d+Z$/, 'Z');
 
-    if ( !this.spec.template.metadata ) {
+    if (!this.spec.template.metadata) {
       set(this.spec.template, 'metadata', {});
     }
 
@@ -525,7 +527,7 @@ export default class Workload extends WorkloadService {
       for (const owner of this.metadata.ownerReferences) {
         const have = (`${ owner.apiVersion.replace(/\/.*/, '') }.${ owner.kind }`).toLowerCase();
 
-        if ( types.includes(have) ) {
+        if (types.includes(have)) {
           return true;
         }
       }
@@ -562,7 +564,7 @@ export default class Workload extends WorkloadService {
   }
 
   get podGauges() {
-    const out = { };
+    const out = {};
 
     if (!this.pods) {
       return out;
@@ -599,7 +601,7 @@ export default class Workload extends WorkloadService {
     }
 
     return this.jobRelationships.map((obj) => {
-      return this.$getters['byId'](WORKLOAD_TYPES.JOB, obj.toId );
+      return this.$getters['byId'](WORKLOAD_TYPES.JOB, obj.toId);
     }).filter((x) => !!x);
   }
 
@@ -648,5 +650,33 @@ export default class Workload extends WorkloadService {
     const selector = convertSelectorObj(this.spec.selector);
 
     return matching(allInNamespace, selector);
+  }
+
+  removeContainerField(container) {
+    for (const field of NEVER_ADD_CONTAINER_FIELDS) {
+      _.unset(container, field);
+    }
+
+    return container;
+  }
+
+  cleanForSave(data) {
+    const val = super.cleanForSave(data);
+
+    // remove fields from array of spec.template.spec.containers
+    if (val.spec?.template?.spec?.containers) {
+      val.spec.template.spec.containers.forEach((container) => {
+        this.removeContainerField(container);
+      });
+    }
+
+    // remove fields from initContainers
+    if (val.spec?.template?.spec?.initContainers) {
+      val.spec.template.spec.initContainers.forEach((container) => {
+        this.removeContainerField(container);
+      });
+    }
+
+    return val;
   }
 }

@@ -1089,6 +1089,17 @@ export default class Resource {
     return this._save(...arguments);
   }
 
+  _cleanForSave(data) {
+    delete this.__rehydrate;
+    delete this.__clone;
+
+    return { ...data };
+  }
+
+  cleanForSave(data) {
+    return this._cleanForSave(data);
+  }
+
   /**
    * Allow to handle the response of the save request
    * @param {*} res Full request response
@@ -1096,9 +1107,6 @@ export default class Resource {
   processSaveResponse(res) { }
 
   async _save(opt = {}) {
-    delete this.__rehydrate;
-    delete this.__clone;
-
     const forNew = !this.id;
 
     const errors = await this.validationErrors(this, opt.ignoreFields);
@@ -1143,7 +1151,9 @@ export default class Resource {
     }
 
     // @TODO remove this once the API maps steve _type <-> k8s type in both directions
-    opt.data = this.toSave() || { ...this };
+    const data = this.toSave() || { ...this };
+
+    opt.data = this.cleanForSave(data);
 
     if (opt?.data._type) {
       opt.data.type = opt.data._type;
