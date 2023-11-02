@@ -1,6 +1,7 @@
 import ClusterManagerListPagePo from '@/cypress/e2e/po/pages/cluster-manager/cluster-manager-list.po';
 import ClusterDashboardPagePo from '@/cypress/e2e/po/pages/explorer/cluster-dashboard.po';
-// import ClusterToolsPagePo from '@/cypress/e2e/po/pages/explorer/cluster-tools.po';
+import ClusterToolsPagePo from '@/cypress/e2e/po/pages/explorer/cluster-tools.po';
+import { InstallChartsPage } from '@/cypress/e2e/po/pages/explorer/install-charts.po';
 import CardPo from '@/cypress/e2e/po/components/card.po';
 import { HeaderPo } from '@/cypress/e2e/po/components/header.po';
 import BurgerMenuPo from '@/cypress/e2e/po/side-bars/burger-side-menu.po';
@@ -11,7 +12,8 @@ import { EventsPagePo } from '@/cypress/e2e/po/pages/explorer/events.po';
 const clusterDashboard = new ClusterDashboardPagePo('local');
 const simpleBox = new SimpleBoxPo();
 const header = new HeaderPo();
-// const clusterTools = new ClusterToolsPagePo('local');
+const clusterTools = new ClusterToolsPagePo('local');
+const installCharts = new InstallChartsPage('local');
 
 describe('Cluster Dashboard', { tags: '@adminUser' }, () => {
   beforeEach(() => {
@@ -138,21 +140,17 @@ describe('Cluster Dashboard', { tags: '@adminUser' }, () => {
     clusterDashboard.goTo();
 
     // Install monitoring to trigger events
+    clusterDashboard.clusterToolsButton().click();
+    clusterTools.waitForPage();
+    clusterTools.goToInstall(0);
+    installCharts.waitForPage();
+    installCharts.nextPage();
 
-    /**
-     * TODO: update to use the following code when https://github.com/rancher/dashboard/pull/9749 is merged
-     * clusterDashboard.clusterToolsButton().click();
-     * clusterTools.waitForPage()
-     * clusterTools.goToInstall(0);
-     * installCharts.waitForPage();
-     * installCharts.nextPage();
-     *
-     * cy.intercept('POST', 'v1/catalog.cattle.io.clusterrepos/rancher-charts?action=install').as('chartInstall');
-     * installCharts.installChart().click();
-     * cy.wait('@chartInstall').its('response.statusCode').should('eq', 201);
-     * clusterTools.waitForPage();
-     * cy.contains('Connected');
-    */
+    cy.intercept('POST', 'v1/catalog.cattle.io.clusterrepos/rancher-charts?action=install').as('chartInstall');
+    installCharts.installChart().click();
+    cy.wait('@chartInstall').its('response.statusCode').should('eq', 201);
+    clusterTools.waitForPage();
+    cy.contains('Connected');
 
     // Check events
     clusterDashboard.eventslist().resourceTable().sortableTable().rowElements()
