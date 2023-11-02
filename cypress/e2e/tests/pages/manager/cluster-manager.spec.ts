@@ -18,7 +18,12 @@ import ClusterManagerCreateRke1CustomPagePo from '@/cypress/e2e/po/edit/provisio
 import Shell from '@/cypress/e2e/po/components/shell.po';
 import BurgerMenuPo from '@/cypress/e2e/po/side-bars/burger-side-menu.po';
 import { snapshot } from '@/cypress/e2e/blueprints/manager/cluster-snapshots';
-
+import HomePagePo from '@/cypress/e2e/po/pages/home.po';
+import ProductNavPo from '@/cypress/e2e/po/side-bars/product-side-nav.po';
+import RkeDriversPagePo from '@/cypress/e2e/po/pages/cluster-manager/rke-drivers.po';
+import EmberListPo from '@/cypress/e2e/po/components/ember/ember-list.po';
+import EmberDropdownPo from '@/cypress/e2e/po/components/ember/ember-dropdown.po';
+import EmberModalClusterDriverPo from '~/cypress/e2e/po/components/ember/ember-modal-add-edit-cluster-driver.po';
 // At some point these will come from somewhere central, then we can make tools to remove resources from this or all runs
 const runTimestamp = +new Date();
 const runPrefix = `e2e-test-${ runTimestamp }`;
@@ -35,6 +40,7 @@ const downloadsFolder = Cypress.config('downloadsFolder');
 
 describe('Cluster Manager', { testIsolation: 'off', tags: ['@manager', '@adminUser'] }, () => {
   const clusterList = new ClusterManagerListPagePo('local');
+  const sideNav = new ProductNavPo();
 
   before(() => {
     cy.login();
@@ -403,7 +409,19 @@ describe('Cluster Manager', { testIsolation: 'off', tags: ['@manager', '@adminUs
 
     clusterDashboard.waitForPage(undefined, 'cluster-events');
   });
+  it('can navigate to Cluster Management Page', () => {
+    HomePagePo.goTo();
+    const burgerMenu = new BurgerMenuPo();
 
+    BurgerMenuPo.toggle();
+    const clusterManagementNavItem = burgerMenu.links().contains(`Cluster Management`);
+
+    clusterManagementNavItem.should('exist');
+    clusterManagementNavItem.click();
+    const clusterList = new ClusterManagerListPagePo('_');
+
+    clusterList.waitForPage();
+  });
   it('can connect to kubectl shell', () => {
     ClusterManagerListPagePo.navTo();
     clusterList.list().actionMenu('local').getMenuItem('Kubectl Shell').click();
@@ -412,5 +430,113 @@ describe('Cluster Manager', { testIsolation: 'off', tags: ['@manager', '@adminUs
 
     shellPo.terminalStatus('Connected');
     shellPo.closeTerminal();
+  });
+  describe('Cloud Credentials', { tags: ['@jenkins', '@adminUser', '@standardUser'] }, () => { // only run this in jenkins  pipeline
+    it('can see error when authentication fails', () => {
+      clusterList.goTo();
+      cy.contains('Authentication test failed, please check your credentials');
+    });
+    it('can create cloud credentials', () => {
+    });
+    it('can edit cloud credentials', () => {
+      // edit description
+    });
+    it('can clone cloud credentials', () => {
+    });
+    it('can delete cloud credentials', () => {
+    });
+  });
+  describe('Drivers', () => {
+    const driversPage = new RkeDriversPagePo('local');
+    const emberList = new EmberListPo('table.grid.sortable-table');
+    const emberActions = new EmberListPo('.has-tabs');
+    const emberDropdown = new EmberDropdownPo('.ember-basic-dropdown-content');
+    const modal = new EmberModalClusterDriverPo();
+
+    beforeEach(() => {
+      cy.viewport(1380, 720);
+    });
+
+    it('can navigate to drivers page', () => {
+      clusterList.goTo();
+      sideNav.navToSideMenuEntryByLabel('Drivers');
+      driversPage.waitForPage();
+    });
+
+    it('can refresh kubernetes metadata', () => {
+      driversPage.goTo();
+      cy.intercept('POST', '/v3/kontainerdrivers?action=refresh').as('refresh');
+      emberActions.actions('Refresh Kubernetes Metadata').click({ force: true });
+      cy.wait('@refresh').its('response.statusCode').should('eq', 200);
+    });
+
+    it('can create cluster driver', () => {
+      // see https://github.com/rancher-plugins/kontainer-engine-driver-example/releases for lsit of example drivers
+      const downloadUrl = 'https://github.com/rancher-plugins/kontainer-engine-driver-example/releases/download/v0.2.3/kontainer-engine-driver-example-copy1-linux-amd64';
+
+      driversPage.goTo();
+      emberActions.actions('Add Cluster Driver').click();
+      modal.input().set(downloadUrl, 0);
+      cy.intercept('POST', '/v3/kontainerdriver').as('createDriver');
+      modal.create();
+      cy.wait('@createDriver').its('response.statusCode').should('eq', 201);
+      emberList.state('Example').should('contain.text', 'Active');
+    });
+
+    it('can edit cluster driver', () => {
+      // see https://github.com/rancher-plugins/kontainer-engine-driver-example/releases for lsit of example drivers
+      const downloadUrl = 'https://github.com/rancher-plugins/kontainer-engine-driver-example/releases/download/v0.2.3/kontainer-engine-driver-example-copy2-linux-amd64';
+
+      driversPage.goTo();
+      emberList.rowActionMenuOpen(`Example`);
+      emberDropdown.selectMenuItemByLabel(`Edit`);
+      modal.input().set(downloadUrl, 0);
+      cy.intercept('PUT', '/v3/kontainerDrivers/*').as('updateDriver');
+      modal.save();
+      cy.wait('@updateDriver').its('response.statusCode').should('eq', 200);
+      emberList.state('Example').should('contain.text', 'Active');
+    });
+
+    it('can deactivate cluster driver', () => {
+      driversPage.goTo();
+      emberList.rowActionMenuOpen(`Example`);
+      emberDropdown.selectMenuItemByLabel(`Deactivate`);
+      cy.intercept('POST', '/v3/kontainerDrivers/*').as('deactivateDriver');
+      modal.deactivate();
+      cy.wait('@deactivateDriver').its('response.statusCode').should('eq', 200);
+      emberList.state('Example').should('contain.text', 'Inactive');
+    });
+
+    it('can activate cluster driver', () => {
+      driversPage.goTo();
+      emberList.rowActionMenuOpen(`Example`);
+      cy.intercept('POST', '/v3/kontainerDrivers/*').as('activateDriver');
+      emberDropdown.selectMenuItemByLabel(`Activate`);
+      cy.wait('@activateDriver').its('response.statusCode').should('eq', 200);
+      emberList.state('Example').should('contain.text', 'Active');
+    });
+
+    it('can delete cluster driver', () => {
+      driversPage.goTo();
+      emberList.rowActionMenuOpen(`Example`);
+      emberDropdown.selectMenuItemByLabel(`Delete`);
+      cy.intercept('DELETE', '/v3/kontainerDrivers/*').as('deleteDriver');
+      modal.delete();
+      cy.wait('@deleteDriver').its('response.statusCode').should('eq', 200);
+      emberList.state('Example').should('not.exist');
+    });
+
+    it('can activate node driver', () => {
+      cy.viewport(1380, 720);
+      cy.intercept('GET', '/v3/nodedrivers?limit=-1&sort=name').as('nodeDrivers');
+      driversPage.goTo();
+      emberActions.actions('Node Drivers').click();
+      cy.wait('@nodeDrivers');
+      emberList.rowActionMenuOpen(`Exoscale`);
+      cy.intercept('POST', '/v3/nodeDrivers/**').as('activateDriver');
+      emberDropdown.selectMenuItemByLabel(`Activate`);
+      cy.wait('@activateDriver').its('response.statusCode').should('eq', 200);
+      emberList.state('Exoscale').should('contain.text', 'Active');
+    });
   });
 });
