@@ -1,8 +1,6 @@
 <script>
 import { KUBERNETES, PROJECT } from '@shell/config/labels-annotations';
-import {
-  FLEET, NAMESPACE, MANAGEMENT, HELM, LOCAL_CLUSTER
-} from '@shell/config/types';
+import { FLEET, NAMESPACE, MANAGEMENT, HELM } from '@shell/config/types';
 import ButtonGroup from '@shell/components/ButtonGroup';
 import { BadgeState } from '@components/BadgeState';
 import { Banner } from '@components/Banner';
@@ -14,7 +12,6 @@ import {
 } from '@shell/config/query-params';
 import { ExtensionPoint, PanelLocation } from '@shell/core/types';
 import ExtensionPanel from '@shell/components/ExtensionPanel';
-import { BLANK_CLUSTER } from 'store/store-types';
 
 /**
  * Resource Detail Masthead component.
