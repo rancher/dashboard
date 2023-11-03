@@ -20,9 +20,14 @@ export default {
 
   computed: {
     html() {
-      return this.marked.parse(this.value, {
+      console.log('HTML', this.marked.parse(this.value, {
         renderer: this.markedRenderer,
         breaks:   true
+      }));
+
+      return this.marked.parse(this.value, {
+        renderer: this.markedRenderer,
+        // breaks:   true
       });
     },
   },
@@ -87,8 +92,20 @@ export default {
 }
 
 .markdown {
+    blockquote {
+      color: rgb(101, 109, 118);
+      border-left: 0.25em solid rgb(208, 215, 222);
+      padding: 0 1em;
+      margin-bottom: 16px;
+    }
+
+    table {
+      border-collapse: collapse;
+    }
+
     TH {
       text-align: left;
+      border: 1px solid #e3e7eb;
     }
 
     table tr th {
@@ -109,6 +126,7 @@ export default {
       text-align: left;
       margin: 0;
       padding: 6px 13px;
+      border: 1px solid #e3e7eb;
     }
 
     table tr th :first-child, table tr td :first-child {
