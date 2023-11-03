@@ -151,7 +151,7 @@ export default {
         return this.value.namespaceLocation || {
           name:   'c-cluster-product-resource-id',
           params: {
-            cluster:  this.$route.params.cluster === BLANK_CLUSTER ? this.value?.localCluster?.id : this.$route.params.cluster,
+            cluster:  this.$route.params.cluster,
             product:  this.$store.getters['productId'],
             resource: NAMESPACE,
             id:       this.$route.params.namespace
@@ -376,7 +376,7 @@ export default {
     },
 
     hideNamespaceLocation() {
-      return this.$store.getters['currentProduct'].hideNamespaceLocation || !this.$store.getters['management/byId'](MANAGEMENT.CLUSTER, LOCAL_CLUSTER);
+      return this.$store.getters['currentProduct'].hideNamespaceLocation || !this.value.namespaceLocation;
     },
   },
 
