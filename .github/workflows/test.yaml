@@ -24,6 +24,7 @@ env:
   CYPRESS_API_URL: http://139.59.134.103:1234/
   TEST_RUN_ID: ${{github.run_number}}-${{github.run_attempt}}-${{github.event.pull_request.title || github.event.head_commit.message}}
   CYPRESS_coverage: true
+  BUILD_DASHBOARD: false
 
 jobs:
   e2e-test:
@@ -50,13 +51,12 @@ jobs:
       
       - name: Prepare build
         run: yarn e2e:pre-prod
-        env:
-          BUILD_DASHBOARD: false
       
       - name: Run admin user tests
         run: |
           yarn e2e:prod
-          mkdir -p coverage-artifacts/coverage
+          echo "$BUILD_DASHBOARD"
+          [ "$BUILD_DASHBOARD" != "false" ] && mkdir -p coverage-artifacts/coverage
           [ "$BUILD_DASHBOARD" != "false" ] && cp coverage/e2e/coverage-final.json coverage-artifacts/coverage/coverage-e2e.json
           [ "$BUILD_DASHBOARD" != "false" ] && cp -r coverage/e2e/ coverage-artifacts/coverage/e2e/
         env: 
@@ -68,7 +68,7 @@ jobs:
         run: |
           yarn e2e:prod
           yarn docker:local:stop
-          mkdir -p coverage-artifacts/coverage
+          [ "$BUILD_DASHBOARD" != "false" ] && mkdir -p coverage-artifacts/coverage
           [ "$BUILD_DASHBOARD" != "false" ] && cp coverage/e2e/coverage-final.json coverage-artifacts/coverage/coverage-e2e.json
         env: 
           GREP_TAGS: '@flaky'
