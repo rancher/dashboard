@@ -77,7 +77,6 @@ describe('Cluster Dashboard', { tags: '@adminUser' }, () => {
     clusterDashboard.clusterBadge().applyAndWait('/v3/clusters/local');
 
     // check header and side nav for update
-
     header.clusterIcon().children().should('have.class', 'cluster-badge-logo');
     header.clusterName().should('contain', 'local');
     header.clusterBadge().should('contain', settings.description.new);
@@ -102,7 +101,7 @@ describe('Cluster Dashboard', { tags: '@adminUser' }, () => {
 
   it('can view deployments', () => {
     clusterDashboard.goTo();
-    cy.getRancherResource('v1', '/apps.deployments', '?exclude=metadata.managedFields').then((resp: Cypress.Response<any>) => {
+    cy.getRancherResource('v1', 'apps.deployments', '?exclude=metadata.managedFields').then((resp: Cypress.Response<any>) => {
       const count = resp.body['count'];
 
       simpleBox.simpleBox().eq(2).should('contain.text', count).and('contain.text', 'Deployments');
@@ -117,7 +116,7 @@ describe('Cluster Dashboard', { tags: '@adminUser' }, () => {
 
   it('can view nodes', () => {
     clusterDashboard.goTo();
-    cy.getRancherResource('v1', '/nodes', '?exclude=metadata.managedFields').then((resp: Cypress.Response<any>) => {
+    cy.getRancherResource('v1', 'nodes', '?exclude=metadata.managedFields').then((resp: Cypress.Response<any>) => {
       const count = resp.body['count'];
       let text = '';
 
@@ -165,5 +164,8 @@ describe('Cluster Dashboard', { tags: '@adminUser' }, () => {
     events.waitForPage();
     events.eventslist().resourceTable().sortableTable().rowElements()
       .should('have.length.gte', 2);
+
+    // Uninstall monitoring
+    cy.uninstallChart('v1', 'catalog.cattle.io.apps', 'default', 'rancher-alerting-drivers');
   });
 });
