@@ -24,6 +24,7 @@ env:
   CYPRESS_API_URL: http://139.59.134.103:1234/
   TEST_RUN_ID: ${{github.run_number}}-${{github.run_attempt}}-${{github.event.pull_request.title || github.event.head_commit.message}}
   CYPRESS_coverage: true
+  # Build the dashboard to use in tests. When set to false it will grab `latest` from CDN (useful for running e2e tests quickly)
   BUILD_DASHBOARD: false
 
 jobs:
@@ -55,10 +56,10 @@ jobs:
       - name: Run admin user tests
         run: |
           yarn e2e:prod
-          echo "$BUILD_DASHBOARD"
-          [ "$BUILD_DASHBOARD" != "false" ] && mkdir -p coverage-artifacts/coverage
-          [ "$BUILD_DASHBOARD" != "false" ] && cp coverage/e2e/coverage-final.json coverage-artifacts/coverage/coverage-e2e.json
-          [ "$BUILD_DASHBOARD" != "false" ] && cp -r coverage/e2e/ coverage-artifacts/coverage/e2e/
+          [ "$BUILD_DASHBOARD" != "false" ] || exit 0
+          mkdir -p coverage-artifacts/coverage
+          cp coverage/e2e/coverage-final.json coverage-artifacts/coverage/coverage-e2e.json
+          cp -r coverage/e2e/ coverage-artifacts/coverage/e2e/
         env: 
           GREP_TAGS: '@setup'
           TEST_USERNAME: admin
@@ -68,8 +69,9 @@ jobs:
         run: |
           yarn e2e:prod
           yarn docker:local:stop
-          [ "$BUILD_DASHBOARD" != "false" ] && mkdir -p coverage-artifacts/coverage
-          [ "$BUILD_DASHBOARD" != "false" ] && cp coverage/e2e/coverage-final.json coverage-artifacts/coverage/coverage-e2e.json
+          [ "$BUILD_DASHBOARD" != "false" ] || exit 0
+          mkdir -p coverage-artifacts/coverage
+          cp coverage/e2e/coverage-final.json coverage-artifacts/coverage/coverage-e2e.json
         env: 
           GREP_TAGS: '@flaky'
           TEST_USERNAME: standard_user
