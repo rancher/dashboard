@@ -12,6 +12,7 @@ import PromptRemove from '@/cypress/e2e/po/prompts/promptRemove.po';
 import * as path from 'path';
 import * as jsyaml from 'js-yaml';
 import ClusterManagerCreateRke1CustomPagePo from '@/cypress/e2e/po/edit/provisioning.cattle.io.cluster/create/cluster-create-rke1-custom.po';
+import Shell from '@/cypress/e2e/po/components/shell.po';
 
 // At some point these will come from somewhere central, then we can make tools to remove resources from this or all runs
 const runTimestamp = +new Date();
@@ -27,10 +28,10 @@ const importGenericName = `${ clusterNamePartial }-import-generic`;
 
 const downloadsFolder = Cypress.config('downloadsFolder');
 
-describe('Cluster Manager', { tags: '@adminUser' }, () => {
+describe('Cluster Manager', { testIsolation: 'off', tags: '@adminUser' }, () => {
   const clusterList = new ClusterManagerListPagePo('local');
 
-  beforeEach(() => {
+  before(() => {
     cy.login();
   });
 
@@ -73,7 +74,7 @@ describe('Cluster Manager', { tags: '@adminUser' }, () => {
       });
 
       it('can copy config to clipboard', () => {
-        clusterList.goTo();
+        ClusterManagerListPagePo.navTo();
 
         cy.intercept('POST', '*action=generateKubeconfig').as('copyKubeConfig');
         clusterList.list().actionMenu(rke2CustomName).getMenuItem('Copy KubeConfig to Clipboard').click();
@@ -138,7 +139,7 @@ describe('Cluster Manager', { tags: '@adminUser' }, () => {
         // Delete downloads directory. Need a fresh start to avoid conflicting file names
         cy.deleteDownloadsFolder();
 
-        clusterList.goTo();
+        ClusterManagerListPagePo.navTo();
         clusterList.list().actionMenu(rke2CustomName).getMenuItem('Download YAML').click();
 
         const downloadedFilename = path.join(downloadsFolder, `${ rke2CustomName }.yaml`);
@@ -320,8 +321,12 @@ describe('Cluster Manager', { tags: '@adminUser' }, () => {
   });
 
   it('can connect to kubectl shell', () => {
-    clusterList.goTo();
+    ClusterManagerListPagePo.navTo();
     clusterList.list().actionMenu('local').getMenuItem('Kubectl Shell').click();
-    cy.contains('Connected').should('be.visible');
+
+    const shellPo = new Shell();
+
+    shellPo.terminalStatus('Connected');
+    shellPo.closeTerminal();
   });
 });
