@@ -57,8 +57,8 @@ jobs:
         run: |
           yarn e2e:prod
           mkdir -p coverage-artifacts/coverage
-          [ "$BUILD_DASHBOARD" != "false" ] cp coverage/e2e/coverage-final.json coverage-artifacts/coverage/coverage-e2e.json
-          [ "$BUILD_DASHBOARD" != "false" ] cp -r coverage/e2e/ coverage-artifacts/coverage/e2e/
+          [ "$BUILD_DASHBOARD" != "false" ] && cp coverage/e2e/coverage-final.json coverage-artifacts/coverage/coverage-e2e.json
+          [ "$BUILD_DASHBOARD" != "false" ] && cp -r coverage/e2e/ coverage-artifacts/coverage/e2e/
         env: 
           GREP_TAGS: '@setup'
           TEST_USERNAME: admin
@@ -69,7 +69,7 @@ jobs:
           yarn e2e:prod
           yarn docker:local:stop
           mkdir -p coverage-artifacts/coverage
-          [ "$BUILD_DASHBOARD" != "false" ] cp coverage/e2e/coverage-final.json coverage-artifacts/coverage/coverage-e2e.json
+          [ "$BUILD_DASHBOARD" != "false" ] && cp coverage/e2e/coverage-final.json coverage-artifacts/coverage/coverage-e2e.json
         env: 
           GREP_TAGS: '@flaky'
           TEST_USERNAME: standard_user
