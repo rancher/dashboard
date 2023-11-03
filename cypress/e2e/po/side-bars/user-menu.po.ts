@@ -53,8 +53,9 @@ export default class UserMenuPo extends ComponentPo {
     // Check the user avatar icon is there
     this.checkVisible();
 
-    // cy.wait(1000); // eslint-disable-line cypress/no-unnecessary-waiting
+    cy.wait(1000); // eslint-disable-line cypress/no-unnecessary-waiting
     this.open();
+    cy.wait(1000); // eslint-disable-line cypress/no-unnecessary-waiting
 
     // Check the v-popper drop down is open, if not open it
     // This isn't a pattern we want to use often, but this area has caused us lots of issues
