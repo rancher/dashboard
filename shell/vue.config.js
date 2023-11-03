@@ -481,6 +481,37 @@ module.exports = function(dir, _appConfig) {
           options: { name: '[path][name].[ext]' },
         },
         {
+          test: /node_modules\/@?unhead\/.*$/,
+          // This excludes no modules except for node_modules/@rancher/... so that plugins can properly compile
+          // when referencing @rancher/shell
+          use:  [
+            {
+              loader:  'cache-loader',
+              options: {
+                cacheDirectory:  'node_modules/.cache/babel-loader',
+                cacheIdentifier: 'e93f32da'
+              }
+            },
+            {
+              loader:  'babel-loader',
+              options: {
+                presets: [
+                  [
+                    require.resolve('@nuxt/babel-preset-app'),
+                    {
+                      corejs:  { version: 3 },
+                      targets: { browsers: ['last 2 versions'] },
+                      modern:  true
+                    }
+                  ],
+                  '@babel/preset-typescript',
+                ],
+                plugins: babelPlugins
+              }
+            }
+          ]
+        },
+        {
           test:    /\.m?[tj]sx?$/,
           // This excludes no modules except for node_modules/@rancher/... so that plugins can properly compile
           // when referencing @rancher/shell
