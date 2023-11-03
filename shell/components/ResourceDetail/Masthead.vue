@@ -373,7 +373,7 @@ export default {
     },
 
     hideNamespaceLocation() {
-      return this.$store.getters['currentProduct'].hideNamespaceLocation || !this.value.namespaceLocation;
+      return this.$store.getters['currentProduct'].hideNamespaceLocation || this.value.namespaceLocation === null;
     },
   },
 
