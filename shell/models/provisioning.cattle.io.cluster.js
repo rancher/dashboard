@@ -885,14 +885,20 @@ export default class ProvCluster extends SteveModel {
   }
 
   get namespaceLocation() {
-    return {
-      name:   'c-cluster-product-resource-id',
-      params: {
-        cluster:  this.$rootGetters['management/byId'](MANAGEMENT.CLUSTER, LOCAL_CLUSTER)?.id,
-        product:  this.$rootGetters['productId'],
-        resource: NAMESPACE,
-        id:       this.namespace
-      }
-    };
+    const localCluster = this.$rootGetters['management/byId'](MANAGEMENT.CLUSTER, LOCAL_CLUSTER);
+
+    if (localCluster) {
+      return {
+        name:   'c-cluster-product-resource-id',
+        params: {
+          cluster:  localCluster.id,
+          product:  this.$rootGetters['productId'],
+          resource: NAMESPACE,
+          id:       this.namespace
+        }
+      };
+    }
+
+    return null;
   }
 }
