@@ -53,6 +53,8 @@ export default class UserMenuPo extends ComponentPo {
     // Check the user avatar icon is there
     this.checkVisible();
 
+    // Yep, these are _horrible_, but flakey user avatar tests have plagued us for months and no-one has yet fixed them
+    // This is a temporary step until that brave, tenacious champion of e2e resolves the underlying issue.
     cy.wait(1000); // eslint-disable-line cypress/no-unnecessary-waiting
     this.open();
     cy.wait(1000); // eslint-disable-line cypress/no-unnecessary-waiting

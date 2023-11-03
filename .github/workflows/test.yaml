@@ -25,7 +25,7 @@ env:
   TEST_RUN_ID: ${{github.run_number}}-${{github.run_attempt}}-${{github.event.pull_request.title || github.event.head_commit.message}}
   CYPRESS_coverage: true
   # Build the dashboard to use in tests. When set to false it will grab `latest` from CDN (useful for running e2e tests quickly)
-  BUILD_DASHBOARD: false
+  BUILD_DASHBOARD: true
 
 jobs:
   e2e-test:
@@ -61,7 +61,7 @@ jobs:
           cp coverage/e2e/coverage-final.json coverage-artifacts/coverage/coverage-e2e.json
           cp -r coverage/e2e/ coverage-artifacts/coverage/e2e/
         env: 
-          GREP_TAGS: '@setup'
+          GREP_TAGS: '@adminUser'
           TEST_USERNAME: admin
 
       - name: Run standard user tests
@@ -73,7 +73,7 @@ jobs:
           mkdir -p coverage-artifacts/coverage
           cp coverage/e2e/coverage-final.json coverage-artifacts/coverage/coverage-e2e.json
         env: 
-          GREP_TAGS: '@flaky'
+          GREP_TAGS: '@standardUser'
           TEST_USERNAME: standard_user
         
       - name: Upload coverage
