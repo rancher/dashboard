@@ -175,9 +175,7 @@ export default class MgmtNodePool extends HybridModel {
       return true;
     }
 
-    const hasAction = this.norman?.actions?.scaledown;
-
-    return hasAction && notOnlyOfRole(this, this?.provisioningCluster?.nodes);
+    return notOnlyOfRole(this, this?.provisioningCluster?.nodes);
   }
 
   remove() {
