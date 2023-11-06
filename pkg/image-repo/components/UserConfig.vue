@@ -345,6 +345,10 @@ export default {
       }
       if (url) {
         if (syncComplete) {
+          if (this.requiredAuth) {
+            return this.harborAccountState.sync;
+          }
+
           return this.harborAccountState.synced;
         }
 
@@ -435,8 +439,9 @@ export default {
         opt:  { url: '/v3/principals', force: true }
       });
     },
-    save() {},
-    reSyncAccount() {},
+    reSyncAccount() {
+      this.requiredAuth = true;
+    },
     async syncAccount(cb) {
       this.errors = [];
       const { email, password, username } = { ...this.userAccount };
