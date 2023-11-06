@@ -174,6 +174,6 @@ export default class MgmtNode extends HybridModel {
 
     const hasAction = this.norman?.actions?.scaledown;
 
-    return hasAction && notOnlyOfRole(this, this?.provisioningCluster?.nodes);
+    return hasAction && notOnlyOfRole(this, this.provisioningCluster?.nodes);
   }
 }
