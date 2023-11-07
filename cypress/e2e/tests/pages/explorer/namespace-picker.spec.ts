@@ -27,7 +27,7 @@ describe('Namespace picker', { testIsolation: 'off' }, () => {
     });
   });
 
-  it('can filter workloads by project/namespace from the picker dropdown', { tags: '@adminUser' }, () => {
+  it('can filter workloads by project/namespace from the picker dropdown', { tags: ['@adminUser'] }, () => {
     // Verify 'Namespace: cattle-fleet-local-system' appears once when filtering by Namespace
     // Vrify multiple namespaces within Project: System display when filtering by Project
 
@@ -89,7 +89,7 @@ describe('Namespace picker', { testIsolation: 'off' }, () => {
     namespacePicker.checkIcon().should('have.length', 1);
   });
 
-  it('can select multiple projects/namespaces', { tags: '@adminUser' }, () => {
+  it('can select multiple projects/namespaces', { tags: ['@adminUser'] }, () => {
     // Verify that user can select multiple options (other than the first 5 options)
 
     clusterDashboard.goTo();
@@ -174,7 +174,7 @@ describe('Namespace picker', { testIsolation: 'off' }, () => {
     namespacePicker.checkIcon().should('have.length', 1);
   });
 
-  it('newly created project/namespace appears in namespace picker', { tags: '@adminUser' }, () => {
+  it('newly created project/namespace appears in namespace picker', { tags: ['@adminUser'] }, () => {
     const projName = `project${ +new Date() }`;
     const nsName = `namespace${ +new Date() }`;
 
