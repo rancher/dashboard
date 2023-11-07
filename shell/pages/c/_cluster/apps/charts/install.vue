@@ -473,7 +473,7 @@ export default {
      * Return list of variables to filter chart questions
      */
     ignoreVariables() {
-      return ignoreVariables(this.currentCluster, this.versionInfo);
+      return ignoreVariables(this.versionInfo);
     },
 
     namespaceIsNew() {

@@ -95,7 +95,6 @@ describe('component: Basics', () => {
         cisOverride:                 false,
         cisPsaChangeBanner:          true,
         allPsas:                     [],
-        needsPsp:                    false,
         selectedVersion:             k8s,
         versionOptions:              mockVersionOptions,
         isHarvesterDriver:           false,
@@ -149,7 +148,6 @@ describe('component: Basics', () => {
         cisOverride:                 false,
         cisPsaChangeBanner:          true,
         allPsas:                     [],
-        needsPsp:                    false,
         selectedVersion:             mockVersionOptions[0],
         versionOptions:              mockVersionOptions,
         isHarvesterDriver:           false,
@@ -200,7 +198,6 @@ describe('component: Basics', () => {
         userChartValues:    {},
         cisPsaChangeBanner: true,
         allPsas:            [],
-        needsPsp:           false,
         cisOverride:        override,
         selectedVersion:    mockVersionOptions[0],
         versionOptions:     [{

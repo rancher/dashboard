@@ -88,6 +88,10 @@ export default class MgmtCluster extends HybridModel {
   }
 
   get provisioner() {
+    if (this.status?.provider ) {
+      return this.status.provider;
+    }
+
     // For imported K3s clusters, this.status.driver is 'k3s.'
     return this.status?.driver ? this.status.driver : 'imported';
   }

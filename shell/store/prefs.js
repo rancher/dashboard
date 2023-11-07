@@ -112,9 +112,6 @@ export const _RKE1 = 'rke1';
 export const _RKE2 = 'rke2';
 export const PROVISIONER = create('provisioner', _RKE2, { options: [_RKE1, _RKE2] });
 
-// Promo for Pod Security Policies (PSPs) being deprecated on kube version 1.25 on Cluster Dashboard page
-export const PSP_DEPRECATION_BANNER = create('hide-psp-deprecation-banner', false, { parseJSON });
-
 // Maximum number of clusters to show in the slide-in menu
 export const MENU_MAX_CLUSTERS = 10;
 // Prompt for confirm when scaling down node pool in GUI and save the pref
