@@ -409,6 +409,7 @@ describe('Cluster Manager', { testIsolation: 'off', tags: ['@manager', '@adminUs
 
     clusterDashboard.waitForPage(undefined, 'cluster-events');
   });
+
   it('can navigate to Cluster Management Page', () => {
     HomePagePo.goTo();
     const burgerMenu = new BurgerMenuPo();
@@ -422,6 +423,7 @@ describe('Cluster Manager', { testIsolation: 'off', tags: ['@manager', '@adminUs
 
     clusterList.waitForPage();
   });
+
   it('can connect to kubectl shell', () => {
     ClusterManagerListPagePo.navTo();
     clusterList.list().actionMenu('local').getMenuItem('Kubectl Shell').click();
@@ -431,22 +433,28 @@ describe('Cluster Manager', { testIsolation: 'off', tags: ['@manager', '@adminUs
     shellPo.terminalStatus('Connected');
     shellPo.closeTerminal();
   });
-  describe('Cloud Credentials', { tags: ['@jenkins', '@adminUser', '@standardUser'] }, () => { // only run this in jenkins  pipeline
+
+  describe('Cloud Credentials', { tags: ['@jenkins', '@adminUser', '@standardUser'] }, () => { // only run this in jenkins pipeline
     it('can see error when authentication fails', () => {
       clusterList.goTo();
       cy.contains('Authentication test failed, please check your credentials');
     });
+
     it('can create cloud credentials', () => {
     });
+
     it('can edit cloud credentials', () => {
       // edit description
     });
+
     it('can clone cloud credentials', () => {
     });
+
     it('can delete cloud credentials', () => {
     });
   });
-  describe('Drivers', () => {
+
+  describe.only('Drivers', () => {
     const driversPage = new RkeDriversPagePo('local');
     const emberList = new EmberListPo('table.grid.sortable-table');
     const emberActions = new EmberListPo('.has-tabs');
@@ -484,7 +492,7 @@ describe('Cluster Manager', { testIsolation: 'off', tags: ['@manager', '@adminUs
     });
 
     it('can edit cluster driver', () => {
-      // see https://github.com/rancher-plugins/kontainer-engine-driver-example/releases for lsit of example drivers
+      // see https://github.com/rancher-plugins/kontainer-engine-driver-example/releases for list of example drivers
       const downloadUrl = 'https://github.com/rancher-plugins/kontainer-engine-driver-example/releases/download/v0.2.3/kontainer-engine-driver-example-copy2-linux-amd64';
 
       driversPage.goTo();
@@ -526,17 +534,55 @@ describe('Cluster Manager', { testIsolation: 'off', tags: ['@manager', '@adminUs
       emberList.state('Example').should('not.exist');
     });
 
-    it('can activate node driver', () => {
-      cy.viewport(1380, 720);
+    it('can edit node driver', () => {
       cy.intercept('GET', '/v3/nodedrivers?limit=-1&sort=name').as('nodeDrivers');
       driversPage.goTo();
       emberActions.actions('Node Drivers').click();
       cy.wait('@nodeDrivers');
-      emberList.rowActionMenuOpen(`Exoscale`);
+      emberList.rowActionMenuOpen(`Cloud.ca`);
+      emberDropdown.selectMenuItemByLabel(`Edit`);
+      cy.intercept('PUT', '/v3/nodeDrivers/*').as('updateDriver');
+      modal.save();
+      cy.wait('@updateDriver').its('response.statusCode').should('eq', 200);
+      emberList.state('Cloud.ca').should('contain.text', 'Inactive');
+    });
+
+    it('can activate node driver', () => {
+      cy.intercept('GET', '/v3/nodedrivers?limit=-1&sort=name').as('nodeDrivers');
+      driversPage.goTo();
+      emberActions.actions('Node Drivers').click();
+      cy.wait('@nodeDrivers');
+      emberList.rowActionMenuOpen(`Cloud.ca`);
       cy.intercept('POST', '/v3/nodeDrivers/**').as('activateDriver');
       emberDropdown.selectMenuItemByLabel(`Activate`);
       cy.wait('@activateDriver').its('response.statusCode').should('eq', 200);
-      emberList.state('Exoscale').should('contain.text', 'Active');
+      emberList.state('Cloud.ca').should('contain.text', 'Active');
+    });
+
+    it('can deactivate node driver', () => {
+      cy.intercept('GET', '/v3/nodedrivers?limit=-1&sort=name').as('nodeDrivers');
+      driversPage.goTo();
+      emberActions.actions('Node Drivers').click();
+      cy.wait('@nodeDrivers');
+      emberList.rowActionMenuOpen(`Cloud.ca`);
+      emberDropdown.selectMenuItemByLabel(`Deactivate`);
+      cy.intercept('POST', '/v3/nodeDrivers/**').as('deactivateDriver');
+      modal.deactivate();
+      cy.wait('@deactivateDriver').its('response.statusCode').should('eq', 200);
+      emberList.state('Cloud.ca').should('contain.text', 'Inactive');
+    });
+
+    it('can delete node driver', () => {
+      cy.intercept('GET', '/v3/nodedrivers?limit=-1&sort=name').as('nodeDrivers');
+      driversPage.goTo();
+      emberActions.actions('Node Drivers').click();
+      cy.wait('@nodeDrivers');
+      emberList.rowActionMenuOpen(`Cloud.ca`);
+      emberDropdown.selectMenuItemByLabel(`Delete`);
+      cy.intercept('DELETE', '/v3/nodeDrivers/*').as('deleteDriver');
+      modal.delete();
+      cy.wait('@deleteDriver').its('response.statusCode').should('eq', 200);
+      emberList.state('Cloud.ca').should('not.exist');
     });
   });
 });
