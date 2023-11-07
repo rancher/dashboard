@@ -93,4 +93,78 @@ describe('class MgmtNode', () => {
       resetMocks();
     });
   });
+
+  describe('canScaleDown', () => {
+    const mgmtClusterId = 'test';
+    const nodeId = 'test/id';
+    const specs = {
+      worker: {
+        worker: true, etcd: false, controlPlane: false
+      },
+      etcd: {
+        worker: false, etcd: true, controlPlane: false
+      },
+      controlPlane: {
+        worker: false, etcd: false, controlPlane: true
+      },
+      etcdAndControlPlane: {
+        worker: false, etcd: true, controlPlane: true
+      }
+    };
+
+    const workerNode = {
+      id:             '01',
+      isWorker:       true,
+      isControlPlane: false,
+      isEtcd:         false
+    };
+    const etcdNode = {
+      id:             '02',
+      isWorker:       false,
+      isControlPlane: false,
+      isEtcd:         true
+    };
+    const controlPlaneNode = {
+      id:             '03',
+      isWorker:       false,
+      isControlPlane: true,
+      isEtcd:         false
+    };
+    const etcdAndControlPlaneNode = {
+      id:             '03',
+      isWorker:       false,
+      isControlPlane: true,
+      isEtcd:         true
+    };
+
+    const baseCtx = {
+      rootGetters: {
+        'rancher/byId': () => ({ actions: { scaledown: 'scaledown' } }),
+        'i18n/t':       t
+      }
+    };
+
+    it.each([
+      [{ spec: specs.worker, nodes: [workerNode] }, true],
+      [{ spec: specs.etcd, nodes: [etcdNode, etcdNode, controlPlaneNode] }, true],
+      [{ spec: specs.etcdAndControlPlane, nodes: [etcdAndControlPlaneNode, etcdAndControlPlaneNode] }, true],
+      [{ spec: specs.etcdAndControlPlane, nodes: [etcdAndControlPlaneNode] }, false],
+    ])('should return canScaleDown properly', (data, expected) => {
+      const { spec, nodes } = data;
+      const mgmtNode = new MgmtNode({
+        spec,
+        id: nodeId
+      }, {
+        ...baseCtx,
+        getters: {
+          all: () => [{
+            mgmtClusterId,
+            nodes
+          }]
+        }
+      });
+
+      expect(mgmtNode.canScaleDown).toStrictEqual(expected);
+    });
+  });
 });
