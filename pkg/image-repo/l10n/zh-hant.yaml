@@ -192,6 +192,7 @@ harborConfig:
     usernameReq: 用户名不能为空
     validateEmailServerError: 验证邮件服务器失败, 错误
     validateEmailServerOk: 验证邮件服务器成功
+    unknownError: 未知错误
   wait: 请等待管理員配置鏡像庫
 imageRepoSection:
   action:
@@ -219,6 +220,7 @@ imageRepoSection:
       developer: Developer
       guest: Guest
       master: Master
+    delete: 删除
     removeProject: 删除項目
     table:
       noData: 暫無數據

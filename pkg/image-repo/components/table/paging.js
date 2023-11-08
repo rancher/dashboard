@@ -1,0 +1,111 @@
+import { ROWS_PER_PAGE } from '@shell/store/prefs';
+
+export default {
+  computed: {
+    indexFrom() {
+      return Math.max(0, 1 + this.perPage * (this.page - 1));
+    },
+
+    indexTo() {
+      const totalCount = this.enableFrontendPagination ? this.filteredRows.length : this.totalCount;
+
+      return Math.min(totalCount, this.indexFrom + this.perPage - 1);
+    },
+
+    totalPages() {
+      if (!this.enableFrontendPagination) {
+        return Math.ceil(this.totalCount / this.perPage );
+      }
+
+      return Math.ceil(this.filteredRows.length / this.perPage );
+    },
+
+    pagingDisplay() {
+      const opt = {
+        ...(this.pagingParams || {}),
+
+        count: this.enableFrontendPagination ? this.filteredRows.length : this.totalCount,
+        pages: this.totalPages,
+        from:  this.indexFrom,
+        to:    this.indexTo,
+      };
+
+      return this.$store.getters['i18n/t'](this.pagingLabel, opt);
+    },
+
+    pagedRows() {
+      if ( this.paging && this.enableFrontendPagination) {
+        return this.filteredRows.slice(this.indexFrom - 1, this.indexTo);
+      } else {
+        return this.filteredRows;
+      }
+    }
+  },
+
+  data() {
+    const perPage = this.getPerPage();
+
+    return { page: 1, perPage };
+  },
+
+  watch: {
+    pagedRows() {
+      // Go to the last page if we end up "past" the last page because the table changed
+
+      const from = this.indexFrom;
+      const last = this.enableFrontendPagination ? this.filteredRows.length : this.totalCount;
+
+      if ( this.totalPages > 0 && this.page > 1 && from > last ) {
+        this.setPage(this.totalPages);
+      }
+    }
+  },
+
+  methods: {
+    getPerPage() {
+      // perPage can not change while the list is displayed
+      let out = this.rowsPerPage || 0;
+
+      if ( out <= 0 ) {
+        out = parseInt(this.$store.getters['prefs/get'](ROWS_PER_PAGE), 10) || 0;
+      }
+
+      // This should ideally never happen, but the preference value could be invalid, so return something...
+      if ( out <= 0 ) {
+        out = 10;
+      }
+
+      return out;
+    },
+
+    setPage(num) {
+      if (this.page === num) {
+        return;
+      }
+
+      this.page = num;
+      this.$emit('page-change', this.page);
+    },
+
+    goToPage(which) {
+      let page;
+
+      switch (which) {
+      case 'first':
+        page = 1;
+        break;
+      case 'prev':
+        page = Math.max(1, this.page - 1 );
+        break;
+      case 'next':
+        page = Math.min(this.totalPages, this.page + 1 );
+        break;
+      case 'last':
+        page = this.totalPages;
+        break;
+      }
+
+      this.setPage(page);
+    }
+  }
+};

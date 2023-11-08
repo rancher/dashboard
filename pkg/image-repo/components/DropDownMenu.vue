@@ -5,10 +5,6 @@ export default {
   name:       'DropDownMenu',
   components: { IconOrSvg },
   props:      {
-    visible: {
-      type:    Boolean,
-      default: false,
-    },
     options: {
       type:    Array,
       default: () => {
@@ -22,27 +18,49 @@ export default {
     placement: {
       type:    String,
       default: 'bottom-end'
+    },
+    propVisible: {
+      type:    Boolean,
+      default: false,
+    }
+  },
+  data() {
+    return { innerVisible: false };
+  },
+  computed: {
+    visible() {
+      if (this.hasSlot) {
+        return this.propVisible;
+      }
+
+      return this.innerVisible;
+    },
+    hasSlot() {
+      return !!this.$slots.default;
     }
   },
   methods: {
     show() {
-      this.$emit('visible-change', true);
+      if (!this.hasSlot) this.innerVisible = true;
     },
-    autoHide() {
+    hide() {
+      if (!this.hasSlot) this.innerVisible = false;
       this.$emit('visible-change', false);
     },
     hasOptions(options) {
       return options.length !== undefined ? options.length : Object.keys(options).length > 0;
     },
     execute(action, event, args) {
+      if (action.disabled) return;
       this.$emit('custom-event', {
-        action,
+        ...action,
         event,
         ...args,
         route: this.$route
       });
-    }
-  }
+      this.innerVisible = false;
+    },
+  },
 };
 </script>
 
@@ -53,7 +71,7 @@ export default {
       trigger="manual"
       :placement="placement"
       popoverBaseClass="drop-down-menu-cn tooltip popover"
-      @auto-hide="autoHide"
+      @auto-hide="hide"
     >
       <slot name="default">
         <button
@@ -98,8 +116,7 @@ export default {
 
 <style lang="scss">
 .drop-down-menu-cn {
-  top: -20px !important;
-  left: -10px !important;
+  margin-top: 0px !important;
   .button-dropdown {
     background-color: transparent;
     color: var(--primary);
@@ -117,6 +134,12 @@ export default {
   .popover-inner {
     padding: 0px !important;
   }
+  .tooltip-arrow {
+    &::after {
+      bottom: 0px !important;
+    }
+  }
+
   .menu {
     z-index: z-index('dropdownContent');
     min-width: 145px;

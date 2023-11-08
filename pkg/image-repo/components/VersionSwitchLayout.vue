@@ -8,7 +8,7 @@
       :version="harborVersionSetting.value"
     />
     <slot
-      v-else-if="version === 'v2'"
+      v-else-if="version === 'v2.0'"
       name="v2"
       :api-request="harborAPIRequest"
       :server-url="harborServerSetting.value"
@@ -27,6 +27,8 @@ export default {
   mixins:   [apiRequest],
   computed: {
     version() {
+      console.log(this.harborVersionSetting);
+
       return this.harborVersionSetting?.value ?? 'v1';
     },
   },

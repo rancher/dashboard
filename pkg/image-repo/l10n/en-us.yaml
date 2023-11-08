@@ -191,6 +191,7 @@ harborConfig:
     usernameReq: Username cannot be empty
     validateEmailServerError: Verify that the mail server failed, error
     validateEmailServerOk: Verify that the mail server was successful
+    unknownError: Unknow errors
   wait: Please wait for the administrator to configure the mirror library.
 imageRepoSection:
   action:
@@ -218,6 +219,7 @@ imageRepoSection:
       developer: Developer
       guest: Guest
       master: Master
+    delete: Delete
     removeProject: Remove Project
     table:
       noData: No Data

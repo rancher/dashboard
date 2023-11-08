@@ -11,6 +11,26 @@ export const harborAPI = (spec = { harborVersion: '', harborServer: '' }) => {
       throw new Error('Base URL Can Not Be Empty');
     }
   };
+
+  const factoryNewPromise = async(promise) => {
+    try {
+      const resp = await promise;
+
+      return resp;
+    } catch (error) {
+      if (error?.errors?.length > 0 && error.errors[0]) {
+        const errMessage = error.errors[0];
+
+        store.dispatch('growl/warning', {
+          title:   errMessage?.code,
+          message: errMessage?.message
+        }, { root: true });
+        throw errMessage;
+      }
+      throw error;
+    }
+  };
+
   const updateBaseUrl = () => {
     baseUrl = `/meta/harbor/${ harborServer.replace('//', '/').replace(/\/+$/, '') }/api${ harborVersion === 'v1' || !harborVersion ? '' : `/${ harborVersion }` }`;
   };
@@ -22,6 +42,7 @@ export const harborAPI = (spec = { harborVersion: '', harborServer: '' }) => {
   const getBaseUrl = () => {
     return baseUrl;
   };
+
   const fetchHarborServerUrl = async() => {
     const setting = await store.dispatch('management/find', { type: MANAGEMENT.SETTING, id: 'harbor-server-url' });
 
@@ -100,24 +121,30 @@ export const harborAPI = (spec = { harborVersion: '', harborServer: '' }) => {
 
   const removeProjects = (projectIds) => {
     checkBaseUrl();
-    const promises = projectIds.map((id) => store.dispatch('management/request', {
-      url:     `${ baseUrl }/projects/${ id }`,
-      headers: { 'X-API-Harbor-Admin-Header': store.getters['auth/isAdmin'] },
-      method:  'DELETE'
-    }));
+    const promises = projectIds.map((id) => {
+      const res = store.dispatch('management/request', {
+        url:     `${ baseUrl }/projects/${ id }`,
+        headers: { 'X-API-Harbor-Admin-Header': store.getters['auth/isAdmin'] },
+        method:  'DELETE'
+      });
 
-    return promises;
+      return factoryNewPromise(res);
+    });
+
+    return Promise.all(promises);
   };
 
   const createProject = (project) => {
     checkBaseUrl();
 
-    return store.dispatch('management/request', {
+    const res = store.dispatch('management/request', {
       url:     `${ baseUrl }/projects`,
       headers: { 'X-API-Harbor-Admin-Header': store.getters['auth/isAdmin'] },
       method:  'POST',
-      data:    JSON.stringify(project)
+      data:    project
     });
+
+    return factoryNewPromise(res);
   };
 
   const fetchProject = (id) => {
