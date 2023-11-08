@@ -24,11 +24,14 @@ const GC_IGNORE_TYPES = {
   [UI.NAV_LINK]: true,
 };
 
+// Include calls to /v1 AND /k8s/clusters/<cluster id>/v1
+const steveRegEx = new RegExp('(/v1)|(\/k8s\/clusters\/[a-z0-9-]+\/v1)');
+
 export default {
   urlOptions: () => (url, opt) => {
     opt = opt || {};
     const parsedUrl = parse(url);
-    const isSteve = parsedUrl.path.startsWith('/v1');
+    const isSteve = steveRegEx.test(parsedUrl.path);// .startsWith('/v1');
 
     // Filter
     if ( opt.filter ) {

@@ -105,6 +105,7 @@ export const STATES_ENUM = {
   ERRORING:         'erroring',
   ERRORS:           'errors',
   EXPIRED:          'expired',
+  EXPIRING:         'expiring',
   FAIL:             'fail',
   FAILED:           'failed',
   HEALTHY:          'healthy',
@@ -253,7 +254,10 @@ export const STATES = {
     color: 'error', icon: 'error', label: 'Errors', compoundIcon: 'error'
   },
   [STATES_ENUM.EXPIRED]: {
-    color: 'warning', icon: 'error', label: 'Expired', compoundIcon: 'warning'
+    color: 'error', icon: 'error', label: 'Expired', compoundIcon: 'warning'
+  },
+  [STATES_ENUM.EXPIRING]: {
+    color: 'warning', icon: 'error', label: 'Expiring', compoundIcon: 'error'
   },
   [STATES_ENUM.FAIL]: {
     color: 'error', icon: 'error', label: 'Fail', compoundIcon: 'error'
