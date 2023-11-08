@@ -454,7 +454,7 @@ describe('Cluster Manager', { testIsolation: 'off', tags: ['@manager', '@adminUs
     });
   });
 
-  describe.only('Drivers', () => {
+  describe('Drivers', () => {
     const driversPage = new RkeDriversPagePo('local');
     const emberList = new EmberListPo('table.grid.sortable-table');
     const emberActions = new EmberListPo('.has-tabs');
