@@ -35,6 +35,7 @@ import '../plugins/i18n';
 import '../plugins/global-formatters';
 import '../plugins/trim-whitespace';
 import '../plugins/extend-router';
+import '../plugins/unhead';
 
 import intNumber from '../plugins/int-number';
 import positiveIntNumber from '../plugins/positive-int-number.js';
