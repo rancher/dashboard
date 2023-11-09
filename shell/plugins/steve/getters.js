@@ -31,7 +31,7 @@ export default {
   urlOptions: () => (url, opt) => {
     opt = opt || {};
     const parsedUrl = parse(url);
-    const isSteve = steveRegEx.test(parsedUrl.path);// .startsWith('/v1');
+    const isSteve = steveRegEx.test(parsedUrl.path);
 
     // Filter
     if ( opt.filter ) {

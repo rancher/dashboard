@@ -7,7 +7,7 @@ import { set } from '@shell/utils/object';
 import { NAME as MANAGER } from '@shell/config/product/manager';
 import SteveModel from '@shell/plugins/steve/steve-class';
 import { colorForState, stateDisplay, STATES_ENUM } from '@shell/plugins/dashboard-store/resource-class';
-import { diffFrom } from 'utils/time';
+import { diffFrom } from '@shell/utils/time';
 import day from 'dayjs';
 
 export const TYPES = {
