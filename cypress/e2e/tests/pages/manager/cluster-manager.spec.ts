@@ -21,9 +21,8 @@ import { snapshot } from '@/cypress/e2e/blueprints/manager/cluster-snapshots';
 import HomePagePo from '@/cypress/e2e/po/pages/home.po';
 import ProductNavPo from '@/cypress/e2e/po/side-bars/product-side-nav.po';
 import RkeDriversPagePo from '@/cypress/e2e/po/pages/cluster-manager/rke-drivers.po';
-import EmberListPo from '@/cypress/e2e/po/components/ember/ember-list.po';
-import EmberDropdownPo from '@/cypress/e2e/po/components/ember/ember-dropdown.po';
-import EmberModalClusterDriverPo from '~/cypress/e2e/po/components/ember/ember-modal-add-edit-cluster-driver.po';
+import EmberModalClusterDriverPo from '@/cypress/e2e/po/components/ember/ember-modal-add-edit-cluster-driver.po';
+import RkeTemplatesPagePo from '@/cypress/e2e/po/pages/cluster-manager/rke-templates.po';
 // At some point these will come from somewhere central, then we can make tools to remove resources from this or all runs
 const runTimestamp = +new Date();
 const runPrefix = `e2e-test-${ runTimestamp }`;
@@ -41,6 +40,7 @@ const downloadsFolder = Cypress.config('downloadsFolder');
 describe('Cluster Manager', { testIsolation: 'off', tags: ['@manager', '@adminUser'] }, () => {
   const clusterList = new ClusterManagerListPagePo('local');
   const sideNav = new ProductNavPo();
+  const modal = new EmberModalClusterDriverPo();
 
   before(() => {
     cy.login();
@@ -456,10 +456,6 @@ describe('Cluster Manager', { testIsolation: 'off', tags: ['@manager', '@adminUs
 
   describe('Drivers', () => {
     const driversPage = new RkeDriversPagePo('local');
-    const emberList = new EmberListPo('table.grid.sortable-table');
-    const emberActions = new EmberListPo('.has-tabs');
-    const emberDropdown = new EmberDropdownPo('.ember-basic-dropdown-content');
-    const modal = new EmberModalClusterDriverPo();
 
     beforeEach(() => {
       cy.viewport(1380, 720);
@@ -474,7 +470,7 @@ describe('Cluster Manager', { testIsolation: 'off', tags: ['@manager', '@adminUs
     it('can refresh kubernetes metadata', () => {
       driversPage.goTo();
       cy.intercept('POST', '/v3/kontainerdrivers?action=refresh').as('refresh');
-      emberActions.actions('Refresh Kubernetes Metadata').click({ force: true });
+      driversPage.actions().actions('Refresh Kubernetes Metadata').click({ force: true });
       cy.wait('@refresh').its('response.statusCode').should('eq', 200);
     });
 
@@ -483,12 +479,12 @@ describe('Cluster Manager', { testIsolation: 'off', tags: ['@manager', '@adminUs
       const downloadUrl = 'https://github.com/rancher-plugins/kontainer-engine-driver-example/releases/download/v0.2.3/kontainer-engine-driver-example-copy1-linux-amd64';
 
       driversPage.goTo();
-      emberActions.actions('Add Cluster Driver').click();
+      driversPage.actions().actions('Add Cluster Driver').click();
       modal.input().set(downloadUrl, 0);
       cy.intercept('POST', '/v3/kontainerdriver').as('createDriver');
       modal.create();
       cy.wait('@createDriver').its('response.statusCode').should('eq', 201);
-      emberList.state('Example').should('contain.text', 'Active');
+      driversPage.list().state('Example').should('contain.text', 'Active');
     });
 
     it('can edit cluster driver', () => {
@@ -496,93 +492,176 @@ describe('Cluster Manager', { testIsolation: 'off', tags: ['@manager', '@adminUs
       const downloadUrl = 'https://github.com/rancher-plugins/kontainer-engine-driver-example/releases/download/v0.2.3/kontainer-engine-driver-example-copy2-linux-amd64';
 
       driversPage.goTo();
-      emberList.rowActionMenuOpen(`Example`);
-      emberDropdown.selectMenuItemByLabel(`Edit`);
+      driversPage.list().rowActionMenuOpen(`Example`);
+      driversPage.dropdown().selectMenuItemByLabel(`Edit`);
       modal.input().set(downloadUrl, 0);
       cy.intercept('PUT', '/v3/kontainerDrivers/*').as('updateDriver');
       modal.save();
       cy.wait('@updateDriver').its('response.statusCode').should('eq', 200);
-      emberList.state('Example').should('contain.text', 'Active');
+      driversPage.list().state('Example').should('contain.text', 'Active');
     });
 
     it('can deactivate cluster driver', () => {
       driversPage.goTo();
-      emberList.rowActionMenuOpen(`Example`);
-      emberDropdown.selectMenuItemByLabel(`Deactivate`);
+      driversPage.list().rowActionMenuOpen(`Example`);
+      driversPage.dropdown().selectMenuItemByLabel(`Deactivate`);
       cy.intercept('POST', '/v3/kontainerDrivers/*').as('deactivateDriver');
       modal.deactivate();
       cy.wait('@deactivateDriver').its('response.statusCode').should('eq', 200);
-      emberList.state('Example').should('contain.text', 'Inactive');
+      driversPage.list().state('Example').should('contain.text', 'Inactive');
     });
 
     it('can activate cluster driver', () => {
       driversPage.goTo();
-      emberList.rowActionMenuOpen(`Example`);
+      driversPage.list().rowActionMenuOpen(`Example`);
       cy.intercept('POST', '/v3/kontainerDrivers/*').as('activateDriver');
-      emberDropdown.selectMenuItemByLabel(`Activate`);
+      driversPage.dropdown().selectMenuItemByLabel(`Activate`);
       cy.wait('@activateDriver').its('response.statusCode').should('eq', 200);
-      emberList.state('Example').should('contain.text', 'Active');
+      driversPage.list().state('Example').should('contain.text', 'Active');
     });
 
     it('can delete cluster driver', () => {
       driversPage.goTo();
-      emberList.rowActionMenuOpen(`Example`);
-      emberDropdown.selectMenuItemByLabel(`Delete`);
+      driversPage.list().rowActionMenuOpen(`Example`);
+      driversPage.dropdown().selectMenuItemByLabel(`Delete`);
       cy.intercept('DELETE', '/v3/kontainerDrivers/*').as('deleteDriver');
       modal.delete();
       cy.wait('@deleteDriver').its('response.statusCode').should('eq', 200);
-      emberList.state('Example').should('not.exist');
+      driversPage.list().state('Example').should('not.exist');
     });
 
     it('can edit node driver', () => {
       cy.intercept('GET', '/v3/nodedrivers?limit=-1&sort=name').as('nodeDrivers');
       driversPage.goTo();
-      emberActions.actions('Node Drivers').click();
+      driversPage.actions().actions('Node Drivers').click();
       cy.wait('@nodeDrivers');
-      emberList.rowActionMenuOpen(`Cloud.ca`);
-      emberDropdown.selectMenuItemByLabel(`Edit`);
+      driversPage.list().rowActionMenuOpen(`Cloud.ca`);
+      driversPage.dropdown().selectMenuItemByLabel(`Edit`);
       cy.intercept('PUT', '/v3/nodeDrivers/*').as('updateDriver');
       modal.save();
       cy.wait('@updateDriver').its('response.statusCode').should('eq', 200);
-      emberList.state('Cloud.ca').should('contain.text', 'Inactive');
+      driversPage.list().state('Cloud.ca').should('contain.text', 'Inactive');
     });
 
     it('can activate node driver', () => {
       cy.intercept('GET', '/v3/nodedrivers?limit=-1&sort=name').as('nodeDrivers');
       driversPage.goTo();
-      emberActions.actions('Node Drivers').click();
+      driversPage.actions().actions('Node Drivers').click();
       cy.wait('@nodeDrivers');
-      emberList.rowActionMenuOpen(`Cloud.ca`);
+      driversPage.list().rowActionMenuOpen(`Cloud.ca`);
       cy.intercept('POST', '/v3/nodeDrivers/**').as('activateDriver');
-      emberDropdown.selectMenuItemByLabel(`Activate`);
+      driversPage.dropdown().selectMenuItemByLabel(`Activate`);
       cy.wait('@activateDriver').its('response.statusCode').should('eq', 200);
-      emberList.state('Cloud.ca').should('contain.text', 'Active');
+      driversPage.list().state('Cloud.ca').should('contain.text', 'Active');
     });
 
     it('can deactivate node driver', () => {
       cy.intercept('GET', '/v3/nodedrivers?limit=-1&sort=name').as('nodeDrivers');
       driversPage.goTo();
-      emberActions.actions('Node Drivers').click();
+      driversPage.actions().actions('Node Drivers').click();
       cy.wait('@nodeDrivers');
-      emberList.rowActionMenuOpen(`Cloud.ca`);
-      emberDropdown.selectMenuItemByLabel(`Deactivate`);
+      driversPage.list().rowActionMenuOpen(`Cloud.ca`);
+      driversPage.dropdown().selectMenuItemByLabel(`Deactivate`);
       cy.intercept('POST', '/v3/nodeDrivers/**').as('deactivateDriver');
       modal.deactivate();
       cy.wait('@deactivateDriver').its('response.statusCode').should('eq', 200);
-      emberList.state('Cloud.ca').should('contain.text', 'Inactive');
+      driversPage.list().state('Cloud.ca').should('contain.text', 'Inactive');
     });
 
     it('can delete node driver', () => {
       cy.intercept('GET', '/v3/nodedrivers?limit=-1&sort=name').as('nodeDrivers');
       driversPage.goTo();
-      emberActions.actions('Node Drivers').click();
+      driversPage.actions().actions('Node Drivers').click();
       cy.wait('@nodeDrivers');
-      emberList.rowActionMenuOpen(`Cloud.ca`);
-      emberDropdown.selectMenuItemByLabel(`Delete`);
+      driversPage.list().rowActionMenuOpen(`Cloud.ca`);
+      driversPage.dropdown().selectMenuItemByLabel(`Delete`);
       cy.intercept('DELETE', '/v3/nodeDrivers/*').as('deleteDriver');
       modal.delete();
       cy.wait('@deleteDriver').its('response.statusCode').should('eq', 200);
-      emberList.state('Cloud.ca').should('not.exist');
+      driversPage.list().state('Cloud.ca').should('not.exist');
+    });
+  });
+
+  describe('RKE Templates', () => {
+    const rkeTemplatesPage = new RkeTemplatesPagePo('local');
+    const templateName = `e2e-template-name-${ runTimestamp }`;
+    const revisionName = `e2e-revision-name-${ runTimestamp }`;
+    const revisionName2 = `e2e-revision-name2-${ runTimestamp }`;
+
+    beforeEach(() => {
+      cy.viewport(1380, 720);
+    });
+
+    it('can navigate to RKE templates page', () => {
+      clusterList.goTo();
+      sideNav.groups().contains('RKE1 Configuration').click();
+      sideNav.navToSideMenuEntryByLabel('RKE Templates');
+      rkeTemplatesPage.waitForPage();
+    });
+
+    it('can create RKE template', () => {
+      rkeTemplatesPage.goTo();
+      rkeTemplatesPage.actions().actions('Add Template').click();
+      rkeTemplatesPage.form().templateDetails().set(templateName);
+      rkeTemplatesPage.form().templateDetails().set(revisionName, 1);
+      cy.intercept('POST', '/v3/clustertemplate').as('createTemplate');
+      rkeTemplatesPage.formActions().create();
+      cy.wait('@createTemplate');
+      rkeTemplatesPage.waitForPage();
+      rkeTemplatesPage.groupRow().groupRowWithName(templateName).should('be.visible');
+      rkeTemplatesPage.groupRow().rowWithinGroupByName(templateName, revisionName).should('be.visible');
+    });
+
+    it('can disable RKE template revision', () => {
+      rkeTemplatesPage.goTo();
+      rkeTemplatesPage.mainRow().rowActionMenuOpen(revisionName);
+      cy.intercept('POST', '/v3/clusterTemplateRevisions/*').as('disableTemplateRevision');
+      rkeTemplatesPage.dropdown().selectMenuItemByLabel('Disable');
+      cy.wait('@disableTemplateRevision');
+      rkeTemplatesPage.mainRow().state(revisionName).contains('Active').should('not.exist');
+      rkeTemplatesPage.mainRow().state(revisionName).should('contain.text', 'Disabled');
+    });
+
+    it('can enable RKE template revision', () => {
+      rkeTemplatesPage.goTo();
+      rkeTemplatesPage.mainRow().rowActionMenuOpen(revisionName);
+      cy.intercept('POST', '/v3/clusterTemplateRevisions/*').as('enableTemplateRevision');
+      rkeTemplatesPage.dropdown().selectMenuItemByLabel('Enable');
+      cy.wait('@enableTemplateRevision');
+      rkeTemplatesPage.mainRow().state(revisionName).contains('Disabled').should('not.exist');
+      rkeTemplatesPage.mainRow().state(revisionName).should('contain.text', 'Active');
+    });
+
+    it('can clone RKE template revision', () => {
+      rkeTemplatesPage.goTo();
+      rkeTemplatesPage.groupRow().groupRowWithName(templateName).should('be.visible');
+      rkeTemplatesPage.mainRow().rowActionMenuOpen(revisionName);
+      rkeTemplatesPage.dropdown().selectMenuItemByLabel('Clone Revision');
+      rkeTemplatesPage.form().templateDetails().set(revisionName2);
+      cy.intercept('PUT', '/v3/clusterTemplates/*').as('cloneTemplateRevision');
+      rkeTemplatesPage.formActions().save();
+      cy.wait('@cloneTemplateRevision');
+      rkeTemplatesPage.groupRow().rowWithinGroupByName(templateName, revisionName2);
+    });
+
+    it('can delete RKE template revision', () => {
+      rkeTemplatesPage.goTo();
+      rkeTemplatesPage.mainRow().rowActionMenuOpen(revisionName2);
+      rkeTemplatesPage.dropdown().selectMenuItemByLabel(`Delete`);
+      cy.intercept('DELETE', '/v3/clusterTemplateRevisions/*').as('deleteTemplateRevision');
+      modal.delete();
+      cy.wait('@deleteTemplateRevision').its('response.statusCode').should('eq', 204);
+      rkeTemplatesPage.mainRow().rowWithName(revisionName2).should('not.exist');
+    });
+
+    it('can delete RKE template group', () => {
+      rkeTemplatesPage.goTo();
+      rkeTemplatesPage.groupRow().groupRowActionMenuOpen(templateName);
+      rkeTemplatesPage.dropdown().selectMenuItemByLabel(`Delete`);
+      cy.intercept('DELETE', '/v3/clusterTemplates/*').as('deleteTemplate');
+      modal.delete();
+      cy.wait('@deleteTemplate').its('response.statusCode').should('eq', 204);
+      rkeTemplatesPage.groupRow().groupRowWithName(templateName).should('not.exist');
     });
   });
 });
