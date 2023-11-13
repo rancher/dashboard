@@ -20,14 +20,9 @@ export default {
 
   computed: {
     html() {
-      console.log('HTML', this.marked.parse(this.value, {
-        renderer: this.markedRenderer,
-        breaks:   true
-      }));
-
       return this.marked.parse(this.value, {
         renderer: this.markedRenderer,
-        // breaks:   true
+        breaks:   true
       });
     },
   },
