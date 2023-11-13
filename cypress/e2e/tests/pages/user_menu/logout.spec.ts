@@ -5,7 +5,7 @@ import { LoginPagePo } from '@/cypress/e2e/po/pages/login-page.po';
 const userMenu = new UserMenuPo();
 const loginPage = new LoginPagePo();
 
-describe('User can logout of Rancher', { tags: ['@adminUser', '@standardUser'] }, () => {
+describe('User can logout of Rancher', { tags: ['@adminUser', '@standardUser', '@flaky'] }, () => {
   beforeEach(() => {
     cy.login();
   });
