@@ -437,14 +437,14 @@ export function init(store) {
   });
 
   virtualType({
-    labelKey:         'nav.tools',
-    group:            'cluster',
-    icon:             'globe',
-    namespaced:       false,
-    name:             'c-cluster-explorer-tools',
-    weight:           -2,
-    route:            { name: 'c-cluster-explorer-tools' },
-    exact:            true,
+    labelKey:   'nav.tools',
+    group:      'cluster',
+    icon:       'globe',
+    namespaced: false,
+    name:       'c-cluster-explorer-tools',
+    weight:     -2,
+    route:      { name: 'c-cluster-explorer-tools' },
+    exact:      true,
   });
 
   virtualType({
