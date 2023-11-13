@@ -120,6 +120,7 @@ locale:
 nav:
   harvesterDashboard: Harvester Dashboard
   backToRancher: Cluster Manager
+  tools: Tools
   clusterTools: Cluster Tools
   kubeconfig:
     download: Download KubeConfig
