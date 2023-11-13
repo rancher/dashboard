@@ -691,6 +691,15 @@ asyncButton:
     successIcon: checkmark
     waiting: ''
     waitingIcon: refresh
+  manual-refresh:
+    action: ''
+    actionIcon: refresh
+    error: ''
+    errorIcon: error
+    success: ''
+    successIcon: checkmark
+    waiting: ''
+    waitingIcon: refresh
   remove:
     action: Remove
     success: Removed
