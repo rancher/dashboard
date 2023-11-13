@@ -27,13 +27,13 @@ export default {
   <div class="config-badge">
     <div>
       <a
-        class="badge-install"
+        class="badge-install btn btn-sm role-secondary"
         data-testid="add-custom-cluster-badge"
         @click="customBadgeDialog"
       >
         <i class="icon icon-cluster" />
-        <span v-if="hasBadge">{{ t('clusterBadge.editLabel') }}</span>
-        <span v-else>{{ t('clusterBadge.addLabel') }}</span>
+        <span v-if="hasBadge">{{ t('clusterBadge.editAppearance') }}</span>
+        <span v-else>{{ t('clusterBadge.customizeAppearance') }}</span>
       </a>
     </div>
   </div>

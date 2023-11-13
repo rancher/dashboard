@@ -67,6 +67,7 @@ export function init(store) {
     NODE,
     VIRTUAL_TYPES.CLUSTER_MEMBERS,
     EVENT,
+    'c-cluster-explorer-tools'
   ], 'cluster');
   basicType([
     LIMIT_RANGE,
@@ -432,6 +433,17 @@ export function init(store) {
     name:             VIRTUAL_TYPES.PROJECT_NAMESPACES,
     weight:           98,
     route:            { name: 'c-cluster-product-projectsnamespaces' },
+    exact:            true,
+  });
+
+  virtualType({
+    labelKey:         'nav.clusterTools',
+    group:            'cluster',
+    icon:             'globe',
+    namespaced:       false,
+    name:             'c-cluster-explorer-tools',
+    weight:           -2,
+    route:            { name: 'c-cluster-explorer-tools' },
     exact:            true,
   });
 

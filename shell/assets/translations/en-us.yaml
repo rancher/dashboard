@@ -2472,6 +2472,7 @@ glance:
   secretsTable: Full secrets list
 
 clusterBadge:
+  customizeAppearance: Customize Appearance
   addLabel: Add Cluster Badge
   setClusterAppearance: Cluster Appearance
   customize: Customize

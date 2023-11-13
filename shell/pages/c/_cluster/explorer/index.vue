@@ -599,8 +599,7 @@ export default {
           :to="{name: 'c-cluster-explorer-tools'}"
           class="monitoring-install"
         >
-          <i class="icon icon-gear" />
-          <span>{{ t('glance.installMonitoring') }}</span>
+          <span>{{ t('nav.clusterTools') }}</span>
         </router-link>
       </div>
       <ConfigBadge
@@ -848,7 +847,8 @@ export default {
 
 .monitoring-install {
   display: flex;
-  margin-left: 10px;
+  margin-right: 20px;
+  line-height: 30px;
 
   > I {
     line-height: inherit;
