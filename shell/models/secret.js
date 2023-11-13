@@ -30,6 +30,8 @@ export const TYPES = {
 const certExpiringPeriod = 1000 * 60 * 60 * 24 * 8;
 
 export default class Secret extends SteveModel {
+  _cachedCertInfo;
+
   get hasSensitiveData() {
     return true;
   }
@@ -52,7 +54,7 @@ export default class Secret extends SteveModel {
     if (annotations[CERTMANAGER.ISSUER]) {
       return annotations[CERTMANAGER.ISSUER];
     } else if (this.isCertificate) {
-      return this.certInfo?.issuer;
+      return this.cachedCertInfo?.issuer;
     } else {
       return null;
     }
@@ -60,7 +62,7 @@ export default class Secret extends SteveModel {
 
   get notAfter() {
     if (this.isCertificate) {
-      return this.certInfo?.notAfter;
+      return this.cachedCertInfo?.notAfter;
     } else {
       return null;
     }
@@ -68,7 +70,7 @@ export default class Secret extends SteveModel {
 
   get cn() {
     if (this.isCertificate) {
-      return this.certInfo?.cn;
+      return this.cachedCertInfo?.cn;
     }
 
     return null;
@@ -287,27 +289,41 @@ export default class Secret extends SteveModel {
         sans = [];
       }
 
-      return {
+      const certInfo = {
         issuer, notBefore, notAfter, cn, sans
       };
+
+      this._cachedCertInfo = certInfo;
+
+      return this._cachedCertInfo;
     }
 
     return null;
   }
 
+  get cachedCertInfo() {
+    if (!this._cachedCertInfo) {
+      this._cachedCertInfo = this.certInfo;
+    }
+
+    return this._cachedCertInfo;
+  }
+
   // use for + n more name display
   get unrepeatedSans() {
     if (this._type === TYPES.TLS ) {
-      if (this.certInfo?.sans?.filter) {
-        const commonBases = this.certInfo?.sans
+      const certInfo = this.cachedCertInfo;
+
+      if (certInfo?.sans?.filter) {
+        const commonBases = certInfo?.sans
           .filter((name) => name.indexOf('*.') === 0 || name.indexOf('www.') === 0)
           .map((name) => name.substr(name.indexOf('.')));
-        const displaySans = removeObjects(this.certInfo?.sans, commonBases);
+        const displaySans = removeObjects(certInfo?.sans, commonBases);
 
         return displaySans;
       }
 
-      return this.certInfo?.sans || [];
+      return certInfo?.sans || [];
     }
 
     return null;
@@ -315,30 +331,26 @@ export default class Secret extends SteveModel {
 
   get timeTilExpiration() {
     if (this._type === TYPES.TLS) {
-      if (!this.certInfo.notAfter) {
+      const certInfo = this.cachedCertInfo;
+
+      if (!certInfo.notAfter) {
         return null;
       }
 
-      const expiration = this.certInfo.notAfter;
+      const expiration = certInfo.notAfter;
       const timeThen = expiration.valueOf();
       const timeNow = Date.now();
 
-      return timeThen - timeNow;
+      const timeTilExpiration = timeThen - timeNow;
+
+      return timeTilExpiration < 0 ? 0 : timeTilExpiration;
     }
 
     return null;
   }
 
-  get certLifetime() {
-    if (this._type === TYPES.TLS) {
-      const certInfo = this.certInfo;
-
-      if (certInfo) {
-        return diffFrom(day(certInfo.notBefore), day(certInfo.notAfter), (key, args) => this.t(key, args)).string;
-      }
-    }
-
-    return null;
+  get timeTilExpirationDate() {
+    return this.timeTilExpiration > 0 ? this.cachedCertInfo.notAfter.valueOf() : null;
   }
 
   get decodedData() {
@@ -382,6 +394,18 @@ export default class Secret extends SteveModel {
     }
   }
 
+  get certLifetime() {
+    if (this._type === TYPES.TLS) {
+      const certInfo = this.cachedCertInfo;
+
+      if (certInfo) {
+        return diffFrom(day(certInfo.notBefore), day(certInfo.notAfter), (key, args) => this.t(key, args)).string;
+      }
+    }
+
+    return null;
+  }
+
   /**
    * Get the model `state` for secrets of type cert
    */
@@ -390,7 +414,7 @@ export default class Secret extends SteveModel {
       return undefined;
     }
 
-    if (!this.timeTilExpiration || this.timeTilExpiration > certExpiringPeriod ) {
+    if (typeof this.timeTilExpiration !== 'number' || this.timeTilExpiration > certExpiringPeriod ) {
       return '';
     } else if (this.timeTilExpiration > 0) {
       return STATES_ENUM.EXPIRING;

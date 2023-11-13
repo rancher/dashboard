@@ -55,7 +55,7 @@ export default Vue.extend<Data, any, any, any>({
         }, {
           name:        'cert-expires2',
           labelKey:    'secret.certificate.expiresDuration',
-          value:       (row: Secret) => row.certInfo?.notAfter.valueOf(),
+          value:       (row: Secret) => row.timeTilExpirationDate,
           formatter:   'LiveDate',
           sort:        ['timeTilExpiration'],
           search:      ['timeTilExpiration'],
