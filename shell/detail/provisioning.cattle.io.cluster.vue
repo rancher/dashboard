@@ -782,10 +782,11 @@ export default {
                 </div>
               </div>
               <div
-                v-if="group.ref && poolSummaryInfo[group.ref]"
+                v-if="group.ref"
                 class="right group-header-buttons mr-20"
               >
                 <MachineSummaryGraph
+                  v-if="poolSummaryInfo[group.ref]"
                   :row="poolSummaryInfo[group.ref]"
                   :horizontal="true"
                   class="mr-20"
