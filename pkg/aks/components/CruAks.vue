@@ -84,7 +84,6 @@ const defaultCluster = {
   enableNetworkPolicy:     false,
   labels:                  {},
   windowsPreferedCluster:  false,
-  aksConfig:               defaultAksConfig
 };
 
 const DEFAULT_REGION = 'eastus';
@@ -138,7 +137,8 @@ export default defineComponent({
       this.normanCluster = await this.$store.dispatch('rancher/create', { type: NORMAN.CLUSTER, ...defaultCluster }, { root: true });
     }
     if (!this.normanCluster.aksConfig) {
-      this.$set(this.normanCluster, 'aksConfig', defaultAksConfig);
+      console.log('*** setting default aksConfig');
+      this.$set(this.normanCluster, 'aksConfig', { ...defaultAksConfig });
     }
     if (!this.normanCluster.aksConfig.nodePools) {
       this.$set(this.normanCluster.aksConfig, 'nodePools', [{ ...defaultNodePool }]);
