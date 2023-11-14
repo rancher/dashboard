@@ -37,14 +37,19 @@ export default Vue.extend({
   <div class="accordion-container">
     <div
       class="accordion-header"
+      data-testid="accordion-header"
       @click="toggle"
     >
       <i
         class="icon text-primary"
         :class="{'icon-chevron-down':isOpen, 'icon-chevron-up':!isOpen}"
+        data-testid="accordion-chevron"
       />
       <slot name="header">
-        <h4 class="mb-0">
+        <h4
+          data-testid="accordion-title-slot-content"
+          class="mb-0"
+        >
           {{ titleKey ? t(titleKey) : title }}
         </h4>
       </slot>
@@ -52,6 +57,7 @@ export default Vue.extend({
     <div
       v-show="isOpen"
       class="accordion-body"
+      data-testid="accordion-body"
     >
       <slot />
     </div>

@@ -25,6 +25,8 @@ import ArrayList from '@shell/components/form/ArrayList.vue';
 import Labels from '@shell/components/form/Labels.vue';
 import Tab from '@shell/components/Tabbed/Tab.vue';
 import Tabbed from '@shell/components/Tabbed/index.vue';
+import Accordion from '@components/Accordion/Accordion.vue';
+
 import ClusterMembershipEditor, { canViewClusterMembershipEditor } from '@shell/components/form/Members/ClusterMembershipEditor.vue';
 
 import type { AKSDiskType, AKSNodePool, AKSPoolMode, AKSConfig } from '../types/index';
@@ -44,7 +46,6 @@ import {
   outboundTypeUserDefined
 } from '@pkg/aks/util/validators';
 
-import Accordion from '@pkg/aks/components/Accordion.vue';
 import AksNodePool from '@pkg/aks/components/AksNodePool.vue';
 
 const defaultNodePool = {
@@ -137,7 +138,6 @@ export default defineComponent({
       this.normanCluster = await this.$store.dispatch('rancher/create', { type: NORMAN.CLUSTER, ...defaultCluster }, { root: true });
     }
     if (!this.normanCluster.aksConfig) {
-      console.log('*** setting default aksConfig');
       this.$set(this.normanCluster, 'aksConfig', { ...defaultAksConfig });
     }
     if (!this.normanCluster.aksConfig.nodePools) {
@@ -1105,7 +1105,6 @@ export default defineComponent({
   }
 
   .node-pool {
-    // border: 1px solid var(--subtle-border);
     padding: 10px;
   }
 </style>
