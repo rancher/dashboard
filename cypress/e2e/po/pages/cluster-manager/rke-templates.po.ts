@@ -1,6 +1,6 @@
 import PagePo from '@/cypress/e2e/po/pages/page.po';
 import EmberListPo from '@/cypress/e2e/po/components/ember/ember-list.po';
-import EmberDropdownPo from '@/cypress/e2e/po/components/ember/ember-dropdown.po';
+import EmberSelectPo from '@/cypress/e2e/po/components/ember/ember-select.po';
 import EmberFormRkeTemplatesPo from '@/cypress/e2e/po/components/ember/ember-form-rke-templates.po';
 
 export default class RkeTemplatesPagePo extends PagePo {
@@ -28,8 +28,8 @@ export default class RkeTemplatesPagePo extends PagePo {
     return new EmberListPo('.right-buttons');
   }
 
-  dropdown(): EmberDropdownPo {
-    return new EmberDropdownPo('.ember-basic-dropdown-content');
+  dropdown(): EmberSelectPo {
+    return new EmberSelectPo('.ember-basic-dropdown-content');
   }
 
   form(): EmberFormRkeTemplatesPo {

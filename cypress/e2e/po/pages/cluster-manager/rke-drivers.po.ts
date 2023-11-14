@@ -1,6 +1,6 @@
 import PagePo from '@/cypress/e2e/po/pages/page.po';
 import EmberListPo from '@/cypress/e2e/po/components/ember/ember-list.po';
-import EmberDropdownPo from '@/cypress/e2e/po/components/ember/ember-dropdown.po';
+import EmberSelectPo from '@/cypress/e2e/po/components/ember/ember-select.po';
 export default class RkeDriversPagePo extends PagePo {
   private static createPath(clusterId: string) {
     return `/c/${ clusterId }/manager/pages/rke-drivers`;
@@ -22,7 +22,7 @@ export default class RkeDriversPagePo extends PagePo {
     return new EmberListPo('.has-tabs');
   }
 
-  dropdown(): EmberDropdownPo {
-    return new EmberDropdownPo('.ember-basic-dropdown-content');
+  dropdown(): EmberSelectPo {
+    return new EmberSelectPo('.ember-basic-dropdown-content');
   }
 }

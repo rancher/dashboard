@@ -582,7 +582,7 @@ describe('Cluster Manager', { testIsolation: 'off', tags: ['@manager', '@adminUs
     });
   });
 
-  describe('RKE Templates', () => {
+  describe.only('RKE Templates', () => {
     const rkeTemplatesPage = new RkeTemplatesPagePo('local');
     const templateName = `e2e-template-name-${ runTimestamp }`;
     const revisionName = `e2e-revision-name-${ runTimestamp }`;
@@ -599,7 +599,7 @@ describe('Cluster Manager', { testIsolation: 'off', tags: ['@manager', '@adminUs
       rkeTemplatesPage.waitForPage();
     });
 
-    it('can create RKE template', () => {
+    it('can create RKE template and should display on RKE1 cluster creation page', () => {
       rkeTemplatesPage.goTo();
       rkeTemplatesPage.actions().actions('Add Template').click();
       rkeTemplatesPage.form().templateDetails().set(templateName);
@@ -610,6 +610,22 @@ describe('Cluster Manager', { testIsolation: 'off', tags: ['@manager', '@adminUs
       rkeTemplatesPage.waitForPage();
       rkeTemplatesPage.groupRow().groupRowWithName(templateName).should('be.visible');
       rkeTemplatesPage.groupRow().rowWithinGroupByName(templateName, revisionName).should('be.visible');
+
+      // check RKE template displays as an option on the RKE custom cluster create page
+      clusterList.goTo();
+      clusterList.checkIsCurrentPage();
+      clusterList.createCluster();
+
+      const createClusterRKE1Page = new ClusterManagerCreateRke1CustomPagePo();
+
+      createClusterRKE1Page.waitForPage();
+
+      createClusterRKE1Page.rkeToggle().set('RKE1');
+      createClusterRKE1Page.selectCustom(0);
+      createClusterRKE1Page.clusterTemplateCheckbox().set();
+      createClusterRKE1Page.rkeTemplateAndRevisionDropdown().selectMenuItemByOption(templateName);
+      createClusterRKE1Page.selectedOption().checkOptionSelected(templateName);
+      createClusterRKE1Page.selectedOption().checkOptionSelected(revisionName, 1);
     });
 
     it('can disable RKE template revision', () => {
