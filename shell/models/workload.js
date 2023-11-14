@@ -6,7 +6,7 @@ import day from 'dayjs';
 import { convertSelectorObj, matching, matches } from '@shell/utils/selector';
 import { SEPARATOR } from '@shell/config/workload';
 import WorkloadService from '@shell/models/workload.service';
-import { NEVER_ADD_CONTAINER_FIELDS } from 'utils/create-yaml';
+import { NEVER_ADD_CONTAINER_FIELDS } from '@shell/utils/create-yaml';
 import _ from 'lodash';
 
 export const defaultContainer = {
