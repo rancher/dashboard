@@ -7,7 +7,7 @@ const runPrefix = `e2e-test-${ runTimestamp }`;
 const username = `${ runPrefix }-cluster-proj-member`;
 const standardPassword = 'standard-password';
 
-describe('Cluster Project and Members', { tags: ['@adminUser'] }, () => {
+describe('Cluster Project and Members', { tags: ['@adminUser', '@debug'] }, () => {
   it('Members added to both Cluster Membership should not show "Loading..." next to their names', () => {
     const usersAdmin = new UsersPo('_');
     const userCreate = usersAdmin.createEdit();
@@ -39,15 +39,19 @@ describe('Cluster Project and Members', { tags: ['@adminUser'] }, () => {
     cy.wait('@createClusterMembership');
 
     clusterMembership.waitForPageWithExactUrl();
-    clusterMembership.listElementWithName(username).should('exist');
-
-    clusterMembership.listElementWithName(username).find('.principal .name').invoke('text').then((t) => {
+    clusterMembership.sortableTable().noRowsText().then((el) => {
+      if (el.find('span').is(':visible')) {
+        cy.reload();
+      }
+      clusterMembership.listElementWithName(username).should('exist');
+      clusterMembership.listElementWithName(username).find('.principal .name').invoke('text').then((t) => {
       // clear new line chars and white spaces
-      const sanitizedName = t.trim().replace(/^\n|\n$/g, '');
+        const sanitizedName = t.trim().replace(/^\n|\n$/g, '');
 
-      // no string "loading..." next to name
-      // usecase https://github.com/rancher/dashboard/issues/8804
-      expect(sanitizedName).to.equal(username);
+        // no string "loading..." next to name
+        // usecase https://github.com/rancher/dashboard/issues/8804
+        expect(sanitizedName).to.equal(username);
+      });
     });
   });
 });
