@@ -5,7 +5,7 @@ import ColorInputPo from '@/cypress/e2e/po/components/color-input.po';
 import AsyncButtonPo from '@/cypress/e2e/po/components/async-button.po';
 
 export default class ClusterBadgePo extends ComponentPo {
-  constructor(selector = '.dashboard-root') {
+  constructor(selector = '[data-testid="card"]') {
     super(selector);
   }
 
