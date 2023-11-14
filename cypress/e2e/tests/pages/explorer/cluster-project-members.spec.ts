@@ -34,7 +34,9 @@ describe('Cluster Project and Members', { tags: ['@adminUser'] }, () => {
     clusterMembership.navToSideMenuEntryByLabel('Cluster and Project Members');
     clusterMembership.triggerAddClusterOrProjectMemberAction();
     clusterMembership.selectClusterOrProjectMember(username);
+    cy.intercept('POST', '/v3/clusterroletemplatebindings').as('createClusterMembership');
     clusterMembership.saveCreateForm().click();
+    cy.wait('@createClusterMembership');
 
     clusterMembership.waitForPageWithExactUrl();
     clusterMembership.listElementWithName(username).should('exist');
