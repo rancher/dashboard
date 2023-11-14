@@ -31,7 +31,7 @@ export default {
         data-testid="add-custom-cluster-badge"
         @click="customBadgeDialog"
       >
-        <i class="icon icon-cluster" />
+        <i class="icon icon-brush-icon" />
         <span v-if="hasBadge">{{ t('clusterBadge.editAppearance') }}</span>
         <span v-else>{{ t('clusterBadge.customizeAppearance') }}</span>
       </a>
