@@ -39,8 +39,8 @@ describe('Cluster Project and Members', { tags: ['@adminUser', '@debug'] }, () =
     cy.wait('@createClusterMembership');
 
     clusterMembership.waitForPageWithExactUrl();
-    clusterMembership.sortableTable().noRowsText().then((el) => {
-      if (el.find('span').is(':visible')) {
+    cy.get('body tbody').then((el) => {
+      if (el.find('tr.no-rows').is(':visible')) {
         cy.reload();
       }
       clusterMembership.listElementWithName(username).should('exist');
