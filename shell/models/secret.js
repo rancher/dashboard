@@ -6,7 +6,7 @@ import { SERVICE_ACCOUNT } from '@shell/config/types';
 import { set } from '@shell/utils/object';
 import { NAME as MANAGER } from '@shell/config/product/manager';
 import SteveModel from '@shell/plugins/steve/steve-class';
-import { NEVER_ADD } from 'utils/create-yaml';
+import { NEVER_ADD } from '@shell/utils/create-yaml';
 
 export const TYPES = {
   OPAQUE:           'Opaque',
