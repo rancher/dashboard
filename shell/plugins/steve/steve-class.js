@@ -1,6 +1,6 @@
 import { DESCRIPTION } from '@shell/config/labels-annotations';
 import HybridModel from './hybrid-class';
-import { NEVER_ADD } from 'utils/create-yaml';
+import { NEVER_ADD } from '@shell/utils/create-yaml';
 import { unset } from 'lodash';
 export default class SteveModel extends HybridModel {
   get name() {
