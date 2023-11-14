@@ -71,7 +71,6 @@ export const NEVER_ADD_CONTAINER_FIELDS = [
   'error',
 ];
 
-
 export const ACTIVELY_REMOVE = [
   'metadata.managedFields',
   'metadata.relationships',

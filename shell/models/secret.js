@@ -9,19 +9,19 @@ import SteveModel from '@shell/plugins/steve/steve-class';
 import { NEVER_ADD } from 'utils/create-yaml';
 
 export const TYPES = {
-  OPAQUE: 'Opaque',
-  SERVICE_ACCT: 'kubernetes.io/service-account-token',
-  DOCKER: 'kubernetes.io/dockercfg',
-  DOCKER_JSON: 'kubernetes.io/dockerconfigjson',
-  BASIC: 'kubernetes.io/basic-auth',
-  SSH: 'kubernetes.io/ssh-auth',
-  TLS: 'kubernetes.io/tls',
-  BOOTSTRAP: 'bootstrap.kubernetes.io/token',
-  ISTIO_TLS: 'istio.io/key-and-cert',
-  HELM_RELEASE: 'helm.sh/release.v1',
-  FLEET_CLUSTER: 'fleet.cattle.io/cluster-registration-values',
+  OPAQUE:           'Opaque',
+  SERVICE_ACCT:     'kubernetes.io/service-account-token',
+  DOCKER:           'kubernetes.io/dockercfg',
+  DOCKER_JSON:      'kubernetes.io/dockerconfigjson',
+  BASIC:            'kubernetes.io/basic-auth',
+  SSH:              'kubernetes.io/ssh-auth',
+  TLS:              'kubernetes.io/tls',
+  BOOTSTRAP:        'bootstrap.kubernetes.io/token',
+  ISTIO_TLS:        'istio.io/key-and-cert',
+  HELM_RELEASE:     'helm.sh/release.v1',
+  FLEET_CLUSTER:    'fleet.cattle.io/cluster-registration-values',
   CLOUD_CREDENTIAL: 'provisioning.cattle.io/cloud-credential',
-  RKE_AUTH_CONFIG: 'rke.cattle.io/auth-config'
+  RKE_AUTH_CONFIG:  'rke.cattle.io/auth-config'
 };
 
 export default class Secret extends SteveModel {
@@ -98,7 +98,7 @@ export default class Secret extends SteveModel {
   get details() {
     const out = [
       {
-        label: this.t('secret.type'),
+        label:   this.t('secret.type'),
         content: this.typeDisplay
       }
     ];
@@ -108,11 +108,11 @@ export default class Secret extends SteveModel {
 
       if (name) {
         out.push({
-          label: 'Service Account',
-          formatter: 'LinkName',
+          label:         'Service Account',
+          formatter:     'LinkName',
           formatterOpts: {
-            value: name,
-            type: SERVICE_ACCOUNT,
+            value:     name,
+            type:      SERVICE_ACCOUNT,
             namespace: this.namespace,
           },
           content: name,
@@ -122,24 +122,24 @@ export default class Secret extends SteveModel {
 
     if (this.cn) {
       out.push({
-        label: this.t('secret.certificate.cn'),
-        content: this.plusMoreNames ? `${this.cn} ${this.t('secret.certificate.plusMore', { n: this.plusMoreNames })}` : this.cn
+        label:   this.t('secret.certificate.cn'),
+        content: this.plusMoreNames ? `${ this.cn } ${ this.t('secret.certificate.plusMore', { n: this.plusMoreNames }) }` : this.cn
       });
     }
 
     if (this.issuer) {
       out.push({
-        label: this.t('secret.certificate.issuer'),
+        label:   this.t('secret.certificate.issuer'),
         content: this.issuer
       });
     }
 
     if (this.notAfter) {
       out.push({
-        label: 'Expires',
-        formatter: 'Date',
+        label:         'Expires',
+        formatter:     'Date',
         formatterOpts: { class: this.dateClass },
-        content: this.notAfter
+        content:       this.notAfter
       });
     }
 
@@ -243,7 +243,7 @@ export default class Secret extends SteveModel {
     const type = this._type || '';
     const fallback = type.replace(/^kubernetes.io\//, '');
 
-    return this.$rootGetters['i18n/withFallback'](`secret.types."${type}"`, null, fallback);
+    return this.$rootGetters['i18n/withFallback'](`secret.types."${ type }"`, null, fallback);
   }
 
   // parse TLS certs and return issuer, notAfter, cn, sans
@@ -257,7 +257,7 @@ export default class Secret extends SteveModel {
       let first = pem;
 
       if (certs.length > 1) {
-        first = `${certs[0]}${END_MARKER}`;
+        first = `${ certs[0] }${ END_MARKER }`;
       }
 
       try {
@@ -346,7 +346,7 @@ export default class Secret extends SteveModel {
 
       for (const k in neu) {
         // The key is quoted so that keys like '.dockerconfigjson' that contain dot don't get parsed into an object path
-        set(this.data, `"${k}"`, base64Encode(neu[k]));
+        set(this.data, `"${ k }"`, base64Encode(neu[k]));
       }
     };
   }
@@ -360,24 +360,18 @@ export default class Secret extends SteveModel {
   }
 
   cleanForSave(data) {
-
-    console.log('cleanForSave', data);
-
-    // There are some properties in ACTIVELY_REMOVE 
+    // There are some properties in ACTIVELY_REMOVE
     // that should be removed from the data
     const val = super._cleanForSave(data);
 
     const fieldsToRemove = [...NEVER_ADD];
 
     for (const field of fieldsToRemove) {
-      console.log('cleanForSave', field, val[field]);
       if (val[field] !== undefined) {
-        console.log('Removing', field, val[field]);
         delete val[field];
       }
     }
 
     return val;
-
   }
 }

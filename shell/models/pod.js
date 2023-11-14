@@ -4,6 +4,7 @@ import { NODE, WORKLOAD_TYPES } from '@shell/config/types';
 import { escapeHtml, shortenedImage } from '@shell/utils/string';
 import WorkloadService from '@shell/models/workload.service';
 import { NEVER_ADD_CONTAINER_FIELDS } from 'utils/create-yaml';
+import { unset } from 'lodash';
 
 export const WORKLOAD_PRIORITY = {
   [WORKLOAD_TYPES.DEPLOYMENT]:             1,
@@ -260,7 +261,7 @@ export default class Pod extends WorkloadService {
 
   removeContainerField(container) {
     for (const field of NEVER_ADD_CONTAINER_FIELDS) {
-      _.unset(container, field);
+      unset(container, field);
     }
 
     return container;
