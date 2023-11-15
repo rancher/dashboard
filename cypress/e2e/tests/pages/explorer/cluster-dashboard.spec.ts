@@ -1,7 +1,5 @@
 import ClusterManagerListPagePo from '@/cypress/e2e/po/pages/cluster-manager/cluster-manager-list.po';
 import ClusterDashboardPagePo from '@/cypress/e2e/po/pages/explorer/cluster-dashboard.po';
-import ClusterToolsPagePo from '@/cypress/e2e/po/pages/explorer/cluster-tools.po';
-import { InstallChartsPage } from '@/cypress/e2e/po/pages/explorer/install-charts.po';
 import CardPo from '@/cypress/e2e/po/components/card.po';
 import { HeaderPo } from '@/cypress/e2e/po/components/header.po';
 import BurgerMenuPo from '@/cypress/e2e/po/side-bars/burger-side-menu.po';
@@ -9,14 +7,10 @@ import SimpleBoxPo from '@/cypress/e2e/po/components/simple-box.po';
 import { WorkloadsDeploymentsListPagePo } from '@/cypress/e2e/po/pages/explorer/workloads/workloads-deployments.po';
 import { NodesPagePo } from '@/cypress/e2e/po/pages/explorer/nodes.po';
 import { EventsPagePo } from '@/cypress/e2e/po/pages/explorer/events.po';
-import PodPo from '@/cypress/e2e/po/components/workloads/pod.po';
-import ProductNavPo from '@/cypress/e2e/po/side-bars/product-side-nav.po';
 
 const clusterDashboard = new ClusterDashboardPagePo('local');
 const simpleBox = new SimpleBoxPo();
 const header = new HeaderPo();
-const clusterTools = new ClusterToolsPagePo('local');
-const installCharts = new InstallChartsPage('local');
 
 describe('Cluster Dashboard', { tags: '@adminUser' }, () => {
   beforeEach(() => {
