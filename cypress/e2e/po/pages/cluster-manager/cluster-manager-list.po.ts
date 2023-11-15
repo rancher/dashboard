@@ -1,5 +1,6 @@
 import PagePo from '@/cypress/e2e/po/pages/page.po';
 import ProvClusterListPo from '@/cypress/e2e/po/lists/provisioning.cattle.io.cluster.po';
+import BurgerMenuPo from '@/cypress/e2e/po/side-bars/burger-side-menu.po';
 
 /**
  * List page for provisioning.cattle.io.cluster resources
@@ -15,6 +16,11 @@ export default class ClusterManagerListPagePo extends PagePo {
 
   constructor(clusterId: string) {
     super(ClusterManagerListPagePo.createPath(clusterId));
+  }
+
+  static navTo() {
+    BurgerMenuPo.toggle();
+    BurgerMenuPo.burgerMenuNavToMenubyLabel('Cluster Management');
   }
 
   list(): ProvClusterListPo {

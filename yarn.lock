@@ -5984,6 +5984,11 @@ cyclist@^1.0.1:
   resolved "https://registry.yarnpkg.com/cyclist/-/cyclist-1.0.1.tgz#596e9698fd0c80e12038c2b82d6eb1b35b6224d9"
   integrity sha512-NJGVKPS81XejHcLhaLJS7plab0fK3slPh11mESeeDq2W4ZI5kUKK/LRRdVDvjJseojbPB7ZwjnyOybg3Igea/A==
 
+cypress-delete-downloads-folder@0.0.4:
+  version "0.0.4"
+  resolved "https://registry.yarnpkg.com/cypress-delete-downloads-folder/-/cypress-delete-downloads-folder-0.0.4.tgz#00693d4d7a36b552e7a11148e49d2c4c34ed3ec3"
+  integrity sha512-0zix5YIROeMHCrCGQVmMP+jUL3KtKliAs1msSnHCPwkX8rNL4DioI8UHvbBVVghWA3vxWN6GCtV1qW+5DHi9Bg==
+
 cypress@11.1.0:
   version "11.1.0"
   resolved "https://registry.yarnpkg.com/cypress/-/cypress-11.1.0.tgz#b8f16495a8a5d8f9a7dd3374ae7b2cef45e9c779"
