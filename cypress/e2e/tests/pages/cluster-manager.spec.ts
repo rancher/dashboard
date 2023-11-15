@@ -12,6 +12,7 @@ import PromptRemove from '@/cypress/e2e/po/prompts/promptRemove.po';
 import * as path from 'path';
 import * as jsyaml from 'js-yaml';
 import ClusterManagerCreateRke1CustomPagePo from '@/cypress/e2e/po/edit/provisioning.cattle.io.cluster/create/cluster-create-rke1-custom.po';
+import Shell from '@/cypress/e2e/po/components/shell.po';
 
 // At some point these will come from somewhere central, then we can make tools to remove resources from this or all runs
 const runTimestamp = +new Date();
@@ -27,10 +28,10 @@ const importGenericName = `${ clusterNamePartial }-import-generic`;
 
 const downloadsFolder = Cypress.config('downloadsFolder');
 
-describe('Cluster Manager', { tags: '@adminUser' }, () => {
+describe('Cluster Manager', { testIsolation: 'off', tags: '@adminUser' }, () => {
   const clusterList = new ClusterManagerListPagePo('local');
 
-  beforeEach(() => {
+  before(() => {
     cy.login();
   });
 
@@ -70,6 +71,25 @@ describe('Cluster Manager', { tags: '@adminUser' }, () => {
         });
 
         detailRKE2ClusterPage.waitForPage(undefined, 'registration');
+      });
+
+      it('can copy config to clipboard', () => {
+        ClusterManagerListPagePo.navTo();
+
+        cy.intercept('POST', '*action=generateKubeconfig').as('copyKubeConfig');
+        clusterList.list().actionMenu(rke2CustomName).getMenuItem('Copy KubeConfig to Clipboard').click();
+        cy.wait('@copyKubeConfig');
+
+        // Verify confirmation message displays and is hidden after ~3 sec
+        cy.get('.growl-text').contains('Copied KubeConfig to Clipboard').should('be.visible');
+        cy.get('.growl-text', { timeout: 4000 }).should('not.exist');
+
+        // Skipping following assertion for now as it is failing due to Cypress' limitations with accessing the clipboard in Chrome browser and headless mode. Works in Electron browser
+        // see https://github.com/cypress-io/cypress/issues/2752
+
+        // read text saved in the browser clipboard
+        // cy.window().its('navigator.clipboard')
+        //   .invoke('readText').should('include', rke2CustomName);
       });
 
       it('can edit cluster and see changes afterwards', () => {
@@ -112,6 +132,25 @@ describe('Cluster Manager', { tags: '@adminUser' }, () => {
           expect(obj.clusters[0].name).to.equal(rke2CustomName);
           expect(obj.apiVersion).to.equal('v1');
           expect(obj.kind).to.equal('Config');
+        });
+      });
+
+      it('can download YAML', () => {
+        // Delete downloads directory. Need a fresh start to avoid conflicting file names
+        cy.deleteDownloadsFolder();
+
+        ClusterManagerListPagePo.navTo();
+        clusterList.list().actionMenu(rke2CustomName).getMenuItem('Download YAML').click();
+
+        const downloadedFilename = path.join(downloadsFolder, `${ rke2CustomName }.yaml`);
+
+        cy.readFile(downloadedFilename).then((buffer) => {
+          const obj: any = jsyaml.load(buffer);
+
+          // Basic checks on the downloaded YAML
+          expect(obj.apiVersion).to.equal('provisioning.cattle.io/v1');
+          expect(obj.metadata.annotations['field.cattle.io/description']).to.equal(rke2CustomName);
+          expect(obj.kind).to.equal('Cluster');
         });
       });
 
@@ -279,5 +318,15 @@ describe('Cluster Manager', { tags: '@adminUser' }, () => {
     clusterList.list().explore(clusterName).click();
 
     clusterDashboard.waitForPage(undefined, 'cluster-events');
+  });
+
+  it('can connect to kubectl shell', () => {
+    ClusterManagerListPagePo.navTo();
+    clusterList.list().actionMenu('local').getMenuItem('Kubectl Shell').click();
+
+    const shellPo = new Shell();
+
+    shellPo.terminalStatus('Connected');
+    shellPo.closeTerminal();
   });
 });

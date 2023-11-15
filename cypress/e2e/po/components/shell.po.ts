@@ -16,4 +16,12 @@ export default class Shell extends ComponentPo {
 
     return this;
   }
+
+  closeTerminal() {
+    return this.self().get('.tab .closer').click();
+  }
+
+  terminalStatus(label: string) {
+    return this.self().get('.status').contains(label);
+  }
 }
