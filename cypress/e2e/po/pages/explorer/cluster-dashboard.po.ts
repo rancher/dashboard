@@ -1,6 +1,10 @@
 import PagePo from '@/cypress/e2e/po/pages/page.po';
+<<<<<<< HEAD
 import BurgerMenuPo from '@/cypress/e2e/po/side-bars/burger-side-menu.po';
 import ClusterBadgePo from '@/cypress/e2e/po/components/cluster-badge.po';
+=======
+import CustomBadgeDialogPo from '~/cypress/e2e/po/components/custom-badge-dialog.po';
+>>>>>>> a1dcf9354 (create pod instead of chart install)
 import EventsListPo from '@/cypress/e2e/po/lists/events-list.po';
 export default class ClusterDashboardPagePo extends PagePo {
   private static createPath(clusterId: string) {
@@ -26,12 +30,12 @@ export default class ClusterDashboardPagePo extends PagePo {
     return cy.get('.tools-button').contains('Cluster Tools');
   }
 
-  addClusterBadge(label: string) {
+  addCustomBadge(label: string) {
     return cy.getId('add-custom-cluster-badge').contains(label);
   }
 
-  clusterBadge(): ClusterBadgePo {
-    return new ClusterBadgePo();
+  customBadge(): CustomBadgeDialogPo {
+    return new CustomBadgeDialogPo();
   }
 
   eventslist(): EventsListPo {

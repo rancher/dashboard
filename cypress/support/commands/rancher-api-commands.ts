@@ -264,6 +264,39 @@ Cypress.Commands.add('createNamespace', (nsName, projId) => {
 });
 
 /**
+ * Create pod
+ */
+Cypress.Commands.add('createPod', (nsName, podName, image) => {
+  return cy.request({
+    method:  'POST',
+    url:     `${ Cypress.env('api') }/v1/pods`,
+    headers: {
+      'x-api-csrf': token.value,
+      Accept:       'application/json'
+    },
+    body: {
+      type:     'pod',
+      metadata: {
+        namespace: nsName, labels: { 'workload.user.cattle.io/workloadselector': `pod-${ nsName }-pod-${ podName }` }, name: `pod-${ podName }`, annotations: {}
+      },
+      spec: {
+        selector:   { matchLabels: { 'workload.user.cattle.io/workloadselector': `pod-${ nsName }-pod-${ podName }` } },
+        containers: [{
+          imagePullPolicy: 'Always', name: 'container-0', _init: false, volumeMounts: [], env: [], envFrom: [], image: `${ image }`, __active: true
+        }],
+        initContainers:   [],
+        imagePullSecrets: [],
+        volumes:          [],
+        affinity:         {}
+      }
+    }
+  })
+    .then((resp) => {
+      expect(resp.status).to.eq(201);
+    });
+});
+
+/**
  * Override user preferences to default values, allowing to pass custom preferences for a deterministic scenario
  */
 // eslint-disable-next-line no-undef

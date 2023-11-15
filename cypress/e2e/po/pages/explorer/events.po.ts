@@ -1,5 +1,5 @@
 import PagePo from '@/cypress/e2e/po/pages/page.po';
-import EventsListPo from '~/cypress/e2e/po/lists/events-list.po';
+import EventsListPo from '@/cypress/e2e/po/lists/events-list.po';
 
 export class EventsPagePo extends PagePo {
   private static createPath(clusterId: string) {

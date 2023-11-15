@@ -7,7 +7,10 @@ import { HeaderPo } from '@/cypress/e2e/po/components/header.po';
 import BurgerMenuPo from '@/cypress/e2e/po/side-bars/burger-side-menu.po';
 import SimpleBoxPo from '@/cypress/e2e/po/components/simple-box.po';
 import { WorkloadsDeploymentsListPagePo } from '@/cypress/e2e/po/pages/explorer/workloads/workloads-deployments.po';
+import { NodesPagePo } from '@/cypress/e2e/po/pages/explorer/nodes.po';
 import { EventsPagePo } from '@/cypress/e2e/po/pages/explorer/events.po';
+import PodPo from '@/cypress/e2e/po/components/workloads/pod.po';
+import ProductNavPo from '@/cypress/e2e/po/side-bars/product-side-nav.po';
 
 const clusterDashboard = new ClusterDashboardPagePo('local');
 const simpleBox = new SimpleBoxPo();
@@ -50,52 +53,52 @@ describe('Cluster Dashboard', { tags: '@adminUser' }, () => {
     clusterDashboard.goTo();
 
     // Add Badge
-    clusterDashboard.addClusterBadge('Add Cluster Badge').click();
+    clusterDashboard.addCustomBadge('Add Cluster Badge').click();
 
     const customClusterCard = new CardPo();
 
     customClusterCard.getTitle().contains('Custom Cluster Badge');
 
     // update badge
-    clusterDashboard.clusterBadge().selectCheckbox('Show badge for this cluster').set();
-    clusterDashboard.clusterBadge().badgeCustomDescription().set(settings.description.new);
+    clusterDashboard.customBadge().selectCheckbox('Show badge for this cluster').set();
+    clusterDashboard.customBadge().badgeCustomDescription().set(settings.description.new);
 
     // update color
-    clusterDashboard.clusterBadge().colorPicker().value().should('not.eq', settings.backgroundColor.new);
-    clusterDashboard.clusterBadge().colorPicker().set(settings.backgroundColor.new);
-    clusterDashboard.clusterBadge().colorPicker().previewColor().should('eq', settings.backgroundColor.newRGB);
+    clusterDashboard.customBadge().colorPicker().value().should('not.eq', settings.backgroundColor.new);
+    clusterDashboard.customBadge().colorPicker().set(settings.backgroundColor.new);
+    clusterDashboard.customBadge().colorPicker().previewColor().should('eq', settings.backgroundColor.newRGB);
 
     // update icon
-    clusterDashboard.clusterBadge().clusterIcon().children().should('have.class', 'cluster-local-logo');
-    clusterDashboard.clusterBadge().selectCheckbox('Customize cluster icon').set();
-    clusterDashboard.clusterBadge().clusterIcon().children().should('not.have.class', 'cluster-local-logo');
-    clusterDashboard.clusterBadge().clusterIcon().contains(settings.iconText.original);
-    clusterDashboard.clusterBadge().iconText().set(settings.iconText.new);
-    clusterDashboard.clusterBadge().clusterIcon().contains(settings.iconText.new);
+    clusterDashboard.customBadge().clusterIcon().children().should('have.class', 'cluster-local-logo');
+    clusterDashboard.customBadge().selectCheckbox('Customize cluster icon').set();
+    clusterDashboard.customBadge().clusterIcon().children().should('not.have.class', 'cluster-local-logo');
+    clusterDashboard.customBadge().clusterIcon().contains(settings.iconText.original);
+    clusterDashboard.customBadge().iconText().set(settings.iconText.new);
+    clusterDashboard.customBadge().clusterIcon().contains(settings.iconText.new);
 
     // Apply Changes
-    clusterDashboard.clusterBadge().applyAndWait('/v3/clusters/local');
+    clusterDashboard.customBadge().applyAndWait('/v3/clusters/local');
 
     // check header and side nav for update
     header.clusterIcon().children().should('have.class', 'cluster-badge-logo');
     header.clusterName().should('contain', 'local');
-    header.clusterBadge().should('contain', settings.description.new);
+    header.customBadge().should('contain', settings.description.new);
     const burgerMenu = new BurgerMenuPo();
 
     burgerMenu.clusters().first().find('span').should('contain', settings.iconText.new);
 
     // Reset
-    clusterDashboard.addClusterBadge('Edit Cluster Badge').click();
-    clusterDashboard.clusterBadge().selectCheckbox('Customize cluster icon').set();
-    clusterDashboard.clusterBadge().selectCheckbox('Show badge for this cluster').set();
+    clusterDashboard.addCustomBadge('Edit Cluster Badge').click();
+    clusterDashboard.customBadge().selectCheckbox('Customize cluster icon').set();
+    clusterDashboard.customBadge().selectCheckbox('Show badge for this cluster').set();
 
     // Apply Changes
-    clusterDashboard.clusterBadge().applyAndWait('/v3/clusters/local');
+    clusterDashboard.customBadge().applyAndWait('/v3/clusters/local');
 
     // check header and side nav for update
     header.clusterIcon().children().should('have.class', 'cluster-local-logo');
     header.clusterName().should('contain', 'local');
-    header.clusterBadge().should('not.exist');
+    header.customBadge().should('not.exist');
     burgerMenu.clusters().first().find('svg').should('have.class', 'cluster-local-logo');
   });
 
@@ -129,29 +132,19 @@ describe('Cluster Dashboard', { tags: '@adminUser' }, () => {
     }).then((el: any) => {
       el.click();
 
-      const workloadNodes = new WorkloadsDeploymentsListPagePo('local', 'node');
+      const nodesPage = new NodesPagePo('local');
 
-      workloadNodes.waitForPage();
+      nodesPage.waitForPage();
     });
   });
 
   it('can view events', () => {
+    const podName = `e2e-test-${ +new Date() }`;
+
+    // Create a pod to trigger events
+    cy.createPod('local', podName, 'nginx:latest');
+
     clusterDashboard.goTo();
-
-    // Install monitoring to trigger events
-    clusterDashboard.clusterToolsButton().click();
-    clusterTools.waitForPage();
-    clusterTools.goToInstall(0);
-    installCharts.waitForPage();
-    installCharts.nextPage();
-
-    cy.intercept('POST', 'v1/catalog.cattle.io.clusterrepos/rancher-charts?action=install').as('chartInstall');
-    installCharts.installChart().click();
-    cy.wait('@chartInstall').its('response.statusCode').should('eq', 201);
-    clusterTools.waitForPage();
-    cy.contains('Connected');
-
-    ClusterDashboardPagePo.navTo('local');
 
     // Check events
     clusterDashboard.eventslist().resourceTable().sortableTable().rowElements()
@@ -164,8 +157,5 @@ describe('Cluster Dashboard', { tags: '@adminUser' }, () => {
     events.waitForPage();
     events.eventslist().resourceTable().sortableTable().rowElements()
       .should('have.length.gte', 2);
-
-    // Uninstall monitoring
-    cy.uninstallChart('v1', 'catalog.cattle.io.apps', 'default', 'rancher-alerting-drivers');
   });
 });

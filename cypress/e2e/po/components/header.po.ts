@@ -21,7 +21,7 @@ export class HeaderPo extends ComponentPo {
     return this.self().find('.cluster-name');
   }
 
-  clusterBadge() {
+  customBadge() {
     return this.self().find('.cluster-badge');
   }
 }

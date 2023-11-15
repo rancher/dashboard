@@ -37,6 +37,7 @@ declare global {
       getProjectByName(clusterId: string, projectName: string): Chainable;
       createProject(projName: string, clusterId: string, userId: string): Chainable;
       createNamespace(nsName: string, projId: string): Chainable;
+      createPod(body: string): Chainable;
 
       getRancherResource(prefix: 'v3' | 'v1', resourceType: string, resourceId?: string, expectedStatusCode: string): Chainable;
       setRancherResource(prefix: 'v3' | 'v1', resourceType: string, resourceId: string, body: string): Chainable;

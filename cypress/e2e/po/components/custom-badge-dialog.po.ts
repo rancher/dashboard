@@ -4,7 +4,7 @@ import CheckboxInputPo from '@/cypress/e2e/po/components/checkbox-input.po';
 import ColorInputPo from '@/cypress/e2e/po/components/color-input.po';
 import AsyncButtonPo from '@/cypress/e2e/po/components/async-button.po';
 
-export default class ClusterBadgePo extends ComponentPo {
+export default class CustomBadgeDialogPo extends ComponentPo {
   constructor(selector = '[data-testid="card"]') {
     super(selector);
   }
@@ -21,7 +21,7 @@ export default class ClusterBadgePo extends ComponentPo {
     return this.badgePreview().find('.cluster-name');
   }
 
-  clusterBadge() {
+  customBadge() {
     return this.badgePreview().find('.cluster-badge');
   }
 
