@@ -1,30 +1,24 @@
 import ClusterDashboardPagePo from '@/cypress/e2e/po/pages/explorer/cluster-dashboard.po';
 import { NamespaceFilterPo } from '@/cypress/e2e/po/components/namespace-filter.po';
 import { WorkloadsPodsListPagePo } from '@/cypress/e2e/po/pages/explorer/workloads-pods.po';
+import HomePagePo from '@/cypress/e2e/po/pages/home.po';
 
-const clusterDashboard = new ClusterDashboardPagePo('local');
 const namespacePicker = new NamespaceFilterPo();
 
 describe('Namespace picker', { testIsolation: 'off' }, () => {
   before(() => {
     cy.login();
+    HomePagePo.goTo();
   });
 
   beforeEach('set up', () => {
-    // get user id
-    cy.getRancherResource('v3', 'users?me=true').then((resp: Cypress.Response<any>) => {
-      const userId = resp.body.data[0].id.trim();
+    ClusterDashboardPagePo.navTo();
 
-      cy.setRancherResource('v1', 'userpreferences', userId, {
-        id:   userId,
-        type: 'userpreference',
-        data: {
-          cluster:         'local',
-          'group-by':      'role',
-          'ns-by-cluster': '{"local":["all://user"]}',
-        }
-      });
-    });
+    // reset namespace picker to default state
+    namespacePicker.toggle();
+    namespacePicker.clickOptionByLabel('Only User Namespaces');
+    namespacePicker.isChecked('Only User Namespaces');
+    namespacePicker.closeDropdown();
   });
 
   it('can filter workloads by project/namespace from the picker dropdown', { tags: ['@adminUser'] }, () => {
@@ -60,7 +54,6 @@ describe('Namespace picker', { testIsolation: 'off' }, () => {
   it('can select only one of the top 5 resource filters at a time', { tags: ['@adminUser', '@standardUser'] }, () => {
     // Verify that user can only select one of the first 5 options
 
-    clusterDashboard.goTo();
     namespacePicker.toggle();
 
     // Select 'All Namespaces'
@@ -92,7 +85,6 @@ describe('Namespace picker', { testIsolation: 'off' }, () => {
   it('can select multiple projects/namespaces', { tags: ['@adminUser'] }, () => {
     // Verify that user can select multiple options (other than the first 5 options)
 
-    clusterDashboard.goTo();
     namespacePicker.toggle();
 
     // Select 'Project: Default'
@@ -125,7 +117,6 @@ describe('Namespace picker', { testIsolation: 'off' }, () => {
   });
 
   it('can deselect options', { tags: ['@adminUser', '@standardUser'] }, () => {
-    clusterDashboard.goTo();
     namespacePicker.toggle();
 
     // Select 'default' option
@@ -153,7 +144,6 @@ describe('Namespace picker', { testIsolation: 'off' }, () => {
   });
 
   it('can filter options by name', { tags: ['@adminUser', '@standardUser'] }, () => {
-    clusterDashboard.goTo();
     namespacePicker.toggle();
 
     // filter 'cattle-fleet'
@@ -190,7 +180,6 @@ describe('Namespace picker', { testIsolation: 'off' }, () => {
         cy.createNamespace(nsName, projId);
 
         // check ns picker
-        clusterDashboard.goTo();
         namespacePicker.toggle();
         cy.contains(projName).should('be.visible');
         cy.contains(nsName).should('be.visible');
@@ -218,6 +207,7 @@ describe('Namespace picker', { testIsolation: 'off' }, () => {
         type: 'userpreference',
         data: {
           cluster:         'local',
+          'group-by':      'none',
           'ns-by-cluster': '{"local":["all://user"]}',
         }
       });
