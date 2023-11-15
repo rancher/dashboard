@@ -1,4 +1,5 @@
 import { defineConfig } from 'cypress';
+import { removeDirectory } from 'cypress-delete-downloads-folder';
 // Required for env vars to be available in cypress
 require('dotenv').config();
 
@@ -110,6 +111,8 @@ export default defineConfig({
       // For more info: https://docs.cypress.io/guides/tooling/code-coverage
       require('@cypress/code-coverage/task')(on, config);
       require('@cypress/grep/src/plugin')(config);
+      // For more info: https://www.npmjs.com/package/cypress-delete-downloads-folder
+      on('task', { removeDirectory });
 
       return config;
     },
