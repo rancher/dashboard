@@ -5867,7 +5867,9 @@ workload:
         exec:  Command run inside the container exits with status 0
     image: Container Image
     imagePullPolicy: Pull Policy
-    imagePullSecrets: Pull Secrets
+    imagePullSecrets:
+      label: Pull Secrets
+      tooltip: Must be of Type `kubernetes.io/dockercfg` or `kubernetes.io/dockerconfigjson`
     init: Init Container
     lifecycleHook:
       postStart:
