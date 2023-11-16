@@ -1,5 +1,6 @@
 <script lang='ts'>
-import { defineComponent } from 'vue';
+import Vue, { defineComponent, VueConstructor } from 'vue';
+
 import semver from 'semver';
 import { mapGetters } from 'vuex';
 
@@ -28,7 +29,7 @@ import Tabbed from '@shell/components/Tabbed/index.vue';
 import Accordion from '@components/Accordion/Accordion.vue';
 
 import ClusterMembershipEditor, { canViewClusterMembershipEditor } from '@shell/components/form/Members/ClusterMembershipEditor.vue';
-
+import AksNodePool from '@pkg/aks/components/AksNodePool.vue';
 import type { AKSDiskType, AKSNodePool, AKSPoolMode, AKSConfig } from '../types/index';
 import {
   diffUpstreamSpec, getAKSRegions, getAKSVirtualNetworks, getAKSVMSizes, getAKSKubernetesVersions
@@ -45,8 +46,6 @@ import {
   ipv4WithCidr,
   outboundTypeUserDefined
 } from '@pkg/aks/util/validators';
-
-import AksNodePool from '@pkg/aks/components/AksNodePool.vue';
 
 const defaultNodePool = {
   availabilityZones:     ['1', '2', '3'],
@@ -91,6 +90,9 @@ const DEFAULT_REGION = 'eastus';
 
 const _NONE = 'none';
 
+// export default (Vue as VueConstructor<
+//   Vue & InstanceType<typeof CreateEditView>
+// >).extend({
 export default defineComponent({
   name: 'CruAKS',
 
@@ -284,10 +286,12 @@ export default defineComponent({
             let allAvailable = true;
             const badPools = [] as string[];
 
-            this.nodePools.forEach((pool) => {
-              if (!this.vmSizeOptions.find((opt) => opt === pool.vmSize)) {
+            this.nodePools.forEach((pool: AKSNodePool) => {
+              if (!this.vmSizeOptions.find((opt: String) => opt === pool.vmSize)) {
                 this.$set(pool, '_validSize', false);
-                badPools.push(pool.name);
+                const { name } = pool;
+
+                badPools.push(name);
                 allAvailable = false;
               } else {
                 this.$set(pool, '_validSize', true);
@@ -324,7 +328,7 @@ export default defineComponent({
         },
 
         systemPoolRequired: () => {
-          const systemPool = this.nodePools.find((pool) => pool.mode === 'System');
+          const systemPool = this.nodePools.find((pool: AKSNodePool) => pool.mode === 'System');
 
           return systemPool ? undefined : this.t('aks.nodePools.mode.systemRequired');
         },
@@ -372,7 +376,7 @@ export default defineComponent({
         };
       });
 
-      const sorted = sortBy(filteredAndSortable, 'sort:desc');
+      const sorted = sortBy(filteredAndSortable, 'sort', true);
 
       if (!this.config.kubernetesVersion) {
         this.$set(this.config, 'kubernetesVersion', sorted[0]?.value);
@@ -394,8 +398,8 @@ export default defineComponent({
       return out;
     },
 
-    canEditLoadBalancerSKU() {
-      const poolsWithAZ = this.nodePools.filter((pool) => pool.availabilityZones && pool.availabilityZones.length);
+    canEditLoadBalancerSKU(): Boolean {
+      const poolsWithAZ = this.nodePools.filter((pool: AKSNodePool) => pool.availabilityZones && pool.availabilityZones.length);
 
       return !poolsWithAZ.length && this.isNewOrUnprovisioned;
     },
@@ -499,13 +503,13 @@ export default defineComponent({
 
   methods: {
     // reset properties dependent on AKS queries so if they're lodaded with a valid credential then an invalid credential is selected, they're cleared
-    resetCredentialDependentProperties() {
+    resetCredentialDependentProperties(): void {
       this.locationOptions = [];
       this.allAksVersions = [];
       this.vmSizeOptions = [];
       this.virtualNetworkOptions = [];
       delete this.config?.kubernetesVersion;
-      this.errors = [];
+      this.$set(this, 'errors', []);
     },
 
     async getLocations() {
@@ -660,7 +664,7 @@ export default defineComponent({
 
     // these fields are used purely in UI, to track individual nodepool components
     cleanPoolsForSave() {
-      this.nodePools.forEach((pool) => {
+      this.nodePools.forEach((pool: AKSNodePool) => {
         delete pool._id;
         delete pool._isNewOrUnprovisioned;
         delete pool._validSize;

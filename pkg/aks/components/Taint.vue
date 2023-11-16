@@ -1,9 +1,5 @@
 <script lang="ts">
-import { randomStr } from '@shell/utils/string';
-import Vue, { defineComponent } from 'vue';
-
-import LabeledInput from '@components/Form/LabeledInput/LabeledInput.vue';
-import LabeledSelect from '@shell/components/form/LabeledSelect.vue';
+import { defineComponent } from 'vue';
 import Select from '@shell/components/form/Select.vue';
 import { _CREATE, _VIEW } from '@shell/config/query-params';
 import { mapGetters } from 'vuex';

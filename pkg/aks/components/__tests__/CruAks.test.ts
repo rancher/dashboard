@@ -1,8 +1,9 @@
-import Vue from 'vue';
 import semver from 'semver';
-import { mount, shallowMount, Wrapper } from '@vue/test-utils';
+import flushPromises from 'flush-promises';
+import { shallowMount, Wrapper } from '@vue/test-utils';
 import CruAks from '@pkg/aks/components/CruAks.vue';
-import { mockRegions, mockVersions } from '@pkg/aks/util/__mocks__/aks';
+// eslint-disable-next-line jest/no-mocks-import
+import { mockRegions, mockVersionsSorted } from '@pkg/aks/util/__mocks__/aks';
 
 const mockedValidationMixin = {
   computed: {
@@ -48,8 +49,7 @@ jest.mock('@pkg/aks/util/aks');
 
 const setCredential = async(wrapper :Wrapper<any>) => {
   wrapper.setData({ config: { azureCredentialSecret: 'foo' } });
-
-  await Vue.nextTick();
+  await flushPromises();
 };
 
 describe('aks provisioning form', () => {
@@ -85,7 +85,6 @@ describe('aks provisioning form', () => {
     });
 
     await setCredential(wrapper);
-
     const regionDropdown = wrapper.find('[data-testid="cruaks-resourcelocation"]');
 
     expect(regionDropdown.exists()).toBe(true);
@@ -93,9 +92,9 @@ describe('aks provisioning form', () => {
   });
 
   it.each([
-    ['<=1.26', mockVersions.filter((v: string) => semver.satisfies(v, '<=1.26'))],
-    ['<=1.25', mockVersions.filter((v: string) => semver.satisfies(v, '<=1.25'))],
-    ['<=1.24', mockVersions.filter((v: string) => semver.satisfies(v, '<=1.24'))]
+    ['<=1.26', mockVersionsSorted.filter((v: string) => semver.satisfies(v, '<=1.26'))],
+    ['<=1.25', mockVersionsSorted.filter((v: string) => semver.satisfies(v, '<=1.25'))],
+    ['<=1.24', mockVersionsSorted.filter((v: string) => semver.satisfies(v, '<=1.24'))]
   ])('should list only versions satisfying the ui-default-version-range setting', async(versionRange: string, expectedVersions: string[]) => {
     const mockVersionRangeSetting = { value: versionRange };
     const wrapper = shallowMount(CruAks, {
@@ -106,22 +105,21 @@ describe('aks provisioning form', () => {
     await setCredential(wrapper);
     const versionDropdown = wrapper.find('[data-testid="cruaks-kubernetesversion"]');
 
-    // versions are loaded once regions are loaded and one is selected by default
-    await Vue.nextTick();
-
     expect(versionDropdown.exists()).toBe(true);
     expect(versionDropdown.props().options.map((opt: any) => opt.value)).toStrictEqual(expectedVersions);
   });
 
-  // todo nb need to think about this one
-  // mockVersions and mockVersionsSorted?
-  it.skip('should sort versions from latest to oldest', async() => {
+  it('should sort versions from latest to oldest', async() => {
     const wrapper = shallowMount(CruAks, {
       propsData: { value: {}, mode: 'create' },
       ...requiredSetup()
     });
 
     await setCredential(wrapper);
+    const versionDropdown = wrapper.find('[data-testid="cruaks-kubernetesversion"]');
+
+    expect(versionDropdown.exists()).toBe(true);
+    expect(versionDropdown.props().value).toBe('1.26.0');
   });
 
   it('should auto-select a kubernetes version when a region is selected', async() => {
@@ -133,9 +131,6 @@ describe('aks provisioning form', () => {
     await setCredential(wrapper);
 
     const versionDropdown = wrapper.find('[data-testid="cruaks-kubernetesversion"]');
-
-    // versions are loaded once regions are loaded and one is selected by default
-    await Vue.nextTick();
 
     expect(versionDropdown.exists()).toBe(true);
     // version dropdown options are validated in another test so here we can assume they're properly sorted and filtered such that the first one is the default value
