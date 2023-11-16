@@ -9,7 +9,7 @@ export default class Shell extends ComponentPo {
 
   openTerminal() {
     // get and click on the first row's action menu button
-    cy.get(`button[data-testid="sortable-table-0-action-button"]`).click();
+    cy.get(`button[data-testid="sortable-table-0-action-button"]`).first().click();
     // get and click on the action menu's first option (execute shell)
     cy.get(`li[data-testid="action-menu-0-item"]`).click();
     this.self().get('.window.show-grid .text-success').should('contain', 'Connected');
