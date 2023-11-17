@@ -78,7 +78,8 @@ export default {
      * Required to initialize with default SC on creation
      */
     defaultStorageClassName() {
-      return this.storageClasses.find((sc) => sc.metadata?.annotations?.['storageclass.beta.kubernetes.io/is-default-class'] || sc.metadata?.annotations?.['storageclass.kubernetes.io/is-default-class'])?.metadata.name;
+      return this.storageClasses.find((sc) => sc.metadata?.annotations?.['storageclass.beta.kubernetes.io/is-default-class'] === 'true' ||
+        sc.metadata?.annotations?.['storageclass.kubernetes.io/is-default-class'] === 'true')?.metadata.name ;
     },
 
     availablePVs() {
