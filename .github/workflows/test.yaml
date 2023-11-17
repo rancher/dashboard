@@ -35,13 +35,13 @@ jobs:
       matrix:
         role: [admin, standardUser]
         feature:  [
-         '@navigation+@extensions',
+         '@navigation @extensions',
          '@charts',
          '@explorer',
          '@fleet',
-         '@generic+@globalSettings',
+         '@generic @globalSettings',
          '@manager',
-         '@userMenu+@usersAndAuths'
+         '@userMenu @usersAndAuths'
         ]
     runs-on: ubuntu-latest
     steps:
