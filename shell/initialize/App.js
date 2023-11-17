@@ -164,6 +164,7 @@ export default {
       }
       this.layoutName = layout;
       this.layout = layouts[`_${ layout }`];
+      console.log('*** setLayout: ', layout);
 
       return this.layout;
     },
@@ -171,6 +172,7 @@ export default {
       if (!layout || !layouts[`_${ layout }`]) {
         layout = 'default';
       }
+      console.log('*** loading layout: ', layout);
 
       return Promise.resolve(layouts[`_${ layout }`]);
     },

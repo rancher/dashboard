@@ -34,7 +34,7 @@ const mockedStore = (versionSetting: any) => {
 
 const mockedRoute = { query: {} };
 
-const requiredSetup = (versionSetting = { value: '<=1.26.x' }) => {
+const requiredSetup = (versionSetting = { value: '<=1.27.x' }) => {
   return {
     mixins: [mockedValidationMixin],
     mocks:  {
@@ -119,7 +119,7 @@ describe('aks provisioning form', () => {
     const versionDropdown = wrapper.find('[data-testid="cruaks-kubernetesversion"]');
 
     expect(versionDropdown.exists()).toBe(true);
-    expect(versionDropdown.props().value).toBe('1.26.0');
+    expect(versionDropdown.props().value).toBe('1.27.0');
   });
 
   it('should auto-select a kubernetes version when a region is selected', async() => {
@@ -135,5 +135,21 @@ describe('aks provisioning form', () => {
     expect(versionDropdown.exists()).toBe(true);
     // version dropdown options are validated in another test so here we can assume they're properly sorted and filtered such that the first one is the default value
     expect(versionDropdown.props().value).toBe(versionDropdown.props().options[0].value);
+  });
+
+  it.each([['1.26.0', mockVersionsSorted.filter((v: string) => semver.gte(v, '1.26.0'))], ['1.24.0', mockVersionsSorted.filter((v: string) => semver.gte(v, '1.24.0'))],
+  ])('should not allow a k8s version downgrade on edit', async(originalVersion, validVersions) => {
+    const wrapper = shallowMount(CruAks, {
+      propsData: { value: {}, mode: 'edit' },
+      ...requiredSetup()
+    });
+
+    wrapper.setData({ originalVersion });
+
+    await setCredential(wrapper);
+    const versionDropdown = wrapper.find('[data-testid="cruaks-kubernetesversion"]');
+
+    expect(versionDropdown.props().options.map((opt) => opt.value)).toStrictEqual(validVersions);
+    await wrapper.destroy();
   });
 });
