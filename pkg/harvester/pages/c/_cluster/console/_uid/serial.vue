@@ -28,14 +28,11 @@ export default {
   },
 
   mounted() {
+    document.title = this.vmi?.metadata?.name;
     window.addEventListener('beforeunload', () => {
       this.$refs.serialConsole.close();
     });
-  },
-
-  head() {
-    return { title: this.vmi?.metadata?.name };
-  },
+  }
 };
 </script>
 

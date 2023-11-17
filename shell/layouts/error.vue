@@ -24,6 +24,10 @@ export default {
       return this.error.message || '';
     }
   },
+  updated() {
+    //Putting it in mounted gets overwritten by mounted in brand mixin
+    document.title = this.message;
+  },
 
   mounted() {
     // If the page isn't a sub-path of the base url, redirect to it instead of saying not found.
@@ -41,18 +45,6 @@ export default {
       this.ready = true;
     }, 1000);
   },
-
-  head() {
-    return {
-      title: this.message,
-      meta:  [
-        {
-          name:    'viewport',
-          content: 'width=device-width,initial-scale=1.0,minimum-scale=1.0'
-        }
-      ]
-    };
-  }
 };
 </script>
 

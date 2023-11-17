@@ -545,35 +545,6 @@ module.exports = function(dir, _appConfig) {
             }
           ]
         },
-        {
-          test: /node_modules\/@?unhead\/.*$/,
-          use:  [
-            {
-              loader:  'cache-loader',
-              options: {
-                cacheDirectory:  'node_modules/.cache/babel-loader',
-                cacheIdentifier: 'e93f32da'
-              }
-            },
-            {
-              loader:  'babel-loader',
-              options: {
-                presets: [
-                  [
-                    require.resolve('@nuxt/babel-preset-app'),
-                    {
-                      corejs:  { version: 3 },
-                      targets: { browsers: ['last 2 versions'] },
-                      modern:  true
-                    }
-                  ],
-                  '@babel/preset-typescript',
-                ],
-                plugins: babelPlugins
-              }
-            }
-          ]
-        },
       ];
 
       config.module.rules.push(...loaders);
