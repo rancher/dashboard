@@ -72,7 +72,7 @@ jobs:
           yarn e2e:prod
           [ "$BUILD_DASHBOARD" != "false" ] || exit 0
         env: 
-          GREP_TAGS: ${{ matrix.feature }}
+          GREP_TAGS: ${{ '@'}}${{ matrix.role }}Setup+${{ matrix.feature }}
           TEST_USERNAME: admin
           TEST_ONLY: setup
       
