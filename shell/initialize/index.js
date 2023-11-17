@@ -1,4 +1,5 @@
 // Taken from @nuxt/vue-app/template/index.js
+// This file was generated during Nuxt migration
 
 import Vue from 'vue';
 import ClientOnly from 'vue-client-only';

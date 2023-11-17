@@ -25,7 +25,7 @@ export default {
     }
   },
   updated() {
-    //Putting it in mounted gets overwritten by mounted in brand mixin
+    // Putting it in mounted gets overwritten by mounted in brand mixin
     document.title = this.message;
   },
 
