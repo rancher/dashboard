@@ -15,6 +15,7 @@ import Tab from '@shell/components/Tabbed/Tab';
 
 import { allHash } from '@shell/utils/promise';
 import { STORAGE_CLASS, PVC, SECRET, WORKLOAD_TYPES } from '@shell/config/types';
+import { CATTLE_MONITORING_NAMESPACE } from 'utils/monitoring';
 
 export default {
   components: {
@@ -53,9 +54,12 @@ export default {
     const { $store } = this;
 
     const hash = await allHash({
-      namespaces:     $store.getters['namespaces'](),
-      pvcs:           $store.dispatch('cluster/findAll', { type: PVC }),
-      secrets:        $store.dispatch('cluster/findAll', { type: SECRET }),
+      namespaces:        $store.getters['namespaces'](),
+      pvcs:              $store.dispatch('cluster/findAll', { type: PVC }),
+      monitoringSecrets: $store.dispatch('cluster/findAll', {
+        type: SECRET,
+        opt:  { namespaced: CATTLE_MONITORING_NAMESPACE }
+      }),
       storageClasses: $store.dispatch('cluster/findAll', { type: STORAGE_CLASS }),
     });
 
@@ -74,8 +78,8 @@ export default {
       this.pvcs = hash.pvcs;
     }
 
-    if (!isEmpty(hash.secrets)) {
-      this.secrets = hash.secrets;
+    if (!isEmpty(hash.monitoringSecrets)) {
+      this.monitoringSecrets = hash.monitoringSecrets;
     }
   },
 
@@ -99,7 +103,7 @@ export default {
       disableAggregateRoles: false,
       prometheusResources:   [],
       pvcs:                  [],
-      secrets:               [],
+      monitoringSecrets:     [],
       storageClasses:        [],
       targetNamespace:       null,
     };
@@ -291,7 +295,7 @@ export default {
         <Alerting
           v-model="value"
           :mode="mode"
-          :secrets="secrets"
+          :monitoringSecrets="monitoringSecrets"
         />
       </div>
     </Tab>
