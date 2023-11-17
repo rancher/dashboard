@@ -1,5 +1,5 @@
 import {
-  CAPI, MANAGEMENT, NORMAN, SNAPSHOT, HCI
+  CAPI, MANAGEMENT, NAMESPACE, NORMAN, SNAPSHOT, HCI, LOCAL_CLUSTER
 } from '@shell/config/types';
 import SteveModel from '@shell/plugins/steve/steve-class';
 import { findBy } from '@shell/utils/array';
@@ -882,5 +882,23 @@ export default class ProvCluster extends SteveModel {
 
   get hasError() {
     return this.status?.conditions?.some((condition) => condition.error === true);
+  }
+
+  get namespaceLocation() {
+    const localCluster = this.$rootGetters['management/byId'](MANAGEMENT.CLUSTER, LOCAL_CLUSTER);
+
+    if (localCluster) {
+      return {
+        name:   'c-cluster-product-resource-id',
+        params: {
+          cluster:  localCluster.id,
+          product:  this.$rootGetters['productId'],
+          resource: NAMESPACE,
+          id:       this.namespace
+        }
+      };
+    }
+
+    return null;
   }
 }
