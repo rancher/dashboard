@@ -34,9 +34,7 @@ export default {
     // Setting this up front will remove `computed` churn, and we only care that we've initialised them
     this.haveAppsAndSettings = !!this.apps && !!this.globalSettings;
   },
-  mounted( ) {
-    console.log('**** branding mixin mounted');
-  },
+
   data() {
     return {
       apps: null, globalSettings: null, haveAppsAndSettings: null

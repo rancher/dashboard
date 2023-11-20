@@ -83,19 +83,19 @@ export default defineComponent({
   computed: { ...mapGetters({ t: 'i18n/t' }) },
 
   methods: {
-    addTaint() {
+    addTaint(): void {
       this.taints.push({ taint: '', _id: randomStr() });
       this.$set(this.pool, 'nodeTaints', this.taints.map((keyedTaint: any) => keyedTaint.taint));
       this.$emit('input');
     },
 
-    updateTaint(keyedTaint: any, idx: any) {
+    updateTaint(keyedTaint: any, idx: any): void {
       this.taints[idx] = keyedTaint;
       this.$set(this.pool, 'nodeTaints', this.taints.map((keyedTaint: any) => keyedTaint.taint));
       this.$emit('input');
     },
 
-    removeTaint(idx: number) {
+    removeTaint(idx: number): void {
       this.taints.splice(idx, 1);
     }
   },
@@ -155,14 +155,6 @@ export default defineComponent({
     </div>
 
     <div class="row mb-10">
-      <div class="col span-3">
-        <LabeledSelect
-          v-model="pool.osType"
-          :options="[]"
-          label-key="aks.nodePools.osType.label"
-          mode="view"
-        />
-      </div>
       <div class="col span-3">
         <LabeledSelect
           v-model="pool.osDiskType"

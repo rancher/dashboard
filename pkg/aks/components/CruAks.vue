@@ -352,7 +352,7 @@ export default defineComponent({
 
     // filter out versions outside ui-k8s-supported-versions-range global setting and versions < current version
     // sort versions, descending
-    aksVersionOptions() {
+    aksVersionOptions(): Array<any> {
       const filteredAndSortable = this.allAksVersions.filter((v: string) => {
         if (this.supportedVersionRange && !semver.satisfies(v, this.supportedVersionRange)) {
           return false;
@@ -385,7 +385,7 @@ export default defineComponent({
       return sorted;
     },
 
-    outboundTypeOptions() {
+    outboundTypeOptions(): Array<any> {
       const out = [{
         label: this.t('aks.outboundType.loadbalancer'),
         value: 'LoadBalancer'
@@ -404,11 +404,11 @@ export default defineComponent({
       return !poolsWithAZ.length && this.isNewOrUnprovisioned;
     },
 
-    hasAzureCNI() {
+    hasAzureCNI(): Boolean {
       return this.config.networkPlugin === 'azure';
     },
 
-    networkPolicyOptions() {
+    networkPolicyOptions(): Array<any> {
       return [{
         value: _NONE,
         label: this.t('generic.none')
@@ -425,10 +425,10 @@ export default defineComponent({
     },
 
     networkPolicy: {
-      get() {
+      get(): String {
         return this.config?.networkPolicy || _NONE;
       },
-      set(neu: string) {
+      set(neu: string): void {
         if (neu === _NONE) {
           this.$set(this.config, 'networkPolicy', null);
         } else {
@@ -437,15 +437,15 @@ export default defineComponent({
       }
     },
 
-    canEditPrivateCluster() {
+    canEditPrivateCluster(): Boolean {
       return this.isNewOrUnprovisioned && !this.setAuthorizedIPRanges;
     },
 
-    clusterId() {
+    clusterId(): String | null {
       return this.value?.id || null;
     },
 
-    canManageMembers() {
+    canManageMembers(): Boolean {
       return canViewClusterMembershipEditor(this.$store);
     }
   },
@@ -512,7 +512,7 @@ export default defineComponent({
       this.$set(this, 'errors', []);
     },
 
-    async getLocations() {
+    async getLocations(): Promise<void> {
       if (!this.isNewOrUnprovisioned) {
         return;
       }
@@ -542,7 +542,7 @@ export default defineComponent({
       }
     },
 
-    async getAksVersions() {
+    async getAksVersions(): Promise<void> {
       this.loadingVersions = true;
       this.allAksVersions = [];
       const { azureCredentialSecret, resourceLocation } = this.config;
@@ -562,7 +562,7 @@ export default defineComponent({
       }
     },
 
-    async getVmSizes() {
+    async getVmSizes(): Promise<void> {
       this.loadingVmSizes = true;
       this.vmSizeOptions = [];
       const { azureCredentialSecret, resourceLocation } = this.config;
@@ -588,7 +588,7 @@ export default defineComponent({
       }
     },
 
-    async getVirtualNetworks() {
+    async getVirtualNetworks(): Promise<void> {
       this.loadingVirtualNetworks = true;
       this.virtualNetworkOptions = [{ name: this.t('generic.none') }];
       const { azureCredentialSecret, resourceLocation } = this.config;
@@ -609,7 +609,7 @@ export default defineComponent({
       }
     },
 
-    addPool() {
+    addPool(): void {
       let poolName = `pool${ this.nodePools.length }`;
       let mode: AKSPoolMode = 'User';
       const _id = randomStr();
@@ -631,13 +631,13 @@ export default defineComponent({
       });
     },
 
-    removePool(idx: number) {
+    removePool(idx: number): void {
       const pool = this.nodePools[idx];
 
       removeObject(this.nodePools, pool);
     },
 
-    selectNetwork(network: any) {
+    selectNetwork(network: any): void {
       if (network.name === this.t('generic.none') || network === this.t('generic.none')) {
         this.$set(this.config, 'virtualNetwork', null);
         this.$set(this.config, 'virtualNetworkResourceGroup', null);
@@ -647,23 +647,23 @@ export default defineComponent({
       }
     },
 
-    setClusterName(name: string) {
+    setClusterName(name: string): void {
       this.$set(this.normanCluster, 'name', name);
       this.$set(this.config, 'clusterName', name);
     },
 
-    onMembershipUpdate(update: any) {
+    onMembershipUpdate(update: any): void {
       this.$set(this, 'membershipUpdate', update);
     },
 
-    async saveRoleBindings() {
+    async saveRoleBindings(): Promise<void> {
       if (this.membershipUpdate.save) {
         await this.membershipUpdate.save(this.normanCluster.id);
       }
     },
 
     // these fields are used purely in UI, to track individual nodepool components
-    cleanPoolsForSave() {
+    cleanPoolsForSave(): void {
       this.nodePools.forEach((pool: AKSNodePool) => {
         delete pool._id;
         delete pool._isNewOrUnprovisioned;
@@ -672,7 +672,7 @@ export default defineComponent({
     },
 
     // only save values that differ from upstream aks spec - see diffUpstreamSpec comments for details
-    removeUnchangedConfigFields() {
+    removeUnchangedConfigFields(): void {
       const upstreamConfig = this.normanCluster?.status?.aksStatus?.upstreamSpec;
 
       if (upstreamConfig) {
@@ -682,12 +682,12 @@ export default defineComponent({
       }
     },
 
-    async actuallySave() {
-      await this.normanCluster.save();
+    async actuallySave(): Promise<void> {
+      return await this.normanCluster.save();
     },
 
     // fires when the 'cancel' button is pressed while the user is creating a new cloud credential
-    cancelCredential() {
+    cancelCredential(): void {
       if ( this.$refs.cruresource ) {
         (this.$refs.cruresource as any).emitOrRoute();
       }

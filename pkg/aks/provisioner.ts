@@ -7,7 +7,6 @@ export class AKSProvisioner implements IClusterProvisioner {
   static ID = 'AKS'
 
   constructor(private context: ClusterProvisionerContext) {
-    // configureCredential(this.id, 'azure' );
     mapDriver(this.id, 'azure' );
   }
 
@@ -16,7 +15,7 @@ export class AKSProvisioner implements IClusterProvisioner {
   }
 
   get icon(): any {
-    return require('./assets/aks.svg');
+    return require('./icon.svg');
   }
 
   get group(): string {
