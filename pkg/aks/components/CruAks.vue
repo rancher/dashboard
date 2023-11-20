@@ -1,8 +1,7 @@
 <script lang='ts'>
-import Vue, { defineComponent, VueConstructor } from 'vue';
-
 import semver from 'semver';
 import { mapGetters } from 'vuex';
+import { defineComponent } from 'vue';
 
 import { randomStr } from '@shell/utils/string';
 import { isArray, removeObject } from '@shell/utils/array';

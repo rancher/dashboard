@@ -1,3 +1,4 @@
+/* eslint-disable @typescript-eslint/explicit-module-boundary-types */
 /**
  * These validation rules are used by the form validation mixin but work a little differently from the validators defined in @shell/utils/validators/formRules
  * Due to current limitations of the fv mixin
@@ -7,16 +8,16 @@ import { get } from '@shell/utils/object';
 import { LoadBalancerSku, OutboundType } from 'types';
 
 // no need to try to validate any fields if the user is still selecting a credential and the rest of the form isn't visible
-export const needsValidation = (ctx: any) => {
+export const needsValidation = (ctx: any): Boolean => {
   return !!ctx.config.azureCredentialSecret && !!ctx.config.resourceLocation;
 };
 
-export const requiredTranslation = (ctx:any, labelKey = 'Value') => {
+export const requiredTranslation = (ctx: any, labelKey = 'Value'): String => {
   return ctx.t('validation.required', { key: ctx.t(labelKey) });
 };
 
 export const requiredInCluster = (ctx: any, labelKey: string, clusterPath: string) => {
-  return () :string | undefined => {
+  return () :String | undefined => {
     return needsValidation(ctx) && clusterPath && !get(ctx.normanCluster, clusterPath) ? requiredTranslation(ctx, labelKey) : undefined;
   };
 };
@@ -24,7 +25,7 @@ export const requiredInCluster = (ctx: any, labelKey: string, clusterPath: strin
 // cluster name
 // Alphanumerics, underscores, and hyphens. Start and end with alphanumeric.
 // https://learn.microsoft.com/en-us/azure/azure-resource-manager/management/resource-name-rules#microsoftcontainerservice
-export const clusterNameChars = (ctx: any) => {
+export const clusterNameChars = (ctx: any ) => {
   return () :string | undefined => {
     const { name = '' } = get(ctx, 'normanCluster');
     const nameIsValid = name.match(/^([A-Z]|[a-z]|[0-9]|-|_)+$/);
@@ -42,7 +43,7 @@ export const clusterNameStartEnd = (ctx: any) => {
   };
 };
 
-export const clusterNameLength = (ctx:any) => {
+export const clusterNameLength = (ctx: any) => {
   return () : string | undefined => {
     const { name = '' } = get(ctx, 'normanCluster');
     const isValid = name.length <= 63;

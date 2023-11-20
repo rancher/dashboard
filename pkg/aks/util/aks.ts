@@ -3,6 +3,7 @@ import { set, get } from '@shell/utils/object';
 import { addParams, QueryParams } from '@shell/utils/url';
 // eslint-disable-next-line no-unused-vars
 import { AKSVirtualNetwork } from 'types';
+import { Store } from 'vuex';
 
 /**
  *
@@ -39,7 +40,7 @@ async function getAKSOptions(store: any, azureCredentialSecret: string, resource
  * @returns Array of regions in the form {name, displayName}
  */
 
-export async function getAKSRegions(store: any, azureCredentialSecret: string, clusterId?: string) :Promise<any> {
+export async function getAKSRegions(store: Store<any>, azureCredentialSecret: string, clusterId?: string) :Promise<any> {
   return getAKSOptions(store, azureCredentialSecret, '', 'aksLocations', clusterId );
 }
 
@@ -51,7 +52,7 @@ export async function getAKSRegions(store: any, azureCredentialSecret: string, c
  * @param clusterId (optional) norman cluster id
  * @returns An array of strings
  */
-export async function getAKSVMSizes(store: any, azureCredentialSecret: string, resourceLocation: string, clusterId?: string) :Promise<any> {
+export async function getAKSVMSizes(store: Store<any>, azureCredentialSecret: string, resourceLocation: string, clusterId?: string) :Promise<any> {
   return getAKSOptions(store, azureCredentialSecret, resourceLocation, 'aksVMSizes', clusterId );
 }
 
@@ -63,7 +64,7 @@ export async function getAKSVMSizes(store: any, azureCredentialSecret: string, r
  * @param clusterId (optional) norman cluster id
  * @returns Array of versions
  */
-export async function getAKSKubernetesVersions(store: any, azureCredentialSecret: string, resourceLocation: string, clusterId?: string) :Promise<any> {
+export async function getAKSKubernetesVersions(store: Store<any>, azureCredentialSecret: string, resourceLocation: string, clusterId?: string) :Promise<any> {
   return getAKSOptions(store, azureCredentialSecret, resourceLocation, 'aksVersions', clusterId );
 }
 
@@ -75,7 +76,7 @@ export async function getAKSKubernetesVersions(store: any, azureCredentialSecret
  * @param clusterId (optional) norman cluster id
  * @returns {[AKSVirtualNetwork]}
  */
-export async function getAKSVirtualNetworks(store: any, azureCredentialSecret: string, resourceLocation: string, clusterId?: string) :Promise<any> {
+export async function getAKSVirtualNetworks(store: Store<any>, azureCredentialSecret: string, resourceLocation: string, clusterId?: string) :Promise<any> {
   return getAKSOptions(store, azureCredentialSecret, resourceLocation, 'aksVirtualNetworks', clusterId );
 }
 
