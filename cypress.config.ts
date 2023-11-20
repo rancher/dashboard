@@ -55,10 +55,11 @@ export default defineConfig({
     openMode: 0
   },
   env: {
-    grepFilterSpecs: true,
+    grepFilterSpecs:  true,
+    grepOmitFiltered: true,
     baseUrl,
-    coverage:        hasCoverage,
-    codeCoverage:    {
+    coverage:         hasCoverage,
+    codeCoverage:     {
       exclude: [
         'cypress/**/*.*',
         '**/__tests__/**/*.*',
