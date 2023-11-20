@@ -17,6 +17,7 @@ IMAGE_PREFIX="ui-extension-"
 FORCE="false"
 GITHUB_BUILD="true"
 GITHUB_RELEASE_TAG=""
+PODMAN_CONTAINER="false"
 
 GITHUB_SOURCE=$(git config --get remote.origin.url | sed -e 's/^git@.*:\([[:graph:]]*\).git/\1/')
 GITHUB_BRANCH="main"
@@ -33,10 +34,11 @@ usage() {
   echo "  -r <name>    Specify destination container registry for built images"
   echo "  -o <name>    Specify destination container registry organization for built images"
   echo "  -i <prefix>  Specify prefix for the built container image (default: 'ui-extension-')"
+  echo "  -l           Specify Podman container build"
   exit 1
 }
 
-while getopts "hvr:o:pi:fcb:t:s:" opt; do
+while getopts "hvr:o:pi:fcb:t:s:l" opt; do
   case $opt in
     h)
       usage
@@ -69,6 +71,9 @@ while getopts "hvr:o:pi:fcb:t:s:" opt; do
       ;;
     t)
       GITHUB_RELEASE_TAG="${OPTARG}"
+      ;;
+    l)
+      PODMAN_CONTAINER="true"
       ;;
     *)
       usage
@@ -126,7 +131,11 @@ fi
 
 COMMANDS=("node" "jq" "yq" "git" "helm" "yarn")
 if [ "${GITHUB_BUILD}" == "false" ]; then
-  COMMANDS+=("docker")
+  if [ "${PODMAN_CONTAINER}" == "true" ]; then
+    COMMANDS+=("podman")
+  else
+    COMMANDS+=("docker")
+  fi
 fi
 
 HAVE_COMMANDS="true"
@@ -172,10 +181,12 @@ if [ "${GITHUB_BUILD}" == "false" ]; then
     exit 1
   fi
 
-  docker images > /dev/null
-  if [ $? -ne 0 ]; then
-    echo "docker is not running - this is required to build container images for the UI Plugins"
-    exit 1
+  if [ "${PODMAN_CONTAINER}" == "false" ]; then
+    docker images > /dev/null
+    if [ $? -ne 0 ]; then
+      echo "docker is not running - this is required to build container images for the UI Plugins"
+      exit 1
+    fi
   fi
 fi
 
@@ -354,8 +365,8 @@ if [ "${GITHUB_BUILD}" == "false" ]; then
   echo -e "${CYAN}Base extension: ${BASE_EXT}${RESET}"
   echo -e "${CYAN}Extension version: ${EXT_VERSION}${RESET}"
 
-  # Build the docker image
-  ${SCRIPT_DIR}/bundle ${BASE_EXT} ${EXT_VERSION} ${REGISTRY} ${REGISTRY_ORG} ${IMAGE_PREFIX} ${PUSH}
+  # Build the container image
+  ${SCRIPT_DIR}/bundle "${BASE_EXT}" "${EXT_VERSION}" "${REGISTRY}" "${REGISTRY_ORG}" "${IMAGE_PREFIX}" "${PUSH}" "${PODMAN_CONTAINER}"
 else
   rm -rf ${CHART_TEMPLATE}
 fi
@@ -386,5 +397,5 @@ fi
 rm -rf ${CHART_TMP}
 
 if [ "${GITHUB_BUILD}" == "false" ]; then
-  rm -rf ${TMP}
+  rm -rf ${TMP} ${ASSETS} ${CHARTS} ${BASE_DIR}/extensions ${BASE_DIR}/dist-pkg ${ROOT_INDEX}
 fi

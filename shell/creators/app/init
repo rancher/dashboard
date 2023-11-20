@@ -34,6 +34,25 @@ if (args.length === 3) {
   fs.ensureDirSync(appFolder);
 }
 
+let addGitlabWorkflow = false;
+
+// Check for Gitlab integration option
+if ( args.length > 3 ) {
+  for (let i = 3; i < args.length; i++) {
+    switch (args[i]) {
+    case '-l':
+      addGitlabWorkflow = true;
+      break;
+    default:
+      break;
+    }
+  }
+}
+
+if ( addGitlabWorkflow ) {
+  files.push('.gitlab-ci.yml');
+}
+
 // Check that there is a package file
 
 let setName = false;
