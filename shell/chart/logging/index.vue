@@ -2,13 +2,10 @@
 import { mapGetters } from 'vuex';
 import { LabeledInput } from '@components/Form/LabeledInput';
 import { Checkbox } from '@components/Form/Checkbox';
-import ChartPsp from '@shell/components/ChartPsp';
 
 export default {
-  components: {
-    Checkbox, LabeledInput, ChartPsp
-  },
-  props: {
+  components: { Checkbox, LabeledInput },
+  props:      {
     value: {
       type:    Object,
       default: () => {
@@ -83,11 +80,5 @@ export default {
         />
       </div>
     </div>
-
-    <!-- Conditionally display PSP checkbox -->
-    <ChartPsp
-      :value="value"
-      :cluster="currentCluster"
-    />
   </div>
 </template>

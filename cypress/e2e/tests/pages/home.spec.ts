@@ -8,38 +8,36 @@ const homeClusterList = homePage.list();
 const provClusterList = new ClusterManagerListPagePo('local');
 
 describe('Home Page', () => {
-  describe('Home Page', () => {
-    beforeEach(() => {
+  describe('Home Page', { testIsolation: 'off' }, () => {
+    before(() => {
       cy.login();
-
       HomePagePo.goToAndWaitForGet();
     });
 
-    it('Can navigate to What\'s new page', { tags: ['@adminUser', '@standardUser'] }, () => {
+    it('Can navigate to release notes page for latest Rancher version', { tags: ['@adminUser', '@standardUser'] }, () => {
     /**
      * Verify changelog banner is hidden after clicking link
      * Verify release notes link is valid github page
+     * Verify correct Rancher version is displayed
      */
-      const text: string[] = [];
 
       homePage.restoreAndWait();
 
-      homePage.whatsNewBannerLink().invoke('text').then((el) => {
-        text.push(el);
-      });
+      cy.getRancherResource('v1', 'management.cattle.io.settings', 'server-version').then((resp: Cypress.Response<any>) => {
+        const rancherVersion = resp.body['value'].split('-', 1)[0].slice(1);
 
-      homePage.changelog().self().invoke('text').then((el) => {
-        expect(el).contains(text[0]);
-      });
+        homePage.changelog().self().contains('Learn more about the improvements and new capabilities in this version.');
+        homePage.whatsNewBannerLink().contains(`What's new in ${ rancherVersion }`);
 
-      homePage.whatsNewBannerLink().invoke('attr', 'href').then((releaseNotesUrl) => {
-        cy.request(releaseNotesUrl).then((res) => {
-          expect(res.status).equals(200);
+        homePage.whatsNewBannerLink().invoke('attr', 'href').then((releaseNotesUrl) => {
+          cy.request(releaseNotesUrl).then((res) => {
+            expect(res.status).equals(200);
+          });
         });
-      });
 
-      homePage.whatsNewBannerLink().click();
-      homePage.changelog().self().should('not.exist');
+        homePage.whatsNewBannerLink().click();
+        homePage.changelog().self().should('not.exist');
+      });
     });
 
     it('Can navigate to Preferences page', { tags: ['@adminUser', '@standardUser'] }, () => {
@@ -60,7 +58,7 @@ describe('Home Page', () => {
      * Click the restore link
      * Verify banners display on home page
      */
-
+      HomePagePo.navTo();
       homePage.restoreAndWait();
 
       homePage.bannerGraphic().graphicBanner().should('be.visible');
@@ -129,6 +127,7 @@ describe('Home Page', () => {
       const clusterManagerPage = new ClusterManagerListPagePo('_');
       const genericCreateClusterPage = new ClusterManagerImportGenericPagePo('_');
 
+      HomePagePo.navTo();
       homePage.manageButton().click();
       clusterManagerPage.waitForPage();
 
@@ -145,7 +144,7 @@ describe('Home Page', () => {
     /**
      * Filter rows in the cluster list
      */
-
+      HomePagePo.navTo();
       homeClusterList.resourceTable().sortableTable().filter('random text');
       homeClusterList.resourceTable().sortableTable().rowElements().should((el) => {
         expect(el).to.contain.text('There are no rows which match your search query.');
@@ -158,19 +157,15 @@ describe('Home Page', () => {
     });
   });
 
-  describe('Support Links', { testIsolation: 'off', tags: ['@adminUser', '@standardUser'] }, () => {
+  describe('Support Links', { tags: ['@adminUser', '@standardUser'] }, () => {
     // Click the support links and verify user lands on the correct page
-    before(() => {
-      cy.login();
-    });
     beforeEach(() => {
+      cy.login();
       HomePagePo.goTo();
     });
-    it.skip('can click on Docs link', () => {
-      homePage.supportLinks().should('have.length', 6);
 
-      // click Docs link -- this test will sometimes fail due to https://github.com/rancher/rancher-docs/issues/727
-      // skipping this test until issue is resolved
+    it('can click on Docs link', () => {
+      homePage.supportLinks().should('have.length', 6);
       homePage.clickSupportLink(0, true);
       cy.origin('https://ranchermanager.docs.rancher.com', () => {
         cy.url().should('include', 'ranchermanager.docs.rancher.com');
@@ -201,8 +196,7 @@ describe('Home Page', () => {
       });
     });
 
-    // this hits the same error as the home page test
-    it.skip('can click on Get Started link', () => {
+    it('can click on Get Started link', () => {
     // click Get Started link
       homePage.clickSupportLink(4, true);
       cy.url().should('include', 'ranchermanager.docs.rancher.com/getting-started/overview');

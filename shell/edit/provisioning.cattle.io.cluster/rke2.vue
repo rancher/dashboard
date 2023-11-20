@@ -16,7 +16,6 @@ import {
   DEFAULT_WORKSPACE,
   SECRET,
   HCI,
-  PSPS,
 } from '@shell/config/types';
 import { _CREATE, _EDIT, _VIEW } from '@shell/config/query-params';
 
@@ -31,7 +30,6 @@ import { sortBy } from '@shell/utils/sort';
 import { camelToTitle } from '@shell/utils/string';
 import { compare, sortable } from '@shell/utils/version';
 import { isHarvesterSatisfiesVersion } from '@shell/utils/cluster';
-import * as VERSION from '@shell/utils/version';
 
 import ArrayList from '@shell/components/form/ArrayList';
 import ArrayListGrouped from '@shell/components/form/ArrayListGrouped';
@@ -155,7 +153,6 @@ export default {
   },
 
   async fetch() {
-    this.psps = await this.getPsps();
     await this.fetchRke2Versions();
     await this.initSpecs();
     await this.initAddons();
@@ -196,16 +193,11 @@ export default {
       set(this.value.spec, 'rkeConfig.machineSelectorConfig', [{ config: {} }]);
     }
 
-    // Store the initial PSP template name, so we can set it back if needed
-    const lastDefaultPodSecurityPolicyTemplateName = this.value.spec.defaultPodSecurityPolicyTemplateName;
-    const previousKubernetesVersion = this.value.spec.kubernetesVersion;
-
     const truncateLimit = this.value.defaultHostnameLengthLimit;
 
     return {
       loadedOnce:                      false,
       lastIdx:                         0,
-      allPSPs:                         null,
       allPSAs:                         [],
       credentialId:                    '',
       credential:                      null,
@@ -238,11 +230,7 @@ export default {
         path: 'metadata.name', rules: ['subDomain'], translationKey: 'nameNsDescription.name.label'
       }],
       harvesterVersionRange: {},
-      lastDefaultPodSecurityPolicyTemplateName, // Used for reset on k8s version changes
-      previousKubernetesVersion,
       cisOverride:           false,
-      cisPsaChangeBanner:    false,
-      psps:                  null, // List of policies if any
       truncateHostnames:     truncateLimit === NETBIOS_TRUNCATION_LENGTH,
       truncateLimit,
       busy:                  false,
@@ -284,20 +272,6 @@ export default {
 
     agentConfig() {
       return this.value.agentConfig;
-    },
-
-    /**
-     * Define PSP deprecation and restrict use of PSP based on min k8s version
-     */
-    needsPSP() {
-      return this.getNeedsPSP();
-    },
-
-    /**
-     * Define introduction of Rancher defined PSA templates
-     */
-    hasPsaTemplates() {
-      return !this.needsPSP;
     },
 
     unsupportedSelectorConfig() {
@@ -933,10 +907,6 @@ export default {
         }
       }
 
-      if ( this.value.spec.defaultPodSecurityPolicyTemplateName === undefined ) {
-        set(this.value.spec, 'defaultPodSecurityPolicyTemplateName', '');
-      }
-
       if ( this.value.spec.defaultPodSecurityAdmissionConfigurationTemplateName === undefined ) {
         set(this.value.spec, 'defaultPodSecurityAdmissionConfigurationTemplateName', '');
       }
@@ -951,10 +921,6 @@ export default {
           rke2Versions: this.$store.dispatch('management/request', { url: '/v1-rke2-release/releases' }),
           k3sVersions:  this.$store.dispatch('management/request', { url: '/v1-k3s-release/releases' }),
         };
-
-        if ( this.$store.getters['management/canList'](MANAGEMENT.POD_SECURITY_POLICY_TEMPLATE) ) {
-          hash.allPSPs = await this.$store.dispatch('management/findAll', { type: MANAGEMENT.POD_SECURITY_POLICY_TEMPLATE });
-        }
 
         if (this.$store.getters['management/canList'](MANAGEMENT.PSA)) {
           hash.allPSAs = await this.$store.dispatch('management/findAll', { type: MANAGEMENT.PSA });
@@ -980,7 +946,6 @@ export default {
 
         const res = await allHash(hash);
 
-        this.allPSPs = res.allPSPs || [];
         this.allPSAs = res.allPSAs || [];
         this.rke2Versions = res.rke2Versions.data || [];
         this.k3sVersions = res.k3sVersions.data || [];
@@ -1068,16 +1033,6 @@ export default {
       } else {
         this.value.removeDefaultHostnameLengthLimit();
       }
-    },
-    /**
-     * Define PSP deprecation and restrict use of PSP based on min k8s version and current/edited mode
-     */
-    getNeedsPSP(value = this.value) {
-      const release = value?.spec?.kubernetesVersion || '';
-      const version = release.match(/\d+/g);
-      const isRequiredVersion = version?.length ? +version[0] === 1 && +version[1] < 25 : false;
-
-      return isRequiredVersion;
     },
 
     /**
@@ -1359,23 +1314,6 @@ export default {
       });
     },
 
-    /**
-     * Inform user to remove PSP for current cluster due deprecation
-     */
-    showPspConfirmation() {
-      return new Promise((resolve, reject) => {
-        this.$store.dispatch('cluster/promptModal', {
-          component:      'GenericPrompt',
-          componentProps: {
-            title:     this.t('cluster.rke2.modal.pspChange.title'),
-            body:      this.t('cluster.rke2.modal.pspChange.body'),
-            applyMode: 'continue',
-            confirm:   resolve
-          },
-        });
-      });
-    },
-
     // Set busy before save and clear after save
     async saveOverride(btnCb) {
       this.$set(this, 'busy', true);
@@ -1413,13 +1351,6 @@ export default {
       }
 
       const isEditVersion = this.isEdit && this.liveValue?.spec?.kubernetesVersion !== this.value?.spec?.kubernetesVersion;
-      const hasPspManuallyAdded = !!this.value.spec.rkeConfig?.machineGlobalConfig?.['kube-apiserver-arg'];
-
-      if (isEditVersion && !this.needsPSP && hasPspManuallyAdded) {
-        if (!await this.showPspConfirmation()) {
-          return btnCb('cancelled');
-        }
-      }
 
       if (isEditVersion) {
         const shouldContinue = await this.showAddonConfirmation();
@@ -1970,28 +1901,6 @@ export default {
     },
 
     /**
-     * Get provisioned RKE2 cluster PSPs in edit mode
-     */
-    async getPsps() {
-      // As server returns 500 we exclude all the possible cases
-      if (
-        this.mode !== _CREATE &&
-        !this.isK3s &&
-        this.value.state !== 'reconciling' &&
-        this.getNeedsPSP(this.liveValue) // We consider editing only possible PSP cases
-      ) {
-        const clusterId = this.value.mgmtClusterId;
-        const url = `/k8s/clusters/${ clusterId }/v1/${ PSPS }`;
-
-        try {
-          return await this.$store.dispatch('cluster/request', { url });
-        } catch (error) {
-          // PSP may not exists for this cluster and an error is returned without need to handle
-        }
-      }
-    },
-
-    /**
      * Reset PSA on several input changes for given conditions
      */
     togglePsaDefault() {
@@ -2000,11 +1909,9 @@ export default {
       const cisValue = this.agentConfig?.profile || this.serverConfig?.profile;
 
       if (!this.cisOverride) {
-        if (this.hasPsaTemplates && cisValue) {
+        if (cisValue) {
           set(this.value.spec, 'defaultPodSecurityAdmissionConfigurationTemplateName', hardcodedTemplate);
         }
-
-        this.cisPsaChangeBanner = this.hasPsaTemplates;
       }
     },
 
@@ -2027,28 +1934,11 @@ export default {
     },
 
     /**
-     * Handle k8s changes side effects, like PSP and PSA resets
+     * Handle k8s changes side effects, like PSA resets
      */
     handleKubernetesChange(value) {
       if (value) {
         this.togglePsaDefault();
-        const version = VERSION.parse(value);
-        const major = parseInt(version?.[0] || 0);
-        const minor = parseInt(version?.[1] || 0);
-
-        // Reset PSA if not RKE2
-        if (!value.includes('rke2')) {
-          set(this.value.spec, 'defaultPodSecurityPolicyTemplateName', '');
-        } else {
-          // Reset PSP if it's legacy due k8s version 1.25+
-          if (major === 1 && minor >= 25) {
-            set(this.value.spec, 'defaultPodSecurityPolicyTemplateName', '');
-          } else {
-            set(this.value.spec, 'defaultPodSecurityPolicyTemplateName', this.lastDefaultPodSecurityPolicyTemplateName);
-          }
-
-          this.previousKubernetesVersion = value;
-        }
 
         // If Harvester driver, reset cloud provider if not compatible
         if (this.isHarvesterDriver && this.mode === _CREATE && this.isHarvesterIncompatible) {
@@ -2067,13 +1957,6 @@ export default {
           set(this.agentConfig, 'cloud-provider-name', this.initialCloudProvider);
         }
       }
-    },
-
-    /**
-     * Keep last PSP value
-     */
-    handlePspChange(value) {
-      this.lastDefaultPodSecurityPolicyTemplateName = value;
     },
 
     handleShowDeprecatedPatchVersionsChanged(value) {
@@ -2110,9 +1993,7 @@ export default {
         }
       });
     },
-    handlePspChanged(neu) {
-      this.handlePspChange(neu);
-    },
+
     handleCisChanged() {
       this.handleCisChange();
     },
@@ -2317,23 +2198,18 @@ export default {
             :live-value="liveValue"
             :mode="mode"
             :provider="provider"
-            :psps="psps"
             :user-chart-values="userChartValues"
             :credential="credential"
             :cis-override="cisOverride"
-            :cis-psa-change-banner="cisPsaChangeBanner"
-            :all-psps="allPSPs"
             :all-psas="allPSAs"
             :addon-versions="addonVersions"
             :show-deprecated-patch-versions="showDeprecatedPatchVersions"
-            :needs-psp="needsPSP"
             :selected-version="selectedVersion"
             :is-harvester-driver="isHarvesterDriver"
             :is-harvester-incompatible="isHarvesterIncompatible"
             :version-options="versionOptions"
             :cluster-is-already-created="clusterIsAlreadyCreated"
             :is-elemental-cluster="isElementalCluster"
-            :has-psa-templates="hasPsaTemplates"
             :is-k3s="isK3s"
             :have-arg-info="haveArgInfo"
             :show-cni="showCni"
@@ -2343,7 +2219,6 @@ export default {
             @cilium-ipv6-changed="handleCiliumIpv6Changed"
             @enabled-system-services-changed="handleEnabledSystemServicesChanged"
             @kubernetes-changed="handleKubernetesChange"
-            @psp-changed="handlePspChanged"
             @cis-changed="handleCisChanged"
             @psa-default-changed="handlePsaDefaultChanged"
             @show-deprecated-patch-versions-changed="handleShowDeprecatedPatchVersionsChanged"

@@ -273,6 +273,7 @@ export default Vue.extend<{ phase: string}, any, any, any>({
     :data-testid="componentTestid + '-async-button'"
     @click="clicked"
   >
+    <span v-if="mode === 'manual-refresh'">{{ t('action.refresh') }}</span>
     <i
       v-if="displayIcon"
       v-clean-tooltip="tooltip"
@@ -285,3 +286,11 @@ export default Vue.extend<{ phase: string}, any, any, any>({
     />
   </button>
 </template>
+
+<style lang="scss" scoped>
+// refresh mode has icon + text. We need to fix the positioning of the icon and sizing
+.manual-refresh i {
+  margin: 0 0 0 8px !important;
+  font-size: 1rem !important;
+}
+</style>

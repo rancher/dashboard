@@ -1,5 +1,5 @@
 import {
-  CAPI, MANAGEMENT, NORMAN, SNAPSHOT, HCI
+  CAPI, MANAGEMENT, NAMESPACE, NORMAN, SNAPSHOT, HCI, LOCAL_CLUSTER
 } from '@shell/config/types';
 import SteveModel from '@shell/plugins/steve/steve-class';
 import { findBy } from '@shell/utils/array';
@@ -239,10 +239,24 @@ export default class ProvCluster extends SteveModel {
     return providers.includes(this.provisioner);
   }
 
+  get isLocal() {
+    return this.mgmt?.isLocal;
+  }
+
   get isImported() {
     // As of Rancher v2.6.7, this returns false for imported K3s clusters,
     // in which this.provisioner is `k3s`.
-    return this.provisioner === 'imported';
+
+    const isImportedProvisioner = this.provisioner === 'imported';
+    const isImportedSpecialCases = this.mgmt?.providerForEmberParam === 'import' ||
+      // when imported cluster is GKE
+      !!this.mgmt?.spec?.gkeConfig?.imported ||
+      // or AKS
+      !!this.mgmt?.spec?.aksConfig?.imported ||
+      // or EKS
+      !!this.mgmt?.spec?.eksConfig?.imported;
+
+    return !this.isLocal && (isImportedProvisioner || (!this.isRke2 && !this.mgmt?.machineProvider && isImportedSpecialCases));
   }
 
   get isCustom() {
@@ -262,8 +276,6 @@ export default class ProvCluster extends SteveModel {
   }
 
   get isImportedK3s() {
-    // As of Rancher v2.6.7, this returns false for imported K3s clusters,
-    // in which this.provisioner is `k3s`.
     return this.isImported && this.isK3s;
   }
 
@@ -280,7 +292,7 @@ export default class ProvCluster extends SteveModel {
   }
 
   get isRke1() {
-    return !!this.mgmt?.spec?.rancherKubernetesEngineConfig;
+    return !!this.mgmt?.spec?.rancherKubernetesEngineConfig || this.labels['provider.cattle.io'] === 'rke';
   }
 
   get isHarvester() {
@@ -870,5 +882,23 @@ export default class ProvCluster extends SteveModel {
 
   get hasError() {
     return this.status?.conditions?.some((condition) => condition.error === true);
+  }
+
+  get namespaceLocation() {
+    const localCluster = this.$rootGetters['management/byId'](MANAGEMENT.CLUSTER, LOCAL_CLUSTER);
+
+    if (localCluster) {
+      return {
+        name:   'c-cluster-product-resource-id',
+        params: {
+          cluster:  localCluster.id,
+          product:  this.$rootGetters['productId'],
+          resource: NAMESPACE,
+          id:       this.namespace
+        }
+      };
+    }
+
+    return null;
   }
 }

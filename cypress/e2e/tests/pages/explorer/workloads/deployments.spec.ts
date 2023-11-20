@@ -6,7 +6,7 @@ describe('Cluster Explorer', () => {
     cy.login();
   });
 
-  describe('Workloads', { tags: ['@standardUser', '@adminUser'] }, () => {
+  describe('Workloads', { tags: ['@standardUser', '@adminUser', '@flaky'] }, () => {
     let deploymentsListPage: WorkloadsDeploymentsListPagePo;
     let deploymentsCreatePage: WorkloadsDeploymentsCreatePagePo;
 
@@ -46,15 +46,15 @@ describe('Cluster Explorer', () => {
       const { name: workloadName, namespace } = createDeploymentBlueprint.metadata;
       const workloadDetailsPage = new WorkloadsDeploymentsDetailsPagePo(workloadName);
 
-      // Collect the name of the workload for cleanup
-      e2eWorkloads.push({ name: workloadName, namespace });
-
       beforeEach(() => {
         cy.intercept('GET', `/v1/apps.deployments/${ namespace }/${ workloadName }`).as('testWorkload');
         cy.intercept('GET', `/v1/apps.deployments/${ namespace }/${ workloadName }`).as('clonedPod');
 
         deploymentsListPage.goTo();
         deploymentsListPage.createWithKubectl(createDeploymentBlueprint);
+
+        // Collect the name of the workload for cleanup
+        e2eWorkloads.push({ name: workloadName, namespace });
       });
 
       it('Should be able to scale the number of pods', () => {
@@ -89,8 +89,8 @@ describe('Cluster Explorer', () => {
     // This is here because need to delete the workload after the test
     // But need to reuse the same workload for multiple tests
     after(() => {
-      deploymentsListPage.goTo();
-      e2eWorkloads.forEach(({ name, namespace }) => {
+      deploymentsListPage?.goTo();
+      e2eWorkloads?.forEach(({ name, namespace }) => {
         deploymentsListPage.deleteWithKubectl(name, namespace);
       });
     });
