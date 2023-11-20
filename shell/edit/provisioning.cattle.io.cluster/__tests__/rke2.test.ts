@@ -265,7 +265,7 @@ describe('component: rke2', () => {
         stubs: defaultStubs
       });
       const agent = wrapper.find('[data-testid="rke2-cluster-agent-config"]');
-
+      
       // Setting RKE to avoid calls
       wrapper.setData({ rke2Versions: [] });
 

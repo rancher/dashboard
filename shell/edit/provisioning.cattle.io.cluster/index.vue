@@ -15,7 +15,7 @@ import { mapPref, PROVISIONER, _RKE1, _RKE2 } from '@shell/store/prefs';
 import { filterAndArrangeCharts } from '@shell/store/catalog';
 import { CATALOG } from '@shell/config/labels-annotations';
 import { CAPI, MANAGEMENT, DEFAULT_WORKSPACE } from '@shell/config/types';
-import { mapFeature, RKE2 as RKE2_FEATURE } from '@shell/store/features';
+import { mapFeature, RKE2 as RKE2_FEATURE, RKE1_UI } from '@shell/store/features';
 import { allHash } from '@shell/utils/promise';
 import { BLANK_CLUSTER } from '@shell/store/store-types.js';
 import { ELEMENTAL_PRODUCT_NAME, ELEMENTAL_CLUSTER_PROVIDER } from '../../config/elemental-types';
@@ -228,6 +228,7 @@ export default {
     },
 
     rke2Enabled: mapFeature(RKE2_FEATURE),
+    rke1UiEnabled: mapFeature(RKE1_UI),
 
     provisioner: {
       get() {
@@ -235,6 +236,10 @@ export default {
         // of rke2 for cluster owners.
         if ( !this.rke2Enabled ) {
           return _RKE1;
+        }
+
+        if ( !this.rke1UiEnabled ) {
+          return _RKE2;
         }
 
         return this.preferredProvisioner;
@@ -384,9 +389,10 @@ export default {
       const out = {};
 
       for ( const row of this.subTypes ) {
-        const name = row.group;
+        let name = row.group;
+        
         let entry = out[name];
-
+       
         if ( !entry ) {
           entry = {
             name,
@@ -419,6 +425,7 @@ export default {
 
   methods: {
     showRkeToggle(i) {
+
       if (this.isImport || !this.rke2Enabled) {
         return false;
       }
@@ -545,7 +552,7 @@ export default {
       >
         <h4>
           <div
-            v-if="showRkeToggle(i)"
+            v-if="showRkeToggle(i) && rke1UiEnabled"
             class="grouped-type"
           >
             <ToggleSwitch

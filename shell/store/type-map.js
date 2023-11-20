@@ -912,6 +912,10 @@ export const getters = {
             continue;
           }
 
+          if (item.ifFeature && !rootGetters['features/get'](item.ifFeature)) {
+            continue;
+          }
+
           if ( isBasic && !getters.groupForBasicType(product, id) ) {
             continue;
           } else if ( mode === FAVORITE && !getters.isFavorite(id) ) {
