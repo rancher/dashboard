@@ -10,7 +10,7 @@ const userCreate = usersPo.createEdit();
 const runTimestamp = +new Date();
 const runPrefix = `e2e-test-${ runTimestamp }`;
 const downloadsFolder = Cypress.config('downloadsFolder');
-const standardUsername = `${ runPrefix }-standard-user`;
+const standardUsername = `${ runPrefix }StandardUser`;
 const standardPassword = 'standardUser-password';
 const userBaseUsername = `${ runPrefix }-userBase-user`;
 
