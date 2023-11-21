@@ -1,65 +1,54 @@
 import { createLocalVue, shallowMount } from '@vue/test-utils';
 import ClusterCreate from '@shell/edit/provisioning.cattle.io.cluster/index.vue';
 
+const defaultStore = {
+  defaultClusterId:          jest.fn(),
+  clusterId:                 jest.fn(),
+  'type-map/activeProducts': [],
+  'catalog/charts':          [],
+  'prefs/get':               jest.fn(),
+  'mapFeature/get':          jest.fn(),
+  'i18n/withFallback':       jest.fn(),
+};
+
+const defaultStubs = {
+  CruResource:  { template: '<div><slot></slot></div>' }, // Required to render the slot content
+};
+
 describe('component: Cluster: Create', () => {
   it('should hide RKE1 and RKE2 toggle button', () => {
-    const mockedValidationMixin = {
-      methods: {
-        fvFormIsValid:                jest.fn(),
-        type:                         jest.fn(),
-        fvUnreportedValidationErrors: jest.fn(),
-        fvGetAndReportPathRules:      jest.fn(),
-      }
-    };
-
     const mockedClusterCreateMixin = {
       methods: {
         selectType: jest.fn(),
-        errors:     jest.fn(),
+        save:       jest.fn(),
       }
     };
 
     const MockedClusterCreate = { ...ClusterCreate, mixins: [ mockedClusterCreateMixin] };
     const wrapper = shallowMount(MockedClusterCreate, {
       propsData: {
-        value:         { metadata: {}, spec: { template: {} } },
-        realMode:      '',
-        mode:      '',
-        params:        {},
-        fvFormIsValid: {}
+        value:            { metadata: {}, spec: { template: {} } },
+        realMode:         '',
+        mode:             '',
+        componentTestid:  'cluster-manager-create',
       },
       mocks: {
         $route:      { params: {}, query: {} },
         $router:     { applyQuery: jest.fn() },
         $fetchState: { pending: false },
-        namespace:   true,
-        $store:      {
+        $store: {
           getters: {
-            'type-map/activeProducts': () => [],
+            ...defaultStore,
             'i18n/t':            jest.fn(),
+            'features/get':      () => jest.fn(),
           },
         },
       },
-      // stubs: {
-      //   Tab:                 true,
-      //   LabeledInput:        true,
-      //   VolumeClaimTemplate: true,
-      //   Networking:          true,
-      //   Job:                 true,
-      //   NodeScheduling:      true,
-      //   PodAffinity:         true,
-      //   Tolerations:         true,
-      //   Storage:             true,
-      //   Tabbed:              true,
-      //   LabeledSelect:       true,
-      //   NameNsDescription:   true,
-      //   CruResource:         true,
-      //   KeyValue:            true
-      // }
+      stubs: defaultStubs
     });
 
-    // const result = (wrapper.vm as any).mapError(oldMessage).message;
-    const element = wrapper.find('data-testid="cluster-manager-create-rke-switch"').element;
+    
+    const element = wrapper.find('[data-testid="cluster-manager-create-rke-switch"]').element;
     expect(element).toBeDefined();
   });
 });

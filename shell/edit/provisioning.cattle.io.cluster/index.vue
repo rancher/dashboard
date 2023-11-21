@@ -271,8 +271,8 @@ export default {
     subTypes() {
       const getters = this.$store.getters;
       const isImport = this.isImport;
-      const isElementalActive = !!this.activeProducts.find((item) => item.name === ELEMENTAL_PRODUCT_NAME);
-
+      const isElementalActive = !!getters['type-map/activeProducts'].find((item) => item.name === ELEMENTAL_PRODUCT_NAME);
+      console.log(getters['type-map/activeProducts'])
       const out = [];
 
       const templates = this.templateOptions;

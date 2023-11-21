@@ -18,6 +18,7 @@ module.exports = {
     '@shell/(.*)':      '<rootDir>/shell/$1',
     '@pkg/(.*)':        '<rootDir>/pkg/$1',
     '@components/(.*)': '<rootDir>/pkg/rancher-components/src/components/$1',
+    '\\.(jpe?g|png|gif|webp|svg|mp4|webm|ogg|mp3|wav|flac|aac|woff2?|eot|ttf|otf)$':'<rootDir>/svgTransform.js',
   },
   modulePathIgnorePatterns: [
     '<rootDir>/cypress/',
