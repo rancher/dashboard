@@ -69,6 +69,7 @@ export default Vue.extend({
   border: 1px solid var(--border)
 }
 .accordion-header {
+  padding: 5px;
   display: flex;
   align-items: center;
   &>*{

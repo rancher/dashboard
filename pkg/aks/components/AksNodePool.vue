@@ -49,6 +49,10 @@ export default defineComponent({
       default: false
     },
 
+    canUseAvailabilityZones: {
+      type:    Boolean,
+      default: true
+    }
   },
 
   data() {
@@ -77,10 +81,21 @@ export default defineComponent({
       if (neu) {
         this.$emit('vmSizeSet');
       }
+    },
+
+    validAZ(neu) {
+      this.$set(this.pool, '_validAZ', neu);
+      this.$emit('input');
     }
   },
 
-  computed: { ...mapGetters({ t: 'i18n/t' }) },
+  computed: {
+    ...mapGetters({ t: 'i18n/t' }),
+
+    validAZ(): Boolean {
+      return !this.pool.availabilityZones || !this.pool.availabilityZones.length || this.canUseAvailabilityZones;
+    }
+  },
 
   methods: {
     addTaint(): void {
@@ -97,6 +112,10 @@ export default defineComponent({
 
     removeTaint(idx: number): void {
       this.taints.splice(idx, 1);
+    },
+
+    availabilityZonesSupport() {
+      return this.validAZ ? undefined : this.t('aks.errors.availabilityZones');
     }
   },
 });
@@ -133,7 +152,9 @@ export default defineComponent({
           :mode="mode"
           :multiple="true"
           :taggable="true"
-          :disabled="!pool._isNewOrUnprovisioned"
+          :disabled="!pool._isNewOrUnprovisioned || (!canUseAvailabilityZones && !(pool.availabilityZones && pool.availabilityZones.length))"
+          :require-dirty="false"
+          :rules="[availabilityZonesSupport]"
         />
       </div>
       <div class="col span-2">
@@ -236,6 +257,10 @@ export default defineComponent({
       <div class="col span-12">
         <div class="text-label">
           {{ t('aks.nodePools.taints.label') }}
+          <i
+            v-tooltip="t('aks.nodePools.taints.tooltip')"
+            class="icon icon-info"
+          />
         </div>
         <table
           v-if="taints && taints.length"

@@ -2,9 +2,13 @@ aks:
   label: Azure AKS
   location:
     label: Region
+    withAZ: Regions with Availability Zones
+    withoutAZ: Regions without Availability Zones
+    azWarning: No availablity zones are available for the selected region. For the most resiliency it is recommended to select a High Availablity region.
   clusterResourceGroup:
     label: Cluster Resource Group
     placeholder: 'aks-resource-group'
+    tooltip: "Use an existing resource group or enter a new resource group name and one will be created for you. Note: Using a resource group containing an existing AKS cluster will create a new resource group. Azure AKS only allows one AKS cluster per resource group."
   kubernetesVersion:
     label: Kubernetes Version
     current: '{version} (Current)'
@@ -56,6 +60,7 @@ aks:
       value: Value
       effect: Effect
       addTaint: Add Taint
+      tooltip: Taint must be unique by key and effect pair.
     mode:
       systemRequired: At least one node pool must use the 'system' mode.
       label: Mode
@@ -117,6 +122,7 @@ aks:
     label: HTTP Application Routing
   privateCluster:
     label: Enable Private Cluster
+    warning:  AKS private clusters is an advanced use case which requires {vendor} to be running on the same NAT as the AKS nodes. Before enabling private clusters ensure you have read through the <a href="{docsBase}/reference-guides/cluster-configuration/rancher-server-configuration/aks-cluster-configuration#support-private-kubernetes-service" target="_blank" rel="nofollow noopener noreferrer">AKS cluster provisioning docs</a> for instructions on configuring AKS so nodes may communicate with {vendor}.
   setAuthorizedIPRanges:
     label: Set Authorized IP Ranges
   authorizedIpRanges:
@@ -140,3 +146,4 @@ aks:
     ipv4Cidr: "{key} must be a valid CIDR notation ipv4 range."
     ipv4: "{key} must be a valid ipv4 address."
     outboundType: Load Balancer SKU must be 'standard' to use user defined routing.
+    availabilityZones: Availability zones are not available in the selected region.

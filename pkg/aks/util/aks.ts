@@ -5,6 +5,42 @@ import { addParams, QueryParams } from '@shell/utils/url';
 import { AKSVirtualNetwork } from 'types';
 import { Store } from 'vuex';
 
+// taken from https://learn.microsoft.com/en-us/azure/reliability/availability-zones-service-support#azure-regions-with-availability-zone-support
+
+export const regionsWithAvailabilityZones = {
+  brazilsouth:        true,
+  francecentral:      true,
+  qatarcentral:       true,
+  southafricanorth:   true,
+  australiaeast:      true,
+  canadacentral:      true,
+  italynorth:         true,
+  uaenorth:           true,
+  centralindia:       true,
+  centralus:          true,
+  germanywestcentral: true,
+  israelcentral:      true,
+  japaneast:          true,
+  eastus:             true,
+  norwayeast:         true,
+  koreacentral:       true,
+  eastus2:            true,
+  northeurope:        true,
+  southeastasia:      true,
+  southcentral:       true,
+  us:                 true,
+  uksouth:            true,
+  eastasia:           true,
+  usgovvirginia:      true,
+  westeurope:         true,
+  chinanorth3:        true,
+  westus2:            true,
+  swedencentral:      true,
+  westus3:            true,
+  switzerlandnorth:   true,
+  polandcentral:      true
+} as any;
+
 /**
  *
  * @param store vuex store used to make the GET request

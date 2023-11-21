@@ -1,6 +1,6 @@
 <script lang='ts'>
 import semver from 'semver';
-import { mapGetters } from 'vuex';
+import { mapGetters, Store } from 'vuex';
 import { defineComponent } from 'vue';
 
 import { randomStr } from '@shell/utils/string';
@@ -26,12 +26,14 @@ import Labels from '@shell/components/form/Labels.vue';
 import Tab from '@shell/components/Tabbed/Tab.vue';
 import Tabbed from '@shell/components/Tabbed/index.vue';
 import Accordion from '@components/Accordion/Accordion.vue';
+import Banner from '@components/Banner/Banner.vue';
 
 import ClusterMembershipEditor, { canViewClusterMembershipEditor } from '@shell/components/form/Members/ClusterMembershipEditor.vue';
 import AksNodePool from '@pkg/aks/components/AksNodePool.vue';
 import type { AKSDiskType, AKSNodePool, AKSPoolMode, AKSConfig } from '../types/index';
 import {
   diffUpstreamSpec, getAKSRegions, getAKSVirtualNetworks, getAKSVMSizes, getAKSKubernetesVersions
+  , regionsWithAvailabilityZones
 } from '@pkg/aks/util/aks';
 import {
   requiredInCluster,
@@ -109,7 +111,8 @@ export default defineComponent({
     Labels,
     Tabbed,
     Tab,
-    Accordion
+    Accordion,
+    Banner
   },
 
   mixins: [CreateEditView, FormValidation],
@@ -131,12 +134,14 @@ export default defineComponent({
 
   // AKS provisioning needs to use the norman API - a provisioning cluster resource will be created byt he BE when the norman cluster is made but v2 prov clusters don't contain the relevant aks configuration fields
   async fetch() {
+    const store = this.$store as Store<any>;
+
     if (this.value.id) {
       this.normanCluster = await this.value.findNormanCluster();
       // track original version on edit to ensure we don't offer k8s downgrades
       this.originalVersion = this.normanCluster?.aksConfig?.kubernetesVersion;
     } else {
-      this.normanCluster = await this.$store.dispatch('rancher/create', { type: NORMAN.CLUSTER, ...defaultCluster }, { root: true });
+      this.normanCluster = await store.dispatch('rancher/create', { type: NORMAN.CLUSTER, ...defaultCluster }, { root: true });
     }
     if (!this.normanCluster.aksConfig) {
       this.$set(this.normanCluster, 'aksConfig', { ...defaultAksConfig });
@@ -155,9 +160,10 @@ export default defineComponent({
   },
 
   data() {
+    const store = this.$store as Store<any>;
     // This setting is used by RKE1 AKS GKE and EKS - rke2/k3s have a different mechanism for fetching supported versions
-    const supportedVersionRange = this.$store.getters['management/byId'](MANAGEMENT.SETTING, SETTING.UI_SUPPORTED_K8S_VERSIONS)?.value;
-    const t = this.$store.getters['i18n/t'];
+    const supportedVersionRange = store.getters['management/byId'](MANAGEMENT.SETTING, SETTING.UI_SUPPORTED_K8S_VERSIONS)?.value;
+    const t = store.getters['i18n/t'];
 
     return {
       normanCluster:    { name: '' } as any,
@@ -170,6 +176,7 @@ export default defineComponent({
       locationOptions:       [] as string[],
       allAksVersions:        [] as string[],
       vmSizeOptions:         [] as string[],
+      vmSizeInfo:            {} as any,
       virtualNetworkOptions: [] as any[],
       defaultVmSize:         defaultNodePool.vmSize as string,
 
@@ -219,7 +226,7 @@ export default defineComponent({
       },
       {
         path:  'nodePools',
-        rules: ['systemPoolRequired']
+        rules: ['systemPoolRequired', 'availabilityZoneSupport']
       },
       {
         path:  'authorizedIpRanges',
@@ -246,9 +253,12 @@ export default defineComponent({
   },
 
   created() {
-    this.registerBeforeHook(this.cleanPoolsForSave);
-    this.registerBeforeHook(this.removeUnchangedConfigFields);
-    this.registerAfterHook(this.saveRoleBindings, 'save-role-bindings');
+    const registerBeforeHook = this.registerBeforeHook as Function;
+    const registerAfterHook = this.registerBeforeHook as Function;
+
+    registerBeforeHook(this.cleanPoolsForSave);
+    registerBeforeHook(this.removeUnchangedConfigFields);
+    registerAfterHook(this.saveRoleBindings, 'save-role-bindings');
   },
 
   computed: {
@@ -331,6 +341,27 @@ export default defineComponent({
 
           return systemPool ? undefined : this.t('aks.nodePools.mode.systemRequired');
         },
+
+        availabilityZoneSupport: () => {
+          if (this.canUseAvailabilityZones) {
+            // this.nodePools.forEach((pool: AKSNodePool) => {
+            //   pool._validAZ = true;
+            // });
+
+            return undefined;
+          }
+          let isUsingAvailabilityZones = false;
+
+          this.nodePools.forEach((pool: AKSNodePool) => {
+            if (pool.availabilityZones && pool.availabilityZones.length) {
+              isUsingAvailabilityZones = true;
+              // pool._validAZ = false;
+            }
+          });
+          // const isUsingAvailabilityZones = !!this.nodePools.find((pool: AKSNodePool) => pool.availabilityZones && pool.availabilityZones.length);
+
+          return this.canUseAvailabilityZones || !isUsingAvailabilityZones ? undefined : this.t('aks.errors.availabilityZones');
+        }
 
       };
     },
@@ -446,6 +477,10 @@ export default defineComponent({
 
     canManageMembers(): Boolean {
       return canViewClusterMembershipEditor(this.$store);
+    },
+
+    canUseAvailabilityZones(): Boolean {
+      return regionsWithAvailabilityZones[this.config.resourceLocation] || !this.config.resourceLocation;
     }
   },
 
@@ -497,7 +532,7 @@ export default defineComponent({
       if (neu && old) {
         this.touchedVersion = true;
       }
-    },
+    }
   },
 
   methods: {
@@ -524,9 +559,21 @@ export default defineComponent({
       try {
         const res = await getAKSRegions(this.$store, azureCredentialSecret, this.clusterId);
 
-        this.locationOptions = res;
+        // sort by availability zone support
+        const withAZ = [] as Array<any>;
+        const withoutAZ = [] as Array<any>;
+
+        res.forEach((region: any) => {
+          if (regionsWithAvailabilityZones[region.name]) {
+            withAZ.push(region);
+          } else {
+            withoutAZ.push(region);
+          }
+        });
+
+        this.locationOptions = [{ displayName: this.t('aks.location.withAZ'), kind: 'group' }, ...withAZ, { displayName: this.t('aks.location.withoutAZ'), kind: 'group' }, ...withoutAZ];
         if (!this.config?.resourceLocation) {
-          if (res.find((r) => r.name === DEFAULT_REGION)) {
+          if (res.find((r: any) => r.name === DEFAULT_REGION)) {
             this.$set(this.config, 'resourceLocation', DEFAULT_REGION);
           } else {
             this.$set(this.config, 'resourceLocation', res[0]?.name);
@@ -536,8 +583,9 @@ export default defineComponent({
       } catch (err: any) {
         this.loadingLocations = false;
         const parsedError = parseAzureError(err.error || '');
+        const errors = this.errors as Array<string>;
 
-        this.errors.push(this.t('aks.errors.regions', { e: parsedError || err }));
+        errors.push(this.t('aks.errors.regions', { e: parsedError || err }));
       }
     },
 
@@ -556,8 +604,9 @@ export default defineComponent({
         this.loadingVersions = false;
 
         const parsedError = parseAzureError(err.error || '');
+        const errors = this.errors as Array<string>;
 
-        this.errors.push(this.t('aks.errors.kubernetesVersions', { e: parsedError || err }));
+        errors.push(this.t('aks.errors.kubernetesVersions', { e: parsedError || err }));
       }
     },
 
@@ -582,8 +631,9 @@ export default defineComponent({
         this.loadingVmSizes = false;
 
         const parsedError = parseAzureError(err.error || '');
+        const errors = this.errors as Array<string>;
 
-        this.errors.push(this.t('aks.errors.vmSizes.fetching', { e: parsedError || err }));
+        errors.push(this.t('aks.errors.vmSizes.fetching', { e: parsedError || err }));
       }
     },
 
@@ -602,9 +652,10 @@ export default defineComponent({
         this.loadingVirtualNetworks = false;
       } catch (err:any) {
         const parsedError = parseAzureError(err.error || '');
+        const errors = this.errors as Array<string>;
 
         this.loadingVirtualNetworks = false;
-        this.errors.push(this.t('aks.errors.virtualNetworks', { e: parsedError || err }));
+        errors.push(this.t('aks.errors.virtualNetworks', { e: parsedError || err }));
       }
     },
 
@@ -620,7 +671,7 @@ export default defineComponent({
       }
 
       this.nodePools.push({
-        ...defaultNodePool, name: poolName, _id, mode, vmSize: this.defaultVmSize
+        ...defaultNodePool, name: poolName, _id, mode, vmSize: this.defaultVmSize, availabilityZones: this.canUseAvailabilityZones ? ['1', '2', '3'] : []
       });
 
       this.$nextTick(() => {
@@ -664,9 +715,11 @@ export default defineComponent({
     // these fields are used purely in UI, to track individual nodepool components
     cleanPoolsForSave(): void {
       this.nodePools.forEach((pool: AKSNodePool) => {
-        delete pool._id;
-        delete pool._isNewOrUnprovisioned;
-        delete pool._validSize;
+        Object.keys(pool).forEach((key: string) => {
+          if (key.startsWith('_')) {
+            delete pool[key as keyof AKSNodePool];
+          }
+        });
       });
     },
 
@@ -770,13 +823,18 @@ export default defineComponent({
         </div>
       </div>
       <template v-if="config.resourceLocation && config.resourceLocation.length">
+        <Banner
+          v-if="!canUseAvailabilityZones"
+          label-key="aks.location.azWarning"
+          color="warning"
+        />
         <div><h4>{{ t('aks.nodePools.title') }}</h4></div>
         <Tabbed
           ref="pools"
           :side-tabs="true"
           :show-tabs-add-remove="mode !== 'view'"
           :rules="fvGetAndReportPathRules('vmSize')"
-          class="mb-10"
+          class="mb-20"
           @addTab="addPool($event)"
           @removeTab="removePool($event)"
         >
@@ -785,7 +843,7 @@ export default defineComponent({
             :key="pool._id"
             :name="pool.name"
             :label="pool.name || t('aks.nodePools.notNamed')"
-            :error="pool._validSize === false"
+            :error="pool._validSize === false || pool._validAZ === false"
           >
             <AksNodePool
               :mode="mode"
@@ -794,7 +852,8 @@ export default defineComponent({
               :vm-size-options="vmSizeOptions"
               :loading-vm-sizes="loadingVmSizes"
               :isPrimaryPool="i===0"
-              :rules="fvGetAndReportPathRules('minCount', 'maxCount')"
+              :can-use-availability-zones="canUseAvailabilityZones"
+              :rules="fvGetAndReportPathRules('nodePools')"
               @remove="removePool(pool)"
               @vmSizeSet="touchedVmSize = true"
             />
@@ -803,7 +862,7 @@ export default defineComponent({
 
         <Accordion
           :open-initially="true"
-          class="mb-10"
+          class="mb-20"
           title-key="aks.accordions.basics"
         >
           <div
@@ -828,6 +887,7 @@ export default defineComponent({
                 :rules="fvGetAndReportPathRules('resourceGroup')"
                 :required="true"
                 placeholder-key="aks.clusterResourceGroup.placeholder"
+                :tooltip="t('aks.clusterResourceGroup.tooltip')"
               />
             </div>
             <div class="col span-3">
@@ -838,6 +898,7 @@ export default defineComponent({
                 :rules="fvGetAndReportPathRules('nodeResourceGroup')"
                 :disabled="!isNewOrUnprovisioned"
                 placeholder-key="aks.nodeResourceGroup.placeholder"
+                :tooltip="t('aks.nodeResourceGroup.tooltip')"
               />
             </div>
             <div class="col span-3">
@@ -902,7 +963,7 @@ export default defineComponent({
           </div>
         </Accordion>
         <Accordion
-          class="mb-10"
+          class="mb-20"
           title-key="aks.accordions.networking"
           :open-initially="true"
         >
@@ -957,7 +1018,7 @@ export default defineComponent({
                 label-key="aks.networkPolicy.label"
                 option-key="value"
                 :reduce="opt=>opt.value"
-                tooltip-key="aks.networkPolicy.tooltip"
+                :tooltip="t('aks.networkPolicy.tooltip')"
                 :disabled="!isNewOrUnprovisioned"
               />
             </div>
@@ -1018,6 +1079,7 @@ export default defineComponent({
               />
             </div>
           </div>
+
           <div class="row mb-10">
             <div class="networking-checkboxes col span-6">
               <Checkbox
@@ -1065,9 +1127,16 @@ export default defineComponent({
               </ArrayList>
             </div>
           </div>
+          <div class="row mb-10">
+            <Banner
+              v-if="config.privateCluster"
+              color="warning"
+              label-key="aks.privateCluster.warning"
+            />
+          </div>
         </Accordion>
         <Accordion
-          class="mb-10"
+          class="mb-20"
           title-key="aks.accordions.clusterMembers"
         >
           <ClusterMembershipEditor
@@ -1078,7 +1147,7 @@ export default defineComponent({
           />
         </Accordion>
         <Accordion
-          class="mb-10"
+          class="mb-20"
           title-key="aks.accordions.labels"
         >
           <Labels

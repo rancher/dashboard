@@ -27,6 +27,7 @@ export interface AKSNodePool {
   _isNewOrUnprovisioned?: Boolean,
   _id?: String
   _validSize?: Boolean
+  _validAZ?: Boolean
 }
 
 export interface AKSConfig {
