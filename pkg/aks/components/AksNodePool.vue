@@ -225,15 +225,15 @@ export default defineComponent({
           label-key="aks.nodePools.maxSurge.label"
         />
       </div>
-      <div class="col span-2">
+    </div>
+    <div class="row mb-10">
+      <div class="col span-3">
         <Checkbox
           v-model="pool.enableAutoScaling"
           :mode="mode"
           label-key="aks.nodePools.enableAutoScaling.label"
         />
       </div>
-    </div>
-    <div class="row mb-10">
       <template v-if="pool.enableAutoScaling">
         <div class="col span-3">
           <LabeledInput

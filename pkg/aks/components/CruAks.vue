@@ -226,7 +226,11 @@ export default defineComponent({
       },
       {
         path:  'nodePools',
-        rules: ['systemPoolRequired', 'availabilityZoneSupport']
+        rules: ['availabilityZoneSupport']
+      },
+      {
+        path:  'nodePoolsGeneral',
+        rules: ['systemPoolRequired']
       },
       {
         path:  'authorizedIpRanges',
@@ -481,6 +485,10 @@ export default defineComponent({
 
     canUseAvailabilityZones(): Boolean {
       return regionsWithAvailabilityZones[this.config.resourceLocation] || !this.config.resourceLocation;
+    },
+
+    canEnableNetworkPolicy(): Boolean {
+      return this.networkPolicy !== 'none';
     }
   },
 
@@ -502,6 +510,12 @@ export default defineComponent({
     setAuthorizedIpRanges(neu) {
       if (neu) {
         this.$set(this.config, 'privateCluster', false);
+      }
+    },
+
+    canEnableNetworkPolicy(neu) {
+      if (!neu) {
+        this.$set(this.value, 'enableNetworkPolicy', false);
       }
     },
 
@@ -1086,7 +1100,8 @@ export default defineComponent({
                 v-model="value.enableNetworkPolicy"
                 :mode="mode"
                 label-key="aks.enableNetworkPolicy.label"
-                :disabled="!isNewOrUnprovisioned"
+                :disabled="!isNewOrUnprovisioned || !canEnableNetworkPolicy"
+                :tooltip="t('aks.enableNetworkPolicy.tooltip')"
               />
               <Checkbox
                 v-model="config.httpApplicationRouting"

@@ -118,6 +118,7 @@ aks:
     tooltip: This range must not be in any subnet ranges, or the Kubernetes service address range.
   enableNetworkPolicy:
     label: Project Network Isolation
+    tooltip: You must have a network selected to use Project Network Isolation.
   httpApplicationRouting:
     label: HTTP Application Routing
   privateCluster:

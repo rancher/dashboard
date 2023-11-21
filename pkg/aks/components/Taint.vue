@@ -64,21 +64,22 @@ export default defineComponent({
 
 <template>
   <tr class="taint">
-    <td>
+    <td :style="{'width': '40%'}">
       <input
         v-model="key"
         label="key"
         :mode="mode"
       >
     </td>
-    <td>
+    <td :style="{'width': '40%'}">
       <input
         v-model="value"
         label="value"
         :mode="mode"
+        type="text"
       >
     </td>
-    <td>
+    <td :style="{'width': '15%'}">
       <Select
         v-model="effect"
         :mode="mode"
