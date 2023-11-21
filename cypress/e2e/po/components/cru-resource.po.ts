@@ -6,4 +6,9 @@ export default class CruResourcePo extends ComponentPo {
       .eq(groupIndex).find('.item')
       .eq(itemIndex);
   }
+
+  selectSubTypeByIndex(index: number) {
+    return this.self().find('.subtypes-container > div')
+      .eq(index);
+  }
 }

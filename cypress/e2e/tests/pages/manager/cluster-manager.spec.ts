@@ -23,6 +23,8 @@ import ProductNavPo from '@/cypress/e2e/po/side-bars/product-side-nav.po';
 import RkeDriversPagePo from '@/cypress/e2e/po/pages/cluster-manager/rke-drivers.po';
 import EmberModalClusterDriverPo from '@/cypress/e2e/po/components/ember/ember-modal-add-edit-cluster-driver.po';
 import RkeTemplatesPagePo from '@/cypress/e2e/po/pages/cluster-manager/rke-templates.po';
+import NodeTemplatesPagePo from '@/cypress/e2e/po/pages/cluster-manager/node-templates.po';
+import CloudCredentialsPagePo from '@/cypress/e2e/po/pages/cluster-manager/cloud-credentials.po';
 // At some point these will come from somewhere central, then we can make tools to remove resources from this or all runs
 const runTimestamp = +new Date();
 const runPrefix = `e2e-test-${ runTimestamp }`;
@@ -434,23 +436,113 @@ describe('Cluster Manager', { testIsolation: 'off', tags: ['@manager', '@adminUs
     shellPo.closeTerminal();
   });
 
-  describe('Cloud Credentials', { tags: ['@jenkins', '@adminUser', '@standardUser'] }, () => { // only run this in jenkins pipeline
-    it('can see error when authentication fails', () => {
+  // will only run this in jenkins pipeline where cloud credentails are stored
+  describe.only('Cloud Credentials', { tags: ['@jenkins', '@adminUser', '@standardUser'] }, () => {
+    const cloudCredentialsPage = new CloudCredentialsPagePo();
+    const cloudCredName = `e2e-cloud-cred-name-${ runTimestamp }`;
+    const cloudCredDescription = `e2e-cloud-cred-description-${ runTimestamp }`;
+    let id = '';
+
+    it('can navigate to Cloud Credentials page', () => {
       clusterList.goTo();
-      cy.contains('Authentication test failed, please check your credentials');
+      sideNav.groups().contains('RKE1 Configuration').click();
+      sideNav.navToSideMenuEntryByLabel('Cloud Credentials');
+      cloudCredentialsPage.waitForPage();
     });
 
-    it('can create cloud credentials', () => {
+    it('can see error when authentication fails', () => {
+      cloudCredentialsPage.goTo();
+      cloudCredentialsPage.create();
+      cloudCredentialsPage.createEditCloudCreds().waitForPage();
+      cloudCredentialsPage.createEditCloudCreds().cloudServiceOptions().selectSubTypeByIndex(0).click();
+      cloudCredentialsPage.createEditCloudCreds().name().set(cloudCredName);
+      cloudCredentialsPage.createEditCloudCreds().description().set(cloudCredDescription);
+      cloudCredentialsPage.createEditCloudCreds().accessKey().set(Cypress.env('awsAccessKey'));
+      cloudCredentialsPage.createEditCloudCreds().secretKey().set(`${ Cypress.env('awsSecretKey') }abc`, true);
+      cloudCredentialsPage.createEditCloudCreds().defaultRegion().checkOptionSelected('us-west-2');
+      cloudCredentialsPage.createEditCloudCreds().saveCreateForm().click();
+      cy.contains('Authentication test failed, please check your credentials').should('be.visible');
+    });
+
+    it.only('can create cloud credentials', () => {
+      cloudCredentialsPage.goTo();
+      cloudCredentialsPage.create();
+      cloudCredentialsPage.createEditCloudCreds().waitForPage();
+      cloudCredentialsPage.createEditCloudCreds().cloudServiceOptions().selectSubTypeByIndex(0).click();
+      cloudCredentialsPage.createEditCloudCreds().name().set(cloudCredName);
+      cloudCredentialsPage.createEditCloudCreds().description().set(cloudCredDescription);
+      cloudCredentialsPage.createEditCloudCreds().accessKey().set(Cypress.env('awsAccessKey'));
+      cloudCredentialsPage.createEditCloudCreds().secretKey().set(Cypress.env('awsSecretKey'), true);
+      cloudCredentialsPage.createEditCloudCreds().defaultRegion().checkOptionSelected('us-west-2');
+      cloudCredentialsPage.createEditCloudCreds().saveAndWaitForRequests('POST', '/v3/cloudcredentials').then((req) => {
+        id = req.response?.body.id;
+      });
+      cloudCredentialsPage.waitForPage();
     });
 
     it('can edit cloud credentials', () => {
-      // edit description
+      cloudCredentialsPage.goTo();
+      cloudCredentialsPage.list().actionMenu(cloudCredName).getMenuItem('Edit Config').click();
+      cloudCredentialsPage.createEditCloudCreds(id).waitForPage();
+      cloudCredentialsPage.createEditCloudCreds().description().set(`${ cloudCredDescription }-edit`);
+      cloudCredentialsPage.createEditCloudCreds().secretKey().set(Cypress.env('awsSecretKey'), true);
+      cloudCredentialsPage.createEditCloudCreds().saveAndWaitForRequests('PUT', '/v3/cloudCredentials/**');
+      cloudCredentialsPage.waitForPage();
+
+      // check list details
+      cloudCredentialsPage.list().details(`${ cloudCredDescription }-edit`, 3).should('be.visible');
     });
 
     it('can clone cloud credentials', () => {
+      cloudCredentialsPage.goTo();
+      cloudCredentialsPage.list().actionMenu(`${ cloudCredDescription }-edit`).getMenuItem('Clone').click();
+      cloudCredentialsPage.createEditCloudCreds().name().set(`${ cloudCredName }-clone`);
+      cloudCredentialsPage.createEditCloudCreds().accessKey().set(Cypress.env('awsAccessKey'));
+      cloudCredentialsPage.createEditCloudCreds().secretKey().set(Cypress.env('awsSecretKey'), true);
+      cloudCredentialsPage.createEditCloudCreds().defaultRegion().checkOptionSelected('us-west-2');
+      cloudCredentialsPage.createEditCloudCreds().saveAndWaitForRequests('POST', '/v3/cloudcredentials');
+      cloudCredentialsPage.waitForPage();
+
+      // check list details
+      cloudCredentialsPage.list().details(`${ cloudCredName }-clone`, 1).should('be.visible');
+      cloudCredentialsPage.list().details(`${ cloudCredDescription }-edit`, 3).should('be.visible');
     });
 
     it('can delete cloud credentials', () => {
+      cloudCredentialsPage.goTo();
+
+      // delete clone cloud credential
+      cloudCredentialsPage.list().actionMenu(`${ cloudCredName }-clone`).getMenuItem('Delete').click();
+      const promptRemove = new PromptRemove();
+
+      cy.intercept('DELETE', '/v3/cloudCredentials/**').as('deleteCloudCred');
+
+      promptRemove.remove();
+      cy.wait('@deleteCloudCred');
+      cloudCredentialsPage.waitForPage();
+
+      // check list details
+      cy.contains(`${ cloudCredName }-clone`).should('not.exist');
+    });
+
+    it('can delete cloud credentials via bulk actions', () => {
+      cloudCredentialsPage.goTo();
+
+      // delete original and clone cloud credential
+      cloudCredentialsPage.list().resourceTable().sortableTable().rowSelectCtlWithName(cloudCredName)
+        .set();
+      cloudCredentialsPage.list().resourceTable().sortableTable().deleteButton()
+        .click();
+      const promptRemove = new PromptRemove();
+
+      cy.intercept('DELETE', '/v3/cloudCredentials/**').as('deleteCloudCred');
+
+      promptRemove.remove();
+      cy.wait('@deleteCloudCred');
+      cloudCredentialsPage.waitForPage();
+
+      // check list details
+      cy.contains(cloudCredName).should('not.exist');
     });
   });
 
@@ -582,7 +674,7 @@ describe('Cluster Manager', { testIsolation: 'off', tags: ['@manager', '@adminUs
     });
   });
 
-  describe.only('RKE Templates', () => {
+  describe('RKE Templates', () => {
     const rkeTemplatesPage = new RkeTemplatesPagePo('local');
     const templateName = `e2e-template-name-${ runTimestamp }`;
     const revisionName = `e2e-revision-name-${ runTimestamp }`;
@@ -678,6 +770,84 @@ describe('Cluster Manager', { testIsolation: 'off', tags: ['@manager', '@adminUs
       modal.delete();
       cy.wait('@deleteTemplate').its('response.statusCode').should('eq', 204);
       rkeTemplatesPage.groupRow().groupRowWithName(templateName).should('not.exist');
+    });
+  });
+
+  // will only run this in jenkins pipeline where cloud credentails are stored
+  describe('Node Templates', { tags: ['@jenkins', '@adminUser'] }, () => {
+    const nodeTemplatesPage = new NodeTemplatesPagePo('local');
+    const templateName = `e2e-node-template-name-${ runTimestamp }`;
+    const revisionName = `e2e-revision-name-${ runTimestamp }`;
+    const revisionName2 = `e2e-revision-name2-${ runTimestamp }`;
+
+    beforeEach(() => {
+      cy.viewport(1380, 720);
+    });
+
+    it('can navigate to Node templates page', () => {
+      clusterList.goTo();
+      sideNav.groups().contains('RKE1 Configuration').click();
+      sideNav.navToSideMenuEntryByLabel('Node Templates');
+      nodeTemplatesPage.waitForPage();
+    });
+
+    it('can create Node template for Amazon EC2 and should display on RKE1 node creation page', () => {
+      const cloudCredName = `e2e-cloud-cred-name-${ runTimestamp }`;
+
+      cy.createAwsCloudCredentials('fleet-default', cloudCredName, 'us-west-2', Cypress.env('awsAccessKey'), Cypress.env('awsSecretKey'));
+
+      nodeTemplatesPage.goTo();
+      nodeTemplatesPage.actions().actions('Add Template').click();
+      nodeTemplatesPage.addNodeTemplateModal().serviceProviderOptions('Amazon EC2').should('have.class', 'active');
+
+      cy.intercept('POST', '/meta/proxy/**').as('amazon');
+      nodeTemplatesPage.addNodeTemplateModal().nextButton('Next: Authenticate & configure nodes').click();
+      cy.wait('@amazon');
+
+      nodeTemplatesPage.addNodeTemplateModal().accordion().content().find('.radio .acc-label')
+        .eq(0)
+        .click();
+
+      nodeTemplatesPage.addNodeTemplateModal().nextButton('Next: Select a Security Group').should('exist');
+      nodeTemplatesPage.addNodeTemplateModal().nextButton('Next: Select a Security Group').click({ force: true });
+      cy.wait('@amazon');
+
+      nodeTemplatesPage.addNodeTemplateModal().accordion().content().contains('.radio label', 'Choose one or more existing groups')
+        .click();
+
+      nodeTemplatesPage.addNodeTemplateModal().serviceProviderOptions('Amazon EC2').should('have.class', 'active');
+      nodeTemplatesPage.addNodeTemplateModal().nextButton('Next: Set Instance options').click({ force: true });
+
+      nodeTemplatesPage.addNodeTemplateModal().templateName().set(templateName);
+      cy.intercept('POST', '/v3/nodetemplate').as('createTemplate');
+
+      nodeTemplatesPage.addNodeTemplateModal().create();
+      cy.wait('@createTemplate');
+      nodeTemplatesPage.waitForPage();
+      nodeTemplatesPage.list().rowWithName(templateName).should('be.visible');
+      cy.pause();
+
+      // rkeTemplatesPage.formActions().create();
+      // cy.wait('@createTemplate');
+      // rkeTemplatesPage.waitForPage();
+      // rkeTemplatesPage.groupRow().groupRowWithName(templateName).should('be.visible');
+      // rkeTemplatesPage.groupRow().rowWithinGroupByName(templateName, revisionName).should('be.visible');
+
+      // check RKE template displays as an option on the RKE custom cluster create page
+      clusterList.goTo();
+      clusterList.checkIsCurrentPage();
+      clusterList.createCluster();
+
+      const createClusterRKE1Page = new ClusterManagerCreateRke1CustomPagePo();
+
+      createClusterRKE1Page.waitForPage();
+
+      createClusterRKE1Page.rkeToggle().set('RKE1');
+      createClusterRKE1Page.selectCustom(0);
+      createClusterRKE1Page.clusterTemplateCheckbox().set();
+      createClusterRKE1Page.rkeTemplateAndRevisionDropdown().selectMenuItemByOption(templateName);
+      createClusterRKE1Page.selectedOption().checkOptionSelected(templateName);
+      createClusterRKE1Page.selectedOption().checkOptionSelected(revisionName, 1);
     });
   });
 });

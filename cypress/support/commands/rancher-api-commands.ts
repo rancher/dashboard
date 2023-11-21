@@ -300,6 +300,34 @@ Cypress.Commands.add('createPod', (nsName, podName, image) => {
 });
 
 /**
+ * create aws cloud credentials
+ */
+Cypress.Commands.add('createAwsCloudCredentials', (nsName, cloudCredName, defaultRegion, accessKey, secretKey) => {
+  return cy.request({
+    method:  'POST',
+    url:     `${ Cypress.env('api') }/v3/cloudcredentials`,
+    headers: {
+      'x-api-csrf': token.value,
+      Accept:       'application/json'
+    },
+    body: {
+      type:                      'provisioning.cattle.io/cloud-credential',
+      metadata:                  { generateName: 'cc-', namespace: `${ nsName }` },
+      _name:                     `${ cloudCredName }`,
+      annotations:               { 'provisioning.cattle.io/driver': 'aws' },
+      amazonec2credentialConfig: {
+        defaultRegion: `${ defaultRegion }`, accessKey: `${ accessKey }`, secretKey: `${ secretKey }`
+      },
+      _type: 'provisioning.cattle.io/cloud-credential',
+      name:  `${ cloudCredName }`
+    }
+  })
+    .then((resp) => {
+      expect(resp.status).to.eq(201);
+    });
+});
+
+/**
  * Override user preferences to default values, allowing to pass custom preferences for a deterministic scenario
  */
 // eslint-disable-next-line no-undef
