@@ -143,6 +143,7 @@ corral config vars set bastion_ip ""
 corral config vars delete instance_type
 corral create --skip-cleanup --recreate --debug ci dist/aws-dashboard-tests-t3a.xlarge
 corral config vars -o yaml
+corral vars ci corral_private_key -o yaml
 NODE_EXTERNAL_IP="$(corral vars ci first_node_ip)"
 cd ${WORKSPACE}
 echo "${PWD}"

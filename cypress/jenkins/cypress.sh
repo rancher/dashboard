@@ -16,6 +16,6 @@ NO_COLOR=1 cypress run --browser chrome \
   --reporter cypress-multi-reporters \
   --reporter-options \
     configFile=cypress/jenkins/reporter-options.json \
-  --env grepTags=CYPRESSTAGS
+  --env grepTags="CYPRESSTAGS"
 
 echo "CYPRESS EXIT CODE: $?"
