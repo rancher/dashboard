@@ -24,9 +24,10 @@ export default {
       return this.error.message || '';
     }
   },
-  updated() {
-    // Putting it in mounted gets overwritten by mounted in brand mixin
-    document.title = this.message;
+  watch: {
+    message(neu) {
+      document.title = neu;
+    }
   },
 
   mounted() {
@@ -44,6 +45,7 @@ export default {
     setTimeout(() => {
       this.ready = true;
     }, 1000);
+    document.title = this.message;
   },
 };
 </script>

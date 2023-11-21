@@ -27,6 +27,11 @@ export default {
       return vmi;
     },
   },
+  watch: {
+    vmi(neu) {
+      document.title = neu?.metadata?.name;
+    }
+  },
 
   mounted() {
     document.title = this.vmi?.metadata?.name;

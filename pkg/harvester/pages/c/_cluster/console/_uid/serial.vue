@@ -15,6 +15,11 @@ export default {
   data() {
     return { uid: this.$route.params.uid };
   },
+  watch: {
+    vmi(neu) {
+      document.title = neu?.metadata?.name;
+    }
+  },
 
   computed: {
     vmi() {
