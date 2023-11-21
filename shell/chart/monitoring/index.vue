@@ -15,7 +15,7 @@ import Tab from '@shell/components/Tabbed/Tab';
 
 import { allHash } from '@shell/utils/promise';
 import { STORAGE_CLASS, PVC, SECRET, WORKLOAD_TYPES } from '@shell/config/types';
-import { CATTLE_MONITORING_NAMESPACE } from 'utils/monitoring';
+import { CATTLE_MONITORING_NAMESPACE } from '@shell/utils/monitoring';
 
 export default {
   components: {
