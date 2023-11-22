@@ -1,54 +1,41 @@
-import { createLocalVue, shallowMount } from '@vue/test-utils';
+import { shallowMount } from '@vue/test-utils';
 import ClusterCreate from '@shell/edit/provisioning.cattle.io.cluster/index.vue';
 
-const defaultStore = {
-  defaultClusterId:          jest.fn(),
-  clusterId:                 jest.fn(),
-  'type-map/activeProducts': [],
-  'catalog/charts':          [],
-  'prefs/get':               jest.fn(),
-  'mapFeature/get':          jest.fn(),
-  'i18n/withFallback':       jest.fn(),
-};
-
-const defaultStubs = {
-  CruResource:  { template: '<div><slot></slot></div>' }, // Required to render the slot content
-};
-
 describe('component: Cluster: Create', () => {
-  it('should hide RKE1 and RKE2 toggle button', () => {
-    const mockedClusterCreateMixin = {
-      methods: {
-        selectType: jest.fn(),
-        save:       jest.fn(),
-      }
-    };
-
-    const MockedClusterCreate = { ...ClusterCreate, mixins: [ mockedClusterCreateMixin] };
-    const wrapper = shallowMount(MockedClusterCreate, {
+  it('should hide RKE1 and RKE2 toggle button if RKE1 ui feature flag is NOT set', () => {
+    const wrapper = shallowMount(ClusterCreate, {
+      computed:  { rke1UiEnabled: () => false },
       propsData: {
-        value:            { metadata: {}, spec: { template: {} } },
-        realMode:         '',
-        mode:             '',
-        componentTestid:  'cluster-manager-create',
+        value:           { metadata: {}, spec: { template: {} } },
+        realMode:        '',
+        mode:            'edit',
+        componentTestid: 'cluster-manager-create',
       },
-      mocks: {
+      mixins: [],
+      mocks:  {
         $route:      { params: {}, query: {} },
         $router:     { applyQuery: jest.fn() },
         $fetchState: { pending: false },
-        $store: {
+        $store:      {
           getters: {
-            ...defaultStore,
-            'i18n/t':            jest.fn(),
-            'features/get':      () => jest.fn(),
+            'i18n/t':                  jest.fn(),
+            'features/get':            () => jest.fn(),
+            defaultClusterId:          jest.fn(),
+            clusterId:                 jest.fn(),
+            'type-map/activeProducts': [],
+            'catalog/charts':          [],
+            'prefs/get':               jest.fn(),
+            'mapFeature/get':          jest.fn(),
+            'i18n/withFallback':       jest.fn(),
           },
         },
       },
-      stubs: defaultStubs
+      stubs: { CruResource: { template: '<div><slot name="subtypes"></slot></div>' } }
     });
 
-    
     const element = wrapper.find('[data-testid="cluster-manager-create-rke-switch"]').element;
-    expect(element).toBeDefined();
+
+    expect(element).not.toBeDefined();
   });
 });
+
