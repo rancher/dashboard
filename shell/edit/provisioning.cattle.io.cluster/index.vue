@@ -227,7 +227,7 @@ export default {
       return '';
     },
 
-    rke2Enabled: mapFeature(RKE2_FEATURE),
+    rke2Enabled:   mapFeature(RKE2_FEATURE),
     rke1UiEnabled: mapFeature(RKE1_UI),
 
     provisioner: {
@@ -272,7 +272,6 @@ export default {
       const getters = this.$store.getters;
       const isImport = this.isImport;
       const isElementalActive = !!getters['type-map/activeProducts'].find((item) => item.name === ELEMENTAL_PRODUCT_NAME);
-      console.log(getters['type-map/activeProducts'])
       const out = [];
 
       const templates = this.templateOptions;
@@ -389,10 +388,10 @@ export default {
       const out = {};
 
       for ( const row of this.subTypes ) {
-        let name = row.group;
-        
+        const name = row.group;
+
         let entry = out[name];
-       
+
         if ( !entry ) {
           entry = {
             name,
@@ -425,7 +424,6 @@ export default {
 
   methods: {
     showRkeToggle(i) {
-
       if (this.isImport || !this.rke2Enabled) {
         return false;
       }

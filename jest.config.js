@@ -12,13 +12,13 @@ module.exports = {
   // https://kulshekhar.github.io/ts-jest/docs/27.1/getting-started/paths-mapping#jest-config-with-helper
   modulePaths:      ['<rootDir>'],
   moduleNameMapper: {
-    '^~/(.*)$':         '<rootDir>/$1',
-    '^~~/(.*)$':        '<rootDir>/$1',
-    '^@/(.*)$':         '<rootDir>/$1',
-    '@shell/(.*)':      '<rootDir>/shell/$1',
-    '@pkg/(.*)':        '<rootDir>/pkg/$1',
-    '@components/(.*)': '<rootDir>/pkg/rancher-components/src/components/$1',
-    '\\.(jpe?g|png|gif|webp|svg|mp4|webm|ogg|mp3|wav|flac|aac|woff2?|eot|ttf|otf)$':'<rootDir>/svgTransform.js',
+    '^~/(.*)$':                                                                      '<rootDir>/$1',
+    '^~~/(.*)$':                                                                     '<rootDir>/$1',
+    '^@/(.*)$':                                                                      '<rootDir>/$1',
+    '@shell/(.*)':                                                                   '<rootDir>/shell/$1',
+    '@pkg/(.*)':                                                                     '<rootDir>/pkg/$1',
+    '@components/(.*)':                                                              '<rootDir>/pkg/rancher-components/src/components/$1',
+    '\\.(jpe?g|png|gif|webp|svg|mp4|webm|ogg|mp3|wav|flac|aac|woff2?|eot|ttf|otf)$': '<rootDir>/svgTransform.js',
   },
   modulePathIgnorePatterns: [
     '<rootDir>/cypress/',
