@@ -2,6 +2,7 @@
 import { LabeledInput } from '@components/Form/LabeledInput';
 import { Banner } from '@components/Banner';
 import { Checkbox } from '@components/Form/Checkbox';
+import { _EDIT } from '@shell/config/query-params';
 import ArrayList from '@shell/components/form/ArrayList';
 import ACE from './ACE';
 
@@ -38,11 +39,6 @@ export default {
       type:     Boolean,
       required: true,
     },
-    isEdit: {
-      type:     Boolean,
-      required: true,
-    }
-
   },
   data() {
     const truncateLimit = this.value.defaultHostnameLengthLimit;
@@ -69,6 +65,9 @@ export default {
     },
     hostnameTruncationManuallySet() {
       return this.truncateLimit && this.truncateLimit !== NETBIOS_TRUNCATION_LENGTH;
+    },
+    isEdit() {
+      return this.mode === _EDIT;
     },
   },
 };
@@ -155,12 +154,12 @@ export default {
       >
         <Checkbox
           v-if="!isView || isView && !hostnameTruncationManuallySet"
-          value="truncateHostnames"
+          :value="truncateHostnames"
           class="mt-20"
           :disabled="isEdit || isView || hostnameTruncationManuallySet"
           :mode="mode"
           :label="t('cluster.rke2.truncateHostnames')"
-          @input="$emit('kubernetes-changed', $event)"
+          @input="$emit('truncate-name', $event)"
         />
         <Banner
           v-if="hostnameTruncationManuallySet"

@@ -1983,6 +1983,12 @@ export default {
     },
     handleConfigEtcdExposeMetricsChanged(neu) {
       set(this.serverConfig, 'etcd-expose-metrics', neu);
+    },
+    handleRegistryHostChanged(neu) {
+      this.registryHost = neu;
+    },
+    handleRegistrySecretChanged(neu) {
+      this.registrySecret = neu;
     }
   },
 };
@@ -2212,10 +2218,10 @@ export default {
           <Networking
             v-model="value"
             :mode="mode"
-            :is-edit="isEdit"
             :selected-version="selectedVersion"
             :cluster-is-already-created="clusterIsAlreadyCreated"
             :is-view="isView"
+            @truncate-name="truncateName"
           />
         </Tab>
 
@@ -2247,6 +2253,8 @@ export default {
             :is-k3s="isK3s"
             @update-configs-changed="updateConfigs"
             @custom-registry-changed="toggleCustomRegistry"
+            @registry-host-changed="handleRegistryHostChanged"
+            @registry-secret-changed="handleRegistrySecretChanged"
           />
         </Tab>
 
@@ -2259,7 +2267,6 @@ export default {
           <AddOnConfig
             v-model="value"
             :mode="mode"
-            :is-edit="isEdit"
             :version-info="versionInfo"
             :addon-versions="addonVersions"
             :addons-rev="addonsRev"

@@ -4,6 +4,7 @@ import { Banner } from '@components/Banner';
 import Questions from '@shell/components/Questions';
 import YamlEditor from '@shell/components/YamlEditor';
 import { camelToTitle } from '@shell/utils/string';
+import { _EDIT } from '@shell/config/query-params';
 
 export default {
   components: {
@@ -20,10 +21,6 @@ export default {
 
     value: {
       type:     Object,
-      required: true,
-    },
-    isEdit: {
-      type:     Boolean,
       required: true,
     },
 
@@ -56,7 +53,10 @@ export default {
   computed: {
     additionalManifest() {
       return this.value.spec.rkeConfig.additionalManifest;
-    }
+    },
+    isEdit() {
+      return this.mode === _EDIT;
+    },
   },
 
   methods: {

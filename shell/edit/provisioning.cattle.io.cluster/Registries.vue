@@ -95,10 +95,11 @@ export default {
     >
       <div class="col span-6">
         <LabeledInput
-          v-model="registryHost"
+          :value="registryHost"
           label-key="catalog.chart.registry.custom.inputLabel"
           placeholder-key="catalog.chart.registry.custom.placeholder"
           :min-height="30"
+          @input="$emit('registry-host-changed', $event)"
         />
         <SelectOrCreateAuthSecret
           v-model="registrySecret"
@@ -111,6 +112,7 @@ export default {
           :vertical="true"
           :namespace="value.metadata.namespace"
           generate-name="registryconfig-auth-"
+          @input="$emit('registry-secret-changed', $event)"
         />
       </div>
     </div>
