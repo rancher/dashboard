@@ -73,15 +73,6 @@ describe('Cluster Manager', { testIsolation: 'off', tags: ['@manager', '@adminUs
         detailRKE2ClusterPage.waitForPage(undefined, 'registration');
       });
 
-      it(`Toggle`, () => {
-        clusterList.goTo();
-        clusterList.checkIsCurrentPage();
-        clusterList.createCluster();
-    
-        createRKE2ClusterPage.waitForPage();
-        createRKE2ClusterPage.rkeToggle().set('RKE2/K3s');
-      });
-
       it('can copy config to clipboard', () => {
         ClusterManagerListPagePo.navTo();
 
@@ -329,8 +320,6 @@ describe('Cluster Manager', { testIsolation: 'off', tags: ['@manager', '@adminUs
     clusterDashboard.waitForPage(undefined, 'cluster-events');
   });
 
-    clusterDashboard.waitForPage(undefined, 'cluster-events');
-  });
 
   it('can connect to kubectl shell', () => {
     ClusterManagerListPagePo.navTo();
