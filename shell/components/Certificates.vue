@@ -28,7 +28,14 @@ export default Vue.extend<Data, any, any, any>({
     // We're fetching secrets with a filter, this will clash with secrets in other contexts
     this.$store.dispatch('cluster/forgetType', SECRET);
 
-    this.certs = await this.fetchCerts();
+    this.certs = await this.$store.dispatch('cluster/findAll', {
+      type: SECRET,
+      opt:  {
+        watch:  false,
+        // Note - urlOptions handles filter in a weird way
+        filter: { 'metadata.fields.1': TYPES.TLS }
+      }
+    });
   },
 
   data(): Data {
@@ -48,6 +55,10 @@ export default Vue.extend<Data, any, any, any>({
           name:     'cn',
           labelKey: 'secret.certificate.cn',
           value:    (row: Secret) => {
+            if (!row.cn) {
+              return;
+            }
+
             return row.cn + (row.unrepeatedSans.length ? ` ${ this.t('secret.certificate.plusMore', { n: row.unrepeatedSans.length }) }` : '');
           },
           sort:   ['cn'],
@@ -64,10 +75,10 @@ export default Vue.extend<Data, any, any, any>({
         }, {
           name:      'cert-expires',
           labelKey:  'secret.certificate.expiresOn',
-          value:     'certInfo.notAfter',
+          value:     'cachedCertInfo.notAfter',
           formatter: 'Date',
-          sort:      ['certInfo.notAfter'],
-          search:    ['certInfo.notAfter'],
+          sort:      ['cachedCertInfo.notAfter'],
+          search:    ['cachedCertInfo.notAfter'],
         }, {
           name:     'cert-lifetime',
           labelKey: 'secret.certificate.lifetime',
@@ -117,18 +128,6 @@ export default Vue.extend<Data, any, any, any>({
     this.$store.dispatch('cluster/forgetType', SECRET);
   },
 
-  methods: {
-    async fetchCerts() {
-      return await this.$store.dispatch('cluster/findAll', {
-        type: SECRET,
-        opt:  {
-          watch:  false,
-          // Note - urlOptions handles filter in a weird way
-          filter: { 'metadata.fields.1': TYPES.TLS }
-        }
-      });
-    },
-  }
 });
 </script>
 

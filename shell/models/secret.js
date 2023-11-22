@@ -293,9 +293,7 @@ export default class Secret extends SteveModel {
         issuer, notBefore, notAfter, cn, sans
       };
 
-      this._cachedCertInfo = certInfo;
-
-      return this._cachedCertInfo;
+      return certInfo;
     }
 
     return null;
@@ -323,7 +321,7 @@ export default class Secret extends SteveModel {
         return displaySans;
       }
 
-      return certInfo?.sans || [];
+      return certInfo?.sans?.array || certInfo?.sans || [];
     }
 
     return null;
@@ -333,7 +331,7 @@ export default class Secret extends SteveModel {
     if (this._type === TYPES.TLS) {
       const certInfo = this.cachedCertInfo;
 
-      if (!certInfo.notAfter) {
+      if (!certInfo?.notAfter) {
         return null;
       }
 
@@ -350,7 +348,7 @@ export default class Secret extends SteveModel {
   }
 
   get timeTilExpirationDate() {
-    return this.timeTilExpiration > 0 ? this.cachedCertInfo.notAfter.valueOf() : null;
+    return this.timeTilExpiration > 0 ? this.cachedCertInfo?.notAfter?.valueOf() : null;
   }
 
   get decodedData() {
