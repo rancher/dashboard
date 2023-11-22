@@ -33,7 +33,10 @@ jobs:
     strategy:
       fail-fast: false
       matrix:
-        role: [admin, standardUser]
+        role: [
+          { username: 'admin', tag: '@adminUser' }, 
+          { username: 'standard_user', tag: '@standardUser' }
+        ]
         feature:  [
          '@navigation @extensions',
          '@charts',
@@ -72,7 +75,7 @@ jobs:
           yarn e2e:prod
           [ "$BUILD_DASHBOARD" != "false" ] || exit 0
         env: 
-          GREP_TAGS: ${{ '@'}}${{ matrix.role }}Setup+${{ matrix.feature }}
+          GREP_TAGS: ${{ matrix.role.tag }}Setup+${{ matrix.feature }}
           TEST_USERNAME: admin
           TEST_ONLY: setup
       
@@ -85,21 +88,21 @@ jobs:
           cp -r coverage/e2e/ coverage-artifacts/coverage/e2e/
         env: 
           TEST_SKIP: setup
-          GREP_TAGS: ${{ '@'}}${{ matrix.role }}+${{ matrix.feature }}
-          TEST_USERNAME: ${{ matrix.role }}
+          GREP_TAGS: ${{ matrix.role.tag }}+${{ matrix.feature }}
+          TEST_USERNAME: ${{ matrix.role.username }}
         
       - name: Upload coverage
         uses: actions/upload-artifact@v3
         if: env.BUILD_DASHBOARD != 'false'
         with:
-          name: ${{github.run_number}}-${{github.run_attempt}}-coverage-${{ matrix.role }}-${{ matrix.feature }}
+          name: ${{github.run_number}}-${{github.run_attempt}}-coverage-${{ matrix.role.tag }}-${{ matrix.feature }}
           path: coverage-artifacts/**/*
           
       - name: Upload screenshots
         uses: actions/upload-artifact@v3
         if: ${{ failure() }}
         with:
-          name: ${{github.run_number}}-${{github.run_attempt}}-screenshots-${{ matrix.role }}
+          name: ${{github.run_number}}-${{github.run_attempt}}-screenshots-${{ matrix.role.tag }}
           path: cypress/screenshots
 
   unit-test:

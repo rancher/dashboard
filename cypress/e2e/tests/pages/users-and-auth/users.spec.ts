@@ -10,13 +10,13 @@ const userCreate = usersPo.createEdit();
 const runTimestamp = +new Date();
 const runPrefix = `e2e-test-${ runTimestamp }`;
 const downloadsFolder = Cypress.config('downloadsFolder');
-const standardUsername = `${ runPrefix }StandardUser`;
+const standardUsername = `${ runPrefix }-standard-user`;
 const standardPassword = 'standardUser-password';
 const userBaseUsername = `${ runPrefix }-userBase-user`;
 
 let userId: string;
 
-describe('Users', { tags: ['@usersAndAuths', '@admin'] }, () => {
+describe('Users', { tags: ['@usersAndAuths', '@adminUser'] }, () => {
   beforeEach(() => {
     cy.login();
   });

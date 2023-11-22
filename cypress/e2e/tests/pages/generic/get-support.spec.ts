@@ -10,7 +10,7 @@ describe('Support Page', () => {
     cy.login();
   });
 
-  it('can navigate to Support page', { tags: ['@generic', '@admin'] }, () => {
+  it('can navigate to Support page', { tags: ['@generic', '@adminUser'] }, () => {
     HomePagePo.goToAndWaitForGet();
     SupportPagePo.navTo();
     supportPage.waitForPage();
@@ -22,7 +22,7 @@ describe('Support Page', () => {
     burgerMenu.support().should('not.exist');
   });
 
-  describe('Support Links', { tags: ['@generic', '@admin'] }, () => {
+  describe('Support Links', { tags: ['@generic', '@adminUser'] }, () => {
     // Click the support links and verify user lands on the correct page
     beforeEach(() => {
       supportPage.goTo();

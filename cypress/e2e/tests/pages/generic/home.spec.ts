@@ -14,7 +14,7 @@ describe('Home Page', () => {
       HomePagePo.goToAndWaitForGet();
     });
 
-    it('Can navigate to release notes page for latest Rancher version', { tags: ['@generic', '@admin', '@standardUser'] }, () => {
+    it('Can navigate to release notes page for latest Rancher version', { tags: ['@generic', '@adminUser', '@standardUser'] }, () => {
     /**
      * Verify changelog banner is hidden after clicking link
      * Verify release notes link is valid github page
@@ -40,7 +40,7 @@ describe('Home Page', () => {
       });
     });
 
-    it('Can navigate to Preferences page', { tags: ['@generic', '@admin', '@standardUser'] }, () => {
+    it('Can navigate to Preferences page', { tags: ['@generic', '@adminUser', '@standardUser'] }, () => {
     /**
      * Click link and verify user lands on preferences page
      */
@@ -52,7 +52,7 @@ describe('Home Page', () => {
       prefPage.title();
     });
 
-    it('Can restore hidden cards', { tags: ['@generic', '@admin', '@standardUser'] }, () => {
+    it('Can restore hidden cards', { tags: ['@generic', '@adminUser', '@standardUser'] }, () => {
     /**
      * Hide home page banners
      * Click the restore link
@@ -75,7 +75,7 @@ describe('Home Page', () => {
       homePage.getLoginPageBanner().checkVisible();
     });
 
-    it('Can see that cluster details match those in Cluster Manangement page', { tags: '@admin' }, () => {
+    it('Can see that cluster details match those in Cluster Manangement page', { tags: '@adminUser' }, () => {
     /**
      * Get cluster details from the Home page
      * Verify that the cluster details match those on the Cluster Management page
@@ -118,7 +118,7 @@ describe('Home Page', () => {
       });
     });
 
-    it('Can use the Manage, Import Existing, and Create buttons', { tags: ['@generic', '@admin', '@standardUser'] }, () => {
+    it('Can use the Manage, Import Existing, and Create buttons', { tags: ['@generic', '@adminUser', '@standardUser'] }, () => {
     /**
      * Click 'Manage' button and verify user lands on the Cluster Management page
      * Click on the Import Existing button and verify user lands on the cluster creation page in import mode
@@ -140,7 +140,7 @@ describe('Home Page', () => {
       genericCreateClusterPage.waitForPage();
     });
 
-    it('Can filter rows in the cluster list', { tags: '@admin' }, () => {
+    it('Can filter rows in the cluster list', { tags: '@adminUser' }, () => {
     /**
      * Filter rows in the cluster list
      */
@@ -157,7 +157,7 @@ describe('Home Page', () => {
     });
   });
 
-  describe('Support Links', { tags: ['@generic', '@admin', '@standardUser'] }, () => {
+  describe('Support Links', { tags: ['@generic', '@adminUser', '@standardUser'] }, () => {
     // Click the support links and verify user lands on the correct page
     beforeEach(() => {
       cy.login();
