@@ -37,14 +37,14 @@ jobs:
           { username: 'admin', tag: '@adminUser' }, 
           { username: 'standard_user', tag: '@standardUser' }
         ]
-        feature:  [
-         '@navigation @extensions',
-         '@charts',
-         '@explorer',
-         '@fleet',
-         '@generic @globalSettings',
-         '@manager',
-         '@userMenu @usersAndAuths'
+        features:  [
+         ['@navigation', '@extensions'],
+         ['@charts'],
+         ['@explorer'],
+         ['@fleet'],
+         ['@generic', '@globalSettings'],
+         ['@manager'],
+         ['@userMenu', '@usersAndAuths']
         ]
     runs-on: ubuntu-latest
     steps:
@@ -75,7 +75,7 @@ jobs:
           yarn e2e:prod
           [ "$BUILD_DASHBOARD" != "false" ] || exit 0
         env: 
-          GREP_TAGS: ${{ matrix.role.tag }}Setup+${{ matrix.feature }}
+          GREP_TAGS: ${{ matrix.role.tag }}Setup+${{ matrix.features[0] }} ${{ matrix.role.tag }}Setup+${{ matrix.features[1] || matrix.features[0] }}
           TEST_USERNAME: admin
           TEST_ONLY: setup
       
@@ -88,14 +88,14 @@ jobs:
           cp -r coverage/e2e/ coverage-artifacts/coverage/e2e/
         env: 
           TEST_SKIP: setup
-          GREP_TAGS: ${{ matrix.role.tag }}+${{ matrix.feature }}
+          GREP_TAGS: ${{ matrix.role.tag }}+${{ matrix.features[0] }} ${{ matrix.role.tag }}+${{ matrix.features[1] || matrix.features[0] }}
           TEST_USERNAME: ${{ matrix.role.username }}
         
       - name: Upload coverage
         uses: actions/upload-artifact@v3
         if: env.BUILD_DASHBOARD != 'false'
         with:
-          name: ${{github.run_number}}-${{github.run_attempt}}-coverage-${{ matrix.role.tag }}-${{ matrix.feature }}
+          name: ${{github.run_number}}-${{github.run_attempt}}-coverage-${{ matrix.role.tag }}+${{ matrix.features[0] }}
           path: coverage-artifacts/**/*
           
       - name: Upload screenshots
