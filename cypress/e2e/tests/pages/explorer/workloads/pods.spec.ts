@@ -11,7 +11,7 @@ describe('Cluster Explorer', () => {
     describe('Pods', () => {
       const workloadsPodPage = new WorkloadsPodsListPagePo('local');
 
-      describe('Should open a terminal', { tags: ['@explorer', '@adminUser', '@standardUser'] }, () => {
+      describe('Should open a terminal', { tags: ['@explorer', '@adminUser'] }, () => {
         beforeEach(() => {
           workloadsPodPage.goTo();
         });

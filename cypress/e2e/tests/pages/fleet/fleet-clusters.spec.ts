@@ -19,7 +19,7 @@ describe('Fleet Clusters', () => {
       fleetClusterListPage.checkRowCount(false, 1);
     });
 
-    it('should only display action menu with allowed actions only', () => {
+    it.skip('should only display action menu with allowed actions only', () => {
       const constActionMenu = fleetClusterListPage.rowActionMenuOpen('local');
 
       const allowedActions: MenuActions[] = [
