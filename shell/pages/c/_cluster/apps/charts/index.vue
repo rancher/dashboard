@@ -138,6 +138,11 @@ export default {
       return reducedRepos;
     },
 
+    /**
+     * Filter allll charts by invalid entries (deprecated, hidden and ui plugin).
+     *
+     * This does not include any user provided filters (like selected repos, categories and text query)
+     */
     enabledCharts() {
       return (this.allCharts || []).filter((c) => {
         if ( c.deprecated && !this.showDeprecated ) {
@@ -145,10 +150,6 @@ export default {
         }
 
         if ( c.hidden && !this.showHidden ) {
-          return false;
-        }
-
-        if ( this.hideRepos.includes(c.repoKey) ) {
           return false;
         }
 
@@ -160,26 +161,28 @@ export default {
       });
     },
 
+    /**
+     * Filter enabled charts allll filters. These are what the user will see in the list
+     */
     filteredCharts() {
-      const enabledCharts = (this.enabledCharts || []);
-      const clusterProvider = this.currentCluster.status.provider || 'other';
-
-      return filterAndArrangeCharts(enabledCharts, {
-        clusterProvider,
-        category:       this.category,
-        searchQuery:    this.searchQuery,
-        showDeprecated: this.showDeprecated,
-        showHidden:     this.showHidden,
-        hideRepos:      this.hideRepos,
-        hideTypes:      [CATALOG._CLUSTER_TPL],
-        showPrerelease: this.$store.getters['prefs/get'](SHOW_PRE_RELEASE),
+      return this.filterCharts({
+        category:    this.category,
+        searchQuery: this.searchQuery,
+        hideRepos:   this.hideRepos
       });
     },
 
-    getFeaturedCharts() {
-      const allCharts = (this.filteredCharts || []);
+    /**
+     * Filter valid charts (alll filters minus user provided ones) by whether they are featured or not
+     *
+     * This will power the carousel
+     */
+    featuredCharts() {
+      const filteredCharts = this.filterCharts({});
 
-      const featuredCharts = allCharts.filter((value) => value.featured).sort((a, b) => a.featured - b.featured);
+      // debugger;
+
+      const featuredCharts = filteredCharts.filter((value) => value.featured).sort((a, b) => a.featured - b.featured);
 
       return featuredCharts.slice(0, 5);
     },
@@ -187,7 +190,13 @@ export default {
     categories() {
       const map = {};
 
-      for ( const chart of this.enabledCharts ) {
+      // Filter charts by everything except itself
+      const charts = this.filterCharts({
+        searchQuery: this.searchQuery,
+        hideRepos:   this.hideRepos
+      });
+
+      for ( const chart of charts ) {
         for ( const c of chart.categories ) {
           if ( !map[c] ) {
             const labelKey = `catalog.charts.categories.${ lcFirst(c) }`;
@@ -208,14 +217,14 @@ export default {
       out.unshift({
         label: this.t('catalog.charts.categories.all'),
         value: '',
-        count: this.enabledCharts.length
+        count: charts.length
       });
 
-      return out;
+      return sortBy(out, ['label']);
     },
 
     showCarousel() {
-      return this.chartMode === 'featured' && this.getFeaturedCharts.length;
+      return this.chartMode === 'featured' && this.featuredCharts.length;
     }
 
   },
@@ -334,6 +343,22 @@ export default {
         btnCb(false);
       }
     },
+
+    filterCharts({ category, searchQuery, hideRepos }) {
+      const enabledCharts = (this.enabledCharts || []);
+      const clusterProvider = this.currentCluster.status.provider || 'other';
+
+      return filterAndArrangeCharts(enabledCharts, {
+        clusterProvider,
+        category,
+        searchQuery,
+        showDeprecated: this.showDeprecated,
+        showHidden:     this.showHidden,
+        hideRepos,
+        hideTypes:      [CATALOG._CLUSTER_TPL],
+        showPrerelease: this.$store.getters['prefs/get'](SHOW_PRE_RELEASE),
+      });
+    }
   },
 };
 </script>
@@ -351,7 +376,7 @@ export default {
         </h1>
       </div>
       <div
-        v-if="getFeaturedCharts.length > 0"
+        v-if="featuredCharts.length > 0"
         class="actions-container"
       >
         <ButtonGroup
@@ -363,7 +388,7 @@ export default {
     <div v-if="showCarousel">
       <h3>{{ t('catalog.charts.featuredCharts') }}</h3>
       <Carousel
-        :sliders="getFeaturedCharts"
+        :sliders="featuredCharts"
         @clicked="(row) => selectChart(row)"
       />
     </div>
@@ -514,22 +539,21 @@ export default {
         }
       }
     }
-  }
+}
 
 .checkbox-select {
-   .vs__search {
+  .vs__search {
     position: absolute;
     right: 0
   }
 
- .vs__selected-options  {
+  .vs__selected-options  {
     overflow: hidden;
     white-space: nowrap;
     text-overflow: ellipsis;
     display: inline-block;
     line-height: 2.4rem;
   }
-
 }
 
 .checkbox-outer-container.in-select {
@@ -537,7 +561,7 @@ export default {
   padding: 7px 0 6px 13px;
   width: calc(100% + 10px);
 
-  ::v-deep.checkbox-label {
+  ::v-deep .checkbox-label {
     display: flex;
     align-items: center;
 
@@ -552,7 +576,7 @@ export default {
     }
   }
 
-  &:hover ::v-deep.checkbox-label {
+  &:hover ::v-deep .checkbox-label {
       color: var(--body-text);
     }
 
@@ -560,7 +584,7 @@ export default {
       &:hover {
       background: var(--app-rancher-accent);
     }
-    &:hover ::v-deep.checkbox-label {
+    &:hover ::v-deep .checkbox-label {
       color: var(--app-rancher-accent-text);
     }
     & i {
@@ -572,7 +596,7 @@ export default {
       &:hover {
       background: var(--app-partner-accent);
     }
-    &:hover ::v-deep.checkbox-label {
+    &:hover ::v-deep .checkbox-label {
       color: var(--app-partner-accent-text);
     }
     & i {
@@ -584,7 +608,7 @@ export default {
     &:hover {
       background: var(--app-color1-accent);
     }
-    &:hover ::v-deep.checkbox-label {
+    &:hover ::v-deep .checkbox-label {
       color: var(--app-color1-accent-text);
     }
     & i {
@@ -595,10 +619,10 @@ export default {
     &:hover {
       background: var(--app-color2-accent);
     }
-    &:hover ::v-deep.checkbox-label {
+    &:hover ::v-deep .checkbox-label {
       color: var(--app-color2-accent-text);
     }
-        & i {
+    & i {
       color: var(--app-color2-accent)
     }
   }
@@ -606,7 +630,7 @@ export default {
     &:hover {
       background: var(--app-color3-accent);
     }
-    &:hover ::v-deep.checkbox-label {
+    &:hover ::v-deep .checkbox-label {
       color: var(--app-color3-accent-text);
     }
     & i {
@@ -628,7 +652,7 @@ export default {
     &:hover {
       background: var(--app-color5-accent);
     }
-    &:hover ::v-deep.checkbox-label {
+    &:hover ::v-deep .checkbox-label {
       color: var(--app-color5-accent-text);
     }
     & i {
@@ -639,7 +663,7 @@ export default {
     &:hover {
       background: var(--app-color6-accent);
     }
-    &:hover ::v-deep.checkbox-label {
+    &:hover ::v-deep .checkbox-label {
       color: var(--app-color6-accent-text);
     }
     & i {
@@ -650,7 +674,7 @@ export default {
     &:hover {
       background: var(--app-color7-accent);
     }
-    &:hover ::v-deep.checkbox-label {
+    &:hover ::v-deep .checkbox-label {
       color: var(--app-color7-accent-text);
     }
     & i {
@@ -660,9 +684,6 @@ export default {
   &.color8 {
     &:hover {
       background: var(--app-color8-accent);
-    }
-    &:hover ::v-deep.checkbox-label {
-      color: var(--app-color8-accent-text);
     }
     & i {
       color: var(--app-color8-accent)

@@ -34,18 +34,24 @@ describe('Cluster Project and Members', { tags: ['@adminUser'] }, () => {
     clusterMembership.navToSideMenuEntryByLabel('Cluster and Project Members');
     clusterMembership.triggerAddClusterOrProjectMemberAction();
     clusterMembership.selectClusterOrProjectMember(username);
+    cy.intercept('POST', '/v3/clusterroletemplatebindings').as('createClusterMembership');
     clusterMembership.saveCreateForm().click();
+    cy.wait('@createClusterMembership');
 
     clusterMembership.waitForPageWithExactUrl();
-    clusterMembership.listElementWithName(username).should('exist');
-
-    clusterMembership.listElementWithName(username).find('.principal .name').invoke('text').then((t) => {
+    cy.get('body tbody').then((el) => {
+      if (el.find('tr.no-rows').is(':visible')) {
+        cy.reload();
+      }
+      clusterMembership.listElementWithName(username).should('exist');
+      clusterMembership.listElementWithName(username).find('.principal .name').invoke('text').then((t) => {
       // clear new line chars and white spaces
-      const sanitizedName = t.trim().replace(/^\n|\n$/g, '');
+        const sanitizedName = t.trim().replace(/^\n|\n$/g, '');
 
-      // no string "loading..." next to name
-      // usecase https://github.com/rancher/dashboard/issues/8804
-      expect(sanitizedName).to.equal(username);
+        // no string "loading..." next to name
+        // usecase https://github.com/rancher/dashboard/issues/8804
+        expect(sanitizedName).to.equal(username);
+      });
     });
   });
 });

@@ -34,9 +34,12 @@ declare namespace Cypress {
     setClusterRoleBinding(clusterId: string, userPrincipalId: string, role: string): Chainable;
     setProjectRoleBinding(clusterId: string, userPrincipalId: string, projectName: string, role: string): Chainable;
     getProjectByName(clusterId: string, projectName: string): Chainable;
+    createProject(projName: string, clusterId: string, userId: string): Chainable;
+    createNamespace(nsName: string, projId: string): Chainable;
 
-    getRancherResource(prefix: 'v3' | 'v1', resourceType: string, resourceId: string, expectedStatusCode: string): Chainable;
+    getRancherResource(prefix: 'v3' | 'v1', resourceType: string, resourceId?: string, expectedStatusCode: string): Chainable;
     setRancherResource(prefix: 'v3' | 'v1', resourceType: string, resourceId: string, body: string): Chainable;
+    deleteRancherResource(prefix: 'v3' | 'v1', resourceType: string, resourceId: string): Chainable;
 
     /**
      *  Wrapper for cy.get() to simply define the data-testid value that allows you to pass a matcher to find the element.

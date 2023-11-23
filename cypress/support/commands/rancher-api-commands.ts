@@ -207,11 +207,68 @@ Cypress.Commands.add('getProjectByName', (clusterId, projectName) => {
 });
 
 /**
+ * create a project
+ */
+Cypress.Commands.add('createProject', (projName, clusterId, userId) => {
+  return cy.request({
+    method:  'POST',
+    url:     `${ Cypress.env('api') }/v3/projects`,
+    headers: {
+      'x-api-csrf': token.value,
+      Accept:       'application/json'
+    },
+    body: {
+      type:                          'project',
+      name:                          projName,
+      annotations:                   {},
+      labels:                        {},
+      clusterId,
+      creatorId:                     `${ clusterId }://${ userId }`,
+      containerDefaultResourceLimit: {},
+      resourceQuota:                 {},
+      namespaceDefaultResourceQuota: {}
+    }
+  })
+    .then((resp) => {
+      expect(resp.status).to.eq(201);
+    });
+});
+
+/**
+ * create a namespace
+ */
+Cypress.Commands.add('createNamespace', (nsName, projId) => {
+  return cy.request({
+    method:  'POST',
+    url:     `${ Cypress.env('api') }/v1/namespaces`,
+    headers: {
+      'x-api-csrf': token.value,
+      Accept:       'application/json'
+    },
+    body: {
+      type:     'namespace',
+      metadata: {
+        annotations: {
+          'field.cattle.io/containerDefaultResourceLimit': '{}',
+          'field.cattle.io/projectId':                     projId
+        },
+        labels: { 'field.cattle.io/projectId': projId.split(':')[1] },
+        name:   nsName
+      },
+      disableOpenApiValidation: false
+    }
+  })
+    .then((resp) => {
+      expect(resp.status).to.eq(201);
+    });
+});
+
+/**
  * Override user preferences to default values, allowing to pass custom preferences for a deterministic scenario
  */
 // eslint-disable-next-line no-undef
 Cypress.Commands.add('userPreferences', (preferences: Partial<UserPreferences> = {}) => {
-  return cy.intercept('/v1/userpreferences', (req) => {
+  return cy.intercept('/v1/userpreferences*', (req) => {
     req.reply({
       statusCode: 201,
       body:       {
@@ -254,11 +311,19 @@ Cypress.Commands.add('requestBase64Image', (url: string) => {
 
 /**
  * Get a v3 / v1 resource
+ * url is constructed based if resourceId is supplied or not
  */
-Cypress.Commands.add('getRancherResource', (prefix, resourceType, resourceId, expectedStatusCode = 200) => {
+
+Cypress.Commands.add('getRancherResource', (prefix, resourceType, resourceId?, expectedStatusCode = 200) => {
+  let url = `${ Cypress.env('api') }/${ prefix }/${ resourceType }`;
+
+  if (resourceId) {
+    url += `/${ resourceId }`;
+  }
+
   return cy.request({
     method:  'GET',
-    url:     `${ Cypress.env('api') }/${ prefix }/${ resourceType }/${ resourceId }`,
+    url,
     headers: {
       'x-api-csrf': token.value,
       Accept:       'application/json'
@@ -285,6 +350,23 @@ Cypress.Commands.add('setRancherResource', (prefix, resourceType, resourceId, bo
       Accept:       'application/json'
     },
     body
+  })
+    .then((resp) => {
+      expect(resp.status).to.eq(200);
+    });
+});
+
+/**
+ * delete a v3 / v1 resource
+ */
+Cypress.Commands.add('deleteRancherResource', (prefix, resourceType, resourceId) => {
+  return cy.request({
+    method:  'DELETE',
+    url:     `${ Cypress.env('api') }/${ prefix }/${ resourceType }/${ resourceId }`,
+    headers: {
+      'x-api-csrf': token.value,
+      Accept:       'application/json'
+    }
   })
     .then((resp) => {
       expect(resp.status).to.eq(200);

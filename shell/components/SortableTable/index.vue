@@ -1026,9 +1026,8 @@ export default {
           <slot name="header-right" />
           <AsyncButton
             v-if="isTooManyItemsToAutoUpdate"
-            v-clean-tooltip="t('performance.manualRefresh.buttonTooltip')"
             class="manual-refresh"
-            mode="refresh"
+            mode="manual-refresh"
             :current-phase="currentPhase"
             @click="debouncedRefreshTableData"
           />

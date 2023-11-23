@@ -5,8 +5,8 @@ source $(dirname $0)/version
 
 cd $(dirname $0)/..
 
-if [[ -z ${ORG} ]] || [[ -z ${REPO} ]] || [[ -z ${TAG} ]]; then
-    echo "Usage: [REGISTRY=] ORG= REPO= TAG= ./scripts/package"
+if [[ -z ${ORG} ]] || [[ -z ${REPO} ]] || [[ -z ${TAG} ]] || [[ -z ${RUNTIME} ]]; then
+    echo "Usage: [REGISTRY=] ORG= REPO= TAG= RUNTIME= ./scripts/package"
     exit 1
 fi
 
@@ -19,5 +19,13 @@ if [ -e ${DOCKERFILE}.${ARCH} ]; then
     DOCKERFILE=${DOCKERFILE}.${ARCH}
 fi
 
-docker build -f ${DOCKERFILE} -t ${IMAGE} .
+BUILD="${RUNTIME} build -f ${DOCKERFILE} -t ${IMAGE}"
+
+if [[ ${RUNTIME} == "podman" ]]; then
+    BUILD="$BUILD -v /var/lib/containers:/var/lib/containers ."
+else
+    BUILD="$BUILD ."
+fi
+
+$BUILD
 echo Built ${IMAGE}

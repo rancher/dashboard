@@ -22,7 +22,7 @@ Rancher publishes two npm packages to help bootstrap the creation of the app and
 Create a new folder and run:
 
 ```sh
-yarn create @rancher/app my-app
+yarn create @rancher/app my-app [OPTIONS]
 cd my-app
 ```
 
@@ -31,6 +31,16 @@ This will create a new folder `my-app` and populate it with the minimum files ne
 > Note: If you don't want to create a new folder, but instead want the files created in an existing folder, use `yarn create @rancher/app .`
 
 > Note: The skeleton application references the Rancher dashboard code via the `@rancher/shell` npm module.
+
+#### ___Extension Options___
+
+There is one option available to be passed as an argument to the `@rancher/app` script:
+
+| Option | Description |
+| :---: | ------ |
+| `-l` | This will automatically add the [`.gitlab-ci.yml`](https://github.com/rancher/dashboard/blob/master/shell/creators/app/files/.gitlab-ci.yml) pipeline file for integration with GitLab |
+
+---
 
 You can run the app with:
 
@@ -60,11 +70,14 @@ yarn create @rancher/pkg test [OPTIONS]
 
 This will create a new UI Package in the `./pkg/test` folder.
 
-#### ___Extension Options___
+#### ___Extension Package Options___
 
 There are two options that can be passed to the `@rancher/pkg` script:
-- `-t`: Creates additional boilerplate directories for types, including: 'l10n', 'models', 'edit', 'list', and 'detail'
-- `-w`: Creates a workflow file ('build-extension.yml') to be used as a Github action. This will automatically build your extension and release a Helm chart.
+
+| Option | Description |
+| :---: | ------ |
+| `-t` | Creates additional boilerplate directories for types, including: 'l10n', 'models', 'edit', 'list', and 'detail'. |
+| `-w` | Creates the workflow files [`build-extension-catalog.yml`, `build-extension-charts.yml`](https://github.com/rancher/dashboard/tree/master/shell/creators/pkg/files/.github/workflows) to be used as Github actions. This will automatically build your extension and release a Helm chart and Extension Catalog Image. |
 
 > Note: Using the `-w` option to create an automated workflow will require additonal prequesites, see the [Release](#creating-a-release) section.
 
@@ -259,9 +272,11 @@ You'll notice that if you reload the Rancher UI, the extension is not persistent
 
 Creating a Release for your extension is the official avenue for loading extensions into any Rancher instance. As mentioned in the [Introduction](./introduction.md), the extension can be packaged into a Helm chart and added as a Helm repository to be easily accessible from your Rancher Manager.
 
-We have created [a workflow](https://github.com/rancher/dashboard/tree/master/shell/creators/pkg/files/.github/workflows) for [Github Actions](https://docs.github.com/en/actions) which will automatically build, package, and release your extension as a Helm chart for use within your Github repository, and an [Extension Catalog Image](./advanced/air-gapped-environments) (ECI) which is published into a specified container registry (`ghcr.io` by default). Depending on the use case, you can utilize the Github repository as a [Helm repository](https://helm.sh/docs/topics/chart_repository/) endpoint which we can use to consume the chart in Rancher, or you can import the ECI into the Extension Catalog list and serve the Helm charts locally.
+We have created [workflows](https://github.com/rancher/dashboard/tree/master/shell/creators/pkg/files/.github/workflows) for [Github Actions](https://docs.github.com/en/actions) which will automatically build, package, and release your extension as a Helm chart for use within your Github repository, and an [Extension Catalog Image](./advanced/air-gapped-environments) (ECI) which is published into a specified container registry (`ghcr.io` by default). Depending on the use case, you can utilize the Github repository as a [Helm repository](https://helm.sh/docs/topics/chart_repository/) endpoint which we can use to consume the chart in Rancher, or you can import the ECI into the Extension Catalog list and serve the Helm charts locally.
 
-> Note: If you wish to build and publish the Helm chart or the ECI manually or with specific configurations, you can follow the steps listed in the [Publishing an Extension](./publishing) section.
+> **Note:** GitLab support is offered through leverging the ECI build. For configuration instructions, follow the setps in the [Gitlab Integration](./publishing#gitlab-integration) section.
+
+> **Note:** If you wish to build and publish the Helm chart or the ECI manually or with specific configurations, you can follow the steps listed in the [Publishing an Extension](./publishing) section.
 
 ### Release Prerequisites
 
