@@ -4,6 +4,7 @@ import { SETTING } from '@shell/config/settings';
 import { findBy } from '@shell/utils/array';
 import { createCssVars } from '@shell/utils/color';
 import { _ALL_IF_AUTHED } from '@shell/plugins/dashboard-store/actions';
+import { setTitle } from '@shell/config/private-label';
 
 const cspAdaptorApp = ['rancher-csp-adapter', 'rancher-csp-billing-adapter'];
 
@@ -150,6 +151,7 @@ export default {
   },
   mounted() {
     this.setBodyClass();
+    setTitle();
   },
   methods: {
     setCustomColor(color, name = 'primary') {

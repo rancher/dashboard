@@ -23,21 +23,7 @@ export function setMode(m) {
 
 export function setVendor(v) {
   vendor = v;
-  document.title = v;
-  if (v === 'Harvester') {
-    const ico = require(`~shell/assets/images/pl/harvester.png`);
-
-    document.title = 'Harvester';
-    const link = document.createElement('link');
-
-    link.hid = 'icon';
-    link.rel = 'icon';
-    link.type = 'image/x-icon';
-    link.hrefv = ico;
-    const head = document.getElementsByTagName('head')[0];
-
-    head.appendChild(link);
-  }
+  setTitle();
 }
 
 export function setProduct(p) {
@@ -85,4 +71,25 @@ export function getVendor() {
 
 export function getProduct() {
   return product;
+}
+
+export function setTitle() {
+  const v = getVendor();
+
+  if (v === 'Harvester') {
+    const ico = require(`~shell/assets/images/pl/harvester.png`);
+
+    document.title = 'Harvester';
+    const link = document.createElement('link');
+
+    link.hid = 'icon';
+    link.rel = 'icon';
+    link.type = 'image/x-icon';
+    link.hrefv = ico;
+    const head = document.getElementsByTagName('head')[0];
+
+    head.appendChild(link);
+  } else {
+    document.title = v;
+  }
 }
