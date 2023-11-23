@@ -7,9 +7,11 @@ const IN_REVIEW_LABEL = '[zube]: Review';
 const IN_TEST_LABEL = '[zube]: To Test';
 const DONE_LABEL = '[zube]: Done';
 const BACKEND_BLOCKED_LABEL = '[zube]: Backend Blocked';
+const QA_REVIEW_LABEL = '[zube]: QA Review';
 const TECH_DEBT_LABEL = 'kind/tech-debt';
 const DEV_VALIDATE_LABEL = 'status/dev-validate';
 const QA_NONE_LABEL = 'QA/None';
+const QA_DEV_AUTOMATION_LABEL = 'QA/dev-automation'
 
 // The event object
 const event = require(process.env.GITHUB_EVENT_PATH);
@@ -136,7 +138,7 @@ async function processClosedAction() {
         if(hasLabel(iss, TECH_DEBT_LABEL) || hasLabel(iss, DEV_VALIDATE_LABEL) || hasLabel(iss, QA_NONE_LABEL)) {
             console.log('  Issue is tech debt/dev validate/qa none - ignoring');
         } else {
-            console.log('  Updating labels to move issue to Test');
+            console.log('  Waiting for Zube to mark the issue as done ...');
 
             // Output labels
             const labels = iss.labels || [];
@@ -160,10 +162,22 @@ async function processClosedAction() {
                 console.log('  Expecting issue to be closed, but it is not');
             }
 
+            console.log('  Waiting for Zube to mark the issue as in triage ...');
+
             // The Zube Integration will label the issue as To Triage now that is has been re-opened
             // Wait for that and then we can move it to test
             await waitForLabel(iss, TRIAGE_LABEL);
-            await resetZubeLabels(iss, IN_TEST_LABEL);
+
+            // Move to QA Review if the issue has the label that dev wrote automated tests
+            if (hasLabel(iss, QA_DEV_AUTOMATION_LABEL)) {
+              console.log('  Updating labels to move issue to QA Review');
+
+              await resetZubeLabels(iss, QA_REVIEW_LABEL);
+            } else {
+              console.log('  Updating labels to move issue to Test');
+
+              await resetZubeLabels(iss, IN_TEST_LABEL);
+            }
         }
 
         console.log('');
