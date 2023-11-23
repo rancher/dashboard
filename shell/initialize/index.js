@@ -13,7 +13,7 @@ import { setContext, getLocation, getRouteData, normalizeError } from '../utils/
 import { createStore } from '../config/store.js';
 
 /* Plugins */
-
+import { loadDirectives } from '@shell/plugins';
 import '../plugins/portal-vue.js';
 import cookieUniversalNuxt from '../utils/cookie-universal-nuxt.js';
 import axios from '../utils/axios.js';
@@ -21,11 +21,8 @@ import plugins from '../core/plugins.js';
 import pluginsLoader from '../core/plugins-loader.js';
 import axiosShell from '../plugins/axios';
 import '../plugins/tooltip';
-import '../plugins/clean-tooltip-directive';
 import '../plugins/vue-clipboard2';
 import '../plugins/v-select';
-import '../plugins/directives';
-import '../plugins/clean-html-directive';
 import '../plugins/transitions';
 import '../plugins/vue-js-modal';
 import '../plugins/js-yaml';
@@ -46,6 +43,29 @@ import codeMirror from '../plugins/codemirror-loader';
 import '../plugins/formatters';
 import version from '../plugins/version';
 import steveCreateWorker from '../plugins/steve-create-worker';
+
+// Prevent extensions from overriding existing directives
+// Hook into Vue.directive and keep track of the directive names that have been added
+// and prevent an existing directive from being overwritten
+const directiveNames = {};
+const vueDirective = Vue.directive;
+
+Vue.directive = function(name) {
+  if (directiveNames[name]) {
+    console.log(`Can not override directive: ${ name }`); // eslint-disable-line no-console
+
+    return;
+  }
+
+  directiveNames[name] = true;
+
+  vueDirective.apply(Vue, arguments);
+};
+
+// Load the directives from the plugins - we do this with a function so we know
+// these are initialized here, after the code above which keeps track of them and
+// prevents over-writes
+loadDirectives();
 
 // Component: <ClientOnly>
 Vue.component(ClientOnly.name, ClientOnly);
