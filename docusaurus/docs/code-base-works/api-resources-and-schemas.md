@@ -1,76 +1,17 @@
 # API
 
-There are lots of different APIs available in Rancher, but the primary two are [Norman](https://github.com/rancher/norman) and [Steve](https://github.com/rancher/steve)
+For information about the supported Rancher APIs see [here](https://ranchermanager.docs.rancher.com/v2.8/api/quickstart)
 
-## Norman
+The Rancher UI contains functionality to manage Kubernetes resources.
 
-Norman is older and mainly used by the [Ember UI](https://github.com/rancher/ui).  It presents an opinionated view of some of the common resources in a Kubernetes cluster, with lots of features to make the client's life easier.  Fields are renamed to be named more consistently, deeply-nested structures are flattened out somewhat, complicated multi-step interactions with the k8s API are orchestrated in the server and hidden from you, etc.  It attempts to bridge the gap from Rancher 1.x's usability, and is quite nice if it does what you need.  But _only_ the types that Norman supports are exposed, and you can _only_ interact with the resources in the namespaces assigned to a Project.  Types Norman doesn't know about and namespaces not assigned to a project are effectively invisible.
+Developers can create, edit, fetch and remove individual resources or fetch collections of them. Resources that are fetched, by default, will be automatically updated via WebSocket
 
-## Steve
+In addition the Rancher UI exposes permissions functionality around resources which can determine if the signed in user can perform the various actions around them.
 
-Steve is newer, and the primary API used here.  It works in the opposite direction, starting with a completely unopinionated view of every resource available in a cluster, and then adding custom logic only where needed.  Every type and every namespace are directly addressable.  This still adds some critical functionality over directly talking to the k8s API, such as:
-
-- It's presented following our [api-spec](https://github.com/rancher/api-spec), so the same client libraries work for any of our APIs, including the in-browser generic [api-ui](https://github.com/rancher/api-ui).
-- "Watches" to find out when a resource changes are aggregated into a single websocket which keeps track of what's connected and can resume the stream, rather than many independent calls to the native k8s implementation
-- The "counts" resource internally watches everything to keep track of how many of every type of resource there are in every namespace and state, which allows us to show all the types that are "in use" and how many there are in the left nav.
-- Schemas and links on each resource efficiently identify what permissions the user making the request has, so that actions in the UI can be hidden or disabled if not allowed for the current user instead of letting them try and having the server reject it.
-- Normalizing the different and sometimes inconsistent state/status/conditions data from resources into a single logical view of the world the UI can present.
-- RPC-style actions to do more complicated workflows on the server side when appropriate
-
-A key concept in Steve is that although the UI makes imperative calls to the Steve API, Steve is designed to capture all operations in Kubernetes resources. That means the only way to perform any operation with the Steve API is by requesting it to create or manipulate YAML files.
-
-This is in contrast to the Norman API, which had a concept of 'actions' - imperative API calls that would perform an operation. For example, while Norman had defined an action to perform encryption key rotation, the only way to achieve the same result in Steve would be to update the provisioning cluster Kubernetes resource.
-
-## Endpoints
-
-In a production setup these are all handled natively by Rancher.  For development of dashboard, they are proxied to the Rancher install that the `API` environment variable points at.
-
-| Endpoint                | Notes                                                                 |
-| ----------------------- | --------------------------------------------------------------------- |
-| `/v3`                   | Norman API                                                            |
-| `/v3-public`            | Norman unauthenticated API (mostly for info required to login)        |
-| `/v1`                   | Steve API for the management ("local") cluster                        |
-| `/k8s/clusters/<id>`    | Proxy straight to the native k8s API for the given downstream cluster |
-| `/k8s/clusters/<id>/v1` | Steve API for given downstream cluster via the server proxy           |
-
-The older Norman API is served on `/v3`. The newer Steve API (see [here](https://github.com/rancher/api-spec/blob/master/specification.md) for spec) is served on `/v1` .
-
-In both cases the schemas returned dictate 
-- Which resources are shown
-- What operations (create, update, delete, etc) can be made against resource/s
-- What actions (archive, change password, etc) can be made against resource/s
-
-In addition the resources themselves can dictate 
-- What actions can be made against the collection
-
-The above, plus other factors, will effect what is shown by the UI
-- Resources in the cluster explorer
-- Edit resource buttons
-- Delete resource
-- etc
-
-There are other factors that assist in this, namely values from the `type-map`. More details can be found throughout this 
-document.
-
-## Exploring the API
-
-The API serves up an interface to [browse both Norman and Steve APIs](https://github.com/rancher/api-ui). Both will list supported schemas and allow the user to fetch individual or collections of resources. The schemas will describe the actions executable against individual or collections of resource. For Norman it will also show fields that can be filtered on.
-
-The dashboard will proxy requests to the API, so the interfaces are available via `<Dashboard URL>/v3` (Norman) and `<Dashboard URL>/v1` (Steve)
-
-## Synching State
-
-The high-level way the entire UI works is that API calls are made to load data from the server, and then a "watch" is started to notify us of changes so that information can be kept up to date at all times without polling or refreshing.  You can load a single resource by ID, an entire collection of all those resources, or something in between, and they should still stay up to date.  This works by having an array of a single authoritative copy of all the "known" models saved in the API stores (`management` & `cluster`) and updating the data when an event is received from the "subscribe" websocket.  The update is done on the _existing_ copy, so that anything that refers to it finds out that it changed through Vue's reactivity.  When manipulating models or collections of results from the API, some care is needed to make sure you are keeping that single copy and not making extras or turning a "live" array of models into a "dead" clone of it.
-
-The most basic operations are `find({type, id})` to load a single resource by ID, `findAll({type})` load all of them.  These (anything starting with `find`) are async calls to the API.  Getters like `all(type)` and `byId(type, id)` are synchronous and return only info that has already been previously loaded.  See `plugins/dashboard-store/` for all the available actions and getters.
-
-## Resources
-
-A resource is an instance of a schema e.g. the `admin` user is an instance of type `management.cattle.io.user` from the `Steve` API. 
+# Resource Definitions
 
 ## Schemas
-
-Schemas are provided in bulk via the APIs and cached locally in the relevant store (`management`, `rancher`, etc).
+Schemas are provided in bulk via Rancher and cached locally in the relevant store (`management`, `rancher`, etc).
 
 A schema can be fetched synchronously via store getter
 
@@ -86,21 +27,20 @@ this.$store.getters['cluster/schemaFor'](POD)`
 
 As mentioned before a schema dictates the functionality available to that type and what is shown for the type in the UI.
 
+A resource is an instance of a schema e.g. the `admin` user is an instance of type `management.cattle.io.user`.
+
 ## Types
 
 Each type has a Kubernetes API group and a name, but not necessarily a human-readable name. Types are used mainly for building side navigation and defining how the UI should build forms and list views for each resource. For more information about types and how to use them, there are helpful comments in `store/type-map.js`.
 
-### Cluster Management Types
-
-Resources for cluster management are stored in the `local` cluster (the one that runs the Rancher server). The `management.cattle.io` API group indicates the resources that are backing the old Norman API.
 
 # Vuex Stores
 
 There are 3 main stores for communicating with different parts of the Rancher API:
 
-- `management`: Points at the global-level "steve" API for Rancher as a whole.
-- `cluster`: Points at "steve" for the one currently selected cluster; changes when you change clusters.
-- `rancher`: Points at the "norman" API, primally for global-level resources, but some cluster-level resources are actually stored here and not physically in the cluster to be available to the `cluster` store.
+- `management`: Points at global-level resources for Rancher as a whole.
+- `cluster`: Points at resources for the currently selected cluster; changes when you change clusters.
+- `rancher`: Points at older global-level resources, but some cluster-level resources are actually stored here and not physically in the cluster to be available to the `cluster` store.
 
 And then a bunch of others:
 
@@ -139,6 +79,20 @@ Store objects are accessed in different ways, below are common ways they are ref
 
 ## Checking User Permissions with Schemas
 
+Schemas dictate
+- Which resources are shown
+- What operations (create, update, delete, etc) can be made against resource/s
+- What actions (archive, change password, etc) can be made against resource/s
+
+In addition the resources themselves can dictate
+- What actions can be made against the collection
+
+The above, plus other factors, will effect what is shown by the UI
+- Resources in the cluster explorer
+- Edit resource buttons
+- Delete resource
+- etc
+
 The schema can be checked in the Rancher API at:
 
 ```
@@ -169,19 +123,17 @@ The `Resource` class in `plugins/dashboard-store/resource-class.js` is the base 
 
 The Norman and Hybrid models extend the basic Resource class. The Hybrid model is extended by the Steve model.
 
-## Dehydration and Rehydration
+#### Model Creation
 
 The Rancher API returns plain objects containing resource data, but we need to convert that data into classes so that we can use methods on them.
 
 Whenever we get an object from the API, we run the `classify` function (at `plugins/dashboard-store/classify.js`) which looks at the type field and figures out what type it is supposed to be. That file gives you an instance of a model which you can use to access the properties.
 
-This 'rehydration' process is important for server-side rendering, in which the server side returns a block of JSON that needs to be converted to classes. In `plugins/dashboard-store/rehydrate-all.js`, we use `this.nuxt.hook` to add a hook in which nuxt looks over all the objects. It recurses over the object from nuxt, which is the data that you get back from the server when server-side rendering mode is turned on, and converts all of the objects to classes. While the `rehydrate-all` code is not used in production, it may be in the future.
-
-We also 'dehydrate' resources by stripping out properties with double underscores before sending data to the Rancher API. We remove these properties because they are only used on the client side.
-
 ## Creating and Fetching Resources
 
 Most of the options to create and fetch resources can be achieved via dispatching actions defined in `/plugins/dashboard-store/actions.js`
+
+The most basic operations are `find({type, id})` to load a single resource by ID, `findAll({type})` load all of them.  These (anything starting with `find`) are async calls to the API.  Getters like `all(type)` and `byId(type, id)` are synchronous and return only info that has already been previously loaded.  See `plugins/dashboard-store/` for all the available actions and getters.
 
 | Function       | Action                                                                                                               | Example Command                                                                                             | Description                                                                                                                                                                             |
 | -------------- | -------------------------------------------------------------------------------------------------------------------- | ----------------------------------------------------------------------------------------------------------- | --------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------- |
