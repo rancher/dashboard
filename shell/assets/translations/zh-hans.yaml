@@ -2080,7 +2080,7 @@ drainNode:
 etcdInfoBanner:
   hasLeader: "ETCD 有一个 Leader："
   leaderChanges: "Leader 变化的次数："
-  failedProposals: "失败的 proposal 数量"
+  failedProposals: "失败的 proposal 数量："
 
 fleet:
   dashboard:
