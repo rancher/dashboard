@@ -163,11 +163,11 @@ export default class MgmtNodePool extends HybridModel {
   }
 
   get isControlPlane() {
-    return `${ this.spec?.controlPlane }` === 'true';
+    return this.spec?.controlPlane === true;
   }
 
   get isEtcd() {
-    return `${ this.spec?.etcd }` === 'true';
+    return this.spec?.etcd === true;
   }
 
   canScaleDownPool() {

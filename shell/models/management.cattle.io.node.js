@@ -110,7 +110,7 @@ export default class MgmtNode extends HybridModel {
   async scaleDown(resources = this) {
     this.$dispatch('promptModal', {
       resources,
-      component:  'ScaleRke1NodeDownDialog',
+      component:  'ScaleMachineDownDialog',
       modalWidth: '450px'
     });
   }

@@ -109,6 +109,9 @@ describe('class MgmtNode', () => {
       },
       etcdAndControlPlane: {
         worker: false, etcd: true, controlPlane: true
+      },
+      all: {
+        worker: true, etcd: true, controlPlane: true
       }
     };
 
@@ -136,6 +139,12 @@ describe('class MgmtNode', () => {
       isControlPlane: true,
       isEtcd:         true
     };
+    const allNode = {
+      id:             '04',
+      isWorker:       true,
+      isControlPlane: true,
+      isEtcd:         true
+    };
 
     const baseCtx = {
       rootGetters: {
@@ -149,6 +158,8 @@ describe('class MgmtNode', () => {
       [{ spec: specs.etcd, nodes: [etcdNode, etcdNode, controlPlaneNode] }, true],
       [{ spec: specs.etcdAndControlPlane, nodes: [etcdAndControlPlaneNode, etcdAndControlPlaneNode] }, true],
       [{ spec: specs.etcdAndControlPlane, nodes: [etcdAndControlPlaneNode] }, false],
+      [{ spec: specs.all, nodes: [allNode] }, false],
+      [{ spec: specs.all, nodes: [allNode, allNode] }, true],
     ])('should return canScaleDown properly', (data, expected) => {
       const { spec, nodes } = data;
       const mgmtNode = new MgmtNode({
