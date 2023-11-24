@@ -106,6 +106,8 @@ export default {
   data(props) {
     const currentReceiver = {};
     const mode = this.$route.query.mode;
+    const currentCluster = this.$store.getters['currentCluster'];
+    const inStore = currentCluster.isHarvester ? 'harvester' : 'cluster';
 
     if (mode === _CREATE) {
       RECEIVERS_TYPES.forEach((receiverType) => {
@@ -120,7 +122,7 @@ export default {
      *   slackConfigs: [...]
      * }
      */
-    const receiverSchema = this.$store.getters['cluster/schemaFor'](MONITORING.SPOOFED.ALERTMANAGERCONFIG_RECEIVER_SPEC);
+    const receiverSchema = this.$store.getters[`${ inStore }/schemaFor`](MONITORING.SPOOFED.ALERTMANAGERCONFIG_RECEIVER_SPEC);
 
     if (!receiverSchema) {
       throw new Error("Can't render the form because the AlertmanagerConfig schema is not loaded yet.");

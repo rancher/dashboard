@@ -6,7 +6,7 @@ import { BadgeState } from '@components/BadgeState';
 import { Banner } from '@components/Banner';
 import { get } from '@shell/utils/object';
 import { NAME as FLEET_NAME } from '@shell/config/product/fleet';
-import { HIDE_SENSITIVE } from '@shell/store/prefs';
+import { PLUGIN_DEVELOPER, HIDE_SENSITIVE, DEV } from '@shell/store/prefs';
 import {
   AS, _DETAIL, _CONFIG, _YAML, MODE, _CREATE, _EDIT, _VIEW, _UNFLAG, _GRAPH
 } from '@shell/config/query-params';
@@ -93,6 +93,15 @@ export default {
   },
 
   computed: {
+    dev() {
+      // Ensure Harvester is compatible with Rancher v2.6.10
+      try {
+        return this.$store.getters['prefs/get'](PLUGIN_DEVELOPER);
+      } catch {
+        return this.$store.getters['prefs/get'](DEV);
+      }
+    },
+
     schema() {
       const inStore = this.storeOverride || this.$store.getters['currentStore'](this.resource);
 
@@ -375,6 +384,10 @@ export default {
     hideNamespaceLocation() {
       return this.$store.getters['currentProduct'].hideNamespaceLocation || this.value.namespaceLocation === null;
     },
+
+    resourceExternalLink() {
+      return this.value.resourceExternalLink;
+    },
   },
 
   methods: {
@@ -441,6 +454,15 @@ export default {
                 class="icon icon-sm icon-istio"
               />
             </span>
+            <a
+              v-if="dev && !!resourceExternalLink"
+              class="resource-external"
+              rel="nofollow noopener noreferrer"
+              target="_blank"
+              :href="resourceExternalLink"
+            >
+              <i class="icon icon-external-link" />
+            </a>
           </h1>
         </div>
         <div
@@ -600,10 +622,8 @@ export default {
     }
   }
 
-  div.actions-container > div.actions {
-    display: flex;
-    flex-direction: row;
-    justify-content: flex-end;
+  .resource-external {
+    font-size: 18px;
   }
 
 </style>
