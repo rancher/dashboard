@@ -1,5 +1,6 @@
 <script>
 import { isArray } from '@shell/utils/array';
+import { copyTextToClipboard } from '@shell/utils/clipboard';
 
 function flatten(node) {
   if ( node.text ) {
@@ -27,7 +28,7 @@ export default {
 
       const content = flatten(this.$slots.default).trim();
 
-      this.$copyText(content).then(() => {
+      copyTextToClipboard(content).then(() => {
         this.copied = true;
 
         setTimeout(() => {

@@ -1,5 +1,6 @@
 <script>
 import AsyncButton from '@shell/components/AsyncButton';
+import { copyTextToClipboard } from '@shell/utils/clipboard';
 
 export default {
   components: { AsyncButton },
@@ -18,7 +19,7 @@ export default {
 
   methods: {
     clicked(buttonCb) {
-      this.$copyText(this.text).then(() => {
+      copyTextToClipboard(this.text).then(() => {
         buttonCb(true);
       }).catch(() => {
         buttonCb(false);
