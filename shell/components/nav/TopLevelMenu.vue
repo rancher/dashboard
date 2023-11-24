@@ -51,13 +51,11 @@ export default {
     ...mapGetters(['clusterId']),
     ...mapGetters(['clusterReady', 'isRancher', 'currentCluster', 'currentProduct', 'isRancherInHarvester']),
     ...mapGetters({ features: 'features/get' }),
-
     value: {
       get() {
         return this.$store.getters['productId'];
       },
     },
-
     sideMenuStyle() {
       return {
         marginBottom: this.globalBannerSettings?.footerFont,
@@ -165,7 +163,6 @@ export default {
 
       return `min-height: ${ height }px`;
     },
-
     clusterFilterCount() {
       return this.clusterFilter ? this.clustersFiltered.length : this.clusters.length;
     },
@@ -271,6 +268,12 @@ export default {
       const lineHeightInEm = lineHeightInPx / defaultFontSize;
 
       return `${ lineHeightInEm }em`;
+    },
+
+    isSelectedCluster(c) {
+      const path = this.$route.path.split('/').slice()[1];
+
+      return path === 'c' && this.currentCluster?.id === c.id;
     },
 
     handler(e) {
@@ -402,6 +405,10 @@ export default {
                   :placeholder="t('nav.search.placeholder')"
                 >
                 <i
+                  class="magnifier icon icon-search"
+                  :class="{ active: clusterFilter }"
+                />
+                <i
                   v-if="clusterFilter"
                   class="icon icon-close"
                   @click="clusterFilter=''"
@@ -471,6 +478,7 @@ export default {
                     <ClusterIconMenu
                       v-tooltip="getTooltipConfig(c.label)"
                       :cluster="c"
+                      :isSelected="isSelectedCluster(c)"
                       class="rancher-provider-icon"
                     />
                     <div class="cluster-name">
@@ -487,6 +495,7 @@ export default {
                     <ClusterIconMenu
                       v-tooltip="getTooltipConfig(c.label)"
                       :cluster="c"
+                      :isSelected="isSelectedCluster(c)"
                       class="rancher-provider-icon"
                     />
                     <div class="cluster-name">{{ c.label }}</div>
@@ -520,6 +529,7 @@ export default {
                     <ClusterIconMenu
                       v-tooltip="getTooltipConfig(c.label)"
                       :cluster="c"
+                      :isSelected="isSelectedCluster(c)"
                       class="rancher-provider-icon"
                     />
                     <div class="cluster-name">
@@ -759,6 +769,7 @@ export default {
 
      &.menu-open {
       width: 300px;
+      box-shadow: 3px 1px 3px var(--shadow);
     }
 
     .title {
@@ -766,7 +777,6 @@ export default {
       height: 55px;
       flex: 0 0 55px;
       width: 100%;
-      border-bottom: 1px solid var(--nav-border);
       justify-content: flex-start;
       align-items: center;
 
@@ -866,19 +876,16 @@ export default {
         img {
           margin-right: 16px;
         }
-
-        &.nuxt-link-active {
-          background: var(--primary-hover-bg);
-          color: var(--primary-hover-text);
-
-          svg {
-            fill: var(--primary-hover-text);
-          }
-
-          i {
-            color: var(--primary-hover-text);
-          }
-        }
+        // &.nuxt-link-active {
+        //   background: var(--primary-hover-bg);
+        //   color: var(--primary-hover-text);
+        //   svg {
+        //     fill: var(--primary-hover-text);
+        //   }
+        //   i {
+        //     color: var(--primary-hover-text);
+        //   }
+        // }
 
         &:hover {
           color: var(--primary-hover-text);
@@ -919,13 +926,31 @@ export default {
         position: relative;
         > input {
           background-color: transparent;
-          margin-bottom: 8px;
           padding-right: 35px;
+          padding-left: 25px;
+          height: 32px;
+        }
+        > .magnifier {
+          position: absolute;
+          top: 12px;
+          left: 8px;
+          width: 12px;
+          height: 12px;
+          font-size: 12px;
+          opacity: 0.4;
+
+          &.active {
+            opacity: 1;
+
+            &:hover {
+              color: var(--body-text);
+            }
+          }
         }
         > i {
           position: absolute;
-          font-size: $clear-search-size;
-          top: 11px;
+          font-size: 12px;
+          top: 12px;
           right: 8px;
           opacity: 0.7;
           cursor: pointer;
@@ -962,10 +987,10 @@ export default {
           height: 42px;
 
           .search {
-            transition: all 0.5s ease-in-out;
+            transition: all 0.25s ease-in-out;
             transition-delay: 2s;
             width: 72%;
-            height: 42px;
+            height: 36px;
 
             input {
               height: 100%;
@@ -1021,7 +1046,7 @@ export default {
             hr {
               margin: 0;
               width: 94%;
-              transition: all 0.5s ease-in-out;
+              transition: all 0.25s ease-in-out;
               max-width: 100%;
             }
           }
@@ -1048,7 +1073,7 @@ export default {
           text-transform: uppercase;
 
           span {
-            transition: all 0.5s ease-in-out;
+            transition: all 0.25s ease-in-out;
             display: flex;
             max-height: 16px;
           }
@@ -1057,7 +1082,7 @@ export default {
             margin: 0;
             max-width: 50px;
             width: 0;
-            transition: all 0.5s ease-in-out;
+            transition: all 0.25s ease-in-out;
           }
         }
 
@@ -1169,12 +1194,12 @@ export default {
   }
 
   .fade-enter-active, .fade-leave-active {
-    transition: all 0.2s;
+    transition: all 0.25s;
     transition-timing-function: ease;
   }
 
   .fade-leave-active {
-    transition: all 0.4s;
+    transition: all 0.25s;
   }
 
   .fade-leave-to {
