@@ -40,6 +40,7 @@ export default {
         clientId,
         clientSecret,
         subscriptionId,
+        environment,
       } = this.value.decodedData;
 
       try {
@@ -50,6 +51,7 @@ export default {
             clientId,
             clientSecret,
             subscriptionId,
+            environment,
           },
           redirectUnauthorized: false,
         });
