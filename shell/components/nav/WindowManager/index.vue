@@ -435,14 +435,15 @@ export default {
           border-radius: var(--border-radius);
           line-height: 12px;
           font-size: 10px;
-          width: 14px;
+          width: 12px;
           align-self: center;
           display: flex;
           justify-content: center;
 
           &:hover {
             border-color: var(--link-border);
-            color: var(--link-border);
+            color: var(--link-active-text);
+            border-color: var(--link-border);
           }
         }
       }
