@@ -18,6 +18,7 @@ describe('Charts', { tags: '@adminUser' }, () => {
 
     before(() => {
       cy.login();
+      cy.viewport(1280, 720);
       chartsPage.goTo();
     });
 
@@ -35,10 +36,14 @@ describe('Charts', { tags: '@adminUser' }, () => {
         terminal.executeCommand(`apply -f https://raw.githubusercontent.com/rancher/local-path-provisioner/${ provisionerVersion }/deploy/local-path-storage.yaml`)
           .executeCommand('create -f https://raw.githubusercontent.com/rancher/local-path-provisioner/master/examples/pvc/pvc.yaml')
           .executeCommand('create -f https://raw.githubusercontent.com/rancher/local-path-provisioner/master/examples/pod/pod.yaml');
+
+        terminal.closeTerminal();
       });
 
       // Don't actually install the chart, just navigate to the edit options page
       beforeEach(() => {
+        cy.login();
+        chartsPage.goTo();
         cy.intercept('POST', 'v1/catalog.cattle.io.clusterrepos/rancher-charts?action=install').as('prometheusChartCreation');
       });
 
@@ -49,6 +54,9 @@ describe('Charts', { tags: '@adminUser' }, () => {
         chartsPage.goToInstall().nextPage().editOptions(tabbedOptions, '[data-testid="btn-prometheus"');
 
         const enableStorageCheckbox = new CheckboxPo('[data-testid="checkbox-chart-enable-persistent-storage"]');
+
+        // Scroll into view
+        enableStorageCheckbox.checkVisible();
 
         enableStorageCheckbox.set();
 
@@ -69,6 +77,43 @@ describe('Charts', { tags: '@adminUser' }, () => {
           expect(monitoringChart.values.prometheus).to.deep.equal(prometheusSpec.values.prometheus);
         });
       });
+
+      // Regression test for: https://github.com/rancher/dashboard/issues/10016
+      it('Should not include empty prometheus selector when installing (add/remove selector).', () => {
+        const tabbedOptions = new TabbedPo();
+
+        // Set prometheus storage class
+        chartsPage.goToInstall().nextPage().editOptions(tabbedOptions, '[data-testid="btn-prometheus"');
+
+        const enableStorageCheckbox = new CheckboxPo('[data-testid="checkbox-chart-enable-persistent-storage"]');
+
+        // Scroll into view
+        enableStorageCheckbox.checkVisible();
+
+        enableStorageCheckbox.set();
+
+        const labeledSelectPo = new LabeledSelectPo('[data-testid="select-chart-prometheus-storage-class"]');
+
+        labeledSelectPo.toggle();
+        labeledSelectPo.clickOptionWithLabel('local-path');
+
+        // Add a selector and then remove it - previously this would result in the empty selector being present
+        chartsPage.self().find(`[data-testid="input-match-expression-add-rule"]`).click();
+        chartsPage.self().find(`[data-testid="input-match-expression-remove-control-0"]`).click();
+
+        // Click on YAML. In YAML mode, the prometheus selector is present but empty
+        // It should not be sent to the API
+        chartsPage.editYaml();
+
+        chartsPage.installChart();
+
+        cy.wait('@prometheusChartCreation', { requestTimeout: 10000 }).then((req) => {
+          const monitoringChart = req.request?.body.charts.find((chart: any) => chart.chartName === 'rancher-monitoring');
+
+          expect(monitoringChart.values.prometheus).to.deep.equal(prometheusSpec.values.prometheus);
+        });
+      });
+
     });
   });
 });
