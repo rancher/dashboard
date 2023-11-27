@@ -442,8 +442,7 @@ export default {
 
           &:hover {
             border-color: var(--link-border);
-            color: var(--link-active-text);
-            border-color: var(--link-border);
+            color: var(--link-border);
           }
         }
       }
