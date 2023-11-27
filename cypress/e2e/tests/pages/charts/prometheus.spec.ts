@@ -149,7 +149,6 @@ describe('Charts', { tags: ['@charts', '@adminUser'] }, () => {
           expect(monitoringChart.values.prometheus).to.deep.equal(prometheusSpec.values.prometheus);
         });
       });
-
     });
   });
 });
