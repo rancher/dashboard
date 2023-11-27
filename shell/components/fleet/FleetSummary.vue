@@ -1,5 +1,4 @@
 <script>
-import capitalize from 'lodash/capitalize';
 import { STATES, STATES_ENUM } from '@shell/plugins/dashboard-store/resource-class';
 import FleetStatus from '@shell/components/fleet/FleetStatus';
 
@@ -85,7 +84,7 @@ export default {
     },
 
     bundleCounts() {
-      const resources = this.bundles.filter((item) => item.metadata.name.startsWith(`${ this.repoName }-`));
+      const resources = this.bundles.filter((item) => item.repoName === this.repoName);
 
       if (!resources.length) {
         return [];
@@ -179,7 +178,6 @@ export default {
 
   },
 
-  methods: { capitalize },
 };
 </script>
 
@@ -190,11 +188,13 @@ export default {
       title="Bundles"
       :values="bundleCounts"
       value-key="count"
+      data-testid="gitrepo-bundle-summary"
     />
     <FleetStatus
       title="Resources"
       :values="resourceCounts"
       value-key="count"
+      data-testid="gitrepo-deployment-summary"
     />
   </div>
 </template>
