@@ -185,7 +185,7 @@ export default {
       // We want to ensure we remove .selector.matchExpressions, .selector.matchLabels, and .selector if empty
       // See: https://github.com/rancher/dashboard/issues/10016
 
-      if (storageSpec.selector.matchExpressions?.length == 0) {
+      if (storageSpec.selector.matchExpressions?.length === 0) {
         delete storageSpec.selector.matchExpressions;
       }
 
@@ -195,7 +195,7 @@ export default {
 
       if (Object.keys(storageSpec.selector).length === 0) {
         delete storageSpec.selector;
-      }      
+      }
     },
   },
 };
