@@ -77,6 +77,14 @@ corral config vars set volume_iops ${AWS_VOLUME_IOPS}
 
 if [[ "${JOB_TYPE}" == "recurring" ]]; then 
   RANCHER_TYPE="recurring"
+  if [[ -n "${RANCHER_IMAGE_TAG}" ]]; then
+    curl https://raw.githubusercontent.com/helm/helm/main/scripts/get-helm-3 | bash
+    helm repo add rancher-latest https://releases.rancher.com/server-charts/latest
+    helm repo update
+    version_string=$(echo "${RANCHER_IMAGE_TAG}" | cut -f1 -d"-")
+    RANCHER_VERSION=$(helm search repo rancher-latest --devel --versions | grep ${version_string} | head -n 1 | cut -f2 | tr -d '[:space:]')
+    corral config vars set rancher_image_tag ${RANCHER_IMAGE_TAG}
+  fi
   cd "${WORKSPACE}/corral-packages"
   yq -i e ".variables.rancher_version += [\"${RANCHER_VERSION}\"] | .variables.rancher_version style=\"literal\"" packages/aws/rancher.yaml
   yq -i e ".variables.kubernetes_version += [\"${RKE2_KUBERNETES_VERSION}\"] | .variables.kubernetes_version style=\"literal\"" packages/aws/rancher.yaml
@@ -90,9 +98,6 @@ if [[ "${JOB_TYPE}" == "recurring" ]]; then
 
   corral config vars set bootstrap_password ${BOOTSTRAP_PASSWORD:-password}
   corral config vars set aws_route53_zone ${AWS_ROUTE53_ZONE}
-  if [[ -n "${RANCHER_IMAGE_TAG}" ]]; then
-    corral config vars set rancher_image_tag ${RANCHER_IMAGE_TAG}
-  fi
   corral config vars set server_count ${SERVER_COUNT:-3}
   corral config vars set agent_count ${AGENT_COUNT:-0}
   corral config vars set instance_type ${AWS_INSTANCE_TYPE}
