@@ -449,9 +449,8 @@ export default {
           justify-content: center;
 
           &:hover {
-            background-color: var(--wm-closer-hover-bg);
-            color: var(--link-active-text);
             border-color: var(--link-border);
+            color: var(--link-border);
           }
         }
       }
