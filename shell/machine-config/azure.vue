@@ -12,9 +12,11 @@ import { Checkbox } from '@components/Form/Checkbox';
 import ArrayList from '@shell/components/form/ArrayList';
 import { randomStr } from '@shell/utils/string';
 import { addParam, addParams } from '@shell/utils/url';
+import { NORMAN } from '@shell/config/types';
+import { findBy } from '@shell/utils/array';
 import KeyValue from '@shell/components/form/KeyValue';
 import { RadioGroup } from '@components/Form/Radio';
-import { _CREATE, _EDIT } from '@shell/config/query-params';
+import { _CREATE } from '@shell/config/query-params';
 
 export const azureEnvironments = [
   { value: 'AzurePublicCloud' },
@@ -92,7 +94,6 @@ const storageTypes = [
     value: 'StandardSSD_LRS'
   }
 ];
-const DEFAULT_REGION = 'westus';
 
 export default {
   components: {
@@ -148,6 +149,12 @@ export default {
       }
       if (!isEmpty(environment)) {
         this.value.environment = environment;
+      } else if (this.loadedCredentialIdFor !== this.credentialId) {
+        this.allCredentials = await this.$store.dispatch('rancher/findAll', { type: NORMAN.CLOUD_CREDENTIAL });
+
+        const currentCredential = this.allCredentials.find((obj) => obj.id === this.credentialId);
+
+        this.value.environment = currentCredential.azurecredentialConfig.environment;
       }
       if (!isEmpty(subscriptionId)) {
         this.value.subscriptionId = subscriptionId;
@@ -156,24 +163,32 @@ export default {
         this.value.tenantId = tenantId;
       }
 
-      this.locationOptions = await this.$store.dispatch('management/request', {
-        url:    addParam('/meta/aksLocations', 'cloudCredentialId', this.credentialId),
-        method: 'GET',
-      });
+      if (this.loadedCredentialIdFor !== this.credentialId) {
+        this.locationOptions = await this.$store.dispatch('management/request', {
+          url:    addParam('/meta/aksLocations', 'cloudCredentialId', this.credentialId),
+          method: 'GET',
+        });
 
-      if (this.mode === _CREATE) {
-        this.value.location = DEFAULT_REGION;
+        this.loadedCredentialIdFor = this.credentialId;
+      }
 
-      // when you edit an Azure cluster and add a new machine pool (edit)
-      // the location field doesn't come populated which causes the vmSizes request
-      // to return 200 but with a null response (also a bunch of other fields are undefined...)
-      // so let's prefill them with the defaults
-      } else if (this.mode === _EDIT && !this.value?.location) {
-        for (const key in this.defaultConfig) {
-          if (this.value[key] === undefined) {
-            this.$set(this.value, key, this.defaultConfig[key]);
-          }
-        }
+      // if (this.mode === _CREATE) {
+      //   this.value.location = DEFAULT_REGION;
+
+      // // when you edit an Azure cluster and add a new machine pool (edit)
+      // // the location field doesn't come populated which causes the vmSizes request
+      // // to return 200 but with a null response (also a bunch of other fields are undefined...)
+      // // so let's prefill them with the defaults
+      // } else if (this.mode === _EDIT && !this.value?.location) {
+      //   for (const key in this.defaultConfig) {
+      //     if (this.value[key] === undefined) {
+      //       this.$set(this.value, key, this.defaultConfig[key]);
+      //     }
+      //   }
+      // }
+
+      if (!this.value.location || !findBy(this.locationOptions, 'name', this.value.location)) {
+        this.locationOptions?.length && this.setLocation(this.locationOptions[this.locationOptions.length - 1]);
       }
 
       this.vmSizes = await this.$store.dispatch('management/request', {
@@ -206,11 +221,17 @@ export default {
       useAvailabilitySet: false,
       vmSizes:            [],
       valueCopy:          this.value,
+
+      loadedCredentialIdFor: null
     };
   },
 
   watch: {
     credentialId() {
+      this.$fetch();
+    },
+
+    'value.location'() {
       this.$fetch();
     },
 
@@ -509,7 +530,7 @@ export default {
           :searchable="false"
           :required="true"
           :label="t('cluster.machineConfig.azure.environment.label')"
-          :disabled="disabled"
+          :disabled="true"
         />
       </div>
       <div class="col span-6">
