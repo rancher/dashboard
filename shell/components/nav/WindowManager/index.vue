@@ -443,7 +443,7 @@ export default {
           border-radius: var(--border-radius);
           line-height: 12px;
           font-size: 10px;
-          width: 12px;
+          width: 14px;
           align-self: center;
           display: flex;
           justify-content: center;
