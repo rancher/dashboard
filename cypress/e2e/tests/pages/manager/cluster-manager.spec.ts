@@ -1,4 +1,4 @@
-import { isMatch } from 'lodash';
+import { isMatch, remove } from 'lodash';
 
 import ClusterManagerCreatePagePo from '@/cypress/e2e/po/edit/provisioning.cattle.io.cluster/create/cluster-create.po';
 import { providersList } from '@/cypress/e2e/blueprints/manager/clusterProviderUrlCheck';
@@ -792,14 +792,15 @@ describe('Cluster Manager', { testIsolation: 'off', tags: ['@manager', '@adminUs
       nodeTemplatesPage.waitForPage();
     });
 
+    let removeCloudCred = false;
+
     it('can create a node template for Amazon EC2 and should display on RKE1 cluster creation page', () => {
       const cloudCredName = `e2e-cloud-cred-name-${ runTimestamp }`;
 
       cy.createAwsCloudCredentials('fleet-default', cloudCredName, 'us-west-2', Cypress.env('awsAccessKey'), Cypress.env('awsSecretKey')).then((resp: Cypress.Response<any>) => {
         cloudCredentialId = resp.body.id;
-        cy.log(cloudCredentialId);
+        removeCloudCred = true;
       });
-      cy.log(cloudCredentialId);
 
       nodeTemplatesPage.goTo();
       nodeTemplatesPage.addTemplate().click();
@@ -909,9 +910,11 @@ describe('Cluster Manager', { testIsolation: 'off', tags: ['@manager', '@adminUs
       cy.contains(`${ templateName }-edit`).should('not.exist');
     });
 
-    it('clean up', () => {
+    after('clean up', () => {
+      if (removeCloudCred) {
       //  delete cloud cred
-      cy.deleteRancherResource('v3', 'cloudCredentials', cloudCredentialId);
+        cy.deleteRancherResource('v3', 'cloudCredentials', cloudCredentialId);
+      }
     });
   });
 });
