@@ -73,7 +73,6 @@ jobs:
       - name: Setup Rancher and user
         run: |
           yarn e2e:prod
-          [ "$BUILD_DASHBOARD" != "false" ] || exit 0
         env: 
           GREP_TAGS: ${{ matrix.role.tag }}Setup+${{ matrix.features[0] }} ${{ matrix.role.tag }}Setup+${{ matrix.features[1] || matrix.features[0] }}
           TEST_USERNAME: admin
