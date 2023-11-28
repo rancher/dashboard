@@ -101,7 +101,7 @@ jobs:
         uses: actions/upload-artifact@v3
         if: ${{ failure() }}
         with:
-          name: ${{github.run_number}}-${{github.run_attempt}}-screenshots-${{ matrix.role.tag }}
+          name: ${{github.run_number}}-${{github.run_attempt}}-screenshots-${{ matrix.role.tag }}+${{ matrix.features[0] }}
           path: cypress/screenshots
 
   unit-test:
