@@ -1,4 +1,4 @@
-import { getSpecPattern } from '@shell/utils/cypress';
+import { getSpecPattern } from '@/scripts/cypress';
 
 describe('fx: getSpecPattern', () => {
   it('should returns everything if no env vars', () => {

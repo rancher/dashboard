@@ -1,7 +1,7 @@
 /* eslint-disable no-console */
 import { defineConfig } from 'cypress';
 import { removeDirectory } from 'cypress-delete-downloads-folder';
-import { getSpecPattern } from '@shell/utils/cypress';
+import { getSpecPattern } from '@/scripts/cypress';
 // Required for env vars to be available in cypress
 require('dotenv').config();
 
