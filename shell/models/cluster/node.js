@@ -187,7 +187,7 @@ export default class ClusterNode extends SteveModel {
   }
 
   get cpuCapacity() {
-    return parseSi(this.status.allocatable.cpu);
+    return parseSi(this.status.allocatable?.cpu);
   }
 
   get cpuUsagePercentage() {
@@ -203,7 +203,7 @@ export default class ClusterNode extends SteveModel {
   }
 
   get ramCapacity() {
-    return parseSi(this.status.capacity.memory);
+    return parseSi(this.status.capacity?.memory);
   }
 
   get ramUsagePercentage() {
@@ -219,7 +219,7 @@ export default class ClusterNode extends SteveModel {
   }
 
   get podUsage() {
-    return calculatePercentage(this.status.allocatable.pods, this.status.capacity.pods);
+    return calculatePercentage(this.status.allocatable?.pods, this.status.capacity?.pods);
   }
 
   get podConsumedUsage() {
@@ -227,7 +227,7 @@ export default class ClusterNode extends SteveModel {
   }
 
   get podCapacity() {
-    return Number.parseInt(this.status.capacity.pods);
+    return Number.parseInt(this.status.capacity?.pods);
   }
 
   get podConsumed() {
