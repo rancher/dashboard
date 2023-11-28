@@ -1,5 +1,5 @@
 import PagePo from '@/cypress/e2e/po/pages/page.po';
-import EmberListPo from '@/cypress/e2e/po/components/ember/ember-list.po';
+import EmberSortableTablePo from '@/cypress/e2e/po/components/ember/ember-sortable-table.po';
 import EmberSelectPo from '@/cypress/e2e/po/components/ember/ember-select.po';
 import EmberFormRkeTemplatesPo from '@/cypress/e2e/po/components/ember/ember-form-rke-templates.po';
 
@@ -16,19 +16,19 @@ export default class RkeTemplatesPagePo extends PagePo {
     super(RkeTemplatesPagePo.createPath(clusterId));
   }
 
-  groupRow(): EmberListPo {
-    return new EmberListPo('table.sortable-table .group-row');
+  addTemplate() {
+    return cy.iFrame().contains('.right-buttons', 'Add Template');
   }
 
-  mainRow(): EmberListPo {
-    return new EmberListPo('table.sortable-table .main-row');
+  groupRow(): EmberSortableTablePo {
+    return new EmberSortableTablePo('table.sortable-table .group-row');
   }
 
-  actions(): EmberListPo {
-    return new EmberListPo('.right-buttons');
+  mainRow(): EmberSortableTablePo {
+    return new EmberSortableTablePo('table.sortable-table .main-row');
   }
 
-  dropdown(): EmberSelectPo {
+  actionMenu(): EmberSelectPo {
     return new EmberSelectPo('.ember-basic-dropdown-content');
   }
 

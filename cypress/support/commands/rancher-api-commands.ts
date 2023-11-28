@@ -423,7 +423,7 @@ Cypress.Commands.add('setRancherResource', (prefix, resourceType, resourceId, bo
 /**
  * delete a v3 / v1 resource
  */
-Cypress.Commands.add('deleteRancherResource', (prefix, resourceType, resourceId) => {
+Cypress.Commands.add('deleteRancherResource', (prefix, resourceType, resourceId, expectedStatusCode = 200) => {
   return cy.request({
     method:  'DELETE',
     url:     `${ Cypress.env('api') }/${ prefix }/${ resourceType }/${ resourceId }`,

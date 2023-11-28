@@ -1,5 +1,5 @@
 import PagePo from '@/cypress/e2e/po/pages/page.po';
-import EmberListPo from '@/cypress/e2e/po/components/ember/ember-list.po';
+import EmberSortableTablePo from '@/cypress/e2e/po/components/ember/ember-sortable-table.po';
 import EmberSelectPo from '@/cypress/e2e/po/components/ember/ember-select.po';
 import EmberFormRkeTemplatesPo from '@/cypress/e2e/po/components/ember/ember-form-rke-templates.po';
 import EmberModalAddNodeTemplatePo from '@/cypress/e2e/po/components/ember/ember-modal-add-node-template.po';
@@ -21,15 +21,19 @@ export default class NodeTemplatesPagePo extends PagePo {
     return new EmberModalAddNodeTemplatePo();
   }
 
-  list(): EmberListPo {
-    return new EmberListPo('.sortable-table .main-row');
+  list(): EmberSortableTablePo {
+    return new EmberSortableTablePo('.sortable-table');
   }
 
-  actions(): EmberListPo {
-    return new EmberListPo('.right-buttons');
+  addTemplate() {
+    return cy.iFrame().contains('.right-buttons .btn', 'Add Template');
   }
 
-  dropdown(): EmberSelectPo {
+  bulkActions(label: string) {
+    return cy.iFrame().contains('.bulk-actions', label);
+  }
+
+  actionMenu(): EmberSelectPo {
     return new EmberSelectPo('.ember-basic-dropdown-content');
   }
 

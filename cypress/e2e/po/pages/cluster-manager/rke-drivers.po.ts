@@ -1,5 +1,5 @@
 import PagePo from '@/cypress/e2e/po/pages/page.po';
-import EmberListPo from '@/cypress/e2e/po/components/ember/ember-list.po';
+import EmberSortableTablePo from '@/cypress/e2e/po/components/ember/ember-sortable-table.po';
 import EmberSelectPo from '@/cypress/e2e/po/components/ember/ember-select.po';
 export default class RkeDriversPagePo extends PagePo {
   private static createPath(clusterId: string) {
@@ -14,15 +14,28 @@ export default class RkeDriversPagePo extends PagePo {
     super(RkeDriversPagePo.createPath(clusterId));
   }
 
-  list(): EmberListPo {
-    return new EmberListPo('table.grid.sortable-table');
+  list(): EmberSortableTablePo {
+    return new EmberSortableTablePo('table.grid.sortable-table');
   }
 
-  actions(): EmberListPo {
-    return new EmberListPo('.has-tabs');
+  refreshKubMetadata() {
+    return cy.iFrame().contains('.right-buttons .btn', 'Refresh Kubernetes Metadata');
   }
 
-  dropdown(): EmberSelectPo {
+  addClusterDriver() {
+    return cy.iFrame().contains('.right-buttons .btn', 'Add Cluster Driver');
+  }
+
+  /**
+   * Get tab by name
+   * @param tabName Cluster Drivers or Node Drivers
+   * @returns
+   */
+  tabs(tabName: string) {
+    return cy.iFrame().contains('.tab-nav li', tabName);
+  }
+
+  actionMenu(): EmberSelectPo {
     return new EmberSelectPo('.ember-basic-dropdown-content');
   }
 }

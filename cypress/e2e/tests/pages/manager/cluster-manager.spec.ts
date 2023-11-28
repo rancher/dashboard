@@ -25,6 +25,8 @@ import EmberModalClusterDriverPo from '@/cypress/e2e/po/components/ember/ember-m
 import RkeTemplatesPagePo from '@/cypress/e2e/po/pages/cluster-manager/rke-templates.po';
 import NodeTemplatesPagePo from '@/cypress/e2e/po/pages/cluster-manager/node-templates.po';
 import CloudCredentialsPagePo from '@/cypress/e2e/po/pages/cluster-manager/cloud-credentials.po';
+import ClusterManagerCreateRke1Amazonec2PagePo from '@/cypress/e2e/po/edit/provisioning.cattle.io.cluster/create/cluster-create-rke1-amazonec2.po';
+import EmberPromptRemove from '@/cypress/e2e/po/components/ember/ember-prompt-remove.po';
 // At some point these will come from somewhere central, then we can make tools to remove resources from this or all runs
 const runTimestamp = +new Date();
 const runPrefix = `e2e-test-${ runTimestamp }`;
@@ -441,7 +443,7 @@ describe('Cluster Manager', { testIsolation: 'off', tags: ['@manager', '@adminUs
     const cloudCredentialsPage = new CloudCredentialsPagePo();
     const cloudCredName = `e2e-cloud-cred-name-${ runTimestamp }`;
     const cloudCredDescription = `e2e-cloud-cred-description-${ runTimestamp }`;
-    let id = '';
+    let cloudcredentialId = '';
 
     it('can navigate to Cloud Credentials page', () => {
       clusterList.goTo();
@@ -464,7 +466,7 @@ describe('Cluster Manager', { testIsolation: 'off', tags: ['@manager', '@adminUs
       cy.contains('Authentication test failed, please check your credentials').should('be.visible');
     });
 
-    it.only('can create cloud credentials', () => {
+    it('can create cloud credentials', () => {
       cloudCredentialsPage.goTo();
       cloudCredentialsPage.create();
       cloudCredentialsPage.createEditCloudCreds().waitForPage();
@@ -475,7 +477,7 @@ describe('Cluster Manager', { testIsolation: 'off', tags: ['@manager', '@adminUs
       cloudCredentialsPage.createEditCloudCreds().secretKey().set(Cypress.env('awsSecretKey'), true);
       cloudCredentialsPage.createEditCloudCreds().defaultRegion().checkOptionSelected('us-west-2');
       cloudCredentialsPage.createEditCloudCreds().saveAndWaitForRequests('POST', '/v3/cloudcredentials').then((req) => {
-        id = req.response?.body.id;
+        cloudcredentialId = req.response?.body.id;
       });
       cloudCredentialsPage.waitForPage();
     });
@@ -483,7 +485,7 @@ describe('Cluster Manager', { testIsolation: 'off', tags: ['@manager', '@adminUs
     it('can edit cloud credentials', () => {
       cloudCredentialsPage.goTo();
       cloudCredentialsPage.list().actionMenu(cloudCredName).getMenuItem('Edit Config').click();
-      cloudCredentialsPage.createEditCloudCreds(id).waitForPage();
+      cloudCredentialsPage.createEditCloudCreds(cloudcredentialId).waitForPage();
       cloudCredentialsPage.createEditCloudCreds().description().set(`${ cloudCredDescription }-edit`);
       cloudCredentialsPage.createEditCloudCreds().secretKey().set(Cypress.env('awsSecretKey'), true);
       cloudCredentialsPage.createEditCloudCreds().saveAndWaitForRequests('PUT', '/v3/cloudCredentials/**');
@@ -528,7 +530,7 @@ describe('Cluster Manager', { testIsolation: 'off', tags: ['@manager', '@adminUs
     it('can delete cloud credentials via bulk actions', () => {
       cloudCredentialsPage.goTo();
 
-      // delete original and clone cloud credential
+      // delete original cloud credential
       cloudCredentialsPage.list().resourceTable().sortableTable().rowSelectCtlWithName(cloudCredName)
         .set();
       cloudCredentialsPage.list().resourceTable().sortableTable().deleteButton()
@@ -562,7 +564,7 @@ describe('Cluster Manager', { testIsolation: 'off', tags: ['@manager', '@adminUs
     it('can refresh kubernetes metadata', () => {
       driversPage.goTo();
       cy.intercept('POST', '/v3/kontainerdrivers?action=refresh').as('refresh');
-      driversPage.actions().actions('Refresh Kubernetes Metadata').click({ force: true });
+      driversPage.refreshKubMetadata().click({ force: true });
       cy.wait('@refresh').its('response.statusCode').should('eq', 200);
     });
 
@@ -571,7 +573,7 @@ describe('Cluster Manager', { testIsolation: 'off', tags: ['@manager', '@adminUs
       const downloadUrl = 'https://github.com/rancher-plugins/kontainer-engine-driver-example/releases/download/v0.2.3/kontainer-engine-driver-example-copy1-linux-amd64';
 
       driversPage.goTo();
-      driversPage.actions().actions('Add Cluster Driver').click();
+      driversPage.addClusterDriver().click();
       modal.input().set(downloadUrl, 0);
       cy.intercept('POST', '/v3/kontainerdriver').as('createDriver');
       modal.create();
@@ -585,7 +587,7 @@ describe('Cluster Manager', { testIsolation: 'off', tags: ['@manager', '@adminUs
 
       driversPage.goTo();
       driversPage.list().rowActionMenuOpen(`Example`);
-      driversPage.dropdown().selectMenuItemByLabel(`Edit`);
+      driversPage.actionMenu().selectMenuItemByLabel(`Edit`);
       modal.input().set(downloadUrl, 0);
       cy.intercept('PUT', '/v3/kontainerDrivers/*').as('updateDriver');
       modal.save();
@@ -596,7 +598,7 @@ describe('Cluster Manager', { testIsolation: 'off', tags: ['@manager', '@adminUs
     it('can deactivate cluster driver', () => {
       driversPage.goTo();
       driversPage.list().rowActionMenuOpen(`Example`);
-      driversPage.dropdown().selectMenuItemByLabel(`Deactivate`);
+      driversPage.actionMenu().selectMenuItemByLabel(`Deactivate`);
       cy.intercept('POST', '/v3/kontainerDrivers/*').as('deactivateDriver');
       modal.deactivate();
       cy.wait('@deactivateDriver').its('response.statusCode').should('eq', 200);
@@ -607,7 +609,7 @@ describe('Cluster Manager', { testIsolation: 'off', tags: ['@manager', '@adminUs
       driversPage.goTo();
       driversPage.list().rowActionMenuOpen(`Example`);
       cy.intercept('POST', '/v3/kontainerDrivers/*').as('activateDriver');
-      driversPage.dropdown().selectMenuItemByLabel(`Activate`);
+      driversPage.actionMenu().selectMenuItemByLabel(`Activate`);
       cy.wait('@activateDriver').its('response.statusCode').should('eq', 200);
       driversPage.list().state('Example').should('contain.text', 'Active');
     });
@@ -615,7 +617,7 @@ describe('Cluster Manager', { testIsolation: 'off', tags: ['@manager', '@adminUs
     it('can delete cluster driver', () => {
       driversPage.goTo();
       driversPage.list().rowActionMenuOpen(`Example`);
-      driversPage.dropdown().selectMenuItemByLabel(`Delete`);
+      driversPage.actionMenu().selectMenuItemByLabel(`Delete`);
       cy.intercept('DELETE', '/v3/kontainerDrivers/*').as('deleteDriver');
       modal.delete();
       cy.wait('@deleteDriver').its('response.statusCode').should('eq', 200);
@@ -625,10 +627,10 @@ describe('Cluster Manager', { testIsolation: 'off', tags: ['@manager', '@adminUs
     it('can edit node driver', () => {
       cy.intercept('GET', '/v3/nodedrivers?limit=-1&sort=name').as('nodeDrivers');
       driversPage.goTo();
-      driversPage.actions().actions('Node Drivers').click();
+      driversPage.tabs('Node Drivers').click();
       cy.wait('@nodeDrivers');
       driversPage.list().rowActionMenuOpen(`Cloud.ca`);
-      driversPage.dropdown().selectMenuItemByLabel(`Edit`);
+      driversPage.actionMenu().selectMenuItemByLabel(`Edit`);
       cy.intercept('PUT', '/v3/nodeDrivers/*').as('updateDriver');
       modal.save();
       cy.wait('@updateDriver').its('response.statusCode').should('eq', 200);
@@ -638,11 +640,11 @@ describe('Cluster Manager', { testIsolation: 'off', tags: ['@manager', '@adminUs
     it('can activate node driver', () => {
       cy.intercept('GET', '/v3/nodedrivers?limit=-1&sort=name').as('nodeDrivers');
       driversPage.goTo();
-      driversPage.actions().actions('Node Drivers').click();
+      driversPage.tabs('Node Drivers').click();
       cy.wait('@nodeDrivers');
       driversPage.list().rowActionMenuOpen(`Cloud.ca`);
       cy.intercept('POST', '/v3/nodeDrivers/**').as('activateDriver');
-      driversPage.dropdown().selectMenuItemByLabel(`Activate`);
+      driversPage.actionMenu().selectMenuItemByLabel(`Activate`);
       cy.wait('@activateDriver').its('response.statusCode').should('eq', 200);
       driversPage.list().state('Cloud.ca').should('contain.text', 'Active');
     });
@@ -650,10 +652,10 @@ describe('Cluster Manager', { testIsolation: 'off', tags: ['@manager', '@adminUs
     it('can deactivate node driver', () => {
       cy.intercept('GET', '/v3/nodedrivers?limit=-1&sort=name').as('nodeDrivers');
       driversPage.goTo();
-      driversPage.actions().actions('Node Drivers').click();
+      driversPage.tabs('Node Drivers').click();
       cy.wait('@nodeDrivers');
       driversPage.list().rowActionMenuOpen(`Cloud.ca`);
-      driversPage.dropdown().selectMenuItemByLabel(`Deactivate`);
+      driversPage.actionMenu().selectMenuItemByLabel(`Deactivate`);
       cy.intercept('POST', '/v3/nodeDrivers/**').as('deactivateDriver');
       modal.deactivate();
       cy.wait('@deactivateDriver').its('response.statusCode').should('eq', 200);
@@ -663,10 +665,10 @@ describe('Cluster Manager', { testIsolation: 'off', tags: ['@manager', '@adminUs
     it('can delete node driver', () => {
       cy.intercept('GET', '/v3/nodedrivers?limit=-1&sort=name').as('nodeDrivers');
       driversPage.goTo();
-      driversPage.actions().actions('Node Drivers').click();
+      driversPage.tabs('Node Drivers').click();
       cy.wait('@nodeDrivers');
       driversPage.list().rowActionMenuOpen(`Cloud.ca`);
-      driversPage.dropdown().selectMenuItemByLabel(`Delete`);
+      driversPage.actionMenu().selectMenuItemByLabel(`Delete`);
       cy.intercept('DELETE', '/v3/nodeDrivers/*').as('deleteDriver');
       modal.delete();
       cy.wait('@deleteDriver').its('response.statusCode').should('eq', 200);
@@ -693,7 +695,7 @@ describe('Cluster Manager', { testIsolation: 'off', tags: ['@manager', '@adminUs
 
     it('can create RKE template and should display on RKE1 cluster creation page', () => {
       rkeTemplatesPage.goTo();
-      rkeTemplatesPage.actions().actions('Add Template').click();
+      rkeTemplatesPage.addTemplate().click();
       rkeTemplatesPage.form().templateDetails().set(templateName);
       rkeTemplatesPage.form().templateDetails().set(revisionName, 1);
       cy.intercept('POST', '/v3/clustertemplate').as('createTemplate');
@@ -724,7 +726,7 @@ describe('Cluster Manager', { testIsolation: 'off', tags: ['@manager', '@adminUs
       rkeTemplatesPage.goTo();
       rkeTemplatesPage.mainRow().rowActionMenuOpen(revisionName);
       cy.intercept('POST', '/v3/clusterTemplateRevisions/*').as('disableTemplateRevision');
-      rkeTemplatesPage.dropdown().selectMenuItemByLabel('Disable');
+      rkeTemplatesPage.actionMenu().selectMenuItemByLabel('Disable');
       cy.wait('@disableTemplateRevision');
       rkeTemplatesPage.mainRow().state(revisionName).contains('Active').should('not.exist');
       rkeTemplatesPage.mainRow().state(revisionName).should('contain.text', 'Disabled');
@@ -734,7 +736,7 @@ describe('Cluster Manager', { testIsolation: 'off', tags: ['@manager', '@adminUs
       rkeTemplatesPage.goTo();
       rkeTemplatesPage.mainRow().rowActionMenuOpen(revisionName);
       cy.intercept('POST', '/v3/clusterTemplateRevisions/*').as('enableTemplateRevision');
-      rkeTemplatesPage.dropdown().selectMenuItemByLabel('Enable');
+      rkeTemplatesPage.actionMenu().selectMenuItemByLabel('Enable');
       cy.wait('@enableTemplateRevision');
       rkeTemplatesPage.mainRow().state(revisionName).contains('Disabled').should('not.exist');
       rkeTemplatesPage.mainRow().state(revisionName).should('contain.text', 'Active');
@@ -744,7 +746,7 @@ describe('Cluster Manager', { testIsolation: 'off', tags: ['@manager', '@adminUs
       rkeTemplatesPage.goTo();
       rkeTemplatesPage.groupRow().groupRowWithName(templateName).should('be.visible');
       rkeTemplatesPage.mainRow().rowActionMenuOpen(revisionName);
-      rkeTemplatesPage.dropdown().selectMenuItemByLabel('Clone Revision');
+      rkeTemplatesPage.actionMenu().selectMenuItemByLabel('Clone Revision');
       rkeTemplatesPage.form().templateDetails().set(revisionName2);
       cy.intercept('PUT', '/v3/clusterTemplates/*').as('cloneTemplateRevision');
       rkeTemplatesPage.formActions().save();
@@ -755,7 +757,7 @@ describe('Cluster Manager', { testIsolation: 'off', tags: ['@manager', '@adminUs
     it('can delete RKE template revision', () => {
       rkeTemplatesPage.goTo();
       rkeTemplatesPage.mainRow().rowActionMenuOpen(revisionName2);
-      rkeTemplatesPage.dropdown().selectMenuItemByLabel(`Delete`);
+      rkeTemplatesPage.actionMenu().selectMenuItemByLabel(`Delete`);
       cy.intercept('DELETE', '/v3/clusterTemplateRevisions/*').as('deleteTemplateRevision');
       modal.delete();
       cy.wait('@deleteTemplateRevision').its('response.statusCode').should('eq', 204);
@@ -765,7 +767,7 @@ describe('Cluster Manager', { testIsolation: 'off', tags: ['@manager', '@adminUs
     it('can delete RKE template group', () => {
       rkeTemplatesPage.goTo();
       rkeTemplatesPage.groupRow().groupRowActionMenuOpen(templateName);
-      rkeTemplatesPage.dropdown().selectMenuItemByLabel(`Delete`);
+      rkeTemplatesPage.actionMenu().selectMenuItemByLabel(`Delete`);
       cy.intercept('DELETE', '/v3/clusterTemplates/*').as('deleteTemplate');
       modal.delete();
       cy.wait('@deleteTemplate').its('response.statusCode').should('eq', 204);
@@ -777,8 +779,7 @@ describe('Cluster Manager', { testIsolation: 'off', tags: ['@manager', '@adminUs
   describe('Node Templates', { tags: ['@jenkins', '@adminUser'] }, () => {
     const nodeTemplatesPage = new NodeTemplatesPagePo('local');
     const templateName = `e2e-node-template-name-${ runTimestamp }`;
-    const revisionName = `e2e-revision-name-${ runTimestamp }`;
-    const revisionName2 = `e2e-revision-name2-${ runTimestamp }`;
+    let cloudCredentialId = '';
 
     beforeEach(() => {
       cy.viewport(1380, 720);
@@ -791,32 +792,29 @@ describe('Cluster Manager', { testIsolation: 'off', tags: ['@manager', '@adminUs
       nodeTemplatesPage.waitForPage();
     });
 
-    it('can create Node template for Amazon EC2 and should display on RKE1 node creation page', () => {
+    it('can create a node template for Amazon EC2 and should display on RKE1 cluster creation page', () => {
       const cloudCredName = `e2e-cloud-cred-name-${ runTimestamp }`;
 
-      cy.createAwsCloudCredentials('fleet-default', cloudCredName, 'us-west-2', Cypress.env('awsAccessKey'), Cypress.env('awsSecretKey'));
+      cy.createAwsCloudCredentials('fleet-default', cloudCredName, 'us-west-2', Cypress.env('awsAccessKey'), Cypress.env('awsSecretKey')).then((resp: Cypress.Response<any>) => {
+        cloudCredentialId = resp.body.id;
+        cy.log(cloudCredentialId);
+      });
+      cy.log(cloudCredentialId);
 
       nodeTemplatesPage.goTo();
-      nodeTemplatesPage.actions().actions('Add Template').click();
+      nodeTemplatesPage.addTemplate().click();
       nodeTemplatesPage.addNodeTemplateModal().serviceProviderOptions('Amazon EC2').should('have.class', 'active');
 
-      cy.intercept('POST', '/meta/proxy/**').as('amazon');
       nodeTemplatesPage.addNodeTemplateModal().nextButton('Next: Authenticate & configure nodes').click();
-      cy.wait('@amazon');
-
       nodeTemplatesPage.addNodeTemplateModal().accordion().content().find('.radio .acc-label')
         .eq(0)
         .click();
-
       nodeTemplatesPage.addNodeTemplateModal().nextButton('Next: Select a Security Group').should('exist');
-      nodeTemplatesPage.addNodeTemplateModal().nextButton('Next: Select a Security Group').click({ force: true });
-      cy.wait('@amazon');
-
+      nodeTemplatesPage.addNodeTemplateModal().nextButton('Next: Select a Security Group').click();
       nodeTemplatesPage.addNodeTemplateModal().accordion().content().contains('.radio label', 'Choose one or more existing groups')
         .click();
-
       nodeTemplatesPage.addNodeTemplateModal().serviceProviderOptions('Amazon EC2').should('have.class', 'active');
-      nodeTemplatesPage.addNodeTemplateModal().nextButton('Next: Set Instance options').click({ force: true });
+      nodeTemplatesPage.addNodeTemplateModal().nextButton('Next: Set Instance options').click();
 
       nodeTemplatesPage.addNodeTemplateModal().templateName().set(templateName);
       cy.intercept('POST', '/v3/nodetemplate').as('createTemplate');
@@ -825,29 +823,95 @@ describe('Cluster Manager', { testIsolation: 'off', tags: ['@manager', '@adminUs
       cy.wait('@createTemplate');
       nodeTemplatesPage.waitForPage();
       nodeTemplatesPage.list().rowWithName(templateName).should('be.visible');
-      cy.pause();
 
-      // rkeTemplatesPage.formActions().create();
-      // cy.wait('@createTemplate');
-      // rkeTemplatesPage.waitForPage();
-      // rkeTemplatesPage.groupRow().groupRowWithName(templateName).should('be.visible');
-      // rkeTemplatesPage.groupRow().rowWithinGroupByName(templateName, revisionName).should('be.visible');
-
-      // check RKE template displays as an option on the RKE custom cluster create page
+      // check RKE template displays as an option on the RKE cluster create page
       clusterList.goTo();
       clusterList.checkIsCurrentPage();
       clusterList.createCluster();
 
-      const createClusterRKE1Page = new ClusterManagerCreateRke1CustomPagePo();
+      const createClusterRKE1Page = new ClusterManagerCreateRke1Amazonec2PagePo();
 
       createClusterRKE1Page.waitForPage();
-
       createClusterRKE1Page.rkeToggle().set('RKE1');
-      createClusterRKE1Page.selectCustom(0);
-      createClusterRKE1Page.clusterTemplateCheckbox().set();
-      createClusterRKE1Page.rkeTemplateAndRevisionDropdown().selectMenuItemByOption(templateName);
+      createClusterRKE1Page.selectCreate(0);
+      createClusterRKE1Page.nodeTemplateDropdown().selectMenuItemByOption(templateName);
       createClusterRKE1Page.selectedOption().checkOptionSelected(templateName);
-      createClusterRKE1Page.selectedOption().checkOptionSelected(revisionName, 1);
+    });
+
+    it('can edit a node template', () => {
+      nodeTemplatesPage.goTo();
+      nodeTemplatesPage.list().rowWithName(templateName).should('be.visible');
+      nodeTemplatesPage.list().rowActionMenuOpen(templateName);
+      nodeTemplatesPage.actionMenu().selectMenuItemByLabel('Edit');
+      nodeTemplatesPage.addNodeTemplateModal().nextButton('Next: Authenticate & configure nodes').click();
+      nodeTemplatesPage.addNodeTemplateModal().nextButton('Next: Select a Security Group').click();
+      nodeTemplatesPage.addNodeTemplateModal().nextButton('Next: Set Instance options').click();
+      nodeTemplatesPage.addNodeTemplateModal().templateName().set(`${ templateName }-edit`);
+      cy.intercept('PUT', '/v3/nodeTemplates/**').as('editTemplate');
+
+      nodeTemplatesPage.addNodeTemplateModal().save();
+      cy.wait('@editTemplate');
+      nodeTemplatesPage.waitForPage();
+      nodeTemplatesPage.list().rowWithName(`${ templateName }-edit`).should('be.visible');
+    });
+
+    it('can clone a node template', () => {
+      nodeTemplatesPage.goTo();
+      nodeTemplatesPage.list().rowWithName(`${ templateName }-edit`).should('be.visible');
+      nodeTemplatesPage.list().rowActionMenuOpen(`${ templateName }-edit`);
+      nodeTemplatesPage.actionMenu().selectMenuItemByLabel('Clone');
+      nodeTemplatesPage.addNodeTemplateModal().nextButton('Next: Authenticate & configure nodes').click();
+      nodeTemplatesPage.addNodeTemplateModal().nextButton('Next: Select a Security Group').click();
+      nodeTemplatesPage.addNodeTemplateModal().nextButton('Next: Set Instance options').click();
+      nodeTemplatesPage.addNodeTemplateModal().templateName().set(`${ templateName }-clone`);
+      cy.intercept('POST', '/v3/nodetemplate').as('cloneTemplate');
+
+      nodeTemplatesPage.addNodeTemplateModal().save();
+      cy.wait('@cloneTemplate');
+      nodeTemplatesPage.waitForPage();
+      nodeTemplatesPage.list().rowWithName(`${ templateName }-clone`).should('be.visible');
+    });
+
+    it('can delete a node template', () => {
+      nodeTemplatesPage.goTo();
+
+      // delete clone node template
+      nodeTemplatesPage.list().rowWithName(`${ templateName }-clone`).should('be.visible');
+      nodeTemplatesPage.list().rowActionMenuOpen(`${ templateName }-clone`);
+      nodeTemplatesPage.actionMenu().selectMenuItemByLabel('Delete');
+      const promptRemove = new EmberPromptRemove();
+
+      cy.intercept('DELETE', '/v3/nodeTemplates/**').as('deleteNodeTemplate');
+
+      promptRemove.delete();
+      cy.wait('@deleteNodeTemplate');
+      nodeTemplatesPage.waitForPage();
+
+      // check list details
+      cy.contains(`${ templateName }-clone`).should('not.exist');
+    });
+
+    it('can delete a node template via bulk actions', () => {
+      nodeTemplatesPage.goTo();
+
+      // delete original node template
+      nodeTemplatesPage.list().rowWithName(`${ templateName }-edit`).click();
+      nodeTemplatesPage.bulkActions('Delete').click();
+      const promptRemove = new EmberPromptRemove();
+
+      cy.intercept('DELETE', '/v3/nodeTemplates/**').as('deleteNodeTemplate');
+
+      promptRemove.delete();
+      cy.wait('@deleteNodeTemplate');
+      nodeTemplatesPage.waitForPage();
+
+      // check list details
+      cy.contains(`${ templateName }-edit`).should('not.exist');
+    });
+
+    it('clean up', () => {
+      //  delete cloud cred
+      cy.deleteRancherResource('v3', 'cloudCredentials', cloudCredentialId);
     });
   });
 });

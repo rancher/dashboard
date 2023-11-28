@@ -1,10 +1,6 @@
 import EmberComponentPo from '@/cypress/e2e/po/components/ember/ember-component.po';
 
-export default class EmberListPo extends EmberComponentPo {
-  actions(label: string) {
-    return this.self().contains(label);
-  }
-
+export default class EmberSortableTablePo extends EmberComponentPo {
   /**
    * Get main row with name
    * @param name
@@ -24,7 +20,7 @@ export default class EmberListPo extends EmberComponentPo {
   }
 
   /**
-   * Get state of main row with main
+   * Get state of main row with name
    * @param name
    * @returns
    */
