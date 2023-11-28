@@ -12,12 +12,14 @@ const clusterDashboard = new ClusterDashboardPagePo('local');
 const simpleBox = new SimpleBoxPo();
 const header = new HeaderPo();
 
-describe('Cluster Dashboard', { tags: '@adminUser' }, () => {
+describe('Cluster Dashboard', { testIsolation: 'off', tags: ['@adminUser'] }, () => {
+  const podName = `e2e-test-${ +new Date() }`;
+
   beforeEach(() => {
     cy.login();
   });
 
-  it('can navigate to cluster dashboard', () => {
+  it.only('can navigate to cluster dashboard', () => {
     const clusterList = new ClusterManagerListPagePo('local');
 
     clusterList.goTo();
@@ -44,7 +46,7 @@ describe('Cluster Dashboard', { tags: '@adminUser' }, () => {
       }
     };
 
-    clusterDashboard.goTo();
+    ClusterDashboardPagePo.navTo();
 
     // Add Badge
     clusterDashboard.addCustomBadge('Add Cluster Badge').click();
@@ -97,7 +99,7 @@ describe('Cluster Dashboard', { tags: '@adminUser' }, () => {
   });
 
   it('can view deployments', () => {
-    clusterDashboard.goTo();
+    ClusterDashboardPagePo.navTo();
     cy.getRancherResource('v1', 'apps.deployments', '?exclude=metadata.managedFields').then((resp: Cypress.Response<any>) => {
       const count = resp.body['count'];
 
@@ -112,7 +114,9 @@ describe('Cluster Dashboard', { tags: '@adminUser' }, () => {
   });
 
   it('can view nodes', () => {
-    clusterDashboard.goTo();
+    ClusterDashboardPagePo.navTo();
+    clusterDashboard.waitForPage();
+
     cy.getRancherResource('v1', 'nodes', '?exclude=metadata.managedFields').then((resp: Cypress.Response<any>) => {
       const count = resp.body['count'];
       let text = '';
@@ -133,12 +137,11 @@ describe('Cluster Dashboard', { tags: '@adminUser' }, () => {
   });
 
   it('can view events', () => {
-    const podName = `e2e-test-${ +new Date() }`;
-
     // Create a pod to trigger events
     cy.createPod('local', podName, 'nginx:latest');
 
-    clusterDashboard.goTo();
+    ClusterDashboardPagePo.navTo();
+    clusterDashboard.waitForPage(undefined, 'cluster-events');
 
     // Check events
     clusterDashboard.eventslist().resourceTable().sortableTable().rowElements()
@@ -151,5 +154,8 @@ describe('Cluster Dashboard', { tags: '@adminUser' }, () => {
     events.waitForPage();
     events.eventslist().resourceTable().sortableTable().rowElements()
       .should('have.length.gte', 2);
+
+    // Delete pod
+    cy.deleteRancherResource('v1', 'pods/local', `pod-${ podName }`);
   });
 });
