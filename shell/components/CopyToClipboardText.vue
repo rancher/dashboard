@@ -1,5 +1,6 @@
 <script>
 import { copyTextToClipboard } from '@shell/utils/clipboard';
+import { exceptionToErrorsArray } from '@shell/utils/error';
 export default {
   props: {
     text: {
@@ -32,6 +33,9 @@ export default {
           setTimeout(() => {
             this.copied = false;
           }, 500);
+        }).catch((e) => {
+          this.$emit('error', exceptionToErrorsArray(e));
+          throw new Error(`Could not copy code. ${ e.message }`);
         });
       }
     },

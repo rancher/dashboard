@@ -14,8 +14,8 @@ import HybridModel from '@shell/plugins/steve/hybrid-class';
 import { LINUX, WINDOWS } from '@shell/store/catalog';
 import { KONTAINER_TO_DRIVER } from './management.cattle.io.kontainerdriver';
 import { PINNED_CLUSTERS } from '@shell/store/prefs';
-
 import { copyTextToClipboard } from '@shell/utils/clipboard';
+import { exceptionToErrorsArray } from '@shell/utils/error';
 
 // See translation file cluster.providers for list of providers
 // If the logo is not named with the provider name, add an override here
@@ -409,9 +409,14 @@ export default class MgmtCluster extends HybridModel {
   }
 
   async copyKubeConfig() {
-    const config = await this.generateKubeConfig();
+    try {
+      const config = await this.generateKubeConfig();
 
-    copyTextToClipboard(config);
+      copyTextToClipboard(config);
+    } catch (e) {
+      this.$emit('error', exceptionToErrorsArray(e));
+      throw new Error(`Could not copy kubeconfig. ${ e.message }`);
+    }
   }
 
   async fetchNodeMetrics() {

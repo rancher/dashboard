@@ -2,7 +2,7 @@ import { mount } from '@vue/test-utils';
 import CopyCode from '@shell/components/CopyCode.vue';
 
 jest.mock('@shell/utils/clipboard', () => {
-  return { copyTextToClipboard: () => new Promise(() => undefined) };
+  return { copyTextToClipboard: jest.fn(() => Promise.resolve({})) };
 });
 
 describe('component: CopyCode', () => {

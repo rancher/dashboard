@@ -1,6 +1,7 @@
 <script>
 import { isArray } from '@shell/utils/array';
 import { copyTextToClipboard } from '@shell/utils/clipboard';
+import { exceptionToErrorsArray } from '@shell/utils/error';
 
 function flatten(node) {
   if ( node.text ) {
@@ -34,8 +35,11 @@ export default {
         setTimeout(() => {
           this.copied = false;
         }, 2000);
+        this.$emit('copied');
+      }).catch((e) => {
+        this.$emit('error', exceptionToErrorsArray(e));
+        throw new Error(`Could not copy code. ${ e.message }`);
       });
-      this.$emit('copied');
     },
   },
 

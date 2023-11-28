@@ -4,6 +4,7 @@ import {
 } from '@shell/config/table-headers';
 import SortableTable from '@shell/components/SortableTable';
 import { copyTextToClipboard } from '@shell/utils/clipboard';
+import { exceptionToErrorsArray } from '@shell/utils/error';
 export default {
   components: { SortableTable },
   props:      {
@@ -38,6 +39,9 @@ export default {
         setTimeout(() => {
           this.copied = false;
         }, 2000);
+      }).catch((e) => {
+        this.$emit('error', exceptionToErrorsArray(e));
+        throw new Error(`Could not copy code. ${ e.message }`);
       });
     },
   }
