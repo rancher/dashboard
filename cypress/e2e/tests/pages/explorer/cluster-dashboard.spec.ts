@@ -136,9 +136,12 @@ describe('Cluster Dashboard', { testIsolation: 'off', tags: ['@adminUser'] }, ()
     });
   });
 
+  let removePod = false;
+
   it('can view events', () => {
     // Create a pod to trigger events
-    cy.createPod('local', podName, 'nginx:latest');
+    // eslint-disable-next-line no-return-assign
+    cy.createPod('local', podName, 'nginx:latest').then(() => removePod = true);
 
     ClusterDashboardPagePo.navTo();
     clusterDashboard.waitForPage(undefined, 'cluster-events');
@@ -154,8 +157,11 @@ describe('Cluster Dashboard', { testIsolation: 'off', tags: ['@adminUser'] }, ()
     events.waitForPage();
     events.eventslist().resourceTable().sortableTable().rowElements()
       .should('have.length.gte', 2);
+  });
 
-    // Delete pod
-    cy.deleteRancherResource('v1', 'pods/local', `pod-${ podName }`);
+  after(() => {
+    if (removePod) {
+      cy.deleteRancherResource('v1', 'pods/local', `pod-${ podName }`);
+    }
   });
 });
