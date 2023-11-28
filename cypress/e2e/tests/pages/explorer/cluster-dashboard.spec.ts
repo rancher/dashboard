@@ -19,7 +19,7 @@ describe('Cluster Dashboard', { testIsolation: 'off', tags: ['@adminUser'] }, ()
     cy.login();
   });
 
-  it.only('can navigate to cluster dashboard', () => {
+  it('can navigate to cluster dashboard', () => {
     const clusterList = new ClusterManagerListPagePo('local');
 
     clusterList.goTo();
