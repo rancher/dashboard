@@ -15,7 +15,7 @@ const header = new HeaderPo();
 describe('Cluster Dashboard', { testIsolation: 'off', tags: ['@adminUser'] }, () => {
   const podName = `e2e-test-${ +new Date() }`;
 
-  beforeEach(() => {
+  before(() => {
     cy.login();
   });
 
