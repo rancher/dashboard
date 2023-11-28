@@ -15,7 +15,6 @@ import { LINUX, WINDOWS } from '@shell/store/catalog';
 import { KONTAINER_TO_DRIVER } from './management.cattle.io.kontainerdriver';
 import { PINNED_CLUSTERS } from '@shell/store/prefs';
 import { copyTextToClipboard } from '@shell/utils/clipboard';
-import { exceptionToErrorsArray } from '@shell/utils/error';
 
 // See translation file cluster.providers for list of providers
 // If the logo is not named with the provider name, add an override here
@@ -412,9 +411,8 @@ export default class MgmtCluster extends HybridModel {
     try {
       const config = await this.generateKubeConfig();
 
-      copyTextToClipboard(config);
+      await copyTextToClipboard(config);
     } catch (e) {
-      this.$emit('error', exceptionToErrorsArray(e));
       throw new Error(`Could not copy kubeconfig. ${ e.message }`);
     }
   }
