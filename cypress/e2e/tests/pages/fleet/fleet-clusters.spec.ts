@@ -19,7 +19,7 @@ describe('Fleet Clusters', () => {
       fleetClusterListPage.checkRowCount(false, 1);
     });
 
-    it.skip('should only display action menu with allowed actions only', () => {
+    it('should only display action menu with allowed actions only', () => {
       const constActionMenu = fleetClusterListPage.rowActionMenuOpen('local');
 
       const allowedActions: MenuActions[] = [
@@ -27,7 +27,7 @@ describe('Fleet Clusters', () => {
         MenuActions.ForceUpdate,
         MenuActions.EditYaml,
         MenuActions.EditConfig,
-        MenuActions.ViewInApi,
+        // MenuActions.ViewInApi, // TODO: #10095: Review API menu case
       ];
 
       const disabledActions: MenuActions[] = [MenuActions.ChangeWorkspace];
