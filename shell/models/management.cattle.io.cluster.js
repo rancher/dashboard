@@ -408,12 +408,10 @@ export default class MgmtCluster extends HybridModel {
   }
 
   async copyKubeConfig() {
-    try {
-      const config = await this.generateKubeConfig();
+    const config = await this.generateKubeConfig();
 
+    if (config) {
       await copyTextToClipboard(config);
-    } catch (e) {
-      throw new Error(`Could not copy kubeconfig. ${ e.message }`);
     }
   }
 

@@ -38,7 +38,6 @@ export default {
         this.$emit('copied');
       }).catch((e) => {
         this.$emit('error', exceptionToErrorsArray(e));
-        throw new Error(`Could not copy code. ${ e.message }`);
       });
     },
   },
