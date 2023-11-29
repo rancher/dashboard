@@ -216,6 +216,7 @@ export default defineComponent({
           type="number"
           :mode="mode"
           label-key="aks.nodePools.maxPods.label"
+          :disabled="!pool._isNewOrUnprovisioned"
         />
       </div>
       <div class="col span-3">
@@ -306,6 +307,10 @@ export default defineComponent({
       <div class="col span-12">
         <div class="text-label">
           {{ t('labels.labels.title') }}
+          <i
+            v-tooltip="t('aks.nodePools.labels.tooltip')"
+            class="icon icon-info"
+          />
         </div>
         <KeyValue
           v-model="pool.labels"

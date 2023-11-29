@@ -188,7 +188,7 @@ export default {
     emberLink() {
       if (this.value) {
         if (this.value.provisioner) {
-          const matchingSubtype = this.subTypes.find((st) => st.id === this.value.provisioner);
+          const matchingSubtype = this.subTypes.find((st) => st.id.toLowerCase() === this.value.provisioner.toLowerCase());
 
           if (matchingSubtype) {
             this.selectType(matchingSubtype.id, false);

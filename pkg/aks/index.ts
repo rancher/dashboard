@@ -12,4 +12,7 @@ export default function(plugin: IPlugin): void {
 
   // Register custom provisioner object
   plugin.register('provisioner', AKSProvisioner.ID, AKSProvisioner);
+
+  // Built-in icon
+  plugin.metadata.icon = require('./icon.svg');
 }

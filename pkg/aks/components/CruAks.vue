@@ -72,10 +72,12 @@ const defaultAksConfig = {
   linuxAdminUsername: 'azureuser',
   loadBalancerSku:    'Standard',
   networkPlugin:      'kubenet',
-  nodePools:          [{ ...defaultNodePool }],
   privateCluster:     false,
   tags:               {},
-  outboundType:       'LoadBalancer'
+  outboundType:       'LoadBalancer',
+  serviceCidr:        '10.0.0.0/16',
+  dockerBridgeCidr:   '172.17.0.1/16',
+  dnsServiceIp:       '10.0.0.10',
 };
 
 const defaultCluster = {
@@ -91,9 +93,6 @@ const DEFAULT_REGION = 'eastus';
 
 const _NONE = 'none';
 
-// export default (Vue as VueConstructor<
-//   Vue & InstanceType<typeof CreateEditView>
-// >).extend({
 export default defineComponent({
   name: 'CruAKS',
 
@@ -132,7 +131,7 @@ export default defineComponent({
     }
   },
 
-  // AKS provisioning needs to use the norman API - a provisioning cluster resource will be created byt he BE when the norman cluster is made but v2 prov clusters don't contain the relevant aks configuration fields
+  // AKS provisioning needs to use the norman API - a provisioning cluster resource will be created by the BE when the norman cluster is made but v2 prov clusters don't contain the relevant aks configuration fields
   async fetch() {
     const store = this.$store as Store<any>;
 
@@ -258,7 +257,7 @@ export default defineComponent({
 
   created() {
     const registerBeforeHook = this.registerBeforeHook as Function;
-    const registerAfterHook = this.registerBeforeHook as Function;
+    const registerAfterHook = this.registerAfterHook as Function;
 
     registerBeforeHook(this.cleanPoolsForSave);
     registerBeforeHook(this.removeUnchangedConfigFields);
@@ -348,10 +347,6 @@ export default defineComponent({
 
         availabilityZoneSupport: () => {
           if (this.canUseAvailabilityZones) {
-            // this.nodePools.forEach((pool: AKSNodePool) => {
-            //   pool._validAZ = true;
-            // });
-
             return undefined;
           }
           let isUsingAvailabilityZones = false;
@@ -359,10 +354,8 @@ export default defineComponent({
           this.nodePools.forEach((pool: AKSNodePool) => {
             if (pool.availabilityZones && pool.availabilityZones.length) {
               isUsingAvailabilityZones = true;
-              // pool._validAZ = false;
             }
           });
-          // const isUsingAvailabilityZones = !!this.nodePools.find((pool: AKSNodePool) => pool.availabilityZones && pool.availabilityZones.length);
 
           return this.canUseAvailabilityZones || !isUsingAvailabilityZones ? undefined : this.t('aks.errors.availabilityZones');
         }
@@ -722,6 +715,7 @@ export default defineComponent({
 
     async saveRoleBindings(): Promise<void> {
       if (this.membershipUpdate.save) {
+        console.log('*** saving role bindings');
         await this.membershipUpdate.save(this.normanCluster.id);
       }
     },
@@ -749,6 +743,8 @@ export default defineComponent({
     },
 
     async actuallySave(): Promise<void> {
+      console.log('*** actually saving');
+
       return await this.normanCluster.save();
     },
 
@@ -778,7 +774,7 @@ export default defineComponent({
     <SelectCredential
       v-model="config.azureCredentialSecret"
       data-testid="cruaks-select-credential"
-      :mode="isNewOrUnprovisioned ? 'create' : 'view'"
+      :mode="'create'"
       provider="azure"
       :default-on-cancel="true"
       :showing-form="hasCredential"
@@ -791,7 +787,7 @@ export default defineComponent({
       data-testid="cruaks-form"
     >
       <div class="row mb-10">
-        <div class="col span-4">
+        <div class="col span-3">
           <LabeledInput
             :value="normanCluster.name"
             :mode="mode"
@@ -801,9 +797,16 @@ export default defineComponent({
             @input="setClusterName"
           />
         </div>
+        <div class="col span-3">
+          <LabeledInput
+            v-model="normanCluster.description"
+            :mode="mode"
+            label-key="nameNsDescription.description.label"
+            :placeholder="t('nameNsDescription.description.placeholder')"
+          />
+        </div>
         <div
-
-          class="col span-4"
+          class="col span-3"
         >
           <LabeledSelect
             v-model="config.resourceLocation"
@@ -820,7 +823,7 @@ export default defineComponent({
           />
         </div>
         <div
-          class="col span-4"
+          class="col span-3"
         >
           <LabeledSelect
             v-model="config.kubernetesVersion"
@@ -901,6 +904,7 @@ export default defineComponent({
                 :rules="fvGetAndReportPathRules('resourceGroup')"
                 :required="true"
                 placeholder-key="aks.clusterResourceGroup.placeholder"
+
                 :tooltip="t('aks.clusterResourceGroup.tooltip')"
               />
             </div>
@@ -912,7 +916,7 @@ export default defineComponent({
                 :rules="fvGetAndReportPathRules('nodeResourceGroup')"
                 :disabled="!isNewOrUnprovisioned"
                 placeholder-key="aks.nodeResourceGroup.placeholder"
-                :tooltip="t('aks.nodeResourceGroup.tooltip')"
+                :tooltip="t('aks.nodeResourceGroup.tooltip',null, true )"
               />
             </div>
             <div class="col span-3">
