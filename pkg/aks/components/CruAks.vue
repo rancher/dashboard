@@ -715,7 +715,6 @@ export default defineComponent({
 
     async saveRoleBindings(): Promise<void> {
       if (this.membershipUpdate.save) {
-        console.log('*** saving role bindings');
         await this.membershipUpdate.save(this.normanCluster.id);
       }
     },
@@ -743,8 +742,6 @@ export default defineComponent({
     },
 
     async actuallySave(): Promise<void> {
-      console.log('*** actually saving');
-
       return await this.normanCluster.save();
     },
 
