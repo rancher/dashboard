@@ -96,40 +96,40 @@ yarn publish:lib
 # to ensure the build fails in these cases
 set -o pipefail
 
-# if [ "${SKIP_STANDALONE}" == "false" ]; then
-#   DIR=$(mktemp -d)
-#   pushd $DIR > /dev/null
+if [ "${SKIP_STANDALONE}" == "false" ]; then
+  DIR=$(mktemp -d)
+  pushd $DIR > /dev/null
 
-#   echo "Using temporary directory ${DIR}"
+  echo "Using temporary directory ${DIR}"
 
-#   echo "Verifying app creator package"
+  echo "Verifying app creator package"
 
-#   yarn create @rancher/app test-app
-#   pushd test-app
-#   yarn install
+  yarn create @rancher/app test-app
+  pushd test-app
+  yarn install
 
-#   echo "Building skeleton app"
-#   FORCE_COLOR=true yarn build | cat
+  echo "Building skeleton app"
+  FORCE_COLOR=true yarn build | cat
 
-#   # Package creator
-#   echo "Verifying package creator package"
-#   yarn create @rancher/pkg test-pkg
+  # Package creator
+  echo "Verifying package creator package"
+  yarn create @rancher/pkg test-pkg
 
-#   echo "Building test package"
-#   FORCE_COLOR=true yarn build-pkg test-pkg | cat
+  echo "Building test package"
+  FORCE_COLOR=true yarn build-pkg test-pkg | cat
 
-#   # Add test list component to the test package
-#   # Validates rancher-components imports
-#   mkdir pkg/test-pkg/list
-#   cp ${SHELL_DIR}/list/catalog.cattle.io.clusterrepo.vue pkg/test-pkg/list
+  # Add test list component to the test package
+  # Validates rancher-components imports
+  mkdir pkg/test-pkg/list
+  cp ${SHELL_DIR}/list/catalog.cattle.io.clusterrepo.vue pkg/test-pkg/list
 
-#   FORCE_COLOR=true yarn build-pkg test-pkg | cat
+  FORCE_COLOR=true yarn build-pkg test-pkg | cat
 
-#   echo "Cleaning temporary dir"
-#   popd > /dev/null
+  echo "Cleaning temporary dir"
+  popd > /dev/null
 
-#   rm -rf ${DIR}
-# fi
+  rm -rf ${DIR}
+fi
 
 pushd $BASE_DIR
 pwd
@@ -140,11 +140,11 @@ echo "Validating in-tree package"
 
 yarn install
 
-# rm -rf ./pkg/test-pkg
-# yarn create @rancher/pkg test-pkg -t
-# cp ${SHELL_DIR}/list/catalog.cattle.io.clusterrepo.vue ./pkg/test-pkg/list
-# FORCE_COLOR=true yarn build-pkg test-pkg | cat
-# rm -rf ./pkg/test-pkg
+rm -rf ./pkg/test-pkg
+yarn create @rancher/pkg test-pkg -t
+cp ${SHELL_DIR}/list/catalog.cattle.io.clusterrepo.vue ./pkg/test-pkg/list
+FORCE_COLOR=true yarn build-pkg test-pkg | cat
+rm -rf ./pkg/test-pkg
 
 # function to clone repos and install dependencies (including the newly published shell version)
 function clone_repo_test_extension_build() {
