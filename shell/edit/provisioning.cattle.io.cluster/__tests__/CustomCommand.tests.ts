@@ -1,7 +1,7 @@
 import { mount } from '@vue/test-utils';
 import CustomCommand from '@shell/edit/provisioning.cattle.io.cluster/CustomCommand.vue';
 jest.mock('@shell/utils/clipboard', () => {
-  return { copyTextToClipboard: () => new Promise(() => undefined) };
+  return { copyTextToClipboard: jest.fn(() => Promise.resolve({})) };
 });
 describe('component: CustomCommand', () => {
   const token = 'MY_TOKEN';
