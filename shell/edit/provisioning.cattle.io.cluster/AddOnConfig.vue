@@ -46,13 +46,25 @@ export default {
     initYamlEditor: {
       type:     Function,
       required: true,
+    },
+    refreshYamls: {
+      type:     Function,
+      required: true
     }
 
   },
+  beforeUpdate() {
+    this.refreshYamls(this.$refs);
+  },
 
   computed: {
-    additionalManifest() {
-      return this.value.spec.rkeConfig.additionalManifest;
+    additionalManifest: {
+      get() {
+        return this.value.spec.rkeConfig.additionalManifest;
+      },
+      set(neu) {
+        this.$emit('additional-manifest-changed', neu);
+      }
     },
     isEdit() {
       return this.mode === _EDIT;

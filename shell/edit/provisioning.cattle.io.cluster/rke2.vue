@@ -1486,14 +1486,13 @@ export default {
 
         set(this.userChartValuesTemp, name, chartValues);
       });
-      this.refreshYamls();
     },
 
-    refreshYamls() {
-      const keys = Object.keys(this.$refs).filter((x) => x.startsWith('yaml'));
+    refreshYamls(refs) {
+      const keys = Object.keys(refs).filter((x) => x.startsWith('yaml'));
 
       for ( const k of keys ) {
-        const entry = this.$refs[k];
+        const entry = refs[k];
         const list = isArray(entry) ? entry : [entry];
 
         for ( const component of list ) {
@@ -1867,6 +1866,9 @@ export default {
         set(this.agentConfig, 'protect-kernel-defaults', false);
       }
     },
+    updateAdditionalManifest(neu) {
+      this.value.spec.rkeConfig.additionalManifest = neu;
+    },
 
     /**
      * Handle k8s changes side effects, like PSA resets
@@ -2145,7 +2147,6 @@ export default {
           name="basic"
           label-key="cluster.tabs.basic"
           :weight="11"
-          @active="refreshYamls"
         >
           <!-- Basic -->
           <Basics
@@ -2171,6 +2172,7 @@ export default {
             :show-cloud-provider="showCloudProvider"
             :unsupported-cloud-provider="unsupportedCloudProvider"
             :cloud-provider-options="cloudProviderOptions"
+            :refresh-yamls="refreshYamls"
             @cilium-ipv6-changed="handleCiliumIpv6Changed"
             @enabled-system-services-changed="handleEnabledSystemServicesChanged"
             @kubernetes-changed="handleKubernetesChange"
@@ -2272,8 +2274,10 @@ export default {
             :addons-rev="addonsRev"
             :user-chart-values-temp="userChartValuesTemp"
             :init-yaml-editor="initYamlEditor"
+            :refresh-yamls="refreshYamls"
             @update-questions="syncChartValues"
             @update-values="updateValues"
+            @additional-manifest-changed="updateAdditionalManifest"
           />
         </Tab>
 
@@ -2311,7 +2315,6 @@ export default {
           name="advanced"
           label-key="cluster.tabs.advanced"
           :weight="-1"
-          @active="refreshYamls"
         >
           <Advanced
             v-model="value"
