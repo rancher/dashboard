@@ -1,7 +1,7 @@
 <script>
 import isEmpty from 'lodash/isEmpty';
 import { createYamlWithOptions } from '@shell/utils/create-yaml';
-import { clone, get } from '@shell/utils/object';
+import { clone, diff, get } from '@shell/utils/object';
 import { SCHEMA, NAMESPACE } from '@shell/config/types';
 import ResourceYaml from '@shell/components/ResourceYaml';
 import { Banner } from '@components/Banner';
@@ -158,8 +158,6 @@ export default {
   },
 
   data(props) {
-    const yaml = this.createResourceYaml();
-
     this.$on('createNamespace', (e) => {
       // When createNamespace is set to true,
       // the UI will attempt to create a new namespace
@@ -167,18 +165,26 @@ export default {
       this.createNamespace = e;
     });
 
+    const inStore = this.$store.getters['currentStore'](this.resource);
+    const schema = this.$store.getters[`${ inStore }/schemaFor`](this.resource.type);
+
     return {
       isCancelModal:   false,
       createNamespace: false,
       showAsForm:      this.$route.query[AS] !== _YAML,
-      resourceYaml:    yaml,
-      initialYaml:     yaml,
+      resourceYaml:    null, // initialise on demand,
+      /**
+       * string
+       */
+      initialYaml:     null, // initialise on demand,
+      initialResource: clone(this.resource),
       abbrSizes:       {
         3: '24px',
         4: '18px',
         5: '16px',
         6: '14px'
       },
+      schema
     };
   },
 
@@ -201,14 +207,11 @@ export default {
     },
 
     canDiff() {
-      return this.initialYaml !== this.resourceYaml;
+      return this.initialYaml !== this.currentYaml;
     },
 
     canEditYaml() {
-      const inStore = this.$store.getters['currentStore'](this.resource);
-      const schema = this.$store.getters[`${ inStore }/schemaFor`](this.resource.type);
-
-      return !(schema?.resourceMethods?.includes('blocked-PUT'));
+      return !(this.schema?.resourceMethods?.includes('blocked-PUT'));
     },
 
     showYaml() {
@@ -309,8 +312,8 @@ export default {
       }
     },
 
-    createResourceYaml(modifiers) {
-      const resource = this.resource;
+    createResourceYaml(modifiers, initial = false) {
+      const resource = initial ? this.initialResource : this.resource;
 
       if ( typeof this.generateYaml === 'function' ) {
         return this.generateYaml.apply(this, resource);
@@ -326,6 +329,11 @@ export default {
     },
 
     async showPreviewYaml() {
+      const inStore = this.$store.getters['currentStore'](this.resource);
+      const schema = this.$store.getters[`${ inStore }/schemaFor`](this.resource.type);
+
+      await schema?.fetchResourceFields();
+
       if ( this.applyHooks ) {
         try {
           await this.applyHooks(BEFORE_SAVE_HOOKS, CONTEXT_HOOK_EDIT_YAML);
@@ -404,6 +412,17 @@ export default {
     onPressEnter(event) {
       if (this.preventEnterSubmit) {
         event.preventDefault();
+      }
+    }
+  },
+
+  watch: {
+    showAsForm(neu) {
+      if (!neu) {
+        // Entering yaml mode
+        if (!this.initialYaml) {
+          this.initialYaml = this.createResourceYaml(undefined, true);
+        }
       }
     }
   }
@@ -681,8 +700,9 @@ export default {
         </slot>
       </template>
       <!------ YAML ------>
+      <!-- Hide this section until it's needed. This means we don't need to upfront create initialYaml -->
       <section
-        v-else-if="showYaml"
+        v-else-if="showYaml && !showAsForm"
         class="cru-resource-yaml-container resource-container cru__content"
       >
         <ResourceYaml
