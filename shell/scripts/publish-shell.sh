@@ -8,6 +8,12 @@ BASE_DIR="$(
 SHELL_DIR=$BASE_DIR/shell/
 TMP_DIR=$BASE_DIR/tmp
 PUBLISH_ARGS="--no-git-tag-version --access public $PUBLISH_ARGS"
+DEFAULT_YARN_REGISTRY="https://registry.npmjs.org"
+RESET_YARN_REGISTRY="false"
+
+if [ "$1" == "-reset" ]; then
+  RESET_YARN_REGISTRY="true"
+fi
 
 if [ ! -d "${BASE_DIR}/node_modules" ]; then
   echo "You need to run 'yarn install' first"
@@ -21,6 +27,10 @@ echo "Publishing Shell Packages"
 # before publishing
 
 # To set a token for NPM registry auth: `npm config set //registry.npmjs.org/:_authToken <TOKEN>``
+
+if [ "$RESET_YARN_REGISTRY" == "true" ]; then
+  export YARN_REGISTRY=$DEFAULT_YARN_REGISTRY
+fi
 
 PKG_DIST=$BASE_DIR/dist-pkg/creators
 mkdir -p ${PKG_DIST}

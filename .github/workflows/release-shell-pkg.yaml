@@ -1,0 +1,33 @@
+name: Publish Shell Package
+
+on:
+  push:
+    tags:
+        - 'shell-pkg-v*'
+
+jobs:
+  build:
+    runs-on: ubuntu-latest
+    permissions:
+      contents: read
+      packages: write
+    steps:
+    - uses: actions/checkout@v3
+      with:
+        fetch-depth: 0
+        persist-credentials: false
+
+    - uses: actions/setup-node@v3
+      with:
+        node-version: '16.x'
+        registry-url: 'https://registry.npmjs.org'
+        scope: '@rancher'
+
+    - name: Validate Plugin build system
+      run: ./shell/scripts/test-plugins-build.sh
+      shell: bash
+
+    - name: Publish Shell Package to npm
+      run: yarn publish-shell-reset-reg
+      env:
+        NODE_AUTH_TOKEN: ${{ secrets.NPM_TOKEN }}
