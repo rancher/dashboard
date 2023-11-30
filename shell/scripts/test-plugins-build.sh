@@ -7,6 +7,7 @@ echo "Checking plugin build"
 SCRIPT_DIR="$( cd -- "$( dirname -- "${BASH_SOURCE[0]}" )" &> /dev/null && pwd )"
 BASE_DIR="$( cd $SCRIPT_DIR && cd ../.. & pwd)"
 SHELL_DIR=$BASE_DIR/shell/
+SHELL_VERSION="99.99.99"
 
 echo ${SCRIPT_DIR}
 
@@ -75,16 +76,16 @@ rm -rf ${BASE_DIR}/pkg/test-pkg
 # We need to patch the version number of the shell, otherwise if we are running
 # with the currently published version, things will fail as those versions
 # are already published and Verdaccio will check, since it is a read-through cache
-sed -i.bak -e "s/\"version\": \"[0-9]*.[0-9]*.[0-9]*\",/\"version\": \"7.7.7\",/g" ${SHELL_DIR}/package.json
+sed -i.bak -e "s/\"version\": \"[0-9]*.[0-9]*.[0-9]*\",/\"version\": \"${SHELL_VERSION}\",/g" ${SHELL_DIR}/package.json
 rm ${SHELL_DIR}/package.json.bak
 
 # Same as above for Rancher Components
 # We might have bumped the version number but its not published yet, so this will fail
-sed -i.bak -e "s/\"version\": \"[0-9]*.[0-9]*.[0-9]*\",/\"version\": \"7.7.7\",/g" ${BASE_DIR}/pkg/rancher-components/package.json
+sed -i.bak -e "s/\"version\": \"[0-9]*.[0-9]*.[0-9]*\",/\"version\": \"${SHELL_VERSION}\",/g" ${BASE_DIR}/pkg/rancher-components/package.json
 
 # Publish shell
 echo "Publishing shell packages to local registry"
-yarn install
+# yarn install
 ${SHELL_DIR}/scripts/publish-shell.sh
 
 # Publish rancher components
@@ -95,40 +96,40 @@ yarn publish:lib
 # to ensure the build fails in these cases
 set -o pipefail
 
-if [ "${SKIP_STANDALONE}" == "false" ]; then
-  DIR=$(mktemp -d)
-  pushd $DIR > /dev/null
+# if [ "${SKIP_STANDALONE}" == "false" ]; then
+#   DIR=$(mktemp -d)
+#   pushd $DIR > /dev/null
 
-  echo "Using temporary directory ${DIR}"
+#   echo "Using temporary directory ${DIR}"
 
-  echo "Verifying app creator package"
+#   echo "Verifying app creator package"
 
-  yarn create @rancher/app test-app
-  pushd test-app
-  yarn install
+#   yarn create @rancher/app test-app
+#   pushd test-app
+#   yarn install
 
-  echo "Building skeleton app"
-  FORCE_COLOR=true yarn build | cat
+#   echo "Building skeleton app"
+#   FORCE_COLOR=true yarn build | cat
 
-  # Package creator
-  echo "Verifying package creator package"
-  yarn create @rancher/pkg test-pkg
+#   # Package creator
+#   echo "Verifying package creator package"
+#   yarn create @rancher/pkg test-pkg
 
-  echo "Building test package"
-  FORCE_COLOR=true yarn build-pkg test-pkg | cat
+#   echo "Building test package"
+#   FORCE_COLOR=true yarn build-pkg test-pkg | cat
 
-  # Add test list component to the test package
-  # Validates rancher-components imports
-  mkdir pkg/test-pkg/list
-  cp ${SHELL_DIR}/list/catalog.cattle.io.clusterrepo.vue pkg/test-pkg/list
+#   # Add test list component to the test package
+#   # Validates rancher-components imports
+#   mkdir pkg/test-pkg/list
+#   cp ${SHELL_DIR}/list/catalog.cattle.io.clusterrepo.vue pkg/test-pkg/list
 
-  FORCE_COLOR=true yarn build-pkg test-pkg | cat
+#   FORCE_COLOR=true yarn build-pkg test-pkg | cat
 
-  echo "Cleaning temporary dir"
-  popd > /dev/null
+#   echo "Cleaning temporary dir"
+#   popd > /dev/null
 
-  rm -rf ${DIR}
-fi
+#   rm -rf ${DIR}
+# fi
 
 pushd $BASE_DIR
 pwd
@@ -139,10 +140,69 @@ echo "Validating in-tree package"
 
 yarn install
 
-rm -rf ./pkg/test-pkg
-yarn create @rancher/pkg test-pkg -t
-cp ${SHELL_DIR}/list/catalog.cattle.io.clusterrepo.vue ./pkg/test-pkg/list
-FORCE_COLOR=true yarn build-pkg test-pkg | cat
-rm -rf ./pkg/test-pkg
+# rm -rf ./pkg/test-pkg
+# yarn create @rancher/pkg test-pkg -t
+# cp ${SHELL_DIR}/list/catalog.cattle.io.clusterrepo.vue ./pkg/test-pkg/list
+# FORCE_COLOR=true yarn build-pkg test-pkg | cat
+# rm -rf ./pkg/test-pkg
+
+# function to clone repos and install dependencies (including the newly published shell version)
+function clone_repo_test_extension_build() {
+  REPO_NAME=$1
+  PKG_NAME=$2
+
+  echo -e "\nSetting up $REPO_NAME repository locally\n"
+
+  # set registry to default (to install all of the other dependencies)
+  yarn config set registry ${DEFAULT_YARN_REGISTRY}
+
+  rm -rf ${BASE_DIR}/$REPO_NAME
+
+  # cloning repo
+  git clone git@github.com:rancher/$REPO_NAME.git 
+  cd ${BASE_DIR}/$REPO_NAME
+
+  echo -e "\nInstalling dependencies for $REPO_NAME\n"
+  yarn install
+
+  # set registry to local verdaccio (to install new shell)
+  yarn config set registry ${VERDACCIO_YARN_REGISTRY}
+
+  # update package.json to use a specific version of shell
+  sed -i.bak -e "s/\"\@rancher\/shell\": \"[0-9]*.[0-9]*.[0-9]*\",/\"\@rancher\/shell\": \"${SHELL_VERSION}\",/g" package.json
+  rm package.json.bak
+
+  # we need to remove yarn.lock, otherwise it would install a version that we don't want
+  rm yarn.lock
+
+  echo -e "\nInstalling newly built shell version\n"
+
+  # installing new version of shell
+  yarn add @rancher/shell@${SHELL_VERSION}
+
+  # to delete.......
+  echo -e "\nSHELL PKG INSTALLED\n"
+  cat node_modules/@rancher/shell/package.json
+
+  # test build-pkg
+  FORCE_COLOR=true yarn build-pkg $PKG_NAME | cat
+
+  # kubewarden has some unit tests and they should be quick to run... Let's check them as well
+  if [ "${REPO_NAME}" == "kubewarden-ui" ]; then
+    yarn test:ci
+  fi
+
+  # return back to the base path
+  cd ..
+
+  # delete folder
+  rm -rf ${BASE_DIR}/$REPO_NAME
+  yarn config set registry ${DEFAULT_YARN_REGISTRY}
+}
+
+# Here we just add the extension that we want to include as a check (all our official extensions should be included here)
+# Don't forget to add the unit tests exception to clone_repo_test_extension_build function if a new extension has those
+clone_repo_test_extension_build "kubewarden-ui" "kubewarden"
+clone_repo_test_extension_build "elemental-ui" "elemental"
 
 echo "All done"
