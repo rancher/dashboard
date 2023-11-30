@@ -85,7 +85,7 @@ sed -i.bak -e "s/\"version\": \"[0-9]*.[0-9]*.[0-9]*\",/\"version\": \"${SHELL_V
 
 # Publish shell
 echo "Publishing shell packages to local registry"
-# yarn install
+yarn install
 ${SHELL_DIR}/scripts/publish-shell.sh
 
 # Publish rancher components
