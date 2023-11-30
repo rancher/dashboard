@@ -577,7 +577,6 @@ export default defineComponent({
             withoutAZ.push(region);
           }
         });
-
         this.locationOptions = [{ displayName: this.t('aks.location.withAZ'), kind: 'group' }, ...withAZ, { displayName: this.t('aks.location.withoutAZ'), kind: 'group' }, ...withoutAZ];
         if (!this.config?.resourceLocation) {
           if (res.find((r: any) => r.name === DEFAULT_REGION)) {

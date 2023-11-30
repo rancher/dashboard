@@ -8,6 +8,8 @@ export const mockSizes = ['size1', 'size2', 'size3'];
 
 export const mockNetworks = [{ name: 'network1', resourceGroup: 'network1Group' }, { name: 'network2', resourceGroup: 'network2Group' }];
 
+export const regionsWithAvailabilityZones = ['a'];
+
 export async function getAKSRegions() :Promise<any> {
   return new Promise((resolve, reject) => {
     resolve(mockRegions);

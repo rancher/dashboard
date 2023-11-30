@@ -149,7 +149,7 @@ describe('aks provisioning form', () => {
     await setCredential(wrapper);
     const versionDropdown = wrapper.find('[data-testid="cruaks-kubernetesversion"]');
 
-    expect(versionDropdown.props().options.map((opt) => opt.value)).toStrictEqual(validVersions);
+    expect(versionDropdown.props().options.map((opt: any) => opt.value)).toStrictEqual(validVersions);
     await wrapper.destroy();
   });
 });
