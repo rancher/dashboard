@@ -136,7 +136,7 @@ export default {
       }
 
       if ( parts.length ) {
-        type = parseType(type).pop(); // Get the main part of array[map[something]] => something
+        type = parseType(type).pop(); // Get the main part of array[map[something]] => something // TODO: RC broken?
         schema = getters.schemaFor(type);
 
         if ( !schema ) {
@@ -234,8 +234,8 @@ export default {
       }
 
       const type = typeMunge(field.type);
-      const mapOf = typeRef('map', type);
-      const arrayOf = typeRef('array', type);
+      const mapOf = typeRef('map', type, field);
+      const arrayOf = typeRef('array', type, field); // TODO: RC test
       const referenceTo = typeRef('reference', type);
 
       if ( mapOf || type === 'map' || type === 'json' ) {

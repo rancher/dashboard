@@ -4,7 +4,10 @@
 
 // Steve-specific virtual types
 // Base: /v1
-export const STEVE = { PREFERENCE: 'userpreference' };
+export const STEVE = {
+  PREFERENCE:        'userpreference',
+  SCHEMA_DEFINITION: 'schemaDefinition'
+};
 
 // Old APIs via Norman
 // Base: /v3

@@ -79,6 +79,8 @@ export function createYamlWithOptions(schemas, type, data, options) {
   );
 }
 
+// TODO: RC shudder unit tests. basic. copy before output, test in new world
+
 export function createYaml(
   schemas,
   type,
@@ -87,26 +89,47 @@ export function createYaml(
   depth = 0,
   path = '',
   rootType = null,
-  dataOptions = {}
+  dataOptions = {},
 ) {
-  const schema = findBy(schemas, 'id', type);
-
-  if ( !rootType ) {
-    rootType = type;
-  }
-
-  if ( !schema ) {
-    return `Error loading schema for ${ type }`;
-  }
-
   data = data || {};
 
-  if ( depth === 0 ) {
+  let schema, rootSchema, schemaDefinitions, schemaResourceFields;
+
+  if (depth === 0) {
+    // `type` is a schema id
+    schema = findBy(schemas, 'id', type);
+
+    if ( !schema ) { // schema is only needed at the root level.
+      return `Error loading schema for ${ type }`;
+    }
+
+    rootSchema = schema;
+
+    schemaDefinitions = rootSchema.schemaDefinitions?.others;
+    schemaResourceFields = rootSchema.resourceFields;
+
     const attr = schema.attributes || {};
 
     // Default to data.apiVersion/kind to accommodate spoofed types that aggregate multiple types
     data.apiVersion = (attr.group ? `${ attr.group }/${ attr.version }` : attr.version) || data.apiVersion;
     data.kind = attr.kind || data.kind;
+  } else {
+    rootSchema = findBy(schemas, 'id', rootType);
+
+    if (rootSchema.requiresSchemaDefinitions) {
+      schemaDefinitions = rootSchema.schemaDefinitions.others;
+      schemaResourceFields = schemaDefinitions[type].resourceFields;
+    } else {
+      schema = findBy(schemas, 'id', type);
+      if ( !schema ) { // schema is only needed at the root level.
+        return `Error loading schema for ${ type }`;
+      }
+      schemaResourceFields = schema.resourceFields;
+    }
+  }
+
+  if ( !rootType ) {
+    rootType = type;
   }
 
   const regularFields = [];
@@ -131,14 +154,14 @@ export function createYaml(
       const key = parts[parts.length - 1];
       const prefix = parts.slice(0, -1).join('.');
 
-      if ( prefix === path && schema.resourceFields && schema.resourceFields[key] ) {
+      if ( prefix === path && schemaResourceFields && schemaResourceFields[key] ) {
         addObject(regularFields, key);
       }
     }
   }
 
   // Include all fields in schema's resourceFields as comments
-  const commentFields = Object.keys(schema.resourceFields || {});
+  const commentFields = Object.keys(schemaResourceFields || {});
 
   commentFields.forEach((key) => {
     if ( typeof data[key] !== 'undefined' || (depth === 0 && key === '_type') ) {
@@ -170,7 +193,7 @@ export function createYaml(
     const key = parts[parts.length - 1];
     const prefix = parts.slice(0, -1).join('.');
 
-    if ( prefix === path && schema.resourceFields && schema.resourceFields[key] ) {
+    if ( prefix === path && schemaResourceFields && schemaResourceFields[key] ) {
       removeObject(commentFields, key);
     }
   }
@@ -182,7 +205,7 @@ export function createYaml(
   const comments = commentFields.map((k) => {
     // Don't add a namespace comment for types that aren't namespaced.
     if ( path === 'metadata' && k === 'namespace' ) {
-      const rootSchema = findBy(schemas, 'id', rootType);
+      // const rootSchema = findBy(schemas, 'id', rootType); // TODO: RC test
 
       if ( rootSchema && !rootSchema.attributes?.namespaced ) {
         return null;
@@ -202,7 +225,7 @@ export function createYaml(
   // ---------------
 
   function stringifyField(key) {
-    const field = schema.resourceFields?.[key];
+    const field = schemaResourceFields?.[key];
     let out = `${ key }:`;
 
     // '_type' in steve maps to kubernetes 'type' field; show 'type' field in yaml
@@ -233,8 +256,10 @@ export function createYaml(
     }
 
     const type = typeMunge(field.type);
-    const mapOf = typeRef('map', type);
-    const arrayOf = typeRef('array', type);
+    const mapOf = typeRef('map', type, field);
+
+    // TODO: RC Michael schemaDefinition "io.k8s.api.core.v1.EphemeralContainer" has a resizePolicy. not shown in pre-world
+    const arrayOf = typeRef('array', type, field);
     const referenceTo = typeRef('reference', type);
 
     // type == map[mapOf]
@@ -279,7 +304,7 @@ export function createYaml(
             out += `\n${ indent(parsedData.trim()) }`;
           }
         } catch (e) {
-          console.error(`Error: Unale to parse array data for yaml of type: ${ type }`, e); // eslint-disable-line no-console
+          console.error(`Error: Unable to parse array data for yaml of type: ${ type }`, e); // eslint-disable-line no-console
         }
       }
 
@@ -335,7 +360,7 @@ export function createYaml(
       }
     }
 
-    const subDef = findBy(schemas, 'id', type);
+    const subDef = schemaDefinitions?.[type] || findBy(schemas, 'id', type);
 
     if ( subDef) {
       let chunk;
@@ -411,7 +436,15 @@ function getBlockIndentation(blockHeader) {
   return indentation?.[0] || '';
 }
 
-export function typeRef(type, str) {
+export function typeRef(type, str, field = null) {
+  if (
+    (
+      (type === 'array' && str === 'array') ||
+      (type === 'map' && str === 'map')
+    ) && field?.subtype) {
+    return typeMunge(field?.subtype);
+  }
+
   const re = new RegExp(`^${ type }\\[(.*)\\]$`);
   const match = str.match(re);
 
