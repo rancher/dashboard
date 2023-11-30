@@ -61,7 +61,7 @@ export default {
     });
 
     const specSchema = this.$store.getters['cluster/schemaFor'](MONITORING.SPOOFED.RECEIVER_SPEC);
-    const expectedFields = Object.keys(specSchema.resourceFields);
+    const expectedFields = Object.keys(specSchema.resourceFields); // TODO: RC test resourceFields SPOOFED. should have resoureFields
     const suffix = {};
 
     Object.keys(this.value.spec).forEach((key) => {

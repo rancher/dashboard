@@ -29,11 +29,11 @@ export default {
     },
   },
 
-  fetch() {
+  async fetch() {
     this.errors = [];
 
     try {
-      this.fields = this.$store.getters['plugins/fieldsForDriver'](this.provider);
+      this.fields = await this.$store.getters['plugins/fieldsForDriver'](this.provider);
       const name = `rke-machine-config.cattle.io.${ this.provider }config`;
 
       if ( !this.fields ) {

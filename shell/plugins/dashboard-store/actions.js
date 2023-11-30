@@ -543,8 +543,8 @@ export default {
     return data.map((d) => classify(ctx, d));
   },
 
-  createPopulated(ctx, userData) {
-    const data = ctx.getters['defaultFor'](userData.type);
+  async createPopulated(ctx, userData) {
+    const data = await ctx.getters['defaultFor'](userData.type);
 
     merge(data, userData);
 

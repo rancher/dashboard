@@ -126,7 +126,7 @@ export default {
       throw new Error("Can't render the form because the AlertmanagerConfig schema is not loaded yet.");
     }
 
-    const expectedFields = Object.keys(receiverSchema.resourceFields);
+    const expectedFields = Object.keys(receiverSchema.resourceFields); // TODO: RC test resourceFields SPOOFED move to fetch
 
     const suffix = {};
 

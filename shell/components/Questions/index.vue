@@ -183,7 +183,7 @@ export default {
       if ( this.source.questions?.questions ) {
         return this.source.questions.questions;
       } else if ( this.source.type === 'schema' && this.source.resourceFields ) {
-        return schemaToQuestions(this.source.resourceFields);
+        return schemaToQuestions(this.source.resourceFields); // TODO: RC test? resourceFields move to fetch. testing pain
       } else if ( typeof this.source === 'object' ) {
         return schemaToQuestions(this.source);
       } else {

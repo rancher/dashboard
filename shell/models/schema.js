@@ -13,11 +13,12 @@ export default class Schema extends Resource {
 
   // ---------
   _resourceFields;
-  requiresSchemaDefinitions = true;
+  requiresSchemaDefinitions = true; // TODO: RC should only be true if steve
 
   get resourceFields() {
     if (this.requiresSchemaDefinitions) {
       if (!this._schemaDefinitions) {
+        debugger;
         throw new Error(`Cannot find resourceFields for Schema ${ this.id } (schemaDefinitions have not been fetched) `);
       }
 

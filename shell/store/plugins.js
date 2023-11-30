@@ -184,14 +184,16 @@ export const getters = {
   },
 
   fieldsForDriver(state, getters) {
-    return (name) => {
+    return async(name) => {
       const schema = getters.schemaForDriver(name);
       const names = getters.fieldNamesForDriver(name);
+
+      await schema.fetchResourceFields();
 
       const out = {};
 
       for ( const n of names ) {
-        out[n] = schema.resourceFields[n];
+        out[n] = schema.resourceFields[n]; // TODO: RC resourceFields
       }
 
       return out;
