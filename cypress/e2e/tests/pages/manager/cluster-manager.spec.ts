@@ -1,4 +1,4 @@
-import { isMatch, remove } from 'lodash';
+import { isMatch } from 'lodash';
 
 import ClusterManagerCreatePagePo from '@/cypress/e2e/po/edit/provisioning.cattle.io.cluster/create/cluster-create.po';
 import { providersList } from '@/cypress/e2e/blueprints/manager/clusterProviderUrlCheck';
@@ -27,6 +27,8 @@ import NodeTemplatesPagePo from '@/cypress/e2e/po/pages/cluster-manager/node-tem
 import CloudCredentialsPagePo from '@/cypress/e2e/po/pages/cluster-manager/cloud-credentials.po';
 import ClusterManagerCreateRke1Amazonec2PagePo from '@/cypress/e2e/po/edit/provisioning.cattle.io.cluster/create/cluster-create-rke1-amazonec2.po';
 import EmberPromptRemove from '@/cypress/e2e/po/components/ember/ember-prompt-remove.po';
+import PodSecurityPoliciesTemplatesPagePo from '@/cypress/e2e/po/pages/cluster-manager/pod-security-policy-templates.po';
+import PodSecurityAdmissionsPagePo from '@/cypress/e2e/po/pages/cluster-manager/pod-security-admissions.po';
 // At some point these will come from somewhere central, then we can make tools to remove resources from this or all runs
 const runTimestamp = +new Date();
 const runPrefix = `e2e-test-${ runTimestamp }`;
@@ -485,7 +487,7 @@ describe('Cluster Manager', { testIsolation: 'off', tags: ['@manager', '@adminUs
     it('can edit cloud credentials', () => {
       cloudCredentialsPage.goTo();
       cloudCredentialsPage.list().actionMenu(cloudCredName).getMenuItem('Edit Config').click();
-      cloudCredentialsPage.createEditCloudCreds(cloudcredentialId).waitForPage();
+      cloudCredentialsPage.createEditCloudCreds(cloudcredentialId).waitForPage('mode=edit');
       cloudCredentialsPage.createEditCloudCreds().description().set(`${ cloudCredDescription }-edit`);
       cloudCredentialsPage.createEditCloudCreds().secretKey().set(Cypress.env('awsSecretKey'), true);
       cloudCredentialsPage.createEditCloudCreds().saveAndWaitForRequests('PUT', '/v3/cloudCredentials/**');
@@ -498,6 +500,7 @@ describe('Cluster Manager', { testIsolation: 'off', tags: ['@manager', '@adminUs
     it('can clone cloud credentials', () => {
       cloudCredentialsPage.goTo();
       cloudCredentialsPage.list().actionMenu(`${ cloudCredDescription }-edit`).getMenuItem('Clone').click();
+      cloudCredentialsPage.createEditCloudCreds(cloudcredentialId).waitForPage('mode=clone');
       cloudCredentialsPage.createEditCloudCreds().name().set(`${ cloudCredName }-clone`);
       cloudCredentialsPage.createEditCloudCreds().accessKey().set(Cypress.env('awsAccessKey'));
       cloudCredentialsPage.createEditCloudCreds().secretKey().set(Cypress.env('awsSecretKey'), true);
@@ -915,6 +918,172 @@ describe('Cluster Manager', { testIsolation: 'off', tags: ['@manager', '@adminUs
       //  delete cloud cred
         cy.deleteRancherResource('v3', 'cloudCredentials', cloudCredentialId);
       }
+    });
+  });
+
+  describe('Pod Security Admissions page', { tags: ['@adminUser'] }, () => {
+    const podSecurityAdmissionsPage = new PodSecurityAdmissionsPagePo('local');
+    const policyAdmissionName = `e2e-pod-security-admission-name-${ runTimestamp }`;
+    const policyAdmissionDescription = `e2e-pod-security-admission-description-${ runTimestamp }`;
+
+    beforeEach(() => {
+      cy.viewport(1380, 720);
+    });
+
+    it('can navigate to Pod Security Admissions', () => {
+      clusterList.goTo();
+      sideNav.groups().contains('Advanced').click();
+      sideNav.navToSideMenuEntryByLabel('Pod Security Admissions');
+      podSecurityAdmissionsPage.waitForPage();
+    });
+
+    it('can create a policy security admission', () => {
+      podSecurityAdmissionsPage.goTo();
+      podSecurityAdmissionsPage.create();
+      podSecurityAdmissionsPage.createPodSecurityAdmissionForm().waitForPage();
+      podSecurityAdmissionsPage.createPodSecurityAdmissionForm().name().set(policyAdmissionName);
+      podSecurityAdmissionsPage.createPodSecurityAdmissionForm().description().set(policyAdmissionDescription);
+      podSecurityAdmissionsPage.createPodSecurityAdmissionForm().saveAndWaitForRequests('POST', '/v1/management.cattle.io.podsecurityadmissionconfigurationtemplates');
+      podSecurityAdmissionsPage.waitForPage();
+
+      // check list details
+      podSecurityAdmissionsPage.list().details(policyAdmissionName, 1).should('be.visible');
+    });
+
+    it('can edit a policy security admission', () => {
+      podSecurityAdmissionsPage.goTo();
+      podSecurityAdmissionsPage.list().actionMenu(policyAdmissionName).getMenuItem('Edit Config').click();
+      podSecurityAdmissionsPage.createPodSecurityAdmissionForm(policyAdmissionName).waitForPage('mode=edit');
+      podSecurityAdmissionsPage.createPodSecurityAdmissionForm().description().set(`${ policyAdmissionDescription }-edit`);
+      podSecurityAdmissionsPage.createPodSecurityAdmissionForm().saveAndWaitForRequests('PUT', '/v1/management.cattle.io.podsecurityadmissionconfigurationtemplates/**');
+      podSecurityAdmissionsPage.waitForPage();
+
+      // check list details
+      podSecurityAdmissionsPage.list().details(`${ policyAdmissionDescription }-edit`, 1).should('be.visible');
+    });
+
+    it('can clone a policy security admission', () => {
+      podSecurityAdmissionsPage.goTo();
+      podSecurityAdmissionsPage.list().actionMenu(policyAdmissionName).getMenuItem('Clone').click();
+      podSecurityAdmissionsPage.createPodSecurityAdmissionForm(policyAdmissionName).waitForPage('mode=clone');
+      podSecurityAdmissionsPage.createPodSecurityAdmissionForm().name().set(`${ policyAdmissionName }-clone`);
+      podSecurityAdmissionsPage.createPodSecurityAdmissionForm().saveAndWaitForRequests('POST', '/v1/management.cattle.io.podsecurityadmissionconfigurationtemplates');
+      podSecurityAdmissionsPage.waitForPage();
+
+      // check list details
+      podSecurityAdmissionsPage.list().details(`${ policyAdmissionName }-clone`, 1).should('be.visible');
+    });
+
+    it('can download YAML for a policy security admission', () => {
+      podSecurityAdmissionsPage.goTo();
+      podSecurityAdmissionsPage.list().actionMenu(policyAdmissionName).getMenuItem('Download YAML').click();
+
+      const downloadedFilename = path.join(downloadsFolder, `${ policyAdmissionName }.yaml`);
+
+      cy.readFile(downloadedFilename).then((buffer) => {
+        const obj: any = jsyaml.load(buffer);
+
+        // Basic checks on the downloaded YAML
+        expect(obj.apiVersion).to.equal('management.cattle.io/v3');
+        expect(obj.metadata.name).to.equal(policyAdmissionName);
+        expect(obj.kind).to.equal('PodSecurityAdmissionConfigurationTemplate');
+      });
+    });
+
+    it('can delete a policy security admission', () => {
+      podSecurityAdmissionsPage.goTo();
+      podSecurityAdmissionsPage.list().actionMenu(`${ policyAdmissionName }-clone`).getMenuItem('Delete').click();
+
+      const promptRemove = new PromptRemove();
+
+      cy.intercept('DELETE', `/v1/management.cattle.io.podsecurityadmissionconfigurationtemplates/${ policyAdmissionName }-clone`).as('deletePolicyAdmission');
+
+      promptRemove.remove();
+      cy.wait('@deletePolicyAdmission');
+      podSecurityAdmissionsPage.waitForPage();
+
+      // check list details
+      cy.contains(`${ policyAdmissionName }-clone`).should('not.exist');
+    });
+
+    it('can delete a policy security admission via bulk actions', () => {
+      podSecurityAdmissionsPage.goTo();
+      podSecurityAdmissionsPage.list().details(policyAdmissionName, 0).click();
+      podSecurityAdmissionsPage.list().resourceTable().sortableTable().deleteButton()
+        .click();
+
+      const promptRemove = new PromptRemove();
+
+      cy.intercept('DELETE', `/v1/management.cattle.io.podsecurityadmissionconfigurationtemplates/${ policyAdmissionName }`).as('deletePolicyAdmission');
+
+      promptRemove.remove();
+      cy.wait('@deletePolicyAdmission');
+      podSecurityAdmissionsPage.waitForPage();
+
+      // check list details
+      cy.contains(policyAdmissionName).should('not.exist');
+    });
+  });
+
+  describe('Pod Security Policy Templates page', { tags: ['@adminUser'] }, () => {
+    const podSecurityTemplatesPage = new PodSecurityPoliciesTemplatesPagePo('local');
+    const templateName = `e2e-pod-security-template-name-${ runTimestamp }`;
+    const templateDescription = `e2e-pod-security-template-description-${ runTimestamp }`;
+
+    beforeEach(() => {
+      cy.viewport(1380, 720);
+    });
+
+    it('can navigate to Pod Security Policy Templates', () => {
+      clusterList.goTo();
+      sideNav.groups().contains('Advanced').click();
+      sideNav.navToSideMenuEntryByLabel('Pod Security Policy Templates');
+      podSecurityTemplatesPage.waitForPage();
+    });
+
+    it('can create a policy template', () => {
+      podSecurityTemplatesPage.goTo();
+      podSecurityTemplatesPage.addPolicyTemplate().click();
+      podSecurityTemplatesPage.addPodSecurityTemplateForm().templateName().set(templateName);
+      cy.intercept('POST', '/v3/podsecuritypolicytemplate').as('createPolicyTemplate');
+      podSecurityTemplatesPage.addPodSecurityTemplateForm().create();
+      cy.wait('@createPolicyTemplate');
+
+      // check list details
+      podSecurityTemplatesPage.list().rowWithName(templateName).should('be.visible');
+    });
+
+    it('can edit a policy template', () => {
+      podSecurityTemplatesPage.goTo();
+      podSecurityTemplatesPage.list().rowActionMenuOpen(templateName);
+      podSecurityTemplatesPage.actionMenu().selectMenuItemByLabel('Edit');
+
+      // update template by adding a description
+      podSecurityTemplatesPage.addPodSecurityTemplateForm().addDescription();
+      podSecurityTemplatesPage.addPodSecurityTemplateForm().templateDescription().set(templateDescription);
+      cy.intercept('PUT', '/v3/podSecurityPolicyTemplates/**').as('updatePolicyTemplate');
+      podSecurityTemplatesPage.addPodSecurityTemplateForm().save();
+      cy.wait('@updatePolicyTemplate');
+
+      podSecurityTemplatesPage.list().rowWithName(templateName).find('a').click();
+
+      podSecurityTemplatesPage.templateDescription(templateDescription).should('be.visible');
+    });
+
+    it('can delete a policy template', () => {
+      podSecurityTemplatesPage.goTo();
+      podSecurityTemplatesPage.list().rowActionMenuOpen(templateName);
+      podSecurityTemplatesPage.actionMenu().selectMenuItemByLabel('Delete');
+
+      const promptRemove = new EmberPromptRemove();
+
+      cy.intercept('DELETE', '/v3/podSecurityPolicyTemplates/**').as('deletePolicyTemplate');
+      promptRemove.delete();
+      cy.wait('@deletePolicyTemplate');
+      podSecurityTemplatesPage.waitForPage();
+
+      // check list details
+      cy.contains(templateName).should('not.exist');
     });
   });
 });
