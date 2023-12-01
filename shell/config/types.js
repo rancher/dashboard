@@ -126,7 +126,7 @@ export const MONITORING = {
   PROMETHEUSRULE:     'monitoring.coreos.com.prometheusrule',
   SERVICEMONITOR:     'monitoring.coreos.com.servicemonitor',
   THANOSRULER:        'monitoring.coreos.com.thanosruler',
-  SPOOFED:            {
+  SPOOFED:            { // TODO: RC ALL OF THESE!?
     RECEIVER:                         'monitoring.coreos.com.receiver',
     RECEIVER_SPEC:                    'monitoring.coreos.com.receiver.spec',
     RECEIVER_EMAIL:                   'monitoring.coreos.com.receiver.email',
@@ -138,8 +138,8 @@ export const MONITORING = {
     RESPONDER:                        'monitoring.coreos.com.receiver.responder',
     ROUTE:                            'monitoring.coreos.com.route',
     ROUTE_SPEC:                       'monitoring.coreos.com.route.spec',
-    ALERTMANAGERCONFIG_RECEIVER_SPEC: 'monitoring.coreos.com.v1alpha1.alertmanagerconfig.spec.receivers',
-    ALERTMANAGERCONFIG_ROUTE_SPEC:    'monitoring.coreos.com.v1alpha1.alertmanagerconfig.spec.route'
+    ALERTMANAGERCONFIG_RECEIVER_SPEC: 'monitoring.coreos.com.v1alpha1.alertmanagerconfig.spec.receivers', // TODO: RC
+    ALERTMANAGERCONFIG_ROUTE_SPEC:    'monitoring.coreos.com.v1alpha1.alertmanagerconfig.spec.route' // TODO: RC
   }
 };
 

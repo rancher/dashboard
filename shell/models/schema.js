@@ -8,6 +8,20 @@ Original approach, add resourceFields getter here which returns schemaDefinition
 - TODO: RC list breaking
 - TODO: RC test ingress showX model props
 - TODO: RC michael - /v1/schemaDefinitions/secretssdfdsf 500
+- TODO: RC michael - following contains resourceFields
+- /v1/schemas/rke-machine-config.cattle.io.openstackconfig
+- /v1/schemas/rke-machine.cattle.io.openstackmachine
+- /v1/schemas/rke-machine.cattle.io.openstackmachinetemplate
+- /v1/schemas/rke-machine.cattle.io.digitaloceanmachinetemplate
+-
+- Also
+- /v1/schema/monitoring.coreos.com.alertmanagerconfig
+-  - as we have
+-  - spec.type "monitoring.coreos.com.v1alpha1.alertmanagerconfig.spec",
+-  - not in /v1/schemas
+   - 404 for /v1/schema/monitoring.coreos.com.v1alpha1.alertmanagerconfig.spec
+
+- norman / spoofed fields tested
 */
 
 const schemaDefinitionCache = {};
@@ -86,19 +100,19 @@ export default class Schema extends Resource {
       url:  `/v1/schemaDefinitions/${ this.id }` // TODO: RC Michael. url creation looks at links.collection. can have but no collectionMethods? determine local / kube id
     });
 
-    // TODO: RC Michale resourceFields.x.create|update
     const schemaDefinitionsIdsFromSchema = [];
     const schemaDefinitionsForStore = [];
     let self;
 
     // Convert collection of schema definitions for this schema into objects we can store
-    // sdfdsf store as individual
+    // // TODO: RC comment why we're storing in store.. and not locally (cluster specific)
     Object.entries(res.definitions).forEach(([id, d]) => {
       schemaDefinitionsIdsFromSchema.push(id);
       const def = {
         ...d,
         type: STEVE.SCHEMA_DEFINITION,
-        id:   d.type // TODO: RC
+        id:   d.type
+        // TODO: RC Michael resourceFields.x.create|update
       };
 
       if (id === res.definitionType) {
@@ -117,7 +131,7 @@ export default class Schema extends Resource {
   }
 }
 
-export function parseType(str, field) { // TODO: RC test
+export function parseType(str, field) {
   if ( str.startsWith('array[') ) {
     return ['array', ...parseType(str.slice(6, -1))];
   } else if (str.startsWith('array')) {

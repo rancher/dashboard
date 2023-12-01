@@ -1697,7 +1697,7 @@ export default class Resource {
       return errors;
     }
 
-    await schema.fetchResourceFields();
+    await schema.fetchResourceFields(); // TODO: RC this runs on log in (blocking request in load)
     const fields = schema.resourceFields || {};
     const keys = Object.keys(fields);
     let field, key, val, displayKey;

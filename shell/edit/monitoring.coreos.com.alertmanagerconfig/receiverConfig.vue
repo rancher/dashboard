@@ -103,16 +103,7 @@ export default {
 
   mixins: [CreateEditView, FormValidation],
 
-  data(props) {
-    const currentReceiver = {};
-    const mode = this.$route.query.mode;
-
-    if (mode === _CREATE) {
-      RECEIVERS_TYPES.forEach((receiverType) => {
-        this.$set(currentReceiver, receiverType.key, currentReceiver[receiverType.key] || []);
-      });
-    }
-
+  async fetch() {
     /**
      * example receiver value:
      * {
@@ -142,13 +133,27 @@ export default {
       suffixYaml = '';
     }
 
+    this.expectedFields = expectedFields;
+    this.suffixYaml = suffixYaml;
+  },
+
+  data(props) {
+    const currentReceiver = {};
+    const mode = this.$route.query.mode;
+
+    if (mode === _CREATE) {
+      RECEIVERS_TYPES.forEach((receiverType) => {
+        this.$set(currentReceiver, receiverType.key, currentReceiver[receiverType.key] || []);
+      });
+    }
+
     return {
       create:         _CREATE,
       EDITOR_MODES,
-      expectedFields,
+      // expectedFields,
       fileFound:      false,
       receiverTypes:  RECEIVERS_TYPES,
-      suffixYaml,
+      // suffixYaml,
       view:           _VIEW,
       yamlError:      '',
       fvFormRuleSets: [

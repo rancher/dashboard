@@ -5,6 +5,23 @@ import { get, set } from '@shell/utils/object';
 import isEmpty from 'lodash/isEmpty';
 import { ROOT_NAME } from '@shell/models/monitoring.coreos.com.route';
 
+export const fetchAlertManagerConfigSpecs = async($store) => { // TODO: RC Unable to test (or wire in elsewhere)
+  const schema = $store.getters['cluster/schemaFor'](MONITORING.ALERTMANAGERCONFIG);
+
+  if (!schema) {
+    return;
+  }
+
+  await schema.fetchResourceFields();
+
+  const schemaOthers = schema.schemaDefinitions?.others; // TODO: RC do i call this multiple times (has loop with get)
+
+  return {
+    receiverSchema: schemaOthers?.['com.coreos.monitoring.v1alpha1.AlertmanagerConfig.spec.receivers'],
+    routeSchema:    schemaOthers?.['"com.coreos.monitoring.v1alpha1.AlertmanagerConfig.spec.route'],
+  };
+};
+
 const DEFAULT_SECRET_ID = 'cattle-monitoring-system/alertmanager-rancher-monitoring-alertmanager';
 const ALERTMANAGER_ID = 'cattle-monitoring-system/rancher-monitoring-alertmanager';
 

@@ -139,7 +139,7 @@ export default {
       }
 
       if ( parts.length ) {
-        type = parseType(type, field).pop(); // Get the main part of array[map[something]] => something // TODO: RC broken?
+        type = parseType(type, field).pop(); // Get the main part of array[map[something]] => something
 
         schema = schemaDefinitions.others[type];
 
