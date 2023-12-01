@@ -65,7 +65,7 @@ export default {
 
   computed: {
     defaultStorageClass() {
-      return this.storageClasses.filter((sc) => sc.metadata.annotations[STORAGE.DEFAULT_STORAGE_CLASS] && sc.metadata.annotations[STORAGE.DEFAULT_STORAGE_CLASS] !== 'false' )[0] || '';
+      return this.storageClasses.filter((sc) => sc.metadata.annotations?.[STORAGE.DEFAULT_STORAGE_CLASS] && sc.metadata.annotations[STORAGE.DEFAULT_STORAGE_CLASS] !== 'false' )[0] || '';
     },
 
     availablePVs() {
@@ -200,6 +200,7 @@ export default {
                 :status="reclaimWarning ? 'warning' : null"
                 :options="storageClasses"
                 :hover-tooltip="true"
+                data-testid="backup-chart-select-existing-storage-class"
               />
             </div>
             <div class="col span-6">
