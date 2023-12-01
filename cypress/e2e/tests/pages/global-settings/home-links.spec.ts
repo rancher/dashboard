@@ -41,7 +41,7 @@ describe('Home Links', () => {
     homeLinksPage.waitForPageWithClusterId();
   });
 
-  it('can hide or show default links on the Home Page', { tags: '@adminUser' }, () => {
+  it('can hide or show default links on the Home Page', { tags: ['@adminUser'] }, () => {
     homeLinksPage.goTo();
 
     // Hide all links
@@ -69,7 +69,7 @@ describe('Home Links', () => {
     homePage.supportLinks().should('have.length', 6);
   });
 
-  it('can add and remove custom links', { tags: '@adminUser' }, () => {
+  it('can add and remove custom links', { tags: ['@adminUser'] }, () => {
     // Note: need to click 'Apply' button twice in this test due to race condition. Test will fail unexpectedly without it.
     const customLinkName = `${ runPrefix }-custom-link`;
     const customLinkUrl = `https://${ runPrefix }/custom/link/url`;

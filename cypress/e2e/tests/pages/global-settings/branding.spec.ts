@@ -95,7 +95,7 @@ describe('Branding', () => {
     cy.title().should('eq', settings.privateLabel.original);
   });
 
-  it('Logo', { tags: '@adminUser' }, () => {
+  it('Logo', { tags: ['@adminUser'] }, () => {
     const prefPage = new PreferencesPagePo();
 
     brandingPage.goTo();
@@ -168,7 +168,7 @@ describe('Branding', () => {
     });
   });
 
-  it('Favicon', { tags: '@adminUser' }, () => {
+  it('Favicon', { tags: ['@adminUser'] }, () => {
     brandingPage.goTo();
     brandingPage.customFaviconCheckbox().set();
 

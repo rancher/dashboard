@@ -37,7 +37,7 @@ describe('Feature Flags', () => {
     featureFlagsPage.waitForPageWithClusterId();
   });
 
-  it('can toggle harvester feature flag', { tags: '@adminUser' }, () => {
+  it('can toggle harvester feature flag', { tags: ['@adminUser'] }, () => {
     // Check Current State: should be active by default
     featureFlagsPage.goTo();
     featureFlagsPage.list().details('harvester', 0).should('include.text', 'Active');
@@ -70,7 +70,7 @@ describe('Feature Flags', () => {
     virtualizationMgmtNavItem.should('be.visible');
   });
 
-  it('can toggle harvester-baremetal-container-workload feature flag', { tags: '@adminUser' }, () => {
+  it('can toggle harvester-baremetal-container-workload feature flag', { tags: ['@adminUser'] }, () => {
     // Check Current State: should be disabled by default
     featureFlagsPage.goTo();
     featureFlagsPage.list().details('harvester-baremetal-container-workload', 0).should('include.text', 'Disabled');
@@ -90,7 +90,7 @@ describe('Feature Flags', () => {
     featureFlagsPage.list().details('harvester-baremetal-container-workload', 0).should('include.text', 'Disabled');
   });
 
-  it('can toggle istio-virtual-service-ui feature flag', { tags: '@adminUser' }, () => {
+  it('can toggle istio-virtual-service-ui feature flag', { tags: ['@adminUser'] }, () => {
     // Check Current State: should be active by default
     featureFlagsPage.goTo();
     featureFlagsPage.list().details('istio-virtual-service-ui', 0).should('include.text', 'Active');
@@ -110,7 +110,7 @@ describe('Feature Flags', () => {
     featureFlagsPage.list().details('istio-virtual-service-ui', 0).should('include.text', 'Active');
   });
 
-  it('can toggle legacy feature flag', { tags: '@adminUser' }, () => {
+  it('can toggle legacy feature flag', { tags: ['@adminUser'] }, () => {
     // Check Current State: should be disabled by default
     featureFlagsPage.goTo();
     featureFlagsPage.list().details('legacy', 0).should('include.text', 'Disabled');
@@ -142,7 +142,7 @@ describe('Feature Flags', () => {
     sideNav.groups().contains('Legacy').should('not.exist');
   });
 
-  it('can toggle rke1-custom-node-cleanup feature flag', { tags: '@adminUser' }, () => {
+  it('can toggle rke1-custom-node-cleanup feature flag', { tags: ['@adminUser'] }, () => {
     // Check Current State: should be active by default
     featureFlagsPage.goTo();
     featureFlagsPage.list().details('rke1-custom-node-cleanup', 0).should('include.text', 'Active');
@@ -162,7 +162,7 @@ describe('Feature Flags', () => {
     featureFlagsPage.list().details('rke1-custom-node-cleanup', 0).should('include.text', 'Active');
   });
 
-  it('can toggle token-hashing feature flag', { tags: '@adminUser' }, () => {
+  it('can toggle token-hashing feature flag', { tags: ['@adminUser'] }, () => {
     // Check Current State: should be disabled by default
     featureFlagsPage.goTo();
     featureFlagsPage.list().details('token-hashing', 0).should('include.text', 'Disabled');
@@ -180,7 +180,7 @@ describe('Feature Flags', () => {
     featureFlagsPage.list().details('token-hashing', 1).find('i.icon-lock').should('be.visible');
   });
 
-  it('can toggle unsupported-storage-drivers feature flag', { tags: '@adminUser' }, () => {
+  it('can toggle unsupported-storage-drivers feature flag', { tags: ['@adminUser'] }, () => {
     // Check Current State: should be disabled by default
     featureFlagsPage.goTo();
     featureFlagsPage.list().details('unsupported-storage-drivers', 0).should('include.text', 'Disabled');
