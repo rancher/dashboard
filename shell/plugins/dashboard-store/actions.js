@@ -544,7 +544,14 @@ export default {
   },
 
   async createPopulated(ctx, userData) {
-    const data = await ctx.getters['defaultFor'](userData.type);
+    let data = null;
+
+    const schema = ctx.getters['schemaFor'](userData.type);
+
+    if (schema) {
+      await schema.fetchResourceFields();
+      data = await ctx.getters['defaultFor'](userData.type, schema);
+    }
 
     merge(data, userData);
 

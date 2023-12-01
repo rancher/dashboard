@@ -6,18 +6,29 @@ Original approach, add resourceFields getter here which returns schemaDefinition
 - messy, unravelled
 
 - TODO: RC list breaking
+- TODO: RC test ingress showX model props
+- TODO: RC michael - /v1/schemas/rke-machine-config.cattle.io.openstackconfig has resourceFields. ok if all are primitive. if not will look for schema's for them.. which won't be there?
+// /v1/schema/schema/rke-machine.cattle.io.openstackmachine
+// /v1/schema/schema/rke-machine.cattle.io.openstackmachinetemplate
+// /v1/schemaDefinitions/rke-machine-config.cattle.io.openstackconfig does exist
 */
 
 const schemaDefinitionCache = {};
 
 export default class Schema extends Resource {
+  // _resourceFields;
+  // requiresSchemaDefinitions = true; // TODO: RC should only be true if steve
+
+  // constructor(...args) {
+  //   super(...args);
+  // }
+
   get groupName() {
     return this.attributes.namespaced ? 'ns' : 'cluster';
   }
 
   // ---------
-  _resourceFields;
-  requiresSchemaDefinitions = true; // TODO: RC should only be true if steve
+
   get hasResourceFields() {
     if (this.requiresSchemaDefinitions) {
       return !!this._schemaDefinitions?.self?.resourceFields;
@@ -68,7 +79,6 @@ export default class Schema extends Resource {
     if (!this.requiresSchemaDefinitions) {
       return;
     }
-    // const fromStore = this.$getters['byId'](STEVE.SCHEMA_DEFINITION, this.id);
 
     if (this._schemaDefinitions?.self) {
       return this._schemaDefinitions?.self;

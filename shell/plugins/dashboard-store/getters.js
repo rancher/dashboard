@@ -220,19 +220,28 @@ export default {
     return out;
   },
 
-  defaultFor: (state, getters) => async(type) => {
-    const schema = getters['schemaFor'](type);
+  defaultFor: (state, getters) => (type, rootSchema, schemaDefinitions = null) => {
+    let resourceFields;
 
-    if ( !schema ) {
-      return null;
+    if (!schemaDefinitions) {
+      // Depth 0. Get the schemaDefinitions that will contain the child schema resourceFields for recursive calls
+
+      schemaDefinitions = rootSchema.schemaDefinitions?.others || {}; // norman...
+      resourceFields = rootSchema.resourceFields || {};
+    } else {
+      if (rootSchema.requiresSchemaDefinitions) {
+        resourceFields = schemaDefinitions[type]?.resourceFields || {};
+      } else {
+        const schema = getters['schemaFor'](type);
+
+        resourceFields = schema?.resourceFields || {};
+      }
     }
 
     const out = {};
 
-    await schema.fetchResourceFields();
-
-    for ( const key in schema.resourceFields ) {
-      const field = schema.resourceFields[key];
+    for ( const key in resourceFields ) {
+      const field = resourceFields[key];
 
       if ( !field ) {
         // Not much to do here...
@@ -245,7 +254,7 @@ export default {
       const referenceTo = typeRef('reference', type);
 
       if ( mapOf || type === 'map' || type === 'json' ) {
-        out[key] = getters.defaultFor(type);
+        out[key] = getters.defaultFor(type, rootSchema, schemaDefinitions);
       } else if ( arrayOf || type === 'array' ) {
         out[key] = [];
       } else if ( referenceTo ) {
@@ -257,7 +266,7 @@ export default {
           out[key] = field['default'];
         }
       } else {
-        out[key] = getters.defaultFor(type);
+        out[key] = getters.defaultFor(type, rootSchema, schemaDefinitions);
       }
     }
 
