@@ -7,10 +7,7 @@ Original approach, add resourceFields getter here which returns schemaDefinition
 
 - TODO: RC list breaking
 - TODO: RC test ingress showX model props
-- TODO: RC michael - /v1/schemas/rke-machine-config.cattle.io.openstackconfig has resourceFields. ok if all are primitive. if not will look for schema's for them.. which won't be there?
-// /v1/schema/schema/rke-machine.cattle.io.openstackmachine
-// /v1/schema/schema/rke-machine.cattle.io.openstackmachinetemplate
-// /v1/schemaDefinitions/rke-machine-config.cattle.io.openstackconfig does exist
+- TODO: RC michael - /v1/schemaDefinitions/secretssdfdsf 500
 */
 
 const schemaDefinitionCache = {};

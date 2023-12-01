@@ -1675,6 +1675,7 @@ export default class Resource {
   }
 
   async validationErrors(data = this, ignoreFields) {
+    // Interestingly this only does the top level resourceFields
     const errors = [];
     const {
       type: originalType,
