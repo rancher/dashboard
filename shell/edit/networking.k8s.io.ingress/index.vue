@@ -15,6 +15,7 @@ import DefaultBackend from './DefaultBackend';
 import Certificates from './Certificates';
 import Rules from './Rules';
 import IngressClass from './IngressClass';
+import Loading from '@shell/components/Loading';
 
 export default {
   name:       'CRUIngress',
@@ -28,7 +29,8 @@ export default {
     Rules,
     Tab,
     Tabbed,
-    Error
+    Error,
+    Loading,
   },
   mixins: [CreateEditView, FormValidation],
   props:  {
@@ -46,9 +48,10 @@ export default {
   async fetch() {
     this.ingressClassSchema = this.$store.getters[`cluster/schemaFor`](INGRESS_CLASS);
     const hash = await allHash({
-      secrets:        this.$store.dispatch('cluster/findAll', { type: SECRET }),
-      services:       this.$store.dispatch('cluster/findAll', { type: SERVICE }),
-      ingressClasses: this.ingressClassSchema ? this.$store.dispatch('cluster/findAll', { type: INGRESS_CLASS }) : Promise.resolve([]),
+      secrets:               this.$store.dispatch('cluster/findAll', { type: SECRET }),
+      services:              this.$store.dispatch('cluster/findAll', { type: SERVICE }),
+      ingressClasses:        this.ingressClassSchema ? this.$store.dispatch('cluster/findAll', { type: INGRESS_CLASS }) : Promise.resolve([]),
+      ingressResourceFields: this.schema.fetchResourceFields(),
     });
 
     this.allServices = hash.services;
@@ -191,7 +194,9 @@ export default {
 };
 </script>
 <template>
+  <Loading v-if="$fetchState.pending" />
   <CruResource
+    v-else
     :done-route="doneRoute"
     :mode="mode"
     :resource="value"

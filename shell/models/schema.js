@@ -4,7 +4,11 @@ import { STEVE } from '@shell/config/types';
 /*
 Original approach, add resourceFields getter here which returns schemaDefinitions, ensure fetchResourceFields is called in places where needed
 - messy, unravelled
+
+- TODO: RC list breaking
 */
+
+const schemaDefinitionCache = {};
 
 export default class Schema extends Resource {
   get groupName() {
@@ -14,6 +18,13 @@ export default class Schema extends Resource {
   // ---------
   _resourceFields;
   requiresSchemaDefinitions = true; // TODO: RC should only be true if steve
+  get hasResourceFields() {
+    if (this.requiresSchemaDefinitions) {
+      return !!this._schemaDefinitions?.self?.resourceFields;
+    }
+
+    return this._resourceFields;
+  }
 
   get resourceFields() {
     if (this.requiresSchemaDefinitions) {
@@ -46,7 +57,7 @@ export default class Schema extends Resource {
     return {
       self:   this._schemaDefinitions.self, // TODO: RC keep? bin?
       others: this._schemaDefinitions.others.reduce((res, d) => {
-        res[d] = this.$getters['byId'](STEVE.SCHEMA_DEFINITION, d);
+        res[d] = this.$getters['byId'](STEVE.SCHEMA_DEFINITION, d); // TODO: RC Avoid the store (performance). just cache here.
 
         return res;
       }, {})
@@ -99,11 +110,15 @@ export default class Schema extends Resource {
   }
 }
 
-export function parseType(str) {
+export function parseType(str, field) { // TODO: RC test
   if ( str.startsWith('array[') ) {
     return ['array', ...parseType(str.slice(6, -1))];
+  } else if (str.startsWith('array')) {
+    return ['array', field.subtype]; // schemaDefinition
   } else if ( str.startsWith('map[') ) {
     return ['map', ...parseType(str.slice(4, -1))];
+  } else if (str.startsWith('map')) {
+    return ['map', field.subtype]; // schemaDefinition
   } else {
     return [str];
   }

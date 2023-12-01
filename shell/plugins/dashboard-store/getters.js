@@ -124,20 +124,24 @@ export default {
 
   pathExistsInSchema: (state, getters) => (type, path) => {
     let schema = getters.schemaFor(type);
+    const schemaDefinitions = schema.schemaDefinitions;
     const parts = splitObjectPath(path);
 
     while ( parts.length ) {
       const key = parts.shift();
 
-      type = schema.resourceFields?.[key]?.type;
+      const field = schema.resourceFields?.[key];
+
+      type = field?.type;
 
       if ( !type ) {
         return false;
       }
 
       if ( parts.length ) {
-        type = parseType(type).pop(); // Get the main part of array[map[something]] => something // TODO: RC broken?
-        schema = getters.schemaFor(type);
+        type = parseType(type, field).pop(); // Get the main part of array[map[something]] => something // TODO: RC broken?
+
+        schema = schemaDefinitions.others[type];
 
         if ( !schema ) {
           return false;

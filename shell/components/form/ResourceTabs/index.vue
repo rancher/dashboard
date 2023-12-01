@@ -69,6 +69,13 @@ export default {
     }
   },
 
+  fetch() {
+    if (this.preShowConditions) {
+      // Just kick this off, the conditions shouldn't block the display of all screen content
+      this.schema.fetchResourceFields();
+    }
+  },
+
   data() {
     const inStore = this.$store.getters['currentStore'](EVENT);
 
@@ -78,6 +85,7 @@ export default {
       selectedTab:   this.defaultTab,
       didLoadEvents: false,
       extensionTabs: getApplicableExtensionEnhancements(this, ExtensionPoint.TAB, TabLocation.RESOURCE_DETAIL, this.$route, this, this.extensionParams),
+      inStore,
     };
   },
 
@@ -86,15 +94,28 @@ export default {
   },
 
   computed: {
-    showConditions() {
-      const inStore = this.$store.getters['currentStore'](this.value.type);
+    preShowConditions() {
+      return this.isView && this.needConditions && this.value?.type;
+    },
 
-      if ( this.$store.getters[`${ inStore }/schemaFor`](this.value.type) ) {
-        return this.isView && this.needConditions && this.value?.type && this.$store.getters[`${ inStore }/pathExistsInSchema`](this.value.type, 'status.conditions');
+    /**
+    * Conditions come from a resource's `status`. They are used by both core resources like workloads as well as those from CRDs
+    *
+    * Check here if the resource type contains conditions via the schema resourceFields
+    */
+    showConditions() {
+      if (!this.preShowConditions) {
+        return false;
       }
 
-      return false;
+      if (!this.schema.hasResourceFields) {
+        // Block until fetchResourceFields completes
+        return false;
+      }
+
+      return this.$store.getters[`${ this.inStore }/pathExistsInSchema`](this.value.type, 'status.conditions');
     },
+
     showEvents() {
       return this.isView && this.needEvents && this.hasEvents;
     },

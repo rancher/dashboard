@@ -1,7 +1,7 @@
 <script>
 import isEmpty from 'lodash/isEmpty';
 import { createYamlWithOptions } from '@shell/utils/create-yaml';
-import { clone, diff, get } from '@shell/utils/object';
+import { clone, get } from '@shell/utils/object';
 import { SCHEMA, NAMESPACE } from '@shell/config/types';
 import ResourceYaml from '@shell/components/ResourceYaml';
 import { Banner } from '@components/Banner';

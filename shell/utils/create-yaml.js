@@ -442,7 +442,7 @@ export function typeRef(type, str, field = null) {
       (type === 'array' && str === 'array') ||
       (type === 'map' && str === 'map')
     ) && field?.subtype) {
-    return typeMunge(field?.subtype);
+    return typeMunge(field?.subtype); // schemaDefinition
   }
 
   const re = new RegExp(`^${ type }\\[(.*)\\]$`);
