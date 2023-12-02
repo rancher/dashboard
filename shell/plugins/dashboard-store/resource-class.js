@@ -1931,4 +1931,11 @@ export default class Resource {
   get creationTimestamp() {
     return this.metadata?.creationTimestamp;
   }
+
+  /**
+   * Allows model to specify JSON Paths that should be folded in the YAML editor by default
+   */
+  get yamlFolding() {
+    return [];
+  }
 }
