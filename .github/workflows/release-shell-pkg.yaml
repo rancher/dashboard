@@ -19,6 +19,14 @@ jobs:
         fetch-depth: 0
         persist-credentials: false
 
+    # - uses: actions/setup-node@v3
+    #   with:
+    #     node-version: '16.x'
+
+    # - name: Validate Plugin build system
+    #   run: ./shell/scripts/test-plugins-build.sh
+    #   shell: bash
+
     - uses: actions/setup-node@v3
       with:
         node-version: '16.x'
@@ -27,10 +35,6 @@ jobs:
     
     - name: Install packages
       run: yarn install
-
-    # - name: Validate Plugin build system
-    #   run: ./shell/scripts/test-plugins-build.sh
-    #   shell: bash
 
     - name: Publish Shell Package to npm
       run: yarn publish-shell-reset-reg
