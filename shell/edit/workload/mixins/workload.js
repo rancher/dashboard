@@ -707,7 +707,7 @@ export default {
       return Promise.all([
         ...toSave.map((svc) => svc.save()),
         ...toRemove.map((svc) => {
-          const ui = svc?.metadata?.annotations[UI_MANAGED];
+          const ui = svc?.metadata?.annotations?.[UI_MANAGED];
 
           if (ui) {
             svc.remove();
