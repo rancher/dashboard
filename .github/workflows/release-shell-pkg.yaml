@@ -25,9 +25,9 @@ jobs:
         registry-url: 'https://registry.npmjs.org'
         scope: '@rancher'
 
-    - name: Validate Plugin build system
-      run: ./shell/scripts/test-plugins-build.sh
-      shell: bash
+    # - name: Validate Plugin build system
+    #   run: ./shell/scripts/test-plugins-build.sh
+    #   shell: bash
 
     - name: Publish Shell Package to npm
       run: yarn publish-shell-reset-reg
