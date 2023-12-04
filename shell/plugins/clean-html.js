@@ -15,6 +15,19 @@ const ALLOWED_TAGS = [
   'i',
   'em',
   'strong',
+  'h1',
+  'h2',
+  'h3',
+  'h4',
+  'h5',
+  'h6',
+  'table',
+  'thead',
+  'tr',
+  'th',
+  'tbody',
+  'td',
+  'blockquote'
 ];
 
 // Allow 'A' tags to keep the target=_blank attribute if they have it
