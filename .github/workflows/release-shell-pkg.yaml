@@ -19,13 +19,13 @@ jobs:
         fetch-depth: 0
         persist-credentials: false
 
-    # - uses: actions/setup-node@v3
-    #   with:
-    #     node-version: '16.x'
+    - uses: actions/setup-node@v3
+      with:
+        node-version: '16.x'
 
-    # - name: Validate Plugin build system
-    #   run: ./shell/scripts/test-plugins-build.sh
-    #   shell: bash
+    - name: Validate Plugin build system
+      run: ./shell/scripts/test-plugins-build.sh
+      shell: bash
 
     - uses: actions/setup-node@v3
       with:
