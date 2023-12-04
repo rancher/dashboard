@@ -8,6 +8,8 @@ SCRIPT_DIR="$( cd -- "$( dirname -- "${BASH_SOURCE[0]}" )" &> /dev/null && pwd )
 BASE_DIR="$( cd $SCRIPT_DIR && cd ../.. & pwd)"
 SHELL_DIR=$BASE_DIR/shell/
 SHELL_VERSION="99.99.99"
+DEFAULT_YARN_REGISTRY="https://registry.npmjs.org"
+VERDACCIO_YARN_REGISTRY="http://localhost:4873"
 
 echo ${SCRIPT_DIR}
 
@@ -67,7 +69,7 @@ else
   rm -rf ~/.config/verdaccio/storage/@rancher/*
 fi
 
-export YARN_REGISTRY=http://localhost:4873
+export YARN_REGISTRY=$VERDACCIO_YARN_REGISTRY
 export NUXT_TELEMETRY_DISABLED=1
 
 # Remove test package from previous run, if present
@@ -159,7 +161,7 @@ function clone_repo_test_extension_build() {
   rm -rf ${BASE_DIR}/$REPO_NAME
 
   # cloning repo
-  git clone git@github.com:rancher/$REPO_NAME.git 
+  git clone https://github.com/rancher/$REPO_NAME.git
   cd ${BASE_DIR}/$REPO_NAME
 
   echo -e "\nInstalling dependencies for $REPO_NAME\n"
