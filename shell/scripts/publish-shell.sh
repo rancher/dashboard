@@ -14,8 +14,6 @@ if [ ! -d "${BASE_DIR}/node_modules" ]; then
   exit 1
 fi
 
-PUB_SHELL_OPTS=$1
-
 echo "Publishing Shell Packages"
 
 # We use the version from the shell package for the creator packages
@@ -95,16 +93,9 @@ function publish() {
 ${SCRIPT_DIR}/typegen.sh
 
 # Publish the packages - don't tag the git repo and don't auto-increment the version number
-# let's have an option just tu publish shell because of other scripts which don't need the other packages
-if [ "$PUB_SHELL_OPTS" == "--shell-only" ]; then
-  publish "Shell" ${SHELL_DIR}
-else
-  publish "Shell" ${SHELL_DIR}
-  publish "Application creator" ${PKG_DIST}/app/
-  publish "Package creator" ${PKG_DIST}/pkg/
-  publish "Update" ${PKG_DIST}/update/
-fi
+publish "Shell" ${SHELL_DIR}
+publish "Application creator" ${PKG_DIST}/app/
+publish "Package creator" ${PKG_DIST}/pkg/
+publish "Update" ${PKG_DIST}/update/
 
 echo "Done"
-
-
