@@ -1,7 +1,7 @@
 // Taken from @nuxt/vue-app/template/index.js
+// This file was generated during Nuxt migration
 
 import Vue from 'vue';
-import Meta from 'vue-meta';
 import ClientOnly from 'vue-client-only';
 import NoSsr from 'vue-no-ssr';
 import { createRouter } from '../config/router.js';
@@ -105,10 +105,6 @@ Object.defineProperty(Vue.prototype, '$nuxt', {
   configurable: true
 });
 
-Vue.use(Meta, {
-  keyName: 'head', attribute: 'data-n-head', ssrAttribute: 'data-n-head-ssr', tagIDKeyName: 'hid'
-});
-
 const defaultTransition = {
   name: 'page', mode: 'out-in', appear: true, appearClass: 'appear', appearActiveClass: 'appear-active', appearToClass: 'appear-to'
 };
@@ -126,15 +122,6 @@ async function createApp(ssrContext, config = {}) {
   // here we inject the router and store to all child components,
   // making them available everywhere as `this.$router` and `this.$store`.
   const app = {
-    head: {
-      title: 'dashboard',
-      meta:  [{ charset: 'utf-8' }, { name: 'viewport', content: 'width=device-width, initial-scale=1' }, {
-        hid: 'description', name: 'description', content: 'Rancher Dashboard'
-      }],
-      style:  [],
-      script: []
-    },
-
     store,
     router,
     nuxt: {

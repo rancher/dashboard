@@ -544,7 +544,7 @@ module.exports = function(dir, _appConfig) {
               options: { mode: ['body'] }
             }
           ]
-        }
+        },
       ];
 
       config.module.rules.push(...loaders);
