@@ -38,25 +38,25 @@ Push these changes to the target repo and you will now see the submodule with th
 Create a new [Dockerfile](https://docs.docker.com/engine/reference/builder/) in your branched repo that will build both the frontend from your branch and the main Rancher image. It will need to replace the dashboard files in the Rancher image with the build from the new frontend.
 
 ```Dockerfile
-# /Dockerfile.example
-
-FROM node:lts AS builder
+# Dockerfile.example
+FROM node:16 AS builder
 
 WORKDIR /src
 
 COPY . .
 RUN yarn --pure-lockfile install
 
-ENV ROUTER_BASE="/dashboard"
-RUN yarn run build --spa
+ENV ROUTER_BASE="/dashboard" \
+    RESOURCE_BASE="/dashboard"
+RUN yarn run build
 
-FROM rancher/rancher:v2.6.3
+FROM rancher/rancher:v2.8-head
 WORKDIR /var/lib/rancher
 RUN rm -rf /usr/share/rancher/ui-dashboard/dashboard*
 COPY --from=builder /src/dist /usr/share/rancher/ui-dashboard/dashboard
 ```
 
-This will build the frontend from your branch with `RUN yarn run build --spa` and replace the dashboard in the Rancher image with `COPY --from=builder /src/dist /usr/share/rancher/ui-dashboard/dashboard`.
+This will build the frontend from your branch with `RUN yarn run build` and replace the dashboard in the Rancher image with `COPY --from=builder /src/dist /usr/share/rancher/ui-dashboard/dashboard`.
 
 ### 3. Create action to dispatch the image
 
@@ -88,6 +88,7 @@ jobs:
     name: Build Dashboard image
     runs-on: ubuntu-latest
     permissions:
+      actions: write
       contents: read
       packages: write
 
@@ -105,7 +106,7 @@ jobs:
         uses: docker/setup-buildx-action@v1
 
       - name: Login to GitHub Container Registry
-        uses: docker/login-action@v1
+        uses: docker/login-action@v2
         with:
           registry: ${{ env.REGISTRY }}
           username: ${{ github.actor }} # This is the repo owner
@@ -141,6 +142,7 @@ docker run -d --name dashboard \
   --privileged \
   -p 80:80 -p 443:443 \
   -e CATTLE_UI_DASHBOARD_INDEX=https://localhost/dashboard/index.html \
+  -e CATTLE_UI_OFFLINE_PREFERRED=true \
   ghcr.io/<example-repo>:latest
 ```
 
