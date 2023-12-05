@@ -27,6 +27,12 @@ jobs:
       run: ./shell/scripts/test-plugins-build.sh
       shell: bash
 
+    - name: Reset repository (file system)
+      run: | 
+        git reset --hard HEAD
+        echo $YARN_REGISTRY
+        cat ./shell/package.json
+
     - uses: actions/setup-node@v3
       with:
         node-version: '16.x'
