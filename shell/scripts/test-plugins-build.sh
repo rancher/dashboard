@@ -162,7 +162,7 @@ function clone_repo_test_extension_build() {
 
   # cloning repo
   git clone https://github.com/rancher/$REPO_NAME.git
-  cd ${BASE_DIR}/$REPO_NAME
+  pushd ${BASE_DIR}/$REPO_NAME
 
   echo -e "\nInstalling dependencies for $REPO_NAME\n"
   yarn install
@@ -182,10 +182,6 @@ function clone_repo_test_extension_build() {
   # installing new version of shell
   yarn add @rancher/shell@${SHELL_VERSION}
 
-  # to delete.......
-  echo -e "\nSHELL PKG INSTALLED\n"
-  cat node_modules/@rancher/shell/package.json
-
   # test build-pkg
   FORCE_COLOR=true yarn build-pkg $PKG_NAME | cat
 
@@ -195,7 +191,7 @@ function clone_repo_test_extension_build() {
   fi
 
   # return back to the base path
-  cd ..
+  popd
 
   # delete folder
   rm -rf ${BASE_DIR}/$REPO_NAME
