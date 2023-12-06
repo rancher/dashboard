@@ -18,3 +18,12 @@ jobs:
       run: ./shell/scripts/test-plugins-build.sh
       shell: bash
 
+    - name: Upload files
+      uses: actions/upload-artifact@v3
+      with:
+        name: test
+        path: |
+          /tmp/tmp.**/test-app
+          !/tmp/tmp.**/test-app/node_modules/
+          /tmp/tmp.**/pkg/test-pkg/
+          !/tmp/tmp.**/pkg/test-pkg/node_modules/
