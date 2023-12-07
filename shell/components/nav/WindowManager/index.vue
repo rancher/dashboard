@@ -20,10 +20,6 @@ export default {
 
     height: {
       get() {
-        if ( process.server ) {
-          return 0;
-        }
-
         if ( this.userHeight ) {
           return this.userHeight;
         }
@@ -52,10 +48,6 @@ export default {
 
     width: {
       get() {
-        if ( process.server ) {
-          return 0;
-        }
-
         if (this.userWidth) {
           return this.userWidth;
         }

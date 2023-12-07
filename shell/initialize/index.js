@@ -73,7 +73,7 @@ Vue.component(ClientOnly.name, ClientOnly);
 Vue.component(NoSsr.name, {
   ...NoSsr,
   render(h, ctx) {
-    if (process.client && !NoSsr._warned) {
+    if (!NoSsr._warned) {
       NoSsr._warned = true;
 
       console.warn('<no-ssr> has been deprecated and will be removed in Nuxt 3, please use <client-only> instead'); // eslint-disable-line no-console
@@ -96,7 +96,7 @@ Object.defineProperty(Vue.prototype, '$nuxt', {
   get() {
     const globalNuxt = this.$root.$options.$nuxt;
 
-    if (process.client && !globalNuxt && typeof window !== 'undefined') {
+    if (!globalNuxt && typeof window !== 'undefined') {
       return window.$nuxt;
     }
 
@@ -240,15 +240,13 @@ async function createApp(ssrContext, config = {}) {
   // Inject runtime config as $config
   inject('config', config);
 
-  if (process.client) {
-    // Replace store state before plugins execution
-    if (window.__NUXT__ && window.__NUXT__.state) {
-      store.replaceState(window.__NUXT__.state);
-    }
+  // Replace store state before plugins execution
+  if (window.__NUXT__ && window.__NUXT__.state) {
+    store.replaceState(window.__NUXT__.state);
   }
 
   // Add enablePreview(previewData = {}) in context for plugins
-  if (process.static && process.client) {
+  if (process.static) {
     app.context.enablePreview = function(previewData = {}) {
       app.previewData = Object.assign({}, previewData);
       inject('preview', previewData);
@@ -280,15 +278,15 @@ async function createApp(ssrContext, config = {}) {
     await axiosShell(app.context, inject);
   }
 
-  if (process.client && typeof intNumber === 'function') {
+  if (typeof intNumber === 'function') {
     await intNumber(app.context, inject);
   }
 
-  if (process.client && typeof positiveIntNumber === 'function') {
+  if (typeof positiveIntNumber === 'function') {
     await positiveIntNumber(app.context, inject);
   }
 
-  if (process.client && typeof nuxtClientInit === 'function') {
+  if (typeof nuxtClientInit === 'function') {
     await nuxtClientInit(app.context, inject);
   }
 
@@ -300,28 +298,24 @@ async function createApp(ssrContext, config = {}) {
     await backButton(app.context, inject);
   }
 
-  if (process.client && typeof plugin === 'function') {
+  if (typeof plugin === 'function') {
     await plugin(app.context, inject);
   }
 
-  if (process.client && typeof codeMirror === 'function') {
+  if (typeof codeMirror === 'function') {
     await codeMirror(app.context, inject);
   }
 
-  if (process.client && typeof version === 'function') {
+  if (typeof version === 'function') {
     await version(app.context, inject);
   }
 
-  if (process.client && typeof steveCreateWorker === 'function') {
+  if (typeof steveCreateWorker === 'function') {
     await steveCreateWorker(app.context, inject);
   }
 
-  // if (process.client && typeof formatters === 'function') {
-  //   await formatters(app.context, inject);
-  // }
-
   // Lock enablePreview in context
-  if (process.static && process.client) {
+  if (process.static) {
     app.context.enablePreview = function() {
       console.warn('You cannot call enablePreview() outside a plugin.'); // eslint-disable-line no-console
     };
@@ -330,13 +324,12 @@ async function createApp(ssrContext, config = {}) {
   // Wait for async component to be resolved first
   await new Promise((resolve, reject) => {
     // Ignore 404s rather than blindly replacing URL in browser
-    if (process.client) {
-      const { route } = router.resolve(app.context.route.fullPath);
+    const { route } = router.resolve(app.context.route.fullPath);
 
-      if (!route.matched.length) {
-        return resolve();
-      }
+    if (!route.matched.length) {
+      return resolve();
     }
+
     router.replace(app.context.route.fullPath, resolve, (err) => {
       // https://github.com/vuejs/vue-router/blob/v3.4.3/src/util/errors.js
       if (!err._isRouter) {
@@ -348,7 +341,7 @@ async function createApp(ssrContext, config = {}) {
 
       // navigated to a different route in router guard
       const unregister = router.afterEach(async(to, from) => {
-        if (process.server && ssrContext && ssrContext.url) {
+        if (ssrContext && ssrContext.url) {
           ssrContext.url = to.fullPath;
         }
         app.context.route = await getRouteData(to);

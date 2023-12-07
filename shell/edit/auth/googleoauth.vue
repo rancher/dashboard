@@ -33,11 +33,7 @@ export default {
 
   computed: {
     tArgs() {
-      let hostname = '';
-
-      if (process.client) {
-        hostname = window.location.hostname;
-      }
+      const hostname = window.location.hostname;
 
       return {
         hostname,

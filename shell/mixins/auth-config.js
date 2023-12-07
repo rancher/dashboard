@@ -42,13 +42,8 @@ export default {
     },
 
     serverUrl() {
-      if (process.client) {
-        // Client-side rendered: use the current window location
-        return window.location.origin;
-      }
-
-      // Server-side rendered
-      return this.serverSetting || '';
+      // Client-side rendered: use the current window location
+      return window.location.origin;
     },
 
     baseUrl() {

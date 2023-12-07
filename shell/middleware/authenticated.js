@@ -305,9 +305,6 @@ export default async function({
             notLoggedIn();
           } else {
             store.commit('setError', { error: e, locationError: new Error('Auth Middleware') });
-            if ( process.server ) {
-              redirect(302, '/fail-whale');
-            }
           }
 
           return;
@@ -318,14 +315,12 @@ export default async function({
     store.dispatch('gcStartIntervals');
   }
 
-  if (!process.server) {
-    const backTo = window.localStorage.getItem(BACK_TO);
+  const backTo = window.localStorage.getItem(BACK_TO);
 
-    if (backTo) {
-      window.localStorage.removeItem(BACK_TO);
+  if (backTo) {
+    window.localStorage.removeItem(BACK_TO);
 
-      window.location.href = backTo;
-    }
+    window.location.href = backTo;
   }
 
   // GC should be notified of route change before any find/get request is made that might be used for that page
@@ -366,14 +361,12 @@ export default async function({
       return redirected();
     }
 
-    if (process.client) {
-      store.app.router.afterEach((to, from) => {
-        // Clear state used to record if back button was used for navigation
-        setTimeout(() => {
-          window._popStateDetected = false;
-        }, 1);
-      });
-    }
+    store.app.router.afterEach((to, from) => {
+      // Clear state used to record if back button was used for navigation
+      setTimeout(() => {
+        window._popStateDetected = false;
+      }, 1);
+    });
   }
 
   try {

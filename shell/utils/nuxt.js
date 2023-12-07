@@ -5,12 +5,10 @@ import {
 
 // window.{{globals.loadedCallback}} hook
 // Useful for jsdom testing or plugins (https://github.com/tmpvar/jsdom#dealing-with-asynchronous-script-loading)
-if (process.client) {
-  window.onNuxtReadyCbs = [];
-  window.onNuxtReady = (cb) => {
-    window.onNuxtReadyCbs.push(cb);
-  };
-}
+window.onNuxtReadyCbs = [];
+window.onNuxtReady = (cb) => {
+  window.onNuxtReadyCbs.push(cb);
+};
 
 export function createGetCounter(counterObject, defaultKey = '') {
   return function getCounter(id = defaultKey) {
@@ -260,27 +258,16 @@ export async function setContext(app, context) {
         });
       } else {
         path = withQuery(path, query);
-        if (process.server) {
-          app.context.next({
-            path,
-            status
-          });
-        }
-        if (process.client) {
-          // https://developer.mozilla.org/en-US/docs/Web/API/Location/replace
-          window.location.replace(path);
 
-          // Throw a redirect error
-          throw new Error('ERR_REDIRECT');
-        }
+        // https://developer.mozilla.org/en-US/docs/Web/API/Location/replace
+        window.location.replace(path);
+
+        // Throw a redirect error
+        throw new Error('ERR_REDIRECT');
       }
     };
-    if (process.server) {
-      app.context.beforeNuxtRender = (fn) => context.beforeRenderFns.push(fn);
-    }
-    if (process.client) {
-      app.context.nuxtState = window.__NUXT__;
-    }
+
+    app.context.nuxtState = window.__NUXT__;
   }
 
   // Dynamic keys

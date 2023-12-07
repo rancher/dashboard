@@ -23,7 +23,7 @@ function registerType(state, type) {
     // Not enumerable so they don't get sent back to the client for SSR
     Object.defineProperty(cache, 'map', { value: new Map() });
 
-    if ( process.server && !cache.list.__rehydrateAll ) {
+    if ( !cache.list.__rehydrateAll ) {
       Object.defineProperty(cache.list, '__rehydrateAll', { value: `${ state.config.namespace }/${ type }`, enumerable: true });
     }
 
