@@ -81,12 +81,12 @@ fi
 # We need to patch the version number of the shell, otherwise if we are running
 # with the currently published version, things will fail as those versions
 # are already published and Verdaccio will check, since it is a read-through cache
-sed -i.bak -e "s/\"version\": \"[0-9]*.[0-9]*.[0-9]*\",/\"version\": \"${SHELL_VERSION}\",/g" ${SHELL_DIR}/package.json
+sed -i.bak -e "s/\"version\": \"[0-9]*.[0-9]*.[0-9]*\(-alpha.[0-9]\|-release[0-9]*.[0-9]*.[0-9]*\)\{0,1\}\",/\"version\": \"${SHELL_VERSION}\",/g" ${SHELL_DIR}/package.json
 rm ${SHELL_DIR}/package.json.bak
 
 # Same as above for Rancher Components
 # We might have bumped the version number but its not published yet, so this will fail
-sed -i.bak -e "s/\"version\": \"[0-9]*.[0-9]*.[0-9]*\",/\"version\": \"${SHELL_VERSION}\",/g" ${BASE_DIR}/pkg/rancher-components/package.json
+sed -i.bak -e "s/\"version\": \"[0-9]*.[0-9]*.[0-9]*\(-alpha.[0-9]\|-release[0-9]*.[0-9]*.[0-9]*\)\{0,1\}\",/\"version\": \"${SHELL_VERSION}\",/g" ${BASE_DIR}/pkg/rancher-components/package.json
 
 # Publish shell
 echo "Publishing shell packages to local registry"
