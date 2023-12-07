@@ -1,0 +1,32 @@
+apiVersion: cluster.x-k8s.io/v1beta1
+kind: Machine
+metadata:
+  name: string
+  namespace: default
+#  annotations:  key: string
+#  labels:  key: string
+spec:
+   bootstrap:
+#    configRef:
+#      apiVersion: string
+#      fieldPath: string
+#      kind: string
+#      name: string
+#      namespace: string
+#      resourceVersion: string
+#      uid: string
+#    data: string
+     dataSecretName: secretname
+   clusterName: local
+#  failureDomain: string
+#  infrastructureRef:
+#    apiVersion: string
+#    fieldPath: string
+#    kind: string
+#    name: string
+#    namespace: string
+#    resourceVersion: string
+#    uid: string
+#  nodeDrainTimeout: string
+#  providerID: string
+#  version: string

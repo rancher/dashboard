@@ -29,6 +29,9 @@ import ClusterManagerCreateRke1Amazonec2PagePo from '@/cypress/e2e/po/edit/provi
 import EmberPromptRemove from '@/cypress/e2e/po/components/ember/ember-prompt-remove.po';
 import PodSecurityPoliciesTemplatesPagePo from '@/cypress/e2e/po/pages/cluster-manager/pod-security-policy-templates.po';
 import PodSecurityAdmissionsPagePo from '@/cypress/e2e/po/pages/cluster-manager/pod-security-admissions.po';
+import MachinesPagePo from '@/cypress/e2e/po/pages/cluster-manager/machines.po';
+import MachineSetsPagePo from '@/cypress/e2e/po/pages/cluster-manager/machine-sets.po';
+import MachineDeploymentsPagePo from '@/cypress/e2e/po/pages/cluster-manager/machine-deployments.po';
 // At some point these will come from somewhere central, then we can make tools to remove resources from this or all runs
 const runTimestamp = +new Date();
 const runPrefix = `e2e-test-${ runTimestamp }`;
@@ -440,8 +443,13 @@ describe('Cluster Manager', { testIsolation: 'off', tags: ['@manager', '@adminUs
     shellPo.closeTerminal();
   });
 
+<<<<<<< HEAD
   // will only run this in jenkins pipeline where cloud credentails are stored
   describe.only('Cloud Credentials', { tags: ['@jenkins', '@adminUser', '@standardUser'] }, () => {
+=======
+  // will only run this in jenkins pipeline where cloud credentials are stored
+  describe('Cloud Credentials', { tags: ['@jenkins', '@adminUser', '@standardUser'] }, () => {
+>>>>>>> 25b6f758e (MachineDeployments MachineSets and Machines tests)
     const cloudCredentialsPage = new CloudCredentialsPagePo();
     const cloudCredName = `e2e-cloud-cred-name-${ runTimestamp }`;
     const cloudCredDescription = `e2e-cloud-cred-description-${ runTimestamp }`;
@@ -778,7 +786,7 @@ describe('Cluster Manager', { testIsolation: 'off', tags: ['@manager', '@adminUs
     });
   });
 
-  // will only run this in jenkins pipeline where cloud credentails are stored
+  // will only run this in jenkins pipeline where cloud credentials are stored
   describe('Node Templates', { tags: ['@jenkins', '@adminUser'] }, () => {
     const nodeTemplatesPage = new NodeTemplatesPagePo('local');
     const templateName = `e2e-node-template-name-${ runTimestamp }`;
@@ -921,7 +929,7 @@ describe('Cluster Manager', { testIsolation: 'off', tags: ['@manager', '@adminUs
     });
   });
 
-  describe('Pod Security Admissions page', { tags: ['@adminUser'] }, () => {
+  describe('Pod Security Admissions', { tags: ['@adminUser'] }, () => {
     const podSecurityAdmissionsPage = new PodSecurityAdmissionsPagePo('local');
     const policyAdmissionName = `e2e-pod-security-admission-name-${ runTimestamp }`;
     const policyAdmissionDescription = `e2e-pod-security-admission-description-${ runTimestamp }`;
@@ -1025,7 +1033,7 @@ describe('Cluster Manager', { testIsolation: 'off', tags: ['@manager', '@adminUs
     });
   });
 
-  describe('Pod Security Policy Templates page', { tags: ['@adminUser'] }, () => {
+  describe('Pod Security Policy Templates', { tags: ['@adminUser'] }, () => {
     const podSecurityTemplatesPage = new PodSecurityPoliciesTemplatesPagePo('local');
     const templateName = `e2e-pod-security-template-name-${ runTimestamp }`;
     const templateDescription = `e2e-pod-security-template-description-${ runTimestamp }`;
@@ -1084,6 +1092,412 @@ describe('Cluster Manager', { testIsolation: 'off', tags: ['@manager', '@adminUs
 
       // check list details
       cy.contains(templateName).should('not.exist');
+    });
+  });
+
+  describe('MachineDeployments', () => {
+    const machineDeploymentsPage = new MachineDeploymentsPagePo();
+    const machineDeploymentsName = `e2e-machinedeployment-name-${ runTimestamp }`;
+    const machineDeploymentsNameClone = `e2e-machinedeployment-name-${ runTimestamp }-clone`;
+    const nsName = 'default';
+    let resourceVersion = '';
+    let creationTimestamp = '';
+    let time = '';
+    let uid = '';
+
+    it('can navigate to MachineDeployments page', () => {
+      clusterList.goTo();
+      sideNav.groups().contains('Advanced').click();
+      sideNav.navToSideMenuEntryByLabel('MachineDeployments');
+      machineDeploymentsPage.waitForPage();
+    });
+
+    it('can create a MachineDeployments', () => {
+      machineDeploymentsPage.goTo();
+      machineDeploymentsPage.create();
+
+      machineDeploymentsPage.createEditMachineDeployment().waitForPage('as=yaml');
+
+      cy.readFile('cypress/e2e/blueprints/cluster_management/machine-deployments.yml').then((machineDeploymentDoc) => {
+        // convert yaml into json to update name value
+        const json: any = jsyaml.load(machineDeploymentDoc);
+
+        json.metadata.name = machineDeploymentsName;
+        machineDeploymentsPage.yamlEditor().set(jsyaml.dump(json));
+      });
+
+      cy.intercept('POST', '/v1/cluster.x-k8s.io.machinedeployments').as('createMachineDeployment');
+      machineDeploymentsPage.createEditMachineDeployment().saveCreateForm().click();
+      cy.wait('@createMachineDeployment').then((req) => {
+        resourceVersion = req.response?.body.metadata.resourceVersion;
+        creationTimestamp = req.response?.body.metadata.creationTimestamp;
+        time = req.response?.body.metadata.managedFields[0].time;
+        uid = req.response?.body.metadata.uid;
+      });
+      machineDeploymentsPage.waitForPage();
+      machineDeploymentsPage.list().details(machineDeploymentsName, 1).should('be.visible');
+    });
+
+    it('can edit a MachineDeployments', () => {
+      machineDeploymentsPage.goTo();
+      machineDeploymentsPage.list().actionMenu(machineDeploymentsName).getMenuItem('Edit YAML').click();
+      machineDeploymentsPage.createEditMachineDeployment(nsName, machineDeploymentsName).waitForPage('mode=edit&as=yaml');
+
+      cy.readFile('cypress/e2e/blueprints/cluster_management/machine-deployments-edit.yml').then((machineSetDoc) => {
+        // convert yaml into json to update values
+        const json: any = jsyaml.load(machineSetDoc);
+
+        json.spec.template.spec.bootstrap.dataSecretName = 'secretName2';
+        json.metadata.creationTimestamp = creationTimestamp;
+        json.metadata.managedFields.time = time;
+        json.metadata.uid = uid;
+        json.metadata.name = machineDeploymentsName;
+        json.metadata.resourceVersion = resourceVersion;
+        machineDeploymentsPage.yamlEditor().set(jsyaml.dump(json));
+      });
+
+      cy.intercept('PUT', `/v1/cluster.x-k8s.io.machinedeployments/${ nsName }/${ machineDeploymentsName }`).as('updateMachineSet');
+      machineDeploymentsPage.createEditMachineDeployment().saveCreateForm().click();
+      cy.wait('@updateMachineSet').its('response.statusCode').should('eq', 200);
+      machineDeploymentsPage.waitForPage();
+
+      // check details page
+      machineDeploymentsPage.list().details(machineDeploymentsName, 2).find('a').click();
+      cy.contains('secretName2').scrollIntoView().should('be.visible');
+    });
+
+    it('can clone a MachineDeployments', () => {
+      machineDeploymentsPage.goTo();
+      machineDeploymentsPage.list().actionMenu(machineDeploymentsName).getMenuItem('Clone').click();
+      machineDeploymentsPage.createEditMachineDeployment(nsName, machineDeploymentsName).waitForPage('mode=clone&as=yaml');
+
+      cy.readFile('cypress/e2e/blueprints/cluster_management/machine-deployments.yml').then((machineSetDoc) => {
+        // convert yaml into json to update name value
+        const json: any = jsyaml.load(machineSetDoc);
+
+        json.metadata.name = machineDeploymentsNameClone;
+        machineDeploymentsPage.yamlEditor().set(jsyaml.dump(json));
+      });
+
+      cy.intercept('POST', 'v1/cluster.x-k8s.io.machinedeployments').as('cloneMachineSet');
+      machineDeploymentsPage.createEditMachineDeployment().saveCreateForm().click();
+      cy.wait('@cloneMachineSet').its('response.statusCode').should('eq', 201);
+      machineDeploymentsPage.waitForPage();
+
+      // check list details
+      machineDeploymentsPage.list().details(machineDeploymentsNameClone, 2).should('be.visible');
+    });
+
+    it('can download YAML', () => {
+      machineDeploymentsPage.goTo();
+      machineDeploymentsPage.list().actionMenu(machineDeploymentsName).getMenuItem('Download YAML').click();
+
+      const downloadedFilename = path.join(downloadsFolder, `${ machineDeploymentsName }.yaml`);
+
+      cy.readFile(downloadedFilename).then((buffer) => {
+        const obj: any = jsyaml.load(buffer);
+
+        // Basic checks on the downloaded YAML
+        expect(obj.apiVersion).to.equal('cluster.x-k8s.io/v1beta1');
+        expect(obj.metadata.name).to.equal(machineDeploymentsName);
+        expect(obj.kind).to.equal('MachineDeployment');
+      });
+    });
+
+    it('can delete a MachineDeployments', () => {
+      machineDeploymentsPage.goTo();
+
+      // delete original cloned MachineSet
+      machineDeploymentsPage.list().actionMenu(machineDeploymentsNameClone).getMenuItem('Delete').click();
+
+      const promptRemove = new PromptRemove();
+
+      cy.intercept('DELETE', `v1/cluster.x-k8s.io.machinedeployments/${ nsName }/${ machineDeploymentsNameClone }`).as('deleteMachineSet');
+
+      promptRemove.remove();
+      cy.wait('@deleteMachineSet');
+      machineDeploymentsPage.waitForPage();
+
+      // check list details
+      cy.contains(machineDeploymentsNameClone).should('not.exist');
+    });
+
+    it('can delete MachineDeployments via bulk actions', () => {
+      machineDeploymentsPage.goTo();
+
+      // delete original MachineSet
+      machineDeploymentsPage.list().resourceTable().sortableTable().rowSelectCtlWithName(machineDeploymentsName)
+        .set();
+      machineDeploymentsPage.list().openBulkActionDropdown();
+
+      cy.intercept('DELETE', `v1/cluster.x-k8s.io.machinedeployments/${ nsName }/${ machineDeploymentsName }`).as('deleteMachineSet');
+      machineDeploymentsPage.list().bulkActionButton('Delete').click();
+
+      const promptRemove = new PromptRemove();
+
+      promptRemove.remove();
+      cy.wait('@deleteMachineSet');
+      machineDeploymentsPage.waitForPage();
+
+      // check list details
+      cy.contains(machineDeploymentsName).should('not.exist');
+    });
+  });
+
+  describe('MachineSets', () => {
+    const machineSetsPage = new MachineSetsPagePo();
+    const machineSetName = `e2e-machineset-name-${ runTimestamp }`;
+    const machineSetCloneName = `e2e-machineset-name-${ runTimestamp }-clone`;
+
+    const nsName = 'default';
+    let resourceVersion = '';
+    let creationTimestamp = '';
+    let time = '';
+    let uid = '';
+
+    it('can navigate to MachineSets page', () => {
+      clusterList.goTo();
+      sideNav.groups().contains('Advanced').click();
+      sideNav.navToSideMenuEntryByLabel('MachineSets');
+      machineSetsPage.waitForPage();
+    });
+
+    it('can create a MachineSet', () => {
+      machineSetsPage.goTo();
+      machineSetsPage.create();
+
+      machineSetsPage.createEditMachineSet().waitForPage('as=yaml');
+
+      cy.readFile('cypress/e2e/blueprints/cluster_management/machine-sets.yml').then((machineSetDoc) => {
+        // convert yaml into json to update name value
+        const json: any = jsyaml.load(machineSetDoc);
+
+        json.metadata.name = machineSetName;
+        machineSetsPage.yamlEditor().set(jsyaml.dump(json));
+      });
+
+      cy.intercept('POST', '/v1/cluster.x-k8s.io.machinesets').as('createMachineSet');
+      machineSetsPage.createEditMachineSet().saveCreateForm().click();
+      cy.wait('@createMachineSet').then((req) => {
+        resourceVersion = req.response?.body.metadata.resourceVersion;
+        creationTimestamp = req.response?.body.metadata.creationTimestamp;
+        time = req.response?.body.metadata.managedFields[0].time;
+        uid = req.response?.body.metadata.uid;
+      });
+      machineSetsPage.waitForPage();
+      machineSetsPage.list().details(machineSetName, 1).should('be.visible');
+    });
+
+    it('can edit a MachineSet', () => {
+      machineSetsPage.goTo();
+      machineSetsPage.list().actionMenu(machineSetName).getMenuItem('Edit YAML').click();
+      machineSetsPage.createEditMachineSet(nsName, machineSetName).waitForPage('mode=edit&as=yaml');
+
+      cy.readFile('cypress/e2e/blueprints/cluster_management/machine-sets-edit.yml').then((machineSetDoc) => {
+        // convert yaml into json to update values
+        const json: any = jsyaml.load(machineSetDoc);
+
+        json.spec.template.spec.bootstrap.dataSecretName = 'secretName2';
+        json.metadata.creationTimestamp = creationTimestamp;
+        json.metadata.managedFields.time = time;
+        json.metadata.uid = uid;
+        json.metadata.name = machineSetName;
+        json.metadata.resourceVersion = resourceVersion;
+        machineSetsPage.yamlEditor().set(jsyaml.dump(json));
+      });
+
+      cy.intercept('PUT', `/v1/cluster.x-k8s.io.machinesets/${ nsName }/${ machineSetName }`).as('updateMachineSet');
+      machineSetsPage.createEditMachineSet().saveCreateForm().click();
+      cy.wait('@updateMachineSet').its('response.statusCode').should('eq', 200);
+      machineSetsPage.waitForPage();
+
+      // check details page
+      machineSetsPage.list().details(machineSetName, 2).find('a').click();
+      cy.contains('secretName2').should('be.visible');
+    });
+
+    it('can clone a MachineSet', () => {
+      machineSetsPage.goTo();
+      machineSetsPage.list().actionMenu(machineSetName).getMenuItem('Clone').click();
+      machineSetsPage.createEditMachineSet(nsName, machineSetName).waitForPage('mode=clone&as=yaml');
+
+      cy.readFile('cypress/e2e/blueprints/cluster_management/machine-sets.yml').then((machineSetDoc) => {
+        // convert yaml into json to update name value
+        const json: any = jsyaml.load(machineSetDoc);
+
+        json.metadata.name = machineSetCloneName;
+        machineSetsPage.yamlEditor().set(jsyaml.dump(json));
+      });
+
+      cy.intercept('POST', '/v1/cluster.x-k8s.io.machinesets').as('cloneMachineSet');
+      machineSetsPage.createEditMachineSet().saveCreateForm().click();
+      cy.wait('@cloneMachineSet').its('response.statusCode').should('eq', 201);
+      machineSetsPage.waitForPage();
+
+      // check list details
+      machineSetsPage.list().details(machineSetCloneName, 2).should('be.visible');
+    });
+
+    it('can download YAML', () => {
+      machineSetsPage.goTo();
+      machineSetsPage.list().actionMenu(machineSetName).getMenuItem('Download YAML').click();
+
+      const downloadedFilename = path.join(downloadsFolder, `${ machineSetName }.yaml`);
+
+      cy.readFile(downloadedFilename).then((buffer) => {
+        const obj: any = jsyaml.load(buffer);
+
+        // Basic checks on the downloaded YAML
+        expect(obj.apiVersion).to.equal('cluster.x-k8s.io/v1beta1');
+        expect(obj.metadata.name).to.equal(machineSetName);
+        expect(obj.kind).to.equal('MachineSet');
+      });
+    });
+
+    it('can delete a MachineSet', () => {
+      machineSetsPage.goTo();
+
+      // delete original cloned MachineSet
+      machineSetsPage.list().actionMenu(machineSetCloneName).getMenuItem('Delete').click();
+
+      const promptRemove = new PromptRemove();
+
+      cy.intercept('DELETE', `v1/cluster.x-k8s.io.machinesets/${ nsName }/${ machineSetCloneName }`).as('deleteMachineSet');
+
+      promptRemove.remove();
+      cy.wait('@deleteMachineSet');
+      machineSetsPage.waitForPage();
+
+      // check list details
+      cy.contains(machineSetCloneName).should('not.exist');
+    });
+
+    it('can delete MachineSet via bulk actions', () => {
+      machineSetsPage.goTo();
+
+      // delete original MachineSet
+      machineSetsPage.list().resourceTable().sortableTable().rowSelectCtlWithName(machineSetName)
+        .set();
+      machineSetsPage.list().openBulkActionDropdown();
+
+      cy.intercept('DELETE', `v1/cluster.x-k8s.io.machinesets/${ nsName }/${ machineSetName }`).as('deleteMachineSet');
+      machineSetsPage.list().bulkActionButton('Delete').click();
+
+      const promptRemove = new PromptRemove();
+
+      promptRemove.remove();
+      cy.wait('@deleteMachineSet');
+      machineSetsPage.waitForPage();
+
+      // check list details
+      cy.contains(machineSetName).should('not.exist');
+    });
+  });
+
+  describe('Machines', () => {
+    const machinesPage = new MachinesPagePo();
+    const machineName = `e2e-machine-name-${ runTimestamp }`;
+    const nsName = 'default';
+    let resourceVersion = '';
+    let creationTimestamp = '';
+    let time = '';
+    let uid = '';
+
+    it('can navigate to Machines page', () => {
+      clusterList.goTo();
+      sideNav.groups().contains('Advanced').click();
+      sideNav.navToSideMenuEntryByLabel('Machines');
+      machinesPage.waitForPage();
+    });
+
+    it('can create a Machine', () => {
+      machinesPage.goTo();
+      machinesPage.create();
+
+      machinesPage.createEditMachines().waitForPage('as=yaml');
+
+      cy.readFile('cypress/e2e/blueprints/cluster_management/machines.yml').then((machineDoc) => {
+        // convert yaml into json to update name value
+        const json: any = jsyaml.load(machineDoc);
+
+        json.metadata.name = machineName;
+        json.metadata.namespace = nsName;
+        json.spec.bootstrap.clusterName = 'local';
+        json.spec.bootstrap.dataSecretName = 'secretName';
+
+        machinesPage.yamlEditor().set(jsyaml.dump(json));
+      });
+
+      cy.intercept('POST', '/v1/cluster.x-k8s.io.machines').as('createMachine');
+      machinesPage.createEditMachines().saveCreateForm().click();
+      cy.wait('@createMachine').then((req) => {
+        resourceVersion = req.response?.body.metadata.resourceVersion;
+        creationTimestamp = req.response?.body.metadata.creationTimestamp;
+        time = req.response?.body.metadata.managedFields[0].time;
+        uid = req.response?.body.metadata.uid;
+      });
+      machinesPage.waitForPage();
+      machinesPage.list().details(machineName, 1).should('be.visible');
+    });
+
+    it('can edit a Machine', () => {
+      machinesPage.goTo();
+      machinesPage.list().actionMenu(machineName).getMenuItem('Edit YAML').click();
+      machinesPage.createEditMachines(nsName, machineName).waitForPage('mode=edit&as=yaml');
+
+      cy.readFile('cypress/e2e/blueprints/cluster_management/machines-edit.yml').then((machineDoc) => {
+        // convert yaml into json to update values
+        const json: any = jsyaml.load(machineDoc);
+
+        json.spec.bootstrap.dataSecretName = 'secretName2';
+        json.metadata.creationTimestamp = creationTimestamp;
+        json.metadata.managedFields.time = time;
+        json.metadata.uid = uid;
+        json.metadata.name = machineName;
+        json.metadata.resourceVersion = resourceVersion;
+        machinesPage.yamlEditor().set(jsyaml.dump(json));
+      });
+
+      cy.intercept('PUT', `/v1/cluster.x-k8s.io.machines/${ nsName }/${ machineName }`).as('updateMachine');
+      machinesPage.createEditMachines().saveCreateForm().click();
+      cy.wait('@updateMachine').its('response.statusCode').should('eq', 200);
+      machinesPage.waitForPage();
+
+      // check details page
+      machinesPage.list().details(machineName, 2).find('a').click();
+      cy.contains('secretName2').should('be.visible');
+    });
+
+    it('can download YAML', () => {
+      machinesPage.goTo();
+      machinesPage.list().actionMenu(machineName).getMenuItem('Download YAML').click();
+
+      const downloadedFilename = path.join(downloadsFolder, `${ machineName }.yaml`);
+
+      cy.readFile(downloadedFilename).then((buffer) => {
+        const obj: any = jsyaml.load(buffer);
+
+        // Basic checks on the downloaded YAML
+        expect(obj.apiVersion).to.equal('cluster.x-k8s.io/v1beta1');
+        expect(obj.metadata.name).to.equal(machineName);
+        expect(obj.kind).to.equal('Machine');
+      });
+    });
+
+    it('can delete a Machine', () => {
+      machinesPage.goTo();
+      machinesPage.list().actionMenu(machineName).getMenuItem('Delete').click();
+
+      const promptRemove = new PromptRemove();
+
+      cy.intercept('DELETE', `v1/cluster.x-k8s.io.machines/${ nsName }/${ machineName }`).as('deleteCloudCred');
+
+      promptRemove.remove();
+      cy.wait('@deleteCloudCred');
+      machinesPage.waitForPage();
+
+      // check list details
+      cy.contains(machineName).should('not.exist');
     });
   });
 });
