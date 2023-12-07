@@ -341,9 +341,6 @@ async function createApp(ssrContext, config = {}) {
 
       // navigated to a different route in router guard
       const unregister = router.afterEach(async(to, from) => {
-        if (ssrContext && ssrContext.url) {
-          ssrContext.url = to.fullPath;
-        }
         app.context.route = await getRouteData(to);
         app.context.params = to.params || {};
         app.context.query = to.query || {};

@@ -23,10 +23,6 @@ function registerType(state, type) {
     // Not enumerable so they don't get sent back to the client for SSR
     Object.defineProperty(cache, 'map', { value: new Map() });
 
-    if ( !cache.list.__rehydrateAll ) {
-      Object.defineProperty(cache.list, '__rehydrateAll', { value: `${ state.config.namespace }/${ type }`, enumerable: true });
-    }
-
     Vue.set(state.types, type, cache);
   }
 
