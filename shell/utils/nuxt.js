@@ -232,7 +232,6 @@ export async function setContext(app, context) {
       app.context.ssrContext = context.ssrContext;
     }
 
-    console.error('APP CONTEXT', app.context);
     app.context.redirect = (status, path, query) => {
       if (!status) {
         return;

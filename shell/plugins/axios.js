@@ -1,7 +1,5 @@
 import https from 'https';
 import { CSRF } from '@shell/config/cookies';
-import { parse as setCookieParser } from 'set-cookie-parser';
-import pkg from '../package.json';
 
 export default function({
   $axios, $cookies, isDev, req
