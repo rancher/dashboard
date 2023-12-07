@@ -245,13 +245,6 @@ async function createApp(ssrContext, config = {}) {
     store.replaceState(window.__NUXT__.state);
   }
 
-  // Add enablePreview(previewData = {}) in context for plugins
-  if (process.static) {
-    app.context.enablePreview = function(previewData = {}) {
-      app.previewData = Object.assign({}, previewData);
-      inject('preview', previewData);
-    };
-  }
   // Plugin execution
 
   // if (typeof nuxt_plugin_portalvue_6babae27 === 'function') {
@@ -312,13 +305,6 @@ async function createApp(ssrContext, config = {}) {
 
   if (typeof steveCreateWorker === 'function') {
     await steveCreateWorker(app.context, inject);
-  }
-
-  // Lock enablePreview in context
-  if (process.static) {
-    app.context.enablePreview = function() {
-      console.warn('You cannot call enablePreview() outside a plugin.'); // eslint-disable-line no-console
-    };
   }
 
   // Wait for async component to be resolved first

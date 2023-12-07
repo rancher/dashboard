@@ -208,15 +208,14 @@ export async function setContext(app, context) {
   // If context not defined, create it
   if (!app.context) {
     app.context = {
-      isStatic: process.static,
-      isDev:    true,
-      isHMR:    false,
+      isDev:   true,
+      isHMR:   false,
       app,
-      store:    app.store,
-      payload:  context.payload,
-      error:    context.error,
-      base:     app.router.options.base,
-      env:      {
+      store:   app.store,
+      payload: context.payload,
+      error:   context.error,
+      base:    app.router.options.base,
+      env:     {
         commit: 'head', version: '0.1.2', dev: true, pl: 1, perfTest: false, rancherEnv: 'web', api: 'http://localhost:8989'
       }
     };
@@ -232,6 +231,8 @@ export async function setContext(app, context) {
     if (context.ssrContext) {
       app.context.ssrContext = context.ssrContext;
     }
+
+    console.error('APP CONTEXT', app.context);
     app.context.redirect = (status, path, query) => {
       if (!status) {
         return;
