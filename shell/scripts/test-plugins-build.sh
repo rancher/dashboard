@@ -73,7 +73,10 @@ export YARN_REGISTRY=$VERDACCIO_YARN_REGISTRY
 export NUXT_TELEMETRY_DISABLED=1
 
 # Remove test package from previous run, if present
-# rm -rf ${BASE_DIR}/pkg/test-pkg
+if [ $TEST_PERSIST_BUILD != "true" ]; then
+  echo "Removing folder ${BASE_DIR}/pkg/test-pkg"
+  rm -rf ${BASE_DIR}/pkg/test-pkg
+fi
 
 # We need to patch the version number of the shell, otherwise if we are running
 # with the currently published version, things will fail as those versions
@@ -131,7 +134,10 @@ if [ "${SKIP_STANDALONE}" == "false" ]; then
   echo "Cleaning temporary dir"
   popd > /dev/null
 
-  # rm -rf ${DIR}
+  if [ $TEST_PERSIST_BUILD != "true" ]; then
+  echo "Removing folder ${DIR}"
+    rm -rf ${DIR}
+  fi
 fi
 
 pushd $BASE_DIR
@@ -141,11 +147,18 @@ echo "Validating in-tree package"
 
 yarn install
 
-# rm -rf ./pkg/test-pkg
+if [ $TEST_PERSIST_BUILD != "true" ]; then
+  echo "Removing folder ./pkg/test-pkg"
+  rm -rf ./pkg/test-pkg
+fi
+
 yarn create @rancher/pkg test-pkg -t
 cp ${SHELL_DIR}/list/catalog.cattle.io.clusterrepo.vue ./pkg/test-pkg/list
 FORCE_COLOR=true yarn build-pkg test-pkg | cat
-# rm -rf ./pkg/test-pkg
+if [ $TEST_PERSIST_BUILD != "true" ]; then
+  echo "Removing folder ./pkg/test-pkg"
+  rm -rf ./pkg/test-pkg
+fi
 
 # function to clone repos and install dependencies (including the newly published shell version)
 function clone_repo_test_extension_build() {
@@ -157,7 +170,10 @@ function clone_repo_test_extension_build() {
   # set registry to default (to install all of the other dependencies)
   yarn config set registry ${DEFAULT_YARN_REGISTRY}
 
-  # rm -rf ${BASE_DIR}/$REPO_NAME
+  if [ $TEST_PERSIST_BUILD != "true" ]; then
+  echo "Removing folder ${BASE_DIR}/$REPO_NAME"
+    rm -rf ${BASE_DIR}/$REPO_NAME
+  fi
 
   # cloning repo
   git clone https://github.com/rancher/$REPO_NAME.git
@@ -193,7 +209,10 @@ function clone_repo_test_extension_build() {
   popd
 
   # delete folder
-  # rm -rf ${BASE_DIR}/$REPO_NAME
+  if [ $TEST_PERSIST_BUILD != "true" ]; then
+  echo "Removing folder ${BASE_DIR}/$REPO_NAME"
+    rm -rf ${BASE_DIR}/$REPO_NAME
+  fi
   yarn config set registry ${DEFAULT_YARN_REGISTRY}
 }
 

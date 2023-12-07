@@ -3,7 +3,8 @@ on:
   pull_request:
     branches:
       - master
-
+env:
+  TEST_PERSIST_BUILD: true
 jobs:
   validate:
     runs-on: ubuntu-latest
