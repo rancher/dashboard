@@ -1,20 +1,25 @@
 import PagePo from '@/cypress/e2e/po/pages/page.po';
 import RepoListPo from '@/cypress/e2e/po/lists/catalog.cattle.io.clusterrepo.po';
+import RepositoriesCreateEditPo from '@/cypress/e2e/po/edit/repositories.po';
 
 /**
  * List page for catalog.cattle.io.clusterrepo resources
  */
-export default class ReposListPagePo extends PagePo {
+export default class RepositoriesPagePo extends PagePo {
   private static createPath(clusterId: string, product: 'apps' | 'manager') {
     return `/c/${ clusterId }/${ product }/catalog.cattle.io.clusterrepo`;
   }
 
   static goTo(clusterId: string, product: 'apps' | 'manager'): Cypress.Chainable<Cypress.AUTWindow> {
-    return super.goTo(ReposListPagePo.createPath(clusterId, product));
+    return super.goTo(RepositoriesPagePo.createPath(clusterId, product));
   }
 
-  constructor(clusterId: string, product: 'apps' | 'manager') {
-    super(ReposListPagePo.createPath(clusterId, product));
+  constructor(private clusterId = 'local', private product: 'apps' | 'manager') {
+    super(RepositoriesPagePo.createPath(clusterId, product));
+  }
+
+  createEditRepositories(repoName? : string): RepositoriesCreateEditPo {
+    return new RepositoriesCreateEditPo(this.clusterId, this.product, repoName);
   }
 
   list(): RepoListPo {
@@ -29,8 +34,7 @@ export default class ReposListPagePo extends PagePo {
   }
 
   create() {
-    return this.list().masthead().actions().eq(0)
-      .click();
+    return this.self().find('[data-testid="masthead-create"]').click();
   }
 
   waitForGoTo(endpoint: string) {

@@ -7,4 +7,16 @@ export default class RepoListPo extends BaseResourceList {
   actionMenu(repoName: string) {
     return this.resourceTable().sortableTable().rowActionMenuOpen(repoName);
   }
+
+  openBulkActionDropdown() {
+    return this.resourceTable().sortableTable().bulkActionDropDownOpen();
+  }
+
+  bulkActionButton(name: string) {
+    return this.resourceTable().sortableTable().bulkActionDropDownButton(name);
+  }
+
+  details(name: string, index: number) {
+    return this.resourceTable().sortableTable().rowWithName(name).column(index);
+  }
 }
