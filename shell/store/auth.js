@@ -174,6 +174,14 @@ export const actions = {
       out.provider = opt.provider;
     }
 
+    if (opt.requestId) {
+      out.requestId = opt.requestId;
+    }
+
+    if (opt.publicKey) {
+      out.publicKey = opt.publicKey;
+    }
+
     return out;
   },
 

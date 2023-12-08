@@ -6,7 +6,13 @@ export default {
 
   methods: {
     login() {
-      this.$store.dispatch('auth/redirectTo', { provider: this.name });
+      const { requestId, publicKey } = this.$route.query;
+
+      this.$store.dispatch('auth/redirectTo', {
+        provider: this.name,
+        publicKey,
+        requestId,
+      });
     },
   },
 };
