@@ -434,6 +434,48 @@ describe('Cluster Manager', { testIsolation: 'off', tags: ['@manager', '@adminUs
     clusterList.waitForPage();
   });
 
+  it('can download KubeConfig', () => {
+    // Delete downloads directory. Need a fresh start to avoid conflicting file names
+    cy.deleteDownloadsFolder();
+
+    ClusterManagerListPagePo.navTo();
+    clusterList.list().resourceTable().sortableTable().rowElementWithName('local')
+      .click();
+    clusterList.list().downloadKubeConfig().click();
+
+    const downloadedFilename = path.join(downloadsFolder, `local.yaml`);
+
+    cy.readFile(downloadedFilename).then((buffer) => {
+      const obj: any = jsyaml.load(buffer);
+
+      // Basic checks on the downloaded YAML
+      expect(obj.apiVersion).to.equal('v1');
+      expect(obj.clusters[0].name).to.equal('local');
+      expect(obj.kind).to.equal('Config');
+    });
+  });
+
+  it('can download YAML', () => {
+    // Delete downloads directory. Need a fresh start to avoid conflicting file names
+    cy.deleteDownloadsFolder();
+
+    ClusterManagerListPagePo.navTo();
+    clusterList.list().resourceTable().sortableTable().rowElementWithName('local')
+      .click();
+    clusterList.list().openBulkActionDropdown();
+    clusterList.list().bulkActionButton('Download YAML').click();
+    const downloadedFilename = path.join(downloadsFolder, `local.yaml`);
+
+    cy.readFile(downloadedFilename).then((buffer) => {
+      const obj: any = jsyaml.load(buffer);
+
+      // Basic checks on the downloaded YAML
+      expect(obj.apiVersion).to.equal('provisioning.cattle.io/v1');
+      expect(obj.metadata.name).to.equal('local');
+      expect(obj.kind).to.equal('Cluster');
+    });
+  });
+
   it('can connect to kubectl shell', () => {
     ClusterManagerListPagePo.navTo();
     clusterList.list().actionMenu('local').getMenuItem('Kubectl Shell').click();
