@@ -2,7 +2,6 @@
 // This file was generated during Nuxt migration
 
 import Vue from 'vue';
-import NoSsr from 'vue-no-ssr';
 import { createRouter } from '../config/router.js';
 import NuxtChild from '../components/nuxt/nuxt-child.js';
 import NuxtError from '../layouts/error.vue';
@@ -64,20 +63,6 @@ Vue.directive = function(name) {
 // these are initialized here, after the code above which keeps track of them and
 // prevents over-writes
 loadDirectives();
-
-// TODO: Remove in Nuxt 3: <NoSsr>
-Vue.component(NoSsr.name, {
-  ...NoSsr,
-  render(h, ctx) {
-    if (!NoSsr._warned) {
-      NoSsr._warned = true;
-
-      console.warn('<no-ssr> has been deprecated and will be removed in Nuxt 3, please use <client-only> instead'); // eslint-disable-line no-console
-    }
-
-    return NoSsr.render(h, ctx);
-  }
-});
 
 // Component: <NuxtChild>
 Vue.component(NuxtChild.name, NuxtChild);
