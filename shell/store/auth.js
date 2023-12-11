@@ -182,6 +182,10 @@ export const actions = {
       out.publicKey = opt.publicKey;
     }
 
+    if (opt.responseType) {
+      out.responseType = opt.responseType
+    }
+
     return out;
   },
 
