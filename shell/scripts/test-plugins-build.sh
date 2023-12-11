@@ -135,7 +135,7 @@ if [ "${SKIP_STANDALONE}" == "false" ]; then
   popd > /dev/null
 
   if [ $TEST_PERSIST_BUILD != "true" ]; then
-  echo "Removing folder ${DIR}"
+    echo "Removing folder ${DIR}"
     rm -rf ${DIR}
   fi
 fi
@@ -171,7 +171,7 @@ function clone_repo_test_extension_build() {
   yarn config set registry ${DEFAULT_YARN_REGISTRY}
 
   if [ $TEST_PERSIST_BUILD != "true" ]; then
-  echo "Removing folder ${BASE_DIR}/$REPO_NAME"
+    echo "Removing folder ${BASE_DIR}/$REPO_NAME"
     rm -rf ${BASE_DIR}/$REPO_NAME
   fi
 
@@ -210,7 +210,7 @@ function clone_repo_test_extension_build() {
 
   # delete folder
   if [ $TEST_PERSIST_BUILD != "true" ]; then
-  echo "Removing folder ${BASE_DIR}/$REPO_NAME"
+    echo "Removing folder ${BASE_DIR}/$REPO_NAME"
     rm -rf ${BASE_DIR}/$REPO_NAME
   fi
   yarn config set registry ${DEFAULT_YARN_REGISTRY}
