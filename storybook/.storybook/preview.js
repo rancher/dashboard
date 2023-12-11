@@ -6,7 +6,6 @@ import IntlMessageFormat from 'intl-messageformat';
 import installShortcut from './theme-shortcut';
 import withEvents from 'storybook-auto-events';
 const i18nStrings = require('../../shell/assets/translations/en-us.yaml');
-import ClientOnly from 'vue-client-only';
 import { VCleanTooltip } from '@shell/plugins/clean-tooltip-directive.js';
 import ShortKey from 'vue-shortkey';
 import { trimWhitespace } from '../../shell/plugins/trim-whitespace';
@@ -26,9 +25,6 @@ require('../../shell/plugins/tooltip');
 
 Vue.use(Vuex);
 Vue.use(ShortKey, { prevent: ['input', 'textarea', 'select'] });
-
-// Component: <ClientOnly>
-Vue.component(ClientOnly.name, ClientOnly);
 
 Vue.component('nuxt-link', {
   props:   ['to'],

@@ -130,28 +130,26 @@ export default {
 </script>
 
 <template>
-  <client-only placeholder=" Loading...">
-    <div
-      class="code-mirror"
-      :class="{['as-text-area']: asTextArea}"
-    >
-      <codemirror
-        v-if="loaded"
-        ref="codeMirrorRef"
-        :value="value"
-        :options="combinedOptions"
-        :disabled="isDisabled"
-        @ready="onReady"
-        @input="onInput"
-        @changes="onChanges"
-        @focus="onFocus"
-        @blur="onBlur"
-      />
-      <div v-else>
-        Loading...
-      </div>
+  <div
+    class="code-mirror"
+    :class="{['as-text-area']: asTextArea}"
+  >
+    <codemirror
+      v-if="loaded"
+      ref="codeMirrorRef"
+      :value="value"
+      :options="combinedOptions"
+      :disabled="isDisabled"
+      @ready="onReady"
+      @input="onInput"
+      @changes="onChanges"
+      @focus="onFocus"
+      @blur="onBlur"
+    />
+    <div v-else>
+      Loading...
     </div>
-  </client-only>
+  </div>
 </template>
 
 <style lang="scss">

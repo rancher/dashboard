@@ -2,7 +2,6 @@
 // This file was generated during Nuxt migration
 
 import Vue from 'vue';
-import ClientOnly from 'vue-client-only';
 import NoSsr from 'vue-no-ssr';
 import { createRouter } from '../config/router.js';
 import NuxtChild from '../components/nuxt/nuxt-child.js';
@@ -65,9 +64,6 @@ Vue.directive = function(name) {
 // these are initialized here, after the code above which keeps track of them and
 // prevents over-writes
 loadDirectives();
-
-// Component: <ClientOnly>
-Vue.component(ClientOnly.name, ClientOnly);
 
 // TODO: Remove in Nuxt 3: <NoSsr>
 Vue.component(NoSsr.name, {
