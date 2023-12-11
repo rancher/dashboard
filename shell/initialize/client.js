@@ -128,19 +128,6 @@ const errorHandler = Vue.config.errorHandler || console.error; // eslint-disable
 // Create and mount App
 createApp(nuxt.publicRuntimeConfig).then(mountApp).catch(errorHandler); // eslint-disable-line no-undef
 
-function componentOption(component, key, ...args) {
-  if (!component || !component.options || !component.options[key]) {
-    return {};
-  }
-  const option = component.options[key];
-
-  if (typeof option === 'function') {
-    return option(...args);
-  }
-
-  return option;
-}
-
 async function loadAsyncComponents(to, from, next) {
   // Check if route changed (this._routeChanged), only if the page is not an error (for validate())
   this._routeChanged = Boolean(app.nuxt.err) || from.name !== to.name;
