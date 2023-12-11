@@ -379,7 +379,7 @@ export const routerOptions = {
   fallback: false
 };
 
-export function createRouter(ssrContext, config) {
+export function createRouter(config) {
   const base = (config._app && config._app.basePath) || routerOptions.base;
   const router = new Router({ ...routerOptions, base });
 

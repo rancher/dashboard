@@ -126,7 +126,7 @@ if (debug) {
 const errorHandler = Vue.config.errorHandler || console.error; // eslint-disable-line no-console
 
 // Create and mount App
-createApp(null, nuxt.publicRuntimeConfig).then(mountApp).catch(errorHandler); // eslint-disable-line no-undef
+createApp(nuxt.publicRuntimeConfig).then(mountApp).catch(errorHandler); // eslint-disable-line no-undef
 
 function componentOption(component, key, ...args) {
   if (!component || !component.options || !component.options[key]) {
