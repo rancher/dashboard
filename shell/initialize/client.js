@@ -141,36 +141,6 @@ function componentOption(component, key, ...args) {
   return option;
 }
 
-function mapTransitions(toComponents, to, from) {
-  const componentTransitions = (component) => {
-    const transition = componentOption(component, 'transition', to, from) || {};
-
-    return (typeof transition === 'string' ? { name: transition } : transition);
-  };
-
-  const fromComponents = from ? getMatchedComponents(from) : [];
-  const maxDepth = Math.max(toComponents.length, fromComponents.length);
-
-  const mergedTransitions = [];
-
-  for (let i = 0; i < maxDepth; i++) {
-    // Clone original objects to prevent overrides
-    const toTransitions = Object.assign({}, componentTransitions(toComponents[i]));
-    const transitions = Object.assign({}, componentTransitions(fromComponents[i]));
-
-    // Combine transitions & prefer `leave` properties of "from" route
-    Object.keys(toTransitions)
-      .filter((key) => typeof toTransitions[key] !== 'undefined' && !key.toLowerCase().includes('leave'))
-      .forEach((key) => {
-        transitions[key] = toTransitions[key];
-      });
-
-    mergedTransitions.push(transitions);
-  }
-
-  return mergedTransitions;
-}
-
 async function loadAsyncComponents(to, from, next) {
   // Check if route changed (this._routeChanged), only if the page is not an error (for validate())
   this._routeChanged = Boolean(app.nuxt.err) || from.name !== to.name;
@@ -363,9 +333,6 @@ async function render(to, from, next) {
       Component.options.fetch = Component._Ctor.options.fetch;
     }
   });
-
-  // Apply transitions
-  this.setTransitions(mapTransitions(Components, to, from));
 
   try {
     // Call middleware
@@ -805,10 +772,7 @@ async function mountApp(__app) {
   // Resolve route components
   const Components = await Promise.all(resolveComponents(app.context.route));
 
-  // Enable transitions
-  _app.setTransitions = _app.$options.nuxt.setTransitions.bind(_app);
   if (Components.length) {
-    _app.setTransitions(mapTransitions(Components, router.currentRoute));
     _lastPaths = router.currentRoute.matched.map((route) => compile(route.path)(router.currentRoute.params));
   }
 

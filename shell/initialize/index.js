@@ -20,7 +20,6 @@ import pluginsLoader from '../core/plugins-loader.js';
 import axiosShell from '../plugins/axios';
 import '../plugins/tooltip';
 import '../plugins/v-select';
-import '../plugins/transitions';
 import '../plugins/vue-js-modal';
 import '../plugins/js-yaml';
 import '../plugins/resize';
@@ -86,10 +85,6 @@ Object.defineProperty(Vue.prototype, '$nuxt', {
   configurable: true
 });
 
-const defaultTransition = {
-  name: 'page', mode: 'out-in', appear: true, appearClass: 'appear', appearActiveClass: 'appear-active', appearToClass: 'appear-to'
-};
-
 async function createApp(config = {}) {
   const router = await createRouter(config);
 
@@ -106,28 +101,6 @@ async function createApp(config = {}) {
     store,
     router,
     nuxt: {
-      defaultTransition,
-      transitions: [defaultTransition],
-      setTransitions(transitions) {
-        if (!Array.isArray(transitions)) {
-          transitions = [transitions];
-        }
-        transitions = transitions.map((transition) => {
-          if (!transition) {
-            transition = defaultTransition;
-          } else if (typeof transition === 'string') {
-            transition = Object.assign({}, defaultTransition, { name: transition });
-          } else {
-            transition = Object.assign({}, defaultTransition, transition);
-          }
-
-          return transition;
-        });
-        this.$options.nuxt.transitions = transitions;
-
-        return transitions;
-      },
-
       err:     null,
       dateErr: null,
       error(err) {
