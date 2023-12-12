@@ -18,7 +18,7 @@ Because of this, we extend the [Cypress best practices](https://docs.cypress.io/
 This will start the cypress test runner, where you can select which tests to run
 
 ```bash
-TEST_PASSWORD=<rancher admin password> TEST_SKIP_SETUP=true yarn cy:open
+TEST_PASSWORD=<rancher admin password> TEST_SKIP=setup yarn cy:open
 ```
 
 ## Initial Setup
@@ -32,7 +32,7 @@ For tests against a deployed Rancher, e.g. on Digital Ocean, mainly for analyzin
 - `TEST_USERNAME`, default `admin`
 - `TEST_PASSWORD`, user password or custom during first Rancher run
 - `TEST_BASE_URL`, the address of your instance
-- `TEST_SKIP_SETUP=true`, we avoid setup as your instance is already set
+- `TEST_SKIP=setup`, we avoid setup as your instance is already set
 
 > Note: If you want to generate code coverage information, you must enable code instrumentation by setting `TEST_INSTRUMENT` to `true`.
 
@@ -54,7 +54,7 @@ NOTE: Local setup of Rancher do not work on Mac with M1 chips.
 - `TEST_PASSWORD`, user password or custom during first Rancher run
 - `CATTLE_BOOTSTRAP_PASSWORD`, initialization password which will also be used as `admin` user password (do not pick `admin` as password as it generates issues)
 - `TEST_BASE_URL=https://localhost:8005`
-- `TEST_SKIP_SETUP=false`, avoid to execute bootstrap setup tests for already initialized Rancher instances, it has to be toggled in case of new instances
+- `TEST_SKIP=setup`, avoid to execute bootstrap setup tests for already initialized Rancher instances, it has to be toggled in case of new instances
 
 You will have to run your local instance at this point:
 
@@ -74,7 +74,14 @@ If you want your tests to be tracked on Cypress dashboards you will have to enab
 - `TEST_PROJECT_ID` // Project ID used by Cypress/Sorry cypress to run the tests
 - `TEST_RUN_ID` (optional) // Identifier for your dashboard run, default value is timestamp
 
-## E2E Dashboard 
+### Skip and only features
+
+Existing `TEST_SKIP_SETUP` logic has been replaced with something more generic included in the `cypress.ts` script/utility.
+It is now possible to skip features by using the `TEST_SKIP` env var, e.g. `TEST_SKIP=setup`.
+Alternatively is possible to solely run a specific feature by using the `TEST_ONLY` env var, e.g. `TEST_ONLY=setup`.
+The features are folder name based and can be found in `cypress/e2e/tests/pages`.
+
+## E2E Dashboard
 
 ### Self-hosted: Sorry Cypress
 
