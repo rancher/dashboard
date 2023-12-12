@@ -644,6 +644,7 @@ export default {
               :clearable="false"
               :taggable="keyTaggable"
               :options="calculateOptions(row[keyName])"
+              :data-testid="`select-kv-item-key-${i}`"
               @input="queueUpdate"
             />
             <input
@@ -652,6 +653,7 @@ export default {
               v-model="row[keyName]"
               :disabled="isView || disabled || !keyEditable || isProtected(row.key)"
               :placeholder="keyPlaceholder"
+              :data-testid="`input-kv-item-key-${i}`"
               @input="queueUpdate"
               @paste="onPaste(i, $event)"
             >
@@ -661,6 +663,7 @@ export default {
         <!-- Value -->
         <div
           :key="i+'value'"
+          :data-testid="`kv-item-value-${i}`"
           class="kv-item value"
         >
           <slot
