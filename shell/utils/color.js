@@ -123,9 +123,9 @@ export function rgbToRgb(rgb) {
 export function colorToRgb(color) {
   let value;
 
-  if (color.startsWith('rgb(')) {
+  if (color?.startsWith('rgb(')) {
     value = rgbToRgb(color);
-  } else if (color.startsWith('#')) {
+  } else if (color?.startsWith('#')) {
     value = hexToRgb(color);
   } else {
     console.warn(`Unable to parse color: ${ color }`); // eslint-disable-line no-console
