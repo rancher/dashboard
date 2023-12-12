@@ -12,7 +12,7 @@ const clusterDashboard = new ClusterDashboardPagePo('local');
 const simpleBox = new SimpleBoxPo();
 const header = new HeaderPo();
 
-describe('Cluster Dashboard', { testIsolation: 'off', tags: ['@adminUser'] }, () => {
+describe('Cluster Dashboard', { testIsolation: 'off', tags: ['@explorer', '@adminUser'] }, () => {
   const podName = `e2e-test-${ +new Date() }`;
 
   before(() => {
