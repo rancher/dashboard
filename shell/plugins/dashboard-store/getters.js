@@ -123,33 +123,7 @@ export default {
   },
 
   pathExistsInSchema: (state, getters) => (type, path) => {
-    let schema = getters.schemaFor(type);
-    const schemaDefinitions = schema.schemaDefinitions;
-    const parts = splitObjectPath(path);
-
-    while ( parts.length ) {
-      const key = parts.shift();
-
-      const field = schema.resourceFields?.[key];
-
-      type = field?.type;
-
-      if ( !type ) {
-        return false;
-      }
-
-      if ( parts.length ) {
-        type = parseType(type, field).pop(); // Get the main part of array[map[something]] => something
-
-        schema = schemaDefinitions.others[type];
-
-        if ( !schema ) {
-          return false;
-        }
-      }
-    }
-
-    return true;
+    return false;
   },
 
   // @TODO resolve difference between this and schemaFor and have only one of them.

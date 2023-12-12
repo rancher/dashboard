@@ -205,8 +205,6 @@ export function createYaml(
   const comments = commentFields.map((k) => {
     // Don't add a namespace comment for types that aren't namespaced.
     if ( path === 'metadata' && k === 'namespace' ) {
-      // const rootSchema = findBy(schemas, 'id', rootType); // TODO: RC test
-
       if ( rootSchema && !rootSchema.attributes?.namespaced ) {
         return null;
       }
@@ -257,8 +255,6 @@ export function createYaml(
 
     const type = typeMunge(field.type);
     const mapOf = typeRef('map', type, field);
-
-    // TODO: RC Michael schemaDefinition "io.k8s.api.core.v1.EphemeralContainer" has a resizePolicy. not shown in pre-world
     const arrayOf = typeRef('array', type, field);
     const referenceTo = typeRef('reference', type);
 

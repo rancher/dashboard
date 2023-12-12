@@ -164,7 +164,7 @@ export const getters = {
     };
   },
 
-  fieldNamesForDriver(state, getters) { // TODO: RC Unable to test - rke-machine-config.cattle.io.openstackconfig returns resourceFields
+  fieldNamesForDriver(state, getters) { // TODO: RC Unable to test - /v1-rke2-release/releases empty
     return (name) => {
       const schema = getters.schemaForDriver(name);
 
@@ -183,7 +183,7 @@ export const getters = {
     };
   },
 
-  fieldsForDriver(state, getters) { // TODO: RC Unable to test - rke-machine-config.cattle.io.openstackconfig returns resourceFields
+  fieldsForDriver(state, getters) { // TODO: RC Unable to test - /v1-rke2-release/releases empty
     return async(name) => {
       const schema = getters.schemaForDriver(name);
       const names = getters.fieldNamesForDriver(name);
