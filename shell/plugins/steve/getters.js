@@ -10,6 +10,8 @@ import { urlFor } from '@shell/plugins/dashboard-store/getters';
 import { normalizeType } from '@shell/plugins/dashboard-store/normalize';
 import pAndNFiltering from '@shell/utils/projectAndNamespaceFiltering.utils';
 import { parse } from '@shell/utils/url';
+import { splitObjectPath } from '@shell/utils/string';
+import { parseType } from '@shell/models/schema';
 
 export const STEVE_MODEL_TYPES = {
   NORMAN:  'norman',
@@ -219,7 +221,14 @@ export default {
 
   pathExistsInSchema: (state, getters) => (type, path) => {
     let schema = getters.schemaFor(type);
-    const schemaDefinitions = schema.schemaDefinitions;
+
+    if (schema.requiresSchemaDefinitions && !schema.hasResourceFields) {
+      // TODO: RC (re)test steve. works for norman
+      console.warn(`pathExistsInSchema requires schema ${ schema.id } to have resources fields via schema definition but none were found`);
+
+      return false;
+    }
+
     const parts = splitObjectPath(path);
 
     while ( parts.length ) {
@@ -236,7 +245,7 @@ export default {
       if ( parts.length ) {
         type = parseType(type, field).pop(); // Get the main part of array[map[something]] => something
 
-        schema = schemaDefinitions.others[type];
+        schema = schema.requiresSchemaDefinitions ? schema.schemaDefinitions?.others[type] : getters.schemaFor(type);
 
         if ( !schema ) {
           return false;

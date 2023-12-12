@@ -117,7 +117,9 @@ function migrate(expr) {
 
 export default {
   components: {
-    Tab, ...knownTypes, Loading
+    ...knownTypes,
+    Tab,
+    Loading,
   },
 
   props: {
@@ -170,7 +172,7 @@ export default {
 
   async fetch() {
     if (this.source.type === 'schema' && this.source.resourceFields?.fetchResourceFields) {
-      await this.source.resourceFields.fetchResourceFields;
+      await this.source.resourceFields.fetchResourceFields(); // TODO: RC test
     }
   },
 
@@ -183,7 +185,7 @@ export default {
       if ( this.source.questions?.questions ) {
         return this.source.questions.questions;
       } else if ( this.source.type === 'schema' && this.source.resourceFields ) {
-        return schemaToQuestions(this.source.resourceFields); // TODO: RC test? resourceFields move to fetch. testing pain
+        return schemaToQuestions(this.source.resourceFields);
       } else if ( typeof this.source === 'object' ) {
         return schemaToQuestions(this.source);
       } else {

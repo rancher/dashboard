@@ -6,6 +6,11 @@ export default class Schema extends Resource {
   }
 }
 
+/**
+ * Handles both
+ * - traditional schema's resourceFields format e.g `array[string]`
+ * - new schema definitions resourceFields format e.g. `{ type: 'array', subtype: 'string' }`
+ */
 export function parseType(str, field) {
   if ( str.startsWith('array[') ) {
     return ['array', ...parseType(str.slice(6, -1))];

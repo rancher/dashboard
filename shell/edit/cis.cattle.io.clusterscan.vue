@@ -42,6 +42,7 @@ export default {
     const hash = await allHash({
       profiles:               this.$store.dispatch('cluster/findAll', { type: CIS.CLUSTER_SCAN_PROFILE }),
       benchmarks:             this.$store.dispatch('cluster/findAll', { type: CIS.BENCHMARK }),
+      // Ensure the clusterscan model has everything it needs
       hasScheduledScanConfig: fetchSpecsScheduledScanConfig(this.schema),
     });
 

@@ -19,7 +19,7 @@ export default {
     const hash = await allHash({
       secrets:        this.$store.dispatch('cluster/findAll', { type: SECRET }),
       services:       this.$store.dispatch('cluster/findAll', { type: SERVICE }),
-      resourceFields: this.schema.fetchResourceFields()
+      resourceFields: this.schema.fetchResourceFields(),
     });
 
     this.allServices = hash.services;

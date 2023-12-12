@@ -2,18 +2,24 @@ import { STEVE } from '@shell/config/types';
 import Schema from './schema';
 
 /*
-Original approach, add resourceFields getter here which returns schemaDefinitions, ensure fetchResourceFields is called in places where needed
-- messy, unravelled
+PR Description
+- Major Changes
+  - createYaml requires schema's resourceFields. This field now comes from schemaDefinitions (rather than schema) and has to be up front fetched
+  - plugins/fieldsForDriver and plugins/fieldNamesForDriver getters now handle schema definitions via a fetch in the `createPopulated` action
+  - upfront fetch a schema's associated schema definitions resource in additional misc places (clusterscan, ingress, alertmanagerconfig)
+  - createPopulated is now async and fetches resource fields. this ensures defaultFor has access to resourceFields
+
+- Improvements
+  - CruResource now creates yaml when it's needed, rather than when we visit the component in form view (avoids blocking load of component to fetch schema definitions)
+  - pathExistsInSchema has now moved to a steve/norman specific place and works with both norman and steve schemas
+  - model/resource validationErrors functionality has been split between steve specific resourceFields in steve model and core validation in root resource-class model
+    - steve validationErrors is skipped for prefs (which would have required a blocking http request on dashboard load)
+- Approach
+  - Originally, add resourceFields getter here which returns schemaDefinitions, ensure fetchResourceFields is called in places where needed
+    - messy, unravelled
 
 - TODO: RC list breaking (???)
 - TODO: RC test ingress showX model props
-- xODO: RC michael - /v1/schemaDefinitions/secretssdfdsf 500
-- xODO: RC michael - following contains resourceFields
-- /v1/schemas/rke-machine-config.cattle.io.openstackconfig
-- /v1/schemas/rke-machine.cattle.io.openstackmachine
-- /v1/schemas/rke-machine.cattle.io.openstackmachinetemplate
-- /v1/schemas/rke-machine.cattle.io.digitaloceanmachinetemplate
--
 - TODO: RC michael
 - /v1/schema/monitoring.coreos.com.alertmanagerconfig
 -  - as we have
@@ -21,42 +27,41 @@ Original approach, add resourceFields getter here which returns schemaDefinition
 -  - not in /v1/schemas
    - 404 for /v1/schema/monitoring.coreos.com.v1alpha1.alertmanagerconfig.spec
 
-- norman / spoofed fields tested
+- TODO: RC norman / spoofed fields
 */
 
 const schemaDefinitionCache = {};
 
 export default class SteveSchema extends Schema {
-  // _resourceFields;
-  // requiresSchemaDefinitions = true; // TODO: RC should only be true if steve
-
-  // constructor(...args) {
-  //   super(...args);
-  // }
-
-  get groupName() {
-    return this.attributes.namespaced ? 'ns' : 'cluster';
-  }
-
-  // ---------
-
+  /**
+   * Is the property `resourceFields` available
+   *
+   * If the schema definition is required and it hasn't been fetched this will be false
+   *
+   * This is a non-erroring request, unlike the resourceFields getter which will error if schema definition is required but missing
+   */
   get hasResourceFields() {
     if (this.requiresSchemaDefinitions) {
       return !!this._schemaDefinitions?.self?.resourceFields;
     }
 
-    return this._resourceFields;
+    return !!this._resourceFields;
   }
 
+  /**
+   * Fields associated with instances of this schema
+   *
+   * This will either come directly from the schema or from the schema's definition
+   */
   get resourceFields() {
     if (this.requiresSchemaDefinitions) {
       if (!this._schemaDefinitions) {
-        debugger;
+        debugger; // TODO: RC polish - remove
         throw new Error(`Cannot find resourceFields for Schema ${ this.id } (schemaDefinitions have not been fetched) `);
       }
 
       if (!this._schemaDefinitions.self.resourceFields) {
-        debugger;
+        debugger; // TODO: RC polish - remove
         throw new Error(`No schemaDefinition for ${ this.id } found (not in schemaDefinition response) `);
       }
 
@@ -66,12 +71,22 @@ export default class SteveSchema extends Schema {
     return this._resourceFields;
   }
 
+  /**
+   * Apply the original `resourceFields` param (if it exists). If it does not then we'll need to fetch the schema definition
+   */
   set resourceFields(resourceFields) {
     this._resourceFields = resourceFields;
     this.requiresSchemaDefinitions = this._resourceFields === null;
   }
 
+  /**
+   * Store this schema's definition and a collection of associated definitions
+   */
   _schemaDefinitions;
+
+  /**
+   * This schema's definition and a collection of associated definitions
+   */
   get schemaDefinitions() {
     if (!this._schemaDefinitions) {
       return null;
@@ -87,16 +102,24 @@ export default class SteveSchema extends Schema {
     };
   }
 
+  /**
+   * URL to fetch this schema's definition
+   */
   get schemaDefinitionUrl() {
     return this.links?.self?.replace('/schemas/', '/schemaDefinitions/'); // TODO: RC test in downstream cluster
   }
 
+  /**
+   * Fetch the schema definition which will provide the resourceFields
+   */
   async fetchResourceFields() {
     if (!this.requiresSchemaDefinitions) {
+      // Not needed, no-op
       return;
     }
 
     if (this._schemaDefinitions?.self) {
+      // Already have it, no-op
       return this._schemaDefinitions?.self;
     }
 
@@ -108,6 +131,7 @@ export default class SteveSchema extends Schema {
       return;
     }
 
+    // Make a direct request to fetch the schema definition
     const res = await this.$dispatch('request', {
       type: STEVE.SCHEMA_DEFINITION,
       url
@@ -118,14 +142,12 @@ export default class SteveSchema extends Schema {
     let self;
 
     // Convert collection of schema definitions for this schema into objects we can store
-    // // TODO: RC comment why we're storing in store.. and not locally (cluster specific)
     Object.entries(res.definitions).forEach(([id, d]) => {
       schemaDefinitionsIdsFromSchema.push(id);
       const def = {
-        ...d,
+        ...d, // Note - this doesn't contain create or update properties as previous. These were previously hardcoded and also not used in the ui
         type: STEVE.SCHEMA_DEFINITION,
         id:   d.type
-        // TODO: RC Michael resourceFields.x.create|update
       };
 
       if (id === res.definitionType) {
@@ -141,19 +163,5 @@ export default class SteveSchema extends Schema {
     };
 
     await this.$dispatch('loadMulti', schemaDefinitionsForStore);
-  }
-}
-
-export function parseType(str, field) {
-  if ( str.startsWith('array[') ) {
-    return ['array', ...parseType(str.slice(6, -1))];
-  } else if (str.startsWith('array')) {
-    return ['array', field.subtype]; // schemaDefinition
-  } else if ( str.startsWith('map[') ) {
-    return ['map', ...parseType(str.slice(4, -1))];
-  } else if (str.startsWith('map')) {
-    return ['map', field.subtype]; // schemaDefinition
-  } else {
-    return [str];
   }
 }

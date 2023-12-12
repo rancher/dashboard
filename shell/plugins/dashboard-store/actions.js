@@ -550,7 +550,7 @@ export default {
 
     if (schema) {
       await schema.fetchResourceFields();
-      data = await ctx.getters['defaultFor'](userData.type, schema);
+      data = ctx.getters['defaultFor'](userData.type, schema); // TODO: RC (re)test
     }
 
     merge(data, userData);

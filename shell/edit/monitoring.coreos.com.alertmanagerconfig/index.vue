@@ -38,7 +38,7 @@ export default {
     this.receiverSchema = receiverSchema;
     this.routeSchema = routeSchema;
 
-    debugger;
+    debugger; // TODO: RC polish remove
 
     const alertmanagerConfigResource = await this.$store.dispatch(`${ inStore }/find`, { type: MONITORING.ALERTMANAGERCONFIG, id: alertmanagerConfigId });
 

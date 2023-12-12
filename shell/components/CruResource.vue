@@ -172,11 +172,19 @@ export default {
       isCancelModal:   false,
       createNamespace: false,
       showAsForm:      this.$route.query[AS] !== _YAML,
-      resourceYaml:    null, // initialise on demand,
       /**
+       * Initialised on demand (given that it needs to make a request to fetch schema definition)
+       */
+      resourceYaml:    null, // this is
+      /**
+       * Initialised on demand (given that it needs to make a request to fetch schema definition)
+       *
        * string
        */
-      initialYaml:     null, // initialise on demand,
+      initialYaml:     null, // this is
+      /**
+       * Save a copy of the initial resource. This is used to calc the initial yaml later on
+       */
       initialResource: clone(this.resource),
       abbrSizes:       {
         3: '24px',
@@ -329,10 +337,8 @@ export default {
     },
 
     async showPreviewYaml() {
-      const inStore = this.$store.getters['currentStore'](this.resource);
-      const schema = this.$store.getters[`${ inStore }/schemaFor`](this.resource.type);
-
-      await schema?.fetchResourceFields();
+      // Required to populate yaml comments and default values
+      await this.schema?.fetchResourceFields();
 
       if ( this.applyHooks ) {
         try {

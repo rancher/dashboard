@@ -164,7 +164,7 @@ export const getters = {
     };
   },
 
-  fieldNamesForDriver(state, getters) { // TODO: RC Unable to test - /v1-rke2-release/releases empty
+  fieldNamesForDriver(state, getters) {
     return (name) => {
       const schema = getters.schemaForDriver(name);
 
@@ -174,7 +174,7 @@ export const getters = {
 
         return [];
       }
-      // Why don't we need to get
+      // This is used in places where `createPopulated` has been called, which has called fetchResourceFields to populate resourceFields
       const out = Object.keys(schema?.resourceFields || {});
 
       removeObjects(out, ['apiVersion', 'dockerPort', 'kind', 'metadata']);
@@ -183,7 +183,7 @@ export const getters = {
     };
   },
 
-  fieldsForDriver(state, getters) { // TODO: RC Unable to test - /v1-rke2-release/releases empty
+  fieldsForDriver(state, getters) {
     return async(name) => {
       const schema = getters.schemaForDriver(name);
       const names = getters.fieldNamesForDriver(name);

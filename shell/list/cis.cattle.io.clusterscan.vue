@@ -4,7 +4,7 @@ import ResourceTable from '@shell/components/ResourceTable';
 import { AGE } from '@shell/config/table-headers';
 import ResourceFetch from '@shell/mixins/resource-fetch';
 import { allHash } from '@shell/utils/promise';
-import { fetchSpecsScheduledScanConfig, hasSpecsScheduledScanConfig } from '@shell/models/cis.cattle.io.clusterscan';
+import { fetchSpecsScheduledScanConfig } from '@shell/models/cis.cattle.io.clusterscan';
 
 export default {
   components: { ResourceTable },

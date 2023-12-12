@@ -8,12 +8,22 @@ import day from 'dayjs';
 import SteveModel from '@shell/plugins/steve/steve-class';
 
 // This could be removed and just replaced with schema.fetchResourceFields()... but there's some getters that use hasSpecsScheduledScanConfig before it runs
+/**
+ * For the given schema, determine if the schema of it's associated scan's type has scheduledScanConfig
+ *
+ * This is resourceFields based, so we need to fetch schema definition
+ */
 export const fetchSpecsScheduledScanConfig = async(schema) => {
   await schema.fetchResourceFields();
 
   return hasSpecsScheduledScanConfig(schema);
 };
 
+/**
+ * For the given schema, determine if the schema of it's associated scan's type has scheduledScanConfig
+ *
+ * Assumes schemaDefinitions have been fetched (see async fetchSpecsScheduledScanConfig above)
+ */
 export const hasSpecsScheduledScanConfig = (schema) => {
   const specSchemaId = get(schema, 'resourceFields.spec.type');
   const specSchema = schema.schemaDefinitions?.others?.[specSchemaId];

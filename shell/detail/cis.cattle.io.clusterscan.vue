@@ -11,7 +11,7 @@ import { CIS } from '@shell/config/types';
 import { STATE } from '@shell/config/table-headers';
 import { get } from '@shell/utils/object';
 import { allHash } from '@shell/utils/promise';
-import { fetchSpecsScheduledScanConfig } from 'models/cis.cattle.io.clusterscan';
+import { fetchSpecsScheduledScanConfig } from '@shell/models/cis.cattle.io.clusterscan';
 
 export default {
   components: {
@@ -37,6 +37,7 @@ export default {
 
     const hash = await allHash({
       clusterReports:         this.value.getReports(),
+      // Ensure the clusterscan model has everything it needs
       hasScheduledScanConfig: fetchSpecsScheduledScanConfig(schema),
     });
 

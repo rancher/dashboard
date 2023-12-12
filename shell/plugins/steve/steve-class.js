@@ -85,7 +85,7 @@ export default class SteveModel extends HybridModel {
    *   - this is done by fetching the
    * - also calls super.validationErrors
    */
-  async validationErrors(data = this, opt = {
+  async validationErrors(data = this, opt = { // TODO: RC (re)test
     ignoreFields:      undefined,
     skipResourceField: undefined
   }) {
