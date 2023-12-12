@@ -245,7 +245,7 @@ export default {
       if ( parts.length ) {
         type = parseType(type, field).pop(); // Get the main part of array[map[something]] => something
 
-        schema = schema.requiresSchemaDefinitions ? schema.schemaDefinitions?.others[type] : getters.schemaFor(type);
+        schema = schema.requiresSchemaDefinitions ? schema.schemaDefinitions?.[type] : getters.schemaFor(type);
 
         if ( !schema ) {
           return false;

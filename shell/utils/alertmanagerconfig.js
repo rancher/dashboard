@@ -14,11 +14,11 @@ export const fetchAlertManagerConfigSpecs = async($store) => { // TODO: RC Unabl
 
   await schema.fetchResourceFields();
 
-  const schemaOthers = schema.schemaDefinitions?.others; // TODO: RC do i call this multiple times (has loop with get)
+  // TODO: RC do i call this multiple times (has loop with get)
 
   return {
-    receiverSchema: schemaOthers?.['com.coreos.monitoring.v1alpha1.AlertmanagerConfig.spec.receivers'],
-    routeSchema:    schemaOthers?.['"com.coreos.monitoring.v1alpha1.AlertmanagerConfig.spec.route'],
+    receiverSchema: schema.schemaDefinitions?.['com.coreos.monitoring.v1alpha1.AlertmanagerConfig.spec.receivers'],
+    routeSchema:    schema.schemaDefinitions?.['"com.coreos.monitoring.v1alpha1.AlertmanagerConfig.spec.route'],
   };
 };
 

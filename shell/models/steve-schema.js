@@ -26,12 +26,11 @@ PR Description
 -  - spec.type "monitoring.coreos.com.v1alpha1.alertmanagerconfig.spec",
 -  - not in /v1/schemas
    - 404 for /v1/schema/monitoring.coreos.com.v1alpha1.alertmanagerconfig.spec
-
-- TODO: RC norman / spoofed fields
 */
 
-const schemaDefinitionCache = {};
-
+/**
+ * Steve Schema specific functionality
+ */
 export default class SteveSchema extends Schema {
   /**
    * Is the property `resourceFields` available
@@ -42,7 +41,7 @@ export default class SteveSchema extends Schema {
    */
   get hasResourceFields() {
     if (this.requiresSchemaDefinitions) {
-      return !!this._schemaDefinitions?.self?.resourceFields;
+      return !!this.schemaDefinition?.resourceFields;
     }
 
     return !!this._resourceFields;
@@ -55,17 +54,17 @@ export default class SteveSchema extends Schema {
    */
   get resourceFields() {
     if (this.requiresSchemaDefinitions) {
-      if (!this._schemaDefinitions) {
+      if (!this._schemaDefinitionsIds) {
         debugger; // TODO: RC polish - remove
         throw new Error(`Cannot find resourceFields for Schema ${ this.id } (schemaDefinitions have not been fetched) `);
       }
 
-      if (!this._schemaDefinitions.self.resourceFields) {
+      if (!this.schemaDefinition) {
         debugger; // TODO: RC polish - remove
         throw new Error(`No schemaDefinition for ${ this.id } found (not in schemaDefinition response) `);
       }
 
-      return this._schemaDefinitions.self.resourceFields;
+      return this.schemaDefinition.resourceFields;
     }
 
     return this._resourceFields;
@@ -80,26 +79,34 @@ export default class SteveSchema extends Schema {
   }
 
   /**
-   * Store this schema's definition and a collection of associated definitions
+   * Store this schema's definition and a collection of associated definitions (all ids)
    */
-  _schemaDefinitions;
+  _schemaDefinitionsIds;
 
   /**
-   * This schema's definition and a collection of associated definitions
+   * The schema definition for this schema
    */
-  get schemaDefinitions() {
-    if (!this._schemaDefinitions) {
+  get schemaDefinition() {
+    if (!this._schemaDefinitionsIds) {
       return null;
     }
 
-    return {
-      self:   this._schemaDefinitions.self, // TODO: RC keep? bin?
-      others: this._schemaDefinitions.others.reduce((res, d) => {
-        res[d] = this.$getters['byId'](STEVE.SCHEMA_DEFINITION, d); // TODO: RC Avoid the store (performance). just cache here.
+    return this.$getters['byId'](STEVE.SCHEMA_DEFINITION, this._schemaDefinitionsIds.self);
+  }
 
-        return res;
-      }, {})
-    };
+  /**
+   * The schema definitions for this schema definition's resourceFields
+   */
+  get schemaDefinitions() {
+    if (!this._schemaDefinitionsIds) {
+      return null;
+    }
+
+    return this._schemaDefinitionsIds.others.reduce((res, d) => {
+      res[d] = this.$getters['byId'](STEVE.SCHEMA_DEFINITION, d);
+
+      return res;
+    }, {});
   }
 
   /**
@@ -118,9 +125,9 @@ export default class SteveSchema extends Schema {
       return;
     }
 
-    if (this._schemaDefinitions?.self) {
+    if (this.schemaDefinition) {
       // Already have it, no-op
-      return this._schemaDefinitions?.self;
+      return this.schemaDefinition;
     }
 
     const url = this.schemaDefinitionUrl;
@@ -139,29 +146,29 @@ export default class SteveSchema extends Schema {
 
     const schemaDefinitionsIdsFromSchema = [];
     const schemaDefinitionsForStore = [];
-    let self;
 
     // Convert collection of schema definitions for this schema into objects we can store
     Object.entries(res.definitions).forEach(([id, d]) => {
-      schemaDefinitionsIdsFromSchema.push(id);
-      const def = {
+      schemaDefinitionsForStore.push({
         ...d, // Note - this doesn't contain create or update properties as previous. These were previously hardcoded and also not used in the ui
         type: STEVE.SCHEMA_DEFINITION,
         id:   d.type
-      };
+      });
 
-      if (id === res.definitionType) {
-        self = def;
-      } else {
-        schemaDefinitionsForStore.push(def);
+      if (id !== res.definitionType) {
+        schemaDefinitionsIdsFromSchema.push(id);
       }
     });
 
-    this._schemaDefinitions = {
-      self, // TODO: RC convert to id
+    this._schemaDefinitionsIds = {
+      self:   res.definitionType,
       others: schemaDefinitionsIdsFromSchema
     };
 
+    // Store all schema definitions in the store
+    // - things in the store are larger in size ... but avoids duplicating the same schema definitions in multiple models
+    // - these were originally stored in a singleton map in this file... however it'd need to tie into the cluster unload flow
+    //   - if the size gets bad we can do this plumbing
     await this.$dispatch('loadMulti', schemaDefinitionsForStore);
   }
 }

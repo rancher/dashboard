@@ -26,7 +26,7 @@ export const fetchSpecsScheduledScanConfig = async(schema) => {
  */
 export const hasSpecsScheduledScanConfig = (schema) => {
   const specSchemaId = get(schema, 'resourceFields.spec.type');
-  const specSchema = schema.schemaDefinitions?.others?.[specSchemaId];
+  const specSchema = schema.schemaDefinitions?.[specSchemaId];
 
   if (!specSchema) {
     return false;

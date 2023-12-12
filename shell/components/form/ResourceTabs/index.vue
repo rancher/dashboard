@@ -69,7 +69,7 @@ export default {
     }
   },
 
-  async fetch() {
+  fetch() {
     if (this.preShowConditions) {
       // schema's resource fields required to conditionally show the `conditions` tab.
       // just kick this off, the visibility of the tab shouldn't block the display of all screen content

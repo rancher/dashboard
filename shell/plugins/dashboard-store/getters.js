@@ -200,7 +200,7 @@ export default {
     if (!schemaDefinitions) {
       // Depth 0. Get the schemaDefinitions that will contain the child schema resourceFields for recursive calls
 
-      schemaDefinitions = rootSchema.schemaDefinitions?.others || {}; // norman...
+      schemaDefinitions = rootSchema.schemaDefinitions || {}; // norman...
       resourceFields = rootSchema.resourceFields || {};
     } else {
       if (rootSchema.requiresSchemaDefinitions) {
