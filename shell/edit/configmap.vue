@@ -40,7 +40,8 @@ export default {
       return {
         data: Object.keys(this.data).reduce((acc, key) => ({
           ...acc,
-          [key]: { chomping: '+' },
+          lineWidth: -1,
+          [key]:     { chomping: '+' },
         }), {}),
       };
     },
