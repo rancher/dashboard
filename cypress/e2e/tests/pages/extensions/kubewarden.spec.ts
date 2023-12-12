@@ -6,7 +6,7 @@ import KubewardenExtensionPo from '@/cypress/e2e/po/pages/extensions/kubewarden.
 
 const extensionName = 'kubewarden';
 
-describe('Kubewarden Extension', { tags: '@adminUser' }, () => {
+describe('Kubewarden Extension', { tags: ['@extensions', '@adminUser'] }, () => {
   before(() => {
     cy.login();
 

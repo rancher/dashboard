@@ -6,7 +6,7 @@ import * as path from 'path';
 const aboutPage = new AboutPagePo();
 const downloadsFolder = Cypress.config('downloadsFolder');
 
-describe('About Page', { testIsolation: 'off', tags: ['@adminUser', '@standardUser'] }, () => {
+describe('About Page', { testIsolation: 'off', tags: ['@generic', '@adminUser', '@standardUser'] }, () => {
   before(() => {
     cy.login();
   });
