@@ -443,20 +443,21 @@ export function saferDump(obj) {
  *
  * this is required since jsyaml.dump doesn't support chomping and scalar style at the moment.
  * see: https://github.com/nodeca/js-yaml/issues/171
+
+ * @typedef {Object} DumpBlockOptions
+ * @property {('>' | '|')} [scalarStyle] - The scalar style.
+ * @property {('-' | '+' | '' | null)} [chomping] - The chomping style.
  *
  * @param {*} data the multiline block
- * @param {*} options blocks indicators, see: https://yaml-multiline.info
+ * @param {Object} options - Serialization options for jsyaml.dump.
+ * @param {number} options.lineWidth - Set max line width. Set -1 for unlimited width.
+ * @param {DumpBlockOptions} [options.dynamicProperties] - Options for dynamic properties.
+ *   Developers can provide their own property names under `options`.
  *
- * - scalarStyle:
- *     one of '|', '>'
- *     default '|'
- * - chomping:
- *     one of: null, '', '-', '+'
- *     default: null
  * @returns the result of jsyaml.dump with the addition of multiline indicators
  */
 export function dumpBlock(data, options = {}) {
-  const parsed = jsyaml.dump(data);
+  const parsed = jsyaml.dump(data, options);
 
   let out = parsed;
 
