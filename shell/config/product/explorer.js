@@ -103,6 +103,9 @@ export function init(store) {
     componentForType(WORKLOAD_TYPES[key], WORKLOAD);
   }
 
+  // Deal with POD (it wasn't registered as belonging to the workloads, so it wasn't using the list view of workloads)
+  componentForType(POD, WORKLOAD);
+
   ignoreType(MANAGEMENT.GLOBAL_DNS_PROVIDER); // Old, managed in multi-cluster-apps
   ignoreType('events.k8s.io.event'); // Old, moved into core
   ignoreType('extensions.ingress'); // Old, moved into networking

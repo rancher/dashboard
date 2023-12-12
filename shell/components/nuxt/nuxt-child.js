@@ -53,7 +53,7 @@ export default {
       routerView = h('keep-alive', { props: props.keepAliveProps }, [routerView])
     }
 
-    return h('transition', {
+    return h('div', {
       on: listeners
     }, [routerView])
   }
