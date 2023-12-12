@@ -26,3 +26,5 @@ coverage/
 build/
 public/
 pkg/**/node_modules
+elemental-ui/
+kubewarden-ui/
