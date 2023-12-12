@@ -1,4 +1,4 @@
-import { batchChanges } from '@shell/plugins/dashboard-store/mutations';
+import { batchChanges } from '@shell/plugins/dashboard-store/mutations.js';
 import { POD, WORKLOAD_TYPES } from '@shell/config/types';
 import Resource from '@shell/plugins/dashboard-store/resource-class';
 
