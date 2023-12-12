@@ -597,9 +597,9 @@ const defaultActions = {
   },
 
   rehydrateSubscribe({ state, dispatch }) {
-    // if ( state.wantSocket && !state.socket ) {
-    //   dispatch('subscribe');
-    // }
+    if ( state.wantSocket && !state.socket ) {
+      dispatch('subscribe');
+    }
   },
 
   reconnectWatches({
