@@ -67,8 +67,7 @@ export default {
 
     // Are we editing an existing chart?
     // (ported from shell/chart/monitoring/prometheus/index.vue)
-    // const { existing = false } = this.$attrs; // TODO: RC
-    const existing = false;
+    const { existing = false } = this.$attrs;
 
     // If needed, fetch all the workloads that have prometheus operator like containers
     this.workloadTypes = !existing ? Object.values(WORKLOAD_TYPES) : [];
