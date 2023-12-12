@@ -16,7 +16,7 @@ describe('User can update their preferences', () => {
     cy.login();
   });
 
-  it('Can navigate to Preferences Page', { tags: ['@adminUser', '@standardUser'] }, () => {
+  it('Can navigate to Preferences Page', { tags: ['@userMenu', '@adminUser', '@standardUser', '@flaky'] }, () => {
     /*
     Open user menu and navigate to Preferences page
     Verify url includes endpoint '/prefs'
@@ -30,7 +30,7 @@ describe('User can update their preferences', () => {
     prefPage.title();
   });
 
-  it('Can select a language', { tags: ['@adminUser', '@standardUser'] }, () => {
+  it('Can select a language', { tags: ['@userMenu', '@adminUser', '@standardUser'] }, () => {
     /*
     Select language
     */
@@ -51,7 +51,7 @@ describe('User can update their preferences', () => {
     }
   });
 
-  it('Can select a theme', { tags: ['@adminUser', '@standardUser'] }, () => {
+  it('Can select a theme', { tags: ['@userMenu', '@adminUser', '@standardUser'] }, () => {
     /*
     Select theme and verify that its highlighted
     Validate http request's payload & response contain correct values per selection
@@ -76,7 +76,7 @@ describe('User can update their preferences', () => {
     }
   });
 
-  it('Can select login landing page', { tags: '@adminUser' }, () => {
+  it('Can select login landing page', { tags: ['@userMenu', '@adminUser'] }, () => {
     /*
     Select each radio button and verify its highlighted
     Validate http request's payload & response contain correct values per selection
@@ -129,7 +129,7 @@ describe('User can update their preferences', () => {
     });
   });
 
-  it('Can select date format', { tags: ['@adminUser', '@standardUser'] }, () => {
+  it('Can select date format', { tags: ['@userMenu', '@adminUser', '@standardUser'] }, () => {
     /*
     Select each option
     Validate http request's payload & response contain correct values per selection
@@ -159,7 +159,7 @@ describe('User can update their preferences', () => {
     }
   });
 
-  it('Can select time format', { tags: ['@adminUser', '@standardUser'] }, () => {
+  it('Can select time format', { tags: ['@userMenu', '@adminUser', '@standardUser'] }, () => {
     /*
     Select each option
     Validate http request's payload & response contain correct values per selection
@@ -186,7 +186,7 @@ describe('User can update their preferences', () => {
     }
   });
 
-  it('Can select Table Rows per Page', { tags: ['@adminUser', '@standardUser'] }, () => {
+  it('Can select Table Rows per Page', { tags: ['@userMenu', '@adminUser', '@standardUser'] }, () => {
     /*
     Select each option
     Validate http request's payload & response contain correct values per selection
@@ -216,7 +216,7 @@ describe('User can update their preferences', () => {
     }
   });
 
-  it('Can select Confirmation Setting', { tags: ['@adminUser', '@standardUser'] }, () => {
+  it('Can select Confirmation Setting', { tags: ['@userMenu', '@adminUser', '@standardUser'] }, () => {
     /*
     Select the checkbox
     Validate http request's payload & response contain correct values per selection
@@ -241,7 +241,7 @@ describe('User can update their preferences', () => {
     prefPage.scalingDownPromptCheckbox().isUnchecked();
   });
 
-  it('Can select Enable "View in API"', { tags: ['@adminUser', '@standardUser'] }, () => {
+  it('Can select Enable "View in API"', { tags: ['@userMenu', '@adminUser', '@standardUser'] }, () => {
     /*
     Select the checkbox and verify 'View in API' is enabled
     Deselect the checkbox and verify 'View in API' is hidden
@@ -276,7 +276,7 @@ describe('User can update their preferences', () => {
     repoList.actionMenu('Partners').getMenuItem('View in API').should('not.exist');
   });
 
-  it('Can select Show system Namespaces managed by Rancher (not intended for editing or deletion)', { tags: ['@adminUser', '@standardUser'] }, () => {
+  it('Can select Show system Namespaces managed by Rancher (not intended for editing or deletion)', { tags: ['@userMenu', '@adminUser', '@standardUser'] }, () => {
     /*
     Select checkbox option
     Validate http request's payload & response contain correct values per selection
@@ -301,7 +301,7 @@ describe('User can update their preferences', () => {
     prefPage.allNamespacesCheckbox().isUnchecked();
   });
 
-  it('Can select Enable Dark/Light Theme keyboard shortcut toggle (shift+T)', { tags: ['@adminUser', '@standardUser'] }, () => {
+  it('Can select Enable Dark/Light Theme keyboard shortcut toggle (shift+T)', { tags: ['@userMenu', '@adminUser', '@standardUser'] }, () => {
     /*
     Select checkbox option
     Validate http request's payload & response contain correct values per selection
@@ -326,7 +326,7 @@ describe('User can update their preferences', () => {
     prefPage.themeShortcutCheckbox().isUnchecked();
   });
 
-  it('Can select Hide All Type Description Boxes', { tags: ['@adminUser', '@standardUser'] }, () => {
+  it('Can select Hide All Type Description Boxes', { tags: ['@userMenu', '@adminUser', '@standardUser'] }, () => {
     /*
     Select the checkbox and verify description banner hidden
     Deselect the checkbox and verify description banner displays
@@ -354,7 +354,7 @@ describe('User can update their preferences', () => {
     banners.self().should('exist');
   });
 
-  it('Can select a YAML Editor Key Mapping option', { tags: ['@adminUser', '@standardUser'] }, () => {
+  it('Can select a YAML Editor Key Mapping option', { tags: ['@userMenu', '@adminUser', '@standardUser'] }, () => {
     /*
     Select key mapping option
     Validate http request's payload & response contain correct values per selection
@@ -379,7 +379,7 @@ describe('User can update their preferences', () => {
     }
   });
 
-  it('Can select a Helm Charts option', { tags: ['@adminUser', '@standardUser'] }, () => {
+  it('Can select a Helm Charts option', { tags: ['@userMenu', '@adminUser', '@standardUser'] }, () => {
     /*
     Select Helm Charts mapping option
     Validate http request's payload & response contain correct values per selection

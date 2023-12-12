@@ -5,7 +5,7 @@ import HomePagePo from '@/cypress/e2e/po/pages/home.po';
 import NotFoundPagePo from '@/cypress/e2e/po/pages/not-found-page.po';
 import PagePo from '@/cypress/e2e/po/pages/page.po';
 
-describe('Not found page display', { tags: ['@adminUser', '@standardUser'] }, () => {
+describe('Not found page display', { tags: ['@generic', '@adminUser', '@standardUser'] }, () => {
   beforeEach(() => {
     cy.login();
   });

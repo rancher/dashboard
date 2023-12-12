@@ -15,7 +15,7 @@ describe('Home Page', () => {
       HomePagePo.goToAndWaitForGet();
     });
 
-    it('Can navigate to What\'s new page', { tags: ['@adminUser', '@standardUser'] }, () => {
+    it('Can navigate to release notes page for latest Rancher version', { tags: ['@generic', '@adminUser', '@standardUser'] }, () => {
     /**
      * Verify changelog banner is hidden after clicking link
      * Verify release notes link is valid github page
@@ -42,7 +42,7 @@ describe('Home Page', () => {
       homePage.changelog().self().should('not.exist');
     });
 
-    it('Can navigate to Preferences page', { tags: ['@adminUser', '@standardUser'] }, () => {
+    it('Can navigate to Preferences page', { tags: ['@generic', '@adminUser', '@standardUser'] }, () => {
     /**
      * Click link and verify user lands on preferences page
      */
@@ -54,7 +54,7 @@ describe('Home Page', () => {
       prefPage.title();
     });
 
-    it('Can restore hidden cards', { tags: ['@adminUser', '@standardUser'] }, () => {
+    it('Can restore hidden cards', { tags: ['@generic', '@adminUser', '@standardUser'] }, () => {
     /**
      * Hide home page banners
      * Click the restore link
@@ -120,7 +120,7 @@ describe('Home Page', () => {
       });
     });
 
-    it('Can use the Manage, Import Existing, and Create buttons', { tags: ['@adminUser', '@standardUser'] }, () => {
+    it('Can use the Manage, Import Existing, and Create buttons', { tags: ['@generic', '@adminUser', '@standardUser'] }, () => {
     /**
      * Click 'Manage' button and verify user lands on the Cluster Management page
      * Click on the Import Existing button and verify user lands on the cluster creation page in import mode
@@ -158,7 +158,7 @@ describe('Home Page', () => {
     });
   });
 
-  describe('Support Links', { testIsolation: 'off', tags: ['@adminUser', '@standardUser'] }, () => {
+  describe('Support Links', { tags: ['@generic', '@adminUser', '@standardUser'] }, () => {
     // Click the support links and verify user lands on the correct page
     before(() => {
       cy.login();
