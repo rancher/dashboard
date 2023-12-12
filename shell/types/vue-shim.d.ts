@@ -1,3 +1,10 @@
+import { ApiPrototype } from '@shell/types/rancher-api';
+
+import RancherApi from '../plugins/rancher-api/rancher-api-class';
+import ClusterApi from '../plugins/rancher-api/cluster-api-class';
+import ShellApi from '../plugins/rancher-api/shell-api-class';
+import ExtensionApi from '../plugins/rancher-api/extension-api-class';
+
 declare module '*.vue' {
   import Vue from 'vue';
   export default Vue;
@@ -14,6 +21,10 @@ declare module 'vue/types/vue' {
        * @param raw if set, do not do HTML escaping.
        */
       t: (key: string, args?: Record<string, any>, raw?: boolean) => string,
+      [ApiPrototype.RANCHER_API]: RancherApi;
+      [ApiPrototype.CLUSTER_API]: ClusterApi;
+      [ApiPrototype.SHELL_API]: ShellApi;
+      [ApiPrototype.EXTENSION_API]: ExtensionApi;
   }
 }
 
