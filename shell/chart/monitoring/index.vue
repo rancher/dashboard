@@ -15,6 +15,7 @@ import Tab from '@shell/components/Tabbed/Tab';
 
 import { allHash } from '@shell/utils/promise';
 import { STORAGE_CLASS, PVC, SECRET, WORKLOAD_TYPES } from '@shell/config/types';
+import { CATTLE_MONITORING_NAMESPACE } from '@shell/utils/monitoring';
 
 export default {
   components: {
@@ -52,17 +53,40 @@ export default {
   async fetch() {
     const { $store } = this;
 
-    const hash = await allHash({
-      namespaces:     $store.getters['namespaces'](),
-      pvcs:           $store.dispatch('cluster/findAll', { type: PVC }),
-      secrets:        $store.dispatch('cluster/findAll', { type: SECRET }),
+    // Fetch all the resources required for all the tabs asyncronously up front
+    const hashPromises = {
+      namespaces:        $store.getters['namespaces'](),
+      pvcs:              $store.dispatch('cluster/findAll', { type: PVC }),
+      // Used in Alerting tab
+      monitoringSecrets: $store.dispatch('cluster/findAll', {
+        type: SECRET,
+        opt:  { namespaced: CATTLE_MONITORING_NAMESPACE }
+      }),
       storageClasses: $store.dispatch('cluster/findAll', { type: STORAGE_CLASS }),
+    };
+
+    // Are we editing an existing chart?
+    // (ported from shell/chart/monitoring/prometheus/index.vue)
+    const { existing = false } = this.$attrs;
+
+    // If needed, fetch all the workloads that have prometheus operator like containers
+    this.workloadTypes = !existing ? Object.values(WORKLOAD_TYPES) : [];
+
+    this.workloadTypes.forEach((type) => {
+      // We'll use a filter to fetch the results. Atm there's no neat way to differentiate between ALL results and JUST filtered
+      // So to avoid calls to all getting these filtered (and vice-versa) forget type before and after
+      $store.dispatch('cluster/forgetType', type);
+      hashPromises[type] = $store.dispatch('cluster/findAll', {
+        type,
+        opt: {
+          watch:  false,
+          // We're only interested in images with operator like names (note: these will match partial strings)
+          filter: { 'spec.template.spec.containers.image': ['quay.io/coreos/prometheus-operator', 'rancher/coreos-prometheus-operator'] }
+        }
+      });
     });
 
-    await Promise.all(
-      Object.values(WORKLOAD_TYPES).map((type) => this.$store.dispatch('cluster/findAll', { type })
-      )
-    );
+    const hash = await allHash(hashPromises);
 
     this.targetNamespace = hash.namespaces[this.chart.targetNamespace] || false;
 
@@ -74,9 +98,21 @@ export default {
       this.pvcs = hash.pvcs;
     }
 
-    if (!isEmpty(hash.secrets)) {
-      this.secrets = hash.secrets;
+    if (!isEmpty(hash.monitoringSecrets)) {
+      this.monitoringSecrets = hash.monitoringSecrets;
     }
+
+    this.workloadTypes.forEach((type) => {
+      if (hash[type]) {
+        this.filteredWorkloads.push(...hash[type]);
+      }
+    });
+  },
+
+  beforeDestroy() {
+    this.workloadTypes.forEach((type) => {
+      this.$store.dispatch('cluster/forgetType', type);
+    });
   },
 
   data() {
@@ -99,9 +135,11 @@ export default {
       disableAggregateRoles: false,
       prometheusResources:   [],
       pvcs:                  [],
-      secrets:               [],
+      monitoringSecrets:     [],
       storageClasses:        [],
       targetNamespace:       null,
+      filteredWorkloads:     [],
+      workloadTypes:         []
     };
   },
 
@@ -109,10 +147,6 @@ export default {
     ...mapGetters(['currentCluster']),
     provider() {
       return this.currentCluster.status.provider.toLowerCase();
-    },
-    workloads() {
-      return Object.values(WORKLOAD_TYPES).flatMap((type) => this.$store.getters['cluster/all'](type)
-      );
     },
   },
 
@@ -278,7 +312,7 @@ export default {
           :mode="mode"
           :storage-classes="storageClasses"
           :prometheus-pods="prometheusResources"
-          :workloads="workloads"
+          :filteredWorkloads="filteredWorkloads"
         />
       </div>
     </Tab>
@@ -291,7 +325,7 @@ export default {
         <Alerting
           v-model="value"
           :mode="mode"
-          :secrets="secrets"
+          :monitoringSecrets="monitoringSecrets"
         />
       </div>
     </Tab>

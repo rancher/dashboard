@@ -2,7 +2,7 @@ import { GitRepoCreatePo } from '@/cypress/e2e/po/pages/fleet/gitrepo-create.po'
 import { FleetDashboardPagePo } from '@/cypress/e2e/po/pages/fleet/fleet-dashboard.po';
 import { gitRepoCreateRequest } from '@/cypress/e2e/blueprints/fleet/gitrepos';
 
-describe('Git Repo', { tags: '@adminUser' }, () => {
+describe('Git Repo', { tags: ['@fleet', '@adminUser'] }, () => {
   describe('Create', () => {
     let gitRepoCreatePage: GitRepoCreatePo;
     const repoList = [];

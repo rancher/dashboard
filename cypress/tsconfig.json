@@ -1,6 +1,20 @@
 {
-  "extends": "../shell/tsconfig.default.json",
+  "extends": "../tsconfig.paths.json",
+  "target": "ES2018",
+  "module": "ES2020",
+  "moduleResolution": "Node",
+  "lib": [
+    "ES2020",
+    "ES2020.AsyncIterable",
+    "DOM"
+  ],
+  "allowJs": true,
+  "sourceMap": true,
+  "strict": true,
+  "noEmit": false,
   "compilerOptions": {
+    "esModuleInterop": true,
+    "baseUrl": "..",
     "noEmit": true,
     "types": [
       "cypress",

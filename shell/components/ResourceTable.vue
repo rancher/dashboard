@@ -97,6 +97,14 @@ export default {
       default: 'sortableTable.paging.resource',
     },
 
+    /**
+     * Additional params to pass to the pagingLabel translation
+     */
+    pagingParams: {
+      type:    Object,
+      default: null,
+    },
+
     rowActions: {
       type:    Boolean,
       default: true,
@@ -392,7 +400,11 @@ export default {
       return standard.concat(this.listGroups);
     },
 
-    pagingParams() {
+    parsedPagingParams() {
+      if (this.pagingParams) {
+        return this.pagingParams;
+      }
+
       if ( !this.schema ) {
         return {
           singularLabel: '',
@@ -482,7 +494,7 @@ export default {
     :group-options="groupOptions"
     :search="search"
     :paging="true"
-    :paging-params="pagingParams"
+    :paging-params="parsedPagingParams"
     :paging-label="pagingLabel"
     :row-actions="rowActions"
     :table-actions="_showBulkActions"

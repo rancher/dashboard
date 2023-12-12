@@ -6,7 +6,7 @@ const EXTENSION_NAME = 'clock';
 const UI_PLUGINS_PARTNERS_REPO_URL = 'https://github.com/rancher/partner-extensions';
 const UI_PLUGINS_PARTNERS_REPO_NAME = 'partner-extensions';
 
-describe('Extensions page', { tags: '@adminUser' }, () => {
+describe('Extensions page', { tags: ['@extensions', '@adminUser'] }, () => {
   before(() => {
     cy.login();
 

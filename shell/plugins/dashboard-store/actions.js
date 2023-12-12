@@ -70,6 +70,10 @@ export async function loadSchemas(ctx, watch = true) {
   return all;
 }
 
+const findAllGetter = (getters, type, opt) => {
+  return opt.namespaced ? getters.matching(type, null, opt.namespaced, { skipSelector: true }) : getters.all(type);
+};
+
 export default {
   request() {
     throw new Error('Not Implemented');
@@ -163,7 +167,7 @@ export default {
         dispatch('watch', args);
       }
 
-      return getters.all(type);
+      return findAllGetter(getters, type, opt);
     }
 
     let load = (opt.load === undefined ? _ALL : opt.load);
@@ -328,7 +332,7 @@ export default {
       dispatch('watch', args);
     }
 
-    const all = getters.all(type);
+    const all = findAllGetter(getters, type, opt);
 
     if (!opt.incremental && opt.hasManualRefresh) {
       dispatch('resource-fetch/updateManualRefreshIsLoading', false, { root: true });
