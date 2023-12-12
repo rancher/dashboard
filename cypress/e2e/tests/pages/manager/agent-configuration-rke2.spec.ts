@@ -5,10 +5,10 @@ import {
   requestAndLimitsData,
   tolerationsData,
   nodeAffinityData
-} from '@/cypress/e2e/tests/pages/data/agent-configuration-rke2-data';
-import { payloadComparisonData } from '@/cypress/e2e/tests/pages/data/agent-configuration-rke2-payload';
+} from '@/cypress/e2e/blueprints/agent-configuration/agent-configuration-rke2-data';
+import { payloadComparisonData } from '@/cypress/e2e/blueprints/agent-configuration/agent-configuration-rke2-payload';
 
-describe('Agent Configuration for RKE2', { tags: '@adminUser' }, () => {
+describe('Agent Configuration for RKE2', { tags: ['@manager', '@adminUser'] }, () => {
   beforeEach(() => {
     cy.login();
   });
