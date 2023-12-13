@@ -409,7 +409,6 @@ module.exports = function(dir, _appConfig) {
       // DefinePlugin does string replacement within our code. We may want to consider replacing it with something else. In code we'll see something like
       // process.env.commit even though process and env aren't even defined objects. This could cause people to be mislead.
       config.plugins.push(new webpack.DefinePlugin({
-        'process.client':                  JSON.stringify(true),
         'process.env.commit':              JSON.stringify(commit),
         'process.env.version':             JSON.stringify(dashboardVersion),
         'process.env.dev':                 JSON.stringify(dev),
