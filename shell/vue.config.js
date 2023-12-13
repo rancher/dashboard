@@ -6,6 +6,7 @@ const { generateDynamicTypeImport } = require('./pkg/auto-import');
 const CopyWebpackPlugin = require('copy-webpack-plugin');
 const serverMiddlewares = require('./server/server-middleware.js');
 const configHelper = require('./vue-config-helper.js');
+const har = require('./server/har-file');
 
 // Suppress info level logging messages from http-proxy-middleware
 // This hides all of the "[HPM Proxy created] ..." messages
@@ -291,6 +292,14 @@ module.exports = function(dir, _appConfig) {
     '/engines-dist':   configHelper.proxyOpts('https://127.0.0.1:8000'),
   };
 
+  // HAR File support - load network responses from the specified .har file and use those rather than communicating to the Rancher server
+  const harFile = process.env.HAR_FILE;
+  let harData;
+
+  if (harFile) {
+    harData = har.loadFile(harFile, devPorts ? 8005 : 80); // eslint-disable-line no-console
+  }
+
   const config = {
     // Vue server
     devServer: {
@@ -312,6 +321,19 @@ module.exports = function(dir, _appConfig) {
         });
 
         app.use(serverMiddlewares);
+
+        if (harData) {
+          console.log('Installing HAR file middleware'); // eslint-disable-line no-console
+          app.use(har.harProxy(harData));
+
+          server.websocketProxies.push({
+            upgrade(req, socket, head) {
+              const responseHeaders = ['HTTP/1.1 101 Web Socket Protocol Handshake', 'Upgrade: WebSocket', 'Connection: Upgrade'];
+
+              socket.write(`${ responseHeaders.join('\r\n') }\r\n\r\n`);
+            }
+          });
+        }
 
         Object.keys(proxy).forEach((p) => {
           const px = createProxyMiddleware({
@@ -387,6 +409,7 @@ module.exports = function(dir, _appConfig) {
       // DefinePlugin does string replacement within our code. We may want to consider replacing it with something else. In code we'll see something like
       // process.env.commit even though process and env aren't even defined objects. This could cause people to be mislead.
       config.plugins.push(new webpack.DefinePlugin({
+        'process.client':                  JSON.stringify(true),
         'process.env.commit':              JSON.stringify(commit),
         'process.env.version':             JSON.stringify(dashboardVersion),
         'process.env.dev':                 JSON.stringify(dev),
