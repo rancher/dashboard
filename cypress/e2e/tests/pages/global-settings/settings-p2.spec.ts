@@ -4,7 +4,7 @@ import BurgerMenuPo from '@/cypress/e2e/po/side-bars/burger-side-menu.po';
 import ClusterManagerCreateRke2CustomPagePo from '@/cypress/e2e/po/edit/provisioning.cattle.io.cluster/create/cluster-create-rke2-custom.po';
 import AccountPagePo from '@/cypress/e2e/po/pages/account-api-keys.po';
 import ClusterManagerListPagePo from '@/cypress/e2e/po/pages/cluster-manager/cluster-manager-list.po';
-import { settings } from '@/cypress/e2e/blueprints/global_settings/settigns-data';
+import { settings } from '@/cypress/e2e/blueprints/global_settings/settings-data';
 
 const settingsPage = new SettingsPagePo();
 const homePage = new HomePagePo();
@@ -17,7 +17,7 @@ describe('Settings', () => {
     cy.login();
   });
 
-  it.skip('can update server-url', { tags: ['@adminUser'] }, () => {
+  it.skip('can update server-url', { tags: ['@globalSettings', '@adminUser'] }, () => {
     // Note: this test fails sometimes due to https://github.com/rancher/dashboard/issues/9690
     // skipping this test until issue is resolved
 
@@ -69,7 +69,7 @@ describe('Settings', () => {
     });
   });
 
-  it('can update system-default-registry', { tags: ['@adminUser'] }, () => {
+  it('can update system-default-registry', { tags: ['@globalSettings', '@adminUser'] }, () => {
     // Update setting
     settingsPage.goTo();
     settingsPage.editSettingsByLabel('system-default-registry');
@@ -111,7 +111,7 @@ describe('Settings', () => {
     settingsPage.settingsValue('system-default-registry').contains(settings['system-default-registry'].original);
   });
 
-  it('can update ui-index', { tags: ['@adminUser'] }, () => {
+  it('can update ui-index', { tags: ['@globalSettings', '@adminUser'] }, () => {
     // Update setting
     settingsPage.goTo();
     settingsPage.settingsValue('ui-index').invoke('text').then((originalValue:any) => {
@@ -149,7 +149,7 @@ describe('Settings', () => {
     });
   });
 
-  it('can update ui-dashboard-index', { tags: ['@adminUser'] }, () => {
+  it('can update ui-dashboard-index', { tags: ['@globalSettings', '@adminUser'] }, () => {
     // Update setting
     settingsPage.goTo();
     settingsPage.settingsValue('ui-dashboard-index').invoke('text').then((originalValue:any) => {
@@ -187,7 +187,7 @@ describe('Settings', () => {
     });
   });
 
-  it('can update ui-offline-preferred', { tags: ['@adminUser'] }, () => {
+  it('can update ui-offline-preferred', { tags: ['@globalSettings', '@adminUser'] }, () => {
     // Update setting: Local
     settingsPage.goTo();
     settingsPage.editSettingsByLabel('ui-offline-preferred');
@@ -237,7 +237,7 @@ describe('Settings', () => {
     settingsPage.settingsValue('ui-offline-preferred').contains(settings['ui-offline-preferred'].original);
   });
 
-  it('can update ui-brand', { tags: ['@adminUser'] }, () => {
+  it('can update ui-brand', { tags: ['@globalSettings', '@adminUser'] }, () => {
     const rancherLogo = '/img/rancher-logo.66cf5910.svg';
     const suseRancherLogo = '/img/rancher-logo.055089a3.svg';
 
@@ -290,7 +290,7 @@ describe('Settings', () => {
     });
   });
 
-  it('can update cluster-template-enforcement', { tags: ['@adminUser'] }, () => {
+  it('can update cluster-template-enforcement', { tags: ['@globalSettings', '@adminUser'] }, () => {
     // Update setting
     settingsPage.goTo();
     settingsPage.editSettingsByLabel('cluster-template-enforcement');
@@ -326,7 +326,7 @@ describe('Settings', () => {
     settingsPage.settingsValue('cluster-template-enforcement').contains(settings['cluster-template-enforcement'].original);
   });
 
-  it('can update telemetry-opt', { tags: ['@adminUser'] }, () => {
+  it('can update telemetry-opt', { tags: ['@globalSettings', '@adminUser'] }, () => {
     // Update setting: Prompt
     settingsPage.goTo();
     settingsPage.editSettingsByLabel('telemetry-opt');
@@ -376,7 +376,7 @@ describe('Settings', () => {
     settingsPage.settingsValue('telemetry-opt').contains('Opt-out of Telemetry');
   });
 
-  it('can update hide-local-cluster', { tags: ['@adminUser'] }, () => {
+  it('can update hide-local-cluster', { tags: ['@globalSettings', '@adminUser'] }, () => {
     // Update setting
     settingsPage.goTo();
     settingsPage.editSettingsByLabel('hide-local-cluster');
@@ -409,7 +409,7 @@ describe('Settings', () => {
     settingsPage.settingsValue('hide-local-cluster').contains(settings['hide-local-cluster'].original);
   });
 
-  it('standard user has only read access to Settings page', { tags: '@standardUser' }, () => {
+  it('standard user has only read access to Settings page', { tags: ['@globalSettings', '@standardUser'] }, () => {
     // verify action buttons are hidden for standard user
     settingsPage.goTo();
     settingsPage.actionButtonByLabel('engine-install-url').should('not.exist');

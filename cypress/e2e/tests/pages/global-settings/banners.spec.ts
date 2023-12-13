@@ -3,7 +3,7 @@ import { SettingsPagePo } from '@/cypress/e2e/po/pages/global-settings/settings.
 import HomePagePo from '@/cypress/e2e/po/pages/home.po';
 import BurgerMenuPo from '@/cypress/e2e/po/side-bars/burger-side-menu.po';
 import ProductNavPo from '@/cypress/e2e/po/side-bars/product-side-nav.po';
-import { LoginPagePo } from '~/cypress/e2e/po/pages/login-page.po';
+import { LoginPagePo } from '@/cypress/e2e/po/pages/login-page.po';
 
 const bannersPage = new BannersPagePo();
 const burgerMenu = new BurgerMenuPo();
@@ -38,7 +38,7 @@ describe('Banners', () => {
     cy.login();
   });
 
-  it('can navigate to Banners Page', { tags: ['@adminUser', '@standardUser'] }, () => {
+  it('can navigate to Banners Page', { tags: ['@globalSettings', '@adminUser', '@standardUser'] }, () => {
     HomePagePo.goTo();
 
     const productMenu = new ProductNavPo();
@@ -62,7 +62,7 @@ describe('Banners', () => {
     bannersPage.waitForPageWithClusterId();
   });
 
-  it('can show and hide Header Banner', { tags: ['@adminUser'] }, () => {
+  it('can show and hide Header Banner', { tags: ['@globalSettings', '@adminUser'] }, () => {
     bannersPage.goTo();
 
     // Show Banner
@@ -110,7 +110,7 @@ describe('Banners', () => {
     bannersPage.banner().should('not.exist');
   });
 
-  it('can show and hide Footer Banner', { tags: ['@adminUser'] }, () => {
+  it('can show and hide Footer Banner', { tags: ['@globalSettings', '@adminUser'] }, () => {
     bannersPage.goTo();
 
     // Show Banner
@@ -158,7 +158,7 @@ describe('Banners', () => {
     bannersPage.banner().should('not.exist');
   });
 
-  it('can show and hide Login Screen Banner', { tags: ['@adminUser'] }, () => {
+  it('can show and hide Login Screen Banner', { tags: ['@globalSettings', '@adminUser'] }, () => {
     cy.login(undefined, undefined, false);
     bannersPage.goTo();
 
@@ -209,7 +209,7 @@ describe('Banners', () => {
   // Note: This test needs to be in its own `describe` with two `it` blocks for Show and Hide scenarios.
   // 401 error is throw when the user attempts to login with valid credentials the second time
   // which unexpectedly fails the test. This an automation specific issue it seems
-  describe('Login Failed Banner', { tags: ['@adminUser'] }, () => {
+  describe('Login Failed Banner', { tags: ['@globalSettings', '@adminUser'] }, () => {
     it('Show Banner', () => {
       cy.login(undefined, undefined, false);
       bannersPage.goTo();
@@ -246,7 +246,7 @@ describe('Banners', () => {
     });
   });
 
-  it('standard user has only read access to Banner page', { tags: '@standardUser' }, () => {
+  it('standard user has only read access to Banner page', { tags: ['@globalSettings', '@standardUser'] }, () => {
     // verify action buttons/checkboxes etc. are disabled/hidden for standard user
     bannersPage.goTo();
     bannersPage.headerBannerCheckbox().isDisabled();

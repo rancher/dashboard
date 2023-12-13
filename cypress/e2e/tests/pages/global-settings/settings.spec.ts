@@ -7,7 +7,7 @@ import AccountPagePo from '@/cypress/e2e/po/pages/account-api-keys.po';
 import ClusterManagerListPagePo from '@/cypress/e2e/po/pages/cluster-manager/cluster-manager-list.po';
 import * as path from 'path';
 import * as jsyaml from 'js-yaml';
-import { settings } from '@/cypress/e2e/blueprints/global_settings/settigns-data';
+import { settings } from '@/cypress/e2e/blueprints/global_settings/settings-data';
 
 const settingsPage = new SettingsPagePo();
 const accountPage = new AccountPagePo();
@@ -20,7 +20,7 @@ describe('Settings', () => {
     cy.login();
   });
 
-  it('can navigate to Settings page', { tags: ['@adminUser', '@standardUser'] }, () => {
+  it('can navigate to Settings page', { tags: ['@globalSettings', '@adminUser', '@standardUser'] }, () => {
     HomePagePo.goTo();
 
     BurgerMenuPo.toggle();
@@ -34,7 +34,7 @@ describe('Settings', () => {
     settingsPage.waitForPageWithClusterId();
   });
 
-  it('can update engine-iso-url', { tags: ['@adminUser'] }, () => {
+  it('can update engine-iso-url', { tags: ['@globalSettings', '@adminUser'] }, () => {
     // Update setting
     settingsPage.goTo();
     settingsPage.editSettingsByLabel('engine-iso-url');
@@ -72,7 +72,7 @@ describe('Settings', () => {
     settingsPage.modifiedLabel('engine-iso-url').should('not.exist'); // modified label should not display after reset
   });
 
-  it('can update password-min-length', { tags: ['@adminUser'] }, () => {
+  it('can update password-min-length', { tags: ['@globalSettings', '@adminUser'] }, () => {
     // Update setting
     settingsPage.goTo();
     settingsPage.editSettingsByLabel('password-min-length');
@@ -123,7 +123,7 @@ describe('Settings', () => {
     settingsPage.settingsValue('password-min-length').contains(settings['password-min-length'].original);
   });
 
-  it('can update ingress-ip-domain', { tags: ['@adminUser'] }, () => {
+  it('can update ingress-ip-domain', { tags: ['@globalSettings', '@adminUser'] }, () => {
     // Update setting
     settingsPage.goTo();
     settingsPage.editSettingsByLabel('ingress-ip-domain');
@@ -159,7 +159,7 @@ describe('Settings', () => {
     settingsPage.settingsValue('ingress-ip-domain').contains(settings['ingress-ip-domain'].original);
   });
 
-  it('can update auth-user-info-max-age-seconds', { tags: ['@adminUser'] }, () => {
+  it('can update auth-user-info-max-age-seconds', { tags: ['@globalSettings', '@adminUser'] }, () => {
     // Update setting
     settingsPage.goTo();
     settingsPage.editSettingsByLabel('auth-user-info-max-age-seconds');
@@ -195,7 +195,7 @@ describe('Settings', () => {
     settingsPage.settingsValue('auth-user-info-max-age-seconds').contains(settings['auth-user-info-max-age-seconds'].original);
   });
 
-  it('can update auth-user-session-ttl-minutes', { tags: ['@adminUser'] }, () => {
+  it('can update auth-user-session-ttl-minutes', { tags: ['@globalSettings', '@adminUser'] }, () => {
     // Update setting
     settingsPage.goTo();
     settingsPage.editSettingsByLabel('auth-user-session-ttl-minutes');
@@ -231,7 +231,7 @@ describe('Settings', () => {
     settingsPage.settingsValue('auth-user-session-ttl-minutes').contains(settings['auth-user-session-ttl-minutes'].original);
   });
 
-  it('can update auth-token-max-ttl-minutes', { tags: ['@adminUser'] }, () => {
+  it('can update auth-token-max-ttl-minutes', { tags: ['@globalSettings', '@adminUser'] }, () => {
     // Update setting
     settingsPage.goTo();
     settingsPage.editSettingsByLabel('auth-token-max-ttl-minutes');
@@ -267,7 +267,7 @@ describe('Settings', () => {
     settingsPage.settingsValue('auth-token-max-ttl-minutes').contains(settings['auth-token-max-ttl-minutes'].original);
   });
 
-  it('can update kubeconfig-generate-token', { tags: ['@adminUser'] }, () => {
+  it('can update kubeconfig-generate-token', { tags: ['@globalSettings', '@adminUser'] }, () => {
     // Update setting
     settingsPage.goTo();
     settingsPage.editSettingsByLabel('kubeconfig-generate-token');
@@ -314,7 +314,7 @@ describe('Settings', () => {
     });
   });
 
-  it('can update kubeconfig-default-token-ttl-minutes', { tags: ['@adminUser'] }, () => {
+  it('can update kubeconfig-default-token-ttl-minutes', { tags: ['@globalSettings', '@adminUser'] }, () => {
     // Update setting
     settingsPage.goTo();
     settingsPage.editSettingsByLabel('kubeconfig-default-token-ttl-minutes');
@@ -350,7 +350,7 @@ describe('Settings', () => {
     settingsPage.settingsValue('kubeconfig-default-token-ttl-minutes').contains(settings['kubeconfig-default-token-ttl-minutes'].original);
   });
 
-  it('can update auth-user-info-resync-cron', { tags: ['@adminUser'] }, () => {
+  it('can update auth-user-info-resync-cron', { tags: ['@globalSettings', '@adminUser'] }, () => {
     // Update setting
     settingsPage.goTo();
     settingsPage.editSettingsByLabel('auth-user-info-resync-cron');

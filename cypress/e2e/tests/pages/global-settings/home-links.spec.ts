@@ -1,4 +1,4 @@
-import { HomeLinksPagePo } from '~/cypress/e2e/po/pages/global-settings/home-links.po';
+import { HomeLinksPagePo } from '@/cypress/e2e/po/pages/global-settings/home-links.po';
 import { SettingsPagePo } from '@/cypress/e2e/po/pages/global-settings/settings.po';
 import HomePagePo from '@/cypress/e2e/po/pages/home.po';
 import BurgerMenuPo from '@/cypress/e2e/po/side-bars/burger-side-menu.po';
@@ -16,7 +16,7 @@ describe('Home Links', () => {
     cy.login();
   });
 
-  it('can navigate to Home Links page', { tags: ['@adminUser', '@standardUser'] }, () => {
+  it('can navigate to Home Links page', { tags: ['@globalSettings', '@adminUser', '@standardUser'] }, () => {
     HomePagePo.goTo();
 
     const burgerMenu = new BurgerMenuPo();
@@ -41,7 +41,7 @@ describe('Home Links', () => {
     homeLinksPage.waitForPageWithClusterId();
   });
 
-  it('can hide or show default links on the Home Page', { tags: ['@adminUser'] }, () => {
+  it('can hide or show default links on the Home Page', { tags: ['@globalSettings', '@adminUser'] }, () => {
     homeLinksPage.goTo();
 
     // Hide all links
@@ -69,7 +69,7 @@ describe('Home Links', () => {
     homePage.supportLinks().should('have.length', 6);
   });
 
-  it('can add and remove custom links', { tags: ['@adminUser'] }, () => {
+  it('can add and remove custom links', { tags: ['@globalSettings', '@adminUser'] }, () => {
     // Note: need to click 'Apply' button twice in this test due to race condition. Test will fail unexpectedly without it.
     const customLinkName = `${ runPrefix }-custom-link`;
     const customLinkUrl = `https://${ runPrefix }/custom/link/url`;
@@ -100,7 +100,7 @@ describe('Home Links', () => {
     homePage.supportLinks().contains(customLinkName).should('not.exist');
   });
 
-  it('standard user has only read access to Home Links page', { tags: '@standardUser' }, () => {
+  it('standard user has only read access to Home Links page', { tags: ['@globalSettings', '@standardUser'] }, () => {
     // verify action buttons/checkboxes are hidden for standard user
     homeLinksPage.waitForRequests();
     homeLinksPage.selectCheckbox(0).checkNotExists();
