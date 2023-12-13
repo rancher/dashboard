@@ -1844,15 +1844,12 @@ function _rowValueGetter(col) {
   // We will use JsonPath to look up this value, which is costly - so if we can detect this format
   // Use a more efficient function to get the value
   const value = col.field.startsWith('.') ? `$${ col.field }` : col.field;
+  const found = value.match(FIELD_REGEX);
 
-  if (process.client) {
-    const found = value.match(FIELD_REGEX);
+  if (found && found.length === 2) {
+    const fieldIndex = parseInt(found[1], 10);
 
-    if (found && found.length === 2) {
-      const fieldIndex = parseInt(found[1], 10);
-
-      return (row) => row.metadata?.fields?.[fieldIndex];
-    }
+    return (row) => row.metadata?.fields?.[fieldIndex];
   }
 
   return value;

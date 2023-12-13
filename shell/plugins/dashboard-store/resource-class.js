@@ -1222,19 +1222,11 @@ export default class Resource {
   // ------------------------------------------------------------------
 
   currentRoute() {
-    if ( process.server ) {
-      return this.$rootState.$route;
-    } else {
-      return window.$nuxt.$route;
-    }
+    return window.$nuxt.$route;
   }
 
   currentRouter() {
-    if ( process.server ) {
-      return this.$rootState.$router;
-    } else {
-      return window.$nuxt.$router;
-    }
+    return window.$nuxt.$router;
   }
 
   get listLocation() {

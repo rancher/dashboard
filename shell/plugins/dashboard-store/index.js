@@ -33,20 +33,8 @@ export default (vuexModule, config, init) => {
   const namespace = config.namespace || '';
 
   return function(store) {
-    // const inst = SteveFactory(namespace, config.baseUrl);
-
     store.registerModule(namespace, vuexModule);
     store.commit(`${ namespace }/applyConfig`, config);
-
-    if ( !process.client ) {
-      return;
-    }
-
-    // store.subscribe(({ type }, state) => {
-    //   if ( type === 'auth/loggedOut' ) {
-    //     store.dispatch(`${ namespace }/unsubscribe`);
-    //   }
-    // });
 
     const module = store._modules.root._children[namespace];
     const fromServer = window.__NUXT__;

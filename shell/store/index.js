@@ -1046,15 +1046,13 @@ export const actions = {
     if ( route.name === 'index' ) {
       router.replace('/auth/login');
     } else {
-      if (!process.server) {
-        const backTo = window.localStorage.getItem(BACK_TO);
+      const backTo = window.localStorage.getItem(BACK_TO);
 
-        const isLogin = route.name === 'auth-login' || route.path === '/login'; // Cover dashboard and case of log out from ember;
-        const isLogout = route.name === 'auth-logout';
+      const isLogin = route.name === 'auth-login' || route.path === '/login'; // Cover dashboard and case of log out from ember;
+      const isLogout = route.name === 'auth-logout';
 
-        if (!backTo && !isLogin && !isLogout) {
-          window.localStorage.setItem(BACK_TO, window.location.href);
-        }
+      if (!backTo && !isLogin && !isLogout) {
+        window.localStorage.setItem(BACK_TO, window.location.href);
       }
 
       const QUERY = (LOGGED_OUT in route.query) ? LOGGED_OUT : TIMED_OUT;
