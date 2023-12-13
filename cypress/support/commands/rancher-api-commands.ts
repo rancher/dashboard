@@ -252,8 +252,12 @@ Cypress.Commands.add('createNamespace', (nsName, projId) => {
           'field.cattle.io/containerDefaultResourceLimit': '{}',
           'field.cattle.io/projectId':                     projId
         },
-        labels: { 'field.cattle.io/projectId': projId.split(':')[1] },
-        name:   nsName
+        labels: {
+          'field.cattle.io/projectId':                  projId.split(':')[1],
+          'pod-security.kubernetes.io/enforce':         'privileged',
+          'pod-security.kubernetes.io/enforce-version': 'latest'
+        },
+        name: nsName
       },
       disableOpenApiValidation: false
     }

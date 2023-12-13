@@ -137,11 +137,28 @@ describe('Cluster Dashboard', { testIsolation: 'off', tags: ['@explorer', '@admi
   });
 
   let removePod = false;
+  const projName = `project${ +new Date() }`;
+  const nsName = `namespace${ +new Date() }`;
 
   it('can view events', () => {
     // Create a pod to trigger events
-    // eslint-disable-next-line no-return-assign
-    cy.createPod('local', podName, 'nginx:latest').then(() => removePod = true);
+
+    // get user id
+    cy.getRancherResource('v3', 'users?me=true').then((resp: Cypress.Response<any>) => {
+      const userId = resp.body.data[0].id.trim();
+
+      // create project
+      cy.createProject(projName, 'local', userId).then((resp: Cypress.Response<any>) => {
+        const projId = resp.body.id.trim();
+
+        // create ns
+        cy.createNamespace(nsName, projId);
+
+        // create pod
+        // eslint-disable-next-line no-return-assign
+        cy.createPod(nsName, podName, 'nginx:latest').then(() => removePod = true);
+      });
+    });
 
     ClusterDashboardPagePo.navTo();
     clusterDashboard.waitForPage(undefined, 'cluster-events');
@@ -161,7 +178,7 @@ describe('Cluster Dashboard', { testIsolation: 'off', tags: ['@explorer', '@admi
 
   after(() => {
     if (removePod) {
-      cy.deleteRancherResource('v1', 'pods/local', `pod-${ podName }`);
+      cy.deleteRancherResource('v1', `pods/${ nsName }`, `pod-${ podName }`);
     }
   });
 });
