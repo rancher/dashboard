@@ -48,7 +48,10 @@ export default {
       routerView = h('keep-alive', { props: props.keepAliveProps }, [routerView])
     }
 
-    return h('div', {
+    // this needs to be a "transition" or another non-rendering component, 
+    // otherwise we will break pages like the charts wizard or the extensions main screen (DOM would render an additional element and break CSS)
+    // we can deal with this later once we remove this component and <nuxt /> component
+    return h('transition', {
       on: listeners
     }, [routerView])
   }
