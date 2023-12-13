@@ -29,11 +29,6 @@ export default {
     data.nuxtChildDepth = depth
 
     const listeners = {}
-    listenersKeys.forEach((key) => {
-      if (typeof transition[key] === 'function') {
-        listeners[key] = transition[key].bind(_parent)
-      }
-    })
     
     // Add triggerScroll event on beforeEnter (fix #1376)
     const beforeEnter = listeners.beforeEnter
