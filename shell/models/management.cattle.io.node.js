@@ -8,6 +8,7 @@ import { insertAt } from '@shell/utils/array';
 import { downloadUrl } from '@shell/utils/download';
 import findLast from 'lodash/findLast';
 import HybridModel from '@shell/plugins/steve/hybrid-class';
+import { notOnlyOfRole } from '@shell/models/cluster.x-k8s.io.machine';
 
 export default class MgmtNode extends HybridModel {
   get _availableActions() {
@@ -21,11 +22,12 @@ export default class MgmtNode extends HybridModel {
     };
 
     const scaleDown = {
-      action:   'scaleDown',
-      enabled:  !!this.canScaleDown,
-      icon:     'icon icon-minus icon-fw',
-      label:    this.t('node.actions.scaleDown'),
-      bulkable: true,
+      action:     'scaleDown',
+      bulkAction: 'scaleDown',
+      enabled:    !!this.canScaleDown,
+      icon:       'icon icon-minus icon-fw',
+      label:      this.t('node.actions.scaleDown'),
+      bulkable:   true,
     };
 
     insertAt(out, 0, { divider: true });
@@ -105,12 +107,12 @@ export default class MgmtNode extends HybridModel {
     }
   }
 
-  async scaleDown(resources) {
-    const safeResources = Array.isArray(resources) ? resources : [this];
-
-    await Promise.all(safeResources.map((node) => {
-      return node.norman?.doAction('scaledown');
-    }));
+  async scaleDown(resources = this) {
+    this.$dispatch('promptModal', {
+      resources,
+      component:  'ScaleMachineDownDialog',
+      modalWidth: '450px'
+    });
   }
 
   get provisioningCluster() {
@@ -166,10 +168,12 @@ export default class MgmtNode extends HybridModel {
   }
 
   get canScaleDown() {
-    const isInOnlyPool = this.pool?.provisioningCluster?.pools?.length === 1;
-    const isOnlyNode = this.pool?.nodes?.length === 1;
+    if (!this.isEtcd && !this.isControlPlane) {
+      return true;
+    }
+
     const hasAction = this.norman?.actions?.scaledown;
 
-    return hasAction && (!isInOnlyPool || !isOnlyNode);
+    return hasAction && notOnlyOfRole(this, this.provisioningCluster?.nodes);
   }
 }
