@@ -25,6 +25,10 @@ jobs:
       run: ./shell/scripts/test-plugins-build.sh
       shell: bash
 
+    # Reset the local (ci) repository state because
+    # The previous step (Validate Plugin build system) changes
+    # the version number on package.json for Shell in order
+    # to release it in verdaccio for it's tests
     - name: Reset repository (file system)
       run: | 
         git reset --hard HEAD
