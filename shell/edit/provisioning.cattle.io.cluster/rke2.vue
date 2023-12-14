@@ -2148,7 +2148,6 @@ export default {
         class="min-height"
       >
         <Tab
-          ref="index"
           name="basic"
           label-key="cluster.tabs.basic"
           :weight="11"
