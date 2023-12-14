@@ -6,8 +6,8 @@ name: Publish Shell Package
 #     tags:
 #         - 'shell-pkg-v*'
 on:
-  pull_request_target:
-    types: [converted_to_draft, ready_for_review]
+  pull_request:
+    # types: [converted_to_draft, ready_for_review]
 
 jobs:
   build:
