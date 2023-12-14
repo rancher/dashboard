@@ -36,7 +36,6 @@ const sidebars = {
       type:  'category',
       label: 'Guide',
       items: [
-        'guide/build-for-container-registry',
         'guide/package-management',
         'guide/auth-providers',
         'guide/custom-dev-build'

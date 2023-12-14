@@ -252,10 +252,47 @@ Cypress.Commands.add('createNamespace', (nsName, projId) => {
           'field.cattle.io/containerDefaultResourceLimit': '{}',
           'field.cattle.io/projectId':                     projId
         },
-        labels: { 'field.cattle.io/projectId': projId.split(':')[1] },
-        name:   nsName
+        labels: {
+          'field.cattle.io/projectId':                  projId.split(':')[1],
+          'pod-security.kubernetes.io/enforce':         'privileged',
+          'pod-security.kubernetes.io/enforce-version': 'latest'
+        },
+        name: nsName
       },
       disableOpenApiValidation: false
+    }
+  })
+    .then((resp) => {
+      expect(resp.status).to.eq(201);
+    });
+});
+
+/**
+ * Create pod
+ */
+Cypress.Commands.add('createPod', (nsName, podName, image) => {
+  return cy.request({
+    method:  'POST',
+    url:     `${ Cypress.env('api') }/v1/pods`,
+    headers: {
+      'x-api-csrf': token.value,
+      Accept:       'application/json'
+    },
+    body: {
+      type:     'pod',
+      metadata: {
+        namespace: nsName, labels: { 'workload.user.cattle.io/workloadselector': `pod-${ nsName }-pod-${ podName }` }, name: `pod-${ podName }`, annotations: {}
+      },
+      spec: {
+        selector:   { matchLabels: { 'workload.user.cattle.io/workloadselector': `pod-${ nsName }-pod-${ podName }` } },
+        containers: [{
+          imagePullPolicy: 'Always', name: 'container-0', _init: false, volumeMounts: [], env: [], envFrom: [], image: `${ image }`, __active: true
+        }],
+        initContainers:   [],
+        imagePullSecrets: [],
+        volumes:          [],
+        affinity:         {}
+      }
     }
   })
     .then((resp) => {

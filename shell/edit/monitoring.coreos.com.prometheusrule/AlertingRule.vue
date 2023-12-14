@@ -47,9 +47,18 @@ export default {
       selectedSeverityLabel: null,
       ignoredAnnotations:    IGNORED_ANNOTATIONS,
       severityOptions:       [
-        this.t('prometheusRule.alertingRules.labels.severity.choices.critical'),
-        this.t('prometheusRule.alertingRules.labels.severity.choices.warning'),
-        this.t('prometheusRule.alertingRules.labels.severity.choices.none'),
+        {
+          label: this.t('prometheusRule.alertingRules.labels.severity.choices.critical'),
+          value: 'critical'
+        },
+        {
+          label: this.t('prometheusRule.alertingRules.labels.severity.choices.warning'),
+          value: 'warning'
+        },
+        {
+          label: this.t('prometheusRule.alertingRules.labels.severity.choices.none'),
+          value: 'none'
+        },
       ],
     };
   },

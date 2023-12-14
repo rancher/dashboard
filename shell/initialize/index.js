@@ -1,7 +1,7 @@
 // Taken from @nuxt/vue-app/template/index.js
+// This file was generated during Nuxt migration
 
 import Vue from 'vue';
-import Meta from 'vue-meta';
 import ClientOnly from 'vue-client-only';
 import NoSsr from 'vue-no-ssr';
 import { createRouter } from '../config/router.js';
@@ -13,7 +13,7 @@ import { setContext, getLocation, getRouteData, normalizeError } from '../utils/
 import { createStore } from '../config/store.js';
 
 /* Plugins */
-
+import { loadDirectives } from '@shell/plugins';
 import '../plugins/portal-vue.js';
 import cookieUniversalNuxt from '../utils/cookie-universal-nuxt.js';
 import axios from '../utils/axios.js';
@@ -21,11 +21,7 @@ import plugins from '../core/plugins.js';
 import pluginsLoader from '../core/plugins-loader.js';
 import axiosShell from '../plugins/axios';
 import '../plugins/tooltip';
-import '../plugins/clean-tooltip-directive';
-import '../plugins/vue-clipboard2';
 import '../plugins/v-select';
-import '../plugins/directives';
-import '../plugins/clean-html-directive';
 import '../plugins/transitions';
 import '../plugins/vue-js-modal';
 import '../plugins/js-yaml';
@@ -47,6 +43,29 @@ import '../plugins/formatters';
 import version from '../plugins/version';
 import steveCreateWorker from '../plugins/steve-create-worker';
 
+// Prevent extensions from overriding existing directives
+// Hook into Vue.directive and keep track of the directive names that have been added
+// and prevent an existing directive from being overwritten
+const directiveNames = {};
+const vueDirective = Vue.directive;
+
+Vue.directive = function(name) {
+  if (directiveNames[name]) {
+    console.log(`Can not override directive: ${ name }`); // eslint-disable-line no-console
+
+    return;
+  }
+
+  directiveNames[name] = true;
+
+  vueDirective.apply(Vue, arguments);
+};
+
+// Load the directives from the plugins - we do this with a function so we know
+// these are initialized here, after the code above which keeps track of them and
+// prevents over-writes
+loadDirectives();
+
 // Component: <ClientOnly>
 Vue.component(ClientOnly.name, ClientOnly);
 
@@ -54,7 +73,7 @@ Vue.component(ClientOnly.name, ClientOnly);
 Vue.component(NoSsr.name, {
   ...NoSsr,
   render(h, ctx) {
-    if (process.client && !NoSsr._warned) {
+    if (!NoSsr._warned) {
       NoSsr._warned = true;
 
       console.warn('<no-ssr> has been deprecated and will be removed in Nuxt 3, please use <client-only> instead'); // eslint-disable-line no-console
@@ -77,17 +96,13 @@ Object.defineProperty(Vue.prototype, '$nuxt', {
   get() {
     const globalNuxt = this.$root.$options.$nuxt;
 
-    if (process.client && !globalNuxt && typeof window !== 'undefined') {
+    if (!globalNuxt && typeof window !== 'undefined') {
       return window.$nuxt;
     }
 
     return globalNuxt;
   },
   configurable: true
-});
-
-Vue.use(Meta, {
-  keyName: 'head', attribute: 'data-n-head', ssrAttribute: 'data-n-head-ssr', tagIDKeyName: 'hid'
 });
 
 const defaultTransition = {
@@ -107,15 +122,6 @@ async function createApp(ssrContext, config = {}) {
   // here we inject the router and store to all child components,
   // making them available everywhere as `this.$router` and `this.$store`.
   const app = {
-    head: {
-      title: 'dashboard',
-      meta:  [{ charset: 'utf-8' }, { name: 'viewport', content: 'width=device-width, initial-scale=1' }, {
-        hid: 'description', name: 'description', content: 'Rancher Dashboard'
-      }],
-      style:  [],
-      script: []
-    },
-
     store,
     router,
     nuxt: {
@@ -234,20 +240,11 @@ async function createApp(ssrContext, config = {}) {
   // Inject runtime config as $config
   inject('config', config);
 
-  if (process.client) {
-    // Replace store state before plugins execution
-    if (window.__NUXT__ && window.__NUXT__.state) {
-      store.replaceState(window.__NUXT__.state);
-    }
+  // Replace store state before plugins execution
+  if (window.__NUXT__ && window.__NUXT__.state) {
+    store.replaceState(window.__NUXT__.state);
   }
 
-  // Add enablePreview(previewData = {}) in context for plugins
-  if (process.static && process.client) {
-    app.context.enablePreview = function(previewData = {}) {
-      app.previewData = Object.assign({}, previewData);
-      inject('preview', previewData);
-    };
-  }
   // Plugin execution
 
   // if (typeof nuxt_plugin_portalvue_6babae27 === 'function') {
@@ -274,15 +271,15 @@ async function createApp(ssrContext, config = {}) {
     await axiosShell(app.context, inject);
   }
 
-  if (process.client && typeof intNumber === 'function') {
+  if (typeof intNumber === 'function') {
     await intNumber(app.context, inject);
   }
 
-  if (process.client && typeof positiveIntNumber === 'function') {
+  if (typeof positiveIntNumber === 'function') {
     await positiveIntNumber(app.context, inject);
   }
 
-  if (process.client && typeof nuxtClientInit === 'function') {
+  if (typeof nuxtClientInit === 'function') {
     await nuxtClientInit(app.context, inject);
   }
 
@@ -294,43 +291,31 @@ async function createApp(ssrContext, config = {}) {
     await backButton(app.context, inject);
   }
 
-  if (process.client && typeof plugin === 'function') {
+  if (typeof plugin === 'function') {
     await plugin(app.context, inject);
   }
 
-  if (process.client && typeof codeMirror === 'function') {
+  if (typeof codeMirror === 'function') {
     await codeMirror(app.context, inject);
   }
 
-  if (process.client && typeof version === 'function') {
+  if (typeof version === 'function') {
     await version(app.context, inject);
   }
 
-  if (process.client && typeof steveCreateWorker === 'function') {
+  if (typeof steveCreateWorker === 'function') {
     await steveCreateWorker(app.context, inject);
-  }
-
-  // if (process.client && typeof formatters === 'function') {
-  //   await formatters(app.context, inject);
-  // }
-
-  // Lock enablePreview in context
-  if (process.static && process.client) {
-    app.context.enablePreview = function() {
-      console.warn('You cannot call enablePreview() outside a plugin.'); // eslint-disable-line no-console
-    };
   }
 
   // Wait for async component to be resolved first
   await new Promise((resolve, reject) => {
     // Ignore 404s rather than blindly replacing URL in browser
-    if (process.client) {
-      const { route } = router.resolve(app.context.route.fullPath);
+    const { route } = router.resolve(app.context.route.fullPath);
 
-      if (!route.matched.length) {
-        return resolve();
-      }
+    if (!route.matched.length) {
+      return resolve();
     }
+
     router.replace(app.context.route.fullPath, resolve, (err) => {
       // https://github.com/vuejs/vue-router/blob/v3.4.3/src/util/errors.js
       if (!err._isRouter) {
@@ -342,9 +327,6 @@ async function createApp(ssrContext, config = {}) {
 
       // navigated to a different route in router guard
       const unregister = router.afterEach(async(to, from) => {
-        if (process.server && ssrContext && ssrContext.url) {
-          ssrContext.url = to.fullPath;
-        }
         app.context.route = await getRouteData(to);
         app.context.params = to.params || {};
         app.context.query = to.query || {};

@@ -1,6 +1,6 @@
 import Vue from 'vue';
 import { VTooltip } from 'v-tooltip';
-import { purifyHTML } from './clean-html-directive';
+import { purifyHTML } from './clean-html';
 
 function purifyContent(value) {
   const type = typeof value;

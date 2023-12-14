@@ -15,6 +15,11 @@ export default {
   data() {
     return { uid: this.$route.params.uid };
   },
+  watch: {
+    vmi(neu) {
+      document.title = neu?.metadata?.name;
+    }
+  },
 
   computed: {
     vmi() {
@@ -28,14 +33,11 @@ export default {
   },
 
   mounted() {
+    document.title = this.vmi?.metadata?.name;
     window.addEventListener('beforeunload', () => {
       this.$refs.serialConsole.close();
     });
-  },
-
-  head() {
-    return { title: this.vmi?.metadata?.name };
-  },
+  }
 };
 </script>
 

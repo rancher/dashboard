@@ -37,8 +37,8 @@ export default {
 
   computed: {
 
-    allBundles() {
-      // gitrepo model has getter for bundles.
+    allBundlesInRepo() {
+      // gitrepo model has getter for its bundles.
       return this.value.bundles || [];
     },
 
@@ -65,13 +65,7 @@ export default {
     bundles() {
       const harvester = this.harvesterClusters;
 
-      return this.allBundles.filter((bundle) => {
-        const isRepoBundle = bundle.metadata.name.startsWith(`${ this.value.metadata.name }-`);
-
-        if (!isRepoBundle) {
-          return false;
-        }
-
+      return this.allBundlesInRepo.filter((bundle) => {
         const targets = bundle.spec?.targets || [];
 
         // Filter out any bundle that has one target whose cluster is a harvester cluster
@@ -84,7 +78,7 @@ export default {
     },
 
     hidden() {
-      return this.allBundles.length - this.bundles.length;
+      return this.allBundlesInRepo.length - this.bundles.length;
     },
 
     headers() {
@@ -105,7 +99,6 @@ export default {
       return out;
     },
   },
-
   methods: {
     displayWarning(row) {
       return !!row.status?.summary && (row.status.summary.desiredReady !== row.status.summary.ready);
@@ -113,6 +106,7 @@ export default {
   }
 };
 </script>
+
 <template>
   <div>
     <Loading v-if="$fetchState.pending" />

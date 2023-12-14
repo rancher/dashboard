@@ -12,24 +12,7 @@ export function classify(ctx, obj, isClone = false) {
 
   const customModel = ctx.getters['classify'](obj);
 
-  const out = new customModel(obj, ctx, (process.server ? ctx.state.config.namespace : null), isClone);
-
-  if ( process.server ) {
-    Object.defineProperty(obj, '__rehydrate', {
-      value:        ctx.state.config.namespace,
-      enumerable:   true,
-      configurable: true
-    });
-
-    if ( isClone ) {
-      Object.defineProperty(obj, '__clone', {
-        value:        true,
-        enumerable:   true,
-        configurable: true,
-        writable:     true
-      });
-    }
-  }
+  const out = new customModel(obj, ctx, null, isClone);
 
   return out;
 }

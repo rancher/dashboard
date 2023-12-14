@@ -39,7 +39,13 @@ const defaultStubs = {
   UnitInput:                true,
   YamlEditor:               true,
   MemberRoles:              true,
-  Basics:                   true
+  Basics:                   true,
+  Etcd:                     true,
+  Networking:               true,
+  Upgrade:                  true,
+  Registries:               true,
+  AddOnConfig:              true,
+  Advanced:                 true
 };
 
 const mockAgentArgs = { 'cloud-provider-name': { options: [], profile: { options: [{ anything: 'yes' }] } } };

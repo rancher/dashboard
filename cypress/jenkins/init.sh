@@ -30,6 +30,7 @@ DASHBOARD_REPO="${DASHBOARD_REPO:-rancher/dashboard.git}"
 DASHBOARD_BRANCH="${DASHBOARD_BRANCH:-master}"
 GITHUB_URL="https://github.com/"
 RANCHER_TYPE="${RANCHER_TYPE:-local}"
+HELM_VERSION="${HELM_VERSION:-3.13.2}"
 NODEJS_VERSION="${NODEJS_VERSION:-14.19.1}"
 CYPRESS_VERSION="${CYPRESS_VERSION:-13.2.0}"
 YARN_VERSION="${YARN_VERSION:-1.22.19}"
@@ -77,12 +78,22 @@ corral config vars set volume_iops ${AWS_VOLUME_IOPS}
 
 if [[ "${JOB_TYPE}" == "recurring" ]]; then 
   RANCHER_TYPE="recurring"
+  if [[ -n "${RANCHER_IMAGE_TAG}" ]]; then
+    TARFILE="helm-v${HELM_VERSION}-linux-amd64.tar.gz"
+    curl -L -o ${TARFILE} "https://get.helm.sh/${TARFILE}"
+    tar -C "${WORKSPACE}/bin" --strip-components=1 -xzf ${TARFILE}
+    helm repo add rancher-latest https://releases.rancher.com/server-charts/latest
+    helm repo update
+    version_string=$(echo "${RANCHER_IMAGE_TAG}" | cut -f1 -d"-")
+    RANCHER_VERSION=$(helm search repo rancher-latest --devel --versions | grep ${version_string} | head -n 1 | cut -f2 | tr -d '[:space:]')
+    corral config vars set rancher_image_tag ${RANCHER_IMAGE_TAG}
+  fi
   cd "${WORKSPACE}/corral-packages"
-  yq -i e ".variables.rancher_version += [\"${RANCHER_VERSION}\"] | .variables.rancher_version style=\"literal\"" packages/aws/rancher.yaml
-  yq -i e ".variables.kubernetes_version += [\"${RKE2_KUBERNETES_VERSION}\"] | .variables.kubernetes_version style=\"literal\"" packages/aws/rancher.yaml
-  yq -i e ".variables.cert_manager_version += [\"${CERT_MANAGER_VERSION}\"] | .variables.kubernetes_version style=\"literal\"" packages/aws/rancher.yaml
+  yq -i e ".variables.rancher_version += [\"${RANCHER_VERSION}\"] | .variables.rancher_version style=\"literal\"" packages/aws/rancher-rke2.yaml
+  yq -i e ".variables.kubernetes_version += [\"${RKE2_KUBERNETES_VERSION}\"] | .variables.kubernetes_version style=\"literal\"" packages/aws/rancher-rke2.yaml
+  yq -i e ".variables.cert_manager_version += [\"${CERT_MANAGER_VERSION}\"] | .variables.kubernetes_version style=\"literal\"" packages/aws/rancher-rke2.yaml
 
-  cat packages/aws/rancher.yaml
+  cat packages/aws/rancher-rke2.yaml
   ls -al packages/aws/
   cat packages/aws/dashboard-tests.yaml
 
@@ -90,9 +101,6 @@ if [[ "${JOB_TYPE}" == "recurring" ]]; then
 
   corral config vars set bootstrap_password ${BOOTSTRAP_PASSWORD:-password}
   corral config vars set aws_route53_zone ${AWS_ROUTE53_ZONE}
-  if [[ -n "${RANCHER_IMAGE_TAG}" ]]; then
-    corral config vars set rancher_image_tag ${RANCHER_IMAGE_TAG}
-  fi
   corral config vars set server_count ${SERVER_COUNT:-3}
   corral config vars set agent_count ${AGENT_COUNT:-0}
   corral config vars set instance_type ${AWS_INSTANCE_TYPE}
@@ -143,6 +151,7 @@ corral config vars set bastion_ip ""
 corral config vars delete instance_type
 corral create --skip-cleanup --recreate --debug ci dist/aws-dashboard-tests-t3a.xlarge
 corral config vars -o yaml
+corral vars ci corral_private_key -o yaml
 NODE_EXTERNAL_IP="$(corral vars ci first_node_ip)"
 cd ${WORKSPACE}
 echo "${PWD}"

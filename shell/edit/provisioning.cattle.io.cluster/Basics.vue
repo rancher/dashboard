@@ -118,6 +118,13 @@ export default {
       type:     Array,
       required: true
     },
+    refreshYamls: {
+      type:     Function,
+      required: true
+    }
+  },
+  beforeUpdate() {
+    this.refreshYamls(this.$refs);
   },
 
   computed: {

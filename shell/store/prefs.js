@@ -345,46 +345,44 @@ export const actions = {
     commit('cookiesLoaded');
   },
 
-  loadTheme({ state, dispatch }) {
-    if ( process.client ) {
-      const watchDark = window.matchMedia('(prefers-color-scheme: dark)');
-      const watchLight = window.matchMedia('(prefers-color-scheme: light)');
-      const watchNone = window.matchMedia('(prefers-color-scheme: no-preference)');
+  loadTheme({ dispatch }) {
+    const watchDark = window.matchMedia('(prefers-color-scheme: dark)');
+    const watchLight = window.matchMedia('(prefers-color-scheme: light)');
+    const watchNone = window.matchMedia('(prefers-color-scheme: no-preference)');
 
-      const interval = 30 * 60 * 1000;
-      const nextHalfHour = interval - Math.round(new Date().getTime()) % interval;
+    const interval = 30 * 60 * 1000;
+    const nextHalfHour = interval - Math.round(new Date().getTime()) % interval;
 
-      setTimeout(() => {
-        dispatch('loadTheme');
-      }, nextHalfHour);
-      // console.log('Update theme in', nextHalfHour, 'ms');
+    setTimeout(() => {
+      dispatch('loadTheme');
+    }, nextHalfHour);
+    // console.log('Update theme in', nextHalfHour, 'ms');
 
-      if ( watchDark.matches ) {
+    if ( watchDark.matches ) {
+      changed('dark');
+    } else if ( watchLight.matches ) {
+      changed('light');
+    } else {
+      changed(fromClock());
+    }
+
+    watchDark.addListener((e) => {
+      if ( e.matches ) {
         changed('dark');
-      } else if ( watchLight.matches ) {
+      }
+    });
+
+    watchLight.addListener((e) => {
+      if ( e.matches ) {
         changed('light');
-      } else {
+      }
+    });
+
+    watchNone.addListener((e) => {
+      if ( e.matches ) {
         changed(fromClock());
       }
-
-      watchDark.addListener((e) => {
-        if ( e.matches ) {
-          changed('dark');
-        }
-      });
-
-      watchLight.addListener((e) => {
-        if ( e.matches ) {
-          changed('light');
-        }
-      });
-
-      watchNone.addListener((e) => {
-        if ( e.matches ) {
-          changed(fromClock());
-        }
-      });
-    }
+    });
 
     function changed(value) {
       // console.log('Prefers Theme:', value);

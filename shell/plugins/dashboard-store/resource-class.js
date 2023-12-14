@@ -105,6 +105,7 @@ export const STATES_ENUM = {
   ERRORING:         'erroring',
   ERRORS:           'errors',
   EXPIRED:          'expired',
+  EXPIRING:         'expiring',
   FAIL:             'fail',
   FAILED:           'failed',
   HEALTHY:          'healthy',
@@ -260,7 +261,10 @@ export const STATES = {
     color: 'error', icon: 'error', label: 'Errors', compoundIcon: 'error'
   },
   [STATES_ENUM.EXPIRED]: {
-    color: 'warning', icon: 'error', label: 'Expired', compoundIcon: 'warning'
+    color: 'error', icon: 'error', label: 'Expired', compoundIcon: 'warning'
+  },
+  [STATES_ENUM.EXPIRING]: {
+    color: 'warning', icon: 'error', label: 'Expiring', compoundIcon: 'error'
   },
   [STATES_ENUM.FAIL]: {
     color: 'error', icon: 'error', label: 'Fail', compoundIcon: 'error'
@@ -1225,19 +1229,11 @@ export default class Resource {
   // ------------------------------------------------------------------
 
   currentRoute() {
-    if ( process.server ) {
-      return this.$rootState.$route;
-    } else {
-      return window.$nuxt.$route;
-    }
+    return window.$nuxt.$route;
   }
 
   currentRouter() {
-    if ( process.server ) {
-      return this.$rootState.$router;
-    } else {
-      return window.$nuxt.$router;
-    }
+    return window.$nuxt.$router;
   }
 
   get listLocation() {
@@ -1937,5 +1933,12 @@ export default class Resource {
 
   get creationTimestamp() {
     return this.metadata?.creationTimestamp;
+  }
+
+  /**
+   * Allows model to specify JSON Paths that should be folded in the YAML editor by default
+   */
+  get yamlFolding() {
+    return [];
   }
 }
