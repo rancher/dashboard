@@ -334,7 +334,8 @@ export default {
         />
         <span class="tab-label"> {{ tab.label }}</span>
         <i
-          class="closer icon icon-fw icon-x"
+          data-testid="wm-tab-close-button"
+          class="closer icon icon-fw icon-x wm-closer-button"
           @click.stop="close(tab.id)"
         />
       </div>
@@ -432,9 +433,16 @@ export default {
           margin-left: 5px;
           border: 1px solid var(--body-text);
           border-radius: var(--border-radius);
+          line-height: 12px;
+          font-size: 10px;
+          width: 14px;
+          align-self: center;
+          display: flex;
+          justify-content: center;
 
           &:hover {
-            background-color: var(--wm-closer-hover-bg);
+            border-color: var(--link-border);
+            color: var(--link-border);
           }
         }
       }
@@ -494,4 +502,5 @@ export default {
       border-right: var(--nav-border-size) solid var(--nav-border);
     }
   }
+
 </style>

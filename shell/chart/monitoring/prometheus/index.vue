@@ -155,6 +155,23 @@ export default {
 
       this.$set(storageSpec.selector, 'matchLabels', matchLabels);
       this.$set(storageSpec.selector, 'matchExpressions', matchExpressions);
+
+      // Remove an empty selector object if present
+      // User can add a selector and then remove the selector - this will leave an empty structure as above
+      // We want to ensure we remove .selector.matchExpressions, .selector.matchLabels, and .selector if empty
+      // See: https://github.com/rancher/dashboard/issues/10016
+
+      if (storageSpec.selector.matchExpressions?.length === 0) {
+        delete storageSpec.selector.matchExpressions;
+      }
+
+      if (storageSpec.selector.matchLabels && Object.keys(storageSpec.selector.matchLabels).length === 0) {
+        delete storageSpec.selector.matchLabels;
+      }
+
+      if (Object.keys(storageSpec.selector).length === 0) {
+        delete storageSpec.selector;
+      }
     },
   },
 };
