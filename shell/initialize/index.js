@@ -181,11 +181,10 @@ async function createApp(config = {}) {
     store,
     route,
     next,
-    error:           app.nuxt.error.bind(app),
-    payload:         undefined,
-    req:             undefined,
-    res:             undefined,
-    beforeRenderFns: undefined
+    error:   app.nuxt.error.bind(app),
+    payload: undefined,
+    req:     undefined,
+    res:     undefined
   });
 
   function inject(key, value) {
