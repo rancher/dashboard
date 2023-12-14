@@ -5,7 +5,7 @@ Rancher Dashboard is the UI that powers [Rancher](https://www.rancher.com/produc
 
 Developer documentation and documentation for our UI components is available here - [Rancher UI Devkit](https://rancher.github.io/dashboard/).
 
-Rancher Dashboard supports an extension mechanism that allows developers to build there own extensions that can be developed independently of Rancher and loaded into a deployed Rancher installation to extend its functionality. You can learn more from our [Rancher Extensions Docs](https://rancher.github.io/dashboard/extensions/introduction).
+Rancher Dashboard supports an extension mechanism that allows developers to independently provide additional functionality to Rancher. You can learn more from our [Rancher Extensions Docs](https://rancher.github.io/dashboard/extensions/introduction).
 
 
 # What is it?

@@ -36,7 +36,6 @@ const sidebars = {
       type:  'category',
       label: 'Guide',
       items: [
-        'guide/build-for-container-registry',
         'guide/package-management',
         'guide/auth-providers',
         'guide/custom-dev-build'
@@ -77,7 +76,7 @@ const sidebars = {
       items: [
         'extensions/introduction',
         'extensions/extensions-getting-started',
-        // 'extensions/extensions-configuration',
+        'extensions/extensions-configuration',
         {
           type:  'category',
           label: 'Extensions API',

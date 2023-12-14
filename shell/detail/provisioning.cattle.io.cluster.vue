@@ -782,10 +782,11 @@ export default {
                 </div>
               </div>
               <div
-                v-if="group.ref && poolSummaryInfo[group.ref]"
+                v-if="group.ref"
                 class="right group-header-buttons mr-20"
               >
                 <MachineSummaryGraph
+                  v-if="poolSummaryInfo[group.ref]"
                   :row="poolSummaryInfo[group.ref]"
                   :horizontal="true"
                   class="mr-20"
@@ -879,7 +880,7 @@ export default {
                 <template v-if="group.ref.hasLink('update')">
                   <button
                     v-clean-tooltip="t('node.list.scaleDown')"
-                    :disabled="group.ref.spec.quantity < 2"
+                    :disabled="!group.ref.canScaleDownPool()"
                     type="button"
                     class="btn btn-sm role-secondary"
                     @click="toggleScaleDownModal($event, group.ref)"

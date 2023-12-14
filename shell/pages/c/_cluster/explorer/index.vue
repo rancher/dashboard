@@ -15,7 +15,7 @@ import {
   WORKLOAD_TYPES,
   COUNT,
   CATALOG,
-  PSP,
+  SECRET
 } from '@shell/config/types';
 import { setPromiseResult } from '@shell/utils/promise';
 import AlertTable from '@shell/components/AlertTable';
@@ -27,7 +27,6 @@ import {
   STATE,
 } from '@shell/config/table-headers';
 
-import { mapPref, PSP_DEPRECATION_BANNER } from '@shell/store/prefs';
 import { haveV1Monitoring, monitoringStatus, canViewGrafanaLink } from '@shell/utils/monitoring';
 import Tabbed from '@shell/components/Tabbed';
 import Tab from '@shell/components/Tabbed/Tab';
@@ -44,6 +43,8 @@ import { fetchClusterResources } from './explorer-utils';
 import SimpleBox from '@shell/components/SimpleBox';
 import { ExtensionPoint, CardLocation } from '@shell/core/types';
 import { getApplicableExtensionEnhancements } from '@shell/core/plugin-helpers';
+import Certificates from '@shell/components/Certificates';
+import { NAME as EXPLORER } from '@shell/config/product/explorer';
 
 export const RESOURCES = [NAMESPACE, INGRESS, PV, WORKLOAD_TYPES.DEPLOYMENT, WORKLOAD_TYPES.STATEFUL_SET, WORKLOAD_TYPES.JOB, WORKLOAD_TYPES.DAEMON_SET, SERVICE];
 
@@ -76,6 +77,7 @@ export default {
     ConfigBadge,
     EventsTable,
     SimpleBox,
+    Certificates
   },
 
   mixins: [metricPoller],
@@ -156,20 +158,6 @@ export default {
     ...mapGetters(['currentCluster']),
     ...monitoringStatus(),
 
-    displayPspDeprecationBanner() {
-      const cluster = this.currentCluster;
-      const major = cluster.status?.version?.major ? parseInt(cluster.status?.version?.major) : 0;
-      const minor = cluster.status?.version?.minor ? parseInt(cluster.status?.version?.minor) : 0;
-
-      if (major === 1 && minor >= 21 && minor < 25) {
-        const clusterCounts = this.$store.getters[`cluster/all`](COUNT)?.[0]?.counts;
-
-        return !!clusterCounts?.[PSP]?.summary?.count;
-      }
-
-      return false;
-    },
-
     nodes() {
       return this.$store.getters['cluster/all'](NODE);
     },
@@ -177,8 +165,6 @@ export default {
     mgmtNodes() {
       return this.$store.getters['management/all'](MANAGEMENT.CLUSTER);
     },
-
-    hidePspDeprecationBanner: mapPref(PSP_DEPRECATION_BANNER),
 
     hasV1Monitoring() {
       return haveV1Monitoring(this.$store.getters);
@@ -366,8 +352,18 @@ export default {
       return {
         name:   'c-cluster-product-resource',
         params: {
-          product:  'explorer',
-          resource: 'event',
+          product:  EXPLORER,
+          resource: EVENT,
+        }
+      };
+    },
+
+    allSecretsLink() {
+      return {
+        name:   'c-cluster-product-resource',
+        params: {
+          product:  EXPLORER,
+          resource: SECRET,
         }
       };
     }
@@ -434,17 +430,6 @@ export default {
         </div>
       </div>
     </header>
-    <Banner
-      v-if="displayPspDeprecationBanner && !hidePspDeprecationBanner"
-      :closable="true"
-      color="warning"
-      @close="hidePspDeprecationBanner = true"
-    >
-      <t
-        k="landing.deprecatedPsp"
-        :raw="true"
-      />
-    </Banner>
     <div
       class="cluster-dashboard-glance"
     >
@@ -478,14 +463,6 @@ export default {
           :show-tooltip="true"
         /></span>
       </div>
-      <p
-        v-if="displayPspDeprecationBanner && hidePspDeprecationBanner"
-        v-clean-tooltip="t('landing.deprecatedPsp')"
-        class="alt-psp-deprecation-info"
-      >
-        <span>{{ t('landing.psps') }}</span>
-        <i class="icon icon-warning" />
-      </p>
       <div :style="{'flex':1}" />
       <div v-if="!monitoringStatus.v2 && !monitoringStatus.v1">
         <n-link
@@ -618,6 +595,18 @@ export default {
         >
           <AlertTable v-if="selectedTab === 'cluster-alerts'" />
         </Tab>
+        <Tab
+          name="cluster-certs"
+          :label="t('clusterIndexPage.sections.certs.label')"
+          :weight="1"
+        >
+          <span class="events-table-link">
+            <n-link :to="allSecretsLink">
+              <span>{{ t('glance.secretsTable') }}</span>
+            </n-link>
+          </span>
+          <Certificates v-if="selectedTab === 'cluster-certs'" />
+        </Tab>
       </Tabbed>
     </div>
     <Tabbed
@@ -732,16 +721,6 @@ export default {
 
 .cluster-tools-tip {
   margin-top: 0;
-}
-
-.alt-psp-deprecation-info {
-  display: flex;
-  align-items: center;
-  color: var(--warning);
-
-  span {
-    margin-right: 4px;
-  }
 }
 
 .monitoring-install {

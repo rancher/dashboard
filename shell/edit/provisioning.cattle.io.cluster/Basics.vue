@@ -40,12 +40,6 @@ export default {
       required: true,
     },
 
-    psps: {
-      type:     Object,
-      default:  null,
-      required: false
-    },
-
     credential: {
       type:     Object,
       default:  null,
@@ -61,15 +55,6 @@ export default {
       required: true
     },
 
-    cisPsaChangeBanner: {
-      type:     Boolean,
-      required: true
-    },
-    allPsps: {
-      type:     Array,
-      required: false,
-      default:  null
-    },
     allPsas: {
       type:     Array,
       required: true
@@ -80,10 +65,7 @@ export default {
       required: false,
       default:  null
     },
-    needsPsp: {
-      type:     Boolean,
-      required: true
-    },
+
     selectedVersion: {
       type:     Object,
       required: true
@@ -112,10 +94,6 @@ export default {
       type:     Boolean,
       required: true
     },
-    hasPsaTemplates: {
-      type:     Boolean,
-      required: true
-    },
     isK3s: {
       type:     Boolean,
       required: true
@@ -140,18 +118,17 @@ export default {
       type:     Array,
       required: true
     },
+    refreshYamls: {
+      type:     Function,
+      required: true
+    }
+  },
+  beforeUpdate() {
+    this.refreshYamls(this.$refs);
   },
 
   computed: {
     ...mapGetters({ features: 'features/get' }),
-
-    /**
-     * Check presence of PSPs as template or CLI creation
-     */
-
-    hasPsps() {
-      return !!this.psps?.count;
-    },
 
     serverConfig() {
       return this.value.spec.rkeConfig.machineGlobalConfig;
@@ -159,17 +136,6 @@ export default {
 
     agentConfig() {
       return this.value.agentConfig;
-    },
-
-    /**
-     * Define introduction of PSA and return need of PSA templates based on min k8s version
-     */
-    needsPSA() {
-      const release = this.value?.spec?.kubernetesVersion || '';
-      const version = release.match(/\d+/g);
-      const isRequiredVersion = version?.length ? +version[0] > 1 || +version[1] >= 23 : false;
-
-      return isRequiredVersion;
     },
 
     profileOptions() {
@@ -189,35 +155,9 @@ export default {
      * Allow to display override if PSA is needed and profile is set
      */
     hasCisOverride() {
-      return (this.serverConfig?.profile || this.agentConfig?.profile) && this.needsPSA &&
+      return (this.serverConfig?.profile || this.agentConfig?.profile) &&
         // Also check other cases on when to display the override
-        this.hasPsaTemplates && this.showCisProfile && this.isCisSupported;
-    },
-
-    pspOptions() {
-      if ( this.isK3s ) {
-        return null;
-      }
-      const out = [{
-        label: this.$store.getters['i18n/t']('cluster.rke2.defaultPodSecurityPolicyTemplateName.option'),
-        value: ''
-      }];
-
-      if ( this.allPsps ) {
-        for ( const pspt of this.allPsps ) {
-          out.push({
-            label: pspt.nameDisplay,
-            value: pspt.id,
-          });
-        }
-      }
-      const cur = this.value.spec.defaultPodSecurityPolicyTemplateName;
-
-      if ( cur && !out.find((x) => x.value === cur) ) {
-        out.unshift({ label: `${ cur } (Current)`, value: cur });
-      }
-
-      return out;
+        this.showCisProfile && this.isCisSupported;
     },
 
     /**
@@ -226,14 +166,14 @@ export default {
     isPsaDisabled() {
       const cisValue = this.agentConfig?.profile || this.serverConfig?.profile;
 
-      return !(!cisValue || this.cisOverride) && this.hasPsaTemplates && this.isCisSupported;
+      return !(!cisValue || this.cisOverride) && this.isCisSupported;
     },
 
     /**
      * Get the default label for the PSA template option
      */
     defaultPsaOptionLabel() {
-      const optionCase = !this.needsPsp && !this.isK3s ? 'default' : 'none';
+      const optionCase = !this.isK3s ? 'default' : 'none';
 
       return this.$store.getters['i18n/t'](`cluster.rke2.defaultPodSecurityAdmissionConfigurationTemplateName.option.${ optionCase }`);
     },
@@ -242,9 +182,6 @@ export default {
      * Convert PSA templates into options, sorting and flagging if any selected
      */
     psaOptions() {
-      if ( !this.needsPSA ) {
-        return [];
-      }
       const out = [{
         label: this.defaultPsaOptionLabel,
         value: ''
@@ -515,21 +452,6 @@ export default {
     <h3>
       {{ t('cluster.rke2.security.header') }}
     </h3>
-    <Banner
-      v-if="isEdit && !needsPsp && hasPsps"
-      color="warning"
-      :label="t('cluster.banner.invalidPsps')"
-    />
-    <Banner
-      v-else-if="isCreate && !needsPsp"
-      color="info"
-      :label="t('cluster.banner.removedPsp')"
-    />
-    <Banner
-      v-else-if="isCreate && hasPsps"
-      color="info"
-      :label="t('cluster.banner.deprecatedPsp')"
-    />
 
     <Banner
       v-if="showCisProfile && !isCisSupported && isEdit"
@@ -539,21 +461,6 @@ export default {
     </Banner>
 
     <div class="row mb-10">
-      <div
-        v-if="pspOptions && needsPsp"
-        class="col span-6"
-      >
-        <!-- PSP template selector -->
-        <LabeledSelect
-          v-model="value.spec.defaultPodSecurityPolicyTemplateName"
-          data-testid="rke2-custom-edit-psp"
-          :mode="mode"
-          :options="pspOptions"
-          :label="t('cluster.rke2.defaultPodSecurityPolicyTemplateName.label')"
-          @input="$emit('psp-changed', $event)"
-        />
-      </div>
-
       <div
         v-if="showCisProfile"
         class="col span-6"
@@ -592,14 +499,13 @@ export default {
         :label="t('cluster.rke2.banner.cisOverride')"
       />
       <Banner
-        v-if="cisPsaChangeBanner && !cisOverride"
+        v-if="!cisOverride"
         color="info"
         :label="t('cluster.rke2.banner.psaChange')"
       />
     </template>
 
     <div
-      v-if="needsPSA"
       class="row mb-10 mt-10"
     >
       <div class="col span-6">

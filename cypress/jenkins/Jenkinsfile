@@ -1,5 +1,8 @@
 #!groovy
 
+
+def upstream = !currentBuild.getBuildCauses('hudson.model.Cause$UserIdCause')
+def buildtype = upstream ? "RecurringRun" : "AdHoc"
 def branch = "master"
 if ("${env.branch}" != "null" && "${env.branch}" != "") {
   branch = "${env.branch}"
@@ -20,67 +23,85 @@ node {
       params.each {
         paramsMap << "$it.key=$it.value"
       }
-      withEnv(paramsMap) {
-          stage('Checkout') {
-          deleteDir()
-          checkout([
-                      $class: 'GitSCM',
-                      branches: [[name: "*/${branch}"]],
-                      extensions: scm.extensions + [[$class: 'CleanCheckout']],
-                      userRemoteConfigs: scm.userRemoteConfigs
-                  ])
-          dir('./corral-packages') {
-              checkout([
-                $class: 'GitSCM',
-                branches: [[name: "*/${corralBranch}"]],
-                extensions: scm.extensions + [[$class: 'CleanCheckout']],
-                userRemoteConfigs: [[url: 'https://github.com/'+corralRepo]]
-              ])
-              sh 'git --no-pager branch'
-              def ciFilename = "dashboard-tests.yaml"
-              def ciConfigContents = env.CORRAL_PACKAGE_CONFIG
-              if (ciConfigContents != null) {
-                  writeFile file: "./packages/aws/"+ciFilename, text: ciConfigContents
-              }
-          }
-        }
-        try {
-          stage('Run Tests') {
-              sh 'pwd'
-              sh 'ls -al cypress/jenkins'
-              sh 'cypress/jenkins/init.sh'
-          }
-        } catch (err) {
-            echo "Error: " + err
-            currentBuild.result = 'FAILURE'
-            error()
-        }
-        try {
-          stage('Grab Results') {
-            sh "cypress/jenkins/scpget.sh dashboard/results.xml"
-            sh "cypress/jenkins/scpget.sh dashboard/results.html"
-            sh "cypress/jenkins/scpget.sh dashboard/assets"
-          }
-        } catch(err) {
-            echo "Error: " + err
-        }
-        try {
-          stage('Clean Test Environment') {  
-            sh "${WORKSPACE}/bin/corral delete ci"
-            if ("${env.JOB_TYPE}" == "recurring") {
-              sh "${WORKSPACE}/bin/corral delete rancher"
+      withCredentials([ string(credentialsId: 'AWS_ACCESS_KEY_ID', variable: 'AWS_ACCESS_KEY_ID'),
+                        string(credentialsId: 'AWS_SECRET_ACCESS_KEY', variable: 'AWS_SECRET_ACCESS_KEY')]) {
+        withEnv(paramsMap) {
+            stage('Checkout') {
+            deleteDir()
+            checkout([
+                        $class: 'GitSCM',
+                        branches: [[name: "*/${branch}"]],
+                        extensions: scm.extensions + [[$class: 'CleanCheckout']],
+                        userRemoteConfigs: scm.userRemoteConfigs
+                    ])
+            dir('./corral-packages') {
+                checkout([
+                    $class: 'GitSCM',
+                    branches: [[name: "*/${corralBranch}"]],
+                    extensions: scm.extensions + [[$class: 'CleanCheckout']],
+                    userRemoteConfigs: [[url: 'https://github.com/'+corralRepo]]
+                ])
+                sh 'git --no-pager branch'
+                def ciFilename = "dashboard-tests.yaml"
+                def ciConfigContents = env.CORRAL_PACKAGE_CONFIG
+                if (ciConfigContents != null) {
+                    writeFile file: "./packages/aws/"+ciFilename, text: ciConfigContents
+                }
             }
-          }
-        } catch(err) {
-          echo "Error: " + err
-        }
-        try {
-          stage('Test Report') {
-            step([$class: 'JUnitResultArchiver', testResults: '**/results.xml'])
-          }
-        }
-        catch(err) {
-          echo "Error: " + err
+            }
+            try {
+            stage('Run Tests') {
+                sh 'pwd'
+                sh 'ls -al cypress/jenkins'
+                sh 'cypress/jenkins/init.sh'
+            }
+            } catch (err) {
+                echo "Error: " + err
+                currentBuild.result = 'FAILURE'
+                error()
+            }
+            try {
+            stage('Grab Results') {
+                sh "cypress/jenkins/scpget.sh dashboard/results.xml"
+                sh "cypress/jenkins/scpget.sh dashboard/results.html"
+                sh "cypress/jenkins/scpget.sh dashboard/assets"
+            }
+            } catch(err) {
+                echo "Error: " + err
+            }
+            if ("${env.CLEANUP}".toLowerCase() == "true") {
+                try {
+                stage('Clean Test Environment') {  
+                    sh "${WORKSPACE}/bin/corral delete ci"
+                    if ("${env.JOB_TYPE}" == "recurring") {
+                    sh "${WORKSPACE}/bin/corral delete rancher"
+                    }
+                }
+                } catch(err) {
+                echo "Error: " + err
+                }
+            }
+            try {
+            stage('Test Report') {
+                step([$class: 'JUnitResultArchiver', testResults: '**/results.xml'])
+            }
+            }
+            catch(err) {
+            echo "Error: " + err
+            }
+            if ("${env.QASE_REPORT}".toLowerCase() == "true") {
+                try {
+                    stage('Publish to TC Management') {
+                        withCredentials([ string(credentialsId: 'QASE_AUTOMATION_TOKEN', variable: 'QASE_AUTOMATION_TOKEN')]) {
+                            withEnv(["BUILDTYPE=${buildtype}"]) {
+                                sh "cypress/jenkins/transform-junit.sh"
+                            }
+                        }
+                }
+                } catch(err) {
+                    echo "Error: " + err
+                }
+            }
         }
       }
     }

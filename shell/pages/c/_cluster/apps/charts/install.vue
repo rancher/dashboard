@@ -248,7 +248,7 @@ export default {
       return;
     }
 
-    if ( this.version && process.client ) {
+    if ( this.version ) {
       /*
         Check if the Helm chart has provided the name
         of a Vue component to use for configuring
@@ -473,7 +473,7 @@ export default {
      * Return list of variables to filter chart questions
      */
     ignoreVariables() {
-      return ignoreVariables(this.currentCluster, this.versionInfo);
+      return ignoreVariables(this.versionInfo);
     },
 
     namespaceIsNew() {

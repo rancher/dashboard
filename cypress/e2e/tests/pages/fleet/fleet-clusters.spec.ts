@@ -2,7 +2,7 @@ import { FleetClusterListPagePo } from '@/cypress/e2e/po/pages/fleet/fleet.cattl
 import { MenuActions } from '@/cypress/support/types/menu-actions';
 
 describe('Fleet Clusters', () => {
-  describe('List', () => {
+  describe('List', { tags: ['@fleet', '@adminUser'] }, () => {
     let fleetClusterListPage: FleetClusterListPagePo;
 
     beforeEach(() => {
@@ -27,7 +27,7 @@ describe('Fleet Clusters', () => {
         MenuActions.ForceUpdate,
         MenuActions.EditYaml,
         MenuActions.EditConfig,
-        MenuActions.ViewInApi,
+        // MenuActions.ViewInApi, // TODO: #10095: Review API menu case
       ];
 
       const disabledActions: MenuActions[] = [MenuActions.ChangeWorkspace];

@@ -311,7 +311,7 @@ export default {
         product: this.currentProduct.name,
         cluster: this.currentCluster,
       };
-      const enabled = action.enabled ? action.enabled.apply(this, [opts]) : true;
+      const enabled = action.enabled ? action.enabled.apply(this, [this.ctx]) : true;
 
       if (fn && enabled) {
         fn.apply(this, [opts, [], { $route: this.$route }]);

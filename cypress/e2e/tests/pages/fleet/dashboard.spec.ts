@@ -1,7 +1,7 @@
 import { FleetDashboardPagePo } from '@/cypress/e2e/po/pages/fleet/fleet-dashboard.po';
 import { GitRepoCreatePo } from '@/cypress/e2e/po/pages/fleet/gitrepo-create.po';
 
-describe.only('Fleet Dashboard', { tags: '@adminUser' }, () => {
+describe.only('Fleet Dashboard', { tags: ['@fleet', '@adminUser'] }, () => {
   let fleetDashboardPage: FleetDashboardPagePo;
   const repoName = 'fleet-e2e-test-dashboard';
 

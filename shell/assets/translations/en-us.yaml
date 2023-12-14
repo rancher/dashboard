@@ -691,6 +691,15 @@ asyncButton:
     successIcon: checkmark
     waiting: ''
     waitingIcon: refresh
+  manual-refresh:
+    action: ''
+    actionIcon: refresh
+    error: ''
+    errorIcon: error
+    success: ''
+    successIcon: checkmark
+    waiting: ''
+    waitingIcon: refresh
   remove:
     action: Remove
     success: Removed
@@ -851,9 +860,6 @@ catalog:
       keywords: Keywords
     errors:
       clusterToolExists: This chart has a fixed namespace and name. A matching <a href="{url}">application</a> has been found and any changes will be made to it.
-    banner:
-      legacy: 'PSP Removal: Before upgrading a cluster to Kubernetes 1.25+, please ensure you review your Helm applications for Pod Security Policies and update them accordingly'
-    enablePSP: Enable Pod Security Policies
     global: Global
   charts:
     all: All
@@ -868,7 +874,7 @@ catalog:
     versionWindowsIncompatible: Linux only version
     header: Charts
     featuredCharts: Featured Charts
-    noCharts: 'There are no charts available, have you added any repos?'
+    noCharts: 'There are no charts available, have you added any repos or set filters?'
     noWindows: Your repos do not contain any charts capable of being deployed on a cluster with Windows nodes.
     noWindowsAndLinux: Your repos do not contain any charts capable of being deployed on a cluster with both Windows and Linux worker nodes.
     operatingSystems:
@@ -1528,6 +1534,9 @@ cluster:
         host:
           label: Host
           note: Specific host to create VM on (leave blank for standalone ESXi or for cluster with DRS)
+        gracefulShutdownTimeout:
+          label: Graceful Shutdown Timeout
+          note: The time in seconds to wait before forcing deleting VMs in the infrastructure. Zero means disable graceful shutdown.
       instanceOptions:
         label: Instance Options
         description: Choose the size and OS of the virtual machine
@@ -1673,10 +1682,7 @@ cluster:
     os: 'You are attempting to add a {newOS} worker node to a cluster with one or more {existingOS} worker nodes: some installed apps may need to be upgraded or removed.'
     rke2-k3-reprovisioning: 'Making changes to cluster configuration may result in nodes reprovisioning. For more information see the <a target="blank" href="{docsBase}/cluster-provisioning/rke-clusters/behavior-differences-between-rke1-and-rke2/" target="_blank" rel="noopener nofollow">documentation</a>.'
     desiredNodeGroupWarning: There are 0 nodes available to run the cluster agent. The cluster will not become active until at least one node is available.
-    invalidPsps: You have one or more PodSecurityPolicy resource(s) in this cluster. Pod Security Policies are not available in Kubernetes v1.25 and will be automatically removed.
     haveArgInfo: Configuration information is not available for the selected Kubernetes version.  The options available on this screen will be limited; you may want to use the YAML editor.
-    deprecatedPsp: Pod Security Policies are deprecated as of Kubernetes v1.21, and have been removed in Kubernetes v1.25.
-    removedPsp: Pod Security Policies have been removed in Kubernetes v1.25. Use Pod Security Admission instead.
     cloudProviderAddConfig: 'On Kubernetes 1.27 or greater, the Amazon Cloud Provider requires additional configuration. See <a href="https://ranchermanager.docs.rancher.com/how-to-guides/new-user-guides/kubernetes-clusters-in-rancher-setup/set-up-cloud-providers/amazon" target="_blank" rel="noopener noreferrer nofollow">the documentation</a> for more information.'
     machinePoolError: |-
       {count, plural,
@@ -1843,9 +1849,6 @@ cluster:
       cisOverride: Changing this setting may affect cluster security as it overrides default CIS settings
       cisUnsupported: The selected Kubernetes Version no longer supports CIS Profile "{cisProfile}". Please select a supported profile. We recommend reviewing the <a href="https://docs.rke2.io/security/hardening_guide" target="_blank" rel="noopener noreferrer nofollow">documentation</a> to evaluate the impact of changing the CIS Profile.
     modal:
-      pspChange:
-        title: Pod Security Policy deprecation
-        body: <p>Kubernetes has removed support for Pod Security Policies (PSPs) starting with version 1.25. If your cluster has PodSecurityPolicy admission controller enabled via "kube-apiserver-arg.enable-admission-plugins" in Cluster YAML, it has to be <i>manually</i> removed before proceeding with the upgrade. Additionally, any PSPs that may be present in the cluster will no longer be available/enforced. Do you want to proceed?</p>
       editYamlMachinePool:
         title: Save Machine Configurations
         body: Machine Configurations define how machines in Pools are deployed.<br><br> They will be saved upfront to ensure valid Cluster YAML can be saved.
@@ -2043,6 +2046,8 @@ clusterIndexPage:
       etcd: Etcd
       scheduler: Scheduler
       controller-manager: Controller Manager
+    certs:
+      label: Certificates
 
 configmap:
   tabs:
@@ -2352,6 +2357,7 @@ glance:
   v1MonitoringInstalled: V1 Monitoring Installed
   clusterInfo: Cluster Information
   eventsTable: Full events list
+  secretsTable: Full secrets list
 
 clusterBadge:
   addLabel: Add Cluster Badge
@@ -2767,8 +2773,6 @@ landing:
   whatsNewLink: "What's new in 2.8"
   learnMore: Learn More
   support: Support
-  psps: PSPs
-  deprecatedPsp: Pod Security Policies are deprecated as of Kubernetes v1.21, and have been removed in Kubernetes v1.25. You have one or more PodSecurityPolicy resource(s) in this cluster.
   community:
     title: Community Support
     docs: Docs
@@ -3157,9 +3161,9 @@ monitoring:
         label: Additional Secrets
       existing: Choose an existing config secret
       info: |
-        <span class="text-bold">Create default config</span>: A Secret containing your Alertmanager Config will be created in the <pre class='inline-block m-0'>cattle-monitoring-system</pre> namespace on deploying this chart under the name <pre class='inline-block m-0'>alertmanager-rancher-monitoring-alertmanager</pre>. By default, this Secret will never be modified on an uninstall or upgrade of this chart. <br />
+        <span class="text-bold">Create default config</span>:<br>A Secret containing your Alertmanager Config will be created in the <pre class='inline-block m-0'>cattle-monitoring-system</pre> namespace on deploying this chart under the name <pre class='inline-block m-0'>alertmanager-rancher-monitoring-alertmanager</pre>. By default, this Secret will never be modified on an uninstall or upgrade of this chart. <br /><br />
         Once you have deployed this chart, you should edit the Secret via the UI in order to add your custom notification configurations that will be used by Alertmanager to send alerts. <br /> <br />
-        <span class="text-bold">Choose an existing config secret</span>: You must specify a Secret that exists in the <pre class='inline-block m-0'>cattle-monitoring-system</pre> namespace. If the namespace does not exist, you will not be able to select an existing secret.
+        <span class="text-bold">Choose an existing config secret</span>:<br>You must specify a Secret that exists in the <pre class='inline-block m-0'>cattle-monitoring-system</pre> namespace. If the namespace does not exist, you will not be able to select an existing secret.
       label: Alertmanager Secret
       new: Create default config
       radio:
@@ -4342,10 +4346,6 @@ project:
   vmDefaultResourceLimit: VM Default Resource Limit
   resourceQuotas: Resource Quotas
   haveOneOwner: There must be at least one member with the Owner role.
-  psp:
-    default: Cluster Default
-    label: Pod Security Policy
-    current: "{value} (Current)"
 
 
 projectMembers:
@@ -4651,9 +4651,6 @@ rbac:
       nodetemplates-manage:
         label: Manage Node Templates
         description: Allows the user to define, edit, and remove Node Templates.
-      podsecuritypolicytemplates-manage:
-        label: Manage Pod Security Policies (PSPs)
-        description: Allows the user to define, edit, and remove PSPs.
       roles-manage:
         label: Manage Roles
         description: Allows the user to define, edit, and remove Role definitions.
@@ -4787,13 +4784,26 @@ secret:
   authentication: Authentication
   certificate:
     certificate: Certificate
+    certificates: Certificates
     certificatePlaceholder: "Paste in the CA certificate, starting with -----BEGIN CERTIFICATE----"
     cn: Domain Name
     expires: Expires
+    expiresOn: Expires On
+    expiresDuration: Expires In
+    lifetime: Lifetime
     issuer: Issuer
+    paging: |-
+      {pages, plural,
+      =0 {No {pluralLabel}}
+      =1 {{count} {count, plural, =1 {{singularLabel}} other {{pluralLabel}}}}
+      other {{from} - {to} of {count} {pluralLabel}}}
     plusMore: "+ {n} more"
     privateKey: Private Key
     privateKeyPlaceholder: "Paste in the private key, typically starting with -----BEGIN RSA PRIVATE KEY-----"
+    warnings:
+      expiring: "{count} {count, plural, =1 {Certificate expires soon} other {Certificates expire soon}}"
+      expired: "{count} {count, plural, =1 {Certificate has expired} other {Certificates have expired}}"
+      filtered: ". Not all may be visible given the selected project/namespace filter"
   data: Data
   registry:
     address: Registry
@@ -5876,7 +5886,9 @@ workload:
         exec:  Command run inside the container exits with status 0
     image: Container Image
     imagePullPolicy: Pull Policy
-    imagePullSecrets: Pull Secrets
+    imagePullSecrets:
+      label: Pull Secrets
+      tooltip: Must be of Type `kubernetes.io/dockercfg` or `kubernetes.io/dockerconfigjson`
     init: Init Container
     lifecycleHook:
       postStart:
@@ -7401,7 +7413,6 @@ legacy:
   globalDnsProviders: Global DNS Providers
   notifiers: Notifiers
   monitoring: Monitoring
-  psps: Pod Security Policy Templates
   secrets: Secrets
 
   project:

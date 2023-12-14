@@ -11,7 +11,7 @@ describe('Cluster Explorer', () => {
     describe('Pods', () => {
       const workloadsPodPage = new WorkloadsPodsListPagePo('local');
 
-      describe('Should open a terminal', { tags: ['@adminUser', '@standardUser'] }, () => {
+      describe('Should open a terminal', { tags: ['@explorer', '@adminUser'] }, () => {
         beforeEach(() => {
           workloadsPodPage.goTo();
         });
@@ -23,7 +23,7 @@ describe('Cluster Explorer', () => {
         });
       });
 
-      describe('When cloning a pod', { tags: ['@adminUser'] }, () => {
+      describe('When cloning a pod', { tags: ['@explorer', '@adminUser'] }, () => {
         const { name: origPodName, namespace } = createPodBlueprint.metadata;
         const { name: clonePodName } = clonePodBlueprint.metadata;
 
@@ -41,11 +41,11 @@ describe('Cluster Explorer', () => {
         it(`Should have same spec as the original pod`, () => {
           const cloneCreatePodPage = new WorkLoadsPodDetailsPagePo(origPodName, { mode: 'clone' });
 
-          cloneCreatePodPage.goTo().wait(10000);
+          cloneCreatePodPage.goTo();
 
           let origPodSpec: any;
 
-          cy.wait('@origPod')
+          cy.wait('@origPod', { timeout: 10000 })
             .then(({ response }) => {
               expect(response?.statusCode).to.eq(200);
               origPodSpec = response?.body.spec;
@@ -56,13 +56,14 @@ describe('Cluster Explorer', () => {
 
           // Each pod need a unique name
           createClonePo.nameNsDescription().name().set(clonePodName);
-          createClonePo.save().wait(10000);
+          createClonePo.save();
 
           const clonedPodPage = new WorkLoadsPodDetailsPagePo(clonePodName);
 
-          clonedPodPage.goTo().wait(10000);
+          clonedPodPage.goTo();
+          clonedPodPage.waitForPage();
 
-          cy.wait('@clonedPod')
+          cy.wait('@clonedPod', { timeout: 10000 })
             .then(({ response }) => {
               expect(response?.statusCode).to.eq(200);
 

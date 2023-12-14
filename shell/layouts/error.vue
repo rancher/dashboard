@@ -24,6 +24,11 @@ export default {
       return this.error.message || '';
     }
   },
+  watch: {
+    message(neu) {
+      document.title = neu;
+    }
+  },
 
   mounted() {
     // If the page isn't a sub-path of the base url, redirect to it instead of saying not found.
@@ -40,19 +45,8 @@ export default {
     setTimeout(() => {
       this.ready = true;
     }, 1000);
+    document.title = this.message;
   },
-
-  head() {
-    return {
-      title: this.message,
-      meta:  [
-        {
-          name:    'viewport',
-          content: 'width=device-width,initial-scale=1.0,minimum-scale=1.0'
-        }
-      ]
-    };
-  }
 };
 </script>
 

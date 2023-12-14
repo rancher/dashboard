@@ -44,13 +44,7 @@ export default {
       this.serverUrl = this.serverUrlSetting.value;
     } else {
       this.noUrlSet = true;
-      if ( process.server ) {
-        const { req } = this.$nuxt.context;
-
-        this.serverUrl = req.headers.host;
-      } else {
-        this.serverUrl = window.location.origin;
-      }
+      this.serverUrl = window.location.origin;
     }
   },
 

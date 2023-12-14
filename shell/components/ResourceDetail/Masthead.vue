@@ -177,13 +177,16 @@ export default {
 
     project() {
       if (this.isNamespace) {
-        const id = (this.value?.metadata?.labels || {})[PROJECT];
-        const clusterId = this.$store.getters['currentCluster'].id;
+        const cluster = this.$store.getters['currentCluster'];
 
-        return this.$store.getters['management/byId'](MANAGEMENT.PROJECT, `${ clusterId }/${ id }`);
-      } else {
-        return null;
+        if (cluster) {
+          const id = (this.value?.metadata?.labels || {})[PROJECT];
+
+          return this.$store.getters['management/byId'](MANAGEMENT.PROJECT, `${ cluster.id }/${ id }`);
+        }
       }
+
+      return null;
     },
 
     banner() {
@@ -370,7 +373,7 @@ export default {
     },
 
     hideNamespaceLocation() {
-      return this.$store.getters['currentProduct'].hideNamespaceLocation;
+      return this.$store.getters['currentProduct'].hideNamespaceLocation || this.value.namespaceLocation === null;
     },
   },
 

@@ -332,10 +332,6 @@ const sharedActions = {
 
     commit('setWantSocket', true);
 
-    if ( process.server ) {
-      return;
-    }
-
     state.debugSocket && console.info(`Subscribe [${ getters.storeName }]`); // eslint-disable-line no-console
 
     const url = `${ state.config.baseUrl }/subscribe`;
@@ -601,7 +597,7 @@ const defaultActions = {
   },
 
   rehydrateSubscribe({ state, dispatch }) {
-    if ( process.client && state.wantSocket && !state.socket ) {
+    if ( state.wantSocket && !state.socket ) {
       dispatch('subscribe');
     }
   },
@@ -728,11 +724,9 @@ const defaultActions = {
     }
 
     // Try resending any frames that were attempted to be sent while the socket was down, once.
-    if ( !process.server ) {
-      for ( const obj of state.pendingFrames.slice() ) {
-        commit('dequeuePendingFrame', obj);
-        dispatch('sendImmediate', obj);
-      }
+    for ( const obj of state.pendingFrames.slice() ) {
+      commit('dequeuePendingFrame', obj);
+      dispatch('sendImmediate', obj);
     }
   },
 
