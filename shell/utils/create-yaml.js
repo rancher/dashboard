@@ -60,6 +60,7 @@ export const NEVER_ADD = [
   '__init',
   '_init',
   '_type',
+  'type',
   'error',
 ];
 
