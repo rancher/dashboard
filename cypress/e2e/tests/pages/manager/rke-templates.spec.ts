@@ -1,13 +1,13 @@
 import ProductNavPo from '@/cypress/e2e/po/side-bars/product-side-nav.po';
 import ClusterManagerListPagePo from '@/cypress/e2e/po/pages/cluster-manager/cluster-manager-list.po';
 import ClusterManagerCreateRke1CustomPagePo from '@/cypress/e2e/po/edit/provisioning.cattle.io.cluster/create/cluster-create-rke1-custom.po';
-import EmberModalClusterDriverPo from '@/cypress/e2e/po/components/ember/ember-modal-add-edit-cluster-driver.po';
 import RkeTemplatesPagePo from '@/cypress/e2e/po/pages/cluster-manager/rke-templates.po';
+import EmberPromptRemove from '~/cypress/e2e/po/components/ember/ember-prompt-remove.po';
 
 describe('RKE Templates', { testIsolation: 'off', tags: ['@manager', '@adminUser'] }, () => {
   const rkeTemplatesPage = new RkeTemplatesPagePo('local');
   const clusterList = new ClusterManagerListPagePo('local');
-  const modal = new EmberModalClusterDriverPo();
+  const promptRemove = new EmberPromptRemove();
   const runTimestamp = +new Date();
   const templateName = `e2e-template-name-${ runTimestamp }`;
   const revisionName = `e2e-revision-name-${ runTimestamp }`;
@@ -96,7 +96,7 @@ describe('RKE Templates', { testIsolation: 'off', tags: ['@manager', '@adminUser
     rkeTemplatesPage.mainRow().rowActionMenuOpen(revisionName2);
     rkeTemplatesPage.actionMenu().selectMenuItemByLabel(`Delete`);
     cy.intercept('DELETE', '/v3/clusterTemplateRevisions/*').as('deleteTemplateRevision');
-    modal.delete();
+    promptRemove.delete();
     cy.wait('@deleteTemplateRevision').its('response.statusCode').should('eq', 204);
     rkeTemplatesPage.mainRow().rowWithName(revisionName2).should('not.exist');
   });
@@ -106,7 +106,7 @@ describe('RKE Templates', { testIsolation: 'off', tags: ['@manager', '@adminUser
     rkeTemplatesPage.groupRow().groupRowActionMenuOpen(templateName);
     rkeTemplatesPage.actionMenu().selectMenuItemByLabel(`Delete`);
     cy.intercept('DELETE', '/v3/clusterTemplates/*').as('deleteTemplate');
-    modal.delete();
+    promptRemove.delete();
     cy.wait('@deleteTemplate').its('response.statusCode').should('eq', 204);
     rkeTemplatesPage.groupRow().groupRowWithName(templateName).should('not.exist');
   });

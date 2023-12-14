@@ -17,7 +17,7 @@ export default class RkeTemplatesPagePo extends PagePo {
   }
 
   addTemplate() {
-    return cy.iFrame().contains('.right-buttons', 'Add Template');
+    return cy.iFrame().contains('.right-buttons .btn', 'Add Template');
   }
 
   groupRow(): EmberSortableTablePo {

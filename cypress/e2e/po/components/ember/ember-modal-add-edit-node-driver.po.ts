@@ -1,7 +1,7 @@
 import EmberModalPo from '@/cypress/e2e/po/components/ember/ember-modal.po';
 import EmberInputPo from '@/cypress/e2e/po/components/ember/ember-input.po';
 
-export default class EmberModalClusterDriverPo extends EmberModalPo {
+export default class EmberModalNodeDriverPo extends EmberModalPo {
   input() {
     return new EmberInputPo(`.form-control.ember-text-field`);
   }
