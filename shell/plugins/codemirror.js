@@ -125,6 +125,47 @@ CodeMirror.defineExtension('foldLinesMatching', function(regex) {
   });
 });
 
+function countSpaces(line) {
+  for (let i = 0; i < line.length; i++) {
+    if (line[i] !== ' ') {
+      return i;
+    }
+  }
+
+  return line.length;
+}
+
+CodeMirror.defineExtension('foldYaml', function(path) {
+  this.operation(() => {
+    let elements = [];
+
+    for (let i = this.firstLine(), e = this.lastLine(); i <= e; i++) {
+      const line = this.getLine(i);
+      const index = countSpaces(line);
+      const trimmed = line.trim();
+
+      if (trimmed.endsWith(':') || trimmed.endsWith(': >-')) {
+        const name = trimmed.split(':')[0].substr(0, trimmed.length - 1);
+
+        // Remove all elements of the same are greater index
+        elements = elements.filter((e) => e.index < index);
+
+        // Add on this one
+        elements.push({
+          index,
+          name
+        });
+
+        const currentPath = elements.map((e) => e.name).join('.');
+
+        if (currentPath === path) {
+          this.foldCode(CodeMirror.Pos(i, 0), null, 'fold');
+        }
+      }
+    }
+  });
+});
+
 CodeMirror.registerHelper('fold', 'yamlcomments', (cm, start) => {
   if ( !isLineComment(cm, start.line) ) {
     return;
