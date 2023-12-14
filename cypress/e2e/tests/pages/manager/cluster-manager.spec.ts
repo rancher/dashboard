@@ -17,6 +17,7 @@ import * as jsyaml from 'js-yaml';
 import ClusterManagerCreateRke1CustomPagePo from '@/cypress/e2e/po/edit/provisioning.cattle.io.cluster/create/cluster-create-rke1-custom.po';
 import Shell from '@/cypress/e2e/po/components/shell.po';
 import BurgerMenuPo from '@/cypress/e2e/po/side-bars/burger-side-menu.po';
+<<<<<<< HEAD
 import { snapshot } from '@/cypress/e2e/blueprints/manager/cluster-snapshots';
 import HomePagePo from '@/cypress/e2e/po/pages/home.po';
 import ProductNavPo from '@/cypress/e2e/po/side-bars/product-side-nav.po';
@@ -33,6 +34,8 @@ import MachinesPagePo from '@/cypress/e2e/po/pages/cluster-manager/machines.po';
 import MachineSetsPagePo from '@/cypress/e2e/po/pages/cluster-manager/machine-sets.po';
 import MachineDeploymentsPagePo from '@/cypress/e2e/po/pages/cluster-manager/machine-deployments.po';
 import RepositoriesPagePo from '@/cypress/e2e/po/pages/cluster-manager/repositories.po';
+=======
+>>>>>>> 3a7267c65 (add tags and split out each describe into its own spec file)
 // At some point these will come from somewhere central, then we can make tools to remove resources from this or all runs
 const runTimestamp = +new Date();
 const runPrefix = `e2e-test-${ runTimestamp }`;
@@ -49,8 +52,6 @@ const downloadsFolder = Cypress.config('downloadsFolder');
 
 describe('Cluster Manager', { testIsolation: 'off', tags: ['@manager', '@adminUser'] }, () => {
   const clusterList = new ClusterManagerListPagePo('local');
-  const sideNav = new ProductNavPo();
-  const modal = new EmberModalClusterDriverPo();
 
   before(() => {
     cy.login();
@@ -485,6 +486,7 @@ describe('Cluster Manager', { testIsolation: 'off', tags: ['@manager', '@adminUs
     shellPo.terminalStatus('Connected');
     shellPo.closeTerminal();
   });
+<<<<<<< HEAD
 
 <<<<<<< HEAD
   // will only run this in jenkins pipeline where cloud credentails are stored
@@ -1671,4 +1673,6 @@ describe('Cluster Manager', { testIsolation: 'off', tags: ['@manager', '@adminUs
       cy.contains(repoName).should('not.exist');
     });
   });
+=======
+>>>>>>> 3a7267c65 (add tags and split out each describe into its own spec file)
 });
