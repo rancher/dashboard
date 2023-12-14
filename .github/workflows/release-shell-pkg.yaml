@@ -43,6 +43,8 @@ jobs:
       run: yarn install
 
     - name: Publish Shell Package to npm
-      run: yarn publish-shell-reset-reg
+      run: |
+        unset NPM_CONFIG_USERCONFIG
+        yarn publish-shell-reset-reg
       env:
         NODE_AUTH_TOKEN: ${{ secrets.NPM_TOKEN }}
