@@ -9,13 +9,25 @@ export default {
 
   props: {
     row: {
-      type:     Object,
+      type: Object,
       required: true
     },
+
+    clusterLabel: {
+      type: String,
+      required: false
+    }
   },
 
   computed: {
     summary() {
+      if (this.clusterLabel) {
+        return this.row.clusterResourceStatus.find((x) => {
+
+          return x.clusterLabel === this.clusterLabel
+        })?.status.resourceCounts || {};
+      }
+
       return this.row.status?.resourceCounts || {};
     },
 
@@ -34,7 +46,7 @@ export default {
           color: textColor.replace(/text-/, 'bg-'),
           textColor,
           value: this.summary[key],
-          sort:  stateSort(textColor, key),
+          sort: stateSort(textColor, key),
         };
       }).filter((x) => x.value > 0);
 
@@ -46,35 +58,17 @@ export default {
 </script>
 
 <template>
-  <v-popover
-    v-if="show"
-    class="text-center hand"
-    placement="top"
-    :open-group="row.id"
-    :trigger="show ? 'click' : 'manual'"
-    offset="1"
-  >
-    <ProgressBarMulti
-      :values="stateParts"
-      class="mb-5"
-    />
+  <v-popover v-if="show" class="text-center hand" placement="top" :open-group="row.id"
+    :trigger="show ? 'click' : 'manual'" offset="1">
+    <ProgressBarMulti :values="stateParts" class="mb-5" />
     <span v-if="summary.desiredReady === summary.ready">{{ summary.ready }}</span>
     <span v-else>{{ summary.ready }} of {{ summary.desiredReady }}</span>
 
     <template #popover>
-      <table
-        v-if="show"
-        class="fixed"
-      >
+      <table v-if="show" class="fixed">
         <tbody>
-          <tr
-            v-for="obj in stateParts"
-            :key="obj.label"
-          >
-            <td
-              class="text-left pr-20"
-              :class="{[obj.textColor]: true}"
-            >
+          <tr v-for="obj in stateParts" :key="obj.label">
+            <td class="text-left pr-20" :class="{ [obj.textColor]: true }">
               {{ obj.label }}
             </td>
             <td class="text-right">
@@ -85,26 +79,23 @@ export default {
       </table>
     </template>
   </v-popover>
-  <div
-    v-else
-    class="text-center text-muted"
-  >
+  <div v-else class="text-center text-muted">
     &mdash;
   </div>
 </template>
 
 <style lang="scss">
-  .col-scale {
-    position: relative;
+.col-scale {
+  position: relative;
 
-    .trigger {
-      width: 100%;
-    }
+  .trigger {
+    width: 100%;
   }
+}
 
-  .scale {
-    margin: 0;
-    padding: 0;
-    line-height: initial;
-  }
+.scale {
+  margin: 0;
+  padding: 0;
+  line-height: initial;
+}
 </style>

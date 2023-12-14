@@ -8,8 +8,16 @@ import {
   AGE,
   STATE,
   NAME,
-  FLEET_SUMMARY
+  FLEET_SUMMARY,
+  FLEET_REPO,
+  FLEET_REPO_TARGET,
+  FLEET_REPO_CLUSTERS_READY,
+  FLEET_REPO_CLUSTER_SUMMARY,
+  FLEET_REPO_PER_CLUSTER_STATE
+
 } from '@shell/config/table-headers';
+import { FLEET } from '@shell/config/labels-annotations';
+import { STATES_ENUM } from 'plugins/dashboard-store/resource-class';
 
 export default {
 
@@ -19,6 +27,10 @@ export default {
     ResourceTable, Link, Shortened, FleetIntro
   },
   props: {
+    clusterId: {
+      type:     String,
+      required: false,
+    },
     rows: {
       type:     Array,
       required: true,
@@ -54,35 +66,45 @@ export default {
       });
     },
 
+    isClusterView() {
+      return !!this.clusterId;
+    },
+
     noRows() {
       return !this.filteredRows.length;
     },
 
     headers() {
+
+      console.log('HEADERS', this.isClusterView, this.clusterId)
+      const summary = this.isClusterView ? [
+        {
+          ...FLEET_REPO_CLUSTER_SUMMARY,
+          formatterOpts: {
+            // Fleet uses labels to identify clusters
+            clusterLabel: this.clusterId
+          },
+        },
+        {
+          ...FLEET_REPO_PER_CLUSTER_STATE,
+          value:  (row) => {
+            const hasPerClusterState = row.status?.resources?.perClusterState?.find((x) => {
+              return x.clusterName === this.clusterId;
+            })?.state;
+
+            // if hasperClusterState then use the repo state
+            // else use the cluster state
+            console.log('hasPerClusterState', hasPerClusterState)
+            return hasPerClusterState ? row.state : STATES_ENUM.ACTIVE;
+          },
+        }
+      ] : [FLEET_REPO_CLUSTERS_READY, FLEET_SUMMARY];
       const out = [
         STATE,
         NAME,
-        {
-          name:     'repo',
-          labelKey: 'tableHeaders.repo',
-          value:    'repoDisplay',
-          sort:     'repoDisplay',
-          search:   ['spec.repo', 'status.commit'],
-        },
-        {
-          name:     'target',
-          labelKey: 'tableHeaders.target',
-          value:    'targetInfo.modeDisplay',
-          sort:     ['targetInfo.modeDisplay', 'targetInfo.cluster', 'targetInfo.clusterGroup'],
-        },
-        {
-          name:     'clustersReady',
-          labelKey: 'tableHeaders.clustersReady',
-          value:    'status.readyClusters',
-          sort:     'status.readyClusters',
-          search:   false,
-        },
-        FLEET_SUMMARY,
+        FLEET_REPO,
+        FLEET_REPO_TARGET,
+        ...summary,
         AGE
       ];
 
@@ -92,6 +114,12 @@ export default {
   methods: {
     parseTargetMode(row) {
       return row.targetInfo?.mode === 'clusterGroup' ? this.t('fleet.gitRepo.warningTooltip.clusterGroup') : this.t('fleet.gitRepo.warningTooltip.cluster');
+    },
+
+    clusterViewResourceStatus(row) {
+      return row.clusterResourceStatus.find((c) => {
+        return c.metadata?.labels[FLEET.CLUSTER_NAME] === this.clusterId;
+      });
     }
   },
 };
@@ -99,6 +127,7 @@ export default {
 
 <template>
   <div>
+    fleet repos {{ isClusterView }}
     <FleetIntro v-if="noRows && !loading" />
     <ResourceTable
       v-if="!noRows"
@@ -111,7 +140,7 @@ export default {
       key-field="_key"
       v-on="$listeners"
     >
-      <template #cell:repo="{row}">
+      <template #cell:repo="{ row }">
         <Link
           :row="row"
           :value="row.spec.repo"
@@ -119,6 +148,7 @@ export default {
           before-icon-key="repoIcon"
           url-key="spec.repo"
         />
+        {{ row.cluster }}
         <template v-if="row.commitDisplay">
           <div class="text-muted">
             <Shortened
@@ -129,8 +159,12 @@ export default {
           </div>
         </template>
       </template>
+      
 
-      <template #cell:clustersReady="{row}">
+      <template
+        v-if="!isClusterView"
+        #cell:clustersReady="{ row }"
+      >
         <span
           v-if="!row.clusterInfo"
           class="text-muted"
@@ -138,7 +172,8 @@ export default {
         <span
           v-else-if="row.clusterInfo.unready"
           class="text-warning"
-        >{{ row.clusterInfo.ready }}/{{ row.clusterInfo.total }}</span>
+        >{{ row.clusterInfo.ready }}/{{
+          row.clusterInfo.total }}</span>
         <span
           v-else
           class="cluster-count-info"
@@ -152,8 +187,8 @@ export default {
         </span>
       </template>
 
-      <template #cell:target="{row}">
-        {{ row.targetInfo.modeDisplay }}
+      <template #cell:target="{ row }">
+        {{ isClusterView }} {{ row.targetInfo.modeDisplay }}
       </template>
     </ResourceTable>
   </div>

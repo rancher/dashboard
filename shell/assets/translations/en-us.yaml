@@ -5573,6 +5573,7 @@ tableHeaders:
   volume: Volume
   volumeMode: Volume Mode
   weight: Weight
+  clusterResources: Cluster Resources
 target:
   router:
     label: Router

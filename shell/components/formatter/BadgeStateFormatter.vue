@@ -34,6 +34,7 @@ export default {
     value: {
       handler() {
         if (this.arbitrary) {
+          console.log('arbitrary', this.value);
           const color = colorForState(this.value);
 
           this.stateDisplay = stateDisplay(this.value);

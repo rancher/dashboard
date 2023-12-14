@@ -167,6 +167,13 @@ export const STATES_ENUM = {
   WARNING:          'warning',
 };
 
+export function mapStateToEnum(statusString) {
+  // e.g. in fleet Status is Capitalized. This function will map it to the enum
+  return Object.values(STATES_ENUM).find((val) => {
+    return val.toLowerCase() === statusString.toLocaleLowerCase()
+  });
+}
+
 export const STATES = {
   [STATES_ENUM.IN_USE]: {
     color: 'success', icon: 'dot-open', label: 'In Use', compoundIcon: 'checkmark'

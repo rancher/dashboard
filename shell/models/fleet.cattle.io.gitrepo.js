@@ -7,7 +7,7 @@ import { FLEET as FLEET_ANNOTATIONS } from '@shell/config/labels-annotations';
 import { addObject, addObjects, findBy, insertAt } from '@shell/utils/array';
 import { set } from '@shell/utils/object';
 import SteveModel from '@shell/plugins/steve/steve-class';
-import { STATES_ENUM, colorForState, stateDisplay, stateSort } from '@shell/plugins/dashboard-store/resource-class';
+import { STATES_ENUM, colorForState, mapStateToEnum, stateDisplay, stateSort } from '@shell/plugins/dashboard-store/resource-class';
 import { NAME } from '@shell/config/product/explorer';
 
 function quacksLikeAHash(str) {
@@ -203,16 +203,7 @@ export default class GitRepo extends SteveModel {
     return hash;
   }
 
-  get clusterInfo() {
-    const ready = this.status?.readyClusters || 0;
-    const total = this.status?.desiredReadyClusters || 0;
 
-    return {
-      ready,
-      unready: total - ready,
-      total,
-    };
-  }
 
   get targetInfo() {
     let mode = null;
@@ -363,6 +354,11 @@ export default class GitRepo extends SteveModel {
         const color = colorForState(state).replace('text-', 'bg-');
         const display = stateDisplay(state);
 
+        console.log({
+          clusterId: c.id,
+          state
+        });
+
         const detailLocation = {
           name:   `c-cluster-product-resource${ r.namespace ? '-namespace' : '' }-id`,
           params: {
@@ -384,8 +380,9 @@ export default class GitRepo extends SteveModel {
           namespace:              r.namespace,
           name:                   r.name,
           clusterId:              c.id,
+          clusterLabel:           c.metadata.labels[FLEET_ANNOTATIONS.CLUSTER_NAME],
           clusterName:            c.nameDisplay,
-          state,
+          state:                  mapStateToEnum(state),
           stateBackground:        color,
           stateDisplay:           display,
           stateSort:              stateSort(color, display),
@@ -399,6 +396,53 @@ export default class GitRepo extends SteveModel {
     }
 
     return out;
+  }
+
+  get clusterInfo() {
+    const ready = this.status?.readyClusters || 0;
+    const total = this.status?.desiredReadyClusters || 0;
+
+    return {
+      ready,
+      unready: total - ready,
+      total,
+    };
+  }
+
+  get clusterResourceStatus() {
+    const clusterStatuses = this.resourcesStatuses.reduce((prev, curr) => {
+      const { clusterId, clusterLabel } = curr;
+
+      const state = curr.state;
+      console.log('STATE', state);
+      if (!prev[clusterId]) {
+        prev[clusterId] = {
+          clusterLabel,
+          resourceCounts: { [curr.state]: 0, desiredReady: 0 }
+
+        };
+      }
+
+      if (!prev[clusterId].resourceCounts[curr.state]) {
+        prev[clusterId].resourceCounts[curr.state] = 0;
+      }
+
+      prev[clusterId].resourceCounts[curr.state] += 1;
+      prev[clusterId].resourceCounts.desiredReady += 1;
+
+      return prev;
+    }, {});
+
+    const values = Object.keys(clusterStatuses).map((key) => {
+      const { clusterLabel, resourceCounts } = clusterStatuses[key];
+
+      return {
+        clusterId: key,
+        clusterLabel, // FLEET LABEL
+        status:    { resourceCounts: { ...resourceCounts } }
+      };
+    });
+    return values;
   }
 
   get clustersList() {
