@@ -5,7 +5,7 @@ name: Publish Shell Package
 #     tags:
 #         - 'shell-pkg-v*'
 on:
-  pull_request:
+  pull_request_target:
 
 jobs:
   build:
@@ -43,8 +43,6 @@ jobs:
       run: yarn install
 
     - name: Publish Shell Package to npm
-      run: |
-        unset NPM_CONFIG_USERCONFIG
-        yarn publish-shell-reset-reg
+      run: yarn publish-shell-reset-reg
       env:
         NODE_AUTH_TOKEN: ${{ secrets.NPM_TOKEN }}
