@@ -44,22 +44,22 @@ import semver from 'semver';
 import { SETTING } from '@shell/config/settings';
 import { base64Encode } from '@shell/utils/crypto';
 import { CAPI as CAPI_ANNOTATIONS } from '@shell/config/labels-annotations';
-import AgentEnv from './AgentEnv';
-import Labels from './Labels';
-import MachinePool from './MachinePool';
+import AgentEnv from '@shell/edit/provisioning.cattle.io.cluster/AgentEnv';
+import Labels from '@shell/edit/provisioning.cattle.io.cluster/Labels';
+import MachinePool from '@shell/edit/provisioning.cattle.io.cluster/tabs/MachinePool';
 import SelectCredential from './SelectCredential';
 import { ELEMENTAL_SCHEMA_IDS, KIND, ELEMENTAL_CLUSTER_PROVIDER } from '../../config/elemental-types';
-import AgentConfiguration from './AgentConfiguration';
+import AgentConfiguration from '@shell/edit/provisioning.cattle.io.cluster/tabs/AgentConfiguration';
 import { getApplicableExtensionEnhancements } from '@shell/core/plugin-helpers';
 import { ExtensionPoint, TabLocation } from '@shell/core/types';
-import MemberRoles from '@shell/edit/provisioning.cattle.io.cluster/MemberRoles';
-import Basics from '@shell/edit/provisioning.cattle.io.cluster/Basics';
-import Etcd from '@shell/edit/provisioning.cattle.io.cluster/Etcd';
-import Networking from '@shell/edit/provisioning.cattle.io.cluster/Networking';
-import Upgrade from '@shell/edit/provisioning.cattle.io.cluster/Upgrade';
-import Registries from '@shell/edit/provisioning.cattle.io.cluster/Registries';
-import AddOnConfig from '@shell/edit/provisioning.cattle.io.cluster/AddOnConfig';
-import Advanced from '@shell/edit/provisioning.cattle.io.cluster/Advanced';
+import MemberRoles from '@shell/edit/provisioning.cattle.io.cluster/tabs/MemberRoles';
+import Basics from '@shell/edit/provisioning.cattle.io.cluster/tabs/Basics';
+import Etcd from '@shell/edit/provisioning.cattle.io.cluster/tabs/Etcd';
+import Networking from '@shell/edit/provisioning.cattle.io.cluster/tabs/Networking';
+import Upgrade from '@shell/edit/provisioning.cattle.io.cluster/tabs/Upgrade';
+import Registries from '@shell/edit/provisioning.cattle.io.cluster/tabs/Registries';
+import AddOnConfig from '@shell/edit/provisioning.cattle.io.cluster/tabs/AddOnConfig';
+import Advanced from '@shell/edit/provisioning.cattle.io.cluster/tabs/Advanced';
 
 const HARVESTER = 'harvester';
 const HARVESTER_CLOUD_PROVIDER = 'harvester-cloud-provider';
@@ -169,7 +169,7 @@ export default {
       set(this.value.spec, 'rkeConfig.machineSelectorConfig', [{ config: {} }]);
     }
 
-    const truncateLimit = this.value.defaultHostnameLengthLimit;
+    const truncateLimit = this.value.defaultHostnameLengthLimit || 0;
 
     return {
       loadedOnce:                      false,
@@ -201,13 +201,11 @@ export default {
       userChartValues:                 {},
       userChartValuesTemp:             {},
       addonsRev:                       0,
-      clusterIsAlreadyCreated:         !!this.value.id,
       fvFormRuleSets:                  [{
         path: 'metadata.name', rules: ['subDomain'], translationKey: 'nameNsDescription.name.label'
       }],
       harvesterVersionRange: {},
       cisOverride:           false,
-      truncateHostnames:     truncateLimit === NETBIOS_TRUNCATION_LENGTH,
       truncateLimit,
       busy:                  false,
       machinePoolValidation: {}, // map of validation states for each machine pool
@@ -314,10 +312,6 @@ export default {
       }
 
       return out;
-    },
-
-    isK3s() {
-      return (this.value?.spec?.kubernetesVersion || '').includes('k3s');
     },
 
     /**
@@ -975,10 +969,12 @@ export default {
     /**
      * set instanceNameLimit to 15 to all pool machine if truncateHostnames checkbox is clicked
      */
-    truncateName(neu) {
+    truncateHostname(neu) {
       if (neu) {
         this.value.defaultHostnameLengthLimit = NETBIOS_TRUNCATION_LENGTH;
+        this.truncateLimit = NETBIOS_TRUNCATION_LENGTH;
       } else {
+        this.truncateLimit = 0;
         this.value.removeDefaultHostnameLengthLimit();
       }
     },
@@ -1479,13 +1475,21 @@ export default {
       }
     },
 
-    showAddons() {
+    showAddons(key) {
       this.addonsRev++;
       this.addonNames.forEach((name) => {
         const chartValues = this.versionInfo[name]?.questions ? this.initYamlEditor(name) : {};
 
         set(this.userChartValuesTemp, name, chartValues);
       });
+      this.refreshComponentWithYamls(key);
+    },
+    refreshComponentWithYamls(key) {
+      const component = this.$refs[key];
+
+      if ( component ) {
+        this.refreshYamls(component.$refs);
+      }
     },
 
     refreshYamls(refs) {
@@ -2144,12 +2148,15 @@ export default {
         class="min-height"
       >
         <Tab
+          ref="index"
           name="basic"
           label-key="cluster.tabs.basic"
           :weight="11"
+          @active="refreshComponentWithYamls('tab-Basics')"
         >
           <!-- Basic -->
           <Basics
+            ref="tab-Basics"
             v-model="value"
             :live-value="liveValue"
             :mode="mode"
@@ -2164,15 +2171,12 @@ export default {
             :is-harvester-driver="isHarvesterDriver"
             :is-harvester-incompatible="isHarvesterIncompatible"
             :version-options="versionOptions"
-            :cluster-is-already-created="clusterIsAlreadyCreated"
             :is-elemental-cluster="isElementalCluster"
-            :is-k3s="isK3s"
             :have-arg-info="haveArgInfo"
             :show-cni="showCni"
             :show-cloud-provider="showCloudProvider"
             :unsupported-cloud-provider="unsupportedCloudProvider"
             :cloud-provider-options="cloudProviderOptions"
-            :refresh-yamls="refreshYamls"
             @cilium-ipv6-changed="handleCiliumIpv6Changed"
             @enabled-system-services-changed="handleEnabledSystemServicesChanged"
             @kubernetes-changed="handleKubernetesChange"
@@ -2221,9 +2225,8 @@ export default {
             v-model="value"
             :mode="mode"
             :selected-version="selectedVersion"
-            :cluster-is-already-created="clusterIsAlreadyCreated"
-            :is-view="isView"
-            @truncate-name="truncateName"
+            :truncate-limit="truncateLimit"
+            @truncate-hostname="truncateHostname"
           />
         </Tab>
 
@@ -2234,7 +2237,6 @@ export default {
         >
           <Upgrade
             v-model="value"
-            :get="get"
             :mode="mode"
           />
         </Tab>
@@ -2252,7 +2254,6 @@ export default {
             :registry-host="registryHost"
             :registry-secret="registrySecret"
             :show-custom-registry-advanced-input="showCustomRegistryAdvancedInput"
-            :is-k3s="isK3s"
             @update-configs-changed="updateConfigs"
             @custom-registry-changed="toggleCustomRegistry"
             @registry-host-changed="handleRegistryHostChanged"
@@ -2264,9 +2265,10 @@ export default {
         <Tab
           name="addons"
           label-key="cluster.tabs.addons"
-          @active="showAddons"
+          @active="showAddons('tab-addOnConfig')"
         >
           <AddOnConfig
+            ref="tab-addOnConfig"
             v-model="value"
             :mode="mode"
             :version-info="versionInfo"
@@ -2274,7 +2276,6 @@ export default {
             :addons-rev="addonsRev"
             :user-chart-values-temp="userChartValuesTemp"
             :init-yaml-editor="initYamlEditor"
-            :refresh-yamls="refreshYamls"
             @update-questions="syncChartValues"
             @update-values="updateValues"
             @additional-manifest-changed="updateAdditionalManifest"

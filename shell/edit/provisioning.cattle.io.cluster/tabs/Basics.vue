@@ -11,6 +11,7 @@ import LabeledSelect from '@shell/components/form/LabeledSelect';
 import YamlEditor from '@shell/components/YamlEditor';
 import { LEGACY } from '@shell/store/features';
 import semver from 'semver';
+import { _EDIT } from '@shell/config/query-params';
 
 const HARVESTER = 'harvester';
 
@@ -86,15 +87,7 @@ export default {
       type:     Boolean,
       required: true
     },
-    clusterIsAlreadyCreated: {
-      type:     Boolean,
-      required: true
-    },
     isElementalCluster: {
-      type:     Boolean,
-      required: true
-    },
-    isK3s: {
       type:     Boolean,
       required: true
     },
@@ -117,14 +110,7 @@ export default {
     cloudProviderOptions: {
       type:     Array,
       required: true
-    },
-    refreshYamls: {
-      type:     Function,
-      required: true
     }
-  },
-  beforeUpdate() {
-    this.refreshYamls(this.$refs);
   },
 
   computed: {
@@ -173,7 +159,7 @@ export default {
      * Get the default label for the PSA template option
      */
     defaultPsaOptionLabel() {
-      const optionCase = !this.isK3s ? 'default' : 'none';
+      const optionCase = !this.value.isK3s ? 'default' : 'none';
 
       return this.$store.getters['i18n/t'](`cluster.rke2.defaultPodSecurityAdmissionConfigurationTemplateName.option.${ optionCase }`);
     },
@@ -216,7 +202,7 @@ export default {
     disableOptions() {
       return (this.serverArgs.disable.options || []).map((value) => {
         return {
-          label: this.$store.getters['i18n/withFallback'](`cluster.${ this.isK3s ? 'k3s' : 'rke2' }.systemService."${ value }"`, null, value.replace(/^(rke2|rancher)-/, '')),
+          label: this.$store.getters['i18n/withFallback'](`cluster.${ this.value.isK3s ? 'k3s' : 'rke2' }.systemService."${ value }"`, null, value.replace(/^(rke2|rancher)-/, '')),
           value,
         };
       });
@@ -310,8 +296,12 @@ export default {
       }
     },
 
+    isEdit() {
+      return this.mode === _EDIT;
+    },
+
     canNotEditCloudProvider() {
-      const canNotEdit = this.clusterIsAlreadyCreated && !this.unsupportedCloudProvider;
+      const canNotEdit = this.isEdit && !this.unsupportedCloudProvider;
 
       return canNotEdit;
     },
@@ -402,7 +392,7 @@ export default {
         <LabeledSelect
           v-model="serverConfig.cni"
           :mode="mode"
-          :disabled="clusterIsAlreadyCreated"
+          :disabled="isEdit"
           :options="serverArgs.cni.options"
           :label="t('cluster.rke2.cni.label')"
         />
