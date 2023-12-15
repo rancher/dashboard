@@ -23,7 +23,6 @@ env:
   TEST_PROJECT_ID: rancher-dashboard
   CYPRESS_API_URL: http://139.59.134.103:1234/
   TEST_RUN_ID: ${{github.run_number}}-${{github.run_attempt}}-${{github.event.pull_request.title || github.event.head_commit.message}}
-  CYPRESS_coverage: true
   # Build the dashboard to use in tests. When set to false it will grab `latest` from CDN (useful for running e2e tests quickly)
   BUILD_DASHBOARD: true
 
@@ -82,20 +81,10 @@ jobs:
         run: |
           yarn e2e:prod
           [ "$BUILD_DASHBOARD" != "false" ] || exit 0
-          mkdir -p coverage-artifacts/coverage
-          cp coverage/e2e/coverage-final.json coverage-artifacts/coverage/coverage-e2e.json
-          cp -r coverage/e2e/ coverage-artifacts/coverage/e2e/
         env: 
           TEST_SKIP: setup
           GREP_TAGS: ${{ matrix.role.tag }}+${{ matrix.features[0] }} --@jenkins ${{ matrix.role.tag }}+${{ matrix.features[1] || matrix.features[0] }} --@jenkins
           TEST_USERNAME: ${{ matrix.role.username }}
-        
-      - name: Upload coverage
-        uses: actions/upload-artifact@v3
-        if: env.BUILD_DASHBOARD != 'false'
-        with:
-          name: ${{github.run_number}}-${{github.run_attempt}}-coverage-${{ matrix.role.tag }}+${{ matrix.features[0] }}
-          path: coverage-artifacts/**/*
           
       - name: Upload screenshots
         uses: actions/upload-artifact@v3
@@ -163,11 +152,9 @@ jobs:
         run: yarn lint
 
   coverage:
-    if: "!contains( github.event.pull_request.labels.*.name, 'ci/skip-e2e')"
     runs-on: ubuntu-latest
     needs:
       - unit-test
-      - e2e-test
     steps:
       - uses: actions/checkout@v3
         with:
@@ -182,16 +169,10 @@ jobs:
         with:
           name: ${{github.run_number}}-${{github.run_attempt}}-coverage
 
-      - name: Merge coverage files
-        run: |
-          ls
-          yarn coverage
-          ls coverage
-
-      - name: Upload merged coverage to Codecov
+      - name: Upload unit test coverage to Codecov
         uses: codecov/codecov-action@v3
         with:
           token: ${{ secrets.CODECOV_TOKEN }}
-          flags: merged
-          files: ./coverage/coverage.json
+          flags: unit
+          files: ./coverage/coverage-unit.json
           fail_ci_if_error: false
