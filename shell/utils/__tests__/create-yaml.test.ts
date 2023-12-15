@@ -60,4 +60,42 @@ describe('fx: dumpBlock', () => {
       });
     });
   });
+
+  it('should retain line breaks when a line longer than 80 characters exists', () => {
+    const data = {
+      'managerApiConfiguration.properties': `# Sample XPlanManagerAPI Configuration (if this comment is longer than 80 characters, the output should remain the same)
+
+apiUrl=https://example.com/xplan-api-manager
+contactEmailAddress=contact@example.com
+termsOfServiceUrl=https://example.com/terms
+documentationUrl=https://example.com/docs
+wmsUrl=https://example.com/xplan-wms/services
+skipSemantic=false
+skipGeometric=true`
+    };
+
+    const expectedResult = `managerApiConfiguration.properties: >+
+  # Sample XPlanManagerAPI Configuration (if this comment is longer than 80 characters, the output should remain the same)
+
+  apiUrl=https://example.com/xplan-api-manager
+  contactEmailAddress=contact@example.com
+  termsOfServiceUrl=https://example.com/terms
+  documentationUrl=https://example.com/docs
+  wmsUrl=https://example.com/xplan-wms/services
+  skipSemantic=false
+  skipGeometric=true
+`;
+
+    const yamlModifiers = {
+      lineWidth:                            -1,
+      'managerApiConfiguration.properties': {
+        chomping:    '+',
+        scalarStyle: '>',
+      }
+    };
+
+    const result = dumpBlock(data, yamlModifiers);
+
+    expect(result).toStrictEqual(expectedResult);
+  });
 });
