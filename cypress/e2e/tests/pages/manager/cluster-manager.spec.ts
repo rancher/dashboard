@@ -45,7 +45,7 @@ describe('Cluster Manager', { testIsolation: 'off', tags: ['@manager', '@adminUs
       it('can create new cluster', () => {
         cy.intercept('POST', `/v1/${ type }s`).as('createRequest');
         const request = {
-          type,
+          // type,
           metadata: {
             namespace,
             name: rke2CustomName
