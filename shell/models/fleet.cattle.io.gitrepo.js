@@ -7,7 +7,9 @@ import { FLEET as FLEET_ANNOTATIONS } from '@shell/config/labels-annotations';
 import { addObject, addObjects, findBy, insertAt } from '@shell/utils/array';
 import { set } from '@shell/utils/object';
 import SteveModel from '@shell/plugins/steve/steve-class';
-import { STATES_ENUM, colorForState, mapStateToEnum, stateDisplay, stateSort } from '@shell/plugins/dashboard-store/resource-class';
+import {
+  STATES_ENUM, colorForState, mapStateToEnum, primaryDisplayStatusFromCount, stateDisplay, stateSort
+} from '@shell/plugins/dashboard-store/resource-class';
 import { NAME } from '@shell/config/product/explorer';
 
 function quacksLikeAHash(str) {
@@ -203,8 +205,6 @@ export default class GitRepo extends SteveModel {
     return hash;
   }
 
-
-
   get targetInfo() {
     let mode = null;
     let cluster = null;
@@ -354,11 +354,6 @@ export default class GitRepo extends SteveModel {
         const color = colorForState(state).replace('text-', 'bg-');
         const display = stateDisplay(state);
 
-        console.log({
-          clusterId: c.id,
-          state
-        });
-
         const detailLocation = {
           name:   `c-cluster-product-resource${ r.namespace ? '-namespace' : '' }-id`,
           params: {
@@ -414,20 +409,20 @@ export default class GitRepo extends SteveModel {
       const { clusterId, clusterLabel } = curr;
 
       const state = curr.state;
-      console.log('STATE', state);
+
       if (!prev[clusterId]) {
         prev[clusterId] = {
           clusterLabel,
-          resourceCounts: { [curr.state]: 0, desiredReady: 0 }
+          resourceCounts: { [state]: 0, desiredReady: 0 }
 
         };
       }
 
-      if (!prev[clusterId].resourceCounts[curr.state]) {
-        prev[clusterId].resourceCounts[curr.state] = 0;
+      if (!prev[clusterId].resourceCounts[state]) {
+        prev[clusterId].resourceCounts[state] = 0;
       }
 
-      prev[clusterId].resourceCounts[curr.state] += 1;
+      prev[clusterId].resourceCounts[state] += 1;
       prev[clusterId].resourceCounts.desiredReady += 1;
 
       return prev;
@@ -439,9 +434,13 @@ export default class GitRepo extends SteveModel {
       return {
         clusterId: key,
         clusterLabel, // FLEET LABEL
-        status:    { resourceCounts: { ...resourceCounts } }
+        status:    {
+          displayStatus:  primaryDisplayStatusFromCount(resourceCounts),
+          resourceCounts: { ...resourceCounts }
+        }
       };
     });
+
     return values;
   }
 

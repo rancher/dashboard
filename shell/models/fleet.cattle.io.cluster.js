@@ -1,4 +1,4 @@
-import { FLEET, LOCAL_CLUSTER, MANAGEMENT, NORMAN } from '@shell/config/types';
+import { LOCAL_CLUSTER, MANAGEMENT, NORMAN } from '@shell/config/types';
 import { CAPI, FLEET as FLEET_LABELS } from '@shell/config/labels-annotations';
 import { _RKE2 } from '@shell/store/prefs';
 import SteveModel from '@shell/plugins/steve/steve-class';

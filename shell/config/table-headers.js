@@ -718,12 +718,13 @@ export const FLEET_REPO_CLUSTER_SUMMARY = {
 };
 
 export const FLEET_REPO_PER_CLUSTER_STATE = {
-  name:      'perClusterState',
-  labelKey:  'tableHeaders.state',
-  sort:      ['stateSort', 'nameSort'],
-  width:     100,
-  default:   'unknown',
-  formatter: 'BadgeStateFormatter',
+  name:          'perClusterState',
+  labelKey:      'tableHeaders.repoPerClusterState',
+  tooltip:       'tableHeaders.repoPerClusterStateTooltip',
+  sort:          ['stateSort', 'nameSort'],
+  width:         100,
+  default:       'unknown',
+  formatter:     'BadgeStateFormatter',
   formatterOpts: { arbitrary: true }
 
 };

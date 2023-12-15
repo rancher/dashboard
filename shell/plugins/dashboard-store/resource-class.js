@@ -171,7 +171,7 @@ export const STATES_ENUM = {
 export function mapStateToEnum(statusString) {
   // e.g. in fleet Status is Capitalized. This function will map it to the enum
   return Object.values(STATES_ENUM).find((val) => {
-    return val.toLowerCase() === statusString.toLocaleLowerCase()
+    return val.toLowerCase() === statusString.toLocaleLowerCase();
   });
 }
 
@@ -521,6 +521,28 @@ export function stateDisplay(state) {
   }
 
   return key.split(/-/).map(ucFirst).join('-');
+}
+
+export function primaryDisplayStatusFromCount(status) {
+  const statusOrder = [
+    STATES_ENUM.ERROR,
+    STATES_ENUM.FAILED,
+    STATES_ENUM.WARNING,
+    STATES_ENUM.MODIFIED,
+    STATES_ENUM.WAIT_APPLIED,
+    STATES_ENUM.ORPHANED,
+    STATES_ENUM.MISSING,
+    STATES_ENUM.UNKNOWN,
+    STATES_ENUM.NOT_READY,
+    STATES_ENUM.READY,
+  ];
+
+  // sort status by order of statusOrder
+  const existingStatuses = Object.keys(status).filter((key) => {
+    return status[key] > 0 && statusOrder.includes(key.toLowerCase());
+  }).sort((a, b) => statusOrder.indexOf(a.toLowerCase()) - statusOrder.indexOf(b.toLowerCase()));
+
+  return existingStatuses[0] ? existingStatuses[0] : STATES_ENUM.UNKNOWN;
 }
 
 export function stateSort(color, display) {

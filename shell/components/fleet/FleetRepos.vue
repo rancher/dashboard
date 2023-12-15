@@ -30,6 +30,7 @@ export default {
     clusterId: {
       type:     String,
       required: false,
+      default:  null,
     },
     rows: {
       type:     Array,
@@ -75,32 +76,33 @@ export default {
     },
 
     headers() {
-
-      console.log('HEADERS', this.isClusterView, this.clusterId)
-      const summary = this.isClusterView ? [
-        {
-          ...FLEET_REPO_CLUSTER_SUMMARY,
-          formatterOpts: {
-            // Fleet uses labels to identify clusters
-            clusterLabel: this.clusterId
-          },
+      // Cluster summary is only shown in the cluster view
+      const fleetClusterSummary = {
+        ...FLEET_REPO_CLUSTER_SUMMARY,
+        formatterOpts: {
+          // Fleet uses labels to identify clusters
+          clusterLabel: this.clusterId
         },
-        {
-          ...FLEET_REPO_PER_CLUSTER_STATE,
-          value:  (row) => {
-            const hasPerClusterState = row.status?.resources?.perClusterState?.find((x) => {
-              return x.clusterName === this.clusterId;
-            })?.state;
+      };
 
-            // if hasperClusterState then use the repo state
-            // else use the cluster state
-            console.log('hasPerClusterState', hasPerClusterState)
-            return hasPerClusterState ? row.state : STATES_ENUM.ACTIVE;
-          },
-        }
-      ] : [FLEET_REPO_CLUSTERS_READY, FLEET_SUMMARY];
+      // if hasPerClusterState then use the repo state
+      const fleetPerClusterState = {
+        ...FLEET_REPO_PER_CLUSTER_STATE,
+        value: (row) => {
+          const perClusterState = row.clusterResourceStatus?.find((c) => {
+            return c.clusterLabel === this.clusterId;
+          });
+
+          return perClusterState ? perClusterState?.status?.displayStatus : STATES_ENUM.ACTIVE;
+        },
+      };
+
+      const summary = this.isClusterView ? [fleetClusterSummary] : [FLEET_REPO_CLUSTERS_READY, FLEET_SUMMARY];
+
+      const state = this.isClusterView ? fleetPerClusterState : STATE;
+
       const out = [
-        STATE,
+        state,
         NAME,
         FLEET_REPO,
         FLEET_REPO_TARGET,
@@ -159,7 +161,6 @@ export default {
           </div>
         </template>
       </template>
-      
 
       <template
         v-if="!isClusterView"

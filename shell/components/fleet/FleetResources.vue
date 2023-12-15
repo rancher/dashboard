@@ -15,6 +15,7 @@ export default {
     clusterId: {
       type:     String,
       required: false,
+      default:  null,
     },
   },
 

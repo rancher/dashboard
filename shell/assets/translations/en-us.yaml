@@ -5590,6 +5590,8 @@ tableHeaders:
   volumeMode: Volume Mode
   weight: Weight
   clusterResources: Cluster Resources
+  repoPerClusterState: Cluster State
+  repoPerClusterStateTooltip: The state of the repo on the cluster
 target:
   router:
     label: Router
