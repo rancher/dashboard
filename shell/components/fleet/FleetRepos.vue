@@ -188,7 +188,7 @@ export default {
       </template>
 
       <template #cell:target="{ row }">
-        {{ isClusterView }} {{ row.targetInfo.modeDisplay }}
+        {{ row.targetInfo.modeDisplay }}
       </template>
     </ResourceTable>
   </div>
