@@ -115,13 +115,8 @@ export const getters = {
         repoName = chart.repoName;
       }
 
-      // Return nothing if cannot filter the charts, to avoid mismatches
-      if (!(key || (repoType && repoName && chartName))) {
-        return;
-      }
-
       // Get data as key of the retrieved Charts (currently same as ID)
-      if ( key && !repoType && !repoName && !chartName) {
+      if ( key && !(repoType && repoName && chartName)) {
         const keyParts = key.split('/');
 
         repoType = keyParts[0];
@@ -140,6 +135,7 @@ export const getters = {
         matchingCharts = matchingCharts.filter((x) => !x.hidden);
       }
 
+      //  No charts found
       if ( !matchingCharts.length ) {
         return;
       }
