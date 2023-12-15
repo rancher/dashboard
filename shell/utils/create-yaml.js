@@ -473,7 +473,9 @@ export function dumpBlock(data, options = {}) {
       /**
        * Replace the original block indicators with the ones provided in the options param
        */
-      out = out.replace(header, `${ key }: ${ scalarStyle }${ chomping }${ indentation }`);
+      if (header) {
+        out = out.replace(header, `${ key }: ${ scalarStyle }${ chomping }${ indentation }`);
+      }
     }
   }
 

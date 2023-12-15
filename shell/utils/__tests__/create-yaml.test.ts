@@ -98,4 +98,26 @@ skipGeometric=true`
 
     expect(result).toStrictEqual(expectedResult);
   });
+
+  it('should not attempt to replace indicators when a header cannot be found', () => {
+    const data = {
+      a: 'a\nb\tc',
+      b: 'a\nb\tc',
+      c: `a
+b c`
+    };
+
+    const expectedResult = `a: "a\\nb\\tc"\nb: "a\\nb\\tc"\nc: |+\n  a\n  b c\n`;
+
+    const yamlModifiers = {
+      lineWidth: -1,
+      a:         { chomping: '+' },
+      b:         { chomping: '+' },
+      c:         { chomping: '+' },
+    };
+
+    const result = dumpBlock(data, yamlModifiers);
+
+    expect(result).toStrictEqual(expectedResult);
+  });
 });
