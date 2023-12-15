@@ -25,7 +25,7 @@ describe('getters', () => {
           repoName:  undefined,
           chartName: 'chartName',
         },
-      ])('if missing arguments for filtering', (options) => {
+      ])('if missing arguments for filtering %p', (options) => {
         const result = (getters.chart as any)({}, {})({
           key: undefined,
           ...options
