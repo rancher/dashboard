@@ -2,8 +2,6 @@
 // This file was generated during Nuxt migration
 
 import Vue from 'vue';
-import ClientOnly from 'vue-client-only';
-import NoSsr from 'vue-no-ssr';
 import { createRouter } from '../config/router.js';
 import NuxtChild from '../components/nuxt/nuxt-child.js';
 import NuxtError from '../layouts/error.vue';
@@ -66,23 +64,6 @@ Vue.directive = function(name) {
 // prevents over-writes
 loadDirectives();
 
-// Component: <ClientOnly>
-Vue.component(ClientOnly.name, ClientOnly);
-
-// TODO: Remove in Nuxt 3: <NoSsr>
-Vue.component(NoSsr.name, {
-  ...NoSsr,
-  render(h, ctx) {
-    if (!NoSsr._warned) {
-      NoSsr._warned = true;
-
-      console.warn('<no-ssr> has been deprecated and will be removed in Nuxt 3, please use <client-only> instead'); // eslint-disable-line no-console
-    }
-
-    return NoSsr.render(h, ctx);
-  }
-});
-
 // Component: <NuxtChild>
 Vue.component(NuxtChild.name, NuxtChild);
 Vue.component('NChild', NuxtChild);
@@ -109,10 +90,10 @@ const defaultTransition = {
   name: 'page', mode: 'out-in', appear: true, appearClass: 'appear', appearActiveClass: 'appear-active', appearToClass: 'appear-to'
 };
 
-async function createApp(ssrContext, config = {}) {
-  const router = await createRouter(ssrContext, config);
+async function createApp(config = {}) {
+  const router = await createRouter(config);
 
-  const store = createStore(ssrContext);
+  const store = createStore();
 
   // Add this.$router into store actions/mutations
   store.$router = router;
@@ -160,10 +141,6 @@ async function createApp(ssrContext, config = {}) {
         }
         nuxt.dateErr = Date.now();
         nuxt.err = err;
-        // Used in src/server.js
-        if (ssrContext) {
-          ssrContext.nuxt.error = err;
-        }
 
         return err;
       }
@@ -174,29 +151,21 @@ async function createApp(ssrContext, config = {}) {
   // Make app available into store via this.app
   store.app = app;
 
-  const next = ssrContext ? ssrContext.next : (location) => app.router.push(location);
+  const next = (location) => app.router.push(location);
   // Resolve route
-  let route;
 
-  if (ssrContext) {
-    route = router.resolve(ssrContext.url).route;
-  } else {
-    const path = getLocation(router.options.base, router.options.mode);
-
-    route = router.resolve(path).route;
-  }
+  const path = getLocation(router.options.base, router.options.mode);
+  const route = router.resolve(path).route;
 
   // Set context to app.context
   await setContext(app, {
     store,
     route,
     next,
-    error:           app.nuxt.error.bind(app),
-    payload:         ssrContext ? ssrContext.payload : undefined,
-    req:             ssrContext ? ssrContext.req : undefined,
-    res:             ssrContext ? ssrContext.res : undefined,
-    beforeRenderFns: ssrContext ? ssrContext.beforeRenderFns : undefined,
-    ssrContext
+    error:   app.nuxt.error.bind(app),
+    payload: undefined,
+    req:     undefined,
+    res:     undefined
   });
 
   function inject(key, value) {

@@ -126,7 +126,7 @@ if (debug) {
 const errorHandler = Vue.config.errorHandler || console.error; // eslint-disable-line no-console
 
 // Create and mount App
-createApp(null, nuxt.publicRuntimeConfig).then(mountApp).catch(errorHandler); // eslint-disable-line no-undef
+createApp(nuxt.publicRuntimeConfig).then(mountApp).catch(errorHandler); // eslint-disable-line no-undef
 
 function componentOption(component, key, ...args) {
   if (!component || !component.options || !component.options[key]) {
@@ -230,16 +230,6 @@ async function loadAsyncComponents(to, from, next) {
   }
 }
 
-function applySSRData(Component, ssrData) {
-  if (NUXT.serverRendered && ssrData) {
-    applyAsyncData(Component, ssrData);
-  }
-
-  Component._Ctor = Component;
-
-  return Component;
-}
-
 // Get matched components
 function resolveComponents(route) {
   return flatMapComponents(route, async(Component, _, match, key, index) => {
@@ -247,12 +237,13 @@ function resolveComponents(route) {
     if (typeof Component === 'function' && !Component.options) {
       Component = await Component();
     }
+
     // Sanitize it and save it
-    const _Component = applySSRData(sanitizeComponent(Component), NUXT.data ? NUXT.data[index] : null);
+    Component._Ctor = sanitizeComponent(Component);
 
-    match.components[key] = _Component;
+    match.components[key] = Component;
 
-    return _Component;
+    return Component;
   });
 }
 
