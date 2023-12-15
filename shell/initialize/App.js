@@ -21,25 +21,10 @@ export default {
       key:      this.layoutName
     }, [layoutEl]);
 
-    const transitionEl = h('transition', {
-      props: {
-        name: 'layout',
-        mode: 'out-in'
-      },
-      on: {
-        beforeEnter(el) {
-          // Ensure to trigger scroll event after calling scrollBehavior
-          window.$nuxt.$nextTick(() => {
-            window.$nuxt.$emit('triggerScroll');
-          });
-        }
-      }
-    }, [templateEl]);
-
     return h('div', { domProps: { id: '__nuxt' } }, [
       loadingEl,
       // h(NuxtBuildIndicator), // The build indicator doesn't work as is right now and emits an error in the console so I'm leaving it out for now
-      transitionEl
+      templateEl
     ]);
   },
 
