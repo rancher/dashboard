@@ -17,7 +17,7 @@ import {
 
 } from '@shell/config/table-headers';
 import { FLEET } from '@shell/config/labels-annotations';
-import { STATES_ENUM } from 'plugins/dashboard-store/resource-class';
+import { STATES_ENUM } from '@shell/plugins/dashboard-store/resource-class';
 
 export default {
 
@@ -89,11 +89,11 @@ export default {
       const fleetPerClusterState = {
         ...FLEET_REPO_PER_CLUSTER_STATE,
         value: (row) => {
-          const perClusterState = row.clusterResourceStatus?.find((c) => {
+          const statePerCluster = row.clusterResourceStatus?.find((c) => {
             return c.clusterLabel === this.clusterId;
           });
 
-          return perClusterState ? perClusterState?.status?.displayStatus : STATES_ENUM.ACTIVE;
+          return statePerCluster ? statePerCluster?.status?.displayStatus : STATES_ENUM.ACTIVE;
         },
       };
 

@@ -2,17 +2,17 @@
 import FleetSummaryGraph from '@shell/components/formatter/FleetSummaryGraph';
 
 export default {
-  name:       'FleetClusterSummaryGraph',
+  name: 'FleetClusterSummaryGraph',
   components: { FleetSummaryGraph },
 
   props: {
     row: {
-      type:     Object,
+      type: Object,
       required: true
     },
 
     clusterLabel: {
-      type:     String,
+      type: String,
       required: true
     }
   },
@@ -20,11 +20,5 @@ export default {
 </script>
 
 <template>
-  <div>
-    cluster sum {{ clusterLabel }}
-    <FleetSummaryGraph
-      :row="row"
-      :clusterLabel="clusterLabel"
-    />
-  </div>
+  <FleetSummaryGraph :row="row" :clusterLabel="clusterLabel" />
 </template>
