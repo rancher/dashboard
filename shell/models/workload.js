@@ -7,7 +7,7 @@ import { convertSelectorObj, matching, matches } from '@shell/utils/selector';
 import { SEPARATOR } from '@shell/config/workload';
 import WorkloadService from '@shell/models/workload.service';
 import { NEVER_ADD_CONTAINER_FIELDS } from '@shell/utils/create-yaml';
-import _ from 'lodash';
+import { unset } from 'lodash';
 
 export const defaultContainer = {
   imagePullPolicy: 'Always',
@@ -654,7 +654,7 @@ export default class Workload extends WorkloadService {
 
   removeContainerField(container) {
     for (const field of NEVER_ADD_CONTAINER_FIELDS) {
-      _.unset(container, field);
+      unset(container, field);
     }
 
     return container;
