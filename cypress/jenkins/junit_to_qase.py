@@ -74,6 +74,7 @@ def sanitize_suite_title(string_to_clean):
             .replace(".", " ") \
             .replace("\"", "") \
             .replace(":", "") \
+            .replace(",", "") \
             .strip()
 
 
@@ -81,6 +82,7 @@ def sanitize_testcase_title(string_to_clean):
     return string_to_clean.replace(".", " ") \
             .replace("\"", "") \
             .replace(":", "") \
+            .replace(",", "") \
             .replace("before all hook for ", "") \
             .replace("before each hook for ", "") \
             .replace("after all hook for ", "") \
@@ -90,7 +92,9 @@ def sanitize_testcase_title(string_to_clean):
 
 results = {}
 
-suite_title = soup.find_all("testsuite", {"name": True})
+suite_title_tmp = soup.find_all("testsuite", {"name": True})
+suite_title = [s for s in suite_title_tmp if s.attrs["name"] != ""]
+
 for ts in suite_title:
     testcases = ts.findChildren("testcase", recursive=False)
     if len(testcases) > 0:
@@ -184,10 +188,10 @@ def qase_update_suite(project, payload, suite_id):
         return None
 
 
-def qase_search_qql(search_query):
+def qase_search_qql(search_query, limit=100):
     if isinstance(search_query, dict):
         params = url_parse.urlencode(search_query, quote_via=url_parse.quote)
-        return requests.get("{0}/search".format(base_url), params=params,
+        return requests.get("{0}/search?limit={1}".format(base_url, limit), params=params,
                             headers=qase_headers)
 
 
@@ -289,14 +293,14 @@ def create_testcases_under_suite(all_cases_under_suite, suite_title_from_qase, s
                 qase_update_case(qase_automation_project, req_body, case_id_from_title)
 
 
-check_global_suite = qase_suites(qase_automation_project)
+global_suite_id_name = "Global UI"
+global_suite_id = None
+check_global_suite = qase_suites(qase_automation_project, search_string=global_suite_id_name)
 logger.info(check_global_suite.text)
 logger.info(check_global_suite.status_code)
 suite_objects = check_global_suite.json()["result"]["entities"]
 suite_titles = [subs["title"] for subs in suite_objects]
 suite_title_and_id = {subs["title"]: subs['id'] for subs in suite_objects}
-global_suite_id_name = "Global UI"
-global_suite_id = None
 
 if global_suite_id_name not in suite_titles:
     suite_post_data = {"title": global_suite_id_name}
@@ -308,7 +312,7 @@ else:
 logger.info("Suite ID: {0} Name: {1}".format(global_suite_id, global_suite_id_name))
 
 for k in list(results.keys()):
-    suite = qase_suites(qase_automation_project)
+    suite = qase_suites(qase_automation_project, search_string=k)
     suite_result = suite.json()
     if suite_result["status"]:
         suite_entities = suite_result["result"]["entities"]
@@ -316,9 +320,7 @@ for k in list(results.keys()):
         logger.error("No suites were found")
         break
 
-    titles = [subs["title"] for subs in suite_entities]
-    suiteid = None
-    if k not in titles:
+    if len(suite_entities) < 1:
         suite_data = {"title": k, "parent_id": global_suite_id}
         r = qase_add_suite(qase_automation_project, suite_data)
         suiteid = r.json()["result"]["id"]
@@ -333,6 +335,8 @@ for k in list(results.keys()):
                      format("case", qase_automation_project, k))
         cases_qql = qase_search_qql({"query": " entity = \"{0}\" and project = \"{1}\" and suite = \"{2}\"".
                                     format("case", qase_automation_project, k)})
+
+        suiteid = None
         for st in suite_entities:
             if st["title"] == k:
                 suiteid = st["id"]
