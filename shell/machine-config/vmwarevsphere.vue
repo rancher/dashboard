@@ -351,6 +351,24 @@ export default {
 
     gracefulShutdownTimeout: integerString('value.gracefulShutdownTimeout'),
 
+    network: {
+      get() {
+        return this.value.network || [];
+      },
+      set(newValue) {
+        set(this.value, 'network', newValue);
+      }
+    },
+
+    tag: {
+      get() {
+        return this.value.tag || [];
+      },
+      set(newValue) {
+        set(this.value, 'tag', newValue);
+      }
+    },
+
     showCloudConfigYaml() {
       return this.value.creationType !== 'legacy';
     },
@@ -637,9 +655,6 @@ export default {
         }
 
         if ([_EDIT, _VIEW].includes(this.mode)) {
-          if (['tag', 'network'].includes(key) && !this.value[key]) {
-            set(this.value, key, []);
-          }
           this.manageErrors(errorActions.CREATE, key);
         }
       } else {
@@ -1019,8 +1034,7 @@ export default {
               {{ t('cluster.machineConfig.vsphere.networks.label') }}
             </label>
             <ArrayListSelect
-              v-if="!!value.network"
-              v-model="value.network"
+              v-model="network"
               :options="networks"
               :array-list-props="{ addLabel: t('cluster.machineConfig.vsphere.networks.add') }"
               :loading="networksLoading"
@@ -1062,8 +1076,7 @@ export default {
       </h4>
       <div slot="body">
         <ArrayListSelect
-          v-if="!!value.tag"
-          v-model="value.tag"
+          v-model="tag"
           :options="tags"
           :array-list-props="{ addLabel: t('cluster.machineConfig.vsphere.tags.addTag') }"
           :loading="tagsLoading"
