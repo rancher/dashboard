@@ -37,7 +37,6 @@ export const createDeploymentBlueprint = {
 };
 
 export const deploymentCreateRequest = {
-  type:     'apps.deployment',
   metadata: {
     namespace: 'default',
     labels:    { 'workload.user.cattle.io/workloadselector': 'apps.deployment-default-test-deployment' },
