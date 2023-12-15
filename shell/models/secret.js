@@ -408,6 +408,7 @@ export default class Secret extends SteveModel {
 
     return val;
   }
+
   get certLifetime() {
     if (this._type === TYPES.TLS) {
       const certInfo = this.cachedCertInfo;
