@@ -30,6 +30,7 @@ DASHBOARD_REPO="${DASHBOARD_REPO:-rancher/dashboard.git}"
 DASHBOARD_BRANCH="${DASHBOARD_BRANCH:-master}"
 GITHUB_URL="https://github.com/"
 RANCHER_TYPE="${RANCHER_TYPE:-local}"
+HELM_VERSION="${HELM_VERSION:-3.13.2}"
 NODEJS_VERSION="${NODEJS_VERSION:-14.19.1}"
 CYPRESS_VERSION="${CYPRESS_VERSION:-13.2.0}"
 YARN_VERSION="${YARN_VERSION:-1.22.19}"
@@ -78,7 +79,9 @@ corral config vars set volume_iops ${AWS_VOLUME_IOPS}
 if [[ "${JOB_TYPE}" == "recurring" ]]; then 
   RANCHER_TYPE="recurring"
   if [[ -n "${RANCHER_IMAGE_TAG}" ]]; then
-    curl https://raw.githubusercontent.com/helm/helm/main/scripts/get-helm-3 | bash
+    TARFILE="helm-v${HELM_VERSION}-linux-amd64.tar.gz"
+    curl -L -o ${TARFILE} "https://get.helm.sh/${TARFILE}"
+    tar -C "${WORKSPACE}/bin" --strip-components=1 -xzf ${TARFILE}
     helm repo add rancher-latest https://releases.rancher.com/server-charts/latest
     helm repo update
     version_string=$(echo "${RANCHER_IMAGE_TAG}" | cut -f1 -d"-")
@@ -86,11 +89,11 @@ if [[ "${JOB_TYPE}" == "recurring" ]]; then
     corral config vars set rancher_image_tag ${RANCHER_IMAGE_TAG}
   fi
   cd "${WORKSPACE}/corral-packages"
-  yq -i e ".variables.rancher_version += [\"${RANCHER_VERSION}\"] | .variables.rancher_version style=\"literal\"" packages/aws/rancher.yaml
-  yq -i e ".variables.kubernetes_version += [\"${RKE2_KUBERNETES_VERSION}\"] | .variables.kubernetes_version style=\"literal\"" packages/aws/rancher.yaml
-  yq -i e ".variables.cert_manager_version += [\"${CERT_MANAGER_VERSION}\"] | .variables.kubernetes_version style=\"literal\"" packages/aws/rancher.yaml
+  yq -i e ".variables.rancher_version += [\"${RANCHER_VERSION}\"] | .variables.rancher_version style=\"literal\"" packages/aws/rancher-rke2.yaml
+  yq -i e ".variables.kubernetes_version += [\"${RKE2_KUBERNETES_VERSION}\"] | .variables.kubernetes_version style=\"literal\"" packages/aws/rancher-rke2.yaml
+  yq -i e ".variables.cert_manager_version += [\"${CERT_MANAGER_VERSION}\"] | .variables.kubernetes_version style=\"literal\"" packages/aws/rancher-rke2.yaml
 
-  cat packages/aws/rancher.yaml
+  cat packages/aws/rancher-rke2.yaml
   ls -al packages/aws/
   cat packages/aws/dashboard-tests.yaml
 

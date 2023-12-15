@@ -146,8 +146,6 @@ export default {
 
     if (serverUrlSetting?.value) {
       serverUrl = serverUrlSetting.value;
-    } else if ( process.server ) {
-      serverUrl = req.headers.host;
     } else {
       serverUrl = window.location.origin;
     }

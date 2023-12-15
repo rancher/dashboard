@@ -40,7 +40,7 @@ let store = {};
 
   // If the environment supports hot reloading...
 
-  if (process.client && module.hot) {
+  if (module.hot) {
     // Whenever any Vuex module is updated...
     module.hot.accept([
       '../store/action-menu.js',

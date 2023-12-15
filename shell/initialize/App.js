@@ -21,25 +21,10 @@ export default {
       key:      this.layoutName
     }, [layoutEl]);
 
-    const transitionEl = h('transition', {
-      props: {
-        name: 'layout',
-        mode: 'out-in'
-      },
-      on: {
-        beforeEnter(el) {
-          // Ensure to trigger scroll event after calling scrollBehavior
-          window.$nuxt.$nextTick(() => {
-            window.$nuxt.$emit('triggerScroll');
-          });
-        }
-      }
-    }, [templateEl]);
-
     return h('div', { domProps: { id: '__nuxt' } }, [
       loadingEl,
       // h(NuxtBuildIndicator), // The build indicator doesn't work as is right now and emits an error in the console so I'm leaving it out for now
-      transitionEl
+      templateEl
     ]);
   },
 
@@ -59,15 +44,14 @@ export default {
     // Add this.$nuxt in child instances
     this.$root.$options.$nuxt = this;
 
-    if (process.client) {
-      // add to window so we can listen when ready
-      window.$nuxt = this;
+    // add to window so we can listen when ready
+    window.$nuxt = this;
 
-      this.refreshOnlineStatus();
-      // Setup the listeners
-      window.addEventListener('online', this.refreshOnlineStatus);
-      window.addEventListener('offline', this.refreshOnlineStatus);
-    }
+    this.refreshOnlineStatus();
+    // Setup the listeners
+    window.addEventListener('online', this.refreshOnlineStatus);
+    window.addEventListener('offline', this.refreshOnlineStatus);
+
     // Add $nuxt.error()
     this.error = this.nuxt.error;
     // Add $nuxt.context
@@ -92,15 +76,13 @@ export default {
 
   methods: {
     refreshOnlineStatus() {
-      if (process.client) {
-        if (typeof window.navigator.onLine === 'undefined') {
-          // If the browser doesn't support connection status reports
-          // assume that we are online because most apps' only react
-          // when they now that the connection has been interrupted
-          this.isOnline = true;
-        } else {
-          this.isOnline = window.navigator.onLine;
-        }
+      if (typeof window.navigator.onLine === 'undefined') {
+        // If the browser doesn't support connection status reports
+        // assume that we are online because most apps' only react
+        // when they now that the connection has been interrupted
+        this.isOnline = true;
+      } else {
+        this.isOnline = window.navigator.onLine;
       }
     },
 

@@ -12,4 +12,16 @@ export class HeaderPo extends ComponentPo {
 
     return wsFilter.clickOptionWithLabel(name);
   }
+
+  clusterIcon() {
+    return this.self().find('.cluster-icon');
+  }
+
+  clusterName() {
+    return this.self().find('.cluster-name');
+  }
+
+  customBadge() {
+    return this.self().find('.cluster-badge');
+  }
 }

@@ -901,4 +901,11 @@ export default class ProvCluster extends SteveModel {
 
     return null;
   }
+
+  // JSON Paths that should be folded in the YAML editor by default
+  get yamlFolding() {
+    return [
+      'spec.rkeConfig.machinePools.dynamicSchemaSpec',
+    ];
+  }
 }

@@ -126,50 +126,7 @@ if (debug) {
 const errorHandler = Vue.config.errorHandler || console.error; // eslint-disable-line no-console
 
 // Create and mount App
-createApp(null, nuxt.publicRuntimeConfig).then(mountApp).catch(errorHandler); // eslint-disable-line no-undef
-
-function componentOption(component, key, ...args) {
-  if (!component || !component.options || !component.options[key]) {
-    return {};
-  }
-  const option = component.options[key];
-
-  if (typeof option === 'function') {
-    return option(...args);
-  }
-
-  return option;
-}
-
-function mapTransitions(toComponents, to, from) {
-  const componentTransitions = (component) => {
-    const transition = componentOption(component, 'transition', to, from) || {};
-
-    return (typeof transition === 'string' ? { name: transition } : transition);
-  };
-
-  const fromComponents = from ? getMatchedComponents(from) : [];
-  const maxDepth = Math.max(toComponents.length, fromComponents.length);
-
-  const mergedTransitions = [];
-
-  for (let i = 0; i < maxDepth; i++) {
-    // Clone original objects to prevent overrides
-    const toTransitions = Object.assign({}, componentTransitions(toComponents[i]));
-    const transitions = Object.assign({}, componentTransitions(fromComponents[i]));
-
-    // Combine transitions & prefer `leave` properties of "from" route
-    Object.keys(toTransitions)
-      .filter((key) => typeof toTransitions[key] !== 'undefined' && !key.toLowerCase().includes('leave'))
-      .forEach((key) => {
-        transitions[key] = toTransitions[key];
-      });
-
-    mergedTransitions.push(transitions);
-  }
-
-  return mergedTransitions;
-}
+createApp(nuxt.publicRuntimeConfig).then(mountApp).catch(errorHandler); // eslint-disable-line no-undef
 
 async function loadAsyncComponents(to, from, next) {
   // Check if route changed (this._routeChanged), only if the page is not an error (for validate())
@@ -230,16 +187,6 @@ async function loadAsyncComponents(to, from, next) {
   }
 }
 
-function applySSRData(Component, ssrData) {
-  if (NUXT.serverRendered && ssrData) {
-    applyAsyncData(Component, ssrData);
-  }
-
-  Component._Ctor = Component;
-
-  return Component;
-}
-
 // Get matched components
 function resolveComponents(route) {
   return flatMapComponents(route, async(Component, _, match, key, index) => {
@@ -247,12 +194,13 @@ function resolveComponents(route) {
     if (typeof Component === 'function' && !Component.options) {
       Component = await Component();
     }
+
     // Sanitize it and save it
-    const _Component = applySSRData(sanitizeComponent(Component), NUXT.data ? NUXT.data[index] : null);
+    Component._Ctor = sanitizeComponent(Component);
 
-    match.components[key] = _Component;
+    match.components[key] = Component;
 
-    return _Component;
+    return Component;
   });
 }
 
@@ -372,9 +320,6 @@ async function render(to, from, next) {
       Component.options.fetch = Component._Ctor.options.fetch;
     }
   });
-
-  // Apply transitions
-  this.setTransitions(mapTransitions(Components, to, from));
 
   try {
     // Call middleware
@@ -814,10 +759,7 @@ async function mountApp(__app) {
   // Resolve route components
   const Components = await Promise.all(resolveComponents(app.context.route));
 
-  // Enable transitions
-  _app.setTransitions = _app.$options.nuxt.setTransitions.bind(_app);
   if (Components.length) {
-    _app.setTransitions(mapTransitions(Components, router.currentRoute));
     _lastPaths = router.currentRoute.matched.map((route) => compile(route.path)(router.currentRoute.params));
   }
 

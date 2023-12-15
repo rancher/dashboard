@@ -1222,19 +1222,11 @@ export default class Resource {
   // ------------------------------------------------------------------
 
   currentRoute() {
-    if ( process.server ) {
-      return this.$rootState.$route;
-    } else {
-      return window.$nuxt.$route;
-    }
+    return window.$nuxt.$route;
   }
 
   currentRouter() {
-    if ( process.server ) {
-      return this.$rootState.$router;
-    } else {
-      return window.$nuxt.$router;
-    }
+    return window.$nuxt.$router;
   }
 
   get listLocation() {
@@ -1934,5 +1926,12 @@ export default class Resource {
 
   get creationTimestamp() {
     return this.metadata?.creationTimestamp;
+  }
+
+  /**
+   * Allows model to specify JSON Paths that should be folded in the YAML editor by default
+   */
+  get yamlFolding() {
+    return [];
   }
 }

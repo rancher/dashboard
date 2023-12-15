@@ -1,21 +1,19 @@
 import { getMatchedComponents, setScrollRestoration } from './nuxt';
 
-if (process.client) {
-  if ('scrollRestoration' in window.history) {
+if ('scrollRestoration' in window.history) {
+  setScrollRestoration('manual');
+
+  // reset scrollRestoration to auto when leaving page, allowing page reload
+  // and back-navigation from other pages to use the browser to restore the
+  // scrolling position.
+  window.addEventListener('beforeunload', () => {
+    setScrollRestoration('auto');
+  });
+
+  // Setting scrollRestoration to manual again when returning to this page.
+  window.addEventListener('load', () => {
     setScrollRestoration('manual');
-
-    // reset scrollRestoration to auto when leaving page, allowing page reload
-    // and back-navigation from other pages to use the browser to restore the
-    // scrolling position.
-    window.addEventListener('beforeunload', () => {
-      setScrollRestoration('auto');
-    });
-
-    // Setting scrollRestoration to manual again when returning to this page.
-    window.addEventListener('load', () => {
-      setScrollRestoration('manual');
-    });
-  }
+  });
 }
 
 function shouldScrollToTop(route) {
