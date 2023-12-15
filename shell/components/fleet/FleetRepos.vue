@@ -129,7 +129,6 @@ export default {
 
 <template>
   <div>
-    fleet repos {{ isClusterView }}
     <FleetIntro v-if="noRows && !loading" />
     <ResourceTable
       v-if="!noRows"
