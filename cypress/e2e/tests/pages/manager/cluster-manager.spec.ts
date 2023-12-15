@@ -179,27 +179,6 @@ describe('Cluster Manager', { testIsolation: 'off', tags: ['@manager', '@adminUs
         });
       });
 
-      it('can download KubeConfig via bulk actions', () => {
-        // Delete downloads directory. Need a fresh start to avoid conflicting file names
-        cy.deleteDownloadsFolder();
-
-        ClusterManagerListPagePo.navTo();
-        clusterList.list().resourceTable().sortableTable().rowElementWithName(rke2CustomName)
-          .click();
-        clusterList.list().downloadKubeConfig().click();
-
-        const downloadedFilename = path.join(downloadsFolder, `${ rke2CustomName }.yaml`);
-
-        cy.readFile(downloadedFilename).then((buffer) => {
-          const obj: any = jsyaml.load(buffer);
-
-          // Basic checks on the downloaded YAML
-          expect(obj.apiVersion).to.equal('v1');
-          expect(obj.clusters[0].name).to.equal(rke2CustomName);
-          expect(obj.kind).to.equal('Config');
-        });
-      });
-
       it('can download YAML', () => {
         // Delete downloads directory. Need a fresh start to avoid conflicting file names
         cy.deleteDownloadsFolder();
@@ -456,7 +435,7 @@ describe('Cluster Manager', { testIsolation: 'off', tags: ['@manager', '@adminUs
     clusterList.waitForPage();
   });
 
-  it('can download YAML', () => {
+  it('can download YAML via bulk actions', () => {
     // Delete downloads directory. Need a fresh start to avoid conflicting file names
     cy.deleteDownloadsFolder();
 
@@ -474,6 +453,26 @@ describe('Cluster Manager', { testIsolation: 'off', tags: ['@manager', '@adminUs
       expect(obj.apiVersion).to.equal('provisioning.cattle.io/v1');
       expect(obj.metadata.name).to.equal('local');
       expect(obj.kind).to.equal('Cluster');
+    });
+  });
+
+  it('can download KubeConfig via bulk actions', () => {
+    // Delete downloads directory. Need a fresh start to avoid conflicting file names
+    cy.deleteDownloadsFolder();
+
+    clusterList.goTo();
+    clusterList.list().resourceTable().sortableTable().rowElementWithName('local')
+      .click();
+    clusterList.list().downloadKubeConfig().click();
+    const downloadedFilename = path.join(downloadsFolder, 'local.yaml');
+
+    cy.readFile(downloadedFilename).then((buffer) => {
+      const obj: any = jsyaml.load(buffer);
+
+      // Basic checks on the downloaded YAML
+      expect(obj.apiVersion).to.equal('v1');
+      expect(obj.clusters[0].name).to.equal('local');
+      expect(obj.kind).to.equal('Config');
     });
   });
 
