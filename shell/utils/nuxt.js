@@ -90,10 +90,6 @@ export function applyAsyncData(Component, asyncData) {
   Component.options.data = function() {
     const data = ComponentData.call(this, this);
 
-    if (this.$ssrContext) {
-      asyncData = this.$ssrContext.asyncData[Component.cid];
-    }
-
     return { ...data, ...asyncData };
   };
 
@@ -226,10 +222,6 @@ export async function setContext(app, context) {
     }
     if (context.res) {
       app.context.res = context.res;
-    }
-
-    if (context.ssrContext) {
-      app.context.ssrContext = context.ssrContext;
     }
 
     app.context.redirect = (status, path, query) => {
