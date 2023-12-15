@@ -3,6 +3,8 @@ import EmberSortableTablePo from '@/cypress/e2e/po/components/ember/ember-sortab
 import EmberSelectPo from '@/cypress/e2e/po/components/ember/ember-select.po';
 import EmberModalClusterDriverPo from '@/cypress/e2e/po/components/ember/ember-modal-add-edit-cluster-driver.po';
 import EmberModalNodeDriverPo from '@/cypress/e2e/po/components/ember/ember-modal-add-edit-node-driver.po';
+import BurgerMenuPo from '@/cypress/e2e/po/side-bars/burger-side-menu.po';
+import ProductNavPo from '@/cypress/e2e/po/side-bars/product-side-nav.po';
 export default class RkeDriversPagePo extends PagePo {
   private static createPath(clusterId: string) {
     return `/c/${ clusterId }/manager/pages/rke-drivers`;
@@ -14,6 +16,13 @@ export default class RkeDriversPagePo extends PagePo {
 
   constructor(clusterId: string) {
     super(RkeDriversPagePo.createPath(clusterId));
+  }
+
+  static navTo() {
+    const sideNav = new ProductNavPo();
+
+    BurgerMenuPo.burgerMenuNavToMenubyLabel('Cluster Management');
+    sideNav.navToSideMenuEntryByLabel('Drivers');
   }
 
   list(): EmberSortableTablePo {

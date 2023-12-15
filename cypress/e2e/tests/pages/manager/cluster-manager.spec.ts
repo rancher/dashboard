@@ -440,6 +440,7 @@ describe('Cluster Manager', { testIsolation: 'off', tags: ['@manager', '@adminUs
     cy.deleteDownloadsFolder();
 
     ClusterManagerListPagePo.navTo();
+    clusterList.list().checkVisible();
     clusterList.list().resourceTable().sortableTable().rowElementWithName('local')
       .click();
     clusterList.list().downloadKubeConfig().click();

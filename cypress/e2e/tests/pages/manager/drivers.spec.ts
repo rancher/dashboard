@@ -14,7 +14,7 @@ describe('Drivers', { testIsolation: 'off', tags: ['@manager', '@adminUser'] }, 
   });
 
   beforeEach(() => {
-    cy.viewport(1380, 720);
+    cy.viewport(1380, 620);
   });
 
   describe('Cluster Drivers', () => {
@@ -28,7 +28,7 @@ describe('Drivers', { testIsolation: 'off', tags: ['@manager', '@adminUser'] }, 
     });
 
     it('can refresh kubernetes metadata', () => {
-      driversPage.goTo();
+      RkeDriversPagePo.navTo();
       cy.intercept('POST', '/v3/kontainerdrivers?action=refresh').as('refresh');
       driversPage.refreshKubMetadata().click({ force: true });
       cy.wait('@refresh').its('response.statusCode').should('eq', 200);
@@ -38,7 +38,7 @@ describe('Drivers', { testIsolation: 'off', tags: ['@manager', '@adminUser'] }, 
     // see https://github.com/rancher-plugins/kontainer-engine-driver-example/releases for lsit of example drivers
       const downloadUrl = 'https://github.com/rancher-plugins/kontainer-engine-driver-example/releases/download/v0.2.3/kontainer-engine-driver-example-copy1-linux-amd64';
 
-      driversPage.goTo();
+      RkeDriversPagePo.navTo();
       driversPage.addClusterDriver().click();
       driversPage.createEditClusterDriver().input().set(downloadUrl, 0);
       cy.intercept('POST', '/v3/kontainerdriver').as('createDriver');
@@ -51,7 +51,7 @@ describe('Drivers', { testIsolation: 'off', tags: ['@manager', '@adminUser'] }, 
     // see https://github.com/rancher-plugins/kontainer-engine-driver-example/releases for list of example drivers
       const downloadUrl = 'https://github.com/rancher-plugins/kontainer-engine-driver-example/releases/download/v0.2.3/kontainer-engine-driver-example-copy2-linux-amd64';
 
-      driversPage.goTo();
+      RkeDriversPagePo.navTo();
       driversPage.list().rowActionMenuOpen(`Example`);
       driversPage.actionMenu().selectMenuItemByLabel(`Edit`);
       driversPage.createEditClusterDriver().input().set(downloadUrl, 0);
@@ -62,7 +62,7 @@ describe('Drivers', { testIsolation: 'off', tags: ['@manager', '@adminUser'] }, 
     });
 
     it('can deactivate a cluster driver', () => {
-      driversPage.goTo();
+      RkeDriversPagePo.navTo();
       driversPage.list().rowActionMenuOpen(`Example`);
       driversPage.actionMenu().selectMenuItemByLabel(`Deactivate`);
       cy.intercept('POST', '/v3/kontainerDrivers/*').as('deactivateDriver');
@@ -72,7 +72,7 @@ describe('Drivers', { testIsolation: 'off', tags: ['@manager', '@adminUser'] }, 
     });
 
     it('can activate a cluster driver', () => {
-      driversPage.goTo();
+      RkeDriversPagePo.navTo();
       driversPage.list().rowActionMenuOpen(`Example`);
       cy.intercept('POST', '/v3/kontainerDrivers/*').as('activateDriver');
       driversPage.actionMenu().selectMenuItemByLabel(`Activate`);
@@ -81,7 +81,7 @@ describe('Drivers', { testIsolation: 'off', tags: ['@manager', '@adminUser'] }, 
     });
 
     it('can delete a cluster driver', () => {
-      driversPage.goTo();
+      RkeDriversPagePo.navTo();
       driversPage.list().rowActionMenuOpen(`Example`);
       driversPage.actionMenu().selectMenuItemByLabel(`Delete`);
       cy.intercept('DELETE', '/v3/kontainerDrivers/*').as('deleteDriver');
@@ -94,8 +94,8 @@ describe('Drivers', { testIsolation: 'off', tags: ['@manager', '@adminUser'] }, 
   describe('Node Drivers', () => {
     it('can edit an existing node driver', () => {
       cy.intercept('GET', '/v3/nodedrivers?limit=-1&sort=name').as('nodeDrivers');
-      driversPage.goTo();
-      driversPage.tabs('Node Drivers').click();
+      RkeDriversPagePo.navTo();
+      driversPage.tabs('Node Drivers').should('be.visible').click();
       cy.wait('@nodeDrivers');
       driversPage.list().rowActionMenuOpen(`Cloud.ca`);
       driversPage.actionMenu().selectMenuItemByLabel(`Edit`);
@@ -106,10 +106,8 @@ describe('Drivers', { testIsolation: 'off', tags: ['@manager', '@adminUser'] }, 
     });
 
     it('can activate a node driver', () => {
-      cy.intercept('GET', '/v3/nodedrivers?limit=-1&sort=name').as('nodeDrivers');
-      driversPage.goTo();
-      driversPage.tabs('Node Drivers').click();
-      cy.wait('@nodeDrivers');
+      RkeDriversPagePo.navTo();
+      driversPage.tabs('Node Drivers').should('be.visible').click();
       driversPage.list().rowActionMenuOpen(`Cloud.ca`);
       cy.intercept('POST', '/v3/nodeDrivers/**').as('activateDriver');
       driversPage.actionMenu().selectMenuItemByLabel(`Activate`);
@@ -118,10 +116,8 @@ describe('Drivers', { testIsolation: 'off', tags: ['@manager', '@adminUser'] }, 
     });
 
     it('can deactivate a node driver', () => {
-      cy.intercept('GET', '/v3/nodedrivers?limit=-1&sort=name').as('nodeDrivers');
-      driversPage.goTo();
-      driversPage.tabs('Node Drivers').click();
-      cy.wait('@nodeDrivers');
+      RkeDriversPagePo.navTo();
+      driversPage.tabs('Node Drivers').should('be.visible').click();
       driversPage.list().rowActionMenuOpen(`Cloud.ca`);
       driversPage.actionMenu().selectMenuItemByLabel(`Deactivate`);
       cy.intercept('POST', '/v3/nodeDrivers/**').as('deactivateDriver');
@@ -131,10 +127,8 @@ describe('Drivers', { testIsolation: 'off', tags: ['@manager', '@adminUser'] }, 
     });
 
     it('can delete a node driver', () => {
-      cy.intercept('GET', '/v3/nodedrivers?limit=-1&sort=name').as('nodeDrivers');
-      driversPage.goTo();
-      driversPage.tabs('Node Drivers').click();
-      cy.wait('@nodeDrivers');
+      RkeDriversPagePo.navTo();
+      driversPage.tabs('Node Drivers').should('be.visible').click();
       driversPage.list().rowActionMenuOpen(`Cloud.ca`);
       driversPage.actionMenu().selectMenuItemByLabel(`Delete`);
       cy.intercept('DELETE', '/v3/nodeDrivers/*').as('deleteDriver');
@@ -149,10 +143,8 @@ describe('Drivers', { testIsolation: 'off', tags: ['@manager', '@adminUser'] }, 
       const checksum = '2a55efd6d62d5f7fd27ce877d49596f4';
       const domain = 'objects-east.cloud.ca';
 
-      cy.intercept('GET', '/v3/nodedrivers?limit=-1&sort=name').as('nodeDrivers');
-      driversPage.goTo();
-      driversPage.tabs('Node Drivers').click();
-      cy.wait('@nodeDrivers');
+      RkeDriversPagePo.navTo();
+      driversPage.tabs('Node Drivers').should('be.visible').click();
       driversPage.addNodeDriver().click();
       driversPage.createEditNodeDriver().input().set(downloadUrl, 0);
       driversPage.createEditNodeDriver().input().set(customUrl, 1);
