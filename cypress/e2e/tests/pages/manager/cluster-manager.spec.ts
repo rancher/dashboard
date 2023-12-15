@@ -270,7 +270,6 @@ describe('Cluster Manager', { testIsolation: 'off', tags: ['@manager', '@adminUs
 
         cy.wait('@importRequest').then((intercept) => {
           expect(intercept.request.body).to.deep.equal({
-            type,
             metadata: {
               namespace,
               name: importGenericName
