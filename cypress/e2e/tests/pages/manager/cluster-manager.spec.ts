@@ -460,10 +460,11 @@ describe('Cluster Manager', { testIsolation: 'off', tags: ['@manager', '@adminUs
     // Delete downloads directory. Need a fresh start to avoid conflicting file names
     cy.deleteDownloadsFolder();
 
-    clusterList.goTo();
+    ClusterManagerListPagePo.navTo();
     clusterList.list().resourceTable().sortableTable().rowElementWithName('local')
       .click();
-    clusterList.list().downloadKubeConfig().click();
+    clusterList.list().openBulkActionDropdown();
+    clusterList.list().bulkActionButton('Download KubeConfig').click();
     const downloadedFilename = path.join(downloadsFolder, 'local.yaml');
 
     cy.readFile(downloadedFilename).then((buffer) => {
