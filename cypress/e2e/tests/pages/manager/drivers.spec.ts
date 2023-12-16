@@ -92,43 +92,12 @@ describe('Drivers', { testIsolation: 'off', tags: ['@manager', '@adminUser'] }, 
   });
 
   describe('Node Drivers', () => {
-    it('can edit an existing node driver', () => {
-      cy.intercept('GET', '/v3/nodedrivers?limit=-1&sort=name').as('nodeDrivers');
+    it('can delete an existing node driver', () => {
       RkeDriversPagePo.navTo();
+      cy.intercept('GET', '/v3/nodedrivers?limit=-1&sort=name').as('nodeDrivers');
       driversPage.tabs('Node Drivers').should('be.visible').click();
       cy.wait('@nodeDrivers');
-      driversPage.list().rowActionMenuOpen(`Cloud.ca`);
-      driversPage.actionMenu().selectMenuItemByLabel(`Edit`);
-      cy.intercept('PUT', '/v3/nodeDrivers/*').as('updateDriver');
-      driversPage.createEditClusterDriver().save();
-      cy.wait('@updateDriver').its('response.statusCode').should('eq', 200);
-      driversPage.list().state('Cloud.ca').should('contain.text', 'Inactive');
-    });
 
-    it('can activate a node driver', () => {
-      RkeDriversPagePo.navTo();
-      driversPage.tabs('Node Drivers').should('be.visible').click();
-      driversPage.list().rowActionMenuOpen(`Cloud.ca`);
-      cy.intercept('POST', '/v3/nodeDrivers/**').as('activateDriver');
-      driversPage.actionMenu().selectMenuItemByLabel(`Activate`);
-      cy.wait('@activateDriver').its('response.statusCode').should('eq', 200);
-      driversPage.list().state('Cloud.ca').should('contain.text', 'Active');
-    });
-
-    it('can deactivate a node driver', () => {
-      RkeDriversPagePo.navTo();
-      driversPage.tabs('Node Drivers').should('be.visible').click();
-      driversPage.list().rowActionMenuOpen(`Cloud.ca`);
-      driversPage.actionMenu().selectMenuItemByLabel(`Deactivate`);
-      cy.intercept('POST', '/v3/nodeDrivers/**').as('deactivateDriver');
-      promptDeactivate.deactivate();
-      cy.wait('@deactivateDriver').its('response.statusCode').should('eq', 200);
-      driversPage.list().state('Cloud.ca').should('contain.text', 'Inactive');
-    });
-
-    it('can delete a node driver', () => {
-      RkeDriversPagePo.navTo();
-      driversPage.tabs('Node Drivers').should('be.visible').click();
       driversPage.list().rowActionMenuOpen(`Cloud.ca`);
       driversPage.actionMenu().selectMenuItemByLabel(`Delete`);
       cy.intercept('DELETE', '/v3/nodeDrivers/*').as('deleteDriver');
@@ -154,6 +123,38 @@ describe('Drivers', { testIsolation: 'off', tags: ['@manager', '@adminUser'] }, 
       cy.intercept('POST', '/v3/nodedriver').as('createNodeDriver');
       driversPage.createEditClusterDriver().create();
       cy.wait('@createNodeDriver').its('response.statusCode').should('eq', 201);
+      driversPage.list().state('Cloud.ca').should('contain.text', 'Active');
+    });
+
+    it('can edit a node driver', () => {
+      RkeDriversPagePo.navTo();
+      driversPage.tabs('Node Drivers').should('be.visible').click();
+      driversPage.list().rowActionMenuOpen(`Cloud.ca`);
+      driversPage.actionMenu().selectMenuItemByLabel(`Edit`);
+      cy.intercept('PUT', '/v3/nodeDrivers/*').as('updateDriver');
+      driversPage.createEditClusterDriver().save();
+      cy.wait('@updateDriver').its('response.statusCode').should('eq', 200);
+      driversPage.list().state('Cloud.ca').should('contain.text', 'Active');
+    });
+
+    it('can deactivate a node driver', () => {
+      RkeDriversPagePo.navTo();
+      driversPage.tabs('Node Drivers').should('be.visible').click();
+      driversPage.list().rowActionMenuOpen(`Cloud.ca`);
+      driversPage.actionMenu().selectMenuItemByLabel(`Deactivate`);
+      cy.intercept('POST', '/v3/nodeDrivers/**').as('deactivateDriver');
+      promptDeactivate.deactivate();
+      cy.wait('@deactivateDriver').its('response.statusCode').should('eq', 200);
+      driversPage.list().state('Cloud.ca').should('contain.text', 'Inactive');
+    });
+
+    it('can activate a node driver', () => {
+      RkeDriversPagePo.navTo();
+      driversPage.tabs('Node Drivers').should('be.visible').click();
+      driversPage.list().rowActionMenuOpen(`Cloud.ca`);
+      cy.intercept('POST', '/v3/nodeDrivers/**').as('activateDriver');
+      driversPage.actionMenu().selectMenuItemByLabel(`Activate`);
+      cy.wait('@activateDriver').its('response.statusCode').should('eq', 200);
       driversPage.list().state('Cloud.ca').should('contain.text', 'Active');
     });
   });
