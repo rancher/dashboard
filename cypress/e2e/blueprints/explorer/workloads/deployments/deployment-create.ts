@@ -77,7 +77,6 @@ export const deploymentCreateRequest = {
 
 export const deploymentCreateResponse = {
   id:    'default/test-deployment',
-  type:  'apps.deployment',
   links: {
     remove: 'https://localhost:8005/v1/apps.deployments/default/test-deployment',
     self:   'https://localhost:8005/v1/apps.deployments/default/test-deployment',

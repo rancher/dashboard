@@ -10,7 +10,6 @@ export const deploymentCollection = {
 
     {
       id:    'default/test-deployment',
-      type:  'apps.deployment',
       links: {
         remove: 'https://localhost:8005/v1/apps.deployments/default/test-deployment',
         self:   'https://localhost:8005/v1/apps.deployments/default/test-deployment',
@@ -261,7 +260,6 @@ export const deploymentCollectionResponseFull = {
   data:         [
     {
       id:    'cattle-fleet-local-system/fleet-agent',
-      type:  'apps.deployment',
       links: {
         remove: 'https://localhost:8005/v1/apps.deployments/cattle-fleet-local-system/fleet-agent',
         self:   'https://localhost:8005/v1/apps.deployments/cattle-fleet-local-system/fleet-agent',
@@ -597,7 +595,6 @@ export const deploymentCollectionResponseFull = {
     },
     {
       id:    'cattle-fleet-system/fleet-controller',
-      type:  'apps.deployment',
       links: {
         remove: 'https://localhost:8005/v1/apps.deployments/cattle-fleet-system/fleet-controller',
         self:   'https://localhost:8005/v1/apps.deployments/cattle-fleet-system/fleet-controller',
@@ -941,7 +938,6 @@ export const deploymentCollectionResponseFull = {
     },
     {
       id:    'cattle-fleet-system/gitjob',
-      type:  'apps.deployment',
       links: {
         remove: 'https://localhost:8005/v1/apps.deployments/cattle-fleet-system/gitjob',
         self:   'https://localhost:8005/v1/apps.deployments/cattle-fleet-system/gitjob',
@@ -1219,7 +1215,6 @@ export const deploymentCollectionResponseFull = {
     },
     {
       id:    'cattle-monitoring-system/pushprox-k3s-server-proxy',
-      type:  'apps.deployment',
       links: {
         remove: 'https://localhost:8005/v1/apps.deployments/cattle-monitoring-system/pushprox-k3s-server-proxy',
         self:   'https://localhost:8005/v1/apps.deployments/cattle-monitoring-system/pushprox-k3s-server-proxy',
@@ -1502,7 +1497,6 @@ export const deploymentCollectionResponseFull = {
     },
     {
       id:    'cattle-monitoring-system/rancher-monitoring-grafana',
-      type:  'apps.deployment',
       links: {
         remove: 'https://localhost:8005/v1/apps.deployments/cattle-monitoring-system/rancher-monitoring-grafana',
         self:   'https://localhost:8005/v1/apps.deployments/cattle-monitoring-system/rancher-monitoring-grafana',
@@ -2486,7 +2480,6 @@ export const deploymentCollectionResponseFull = {
     },
     {
       id:    'cattle-monitoring-system/rancher-monitoring-kube-state-metrics',
-      type:  'apps.deployment',
       links: {
         remove: 'https://localhost:8005/v1/apps.deployments/cattle-monitoring-system/rancher-monitoring-kube-state-metrics',
         self:   'https://localhost:8005/v1/apps.deployments/cattle-monitoring-system/rancher-monitoring-kube-state-metrics',
@@ -2852,7 +2845,6 @@ export const deploymentCollectionResponseFull = {
     },
     {
       id:    'cattle-monitoring-system/rancher-monitoring-operator',
-      type:  'apps.deployment',
       links: {
         remove: 'https://localhost:8005/v1/apps.deployments/cattle-monitoring-system/rancher-monitoring-operator',
         self:   'https://localhost:8005/v1/apps.deployments/cattle-monitoring-system/rancher-monitoring-operator',
@@ -3251,7 +3243,6 @@ export const deploymentCollectionResponseFull = {
     },
     {
       id:    'cattle-monitoring-system/rancher-monitoring-prometheus-adapter',
-      type:  'apps.deployment',
       links: {
         remove: 'https://localhost:8005/v1/apps.deployments/cattle-monitoring-system/rancher-monitoring-prometheus-adapter',
         self:   'https://localhost:8005/v1/apps.deployments/cattle-monitoring-system/rancher-monitoring-prometheus-adapter',
@@ -3704,7 +3695,6 @@ export const deploymentCollectionResponseFull = {
     },
     {
       id:    'cattle-system/rancher-webhook',
-      type:  'apps.deployment',
       links: {
         remove: 'https://localhost:8005/v1/apps.deployments/cattle-system/rancher-webhook',
         self:   'https://localhost:8005/v1/apps.deployments/cattle-system/rancher-webhook',
@@ -4117,7 +4107,6 @@ export const deploymentCollectionResponseFull = {
     },
     {
       id:    'cattle-ui-plugin-system/ui-plugin-operator',
-      type:  'apps.deployment',
       links: {
         remove: 'https://localhost:8005/v1/apps.deployments/cattle-ui-plugin-system/ui-plugin-operator',
         self:   'https://localhost:8005/v1/apps.deployments/cattle-ui-plugin-system/ui-plugin-operator',
@@ -4417,7 +4406,6 @@ export const deploymentCollectionResponseFull = {
 
     {
       id:    'default/test-deployment',
-      type:  'apps.deployment',
       links: {
         remove: 'https://localhost:8005/v1/apps.deployments/default/test-deployment',
         self:   'https://localhost:8005/v1/apps.deployments/default/test-deployment',
@@ -4656,7 +4644,6 @@ export const deploymentCollectionResponseFull = {
     },
     {
       id:    'kube-system/coredns',
-      type:  'apps.deployment',
       links: {
         remove: 'https://localhost:8005/v1/apps.deployments/kube-system/coredns',
         self:   'https://localhost:8005/v1/apps.deployments/kube-system/coredns',
