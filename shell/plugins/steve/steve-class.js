@@ -1,7 +1,7 @@
 import { DESCRIPTION } from '@shell/config/labels-annotations';
 import HybridModel from './hybrid-class';
 import { NEVER_ADD } from '@shell/utils/create-yaml';
-import { unset } from 'lodash';
+
 export default class SteveModel extends HybridModel {
   get name() {
     return this.metadata?.name || this._name;
@@ -36,8 +36,9 @@ export default class SteveModel extends HybridModel {
     const fieldsToRemove = [...NEVER_ADD];
 
     for (const field of fieldsToRemove) {
-      unset(val, field);
+      delete this[field];
     }
+    delete this.__active;
 
     return val;
   }
