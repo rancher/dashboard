@@ -14,7 +14,7 @@ import FleetNoWorkspaces from '@shell/components/fleet/FleetNoWorkspaces.vue';
 import { NAME } from '@shell/config/product/fleet';
 
 export default {
-  name:       'ListGitRepo',
+  name:       'FleetDashboard',
   components: {
     Loading,
     ResourceTable,
