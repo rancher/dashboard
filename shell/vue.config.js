@@ -324,7 +324,7 @@ module.exports = function(dir, _appConfig) {
 
         if (harData) {
           console.log('Installing HAR file middleware'); // eslint-disable-line no-console
-          app.use(har.harProxy(harData));
+          app.use(har.harProxy(harData, process.env.HAR_DIR));
 
           server.websocketProxies.push({
             upgrade(req, socket, head) {

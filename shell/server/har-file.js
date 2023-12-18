@@ -1,4 +1,5 @@
 const fs = require('fs');
+const path = require('path');
 
 // When we receive a request to this URL we will reset the session to replay again from the HAR file
 // This allows the user to refresh the browser and replay the HAR file again
@@ -24,7 +25,7 @@ function loadFile(name, port) {
   let uri = '';
 
   if (har?.log?.pages) {
-    const page = har.log.pages.find(page => page.title.includes('/dashboard/'));
+    const page = har.log.pages.find((page) => page.title.includes('/dashboard/'));
 
     if (page) {
       const parts = page.title.split('/dashboard');
@@ -77,9 +78,33 @@ function loadFile(name, port) {
   return data;
 }
 
-function harProxy(responses) {
+function exportToFiles(data, folder) {
+  console.log(`Exporting request data to ${ folder }`); // eslint-disable-line no-console
+
+  Object.keys(data).forEach((r) => {
+    const out = path.join(folder, `.${ r }`);
+    const dir = path.dirname(out);
+
+    console.log(r); // eslint-disable-line no-console
+
+    Object.keys(data[r]).forEach((method) => {
+      const name = `${ path.basename(out) }.${ method.toLowerCase() }.json`;
+
+      fs.mkdirSync(dir, { recursive: true });
+
+      data[r][method].forEach((request) => {
+        const formatted = JSON.stringify(JSON.parse(request.content.text), null, 2);
+
+        fs.writeFileSync(path.join(dir, name), formatted);
+      });
+    });
+  });
+}
+
+function harProxy(responses, folder) {
   let session = JSON.parse(JSON.stringify(responses));
 
+  console.log('har proxy ' + folder);
   return (req, res, next) => {
     if (req.originalUrl === RESET_URL) {
       session = JSON.parse(JSON.stringify(responses));
@@ -92,12 +117,10 @@ function harProxy(responses) {
     // If it did not match, try without the metadata excludes query string that was adding in 2.8.0
     // This might allow HAR captures with Rancher < 2.8.0 to be replayed on >= 2.8.0
     if (!playback && req.originalUrl.endsWith(EXCLUDES_QS)) {
-      console.log(req.originalUrl);
-      console.log(req.originalUrl.slice(0, -EXCLUDES_QS.length));
       playback = session[req.originalUrl.slice(0, -EXCLUDES_QS.length)];
     }
 
-    if (playback && playback[req.method]) {
+    if (playback && playback[req.method] && playback[req.method].length) {
       const resp = playback[req.method][0];
 
       if (playback[req.method].length > 1) {
@@ -121,10 +144,30 @@ function harProxy(responses) {
     }
 
     if (req.originalUrl.startsWith('/v1/') || req.originalUrl.startsWith('/v3/') || req.originalUrl.startsWith('/k8s/')) {
-      res.status(404);
-      res.send('Unauthorized');
+      // If we have been configured with a folder, look for a file with the contents to use for the request
+      if (folder) {
+        // Remove query string
+        const name = req.originalUrl.split('?')[0];
+        const requestFile = path.join(folder, `.${ name }.${ req.method.toLowerCase() }.json`);
 
-      console.log(`${ req.method }? 401 ${ url }`); // eslint-disable-line no-console
+        if (fs.existsSync(requestFile)) {
+          const data = fs.readFileSync(requestFile);
+
+          console.log(`${ req.method }f 200 ${ url }`); // eslint-disable-line no-console
+
+          res.type('application/json');
+          res.status(200);
+          res.send(data);
+
+          return res.end();
+        }
+      }
+
+      // Fallback to sending a 404 response
+      res.status(404);
+      res.send('Not Found');
+
+      console.log(`${ req.method }? 404 ${ url }`); // eslint-disable-line no-console
 
       return res.end();
     }
@@ -137,4 +180,5 @@ function harProxy(responses) {
 module.exports = {
   loadFile,
   harProxy,
+  exportToFiles,
 };
