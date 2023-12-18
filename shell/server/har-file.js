@@ -13,7 +13,7 @@ const EXCLUDES_QS = '?exclude=metadata.managedFields';
  * @param port port that the local dev server is running on
  * @returns har file data
  */
-function loadFile(name, port) {
+function loadFile(name, port, dashboard) {
   const newBase = `https://127.0.0.1:${ port }`;
   const data = {};
 
@@ -72,7 +72,7 @@ function loadFile(name, port) {
   }
 
   console.log('Page:'); // eslint-disable-line no-console
-  console.log(`    ${ newBase }${ uri }`); // eslint-disable-line no-console
+  console.log(`    ${ newBase }${ dashboard }${ uri }`); // eslint-disable-line no-console
   console.log(''); // eslint-disable-line no-console
 
   return data;

@@ -42,7 +42,7 @@ if (process.argv.length < 4) {
 
 const harFile = process.argv[2];
 const version = process.argv[3].trim();
-const harData = har.loadFile(harFile, PORT);
+const harData = har.loadFile(harFile, PORT, '/dashboard');
 const dashboardUrl = `https://releases.rancher.com/dashboard/${ version }/index.html`;
 
 let harFolder = process.argv.length > 4 ? process.argv[4] : '';
@@ -85,43 +85,15 @@ const appServer = server.listen(PORT);
 
 console.log(`Running Dashboard web server on port ${ PORT }`); // eslint-disable-line no-console
 
-
 appServer.on('upgrade', (req, socket, head) => {
   const responseHeaders = ['HTTP/1.1 101 Web Socket Protocol Handshake', 'Upgrade: WebSocket', 'Connection: Upgrade'];
 
   socket.write(`${ responseHeaders.join('\r\n') }\r\n\r\n`);
 });
 
-// Just proxy web sockets for v1 and v3 endpoints
-// appServer.on('upgrade', (req, socket, head) => {
-//   if (req.url.startsWith('/v1')) {
-//     return proxies['/v1'].upgrade(req, socket, head);
-//   } else if (req.url.startsWith('/v3')) {
-//     return proxies['/v3'].upgrade(req, socket, head);
-//   } else if (req.url.startsWith('/k8s/')) {
-//     return proxies['/k8s'].upgrade(req, socket, head);
-//   } else {
-//     console.log(`Unknown Web socket upgrade request for ${ req.url }`); // eslint-disable-line no-console
-//   }
-// });
-
 // ===============================================================================================
 // Functions for the request proxying used in dev
 // ===============================================================================================
-
-function proxyMetaOpts(target) {
-  return {
-    target,
-    followRedirects: true,
-    secure:          !dev,
-    ws:              false,
-    changeOrigin:    true,
-    onProxyReq,
-    onProxyReqWs,
-    onError,
-    onProxyRes,
-  };
-}
 
 function proxyOpts(target) {
   return {
