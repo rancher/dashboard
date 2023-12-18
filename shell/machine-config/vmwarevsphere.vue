@@ -107,7 +107,7 @@ const getInitialVappMode = (c) => {
     return VAPP_MODE.DISABLED;
   }
 
-  const d = getDefaultVappOptions(c.network);
+  const d = getDefaultVappOptions(c.network || []);
 
   if (
     c.vappIpprotocol === d.vappIpprotocol &&
@@ -394,7 +394,7 @@ export default {
     },
     vappMode(value) {
       if (value === VAPP_MODE.AUTO) {
-        const defaultVappOptions = getDefaultVappOptions(this.value.network);
+        const defaultVappOptions = getDefaultVappOptions(this.value.network || []);
 
         return this.updateVappOptions(defaultVappOptions);
       }
