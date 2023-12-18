@@ -4,6 +4,8 @@ const fs = require('fs');
 // This allows the user to refresh the browser and replay the HAR file again
 const RESET_URL = '/api/v1/namespaces/cattle-ui-plugin-system/services/http:ui-plugin-operator:80/proxy/index.json';
 
+const EXCLUDES_QS = '?exclude=metadata.managedFields';
+
 /**
  * Load the network requests/responses from the har file
  * @param name name/path of the file
@@ -39,7 +41,7 @@ function loadFile(name, port) {
       const mimeType = r.response.content.mimeType;
 
       // Only cache json responses
-      if (mimeType === 'application/json') {
+      if (mimeType === 'application/json' || mimeType === 'text/plain') {
         let url = r.request.url;
 
         if (url.startsWith(base)) {
@@ -60,9 +62,10 @@ function loadFile(name, port) {
 
         if (item.content.text) {
           item.content.text = item.content.text.replaceAll(base, newBase);
+          data[url][r.request.method].push(item);
+        } else {
+          console.log('        Warning: Omitting this response as there is no content - UI may not work as expected'); // eslint-disable-line no-console
         }
-
-        data[url][r.request.method].push(item);
       }
     });
   }
@@ -84,7 +87,15 @@ function harProxy(responses) {
     }
 
     const url = decodeURIComponent(req.originalUrl);
-    const playback = session[req.originalUrl];
+    let playback = session[req.originalUrl];
+
+    // If it did not match, try without the metadata excludes query string that was adding in 2.8.0
+    // This might allow HAR captures with Rancher < 2.8.0 to be replayed on >= 2.8.0
+    if (!playback && req.originalUrl.endsWith(EXCLUDES_QS)) {
+      console.log(req.originalUrl);
+      console.log(req.originalUrl.slice(0, -EXCLUDES_QS.length));
+      playback = session[req.originalUrl.slice(0, -EXCLUDES_QS.length)];
+    }
 
     if (playback && playback[req.method]) {
       const resp = playback[req.method][0];
@@ -109,7 +120,7 @@ function harProxy(responses) {
       return;
     }
 
-    if (req.originalUrl.startsWith('/v1/') || req.originalUrl.startsWith('/v3/')) {
+    if (req.originalUrl.startsWith('/v1/') || req.originalUrl.startsWith('/v3/') || req.originalUrl.startsWith('/k8s/')) {
       res.status(404);
       res.send('Unauthorized');
 
