@@ -28,16 +28,13 @@ if (isNaN(PORT)) {
   process.exit(1);
 }
 
-// Need two arguments
-
-// Read the HAR file
-
-console.log(process.argv);
+// Need at least two arguments
 
 if (process.argv.length < 4) {
-  console.log('Need 2 arguments:');
-  console.log('  <har_file> path to HAR file to load');
-  console.log('  <version>  dashboard version number to use for static assets (e.g 2.8.0, latest)');
+  console.log('Requires 2 arguments. Can also take an optional folder:');
+  console.log('  <har_file>  path to HAR file to load');
+  console.log('  <version>   dashboard version number to use for static assets (e.g v2.8.0, latest)');
+  console.log('  [<folder>]  folder containing json files to use as a fallback when HAR file does not contain request');
   console.log('');
 
   process.exit(1);
@@ -47,6 +44,8 @@ const harFile = process.argv[2];
 const version = process.argv[3].trim();
 const harData = har.loadFile(harFile, PORT);
 const dashboardUrl = `https://releases.rancher.com/dashboard/${ version }/index.html`;
+
+let harFolder = process.argv.length > 4 ? process.argv[4] : '';
 
 console.log(dashboardUrl);
 
@@ -79,7 +78,7 @@ app.use('*', (req, res, next) => {
 app.use('/dashboard', createProxyMiddleware(proxyWsOpts(dashboardUrl)));
 
 // Add in handler for har file requests
-app.use(har.harProxy(harData));
+app.use(har.harProxy(harData, harFolder));
 
 const server = https.createServer(options, app);
 const appServer = server.listen(PORT);
