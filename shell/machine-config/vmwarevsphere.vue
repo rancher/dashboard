@@ -2,7 +2,6 @@
 import Loading from '@shell/components/Loading';
 import CreateEditView from '@shell/mixins/create-edit-view';
 import LabeledSelect from '@shell/components/form/LabeledSelect';
-// import { Checkbox } from '@components/Form/Checkbox';
 import { exceptionToErrorsArray, stringify } from '@shell/utils/error';
 import { Banner } from '@components/Banner';
 import UnitInput from '@shell/components/form/UnitInput';
@@ -16,7 +15,7 @@ import { get, set } from '@shell/utils/object';
 import { integerString, keyValueStrings } from '@shell/utils/computed';
 import { _CREATE, _EDIT, _VIEW } from '@shell/config/query-params';
 
-const SENTINEL = '__SENTINEL__';
+export const SENTINEL = '__SENTINEL__';
 const VAPP_MODE = {
   DISABLED: 'disabled',
   AUTO:     'auto',
@@ -108,7 +107,7 @@ const getInitialVappMode = (c) => {
     return VAPP_MODE.DISABLED;
   }
 
-  const d = getDefaultVappOptions(c.network);
+  const d = getDefaultVappOptions(c.network || []);
 
   if (
     c.vappIpprotocol === d.vappIpprotocol &&
@@ -326,7 +325,9 @@ export default {
     },
 
     templateTooltip() {
-      return this.failedToLoadTemplates ? this.t('cluster.machineConfig.vsphere.instanceOptions.template.none') : null;
+      const rawTemplateValue = this.value.cloneFrom;
+
+      return this.failedToLoadTemplates ? this.t('cluster.machineConfig.vsphere.instanceOptions.template.none') : rawTemplateValue;
     },
 
     host: {
@@ -349,6 +350,24 @@ export default {
     diskSize:   integerString('value.diskSize'),
 
     gracefulShutdownTimeout: integerString('value.gracefulShutdownTimeout'),
+
+    network: {
+      get() {
+        return this.value.network || [];
+      },
+      set(newValue) {
+        set(this.value, 'network', newValue);
+      }
+    },
+
+    tag: {
+      get() {
+        return this.value.tag || [];
+      },
+      set(newValue) {
+        set(this.value, 'tag', newValue);
+      }
+    },
 
     showCloudConfigYaml() {
       return this.value.creationType !== 'legacy';
@@ -375,7 +394,7 @@ export default {
     },
     vappMode(value) {
       if (value === VAPP_MODE.AUTO) {
-        const defaultVappOptions = getDefaultVappOptions(this.value.network);
+        const defaultVappOptions = getDefaultVappOptions(this.value.network || []);
 
         return this.updateVappOptions(defaultVappOptions);
       }
@@ -488,7 +507,7 @@ export default {
 
       const options = await this.requestOptions('resource-pools', this.value.datacenter);
 
-      const content = this.mapPoolOptionsToContent(options);
+      const content = this.mapPathOptionsToContent(options);
 
       this.resetValueIfNecessary('pool', content, options);
 
@@ -620,7 +639,7 @@ export default {
     resetValueIfNecessary(key, content, options, isArray = false) {
       const isValueInContent = () => {
         if (isArray) {
-          return this.value[key].every((value) => content.find((c) => c.value === value));
+          return this.value[key]?.every((value) => content.find((c) => c.value === value));
         }
 
         return content.find((c) => c.value === this.value[key] );
@@ -645,10 +664,8 @@ export default {
 
     mapPathOptionsToContent(pathOptions) {
       return (pathOptions || []).map((pathOption) => {
-        const split = pathOption.split('/');
-
         return {
-          label: split[split.length - 1],
+          label: pathOption,
           value: pathOption
         };
       });
@@ -667,18 +684,6 @@ export default {
         label: option || '\u00A0',
         value: option || ''
       }));
-    },
-
-    mapPoolOptionsToContent(pathOptions) {
-      return pathOptions.map((pathOption) => {
-        const splitOptions = pathOption.split('/');
-        const label = splitOptions.slice(2).join('/');
-
-        return {
-          label,
-          value: pathOption
-        };
-      });
     },
 
     mapCustomAttributesToContent(customAttributes) {
@@ -767,6 +772,7 @@ export default {
               :options="dataCenters"
               :label="t('cluster.machineConfig.vsphere.scheduling.dataCenter')"
               :disabled="disabled"
+              :tooltip="value.datacenter"
             />
           </div>
           <div
@@ -780,6 +786,7 @@ export default {
               :options="resourcePools"
               :label="t('cluster.machineConfig.vsphere.scheduling.resourcePool')"
               :disabled="disabled"
+              :tooltip="value.pool"
             />
           </div>
         </div>
@@ -795,6 +802,7 @@ export default {
               :options="dataStores"
               :label="t('cluster.machineConfig.vsphere.scheduling.dataStore')"
               :disabled="disabled"
+              :tooltip="value.datastore"
             />
           </div>
           <div
@@ -808,6 +816,7 @@ export default {
               :options="folders"
               :label="t('cluster.machineConfig.vsphere.scheduling.folder')"
               :disabled="disabled"
+              :tooltip="value.folder"
             />
           </div>
         </div>
@@ -823,6 +832,7 @@ export default {
               :options="hosts"
               :label="t('cluster.machineConfig.vsphere.scheduling.host.label')"
               :disabled="disabled"
+              :tooltip="host"
             />
             <p class="text-muted mt-5">
               {{ t('cluster.machineConfig.vsphere.scheduling.host.note') }}
@@ -955,6 +965,7 @@ export default {
               :searchable="true"
               :label="t('cluster.machineConfig.vsphere.instanceOptions.libraryTemplate')"
               :disabled="disabled"
+              :tooltip="value.cloneFrom"
             />
           </div>
           <div
@@ -968,6 +979,7 @@ export default {
               :options="virtualMachines"
               :label="t('cluster.machineConfig.vsphere.instanceOptions.virtualMachine')"
               :disabled="disabled"
+              :tooltip="value.cloneFrom"
             />
           </div>
           <div
@@ -1022,7 +1034,7 @@ export default {
               {{ t('cluster.machineConfig.vsphere.networks.label') }}
             </label>
             <ArrayListSelect
-              v-model="value.network"
+              v-model="network"
               :options="networks"
               :array-list-props="{ addLabel: t('cluster.machineConfig.vsphere.networks.add') }"
               :loading="networksLoading"
@@ -1064,7 +1076,7 @@ export default {
       </h4>
       <div slot="body">
         <ArrayListSelect
-          v-model="value.tag"
+          v-model="tag"
           :options="tags"
           :array-list-props="{ addLabel: t('cluster.machineConfig.vsphere.tags.addTag') }"
           :loading="tagsLoading"
@@ -1182,3 +1194,9 @@ export default {
     </Card>
   </div>
 </template>
+
+<style lang="scss" scoped>
+::v-deep .labeled-tooltip .status-icon.icon-info {
+    z-index: 0;
+}
+</style>
