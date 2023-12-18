@@ -1,5 +1,5 @@
 import PagePo from '@/cypress/e2e/po/pages/page.po';
-import YamlEditor from '@/cypress/e2e/po/components/yaml-editor.po';
+import CodeMirrorPo from '@/cypress/e2e/po/components/code-mirror.po';
 import MachineDeploymentsCreateEditPo from '@/cypress/e2e/po/edit/machine-deployments.po';
 import MachineDeploymentsListPo from '@/cypress/e2e/po/lists/machine-deployments-list.po';
 
@@ -28,7 +28,7 @@ export default class MachineDeploymentsPagePo extends PagePo {
     return new MachineDeploymentsListPo('[data-testid="cluster-list-container"]');
   }
 
-  yamlEditor(): YamlEditor {
-    return new YamlEditor();
+  yamlEditor(): CodeMirrorPo {
+    return CodeMirrorPo.bySelector(this.self(), '[data-testid="yaml-editor-code-mirror"]');
   }
 }

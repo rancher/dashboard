@@ -1,7 +1,7 @@
 import PagePo from '@/cypress/e2e/po/pages/page.po';
 import MachinesCreateEditPo from '@/cypress/e2e/po/edit/machines.po';
 import MachinesListPo from '@/cypress/e2e/po/lists/machines-list.po';
-import YamlEditor from '@/cypress/e2e/po/components/yaml-editor.po';
+import CodeMirrorPo from '@/cypress/e2e/po/components/code-mirror.po';
 
 export default class MachinesPagePo extends PagePo {
   private static createPath(clusterId: string) {
@@ -28,7 +28,7 @@ export default class MachinesPagePo extends PagePo {
     return new MachinesListPo('[data-testid="cluster-list-container"]');
   }
 
-  yamlEditor(): YamlEditor {
-    return new YamlEditor();
+  yamlEditor(): CodeMirrorPo {
+    return CodeMirrorPo.bySelector(this.self(), '[data-testid="yaml-editor-code-mirror"]');
   }
 }
