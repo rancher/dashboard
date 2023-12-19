@@ -45,6 +45,6 @@ jobs:
       run: yarn install --frozen-lockfile
 
     - name: Publish Shell Package to npm
-      run: yarn publish-shell-reset-reg
+      run: ./shell/scripts/publish-shell.sh -npm
       env:
         NODE_AUTH_TOKEN: ${{ secrets.NPM_TOKEN }}
