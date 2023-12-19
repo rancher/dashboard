@@ -18,7 +18,7 @@ fi
 
 echo "Publishing Shell Packages"
 
-if [ "$1" == "-npm" ]; then
+if [ "$1" == "--npm" ]; then
   FORCE_PUBLISH_TO_NPM="true"
 fi
 
