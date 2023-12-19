@@ -109,5 +109,5 @@ Each log entry starts the with HTTP verb being used and is followed by a single 
 
 - ' ' Empty space indicates request was sent from the HAR file
 - '*' Indicates that the request was sent from the HAR file but that all requests for that path had already been sent and the last request is being used again
-- '?' Indicates that there was no matching request - in this case a 401 will be returned
+- '?' Indicates that there was no matching request - in this case a 404 will be returned
 - 'f' Indicates that the fallback data from file was used for the request
