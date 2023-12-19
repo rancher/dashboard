@@ -19,6 +19,7 @@ describe('Repositories', { testIsolation: 'off', tags: ['@manager', '@adminUser'
   it('can create a repository', () => {
     RepositoriesPagePo.navTo();
     repositoriesPage.waitForPage();
+    repositoriesPage.waitForGoTo('/v1/catalog.cattle.io.clusterrepos?exclude=metadata.managedFields');
     repositoriesPage.create();
     repositoriesPage.createEditRepositories().waitForPage();
     repositoriesPage.createEditRepositories().name().set(repoName);
