@@ -104,7 +104,6 @@ function exportToFiles(data, folder) {
 function harProxy(responses, folder) {
   let session = JSON.parse(JSON.stringify(responses));
 
-  console.log('har proxy ' + folder);
   return (req, res, next) => {
     if (req.originalUrl === RESET_URL) {
       session = JSON.parse(JSON.stringify(responses));
