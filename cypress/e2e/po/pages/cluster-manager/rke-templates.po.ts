@@ -2,7 +2,7 @@ import PagePo from '@/cypress/e2e/po/pages/page.po';
 import EmberSortableTablePo from '@/cypress/e2e/po/components/ember/ember-sortable-table.po';
 import EmberSelectPo from '@/cypress/e2e/po/components/ember/ember-select.po';
 import EmberFormRkeTemplatesPo from '@/cypress/e2e/po/components/ember/ember-form-rke-templates.po';
-import ProductNavPo from '@/e2e/po/side-bars/product-side-nav.po';
+import ProductNavPo from '@/cypress/e2e/po/side-bars/product-side-nav.po';
 import BurgerMenuPo from '@/cypress/e2e/po/side-bars/burger-side-menu.po';
 
 export default class RkeTemplatesPagePo extends PagePo {
