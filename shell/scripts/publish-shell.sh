@@ -64,9 +64,6 @@ function publish() {
   echo "Publishing ${NAME} from ${FOLDER}"
   pushd ${FOLDER} >/dev/null
 
-  echo "YARN REGISTRY: $YARN_REGISTRY"
-  echo "TOKEN: $NODE_AUTH_TOKEN"
-
   # For now, copy the rancher components into the shell and ship them with it
   if [ "$NAME" == "Shell" ]; then
     echo "Adding Rancher Components"

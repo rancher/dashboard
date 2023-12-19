@@ -1,11 +1,9 @@
 name: Publish Shell Package
 
-# on:
-#   push:
-#     tags:
-#         - 'shell-pkg-v*'
 on:
-  pull_request:
+  push:
+    tags:
+        - 'shell-pkg-v*'
 
 jobs:
   build:
