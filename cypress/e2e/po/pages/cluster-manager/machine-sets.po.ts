@@ -2,6 +2,8 @@ import PagePo from '@/cypress/e2e/po/pages/page.po';
 import CodeMirrorPo from '@/cypress/e2e/po/components/code-mirror.po';
 import MachineSetsCreateEditPo from '@/cypress/e2e/po/edit/machine-sets.po';
 import MachineSetsListPo from '@/cypress/e2e/po/lists/machine-set-list.po';
+import ProductNavPo from '@/cypress/e2e/po/side-bars/product-side-nav.po';
+import BurgerMenuPo from '@/cypress/e2e/po/side-bars/burger-side-menu.po';
 
 export default class MachineSetsPagePo extends PagePo {
   private static createPath(clusterId: string) {
@@ -14,6 +16,14 @@ export default class MachineSetsPagePo extends PagePo {
 
   constructor(private clusterId = 'local') {
     super(MachineSetsPagePo.createPath(clusterId));
+  }
+
+  static navTo() {
+    const sideNav = new ProductNavPo();
+
+    BurgerMenuPo.burgerMenuNavToMenubyLabel('Cluster Management');
+    sideNav.groups().contains('Advanced').click();
+    sideNav.navToSideMenuEntryByLabel('MachineSets');
   }
 
   create() {

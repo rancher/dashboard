@@ -1,11 +1,9 @@
-import ProductNavPo from '@/cypress/e2e/po/side-bars/product-side-nav.po';
-import ClusterManagerListPagePo from '@/cypress/e2e/po/pages/cluster-manager/cluster-manager-list.po';
 import RkeDriversPagePo from '@/cypress/e2e/po/pages/cluster-manager/rke-drivers.po';
 import EmberPromptRemove from '@/cypress/e2e/po/components/ember/ember-prompt-remove.po';
 import EmberPromptDeactivate from '@/cypress/e2e/po/components/ember/ember-prompt-deactivate.po';
 
 describe('Drivers', { testIsolation: 'off', tags: ['@manager', '@adminUser'] }, () => {
-  const driversPage = new RkeDriversPagePo('local');
+  const driversPage = new RkeDriversPagePo('_');
   const promptRemove = new EmberPromptRemove();
   const promptDeactivate = new EmberPromptDeactivate();
 
@@ -18,17 +16,9 @@ describe('Drivers', { testIsolation: 'off', tags: ['@manager', '@adminUser'] }, 
   });
 
   describe('Cluster Drivers', () => {
-    it('can navigate to drivers page', () => {
-      const clusterList = new ClusterManagerListPagePo('local');
-      const sideNav = new ProductNavPo();
-
-      clusterList.goTo();
-      sideNav.navToSideMenuEntryByLabel('Drivers');
-      driversPage.waitForPage();
-    });
-
     it('can refresh kubernetes metadata', () => {
       RkeDriversPagePo.navTo();
+      driversPage.waitForPage();
       cy.intercept('POST', '/v3/kontainerdrivers?action=refresh').as('refresh');
       driversPage.refreshKubMetadata().click({ force: true });
       cy.wait('@refresh').its('response.statusCode').should('eq', 200);

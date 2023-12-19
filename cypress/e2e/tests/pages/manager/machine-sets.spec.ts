@@ -1,12 +1,10 @@
 import PromptRemove from '@/cypress/e2e/po/prompts/promptRemove.po';
-import ProductNavPo from '@/cypress/e2e/po/side-bars/product-side-nav.po';
-import ClusterManagerListPagePo from '@/cypress/e2e/po/pages/cluster-manager/cluster-manager-list.po';
 import MachineSetsPagePo from '@/cypress/e2e/po/pages/cluster-manager/machine-sets.po';
 import * as path from 'path';
 import * as jsyaml from 'js-yaml';
 
 describe('MachineSets', { testIsolation: 'off', tags: ['@manager', '@adminUser'] }, () => {
-  const machineSetsPage = new MachineSetsPagePo();
+  const machineSetsPage = new MachineSetsPagePo('_');
   const runTimestamp = +new Date();
   const machineSetName = `e2e-machineset-name-${ runTimestamp }`;
   const machineSetCloneName = `e2e-machineset-name-${ runTimestamp }-clone`;
@@ -22,18 +20,9 @@ describe('MachineSets', { testIsolation: 'off', tags: ['@manager', '@adminUser']
     cy.login();
   });
 
-  it('can navigate to MachineSets page', () => {
-    const clusterList = new ClusterManagerListPagePo('local');
-    const sideNav = new ProductNavPo();
-
-    clusterList.goTo();
-    sideNav.groups().contains('Advanced').click();
-    sideNav.navToSideMenuEntryByLabel('MachineSets');
-    machineSetsPage.waitForPage();
-  });
-
   it('can create a MachineSet', () => {
-    machineSetsPage.goTo();
+    MachineSetsPagePo.navTo()
+    machineSetsPage.waitForPage()
     machineSetsPage.create();
 
     machineSetsPage.createEditMachineSet().waitForPage('as=yaml');
@@ -59,7 +48,7 @@ describe('MachineSets', { testIsolation: 'off', tags: ['@manager', '@adminUser']
   });
 
   it('can edit a MachineSet', () => {
-    machineSetsPage.goTo();
+    MachineSetsPagePo.navTo();
     machineSetsPage.list().actionMenu(machineSetName).getMenuItem('Edit YAML').click();
     machineSetsPage.createEditMachineSet(nsName, machineSetName).waitForPage('mode=edit&as=yaml');
 
@@ -87,7 +76,7 @@ describe('MachineSets', { testIsolation: 'off', tags: ['@manager', '@adminUser']
   });
 
   it('can clone a MachineSet', () => {
-    machineSetsPage.goTo();
+    MachineSetsPagePo.navTo();
     machineSetsPage.list().actionMenu(machineSetName).getMenuItem('Clone').click();
     machineSetsPage.createEditMachineSet(nsName, machineSetName).waitForPage('mode=clone&as=yaml');
 
@@ -109,7 +98,7 @@ describe('MachineSets', { testIsolation: 'off', tags: ['@manager', '@adminUser']
   });
 
   it('can download YAML', () => {
-    machineSetsPage.goTo();
+    MachineSetsPagePo.navTo();
     machineSetsPage.list().actionMenu(machineSetName).getMenuItem('Download YAML').click();
 
     const downloadedFilename = path.join(downloadsFolder, `${ machineSetName }.yaml`);
@@ -125,7 +114,7 @@ describe('MachineSets', { testIsolation: 'off', tags: ['@manager', '@adminUser']
   });
 
   it('can delete a MachineSet', () => {
-    machineSetsPage.goTo();
+    MachineSetsPagePo.navTo();
 
     // delete original cloned MachineSet
     machineSetsPage.list().actionMenu(machineSetCloneName).getMenuItem('Delete').click();
@@ -143,7 +132,7 @@ describe('MachineSets', { testIsolation: 'off', tags: ['@manager', '@adminUser']
   });
 
   it('can delete MachineSet via bulk actions', () => {
-    machineSetsPage.goTo();
+    MachineSetsPagePo.navTo();
 
     // delete original MachineSet
     machineSetsPage.list().resourceTable().sortableTable().rowSelectCtlWithName(machineSetName)

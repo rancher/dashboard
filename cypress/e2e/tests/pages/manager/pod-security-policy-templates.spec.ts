@@ -1,10 +1,8 @@
-import ProductNavPo from '@/cypress/e2e/po/side-bars/product-side-nav.po';
-import ClusterManagerListPagePo from '@/cypress/e2e/po/pages/cluster-manager/cluster-manager-list.po';
 import PodSecurityPoliciesTemplatesPagePo from '@/cypress/e2e/po/pages/cluster-manager/pod-security-policy-templates.po';
 import EmberPromptRemove from '@/cypress/e2e/po/components/ember/ember-prompt-remove.po';
 
 describe('Pod Security Policy Templates', { testIsolation: 'off', tags: ['@manager', '@adminUser'] }, () => {
-  const podSecurityTemplatesPage = new PodSecurityPoliciesTemplatesPagePo('local');
+  const podSecurityTemplatesPage = new PodSecurityPoliciesTemplatesPagePo('_');
   const runTimestamp = +new Date();
   const templateName = `e2e-pod-security-template-name-${ runTimestamp }`;
   const templateDescription = `e2e-pod-security-template-description-${ runTimestamp }`;
@@ -17,18 +15,9 @@ describe('Pod Security Policy Templates', { testIsolation: 'off', tags: ['@manag
     cy.viewport(1380, 720);
   });
 
-  it('can navigate to Pod Security Policy Templates', () => {
-    const sideNav = new ProductNavPo();
-    const clusterList = new ClusterManagerListPagePo('local');
-
-    clusterList.goTo();
-    sideNav.groups().contains('Advanced').click();
-    sideNav.navToSideMenuEntryByLabel('Pod Security Policy Templates');
-    podSecurityTemplatesPage.waitForPage();
-  });
-
   it('can create a policy template', () => {
-    podSecurityTemplatesPage.goTo();
+    PodSecurityPoliciesTemplatesPagePo.navTo();
+    podSecurityTemplatesPage.waitForPage();
     podSecurityTemplatesPage.addPolicyTemplate().click();
     podSecurityTemplatesPage.addPodSecurityTemplateForm().templateName().set(templateName);
     cy.intercept('POST', '/v3/podsecuritypolicytemplate').as('createPolicyTemplate');
@@ -40,7 +29,7 @@ describe('Pod Security Policy Templates', { testIsolation: 'off', tags: ['@manag
   });
 
   it('can edit a policy template', () => {
-    podSecurityTemplatesPage.goTo();
+    PodSecurityPoliciesTemplatesPagePo.navTo();
     podSecurityTemplatesPage.list().rowActionMenuOpen(templateName);
     podSecurityTemplatesPage.actionMenu().selectMenuItemByLabel('Edit');
 
@@ -57,7 +46,7 @@ describe('Pod Security Policy Templates', { testIsolation: 'off', tags: ['@manag
   });
 
   it('can delete a policy template', () => {
-    podSecurityTemplatesPage.goTo();
+    PodSecurityPoliciesTemplatesPagePo.navTo();
     podSecurityTemplatesPage.list().rowActionMenuOpen(templateName);
     podSecurityTemplatesPage.actionMenu().selectMenuItemByLabel('Delete');
 

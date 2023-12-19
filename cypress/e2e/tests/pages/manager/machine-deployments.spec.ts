@@ -1,12 +1,10 @@
 import PromptRemove from '@/cypress/e2e/po/prompts/promptRemove.po';
-import ProductNavPo from '@/cypress/e2e/po/side-bars/product-side-nav.po';
-import ClusterManagerListPagePo from '@/cypress/e2e/po/pages/cluster-manager/cluster-manager-list.po';
 import MachineDeploymentsPagePo from '@/cypress/e2e/po/pages/cluster-manager/machine-deployments.po';
 import * as path from 'path';
 import * as jsyaml from 'js-yaml';
 
 describe('MachineDeployments', { testIsolation: 'off', tags: ['@manager', '@adminUser'] }, () => {
-  const machineDeploymentsPage = new MachineDeploymentsPagePo();
+  const machineDeploymentsPage = new MachineDeploymentsPagePo('_');
   const runTimestamp = +new Date();
   const machineDeploymentsName = `e2e-machinedeployment-name-${ runTimestamp }`;
   const machineDeploymentsNameClone = `e2e-machinedeployment-name-${ runTimestamp }-clone`;
@@ -22,18 +20,10 @@ describe('MachineDeployments', { testIsolation: 'off', tags: ['@manager', '@admi
     cy.login();
   });
 
-  it('can navigate to MachineDeployments page', () => {
-    const clusterList = new ClusterManagerListPagePo('local');
-    const sideNav = new ProductNavPo();
-
-    clusterList.goTo();
-    sideNav.groups().contains('Advanced').click();
-    sideNav.navToSideMenuEntryByLabel('MachineDeployments');
-    machineDeploymentsPage.waitForPage();
-  });
-
   it('can create a MachineDeployments', () => {
-    machineDeploymentsPage.goTo();
+    MachineDeploymentsPagePo.navTo();
+    machineDeploymentsPage.waitForPage();
+
     machineDeploymentsPage.create();
 
     machineDeploymentsPage.createEditMachineDeployment().waitForPage('as=yaml');
@@ -59,7 +49,8 @@ describe('MachineDeployments', { testIsolation: 'off', tags: ['@manager', '@admi
   });
 
   it('can edit a MachineDeployments', () => {
-    machineDeploymentsPage.goTo();
+    MachineDeploymentsPagePo.navTo();
+
     machineDeploymentsPage.list().actionMenu(machineDeploymentsName).getMenuItem('Edit YAML').click();
     machineDeploymentsPage.createEditMachineDeployment(nsName, machineDeploymentsName).waitForPage('mode=edit&as=yaml');
 
@@ -87,7 +78,8 @@ describe('MachineDeployments', { testIsolation: 'off', tags: ['@manager', '@admi
   });
 
   it('can clone a MachineDeployments', () => {
-    machineDeploymentsPage.goTo();
+    MachineDeploymentsPagePo.navTo();
+
     machineDeploymentsPage.list().actionMenu(machineDeploymentsName).getMenuItem('Clone').click();
     machineDeploymentsPage.createEditMachineDeployment(nsName, machineDeploymentsName).waitForPage('mode=clone&as=yaml');
 
@@ -109,7 +101,7 @@ describe('MachineDeployments', { testIsolation: 'off', tags: ['@manager', '@admi
   });
 
   it('can download YAML', () => {
-    machineDeploymentsPage.goTo();
+    MachineDeploymentsPagePo.navTo();
     machineDeploymentsPage.list().actionMenu(machineDeploymentsName).getMenuItem('Download YAML').click();
 
     const downloadedFilename = path.join(downloadsFolder, `${ machineDeploymentsName }.yaml`);
@@ -125,7 +117,8 @@ describe('MachineDeployments', { testIsolation: 'off', tags: ['@manager', '@admi
   });
 
   it('can delete a MachineDeployments', () => {
-    machineDeploymentsPage.goTo();
+    MachineDeploymentsPagePo.navTo();
+
 
     // delete original cloned MachineSet
     machineDeploymentsPage.list().actionMenu(machineDeploymentsNameClone).getMenuItem('Delete').click();
@@ -143,7 +136,7 @@ describe('MachineDeployments', { testIsolation: 'off', tags: ['@manager', '@admi
   });
 
   it('can delete MachineDeployments via bulk actions', () => {
-    machineDeploymentsPage.goTo();
+    MachineDeploymentsPagePo.navTo();
 
     // delete original MachineSet
     machineDeploymentsPage.list().resourceTable().sortableTable().rowSelectCtlWithName(machineDeploymentsName)

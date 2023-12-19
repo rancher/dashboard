@@ -6,7 +6,7 @@ import * as path from 'path';
 import * as jsyaml from 'js-yaml';
 
 describe('Repositories', { testIsolation: 'off', tags: ['@manager', '@adminUser'] }, () => {
-  const repositoriesPage = new RepositoriesPagePo('local', 'manager');
+  const repositoriesPage = new RepositoriesPagePo('_', 'manager');
   const runTimestamp = +new Date();
   const repoName = `e2e-repo-name-${ runTimestamp }`;
   const repoDescription = `e2e-repo-description-${ runTimestamp }`;
@@ -18,18 +18,9 @@ describe('Repositories', { testIsolation: 'off', tags: ['@manager', '@adminUser'
     cy.login();
   });
 
-  it('can navigate to Repositories page', () => {
-    const clusterList = new ClusterManagerListPagePo('local');
-    const sideNav = new ProductNavPo();
-
-    clusterList.goTo();
-    sideNav.groups().contains('Advanced').click();
-    sideNav.navToSideMenuEntryByLabel('Repositories');
-    repositoriesPage.waitForPage();
-  });
-
   it('can create a repository', () => {
-    repositoriesPage.goTo();
+    RepositoriesPagePo.navTo();
+    repositoriesPage.waitForPage();
     repositoriesPage.create();
     repositoriesPage.createEditRepositories().waitForPage();
     repositoriesPage.createEditRepositories().name().set(repoName);
@@ -47,7 +38,7 @@ describe('Repositories', { testIsolation: 'off', tags: ['@manager', '@adminUser'
   });
 
   it('can refresh a repository', () => {
-    repositoriesPage.goTo();
+    RepositoriesPagePo.navTo();
     cy.intercept('PUT', `/v1/catalog.cattle.io.clusterrepos/${ repoName }`).as('refreshRepo');
     repositoriesPage.list().actionMenu(repoName).getMenuItem('Refresh').click();
     cy.wait('@refreshRepo').its('response.statusCode').should('eq', 200);
@@ -58,7 +49,7 @@ describe('Repositories', { testIsolation: 'off', tags: ['@manager', '@adminUser'
   });
 
   it('can edit a repository', () => {
-    repositoriesPage.goTo();
+    RepositoriesPagePo.navTo();
     repositoriesPage.list().actionMenu(repoName).getMenuItem('Edit Config').click();
     repositoriesPage.createEditRepositories(repoName).waitForPage('mode=edit');
     repositoriesPage.createEditRepositories().description().set(`${ repoDescription }-edit`);
@@ -72,7 +63,7 @@ describe('Repositories', { testIsolation: 'off', tags: ['@manager', '@adminUser'
   });
 
   it('can clone a repository', () => {
-    repositoriesPage.goTo();
+    RepositoriesPagePo.navTo();
     repositoriesPage.list().actionMenu(repoName).getMenuItem('Clone').click();
     repositoriesPage.createEditRepositories(repoName).waitForPage('mode=clone');
     repositoriesPage.createEditRepositories().name().set(repoNameClone);
@@ -85,7 +76,7 @@ describe('Repositories', { testIsolation: 'off', tags: ['@manager', '@adminUser'
   });
 
   it('can download YAML', () => {
-    repositoriesPage.goTo();
+    RepositoriesPagePo.navTo();
     repositoriesPage.list().actionMenu(repoName).getMenuItem('Download YAML').click();
 
     const downloadedFilename = path.join(downloadsFolder, `${ repoName }.yaml`);
@@ -101,7 +92,7 @@ describe('Repositories', { testIsolation: 'off', tags: ['@manager', '@adminUser'
   });
 
   it('can delete a repository', () => {
-    repositoriesPage.goTo();
+    RepositoriesPagePo.navTo();
 
     // delete original cloned Repository
     repositoriesPage.list().actionMenu(repoNameClone).getMenuItem('Delete').click();
@@ -119,7 +110,7 @@ describe('Repositories', { testIsolation: 'off', tags: ['@manager', '@adminUser'
   });
 
   it('can delete a repository via bulk actions', () => {
-    repositoriesPage.goTo();
+    RepositoriesPagePo.navTo();
 
     // delete original Repository
     repositoriesPage.list().resourceTable().sortableTable().rowSelectCtlWithName(repoName)

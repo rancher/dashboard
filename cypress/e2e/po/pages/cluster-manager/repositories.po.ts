@@ -1,6 +1,8 @@
 import PagePo from '@/cypress/e2e/po/pages/page.po';
 import RepoListPo from '@/cypress/e2e/po/lists/catalog.cattle.io.clusterrepo.po';
 import RepositoriesCreateEditPo from '@/cypress/e2e/po/edit/repositories.po';
+import ProductNavPo from '@/cypress/e2e/po/side-bars/product-side-nav.po';
+import BurgerMenuPo from '@/cypress/e2e/po/side-bars/burger-side-menu.po';
 
 /**
  * List page for catalog.cattle.io.clusterrepo resources
@@ -16,6 +18,14 @@ export default class RepositoriesPagePo extends PagePo {
 
   constructor(private clusterId = 'local', private product: 'apps' | 'manager') {
     super(RepositoriesPagePo.createPath(clusterId, product));
+  }
+
+  static navTo() {
+    const sideNav = new ProductNavPo();
+
+    BurgerMenuPo.burgerMenuNavToMenubyLabel('Cluster Management');
+    sideNav.groups().contains('Advanced').click();
+    sideNav.navToSideMenuEntryByLabel('Repositories');
   }
 
   createEditRepositories(repoName? : string): RepositoriesCreateEditPo {

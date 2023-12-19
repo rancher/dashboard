@@ -1,11 +1,10 @@
-import ProductNavPo from '@/cypress/e2e/po/side-bars/product-side-nav.po';
 import ClusterManagerListPagePo from '@/cypress/e2e/po/pages/cluster-manager/cluster-manager-list.po';
 import ClusterManagerCreateRke1CustomPagePo from '@/cypress/e2e/po/edit/provisioning.cattle.io.cluster/create/cluster-create-rke1-custom.po';
 import RkeTemplatesPagePo from '@/cypress/e2e/po/pages/cluster-manager/rke-templates.po';
 import EmberPromptRemove from '@/cypress/e2e/po/components/ember/ember-prompt-remove.po';
 
 describe('RKE Templates', { testIsolation: 'off', tags: ['@manager', '@adminUser'] }, () => {
-  const rkeTemplatesPage = new RkeTemplatesPagePo('local');
+  const rkeTemplatesPage = new RkeTemplatesPagePo('_');
   const clusterList = new ClusterManagerListPagePo('local');
   const promptRemove = new EmberPromptRemove();
   const runTimestamp = +new Date();
@@ -21,17 +20,9 @@ describe('RKE Templates', { testIsolation: 'off', tags: ['@manager', '@adminUser
     cy.viewport(1380, 720);
   });
 
-  it('can navigate to RKE templates page', () => {
-    const sideNav = new ProductNavPo();
-
-    clusterList.goTo();
-    sideNav.groups().contains('RKE1 Configuration').click();
-    sideNav.navToSideMenuEntryByLabel('RKE Templates');
-    rkeTemplatesPage.waitForPage();
-  });
-
   it('can create RKE template and should display on RKE1 cluster creation page', () => {
-    rkeTemplatesPage.goTo();
+    RkeTemplatesPagePo.navTo();
+    rkeTemplatesPage.waitForPage();
     rkeTemplatesPage.addTemplate().click();
     rkeTemplatesPage.form().templateDetails().set(templateName);
     rkeTemplatesPage.form().templateDetails().set(revisionName, 1);
@@ -60,7 +51,7 @@ describe('RKE Templates', { testIsolation: 'off', tags: ['@manager', '@adminUser
   });
 
   it('can disable RKE template revision', () => {
-    rkeTemplatesPage.goTo();
+    RkeTemplatesPagePo.navTo();
     rkeTemplatesPage.mainRow().rowActionMenuOpen(revisionName);
     cy.intercept('POST', '/v3/clusterTemplateRevisions/*').as('disableTemplateRevision');
     rkeTemplatesPage.actionMenu().selectMenuItemByLabel('Disable');
@@ -70,7 +61,7 @@ describe('RKE Templates', { testIsolation: 'off', tags: ['@manager', '@adminUser
   });
 
   it('can enable RKE template revision', () => {
-    rkeTemplatesPage.goTo();
+    RkeTemplatesPagePo.navTo();
     rkeTemplatesPage.mainRow().rowActionMenuOpen(revisionName);
     cy.intercept('POST', '/v3/clusterTemplateRevisions/*').as('enableTemplateRevision');
     rkeTemplatesPage.actionMenu().selectMenuItemByLabel('Enable');
@@ -80,7 +71,7 @@ describe('RKE Templates', { testIsolation: 'off', tags: ['@manager', '@adminUser
   });
 
   it('can clone RKE template revision', () => {
-    rkeTemplatesPage.goTo();
+    RkeTemplatesPagePo.navTo();
     rkeTemplatesPage.groupRow().groupRowWithName(templateName).should('be.visible');
     rkeTemplatesPage.mainRow().rowActionMenuOpen(revisionName);
     rkeTemplatesPage.actionMenu().selectMenuItemByLabel('Clone Revision');
@@ -92,7 +83,7 @@ describe('RKE Templates', { testIsolation: 'off', tags: ['@manager', '@adminUser
   });
 
   it('can delete RKE template revision', () => {
-    rkeTemplatesPage.goTo();
+    RkeTemplatesPagePo.navTo();
     rkeTemplatesPage.mainRow().rowActionMenuOpen(revisionName2);
     rkeTemplatesPage.actionMenu().selectMenuItemByLabel(`Delete`);
     cy.intercept('DELETE', '/v3/clusterTemplateRevisions/*').as('deleteTemplateRevision');
@@ -102,7 +93,7 @@ describe('RKE Templates', { testIsolation: 'off', tags: ['@manager', '@adminUser
   });
 
   it('can delete RKE template group', () => {
-    rkeTemplatesPage.goTo();
+    RkeTemplatesPagePo.navTo();
     rkeTemplatesPage.groupRow().groupRowActionMenuOpen(templateName);
     rkeTemplatesPage.actionMenu().selectMenuItemByLabel(`Delete`);
     cy.intercept('DELETE', '/v3/clusterTemplates/*').as('deleteTemplate');

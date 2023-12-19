@@ -1,12 +1,10 @@
 import PromptRemove from '@/cypress/e2e/po/prompts/promptRemove.po';
-import ProductNavPo from '@/cypress/e2e/po/side-bars/product-side-nav.po';
-import ClusterManagerListPagePo from '@/cypress/e2e/po/pages/cluster-manager/cluster-manager-list.po';
 import MachinesPagePo from '@/cypress/e2e/po/pages/cluster-manager/machines.po';
 import * as path from 'path';
 import * as jsyaml from 'js-yaml';
 
 describe('Machines', { testIsolation: 'off', tags: ['@manager', '@adminUser'] }, () => {
-  const machinesPage = new MachinesPagePo();
+  const machinesPage = new MachinesPagePo('_');
   const runTimestamp = +new Date();
   const machineName = `e2e-machine-name-${ runTimestamp }`;
   const nsName = 'default';
@@ -21,18 +19,9 @@ describe('Machines', { testIsolation: 'off', tags: ['@manager', '@adminUser'] },
     cy.login();
   });
 
-  it('can navigate to Machines page', () => {
-    const clusterList = new ClusterManagerListPagePo('local');
-    const sideNav = new ProductNavPo();
-
-    clusterList.goTo();
-    sideNav.groups().contains('Advanced').click();
-    sideNav.navToSideMenuEntryByLabel('Machines');
-    machinesPage.waitForPage();
-  });
-
   it('can create a Machine', () => {
-    machinesPage.goTo();
+    MachinesPagePo.navTo();
+    machinesPage.waitForPage();
     machinesPage.create();
 
     machinesPage.createEditMachines().waitForPage('as=yaml');
@@ -62,7 +51,7 @@ describe('Machines', { testIsolation: 'off', tags: ['@manager', '@adminUser'] },
   });
 
   it('can edit a Machine', () => {
-    machinesPage.goTo();
+    MachinesPagePo.navTo();
     machinesPage.list().actionMenu(machineName).getMenuItem('Edit YAML').click();
     machinesPage.createEditMachines(nsName, machineName).waitForPage('mode=edit&as=yaml');
 
@@ -90,7 +79,7 @@ describe('Machines', { testIsolation: 'off', tags: ['@manager', '@adminUser'] },
   });
 
   it('can download YAML', () => {
-    machinesPage.goTo();
+    MachinesPagePo.navTo();
     machinesPage.list().actionMenu(machineName).getMenuItem('Download YAML').click();
 
     const downloadedFilename = path.join(downloadsFolder, `${ machineName }.yaml`);
@@ -106,7 +95,7 @@ describe('Machines', { testIsolation: 'off', tags: ['@manager', '@adminUser'] },
   });
 
   it('can delete a Machine', () => {
-    machinesPage.goTo();
+    MachinesPagePo.navTo();
     machinesPage.list().actionMenu(machineName).getMenuItem('Delete').click();
 
     const promptRemove = new PromptRemove();

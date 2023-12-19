@@ -1,4 +1,3 @@
-import ProductNavPo from '@/cypress/e2e/po/side-bars/product-side-nav.po';
 import ClusterManagerListPagePo from '@/cypress/e2e/po/pages/cluster-manager/cluster-manager-list.po';
 import NodeTemplatesPagePo from '@/cypress/e2e/po/pages/cluster-manager/node-templates.po';
 import ClusterManagerCreateRke1Amazonec2PagePo from '@/cypress/e2e/po/edit/provisioning.cattle.io.cluster/create/cluster-create-rke1-amazonec2.po';
@@ -6,7 +5,7 @@ import EmberPromptRemove from '@/cypress/e2e/po/components/ember/ember-prompt-re
 
 // will only run this in jenkins pipeline where cloud credentials are stored
 describe('Node Templates', { testIsolation: 'off', tags: ['@manager', '@jenkins', '@adminUser'] }, () => {
-  const nodeTemplatesPage = new NodeTemplatesPagePo('local');
+  const nodeTemplatesPage = new NodeTemplatesPagePo('_');
   const clusterList = new ClusterManagerListPagePo('local');
   const runTimestamp = +new Date();
   const templateName = `e2e-node-template-name-${ runTimestamp }`;
@@ -20,15 +19,6 @@ describe('Node Templates', { testIsolation: 'off', tags: ['@manager', '@jenkins'
     cy.viewport(1380, 720);
   });
 
-  it('can navigate to Node templates page', () => {
-    const sideNav = new ProductNavPo();
-
-    clusterList.goTo();
-    sideNav.groups().contains('RKE1 Configuration').click();
-    sideNav.navToSideMenuEntryByLabel('Node Templates');
-    nodeTemplatesPage.waitForPage();
-  });
-
   let removeCloudCred = false;
 
   it('can create a node template for Amazon EC2 and should display on RKE1 cluster creation page', () => {
@@ -39,7 +29,8 @@ describe('Node Templates', { testIsolation: 'off', tags: ['@manager', '@jenkins'
       removeCloudCred = true;
     });
 
-    nodeTemplatesPage.goTo();
+    NodeTemplatesPagePo.navTo();
+    nodeTemplatesPage.waitForPage();
     nodeTemplatesPage.addTemplate().click();
     nodeTemplatesPage.addNodeTemplateModal().serviceProviderOptions('Amazon EC2').should('have.class', 'active');
 
@@ -77,7 +68,7 @@ describe('Node Templates', { testIsolation: 'off', tags: ['@manager', '@jenkins'
   });
 
   it('can edit a node template', () => {
-    nodeTemplatesPage.goTo();
+    NodeTemplatesPagePo.navTo();
     nodeTemplatesPage.list().rowWithName(templateName).should('be.visible');
     nodeTemplatesPage.list().rowActionMenuOpen(templateName);
     nodeTemplatesPage.actionMenu().selectMenuItemByLabel('Edit');
@@ -94,7 +85,7 @@ describe('Node Templates', { testIsolation: 'off', tags: ['@manager', '@jenkins'
   });
 
   it('can clone a node template', () => {
-    nodeTemplatesPage.goTo();
+    NodeTemplatesPagePo.navTo();
     nodeTemplatesPage.list().rowWithName(`${ templateName }-edit`).should('be.visible');
     nodeTemplatesPage.list().rowActionMenuOpen(`${ templateName }-edit`);
     nodeTemplatesPage.actionMenu().selectMenuItemByLabel('Clone');
@@ -111,7 +102,7 @@ describe('Node Templates', { testIsolation: 'off', tags: ['@manager', '@jenkins'
   });
 
   it('can delete a node template', () => {
-    nodeTemplatesPage.goTo();
+    NodeTemplatesPagePo.navTo();
 
     // delete clone node template
     nodeTemplatesPage.list().rowWithName(`${ templateName }-clone`).should('be.visible');
@@ -130,7 +121,7 @@ describe('Node Templates', { testIsolation: 'off', tags: ['@manager', '@jenkins'
   });
 
   it('can delete a node template via bulk actions', () => {
-    nodeTemplatesPage.goTo();
+    NodeTemplatesPagePo.navTo();
 
     // delete original node template
     nodeTemplatesPage.list().rowWithName(`${ templateName }-edit`).click();
