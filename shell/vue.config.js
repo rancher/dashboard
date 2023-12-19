@@ -297,7 +297,7 @@ module.exports = function(dir, _appConfig) {
   let harData;
 
   if (harFile) {
-    harData = har.loadFile(harFile, devPorts ? 8005 : 80); // eslint-disable-line no-console
+    harData = har.loadFile(harFile, devPorts ? 8005 : 80, ''); // eslint-disable-line no-console
   }
 
   const config = {
