@@ -136,7 +136,9 @@ export default defineComponent({
     const store = this.$store as Store<any>;
 
     if (this.value.id) {
-      this.normanCluster = await this.value.findNormanCluster();
+      const liveNormanCluster = await this.value.findNormanCluster();
+
+      this.normanCluster = await store.dispatch(`rancher/clone`, { resource: liveNormanCluster });
       // track original version on edit to ensure we don't offer k8s downgrades
       this.originalVersion = this.normanCluster?.aksConfig?.kubernetesVersion;
     } else {
@@ -770,7 +772,7 @@ export default defineComponent({
     <SelectCredential
       v-model="config.azureCredentialSecret"
       data-testid="cruaks-select-credential"
-      :mode="'create'"
+      :mode="mode === 'view' ? 'view' : 'create'"
       provider="azure"
       :default-on-cancel="true"
       :showing-form="hasCredential"

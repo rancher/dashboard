@@ -2,7 +2,7 @@
 import { defineComponent, PropType } from 'vue';
 import { mapGetters } from 'vuex';
 
-import { _CREATE } from '@shell/config/query-params';
+import { _CREATE, _VIEW } from '@shell/config/query-params';
 import type { AKSDiskType, AKSNodePool, AKSPoolMode } from '../types/index';
 import LabeledInput from '@components/Form/LabeledInput/LabeledInput.vue';
 import LabeledSelect from '@shell/components/form/LabeledSelect.vue';
@@ -94,6 +94,10 @@ export default defineComponent({
 
     validAZ(): Boolean {
       return !this.pool.availabilityZones || !this.pool.availabilityZones.length || this.canUseAvailabilityZones;
+    },
+
+    isView() {
+      return this.mode === _VIEW;
     }
   },
 
@@ -264,7 +268,7 @@ export default defineComponent({
           />
         </div>
         <table
-          v-if="taints && taints.length"
+          v-if="(taints && taints.length) || isView"
           class="taints"
         >
           <tr>
@@ -285,16 +289,39 @@ export default defineComponent({
             </th>
             <th />
           </tr>
-          <Taint
-            v-for="(keyedTaint, i) in taints"
-            :key="keyedTaint._id"
-            :taint="keyedTaint.taint"
-            :mode="mode"
-            @input="e=>updateTaint({_id:keyedTaint._id, taint: e}, i)"
-            @remove="removeTaint(i)"
-          />
+          <template v-if="taints && taints.length">
+            <Taint
+              v-for="(keyedTaint, i) in taints"
+              :key="keyedTaint._id"
+              :taint="keyedTaint.taint"
+              :mode="mode"
+              @input="e=>updateTaint({_id:keyedTaint._id, taint: e}, i)"
+              @remove="removeTaint(i)"
+            />
+          </template>
+          <template v-else>
+            <tr>
+              <td :style="{'width': '40%'}">
+                <div class="text-muted">
+                  &mdash;
+                </div>
+              </td>
+              <td :style="{'width': '40%'}">
+                <div class="text-muted">
+                  &mdash;
+                </div>
+              </td>
+
+              <td :style="{'width': '15%'}">
+                <div class="text-muted">
+                  &mdash;
+                </div>
+              </td>
+            </tr>
+          </template>
         </table>
         <button
+          v-if="!isView"
           type="button"
           class="btn role-tertiary mt-20"
           @click="addTaint"
