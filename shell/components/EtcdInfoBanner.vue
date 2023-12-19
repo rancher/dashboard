@@ -11,7 +11,7 @@ export default {
     const inStore = this.$store.getters['currentProduct'].inStore;
     let monitoringVersion = '';
 
-    if (this.$store.getters[`${ inStore }/canList}`](CATALOG.APP)) {
+    if (this.$store.getters[`${ inStore }/canList`](CATALOG.APP)) {
       try {
         const res = await this.$store.dispatch(`${ inStore }/find`, { type: CATALOG.APP, id: 'cattle-monitoring-system/rancher-monitoring' });
 
