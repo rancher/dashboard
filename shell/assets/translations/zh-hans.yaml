@@ -884,7 +884,7 @@ catalog:
       requiresFound: '在安装这个 Chart 前，你需要安装<a href="{url}">{name}</a>。'
       requiresMissing: '这个 Chart 另一个提供 {name} 的 Chart，但我们找不到这个Chart。'
       insufficientCpu: '这个 Chart 需要 {need, number} 个 CPU 核，但集群只有 {have, number} 个可用。'
-      insufficientMemory: '这个 Cchart 需要 {need} 内存，但集群只有 {have} 可用。'
+      insufficientMemory: '这个 Chart 需要 {need} 内存，但集群只有 {have} 可用。'
       legacy:
         label: 这是个 {legacyType} 应用，无法在这里修改。
         enableLegacy:
