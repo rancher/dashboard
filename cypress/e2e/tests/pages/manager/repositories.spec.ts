@@ -1,6 +1,4 @@
 import PromptRemove from '@/cypress/e2e/po/prompts/promptRemove.po';
-import ProductNavPo from '@/cypress/e2e/po/side-bars/product-side-nav.po';
-import ClusterManagerListPagePo from '@/cypress/e2e/po/pages/cluster-manager/cluster-manager-list.po';
 import RepositoriesPagePo from '@/cypress/e2e/po/pages/cluster-manager/repositories.po';
 import * as path from 'path';
 import * as jsyaml from 'js-yaml';

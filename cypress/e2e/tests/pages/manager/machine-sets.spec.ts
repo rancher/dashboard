@@ -21,8 +21,8 @@ describe('MachineSets', { testIsolation: 'off', tags: ['@manager', '@adminUser']
   });
 
   it('can create a MachineSet', () => {
-    MachineSetsPagePo.navTo()
-    machineSetsPage.waitForPage()
+    MachineSetsPagePo.navTo();
+    machineSetsPage.waitForPage();
     machineSetsPage.create();
 
     machineSetsPage.createEditMachineSet().waitForPage('as=yaml');

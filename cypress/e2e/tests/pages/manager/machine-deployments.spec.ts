@@ -119,7 +119,6 @@ describe('MachineDeployments', { testIsolation: 'off', tags: ['@manager', '@admi
   it('can delete a MachineDeployments', () => {
     MachineDeploymentsPagePo.navTo();
 
-
     // delete original cloned MachineSet
     machineDeploymentsPage.list().actionMenu(machineDeploymentsNameClone).getMenuItem('Delete').click();
 

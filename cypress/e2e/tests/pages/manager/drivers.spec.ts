@@ -12,7 +12,7 @@ describe('Drivers', { testIsolation: 'off', tags: ['@manager', '@adminUser'] }, 
   });
 
   beforeEach(() => {
-    cy.viewport(1380, 620);
+    cy.viewport(1440, 900);
   });
 
   describe('Cluster Drivers', () => {
