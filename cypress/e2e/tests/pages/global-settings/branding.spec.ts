@@ -168,34 +168,34 @@ describe('Branding', () => {
     });
   });
 
-  it('Favicon', { tags: ['@globalSettings', '@adminUser'] }, () => {
+  it.only('Favicon', { tags: ['@globalSettings', '@adminUser'] }, () => {
     brandingPage.goTo();
     brandingPage.customFaviconCheckbox().set();
 
     // Upload Favicon
     brandingPage.uploadButton('Upload Favicon')
-      .selectFile('cypress/e2e/blueprints/global/favicons/custom-favicon.svg', { force: true });
+      .selectFile('cypress/e2e/blueprints/global/favicons/custom-favicon.png', { force: true });
 
     // Apply
-    cy.fixture('global/favicons/custom-favicon.svg', 'base64').then((expectedBase64) => {
+    cy.fixture('global/favicons/custom-favicon.png', 'base64').then((expectedBase64) => {
       brandingPage.applyAndWait('/v1/management.cattle.io.settings/ui-favicon').then(({ response, request }) => {
         expect(response?.statusCode).to.eq(200);
-        expect(request.body).to.have.property('value', `data:image/svg;base64,${ expectedBase64 }`);
-        expect(response?.body).to.have.property('value', `data:image/svg;base64,${ expectedBase64 }`);
+        expect(request.body).to.have.property('value', `data:image/png;base64,${ expectedBase64 }`);
+        expect(response?.body).to.have.property('value', `data:image/png;base64,${ expectedBase64 }`);
       });
 
       // Favicon Preview
-      brandingPage.faviconPreview().should('be.visible').and('have.attr', 'src', `data:image/svg;base64,${ expectedBase64 }`);
+      brandingPage.faviconPreview().should('be.visible').and('have.attr', 'src', `data:image/png;base64,${ expectedBase64 }`);
 
       // Favicon in header
-      cy.get('head link[rel="shortcut icon"]').should('have.attr', 'href', `data:image/svg;base64,${ expectedBase64 }`);
+      cy.get('head link[rel="shortcut icon"]').should('have.attr', 'href', `data:image/png;base64,${ expectedBase64 }`);
     });
 
     // Reset
     brandingPage.customFaviconCheckbox().set();
     brandingPage.applyAndWait('/v1/management.cattle.io.settings/ui-favicon');
     cy.get('head link[rel="shortcut icon"]').then((el) => {
-      expect(el).attr('href').to.include('/favicon.svg');
+      expect(el).attr('href').to.include('/favicon.png');
     });
   });
 
