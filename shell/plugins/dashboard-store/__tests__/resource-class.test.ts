@@ -2,7 +2,9 @@ import Resource from '@shell/plugins/dashboard-store/resource-class.js';
 
 describe('class: Resource', () => {
   describe('given custom resource keys', () => {
+    const customType = 'dsaf';
     const customResource = {
+      type:        customType,
       __rehydrate: 'whatever',
       __clone:     'whatever',
     };
@@ -18,28 +20,33 @@ describe('class: Resource', () => {
     });
 
     describe('method: save', () => {
-    /**
-     * DISCLAIMER ***************************************************************************************
-     * Logs are prevented to avoid polluting the test output.
-     ****************************************************************************************************
-    */
-      // eslint-disable-next-line jest/no-hooks
-      beforeEach(() => {
-        jest.spyOn(console, 'warn').mockImplementation(() => { });
-      });
-
       it('should remove all the internal keys', async() => {
+        const dispatch = jest.fn();
         const resource = new Resource(customResource, {
           getters:     { schemaFor: () => ({ linkFor: jest.fn() }) },
-          dispatch:    jest.fn(),
+          dispatch,
           rootGetters: { 'i18n/t': jest.fn() },
         });
 
-        const expectation = {};
+        const expectation = { type: customType };
 
         await resource.save();
 
-        expect({ ...resource }).toStrictEqual(expectation);
+        const opt = {
+          data:    expectation,
+          headers: {
+            accept:         'application/json',
+            'content-type': 'application/json',
+          },
+          method: 'post',
+          url:    undefined,
+        };
+
+        // Data sent should have been cleaned
+        expect(dispatch).toHaveBeenCalledWith('request', { opt, type: customType });
+
+        // Original workload model should remain unchanged
+        expect({ ...resource }).toStrictEqual(customResource);
       });
     });
   });
