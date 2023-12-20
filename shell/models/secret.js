@@ -6,7 +6,6 @@ import { SERVICE_ACCOUNT } from '@shell/config/types';
 import { set } from '@shell/utils/object';
 import { NAME as MANAGER } from '@shell/config/product/manager';
 import SteveModel from '@shell/plugins/steve/steve-class';
-import { NEVER_ADD } from '@shell/utils/create-yaml';
 import { colorForState, stateDisplay, STATES_ENUM } from '@shell/plugins/dashboard-store/resource-class';
 import { diffFrom } from '@shell/utils/time';
 import day from 'dayjs';
@@ -50,7 +49,7 @@ export default class Secret extends SteveModel {
   }
 
   get issuer() {
-    const { metadata: { annotations = {} } } = this;
+    const { metadata:{ annotations = {} } } = this;
 
     if (annotations[CERTMANAGER.ISSUER]) {
       return annotations[CERTMANAGER.ISSUER];
@@ -110,10 +109,10 @@ export default class Secret extends SteveModel {
       }
     ];
 
-    if (this._type === TYPES.SERVICE_ACCT) {
+    if ( this._type === TYPES.SERVICE_ACCT ) {
       const name = this.metadata?.annotations?.[KUBERNETES.SERVICE_ACCOUNT_NAME];
 
-      if (name) {
+      if ( name ) {
         out.push({
           label:         'Service Account',
           formatter:     'LinkName',
@@ -154,11 +153,11 @@ export default class Secret extends SteveModel {
   }
 
   get canUpdate() {
-    if (!this.hasLink('update')) {
+    if ( !this.hasLink('update') ) {
       return false;
     }
 
-    if (this._type === TYPES.SERVICE_ACCT) {
+    if ( this._type === TYPES.SERVICE_ACCT ) {
       return false;
     }
 
@@ -171,7 +170,7 @@ export default class Secret extends SteveModel {
       ...Object.keys(this.binaryData || [])
     ];
 
-    if (!keys.length) {
+    if ( !keys.length ) {
       return '(none)';
     }
 
@@ -205,11 +204,11 @@ export default class Secret extends SteveModel {
       }
     } else if (this._type === TYPES.TLS) {
       return this.certInfo || this.keysDisplay;
-    } else if (this._type === TYPES.BASIC) {
+    } else if ( this._type === TYPES.BASIC ) {
       return base64Decode(this.data.username);
-    } else if (this._type === TYPES.SSH) {
+    } else if ( this._type === TYPES.SSH ) {
       return this.sshUser;
-    } else if (this._type === TYPES.SERVICE_ACCT) {
+    } else if ( this._type === TYPES.SERVICE_ACCT ) {
       return this.metadata?.annotations?.['kubernetes.io/service-account.name'];
     }
 
@@ -217,28 +216,28 @@ export default class Secret extends SteveModel {
   }
 
   get sshUser() {
-    if (this._type !== TYPES.SSH) {
+    if ( this._type !== TYPES.SSH ) {
       return null;
     }
 
     const pub = base64Decode(this.data['ssh-publickey']);
 
-    if (!pub) {
+    if ( !pub ) {
       return null;
     }
 
-    if (pub.startsWith('----')) {
+    if ( pub.startsWith('----') ) {
       // PEM format
       const match = pub.match(/from OpenSSH by ([^"]+)"/);
 
-      if (match) {
+      if ( match ) {
         return match[1];
       }
-    } else if (pub.startsWith('ssh-')) {
+    } else if ( pub.startsWith('ssh-') ) {
       // OpenSSH format
       const parts = pub.replace(/\n/g, '').split(/\s+/);
 
-      if (parts && parts.length === 3) {
+      if ( parts && parts.length === 3 ) {
         return parts[2];
       }
     }
@@ -355,7 +354,7 @@ export default class Secret extends SteveModel {
   get decodedData() {
     const out = {};
 
-    for (const k in this.data || {}) {
+    for ( const k in this.data || {} ) {
       out[k] = base64Decode(this.data[k]);
     }
 
@@ -366,19 +365,19 @@ export default class Secret extends SteveModel {
     return (key, value) => { // or (mapOfNewData)
       const isMap = key && typeof key === 'object';
 
-      if (!this.data || isMap) {
+      if ( !this.data || isMap ) {
         set(this, 'data', {});
       }
 
       let neu;
 
-      if (isMap) {
+      if ( isMap ) {
         neu = key;
       } else {
         neu = { [key]: value };
       }
 
-      for (const k in neu) {
+      for ( const k in neu ) {
         // The key is quoted so that keys like '.dockerconfigjson' that contain dot don't get parsed into an object path
         set(this.data, `"${ k }"`, base64Encode(neu[k]));
       }
@@ -386,27 +385,11 @@ export default class Secret extends SteveModel {
   }
 
   get doneRoute() {
-    if (this.$rootGetters['currentProduct'].name === MANAGER) {
+    if ( this.$rootGetters['currentProduct'].name === MANAGER ) {
       return 'c-cluster-manager-secret';
     } else {
       return 'c-cluster-product-resource';
     }
-  }
-
-  cleanForSave(data) {
-    // There are some properties in ACTIVELY_REMOVE
-    // that should be removed from the data
-    const val = super._cleanForSave(data);
-
-    const fieldsToRemove = [...NEVER_ADD];
-
-    for (const field of fieldsToRemove) {
-      if (val[field] !== undefined) {
-        delete val[field];
-      }
-    }
-
-    return val;
   }
 
   get certLifetime() {
@@ -460,5 +443,17 @@ export default class Secret extends SteveModel {
     const color = colorForState(this.certState);
 
     return color.replace('text-', 'bg-');
+  }
+
+  cleanForSave(data, forNew) {
+    const val = super.cleanForSave(data, forNew);
+
+    // Secrets on create with _type will return validation error
+    // Secrets on edit without _type will return http error
+    if (forNew) {
+      delete val._type;
+    }
+
+    return val;
   }
 }

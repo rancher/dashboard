@@ -3,8 +3,7 @@ import { colorForState, stateDisplay } from '@shell/plugins/dashboard-store/reso
 import { NODE, WORKLOAD_TYPES } from '@shell/config/types';
 import { escapeHtml, shortenedImage } from '@shell/utils/string';
 import WorkloadService from '@shell/models/workload.service';
-import { NEVER_ADD_CONTAINER_FIELDS } from '@shell/utils/create-yaml';
-import { unset } from 'lodash';
+import { deleteProperty } from '@shell/utils/object';
 
 export const WORKLOAD_PRIORITY = {
   [WORKLOAD_TYPES.DEPLOYMENT]:             1,
@@ -259,30 +258,21 @@ export default class Pod extends WorkloadService {
     });
   }
 
-  removeContainerField(container) {
-    for (const field of NEVER_ADD_CONTAINER_FIELDS) {
-      unset(container, field);
-    }
-
-    return container;
-  }
-
   cleanForSave(data) {
     const val = super.cleanForSave(data);
 
-    // remove fields from array of spec.template.spec.containers
-    if (val.spec?.containers) {
-      val.spec.containers.forEach((container) => {
-        this.removeContainerField(container);
-      });
-    }
+    // remove fields from containers
+    val.spec?.containers.forEach((container) => {
+      this.removeContainerField(container);
+    });
 
     // remove fields from initContainers
-    if (val.spec?.initContainers) {
-      val.spec.initContainers.forEach((container) => {
-        this.removeContainerField(container);
-      });
-    }
+    val.spec?.initContainers.forEach((container) => {
+      this.removeContainerField(container);
+    });
+
+    // This is probably added by generic workload components that shouldn't be added to pods
+    deleteProperty(val, 'spec.selector');
 
     return val;
   }

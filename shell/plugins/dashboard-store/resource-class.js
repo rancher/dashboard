@@ -1093,15 +1093,14 @@ export default class Resource {
     return this._save(...arguments);
   }
 
-  _cleanForSave(data) {
-    delete this.__rehydrate;
-    delete this.__clone;
+  /**
+   * Remove any unwanted properties from the object that will be saved
+   */
+  cleanForSave(data, forNew) {
+    delete data.__rehydrate;
+    delete data.__clone;
 
-    return { ...data };
-  }
-
-  cleanForSave(data) {
-    return this._cleanForSave(data);
+    return data;
   }
 
   /**
@@ -1155,25 +1154,25 @@ export default class Resource {
     }
 
     // @TODO remove this once the API maps steve _type <-> k8s type in both directions
-    const data = this.toSave() || { ...this };
+    opt.data = this.toSave() || { ...this };
 
-    opt.data = this.cleanForSave(data);
-
-    if (opt?.data._type) {
+    if (opt.data._type) {
       opt.data.type = opt.data._type;
     }
 
-    if (opt?.data._name) {
+    if (opt.data._name) {
       opt.data.name = opt.data._name;
     }
 
-    if (opt?.data._labels) {
+    if (opt.data._labels) {
       opt.data.labels = opt.data._labels;
     }
 
-    if (opt?.data._annotations) {
+    if (opt.data._annotations) {
       opt.data.annotations = opt.data._annotations;
     }
+
+    opt.data = this.cleanForSave(opt.data, forNew);
 
     // handle "replace" opt as a query param _replace=true for norman PUT requests
     if (opt?.replace && opt.method === 'put') {
