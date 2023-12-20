@@ -389,7 +389,6 @@ export default {
 
       for ( const row of this.subTypes ) {
         const name = row.group;
-
         let entry = out[name];
 
         if ( !entry ) {
