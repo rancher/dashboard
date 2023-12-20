@@ -229,7 +229,7 @@ export const routerOptions = {
         }, {
           path:      '/c/:cluster/auth/roles',
           component: () => interopDefault(import('../pages/c/_cluster/auth/roles/index.vue')),
-          name:      '/c/:cluster/c-cluster-auth-roles'
+          name:      'c-cluster-auth-roles'
         }, {
           path:      '/c/:cluster/explorer/explorer-utils',
           component: () => interopDefault(import('../pages/c/_cluster/explorer/explorer-utils.js')),
