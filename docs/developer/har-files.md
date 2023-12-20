@@ -56,7 +56,7 @@ You'll get a similar print out to above, but the UI is loaded from the productio
 
 ## Exporting requests/responses
 
-You may want to inspect the network requests/responses contained in a HAR file. To support this, you can export exch request into a separate json file via the `har-export` script, eg.
+You may want to inspect the network requests/responses contained in a HAR file. To support this, you can export each request into a separate json file via the `har-export` script, eg.
 
 ```
 ./scripts/har-export <har-file> <folder>
