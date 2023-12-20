@@ -8,12 +8,18 @@ export default {
       type:    [String, Boolean],
       default: true
     },
-  }
+  },
+
+  computed: {
+    checked() {
+      return this.value === true || this.value === 'true';
+    }
+  },
 };
 </script>
 
 <template>
-  <span v-if="value">
+  <span v-if="checked">
     <i class="icon icon-checkmark" />
   </span>
   <span
