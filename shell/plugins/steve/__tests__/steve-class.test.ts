@@ -1,37 +1,9 @@
 import Steve from '@shell/plugins/steve/steve-class.js';
+import { steveClassJunkObject } from '@shell/plugins/steve/__tests__/steve-mocks';
 
 describe('class: Steve', () => {
   describe('given custom resource keys', () => {
-    const customResource = {
-      __active:                                   'whatever',
-      __clone:                                    'whatever',
-      __init:                                     'whatever',
-      _init:                                      'whatever',
-      _type:                                      'whatever',
-      'metadata.clusterName':                     'whatever',
-      'metadata.creationTimestamp':               'whatever',
-      'metadata.deletionGracePeriodSeconds':      'whatever',
-      'metadata.deletionTimestamp':               'whatever',
-      'metadata.fields':                          'whatever',
-      'metadata.finalizers':                      'whatever',
-      'metadata.generateName':                    'whatever',
-      'metadata.generation':                      'whatever',
-      'metadata.initializers':                    'whatever',
-      'metadata.managedFields':                   'whatever',
-      'metadata.ownerReferences':                 'whatever',
-      'metadata.relationships':                   'whatever',
-      'metadata.selfLink':                        'whatever',
-      'metadata.state':                           'whatever',
-      'metadata.uid':                             'whatever',
-      'spec.template.metadata.creationTimestamp': 'whatever',
-      'spec.versions.schema':                     'whatever',
-      // 'metadata.resourceVersion': 'whatever',
-      error:                                      'whatever',
-      links:                                      'whatever',
-      status:                                     'whatever',
-      stringData:                                 'whatever',
-      type:                                       'whatever',
-    };
+    const customResource = steveClassJunkObject;
 
     it('should keep internal keys', () => {
       const steve = new Steve(customResource, {
@@ -45,17 +17,39 @@ describe('class: Steve', () => {
 
     describe('method: save', () => {
       it('should remove all the internal keys', async() => {
+        const dispatch = jest.fn();
         const steve = new Steve(customResource, {
           getters:     { schemaFor: () => ({ linkFor: jest.fn() }) },
-          dispatch:    jest.fn(),
+          dispatch,
           rootGetters: { 'i18n/t': jest.fn() },
         });
 
-        const expectation = {};
+        const expectation = {
+          type:     customResource.type,
+          metadata: {
+            resourceVersion: 'whatever',
+            fields:          'whatever'
+          },
+          spec: { versions: {} }
+        };
 
         await steve.save();
 
-        expect({ ...steve }).toStrictEqual(expectation);
+        const opt = {
+          data:    expectation,
+          headers: {
+            accept:         'application/json',
+            'content-type': 'application/json',
+          },
+          method: 'post',
+          url:    undefined,
+        };
+
+        // Data sent should have been cleaned
+        expect(dispatch).toHaveBeenCalledWith('request', { opt, type: customResource.type });
+
+        // Original workload model should remain unchanged
+        expect({ ...steve }).toStrictEqual(customResource);
       });
     });
   });

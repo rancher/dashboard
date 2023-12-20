@@ -1,8 +1,8 @@
 import Workload from '@shell/models/workload.js';
+import { steveClassJunkObject } from '@shell/plugins/steve/__tests__/steve-mocks';
 
 describe('class: Workload', () => {
   describe('given custom workload keys', () => {
-    const customWorkloadType = '123abv';
     const customContainerImage = 'image';
     const customContainer = {
       image:    customContainerImage,
@@ -12,8 +12,8 @@ describe('class: Workload', () => {
       error:    'whatever',
     };
     const customWorkload = {
-      type:        customWorkloadType,
-      metadata:    { name: 'abc' },
+      ...steveClassJunkObject,
+      type:        '123abv',
       __rehydrate: 'whatever',
       __clone:     'whatever',
       spec:        {
@@ -25,6 +25,8 @@ describe('class: Workload', () => {
         }
       }
     };
+
+    customWorkload.metadata.name = 'abc';
 
     it('should keep internal keys', () => {
       const workload = new Workload(customWorkload, {
@@ -48,8 +50,12 @@ describe('class: Workload', () => {
           },
         });
         const expectation = {
-          metadata: { name: 'abc' },
-          spec:     {
+          metadata: {
+            name:            'abc',
+            fields:          'whatever',
+            resourceVersion: 'whatever',
+          },
+          spec: {
             template: {
               spec: {
                 containers:     [{ image: customContainerImage }],
@@ -69,11 +75,10 @@ describe('class: Workload', () => {
           },
           method: 'post',
           url:    undefined,
-
         };
 
         // Data sent should have been cleaned
-        expect(dispatch).toHaveBeenCalledWith('request', { opt, type: customWorkloadType });
+        expect(dispatch).toHaveBeenCalledWith('request', { opt, type: customWorkload.type });
 
         // Original workload model should remain unchanged
         expect({ ...workload }).toStrictEqual(customWorkload);

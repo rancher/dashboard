@@ -1,13 +1,9 @@
 import Resource from '@shell/plugins/dashboard-store/resource-class.js';
+import { resourceClassJunkObject } from '@shell/plugins/dashboard-store/__tests__/store-mocks';
 
 describe('class: Resource', () => {
   describe('given custom resource keys', () => {
-    const customType = 'dsaf';
-    const customResource = {
-      type:        customType,
-      __rehydrate: 'whatever',
-      __clone:     'whatever',
-    };
+    const customResource = resourceClassJunkObject;
 
     it('should keep internal keys', () => {
       const resource = new Resource(customResource, {
@@ -28,7 +24,7 @@ describe('class: Resource', () => {
           rootGetters: { 'i18n/t': jest.fn() },
         });
 
-        const expectation = { type: customType };
+        const expectation = { type: customResource.type };
 
         await resource.save();
 
@@ -43,7 +39,7 @@ describe('class: Resource', () => {
         };
 
         // Data sent should have been cleaned
-        expect(dispatch).toHaveBeenCalledWith('request', { opt, type: customType });
+        expect(dispatch).toHaveBeenCalledWith('request', { opt, type: customResource.type });
 
         // Original workload model should remain unchanged
         expect({ ...resource }).toStrictEqual(customResource);
