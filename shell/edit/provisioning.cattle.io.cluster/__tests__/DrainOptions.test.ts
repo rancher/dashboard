@@ -1,5 +1,5 @@
 import { mount } from '@vue/test-utils';
-import DrainOptions from '@shell/edit/provisioning.cattle.io.cluster/DrainOptions.vue';
+import DrainOptions from '@/shell/edit/provisioning.cattle.io.cluster/tabs/upgrade/DrainOptions.vue';
 import { DefaultProps } from 'vue/types/options';
 import { ExtendedVue, Vue } from 'vue/types/vue';
 

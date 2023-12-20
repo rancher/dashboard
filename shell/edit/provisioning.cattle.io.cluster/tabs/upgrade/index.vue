@@ -2,7 +2,7 @@
 import { get } from '@shell/utils/object';
 import { LabeledInput } from '@components/Form/LabeledInput';
 import { Banner } from '@components/Banner';
-import DrainOptions from '@shell/edit/provisioning.cattle.io.cluster/DrainOptions';
+import DrainOptions from '@shell/edit/provisioning.cattle.io.cluster/tabs/upgrade/DrainOptions';
 
 export default {
   components: {

@@ -54,10 +54,10 @@ import { getApplicableExtensionEnhancements } from '@shell/core/plugin-helpers';
 import { ExtensionPoint, TabLocation } from '@shell/core/types';
 import MemberRoles from '@shell/edit/provisioning.cattle.io.cluster/tabs/MemberRoles';
 import Basics from '@shell/edit/provisioning.cattle.io.cluster/tabs/Basics';
-import Etcd from '@shell/edit/provisioning.cattle.io.cluster/tabs/Etcd';
-import Networking from '@shell/edit/provisioning.cattle.io.cluster/tabs/Networking';
-import Upgrade from '@shell/edit/provisioning.cattle.io.cluster/tabs/Upgrade';
-import Registries from '@shell/edit/provisioning.cattle.io.cluster/tabs/Registries';
+import Etcd from '@shell/edit/provisioning.cattle.io.cluster/tabs/etcd';
+import Networking from '@shell/edit/provisioning.cattle.io.cluster/tabs/networking';
+import Upgrade from '@shell/edit/provisioning.cattle.io.cluster/tabs/upgrade';
+import Registries from '@shell/edit/provisioning.cattle.io.cluster/tabs/registries';
 import AddOnConfig from '@shell/edit/provisioning.cattle.io.cluster/tabs/AddOnConfig';
 import Advanced from '@shell/edit/provisioning.cattle.io.cluster/tabs/Advanced';
 

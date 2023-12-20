@@ -4,7 +4,7 @@ import { Banner } from '@components/Banner';
 import { Checkbox } from '@components/Form/Checkbox';
 import { _EDIT, _VIEW } from '@shell/config/query-params';
 import ArrayList from '@shell/components/form/ArrayList';
-import ACE from '@shell/edit/provisioning.cattle.io.cluster/ACE';
+import ACE from '@shell/edit/provisioning.cattle.io.cluster/tabs/networking/ACE';
 
 const NETBIOS_TRUNCATION_LENGTH = 15;
 

@@ -4,10 +4,8 @@ import { Banner } from '@components/Banner';
 import { Checkbox } from '@components/Form/Checkbox';
 import SelectOrCreateAuthSecret from '@shell/components/form/SelectOrCreateAuthSecret';
 import AdvancedSection from '@shell/components/AdvancedSection.vue';
-
-import RegistryConfigs from '@shell/edit/provisioning.cattle.io.cluster/RegistryConfigs';
-
-import RegistryMirrors from '@shell/edit/provisioning.cattle.io.cluster/RegistryMirrors';
+import RegistryConfigs from '@shell/edit/provisioning.cattle.io.cluster/tabs/registries/RegistryConfigs';
+import RegistryMirrors from '@shell/edit/provisioning.cattle.io.cluster/tabs/registries/RegistryMirrors';
 
 export default {
   components: {
