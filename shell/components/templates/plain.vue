@@ -70,7 +70,10 @@ export default {
       <Header :simple="true" />
       <main class="main-layout">
         <IndentedPanel class="pt-20">
-          <nuxt class="outlet" />
+          <router-view
+            :key="$route.fullPath"
+            class="outlet"
+          />
         </IndentedPanel>
         <ActionMenu />
         <PromptRemove />

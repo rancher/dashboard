@@ -248,7 +248,10 @@ export default {
         v-if="clusterAndRouteReady"
         class="main-layout"
       >
-        <nuxt class="outlet" />
+        <router-view
+          :key="$route.fullPath"
+          class="outlet"
+        />
         <ActionMenu />
         <PromptRemove />
         <PromptRestore />
@@ -282,7 +285,10 @@ export default {
         v-else-if="unmatchedRoute"
         class="main-layout"
       >
-        <nuxt class="outlet" />
+        <router-view
+          :key="$route.fullPath"
+          class="outlet"
+        />
       </main>
       <div
         v-if="$refs.draggableZone"

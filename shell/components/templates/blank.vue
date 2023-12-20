@@ -11,7 +11,7 @@ export default {
 
 <template>
   <main class="main-layout">
-    <nuxt />
+    <router-view :key="$route.fullPath" />
 
     <Inactivity />
   </main>

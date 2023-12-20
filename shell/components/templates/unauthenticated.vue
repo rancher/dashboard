@@ -14,7 +14,7 @@ export default {
     <div class="dashboard-root">
       <FixedBanner :header="true" />
       <FixedBanner :consent="true" />
-      <nuxt />
+      <router-view :key="$route.fullPath" />
       <FixedBanner :footer="true" />
     </div>
   </main>
