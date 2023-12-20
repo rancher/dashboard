@@ -2,14 +2,18 @@ import Workload from '@shell/models/workload.js';
 
 describe('class: Workload', () => {
   describe('given custom workload keys', () => {
+    const customWorkloadType = '123abv';
+    const customContainerImage = 'image';
     const customContainer = {
-      __clone:  'whatever',
+      image:    customContainerImage,
       __active: 'whatever',
-      __init:   'whatever',
+      active:   'whatever',
       _init:    'whatever',
       error:    'whatever',
     };
     const customWorkload = {
+      type:        customWorkloadType,
+      metadata:    { name: 'abc' },
       __rehydrate: 'whatever',
       __clone:     'whatever',
       spec:        {
@@ -33,27 +37,46 @@ describe('class: Workload', () => {
     });
 
     describe('method: save', () => {
-    /**
-     * DISCLAIMER ***************************************************************************************
-     * Logs are prevented to avoid polluting the test output.
-     ****************************************************************************************************
-    */
-      // eslint-disable-next-line jest/no-hooks
-      beforeEach(() => {
-        jest.spyOn(console, 'warn').mockImplementation(() => { });
-      });
-
       it('should remove all the internal keys', async() => {
+        const dispatch = jest.fn();
         const workload = new Workload(customWorkload, {
           getters:     { schemaFor: () => ({ linkFor: jest.fn() }) },
-          dispatch:    jest.fn(),
-          rootGetters: { 'i18n/t': jest.fn() },
+          dispatch,
+          rootGetters: {
+            'i18n/t':      jest.fn(),
+            'i18n/exists': () => true,
+          },
         });
-        const expectation = { spec: { template: { spec: { containers: [{}], initContainers: [{}] } } } };
+        const expectation = {
+          metadata: { name: 'abc' },
+          spec:     {
+            template: {
+              spec: {
+                containers:     [{ image: customContainerImage }],
+                initContainers: [{ image: customContainerImage }]
+              }
+            }
+          }
+        };
 
         await workload.save();
 
-        expect({ ...workload }).toStrictEqual(expectation);
+        const opt = {
+          data:    expectation,
+          headers: {
+            accept:         'application/json',
+            'content-type': 'application/json',
+          },
+          method: 'post',
+          url:    undefined,
+
+        };
+
+        // Data sent should have been cleaned
+        expect(dispatch).toHaveBeenCalledWith('request', { opt, type: customWorkloadType });
+
+        // Original workload model should remain unchanged
+        expect({ ...workload }).toStrictEqual(customWorkload);
       });
     });
   });

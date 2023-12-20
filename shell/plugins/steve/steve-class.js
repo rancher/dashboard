@@ -39,7 +39,6 @@ export default class SteveModel extends HybridModel {
   }
 
   cleanForSave(data, forNew) {
-    debugger;
     const val = super.cleanForSave(data);
 
     for (const field of STEVE_NEVER_SAVE) {
