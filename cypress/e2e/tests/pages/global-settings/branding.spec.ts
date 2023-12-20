@@ -103,11 +103,11 @@ describe('Branding', () => {
 
     // Upload Light Logo
     brandingPage.uploadButton('Upload Light Logo')
-      .selectFile('cypress/e2e/blueprints/logos/rancher-light-grey.png', { force: true });
+      .selectFile('cypress/e2e/blueprints/logos/rancher-color.svg', { force: true });
 
     // Upload Dark Logo
     brandingPage.uploadButton('Upload Dark Logo')
-      .selectFile('cypress/e2e/blueprints/logos/rancher-dark.png', { force: true });
+      .selectFile('cypress/e2e/blueprints/logos/rancher-white.svg', { force: true });
 
     // Apply
     brandingPage.applyAndWait('/v1/management.cattle.io.settings/ui-logo-light');
@@ -127,11 +127,11 @@ describe('Branding', () => {
       expect(response?.body.data).to.have.property('theme', '"ui-dark"');
     });
 
-    cy.fixture('logos/rancher-dark.png', 'base64').then((expectedBase64) => {
-      burgerMenu.headerBrandLogoImage().should('be.visible').and('have.attr', 'src', `data:image/png;base64,${ expectedBase64 }`);
+    cy.fixture('logos/rancher-white.svg', 'base64').then((expectedBase64) => {
+      burgerMenu.headerBrandLogoImage().should('be.visible').and('have.attr', 'src', `data:image/svg+xml;base64,${ expectedBase64 }`);
 
       BurgerMenuPo.toggle();
-      burgerMenu.brandLogoImage().should('be.visible').and('have.attr', 'src', `data:image/png;base64,${ expectedBase64 }`);
+      burgerMenu.brandLogoImage().should('be.visible').and('have.attr', 'src', `data:image/svg+xml;base64,${ expectedBase64 }`);
     });
 
     // Set dashboard theme to Light and check top-level navigation header for updated logo in light mode
@@ -145,11 +145,11 @@ describe('Branding', () => {
       expect(response?.body.data).to.have.property('theme', '"ui-light"');
     });
 
-    cy.fixture('logos/rancher-light-grey.png', 'base64').then((expectedBase64) => {
-      burgerMenu.headerBrandLogoImage().should('be.visible').and('have.attr', 'src', `data:image/png;base64,${ expectedBase64 }`);
+    cy.fixture('logos/rancher-color.svg', 'base64').then((expectedBase64) => {
+      burgerMenu.headerBrandLogoImage().should('be.visible').and('have.attr', 'src', `data:image/svg+xml;base64,${ expectedBase64 }`);
 
       BurgerMenuPo.toggle();
-      burgerMenu.brandLogoImage().should('be.visible').and('have.attr', 'src', `data:image/png;base64,${ expectedBase64 }`);
+      burgerMenu.brandLogoImage().should('be.visible').and('have.attr', 'src', `data:image/svg+xml;base64,${ expectedBase64 }`);
     });
 
     // Reset
@@ -174,28 +174,28 @@ describe('Branding', () => {
 
     // Upload Favicon
     brandingPage.uploadButton('Upload Favicon')
-      .selectFile('cypress/e2e/blueprints/global/favicons/custom-favicon.png', { force: true });
+      .selectFile('cypress/e2e/blueprints/global/favicons/custom-favicon.svg', { force: true });
 
     // Apply
-    cy.fixture('global/favicons/custom-favicon.png', 'base64').then((expectedBase64) => {
+    cy.fixture('global/favicons/custom-favicon.svg', 'base64').then((expectedBase64) => {
       brandingPage.applyAndWait('/v1/management.cattle.io.settings/ui-favicon').then(({ response, request }) => {
         expect(response?.statusCode).to.eq(200);
-        expect(request.body).to.have.property('value', `data:image/png;base64,${ expectedBase64 }`);
-        expect(response?.body).to.have.property('value', `data:image/png;base64,${ expectedBase64 }`);
+        expect(request.body).to.have.property('value', `data:image/svg;base64,${ expectedBase64 }`);
+        expect(response?.body).to.have.property('value', `data:image/svg;base64,${ expectedBase64 }`);
       });
 
       // Favicon Preview
-      brandingPage.faviconPreview().should('be.visible').and('have.attr', 'src', `data:image/png;base64,${ expectedBase64 }`);
+      brandingPage.faviconPreview().should('be.visible').and('have.attr', 'src', `data:image/svg;base64,${ expectedBase64 }`);
 
       // Favicon in header
-      cy.get('head link[rel="shortcut icon"]').should('have.attr', 'href', `data:image/png;base64,${ expectedBase64 }`);
+      cy.get('head link[rel="shortcut icon"]').should('have.attr', 'href', `data:image/svg;base64,${ expectedBase64 }`);
     });
 
     // Reset
     brandingPage.customFaviconCheckbox().set();
     brandingPage.applyAndWait('/v1/management.cattle.io.settings/ui-favicon');
     cy.get('head link[rel="shortcut icon"]').then((el) => {
-      expect(el).attr('href').to.include('/favicon.png');
+      expect(el).attr('href').to.include('/favicon.svg');
     });
   });
 
