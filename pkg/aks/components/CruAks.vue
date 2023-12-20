@@ -5,7 +5,7 @@ import { defineComponent } from 'vue';
 
 import { randomStr } from '@shell/utils/string';
 import { isArray, removeObject } from '@shell/utils/array';
-import { _CREATE } from '@shell/config/query-params';
+import { _CREATE, _EDIT } from '@shell/config/query-params';
 import { NORMAN, MANAGEMENT } from '@shell/config/types';
 import { sortable } from '@shell/utils/version';
 import { sortBy } from '@shell/utils/sort';
@@ -369,6 +369,10 @@ export default defineComponent({
     // this allows them to go back and correct their mistakes without re-making the whole cluster
     isNewOrUnprovisioned() {
       return this.mode === _CREATE || !this.normanCluster?.aksStatus?.upstreamSpec;
+    },
+
+    isEdit() {
+      return this.mode === _CREATE || this.mode === _EDIT;
     },
 
     doneRoute() {
@@ -1156,6 +1160,12 @@ export default defineComponent({
           class="mb-20"
           title-key="aks.accordions.clusterMembers"
         >
+          <Banner
+            v-if="isEdit"
+            color="info"
+          >
+            {{ t('cluster.memberRoles.removeMessage') }}
+          </Banner>
           <ClusterMembershipEditor
             v-if="canManageMembers"
             :mode="mode"
