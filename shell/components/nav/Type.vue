@@ -132,7 +132,7 @@ export default {
     :to="type.route"
     tag="li"
     class="child nav-type"
-    :class="{'root': isRoot, [`depth-${depth}`]: true, 'link-active': isCurrent}"
+    :class="{'root': isRoot, [`depth-${depth}`]: true, 'router-link-active': isCurrent}"
     :exact="type.exact"
   >
     <a
