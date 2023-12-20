@@ -116,14 +116,6 @@ export default {
     > HEADER {
       grid-area: header;
     }
-
-  &.dashboard-padding-left {
-    padding-left: $app-bar-collapsed-width;
-
-      .overlay-content-mode {
-        left: calc(var(--nav-width) + $app-bar-collapsed-width);
-      }
-   }
   }
 
   MAIN {
