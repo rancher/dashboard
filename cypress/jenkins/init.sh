@@ -117,6 +117,12 @@ if [[ "${JOB_TYPE}" == "recurring" ]]; then
     "dist/aws-rke2-rancher-calico-${RKE2_KUBERNETES_VERSION}-${RANCHER_VERSION//v}-${CERT_MANAGER_VERSION}"
 fi
 
+if [[ "${JOB_TYPE}" == "existing" ]]; then
+  RANCHER_TYPE="existing"
+fi
+
+echo "Rancher type: ${RANCHER_TYPE}"
+
 corral config vars set rancher_type ${RANCHER_TYPE}
 corral config vars set nodejs_version ${NODEJS_VERSION}
 corral config vars set dashboard_repo ${DASHBOARD_REPO}
