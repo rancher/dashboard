@@ -42,7 +42,7 @@ describe('Settings', () => {
     const settingsEdit = settingsPage.editSettings('local', 'engine-iso-url');
 
     settingsEdit.waitForPage();
-    cy.contains('Setting: engine-iso-url').should('be.visible');
+    settingsEdit.title().contains('Setting: engine-iso-url').should('be.visible');
     settingsEdit.settingsInput().set(settings['engine-iso-url'].new);
     settingsEdit.saveAndWait('engine-iso-url').then(({ request, response }) => {
       expect(response?.statusCode).to.eq(200);
@@ -59,7 +59,7 @@ describe('Settings', () => {
     settingsPage.editSettingsByLabel('engine-iso-url');
 
     settingsEdit.waitForPage();
-    cy.contains('Setting: engine-iso-url').should('be.visible');
+    settingsEdit.title().contains('Setting: engine-iso-url').should('be.visible');
     settingsEdit.useDefaultButton().click();
     settingsEdit.saveAndWait('engine-iso-url').then(({ request, response }) => {
       expect(response?.statusCode).to.eq(200);
@@ -80,7 +80,7 @@ describe('Settings', () => {
     const settingsEdit = settingsPage.editSettings('local', 'password-min-length');
 
     settingsEdit.waitForPage();
-    cy.contains('Setting: password-min-length').should('be.visible');
+    settingsEdit.title().contains('Setting: password-min-length').should('be.visible');
     settingsEdit.settingsInput().set(settings['password-min-length'].new);
     settingsEdit.saveAndWait('password-min-length');
     settingsPage.waitForPage();
@@ -115,7 +115,7 @@ describe('Settings', () => {
     settingsPage.editSettingsByLabel('password-min-length');
 
     settingsEdit.waitForPage();
-    cy.contains('Setting: password-min-length').should('be.visible');
+    settingsEdit.title().contains('Setting: password-min-length').should('be.visible');
     settingsEdit.useDefaultButton().click();
     settingsEdit.saveAndWait('password-min-length');
 
@@ -131,7 +131,7 @@ describe('Settings', () => {
     const settingsEdit = settingsPage.editSettings('local', 'ingress-ip-domain');
 
     settingsEdit.waitForPage();
-    cy.contains('Setting: ingress-ip-domain').should('be.visible');
+    settingsEdit.title().contains('Setting: ingress-ip-domain').should('be.visible');
     settingsEdit.settingsInput().set(settings['ingress-ip-domain'].new);
     settingsEdit.saveAndWait('ingress-ip-domain').then(({ request, response }) => {
       expect(response?.statusCode).to.eq(200);
@@ -147,7 +147,7 @@ describe('Settings', () => {
     settingsPage.editSettingsByLabel('ingress-ip-domain');
 
     settingsEdit.waitForPage();
-    cy.contains('Setting: ingress-ip-domain').should('be.visible');
+    settingsEdit.title().contains('Setting: ingress-ip-domain').should('be.visible');
     settingsEdit.useDefaultButton().click();
     settingsEdit.saveAndWait('ingress-ip-domain').then(({ request, response }) => {
       expect(response?.statusCode).to.eq(200);
@@ -167,7 +167,7 @@ describe('Settings', () => {
     const settingsEdit = settingsPage.editSettings('local', 'auth-user-info-max-age-seconds');
 
     settingsEdit.waitForPage();
-    cy.contains('Setting: auth-user-info-max-age-seconds').should('be.visible');
+    settingsEdit.title().contains('Setting: auth-user-info-max-age-seconds').should('be.visible');
     settingsEdit.settingsInput().set(settings['auth-user-info-max-age-seconds'].new);
     settingsEdit.saveAndWait('auth-user-info-max-age-seconds').then(({ request, response }) => {
       expect(response?.statusCode).to.eq(200);
@@ -183,7 +183,7 @@ describe('Settings', () => {
     settingsPage.editSettingsByLabel('auth-user-info-max-age-seconds');
 
     settingsEdit.waitForPage();
-    cy.contains('Setting: auth-user-info-max-age-seconds').should('be.visible');
+    settingsEdit.title().contains('Setting: auth-user-info-max-age-seconds').should('be.visible');
     settingsEdit.useDefaultButton().click();
     settingsEdit.saveAndWait('auth-user-info-max-age-seconds').then(({ request, response }) => {
       expect(response?.statusCode).to.eq(200);
@@ -203,7 +203,7 @@ describe('Settings', () => {
     const settingsEdit = settingsPage.editSettings('local', 'auth-user-session-ttl-minutes');
 
     settingsEdit.waitForPage();
-    cy.contains('Setting: auth-user-session-ttl-minutes').should('be.visible');
+    settingsEdit.title().contains('Setting: auth-user-session-ttl-minutes').should('be.visible');
     settingsEdit.settingsInput().set(settings['auth-user-session-ttl-minutes'].new);
     settingsEdit.saveAndWait('auth-user-session-ttl-minutes').then(({ request, response }) => {
       expect(response?.statusCode).to.eq(200);
@@ -219,7 +219,7 @@ describe('Settings', () => {
     settingsPage.editSettingsByLabel('auth-user-session-ttl-minutes');
 
     settingsEdit.waitForPage();
-    cy.contains('Setting: auth-user-session-ttl-minutes').should('be.visible');
+    settingsEdit.title().contains('Setting: auth-user-session-ttl-minutes').should('be.visible');
     settingsEdit.useDefaultButton().click();
     settingsEdit.saveAndWait('auth-user-session-ttl-minutes').then(({ request, response }) => {
       expect(response?.statusCode).to.eq(200);
@@ -239,7 +239,7 @@ describe('Settings', () => {
     const settingsEdit = settingsPage.editSettings('local', 'auth-token-max-ttl-minutes');
 
     settingsEdit.waitForPage();
-    cy.contains('Setting: auth-token-max-ttl-minutes').should('be.visible');
+    settingsEdit.title().contains('Setting: auth-token-max-ttl-minutes').should('be.visible');
     settingsEdit.settingsInput().set(settings['auth-token-max-ttl-minutes'].new);
     settingsEdit.saveAndWait('auth-token-max-ttl-minutes');
     settingsPage.waitForPage();
@@ -259,7 +259,7 @@ describe('Settings', () => {
     settingsPage.editSettingsByLabel('auth-token-max-ttl-minutes');
 
     settingsEdit.waitForPage();
-    cy.contains('Setting: auth-token-max-ttl-minutes').should('be.visible');
+    settingsEdit.title().contains('Setting: auth-token-max-ttl-minutes').should('be.visible');
     settingsEdit.useDefaultButton().click();
     settingsEdit.saveAndWait('auth-token-max-ttl-minutes');
 
@@ -275,7 +275,7 @@ describe('Settings', () => {
     const settingsEdit = settingsPage.editSettings('local', 'kubeconfig-generate-token');
 
     settingsEdit.waitForPage();
-    cy.contains('Setting: kubeconfig-generate-token').should('be.visible');
+    settingsEdit.title().contains('Setting: kubeconfig-generate-token').should('be.visible');
     settingsEdit.settingsRadioBtn().set(1);
     settingsEdit.saveAndWait('kubeconfig-generate-token');
     settingsPage.waitForPage();
@@ -287,7 +287,7 @@ describe('Settings', () => {
     settingsPage.editSettingsByLabel('kubeconfig-generate-token');
 
     settingsEdit.waitForPage();
-    cy.contains('Setting: kubeconfig-generate-token').should('be.visible');
+    settingsEdit.title().contains('Setting: kubeconfig-generate-token').should('be.visible');
     settingsEdit.useDefaultButton().click();
     settingsEdit.saveAndWait('kubeconfig-generate-token');
 
@@ -322,7 +322,7 @@ describe('Settings', () => {
     const settingsEdit = settingsPage.editSettings('local', 'kubeconfig-default-token-ttl-minutes');
 
     settingsEdit.waitForPage();
-    cy.contains('Setting: kubeconfig-default-token-ttl-minutes').should('be.visible');
+    settingsEdit.title().contains('Setting: kubeconfig-default-token-ttl-minutes').should('be.visible');
     settingsEdit.settingsInput().set(settings['kubeconfig-default-token-ttl-minutes'].new);
     settingsEdit.saveAndWait('kubeconfig-default-token-ttl-minutes').then(({ request, response }) => {
       expect(response?.statusCode).to.eq(200);
@@ -338,7 +338,7 @@ describe('Settings', () => {
     settingsPage.editSettingsByLabel('kubeconfig-default-token-ttl-minutes');
 
     settingsEdit.waitForPage();
-    cy.contains('Setting: kubeconfig-default-token-ttl-minutes').should('be.visible');
+    settingsEdit.title().contains('Setting: kubeconfig-default-token-ttl-minutes').should('be.visible');
     settingsEdit.useDefaultButton().click();
     settingsEdit.saveAndWait('kubeconfig-default-token-ttl-minutes').then(({ request, response }) => {
       expect(response?.statusCode).to.eq(200);
@@ -358,7 +358,7 @@ describe('Settings', () => {
     const settingsEdit = settingsPage.editSettings('local', 'auth-user-info-resync-cron');
 
     settingsEdit.waitForPage();
-    cy.contains('Setting: auth-user-info-resync-cron').should('be.visible');
+    settingsEdit.title().contains('Setting: auth-user-info-resync-cron').should('be.visible');
     settingsEdit.settingsInput().set(settings['auth-user-info-resync-cron'].new);
     settingsEdit.saveAndWait('auth-user-info-resync-cron').then(({ request, response }) => {
       expect(response?.statusCode).to.eq(200);
@@ -374,7 +374,7 @@ describe('Settings', () => {
     settingsPage.editSettingsByLabel('auth-user-info-resync-cron');
 
     settingsEdit.waitForPage();
-    cy.contains('Setting: auth-user-info-resync-cron').should('be.visible');
+    settingsEdit.title().contains('Setting: auth-user-info-resync-cron').should('be.visible');
     settingsEdit.useDefaultButton().click();
     settingsEdit.saveAndWait('auth-user-info-resync-cron').then(({ request, response }) => {
       expect(response?.statusCode).to.eq(200);

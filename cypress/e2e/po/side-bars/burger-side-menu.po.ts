@@ -166,7 +166,7 @@ export default class BurgerMenuPo extends ComponentPo {
    * @returns
    */
   brandLogoImage(): Cypress.Chainable {
-    return cy.getId('side-menu__logo-img');
+    return cy.getId('side-menu__brand-img');
   }
 
   /**
@@ -174,6 +174,6 @@ export default class BurgerMenuPo extends ComponentPo {
    * @returns
    */
   headerBrandLogoImage(): Cypress.Chainable {
-    return cy.getId('header-side-menu__logo-img');
+    return cy.getId('header-side-menu__brand-img');
   }
 }

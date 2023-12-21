@@ -36,7 +36,7 @@ describe('Settings', () => {
     const settingsEdit = settingsPage.editSettings('_', 'server-url');
 
     settingsEdit.waitForPage();
-    cy.contains('Setting: server-url').should('be.visible');
+    settingsEdit.title().contains('Setting: server-url').should('be.visible');
     settingsEdit.settingsInput().set(settings['server-url'].new);
     settingsEdit.saveAndWait('server-url');
     settingsPage.waitForPage();
@@ -54,7 +54,7 @@ describe('Settings', () => {
     settingsPage.editSettingsByLabel('server-url');
 
     settingsEdit.waitForPage();
-    cy.contains('Setting: server-url').should('be.visible');
+    settingsEdit.title().contains('Setting: server-url').should('be.visible');
     cy.get('@originalValue').then((text:any) => {
       settingsEdit.useDefaultButton().click();
       settingsEdit.saveAndWait('server-url');
@@ -77,7 +77,7 @@ describe('Settings', () => {
     const settingsEdit = settingsPage.editSettings('_', 'system-default-registry');
 
     settingsEdit.waitForPage();
-    cy.contains('Setting: system-default-registry').should('be.visible');
+    settingsEdit.title().contains('Setting: system-default-registry').should('be.visible');
     settingsEdit.settingsInput().set(settings['system-default-registry'].new);
     settingsEdit.saveAndWait('system-default-registry');
     settingsPage.waitForPage();
@@ -103,7 +103,7 @@ describe('Settings', () => {
     settingsPage.editSettingsByLabel('system-default-registry');
 
     settingsEdit.waitForPage();
-    cy.contains('Setting: system-default-registry').should('be.visible');
+    settingsEdit.title().contains('Setting: system-default-registry').should('be.visible');
     settingsEdit.settingsInput().clear();
     settingsEdit.saveAndWait('system-default-registry');
 
@@ -120,7 +120,7 @@ describe('Settings', () => {
       const settingsEdit = settingsPage.editSettings('_', 'ui-index');
 
       settingsEdit.waitForPage();
-      cy.contains('Setting: ui-index').should('be.visible');
+      settingsEdit.title().contains('Setting: ui-index').should('be.visible');
       settingsEdit.settingsInput().set(settings['ui-index'].new);
       settingsEdit.saveAndWait('ui-index', settings['ui-index'].new).then(({ request, response }) => {
         expect(response?.statusCode).to.eq(200);
@@ -136,7 +136,7 @@ describe('Settings', () => {
       settingsPage.editSettingsByLabel('ui-index');
 
       settingsEdit.waitForPage();
-      cy.contains('Setting: ui-index').should('be.visible');
+      settingsEdit.title().contains('Setting: ui-index').should('be.visible');
       settingsEdit.useDefaultButton().click();
       settingsEdit.saveAndWait('ui-index', originalValue).then(({ request, response }) => {
         expect(response?.statusCode).to.eq(200);
@@ -158,7 +158,7 @@ describe('Settings', () => {
       const settingsEdit = settingsPage.editSettings('_', 'ui-dashboard-index');
 
       settingsEdit.waitForPage();
-      cy.contains('Setting: ui-dashboard-index').should('be.visible');
+      settingsEdit.title().contains('Setting: ui-dashboard-index').should('be.visible');
       settingsEdit.settingsInput().set(settings['ui-dashboard-index'].new);
       settingsEdit.saveAndWait('ui-dashboard-index', settings['ui-dashboard-index'].new).then(({ request, response }) => {
         expect(response?.statusCode).to.eq(200);
@@ -174,7 +174,7 @@ describe('Settings', () => {
       settingsPage.editSettingsByLabel('ui-dashboard-index');
 
       settingsEdit.waitForPage();
-      cy.contains('Setting: ui-dashboard-index').should('be.visible');
+      settingsEdit.title().contains('Setting: ui-dashboard-index').should('be.visible');
       settingsEdit.useDefaultButton().click();
       settingsEdit.saveAndWait('ui-dashboard-index', originalValue).then(({ request, response }) => {
         expect(response?.statusCode).to.eq(200);
@@ -195,7 +195,7 @@ describe('Settings', () => {
     const settingsEdit = settingsPage.editSettings('_', 'ui-offline-preferred');
 
     settingsEdit.waitForPage();
-    cy.contains('Setting: ui-offline-preferred').should('be.visible');
+    settingsEdit.title().contains('Setting: ui-offline-preferred').should('be.visible');
     settingsEdit.selectSettingsByLabel('Local');
     settingsEdit.saveAndWait('ui-offline-preferred', 'Local').then(({ request, response }) => {
       expect(response?.statusCode).to.eq(200);
@@ -210,7 +210,7 @@ describe('Settings', () => {
     settingsPage.editSettingsByLabel('ui-offline-preferred');
 
     settingsEdit.waitForPage();
-    cy.contains('Setting: ui-offline-preferred').should('be.visible');
+    settingsEdit.title().contains('Setting: ui-offline-preferred').should('be.visible');
     settingsEdit.selectSettingsByLabel('Remote');
     settingsEdit.saveAndWait('ui-offline-preferred', 'Remote').then(({ request, response }) => {
       expect(response?.statusCode).to.eq(200);
@@ -226,7 +226,7 @@ describe('Settings', () => {
     settingsPage.editSettingsByLabel('ui-offline-preferred');
 
     settingsEdit.waitForPage();
-    cy.contains('Setting: ui-offline-preferred').should('be.visible');
+    settingsEdit.title().contains('Setting: ui-offline-preferred').should('be.visible');
     settingsEdit.useDefaultButton().click();
     settingsEdit.saveAndWait('ui-offline-preferred', 'dynamic').then(({ request, response }) => {
       expect(response?.statusCode).to.eq(200);
@@ -248,7 +248,7 @@ describe('Settings', () => {
     const settingsEdit = settingsPage.editSettings('_', 'ui-brand');
 
     settingsEdit.waitForPage();
-    cy.contains('Setting: ui-brand').should('be.visible');
+    settingsEdit.title().contains('Setting: ui-brand').should('be.visible');
     settingsEdit.settingsInput().set(settings['ui-brand'].new);
     settingsEdit.saveAndWait('ui-brand');
     settingsPage.waitForPage();
@@ -271,7 +271,7 @@ describe('Settings', () => {
     settingsPage.editSettingsByLabel('ui-brand');
 
     settingsEdit.waitForPage();
-    cy.contains('Setting: ui-brand').should('be.visible');
+    settingsEdit.title().contains('Setting: ui-brand').should('be.visible');
     settingsEdit.useDefaultButton().click();
     settingsEdit.saveAndWait('ui-brand');
 
@@ -298,7 +298,7 @@ describe('Settings', () => {
     const settingsEdit = settingsPage.editSettings('_', 'cluster-template-enforcement');
 
     settingsEdit.waitForPage();
-    cy.contains('Setting: cluster-template-enforcement').should('be.visible');
+    settingsEdit.title().contains('Setting: cluster-template-enforcement').should('be.visible');
     settingsEdit.settingsRadioBtn().set(0);
     settingsEdit.saveAndWait('cluster-template-enforcement').then(({ request, response }) => {
       expect(response?.statusCode).to.eq(200);
@@ -314,7 +314,7 @@ describe('Settings', () => {
     settingsPage.editSettingsByLabel('cluster-template-enforcement');
 
     settingsEdit.waitForPage();
-    cy.contains('Setting: cluster-template-enforcement').should('be.visible');
+    settingsEdit.title().contains('Setting: cluster-template-enforcement').should('be.visible');
     settingsEdit.useDefaultButton().click();
     settingsEdit.saveAndWait('cluster-template-enforcement').then(({ request, response }) => {
       expect(response?.statusCode).to.eq(200);
@@ -334,7 +334,7 @@ describe('Settings', () => {
     const settingsEdit = settingsPage.editSettings('_', 'telemetry-opt');
 
     settingsEdit.waitForPage();
-    cy.contains('Setting: telemetry-opt').should('be.visible');
+    settingsEdit.title().contains('Setting: telemetry-opt').should('be.visible');
     settingsEdit.useDefaultButton().should('be.disabled'); // button should be disabled for this settings option
     settingsEdit.selectSettingsByLabel('Prompt');
     settingsEdit.saveAndWait('telemetry-opt', 'prompt').then(({ request, response }) => {
@@ -350,7 +350,7 @@ describe('Settings', () => {
     settingsPage.editSettingsByLabel('telemetry-opt');
 
     settingsEdit.waitForPage();
-    cy.contains('Setting: telemetry-opt').should('be.visible');
+    settingsEdit.title().contains('Setting: telemetry-opt').should('be.visible');
     settingsEdit.selectSettingsByLabel('Opt-in to Telemetry');
     settingsEdit.saveAndWait('telemetry-opt', 'in').then(({ request, response }) => {
       expect(response?.statusCode).to.eq(200);
@@ -365,7 +365,7 @@ describe('Settings', () => {
     settingsPage.editSettingsByLabel('telemetry-opt');
 
     settingsEdit.waitForPage();
-    cy.contains('Setting: telemetry-opt').should('be.visible');
+    settingsEdit.title().contains('Setting: telemetry-opt').should('be.visible');
     settingsEdit.selectSettingsByLabel('Opt-out of Telemetry');
     settingsEdit.saveAndWait('telemetry-opt', 'out').then(({ request, response }) => {
       expect(response?.statusCode).to.eq(200);
@@ -384,7 +384,7 @@ describe('Settings', () => {
     const settingsEdit = settingsPage.editSettings('_', 'hide-local-cluster');
 
     settingsEdit.waitForPage();
-    cy.contains('Setting: hide-local-cluster').should('be.visible');
+    settingsEdit.title().contains('Setting: hide-local-cluster').should('be.visible');
     settingsEdit.settingsRadioBtn().set(0);
     settingsEdit.saveAndWait('hide-local-cluster');
     settingsPage.waitForPage();
@@ -401,7 +401,7 @@ describe('Settings', () => {
     settingsPage.editSettingsByLabel('hide-local-cluster');
 
     settingsEdit.waitForPage();
-    cy.contains('Setting: hide-local-cluster').should('be.visible');
+    settingsEdit.title().contains('Setting: hide-local-cluster').should('be.visible');
     settingsEdit.settingsRadioBtn().set(1);
     settingsEdit.saveAndWait('hide-local-cluster');
 

@@ -16,7 +16,7 @@ export class SettingsPagePo extends RootClusterPage {
    * @returns
    */
   advancedSettingRow(label: string) {
-    return cy.getId(`advanced-setting-${ label }`);
+    return cy.getId(`advanced-setting__option-${ label }`);
   }
 
   /**

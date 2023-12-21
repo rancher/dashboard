@@ -19,7 +19,7 @@ export class HomeLinksPagePo extends RootClusterPage {
   }
 
   selectCheckbox(index: number): CheckboxInputPo {
-    return new CheckboxInputPo(`[data-testid="checkbox-group-child-${ index }"]`);
+    return new CheckboxInputPo(`[data-testid="custom-links__checkbox-${ index }"]`);
   }
 
   addLinkButton() {

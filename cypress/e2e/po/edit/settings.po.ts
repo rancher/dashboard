@@ -17,6 +17,10 @@ export default class SettingsEditPo extends PagePo {
     super(SettingsEditPo.createPath(clusterId, setting));
   }
 
+  title() {
+    return this.self().get('.title .primaryheader  h1');
+  }
+
   settingsInput(): LabeledInputPo {
     return LabeledInputPo.byLabel(this.self(), 'Value');
   }

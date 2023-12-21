@@ -377,7 +377,7 @@ export default {
           </div>
           <div class="side-menu-logo">
             <BrandImage
-              data-testid="side-menu__logo-img"
+              data-testid="side-menu__brand-img"
               file-name="rancher-logo.svg"
             />
           </div>
