@@ -721,6 +721,7 @@ export default defineComponent({
     async saveRoleBindings(): Promise<void> {
       if (this.membershipUpdate.save) {
         await this.membershipUpdate.save(this.normanCluster.id);
+        // await this.membershipUpdate.save('bad-id');
       }
     },
 
@@ -747,7 +748,9 @@ export default defineComponent({
     },
 
     async actuallySave(): Promise<void> {
-      return await this.normanCluster.save();
+      await this.normanCluster.save();
+
+      return await this.normanCluster.waitForCondition('InitialRolesPopulated');
     },
 
     // fires when the 'cancel' button is pressed while the user is creating a new cloud credential
