@@ -46,15 +46,8 @@ export default {
     initYamlEditor: {
       type:     Function,
       required: true,
-    },
-    refreshYamls: {
-      type:     Function,
-      required: true
     }
 
-  },
-  beforeUpdate() {
-    this.refreshYamls(this.$refs);
   },
 
   computed: {

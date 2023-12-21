@@ -284,7 +284,7 @@ export default class ProvCluster extends SteveModel {
   }
 
   get isK3s() {
-    return this.mgmt?.status?.provider === 'k3s';
+    return this.mgmt?.status ? this.mgmt?.status.provider === 'k3s' : (this.spec?.kubernetesVersion || '').includes('k3s') ;
   }
 
   get isRke2() {

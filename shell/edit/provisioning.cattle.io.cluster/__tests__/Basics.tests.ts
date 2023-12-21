@@ -1,5 +1,5 @@
 import { mount } from '@vue/test-utils';
-import Basics from '@shell/edit/provisioning.cattle.io.cluster/Basics';
+import Basics from '@shell/edit/provisioning.cattle.io.cluster/tabs/Basics';
 
 const defaultStubs = {
   Banner:        true,
@@ -100,10 +100,8 @@ describe('component: Basics', () => {
         isHarvesterDriver:           false,
         isHarvesterIncompatible:     false,
         showDeprecatedPatchVersions: false,
-        clusterIsAlreadyCreated:     false,
         isElementalCluster:          false,
         hasPsaTemplates:             false,
-        isK3s:                       true,
         haveArgInfo:                 false,
         showCni:                     true,
         showCloudProvider:           true,
@@ -153,10 +151,8 @@ describe('component: Basics', () => {
         isHarvesterDriver:           false,
         isHarvesterIncompatible:     false,
         showDeprecatedPatchVersions: false,
-        clusterIsAlreadyCreated:     false,
         isElementalCluster:          false,
         hasPsaTemplates:             false,
-        isK3s:                       true,
         haveArgInfo:                 false,
         showCni:                     true,
         showCloudProvider:           true,
@@ -209,10 +205,8 @@ describe('component: Basics', () => {
         isHarvesterDriver:           false,
         isHarvesterIncompatible:     false,
         showDeprecatedPatchVersions: false,
-        clusterIsAlreadyCreated:     false,
         isElementalCluster:          false,
         hasPsaTemplates:             true,
-        isK3s:                       true,
         haveArgInfo:                 false,
         showCni:                     true,
         showCloudProvider:           true,
