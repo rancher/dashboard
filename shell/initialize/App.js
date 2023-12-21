@@ -15,7 +15,7 @@ export default {
     const templateEl = h('div', {
       domProps: { id: '__layout' },
       key:      this.layoutName
-    }, [h('nuxt')]);
+    }, [h('router-view')]);
 
     return h('div', { domProps: { id: '__nuxt' } }, [
       loadingEl,

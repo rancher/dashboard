@@ -77,12 +77,12 @@ export class PluginRoutes {
 
         if (foundParentRoute) {
           foundParentRoute.children = foundParentRoute?.children || [];
-          foundParentRoute.children.push(r.route);
+          foundParentRoute.children.unshift(r.route);
         }
       }
 
       if (!foundParentRoute) {
-        orderedPluginRoutes.push(r.route);
+        orderedPluginRoutes.unshift(r.route);
       }
     });
 
