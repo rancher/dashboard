@@ -1,8 +1,52 @@
-import { shallowMount } from '@vue/test-utils';
+import { shallowMount, createLocalVue } from '@vue/test-utils';
+import Vuex from 'vuex';
 import ClusterCreate from '@shell/edit/provisioning.cattle.io.cluster/index.vue';
 
 describe('component: Cluster: Create', () => {
   it('should hide RKE1 and RKE2 toggle button if RKE1 ui feature flag is NOT set', () => {
+    const localVue = createLocalVue();
+
+    localVue.use(Vuex);
+
+    const store = new Vuex.Store({
+      modules: {
+        i18n: {
+          namespaced: true,
+          getters:    {
+            t:            jest.fn(),
+            withFallback: () => jest.fn(),
+          }
+        },
+        features: {
+          namespaced: true,
+          getters:    {
+            get:          () => jest.fn(),
+            withFallback: jest.fn(),
+          }
+        },
+        prefs: {
+          namespaced: true,
+          getters:    { get: jest.fn() }
+        },
+        mapFeature: {
+          namespaced: true,
+          getters:    { get: jest.fn() }
+        },
+        'type-map': {
+          namespaced: true,
+          getters:    { activeProducts: () => [] }
+        },
+        catalog: {
+          namespaced: true,
+          getters:    { charts: () => [] }
+        }
+      },
+      getters: {
+        defaultClusterId: jest.fn(),
+        clusterId:        jest.fn()
+      }
+    });
+
     const wrapper = shallowMount(ClusterCreate, {
       computed:  { rke1UiEnabled: () => false },
       propsData: {
@@ -12,23 +56,12 @@ describe('component: Cluster: Create', () => {
         componentTestid: 'cluster-manager-create',
       },
       mixins: [],
+      store,
+      localVue,
       mocks:  {
         $route:      { params: {}, query: {} },
         $router:     { applyQuery: jest.fn() },
         $fetchState: { pending: false },
-        $store:      {
-          getters: {
-            'i18n/t':                  jest.fn(),
-            'features/get':            () => jest.fn(),
-            defaultClusterId:          jest.fn(),
-            clusterId:                 jest.fn(),
-            'type-map/activeProducts': [],
-            'catalog/charts':          [],
-            'prefs/get':               jest.fn(),
-            'mapFeature/get':          jest.fn(),
-            'i18n/withFallback':       jest.fn(),
-          },
-        },
       },
       stubs: { CruResource: { template: '<div><slot name="subtypes"></slot></div>' } }
     });
