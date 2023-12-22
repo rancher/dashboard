@@ -76,7 +76,7 @@ export default {
           for (let x = 0; x < Object.keys(stylesheet.cssRules).length; x++) {
             const cssRules = stylesheet.cssRules[x];
 
-            if (cssRules.selectorText && ((currTheme === 'light' && cssRules.selectorText.includes('body') &&
+            if (cssRules.selectorText && ((currTheme === 'light' && (cssRules.selectorText.includes('body') || cssRules.selectorText.includes('BODY')) &&
               cssRules.selectorText.includes('.theme-light') && cssRules.style.cssText.includes('--link:')) ||
               (currTheme === 'dark' && cssRules.selectorText.includes('.theme-dark')))) {
               // grab the colors to be used on the icon from the css rules
