@@ -335,6 +335,7 @@ export default {
         v-model="value.pool.labels"
         :add-label="t('labels.addLabel')"
         :disabled="busy"
+        :mode="mode"
         :title="t('cluster.machinePool.labels.label')"
         :read-allowed="false"
         :value-can-be-empty="true"
