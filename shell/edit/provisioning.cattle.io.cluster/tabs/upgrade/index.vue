@@ -1,7 +1,8 @@
 <script>
+import { get } from '@shell/utils/object';
 import { LabeledInput } from '@components/Form/LabeledInput';
 import { Banner } from '@components/Banner';
-import DrainOptions from './DrainOptions';
+import DrainOptions from '@shell/edit/provisioning.cattle.io.cluster/tabs/upgrade/DrainOptions';
 
 export default {
   components: {
@@ -20,10 +21,6 @@ export default {
       type:     Object,
       required: true,
     },
-    get: {
-      type:     Function,
-      required: true,
-    },
   },
 
   computed: {
@@ -31,6 +28,7 @@ export default {
       return this.value.spec.rkeConfig;
     },
   },
+  methods: { get }
 };
 </script>
 

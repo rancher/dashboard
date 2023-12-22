@@ -2,9 +2,9 @@
 import { LabeledInput } from '@components/Form/LabeledInput';
 import { Banner } from '@components/Banner';
 import { Checkbox } from '@components/Form/Checkbox';
-import { _EDIT } from '@shell/config/query-params';
+import { _EDIT, _VIEW } from '@shell/config/query-params';
 import ArrayList from '@shell/components/form/ArrayList';
-import ACE from './ACE';
+import ACE from '@shell/edit/provisioning.cattle.io.cluster/tabs/networking/ACE';
 
 const NETBIOS_TRUNCATION_LENGTH = 15;
 
@@ -31,25 +31,17 @@ export default {
       type:     Object,
       required: true,
     },
-    clusterIsAlreadyCreated: {
-      type:     Boolean,
-      required: true,
-    },
-    isView: {
-      type:     Boolean,
-      required: true,
-    },
-  },
-  data() {
-    const truncateLimit = this.value.defaultHostnameLengthLimit;
-
-    return {
-      truncateHostnames: truncateLimit === NETBIOS_TRUNCATION_LENGTH,
-      truncateLimit,
-    };
+    truncateLimit: {
+      type:     Number,
+      required: false,
+      default:  0
+    }
   },
 
   computed: {
+    truncateHostnames() {
+      return this.truncateLimit === NETBIOS_TRUNCATION_LENGTH;
+    },
     serverConfig() {
       return this.value.spec.rkeConfig.machineGlobalConfig;
     },
@@ -64,11 +56,14 @@ export default {
       return clusterCIDR.includes(':') || serviceCIDR.includes(':');
     },
     hostnameTruncationManuallySet() {
-      return this.truncateLimit && this.truncateLimit !== NETBIOS_TRUNCATION_LENGTH;
+      return !!this.truncateLimit && this.truncateLimit !== NETBIOS_TRUNCATION_LENGTH;
     },
     isEdit() {
       return this.mode === _EDIT;
     },
+    isView() {
+      return this.mode === _VIEW;
+    }
   },
 };
 </script>
@@ -96,7 +91,7 @@ export default {
         <LabeledInput
           v-model="serverConfig['cluster-cidr']"
           :mode="mode"
-          :disabled="clusterIsAlreadyCreated"
+          :disabled="isEdit"
           :label="t('cluster.rke2.address.clusterCidr.label')"
         />
       </div>
@@ -107,7 +102,7 @@ export default {
         <LabeledInput
           v-model="serverConfig['service-cidr']"
           :mode="mode"
-          :disabled="clusterIsAlreadyCreated"
+          :disabled="isEdit"
           :label="t('cluster.rke2.address.serviceCidr.label')"
         />
       </div>
@@ -121,7 +116,7 @@ export default {
         <LabeledInput
           v-model="serverConfig['cluster-dns']"
           :mode="mode"
-          :disabled="clusterIsAlreadyCreated"
+          :disabled="isEdit"
           :label="t('cluster.rke2.address.dns.label')"
         />
       </div>
@@ -132,7 +127,7 @@ export default {
         <LabeledInput
           v-model="serverConfig['cluster-domain']"
           :mode="mode"
-          :disabled="clusterIsAlreadyCreated"
+          :disabled="isEdit"
           :label="t('cluster.rke2.address.domain.label')"
         />
       </div>
@@ -159,7 +154,7 @@ export default {
           :disabled="isEdit || isView || hostnameTruncationManuallySet"
           :mode="mode"
           :label="t('cluster.rke2.truncateHostnames')"
-          @input="$emit('truncate-name', $event)"
+          @input="$emit('truncate-hostname', $event)"
         />
         <Banner
           v-if="hostnameTruncationManuallySet"
