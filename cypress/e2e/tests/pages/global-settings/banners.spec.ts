@@ -69,7 +69,7 @@ describe('Banners', () => {
     bannersPage.headerBannerCheckbox().set();
     bannersPage.headerInput().set(settings.bannerLabel);
     bannersPage.textAlignmentRadioGroup('bannerHeader').set(2);
-    bannersPage.textDecorationCheckboxes('bannerHeader').set(2);
+    bannersPage.textDecorationCheckboxes('bannerHeader', 'Underline').set();
     bannersPage.selectFontSizeByValue('bannerHeader', settings.fontSize.new);
     bannersPage.textColorPicker(0).value().should('not.eq', settings.bannerTextColor.new);
     bannersPage.textColorPicker(0).set(settings.bannerTextColor.new);
@@ -117,7 +117,7 @@ describe('Banners', () => {
     bannersPage.footerBannerCheckbox().set();
     bannersPage.footerInput().set(settings.bannerLabel);
     bannersPage.textAlignmentRadioGroup('bannerFooter').set(2);
-    bannersPage.textDecorationCheckboxes('bannerFooter').set(2);
+    bannersPage.textDecorationCheckboxes('bannerFooter', 'Underline').set();
     bannersPage.selectFontSizeByValue('bannerFooter', settings.fontSize.new);
     bannersPage.textColorPicker(2).value().should('not.eq', settings.bannerTextColor.new);
     bannersPage.textColorPicker(2).set(settings.bannerTextColor.new);
@@ -167,7 +167,7 @@ describe('Banners', () => {
     bannersPage.loginScreenBannerCheckbox().set();
     bannersPage.loginScreenInput().set(settings.bannerLabel);
     bannersPage.textAlignmentRadioGroup('bannerConsent').set(2);
-    bannersPage.textDecorationCheckboxes('bannerConsent').set(2);
+    bannersPage.textDecorationCheckboxes('bannerConsent', 'Underline').set();
     bannersPage.selectFontSizeByValue('bannerConsent', settings.fontSize.new);
     bannersPage.textColorPicker(4).value().should('not.eq', settings.bannerTextColor.new);
     bannersPage.textColorPicker(4).set(settings.bannerTextColor.new);

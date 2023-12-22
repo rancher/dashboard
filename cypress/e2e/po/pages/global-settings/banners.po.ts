@@ -62,10 +62,11 @@ export class BannersPagePo extends RootClusterPage {
   /**
    * Get text decoration checkboxes
    * @param bannerType
+   * @param label
    * @returns
    */
-  textDecorationCheckboxes(bannerType: string) {
-    return new CheckboxInputPo(`[data-testid="banner_decoration_checkbox${ bannerType }"]`, this.self());
+  textDecorationCheckboxes(bannerType: 'bannerHeader' | 'bannerFooter' | 'bannerConsent', label: 'Bold' | 'Italic' | 'Underline') {
+    return new CheckboxInputPo(`[data-testid="banner_decoration_checkbox${ bannerType }${ label }"]`, this.self());
   }
 
   /**
@@ -73,7 +74,7 @@ export class BannersPagePo extends RootClusterPage {
    * @param bannerType
    * @param label
    */
-  selectFontSizeByValue(bannerType: string, label: string) {
+  selectFontSizeByValue(bannerType: 'bannerHeader' | 'bannerFooter' | 'bannerConsent', label: string) {
     const selectFontSize = new LabeledSelectPo(`[data-testid="banner_font_size_options${ bannerType }"]`, this.self());
 
     selectFontSize.toggle();

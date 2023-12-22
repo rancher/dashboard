@@ -161,7 +161,7 @@ export default ({
             <Checkbox
               v-model="value[bannerType][o.style]"
               name="bannerDecoration"
-              :data-testid="`banner_decoration_checkbox${bannerType}`"
+              :data-testid="`banner_decoration_checkbox${bannerType}${o.label}`"
               class="banner-decoration-checkbox"
               :mode="mode"
               :label="o.label"
