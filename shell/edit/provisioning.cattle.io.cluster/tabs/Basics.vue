@@ -289,7 +289,7 @@ export default {
         // eslint-disable-next-line no-unused-vars
         const cni = this.serverConfig.cni; // force this property to recalculate if cni was changed away from cilium and chartValues['rke-cilium'] deleted
 
-        return this.userChartValues[this.chartVersionKey('rke2-cilium')]?.cilium?.ipv6?.enabled || false;
+        return this.userChartValues[this.chartVersionKey('rke2-cilium')]?.ipv6?.enabled || false;
       },
       set(val) {
         this.$emit('cilium-ipv6-changed', val);

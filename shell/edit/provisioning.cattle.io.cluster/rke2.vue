@@ -1924,12 +1924,9 @@ export default {
         ...this.userChartValues,
         [name]: {
           ...values,
-          cilium: {
-            ...values?.cilium,
-            ipv6: {
-              ...values?.cilium?.ipv6,
-              enabled: neu
-            }
+          ipv6: {
+            ...values?.ipv6,
+            enabled: neu
           }
         }
       });
