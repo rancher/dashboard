@@ -341,6 +341,18 @@ export default {
       }
     },
 
+    ciliumBandwidthManager: {
+      get() {
+        // eslint-disable-next-line no-unused-vars
+        const cni = this.serverConfig.cni; // force this property to recalculate if cni was changed away from cilium and chartValues['rke-cilium'] deleted
+
+        return this.userChartValues[this.chartVersionKey('rke2-cilium')]?.bandwidthManager?.enabled || false;
+      },
+      set(val) {
+        this.$emit('cilium-bandwidth-manager-changed', val);
+      }
+    },
+
     isEdit() {
       return this.mode === _EDIT;
     },
@@ -453,6 +465,11 @@ export default {
           data-testid="cluster-rke2-cni-ipv6-checkbox"
           :mode="mode"
           :label="t('cluster.rke2.address.ipv6.enable')"
+        />
+        <Checkbox
+          v-model="ciliumBandwidthManager"
+          :mode="mode"
+          :label="t('cluster.rke2.cni.cilium.BandwidthManager.enable')"
         />
       </div>
     </div>
