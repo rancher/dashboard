@@ -1935,6 +1935,22 @@ export default {
       });
     },
 
+    handleCiliumBandwidthManagerChanged(neu) {
+      const name = this.chartVersionKey('rke2-cilium');
+      const values = this.userChartValues[name];
+
+      set(this, 'userChartValues', {
+        ...this.userChartValues,
+        [name]: {
+          ...values,
+          bandwidthManager: {
+            ...values?.bandwidthManager,
+            enabled: neu
+          }
+        }
+      });
+    },
+
     handleCisChanged() {
       this.handleCisChange();
     },
@@ -2177,6 +2193,7 @@ export default {
             :unsupported-cloud-provider="unsupportedCloudProvider"
             :cloud-provider-options="cloudProviderOptions"
             @cilium-ipv6-changed="handleCiliumIpv6Changed"
+            @cilium-bandwidth-manager-changed="handleCiliumBandwidthManagerChanged"
             @enabled-system-services-changed="handleEnabledSystemServicesChanged"
             @kubernetes-changed="handleKubernetesChange"
             @cis-changed="handleCisChanged"

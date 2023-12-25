@@ -1862,6 +1862,9 @@ cluster:
       header: System Services
     cni:
       label: Container Network
+      cilium:
+        BandwidthManager:
+          enable: Enable Bandwidth Manager
     cloudProvider:
       label: Cloud Provider
       header: Cloud Provider Config
