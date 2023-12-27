@@ -9,6 +9,10 @@ import '@shell/plugins/replaceall';
 
 import Vue from 'vue';
 
+import { TextEncoder, TextDecoder } from 'util';
+global.TextEncoder = TextEncoder;
+global.TextDecoder = TextDecoder;
+
 Vue.config.productionTip = false;
 Vue.use(VTooltip).use(VModal);
 Vue.use(VCleanTooltip);
