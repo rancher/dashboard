@@ -330,7 +330,7 @@ export default class WorkloadService extends SteveModel {
     return val;
   }
 
-  removeContainerField(container) {
+  cleanContainerForSave(container) {
     delete container.__active;
     delete container.active;
     delete container._init;

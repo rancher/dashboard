@@ -262,13 +262,13 @@ export default class Pod extends WorkloadService {
     const val = super.cleanForSave(data);
 
     // remove fields from containers
-    val.spec?.containers.forEach((container) => {
-      this.removeContainerField(container);
+    val.spec?.containers?.forEach((container) => {
+      this.cleanContainerForSave(container);
     });
 
     // remove fields from initContainers
-    val.spec?.initContainers.forEach((container) => {
-      this.removeContainerField(container);
+    val.spec?.initContainers?.forEach((container) => {
+      this.cleanContainerForSave(container);
     });
 
     // This is probably added by generic workload components that shouldn't be added to pods

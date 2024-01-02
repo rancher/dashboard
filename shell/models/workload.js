@@ -656,13 +656,13 @@ export default class Workload extends WorkloadService {
     // remove fields from containers
     if (val.spec?.template?.spec?.containers) {
       val.spec?.template?.spec?.containers.forEach((container) => {
-        this.removeContainerField(container);
+        this.cleanContainerForSave(container);
       });
     }
 
     // remove fields from initContainers
     val.spec?.template?.spec?.initContainers.forEach((container) => {
-      this.removeContainerField(container);
+      this.cleanContainerForSave(container);
     });
 
     return val;

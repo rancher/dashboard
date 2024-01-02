@@ -7,7 +7,7 @@ describe('Cluster Explorer', () => {
     cy.login();
   });
 
-  describe('Worklaods', () => {
+  describe('Workloads', () => {
     describe('Pods', () => {
       const workloadsPodPage = new WorkloadsPodsListPagePo('local');
 
