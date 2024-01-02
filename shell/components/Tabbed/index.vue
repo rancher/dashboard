@@ -94,7 +94,7 @@ export default {
 
     // hide tabs based on tab count IF flag is active
     hideTabs() {
-      return !this.hideSingleTab || (this.hideSingleTab && this.sortedTabs.length > 1);
+      return this.hideSingleTab && this.sortedTabs.length === 1;
     }
   },
 
@@ -235,7 +235,7 @@ export default {
 <template>
   <div :class="{'side-tabs': !!sideTabs, 'tabs-only': tabsOnly }">
     <ul
-      v-if="hideTabs"
+      v-if="!hideTabs"
       ref="tablist"
       role="tablist"
       class="tabs"
