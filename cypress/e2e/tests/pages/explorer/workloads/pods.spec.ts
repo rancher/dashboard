@@ -59,8 +59,10 @@ describe('Cluster Explorer', () => {
           createClonePo.save();
 
           workloadsPodPage.waitForPage();
-          workloadsPodPage.sortableTable().filter(clonePodName);
-          workloadsPodPage.sortableTable().rowWithName(clonePodName).checkExists();
+          workloadsPodPage.list().checkVisible();
+          workloadsPodPage.list().resourceTable().sortableTable().filter(clonePodName);
+          workloadsPodPage.list().resourceTable().sortableTable().rowWithName(clonePodName)
+            .checkExists();
 
           const clonedPodPage = new WorkLoadsPodDetailsPagePo(clonePodName);
 
