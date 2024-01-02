@@ -469,7 +469,8 @@ export default {
             <div class="fields">
               <LabeledSelect
                 v-model="imagePullSecrets"
-                :label="t('workload.container.imagePullSecrets')"
+                :label="t('plugins.manageCatalog.imageLoad.fields.imagePullSecret.label')"
+                :tooltip="t('plugins.manageCatalog.imageLoad.fields.imagePullSecret.tooltip')"
                 :multiple="true"
                 :taggable="true"
                 :options="imagePullNamespacedSecrets"
