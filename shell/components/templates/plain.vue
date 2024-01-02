@@ -71,7 +71,7 @@ export default {
       <main class="main-layout">
         <IndentedPanel class="pt-20">
           <router-view
-            :key="$route.fullPath"
+            :key="$route.path"
             class="outlet"
           />
         </IndentedPanel>

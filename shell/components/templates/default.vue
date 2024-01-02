@@ -249,7 +249,7 @@ export default {
         class="main-layout"
       >
         <router-view
-          :key="$route.fullPath"
+          :key="$route.path"
           class="outlet"
         />
         <ActionMenu />
@@ -286,7 +286,7 @@ export default {
         class="main-layout"
       >
         <router-view
-          :key="$route.fullPath"
+          :key="$route.path"
           class="outlet"
         />
       </main>

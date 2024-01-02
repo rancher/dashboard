@@ -69,7 +69,7 @@ export default {
 
       <main class="main-layout">
         <router-view
-          :key="$route.fullPath"
+          :key="$route.path"
           class="outlet"
         />
       </main>

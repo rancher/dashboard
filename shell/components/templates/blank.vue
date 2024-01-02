@@ -11,7 +11,7 @@ export default {
 
 <template>
   <main class="main-layout">
-    <router-view :key="$route.fullPath" />
+    <router-view :key="$route.path" />
 
     <Inactivity />
   </main>
