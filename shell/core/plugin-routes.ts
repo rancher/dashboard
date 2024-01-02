@@ -91,7 +91,7 @@ export class PluginRoutes {
       routes: [...orderedPluginRoutes, ...allRoutes]
     });
 
-    Object.assign(this.router, newRouter);
+    (this.router as any).matcher = (newRouter as any).matcher;
   }
 
   /**
