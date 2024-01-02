@@ -739,23 +739,18 @@ export default {
       ]);
     },
 
-    saveWorkload() {
+    updateWorkloadManifest(manifest) {
       if (
         this.type !== WORKLOAD_TYPES.JOB &&
         this.type !== WORKLOAD_TYPES.CRON_JOB &&
+        this.type !== POD &&
         (this.mode === _CREATE || this.realMode === _CLONE)
       ) {
         this.spec.selector = { matchLabels: this.value.workloadSelector };
         Object.assign(this.value.metadata.labels, this.value.workloadSelector);
       }
 
-      let template;
-
-      if (this.type === WORKLOAD_TYPES.CRON_JOB) {
-        template = this.spec.jobTemplate;
-      } else {
-        template = this.spec.template;
-      }
+      let { spec, metadata } = manifest;
 
       // WORKLOADS
       if (
@@ -763,17 +758,17 @@ export default {
         this.type !== WORKLOAD_TYPES.CRON_JOB &&
         (this.mode === _CREATE || this.realMode === _CLONE)
       ) {
-        if (!template.metadata) {
-          template.metadata = { labels: this.value.workloadSelector };
+        if (!metadata) {
+          metadata = { labels: this.value.workloadSelector };
         } else {
-          Object.assign(template.metadata.labels, this.value.workloadSelector);
+          Object.assign(metadata.labels, this.value.workloadSelector);
         }
       }
 
-      if (template.spec.containers && template.spec.containers[0]) {
-        const containerResources = template.spec.containers[0].resources;
+      if (spec.containers && spec.containers[0]) {
+        const containerResources = spec.containers[0].resources;
         const nvidiaGpuLimit =
-          template.spec.containers[0].resources?.limits?.[GPU_KEY];
+          spec.containers[0].resources?.limits?.[GPU_KEY];
 
         // Though not required, requests are also set to mirror the ember ui
         if (nvidiaGpuLimit > 0) {
@@ -793,42 +788,42 @@ export default {
               delete containerResources.requests;
             }
             if (Object.keys(containerResources).length === 0) {
-              delete template.spec.containers[0].resources;
+              delete spec.containers[0].resources;
             }
           } catch {}
         }
       }
 
-      const nodeAffinity = template?.spec?.affinity?.nodeAffinity || {};
-      const podAffinity = template?.spec?.affinity?.podAffinity || {};
-      const podAntiAffinity = template?.spec?.affinity?.podAntiAffinity || {};
+      const nodeAffinity = spec?.affinity?.nodeAffinity || {};
+      const podAffinity = spec?.affinity?.podAffinity || {};
+      const podAntiAffinity = spec?.affinity?.podAntiAffinity || {};
 
       this.fixNodeAffinity(nodeAffinity);
       this.fixPodAffinity(podAffinity);
 
       // The fields are being removed because they are not allowed to be editabble
       if (this.mode === _EDIT) {
-        if (template?.spec?.affinity && Object.keys(template?.spec?.affinity).length === 0) {
-          delete template.spec.affinity;
+        if (spec?.affinity && Object.keys(spec?.affinity).length === 0) {
+          delete spec.affinity;
         }
 
         // Removing `affinity` fixes the issue with setting the `imagePullSecrets`
         // However, this field should not be set. Therefore this is explicitly removed.
-        if (template?.spec?.imagePullSecrets && template?.spec?.imagePullSecrets.length === 0) {
-          delete template.spec.imagePullSecrets;
+        if (spec?.imagePullSecrets && spec?.imagePullSecrets.length === 0) {
+          delete spec.imagePullSecrets;
         }
       }
 
       this.fixPodAffinity(podAntiAffinity);
       this.fixPodSecurityContext(this.podTemplateSpec);
 
-      template.metadata.namespace = this.value.metadata.namespace;
+      metadata.namespace = this.value.metadata.namespace;
 
       // Handle the case where the user has changed the name of the workload
       // Only do this for clone. Not allowed for edit
       if (this.realMode === _CLONE) {
-        template.metadata.name = this.value.metadata.name;
-        template.metadata.description = this.value.metadata.description;
+        metadata.name = this.value.metadata.name;
+        metadata.description = this.value.metadata.description;
       }
 
       // delete this.value.kind;
@@ -851,6 +846,24 @@ export default {
       // ports contain info used to create services after saving
       this.portsForServices = ports;
       Object.assign(this.value, { spec: this.spec });
+    },
+
+    saveWorkload() {
+      if (this.type === POD) {
+        this.updateWorkloadManifest(this);
+
+        return;
+      }
+
+      let template;
+
+      if (this.type === WORKLOAD_TYPES.CRON_JOB) {
+        template = this.spec.jobTemplate;
+      } else {
+        template = this.spec.template;
+      }
+
+      this.updateWorkloadManifest(template);
     },
 
     // node and pod affinity are formatted incorrectly from API; fix before saving
