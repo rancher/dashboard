@@ -45,6 +45,7 @@ describe('Cluster Manager', { testIsolation: 'off', tags: ['@manager', '@adminUs
       it('can create new cluster', () => {
         cy.intercept('POST', `/v1/${ type }s`).as('createRequest');
         const request = {
+          type,
           metadata: {
             namespace,
             name: rke2CustomName
@@ -269,6 +270,7 @@ describe('Cluster Manager', { testIsolation: 'off', tags: ['@manager', '@adminUs
 
         cy.wait('@importRequest').then((intercept) => {
           expect(intercept.request.body).to.deep.equal({
+            type,
             metadata: {
               namespace,
               name: importGenericName
