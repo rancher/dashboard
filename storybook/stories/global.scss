@@ -22,7 +22,6 @@ H1, H2, H3, H4, H5, H6, P {
   font-weight: 400!important;
 }
 
-
 CODE:not(.language-jsx) {
   background-color: var(--box-bg) !important;
   border: 1px solid var(--border) !important;
@@ -30,8 +29,68 @@ CODE:not(.language-jsx) {
   color: var(--body-text) !important;
 }
 
-.sbdocs-table tr td {
-  padding: 18px 31px!important;
+.sbdocs {
+  &.sbdocs-table {
+    tr {
+      th {
+        color: var(--body-text);
+      }
+
+      td {
+        padding: 18px 31px!important;
+        color: var(--body-text);
+      }
+
+      &:nth-child(even) {
+        background-color: #F8F8F8;
+
+        td {
+          color: #333;
+
+          * {
+            color: #333 !important; // TODO: Investigate !important usage throughout this file
+          }
+        }
+      }
+    }
+  }
+
+  &.sbdocs-li {
+    color: var(--body-text);
+  }
+}
+
+table.docblock-argstable {
+  thead.docblock-argstable-head {
+    tr {
+      th {
+        span {
+          color: var(--body-text);
+        }
+      }
+    }
+  }
+
+  tbody.docblock-argstable-body {
+    tr {
+      &:hover {
+        td {
+          background-color: var(--default-hover-bg);
+          color: var(--default-hover-text);
+
+          button {
+            color: transparent;
+            opacity: 0;
+          }
+
+          span, svg {
+            background-color: var(--default-hover-bg);
+            color: var(--default-hover-text);
+          }
+        }
+      }
+    }
+  }
 }
 
 div#root, button, input, optgroup, select, textarea {
