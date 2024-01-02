@@ -1,4 +1,5 @@
 export const gitRepoCreateRequest = {
+  type:     'fleet.cattle.io.gitrepo',
   metadata: {
     namespace: 'fleet-default',
     name:      'fleet-e2e-test-gitrepo'
