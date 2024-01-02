@@ -1,7 +1,7 @@
 
 import { findBy } from '@shell/utils/array';
 import { TARGET_WORKLOADS, UI_MANAGED, HCI as HCI_LABELS_ANNOTATIONS } from '@shell/config/labels-annotations';
-import { WORKLOAD_TYPES, SERVICE } from '@shell/config/types';
+import { WORKLOAD_TYPES, SERVICE, POD } from '@shell/config/types';
 import { clone, get } from '@shell/utils/object';
 import SteveModel from '@shell/plugins/steve/steve-class';
 import { shortenedImage } from '@shell/utils/string';
@@ -102,9 +102,12 @@ export default class WorkloadService extends SteveModel {
 
     if (this.type === WORKLOAD_TYPES.CRON_JOB) {
       containers = get(this, 'spec.jobTemplate.spec.template.spec.containers');
+    } else if (this.type === POD) {
+      containers = get(this, 'spec.containers');
     } else {
       containers = get(this, 'spec.template.spec.containers');
     }
+
     if (containers) {
       containers.forEach((container) => {
         if (!images.includes(container.image)) {
@@ -117,6 +120,12 @@ export default class WorkloadService extends SteveModel {
   }
 
   get containers() {
+    if (this.type === POD) {
+      const { spec: { containers } } = this;
+
+      return containers;
+    }
+
     if (this.type === WORKLOAD_TYPES.CRON_JOB) {
       // cronjob pod template is nested slightly different than other types
       const { spec: { jobTemplate: { spec: { template: { spec: { containers } } } } } } = this;
@@ -134,6 +143,12 @@ export default class WorkloadService extends SteveModel {
   }
 
   get initContainers() {
+    if (this.type === POD) {
+      const { spec: { initContainers } } = this;
+
+      return initContainers;
+    }
+
     if (this.type === WORKLOAD_TYPES.CRON_JOB) {
       // cronjob pod template is nested slightly different than other types
       const { spec: { jobTemplate: { spec: { template: { spec: { initContainers } } } } } } = this;

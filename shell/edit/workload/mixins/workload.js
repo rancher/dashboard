@@ -184,25 +184,17 @@ export default {
           name:            `container-0`,
         }];
 
-        const metadata = { ...this.value.metadata };
-
-        const podSpec = { template: { spec: { containers: podContainers, initContainers: [] }, metadata } };
+        const podSpec = {
+          containers:     podContainers,
+          initContainers: [],
+        };
 
         this.$set(this.value, 'spec', podSpec);
       }
     }
 
-    // EDIT view for POD
-    // Transform it from POD world to workload
-    if ((this.mode === _EDIT || this.mode === _VIEW || this.realMode === _CLONE ) && this.value.type === 'pod') {
-      const podSpec = { ...this.value.spec };
-      const metadata = { ...this.value.metadata };
-
-      this.$set(this.value.spec, 'template', { spec: podSpec, metadata });
-    }
-
     const spec = this.value.spec;
-    let podTemplateSpec = type === WORKLOAD_TYPES.CRON_JOB ? spec.jobTemplate.spec.template.spec : spec?.template?.spec;
+    let podTemplateSpec = type === WORKLOAD_TYPES.CRON_JOB ? spec.jobTemplate.spec.template.spec : this.value.type === POD ? spec : spec?.template?.spec;
 
     let containers = podTemplateSpec.containers || [];
     let container;
@@ -338,10 +330,20 @@ export default {
     // if this is a cronjob, grab pod spec from within job template spec
     podTemplateSpec: {
       get() {
-        return this.isCronJob ? this.spec.jobTemplate.spec.template.spec : this.spec?.template?.spec;
+        if (this.isCronJob) {
+          return this.spec.jobTemplate.spec.template.spec;
+        }
+
+        if (this.isPod) {
+          return this.spec;
+        }
+
+        return this.spec?.template?.spec;
       },
       set(neu) {
-        if (this.isCronJob) {
+        if (this.isPod) {
+          this.spec = { ...this.spec, ...neu };
+        } else if (this.isCronJob) {
           this.$set(this.spec.jobTemplate.spec.template, 'spec', neu);
         } else {
           this.$set(this.spec.template, 'spec', neu);
@@ -359,6 +361,14 @@ export default {
           return this.spec.jobTemplate.metadata.labels;
         }
 
+        if (this.isPod) {
+          if (!this.metadata) {
+            this.metadata = { ...this.metadata, labels: {} };
+          }
+
+          return this.metadata.labels;
+        }
+
         if (!this.spec.template.metadata) {
           this.$set(this.spec.template, 'metadata', { labels: {} });
         }
@@ -368,6 +378,8 @@ export default {
       set(neu) {
         if (this.isCronJob) {
           this.$set(this.spec.jobTemplate.metadata, 'labels', neu);
+        } else if (this.isPod) {
+          this.$set(this.metadata, 'labels', neu);
         } else {
           this.$set(this.spec.template.metadata, 'labels', neu);
         }
@@ -383,6 +395,15 @@ export default {
 
           return this.spec.jobTemplate.metadata.annotations;
         }
+
+        if (this.isPod) {
+          if (!this.metadata) {
+            this.metadata = { ...this.metadata, annotations: {} };
+          }
+
+          return this.metadata?.annotations;
+        }
+
         if (!this.spec.template.metadata) {
           this.$set(this.spec.template, 'metadata', { annotations: {} });
         }
@@ -392,6 +413,8 @@ export default {
       set(neu) {
         if (this.isCronJob) {
           this.$set(this.spec.jobTemplate.metadata, 'annotations', neu);
+        } else if (this.isPod) {
+          this.$set(this.metadata, 'annotations', neu);
         } else {
           this.$set(this.spec.template.metadata, 'annotations', neu);
         }
