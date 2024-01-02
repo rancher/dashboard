@@ -54,6 +54,19 @@ describe('component: ContainerLogs', () => {
     expect(wrapper.vm.backlog[1].rawMsg).toBe(data2.trimEnd());
   });
 
+  it('should not fail for an empty message/string', async() => {
+    jest.clearAllMocks();
+    const wrapper = await shallowMount(ContainerLogs, getDefaultOptions());
+
+    const data1 = '';
+    const messageCallback = addEventListener.mock.calls.find(([e]) => e === 'message')[1];
+
+    messageCallback({ detail: { data: base64Encode(data1) } });
+    await wrapper.vm.$nextTick();
+    expect(wrapper.vm.backlog).toHaveLength(0);
+    expect(wrapper.vm.filtered).toHaveLength(0);
+  });
+
   it('should merge the message which be truncated line', async() => {
     jest.clearAllMocks();
     const wrapper = await shallowMount(ContainerLogs, getDefaultOptions());
