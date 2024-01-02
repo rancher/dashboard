@@ -27,8 +27,11 @@ describe('class: Steve', () => {
         const expectation = {
           type:     customResource.type,
           metadata: {
-            resourceVersion: 'whatever',
-            fields:          'whatever'
+            resourceVersion:            'whatever',
+            fields:                     'whatever',
+            clusterName:                'whatever',
+            deletionGracePeriodSeconds: 'whatever',
+            generateName:               'whatever',
           },
           spec: { versions: {} }
         };

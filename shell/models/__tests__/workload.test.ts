@@ -51,9 +51,12 @@ describe('class: Workload', () => {
         });
         const expectation = {
           metadata: {
-            name:            'abc',
-            fields:          'whatever',
-            resourceVersion: 'whatever',
+            name:                       'abc',
+            fields:                     'whatever',
+            resourceVersion:            'whatever',
+            clusterName:                'whatever',
+            deletionGracePeriodSeconds: 'whatever',
+            generateName:               'whatever',
           },
           spec: {
             template: {

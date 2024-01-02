@@ -7,6 +7,9 @@ import { deleteProperty } from '@shell/utils/object';
 const STEVE_ADD = [
   'metadata.resourceVersion',
   'metadata.fields',
+  'metadata.clusterName',
+  'metadata.deletionGracePeriodSeconds',
+  'metadata.generateName',
 ];
 const STEVE_NEVER_SAVE = NEVER_ADD.filter((na) => !STEVE_ADD.includes(na));
 
