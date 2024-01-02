@@ -46,4 +46,8 @@ export class ChartsPage extends PagePo {
 
     return this;
   }
+
+  tabsCountOnInstallQuestions() {
+    return new TabbedPo().allTabs();
+  }
 }
