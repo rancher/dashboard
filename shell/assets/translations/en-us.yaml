@@ -4134,8 +4134,8 @@ plugins:
         image:
           label: Catalog Image Reference
           placeholder: "e.g. hub.docker.io/example-org/my-image:latest"
-        imagePullSecret:
-          label: Image Pull Secret
+        imagePullSecrets:
+          label: Image Pull Secrets
           tooltip: Must be of Type `kubernetes.io/dockercfg` or `kubernetes.io/dockerconfigjson`
         secrets:
           banner: "If the registry that hosts the Catalog Image requires Pull Secrets, they must be created in the following namespace:<pre>cattle-ui-plugin-system</pre>"
