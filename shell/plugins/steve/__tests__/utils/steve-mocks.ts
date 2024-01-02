@@ -1,5 +1,4 @@
-// TODO: RC final resting place
-import { resourceClassJunkObject } from '@shell/plugins/dashboard-store/__tests__/store-mocks';
+import { resourceClassJunkObject } from '@shell/plugins/dashboard-store/__tests__/utils/store-mocks';
 
 const customType = 'asdasd';
 

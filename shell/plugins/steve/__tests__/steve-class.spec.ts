@@ -1,5 +1,5 @@
 import Steve from '@shell/plugins/steve/steve-class.js';
-import { steveClassJunkObject } from '@shell/plugins/steve/__tests__/steve-mocks';
+import { steveClassJunkObject } from './utils/steve-mocks';
 
 describe('class: Steve', () => {
   describe('given custom resource keys', () => {

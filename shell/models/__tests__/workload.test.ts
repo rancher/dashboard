@@ -1,5 +1,5 @@
 import Workload from '@shell/models/workload.js';
-import { steveClassJunkObject } from '@shell/plugins/steve/__tests__/steve-mocks';
+import { steveClassJunkObject } from '@shell/plugins/steve/__tests__/utils/steve-mocks';
 
 describe('class: Workload', () => {
   describe('given custom workload keys', () => {

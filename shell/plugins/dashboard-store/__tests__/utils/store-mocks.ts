@@ -1,5 +1,3 @@
-// TODO: RC final resting place
-
 const customType = 'dsaf';
 
 export const resourceClassJunkObject = {

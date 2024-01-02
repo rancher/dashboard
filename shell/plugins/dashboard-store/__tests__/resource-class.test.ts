@@ -1,5 +1,5 @@
 import Resource from '@shell/plugins/dashboard-store/resource-class.js';
-import { resourceClassJunkObject } from '@shell/plugins/dashboard-store/__tests__/store-mocks';
+import { resourceClassJunkObject } from '@shell/plugins/dashboard-store/__tests__/utils/store-mocks';
 
 describe('class: Resource', () => {
   describe('given custom resource keys', () => {
