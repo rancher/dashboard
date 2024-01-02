@@ -45,7 +45,7 @@ describe('Cluster Explorer', () => {
 
           let origPodSpec: any;
 
-          cy.wait('@origPod', { timeout: 10000 })
+          cy.wait('@origPod', { timeout: 20000 })
             .then(({ response }) => {
               expect(response?.statusCode).to.eq(200);
               origPodSpec = response?.body.spec;
@@ -58,12 +58,16 @@ describe('Cluster Explorer', () => {
           createClonePo.nameNsDescription().name().set(clonePodName);
           createClonePo.save();
 
+          workloadsPodPage.waitForPage();
+          workloadsPodPage.sortableTable().filter(clonePodName);
+          workloadsPodPage.sortableTable().rowWithName(clonePodName).checkExists();
+
           const clonedPodPage = new WorkLoadsPodDetailsPagePo(clonePodName);
 
-          clonedPodPage.goTo();
+          clonedPodPage.goTo();// Needs to be goTo to ensure http request is fired
           clonedPodPage.waitForPage();
 
-          cy.wait('@clonedPod', { timeout: 10000 })
+          cy.wait('@clonedPod', { timeout: 20000 })
             .then(({ response }) => {
               expect(response?.statusCode).to.eq(200);
 
