@@ -10,9 +10,10 @@ PR Description
 - Major Changes
   - `createYaml` was closely linked to schema's have all child resourceFields. This has now been updated to work with a schema and a schema's definition (which has to be up front fetched)
   - plugins/fieldsForDriver and plugins/fieldNamesForDriver getters are now handled via schema definitions (upfront fetched in the `createPopulated` action)
-  - upfront fetch a schema's associated schema definitions in additional misc places (clusterscan, ingress, alertmanagerconfig)
+  - upfront fetch a schema's associated schema definitions in additional misc places (clusterscan, ingress, alertmanagerconfig, Questions)
     - TODO: RC list places fetchResourceFields used
   - createPopulated is now async and fetches schema definitions. this ensures defaultFor has access to resourceFields
+  -
 
 - Improvements
   - CruResource now creates yaml when it's needed, rather than when we visit the component in form view (avoids blocking load of component to fetch schema definitions)
@@ -54,7 +55,7 @@ export default class SteveSchema extends Schema {
    * This is a non-erroring request, unlike the resourceFields getter which will error if schema definition is required but missing
    */
   get hasResourceFields() {
-    if (this.requiresSchemaDefinitions) {
+    if (this.requiresSchemaDefinitions) { // TODO: RC defnitioons....
       return !!this.schemaDefinition?.resourceFields;
     }
 

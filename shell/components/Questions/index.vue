@@ -171,8 +171,9 @@ export default {
   },
 
   async fetch() {
-    if (this.source.type === 'schema' && this.source.resourceFields?.fetchResourceFields) {
-      await this.source.resourceFields.fetchResourceFields(); // TODO: RC test
+    // If this source is a schema, ensure the schema's `resourceFields` is populated
+    if (this.source.type === 'schema' && this.source.requiresSchemaDefinitions) {
+      await this.source.fetchResourceFields();
     }
   },
 
