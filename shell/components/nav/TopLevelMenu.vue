@@ -13,6 +13,7 @@ import { getVersionInfo } from '@shell/utils/version';
 import { LEGACY } from '@shell/store/features';
 import { SETTING } from '@shell/config/settings';
 import { filterOnlyKubernetesClusters, filterHiddenLocalCluster } from '@shell/utils/cluster';
+import { getProductFromRoute } from '@shell/middleware/authenticated';
 import { isRancherPrime } from '@shell/config/version';
 import Pinned from '@shell/components/nav/Pinned';
 
@@ -273,6 +274,19 @@ export default {
       return `${ lineHeightInEm }em`;
     },
 
+    checkActiveRoute(obj, isClusterRoute) {
+      // cluster level routes (EXPLORER, APPS, etc)
+      if (isClusterRoute && this.$route?.name?.startsWith('c-cluster') && this.currentCluster?.id === obj?.id) {
+        return this.$route?.name?.startsWith('c-cluster') && this.$route?.params?.cluster === obj?.id && getProductFromRoute(this.$route) === this.currentProduct?.name;
+      }
+      // other main menu apps/links
+      else if (!isClusterRoute && getProductFromRoute(this.$route) === obj?.value) {
+        return true;
+      }
+
+      return false;
+    },
+
     handler(e) {
       if (e.keyCode === KEY.ESCAPE ) {
         this.hide();
@@ -435,6 +449,7 @@ export default {
               <nuxt-link
                 class="option"
                 :to="a.to"
+                :class="{'active-menu-link': checkActiveRoute(a) }"
               >
                 <IconOrSvg
                   :icon="a.icon"
@@ -466,6 +481,7 @@ export default {
                     v-if="c.ready"
                     :data-testid="`menu-cluster-${ c.id }`"
                     class="cluster selector option"
+                    :class="{'active-menu-link': checkActiveRoute(c, true) }"
                     :to="{ name: 'c-cluster-explorer', params: { cluster: c.id } }"
                   >
                     <ClusterIconMenu
@@ -515,6 +531,7 @@ export default {
                     v-if="c.ready"
                     :data-testid="`menu-cluster-${ c.id }`"
                     class="cluster selector option"
+                    :class="{'active-menu-link': checkActiveRoute(c, true) }"
                     :to="{ name: 'c-cluster-explorer', params: { cluster: c.id } }"
                   >
                     <ClusterIconMenu
@@ -592,6 +609,7 @@ export default {
               >
                 <nuxt-link
                   class="option"
+                  :class="{'active-menu-link': checkActiveRoute(a) }"
                   :to="a.to"
                 >
                   <IconOrSvg
@@ -619,6 +637,7 @@ export default {
               >
                 <nuxt-link
                   class="option"
+                  :class="{'active-menu-link': checkActiveRoute(a) }"
                   :to="a.to"
                 >
                   <IconOrSvg
@@ -648,6 +667,7 @@ export default {
               >
                 <nuxt-link
                   class="option"
+                  :class="{'active-menu-link': checkActiveRoute(a) }"
                   :to="a.to"
                 >
                   <IconOrSvg
@@ -867,7 +887,7 @@ export default {
           margin-right: 16px;
         }
 
-        &.nuxt-link-active {
+        &.nuxt-link-active, &.active-menu-link {
           background: var(--primary-hover-bg);
           color: var(--primary-hover-text);
 
