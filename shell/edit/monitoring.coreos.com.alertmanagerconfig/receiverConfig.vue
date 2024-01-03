@@ -1,5 +1,4 @@
 <script>
-import { MONITORING } from '@shell/config/types';
 import ArrayListGrouped from '@shell/components/form/ArrayListGrouped';
 import Loading from '@shell/components/Loading';
 import { Banner } from '@components/Banner';
@@ -13,6 +12,7 @@ import jsyaml from 'js-yaml';
 import ButtonDropdown from '@shell/components/ButtonDropdown';
 import { _CREATE, _VIEW } from '@shell/config/query-params';
 import FormValidation from '@shell/mixins/form-validation';
+import { fetchAlertManagerConfigSpecs } from '@shell/utils/alertmanagerconfig';
 
 export const RECEIVERS_TYPES = [
   {
@@ -111,14 +111,13 @@ export default {
      *   slackConfigs: [...]
      * }
      */
-    const receiverSchema = this.$store.getters['cluster/schemaFor'](MONITORING.SPOOFED.ALERTMANAGERCONFIG_RECEIVER_SPEC);
+    const { receiverSchema } = await fetchAlertManagerConfigSpecs(this.$store);
 
     if (!receiverSchema) {
-      throw new Error("Can't render the form because the AlertmanagerConfig schema is not loaded yet.");
+      throw new Error("Can't render the form because the AlertmanagerConfig schema, or it's definitions, is not loaded yet.");
     }
 
-    const expectedFields = Object.keys(receiverSchema.resourceFields); // TODO: RC test resourceFields SPOOFED move to fetch
-
+    const expectedFields = Object.keys(receiverSchema.resourceFields);
     const suffix = {};
 
     Object.keys(this.value).forEach((key) => {
@@ -150,10 +149,8 @@ export default {
     return {
       create:         _CREATE,
       EDITOR_MODES,
-      // expectedFields,
       fileFound:      false,
       receiverTypes:  RECEIVERS_TYPES,
-      // suffixYaml,
       view:           _VIEW,
       yamlError:      '',
       fvFormRuleSets: [

@@ -80,12 +80,14 @@ export default class SteveModel extends HybridModel {
   }
 
   /**
+   * // TODO: RC (re)test
+   *
    * Check this instance is valid against
    * - the schema's resource fields
-   *   - this is done by fetching the
+   *   - this is done by fetching the secondary schemas associated with this primary schema
    * - also calls super.validationErrors
    */
-  async validationErrors(data = this, opt = { // TODO: RC (re)test
+  async validationErrors(data = this, opt = {
     ignoreFields:      undefined,
     skipResourceField: undefined
   }) {
@@ -180,7 +182,7 @@ export default class SteveModel extends HybridModel {
       }
     }
 
-    const rootErrors = super.validationErrors(this, opt);
+    const rootErrors = await super.validationErrors(this, opt);
 
     return uniq([...errors, ...rootErrors]);
   }

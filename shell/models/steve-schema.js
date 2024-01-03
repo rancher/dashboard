@@ -14,18 +14,22 @@ PR Description
   - pathExistsInSchema has now moved to a steve/norman specific place and works with both norman and steve schemas
   - model/resource validationErrors functionality has been split between steve specific resourceFields in steve model and core validation in root resource-class model
     - steve validationErrors is skipped for prefs (which would have required a blocking http request on dashboard load)
+
 - Approach
   - Originally, add resourceFields getter here which returns schemaDefinitions, ensure fetchResourceFields is called in places where needed
     - messy, unravelled
 
-- TODO: RC list breaking (???)
 - TODO: RC test ingress showX model props
-- TODO: RC michael
-- /v1/schema/monitoring.coreos.com.alertmanagerconfig
--  - as we have
--  - spec.type "monitoring.coreos.com.v1alpha1.alertmanagerconfig.spec",
--  - not in /v1/schemas
-   - 404 for /v1/schema/monitoring.coreos.com.v1alpha1.alertmanagerconfig.spec
+- TODO: RC after schema change, new ones available, but definition might not be ready. should now be 503
+// TODO: RC Q michael - how often does the cache update, is blocked?
+// TODO: RC Q michael - Install monitoring in ui. load /v1/schemaDefinition/monitoring.coreos.com.alertmanagerconfig. initiallg
+{
+"type": "error",
+"links": { },
+"code": "InternalServerError",
+"message": "error refreshing schemas",
+"status": 500
+}. then have response
 */
 
 /**
@@ -119,7 +123,7 @@ export default class SteveSchema extends Schema {
   /**
    * Fetch the schema definition which will provide the resourceFields
    */
-  async fetchResourceFields() {
+  async fetchResourceFields(depth = 0) {
     if (!this.requiresSchemaDefinitions) {
       // Not needed, no-op
       return;
@@ -133,16 +137,37 @@ export default class SteveSchema extends Schema {
     const url = this.schemaDefinitionUrl;
 
     if (!url) {
-      console.warn(`Failed to find url of schema definition for schema ${ this.schema.id }`);
+      console.warn(`Unable to fetch schema definitions for ${ this.id } (failed to find url of schema definition)`); // eslint-disable-line no-console
 
       return;
     }
 
-    // Make a direct request to fetch the schema definition
-    const res = await this.$dispatch('request', {
-      type: STEVE.SCHEMA_DEFINITION,
-      url
-    });
+    if (depth >= 4) {
+      console.warn(`Unable to fetch schema definitions for ${ this.id } (too many failed requests)`); // eslint-disable-line no-console
+
+      return;
+    }
+
+    let res;
+
+    try {
+      // Make a direct request to fetch the schema definition
+      res = await this.$dispatch('request', {
+        type: STEVE.SCHEMA_DEFINITION,
+        url
+      });
+    } catch (e) {
+      if ( e?._status >= 500) {
+        // Rancher could be updating it's definition cache, attempt a few times
+        await new Promise((resolve) => setTimeout(resolve, 2000));
+
+        return this.fetchResourceFields(++depth);
+      }
+
+      console.warn(`Unable to fetch schema definitions for ${ this.id }`, e); // eslint-disable-line no-console
+
+      return;
+    }
 
     const schemaDefinitionsIdsFromSchema = [];
     const schemaDefinitionsForStore = [];

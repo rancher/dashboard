@@ -5,20 +5,22 @@ import { get, set } from '@shell/utils/object';
 import isEmpty from 'lodash/isEmpty';
 import { ROOT_NAME } from '@shell/models/monitoring.coreos.com.route';
 
-export const fetchAlertManagerConfigSpecs = async($store) => { // TODO: RC Unable to test (or wire in elsewhere)
+/**
+ * Find secondary schema's related to the primary `monitoring.coreos.com.alertmanagerconfig` schema
+ */
+export const fetchAlertManagerConfigSpecs = async($store) => {
   const schema = $store.getters['cluster/schemaFor'](MONITORING.ALERTMANAGERCONFIG);
 
   if (!schema) {
     return;
   }
 
+  // Make the http request to fetch schema definitions for alertmanagerconfig
   await schema.fetchResourceFields();
 
-  // TODO: RC do i call this multiple times (has loop with get)
-
   return {
-    receiverSchema: schema.schemaDefinitions?.['com.coreos.monitoring.v1alpha1.AlertmanagerConfig.spec.receivers'],
-    routeSchema:    schema.schemaDefinitions?.['"com.coreos.monitoring.v1alpha1.AlertmanagerConfig.spec.route'],
+    receiverSchema: schema.schemaDefinitions?.[`${ schema.schemaDefinition.id }.spec.receivers`],
+    routeSchema:    schema.schemaDefinitions?.[`${ schema.schemaDefinition.id }.spec.route`],
   };
 };
 

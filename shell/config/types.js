@@ -126,20 +126,18 @@ export const MONITORING = {
   PROMETHEUSRULE:     'monitoring.coreos.com.prometheusrule',
   SERVICEMONITOR:     'monitoring.coreos.com.servicemonitor',
   THANOSRULER:        'monitoring.coreos.com.thanosruler',
-  SPOOFED:            { // TODO: RC ALL OF THESE!?
-    RECEIVER:                         'monitoring.coreos.com.receiver',
-    RECEIVER_SPEC:                    'monitoring.coreos.com.receiver.spec',
-    RECEIVER_EMAIL:                   'monitoring.coreos.com.receiver.email',
-    RECEIVER_SLACK:                   'monitoring.coreos.com.receiver.slack',
-    RECEIVER_WEBHOOK:                 'monitoring.coreos.com.receiver.webhook',
-    RECEIVER_PAGERDUTY:               'monitoring.coreos.com.receiver.pagerduty',
-    RECEIVER_OPSGENIE:                'monitoring.coreos.com.receiver.opsgenie',
-    RECEIVER_HTTP_CONFIG:             'monitoring.coreos.com.receiver.httpconfig',
-    RESPONDER:                        'monitoring.coreos.com.receiver.responder',
-    ROUTE:                            'monitoring.coreos.com.route',
-    ROUTE_SPEC:                       'monitoring.coreos.com.route.spec',
-    ALERTMANAGERCONFIG_RECEIVER_SPEC: 'monitoring.coreos.com.v1alpha1.alertmanagerconfig.spec.receivers', // TODO: RC
-    ALERTMANAGERCONFIG_ROUTE_SPEC:    'monitoring.coreos.com.v1alpha1.alertmanagerconfig.spec.route' // TODO: RC
+  SPOOFED:            {
+    RECEIVER:             'monitoring.coreos.com.receiver',
+    RECEIVER_SPEC:        'monitoring.coreos.com.receiver.spec',
+    RECEIVER_EMAIL:       'monitoring.coreos.com.receiver.email',
+    RECEIVER_SLACK:       'monitoring.coreos.com.receiver.slack',
+    RECEIVER_WEBHOOK:     'monitoring.coreos.com.receiver.webhook',
+    RECEIVER_PAGERDUTY:   'monitoring.coreos.com.receiver.pagerduty',
+    RECEIVER_OPSGENIE:    'monitoring.coreos.com.receiver.opsgenie',
+    RECEIVER_HTTP_CONFIG: 'monitoring.coreos.com.receiver.httpconfig',
+    RESPONDER:            'monitoring.coreos.com.receiver.responder',
+    ROUTE:                'monitoring.coreos.com.route',
+    ROUTE_SPEC:           'monitoring.coreos.com.route.spec',
   }
 };
 

@@ -38,8 +38,6 @@ export default {
     this.receiverSchema = receiverSchema;
     this.routeSchema = routeSchema;
 
-    debugger; // TODO: RC polish remove
-
     const alertmanagerConfigResource = await this.$store.dispatch(`${ inStore }/find`, { type: MONITORING.ALERTMANAGERCONFIG, id: alertmanagerConfigId });
 
     this.alertmanagerConfigId = alertmanagerConfigId;
@@ -56,8 +54,6 @@ export default {
     this.value.applyDefaults();
 
     const defaultReceiverValues = {};
-    // const receiverSchema = this.$store.getters['cluster/schemaFor'](MONITORING.SPOOFED.ALERTMANAGERCONFIG_RECEIVER_SPEC);
-    // const routeSchema = this.$store.getters['cluster/schemaFor'](MONITORING.SPOOFED.ALERTMANAGERCONFIG_ROUTE_SPEC);
     const receiverOptions = (this.value?.spec?.receivers || []).map((receiver) => receiver.name);
 
     return {
