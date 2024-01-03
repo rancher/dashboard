@@ -24,7 +24,7 @@ import isEqual from 'lodash/isEqual';
 import { markSeenReleaseNotes } from '@shell/utils/version';
 import PageHeaderActions from '@shell/mixins/page-actions';
 import BrowserTabVisibility from '@shell/mixins/browser-tab-visibility';
-import { getClusterFromRoute, getProductFromRoute } from '@shell/middleware/authenticated';
+import { getClusterFromRoute, getProductFromRoute } from '@shell/utils/router';
 import { BOTTOM } from '@shell/utils/position';
 import SideNav from '@shell/components/SideNav';
 import { BLANK_CLUSTER } from '@shell/store/store-types.js';
