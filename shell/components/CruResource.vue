@@ -320,7 +320,12 @@ export default {
       }
     },
 
-    createResourceYaml(modifiers, initial = false) {
+    async createResourceYaml(modifiers, initial = false) {
+      // Required to populate yaml comments and default values
+      await this.schema?.fetchResourceFields();
+
+      // TODO: RC bug configmaps created in this world don't show data. even though yaml sent is identical to before
+
       const resource = initial ? this.initialResource : this.resource;
 
       if ( typeof this.generateYaml === 'function' ) {
@@ -350,7 +355,7 @@ export default {
         }
       }
 
-      const resourceYaml = this.createResourceYaml(this.yamlModifiers);
+      const resourceYaml = await this.createResourceYaml(this.yamlModifiers);
 
       this.resourceYaml = resourceYaml;
       this.showAsForm = false;
@@ -423,11 +428,12 @@ export default {
   },
 
   watch: {
-    showAsForm(neu) {
+    async showAsForm(neu) {
       if (!neu) {
         // Entering yaml mode
         if (!this.initialYaml) {
-          this.initialYaml = this.createResourceYaml(undefined, true);
+          debugger;
+          this.initialYaml = await this.createResourceYaml(undefined, true);
         }
       }
     }

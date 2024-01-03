@@ -3,8 +3,6 @@ import { SCHEMA, COUNT } from '@shell/config/types';
 
 import { matches } from '@shell/utils/selector';
 import { typeMunge, typeRef, SIMPLE_TYPES } from '@shell/utils/create-yaml';
-import { splitObjectPath } from '@shell/utils/string';
-import { parseType } from '@shell/models/schema';
 import Resource from '@shell/plugins/dashboard-store/resource-class';
 import mutations from './mutations';
 import { keyFieldFor, normalizeType } from './normalize';
@@ -224,7 +222,7 @@ export default {
 
       const type = typeMunge(field.type);
       const mapOf = typeRef('map', type, field);
-      const arrayOf = typeRef('array', type, field); // TODO: RC test
+      const arrayOf = typeRef('array', type, field);
       const referenceTo = typeRef('reference', type);
 
       if ( mapOf || type === 'map' || type === 'json' ) {

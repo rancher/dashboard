@@ -7,13 +7,13 @@ PR Description
   - The BE now no longer returns the schema's `resourceFields` property. The same / similar information is provided via a new `schemaDefinitions` endpoint
   - To make this a seamless as possible the schema model still has a resourceFields getter to provide information in the same previous format
   - HOWEVER where schema.resourceFields is required there needs to be a separate, upfront fetch of the schema definitions via `schema.fetchResourceFields`
+
 - Major Changes
   - `createYaml` was closely linked to schema's have all child resourceFields. This has now been updated to work with a schema and a schema's definition (which has to be up front fetched)
   - plugins/fieldsForDriver and plugins/fieldNamesForDriver getters are now handled via schema definitions (upfront fetched in the `createPopulated` action)
   - upfront fetch a schema's associated schema definitions in additional misc places (clusterscan, ingress, alertmanagerconfig, Questions)
     - TODO: RC list places fetchResourceFields used
   - createPopulated is now async and fetches schema definitions. this ensures defaultFor has access to resourceFields
-  -
 
 - Improvements
   - CruResource now creates yaml when it's needed, rather than when we visit the component in form view (avoids blocking load of component to fetch schema definitions)
@@ -29,6 +29,8 @@ PR Description
 - Affected Places
   - Resource Detail View - Conditions Tab (should be visible if schema has conditions field, such as kube node)
   - pathExistsInSchema
+  - createPopulated --> defaultsFor. only used for rke2 machineConfig
+  - validationErrors - saving any steve based resource
 
 - TODO: RC test ingress showX model props
 - TODO: RC after schema change, new ones available, but definition might not be ready. should now be 503
