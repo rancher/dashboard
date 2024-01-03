@@ -21,11 +21,11 @@ describe('Charts Install', { tags: ['@charts', '@adminUser'] }, () => {
       });
     });
 
-    describe('Epinio chart install - Tabs visibility', () => {
+    describe('NeuVector chart install - Tabs visibility', () => {
       it('Should show tabs on "Edit Options" screen because there is more than 1 group', () => {
-        const epinioVersion = '103.0.2%2Bup1.10.0';
-        const chartsEpinioPage = `${ chartsPageUrl }&chart=epinio&version=${ epinioVersion }`;
-        const chartsPage: ChartsPage = new ChartsPage(chartsEpinioPage);
+        const NeuVectorVersion = '103.0.0%2Bup2.6.4';
+        const chartsNeuVectorPage = `${ chartsPageUrl }&chart=neuvector&version=${ NeuVectorVersion }`;
+        const chartsPage: ChartsPage = new ChartsPage(chartsNeuVectorPage);
 
         chartsPage.goTo();
         chartsPage.goToInstall().nextPage();
