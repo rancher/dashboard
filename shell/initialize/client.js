@@ -280,21 +280,13 @@ async function render(to, from, next) {
 
   // If no Components matched, generate 404
   if (!Components.length) {
-    // Default layout
-    await callMiddleware.call(this, Components, app.context);
-    if (nextCalled) {
-      return;
-    }
-
-    await callMiddleware.call(this, Components, app.context);
-    if (nextCalled) {
-      return;
-    }
-
-    // Show error page
-    app.context.error({ statusCode: 404, message: 'This page could not be found' });
-
-    return next();
+    // Call the authenticated middleware. This used to attempt to load the error layout but because it was missing it would:
+    // 1. load the default layout instead
+    // 2. then call the authenticated middleware
+    // 3. Authenticated middleware would then load plugins and check to see if there was a valid route and navigate to that if it existed
+    // 4. This would allow harvester cluster pages to load on page reload
+    // We should really make authenticated middleware do less...
+    await callMiddleware.call(this, [{ options: { middleware: ['authenticated'] } }], app.context);
   }
 
   // Update ._data and other properties if hot reloaded
