@@ -219,18 +219,25 @@ export default {
     return cache.generation;
   },
 
+  // TODO: RC unit test?
   pathExistsInSchema: (state, getters) => (type, path) => {
     let schema = getters.schemaFor(type);
 
     if (schema.requiresSchemaDefinitions && !schema.hasResourceFields) {
-      // TODO: RC (re)test steve. works for norman
-      console.warn(`pathExistsInSchema requires schema ${ schema.id } to have resources fields via schema definition but none were found`);
+      console.warn(`pathExistsInSchema requires schema ${ schema.id } to have resources fields via schema definition but none were found`); // eslint-disable-line no-console
 
       return false;
     }
 
+    const schemaDefinitions = schema.requiresSchemaDefinitions ? schema.schemaDefinitions : null;
+
+    if (path === 'spec.rules.http.paths.pathType') {
+      debugger;
+    }
+
     const parts = splitObjectPath(path);
 
+    // Iterate down the parts (properties) until there are no parts left (success) or the path cannot be found (failure)
     while ( parts.length ) {
       const key = parts.shift();
 
@@ -245,7 +252,7 @@ export default {
       if ( parts.length ) {
         type = parseType(type, field).pop(); // Get the main part of array[map[something]] => something
 
-        schema = schema.requiresSchemaDefinitions ? schema.schemaDefinitions?.[type] : getters.schemaFor(type);
+        schema = schemaDefinitions ? schemaDefinitions?.[type] : getters.schemaFor(type);
 
         if ( !schema ) {
           return false;

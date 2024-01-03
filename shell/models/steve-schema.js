@@ -3,21 +3,31 @@ import Schema from './schema';
 
 /*
 PR Description
+- Description
+  - The BE now no longer returns the schema's `resourceFields` property. The same / similar information is provided via a new `schemaDefinitions` endpoint
+  - To make this a seamless as possible the schema model still has a resourceFields getter to provide information in the same previous format
+  - HOWEVER where schema.resourceFields is required there needs to be a separate, upfront fetch of the schema definitions via `schema.fetchResourceFields`
 - Major Changes
-  - createYaml requires schema's resourceFields. This field now comes from schemaDefinitions (rather than schema) and has to be up front fetched
-  - plugins/fieldsForDriver and plugins/fieldNamesForDriver getters now handle schema definitions via a fetch in the `createPopulated` action
-  - upfront fetch a schema's associated schema definitions resource in additional misc places (clusterscan, ingress, alertmanagerconfig)
-  - createPopulated is now async and fetches resource fields. this ensures defaultFor has access to resourceFields
+  - `createYaml` was closely linked to schema's have all child resourceFields. This has now been updated to work with a schema and a schema's definition (which has to be up front fetched)
+  - plugins/fieldsForDriver and plugins/fieldNamesForDriver getters are now handled via schema definitions (upfront fetched in the `createPopulated` action)
+  - upfront fetch a schema's associated schema definitions in additional misc places (clusterscan, ingress, alertmanagerconfig)
+    - TODO: RC list places fetchResourceFields used
+  - createPopulated is now async and fetches schema definitions. this ensures defaultFor has access to resourceFields
 
 - Improvements
   - CruResource now creates yaml when it's needed, rather than when we visit the component in form view (avoids blocking load of component to fetch schema definitions)
-  - pathExistsInSchema has now moved to a steve/norman specific place and works with both norman and steve schemas
+  - pathExistsInSchema getter relates to steve/norman specific schemas, so has moved to the steve/norman store (plugins/steve)
   - model/resource validationErrors functionality has been split between steve specific resourceFields in steve model and core validation in root resource-class model
     - steve validationErrors is skipped for prefs (which would have required a blocking http request on dashboard load)
 
 - Approach
   - Originally, add resourceFields getter here which returns schemaDefinitions, ensure fetchResourceFields is called in places where needed
     - messy, unravelled
+  - Sometimes the schema definition endpoint might not be available given the BE updating it's cache. To cover this we will re-attempt requests to fetch schema definitions
+
+- Affected Places
+  - Resource Detail View - Conditions Tab (should be visible if schema has conditions field, such as kube node)
+  - pathExistsInSchema
 
 - TODO: RC test ingress showX model props
 - TODO: RC after schema change, new ones available, but definition might not be ready. should now be 503

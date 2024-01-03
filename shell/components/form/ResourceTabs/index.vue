@@ -117,7 +117,7 @@ export default {
         return false;
       }
 
-      return this.$store.getters[`${ this.inStore }/pathExistsInSchema`](this.value.type, 'status.conditions'); // TODO: RC test in norman resources (moved pathExistsInSchema to steve getters)???
+      return this.$store.getters[`${ this.inStore }/pathExistsInSchema`](this.value.type, 'status.conditions');
     },
 
     showEvents() {
