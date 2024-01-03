@@ -1,5 +1,6 @@
 import { FleetDashboardPagePo } from '@/cypress/e2e/po/pages/fleet/fleet-dashboard.po';
 import { GitRepoCreatePo } from '@/cypress/e2e/po/pages/fleet/gitrepo-create.po';
+import BurgerMenuPo from '@/cypress/e2e/po/side-bars/burger-side-menu.po';
 
 describe.only('Fleet Dashboard', { tags: ['@fleet', '@adminUser'] }, () => {
   let fleetDashboardPage: FleetDashboardPagePo;
@@ -19,6 +20,7 @@ describe.only('Fleet Dashboard', { tags: ['@fleet', '@adminUser'] }, () => {
     const gitRepoCreatePage = new GitRepoCreatePo('local');
 
     gitRepoCreatePage.goTo();
+
     gitRepoCreatePage.setRepoName(repoName);
     gitRepoCreatePage.selectWorkspace('fleet-local');
     gitRepoCreatePage.setGitRepoUrl('https://github.com/rancher/fleet-test-data.git');
@@ -29,6 +31,9 @@ describe.only('Fleet Dashboard', { tags: ['@fleet', '@adminUser'] }, () => {
   });
 
   it('Should display cluster status', () => {
+    // check if burguer menu nav is highlighted correctly for Fleet
+    BurgerMenuPo.burgerMenuGetNavMenubyLabel('Continuous Delivery').parent().should('have.class', 'active-menu-link');
+
     const row = fleetDashboardPage.sortableTable('fleet-local').row(0);
 
     row.get('.bg-success[data-testid="clusters-ready"]').should('exist');

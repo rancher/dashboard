@@ -32,6 +32,22 @@ export default class BurgerMenuPo extends ComponentPo {
   }
 
   /**
+   * Get menu navigation item by label
+   * @returns {Cypress.Chainable}
+   */
+  static burgerMenuGetNavMenubyLabel(label: string): Cypress.Chainable {
+    return this.sideMenu().should('exist').find('.option').contains(label);
+  }
+
+  /**
+   * Get cluster navigation item by label
+   * @returns {Cypress.Chainable}
+   */
+  static burgerMenuGetNavClusterbyLabel(label: string): Cypress.Chainable {
+    return this.sideMenu().should('exist').find('.option .cluster-name').contains(label);
+  }
+
+  /**
    * Check if menu is open
    */
   static checkOpen() {

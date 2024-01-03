@@ -43,6 +43,9 @@ describe('Branding', () => {
 
     settingsPage.waitForPageWithClusterId();
 
+    // check if burguer menu nav is highlighted correctly for Global Settings
+    BurgerMenuPo.burgerMenuGetNavMenubyLabel('Global Settings').parent().should('have.class', 'active-menu-link');
+
     const brandingNavItem = productMenu.visibleNavTypes().contains('Branding');
 
     brandingNavItem.should('exist');

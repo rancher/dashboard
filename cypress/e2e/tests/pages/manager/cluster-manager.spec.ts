@@ -13,6 +13,7 @@ import * as path from 'path';
 import * as jsyaml from 'js-yaml';
 import ClusterManagerCreateRke1CustomPagePo from '@/cypress/e2e/po/edit/provisioning.cattle.io.cluster/create/cluster-create-rke1-custom.po';
 import Shell from '@/cypress/e2e/po/components/shell.po';
+import BurgerMenuPo from '@/cypress/e2e/po/side-bars/burger-side-menu.po';
 
 // At some point these will come from somewhere central, then we can make tools to remove resources from this or all runs
 const runTimestamp = +new Date();
@@ -55,6 +56,10 @@ describe('Cluster Manager', { testIsolation: 'off', tags: ['@manager', '@adminUs
         cy.userPreferences();
 
         clusterList.goTo();
+
+        // check if burguer menu nav is highlighted correctly for cluster manager
+        BurgerMenuPo.burgerMenuGetNavMenubyLabel('Cluster Management').parent().should('have.class', 'active-menu-link');
+
         clusterList.checkIsCurrentPage();
         clusterList.createCluster();
 
