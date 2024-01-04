@@ -45,7 +45,15 @@ describe('Charts', { tags: ['@charts', '@adminUser'] }, () => {
       beforeEach(() => {
         cy.login();
         chartsPage.goTo();
-        cy.intercept('POST', 'v1/catalog.cattle.io.clusterrepos/rancher-charts?action=install').as('prometheusChartCreation');
+        cy.intercept('POST', 'v1/catalog.cattle.io.clusterrepos/rancher-charts?action=install', {
+          statusCode: 201,
+          body:       {
+            type:               'chartActionOutput',
+            links:              {},
+            operationName:      'helm-operation-test',
+            operationNamespace: 'fleet-local'
+          }
+        }).as('prometheusChartCreation');
       });
 
       it('Should not include empty prometheus selector when installing.', () => {
