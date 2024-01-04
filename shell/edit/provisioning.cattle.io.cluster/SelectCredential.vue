@@ -265,6 +265,7 @@ export default {
         v-model="credentialId"
         :label="t('cluster.credential.label')"
         :options="options"
+        option-key="value"
         :mode="mode"
         :selectable="option => !option.disabled"
       />
