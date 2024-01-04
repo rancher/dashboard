@@ -169,4 +169,9 @@ export default class SortableTablePo extends ComponentPo {
 
     return row;
   }
+
+  // Check that the sortable table loading indicator does not exist (data loading complete)
+  checkLoadingIndicatorNotVisible() {
+    cy.get('.data-loading').should('not.exist');
+  }
 }

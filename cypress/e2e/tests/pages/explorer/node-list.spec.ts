@@ -1,5 +1,5 @@
 import { dummyNode } from '@/cypress/e2e/blueprints/explorer/nodes';
-import BaseResourceList from '@/cypress/e2e/po/lists/base-resource-list.po';
+import ResourceTable from '@/cypress/e2e/po//components/resource-table.po';
 import ClusterDashboardPagePo from '@/cypress/e2e/po/pages/explorer/cluster-dashboard.po';
 import HomePagePo from '@/cypress/e2e/po/pages/home.po';
 import ProductNavPo from '@/cypress/e2e/po/side-bars/product-side-nav.po';
@@ -27,13 +27,15 @@ describe('Nodes list', { tags: ['@explorer', '@adminUser'], testIsolation: 'off'
 
     cy.contains('.title > h1', 'Nodes').should('be.visible');
 
-    const nodeList = new BaseResourceList(cy.get('[data-testid="cluster-list-container"]'));
+    const nodeList = new ResourceTable(cy.get('[data-testid="cluster-node-list"]'));
+
+    nodeList.sortableTable().checkVisible();
 
     // Wait for loading indicator to go
-    cy.get('.data-loading').should('not.exist');
+    nodeList.sortableTable().checkLoadingIndicatorNotVisible();
 
     // Check table has 2 tows
-    nodeList.resourceTable().sortableTable().rowElements({ timeout: 2500 }).should((rows: any) => {
+    nodeList.sortableTable().rowElements({ timeout: 2500 }).should((rows: any) => {
       expect(rows).not.to.equal(undefined);
       expect(rows).to.have.length(2);
     });
