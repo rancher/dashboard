@@ -33,8 +33,8 @@ export default {
     LabeledInput, AsyncButton, Checkbox, BrandImage, Banner, InfoBox, CopyCode, Password, LocaleSelector
   },
 
-  async asyncData({ route, redirect, store }) {
-    const drivers = await store.dispatch('auth/getAuthProviders');
+  async fetch() {
+    const drivers = await this.$store.dispatch('auth/getAuthProviders');
     const providers = sortBy(drivers.map((x) => x.id), ['id']);
 
     const hasLocal = providers.includes('local');
@@ -51,31 +51,31 @@ export default {
     // For newer versions this will return all settings if you are somehow logged in,
     // and just the public ones if you aren't.
     try {
-      await store.dispatch('management/findAll', {
+      await this.$store.dispatch('management/findAll', {
         type: MANAGEMENT.SETTING,
         opt:  {
           load: _ALL_IF_AUTHED, url: `/v1/${ MANAGEMENT.SETTING }`, redirectUnauthorized: false
         },
       });
 
-      firstLoginSetting = store.getters['management/byId'](MANAGEMENT.SETTING, SETTING.FIRST_LOGIN);
-      plSetting = store.getters['management/byId'](MANAGEMENT.SETTING, SETTING.PL);
-      brand = store.getters['management/byId'](MANAGEMENT.SETTING, SETTING.BRAND);
+      firstLoginSetting = this.$store.getters['management/byId'](MANAGEMENT.SETTING, SETTING.FIRST_LOGIN);
+      plSetting = this.$store.getters['management/byId'](MANAGEMENT.SETTING, SETTING.PL);
+      brand = this.$store.getters['management/byId'](MANAGEMENT.SETTING, SETTING.BRAND);
     } catch (e) {
       // Older versions used Norman API to get these
-      firstLoginSetting = await store.dispatch('rancher/find', {
+      firstLoginSetting = await this.$store.dispatch('rancher/find', {
         type: 'setting',
         id:   SETTING.FIRST_LOGIN,
         opt:  { url: `/v3/settings/${ SETTING.FIRST_LOGIN }` }
       });
 
-      plSetting = await store.dispatch('rancher/find', {
+      plSetting = await this.$store.dispatch('rancher/find', {
         type: 'setting',
         id:   SETTING.PL,
         opt:  { url: `/v3/settings/${ SETTING.PL }` }
       });
 
-      brand = await store.dispatch('rancher/find', {
+      brand = await this.$store.dispatch('rancher/find', {
         type: 'setting',
         id:   SETTING.BRAND,
         opt:  { url: `/v3/settings/${ SETTING.BRAND }` }
@@ -96,16 +96,17 @@ export default {
       singleProvider = providers[0];
     }
 
-    return {
-      vendor:             getVendor(),
-      providers,
-      hasOthers,
-      hasLocal,
-      showLocal:          !hasOthers || (route.query[LOCAL] === _FLAGGED),
-      firstLogin:         firstLoginSetting?.value === 'true',
-      singleProvider,
-      showLocaleSelector: !process.env.loginLocaleSelector || process.env.loginLocaleSelector === 'true'
-    };
+    const settings = await this.$store.dispatch('management/find', { type: MANAGEMENT.SETTING, id: SETTING.BANNERS });
+
+    this.$set(this, 'customLoginError', JSON.parse(settings.value).loginError);
+    this.$set(this, 'vendor', getVendor());
+    this.$set(this, 'providers', providers);
+    this.$set(this, 'hasOthers', hasOthers);
+    this.$set(this, 'hasLocal', hasLocal);
+    this.$set(this, 'showLocal', !hasOthers || (this.$route.query[LOCAL] === _FLAGGED));
+    this.$set(this, 'firstLogin', firstLoginSetting?.value === 'true');
+    this.$set(this, 'singleProvider', singleProvider);
+    this.$set(this, 'showLocaleSelector', !process.env.loginLocaleSelector || process.env.loginLocaleSelector === 'true');
   },
 
   data({ $cookies }) {
@@ -124,7 +125,15 @@ export default {
 
       providers:          [],
       providerComponents: [],
-      customLoginError:   {}
+      customLoginError:   {},
+
+      vendor:             null,
+      hasOthers:          null,
+      hasLocal:           null,
+      showLocal:          null,
+      firstLogin:         null,
+      singleProvider:     null,
+      showLocaleSelector: null,
     };
   },
 
@@ -177,12 +186,6 @@ export default {
     this.providerComponents = this.providers.map((name) => {
       return this.$store.getters['type-map/importLogin'](configType[name] || name);
     });
-  },
-
-  async fetch() {
-    const { value } = await this.$store.dispatch('management/find', { type: MANAGEMENT.SETTING, id: SETTING.BANNERS });
-
-    this.customLoginError = JSON.parse(value).loginError;
   },
 
   mounted() {
