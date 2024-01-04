@@ -518,11 +518,6 @@ function fixPrepatch(to, ___) {
     }
 
     checkForErrors(this);
-
-    // Hot reloading
-    if (isDev) {
-      setTimeout(() => hotReloadAPI(this), 100);
-    }
   });
 }
 
@@ -541,108 +536,6 @@ function nuxtReady(_app) {
     // Wait for fixPrepatch + $data updates
     Vue.nextTick(() => _app.$nuxt.$emit('routeChanged', to, from));
   });
-}
-
-const noopData = () => {
-  return {};
-};
-const noopFetch = () => {};
-
-// Special hot reload with asyncData(context)
-function getNuxtChildComponents($parent, $components = []) {
-  $parent.$children.forEach(($child) => {
-    if ($child.$vnode && $child.$vnode.data.nuxtChild && !$components.find((c) => (c.$options.__file === $child.$options.__file))) {
-      $components.push($child);
-    }
-    if ($child.$children && $child.$children.length) {
-      getNuxtChildComponents($child, $components);
-    }
-  });
-
-  return $components;
-}
-
-function hotReloadAPI(_app) {
-  if (!module.hot) {
-    return;
-  }
-
-  const $components = getNuxtChildComponents(_app.$nuxt, []);
-
-  $components.forEach(addHotReload.bind(_app));
-}
-
-function addHotReload($component, depth) {
-  if ($component.$vnode.data._hasHotReload) {
-    return;
-  }
-  $component.$vnode.data._hasHotReload = true;
-
-  const _forceUpdate = $component.$forceUpdate.bind($component.$parent);
-
-  $component.$vnode.context.$forceUpdate = async() => {
-    const Components = getMatchedComponents(router.currentRoute);
-    let Component = Components[depth];
-
-    if (!Component) {
-      return _forceUpdate();
-    }
-    if (typeof Component === 'object' && !Component.options) {
-      // Updated via vue-router resolveAsyncComponents()
-      Component = Vue.extend(Component);
-      Component._Ctor = Component;
-    }
-    this.error();
-    const promises = [];
-    const next = function(path) {
-      this.$loading.finish && this.$loading.finish();
-      router.push(path);
-    };
-
-    await setContext(app, {
-      route: router.currentRoute,
-      isHMR: true,
-      next:  next.bind(this)
-    });
-    const context = app.context;
-
-    if (this.$loading.start && !this.$loading.manual) {
-      this.$loading.start();
-    }
-
-    callMiddleware.call(this, Components, context)
-      .then(() => {
-        return callMiddleware.call(this, Components, context);
-      })
-
-      .then(() => {
-      // Call asyncData(context)
-        const pAsyncData = promisify(Component.options.asyncData || noopData, context);
-
-        pAsyncData.then((asyncDataResult) => {
-          applyAsyncData(Component, asyncDataResult);
-          this.$loading.increase && this.$loading.increase(30);
-        });
-        promises.push(pAsyncData);
-
-        // Call fetch()
-        Component.options.fetch = Component.options.fetch || noopFetch;
-        let pFetch = Component.options.fetch.length && Component.options.fetch(context);
-
-        if (!pFetch || (!(pFetch instanceof Promise) && (typeof pFetch.then !== 'function'))) {
-          pFetch = Promise.resolve(pFetch);
-        }
-        pFetch.then(() => this.$loading.increase && this.$loading.increase(30));
-        promises.push(pFetch);
-
-        return Promise.all(promises);
-      })
-      .then(() => {
-        this.$loading.finish && this.$loading.finish();
-        _forceUpdate();
-        setTimeout(() => hotReloadAPI(this), 100);
-      });
-  };
 }
 
 async function mountApp(__app) {
@@ -666,11 +559,6 @@ async function mountApp(__app) {
     Vue.nextTick(() => {
       // Call window.{{globals.readyCallback}} callbacks
       nuxtReady(_app);
-
-      if (isDev) {
-        // Enable hot reloading
-        hotReloadAPI(_app);
-      }
     });
   };
 
