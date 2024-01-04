@@ -1,21 +1,20 @@
+import { dummyNode } from '@/cypress/e2e/blueprints/explorer/nodes';
+import BaseResourceList from '@/cypress/e2e/po/lists/base-resource-list.po';
 import ClusterDashboardPagePo from '@/cypress/e2e/po/pages/explorer/cluster-dashboard.po';
 import HomePagePo from '@/cypress/e2e/po/pages/home.po';
 import ProductNavPo from '@/cypress/e2e/po/side-bars/product-side-nav.po';
-import BaseResourceList from '@/cypress/e2e/po/lists/base-resource-list.po';
-import { dummyNode } from '@/cypress/e2e/blueprints/explorer/nodes';
 
-describe('Nodes list', { tags: ['@adminUser'], testIsolation: 'off' }, () => {
+describe('Nodes list', { tags: ['@explorer', '@adminUser'], testIsolation: 'off' }, () => {
   before(() => {
     cy.login();
     HomePagePo.goTo();
 
-    // Add dummy node that used ot cause a problem
-
-    // cy.deleteRancherResource('v1', 'nodes', 'bigip1');
+    // Add dummy node that used to cause a problem
     cy.createRancherResource('v1', 'nodes', dummyNode);
   });
 
   after(() => {
+    // Ensure we delete the dummy node
     cy.deleteRancherResource('v1', 'nodes', 'bigip1');
   });
 
@@ -41,8 +40,6 @@ describe('Nodes list', { tags: ['@adminUser'], testIsolation: 'off' }, () => {
 
     // Check the node names
     nodeList.self().find('td.col-link-detail > span > a').then((links: any) => {
-      cy.log(links);
-
       const names = Cypress.$.makeArray<string>(links).map((el: any) => el.innerText as string);
 
       expect(names).to.have.length(2);
