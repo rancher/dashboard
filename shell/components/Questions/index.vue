@@ -258,7 +258,7 @@ export default {
       }
 
       if ( this.tabbed === 'multiple' ) {
-        return this.groups.length;
+        return !!this.groups.length;
       }
 
       return true;
