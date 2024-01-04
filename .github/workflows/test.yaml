@@ -54,14 +54,15 @@ jobs:
         with:
           node-version: '14.x'
 
-      # Installing fixed version of Chrome since latest version does not work
-      - name: Install Chrome 116
-        run: |
-          sudo apt-get install -y wget
-          cd /tmp
-          wget -q http://mirror.cs.uchicago.edu/google-chrome/pool/main/g/google-chrome-stable/google-chrome-stable_116.0.5845.187-1_amd64.deb
-          sudo apt-get install -y --allow-downgrades ./google-chrome-stable_116.0.5845.187-1_amd64.deb
-          google-chrome --version
+      # Installing fixed version of Chrome since latest version does not work (117-118 didn't work)
+      # Leaving this here again in case we need to pin to a specific Chrome version in the future
+      # - name: Install Chrome 116
+      #   run: |
+      #     sudo apt-get install -y wget
+      #     cd /tmp
+      #     wget -q http://mirror.cs.uchicago.edu/google-chrome/pool/main/g/google-chrome-stable/google-chrome-stable_116.0.5845.187-1_amd64.deb
+      #     sudo apt-get install -y --allow-downgrades ./google-chrome-stable_116.0.5845.187-1_amd64.deb
+      #     google-chrome --version
 
       - name: Install packages
         run: yarn install:ci
