@@ -2,7 +2,9 @@
 
 import Vue from 'vue';
 
-import { getMatchedComponentsInstances, getChildrenComponentInstancesUsingFetch, promisify, globalHandleError } from '../utils/nuxt';
+import {
+  getMatchedComponentsInstances, getChildrenComponentInstancesUsingFetch, promisify, globalHandleError, sanitizeComponent
+} from '../utils/nuxt';
 import NuxtError from '../components/templates/error.vue';
 import NuxtLoading from '../components/nav/GlobalLoading.vue';
 
@@ -14,8 +16,8 @@ export default {
 
     const templateEl = h('div', {
       domProps: { id: '__layout' },
-      key:      this.layoutName
-    }, [h('router-view')]);
+      key:      this.showErrorPage
+    }, [this.showErrorPage ? h(sanitizeComponent(NuxtError)) : h('router-view')]);
 
     return h('div', { domProps: { id: '__nuxt' } }, [
       loadingEl,
@@ -27,8 +29,7 @@ export default {
   data: () => ({
     isOnline: true,
 
-    layout:     null,
-    layoutName: '',
+    showErrorPage: false,
 
     nbFetching: 0
   }),
@@ -140,11 +141,9 @@ export default {
           }
         }
 
-        let errorLayout = (NuxtError.options || NuxtError).layout;
-
-        if (typeof errorLayout === 'function') {
-          errorLayout = errorLayout(this.context);
-        }
+        this.showErrorPage = true;
+      } else {
+        this.showErrorPage = false;
       }
     },
   },

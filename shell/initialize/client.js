@@ -287,6 +287,15 @@ async function render(to, from, next) {
     // 4. This would allow harvester cluster pages to load on page reload
     // We should really make authenticated middleware do less...
     await callMiddleware.call(this, [{ options: { middleware: ['authenticated'] } }], app.context);
+
+    if (nextCalled) {
+      return;
+    }
+
+    // Show error page
+    this.error({ statusCode: 404, message: 'This page could not be found' });
+
+    return next();
   }
 
   // Update ._data and other properties if hot reloaded
