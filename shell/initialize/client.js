@@ -193,18 +193,9 @@ function resolveComponents(route) {
   });
 }
 
-function callMiddleware(Components, context, layout) {
+function callMiddleware(Components, context) {
   let midd = ['i18n'];
   let unknownMiddleware = false;
-
-  // If layout is undefined, only call global middleware
-  if (typeof layout !== 'undefined') {
-    midd = []; // Exclude global middleware if layout defined (already called before)
-    layout = sanitizeComponent(layout);
-    if (layout.options.middleware) {
-      midd = midd.concat(layout.options.middleware);
-    }
-  }
 
   Components.forEach((Component) => {
     if (Component.options.middleware) {
@@ -621,7 +612,7 @@ function addHotReload($component, depth) {
 
     callMiddleware.call(this, Components, context)
       .then(() => {
-        return callMiddleware.call(this, Components, context, this.layout);
+        return callMiddleware.call(this, Components, context);
       })
 
       .then(() => {
