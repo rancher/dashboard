@@ -23,7 +23,7 @@ describe('Charts', { tags: ['@charts', '@adminUser'] }, () => {
       chartsPage.goTo();
     });
 
-    describe('Promethus local provisioner config', () => {
+    describe('Prometheus local provisioner config', () => {
       const provisionerVersion = 'v0.0.24';
 
       // Install the chart and navigate to the edit options page
@@ -45,15 +45,7 @@ describe('Charts', { tags: ['@charts', '@adminUser'] }, () => {
       beforeEach(() => {
         cy.login();
         chartsPage.goTo();
-        cy.intercept('POST', 'v1/catalog.cattle.io.clusterrepos/rancher-charts?action=install', {
-          statusCode: 201,
-          body:       {
-            type:               'chartActionOutput',
-            links:              {},
-            operationName:      'helm-operation-test',
-            operationNamespace: 'fleet-local'
-          }
-        }).as('prometheusChartCreation');
+        cy.intercept('POST', 'v1/catalog.cattle.io.clusterrepos/rancher-charts?action=install').as('prometheusChartCreation');
       });
 
       it('Should not include empty prometheus selector when installing.', () => {
@@ -120,6 +112,30 @@ describe('Charts', { tags: ['@charts', '@adminUser'] }, () => {
           const monitoringChart = req.request?.body.charts.find((chart: any) => chart.chartName === 'rancher-monitoring');
 
           expect(monitoringChart.values.prometheus).to.deep.equal(prometheusSpec.values.prometheus);
+        });
+      });
+    });
+
+    describe('Grafana resource configuration', () => {
+      beforeEach(() => {
+        cy.login();
+        chartsPage.goTo();
+        cy.intercept('POST', 'v1/catalog.cattle.io.clusterrepos/rancher-charts?action=install', {
+          statusCode: 201,
+          body:       {
+            type:               'chartActionOutput',
+            links:              {},
+            operationName:      'helm-operation-test',
+            operationNamespace: 'fleet-local'
+          }
+        }).as('prometheusChartCreation');
+
+        cy.intercept('GET', '/v1/catalog.cattle.io.operations/fleet-local/helm-operation-test?*', {
+          statusCode: 200,
+          body:       {
+            id:   'fleet-local/helm-operation-test',
+            kind: 'Operation',
+          }
         });
       });
 
