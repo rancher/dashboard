@@ -104,7 +104,7 @@ export default {
     options() {
       const out = this.filteredCredentials.map((obj) => {
         return {
-          label: obj.nameDisplay,
+          label: `${ obj.nameDisplay }/${ obj.id }`,
           value: obj.id,
         };
       });
