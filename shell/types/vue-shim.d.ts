@@ -21,6 +21,9 @@ declare module 'vue/types/vue' {
        * @param raw if set, do not do HTML escaping.
        */
       t: (key: string, args?: Record<string, any>, raw?: boolean) => string,
+      /**
+       * Prototypes for Rancher API
+       */
       [ApiPrototype.RANCHER_API]: RancherApi;
       [ApiPrototype.CLUSTER_API]: ClusterApi;
       [ApiPrototype.SHELL_API]: ShellApi;
