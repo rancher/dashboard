@@ -1,5 +1,4 @@
-import { ref, computed } from 'vue';
-import type { ComputedRef } from 'vue';
+import { ref, computed, ComputedRef, Ref } from 'vue';
 import { _VIEW, _EDIT } from '@shell/config/query-params';
 
 interface LabeledFormElementProps {
@@ -11,6 +10,9 @@ interface LabeledFormElementProps {
 }
 
 interface UseLabeledFormElement {
+  raised: Ref<boolean>;
+  focused: Ref<boolean>;
+  blurred: Ref<number | null>;
   requiredField: ComputedRef<any>;
   isDisabled: ComputedRef<any>;
   validationMessage: ComputedRef<any>;
@@ -124,6 +126,9 @@ export const useLabeledFormElement = (props: LabeledFormElementProps, emit: (eve
   };
 
   return {
+    raised,
+    focused,
+    blurred,
     onFocusLabeled,
     onBlurLabeled,
     isDisabled,

@@ -101,6 +101,7 @@ export default defineComponent({
 
   setup(props, { emit }) {
     const {
+      focused,
       onFocusLabeled,
       onBlurLabeled,
       isDisabled,
@@ -110,6 +111,7 @@ export default defineComponent({
     const { isCompact } = useCompactInput(props);
 
     return {
+      focused,
       onFocusLabeled,
       onBlurLabeled,
       isDisabled,
@@ -123,7 +125,6 @@ export default defineComponent({
     return {
       updated:          false,
       validationErrors: '',
-      focused:          false,
     };
   },
 
