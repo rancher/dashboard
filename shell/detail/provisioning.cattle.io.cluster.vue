@@ -775,10 +775,10 @@ export default {
                   v-clean-html="t('resourceTable.groupLabel.notInANodePool')"
                 />
                 <div
-                  v-if="group.ref && group.ref.template"
+                  v-if="group.ref && group.ref.providerSummary"
                   class="description text-muted text-small"
                 >
-                  {{ group.ref.providerDisplay }} &ndash;  {{ group.ref.providerLocation }} / {{ group.ref.providerSize }} ({{ group.ref.providerName }})
+                  {{ group.ref.providerSummary }}
                 </div>
               </div>
               <div
