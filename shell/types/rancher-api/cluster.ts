@@ -13,6 +13,11 @@ export interface ResourceFetchOptions {
   force?: boolean
 }
 
+export interface ResourceFetchRequest {
+  type: string,
+  options?: ResourceFetchOptions
+}
+
 export interface ResourceManageOptions {
   metadata: {
     name: string,
@@ -21,4 +26,10 @@ export interface ResourceManageOptions {
     annotations?: {[key: string]: string}
   },
   spec?: any
+}
+
+export interface ResourceManageRequest {
+  type: string,
+  options: ResourceManageOptions,
+  resource?: SteveResource
 }
