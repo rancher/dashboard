@@ -1,19 +1,25 @@
 <script lang="ts">
-import Vue, { VueConstructor } from 'vue';
-import CompactInput from '@shell/mixins/compact-input';
-import LabeledFormElement from '@shell/mixins/labeled-form-element';
+import { defineComponent } from 'vue';
 import TextAreaAutoGrow from '@components/Form/TextArea/TextAreaAutoGrow.vue';
 import LabeledTooltip from '@components/LabeledTooltip/LabeledTooltip.vue';
 import { escapeHtml } from '@shell/utils/string';
 import cronstrue from 'cronstrue';
 import { isValidCron } from 'cron-validator';
 import { debounce } from 'lodash';
+import { useLabeledFormElement } from '@shell/composables/useLabeledFormElement';
+import { useCompactInput } from '@shell/composables/useCompactInput';
+import { _EDIT } from '@shell/config/query-params';
 
-export default (
-  Vue as VueConstructor<Vue & InstanceType<typeof LabeledFormElement> & InstanceType<typeof CompactInput>>
-).extend({
+declare module 'vue/types/vue' {
+  interface Vue {
+    onInput: (event: Event) => void | ((event: Event) => void);
+  }
+}
+
+export default defineComponent({
   components: { LabeledTooltip, TextAreaAutoGrow },
-  mixins:     [LabeledFormElement, CompactInput],
+
+  inheritAttrs: false,
 
   props: {
     /**
@@ -48,6 +54,11 @@ export default (
     tooltip: {
       default: null,
       type:    [String, Object]
+    },
+
+    tooltipKey: {
+      type:    String,
+      default: null
     },
 
     /**
@@ -90,24 +101,85 @@ export default (
     delay: {
       type:    Number,
       default: 0
-    }
+    },
+
+    placeholder: {
+      type:    [String, Number],
+      default: ''
+    },
+
+    placeholderKey: {
+      type:    String,
+      default: null
+    },
+
+    label: {
+      type:    String,
+      default: null
+    },
+
+    labelKey: {
+      type:    String,
+      default: null
+    },
+
+    value: {
+      type:    [String, Number, Object],
+      default: ''
+    },
+
+    mode: {
+      type:    String,
+      default: _EDIT,
+    },
+
+    rules: {
+      default:   () => [],
+      type:      Array,
+      // we only want functions in the rules array
+      validator: (rules: Array<unknown>) => rules.every((rule: unknown) => ['function'].includes(typeof rule))
+    },
+
+    required: {
+      type:    Boolean,
+      default: false,
+    },
+
+    disabled: {
+      type:    Boolean,
+      default: false,
+    },
+  },
+
+  setup(props, { emit }) {
+    const {
+      onFocusLabeled,
+      onBlurLabeled,
+      isDisabled,
+      validationMessage,
+      requiredField
+    } = useLabeledFormElement(props, emit);
+    const { isCompact } = useCompactInput(props);
+
+    return {
+      onFocusLabeled,
+      onBlurLabeled,
+      isDisabled,
+      validationMessage,
+      requiredField,
+      isCompact,
+    };
   },
 
   data() {
     return {
       updated:          false,
-      validationErrors: ''
+      validationErrors: '',
+      focused:          false,
     };
   },
 
   computed: {
-    /**
-     * Determines if the Labeled Input @input event should be debounced.
-     */
-    onInput(): ((value: string) => void) | void {
-      return this.delay ? debounce(this.delayInput, this.delay) : this.delayInput;
-    },
-
     /**
      * Determines if the Labeled Input should display a label.
      */
@@ -122,7 +194,7 @@ export default (
       return !!this.tooltip || !!this.tooltipKey;
     },
 
-    tooltipValue(): string | undefined {
+    tooltipValue(): string | Record<string, unknown> | undefined {
       if (this.hasTooltip) {
         return this.tooltipKey ? this.t(this.tooltipKey) : this.tooltip;
       }
@@ -144,7 +216,7 @@ export default (
       if (this.type !== 'cron' || !this.value) {
         return;
       }
-      if (!isValidCron(this.value)) {
+      if (typeof this.value === 'string' && !isValidCron(this.value)) {
         return this.t('generic.invalidCron');
       }
       try {
@@ -173,13 +245,20 @@ export default (
     /**
      * The max length for the Labeled Input.
      */
-    _maxlength(): number | null {
+    _maxlength(): number | undefined {
       if (this.type === 'text' && this.maxlength) {
         return this.maxlength;
       }
 
-      return null;
+      return undefined;
     },
+  },
+
+  created() {
+    /**
+     * Determines if the Labeled Input @input event should be debounced.
+    */
+    this.onInput = this.delay ? debounce(this.delayInput, this.delay) : this.delayInput;
   },
 
   methods: {
@@ -217,7 +296,9 @@ export default (
      * Emit on input with delay. Note: Arrow function is avoided due context
      * binding.
      */
-    delayInput(value: string): void {
+    delayInput(event: Event): void {
+      const value = (event?.target as HTMLInputElement)?.value;
+
       this.$emit('input', value);
     },
 
@@ -234,7 +315,7 @@ export default (
      * event.
      * @see labeled-form-element.ts mixin for onBlurLabeled()
      */
-    onBlur(event: string): void {
+    onBlur(event: string | FocusEvent): void {
       this.$emit('blur', event);
       this.onBlurLabeled();
     },
@@ -286,7 +367,7 @@ export default (
         :placeholder="_placeholder"
         autocapitalize="off"
         :class="{ conceal: type === 'multiline-password' }"
-        @input="onInput($event)"
+        @input="onInput"
         @focus="onFocus"
         @blur="onBlur"
       />
@@ -303,7 +384,7 @@ export default (
         autocomplete="off"
         autocapitalize="off"
         :data-lpignore="ignorePasswordManagers"
-        @input="onInput($event.target.value)"
+        @input="onInput"
         @focus="onFocus"
         @blur="onBlur"
         @change="onChange"

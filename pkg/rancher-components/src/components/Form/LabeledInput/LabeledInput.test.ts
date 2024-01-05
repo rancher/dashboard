@@ -1,4 +1,3 @@
-
 import { mount } from '@vue/test-utils';
 import { LabeledInput } from './index';
 
@@ -6,7 +5,7 @@ describe('component: LabeledInput', () => {
   it('should emit input only once', () => {
     const value = '2';
     const delay = 1;
-    const wrapper = mount(LabeledInput, {
+    const wrapper = mount(LabeledInput as any, {
       propsData: { delay },
       mocks:     { $store: { getters: { 'i18n/t': jest.fn() } } }
     });
