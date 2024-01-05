@@ -27,6 +27,14 @@ describe('Extensions page', { tags: ['@extensions', '@adminUser'] }, () => {
     cy.login();
   });
 
+  it('has the correct title', () => {
+    const extensionsPo = new ExtensionsPagePo();
+
+    extensionsPo.goTo();
+
+    cy.title().should('eq', 'Rancher - Extensions');
+  });
+
   it('using "Add Rancher Repositories" should add a new repository (Partners repo)', () => {
     const extensionsPo = new ExtensionsPagePo();
 

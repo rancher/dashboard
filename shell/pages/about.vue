@@ -7,10 +7,13 @@ import { SETTING } from '@shell/config/settings';
 import { getVendor } from '@shell/config/private-label';
 import { downloadFile } from '@shell/utils/download';
 import { mapGetters } from 'vuex';
+import TabTitle from '@shell/components/TabTitle';
 
 export default {
-  components: { BackLink, Loading },
-  mixins:     [BackRoute],
+  components: {
+    BackLink, Loading, TabTitle
+  },
+  mixins: [BackRoute],
   async fetch() {
     this.settings = await this.$store.dispatch(`management/findAll`, { type: MANAGEMENT.SETTING });
   },
@@ -96,7 +99,11 @@ export default {
   >
     <BackLink :link="backLink" />
     <div class="title-block mt-20 mb-40">
-      <h1 v-t="'about.title'" />
+      <h1>
+        <TabTitle breadcrumb="vendor-only">
+          {{ t('about.title') }}
+        </TabTitle>
+      </h1>
       <n-link
         :to="{ name: 'diagnostic' }"
         class="btn role-primary"
