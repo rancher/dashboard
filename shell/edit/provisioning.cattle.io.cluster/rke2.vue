@@ -1306,6 +1306,8 @@ export default {
         }
       }
 
+      this.validateClusterName();
+
       await this.validateMachinePool();
 
       if (this.errors.length) {
@@ -1974,7 +1976,11 @@ export default {
     handleRegistrySecretChanged(neu) {
       this.registrySecret = neu;
     },
-
+    validateClusterName() {
+      if (!this.value.metadata.name && this.agentConfig['cloud-provider-name'] === HARVESTER) {
+        this.errors.push(this.t('validation.required', { key: this.t('cluster.name.label') }, true));
+      }
+    },
     async validateMachinePool() {
       if (this.errors) {
         clear(this.errors);
@@ -1999,10 +2005,6 @@ export default {
             this.errors.push(e);
           }
         }
-      }
-
-      if (!this.value.metadata.name && this.agentConfig['cloud-provider-name'] === HARVESTER) {
-        this.errors.push(this.t('validation.required', { key: this.t('cluster.name.label') }, true));
       }
     }
   }
