@@ -5,28 +5,36 @@
  * confused with CAPI.
  */
 
-import { SteveResource, ResourceManageOptions } from '@shell/types/rancher-api/cluster';
-import BaseClusterApi from './base-cluster-class';
+import { ApiPrototype } from '@shell/types/rancher-api';
+import { ResourceManageRequest } from '@shell/types/rancher-api/cluster';
+
+import BaseClusterApi, { BaseClusterApiOptions } from './base-cluster-class';
 
 export default class ClusterApi extends BaseClusterApi {
+  constructor(options: BaseClusterApiOptions) {
+    super(options);
+    this.context = ApiPrototype.CLUSTER_API;
+  }
+
   /**
    * Creates a new resource of a given type.
    *
-   * @param type - The type of the resource to be created.
-   * @param options - The options for managing the resource, including metadata and spec.
+   * @param request - An object containing the type of the resource to be created and the options for managing the resource.
    * @returns Promise<any> - Resolves with the created resource or an error if the creation fails.
    * @throws Error if a resource with the same ID already exists.
    */
-  async create(type: string, options: ResourceManageOptions): Promise<any> {
+  async create(request: ResourceManageRequest): Promise<any> {
+    const { type, options } = request;
+
     const schema = this.getSchema(type);
 
     if ( schema && this.canManageResource(type, schema, 'create') ) {
       try {
-      // Construct the ID from metadata.name and metadata.namespace
+        // Construct the ID from metadata.name and metadata.namespace
         const resourceId = options.metadata.namespace ? `${ options.metadata.namespace }/${ options.metadata.name }` : options.metadata.name;
 
         // Check if a resource with the same ID already exists
-        const existingResource = await this.get(type, { id: resourceId });
+        const existingResource = await this.get({ type, options: { id: resourceId } });
 
         if ( existingResource ) {
           throw new Error(`Resource with ID ${ resourceId } already exists.`);
@@ -49,11 +57,12 @@ export default class ClusterApi extends BaseClusterApi {
   /**
    * Edits an existing resource of a given type.
    *
-   * @param type - The type of the resource to be edited.
-   * @param resource - The resource object to be edited.
+   * @param request - An object containing the type of the resource to be edited and the resource object itself.
    * @returns Promise<any> - Resolves with the edited resource or an error if the editing fails.
    */
-  async edit(type: string, resource: SteveResource): Promise<any> {
+  async edit(request: ResourceManageRequest): Promise<any> {
+    const { type, resource } = request;
+
     const schema = this.getSchema(type);
 
     if ( schema && this.canManageResource(type, schema, 'edit') ) {
@@ -70,11 +79,12 @@ export default class ClusterApi extends BaseClusterApi {
   /**
    * Deletes an existing resource of a given type.
    *
-   * @param type - The type of the resource to be deleted.
-   * @param resource - The resource object to be deleted.
+   * @param request - An object containing the type of the resource to be deleted and the resource object itself.
    * @returns Promise<any> - Resolves with the deleted resource or an error if the editing fails.
    */
-  async delete(type: string, resource: SteveResource): Promise<any> {
+  async delete(request: ResourceManageRequest): Promise<any> {
+    const { type, resource } = request;
+
     const schema = this.getSchema(type);
 
     if ( schema && this.canManageResource(type, schema, 'delete') ) {

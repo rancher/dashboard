@@ -7,14 +7,15 @@ import { Store } from 'vuex';
 import isEmpty from 'lodash/isEmpty';
 
 import { Schema } from '@shell/types/rancher-api';
-import { ResourceFetchOptions } from '@shell/types/rancher-api/cluster';
+import { ResourceFetchOptions, ResourceFetchRequest } from '@shell/types/rancher-api/cluster';
 
-interface BaseClusterApiOptions {
+export interface BaseClusterApiOptions {
   store: Store<any>;
 }
 
 export default class BaseClusterApi {
   protected $store: Store<any>;
+  protected context?: string;
 
   constructor(options: BaseClusterApiOptions) {
     this.$store = options.store;
@@ -96,19 +97,21 @@ export default class BaseClusterApi {
    * selector. This is useful for filtering resources based on their metadata labels.
    * The `force` option can be used to initiate a new dispatch request regardless of any existing cache.
    *
-   * @param type The resource schema ID.
-   * @param options? Additional fetching options: `id?`, `selector?`, `namespace?`, `force?`.
-   *  - `id`: Specify the ID of the resource for fetching a single item.
-   *  - `selector`: A string used to match resources based on their labels.
-   *                The format is 'key=value', where 'key' is the label name and 'value' is the label value.
-   *                For example, 'app=kubewarden-policy-server-default' would match resources labeled with
-   *                'app' as 'kubewarden-policy-server-default'.
-   *  - `namespace`: Specify the namespace of the resource (if applicable).
-   *  - `force`: Force a new dispatch request, bypassing any cached data.
+   * @param request An object containing the resource schema ID and additional fetching options.
+   *                The options include `id?`, `selector?`, `namespace?`, `force?`.
+   *                - `id`: Specify the ID of the resource for fetching a single item.
+   *                - `selector`: A string used to match resources based on their labels.
+   *                              The format is 'key=value', where 'key' is the label name and 'value' is the label value.
+   *                              For example, 'app=kubewarden-policy-server-default' would match resources labeled with
+   *                              'app' as 'kubewarden-policy-server-default'.
+   *                - `namespace`: Specify the namespace of the resource (if applicable).
+   *                - `force`: Force a new dispatch request, bypassing any cached data.
    *
    * @returns `Promise<any>` A promise that resolves with the fetched resource(s).
    */
-  async get(type: string, options?: ResourceFetchOptions): Promise<any> {
+  async get(request: ResourceFetchRequest): Promise<any> {
+    const { type, options } = request;
+
     if ( this.getSchema(type) ) {
       try {
         const params = this.buildDispatchParams(type, options);
