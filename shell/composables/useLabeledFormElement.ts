@@ -1,6 +1,6 @@
 import { ref, computed } from 'vue';
 import type { ComputedRef } from 'vue';
-import { _VIEW } from '@shell/config/query-params';
+import { _VIEW, _EDIT } from '@shell/config/query-params';
 
 interface LabeledFormElementProps {
   mode: string;
@@ -17,6 +17,51 @@ interface UseLabeledFormElement {
   onFocusLabeled: () => void;
   onBlurLabeled: () => void;
 }
+
+export const labeledFormElementProps = {
+  tooltipKey: {
+    type:    String,
+    default: null
+  },
+  placeholder: {
+    type:    [String, Number],
+    default: ''
+  },
+  placeholderKey: {
+    type:    String,
+    default: null
+  },
+  label: {
+    type:    String,
+    default: null
+  },
+  labelKey: {
+    type:    String,
+    default: null
+  },
+  value: {
+    type:    [String, Number, Object],
+    default: ''
+  },
+  mode: {
+    type:    String,
+    default: _EDIT,
+  },
+  rules: {
+    default:   (): Array<unknown> => [],
+    type:      Array,
+    // we only want functions in the rules array
+    validator: (rules: Array<unknown>): boolean => rules.every((rule: unknown) => ['function'].includes(typeof rule))
+  },
+  required: {
+    type:    Boolean,
+    default: false,
+  },
+  disabled: {
+    type:    Boolean,
+    default: false,
+  },
+};
 
 export const useLabeledFormElement = (props: LabeledFormElementProps, emit: (event: string, ...args: any[]) => void): UseLabeledFormElement => {
   const raised = ref(props.mode === _VIEW || !!`${ props.value }`);

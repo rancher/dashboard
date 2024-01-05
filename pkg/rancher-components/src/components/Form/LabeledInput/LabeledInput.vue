@@ -6,9 +6,8 @@ import { escapeHtml } from '@shell/utils/string';
 import cronstrue from 'cronstrue';
 import { isValidCron } from 'cron-validator';
 import { debounce } from 'lodash';
-import { useLabeledFormElement } from '@shell/composables/useLabeledFormElement';
+import { useLabeledFormElement, labeledFormElementProps } from '@shell/composables/useLabeledFormElement';
 import { useCompactInput } from '@shell/composables/useCompactInput';
-import { _EDIT } from '@shell/config/query-params';
 
 declare module 'vue/types/vue' {
   interface Vue {
@@ -22,6 +21,7 @@ export default defineComponent({
   inheritAttrs: false,
 
   props: {
+    ...labeledFormElementProps,
     /**
      * The type of the Labeled Input.
      * @values text, cron, multiline, multiline-password
@@ -54,11 +54,6 @@ export default defineComponent({
     tooltip: {
       default: null,
       type:    [String, Object]
-    },
-
-    tooltipKey: {
-      type:    String,
-      default: null
     },
 
     /**
@@ -101,53 +96,6 @@ export default defineComponent({
     delay: {
       type:    Number,
       default: 0
-    },
-
-    placeholder: {
-      type:    [String, Number],
-      default: ''
-    },
-
-    placeholderKey: {
-      type:    String,
-      default: null
-    },
-
-    label: {
-      type:    String,
-      default: null
-    },
-
-    labelKey: {
-      type:    String,
-      default: null
-    },
-
-    value: {
-      type:    [String, Number, Object],
-      default: ''
-    },
-
-    mode: {
-      type:    String,
-      default: _EDIT,
-    },
-
-    rules: {
-      default:   () => [],
-      type:      Array,
-      // we only want functions in the rules array
-      validator: (rules: Array<unknown>) => rules.every((rule: unknown) => ['function'].includes(typeof rule))
-    },
-
-    required: {
-      type:    Boolean,
-      default: false,
-    },
-
-    disabled: {
-      type:    Boolean,
-      default: false,
     },
   },
 
