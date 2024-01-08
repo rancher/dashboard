@@ -42,7 +42,7 @@ declare global {
       getRancherResource(prefix: 'v3' | 'v1', resourceType: string, resourceId?: string, expectedStatusCode: string): Chainable;
       setRancherResource(prefix: 'v3' | 'v1', resourceType: string, resourceId: string, body: string): Chainable;
       deleteRancherResource(prefix: 'v3' | 'v1', resourceType: string, resourceId: string): Chainable;
-      createRancherResource(prefix: 'v3' | 'v1', resourceType: string): Chainable;
+      createRancherResource(prefix: 'v3' | 'v1', resourceType: string, body: any): Chainable;
 
       /**
        *  Wrapper for cy.get() to simply define the data-testid value that allows you to pass a matcher to find the element.
