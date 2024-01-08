@@ -273,6 +273,7 @@ export default {
         option-key="value"
         :mode="mode"
         :selectable="option => !option.disabled"
+        data-testid="cluster-prov-select-credential"
       />
     </div>
 

@@ -393,6 +393,24 @@ Cypress.Commands.add('setRancherResource', (prefix, resourceType, resourceId, bo
 });
 
 /**
+ * create a v3 / v1 resource
+ */
+Cypress.Commands.add('createRancherResource', (prefix, resourceType, body) => {
+  return cy.request({
+    method:  'POST',
+    url:     `${ Cypress.env('api') }/${ prefix }/${ resourceType }`,
+    headers: {
+      'x-api-csrf': token.value,
+      Accept:       'application/json'
+    },
+    body
+  })
+    .then((resp) => {
+      expect(resp.status).to.eq(201);
+    });
+});
+
+/**
  * delete a v3 / v1 resource
  */
 Cypress.Commands.add('deleteRancherResource', (prefix, resourceType, resourceId) => {
