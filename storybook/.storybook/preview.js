@@ -41,6 +41,7 @@ window.__codeMirrorLoader = () => import(/* webpackChunkName: "codemirror" */ '@
 // Defines namespaced modules for the Store.
 export const store = new Vuex.Store({
   getters: {
+    'i18n/exists': key => store.getters['i18n/t'],
     'i18n/t': state => (key, args) => {
       const msg = get(i18nStrings, key) || key;
 
