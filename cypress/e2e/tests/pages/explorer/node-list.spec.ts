@@ -27,7 +27,7 @@ describe('Nodes list', { tags: ['@explorer', '@adminUser'], testIsolation: 'off'
 
     cy.contains('.title > h1', 'Nodes').should('be.visible');
 
-    const nodeList = new ResourceTable(cy.get('[data-testid="cluster-node-list"]'));
+    const nodeList = new ResourceTable('[data-testid="cluster-node-list"]');
 
     nodeList.sortableTable().checkVisible();
 
@@ -41,9 +41,7 @@ describe('Nodes list', { tags: ['@explorer', '@adminUser'], testIsolation: 'off'
     });
 
     // Check the node names
-    nodeList.self().find('td.col-link-detail > span > a').then((links: any) => {
-      const names = Cypress.$.makeArray<string>(links).map((el: any) => el.innerText as string);
-
+    nodeList.sortableTable().rowNames().should((names: any) => {
       expect(names).to.have.length(2);
       expect(names).to.contain('local-node');
       expect(names).to.contain('bigip1');
