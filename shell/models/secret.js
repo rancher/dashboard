@@ -444,4 +444,16 @@ export default class Secret extends SteveModel {
 
     return color.replace('text-', 'bg-');
   }
+
+  cleanForSave(data, forNew) {
+    const val = super.cleanForSave(data, forNew);
+
+    // Secrets on create with _type will return validation error
+    // Secrets on edit without _type will return http error
+    if (forNew) {
+      delete val._type;
+    }
+
+    return val;
+  }
 }

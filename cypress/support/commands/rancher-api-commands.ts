@@ -246,7 +246,6 @@ Cypress.Commands.add('createNamespace', (nsName, projId) => {
       Accept:       'application/json'
     },
     body: {
-      type:     'namespace',
       metadata: {
         annotations: {
           'field.cattle.io/containerDefaultResourceLimit': '{}',

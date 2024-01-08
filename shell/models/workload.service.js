@@ -320,4 +320,22 @@ export default class WorkloadService extends SteveModel {
 
     return { toSave, toRemove };
   }
+
+  cleanForSave(data) {
+    const val = super.cleanForSave(data);
+
+    delete val.__active;
+    delete val.type;
+
+    return val;
+  }
+
+  cleanContainerForSave(container) {
+    delete container.__active;
+    delete container.active;
+    delete container._init;
+    delete container.error;
+
+    return container;
+  }
 }

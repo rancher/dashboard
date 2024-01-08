@@ -1123,15 +1123,22 @@ export default class Resource {
   }
 
   /**
+   * Remove any unwanted properties from the object that will be saved
+   */
+  cleanForSave(data, forNew) {
+    delete data.__rehydrate;
+    delete data.__clone;
+
+    return data;
+  }
+
+  /**
    * Allow to handle the response of the save request
    * @param {*} res Full request response
    */
   processSaveResponse(res) { }
 
   async _save(opt = {}) {
-    delete this.__rehydrate;
-    delete this.__clone;
-
     const forNew = !this.id;
 
     const errors = await this.validationErrors(this, opt.ignoreFields);
@@ -1178,21 +1185,23 @@ export default class Resource {
     // @TODO remove this once the API maps steve _type <-> k8s type in both directions
     opt.data = this.toSave() || { ...this };
 
-    if (opt?.data._type) {
+    if (opt.data._type) {
       opt.data.type = opt.data._type;
     }
 
-    if (opt?.data._name) {
+    if (opt.data._name) {
       opt.data.name = opt.data._name;
     }
 
-    if (opt?.data._labels) {
+    if (opt.data._labels) {
       opt.data.labels = opt.data._labels;
     }
 
-    if (opt?.data._annotations) {
+    if (opt.data._annotations) {
       opt.data.annotations = opt.data._annotations;
     }
+
+    opt.data = this.cleanForSave(opt.data, forNew);
 
     // handle "replace" opt as a query param _replace=true for norman PUT requests
     if (opt?.replace && opt.method === 'put') {

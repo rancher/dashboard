@@ -33,7 +33,6 @@ const ALWAYS_ADD = [
 
 export const NEVER_ADD = [
   'metadata.clusterName',
-  'metadata.clusterName',
   'metadata.creationTimestamp',
   'metadata.deletionGracePeriodSeconds',
   'metadata.deletionTimestamp',
@@ -46,11 +45,16 @@ export const NEVER_ADD = [
   'metadata.resourceVersion',
   'metadata.relationships',
   'metadata.selfLink',
+  'metadata.state',
   'metadata.uid',
   // CRD -> Schema describes the schema used for validation, pruning, and defaulting of this version of the custom resource. If we allow processing we fall into inf loop on openAPIV3Schema.allOf which contains a cyclical ref of allOf props.
   'spec.versions.schema',
   'status',
   'stringData',
+  'links',
+  '_name',
+  '_labels',
+  '_annotations',
 ];
 
 export const ACTIVELY_REMOVE = [
