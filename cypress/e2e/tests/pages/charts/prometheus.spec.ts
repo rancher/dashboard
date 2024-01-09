@@ -119,7 +119,7 @@ describe('Charts', { tags: ['@charts', '@adminUser'] }, () => {
       beforeEach(() => {
         cy.login();
         chartsPage.goTo();
-        cy.intercept('POST', 'v1/catalog.cattle.io.clusterrepos/rancher-charts?action=upgrade', {
+        cy.intercept('POST', 'v1/catalog.cattle.io.clusterrepos/rancher-charts?*', {
           statusCode: 201,
           body:       {
             type:               'chartActionOutput',
