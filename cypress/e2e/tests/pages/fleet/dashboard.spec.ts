@@ -32,7 +32,7 @@ describe.only('Fleet Dashboard', { tags: ['@fleet', '@adminUser'] }, () => {
 
   it('Should display cluster status', () => {
     // check if burguer menu nav is highlighted correctly for Fleet
-    BurgerMenuPo.burgerMenuGetNavMenubyLabel('Continuous Delivery').parent().should('have.class', 'active-menu-link');
+    BurgerMenuPo.checkIfMenuItemLinkIsHighlighted('Continuous Delivery');
 
     const row = fleetDashboardPage.sortableTable('fleet-local').row(0);
 

@@ -26,14 +26,14 @@ describe('Cluster Dashboard', { testIsolation: 'off', tags: ['@explorer', '@admi
     clusterList.waitForPage();
 
     // check if burguer menu nav is highlighted correctly for cluster manager
-    BurgerMenuPo.burgerMenuGetNavMenubyLabel('Cluster Management').parent().should('have.class', 'active-menu-link');
+    BurgerMenuPo.checkIfMenuItemLinkIsHighlighted('Cluster Management');
 
     clusterList.list().explore('local').click();
 
     clusterDashboard.waitForPage(undefined, 'cluster-events');
 
     // check if burguer menu nav is highlighted correctly for local cluster
-    BurgerMenuPo.burgerMenuGetNavClusterbyLabel('local').parent().should('have.class', 'active-menu-link');
+    BurgerMenuPo.checkIfClusterMenuLinkIsHighlighted('local');
   });
 
   it('can add cluster badge', () => {

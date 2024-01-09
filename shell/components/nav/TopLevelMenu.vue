@@ -277,7 +277,7 @@ export default {
     checkActiveRoute(obj, isClusterRoute) {
       // cluster level routes (EXPLORER, APPS, etc)
       if (isClusterRoute && this.$route?.name?.startsWith('c-cluster') && this.currentCluster?.id === obj?.id) {
-        return this.$route?.name?.startsWith('c-cluster') && this.$route?.params?.cluster === obj?.id && getProductFromRoute(this.$route) === this.currentProduct?.name;
+        return this.$route?.params?.cluster === obj?.id && getProductFromRoute(this.$route) === this.currentProduct?.name;
       // other main menu apps/links
       } else if (!isClusterRoute && getProductFromRoute(this.$route) === obj?.value) {
         return true;

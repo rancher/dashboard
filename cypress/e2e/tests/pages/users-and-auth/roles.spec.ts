@@ -27,7 +27,7 @@ describe('Roles', { tags: ['@usersAndAuths', '@adminUser'] }, () => {
     roles.waitForPage(undefined, fragment);
 
     // check if burguer menu nav is highlighted correctly for users & auth
-    BurgerMenuPo.burgerMenuGetNavMenubyLabel('Users & Authentication').parent().should('have.class', 'active-menu-link');
+    BurgerMenuPo.checkIfMenuItemLinkIsHighlighted('Users & Authentication');
 
     roles.listCreate('Create Global Role');
 

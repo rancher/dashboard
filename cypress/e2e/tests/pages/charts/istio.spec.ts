@@ -24,7 +24,7 @@ describe('Charts', { tags: ['@charts', '@adminUser'] }, () => {
         chartsPage.goToInstall().nextPage();
 
         // check if burguer menu nav is highlighted correctly for local cluster (apps is a different prod than explorer)
-        BurgerMenuPo.burgerMenuGetNavClusterbyLabel('local').parent().should('have.class', 'active-menu-link');
+        BurgerMenuPo.checkIfClusterMenuLinkIsHighlighted('local');
 
         chartsPage.installChart();
       });

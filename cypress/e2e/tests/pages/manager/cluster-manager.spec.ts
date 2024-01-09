@@ -58,7 +58,7 @@ describe('Cluster Manager', { testIsolation: 'off', tags: ['@manager', '@adminUs
         clusterList.goTo();
 
         // check if burguer menu nav is highlighted correctly for cluster manager
-        BurgerMenuPo.burgerMenuGetNavMenubyLabel('Cluster Management').parent().should('have.class', 'active-menu-link');
+        BurgerMenuPo.checkIfMenuItemLinkIsHighlighted('Cluster Management');
 
         clusterList.checkIsCurrentPage();
         clusterList.createCluster();
