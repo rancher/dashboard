@@ -8,7 +8,7 @@ describe.only('Fleet Dashboard', { tags: ['@fleet', '@adminUser'] }, () => {
 
   beforeEach(() => {
     cy.login();
-    fleetDashboardPage = new FleetDashboardPagePo('local');
+    fleetDashboardPage = new FleetDashboardPagePo('_');
     fleetDashboardPage.goTo();
   });
 
@@ -17,7 +17,7 @@ describe.only('Fleet Dashboard', { tags: ['@fleet', '@adminUser'] }, () => {
   before(() => {
     cy.login();
 
-    const gitRepoCreatePage = new GitRepoCreatePo('local');
+    const gitRepoCreatePage = new GitRepoCreatePo('_');
 
     gitRepoCreatePage.goTo();
 
@@ -47,7 +47,7 @@ describe.only('Fleet Dashboard', { tags: ['@fleet', '@adminUser'] }, () => {
   });
 
   after(() => {
-    fleetDashboardPage = new FleetDashboardPagePo('local');
+    fleetDashboardPage = new FleetDashboardPagePo('_');
     fleetDashboardPage.goTo();
 
     const fleetLocalResourceTable = fleetDashboardPage.resourceTable('fleet-local');

@@ -4,7 +4,7 @@ import { gitRepoCreateRequest } from '@/cypress/e2e/blueprints/fleet/gitrepos';
 
 describe('Git Repo', { tags: ['@fleet', '@adminUser'] }, () => {
   describe('Create', () => {
-    const gitRepoCreatePage = new GitRepoCreatePo('local');
+    const gitRepoCreatePage = new GitRepoCreatePo('_');
     const repoList = [];
 
     before(() => {
@@ -15,7 +15,8 @@ describe('Git Repo', { tags: ['@fleet', '@adminUser'] }, () => {
       cy.intercept('POST', '/v1/secrets/fleet-default').as('interceptSecret');
       cy.intercept('POST', '/v1/fleet.cattle.io.gitrepos').as('interceptGitRepo');
 
-      GitRepoCreatePo.goTo();
+      gitRepoCreatePage.goTo();
+
       const { name } = gitRepoCreateRequest.metadata;
       const {
         repo, branch, paths, helmRepoURLRegex
@@ -55,7 +56,7 @@ describe('Git Repo', { tags: ['@fleet', '@adminUser'] }, () => {
     });
 
     after(() => {
-      const fleetDashboardPage = new FleetDashboardPagePo('local');
+      const fleetDashboardPage = new FleetDashboardPagePo('_');
 
       FleetDashboardPagePo.navTo();
       const fleetLocalResourceTable = fleetDashboardPage.resourceTable('fleet-default');
