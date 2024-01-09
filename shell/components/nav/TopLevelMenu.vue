@@ -243,7 +243,15 @@ export default {
 
     hasSupport() {
       return isRancherPrime() || this.$store.getters['management/byId'](MANAGEMENT.SETTING, SETTING.SUPPORTED )?.value === 'true';
-    }
+    },
+
+    isCurrRouteClusterExplorer() {
+      return this.$route?.name?.startsWith('c-cluster');
+    },
+
+    productFromRoute() {
+      return getProductFromRoute(this.$route);
+    },
   },
 
   watch: {
@@ -275,15 +283,13 @@ export default {
     },
 
     checkActiveRoute(obj, isClusterRoute) {
-      // cluster level routes (EXPLORER, APPS, etc)
-      if (isClusterRoute && this.$route?.name?.startsWith('c-cluster') && this.currentCluster?.id === obj?.id) {
-        return this.$route?.params?.cluster === obj?.id && getProductFromRoute(this.$route) === this.currentProduct?.name;
-      // other main menu apps/links
-      } else if (!isClusterRoute && getProductFromRoute(this.$route) === obj?.value) {
-        return true;
+      // for Cluster links in main nav: check if route is a cluster explorer one + check if route cluster matches cluster obj id + check if curr product matches route product
+      if (isClusterRoute) {
+        return this.isCurrRouteClusterExplorer && this.$route?.params?.cluster === obj?.id && this.productFromRoute === this.currentProduct?.name;
       }
 
-      return false;
+      // for remaining main nav items, check if curr product matches route product is enough
+      return this.productFromRoute === obj?.value;
     },
 
     handler(e) {
