@@ -39,7 +39,7 @@ declare global {
       createNamespace(nsName: string, projId: string): Chainable;
       createPod(nsName: string, podName: string, image: string): Chainable;
 
-      getRancherResource(prefix: 'v3' | 'v1', resourceType: string, resourceId?: string, expectedStatusCode: string): Chainable;
+      getRancherResource(prefix: 'v3' | 'v1', resourceType: string, resourceId?: string, expectedStatusCode?: number): Chainable;
       setRancherResource(prefix: 'v3' | 'v1', resourceType: string, resourceId: string, body: string): Chainable;
       createRancherResource(prefix: 'v3' | 'v1', resourceType: string, body: string): Chainable;
       deleteRancherResource(prefix: 'v3' | 'v1', resourceType: string, resourceId: string): Chainable;
