@@ -324,8 +324,6 @@ export default {
       // Required to populate yaml comments and default values
       await this.schema?.fetchResourceFields();
 
-      // TODO: RC bug configmaps created in this world don't show data. even though yaml sent is identical to before
-
       const resource = initial ? this.initialResource : this.resource;
 
       if ( typeof this.generateYaml === 'function' ) {

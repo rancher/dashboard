@@ -230,11 +230,6 @@ export default {
     }
 
     const schemaDefinitions = schema.requiresSchemaDefinitions ? schema.schemaDefinitions : null;
-
-    if (path === 'spec.rules.http.paths.pathType') {
-      debugger;
-    }
-
     const parts = splitObjectPath(path);
 
     // Iterate down the parts (properties) until there are no parts left (success) or the path cannot be found (failure)

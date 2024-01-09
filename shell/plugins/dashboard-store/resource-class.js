@@ -1125,7 +1125,7 @@ export default class Resource {
   async _save(opt = { validation: {} }) {
     const forNew = !this.id;
 
-    const errors = await this.validationErrors(this, opt.validation);
+    const errors = this.validationErrors(this, opt.validation);
 
     if (!isEmpty(errors)) {
       return Promise.reject(errors);
@@ -1664,7 +1664,7 @@ export default class Resource {
    *
    * Models can override this and call super.validationErrors
    */
-  async validationErrors(data = this, opts = { validationIgnoreFields: undefined }) {
+  validationErrors(data = this, opts = undefined) {
     return this.customValidationErrors(data);
   }
 
