@@ -10,7 +10,7 @@ describe('Nodes list', { tags: ['@explorer', '@adminUser'], testIsolation: 'off'
     HomePagePo.goTo();
 
     // Add dummy node that used to cause a problem
-    cy.createRancherResource('v1', 'nodes', dummyNode);
+    cy.createRancherResource('v1', 'nodes', JSON.stringify(dummyNode));
   });
 
   after(() => {
