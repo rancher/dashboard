@@ -41,8 +41,7 @@ declare global {
 
       getRancherResource(prefix: 'v3' | 'v1', resourceType: string, resourceId?: string, expectedStatusCode: string): Chainable;
       setRancherResource(prefix: 'v3' | 'v1', resourceType: string, resourceId: string, body: string): Chainable;
-      // eslint-disable-next-line  @typescript-eslint/adjacent-overload-signatures
-      createRancherResource(prefix: 'v3' | 'v1', resourceType: string, body: any): Chainable;
+      createRancherResource(prefix: 'v3' | 'v1', resourceType: string, body: string): Chainable;
       deleteRancherResource(prefix: 'v3' | 'v1', resourceType: string, resourceId: string): Chainable;
       createRancherResource(prefix: 'v3' | 'v1', resourceType: string, body: any): Chainable;
 

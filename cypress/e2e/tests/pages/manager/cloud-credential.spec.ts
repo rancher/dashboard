@@ -58,7 +58,7 @@ describe('Cloud Credential', () => {
     const createdCloudCredsIds = [];
 
     for (let i = 0; i < cloudCredsToCreate.length; i++) {
-      cy.createRancherResource('v3', 'cloudcredentials', cloudCredentialCreatePayload(cloudCredsToCreate[i].name, cloudCredsToCreate[i].token)).then((resp: Cypress.Response<any>) => {
+      cy.createRancherResource('v3', 'cloudcredentials', JSON.stringify(cloudCredentialCreatePayload(cloudCredsToCreate[i].name, cloudCredsToCreate[i].token))).then((resp: Cypress.Response<any>) => {
         createdCloudCredsIds.push(resp.body.id);
 
         if (i === 0) {
