@@ -223,13 +223,13 @@ export default {
   pathExistsInSchema: (state, getters) => (type, path) => {
     let schema = getters.schemaFor(type);
 
-    if (schema.requiresSchemaDefinitions && !schema.hasResourceFields) {
+    if (schema.requiresResourceFields && !schema.hasResourceFields) {
       console.warn(`pathExistsInSchema requires schema ${ schema.id } to have resources fields via schema definition but none were found`); // eslint-disable-line no-console
 
       return false;
     }
 
-    const schemaDefinitions = schema.requiresSchemaDefinitions ? schema.schemaDefinitions : null;
+    const schemaDefinitions = schema.requiresResourceFields ? schema.schemaDefinitions : null;
     const parts = splitObjectPath(path);
 
     // Iterate down the parts (properties) until there are no parts left (success) or the path cannot be found (failure)

@@ -116,7 +116,7 @@ export function createYaml(
   } else {
     rootSchema = findBy(schemas, 'id', rootType);
 
-    if (rootSchema.requiresSchemaDefinitions) {
+    if (rootSchema.requiresResourceFields) {
       schemaDefinitions = rootSchema.schemaDefinitions;
       schemaResourceFields = schemaDefinitions[type].resourceFields;
     } else {

@@ -6,20 +6,18 @@ PR Description
 - Description
   - The BE now no longer returns the schema's `resourceFields` property. The same / similar information is provided via a new `schemaDefinitions` endpoint
   - To make this a seamless as possible the schema model still has a resourceFields getter to provide information in the same previous format
-  - HOWEVER where schema.resourceFields is required there needs to be a separate, upfront fetch of the schema definitions via `schema.fetchResourceFields`
+  - HOWEVER where schema.resourceFields is required there needs to be a separate, upfront fetch of the schema definitions via `schema.fetchResourceFields()`
 
 - Major Changes
-  - `createYaml` was closely linked to schema's have all child resourceFields. This has now been updated to work with a schema and a schema's definition (which has to be up front fetched)
+  - `createYaml` sync fn was closely linked to schema's which have all child resourceFields. Schemas no longer have resourceFields. This has now been updated to work with a schema and a schema's definition (which has to be up front fetched)
   - plugins/fieldsForDriver and plugins/fieldNamesForDriver getters are now handled via schema definitions (upfront fetched in the `createPopulated` action)
-  - upfront fetch a schema's associated schema definitions in additional misc places (clusterscan, ingress, alertmanagerconfig, Questions)
-    - TODO: RC list places fetchResourceFields used
-  - createPopulated is now async and fetches schema definitions. this ensures defaultFor has access to resourceFields
+  - upfront fetch a schema's associated schema definitions in additional misc places (cruresource, resourcetabs, clusterscan, ingress detail page, alertmanagerconfig, Questions)
+  - createPopulated action is now async and fetches schema definitions. this ensures defaultFor has access to resourceFields
 
 - Improvements
   - CruResource now creates yaml when it's needed, rather than when we visit the component in form view (avoids blocking load of component to fetch schema definitions)
   - pathExistsInSchema getter relates to steve/norman specific schemas, so has moved to the steve/norman store (plugins/steve)
-  - model/resource validationErrors functionality has been split between steve specific resourceFields in steve model and core validation in root resource-class model
-    - steve validationErrors is skipped for prefs (which would have required a blocking http request on dashboard load)
+  - model/resource validationErrors functionality has been split between norman specific resourceFields in steve model and core validation in root resource-class model
 
 - Approach
   - Originally, add resourceFields getter here which returns schemaDefinitions, ensure fetchResourceFields is called in places where needed
@@ -33,22 +31,20 @@ PR Description
   - validationErrors - saving any steve based resource
 
 - TODO: RC test ingress showX model props
-- TODO: RC after schema change, new ones available, but definition might not be ready. should now be 503
-// TODO: RC Q michael - how often does the cache update, is blocked?
-// TODO: RC Q michael - Install monitoring in ui. load /v1/schemaDefinition/monitoring.coreos.com.alertmanagerconfig. initiallg
-{
-"type": "error",
-"links": { },
-"code": "InternalServerError",
-"message": "error refreshing schemas",
-"status": 500
-}. then have response
-*/
 
 /**
  * Steve Schema specific functionality
  */
 export default class SteveSchema extends Schema {
+  // Notes on Schemas, resourceFields and schemaDefinitions
+  // - Schemas previously contained a `resourceFields` collection, which is now null
+  // - resourceFields now come from a new `schemaDefinitions` endpoint
+  // - for neatness / safety / compatibility with norman resources... we fetch schemaDefinitions and return their resourceFields in a resourceFields getter
+
+  /** ****************
+   * Resource Fields
+   ****************** /
+
   /**
    * Is the property `resourceFields` available
    *
@@ -57,7 +53,7 @@ export default class SteveSchema extends Schema {
    * This is a non-erroring request, unlike the resourceFields getter which will error if schema definition is required but missing
    */
   get hasResourceFields() {
-    if (this.requiresSchemaDefinitions) { // TODO: RC defnitioons....
+    if (this.requiresResourceFields) {
       return !!this.schemaDefinition?.resourceFields;
     }
 
@@ -70,7 +66,7 @@ export default class SteveSchema extends Schema {
    * This will either come directly from the schema or from the schema's definition
    */
   get resourceFields() {
-    if (this.requiresSchemaDefinitions) {
+    if (this.requiresResourceFields) {
       if (!this._schemaDefinitionsIds) {
         debugger; // TODO: RC polish - remove
         throw new Error(`Cannot find resourceFields for Schema ${ this.id } (schemaDefinitions have not been fetched) `);
@@ -92,52 +88,16 @@ export default class SteveSchema extends Schema {
    */
   set resourceFields(resourceFields) {
     this._resourceFields = resourceFields;
-    this.requiresSchemaDefinitions = this._resourceFields === null;
+    this.requiresResourceFields = this._resourceFields === null;
   }
 
   /**
-   * Store this schema's definition and a collection of associated definitions (all ids)
-   */
-  _schemaDefinitionsIds;
-
-  /**
-   * The schema definition for this schema
-   */
-  get schemaDefinition() {
-    if (!this._schemaDefinitionsIds) {
-      return null;
-    }
-
-    return this.$getters['byId'](STEVE.SCHEMA_DEFINITION, this._schemaDefinitionsIds.self);
-  }
-
-  /**
-   * The schema definitions for this schema definition's resourceFields
-   */
-  get schemaDefinitions() {
-    if (!this._schemaDefinitionsIds) {
-      return null;
-    }
-
-    return this._schemaDefinitionsIds.others.reduce((res, d) => {
-      res[d] = this.$getters['byId'](STEVE.SCHEMA_DEFINITION, d);
-
-      return res;
-    }, {});
-  }
-
-  /**
-   * URL to fetch this schema's definition
-   */
-  get schemaDefinitionUrl() {
-    return this.links?.self?.replace('/schemas/', '/schemaDefinitions/'); // TODO: RC test in downstream cluster
-  }
-
-  /**
-   * Fetch the schema definition which will provide the resourceFields
+   * Ensure this schema has a populated `resourceFields` property
+   *
+   * This happens via making a request to fetch the schema definition
    */
   async fetchResourceFields(depth = 0) {
-    if (!this.requiresSchemaDefinitions) {
+    if (!this.requiresResourceFields) {
       // Not needed, no-op
       return;
     }
@@ -208,5 +168,47 @@ export default class SteveSchema extends Schema {
     // - these were originally stored in a singleton map in this file... however it'd need to tie into the cluster unload flow
     //   - if the size gets bad we can do this plumbing
     await this.$dispatch('loadMulti', schemaDefinitionsForStore);
+  }
+
+  /** *******************
+   * Schema Definitions
+   ********************* /
+
+  /**
+   * Store this schema's definition and a collection of associated definitions (all ids)
+   */
+  _schemaDefinitionsIds;
+
+  /**
+   * The schema definition for this schema
+   */
+  get schemaDefinition() {
+    if (!this._schemaDefinitionsIds) {
+      return null;
+    }
+
+    return this.$getters['byId'](STEVE.SCHEMA_DEFINITION, this._schemaDefinitionsIds.self);
+  }
+
+  /**
+   * The schema definitions for this schema definition's resourceFields
+   */
+  get schemaDefinitions() {
+    if (!this._schemaDefinitionsIds) {
+      return null;
+    }
+
+    return this._schemaDefinitionsIds.others.reduce((res, d) => {
+      res[d] = this.$getters['byId'](STEVE.SCHEMA_DEFINITION, d);
+
+      return res;
+    }, {});
+  }
+
+  /**
+   * URL to fetch this schema's definition
+   */
+  get schemaDefinitionUrl() {
+    return this.links?.self?.replace('/schemas/', '/schemaDefinitions/'); // TODO: RC TEST in downstream cluster
   }
 }

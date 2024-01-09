@@ -201,7 +201,7 @@ export default {
       schemaDefinitions = rootSchema.schemaDefinitions || {}; // norman...
       resourceFields = rootSchema.resourceFields || {};
     } else {
-      if (rootSchema.requiresSchemaDefinitions) {
+      if (rootSchema.requiresResourceFields) {
         resourceFields = schemaDefinitions[type]?.resourceFields || {};
       } else {
         const schema = getters['schemaFor'](type);
