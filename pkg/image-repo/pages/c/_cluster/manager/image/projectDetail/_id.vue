@@ -9,7 +9,10 @@
       <ProjectDetailV1 :api-request="apiRequest" />
     </template>
     <template #v2="{apiRequest}">
-      <ProjectDetailV2 :api-request="apiRequest" />
+      <ProjectDetailV2
+        :project-id="projectId"
+        :api-request="apiRequest"
+      />
     </template>
   </VersionSwitchLayout>
 </template>
@@ -21,12 +24,8 @@ import ProjectDetailV2 from '@pkg/image-repo/components/ProjectDetailV2.vue';
 import ProjectDetailV1 from '@pkg/image-repo/components/ProjectDetailV1.vue';
 
 export default {
-  async asyncData({ route, req, store }) {
-    console.log(route);
-    console.log(req);
-    console.log(store);
-
-    return {};
+  data() {
+    return { projectId: this?.$route?.params?.id };
   },
   components: {
     PageHeader,

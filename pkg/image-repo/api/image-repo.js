@@ -60,6 +60,13 @@ export const harborAPI = (spec = { harborVersion: '', harborServer: '' }) => {
     harborVersion = version;
   };
 
+  const getHarborServerIp = () => {
+    const harborServerArr = harborServer?.split('//');
+    const harborServerIp = (harborServerArr?.length ? harborServerArr[1] : '').replace(/\/+$/, '');
+
+    return harborServerIp;
+  };
+
   const fetchHarborVersion = async() => {
     let setting;
 
@@ -316,11 +323,13 @@ export const harborAPI = (spec = { harborVersion: '', harborServer: '' }) => {
   const getProjectDetail = (id) => {
     checkBaseUrl();
 
-    return store.dispatch('management/request', {
+    const res = store.dispatch('management/request', {
       url:     `${ baseUrl }/projects/${ id }`,
       headers: { 'X-API-Harbor-Admin-Header': store.getters['auth/isAdmin'] },
       method:  'GET',
     });
+
+    return factoryNewPromise(res);
   };
 
   const fetchRepo = (param) => {
@@ -336,11 +345,21 @@ export const harborAPI = (spec = { harborVersion: '', harborServer: '' }) => {
 
   const deleteRepos = (names) => {
     checkBaseUrl();
-    const promises = names.map((n) => store.dispatch('management/request', {
-      url:     `${ baseUrl }/repositories/${ n }`,
-      headers: { 'X-API-Harbor-Admin-Header': store.getters['auth/isAdmin'] },
-      method:  'DELETE',
-    }));
+    const promises = names.map((n) => {
+      const params = n.split('/');
+
+      if (params.length > 1) {
+        const res = store.dispatch('management/request', {
+          url:     `${ baseUrl }/projects/${ params[0] }/repositories/${ params[1] }`,
+          headers: { 'X-API-Harbor-Admin-Header': store.getters['auth/isAdmin'] },
+          method:  'DELETE',
+        });
+
+        return factoryNewPromise(res);
+      }
+
+      return new Promise();
+    });
 
     return Promise.all(promises);
   };
@@ -468,22 +487,26 @@ export const harborAPI = (spec = { harborVersion: '', harborServer: '' }) => {
   const fetchProjectSummary = (projectId) => {
     checkBaseUrl();
 
-    return store.dispatch('management/request', {
+    const res = store.dispatch('management/request', {
       url:     `${ baseUrl }/projects/${ projectId }/summary`,
       headers: { 'X-API-Harbor-Admin-Header': store.getters['auth/isAdmin'] },
       method:  'GET',
     });
+
+    return factoryNewPromise(res);
   };
 
-  const fetchProjectImages = (p) => {
+  const fetchProjectImages = (projectName, param) => {
     checkBaseUrl();
-    const params = Object.entries(p).map((p) => `${ p[0] }=${ p[1] }`).join('&');
+    const p = Object.entries(param).map((item) => `${ item[0] }=${ item[1] }`).join('&');
 
-    return store.dispatch('management/request', {
-      url:     `${ baseUrl }/repositories?${ params }`,
+    const res = store.dispatch('management/request', {
+      url:     `${ baseUrl }/projects/${ projectName }/repositories?${ p }`,
       headers: { 'X-API-Harbor-Admin-Header': store.getters['auth/isAdmin'] },
       method:  'GET',
     });
+
+    return factoryNewPromise(res);
   };
 
   const fetchProjectMembersList = (projectId, p) => {
@@ -662,6 +685,7 @@ export const harborAPI = (spec = { harborVersion: '', harborServer: '' }) => {
   request.fetchInsecureSkipVerify = fetchInsecureSkipVerify;
   request.getBaseUrl = getBaseUrl;
   request.updateBaseUrl = updateBaseUrl;
+  request.getHarborServerIp = getHarborServerIp;
 
   return request;
 };

@@ -213,19 +213,16 @@ export default {
     defaultSelectOption() {
       return [
         {
-          label:     this.t('harborConfig.form.image.all'),
-          value:     '',
-          filterKey: 'public',
+          label: this.t('harborConfig.form.image.all'),
+          value: '',
         },
         {
-          label:     this.t('harborConfig.form.image.public'),
-          value:     1,
-          filterKey: 'public',
+          label: this.t('harborConfig.form.image.public'),
+          value: 1,
         },
         {
-          label:     this.t('harborConfig.form.image.private'),
-          value:     0,
-          filterKey: 'public',
+          label: this.t('harborConfig.form.image.private'),
+          value: 0,
         },
       ];
     },

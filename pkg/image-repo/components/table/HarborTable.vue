@@ -59,6 +59,11 @@ export default {
       type:       Boolean,
       default:    false,
     },
+    hideSelect: {
+      staticProp: Boolean,
+      type:       Boolean,
+      default:    false,
+    },
     pagingLabel: {
       type:    String,
       default: 'sortableTable.paging.generic'
@@ -202,6 +207,7 @@ export default {
         <div class="table-slot">
           <slot name="default">
             <select
+              v-if="!hideSelect"
               v-model="defaultSelectSearchQuery"
               @change="handleSelectChange"
             >
