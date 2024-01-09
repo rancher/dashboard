@@ -12,8 +12,7 @@ describe('Charts', { tags: ['@charts', '@adminUser'] }, () => {
   const chartsPageUrl = '/c/local/apps/charts/chart?repo-type=cluster&repo=rancher-charts';
 
   describe('Monitoring', () => {
-    const monitoringVersion = '102.0.1%2Bup40.1.2';
-    const chartsMonitoringPage = `${ chartsPageUrl }&chart=rancher-monitoring&${ monitoringVersion }`;
+    const chartsMonitoringPage = `${ chartsPageUrl }&chart=rancher-monitoring`;
 
     const chartsPage: ChartsPage = new ChartsPage(chartsMonitoringPage);
 
@@ -130,7 +129,7 @@ describe('Charts', { tags: ['@charts', '@adminUser'] }, () => {
           }
         }).as('prometheusChartCreation');
 
-        cy.intercept('GET', '/v1/catalog.cattle.io.operations/fleet-local/helm-operation-test?*', {
+        cy.intercept('GET', 'v1/catalog.cattle.io.operations/fleet-local/helm-operation-test?*', {
           statusCode: 200,
           body:       {
             id:   'fleet-local/helm-operation-test',
