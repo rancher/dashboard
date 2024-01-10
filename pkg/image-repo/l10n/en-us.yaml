@@ -11,8 +11,7 @@ harborConfig:
       nodata: No Data
       subtitle: Label Management
       title: Labels
-    titleLeft: Other advanced options are configured in the
-    titleRight: .
+    harborLink: 'Other advanced options are configured in the <a class="clip project-link" target="_blank" href="{ harborServer }">Harbor</a>.'
   btn:
     createProject: NEW
   errorInfo: Server connection error. Please reconfigure Harbor account.
@@ -72,6 +71,7 @@ harborConfig:
   formTag:
     btn:
       add: New Tag
+      edit: Edit formTag
     color:
       label: Color
     description: Tag Description

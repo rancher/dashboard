@@ -11,8 +11,7 @@ harborConfig:
       nodata: 暫無資料
       subtitle: 標籤管理
       title: 標籤
-    titleLeft: 其他高階選項在
-    titleRight: 中進行配置
+    harborLink: '其他高級選項在 <a class="clip project-link" target="_blank" href="{ harborServer }">Harbor</a> 中進行配置。'
   btn:
     createProject: 新建倉庫專案
   errorInfo: 伺服器連接出錯請重新配置 Harbor 賬號
@@ -72,6 +71,7 @@ harborConfig:
   formTag:
     btn:
       add: 新建標籤
+      edit: 編輯標籤
     color:
       label: 顏色
     description: 標籤描述

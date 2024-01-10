@@ -161,6 +161,12 @@
         @click="changePwd"
       />
     </div>
+
+    <LabelsV1
+      v-if="harborAccountValid && currentView === 'view'"
+      :harbor-server="harborConfig.url"
+      :api-request="harborAPIRequest"
+    />
   </div>
 </template>
 <script>
@@ -173,6 +179,7 @@ import { RadioGroup } from '@components/Form/Radio';
 import { Checkbox } from '@components/Form/Checkbox';
 import { harborAPI } from '../api/image-repo.js';
 import { Banner } from '@components/Banner';
+import LabelsV1 from './LabelsV1.vue';
 import { stringify } from '@shell/utils/error';
 import Schema from 'async-validator';
 import { mapGetters } from 'vuex';
@@ -224,7 +231,8 @@ export default {
     RadioGroup,
     Checkbox,
     Banner,
-    Loading
+    Loading,
+    LabelsV1
   },
 
   async fetch() {
@@ -421,6 +429,8 @@ export default {
         await this.harborAPIRequest.saveHarborAccount(url, username, password, version, sysntemInfo);
         this.harborSysntemInfo = sysntemInfo;
         await this.testHarborAccount();
+        this.mode = 'view';
+        this.currentView = 'view';
       } catch (err) {
         if (typeof err === 'string') {
           this.errors = [err];
