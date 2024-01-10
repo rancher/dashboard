@@ -1,5 +1,7 @@
 import { mount, Wrapper } from '@vue/test-utils';
 import TopLevelMenu from '@shell/components/nav/TopLevelMenu';
+import { MANAGEMENT } from '@shell/config/types';
+import { SETTING } from '@shell/config/settings';
 
 // DISCLAIMER: This should not be added here, although we have several store requests which are irrelevant
 const defaultStore = {
@@ -30,6 +32,38 @@ describe('topLevelMenu', () => {
     const cluster = wrapper.find('[data-testid="top-level-menu-cluster-0"]');
 
     expect(cluster.exists()).toBe(true);
+  });
+
+  it('should not "crash" the component if the structure of banner settings is in an old format', () => {
+    const wrapper: Wrapper<InstanceType<typeof TopLevelMenu>> = mount(TopLevelMenu, {
+      mocks: {
+        $store: {
+          getters: {
+            'management/all': () => [{ name: 'whatever' },
+              // object based on https://github.com/rancher/dashboard/issues/10140#issuecomment-1883252402
+              {
+                id:    SETTING.BANNERS,
+                value: JSON.stringify({
+                  banner: {
+                    color:      '#78c9cf',
+                    background: '#27292e',
+                    text:       'Hello World!'
+                  },
+                  showHeader: 'true',
+                  showFooter: 'true'
+                })
+              }],
+            ...defaultStore
+          },
+        },
+      },
+      stubs: ['BrandImage', 'nuxt-link']
+    });
+
+    expect(wrapper.vm.globalBannerSettings).toStrictEqual({
+      headerFont: '2em',
+      footerFont: '2em'
+    });
   });
 
   describe('searching a term', () => {
