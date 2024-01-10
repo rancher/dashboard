@@ -1122,10 +1122,10 @@ export default class Resource {
    */
   processSaveResponse(res) { }
 
-  async _save(opt = { validation: {} }) {
+  async _save(opt = { }) {
     const forNew = !this.id;
 
-    const errors = this.validationErrors(this, opt.validation);
+    const errors = this.validationErrors(this, opt);
 
     if (!isEmpty(errors)) {
       return Promise.reject(errors);
@@ -1664,7 +1664,7 @@ export default class Resource {
    *
    * Models can override this and call super.validationErrors
    */
-  validationErrors(data = this, opts = undefined) {
+  validationErrors(data = this, opts = { }) {
     return this.customValidationErrors(data);
   }
 

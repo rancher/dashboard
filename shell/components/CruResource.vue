@@ -430,7 +430,6 @@ export default {
       if (!neu) {
         // Entering yaml mode
         if (!this.initialYaml) {
-          debugger;
           this.initialYaml = await this.createResourceYaml(undefined, true);
         }
       }
