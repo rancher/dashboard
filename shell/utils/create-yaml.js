@@ -79,8 +79,6 @@ export function createYamlWithOptions(schemas, type, data, options) {
   );
 }
 
-// TODO: RC shudder unit tests. basic. copy before output, test in new world
-
 export function createYaml(
   schemas,
   type,

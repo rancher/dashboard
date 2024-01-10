@@ -176,6 +176,6 @@ export default class SteveSchema extends Schema {
    * URL to fetch this schema's definition
    */
   get schemaDefinitionUrl() {
-    return this.links?.self?.replace('/schemas/', '/schemaDefinitions/'); // TODO: RC TEST in downstream cluster
+    return this.links?.self?.replace('/schemas/', '/schemaDefinitions/');
   }
 }
