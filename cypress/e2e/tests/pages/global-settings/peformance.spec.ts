@@ -6,9 +6,20 @@ import ProductNavPo from '@/cypress/e2e/po/side-bars/product-side-nav.po';
 import CardPo from '@/cypress/e2e/po/components/card.po';
 
 const performancePage = new PerformancePagePo();
+const performanceSettingsOrginal = [];
 
 describe('Performance', { tags: ['@globalSettings', '@adminUser'] }, () => {
   // If we need to speed tests up these should be combined into a single `it` (so only one page load and one refresh is used)
+  before('get default performance settings', () => {
+    cy.login();
+
+    cy.getRancherResource('v1', 'management.cattle.io.settings', 'ui-performance', null).then((resp: Cypress.Response<any>) => {
+      const body = JSON.stringify(resp.body);
+
+      performanceSettingsOrginal.push(body);
+    });
+  });
+
   beforeEach(() => {
     cy.login();
   });
@@ -243,5 +254,9 @@ describe('Performance', { tags: ['@globalSettings', '@adminUser'] }, () => {
       expect(request.body).to.have.property('value').contains('\"advancedWorker\":{\"enabled\":false');
       expect(response?.body).to.have.property('value').contains('\"advancedWorker\":{\"enabled\":false');
     });
+  });
+
+  after('set default performance settings', () => {
+    cy.setRancherResource('v1', 'management.cattle.io.settings', 'ui-performance', performanceSettingsOrginal[0]);
   });
 });
