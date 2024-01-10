@@ -607,24 +607,26 @@ export default {
       :mode="mode"
       :provider="subType"
     />
-    <!-- allow extensions to provide their own cluster provisioning form -->
-    <component
-      :is="selectedSubType.component"
-      v-if="selectedSubType && selectedSubType.component"
-      v-model="value"
-      :initial-value="initialValue"
-      :live-value="liveValue"
-      :mode="mode"
-      :provider="subType"
-    />
-    <Rke2Config
-      v-else-if="subType"
-      v-model="value"
-      :initial-value="initialValue"
-      :live-value="liveValue"
-      :mode="mode"
-      :provider="subType"
-    />
+    <template v-else-if="subType">
+      <!-- allow extensions to provide their own cluster provisioning form -->
+      <component
+        :is="selectedSubType.component"
+        v-if="selectedSubType && selectedSubType.component"
+        v-model="value"
+        :initial-value="initialValue"
+        :live-value="liveValue"
+        :mode="mode"
+        :provider="subType"
+      />
+      <Rke2Config
+        v-else
+        v-model="value"
+        :initial-value="initialValue"
+        :live-value="liveValue"
+        :mode="mode"
+        :provider="subType"
+      />
+    </template>
 
     <template
       v-if="subType"
