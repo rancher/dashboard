@@ -7,7 +7,7 @@ export default class Kubectl extends ComponentPo {
   }
 
   readonly kubeCommand: string = 'kubectl'
-  readonly terminalRow: string = '.xterm-rows'
+  readonly terminalRow: string = '.xterm-link-layer'
 
   openTerminal() {
     cy.get('#btn-kubectl').click();

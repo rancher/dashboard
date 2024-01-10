@@ -79,6 +79,7 @@ export default {
       fitAddon:       null,
       searchAddon:    null,
       webglAddon:     null,
+      canvasAddon:    null,
       isOpen:         false,
       isOpening:      false,
       backlog:        [],
@@ -155,6 +156,7 @@ export default {
         webgl:    import(/* webpackChunkName: "xterm" */ 'xterm-addon-webgl'),
         weblinks: import(/* webpackChunkName: "xterm" */ 'xterm-addon-web-links'),
         search:   import(/* webpackChunkName: "xterm" */ 'xterm-addon-search'),
+        canvas:   import(/* webpackChunkName: "xterm" */ 'xterm-addon-canvas')
       });
 
       const terminal = new xterm.Terminal({
@@ -171,10 +173,11 @@ export default {
       this.searchAddon = new addons.search.SearchAddon();
 
       try {
-        this.webglAddon = new addons.webgl.WebGlAddon();
+        this.webglAddon = new addons.webgl.WebglAddon();
       } catch (e) {
         // Some browsers (Safari) don't support the webgl renderer, so don't use it.
         this.webglAddon = null;
+        this.canvasAddon = new addons.canvas.CanvasAddon();
       }
 
       terminal.loadAddon(this.fitAddon);
@@ -184,6 +187,8 @@ export default {
 
       if (this.webglAddon) {
         terminal.loadAddon(this.webglAddon);
+      } else {
+        terminal.loadAddon(this.canvasAddon);
       }
 
       this.fit();
