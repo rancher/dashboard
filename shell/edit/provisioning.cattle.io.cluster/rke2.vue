@@ -2137,7 +2137,7 @@ export default {
     @done="done"
     @finish="saveOverride"
     @cancel="cancel"
-    @error="fvUnreportedValidationErrors"
+    @error="e=>errors = e"
   >
     <div class="header-warnings">
       <Banner
