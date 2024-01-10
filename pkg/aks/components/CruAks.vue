@@ -5,7 +5,7 @@ import { defineComponent } from 'vue';
 
 import { randomStr } from '@shell/utils/string';
 import { isArray, removeObject } from '@shell/utils/array';
-import { _CREATE, _EDIT } from '@shell/config/query-params';
+import { _CREATE, _EDIT, _VIEW } from '@shell/config/query-params';
 import { NORMAN, MANAGEMENT } from '@shell/config/types';
 import { sortable } from '@shell/utils/version';
 import { sortBy } from '@shell/utils/sort';
@@ -488,7 +488,15 @@ export default defineComponent({
 
     canEnableNetworkPolicy(): Boolean {
       return this.networkPolicy !== 'none';
-    }
+    },
+
+    CREATE(): string {
+      return _CREATE;
+    },
+
+    VIEW(): string {
+      return _VIEW;
+    },
   },
 
   watch: {
@@ -721,7 +729,6 @@ export default defineComponent({
     async saveRoleBindings(): Promise<void> {
       if (this.membershipUpdate.save) {
         await this.membershipUpdate.save(this.normanCluster.id);
-        // await this.membershipUpdate.save('bad-id');
       }
     },
 
@@ -779,7 +786,7 @@ export default defineComponent({
     <SelectCredential
       v-model="config.azureCredentialSecret"
       data-testid="cruaks-select-credential"
-      :mode="mode === 'view' ? 'view' : 'create'"
+      :mode="mode === VIEW ? VIEW : CREATE"
       provider="azure"
       :default-on-cancel="true"
       :showing-form="hasCredential"
