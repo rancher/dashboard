@@ -1,14 +1,10 @@
 <script lang="ts">
-import Vue from 'vue';
-import { Location } from 'vue-router';
+import { defineComponent } from 'vue';
 import ExplorerProjectsNamespaces from '@shell/components/ExplorerProjectsNamespaces.vue';
 import { PRODUCT_NAME as HARVESTER_PRODUCT } from '../../../config/harvester';
 import { MANAGEMENT, NAMESPACE } from '@shell/config/types';
-interface Data {
-  createProjectLocation: Location,
-  createNamespaceLocation: Location
-}
-export default Vue.extend<Data, any, any, any>({
+
+export default defineComponent({
   components: { ExplorerProjectsNamespaces },
   data() {
     return {
