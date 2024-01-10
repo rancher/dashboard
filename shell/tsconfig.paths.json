@@ -12,6 +12,9 @@
       ],
       "@pkg/*": [
         "../shell/pkg/*"
+      ],
+      "@components/*": [
+        "../pkg/rancher-components/src/components/*"
       ]
     },
   },
