@@ -3,19 +3,6 @@ import { mount } from '@vue/test-utils';
 import { _EDIT } from '@shell/config/query-params';
 import defaults from './utils/questions-defaults';
 
-const defaultStubs = {
-  Tab:        true,
-  Tabbed:     true,
-  CodeMirror: true
-};
-const defaultGetters = {
-  currentStore:           () => 'current_store',
-  'management/schemaFor': jest.fn(),
-  'current_store/all':    jest.fn(),
-  'i18n/t':               jest.fn(),
-  'i18n/withFallback':    jest.fn((key, args, fallback) => fallback),
-};
-
 describe('the yaml Component', () => {
   it('input field is present', () => {
     const wrapper = mount(Questions, {
