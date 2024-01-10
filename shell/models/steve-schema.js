@@ -109,10 +109,26 @@ export default class SteveSchema extends Schema {
       return;
     }
 
+    const { self, others, forStore } = this._parseSchemaDefinitionResponse(res);
+
+    this._schemaDefinitionsIds = { self, others };
+
+    // Store all schema definitions in the store
+    // - things in the store are larger in size ... but avoids duplicating the same schema definitions in multiple models
+    // - these were originally stored in a singleton map in this file... however it'd need to tie into the cluster unload flow
+    //   - if the size gets bad we can do this plumbing
+    await this.$dispatch('loadMulti', forStore);
+  }
+
+  /**
+   * Convert collection of schema definitions for this schema into objects we can store
+   *
+   * Split out for unit testing purposes
+   */
+  _parseSchemaDefinitionResponse(res) {
     const schemaDefinitionsIdsFromSchema = [];
     const schemaDefinitionsForStore = [];
 
-    // Convert collection of schema definitions for this schema into objects we can store
     Object.entries(res.definitions).forEach(([id, d]) => {
       schemaDefinitionsForStore.push({
         ...d, // Note - this doesn't contain create or update properties as previous. These were previously hardcoded and also not used in the ui
@@ -125,16 +141,11 @@ export default class SteveSchema extends Schema {
       }
     });
 
-    this._schemaDefinitionsIds = {
-      self:   res.definitionType,
-      others: schemaDefinitionsIdsFromSchema
+    return {
+      self:     res.definitionType,
+      others:   schemaDefinitionsIdsFromSchema,
+      forStore: schemaDefinitionsForStore
     };
-
-    // Store all schema definitions in the store
-    // - things in the store are larger in size ... but avoids duplicating the same schema definitions in multiple models
-    // - these were originally stored in a singleton map in this file... however it'd need to tie into the cluster unload flow
-    //   - if the size gets bad we can do this plumbing
-    await this.$dispatch('loadMulti', schemaDefinitionsForStore);
   }
 
   /*********************
