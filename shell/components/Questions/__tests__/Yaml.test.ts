@@ -1,6 +1,8 @@
 import Questions from '@shell/components/Questions';
 import { mount } from '@vue/test-utils';
 import { _EDIT } from '@shell/config/query-params';
+import defaults from './utils/questions-defaults';
+
 const defaultStubs = {
   Tab:        true,
   Tabbed:     true,
@@ -27,8 +29,8 @@ describe('the yaml Component', () => {
         }],
         mode: _EDIT
       },
-      mocks: { $store: { getters: defaultGetters } },
-      stubs: defaultStubs,
+      mocks: defaults.mocks,
+      stubs: defaults.stubs,
     });
 
     const inputFields = wrapper.findAll('[data-testid="yaml-input-var_name"]');
@@ -57,8 +59,8 @@ describe('the yaml Component', () => {
         }],
         mode: _EDIT
       },
-      mocks: { $store: { getters: defaultGetters } },
-      stubs: defaultStubs,
+      mocks: defaults.mocks,
+      stubs: defaults.stubs,
     });
 
     const inputFields = wrapper.findAll('[data-testid="yaml-input-var_name"]');
@@ -83,8 +85,8 @@ describe('the yaml Component', () => {
         }],
         mode: _EDIT
       },
-      mocks: { $store: { getters: defaultGetters } },
-      stubs: defaultStubs,
+      mocks: defaults.mocks,
+      stubs: defaults.stubs,
     });
 
     const inputFields = wrapper.findAll('[data-testid="yaml-input-var_name"]');
@@ -109,8 +111,8 @@ describe('the yaml Component', () => {
         }],
         mode: _EDIT
       },
-      mocks: { $store: { getters: defaultGetters } },
-      stubs: defaultStubs,
+      mocks: defaults.mocks,
+      stubs: defaults.stubs,
     });
 
     const inputFields = wrapper.findAll('[data-testid="yaml-input-var_name"]');

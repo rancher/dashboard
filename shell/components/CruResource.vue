@@ -175,13 +175,11 @@ export default {
       /**
        * Initialised on demand (given that it needs to make a request to fetch schema definition)
        */
-      resourceYaml:    null, // this is
+      resourceYaml:    null,
       /**
        * Initialised on demand (given that it needs to make a request to fetch schema definition)
-       *
-       * string
        */
-      initialYaml:     null, // this is
+      initialYaml:     null,
       /**
        * Save a copy of the initial resource. This is used to calc the initial yaml later on
        */
