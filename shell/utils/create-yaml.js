@@ -118,7 +118,7 @@ export function createYaml(
 
     if (rootSchema.requiresResourceFields) {
       schemaDefinitions = rootSchema.schemaDefinitions;
-      schemaResourceFields = schemaDefinitions[type].resourceFields;
+      schemaResourceFields = schemaDefinitions[type]?.resourceFields;
     } else {
       schema = findBy(schemas, 'id', type);
       if ( !schema ) { // schema is only needed at the root level.
@@ -275,7 +275,7 @@ export function createYaml(
       if ( SIMPLE_TYPES.includes(mapOf) ) {
         out += `#  key: ${ mapOf }`;
       } else {
-        // If not a simple type ie some sort of object/array, recusively build out commented fields (note data = null here) per the type's (mapOf's) schema
+        // If not a simple type ie some sort of object/array, recursively build out commented fields (note data = null here) per the type's (mapOf's) schema
         const chunk = createYaml(schemas, mapOf, null, processAlwaysAdd, depth + 1, (path ? `${ path }.${ key }` : key), rootType, dataOptions);
         let indented = indent(chunk);
 

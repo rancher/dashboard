@@ -120,6 +120,11 @@ export default {
     }
   },
 
+  /**
+   * Checks a schema for the given path
+   *
+   * Given that schema are primarily a rancher thing most logic is in the `steve` store
+   */
   pathExistsInSchema: (state, getters) => (type, path) => {
     return false;
   },

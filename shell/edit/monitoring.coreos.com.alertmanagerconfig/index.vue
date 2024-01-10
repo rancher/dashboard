@@ -86,8 +86,6 @@ export default {
       receiverActions:      [],
       receiverOptions,
       receiverTypes:        RECEIVERS_TYPES,
-      // routeSchema,
-      // receiverSchema,
       selectedReceiverName: '',
       selectedRowValue:     null,
       view:                 _VIEW,

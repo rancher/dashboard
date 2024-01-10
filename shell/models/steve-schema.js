@@ -10,7 +10,7 @@ export default class SteveSchema extends Schema {
   // - resourceFields now come from a new `schemaDefinitions` endpoint
   // - for neatness / safety / compatibility with norman resources... we fetch schemaDefinitions and return their resourceFields in a resourceFields getter
 
-  /** ****************
+  /******************
    * Resource Fields
    ****************** /
 
@@ -137,7 +137,7 @@ export default class SteveSchema extends Schema {
     await this.$dispatch('loadMulti', schemaDefinitionsForStore);
   }
 
-  /** *******************
+  /*********************
    * Schema Definitions
    ********************* /
 

@@ -220,6 +220,9 @@ export default {
   },
 
   // TODO: RC unit test?
+  /**
+   * Checks the norman or steve schema resourceFields for the given path
+   */
   pathExistsInSchema: (state, getters) => (type, path) => {
     let schema = getters.schemaFor(type);
 
