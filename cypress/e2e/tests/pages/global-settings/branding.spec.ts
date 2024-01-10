@@ -58,7 +58,6 @@ describe('Branding', () => {
   });
 
   it('Private Label', { tags: ['@globalSettings', '@adminUser'] }, () => {
-    // Note: this test fails sometimes due to https://github.com/rancher/dashboard/issues/9444
     const brandingPage = new BrandingPagePo();
 
     brandingPage.goTo();
