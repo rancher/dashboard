@@ -4,16 +4,14 @@ import isEmpty from 'lodash/isEmpty';
 import InstallRedirect from '@shell/utils/install-redirect';
 import AlertTable from '@shell/components/AlertTable';
 import { NAME, CHART_NAME } from '@shell/config/product/monitoring';
-import { CATALOG, ENDPOINTS, MONITORING } from '@shell/config/types';
+import { CATALOG, MONITORING } from '@shell/config/types';
 import { allHash } from '@shell/utils/promise';
 import { findBy } from '@shell/utils/array';
 import { getClusterPrefix } from '@shell/utils/grafana';
 import { Banner } from '@components/Banner';
 import LazyImage from '@shell/components/LazyImage';
 import SimpleBox from '@shell/components/SimpleBox';
-import { haveV1MonitoringWorkloads } from '@shell/utils/monitoring';
-
-const CATTLE_MONITORING_NAMESPACE = 'cattle-monitoring-system';
+import { haveV1MonitoringWorkloads, canViewAlertManagerLink, canViewGrafanaLink, canViewPrometheusLink } from '@shell/utils/monitoring';
 
 export default {
   components: {
@@ -94,49 +92,43 @@ export default {
   methods: {
     async fetchDeps() {
       const { $store, externalLinks } = this;
-      const currentCluster = this.$store.getters['currentCluster'];
 
       this.v1Installed = await haveV1MonitoringWorkloads($store);
-      const hash = await allHash({
-        endpoints: $store.dispatch('cluster/findAll', { type: ENDPOINTS }),
-        app:       $store.dispatch(`cluster/find`, { type: CATALOG.APP, id: 'cattle-monitoring-system/rancher-monitoring' })
-      });
+      const hash = {};
 
-      if (!isEmpty(hash.endpoints)) {
+      if ($store.getters['cluster/canList'](CATALOG.APP)) {
+        hash.apps = $store.dispatch('cluster/findAll', { type: CATALOG.APP });
+      }
+      const res = await allHash(hash);
+
+      const canViewAlertManager = await canViewAlertManagerLink(this.$store);
+      const canViewGrafana = await canViewGrafanaLink(this.$store);
+      const canViewPrometheus = await canViewPrometheusLink(this.$store);
+
+      if (canViewAlertManager) {
         const amMatch = findBy(externalLinks, 'group', 'alertmanager');
+
+        amMatch.enabled = true;
+      }
+      if (canViewGrafana) {
         const grafanaMatch = findBy(externalLinks, 'group', 'grafana');
+        // Generate Grafana link
+        const currentCluster = this.$store.getters['currentCluster'];
+        const rancherMonitoring = !isEmpty(res.apps) ? findBy(res.apps, 'id', 'cattle-monitoring-system/rancher-monitoring') : '';
+        const clusterPrefix = getClusterPrefix(rancherMonitoring?.currentVersion || '', currentCluster.id);
+
+        grafanaMatch.link = `${ clusterPrefix }/api/v1/namespaces/cattle-monitoring-system/services/http:rancher-monitoring-grafana:80/proxy/`;
+        grafanaMatch.enabled = true;
+      }
+
+      if (canViewPrometheus) {
         const promeMatch = externalLinks.filter(
           (el) => el.group === 'prometheus'
         );
 
-        grafanaMatch.link = `${ getClusterPrefix(hash.app?.currentVersion || '', currentCluster.id) }/api/v1/namespaces/cattle-monitoring-system/services/http:rancher-monitoring-grafana:80/proxy/`;
-        const alertmanager = findBy(
-          hash.endpoints,
-          'id',
-          `${ CATTLE_MONITORING_NAMESPACE }/rancher-monitoring-alertmanager`
-        );
-        const grafana = findBy(
-          hash.endpoints,
-          'id',
-          `${ CATTLE_MONITORING_NAMESPACE }/rancher-monitoring-grafana`
-        );
-        const prometheus = findBy(
-          hash.endpoints,
-          'id',
-          `${ CATTLE_MONITORING_NAMESPACE }/rancher-monitoring-prometheus`
-        );
-
-        if (!isEmpty(alertmanager) && !isEmpty(alertmanager.subsets)) {
-          amMatch.enabled = true;
-        }
-        if (!isEmpty(grafana) && !isEmpty(grafana.subsets)) {
-          grafanaMatch.enabled = true;
-        }
-        if (!isEmpty(prometheus) && !isEmpty(prometheus.subsets)) {
-          promeMatch.forEach((match) => {
-            match.enabled = true;
-          });
-        }
+        promeMatch.forEach((match) => {
+          match.enabled = true;
+        });
       }
     },
   },

@@ -1,6 +1,6 @@
 import { WorkloadsJobsListPagePo, WorkLoadsJobDetailsPagePo } from '@/cypress/e2e/po/pages/explorer/workloads-jobs.po';
 
-describe('Cluster Explorer', { tags: '@adminUser' }, () => {
+describe('Cluster Explorer', { tags: ['@explorer', '@adminUser'] }, () => {
   beforeEach(() => {
     cy.login();
   });

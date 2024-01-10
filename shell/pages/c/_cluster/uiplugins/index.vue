@@ -19,6 +19,7 @@ import { BadgeState } from '@components/BadgeState';
 import UninstallDialog from './UninstallDialog.vue';
 import InstallDialog from './InstallDialog.vue';
 import CatalogLoadDialog from './CatalogList/CatalogLoadDialog.vue';
+import CatalogUninstallDialog from './CatalogList/CatalogUninstallDialog.vue';
 import DeveloperInstallDialog from './DeveloperInstallDialog.vue';
 import PluginInfoPanel from './PluginInfoPanel.vue';
 import SetupUIPlugins from './SetupUIPlugins';
@@ -35,7 +36,6 @@ import {
   isChartVersionHigher,
   UI_PLUGIN_NAMESPACE,
   UI_PLUGIN_CHART_ANNOTATIONS,
-  UI_PLUGIN_LABELS,
   UI_PLUGINS_REPO_URL,
   UI_PLUGINS_PARTNERS_REPO_URL
 } from '@shell/config/uiplugins';
@@ -58,6 +58,7 @@ export default {
     CatalogList,
     Banner,
     CatalogLoadDialog,
+    CatalogUninstallDialog,
     InstallDialog,
     LazyImage,
     PluginInfoPanel,
@@ -243,9 +244,9 @@ export default {
 
       all = all.map((chart) => {
         // Label can be overridden by chart annotation
-        const label = uiPluginAnnotation(UI_PLUGIN_CHART_ANNOTATIONS.DISPLAY_NAME) || chart.chartNameDisplay;
+        const label = uiPluginAnnotation(chart, UI_PLUGIN_CHART_ANNOTATIONS.DISPLAY_NAME) || chart.chartNameDisplay;
         const item = {
-          name:         chart.chartNameDisplay,
+          name:         chart.chartName,
           label,
           description:  chart.chartDescription,
           id:           chart.id,
@@ -305,7 +306,7 @@ export default {
         if (!chart) {
           // A plugin is loaded, but there is no chart, so add an item so that it shows up
           const rancher = typeof p.metadata?.rancher === 'object' ? p.metadata.rancher : {};
-          const label = rancher[UI_PLUGIN_CHART_ANNOTATIONS.DISPLAY_NAME] || p.name;
+          const label = rancher.annotations?.[UI_PLUGIN_CHART_ANNOTATIONS.DISPLAY_NAME] || p.name;
           const item = {
             name:           p.name,
             label,
@@ -318,18 +319,17 @@ export default {
             builtin:        !!p.builtin,
           };
 
-          all.push(item);
+          // Built-in plugins can chose to be hidden - used where we implement as extensions
+          // but don't want to shows them individually on the extensions page
+          if (!(item.builtin && rancher[UI_PLUGIN_CHART_ANNOTATIONS.HIDDEN_BUILTIN])) {
+            all.push(item);
+          }
         }
       });
 
       // Go through the CRs for the plugins and wire them into the catalog
       this.plugins.forEach((p) => {
         const chart = all.find((c) => c.name === p.name);
-
-        // Plugin is a container image, do not add to charts
-        if (p.metadata?.labels?.[UI_PLUGIN_LABELS.CATALOG_IMAGE]) {
-          return;
-        }
 
         if (chart) {
           chart.installed = true;
@@ -409,10 +409,6 @@ export default {
 
       // Sort by name
       return sortBy(all, 'name', false);
-    },
-
-    pluginsFromCatalogImage() {
-      return this.plugins.filter((p) => p.metadata?.labels?.[UI_PLUGIN_LABELS.CATALOG_IMAGE]);
     }
   },
 
@@ -464,14 +460,10 @@ export default {
 
       neu.forEach((plugin) => {
         const existing = installed.find((p) => !p.removed && p.name === plugin.name && p.version === plugin.version);
-        const isCustomImage = plugin.metadata?.labels?.[UI_PLUGIN_LABELS.CATALOG_IMAGE];
 
         if (!existing && plugin.isCached) {
-          if (!this.uiErrors[plugin.name] && !isCustomImage) {
+          if (!this.uiErrors[plugin.name]) {
             changes++;
-          }
-          if (isCustomImage) {
-            this.refreshCharts(true);
           }
 
           this.updatePluginInstallStatus(plugin.name, false);
@@ -481,7 +473,7 @@ export default {
       if (changes > 0) {
         Vue.set(this, 'reloadRequired', true);
       }
-    },
+    }
   },
 
   // Forget the types when we leave the page
@@ -548,6 +540,10 @@ export default {
 
     showCatalogLoadDialog() {
       this.$refs.catalogLoadDialog.showDialog();
+    },
+
+    showCatalogUninstallDialog(ev) {
+      this.$refs.catalogUninstallDialog.showDialog(ev);
     },
 
     showInstallDialog(plugin, mode, ev) {
@@ -667,50 +663,49 @@ export default {
           {{ t('plugins.title') }}
         </h2>
       </template>
-      <div
-        v-if="reloadRequired"
-        class="plugin-reload-banner mr-20"
-        data-testid="extension-reload-banner"
-      >
-        <i class="icon icon-checkmark mr-10" />
-        <span>
-          {{ t('plugins.reload') }}
-        </span>
-        <button
-          class="ml-10 btn btn-sm role-primary"
-          data-testid="extension-reload-banner-reload-btn"
-          @click="reload()"
+      <div class="actions-container">
+        <div
+          v-if="reloadRequired"
+          class="plugin-reload-banner mr-20"
+          data-testid="extension-reload-banner"
         >
-          {{ t('generic.reload') }}
-        </button>
-      </div>
-      <div
-        v-if="hasService && hasMenuActions"
-        class="actions-container"
-      >
-        <button
-          ref="actions"
-          aria-haspopup="true"
-          type="button"
-          class="btn role-multi-action actions"
-          data-testid="extensions-page-menu"
-          @click="setMenu"
-        >
-          <i class="icon icon-actions" />
-        </button>
-        <ActionMenu
-          :custom-actions="menuActions"
-          :open="menuOpen"
-          :use-custom-target-element="true"
-          :custom-target-element="menuTargetElement"
-          :custom-target-event="menuTargetEvent"
-          @close="setMenu(false)"
-          @devLoad="showDeveloperLoadDialog"
-          @removePluginSupport="removePluginSupport"
-          @manageRepos="manageRepos"
-          @addRancherRepos="showAddExtensionReposDialog"
-          @manageExtensionView="manageExtensionView"
-        />
+          <i class="icon icon-checkmark mr-10" />
+          <span>
+            {{ t('plugins.reload') }}
+          </span>
+          <button
+            class="ml-10 btn btn-sm role-primary"
+            data-testid="extension-reload-banner-reload-btn"
+            @click="reload()"
+          >
+            {{ t('generic.reload') }}
+          </button>
+        </div>
+        <div v-if="hasService && hasMenuActions">
+          <button
+            ref="actions"
+            aria-haspopup="true"
+            type="button"
+            class="btn role-multi-action actions"
+            data-testid="extensions-page-menu"
+            @click="setMenu"
+          >
+            <i class="icon icon-actions" />
+          </button>
+          <ActionMenu
+            :custom-actions="menuActions"
+            :open="menuOpen"
+            :use-custom-target-element="true"
+            :custom-target-element="menuTargetElement"
+            :custom-target-event="menuTargetEvent"
+            @close="setMenu(false)"
+            @devLoad="showDeveloperLoadDialog"
+            @removePluginSupport="removePluginSupport"
+            @manageRepos="manageRepos"
+            @addRancherRepos="showAddExtensionReposDialog"
+            @manageExtensionView="manageExtensionView"
+          />
+        </div>
       </div>
     </div>
 
@@ -737,9 +732,8 @@ export default {
     <div v-else>
       <template v-if="showCatalogList">
         <CatalogList
-          :plugins="pluginsFromCatalogImage"
           @showCatalogLoadDialog="showCatalogLoadDialog"
-          @showUninstallDialog="showUninstallDialog"
+          @showCatalogUninstallDialog="showCatalogUninstallDialog($event)"
         />
       </template>
       <template v-else>
@@ -814,8 +808,8 @@ export default {
             />
             <template v-else>
               <div
-                v-for="plugin in list"
-                :key="plugin.name"
+                v-for="(plugin, i) in list"
+                :key="plugin.name + i"
                 class="plugin"
                 :data-testid="`extension-card-${plugin.name}`"
                 @click="showPluginDetail(plugin)"
@@ -999,6 +993,12 @@ export default {
     <CatalogLoadDialog
       ref="catalogLoadDialog"
       @closed="didInstall"
+      @refresh="() => reloadRequired = true"
+    />
+    <CatalogUninstallDialog
+      ref="catalogUninstallDialog"
+      @closed="didUninstall"
+      @refresh="() => reloadRequired = true"
     />
     <DeveloperInstallDialog
       ref="developerInstallDialog"

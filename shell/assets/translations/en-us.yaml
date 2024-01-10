@@ -139,6 +139,8 @@ nav:
   rotateEncryptionKeys: Rotate Encryption Keys
   saveAsRKETemplate: Save as RKE Template
   takeSnapshot: Take Snapshot
+  seeAllClusters: See all clusters
+  seeAllClustersCollapsed: See all
   group:
     cluster: Cluster
     inUse: More Resources
@@ -185,6 +187,7 @@ nav:
   search:
     placeholder: Type to search clusters
     noResults: No matching clusters
+    clusters: clusters
   resourceSearch:
     label: Resource Search
     toolTip: Resource Search {key}
@@ -650,6 +653,10 @@ asyncButton:
     action: Save
     success: Saved
     waiting: Saving&hellip;
+  editAndContinue:
+    action: Save and Continue
+    success: Saved
+    waiting: Saving&hellip;
   enable:
     action: Enable
     success: Enabled
@@ -676,6 +683,15 @@ asyncButton:
     waiting: Pausing Orchestration
     description: New revisions will not be deployed because orchestration is temporarily paused. To deploy new revisions, resume orchestration.
   refresh:
+    action: ''
+    actionIcon: refresh
+    error: ''
+    errorIcon: error
+    success: ''
+    successIcon: checkmark
+    waiting: ''
+    waitingIcon: refresh
+  manual-refresh:
     action: ''
     actionIcon: refresh
     error: ''
@@ -757,7 +773,7 @@ backupRestoreOperator:
       warning: 'This {type} does not have its reclaim policy set to "Retain".  Your backups may be lost if the volume is changed or becomes unbound.'
   encryption: Encryption
   encryptionConfigName:
-    backuptip: 'Any secret in the <code>cattle-resource-system</code> namespace that has an <code>encryption-provider-config.yaml</code> key. <br/>The contents of this file are necessary to perform a restore from this backup, and are not stored by Rancher Backup.'
+    backuptip: 'Any secret in the <code>cattle-resources-system</code> namespace that has an <code>encryption-provider-config.yaml</code> key. <br/>The contents of this file are necessary to perform a restore from this backup, and are not stored by Rancher Backup.'
     label: Encryption Config Secret
     options:
       none: Store the contents of the backup unencrypted
@@ -844,9 +860,6 @@ catalog:
       keywords: Keywords
     errors:
       clusterToolExists: This chart has a fixed namespace and name. A matching <a href="{url}">application</a> has been found and any changes will be made to it.
-    banner:
-      legacy: 'PSP Removal: Before upgrading a cluster to Kubernetes 1.25+, please ensure you review your Helm applications for Pod Security Policies and update them accordingly'
-    enablePSP: Enable Pod Security Policies
     global: Global
   charts:
     all: All
@@ -861,7 +874,7 @@ catalog:
     versionWindowsIncompatible: Linux only version
     header: Charts
     featuredCharts: Featured Charts
-    noCharts: 'There are no charts available, have you added any repos?'
+    noCharts: 'There are no charts available, have you added any repos or set filters?'
     noWindows: Your repos do not contain any charts capable of being deployed on a cluster with Windows nodes.
     noWindowsAndLinux: Your repos do not contain any charts capable of being deployed on a cluster with both Windows and Linux worker nodes.
     operatingSystems:
@@ -1134,6 +1147,7 @@ cluster:
     nodeRole:
       label: Node Role
       detail: Choose what roles the node will have in the cluster.  The cluster needs to have at least one node with each role.
+      warning: The cluster needs to have at least one node with each role to be usable.
     advanced:
       label: Advanced
       detail: Additional control over how the node will be registered.  These values will often need to be different for each node registered.
@@ -1520,6 +1534,9 @@ cluster:
         host:
           label: Host
           note: Specific host to create VM on (leave blank for standalone ESXi or for cluster with DRS)
+        gracefulShutdownTimeout:
+          label: Graceful Shutdown Timeout
+          note: The time in seconds to wait before forcing deleting VMs in the infrastructure. Zero means disable graceful shutdown.
       instanceOptions:
         label: Instance Options
         description: Choose the size and OS of the virtual machine
@@ -1637,7 +1654,7 @@ cluster:
       advanced: These are advanced configuration options. Generally, they should be left as-is.
       tolerations: Additional Pod Tolerations will be added to the default Tolerations applied by Rancher.
       limits: Pod Requests and Limits do not have a default configuration.
-      windowsCompatibility: "We do not recommended removing the Node Affinity rule that prevents the <b>agent</b> from running on Windows nodes as this is not a supported configuration."
+      windowsCompatibility: "We do not recommend removing the Node Affinity rule that prevents the <b>agent</b> from running on Windows nodes as this is not a supported configuration."
     affinity:
       default: Use default affinity rules defined by Rancher
       custom: Use custom affinity rules
@@ -1647,7 +1664,7 @@ cluster:
       machineSelector:
         label: Add Machine Selector
         listLabel: Add Argument
-        bannerLabel: 'Note: The last selector that matches wins and only args from it will be used.  Args from other matches above will not combined together or merged.'
+        bannerLabel: 'Note: The last selector that matches wins, and only args from it will be used.  Args from other matches above will not be combined together or merged.'
         title: 'For machines with labels matching:'
         subTitle: 'Use the Kubelet args:'
         titleAlt:  |-
@@ -1661,14 +1678,17 @@ cluster:
     agentArgs:
       label: Raise error if kernel parameters are different than the expected kubelet defaults
   banner:
-    warning: 'This cluster contains a machineSelectorConfig which this form does not fully support; use the YAML editor to manage the full configuration.'
-    os: 'You are attemping to add a {newOS} worker node to a cluster with one or more {existingOS} worker nodes: some installed apps may need to be upgraded or removed.'
-    rke2-k3-reprovisioning: 'Making changes to cluster configuration may result in nodes reprovisioning. For more information see the <a target="blank" href="{docsBase}/cluster-provisioning/rke-clusters/behavior-differences-between-rke1-and-rke2/" target="_blank" rel="noopener nofollow">documentation</a>.'
+    warning: 'This cluster contains a machineSelectorConfig, which this form does not fully support; use the YAML editor to manage the full configuration.'
+    os: 'You are attempting to add a {newOS} worker node to a cluster with one or more {existingOS} worker nodes: some installed apps may need to be upgraded or removed.'
+    rke2-k3-reprovisioning: 'Making changes to cluster configuration may result in nodes reprovisioning. For more information see the <a href="{docsBase}/cluster-provisioning/rke-clusters/behavior-differences-between-rke1-and-rke2/" target="_blank" rel="noopener nofollow">documentation</a>.'
     desiredNodeGroupWarning: There are 0 nodes available to run the cluster agent. The cluster will not become active until at least one node is available.
-    invalidPsps: You have one or more PodSecurityPolicy resource(s) in this cluster. Pod Security Policies are not available in Kubernetes v1.25 and will be automatically removed.
-    haveArgInfo: Configuration information is not available for the selected Kubernetes version.  The options available in this screen will be limited, you may want to use the YAML editor.
-    deprecatedPsp: Pod Security Policies are deprecated as of Kubernetes v1.21, and have been removed in Kubernetes v1.25.
-    removedPsp: Pod Security Policies have been removed in Kubernetes v1.25, use Pod Security Admission instead.
+    haveArgInfo: Configuration information is not available for the selected Kubernetes version.  The options available on this screen will be limited; you may want to use the YAML editor.
+    cloudProviderAddConfig: 'On Kubernetes 1.27 or greater, the Amazon Cloud Provider requires additional configuration. See <a href="https://ranchermanager.docs.rancher.com/how-to-guides/new-user-guides/kubernetes-clusters-in-rancher-setup/set-up-cloud-providers/amazon" target="_blank" rel="noopener noreferrer nofollow">the documentation</a> for more information.'
+    machinePoolError: |-
+      {count, plural,
+        =1 { {pool_name}: The provided value for {fields} was not found in the list of expected values. This can happen with clusters provisioned outside of Rancher or when options for the provider have changed. }
+        other { {pool_name}: The provided values for {fields} were not found in the list of expected values. This can happen with clusters provisioned outside of Rancher or when options for the provider have changed. }
+      }
   rkeTemplateUpgrade: Template revision {name} available for upgrade
 
   availabilityWarnings:
@@ -1749,6 +1769,7 @@ cluster:
       searchPlaceholder: Start typing to search
       noResults: No results found
   privateRegistry:
+    header: Registry for Rancher System Container Images
     label: Enable cluster scoped container registry for Rancher system container images
     description: "If enabled, Rancher will pull container images from this registry during cluster provisioning. By default, Rancher will also use this registry when installing Rancher's official Helm chart apps. If the cluster scoped registry is disabled, system images are pulled from the System Default Registry in the global settings."
     docsLinkRke2: "For help configuring private registry mirrors, see the RKE2 <a href=\"https://docs.rke2.io/install/containerd_registry_configuration/\" target=\"_blank\">documentation.</a>"
@@ -1828,9 +1849,9 @@ cluster:
       cisOverride: Changing this setting may affect cluster security as it overrides default CIS settings
       cisUnsupported: The selected Kubernetes Version no longer supports CIS Profile "{cisProfile}". Please select a supported profile. We recommend reviewing the <a href="https://docs.rke2.io/security/hardening_guide" target="_blank" rel="noopener noreferrer nofollow">documentation</a> to evaluate the impact of changing the CIS Profile.
     modal:
-      pspChange:
-        title: Pod Security Policy deprecation
-        body: Kubernetes has removed support for Pod Security Policies (PSPs) starting with version 1.25. If your cluster has PodSecurityPolicy admission controller enabled via "kube-apiserver-arg.enable-admission-plugins" in Cluster YAML, it has to be <i>manually</i> removed before proceeding with the upgrade. Additionally, any PSPs that may be present in the cluster will no longer be available/enforced. Do you want to proceed?
+      editYamlMachinePool:
+        title: Save Machine Configurations
+        body: Machine Configurations define how machines in Pools are deployed.<br><br> They will be saved upfront to ensure valid Cluster YAML can be saved.
     snapshots:
       suffix: Snapshots per node
     systemService:
@@ -1846,6 +1867,7 @@ cluster:
       header: Cloud Provider Config
       defaultValue:
         label: Default - RKE2 Embedded
+      unsupported: The current Cloud Provider is not supported by this version of Kubernetes. The Cloud Provider has been changed to External. Please use the Cloud Provider Config to supply an out-of-tree configuration as needed.
     security:
       header: Security
     cis:
@@ -1860,6 +1882,8 @@ cluster:
       option:
         none: (None)
         default: Default - RKE2 Embedded
+    secretEncryption:
+      label: Encrypt Secrets
     cisProfile:
       option: (None)
     enableNetworkPolicy:
@@ -1868,6 +1892,7 @@ cluster:
     workNode:
       label: Worker Nodes
     controlPlaneConcurrency:
+      header: Control Plane
       label: Control Plane Concurrency
       toolTip: "This can be either a fixed number of nodes (e.g. 1) at a time or a percentage (e.g. 10%)"
     workerConcurrency:
@@ -1875,8 +1900,20 @@ cluster:
       toolTip: "This can be either a fixed number of nodes (e.g. 1) at a time or a percentage (e.g. 10%)"
     drain:
       label: Drain Nodes
-      toolTip: Draining preemptively removes the pods on each node so there are no running workloads on the nodes being upgraded.  Upgrading without draining is faster and causes less shuffling around, but pods may still be restarted depending on the upgrade being performed.
-    deleteEmptyDir: "By default, pods using emptyDir volumes will be deleted on upgrade. Operations reliant on emptyDir volumes persisting through the pod's lifecycle may be impacted."
+      toolTip: Draining preemptively removes the pods on each node so there are no running workloads on the nodes being upgraded.  Upgrading without draining is faster and causes less shuffling around, but pods may still be restarted depending on the upgrade being performed. 
+      deleteEmptyDir: 
+        warning: "By default, pods using emptyDir volumes will be deleted on upgrade. Operations reliant on emptyDir volumes persisting through the pod's lifecycle may be impacted."
+        label: Delete pods using emptyDir volumes
+        tooltip: emptyDir volumes are often used for ephemeral data, but the data will be permanently deleted.  Draining will fail if this is not set and there are pods using emptyDir.
+      force:
+        label: Delete standalone pods
+        tooltip: Delete standalone pods which are not managed by a Workload controller (Deployment, Job, etc).  Draining will fail if this is not set and there are standalone pods.
+      gracePeriod:
+        checkboxLabel: Override pod termination grace periods
+        inputLabel: Grace Period
+      timeout:
+        checkboxLabel: Timeout after
+        inputLabel: Drain Timeout
     truncateHostnames: Truncate hostnames to 15 characters for NetBIOS compatibility.
     address:
       tooltip: Cluster networking values cannot be changed after the cluster is created.
@@ -2009,6 +2046,8 @@ clusterIndexPage:
       etcd: Etcd
       scheduler: Scheduler
       controller-manager: Controller Manager
+    certs:
+      label: Certificates
 
 configmap:
   tabs:
@@ -2162,7 +2201,7 @@ fleet:
       keepResources: Always Keep Resources
       keepResourcesBanner: When enabled above, resources will be kept when deleting a GitRepo or Bundle - only Helm release secrets will be deleted.
       correctDrift: Enable Self-Healing
-      correctDriftBanner: When enabled, Fleet will ensure that the cluster resources are kept in sync with the git repository. All resource changes made on th ecluster will be lost.
+      correctDriftBanner: When enabled, Fleet will ensure that the cluster resources are kept in sync with the git repository. All resource changes made on the cluster will be lost.
     add:
       steps:
         repoInfo:
@@ -2214,6 +2253,7 @@ fleet:
     workspace:
       label: Workspace
       addWorkspace: Create a workspace
+    helmRepoURLRegex: Helm Repos (URL Regex)
   clusterGroup:
     selector:
       label: Cluster Selectors
@@ -2291,6 +2331,7 @@ gatekeeperIndex:
   poweredBy: OPA Gatekeeper
   unavailable: OPA + Gatekeeper is not available in the system-charts catalog.
   violations: Violations
+  deprecated: The OPA Gatekeeper chart is deprecated as of Rancher 2.8 and will be removed in a future release. Please consider switching to <a target="_blank" rel="noopener noreferrer nofollow" href="https://www.kubewarden.io">Kubewarden</a>.
 
 gatekeeperInstall:
   auditInterval: Auto Interval
@@ -2316,6 +2357,7 @@ glance:
   v1MonitoringInstalled: V1 Monitoring Installed
   clusterInfo: Cluster Information
   eventsTable: Full events list
+  secretsTable: Full secrets list
 
 clusterBadge:
   addLabel: Add Cluster Badge
@@ -2357,6 +2399,9 @@ growl:
   podSecurity:
     message: "The creation of this Pod would violate existing restricted policies for the adopted Namespace"
     title: PodSecurity violation
+  kubeApiHeaderWarning:
+    titleCreate: "{resourceType} Creation Warning"
+    titleUpdate: "{resourceType} Update Warning"
 
 hpa:
   detail:
@@ -2725,11 +2770,9 @@ landing:
     cpuUsed: CPU Used
     memoryUsed: Memory Used
   seeWhatsNew: Learn more about the improvements and new capabilities in this version.
-  whatsNewLink: "What's new in 2.7"
+  whatsNewLink: "What's new in 2.9"
   learnMore: Learn More
   support: Support
-  psps: PSPs
-  deprecatedPsp: Pod Security Policies are deprecated as of Kubernetes v1.21, and have been removed in Kubernetes v1.25. You have one or more PodSecurityPolicy resource(s) in this cluster.
   community:
     title: Community Support
     docs: Docs
@@ -2795,7 +2838,7 @@ logging:
     dockerRootDirectory: Docker Root Directory
     systemdLogPath: systemd Log Path
     tooltip: 'Some kubernetes distributions log to <code>journald</code>. In order to collect these logs the <code>systemdLogPath</code> needs to be defined. While the <code>/run/log/journal</code> directory is used by default, some Linux distributions do not default to this path.'
-    url: '<a href="https://rancher.com/docs/rancher/v2.6/en/logging/helm-chart-options/" target="_blank" rel="noopener nofollow noreferrer">Learn more</a>'
+    url: '<a href="https://ranchermanager.docs.rancher.com/v2.8/integrations-in-rancher/logging/logging-helm-chart-options" target="_blank" rel="noopener nofollow noreferrer">Learn more</a>'
     default: /run/log/journal
   elasticsearch:
     host: Host
@@ -3041,7 +3084,7 @@ login:
     noResponse: "No response received"
   error: An error occurred logging in. Please try again.
   clientError: Invalid username or password. Please try again.
-  specificError: 'An error occured logging in: {msg}'
+  specificError: 'An error occurred logging in: {msg}'
   useLocal: Use a local user
   loginWithProvider: Log in with {provider}
   username: Username
@@ -3118,9 +3161,9 @@ monitoring:
         label: Additional Secrets
       existing: Choose an existing config secret
       info: |
-        <span class="text-bold">Create default config</span>: A Secret containing your Alertmanager Config will be created in the <pre class='inline-block m-0'>cattle-monitoring-system</pre> namespace on deploying this chart under the name <pre class='inline-block m-0'>alertmanager-rancher-monitoring-alertmanager</pre>. By default, this Secret will never be modified on an uninstall or upgrade of this chart. <br />
+        <span class="text-bold">Create default config</span>:<br>A Secret containing your Alertmanager Config will be created in the <pre class='inline-block m-0'>cattle-monitoring-system</pre> namespace on deploying this chart under the name <pre class='inline-block m-0'>alertmanager-rancher-monitoring-alertmanager</pre>. By default, this Secret will never be modified on an uninstall or upgrade of this chart. <br /><br />
         Once you have deployed this chart, you should edit the Secret via the UI in order to add your custom notification configurations that will be used by Alertmanager to send alerts. <br /> <br />
-        <span class="text-bold">Choose an existing config secret</span>: You must specify a Secret that exists in the <pre class='inline-block m-0'>cattle-monitoring-system</pre> namespace. If the namespace does not exist, you will not be able to select an existing secret.
+        <span class="text-bold">Choose an existing config secret</span>:<br>You must specify a Secret that exists in the <pre class='inline-block m-0'>cattle-monitoring-system</pre> namespace. If the namespace does not exist, you will not be able to select an existing secret.
       label: Alertmanager Secret
       new: Create default config
       radio:
@@ -4086,14 +4129,17 @@ plugins:
     subtitle: Catalogs
     imageLoad:
       load: Import Extension Catalog
-      prompt: An Extension Catalog contains extension assets bundled into an image, importing will take the image and host a Helm repository to act as a catalog for custom built Extensions. 
+      prompt: An Extension Catalog contains extension assets bundled into an image, importing will take the image and host a Helm repository to act as a catalog for custom built Extensions.
       fields:
         image:
           label: Catalog Image Reference
           placeholder: "e.g. hub.docker.io/example-org/my-image:latest"
+        imagePullSecrets:
+          label: Image Pull Secrets
+          tooltip: Must be of Type `kubernetes.io/dockercfg` or `kubernetes.io/dockerconfigjson`
         secrets:
           banner: "If the registry that hosts the Catalog Image requires Pull Secrets, they must be created in the following namespace:<pre>cattle-ui-plugin-system</pre>"
-      banner: This will create an Deployment, Service, and Helm repository to serve the extension charts. 
+      banner: This will create an Deployment, Service, and Helm repository to serve the extension charts.
       imageVersion:
         title: Image Version Not Found
         message: Unable to determine image version from {image}, defaulting to latest
@@ -4115,9 +4161,8 @@ plugins:
       image:
         name: images
         label: Deployment Image
-      cacheState:
-        name: cacheState
-        label: Cache State
+      repository:
+        label: Repository Name
   tabs:
     all: All
     available: Available
@@ -4144,7 +4189,7 @@ plugins:
     label: Uninstall
     title: "Uninstall Extension: {name}"
     prompt: "Are you sure that you want to uninstall this Extension?"
-    custom: "Are you sure that you want to uninstall this Extension Image? This will also remove any Extensions provided by this image."
+    catalog: "Are you sure that you want to uninstall this Extension Catalog Image? This will also remove any Extensions provided by this image."
   upgradeAvailable: A newer version of this Extension is available
   reload: Extensions changed - reload required
   safeMode:
@@ -4304,10 +4349,6 @@ project:
   vmDefaultResourceLimit: VM Default Resource Limit
   resourceQuotas: Resource Quotas
   haveOneOwner: There must be at least one member with the Owner role.
-  psp:
-    default: Cluster Default
-    label: Pod Security Policy
-    current: "{value} (Current)"
 
 
 projectMembers:
@@ -4576,6 +4617,7 @@ rbac:
       restricted-admin:
         label: Restricted Administrator
         description: Restricted Admins have full control over all resources in all downstream clusters but no access to the local cluster.
+        deprecation: 'Warning: The Restricted Administrator role has been deprecated as of Rancher 2.8.0 and will be removed in a future release - Check out the <a href="{releaseNotesUrl}" target="_blank" rel="noopener noreferrer nofollow">Release Notes</a>'
       user:
         label: Standard User
         description: Standard Users can create new clusters and manage clusters and projects they have been granted access to.
@@ -4612,9 +4654,6 @@ rbac:
       nodetemplates-manage:
         label: Manage Node Templates
         description: Allows the user to define, edit, and remove Node Templates.
-      podsecuritypolicytemplates-manage:
-        label: Manage Pod Security Policies (PSPs)
-        description: Allows the user to define, edit, and remove PSPs.
       roles-manage:
         label: Manage Roles
         description: Allows the user to define, edit, and remove Role definitions.
@@ -4748,13 +4787,26 @@ secret:
   authentication: Authentication
   certificate:
     certificate: Certificate
+    certificates: Certificates
     certificatePlaceholder: "Paste in the CA certificate, starting with -----BEGIN CERTIFICATE----"
     cn: Domain Name
     expires: Expires
+    expiresOn: Expires On
+    expiresDuration: Expires In
+    lifetime: Lifetime
     issuer: Issuer
+    paging: |-
+      {pages, plural,
+      =0 {No {pluralLabel}}
+      =1 {{count} {count, plural, =1 {{singularLabel}} other {{pluralLabel}}}}
+      other {{from} - {to} of {count} {pluralLabel}}}
     plusMore: "+ {n} more"
     privateKey: Private Key
     privateKeyPlaceholder: "Paste in the private key, typically starting with -----BEGIN RSA PRIVATE KEY-----"
+    warnings:
+      expiring: "{count} {count, plural, =1 {Certificate expires soon} other {Certificates expire soon}}"
+      expired: "{count} {count, plural, =1 {Certificate has expired} other {Certificates have expired}}"
+      filtered: ". Not all may be visible given the selected project/namespace filter"
   data: Data
   registry:
     address: Registry
@@ -5540,6 +5592,9 @@ tableHeaders:
   volume: Volume
   volumeMode: Volume Mode
   weight: Weight
+  clusterResources: Cluster Resources
+  repoPerClusterState: Cluster State
+  repoPerClusterStateTooltip: The state of the repo on the cluster
 target:
   router:
     label: Router
@@ -5634,6 +5689,8 @@ validation:
     logdna:
       apiKey: Required an "Api Key" to be set.
   invalidCron: Invalid cron schedule
+  invalidCidr: "Invalid CIDR"
+  invalidIP: "Invalid IP"
   k8s:
     name: Must consist of lower case alphanumeric characters or '-', and must start and end with an alphanumeric character (e.g. 'my-name', or '123-abc').
     identifier:
@@ -5693,6 +5750,7 @@ validation:
       missingResource: You must specify a Resource for each resource grant
       missingApiGroup: You must specify an API Group for each resource grant
       missingOneResource: You must specify at least one Resource, Non-Resource URL or API Group for each resource grant
+      noResourceAndNonResource: Each rule may contain Resources or Non-Resource URLs but not both
   service:
     externalName:
       none: External Name is required on an ExternalName Service.
@@ -5713,7 +5771,10 @@ validation:
         required: 'Port Rule [{position}] - Target Port is required'
   setting:
     serverUrl:
-      https: server-url must be https.
+      https: Server URL must be https.
+      localhost: If the Server URL is internal to the Rancher server (e.g. localhost) the downstream clusters may not be able to communicate with Rancher.
+      trailingForwardSlash: Server URL should not have a trailing forward slash.
+      url: Server URL must be an URL.
   stringLength:
     between: '"{key}" should be between {min} and {max} {max, plural, =1 {character} other {characters}}'
     exactly: '"{key}" should be {count, plural, =1 {# character} other {# characters}}'
@@ -5831,7 +5892,9 @@ workload:
         exec:  Command run inside the container exits with status 0
     image: Container Image
     imagePullPolicy: Pull Policy
-    imagePullSecrets: Pull Secrets
+    imagePullSecrets:
+      label: Pull Secrets
+      tooltip: Must be of Type `kubernetes.io/dockercfg` or `kubernetes.io/dockerconfigjson`
     init: Init Container
     lifecycleHook:
       postStart:
@@ -7039,7 +7102,6 @@ advancedSettings:
     'auth-user-session-ttl-minutes': 'Custom TTL (in minutes) on a user auth session.'
     'auth-token-max-ttl-minutes': 'Max TTL (in minutes) for all authentication tokens. When set to 0, the token never expires.'
     'kubeconfig-generate-token': 'Automatically generate tokens for users when a kubeconfig is requested.'
-    'kubeconfig-token-ttl-minutes': 'TTL used for tokens generated via the CLI. Deprecated: This setting will be removed, and kubeconfig-default-token-ttl-minutes will be used for all kubeconfig tokens.'
     'kubeconfig-default-token-ttl-minutes': 'TTL (in minutes) applied on all kubeconfig tokens. When set to 0, the token never expires.'
     'rke-metadata-config': 'Configure RKE metadata refresh parameters.'
     'ui-banners': 'Classification banner is used to display a custom fixed banner in the header, footer, or both.'
@@ -7357,7 +7419,6 @@ legacy:
   globalDnsProviders: Global DNS Providers
   notifiers: Notifiers
   monitoring: Monitoring
-  psps: Pod Security Policy Templates
   secrets: Secrets
 
   project:

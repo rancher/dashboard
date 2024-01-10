@@ -26,7 +26,7 @@ const DEFAULT_LINKS = [
   },
   {
     key:     'getStarted',
-    value:   '/docs/getting-started',
+    value:   `${ DOCS_BASE }/getting-started/overview`,
     enabled: true,
   },
 ];

@@ -10,7 +10,7 @@ export function diffFrom(value, from, t) {
   const now = day();
 
   from = from || now;
-  const diff = value.diff(now, 'seconds');
+  const diff = value.diff(from, 'seconds');
 
   let absDiff = Math.abs(diff);
 

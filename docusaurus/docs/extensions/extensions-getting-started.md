@@ -22,7 +22,7 @@ Rancher publishes two npm packages to help bootstrap the creation of the app and
 Create a new folder and run:
 
 ```sh
-yarn create @rancher/app my-app
+yarn create @rancher/app my-app [OPTIONS]
 cd my-app
 ```
 
@@ -31,6 +31,16 @@ This will create a new folder `my-app` and populate it with the minimum files ne
 > Note: If you don't want to create a new folder, but instead want the files created in an existing folder, use `yarn create @rancher/app .`
 
 > Note: The skeleton application references the Rancher dashboard code via the `@rancher/shell` npm module.
+
+#### ___Extension Options___
+
+There is one option available to be passed as an argument to the `@rancher/app` script:
+
+| Option | Description |
+| :---: | ------ |
+| `-l` | This will automatically add the [`.gitlab-ci.yml`](https://github.com/rancher/dashboard/blob/master/shell/creators/app/files/.gitlab-ci.yml) pipeline file for integration with GitLab |
+
+---
 
 You can run the app with:
 
@@ -45,7 +55,7 @@ You should be able to open a browser at https://127.0.0.1:8005 and you'll get th
 
 ## Creating an Extension as a top-level-product
 
-The next step is to create an extension.
+The next step is to create an extension. As a Getting Started example, we'll demonstrate an extension for a [Top-level product](./usecases/top-level-product), but you also have the option to create an extension for a [Cluster-level product](./usecases/cluster-level-product).
 
 ### Creating an Extension
 
@@ -60,11 +70,14 @@ yarn create @rancher/pkg test [OPTIONS]
 
 This will create a new UI Package in the `./pkg/test` folder.
 
-#### ___Extension Options___
+#### ___Extension Package Options___
 
 There are two options that can be passed to the `@rancher/pkg` script:
-- `-t`: Creates additional boilerplate directories for types, including: 'l10n', 'models', 'edit', 'list', and 'detail'
-- `-w`: Creates a workflow file ('build-extension.yml') to be used as a Github action. This will automatically build your extension and release a Helm chart.
+
+| Option | Description |
+| :---: | ------ |
+| `-t` | Creates additional boilerplate directories for types, including: 'l10n', 'models', 'edit', 'list', and 'detail'. |
+| `-w` | Creates the workflow files [`build-extension-catalog.yml`, `build-extension-charts.yml`](https://github.com/rancher/dashboard/tree/master/shell/creators/pkg/files/.github/workflows) to be used as Github actions. This will automatically build your extension and release a Helm chart and Extension Catalog Image. |
 
 > Note: Using the `-w` option to create an automated workflow will require additonal prequesites, see the [Release](#creating-a-release) section.
 
@@ -75,6 +88,7 @@ Replace the contents of the file `./pkg/test/index.ts` with:
 ```ts
 import { importTypes } from '@rancher/auto-import';
 import { IPlugin } from '@shell/core/types';
+import extensionRouting from './routing/extension-routing';
 
 // Init the package
 export default function(plugin: IPlugin) {
@@ -82,10 +96,14 @@ export default function(plugin: IPlugin) {
   importTypes(plugin);
 
   // Provide extension metadata from package.json
+  // it will grab information such as `name` and `description`
   plugin.metadata = require('./package.json');
 
   // Load a product
   plugin.addProduct(require('./product'));
+
+  // Add Vue Routes
+  plugin.addRoutes(extensionRouting);
 }
 ```
 
@@ -96,15 +114,50 @@ import { IPlugin } from '@shell/core/types';
 
 export function init($plugin: IPlugin, store: any) {
   const YOUR_PRODUCT_NAME = 'myProductName';
+  const BLANK_CLUSTER = '_';
 
   const { product } = $plugin.DSL(store, YOUR_PRODUCT_NAME);
 
   product({
     icon:    'gear',
     inStore: 'management',
-    weight:  100
+    weight:  100,
+    to:      {
+      name:      `${ YOUR_PRODUCT_NAME }-c-cluster`,
+      path:      `/${ YOUR_PRODUCT_NAME }/c/:cluster/dashboard`,
+      params:      {
+        product: YOUR_PRODUCT_NAME,
+        cluster: BLANK_CLUSTER,
+        pkg:     YOUR_PRODUCT_NAME
+      }
+    }
   });
 }
+```
+
+And finally create a file + folder `/routing/extension-routing.js` with the content:
+
+```js
+// Don't forget to create a VueJS page called index.vue in the /pages folder!!!
+import Dashboard from '../pages/index.vue';
+
+const BLANK_CLUSTER = '_';
+const YOUR_PRODUCT_NAME = 'myProductName';
+
+const routes = [
+  {
+    name:      `${ YOUR_PRODUCT_NAME }-c-cluster`,
+    path:      `/${ YOUR_PRODUCT_NAME }/c/:cluster`,
+    component: Dashboard,
+    meta:      {
+      product: YOUR_PRODUCT_NAME,
+      cluster: BLANK_CLUSTER,
+      pkg:     YOUR_PRODUCT_NAME
+    }
+  }
+];
+
+export default routes;
 ```
 
 ## Running the App
@@ -143,18 +196,23 @@ This will build the extension as a Vue library and the built extension will be p
 
 ## Loading Into Rancher
 
+### Prevent loading your extension in dev mode
+
 When we run `API=<Rancher Backend URL> yarn dev`, our test extension will be automatically loaded into the application - this allows us to develop
 the extension with hot-reloading. To test loading the extension dynamically, we can update configuration to tell Rancher not to include our extension.
 
-To do this, create a new `.env` file in the root `test-app` folder, and add these contents:
+To do this, edit the file `vue.config.js` in the root `my-app` folder, and add the name of the package you want to exclude, such as:
+
+```js
+const config = require('@rancher/shell/vue.config');
+
+module.exports = config(__dirname, {
+  excludes: ['test'],
+});
 
 ```
-EXCLUDES_PKG='test'
-```
 
-If necessary, bring in the environment variables by running `source .env`.
-
-Now, run the UI with:
+Now restart your app by running the UI again with:
 
 ```sh
 API=<Rancher Backend URL> yarn dev
@@ -164,29 +222,16 @@ Open a web browser to https://127.0.0.1:8005 and you'll see that the Example nav
 
 > Note: You need to be an admin user to test Extensions in the Rancher UI
 
-Go to the user avatar in the top-right and go to 'Preferences'. Under 'Advanced Features', check the `Enable Extension developer features' checkbox.
 
-Now, bring in the slide-in menu (click on the hamburger menu in the top-left) and click on 'Extensions'.
+### Test built extension by doing a Developer load
 
-Go to the three dot menu and select 'Developer load' - you'll get a dialog allowing you to load the extension into the UI.
+To enable Developer load in the UI, you should go to the user avatar in the top-right and go to `Preferences`. Under `Advanced Features`, check the `Enable Extension developer features` checkbox.
 
-In the top input box `Extension URL`, enter:
+![Preferences](./screenshots/preferences.png)
 
-```
-https://127.0.0.1:8005/pkg/test-0.1.0/test-0.1.0.umd.min.js
-```
+![Extension Developer Features](./screenshots/extension-developer-features.png)
 
-Press 'Load' and the extension will be loaded, you should see a notification telling you the extension was loaded and if you bring in the side menu again, you should see the Example nav item there now.
-
-This illustrates dynamically loading an extension.
-
-> Note that when we started the UI, it serves up any extensions in the `dist-pkg` folder under the `/pkg` route of the app. Also note that when we build extensions they are versioned, so you'll see that reflected in the URL we used.
-
-### Loading into another Rancher Instance
-
-In the steps above, we were able to load the extension into our test application. We can load the extension into any running Rancher instance.
-
-Run the following:
+Now we need to serve the built package locally by running the following:
 
 ```sh
 yarn serve-pkgs
@@ -202,17 +247,36 @@ Serving packages:
   test-0.1.0 available at: http://127.0.0.1:4500/test-0.1.0/test-0.1.0.umd.min.js
 ```
 
-In a different Rancher UI, you should be able to follow the steps in the previous section, but instead use the URL from the output above in the Developer Load dialog.
+Now jump back into the UI and bring in the slide-in menu (click on the hamburger menu in the top-left) and click on 'Extensions'.
+
+![Developer Load](./screenshots/dev-load.png)
+
+Go to the three dot menu and select 'Developer load' - you'll get a dialog allowing you to load the extension into the UI.
+
+![Developer Load Modal](./screenshots/dev-load-modal.png)
+
+In the top input box `Extension URL`, enter:
+
+```
+https://127.0.0.1:8005/pkg/test-0.1.0/test-0.1.0.umd.min.js
+```
+
+Press 'Load' and the extension will be loaded, you should see a notification telling you the extension was loaded and if you bring in the side menu again, you should see the Example nav item there now.
+
+This illustrates dynamically loading an extension.
 
 You'll notice that if you reload the Rancher UI, the extension is not persistent and will need to be added again. You can make it persistent by checking the `Persist extension by creating custom resource` checkbox in the Developer Load dialog.
+
 
 ## Creating a Release
 
 Creating a Release for your extension is the official avenue for loading extensions into any Rancher instance. As mentioned in the [Introduction](./introduction.md), the extension can be packaged into a Helm chart and added as a Helm repository to be easily accessible from your Rancher Manager.
 
-We have created [two workflows](https://github.com/rancher/dashboard/tree/master/shell/creators/pkg/files/.github/workflows) for [Github Actions](https://docs.github.com/en/actions) which will automatically build, package, and release your extension as a Helm chart for use within your Github repository, and an [Extension Catalog Image](./advanced/air-gapped-environments) (ECI) which is published into a specified container registry (`ghcr.io` by default). Depending on the use case, you can utilize the Github repository as a [Helm repository](https://helm.sh/docs/topics/chart_repository/) endpoint which we can use to consume the chart in Rancher, or you can import the ECI into the Extension Catalog list and serve the Helm charts locally.
+We have created [workflows](https://github.com/rancher/dashboard/tree/master/shell/creators/pkg/files/.github/workflows) for [Github Actions](https://docs.github.com/en/actions) which will automatically build, package, and release your extension as a Helm chart for use within your Github repository, and an [Extension Catalog Image](./advanced/air-gapped-environments) (ECI) which is published into a specified container registry (`ghcr.io` by default). Depending on the use case, you can utilize the Github repository as a [Helm repository](https://helm.sh/docs/topics/chart_repository/) endpoint which we can use to consume the chart in Rancher, or you can import the ECI into the Extension Catalog list and serve the Helm charts locally.
 
-> Note: If you wish to build and publish the Helm chart or the ECI manually or with specific configurations, you can follow the steps listed in the [Publishing an Extension](./publishing) section.
+> **Note:** GitLab support is offered through leverging the ECI build. For configuration instructions, follow the setps in the [Gitlab Integration](./publishing#gitlab-integration) section.
+
+> **Note:** If you wish to build and publish the Helm chart or the ECI manually or with specific configurations, you can follow the steps listed in the [Publishing an Extension](./publishing) section.
 
 ### Release Prerequisites
 

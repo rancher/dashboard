@@ -1,23 +1,5 @@
 import Vue from 'vue';
-import DOMPurify from 'dompurify';
-
-const ALLOWED_TAGS = [
-  'code',
-  'li',
-  'a',
-  'p',
-  'b',
-  'br',
-  'ul',
-  'pre',
-  'span',
-  'div',
-  'i',
-  'em',
-  'strong',
-];
-
-export const purifyHTML = (value) => DOMPurify.sanitize(value, { ALLOWED_TAGS });
+import { purifyHTML } from './clean-html';
 
 export const cleanHtmlDirective = {
   inserted(el, binding) {

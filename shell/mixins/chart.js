@@ -8,6 +8,7 @@ import { CATALOG as CATALOG_ANNOTATIONS } from '@shell/config/labels-annotations
 import { SHOW_PRE_RELEASE, mapPref } from '@shell/store/prefs';
 import { NAME as EXPLORER } from '@shell/config/product/explorer';
 import { NAME as MANAGER } from '@shell/config/product/manager';
+import { OPA_GATE_KEEPER_ID } from '@shell/pages/c/_cluster/gatekeeper/index.vue';
 
 import { formatSi, parseSi } from '@shell/utils/units';
 import { CAPI, CATALOG } from '@shell/config/types';
@@ -183,6 +184,10 @@ export default {
             }),
           }));
         }
+      }
+
+      if (this.chart?.id === OPA_GATE_KEEPER_ID) {
+        warnings.unshift(this.t('gatekeeperIndex.deprecated', {}, true));
       }
 
       return warnings;

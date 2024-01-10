@@ -94,6 +94,7 @@ export default {
     };
   },
   computed: {
+    ...mapGetters(['releaseNotesUrl']),
     ...mapGetters({ t: 'i18n/t' }),
 
     isCreate() {
@@ -347,6 +348,11 @@ export default {
                     </div>
                   </template>
                 </Checkbox>
+                <p
+                  v-if="role.id === 'restricted-admin'"
+                  v-clean-html="t('rbac.globalRoles.role.restricted-admin.deprecation', { releaseNotesUrl }, true)"
+                  class="deprecation-notice"
+                />
               </div>
             </div>
           </template>
@@ -364,6 +370,10 @@ export default {
 </style>
 <style lang='scss' scoped>
   $detailSize: 11px;
+
+  .deprecation-notice {
+    margin: 8px 0 8px 20px;
+  }
   .role-group {
     .type-title {
       display: flex;

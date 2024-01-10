@@ -1,10 +1,11 @@
-import { MANAGEMENT, NORMAN } from '@shell/config/types';
+import { LOCAL_CLUSTER, MANAGEMENT, NORMAN } from '@shell/config/types';
 import { CAPI, FLEET as FLEET_LABELS } from '@shell/config/labels-annotations';
 import { _RKE2 } from '@shell/store/prefs';
 import SteveModel from '@shell/plugins/steve/steve-class';
 import { escapeHtml } from '@shell/utils/string';
 import { insertAt } from '@shell/utils/array';
 import jsyaml from 'js-yaml';
+import { FLEET_WORKSPACE_BACK } from '@shell/store/features';
 
 export default class FleetCluster extends SteveModel {
   get _availableActions() {
@@ -34,7 +35,7 @@ export default class FleetCluster extends SteveModel {
       enabled:  !!this.links.update
     });
 
-    if (!this.isRke2) {
+    if (this.canChangeWorkspace) {
       insertAt(out, 3, {
         action:     'assignTo',
         label:      'Change workspace',
@@ -79,6 +80,23 @@ export default class FleetCluster extends SteveModel {
     return false;
   }
 
+  get canChangeWorkspace() {
+    // https://github.com/rancher/dashboard/issues/7745
+    if (this.isLocal) {
+      return false;
+    }
+    // https://github.com/rancher/dashboard/issues/9730
+    if (this.isRke2) {
+      return this.$rootGetters['features/get'](FLEET_WORKSPACE_BACK);
+    }
+
+    return true;
+  }
+
+  get isLocal() {
+    return this.metadata.name === LOCAL_CLUSTER || this.metadata?.labels?.[FLEET_LABELS.CLUSTER_NAME] === LOCAL_CLUSTER;
+  }
+
   get isRke2() {
     const provider = this?.metadata?.labels?.[CAPI.PROVIDER] || this?.status?.provider;
 
@@ -87,6 +105,10 @@ export default class FleetCluster extends SteveModel {
 
   get nameDisplay() {
     return this.metadata?.labels?.[FLEET_LABELS.CLUSTER_DISPLAY_NAME] || this.metadata?.name || this.id;
+  }
+
+  get name() {
+    return this.metadata?.name || this.metadata?.labels?.[FLEET_LABELS.CLUSTER_NAME];
   }
 
   get state() {

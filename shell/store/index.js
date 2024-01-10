@@ -568,6 +568,10 @@ export const getters = {
     return getters['isSingleProduct'] && cluster.isHarvester && !getters['isRancherInHarvester'];
   },
 
+  showTopLevelMenu(getters) {
+    return getters['isRancherInHarvester'] || getters['isMultiCluster'] || !getters['isSingleProduct'];
+  },
+
   targetRoute(state) {
     return state.targetRoute;
   },
@@ -800,14 +804,14 @@ export const actions = {
     commit('targetRoute', targetRoute);
     const sameCluster = state.clusterId && state.clusterId === id;
     const samePackage = oldPkg?.name === newPkg?.name;
+    const sameProduct = oldProduct === product;
     const isMultiCluster = getters['isMultiCluster'];
 
-    // Are we in the same cluster and package?
-    if ( sameCluster && samePackage) {
+    // Are we in the same cluster and package or product?
+    if ( sameCluster && (samePackage || sameProduct)) {
       // Do nothing, we're already connected/connecting to this cluster
       return;
     }
-
     const oldPkgClusterStore = oldPkg?.stores.find(
       (s) => getters[`${ s.storeName }/isClusterStore`]
     )?.storeName;
@@ -828,7 +832,6 @@ export const actions = {
       // so that the nav and header stay the same when going to things like prefs
       commit('clusterReady', false);
       commit('clusterId', undefined);
-
       await dispatch('cluster/unsubscribe');
       commit('cluster/reset');
 
@@ -1043,15 +1046,13 @@ export const actions = {
     if ( route.name === 'index' ) {
       router.replace('/auth/login');
     } else {
-      if (!process.server) {
-        const backTo = window.localStorage.getItem(BACK_TO);
+      const backTo = window.localStorage.getItem(BACK_TO);
 
-        const isLogin = route.name === 'auth-login' || route.path === '/login'; // Cover dashboard and case of log out from ember;
-        const isLogout = route.name === 'auth-logout';
+      const isLogin = route.name === 'auth-login' || route.path === '/login'; // Cover dashboard and case of log out from ember;
+      const isLogout = route.name === 'auth-logout';
 
-        if (!backTo && !isLogin && !isLogout) {
-          window.localStorage.setItem(BACK_TO, window.location.href);
-        }
+      if (!backTo && !isLogin && !isLogout) {
+        window.localStorage.setItem(BACK_TO, window.location.href);
       }
 
       const QUERY = (LOGGED_OUT in route.query) ? LOGGED_OUT : TIMED_OUT;

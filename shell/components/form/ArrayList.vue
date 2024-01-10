@@ -164,6 +164,10 @@ export default {
       removeAt(this.rows, index);
       this.queueUpdate();
     },
+
+    /**
+     * Cleanup rows and emit input
+     */
     update() {
       if ( this.isView ) {
         return;
@@ -180,22 +184,24 @@ export default {
       }
       this.$emit('input', out);
     },
+
+    /**
+     * Handle paste event, e.g. split multiple lines in rows
+     */
     onPaste(index, event) {
-      if (this.valueMultiline) {
-        return;
-      }
       event.preventDefault();
       const text = event.clipboardData.getData('text/plain');
-      const split = text.split('\n').map((value) => ({ value }));
 
-      if (split.length === 1) {
-        // It's not multi-line, so don't treat it as such
-        return;
+      if (this.valueMultiline) {
+        // Allow to paste multiple lines
+        this.rows[index].value = text;
+      } else {
+        // Prevent to paste the value and emit text in multiple rows
+        const split = text.split('\n').map((value) => ({ value }));
+
+        event.preventDefault();
+        this.rows.splice(index, 1, ...split);
       }
-
-      event.preventDefault();
-
-      this.rows.splice(index, 1, ...split);
 
       this.update();
     }
@@ -256,6 +262,7 @@ export default {
                 v-if="valueMultiline"
                 ref="value"
                 v-model="row.value"
+                :data-testid="`textarea-${idx}`"
                 :placeholder="valuePlaceholder"
                 :mode="mode"
                 :disabled="disabled"
@@ -266,6 +273,7 @@ export default {
                 v-else-if="rules.length > 0"
                 ref="value"
                 v-model="row.value"
+                :data-testid="`labeled-input-${idx}`"
                 :placeholder="valuePlaceholder"
                 :disabled="isView || disabled"
                 :rules="rules"
@@ -277,6 +285,7 @@ export default {
                 v-else
                 ref="value"
                 v-model="row.value"
+                :data-testid="`input-${idx}`"
                 :placeholder="valuePlaceholder"
                 :disabled="isView || disabled"
                 @paste="onPaste(idx, $event)"

@@ -5,6 +5,8 @@ import { STATE, AGE, NAME } from '@shell/config/table-headers';
 import { uniq } from '@shell/utils/array';
 import { MANAGEMENT, NAMESPACE, VIRTUAL_TYPES } from '@shell/config/types';
 import { PROJECT_ID, FLAT_VIEW } from '@shell/config/query-params';
+import { PanelLocation, ExtensionPoint } from '@shell/core/types';
+import ExtensionPanel from '@shell/components/ExtensionPanel';
 import Masthead from '@shell/components/ResourceList/Masthead';
 import { mapPref, GROUP_RESOURCES, ALL_NAMESPACES } from '@shell/store/prefs';
 import MoveModal from '@shell/components/MoveModal';
@@ -16,7 +18,7 @@ import DOMPurify from 'dompurify';
 export default {
   name:       'ListProjectNamespace',
   components: {
-    Masthead, MoveModal, ResourceTable
+    ExtensionPanel, Masthead, MoveModal, ResourceTable
   },
   mixins: [ResourceFetch],
 
@@ -56,6 +58,8 @@ export default {
       schema:                       null,
       projects:                     [],
       projectSchema:                null,
+      extensionType:                ExtensionPoint.PANEL,
+      extensionLocation:            PanelLocation.RESOURCE_LIST,
       MANAGEMENT,
       VIRTUAL_TYPES,
       defaultCreateProjectLocation: {
@@ -379,6 +383,12 @@ export default {
         </n-link>
       </template>
     </Masthead>
+    <!-- Extensions area -->
+    <ExtensionPanel
+      :resource="{}"
+      :type="extensionType"
+      :location="extensionLocation"
+    />
     <ResourceTable
       ref="table"
       class="table"

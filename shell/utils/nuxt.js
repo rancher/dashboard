@@ -5,12 +5,10 @@ import {
 
 // window.{{globals.loadedCallback}} hook
 // Useful for jsdom testing or plugins (https://github.com/tmpvar/jsdom#dealing-with-asynchronous-script-loading)
-if (process.client) {
-  window.onNuxtReadyCbs = [];
-  window.onNuxtReady = (cb) => {
-    window.onNuxtReadyCbs.push(cb);
-  };
-}
+window.onNuxtReadyCbs = [];
+window.onNuxtReady = (cb) => {
+  window.onNuxtReadyCbs.push(cb);
+};
 
 export function createGetCounter(counterObject, defaultKey = '') {
   return function getCounter(id = defaultKey) {
@@ -91,10 +89,6 @@ export function applyAsyncData(Component, asyncData) {
 
   Component.options.data = function() {
     const data = ComponentData.call(this, this);
-
-    if (this.$ssrContext) {
-      asyncData = this.$ssrContext.asyncData[Component.cid];
-    }
 
     return { ...data, ...asyncData };
   };
@@ -210,15 +204,14 @@ export async function setContext(app, context) {
   // If context not defined, create it
   if (!app.context) {
     app.context = {
-      isStatic: process.static,
-      isDev:    true,
-      isHMR:    false,
+      isDev:   true,
+      isHMR:   false,
       app,
-      store:    app.store,
-      payload:  context.payload,
-      error:    context.error,
-      base:     app.router.options.base,
-      env:      {
+      store:   app.store,
+      payload: context.payload,
+      error:   context.error,
+      base:    app.router.options.base,
+      env:     {
         commit: 'head', version: '0.1.2', dev: true, pl: 1, perfTest: false, rancherEnv: 'web', api: 'http://localhost:8989'
       }
     };
@@ -231,9 +224,6 @@ export async function setContext(app, context) {
       app.context.res = context.res;
     }
 
-    if (context.ssrContext) {
-      app.context.ssrContext = context.ssrContext;
-    }
     app.context.redirect = (status, path, query) => {
       if (!status) {
         return;
@@ -260,27 +250,16 @@ export async function setContext(app, context) {
         });
       } else {
         path = withQuery(path, query);
-        if (process.server) {
-          app.context.next({
-            path,
-            status
-          });
-        }
-        if (process.client) {
-          // https://developer.mozilla.org/en-US/docs/Web/API/Location/replace
-          window.location.replace(path);
 
-          // Throw a redirect error
-          throw new Error('ERR_REDIRECT');
-        }
+        // https://developer.mozilla.org/en-US/docs/Web/API/Location/replace
+        window.location.replace(path);
+
+        // Throw a redirect error
+        throw new Error('ERR_REDIRECT');
       }
     };
-    if (process.server) {
-      app.context.beforeNuxtRender = (fn) => context.beforeRenderFns.push(fn);
-    }
-    if (process.client) {
-      app.context.nuxtState = window.__NUXT__;
-    }
+
+    app.context.nuxtState = window.__NUXT__;
   }
 
   // Dynamic keys

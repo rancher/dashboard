@@ -3,7 +3,6 @@ import difference from 'lodash/difference';
 import throttle from 'lodash/throttle';
 import isArray from 'lodash/isArray';
 import merge from 'lodash/merge';
-import { mapGetters } from 'vuex';
 import CreateEditView from '@shell/mixins/create-edit-view';
 import FormValidation from '@shell/mixins/form-validation';
 import { normalizeName } from '@shell/utils/kube';
@@ -17,7 +16,6 @@ import {
   DEFAULT_WORKSPACE,
   SECRET,
   HCI,
-  PSPS,
 } from '@shell/config/types';
 import { _CREATE, _EDIT, _VIEW } from '@shell/config/query-params';
 
@@ -29,59 +27,42 @@ import {
 import { allHash } from '@shell/utils/promise';
 import { sortBy } from '@shell/utils/sort';
 
-import { camelToTitle, nlToBr } from '@shell/utils/string';
 import { compare, sortable } from '@shell/utils/version';
 import { isHarvesterSatisfiesVersion } from '@shell/utils/cluster';
-import * as VERSION from '@shell/utils/version';
 
-import ArrayList from '@shell/components/form/ArrayList';
-import ArrayListGrouped from '@shell/components/form/ArrayListGrouped';
 import { BadgeState } from '@components/BadgeState';
 import { Banner } from '@components/Banner';
-import { Checkbox } from '@components/Form/Checkbox';
-import CruResource from '@shell/components/CruResource';
-import { LabeledInput } from '@components/Form/LabeledInput';
-import LabeledSelect from '@shell/components/form/LabeledSelect';
+import CruResource, { CONTEXT_HOOK_EDIT_YAML } from '@shell/components/CruResource';
 import Loading from '@shell/components/Loading';
-import MatchExpressions from '@shell/components/form/MatchExpressions';
 import NameNsDescription from '@shell/components/form/NameNsDescription';
-import { RadioGroup } from '@components/Form/Radio';
 import Tab from '@shell/components/Tabbed/Tab';
 import Tabbed from '@shell/components/Tabbed';
-import UnitInput from '@shell/components/form/UnitInput';
-import YamlEditor from '@shell/components/YamlEditor';
-import Questions from '@shell/components/Questions';
 
-import ClusterMembershipEditor, { canViewClusterMembershipEditor } from '@shell/components/form/Members/ClusterMembershipEditor';
-import SelectOrCreateAuthSecret from '@shell/components/form/SelectOrCreateAuthSecret';
-import { LEGACY } from '@shell/store/features';
+import { canViewClusterMembershipEditor } from '@shell/components/form/Members/ClusterMembershipEditor';
 import semver from 'semver';
 
 import { SETTING } from '@shell/config/settings';
 import { base64Encode } from '@shell/utils/crypto';
 import { CAPI as CAPI_ANNOTATIONS } from '@shell/config/labels-annotations';
-import ACE from './ACE';
-import AgentEnv from './AgentEnv';
-import DrainOptions from './DrainOptions';
-import Labels from './Labels';
-import MachinePool from './MachinePool';
-import RegistryConfigs from './RegistryConfigs';
-import RegistryMirrors from './RegistryMirrors';
-import S3Config from './S3Config';
+import AgentEnv from '@shell/edit/provisioning.cattle.io.cluster/AgentEnv';
+import Labels from '@shell/edit/provisioning.cattle.io.cluster/Labels';
+import MachinePool from '@shell/edit/provisioning.cattle.io.cluster/tabs/MachinePool';
 import SelectCredential from './SelectCredential';
-import AdvancedSection from '@shell/components/AdvancedSection.vue';
 import { ELEMENTAL_SCHEMA_IDS, KIND, ELEMENTAL_CLUSTER_PROVIDER } from '../../config/elemental-types';
-import AgentConfiguration from './AgentConfiguration';
+import AgentConfiguration from '@shell/edit/provisioning.cattle.io.cluster/tabs/AgentConfiguration';
 import { getApplicableExtensionEnhancements } from '@shell/core/plugin-helpers';
 import { ExtensionPoint, TabLocation } from '@shell/core/types';
-
-const PUBLIC = 'public';
-const PRIVATE = 'private';
-const ADVANCED = 'advanced';
+import MemberRoles from '@shell/edit/provisioning.cattle.io.cluster/tabs/MemberRoles';
+import Basics from '@shell/edit/provisioning.cattle.io.cluster/tabs/Basics';
+import Etcd from '@shell/edit/provisioning.cattle.io.cluster/tabs/etcd';
+import Networking from '@shell/edit/provisioning.cattle.io.cluster/tabs/networking';
+import Upgrade from '@shell/edit/provisioning.cattle.io.cluster/tabs/upgrade';
+import Registries from '@shell/edit/provisioning.cattle.io.cluster/tabs/registries';
+import AddOnConfig from '@shell/edit/provisioning.cattle.io.cluster/tabs/AddOnConfig';
+import Advanced from '@shell/edit/provisioning.cattle.io.cluster/tabs/Advanced';
 
 const HARVESTER = 'harvester';
 const HARVESTER_CLOUD_PROVIDER = 'harvester-cloud-provider';
-
 const NETBIOS_TRUNCATION_LENGTH = 15;
 
 /**
@@ -106,36 +87,26 @@ const FLEET_AGENT_CUSTOMIZATION = 'fleetAgentDeploymentCustomization';
 
 export default {
   components: {
-    ACE,
-    AdvancedSection,
     AgentEnv,
-    ArrayList,
-    ArrayListGrouped,
     BadgeState,
     Banner,
-    Checkbox,
     AgentConfiguration,
-    ClusterMembershipEditor,
     CruResource,
-    DrainOptions,
-    LabeledInput,
-    LabeledSelect,
     Labels,
     Loading,
     MachinePool,
-    MatchExpressions,
     NameNsDescription,
-    Questions,
-    RadioGroup,
-    RegistryConfigs,
-    RegistryMirrors,
-    S3Config,
     SelectCredential,
-    SelectOrCreateAuthSecret,
     Tab,
     Tabbed,
-    UnitInput,
-    YamlEditor,
+    MemberRoles,
+    Basics,
+    Etcd,
+    Networking,
+    Upgrade,
+    Registries,
+    AddOnConfig,
+    Advanced
   },
 
   mixins: [CreateEditView, FormValidation],
@@ -158,7 +129,6 @@ export default {
   },
 
   async fetch() {
-    this.psps = await this.getPsps();
     await this.fetchRke2Versions();
     await this.initSpecs();
     await this.initAddons();
@@ -199,18 +169,12 @@ export default {
       set(this.value.spec, 'rkeConfig.machineSelectorConfig', [{ config: {} }]);
     }
 
-    // Store the initial PSP template name, so we can set it back if needed
-    const lastDefaultPodSecurityPolicyTemplateName = this.value.spec.defaultPodSecurityPolicyTemplateName;
-    const previousKubernetesVersion = this.value.spec.kubernetesVersion;
-
-    const truncateLimit = this.value.defaultHostnameLengthLimit;
+    const truncateLimit = this.value.defaultHostnameLengthLimit || 0;
 
     return {
       loadedOnce:                      false,
       lastIdx:                         0,
-      allPSPs:                         null,
       allPSAs:                         [],
-      nodeComponent:                   null,
       credentialId:                    '',
       credential:                      null,
       machinePools:                    null,
@@ -219,6 +183,13 @@ export default {
       defaultRke2:                     '',
       defaultK3s:                      '',
       s3Backup:                        false,
+      /**
+       * All info related to a specific version of the chart
+       *
+       * This includes chart itself, README and values
+       *
+       * { [chartName:string]: { chart: json, readme: string, values: json } }
+       */
       versionInfo:                     {},
       membershipUpdate:                {},
       showDeprecatedPatchVersions:     false,
@@ -230,58 +201,28 @@ export default {
       userChartValues:                 {},
       userChartValuesTemp:             {},
       addonsRev:                       0,
-      clusterIsAlreadyCreated:         !!this.value.id,
       fvFormRuleSets:                  [{
         path: 'metadata.name', rules: ['subDomain'], translationKey: 'nameNsDescription.name.label'
       }],
       harvesterVersionRange: {},
-      lastDefaultPodSecurityPolicyTemplateName, // Used for reset on k8s version changes
-      previousKubernetesVersion,
       cisOverride:           false,
-      cisPsaChangeBanner:    false,
-      psps:                  null, // List of policies if any
-      truncateHostnames:     truncateLimit === NETBIOS_TRUNCATION_LENGTH,
       truncateLimit,
       busy:                  false,
       machinePoolValidation: {}, // map of validation states for each machine pool
+      machinePoolErrors:     {},
       allNamespaces:         [],
+      initialCloudProvider:  this.value?.agentConfig?.['cloud-provider-name'] || '',
       extensionTabs:         getApplicableExtensionEnhancements(this, ExtensionPoint.TAB, TabLocation.CLUSTER_CREATE_RKE2, this.$route, this),
     };
   },
 
   computed: {
-    ...mapGetters({ allCharts: 'catalog/charts' }),
-    ...mapGetters(['currentCluster']),
-    ...mapGetters({ features: 'features/get' }),
-    ...mapGetters(['namespaces']),
-
-    PUBLIC:   () => PUBLIC,
-    PRIVATE:  () => PRIVATE,
-    ADVANCED: () => ADVANCED,
-
     rkeConfig() {
       return this.value.spec.rkeConfig;
     },
 
-    hostnameTruncationManuallySet() {
-      return this.truncateLimit && this.truncateLimit !== NETBIOS_TRUNCATION_LENGTH;
-    },
-
-    /**
-     * Check presence of PSPs as template or CLI creation
-     */
-    hasPsps() {
-      return !!this.psps?.count;
-    },
-
     isElementalCluster() {
       return this.provider === ELEMENTAL_CLUSTER_PROVIDER || this.value?.machineProvider?.toLowerCase() === KIND.MACHINE_INV_SELECTOR_TEMPLATES.toLowerCase();
-    },
-
-    advancedTitleAlt() {
-      const machineSelectorLength = this.rkeConfig.machineSelectorConfig.length;
-
-      return this.t('cluster.advanced.argInfo.machineSelector.titleAlt', { count: machineSelectorLength });
     },
 
     chartValues() {
@@ -294,31 +235,6 @@ export default {
 
     agentConfig() {
       return this.value.agentConfig;
-    },
-
-    /**
-     * Define introduction of PSA and return need of PSA templates based on min k8s version
-     */
-    needsPSA() {
-      const release = this.value?.spec?.kubernetesVersion || '';
-      const version = release.match(/\d+/g);
-      const isRequiredVersion = version?.length ? +version[0] > 1 || +version[1] >= 23 : false;
-
-      return isRequiredVersion;
-    },
-
-    /**
-     * Define PSP deprecation and restrict use of PSP based on min k8s version
-     */
-    needsPSP() {
-      return this.getNeedsPSP();
-    },
-
-    /**
-     * Define introduction of Rancher defined PSA templates
-     */
-    hasPsaTemplates() {
-      return !this.needsPSP;
     },
 
     unsupportedSelectorConfig() {
@@ -398,163 +314,9 @@ export default {
       return out;
     },
 
-    isK3s() {
-      return (this.value?.spec?.kubernetesVersion || '').includes('k3s');
-    },
-
-    profileOptions() {
-      const out = (this.agentArgs?.profile?.options || []).map((x) => {
-        return { label: x, value: x };
-      });
-
-      out.unshift({
-        label: this.$store.getters['i18n/t']('cluster.rke2.cisProfile.option'),
-        value: ''
-      });
-
-      return out;
-    },
-
     /**
-     * Allow to display override if PSA is needed and profile is set
+     * Kube Version
      */
-    hasCisOverride() {
-      return (this.serverConfig?.profile || this.agentConfig?.profile) && this.needsPSA &&
-        // Also check other cases on when to display the override
-        this.hasPsaTemplates && this.showCisProfile && this.isCisSupported;
-    },
-
-    pspOptions() {
-      if ( this.isK3s ) {
-        return null;
-      }
-
-      const out = [{
-        label: this.$store.getters['i18n/t']('cluster.rke2.defaultPodSecurityPolicyTemplateName.option'),
-        value: ''
-      }];
-
-      if ( this.allPSPs ) {
-        for ( const pspt of this.allPSPs ) {
-          out.push({
-            label: pspt.nameDisplay,
-            value: pspt.id,
-          });
-        }
-      }
-
-      const cur = this.value.spec.defaultPodSecurityPolicyTemplateName;
-
-      if ( cur && !out.find((x) => x.value === cur) ) {
-        out.unshift({ label: `${ cur } (Current)`, value: cur });
-      }
-
-      return out;
-    },
-
-    /**
-     * Disable PSA if CIS hardening is enabled, except override
-     */
-    isPsaDisabled() {
-      const cisValue = this.agentConfig?.profile || this.serverConfig?.profile;
-
-      return !(!cisValue || this.cisOverride) && this.hasPsaTemplates && this.isCisSupported;
-    },
-
-    /**
-     * Get the default label for the PSA template option
-     */
-    defaultPsaOptionLabel() {
-      const optionCase = !this.needsPSP && !this.isK3s ? 'default' : 'none';
-
-      return this.$store.getters['i18n/t'](`cluster.rke2.defaultPodSecurityAdmissionConfigurationTemplateName.option.${ optionCase }`);
-    },
-
-    /**
-     * Convert PSA templates into options, sorting and flagging if any selected
-     */
-    psaOptions() {
-      if ( !this.needsPSA ) {
-        return [];
-      }
-      const out = [{
-        label: this.defaultPsaOptionLabel,
-        value: ''
-      }];
-
-      if ( this.allPSAs ) {
-        for ( const psa of this.allPSAs ) {
-          out.push({
-            label: psa.nameDisplay,
-            value: psa.id,
-          });
-        }
-      }
-      const cur = this.value.spec.defaultPodSecurityAdmissionConfigurationTemplateName;
-
-      if ( cur && !out.find((x) => x.value === cur) ) {
-        out.unshift({ label: `${ cur } (Current)`, value: cur });
-      }
-
-      return out;
-    },
-
-    /**
-     * Check if current CIS profile is required and listed in the options
-     */
-    isCisSupported() {
-      const cisProfile = this.serverConfig.profile || this.agentConfig.profile;
-
-      return !cisProfile || this.profileOptions.map((option) => option.value).includes(cisProfile);
-    },
-
-    disableOptions() {
-      return this.serverArgs.disable.options.map((value) => {
-        return {
-          label: this.$store.getters['i18n/withFallback'](`cluster.${ this.isK3s ? 'k3s' : 'rke2' }.systemService."${ value }"`, null, value.replace(/^(rke2|rancher)-/, '')),
-          value,
-        };
-      });
-    },
-
-    cloudProviderOptions() {
-      const out = [{
-        label: this.$store.getters['i18n/t']('cluster.rke2.cloudProvider.defaultValue.label'),
-        value: '',
-      }];
-
-      const preferred = this.$store.getters['plugins/cloudProviderForDriver'](this.provider);
-
-      for ( const opt of this.agentArgs['cloud-provider-name'].options ) {
-        // If we don't have a preferred provider... show all options
-        const showAllOptions = preferred === undefined;
-        // If we have a preferred provider... only show default, preferred and external
-        const isPreferred = opt === preferred;
-        const isExternal = opt === 'external';
-        let disabled = false;
-
-        if ((this.isHarvesterExternalCredential || this.isHarvesterIncompatible) && isPreferred) {
-          disabled = true;
-        }
-
-        if (showAllOptions || isPreferred || isExternal) {
-          out.push({
-            label: this.$store.getters['i18n/withFallback'](`cluster.cloudProvider."${ opt }".label`, null, opt),
-            value: opt,
-            disabled,
-          });
-        }
-      }
-
-      const cur = this.agentConfig['cloud-provider-name'];
-
-      if ( cur && !out.find((x) => x.value === cur) ) {
-        out.unshift({ label: `${ cur } (Current)`, value: cur });
-      }
-
-      return out;
-    },
-
     selectedVersion() {
       const str = this.value.spec.kubernetesVersion;
 
@@ -579,12 +341,13 @@ export default {
       return this.selectedVersion?.agentArgs || {};
     },
 
+    /**
+     * The addons (kube charts) applicable for the selected kube version
+     *
+     * { [chartName:string]: { repo: string, version: string } }
+     */
     chartVersions() {
       return this.selectedVersion?.charts || {};
-    },
-
-    showCisProfile() {
-      return (this.provider === 'custom' || this.isElementalCluster) && ( this.serverArgs?.profile || this.agentArgs?.profile );
     },
 
     needCredential() {
@@ -736,66 +499,25 @@ export default {
       return out;
     },
 
-    enabledSystemServices: {
-      get() {
-        const out = difference(this.serverArgs.disable.options, this.serverConfig.disable || []);
-
-        return out;
-      },
-
-      set(neu) {
-        const out = difference(this.serverArgs.disable.options, neu);
-
-        set(this.serverConfig, 'disable', out);
-      },
-    },
-
-    showCloudConfigYaml() {
-      if ( !this.agentArgs['cloud-provider-name'] ) {
-        return false;
-      }
-
-      const name = this.agentConfig['cloud-provider-name'];
-
-      if ( !name ) {
-        return false;
-      }
-
-      switch ( name ) {
-      case 'none': return false;
-      case 'aws': return false;
-      case 'rancher-vsphere': return false;
-      case HARVESTER: return false;
-      default: return true;
-      }
-    },
-
-    showVsphereNote() {
-      if ( !this.agentArgs['cloud-provider-name'] ) {
-        return false;
-      }
-
-      const name = this.agentConfig['cloud-provider-name'];
-
-      return name === 'rancher-vsphere';
-    },
-
     showCni() {
       return !!this.serverArgs.cni;
     },
 
     showCloudProvider() {
-      return this.agentArgs['cloud-provider-name'];
+      return !!this.agentArgs['cloud-provider-name'];
     },
 
+    /**
+     * The chart names of the addons applicable to the current kube version and selected cloud provider
+     */
     addonNames() {
       const names = [];
       const cni = this.serverConfig.cni;
 
-      if ( cni ) {
-        const parts = cni.split(',').map((x) => `rke2-${ x }`);
-
-        names.push(...parts);
+      if (typeof cni === 'string') {
+        names.push(...cni.split(',').map((x) => `rke2-${ x }`));
+      } else if (Array.isArray(cni)) {
+        names.push(...cni.map((x) => `rke2-${ x }`));
       }
 
       if (this.showCloudProvider) { // Shouldn't be removed such that changes to it will re-trigger this watch
@@ -811,21 +533,77 @@ export default {
       return names;
     },
 
+    /**
+     * The charts of the addons applicable to the current kube version and selected cloud provider
+     *
+     * These are the charts themselves and do not include chart readme or values
+     */
     addonVersions() {
-      const versions = this.addonNames.map((name) => this.chartVersionFor(name));
+      const versions = this.addonNames.map((name) => this.versionInfo[name]?.chart);
 
       return versions.filter((x) => !!x);
     },
 
-    showk8s21LegacyWarning() {
-      const isLegacyEnabled = this.features(LEGACY);
+    cloudProviderOptions() {
+      const out = [{
+        label: this.$store.getters['i18n/t']('cluster.rke2.cloudProvider.defaultValue.label'),
+        value: '',
+      }];
 
-      if (!isLegacyEnabled) {
-        return false;
+      if ( !!this.agentArgs['cloud-provider-name']?.options ) {
+        const preferred = this.$store.getters['plugins/cloudProviderForDriver'](this.provider);
+
+        for ( const opt of this.agentArgs['cloud-provider-name']?.options ) {
+        // If we don't have a preferred provider... show all options
+          const showAllOptions = preferred === undefined;
+          // If we have a preferred provider... only show default, preferred and external
+          const isPreferred = opt === preferred;
+          const isExternal = opt === 'external';
+          let disabled = false;
+
+          if ((this.isHarvesterExternalCredential || this.isHarvesterIncompatible) && isPreferred) {
+            disabled = true;
+          }
+
+          if (showAllOptions || isPreferred || isExternal) {
+            out.push({
+              label: this.$store.getters['i18n/withFallback'](`cluster.cloudProvider."${ opt }".label`, null, opt),
+              value: opt,
+              disabled,
+            });
+          }
+        }
       }
-      const selectedVersion = semver.coerce(this.value.spec.kubernetesVersion);
 
-      return semver.satisfies(selectedVersion, '>=1.21.0');
+      const cur = this.agentConfig['cloud-provider-name'];
+
+      if (cur && !out.find((x) => x.value === cur)) {
+        // Localization missing
+        // Look up cur in the localization file
+        const label = this.$store.getters['i18n/withFallback'](`cluster.cloudProvider."${ cur }".label`, null, cur);
+
+        out.unshift({
+          label:       `${ label } (Current)`,
+          value:       cur,
+          unsupported: true,
+          disabled:    true
+        });
+      }
+
+      const initial = this.initialCloudProvider;
+
+      if (cur !== initial && initial && !out.find((x) => x.value === initial)) {
+        const label = this.$store.getters['i18n/withFallback'](`cluster.cloudProvider."${ initial }".label`, null, initial);
+
+        out.unshift({
+          label:       `${ label } (Current)`,
+          value:       initial,
+          unsupported: true,
+          disabled:    true
+        });
+      }
+
+      return out;
     },
 
     canManageMembers() {
@@ -860,40 +638,6 @@ export default {
       }
 
       return out;
-    },
-
-    ciliumIpv6: {
-      get() {
-        // eslint-disable-next-line no-unused-vars
-        const cni = this.serverConfig.cni; // force this property to recalculate if cni was changed away from cilium and chartValues['rke-cilium'] deleted
-
-        return this.userChartValues[this.chartVersionKey('rke2-cilium')]?.cilium?.ipv6?.enabled || false;
-      },
-      set(val) {
-        const name = this.chartVersionKey('rke2-cilium');
-        const values = this.userChartValues[name];
-
-        set(this, 'userChartValues', {
-          ...this.userChartValues,
-          [name]: {
-            ...values,
-            cilium: {
-              ...values?.cilium,
-              ipv6: {
-                ...values?.cilium?.ipv6,
-                enabled: val
-              }
-            }
-          }
-        });
-      }
-    },
-
-    showIpv6Warning() {
-      const clusterCIDR = this.serverConfig['cluster-cidr'] || '';
-      const serviceCIDR = this.serverConfig['service-cidr'] || '';
-
-      return clusterCIDR.includes(':') || serviceCIDR.includes(':');
     },
 
     appsOSWarning() {
@@ -964,19 +708,17 @@ export default {
 
       return validRequiredPools && base;
     },
+    unsupportedCloudProvider() {
+      // The current cloud provider
+      const cur = this.initialCloudProvider;
+
+      const provider = cur && this.cloudProviderOptions.find((x) => x.value === cur);
+
+      return !!provider?.unsupported;
+    },
   },
 
   watch: {
-    s3Backup(neu) {
-      if ( neu ) {
-        // We need to make sure that s3 doesn't already have an existing value otherwise when editing a cluster with s3 defined this will clear s3.
-        if (isEmpty(this.rkeConfig.etcd?.s3)) {
-          set(this.rkeConfig.etcd, 's3', {});
-        }
-      } else {
-        set(this.rkeConfig.etcd, 's3', null);
-      }
-    },
 
     credentialId(val) {
       if ( val ) {
@@ -1035,15 +777,10 @@ export default {
         set(this.agentConfig, 'cloud-provider-name', undefined);
       }
     },
-
-  },
-
-  mounted() {
-    window.rke = this;
   },
 
   created() {
-    this.registerBeforeHook(this.saveMachinePools, 'save-machine-pools');
+    this.registerBeforeHook(this.saveMachinePools, 'save-machine-pools', 1);
     this.registerBeforeHook(this.setRegistryConfig, 'set-registry-config');
     this.registerAfterHook(this.cleanupMachinePools, 'cleanup-machine-pools');
     this.registerAfterHook(this.saveRoleBindings, 'save-role-bindings');
@@ -1055,7 +792,6 @@ export default {
   },
 
   methods: {
-    nlToBr,
     set,
 
     /**
@@ -1113,10 +849,6 @@ export default {
         }
       }
 
-      if ( this.value.spec.defaultPodSecurityPolicyTemplateName === undefined ) {
-        set(this.value.spec, 'defaultPodSecurityPolicyTemplateName', '');
-      }
-
       if ( this.value.spec.defaultPodSecurityAdmissionConfigurationTemplateName === undefined ) {
         set(this.value.spec, 'defaultPodSecurityAdmissionConfigurationTemplateName', '');
       }
@@ -1131,10 +863,6 @@ export default {
           rke2Versions: this.$store.dispatch('management/request', { url: '/v1-rke2-release/releases' }),
           k3sVersions:  this.$store.dispatch('management/request', { url: '/v1-k3s-release/releases' }),
         };
-
-        if ( this.$store.getters['management/canList'](MANAGEMENT.POD_SECURITY_POLICY_TEMPLATE) ) {
-          hash.allPSPs = await this.$store.dispatch('management/findAll', { type: MANAGEMENT.POD_SECURITY_POLICY_TEMPLATE });
-        }
 
         if (this.$store.getters['management/canList'](MANAGEMENT.PSA)) {
           hash.allPSAs = await this.$store.dispatch('management/findAll', { type: MANAGEMENT.PSA });
@@ -1160,7 +888,6 @@ export default {
 
         const res = await allHash(hash);
 
-        this.allPSPs = res.allPSPs || [];
         this.allPSAs = res.allPSAs || [];
         this.rke2Versions = res.rke2Versions.data || [];
         this.k3sVersions = res.k3sVersions.data || [];
@@ -1242,22 +969,14 @@ export default {
     /**
      * set instanceNameLimit to 15 to all pool machine if truncateHostnames checkbox is clicked
      */
-    truncateName() {
-      if (this.truncateHostnames) {
+    truncateHostname(neu) {
+      if (neu) {
         this.value.defaultHostnameLengthLimit = NETBIOS_TRUNCATION_LENGTH;
+        this.truncateLimit = NETBIOS_TRUNCATION_LENGTH;
       } else {
+        this.truncateLimit = 0;
         this.value.removeDefaultHostnameLengthLimit();
       }
-    },
-    /**
-     * Define PSP deprecation and restrict use of PSP based on min k8s version and current/edited mode
-     */
-    getNeedsPSP(value = this.value) {
-      const release = value?.spec?.kubernetesVersion || '';
-      const version = release.match(/\d+/g);
-      const isRequiredVersion = version?.length ? +version[0] === 1 && +version[1] < 25 : false;
-
-      return isRequiredVersion;
     },
 
     /**
@@ -1339,6 +1058,7 @@ export default {
       }
 
       const name = `pool${ ++this.lastIdx }`;
+
       const pool = {
         id:     name,
         config,
@@ -1359,6 +1079,7 @@ export default {
             kind: this.machineConfigSchema.attributes?.kind,
             name: null,
           },
+          drainBeforeDelete: true
         },
       };
 
@@ -1411,7 +1132,27 @@ export default {
       }
     },
 
-    async saveMachinePools() {
+    async saveMachinePools(hookContext) {
+      if (hookContext === CONTEXT_HOOK_EDIT_YAML) {
+        await new Promise((resolve, reject) => {
+          this.$store.dispatch('cluster/promptModal', {
+            component:      'GenericPrompt',
+            componentProps: {
+              title:     this.t('cluster.rke2.modal.editYamlMachinePool.title'),
+              body:      this.t('cluster.rke2.modal.editYamlMachinePool.body'),
+              applyMode: 'editAndContinue',
+              confirm:   (confirmed) => {
+                if (confirmed) {
+                  resolve();
+                } else {
+                  reject(new Error('User Cancelled'));
+                }
+              }
+            },
+          });
+        });
+      }
+
       const finalPools = [];
 
       // If the extension provider wants to do this, let them
@@ -1517,23 +1258,6 @@ export default {
       });
     },
 
-    /**
-     * Inform user to remove PSP for current cluster due deprecation
-     */
-    showPspConfirmation() {
-      return new Promise((resolve, reject) => {
-        this.$store.dispatch('cluster/promptModal', {
-          component:      'GenericPrompt',
-          componentProps: {
-            title:     this.t('cluster.rke2.modal.pspChange.title'),
-            body:      this.t('cluster.rke2.modal.pspChange.body'),
-            applyMode: 'continue',
-            confirm:   resolve
-          },
-        });
-      });
-    },
-
     // Set busy before save and clear after save
     async saveOverride(btnCb) {
       this.$set(this, 'busy', true);
@@ -1571,13 +1295,6 @@ export default {
       }
 
       const isEditVersion = this.isEdit && this.liveValue?.spec?.kubernetesVersion !== this.value?.spec?.kubernetesVersion;
-      const hasPspManuallyAdded = !!this.value.spec.rkeConfig?.machineGlobalConfig?.['kube-apiserver-arg'];
-
-      if (isEditVersion && !this.needsPSP && hasPspManuallyAdded) {
-        if (!await this.showPspConfirmation()) {
-          return btnCb('cancelled');
-        }
-      }
 
       if (isEditVersion) {
         const shouldContinue = await this.showAddonConfirmation();
@@ -1723,66 +1440,63 @@ export default {
       });
     },
 
-    chartVersionFor(chartName) {
-      const entry = this.chartVersions[chartName];
-
-      if ( !entry ) {
-        return null;
-      }
-
-      const out = this.$store.getters['catalog/version']({
-        repoType:    'cluster',
-        repoName:    entry.repo,
-        chartName,
-        versionName: entry.version,
-      });
-
-      return out;
-    },
-
+    /**
+     * Ensure all chart information required to show addons is available
+     *
+     * This basically means
+     * 1) That the full chart relating to the addon is fetched (which includes core chart, readme and values)
+     * 2) We're ready to cache any values the user provides for each addon
+     */
     async initAddons() {
-      for ( const v of this.addonVersions ) {
-        if ( this.versionInfo[v.name] ) {
+      for ( const chartName of this.addonNames ) {
+        const entry = this.chartVersions[chartName];
+
+        if ( this.versionInfo[chartName] ) {
           continue;
         }
 
-        const res = await this.$store.dispatch('catalog/getVersionInfo', {
-          repoType:    'cluster',
-          repoName:    v.repoName,
-          chartName:   v.name,
-          versionName: v.version
-        });
+        try {
+          const res = await this.$store.dispatch('catalog/getVersionInfo', {
+            repoType:    'cluster',
+            repoName:    entry.repo,
+            chartName,
+            versionName: entry.version,
+          });
 
-        set(this.versionInfo, v.name, res);
-        const key = this.chartVersionKey(v.name);
+          set(this.versionInfo, chartName, res);
+          const key = this.chartVersionKey(chartName);
 
-        if (!this.userChartValues[key]) {
-          this.userChartValues[key] = {};
+          if (!this.userChartValues[key]) {
+            this.userChartValues[key] = {};
+          }
+        } catch (e) {
+          console.error(`Failed to fetch or process chart info for ${ chartName }`); // eslint-disable-line no-console
         }
       }
     },
 
-    labelForAddon(name) {
-      const fallback = `${ camelToTitle(name.replace(/^(rke|rke2|rancher)-/, '')) } Configuration`;
-
-      return this.$store.getters['i18n/withFallback'](`cluster.addonChart."${ name }"`, null, fallback);
-    },
-
-    showAddons() {
+    showAddons(key) {
       this.addonsRev++;
       this.addonNames.forEach((name) => {
         const chartValues = this.versionInfo[name]?.questions ? this.initYamlEditor(name) : {};
 
         set(this.userChartValuesTemp, name, chartValues);
       });
-      this.refreshYamls();
+      this.refreshComponentWithYamls(key);
+    },
+    refreshComponentWithYamls(key) {
+      const component = this.$refs[key];
+
+      if ( component ) {
+        this.refreshYamls(component.$refs);
+      }
     },
 
-    refreshYamls() {
-      const keys = Object.keys(this.$refs).filter((x) => x.startsWith('yaml'));
+    refreshYamls(refs) {
+      const keys = Object.keys(refs).filter((x) => x.startsWith('yaml'));
 
       for ( const k of keys ) {
-        const entry = this.$refs[k];
+        const entry = refs[k];
         const list = isArray(entry) ? entry : [entry];
 
         for ( const component of list ) {
@@ -1803,20 +1517,6 @@ export default {
 
       this.userChartValues[this.chartVersionKey(name)] = different;
     }, 250, { leading: true }),
-
-    updateQuestions(name) {
-      this.syncChartValues(name);
-    },
-
-    initQuestions(name) {
-      const defaultChartValue = this.versionInfo[name];
-      const startingChartValue = this.initYamlEditor(name);
-
-      return {
-        ...defaultChartValue,
-        values: startingChartValue,
-      };
-    },
 
     initYamlEditor(name) {
       const defaultChartValue = this.versionInfo[name];
@@ -1855,10 +1555,6 @@ export default {
 
     onMembershipUpdate(update) {
       this.$set(this, 'membershipUpdate', update);
-    },
-
-    canRemoveKubeletRow(row, idx) {
-      return idx !== 0;
     },
 
     async initRegistry() {
@@ -2132,34 +1828,13 @@ export default {
       }
       this.setHarvesterDefaultCloudProvider();
     },
-    toggleCustomRegistry(e) {
+    toggleCustomRegistry(neu) {
+      this.showCustomRegistryInput = neu;
       if (this.registryHost) {
         this.registryHost = null;
         this.registrySecret = null;
       } else {
         this.initRegistry();
-      }
-    },
-
-    /**
-     * Get provisioned RKE2 cluster PSPs in edit mode
-     */
-    async getPsps() {
-      // As server returns 500 we exclude all the possible cases
-      if (
-        this.mode !== _CREATE &&
-        !this.isK3s &&
-        this.value.state !== 'reconciling' &&
-        this.getNeedsPSP(this.liveValue) // We consider editing only possible PSP cases
-      ) {
-        const clusterId = this.value.mgmtClusterId;
-        const url = `/k8s/clusters/${ clusterId }/v1/${ PSPS }`;
-
-        try {
-          return await this.$store.dispatch('cluster/request', { url });
-        } catch (error) {
-          // PSP may not exists for this cluster and an error is returned without need to handle
-        }
       }
     },
 
@@ -2172,11 +1847,9 @@ export default {
       const cisValue = this.agentConfig?.profile || this.serverConfig?.profile;
 
       if (!this.cisOverride) {
-        if (this.hasPsaTemplates && cisValue) {
+        if (cisValue) {
           set(this.value.spec, 'defaultPodSecurityAdmissionConfigurationTemplateName', hardcodedTemplate);
         }
-
-        this.cisPsaChangeBanner = this.hasPsaTemplates;
       }
     },
 
@@ -2197,45 +1870,39 @@ export default {
         set(this.agentConfig, 'protect-kernel-defaults', false);
       }
     },
+    updateAdditionalManifest(neu) {
+      this.value.spec.rkeConfig.additionalManifest = neu;
+    },
 
     /**
-     * Handle k8s changes side effects, like PSP and PSA resets
+     * Handle k8s changes side effects, like PSA resets
      */
     handleKubernetesChange(value) {
       if (value) {
         this.togglePsaDefault();
-        const version = VERSION.parse(value);
-        const major = parseInt(version?.[0] || 0);
-        const minor = parseInt(version?.[1] || 0);
-
-        // Reset PSA if not RKE2
-        if (!value.includes('rke2')) {
-          set(this.value.spec, 'defaultPodSecurityPolicyTemplateName', '');
-        } else {
-          // Reset PSP if it's legacy due k8s version 1.25+
-          if (major === 1 && minor >= 25) {
-            set(this.value.spec, 'defaultPodSecurityPolicyTemplateName', '');
-          } else {
-            set(this.value.spec, 'defaultPodSecurityPolicyTemplateName', this.lastDefaultPodSecurityPolicyTemplateName);
-          }
-
-          this.previousKubernetesVersion = value;
-        }
 
         // If Harvester driver, reset cloud provider if not compatible
         if (this.isHarvesterDriver && this.mode === _CREATE && this.isHarvesterIncompatible) {
           this.setHarvesterDefaultCloudProvider();
         }
+
+        // Cloud Provider check
+        // If the cloud provider is unsupported, switch provider to 'external'
+        if (this.unsupportedCloudProvider) {
+          set(this.agentConfig, 'cloud-provider-name', 'external');
+        } else {
+          // Switch the cloud provider back to the initial value
+          // Use changed the Kubernetes version back to a version where the initial cloud provider is valid - so switch back to this one
+          // to undo the change to external that we may have made
+          // Note: Cloud Provider can only be changed on edit when the initial provider is no longer supported
+          set(this.agentConfig, 'cloud-provider-name', this.initialCloudProvider);
+        }
       }
     },
 
-    /**
-     * Keep last PSP value
-     */
-    handlePspChange(value) {
-      this.lastDefaultPodSecurityPolicyTemplateName = value;
+    handleShowDeprecatedPatchVersionsChanged(value) {
+      this.showDeprecatedPatchVersions = value;
     },
-
     /**
      * Track Machine Pool validation status
      */
@@ -2245,6 +1912,89 @@ export default {
       } else {
         this.$set(this.machinePoolValidation, id, value);
       }
+    },
+    handleEnabledSystemServicesChanged(val) {
+      set(this.serverConfig, 'disable', val);
+    },
+    handleCiliumIpv6Changed(neu) {
+      const name = this.chartVersionKey('rke2-cilium');
+      const values = this.userChartValues[name];
+
+      set(this, 'userChartValues', {
+        ...this.userChartValues,
+        [name]: {
+          ...values,
+          cilium: {
+            ...values?.cilium,
+            ipv6: {
+              ...values?.cilium?.ipv6,
+              enabled: neu
+            }
+          }
+        }
+      });
+    },
+
+    handleCisChanged() {
+      this.handleCisChange();
+    },
+    handlePsaDefaultChanged() {
+      this.togglePsaDefault();
+    },
+    handleMachinePoolError(error) {
+      this.machinePoolErrors = merge(this.machinePoolErrors, error);
+
+      const errors = Object.entries(this.machinePoolErrors)
+        .map((x) => {
+          if (!x[1].length) {
+            return;
+          }
+
+          const formattedFields = (() => {
+            switch (x[1].length) {
+            case 1:
+              return x[1][0];
+            case 2:
+              return `${ x[1][0] } and ${ x[1][1] }`;
+            default: {
+              const [head, ...rest] = x[1];
+
+              return `${ rest.join(', ') }, and ${ head }`;
+            }
+            }
+          })();
+
+          return this.t('cluster.banner.machinePoolError', {
+            count: x[1].length, pool_name: x[0], fields: formattedFields
+          }, true);
+        } )
+        .filter((x) => x);
+
+      if (!errors) {
+        return;
+      }
+
+      this.errors = errors;
+    },
+    handleS3BackupChanged(neu) {
+      this.s3Backup = neu;
+      if ( neu ) {
+        // We need to make sure that s3 doesn't already have an existing value otherwise when editing a cluster with s3 defined this will clear s3.
+        if (isEmpty(this.rkeConfig.etcd?.s3)) {
+          set(this.rkeConfig.etcd, 's3', {});
+        }
+      } else {
+        set(this.rkeConfig.etcd, 's3', null);
+      }
+    },
+    handleConfigEtcdExposeMetricsChanged(neu) {
+      set(this.serverConfig, 'etcd-expose-metrics', neu);
+    },
+    handleRegistryHostChanged(neu) {
+      this.registryHost = neu;
+    },
+    handleRegistrySecretChanged(neu) {
+      this.registrySecret = neu;
     }
   },
 };
@@ -2378,7 +2128,8 @@ export default {
                 :idx="idx"
                 :machine-pools="machinePools"
                 :busy="busy"
-                @error="e=>errors = e"
+                :pool-id="obj.id"
+                @error="handleMachinePoolError"
                 @validationChanged="v=>machinePoolValidationChanged(obj.id, v)"
               />
             </Tab>
@@ -2396,264 +2147,42 @@ export default {
         :side-tabs="true"
         class="min-height"
       >
-        <!-- Basic -->
         <Tab
           name="basic"
           label-key="cluster.tabs.basic"
           :weight="11"
-          @active="refreshYamls"
+          @active="refreshComponentWithYamls('tab-Basics')"
         >
-          <Banner
-            v-if="!haveArgInfo"
-            color="warning"
-            :label="t('cluster.banner.haveArgInfo')"
+          <!-- Basic -->
+          <Basics
+            ref="tab-Basics"
+            v-model="value"
+            :live-value="liveValue"
+            :mode="mode"
+            :provider="provider"
+            :user-chart-values="userChartValues"
+            :credential="credential"
+            :cis-override="cisOverride"
+            :all-psas="allPSAs"
+            :addon-versions="addonVersions"
+            :show-deprecated-patch-versions="showDeprecatedPatchVersions"
+            :selected-version="selectedVersion"
+            :is-harvester-driver="isHarvesterDriver"
+            :is-harvester-incompatible="isHarvesterIncompatible"
+            :version-options="versionOptions"
+            :is-elemental-cluster="isElementalCluster"
+            :have-arg-info="haveArgInfo"
+            :show-cni="showCni"
+            :show-cloud-provider="showCloudProvider"
+            :unsupported-cloud-provider="unsupportedCloudProvider"
+            :cloud-provider-options="cloudProviderOptions"
+            @cilium-ipv6-changed="handleCiliumIpv6Changed"
+            @enabled-system-services-changed="handleEnabledSystemServicesChanged"
+            @kubernetes-changed="handleKubernetesChange"
+            @cis-changed="handleCisChanged"
+            @psa-default-changed="handlePsaDefaultChanged"
+            @show-deprecated-patch-versions-changed="handleShowDeprecatedPatchVersionsChanged"
           />
-          <Banner
-            v-if="showk8s21LegacyWarning"
-            color="warning"
-            :label="t('cluster.legacyWarning')"
-          />
-          <Banner
-            v-if="isHarvesterDriver && isHarvesterIncompatible && showCloudProvider"
-            color="warning"
-          >
-            <span
-              v-clean-html="t('cluster.harvester.warning.cloudProvider.incompatible', null, true)"
-            />
-          </Banner>
-          <div class="row mb-10">
-            <div class="col span-6">
-              <LabeledSelect
-                v-model="value.spec.kubernetesVersion"
-                :mode="mode"
-                :options="versionOptions"
-                label-key="cluster.kubernetesVersion.label"
-                @input="handleKubernetesChange($event)"
-              />
-              <Checkbox
-                v-model="showDeprecatedPatchVersions"
-                :label="t('cluster.kubernetesVersion.deprecatedPatches')"
-                :tooltip="t('cluster.kubernetesVersion.deprecatedPatchWarning')"
-                class="patch-version"
-              />
-            </div>
-            <div
-              v-if="showCloudProvider"
-              class="col span-6"
-            >
-              <LabeledSelect
-                v-model="agentConfig['cloud-provider-name']"
-                :mode="mode"
-                :disabled="clusterIsAlreadyCreated"
-                :options="cloudProviderOptions"
-                :label="t('cluster.rke2.cloudProvider.label')"
-              />
-            </div>
-          </div>
-          <div
-            v-if="showCni"
-            :style="{'align-items':'center'}"
-            class="row"
-          >
-            <div class="col span-6">
-              <LabeledSelect
-                v-model="serverConfig.cni"
-                :mode="mode"
-                :disabled="clusterIsAlreadyCreated"
-                :options="serverArgs.cni.options"
-                :label="t('cluster.rke2.cni.label')"
-              />
-            </div>
-            <div
-              v-if="serverConfig.cni === 'cilium' || serverConfig.cni === 'multus,cilium'"
-              class="col"
-            >
-              <Checkbox
-                v-model="ciliumIpv6"
-                :mode="mode"
-                :label="t('cluster.rke2.address.ipv6.enable')"
-              />
-            </div>
-          </div>
-          <template v-if="showVsphereNote">
-            <Banner
-              color="warning"
-              label-key="cluster.cloudProvider.rancher-vsphere.note"
-            />
-          </template>
-          <template v-else-if="showCloudConfigYaml">
-            <div class="spacer" />
-
-            <div class="col span-12">
-              <h3>
-                {{ t('cluster.rke2.cloudProvider.header') }}
-              </h3>
-              <YamlEditor
-                ref="yaml"
-                v-model="agentConfig['cloud-provider-config']"
-                :editor-mode="mode === 'view' ? 'VIEW_CODE' : 'EDIT_CODE'"
-                initial-yaml-values="# Cloud Provider Config"
-                class="yaml-editor"
-              />
-            </div>
-          </template>
-
-          <div class="spacer" />
-
-          <h3>
-            {{ t('cluster.rke2.security.header') }}
-          </h3>
-          <Banner
-            v-if="isEdit && !needsPSP && hasPsps"
-            color="warning"
-            :label="t('cluster.banner.invalidPsps')"
-          />
-          <Banner
-            v-else-if="isCreate && !needsPSP"
-            color="info"
-            :label="t('cluster.banner.removedPsp')"
-          />
-          <Banner
-            v-else-if="isCreate && hasPsps"
-            color="info"
-            :label="t('cluster.banner.deprecatedPsp')"
-          />
-
-          <Banner
-            v-if="showCisProfile && !isCisSupported && isEdit"
-            color="info"
-          >
-            <p v-clean-html="t('cluster.rke2.banner.cisUnsupported', {cisProfile: serverConfig.profile || agentConfig.profile}, true)" />
-          </Banner>
-
-          <div class="row mb-10">
-            <div
-              v-if="pspOptions && needsPSP"
-              class="col span-6"
-            >
-              <!-- PSP template selector -->
-              <LabeledSelect
-                v-model="value.spec.defaultPodSecurityPolicyTemplateName"
-                data-testid="rke2-custom-edit-psp"
-                :mode="mode"
-                :options="pspOptions"
-                :label="t('cluster.rke2.defaultPodSecurityPolicyTemplateName.label')"
-                @input="handlePspChange($event)"
-              />
-            </div>
-
-            <div
-              v-if="showCisProfile"
-              class="col span-6"
-            >
-              <LabeledSelect
-                v-if="serverArgs && serverArgs.profile"
-                v-model="serverConfig.profile"
-                :mode="mode"
-                :options="profileOptions"
-                :label="t('cluster.rke2.cis.sever')"
-                @input="handleCisChange"
-              />
-              <LabeledSelect
-                v-else-if="agentArgs && agentArgs.profile"
-                v-model="agentConfig.profile"
-                data-testid="rke2-custom-edit-cis-agent"
-                :mode="mode"
-                :options="profileOptions"
-                :label="t('cluster.rke2.cis.agent')"
-                @input="handleCisChange"
-              />
-            </div>
-          </div>
-
-          <template v-if="hasCisOverride">
-            <Checkbox
-              v-model="cisOverride"
-              :mode="mode"
-              :label="t('cluster.rke2.cis.override')"
-              @input="togglePsaDefault"
-            />
-
-            <Banner
-              v-if="cisOverride"
-              color="warning"
-              :label="t('cluster.rke2.banner.cisOverride')"
-            />
-            <Banner
-              v-if="cisPsaChangeBanner && !cisOverride"
-              color="info"
-              :label="t('cluster.rke2.banner.psaChange')"
-            />
-          </template>
-
-          <div
-            v-if="needsPSA"
-            class="row mb-10 mt-10"
-          >
-            <div class="col span-6">
-              <!-- PSA template selector -->
-              <LabeledSelect
-                v-model="value.spec.defaultPodSecurityAdmissionConfigurationTemplateName"
-                :mode="mode"
-                data-testid="rke2-custom-edit-psa"
-                :options="psaOptions"
-                :disabled="isPsaDisabled"
-                :label="t('cluster.rke2.defaultPodSecurityAdmissionConfigurationTemplateName.label')"
-              />
-            </div>
-          </div>
-
-          <div class="row">
-            <div class="col span-12 mt-20">
-              <Checkbox
-                v-if="serverArgs['secrets-encryption']"
-                v-model="serverConfig['secrets-encryption']"
-                :mode="mode"
-                label="Encrypt Secrets"
-              />
-              <Checkbox
-                v-model="value.spec.enableNetworkPolicy"
-                :mode="mode"
-                :label="t('cluster.rke2.enableNetworkPolicy.label')"
-              />
-              <!-- <Checkbox v-if="agentArgs.selinux" v-model="agentConfig.selinux" :mode="mode" label="SELinux" /> -->
-            </div>
-          </div>
-
-          <div
-            v-if="serverConfig.cni === 'cilium' && value.spec.enableNetworkPolicy"
-            class="row"
-          >
-            <div class="col span-12">
-              <Banner
-                color="info"
-                :label="t('cluster.rke2.enableNetworkPolicy.warning')"
-              />
-            </div>
-          </div>
-
-          <div class="spacer" />
-
-          <div
-            v-if="serverArgs.disable"
-            class="row"
-          >
-            <div class="col span-12">
-              <div>
-                <h3>
-                  {{ t('cluster.rke2.systemService.header') }}
-                </h3>
-              </div>
-              <Checkbox
-                v-for="opt in disableOptions"
-                :key="opt.value"
-                v-model="enabledSystemServices"
-                :mode="mode"
-                :label="opt.label"
-                :value-when-true="opt.value"
-              />
-            </div>
-          </div>
         </Tab>
 
         <!-- Member Roles -->
@@ -2663,95 +2192,26 @@ export default {
           label-key="cluster.tabs.memberRoles"
           :weight="10"
         >
-          <Banner
-            v-if="isEdit"
-            color="info"
-          >
-            {{ t('cluster.memberRoles.removeMessage') }}
-          </Banner>
-          <ClusterMembershipEditor
+          <MemberRoles
+            v-model="value"
             :mode="mode"
-            :parent-id="value.mgmt ? value.mgmt.id : null"
-            @membership-update="onMembershipUpdate"
+            :on-membership-update="onMembershipUpdate"
           />
         </Tab>
-
         <!-- etcd -->
         <Tab
           name="etcd"
           label-key="cluster.tabs.etcd"
         >
-          <div class="row">
-            <div class="col span-6">
-              <RadioGroup
-                v-model="rkeConfig.etcd.disableSnapshots"
-                name="etcd-disable-snapshots"
-                :options="[true, false]"
-                :label="t('cluster.rke2.etcd.disableSnapshots.label')"
-                :labels="[t('generic.disable'), t('generic.enable')]"
-                :mode="mode"
-              />
-            </div>
-          </div>
-          <div
-            v-if="rkeConfig.etcd.disableSnapshots !== true"
-            class="row"
-          >
-            <div class="col span-6">
-              <LabeledInput
-                v-model="rkeConfig.etcd.snapshotScheduleCron"
-                type="cron"
-                placeholder="0 * * * *"
-                :mode="mode"
-                :label="t('cluster.rke2.etcd.snapshotScheduleCron.label')"
-              />
-            </div>
-            <div class="col span-6">
-              <UnitInput
-                v-model="rkeConfig.etcd.snapshotRetention"
-                :mode="mode"
-                :label="t('cluster.rke2.etcd.snapshotRetention.label')"
-                :suffix="t('cluster.rke2.snapshots.suffix')"
-              />
-            </div>
-          </div>
-
-          <template v-if="rkeConfig.etcd.disableSnapshots !== true">
-            <div class="spacer" />
-
-            <RadioGroup
-              v-model="s3Backup"
-              name="etcd-s3"
-              :options="[false, true]"
-              label="Backup Snapshots to S3"
-              :labels="['Disable','Enable']"
-              :mode="mode"
-            />
-
-            <S3Config
-              v-if="s3Backup"
-              v-model="rkeConfig.etcd.s3"
-              :namespace="value.metadata.namespace"
-              :register-before-hook="registerBeforeHook"
-              :mode="mode"
-            />
-          </template>
-
-          <div class="spacer" />
-
-          <div class="row">
-            <div class="col span-6">
-              <RadioGroup
-                v-if="serverArgs['etcd-expose-metrics']"
-                v-model="serverConfig['etcd-expose-metrics']"
-                name="etcd-expose-metrics"
-                :options="[false, true]"
-                :label="t('cluster.rke2.etcd.exportMetric.label')"
-                :labels="[t('cluster.rke2.etcd.exportMetric.false'), t('cluster.rke2.etcd.exportMetric.true')]"
-                :mode="mode"
-              />
-            </div>
-          </div>
+          <Etcd
+            v-model="value"
+            :mode="mode"
+            :s3-backup="s3Backup"
+            :register-before-hook="registerBeforeHook"
+            :selected-version="selectedVersion"
+            @s3-backup-changed="handleS3BackupChanged"
+            @config-etcd-expose-metrics-changed="handleConfigEtcdExposeMetricsChanged"
+          />
         </Tab>
 
         <!-- Networking -->
@@ -2760,120 +2220,12 @@ export default {
           name="networking"
           label-key="cluster.tabs.networking"
         >
-          <h3>
-            {{ t('cluster.rke2.address.header') }}
-            <i
-              v-clean-tooltip="t('cluster.rke2.address.tooltip')"
-              class="icon icon-info"
-            />
-          </h3>
-          <Banner
-            v-if="showIpv6Warning"
-            color="warning"
-          >
-            {{ t('cluster.rke2.address.ipv6.warning') }}
-          </Banner>
-          <div class="row mb-20">
-            <div
-              v-if="serverArgs['cluster-cidr']"
-              class="col span-6"
-            >
-              <LabeledInput
-                v-model="serverConfig['cluster-cidr']"
-                :mode="mode"
-                :disabled="clusterIsAlreadyCreated"
-                :label="t('cluster.rke2.address.clusterCidr.label')"
-              />
-            </div>
-            <div
-              v-if="serverArgs['service-cidr']"
-              class="col span-6"
-            >
-              <LabeledInput
-                v-model="serverConfig['service-cidr']"
-                :mode="mode"
-                :disabled="clusterIsAlreadyCreated"
-                :label="t('cluster.rke2.address.serviceCidr.label')"
-              />
-            </div>
-          </div>
-
-          <div class="row mb-20">
-            <div
-              v-if="serverArgs['cluster-dns']"
-              class="col span-6"
-            >
-              <LabeledInput
-                v-model="serverConfig['cluster-dns']"
-                :mode="mode"
-                :disabled="clusterIsAlreadyCreated"
-                :label="t('cluster.rke2.address.dns.label')"
-              />
-            </div>
-            <div
-              v-if="serverArgs['cluster-domain']"
-              class="col span-6"
-            >
-              <LabeledInput
-                v-model="serverConfig['cluster-domain']"
-                :mode="mode"
-                :disabled="clusterIsAlreadyCreated"
-                :label="t('cluster.rke2.address.domain.label')"
-              />
-            </div>
-          </div>
-
-          <div
-            v-if="serverArgs['service-node-port-range']"
-            class="row mb-20"
-          >
-            <div class="col span-6">
-              <LabeledInput
-                v-model="serverConfig['service-node-port-range']"
-                :mode="mode"
-                :label="t('cluster.rke2.address.nodePortRange.label')"
-              />
-            </div>
-            <div
-              class="col span-6"
-            >
-              <Checkbox
-                v-if="!isView || isView && !hostnameTruncationManuallySet"
-                v-model="truncateHostnames"
-                class="mt-20"
-                :disabled="isEdit || isView || hostnameTruncationManuallySet"
-                :mode="mode"
-                :label="t('cluster.rke2.truncateHostnames')"
-                @input="truncateName"
-              />
-              <Banner
-                v-if="hostnameTruncationManuallySet"
-                color="info"
-              >
-                <div class="text">
-                  {{ t('cluster.machinePool.truncationCluster', { limit: truncateLimit }) }}
-                </div>
-              </Banner>
-            </div>
-          </div>
-
-          <div
-            v-if="serverArgs['tls-san']"
-            class="row mb-20"
-          >
-            <div class="col span-6">
-              <ArrayList
-                v-model="serverConfig['tls-san']"
-                :protip="false"
-                :mode="mode"
-                :title="t('cluster.rke2.address.tlsSan.label')"
-              />
-            </div>
-          </div>
-
-          <ACE
+          <Networking
             v-model="value"
             :mode="mode"
+            :selected-version="selectedVersion"
+            :truncate-limit="truncateLimit"
+            @truncate-hostname="truncateHostname"
           />
         </Tab>
 
@@ -2882,44 +2234,10 @@ export default {
           name="upgrade"
           label-key="cluster.tabs.upgrade"
         >
-          <Banner
-            v-if="get(rkeConfig, 'upgradeStrategy.controlPlaneDrainOptions.deleteEmptyDirData')"
-            color="warning"
-          >
-            {{ t('cluster.rke2.deleteEmptyDir', {}, true) }}
-          </Banner>
-          <div class="row">
-            <div class="col span-6">
-              <h3>Control Plane</h3>
-              <LabeledInput
-                v-model="rkeConfig.upgradeStrategy.controlPlaneConcurrency"
-                :mode="mode"
-                :label="t('cluster.rke2.controlPlaneConcurrency.label')"
-                :tooltip="t('cluster.rke2.controlPlaneConcurrency.toolTip')"
-              />
-              <div class="spacer" />
-              <DrainOptions
-                v-model="rkeConfig.upgradeStrategy.controlPlaneDrainOptions"
-                :mode="mode"
-              />
-            </div>
-            <div class="col span-6">
-              <h3>
-                {{ t('cluster.rke2.workNode.label') }}
-              </h3>
-              <LabeledInput
-                v-model="rkeConfig.upgradeStrategy.workerConcurrency"
-                :mode="mode"
-                :label="t('cluster.rke2.workerConcurrency.label')"
-                :tooltip="t('cluster.rke2.workerConcurrency.toolTip')"
-              />
-              <div class="spacer" />
-              <DrainOptions
-                v-model="rkeConfig.upgradeStrategy.workerDrainOptions"
-                :mode="mode"
-              />
-            </div>
-          </div>
+          <Upgrade
+            v-model="value"
+            :mode="mode"
+          />
         </Tab>
 
         <!-- Registries -->
@@ -2927,147 +2245,40 @@ export default {
           name="registry"
           label-key="cluster.tabs.registry"
         >
-          <div class="row">
-            <h3>Registry for Rancher System Container Images</h3>
-          </div>
-          <div class="row">
-            <div class="col span-12">
-              <Banner
-                :closable="false"
-                class="cluster-tools-tip"
-                color="info"
-                label-key="cluster.privateRegistry.description"
-              />
-            </div>
-          </div>
-          <div class="row">
-            <Checkbox
-              v-model="showCustomRegistryInput"
-              class="mb-20"
-              :label="t('cluster.privateRegistry.label')"
-              @input="toggleCustomRegistry"
-            />
-          </div>
-          <div
-            v-if="showCustomRegistryInput"
-            class="row"
-          >
-            <div class="col span-6">
-              <LabeledInput
-                v-model="registryHost"
-                label-key="catalog.chart.registry.custom.inputLabel"
-                placeholder-key="catalog.chart.registry.custom.placeholder"
-                :min-height="30"
-              />
-              <SelectOrCreateAuthSecret
-                v-model="registrySecret"
-                :register-before-hook="registerBeforeHook"
-                :hook-priority="1"
-                :mode="mode"
-                in-store="management"
-                :allow-ssh="false"
-                :allow-rke="true"
-                :vertical="true"
-                :namespace="value.metadata.namespace"
-                generate-name="registryconfig-auth-"
-              />
-            </div>
-          </div>
-          <template>
-            <div
-              v-if="showCustomRegistryInput"
-              class="row"
-            >
-              <AdvancedSection
-                class="col span-12 advanced"
-                :is-open-by-default="showCustomRegistryAdvancedInput"
-                :mode="mode"
-              >
-                <Banner
-                  :closable="false"
-                  class="cluster-tools-tip"
-                  color="info"
-                  :label-key="isK3s ? 'cluster.privateRegistry.docsLinkK3s' : 'cluster.privateRegistry.docsLinkRke2'"
-                />
-                <RegistryMirrors
-                  v-model="value"
-                  class="mt-20"
-                  :mode="mode"
-                />
-                <RegistryConfigs
-                  v-model="value"
-                  class="mt-20"
-                  :mode="mode"
-                  :cluster-register-before-hook="registerBeforeHook"
-                  @updateConfigs="updateConfigs"
-                />
-              </AdvancedSection>
-            </div>
-          </template>
+          <Registries
+            v-model="value"
+            :mode="mode"
+            :register-before-hook="registerBeforeHook"
+            :show-custom-registry-input="showCustomRegistryInput"
+            :registry-host="registryHost"
+            :registry-secret="registrySecret"
+            :show-custom-registry-advanced-input="showCustomRegistryAdvancedInput"
+            @update-configs-changed="updateConfigs"
+            @custom-registry-changed="toggleCustomRegistry"
+            @registry-host-changed="handleRegistryHostChanged"
+            @registry-secret-changed="handleRegistrySecretChanged"
+          />
         </Tab>
 
         <!-- Add-on Config -->
         <Tab
           name="addons"
           label-key="cluster.tabs.addons"
-          @active="showAddons"
+          @active="showAddons('tab-addOnConfig')"
         >
-          <Banner
-            v-if="isEdit"
-            color="warning"
-          >
-            {{ t('cluster.addOns.dependencyBanner') }}
-          </Banner>
-          <div
-            v-if="versionInfo && addonVersions.length"
-            :key="addonsRev"
-          >
-            <div
-              v-for="v in addonVersions"
-              :key="v._key"
-            >
-              <h3>{{ labelForAddon(v.name) }}</h3>
-              <Questions
-                v-if="versionInfo[v.name] && versionInfo[v.name].questions && v.name && userChartValuesTemp[v.name]"
-                v-model="userChartValuesTemp[v.name]"
-                :emit="true"
-                in-store="management"
-                :mode="mode"
-                :tabbed="false"
-                :source="versionInfo[v.name]"
-                :target-namespace="value.metadata.namespace"
-                @updated="updateQuestions(v.name)"
-              />
-              <YamlEditor
-                v-else
-                ref="yaml-values"
-                :value="initYamlEditor(v.name)"
-                :scrolling="true"
-                :as-object="true"
-                :editor-mode="mode === 'view' ? 'VIEW_CODE' : 'EDIT_CODE'"
-                :hide-preview-buttons="true"
-                @input="data => updateValues(v.name, data)"
-              />
-              <div class="spacer" />
-            </div>
-          </div>
-
-          <div>
-            <h3>
-              {{ t('cluster.addOns.additionalManifest.title') }}
-              <i
-                v-clean-tooltip="t('cluster.addOns.additionalManifest.tooltip')"
-                class="icon icon-info"
-              />
-            </h3>
-            <YamlEditor
-              ref="yaml-additional"
-              v-model="rkeConfig.additionalManifest"
-              :editor-mode="mode === 'view' ? 'VIEW_CODE' : 'EDIT_CODE'"
-              initial-yaml-values="# Additional Manifest YAML"
-              class="yaml-editor"
-            />
-          </div>
+          <AddOnConfig
+            ref="tab-addOnConfig"
+            v-model="value"
+            :mode="mode"
+            :version-info="versionInfo"
+            :addon-versions="addonVersions"
+            :addons-rev="addonsRev"
+            :user-chart-values-temp="userChartValuesTemp"
+            :init-yaml-editor="initYamlEditor"
+            @update-questions="syncChartValues"
+            @update-values="updateValues"
+            @additional-manifest-changed="updateAdditionalManifest"
+          />
         </Tab>
 
         <!-- Cluster Agent Configuration -->
@@ -3104,82 +2315,13 @@ export default {
           name="advanced"
           label-key="cluster.tabs.advanced"
           :weight="-1"
-          @active="refreshYamls"
         >
-          <template v-if="haveArgInfo">
-            <h3>{{ t('cluster.advanced.argInfo.title') }}</h3>
-            <ArrayListGrouped
-              v-if="agentArgs['kubelet-arg']"
-              v-model="rkeConfig.machineSelectorConfig"
-              class="mb-20"
-              :add-label="t('cluster.advanced.argInfo.machineSelector.label')"
-              :can-remove="canRemoveKubeletRow"
-              :default-add-value="{machineLabelSelector: { matchExpressions: [], matchLabels: {} }, config: {'kubelet-arg': []}}"
-            >
-              <template #default="{row}">
-                <template v-if="row.value.machineLabelSelector">
-                  <h3>{{ t('cluster.advanced.argInfo.machineSelector.title') }}</h3>
-                  <MatchExpressions
-                    v-model="row.value.machineLabelSelector"
-                    class="mb-20"
-                    :mode="mode"
-                    :show-remove="false"
-                    :initial-empty-row="true"
-                  />
-                  <h3>{{ t('cluster.advanced.argInfo.machineSelector.subTitle') }}</h3>
-                </template>
-                <h3 v-else>
-                  {{ advancedTitleAlt }}
-                </h3>
-
-                <ArrayList
-                  v-model="row.value.config['kubelet-arg']"
-                  :mode="mode"
-                  :add-label="t('cluster.advanced.argInfo.machineSelector.listLabel')"
-                  :initial-empty-row="!!row.value.machineLabelSelector"
-                />
-              </template>
-            </ArrayListGrouped>
-            <Banner
-              v-if="rkeConfig.machineSelectorConfig.length > 1"
-              color="info"
-              :label="t('cluster.advanced.argInfo.machineSelector.bannerLabel')"
-            />
-
-            <ArrayList
-              v-if="serverArgs['kube-controller-manager-arg']"
-              v-model="serverConfig['kube-controller-manager-arg']"
-              :mode="mode"
-              :title="t('cluster.advanced.argInfo.machineSelector.kubeControllerManagerTitle')"
-              class="mb-20"
-            />
-            <ArrayList
-              v-if="serverArgs['kube-apiserver-arg']"
-              v-model="serverConfig['kube-apiserver-arg']"
-              :mode="mode"
-              :title="t('cluster.advanced.argInfo.machineSelector.kubeApiServerTitle')"
-              class="mb-20"
-            />
-            <ArrayList
-              v-if="serverArgs['kube-scheduler-arg']"
-              v-model="serverConfig['kube-scheduler-arg']"
-              :mode="mode"
-              :title="t('cluster.advanced.argInfo.machineSelector.kubeSchedulerTitle')"
-            />
-          </template>
-          <template v-if="agentArgs['protect-kernel-defaults']">
-            <div class="spacer" />
-
-            <div class="row">
-              <div class="col span-12">
-                <Checkbox
-                  v-model="agentConfig['protect-kernel-defaults']"
-                  :mode="mode"
-                  :label="t('cluster.advanced.agentArgs.label')"
-                />
-              </div>
-            </div>
-          </template>
+          <Advanced
+            v-model="value"
+            :mode="mode"
+            :have-arg-info="haveArgInfo"
+            :selected-version="selectedVersion"
+          />
         </Tab>
 
         <AgentEnv

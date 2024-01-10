@@ -10,12 +10,21 @@ module.exports = function(api) {
       { targets: { node: 'current' } }
     ]
   ];
-  const env = { test: { presets: [['@babel/env', { targets: { node: 'current' } }]] } };
+  const env = {
+    test: {
+      presets: [[
+        '@babel/env', { targets: { node: 'current' } }
+      ]]
+    }
+  };
 
   const plugins = [];
 
   if (process.env.NODE_ENV === 'test') {
     plugins.push('transform-require-context');
+    plugins.push([
+      'babel-plugin-istanbul', { extension: ['.js', '.vue'] }, 'add-vue'
+    ]);
   }
 
   return {

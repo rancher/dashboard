@@ -250,8 +250,10 @@ export default {
 
   computed: {
     defaultTab() {
-      if (this.showRegistration && !this.machines?.length) {
-        return 'registration';
+      if (this.showRegistration) {
+        if (this.value.isRke2 ? !this.machines?.length : !this.nodes?.length) {
+          return 'registration';
+        }
       }
 
       if (this.showMachines) {
@@ -337,9 +339,10 @@ export default {
         pool._clusterSpec = mp;
 
         return {
-          poolId:     pool.id,
-          mainRowKey: 'isFake',
+          poolId:           pool.id,
+          mainRowKey:       'isFake',
           pool,
+          availableActions: []
         };
       });
     },
@@ -359,9 +362,10 @@ export default {
       const emptyNodePools = this.allNodePools.filter((x) => x.spec.clusterName === this.value.mgmtClusterId && x.spec.quantity === 0);
 
       return emptyNodePools.map((np) => ({
-        spec:       { nodePoolName: np.id.replace('/', ':') },
-        mainRowKey: 'isFake',
-        pool:       np,
+        spec:             { nodePoolName: np.id.replace('/', ':') },
+        mainRowKey:       'isFake',
+        pool:             np,
+        availableActions: []
       }));
     },
 
@@ -771,17 +775,18 @@ export default {
                   v-clean-html="t('resourceTable.groupLabel.notInANodePool')"
                 />
                 <div
-                  v-if="group.ref && group.ref.template"
+                  v-if="group.ref && group.ref.providerSummary"
                   class="description text-muted text-small"
                 >
-                  {{ group.ref.providerDisplay }} &ndash;  {{ group.ref.providerLocation }} / {{ group.ref.providerSize }} ({{ group.ref.providerName }})
+                  {{ group.ref.providerSummary }}
                 </div>
               </div>
               <div
-                v-if="group.ref && poolSummaryInfo[group.ref]"
+                v-if="group.ref"
                 class="right group-header-buttons mr-20"
               >
                 <MachineSummaryGraph
+                  v-if="poolSummaryInfo[group.ref]"
                   :row="poolSummaryInfo[group.ref]"
                   :horizontal="true"
                   class="mr-20"
@@ -875,7 +880,7 @@ export default {
                 <template v-if="group.ref.hasLink('update')">
                   <button
                     v-clean-tooltip="t('node.list.scaleDown')"
-                    :disabled="group.ref.spec.quantity < 2"
+                    :disabled="!group.ref.canScaleDownPool()"
                     type="button"
                     class="btn btn-sm role-secondary"
                     @click="toggleScaleDownModal($event, group.ref)"

@@ -6,17 +6,6 @@ export default {
       required: true
     },
   },
-  data(props) {
-    return {
-      // The isImported getter on the provisioning cluster
-      // model doesn't work for imported K3s clusters, in
-      // which case it returns 'k3s' instead of 'imported.'
-      // This is the workaround.
-      isImported: props.row?.mgmt?.providerForEmberParam === 'import' ||
-        // when imported cluster is Google GKE
-        props.row?.mgmt?.spec?.gkeConfig?.imported
-    };
-  },
 };
 </script>
 
@@ -39,7 +28,7 @@ export default {
     <template v-else-if="row.isCustom">
       {{ t('cluster.provider.custom') }}
     </template>
-    <template v-else-if="isImported">
+    <template v-else-if="row.isImported">
       {{ t('cluster.provider.imported') }}
     </template>
     <div class="text-muted">

@@ -1,6 +1,7 @@
 <script>
 import { mapGetters } from 'vuex';
 import day from 'dayjs';
+import isEmpty from 'lodash/isEmpty';
 import { dasherize, ucFirst } from '@shell/utils/string';
 import { get, clone } from '@shell/utils/object';
 import { removeObject } from '@shell/utils/array';
@@ -801,11 +802,11 @@ export default {
 
     // Can the action of interest be applied to the specified resource?
     canRunBulkActionOfInterest(resource) {
-      if (!this.actionOfInterest) {
+      if ( !this.actionOfInterest || isEmpty(resource?.availableActions) ) {
         return false;
       }
 
-      const matchingResourceAction = resource.availableActions.find((a) => a.action === this.actionOfInterest.action);
+      const matchingResourceAction = resource.availableActions?.find((a) => a.action === this.actionOfInterest.action);
 
       return matchingResourceAction?.enabled;
     },
@@ -1025,9 +1026,8 @@ export default {
           <slot name="header-right" />
           <AsyncButton
             v-if="isTooManyItemsToAutoUpdate"
-            v-clean-tooltip="t('performance.manualRefresh.buttonTooltip')"
             class="manual-refresh"
-            mode="refresh"
+            mode="manual-refresh"
             :current-phase="currentPhase"
             @click="debouncedRefreshTableData"
           />

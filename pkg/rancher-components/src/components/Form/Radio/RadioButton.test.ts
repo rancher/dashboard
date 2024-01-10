@@ -4,7 +4,7 @@ import { cleanHtmlDirective } from '@shell/plugins/clean-html-directive';
 
 describe('radioButton.vue', () => {
   it('renders label slot contents', () => {
-    const wrapper = shallowMount(RadioButton, { slots: { label: 'Test Label' } });
+    const wrapper = shallowMount(RadioButton, { slots: { label: 'Test Label' }, propsData: { val: {}, value: {} } });
 
     expect(wrapper.find('.radio-label').text()).toBe('Test Label');
   });
@@ -14,7 +14,9 @@ describe('radioButton.vue', () => {
       RadioButton,
       {
         directives: { cleanHtmlDirective },
-        propsData:  { label: 'Test Label' }
+        propsData:  {
+          label: 'Test Label', val: {}, value: {}
+        }
       });
 
     expect(wrapper.find('.radio-label').text()).toBe('Test Label');
@@ -23,7 +25,9 @@ describe('radioButton.vue', () => {
   it('renders slot contents when both slot and label prop are provided', () => {
     const wrapper = shallowMount(RadioButton, {
       slots:     { label: 'Test Label - Slot' },
-      propsData: { label: 'Test Label - Props' },
+      propsData: {
+        label: 'Test Label - Props', val: {}, value: {}
+      },
     });
 
     expect(wrapper.find('.radio-label').text()).toBe('Test Label - Slot');

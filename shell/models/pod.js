@@ -3,6 +3,7 @@ import { colorForState, stateDisplay } from '@shell/plugins/dashboard-store/reso
 import { NODE, WORKLOAD_TYPES } from '@shell/config/types';
 import { escapeHtml, shortenedImage } from '@shell/utils/string';
 import WorkloadService from '@shell/models/workload.service';
+import { deleteProperty } from '@shell/utils/object';
 
 export const WORKLOAD_PRIORITY = {
   [WORKLOAD_TYPES.DEPLOYMENT]:             1,
@@ -255,5 +256,24 @@ export default class Pod extends WorkloadService {
 
       return Promise.reject(e);
     });
+  }
+
+  cleanForSave(data) {
+    const val = super.cleanForSave(data);
+
+    // remove fields from containers
+    val.spec?.containers?.forEach((container) => {
+      this.cleanContainerForSave(container);
+    });
+
+    // remove fields from initContainers
+    val.spec?.initContainers?.forEach((container) => {
+      this.cleanContainerForSave(container);
+    });
+
+    // This is probably added by generic workload components that shouldn't be added to pods
+    deleteProperty(val, 'spec.selector');
+
+    return val;
   }
 }

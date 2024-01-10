@@ -32,9 +32,15 @@ export default class ClusterProjectMembersPo extends PagePo {
     return new AsyncButtonPo('[data-testid="form-save"]', this.self());
   }
 
-  listElementWithName(name:string) {
-    const baseResourceList = new BaseResourceList(this.self());
+  resourcesList() {
+    return new BaseResourceList(this.self());
+  }
 
-    return baseResourceList.resourceTable().sortableTable().rowElementWithName(name);
+  sortableTable() {
+    return this.resourcesList().resourceTable().sortableTable();
+  }
+
+  listElementWithName(name:string) {
+    return this.sortableTable().rowElementWithName(name);
   }
 }

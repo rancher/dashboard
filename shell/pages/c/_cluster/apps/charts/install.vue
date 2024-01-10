@@ -248,7 +248,7 @@ export default {
       return;
     }
 
-    if ( this.version && process.client ) {
+    if ( this.version ) {
       /*
         Check if the Helm chart has provided the name
         of a Vue component to use for configuring
@@ -473,7 +473,7 @@ export default {
      * Return list of variables to filter chart questions
      */
     ignoreVariables() {
-      return ignoreVariables(this.currentCluster, this.versionInfo);
+      return ignoreVariables(this.versionInfo);
     },
 
     namespaceIsNew() {
@@ -1603,6 +1603,7 @@ export default {
                 v-if="componentHasTabs"
                 ref="tabs"
                 :side-tabs="true"
+                :hide-single-tab="true"
                 :class="{'with-name': showNameEditor}"
                 class="step__values__content"
                 @changed="tabChanged($event)"
@@ -1647,6 +1648,7 @@ export default {
               v-else-if="hasQuestions && showQuestions"
               ref="tabs"
               :side-tabs="true"
+              :hide-single-tab="true"
               :class="{'with-name': showNameEditor}"
               class="step__values__content"
               @changed="tabChanged($event)"

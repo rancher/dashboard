@@ -7,13 +7,11 @@ import {
 import { getProductFromRoute } from '@shell/middleware/authenticated';
 import { isEqual } from '@shell/utils/object';
 
-function checkRouteProduct({ name, params, query }, locationConfigParam) {
-  const product = getProductFromRoute({
-    name, params, query
-  });
+function checkRouteProduct($route, locationConfigParam) {
+  const product = getProductFromRoute($route);
 
   // alias for the homepage
-  if (locationConfigParam === 'home' && name === 'home') {
+  if (locationConfigParam === 'home' && $route.name === 'home') {
     return true;
   } else if (locationConfigParam === product) {
     return true;
@@ -58,6 +56,7 @@ function checkExtensionRouteBinding($route, locationConfig, context) {
     'id',
     'mode',
     'path',
+    'hash',
     // url query params
     'queryParam',
     // Custom context specific params provided by the extension, not to be confused with location params
@@ -76,12 +75,17 @@ function checkExtensionRouteBinding($route, locationConfig, context) {
         const locationConfigParam = asArray[x];
 
         if (locationConfigParam) {
+          if (param === 'hash') {
+            res = $route.hash ? $route.hash.includes(locationConfigParam) : false;
           // handle "product" in a separate way...
-          if (param === 'product') {
+          } else if (param === 'product') {
             res = checkRouteProduct($route, locationConfigParam);
           // also handle "mode" in a separate way because it mainly depends on query params
           } else if (param === 'mode') {
             res = checkRouteMode($route, locationConfigParam);
+          } else if (param === 'resource') {
+            // Match exact resource but also allow resource of '*' to match any resource
+            res = (params[param] && locationConfigParam === '*') || locationConfigParam === params[param];
           } else if (param === 'context') {
             // Need all keys and values to match
             res = isEqual(locationConfigParam, context);

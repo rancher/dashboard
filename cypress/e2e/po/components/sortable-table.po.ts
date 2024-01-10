@@ -2,6 +2,7 @@ import ComponentPo from '@/cypress/e2e/po/components/component.po';
 import ActionMenuPo from '@/cypress/e2e/po/components/action-menu.po';
 import CheckboxInputPo from '@/cypress/e2e/po/components/checkbox-input.po';
 import ListRowPo from '@/cypress/e2e/po/components/list-row.po';
+import PromptRemove from '@/cypress/e2e/po/prompts/promptRemove.po';
 
 export default class SortableTablePo extends ComponentPo {
   //
@@ -75,8 +76,8 @@ export default class SortableTablePo extends ComponentPo {
   // sortable-table
   //
 
-  rowElements() {
-    return this.self().find('tbody tr:not(.sub-row)');
+  rowElements(options?: any) {
+    return this.self().find('tbody tr:not(.sub-row)', options);
   }
 
   rowElementWithName(name: string) {
@@ -159,5 +160,18 @@ export default class SortableTablePo extends ComponentPo {
 
   selectedCount() {
     return cy.get('.row-check input[type="checkbox"]:checked').its('length');
+  }
+
+  deleteItemWithUI(name: string) {
+    const row = this.rowActionMenuOpen(name).getMenuItem('Delete').click();
+
+    new PromptRemove().remove();
+
+    return row;
+  }
+
+  // Check that the sortable table loading indicator does not exist (data loading complete)
+  checkLoadingIndicatorNotVisible() {
+    cy.get('.data-loading').should('not.exist');
   }
 }

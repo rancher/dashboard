@@ -190,6 +190,11 @@ export default {
 
       cm.foldLinesMatching(/managedFields/);
 
+      // Allow the model to supply an array of json paths to fold other sections in the YAML for the given resource type
+      if (this.value?.yamlFolding) {
+        this.value.yamlFolding.forEach((path) => cm.foldYaml(path));
+      }
+
       // regardless of edit or create we should probably fold all the comments so they dont get out of hand.
       const saved = cm.getMode().fold;
 

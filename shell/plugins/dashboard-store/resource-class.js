@@ -105,6 +105,7 @@ export const STATES_ENUM = {
   ERRORING:         'erroring',
   ERRORS:           'errors',
   EXPIRED:          'expired',
+  EXPIRING:         'expiring',
   FAIL:             'fail',
   FAILED:           'failed',
   HEALTHY:          'healthy',
@@ -166,6 +167,13 @@ export const STATES_ENUM = {
   WAITING:          'waiting',
   WARNING:          'warning',
 };
+
+export function mapStateToEnum(statusString) {
+  // e.g. in fleet Status is Capitalized. This function will map it to the enum
+  return Object.values(STATES_ENUM).find((val) => {
+    return val.toLowerCase() === statusString.toLocaleLowerCase();
+  });
+}
 
 export const STATES = {
   [STATES_ENUM.IN_USE]: {
@@ -253,7 +261,10 @@ export const STATES = {
     color: 'error', icon: 'error', label: 'Errors', compoundIcon: 'error'
   },
   [STATES_ENUM.EXPIRED]: {
-    color: 'warning', icon: 'error', label: 'Expired', compoundIcon: 'warning'
+    color: 'error', icon: 'error', label: 'Expired', compoundIcon: 'warning'
+  },
+  [STATES_ENUM.EXPIRING]: {
+    color: 'warning', icon: 'error', label: 'Expiring', compoundIcon: 'error'
   },
   [STATES_ENUM.FAIL]: {
     color: 'error', icon: 'error', label: 'Fail', compoundIcon: 'error'
@@ -510,6 +521,28 @@ export function stateDisplay(state) {
   }
 
   return key.split(/-/).map(ucFirst).join('-');
+}
+
+export function primaryDisplayStatusFromCount(status) {
+  const statusOrder = [
+    STATES_ENUM.ERROR,
+    STATES_ENUM.FAILED,
+    STATES_ENUM.WARNING,
+    STATES_ENUM.MODIFIED,
+    STATES_ENUM.WAIT_APPLIED,
+    STATES_ENUM.ORPHANED,
+    STATES_ENUM.MISSING,
+    STATES_ENUM.UNKNOWN,
+    STATES_ENUM.NOT_READY,
+    STATES_ENUM.READY,
+  ];
+
+  // sort status by order of statusOrder
+  const existingStatuses = Object.keys(status).filter((key) => {
+    return status[key] > 0 && statusOrder.includes(key.toLowerCase());
+  }).sort((a, b) => statusOrder.indexOf(a.toLowerCase()) - statusOrder.indexOf(b.toLowerCase()));
+
+  return existingStatuses[0] ? existingStatuses[0] : STATES_ENUM.UNKNOWN;
 }
 
 export function stateSort(color, display) {
@@ -1090,15 +1123,22 @@ export default class Resource {
   }
 
   /**
+   * Remove any unwanted properties from the object that will be saved
+   */
+  cleanForSave(data, forNew) {
+    delete data.__rehydrate;
+    delete data.__clone;
+
+    return data;
+  }
+
+  /**
    * Allow to handle the response of the save request
    * @param {*} res Full request response
    */
   processSaveResponse(res) { }
 
   async _save(opt = {}) {
-    delete this.__rehydrate;
-    delete this.__clone;
-
     const forNew = !this.id;
 
     const errors = await this.validationErrors(this, opt.ignoreFields);
@@ -1145,21 +1185,23 @@ export default class Resource {
     // @TODO remove this once the API maps steve _type <-> k8s type in both directions
     opt.data = this.toSave() || { ...this };
 
-    if (opt?.data._type) {
+    if (opt.data._type) {
       opt.data.type = opt.data._type;
     }
 
-    if (opt?.data._name) {
+    if (opt.data._name) {
       opt.data.name = opt.data._name;
     }
 
-    if (opt?.data._labels) {
+    if (opt.data._labels) {
       opt.data.labels = opt.data._labels;
     }
 
-    if (opt?.data._annotations) {
+    if (opt.data._annotations) {
       opt.data.annotations = opt.data._annotations;
     }
+
+    opt.data = this.cleanForSave(opt.data, forNew);
 
     // handle "replace" opt as a query param _replace=true for norman PUT requests
     if (opt?.replace && opt.method === 'put') {
@@ -1218,19 +1260,11 @@ export default class Resource {
   // ------------------------------------------------------------------
 
   currentRoute() {
-    if ( process.server ) {
-      return this.$rootState.$route;
-    } else {
-      return window.$nuxt.$route;
-    }
+    return window.$nuxt.$route;
   }
 
   currentRouter() {
-    if ( process.server ) {
-      return this.$rootState.$router;
-    } else {
-      return window.$nuxt.$router;
-    }
+    return window.$nuxt.$router;
   }
 
   get listLocation() {
@@ -1464,7 +1498,7 @@ export default class Resource {
   }
 
   async saveYaml(yaml) {
-    this._saveYaml(yaml);
+    await this._saveYaml(yaml);
   }
 
   async _saveYaml(yaml) {
@@ -1930,5 +1964,12 @@ export default class Resource {
 
   get creationTimestamp() {
     return this.metadata?.creationTimestamp;
+  }
+
+  /**
+   * Allows model to specify JSON Paths that should be folded in the YAML editor by default
+   */
+  get yamlFolding() {
+    return [];
   }
 }

@@ -2,6 +2,7 @@
 import CruResource from '@shell/components/CruResource';
 import { LabeledInput } from '@components/Form/LabeledInput';
 import LabeledSelect from '@shell/components/form/LabeledSelect';
+import { Banner } from '@components/Banner';
 import CreateEditView from '@shell/mixins/create-edit-view';
 import { TextAreaAutoGrow } from '@components/Form/TextArea';
 import formRulesGenerator from '@shell/utils/validators/formRules/index';
@@ -11,6 +12,7 @@ import { RadioGroup } from '@components/Form/Radio';
 import FormValidation from '@shell/mixins/form-validation';
 import { setBrand } from '@shell/config/private-label';
 import { keyBy, mapValues } from 'lodash';
+import { isLocalhost, isServerUrl } from '@shell/utils/validators/setting';
 
 export default {
   components: {
@@ -18,7 +20,8 @@ export default {
     LabeledInput,
     LabeledSelect,
     RadioGroup,
-    TextAreaAutoGrow
+    TextAreaAutoGrow,
+    Banner
   },
 
   mixins: [CreateEditView, FormValidation],
@@ -63,6 +66,14 @@ export default {
 
           return factoryArg ? rule(factoryArg) : rule;
         }) : {};
+    },
+
+    showLocalhostWarning() {
+      return isServerUrl(this.value.id) && isLocalhost(this.value.value);
+    },
+
+    validationPassed() {
+      return this.fvFormIsValid && this.fvGetPathErrors(['value']).length === 0;
     }
   },
 
@@ -98,6 +109,11 @@ export default {
       if (ev && ev.srcElement) {
         ev.srcElement.blur();
       }
+
+      if (isServerUrl(this.value.id) && !this.value.default) {
+        return;
+      }
+
       this.value.value = this.value.default;
     }
   }
@@ -113,7 +129,7 @@ export default {
     :resource="value"
     :subtypes="[]"
     :can-yaml="false"
-    :validation-passed="fvFormIsValid"
+    :validation-passed="validationPassed"
     @error="e=>errors = e"
     @finish="saveSettings"
     @cancel="done"
@@ -137,6 +153,19 @@ export default {
         {{ t('advancedSettings.edit.useDefault') }}
       </button>
     </div>
+
+    <Banner
+      v-if="showLocalhostWarning"
+      color="warning"
+      :label="t('validation.setting.serverUrl.localhost')"
+    />
+
+    <Banner
+      v-for="(err, i) in fvGetPathErrors(['value'])"
+      :key="i"
+      color="error"
+      :label="err"
+    />
 
     <div class="mt-20">
       <div v-if="setting.kind === 'enum'">

@@ -6,7 +6,7 @@ import {
   HCI,
   MANAGEMENT
 } from '@shell/config/types';
-import { MULTI_CLUSTER } from '@shell/store/features';
+import { MULTI_CLUSTER, RKE1_UI } from '@shell/store/features';
 import { DSL } from '@shell/store/type-map';
 import { BLANK_CLUSTER } from '@shell/store/store-types.js';
 
@@ -54,22 +54,10 @@ export function init(store) {
     route:      { name: 'c-cluster-manager-cloudCredential' },
   });
 
-  virtualType({
-    labelKey:   'legacy.psps',
-    name:       'pod-security-policies',
-    group:      'Root',
-    namespaced: false,
-    weight:     5,
-    icon:       'folder',
-    route:      { name: 'c-cluster-manager-pages-page', params: { cluster: 'local', page: 'pod-security-policies' } },
-    exact:      true
-  });
-
   basicType([
     CAPI.RANCHER_CLUSTER,
     'cloud-credentials',
     'drivers',
-    'pod-security-policies',
   ]);
 
   configureType(CAPI.RANCHER_CLUSTER, {
@@ -96,6 +84,7 @@ export function init(store) {
   });
 
   virtualType({
+    ifFeature:  RKE1_UI,
     labelKey:   'manager.rkeTemplates.label',
     name:       'rke-templates',
     group:      'Root',
@@ -106,6 +95,7 @@ export function init(store) {
   });
 
   virtualType({
+    ifFeature:  RKE1_UI,
     labelKey:   'manager.nodeTemplates.label',
     name:       'rke-node-templates',
     group:      'Root',
@@ -131,7 +121,6 @@ export function init(store) {
     CAPI.MACHINE_SET,
     CAPI.MACHINE,
     CATALOG.CLUSTER_REPO,
-    'pod-security-policies',
     MANAGEMENT.PSA
   ], 'advanced');
 

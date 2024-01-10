@@ -33,7 +33,6 @@ const ALWAYS_ADD = [
 
 export const NEVER_ADD = [
   'metadata.clusterName',
-  'metadata.clusterName',
   'metadata.creationTimestamp',
   'metadata.deletionGracePeriodSeconds',
   'metadata.deletionTimestamp',
@@ -46,11 +45,16 @@ export const NEVER_ADD = [
   'metadata.resourceVersion',
   'metadata.relationships',
   'metadata.selfLink',
+  'metadata.state',
   'metadata.uid',
   // CRD -> Schema describes the schema used for validation, pruning, and defaulting of this version of the custom resource. If we allow processing we fall into inf loop on openAPIV3Schema.allOf which contains a cyclical ref of allOf props.
   'spec.versions.schema',
   'status',
   'stringData',
+  'links',
+  '_name',
+  '_labels',
+  '_annotations',
 ];
 
 export const ACTIVELY_REMOVE = [
@@ -443,20 +447,21 @@ export function saferDump(obj) {
  *
  * this is required since jsyaml.dump doesn't support chomping and scalar style at the moment.
  * see: https://github.com/nodeca/js-yaml/issues/171
+
+ * @typedef {Object} DumpBlockOptions
+ * @property {('>' | '|')} [scalarStyle] - The scalar style.
+ * @property {('-' | '+' | '' | null)} [chomping] - The chomping style.
  *
  * @param {*} data the multiline block
- * @param {*} options blocks indicators, see: https://yaml-multiline.info
+ * @param {Object} options - Serialization options for jsyaml.dump.
+ * @param {number} options.lineWidth - Set max line width. Set -1 for unlimited width.
+ * @param {DumpBlockOptions} [options.dynamicProperties] - Options for dynamic properties.
+ *   Developers can provide their own property names under `options`.
  *
- * - scalarStyle:
- *     one of '|', '>'
- *     default '|'
- * - chomping:
- *     one of: null, '', '-', '+'
- *     default: null
  * @returns the result of jsyaml.dump with the addition of multiline indicators
  */
 export function dumpBlock(data, options = {}) {
-  const parsed = jsyaml.dump(data);
+  const parsed = jsyaml.dump(data, options);
 
   let out = parsed;
 
@@ -472,7 +477,9 @@ export function dumpBlock(data, options = {}) {
       /**
        * Replace the original block indicators with the ones provided in the options param
        */
-      out = out.replace(header, `${ key }: ${ scalarStyle }${ chomping }${ indentation }`);
+      if (header) {
+        out = out.replace(header, `${ key }: ${ scalarStyle }${ chomping }${ indentation }`);
+      }
     }
   }
 

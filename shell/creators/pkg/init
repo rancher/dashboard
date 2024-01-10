@@ -2,6 +2,7 @@
 
 const fs = require('fs-extra');
 const path = require('path');
+const https = require('https');
 
 const targets = {
   dev:  './node_modules/.bin/nuxt dev',
@@ -16,9 +17,10 @@ const files = [
 ];
 
 const topLevelScripts = {
-  'build-pkg':    './node_modules/@rancher/shell/scripts/build-pkg.sh',
-  'serve-pkgs':   './node_modules/@rancher/shell/scripts/serve-pkgs',
-  'publish-pkgs': './node_modules/@rancher/shell/scripts/extension/publish',
+  'build-pkg':      './node_modules/@rancher/shell/scripts/build-pkg.sh',
+  'serve-pkgs':     './node_modules/@rancher/shell/scripts/serve-pkgs',
+  'publish-pkgs':   './node_modules/@rancher/shell/scripts/extension/publish',
+  'parse-tag-name': './node_modules/@rancher/shell/scripts/extension/parse-tag-name'
 };
 
 const typeFolders = [
@@ -88,11 +90,68 @@ Object.keys(targets).forEach((target) => {
   }
 });
 
+// Add annotation for the latest Rancher version by default
+function fetchLatestVersion() {
+  console.log('  Fetching latest Rancher Version');
+  const options = { headers: { 'User-Agent': 'nodejs' } };
+
+  https.get('https://api.github.com/repos/rancher/rancher/releases/latest', options, (res) => {
+    const { statusCode } = res;
+    const contentType = res.headers['content-type'];
+
+    let error;
+
+    if ( statusCode !== 200 ) {
+      error = new Error('  Request Failed.\n' +
+                        `  Status Code: ${ statusCode }`);
+    } else if ( !/^application\/json/.test(contentType) ) {
+      error = new Error('  Invalid content-type.\n' +
+                        `  Expected application/json but received ${ contentType }`);
+    }
+
+    if ( error ) {
+      console.log(error.message);
+
+      res.resume();
+
+      return;
+    }
+
+    res.setEncoding('utf8');
+    let rawData = '';
+
+    res.on('data', (chunk) => {
+      rawData += chunk;
+    });
+    res.on('end', () => {
+      try {
+        const release = JSON.parse(rawData);
+
+        if ( release.tag_name ) {
+          console.log(`  Adding rancher-version annotation '>= ${ release.tag_name }' to package.json`);
+
+          pkg.rancher = { annotations: { 'catalog.cattle.io/rancher-version': `>= ${ release.tag_name }` } };
+          writePackageJson();
+        }
+      } catch (e) {
+        console.log('  Error parsing release data', e);
+      }
+    });
+  }).on('error', (e) => {
+    console.log('  Error fetching latest Rancher Version', e);
+  });
+}
+
+fetchLatestVersion();
+writePackageJson();
+
 // Add dependencies
 // pkg.dependencies['@rancher/shell'] = '^0.6.2';
 // pkg.dependencies['core-js'] = '3.18.3';
 
-fs.writeFileSync(path.join(pkgFolder, 'package.json'), JSON.stringify(pkg, null, 2));
+function writePackageJson() {
+  fs.writeFileSync(path.join(pkgFolder, 'package.json'), JSON.stringify(pkg, null, 2));
+}
 
 // Create type folders if needed
 if (addTypeFolders) {
@@ -115,8 +174,8 @@ if (addWorkflowFolder) {
   }
 
   const files = [
-    'build-extension.yml',
-    'build-container.yml'
+    'build-extension-catalog.yml',
+    'build-extension-charts.yml'
   ];
 
   files.forEach((fileName) => {

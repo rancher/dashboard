@@ -1,4 +1,5 @@
 <script>
+import Vue from 'vue';
 import { exceptionToErrorsArray } from '@shell/utils/error';
 import { mapGetters } from 'vuex';
 import {
@@ -81,6 +82,10 @@ export default {
 
     this.tlsMode = tls;
 
+    if (this.value.spec.correctDrift === undefined) {
+      Vue.set(this.value.spec, 'correctDrift', { enabled: false });
+    }
+
     this.updateTargets();
   },
 
@@ -126,18 +131,18 @@ export default {
     const addRepositorySteps = [stepRepoInfo, stepTargetInfo].sort((a, b) => (b.weight || 0) - (a.weight || 0));
 
     return {
-      allClusters:          [],
-      allClusterGroups:     [],
-      allWorkspaces:        [],
-      tempCachedValues:     {},
-      username:             null,
-      password:             null,
-      publicKey:            null,
-      privateKey:           null,
-      tlsMode:              null,
-      caBundle:             null,
-      targetAdvancedErrors: null,
-      matchingClusters:     null,
+      allClusters:             [],
+      allClusterGroups:        [],
+      allWorkspaces:           [],
+      tempCachedValues:        {},
+      username:                null,
+      password:                null,
+      publicKey:               null,
+      privateKey:              null,
+      tlsMode:                 null,
+      caBundle:                null,
+      targetAdvancedErrors:    null,
+      matchingClusters:        null,
       ref,
       refValue,
       targetMode,
@@ -147,6 +152,7 @@ export default {
       stepRepoInfo,
       stepTargetInfo,
       addRepositorySteps,
+      displayHelmRepoURLRegex: false
     };
   },
 
@@ -256,9 +262,8 @@ export default {
     targetCluster:              'updateTargets',
     targetClusterGroup:         'updateTargets',
     targetAdvanced:             'updateTargets',
-
-    tlsMode:  'updateTls',
-    caBundle: 'updateTls',
+    tlsMode:                    'updateTls',
+    caBundle:                   'updateTls',
 
     workspace(neu) {
       if ( this.isCreate ) {
@@ -284,6 +289,10 @@ export default {
 
     updateCachedAuthVal(val, key) {
       this.tempCachedValues[key] = typeof val === 'string' ? { selected: val } : { ...val };
+
+      if (key === 'helmSecretName') {
+        this.toggleHelmRepoURLRegex(val && val.selected !== AUTH_TYPE._NONE);
+      }
     },
 
     updateAuth(val, key) {
@@ -296,6 +305,14 @@ export default {
       }
 
       this.updateCachedAuthVal(val, key);
+    },
+
+    toggleHelmRepoURLRegex(active) {
+      this.displayHelmRepoURLRegex = active;
+
+      if (!active) {
+        delete this.value.spec?.helmRepoURLRegex;
+      }
     },
 
     updateTargets() {
@@ -536,6 +553,7 @@ export default {
         </div>
         <div class="col span-6">
           <InputWithSelect
+            :data-testid="`gitrepo-${ref}`"
             :mode="mode"
             :select-label="t('fleet.gitRepo.ref.label')"
             :select-value="ref"
@@ -563,6 +581,7 @@ export default {
       />
 
       <SelectOrCreateAuthSecret
+        data-testid="gitrepo-helm-auth"
         :value="value.spec.helmSecretName"
         :register-before-hook="registerBeforeHook"
         :namespace="value.metadata.namespace"
@@ -575,6 +594,22 @@ export default {
         @input="updateAuth($event, 'helmSecretName')"
         @inputauthval="updateCachedAuthVal($event, 'helmSecretName')"
       />
+
+      <div
+        v-if="displayHelmRepoURLRegex"
+        class="row mt-20"
+      >
+        <div
+          class="col span-6"
+          data-testid="gitrepo-helm-repo-url-regex"
+        >
+          <LabeledInput
+            v-model="value.spec.helmRepoURLRegex"
+            :mode="mode"
+            label-key="fleet.gitRepo.helmRepoURLRegex"
+          />
+        </div>
+      </div>
 
       <template v-if="isTls">
         <div class="spacer" />
@@ -637,6 +672,7 @@ export default {
       <h2 v-t="'fleet.gitRepo.paths.label'" />
       <ArrayList
         v-model="value.spec.paths"
+        data-testid="gitRepo-paths"
         :mode="mode"
         :initial-empty-row="false"
         :value-placeholder="t('fleet.gitRepo.paths.placeholder')"

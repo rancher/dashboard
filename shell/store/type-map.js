@@ -593,18 +593,8 @@ export const getters = {
         }
 
         const label = typeObj.labelKey ? rootGetters['i18n/t'](typeObj.labelKey) || typeObj.label : typeObj.label;
-        const virtual = !!typeObj.virtual;
-        let icon = typeObj.icon;
 
-        if ( (!virtual || typeObj.isSpoofed ) && !icon ) {
-          if ( namespaced ) {
-            icon = 'folder';
-          } else {
-            icon = 'globe';
-          }
-        }
-
-        const labelDisplay = highlightLabel(label, icon, typeObj.count, typeObj.schema);
+        const labelDisplay = highlightLabel(label, typeObj.count, typeObj.schema);
 
         if ( !labelDisplay ) {
           // Search happens in highlight and returns null if not found
@@ -711,7 +701,7 @@ export const getters = {
         return group;
       }
 
-      function highlightLabel(original, icon, count, schema) {
+      function highlightLabel(original, count, schema) {
         let label = escapeHtml(original);
 
         if ( searchRegex ) {
@@ -733,10 +723,6 @@ export const getters = {
           } else {
             return null;
           }
-        }
-
-        if ( icon ) {
-          label = `<i class="icon icon-fw icon-${ icon }"></i>${ label }`;
         }
 
         return label;
@@ -923,6 +909,10 @@ export const getters = {
           }
 
           if ( typeof item.ifRancherCluster !== 'undefined' && item.ifRancherCluster !== rootGetters.isRancher ) {
+            continue;
+          }
+
+          if (item.ifFeature && !rootGetters['features/get'](item.ifFeature)) {
             continue;
           }
 
@@ -1858,15 +1848,12 @@ function _rowValueGetter(col) {
   // We will use JsonPath to look up this value, which is costly - so if we can detect this format
   // Use a more efficient function to get the value
   const value = col.field.startsWith('.') ? `$${ col.field }` : col.field;
+  const found = value.match(FIELD_REGEX);
 
-  if (process.client) {
-    const found = value.match(FIELD_REGEX);
+  if (found && found.length === 2) {
+    const fieldIndex = parseInt(found[1], 10);
 
-    if (found && found.length === 2) {
-      const fieldIndex = parseInt(found[1], 10);
-
-      return (row) => row.metadata?.fields?.[fieldIndex];
-    }
+    return (row) => row.metadata?.fields?.[fieldIndex];
   }
 
   return value;

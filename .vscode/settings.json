@@ -11,7 +11,7 @@
   "eslint.packageManager": "yarn",
   "eslint.validate": ["vue","html","javascript","typescript"],
   "editor.codeActionsOnSave": {
-    "source.fixAll.eslint": true
+    "source.fixAll.eslint": "explicit"
   },
   "eslint.workingDirectories": ["./", "./pkg/rancher-components/"],
   "javascript.preferences.importModuleSpecifier": "non-relative",
@@ -21,6 +21,7 @@
     "autoscroll",
     "banzaicloud",
     "cacerts",
+    "CAPI",
     "chainable",
     "clusterroletemplatebindings",
     "Codecov",
@@ -34,6 +35,7 @@
     "kubectl",
     "Kubernetes",
     "kubevirt",
+    "mgmt",
     "neuvector",
     "nuxt",
     "overcommit",
@@ -42,8 +44,10 @@
     "projectsnamespaces",
     "protip",
     "PSPS",
+    "PVC",
     "pvcs",
     "shortkey",
+    "storageclass",
     "testid",
     "tolerations",
     "userpreferences",
@@ -51,4 +55,5 @@
     "vuex",
     "whatsnew"
   ],
+  "typescript.tsdk": "node_modules/typescript/lib"
 }

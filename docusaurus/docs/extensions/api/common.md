@@ -59,14 +59,15 @@ The admissible parameters for the `LocationConfig` object are:
 | Key | Compatible Version | Type | Description |
 |---|---|---|---|
 |`product`| `v2.7.2` | Array | Array of the product identifier. Ex: `fleet`, `manager` (Cluster Management), `harvesterManager` (Virtualization Management), `explorer` (Cluster Explorer) or `home` (Homepage) |
-|`resource`| `v2.7.2` | Array | Array of the identifier of the kubernetes resource to be bound to. Ex: `apps.deployment`, `storage.k8s.io.storageclass` or `secret`  |
+|`resource`| `v2.7.2` + `v2.8.0` | Array | Array of the identifier of the kubernetes resource to be bound to. Ex: `apps.deployment`, `storage.k8s.io.storageclass` or `secret` (v2.7.2). You can also define a wildcard, ex: `['*']`, which will match any resource page (v2.8.0)  |
 |`namespace`| `v2.7.2` | Array | Array of the namespace identifier. Ex: `kube-system`, `cattle-global-data` or `cattle-system` |
 |`path`| `v2.7.7` | Array | Array of objects that does matching for the `path` part of the url. Admissable properties for the object are: `urlPath` (string), `exact` (boolean, default or omission: `true`, which defines the type of match it does) and `endsWith` (boolean, defaults to false) .Ex: { `urlPath`: '/c/local/explorer/projectsnamespaces',  `exact`: true } or { `urlPath`: 'explorer/projectsnamespaces',  `endsWith`: true } |
 |`cluster`| `v2.7.2` | Array | Array of the cluster identifier. Ex: `local` |
 |`id`| `v2.7.2` | Array | Array of the identifier for a given resource. Ex: `deployment-unt6xmz` |
 |`mode`| `v2.7.2` + `v2.7.7` | Array | Array of modes which relates to the type of view on which the given enhancement should be applied. Admissible values are: `edit` (v2.7.2), `config` (v2.7.2), `detail` (v2.7.2), `list` (v2.7.2) and `create` (v2.7.7) |
 |`context`| `v2.7.2`| Object | Requirements set by the context itself. This is a key value object that must match the object provided where the feature is used. For instance if a ResourceTab should only include a tab given specific information where the ResourceTab is used. Ex `{ provider: "digitalocean" }` |
-| `queryParam`| `v2.7.2` | Object | This is a key value object that must match the url's query param key values
+| `queryParam`| `v2.7.2` | Object | This is a key value object that must match the url's query param key values |
+|`hash`| `v2.8.0` | Array | Array of strings for url hash identifiers, commonly used in Tabs Ex: On a details view of a `provisioning.cattle.io.cluster`, you have several tabs identified in the hash portion of the url such as `node-pools`, `conditions` and `related`  |
 
 ### LocationConfig Examples
 

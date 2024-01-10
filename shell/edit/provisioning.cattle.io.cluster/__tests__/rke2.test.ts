@@ -38,23 +38,50 @@ const defaultStubs = {
   Tabbed:                   true,
   UnitInput:                true,
   YamlEditor:               true,
+  MemberRoles:              true,
+  Basics:                   true,
+  Etcd:                     true,
+  Networking:               true,
+  Upgrade:                  true,
+  Registries:               true,
+  AddOnConfig:              true,
+  Advanced:                 true
 };
+
+const mockAgentArgs = { 'cloud-provider-name': { options: [], profile: { options: [{ anything: 'yes' }] } } };
 
 const defaultComputed = {
   showForm() {
     return true;
   },
-  showk8s21LegacyWarning() {
-    return false;
-  },
+  versionOptions() {
+    return [
+      {
+        id: 'v1.25.0+rke2r1', value: 'v1.25.0+rke2r1', serverArgs: {}, agentArgs: mockAgentArgs, charts: {}
+      },
+      {
+        id: 'v1.24.0+rke2r1', value: 'v1.24.0+rke2r1', serverArgs: {}, agentArgs: mockAgentArgs, charts: {}
+      },
+      {
+        id: 'v1.23.0+rke2r1', value: 'v1.23.0+rke2r1', serverArgs: {}, agentArgs: mockAgentArgs, charts: {}
+      },
+      {
+        id: 'v1.25.0+k3s1', value: 'v1.25.0+k3s1', serverArgs: {}, agentArgs: mockAgentArgs, charts: {}
+      },
+      {
+        id: 'v1.24.0+k3s1', value: 'v1.24.0+k3s1', serverArgs: {}, agentArgs: mockAgentArgs, charts: {}
+      }
+    ];
+  }
 };
 
 const defaultGetters = {
-  currentStore:           () => 'current_store',
-  'management/schemaFor': jest.fn(),
-  'current_store/all':    jest.fn(),
-  'i18n/t':               jest.fn(),
-  'i18n/withFallback':    jest.fn(),
+  currentStore:                     () => 'current_store',
+  'management/schemaFor':           jest.fn(),
+  'current_store/all':              jest.fn(),
+  'i18n/t':                         jest.fn(),
+  'i18n/withFallback':              jest.fn(),
+  'plugins/cloudProviderForDriver': jest.fn()
 };
 
 const defaultMocks = {
@@ -78,142 +105,7 @@ describe('component: rke2', () => {
   */
   // eslint-disable-next-line jest/no-hooks
   beforeEach(() => {
-    jest.spyOn(console, 'log').mockImplementation(() => {});
-  });
-
-  it.each([
-    'v1.25.0+rke2r1',
-    'v1.24.0+rke2r1',
-    'v1.23.0+rke2r1',
-    'v1.25.0+k3s1',
-    'v1.24.0+k3s1',
-    'v1.23.0+k3s1',
-  ])('should display PSA option', (k8s) => {
-    const label = 'whatever';
-    const option = { label, value: label };
-    const wrapper = mount(rke2, {
-      propsData: {
-        mode:  'create',
-        value: {
-          spec: {
-            ...defaultSpec,
-            defaultPodSecurityAdmissionConfigurationTemplateName: label,
-            kubernetesVersion:                                    k8s
-          }
-        },
-        provider: 'whatever',
-      },
-      computed: defaultComputed,
-      mocks:    {
-        ...defaultMocks,
-        $store: {
-          getters:  defaultGetters,
-          dispatch: {
-            'management/find':    jest.fn(),
-            'management/findAll': () => ([option]),
-          }
-        },
-      },
-      stubs: defaultStubs
-    });
-
-    const select = wrapper.find('[data-testid="rke2-custom-edit-psa"]');
-
-    expect((select.vm as unknown as any).options[0].label).toBe(`${ label } (Current)`);
-  });
-
-  it.each([
-    ['v1.25.0+rke2r1', 'none'],
-    ['v1.24.0+rke2r1', 'default'],
-    ['v1.23.0+rke2r1', 'default'],
-    ['v1.25.0+k3s1', 'none'],
-    ['v1.24.0+k3s1', 'default'],
-    ['v1.23.0+k3s1', 'default'],
-  ])('should display for version %p PSA option label %p', (k8s, partialLabel) => {
-    const label = `cluster.rke2.defaultPodSecurityAdmissionConfigurationTemplateName.option.${ partialLabel }`;
-    const option = { label, value: label };
-    const wrapper = mount(rke2, {
-      propsData: {
-        mode:  'create',
-        value: {
-          spec: {
-            ...defaultSpec,
-            defaultPodSecurityAdmissionConfigurationTemplateName: label,
-            kubernetesVersion:                                    k8s
-          }
-        },
-        provider: 'whatever',
-      },
-      computed: defaultComputed,
-      mocks:    {
-        ...defaultMocks,
-        $store: {
-          getters:  defaultGetters,
-          dispatch: {
-            'management/find':    jest.fn(),
-            'management/findAll': () => ([option]),
-          }
-        },
-      },
-      stubs: defaultStubs
-    });
-
-    const select = wrapper.find('[data-testid="rke2-custom-edit-psa"]');
-
-    expect((select.vm as unknown as any).options[0].label).toStrictEqual(`${ label } (Current)`);
-  });
-
-  it.each([
-    ['anything', false, true],
-    ['', false, false],
-    ['', true, false],
-  ])('given CIS value as %p and its override as %p, it should set PSA dropdown as disabled %p', (cis, override, disabled) => {
-    const label = 'whatever';
-    const k8s = 'v1.25.0+rke2r1';
-    const option = { label, value: label };
-    const wrapper = mount(rke2, {
-      propsData: {
-        mode:  'create',
-        value: {
-          agentConfig: { profile: cis },
-          spec:        {
-            ...defaultSpec,
-            defaultPodSecurityAdmissionConfigurationTemplateName: label,
-            kubernetesVersion:                                    k8s
-          }
-        },
-        provider: 'custom',
-      },
-      computed: {
-        ...defaultComputed,
-        agentArgs:      () => ({ profile: { options: [cis] } }),
-        versionOptions: () => [
-          {
-            value:     k8s,
-            agentArgs: { profile: { options: [cis] } },
-            charts:    {},
-            profile:   { options: [cis] }
-          }
-        ]
-      },
-      mocks: {
-        ...defaultMocks,
-        $store: {
-          getters:  defaultGetters,
-          dispatch: {
-            'management/find':    jest.fn(),
-            'management/findAll': () => ([option]),
-          }
-        },
-      },
-      stubs: defaultStubs
-    });
-
-    wrapper.setData({ cisOverride: override });
-
-    const select = wrapper.find('[data-testid="rke2-custom-edit-psa"]');
-
-    expect((select.vm as unknown as any).disabled).toBe(disabled);
+    jest.spyOn(console, 'log').mockImplementation(() => { });
   });
 
   it.each([
@@ -229,8 +121,10 @@ describe('component: rke2', () => {
             ...defaultSpec,
             kubernetesVersion: k8s,
 
-          }
+          },
+          agentConfig: { 'cloud-provider-name': 'any' }
         },
+        selectedVersion: { agentArgs: mockAgentArgs },
         provider,
       },
       computed: defaultComputed,
@@ -253,7 +147,8 @@ describe('component: rke2', () => {
           spec: {
             ...defaultSpec,
             kubernetesVersion: k8s
-          }
+          },
+          agentConfig: { 'cloud-provider-name': 'any' }
         },
         provider: 'custom'
       },
@@ -269,14 +164,45 @@ describe('component: rke2', () => {
     expect((wrapper.vm as any).validationPassed).toBe(true);
   });
 
+  it('should initialize machine pools with drain before delete true', async() => {
+    const k8s = 'v1.25.0+k3s1';
+    const wrapper = mount(rke2, {
+      propsData: {
+        mode:  'create',
+        value: {
+          spec: {
+            ...defaultSpec,
+            kubernetesVersion: k8s
+          },
+          agentConfig: { 'cloud-provider-name': 'any' }
+        },
+        provider: 'custom'
+      },
+      data:     () => ({ credentialId: 'I am authenticated' }),
+      computed: defaultComputed,
+      mocks:    {
+        ...defaultMocks,
+        $store: { getters: defaultGetters },
+      },
+      stubs: defaultStubs
+    });
+
+    await wrapper.vm.initSpecs();
+
+    wrapper.vm.machinePools.forEach((p: any) => expect(p.drainBeforeDelete).toBe(true));
+  });
+
   // TODO: Complete test after implementing fetch https://github.com/rancher/dashboard/issues/9322
   // eslint-disable-next-line jest/no-disabled-tests
   describe.skip('should initialize agent configuration values', () => {
     it('adding default values if none', async() => {
       const wrapper = shallowMount(rke2, {
         propsData: {
-          mode:     'create',
-          value:    { spec: { ...defaultSpec } },
+          mode:  'create',
+          value: {
+            spec:        { ...defaultSpec },
+            agentConfig: { 'cloud-provider-name': 'any' }
+          },
           provider: 'custom'
         },
         computed: defaultComputed,
@@ -317,8 +243,11 @@ describe('component: rke2', () => {
     it('should display agent configuration tab', async() => {
       const wrapper = shallowMount(rke2, {
         propsData: {
-          mode:     'create',
-          value:    { spec: { ...defaultSpec } },
+          mode:  'create',
+          value: {
+            spec:        { ...defaultSpec },
+            agentConfig: { 'cloud-provider-name': 'any' }
+          },
           provider: 'custom'
         },
         computed: defaultComputed,

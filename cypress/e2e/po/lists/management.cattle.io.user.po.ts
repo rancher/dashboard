@@ -1,5 +1,5 @@
-import BaseResourceList from '@/cypress/e2e/po/lists/base-resource-list.po';
 import AsyncButtonPo from '@/cypress/e2e/po/components/async-button.po';
+import BaseResourceList from '@/cypress/e2e/po/lists/base-resource-list.po';
 
 /**
  * List component for api key resources
@@ -46,7 +46,7 @@ export default class MgmtUsersListPo extends BaseResourceList {
   }
 
   clickRowActionMenuItem(name: string, itemLabel:string) {
-    return this.resourceTable().sortableTable().rowActionMenuOpen(name, 7).getMenuItem(itemLabel)
+    return this.resourceTable().sortableTable().rowActionMenuOpen(name).getMenuItem(itemLabel)
       .click();
   }
 }

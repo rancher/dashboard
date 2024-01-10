@@ -1,5 +1,5 @@
 // Settings
-import { GC_DEFAULTS } from '../utils/gc/gc-types';
+import { GC_DEFAULTS, GC_PREFERENCES } from '@shell/utils/gc/gc-types';
 
 interface GlobalSettingRuleset {
   name: string,
@@ -42,7 +42,6 @@ export const SETTING = {
   HIDE_LOCAL_CLUSTER:                   'hide-local-cluster',
   AUTH_TOKEN_MAX_TTL_MINUTES:           'auth-token-max-ttl-minutes',
   KUBECONFIG_GENERATE_TOKEN:            'kubeconfig-generate-token',
-  KUBECONFIG_TOKEN_TTL_MINUTES:         'kubeconfig-token-ttl-minutes',
   KUBECONFIG_DEFAULT_TOKEN_TTL_MINUTES: 'kubeconfig-default-token-ttl-minutes',
   ENGINE_URL:                           'engine-install-url',
   ENGINE_ISO_URL:                       'engine-iso-url',
@@ -127,7 +126,6 @@ export const ALLOWED_SETTINGS: GlobalSetting = {
   [SETTING.AUTH_USER_SESSION_TTL_MINUTES]:        {},
   [SETTING.AUTH_TOKEN_MAX_TTL_MINUTES]:           {},
   [SETTING.KUBECONFIG_GENERATE_TOKEN]:            { kind: 'boolean' },
-  [SETTING.KUBECONFIG_TOKEN_TTL_MINUTES]:         {},
   [SETTING.KUBECONFIG_DEFAULT_TOKEN_TTL_MINUTES]: { kind: 'integer' },
   [SETTING.AUTH_USER_INFO_RESYNC_CRON]:           {},
   [SETTING.SERVER_URL]:                           { kind: 'url', canReset: true },
@@ -148,7 +146,47 @@ export const ALLOWED_SETTINGS: GlobalSetting = {
   [SETTING.HIDE_LOCAL_CLUSTER]: { kind: 'boolean' },
 };
 
-export const DEFAULT_PERF_SETTING = {
+/**
+ * Settings on how to handle warnings returning in api responses, specifically which to show as growls
+ */
+export interface PerfSettingsWarningHeaders {
+  /**
+   * Warning is a string containing multiple entries. This determines how they are split up
+   *
+   * See https://github.com/kubernetes/enhancements/tree/master/keps/sig-api-machinery/1693-warnings#design-details
+   */
+  separator: string,
+  /**
+   * Show warnings in a notification if they're not in this block list
+   */
+  notificationBlockList: string[]
+}
+
+export interface PerfSettingsKubeApi {
+  /**
+   * Settings related to the response header `warnings` value
+   */
+  warningHeader: PerfSettingsWarningHeaders
+}
+
+export interface PerfSettings {
+  inactivity: {
+      enabled: boolean;
+      threshold: number;
+  };
+  incrementalLoading: {
+      enabled: boolean;
+      threshold: number;
+  };
+  manualRefresh: {};
+  disableWebsocketNotification: boolean;
+  garbageCollection: GC_PREFERENCES;
+  forceNsFilterV2: any;
+  advancedWorker: {};
+  kubeAPI: PerfSettingsKubeApi;
+}
+
+export const DEFAULT_PERF_SETTING: PerfSettings = {
   inactivity: {
     enabled:   false,
     threshold: 900,
@@ -165,4 +203,21 @@ export const DEFAULT_PERF_SETTING = {
   garbageCollection:            GC_DEFAULTS,
   forceNsFilterV2:              { enabled: false },
   advancedWorker:               { enabled: false },
+  kubeAPI:                      {
+    /**
+     * Settings related to the response header `warnings` value
+     */
+    warningHeader: {
+      /**
+       * Warning is a string containing multiple entries. This determines how they are split up
+       *
+       * See https://github.com/kubernetes/enhancements/tree/master/keps/sig-api-machinery/1693-warnings#design-details
+       */
+      separator:             '299 - ',
+      /**
+       * Show warnings in a notification if they're not in this block list
+       */
+      notificationBlockList: ['299 - unknown field']
+    }
+  }
 };

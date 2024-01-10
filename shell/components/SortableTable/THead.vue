@@ -162,15 +162,13 @@ export default {
       const menu = document.querySelector('.table-options-container');
       const elem = document.querySelector('.table-options-btn');
 
-      if (!this.tableColsMenuPosition) {
-        this.tableColsMenuPosition = fitOnScreen(menu, ev || elem, {
-          overlapX:  true,
-          fudgeX:    26,
-          fudgeY:    -22,
-          positionX: CENTER,
-          positionY: AUTO,
-        });
-      }
+      this.tableColsMenuPosition = fitOnScreen(menu, ev || elem, {
+        overlapX:  true,
+        fudgeX:    326,
+        fudgeY:    -22,
+        positionX: CENTER,
+        positionY: AUTO,
+      });
 
       // toggle visibility
       this.tableColsOptionsVisibility = !this.tableColsOptionsVisibility;

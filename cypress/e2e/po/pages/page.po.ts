@@ -1,6 +1,7 @@
 import ComponentPo from '@/cypress/e2e/po/components/component.po';
 import BurgerMenuPo from '@/cypress/e2e/po/side-bars/burger-side-menu.po';
 import ProductNavPo from '@/cypress/e2e/po/side-bars/product-side-nav.po';
+import { HeaderPo } from '@/cypress/e2e/po/components/header.po';
 
 export default class PagePo extends ComponentPo {
   constructor(protected path: string, selector = '.dashboard-root') {
@@ -82,5 +83,9 @@ export default class PagePo extends ComponentPo {
     const nav = new ProductNavPo();
 
     nav.navToSideMenuEntryByLabel(label);
+  }
+
+  header() {
+    return new HeaderPo();
   }
 }

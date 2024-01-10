@@ -44,13 +44,7 @@ export default {
       this.serverUrl = this.serverUrlSetting.value;
     } else {
       this.noUrlSet = true;
-      if ( process.server ) {
-        const { req } = this.$nuxt.context;
-
-        this.serverUrl = req.headers.host;
-      } else {
-        this.serverUrl = window.location.origin;
-      }
+      this.serverUrl = window.location.origin;
     }
   },
 
@@ -82,7 +76,7 @@ export default {
     },
 
     enableRowActions() {
-      const schema = this.$store.getters[`management/schemaFor`](MANAGEMENT.SETTING);
+      const schema = this.$store.getters[`management/schemaFor`](MANAGEMENT.FEATURE);
 
       return schema?.resourceMethods?.includes('PUT');
     },

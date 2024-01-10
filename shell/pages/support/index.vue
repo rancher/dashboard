@@ -8,7 +8,6 @@ import { SETTING } from '@shell/config/settings';
 import { addParam } from '@shell/utils/url';
 import { isRancherPrime } from '@shell/config/version';
 import { hasCspAdapter } from 'mixins/brand';
-import { generateSupportLink } from '@shell/utils/version';
 
 export default {
   layout: 'home',
@@ -83,13 +82,8 @@ export default {
     },
 
     serverUrl() {
-      if (process.client) {
-        // Client-side rendered: use the current window location
-        return window.location.origin;
-      }
-
-      // Server-side rendered
-      return this.serverSetting?.value || '';
+      // Client-side rendered: use the current window location
+      return window.location.origin;
     },
 
     supportConfigLink() {
@@ -112,12 +106,6 @@ export default {
 
     sccLink() {
       return this.hasAWSSupport ? addParam('https://scc.suse.com', 'from_marketplace', '1') : 'https://scc.suse.com';
-    },
-
-    supportLink() {
-      const version = this.settings?.find((s) => s.id === SETTING.VERSION_RANCHER)?.value;
-
-      return generateSupportLink(version);
     }
   },
 
@@ -139,7 +127,7 @@ export default {
               <div class="support-link">
                 <a
                   class="support-link"
-                  :href="supportLink"
+                  href="https://www.rancher.com/support"
                   target="_blank"
                   rel="noopener noreferrer nofollow"
                 >{{ t('support.community.learnMore') }}</a>

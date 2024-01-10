@@ -5,9 +5,12 @@ export default Vue.directive('intNumber', {
     el.addEventListener('keypress', (e) => {
       e = e || window.event;
       const charcode = typeof e.charCode === 'number' ? e.charCode : e.keyCode;
-      const re = /\d/;
+      const inputChar = String.fromCharCode(charcode);
 
-      if (!re.test(String.fromCharCode(charcode)) && charcode > 9 && !e.ctrlKey) {
+      // Allow digits, minus sign at the beginning, and Ctrl key combinations
+      const re = /^-?\d*$/;
+
+      if (!re.test(inputChar) && charcode > 9 && !e.ctrlKey) {
         if (e.preventDefault) {
           e.preventDefault();
         } else {

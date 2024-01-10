@@ -706,6 +706,29 @@ export const FLEET_SUMMARY = {
   width:     100,
 };
 
+export const FLEET_REPO_CLUSTER_SUMMARY = {
+  name:      'clusterSummary',
+  labelKey:  'tableHeaders.clusterResources',
+  value:     'status.resourceCounts',
+  sort:      false,
+  search:    false,
+  formatter: 'FleetClusterSummaryGraph',
+  align:     'center',
+  width:     100,
+};
+
+export const FLEET_REPO_PER_CLUSTER_STATE = {
+  name:          'perClusterState',
+  labelKey:      'tableHeaders.repoPerClusterState',
+  tooltip:       'tableHeaders.repoPerClusterStateTooltip',
+  sort:          ['stateSort', 'nameSort'],
+  width:         100,
+  default:       'unknown',
+  formatter:     'BadgeStateFormatter',
+  formatterOpts: { arbitrary: true }
+
+};
+
 export const APP_SUMMARY = {
   name:      'summary',
   labelKey:  'tableHeaders.resources',
@@ -971,6 +994,30 @@ export const FLEET_BUNDLE_TYPE = {
   width:    100,
 };
 
+export const FLEET_REPO_CLUSTERS_READY = {
+  name:     'clustersReady',
+  labelKey: 'tableHeaders.clustersReady',
+  value:    'status.readyClusters',
+  sort:     'status.readyClusters',
+  search:   false,
+};
+
+export const FLEET_REPO_TARGET = {
+  name:     'target',
+  labelKey: 'tableHeaders.target',
+  value:    'targetInfo.modeDisplay',
+  sort:     ['targetInfo.modeDisplay', 'targetInfo.cluster', 'targetInfo.clusterGroup'],
+
+};
+
+export const FLEET_REPO = {
+  name:     'repo',
+  labelKey: 'tableHeaders.repo',
+  value:    'repoDisplay',
+  sort:     'repoDisplay',
+  search:   ['spec.repo', 'status.commit'],
+};
+
 export const UI_PLUGIN_CATALOG = [
   {
     name:          'state',
@@ -993,13 +1040,12 @@ export const UI_PLUGIN_CATALOG = [
     name:     'image',
     sort:     ['image'],
     labelKey: 'plugins.manageCatalog.headers.image.label',
-    value:    'deploymentImage'
+    value:    'image'
   },
   {
-    name:      'cacheState',
-    sort:      ['cacheState'],
-    labelKey:  'plugins.manageCatalog.headers.cacheState.label',
-    value:     'cacheState',
-    formatter: 'ExtensionCache'
+    name:     'repository',
+    sort:     ['repository'],
+    labelKey: 'plugins.manageCatalog.headers.repository.label',
+    value:    'repo.metadata.name'
   }
 ];

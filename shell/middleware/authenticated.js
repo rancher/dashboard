@@ -8,13 +8,14 @@ import { MANAGEMENT, NORMAN, DEFAULT_WORKSPACE } from '@shell/config/types';
 import { _ALL_IF_AUTHED } from '@shell/plugins/dashboard-store/actions';
 import { applyProducts } from '@shell/store/type-map';
 import { findBy } from '@shell/utils/array';
-import { ClusterNotFoundError } from '@shell/utils/error';
+import { ClusterNotFoundError, RedirectToError } from '@shell/utils/error';
 import { get } from '@shell/utils/object';
 import { setFavIcon, haveSetFavIcon } from '@shell/utils/favicon';
 import dynamicPluginLoader from '@shell/pkg/dynamic-plugin-loader';
 import { AFTER_LOGIN_ROUTE, WORKSPACE } from '@shell/store/prefs';
 import { BACK_TO } from '@shell/config/local-storage';
 import { NAME as FLEET_NAME } from '@shell/config/product/fleet.js';
+import { canViewResource } from '@shell/utils/auth';
 
 const getPackageFromRoute = (route) => {
   if (!route?.meta) {
@@ -133,20 +134,7 @@ function invalidResource(store, to, redirect) {
     return false;
   }
 
-  // Note - don't use the current products store... because products can override stores for resources with `typeStoreMap`
-  const inStore = store.getters['currentStore'](resource);
-  // There's a chance we're in an extension's product who's store could be anything, so confirm schemaFor exists
-  const schemaFor = store.getters[`${ inStore }/schemaFor`];
-
-  // In order to check a resource is valid we need these
-  if (!inStore || !schemaFor) {
-    return false;
-  }
-
-  // Resource is valid if a schema exists for it (standard resource, spoofed resource) or it's a virtual resource
-  const validResource = schemaFor(resource) || store.getters['type-map/isVirtual'](resource);
-
-  if (validResource) {
+  if (canViewResource(store, resource)) {
     return false;
   }
 
@@ -317,9 +305,6 @@ export default async function({
             notLoggedIn();
           } else {
             store.commit('setError', { error: e, locationError: new Error('Auth Middleware') });
-            if ( process.server ) {
-              redirect(302, '/fail-whale');
-            }
           }
 
           return;
@@ -330,14 +315,12 @@ export default async function({
     store.dispatch('gcStartIntervals');
   }
 
-  if (!process.server) {
-    const backTo = window.localStorage.getItem(BACK_TO);
+  const backTo = window.localStorage.getItem(BACK_TO);
 
-    if (backTo) {
-      window.localStorage.removeItem(BACK_TO);
+  if (backTo) {
+    window.localStorage.removeItem(BACK_TO);
 
-      window.location.href = backTo;
-    }
+    window.location.href = backTo;
   }
 
   // GC should be notified of route change before any find/get request is made that might be used for that page
@@ -378,14 +361,12 @@ export default async function({
       return redirected();
     }
 
-    if (process.client) {
-      store.app.router.afterEach((to, from) => {
-        // Clear state used to record if back button was used for navigation
-        setTimeout(() => {
-          window._popStateDetected = false;
-        }, 1);
-      });
-    }
+    store.app.router.afterEach((to, from) => {
+      // Clear state used to record if back button was used for navigation
+      setTimeout(() => {
+        window._popStateDetected = false;
+      }, 1);
+    });
   }
 
   try {
@@ -514,8 +495,10 @@ export default async function({
       }
     }
   } catch (e) {
-    if ( e instanceof ClusterNotFoundError ) {
+    if ( e.name === ClusterNotFoundError.name ) {
       return redirect(302, '/home');
+    } if ( e.name === RedirectToError.name ) {
+      return redirect(302, e.url);
     } else {
       // Sets error 500 if lost connection to API
       store.commit('setError', { error: e, locationError: new Error(store.getters['i18n/t']('nav.failWhale.authMiddleware')) });

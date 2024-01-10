@@ -2,7 +2,6 @@
 import Loading from '@shell/components/Loading';
 import CreateEditView from '@shell/mixins/create-edit-view';
 import LabeledSelect from '@shell/components/form/LabeledSelect';
-// import { Checkbox } from '@components/Form/Checkbox';
 import { exceptionToErrorsArray, stringify } from '@shell/utils/error';
 import { Banner } from '@components/Banner';
 import UnitInput from '@shell/components/form/UnitInput';
@@ -14,9 +13,9 @@ import ArrayListSelect from '@shell/components/form/ArrayListSelect';
 import YamlEditor from '@shell/components/YamlEditor';
 import { get, set } from '@shell/utils/object';
 import { integerString, keyValueStrings } from '@shell/utils/computed';
-import { _CREATE } from '@shell/config/query-params';
+import { _CREATE, _EDIT, _VIEW } from '@shell/config/query-params';
 
-const SENTINEL = '__SENTINEL__';
+export const SENTINEL = '__SENTINEL__';
 const VAPP_MODE = {
   DISABLED: 'disabled',
   AUTO:     'auto',
@@ -39,7 +38,17 @@ const OS_OPTIONS = [
   'linux',
   'windows'
 ];
-const DEFAULT_CFGPARAM = ['disk.enableUUID=TRUE'];
+
+export const DEFAULT_VALUES = {
+  cpuCount:                '2',
+  diskSize:                '20000',
+  memorySize:              '4096',
+  hostsystem:              '',
+  cloudConfig:             '#cloud-config\n\n',
+  gracefulShutdownTimeout: '0',
+  cfgparam:                ['disk.enableUUID=TRUE'],
+  os:                      OS_OPTIONS[0]
+};
 
 const getDefaultVappOptions = (networks) => {
   return {
@@ -98,7 +107,7 @@ const getInitialVappMode = (c) => {
     return VAPP_MODE.DISABLED;
   }
 
-  const d = getDefaultVappOptions(c.network);
+  const d = getDefaultVappOptions(c.network || []);
 
   if (
     c.vappIpprotocol === d.vappIpprotocol &&
@@ -136,6 +145,11 @@ function createOptionHelpers(name) {
   };
 }
 
+const errorActions = Object.freeze({
+  CREATE: 'create',
+  DELETE: 'delete',
+});
+
 export default {
   components: {
     ArrayListSelect, Card, KeyValue, Loading, LabeledInput, LabeledSelect, Banner, UnitInput, RadioGroup, YamlEditor
@@ -144,6 +158,10 @@ export default {
   mixins: [CreateEditView],
 
   props: {
+    poolId: {
+      type:    String,
+      default: '',
+    },
     credentialId: {
       type:     String,
       required: true,
@@ -208,15 +226,27 @@ export default {
     if (this.mode === _CREATE && !this.value.initted) {
       Object.defineProperty(this.value, 'initted', { value: true, enumerable: false });
 
+      const {
+        cpuCount,
+        diskSize,
+        memorySize,
+        hostsystem,
+        cloudConfig,
+        gracefulShutdownTimeout,
+        cfgparam,
+        os
+      } = DEFAULT_VALUES;
+
       set(this.value, 'creationType', creationMethods[0].value);
-      set(this.value, 'cpuCount', '2');
-      set(this.value, 'diskSize', '20000');
-      set(this.value, 'memorySize', '4096');
-      set(this.value, 'hostsystem', '');
-      set(this.value, 'cloudConfig', '#cloud-config\n\n');
-      set(this.value, 'cfgparam', DEFAULT_CFGPARAM);
+      set(this.value, 'cpuCount', cpuCount);
+      set(this.value, 'diskSize', diskSize);
+      set(this.value, 'memorySize', memorySize);
+      set(this.value, 'hostsystem', hostsystem);
+      set(this.value, 'gracefulShutdownTimeout', gracefulShutdownTimeout);
+      set(this.value, 'cloudConfig', cloudConfig);
+      set(this.value, 'cfgparam', cfgparam);
       set(this.value, 'vappProperty', this.value.vappProperty);
-      set(this.value, 'os', OS_OPTIONS[0]);
+      set(this.value, 'os', os);
       Object.entries(INITIAL_VAPP_OPTIONS).forEach(([key, value]) => {
         set(this.value, key, value);
       });
@@ -246,6 +276,7 @@ export default {
       vAppOptions,
       vappMode:                 getInitialVappMode(this.value),
       osOptions:                OS_OPTIONS,
+      validationErrors:         {},
     };
   },
 
@@ -264,6 +295,10 @@ export default {
     ...createOptionHelpers('tags'),
     ...createOptionHelpers('attributeKeys'),
     ...createOptionHelpers('networks'),
+
+    isDisabled() {
+      return this.disabled || this.mode === _VIEW;
+    },
 
     showTemplate() {
       return this.value.creationType === 'template';
@@ -294,7 +329,9 @@ export default {
     },
 
     templateTooltip() {
-      return this.failedToLoadTemplates ? this.t('cluster.machineConfig.vsphere.instanceOptions.template.none') : null;
+      const rawTemplateValue = this.value.cloneFrom;
+
+      return this.failedToLoadTemplates ? this.t('cluster.machineConfig.vsphere.instanceOptions.template.none') : rawTemplateValue;
     },
 
     host: {
@@ -315,6 +352,26 @@ export default {
     cpuCount:   integerString('value.cpuCount'),
     memorySize: integerString('value.memorySize'),
     diskSize:   integerString('value.diskSize'),
+
+    gracefulShutdownTimeout: integerString('value.gracefulShutdownTimeout'),
+
+    network: {
+      get() {
+        return this.value.network || [];
+      },
+      set(newValue) {
+        set(this.value, 'network', newValue);
+      }
+    },
+
+    tag: {
+      get() {
+        return this.value.tag || [];
+      },
+      set(newValue) {
+        set(this.value, 'tag', newValue);
+      }
+    },
 
     showCloudConfigYaml() {
       return this.value.creationType !== 'legacy';
@@ -341,12 +398,15 @@ export default {
     },
     vappMode(value) {
       if (value === VAPP_MODE.AUTO) {
-        const defaultVappOptions = getDefaultVappOptions(this.value.network);
+        const defaultVappOptions = getDefaultVappOptions(this.value.network || []);
 
         return this.updateVappOptions(defaultVappOptions);
       }
 
       this.updateVappOptions(INITIAL_VAPP_OPTIONS);
+    },
+    validationErrors(value) {
+      this.$emit('error', value);
     }
   },
 
@@ -384,9 +444,17 @@ export default {
       const valueInContent = content.find((c) => c.value === this.value.datacenter );
 
       if (!valueInContent) {
-        set(this.value, 'datacenter', options[0]);
-        set(this.value, 'cloneFrom', undefined);
-        set(this.value, 'useDataStoreCluster', false);
+        if (this.mode === _CREATE) {
+          set(this.value, 'datacenter', options[0]);
+          set(this.value, 'cloneFrom', undefined);
+          set(this.value, 'useDataStoreCluster', false);
+        }
+
+        if ([_EDIT, _VIEW].includes(this.mode)) {
+          this.manageErrors(errorActions.CREATE, 'datacenter');
+        }
+      } else {
+        this.manageErrors(errorActions.DELETE, 'datacenter');
       }
 
       set(this, 'dataCentersResults', content);
@@ -443,7 +511,7 @@ export default {
 
       const options = await this.requestOptions('resource-pools', this.value.datacenter);
 
-      const content = this.mapPoolOptionsToContent(options);
+      const content = this.mapPathOptionsToContent(options);
 
       this.resetValueIfNecessary('pool', content, options);
 
@@ -575,27 +643,33 @@ export default {
     resetValueIfNecessary(key, content, options, isArray = false) {
       const isValueInContent = () => {
         if (isArray) {
-          return this.value[key].every((value) => content.find((c) => c.value === value));
+          return this.value[key]?.every((value) => content.find((c) => c.value === value));
         }
 
         return content.find((c) => c.value === this.value[key] );
       };
 
       if (!isValueInContent()) {
-        const value = isArray ? [] : content[0]?.value;
+        if (this.mode === _CREATE) {
+          const value = isArray ? [] : content[0]?.value;
 
-        if (value !== SENTINEL) {
-          set(this.value, key, value);
+          if (value !== SENTINEL) {
+            set(this.value, key, value);
+          }
         }
+
+        if ([_EDIT, _VIEW].includes(this.mode)) {
+          this.manageErrors(errorActions.CREATE, key);
+        }
+      } else {
+        this.manageErrors(errorActions.DELETE, key);
       }
     },
 
     mapPathOptionsToContent(pathOptions) {
       return (pathOptions || []).map((pathOption) => {
-        const split = pathOption.split('/');
-
         return {
-          label: split[split.length - 1],
+          label: pathOption,
           value: pathOption
         };
       });
@@ -614,18 +688,6 @@ export default {
         label: option || '\u00A0',
         value: option || ''
       }));
-    },
-
-    mapPoolOptionsToContent(pathOptions) {
-      return pathOptions.map((pathOption) => {
-        const splitOptions = pathOption.split('/');
-        const label = splitOptions.slice(2).join('/');
-
-        return {
-          label,
-          value: pathOption
-        };
-      });
     },
 
     mapCustomAttributesToContent(customAttributes) {
@@ -653,6 +715,18 @@ export default {
       set(this.value, 'vappTransport', opts.vappTransport);
       set(this.value, 'vappProperty', opts.vappProperty);
       this.initKeyValueParams('value.vappProperty', 'initVappArray');
+    },
+
+    manageErrors(action = errorActions.CREATE, key) {
+      if (action === errorActions.CREATE) {
+        const keys = [key, ...(this.validationErrors[this.poolId] || [])];
+
+        this.validationErrors = Object.assign({}, this.validationErrors, { [this.poolId]: keys });
+      }
+
+      if (action === errorActions.DELETE && this.validationErrors[this.poolId]) {
+        this.validationErrors = Object.assign({}, this.validationErrors, { [this.poolId]: this.validationErrors[this.poolId].filter((x) => x === key) }) ;
+      }
     },
   }
 };
@@ -690,7 +764,10 @@ export default {
         </p>
       </h4>
       <div slot="body">
-        <div class="row">
+        <div
+          class="row"
+          data-testid="datacenter"
+        >
           <div class="col span-6">
             <LabeledSelect
               v-model="value.datacenter"
@@ -698,54 +775,87 @@ export default {
               :mode="mode"
               :options="dataCenters"
               :label="t('cluster.machineConfig.vsphere.scheduling.dataCenter')"
-              :disabled="disabled"
+              :disabled="isDisabled"
+              :tooltip="value.datacenter"
             />
           </div>
-          <div class="col span-6">
+          <div
+            class="col span-6"
+            data-testid="resourcePool"
+          >
             <LabeledSelect
               v-model="value.pool"
               :loading="resourcePoolsLoading"
               :mode="mode"
               :options="resourcePools"
               :label="t('cluster.machineConfig.vsphere.scheduling.resourcePool')"
-              :disabled="disabled"
+              :disabled="isDisabled"
+              :tooltip="value.pool"
             />
           </div>
         </div>
         <div class="row mt-10">
-          <div class="col span-6">
+          <div
+            class="col span-6"
+            data-testid="dataStore"
+          >
             <LabeledSelect
               v-model="value.datastore"
               :loading="dataStoresLoading"
               :mode="mode"
               :options="dataStores"
               :label="t('cluster.machineConfig.vsphere.scheduling.dataStore')"
-              :disabled="disabled"
+              :disabled="isDisabled"
+              :tooltip="value.datastore"
             />
           </div>
-          <div class="col span-6">
+          <div
+            class="col span-6"
+            data-testid="folder"
+          >
             <LabeledSelect
               v-model="value.folder"
               :loading="foldersLoading"
               :mode="mode"
               :options="folders"
               :label="t('cluster.machineConfig.vsphere.scheduling.folder')"
-              :disabled="disabled"
+              :disabled="isDisabled"
+              :tooltip="value.folder"
             />
           </div>
         </div>
         <div class="row mt-10">
-          <div class="col span-12">
+          <div
+            class="col span-6"
+            data-testid="host"
+          >
             <LabeledSelect
               v-model="host"
               :loading="hostsLoading"
               :mode="mode"
               :options="hosts"
               :label="t('cluster.machineConfig.vsphere.scheduling.host.label')"
-              :disabled="disabled"
+              :disabled="isDisabled"
+              :tooltip="host"
             />
             <p class="text-muted mt-5">
               {{ t('cluster.machineConfig.vsphere.scheduling.host.note') }}
+            </p>
+          </div>
+          <div
+            class="col span-6"
+            data-testid="gracefulShutdownTimeout"
+          >
+            <UnitInput
+              v-model="gracefulShutdownTimeout"
+              :mode="mode"
+              :label="t('cluster.machineConfig.vsphere.scheduling.gracefulShutdownTimeout.label')"
+              :suffix="t('suffix.seconds', { count: gracefulShutdownTimeout})"
+              :disabled="isDisabled"
+              min="0"
+            />
+            <p class="text-muted mt-5">
+              {{ t('cluster.machineConfig.vsphere.scheduling.gracefulShutdownTimeout.note') }}
             </p>
           </div>
         </div>
@@ -773,7 +883,7 @@ export default {
               :mode="mode"
               :label="t('cluster.machineConfig.vsphere.instanceOptions.cpus')"
               :suffix="t('suffix.cores')"
-              :disabled="disabled"
+              :disabled="isDisabled"
             />
           </div>
           <div class="col span-6">
@@ -782,7 +892,7 @@ export default {
               :mode="mode"
               :label="t('cluster.machineConfig.vsphere.instanceOptions.memory')"
               :suffix="t('suffix.mib')"
-              :disabled="disabled"
+              :disabled="isDisabled"
             />
           </div>
         </div>
@@ -793,7 +903,7 @@ export default {
               :mode="mode"
               :label="t('cluster.machineConfig.vsphere.instanceOptions.disk')"
               :suffix="t('suffix.mib')"
-              :disabled="disabled"
+              :disabled="isDisabled"
             />
           </div>
           <div class="col span-6">
@@ -802,7 +912,7 @@ export default {
               :mode="mode"
               :options="osOptions"
               :label="t('cluster.machineConfig.vsphere.instanceOptions.os')"
-              :disabled="disabled"
+              :disabled="isDisabled"
             />
           </div>
         </div>
@@ -816,7 +926,7 @@ export default {
               :mode="mode"
               :options="creationMethods"
               :label="t('cluster.machineConfig.vsphere.instanceOptions.creationMethod')"
-              :disabled="disabled"
+              :disabled="isDisabled"
             />
           </div>
           <div
@@ -829,7 +939,7 @@ export default {
               :mode="mode"
               :options="templates"
               :label="t('cluster.machineConfig.vsphere.instanceOptions.template.label')"
-              :disabled="disabled"
+              :disabled="isDisabled"
               :status="templateStatus"
               :tooltip="templateTooltip"
             />
@@ -844,7 +954,7 @@ export default {
               :mode="mode"
               :options="contentLibraries"
               :label="t('cluster.machineConfig.vsphere.instanceOptions.contentLibrary')"
-              :disabled="disabled"
+              :disabled="isDisabled"
             />
           </div>
           <div
@@ -858,7 +968,8 @@ export default {
               :options="libraryTemplates"
               :searchable="true"
               :label="t('cluster.machineConfig.vsphere.instanceOptions.libraryTemplate')"
-              :disabled="disabled"
+              :disabled="isDisabled"
+              :tooltip="value.cloneFrom"
             />
           </div>
           <div
@@ -871,7 +982,8 @@ export default {
               :mode="mode"
               :options="virtualMachines"
               :label="t('cluster.machineConfig.vsphere.instanceOptions.virtualMachine')"
-              :disabled="disabled"
+              :disabled="isDisabled"
+              :tooltip="value.cloneFrom"
             />
           </div>
           <div
@@ -883,7 +995,7 @@ export default {
               :mode="mode"
               :label="t('cluster.machineConfig.vsphere.instanceOptions.osIsoUrl.label')"
               :placeholder="t('cluster.machineConfig.vsphere.instanceOptions.osIsoUrl.placeholder')"
-              :disabled="disabled"
+              :disabled="isDisabled"
             />
           </div>
         </div>
@@ -897,7 +1009,7 @@ export default {
               :mode="mode"
               :label="t('cluster.machineConfig.vsphere.instanceOptions.cloudInit.label')"
               :placeholder="t('cluster.machineConfig.vsphere.instanceOptions.cloudInit.placeholder')"
-              :disabled="disabled"
+              :disabled="isDisabled"
             />
             <p class="text-muted mt-5">
               {{ t('cluster.machineConfig.vsphere.instanceOptions.cloudInit.note') }}
@@ -914,7 +1026,7 @@ export default {
               ref="yaml-additional"
               v-model="value.cloudConfig"
               :editor-mode="mode === 'view' ? 'VIEW_CODE' : 'EDIT_CODE'"
-              :disabled="disabled"
+              :disabled="isDisabled"
               initial-yaml-values="# Additional Manifest YAML"
               class="yaml-editor"
             />
@@ -926,11 +1038,11 @@ export default {
               {{ t('cluster.machineConfig.vsphere.networks.label') }}
             </label>
             <ArrayListSelect
-              v-model="value.network"
+              v-model="network"
               :options="networks"
               :array-list-props="{ addLabel: t('cluster.machineConfig.vsphere.networks.add') }"
               :loading="networksLoading"
-              :disabled="disabled"
+              :disabled="isDisabled"
             />
           </div>
         </div>
@@ -945,7 +1057,7 @@ export default {
               :key-placeholder="t('cluster.machineConfig.vsphere.guestinfo.keyPlaceholder')"
               :value-placeholder="t('cluster.machineConfig.vsphere.guestinfo.valuePlaceholder')"
               :read-allowed="false"
-              :disabled="disabled"
+              :disabled="isDisabled"
             />
           </div>
         </div>
@@ -968,11 +1080,11 @@ export default {
       </h4>
       <div slot="body">
         <ArrayListSelect
-          v-model="value.tag"
+          v-model="tag"
           :options="tags"
           :array-list-props="{ addLabel: t('cluster.machineConfig.vsphere.tags.addTag') }"
           :loading="tagsLoading"
-          :disabled="disabled"
+          :disabled="isDisabled"
         />
       </div>
     </Card>
@@ -1001,7 +1113,7 @@ export default {
           :loading="attributeKeysLoading"
           :key-taggable="false"
           :key-option-unique="true"
-          :disabled="disabled"
+          :disabled="isDisabled"
         />
       </div>
     </Card>
@@ -1027,7 +1139,7 @@ export default {
               name="restoreMode"
               :label="t('cluster.machineConfig.vsphere.vAppOptions.restoreType')"
               :options="vAppOptions"
-              :disabled="disabled"
+              :disabled="isDisabled"
             />
           </div>
         </div>
@@ -1042,7 +1154,7 @@ export default {
               :label="t('cluster.machineConfig.vsphere.vAppOptions.transport.label')"
               :tooltip="t('cluster.machineConfig.vsphere.vAppOptions.transport.tooltip')"
               :placeholder="t('cluster.machineConfig.vsphere.vAppOptions.transport.placeholder')"
-              :disabled="disabled"
+              :disabled="isDisabled"
             />
           </div>
           <div class="col span-4">
@@ -1052,7 +1164,7 @@ export default {
               :label="t('cluster.machineConfig.vsphere.vAppOptions.protocol.label')"
               :tooltip="t('cluster.machineConfig.vsphere.vAppOptions.protocol.tooltip')"
               :placeholder="t('cluster.machineConfig.vsphere.vAppOptions.protocol.placeholder')"
-              :disabled="disabled"
+              :disabled="isDisabled"
             />
           </div>
           <div class="col span-4">
@@ -1062,7 +1174,7 @@ export default {
               :label="t('cluster.machineConfig.vsphere.vAppOptions.allocation.label')"
               :tooltip="t('cluster.machineConfig.vsphere.vAppOptions.allocation.tooltip')"
               :placeholder="t('cluster.machineConfig.vsphere.vAppOptions.allocation.placeholder')"
-              :disabled="disabled"
+              :disabled="isDisabled"
             />
           </div>
         </div>
@@ -1078,7 +1190,7 @@ export default {
               :value-placeholder="t('cluster.machineConfig.vsphere.vAppOptions.properties.valuePlaceholder')"
               :add-label="t('cluster.machineConfig.vsphere.vAppOptions.properties.add')"
               :read-allowed="false"
-              :disabled="disabled"
+              :disabled="isDisabled"
             />
           </div>
         </div>
@@ -1086,3 +1198,9 @@ export default {
     </Card>
   </div>
 </template>
+
+<style lang="scss" scoped>
+::v-deep .labeled-tooltip .status-icon.icon-info {
+    z-index: 0;
+}
+</style>

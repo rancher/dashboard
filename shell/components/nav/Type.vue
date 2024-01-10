@@ -1,6 +1,7 @@
 <script>
 import Favorite from '@shell/components/nav/Favorite';
 import { FAVORITE, USED } from '@shell/store/type-map';
+import { linkActiveClass } from '@shell/config/router';
 
 const showFavoritesFor = [FAVORITE, USED];
 
@@ -27,18 +28,75 @@ export default {
 
   data() {
     return {
-      near: false,
-      over: false,
+      near:     false,
+      over:     false,
+      menuPath: this.type.route ? this.$router.resolve(this.type.route)?.route?.path : undefined,
+      linkActiveClass
     };
   },
 
   computed: {
+    isCurrent() {
+      // This is required to avoid scenarios where fragments break vue routers location matching
+      // For example, the following fails
+      // Curruent Path /c/c-m-hzqf4tqt/explorer/members#project-membership
+      // Menu Path /c/c-m-hzqf4tqt/explorer/members
+      // vue-router exact-path="true" fixes this (https://v3.router.vuejs.org/api/#exact-path),
+      // but fails when the the current path is a child (for instance a resource detail page)
+
+      // Scenarios to consider
+      // - Fragement world
+      //   Curruent Path /c/c-m-hzqf4tqt/explorer/members#project-membership
+      //   Menu Path /c/c-m-hzqf4tqt/explorer/members
+      // - Similar current paths
+      //   /c/c-m-hzqf4tqt/fleet/fleet.cattle.io.bundlenamespacemapping
+      //   /c/c-m-hzqf4tqt/fleet/fleet.cattle.io.bundle
+      // - Other menu items that appear in current menu item
+      //   /c/c-m-hzqf4tqt/fleet
+      //   /c/c-m-hzqf4tqt/fleet/management.cattle.io.fleetworkspace
+
+      // If there's no hash the n-link will determine it's linkActiveClass correctly, so avoid this faff
+      const invalidHash = !this.$route.hash;
+      // Lets be super safe
+      const invalidProps = !this.menuPath || !this.$route.path;
+
+      if (invalidHash || invalidProps) {
+        return false;
+      }
+
+      // We're kind of, but in a fixing way, copying n-link --> vue-router link see vue-router/src/components/link.js & vue-router/src/util/route.js
+      // We're only going to compare the path and ignore query and fragment
+
+      if (this.type.exact) {
+        return this.$route.path === this.menuPath;
+      }
+
+      const currentPath = this.$route.path.split('/');
+      const menuPath = this.menuPath.split('/');
+
+      if (menuPath.length > currentPath.length) {
+        return false;
+      }
+
+      for (let i = 0; i < menuPath.length; i++) {
+        if (menuPath[i] !== currentPath[i]) {
+          return false;
+        }
+      }
+
+      return true;
+    },
+
     showFavorite() {
       return ( this.type.mode && this.near && showFavoritesFor.includes(this.type.mode) );
     },
 
     showCount() {
       return typeof this.type.count !== 'undefined';
+    },
+
+    namespaceIcon() {
+      return this.type.namespaced;
     },
   },
 
@@ -76,7 +134,7 @@ export default {
     :to="type.route"
     tag="li"
     class="child nav-type"
-    :class="{'root': isRoot, [`depth-${depth}`]: true}"
+    :class="{'root': isRoot, [`depth-${depth}`]: true, [linkActiveClass]: isCurrent}"
     :exact="type.exact"
   >
     <a
@@ -101,6 +159,10 @@ export default {
         <Favorite
           v-if="showFavorite"
           :resource="type.name"
+        />
+        <i
+          v-if="namespaceIcon"
+          class="icon icon-namespace namespaced"
         />
         {{ type.count }}
       </span>
@@ -127,13 +189,16 @@ export default {
 </template>
 
 <style lang="scss" scoped>
+  .namespaced {
+    margin-right: 4px;
+  }
+
   .child {
     margin: 0 var(--outline) 0 0;
 
     .label {
       align-items: center;
       grid-area: label;
-      display: flex;
       overflow: hidden;
       text-overflow: ellipsis;
 
@@ -166,6 +231,7 @@ export default {
       text-overflow: ellipsis;
       white-space: nowrap;
       color: var(--body-text);
+      height: 33px;
 
       &:hover {
         background: var(--nav-hover);
@@ -181,24 +247,38 @@ export default {
       grid-area: favorite;
       font-size: 12px;
       position: relative;
+      vertical-align: middle;
+      margin-right: 4px;
     }
 
     .count {
-      grid-area: count;
       font-size: 12px;
-      text-align: right;
       justify-items: center;
       padding-right: 4px;
+      display: flex;
+      align-items: center;
     }
 
     &.nav-type:not(.depth-0) {
       A {
-        font-size: 13px;
-        padding: 5.5px 7px 5.5px 10px;
+        padding-left: 16px;
       }
 
       ::v-deep .label I {
         padding-right: 2px;
+      }
+    }
+
+    &.nav-type:is(.depth-1) {
+      A {
+        font-size: 13px;
+        padding-left: 23px;
+      }
+    }
+
+    &.nav-type:not(.depth-0):not(.depth-1) {
+      A {
+        padding-left: 14px;
       }
     }
   }

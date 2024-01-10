@@ -4,7 +4,6 @@ import { CATTLE_API_GROUP, SUBTYPE_MAPPING, CREATE_VERBS } from '@shell/models/m
 import { uniq } from '@shell/utils/array';
 import { get } from '@shell/utils/object';
 import SteveDescriptionModel from '@shell/plugins/steve/steve-description-class';
-import Role from './rbac.authorization.k8s.io.role';
 import { AS, MODE, _CLONE, _UNFLAG } from '@shell/config/query-params';
 
 const BASE = 'user-base';
@@ -16,7 +15,14 @@ const GLOBAL = SUBTYPE_MAPPING.GLOBAL.key;
 
 export default class GlobalRole extends SteveDescriptionModel {
   get customValidationRules() {
-    return Role.customValidationRules();
+    return [
+      {
+        path:       'rules',
+        validators: [`roleTemplateRules:${ this.type }`],
+        nullable:   false,
+        type:       'array',
+      },
+    ];
   }
 
   get details() {
@@ -136,6 +142,15 @@ export default class GlobalRole extends SteveDescriptionModel {
 
   async save() {
     const norman = await this.norman;
+
+    for (const rule of norman.rules) {
+      if (rule.nonResourceURLs && rule.nonResourceURLs.length) {
+        delete rule.resources;
+        delete rule.apiGroups;
+      } else {
+        delete rule.nonResourceURLs;
+      }
+    }
 
     return norman.save();
   }

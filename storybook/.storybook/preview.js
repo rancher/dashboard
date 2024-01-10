@@ -6,7 +6,6 @@ import IntlMessageFormat from 'intl-messageformat';
 import installShortcut from './theme-shortcut';
 import withEvents from 'storybook-auto-events';
 const i18nStrings = require('../../shell/assets/translations/en-us.yaml');
-import ClientOnly from 'vue-client-only';
 import { VCleanTooltip } from '@shell/plugins/clean-tooltip-directive.js';
 import ShortKey from 'vue-shortkey';
 import { trimWhitespace } from '../../shell/plugins/trim-whitespace';
@@ -22,13 +21,10 @@ require('../../shell/plugins/i18n');
 
 require('../../shell/plugins/v-select');
 require('../../shell/plugins/tooltip');
-
+require('../../shell/plugins/clean-html-directive');
 
 Vue.use(Vuex);
 Vue.use(ShortKey, { prevent: ['input', 'textarea', 'select'] });
-
-// Component: <ClientOnly>
-Vue.component(ClientOnly.name, ClientOnly);
 
 Vue.component('nuxt-link', {
   props:   ['to'],
@@ -45,6 +41,7 @@ window.__codeMirrorLoader = () => import(/* webpackChunkName: "codemirror" */ '@
 // Defines namespaced modules for the Store.
 export const store = new Vuex.Store({
   getters: {
+    'i18n/exists': key => store.getters['i18n/t'],
     'i18n/t': state => (key, args) => {
       const msg = get(i18nStrings, key) || key;
 

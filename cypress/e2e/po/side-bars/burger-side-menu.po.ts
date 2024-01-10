@@ -18,7 +18,7 @@ export default class BurgerMenuPo extends ComponentPo {
    * @returns {Cypress.Chainable}
    */
   static burgerMenuNavToMenubyLabel(label: string): Cypress.Chainable {
-    return this.sideMenu().should('exist').find('.option div:last-child').contains(label)
+    return this.sideMenu().should('exist').find('.option').contains(label)
       .click();
   }
 
@@ -35,14 +35,22 @@ export default class BurgerMenuPo extends ComponentPo {
    * Check if menu is open
    */
   static checkOpen() {
-    this.sideMenu().should('exist');
+    this.sideMenu().should('have.class', 'menu-open');
   }
 
   /**
    * Check if menu is closed
    */
   static checkClosed() {
-    this.sideMenu().should('not.exist');
+    this.sideMenu().should('have.class', 'menu-close');
+  }
+
+  static checkTooltipOn(): Cypress.Chainable {
+    return cy.get('.option').get('.cluster-icon-menu').first().should('have.class', 'has-tooltip');
+  }
+
+  static checkTooltipOff(): Cypress.Chainable {
+    return cy.get('.option').get('.cluster-icon-menu').first().should('have.not.class', 'has-tooltip');
   }
 
   /**
@@ -82,7 +90,21 @@ export default class BurgerMenuPo extends ComponentPo {
    * @returns {Cypress.Chainable}
    */
   clusters(): Cypress.Chainable {
-    return this.self().find('.body .clusters .cluster.selector.option');
+    return this.self().find('.body .clustersList .cluster.selector.option');
+  }
+
+  pinFirstCluster(): Cypress.Chainable {
+    return this.clusters().first().trigger('mouseover').find('.pin')
+      .invoke('show')
+      .click();
+  }
+
+  clusterPinnedList(): Cypress.Chainable {
+    return this.self().find('.body .clustersPinned .cluster.selector.option');
+  }
+
+  unpinFirstCluster(): Cypress.Chainable {
+    return this.clusterPinnedList().first().find('.pin').click();
   }
 
   /**
@@ -91,5 +113,21 @@ export default class BurgerMenuPo extends ComponentPo {
    */
   home(): Cypress.Chainable {
     return this.self().find('.body > div > a').first();
+  }
+
+  /**
+   * Get the About link
+   * @returns {Cypress.Chainable}
+   */
+  about(): Cypress.Chainable {
+    return this.self().contains('About');
+  }
+
+  /**
+   * Get the Get Support link
+   * @returns {Cypress.Chainable}
+   */
+  support(): Cypress.Chainable {
+    return this.self().contains('Get Support');
   }
 }

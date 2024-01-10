@@ -92,16 +92,17 @@ export default class ClusterNode extends SteveModel {
     return this.metadata.name;
   }
 
-  get internalIp() {
-    const addresses = this.status?.addresses || [];
+  get addresses() {
+    return this.status?.addresses || [];
+  }
 
-    return findLast(addresses, (address) => address.type === 'InternalIP')?.address;
+  get internalIp() {
+    return findLast(this.addresses, (address) => address.type === 'InternalIP')?.address;
   }
 
   get externalIp() {
-    const addresses = this.status?.addresses || [];
     const annotationAddress = this.metadata.annotations[RKE.EXTERNAL_IP];
-    const statusAddress = findLast(addresses, (address) => address.type === 'ExternalIP')?.address;
+    const statusAddress = findLast(this.addresses, (address) => address.type === 'ExternalIP')?.address;
 
     return statusAddress || annotationAddress;
   }
@@ -186,7 +187,7 @@ export default class ClusterNode extends SteveModel {
   }
 
   get cpuCapacity() {
-    return parseSi(this.status.allocatable.cpu);
+    return parseSi(this.status.allocatable?.cpu);
   }
 
   get cpuUsagePercentage() {
@@ -202,7 +203,7 @@ export default class ClusterNode extends SteveModel {
   }
 
   get ramCapacity() {
-    return parseSi(this.status.capacity.memory);
+    return parseSi(this.status.capacity?.memory);
   }
 
   get ramUsagePercentage() {
@@ -218,7 +219,7 @@ export default class ClusterNode extends SteveModel {
   }
 
   get podUsage() {
-    return calculatePercentage(this.status.allocatable.pods, this.status.capacity.pods);
+    return calculatePercentage(this.status.allocatable?.pods, this.status.capacity?.pods);
   }
 
   get podConsumedUsage() {
@@ -226,7 +227,7 @@ export default class ClusterNode extends SteveModel {
   }
 
   get podCapacity() {
-    return Number.parseInt(this.status.capacity.pods);
+    return Number.parseInt(this.status.capacity?.pods);
   }
 
   get podConsumed() {

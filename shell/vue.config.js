@@ -5,6 +5,8 @@ const webpack = require('webpack');
 const { generateDynamicTypeImport } = require('./pkg/auto-import');
 const CopyWebpackPlugin = require('copy-webpack-plugin');
 const serverMiddlewares = require('./server/server-middleware.js');
+const configHelper = require('./vue-config-helper.js');
+const har = require('./server/har-file');
 
 // Suppress info level logging messages from http-proxy-middleware
 // This hides all of the "[HPM Proxy created] ..." messages
@@ -20,24 +22,18 @@ console.info = oldInfoLogger; // eslint-disable-line no-console
 // const { STANDARD } = require('./config/private-label');
 const STANDARD = 1;
 
-const dev = (process.env.NODE_ENV !== 'production');
-const devPorts = dev || process.env.DEV_PORTS === 'true';
+const dev = configHelper.dev;
+const devPorts = configHelper.devPorts;
 
 // human readable version used on rancher dashboard about page
 const dashboardVersion = process.env.DASHBOARD_VERSION;
-
-const prime = process.env.PRIME;
 
 const pl = process.env.PL || STANDARD;
 const commit = process.env.COMMIT || 'head';
 const perfTest = (process.env.PERF_TEST === 'true'); // Enable performance testing when in dev
 const instrumentCode = (process.env.TEST_INSTRUMENT === 'true'); // Instrument code for code coverage in e2e tests
 
-let api = process.env.API || 'http://localhost:8989';
-
-if ( !api.startsWith('http') ) {
-  api = `https://${ api }`;
-}
+const api = configHelper.api;
 // ===============================================================================================
 // Nuxt configuration
 // ===============================================================================================
@@ -77,7 +73,9 @@ module.exports = function(dir, _appConfig) {
   ];
 
   if (instrumentCode) {
-    babelPlugins.push('babel-plugin-istanbul');
+    babelPlugins.push([
+      'babel-plugin-istanbul', { extension: ['.js', '.vue'] }, 'add-vue'
+    ]);
 
     console.warn('Instrumenting code for coverage'); // eslint-disable-line no-console
   }
@@ -253,10 +251,6 @@ module.exports = function(dir, _appConfig) {
     console.log(`Version: ${ dashboardVersion }`); // eslint-disable-line no-console
   }
 
-  if ( !dev ) {
-    console.log(`Version: ${ dashboardVersion }`); // eslint-disable-line no-console
-  }
-
   if ( resourceBase ) {
     console.log(`Resource Base URL: ${ resourceBase }`); // eslint-disable-line no-console
   }
@@ -276,27 +270,35 @@ module.exports = function(dir, _appConfig) {
   console.log(`API: '${ api }'. Env: '${ rancherEnv }'`); // eslint-disable-line no-console
   const proxy = {
     ...appConfig.proxies,
-    '/k8s':            proxyWsOpts(api), // Straight to a remote cluster (/k8s/clusters/<id>/)
-    '/pp':             proxyWsOpts(api), // For (epinio) standalone API
-    '/api':            proxyWsOpts(api), // Management k8s API
-    '/apis':           proxyWsOpts(api), // Management k8s API
-    '/v1':             proxyWsOpts(api), // Management Steve API
-    '/v3':             proxyWsOpts(api), // Rancher API
-    '/v3-public':      proxyOpts(api), // Rancher Unauthed API
-    '/api-ui':         proxyOpts(api), // Browser API UI
-    '/meta':           proxyMetaOpts(api), // Browser API UI
-    '/v1-*':           proxyOpts(api), // SAML, KDM, etc
-    '/rancherversion': proxyPrimeOpts(api), // Rancher version endpoint
+    '/k8s':            configHelper.proxyWsOpts(api), // Straight to a remote cluster (/k8s/clusters/<id>/)
+    '/pp':             configHelper.proxyWsOpts(api), // For (epinio) standalone API
+    '/api':            configHelper.proxyWsOpts(api), // Management k8s API
+    '/apis':           configHelper.proxyWsOpts(api), // Management k8s API
+    '/v1':             configHelper.proxyWsOpts(api), // Management Steve API
+    '/v3':             configHelper.proxyWsOpts(api), // Rancher API
+    '/v3-public':      configHelper.proxyOpts(api), // Rancher Unauthed API
+    '/api-ui':         configHelper.proxyOpts(api), // Browser API UI
+    '/meta':           configHelper.proxyMetaOpts(api), // Browser API UI
+    '/v1-*':           configHelper.proxyOpts(api), // SAML, KDM, etc
+    '/rancherversion': configHelper.proxyPrimeOpts(api), // Rancher version endpoint
     // These are for Ember embedding
-    '/c/*/edit':       proxyOpts('https://127.0.0.1:8000'), // Can't proxy all of /c because that's used by Vue too
-    '/k/':             proxyOpts('https://127.0.0.1:8000'),
-    '/g/':             proxyOpts('https://127.0.0.1:8000'),
-    '/n/':             proxyOpts('https://127.0.0.1:8000'),
-    '/p/':             proxyOpts('https://127.0.0.1:8000'),
-    '/assets':         proxyOpts('https://127.0.0.1:8000'),
-    '/translations':   proxyOpts('https://127.0.0.1:8000'),
-    '/engines-dist':   proxyOpts('https://127.0.0.1:8000'),
+    '/c/*/edit':       configHelper.proxyOpts('https://127.0.0.1:8000'), // Can't proxy all of /c because that's used by Vue too
+    '/k/':             configHelper.proxyOpts('https://127.0.0.1:8000'),
+    '/g/':             configHelper.proxyOpts('https://127.0.0.1:8000'),
+    '/n/':             configHelper.proxyOpts('https://127.0.0.1:8000'),
+    '/p/':             configHelper.proxyOpts('https://127.0.0.1:8000'),
+    '/assets':         configHelper.proxyOpts('https://127.0.0.1:8000'),
+    '/translations':   configHelper.proxyOpts('https://127.0.0.1:8000'),
+    '/engines-dist':   configHelper.proxyOpts('https://127.0.0.1:8000'),
   };
+
+  // HAR File support - load network responses from the specified .har file and use those rather than communicating to the Rancher server
+  const harFile = process.env.HAR_FILE;
+  let harData;
+
+  if (harFile) {
+    harData = har.loadFile(harFile, devPorts ? 8005 : 80, ''); // eslint-disable-line no-console
+  }
 
   const config = {
     // Vue server
@@ -319,6 +321,19 @@ module.exports = function(dir, _appConfig) {
         });
 
         app.use(serverMiddlewares);
+
+        if (harData) {
+          console.log('Installing HAR file middleware'); // eslint-disable-line no-console
+          app.use(har.harProxy(harData, process.env.HAR_DIR));
+
+          server.websocketProxies.push({
+            upgrade(req, socket, head) {
+              const responseHeaders = ['HTTP/1.1 101 Web Socket Protocol Handshake', 'Upgrade: WebSocket', 'Connection: Upgrade'];
+
+              socket.write(`${ responseHeaders.join('\r\n') }\r\n\r\n`);
+            }
+          });
+        }
 
         Object.keys(proxy).forEach((p) => {
           const px = createProxyMiddleware({
@@ -394,7 +409,6 @@ module.exports = function(dir, _appConfig) {
       // DefinePlugin does string replacement within our code. We may want to consider replacing it with something else. In code we'll see something like
       // process.env.commit even though process and env aren't even defined objects. This could cause people to be mislead.
       config.plugins.push(new webpack.DefinePlugin({
-        'process.client':                  JSON.stringify(true),
         'process.env.commit':              JSON.stringify(commit),
         'process.env.version':             JSON.stringify(dashboardVersion),
         'process.env.dev':                 JSON.stringify(dev),
@@ -413,6 +427,7 @@ module.exports = function(dir, _appConfig) {
           rancherEnv,
           dashboardVersion
         }),
+
       }));
 
       // The static assets need to be in the built assets directory in order to get served (primarily the favicon)
@@ -456,7 +471,9 @@ module.exports = function(dir, _appConfig) {
       ];
 
       if (instrumentCode) {
-        babelPlugins.push('babel-plugin-istanbul');
+        babelPlugins.push([
+          'babel-plugin-istanbul', { extension: ['.js', '.vue'] }, 'add-vue'
+        ]);
 
         console.warn('Instrumenting code for coverage'); // eslint-disable-line no-console
       }
@@ -548,7 +565,7 @@ module.exports = function(dir, _appConfig) {
               options: { mode: ['body'] }
             }
           ]
-        }
+        },
       ];
 
       config.module.rules.push(...loaders);
@@ -570,114 +587,3 @@ module.exports = function(dir, _appConfig) {
 
   return config;
 };
-
-// ===============================================================================================
-// Functions for the request proxying used in dev
-// ===============================================================================================
-
-function proxyMetaOpts(target) {
-  return {
-    target,
-    followRedirects: true,
-    secure:          !dev,
-    changeOrigin:    true,
-    onProxyReq,
-    onProxyReqWs,
-    onError,
-    onProxyRes,
-  };
-}
-
-function proxyOpts(target) {
-  return {
-    target,
-    secure:       !devPorts,
-    changeOrigin: true,
-    onProxyReq,
-    onProxyReqWs,
-    onError,
-    onProxyRes
-  };
-}
-
-// Intercept the /rancherversion API call wnad modify the 'RancherPrime' value
-// if configured to do so by the environment variable PRIME
-function proxyPrimeOpts(target) {
-  const opts = proxyOpts(target);
-
-  // Don't intercept if the PRIME environment variable is not set
-  if (!prime?.length) {
-    return opts;
-  }
-
-  opts.onProxyRes = (proxyRes, req, res) => {
-    const _end = res.end;
-    let body = '';
-
-    proxyRes.on( 'data', (data) => {
-      data = data.toString('utf-8');
-      body += data;
-    });
-
-    res.write = () => {};
-
-    res.end = () => {
-      let output = body;
-
-      try {
-        const out = JSON.parse(body);
-
-        out.RancherPrime = prime;
-        output = JSON.stringify(out);
-      } catch (err) {}
-
-      res.setHeader('content-length', output.length );
-      res.setHeader('content-type', 'application/json' );
-      res.setHeader('transfer-encoding', '');
-      res.setHeader('cache-control', 'no-cache');
-      res.writeHead(proxyRes.statusCode);
-      _end.apply(res, [output]);
-    };
-  };
-
-  return opts;
-}
-
-function onProxyRes(proxyRes, req, res) {
-  if (devPorts) {
-    proxyRes.headers['X-Frame-Options'] = 'ALLOWALL';
-  }
-}
-
-function proxyWsOpts(target) {
-  return {
-    ...proxyOpts(target),
-    ws:           true,
-    changeOrigin: true,
-  };
-}
-
-function onProxyReq(proxyReq, req) {
-  if (!(proxyReq._currentRequest && proxyReq._currentRequest._headerSent)) {
-    proxyReq.setHeader('x-api-host', req.headers['host']);
-    proxyReq.setHeader('x-forwarded-proto', 'https');
-  }
-}
-
-function onProxyReqWs(proxyReq, req, socket, options, head) {
-  req.headers.origin = options.target.href;
-  proxyReq.setHeader('origin', options.target.href);
-  proxyReq.setHeader('x-api-host', req.headers['host']);
-  proxyReq.setHeader('x-forwarded-proto', 'https');
-  // console.log(proxyReq.getHeaders());
-
-  socket.on('error', (err) => {
-    console.error('Proxy WS Error:', err); // eslint-disable-line no-console
-  });
-}
-
-function onError(err, req, res) {
-  res.statusCode = 598;
-  console.error('Proxy Error:', err); // eslint-disable-line no-console
-  res.write(JSON.stringify(err));
-}

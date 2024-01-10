@@ -24,15 +24,18 @@ const GC_IGNORE_TYPES = {
   [UI.NAV_LINK]: true,
 };
 
+// Include calls to /v1 AND /k8s/clusters/<cluster id>/v1
+const steveRegEx = new RegExp('(/v1)|(\/k8s\/clusters\/[a-z0-9-]+\/v1)');
+
 export default {
   urlOptions: () => (url, opt) => {
     opt = opt || {};
     const parsedUrl = parse(url);
-    const isSteve = parsedUrl.path.startsWith('/v1');
+    const isSteve = steveRegEx.test(parsedUrl.path);
 
     // Filter
-    // Steve's filter options work differently nowadays (https://github.com/rancher/steve#filter) #9341
     if ( opt.filter ) {
+      url += `${ (url.includes('?') ? '&' : '?') }`;
       const keys = Object.keys(opt.filter);
 
       keys.forEach((key) => {
@@ -42,9 +45,18 @@ export default {
           vals = [vals];
         }
 
-        vals.forEach((val) => {
-          url += `${ (url.includes('?') ? '&' : '?') + encodeURIComponent(key) }=${ encodeURIComponent(val) }`;
+        // Steve's filter options now support more complex filtering not yet implemented here #9341
+        if (isSteve) {
+          url += `${ (url.includes('filter=') ? '&' : 'filter=') }`;
+        }
+
+        const filterStrings = vals.map((val) => {
+          return `${ encodeURI(key) }=${ encodeURI(val) }`;
         });
+        const urlEnding = url.charAt(url.length - 1);
+        const nextStringConnector = ['&', '?', '='].includes(urlEnding) ? '' : '&';
+
+        url += `${ nextStringConnector }${ filterStrings.join('&') }`;
       });
     }
 
@@ -82,18 +94,21 @@ export default {
     // End: Limit
 
     // Sort
-    // Steve's sort options work differently nowadays (https://github.com/rancher/steve#sort) #9341
+    // Steve's sort options supports multi-column sorting and column specific sort orders, not implemented yet #9341
     const sortBy = opt.sortBy;
-
-    if ( sortBy ) {
-      url += `${ url.includes('?') ? '&' : '?' }sort=${ encodeURIComponent(sortBy) }`;
-    }
-
     const orderBy = opt.sortOrder;
 
-    if ( orderBy ) {
-      url += `${ url.includes('?') ? '&' : '?' }order=${ encodeURIComponent(orderBy) }`;
+    if ( sortBy ) {
+      if (isSteve) {
+        url += `${ url.includes('?') ? '&' : '?' }sort=${ (orderBy === 'desc' ? '-' : '') + encodeURI(sortBy) }`;
+      } else {
+        url += `${ url.includes('?') ? '&' : '?' }sort=${ encodeURI(sortBy) }`;
+        if ( orderBy ) {
+          url += `${ url.includes('?') ? '&' : '?' }order=${ encodeURI(orderBy) }`;
+        }
+      }
     }
+
     // End: Sort
 
     return url;

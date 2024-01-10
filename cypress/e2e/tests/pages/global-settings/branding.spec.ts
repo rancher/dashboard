@@ -27,7 +27,7 @@ describe('Branding', () => {
     cy.login();
   });
 
-  it('Can navigate to Branding Page', { tags: ['@adminUser', '@standardUser'] }, () => {
+  it('Can navigate to Branding Page', { tags: ['@globalSettings', '@adminUser', '@standardUser'] }, () => {
     HomePagePo.goTo();
 
     const burgerMenu = new BurgerMenuPo();
@@ -35,7 +35,6 @@ describe('Branding', () => {
 
     BurgerMenuPo.toggle();
 
-    burgerMenu.categories().contains(` Configuration `).should('exist');
     const globalSettingsNavItem = burgerMenu.links().contains(`Global Settings`);
 
     globalSettingsNavItem.should('exist');
@@ -54,7 +53,7 @@ describe('Branding', () => {
     brandingPage.waitForPageWithClusterId();
   });
 
-  it('Private Label', { tags: '@adminUser' }, () => {
+  it('Private Label', { tags: ['@globalSettings', '@adminUser'] }, () => {
     const brandingPage = new BrandingPagePo();
 
     brandingPage.goTo();
@@ -87,6 +86,8 @@ describe('Branding', () => {
     // Reset
     brandingPage.privateLabel().set(settings.privateLabel.original);
     brandingPage.applyAndWait('**/ui-pl');
+    BurgerMenuPo.toggle();
+    burgerMenuPo.home().click();
     cy.title().should('eq', settings.privateLabel.original);
   });
 
@@ -102,7 +103,7 @@ describe('Branding', () => {
     // Requires a way to check the actual image changes
   });
 
-  it('Primary Color', { tags: '@adminUser' }, () => {
+  it('Primary Color', { tags: ['@globalSettings', '@adminUser'] }, () => {
     const brandingPage = new BrandingPagePo();
 
     brandingPage.goTo();
@@ -134,7 +135,7 @@ describe('Branding', () => {
     brandingPage.applyAndWait('**/ui-primary-color');
   });
 
-  it('Link Color', { tags: '@adminUser' }, () => {
+  it('Link Color', { tags: ['@globalSettings', '@adminUser'] }, () => {
     const brandingPage = new BrandingPagePo();
 
     brandingPage.goTo();

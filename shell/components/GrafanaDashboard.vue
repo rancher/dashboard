@@ -40,13 +40,18 @@ export default {
   },
   async fetch() {
     const inStore = this.$store.getters['currentProduct'].inStore;
-    const res = await this.$store.dispatch(`${ inStore }/find`, { type: CATALOG.APP, id: 'cattle-monitoring-system/rancher-monitoring' });
 
-    this.monitoringVersion = res?.currentVersion;
+    if (this.$store.getters[`${ inStore }/canList`](CATALOG.APP)) {
+      try {
+        const res = await this.$store.dispatch(`${ inStore }/find`, { type: CATALOG.APP, id: 'cattle-monitoring-system/rancher-monitoring' });
+
+        this.monitoringVersion = res?.currentVersion;
+      } catch (err) {}
+    }
   },
   data() {
     return {
-      loading: false, error: false, interval: null, errorTimer: null, monitoringVersion: null
+      loading: false, error: false, interval: null, errorTimer: null, monitoringVersion: ''
     };
   },
   computed: {

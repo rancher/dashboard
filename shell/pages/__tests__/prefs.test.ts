@@ -1,5 +1,5 @@
-import { shallowMount } from '@vue/test-utils';
 import Preferences from '@shell/pages/prefs.vue';
+import { shallowMount } from '@vue/test-utils';
 
 describe('page: prefs should', () => {
   it.each([

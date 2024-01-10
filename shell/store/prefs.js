@@ -1,7 +1,7 @@
-import Vue from 'vue';
+import { SETTING } from '@shell/config/settings';
 import { MANAGEMENT, STEVE } from '@shell/config/types';
 import { clone } from '@shell/utils/object';
-import { SETTING } from '@shell/config/settings';
+import Vue from 'vue';
 
 const definitions = {};
 /**
@@ -54,6 +54,7 @@ export const NAMESPACE_FILTERS = create('ns-by-cluster', {}, { parseJSON });
 export const WORKSPACE = create('workspace', '');
 export const EXPANDED_GROUPS = create('open-groups', ['cluster', 'policy', 'rbac', 'serviceDiscovery', 'storage', 'workload'], { parseJSON });
 export const FAVORITE_TYPES = create('fav-type', [], { parseJSON });
+export const PINNED_CLUSTERS = create('pinned-clusters', [], { parseJSON });
 export const GROUP_RESOURCES = create('group-by', 'namespace');
 export const DIFF = create('diff', 'unified', { options: ['unified', 'split'] });
 export const THEME = create('theme', 'auto', {
@@ -111,12 +112,8 @@ export const _RKE1 = 'rke1';
 export const _RKE2 = 'rke2';
 export const PROVISIONER = create('provisioner', _RKE2, { options: [_RKE1, _RKE2] });
 
-// Promo for Pod Security Policies (PSPs) being deprecated on kube version 1.25 on Cluster Dashboard page
-export const PSP_DEPRECATION_BANNER = create('hide-psp-deprecation-banner', false, { parseJSON });
-
 // Maximum number of clusters to show in the slide-in menu
-export const MENU_MAX_CLUSTERS = create('menu-max-clusters', 4, { options: [2, 3, 4, 5, 6, 7, 8, 9, 10], parseJSON });
-
+export const MENU_MAX_CLUSTERS = 10;
 // Prompt for confirm when scaling down node pool in GUI and save the pref
 export const SCALE_POOL_PROMPT = create('scale-pool-prompt', null, { parseJSON });
 // --------------------
@@ -348,46 +345,44 @@ export const actions = {
     commit('cookiesLoaded');
   },
 
-  loadTheme({ state, dispatch }) {
-    if ( process.client ) {
-      const watchDark = window.matchMedia('(prefers-color-scheme: dark)');
-      const watchLight = window.matchMedia('(prefers-color-scheme: light)');
-      const watchNone = window.matchMedia('(prefers-color-scheme: no-preference)');
+  loadTheme({ dispatch }) {
+    const watchDark = window.matchMedia('(prefers-color-scheme: dark)');
+    const watchLight = window.matchMedia('(prefers-color-scheme: light)');
+    const watchNone = window.matchMedia('(prefers-color-scheme: no-preference)');
 
-      const interval = 30 * 60 * 1000;
-      const nextHalfHour = interval - Math.round(new Date().getTime()) % interval;
+    const interval = 30 * 60 * 1000;
+    const nextHalfHour = interval - Math.round(new Date().getTime()) % interval;
 
-      setTimeout(() => {
-        dispatch('loadTheme');
-      }, nextHalfHour);
-      // console.log('Update theme in', nextHalfHour, 'ms');
+    setTimeout(() => {
+      dispatch('loadTheme');
+    }, nextHalfHour);
+    // console.log('Update theme in', nextHalfHour, 'ms');
 
-      if ( watchDark.matches ) {
+    if ( watchDark.matches ) {
+      changed('dark');
+    } else if ( watchLight.matches ) {
+      changed('light');
+    } else {
+      changed(fromClock());
+    }
+
+    watchDark.addListener((e) => {
+      if ( e.matches ) {
         changed('dark');
-      } else if ( watchLight.matches ) {
+      }
+    });
+
+    watchLight.addListener((e) => {
+      if ( e.matches ) {
         changed('light');
-      } else {
+      }
+    });
+
+    watchNone.addListener((e) => {
+      if ( e.matches ) {
         changed(fromClock());
       }
-
-      watchDark.addListener((e) => {
-        if ( e.matches ) {
-          changed('dark');
-        }
-      });
-
-      watchLight.addListener((e) => {
-        if ( e.matches ) {
-          changed('light');
-        }
-      });
-
-      watchNone.addListener((e) => {
-        if ( e.matches ) {
-          changed(fromClock());
-        }
-      });
-    }
+    });
 
     function changed(value) {
       // console.log('Prefers Theme:', value);

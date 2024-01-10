@@ -1,7 +1,10 @@
 <script>
+import { mapGetters } from 'vuex';
 import { MANAGEMENT, RBAC } from '@shell/config/types';
 import CruResource from '@shell/components/CruResource';
 import CreateEditView from '@shell/mixins/create-edit-view';
+import FormValidation from '@shell/mixins/form-validation';
+import Error from '@shell/components/form/Error';
 import { RadioGroup } from '@components/Form/Radio';
 import Select from '@shell/components/form/Select';
 import ArrayList from '@shell/components/form/ArrayList';
@@ -12,6 +15,7 @@ import { ucFirst } from '@shell/utils/string';
 import SortableTable from '@shell/components/SortableTable';
 import { _CLONE, _DETAIL } from '@shell/config/query-params';
 import { SCOPED_RESOURCES } from '@shell/config/roles';
+import { Banner } from '@components/Banner';
 
 import { SUBTYPE_MAPPING, VERBS } from '@shell/models/management.cattle.io.roletemplate';
 import Loading from '@shell/components/Loading';
@@ -58,9 +62,11 @@ export default {
     Tabbed,
     SortableTable,
     Loading,
+    Error,
+    Banner
   },
 
-  mixins: [CreateEditView],
+  mixins: [CreateEditView, FormValidation],
 
   async fetch() {
     // We don't want to get all schemas from the cluster because there are
@@ -109,6 +115,9 @@ export default {
       scopedResources:      SCOPED_RESOURCES,
       defaultValue:         false,
       selectFocused:        null,
+      fvFormRuleSets:       [
+        { path: 'displayName', rules: ['required'] }
+      ],
     };
   },
 
@@ -146,12 +155,22 @@ export default {
       });
     }
 
+    if (this.value?.metadata?.name && !this.value.displayName) {
+      this.$set(this.value, 'displayName', this.value.metadata.name);
+    }
+
     this.$nextTick(() => {
       this.$emit('set-subtype', this.label);
     });
   },
 
   computed: {
+    ...mapGetters(['releaseNotesUrl']),
+
+    showRestrictedAdminDeprecationBanner() {
+      return this.value.subtype === GLOBAL && this.value.id === 'restricted-admin';
+    },
+
     label() {
       return this.t(`rbac.roletemplate.subtypes.${ this.value.subtype }.label`);
     },
@@ -524,12 +543,20 @@ export default {
     :can-yaml="!isCreate"
     :mode="mode"
     :resource="value"
-    :errors="errors"
+    :errors="fvUnreportedValidationErrors"
+    :validation-passed="fvFormIsValid"
     :cancel-event="true"
     @error="e=>errors = e"
     @finish="save"
     @cancel="cancel"
   >
+    <Banner
+      v-if="showRestrictedAdminDeprecationBanner"
+      color="warning"
+      class="mb-20"
+    >
+      <span v-clean-html="t('rbac.globalRoles.role.restricted-admin.deprecation', { releaseNotesUrl }, true)" />
+    </Banner>
     <template v-if="isDetail">
       <SortableTable
         key-field="index"
@@ -568,6 +595,7 @@ export default {
         name-key="displayName"
         description-key="description"
         label="Name"
+        :rules="{ name: fvGetAndReportPathRules('displayName') }"
       />
       <div
         v-if="isRancherType"
@@ -606,6 +634,11 @@ export default {
           :label="t('rbac.roletemplate.tabs.grantResources.label')"
           :weight="1"
         >
+          <Error
+            :value="value.rules"
+            :rules="fvGetAndReportPathRules('rules')"
+            as-banner
+          />
           <ArrayList
             v-model="value.rules"
             label="Resources"
