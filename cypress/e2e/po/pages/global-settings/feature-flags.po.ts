@@ -19,6 +19,7 @@ export class FeatureFlagsPagePo extends RootClusterPage {
     const sideNav = new ProductNavPo();
 
     BurgerMenuPo.burgerMenuNavToMenubyLabel('Global Settings');
+    cy.contains('Feature Flags').should('be.visible');
     sideNav.navToSideMenuEntryByLabel('Feature Flags');
   }
 

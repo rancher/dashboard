@@ -24,7 +24,6 @@ describe('Feature Flags', { testIsolation: 'off' }, () => {
 
     // Check Updated State: should be disabled
     featureFlagsPage.list().details('harvester', 0).should('include.text', 'Disabled');
-    cy.reload();
 
     // Check side nav
     BurgerMenuPo.toggle();
@@ -39,7 +38,6 @@ describe('Feature Flags', { testIsolation: 'off' }, () => {
 
     // Check Updated State: should be active
     featureFlagsPage.list().details('harvester', 0).should('include.text', 'Active');
-    cy.reload();
 
     // Check side nav
     BurgerMenuPo.toggle();
@@ -166,7 +164,7 @@ describe('Feature Flags', { testIsolation: 'off' }, () => {
     sideNav.groups().contains('Legacy').should('be.visible');
 
     // Deactivate
-    featureFlagsPage.goTo();
+    FeatureFlagsPagePo.navTo();
     featureFlagsPage.list().clickRowActionMenuItem('legacy', 'Deactivate');
     featureFlagsPage.clickCardActionButtonAndWait('Deactivate', 'legacy', false);
 
