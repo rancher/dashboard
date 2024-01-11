@@ -172,12 +172,21 @@
         </button>
       </template>
     </Dialog>
+    <PromptRemove
+      :show="removeDialogVisible"
+      :removeCallback="removeResources"
+      :resources="toRemoved"
+      type="Label"
+      @removed="reloadData"
+      @close="closeRemoveDialog"
+    />
   </div>
 </template>
 <script>
 import { mapGetters } from 'vuex';
 import HarborTable from '@pkg/image-repo/components/table/HarborTable.vue';
 import Dialog from '@pkg/image-repo/components/Dialog.vue';
+import PromptRemove from '@pkg/image-repo/components/PromptRemove.vue';
 import LabelItem from '@pkg/image-repo/components/LabelItem.vue';
 import util from '../mixins/util.js';
 import Schema from 'async-validator';
@@ -315,6 +324,7 @@ export default {
     LabelItem,
     LabeledInput,
     Banner,
+    PromptRemove
   },
   props: {
     apiRequest: {
@@ -341,15 +351,17 @@ export default {
     return {
       descriptor,
       labelColors,
-      errors:            [],
-      loading:           false,
-      addDialogVisible:  false,
-      editDialogVisible: false,
-      data:              [],
-      inputFilter:       [],
-      sort:              '',
-      totalCount:        0,
-      columns:           [
+      toRemoved:           [],
+      errors:              [],
+      loading:             false,
+      addDialogVisible:    false,
+      editDialogVisible:   false,
+      removeDialogVisible: false,
+      data:                [],
+      inputFilter:         [],
+      sort:                '',
+      totalCount:          0,
+      columns:             [
         {
           field:    'name',
           title:    'Label',
@@ -435,11 +447,16 @@ export default {
     }
   },
   methods: {
+    closeRemoveDialog() {
+      this.removeDialogVisible = false;
+      this.toRemoved = [];
+    },
     resetParams() {
       this.page = 1;
       this.page_size = 10;
       this.sort = '';
       this.inputFilter = [];
+      this.toRemoved = [];
     },
     async loadData() {
       this.loading = true;
@@ -454,6 +471,10 @@ export default {
       }
       this.loading = false;
     },
+    reloadData() {
+      this.resetParams();
+      this.loadData();
+    },
     showAddModal() {
       this.errors = [];
       this.newForm = {
@@ -466,8 +487,10 @@ export default {
 
     async action(action, record) {
       if (action.value === 'delete' && record.id) {
-        await this.apiRequest.removeLabels([record.id]);
-        await this.loadData();
+        this.toRemoved = [record];
+        this.removeDialogVisible = true;
+        // await this.apiRequest.removeLabels([record.id]);
+        // await this.loadData();
 
         return;
       }
@@ -481,9 +504,14 @@ export default {
       this.inputFilter = f;
     },
     bulkRemove(d) {
-      const ids = d.map((item) => item.id);
+      this.toRemoved = d;
+      this.removeDialogVisible = true;
+      // const ids = d.map((item) => item.id);
 
-      this.apiRequest.removeLabels(ids);
+      // this.apiRequest.removeLabels(ids);
+    },
+    removeResources(ids) {
+      return this.apiRequest.removeLabels(ids);
     },
     async createLabel() {
       this.loading = true;

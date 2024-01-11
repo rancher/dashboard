@@ -102,6 +102,11 @@ export default {
       inputSearchQuery:         '',
     };
   },
+  watch: {
+    loading() {
+      this.selectedRows = [];
+    }
+  },
   mounted() {
     // Set initial value;
     if (this.defaultSelectOption?.length > 0) {
