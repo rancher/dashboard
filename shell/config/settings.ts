@@ -77,6 +77,7 @@ export const SETTING = {
   FAVICON:                              'ui-favicon',
   UI_PERFORMANCE:                       'ui-performance',
   UI_CUSTOM_LINKS:                      'ui-custom-links',
+  UI_SUPPORTED_K8S_VERSIONS:            'ui-k8s-supported-versions-range',
   /**
    * Allow the backend to force a light/dark theme. Used in non-rancher world and results in the theme used
    * both pre and post log in. If not present defaults to the usual process

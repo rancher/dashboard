@@ -1,6 +1,6 @@
 import HybridModel from '@shell/plugins/steve/hybrid-class';
 
-const HIDDEN = ['rke', 'rancherkubernetesengine'];
+const HIDDEN = ['rke', 'rancherkubernetesengine', 'azureaks'];
 const V2 = ['amazoneks', 'googlegke', 'azureaks'];
 const IMPORTABLE = ['amazoneks', 'googlegke', 'azureaks'];
 

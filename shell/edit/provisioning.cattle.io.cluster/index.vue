@@ -187,6 +187,13 @@ export default {
 
     emberLink() {
       if (this.value) {
+        if (this.value.provisioner) {
+          const matchingSubtype = this.subTypes.find((st) => st.id.toLowerCase() === this.value.provisioner.toLowerCase());
+
+          if (matchingSubtype) {
+            this.selectType(matchingSubtype.id, false);
+          }
+        }
         // For custom RKE2 clusters, don't load an Ember page.
         // It should be the dashboard.
         if ( this.value.isRke2 && ((this.value.isCustom && this.mode === _EDIT) || (this.value.isCustom && this.as === _CONFIG && this.mode === _VIEW) || (this.subType || '').toLowerCase() === 'custom')) {
@@ -205,12 +212,14 @@ export default {
           return '';
         }
         if ( this.subType ) {
+          // if driver type has a custom form component, don't load an ember page
+          if (this.selectedSubType.component) {
+            return '';
+          }
           // For RKE1 and hosted Kubernetes Clusters, set the ember link
           // so that we load the page rather than using RKE2 create
-          const selected = this.subTypes.find((s) => s.id === this.subType);
-
-          if (selected?.link) {
-            return selected.link;
+          if (this.selectedSubType?.emberLink) {
+            return this.selectedSubType.emberLink;
           }
 
           this.selectType(this.subType, false);
@@ -229,6 +238,11 @@ export default {
 
     rke2Enabled:   mapFeature(RKE2_FEATURE),
     rke1UiEnabled: mapFeature(RKE1_UI),
+
+    // todo nb is this info stored anywhere else..?
+    selectedSubType() {
+      return this.subType ? this.subTypes.find((s) => s.id === this.subType) : null;
+    },
 
     provisioner: {
       get() {
@@ -311,17 +325,22 @@ export default {
             addType(id, 'rke2', false);
           });
 
-          // Add from extensions
-          this.extensions.forEach((ext) => {
-            addExtensionType(ext, getters);
-          });
-
           addType('custom', 'custom2', false);
 
           if (isElementalActive) {
             addType(ELEMENTAL_CLUSTER_PROVIDER, 'custom2', false);
           }
         }
+
+        // Add from extensions
+        // if th rke toggle is set to rke1, don't add extensions that specify rke2 group
+        // default group is rke2
+        this.extensions.forEach((ext) => {
+          if (!this.isRke2 && (ext.group === 'rke2' || !ext.group)) {
+            return;
+          }
+          addExtensionType(ext, getters);
+        });
       }
 
       return out;
@@ -345,13 +364,14 @@ export default {
           group:       ext.group || 'rke2',
           disabled:    ext.disabled || false,
           link:        ext.link,
-          tag:         ext.tag
+          tag:         ext.tag,
+          component:   ext.component
         };
 
         out.push(subtype);
       }
 
-      function addType(id, group, disabled = false, link = null, iconClass = undefined) {
+      function addType(id, group, disabled = false, emberLink = null, iconClass = undefined) {
         const label = getters['i18n/withFallback'](`cluster.provider."${ id }"`, null, id);
         const description = getters['i18n/withFallback'](`cluster.providerDescription."${ id }"`, null, '');
         const tag = '';
@@ -376,7 +396,7 @@ export default {
           iconClass,
           group,
           disabled,
-          link,
+          emberLink,
           tag
         };
 
@@ -489,6 +509,11 @@ export default {
 
         return;
       }
+      if (obj.link) {
+        this.$router.push(obj.link);
+
+        return;
+      }
 
       this.$router.applyQuery({ [SUB_TYPE]: id });
       this.selectType(id);
@@ -582,14 +607,26 @@ export default {
       :mode="mode"
       :provider="subType"
     />
-    <Rke2Config
-      v-else-if="subType"
-      v-model="value"
-      :initial-value="initialValue"
-      :live-value="liveValue"
-      :mode="mode"
-      :provider="subType"
-    />
+    <template v-else-if="subType">
+      <!-- allow extensions to provide their own cluster provisioning form -->
+      <component
+        :is="selectedSubType.component"
+        v-if="selectedSubType && selectedSubType.component"
+        v-model="value"
+        :initial-value="initialValue"
+        :live-value="liveValue"
+        :mode="mode"
+        :provider="subType"
+      />
+      <Rke2Config
+        v-else
+        v-model="value"
+        :initial-value="initialValue"
+        :live-value="liveValue"
+        :mode="mode"
+        :provider="subType"
+      />
+    </template>
 
     <template
       v-if="subType"

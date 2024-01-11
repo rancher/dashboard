@@ -31,9 +31,10 @@ export default {
     },
 
     cancel: {
-      type:     Function,
-      required: true,
+      type:    Function,
+      default: null
     },
+
     showingForm: {
       type:     Boolean,
       required: true,

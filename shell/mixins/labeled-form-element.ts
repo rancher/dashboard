@@ -82,6 +82,11 @@ export default Vue.extend({
       type:      Array,
       // we only want functions in the rules array
       validator: (rules: any) => rules.every((rule: any) => ['function'].includes(typeof rule))
+    },
+
+    requireDirty: {
+      default: true,
+      type:    Boolean
     }
   },
 
@@ -141,7 +146,7 @@ export default Vue.extend({
           ruleMessages.push(message);
         }
       }
-      if (ruleMessages.length > 0 && (this.blurred || this.focused)) {
+      if (ruleMessages.length > 0 && (this.blurred || this.focused || !this.requireDirty)) {
         return ruleMessages.join(', ');
       } else {
         return undefined;

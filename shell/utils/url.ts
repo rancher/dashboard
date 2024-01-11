@@ -2,7 +2,7 @@ type UriField = 'source' | 'protocol' | 'authority' | 'userInfo' | 'user' | 'pas
 type UriFields = {
   [key in UriField]: string; // eslint-disable-line no-unused-vars
 }
-type QueryParams = {
+export type QueryParams = {
   [key: string]: string
 }
 

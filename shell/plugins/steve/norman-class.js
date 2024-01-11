@@ -3,6 +3,7 @@ import pickBy from 'lodash/pickBy';
 import Vue from 'vue';
 import { matchesSomeRegex } from '@shell/utils/string';
 import Resource from '@shell/plugins/dashboard-store/resource-class';
+import { findBy } from '@shell/utils/array';
 
 export default class NormanModel extends Resource {
   setLabels(val) {
@@ -55,5 +56,23 @@ export default class NormanModel extends Resource {
     keys.forEach((key) => {
       Vue.set(this, key, { ...spec[key] });
     });
+  }
+
+  isCondition(condition, withStatus = 'True') {
+    if ( !this.conditions ) {
+      return false;
+    }
+
+    const entry = findBy((this.conditions || []), 'type', condition);
+
+    if ( !entry ) {
+      return false;
+    }
+
+    if ( !withStatus ) {
+      return true;
+    }
+
+    return (entry.status || '').toLowerCase() === `${ withStatus }`.toLowerCase();
   }
 }
