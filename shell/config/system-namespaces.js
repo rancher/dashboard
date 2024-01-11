@@ -12,4 +12,7 @@ export default [
   'linkerd',
   'security-scan',
   'tekton-pipelines',
+  'cis-operator-system',
+  'istio-system',
+  'longhorn-system',
 ];
