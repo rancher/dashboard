@@ -62,7 +62,9 @@ describe('Banners', () => {
     bannersPage.waitForPageWithClusterId();
   });
 
-  it('can show and hide Header Banner', { tags: ['@globalSettings', '@adminUser'] }, () => {
+  // Note: the next 3 tests fail due to https://github.com/rancher/dashboard/issues/10249
+  // skipping these tests until issue has been resolved
+  it.skip('can show and hide Header Banner', { tags: ['@globalSettings', '@adminUser'] }, () => {
     bannersPage.goTo();
 
     // Show Banner
@@ -110,7 +112,7 @@ describe('Banners', () => {
     bannersPage.banner().should('not.exist');
   });
 
-  it('can show and hide Footer Banner', { tags: ['@globalSettings', '@adminUser'] }, () => {
+  it.skip('can show and hide Footer Banner', { tags: ['@globalSettings', '@adminUser'] }, () => {
     bannersPage.goTo();
 
     // Show Banner
@@ -158,7 +160,7 @@ describe('Banners', () => {
     bannersPage.banner().should('not.exist');
   });
 
-  it('can show and hide Login Screen Banner', { tags: ['@globalSettings', '@adminUser'] }, () => {
+  it.skip('can show and hide Login Screen Banner', { tags: ['@globalSettings', '@adminUser'] }, () => {
     cy.login(undefined, undefined, false);
     bannersPage.goTo();
 

@@ -1,17 +1,14 @@
 import { PerformancePagePo } from '@/cypress/e2e/po/pages/global-settings/performance.po';
-import { SettingsPagePo } from '@/cypress/e2e/po/pages/global-settings/settings.po';
 import HomePagePo from '@/cypress/e2e/po/pages/home.po';
-import BurgerMenuPo from '@/cypress/e2e/po/side-bars/burger-side-menu.po';
-import ProductNavPo from '@/cypress/e2e/po/side-bars/product-side-nav.po';
 import CardPo from '@/cypress/e2e/po/components/card.po';
 
 const performancePage = new PerformancePagePo();
 const performanceSettingsOrginal = [];
 
-describe('Performance', { tags: ['@globalSettings', '@adminUser'] }, () => {
-  // If we need to speed tests up these should be combined into a single `it` (so only one page load and one refresh is used)
+describe('Performance', { testIsolation: 'off', tags: ['@globalSettings', '@adminUser'] }, () => {
   before('get default performance settings', () => {
     cy.login();
+    HomePagePo.goTo();
 
     cy.getRancherResource('v1', 'management.cattle.io.settings', 'ui-performance', null).then((resp: Cypress.Response<any>) => {
       const body = JSON.stringify(resp.body);
@@ -20,37 +17,9 @@ describe('Performance', { tags: ['@globalSettings', '@adminUser'] }, () => {
     });
   });
 
-  beforeEach(() => {
-    cy.login();
-  });
-
-  it('Can navigate to Performance Page', () => {
-    HomePagePo.goTo();
-
-    const burgerMenu = new BurgerMenuPo();
-    const productMenu = new ProductNavPo();
-
-    BurgerMenuPo.toggle();
-
-    burgerMenu.categories().contains(` Configuration `).should('exist');
-    const globalSettingsNavItem = burgerMenu.links().contains(`Global Settings`);
-
-    globalSettingsNavItem.should('exist');
-    globalSettingsNavItem.click();
-    const settingsPage = new SettingsPagePo();
-
-    settingsPage.waitForPageWithClusterId();
-
-    const performancePageNavItem = productMenu.visibleNavTypes().contains('Performance');
-
-    performancePageNavItem.should('exist');
-    performancePageNavItem.click();
-    performancePage.waitForPageWithClusterId();
-  });
-
   describe('Inactivity', () => {
     it('should show the modal after 6 seconds', () => {
-      performancePage.goTo();
+      PerformancePagePo.navTo();
 
       performancePage.inactivityCheckbox().isUnchecked();
 
@@ -98,7 +67,7 @@ describe('Performance', { tags: ['@globalSettings', '@adminUser'] }, () => {
   });
 
   it('can toggle websocket notifications', () => {
-    performancePage.goTo();
+    PerformancePagePo.navTo();
 
     // Enable websocket notifications
     performancePage.websocketCheckbox().isChecked();
@@ -122,7 +91,7 @@ describe('Performance', { tags: ['@globalSettings', '@adminUser'] }, () => {
   });
 
   it('can toggle incremental loading', () => {
-    performancePage.goTo();
+    PerformancePagePo.navTo();
 
     // Disable incremental loading
     performancePage.incrementalLoadingCheckbox().isChecked();
@@ -146,7 +115,7 @@ describe('Performance', { tags: ['@globalSettings', '@adminUser'] }, () => {
   });
 
   it('can toggle manual refresh', () => {
-    performancePage.goTo();
+    PerformancePagePo.navTo();
 
     // Enable manual refresh
     performancePage.manualRefreshCheckbox().isUnchecked();
@@ -170,7 +139,7 @@ describe('Performance', { tags: ['@globalSettings', '@adminUser'] }, () => {
   });
 
   it('can toggle resource garbage collection', () => {
-    performancePage.goTo();
+    PerformancePagePo.navTo();
 
     // Enable garbage collection
     performancePage.garbageCollectionCheckbox().isUnchecked();
@@ -194,7 +163,7 @@ describe('Performance', { tags: ['@globalSettings', '@adminUser'] }, () => {
   });
 
   it('can toggle require namespace filtering', () => {
-    performancePage.goTo();
+    PerformancePagePo.navTo();
 
     // Enable require namespace filtering
     performancePage.namespaceFilteringCheckbox().isUnchecked();
@@ -233,7 +202,7 @@ describe('Performance', { tags: ['@globalSettings', '@adminUser'] }, () => {
   });
 
   it('can toggle websocket web worker', () => {
-    performancePage.goTo();
+    PerformancePagePo.navTo();
 
     // Enable websocket web worker
     performancePage.websocketWebWorkerCheckbox().isUnchecked();
@@ -256,7 +225,7 @@ describe('Performance', { tags: ['@globalSettings', '@adminUser'] }, () => {
     });
   });
 
-  after('set default performance settings', () => {
-    cy.setRancherResource('v1', 'management.cattle.io.settings', 'ui-performance', performanceSettingsOrginal[0]);
-  });
+  // after('set default performance settings', () => {
+  //   cy.setRancherResource('v1', 'management.cattle.io.settings', 'ui-performance', performanceSettingsOrginal[0]);
+  // });
 });
