@@ -75,9 +75,8 @@ module.exports = {
       rules: { 'no-use-before-define': 'off' },
     },
     {
-      files:         ['**/*.vue'],
-      excludedFiles: ['pkg/harvester/**/*.vue'],
-      rules:         {
+      files: ['**/*.vue'],
+      rules: {
         // Vue/HTML Formatting
         'vue/no-v-html':                    'error',
         'vue/html-indent':                  ['error', 2],
