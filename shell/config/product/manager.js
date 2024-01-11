@@ -4,7 +4,8 @@ import {
   CATALOG,
   NORMAN,
   HCI,
-  MANAGEMENT
+  MANAGEMENT,
+  SNAPSHOT
 } from '@shell/config/types';
 import { MULTI_CLUSTER, RKE1_UI } from '@shell/store/features';
 import { DSL } from '@shell/store/type-map';
@@ -59,6 +60,9 @@ export function init(store) {
     'cloud-credentials',
     'drivers',
   ]);
+
+  configureType(SNAPSHOT, { depaginate: true });
+  configureType(NORMAN.ETCD_BACKUP, { depaginate: true });
 
   configureType(CAPI.RANCHER_CLUSTER, {
     showListMasthead: false, namespaced: false, alias: [HCI.CLUSTER]
