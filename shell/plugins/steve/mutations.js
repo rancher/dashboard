@@ -13,6 +13,7 @@ import { keyForSubscribe } from '@shell/plugins/steve/resourceWatcher';
 import { perfLoadAll } from '@shell/plugins/steve/performanceTesting';
 import Vue from 'vue';
 import { classify } from '@shell/plugins/dashboard-store/classify';
+import SteveSchema from '@shell/models/steve-schema';
 
 function registerNamespace(state, namespace) {
   let cache = state.podsByNamespace[namespace];
@@ -161,6 +162,8 @@ export default {
 
     // Clear the podsByNamespace cache
     state.podsByNamespace = {};
+
+    SteveSchema.reset();
   },
 
   loadMulti(state, { data, ctx }) {

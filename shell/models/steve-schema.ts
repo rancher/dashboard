@@ -1,8 +1,6 @@
 import { STEVE } from '@shell/config/types';
 import Schema from './schema';
 
-export const SchemaDefinitionCache = {};
-
 interface ResourceField {
   type: string,
   description: string,
@@ -22,12 +20,16 @@ interface SchemaDefinitionResponse {
   definitionType: string,
 }
 
-// TODO: RC local SchemaDefinition cache. clear on cluster change. Cluster / Management
+let SchemaDefinitionCache: SchemaDefinitions = {};
 
 /**
  * Steve Schema specific functionality
  */
 export default class SteveSchema extends Schema {
+  static reset(): void {
+    SchemaDefinitionCache = {};
+  }
+
   _resourceFields?: ResourceFields;
   requiresResourceFields: boolean;
 
@@ -102,7 +104,7 @@ export default class SteveSchema extends Schema {
    *
    * This happens via making a request to fetch the schema definition
    */
-  async fetchResourceFields(depth = 0): Promise<undefined> {
+  async fetchResourceFields(depth = 0): Promise<SchemaDefinition | null | undefined> {
     if (!this.requiresResourceFields) {
       // Not needed, no-op
       return;
@@ -152,12 +154,11 @@ export default class SteveSchema extends Schema {
     const { self, others, forStore } = this._parseSchemaDefinitionResponse(res);
 
     this._schemaDefinitionsIds = { self, others };
+    Object.entries(forStore).forEach(([type, sd]) => {
+      SchemaDefinitionCache[type] = sd;
+    });
 
-    // Store all schema definitions in the store
-    // - things in the store are larger in size ... but avoids duplicating the same schema definitions in multiple models
-    // - these were originally stored in a singleton map in this file... however it'd need to tie into the cluster unload flow
-    //   - if the size gets bad we can do this plumbing
-    await this.$dispatch('loadMulti', forStore);
+    return this.schemaDefinition;
   }
 
   /**
@@ -165,26 +166,13 @@ export default class SteveSchema extends Schema {
    *
    * Split out for unit testing purposes
    */
-  _parseSchemaDefinitionResponse(res: SchemaDefinitionResponse): { self: string, others: string[], forStore: any[]} {
-    const schemaDefinitionsIdsFromSchema: string[] = [];
-    const schemaDefinitionsForStore: any[] = [];
-
-    Object.entries(res.definitions).forEach(([id, d]) => {
-      schemaDefinitionsForStore.push({
-        ...d, // Note - this doesn't contain create or update properties as previous. These were previously hardcoded and also not used in the ui
-        type: STEVE.SCHEMA_DEFINITION,
-        id:   d.type
-      });
-
-      if (id !== res.definitionType) {
-        schemaDefinitionsIdsFromSchema.push(id);
-      }
-    });
+  _parseSchemaDefinitionResponse(res: SchemaDefinitionResponse): { self: string, others: string[], forStore: SchemaDefinitions} {
+    const { [res.definitionType]: self, ...others } = res.definitions;
 
     return {
-      self:     res.definitionType,
-      others:   schemaDefinitionsIdsFromSchema,
-      forStore: schemaDefinitionsForStore
+      self:     self.type,
+      others:   Object.keys(others),
+      forStore: res.definitions
     };
   }
 
@@ -203,12 +191,12 @@ export default class SteveSchema extends Schema {
   /**
    * The schema definition for this schema
    */
-  get schemaDefinition() {
+  get schemaDefinition(): SchemaDefinition | null {
     if (!this._schemaDefinitionsIds) {
       return null;
     }
 
-    return this.$getters['byId'](STEVE.SCHEMA_DEFINITION, this._schemaDefinitionsIds.self);
+    return SchemaDefinitionCache[this._schemaDefinitionsIds.self];
   }
 
   /**
@@ -220,7 +208,7 @@ export default class SteveSchema extends Schema {
     }
 
     return this._schemaDefinitionsIds.others.reduce((res, d) => {
-      res[d] = this.$getters['byId'](STEVE.SCHEMA_DEFINITION, d);
+      res[d] = SchemaDefinitionCache[d];
 
       return res;
     }, {} as SchemaDefinitions);
