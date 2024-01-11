@@ -49,7 +49,6 @@ describe('Feature Flags', { testIsolation: 'off' }, () => {
   it('can toggle harvester-baremetal-container-workload feature flag', { tags: ['@globalSettings', '@adminUser'] }, () => {
     // Check Current State: should be disabled by default
     FeatureFlagsPagePo.navTo();
-    // featureFlagsPage.goTo();
     featureFlagsPage.list().details('harvester-baremetal-container-workload', 0).should('include.text', 'Disabled');
 
     // Activate
@@ -128,7 +127,6 @@ describe('Feature Flags', { testIsolation: 'off' }, () => {
   it('can toggle unsupported-storage-drivers feature flag', { tags: ['@globalSettings', '@adminUser'] }, () => {
     // Check Current State: should be disabled by default
     FeatureFlagsPagePo.navTo();
-
     featureFlagsPage.list().details('unsupported-storage-drivers', 0).should('include.text', 'Disabled');
 
     // Activate
@@ -200,7 +198,6 @@ describe('Feature Flags', { testIsolation: 'off' }, () => {
     FeatureFlagsPagePo.navTo();
 
     featureFlags.forEach((featureFlags) => {
-      cy.log(featureFlags);
       featureFlagsPage.list().details(featureFlags, 4).should('not.exist');
     });
   });
