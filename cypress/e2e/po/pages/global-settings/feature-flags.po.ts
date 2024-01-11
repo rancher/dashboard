@@ -1,7 +1,9 @@
 import RootClusterPage from '@/cypress/e2e/po/pages/root-cluster-page';
 import MgmtFeatureFlagListPo from '@/cypress/e2e/po/lists/management.cattle.io.feature.po';
 import CardPo from '@/cypress/e2e/po/components/card.po';
-import { CypressChainable } from '~/cypress/e2e/po/po.types';
+import { CypressChainable } from '@/cypress/e2e/po/po.types';
+import BurgerMenuPo from '@/cypress/e2e/po/side-bars/burger-side-menu.po';
+import ProductNavPo from '@/cypress/e2e/po/side-bars/product-side-nav.po';
 
 export class FeatureFlagsPagePo extends RootClusterPage {
   static url = '/c/_/settings/management.cattle.io.feature';
@@ -11,6 +13,13 @@ export class FeatureFlagsPagePo extends RootClusterPage {
 
   constructor() {
     super(FeatureFlagsPagePo.url);
+  }
+
+  static navTo() {
+    const sideNav = new ProductNavPo();
+
+    BurgerMenuPo.burgerMenuNavToMenubyLabel('Global Settings');
+    sideNav.navToSideMenuEntryByLabel('Feature Flags');
   }
 
   // Get feature flags list

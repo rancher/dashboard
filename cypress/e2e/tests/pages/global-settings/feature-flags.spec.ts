@@ -1,4 +1,3 @@
-import { SettingsPagePo } from '@/cypress/e2e/po/pages/global-settings/settings.po';
 import HomePagePo from '@/cypress/e2e/po/pages/home.po';
 import BurgerMenuPo from '@/cypress/e2e/po/side-bars/burger-side-menu.po';
 import ProductNavPo from '@/cypress/e2e/po/side-bars/product-side-nav.po';
@@ -8,38 +7,15 @@ import ClusterDashboardPagePo from '@/cypress/e2e/po/pages/explorer/cluster-dash
 const featureFlagsPage = new FeatureFlagsPagePo();
 const burgerMenu = new BurgerMenuPo();
 
-describe('Feature Flags', () => {
-  beforeEach(() => {
+describe('Feature Flags', { testIsolation: 'off' }, () => {
+  before(() => {
     cy.login();
-  });
-
-  it('can navigate to Feature Flags Page', { tags: ['@globalSettings', '@adminUser', '@standardUser'] }, () => {
     HomePagePo.goTo();
-
-    const productMenu = new ProductNavPo();
-
-    BurgerMenuPo.toggle();
-
-    burgerMenu.categories().contains(` Configuration `).should('exist');
-    const globalSettingsNavItem = burgerMenu.links().contains(`Global Settings`);
-
-    globalSettingsNavItem.should('exist');
-    globalSettingsNavItem.click();
-    const settingsPage = new SettingsPagePo();
-
-    settingsPage.waitForPageWithClusterId();
-
-    const featureFlagsNavItem = productMenu.visibleNavTypes().contains('Feature Flags');
-
-    featureFlagsNavItem.should('exist');
-    featureFlagsNavItem.click();
-
-    featureFlagsPage.waitForPageWithClusterId();
   });
 
   it('can toggle harvester feature flag', { tags: ['@globalSettings', '@adminUser'] }, () => {
     // Check Current State: should be active by default
-    featureFlagsPage.goTo();
+    FeatureFlagsPagePo.navTo();
     featureFlagsPage.list().details('harvester', 0).should('include.text', 'Active');
 
     // Deactivate
@@ -72,7 +48,8 @@ describe('Feature Flags', () => {
 
   it('can toggle harvester-baremetal-container-workload feature flag', { tags: ['@globalSettings', '@adminUser'] }, () => {
     // Check Current State: should be disabled by default
-    featureFlagsPage.goTo();
+    FeatureFlagsPagePo.navTo();
+    // featureFlagsPage.goTo();
     featureFlagsPage.list().details('harvester-baremetal-container-workload', 0).should('include.text', 'Disabled');
 
     // Activate
@@ -92,7 +69,7 @@ describe('Feature Flags', () => {
 
   it('can toggle istio-virtual-service-ui feature flag', { tags: ['@globalSettings', '@adminUser'] }, () => {
     // Check Current State: should be active by default
-    featureFlagsPage.goTo();
+    FeatureFlagsPagePo.navTo();
     featureFlagsPage.list().details('istio-virtual-service-ui', 0).should('include.text', 'Active');
 
     // Deactivate
@@ -110,9 +87,70 @@ describe('Feature Flags', () => {
     featureFlagsPage.list().details('istio-virtual-service-ui', 0).should('include.text', 'Active');
   });
 
+  it('can toggle rke1-custom-node-cleanup feature flag', { tags: ['@globalSettings', '@adminUser'] }, () => {
+    // Check Current State: should be active by default
+    FeatureFlagsPagePo.navTo();
+    featureFlagsPage.list().details('rke1-custom-node-cleanup', 0).should('include.text', 'Active');
+
+    // Deactivate
+    featureFlagsPage.list().clickRowActionMenuItem('rke1-custom-node-cleanup', 'Deactivate');
+    featureFlagsPage.clickCardActionButtonAndWait('Deactivate', 'rke1-custom-node-cleanup', false);
+
+    // Check Updated State: should be disabled
+    featureFlagsPage.list().details('rke1-custom-node-cleanup', 0).should('include.text', 'Disabled');
+
+    // Activate
+    featureFlagsPage.list().clickRowActionMenuItem('rke1-custom-node-cleanup', 'Activate');
+    featureFlagsPage.clickCardActionButtonAndWait('Activate', 'rke1-custom-node-cleanup', true);
+
+    // Check Updated State: should be active
+    featureFlagsPage.list().details('rke1-custom-node-cleanup', 0).should('include.text', 'Active');
+  });
+
+  it('can toggle token-hashing feature flag', { tags: ['@globalSettings', '@adminUser'] }, () => {
+    // Check Current State: should be disabled by default
+    FeatureFlagsPagePo.navTo();
+    featureFlagsPage.list().details('token-hashing', 0).should('include.text', 'Disabled');
+
+    // Activate
+    featureFlagsPage.list().clickRowActionMenuItem('token-hashing', 'Activate');
+    featureFlagsPage.clickCardActionButtonAndWait('Activate', 'token-hashing', true);
+
+    // Check Updated State: should be active
+    featureFlagsPage.list().details('token-hashing', 0).should('include.text', 'Active');
+
+    // Check - No actions available
+    cy.reload();
+    featureFlagsPage.list().getRowActionMenuItem('token-hashing', 'No actions available');
+    featureFlagsPage.list().details('token-hashing', 1).find('i.icon-lock').should('be.visible');
+  });
+
+  it('can toggle unsupported-storage-drivers feature flag', { tags: ['@globalSettings', '@adminUser'] }, () => {
+    // Check Current State: should be disabled by default
+    FeatureFlagsPagePo.navTo();
+
+    featureFlagsPage.list().details('unsupported-storage-drivers', 0).should('include.text', 'Disabled');
+
+    // Activate
+    featureFlagsPage.list().clickRowActionMenuItem('unsupported-storage-drivers', 'Activate');
+    featureFlagsPage.clickCardActionButtonAndWait('Activate', 'unsupported-storage-drivers', true);
+
+    // Check Updated State: should be active
+    featureFlagsPage.list().details('unsupported-storage-drivers', 0).should('include.text', 'Active');
+
+    // Deactivate
+    FeatureFlagsPagePo.navTo();
+
+    featureFlagsPage.list().clickRowActionMenuItem('unsupported-storage-drivers', 'Deactivate');
+    featureFlagsPage.clickCardActionButtonAndWait('Deactivate', 'unsupported-storage-drivers', false);
+
+    // Check Updated State: should be disabled
+    featureFlagsPage.list().details('unsupported-storage-drivers', 0).should('include.text', 'Disabled');
+  });
+
   it('can toggle legacy feature flag', { tags: ['@globalSettings', '@adminUser'] }, () => {
     // Check Current State: should be disabled by default
-    featureFlagsPage.goTo();
+    FeatureFlagsPagePo.navTo();
     featureFlagsPage.list().details('legacy', 0).should('include.text', 'Disabled');
 
     // Activate
@@ -142,65 +180,6 @@ describe('Feature Flags', () => {
     sideNav.groups().contains('Legacy').should('not.exist');
   });
 
-  it('can toggle rke1-custom-node-cleanup feature flag', { tags: ['@globalSettings', '@adminUser'] }, () => {
-    // Check Current State: should be active by default
-    featureFlagsPage.goTo();
-    featureFlagsPage.list().details('rke1-custom-node-cleanup', 0).should('include.text', 'Active');
-
-    // Deactivate
-    featureFlagsPage.list().clickRowActionMenuItem('rke1-custom-node-cleanup', 'Deactivate');
-    featureFlagsPage.clickCardActionButtonAndWait('Deactivate', 'rke1-custom-node-cleanup', false);
-
-    // Check Updated State: should be disabled
-    featureFlagsPage.list().details('rke1-custom-node-cleanup', 0).should('include.text', 'Disabled');
-
-    // Activate
-    featureFlagsPage.list().clickRowActionMenuItem('rke1-custom-node-cleanup', 'Activate');
-    featureFlagsPage.clickCardActionButtonAndWait('Activate', 'rke1-custom-node-cleanup', true);
-
-    // Check Updated State: should be active
-    featureFlagsPage.list().details('rke1-custom-node-cleanup', 0).should('include.text', 'Active');
-  });
-
-  it('can toggle token-hashing feature flag', { tags: ['@globalSettings', '@adminUser'] }, () => {
-    // Check Current State: should be disabled by default
-    featureFlagsPage.goTo();
-    featureFlagsPage.list().details('token-hashing', 0).should('include.text', 'Disabled');
-
-    // Activate
-    featureFlagsPage.list().clickRowActionMenuItem('token-hashing', 'Activate');
-    featureFlagsPage.clickCardActionButtonAndWait('Activate', 'token-hashing', true);
-
-    // Check Updated State: should be active
-    featureFlagsPage.list().details('token-hashing', 0).should('include.text', 'Active');
-
-    // Check - No actions available
-    cy.reload();
-    featureFlagsPage.list().getRowActionMenuItem('token-hashing', 'No actions available');
-    featureFlagsPage.list().details('token-hashing', 1).find('i.icon-lock').should('be.visible');
-  });
-
-  it('can toggle unsupported-storage-drivers feature flag', { tags: ['@globalSettings', '@adminUser'] }, () => {
-    // Check Current State: should be disabled by default
-    featureFlagsPage.goTo();
-    featureFlagsPage.list().details('unsupported-storage-drivers', 0).should('include.text', 'Disabled');
-
-    // Activate
-    featureFlagsPage.list().clickRowActionMenuItem('unsupported-storage-drivers', 'Activate');
-    featureFlagsPage.clickCardActionButtonAndWait('Activate', 'unsupported-storage-drivers', true);
-
-    // Check Updated State: should be active
-    featureFlagsPage.list().details('unsupported-storage-drivers', 0).should('include.text', 'Active');
-
-    // Deactivate
-    featureFlagsPage.goTo();
-    featureFlagsPage.list().clickRowActionMenuItem('unsupported-storage-drivers', 'Deactivate');
-    featureFlagsPage.clickCardActionButtonAndWait('Deactivate', 'unsupported-storage-drivers', false);
-
-    // Check Updated State: should be disabled
-    featureFlagsPage.list().details('unsupported-storage-drivers', 0).should('include.text', 'Disabled');
-  });
-
   it('standard user has only read access to Feature Flag page', { tags: ['@globalSettings', '@standardUser'] }, () => {
     // verify action menus are hidden for standard user
 
@@ -218,7 +197,7 @@ describe('Feature Flags', () => {
       'unsupported-storage-drivers'
     ];
 
-    featureFlagsPage.goTo();
+    FeatureFlagsPagePo.navTo();
 
     featureFlags.forEach((featureFlags) => {
       cy.log(featureFlags);
