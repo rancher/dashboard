@@ -22,7 +22,7 @@ describe('Cluster Project and Members', { tags: ['@explorer', '@adminUser'] }, (
     userCreate.username().set(username);
     userCreate.newPass().set(standardPassword);
     userCreate.confirmNewPass().set(standardPassword);
-    userCreate.saveCreateForm().click();
+    userCreate.saveCreateWithErrorRetry();
     usersAdmin.waitForPageWithExactUrl();
 
     // add user to Cluster membership

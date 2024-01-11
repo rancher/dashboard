@@ -3,6 +3,7 @@ import LabeledInputPo from '@/cypress/e2e/po/components/labeled-input.po';
 import AsyncButtonPo from '@/cypress/e2e/po/components/async-button.po';
 import CheckboxInputPo from '@/cypress/e2e/po/components/checkbox-input.po';
 import { CypressChainable } from '@/cypress/e2e/po/po.types';
+import BannersPo from '@/cypress/e2e/po/components/banners.po';
 
 export default class MgmtUserEditPo extends PagePo {
   private static createPath(clusterId: string, userId?: string ) {
@@ -45,6 +46,24 @@ export default class MgmtUserEditPo extends PagePo {
 
   saveCreateForm(): AsyncButtonPo {
     return new AsyncButtonPo('[data-testid="form-save"]', this.self());
+  }
+
+  saveCreateWithErrorRetry(attempt = 1): Cypress.Chainable | null {
+    if (attempt > 3) {
+      return null;
+    }
+
+    cy.intercept('POST', 'v3/users').as('userCreation');
+
+    this.saveCreateForm().click();
+
+    cy.wait('@userCreation').then(({ response }) => {
+      if (response?.statusCode !== 201) {
+        cy.wait(1000); // eslint-disable-line cypress/no-unnecessary-waiting
+
+        return this.saveCreateWithErrorRetry(++attempt);
+      }
+    });
   }
 
   saveAndWaitForRequests(method: string, url: any, multipleCalls?: boolean): CypressChainable {
