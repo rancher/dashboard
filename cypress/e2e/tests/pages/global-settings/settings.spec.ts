@@ -1,6 +1,5 @@
 import { SettingsPagePo } from '@/cypress/e2e/po/pages/global-settings/settings.po';
 import HomePagePo from '@/cypress/e2e/po/pages/home.po';
-import BurgerMenuPo from '@/cypress/e2e/po/side-bars/burger-side-menu.po';
 import BannersPo from '@/cypress/e2e/po/components/banners.po';
 import CreateKeyPagePo from '@/cypress/e2e/po/pages/account-api-keys-create_key.po';
 import AccountPagePo from '@/cypress/e2e/po/pages/account-api-keys.po';
@@ -9,34 +8,20 @@ import * as path from 'path';
 import * as jsyaml from 'js-yaml';
 import { settings } from '@/cypress/e2e/blueprints/global_settings/settings-data';
 
-const settingsPage = new SettingsPagePo();
+const settingsPage = new SettingsPagePo('local');
 const accountPage = new AccountPagePo();
 const createKeyPage = new CreateKeyPagePo();
 const clusterList = new ClusterManagerListPagePo('local');
-const burgerMenu = new BurgerMenuPo();
 
-describe('Settings', () => {
-  beforeEach(() => {
+describe('Settings', { testIsolation: 'off' }, () => {
+  before(() => {
     cy.login();
-  });
-
-  it('can navigate to Settings page', { tags: ['@globalSettings', '@adminUser', '@standardUser'] }, () => {
     HomePagePo.goTo();
-
-    BurgerMenuPo.toggle();
-
-    burgerMenu.categories().contains(` Configuration `).should('exist');
-    const globalSettingsNavItem = burgerMenu.links().contains(`Global Settings`);
-
-    globalSettingsNavItem.should('exist');
-    globalSettingsNavItem.click();
-
-    settingsPage.waitForPageWithClusterId();
   });
 
   it('can update engine-iso-url', { tags: ['@globalSettings', '@adminUser'] }, () => {
     // Update setting
-    settingsPage.goTo();
+    SettingsPagePo.navTo();
     settingsPage.editSettingsByLabel('engine-iso-url');
 
     const settingsEdit = settingsPage.editSettings('local', 'engine-iso-url');
@@ -54,7 +39,7 @@ describe('Settings', () => {
     settingsPage.modifiedLabel('engine-iso-url').should('be.visible'); // modified label should display after update
 
     // Reset
-    settingsPage.goTo();
+    SettingsPagePo.navTo();
     settingsPage.waitForPage();
     settingsPage.editSettingsByLabel('engine-iso-url');
 
@@ -74,7 +59,7 @@ describe('Settings', () => {
 
   it('can update password-min-length', { tags: ['@globalSettings', '@adminUser'] }, () => {
     // Update setting
-    settingsPage.goTo();
+    SettingsPagePo.navTo();
     settingsPage.editSettingsByLabel('password-min-length');
 
     const settingsEdit = settingsPage.editSettings('local', 'password-min-length');
@@ -110,7 +95,7 @@ describe('Settings', () => {
     banner.banner().contains(`Password must be at least ${ settings['password-min-length'].new } characters`).should('be.visible');
 
     // Reset
-    settingsPage.goTo();
+    SettingsPagePo.navTo();
     settingsPage.waitForPage();
     settingsPage.editSettingsByLabel('password-min-length');
 
@@ -125,7 +110,7 @@ describe('Settings', () => {
 
   it('can update ingress-ip-domain', { tags: ['@globalSettings', '@adminUser'] }, () => {
     // Update setting
-    settingsPage.goTo();
+    SettingsPagePo.navTo();
     settingsPage.editSettingsByLabel('ingress-ip-domain');
 
     const settingsEdit = settingsPage.editSettings('local', 'ingress-ip-domain');
@@ -142,7 +127,7 @@ describe('Settings', () => {
     settingsPage.settingsValue('ingress-ip-domain').contains(settings['ingress-ip-domain'].new);
 
     // Reset
-    settingsPage.goTo();
+    SettingsPagePo.navTo();
     settingsPage.waitForPage();
     settingsPage.editSettingsByLabel('ingress-ip-domain');
 
@@ -161,7 +146,7 @@ describe('Settings', () => {
 
   it('can update auth-user-info-max-age-seconds', { tags: ['@globalSettings', '@adminUser'] }, () => {
     // Update setting
-    settingsPage.goTo();
+    SettingsPagePo.navTo();
     settingsPage.editSettingsByLabel('auth-user-info-max-age-seconds');
 
     const settingsEdit = settingsPage.editSettings('local', 'auth-user-info-max-age-seconds');
@@ -178,7 +163,7 @@ describe('Settings', () => {
     settingsPage.settingsValue('auth-user-info-max-age-seconds').contains(settings['auth-user-info-max-age-seconds'].new);
 
     // Reset
-    settingsPage.goTo();
+    SettingsPagePo.navTo();
     settingsPage.waitForPage();
     settingsPage.editSettingsByLabel('auth-user-info-max-age-seconds');
 
@@ -197,7 +182,7 @@ describe('Settings', () => {
 
   it('can update auth-user-session-ttl-minutes', { tags: ['@globalSettings', '@adminUser'] }, () => {
     // Update setting
-    settingsPage.goTo();
+    SettingsPagePo.navTo();
     settingsPage.editSettingsByLabel('auth-user-session-ttl-minutes');
 
     const settingsEdit = settingsPage.editSettings('local', 'auth-user-session-ttl-minutes');
@@ -214,7 +199,7 @@ describe('Settings', () => {
     settingsPage.settingsValue('auth-user-session-ttl-minutes').contains(settings['auth-user-session-ttl-minutes'].new);
 
     // Reset
-    settingsPage.goTo();
+    SettingsPagePo.navTo();
     settingsPage.waitForPage();
     settingsPage.editSettingsByLabel('auth-user-session-ttl-minutes');
 
@@ -233,7 +218,7 @@ describe('Settings', () => {
 
   it('can update auth-token-max-ttl-minutes', { tags: ['@globalSettings', '@adminUser'] }, () => {
     // Update setting
-    settingsPage.goTo();
+    SettingsPagePo.navTo();
     settingsPage.editSettingsByLabel('auth-token-max-ttl-minutes');
 
     const settingsEdit = settingsPage.editSettings('local', 'auth-token-max-ttl-minutes');
@@ -254,7 +239,7 @@ describe('Settings', () => {
     cy.contains('10 mins - Maximum allowed').should('be.visible');
 
     // Reset
-    settingsPage.goTo();
+    SettingsPagePo.navTo();
     settingsPage.waitForPage();
     settingsPage.editSettingsByLabel('auth-token-max-ttl-minutes');
 
@@ -269,7 +254,7 @@ describe('Settings', () => {
 
   it('can update kubeconfig-generate-token', { tags: ['@globalSettings', '@adminUser'] }, () => {
     // Update setting
-    settingsPage.goTo();
+    SettingsPagePo.navTo();
     settingsPage.editSettingsByLabel('kubeconfig-generate-token');
 
     const settingsEdit = settingsPage.editSettings('local', 'kubeconfig-generate-token');
@@ -282,7 +267,7 @@ describe('Settings', () => {
     settingsPage.settingsValue('kubeconfig-generate-token').contains(settings['kubeconfig-generate-token'].new);
 
     // Reset
-    settingsPage.goTo();
+    SettingsPagePo.navTo();
     settingsPage.waitForPage();
     settingsPage.editSettingsByLabel('kubeconfig-generate-token');
 
@@ -316,7 +301,7 @@ describe('Settings', () => {
 
   it('can update kubeconfig-default-token-ttl-minutes', { tags: ['@globalSettings', '@adminUser'] }, () => {
     // Update setting
-    settingsPage.goTo();
+    SettingsPagePo.navTo();
     settingsPage.editSettingsByLabel('kubeconfig-default-token-ttl-minutes');
 
     const settingsEdit = settingsPage.editSettings('local', 'kubeconfig-default-token-ttl-minutes');
@@ -333,7 +318,7 @@ describe('Settings', () => {
     settingsPage.settingsValue('kubeconfig-default-token-ttl-minutes').contains(settings['kubeconfig-default-token-ttl-minutes'].new);
 
     // Reset
-    settingsPage.goTo();
+    SettingsPagePo.navTo();
     settingsPage.waitForPage();
     settingsPage.editSettingsByLabel('kubeconfig-default-token-ttl-minutes');
 
@@ -352,7 +337,7 @@ describe('Settings', () => {
 
   it('can update auth-user-info-resync-cron', { tags: ['@globalSettings', '@adminUser'] }, () => {
     // Update setting
-    settingsPage.goTo();
+    SettingsPagePo.navTo();
     settingsPage.editSettingsByLabel('auth-user-info-resync-cron');
 
     const settingsEdit = settingsPage.editSettings('local', 'auth-user-info-resync-cron');
@@ -369,7 +354,7 @@ describe('Settings', () => {
     settingsPage.settingsValue('auth-user-info-resync-cron').contains(settings['auth-user-info-resync-cron'].new);
 
     // Reset
-    settingsPage.goTo();
+    SettingsPagePo.navTo();
     settingsPage.waitForPage();
     settingsPage.editSettingsByLabel('auth-user-info-resync-cron');
 

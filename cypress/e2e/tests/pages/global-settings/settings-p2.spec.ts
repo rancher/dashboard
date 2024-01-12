@@ -6,15 +6,16 @@ import AccountPagePo from '@/cypress/e2e/po/pages/account-api-keys.po';
 import ClusterManagerListPagePo from '@/cypress/e2e/po/pages/cluster-manager/cluster-manager-list.po';
 import { settings } from '@/cypress/e2e/blueprints/global_settings/settings-data';
 
-const settingsPage = new SettingsPagePo();
+const settingsPage = new SettingsPagePo('local');
 const homePage = new HomePagePo();
 const accountPage = new AccountPagePo();
 const clusterList = new ClusterManagerListPagePo('local');
 const burgerMenu = new BurgerMenuPo();
 
-describe('Settings', () => {
-  beforeEach(() => {
+describe('Settings', { testIsolation: 'off' }, () => {
+  before(() => {
     cy.login();
+    HomePagePo.goTo();
   });
 
   it.skip('can update server-url', { tags: ['@globalSettings', '@adminUser'] }, () => {
@@ -22,7 +23,7 @@ describe('Settings', () => {
     // skipping this test until issue is resolved
 
     // Update setting
-    settingsPage.goTo();
+    SettingsPagePo.navTo();
 
     // Get original value and store it via aliasing
     settingsPage.settingsValue('server-url').then((el: any) => {
@@ -33,7 +34,7 @@ describe('Settings', () => {
 
     settingsPage.editSettingsByLabel('server-url');
 
-    const settingsEdit = settingsPage.editSettings('_', 'server-url');
+    const settingsEdit = settingsPage.editSettings('local', 'server-url');
 
     settingsEdit.waitForPage();
     settingsEdit.title().contains('Setting: server-url').should('be.visible');
@@ -49,7 +50,7 @@ describe('Settings', () => {
     cy.contains(settings['server-url'].new).should('be.visible');
 
     // Reset
-    settingsPage.goTo();
+    SettingsPagePo.navTo();
     settingsPage.waitForPage();
     settingsPage.editSettingsByLabel('server-url');
 
@@ -71,10 +72,10 @@ describe('Settings', () => {
 
   it('can update system-default-registry', { tags: ['@globalSettings', '@adminUser'] }, () => {
     // Update setting
-    settingsPage.goTo();
+    SettingsPagePo.navTo();
     settingsPage.editSettingsByLabel('system-default-registry');
 
-    const settingsEdit = settingsPage.editSettings('_', 'system-default-registry');
+    const settingsEdit = settingsPage.editSettings('local', 'system-default-registry');
 
     settingsEdit.waitForPage();
     settingsEdit.title().contains('Setting: system-default-registry').should('be.visible');
@@ -98,7 +99,7 @@ describe('Settings', () => {
     cy.contains(settings['system-default-registry'].new).should('exist');
 
     // Reset
-    settingsPage.goTo();
+    SettingsPagePo.navTo();
     settingsPage.waitForPage();
     settingsPage.editSettingsByLabel('system-default-registry');
 
@@ -113,11 +114,11 @@ describe('Settings', () => {
 
   it('can update ui-index', { tags: ['@globalSettings', '@adminUser'] }, () => {
     // Update setting
-    settingsPage.goTo();
+    SettingsPagePo.navTo();
     settingsPage.settingsValue('ui-index').invoke('text').then((originalValue:any) => {
       settingsPage.editSettingsByLabel('ui-index');
 
-      const settingsEdit = settingsPage.editSettings('_', 'ui-index');
+      const settingsEdit = settingsPage.editSettings('local', 'ui-index');
 
       settingsEdit.waitForPage();
       settingsEdit.title().contains('Setting: ui-index').should('be.visible');
@@ -131,7 +132,7 @@ describe('Settings', () => {
       settingsPage.settingsValue('ui-index').contains(settings['ui-index'].new);
 
       // Reset
-      settingsPage.goTo();
+      SettingsPagePo.navTo();
       settingsPage.waitForPage();
       settingsPage.editSettingsByLabel('ui-index');
 
@@ -151,11 +152,11 @@ describe('Settings', () => {
 
   it('can update ui-dashboard-index', { tags: ['@globalSettings', '@adminUser'] }, () => {
     // Update setting
-    settingsPage.goTo();
+    SettingsPagePo.navTo();
     settingsPage.settingsValue('ui-dashboard-index').invoke('text').then((originalValue:any) => {
       settingsPage.editSettingsByLabel('ui-dashboard-index');
 
-      const settingsEdit = settingsPage.editSettings('_', 'ui-dashboard-index');
+      const settingsEdit = settingsPage.editSettings('local', 'ui-dashboard-index');
 
       settingsEdit.waitForPage();
       settingsEdit.title().contains('Setting: ui-dashboard-index').should('be.visible');
@@ -169,7 +170,7 @@ describe('Settings', () => {
       settingsPage.settingsValue('ui-dashboard-index').contains(settings['ui-dashboard-index'].new);
 
       // Reset
-      settingsPage.goTo();
+      SettingsPagePo.navTo();
       settingsPage.waitForPage();
       settingsPage.editSettingsByLabel('ui-dashboard-index');
 
@@ -189,10 +190,10 @@ describe('Settings', () => {
 
   it('can update ui-offline-preferred', { tags: ['@globalSettings', '@adminUser'] }, () => {
     // Update setting: Local
-    settingsPage.goTo();
+    SettingsPagePo.navTo();
     settingsPage.editSettingsByLabel('ui-offline-preferred');
 
-    const settingsEdit = settingsPage.editSettings('_', 'ui-offline-preferred');
+    const settingsEdit = settingsPage.editSettings('local', 'ui-offline-preferred');
 
     settingsEdit.waitForPage();
     settingsEdit.title().contains('Setting: ui-offline-preferred').should('be.visible');
@@ -206,7 +207,7 @@ describe('Settings', () => {
     settingsPage.settingsValue('ui-offline-preferred').contains(settings['ui-offline-preferred'].new);
 
     // Update settings: Remote
-    settingsPage.goTo();
+    SettingsPagePo.navTo();
     settingsPage.editSettingsByLabel('ui-offline-preferred');
 
     settingsEdit.waitForPage();
@@ -221,7 +222,7 @@ describe('Settings', () => {
     settingsPage.settingsValue('ui-offline-preferred').contains(settings['ui-offline-preferred'].new2);
 
     // Reset: Dynamic
-    settingsPage.goTo();
+    SettingsPagePo.navTo();
     settingsPage.waitForPage();
     settingsPage.editSettingsByLabel('ui-offline-preferred');
 
@@ -242,10 +243,10 @@ describe('Settings', () => {
     const suseRancherLogo = '/img/rancher-logo.055089a3.svg';
 
     // Update setting
-    settingsPage.goTo();
+    SettingsPagePo.navTo();
     settingsPage.editSettingsByLabel('ui-brand');
 
-    const settingsEdit = settingsPage.editSettings('_', 'ui-brand');
+    const settingsEdit = settingsPage.editSettings('local', 'ui-brand');
 
     settingsEdit.waitForPage();
     settingsEdit.title().contains('Setting: ui-brand').should('be.visible');
@@ -266,7 +267,7 @@ describe('Settings', () => {
     });
 
     // Reset
-    settingsPage.goTo();
+    SettingsPagePo.navTo();
     settingsPage.waitForPage();
     settingsPage.editSettingsByLabel('ui-brand');
 
@@ -292,10 +293,10 @@ describe('Settings', () => {
 
   it('can update cluster-template-enforcement', { tags: ['@globalSettings', '@adminUser'] }, () => {
     // Update setting
-    settingsPage.goTo();
+    SettingsPagePo.navTo();
     settingsPage.editSettingsByLabel('cluster-template-enforcement');
 
-    const settingsEdit = settingsPage.editSettings('_', 'cluster-template-enforcement');
+    const settingsEdit = settingsPage.editSettings('local', 'cluster-template-enforcement');
 
     settingsEdit.waitForPage();
     settingsEdit.title().contains('Setting: cluster-template-enforcement').should('be.visible');
@@ -309,7 +310,7 @@ describe('Settings', () => {
     settingsPage.settingsValue('cluster-template-enforcement').contains(settings['cluster-template-enforcement'].new);
 
     // Reset
-    settingsPage.goTo();
+    SettingsPagePo.navTo();
     settingsPage.waitForPage();
     settingsPage.editSettingsByLabel('cluster-template-enforcement');
 
@@ -328,10 +329,10 @@ describe('Settings', () => {
 
   it('can update telemetry-opt', { tags: ['@globalSettings', '@adminUser'] }, () => {
     // Update setting: Prompt
-    settingsPage.goTo();
+    SettingsPagePo.navTo();
     settingsPage.editSettingsByLabel('telemetry-opt');
 
-    const settingsEdit = settingsPage.editSettings('_', 'telemetry-opt');
+    const settingsEdit = settingsPage.editSettings('local', 'telemetry-opt');
 
     settingsEdit.waitForPage();
     settingsEdit.title().contains('Setting: telemetry-opt').should('be.visible');
@@ -346,7 +347,7 @@ describe('Settings', () => {
     settingsPage.settingsValue('telemetry-opt').contains('Prompt');
 
     // Update settings: Opt-in to Telemetry
-    settingsPage.goTo();
+    SettingsPagePo.navTo();
     settingsPage.editSettingsByLabel('telemetry-opt');
 
     settingsEdit.waitForPage();
@@ -361,7 +362,7 @@ describe('Settings', () => {
     settingsPage.settingsValue('telemetry-opt').contains('Opt-in to Telemetry');
 
     // Update settings: Opt-out of Telemetry
-    settingsPage.goTo();
+    SettingsPagePo.navTo();
     settingsPage.editSettingsByLabel('telemetry-opt');
 
     settingsEdit.waitForPage();
@@ -378,10 +379,10 @@ describe('Settings', () => {
 
   it('can update hide-local-cluster', { tags: ['@globalSettings', '@adminUser'] }, () => {
     // Update setting
-    settingsPage.goTo();
+    SettingsPagePo.navTo();
     settingsPage.editSettingsByLabel('hide-local-cluster');
 
-    const settingsEdit = settingsPage.editSettings('_', 'hide-local-cluster');
+    const settingsEdit = settingsPage.editSettings('local', 'hide-local-cluster');
 
     settingsEdit.waitForPage();
     settingsEdit.title().contains('Setting: hide-local-cluster').should('be.visible');
@@ -396,7 +397,7 @@ describe('Settings', () => {
     cy.contains('local').should('not.exist');
 
     // Reset
-    settingsPage.goTo();
+    SettingsPagePo.navTo();
     settingsPage.waitForPage();
     settingsPage.editSettingsByLabel('hide-local-cluster');
 
@@ -411,7 +412,7 @@ describe('Settings', () => {
 
   it('standard user has only read access to Settings page', { tags: ['@globalSettings', '@standardUser'] }, () => {
     // verify action buttons are hidden for standard user
-    settingsPage.goTo();
+    SettingsPagePo.navTo();
     settingsPage.actionButtonByLabel('engine-install-url').should('not.exist');
     settingsPage.actionButtonByLabel('password-min-length').should('not.exist');
   });

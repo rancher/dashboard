@@ -1,13 +1,21 @@
 import RootClusterPage from '@/cypress/e2e/po/pages/root-cluster-page';
 import SettingsEditPo from '@/cypress/e2e/po/edit/settings.po';
+import BurgerMenuPo from '@/cypress/e2e/po/side-bars/burger-side-menu.po';
 export class SettingsPagePo extends RootClusterPage {
-  static url = '/c/_/settings/management.cattle.io.setting'
-  static goTo(): Cypress.Chainable<Cypress.AUTWindow> {
-    return super.goTo(SettingsPagePo.url);
+  private static createPath(clusterId: string) {
+    return `/c/${ clusterId }/settings/management.cattle.io.setting`;
   }
 
-  constructor() {
-    super(SettingsPagePo.url);
+  static goTo(clusterId: string): Cypress.Chainable<Cypress.AUTWindow> {
+    return super.goTo(SettingsPagePo.createPath(clusterId));
+  }
+
+  constructor(clusterId: string) {
+    super(SettingsPagePo.createPath(clusterId));
+  }
+
+  static navTo() {
+    BurgerMenuPo.burgerMenuNavToMenubyLabel('Global Settings');
   }
 
   /**
