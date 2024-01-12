@@ -1,8 +1,5 @@
 import { HomeLinksPagePo } from '@/cypress/e2e/po/pages/global-settings/home-links.po';
-import { SettingsPagePo } from '@/cypress/e2e/po/pages/global-settings/settings.po';
 import HomePagePo from '@/cypress/e2e/po/pages/home.po';
-import BurgerMenuPo from '@/cypress/e2e/po/side-bars/burger-side-menu.po';
-import ProductNavPo from '@/cypress/e2e/po/side-bars/product-side-nav.po';
 
 const homeLinksPage = new HomeLinksPagePo();
 const homePage = new HomePagePo();
@@ -10,39 +7,14 @@ const homePage = new HomePagePo();
 const runTimestamp = +new Date();
 const runPrefix = `e2e-test-${ runTimestamp }`;
 
-describe('Home Links', () => {
-  // If we need to speed tests up these should be combined into a single `it` (so only one page load and one refresh is used)
-  beforeEach(() => {
+describe('Home Links', { testIsolation: 'off' }, () => {
+  before(() => {
     cy.login();
-  });
-
-  it('can navigate to Home Links page', { tags: ['@globalSettings', '@adminUser', '@standardUser'] }, () => {
     HomePagePo.goTo();
-
-    const burgerMenu = new BurgerMenuPo();
-    const productMenu = new ProductNavPo();
-
-    BurgerMenuPo.toggle();
-
-    burgerMenu.categories().contains(` Configuration `).should('exist');
-    const globalSettingsNavItem = burgerMenu.links().contains(`Global Settings`);
-
-    globalSettingsNavItem.should('exist');
-    globalSettingsNavItem.click();
-    const settingsPage = new SettingsPagePo();
-
-    settingsPage.waitForPageWithClusterId();
-
-    const homeLinksPageNavItem = productMenu.visibleNavTypes().contains('Home Links');
-
-    homeLinksPageNavItem.should('exist');
-    homeLinksPageNavItem.click();
-
-    homeLinksPage.waitForPageWithClusterId();
   });
 
   it('can hide or show default links on the Home Page', { tags: ['@globalSettings', '@adminUser'] }, () => {
-    homeLinksPage.goTo();
+    HomeLinksPagePo.navTo();
 
     // Hide all links
     homeLinksPage.selectCheckbox(0).set();
@@ -55,7 +27,7 @@ describe('Home Links', () => {
     HomePagePo.goTo();
     homePage.supportLinks().should('have.length', 1).contains('Commercial Support');
 
-    homeLinksPage.goTo();
+    HomeLinksPagePo.navTo();
 
     // Show all links
     homeLinksPage.selectCheckbox(0).set();
@@ -75,7 +47,7 @@ describe('Home Links', () => {
     const customLinkUrl = `https://${ runPrefix }/custom/link/url`;
 
     // Add custom link
-    homeLinksPage.goTo();
+    HomeLinksPagePo.navTo();
     homeLinksPage.addLinkButton().click();
     homeLinksPage.displayTextInput().set(customLinkName);
     homeLinksPage.urlInput().set(customLinkUrl);
@@ -88,7 +60,7 @@ describe('Home Links', () => {
     homePage.supportLinks().contains(customLinkName).should('have.attr', 'href', `${ customLinkUrl }`);
 
     // Remove custom link
-    homeLinksPage.goTo();
+    HomeLinksPagePo.navTo();
     homeLinksPage.removeLinkButton().click();
     homeLinksPage.applyButton().apply();
     homeLinksPage.applyButton().apply();
@@ -102,7 +74,7 @@ describe('Home Links', () => {
 
   it('standard user has only read access to Home Links page', { tags: ['@globalSettings', '@standardUser'] }, () => {
     // verify action buttons/checkboxes are hidden for standard user
-    homeLinksPage.waitForRequests();
+    HomeLinksPagePo.navTo();
     homeLinksPage.selectCheckbox(0).checkNotExists();
     homeLinksPage.applyButton().checkNotExists();
   });

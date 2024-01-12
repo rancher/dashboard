@@ -3,6 +3,8 @@ import CheckboxInputPo from '@/cypress/e2e/po/components/checkbox-input.po';
 import LabeledInputPo from '@/cypress/e2e/po/components/labeled-input.po';
 import ModalWithCardPo from '@/cypress/e2e/po/components/modal-with-card.po';
 import RootClusterPage from '@/cypress/e2e/po/pages/root-cluster-page';
+import BurgerMenuPo from '@/cypress/e2e/po/side-bars/burger-side-menu.po';
+import ProductNavPo from '@/cypress/e2e/po/side-bars/product-side-nav.po';
 export class HomeLinksPagePo extends RootClusterPage {
   static url = '/c/_/settings/links'
   static modal = new ModalWithCardPo();
@@ -12,6 +14,13 @@ export class HomeLinksPagePo extends RootClusterPage {
 
   constructor() {
     super(HomeLinksPagePo.url);
+  }
+
+  static navTo() {
+    const sideNav = new ProductNavPo();
+
+    BurgerMenuPo.burgerMenuNavToMenubyLabel('Global Settings');
+    sideNav.navToSideMenuEntryByLabel('Home Links');
   }
 
   waitForRequests() {
