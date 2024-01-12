@@ -212,10 +212,6 @@ export default {
       return this.validationPassed;
     },
 
-    canDiff() {
-      return this.initialYaml !== this.currentYaml;
-    },
-
     canEditYaml() {
       return !(this.schema?.resourceMethods?.includes('blocked-PUT'));
     },
@@ -318,11 +314,9 @@ export default {
       }
     },
 
-    async createResourceYaml(modifiers, initial = false) {
+    async createResourceYaml(modifiers, resource = this.resource) {
       // Required to populate yaml comments and default values
       await this.schema?.fetchResourceFields();
-
-      const resource = initial ? this.initialResource : this.resource;
 
       if ( typeof this.generateYaml === 'function' ) {
         return this.generateYaml.apply(this, resource);
@@ -428,7 +422,7 @@ export default {
       if (!neu) {
         // Entering yaml mode
         if (!this.initialYaml) {
-          this.initialYaml = await this.createResourceYaml(undefined, true);
+          this.initialYaml = await this.createResourceYaml(undefined, this.initialResource);
         }
       }
     }
@@ -726,7 +720,7 @@ export default {
           class="resource-container cru__content"
           @error="e=>$emit('error', e)"
         >
-          <template #yamlFooter="{yamlSave, showPreview, yamlPreview, yamlUnpreview}">
+          <template #yamlFooter="{yamlSave, showPreview, yamlPreview, yamlUnpreview, canDiff}">
             <slot name="cru-yaml-footer">
               <CruResourceFooter
                 class="cru__footer"
