@@ -69,14 +69,6 @@ export default {
     }
   },
 
-  fetch() {
-    if (this.preShowConditions) {
-      // schema's resource fields required to conditionally show the `conditions` tab.
-      // just kick this off, the visibility of the tab shouldn't block the display of all screen content
-      this.schema.fetchResourceFields();
-    }
-  },
-
   data() {
     const inStore = this.$store.getters['currentStore'](EVENT);
 
@@ -113,7 +105,8 @@ export default {
       }
 
       if (!this.schema.hasResourceFields) {
-        // Block until fetchResourceFields completes from `fetch`
+        console.warn('Schema does not contain resourceFields, unable to check for status.conditions'); // eslint-disable-line no-console
+
         return false;
       }
 

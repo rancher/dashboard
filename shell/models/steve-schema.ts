@@ -138,7 +138,6 @@ export default class SteveSchema extends Schema {
         url
       });
     } catch (e: any) {
-      // TODO: RC Question M - can block instead of 503?
       if ( e?._status >= 500) {
         // Rancher could be updating it's definition cache, attempt a few times
         await new Promise((resolve) => setTimeout(resolve, 2000));

@@ -99,7 +99,8 @@ export default {
       this.extCustomParams = { provider: this.value.machineProvider };
     }
 
-    const fetchOne = {};
+    const schema = this.$store.getters[`management/schemaFor`](CAPI.RANCHER_CLUSTER);
+    const fetchOne = { schemaDefinitions: schema.fetchResourceFields() };
 
     if ( this.$store.getters['management/canList'](CAPI.MACHINE_DEPLOYMENT) ) {
       fetchOne.machineDeployments = this.$store.dispatch('management/findAll', { type: CAPI.MACHINE_DEPLOYMENT });

@@ -233,7 +233,7 @@ export default {
 
     const schemaDefinitions = schema.requiresResourceFields ? schema.schemaDefinitions : null;
     const parts = splitObjectPath(path);
-    const schemaOrSchemaDefinition = schema;
+    let schemaOrSchemaDefinition = schema;
 
     // Iterate down the parts (properties) until there are no parts left (success) or the path cannot be found (failure)
     while ( parts.length ) {
