@@ -307,8 +307,7 @@ export const actions = {
             Vue.set(server.data, key, value);
           }
 
-          // Why skipResourceField? Because it requires a fetch of schemaDefinitions and isn't needed in this context
-          await server.save({ redirectUnauthorized: false, validation: { skipResourceField: true } });
+          await server.save({ redirectUnauthorized: false });
         }
       } catch (e) {
         // Well it failed, but not much to do about it...
@@ -435,8 +434,7 @@ export const actions = {
         server.data[key] = prefsBeforeLogin[key];
       });
 
-      // Why skipResourceField? Because it requires a fetch of schemaDefinitions and isn't needed in this context (and blocks dashboard load)
-      await server.save({ redirectUnauthorized: false, validation: { skipResourceField: true } });
+      await server.save({ redirectUnauthorized: false });
 
       // Clear prefsBeforeLogin, as we have now saved theses
       prefsBeforeLogin = {};

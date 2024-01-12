@@ -26,7 +26,7 @@ export async function handleSpoofedRequest(rootGetters, schemaStore, opt, produc
   if (opt.url.includes(SPOOFED_PREFIX) || opt.url.includes(SPOOFED_API_PREFIX)) {
     const [empty, scheme, type, ...rest] = opt.url.split('/'); // eslint-disable-line no-unused-vars
     const id = rest.join('/'); // Cover case where id contains '/'
-    const isApi = scheme === SPOOFED_API_PREFIX; // I thought this should be schema.startsWith... but it works for monitoring / receiver Edit as YAML
+    const isApi = scheme === SPOOFED_API_PREFIX;
     const typemapGetter = id ? 'getSpoofedInstance' : 'getSpoofedInstances';
 
     const schemas = rootGetters[`${ schemaStore }/all`](SCHEMA);
