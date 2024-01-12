@@ -150,12 +150,7 @@ export default class SteveSchema extends Schema {
       return;
     }
 
-    const { self, others, forStore } = this._parseSchemaDefinitionResponse(res);
-
-    this._schemaDefinitionsIds = { self, others };
-    Object.entries(forStore).forEach(([type, sd]) => {
-      SchemaDefinitionCache[type] = sd;
-    });
+    this._cacheSchemaDefinitionResponse(res);
 
     return this.schemaDefinition;
   }
@@ -165,14 +160,13 @@ export default class SteveSchema extends Schema {
    *
    * Split out for unit testing purposes
    */
-  _parseSchemaDefinitionResponse(res: SchemaDefinitionResponse): { self: string, others: string[], forStore: SchemaDefinitions} {
+  _cacheSchemaDefinitionResponse(res: SchemaDefinitionResponse): void {
     const { [res.definitionType]: self, ...others } = res.definitions;
 
-    return {
-      self:     self.type,
-      others:   Object.keys(others),
-      forStore: res.definitions
-    };
+    this._schemaDefinitionsIds = { self: self.type, others: Object.keys(others) };
+    Object.entries(res.definitions).forEach(([type, sd]) => {
+      SchemaDefinitionCache[type] = sd;
+    });
   }
 
   /*********************
