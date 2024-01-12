@@ -21,7 +21,7 @@ const runPrefix = `e2e-test-${ runTimestamp }`;
 const clusterNamePartial = `${ runPrefix }-create`;
 const rke1CustomName = `${ clusterNamePartial }-rke1-custom`;
 
-describe('rke1 agent configuration', { tags: ['@adminUser', '@standardUser'] }, () => {
+describe('rke1 agent configuration', { tags: ['@manager', '@adminUser', '@standardUser'] }, () => {
   const clusterList = new ClusterManagerListPagePo('local');
   const createClusterPage = new ClusterManagerCreateRke1PagePo();
   let clusterId = '';
@@ -45,7 +45,7 @@ describe('rke1 agent configuration', { tags: ['@adminUser', '@standardUser'] }, 
     promptRemove.remove();
   });
 
-  describe('rke1 agent configuration requests and limits', { tags: ['@adminUser', '@standardUser'] }, () => {
+  describe('rke1 agent configuration requests and limits', () => {
     const clusterName = generateClusterName('requests-limits');
 
     after(() => {
@@ -132,7 +132,7 @@ describe('rke1 agent configuration', { tags: ['@adminUser', '@standardUser'] }, 
     });
   });
 
-  describe('rke1 agent configuration tolerations', { tags: ['@adminUser', '@standardUser'] }, () => {
+  describe('rke1 agent configuration tolerations', () => {
     const clusterName = generateClusterName('tolerations');
 
     after(() => {
@@ -216,7 +216,7 @@ describe('rke1 agent configuration', { tags: ['@adminUser', '@standardUser'] }, 
     });
   });
 
-  describe('rke1 agent configuration affinity', { tags: ['@adminUser', '@standardUser'] }, () => {
+  describe('rke1 agent configuration affinity', () => {
     const clusterName = generateClusterName('tolerations');
 
     after(() => {
