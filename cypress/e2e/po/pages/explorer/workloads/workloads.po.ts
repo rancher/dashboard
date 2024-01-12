@@ -175,8 +175,4 @@ export class WorkloadsCreatePageBasePo extends PagePo {
   createWithKubectl(blueprintJson: string | Object, wait = 6000) {
     this.workload().createWithKubectl(blueprintJson, wait);
   }
-
-  // waitForCreate() {
-  //   cy.interceptAny
-  // }
 }

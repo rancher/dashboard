@@ -54,15 +54,27 @@ export default class MgmtUserEditPo extends PagePo {
     }
 
     cy.intercept('POST', 'v3/users').as('userCreation');
+    cy.intercept('POST', 'v3/globalrolebindings').as('globalRoleBindingsCreation');
 
     this.saveCreateForm().click();
 
+    // main xhr request for user creation
     cy.wait('@userCreation').then(({ response }) => {
       if (response?.statusCode !== 201) {
         cy.wait(1000); // eslint-disable-line cypress/no-unnecessary-waiting
 
         return this.saveCreateWithErrorRetry(++attempt);
       }
+
+      // also covers globalrolebindings fail upon user creation
+      // https://github.com/rancher/dashboard/issues/10260
+      cy.wait('@globalRoleBindingsCreation').then(({ response }) => {
+        if (response?.statusCode !== 201) {
+          cy.wait(1000); // eslint-disable-line cypress/no-unnecessary-waiting
+
+          return this.saveCreateWithErrorRetry(++attempt);
+        }
+      });
     });
   }
 
