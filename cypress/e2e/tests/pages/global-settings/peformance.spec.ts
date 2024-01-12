@@ -225,7 +225,7 @@ describe('Performance', { testIsolation: 'off', tags: ['@globalSettings', '@admi
     });
   });
 
-  // after('set default performance settings', () => {
-  //   cy.setRancherResource('v1', 'management.cattle.io.settings', 'ui-performance', performanceSettingsOrginal[0]);
-  // });
+  after('set default performance settings', () => {
+    cy.setRancherResource('v1', 'management.cattle.io.settings', 'ui-performance', performanceSettingsOrginal[0]);
+  });
 });
