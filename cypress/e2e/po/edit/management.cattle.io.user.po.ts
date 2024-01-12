@@ -57,19 +57,22 @@ export default class MgmtUserEditPo extends PagePo {
 
     this.saveCreateForm().click();
 
+    // Based on issue https://github.com/rancher/dashboard/issues/10260
     // main xhr request for user creation
     cy.wait('@userCreation').then(({ response }) => {
       if (response?.statusCode !== 201) {
-        cy.wait(1000); // eslint-disable-line cypress/no-unnecessary-waiting
+        cy.wait(1500); // eslint-disable-line cypress/no-unnecessary-waiting
 
         return this.saveCreateWithErrorRetry(++attempt);
       }
 
+      const userId = response.body?.id;
+
       // also covers globalrolebindings fail upon user creation
-      // https://github.com/rancher/dashboard/issues/10260
       cy.wait('@globalRoleBindingsCreation').then(({ response }) => {
         if (response?.statusCode !== 201) {
-          cy.wait(1000); // eslint-disable-line cypress/no-unnecessary-waiting
+          cy.deleteRancherResource('v3', 'users', userId); // we need to delete the user previously created
+          cy.wait(2000); // eslint-disable-line cypress/no-unnecessary-waiting
 
           return this.saveCreateWithErrorRetry(++attempt);
         }
