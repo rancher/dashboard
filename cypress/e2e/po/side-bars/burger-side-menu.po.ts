@@ -19,7 +19,7 @@ export default class BurgerMenuPo extends ComponentPo {
    */
   static burgerMenuNavToMenubyLabel(label: string): Cypress.Chainable {
     return this.sideMenu().should('exist').find('.option').contains(label)
-      .click();
+      .click({ force: true });
   }
 
   /**
