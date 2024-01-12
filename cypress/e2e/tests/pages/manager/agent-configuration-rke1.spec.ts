@@ -45,7 +45,7 @@ describe('rke1 agent configuration', { tags: ['@adminUser', '@standardUser'] }, 
     promptRemove.remove();
   });
 
-  describe('rke1 agent configuration requests and limits', () => {
+  describe('rke1 agent configuration requests and limits', { tags: ['@adminUser', '@standardUser'] }, () => {
     const clusterName = generateClusterName('requests-limits');
 
     after(() => {
@@ -132,7 +132,7 @@ describe('rke1 agent configuration', { tags: ['@adminUser', '@standardUser'] }, 
     });
   });
 
-  describe('rke1 agent configuration tolerations', () => {
+  describe('rke1 agent configuration tolerations', { tags: ['@adminUser', '@standardUser'] }, () => {
     const clusterName = generateClusterName('tolerations');
 
     after(() => {
@@ -216,7 +216,7 @@ describe('rke1 agent configuration', { tags: ['@adminUser', '@standardUser'] }, 
     });
   });
 
-  describe('rke1 agent configuration affinity', () => {
+  describe('rke1 agent configuration affinity', { tags: ['@adminUser', '@standardUser'] }, () => {
     const clusterName = generateClusterName('tolerations');
 
     after(() => {
