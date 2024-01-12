@@ -34,17 +34,6 @@ describe('rke1 agent configuration', { tags: ['@manager', '@adminUser', '@standa
     cy.login();
   });
 
-  after(() => {
-    clusterList.goTo();
-    clusterList.checkIsCurrentPage();
-    clusterList.list().actionMenu(rke1CustomName).getMenuItem('Delete').click();
-
-    const promptRemove = new PromptRemove();
-
-    promptRemove.confirm(rke1CustomName);
-    promptRemove.remove();
-  });
-
   describe('rke1 agent configuration requests and limits', () => {
     const clusterName = generateClusterName('requests-limits');
 
