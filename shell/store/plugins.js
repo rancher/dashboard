@@ -165,8 +165,10 @@ export const getters = {
   },
 
   fieldNamesForDriver(state, getters) {
-    return (name) => {
+    return async(name) => {
       const schema = getters.schemaForDriver(name);
+
+      await schema.fetchResourceFields();
 
       if ( !schema ) {
         // eslint-disable-next-line no-console
@@ -186,9 +188,9 @@ export const getters = {
   fieldsForDriver(state, getters) {
     return async(name) => {
       const schema = getters.schemaForDriver(name);
-      const names = getters.fieldNamesForDriver(name);
 
       await schema.fetchResourceFields();
+      const names = await getters.fieldNamesForDriver(name);
 
       const out = {};
 
