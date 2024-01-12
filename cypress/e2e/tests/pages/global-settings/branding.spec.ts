@@ -25,15 +25,13 @@ const settings = {
   }
 };
 
-describe('Branding', () => {
-  // If we need to speed tests up these should be combined into a single `it` (so only one page load and one refresh is used)
-  beforeEach(() => {
+describe('Branding', { testIsolation: 'off' }, () => {
+  before(() => {
     cy.login();
+    HomePagePo.goTo();
   });
 
   it('Can navigate to Branding Page', { tags: ['@globalSettings', '@adminUser', '@standardUser'] }, () => {
-    HomePagePo.goTo();
-
     const productMenu = new ProductNavPo();
 
     BurgerMenuPo.toggle();
@@ -97,7 +95,7 @@ describe('Branding', () => {
   it('Logo', { tags: ['@globalSettings', '@adminUser'] }, () => {
     const prefPage = new PreferencesPagePo();
 
-    brandingPage.goTo();
+    BrandingPagePo.navTo();
     brandingPage.customLogoCheckbox().set();
 
     // Upload Light Logo
@@ -168,7 +166,7 @@ describe('Branding', () => {
   });
 
   it('Favicon', { tags: ['@globalSettings', '@adminUser'] }, () => {
-    brandingPage.goTo();
+    BrandingPagePo.navTo();
     brandingPage.customFaviconCheckbox().set();
 
     // Upload Favicon
@@ -201,7 +199,7 @@ describe('Branding', () => {
   it('Primary Color', { tags: ['@globalSettings', '@adminUser'] }, () => {
     const brandingPage = new BrandingPagePo();
 
-    brandingPage.goTo();
+    BrandingPagePo.navTo();
 
     // Set
     brandingPage.primaryColorCheckbox().set();
@@ -258,7 +256,7 @@ describe('Branding', () => {
 
   it('standard user has only read access to Branding page', { tags: ['@globalSettings', '@standardUser'] }, () => {
     // verify action buttons/checkboxes etc. are disabled/hidden for standard user
-    brandingPage.goTo();
+    BrandingPagePo.navTo();
     brandingPage.privateLabel().self().should('be.disabled');
     brandingPage.customLogoCheckbox().isDisabled();
     brandingPage.customFaviconCheckbox().isDisabled();
