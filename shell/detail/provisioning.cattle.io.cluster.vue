@@ -1006,6 +1006,7 @@ export default {
       >
         <SortableTable
           class="snapshots"
+          :data-testid="'cluster-snapshots-list'"
           :headers="value.isRke1 ? rke1SnapshotHeaders : rke2SnapshotHeaders"
           default-sort-by="age"
           :table-actions="value.isRke1"

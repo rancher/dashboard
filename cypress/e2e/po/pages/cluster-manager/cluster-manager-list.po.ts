@@ -23,6 +23,23 @@ export default class ClusterManagerListPagePo extends PagePo {
     BurgerMenuPo.burgerMenuNavToMenubyLabel('Cluster Management');
   }
 
+  goToAndGetClusterDetails(clusterName: string): Cypress.Chainable<{ id: string }> {
+    let clusterDetails = [];
+
+    cy.intercept({
+      method: 'GET',
+      path:   '/v3/clusters',
+    }, (req) => {
+      req.continue((res) => {
+        clusterDetails = res.body.data;
+      });
+    }).as('request');
+
+    super.goTo();
+
+    return cy.wait('@request', { timeout: 10000 }).then(() => clusterDetails.find((c) => c.name === clusterName));
+  }
+
   list(): ProvClusterListPo {
     return new ProvClusterListPo(this.self().find('[data-testid="cluster-list"]'));
   }

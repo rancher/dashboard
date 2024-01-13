@@ -3,6 +3,7 @@ import { isMatch } from 'lodash';
 import ClusterManagerListPagePo from '@/cypress/e2e/po/pages/cluster-manager/cluster-manager-list.po';
 import ClusterDashboardPagePo from '@/cypress/e2e/po/pages/explorer/cluster-dashboard.po';
 import ClusterManagerDetailRke2CustomPagePo from '@/cypress/e2e/po/detail/provisioning.cattle.io.cluster/cluster-detail-rke2-custom.po';
+import ClusterManagerDetailSnapshotsPo from '@/cypress/e2e/po/detail/provisioning.cattle.io.cluster/cluster-detail-snapshots.po';
 import ClusterManagerDetailImportedGenericPagePo from '@/cypress/e2e/po/detail/provisioning.cattle.io.cluster/cluster-detail-import-generic.po';
 import ClusterManagerCreateRke2CustomPagePo from '@/cypress/e2e/po/edit/provisioning.cattle.io.cluster/create/cluster-create-rke2-custom.po';
 import ClusterManagerEditRke2CustomPagePo from '@/cypress/e2e/po/edit/provisioning.cattle.io.cluster/edit/cluster-edit-rke2-custom.po';
@@ -237,6 +238,63 @@ describe('Cluster Manager', { testIsolation: 'off', tags: ['@manager', '@adminUs
 
         clusterList.waitForPage();
         clusterList.sortableTable().rowElementWithName(rke1CustomName).should('exist');
+      });
+
+      it('can create new snapshots', () => {
+        clusterList.goToAndGetClusterDetails(rke1CustomName).then((cluster) => {
+          const snapshots = new ClusterManagerDetailSnapshotsPo(cluster.id);
+
+          snapshots.goTo();
+          snapshots.waitForPage();
+
+          snapshots.create();
+          snapshots.list().resourceTable().sortableTable().rowElements()
+            .should('have.length.gte', 2) // 1 main row + 1 group row
+            .should('contain.text', 'Active');
+
+          snapshots.create();
+          snapshots.list().resourceTable().sortableTable().rowElements()
+            .should('have.length.gte', 3) // 2 main row + 1 group row
+            .should('not.contain.text', 'Activating');
+        });
+      });
+
+      it('can show snapshots list', () => {
+        clusterList.goToAndGetClusterDetails(rke1CustomName).then((cluster) => {
+          const snapshots = new ClusterManagerDetailSnapshotsPo(cluster.id);
+
+          cy.intercept({
+            method: 'GET',
+            path:   '/v3/etcdbackups',
+          }, (req) => {
+            req.query = { limit: '1' };
+          }).as('snapshots');
+
+          snapshots.goTo();
+          snapshots.waitForPage();
+
+          cy.wait('@snapshots', { timeout: 10000 }).its('response.body.data').should('have.length', 1);
+
+          snapshots.list().resourceTable().sortableTable().rowElements()
+            .should('have.length.gte', 3);
+        });
+      });
+
+      it('can delete snapshots', () => {
+        clusterList.goToAndGetClusterDetails(rke1CustomName).then((cluster) => {
+          const snapshots = new ClusterManagerDetailSnapshotsPo(cluster.id);
+
+          snapshots.goTo();
+          snapshots.waitForPage();
+
+          snapshots.list().selectAll();
+          snapshots.list().delete();
+
+          const promptRemove = new PromptRemove();
+
+          promptRemove.remove();
+          snapshots.list().resourceTable().sortableTable().checkRowCount(true, 1);
+        });
       });
 
       it('can delete cluster', () => {

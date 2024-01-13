@@ -15,4 +15,8 @@ export default abstract class ClusterManagerDetailPagePo extends PagePo {
   constructor(clusterName: string) {
     super(ClusterManagerDetailPagePo.createPath(clusterName));
   }
+
+  // waitForTabsVisible() {
+  //   return this.self().find('[data-testid="tabbed-block"]', { timeout: 50000 });
+  // }
 }
