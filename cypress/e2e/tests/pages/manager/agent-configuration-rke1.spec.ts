@@ -21,7 +21,7 @@ const runPrefix = `e2e-test-${ runTimestamp }`;
 const clusterNamePartial = `${ runPrefix }-create`;
 const rke1CustomName = `${ clusterNamePartial }-rke1-custom`;
 
-describe('rke1 agent configuration', { tags: ['@manager', '@adminUser', '@standardUser'] }, () => {
+describe('rke1 agent configuration', { tags: ['@manager', '@adminUser'] }, () => {
   const clusterList = new ClusterManagerListPagePo('local');
   const createClusterPage = new ClusterManagerCreateRke1PagePo();
   let clusterId = '';

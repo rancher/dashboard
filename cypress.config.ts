@@ -94,6 +94,7 @@ export default defineConfig({
       return config;
     },
     experimentalSessionAndOrigin: true,
+    experimentalMemoryManagement: true,
     specPattern:                  getSpecPattern(testDirs, process.env),
     baseUrl
   },
