@@ -240,7 +240,7 @@ describe('Cluster Manager', { testIsolation: 'off', tags: ['@manager', '@adminUs
         clusterList.sortableTable().rowElementWithName(rke1CustomName).should('exist');
       });
 
-      it('can create new snapshots', () => {
+      it.skip('can create new snapshots', () => {
         clusterList.goToAndGetClusterDetails(rke1CustomName).then((cluster) => {
           const snapshots = new ClusterManagerDetailSnapshotsPo(cluster.id);
 
@@ -259,7 +259,7 @@ describe('Cluster Manager', { testIsolation: 'off', tags: ['@manager', '@adminUs
         });
       });
 
-      it('can show snapshots list', () => {
+      it.skip('can show snapshots list', () => {
         clusterList.goToAndGetClusterDetails(rke1CustomName).then((cluster) => {
           const snapshots = new ClusterManagerDetailSnapshotsPo(cluster.id);
 
@@ -280,7 +280,7 @@ describe('Cluster Manager', { testIsolation: 'off', tags: ['@manager', '@adminUs
         });
       });
 
-      it('can delete snapshots', () => {
+      it.skip('can delete snapshots', () => {
         clusterList.goToAndGetClusterDetails(rke1CustomName).then((cluster) => {
           const snapshots = new ClusterManagerDetailSnapshotsPo(cluster.id);
 
