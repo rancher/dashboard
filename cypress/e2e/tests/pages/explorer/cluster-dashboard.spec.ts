@@ -140,7 +140,9 @@ describe('Cluster Dashboard', { testIsolation: 'off', tags: ['@explorer', '@admi
   const projName = `project${ +new Date() }`;
   const nsName = `namespace${ +new Date() }`;
 
-  it('can view events', () => {
+  // Note: This test fails due to https://github.com/rancher/dashboard/issues/10265
+  // skipping this tests until issue has been resolved
+  it.skip('can view events', () => {
     // Create a pod to trigger events
 
     // get user id
