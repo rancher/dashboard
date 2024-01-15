@@ -32,6 +32,36 @@ export default class BurgerMenuPo extends ComponentPo {
   }
 
   /**
+   * Get menu navigation item by label
+   * @returns {Cypress.Chainable}
+   */
+  static burgerMenuGetNavMenubyLabel(label: string): Cypress.Chainable {
+    return this.sideMenu().find('.option').contains(label);
+  }
+
+  /**
+   * Get cluster navigation item by label
+   * @returns {Cypress.Chainable}
+   */
+  static burgerMenuGetNavClusterbyLabel(label: string): Cypress.Chainable {
+    return this.sideMenu().find('.option .cluster-name').contains(label);
+  }
+
+  /**
+   * Check if Cluster Top Level Menu link is highlighted
+   */
+  static checkIfClusterMenuLinkIsHighlighted(name: string) {
+    return this.burgerMenuGetNavClusterbyLabel(name).parent().should('have.class', 'active-menu-link');
+  }
+
+  /**
+   * Check if non-cluster Top Level Menu link is highlighted
+   */
+  static checkIfMenuItemLinkIsHighlighted(name: string) {
+    return this.burgerMenuGetNavMenubyLabel(name).parent().should('have.class', 'active-menu-link');
+  }
+
+  /**
    * Check if menu is open
    */
   static checkOpen() {
@@ -57,7 +87,7 @@ export default class BurgerMenuPo extends ComponentPo {
    * Get side navigation
    * @returns {Cypress.Chainable}
    */
-  private static sideMenu(): Cypress.Chainable {
+  static sideMenu(): Cypress.Chainable {
     return cy.get('body').getId('side-menu');
   }
 

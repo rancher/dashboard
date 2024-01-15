@@ -1,5 +1,6 @@
 import { FleetDashboardPagePo } from '@/cypress/e2e/po/pages/fleet/fleet-dashboard.po';
 import { GitRepoCreatePo } from '@/cypress/e2e/po/pages/fleet/gitrepo-create.po';
+import BurgerMenuPo from '@/cypress/e2e/po/side-bars/burger-side-menu.po';
 
 describe.only('Fleet Dashboard', { tags: ['@fleet', '@adminUser'] }, () => {
   let fleetDashboardPage: FleetDashboardPagePo;
@@ -7,7 +8,7 @@ describe.only('Fleet Dashboard', { tags: ['@fleet', '@adminUser'] }, () => {
 
   beforeEach(() => {
     cy.login();
-    fleetDashboardPage = new FleetDashboardPagePo('local');
+    fleetDashboardPage = new FleetDashboardPagePo('_');
     fleetDashboardPage.goTo();
   });
 
@@ -16,9 +17,10 @@ describe.only('Fleet Dashboard', { tags: ['@fleet', '@adminUser'] }, () => {
   before(() => {
     cy.login();
 
-    const gitRepoCreatePage = new GitRepoCreatePo('local');
+    const gitRepoCreatePage = new GitRepoCreatePo('_');
 
     gitRepoCreatePage.goTo();
+
     gitRepoCreatePage.setRepoName(repoName);
     gitRepoCreatePage.selectWorkspace('fleet-local');
     gitRepoCreatePage.setGitRepoUrl('https://github.com/rancher/fleet-test-data.git');
@@ -29,6 +31,9 @@ describe.only('Fleet Dashboard', { tags: ['@fleet', '@adminUser'] }, () => {
   });
 
   it('Should display cluster status', () => {
+    // check if burguer menu nav is highlighted correctly for Fleet
+    BurgerMenuPo.checkIfMenuItemLinkIsHighlighted('Continuous Delivery');
+
     const row = fleetDashboardPage.sortableTable('fleet-local').row(0);
 
     row.get('.bg-success[data-testid="clusters-ready"]').should('exist');
@@ -42,7 +47,7 @@ describe.only('Fleet Dashboard', { tags: ['@fleet', '@adminUser'] }, () => {
   });
 
   after(() => {
-    fleetDashboardPage = new FleetDashboardPagePo('local');
+    fleetDashboardPage = new FleetDashboardPagePo('_');
     fleetDashboardPage.goTo();
 
     const fleetLocalResourceTable = fleetDashboardPage.resourceTable('fleet-local');

@@ -1,6 +1,7 @@
 import ExtensionsPagePo from '@/cypress/e2e/po/pages/extensions.po';
 import ReposListPagePo from '@/cypress/e2e/po/pages/repositories.po';
 import PromptRemove from '@/cypress/e2e/po/prompts/promptRemove.po';
+import BurgerMenuPo from '@/cypress/e2e/po/side-bars/burger-side-menu.po';
 
 const EXTENSION_NAME = 'clock';
 const UI_PLUGINS_PARTNERS_REPO_URL = 'https://github.com/rancher/partner-extensions';
@@ -30,6 +31,9 @@ describe('Extensions page', { tags: ['@extensions', '@adminUser'] }, () => {
     const extensionsPo = new ExtensionsPagePo();
 
     extensionsPo.goTo();
+
+    // check if burguer menu nav is highlighted correctly for extensions
+    BurgerMenuPo.checkIfMenuItemLinkIsHighlighted('Extensions');
 
     // go to "add rancher repositories"
     extensionsPo.extensionMenuToggle();
