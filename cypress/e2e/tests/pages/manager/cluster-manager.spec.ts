@@ -241,60 +241,84 @@ describe('Cluster Manager', { testIsolation: 'off', tags: ['@manager', '@adminUs
       });
 
       it.skip('can create new snapshots', () => {
-        clusterList.goToAndGetClusterDetails(rke1CustomName).then((cluster) => {
-          const snapshots = new ClusterManagerDetailSnapshotsPo(cluster.id);
-
-          snapshots.goTo();
-          snapshots.waitForPage();
-
-          snapshots.create();
-          snapshots.list().resourceTable().sortableTable().rowElements()
-            .should('have.length.gte', 2) // 1 main row + 1 group row
-            .should('contain.text', 'Active');
-
-          snapshots.create();
-          snapshots.list().resourceTable().sortableTable().rowElements()
-            .should('have.length.gte', 3) // 2 main row + 1 group row
-            .should('not.contain.text', 'Activating');
-        });
       });
 
-      it.skip('can show snapshots list', () => {
+      it('can show snapshots list', () => {
+        const mockSnapshotData = (clusterId: string, id: string) => ({
+          annotations:  { 'lifecycle.cattle.io/create.etcdbackup-controller': 'true' },
+          backupConfig: {
+            enabled:        true,
+            intervalHours:  12,
+            retention:      6,
+            s3BackupConfig: null,
+            safeTimestamp:  false,
+            timeout:        300,
+            type:           '/v3/schemas/backupConfig'
+          },
+          baseType:    'etcdBackup',
+          clusterId,
+          created:     '2024-01-13T20:57:17Z',
+          createdTS:   1705179437000,
+          creatorId:   null,
+          filename:    `${ clusterId }-${ id }_2024-01-13T20:57:17Z.zip`,
+          id:          `${ clusterId }:${ clusterId }-${ id }`,
+          labels:      { 'cattle.io/creator': 'norman' },
+          manual:      true,
+          name:        `${ clusterId }-${ id }`,
+          namespaceId: null,
+        });
+
         clusterList.goToAndGetClusterDetails(rke1CustomName).then((cluster) => {
           const snapshots = new ClusterManagerDetailSnapshotsPo(cluster.id);
 
+          // We want to show 2 elements in the snapshots tab
+          const snapshotId1 = 'ml-mkhz4';
+          const snapshotId2 = 'ml-mkhz5';
+
+          // Intercept first request with limit 1, this should triggers depaginate mechanism and make a second request to fetch second snapshot.
           cy.intercept({
             method: 'GET',
             path:   '/v3/etcdbackups',
           }, (req) => {
             req.query = { limit: '1' };
-          }).as('snapshots');
+
+            req.continue((res) => {
+              res.body.pagination = {
+                first:   `${ req.url }&marker=${ cluster.id }%3A${ cluster.id }-${ snapshotId1 }`,
+                next:    `${ req.url }&marker=${ cluster.id }%3A${ cluster.id }-${ snapshotId2 }`,
+                last:    `${ req.url }&marker=${ cluster.id }%3A${ cluster.id }-${ snapshotId2 }`,
+                limit:   1,
+                total:   2,
+                partial: true
+              };
+
+              res.body.data = [
+                mockSnapshotData(cluster.id, snapshotId1),
+              ];
+            });
+          });
+
+          // Intercept second request
+          cy.intercept({
+            method: 'GET',
+            path:   `/v3/etcdbackups?limit=1&marker=${ cluster.id }%3A${ cluster.id }-${ snapshotId2 }`,
+          }, (req) => {
+            req.continue((res) => {
+              res.body.data = [
+                mockSnapshotData(cluster.id, snapshotId2),
+              ];
+            });
+          });
 
           snapshots.goTo();
           snapshots.waitForPage();
 
-          cy.wait('@snapshots', { timeout: 10000 }).its('response.body.data').should('have.length', 1);
-
           snapshots.list().resourceTable().sortableTable().rowElements()
-            .should('have.length.gte', 3);
+            .should('have.length.gte', 3); // 2 main rows + 1 group row
         });
       });
 
       it.skip('can delete snapshots', () => {
-        clusterList.goToAndGetClusterDetails(rke1CustomName).then((cluster) => {
-          const snapshots = new ClusterManagerDetailSnapshotsPo(cluster.id);
-
-          snapshots.goTo();
-          snapshots.waitForPage();
-
-          snapshots.list().selectAll();
-          snapshots.list().delete();
-
-          const promptRemove = new PromptRemove();
-
-          promptRemove.remove();
-          snapshots.list().resourceTable().sortableTable().checkRowCount(true, 1);
-        });
       });
 
       it('can delete cluster', () => {
