@@ -244,9 +244,12 @@ export default defineComponent({
     /**
      * Emit on input with delay. Note: Arrow function is avoided due context
      * binding.
+     *
+     * NOTE: In multiline, TextAreaAutoGrow emits a string with the value
+     * https://github.com/rancher/dashboard/issues/10249
      */
-    delayInput(event: Event): void {
-      const value = (event?.target as HTMLInputElement)?.value;
+    delayInput(val: string | Event): void {
+      const value = typeof val === 'string' ? val : (val?.target as HTMLInputElement)?.value;
 
       this.$emit('input', value);
     },
