@@ -14,6 +14,12 @@ export default class Schema extends Resource {
  */
 const mapArrayTypeRegex = /([^[\s]*)(\[(.*)\])?/;
 
+/**
+ * For the given resourceField find the root type and, if a collection of types, it's subtype
+ *
+ * @param {ResourceField} field resourceField entry
+ * @returns [type, subtype]
+ */
 export function parseType(str, field) {
   const regexRes = mapArrayTypeRegex.exec(str);
 

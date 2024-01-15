@@ -2,6 +2,7 @@ import { indent as _indent } from '@shell/utils/string';
 import { addObject, findBy, removeObject, removeObjects } from '@shell/utils/array';
 import jsyaml from 'js-yaml';
 import { cleanUp, isEmpty } from '@shell/utils/object';
+import { parseType } from '@shell/models/schema';
 
 export const SIMPLE_TYPES = [
   'string',
@@ -114,7 +115,7 @@ export function createYaml(
   } else {
     rootSchema = findBy(schemas, 'id', rootType);
 
-    if (rootSchema.requiresResourceFields) {
+    if (rootSchema.requiresResourceFields) { // See `requiresResourceFields` definition
       schemaDefinitions = rootSchema.schemaDefinitions;
       schemaResourceFields = schemaDefinitions[type]?.resourceFields;
     } else {
@@ -430,20 +431,19 @@ function getBlockIndentation(blockHeader) {
   return indentation?.[0] || '';
 }
 
+/**
+ * Check for a specific type and if valid return it's sub type or self
+ * @param {string} type required type
+ * @param {string} str actual type
+ * @param {ResourceField} field resourceField entry to the actual type
+ *
+ * @returns the sub type, or if not found the type
+ */
 export function typeRef(type, str, field = null) {
-  if (
-    (
-      (type === 'array' && str === 'array') ||
-      (type === 'map' && str === 'map')
-    ) && field?.subtype) {
-    return typeMunge(field?.subtype); // schemaDefinition
-  }
+  const [foundType, foundSubType] = parseType(str, field);
 
-  const re = new RegExp(`^${ type }\\[(.*)\\]$`);
-  const match = str.match(re);
-
-  if ( match ) {
-    return typeMunge(match[1]);
+  if (type === foundType) {
+    return typeMunge(foundSubType || foundType);
   }
 }
 

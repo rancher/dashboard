@@ -20,28 +20,42 @@ interface SchemaDefinitionResponse {
   definitionType: string,
 }
 
-let SchemaDefinitionCache: SchemaDefinitions = {};
+const SchemaDefinitionCache: { [store: string]: SchemaDefinitions } = {};
 
 /**
  * Steve Schema specific functionality
  */
-export default class SteveSchema extends Schema {
-  static reset(): void {
-    SchemaDefinitionCache = {};
+export default abstract class SteveSchema extends Schema {
+  static reset(store: string): void {
+    delete SchemaDefinitionCache[store];
   }
 
   _resourceFields?: ResourceFields;
+
+  /**
+   * If resourceFields have not been provided, they are required to be fetched aka schemaDefinition world
+   */
   requiresResourceFields: boolean;
+
+  /**
+   * The name (namespace) of the vuex store this schema lives in (i.e. cluster, management, etc)
+   */
+  store: string;
 
   id?: string;
   type?: string;
   links?: any;
 
   /**
-   *
+   * This should match the root Schema ctor (...args throws ts error)
    */
-  constructor(...args: any[]) {
-    super(...args);
+  constructor(data: unknown, ctx: unknown, rehydrateNamespace?: unknown, setClone?: boolean) {
+    super(data, ctx, rehydrateNamespace, setClone);
+
+    this.store = (ctx as any).state.config.namespace;
+    if (!SchemaDefinitionCache[this.store]) {
+      SchemaDefinitionCache[this.store] = {};
+    }
 
     this.requiresResourceFields = this._resourceFields === null; // This is set pre ctor via `set'er, but TS complains that it's not initialised
   }
@@ -165,7 +179,7 @@ export default class SteveSchema extends Schema {
 
     this._schemaDefinitionsIds = { self: self.type, others: Object.keys(others) };
     Object.entries(res.definitions).forEach(([type, sd]) => {
-      SchemaDefinitionCache[type] = sd;
+      SchemaDefinitionCache[this.store][type] = sd;
     });
   }
 
@@ -189,7 +203,7 @@ export default class SteveSchema extends Schema {
       return null;
     }
 
-    return SchemaDefinitionCache[this._schemaDefinitionsIds.self];
+    return SchemaDefinitionCache[this.store][this._schemaDefinitionsIds.self];
   }
 
   /**
@@ -201,7 +215,7 @@ export default class SteveSchema extends Schema {
     }
 
     return this._schemaDefinitionsIds.others.reduce((res, d) => {
-      res[d] = SchemaDefinitionCache[d];
+      res[d] = SchemaDefinitionCache[this.store][d];
 
       return res;
     }, {} as SchemaDefinitions);
