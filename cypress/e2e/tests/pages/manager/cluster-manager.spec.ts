@@ -3,6 +3,7 @@ import { isMatch } from 'lodash';
 import ClusterManagerListPagePo from '@/cypress/e2e/po/pages/cluster-manager/cluster-manager-list.po';
 import ClusterDashboardPagePo from '@/cypress/e2e/po/pages/explorer/cluster-dashboard.po';
 import ClusterManagerDetailRke2CustomPagePo from '@/cypress/e2e/po/detail/provisioning.cattle.io.cluster/cluster-detail-rke2-custom.po';
+import ClusterManagerDetailSnapshotsPo from '@/cypress/e2e/po/detail/provisioning.cattle.io.cluster/cluster-detail-snapshots.po';
 import ClusterManagerDetailImportedGenericPagePo from '@/cypress/e2e/po/detail/provisioning.cattle.io.cluster/cluster-detail-import-generic.po';
 import ClusterManagerCreateRke2CustomPagePo from '@/cypress/e2e/po/edit/provisioning.cattle.io.cluster/create/cluster-create-rke2-custom.po';
 import ClusterManagerEditRke2CustomPagePo from '@/cypress/e2e/po/edit/provisioning.cattle.io.cluster/edit/cluster-edit-rke2-custom.po';
@@ -14,6 +15,7 @@ import * as jsyaml from 'js-yaml';
 import ClusterManagerCreateRke1CustomPagePo from '@/cypress/e2e/po/edit/provisioning.cattle.io.cluster/create/cluster-create-rke1-custom.po';
 import Shell from '@/cypress/e2e/po/components/shell.po';
 import BurgerMenuPo from '@/cypress/e2e/po/side-bars/burger-side-menu.po';
+import { snapshot } from '@/cypress/e2e/blueprints/manager/cluster-snapshots';
 
 // At some point these will come from somewhere central, then we can make tools to remove resources from this or all runs
 const runTimestamp = +new Date();
@@ -237,6 +239,63 @@ describe('Cluster Manager', { testIsolation: 'off', tags: ['@manager', '@adminUs
 
         clusterList.waitForPage();
         clusterList.sortableTable().rowElementWithName(rke1CustomName).should('exist');
+      });
+
+      it.skip('can create new snapshots', () => {
+      });
+
+      it('can show snapshots list', () => {
+        clusterList.goToClusterListAndGetClusterDetails(rke1CustomName).then((cluster) => {
+          const snapshots = new ClusterManagerDetailSnapshotsPo(cluster.id);
+
+          // We want to show 2 elements in the snapshots tab
+          const snapshotId1 = 'ml-mkhz4';
+          const snapshotId2 = 'ml-mkhz5';
+
+          // Intercept first request with limit 1, this should triggers depaginate mechanism and make a second request to fetch second snapshot.
+          cy.intercept({
+            method: 'GET',
+            path:   '/v3/etcdbackups',
+          }, (req) => {
+            req.query = { limit: '1' };
+
+            req.continue((res) => {
+              res.body.pagination = {
+                first:   `${ req.url }&marker=${ cluster.id }%3A${ cluster.id }-${ snapshotId1 }`,
+                next:    `${ req.url }&marker=${ cluster.id }%3A${ cluster.id }-${ snapshotId2 }`,
+                last:    `${ req.url }&marker=${ cluster.id }%3A${ cluster.id }-${ snapshotId2 }`,
+                limit:   1,
+                total:   2,
+                partial: true
+              };
+
+              res.body.data = [
+                snapshot(cluster.id, snapshotId1),
+              ];
+            });
+          });
+
+          // Intercept second request
+          cy.intercept({
+            method: 'GET',
+            path:   `/v3/etcdbackups?limit=1&marker=${ cluster.id }%3A${ cluster.id }-${ snapshotId2 }`,
+          }, (req) => {
+            req.continue((res) => {
+              res.body.data = [
+                snapshot(cluster.id, snapshotId2),
+              ];
+            });
+          });
+
+          snapshots.goTo();
+          snapshots.waitForPage();
+
+          snapshots.list().resourceTable().sortableTable().rowElements()
+            .should('have.length.gte', 3); // 2 main rows + 1 group row
+        });
+      });
+
+      it.skip('can delete snapshots', () => {
       });
 
       it('can delete cluster', () => {
