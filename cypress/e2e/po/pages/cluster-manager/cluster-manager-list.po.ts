@@ -23,7 +23,7 @@ export default class ClusterManagerListPagePo extends PagePo {
     BurgerMenuPo.burgerMenuNavToMenubyLabel('Cluster Management');
   }
 
-  goToAndGetClusterDetails(clusterName: string): Cypress.Chainable<{ id: string }> {
+  goToClusterListAndGetClusterDetails(clusterName: string): Cypress.Chainable<{ id: string }> {
     let clusterDetails = [];
 
     cy.intercept({

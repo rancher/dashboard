@@ -15,6 +15,7 @@ import * as jsyaml from 'js-yaml';
 import ClusterManagerCreateRke1CustomPagePo from '@/cypress/e2e/po/edit/provisioning.cattle.io.cluster/create/cluster-create-rke1-custom.po';
 import Shell from '@/cypress/e2e/po/components/shell.po';
 import BurgerMenuPo from '@/cypress/e2e/po/side-bars/burger-side-menu.po';
+import { snapshot } from '@/cypress/e2e/blueprints/manager/cluster-snapshots';
 
 // At some point these will come from somewhere central, then we can make tools to remove resources from this or all runs
 const runTimestamp = +new Date();
@@ -244,31 +245,7 @@ describe('Cluster Manager', { testIsolation: 'off', tags: ['@manager', '@adminUs
       });
 
       it('can show snapshots list', () => {
-        const mockSnapshotData = (clusterId: string, id: string) => ({
-          annotations:  { 'lifecycle.cattle.io/create.etcdbackup-controller': 'true' },
-          backupConfig: {
-            enabled:        true,
-            intervalHours:  12,
-            retention:      6,
-            s3BackupConfig: null,
-            safeTimestamp:  false,
-            timeout:        300,
-            type:           '/v3/schemas/backupConfig'
-          },
-          baseType:    'etcdBackup',
-          clusterId,
-          created:     '2024-01-13T20:57:17Z',
-          createdTS:   1705179437000,
-          creatorId:   null,
-          filename:    `${ clusterId }-${ id }_2024-01-13T20:57:17Z.zip`,
-          id:          `${ clusterId }:${ clusterId }-${ id }`,
-          labels:      { 'cattle.io/creator': 'norman' },
-          manual:      true,
-          name:        `${ clusterId }-${ id }`,
-          namespaceId: null,
-        });
-
-        clusterList.goToAndGetClusterDetails(rke1CustomName).then((cluster) => {
+        clusterList.goToClusterListAndGetClusterDetails(rke1CustomName).then((cluster) => {
           const snapshots = new ClusterManagerDetailSnapshotsPo(cluster.id);
 
           // We want to show 2 elements in the snapshots tab
@@ -293,7 +270,7 @@ describe('Cluster Manager', { testIsolation: 'off', tags: ['@manager', '@adminUs
               };
 
               res.body.data = [
-                mockSnapshotData(cluster.id, snapshotId1),
+                snapshot(cluster.id, snapshotId1),
               ];
             });
           });
@@ -305,7 +282,7 @@ describe('Cluster Manager', { testIsolation: 'off', tags: ['@manager', '@adminUs
           }, (req) => {
             req.continue((res) => {
               res.body.data = [
-                mockSnapshotData(cluster.id, snapshotId2),
+                snapshot(cluster.id, snapshotId2),
               ];
             });
           });
