@@ -81,7 +81,9 @@ describe('Drivers', { testIsolation: 'off', tags: ['@manager', '@adminUser'] }, 
     });
   });
 
-  describe('Node Drivers', () => {
+  // Note: This test fails due to https://github.com/rancher/dashboard/issues/10275
+  // skipping this tests until issue has been resolved
+  describe.skip('Node Drivers', () => {
     it('can delete an existing node driver', () => {
       RkeDriversPagePo.navTo();
       cy.intercept('GET', '/v3/nodedrivers?limit=-1&sort=name').as('nodeDrivers');
