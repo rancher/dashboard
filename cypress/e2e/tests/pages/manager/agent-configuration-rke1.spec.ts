@@ -1,7 +1,6 @@
 import ClusterManagerCreateRke1PagePo from '@/cypress/e2e/po/edit/provisioning.cattle.io.cluster/create/cluster-create-rke1-custom.po';
 import ClusterManagerEditRke1CustomPagePo from '@/cypress/e2e/po/edit/provisioning.cattle.io.cluster/edit/cluster-edit-rke1-custom.po';
 import ClusterManagerListPagePo from '@/cypress/e2e/po/pages/cluster-manager/cluster-manager-list.po';
-import EmberAgentConfigurationPo from '@/cypress/e2e/po/components/ember/ember-agent-configuration.po';
 import PromptRemove from '@/cypress/e2e/po/prompts/promptRemove.po';
 
 import { payloadComparisonData, payloadEditComparisonData } from '~/cypress/e2e/blueprints/agent-configuration/agent-configuration-payload';
@@ -19,7 +18,6 @@ const runPrefix = `e2e-test-${ runTimestamp }`;
 
 // File specific consts
 const clusterNamePartial = `${ runPrefix }-create`;
-const rke1CustomName = `${ clusterNamePartial }-rke1-custom`;
 
 describe('rke1 agent configuration', { tags: ['@manager', '@adminUser'] }, () => {
   const clusterList = new ClusterManagerListPagePo('local');
