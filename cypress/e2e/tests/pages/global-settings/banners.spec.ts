@@ -50,7 +50,7 @@ describe('Banners', () => {
 
     globalSettingsNavItem.should('exist');
     globalSettingsNavItem.click();
-    const settingsPage = new SettingsPagePo();
+    const settingsPage = new SettingsPagePo('local');
 
     settingsPage.waitForPageWithClusterId();
 
