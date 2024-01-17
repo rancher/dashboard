@@ -20,28 +20,31 @@ describe('Cloud Credentials', { testIsolation: 'off', tags: ['@manager', '@jenki
     cloudCredentialsPage.create();
     cloudCredentialsPage.createEditCloudCreds().waitForPage();
     cloudCredentialsPage.createEditCloudCreds().cloudServiceOptions().selectSubTypeByIndex(0).click();
-    cloudCredentialsPage.createEditCloudCreds().name().set(cloudCredName);
-    cloudCredentialsPage.createEditCloudCreds().description().set(cloudCredDescription);
+    cloudCredentialsPage.createEditCloudCreds().nameNsDescription().name().set(cloudCredName);
+    cloudCredentialsPage.createEditCloudCreds().nameNsDescription().description().set(cloudCredDescription);
     cloudCredentialsPage.createEditCloudCreds().accessKey().set(Cypress.env('awsAccessKey'));
     cloudCredentialsPage.createEditCloudCreds().secretKey().set(`${ Cypress.env('awsSecretKey') }abc`, true);
     cloudCredentialsPage.createEditCloudCreds().defaultRegion().checkOptionSelected('us-west-2');
-    cloudCredentialsPage.createEditCloudCreds().saveCreateForm().click();
+    cloudCredentialsPage.createEditCloudCreds().saveCreateForm().cruResource().saveOrCreate()
+      .click();
     cy.contains('Authentication test failed, please check your credentials').should('be.visible');
   });
 
-  it('can create cloud credentials', () => {
+  it('can create aws cloud credentials', () => {
     CloudCredentialsPagePo.navTo();
     cloudCredentialsPage.create();
     cloudCredentialsPage.createEditCloudCreds().waitForPage();
     cloudCredentialsPage.createEditCloudCreds().cloudServiceOptions().selectSubTypeByIndex(0).click();
-    cloudCredentialsPage.createEditCloudCreds().name().set(cloudCredName);
-    cloudCredentialsPage.createEditCloudCreds().description().set(cloudCredDescription);
+    cloudCredentialsPage.createEditCloudCreds().waitForPage('type=aws');
+    cloudCredentialsPage.createEditCloudCreds().nameNsDescription().name().set(cloudCredName);
+    cloudCredentialsPage.createEditCloudCreds().nameNsDescription().description().set(cloudCredDescription);
     cloudCredentialsPage.createEditCloudCreds().accessKey().set(Cypress.env('awsAccessKey'));
     cloudCredentialsPage.createEditCloudCreds().secretKey().set(Cypress.env('awsSecretKey'), true);
     cloudCredentialsPage.createEditCloudCreds().defaultRegion().checkOptionSelected('us-west-2');
-    cloudCredentialsPage.createEditCloudCreds().saveAndWaitForRequests('POST', '/v3/cloudcredentials').then((req) => {
-      cloudcredentialId = req.response?.body.id;
-    });
+    cloudCredentialsPage.createEditCloudCreds().saveCreateForm().cruResource().saveAndWaitForRequests('POST', '/v3/cloudcredentials')
+      .then((req) => {
+        cloudcredentialId = req.response?.body.id;
+      });
     cloudCredentialsPage.waitForPage();
 
     // check list details
@@ -52,9 +55,9 @@ describe('Cloud Credentials', { testIsolation: 'off', tags: ['@manager', '@jenki
     CloudCredentialsPagePo.navTo();
     cloudCredentialsPage.list().actionMenu(cloudCredName).getMenuItem('Edit Config').click();
     cloudCredentialsPage.createEditCloudCreds(cloudcredentialId).waitForPage('mode=edit');
-    cloudCredentialsPage.createEditCloudCreds().description().set(`${ cloudCredDescription }-edit`);
+    cloudCredentialsPage.createEditCloudCreds().nameNsDescription().description().set(`${ cloudCredDescription }-edit`);
     cloudCredentialsPage.createEditCloudCreds().secretKey().set(Cypress.env('awsSecretKey'), true);
-    cloudCredentialsPage.createEditCloudCreds().saveAndWaitForRequests('PUT', '/v3/cloudCredentials/**');
+    cloudCredentialsPage.createEditCloudCreds().saveCreateForm().cruResource().saveAndWaitForRequests('PUT', '/v3/cloudCredentials/**');
     cloudCredentialsPage.waitForPage();
 
     // check list details
@@ -65,11 +68,11 @@ describe('Cloud Credentials', { testIsolation: 'off', tags: ['@manager', '@jenki
     CloudCredentialsPagePo.navTo();
     cloudCredentialsPage.list().actionMenu(`${ cloudCredDescription }-edit`).getMenuItem('Clone').click();
     cloudCredentialsPage.createEditCloudCreds(cloudcredentialId).waitForPage('mode=clone');
-    cloudCredentialsPage.createEditCloudCreds().name().set(`${ cloudCredName }-clone`);
+    cloudCredentialsPage.createEditCloudCreds().nameNsDescription().name().set(`${ cloudCredName }-clone`);
     cloudCredentialsPage.createEditCloudCreds().accessKey().set(Cypress.env('awsAccessKey'));
     cloudCredentialsPage.createEditCloudCreds().secretKey().set(Cypress.env('awsSecretKey'), true);
     cloudCredentialsPage.createEditCloudCreds().defaultRegion().checkOptionSelected('us-west-2');
-    cloudCredentialsPage.createEditCloudCreds().saveAndWaitForRequests('POST', '/v3/cloudcredentials');
+    cloudCredentialsPage.createEditCloudCreds().saveCreateForm().cruResource().saveAndWaitForRequests('POST', '/v3/cloudcredentials');
     cloudCredentialsPage.waitForPage();
 
     // check list details

@@ -1,11 +1,9 @@
 import RkeDriversPagePo from '@/cypress/e2e/po/pages/cluster-manager/rke-drivers.po';
-import EmberPromptRemove from '@/cypress/e2e/po/components/ember/ember-prompt-remove.po';
-import EmberPromptDeactivate from '@/cypress/e2e/po/components/ember/ember-prompt-deactivate.po';
+import EmberModalPo from '@/cypress/e2e/po/components/ember/ember-modal.po';
 
 describe('Drivers', { testIsolation: 'off', tags: ['@manager', '@adminUser'] }, () => {
   const driversPage = new RkeDriversPagePo('_');
-  const promptRemove = new EmberPromptRemove();
-  const promptDeactivate = new EmberPromptDeactivate();
+  const emberModal = new EmberModalPo();
 
   before(() => {
     cy.login();
@@ -56,7 +54,7 @@ describe('Drivers', { testIsolation: 'off', tags: ['@manager', '@adminUser'] }, 
       driversPage.list().rowActionMenuOpen(`Example`);
       driversPage.actionMenu().selectMenuItemByLabel(`Deactivate`);
       cy.intercept('POST', '/v3/kontainerDrivers/*').as('deactivateDriver');
-      promptDeactivate.deactivate();
+      emberModal.deactivate();
       cy.wait('@deactivateDriver').its('response.statusCode').should('eq', 200);
       driversPage.list().state('Example').should('contain.text', 'Inactive');
     });
@@ -75,7 +73,7 @@ describe('Drivers', { testIsolation: 'off', tags: ['@manager', '@adminUser'] }, 
       driversPage.list().rowActionMenuOpen(`Example`);
       driversPage.actionMenu().selectMenuItemByLabel(`Delete`);
       cy.intercept('DELETE', '/v3/kontainerDrivers/*').as('deleteDriver');
-      promptRemove.delete();
+      emberModal.delete();
       cy.wait('@deleteDriver').its('response.statusCode').should('eq', 200);
       driversPage.list().state('Example').should('not.exist');
     });
@@ -93,7 +91,7 @@ describe('Drivers', { testIsolation: 'off', tags: ['@manager', '@adminUser'] }, 
       driversPage.list().rowActionMenuOpen(`Cloud.ca`);
       driversPage.actionMenu().selectMenuItemByLabel(`Delete`);
       cy.intercept('DELETE', '/v3/nodeDrivers/*').as('deleteDriver');
-      promptRemove.delete();
+      emberModal.delete();
       cy.wait('@deleteDriver').its('response.statusCode').should('eq', 200);
       driversPage.list().state('Cloud.ca').should('not.exist');
     });
@@ -135,7 +133,7 @@ describe('Drivers', { testIsolation: 'off', tags: ['@manager', '@adminUser'] }, 
       driversPage.list().rowActionMenuOpen(`Cloud.ca`);
       driversPage.actionMenu().selectMenuItemByLabel(`Deactivate`);
       cy.intercept('POST', '/v3/nodeDrivers/**').as('deactivateDriver');
-      promptDeactivate.deactivate();
+      emberModal.deactivate();
       cy.wait('@deactivateDriver').its('response.statusCode').should('eq', 200);
       driversPage.list().state('Cloud.ca').should('contain.text', 'Inactive');
     });

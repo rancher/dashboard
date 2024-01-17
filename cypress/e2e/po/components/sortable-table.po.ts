@@ -60,10 +60,6 @@ export default class SortableTablePo extends ComponentPo {
     return cy.getId('sortable-table-download');
   }
 
-  downloadKubeConfigButton() {
-    return cy.getId('sortable-table-downloadKubeConfig');
-  }
-
   selectedCountText() {
     return cy.get('.action-availability');
   }

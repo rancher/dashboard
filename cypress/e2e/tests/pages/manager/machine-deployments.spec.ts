@@ -37,7 +37,8 @@ describe('MachineDeployments', { testIsolation: 'off', tags: ['@manager', '@admi
     });
 
     cy.intercept('POST', '/v1/cluster.x-k8s.io.machinedeployments').as('createMachineDeployment');
-    machineDeploymentsPage.createEditMachineDeployment().saveCreateForm().click();
+    machineDeploymentsPage.createEditMachineDeployment().saveCreateForm().resourceYaml().saveOrCreate()
+      .click();
     cy.wait('@createMachineDeployment').then((req) => {
       resourceVersion = req.response?.body.metadata.resourceVersion;
       creationTimestamp = req.response?.body.metadata.creationTimestamp;
@@ -68,7 +69,8 @@ describe('MachineDeployments', { testIsolation: 'off', tags: ['@manager', '@admi
     });
 
     cy.intercept('PUT', `/v1/cluster.x-k8s.io.machinedeployments/${ nsName }/${ machineDeploymentsName }`).as('updateMachineSet');
-    machineDeploymentsPage.createEditMachineDeployment().saveCreateForm().click();
+    machineDeploymentsPage.createEditMachineDeployment().saveCreateForm().resourceYaml().saveOrCreate()
+      .click();
     cy.wait('@updateMachineSet').its('response.statusCode').should('eq', 200);
     machineDeploymentsPage.waitForPage();
 
@@ -92,7 +94,8 @@ describe('MachineDeployments', { testIsolation: 'off', tags: ['@manager', '@admi
     });
 
     cy.intercept('POST', 'v1/cluster.x-k8s.io.machinedeployments').as('cloneMachineSet');
-    machineDeploymentsPage.createEditMachineDeployment().saveCreateForm().click();
+    machineDeploymentsPage.createEditMachineDeployment().saveCreateForm().resourceYaml().saveOrCreate()
+      .click();
     cy.wait('@cloneMachineSet').its('response.statusCode').should('eq', 201);
     machineDeploymentsPage.waitForPage();
 

@@ -36,7 +36,8 @@ describe('MachineSets', { testIsolation: 'off', tags: ['@manager', '@adminUser']
     });
 
     cy.intercept('POST', '/v1/cluster.x-k8s.io.machinesets').as('createMachineSet');
-    machineSetsPage.createEditMachineSet().saveCreateForm().click();
+    machineSetsPage.createEditMachineSet().saveCreateForm().resourceYaml().saveOrCreate()
+      .click();
     cy.wait('@createMachineSet').then((req) => {
       resourceVersion = req.response?.body.metadata.resourceVersion;
       creationTimestamp = req.response?.body.metadata.creationTimestamp;
@@ -66,7 +67,8 @@ describe('MachineSets', { testIsolation: 'off', tags: ['@manager', '@adminUser']
     });
 
     cy.intercept('PUT', `/v1/cluster.x-k8s.io.machinesets/${ nsName }/${ machineSetName }`).as('updateMachineSet');
-    machineSetsPage.createEditMachineSet().saveCreateForm().click();
+    machineSetsPage.createEditMachineSet().saveCreateForm().resourceYaml().saveOrCreate()
+      .click();
     cy.wait('@updateMachineSet').its('response.statusCode').should('eq', 200);
     machineSetsPage.waitForPage();
 
@@ -89,7 +91,8 @@ describe('MachineSets', { testIsolation: 'off', tags: ['@manager', '@adminUser']
     });
 
     cy.intercept('POST', '/v1/cluster.x-k8s.io.machinesets').as('cloneMachineSet');
-    machineSetsPage.createEditMachineSet().saveCreateForm().click();
+    machineSetsPage.createEditMachineSet().saveCreateForm().resourceYaml().saveOrCreate()
+      .click();
     cy.wait('@cloneMachineSet').its('response.statusCode').should('eq', 201);
     machineSetsPage.waitForPage();
 

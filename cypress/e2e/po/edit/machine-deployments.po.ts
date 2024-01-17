@@ -1,6 +1,5 @@
 import PagePo from '@/cypress/e2e/po/pages/page.po';
-import AsyncButtonPo from '@/cypress/e2e/po/components/async-button.po';
-
+import ResourceDetailPo from '@/cypress/e2e/po/edit/resource-detail.po';
 export default class MachineDeploymentsCreateEditPo extends PagePo {
   private static createPath(clusterId: string, nsName?: string, machineSetName?: string ) {
     const root = `/c/${ clusterId }/manager/cluster.x-k8s.io.machinedeployment`;
@@ -16,7 +15,7 @@ export default class MachineDeploymentsCreateEditPo extends PagePo {
     super(MachineDeploymentsCreateEditPo.createPath(clusterId, nsName, machineSetName));
   }
 
-  saveCreateForm(): AsyncButtonPo {
-    return new AsyncButtonPo('[data-testid="action-button-async-button"]', this.self());
+  saveCreateForm(): ResourceDetailPo {
+    return new ResourceDetailPo(this.self());
   }
 }

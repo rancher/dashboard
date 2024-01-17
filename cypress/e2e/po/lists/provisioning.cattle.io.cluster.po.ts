@@ -13,7 +13,7 @@ export default class ProvClusterListPo extends BaseResourceList {
   }
 
   downloadKubeConfig() {
-    return this.resourceTable().sortableTable().downloadKubeConfigButton();
+    return cy.getId('sortable-table-downloadKubeConfig');
   }
 
   state(clusterName: string) {

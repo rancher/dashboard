@@ -1,10 +1,12 @@
 import PodSecurityAdmissionsPagePo from '@/cypress/e2e/po/pages/cluster-manager/pod-security-admissions.po';
 import PromptRemove from '@/cypress/e2e/po/prompts/promptRemove.po';
+import ResourceDetailPo from '@/cypress/e2e/po/edit/resource-detail.po';
 import * as path from 'path';
 import * as jsyaml from 'js-yaml';
 
 describe('Pod Security Admissions', { testIsolation: 'off', tags: ['@manager', '@adminUser'] }, () => {
   const podSecurityAdmissionsPage = new PodSecurityAdmissionsPagePo('_');
+  const resourceDetails = new ResourceDetailPo('.main-layout');
   const downloadsFolder = Cypress.config('downloadsFolder');
   const runTimestamp = +new Date();
   const policyAdmissionName = `e2e-pod-security-admission-name-${ runTimestamp }`;
@@ -25,7 +27,7 @@ describe('Pod Security Admissions', { testIsolation: 'off', tags: ['@manager', '
     podSecurityAdmissionsPage.createPodSecurityAdmissionForm().waitForPage();
     podSecurityAdmissionsPage.createPodSecurityAdmissionForm().name().set(policyAdmissionName);
     podSecurityAdmissionsPage.createPodSecurityAdmissionForm().description().set(policyAdmissionDescription);
-    podSecurityAdmissionsPage.createPodSecurityAdmissionForm().saveAndWaitForRequests('POST', '/v1/management.cattle.io.podsecurityadmissionconfigurationtemplates');
+    resourceDetails.cruResource().saveAndWaitForRequests('POST', '/v1/management.cattle.io.podsecurityadmissionconfigurationtemplates');
     podSecurityAdmissionsPage.waitForPage();
 
     // check list details
@@ -37,7 +39,7 @@ describe('Pod Security Admissions', { testIsolation: 'off', tags: ['@manager', '
     podSecurityAdmissionsPage.list().actionMenu(policyAdmissionName).getMenuItem('Edit Config').click();
     podSecurityAdmissionsPage.createPodSecurityAdmissionForm(policyAdmissionName).waitForPage('mode=edit');
     podSecurityAdmissionsPage.createPodSecurityAdmissionForm().description().set(`${ policyAdmissionDescription }-edit`);
-    podSecurityAdmissionsPage.createPodSecurityAdmissionForm().saveAndWaitForRequests('PUT', '/v1/management.cattle.io.podsecurityadmissionconfigurationtemplates/**');
+    resourceDetails.cruResource().saveAndWaitForRequests('PUT', '/v1/management.cattle.io.podsecurityadmissionconfigurationtemplates/**');
     podSecurityAdmissionsPage.waitForPage();
 
     // check list details
@@ -49,7 +51,7 @@ describe('Pod Security Admissions', { testIsolation: 'off', tags: ['@manager', '
     podSecurityAdmissionsPage.list().actionMenu(policyAdmissionName).getMenuItem('Clone').click();
     podSecurityAdmissionsPage.createPodSecurityAdmissionForm(policyAdmissionName).waitForPage('mode=clone');
     podSecurityAdmissionsPage.createPodSecurityAdmissionForm().name().set(`${ policyAdmissionName }-clone`);
-    podSecurityAdmissionsPage.createPodSecurityAdmissionForm().saveAndWaitForRequests('POST', '/v1/management.cattle.io.podsecurityadmissionconfigurationtemplates');
+    resourceDetails.cruResource().saveAndWaitForRequests('POST', '/v1/management.cattle.io.podsecurityadmissionconfigurationtemplates');
     podSecurityAdmissionsPage.waitForPage();
 
     // check list details
