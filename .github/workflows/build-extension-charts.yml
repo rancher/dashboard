@@ -37,14 +37,6 @@ jobs:
           git config user.name 'github-actions[bot]'
           git config user.email 'github-actions[bot]@users.noreply.github.com'
 
-      - name: Parse Extension Name
-        if: github.ref_type == 'tag'
-        id: parsed-name
-        env:
-          GH_TOKEN: ${{ github.token }}
-        run: |
-          yarn parse-tag-name ${{ inputs.tagged_release }} ${{ github.run_id }} "charts"
-
       - name: Setup Helm
         uses: azure/setup-helm@v3
         with:
@@ -71,6 +63,14 @@ jobs:
 
       - name: Install dependencies
         run: yarn
+
+      - name: Parse Extension Name
+        if: github.ref_type == 'tag'
+        id: parsed-name
+        env:
+          GH_TOKEN: ${{ github.token }}
+        run: |
+          yarn parse-tag-name ${{ inputs.tagged_release }} ${{ github.run_id }} "charts"
 
       - name: Run build script
         shell: bash
