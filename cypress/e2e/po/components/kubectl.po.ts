@@ -21,6 +21,20 @@ export default class Kubectl extends ComponentPo {
   }
 
   /**
+   * Charts like Monitoring have a long helm install. helm has a timeout of 10m for this reason.
+   * Example helm output: beginning wait for 181 resources with timeout of 10m0s
+   *
+   * This will wait 50% of the default helm timeout during install. When the helm command exit on fail or success
+   * the terminal gets disconnected immediately then other charts continue regularly without waiting 10m
+   * @returns
+   */
+  checkChartInstallExitOnTerminal() {
+    cy.get('.logs-container').should('be.visible');
+    cy.get('.logs-container', { timeout: 120000 }).should('contain', 'SUCCESS');
+    this.self().get('.text-error', { timeout: 240000 }).should('contain', 'Disconnected');
+  }
+
+  /**
    *
    * @param command Kube command without the 'kubectl'
    * @returns executeCommand for method chanining

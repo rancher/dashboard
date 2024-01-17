@@ -4,6 +4,7 @@ import TabbedPo from '@/cypress/e2e/po/components/tabbed.po';
 import { ChartsPage } from '@/cypress/e2e/po/pages/charts.po';
 import LabeledSelectPo from '@/cypress/e2e/po/components/labeled-select.po';
 import CheckboxPo from '@/cypress/e2e/po/components/checkbox-input.po';
+
 import LabeledInputPo from '@/cypress/e2e/po/components/labeled-input.po';
 import ClusterDashboardPagePo from '@/cypress/e2e/po/pages/explorer/cluster-dashboard.po';
 import ProductNavPo from '@/cypress/e2e/po/side-bars/product-side-nav.po';
@@ -13,6 +14,7 @@ import { prometheusSpec } from '@/cypress/e2e/blueprints/charts/prometheus-chart
 describe('Charts', { tags: ['@charts', '@adminUser'] }, () => {
   const clusterName = 'local';
   const chartsPageUrl = '/c/local/apps/charts/chart?repo-type=cluster&repo=rancher-charts';
+  const terminal = new Kubectl();
 
   describe('Monitoring', () => {
     const chartsMonitoringPage = `${ chartsPageUrl }&chart=rancher-monitoring`;
@@ -81,8 +83,11 @@ describe('Charts', { tags: ['@charts', '@adminUser'] }, () => {
         cy.wait('@prometheusChartCreation', { requestTimeout: 10000 }).then((req) => {
           const monitoringChart = req.request?.body.charts.find((chart: any) => chart.chartName === 'rancher-monitoring');
 
+          cy.log('prometheus chart values', JSON.stringify(monitoringChart.values.prometheus));
           expect(monitoringChart.values.prometheus).to.deep.equal(prometheusSpec.values.prometheus);
         });
+
+        terminal.checkChartInstallExitOnTerminal();
       });
 
       // Regression test for: https://github.com/rancher/dashboard/issues/10016
@@ -92,12 +97,21 @@ describe('Charts', { tags: ['@charts', '@adminUser'] }, () => {
         // Set prometheus storage class
         chartsPage.goToInstall().nextPage().editOptions(tabbedOptions, '[data-testid="btn-prometheus"');
 
-        const enableStorageCheckbox = new CheckboxPo('[data-testid="checkbox-chart-enable-persistent-storage"]');
+        const enableStorageCheckbox = new CheckboxPo('[data-testid="checkbox-chart-enable-persistent-storage"] .checkbox-custom');
 
         // Scroll into view
         enableStorageCheckbox.checkVisible();
 
-        enableStorageCheckbox.set();
+        let isInstall = false;
+
+        enableStorageCheckbox.self().then(($box) => {
+          if ($box[0].getAttribute('aria-checked')) {
+            cy.log('The checkbox is checked after install. Skip click.');
+          } else {
+            cy.wrap($box).click();
+            isInstall = true;
+          }
+        });
 
         const labeledSelectPo = new LabeledSelectPo('[data-testid="select-chart-prometheus-storage-class"]');
 
@@ -112,13 +126,19 @@ describe('Charts', { tags: ['@charts', '@adminUser'] }, () => {
         // It should not be sent to the API
         chartsPage.editYaml();
 
+        cy.intercept('POST', 'v1/catalog.cattle.io.clusterrepos/rancher-charts?action=upgrade').as('prometheusChartUpgrade');
         chartsPage.installChart();
 
-        cy.wait('@prometheusChartCreation', { requestTimeout: 10000 }).then((req) => {
+        const chartActionType: string = isInstall ? '@prometheusChartCreation' : '@prometheusChartUpgrade';
+
+        cy.wait(chartActionType, { requestTimeout: 10000 }).then((req) => {
           const monitoringChart = req.request?.body.charts.find((chart: any) => chart.chartName === 'rancher-monitoring');
 
+          cy.log('prometheus chart values', JSON.stringify(monitoringChart.values.prometheus));
           expect(monitoringChart.values.prometheus).to.deep.equal(prometheusSpec.values.prometheus);
         });
+
+        terminal.checkChartInstallExitOnTerminal();
       });
     });
 
@@ -155,25 +175,25 @@ describe('Charts', { tags: ['@charts', '@adminUser'] }, () => {
 
         requestsCpu.checkExists();
         requestsCpu.checkVisible();
-        requestsCpu.set('123m');
+        requestsCpu.set('122m');
 
         const requestsMemory = new LabeledInputPo(`[data-testid="input-grafana-requests-memory"]`, tabbedOptions.self());
 
         requestsMemory.checkExists();
         requestsMemory.checkVisible();
-        requestsMemory.set('567Mi');
+        requestsMemory.set('113Mi');
 
         const limitsCpu = new LabeledInputPo(`[data-testid="input-grafana-limits-cpu"]`, tabbedOptions.self());
 
         limitsCpu.checkExists();
         limitsCpu.checkVisible();
-        limitsCpu.set('87m');
+        limitsCpu.set('457m');
 
         const limitsMemory = new LabeledInputPo(`[data-testid="input-grafana-limits-memory"]`, tabbedOptions.self());
 
         limitsMemory.checkExists();
         limitsMemory.checkVisible();
-        limitsMemory.set('123Mi');
+        limitsMemory.set('446Mi');
 
         // Click on YAML. In YAML mode, the prometheus selector is present but empty
         // It should not be sent to the API
@@ -185,10 +205,10 @@ describe('Charts', { tags: ['@charts', '@adminUser'] }, () => {
           const monitoringChart = req.request?.body.charts.find((chart: any) => chart.chartName === 'rancher-monitoring');
           const resource = monitoringChart.values.grafana.resources;
 
-          expect(resource.requests.cpu).to.equal('123m');
-          expect(resource.requests.memory).to.equal('567Mi');
-          expect(resource.limits.cpu).to.equal('87m');
-          expect(resource.limits.memory).to.equal('123Mi');
+          expect(resource.requests.cpu).to.equal('122m');
+          expect(resource.requests.memory).to.equal('113Mi');
+          expect(resource.limits.cpu).to.equal('457m');
+          expect(resource.limits.memory).to.equal('446Mi');
         });
       });
     });
@@ -215,6 +235,7 @@ describe('Charts', { tags: ['@charts', '@adminUser'] }, () => {
         cy.intercept('POST', 'v1/catalog.cattle.io.clusterrepos/rancher-charts?action=install').as('chartInstall');
         chartsPage.installChart();
         cy.wait('@chartInstall').its('response.statusCode').should('eq', 201);
+        terminal.checkChartInstallExitOnTerminal();
       });
 
       it('Side-nav should contain Istio menu item', () => {
