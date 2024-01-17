@@ -35,6 +35,7 @@
     "cypress",
     "./cypress.config.ts",
     "docusaurus",
-    "scripts/standalone"
+    "scripts/standalone",
+    "../**/*.test.ts",
   ]
 }

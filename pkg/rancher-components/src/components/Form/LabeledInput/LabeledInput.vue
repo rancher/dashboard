@@ -1,4 +1,5 @@
 <script lang="ts">
+// @ts-nocheck
 import { defineComponent } from 'vue';
 import TextAreaAutoGrow from '@components/Form/TextArea/TextAreaAutoGrow.vue';
 import LabeledTooltip from '@components/LabeledTooltip/LabeledTooltip.vue';

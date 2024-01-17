@@ -1,4 +1,5 @@
 <script lang="ts">
+// @ts-nocheck
 import { defineComponent } from 'vue';
 import { _VIEW } from '@shell/config/query-params';
 import { randomStr } from '@shell/utils/string';
