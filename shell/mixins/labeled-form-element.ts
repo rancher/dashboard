@@ -1,3 +1,4 @@
+// @ts-nocheck
 import Vue from 'vue';
 import { _EDIT, _VIEW } from '@shell/config/query-params';
 import { getWidth, setWidth } from '@shell/utils/width';

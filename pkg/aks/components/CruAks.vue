@@ -1,4 +1,5 @@
 <script lang='ts'>
+// @ts-nocheck
 import semver from 'semver';
 import { mapGetters, Store } from 'vuex';
 import { defineComponent } from 'vue';

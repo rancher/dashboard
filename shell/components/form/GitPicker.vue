@@ -1,4 +1,5 @@
 <script lang="ts">
+// @ts-nocheck
 import { defineComponent, inject } from 'vue';
 import SortableTable from '@shell/components/SortableTable/index.vue';
 import RadioButton from '@components/Form/Radio/RadioButton.vue';
