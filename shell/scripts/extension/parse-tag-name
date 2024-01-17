@@ -5,7 +5,7 @@ GITHUB_RUN_ID=$2
 GITHUB_WORKFLOW_TYPE=$3
 
 # Check packages for released tag name
-if [[ "${GITHUB_WORKFLOW_TYPE}" == "container" ]]; then
+if [[ "${GITHUB_WORKFLOW_TYPE}" == "charts" ]]; then
   for d in pkg/*/ ; do
     pkg=$(basename $d)
 
