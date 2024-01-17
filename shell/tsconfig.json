@@ -36,6 +36,7 @@
     "../cypress",
     "../cypress.config.ts",
     "../docusaurus",
-    "../**/*.spec.ts"
+    "../**/*.spec.ts",
+    "../**/*.test.ts",
   ]
 }

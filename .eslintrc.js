@@ -118,6 +118,11 @@ module.exports = {
     {
       files: ['**/*.{js,ts,vue}'],
       rules: {
+        '@typescript-eslint/ban-ts-comment': [
+          'error',
+          { 'ts-nocheck': false },
+        ],
+
         // Errors
         '@typescript-eslint/no-this-alias': 'off', // FIXME: This is seriously an issue
 
