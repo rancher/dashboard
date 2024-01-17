@@ -161,12 +161,39 @@
         @click="changePwd"
       />
     </div>
+    <div v-if="harborAccountValid && currentView === 'view'">
+      <div>
+        <hr class="mt-20 mb-20">
+        <p
+          v-clean-html="t('harborConfig.advanced.harborLink', { harborServer: harborServer }, true)"
+          class="mb-20"
+        />
+        <div class="mb-20 label-header">
+          <h3 class="label-title">
+            {{ t('harborConfig.advanced.label.title') }}
+          </h3>
+          <p
+            class="label-sub-title"
+          >
+            {{ t('harborConfig.advanced.label.subtitle') }}
+          </p>
+          <div class="label-action">
+            <button
+              class="btn role-primary"
+              @click="showAddLabelModal"
+            >
+              <t k="harborConfig.formTag.btn.add" />
+            </button>
+          </div>
+        </div>
+      </div>
+      <LabelsV1
 
-    <LabelsV1
-      v-if="harborAccountValid && currentView === 'view'"
-      :harbor-server="harborConfig.url"
-      :api-request="harborAPIRequest"
-    />
+        ref="labelRef"
+        :harbor-server="harborConfig.url"
+        :api-request="harborAPIRequest"
+      />
+    </div>
   </div>
 </template>
 <script>
@@ -320,6 +347,9 @@ export default {
     }
   },
   methods: {
+    showAddLabelModal() {
+      this.$refs.labelRef.showAddModal();
+    },
     async initForm() {
       this.harborAccountValid = false;
       const harborAPIRequest = harborAPI({ store: this.$store });
@@ -582,5 +612,21 @@ export default {
   .change-pwd-view {
     display: grid;
     gap: 20px;
+  }
+
+  .label-header {
+    display: grid;
+    grid-template-areas: 'title action'
+                          'sub-title action';
+    grid-template-columns: 1fr auto;
+  }
+  .label-title {
+    grid-area: title;
+  }
+  .label-sub-title {
+    grid-area: sub-title;
+  }
+  .label-action {
+    grid-area: action;
   }
 </style>

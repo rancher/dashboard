@@ -1,28 +1,5 @@
 <template>
   <div>
-    <hr class="mt-20 mb-20">
-    <p
-      v-clean-html="t('harborConfig.advanced.harborLink', { harborServer: harborServer }, true)"
-      class="mb-20"
-    />
-    <div class="mb-20 header">
-      <h3 class="title">
-        {{ t('harborConfig.advanced.label.title') }}
-      </h3>
-      <p
-        class="sub-title"
-      >
-        {{ t('harborConfig.advanced.label.subtitle') }}
-      </p>
-      <div class="action">
-        <button
-          class="btn role-primary"
-          @click="showAddModal"
-        >
-          <t k="harborConfig.formTag.btn.add" />
-        </button>
-      </div>
-    </div>
     <HarborTable
       search
       rowSelection
@@ -562,21 +539,7 @@ export default {
 };
 </script>
 <style scoped>
-  .header {
-    display: grid;
-    grid-template-areas: 'title action'
-                          'sub-title action';
-    grid-template-columns: 1fr auto;
-  }
-  .title {
-    grid-area: title;
-  }
-  .sub-title {
-    grid-area: sub-title;
-  }
-  .action {
-    grid-area: action;
-  }
+
   .color-option {
     cursor: pointer;
     padding: 0;
