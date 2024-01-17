@@ -1,6 +1,7 @@
-import Vue from 'vue';
+import { createApp } from 'vue';
+const app = createApp({});
 
-export default Vue.directive('positiveIntNumber', {
+app.directive('positiveIntNumber', {
   inserted(el) {
     el.addEventListener('keypress', (e) => {
       e = e || window.event;
