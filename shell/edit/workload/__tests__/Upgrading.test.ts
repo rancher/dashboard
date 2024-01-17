@@ -22,7 +22,7 @@ describe('component: Upgrading', () => {
     input.setValue(newValue);
     input.trigger('blur');
 
-    expect(wrapper.props('value')[key]).toBe(newValue);
+    expect(wrapper.props('value')?.[key]).toBe(newValue);
   });
 
   // TODO: #6179: Integrate test with component fix, as the scope is not to check the value of the input
@@ -39,7 +39,7 @@ describe('component: Upgrading', () => {
     input.setValue(newValue);
     input.trigger('blur');
 
-    expect(wrapper.props('value').strategy.rollingUpdate[key]).toBe(expectation);
+    expect(wrapper.props('value')?.strategy.rollingUpdate[key]).toBe(expectation);
   });
 
   it.each([
