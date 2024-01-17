@@ -1,7 +1,7 @@
 import { IClusterProvisioner, ClusterProvisionerContext } from '@shell/core/types';
 import CruAks from './components/CruAks.vue';
 import { mapDriver } from '@shell/store/plugins';
-import { Component } from 'vue/types/umd';
+import type { Component } from 'vue';
 
 export class AKSProvisioner implements IClusterProvisioner {
   static ID = 'azureaks'
