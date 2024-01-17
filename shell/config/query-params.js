@@ -50,6 +50,7 @@ export const _SPLIT = 'split';
 
 // CruResource
 export const SUB_TYPE = 'type';
+export const RKE_TYPE = 'rkeType';
 
 // App launch
 export const REPO_TYPE = 'repo-type';

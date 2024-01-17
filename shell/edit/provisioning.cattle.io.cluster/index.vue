@@ -6,12 +6,12 @@ import SelectIconGrid from '@shell/components/SelectIconGrid';
 import EmberPage from '@shell/components/EmberPage';
 import { ToggleSwitch } from '@components/Form/ToggleSwitch';
 import {
-  CHART, FROM_CLUSTER, SUB_TYPE, _EDIT, _IMPORT, _CONFIG, _VIEW
+  CHART, FROM_CLUSTER, SUB_TYPE, RKE_TYPE, _EDIT, _IMPORT, _CONFIG, _VIEW
 } from '@shell/config/query-params';
 import { mapGetters } from 'vuex';
 import { sortBy } from '@shell/utils/sort';
 import { set } from '@shell/utils/object';
-import { mapPref, PROVISIONER, _RKE1, _RKE2 } from '@shell/store/prefs';
+import { PROVISIONER, _RKE1, _RKE2 } from '@shell/store/prefs';
 import { filterAndArrangeCharts } from '@shell/store/catalog';
 import { CATALOG } from '@shell/config/labels-annotations';
 import { CAPI, MANAGEMENT, DEFAULT_WORKSPACE } from '@shell/config/types';
@@ -163,6 +163,7 @@ export default {
 
   data() {
     const subType = this.$route.query[SUB_TYPE] || null;
+    const rkeType = this.$route.query[RKE_TYPE] || null;
     const chart = this.$route.query[CHART] || null;
     const isImport = this.realMode === _IMPORT;
 
@@ -171,6 +172,7 @@ export default {
       kontainerDrivers: [],
       extensions:       [],
       subType,
+      rkeType,
       chart,
       isImport,
       providerCluster:  null,
@@ -181,9 +183,22 @@ export default {
   computed: {
     ...mapGetters({ allCharts: 'catalog/charts' }),
     ...mapGetters('type-map', ['activeProducts']),
-    preferredProvisioner: mapPref(PROVISIONER),
-    _RKE1:                () => _RKE1,
-    _RKE2:                () => _RKE2,
+    // needed to recreate logic on mapPref in order to incorporate the logic around the rkeType query param
+    // https://github.com/rancher/dashboard/issues/6299
+    preferredProvisioner: {
+      get() {
+        if (this.rkeType) {
+          return this.rkeType;
+        }
+
+        return this.$store.getters['prefs/get'](PROVISIONER);
+      },
+      set(value) {
+        this.$store.dispatch('prefs/set', { key: PROVISIONER, value });
+      }
+    },
+    _RKE1: () => _RKE1,
+    _RKE2: () => _RKE2,
 
     emberLink() {
       if (this.value) {
@@ -269,7 +284,7 @@ export default {
     },
 
     isRke2() {
-      return this.value.isRke2;
+      return this.value.isRke2 || !this.isRke1;
     },
 
     templateOptions() {
@@ -316,13 +331,13 @@ export default {
 
         if (this.isRke1 ) {
           machineTypes.forEach((id) => {
-            addType(id, 'rke1', false, `/g/clusters/add/launch/${ id }`, this.iconClasses[id]);
+            addType(id, _RKE1, false, `/g/clusters/add/launch/${ id }`, this.iconClasses[id]);
           });
 
           addType('custom', 'custom1', false, '/g/clusters/add/launch/custom');
         } else {
           machineTypes.forEach((id) => {
-            addType(id, 'rke2', false);
+            addType(id, _RKE2, false);
           });
 
           addType('custom', 'custom2', false);
@@ -336,7 +351,7 @@ export default {
         // if th rke toggle is set to rke1, don't add extensions that specify rke2 group
         // default group is rke2
         this.extensions.forEach((ext) => {
-          if (!this.isRke2 && (ext.group === 'rke2' || !ext.group)) {
+          if (!this.isRke2 && (ext.group === _RKE2 || !ext.group)) {
             return;
           }
           addExtensionType(ext, getters);
@@ -361,7 +376,7 @@ export default {
           description: ext.description,
           icon,
           iconClass,
-          group:       ext.group || 'rke2',
+          group:       ext.group || _RKE2,
           disabled:    ext.disabled || false,
           link:        ext.link,
           tag:         ext.tag,
@@ -515,7 +530,7 @@ export default {
         return;
       }
 
-      this.$router.applyQuery({ [SUB_TYPE]: id });
+      this.$router.applyQuery({ [SUB_TYPE]: id, [RKE_TYPE]: this.preferredProvisioner });
       this.selectType(id);
     },
 
@@ -581,9 +596,9 @@ export default {
               v-model="provisioner"
               data-testid="cluster-manager-create-rke-switch"
               class="rke-switch"
-              off-value="rke1"
+              :off-value="_RKE1"
               :off-label="t('cluster.toggle.v1')"
-              on-value="rke2"
+              :on-value="_RKE2"
               :on-label="t('cluster.toggle.v2')"
             />
           </div>

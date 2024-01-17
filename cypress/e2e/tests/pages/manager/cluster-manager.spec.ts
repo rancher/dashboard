@@ -1,5 +1,7 @@
 import { isMatch } from 'lodash';
 
+import ClusterManagerCreatePagePo from '@/cypress/e2e/po/edit/provisioning.cattle.io.cluster/create/cluster-create.po';
+import { providersList } from '@/cypress/e2e/blueprints/manager/clusterProviderUrlCheck';
 import ClusterManagerListPagePo from '@/cypress/e2e/po/pages/cluster-manager/cluster-manager-list.po';
 import ClusterDashboardPagePo from '@/cypress/e2e/po/pages/explorer/cluster-dashboard.po';
 import ClusterManagerDetailRke2CustomPagePo from '@/cypress/e2e/po/detail/provisioning.cattle.io.cluster/cluster-detail-rke2-custom.po';
@@ -34,6 +36,24 @@ describe('Cluster Manager', { testIsolation: 'off', tags: ['@manager', '@adminUs
 
   before(() => {
     cy.login();
+  });
+
+  describe('All providers', () => {
+    providersList.forEach((prov) => {
+      prov.conditions.forEach((condition) => {
+        it(`should be able to access cluster creation for provider ${ prov.label } with rke type ${ condition.rkeType } via url`, () => {
+          const clusterCreate = new ClusterManagerCreatePagePo();
+
+          clusterCreate.goTo(`type=${ prov.clusterProviderQueryParam }&rkeType=${ condition.rkeType }`);
+          clusterCreate.waitForPage();
+
+          const fnName = condition.loads === 'rke1' ? 'rke1PageTitle' : 'rke2PageTitle';
+          const evaluation = condition.loads === 'rke1' ? `Add Cluster - ${ condition.label ? condition.label : prov.label }` : `Create ${ condition.label ? condition.label : prov.label }`;
+
+          clusterCreate[fnName]().should('contain', evaluation);
+        });
+      });
+    });
   });
 
   describe('Created', () => {
