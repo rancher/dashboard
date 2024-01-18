@@ -857,11 +857,9 @@ export default {
         }
 
         if (provCluster?.isRke2) { // isRke2 returns true for both RKE2 and K3s clusters.
-          const agentConfig = provCluster.spec?.rkeConfig?.machineSelectorConfig?.find((x) => !x.machineLabelSelector).config;
-
           // If a cluster scoped registry exists,
           // it should be used by default.
-          const clusterRegistry = agentConfig?.['system-default-registry'] || '';
+          const clusterRegistry = provCluster.agentConfig?.['system-default-registry'] || '';
 
           if (clusterRegistry) {
             return clusterRegistry;
