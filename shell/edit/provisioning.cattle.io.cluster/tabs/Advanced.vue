@@ -1,4 +1,5 @@
 <script>
+import Vue from 'vue';
 import { Banner } from '@components/Banner';
 import ArrayListGrouped from '@shell/components/form/ArrayListGrouped';
 import MatchExpressions from '@shell/components/form/MatchExpressions';
@@ -61,7 +62,16 @@ export default {
 
       return this.t('cluster.advanced.argInfo.machineSelector.titleAlt', { count: machineSelectorLength });
     },
+    protectKernelDefaults() {
+      return (this.agentConfig || this.serverConfig)['protect-kernel-defaults'];
+    }
   },
+
+  methods: {
+    onInputProtectKernelDefaults(value) {
+      Vue.set(this.agentConfig || this.serverConfig, 'protect-kernel-defaults', value);
+    }
+  }
 };
 </script>
 
@@ -128,15 +138,17 @@ export default {
         :title="t('cluster.advanced.argInfo.machineSelector.kubeSchedulerTitle')"
       />
     </template>
-    <template v-if="agentArgs['protect-kernel-defaults']">
+    <template v-if="agentArgs && agentArgs['protect-kernel-defaults']">
       <div class="spacer" />
 
       <div class="row">
         <div class="col span-12">
           <Checkbox
-            v-model="agentConfig['protect-kernel-defaults']"
+            data-testid="protect-kernel-defaults"
+            :value="protectKernelDefaults"
             :mode="mode"
             :label="t('cluster.advanced.agentArgs.label')"
+            @input="onInputProtectKernelDefaults($event)"
           />
         </div>
       </div>
