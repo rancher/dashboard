@@ -378,7 +378,7 @@ describe('fx: resourceFields', () => {
   });
 
   it('schema has empty resource fields', () => {
-    const configMapSteveSchema = new SteveSchema(configMapSchema);
+    const configMapSteveSchema = new SteveSchema(configMapSchema, {});
 
     configMapSteveSchema._cacheSchemaDefinitionResponse({
       ...configMapSchemaDefinition,
@@ -410,7 +410,7 @@ kind: ConfigMap`;
   });
 
   it('schema has one resource field', () => {
-    const configMapSteveSchema = new SteveSchema(configMapSchema);
+    const configMapSteveSchema = new SteveSchema(configMapSchema, {});
 
     configMapSteveSchema._cacheSchemaDefinitionResponse({
       ...configMapSchemaDefinition,
@@ -448,7 +448,7 @@ kind: ConfigMap
   });
 
   it('schema has nested resource fields', () => {
-    const configMapSteveSchema = new SteveSchema(configMapSchema);
+    const configMapSteveSchema = new SteveSchema(configMapSchema, {});
 
     configMapSteveSchema._cacheSchemaDefinitionResponse(configMapSchemaDefinition);
 

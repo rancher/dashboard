@@ -25,7 +25,7 @@ const SchemaDefinitionCache: { [store: string]: SchemaDefinitions } = {};
 /**
  * Steve Schema specific functionality
  */
-export default abstract class SteveSchema extends Schema {
+export default class SteveSchema extends Schema {
   static reset(store: string): void {
     delete SchemaDefinitionCache[store];
   }
@@ -49,7 +49,7 @@ export default abstract class SteveSchema extends Schema {
   /**
    * This should match the root Schema ctor (...args throws ts error)
    */
-  constructor(data: unknown, ctx: unknown, rehydrateNamespace?: unknown, setClone?: boolean) {
+  constructor(data: unknown, ctx: unknown, rehydrateNamespace?: null | undefined, setClone?: boolean) {
     super(data, ctx, rehydrateNamespace, setClone);
 
     this.store = (ctx as any).state?.config?.namespace;
