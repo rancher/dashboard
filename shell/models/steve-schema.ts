@@ -52,7 +52,7 @@ export default abstract class SteveSchema extends Schema {
   constructor(data: unknown, ctx: unknown, rehydrateNamespace?: unknown, setClone?: boolean) {
     super(data, ctx, rehydrateNamespace, setClone);
 
-    this.store = (ctx as any).state.config.namespace;
+    this.store = (ctx as any).state?.config?.namespace;
     if (!SchemaDefinitionCache[this.store]) {
       SchemaDefinitionCache[this.store] = {};
     }
