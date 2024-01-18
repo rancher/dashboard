@@ -594,6 +594,13 @@ export default {
     },
 
     /**
+     * Display warning about additional configuration needed for cloud provider Amazon if kube >= 1.27
+     */
+    showCloudProviderAmazonAdditionalConfigWarning() {
+      return !!semver.gte(this.value.spec.kubernetesVersion, 'v1.27.0') && this.agentConfig['cloud-provider-name'] === 'aws';
+    },
+
+    /**
      * Kube Version
      */
     selectedVersion() {
@@ -2473,6 +2480,12 @@ export default {
             <span
               v-clean-html="t('cluster.harvester.warning.cloudProvider.incompatible', null, true)"
             />
+          </Banner>
+          <Banner
+            v-if="showCloudProviderAmazonAdditionalConfigWarning"
+            color="warning"
+          >
+            <span v-clean-html="t('cluster.banner.cloudProviderAddConfig', {}, true)" />
           </Banner>
           <div class="row mb-10">
             <div class="col span-6">
