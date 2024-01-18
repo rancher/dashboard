@@ -521,11 +521,11 @@ export default {
       }
 
       if (this.showCloudProvider) { // Shouldn't be removed such that changes to it will re-trigger this watch
-        if ( this.agentConfig['cloud-provider-name'] === 'rancher-vsphere' ) {
+        if ( this.agentConfig?.['cloud-provider-name'] === 'rancher-vsphere' ) {
           names.push('rancher-vsphere-cpi', 'rancher-vsphere-csi');
         }
 
-        if ( this.agentConfig['cloud-provider-name'] === HARVESTER ) {
+        if ( this.agentConfig?.['cloud-provider-name'] === HARVESTER ) {
           names.push(HARVESTER_CLOUD_PROVIDER);
         }
       }
@@ -575,7 +575,7 @@ export default {
         }
       }
 
-      const cur = this.agentConfig['cloud-provider-name'];
+      const cur = this.agentConfig?.['cloud-provider-name'];
 
       if (cur && !out.find((x) => x.value === cur)) {
         // Localization missing
@@ -1323,7 +1323,7 @@ export default {
 
         const isUpgrade = this.isEdit && this.liveValue?.spec?.kubernetesVersion !== this.value?.spec?.kubernetesVersion;
 
-        if (this.agentConfig['cloud-provider-name'] === HARVESTER && clusterId && (this.isCreate || isUpgrade)) {
+        if (this.agentConfig?.['cloud-provider-name'] === HARVESTER && clusterId && (this.isCreate || isUpgrade)) {
           const namespace = this.machinePools?.[0]?.config?.vmNamespace;
 
           const res = await this.$store.dispatch('management/request', {
@@ -1515,7 +1515,7 @@ export default {
       }
 
       for ( const k in this.agentArgs ) {
-        if ( this.agentConfig[k] === undefined ) {
+        if ( this.agentConfig?.[k] === undefined ) {
           const def = this.agentArgs[k].default;
 
           set(this.agentConfig, k, (def !== undefined ? def : undefined));
@@ -1780,6 +1780,7 @@ export default {
     setHarvesterDefaultCloudProvider() {
       if (this.isHarvesterDriver &&
         this.mode === _CREATE &&
+        this.agentConfig &&
         !this.agentConfig['cloud-provider-name'] &&
         !this.isHarvesterExternalCredential &&
         !this.isHarvesterIncompatible
@@ -1977,7 +1978,7 @@ export default {
       this.registrySecret = neu;
     },
     validateClusterName() {
-      if (!this.value.metadata.name && this.agentConfig['cloud-provider-name'] === HARVESTER) {
+      if (!this.value.metadata.name && this.agentConfig?.['cloud-provider-name'] === HARVESTER) {
         this.errors.push(this.t('validation.required', { key: this.t('cluster.name.label') }, true));
       }
     },

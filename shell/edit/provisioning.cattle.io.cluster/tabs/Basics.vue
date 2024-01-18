@@ -248,7 +248,7 @@ export default {
         return false;
       }
 
-      const name = this.agentConfig['cloud-provider-name'];
+      const name = this.agentConfig?.['cloud-provider-name'];
 
       if ( !name ) {
         return false;
@@ -268,7 +268,7 @@ export default {
         return false;
       }
 
-      const name = this.agentConfig['cloud-provider-name'];
+      const name = this.agentConfig?.['cloud-provider-name'];
 
       return name === 'rancher-vsphere';
     },
@@ -310,7 +310,7 @@ export default {
      * Display warning about additional configuration needed for cloud provider Amazon if kube >= 1.27
      */
     showCloudProviderAmazonAdditionalConfigWarning() {
-      return !!semver.gte(this.value.spec.kubernetesVersion, 'v1.27.0') && this.agentConfig['cloud-provider-name'] === 'aws';
+      return !!semver.gte(this.value.spec.kubernetesVersion, 'v1.27.0') && this.agentConfig?.['cloud-provider-name'] === 'aws';
     }
   },
 
@@ -375,6 +375,7 @@ export default {
         class="col span-6"
       >
         <LabeledSelect
+          v-if="agentConfig"
           v-model="agentConfig['cloud-provider-name']"
           :mode="mode"
           :disabled="canNotEditCloudProvider"
@@ -428,6 +429,7 @@ export default {
           {{ t('cluster.rke2.cloudProvider.header') }}
         </h3>
         <YamlEditor
+          v-if="agentConfig"
           ref="yaml"
           v-model="agentConfig['cloud-provider-config']"
           :editor-mode="mode === 'view' ? 'VIEW_CODE' : 'EDIT_CODE'"
