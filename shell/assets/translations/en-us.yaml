@@ -1661,6 +1661,8 @@ cluster:
   advanced:
     argInfo:
       title: Additional Kubelet Args
+      machineGlobal:
+        listLabel: Add Global Argument
       machineSelector:
         label: Add Machine Selector
         listLabel: Add Argument

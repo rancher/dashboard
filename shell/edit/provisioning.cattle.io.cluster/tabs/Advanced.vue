@@ -35,7 +35,6 @@ export default {
       type:     Object,
       required: true
     },
-
   },
 
   computed: {
@@ -44,9 +43,6 @@ export default {
     },
     agentArgs() {
       return this.selectedVersion?.agentArgs || {};
-    },
-    canRemoveKubeletRow(row, idx) {
-      return idx !== 0;
     },
     serverArgs() {
       return this.selectedVersion?.serverArgs || {};
@@ -68,6 +64,12 @@ export default {
   },
 
   methods: {
+    canRemoveKubeletRow(row, i) {
+      return i !== 0 || !this.agentConfig;
+    },
+    showEmptyKubeletArg(config) {
+      return !this.serverArg?.['kubelet-arg']?.length && !config?.['kubelet-arg']?.length;
+    },
     onInputProtectKernelDefaults(value) {
       Vue.set(this.agentConfig || this.serverConfig, 'protect-kernel-defaults', value);
     }
@@ -83,11 +85,12 @@ export default {
         v-if="agentArgs['kubelet-arg']"
         v-model="rkeConfig.machineSelectorConfig"
         class="mb-20"
+        :mode="mode"
         :add-label="t('cluster.advanced.argInfo.machineSelector.label')"
         :can-remove="canRemoveKubeletRow"
         :default-add-value="{machineLabelSelector: { matchExpressions: [], matchLabels: {} }, config: {'kubelet-arg': []}}"
       >
-        <template #default="{row}">
+        <template #default="{row, i}">
           <template v-if="row.value.machineLabelSelector">
             <h3>{{ t('cluster.advanced.argInfo.machineSelector.title') }}</h3>
             <MatchExpressions
@@ -104,11 +107,40 @@ export default {
           </h3>
 
           <ArrayList
+            v-if="i === 0 && serverConfig['kubelet-arg']"
+            v-model="serverConfig['kubelet-arg']"
+            class="mb-10"
+            data-testid="global-kubelet-arg"
+            :mode="mode"
+            :add-label="t('cluster.advanced.argInfo.machineGlobal.listLabel')"
+          >
+            <template #empty>
+              {{ '' }}
+            </template>
+          </ArrayList>
+
+          <ArrayList
+            v-if="row.value.config"
             v-model="row.value.config['kubelet-arg']"
+            data-testid="selector-kubelet-arg"
             :mode="mode"
             :add-label="t('cluster.advanced.argInfo.machineSelector.listLabel')"
             :initial-empty-row="!!row.value.machineLabelSelector"
-          />
+          >
+            <template
+              v-if="i === 0"
+              #empty
+            >
+              {{ '' }}
+            </template>
+          </ArrayList>
+
+          <div
+            v-if="i === 0 && mode==='view' && showEmptyKubeletArg(row.value.config)"
+            class="text-muted"
+          >
+            &mdash;
+          </div>
         </template>
       </ArrayListGrouped>
       <Banner
