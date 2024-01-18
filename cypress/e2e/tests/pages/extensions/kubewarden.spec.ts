@@ -1,6 +1,6 @@
 import ExtensionsPagePo from '@/cypress/e2e/po/pages/extensions.po';
 import { ChartsPage } from '@/cypress/e2e/po/pages/charts.po';
-import RepositoriesPagePo from '@/cypress/e2e/po/pages/cluster-manager/repositories.po';
+import RepositoriesPagePo from '@/cypress/e2e/po/pages/chart-repositories.po';
 import ProductNavPo from '@/cypress/e2e/po/side-bars/product-side-nav.po';
 import KubewardenExtensionPo from '@/cypress/e2e/po/pages/extensions/kubewarden.po';
 

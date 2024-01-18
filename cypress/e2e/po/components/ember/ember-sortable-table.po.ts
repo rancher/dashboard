@@ -1,4 +1,5 @@
 import EmberComponentPo from '@/cypress/e2e/po/components/ember/ember-component.po';
+import EmberSelectPo from '@/cypress/e2e/po/components/ember/ember-select.po';
 
 export default class EmberSortableTablePo extends EmberComponentPo {
   /**
@@ -57,5 +58,13 @@ export default class EmberSortableTablePo extends EmberComponentPo {
       .contains('.group-row', new RegExp(` ${ groupRowName } `))
       .siblings('tr.main-row')
       .contains(mainRowName);
+  }
+
+  bulkActions(label: string) {
+    return cy.iFrame().contains('.bulk-actions', label);
+  }
+
+  actionMenu(): EmberSelectPo {
+    return new EmberSelectPo('.ember-basic-dropdown-content');
   }
 }

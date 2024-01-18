@@ -6,8 +6,8 @@ describe('Cloud Credentials', { testIsolation: 'off', tags: ['@manager', '@jenki
   const cloudCredentialsPage = new CloudCredentialsPagePo('_');
   const runTimestamp = +new Date();
 
-  const cloudCredName = `e2e-cloud-cred-name-${ runTimestamp }`;
-  const cloudCredDescription = `e2e-cloud-cred-description-${ runTimestamp }`;
+  const cloudCredName = `e2e-cloud-cred-${ runTimestamp }`;
+  const cloudCredDescription = `${ cloudCredName }-description`;
   let cloudcredentialId = '';
 
   before(() => {

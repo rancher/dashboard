@@ -2,7 +2,7 @@ import BannersPo from '@/cypress/e2e/po/components/banners.po';
 import HomePagePo from '@/cypress/e2e/po/pages/home.po';
 import PreferencesPagePo from '@/cypress/e2e/po/pages/preferences.po';
 import UserMenuPo from '@/cypress/e2e/po/side-bars/user-menu.po';
-import RepositoriesPagePo from '@/cypress/e2e/po/pages/cluster-manager/repositories.po';
+import RepositoriesPagePo from '@/cypress/e2e/po/pages/chart-repositories.po';
 // import ClusterManagerListPagePo from '@/cypress/e2e/po/pages/cluster-manager/cluster-manager-list.po';
 
 const userMenu = new UserMenuPo();

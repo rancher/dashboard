@@ -1,12 +1,12 @@
 import ClusterManagerListPagePo from '@/cypress/e2e/po/pages/cluster-manager/cluster-manager-list.po';
 import ClusterManagerCreateRke1CustomPagePo from '@/cypress/e2e/po/edit/provisioning.cattle.io.cluster/create/cluster-create-rke1-custom.po';
 import RkeTemplatesPagePo from '@/cypress/e2e/po/pages/cluster-manager/rke-templates.po';
-import EmberPromptRemove from '@/cypress/e2e/po/components/ember/ember-prompt-remove.po';
+import EmberModalPo from '@/cypress/e2e/po/components/ember/ember-modal.po';
 
 describe('RKE Templates', { testIsolation: 'off', tags: ['@manager', '@adminUser'] }, () => {
   const rkeTemplatesPage = new RkeTemplatesPagePo('_');
   const clusterList = new ClusterManagerListPagePo('local');
-  const promptRemove = new EmberPromptRemove();
+  const promptRemove = new EmberModalPo();
   const runTimestamp = +new Date();
   const templateName = `e2e-template-name-${ runTimestamp }`;
   const revisionName = `e2e-revision-name-${ runTimestamp }`;
@@ -27,7 +27,7 @@ describe('RKE Templates', { testIsolation: 'off', tags: ['@manager', '@adminUser
     rkeTemplatesPage.form().templateDetails().set(templateName);
     rkeTemplatesPage.form().templateDetails().set(revisionName, 1);
     cy.intercept('POST', '/v3/clustertemplate').as('createTemplate');
-    rkeTemplatesPage.formActions().create();
+    rkeTemplatesPage.form().create();
     cy.wait('@createTemplate');
     rkeTemplatesPage.waitForPage();
     rkeTemplatesPage.groupRow().groupRowWithName(templateName).should('be.visible');
@@ -77,7 +77,7 @@ describe('RKE Templates', { testIsolation: 'off', tags: ['@manager', '@adminUser
     rkeTemplatesPage.actionMenu().selectMenuItemByLabel('Clone Revision');
     rkeTemplatesPage.form().templateDetails().set(revisionName2);
     cy.intercept('PUT', '/v3/clusterTemplates/*').as('cloneTemplateRevision');
-    rkeTemplatesPage.formActions().save();
+    rkeTemplatesPage.form().save();
     cy.wait('@cloneTemplateRevision');
     rkeTemplatesPage.groupRow().rowWithinGroupByName(templateName, revisionName2);
   });

@@ -7,10 +7,10 @@ export default class EmberFormRkeTemplatesPo extends EmberComponentPo {
   }
 
   create() {
-    return this.self().contains('Create').click();
+    return this.self().contains('[data-testid="save-cancel-rke1"] button', 'Create').click();
   }
 
   save() {
-    return this.self().contains('Save').click();
+    return this.self().contains('[data-testid="save-cancel-rke1"] button', 'Save').click();
   }
 }

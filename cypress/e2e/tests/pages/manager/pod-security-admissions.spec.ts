@@ -9,8 +9,8 @@ describe('Pod Security Admissions', { testIsolation: 'off', tags: ['@manager', '
   const resourceDetails = new ResourceDetailPo('.main-layout');
   const downloadsFolder = Cypress.config('downloadsFolder');
   const runTimestamp = +new Date();
-  const policyAdmissionName = `e2e-pod-security-admission-name-${ runTimestamp }`;
-  const policyAdmissionDescription = `e2e-pod-security-admission-description-${ runTimestamp }`;
+  const policyAdmissionName = `e2e-pod-security-admission-${ runTimestamp }`;
+  const policyAdmissionDescription = `${ policyAdmissionName }-description`;
 
   before(() => {
     cy.login();
@@ -25,8 +25,8 @@ describe('Pod Security Admissions', { testIsolation: 'off', tags: ['@manager', '
     podSecurityAdmissionsPage.waitForPage();
     podSecurityAdmissionsPage.create();
     podSecurityAdmissionsPage.createPodSecurityAdmissionForm().waitForPage();
-    podSecurityAdmissionsPage.createPodSecurityAdmissionForm().name().set(policyAdmissionName);
-    podSecurityAdmissionsPage.createPodSecurityAdmissionForm().description().set(policyAdmissionDescription);
+    podSecurityAdmissionsPage.createPodSecurityAdmissionForm().nameNsDescription().name().set(policyAdmissionName);
+    podSecurityAdmissionsPage.createPodSecurityAdmissionForm().nameNsDescription().description().set(policyAdmissionDescription);
     resourceDetails.cruResource().saveAndWaitForRequests('POST', '/v1/management.cattle.io.podsecurityadmissionconfigurationtemplates');
     podSecurityAdmissionsPage.waitForPage();
 
@@ -38,7 +38,7 @@ describe('Pod Security Admissions', { testIsolation: 'off', tags: ['@manager', '
     PodSecurityAdmissionsPagePo.navTo();
     podSecurityAdmissionsPage.list().actionMenu(policyAdmissionName).getMenuItem('Edit Config').click();
     podSecurityAdmissionsPage.createPodSecurityAdmissionForm(policyAdmissionName).waitForPage('mode=edit');
-    podSecurityAdmissionsPage.createPodSecurityAdmissionForm().description().set(`${ policyAdmissionDescription }-edit`);
+    podSecurityAdmissionsPage.createPodSecurityAdmissionForm().nameNsDescription().description().set(`${ policyAdmissionDescription }-edit`);
     resourceDetails.cruResource().saveAndWaitForRequests('PUT', '/v1/management.cattle.io.podsecurityadmissionconfigurationtemplates/**');
     podSecurityAdmissionsPage.waitForPage();
 
@@ -50,7 +50,7 @@ describe('Pod Security Admissions', { testIsolation: 'off', tags: ['@manager', '
     PodSecurityAdmissionsPagePo.navTo();
     podSecurityAdmissionsPage.list().actionMenu(policyAdmissionName).getMenuItem('Clone').click();
     podSecurityAdmissionsPage.createPodSecurityAdmissionForm(policyAdmissionName).waitForPage('mode=clone');
-    podSecurityAdmissionsPage.createPodSecurityAdmissionForm().name().set(`${ policyAdmissionName }-clone`);
+    podSecurityAdmissionsPage.createPodSecurityAdmissionForm().nameNsDescription().name().set(`${ policyAdmissionName }-clone`);
     resourceDetails.cruResource().saveAndWaitForRequests('POST', '/v1/management.cattle.io.podsecurityadmissionconfigurationtemplates');
     podSecurityAdmissionsPage.waitForPage();
 

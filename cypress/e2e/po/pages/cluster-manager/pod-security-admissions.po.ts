@@ -25,7 +25,7 @@ export default class PodSecurityAdmissionsPagePo extends PagePo {
   }
 
   create() {
-    return cy.getId('masthead-create').click();
+    return this.list().masthead().actions().click();
   }
 
   createPodSecurityAdmissionForm(id? : string): PodSecurityAdmissionsCreateEditPo {

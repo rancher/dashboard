@@ -1,7 +1,7 @@
 import ClusterManagerListPagePo from '@/cypress/e2e/po/pages/cluster-manager/cluster-manager-list.po';
 import NodeTemplatesPagePo from '@/cypress/e2e/po/pages/cluster-manager/node-templates.po';
 import ClusterManagerCreateRke1Amazonec2PagePo from '@/cypress/e2e/po/edit/provisioning.cattle.io.cluster/create/cluster-create-rke1-amazonec2.po';
-import EmberPromptRemove from '@/cypress/e2e/po/components/ember/ember-prompt-remove.po';
+import EmberModalPo from '@/cypress/e2e/po/components/ember/ember-modal.po';
 
 // will only run this in jenkins pipeline where cloud credentials are stored
 describe('Node Templates', { testIsolation: 'off', tags: ['@manager', '@jenkins', '@adminUser'] }, () => {
@@ -71,7 +71,7 @@ describe('Node Templates', { testIsolation: 'off', tags: ['@manager', '@jenkins'
     NodeTemplatesPagePo.navTo();
     nodeTemplatesPage.list().rowWithName(templateName).should('be.visible');
     nodeTemplatesPage.list().rowActionMenuOpen(templateName);
-    nodeTemplatesPage.actionMenu().selectMenuItemByLabel('Edit');
+    nodeTemplatesPage.list().actionMenu().selectMenuItemByLabel('Edit');
     nodeTemplatesPage.addNodeTemplateModal().nextButton('Next: Authenticate & configure nodes').click();
     nodeTemplatesPage.addNodeTemplateModal().nextButton('Next: Select a Security Group').click();
     nodeTemplatesPage.addNodeTemplateModal().nextButton('Next: Set Instance options').click();
@@ -88,7 +88,7 @@ describe('Node Templates', { testIsolation: 'off', tags: ['@manager', '@jenkins'
     NodeTemplatesPagePo.navTo();
     nodeTemplatesPage.list().rowWithName(`${ templateName }-edit`).should('be.visible');
     nodeTemplatesPage.list().rowActionMenuOpen(`${ templateName }-edit`);
-    nodeTemplatesPage.actionMenu().selectMenuItemByLabel('Clone');
+    nodeTemplatesPage.list().actionMenu().selectMenuItemByLabel('Clone');
     nodeTemplatesPage.addNodeTemplateModal().nextButton('Next: Authenticate & configure nodes').click();
     nodeTemplatesPage.addNodeTemplateModal().nextButton('Next: Select a Security Group').click();
     nodeTemplatesPage.addNodeTemplateModal().nextButton('Next: Set Instance options').click();
@@ -107,8 +107,8 @@ describe('Node Templates', { testIsolation: 'off', tags: ['@manager', '@jenkins'
     // delete clone node template
     nodeTemplatesPage.list().rowWithName(`${ templateName }-clone`).should('be.visible');
     nodeTemplatesPage.list().rowActionMenuOpen(`${ templateName }-clone`);
-    nodeTemplatesPage.actionMenu().selectMenuItemByLabel('Delete');
-    const promptRemove = new EmberPromptRemove();
+    nodeTemplatesPage.list().actionMenu().selectMenuItemByLabel('Delete');
+    const promptRemove = new EmberModalPo();
 
     cy.intercept('DELETE', '/v3/nodeTemplates/**').as('deleteNodeTemplate');
 
@@ -125,8 +125,8 @@ describe('Node Templates', { testIsolation: 'off', tags: ['@manager', '@jenkins'
 
     // delete original node template
     nodeTemplatesPage.list().rowWithName(`${ templateName }-edit`).click();
-    nodeTemplatesPage.bulkActions('Delete').click();
-    const promptRemove = new EmberPromptRemove();
+    nodeTemplatesPage.list().bulkActions('Delete').click();
+    const promptRemove = new EmberModalPo();
 
     cy.intercept('DELETE', '/v3/nodeTemplates/**').as('deleteNodeTemplate');
 
@@ -141,7 +141,7 @@ describe('Node Templates', { testIsolation: 'off', tags: ['@manager', '@jenkins'
   after('clean up', () => {
     if (removeCloudCred) {
       //  delete cloud cred
-      cy.deleteRancherResource('v3', 'cloudCredentials', cloudCredentialId, 204);
+      cy.deleteRancherResource('v3', 'cloudCredentials', cloudCredentialId);
     }
   });
 });

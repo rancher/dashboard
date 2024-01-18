@@ -5,9 +5,6 @@ import * as jsyaml from 'js-yaml';
 
 describe('MachineDeployments', { testIsolation: 'off', tags: ['@manager', '@adminUser'] }, () => {
   const machineDeploymentsPage = new MachineDeploymentsPagePo('_');
-  const runTimestamp = +new Date();
-  const machineDeploymentsName = `e2e-machinedeployment-name-${ runTimestamp }`;
-  const machineDeploymentsNameClone = `e2e-machinedeployment-name-${ runTimestamp }-clone`;
   const nsName = 'default';
   let resourceVersion = '';
   let creationTimestamp = '';
@@ -18,9 +15,10 @@ describe('MachineDeployments', { testIsolation: 'off', tags: ['@manager', '@admi
 
   before(() => {
     cy.login();
+    cy.createE2EResourceName('machinedeployments').as('machineDeploymentsName');
   });
 
-  it('can create a MachineDeployments', () => {
+  it('can create a MachineDeployments', function() {
     MachineDeploymentsPagePo.navTo();
     machineDeploymentsPage.waitForPage();
 
@@ -32,7 +30,7 @@ describe('MachineDeployments', { testIsolation: 'off', tags: ['@manager', '@admi
       // convert yaml into json to update name value
       const json: any = jsyaml.load(machineDeploymentDoc);
 
-      json.metadata.name = machineDeploymentsName;
+      json.metadata.name = this.machineDeploymentsName;
       machineDeploymentsPage.yamlEditor().set(jsyaml.dump(json));
     });
 
@@ -46,14 +44,14 @@ describe('MachineDeployments', { testIsolation: 'off', tags: ['@manager', '@admi
       uid = req.response?.body.metadata.uid;
     });
     machineDeploymentsPage.waitForPage();
-    machineDeploymentsPage.list().details(machineDeploymentsName, 1).should('be.visible');
+    machineDeploymentsPage.list().details(this.machineDeploymentsName, 1).should('be.visible');
   });
 
-  it('can edit a MachineDeployments', () => {
+  it('can edit a MachineDeployments', function() {
     MachineDeploymentsPagePo.navTo();
 
-    machineDeploymentsPage.list().actionMenu(machineDeploymentsName).getMenuItem('Edit YAML').click();
-    machineDeploymentsPage.createEditMachineDeployment(nsName, machineDeploymentsName).waitForPage('mode=edit&as=yaml');
+    machineDeploymentsPage.list().actionMenu(this.machineDeploymentsName).getMenuItem('Edit YAML').click();
+    machineDeploymentsPage.createEditMachineDeployment(nsName, this.machineDeploymentsName).waitForPage('mode=edit&as=yaml');
 
     cy.readFile('cypress/e2e/blueprints/cluster_management/machine-deployments-edit.yml').then((machineSetDoc) => {
       // convert yaml into json to update values
@@ -63,33 +61,33 @@ describe('MachineDeployments', { testIsolation: 'off', tags: ['@manager', '@admi
       json.metadata.creationTimestamp = creationTimestamp;
       json.metadata.managedFields.time = time;
       json.metadata.uid = uid;
-      json.metadata.name = machineDeploymentsName;
+      json.metadata.name = this.machineDeploymentsName;
       json.metadata.resourceVersion = resourceVersion;
       machineDeploymentsPage.yamlEditor().set(jsyaml.dump(json));
     });
 
-    cy.intercept('PUT', `/v1/cluster.x-k8s.io.machinedeployments/${ nsName }/${ machineDeploymentsName }`).as('updateMachineSet');
+    cy.intercept('PUT', `/v1/cluster.x-k8s.io.machinedeployments/${ nsName }/${ this.machineDeploymentsName }`).as('updateMachineSet');
     machineDeploymentsPage.createEditMachineDeployment().saveCreateForm().resourceYaml().saveOrCreate()
       .click();
     cy.wait('@updateMachineSet').its('response.statusCode').should('eq', 200);
     machineDeploymentsPage.waitForPage();
 
     // check details page
-    machineDeploymentsPage.list().details(machineDeploymentsName, 2).find('a').click();
+    machineDeploymentsPage.list().details(this.machineDeploymentsName, 2).find('a').click();
     cy.contains('secretName2').scrollIntoView().should('be.visible');
   });
 
-  it('can clone a MachineDeployments', () => {
+  it('can clone a MachineDeployments', function() {
     MachineDeploymentsPagePo.navTo();
 
-    machineDeploymentsPage.list().actionMenu(machineDeploymentsName).getMenuItem('Clone').click();
-    machineDeploymentsPage.createEditMachineDeployment(nsName, machineDeploymentsName).waitForPage('mode=clone&as=yaml');
+    machineDeploymentsPage.list().actionMenu(this.machineDeploymentsName).getMenuItem('Clone').click();
+    machineDeploymentsPage.createEditMachineDeployment(nsName, this.machineDeploymentsName).waitForPage('mode=clone&as=yaml');
 
     cy.readFile('cypress/e2e/blueprints/cluster_management/machine-deployments.yml').then((machineSetDoc) => {
       // convert yaml into json to update name value
       const json: any = jsyaml.load(machineSetDoc);
 
-      json.metadata.name = machineDeploymentsNameClone;
+      json.metadata.name = `${ this.machineDeploymentsName }-clone`;
       machineDeploymentsPage.yamlEditor().set(jsyaml.dump(json));
     });
 
@@ -100,52 +98,52 @@ describe('MachineDeployments', { testIsolation: 'off', tags: ['@manager', '@admi
     machineDeploymentsPage.waitForPage();
 
     // check list details
-    machineDeploymentsPage.list().details(machineDeploymentsNameClone, 2).should('be.visible');
+    machineDeploymentsPage.list().details(`${ this.machineDeploymentsName }-clone`, 2).should('be.visible');
   });
 
-  it('can download YAML', () => {
+  it('can download YAML', function() {
     MachineDeploymentsPagePo.navTo();
-    machineDeploymentsPage.list().actionMenu(machineDeploymentsName).getMenuItem('Download YAML').click();
+    machineDeploymentsPage.list().actionMenu(this.machineDeploymentsName).getMenuItem('Download YAML').click();
 
-    const downloadedFilename = path.join(downloadsFolder, `${ machineDeploymentsName }.yaml`);
+    const downloadedFilename = path.join(downloadsFolder, `${ this.machineDeploymentsName }.yaml`);
 
     cy.readFile(downloadedFilename).then((buffer) => {
       const obj: any = jsyaml.load(buffer);
 
       // Basic checks on the downloaded YAML
       expect(obj.apiVersion).to.equal('cluster.x-k8s.io/v1beta1');
-      expect(obj.metadata.name).to.equal(machineDeploymentsName);
+      expect(obj.metadata.name).to.equal(this.machineDeploymentsName);
       expect(obj.kind).to.equal('MachineDeployment');
     });
   });
 
-  it('can delete a MachineDeployments', () => {
+  it('can delete a MachineDeployments', function() {
     MachineDeploymentsPagePo.navTo();
 
     // delete original cloned MachineSet
-    machineDeploymentsPage.list().actionMenu(machineDeploymentsNameClone).getMenuItem('Delete').click();
+    machineDeploymentsPage.list().actionMenu(`${ this.machineDeploymentsName }-clone`).getMenuItem('Delete').click();
 
     const promptRemove = new PromptRemove();
 
-    cy.intercept('DELETE', `v1/cluster.x-k8s.io.machinedeployments/${ nsName }/${ machineDeploymentsNameClone }`).as('deleteMachineSet');
+    cy.intercept('DELETE', `v1/cluster.x-k8s.io.machinedeployments/${ nsName }/${ this.machineDeploymentsName }-clone`).as('deleteMachineSet');
 
     promptRemove.remove();
     cy.wait('@deleteMachineSet');
     machineDeploymentsPage.waitForPage();
 
     // check list details
-    cy.contains(machineDeploymentsNameClone).should('not.exist');
+    cy.contains(`${ this.machineDeploymentsName }-clone`).should('not.exist');
   });
 
-  it('can delete MachineDeployments via bulk actions', () => {
+  it('can delete MachineDeployments via bulk actions', function() {
     MachineDeploymentsPagePo.navTo();
 
     // delete original MachineSet
-    machineDeploymentsPage.list().resourceTable().sortableTable().rowSelectCtlWithName(machineDeploymentsName)
+    machineDeploymentsPage.list().resourceTable().sortableTable().rowSelectCtlWithName(`${ this.machineDeploymentsName }`)
       .set();
     machineDeploymentsPage.list().openBulkActionDropdown();
 
-    cy.intercept('DELETE', `v1/cluster.x-k8s.io.machinedeployments/${ nsName }/${ machineDeploymentsName }`).as('deleteMachineSet');
+    cy.intercept('DELETE', `v1/cluster.x-k8s.io.machinedeployments/${ nsName }/${ this.machineDeploymentsName }`).as('deleteMachineSet');
     machineDeploymentsPage.list().bulkActionButton('Delete').click();
 
     const promptRemove = new PromptRemove();
@@ -155,6 +153,6 @@ describe('MachineDeployments', { testIsolation: 'off', tags: ['@manager', '@admi
     machineDeploymentsPage.waitForPage();
 
     // check list details
-    cy.contains(machineDeploymentsName).should('not.exist');
+    cy.contains(this.machineDeploymentsName).should('not.exist');
   });
 });

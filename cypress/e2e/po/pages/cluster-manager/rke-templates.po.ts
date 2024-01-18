@@ -43,10 +43,6 @@ export default class RkeTemplatesPagePo extends PagePo {
   }
 
   form(): EmberFormRkeTemplatesPo {
-    return new EmberFormRkeTemplatesPo('form.horizontal-form ');
-  }
-
-  formActions(): EmberFormRkeTemplatesPo {
-    return new EmberFormRkeTemplatesPo('[data-testid="save-cancel-rke1"]');
+    return new EmberFormRkeTemplatesPo('form.horizontal-form');
   }
 }

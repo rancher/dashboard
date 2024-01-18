@@ -3,8 +3,9 @@ import LabeledInputPo from '@/cypress/e2e/po/components/labeled-input.po';
 import AsyncButtonPo from '@/cypress/e2e/po/components/async-button.po';
 import LabeledSelectPo from '@/cypress/e2e/po/components/labeled-select.po';
 import RadioGroupInputPo from '@/cypress/e2e/po/components/radio-group-input.po';
+import NameNsDescription from '@/cypress/e2e/po/components/name-ns-description.po';
 
-export default class RepositoriesCreateEditPo extends PagePo {
+export default class ChartRepositoriesCreateEditPo extends PagePo {
   private static createPath(clusterId: string, product: 'apps' | 'manager', repoName?: string ) {
     const root = `/c/${ clusterId }/${ product }/catalog.cattle.io.clusterrepo`;
 
@@ -16,15 +17,11 @@ export default class RepositoriesCreateEditPo extends PagePo {
   }
 
   constructor(clusterId = 'local', product: 'apps' | 'manager', id?: string) {
-    super(RepositoriesCreateEditPo.createPath(clusterId, product, id));
+    super(ChartRepositoriesCreateEditPo.createPath(clusterId, product, id));
   }
 
-  name(): LabeledInputPo {
-    return LabeledInputPo.byLabel(this.self(), 'Name');
-  }
-
-  description(): LabeledInputPo {
-    return LabeledInputPo.byLabel(this.self(), 'Description');
+  nameNsDescription() {
+    return new NameNsDescription(this.self());
   }
 
   gitRepoUrl(): LabeledInputPo {

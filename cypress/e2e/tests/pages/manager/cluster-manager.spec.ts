@@ -394,16 +394,6 @@ describe('Cluster Manager', { testIsolation: 'off', tags: ['@manager', '@adminUs
     });
   });
 
-  it(`can navigate to local cluster's explore product`, () => {
-    const clusterName = 'local';
-    const clusterDashboard = new ClusterDashboardPagePo(clusterName);
-
-    clusterList.goTo();
-    clusterList.list().explore(clusterName).click();
-
-    clusterDashboard.waitForPage(undefined, 'cluster-events');
-  });
-
   it('can navigate to Cluster Management Page', () => {
     HomePagePo.goTo();
     const burgerMenu = new BurgerMenuPo();
@@ -416,6 +406,16 @@ describe('Cluster Manager', { testIsolation: 'off', tags: ['@manager', '@adminUs
     const clusterList = new ClusterManagerListPagePo('_');
 
     clusterList.waitForPage();
+  });
+
+  it(`can navigate to local cluster's explore product`, () => {
+    const clusterName = 'local';
+    const clusterDashboard = new ClusterDashboardPagePo(clusterName);
+
+    clusterList.goTo();
+    clusterList.list().explore(clusterName).click();
+
+    clusterDashboard.waitForPage(undefined, 'cluster-events');
   });
 
   it('can download YAML via bulk actions', () => {
@@ -439,7 +439,7 @@ describe('Cluster Manager', { testIsolation: 'off', tags: ['@manager', '@adminUs
     });
   });
 
-  it.only('can download KubeConfig via bulk actions', () => {
+  it('can download KubeConfig via bulk actions', () => {
     // Delete downloads directory. Need a fresh start to avoid conflicting file names
     cy.deleteDownloadsFolder();
 

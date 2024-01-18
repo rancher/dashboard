@@ -7,7 +7,7 @@ describe('MachineSets', { testIsolation: 'off', tags: ['@manager', '@adminUser']
   const machineSetsPage = new MachineSetsPagePo('_');
   const runTimestamp = +new Date();
   const machineSetName = `e2e-machineset-name-${ runTimestamp }`;
-  const machineSetCloneName = `e2e-machineset-name-${ runTimestamp }-clone`;
+  const machineSetCloneName = `${ machineSetName }-clone`;
   const nsName = 'default';
   let resourceVersion = '';
   let creationTimestamp = '';

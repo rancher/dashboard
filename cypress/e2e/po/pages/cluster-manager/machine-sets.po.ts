@@ -27,7 +27,7 @@ export default class MachineSetsPagePo extends PagePo {
   }
 
   create() {
-    return this.self().find('[data-testid="masthead-create-yaml"]').click();
+    return this.list().masthead().actions().click();
   }
 
   createEditMachineSet(nsName?: string, machineSetName?: string): MachineSetsCreateEditPo {

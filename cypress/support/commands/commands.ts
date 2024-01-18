@@ -59,3 +59,12 @@ Cypress.Commands.add('iFrame', () => {
     .should('not.be.empty')
     .then((body) => cy.wrap(body));
 });
+
+/**
+ * Create resource name
+ */
+Cypress.Commands.add('createE2EResourceName', (context) => {
+  const runTimestamp = +new Date();
+
+  return cy.wrap(`e2e-test-${ runTimestamp }-${ context }`);
+});

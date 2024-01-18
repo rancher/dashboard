@@ -1,5 +1,5 @@
 import ExtensionsPagePo from '@/cypress/e2e/po/pages/extensions.po';
-import RepositoriesPagePo from '@/cypress/e2e/po/pages/cluster-manager/repositories.po';
+import RepositoriesPagePo from '@/cypress/e2e/po/pages/chart-repositories.po';
 import PromptRemove from '@/cypress/e2e/po/prompts/promptRemove.po';
 import BurgerMenuPo from '@/cypress/e2e/po/side-bars/burger-side-menu.po';
 
