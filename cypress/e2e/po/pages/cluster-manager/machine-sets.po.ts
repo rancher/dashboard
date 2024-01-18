@@ -27,7 +27,8 @@ export default class MachineSetsPagePo extends PagePo {
   }
 
   create() {
-    return this.list().masthead().actions().click();
+    return this.list().masthead().actions().contains('Create from YAML')
+      .click();
   }
 
   createEditMachineSet(nsName?: string, machineSetName?: string): MachineSetsCreateEditPo {

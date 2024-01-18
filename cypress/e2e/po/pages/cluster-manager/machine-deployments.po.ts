@@ -26,7 +26,8 @@ export default class MachineDeploymentsPagePo extends PagePo {
   }
 
   create() {
-    return this.list().masthead().actions().click();
+    return this.list().masthead().actions().contains('Create from YAML')
+      .click();
   }
 
   createEditMachineDeployment(nsName?: string, machineSetName?: string): MachineDeploymentsCreateEditPo {

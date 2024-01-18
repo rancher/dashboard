@@ -44,7 +44,8 @@ export default class ChartRepositoriesPagePo extends PagePo {
   }
 
   create() {
-    return this.list().masthead().actions().click();
+    return this.list().masthead().actions().contains('Create')
+      .click();
   }
 
   waitForGoTo(endpoint: string) {

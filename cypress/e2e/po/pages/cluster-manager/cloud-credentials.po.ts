@@ -25,7 +25,8 @@ export default class CloudCredentialsPagePo extends PagePo {
   }
 
   create() {
-    return this.list().masthead().actions().click();
+    return this.list().masthead().actions().contains('Create')
+      .click();
   }
 
   createEditCloudCreds(id?: string): CloudCredentialsCreateEditPo {
