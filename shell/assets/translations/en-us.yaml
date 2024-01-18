@@ -4754,7 +4754,7 @@ resourceTable:
     machinePool: "<span>Pool:</span> {name}"
     notInANamespace: Not Namespaced
     notInAProject: Not in a Project
-    project: "<span>Project:</span> {name}"
+    project: "<span>Project:</span> <span>{name}</span>"
     notInAWorkspace: Not in a Workspace
     workspace: "<span>Workspace:</span> {name}"
     notInANodePool: "Not in a Pool"

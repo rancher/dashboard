@@ -391,7 +391,7 @@ export default {
     />
     <ResourceTable
       ref="table"
-      class="table"
+      class="table project-namespaces-table"
       v-bind="$attrs"
       :schema="schema"
       :headers="headers"
@@ -505,6 +505,10 @@ export default {
 <style lang="scss" scoped>
 .project-namespaces {
   & ::v-deep {
+    .project-namespaces-table table {
+      table-layout: fixed;
+    }
+
     .project-name {
       line-height: 30px;
     }
@@ -513,6 +517,26 @@ export default {
       display: flex;
       flex-direction: row;
       justify-content: space-between;
+
+      .group-tab {
+        max-width: calc(100% - 230px);
+      }
+
+      .project-name {
+        display: flex;
+        flex-direction: row;
+        align-items: center;
+
+        span:first-child {
+          padding-right: 8px;
+        }
+
+        span:last-child {
+          text-overflow: ellipsis;
+          overflow: hidden;
+          white-space: nowrap;
+        }
+      }
 
       &.has-description {
         .right {
