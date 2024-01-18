@@ -31,7 +31,7 @@ describe('component: Advanced', () => {
   };
 
   describe('cluster configurations', () => {
-    it(`should supports empty machineSelectorConfig`, () => {
+    it(`should support empty machineSelectorConfig`, () => {
       const value = clone(PROV_CLUSTER);
 
       value.spec.rkeConfig.machineSelectorConfig = [];
