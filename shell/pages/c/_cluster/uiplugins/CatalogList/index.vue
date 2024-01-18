@@ -7,13 +7,12 @@ import { SERVICE, WORKLOAD_TYPES } from '@shell/config/types';
 import { UI_PLUGIN_LABELS, UI_PLUGIN_NAMESPACE } from '@shell/config/uiplugins';
 import { UI_PLUGIN_CATALOG } from '@shell/config/table-headers';
 
-import ActionMenu from '@shell/components/ActionMenu';
 import ResourceTable from '@shell/components/ResourceTable';
 
 export default {
   name: 'CatalogList',
 
-  components: { ActionMenu, ResourceTable },
+  components: { ResourceTable },
 
   mixins: [ResourceManager],
 
@@ -29,10 +28,7 @@ export default {
 
     return {
       actions,
-      catalogHeaders:    UI_PLUGIN_CATALOG,
-      menuTargetElement: null,
-      menuTargetEvent:   null,
-      menuOpen:          false,
+      catalogHeaders: UI_PLUGIN_CATALOG,
     };
   },
 
@@ -49,6 +45,7 @@ export default {
 
     catalogRows() {
       const rows = [];
+      const actions = this.actions;
 
       if ( !isEmpty(this.namespacedDeployments) ) {
         this.namespacedDeployments.forEach((deploy) => {
@@ -57,11 +54,13 @@ export default {
 
           if ( deployName ) {
             const out = {
-              name:    deployName,
-              state:   deploy.metadata?.state?.name,
-              image:   deploy.spec?.template?.spec?.containers[0]?.image,
-              service: null,
-              repo:    null
+              name:                       deployName,
+              state:                      deploy.metadata?.state?.name,
+              image:                      deploy.spec?.template?.spec?.containers[0]?.image,
+              service:                    null,
+              repo:                       null,
+              availableActions:           actions,
+              showCatalogUninstallDialog: () => this.$emit('showCatalogUninstallDialog', out)
             };
             const keys = ['service', 'repo'];
 
@@ -77,20 +76,6 @@ export default {
       return rows;
     }
   },
-
-  methods: {
-    setMenu(event) {
-      this.menuOpen = !!event;
-
-      if (event) {
-        this.menuTargetElement = this.$refs.catalogActions;
-        this.menuTargetEvent = event;
-      } else {
-        this.menuTargetElement = undefined;
-        this.menuTargetEvent = undefined;
-      }
-    }
-  }
 };
 </script>
 
@@ -117,27 +102,6 @@ export default {
               {{ t('plugins.manageCatalog.imageLoad.load') }}
             </button>
           </div>
-        </template>
-        <template #row-actions="{row}">
-          <button
-            ref="catalogActions"
-            aria-haspopup="true"
-            type="button"
-            class="btn btn-sm role-multi-action actions"
-            data-testid="extensions-page-catalog-row-menu"
-            @click="setMenu"
-          >
-            <i class="icon icon-actions" />
-          </button>
-          <ActionMenu
-            :custom-actions="actions"
-            :open="menuOpen"
-            :use-custom-target-element="true"
-            :custom-target-element="menuTargetElement"
-            :custom-target-event="menuTargetEvent"
-            @close="setMenu(false)"
-            @showCatalogUninstallDialog="e => $emit('showCatalogUninstallDialog', row, e.event)"
-          />
         </template>
       </ResourceTable>
     </div>
