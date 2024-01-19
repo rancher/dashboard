@@ -5,8 +5,12 @@ import ClusterManagerListPagePo from '@/cypress/e2e/po/pages/cluster-manager/clu
 import ClusterManagerEditGenericPagePo from '@/cypress/e2e/po/edit/provisioning.cattle.io.cluster/edit/cluster-edit-generic.po';
 
 describe('Cloud Credential', () => {
-  beforeEach(() => {
+  const clusterList = new ClusterManagerListPagePo('local');
+
+  before(() => {
     cy.login();
+
+    clusterList.goTo();
   });
 
   it('Editing a cluster cloud credential should work with duplicate named cloud credentials', { tags: ['@manager', '@adminUser'] }, () => {
@@ -73,9 +77,7 @@ describe('Cloud Credential', () => {
 
         // code to edit cluster and final checks needs to be after all "then's" otherwise the cloud cred id's aren't stored yet on it's variable...
         if (i === cloudCredsToCreate.length - 1) {
-          const clusterList = new ClusterManagerListPagePo('local');
-
-          clusterList.goTo();
+          clusterList.navTo();
           clusterList.checkIsCurrentPage();
           clusterList.editCluster(clusterName);
 

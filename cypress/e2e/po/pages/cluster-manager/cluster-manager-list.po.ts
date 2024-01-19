@@ -18,7 +18,7 @@ export default class ClusterManagerListPagePo extends PagePo {
     super(ClusterManagerListPagePo.createPath(clusterId));
   }
 
-  static navTo() {
+  navTo() {
     BurgerMenuPo.toggle();
     BurgerMenuPo.burgerMenuNavToMenubyLabel('Cluster Management');
   }
