@@ -25,7 +25,9 @@ export default class LabeledSelectPo extends ComponentPo {
    * @returns
    */
   checkOptionSelected(label: string): Cypress.Chainable {
-    return this.self().should('contain.text', label);
+    return this.self().find('.vs__selected-options > span.vs__selected').should((elm) => {
+      expect(elm.text().trim()).to.equal(label);
+    });
   }
 
   /**

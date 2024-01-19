@@ -1857,7 +1857,7 @@ export default {
     /**
      * Handle k8s changes side effects, like PSA resets
      */
-    handleKubernetesChange(value) {
+    handleKubernetesChange(value, old) {
       if (value) {
         this.togglePsaDefault();
 
@@ -1896,22 +1896,17 @@ export default {
     handleEnabledSystemServicesChanged(val) {
       set(this.serverConfig, 'disable', val);
     },
+
     handleCiliumIpv6Changed(neu) {
+      if (neu === undefined) {
+        return;
+      }
+
       const name = this.chartVersionKey('rke2-cilium');
-      const values = this.userChartValues[name];
 
       set(this, 'userChartValues', {
         ...this.userChartValues,
-        [name]: {
-          ...values,
-          cilium: {
-            ...values?.cilium,
-            ipv6: {
-              ...values?.cilium?.ipv6,
-              enabled: neu
-            }
-          }
-        }
+        [name]: { ...neu }
       });
     },
 
