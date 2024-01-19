@@ -1,4 +1,4 @@
-/* eslint-disable no-undef */
+// /* eslint-disable no-undef */
 import { config } from '@vue/test-utils';
 import i18n from '@shell/plugins/i18n';
 import VTooltip from 'v-tooltip';
@@ -6,20 +6,28 @@ import vSelect from 'vue-select';
 import cleanTooltipDirective from '@shell/directives/clean-tooltip';
 import cleanHtmlDirective from '@shell/directives/clean-html';
 import '@shell/plugins/replaceall';
-
-import Vue from 'vue';
-
 import { TextEncoder, TextDecoder } from 'util';
+
+const vueApp = createApp({});
+
 global.TextEncoder = TextEncoder;
 global.TextDecoder = TextDecoder;
 
-Vue.config.productionTip = false;
-Vue.use(i18n);
-Vue.use(VTooltip);
-Vue.component('v-select', vSelect);
-Vue.directive('clean-html', cleanHtmlDirective);
-Vue.directive('clean-tooltip', cleanTooltipDirective);
+// vueApp.config.productionTip = false;
+vueApp.use(i18n, { store: { dispatch() {} } });
+vueApp.use(VTooltip);
+vueApp.use(VCleanTooltip);
+vueApp.component('v-select', vSelect);
 
+config.global.components['v-select'] = vSelect;
+config.global.plugins = [VTooltip];
+config.global.mocks['t'] = key => `%${key}%`
+config.global.mocks['$store'] = {
+  getters: {},
+  dispatch: jest.fn(),
+  commit: jest.fn(),
+}
+  
 /**
  * Global configuration for Jest tests
  */
@@ -45,10 +53,13 @@ beforeEach(() => {
   jest.restoreAllMocks(); // Use this function inside your test if you need to reset mocks and restore existing functionality
 
   // Mock the $plugin object
-  config.mocks['$plugin'] = { getDynamic: () => undefined };
+  // config.mocks['$plugin'] = { getDynamic: () => undefined };
 
   config.mocks['$store'] = { getters: { 'i18n/t': jest.fn() } };
-
+  config.global.directives['t'] = t;
+  config.global.directives['clean-tooltip'] = cleanTooltipDirective ;
+  config.global.directives['clean-html'] = cleanHtmlDirective;
+  
   // Overrides some components
   // config.stubs['my-component'] = { template: "<div></div> "};
 });
