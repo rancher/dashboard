@@ -1669,6 +1669,7 @@ cluster:
     haveArgInfo: Configuration information is not available for the selected Kubernetes version.  The options available in this screen will be limited, you may want to use the YAML editor.
     deprecatedPsp: Pod Security Policies are deprecated as of Kubernetes v1.21, and have been removed in Kubernetes v1.25.
     removedPsp: Pod Security Policies have been removed in Kubernetes v1.25, use Pod Security Admission instead.
+    cloudProviderAddConfig: 'On Kubernetes 1.27 or greater, the Amazon Cloud Provider requires additional configuration. See <a href="https://ranchermanager.docs.rancher.com/how-to-guides/new-user-guides/kubernetes-clusters-in-rancher-setup/set-up-cloud-providers/amazon" target="_blank" rel="noopener noreferrer nofollow">the documentation</a> for more information.'
   rkeTemplateUpgrade: Template revision {name} available for upgrade
 
   availabilityWarnings:
@@ -1846,6 +1847,7 @@ cluster:
       header: Cloud Provider Config
       defaultValue:
         label: Default - RKE2 Embedded
+      unsupported: The current Cloud Provider is not supported by this version of Kubernetes. The Cloud Provider has been changed to External. Please use the Cloud Provider Config to supply an out-of-tree configuration as needed.
     security:
       header: Security
     cis:
