@@ -1,9 +1,9 @@
 <script lang="ts">
-import Vue from 'vue';
+import { defineComponent } from 'vue';
 import { nlToBr } from '@shell/utils/string';
 import { stringify } from '@shell/utils/error';
 
-export default Vue.extend({
+export default defineComponent({
   props: {
     /**
      * A color class that represents the color of the banner.

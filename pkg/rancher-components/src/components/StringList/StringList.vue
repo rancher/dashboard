@@ -1,5 +1,5 @@
 <script lang="ts">
-import Vue, { PropType } from 'vue';
+import Vue, { PropType, defineComponent } from 'vue';
 
 import LabeledInput from '@components/Form/LabeledInput/LabeledInput.vue';
 import { findStringIndex, hasDuplicatedStrings } from '@shell/utils/array';
@@ -29,7 +29,7 @@ const CLASS = {
 /**
  * Manage a list of strings
  */
-export default Vue.extend({
+export default defineComponent({
 
   name:       'StringList',
   components: { LabeledInput },
@@ -92,9 +92,9 @@ export default Vue.extend({
   },
   data() {
     return {
-      value:        null as string | null,
+      value:        undefined as string | undefined,
       selected:     null as string | null,
-      editedItem:   null as string | null,
+      editedItem:   undefined as string | undefined,
       isCreateItem: false,
       errors:       { duplicate: false } as Record<Error, boolean>
     };
@@ -281,7 +281,7 @@ export default Vue.extend({
         this.isCreateItem = true;
         this.setFocus(INPUT.create);
       } else {
-        this.value = null;
+        this.value = undefined;
         this.toggleError('duplicate', false);
         this.onSelectLeave();
 
@@ -303,11 +303,11 @@ export default Vue.extend({
         this.editedItem = item || '';
         this.setFocus(INPUT.edit);
       } else {
-        this.value = null;
+        this.value = undefined;
         this.toggleError('duplicate', false);
         this.onSelectLeave();
 
-        this.editedItem = null;
+        this.editedItem = undefined;
       }
     },
 
@@ -502,7 +502,7 @@ export default Vue.extend({
         <button
           data-testid="button-add"
           class="btn btn-sm role-tertiary add-button"
-          :disabled="isCreateItem || editedItem"
+          :disabled="!!isCreateItem || !!editedItem"
           @click.prevent="onClickPlusButton"
         >
           <span class="icon icon-plus icon-sm" />
