@@ -1208,16 +1208,6 @@ export default {
         this.rke2Versions = res.rke2Versions.data || [];
         this.k3sVersions = res.k3sVersions.data || [];
 
-        // For testing ---------------------------------------------------------------------------------------------
-        // Fake a 1.27 version by copying the latest version (1.26) and remove the aws cloud provider from it
-        const add = JSON.parse(JSON.stringify(this.rke2Versions[this.rke2Versions.length - 1]));
-
-        add.id = 'v1.27.0+rke2r1';
-        add.version = add.id;
-        add.agentArgs['cloud-provider-name'].options = add.agentArgs['cloud-provider-name'].options.filter((a) => a !== 'aws'); // Remove the aws cloud provider
-        this.rke2Versions.push(add);
-        /// ^^^ End of code that should be removed ---------------------------------------------------------------------------------------
-
         if (!defaultRke2) {
           const rke2Channels = res.rke2Channels.data || [];
 
