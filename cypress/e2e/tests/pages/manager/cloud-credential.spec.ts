@@ -82,7 +82,7 @@ describe('Cloud Credential', () => {
           const editClusterPage = new ClusterManagerEditGenericPagePo(clusterName);
 
           editClusterPage.selectOptionForCloudCredentialWithLabel(`${ credsName } (${ createdCloudCredsIds[1] })`);
-          editClusterPage.saveEditCluster();
+          editClusterPage.save();
 
           cy.wait('@dummyProvClusterSave').then(({ request }) => {
             expect(request.body.spec.cloudCredentialSecretName).to.equal(createdCloudCredsIds[1]);

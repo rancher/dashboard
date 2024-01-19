@@ -1220,7 +1220,7 @@ cluster:
         placeholder: Your Client Secret
     name:
       label: Credential Name
-      placeholder: Name for this credential
+      placeholder: Name for this credential (optional)
     s3:
       accessKey:
         label: Access Key

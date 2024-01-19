@@ -102,16 +102,14 @@ export default {
     },
 
     options() {
-      const out = [];
-
-      this.filteredCredentials.forEach((cred) => {
-        const duplicatesArr = this.filteredCredentials.filter((filtered) => filtered.nameDisplay === cred.nameDisplay);
+      const out = this.filteredCredentials.map((obj) => {
+        const duplicateFound = this.filteredCredentials.find((filtered) => filtered.nameDisplay === obj.nameDisplay);
 
         // if credential name is duplicated we add the id to the label
-        out.push({
-          label: duplicatesArr.length > 1 ? `${ cred.nameDisplay } (${ cred.id })` : cred.nameDisplay,
-          value: cred.id,
-        });
+        return {
+          label: duplicateFound ? `${ obj.nameDisplay } (${ obj.id })` : obj.nameDisplay,
+          value: obj.id,
+        };
       });
 
       if ( this.originalId && !out.find((x) => x.value === this.originalId) ) {
