@@ -3,6 +3,7 @@ import PromptRemove from '@/cypress/e2e/po/prompts/promptRemove.po';
 import ResourceDetailPo from '@/cypress/e2e/po/edit/resource-detail.po';
 import * as path from 'path';
 import * as jsyaml from 'js-yaml';
+import { createPayloadData, updatePayloadData } from '@/cypress/e2e/blueprints/cluster_management/pod-security-admissions-payload';
 
 describe('Pod Security Admissions', { testIsolation: 'off', tags: ['@manager', '@adminUser'] }, () => {
   const podSecurityAdmissionsPage = new PodSecurityAdmissionsPagePo('_');
@@ -27,7 +28,25 @@ describe('Pod Security Admissions', { testIsolation: 'off', tags: ['@manager', '
     podSecurityAdmissionsPage.createPodSecurityAdmissionForm().waitForPage();
     podSecurityAdmissionsPage.createPodSecurityAdmissionForm().nameNsDescription().name().set(policyAdmissionName);
     podSecurityAdmissionsPage.createPodSecurityAdmissionForm().nameNsDescription().description().set(policyAdmissionDescription);
-    resourceDetails.cruResource().saveAndWaitForRequests('POST', '/v1/management.cattle.io.podsecurityadmissionconfigurationtemplates');
+    podSecurityAdmissionsPage.createPodSecurityAdmissionForm().psaControlLevel(0, 1);
+    podSecurityAdmissionsPage.createPodSecurityAdmissionForm().psaControlLevel(1, 2);
+    podSecurityAdmissionsPage.createPodSecurityAdmissionForm().psaControlLevel(2, 3);
+    podSecurityAdmissionsPage.createPodSecurityAdmissionForm().psaControlVersion(0, 'latest');
+    podSecurityAdmissionsPage.createPodSecurityAdmissionForm().psaControlVersion(1, 'latest');
+    podSecurityAdmissionsPage.createPodSecurityAdmissionForm().psaControlVersion(2, 'latest');
+    podSecurityAdmissionsPage.createPodSecurityAdmissionForm().setExemptionsCheckbox(0);
+    podSecurityAdmissionsPage.createPodSecurityAdmissionForm().setExemptionsInput(0, 'admin,user');
+    podSecurityAdmissionsPage.createPodSecurityAdmissionForm().setExemptionsCheckbox(1);
+    podSecurityAdmissionsPage.createPodSecurityAdmissionForm().setExemptionsInput(1, 'myclass1,myclass2');
+    podSecurityAdmissionsPage.createPodSecurityAdmissionForm().setExemptionsCheckbox(2);
+    podSecurityAdmissionsPage.createPodSecurityAdmissionForm().setExemptionsInput(2, 'ingress-nginx,kube-system');
+    resourceDetails.cruResource().saveAndWaitForRequests('POST', '/v1/management.cattle.io.podsecurityadmissionconfigurationtemplates').then(({ request, response }) => {
+      expect(response?.statusCode).to.eq(201);
+      expect(request?.body.configuration.defaults).to.deep.include(createPayloadData.configuration.defaults);
+      expect(response?.body.configuration.defaults).to.deep.include(createPayloadData.configuration.defaults);
+      expect(request?.body.configuration.exemptions).to.deep.include(createPayloadData.configuration.exemptions);
+      expect(response?.body.configuration.exemptions).to.deep.include(createPayloadData.configuration.exemptions);
+    });
     podSecurityAdmissionsPage.waitForPage();
 
     // check list details
@@ -39,7 +58,22 @@ describe('Pod Security Admissions', { testIsolation: 'off', tags: ['@manager', '
     podSecurityAdmissionsPage.list().actionMenu(policyAdmissionName).getMenuItem('Edit Config').click();
     podSecurityAdmissionsPage.createPodSecurityAdmissionForm(policyAdmissionName).waitForPage('mode=edit');
     podSecurityAdmissionsPage.createPodSecurityAdmissionForm().nameNsDescription().description().set(`${ policyAdmissionDescription }-edit`);
-    resourceDetails.cruResource().saveAndWaitForRequests('PUT', '/v1/management.cattle.io.podsecurityadmissionconfigurationtemplates/**');
+    podSecurityAdmissionsPage.createPodSecurityAdmissionForm().psaControlLevel(0, 1);
+    podSecurityAdmissionsPage.createPodSecurityAdmissionForm().psaControlLevel(1, 2);
+    podSecurityAdmissionsPage.createPodSecurityAdmissionForm().psaControlLevel(2, 3);
+    podSecurityAdmissionsPage.createPodSecurityAdmissionForm().psaControlVersion(0, 'v1.25');
+    podSecurityAdmissionsPage.createPodSecurityAdmissionForm().psaControlVersion(1, 'v1.25');
+    podSecurityAdmissionsPage.createPodSecurityAdmissionForm().psaControlVersion(2, 'v1.25');
+    podSecurityAdmissionsPage.createPodSecurityAdmissionForm().setExemptionsInput(0, 'admin1,user1');
+    podSecurityAdmissionsPage.createPodSecurityAdmissionForm().setExemptionsInput(1, 'myclass3,myclass4');
+    podSecurityAdmissionsPage.createPodSecurityAdmissionForm().setExemptionsInput(2, 'cattle-system,cattle-epinio-system');
+    resourceDetails.cruResource().saveAndWaitForRequests('PUT', '/v1/management.cattle.io.podsecurityadmissionconfigurationtemplates/**').then(({ request, response }) => {
+      expect(response?.statusCode).to.eq(200);
+      expect(request?.body.configuration.defaults).to.deep.include(updatePayloadData.configuration.defaults);
+      expect(response?.body.configuration.defaults).to.deep.include(updatePayloadData.configuration.defaults);
+      expect(request?.body.configuration.exemptions).to.deep.include(updatePayloadData.configuration.exemptions);
+      expect(response?.body.configuration.exemptions).to.deep.include(updatePayloadData.configuration.exemptions);
+    });
     podSecurityAdmissionsPage.waitForPage();
 
     // check list details
