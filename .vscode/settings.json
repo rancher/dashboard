@@ -50,6 +50,7 @@
     "storageclass",
     "testid",
     "tolerations",
+    "upgrader",
     "userpreferences",
     "virtualmachine",
     "vuex",

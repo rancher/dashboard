@@ -11,7 +11,7 @@ import { isEmpty } from '@shell/utils/object';
 import { HARVESTER_NAME as HARVESTER } from '@shell/config/features';
 import { isHarvesterCluster } from '@shell/utils/cluster';
 import HybridModel from '@shell/plugins/steve/hybrid-class';
-import { LINUX, WINDOWS } from '@shell/store/catalog';
+import { LINUX, WINDOWS } from '@shell/config/os';
 import { KONTAINER_TO_DRIVER } from './management.cattle.io.kontainerdriver';
 import { PINNED_CLUSTERS } from '@shell/store/prefs';
 import { copyTextToClipboard } from '@shell/utils/clipboard';

@@ -36,7 +36,7 @@ import { ignoreVariables } from './install.helpers';
 import { findBy, insertAt } from '@shell/utils/array';
 import Vue from 'vue';
 import { saferDump } from '@shell/utils/create-yaml';
-import { LINUX, WINDOWS } from '@shell/store/catalog';
+import { LINUX, WINDOWS } from '@shell/config/os';
 
 const VALUES_STATE = {
   FORM: 'FORM',
@@ -1378,6 +1378,8 @@ export default {
           </label>
         </div>
       </template>
+
+      <!-- This Wizard step (template) is always present in the wizard for any chart -->
       <template #basics>
         <div class="step__basic">
           <Banner
@@ -1420,10 +1422,12 @@ export default {
             class="row mb-20"
           >
             <div class="col span-4">
+              <!-- Chart versions, automatically selected from query version, here renamed as query versionName -->
               <!-- We have a chart for the app, let the user select a new version -->
               <LabeledSelect
                 v-if="chart"
                 :label="t('catalog.install.version')"
+                data-testid="chart-install-existing-version"
                 :value="query.versionName"
                 :options="filteredVersions"
                 :selectable="version => !version.disabled"
@@ -1434,6 +1438,7 @@ export default {
                 v-else
                 :label="t('catalog.install.chart')"
                 :value="chart"
+                data-testid="chart-install-new-version"
                 :options="charts"
                 :selectable="option => !option.disabled"
                 :get-option-label="opt => getOptionLabel(opt)"
