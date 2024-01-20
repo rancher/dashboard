@@ -52,19 +52,16 @@ describe('Home Links', { testIsolation: 'off' }, () => {
     homeLinksPage.displayTextInput().set(customLinkName);
     homeLinksPage.urlInput().set(customLinkUrl);
 
-    cy.intercept('PUT', '/v1/management.cattle.io.settings/ui-custom-links').as('linksUpdated');
-    homeLinksPage.applyButton().apply();
-    homeLinksPage.applyButton().apply();
-    cy.wait(['@linksUpdated', '@linksUpdated']);
+    homeLinksPage.applyAndWait('/v1/management.cattle.io.settings/ui-custom-links');
+    homeLinksPage.applyAndWait('/v1/management.cattle.io.settings/ui-custom-links');
     HomePagePo.goTo();
     homePage.supportLinks().contains(customLinkName).should('have.attr', 'href', `${ customLinkUrl }`);
 
     // Remove custom link
     HomeLinksPagePo.navTo();
     homeLinksPage.removeLinkButton().click();
-    homeLinksPage.applyButton().apply();
-    homeLinksPage.applyButton().apply();
-    cy.wait(['@linksUpdated', '@linksUpdated']);
+    homeLinksPage.applyAndWait('/v1/management.cattle.io.settings/ui-custom-links');
+    homeLinksPage.applyAndWait('/v1/management.cattle.io.settings/ui-custom-links');
     homeLinksPage.displayTextInput().checkNotExists();
     homeLinksPage.removeLinkButton().should('not.exist');
 

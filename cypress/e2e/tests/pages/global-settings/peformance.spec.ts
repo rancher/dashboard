@@ -27,7 +27,7 @@ describe('Performance', { testIsolation: 'off', tags: ['@globalSettings', '@admi
       performancePage.inactivityCheckbox().set();
       performancePage.inactivityCheckbox().isChecked();
       performancePage.inactivityInput().clear().type('0.10');
-      performancePage.applyAndWait();
+      performancePage.applyAndWait().its('response.statusCode').should('eq', 200);
 
       // We need to reload the page to get the new settings to take effect.
       cy.reload();

@@ -55,6 +55,6 @@ export class HomeLinksPagePo extends RootClusterPage {
     cy.intercept('PUT', endpoint).as(endpoint);
     this.applyButton().apply();
 
-    return cy.wait(`@${ endpoint }`);
+    return cy.wait(`@${ endpoint }`).its('response.statusCode').should('eq', 200);
   }
 }
