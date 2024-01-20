@@ -231,7 +231,6 @@ describe('Performance', { testIsolation: 'off', tags: ['@globalSettings', '@admi
       const response = resp.body.metadata;
 
       // update original data before sending request
-      performanceSettingsOrginal[0].metadata.generation = response.generation;
       performanceSettingsOrginal[0].metadata.resourceVersion = response.resourceVersion;
       cy.setRancherResource('v1', 'management.cattle.io.settings', 'ui-performance', performanceSettingsOrginal[0]);
     });
