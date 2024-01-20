@@ -34,7 +34,7 @@ const settings = {
 };
 
 describe('Banners', { testIsolation: 'off' }, () => {
-  beforeEach(() => {
+  before(() => {
     cy.login();
     HomePagePo.goTo();
   });

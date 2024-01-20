@@ -58,7 +58,7 @@ describe('Branding', { testIsolation: 'off' }, () => {
   it('Private Label', { tags: ['@globalSettings', '@adminUser'] }, () => {
     const brandingPage = new BrandingPagePo();
 
-    brandingPage.goTo();
+    BrandingPagePo.navTo();
 
     // Set
     cy.title().should('not.eq', settings.privateLabel.new);
@@ -82,7 +82,7 @@ describe('Branding', { testIsolation: 'off' }, () => {
     cy.reload();
     cy.title().should('eq', settings.privateLabel.new);
 
-    brandingPage.goTo();
+    BrandingPagePo.navTo();
 
     // Reset
     brandingPage.privateLabel().set(settings.privateLabel.original);
@@ -114,7 +114,7 @@ describe('Branding', { testIsolation: 'off' }, () => {
     brandingPage.logoPreview('light').should('be.visible');
 
     // Set dashboard theme to Dark and check top-level navigation header for updated logo in dark mode
-    prefPage.goTo();
+    PreferencesPagePo.navTo();
     prefPage.themeButtons().checkVisible();
     cy.intercept('PUT', 'v1/userpreferences/*').as('prefUpdateDark');
     prefPage.themeButtons().set('Dark');
@@ -129,10 +129,10 @@ describe('Branding', { testIsolation: 'off' }, () => {
 
       BurgerMenuPo.toggle();
       burgerMenu.brandLogoImage().should('be.visible').and('have.attr', 'src', `data:image/svg+xml;base64,${ expectedBase64 }`);
+      BurgerMenuPo.toggle();
     });
-
     // Set dashboard theme to Light and check top-level navigation header for updated logo in light mode
-    prefPage.goTo();
+    PreferencesPagePo.navTo();
     prefPage.themeButtons().checkVisible();
     cy.intercept('PUT', 'v1/userpreferences/*').as('prefUpdateLight');
     prefPage.themeButtons().set('Light');
@@ -150,11 +150,11 @@ describe('Branding', { testIsolation: 'off' }, () => {
     });
 
     // Reset
-    brandingPage.goTo();
+    BrandingPagePo.navTo();
     brandingPage.customLogoCheckbox().set();
     brandingPage.applyAndWait('/v1/management.cattle.io.settings/ui-logo-light');
 
-    HomePagePo.goTo();
+    HomePagePo.navTo();
     burgerMenu.headerBrandLogoImage().should('be.visible').then((el) => {
       expect(el).to.have.attr('src').includes('/img/rancher-logo.66cf5910.svg');
     });
@@ -231,7 +231,7 @@ describe('Branding', { testIsolation: 'off' }, () => {
   it('Link Color', { tags: ['@globalSettings', '@adminUser'] }, () => {
     const brandingPage = new BrandingPagePo();
 
-    brandingPage.goTo();
+    BrandingPagePo.navTo();
 
     // Set
     brandingPage.linkColorCheckbox().set();
