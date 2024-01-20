@@ -18,10 +18,7 @@ describe('Settings', { testIsolation: 'off' }, () => {
     HomePagePo.goTo();
   });
 
-  it.skip('can update server-url', { tags: ['@globalSettings', '@adminUser'] }, () => {
-    // Note: this test fails sometimes due to https://github.com/rancher/dashboard/issues/9690
-    // skipping this test until issue is resolved
-
+  it('can update server-url', { tags: ['@globalSettings', '@adminUser'] }, () => {
     // Update setting
     SettingsPagePo.navTo();
 
