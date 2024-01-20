@@ -11,7 +11,7 @@ describe('Performance', { testIsolation: 'off', tags: ['@globalSettings', '@admi
     HomePagePo.goTo();
 
     cy.getRancherResource('v1', 'management.cattle.io.settings', 'ui-performance', null).then((resp: Cypress.Response<any>) => {
-      const body = JSON.stringify(resp.body);
+      const body = resp.body;
 
       performanceSettingsOrginal.push(body);
     });
@@ -226,6 +226,14 @@ describe('Performance', { testIsolation: 'off', tags: ['@globalSettings', '@admi
   });
 
   after('set default performance settings', () => {
-    cy.setRancherResource('v1', 'management.cattle.io.settings', 'ui-performance', performanceSettingsOrginal[0]);
+    // get most updated version of settings info
+    cy.getRancherResource('v1', 'management.cattle.io.settings', 'ui-performance', null).then((resp: Cypress.Response<any>) => {
+      const response = resp.body.metadata;
+
+      // update original data before sending request
+      performanceSettingsOrginal[0].metadata.generation = response.generation;
+      performanceSettingsOrginal[0].metadata.resourceVersion = response.resourceVersion;
+      cy.setRancherResource('v1', 'management.cattle.io.settings', 'ui-performance', performanceSettingsOrginal[0]);
+    });
   });
 });
