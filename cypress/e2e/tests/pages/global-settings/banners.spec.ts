@@ -33,14 +33,13 @@ const settings = {
 
 };
 
-describe('Banners', () => {
+describe('Banners', { testIsolation: 'off' }, () => {
   beforeEach(() => {
     cy.login();
+    HomePagePo.goTo();
   });
 
   it('can navigate to Banners Page', { tags: ['@globalSettings', '@adminUser', '@standardUser'] }, () => {
-    HomePagePo.goTo();
-
     const productMenu = new ProductNavPo();
 
     BurgerMenuPo.toggle();
@@ -63,7 +62,7 @@ describe('Banners', () => {
   });
 
   it('can show and hide Header Banner', { tags: ['@globalSettings', '@adminUser'] }, () => {
-    bannersPage.goTo();
+    BannersPagePo.navTo();
 
     // Show Banner
     bannersPage.headerBannerCheckbox().set();
@@ -111,7 +110,7 @@ describe('Banners', () => {
   });
 
   it('can show and hide Footer Banner', { tags: ['@globalSettings', '@adminUser'] }, () => {
-    bannersPage.goTo();
+    BannersPagePo.navTo();
 
     // Show Banner
     bannersPage.footerBannerCheckbox().set();
@@ -160,7 +159,7 @@ describe('Banners', () => {
 
   it('can show and hide Login Screen Banner', { tags: ['@globalSettings', '@adminUser'] }, () => {
     cy.login(undefined, undefined, false);
-    bannersPage.goTo();
+    BannersPagePo.navTo();
 
     // Show Banner
     bannersPage.loginScreenBannerCheckbox().checkVisible();
@@ -189,7 +188,7 @@ describe('Banners', () => {
 
     // Check after login
     cy.login(undefined, undefined, false);
-    bannersPage.goTo();
+    BannersPagePo.navTo();
     bannersPage.loginScreenBannerCheckbox().isChecked();
     bannersPage.textAlignmentRadioGroup('bannerConsent').isChecked(2);
     bannersPage.textColorPicker(4).previewColor().should('eq', settings.bannerTextColor.newRGB);
@@ -212,7 +211,7 @@ describe('Banners', () => {
   describe('Login Failed Banner', { tags: ['@globalSettings', '@adminUser'] }, () => {
     it('Show Banner', () => {
       cy.login(undefined, undefined, false);
-      bannersPage.goTo();
+      BannersPagePo.navTo();
 
       // Show Banner
       bannersPage.loginErrorCheckbox().checkVisible();
@@ -231,7 +230,7 @@ describe('Banners', () => {
 
     it('Hide banner', () => {
       cy.login(undefined, undefined, false);
-      bannersPage.goTo();
+      BannersPagePo.navTo();
 
       // Hide banner
       bannersPage.loginErrorCheckbox().checkVisible();
@@ -248,7 +247,7 @@ describe('Banners', () => {
 
   it('standard user has only read access to Banner page', { tags: ['@globalSettings', '@standardUser'] }, () => {
     // verify action buttons/checkboxes etc. are disabled/hidden for standard user
-    bannersPage.goTo();
+    BannersPagePo.navTo();
     bannersPage.headerBannerCheckbox().isDisabled();
     bannersPage.footerBannerCheckbox().isDisabled();
     bannersPage.loginScreenBannerCheckbox().isDisabled();

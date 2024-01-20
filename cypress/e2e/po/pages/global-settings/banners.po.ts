@@ -5,6 +5,8 @@ import LabeledSelectPo from '@/cypress/e2e/po/components/labeled-select.po';
 import ColorInputPo from '@/cypress/e2e/po/components/color-input.po';
 import RootClusterPage from '@/cypress/e2e/po/pages/root-cluster-page';
 import RadioGroupInputPo from '@/cypress/e2e/po/components/radio-group-input.po';
+import ProductNavPo from '@/cypress/e2e/po/side-bars/product-side-nav.po';
+import BurgerMenuPo from '@/cypress/e2e/po/side-bars/burger-side-menu.po';
 
 export class BannersPagePo extends RootClusterPage {
   static url = '/c/_/settings/banners';
@@ -14,6 +16,13 @@ export class BannersPagePo extends RootClusterPage {
 
   constructor() {
     super(BannersPagePo.url);
+  }
+
+  static navTo() {
+    const sideNav = new ProductNavPo();
+
+    BurgerMenuPo.burgerMenuNavToMenubyLabel('Global Settings');
+    sideNav.navToSideMenuEntryByLabel('Banners');
   }
 
   // input
