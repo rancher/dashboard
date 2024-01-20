@@ -4,24 +4,21 @@ import CloudCredentialsPagePo from '@/cypress/e2e/po/pages/cluster-manager/cloud
 // will only run this in jenkins pipeline where cloud credentials are stored
 describe('Cloud Credentials', { testIsolation: 'off', tags: ['@manager', '@jenkins', '@adminUser', '@standardUser'] }, () => {
   const cloudCredentialsPage = new CloudCredentialsPagePo('_');
-  const runTimestamp = +new Date();
-
-  const cloudCredName = `e2e-cloud-cred-${ runTimestamp }`;
-  const cloudCredDescription = `${ cloudCredName }-description`;
   let cloudcredentialId = '';
 
   before(() => {
     cy.login();
+    cy.createE2EResourceName('cloudCredential').as('cloudCredentialName');
   });
 
-  it('can see error when authentication fails', () => {
+  it('can see error when authentication fails', function() {
     CloudCredentialsPagePo.navTo();
     cloudCredentialsPage.waitForPage();
     cloudCredentialsPage.create();
     cloudCredentialsPage.createEditCloudCreds().waitForPage();
     cloudCredentialsPage.createEditCloudCreds().cloudServiceOptions().selectSubTypeByIndex(0).click();
-    cloudCredentialsPage.createEditCloudCreds().nameNsDescription().name().set(cloudCredName);
-    cloudCredentialsPage.createEditCloudCreds().nameNsDescription().description().set(cloudCredDescription);
+    cloudCredentialsPage.createEditCloudCreds().nameNsDescription().name().set(this.cloudCredentialName);
+    cloudCredentialsPage.createEditCloudCreds().nameNsDescription().description().set(`${ this.cloudCredentialName }-description`);
     cloudCredentialsPage.createEditCloudCreds().accessKey().set(Cypress.env('awsAccessKey'));
     cloudCredentialsPage.createEditCloudCreds().secretKey().set(`${ Cypress.env('awsSecretKey') }abc`, true);
     cloudCredentialsPage.createEditCloudCreds().defaultRegion().checkOptionSelected('us-west-2');
@@ -30,14 +27,14 @@ describe('Cloud Credentials', { testIsolation: 'off', tags: ['@manager', '@jenki
     cy.contains('Authentication test failed, please check your credentials').should('be.visible');
   });
 
-  it('can create aws cloud credentials', () => {
+  it('can create aws cloud credentials', function() {
     CloudCredentialsPagePo.navTo();
     cloudCredentialsPage.create();
     cloudCredentialsPage.createEditCloudCreds().waitForPage();
     cloudCredentialsPage.createEditCloudCreds().cloudServiceOptions().selectSubTypeByIndex(0).click();
     cloudCredentialsPage.createEditCloudCreds().waitForPage('type=aws');
-    cloudCredentialsPage.createEditCloudCreds().nameNsDescription().name().set(cloudCredName);
-    cloudCredentialsPage.createEditCloudCreds().nameNsDescription().description().set(cloudCredDescription);
+    cloudCredentialsPage.createEditCloudCreds().nameNsDescription().name().set(this.cloudCredentialName);
+    cloudCredentialsPage.createEditCloudCreds().nameNsDescription().description().set(`${ this.cloudCredentialName }-description`);
     cloudCredentialsPage.createEditCloudCreds().accessKey().set(Cypress.env('awsAccessKey'));
     cloudCredentialsPage.createEditCloudCreds().secretKey().set(Cypress.env('awsSecretKey'), true);
     cloudCredentialsPage.createEditCloudCreds().defaultRegion().checkOptionSelected('us-west-2');
@@ -48,27 +45,27 @@ describe('Cloud Credentials', { testIsolation: 'off', tags: ['@manager', '@jenki
     cloudCredentialsPage.waitForPage();
 
     // check list details
-    cloudCredentialsPage.list().details(cloudCredName, 2).should('be.visible');
+    cloudCredentialsPage.list().details(this.cloudCredentialName, 2).should('be.visible');
   });
 
-  it('can edit cloud credentials', () => {
+  it('can edit cloud credentials', function() {
     CloudCredentialsPagePo.navTo();
-    cloudCredentialsPage.list().actionMenu(cloudCredName).getMenuItem('Edit Config').click();
+    cloudCredentialsPage.list().actionMenu(this.cloudCredentialName).getMenuItem('Edit Config').click();
     cloudCredentialsPage.createEditCloudCreds(cloudcredentialId).waitForPage('mode=edit');
-    cloudCredentialsPage.createEditCloudCreds().nameNsDescription().description().set(`${ cloudCredDescription }-edit`);
+    cloudCredentialsPage.createEditCloudCreds().nameNsDescription().description().set(`${ this.cloudCredentialName }-description-edit`);
     cloudCredentialsPage.createEditCloudCreds().secretKey().set(Cypress.env('awsSecretKey'), true);
     cloudCredentialsPage.createEditCloudCreds().saveCreateForm().cruResource().saveAndWaitForRequests('PUT', '/v3/cloudCredentials/**');
     cloudCredentialsPage.waitForPage();
 
     // check list details
-    cloudCredentialsPage.list().details(`${ cloudCredDescription }-edit`, 3).should('be.visible');
+    cloudCredentialsPage.list().details(`${ this.cloudCredentialName }-description-edit`, 3).should('be.visible');
   });
 
-  it('can clone cloud credentials', () => {
+  it('can clone cloud credentials', function() {
     CloudCredentialsPagePo.navTo();
-    cloudCredentialsPage.list().actionMenu(`${ cloudCredDescription }-edit`).getMenuItem('Clone').click();
+    cloudCredentialsPage.list().actionMenu(`${ this.cloudCredentialName }-description-edit`).getMenuItem('Clone').click();
     cloudCredentialsPage.createEditCloudCreds(cloudcredentialId).waitForPage('mode=clone');
-    cloudCredentialsPage.createEditCloudCreds().nameNsDescription().name().set(`${ cloudCredName }-clone`);
+    cloudCredentialsPage.createEditCloudCreds().nameNsDescription().name().set(`${ this.cloudCredentialName }-clone`);
     cloudCredentialsPage.createEditCloudCreds().accessKey().set(Cypress.env('awsAccessKey'));
     cloudCredentialsPage.createEditCloudCreds().secretKey().set(Cypress.env('awsSecretKey'), true);
     cloudCredentialsPage.createEditCloudCreds().defaultRegion().checkOptionSelected('us-west-2');
@@ -76,15 +73,15 @@ describe('Cloud Credentials', { testIsolation: 'off', tags: ['@manager', '@jenki
     cloudCredentialsPage.waitForPage();
 
     // check list details
-    cloudCredentialsPage.list().details(`${ cloudCredName }-clone`, 1).should('be.visible');
-    cloudCredentialsPage.list().details(`${ cloudCredDescription }-edit`, 3).should('be.visible');
+    cloudCredentialsPage.list().details(`${ this.cloudCredentialName }-clone`, 1).should('be.visible');
+    cloudCredentialsPage.list().details(`${ this.cloudCredentialName }-description-edit`, 3).should('be.visible');
   });
 
-  it('can delete cloud credentials', () => {
+  it('can delete cloud credentials', function() {
     CloudCredentialsPagePo.navTo();
 
     // delete clone cloud credential
-    cloudCredentialsPage.list().actionMenu(`${ cloudCredName }-clone`).getMenuItem('Delete').click();
+    cloudCredentialsPage.list().actionMenu(`${ this.cloudCredentialName }-clone`).getMenuItem('Delete').click();
     const promptRemove = new PromptRemove();
 
     cy.intercept('DELETE', '/v3/cloudCredentials/**').as('deleteCloudCred');
@@ -94,14 +91,14 @@ describe('Cloud Credentials', { testIsolation: 'off', tags: ['@manager', '@jenki
     cloudCredentialsPage.waitForPage();
 
     // check list details
-    cy.contains(`${ cloudCredName }-clone`).should('not.exist');
+    cy.contains(`${ this.cloudCredentialName }-clone`).should('not.exist');
   });
 
-  it('can delete cloud credentials via bulk actions', () => {
+  it('can delete cloud credentials via bulk actions', function() {
     CloudCredentialsPagePo.navTo();
 
     // delete original cloud credential
-    cloudCredentialsPage.list().resourceTable().sortableTable().rowSelectCtlWithName(cloudCredName)
+    cloudCredentialsPage.list().resourceTable().sortableTable().rowSelectCtlWithName(this.cloudCredentialName)
       .set();
     cloudCredentialsPage.list().resourceTable().sortableTable().deleteButton()
       .click();
@@ -114,6 +111,6 @@ describe('Cloud Credentials', { testIsolation: 'off', tags: ['@manager', '@jenki
     cloudCredentialsPage.waitForPage();
 
     // check list details
-    cy.contains(cloudCredName).should('not.exist');
+    cy.contains(this.cloudCredentialName).should('not.exist');
   });
 });

@@ -5,51 +5,49 @@ describe.skip('Pod Security Policy Templates', { testIsolation: 'off', tags: ['@
   // Note: this test fails due to https://github.com/rancher/dashboard/issues/10187
   // skipping these tests until issue is resolved
   const podSecurityTemplatesPage = new PodSecurityPoliciesTemplatesPagePo('_');
-  const runTimestamp = +new Date();
-  const templateName = `e2e-pod-security-template-${ runTimestamp }`;
-  const templateDescription = `${ templateName }-description`;
 
   before(() => {
     cy.login();
+    cy.createE2EResourceName('podsecuritytemplate').as('podSecurityTemplateName');
   });
 
   beforeEach(() => {
     cy.viewport(1380, 720);
   });
 
-  it('can create a policy template', () => {
+  it('can create a policy template', function() {
     PodSecurityPoliciesTemplatesPagePo.navTo();
     podSecurityTemplatesPage.waitForPage();
     podSecurityTemplatesPage.addPolicyTemplate().click();
-    podSecurityTemplatesPage.addPodSecurityTemplateForm().templateName().set(templateName);
+    podSecurityTemplatesPage.addPodSecurityTemplateForm().templateName().set(this.podSecurityTemplateName);
     cy.intercept('POST', '/v3/podsecuritypolicytemplate').as('createPolicyTemplate');
     podSecurityTemplatesPage.addPodSecurityTemplateForm().create();
     cy.wait('@createPolicyTemplate');
 
     // check list details
-    podSecurityTemplatesPage.list().rowWithName(templateName).should('be.visible');
+    podSecurityTemplatesPage.list().rowWithName(this.podSecurityTemplateName).should('be.visible');
   });
 
-  it('can edit a policy template', () => {
+  it('can edit a policy template', function() {
     PodSecurityPoliciesTemplatesPagePo.navTo();
-    podSecurityTemplatesPage.list().rowActionMenuOpen(templateName);
+    podSecurityTemplatesPage.list().rowActionMenuOpen(this.podSecurityTemplateName);
     podSecurityTemplatesPage.actionMenu().selectMenuItemByLabel('Edit');
 
     // update template by adding a description
     podSecurityTemplatesPage.addPodSecurityTemplateForm().addDescription();
-    podSecurityTemplatesPage.addPodSecurityTemplateForm().templateDescription().set(templateDescription);
+    podSecurityTemplatesPage.addPodSecurityTemplateForm().templateDescription().set(`${ this.podSecurityTemplateName }-description`);
     cy.intercept('PUT', '/v3/podSecurityPolicyTemplates/**').as('updatePolicyTemplate');
     podSecurityTemplatesPage.addPodSecurityTemplateForm().save();
     cy.wait('@updatePolicyTemplate');
 
-    podSecurityTemplatesPage.list().rowWithName(templateName).find('a').click();
+    podSecurityTemplatesPage.list().rowWithName(this.podSecurityTemplateName).find('a').click();
 
-    podSecurityTemplatesPage.templateDescription(templateDescription).should('be.visible');
+    podSecurityTemplatesPage.templateDescription(`${ this.podSecurityTemplateName }-description`).should('be.visible');
   });
 
-  it('can delete a policy template', () => {
+  it('can delete a policy template', function() {
     PodSecurityPoliciesTemplatesPagePo.navTo();
-    podSecurityTemplatesPage.list().rowActionMenuOpen(templateName);
+    podSecurityTemplatesPage.list().rowActionMenuOpen(this.podSecurityTemplateName);
     podSecurityTemplatesPage.actionMenu().selectMenuItemByLabel('Delete');
 
     const promptRemove = new EmberModalPo();
@@ -60,6 +58,6 @@ describe.skip('Pod Security Policy Templates', { testIsolation: 'off', tags: ['@
     podSecurityTemplatesPage.waitForPage();
 
     // check list details
-    cy.contains(templateName).should('not.exist');
+    cy.contains(this.podSecurityTemplateName).should('not.exist');
   });
 });

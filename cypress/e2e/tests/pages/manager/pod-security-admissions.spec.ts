@@ -9,25 +9,23 @@ describe('Pod Security Admissions', { testIsolation: 'off', tags: ['@manager', '
   const podSecurityAdmissionsPage = new PodSecurityAdmissionsPagePo('_');
   const resourceDetails = new ResourceDetailPo('.main-layout');
   const downloadsFolder = Cypress.config('downloadsFolder');
-  const runTimestamp = +new Date();
-  const policyAdmissionName = `e2e-pod-security-admission-${ runTimestamp }`;
-  const policyAdmissionDescription = `${ policyAdmissionName }-description`;
 
   before(() => {
     cy.login();
+    cy.createE2EResourceName('podsecurityadmissions').as('podSecurityAdmissionsName');
   });
 
   beforeEach(() => {
     cy.viewport(1380, 720);
   });
 
-  it('can create a policy security admission', () => {
+  it('can create a policy security admission', function() {
     PodSecurityAdmissionsPagePo.navTo();
     podSecurityAdmissionsPage.waitForPage();
     podSecurityAdmissionsPage.create();
     podSecurityAdmissionsPage.createPodSecurityAdmissionForm().waitForPage();
-    podSecurityAdmissionsPage.createPodSecurityAdmissionForm().nameNsDescription().name().set(policyAdmissionName);
-    podSecurityAdmissionsPage.createPodSecurityAdmissionForm().nameNsDescription().description().set(policyAdmissionDescription);
+    podSecurityAdmissionsPage.createPodSecurityAdmissionForm().nameNsDescription().name().set(this.podSecurityAdmissionsName);
+    podSecurityAdmissionsPage.createPodSecurityAdmissionForm().nameNsDescription().description().set(`${ this.podSecurityAdmissionsName }-description`);
     podSecurityAdmissionsPage.createPodSecurityAdmissionForm().psaControlLevel(0, 1);
     podSecurityAdmissionsPage.createPodSecurityAdmissionForm().psaControlLevel(1, 2);
     podSecurityAdmissionsPage.createPodSecurityAdmissionForm().psaControlLevel(2, 3);
@@ -50,14 +48,14 @@ describe('Pod Security Admissions', { testIsolation: 'off', tags: ['@manager', '
     podSecurityAdmissionsPage.waitForPage();
 
     // check list details
-    podSecurityAdmissionsPage.list().details(policyAdmissionName, 1).should('be.visible');
+    podSecurityAdmissionsPage.list().details(this.podSecurityAdmissionsName, 1).should('be.visible');
   });
 
-  it('can edit a policy security admission', () => {
+  it('can edit a policy security admission', function() {
     PodSecurityAdmissionsPagePo.navTo();
-    podSecurityAdmissionsPage.list().actionMenu(policyAdmissionName).getMenuItem('Edit Config').click();
-    podSecurityAdmissionsPage.createPodSecurityAdmissionForm(policyAdmissionName).waitForPage('mode=edit');
-    podSecurityAdmissionsPage.createPodSecurityAdmissionForm().nameNsDescription().description().set(`${ policyAdmissionDescription }-edit`);
+    podSecurityAdmissionsPage.list().actionMenu(this.podSecurityAdmissionsName).getMenuItem('Edit Config').click();
+    podSecurityAdmissionsPage.createPodSecurityAdmissionForm(this.podSecurityAdmissionsName).waitForPage('mode=edit');
+    podSecurityAdmissionsPage.createPodSecurityAdmissionForm().nameNsDescription().description().set(`${ this.podSecurityAdmissionsName }-description-edit`);
     podSecurityAdmissionsPage.createPodSecurityAdmissionForm().psaControlLevel(0, 1);
     podSecurityAdmissionsPage.createPodSecurityAdmissionForm().psaControlLevel(1, 2);
     podSecurityAdmissionsPage.createPodSecurityAdmissionForm().psaControlLevel(2, 3);
@@ -77,68 +75,68 @@ describe('Pod Security Admissions', { testIsolation: 'off', tags: ['@manager', '
     podSecurityAdmissionsPage.waitForPage();
 
     // check list details
-    podSecurityAdmissionsPage.list().details(`${ policyAdmissionDescription }-edit`, 1).should('be.visible');
+    podSecurityAdmissionsPage.list().details(`${ this.podSecurityAdmissionsName }-description-edit`, 1).should('be.visible');
   });
 
-  it('can clone a policy security admission', () => {
+  it('can clone a policy security admission', function() {
     PodSecurityAdmissionsPagePo.navTo();
-    podSecurityAdmissionsPage.list().actionMenu(policyAdmissionName).getMenuItem('Clone').click();
-    podSecurityAdmissionsPage.createPodSecurityAdmissionForm(policyAdmissionName).waitForPage('mode=clone');
-    podSecurityAdmissionsPage.createPodSecurityAdmissionForm().nameNsDescription().name().set(`${ policyAdmissionName }-clone`);
+    podSecurityAdmissionsPage.list().actionMenu(this.podSecurityAdmissionsName).getMenuItem('Clone').click();
+    podSecurityAdmissionsPage.createPodSecurityAdmissionForm(this.podSecurityAdmissionsName).waitForPage('mode=clone');
+    podSecurityAdmissionsPage.createPodSecurityAdmissionForm().nameNsDescription().name().set(`${ this.podSecurityAdmissionsName }-clone`);
     resourceDetails.cruResource().saveAndWaitForRequests('POST', '/v1/management.cattle.io.podsecurityadmissionconfigurationtemplates');
     podSecurityAdmissionsPage.waitForPage();
 
     // check list details
-    podSecurityAdmissionsPage.list().details(`${ policyAdmissionName }-clone`, 1).should('be.visible');
+    podSecurityAdmissionsPage.list().details(`${ this.podSecurityAdmissionsName }-clone`, 1).should('be.visible');
   });
 
-  it('can download YAML for a policy security admission', () => {
+  it('can download YAML for a policy security admission', function() {
     PodSecurityAdmissionsPagePo.navTo();
-    podSecurityAdmissionsPage.list().actionMenu(policyAdmissionName).getMenuItem('Download YAML').click();
+    podSecurityAdmissionsPage.list().actionMenu(this.podSecurityAdmissionsName).getMenuItem('Download YAML').click();
 
-    const downloadedFilename = path.join(downloadsFolder, `${ policyAdmissionName }.yaml`);
+    const downloadedFilename = path.join(downloadsFolder, `${ this.podSecurityAdmissionsName }.yaml`);
 
     cy.readFile(downloadedFilename).then((buffer) => {
       const obj: any = jsyaml.load(buffer);
 
       // Basic checks on the downloaded YAML
       expect(obj.apiVersion).to.equal('management.cattle.io/v3');
-      expect(obj.metadata.name).to.equal(policyAdmissionName);
+      expect(obj.metadata.name).to.equal(this.podSecurityAdmissionsName);
       expect(obj.kind).to.equal('PodSecurityAdmissionConfigurationTemplate');
     });
   });
 
-  it('can delete a policy security admission', () => {
+  it('can delete a policy security admission', function() {
     PodSecurityAdmissionsPagePo.navTo();
-    podSecurityAdmissionsPage.list().actionMenu(`${ policyAdmissionName }-clone`).getMenuItem('Delete').click();
+    podSecurityAdmissionsPage.list().actionMenu(`${ this.podSecurityAdmissionsName }-clone`).getMenuItem('Delete').click();
 
     const promptRemove = new PromptRemove();
 
-    cy.intercept('DELETE', `/v1/management.cattle.io.podsecurityadmissionconfigurationtemplates/${ policyAdmissionName }-clone`).as('deletePolicyAdmission');
+    cy.intercept('DELETE', `/v1/management.cattle.io.podsecurityadmissionconfigurationtemplates/${ this.podSecurityAdmissionsName }-clone`).as('deletePolicyAdmission');
 
     promptRemove.remove();
     cy.wait('@deletePolicyAdmission');
     podSecurityAdmissionsPage.waitForPage();
 
     // check list details
-    cy.contains(`${ policyAdmissionName }-clone`).should('not.exist');
+    cy.contains(`${ this.podSecurityAdmissionsName }-clone`).should('not.exist');
   });
 
-  it('can delete a policy security admission via bulk actions', () => {
+  it('can delete a policy security admission via bulk actions', function() {
     PodSecurityAdmissionsPagePo.navTo();
-    podSecurityAdmissionsPage.list().details(policyAdmissionName, 0).click();
+    podSecurityAdmissionsPage.list().details(this.podSecurityAdmissionsName, 0).click();
     podSecurityAdmissionsPage.list().resourceTable().sortableTable().deleteButton()
       .click();
 
     const promptRemove = new PromptRemove();
 
-    cy.intercept('DELETE', `/v1/management.cattle.io.podsecurityadmissionconfigurationtemplates/${ policyAdmissionName }`).as('deletePolicyAdmission');
+    cy.intercept('DELETE', `/v1/management.cattle.io.podsecurityadmissionconfigurationtemplates/${ this.podSecurityAdmissionsName }`).as('deletePolicyAdmission');
 
     promptRemove.remove();
     cy.wait('@deletePolicyAdmission');
     podSecurityAdmissionsPage.waitForPage();
 
     // check list details
-    cy.contains(policyAdmissionName).should('not.exist');
+    cy.contains(this.podSecurityAdmissionsName).should('not.exist');
   });
 });

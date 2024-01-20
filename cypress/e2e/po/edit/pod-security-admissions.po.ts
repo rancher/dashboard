@@ -1,8 +1,8 @@
 import PagePo from '@/cypress/e2e/po/pages/page.po';
 import NameNsDescription from '@/cypress/e2e/po/components/name-ns-description.po';
 import LabeledSelectPo from '@/cypress/e2e/po/components/labeled-select.po';
-import InputPo from '~/cypress/e2e/po/components/input.po';
-import CheckboxInputPo from '~/cypress/e2e/po/components/checkbox-input.po';
+import InputPo from '@/cypress/e2e/po/components/input.po';
+import CheckboxInputPo from '@/cypress/e2e/po/components/checkbox-input.po';
 export default class PodSecurityAdmissionsCreateEditPo extends PagePo {
   private static createPath(clusterId: string, id?: string ) {
     const root = `/c/${ clusterId }/manager/management.cattle.io.podsecurityadmissionconfigurationtemplate`;

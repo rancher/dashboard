@@ -5,8 +5,6 @@ import * as jsyaml from 'js-yaml';
 
 describe('Machines', { testIsolation: 'off', tags: ['@manager', '@adminUser'] }, () => {
   const machinesPage = new MachinesPagePo('_');
-  const runTimestamp = +new Date();
-  const machineName = `e2e-machine-name-${ runTimestamp }`;
   const nsName = 'default';
   let resourceVersion = '';
   let creationTimestamp = '';
@@ -17,9 +15,10 @@ describe('Machines', { testIsolation: 'off', tags: ['@manager', '@adminUser'] },
 
   before(() => {
     cy.login();
+    cy.createE2EResourceName('machines').as('machineName');
   });
 
-  it('can create a Machine', () => {
+  it('can create a Machine', function() {
     MachinesPagePo.navTo();
     machinesPage.waitForPage();
     machinesPage.create();
@@ -30,7 +29,7 @@ describe('Machines', { testIsolation: 'off', tags: ['@manager', '@adminUser'] },
       // convert yaml into json to update name value
       const json: any = jsyaml.load(machineDoc);
 
-      json.metadata.name = machineName;
+      json.metadata.name = this.machineName;
       json.metadata.namespace = nsName;
       json.spec.bootstrap.clusterName = 'local';
       json.spec.bootstrap.dataSecretName = 'secretName';
@@ -48,13 +47,13 @@ describe('Machines', { testIsolation: 'off', tags: ['@manager', '@adminUser'] },
       uid = req.response?.body.metadata.uid;
     });
     machinesPage.waitForPage();
-    machinesPage.list().details(machineName, 1).should('be.visible');
+    machinesPage.list().details(this.machineName, 1).should('be.visible');
   });
 
-  it('can edit a Machine', () => {
+  it('can edit a Machine', function() {
     MachinesPagePo.navTo();
-    machinesPage.list().actionMenu(machineName).getMenuItem('Edit YAML').click();
-    machinesPage.createEditMachines(nsName, machineName).waitForPage('mode=edit&as=yaml');
+    machinesPage.list().actionMenu(this.machineName).getMenuItem('Edit YAML').click();
+    machinesPage.createEditMachines(nsName, this.machineName).waitForPage('mode=edit&as=yaml');
 
     cy.readFile('cypress/e2e/blueprints/cluster_management/machines-edit.yml').then((machineDoc) => {
       // convert yaml into json to update values
@@ -64,51 +63,51 @@ describe('Machines', { testIsolation: 'off', tags: ['@manager', '@adminUser'] },
       json.metadata.creationTimestamp = creationTimestamp;
       json.metadata.managedFields.time = time;
       json.metadata.uid = uid;
-      json.metadata.name = machineName;
+      json.metadata.name = this.machineName;
       json.metadata.resourceVersion = resourceVersion;
       machinesPage.yamlEditor().set(jsyaml.dump(json));
     });
 
-    cy.intercept('PUT', `/v1/cluster.x-k8s.io.machines/${ nsName }/${ machineName }`).as('updateMachine');
+    cy.intercept('PUT', `/v1/cluster.x-k8s.io.machines/${ nsName }/${ this.machineName }`).as('updateMachine');
     machinesPage.createEditMachines().saveCreateForm().resourceYaml().saveOrCreate()
       .click();
     cy.wait('@updateMachine').its('response.statusCode').should('eq', 200);
     machinesPage.waitForPage();
 
     // check details page
-    machinesPage.list().details(machineName, 2).find('a').click();
+    machinesPage.list().details(this.machineName, 2).find('a').click();
     cy.contains('secretName2').should('be.visible');
   });
 
-  it('can download YAML', () => {
+  it('can download YAML', function() {
     MachinesPagePo.navTo();
-    machinesPage.list().actionMenu(machineName).getMenuItem('Download YAML').click();
+    machinesPage.list().actionMenu(this.machineName).getMenuItem('Download YAML').click();
 
-    const downloadedFilename = path.join(downloadsFolder, `${ machineName }.yaml`);
+    const downloadedFilename = path.join(downloadsFolder, `${ this.machineName }.yaml`);
 
     cy.readFile(downloadedFilename).then((buffer) => {
       const obj: any = jsyaml.load(buffer);
 
       // Basic checks on the downloaded YAML
       expect(obj.apiVersion).to.equal('cluster.x-k8s.io/v1beta1');
-      expect(obj.metadata.name).to.equal(machineName);
+      expect(obj.metadata.name).to.equal(this.machineName);
       expect(obj.kind).to.equal('Machine');
     });
   });
 
-  it('can delete a Machine', () => {
+  it('can delete a Machine', function() {
     MachinesPagePo.navTo();
-    machinesPage.list().actionMenu(machineName).getMenuItem('Delete').click();
+    machinesPage.list().actionMenu(this.machineName).getMenuItem('Delete').click();
 
     const promptRemove = new PromptRemove();
 
-    cy.intercept('DELETE', `v1/cluster.x-k8s.io.machines/${ nsName }/${ machineName }`).as('deleteCloudCred');
+    cy.intercept('DELETE', `v1/cluster.x-k8s.io.machines/${ nsName }/${ this.machineName }`).as('deleteCloudCred');
 
     promptRemove.remove();
     cy.wait('@deleteCloudCred');
     machinesPage.waitForPage();
 
     // check list details
-    cy.contains(machineName).should('not.exist');
+    cy.contains(this.machineName).should('not.exist');
   });
 });
