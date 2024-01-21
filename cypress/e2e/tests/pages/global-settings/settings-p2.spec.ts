@@ -41,7 +41,7 @@ describe('Settings', { testIsolation: 'off' }, () => {
     settingsPage.settingsValue('server-url').contains(settings['server-url'].new);
 
     // Check Account and API Keys page
-    accountPage.goTo();
+    AccountPagePo.navTo();
     accountPage.waitForPage();
     accountPage.isCurrentPage();
     cy.contains(settings['server-url'].new).should('be.visible');
@@ -60,7 +60,7 @@ describe('Settings', { testIsolation: 'off' }, () => {
       settingsPage.settingsValue('server-url').contains(text);
 
       // Check Account and API Keys page
-      accountPage.goTo();
+      AccountPagePo.navTo();
       accountPage.waitForPage();
       accountPage.isCurrentPage();
       cy.contains(text).should('be.visible');
@@ -257,11 +257,13 @@ describe('Settings', { testIsolation: 'off' }, () => {
     burgerMenu.brandLogoImage().should('be.visible').then((el) => {
       expect(el).to.have.attr('src').includes(suseRancherLogo);
     });
+    BurgerMenuPo.toggle();
 
-    HomePagePo.goTo();
+    HomePagePo.navTo();
     burgerMenu.headerBrandLogoImage().should('be.visible').then((el) => {
       expect(el).to.have.attr('src').includes(suseRancherLogo);
     });
+    BurgerMenuPo.toggle();
 
     // Reset
     SettingsPagePo.navTo();
@@ -277,7 +279,7 @@ describe('Settings', { testIsolation: 'off' }, () => {
     settingsPage.settingsValue('ui-brand').contains(settings['ui-brand'].original);
 
     // Check logos in top-level navigation header for updated logo
-    HomePagePo.goTo();
+    HomePagePo.navTo();
     burgerMenu.headerBrandLogoImage().should('be.visible').then((el) => {
       expect(el).to.have.attr('src').includes(rancherLogo);
     });
@@ -389,7 +391,7 @@ describe('Settings', { testIsolation: 'off' }, () => {
     settingsPage.settingsValue('hide-local-cluster').contains(settings['hide-local-cluster'].new);
 
     // Check home page for local cluster
-    HomePagePo.goTo();
+    HomePagePo.navTo();
     homePage.waitForPage();
     cy.contains('local').should('not.exist');
 

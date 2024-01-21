@@ -231,7 +231,7 @@ describe('Settings', { testIsolation: 'off' }, () => {
     settingsPage.settingsValue('auth-token-max-ttl-minutes').contains(settings['auth-token-max-ttl-minutes'].new);
 
     // Check api keys expiry options
-    accountPage.goTo();
+    AccountPagePo.navTo();
     accountPage.create();
     createKeyPage.waitForPage();
     createKeyPage.isCurrentPage();
