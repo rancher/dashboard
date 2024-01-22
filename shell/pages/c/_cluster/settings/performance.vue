@@ -22,7 +22,6 @@ const l10n = {
 };
 
 export default {
-  layout:     'authenticated',
   components: {
     Checkbox,
     Loading,

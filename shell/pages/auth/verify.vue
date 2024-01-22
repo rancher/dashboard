@@ -25,8 +25,6 @@ function isSaml($route) {
 }
 
 export default {
-  layout: 'unauthenticated',
-
   async fetch({ store, route, redirect }) {
     const code = route.query[GITHUB_CODE];
     const stateStr = route.query[GITHUB_NONCE];

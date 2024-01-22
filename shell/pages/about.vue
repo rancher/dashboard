@@ -9,7 +9,6 @@ import { downloadFile } from '@shell/utils/download';
 import { mapGetters } from 'vuex';
 
 export default {
-  layout:     'plain',
   components: { BackLink, Loading },
   mixins:     [BackRoute],
   async fetch() {

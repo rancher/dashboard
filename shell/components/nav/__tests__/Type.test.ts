@@ -5,7 +5,7 @@ import Type from '@shell/components/nav/Type.vue';
 jest.mock('vue-router');
 
 // Configuration text
-const className = 'nuxt-link-active';
+const className = 'router-link-active';
 
 describe('component: Type', () => {
   describe('should not use highlight class', () => {

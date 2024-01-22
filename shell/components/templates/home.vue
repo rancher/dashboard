@@ -68,7 +68,10 @@ export default {
       />
 
       <main class="main-layout">
-        <nuxt class="outlet" />
+        <router-view
+          :key="$route.path"
+          class="outlet"
+        />
       </main>
     </div>
     <FixedBanner :footer="true" />

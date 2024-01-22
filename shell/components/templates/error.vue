@@ -5,18 +5,15 @@ export default {
   name:       'NuxtError',
   mixins:     [Brand],
   middleware: ['unauthenticated'],
-  props:      {
-    error: {
-      type:    Object,
-      default: null
-    }
-  },
 
   data() {
     return { ready: false };
   },
 
   computed: {
+    error() {
+      return window.$nuxt.nuxt.err || {};
+    },
     statusCode() {
       return (this.error && this.error.statusCode) || 599;
     },
@@ -106,7 +103,7 @@ export default {
   -ms-text-size-adjust: 100%;
   -webkit-text-size-adjust: 100%;
   -webkit-font-smoothing: antialiased;
-  position: absolute;
+  position: fixed;
   top: 0;
   left: 0;
   right: 0;

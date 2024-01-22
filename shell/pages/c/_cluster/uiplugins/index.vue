@@ -93,8 +93,6 @@ export default {
     };
   },
 
-  layout: 'plain',
-
   async fetch() {
     const hash = {};
 

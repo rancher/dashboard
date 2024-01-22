@@ -222,9 +222,6 @@ export default function({
         promises.push(...this.removeTypeFromStore(store, 'management', Object.keys(plugin.types.models)));
       }
 
-      // Uninstall routes
-      pluginRoutes.uninstall(plugin);
-
       // Call plugin uninstall hooks
       plugin.uninstallHooks.forEach((fn) => fn(plugin, this.internal()));
 

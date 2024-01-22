@@ -29,7 +29,6 @@ import loadPlugins from '@shell/plugins/plugin';
 
 export default {
   name:       'Login',
-  layout:     'unauthenticated',
   components: {
     LabeledInput, AsyncButton, Checkbox, BrandImage, Banner, InfoBox, CopyCode, Password, LocaleSelector
   },

@@ -15,7 +15,6 @@ import CopyToClipboardText from '@shell/components/CopyToClipboardText';
 const API_ENDPOINT = '/v3';
 
 export default {
-  layout:     'plain',
   components: {
     CopyToClipboardText, BackLink, Banner, PromptChangePassword, Loading, ResourceTable, Principal
   },

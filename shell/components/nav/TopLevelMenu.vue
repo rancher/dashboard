@@ -892,7 +892,7 @@ export default {
           margin-right: 16px;
         }
 
-        &.nuxt-link-active, &.active-menu-link {
+        &.router-link-active, &.active-menu-link {
           background: var(--primary-hover-bg);
           color: var(--primary-hover-text);
 
@@ -1016,7 +1016,7 @@ export default {
               font-size: 14px;
             }
 
-            .nuxt-link-active {
+            .router-link-active {
               &:hover {
                 text-decoration: none;
               }
