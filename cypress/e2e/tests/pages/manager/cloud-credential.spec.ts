@@ -77,7 +77,6 @@ describe('Cloud Credential', () => {
 
         // code to edit cluster and final checks needs to be after all "then's" otherwise the cloud cred id's aren't stored yet on it's variable...
         if (i === cloudCredsToCreate.length - 1) {
-          clusterList.navTo();
           clusterList.checkIsCurrentPage();
           clusterList.editCluster(clusterName);
 
