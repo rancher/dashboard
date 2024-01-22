@@ -309,14 +309,14 @@ export default {
 
       this.kontainerDrivers.filter((x) => (isImport ? x.showImport : x.showCreate)).forEach((obj) => {
         if ( vueKontainerTypes.includes(obj.driverName) ) {
-          addType(obj.driverName, 'kontainer', false);
+          addType(this.$plugin, obj.driverName, 'kontainer', false);
         } else {
-          addType(obj.driverName, 'kontainer', false, (isImport ? obj.emberImportPath : obj.emberCreatePath));
+          addType(this.$plugin, obj.driverName, 'kontainer', false, (isImport ? obj.emberImportPath : obj.emberCreatePath));
         }
       });
 
       if ( isImport ) {
-        addType('import', 'custom', false);
+        addType(this.$plugin, 'import', 'custom', false);
       } else {
         templates.forEach((chart) => {
           out.push({
@@ -333,21 +333,21 @@ export default {
           machineTypes.forEach((type) => {
             const id = type.spec.displayName || type.id;
 
-            addType(id, _RKE1, false, `/g/clusters/add/launch/${ id }`, this.iconClasses[id], type);
+            addType(this.$plugin, id, _RKE1, false, `/g/clusters/add/launch/${ id }`, this.iconClasses[id]);
           });
 
-          addType('custom', 'custom1', false, '/g/clusters/add/launch/custom');
+          addType(this.$plugin, 'custom', 'custom1', false, '/g/clusters/add/launch/custom');
         } else {
           machineTypes.forEach((type) => {
             const id = type.spec.displayName || type.id;
 
-            addType(id, _RKE2, false, null, undefined, type);
+            addType(this.$plugin, id, _RKE2, false);
           });
 
-          addType('custom', 'custom2', false);
+          addType(this.$plugin, 'custom', 'custom2', false);
 
           if (isElementalActive) {
-            addType(ELEMENTAL_CLUSTER_PROVIDER, 'custom2', false);
+            addType(this.$plugin, ELEMENTAL_CLUSTER_PROVIDER, 'custom2', false);
           }
         }
 
@@ -396,16 +396,21 @@ export default {
         out.push(subtype);
       }
 
-      function addType(id, group, disabled = false, emberLink = null, iconClass = undefined, providerConfig = undefined) {
+      function addType(plugin, id, group, disabled = false, emberLink = null, iconClass = undefined, providerConfig = undefined) {
         const label = getters['i18n/withFallback'](`cluster.provider."${ id }"`, null, id);
         const description = getters['i18n/withFallback'](`cluster.providerDescription."${ id }"`, null, '');
         const tag = '';
 
-        let icon;
+        // Look at extensions first
+        // An extension can override the icon for a provider with
+        // plugin.register('image', 'providers/openstack.svg', require('~shell/assets/images/providers/exoscale.svg'));
+        let icon = plugin.getDynamic('image', `providers/${ id }.svg`);
 
-        try {
-          icon = require(`~shell/assets/images/providers/${ id }.svg`);
-        } catch (e) {}
+        if (!icon) {
+          try {
+            icon = require(`~shell/assets/images/providers/${ id }.svg`);
+          } catch (e) {}
+        }
 
         if (icon) {
           iconClass = undefined;
