@@ -165,7 +165,7 @@ describe('Branding', { testIsolation: 'off' }, () => {
     });
   });
 
-  it.only('Favicon', { tags: ['@globalSettings', '@adminUser'] }, () => {
+  it('Favicon', { tags: ['@globalSettings', '@adminUser'] }, () => {
     BrandingPagePo.navTo();
     brandingPage.customFaviconCheckbox().set();
 
