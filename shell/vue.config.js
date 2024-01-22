@@ -102,10 +102,6 @@ module.exports = function(dir, _appConfig) {
     return !excludes || (excludes && !excludes.includes(name));
   }
 
-  excludes.forEach((e) => {
-    watcherIgnores.push(new RegExp(`/pkg.${ e }`));
-  });
-
   // For each package in the pkg folder that is being compiled into the application,
   // Add in the code to automatically import the types from that package
   // This imports models, edit, detail, list etc
@@ -253,10 +249,10 @@ module.exports = function(dir, _appConfig) {
         key:  fs.readFileSync(path.resolve(__dirname, 'server/server.key')),
         cert: fs.readFileSync(path.resolve(__dirname, 'server/server.crt'))
       } : null),
-      port: (devPorts ? 8005 : 80),
-      host: '0.0.0.0',
-      // FIXME: replace with newer version
-      // public: `https://0.0.0.0:${ devPorts ? 8005 : 80 }`,
+      port:   (devPorts ? 8005 : 80),
+      host:   '0.0.0.0',
+      // TODO: Verify after migration completed
+      client: { webSocketURL: `https://0.0.0.0:${ devPorts ? 8005 : 80 }` },
       proxy,
       onBeforeSetupMiddleware({ app, server }) {
         const socketProxies = {};
@@ -295,24 +291,24 @@ module.exports = function(dir, _appConfig) {
           app.use(p, px);
         });
 
-        // FIXME: replace with newer version
-        //   server.websocketProxies.push({
-        //     upgrade(req, socket, head) {
-        //       const path = Object.keys(socketProxies).find(path => req.url.startsWith(path));
+        // TODO: Verify after migration completed
+        server?.websocketProxies.push({
+          upgrade(req, socket, head) {
+            const path = Object.keys(socketProxies).find((path) => req.url.startsWith(path));
 
-        //       if (path) {
-        //         const proxy = socketProxies[path];
+            if (path) {
+              const proxy = socketProxies[path];
 
-      //         if (proxy.upgrade) {
-      //           proxy.upgrade(req, socket, head);
-      //         } else {
-      //           console.log(`Upgrade for Proxy is not defined. Cannot upgrade Web socket for ${ req.url }`); // eslint-disable-line no-console
-      //         }
-      //       } else {
-      //         console.log(`Unknown Web socket upgrade request for ${ req.url }`); // eslint-disable-line no-console
-      //       }
-      //     }
-      //   });
+              if (proxy.upgrade) {
+                proxy.upgrade(req, socket, head);
+              } else {
+                console.log(`Upgrade for Proxy is not defined. Cannot upgrade Web socket for ${ req.url }`); // eslint-disable-line no-console
+              }
+            } else {
+              console.log(`Unknown Web socket upgrade request for ${ req.url }`); // eslint-disable-line no-console
+            }
+          }
+        });
       },
     },
     transpileDependencies: true,
@@ -384,9 +380,22 @@ module.exports = function(dir, _appConfig) {
       config.plugins.push(new CopyWebpackPlugin({ patterns: [{ from: path.join(SHELL_ABS, 'static'), to: '.' }] }));
 
       config.resolve.extensions.push(...['.tsx', '.ts', '.js', '.vue', '.scss']);
-      // FIXME: replace with newer version
-      // config.watchOptions = config.watchOptions || {};
-      // config.watchOptions.ignored = watcherIgnores;
+
+      /**
+       * Add ignored paths based on env var configuration and known cases
+       * TODO: Verify after migration completed
+       * In Webpack5 only RegExp, string and [string] types are accepted
+       * https://webpack.js.org/configuration/watch/#watchoptionsignored
+       * Example conversion:
+       * - as list: [/.shell/, /dist-pkg/, /scripts\/standalone/, /\/pkg.test-pkg/, /\/pkg.harvester/]
+       * - as chained regex rule: /.shell|dist-pkg|scripts\/standalone|\/pkg.test-pkg|\/pkg.harvester/
+       */
+      config.watchOptions = config.watchOptions || {};
+      const ignoredPkgs = excludes.map((excluded) => new RegExp(`/pkg.${ excluded }`));
+      const watcherIgnoresPaths = [...watcherIgnores, ...ignoredPkgs];
+      const combinedRegex = new RegExp(watcherIgnoresPaths.map(({ source }) => source).join('|'));
+
+      config.watchOptions.ignored = combinedRegex;
 
       if (dev) {
         config.devtool = 'cheap-module-source-map';
@@ -521,19 +530,19 @@ module.exports = function(dir, _appConfig) {
 
       config.module.rules.push(...loaders);
 
-      // FIXME: replace with newer version
-      // // Update vue-loader to set whitespace to 'preserve'
-      // // This was the setting with nuxt, but is not the default with vue cli
-      // // Need to find the vue loader in the webpack config and update the setting
-      // config.module.rules.forEach((loader) => {
-      //   if (loader.use) {
-      //     loader.use.forEach((use) => {
-      //       if (use.loader.includes('vue-loader')) {
-      //         use.options.compilerOptions.whitespace = 'preserve';
-      //       }
-      //     });
-      //   }
-      // });
+      // TODO: Verify after migration completed
+      // Update vue-loader to set whitespace to 'preserve'
+      // This was the setting with nuxt, but is not the default with vue cli
+      // Need to find the vue loader in the webpack config and update the setting
+      config.module.rules.forEach((loader) => {
+        if (loader.use) {
+          loader.use.forEach((use) => {
+            if (use.loader.includes('vue-loader')) {
+              use.options.compilerOptions = { ...use.options.compilerOptions, whitespace: 'preserve' };
+            }
+          });
+        }
+      });
     },
   };
 
