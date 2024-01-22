@@ -26,6 +26,56 @@ describe('class ProvCluster', () => {
     clusterName: 'test', provisioner: 'rke2', mgmt: { isLocal: false, providerForEmberParam: 'import' }, spec: { rkeConfig: {} }
   };
 
+  const gkeClusterWithPrivateEndpoint = {
+    clusterName: 'test',
+    provisioner: 'GKE',
+    spec:        { rkeConfig: {} },
+    mgmt:        { spec: { gkeConfig: { privateClusterConfig: { enablePrivateEndpoint: true } } } }
+  };
+
+  const eksClusterWithPrivateEndpoint = {
+    clusterName: 'test',
+    provisioner: 'EKS',
+    spec:        { rkeConfig: {} },
+    mgmt:        { spec: { eksConfig: { privateAccess: true } } }
+  };
+
+  const aksClusterWithPrivateEndpoint = {
+    clusterName: 'test',
+    provisioner: 'AKS',
+    spec:        { rkeConfig: {} },
+    mgmt:        { spec: { aksConfig: { privateCluster: true } } }
+  };
+
+  // Related to https://github.com/rancher/dashboard/issues/9402
+  describe('isHostedKubernetesProvider + isPrivateHostedProvider', () => {
+    const testCases = [
+      [gkeClusterWithPrivateEndpoint, true],
+      [eksClusterWithPrivateEndpoint, true],
+      [aksClusterWithPrivateEndpoint, true],
+    ];
+    const resetMocks = () => {
+      // Clear all mock function calls:
+      jest.clearAllMocks();
+    };
+
+    it.each(testCases)('should return the isHostedKubernetesProvider and isPrivateHostedProvider values properly based on the props data', (clusterData: Object, expected: Boolean) => {
+      const cluster = new ProvCluster({ spec: clusterData.spec });
+
+      jest.spyOn(cluster, 'mgmt', 'get').mockReturnValue(
+        clusterData.mgmt
+      );
+      jest.spyOn(cluster, 'provisioner', 'get').mockReturnValue(
+        clusterData.provisioner
+      );
+
+      expect(cluster.isRke2).toBe(expected);
+      expect(cluster.isHostedKubernetesProvider).toBe(expected);
+      expect(cluster.isPrivateHostedProvider).toBe(expected);
+      resetMocks();
+    });
+  });
+
   describe('isImported', () => {
     const testCases = [
       [importedClusterInfo, true],
@@ -84,7 +134,6 @@ describe('class ProvCluster', () => {
 
       expect(cluster.mgmt).toBe(expected);
       resetMocks();
-    }
-    );
+    });
   });
 });
