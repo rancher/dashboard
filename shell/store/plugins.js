@@ -100,12 +100,13 @@ export const suffixFields = [
 
 // Machine driver to cloud provider mapping
 const driverToCloudProviderMap = {
-  amazonec2:     'aws',
-  azure:         'azure',
-  digitalocean:  '', // Show restricted options
-  harvester:     'harvester',
-  linode:        '', // Show restricted options
-  vmwarevsphere: 'rancher-vsphere',
+  amazonec2:           'aws',
+  azure:               'azure',
+  digitalocean:        '', // Show restricted options
+  harvester:           'harvester',
+  linode:              '', // Show restricted options
+  vmwarevsphere:       'rancher-vsphere',
+  ovhcloudpubliccloud: '',
 
   custom: undefined // Show all options
 };
