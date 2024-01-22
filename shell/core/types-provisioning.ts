@@ -115,6 +115,12 @@ export interface IClusterProvisioner {
    */
   tag?: string;
 
+  /**
+   * Also show the provider card in the cluster importing flow
+   * If not set, the card will only be shown in the cluster creation page
+   */
+  showImport?: boolean
+
   /* --------------------------------------------------------------------------------------
    * Custer Details View
    * --------------------------------------------------------------------------------------- */

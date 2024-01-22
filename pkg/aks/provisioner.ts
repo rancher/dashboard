@@ -4,7 +4,7 @@ import { mapDriver } from '@shell/store/plugins';
 import { Component } from 'vue/types/umd';
 
 export class AKSProvisioner implements IClusterProvisioner {
-  static ID = 'AKS'
+  static ID = 'azureaks'
 
   constructor(private context: ClusterProvisionerContext) {
     mapDriver(this.id, 'azure' );
