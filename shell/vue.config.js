@@ -7,6 +7,7 @@ const serverMiddlewares = require('./server/server-middleware.js');
 const configHelper = require('./vue-config-helper.js');
 const har = require('./server/har-file');
 const VirtualModulesPlugin = require('webpack-virtual-modules');
+const NodePolyfillPlugin = require('node-polyfill-webpack-plugin');
 
 // Suppress info level logging messages from http-proxy-middleware
 // This hides all of the "[HPM Proxy created] ..." messages
@@ -223,8 +224,10 @@ const getDevServerConfig = (proxy) => {
     } : null),
     port:   (devPorts ? 8005 : 80),
     host:   '0.0.0.0',
-    public: `https://0.0.0.0:${ devPorts ? 8005 : 80 }`,
-    before(app, server) {
+    // TODO: Verify after migration completed
+    client: { webSocketURL: `https://0.0.0.0:${ devPorts ? 8005 : 80 }` },
+    proxy,
+    onBeforeSetupMiddleware({ app, server }) {
       const socketProxies = {};
 
       // Close down quickly in response to CTRL + C
@@ -240,7 +243,8 @@ const getDevServerConfig = (proxy) => {
         console.log('Installing HAR file middleware'); // eslint-disable-line no-console
         app.use(har.harProxy(harData, process.env.HAR_DIR));
 
-        server.websocketProxies.push({
+        // TODO: Verify after migration completed
+        server?.websocketProxies.push({
           upgrade(req, socket, head) {
             const responseHeaders = ['HTTP/1.1 101 Web Socket Protocol Handshake', 'Upgrade: WebSocket', 'Connection: Upgrade'];
 
@@ -378,6 +382,7 @@ const createEnvVariablesPlugin = (routerBasePath, rancherEnv) => new webpack.Def
   'process.env.api':                       JSON.stringify(api),
   // Store the Router Base as env variable that we can use in `shell/config/router.js`
   'process.env.routerBase':                JSON.stringify(routerBasePath),
+  __VUE_PROD_HYDRATION_MISMATCH_DETAILS__: 'false',
 });
 
 /**
@@ -402,6 +407,7 @@ const processShellFiles = (config, SHELL_ABS) => {
 };
 
 /**
+ * TODO: Verify after migration completed
  * Update vue-loader to set whitespace to 'preserve'
  * This was the setting with nuxt, but is not the default with vue cli
  * Need to find the vue loader in the webpack config and update the setting
@@ -411,7 +417,7 @@ const preserveWhitespace = (config) => {
     if (loader.use) {
       loader.use.forEach((use) => {
         if (use.loader.includes('vue-loader')) {
-          use.options.compilerOptions.whitespace = 'preserve';
+          use.options.compilerOptions = { ...use.options.compilerOptions, whitespace: 'preserve' };
         }
       });
     }
@@ -482,8 +488,9 @@ module.exports = function(dir, _appConfig) {
   const config = {
     // Vue server
     devServer:  getDevServerConfig(proxy),
-    publicPath: resourceBase || undefined,
-    css:        {
+    transpileDependencies: true,
+    publicPath:            resourceBase || undefined,
+    css:                   {
       extract:       false, // inline css styles instead of including with `<links`
       loaderOptions: {
         sass: {
@@ -513,20 +520,35 @@ module.exports = function(dir, _appConfig) {
       config.resolve.alias['@pkg'] = path.join(dir, 'pkg');
       config.resolve.alias['./node_modules'] = path.join(dir, 'node_modules');
       config.resolve.alias['@components'] = COMPONENTS_DIR;
-      config.resolve.alias['vue$'] = path.resolve(process.cwd(), 'node_modules', 'vue', 'dist', dev ? 'vue.js' : 'vue.min.js');
+      config.resolve.alias['vue$'] = dev ? path.resolve(process.cwd(), 'node_modules', 'vue') : 'vue';
       config.resolve.modules.push(__dirname);
       config.plugins.push(getVirtualModules(dir, includePkg));
       config.plugins.push(getAutoImport());
       config.plugins.push(getVirtualModulesAutoImport(dir));
       config.plugins.push(getPackageImport(dir));
       config.plugins.push(createEnvVariablesPlugin(routerBasePath, rancherEnv));
+      config.plugins.push(new NodePolyfillPlugin()); // required from Webpack 5 to polyfill node modules
 
       // The static assets need to be in the built assets directory in order to get served (primarily the favicon)
-      config.plugins.push(new CopyWebpackPlugin([{ from: path.join(SHELL_ABS, 'static'), to: '.' }]));
+      config.plugins.push(new CopyWebpackPlugin({ patterns: [{ from: path.join(SHELL_ABS, 'static'), to: '.' }] }));
 
       config.resolve.extensions.push(...['.tsx', '.ts', '.js', '.vue', '.scss']);
+
+      /**
+       * Add ignored paths based on env var configuration and known cases
+       * TODO: Verify after migration completed
+       * In Webpack5 only RegExp, string and [string] types are accepted
+       * https://webpack.js.org/configuration/watch/#watchoptionsignored
+       * Example conversion:
+       * - as list: [/.shell/, /dist-pkg/, /scripts\/standalone/, /\/pkg.test-pkg/, /\/pkg.harvester/]
+       * - as chained regex rule: /.shell|dist-pkg|scripts\/standalone|\/pkg.test-pkg|\/pkg.harvester/
+       */
       config.watchOptions = config.watchOptions || {};
-      config.watchOptions.ignored = watcherIgnores;
+      const ignoredPkgs = excludes.map((excluded) => new RegExp(`/pkg.${ excluded }`));
+      const watcherIgnoresPaths = [...watcherIgnores, ...ignoredPkgs];
+      const combinedRegex = new RegExp(watcherIgnoresPaths.map(({ source }) => source).join('|'));
+
+      config.watchOptions.ignored = combinedRegex;
 
       if (dev) {
         config.devtool = 'cheap-module-source-map';
