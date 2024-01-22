@@ -4,7 +4,7 @@ import ClusterManagerCreateImportPagePo from '@/cypress/e2e/po/edit/provisioning
  * Covers core functionality that's common to the dashboard's edit cluster pages
  */
 export default class ClusterManagerEditGenericPagePo extends ClusterManagerCreateImportPagePo {
-  private static createPath(clusterName: string, tab?: string) {
+  private static createPath(clusterName: string) {
     return `/c/local/manager/provisioning.cattle.io.cluster/fleet-default/${ clusterName }`;
   }
 

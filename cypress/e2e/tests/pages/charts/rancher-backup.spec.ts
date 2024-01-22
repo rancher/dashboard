@@ -18,8 +18,8 @@ describe('Charts', { tags: '@adminUser' }, () => {
 
     describe('Rancher Backups storage class config', () => {
       beforeEach(() => {
-        cy.createRancherResource('v1', STORAGE_CLASS_RESOURCE, defaultStorageClass);
-        cy.createRancherResource('v1', STORAGE_CLASS_RESOURCE, exampleStorageClass);
+        cy.createRancherResource('v1', STORAGE_CLASS_RESOURCE, JSON.stringify(defaultStorageClass));
+        cy.createRancherResource('v1', STORAGE_CLASS_RESOURCE, JSON.stringify(exampleStorageClass));
       });
 
       afterEach(() => {
