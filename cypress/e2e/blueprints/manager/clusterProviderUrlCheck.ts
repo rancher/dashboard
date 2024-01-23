@@ -14,8 +14,8 @@ export const providersList = [
     ]
   },
   {
-    clusterProviderQueryParam: 'AKS',
-    label:                     'AKS',
+    clusterProviderQueryParam: 'azureaks',
+    label:                     'Azure AKS',
     conditions:                [
       {
         rkeType: 'rke2',
@@ -84,8 +84,8 @@ export const providersList = [
     ]
   },
   {
-    clusterProviderQueryParam: 'AKS',
-    label:                     'AKS',
+    clusterProviderQueryParam: 'azureaks',
+    label:                     'Azure AKS',
     conditions:                [
       {
         rkeType: 'rke2',
