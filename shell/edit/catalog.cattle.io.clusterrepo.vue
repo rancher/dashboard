@@ -7,6 +7,7 @@ import NameNsDescription from '@shell/components/form/NameNsDescription';
 import Labels from '@shell/components/form/Labels';
 import SelectOrCreateAuthSecret from '@shell/components/form/SelectOrCreateAuthSecret';
 import { NAMESPACE } from '@shell/config/types';
+import { set } from '@shell/utils/object';
 
 export default {
   name: 'CruCatalogRepo',
@@ -39,6 +40,21 @@ export default {
       return this.$store.getters['cluster/all'](NAMESPACE)[0]?.id;
     }
   },
+
+  methods: {
+    onTargetChange(isGit) {
+      // reset entered value when switching options
+      if (isGit) {
+        set(this.value, 'spec.url', '');
+      } else {
+        set(this.value, 'spec.gitRepo', '');
+
+        if (!!this.value.spec.gitBranch) {
+          set(this.value, 'spec.gitBranch', '');
+        }
+      }
+    }
+  },
 };
 </script>
 
@@ -60,6 +76,7 @@ export default {
           :labels="[t('catalog.repo.target.http'), t('catalog.repo.target.git')]"
           :mode="mode"
           data-testid="clusterrepo-radio-input"
+          @input="onTargetChange"
         />
       </div>
     </div>
@@ -97,6 +114,7 @@ export default {
       :label="t('catalog.repo.url.label')"
       :placeholder="t('catalog.repo.url.placeholder', null, true)"
       :mode="mode"
+      data-testid="clusterrepo-helm-url-input"
     />
 
     <SelectOrCreateAuthSecret

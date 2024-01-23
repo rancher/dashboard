@@ -2,6 +2,7 @@ import ExtensionsPagePo from '@/cypress/e2e/po/pages/extensions.po';
 import ReposListPagePo from '@/cypress/e2e/po/pages/repositories.po';
 import PromptRemove from '@/cypress/e2e/po/prompts/promptRemove.po';
 import BurgerMenuPo from '@/cypress/e2e/po/side-bars/burger-side-menu.po';
+import AppClusterRepoEditPo from '@/cypress/e2e/po/edit/catalog.cattle.io.clusterrepo.po';
 
 const EXTENSION_NAME = 'clock';
 const UI_PLUGINS_PARTNERS_REPO_URL = 'https://github.com/rancher/partner-extensions';
@@ -263,5 +264,62 @@ describe('Extensions page', { tags: ['@extensions', '@adminUser'] }, () => {
     extensionsPo.extensionTabAvailableClick();
     extensionsPo.extensionCardClick(EXTENSION_NAME);
     extensionsPo.extensionDetailsTitle().should('contain', EXTENSION_NAME);
+  });
+
+  it.only('Should reset input values when switching from Helm index URL to Git Repo and vice versa', () => {
+    cy.login();
+    const extensionsPo = new ExtensionsPagePo();
+
+    extensionsPo.goTo();
+    extensionsPo.waitForPage();
+
+    // install extensions operator if it's not installed
+    extensionsPo.installExtensionsOperatorIfNeeded();
+    // go to app repos
+    extensionsPo.extensionMenuToggle();
+    extensionsPo.manageReposClick();
+    // create a new clusterrepo
+    const appRepoList = new ReposListPagePo('local', 'apps');
+
+    appRepoList.waitForPage();
+    appRepoList.create();
+
+    const appRepoCreate = new AppClusterRepoEditPo('local', 'create');
+
+    appRepoCreate.waitForPage();
+
+    const helmIndexUrl = 'https://charts.rancher.io';
+    const gitRepoName = 'https://github.com/rancher/ui-plugin-examples';
+    const gitRepoBranchName = 'test-branch';
+
+    appRepoCreate.nameNsDescription().name().self().scrollIntoView()
+      .should('be.visible');
+    // fill the helm index url form
+    appRepoCreate.enterHelmIndexURL(helmIndexUrl);
+    // make sure the value is set
+    appRepoCreate.helmIndexUrl().should('eq', helmIndexUrl);
+    // select git repo option
+    appRepoCreate.selectRadioOptionGitRepo(1);
+    // switch back to helm index url option
+    appRepoCreate.selectRadioOptionGitRepo(0);
+    // test helm index value is empty
+    appRepoCreate.helmIndexUrl().should('be.empty');
+
+    // select Git repo option
+    appRepoCreate.selectRadioOptionGitRepo(1);
+    // fill the git repo form
+    appRepoCreate.enterGitRepoName(gitRepoName);
+    appRepoCreate.enterGitBranchName(gitRepoBranchName);
+    // make sure the values are set
+    appRepoCreate.gitRepoName().should('eq', gitRepoName);
+    appRepoCreate.gitRepoBranchName().should('eq', gitRepoBranchName);
+    // select helm index url option
+    appRepoCreate.selectRadioOptionGitRepo(0);
+    // switch back to git repo option
+    appRepoCreate.selectRadioOptionGitRepo(1);
+    // test git repo value is empty
+    appRepoCreate.gitRepoName().should('be.empty');
+    // test git repo branch value is empty
+    appRepoCreate.gitRepoBranchName().should('be.empty');
   });
 });
