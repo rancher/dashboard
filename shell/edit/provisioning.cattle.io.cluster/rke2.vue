@@ -1898,7 +1898,7 @@ export default {
       set(this.serverConfig, 'disable', val);
     },
 
-    handleCiliumIpv6Changed(neu) {
+    handleCiliumValuesChanged(neu) {
       if (neu === undefined) {
         return;
       }
@@ -1908,22 +1908,6 @@ export default {
       set(this, 'userChartValues', {
         ...this.userChartValues,
         [name]: { ...neu }
-      });
-    },
-
-    handleCiliumBandwidthManagerChanged(neu) {
-      const name = this.chartVersionKey('rke2-cilium');
-      const values = this.userChartValues[name];
-
-      set(this, 'userChartValues', {
-        ...this.userChartValues,
-        [name]: {
-          ...values,
-          bandwidthManager: {
-            ...values?.bandwidthManager,
-            enabled: neu
-          }
-        }
       });
     },
 
@@ -2200,8 +2184,7 @@ export default {
             :show-cloud-provider="showCloudProvider"
             :unsupported-cloud-provider="unsupportedCloudProvider"
             :cloud-provider-options="cloudProviderOptions"
-            @cilium-ipv6-changed="handleCiliumIpv6Changed"
-            @cilium-bandwidth-manager-changed="handleCiliumBandwidthManagerChanged"
+            @cilium-values-changed="handleCiliumValuesChanged"
             @enabled-system-services-changed="handleEnabledSystemServicesChanged"
             @kubernetes-changed="handleKubernetesChange"
             @cis-changed="handleCisChanged"

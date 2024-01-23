@@ -78,12 +78,17 @@ const defaultCiliumSpec = {
   chartValues: {},
 };
 
+// ipv6
 const legacyOnValue = { cilium: { ipv6: { enabled: true } } };
 const legacyOffValue = { cilium: { ipv6: { enabled: false } } };
 const newOnValue = { ipv6: { enabled: true } };
 const newOffValue = { ipv6: { enabled: false } };
 
-function createBasicsTab(version, userChartValues) {
+// bandwidth manager
+const bmOnValue = { bandwidthManager: { enabled: true } };
+const bmOffValue = { bandwidthManager: { enabled: false } };
+
+function createBasicsTab(version : string, userChartValues: any) {
   const k8s = mockVersionOptions.find((v) => v.id === version) || mockVersionOptions[0];
   const label = 'whatever';
   const wrapper = mount(Basics, {
@@ -303,7 +308,7 @@ describe('component: Basics', () => {
       await wrapper.vm.$nextTick();
 
       // Check and update user values with the emitted value
-      let latest = (wrapper.emitted()['cilium-ipv6-changed'] || [])[0][0];
+      let latest = (wrapper.emitted()['cilium-values-changed'] || [])[0][0];
 
       expect(JSON.stringify(latest)).toStrictEqual(JSON.stringify(legacyOnValue));
 
@@ -315,7 +320,7 @@ describe('component: Basics', () => {
       await wrapper.vm.$nextTick();
 
       // Update from the emitted value
-      latest = (wrapper.emitted()['cilium-ipv6-changed'] || [])[1][0];
+      latest = (wrapper.emitted()['cilium-values-changed'] || [])[1][0];
 
       expect(JSON.stringify(latest)).toStrictEqual(JSON.stringify(legacyOffValue));
     });
@@ -333,7 +338,7 @@ describe('component: Basics', () => {
       await wrapper.vm.$nextTick();
 
       // Check and update user values with the emitted value
-      let latest = (wrapper.emitted()['cilium-ipv6-changed'] || [])[0][0];
+      let latest = (wrapper.emitted()['cilium-values-changed'] || [])[0][0];
 
       expect(JSON.stringify(latest)).toStrictEqual(JSON.stringify(newOnValue));
 
@@ -345,7 +350,7 @@ describe('component: Basics', () => {
       await wrapper.vm.$nextTick();
 
       // Update from the emitted value
-      latest = (wrapper.emitted()['cilium-ipv6-changed'] || [])[1][0];
+      latest = (wrapper.emitted()['cilium-values-changed'] || [])[1][0];
 
       expect(JSON.stringify(latest)).toStrictEqual(JSON.stringify(newOffValue));
     });
@@ -366,7 +371,7 @@ describe('component: Basics', () => {
 
       await wrapper.setProps({ selectedVersion: k8s123 });
 
-      let latest = (wrapper.emitted()['cilium-ipv6-changed'] || [])[0][0];
+      let latest = (wrapper.emitted()['cilium-values-changed'] || [])[0][0];
 
       expect(JSON.stringify(latest)).toStrictEqual(JSON.stringify(legacyOnValue));
 
@@ -375,8 +380,94 @@ describe('component: Basics', () => {
 
       await wrapper.setProps({ selectedVersion: k8s125 });
 
-      latest = (wrapper.emitted()['cilium-ipv6-changed'] || [])[1][0];
+      latest = (wrapper.emitted()['cilium-values-changed'] || [])[1][0];
       expect(JSON.stringify(latest)).toStrictEqual(JSON.stringify(newOnValue));
     });
+  });
+
+  it('should toggle bandwidth manager support on/off', async() => {
+    const wrapper = createBasicsTab('v1.25.0+rke2r1', {});
+    const bmCheckbox = wrapper.find('[data-testid="cluster-rke2-cni-cilium-bandwidth-manager-checkbox"]');
+
+    expect(bmCheckbox.exists()).toBe(true);
+    expect(bmCheckbox.isVisible()).toBe(true);
+
+    // Click the checkbox - should enable bandwidth manager
+    await bmCheckbox.find('label').trigger('click');
+    await bmCheckbox.vm.$nextTick();
+    await wrapper.vm.$nextTick();
+
+    // Check and update user values with the emitted value
+    let latest = (wrapper.emitted()['cilium-values-changed'] || [])[0][0];
+
+    expect(JSON.stringify(latest)).toStrictEqual(JSON.stringify(bmOnValue));
+
+    await wrapper.setProps({ userChartValues: { 'rke2-cilium': latest } });
+
+    // Click the checkbox to turn ipv6 off again
+    await bmCheckbox.find('label').trigger('click');
+    await bmCheckbox.vm.$nextTick();
+    await wrapper.vm.$nextTick();
+
+    // Update from the emitted value
+    latest = (wrapper.emitted()['cilium-values-changed'] || [])[1][0];
+
+    expect(JSON.stringify(latest)).toStrictEqual(JSON.stringify(bmOffValue));
+  });
+
+  it('should support ipv6 and bandwidth manager', async() => {
+    const wrapper = createBasicsTab('v1.25.0+rke2r1', {});
+    const bmCheckbox = wrapper.find('[data-testid="cluster-rke2-cni-cilium-bandwidth-manager-checkbox"]');
+    const ipv6Checkbox = wrapper.find('[data-testid="cluster-rke2-cni-ipv6-checkbox"]');
+
+    // Click the checkbox - should enable bandwidth manager
+    await bmCheckbox.find('label').trigger('click');
+    await bmCheckbox.vm.$nextTick();
+    await wrapper.vm.$nextTick();
+
+    let latest = (wrapper.emitted()['cilium-values-changed'] || [])[0][0];
+
+    await wrapper.setProps({ userChartValues: { 'rke2-cilium': latest } });
+
+    // Click the checkbox - should enable ipv6
+    await ipv6Checkbox.find('label').trigger('click');
+    await ipv6Checkbox.vm.$nextTick();
+    await wrapper.vm.$nextTick();
+
+    // Check and update user values with the emitted value
+    latest = (wrapper.emitted()['cilium-values-changed'] || [])[1][0];
+
+    const combined = {
+      bandwidthManager: { enabled: true },
+      ipv6:             { enabled: true }
+    };
+
+    expect(JSON.stringify(latest)).toStrictEqual(JSON.stringify(combined));
+
+    // Check that other properties are preserved
+    latest = {
+      ...latest,
+      bandwidthManager: {
+        test:    true,
+        enabled: false
+      },
+      ipv6: {
+        test:    true,
+        enabled: false
+      }
+    };
+
+    await wrapper.setProps({ userChartValues: { 'rke2-cilium': latest } });
+
+    // Click the checkbox to turn bandwidth manager off again
+    await bmCheckbox.find('label').trigger('click');
+    await bmCheckbox.vm.$nextTick();
+    await wrapper.vm.$nextTick();
+
+    latest = (wrapper.emitted()['cilium-values-changed'] || [])[2][0];
+
+    const expected = '{"bandwidthManager":{"test":true,"enabled":true},"ipv6":{"test":true,"enabled":false}}';
+
+    expect(JSON.stringify(latest)).toStrictEqual(expected);
   });
 });

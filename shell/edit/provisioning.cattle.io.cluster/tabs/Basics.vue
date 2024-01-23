@@ -337,7 +337,7 @@ export default {
           delete ciliumValues.ipv6;
         }
 
-        this.$emit('cilium-ipv6-changed', ciliumValues);
+        this.$emit('cilium-values-changed', ciliumValues);
       }
     },
 
@@ -348,8 +348,19 @@ export default {
 
         return this.userChartValues[this.chartVersionKey('rke2-cilium')]?.bandwidthManager?.enabled || false;
       },
-      set(val) {
-        this.$emit('cilium-bandwidth-manager-changed', val);
+      set(neu) {
+        const name = this.chartVersionKey('rke2-cilium');
+        const values = this.userChartValues[name];
+
+        const ciliumValues = {
+          ...values,
+          bandwidthManager: {
+            ...values?.bandwidthManager,
+            enabled: neu
+          }
+        };
+
+        this.$emit('cilium-values-changed', ciliumValues);
       }
     },
 
@@ -468,6 +479,7 @@ export default {
         />
         <Checkbox
           v-model="ciliumBandwidthManager"
+          data-testid="cluster-rke2-cni-cilium-bandwidth-manager-checkbox"
           :mode="mode"
           :label="t('cluster.rke2.cni.cilium.BandwidthManager.enable')"
         />
