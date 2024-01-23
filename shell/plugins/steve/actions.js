@@ -10,6 +10,17 @@ import { NAMESPACE } from '@shell/config/types';
 import jsyaml from 'js-yaml';
 import { handleKubeApiHeaderWarnings } from '@shell/plugins/steve/header-warnings';
 
+// secret resource contains the type attribute
+// ref: https://kubernetes.io/docs/reference/kubernetes-api/config-and-storage-resources/secret-v1/
+// ref: https://kubernetes.io/docs/concepts/configuration/secret/#secret-types
+const REMOVED_ROOT_KEYS_MAP = {
+  Secret: [
+    'id',
+    'links',
+    'actions'
+  ]
+};
+
 export default {
 
   // Need to override this, so that the 'this' context is correct (this class not the base class)
@@ -333,7 +344,7 @@ export default {
     if (!yaml) {
       return;
     }
-    const rootKeys = [
+    let rootKeys = [
       'id',
       'links',
       'type',
@@ -349,6 +360,8 @@ export default {
       'transitioning',
     ];
     const obj = jsyaml.load(yaml);
+
+    rootKeys = REMOVED_ROOT_KEYS_MAP[obj.kind] ?? rootKeys;
 
     dropKeys(obj, rootKeys);
     dropKeys(obj?.metadata, metadataKeys);
