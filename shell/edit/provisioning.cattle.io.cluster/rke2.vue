@@ -1898,7 +1898,7 @@ export default {
       set(this.serverConfig, 'disable', val);
     },
 
-    handleCiliumIpv6Changed(neu) {
+    handleCiliumValuesChanged(neu) {
       if (neu === undefined) {
         return;
       }
@@ -2184,7 +2184,7 @@ export default {
             :show-cloud-provider="showCloudProvider"
             :unsupported-cloud-provider="unsupportedCloudProvider"
             :cloud-provider-options="cloudProviderOptions"
-            @cilium-ipv6-changed="handleCiliumIpv6Changed"
+            @cilium-values-changed="handleCiliumValuesChanged"
             @enabled-system-services-changed="handleEnabledSystemServicesChanged"
             @kubernetes-changed="handleKubernetesChange"
             @cis-changed="handleCisChanged"

@@ -337,7 +337,30 @@ export default {
           delete ciliumValues.ipv6;
         }
 
-        this.$emit('cilium-ipv6-changed', ciliumValues);
+        this.$emit('cilium-values-changed', ciliumValues);
+      }
+    },
+
+    ciliumBandwidthManager: {
+      get() {
+        // eslint-disable-next-line no-unused-vars
+        const cni = this.serverConfig.cni; // force this property to recalculate if cni was changed away from cilium and chartValues['rke-cilium'] deleted
+
+        return this.userChartValues[this.chartVersionKey('rke2-cilium')]?.bandwidthManager?.enabled || false;
+      },
+      set(neu) {
+        const name = this.chartVersionKey('rke2-cilium');
+        const values = this.userChartValues[name];
+
+        const ciliumValues = {
+          ...values,
+          bandwidthManager: {
+            ...values?.bandwidthManager,
+            enabled: neu
+          }
+        };
+
+        this.$emit('cilium-values-changed', ciliumValues);
       }
     },
 
@@ -453,6 +476,12 @@ export default {
           data-testid="cluster-rke2-cni-ipv6-checkbox"
           :mode="mode"
           :label="t('cluster.rke2.address.ipv6.enable')"
+        />
+        <Checkbox
+          v-model="ciliumBandwidthManager"
+          data-testid="cluster-rke2-cni-cilium-bandwidth-manager-checkbox"
+          :mode="mode"
+          :label="t('cluster.rke2.cni.cilium.BandwidthManager.enable')"
         />
       </div>
     </div>
