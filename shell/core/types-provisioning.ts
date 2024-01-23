@@ -60,6 +60,7 @@ export interface IClusterProvisioner {
 
   /**
    * Unique ID of the Cluster Provisioner
+   * If this overlaps with the name of an existing provisioner (seen in the type query param while creating a cluster) this provisioner will overwrite the built-in ui
    */
   id: string;
 
