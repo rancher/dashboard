@@ -4,7 +4,9 @@ validators.requiredTranslation = (ctx, label) => `${ label } is required.`;
 
 validators.needsValidation = () => true;
 
-const mockCtx = { normanCluster: { }, t: () => 'abc' };
+const MOCK_TRANSLATION = 'abc';
+
+const mockCtx = { normanCluster: { }, t: () => MOCK_TRANSLATION };
 
 describe('fx: requiredInCluster', () => {
   it('returns an error message containing the field label if field is not defined in cluster', () => {
@@ -28,7 +30,7 @@ describe('fx: requiredInCluster', () => {
 
 describe('fx: clusterNameChars', () => {
   it.each([
-    ['!!abc!!', 'abc'],
+    ['!!abc!!', MOCK_TRANSLATION],
     ['123aBc-_', undefined]]
   )('returns an error message if the cluster name contains anything other than alphanumerics, underscores, or hyphens', (name, validatorMsg) => {
     const ctx = { ...mockCtx, normanCluster: { name } };
@@ -41,14 +43,31 @@ describe('fx: clusterNameChars', () => {
 
 describe('fx: clusterNameStartEnd', () => {
   it.each([
-    ['!!abc!!', 'abc'],
-    ['123abc-_', 'abc'],
-    ['-abc', 'abc'],
+    ['!!abc!!', MOCK_TRANSLATION],
+    ['123abc-_', MOCK_TRANSLATION],
+    ['-abc', MOCK_TRANSLATION],
     ['a-_b', undefined]
   ])('returns an error message if the cluster name starts or ends with anything other than alphanumeric', (name, validatorMsg) => {
     const ctx = { ...mockCtx, normanCluster: { name } };
 
     const validator = validators.clusterNameStartEnd(ctx);
+
+    expect(validator()).toStrictEqual(validatorMsg);
+  });
+});
+
+describe('fx: privateDnsZone', () => {
+  it.each([
+    ['test-subzone.private.eastus2.azmk8s.io', undefined],
+    ['test-subzone.privatelink.westus.azmk8s.io', undefined],
+    ['private.eastus2.azmk8s.io', undefined],
+    ['privatelink.eastus2.azmk8s.io', undefined],
+    ['aaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaa.privatelink.eastus2.azmk8s.io', MOCK_TRANSLATION],
+    ['privatelink.azmk8s.io', MOCK_TRANSLATION],
+  ])('returns an error message if the private dns zone does not match privatelink.REGION.azmk8s.io, SUBZONE.privatelink.REGION.azmk8s.io, private.REGION.azmk8s.io, or SUBZONE.private.REGION.azmk8s.io', (privateDnsZone, validatorMsg) => {
+    const ctx = { ...mockCtx, normanCluster: { aksConfig: { privateDnsZone } } };
+
+    const validator = validators.privateDnsZone(ctx, '', 'aksConfig.privateDnsZone');
 
     expect(validator()).toStrictEqual(validatorMsg);
   });
