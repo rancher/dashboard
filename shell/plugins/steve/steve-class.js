@@ -1,5 +1,17 @@
 import { DESCRIPTION } from '@shell/config/labels-annotations';
 import HybridModel from './hybrid-class';
+import { NEVER_ADD } from '@shell/utils/create-yaml';
+import { deleteProperty } from '@shell/utils/object';
+
+// Some fields that are removed for YAML (NEVER_ADD) are required via API
+const STEVE_ADD = [
+  'metadata.resourceVersion',
+  'metadata.fields',
+  'metadata.clusterName',
+  'metadata.deletionGracePeriodSeconds',
+  'metadata.generateName',
+];
+const STEVE_NEVER_SAVE = NEVER_ADD.filter((na) => !STEVE_ADD.includes(na));
 
 export default class SteveModel extends HybridModel {
   get name() {
@@ -27,5 +39,15 @@ export default class SteveModel extends HybridModel {
     }
 
     this._description = value;
+  }
+
+  cleanForSave(data, forNew) {
+    const val = super.cleanForSave(data);
+
+    for (const field of STEVE_NEVER_SAVE) {
+      deleteProperty(val, field);
+    }
+
+    return val;
   }
 }

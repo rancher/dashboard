@@ -1,7 +1,11 @@
+// At some point these will come from somewhere central, then we can make tools to remove resources from this or all runs
+const runTimestamp = +new Date();
+const runPrefix = `e2e-test-${ runTimestamp }-`;
+
 export const createPodBlueprint = {
   apiVersion: 'v1',
   kind:       'Pod',
-  metadata:   { name: 'nginx-test-pod', namespace: 'default' },
+  metadata:   { name: `${ runPrefix }nginx-test-pod`, namespace: 'default' },
   spec:       {
     containers: [
       {
@@ -25,5 +29,5 @@ export const createPodBlueprint = {
 export const clonePodBlueprint = {
   apiVersion: 'v1',
   kind:       'Pod',
-  metadata:   { name: 'nginx-test-clone', namespace: 'default' },
+  metadata:   { name: `${ runPrefix }nginx-test-clone`, namespace: 'default' },
 };

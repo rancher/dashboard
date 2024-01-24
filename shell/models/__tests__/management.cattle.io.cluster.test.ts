@@ -1,5 +1,9 @@
 import MgmtCluster from '@shell/models/management.cattle.io.cluster';
 
+jest.mock('@shell/utils/clipboard', () => {
+  return { copyTextToClipboard: jest.fn(() => Promise.resolve({})) };
+});
+
 describe('class MgmtCluster', () => {
   describe('provisioner', () => {
     const testCases = [

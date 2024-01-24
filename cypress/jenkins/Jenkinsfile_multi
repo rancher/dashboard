@@ -58,7 +58,6 @@ node {
                                         string(name: 'DASHBOARD_BRANCH', value: "${DASHBOARD_BRANCH}"),
                                         string(name: 'CYPRESS_TAGS', value: ct),
                                         string(name: 'RANCHER_HOST', value: ""),
-                                        string(name: 'RANCHER_VERSION', value: "${RANCHER_VERSION}"),
                                         string(name: 'RANCHER_USERNAME', value: "${RANCHER_USERNAME}"),
                                         string(name: 'RANCHER_PASSWORD', value: "${RANCHER_PASSWORD}"),
                                         string(name: 'RKE2_KUBERNETES_VERSION', value: "${RKE2_KUBERNETES_VERSION}"),

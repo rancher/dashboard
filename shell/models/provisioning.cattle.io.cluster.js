@@ -180,6 +180,16 @@ export default class ProvCluster extends SteveModel {
     return out;
   }
 
+  async findNormanCluster() {
+    const name = this.status?.clusterName;
+
+    if ( !name ) {
+      return null;
+    }
+
+    return await this.$dispatch('rancher/find', { type: NORMAN.CLUSTER, id: name }, { root: true });
+  }
+
   explore() {
     const location = {
       name:   'c-cluster',
@@ -284,7 +294,7 @@ export default class ProvCluster extends SteveModel {
   }
 
   get isK3s() {
-    return this.mgmt?.status?.provider === 'k3s';
+    return this.mgmt?.status ? this.mgmt?.status.provider === 'k3s' : (this.spec?.kubernetesVersion || '').includes('k3s') ;
   }
 
   get isRke2() {
@@ -827,11 +837,11 @@ export default class ProvCluster extends SteveModel {
   get agentConfig() {
     // The one we want is the first one with no selector.
     // If there are multiple with no selector, that will fall under the unsupported message below.
-    return this.spec.rkeConfig.machineSelectorConfig.find((x) => !x.machineLabelSelector).config;
+    return this.spec.rkeConfig.machineSelectorConfig.find((x) => !x.machineLabelSelector)?.config;
   }
 
   get cloudProvider() {
-    return this.agentConfig['cloud-provider-name'];
+    return this.agentConfig?.['cloud-provider-name'];
   }
 
   get canClone() {
@@ -900,5 +910,12 @@ export default class ProvCluster extends SteveModel {
     }
 
     return null;
+  }
+
+  // JSON Paths that should be folded in the YAML editor by default
+  get yamlFolding() {
+    return [
+      'spec.rkeConfig.machinePools.dynamicSchemaSpec',
+    ];
   }
 }

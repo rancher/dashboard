@@ -1,5 +1,3 @@
-if ( process.client ) {
-  window.addEventListener('popstate', () => {
-    window._popStateDetected = true;
-  });
-}
+window.addEventListener('popstate', () => {
+  window._popStateDetected = true;
+});

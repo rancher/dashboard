@@ -15,6 +15,7 @@ import {
   WORKLOAD_TYPES,
   COUNT,
   CATALOG,
+  SECRET
 } from '@shell/config/types';
 import { setPromiseResult } from '@shell/utils/promise';
 import AlertTable from '@shell/components/AlertTable';
@@ -42,6 +43,8 @@ import { fetchClusterResources } from './explorer-utils';
 import SimpleBox from '@shell/components/SimpleBox';
 import { ExtensionPoint, CardLocation } from '@shell/core/types';
 import { getApplicableExtensionEnhancements } from '@shell/core/plugin-helpers';
+import Certificates from '@shell/components/Certificates';
+import { NAME as EXPLORER } from '@shell/config/product/explorer';
 
 export const RESOURCES = [NAMESPACE, INGRESS, PV, WORKLOAD_TYPES.DEPLOYMENT, WORKLOAD_TYPES.STATEFUL_SET, WORKLOAD_TYPES.JOB, WORKLOAD_TYPES.DAEMON_SET, SERVICE];
 
@@ -74,6 +77,7 @@ export default {
     ConfigBadge,
     EventsTable,
     SimpleBox,
+    Certificates
   },
 
   mixins: [metricPoller],
@@ -348,8 +352,18 @@ export default {
       return {
         name:   'c-cluster-product-resource',
         params: {
-          product:  'explorer',
-          resource: 'event',
+          product:  EXPLORER,
+          resource: EVENT,
+        }
+      };
+    },
+
+    allSecretsLink() {
+      return {
+        name:   'c-cluster-product-resource',
+        params: {
+          product:  EXPLORER,
+          resource: SECRET,
         }
       };
     }
@@ -580,6 +594,18 @@ export default {
           :weight="1"
         >
           <AlertTable v-if="selectedTab === 'cluster-alerts'" />
+        </Tab>
+        <Tab
+          name="cluster-certs"
+          :label="t('clusterIndexPage.sections.certs.label')"
+          :weight="1"
+        >
+          <span class="events-table-link">
+            <n-link :to="allSecretsLink">
+              <span>{{ t('glance.secretsTable') }}</span>
+            </n-link>
+          </span>
+          <Certificates v-if="selectedTab === 'cluster-certs'" />
         </Tab>
       </Tabbed>
     </div>

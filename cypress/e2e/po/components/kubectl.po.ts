@@ -7,13 +7,17 @@ export default class Kubectl extends ComponentPo {
   }
 
   readonly kubeCommand: string = 'kubectl'
-  readonly terminalRow: string = '.xterm-rows'
+  readonly terminalRow: string = '.xterm-link-layer'
 
   openTerminal() {
     cy.get('#btn-kubectl').click();
     this.self().get('.window.show-grid .text-success').should('contain', 'Connected');
 
     return this;
+  }
+
+  closeTerminal() {
+    this.self().get('[data-testid="wm-tab-close-button"]').click();
   }
 
   /**

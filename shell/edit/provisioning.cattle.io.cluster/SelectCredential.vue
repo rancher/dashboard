@@ -31,9 +31,10 @@ export default {
     },
 
     cancel: {
-      type:     Function,
-      required: true,
+      type:    Function,
+      default: null
     },
+
     showingForm: {
       type:     Boolean,
       required: true,
@@ -102,12 +103,17 @@ export default {
     },
 
     options() {
-      const out = this.filteredCredentials.map((obj) => {
-        return {
-          label: obj.nameDisplay,
-          value: obj.id,
-        };
+      const duplicates = {};
+
+      this.filteredCredentials.forEach((cred) => {
+        duplicates[cred.nameDisplay] = duplicates[cred.nameDisplay] === null ? true : null;
       });
+
+      const out = this.filteredCredentials.map((obj) => ({
+        // if credential name is duplicated we add the id to the label
+        label: duplicates[obj.nameDisplay] ? `${ obj.nameDisplay } (${ obj.id })` : obj.nameDisplay,
+        value: obj.id,
+      }));
 
       if ( this.originalId && !out.find((x) => x.value === this.originalId) ) {
         out.unshift({
@@ -265,8 +271,10 @@ export default {
         v-model="credentialId"
         :label="t('cluster.credential.label')"
         :options="options"
+        option-key="value"
         :mode="mode"
         :selectable="option => !option.disabled"
+        data-testid="cluster-prov-select-credential"
       />
     </div>
 

@@ -7,11 +7,11 @@ describe('Cluster Explorer', () => {
     cy.login();
   });
 
-  describe('Worklaods', () => {
+  describe('Workloads', () => {
     describe('Pods', () => {
       const workloadsPodPage = new WorkloadsPodsListPagePo('local');
 
-      describe('Should open a terminal', { tags: ['@adminUser', '@standardUser'] }, () => {
+      describe('Should open a terminal', { tags: ['@explorer', '@adminUser'] }, () => {
         beforeEach(() => {
           workloadsPodPage.goTo();
         });
@@ -23,7 +23,7 @@ describe('Cluster Explorer', () => {
         });
       });
 
-      describe('When cloning a pod', { tags: ['@adminUser'] }, () => {
+      describe('When cloning a pod', { tags: ['@explorer', '@adminUser'] }, () => {
         const { name: origPodName, namespace } = createPodBlueprint.metadata;
         const { name: clonePodName } = clonePodBlueprint.metadata;
 
@@ -45,7 +45,7 @@ describe('Cluster Explorer', () => {
 
           let origPodSpec: any;
 
-          cy.wait('@origPod', { timeout: 10000 })
+          cy.wait('@origPod', { timeout: 20000 })
             .then(({ response }) => {
               expect(response?.statusCode).to.eq(200);
               origPodSpec = response?.body.spec;
@@ -58,12 +58,18 @@ describe('Cluster Explorer', () => {
           createClonePo.nameNsDescription().name().set(clonePodName);
           createClonePo.save();
 
+          workloadsPodPage.waitForPage();
+          workloadsPodPage.list().checkVisible();
+          workloadsPodPage.list().resourceTable().sortableTable().filter(clonePodName);
+          workloadsPodPage.list().resourceTable().sortableTable().rowWithName(clonePodName)
+            .checkExists();
+
           const clonedPodPage = new WorkLoadsPodDetailsPagePo(clonePodName);
 
-          clonedPodPage.goTo();
+          clonedPodPage.goTo();// Needs to be goTo to ensure http request is fired
           clonedPodPage.waitForPage();
 
-          cy.wait('@clonedPod', { timeout: 10000 })
+          cy.wait('@clonedPod', { timeout: 20000 })
             .then(({ response }) => {
               expect(response?.statusCode).to.eq(200);
 

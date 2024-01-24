@@ -50,56 +50,60 @@ node {
             }
             }
             try {
-            stage('Run Tests') {
+              stage('Run Tests') {
                 sh 'pwd'
                 sh 'ls -al cypress/jenkins'
                 sh 'cypress/jenkins/init.sh'
-            }
+              }
             } catch (err) {
                 echo "Error: " + err
                 currentBuild.result = 'FAILURE'
                 error()
             }
             try {
-            stage('Grab Results') {
-                sh "cypress/jenkins/scpget.sh dashboard/results.xml"
-                sh "cypress/jenkins/scpget.sh dashboard/results.html"
-                sh "cypress/jenkins/scpget.sh dashboard/assets"
-            }
+              stage('Grab Results') {
+                  sh "cypress/jenkins/scpget.sh dashboard/results.xml"
+                  sh "cypress/jenkins/scpget.sh dashboard/results.html"
+                  sh "cypress/jenkins/scpget.sh dashboard/assets"
+              }
             } catch(err) {
                 echo "Error: " + err
+                currentBuild.result = 'FAILURE'
             }
             if ("${env.CLEANUP}".toLowerCase() == "true") {
                 try {
-                stage('Clean Test Environment') {  
+                  stage('Clean Test Environment') {  
                     sh "${WORKSPACE}/bin/corral delete ci"
                     if ("${env.JOB_TYPE}" == "recurring") {
-                    sh "${WORKSPACE}/bin/corral delete rancher"
+                      sh "${WORKSPACE}/bin/corral delete rancher"
                     }
-                }
+                  }
                 } catch(err) {
-                echo "Error: " + err
+                  echo "Error: " + err
+                  currentBuild.result = 'FAILURE'
                 }
             }
             try {
-            stage('Test Report') {
-                step([$class: 'JUnitResultArchiver', testResults: '**/results.xml'])
-            }
+              stage('Test Report') {
+                  step([$class: 'JUnitResultArchiver', testResults: '**/results.xml'])
+              }
             }
             catch(err) {
-            echo "Error: " + err
+              echo "Error: " + err
+              currentBuild.result = 'FAILURE'
             }
             if ("${env.QASE_REPORT}".toLowerCase() == "true") {
                 try {
-                    stage('Publish to TC Management') {
-                        withCredentials([ string(credentialsId: 'QASE_AUTOMATION_TOKEN', variable: 'QASE_AUTOMATION_TOKEN')]) {
-                            withEnv(["BUILDTYPE=${buildtype}"]) {
-                                sh "cypress/jenkins/transform-junit.sh"
-                            }
-                        }
+                  stage('Publish to TC Management') {
+                    withCredentials([ string(credentialsId: 'QASE_AUTOMATION_TOKEN', variable: 'QASE_AUTOMATION_TOKEN')]) {
+                      withEnv(["BUILDTYPE=${buildtype}"]) {
+                        sh "cypress/jenkins/transform-junit.sh"
+                      }
+                    }
                 }
                 } catch(err) {
                     echo "Error: " + err
+                    currentBuild.result = 'FAILURE'
                 }
             }
         }

@@ -7,6 +7,7 @@ import { handleConflict } from '@shell/plugins/dashboard-store/normalize';
 import { MACHINE_ROLES } from '@shell/config/labels-annotations';
 import { notOnlyOfRole } from '@shell/models/cluster.x-k8s.io.machine';
 import { KIND } from '../config/elemental-types';
+import { KIND as HARVESTER_KIND } from '../config/harvester-manager-types';
 
 export default class CapiMachineDeployment extends SteveModel {
   get cluster() {
@@ -67,6 +68,19 @@ export default class CapiMachineDeployment extends SteveModel {
 
   get providerSize() {
     return this.template?.providerSize || this.t('node.list.poolDescription.noSize');
+  }
+
+  get providerSummary() {
+    if (this.template) {
+      switch (this.infrastructureRefKind) {
+      case HARVESTER_KIND.MACHINE_TEMPLATE:
+        return null;
+      default:
+        return `${ this.providerDisplay } \u2013  ${ this.providerLocation } / ${ this.providerSize } (${ this.providerName })`;
+      }
+    }
+
+    return null;
   }
 
   get desired() {

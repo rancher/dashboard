@@ -19,6 +19,6 @@ export default class BaseResourceList extends ComponentPo {
   }
 
   rowWithName(rowLabel: string) {
-    this.resourceTable().sortableTable().rowWithName(rowLabel);
+    return this.resourceTable().sortableTable().rowWithName(rowLabel);
   }
 }

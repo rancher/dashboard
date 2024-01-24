@@ -1,4 +1,6 @@
 <script>
+import { copyTextToClipboard } from '@shell/utils/clipboard';
+import { exceptionToErrorsArray } from '@shell/utils/error';
 export default {
   props: {
     text: {
@@ -20,17 +22,20 @@ export default {
     clicked(event) {
       if (!this.copied) {
         event.preventDefault();
-        this.$copyText(this.text);
-        this.copied = true;
+        copyTextToClipboard(this.text).then(() => {
+          this.copied = true;
 
-        let t = event.target;
+          let t = event.target;
 
-        if (t.tagName === 'I') {
-          t = t.parentElement || t;
-        }
-        setTimeout(() => {
-          this.copied = false;
-        }, 500);
+          if (t.tagName === 'I') {
+            t = t.parentElement || t;
+          }
+          setTimeout(() => {
+            this.copied = false;
+          }, 500);
+        }).catch((e) => {
+          this.$emit('error', exceptionToErrorsArray(e));
+        });
       }
     },
   }

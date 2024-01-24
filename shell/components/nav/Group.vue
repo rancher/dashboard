@@ -390,8 +390,8 @@ export default {
     }
   }
 
-  .body ::v-deep > .child.nuxt-link-active,
-  .header ::v-deep > .child.nuxt-link-exact-active {
+  .body ::v-deep > .child.router-link-active,
+  .header ::v-deep > .child.router-link-exact-active {
     padding: 0;
 
     A, A I {

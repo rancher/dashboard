@@ -12,4 +12,8 @@ export default class TabbedPo extends ComponentPo {
   clickTabWithSelector(selector: string) {
     return this.self().get(`${ selector }`).click();
   }
+
+  allTabs() {
+    return this.self().get('[data-testid="tabbed-block"] > li');
+  }
 }

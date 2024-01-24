@@ -1,11 +1,48 @@
 import Namespace from '@shell/models/namespace';
+import { SYSTEM_NAMESPACE } from '@shell/config/labels-annotations';
+import SYSTEM_NAMESPACES from '@shell/config/system-namespaces';
 
 describe('class Namespace', () => {
   describe('checking if isSystem', () => {
     it.each([
-      ['c-whatever-system', true],
-      ['whatever', false]
-    ])('should return true if end with "-system', (name, expectation) => {
+      ['whatever1', SYSTEM_NAMESPACE, true],
+      ['whatever2', 'any-annotation', false],
+      ['whatever3', '', false]
+    ])('should return true if it has the correct annotation', (name, annotation, expectation) => {
+      const namespace = new Namespace({});
+
+      namespace.metadata = { ...namespace.metadata, name };
+
+      if (annotation) {
+        namespace.metadata.annotations = { [annotation]: 'true' };
+      }
+
+      expect(namespace.isSystem).toBe(expectation);
+    });
+
+    const assertionsArr = [];
+
+    SYSTEM_NAMESPACES.forEach((ns) => {
+      assertionsArr.push([ns, true]);
+    });
+
+    assertionsArr.push(['c-whatever-system', false]);
+    assertionsArr.push(['cattle-whatever', false]);
+    assertionsArr.push(['', false]);
+
+    it.each(assertionsArr)('should return true if it belongs to the curated list of namespaces', (name, expectation) => {
+      const namespace = new Namespace({});
+
+      namespace.metadata = { ...namespace.metadata, name };
+
+      expect(namespace.isSystem).toBe(expectation);
+    });
+
+    it.each([
+      ['cattle-c-whatever-system', true],
+      ['cattle-whatever', false],
+      ['c-whatever-system', false]
+    ])('should return true if starts with "cattle-" end with "-system', (name, expectation) => {
       const namespace = new Namespace({});
 
       namespace.metadata = { ...namespace.metadata, name };
@@ -18,18 +55,21 @@ describe('class Namespace', () => {
 
   describe('checking if isObscure', () => {
     it.each([
-      ['c-whatever-system', true],
-      ['whatever', false],
-      ['', false]
-    ])('should return a value if has or not a name in the metadata', (name, expectation) => {
+      ['c-whatever-system', 'management.cattle.io/system-namespace', true],
+      ['p-whatever', SYSTEM_NAMESPACE, true],
+      ['p-whatever', '', false],
+      ['', '', false]
+    ])('should return a value if is system AND has the correct prefix', (name, annotation, expectation) => {
       const namespace = new Namespace({});
 
       namespace.metadata = { ...namespace.metadata, name };
 
+      if (annotation) {
+        namespace.metadata.annotations = { [annotation]: 'true' };
+      }
+
       expect(namespace.isObscure).toBe(expectation);
     });
-
-    it.todo('should return a value if is or not system');
   });
 
   it.each([

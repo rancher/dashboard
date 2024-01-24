@@ -1,7 +1,7 @@
 import Vue from 'vue'
 import { compile } from '../../utils/nuxt'
 
-import NuxtError from '../../layouts/error.vue'
+import NuxtError from '../../components/templates/error.vue'
 
 import NuxtChild from './nuxt-child'
 

@@ -38,8 +38,6 @@ const calcMustChangePassword = async(store) => {
 };
 
 export default {
-  layout: 'unauthenticated',
-
   mixins: [FormValidation],
 
   data() {
@@ -146,8 +144,6 @@ export default {
 
     if (serverUrlSetting?.value) {
       serverUrl = serverUrlSetting.value;
-    } else if ( process.server ) {
-      serverUrl = req.headers.host;
     } else {
       serverUrl = window.location.origin;
     }

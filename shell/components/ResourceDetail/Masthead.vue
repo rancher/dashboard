@@ -422,6 +422,7 @@ export default {
             <span v-if="value.detailPageHeaderActionOverride && value.detailPageHeaderActionOverride(realMode)">{{ value.detailPageHeaderActionOverride(realMode) }}</span>
             <t
               v-else
+              class="mastehead-resource-title"
               :k="'resourceDetail.header.' + realMode"
               :subtype="resourceSubtype"
               :name="displayName"
@@ -544,6 +545,10 @@ export default {
 
   HEADER {
     margin: 0;
+
+    .title {
+      overflow: hidden;
+    }
   }
 
   .primaryheader {
@@ -553,6 +558,17 @@ export default {
 
     h1 {
       margin: 0;
+      overflow: hidden;
+      display: flex;
+      flex-direction: row;
+      align-items: center;
+
+      .mastehead-resource-title {
+        padding: 0 8px;
+        text-overflow: ellipsis;
+        overflow: hidden;
+        white-space: nowrap;
+      }
     }
   }
 
@@ -575,9 +591,6 @@ export default {
 
   .masthead-state {
     font-size: initial;
-    display: inline-block;
-    position: relative;
-    top: -2px;
   }
 
   .masthead-istio {

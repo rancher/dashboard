@@ -1,8 +1,9 @@
 import { ChartsPage } from '@/cypress/e2e/po/pages/charts.po';
 import ClusterDashboardPagePo from '@/cypress/e2e/po/pages/explorer/cluster-dashboard.po';
 import ProductNavPo from '@/cypress/e2e/po/side-bars/product-side-nav.po';
+import BurgerMenuPo from '@/cypress/e2e/po/side-bars/burger-side-menu.po';
 
-describe('Charts', { tags: '@adminUser' }, () => {
+describe('Charts', { tags: ['@charts', '@adminUser'] }, () => {
   const clusterName = 'local';
   const chartsPageUrl = '/c/local/apps/charts/chart?repo-type=cluster&repo=rancher-charts';
 
@@ -21,6 +22,9 @@ describe('Charts', { tags: '@adminUser' }, () => {
       it('Should install Istio', () => {
         chartsPage.goTo();
         chartsPage.goToInstall().nextPage();
+
+        // check if burguer menu nav is highlighted correctly for local cluster (apps is a different prod than explorer)
+        BurgerMenuPo.checkIfClusterMenuLinkIsHighlighted('local');
 
         chartsPage.installChart();
       });

@@ -64,19 +64,24 @@ export default {
     return state.types[type].list;
   },
 
-  matching: (state, getters, rootState) => (type, selector, namespace) => {
-    let all = getters['all'](type);
+  matching: (state, getters, rootState) => (type, selector, namespace, config = { skipSelector: false }) => {
+    let matching = getters['all'](type);
 
     // Filter first by namespace if one is provided, since this is efficient
-    if (namespace) {
-      all = all.filter((obj) => obj.namespace === namespace);
+    if (namespace && typeof namespace === 'string') {
+      matching = matching.filter((obj) => obj.namespace === namespace);
     }
 
     garbageCollect.gcUpdateLastAccessed({
       state, getters, rootState
     }, type);
 
-    return all.filter((obj) => {
+    // Looks like a falsy selector is a thing, so if we're not interested in filtering by the selector... explicitly avoid it
+    if (config.skipSelector) {
+      return matching;
+    }
+
+    return matching.filter((obj) => {
       return matches(obj, selector);
     });
   },

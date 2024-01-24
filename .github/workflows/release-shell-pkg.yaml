@@ -1,0 +1,50 @@
+name: Publish Shell Package
+
+on:
+  push:
+    tags:
+        - 'shell-pkg-v*'
+
+jobs:
+  build:
+    runs-on: ubuntu-latest
+    permissions:
+      contents: read
+      packages: write
+    steps:
+    - uses: actions/checkout@v3
+      with:
+        fetch-depth: 0
+        persist-credentials: false
+
+    - uses: actions/setup-node@v3
+      with:
+        node-version: '16.x'
+
+    - name: Validate Plugin build system
+      run: ./shell/scripts/test-plugins-build.sh
+      shell: bash
+
+    # Reset the local (ci) repository state because
+    # The previous step (Validate Plugin build system) changes
+    # the version number on package.json for Shell in order
+    # to release it in verdaccio for it's tests
+    - name: Reset repository (file system)
+      run: | 
+        git reset --hard HEAD
+        echo $YARN_REGISTRY
+        cat ./shell/package.json
+
+    - uses: actions/setup-node@v3
+      with:
+        node-version: '16.x'
+        registry-url: 'https://registry.npmjs.org'
+        scope: '@rancher'
+    
+    - name: Install packages
+      run: yarn install --frozen-lockfile
+
+    - name: Publish Shell Package to npm
+      run: ./shell/scripts/publish-shell.sh --npm
+      env:
+        NODE_AUTH_TOKEN: ${{ secrets.NPM_TOKEN }}

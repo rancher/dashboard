@@ -1,10 +1,10 @@
 import { mapGetters } from 'vuex';
 import { CATALOG, MANAGEMENT } from '@shell/config/types';
-import { getVendor } from '@shell/config/private-label';
 import { SETTING } from '@shell/config/settings';
 import { findBy } from '@shell/utils/array';
 import { createCssVars } from '@shell/utils/color';
 import { _ALL_IF_AUTHED } from '@shell/plugins/dashboard-store/actions';
+import { setTitle } from '@shell/config/private-label';
 
 const cspAdaptorApp = ['rancher-csp-adapter', 'rancher-csp-billing-adapter'];
 
@@ -116,6 +116,7 @@ export default {
       if (this.linkColor) {
         this.setCustomColor(this.linkColor, 'link');
       }
+      this.setBodyClass();
     },
 
     cspAdapter(neu) {
@@ -142,7 +143,15 @@ export default {
           }
         }
       }
+    },
+    brand() {
+      this.setBodyClass();
     }
+
+  },
+  mounted() {
+    this.setBodyClass();
+    setTitle();
   },
   methods: {
     setCustomColor(color, name = 'primary') {
@@ -159,47 +168,26 @@ export default {
       for (const prop in vars) {
         document.body.style.removeProperty(prop);
       }
-    }
-  },
-  head() {
-    let cssClass = `overflow-hidden dashboard-body`;
-    const out = {
-      bodyAttrs: { class: `theme-${ this.theme } ${ cssClass }` },
-      title:     getVendor(),
-    };
+    },
+    setBodyClass() {
+      const body = document.getElementsByTagName('body')[0];
+      const cssClass = `overflow-hidden dashboard-body`;
+      let bodyClass = `theme-${ this.theme } ${ cssClass }`;
 
-    if (getVendor() === 'Harvester') {
-      const ico = require(`~shell/assets/images/pl/harvester.png`);
+      if ( this.brand ) {
+        try {
+          const brandMeta = require(`~shell/assets/brand/${ this.brand }/metadata.json`);
 
-      out.title = 'Harvester';
-      out.link = [{
-        hid:  'icon',
-        rel:  'icon',
-        type: 'image/x-icon',
-        href: ico
-      }];
-    }
-
-    let brandMeta;
-
-    if ( this.brand ) {
-      try {
-        brandMeta = require(`~shell/assets/brand/${ this.brand }/metadata.json`);
-      } catch {
-        return out;
+          if (brandMeta?.hasStylesheet === 'true') {
+            bodyClass = `${ cssClass } ${ this.brand } theme-${ this.theme }`;
+          } else {
+            bodyClass = `theme-${ this.theme } overflow-hidden dashboard-body`;
+            this.$store.dispatch('prefs/setBrandStyle', this.theme === 'dark');
+          }
+        } catch {}
       }
+      body.className = bodyClass;
     }
-
-    if (brandMeta?.hasStylesheet === 'true') {
-      cssClass = `${ cssClass } ${ this.brand } theme-${ this.theme }`;
-    } else {
-      cssClass = `theme-${ this.theme } overflow-hidden dashboard-body`;
-      this.$store.dispatch('prefs/setBrandStyle', this.theme === 'dark');
-    }
-
-    out.bodyAttrs.class = cssClass;
-
-    return out;
-  },
+  }
 
 };

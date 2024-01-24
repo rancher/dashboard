@@ -11,7 +11,12 @@ export default {
     value: {
       type:     Object,
       required: true,
-    }
+    },
+    clusterId: {
+      type:     String,
+      required: false,
+      default:  null,
+    },
   },
 
   computed: {

@@ -1,10 +1,10 @@
 <script lang="ts">
-import Vue from 'vue';
+import { defineComponent } from 'vue';
 import { _VIEW } from '@shell/config/query-params';
 import AsyncButton, { AsyncButtonCallback } from '@shell/components/AsyncButton.vue';
 import Banner from '@components/Banner/Banner.vue';
 
-export default Vue.extend({
+export default defineComponent({
   components: { AsyncButton, Banner },
 
   props: {

@@ -6,15 +6,17 @@ import VModal from 'vue-js-modal';
 import vSelect from 'vue-select';
 import { VCleanTooltip } from '@shell/plugins/clean-tooltip-directive.js';
 import '@shell/plugins/replaceall';
-import ClientOnly from 'vue-client-only';
 
 import Vue from 'vue';
+
+import { TextEncoder, TextDecoder } from 'util';
+global.TextEncoder = TextEncoder;
+global.TextDecoder = TextDecoder;
 
 Vue.config.productionTip = false;
 Vue.use(VTooltip).use(VModal);
 Vue.use(VCleanTooltip);
 Vue.component('v-select', vSelect);
-Vue.component(ClientOnly.name, ClientOnly);
 
 /**
  * Global configuration for Jest tests

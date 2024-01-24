@@ -7,7 +7,7 @@ const runPrefix = `e2e-test-${ runTimestamp }`;
 const username = `${ runPrefix }-cluster-proj-member`;
 const standardPassword = 'standard-password';
 
-describe('Cluster Project and Members', { tags: ['@adminUser'] }, () => {
+describe('Cluster Project and Members', { tags: ['@explorer', '@adminUser'] }, () => {
   it('Members added to both Cluster Membership should not show "Loading..." next to their names', () => {
     const usersAdmin = new UsersPo('_');
     const userCreate = usersAdmin.createEdit();
@@ -22,7 +22,7 @@ describe('Cluster Project and Members', { tags: ['@adminUser'] }, () => {
     userCreate.username().set(username);
     userCreate.newPass().set(standardPassword);
     userCreate.confirmNewPass().set(standardPassword);
-    userCreate.saveCreateForm().click();
+    userCreate.saveCreateWithErrorRetry();
     usersAdmin.waitForPageWithExactUrl();
 
     // add user to Cluster membership

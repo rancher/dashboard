@@ -5,8 +5,6 @@ export default class Shell extends ComponentPo {
     super('#windowmanager');
   }
 
-  readonly terminalRow: string = '.xterm-rows'
-
   openTerminal() {
     // get and click on the first row's action menu button
     cy.get(`button[data-testid="sortable-table-0-action-button"]`).first().click();

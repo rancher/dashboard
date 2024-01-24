@@ -7,8 +7,7 @@ import { filterOnlyKubernetesClusters, filterHiddenLocalCluster } from '@shell/u
 import { sortBy } from '@shell/utils/sort';
 
 export default {
-  name:   'Diagnostic',
-  layout: 'plain',
+  name: 'Diagnostic',
 
   components: { AsyncButton, PromptModal },
 

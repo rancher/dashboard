@@ -246,16 +246,52 @@ Cypress.Commands.add('createNamespace', (nsName, projId) => {
       Accept:       'application/json'
     },
     body: {
-      type:     'namespace',
       metadata: {
         annotations: {
           'field.cattle.io/containerDefaultResourceLimit': '{}',
           'field.cattle.io/projectId':                     projId
         },
-        labels: { 'field.cattle.io/projectId': projId.split(':')[1] },
-        name:   nsName
+        labels: {
+          'field.cattle.io/projectId':                  projId.split(':')[1],
+          'pod-security.kubernetes.io/enforce':         'privileged',
+          'pod-security.kubernetes.io/enforce-version': 'latest'
+        },
+        name: nsName
       },
       disableOpenApiValidation: false
+    }
+  })
+    .then((resp) => {
+      expect(resp.status).to.eq(201);
+    });
+});
+
+/**
+ * Create pod
+ */
+Cypress.Commands.add('createPod', (nsName, podName, image) => {
+  return cy.request({
+    method:  'POST',
+    url:     `${ Cypress.env('api') }/v1/pods`,
+    headers: {
+      'x-api-csrf': token.value,
+      Accept:       'application/json'
+    },
+    body: {
+      type:     'pod',
+      metadata: {
+        namespace: nsName, labels: { 'workload.user.cattle.io/workloadselector': `pod-${ nsName }-pod-${ podName }` }, name: `pod-${ podName }`, annotations: {}
+      },
+      spec: {
+        selector:   { matchLabels: { 'workload.user.cattle.io/workloadselector': `pod-${ nsName }-pod-${ podName }` } },
+        containers: [{
+          imagePullPolicy: 'Always', name: 'container-0', _init: false, volumeMounts: [], env: [], envFrom: [], image: `${ image }`, __active: true
+        }],
+        initContainers:   [],
+        imagePullSecrets: [],
+        volumes:          [],
+        affinity:         {}
+      }
     }
   })
     .then((resp) => {
@@ -369,6 +405,26 @@ Cypress.Commands.add('deleteRancherResource', (prefix, resourceType, resourceId)
     }
   })
     .then((resp) => {
-      expect(resp.status).to.eq(200);
+      // Either 200, or 204 (No Content)
+      expect(resp.status).to.be.oneOf([200, 204]);
+    });
+});
+
+/**
+ * create a v3 / v1 resource
+ */
+Cypress.Commands.add('createRancherResource', (prefix, resourceType, body) => {
+  return cy.request({
+    method:  'POST',
+    url:     `${ Cypress.env('api') }/${ prefix }/${ resourceType }`,
+    headers: {
+      'x-api-csrf': token.value,
+      Accept:       'application/json'
+    },
+    body
+  })
+    .then((resp) => {
+      // Expect 201, Created HTTP status code
+      expect(resp.status).to.eq(201);
     });
 });

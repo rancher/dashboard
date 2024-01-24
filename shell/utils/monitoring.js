@@ -42,7 +42,7 @@ export function haveV1Monitoring(getters) {
   return !!cluster?.status?.monitoringStatus;
 }
 
-const CATTLE_MONITORING_NAMESPACE = 'cattle-monitoring-system';
+export const CATTLE_MONITORING_NAMESPACE = 'cattle-monitoring-system';
 
 export async function haveV1MonitoringWorkloads(store) {
   const workloadsByType = await Promise.all(

@@ -1680,7 +1680,7 @@ cluster:
   banner:
     warning: 'This cluster contains a machineSelectorConfig, which this form does not fully support; use the YAML editor to manage the full configuration.'
     os: 'You are attempting to add a {newOS} worker node to a cluster with one or more {existingOS} worker nodes: some installed apps may need to be upgraded or removed.'
-    rke2-k3-reprovisioning: 'Making changes to cluster configuration may result in nodes reprovisioning. For more information see the <a target="blank" href="{docsBase}/cluster-provisioning/rke-clusters/behavior-differences-between-rke1-and-rke2/" target="_blank" rel="noopener nofollow">documentation</a>.'
+    rke2-k3-reprovisioning: 'Making changes to cluster configuration may result in nodes reprovisioning. For more information see the <a href="{docsBase}/cluster-provisioning/rke-clusters/behavior-differences-between-rke1-and-rke2/" target="_blank" rel="noopener nofollow">documentation</a>.'
     desiredNodeGroupWarning: There are 0 nodes available to run the cluster agent. The cluster will not become active until at least one node is available.
     haveArgInfo: Configuration information is not available for the selected Kubernetes version.  The options available on this screen will be limited; you may want to use the YAML editor.
     cloudProviderAddConfig: 'On Kubernetes 1.27 or greater, the Amazon Cloud Provider requires additional configuration. See <a href="https://ranchermanager.docs.rancher.com/how-to-guides/new-user-guides/kubernetes-clusters-in-rancher-setup/set-up-cloud-providers/amazon" target="_blank" rel="noopener noreferrer nofollow">the documentation</a> for more information.'
@@ -1862,6 +1862,9 @@ cluster:
       header: System Services
     cni:
       label: Container Network
+      cilium:
+        BandwidthManager:
+          enable: Enable Bandwidth Manager
     cloudProvider:
       label: Cloud Provider
       header: Cloud Provider Config
@@ -2046,6 +2049,8 @@ clusterIndexPage:
       etcd: Etcd
       scheduler: Scheduler
       controller-manager: Controller Manager
+    certs:
+      label: Certificates
 
 configmap:
   tabs:
@@ -2355,6 +2360,7 @@ glance:
   v1MonitoringInstalled: V1 Monitoring Installed
   clusterInfo: Cluster Information
   eventsTable: Full events list
+  secretsTable: Full secrets list
 
 clusterBadge:
   addLabel: Add Cluster Badge
@@ -2767,7 +2773,7 @@ landing:
     cpuUsed: CPU Used
     memoryUsed: Memory Used
   seeWhatsNew: Learn more about the improvements and new capabilities in this version.
-  whatsNewLink: "What's new in 2.8"
+  whatsNewLink: "What's new in 2.9"
   learnMore: Learn More
   support: Support
   community:
@@ -3158,9 +3164,9 @@ monitoring:
         label: Additional Secrets
       existing: Choose an existing config secret
       info: |
-        <span class="text-bold">Create default config</span>: A Secret containing your Alertmanager Config will be created in the <pre class='inline-block m-0'>cattle-monitoring-system</pre> namespace on deploying this chart under the name <pre class='inline-block m-0'>alertmanager-rancher-monitoring-alertmanager</pre>. By default, this Secret will never be modified on an uninstall or upgrade of this chart. <br />
+        <span class="text-bold">Create default config</span>:<br>A Secret containing your Alertmanager Config will be created in the <pre class='inline-block m-0'>cattle-monitoring-system</pre> namespace on deploying this chart under the name <pre class='inline-block m-0'>alertmanager-rancher-monitoring-alertmanager</pre>. By default, this Secret will never be modified on an uninstall or upgrade of this chart. <br /><br />
         Once you have deployed this chart, you should edit the Secret via the UI in order to add your custom notification configurations that will be used by Alertmanager to send alerts. <br /> <br />
-        <span class="text-bold">Choose an existing config secret</span>: You must specify a Secret that exists in the <pre class='inline-block m-0'>cattle-monitoring-system</pre> namespace. If the namespace does not exist, you will not be able to select an existing secret.
+        <span class="text-bold">Choose an existing config secret</span>:<br>You must specify a Secret that exists in the <pre class='inline-block m-0'>cattle-monitoring-system</pre> namespace. If the namespace does not exist, you will not be able to select an existing secret.
       label: Alertmanager Secret
       new: Create default config
       radio:
@@ -4131,6 +4137,9 @@ plugins:
         image:
           label: Catalog Image Reference
           placeholder: "e.g. hub.docker.io/example-org/my-image:latest"
+        imagePullSecrets:
+          label: Image Pull Secrets
+          tooltip: Must be of Type `kubernetes.io/dockercfg` or `kubernetes.io/dockerconfigjson`
         secrets:
           banner: "If the registry that hosts the Catalog Image requires Pull Secrets, they must be created in the following namespace:<pre>cattle-ui-plugin-system</pre>"
       banner: This will create an Deployment, Service, and Helm repository to serve the extension charts.
@@ -4748,7 +4757,7 @@ resourceTable:
     machinePool: "<span>Pool:</span> {name}"
     notInANamespace: Not Namespaced
     notInAProject: Not in a Project
-    project: "<span>Project:</span> {name}"
+    project: "<span>Project:</span> <span>{name}</span>"
     notInAWorkspace: Not in a Workspace
     workspace: "<span>Workspace:</span> {name}"
     notInANodePool: "Not in a Pool"
@@ -4781,13 +4790,26 @@ secret:
   authentication: Authentication
   certificate:
     certificate: Certificate
+    certificates: Certificates
     certificatePlaceholder: "Paste in the CA certificate, starting with -----BEGIN CERTIFICATE----"
     cn: Domain Name
     expires: Expires
+    expiresOn: Expires On
+    expiresDuration: Expires In
+    lifetime: Lifetime
     issuer: Issuer
+    paging: |-
+      {pages, plural,
+      =0 {No {pluralLabel}}
+      =1 {{count} {count, plural, =1 {{singularLabel}} other {{pluralLabel}}}}
+      other {{from} - {to} of {count} {pluralLabel}}}
     plusMore: "+ {n} more"
     privateKey: Private Key
     privateKeyPlaceholder: "Paste in the private key, typically starting with -----BEGIN RSA PRIVATE KEY-----"
+    warnings:
+      expiring: "{count} {count, plural, =1 {Certificate expires soon} other {Certificates expire soon}}"
+      expired: "{count} {count, plural, =1 {Certificate has expired} other {Certificates have expired}}"
+      filtered: ". Not all may be visible given the selected project/namespace filter"
   data: Data
   registry:
     address: Registry
@@ -5573,6 +5595,9 @@ tableHeaders:
   volume: Volume
   volumeMode: Volume Mode
   weight: Weight
+  clusterResources: Cluster Resources
+  repoPerClusterState: Cluster State
+  repoPerClusterStateTooltip: The state of the repo on the cluster
 target:
   router:
     label: Router

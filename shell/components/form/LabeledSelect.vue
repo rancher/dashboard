@@ -88,6 +88,10 @@ export default {
       default: null,
       type:    [String, Object, Number, Array, Boolean]
     },
+    options: {
+      type:     Array,
+      required: true
+    },
     closeOnSelect: {
       type:    Boolean,
       default: true

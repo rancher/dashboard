@@ -713,10 +713,7 @@ export const actions = {
 
     const promises = {
       // Clusters guaranteed always available or your money back
-      clusters: dispatch('management/findAll', {
-        type: MANAGEMENT.CLUSTER,
-        opt:  { url: MANAGEMENT.CLUSTER }
-      }),
+      clusters: dispatch('management/findAll', { type: MANAGEMENT.CLUSTER }),
 
       // Features checks on its own if they are available
       features: dispatch('features/loadServer'),
@@ -887,6 +884,10 @@ export const actions = {
     // Try and wait until the schema exists before proceeding
     await dispatch('management/waitForSchema', { type: MANAGEMENT.CLUSTER });
 
+    // Similar to above, we're still waiting on loadManagement to fetch required resources
+    // If we don't have all mgmt clusters yet a request to fetch this cluster and then all clusters (in cleanNamespaces) is kicked off
+    await dispatch('management/waitForHaveAll', { type: MANAGEMENT.CLUSTER });
+
     // See if it really exists
     try {
       const cluster = await dispatch('management/find', {
@@ -1046,15 +1047,13 @@ export const actions = {
     if ( route.name === 'index' ) {
       router.replace('/auth/login');
     } else {
-      if (!process.server) {
-        const backTo = window.localStorage.getItem(BACK_TO);
+      const backTo = window.localStorage.getItem(BACK_TO);
 
-        const isLogin = route.name === 'auth-login' || route.path === '/login'; // Cover dashboard and case of log out from ember;
-        const isLogout = route.name === 'auth-logout';
+      const isLogin = route.name === 'auth-login' || route.path === '/login'; // Cover dashboard and case of log out from ember;
+      const isLogout = route.name === 'auth-logout';
 
-        if (!backTo && !isLogin && !isLogout) {
-          window.localStorage.setItem(BACK_TO, window.location.href);
-        }
+      if (!backTo && !isLogin && !isLogout) {
+        window.localStorage.setItem(BACK_TO, window.location.href);
       }
 
       const QUERY = (LOGGED_OUT in route.query) ? LOGGED_OUT : TIMED_OUT;

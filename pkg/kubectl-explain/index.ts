@@ -19,7 +19,7 @@ export default function(plugin: IPlugin, internal: IInternal): void {
       'apps',
       'istio',
       'monitoring',
-      'logging',
+      'logging'
     ]
   }, {
     labelKey:   'kubectl-explain.action',

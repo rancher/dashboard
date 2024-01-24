@@ -435,6 +435,7 @@ export default {
           v-for="(err, i) in errors"
           :key="i"
           color="error"
+          :data-testid="`error-banner${i}`"
           :label="stringify(mappedErrors[err].message)"
           :icon="mappedErrors[err].icon"
           :closable="true"

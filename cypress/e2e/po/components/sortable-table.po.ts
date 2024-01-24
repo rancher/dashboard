@@ -76,8 +76,8 @@ export default class SortableTablePo extends ComponentPo {
   // sortable-table
   //
 
-  rowElements() {
-    return this.self().find('tbody tr:not(.sub-row)');
+  rowElements(options?: any) {
+    return this.self().find('tbody tr:not(.sub-row)', options);
   }
 
   rowElementWithName(name: string) {
@@ -168,5 +168,10 @@ export default class SortableTablePo extends ComponentPo {
     new PromptRemove().remove();
 
     return row;
+  }
+
+  // Check that the sortable table loading indicator does not exist (data loading complete)
+  checkLoadingIndicatorNotVisible() {
+    cy.get('.data-loading').should('not.exist');
   }
 }

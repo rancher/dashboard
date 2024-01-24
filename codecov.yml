@@ -22,9 +22,6 @@ flags:
   epinio:
     paths: 
     - pkg/epinio
-  harvester:
-    paths: 
-    - pkg/harvester
   rancher-components:
     paths: 
     - pkg/rancher-components

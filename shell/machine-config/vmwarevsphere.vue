@@ -2,7 +2,6 @@
 import Loading from '@shell/components/Loading';
 import CreateEditView from '@shell/mixins/create-edit-view';
 import LabeledSelect from '@shell/components/form/LabeledSelect';
-// import { Checkbox } from '@components/Form/Checkbox';
 import { exceptionToErrorsArray, stringify } from '@shell/utils/error';
 import { Banner } from '@components/Banner';
 import UnitInput from '@shell/components/form/UnitInput';
@@ -16,7 +15,7 @@ import { get, set } from '@shell/utils/object';
 import { integerString, keyValueStrings } from '@shell/utils/computed';
 import { _CREATE, _EDIT, _VIEW } from '@shell/config/query-params';
 
-const SENTINEL = '__SENTINEL__';
+export const SENTINEL = '__SENTINEL__';
 const VAPP_MODE = {
   DISABLED: 'disabled',
   AUTO:     'auto',
@@ -108,7 +107,7 @@ const getInitialVappMode = (c) => {
     return VAPP_MODE.DISABLED;
   }
 
-  const d = getDefaultVappOptions(c.network);
+  const d = getDefaultVappOptions(c.network || []);
 
   if (
     c.vappIpprotocol === d.vappIpprotocol &&
@@ -297,6 +296,10 @@ export default {
     ...createOptionHelpers('attributeKeys'),
     ...createOptionHelpers('networks'),
 
+    isDisabled() {
+      return this.disabled || this.mode === _VIEW;
+    },
+
     showTemplate() {
       return this.value.creationType === 'template';
     },
@@ -326,7 +329,9 @@ export default {
     },
 
     templateTooltip() {
-      return this.failedToLoadTemplates ? this.t('cluster.machineConfig.vsphere.instanceOptions.template.none') : null;
+      const rawTemplateValue = this.value.cloneFrom;
+
+      return this.failedToLoadTemplates ? this.t('cluster.machineConfig.vsphere.instanceOptions.template.none') : rawTemplateValue;
     },
 
     host: {
@@ -349,6 +354,24 @@ export default {
     diskSize:   integerString('value.diskSize'),
 
     gracefulShutdownTimeout: integerString('value.gracefulShutdownTimeout'),
+
+    network: {
+      get() {
+        return this.value.network || [];
+      },
+      set(newValue) {
+        set(this.value, 'network', newValue);
+      }
+    },
+
+    tag: {
+      get() {
+        return this.value.tag || [];
+      },
+      set(newValue) {
+        set(this.value, 'tag', newValue);
+      }
+    },
 
     showCloudConfigYaml() {
       return this.value.creationType !== 'legacy';
@@ -375,7 +398,7 @@ export default {
     },
     vappMode(value) {
       if (value === VAPP_MODE.AUTO) {
-        const defaultVappOptions = getDefaultVappOptions(this.value.network);
+        const defaultVappOptions = getDefaultVappOptions(this.value.network || []);
 
         return this.updateVappOptions(defaultVappOptions);
       }
@@ -488,7 +511,7 @@ export default {
 
       const options = await this.requestOptions('resource-pools', this.value.datacenter);
 
-      const content = this.mapPoolOptionsToContent(options);
+      const content = this.mapPathOptionsToContent(options);
 
       this.resetValueIfNecessary('pool', content, options);
 
@@ -620,7 +643,7 @@ export default {
     resetValueIfNecessary(key, content, options, isArray = false) {
       const isValueInContent = () => {
         if (isArray) {
-          return this.value[key].every((value) => content.find((c) => c.value === value));
+          return this.value[key]?.every((value) => content.find((c) => c.value === value));
         }
 
         return content.find((c) => c.value === this.value[key] );
@@ -645,10 +668,8 @@ export default {
 
     mapPathOptionsToContent(pathOptions) {
       return (pathOptions || []).map((pathOption) => {
-        const split = pathOption.split('/');
-
         return {
-          label: split[split.length - 1],
+          label: pathOption,
           value: pathOption
         };
       });
@@ -667,18 +688,6 @@ export default {
         label: option || '\u00A0',
         value: option || ''
       }));
-    },
-
-    mapPoolOptionsToContent(pathOptions) {
-      return pathOptions.map((pathOption) => {
-        const splitOptions = pathOption.split('/');
-        const label = splitOptions.slice(2).join('/');
-
-        return {
-          label,
-          value: pathOption
-        };
-      });
     },
 
     mapCustomAttributesToContent(customAttributes) {
@@ -766,7 +775,8 @@ export default {
               :mode="mode"
               :options="dataCenters"
               :label="t('cluster.machineConfig.vsphere.scheduling.dataCenter')"
-              :disabled="disabled"
+              :disabled="isDisabled"
+              :tooltip="value.datacenter"
             />
           </div>
           <div
@@ -779,7 +789,8 @@ export default {
               :mode="mode"
               :options="resourcePools"
               :label="t('cluster.machineConfig.vsphere.scheduling.resourcePool')"
-              :disabled="disabled"
+              :disabled="isDisabled"
+              :tooltip="value.pool"
             />
           </div>
         </div>
@@ -794,7 +805,8 @@ export default {
               :mode="mode"
               :options="dataStores"
               :label="t('cluster.machineConfig.vsphere.scheduling.dataStore')"
-              :disabled="disabled"
+              :disabled="isDisabled"
+              :tooltip="value.datastore"
             />
           </div>
           <div
@@ -807,7 +819,8 @@ export default {
               :mode="mode"
               :options="folders"
               :label="t('cluster.machineConfig.vsphere.scheduling.folder')"
-              :disabled="disabled"
+              :disabled="isDisabled"
+              :tooltip="value.folder"
             />
           </div>
         </div>
@@ -822,7 +835,8 @@ export default {
               :mode="mode"
               :options="hosts"
               :label="t('cluster.machineConfig.vsphere.scheduling.host.label')"
-              :disabled="disabled"
+              :disabled="isDisabled"
+              :tooltip="host"
             />
             <p class="text-muted mt-5">
               {{ t('cluster.machineConfig.vsphere.scheduling.host.note') }}
@@ -837,7 +851,7 @@ export default {
               :mode="mode"
               :label="t('cluster.machineConfig.vsphere.scheduling.gracefulShutdownTimeout.label')"
               :suffix="t('suffix.seconds', { count: gracefulShutdownTimeout})"
-              :disabled="disabled"
+              :disabled="isDisabled"
               min="0"
             />
             <p class="text-muted mt-5">
@@ -869,7 +883,7 @@ export default {
               :mode="mode"
               :label="t('cluster.machineConfig.vsphere.instanceOptions.cpus')"
               :suffix="t('suffix.cores')"
-              :disabled="disabled"
+              :disabled="isDisabled"
             />
           </div>
           <div class="col span-6">
@@ -878,7 +892,7 @@ export default {
               :mode="mode"
               :label="t('cluster.machineConfig.vsphere.instanceOptions.memory')"
               :suffix="t('suffix.mib')"
-              :disabled="disabled"
+              :disabled="isDisabled"
             />
           </div>
         </div>
@@ -889,7 +903,7 @@ export default {
               :mode="mode"
               :label="t('cluster.machineConfig.vsphere.instanceOptions.disk')"
               :suffix="t('suffix.mib')"
-              :disabled="disabled"
+              :disabled="isDisabled"
             />
           </div>
           <div class="col span-6">
@@ -898,7 +912,7 @@ export default {
               :mode="mode"
               :options="osOptions"
               :label="t('cluster.machineConfig.vsphere.instanceOptions.os')"
-              :disabled="disabled"
+              :disabled="isDisabled"
             />
           </div>
         </div>
@@ -912,7 +926,7 @@ export default {
               :mode="mode"
               :options="creationMethods"
               :label="t('cluster.machineConfig.vsphere.instanceOptions.creationMethod')"
-              :disabled="disabled"
+              :disabled="isDisabled"
             />
           </div>
           <div
@@ -925,7 +939,7 @@ export default {
               :mode="mode"
               :options="templates"
               :label="t('cluster.machineConfig.vsphere.instanceOptions.template.label')"
-              :disabled="disabled"
+              :disabled="isDisabled"
               :status="templateStatus"
               :tooltip="templateTooltip"
             />
@@ -940,7 +954,7 @@ export default {
               :mode="mode"
               :options="contentLibraries"
               :label="t('cluster.machineConfig.vsphere.instanceOptions.contentLibrary')"
-              :disabled="disabled"
+              :disabled="isDisabled"
             />
           </div>
           <div
@@ -954,7 +968,8 @@ export default {
               :options="libraryTemplates"
               :searchable="true"
               :label="t('cluster.machineConfig.vsphere.instanceOptions.libraryTemplate')"
-              :disabled="disabled"
+              :disabled="isDisabled"
+              :tooltip="value.cloneFrom"
             />
           </div>
           <div
@@ -967,7 +982,8 @@ export default {
               :mode="mode"
               :options="virtualMachines"
               :label="t('cluster.machineConfig.vsphere.instanceOptions.virtualMachine')"
-              :disabled="disabled"
+              :disabled="isDisabled"
+              :tooltip="value.cloneFrom"
             />
           </div>
           <div
@@ -979,7 +995,7 @@ export default {
               :mode="mode"
               :label="t('cluster.machineConfig.vsphere.instanceOptions.osIsoUrl.label')"
               :placeholder="t('cluster.machineConfig.vsphere.instanceOptions.osIsoUrl.placeholder')"
-              :disabled="disabled"
+              :disabled="isDisabled"
             />
           </div>
         </div>
@@ -993,7 +1009,7 @@ export default {
               :mode="mode"
               :label="t('cluster.machineConfig.vsphere.instanceOptions.cloudInit.label')"
               :placeholder="t('cluster.machineConfig.vsphere.instanceOptions.cloudInit.placeholder')"
-              :disabled="disabled"
+              :disabled="isDisabled"
             />
             <p class="text-muted mt-5">
               {{ t('cluster.machineConfig.vsphere.instanceOptions.cloudInit.note') }}
@@ -1010,7 +1026,7 @@ export default {
               ref="yaml-additional"
               v-model="value.cloudConfig"
               :editor-mode="mode === 'view' ? 'VIEW_CODE' : 'EDIT_CODE'"
-              :disabled="disabled"
+              :disabled="isDisabled"
               initial-yaml-values="# Additional Manifest YAML"
               class="yaml-editor"
             />
@@ -1022,11 +1038,11 @@ export default {
               {{ t('cluster.machineConfig.vsphere.networks.label') }}
             </label>
             <ArrayListSelect
-              v-model="value.network"
+              v-model="network"
               :options="networks"
               :array-list-props="{ addLabel: t('cluster.machineConfig.vsphere.networks.add') }"
               :loading="networksLoading"
-              :disabled="disabled"
+              :disabled="isDisabled"
             />
           </div>
         </div>
@@ -1041,7 +1057,7 @@ export default {
               :key-placeholder="t('cluster.machineConfig.vsphere.guestinfo.keyPlaceholder')"
               :value-placeholder="t('cluster.machineConfig.vsphere.guestinfo.valuePlaceholder')"
               :read-allowed="false"
-              :disabled="disabled"
+              :disabled="isDisabled"
             />
           </div>
         </div>
@@ -1064,11 +1080,11 @@ export default {
       </h4>
       <div slot="body">
         <ArrayListSelect
-          v-model="value.tag"
+          v-model="tag"
           :options="tags"
           :array-list-props="{ addLabel: t('cluster.machineConfig.vsphere.tags.addTag') }"
           :loading="tagsLoading"
-          :disabled="disabled"
+          :disabled="isDisabled"
         />
       </div>
     </Card>
@@ -1097,7 +1113,7 @@ export default {
           :loading="attributeKeysLoading"
           :key-taggable="false"
           :key-option-unique="true"
-          :disabled="disabled"
+          :disabled="isDisabled"
         />
       </div>
     </Card>
@@ -1123,7 +1139,7 @@ export default {
               name="restoreMode"
               :label="t('cluster.machineConfig.vsphere.vAppOptions.restoreType')"
               :options="vAppOptions"
-              :disabled="disabled"
+              :disabled="isDisabled"
             />
           </div>
         </div>
@@ -1138,7 +1154,7 @@ export default {
               :label="t('cluster.machineConfig.vsphere.vAppOptions.transport.label')"
               :tooltip="t('cluster.machineConfig.vsphere.vAppOptions.transport.tooltip')"
               :placeholder="t('cluster.machineConfig.vsphere.vAppOptions.transport.placeholder')"
-              :disabled="disabled"
+              :disabled="isDisabled"
             />
           </div>
           <div class="col span-4">
@@ -1148,7 +1164,7 @@ export default {
               :label="t('cluster.machineConfig.vsphere.vAppOptions.protocol.label')"
               :tooltip="t('cluster.machineConfig.vsphere.vAppOptions.protocol.tooltip')"
               :placeholder="t('cluster.machineConfig.vsphere.vAppOptions.protocol.placeholder')"
-              :disabled="disabled"
+              :disabled="isDisabled"
             />
           </div>
           <div class="col span-4">
@@ -1158,7 +1174,7 @@ export default {
               :label="t('cluster.machineConfig.vsphere.vAppOptions.allocation.label')"
               :tooltip="t('cluster.machineConfig.vsphere.vAppOptions.allocation.tooltip')"
               :placeholder="t('cluster.machineConfig.vsphere.vAppOptions.allocation.placeholder')"
-              :disabled="disabled"
+              :disabled="isDisabled"
             />
           </div>
         </div>
@@ -1174,7 +1190,7 @@ export default {
               :value-placeholder="t('cluster.machineConfig.vsphere.vAppOptions.properties.valuePlaceholder')"
               :add-label="t('cluster.machineConfig.vsphere.vAppOptions.properties.add')"
               :read-allowed="false"
-              :disabled="disabled"
+              :disabled="isDisabled"
             />
           </div>
         </div>
@@ -1182,3 +1198,9 @@ export default {
     </Card>
   </div>
 </template>
+
+<style lang="scss" scoped>
+::v-deep .labeled-tooltip .status-icon.icon-info {
+    z-index: 0;
+}
+</style>

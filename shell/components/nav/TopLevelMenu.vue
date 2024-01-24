@@ -13,6 +13,7 @@ import { getVersionInfo } from '@shell/utils/version';
 import { LEGACY } from '@shell/store/features';
 import { SETTING } from '@shell/config/settings';
 import { filterOnlyKubernetesClusters, filterHiddenLocalCluster } from '@shell/utils/cluster';
+import { getProductFromRoute } from '@shell/middleware/authenticated';
 import { isRancherPrime } from '@shell/config/version';
 import Pinned from '@shell/components/nav/Pinned';
 
@@ -70,12 +71,17 @@ export default {
       if (bannerSettings) {
         const parsed = JSON.parse(bannerSettings.value);
         const {
-          showFooter, showHeader, bannerFooter, bannerHeader
+          showFooter, showHeader, bannerFooter, bannerHeader, banner
         } = parsed;
 
+        // add defaults to accomodate older JSON structures for banner definitions without breaking the UI
+        // https://github.com/rancher/dashboard/issues/10140
+        const bannerHeaderFontSize = bannerHeader?.fontSize || banner?.fontSize || '14px';
+        const bannerFooterFontSize = bannerFooter?.fontSize || banner?.fontSize || '14px';
+
         return {
-          headerFont: showHeader === 'true' ? this.pxToEm(bannerHeader.fontSize) : '0px',
-          footerFont: showFooter === 'true' ? this.pxToEm(bannerFooter.fontSize) : '0px'
+          headerFont: showHeader === 'true' ? this.pxToEm(bannerHeaderFontSize) : '0px',
+          footerFont: showFooter === 'true' ? this.pxToEm(bannerFooterFontSize) : '0px'
         };
       }
 
@@ -239,7 +245,15 @@ export default {
 
     hasSupport() {
       return isRancherPrime() || this.$store.getters['management/byId'](MANAGEMENT.SETTING, SETTING.SUPPORTED )?.value === 'true';
-    }
+    },
+
+    isCurrRouteClusterExplorer() {
+      return this.$route?.name?.startsWith('c-cluster');
+    },
+
+    productFromRoute() {
+      return getProductFromRoute(this.$route);
+    },
   },
 
   watch: {
@@ -270,10 +284,14 @@ export default {
       return `${ lineHeightInEm }em`;
     },
 
-    isSelectedCluster(c) {
-      const path = this.$route.path.split('/').slice()[1];
+    checkActiveRoute(obj, isClusterRoute) {
+      // for Cluster links in main nav: check if route is a cluster explorer one + check if route cluster matches cluster obj id + check if curr product matches route product
+      if (isClusterRoute) {
+        return this.isCurrRouteClusterExplorer && this.$route?.params?.cluster === obj?.id && this.productFromRoute === this.currentProduct?.name;
+      }
 
-      return path === 'c' && this.currentCluster?.id === c.id;
+      // for remaining main nav items, check if curr product matches route product is enough
+      return this.productFromRoute === obj?.value;
     },
 
     handler(e) {
@@ -442,6 +460,7 @@ export default {
               <nuxt-link
                 class="option"
                 :to="a.to"
+                :class="{'active-menu-link': checkActiveRoute(a) }"
               >
                 <IconOrSvg
                   :icon="a.icon"
@@ -473,6 +492,7 @@ export default {
                     v-if="c.ready"
                     :data-testid="`menu-cluster-${ c.id }`"
                     class="cluster selector option"
+                    :class="{'active-menu-link': checkActiveRoute(c, true) }"
                     :to="{ name: 'c-cluster-explorer', params: { cluster: c.id } }"
                   >
                     <ClusterIconMenu
@@ -524,6 +544,7 @@ export default {
                     v-if="c.ready"
                     :data-testid="`menu-cluster-${ c.id }`"
                     class="cluster selector option"
+                    :class="{'active-menu-link': checkActiveRoute(c, true) }"
                     :to="{ name: 'c-cluster-explorer', params: { cluster: c.id } }"
                   >
                     <ClusterIconMenu
@@ -602,6 +623,7 @@ export default {
               >
                 <nuxt-link
                   class="option"
+                  :class="{'active-menu-link': checkActiveRoute(a) }"
                   :to="a.to"
                 >
                   <IconOrSvg
@@ -629,6 +651,7 @@ export default {
               >
                 <nuxt-link
                   class="option"
+                  :class="{'active-menu-link': checkActiveRoute(a) }"
                   :to="a.to"
                 >
                   <IconOrSvg
@@ -658,6 +681,7 @@ export default {
               >
                 <nuxt-link
                   class="option"
+                  :class="{'active-menu-link': checkActiveRoute(a) }"
                   :to="a.to"
                 >
                   <IconOrSvg
@@ -876,16 +900,19 @@ export default {
         img {
           margin-right: 16px;
         }
-        // &.nuxt-link-active {
-        //   background: var(--primary-hover-bg);
-        //   color: var(--primary-hover-text);
-        //   svg {
-        //     fill: var(--primary-hover-text);
-        //   }
-        //   i {
-        //     color: var(--primary-hover-text);
-        //   }
-        // }
+
+        &.router-link-active, &.active-menu-link {
+          background: var(--primary-hover-bg);
+          color: var(--primary-hover-text);
+
+          svg {
+            fill: var(--primary-hover-text);
+          }
+
+          i {
+            color: var(--primary-hover-text);
+          }
+        }
 
         &:hover {
           color: var(--primary-hover-text);
@@ -1016,7 +1043,7 @@ export default {
               font-size: 14px;
             }
 
-            .nuxt-link-active {
+            .router-link-active {
               &:hover {
                 text-decoration: none;
               }

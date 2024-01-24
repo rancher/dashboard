@@ -74,6 +74,7 @@ def sanitize_suite_title(string_to_clean):
             .replace(".", " ") \
             .replace("\"", "") \
             .replace(":", "") \
+            .replace(",", "") \
             .strip()
 
 
@@ -81,6 +82,7 @@ def sanitize_testcase_title(string_to_clean):
     return string_to_clean.replace(".", " ") \
             .replace("\"", "") \
             .replace(":", "") \
+            .replace(",", "") \
             .replace("before all hook for ", "") \
             .replace("before each hook for ", "") \
             .replace("after all hook for ", "") \
@@ -90,7 +92,9 @@ def sanitize_testcase_title(string_to_clean):
 
 results = {}
 
-suite_title = soup.find_all("testsuite", {"name": True})
+suite_title_tmp = soup.find_all("testsuite", {"name": True})
+suite_title = [s for s in suite_title_tmp if s.attrs["name"] != ""]
+
 for ts in suite_title:
     testcases = ts.findChildren("testcase", recursive=False)
     if len(testcases) > 0:
@@ -131,12 +135,15 @@ skipped_cases_ids = []
 failed_cases_ids_stack = {}
 
 
-def qase_cases(project, case_id=None):
+def qase_cases(project, case_id=None, suite_id=None, limit=100):
     if case_id is not None:
         return requests.get("{0}/{1}/{2}".format(cases_url, project, case_id),
                             headers=qase_headers)
+    elif suite_id is not None:
+        return requests.get("{0}/{1}?suite_id={2}&limit={3}".format(cases_url, project, suite_id, limit),
+                            headers=qase_headers)
     else:
-        return requests.get("{0}/{1}".format(cases_url, project),
+        return requests.get("{0}/{1}?limit={2}".format(cases_url, project, limit),
                             headers=qase_headers)
 
 
@@ -156,15 +163,15 @@ def qase_update_case(project, payload, case_id):
         return None
 
 
-def qase_suites(project, suite_id=None, search_string=""):
+def qase_suites(project, suite_id=None, search_string="", limit=100):
     if search_string:
-        return requests.get("{0}/{1}?search={2}".format(suites_url, project, search_string),
+        return requests.get("{0}/{1}?search={2}&limit={3}".format(suites_url, project, search_string, limit),
                             headers=qase_headers)
     if suite_id is not None:
         return requests.get("{0}/{1}/{2}".format(suites_url, project, suite_id),
                             headers=qase_headers)
     else:
-        return requests.get("{0}/{1}".format(suites_url, project),
+        return requests.get("{0}/{1}?limit={2}".format(suites_url, project, limit),
                             headers=qase_headers)
 
 
@@ -184,10 +191,10 @@ def qase_update_suite(project, payload, suite_id):
         return None
 
 
-def qase_search_qql(search_query):
+def qase_search_qql(search_query, limit=100):
     if isinstance(search_query, dict):
         params = url_parse.urlencode(search_query, quote_via=url_parse.quote)
-        return requests.get("{0}/search".format(base_url), params=params,
+        return requests.get("{0}/search?limit={1}".format(base_url, limit), params=params,
                             headers=qase_headers)
 
 
@@ -212,17 +219,19 @@ def create_run_result(project, payload, run_id):
         return None
 
 
-def create_testcases_under_suite(all_cases_under_suite, suite_title_from_qase, suite_id):
+def create_testcases_under_suite(case_entities, suite_title_from_junit, suite_id):
     """
     Custom Fields
     - TestSource -> 14
     - AutomationTestName -> 15
     """
-    case_entities = all_cases_under_suite["result"]["entities"]
-    case_titles_from_junit = results[suite_title_from_qase].keys()
-    case_titles = [subs["title"] for subs in case_entities]
-    case_title_and_id = {subs["title"]: subs['id'] for subs in case_entities}
-    case_descriptions = [subs["description"] for subs in case_entities]
+    case_titles_from_junit = results[suite_title_from_junit].keys()
+    if len(case_entities) > 0:
+        case_titles = [subs["title"] for subs in case_entities]
+        case_title_and_id = {subs["title"]: subs['id'] for subs in case_entities}
+        case_descriptions = [subs["description"] for subs in case_entities]
+    else:
+        case_titles = []
 
     logger.debug("Titles from jUnit: {0}".format(list(case_titles_from_junit)))
     logger.debug("Titles from Qase: {0}".format(case_titles))
@@ -231,19 +240,19 @@ def create_testcases_under_suite(all_cases_under_suite, suite_title_from_qase, s
         tc_skipped = False
         if ct not in case_titles:
             # Title ct not found add it
-            logger.info("Title not found: {0}".format(ct))
+            logger.info("Case title not found in suite: {0}".format(ct))
             # if the result from junit has a description, add it
             # This part is where the error message goes if we want it in the Test Case description
-            testcase_value = results[suite_title_from_qase][ct]
+            testcase_value = results[suite_title_from_junit][ct]
             req_body = {'title': ct,
                         'is_flaky': 0,
                         'automation': 1,
                         'custom_field': {
                             "14": TEST_SOURCE,
-                            "15": "{0}/{1}".format(suite_title_from_qase, ct)},
+                            "15": "{0}/{1}".format(suite_title_from_junit, ct)},
                         "suite_id": suite_id}
             if testcase_value and testcase_value != "skipped_test":
-                req_body.update({'description': results[suite_title_from_qase][ct]})
+                req_body.update({'description': results[suite_title_from_junit][ct]})
                 failed = True
             if testcase_value == "skipped_test":
                 tc_skipped = True
@@ -253,22 +262,22 @@ def create_testcases_under_suite(all_cases_under_suite, suite_title_from_qase, s
             if tc_skipped:
                 skipped_cases_ids.append(id_to_add)
             if failed:
-                failed_cases_ids_stack[id_to_add] = results[suite_title_from_qase][ct]
+                failed_cases_ids_stack[id_to_add] = results[suite_title_from_junit][ct]
         else:
-            logger.info("Title found: {0}".format(ct))
+            logger.info("Case title found: {0}".format(ct))
             case_id_from_title = case_title_and_id[ct]
             cases_ids.append(case_id_from_title)
             req_body = {"suite_id": suite_id,
                         "custom_field": {
                                 "14": TEST_SOURCE,
-                                "15": "{0}/{1}".format(suite_title_from_qase, ct)
+                                "15": "{0}/{1}".format(suite_title_from_junit, ct)
                             },
                         }
             logger.debug("Refresh test case id {0} "
                          "to ensure it is in the correct Suite {1}".
                          format(case_id_from_title, suite_id))
             qase_update_case(qase_automation_project, req_body, case_id_from_title)
-            has_skipped_or_error = results[suite_title_from_qase][ct]
+            has_skipped_or_error = results[suite_title_from_junit][ct]
             if has_skipped_or_error:
                 logger.info("A description or skip value exist for test case")
                 if has_skipped_or_error == "skipped_test":
@@ -276,12 +285,12 @@ def create_testcases_under_suite(all_cases_under_suite, suite_title_from_qase, s
                     skipped_cases_ids.append(case_id_from_title)
                 else:
                     logger.info("Failed ID: {0} Title: {1}".format(case_id_from_title, ct))
-                    failed_cases_ids_stack[case_id_from_title] = results[suite_title_from_qase][ct]
-                    if results[suite_title_from_qase][ct] not in case_descriptions:
+                    failed_cases_ids_stack[case_id_from_title] = results[suite_title_from_junit][ct]
+                    if results[suite_title_from_junit][ct] not in case_descriptions:
                         logger.debug("A description was found that is not in Qase "
                                      "in a test case with ID: {0} Title: {1}".
                                      format(case_id_from_title, ct))
-                        req_body = {'description': results[suite_title_from_qase][ct]}
+                        req_body = {'description': results[suite_title_from_junit][ct]}
                         qase_update_case(qase_automation_project, req_body, case_id_from_title)
             else:
                 logger.info("There isn't a failure message from junit data, clear the description in qase")
@@ -289,14 +298,18 @@ def create_testcases_under_suite(all_cases_under_suite, suite_title_from_qase, s
                 qase_update_case(qase_automation_project, req_body, case_id_from_title)
 
 
-check_global_suite = qase_suites(qase_automation_project)
+global_suite_id_name = "Global UI"
+global_suite_id = None
+check_global_suite = qase_suites(qase_automation_project, search_string=global_suite_id_name)
 logger.info(check_global_suite.text)
 logger.info(check_global_suite.status_code)
 suite_objects = check_global_suite.json()["result"]["entities"]
-suite_titles = [subs["title"] for subs in suite_objects]
-suite_title_and_id = {subs["title"]: subs['id'] for subs in suite_objects}
-global_suite_id_name = "Global UI"
-global_suite_id = None
+suite_objects = sorted(suite_objects, key=lambda x: x['id'], reverse=True)
+suite_titles = [subs["title"] for subs in suite_objects
+                if subs["title"] == global_suite_id_name]
+suite_title_and_id = {subs["title"]: subs['id']
+                      for subs in suite_objects
+                      if subs["title"] == global_suite_id_name}
 
 if global_suite_id_name not in suite_titles:
     suite_post_data = {"title": global_suite_id_name}
@@ -308,39 +321,32 @@ else:
 logger.info("Suite ID: {0} Name: {1}".format(global_suite_id, global_suite_id_name))
 
 for k in list(results.keys()):
-    suite = qase_suites(qase_automation_project)
+    suite = qase_suites(qase_automation_project, search_string=k)
     suite_result = suite.json()
     if suite_result["status"]:
         suite_entities = suite_result["result"]["entities"]
     else:
-        logger.error("No suites were found")
-        break
-
-    titles = [subs["title"] for subs in suite_entities]
-    suiteid = None
-    if k not in titles:
+        logger.error("There was an error retrieving suites")
+        sys.exit(1)
+    suite_entities = [suite_ent for suite_ent in suite_entities
+                       if suite_ent["title"] == k and suite_ent["cases_count"] > 0]
+    logger.info(suite_entities)
+    if len(suite_entities) < 1:
         suite_data = {"title": k, "parent_id": global_suite_id}
         r = qase_add_suite(qase_automation_project, suite_data)
         suiteid = r.json()["result"]["id"]
-        logger.debug("Search query of suite not found:  entity = \"{0}\" and project = \"{1}\" and suite = \"{2}\"".
-                     format("case", qase_automation_project, k))
-        cases = qase_search_qql({"query": " entity = \"{0}\" and project = \"{1}\" and suite = \"{2}\"".
-                                format("case", qase_automation_project, k)})
-        cases_qql_results = cases.json()
-        create_testcases_under_suite(cases_qql_results, k, suiteid)
+        create_testcases_under_suite([], k, suiteid)
     else:
-        logger.debug("Search query of suite found:  entity = \"{0}\" and project = \"{1}\" and suite = \"{2}\"".
-                     format("case", qase_automation_project, k))
-        cases_qql = qase_search_qql({"query": " entity = \"{0}\" and project = \"{1}\" and suite = \"{2}\"".
-                                    format("case", qase_automation_project, k)})
-        for st in suite_entities:
-            if st["title"] == k:
-                suiteid = st["id"]
-                break
-
-        cases_qql_results = cases_qql.json()
-        logger.debug(cases_qql_results)
-        create_testcases_under_suite(cases_qql_results, k, suiteid)
+        suiteid = None
+        suite_entities = sorted(suite_entities, key=lambda x: x['id'])
+        if suite_entities[0]:
+            suiteid = suite_entities[0]["id"]
+        if suiteid == None:
+            logger.error("There was an error getting a suite id")
+            sys.exit(1)
+        suite_cases = qase_cases(qase_automation_project, suite_id=suiteid)
+        cases_entities = suite_cases.json()["result"]["entities"]
+        create_testcases_under_suite(cases_entities, k, suiteid)
 
 formatted_date = "{0}".format(datetime.datetime.now().strftime("%m-%d-%y/%H-%M-%S"))
 

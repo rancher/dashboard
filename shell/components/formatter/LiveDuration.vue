@@ -57,7 +57,7 @@ export default {
       const now = day();
 
       from = from || now;
-      const seconds = Math.abs(value.diff(now, 'seconds'));
+      const seconds = Math.abs(value.diff(from, 'seconds'));
 
       return elapsedTime(seconds);
     },

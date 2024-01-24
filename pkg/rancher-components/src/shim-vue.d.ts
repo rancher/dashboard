@@ -9,10 +9,13 @@ declare module '*.vue' {
 // https://v2.vuejs.org/v2/guide/typescript.html?redirect=true#Augmenting-Types-for-Use-with-Plugins
 declare module 'vue/types/vue' {
   interface Vue {
-      /**
-       * Lookup a given string with the given arguments
-       * @param raw if set, do not do HTML escaping.
-       */
-      t: (key: string, args?: Record<string, any>, raw?: boolean) => string,
+    /**
+     * Lookup a given string with the given arguments
+     * @param raw if set, do not do HTML escaping.
+     */
+    t: {
+      (key: string, args?: Record<string, any>, raw?: boolean): string;
+      (options: { k: string; raw?: boolean; tag?: string | Record<string, any>; escapehtml?: boolean }): string;
+    }
   }
 }

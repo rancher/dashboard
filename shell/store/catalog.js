@@ -354,7 +354,7 @@ export const actions = {
 
     // As per comment above, when there are no clusters this will be management. Store it such that it can be used for those cases
     commit('setInStore', inStore);
-    hash.cluster = hash.cluster.filter((repo) => !(repo?.metadata?.annotations?.[CATALOG_ANNOTATIONS.HIDDEN_REPO] === 'true'));
+    hash.cluster = hash.cluster?.filter((repo) => !(repo?.metadata?.annotations?.[CATALOG_ANNOTATIONS.HIDDEN_REPO] === 'true'));
 
     commit('setRepos', hash);
 

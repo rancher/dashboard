@@ -26,6 +26,7 @@ import { HARVESTER_NAME as HARVESTER } from '@shell/config/features';
 import { allHash } from '@shell/utils/promise';
 import { isHarvesterSatisfiesVersion } from '@shell/utils/cluster';
 import { Port } from '@shell/utils/validators/formRules';
+import { _CLONE } from '@shell/config/query-params';
 
 const SESSION_AFFINITY_ACTION_VALUES = {
   NONE:     'None',
@@ -72,6 +73,17 @@ export default {
           ports:           [],
           sessionAffinity: 'None',
         });
+      }
+    }
+
+    // Set clusterIP to an empty string, if it exists and the value is not None when clone a service
+    // Remove clusterIPs if it exists when clone a service
+    if (this.realMode === _CLONE) {
+      if (this.value?.spec?.clusterIP && this.value?.spec?.clusterIP !== 'None') {
+        this.value.spec.clusterIP = '';
+      }
+      if (this.value?.spec?.clusterIPs) {
+        this.$delete(this.value.spec, 'clusterIPs');
       }
     }
 

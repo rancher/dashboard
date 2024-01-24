@@ -1,7 +1,7 @@
 <script lang="ts">
-import Vue from 'vue';
+import { defineComponent, PropType } from 'vue';
 
-export default Vue.extend({
+export default defineComponent({
   name:  'Card',
   props: {
     /**
@@ -22,7 +22,7 @@ export default Vue.extend({
      * The function to invoke when the default action button is clicked.
      */
     buttonAction: {
-      type:    Function,
+      type:    Function as PropType<(event: MouseEvent) => void>,
       default: (): void => { }
     },
     /**

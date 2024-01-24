@@ -87,7 +87,7 @@ export default class Namespace extends SteveModel {
       return true;
     }
 
-    if ( this.metadata.name.endsWith('-system') ) {
+    if ( this.metadata.name.startsWith('cattle-') && this.metadata.name.endsWith('-system') ) {
       return true;
     }
 

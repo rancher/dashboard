@@ -1,6 +1,7 @@
 import RolesPo from '@/cypress/e2e/po/pages/users-and-auth/roles.po';
 import UsersPo from '@/cypress/e2e/po/pages/users-and-auth/users.po';
 import PromptRemove from '@/cypress/e2e/po/prompts/promptRemove.po';
+import BurgerMenuPo from '@/cypress/e2e/po/side-bars/burger-side-menu.po';
 import * as path from 'path';
 
 const roles = new RolesPo('_');
@@ -12,7 +13,7 @@ const runPrefix = `e2e-test-${ runTimestamp }`;
 const downloadsFolder = Cypress.config('downloadsFolder');
 const globalRoleName = `${ runPrefix }-my-global-role`;
 
-describe('Roles', { tags: '@adminUser' }, () => {
+describe('Roles', { tags: ['@usersAndAuths', '@adminUser'] }, () => {
   beforeEach(() => {
     cy.login();
     cy.viewport(1280, 720);
@@ -24,6 +25,10 @@ describe('Roles', { tags: '@adminUser' }, () => {
 
     roles.goTo(undefined, fragment);
     roles.waitForPage(undefined, fragment);
+
+    // check if burguer menu nav is highlighted correctly for users & auth
+    BurgerMenuPo.checkIfMenuItemLinkIsHighlighted('Users & Authentication');
+
     roles.listCreate('Create Global Role');
 
     const createGlobalRole = roles.createGlobal();

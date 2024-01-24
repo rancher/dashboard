@@ -107,6 +107,10 @@ export default class FleetCluster extends SteveModel {
     return this.metadata?.labels?.[FLEET_LABELS.CLUSTER_DISPLAY_NAME] || this.metadata?.name || this.id;
   }
 
+  get name() {
+    return this.metadata?.name || this.metadata?.labels?.[FLEET_LABELS.CLUSTER_NAME];
+  }
+
   get state() {
     if (this.spec?.paused === true) {
       return 'paused';

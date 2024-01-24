@@ -260,6 +260,8 @@ export default {
         v-model="value"
         name-key="_name"
         description-key="description"
+        name-label="cluster.credential.name.label"
+        name-placeholder="cluster.credential.name.placeholder"
         :mode="mode"
         :namespaced="false"
       />

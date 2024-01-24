@@ -17,9 +17,14 @@ function reply(err, code) {
   }
 }
 
-export default {
-  layout: 'unauthenticated',
+function isSaml($route) {
+  const { query } = $route;
+  const configQuery = get(query, 'config');
 
+  return samlProviders.includes(configQuery);
+}
+
+export default {
   async fetch({ store, route, redirect }) {
     const code = route.query[GITHUB_CODE];
     const stateStr = route.query[GITHUB_NONCE];
@@ -43,9 +48,14 @@ export default {
     try {
       parsed = JSON.parse(base64Decode((stateStr)));
     } catch (err) {
+      if (isSaml(route)) {
+        // This is an ok failure. SAML has no state string so a failure is fine (see similar check in mounted).
+        // This whole file could be re-written with that in mind, but this change keeps things simple and fixes a breaking addition
+        return;
+      }
       const out = store.getters['i18n/t'](`login.error`);
 
-      console.error('Failed to parse nonce'); // eslint-disable-line no-console
+      console.error('Failed to parse nonce', stateStr, err); // eslint-disable-line no-console
 
       redirect(`/auth/login?err=${ escape(out) }`);
 
@@ -117,12 +127,8 @@ export default {
         window.close();
       }
     } else {
-      const { query } = this.$route;
-
       if ( window.opener ) {
-        const configQuery = get(query, 'config');
-
-        if ( samlProviders.includes(configQuery) ) {
+        if (isSaml(this.$route)) {
           if ( window.opener.window.onAuthTest ) {
             reply(null, null);
           } else {

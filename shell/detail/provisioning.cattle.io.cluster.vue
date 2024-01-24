@@ -775,10 +775,10 @@ export default {
                   v-clean-html="t('resourceTable.groupLabel.notInANodePool')"
                 />
                 <div
-                  v-if="group.ref && group.ref.template"
+                  v-if="group.ref && group.ref.providerSummary"
                   class="description text-muted text-small"
                 >
-                  {{ group.ref.providerDisplay }} &ndash;  {{ group.ref.providerLocation }} / {{ group.ref.providerSize }} ({{ group.ref.providerName }})
+                  {{ group.ref.providerSummary }}
                 </div>
               </div>
               <div
@@ -880,7 +880,7 @@ export default {
                 <template v-if="group.ref.hasLink('update')">
                   <button
                     v-clean-tooltip="t('node.list.scaleDown')"
-                    :disabled="group.ref.spec.quantity < 2"
+                    :disabled="!group.ref.canScaleDownPool()"
                     type="button"
                     class="btn btn-sm role-secondary"
                     @click="toggleScaleDownModal($event, group.ref)"
@@ -1006,6 +1006,7 @@ export default {
       >
         <SortableTable
           class="snapshots"
+          :data-testid="'cluster-snapshots-list'"
           :headers="value.isRke1 ? rke1SnapshotHeaders : rke2SnapshotHeaders"
           default-sort-by="age"
           :table-actions="value.isRke1"

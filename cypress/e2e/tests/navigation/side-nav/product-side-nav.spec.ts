@@ -3,7 +3,7 @@ import BurgerMenuPo from '@/cypress/e2e/po/side-bars/burger-side-menu.po';
 import ProductNavPo from '@/cypress/e2e/po/side-bars/product-side-nav.po';
 
 Cypress.config();
-describe('Side navigation: Cluster ', { tags: '@adminUser' }, () => {
+describe('Side navigation: Cluster ', { tags: ['@navigation', '@adminUser'] }, () => {
   beforeEach(() => {
     cy.login();
 
@@ -51,7 +51,7 @@ describe('Side navigation: Cluster ', { tags: '@adminUser' }, () => {
     productNavPo.groups().not('.expanded').eq(0)
       .as('closedGroup');
     cy.get('@closedGroup').should('be.visible').click();
-    cy.get('@closedGroup').find('.nuxt-link-active').should('have.length.gt', 0);
+    cy.get('@closedGroup').find('.router-link-active').should('have.length.gt', 0);
   });
 
   // TODO: #5966: Verify cause of race condition issue making navigation link not trigger
