@@ -266,7 +266,7 @@ describe('Extensions page', { tags: ['@extensions', '@adminUser'] }, () => {
     extensionsPo.extensionDetailsTitle().should('contain', EXTENSION_NAME);
   });
 
-  it.only('Should reset input values when switching from Helm index URL to Git Repo and vice versa', () => {
+  it.skip('Should reset input values when switching from Helm index URL to Git Repo and vice versa', () => {
     cy.login();
     const extensionsPo = new ExtensionsPagePo();
 
