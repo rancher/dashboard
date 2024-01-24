@@ -1,7 +1,7 @@
 import ReposListPagePo from '@/cypress/e2e/po/pages/repositories.po';
 import AppClusterRepoEditPo from '@/cypress/e2e/po/edit/catalog.cattle.io.clusterrepo.po';
 
-describe('Apps/Repositories', { tags: ['@explorer', '@adminUser', '@standardUser'] }, () => {
+describe('Apps/Repositories', { tags: ['@explorer', '@adminUser'] }, () => {
   it('Should reset input values when switching from Helm index URL to Git Repo and vice versa', () => {
     cy.login();
 
