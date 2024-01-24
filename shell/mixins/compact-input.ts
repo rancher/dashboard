@@ -1,7 +1,6 @@
-// @ts-nocheck
-import Vue from 'vue';
+import { createApp } from 'vue';
 
-export default Vue.extend({
+export default createApp({
   props: {
     compact: {
       type:    Boolean,
