@@ -23,7 +23,7 @@
     "cy:run": "cypress run",
     "cy:open": "cypress open",
     "e2e:pre": "NODE_ENV=dev yarn build",
-    "e2e:run": "NODE_ENV=dev START_SERVER_AND_TEST_INSECURE=1 CATTLE_BOOTSTRAP_PASSWORD=suse123!@#12 start-server-and-test start  https://localhost:8005/ cy:run",
+    "e2e:run": "NODE_ENV=dev START_SERVER_AND_TEST_INSECURE=1 start-server-and-test start  https://localhost:8005/ cy:run",
     "e2e:dev": "start-server-and-test dev https://localhost:8005 cy:open"
   },
   "dependencies": {
