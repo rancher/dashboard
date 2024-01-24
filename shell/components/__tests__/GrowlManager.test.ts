@@ -1,8 +1,8 @@
-import { shallowMount, createLocalVue } from '@vue/test-utils';
+import { shallowMount } from '@vue/test-utils';
 import GrowlManager from '@shell/components/GrowlManager.vue';
-import Vuex from 'vuex';
 import { ExtendedVue, Vue } from 'vue/types/vue';
 import { DefaultProps } from 'vue/types/options';
+import { createStore } from 'vuex';
 
 const stackMock = [
   {
@@ -104,11 +104,7 @@ describe('component: GrowlManager', () => {
   });
 
   it('growl should auto remove itself after set interval of 1 second', async() => {
-    const localVue = createLocalVue();
-
-    localVue.use(Vuex);
-
-    const store = new Vuex.Store({
+    const store = createStore({
       modules: {
         growl: {
           namespaced: true,
@@ -126,10 +122,7 @@ describe('component: GrowlManager', () => {
 
     jest.useFakeTimers();
 
-    const wrapper = shallowMount(GrowlManager as unknown as ExtendedVue<Vue, {}, {}, {}, DefaultProps>, {
-      store,
-      localVue
-    });
+    const wrapper = shallowMount(GrowlManager as unknown as ExtendedVue<Vue, {}, {}, {}, DefaultProps>, { global: { plugins: [store] } });
 
     const spyCloseExpired = jest.spyOn(wrapper.vm, 'closeExpired');
 

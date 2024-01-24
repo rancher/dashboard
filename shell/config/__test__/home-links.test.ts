@@ -1,7 +1,6 @@
-import Vuex from 'vuex';
-import { createLocalVue } from '@vue/test-utils';
 import { ensureSupportLink } from '@shell/config/home-links.js';
 import { getters, state, mutations } from '@shell/store/i18n.js';
+import { createStore } from 'vuex';
 
 jest.mock('@shell/assets/translations/en-us.yaml', () => ({
   locale: {
@@ -12,11 +11,7 @@ jest.mock('@shell/assets/translations/en-us.yaml', () => ({
 }));
 
 describe('fx: ensureSupportLink', () => {
-  const localVue = createLocalVue();
-
-  localVue.use(Vuex);
-
-  const store = new Vuex.Store({
+  const store = createStore({
     state,
     getters: {
       'i18n/selectedLocaleLabel': getters.selectedLocaleLabel,

@@ -1,5 +1,5 @@
-import { createLocalVue } from '@vue/test-utils';
-import Vuex from 'vuex';
+import { shallowMount } from '@vue/test-utils';
+import { createStore } from 'vuex';
 import ChartMixin from '@shell/mixins/chart';
 import { OPA_GATE_KEEPER_ID } from '@shell/pages/c/_cluster/gatekeeper/index.vue';
 
@@ -18,14 +18,9 @@ describe('chartMixin', () => {
     ],
   };
 
-  const localVue = createLocalVue();
-
-  localVue.use(Vuex);
-  localVue.mixin(ChartMixin);
-
   it.each(testCases.opa)(
     'should add OPA deprecation warning properly', (chartId, expected) => {
-      const store = new Vuex.Store({
+      const store = createStore({
         getters: {
           currentCluster: () => {},
           isRancher:      () => true,
@@ -38,9 +33,8 @@ describe('chartMixin', () => {
           'i18n/t': () => jest.fn()
         }
       });
-
-      const vm = localVue.extend({});
-      const instance = new vm({ store });
+      const Component = { render() {} };
+      const instance = shallowMount(Component, { global: { plugins: [store], mixins: [ChartMixin] } }) as any;
 
       instance.$route = { query: { chart: 'chart_name' } };
 
@@ -55,7 +49,7 @@ describe('chartMixin', () => {
       const id = 'cattle-fleet-local-system/fleet-agent-local';
       const data = isEdit ? { existing: { id, upgradeAvailable } } : undefined;
 
-      const store = new Vuex.Store({
+      const store = createStore({
         getters: {
           currentCluster: () => {},
           isRancher:      () => true,
@@ -69,8 +63,8 @@ describe('chartMixin', () => {
         }
       });
 
-      const vm = localVue.extend({});
-      const instance = new vm({ store, data });
+      const Component = { render() {} };
+      const instance = shallowMount(Component, { global: { plugins: [store], mixins: [ChartMixin] } }, data) as any;
 
       instance.$route = { query: { chart: 'chart_name' } };
 

@@ -1,4 +1,4 @@
-import { createLocalVue, shallowMount } from '@vue/test-utils';
+import { shallowMount } from '@vue/test-utils';
 import Workload from '@shell/edit/workload/index.vue';
 
 jest.mock('@shell/models/secret', () => ({ onmessage: jest.fn() }));
@@ -52,10 +52,8 @@ describe('component: Workload', () => {
         // tabWeightMap:     jest.fn(),
       }
     };
-    const localVue = createLocalVue();
     const MockedWorkload = { ...Workload, mixins: [mockedValidationMixin, mockedCREMixin, mockedWorkloadMixin] };
     const wrapper = shallowMount(MockedWorkload, {
-      localVue,
       propsData: {
         value:         { metadata: {}, spec: { template: {} } },
         params:        {},
