@@ -1,4 +1,3 @@
-import Vue from 'vue';
 import fetch from 'unfetch';
 import { extendApp } from './app-extended.js';
 import fetchMixin from '@shell/mixins/fetch.client.js';
@@ -6,25 +5,28 @@ import { loadDebugger, mountApp } from '@shell/initialize/entry-helpers';
 import { installDirectives } from '@shell/initialize/install-directives.js';
 import { installComponents } from '@shell/initialize/install-components.js';
 import { installPlugins } from '@shell/initialize/install-plugins.js';
+import { createApp } from 'vue';
+
+const vueApp = createApp({});
 
 // Fetch mixin
-Vue.mixin(fetchMixin);
+vueApp.mixin(fetchMixin);
 
 // Bulk install components
-installComponents(Vue);
+installComponents(vueApp);
 
 // Bulk install directives
-installDirectives(Vue);
+installDirectives(vueApp);
 
 // Bulk install Plugins. Note: Some are added within the App itself
-installPlugins(Vue);
+installPlugins(vueApp);
 
 if (!global.fetch) {
   global.fetch = fetch;
 }
 
-loadDebugger(Vue);
+loadDebugger(vueApp);
 const errorHandler = Vue.config.errorHandler || console.error; // eslint-disable-line no-console
 
 // Create and mount App
-extendApp(Vue).then((appPartials) => mountApp(appPartials, Vue)).catch(errorHandler); // eslint-disable-line no-undef
+extendApp(vueApp).then((appPartials) => mountApp(appPartials, vueApp)).catch(errorHandler); // eslint-disable-line no-undef
