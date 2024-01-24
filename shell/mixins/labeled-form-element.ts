@@ -1,5 +1,4 @@
-// @ts-nocheck
-import Vue from 'vue';
+import { createApp } from 'vue';
 import { _EDIT, _VIEW } from '@shell/config/query-params';
 import { getWidth, setWidth } from '@shell/utils/width';
 
@@ -9,7 +8,7 @@ interface LabeledFormElement {
   blurred: number | null;
 }
 
-export default Vue.extend({
+export default createApp({
   inheritAttrs: false,
 
   props: {
