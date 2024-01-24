@@ -1,20 +1,19 @@
-import Vue from 'vue';
-import Router from 'vue-router';
 import Routes from '@shell/config/router/routes';
+import { createRouter, createWebHistory } from 'vue-router';
 
-Vue.use(Router);
-
+// TODO: #9539: Add import of this router to app
 export const routerOptions = {
-  mode:     'history',
-  // Note: router base comes from the ROUTER_BASE env var
-  base:     process.env.routerBase || '/',
+  history: {
+    ...createWebHistory(),
+    // Note: router base comes from the ROUTER_BASE env var
+    base: process.env.routerBase || '/'
+  },
   routes:   Routes,
-  fallback: false
 };
 
 export function extendRouter(config) {
   const base = (config._app && config._app.basePath) || routerOptions.base;
-  const router = new Router({ ...routerOptions, base });
+  const router = createRouter({ ...routerOptions, base });
 
   return router;
 }

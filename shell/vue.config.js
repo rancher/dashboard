@@ -223,7 +223,7 @@ const getDevServerConfig = (proxy) => {
     } : null),
     port:   (devPorts ? 8005 : 80),
     host:   '0.0.0.0',
-    // TODO: Verify after migration completed
+    // TODO: #9539: Verify after migration completed
     client: { webSocketURL: `https://0.0.0.0:${ devPorts ? 8005 : 80 }` },
     proxy,
     onBeforeSetupMiddleware({ app, server }) {
@@ -242,7 +242,7 @@ const getDevServerConfig = (proxy) => {
         console.log('Installing HAR file middleware'); // eslint-disable-line no-console
         app.use(har.harProxy(harData, process.env.HAR_DIR));
 
-        // TODO: Verify after migration completed
+        // TODO: #9539: Verify after migration completed
         server?.websocketProxies.push({
           upgrade(req, socket, head) {
             const responseHeaders = ['HTTP/1.1 101 Web Socket Protocol Handshake', 'Upgrade: WebSocket', 'Connection: Upgrade'];
