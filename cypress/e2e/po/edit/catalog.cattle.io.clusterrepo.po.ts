@@ -56,8 +56,8 @@ export default class AppClusterRepoEditPo extends PagePo {
     return this.self().get('[data-testid="clusterrepo-helm-url-input"]').invoke('val');
   }
 
-  enterHelmIndexURL(name: string) {
-    return new LabeledInputPo('[data-testid="clusterrepo-helm-url-input"]').set(name);
+  enterHelmIndexURL(url: string) {
+    return new LabeledInputPo('[data-testid="clusterrepo-helm-url-input"]').set(url);
   }
 
   create() {
