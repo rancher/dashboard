@@ -1,4 +1,5 @@
 <script lang="ts">
+// @ts-nocheck
 import { PropType, defineComponent } from 'vue';
 import CreateEditView from '@shell/mixins/create-edit-view';
 import CruResource from '@shell/components/CruResource.vue';

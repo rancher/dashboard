@@ -2,7 +2,7 @@
 // This file was generated during Nuxt migration
 
 import Vue from 'vue';
-import { createRouter } from '../config/router.js';
+import { extendRouter } from '../config/router.js';
 import NuxtChild from '../components/nuxt/nuxt-child.js';
 import App from './App.js';
 import { setContext, getLocation, getRouteData, normalizeError } from '../utils/nuxt';
@@ -39,7 +39,7 @@ Vue.component(NuxtChild.name, NuxtChild);
 Vue.component('NChild', NuxtChild);
 
 async function createApp(config = {}) {
-  const router = await createRouter(config);
+  const router = await extendRouter(config);
 
   const store = createStore();
 

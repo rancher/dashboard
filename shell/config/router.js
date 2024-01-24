@@ -1,11 +1,13 @@
-import Vue from 'vue';
-import Router from 'vue-router';
+import { createApp } from 'vue';
+import { createRouter } from 'vue-router';
 import { normalizeURL } from 'ufo';
 import { interopDefault } from '../utils/nuxt';
 
-const emptyFn = () => {};
+const emptyFn = () => { };
+const app = createApp({});
+const router = createRouter({});
 
-Vue.use(Router);
+app.use(router);
 
 export const routerOptions = {
   mode: 'history',
@@ -398,9 +400,9 @@ export const routerOptions = {
   fallback: false
 };
 
-export function createRouter(config) {
+export function extendRouter(config) {
   const base = (config._app && config._app.basePath) || routerOptions.base;
-  const router = new Router({ ...routerOptions, base });
+  const router = createRouter({ ...routerOptions, base });
 
   // TODO: remove in Nuxt 3
   const originalPush = router.push;
