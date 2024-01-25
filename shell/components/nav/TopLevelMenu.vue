@@ -498,7 +498,6 @@ export default {
                     <ClusterIconMenu
                       v-tooltip="getTooltipConfig(c.label)"
                       :cluster="c"
-                      :isSelected="isSelectedCluster(c)"
                       class="rancher-provider-icon"
                     />
                     <div class="cluster-name">
@@ -515,7 +514,6 @@ export default {
                     <ClusterIconMenu
                       v-tooltip="getTooltipConfig(c.label)"
                       :cluster="c"
-                      :isSelected="isSelectedCluster(c)"
                       class="rancher-provider-icon"
                     />
                     <div class="cluster-name">{{ c.label }}</div>
@@ -550,7 +548,6 @@ export default {
                     <ClusterIconMenu
                       v-tooltip="getTooltipConfig(c.label)"
                       :cluster="c"
-                      :isSelected="isSelectedCluster(c)"
                       class="rancher-provider-icon"
                     />
                     <div class="cluster-name">

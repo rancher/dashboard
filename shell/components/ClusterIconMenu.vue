@@ -7,11 +7,6 @@ export default {
       type:     Object,
       required: true,
     },
-    isSelected: {
-      type:     Boolean,
-      required: false,
-      default:  false,
-    },
   },
   computed: {
     isEnabled() {
@@ -50,7 +45,7 @@ export default {
   >
     <div
       class="cluster-badge-logo"
-      :class="{ 'disabled': !isEnabled, 'active-cluster': isSelected, 'custom-color': hasCustomColor }"
+      :class="{ 'disabled': !isEnabled, 'custom-color': hasCustomColor }"
     >
       <span
         class="cluster-badge-logo-text"
@@ -142,11 +137,6 @@ export default {
     border-radius: 5px;
     font-size: 12px;
     text-transform: uppercase;
-
-    // Disables the border when the cluster is selected
-    &.active-cluster {
-      border: 1px solid transparent;
-    }
 
     &.custom-color {
       border-bottom: 4px solid transparent;
