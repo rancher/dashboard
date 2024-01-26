@@ -117,3 +117,6 @@ scripts/standalone/node
 # yarn.lock files
 docusaurus/yarn.lock
 storybook/yarn.lock
+
+# Migration log
+stats.json
