@@ -2,13 +2,18 @@ import ReposListPagePo from '@/cypress/e2e/po/pages/repositories.po';
 import AppClusterRepoEditPo from '@/cypress/e2e/po/edit/catalog.cattle.io.clusterrepo.po';
 
 describe('Apps/Repositories', { tags: ['@explorer', '@adminUser'] }, () => {
-  it('Should reset input values when switching from Helm index URL to Git Repo and vice versa', () => {
+  before(() => {
     cy.login();
 
     const appRepoList = new ReposListPagePo('local', 'apps');
 
     appRepoList.goTo();
     appRepoList.waitForPage();
+  });
+
+  it('Should reset input values when switching from Helm index URL to Git Repo and vice versa', () => {
+    const appRepoList = new ReposListPagePo('local', 'apps');
+
     // create a new cluster repo
     appRepoList.create();
 

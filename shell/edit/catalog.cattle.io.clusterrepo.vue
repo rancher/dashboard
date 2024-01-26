@@ -1,4 +1,5 @@
 <script>
+import Vue from 'vue';
 import CreateEditView from '@shell/mixins/create-edit-view';
 import Footer from '@shell/components/form/Footer';
 import { LabeledInput } from '@components/Form/LabeledInput';
@@ -7,7 +8,6 @@ import NameNsDescription from '@shell/components/form/NameNsDescription';
 import Labels from '@shell/components/form/Labels';
 import SelectOrCreateAuthSecret from '@shell/components/form/SelectOrCreateAuthSecret';
 import { NAMESPACE } from '@shell/config/types';
-import { set } from '@shell/utils/object';
 
 export default {
   name: 'CruCatalogRepo',
@@ -45,12 +45,12 @@ export default {
     onTargetChange(isGit) {
       // reset entered value when switching options
       if (isGit) {
-        set(this.value, 'spec.url', '');
+        Vue.set(this.value.spec, 'url', '');
       } else {
-        set(this.value, 'spec.gitRepo', '');
+        Vue.set(this.value.spec, 'gitRepo', '');
 
         if (!!this.value.spec.gitBranch) {
-          set(this.value, 'spec.gitBranch', '');
+          Vue.set(this.value.spec, 'gitBranch', '');
         }
       }
     }
