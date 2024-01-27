@@ -1,5 +1,5 @@
 import PagePo from '@/cypress/e2e/po/pages/page.po';
-import CloudCredentialsCreateEditPo from '@/cypress/e2e/po/edit/cloud-credentials.po';
+import CloudCredentialsCreateEditPo from '@/cypress/e2e/po/edit/cloud-credentials-amazon.po';
 import CloudCredentialsListPo from '@/cypress/e2e/po/lists/cloud-credentials-list.po';
 import ProductNavPo from '@/cypress/e2e/po/side-bars/product-side-nav.po';
 import BurgerMenuPo from '@/cypress/e2e/po/side-bars/burger-side-menu.po';
