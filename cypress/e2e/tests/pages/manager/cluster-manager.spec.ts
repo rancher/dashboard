@@ -332,7 +332,7 @@ describe('Cluster Manager', { testIsolation: 'off', tags: ['@manager', '@adminUs
     });
   });
 
-  describe.only('Imported', () => {
+  describe('Imported', () => {
     const importClusterPage = new ClusterManagerImportGenericPagePo('local');
 
     describe('Generic', () => {
