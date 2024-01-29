@@ -1,27 +1,21 @@
 <script lang="ts">
-import { defineComponent } from 'vue';
+import Vue, { VueConstructor } from 'vue';
+import CompactInput from '@shell/mixins/compact-input';
+import LabeledFormElement from '@shell/mixins/labeled-form-element';
 import TextAreaAutoGrow from '@components/Form/TextArea/TextAreaAutoGrow.vue';
 import LabeledTooltip from '@components/LabeledTooltip/LabeledTooltip.vue';
 import { escapeHtml } from '@shell/utils/string';
 import cronstrue from 'cronstrue';
 import { isValidCron } from 'cron-validator';
 import { debounce } from 'lodash';
-import { useLabeledFormElement, labeledFormElementProps } from '@shell/composables/useLabeledFormElement';
-import { useCompactInput } from '@shell/composables/useCompactInput';
 
-declare module 'vue/types/vue' {
-  interface Vue {
-    onInput: (event: Event) => void | ((event: Event) => void);
-  }
-}
-
-export default defineComponent({
+export default (
+  Vue as VueConstructor<Vue & InstanceType<typeof LabeledFormElement> & InstanceType<typeof CompactInput>>
+).extend({
   components: { LabeledTooltip, TextAreaAutoGrow },
-
-  inheritAttrs: false,
+  mixins:     [LabeledFormElement, CompactInput],
 
   props: {
-    ...labeledFormElementProps,
     /**
      * The type of the Labeled Input.
      * @values text, cron, multiline, multiline-password
@@ -99,36 +93,21 @@ export default defineComponent({
     },
   },
 
-  setup(props, { emit }) {
-    const {
-      focused,
-      onFocusLabeled,
-      onBlurLabeled,
-      isDisabled,
-      validationMessage,
-      requiredField
-    } = useLabeledFormElement(props, emit);
-    const { isCompact } = useCompactInput(props);
-
-    return {
-      focused,
-      onFocusLabeled,
-      onBlurLabeled,
-      isDisabled,
-      validationMessage,
-      requiredField,
-      isCompact,
-    };
-  },
-
   data() {
     return {
       updated:          false,
-      validationErrors: '',
+      validationErrors: ''
     };
   },
 
   computed: {
+    /**
+     * Determines if the Labeled Input @input event should be debounced.
+     */
+    onInput(): ((value: string) => void) | void {
+      return this.delay ? debounce(this.delayInput, this.delay) : this.delayInput;
+    },
+
     /**
      * Determines if the Labeled Input should display a label.
      */
@@ -143,7 +122,7 @@ export default defineComponent({
       return !!this.tooltip || !!this.tooltipKey;
     },
 
-    tooltipValue(): string | Record<string, unknown> | undefined {
+    tooltipValue(): string | undefined {
       if (this.hasTooltip) {
         return this.tooltipKey ? this.t(this.tooltipKey) : this.tooltip;
       }
@@ -165,7 +144,7 @@ export default defineComponent({
       if (this.type !== 'cron' || !this.value) {
         return;
       }
-      if (typeof this.value === 'string' && !isValidCron(this.value)) {
+      if (!isValidCron(this.value)) {
         return this.t('generic.invalidCron');
       }
       try {
@@ -194,20 +173,13 @@ export default defineComponent({
     /**
      * The max length for the Labeled Input.
      */
-    _maxlength(): number | undefined {
+    _maxlength(): number | null {
       if (this.type === 'text' && this.maxlength) {
         return this.maxlength;
       }
 
-      return undefined;
+      return null;
     },
-  },
-
-  created() {
-    /**
-     * Determines if the Labeled Input @input event should be debounced.
-    */
-    this.onInput = this.delay ? debounce(this.delayInput, this.delay) : this.delayInput;
   },
 
   methods: {
@@ -248,9 +220,7 @@ export default defineComponent({
      * NOTE: In multiline, TextAreaAutoGrow emits a string with the value
      * https://github.com/rancher/dashboard/issues/10249
      */
-    delayInput(val: string | Event): void {
-      const value = typeof val === 'string' ? val : (val?.target as HTMLInputElement)?.value;
-
+    delayInput(value: string): void {
       this.$emit('input', value);
     },
 
@@ -267,7 +237,7 @@ export default defineComponent({
      * event.
      * @see labeled-form-element.ts mixin for onBlurLabeled()
      */
-    onBlur(event: string | FocusEvent): void {
+    onBlur(event: string): void {
       this.$emit('blur', event);
       this.onBlurLabeled();
     },
@@ -319,7 +289,7 @@ export default defineComponent({
         :placeholder="_placeholder"
         autocapitalize="off"
         :class="{ conceal: type === 'multiline-password' }"
-        @input="onInput"
+        @input="onInput($event)"
         @focus="onFocus"
         @blur="onBlur"
       />
@@ -336,7 +306,7 @@ export default defineComponent({
         autocomplete="off"
         autocapitalize="off"
         :data-lpignore="ignorePasswordManagers"
-        @input="onInput"
+        @input="onInput($event.target.value)"
         @focus="onFocus"
         @blur="onBlur"
         @change="onChange"
