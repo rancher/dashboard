@@ -1,5 +1,5 @@
 <script lang="ts">
-import { defineComponent } from 'vue';
+import Vue from 'vue';
 import debounce from 'lodash/debounce';
 import { _EDIT, _VIEW } from '@shell/config/query-params';
 
@@ -10,7 +10,7 @@ declare module 'vue/types/vue' {
   }
 }
 
-export default defineComponent({
+export default Vue.extend({
   inheritAttrs: false,
 
   props: {
@@ -115,9 +115,7 @@ export default defineComponent({
     /**
      * Emits the input event and resizes the Text Area.
     */
-    onInput(event: Event): void {
-      const val = (event?.target as HTMLInputElement)?.value;
-
+    onInput(val: string): void {
       this.$emit('input', val);
       this.queueResize();
     },
@@ -165,7 +163,7 @@ export default defineComponent({
     v-bind="$attrs"
     :spellcheck="spellcheck"
     @paste="$emit('paste', $event)"
-    @input="onInput($event)"
+    @input="onInput($event.target.value)"
     @focus="$emit('focus', $event)"
     @blur="$emit('blur', $event)"
   />

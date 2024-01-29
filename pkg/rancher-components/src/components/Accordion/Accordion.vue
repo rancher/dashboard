@@ -1,8 +1,7 @@
 <script lang="ts">
-import { defineComponent } from 'vue';
+import Vue from 'vue';
 import { mapGetters } from 'vuex';
-
-export default defineComponent({
+export default Vue.extend({
   props: {
     title: {
       type:    String,

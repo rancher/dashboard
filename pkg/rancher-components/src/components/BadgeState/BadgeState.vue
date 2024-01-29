@@ -1,5 +1,5 @@
 <script lang="ts">
-import { PropType, defineComponent } from 'vue';
+import Vue, { PropType } from 'vue';
 
 interface Badge {
   stateBackground: string;
@@ -11,7 +11,7 @@ interface Badge {
  * <p>Represents a badge whose label and color is either taken from the value property or
  * from the label and color properties. The state property takes precedence.</p>
  */
-export default defineComponent({
+export default Vue.extend({
   props: {
     /**
      * A value having the properties `stateBackground` and `stateDisplay`
@@ -59,7 +59,7 @@ export default defineComponent({
 </script>
 
 <template>
-  <span :class="['badge-state', bg]">
+  <span :class="{'badge-state': true, [bg]: true}">
     <i
       v-if="icon"
       class="icon"
