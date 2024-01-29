@@ -1,4 +1,5 @@
 <script>
+import Vue from 'vue';
 import CreateEditView from '@shell/mixins/create-edit-view';
 import Footer from '@shell/components/form/Footer';
 import { LabeledInput } from '@components/Form/LabeledInput';
@@ -39,6 +40,21 @@ export default {
       return this.$store.getters['cluster/all'](NAMESPACE)[0]?.id;
     }
   },
+
+  methods: {
+    onTargetChange(isGit) {
+      // reset entered value when switching options
+      if (isGit) {
+        Vue.set(this.value.spec, 'url', '');
+      } else {
+        Vue.set(this.value.spec, 'gitRepo', '');
+
+        if (!!this.value.spec.gitBranch) {
+          Vue.set(this.value.spec, 'gitBranch', '');
+        }
+      }
+    }
+  },
 };
 </script>
 
@@ -60,6 +76,7 @@ export default {
           :labels="[t('catalog.repo.target.http'), t('catalog.repo.target.git')]"
           :mode="mode"
           data-testid="clusterrepo-radio-input"
+          @input="onTargetChange"
         />
       </div>
     </div>
@@ -97,6 +114,7 @@ export default {
       :label="t('catalog.repo.url.label')"
       :placeholder="t('catalog.repo.url.placeholder', null, true)"
       :mode="mode"
+      data-testid="clusterrepo-helm-url-input"
     />
 
     <SelectOrCreateAuthSecret

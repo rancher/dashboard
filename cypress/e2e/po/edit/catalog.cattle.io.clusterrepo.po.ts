@@ -36,12 +36,28 @@ export default class AppClusterRepoEditPo extends PagePo {
     return radioButton.set(index);
   }
 
+  gitRepoName() {
+    return this.self().get('[data-testid="clusterrepo-git-repo-input"]').invoke('val');
+  }
+
   enterGitRepoName(name: string) {
     return new LabeledInputPo('[data-testid="clusterrepo-git-repo-input"]').set(name);
   }
 
+  gitRepoBranchName() {
+    return this.self().get('[data-testid="clusterrepo-git-branch-input"]').invoke('val');
+  }
+
   enterGitBranchName(name: string) {
     return new LabeledInputPo('[data-testid="clusterrepo-git-branch-input"]').set(name);
+  }
+
+  helmIndexUrl() {
+    return this.self().get('[data-testid="clusterrepo-helm-url-input"]').invoke('val');
+  }
+
+  enterHelmIndexURL(url: string) {
+    return new LabeledInputPo('[data-testid="clusterrepo-helm-url-input"]').set(url);
   }
 
   create() {
