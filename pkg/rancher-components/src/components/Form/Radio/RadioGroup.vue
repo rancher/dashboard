@@ -1,15 +1,14 @@
 <script lang="ts">
-import { PropType, defineComponent } from 'vue';
+import Vue, { PropType } from 'vue';
 import { _VIEW } from '@shell/config/query-params';
 import RadioButton from '@components/Form/Radio/RadioButton.vue';
 
 interface Option {
   value: unknown,
-  label: string,
-  description?: string,
+  label: string
 }
 
-export default defineComponent({
+export default Vue.extend({
   components: { RadioButton },
   props:      {
     /**
