@@ -128,3 +128,14 @@ export const outboundTypeUserDefined = (ctx: any, labelKey: string, clusterPath:
     return undefined;
   };
 };
+
+// https://learn.microsoft.com/en-us/azure/aks/private-clusters?tabs=azure-portal#configure-a-private-dns-zone
+export const privateDnsZone = (ctx: any, labelKey: string, clusterPath: string) => {
+  return () :string | undefined => {
+    const toValidate = get(ctx.normanCluster, clusterPath) || '';
+
+    const isValid = toValidate.match(/^([a-zA-Z0-9-]{1,32}\.){0,32}private(link){0,1}\.[a-zA-Z0-9]+\.azmk8s\.io$/);
+
+    return isValid || !toValidate.length ? undefined : ctx.t('aks.errors.privateDnsZone', {}, true);
+  };
+};

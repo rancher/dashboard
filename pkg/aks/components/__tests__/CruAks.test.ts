@@ -47,8 +47,9 @@ const requiredSetup = (versionSetting = { value: '<=1.27.x' }) => {
 
 jest.mock('@pkg/aks/util/aks');
 
-const setCredential = async(wrapper :Wrapper<any>) => {
-  wrapper.setData({ config: { azureCredentialSecret: 'foo' } });
+const setCredential = async(wrapper :Wrapper<any>, config = {} as any) => {
+  config.azureCredentialSecret = 'foo';
+  wrapper.setData({ config });
   await flushPromises();
 };
 
@@ -151,5 +152,48 @@ describe('aks provisioning form', () => {
 
     expect(versionDropdown.props().options.map((opt: any) => opt.value)).toStrictEqual(validVersions);
     await wrapper.destroy();
+  });
+
+  it.each([[{ privateCluster: false }, false], [{ privateCluster: true }, true]])('should show privateDnsZone, userAssignedIdentity, managedIdentity only when privateCluster is true', async(config, visibility) => {
+    const wrapper = shallowMount(CruAks, {
+      propsData: {
+        value: {}, mode: 'edit', config
+      },
+      ...requiredSetup()
+    });
+
+    await setCredential(wrapper, config);
+
+    const privateDnsZone = wrapper.find('[data-testid="cruaks-privateDnsZone"]');
+    const userAssignedIdentity = wrapper.find('[data-testid="cruaks-userAssignedIdentity"]');
+    const managedIdentity = wrapper.find('[data-testid="cruaks-managedIdentity"]');
+
+    expect(privateDnsZone.exists()).toBe(visibility);
+    expect(userAssignedIdentity.exists()).toBe(visibility);
+    expect(managedIdentity.exists()).toBe(visibility);
+  });
+
+  it('should clear privateDnsZone, userAssignedIdentity, and managedIdentity when privateCluster is set to false', async() => {
+    const config = {
+      privateDnsZone: 'abc', userAssignedIdentity: 'def', managedIdentity: true
+    };
+    const wrapper = shallowMount(CruAks, {
+      propsData: {
+        value: {}, mode: 'edit', config
+      },
+      ...requiredSetup()
+    });
+
+    await setCredential(wrapper, config);
+
+    expect(wrapper.vm.config.privateDnsZone).toBeDefined();
+    expect(wrapper.vm.config.userAssignedIdentity).toBeDefined();
+    expect(wrapper.vm.config.managedIdentity).toBeDefined();
+
+    await wrapper.setData({ config: { ...config, privateCluster: false } });
+
+    expect(wrapper.vm.config.privateDnsZone).toBeUndefined();
+    expect(wrapper.vm.config.userAssignedIdentity).toBeUndefined();
+    expect(wrapper.vm.config.managedIdentity).toBeUndefined();
   });
 });

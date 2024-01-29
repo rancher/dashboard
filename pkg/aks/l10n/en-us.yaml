@@ -130,6 +130,12 @@ aks:
     label: Set Authorized IP Ranges
   authorizedIpRanges:
     label: Authorized IP Ranges
+  privateDnsZone:
+    label: Private DNS Zone ID
+  userAssignedIdentity:
+    label: User Assigned Identity
+  managedIdentity:
+    label: Managed Identity
   errors:
     regions: 'An error occured while fetching the available regions: {e}'
     vmSizes: 
@@ -150,3 +156,4 @@ aks:
     ipv4: "{key} must be a valid ipv4 address."
     outboundType: Load Balancer SKU must be 'standard' to use user defined routing.
     availabilityZones: Availability zones are not available in the selected region.
+    privateDnsZone: The Private DNS Zone Resource ID should be in the format privatelink.REGION.azmk8s.io, SUBZONE.privatelink.REGION.azmk8s.io, private.REGION.azmk8s.io, or SUBZONE.private.REGION.azmk8s.io

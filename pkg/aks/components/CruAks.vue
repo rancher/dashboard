@@ -45,7 +45,8 @@ import {
   resourceGroupLength,
   ipv4WithOrWithoutCidr,
   ipv4WithCidr,
-  outboundTypeUserDefined
+  outboundTypeUserDefined,
+  privateDnsZone
 } from '@pkg/aks/util/validators';
 
 const defaultNodePool = {
@@ -253,6 +254,10 @@ export default defineComponent({
         path:  'outboundType',
         rules: ['outboundType']
       },
+      {
+        path:  'privateDnsZone',
+        rules: ['privateDnsZone']
+      },
       ],
     };
   },
@@ -294,6 +299,7 @@ export default defineComponent({
         podCidr:                 ipv4WithCidr(this, 'aks.podCidr.label', 'aksConfig.podCidr'),
         dockerBridgeCidr:        ipv4WithCidr(this, 'aks.dockerBridgeCidr.label', 'aksConfig.dockerBridgeCidr'),
         outboundType:            outboundTypeUserDefined(this, 'aks.outboundType.label', 'aksConfig.outboundType'),
+        privateDnsZone:          privateDnsZone(this, 'aks.privateDnsZone.label', 'aksConfig.privateDnsZone'),
 
         vmSizeAvailable: () => {
           if (this.touchedVmSize) {
@@ -517,6 +523,9 @@ export default defineComponent({
     setAuthorizedIpRanges(neu) {
       if (neu) {
         this.$set(this.config, 'privateCluster', false);
+        delete this.config.managedIdentity;
+        delete this.config.privateDnsZone;
+        delete this.config.userAssignedIdentity;
       }
     },
 
@@ -552,6 +561,14 @@ export default defineComponent({
     'config.kubernetesVersion'(neu, old) {
       if (neu && old) {
         this.touchedVersion = true;
+      }
+    },
+
+    'config.privateCluster'(neu) {
+      if (!neu) {
+        delete this.config.managedIdentity;
+        delete this.config.privateDnsZone;
+        delete this.config.userAssignedIdentity;
       }
     }
   },
@@ -895,8 +912,7 @@ export default defineComponent({
           title-key="aks.accordions.basics"
         >
           <div
-            :style="{'display': 'flex', 'align-items':'center'}"
-            class="row mb-10"
+            class="row mb-10 center-inputs"
           >
             <div class="col span-3">
               <LabeledInput
@@ -1129,6 +1145,7 @@ export default defineComponent({
                 :mode="mode"
                 label-key="aks.privateCluster.label"
                 :disabled="!canEditPrivateCluster"
+                data-testid="cruaks-privateCluster"
               />
               <Checkbox
                 v-model="setAuthorizedIPRanges"
@@ -1158,13 +1175,46 @@ export default defineComponent({
               </ArrayList>
             </div>
           </div>
-          <div class="row mb-10">
-            <Banner
-              v-if="config.privateCluster"
-              color="warning"
-              label-key="aks.privateCluster.warning"
-            />
-          </div>
+          <template v-if="config.privateCluster">
+            <div class="row mb-10">
+              <Banner
+                color="warning"
+                label-key="aks.privateCluster.warning"
+                data-testid="cruaks-privateClusterBanner"
+              />
+            </div>
+            <div class="row mb-10 center-inputs">
+              <div class="col span-4">
+                <LabeledInput
+                  v-model="config.privateDnsZone"
+                  :mode="mode"
+                  label-key="aks.privateDnsZone.label"
+                  :tooltip="t('aks.privateDnsZone.tooltip')"
+                  :disabled="!isNewOrUnprovisioned"
+                  :rules="fvGetAndReportPathRules('privateDnsZone')"
+                  data-testid="cruaks-privateDnsZone"
+                />
+              </div>
+              <div class="col span-4">
+                <LabeledInput
+                  v-model="config.userAssignedIdentity"
+                  :mode="mode"
+                  label-key="aks.userAssignedIdentity.label"
+                  :tooltip="t('aks.userAssignedIdentity.tooltip')"
+                  :disabled="!isNewOrUnprovisioned"
+                  data-testid="cruaks-userAssignedIdentity"
+                />
+              </div>
+              <div class="col span-4">
+                <Checkbox
+                  v-model="config.managedIdentity"
+                  :mode="mode"
+                  label-key="aks.managedIdentity.label"
+                  data-testid="cruaks-managedIdentity"
+                />
+              </div>
+            </div>
+          </template>
         </Accordion>
         <Accordion
           class="mb-20"
@@ -1215,5 +1265,10 @@ export default defineComponent({
 
   .node-pool {
     padding: 10px;
+  }
+
+  .center-inputs {
+    display: flex;
+    align-items: center;
   }
 </style>
