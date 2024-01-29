@@ -6,13 +6,16 @@ describe('class StorageClass', () => {
   describe('checking if provisionerDisplay', () => {
     const provisionerDisplaySuffix = '(CSI)';
     const translationData = yaml.load(fs.readFileSync(`${ process.cwd() }/shell/assets/translations/en-us.yaml`, 'utf8'));
+    const testData = [];
 
-    it.each([
-      [PROVISIONER_OPTIONS[2].value, true],
-      [PROVISIONER_OPTIONS[6].value, true],
-      ['rancher.io/local-path', false],
-      ['some-random-string-as-provisioner', false]
-    ])('should NOT show a suffix IF they are built-in (on the PROVISIONER_OPTIONS list)', (provisioner, expectation) => {
+    PROVISIONER_OPTIONS.forEach((builtInProv) => {
+      testData.push([builtInProv.value, true]);
+    });
+
+    testData.push(['rancher.io/local-path', false]);
+    testData.push(['some-random-string-as-provisioner', false]);
+
+    it.each(testData)('should NOT show a suffix IF they are built-in (on the PROVISIONER_OPTIONS list)', (provisioner, expectation) => {
       const storageClass = new StorageClass({
         metadata: {},
         spec:     {},
