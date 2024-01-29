@@ -1,5 +1,5 @@
 <script lang="ts">
-import { defineComponent, PropType, inject } from 'vue';
+import Vue from 'vue';
 import typeHelper from '@shell/utils/type-helpers';
 
 export const ASYNC_BUTTON_STATES = {
@@ -14,13 +14,7 @@ const TOOLTIP = 'tooltip';
 
 export type AsyncButtonCallback = (success: boolean) => void;
 
-interface NonReactiveProps {
-  timer: NodeJS.Timeout | undefined;
-}
-
-const provideProps: NonReactiveProps = { timer: undefined };
-
-export default defineComponent({
+export default Vue.extend<{ phase: string}, any, any, any>({
   props: {
     /**
      * Mode maps to keys in asyncButton.* translations
@@ -43,7 +37,7 @@ export default defineComponent({
       default: false,
     },
     type: {
-      type:    String as PropType<'button' | 'submit' | 'reset' | undefined>,
+      type:    String,
       default: 'button'
     },
     tabIndex: {
@@ -119,13 +113,7 @@ export default defineComponent({
 
   },
 
-  setup() {
-    const timer = inject('timer', provideProps.timer);
-
-    return { timer };
-  },
-
-  data() {
+  data(): { phase: string, timer?: NodeJS.Timeout} {
     return { phase: this.currentPhase };
   },
 
@@ -257,7 +245,7 @@ export default defineComponent({
         this.phase = (success ? ASYNC_BUTTON_STATES.SUCCESS : ASYNC_BUTTON_STATES.ERROR );
         this.timer = setTimeout(() => {
           this.timerDone();
-        }, this.delay);
+        }, this.delay );
       }
     },
 
