@@ -76,6 +76,10 @@ export default class SortableTablePo extends ComponentPo {
   // sortable-table
   //
 
+  groupElementWithName(name: string) {
+    return this.self().contains('tr.group-row div', name);
+  }
+
   rowElements(options?: any) {
     return this.self().find('tbody tr:not(.sub-row)', options);
   }
