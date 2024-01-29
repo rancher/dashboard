@@ -1,5 +1,5 @@
 <script lang="ts">
-import { defineComponent } from 'vue';
+import Vue from 'vue';
 import { mapState } from 'vuex';
 import { BOTTOM, CENTER, LEFT, RIGHT } from '@shell/utils/position';
 
@@ -14,7 +14,7 @@ interface Data {
   drag: Drag;
 }
 
-export default defineComponent({
+export default Vue.extend({
   data(): Data {
     return {
       drag: {

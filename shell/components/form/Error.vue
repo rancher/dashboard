@@ -1,10 +1,10 @@
 <script lang="ts">
-import { PropType, defineComponent } from 'vue';
+import Vue, { PropType } from 'vue';
 import Banner from '@components/Banner/Banner.vue';
 
-type Rule = (v?: string | number | Record<string, any> | unknown[]) => undefined | string;
+type Rule = (v?: string) => undefined | string;
 
-export default defineComponent({
+export default Vue.extend<any, any, any, any>({
   components: { Banner },
   props:      {
     value: {
