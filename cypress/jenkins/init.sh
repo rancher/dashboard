@@ -86,6 +86,9 @@ if [[ "${JOB_TYPE}" == "recurring" ]]; then
     helm repo update
     version_string=$(echo "${RANCHER_IMAGE_TAG}" | cut -f1 -d"-")
     RANCHER_VERSION=$(helm search repo rancher-latest --devel --versions | grep ${version_string} | head -n 1 | cut -f2 | tr -d '[:space:]')
+    if [[ -z "${RANCHER_VERSION}" ]]; then
+        RANCHER_VERSION=$(helm search repo rancher-latest --devel --versions | sed -n '1!p' | head -1 | cut -f2 | tr -d '[:space:]')
+    fi
     corral config vars set rancher_image_tag ${RANCHER_IMAGE_TAG}
   fi
   cd "${WORKSPACE}/corral-packages"
