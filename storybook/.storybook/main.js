@@ -71,6 +71,15 @@ module.exports = {
     config.plugins.unshift(nmrp);
 
     config.module.rules.push({
+      test: /\.ts$/,
+      use: ['ts-loader'],
+      include: baseFolder,
+      exclude: {
+        test: /\.spec\.ts$/
+      }
+    });
+
+    config.module.rules.push({
       test: /\.scss$/,
       use: ['style-loader', 'css-loader', sassLoader],
       include: baseFolder,
