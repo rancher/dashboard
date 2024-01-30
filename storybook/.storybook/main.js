@@ -74,9 +74,7 @@ module.exports = {
       test: /\.ts$/,
       use: ['ts-loader'],
       include: baseFolder,
-      exclude: {
-        test: /\.spec\.ts$/
-      }
+      exclude: path.join(baseFolder, 'shell/models/__tests__')
     });
 
     config.module.rules.push({
