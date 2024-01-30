@@ -71,13 +71,6 @@ module.exports = {
     config.plugins.unshift(nmrp);
 
     config.module.rules.push({
-      test: /\.ts$/,
-      use: ['ts-loader'],
-      include: baseFolder,
-      exclude: path.join(baseFolder, 'shell/models/__tests__')
-    });
-
-    config.module.rules.push({
       test: /\.scss$/,
       use: ['style-loader', 'css-loader', sassLoader],
       include: baseFolder,
