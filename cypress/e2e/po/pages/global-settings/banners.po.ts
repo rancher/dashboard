@@ -120,10 +120,10 @@ export class BannersPagePo extends RootClusterPage {
    * @param endpoint
    * @returns
    */
-  applyAndWait(endpoint: string): Cypress.Chainable {
+  applyAndWait(endpoint: string, statusCode?: number): Cypress.Chainable {
     cy.intercept('PUT', endpoint).as(endpoint);
     this.applyButton().click();
 
-    return cy.wait(`@${ endpoint }`);
+    return statusCode ? cy.wait(`@${ endpoint }`).its('response.statusCode').should('eq', statusCode) : cy.wait(`@${ endpoint }`);
   }
 }

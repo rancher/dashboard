@@ -64,16 +64,16 @@ export class PerformancePagePo extends RootClusterPage {
     return new AsyncButtonPo('[data-testid="performance__save-btn"]', this.self());
   }
 
-  applyAndWait(value?: string): Cypress.Chainable {
-    cy.intercept('PUT', 'ui-performance').as(`apply${ value }`);
+  applyAndWait(context, endpoint = 'ui-performance', statusCode?: number): Cypress.Chainable {
+    cy.intercept('PUT', endpoint).as(context);
     this.applyButton().click();
 
-    return cy.wait(`@apply${ value }`);
+    return statusCode ? cy.wait(`@${ context }`).its('response.statusCode').should('eq', statusCode) : cy.wait(`@${ context }`);
   }
 
   restoresInactivitySettings() {
     this.inactivityInput().clear().type('900');
     this.inactivityCheckbox().set();
-    this.applyAndWait();
+    this.applyAndWait('reset-inactivity', undefined, 200);
   }
 }

@@ -22,7 +22,7 @@ describe('Home Links', { testIsolation: 'off' }, () => {
     homeLinksPage.selectCheckbox(2).set();
     homeLinksPage.selectCheckbox(3).set();
     homeLinksPage.selectCheckbox(4).set();
-    homeLinksPage.applyAndWait('/v1/management.cattle.io.settings/ui-custom-links');
+    homeLinksPage.applyAndWait('/v1/management.cattle.io.settings/ui-custom-links', 200);
 
     HomePagePo.goTo();
     homePage.supportLinks().should('have.length', 1).contains('Commercial Support');
@@ -35,7 +35,7 @@ describe('Home Links', { testIsolation: 'off' }, () => {
     homeLinksPage.selectCheckbox(2).set();
     homeLinksPage.selectCheckbox(3).set();
     homeLinksPage.selectCheckbox(4).set();
-    homeLinksPage.applyAndWait('/v1/management.cattle.io.settings/ui-custom-links');
+    homeLinksPage.applyAndWait('/v1/management.cattle.io.settings/ui-custom-links', 200);
 
     HomePagePo.goTo();
     homePage.supportLinks().should('have.length', 6);
@@ -52,16 +52,16 @@ describe('Home Links', { testIsolation: 'off' }, () => {
     homeLinksPage.displayTextInput().set(customLinkName);
     homeLinksPage.urlInput().set(customLinkUrl);
 
-    homeLinksPage.applyAndWait('/v1/management.cattle.io.settings/ui-custom-links');
-    homeLinksPage.applyAndWait('/v1/management.cattle.io.settings/ui-custom-links');
+    homeLinksPage.applyAndWait('/v1/management.cattle.io.settings/ui-custom-links', 200);
+    homeLinksPage.applyAndWait('/v1/management.cattle.io.settings/ui-custom-links', 200);
     HomePagePo.goTo();
     homePage.supportLinks().contains(customLinkName).should('have.attr', 'href', `${ customLinkUrl }`);
 
     // Remove custom link
     HomeLinksPagePo.navTo();
     homeLinksPage.removeLinkButton().click();
-    homeLinksPage.applyAndWait('/v1/management.cattle.io.settings/ui-custom-links');
-    homeLinksPage.applyAndWait('/v1/management.cattle.io.settings/ui-custom-links');
+    homeLinksPage.applyAndWait('/v1/management.cattle.io.settings/ui-custom-links', 200);
+    homeLinksPage.applyAndWait('/v1/management.cattle.io.settings/ui-custom-links', 200);
     homeLinksPage.displayTextInput().checkNotExists();
     homeLinksPage.removeLinkButton().should('not.exist');
 

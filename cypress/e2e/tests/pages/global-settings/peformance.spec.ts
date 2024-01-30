@@ -27,7 +27,7 @@ describe('Performance', { testIsolation: 'off', tags: ['@globalSettings', '@admi
       performancePage.inactivityCheckbox().set();
       performancePage.inactivityCheckbox().isChecked();
       performancePage.inactivityInput().clear().type('0.10');
-      performancePage.applyAndWait().its('response.statusCode').should('eq', 200);
+      performancePage.applyAndWait('inactivity=true');
 
       // We need to reload the page to get the new settings to take effect.
       cy.reload();
@@ -194,7 +194,7 @@ describe('Performance', { testIsolation: 'off', tags: ['@globalSettings', '@admi
     performancePage.incrementalLoadingCheckbox().isUnchecked();
     performancePage.incrementalLoadingCheckbox().set();
     performancePage.incrementalLoadingCheckbox().isChecked();
-    performancePage.applyAndWait().then(({ request, response }) => {
+    performancePage.applyAndWait('incrementalLoading-true').then(({ request, response }) => {
       expect(response?.statusCode).to.eq(200);
       expect(request.body).to.have.property('value').contains('\"incrementalLoading\":{\"enabled\":true');
       expect(response?.body).to.have.property('value').contains('\"incrementalLoading\":{\"enabled\":true');

@@ -63,7 +63,7 @@ describe('Branding', { testIsolation: 'off' }, () => {
     // Set
     cy.title().should('not.eq', settings.privateLabel.new);
     brandingPage.privateLabel().set(settings.privateLabel.new);
-    brandingPage.applyAndWait('**/ui-pl').its('response.statusCode').should('eq', 200);
+    brandingPage.applyAndWait('**/ui-pl', 200);
 
     // Visit the Home Page
     BurgerMenuPo.toggle();
@@ -86,7 +86,7 @@ describe('Branding', { testIsolation: 'off' }, () => {
 
     // Reset
     brandingPage.privateLabel().set(settings.privateLabel.original);
-    brandingPage.applyAndWait('**/ui-pl').its('response.statusCode').should('eq', 200);
+    brandingPage.applyAndWait('**/ui-pl', 200);
     BurgerMenuPo.toggle();
     burgerMenuPo.home().click();
     cy.title().should('eq', settings.privateLabel.original);
@@ -107,7 +107,7 @@ describe('Branding', { testIsolation: 'off' }, () => {
       .selectFile('cypress/e2e/blueprints/logos/rancher-white.svg', { force: true });
 
     // Apply
-    brandingPage.applyAndWait('/v1/management.cattle.io.settings/ui-logo-light').its('response.statusCode').should('eq', 200);
+    brandingPage.applyAndWait('/v1/management.cattle.io.settings/ui-logo-light', 200);
 
     // Logo Preview
     brandingPage.logoPreview('dark').should('be.visible');
@@ -152,7 +152,7 @@ describe('Branding', { testIsolation: 'off' }, () => {
     // Reset
     BrandingPagePo.navTo();
     brandingPage.customLogoCheckbox().set();
-    brandingPage.applyAndWait('/v1/management.cattle.io.settings/ui-logo-light');
+    brandingPage.applyAndWait('/v1/management.cattle.io.settings/ui-logo-light', 200);
 
     HomePagePo.navTo();
     burgerMenu.headerBrandLogoImage().should('be.visible').then((el) => {
@@ -190,7 +190,7 @@ describe('Branding', { testIsolation: 'off' }, () => {
 
     // Reset
     brandingPage.customFaviconCheckbox().set();
-    brandingPage.applyAndWait('/v1/management.cattle.io.settings/ui-favicon').its('response.statusCode').should('eq', 200);
+    brandingPage.applyAndWait('/v1/management.cattle.io.settings/ui-favicon', 200);
     cy.get('head link[rel="shortcut icon"]').then((el) => {
       expect(el).attr('href').to.include('/favicon.png');
     });
@@ -205,7 +205,7 @@ describe('Branding', { testIsolation: 'off' }, () => {
     brandingPage.primaryColorCheckbox().set();
     brandingPage.primaryColorPicker().value().should('not.eq', settings.primaryColor.new);
     brandingPage.primaryColorPicker().set(settings.primaryColor.new);
-    brandingPage.applyAndWait('**/ui-primary-color').its('response.statusCode').should('eq', 200);
+    brandingPage.applyAndWait('**/ui-primary-color', 200);
 
     // Check in session
     brandingPage.primaryColorPicker().value().should('eq', settings.primaryColor.new);
@@ -225,7 +225,7 @@ describe('Branding', { testIsolation: 'off' }, () => {
     // Reset
     brandingPage.primaryColorPicker().set(settings.primaryColor.original);
     brandingPage.primaryColorCheckbox().set();
-    brandingPage.applyAndWait('**/ui-primary-color').its('response.statusCode').should('eq', 200);
+    brandingPage.applyAndWait('**/ui-primary-color', 200);
   });
 
   it('Link Color', { tags: ['@globalSettings', '@adminUser'] }, () => {
@@ -237,7 +237,7 @@ describe('Branding', { testIsolation: 'off' }, () => {
     brandingPage.linkColorCheckbox().set();
     brandingPage.linkColorPicker().value().should('not.eq', settings.linkColor.new);
     brandingPage.linkColorPicker().set(settings.linkColor.new);
-    brandingPage.applyAndWait('**/ui-link-color').its('response.statusCode').should('eq', 200);
+    brandingPage.applyAndWait('**/ui-link-color', 200);
 
     // Check in session
     brandingPage.linkColorPicker().value().should('eq', settings.linkColor.new);
@@ -251,7 +251,7 @@ describe('Branding', { testIsolation: 'off' }, () => {
     // Reset
     brandingPage.linkColorPicker().set(settings.linkColor.original);
     brandingPage.linkColorCheckbox().set();
-    brandingPage.applyAndWait('**/ui-link-color').its('response.statusCode').should('eq', 200);
+    brandingPage.applyAndWait('**/ui-link-color', 200);
   });
 
   it('standard user has only read access to Branding page', { tags: ['@globalSettings', '@standardUser'] }, () => {

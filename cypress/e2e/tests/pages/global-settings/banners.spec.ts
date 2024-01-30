@@ -74,7 +74,7 @@ describe('Banners', { testIsolation: 'off' }, () => {
     bannersPage.textColorPicker(0).set(settings.bannerTextColor.new);
     bannersPage.textColorPicker(1).value().should('not.eq', settings.bannerBackgroundColor.new);
     bannersPage.textColorPicker(1).set(settings.bannerBackgroundColor.new);
-    bannersPage.applyAndWait('**/ui-banners');
+    bannersPage.applyAndWait('**/ui-banners', 200);
 
     // Check in session
     bannersPage.banner().should('be.visible').then((el) => {
@@ -105,7 +105,7 @@ describe('Banners', { testIsolation: 'off' }, () => {
 
     // Hide Banner
     bannersPage.headerBannerCheckbox().set();
-    bannersPage.applyAndWait('**/ui-banners');
+    bannersPage.applyAndWait('**/ui-banners', 200);
     bannersPage.banner().should('not.exist');
   });
 
@@ -122,7 +122,7 @@ describe('Banners', { testIsolation: 'off' }, () => {
     bannersPage.textColorPicker(2).set(settings.bannerTextColor.new);
     bannersPage.textColorPicker(3).value().should('not.eq', settings.bannerBackgroundColor.new);
     bannersPage.textColorPicker(3).set(settings.bannerBackgroundColor.new);
-    bannersPage.applyAndWait('**/ui-banners');
+    bannersPage.applyAndWait('**/ui-banners', 200);
 
     // Check in session
     bannersPage.banner().should('be.visible').then((el) => {
@@ -153,7 +153,7 @@ describe('Banners', { testIsolation: 'off' }, () => {
 
     // Hide Banner
     bannersPage.footerBannerCheckbox().set();
-    bannersPage.applyAndWait('**/ui-banners');
+    bannersPage.applyAndWait('**/ui-banners', 200);
     bannersPage.banner().should('not.exist');
   });
 
@@ -172,7 +172,7 @@ describe('Banners', { testIsolation: 'off' }, () => {
     bannersPage.textColorPicker(4).set(settings.bannerTextColor.new);
     bannersPage.textColorPicker(5).value().should('not.eq', settings.bannerBackgroundColor.new);
     bannersPage.textColorPicker(5).set(settings.bannerBackgroundColor.new);
-    bannersPage.applyAndWait('**/ui-banners');
+    bannersPage.applyAndWait('**/ui-banners', 200);
 
     // Check login screen
     cy.logout();
@@ -196,7 +196,7 @@ describe('Banners', { testIsolation: 'off' }, () => {
 
     // Hide banner
     bannersPage.loginScreenBannerCheckbox().set();
-    bannersPage.applyAndWait('**/ui-banners');
+    bannersPage.applyAndWait('**/ui-banners', 200);
 
     // Check login screen
     cy.logout();
@@ -217,7 +217,7 @@ describe('Banners', { testIsolation: 'off' }, () => {
       bannersPage.loginErrorCheckbox().checkVisible();
       bannersPage.loginErrorCheckbox().set();
       bannersPage.loginErrorInput().set(settings.bannerLabel);
-      bannersPage.applyAndWait('**/ui-banners');
+      bannersPage.applyAndWait('**/ui-banners', 200);
 
       // Check login screen
       cy.logout();
@@ -235,7 +235,7 @@ describe('Banners', { testIsolation: 'off' }, () => {
       // Hide banner
       bannersPage.loginErrorCheckbox().checkVisible();
       bannersPage.loginErrorCheckbox().set();
-      bannersPage.applyAndWait('**/ui-banners');
+      bannersPage.applyAndWait('**/ui-banners', 200);
 
       // Check login screen
       cy.logout();

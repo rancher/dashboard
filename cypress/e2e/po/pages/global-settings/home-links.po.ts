@@ -51,10 +51,10 @@ export class HomeLinksPagePo extends RootClusterPage {
     return new AsyncButtonPo('[data-testid="action-button-async-button"]', this.self());
   }
 
-  applyAndWait(endpoint: string): Cypress.Chainable {
+  applyAndWait(endpoint: string, statusCode?: number): Cypress.Chainable {
     cy.intercept('PUT', endpoint).as(endpoint);
-    this.applyButton().apply();
+    this.applyButton().click();
 
-    return cy.wait(`@${ endpoint }`).its('response.statusCode').should('eq', 200);
+    return statusCode ? cy.wait(`@${ endpoint }`).its('response.statusCode').should('eq', statusCode) : cy.wait(`@${ endpoint }`);
   }
 }
