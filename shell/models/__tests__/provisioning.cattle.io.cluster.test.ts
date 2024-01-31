@@ -180,7 +180,7 @@ describe('class ProvCluster', () => {
       jest.clearAllMocks();
     };
 
-    it.each(testCases)('should return the hasError value properly based on the "status.conditions" props data for testcase %p', (testName: string, conditions: Array, expected: Bool) => {
+    it.each(testCases)('should return the hasError value properly based on the "status.conditions" props data for testcase %p', (testName: string, conditions: Array, expected: Boolean) => {
       const ctx = { rootGetters: { 'management/byId': jest.fn() } };
       const cluster = new ProvCluster({ status: { conditions } }, ctx);
 
