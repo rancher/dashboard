@@ -4,8 +4,8 @@ GITHUB_RELEASE_TAG=$1
 GITHUB_RUN_ID=$2
 GITHUB_WORKFLOW_TYPE=$3
 
-# Check packages for released tag name
-if [[ "${GITHUB_WORKFLOW_TYPE}" == "charts" ]]; then
+# Ensure "catalog" workflow release tag name does not match a pkg/<pkg-name>
+if [[ "${GITHUB_WORKFLOW_TYPE}" == "catalog" ]]; then
   for d in pkg/*/ ; do
     pkg=$(basename $d)
 
@@ -19,7 +19,7 @@ if [[ "${GITHUB_WORKFLOW_TYPE}" == "charts" ]]; then
     fi
   done
 else
-  # Check base extension name for tag name
+  # Ensure "charts" workflow release tag name does not match the root <pkg-name>
   BASE_EXT=$(jq -r .name package.json)
   EXT_VERSION=$(jq -r .version package.json)
 
