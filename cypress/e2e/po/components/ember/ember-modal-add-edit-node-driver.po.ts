@@ -2,12 +2,12 @@ import EmberModalPo from '@/cypress/e2e/po/components/ember/ember-modal.po';
 import EmberInputPo from '@/cypress/e2e/po/components/ember/ember-input.po';
 
 export default class EmberModalNodeDriverPo extends EmberModalPo {
-  input() {
-    return new EmberInputPo(`.form-control.ember-text-field`);
+  formInput(index: number) {
+    return new EmberInputPo(`.modal-open .inline-form:nth-of-type(${ index }) input`);
   }
 
-  addDomain() {
-    return this.self().find('button').contains('Add Domain').click();
+  addDomainButton() {
+    this.self().find('button').contains('Add Domain').click();
   }
 
   create() {

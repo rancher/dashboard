@@ -28,7 +28,7 @@ describe('Drivers', { testIsolation: 'off', tags: ['@manager', '@adminUser'] }, 
 
       RkeDriversPagePo.navTo();
       driversPage.addClusterDriver().click();
-      driversPage.createEditClusterDriver().input().set(downloadUrl, 0);
+      driversPage.createEditClusterDriver().formInput(2).set(downloadUrl);
       cy.intercept('POST', '/v3/kontainerdriver').as('createDriver');
       driversPage.createEditClusterDriver().create();
       cy.wait('@createDriver').its('response.statusCode').should('eq', 201);
@@ -42,7 +42,7 @@ describe('Drivers', { testIsolation: 'off', tags: ['@manager', '@adminUser'] }, 
       RkeDriversPagePo.navTo();
       driversPage.list().rowActionMenuOpen(`Example`);
       driversPage.actionMenu().selectMenuItemByLabel(`Edit`);
-      driversPage.createEditClusterDriver().input().set(downloadUrl, 0);
+      driversPage.createEditClusterDriver().formInput(2).set(downloadUrl);
       cy.intercept('PUT', '/v3/kontainerDrivers/*').as('updateDriver');
       driversPage.createEditClusterDriver().save();
       cy.wait('@updateDriver').its('response.statusCode').should('eq', 200);
@@ -105,11 +105,11 @@ describe('Drivers', { testIsolation: 'off', tags: ['@manager', '@adminUser'] }, 
       RkeDriversPagePo.navTo();
       driversPage.tabs('Node Drivers').should('be.visible').click();
       driversPage.addNodeDriver().click();
-      driversPage.createEditNodeDriver().input().set(downloadUrl, 0);
-      driversPage.createEditNodeDriver().input().set(customUrl, 1);
-      driversPage.createEditNodeDriver().input().set(checksum, 2);
-      driversPage.createEditNodeDriver().addDomain().click();
-      driversPage.createEditNodeDriver().input().set(domain, 3);
+      driversPage.createEditNodeDriver().formInput(2).set(downloadUrl);
+      driversPage.createEditNodeDriver().formInput(3).set(customUrl);
+      driversPage.createEditNodeDriver().formInput(4).set(checksum);
+      driversPage.createEditNodeDriver().addDomainButton();
+      driversPage.createEditNodeDriver().formInput(5).set(domain);
       cy.intercept('POST', '/v3/nodedriver').as('createNodeDriver');
       driversPage.createEditClusterDriver().create();
       cy.wait('@createNodeDriver').its('response.statusCode').should('eq', 201);

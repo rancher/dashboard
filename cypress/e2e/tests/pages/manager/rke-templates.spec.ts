@@ -22,8 +22,8 @@ describe('RKE Templates', { testIsolation: 'off', tags: ['@manager', '@adminUser
     RkeTemplatesPagePo.navTo();
     rkeTemplatesPage.waitForPage();
     rkeTemplatesPage.addTemplate().click();
-    rkeTemplatesPage.form().templateDetails().set(this.rkeTemplateName);
-    rkeTemplatesPage.form().templateDetails().set(this.rkeRevisionName, 1);
+    rkeTemplatesPage.form().templateDetails(3).set(this.rkeTemplateName);
+    rkeTemplatesPage.form().templateDetails(2).set(this.rkeRevisionName);
     cy.intercept('POST', '/v3/clustertemplate').as('createTemplate');
     rkeTemplatesPage.form().create();
     cy.wait('@createTemplate');
@@ -73,7 +73,7 @@ describe('RKE Templates', { testIsolation: 'off', tags: ['@manager', '@adminUser
     rkeTemplatesPage.groupRow().groupRowWithName(this.rkeTemplateName).should('be.visible');
     rkeTemplatesPage.mainRow().rowActionMenuOpen(this.rkeRevisionName);
     rkeTemplatesPage.actionMenu().selectMenuItemByLabel('Clone Revision');
-    rkeTemplatesPage.form().templateDetails().set(`${ this.rkeRevisionName }-2`);
+    rkeTemplatesPage.form().templateDetails(2).set(`${ this.rkeRevisionName }-2`);
     cy.intercept('PUT', '/v3/clusterTemplates/*').as('cloneTemplateRevision');
     rkeTemplatesPage.form().save();
     cy.wait('@cloneTemplateRevision');

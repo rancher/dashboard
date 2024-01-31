@@ -2,8 +2,8 @@ import EmberComponentPo from '@/cypress/e2e/po/components/ember/ember-component.
 import EmberInputPo from '@/cypress/e2e/po/components/ember/ember-input.po';
 
 export default class EmberFormRkeTemplatesPo extends EmberComponentPo {
-  templateDetails(): EmberInputPo {
-    return new EmberInputPo('[data-testid="form-name-description__name"]');
+  templateDetails(index): EmberInputPo {
+    return new EmberInputPo(`.horizontal-form .row:nth-of-type(1) input:nth-child(${ index })`);
   }
 
   create() {
