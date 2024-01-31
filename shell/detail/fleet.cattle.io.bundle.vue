@@ -38,7 +38,7 @@ export default {
       if (this.hasRepoLabel) {
         const bundleResourceIds = this.bundleResourceIds;
 
-        return this.repo?.status?.resources.filter((resource) => {
+        return this.repo?.status?.resources?.filter((resource) => {
           return bundleResourceIds.includes(resource.name);
         });
       } else if (this.value?.spec?.resources?.length) {
