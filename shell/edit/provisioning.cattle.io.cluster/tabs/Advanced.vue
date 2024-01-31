@@ -1,5 +1,6 @@
 <script>
 import Vue from 'vue';
+import { _VIEW } from '@shell/config/query-params';
 import { Banner } from '@components/Banner';
 import ArrayListGrouped from '@shell/components/form/ArrayListGrouped';
 import MatchExpressions from '@shell/components/form/MatchExpressions';
@@ -38,6 +39,9 @@ export default {
   },
 
   computed: {
+    isView() {
+      return this.mode === _VIEW;
+    },
     rkeConfig() {
       return this.value.spec.rkeConfig;
     },
@@ -136,7 +140,7 @@ export default {
           </ArrayList>
 
           <div
-            v-if="i === 0 && mode==='view' && showEmptyKubeletArg(row.value.config)"
+            v-if="i === 0 && isView && showEmptyKubeletArg(row.value.config)"
             class="text-muted"
           >
             &mdash;
