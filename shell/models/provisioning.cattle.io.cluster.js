@@ -912,12 +912,8 @@ export default class ProvCluster extends SteveModel {
         const lastErrorConditionDate = new Date(lastErrorCondition.lastUpdateTime) || null;
         const lastReadyConditionDate = new Date(lastReadyCondition.lastUpdateTime) || null;
 
-        console.log('this.status?.conditions', lastReadyConditionDate.getTime());
-        console.log('lastReadyConditionDate.getTime()', lastReadyConditionDate.getTime());
-        console.log('lastErrorConditionDate.getTime()', lastErrorConditionDate.getTime());
-
         // fallback is false because something might be wrong with the condition 'lastUpdateTime' prop
-        return lastErrorConditionDate && lastReadyConditionDate ? lastReadyConditionDate.getTime() > lastErrorConditionDate.getTime() : false;
+        return lastErrorConditionDate && lastReadyConditionDate ? lastErrorConditionDate.getTime() > lastReadyConditionDate.getTime() : false;
       }
 
       // here we just fallback to the previous original logic
