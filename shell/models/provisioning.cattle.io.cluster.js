@@ -891,7 +891,37 @@ export default class ProvCluster extends SteveModel {
   }
 
   get hasError() {
-    return this.status?.conditions?.some((condition) => condition.error === true);
+    // Before we were just checking for this.status?.conditions?.some((condition) => condition.error === true)
+    // but this is wrong as an error might exist but it might not be meaningful in the context of readiness of a cluster
+    // which is what this 'hasError' is used for.
+    // We now check if there's a ready condition after an error, which helps dictate the readiness of a cluster
+    // Based on the findings in https://github.com/rancher/dashboard/issues/10043
+    if (this.status?.conditions && this.status?.conditions.length) {
+      if (this.status?.conditions.some((c) => c.error === true)) {
+        // there's no ready condition and has an error, mark it
+        if (!this.status?.conditions.some((c) => c.type === 'Ready')) {
+          return true;
+        }
+
+        const errorConditions = this.status?.condition.filter((c) => c.error === true);
+        const readyConditions = this.status?.condition.filter((c) => c.type === 'Ready');
+
+        const lastErrorCondition = errorConditions.reduce((a, b) => ((a.lastUpdateTime > b.lastUpdateTime) ? a : b));
+        const lastReadyCondition = readyConditions.reduce((a, b) => ((a.lastUpdateTime > b.lastUpdateTime) ? a : b));
+
+        const lastErrorConditionDate = new Date(lastErrorCondition.lastUpdateTime) || null;
+        const lastReadyConditionDate = new Date(lastReadyCondition.lastUpdateTime) || null;
+
+        // fallback is false because something might be wrong with the condition 'lastUpdateTime' prop
+        return lastErrorConditionDate && lastReadyConditionDate ? lastReadyConditionDate.getTime() > lastErrorConditionDate.getTime() : false;
+      }
+
+      // here we just fallback to the previous original logic
+      return false;
+    }
+
+    // no conditions, no assumptions here
+    return false;
   }
 
   get namespaceLocation() {
