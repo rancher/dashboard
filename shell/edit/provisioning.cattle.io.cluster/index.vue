@@ -301,7 +301,7 @@ export default {
       const getters = this.$store.getters;
       const isImport = this.isImport;
       const isElementalActive = !!this.activeProducts.find((item) => item.name === ELEMENTAL_PRODUCT_NAME);
-      const out = [];
+      let out = [];
 
       const templates = this.templateOptions;
       const vueKontainerTypes = getters['plugins/clusterDrivers'];
@@ -348,12 +348,18 @@ export default {
         }
 
         // Add from extensions
-        // if th rke toggle is set to rke1, don't add extensions that specify rke2 group
-        // default group is rke2
         this.extensions.forEach((ext) => {
+          // if the rke toggle is set to rke1, don't add extensions that specify rke2 group
+          // default group is rke2
           if (!this.isRke2 && (ext.group === _RKE2 || !ext.group)) {
             return;
           }
+          // Do not show the extension provisioner on the import cluster page unless its explicitly set to do so
+          if (isImport && !ext.showImport) {
+            return;
+          }
+          // Allow extensions to overwrite provisioners with the same id
+          out = out.filter((type) => type.id !== ext.id);
           addExtensionType(ext, getters);
         });
       }

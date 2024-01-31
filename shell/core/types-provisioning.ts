@@ -60,6 +60,7 @@ export interface IClusterProvisioner {
 
   /**
    * Unique ID of the Cluster Provisioner
+   * If this overlaps with the name of an existing provisioner (seen in the type query param while creating a cluster) this provisioner will overwrite the built-in ui
    */
   id: string;
 
@@ -114,6 +115,12 @@ export interface IClusterProvisioner {
    * Text to show top right on the cluster provider card. For example `Experimental`
    */
   tag?: string;
+
+  /**
+   * Also show the provider card in the cluster importing flow
+   * If not set, the card will only be shown in the cluster creation page
+   */
+  showImport?: boolean
 
   /* --------------------------------------------------------------------------------------
    * Custer Details View
