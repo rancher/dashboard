@@ -1381,7 +1381,7 @@ export default class Resource {
 
   async download() {
     const value = await this.followLink('view', { headers: { accept: 'application/yaml' } });
-    const data = await this.$dispatch('cleanForDownload', value.data);
+    const data = await this.cleanForDownload(value.data);
 
     downloadFile(`${ this.nameDisplay }.yaml`, data, 'application/yaml');
   }
@@ -1404,7 +1404,7 @@ export default class Resource {
     await eachLimit(items, 10, (item, idx) => {
       return item.followLink('view', { headers: { accept: 'application/yaml' } } ).then(async(data) => {
         const yaml = data.data || data;
-        const cleanedYaml = await this.$dispatch('cleanForDownload', yaml);
+        const cleanedYaml = await this.cleanForDownload(yaml);
 
         files[`resources/${ names[idx] }`] = cleanedYaml;
       });
@@ -1479,6 +1479,10 @@ export default class Resource {
 
   cleanForDiff() {
     this.$dispatch(`cleanForDiff`, this.toJSON());
+  }
+
+  async cleanForDownload(yaml) {
+    return this.$dispatch(`cleanForDownload`, yaml);
   }
 
   yamlForSave(yaml) {
