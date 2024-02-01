@@ -117,7 +117,6 @@ export default {
         this.value.s3.enabled = true;
         break;
       default:
-
         this.value.persistence.enabled = false;
         this.value.s3.enabled = false;
         break;

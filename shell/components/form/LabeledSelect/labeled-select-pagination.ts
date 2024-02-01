@@ -57,17 +57,18 @@ export default Vue.extend<Data, Methods, any, Props>({
 
   data(): Data {
     return {
+      // Internal
       currentPage: 1,
       search:      '',
       pageSize:    10,
-
-      page:         [],
-      pages:        0,
-      totalResults: 0,
-
-      paginating: false,
+      pages:       0,
 
       debouncedRequestPagination: debounce(this.requestPagination, 700),
+
+      // External
+      page:         [],
+      totalResults: 0,
+      paginating:   false,
     };
   },
 
