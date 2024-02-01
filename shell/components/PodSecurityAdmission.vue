@@ -1,7 +1,7 @@
 <script lang="ts">
 import Vue from 'vue';
 import { _VIEW, _CREATE } from '@shell/config/query-params';
-import LabeledSelect from '@shell/components/form/LabeledSelect.vue';
+import LabeledSelect from '@shell/components/form/LabeledSelect/index.vue';
 import Checkbox from '@components/Form/Checkbox/Checkbox.vue';
 import LabeledInput from '@components/Form/LabeledInput/LabeledInput.vue';
 import { PSADimension, PSAMode } from '@shell/types/pod-security-admission';

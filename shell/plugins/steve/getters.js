@@ -111,6 +111,40 @@ export default {
 
     // End: Sort
 
+    // Pagination
+    if (opt.pagination) {
+      if (typeof (opt.pagination.page) !== 'undefined') {
+        url += `${ url.includes('?') ? '&' : '?' }page=${ opt.pagination.page }`;
+        // params.push(`page=${ opt.pagination.page }`);
+      } else {
+        throw new Error(`A paginated request is required but no 'page' property provided: ${ JSON.stringify(opt) }`);
+      }
+
+      if (typeof (opt.pagination.pageSize) !== 'undefined') {
+        url += `${ url.includes('?') ? '&' : '?' }pagesize=${ opt.pagination.pageSize }`;
+      } else {
+        throw new Error(`A paginated request is required but no 'pageSize' property provided: ${ JSON.stringify(opt) }`);
+      }
+
+      if (opt.pagination.sort?.length) {
+        const joined = opt.pagination.sort
+          .map((s) => `${ s.asc ? '' : '-' }${ s.field }`)
+          .join(',');
+
+        url += `${ url.includes('?') ? '&' : '?' }sort=${ joined }`;
+      }
+
+      if (opt.pagination.filter?.length) {
+        const joined = opt.pagination.filter
+          .map(({ field, value }) => `${ field }=${ value }`)
+          .join(',');
+
+        url += `${ url.includes('?') ? '&' : '?' }filter=${ joined }`;
+      }
+    }
+
+    // End Pagination
+
     return url;
   },
 
