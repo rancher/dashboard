@@ -8,7 +8,7 @@ import isObject from 'lodash/isObject';
 import { classify } from '@shell/plugins/dashboard-store/classify';
 import { NAMESPACE } from '@shell/config/types';
 import { handleKubeApiHeaderWarnings } from '@shell/plugins/steve/header-warnings';
-import { steveCleanForDownload } from 'plugins/steve/resource-utils';
+import { steveCleanForDownload } from '@shell/plugins/steve/resource-utils';
 
 export default {
 
