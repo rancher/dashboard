@@ -37,10 +37,10 @@ describe('Provision Node driver RKE2 cluster', { testIsolation: 'off', tags: ['@
     cloudCredForm.defaultRegion().toggle();
     cloudCredForm.defaultRegion().clickOptionWithLabel('us-west-2');
     cloudCredForm.saveCreateForm().cruResource().saveAndWaitForRequests('POST', '/v3/cloudcredentials').then((req) => {
-        expect(req.response?.statusCode).to.equal(201);
-        cloudcredentialId = req.response?.body.id;
-        removeCloudCred = true;
-      });
+      expect(req.response?.statusCode).to.equal(201);
+      cloudcredentialId = req.response?.body.id;
+      removeCloudCred = true;
+    });
 
     cy.waitForLoadingIndicator();
     createRKE2ClusterPage.nameNsDescription().name().set(this.rke2Ec2ClusterName);
