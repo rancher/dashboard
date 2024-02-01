@@ -30,6 +30,7 @@ declare global {
       logout(): Chainable;
       byLabel(label: string): Chainable<Element>;
       createE2EResourceName(context: string): Chainable<Element>;
+      waitForLoadingIndicator(): Chainable;
 
       createUser(params: CreateUserParams): Chainable;
       setGlobalRoleBinding(userId: string, role: string): Chainable;

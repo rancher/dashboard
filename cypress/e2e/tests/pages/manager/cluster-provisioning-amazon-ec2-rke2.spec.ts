@@ -5,7 +5,7 @@ import ClusterManagerDetailRke2AmazonEc2PagePo from '@/cypress/e2e/po/detail/pro
 import PromptRemove from '@/cypress/e2e/po/prompts/promptRemove.po';
 
 // will only run this in jenkins pipeline where cloud credentials are stored
-describe('Provision Node driver RKE2 cluster', { testIsolation: 'off', tags: ['@manager', '@jenkins'] }, () => {
+describe('Provision Node driver RKE2 cluster', { testIsolation: 'off', tags: ['@manager', '@adminUser', '@jenkins'] }, () => {
   const clusterList = new ClusterManagerListPagePo('_');
   let removeCloudCred = false;
   let cloudcredentialId = '';
@@ -19,6 +19,7 @@ describe('Provision Node driver RKE2 cluster', { testIsolation: 'off', tags: ['@
 
   it('can provision a Amazon EC2 RKE2 cluster with Amazon cloud provider', function() {
     const createRKE2ClusterPage = new ClusterManagerCreateRke2AmazonPagePo();
+    const cloudCredForm = createRKE2ClusterPage.cloudCredentialsForm();
     const clusterDetails = new ClusterManagerDetailRke2AmazonEc2PagePo('_', this.rke2Ec2ClusterName);
 
     // create cluster
@@ -30,19 +31,18 @@ describe('Provision Node driver RKE2 cluster', { testIsolation: 'off', tags: ['@
     createRKE2ClusterPage.title().should('include', 'Create Amazon EC2');
 
     // create amazon ec2 cloud credential
-    createRKE2ClusterPage.cloudCredentialsForm().nameNsDescription().name().set(this.ec2CloudCredentialName);
-    createRKE2ClusterPage.cloudCredentialsForm().accessKey().set(Cypress.env('awsAccessKey'));
-    createRKE2ClusterPage.cloudCredentialsForm().secretKey().set(Cypress.env('awsSecretKey'), true);
-    createRKE2ClusterPage.cloudCredentialsForm().defaultRegion().toggle();
-    createRKE2ClusterPage.cloudCredentialsForm().defaultRegion().clickOptionWithLabel('us-west-2');
-    createRKE2ClusterPage.cloudCredentialsForm().saveCreateForm().cruResource().saveAndWaitForRequests('POST', '/v3/cloudcredentials')
+    cloudCredForm.nameNsDescription().name().set(this.ec2CloudCredentialName);
+    cloudCredForm.accessKey().set(Cypress.env('awsAccessKey'));
+    cloudCredForm.secretKey().set(Cypress.env('awsSecretKey'), true);
+    cloudCredForm.defaultRegion().toggle();
+    cloudCredForm.defaultRegion().clickOptionWithLabel('us-west-2');
+    cloudCredForm.saveCreateForm().cruResource().saveAndWaitForRequests('POST', '/v3/cloudcredentials')
       .then((req) => {
         cloudcredentialId = req.response?.body.id;
-        cy.log(cloudcredentialId);
         removeCloudCred = true;
       });
-    cy.log(cloudcredentialId);
 
+    cy.waitForLoadingIndicator();
     createRKE2ClusterPage.nameNsDescription().name().set(this.rke2Ec2ClusterName);
     createRKE2ClusterPage.nameNsDescription().description().set(`${ this.rke2Ec2ClusterName }-description`);
 

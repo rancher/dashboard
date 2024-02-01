@@ -68,3 +68,10 @@ const runTimestamp = +new Date();
 Cypress.Commands.add('createE2EResourceName', (context) => {
   return cy.wrap(`e2e-test-${ runTimestamp }-${ context }`);
 });
+
+/*
+* Wait for loading indicator to disappear
+*/
+Cypress.Commands.add('waitForLoadingIndicator', () => {
+  return cy.get('.loading-indicator').should('not.exist', { timeout: 10000 });
+});
