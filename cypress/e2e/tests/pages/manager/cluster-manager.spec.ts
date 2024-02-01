@@ -373,7 +373,7 @@ describe('Cluster Manager', { testIsolation: 'off', tags: ['@manager', '@adminUs
         editImportedClusterPage.waitForPage('mode=edit');
       });
 
-      it('can delete cluster by bulk actions', () => {
+      it('can delete cluster by bulk actions', { viewportHeight: 1000, viewportWidth: 660 }, () => {
         clusterList.goTo();
         clusterList.sortableTable().rowElementWithName(importGenericName).should('exist', { timeout: 15000 });
         clusterList.sortableTable().rowSelectCtlWithName(importGenericName).set();
