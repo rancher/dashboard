@@ -27,6 +27,7 @@ export default {
 
         try {
           out = JSON.parse(this.value);
+
           out.forEach((endpoint) => {
             let protocol = 'http';
 
@@ -34,7 +35,11 @@ export default {
               protocol = 'https';
             }
 
-            if (endpoint.addresses) {
+            // If there's an ingress and it has a hostname, we use the hostname address instead
+            // https://github.com/rancher/dashboard/issues/8087
+            if (endpoint.ingressName && endpoint.hostname) {
+              endpoint.link = `${ protocol }://${ endpoint.hostname }${ endpoint.path }`;
+            } else if (endpoint.addresses && endpoint.addresses.length) {
               endpoint.link = `${ protocol }://${ endpoint.addresses[0] }:${ endpoint.port }`;
             } else if (externalIp) {
               endpoint.link = `${ protocol }://${ externalIp }:${ endpoint.port }`;
@@ -46,26 +51,6 @@ export default {
           return out;
         } catch (err) {
           return this.value[0];
-        }
-      }
-
-      return null;
-    },
-
-    protocol() {
-      const { parsed } = this;
-
-      if ( parsed) {
-        if (this.parsed[0].protocol) {
-          return this.parsed[0].protocol;
-        }
-
-        const match = parsed.match(/^([^:]+):\/\//);
-
-        if ( match ) {
-          return match[1];
-        } else {
-          return 'link';
         }
       }
 
@@ -90,7 +75,7 @@ export default {
         :href="endpoint.link"
         target="_blank"
         rel="nofollow noopener noreferrer"
-      ><span v-if="endpoint.port">{{ endpoint.port }}/</span>{{ endpoint.protocol }}</a>
+      >{{ endpoint.link }}</a>
     </template>
   </span>
 </template>
