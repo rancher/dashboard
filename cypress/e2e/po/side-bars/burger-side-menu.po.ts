@@ -19,7 +19,7 @@ export default class BurgerMenuPo extends ComponentPo {
    */
   static burgerMenuNavToMenubyLabel(label: string): Cypress.Chainable {
     return this.sideMenu().should('exist').find('.option').contains(label)
-      .click();
+      .click({ force: true });
   }
 
   /**
@@ -159,5 +159,21 @@ export default class BurgerMenuPo extends ComponentPo {
    */
   support(): Cypress.Chainable {
     return this.self().contains('Get Support');
+  }
+
+  /**
+    * Get the side menu logo image
+   * @returns
+   */
+  brandLogoImage(): Cypress.Chainable {
+    return cy.getId('side-menu__brand-img');
+  }
+
+  /**
+   * Get the header logo image
+   * @returns
+   */
+  headerBrandLogoImage(): Cypress.Chainable {
+    return cy.getId('header-side-menu__brand-img');
   }
 }

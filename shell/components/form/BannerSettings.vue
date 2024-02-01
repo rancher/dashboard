@@ -143,6 +143,7 @@ export default ({
           <RadioGroup
             v-model="value[bannerType].textAlignment"
             name="bannerAlignment"
+            :data-testid="`banner_alignment_radio_options${bannerType}`"
             :label="t('banner.bannerAlignment.label')"
             :options="radioOptions.options"
             :labels="radioOptions.labels"
@@ -160,6 +161,7 @@ export default ({
             <Checkbox
               v-model="value[bannerType][o.style]"
               name="bannerDecoration"
+              :data-testid="`banner_decoration_checkbox${bannerType}${o.label}`"
               class="banner-decoration-checkbox"
               :mode="mode"
               :label="o.label"
@@ -169,6 +171,7 @@ export default ({
         <div class="col span-2">
           <LabeledSelect
             v-model="value[bannerType].fontSize"
+            :data-testid="`banner_font_size_options${bannerType}`"
             :disabled="isUiDisabled"
             :label="t('banner.bannerFontSize.label')"
             :options="uiBannerFontSizeOptions"
