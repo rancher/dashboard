@@ -897,30 +897,20 @@ export default class ProvCluster extends SteveModel {
     // We now check if there's a ready condition after an error, which helps dictate the readiness of a cluster
     // Based on the findings in https://github.com/rancher/dashboard/issues/10043
     if (this.status?.conditions && this.status?.conditions.length) {
+      // if there are errors, we compare with how recent the "Ready" condition is compared to that error, otherwise we just move on
       if (this.status?.conditions.some((c) => c.error === true)) {
         // there's no ready condition and has an error, mark it
         if (!this.status?.conditions.some((c) => c.type === 'Ready')) {
           return true;
         }
 
-        const errorConditions = this.status?.conditions.filter((c) => c.error === true);
-        const readyConditions = this.status?.conditions.filter((c) => c.type === 'Ready');
+        const filteredConditions = this.status?.conditions.filter((c) => c.error === true || c.type === 'Ready');
+        const mostRecentCondition = filteredConditions.reduce((a, b) => ((a.lastUpdateTime > b.lastUpdateTime) ? a : b));
 
-        const lastErrorCondition = errorConditions.reduce((a, b) => ((a.lastUpdateTime > b.lastUpdateTime) ? a : b));
-        const lastReadyCondition = readyConditions.reduce((a, b) => ((a.lastUpdateTime > b.lastUpdateTime) ? a : b));
-
-        const lastErrorConditionDate = new Date(lastErrorCondition.lastUpdateTime) || null;
-        const lastReadyConditionDate = new Date(lastReadyCondition.lastUpdateTime) || null;
-
-        // fallback is false because something might be wrong with the condition 'lastUpdateTime' prop
-        return lastErrorConditionDate && lastReadyConditionDate ? lastErrorConditionDate.getTime() > lastReadyConditionDate.getTime() : false;
+        return mostRecentCondition.error;
       }
-
-      // here we just fallback to the previous original logic
-      return false;
     }
 
-    // no conditions, no assumptions here
     return false;
   }
 
