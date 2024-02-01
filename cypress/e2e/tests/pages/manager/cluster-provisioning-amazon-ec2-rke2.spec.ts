@@ -36,8 +36,8 @@ describe('Provision Node driver RKE2 cluster', { testIsolation: 'off', tags: ['@
     cloudCredForm.secretKey().set(Cypress.env('awsSecretKey'), true);
     cloudCredForm.defaultRegion().toggle();
     cloudCredForm.defaultRegion().clickOptionWithLabel('us-west-2');
-    cloudCredForm.saveCreateForm().cruResource().saveAndWaitForRequests('POST', '/v3/cloudcredentials')
-      .then((req) => {
+    cloudCredForm.saveCreateForm().cruResource().saveAndWaitForRequests('POST', '/v3/cloudcredentials').then((req) => {
+        expect(req.response?.statusCode).to.equal(201);
         cloudcredentialId = req.response?.body.id;
         removeCloudCred = true;
       });

@@ -17,10 +17,17 @@ export default class CruResourcePo extends ComponentPo {
     return new AsyncButtonPo('[data-testid="form-save"]', this.self());
   }
 
-  saveAndWaitForRequests(method: string, url: string) {
-    cy.intercept(method, url).as('request');
+  // saveAndWaitForRequests(method: string, url: string) {
+  //   cy.intercept(method, url).as('request');
+  //   this.saveOrCreate().click();
+
+  //   return cy.wait('@request', { timeout: 10000 });
+  // }
+
+  saveAndWaitForRequests(method, endpoint: string, statusCode?: number): Cypress.Chainable {
+    cy.intercept(method, endpoint).as(endpoint);
     this.saveOrCreate().click();
 
-    return cy.wait('@request', { timeout: 10000 });
+    return statusCode ? cy.wait(`@${ endpoint }`, { timeout: 10000 }).its('response.statusCode').should('eq', statusCode) : cy.wait(`@${ endpoint }`, { timeout: 10000 });
   }
 }
