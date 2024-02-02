@@ -1,0 +1,315 @@
+<script lang='ts'>
+import semver from 'semver';
+import { mapGetters, Store } from 'vuex';
+import { defineComponent } from 'vue';
+
+import AccountAccess from './AccountAccess.vue';
+
+import { randomStr } from '@shell/utils/string';
+import { isArray, removeObject } from '@shell/utils/array';
+import { _CREATE, _EDIT, _VIEW } from '@shell/config/query-params';
+import { NORMAN, MANAGEMENT } from '@shell/config/types';
+import { sortable } from '@shell/utils/version';
+import { sortBy } from '@shell/utils/sort';
+import { SETTING } from '@shell/config/settings';
+
+import CreateEditView from '@shell/mixins/create-edit-view';
+import FormValidation from '@shell/mixins/form-validation';
+import SelectCredential from '@shell/edit/provisioning.cattle.io.cluster/SelectCredential.vue';
+import CruResource from '@shell/components/CruResource.vue';
+import LabeledSelect from '@shell/components/form/LabeledSelect.vue';
+import LabeledInput from '@components/Form/LabeledInput/LabeledInput.vue';
+import Checkbox from '@components/Form/Checkbox/Checkbox.vue';
+import FileSelector from '@shell/components/form/FileSelector.vue';
+import KeyValue from '@shell/components/form/KeyValue.vue';
+import ArrayList from '@shell/components/form/ArrayList.vue';
+import Labels from '@shell/components/form/Labels.vue';
+import Tab from '@shell/components/Tabbed/Tab.vue';
+import Tabbed from '@shell/components/Tabbed/index.vue';
+import Accordion from '@components/Accordion/Accordion.vue';
+import Banner from '@components/Banner/Banner.vue';
+import ClusterMembershipEditor, { canViewClusterMembershipEditor } from '@shell/components/form/Members/ClusterMembershipEditor.vue';
+
+import { EKSConfig, EKSNodeGroup } from '../types';
+
+const defaultCluster = {
+  dockerRootDir:           '/var/lib/docker',
+  enableClusterAlerting:   false,
+  enableClusterMonitoring: false,
+  enableNetworkPolicy:     false,
+  labels:                  {},
+  windowsPreferedCluster:  false,
+};
+
+// const DEFAULT_REGION = 'eastus';
+
+// const _NONE = 'none';
+
+export default defineComponent({
+  name: 'CruEKS',
+
+  components: {
+    SelectCredential,
+    CruResource,
+    AccountAccess,
+    LabeledSelect,
+    // AksNodePool,
+    // LabeledInput,
+    // Checkbox,
+    // FileSelector,
+    // KeyValue,
+    // ArrayList,
+    // ClusterMembershipEditor,
+    // Labels,
+    // Tabbed,
+    // Tab,
+    Accordion,
+    // Banner
+  },
+
+  mixins: [CreateEditView, FormValidation],
+
+  props: {
+    mode: {
+      type:    String,
+      default: _CREATE
+    },
+
+    // v2 provisioning cluster object
+    value: {
+      type:    Object,
+      default: () => {
+        return {};
+      }
+    }
+  },
+
+  // AKS provisioning needs to use the norman API - a provisioning cluster resource will be created by the BE when the norman cluster is made but v2 prov clusters don't contain the relevant aks configuration fields
+  async fetch() {
+    const store = this.$store as Store<any>;
+
+    if (this.value.id) {
+      const liveNormanCluster = await this.value.findNormanCluster();
+
+      this.normanCluster = await store.dispatch(`rancher/clone`, { resource: liveNormanCluster });
+      // track original version on edit to ensure we don't offer k8s downgrades
+      this.originalVersion = this.normanCluster?.aksConfig?.kubernetesVersion;
+    } else {
+      this.normanCluster = await store.dispatch('rancher/create', { type: NORMAN.CLUSTER, ...defaultCluster }, { root: true });
+    }
+
+  },
+
+  data() {
+    const store = this.$store as Store<any>;
+    // This setting is used by RKE1 AKS GKE and EKS - rke2/k3s have a different mechanism for fetching supported versions
+    const supportedVersionRange = store.getters['management/byId'](MANAGEMENT.SETTING, SETTING.UI_SUPPORTED_K8S_VERSIONS)?.value;
+    const t = store.getters['i18n/t'];
+
+    return {
+      region:            '',
+      cloudCredentialId: '',
+      normanCluster:     { name: '' } as any,
+      nodePools:         [] as EKSNodeGroup[],
+      config:            { } as EKSConfig,
+      membershipUpdate:  {} as any,
+      originalVersion:   '',
+      supportedVersionRange,
+      fvFormRuleSets:    [],
+    };
+  },
+
+  created() {
+    const registerAfterHook = this.registerAfterHook as Function;
+
+    registerAfterHook(this.saveRoleBindings, 'save-role-bindings');
+  },
+
+  computed: {
+    ...mapGetters({ t: 'i18n/t' }),
+
+    fvExtraRules() {
+      return {};
+    },
+
+    // upstreamSpec will be null if the user created a cluster with some invalid options such that it ultimately fails to create anything in aks
+    // this allows them to go back and correct their mistakes without re-making the whole cluster
+    isNewOrUnprovisioned() {
+      return this.mode === _CREATE || !this.normanCluster?.eksStatus?.upstreamSpec;
+    },
+
+    isEdit() {
+      return this.mode === _CREATE || this.mode === _EDIT;
+    },
+
+    doneRoute() {
+      return this.value?.listLocation?.name;
+    },
+
+    hasCredential() {
+      return !!this.config?.amazonCredentialSecret;
+    },
+
+    clusterId(): String | null {
+      return this.value?.id || null;
+    },
+
+    canManageMembers(): Boolean {
+      return canViewClusterMembershipEditor(this.$store);
+    },
+
+    CREATE(): string {
+      return _CREATE;
+    },
+
+    VIEW(): string {
+      return _VIEW;
+    },
+  },
+
+  watch: {},
+
+  methods: {
+
+
+
+
+    setClusterName(name: string): void {
+      this.$set(this.normanCluster, 'name', name);
+      this.$set(this.config, 'clusterName', name);
+    },
+
+    onMembershipUpdate(update: any): void {
+      this.$set(this, 'membershipUpdate', update);
+    },
+
+    async saveRoleBindings(): Promise<void> {
+      if (this.membershipUpdate.save) {
+        await this.membershipUpdate.save(this.normanCluster.id);
+      }
+    },
+
+    // these fields are used purely in UI, to track individual nodepool components
+    cleanPoolsForSave(): void {
+      // this.nodePools.forEach((pool: AKSNodePool) => {
+      //   Object.keys(pool).forEach((key: string) => {
+      //     if (key.startsWith('_')) {
+      //       delete pool[key as keyof AKSNodePool];
+      //     }
+      //   });
+      // });
+    },
+
+    // only save values that differ from upstream aks spec - see diffUpstreamSpec comments for details
+    removeUnchangedConfigFields(): void {
+      // const upstreamConfig = this.normanCluster?.status?.eksStatus?.upstreamSpec;
+
+      // if (upstreamConfig) {
+      //   const diff = diffUpstreamSpec(upstreamConfig, this.config);
+
+      //   this.$set(this.normanCluster, 'aksConfig', diff);
+      // }
+    },
+
+    async actuallySave(): Promise<void> {
+      await this.normanCluster.save();
+
+      return await this.normanCluster.waitForCondition('InitialRolesPopulated');
+    },
+
+    // fires when the 'cancel' button is pressed while the user is creating a new cloud credential
+    cancelCredential(): void {
+      if ( this.$refs.cruresource ) {
+        (this.$refs.cruresource as any).emitOrRoute();
+      }
+    },
+
+    updateRegion(e: string) {
+      // TODO nb do aws-sdk stuff
+      this.region = e;
+    },
+
+    updateCredential(e: any) {
+      // TODO nb do aws-sdk stuff
+      this.$set(this.config, 'amazonCredentialSecret', e);
+    },
+  },
+
+});
+</script>
+
+<template>
+  <CruResource
+    ref="cruresource"
+    :resource="value"
+    :mode="mode"
+    :can-yaml="false"
+    :done-route="doneRoute"
+    :errors="fvUnreportedValidationErrors"
+    :validation-passed="fvFormIsValid"
+    @error="e=>errors=e"
+    @finish="save"
+    @cancel="done"
+  >
+    <Accordion
+      title="Account Access"
+      :open-initially="true"
+    >
+      <AccountAccess
+        :credential="config.amazonCredentialSecret"
+        :mode="mode"
+        :region="region"
+        @cancel-credential="cancelCredential"
+        @update-region="updateRegion"
+        @update-credential="updateCredential"
+      />
+    </Accordion>
+    <Accordion title="Cluster Options">
+      <div class="row mb-10">
+
+<!-- <LabeledSelect :options="[]" label="Kubernetes Version" v-model="config.kubernetesVersion"  /> -->
+      </div>
+      </Accordion>
+      <Accordion title="Cluster Membership">
+      <div>
+
+      </div>
+      </Accordion>
+      <Accordion title="Cluster Agent Configuration">
+      <div>
+
+      </div>
+      </Accordion>
+      <Accordion title="Fleet Agent Configuration">
+      <div>
+
+      </div>
+      </Accordion>
+    <template
+      v-if="!hasCredential"
+      #form-footer
+    >
+      <div><!-- Hide the outer footer --></div>
+    </template>
+  </CruResource>
+</template>
+
+<style lang="scss" scoped>
+  .networking-checkboxes {
+    display: flex;
+    flex-direction: column;
+
+    &>*{
+      margin-bottom: 10px;
+    }
+  }
+
+  .node-pool {
+    padding: 10px;
+  }
+
+  .center-inputs {
+    display: flex;
+    align-items: center;
+  }
+</style>
