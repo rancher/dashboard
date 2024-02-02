@@ -7,6 +7,7 @@ import { classify } from '@shell/plugins/dashboard-store/classify';
 import { normalizeType } from './normalize';
 import garbageCollect from '@shell/utils/gc/gc';
 import { addSchemaIndexFields } from '@shell/plugins/steve/schema.utils';
+import { addParam } from '@shell/utils/url';
 
 export const _ALL = 'all';
 export const _MERGE = 'merge';
@@ -203,12 +204,12 @@ export default {
 
       const pageFetchOpts = {
         ...opt,
-        url: `${ opt.url }?limit=${ opt.incremental }`
+        url: addParam(opt.url, 'limit', `${ opt.incremental }`),
       };
 
       // this is where we "hijack" the limit for the dispatch('request') some lines below
       // and therefore have 2 initial requests in parallel
-      opt.url = `${ opt.url }?limit=100`;
+      opt.url = addParam(opt.url, 'limit', '100');
       skipHaveAll = true;
 
       // since we are forcing a request, clear the haveAll
