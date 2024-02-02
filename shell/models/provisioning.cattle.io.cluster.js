@@ -250,18 +250,14 @@ export default class ProvCluster extends SteveModel {
   }
 
   get isPrivateHostedProvider() {
-    if (this.isHostedKubernetesProvider && this.mgmt) {
-      const provisionerSmallCase = this.provisioner ? this.provisioner.toLowerCase() : '';
-
-      switch (provisionerSmallCase) {
+    if (this.isHostedKubernetesProvider && this.mgmt && this.provisioner) {
+      switch (this.provisioner.toLowerCase()) {
       case 'gke':
         return this.mgmt.spec?.gkeConfig?.privateClusterConfig?.enablePrivateEndpoint;
       case 'eks':
         return this.mgmt.spec?.eksConfig?.privateAccess;
       case 'aks':
         return this.mgmt.spec?.aksConfig?.privateCluster;
-      default:
-        return false;
       }
     }
 
