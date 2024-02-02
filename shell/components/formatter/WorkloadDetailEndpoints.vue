@@ -35,14 +35,19 @@ export default {
               protocol = 'https';
             }
 
+            const linkDefaultDisplay = endpoint.port ? `${ endpoint.port }${ endpoint.protocol }` : endpoint.protocol;
+
             // If there's an ingress and it has a hostname, we use the hostname address instead
             // https://github.com/rancher/dashboard/issues/8087
             if (endpoint.ingressName && endpoint.hostname) {
               endpoint.link = `${ protocol }://${ endpoint.hostname }${ endpoint.path }`;
+              endpoint.linkDisplay = endpoint.link;
             } else if (endpoint.addresses && endpoint.addresses.length) {
               endpoint.link = `${ protocol }://${ endpoint.addresses[0] }:${ endpoint.port }`;
+              endpoint.linkDisplay = linkDefaultDisplay;
             } else if (externalIp) {
               endpoint.link = `${ protocol }://${ externalIp }:${ endpoint.port }`;
+              endpoint.linkDisplay = linkDefaultDisplay;
             } else {
               endpoint.display = `[${ this.t('servicesPage.anyNode') }]:${ endpoint.port }`;
             }
@@ -75,7 +80,7 @@ export default {
         :href="endpoint.link"
         target="_blank"
         rel="nofollow noopener noreferrer"
-      >{{ endpoint.link }}</a>
+      >{{ endpoint.linkDisplay }}</a>
     </template>
   </span>
 </template>
