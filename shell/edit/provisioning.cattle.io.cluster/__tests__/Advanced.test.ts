@@ -170,7 +170,7 @@ describe('component: Advanced', () => {
           const globalContainer = wrapper.find('[data-testid="global-kubelet-arg"]');
           const selectorContainer = wrapper.find('[data-testid="selector-kubelet-arg"]');
 
-          const selectorInputElem = selectorContainer.find('[data-testid="input-0"]').element as HTMLInputElement;
+          const selectorInputElem = selectorContainer.element as HTMLInputElement;
           const globalInputElem = globalContainer.find('[data-testid="input-0"]').element as HTMLInputElement;
 
           expect(selectorInputElem).toBeUndefined();
