@@ -1,5 +1,4 @@
 import { Matcher } from '@/cypress/support/types';
-import LoadingPo from '~/cypress/e2e/po/components/loading.po';
 
 /**
  * Get input field for given label
