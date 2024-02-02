@@ -238,6 +238,7 @@ export default {
             <label class="text-muted">{{ t('branding.logos.lightPreview') }}</label>
             <img
               class="logo-preview"
+              data-testid="branding-logo-light-preview"
               :src="uiLogoLight ? uiLogoLight : uiLogoDark"
             >
           </SimpleBox>
@@ -262,6 +263,7 @@ export default {
             <label class="text-muted">{{ t('branding.logos.darkPreview') }}</label>
             <img
               class="logo-preview"
+              data-testid="branding-logo-dark-preview"
               :src="uiLogoDark ? uiLogoDark : uiLogoLight"
             >
           </SimpleBox>
@@ -304,6 +306,7 @@ export default {
             <label class="text-muted">{{ t('branding.favicon.preview') }}</label>
             <img
               class="logo-preview"
+              data-testid="branding-favicon-preview"
               :src="uiFavicon"
             >
           </SimpleBox>

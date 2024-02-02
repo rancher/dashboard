@@ -1,7 +1,7 @@
 import PagePo from '@/cypress/e2e/po/pages/page.po';
 import AsyncButtonPo from '@/cypress/e2e/po/components/async-button.po';
 import LabeledInputPo from '@/cypress/e2e/po/components/labeled-input.po';
-
+import RadioGroupInputPo from '@/cypress/e2e/po/components/radio-group-input.po';
 export default class CreateKeyPagePo extends PagePo {
   static url = '/account/create-key'
   static goTo(): Cypress.Chainable<Cypress.AUTWindow> {
@@ -18,6 +18,10 @@ export default class CreateKeyPagePo extends PagePo {
 
   description(): LabeledInputPo {
     return LabeledInputPo.byLabel(this.self(), 'Description');
+  }
+
+  expiryOptions(): RadioGroupInputPo {
+    return new RadioGroupInputPo('[data-testid="expiry__options"]');
   }
 
   createButton(): AsyncButtonPo {

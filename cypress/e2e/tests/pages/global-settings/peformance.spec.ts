@@ -1,47 +1,25 @@
 import { PerformancePagePo } from '@/cypress/e2e/po/pages/global-settings/performance.po';
-import { SettingsPagePo } from '@/cypress/e2e/po/pages/global-settings/settings.po';
 import HomePagePo from '@/cypress/e2e/po/pages/home.po';
-import BurgerMenuPo from '@/cypress/e2e/po/side-bars/burger-side-menu.po';
-import ProductNavPo from '@/cypress/e2e/po/side-bars/product-side-nav.po';
+import CardPo from '@/cypress/e2e/po/components/card.po';
 
-describe('Performance', { tags: ['@globalSettings', '@adminUser'] }, () => {
-  // If we need to speed tests up these should be combined into a single `it` (so only one page load and one refresh is used)
-  beforeEach(() => {
+const performancePage = new PerformancePagePo();
+const performanceSettingsOrginal = [];
+
+describe('Performance', { testIsolation: 'off', tags: ['@globalSettings', '@adminUser'] }, () => {
+  before('get default performance settings', () => {
     cy.login();
-  });
-
-  it('Can navigate to Performance Page', () => {
     HomePagePo.goTo();
 
-    const burgerMenu = new BurgerMenuPo();
-    const productMenu = new ProductNavPo();
+    cy.getRancherResource('v1', 'management.cattle.io.settings', 'ui-performance', null).then((resp: Cypress.Response<any>) => {
+      const body = resp.body;
 
-    BurgerMenuPo.toggle();
-
-    burgerMenu.categories().contains(` Configuration `).should('exist');
-    const globalSettingsNavItem = burgerMenu.links().contains(`Global Settings`);
-
-    globalSettingsNavItem.should('exist');
-    globalSettingsNavItem.click();
-    const settingsPage = new SettingsPagePo();
-
-    settingsPage.waitForPageWithClusterId();
-
-    const performancePageNavItem = productMenu.visibleNavTypes().contains('Performance');
-
-    performancePageNavItem.should('exist');
-    performancePageNavItem.click();
-
-    const performancePage = new PerformancePagePo();
-
-    performancePage.waitForPageWithClusterId();
+      performanceSettingsOrginal.push(body);
+    });
   });
 
-  context.only('Inactivity', () => {
+  describe('Inactivity', () => {
     it('should show the modal after 6 seconds', () => {
-      const performancePage = new PerformancePagePo();
-
-      performancePage.goTo();
+      PerformancePagePo.navTo();
 
       performancePage.inactivityCheckbox().isUnchecked();
 
@@ -49,7 +27,7 @@ describe('Performance', { tags: ['@globalSettings', '@adminUser'] }, () => {
       performancePage.inactivityCheckbox().set();
       performancePage.inactivityCheckbox().isChecked();
       performancePage.inactivityInput().clear().type('0.10');
-      performancePage.applyButton().click();
+      performancePage.applyAndWait('inactivity=true');
 
       // We need to reload the page to get the new settings to take effect.
       cy.reload();
@@ -79,12 +57,182 @@ describe('Performance', { tags: ['@globalSettings', '@adminUser'] }, () => {
 
       performancePage.goTo();
 
-      performancePage.restoresSettings();
+      performancePage.restoresInactivitySettings();
 
       // We need to reload the page to get the new settings to take effect.
       cy.reload();
 
       performancePage.inactivityCheckbox().isUnchecked();
+    });
+  });
+
+  it('can toggle websocket notifications', () => {
+    PerformancePagePo.navTo();
+
+    // Enable websocket notifications
+    performancePage.websocketCheckbox().isChecked();
+    performancePage.websocketCheckbox().set();
+    performancePage.websocketCheckbox().isUnchecked();
+    performancePage.applyAndWait('disableWebsocketNotification-false').then(({ request, response }) => {
+      expect(response?.statusCode).to.eq(200);
+      expect(request.body).to.have.property('value').contains('\"disableWebsocketNotification\":false');
+      expect(response?.body).to.have.property('value').contains('\"disableWebsocketNotification\":false');
+    });
+
+    // Disable websocket notifications
+    performancePage.websocketCheckbox().isUnchecked();
+    performancePage.websocketCheckbox().set();
+    performancePage.websocketCheckbox().isChecked();
+    performancePage.applyAndWait('disableWebsocketNotification-true').then(({ request, response }) => {
+      expect(response?.statusCode).to.eq(200);
+      expect(request.body).to.have.property('value').contains('\"disableWebsocketNotification\":true');
+      expect(response?.body).to.have.property('value').contains('\"disableWebsocketNotification\":true');
+    });
+  });
+
+  it('can toggle incremental loading', () => {
+    PerformancePagePo.navTo();
+
+    // Disable incremental loading
+    performancePage.incrementalLoadingCheckbox().isChecked();
+    performancePage.incrementalLoadingCheckbox().set();
+    performancePage.incrementalLoadingCheckbox().isUnchecked();
+    performancePage.applyAndWait('incrementalLoading-false').then(({ request, response }) => {
+      expect(response?.statusCode).to.eq(200);
+      expect(request.body).to.have.property('value').contains('\"incrementalLoading\":{\"enabled\":false');
+      expect(response?.body).to.have.property('value').contains('\"incrementalLoading\":{\"enabled\":false');
+    });
+
+    // Enable incremental loading
+    performancePage.incrementalLoadingCheckbox().isUnchecked();
+    performancePage.incrementalLoadingCheckbox().set();
+    performancePage.incrementalLoadingCheckbox().isChecked();
+    performancePage.applyAndWait('incrementalLoading-true').then(({ request, response }) => {
+      expect(response?.statusCode).to.eq(200);
+      expect(request.body).to.have.property('value').contains('\"incrementalLoading\":{\"enabled\":true');
+      expect(response?.body).to.have.property('value').contains('\"incrementalLoading\":{\"enabled\":true');
+    });
+  });
+
+  it('can toggle manual refresh', () => {
+    PerformancePagePo.navTo();
+
+    // Enable manual refresh
+    performancePage.manualRefreshCheckbox().isUnchecked();
+    performancePage.manualRefreshCheckbox().set();
+    performancePage.manualRefreshCheckbox().isChecked();
+    performancePage.applyAndWait('manualRefresh-true').then(({ request, response }) => {
+      expect(response?.statusCode).to.eq(200);
+      expect(request.body).to.have.property('value').contains('\"manualRefresh\":{\"enabled\":true');
+      expect(response?.body).to.have.property('value').contains('\"manualRefresh\":{\"enabled\":true');
+    });
+
+    // Disable manual refresh
+    performancePage.manualRefreshCheckbox().isChecked();
+    performancePage.manualRefreshCheckbox().set();
+    performancePage.manualRefreshCheckbox().isUnchecked();
+    performancePage.applyAndWait('manualRefresh-false').then(({ request, response }) => {
+      expect(response?.statusCode).to.eq(200);
+      expect(request.body).to.have.property('value').contains('\"manualRefresh\":{\"enabled\":false');
+      expect(response?.body).to.have.property('value').contains('\"manualRefresh\":{\"enabled\":false');
+    });
+  });
+
+  it('can toggle resource garbage collection', () => {
+    PerformancePagePo.navTo();
+
+    // Enable garbage collection
+    performancePage.garbageCollectionCheckbox().isUnchecked();
+    performancePage.garbageCollectionCheckbox().set();
+    performancePage.garbageCollectionCheckbox().isChecked();
+    performancePage.applyAndWait('garbageCollection-true').then(({ request, response }) => {
+      expect(response?.statusCode).to.eq(200);
+      expect(request.body).to.have.property('value').contains('\"garbageCollection\":{\"enabled\":true');
+      expect(response?.body).to.have.property('value').contains('\"garbageCollection\":{\"enabled\":true');
+    });
+
+    // Disable garbage collection
+    performancePage.garbageCollectionCheckbox().isChecked();
+    performancePage.garbageCollectionCheckbox().set();
+    performancePage.garbageCollectionCheckbox().isUnchecked();
+    performancePage.applyAndWait('garbageCollection-false').then(({ request, response }) => {
+      expect(response?.statusCode).to.eq(200);
+      expect(request.body).to.have.property('value').contains('\"garbageCollection\":{\"enabled\":false');
+      expect(response?.body).to.have.property('value').contains('\"garbageCollection\":{\"enabled\":false');
+    });
+  });
+
+  it('can toggle require namespace filtering', () => {
+    PerformancePagePo.navTo();
+
+    // Enable require namespace filtering
+    performancePage.namespaceFilteringCheckbox().isUnchecked();
+    performancePage.namespaceFilteringCheckbox().set();
+
+    const cardPo = new CardPo();
+
+    cardPo.getBody().contains('Required Namespace / Project Filtering is incomaptible with Manual Refresh and Incremental Loading. Enabling this will disable them.');
+    cardPo.getActionButton().contains('Enable').click();
+    performancePage.namespaceFilteringCheckbox().isChecked();
+    performancePage.applyAndWait('forceNsFilterV2-true').then(({ request, response }) => {
+      expect(response?.statusCode).to.eq(200);
+      expect(request.body).to.have.property('value').contains('\"forceNsFilterV2\":{\"enabled\":true');
+      expect(response?.body).to.have.property('value').contains('\"forceNsFilterV2\":{\"enabled\":true');
+    });
+
+    // Disable require namespace filtering
+    performancePage.namespaceFilteringCheckbox().isChecked();
+    performancePage.namespaceFilteringCheckbox().set();
+    performancePage.namespaceFilteringCheckbox().isUnchecked();
+    performancePage.applyAndWait('forceNsFilterV2-false').then(({ request, response }) => {
+      expect(response?.statusCode).to.eq(200);
+      expect(request.body).to.have.property('value').contains('\"forceNsFilterV2\":{\"enabled\":false');
+      expect(response?.body).to.have.property('value').contains('\"forceNsFilterV2\":{\"enabled\":false');
+    });
+
+    // Reenable incremental loading: this is disabled when we enable 'require namespace filtering'
+    performancePage.incrementalLoadingCheckbox().isUnchecked();
+    performancePage.incrementalLoadingCheckbox().set();
+    performancePage.incrementalLoadingCheckbox().isChecked();
+    performancePage.applyAndWait('incrementalLoading-true').then(({ request, response }) => {
+      expect(response?.statusCode).to.eq(200);
+      expect(request.body).to.have.property('value').contains('\"incrementalLoading\":{\"enabled\":true');
+      expect(response?.body).to.have.property('value').contains('\"incrementalLoading\":{\"enabled\":true');
+    });
+  });
+
+  it('can toggle websocket web worker', () => {
+    PerformancePagePo.navTo();
+
+    // Enable websocket web worker
+    performancePage.websocketWebWorkerCheckbox().isUnchecked();
+    performancePage.websocketWebWorkerCheckbox().set();
+    performancePage.websocketWebWorkerCheckbox().isChecked();
+    performancePage.applyAndWait('advancedWorker-true').then(({ request, response }) => {
+      expect(response?.statusCode).to.eq(200);
+      expect(request.body).to.have.property('value').contains('\"advancedWorker\":{\"enabled\":true');
+      expect(response?.body).to.have.property('value').contains('\"advancedWorker\":{\"enabled\":true');
+    });
+
+    // Disable websocket web worker
+    performancePage.websocketWebWorkerCheckbox().isChecked();
+    performancePage.websocketWebWorkerCheckbox().set();
+    performancePage.websocketWebWorkerCheckbox().isUnchecked();
+    performancePage.applyAndWait('advancedWorker-false').then(({ request, response }) => {
+      expect(response?.statusCode).to.eq(200);
+      expect(request.body).to.have.property('value').contains('\"advancedWorker\":{\"enabled\":false');
+      expect(response?.body).to.have.property('value').contains('\"advancedWorker\":{\"enabled\":false');
+    });
+  });
+
+  after('set default performance settings', () => {
+    // get most updated version of settings info
+    cy.getRancherResource('v1', 'management.cattle.io.settings', 'ui-performance', null).then((resp: Cypress.Response<any>) => {
+      const response = resp.body.metadata;
+
+      // update original data before sending request
+      performanceSettingsOrginal[0].metadata.resourceVersion = response.resourceVersion;
+      cy.setRancherResource('v1', 'management.cattle.io.settings', 'ui-performance', performanceSettingsOrginal[0]);
     });
   });
 });

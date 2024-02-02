@@ -425,3 +425,13 @@ export function pickBy(obj = {}, predicate = (value, key) => false) {
 export const toDictionary = (array, callback) => Object.assign(
   {}, ...array.map((item) => ({ [item]: callback(item) }))
 );
+
+export function dropKeys(obj, keys) {
+  if ( !obj ) {
+    return;
+  }
+
+  for ( const k of keys ) {
+    delete obj[k];
+  }
+}
