@@ -28,6 +28,7 @@ harborConfig:
       username:
         label: Username
         placeholder: username
+      error: User already exists
     address:
       label: Address
       placeholder: Access the URL of the Harbor.
@@ -152,6 +153,8 @@ harborConfig:
       private: Private
       public: Public
     tag: Tag
+    describe: Description
+    createTime: Creation Time
     tagCount: Tag Count
     tags: Tags
     timestamp: Timestamp

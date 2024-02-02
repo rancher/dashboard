@@ -1,6 +1,6 @@
 <template>
   <div
-    v-loading="loading || innerLoading"
+    v-loading="loading"
     class="image"
   >
     <HarborTable
@@ -12,6 +12,7 @@
       :rows="rows"
       :columns="columns"
       :totalCount="totalCount"
+      :subtractHeight="320"
       @action="action"
       @page-change="pageChange"
       @input-search="inputSearch"
@@ -93,25 +94,18 @@ export default {
       type:     Object,
       required: true
     },
-    loading: {
-      type:     Boolean,
-      required: true
-    }
-  },
-  async mounted() {
-    await this.fetchImage();
   },
   data() {
     return {
-      innerLoading: false,
-      page:         1,
-      page_size:    10,
-      totalCount:   0,
-      inputFilter:  [],
-      images:       [],
-      sortValue:    '',
-      placement:    'bottom',
-      columns:      [
+      loading:     false,
+      page:        1,
+      page_size:   10,
+      totalCount:  0,
+      inputFilter: [],
+      images:      [],
+      sortValue:   '',
+      placement:   'bottom',
+      columns:     [
         {
           field:    'name',
           title:    'Name',
@@ -148,8 +142,12 @@ export default {
     rows() {
       return this.images.map((image) => {
         const to = {
-          name:   `${ PRODUCT_NAME }-c-cluster-manager-project-image-v2`,
-          params: { id: image.id }
+          name:   `${ PRODUCT_NAME }-c-cluster-manager-project-detail-image-v2`,
+          params: {
+            id:        this.project.project_id,
+            roleId:    this.project.current_user_role_id,
+            imageName: image.name.replace(`${ this.project.name }/`, ''),
+          }
         };
 
         return {
@@ -166,8 +164,11 @@ export default {
     },
   },
   watch: {
-    async project() {
-      await this.fetchImage();
+    project: {
+      immediate: true,
+      async handler() {
+        await this.fetchImage();
+      }
     }
   },
   methods: {
@@ -183,7 +184,7 @@ export default {
         if (this.sortValue !== '') {
           params.sort = this.sortValue;
         }
-        this.innerLoading = true;
+        this.loading = true;
         try {
           const images = await this.apiRequest.fetchProjectImages(this.project?.name, {
             page_size: this.page_size,
@@ -193,18 +194,18 @@ export default {
 
           this.images = images;
           this.totalCount = this.getTotalCount(images) || 0;
-          this.innerLoading = false;
+          this.loading = false;
         } catch (e) {
-          this.innerLoading = false;
+          this.loading = false;
         }
       }
     },
     removeImages(names) {
-      this.innerLoading = true;
+      this.loading = true;
       this.apiRequest.deleteRepos(names).then(() => {
         this.fetchImage();
       }).catch(() => {
-        this.innerLoading = false;
+        this.loading = false;
         this.fetchImage();
       });
     },

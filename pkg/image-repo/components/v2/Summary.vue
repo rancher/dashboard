@@ -1,6 +1,6 @@
 <template>
   <div
-    v-loading="loading || innerLoading"
+    v-loading="loading"
     class="summary"
   >
     <div class="left">
@@ -86,33 +86,35 @@ export default {
       type:     Object,
       required: true
     },
-    loading: {
-      type:     Boolean,
-      required: true
-    }
-  },
-  async mounted() {
-    await this.fetchSummary();
   },
   data() {
     return {
-      value:        0,
-      innerLoading: false,
-      summary:      null,
-      defaultIcon:  require('../../assets/image/harbor-repo.svg'),
+      value:       0,
+      loading:     false,
+      summary:     null,
+      defaultIcon: require('../../assets/image/harbor-repo.svg'),
     };
+  },
+  watch: {
+    project: {
+      immediate: true,
+      async handler() {
+        await this.fetchSummary();
+      }
+    }
   },
   methods: {
     async fetchSummary() {
       if (this.project?.project_id) {
-        this.innerLoading = true;
+        this.loading = true;
+
         try {
           const summary = await this.apiRequest.fetchProjectSummary(this.project?.project_id);
 
           this.summary = summary;
-          this.innerLoading = false;
+          this.loading = false;
         } catch (e) {
-          this.innerLoading = false;
+          this.loading = false;
         }
       }
     },
@@ -137,11 +139,6 @@ export default {
       }
 
       return (value / max * 100).toFixed(2);
-    }
-  },
-  watch: {
-    async project() {
-      await this.fetchSummary();
     }
   },
   computed: {

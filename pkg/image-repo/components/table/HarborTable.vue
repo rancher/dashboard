@@ -59,6 +59,11 @@ export default {
       type:       Boolean,
       default:    false,
     },
+    autoHide: {
+      staticProp: Boolean,
+      type:       Boolean,
+      default:    false,
+    },
     hideSelect: {
       staticProp: Boolean,
       type:       Boolean,
@@ -80,6 +85,10 @@ export default {
       type:    Number,
       default: 10,
     },
+    subtractHeight: {
+      type:    Number,
+      default: 0,
+    },
     totalCount: {
       type:    Number,
       default: 0,
@@ -94,12 +103,19 @@ export default {
       type:       Boolean,
       default:    false,
     },
+    disableActionButton: {
+      staticProp: Boolean,
+      type:       Boolean,
+      default:    false,
+    },
   },
   data() {
     return {
       selectedRows:             [],
       defaultSelectSearchQuery: '',
       inputSearchQuery:         '',
+      minHeight:                200,
+      maxHeight:                0,
     };
   },
   watch: {
@@ -109,11 +125,30 @@ export default {
   },
   mounted() {
     // Set initial value;
+    this.getElementHeight();
     if (this.defaultSelectOption?.length > 0) {
       this.defaultSelectSearchQuery = this.defaultSelectOption[0].value;
     }
+    window.addEventListener('resize', this.getElementHeight);
+  },
+  beforeDestroy() {
+    window.removeEventListener('resize', this.getElementHeight);
   },
   methods: {
+    getElementHeight() {
+      const screenHeight = window.innerHeight || document.documentElement.clientHeight || document.body.clientHeight;
+
+      const finalHeight = screenHeight - this.subtractHeight;
+
+      if (this.autoHide) {
+        this.minHeight = 200;
+        this.maxHeight = 3000;
+
+        return ;
+      }
+      this.minHeight = finalHeight;
+      this.maxHeight = finalHeight;
+    },
     selectChangeEvent(rows) {
       this.$emit('checkbox-change', rows.records);
       this.selectedRows = rows.records;
@@ -190,25 +225,32 @@ export default {
   },
   computed: {
     disableBulkActions() {
-      return this.selectedRows.length === 0;
+      return this.selectedRows.length === 0 || this.disableActionButton;
     },
   }
 };
 </script>
 
 <template>
-  <div class="harbor-cn">
+  <div
+    ref="harborTable"
+    class="harbor-cn"
+  >
     <div class="table-content">
       <div class="table-actions">
-        <button
-          type="button"
-          :disabled="disableBulkActions"
-          class="bulk-action btn bg-primary"
-          @click="remove"
-        >
-          <i class="icon icon-trash" />
-          <span>{{ t('imageRepoSection.projectsPage.delete') }}</span>
-        </button>
+        <div class="table-actions-l">
+          <button
+            v-show="rowSelection"
+            type="button"
+            :disabled="disableBulkActions"
+            class="bulk-action btn bg-primary"
+            @click="remove"
+          >
+            <i class="icon icon-trash" />
+            <span>{{ t('imageRepoSection.projectsPage.delete') }}</span>
+          </button>
+          <slot name="options" />
+        </div>
         <div class="table-slot">
           <slot name="default">
             <select
@@ -243,6 +285,8 @@ export default {
           :sort-config="sortConfig"
           :data="pagedRows"
           :scroll-y="{enabled: false}"
+          :min-height="minHeight"
+          :max-height="maxHeight"
           @sort-change="sortChangeEvent"
           @checkbox-change="selectChangeEvent"
           @checkbox-all="selectAllChangeEvent"
@@ -338,6 +382,13 @@ export default {
         margin-bottom: 10px;
         display: flex;
         justify-content: space-between;
+        button {
+          height: 40px;
+          margin-right: 5px;
+        }
+        .table-actions-l {
+          display: flex;
+        }
         .table-slot {
           display: flex;
           & input {
@@ -347,6 +398,9 @@ export default {
       }
       .vxe-table--render-default {
         .vxe-cell {
+          display: flex;
+          align-items: center;
+          min-height: 28px;
           white-space: unset !important;
         }
         .vxe-header--column {

@@ -28,6 +28,7 @@ harborConfig:
       username:
         label: 用戶名
         placeholder: 用戶名
+      error: 使用者已經存在
     address:
       label: 訪問地址
       placeholder: 訪問 Harbor 的URL
@@ -153,8 +154,10 @@ harborConfig:
       private: 私有
       public: 公開
     tag: 標簽
+    describe: 描述
+    createTime: 建立時間
     tagCount: 標籤數
-    tags: ags
+    tags: Tags
     timestamp: 时间戳
     type: 资源类型
     username: 用戶名

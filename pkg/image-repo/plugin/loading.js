@@ -7,13 +7,20 @@ Vue.directive('loading', {
   update(el, binding) {
     updateLoading(el, binding.value);
   },
+  unbind(el) {
+    updateLoading(el, false);
+  }
 });
 
 function updateLoading(el, isLoading) {
-  const loadingOverlay = el.querySelector('.v-loading-mask');
+  const loadingOverlay = el?.querySelector('.v-loading-mask');
 
-  if (loadingOverlay) {
-    el.removeChild(loadingOverlay);
+  if (loadingOverlay && loadingOverlay.parentNode) {
+    try {
+      loadingOverlay.parentNode?.removeChild(loadingOverlay);
+    } catch (e) {
+      console.log(e);
+    }
   }
   const mask = document.createElement('div');
 
@@ -32,8 +39,12 @@ function updateLoading(el, isLoading) {
   } else {
     const loadingOverlay = el.querySelector('.v-loading-mask');
 
-    if (loadingOverlay) {
-      el.removeChild(loadingOverlay);
+    if (loadingOverlay && loadingOverlay.parentNode) {
+      try {
+        loadingOverlay.parentNode?.removeChild(loadingOverlay);
+      } catch (e) {
+        console.log(e);
+      }
     }
   }
 }

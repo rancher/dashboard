@@ -28,6 +28,7 @@ harborConfig:
       username:
         label: 用户名
         placeholder: 用户名
+      error: 用户已经存在
     address:
       label: 访问地址
       placeholder: 访问 Harbor 的 URL
@@ -154,6 +155,8 @@ harborConfig:
     tag: 标签
     tagCount: 标签数
     tags: Tags
+    describe: 描述
+    createTime: 创建时间
     timestamp: 时间戳
     type: 资源类型
     username: 用户名

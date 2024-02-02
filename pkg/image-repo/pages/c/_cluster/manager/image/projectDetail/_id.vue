@@ -28,7 +28,7 @@ import ProjectDetailV1 from '@pkg/image-repo/components/ProjectDetailV1.vue';
 
 export default {
   data() {
-    return { projectId: this?.$route?.params?.id };
+    return { projectId: parseInt(this?.$route?.params?.id, 10) };
   },
   components: {
     PageHeader,

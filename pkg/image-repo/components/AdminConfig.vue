@@ -165,7 +165,7 @@
       <div>
         <hr class="mt-20 mb-20">
         <p
-          v-clean-html="t('harborConfig.advanced.harborLink', { harborServer: harborServer }, true)"
+          v-clean-html="t('harborConfig.advanced.harborLink', { harborServer: harborConfig.url }, true)"
           class="mb-20"
         />
         <div class="mb-20 label-header">
@@ -188,9 +188,7 @@
         </div>
       </div>
       <LabelsV1
-
         ref="labelRef"
-        :harbor-server="harborConfig.url"
         :api-request="harborAPIRequest"
       />
     </div>

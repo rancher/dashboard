@@ -20,6 +20,7 @@
       :rows="rows"
       :columns="columns"
       :totalCount="totalCount"
+      :subtractHeight="262"
       :defaultSelectOption="defaultSelectOption"
       @action="action"
       @page-change="pageChange"

@@ -4,7 +4,6 @@ import { DATE_FORMAT, TIME_FORMAT } from '@shell/store/prefs';
 import { escapeHtml } from '@shell/utils/string';
 
 export default {
-
   methods: {
     timeFormatStr() {
       const dateFormat = escapeHtml( this.$store.getters['prefs/get'](DATE_FORMAT));

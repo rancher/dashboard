@@ -11,6 +11,8 @@
       :default-select-option="filterKeyOptions"
       :enableFrontendPagination="true"
       :sortConfig="{remote: false}"
+      :subtractHeight="subtractHeight"
+      :autoHide="autoHide"
       @action="action"
       @input-search="inputSearch"
       @bulk-remove="bulkRemove"
@@ -308,10 +310,6 @@ export default {
       type:     Object,
       required: true
     },
-    harborServer: {
-      type:     String,
-      required: true
-    },
     projectId: {
       type:    Number,
       default: 0
@@ -319,6 +317,14 @@ export default {
     scope: {
       type:    String,
       default: 'g'
+    },
+    subtractHeight: {
+      type:    Number,
+      default: 0,
+    },
+    autoHide: {
+      type:    Boolean,
+      default: true,
     }
   },
 
@@ -366,8 +372,8 @@ export default {
               }, {
                 label: 'Detete',
                 value: 'delete'
-              }],
-
+              }
+            ],
           },
           width: 50
         }
@@ -386,7 +392,7 @@ export default {
       }, {});
 
       const p = {
-        scope: 'g',
+        scope: this.scope,
         ...filter,
       };
 
@@ -539,7 +545,6 @@ export default {
 };
 </script>
 <style scoped>
-
   .color-option {
     cursor: pointer;
     padding: 0;

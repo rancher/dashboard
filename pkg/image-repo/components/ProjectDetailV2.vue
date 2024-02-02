@@ -1,5 +1,8 @@
 <template>
-  <div class="project">
+  <div
+    v-loading="loading"
+    class="project"
+  >
     <div class="title">
       {{ project?.name }}
     </div>
@@ -8,33 +11,44 @@
     >
       <template v-slot:summary>
         <Summary
-          :loading="loading"
           :apiRequest="apiRequest"
           :project="project"
         />
       </template>
       <template v-slot:image>
         <ImageStore
-          :loading="loading"
           :apiRequest="apiRequest"
           :project="project"
         />
       </template>
       <template v-slot:member>
         <Member
-          :loading="loading"
+          :apiRequest="apiRequest"
+          :project="project"
+          :currentUser="currentUser"
+          :harborSysntemInfo="harborSysntemInfo"
+          @refresh="refresh"
+        />
+      </template>
+      <template v-slot:tag>
+        <Labels
           :apiRequest="apiRequest"
           :project="project"
         />
       </template>
-      <template v-slot:tag>
-        <div>tag</div>
-      </template>
       <template v-slot:log>
-        <div>log</div>
+        <Logs
+          :apiRequest="apiRequest"
+          :project="project"
+        />
       </template>
       <template v-slot:access>
-        <div>access</div>
+        <Access
+          :currentUser="currentUser"
+          :apiRequest="apiRequest"
+          :project="project"
+          @refresh="refresh"
+        />
       </template>
     </Tab>
   </div>
@@ -45,13 +59,19 @@ import Tab from '@pkg/image-repo/components/tab/Tab.vue';
 import Summary from '@pkg/image-repo/components/v2/Summary.vue';
 import ImageStore from '@pkg/image-repo/components/v2/ImageStore.vue';
 import Member from '@pkg/image-repo/components/v2/Member.vue';
+import Labels from '@pkg/image-repo/components/v2/Labels.vue';
+import Logs from '@pkg/image-repo/components/v2/Log.vue';
+import Access from '@pkg/image-repo/components/v2/Access.vue';
 
 export default {
   components: {
     Tab,
     Summary,
     ImageStore,
-    Member
+    Member,
+    Labels,
+    Logs,
+    Access,
   },
   props: {
     apiRequest: {
@@ -59,26 +79,20 @@ export default {
       required: true
     },
     projectId: {
-      type:     String,
+      type:     Number,
       required: true
     },
   },
   async fetch() {
-    this.loading = true;
-    try {
-      const project = await this.apiRequest.getProjectDetail(this.projectId);
-
-      this.project = project;
-      this.loading = false;
-    } catch (e) {
-      this.loading = false;
-    }
+    await this.init();
   },
   data() {
     return {
-      loading: false,
-      project: {},
-      tabs:    [
+      loading:           false,
+      project:           {},
+      currentUser:       {},
+      harborSysntemInfo: {},
+      tabs:              [
         {
           label: 'Summary',
           name:  'summary'
@@ -105,6 +119,75 @@ export default {
         },
       ]
     };
+  },
+  methods: {
+    async init() {
+      this.loading = true;
+      const maxRetries = 3;
+      let retries = 0;
+
+      while (retries < maxRetries) {
+        try {
+          const project = await this.apiRequest.getProjectDetail(this.projectId);
+
+          this.project = project;
+          break;
+        } catch (e) {
+          retries++;
+          await new Promise((resolve) => setTimeout(resolve, 1000));
+        }
+      }
+
+      retries = 0;
+      while (retries < maxRetries) {
+        try {
+          const currentUser = await this.apiRequest.fetchCurrentHarborUser();
+
+          this.currentUser = currentUser;
+          break;
+        } catch (e) {
+          retries++;
+          await new Promise((resolve) => setTimeout(resolve, 1000));
+        }
+      }
+
+      retries = 0;
+      while (retries < maxRetries) {
+        try {
+          const harborSysntemInfo = await this.apiRequest.fetchSystemInfo();
+
+          if (!harborSysntemInfo.harbor_version) {
+            this.harborSysntemInfo = {
+              ...harborSysntemInfo,
+              supportSummary:          false,
+              supportRoleLimitedGuest: false,
+              supportRoleMaster:       false
+            };
+          } else {
+            const subPos = harborSysntemInfo.harbor_version.indexOf('-');
+            const version = harborSysntemInfo.harbor_version.substring(1, subPos).split('.').map((item) => parseInt(item, 10));
+
+            this.harborSysntemInfo = {
+              ...harborSysntemInfo,
+              supportSummary:          version[0] > 1 || (version[0] >= 1 && version[1] > 8),
+              supportRoleLimitedGuest: version[0] > 1 || (version[0] >= 1 && version[1] > 9),
+              supportRoleMaster:       version[0] > 1 || (version[0] >= 1 && version[1] > 7)
+            };
+          }
+          break;
+        } catch (e) {
+          retries++;
+          if (retries === maxRetries) {
+            this.loading = false;
+          }
+          await new Promise((resolve) => setTimeout(resolve, 1000));
+        }
+      }
+      this.loading = false;
+    },
+    async refresh() {
+      await this.init();
+    },
   }
 };
 </script>
