@@ -10,6 +10,7 @@ import {
   UI_PLUGINS_PARTNERS_REPO_URL,
   UI_PLUGINS_PARTNERS_REPO_BRANCH,
 } from '@shell/config/uiplugins';
+import { isRancherPrime } from '@shell/config/version';
 
 export default {
   components: {
@@ -27,8 +28,9 @@ export default {
     return {
       errors:   [],
       repos:    [],
+      prime:    isRancherPrime(),
       addRepos: {
-        official: true,
+        official: isRancherPrime(),
         partners: true
       },
       reposInfo: {
@@ -121,6 +123,7 @@ export default {
       </p>
       <!-- Official repo -->
       <div
+        v-if="prime"
         class="mb-15"
       >
         <Checkbox

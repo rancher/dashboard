@@ -7,6 +7,7 @@ import { CATALOG as CATALOG_ANNOTATIONS } from '@shell/config/labels-annotations
 import Dialog from '@shell/components/Dialog.vue';
 import Checkbox from '@components/Form/Checkbox/Checkbox.vue';
 import Banner from '@components/Banner/Banner.vue';
+import { isRancherPrime } from '@shell/config/version';
 
 import {
   UI_PLUGIN_NAMESPACE,
@@ -68,8 +69,9 @@ export default {
       haveCharts:    false,
       installCharts: [],
       errors:        [],
+      prime:         isRancherPrime(),
       addRepos:      {
-        official: true,
+        official: isRancherPrime(),
         partners: true,
       },
       reposInfo: {
@@ -286,6 +288,7 @@ export default {
         </Banner>
         <!-- Official rancher repo -->
         <div
+          v-if="prime"
           class="mb-15"
         >
           <Checkbox
