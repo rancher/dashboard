@@ -145,6 +145,7 @@ export default {
               v-model="row.value.hostname"
               label="Registry Hostname"
               :mode="mode"
+              data-testid="registry-auth-host-input"
             />
 
             <SelectOrCreateAuthSecret
@@ -158,6 +159,7 @@ export default {
               :namespace="value.metadata.namespace"
               :mode="mode"
               generate-name="registryconfig-auth-"
+              data-testid="registry-auth-select-or-create"
             />
           </div>
           <div class="col span-6">
