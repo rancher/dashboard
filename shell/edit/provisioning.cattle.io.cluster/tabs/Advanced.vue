@@ -64,6 +64,13 @@ export default {
     },
     protectKernelDefaults() {
       return (this.agentConfig || this.serverConfig)['protect-kernel-defaults'];
+    },
+    kubeletArgTooltip() {
+      if (this.serverConfig?.['kubelet-arg']) {
+        return this.t(`cluster.advanced.argInfo.tooltip.${ this.agentConfig?.['kubelet-arg'] ? 'mixed-args' : 'global-args' }`, null, { raw: true });
+      }
+
+      return null;
     }
   },
 
@@ -108,6 +115,11 @@ export default {
           </template>
           <h3 v-else>
             {{ advancedTitleAlt }}
+            <i
+              v-if="kubeletArgTooltip"
+              v-clean-tooltip="kubeletArgTooltip"
+              class="icon icon-info"
+            />
           </h3>
 
           <ArrayList
