@@ -9,6 +9,7 @@ import SteveModel from '@shell/plugins/steve/steve-class';
 import { colorForState, stateDisplay, STATES_ENUM } from '@shell/plugins/dashboard-store/resource-class';
 import { diffFrom } from '@shell/utils/time';
 import day from 'dayjs';
+import { steveCleanForDownload } from '@shell/plugins/steve/resource-utils';
 
 export const TYPES = {
   OPAQUE:           'Opaque',
@@ -455,5 +456,13 @@ export default class Secret extends SteveModel {
     }
 
     return val;
+  }
+
+  async cleanForDownload(yaml) {
+    // secret resource contains the type attribute
+    // ref: https://kubernetes.io/docs/reference/kubernetes-api/config-and-storage-resources/secret-v1/
+    // ref: https://kubernetes.io/docs/concepts/configuration/secret/#secret-types
+
+    return steveCleanForDownload(yaml, { rootKeys: ['id', 'links', 'actions'] });
   }
 }
