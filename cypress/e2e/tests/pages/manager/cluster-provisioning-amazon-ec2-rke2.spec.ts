@@ -3,6 +3,7 @@ import ClusterManagerCreateRke2AmazonPagePo from '@/cypress/e2e/po/edit/provisio
 import ClusterManagerListPagePo from '@/cypress/e2e/po/pages/cluster-manager/cluster-manager-list.po';
 import ClusterManagerDetailRke2AmazonEc2PagePo from '@/cypress/e2e/po/detail/provisioning.cattle.io.cluster/cluster-detail-rke2-amazon.po';
 import PromptRemove from '@/cypress/e2e/po/prompts/promptRemove.po';
+import LoadingPo from '@/cypress/e2e/po/components/loading.po';
 
 // will only run this in jenkins pipeline where cloud credentials are stored
 describe('Provision Node driver RKE2 cluster', { testIsolation: 'off', tags: ['@manager', '@adminUser', '@jenkins'] }, () => {
@@ -42,7 +43,9 @@ describe('Provision Node driver RKE2 cluster', { testIsolation: 'off', tags: ['@
       removeCloudCred = true;
     });
 
-    cy.waitForLoadingIndicator();
+    const loadingPo = new LoadingPo('.loading-indicator');
+
+    loadingPo.checkNotExists();
     createRKE2ClusterPage.nameNsDescription().name().set(this.rke2Ec2ClusterName);
     createRKE2ClusterPage.nameNsDescription().description().set(`${ this.rke2Ec2ClusterName }-description`);
 
