@@ -124,7 +124,7 @@ export default {
           </ArrayList>
 
           <ArrayList
-            v-if="row.value.config"
+            v-if="row.value.config && (row.value.config['kubelet-arg'] || !serverConfig['kubelet-arg'])"
             v-model="row.value.config['kubelet-arg']"
             data-testid="selector-kubelet-arg"
             :mode="mode"
