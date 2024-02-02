@@ -20,6 +20,7 @@ import BurgerMenuPo from '@/cypress/e2e/po/side-bars/burger-side-menu.po';
 import { snapshot } from '@/cypress/e2e/blueprints/manager/cluster-snapshots';
 import HomePagePo from '@/cypress/e2e/po/pages/home.po';
 import { nodeDriveResponse } from '@/cypress/e2e/tests/pages/manager/mock-responses';
+import LabeledSelectPo from '@/cypress/e2e/po/components/labeled-select.po';
 
 // At some point these will come from somewhere central, then we can make tools to remove resources from this or all runs
 const runTimestamp = +new Date();
@@ -75,6 +76,8 @@ describe('Cluster Manager', { testIsolation: 'off', tags: ['@manager', '@adminUs
             namespace,
             name: rke2CustomName
           },
+          // Test for https://github.com/rancher/dashboard/issues/10338 (added option 'none' for CNI)
+          spec: { rkeConfig: { machineGlobalConfig: { cni: 'none' } } }
         };
 
         cy.userPreferences();
@@ -92,6 +95,17 @@ describe('Cluster Manager', { testIsolation: 'off', tags: ['@manager', '@adminUs
 
         createRKE2ClusterPage.selectCustom(0);
         createRKE2ClusterPage.nameNsDescription().name().set(rke2CustomName);
+
+        // Test for https://github.com/rancher/dashboard/issues/10338 (added option 'none' for CNI)
+        const labeledSelectPo = new LabeledSelectPo('[data-testid="cluster-rke2-cni-select"]');
+
+        labeledSelectPo.checkExists();
+        labeledSelectPo.self().scrollIntoView();
+        labeledSelectPo.toggle();
+        labeledSelectPo.clickLabel('none');
+        labeledSelectPo.checkOptionSelected('none');
+        // EO test for https://github.com/rancher/dashboard/issues/10338 (added option 'none' for CNI)
+
         createRKE2ClusterPage.create();
 
         cy.wait('@createRequest').then((intercept) => {

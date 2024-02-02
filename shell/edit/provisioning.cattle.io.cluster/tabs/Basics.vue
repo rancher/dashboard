@@ -213,6 +213,14 @@ export default {
       });
     },
 
+    cniOptions() {
+      const serverCniOptions = this.serverArgs.cni?.options || [];
+
+      serverCniOptions.push('none');
+
+      return serverCniOptions;
+    },
+
     serverArgs() {
       return this.selectedVersion?.serverArgs || {};
     },
@@ -460,7 +468,7 @@ export default {
           data-testid="cluster-rke2-cni-select"
           :mode="mode"
           :disabled="isEdit"
-          :options="serverArgs.cni.options"
+          :options="cniOptions"
           :label="t('cluster.rke2.cni.label')"
         />
       </div>
