@@ -89,6 +89,7 @@ export function createYaml(
   path = '',
   rootType = null,
   dataOptions = {},
+  commentFieldsOptions = null
 ) {
   data = data || {};
 
@@ -132,6 +133,10 @@ export function createYaml(
   }
 
   const regularFields = [];
+
+  if ( !commentFieldsOptions ) {
+    commentFieldsOptions = data?.commentFieldsOptions;
+  }
 
   if (processAlwaysAdd) {
     // Add all the parents of each key so that spec.template.foo.blah
@@ -230,6 +235,16 @@ export function createYaml(
       out = 'type:';
     }
 
+    // If commentFieldOptions is defined on the model and the currentPath matches the path and key
+    // defined in one of the options, then comment out that line.
+    if ( Array.isArray(commentFieldsOptions) && commentFieldsOptions.length ) {
+      const currentPath = path ? `${ path }.${ key }` : key;
+
+      if ( commentFieldsOptions.some((option) => `${ option.path }.${ option.key }` === currentPath) ) {
+        out = `#${ out }`;
+      }
+    }
+
     // if a key on data is not listed in the schema's resourceFields, just convert it to yaml, add indents where needed, and return
     if ( !field ) {
       if (data[key]) {
@@ -274,8 +289,8 @@ export function createYaml(
       if ( SIMPLE_TYPES.includes(mapOf) ) {
         out += `#  key: ${ mapOf }`;
       } else {
-        // If not a simple type ie some sort of object/array, recursively build out commented fields (note data = null here) per the type's (mapOf's) schema
-        const chunk = createYaml(schemas, mapOf, null, processAlwaysAdd, depth + 1, (path ? `${ path }.${ key }` : key), rootType, dataOptions);
+        // If not a simple type ie some sort of object/array, recusively build out commented fields (note data = null here) per the type's (mapOf's) schema
+        const chunk = createYaml(schemas, mapOf, null, processAlwaysAdd, depth + 1, (path ? `${ path }.${ key }` : key), rootType, dataOptions, commentFieldsOptions);
         let indented = indent(chunk);
 
         // convert "#    foo" to "#foo"
@@ -306,7 +321,7 @@ export function createYaml(
       if ( SIMPLE_TYPES.includes(arrayOf) ) {
         out += `\n#  - ${ arrayOf }`;
       } else {
-        const chunk = createYaml(schemas, arrayOf, null, false, depth + 1, (path ? `${ path }.${ key }` : key), rootType, dataOptions);
+        const chunk = createYaml(schemas, arrayOf, null, false, depth + 1, (path ? `${ path }.${ key }` : key), rootType, dataOptions, commentFieldsOptions);
         let indented = indent(chunk, 2);
 
         // turn "#        foo" into "#  - foo"
@@ -357,19 +372,45 @@ export function createYaml(
 
     const subDef = schemaDefinitions?.[type] || findBy(schemas, 'id', type);
 
-    if ( subDef) {
+    if ( subDef ) {
       let chunk;
 
       if (subDef?.resourceFields && !isEmpty(subDef?.resourceFields)) {
-        chunk = createYaml(schemas, type, data[key], processAlwaysAdd, depth + 1, (path ? `${ path }.${ key }` : key), rootType, dataOptions);
+        chunk = createYaml(schemas, type, data[key], processAlwaysAdd, depth + 1, (path ? `${ path }.${ key }` : key), rootType, dataOptions, commentFieldsOptions);
       } else if (data[key]) {
         // if there are no fields defined on the schema but there are in the data, just format data as yaml and add to output yaml
         try {
           const parsed = jsyaml.dump(data[key]);
 
-          chunk = parsed.trim();
+          // If commentFieldOptions is defined on the model and `data[key]` has the property (`key`)
+          // defined in one of the options, then comment out that line.
+          if ( Array.isArray(commentFieldsOptions) && commentFieldsOptions.length ) {
+            let lines = parsed.split('\n');
+
+            commentFieldsOptions.forEach((option) => {
+              // Assuming the path for the current data[key] matches the option's path
+              // and the specific key to comment out exists in the data[key]
+              if ( `${ path }.${ key }` === option.path && data[key][option.key] !== undefined ) {
+                const targetKeyString = `${ option.key }:`;
+
+                // Comment out the line containing the target key
+                lines = lines.map((line) => {
+                  if ( line.trim().startsWith(targetKeyString) ) {
+                    return `# ${ line }`;
+                  }
+
+                  return line;
+                });
+              }
+            });
+
+            chunk = lines.join('\n').trim();
+          } else {
+            // If commentFieldsOptions do not exist, use the original `parsed` string
+            chunk = parsed.trim();
+          }
         } catch (e) {
-          console.error(`Error: Unale to parse data for yaml of type: ${ type }`, e); // eslint-disable-line no-console
+          console.error(`Error: Unable to parse data for yaml of type: ${ type }`, e); // eslint-disable-line no-console
         }
       }
 
