@@ -234,7 +234,7 @@ export default class Pod extends WorkloadService {
   save() {
     const prev = { ...this };
 
-    const { metadata, spec } = this.spec.template;
+    const { metadata, spec } = this.spec;
 
     this.spec = {
       ...this.spec,
@@ -245,8 +245,6 @@ export default class Pod extends WorkloadService {
       ...this.metadata,
       ...metadata
     };
-
-    delete this.spec.template;
 
     // IF there is an error POD world model get overwritten
     // For the workloads this need be reset back
