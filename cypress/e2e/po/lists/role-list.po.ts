@@ -2,7 +2,7 @@ import BaseResourceList from '@/cypress/e2e/po/lists/base-resource-list.po';
 
 export default class RoleListPo extends BaseResourceList {
   downloadYaml() {
-    return this.resourceTable().sortableTable().downloadYamlButton().first();
+    return this.resourceTable().downloadYamlButton().first();
   }
 
   delete() {

@@ -56,10 +56,6 @@ export default class SortableTablePo extends ComponentPo {
     return cy.getId('sortable-table-promptRemove');
   }
 
-  downloadYamlButton() {
-    return cy.getId('sortable-table-download');
-  }
-
   selectedCountText() {
     return cy.get('.action-availability');
   }
