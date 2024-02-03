@@ -8,6 +8,7 @@ import { LoginPagePo } from '@/cypress/e2e/po/pages/login-page.po';
 const bannersPage = new BannersPagePo();
 const burgerMenu = new BurgerMenuPo();
 const loginPage = new LoginPagePo();
+const bannersSettingsOrginal = [];
 
 const settings = {
   bannerLabel:   'Rancher e2e',
@@ -37,6 +38,12 @@ describe('Banners', { testIsolation: 'off' }, () => {
   before(() => {
     cy.login();
     HomePagePo.goTo();
+
+    cy.getRancherResource('v1', 'management.cattle.io.settings', 'ui-banners', null).then((resp: Cypress.Response<any>) => {
+      const body = resp.body;
+
+      bannersSettingsOrginal.push(body);
+    });
   });
 
   it('can navigate to Banners Page', { tags: ['@globalSettings', '@adminUser', '@standardUser'] }, () => {
@@ -49,7 +56,7 @@ describe('Banners', { testIsolation: 'off' }, () => {
 
     globalSettingsNavItem.should('exist');
     globalSettingsNavItem.click();
-    const settingsPage = new SettingsPagePo('local');
+    const settingsPage = new SettingsPagePo('_');
 
     settingsPage.waitForPageWithClusterId();
 
@@ -60,6 +67,8 @@ describe('Banners', { testIsolation: 'off' }, () => {
 
     bannersPage.waitForPageWithClusterId();
   });
+
+  let restoreSettings = false;
 
   it('can show and hide Header Banner', { tags: ['@globalSettings', '@adminUser'] }, () => {
     BannersPagePo.navTo();
@@ -74,7 +83,10 @@ describe('Banners', { testIsolation: 'off' }, () => {
     bannersPage.textColorPicker(0).set(settings.bannerTextColor.new);
     bannersPage.textColorPicker(1).value().should('not.eq', settings.bannerBackgroundColor.new);
     bannersPage.textColorPicker(1).set(settings.bannerBackgroundColor.new);
-    bannersPage.applyAndWait('**/ui-banners', 200);
+    bannersPage.applyAndWait('**/ui-banners').then(({ response }) => {
+      expect(response?.statusCode).to.eq(200);
+      restoreSettings = true;
+    });
 
     // Check in session
     bannersPage.banner().should('be.visible').then((el) => {
@@ -110,7 +122,7 @@ describe('Banners', { testIsolation: 'off' }, () => {
   });
 
   it('can show and hide Footer Banner', { tags: ['@globalSettings', '@adminUser'] }, () => {
-    BannersPagePo.navTo();
+    bannersPage.goTo();
 
     // Show Banner
     bannersPage.footerBannerCheckbox().set();
@@ -122,7 +134,10 @@ describe('Banners', { testIsolation: 'off' }, () => {
     bannersPage.textColorPicker(2).set(settings.bannerTextColor.new);
     bannersPage.textColorPicker(3).value().should('not.eq', settings.bannerBackgroundColor.new);
     bannersPage.textColorPicker(3).set(settings.bannerBackgroundColor.new);
-    bannersPage.applyAndWait('**/ui-banners', 200);
+    bannersPage.applyAndWait('**/ui-banners').then(({ response }) => {
+      expect(response?.statusCode).to.eq(200);
+      restoreSettings = true;
+    });
 
     // Check in session
     bannersPage.banner().should('be.visible').then((el) => {
@@ -172,7 +187,10 @@ describe('Banners', { testIsolation: 'off' }, () => {
     bannersPage.textColorPicker(4).set(settings.bannerTextColor.new);
     bannersPage.textColorPicker(5).value().should('not.eq', settings.bannerBackgroundColor.new);
     bannersPage.textColorPicker(5).set(settings.bannerBackgroundColor.new);
-    bannersPage.applyAndWait('**/ui-banners', 200);
+    bannersPage.applyAndWait('**/ui-banners').then(({ response }) => {
+      expect(response?.statusCode).to.eq(200);
+      restoreSettings = true;
+    });
 
     // Check login screen
     cy.logout();
@@ -217,7 +235,10 @@ describe('Banners', { testIsolation: 'off' }, () => {
       bannersPage.loginErrorCheckbox().checkVisible();
       bannersPage.loginErrorCheckbox().set();
       bannersPage.loginErrorInput().set(settings.bannerLabel);
-      bannersPage.applyAndWait('**/ui-banners', 200);
+      bannersPage.applyAndWait('**/ui-banners').then(({ response }) => {
+        expect(response?.statusCode).to.eq(200);
+        restoreSettings = true;
+      });
 
       // Check login screen
       cy.logout();
@@ -235,7 +256,10 @@ describe('Banners', { testIsolation: 'off' }, () => {
       // Hide banner
       bannersPage.loginErrorCheckbox().checkVisible();
       bannersPage.loginErrorCheckbox().set();
-      bannersPage.applyAndWait('**/ui-banners', 200);
+      bannersPage.applyAndWait('**/ui-banners').then(({ response }) => {
+        expect(response?.statusCode).to.eq(200);
+        restoreSettings = true;
+      });
 
       // Check login screen
       cy.logout();
@@ -253,5 +277,21 @@ describe('Banners', { testIsolation: 'off' }, () => {
     bannersPage.loginScreenBannerCheckbox().isDisabled();
     bannersPage.loginErrorCheckbox().isDisabled();
     bannersPage.applyButton().checkNotExists();
+  });
+
+  after('set default banners settings', () => {
+    if (restoreSettings) {
+      cy.login(undefined, undefined, true);
+
+      // get most updated version of banners info
+      cy.getRancherResource('v1', 'management.cattle.io.settings', 'ui-banners', null).then((resp: Cypress.Response<any>) => {
+        const response = resp.body.metadata;
+
+        // update original data before sending request
+        bannersSettingsOrginal[0].metadata.resourceVersion = response.resourceVersion;
+
+        cy.setRancherResource('v1', 'management.cattle.io.settings', 'ui-banners', bannersSettingsOrginal[0]);
+      });
+    }
   });
 });
