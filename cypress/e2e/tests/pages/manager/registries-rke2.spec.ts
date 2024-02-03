@@ -1,3 +1,4 @@
+import ClusterManagerListPagePo from '@/cypress/e2e/po/pages/cluster-manager/cluster-manager-list.po';
 import ClusterManagerCreateRke2CustomPagePo from '@/cypress/e2e/po/edit/provisioning.cattle.io.cluster/create/cluster-create-rke2-custom.po';
 import { machineSelectorConfigPayload, registriesWithSecretPayload } from '@/cypress/e2e/blueprints/manager/registries-rke2-payload';
 
@@ -11,17 +12,23 @@ describe('Registries for RKE2', { tags: ['@manager', '@adminUser'] }, () => {
   });
 
   it('Should send the correct payload to the server', () => {
+    const clusterList = new ClusterManagerListPagePo('local');
     const createCustomClusterPage = new ClusterManagerCreateRke2CustomPagePo();
 
-    createCustomClusterPage.goToCustomClusterCreation();
+    clusterList.goTo();
+
+    clusterList.checkIsCurrentPage();
+    clusterList.createCluster();
+
     createCustomClusterPage.waitForPage();
+    createCustomClusterPage.rkeToggle().set('RKE2/K3s');
+
+    createCustomClusterPage.selectCustom(0);
 
     // intercepts
     cy.intercept('POST', 'v1/provisioning.cattle.io.clusters').as('customRKE2ClusterCreation');
     cy.intercept('POST', 'v1/secrets/fleet-default').as('registrySecretCreation');
 
-    // we should be on the custom cluster creation screen (starts on cluster agent tab as per url of goTo)
-    createCustomClusterPage.title().should('contain', 'Create Custom');
     // cluster name
     createCustomClusterPage.nameNsDescription().name().set(clusterName);
     // navigate to Registries tab
