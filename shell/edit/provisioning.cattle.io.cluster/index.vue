@@ -305,7 +305,7 @@ export default {
 
       const templates = this.templateOptions;
       const vueKontainerTypes = getters['plugins/clusterDrivers'];
-      const machineTypes = this.nodeDrivers.filter((x) => x.spec.active && x.state === 'active').map((x) => x.spec.displayName || x.id);
+      const machineTypes = this.nodeDrivers.filter((x) => x.spec.active && x.state === 'active');
 
       this.kontainerDrivers.filter((x) => (isImport ? x.showImport : x.showCreate)).forEach((obj) => {
         if ( vueKontainerTypes.includes(obj.driverName) ) {
@@ -330,14 +330,18 @@ export default {
         });
 
         if (this.isRke1 ) {
-          machineTypes.forEach((id) => {
-            addType(id, _RKE1, false, `/g/clusters/add/launch/${ id }`, this.iconClasses[id]);
+          machineTypes.forEach((type) => {
+            const id = type.spec.displayName || type.id;
+
+            addType(id, _RKE1, false, `/g/clusters/add/launch/${ id }`, this.iconClasses[id], type);
           });
 
           addType('custom', 'custom1', false, '/g/clusters/add/launch/custom');
         } else {
-          machineTypes.forEach((id) => {
-            addType(id, _RKE2, false);
+          machineTypes.forEach((type) => {
+            const id = type.spec.displayName || type.id;
+
+            addType(id, _RKE2, false, null, undefined, type);
           });
 
           addType('custom', 'custom2', false);
@@ -392,7 +396,7 @@ export default {
         out.push(subtype);
       }
 
-      function addType(id, group, disabled = false, emberLink = null, iconClass = undefined) {
+      function addType(id, group, disabled = false, emberLink = null, iconClass = undefined, providerConfig = undefined) {
         const label = getters['i18n/withFallback'](`cluster.provider."${ id }"`, null, id);
         const description = getters['i18n/withFallback'](`cluster.providerDescription."${ id }"`, null, '');
         const tag = '';
@@ -418,7 +422,8 @@ export default {
           group,
           disabled,
           emberLink,
-          tag
+          tag,
+          providerConfig
         };
 
         out.push(subtype);
@@ -638,6 +643,7 @@ export default {
         :live-value="liveValue"
         :mode="mode"
         :provider="subType"
+        :provider-config="selectedSubType.providerConfig"
       />
       <Rke2Config
         v-else
@@ -646,6 +652,7 @@ export default {
         :live-value="liveValue"
         :mode="mode"
         :provider="subType"
+        :provider-config="selectedSubType.providerConfig"
       />
     </template>
 
