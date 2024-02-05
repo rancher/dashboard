@@ -1662,8 +1662,8 @@ cluster:
     argInfo:
       title: Additional Kubelet Args
       tooltip:
-        mixed-args: Kubelet args are defined both at Global and Machine Selector level in the YAML.<br> Click on "Add Global Argument" to add them as Global config.
-        global-args: Kubelet args are defined at Global level in the YAML.<br> Click on "Add Global Argument" to add them as Global config.
+        mixed-args: Kubelet args are defined both at Global and Machine Selector level.<br> Click on "Add Global Argument" to add them as Global config.
+        global-args: Kubelet args are defined at Global level.<br> Click on "Add Global Argument" to add them as Global config.
       machineGlobal:
         listLabel: Add Global Argument
       machineSelector:
