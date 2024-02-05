@@ -249,6 +249,21 @@ export default class ProvCluster extends SteveModel {
     return providers.includes(this.provisioner);
   }
 
+  get isPrivateHostedProvider() {
+    if (this.isHostedKubernetesProvider && this.mgmt && this.provisioner) {
+      switch (this.provisioner.toLowerCase()) {
+      case 'gke':
+        return this.mgmt.spec?.gkeConfig?.privateClusterConfig?.enablePrivateEndpoint;
+      case 'eks':
+        return this.mgmt.spec?.eksConfig?.privateAccess;
+      case 'aks':
+        return this.mgmt.spec?.aksConfig?.privateCluster;
+      }
+    }
+
+    return false;
+  }
+
   get isLocal() {
     return this.mgmt?.isLocal;
   }
