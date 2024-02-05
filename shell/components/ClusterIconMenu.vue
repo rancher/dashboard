@@ -15,10 +15,11 @@ export default {
     showLocalIcon() {
       return this.cluster.isLocal && !this.cluster.isHarvester && !this.cluster.badge?.iconText;
     },
-    badgeLogoBorderBottom() {
-      const color = this.cluster.badge?.color;
-
-      return color ? `4px solid ${ color }` : '';
+    hasCustomColor() {
+      return this.cluster.badge?.color;
+    },
+    customColor() {
+      return this.cluster.badge?.color || '';
     }
   },
   methods: {
@@ -44,14 +45,17 @@ export default {
   >
     <div
       class="cluster-badge-logo"
-      :class="{ 'disabled': !isEnabled }"
-      :style="{ borderBottom: badgeLogoBorderBottom }"
+      :class="{ 'disabled': !isEnabled, 'custom-color': hasCustomColor }"
     >
       <span
         class="cluster-badge-logo-text"
       >
         {{ smallIdentifier(cluster.label) }}
       </span>
+      <span
+        class="custom-color-decoration"
+        :style="{'background': customColor}"
+      />
       <svg
         v-if="showLocalIcon"
         class="cluster-local-logo"
@@ -99,7 +103,6 @@ export default {
 </template>
 
 <style lang="scss" scoped>
-
   .cluster-icon-menu {
     position: relative;
     align-items: center;
@@ -111,8 +114,8 @@ export default {
   .cluster-pin-icon {
     position: absolute;
     top: -6px;
-    right: -4px;
-    font-size: 12px;
+    right: -7px;
+    font-size: 14px;
     transform: scaleX(-1);
     color: var(--body-text);
   }
@@ -134,6 +137,18 @@ export default {
     border-radius: 5px;
     font-size: 12px;
     text-transform: uppercase;
+
+    &.custom-color {
+      border-bottom: 4px solid transparent;
+    }
+
+    .custom-color-decoration {
+      height: 4px;
+      width: 100%;
+      position: absolute;
+      bottom: 0;
+      border-radius: 0px 0px 5px 5px;
+    }
 
     &.disabled {
       filter: grayscale(1);
