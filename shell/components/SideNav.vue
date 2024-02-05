@@ -31,7 +31,8 @@ export default {
   },
 
   created() {
-    this.queueUpdate = debounce(this.getGroups, 250);
+    // Ensure that changes to resource that change often don't resort to spamming redraw of the side nav
+    this.queueUpdate = debounce(this.getGroups, 500);
 
     this.getGroups();
   },
