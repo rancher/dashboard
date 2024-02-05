@@ -311,6 +311,7 @@ export default {
             >
               <DropDownMenu
                 :options="th.action.options"
+                :currentRow="row"
                 @custom-event="(record) => {
                   $emit('action', record, row);
                 }"

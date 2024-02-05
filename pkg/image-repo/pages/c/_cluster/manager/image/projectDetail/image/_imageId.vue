@@ -1,6 +1,16 @@
 <template>
   <div>
-    <div id="tooltip-container" />
+    <h3>
+      <nuxt-link
+        :to="backTo"
+      >
+        {{ t('harborConfig.tab.store') }}
+      </nuxt-link>
+      <span class="mr-5">
+        >
+      </span>
+      {{ imageName }}
+    </h3>
     <HarborTable
       ref="harborTableRef"
       rowSelection
@@ -11,7 +21,8 @@
       :rows="rows"
       :columns="columns"
       :totalCount="totalCount"
-      :subtractHeight="190"
+      :subtractHeight="230"
+      :disableActionButton="disableActionButton"
       @action="action"
       @page-change="pageChange"
       @input-search="inputSearch"
@@ -152,7 +163,9 @@ import apiRequest from '@pkg/image-repo/mixins/apiRequest.js';
 import HarborTable from '@pkg/image-repo/components/table/HarborTable.vue';
 import util from '@pkg/image-repo/mixins/util.js';
 import Dialog from '@pkg/image-repo/components/Dialog.vue';
+import { PRODUCT_NAME } from '@pkg/image-repo/config/image-repo.js';
 import LabelCheckbox from '@pkg/image-repo/components/form/LabelCheckbox.vue';
+import access from '@pkg/image-repo/mixins/access.js';
 import { mapGetters } from 'vuex';
 import { concat } from 'lodash';
 
@@ -164,7 +177,8 @@ export default {
   },
   mixins: [
     apiRequest,
-    util
+    util,
+    access
   ],
   data() {
     return {
@@ -189,7 +203,11 @@ export default {
       addLabelDialog:       false,
       labels:               [],
       selectedLabels:       [],
-      labelColors:          [
+      backTo:               {
+        name:   `${ PRODUCT_NAME }-c-cluster-manager-project`,
+        params: {}
+      },
+      labelColors: [
         {
           color:     '#000000',
           textColor: 'white'
@@ -380,18 +398,33 @@ export default {
     async fetchLabels() {
       this.labels = [];
       const params = { scope: 'g' };
-      const labels = await this.harborAPIRequest.fetchLabels(params);
+
+      try {
+        const labels = await this.harborAPIRequest.fetchLabels(params);
+
+        if (labels?.length > 0) {
+          this.labels = concat(this.labels, labels);
+        }
+      } catch (e) {}
 
       params.scope = 'p';
       params.project_id = this.project.project_id;
-      const projectLabels = await this.harborAPIRequest.fetchLabels(params);
+      try {
+        const projectLabels = await this.harborAPIRequest.fetchLabels(params);
 
-      if (labels?.length > 0) {
-        this.labels = concat(this.labels, labels);
+        if (projectLabels?.length > 0) {
+          this.labels = concat(this.labels, projectLabels);
+        }
+      } catch (e) {}
+    },
+    async removeTabs(record) {
+      this.loading = true;
+      try {
+        await this.harborAPIRequest.removeTagsV2(this.project.name, this.imageName, record);
+      } catch (e) {
+        this.loading = false;
       }
-      if (projectLabels?.length > 0) {
-        this.labels = concat(this.labels, projectLabels);
-      }
+      await this.fetchImage();
     },
     pageChange(record) {
       this.page = record;
@@ -403,7 +436,15 @@ export default {
       this.fetchImage();
     },
     bulkRemove(record) {
-      // console.log(record);
+      this.$customConfrim({
+        type:           'Artifacts',
+        resources:      record,
+        store:          this.$store,
+        propKey:        'artifacts',
+        removeCallback: async() => {
+          await this.removeTabs(record.map((item) => item.digest));
+        }
+      });
     },
     action(record, row) {
       this.currentRow = row;
@@ -415,8 +456,17 @@ export default {
       case 'addLabel':
         this.addLabelDialog = true;
 
-      // case 'remove':
-      //   console.log('remove');
+        return;
+      case 'remove':
+        this.$customConfrim({
+          type:           'Artifacts',
+          resources:      [row],
+          propKey:        'artifacts',
+          store:          this.$store,
+          removeCallback: async() => {
+            await this.removeTabs([row].map((item) => item.digest));
+          }
+        });
       }
     },
     copyDigest() {
@@ -548,16 +598,22 @@ export default {
 
       if (developerRoleOrAbove || hasProjectMasterRole) {
         options.push({
-          label:  this.t('imageRepoSection.tagPage.action.addLabel'),
-          icon:   'icon icon-plus',
-          action: 'addLabel'
+          label:          this.t('imageRepoSection.tagPage.action.addLabel'),
+          icon:           'icon icon-plus',
+          action:         'addLabel',
+          disableActions: () => {
+            return parseInt(this.project?.current_user_role_id, 10) !== 1 && !this?.currentUser?.sysadmin_flag;
+          }
         });
       }
       if (hasProjectAdminRole || hasProjectMasterRole) {
         options.push({
-          label:  this.t('action.remove'),
-          icon:   'icon icon-trash',
-          action: 'remove'
+          label:          this.t('action.remove'),
+          icon:           'icon icon-trash',
+          action:         'remove',
+          disableActions: () => {
+            return parseInt(this.project?.current_user_role_id, 10) !== 1 && !this?.currentUser?.sysadmin_flag;
+          }
         });
       }
 
@@ -633,6 +689,9 @@ export default {
         };
       });
     },
+    disableActionButton() {
+      return parseInt(this?.project?.current_user_role_id, 10) !== 1 && !this?.currentUser?.sysadmin_flag;
+    }
   }
 };
 

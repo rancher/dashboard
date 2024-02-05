@@ -35,3 +35,44 @@
     animation: v-loading-spin 2s linear infinite; /* 应用旋转动画 */
   }
 }
+
+.custom-alert {
+  position: fixed;
+  top: 50%;
+  left: 50%;
+  transform: translate(-50%, -50%);
+  background-color: #fff;
+  box-shadow: 0 2px 4px rgba(0, 0, 0, 0.1);
+  padding: 20px;
+  border-radius: 4px;
+  z-index: 1000;
+
+  .custom-alert-content {
+    text-align: center;
+  }
+
+  .custom-alert-content h2 {
+    font-size: 18px;
+    margin-bottom: 10px;
+  }
+
+  .custom-alert-content p {
+    font-size: 14px;
+    margin-bottom: 20px;
+  }
+
+  .custom-alert-content button {
+    background-color: #007BFF;
+    color: #fff;
+    border: none;
+    padding: 8px 16px;
+    font-size: 14px;
+    cursor: pointer;
+    border-radius: 4px;
+    transition: background-color 0.3s;
+  }
+
+  .custom-alert-content button:hover {
+    background-color: #0056b3;
+  }
+}

@@ -388,6 +388,23 @@ export const harborAPI = (spec = { harborVersion: '', harborServer: '' }) => {
     return Promise.all(promises);
   };
 
+  const removeTagsV2 = (project, repo, digests) => {
+    checkBaseUrl();
+    const repoName = repo.replace(`${ project }/`, '').replace('/', '%252F');
+
+    const promises = digests.map((digest) => {
+      const res = store.dispatch('management/request', {
+        url:     `${ baseUrl }/projects/${ project }/repositories/${ repoName }/artifacts/${ digest }`,
+        headers: { 'X-API-Harbor-Admin-Header': store.getters['auth/isAdmin'] },
+        method:  'DELETE',
+      });
+
+      return factoryNewPromise(res);
+    });
+
+    return Promise.all(promises);
+  };
+
   const addTagLabels = (repo, tag, labelIds) => {
     checkBaseUrl();
 
@@ -762,6 +779,7 @@ export const harborAPI = (spec = { harborVersion: '', harborServer: '' }) => {
   request.deleteRepos = deleteRepos;
   request.fetchTags = fetchTags;
   request.removeTags = removeTags;
+  request.removeTagsV2 = removeTagsV2;
   request.addTagLabels = addTagLabels;
   request.removeTagLabels = removeTagLabels;
   request.addTagLabelsV2 = addTagLabelsV2;

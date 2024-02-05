@@ -22,6 +22,10 @@ export default {
     propVisible: {
       type:    Boolean,
       default: false,
+    },
+    currentRow: {
+      type:    Object,
+      default: () => {},
     }
   },
   data() {
@@ -88,7 +92,7 @@ export default {
           <li
             v-for="(opt, i) in options"
             :key="opt.action"
-            :disabled="opt.disabled"
+            :disabled="opt.disabled || (opt?.disableActions && opt?.disableActions(currentRow))"
             :class="{divider: opt.divider}"
             :data-testid="componentTestid + '-' + i + '-item'"
             @click="execute(opt, $event)"

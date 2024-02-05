@@ -6,6 +6,7 @@
     <div class="member-add">
       <button
         class="btn role-primary"
+        disabled="!isProjectAdmin"
         @click="showAddModal"
       >
         <t k="harborConfig.table.addUser" />
@@ -21,7 +22,7 @@
       :rows="rows"
       :columns="columns"
       :totalCount="totalCount"
-      :disableActionButton="disabled"
+      :disableActionButton="disabled || disableActionButton"
       :subtractHeight="320"
       @page-change="pageChange"
       @input-search="inputSearch"
@@ -39,7 +40,7 @@
           <button
             type="button"
             class="bulk-action btn bg-primary"
-            :disabled="disabled"
+            :disabled="disabled || disableActionButton"
             @click="showDropDownMenu"
           >
             <i
@@ -245,6 +246,9 @@ export default {
     },
     disabled() {
       return this.selectedMembersWithoutSelf.length === 0;
+    },
+    disableActionButton() {
+      return parseInt(this?.project?.current_user_role_id, 10) !== 1 && !this?.currentUser?.sysadmin_flag;
     }
   },
   methods: {
@@ -299,7 +303,17 @@ export default {
       this.fetchMember();
     },
     bulkRemove(records) {
-      records?.length > 0 && this.removeMember(records);
+      if (records?.length > 0) {
+        this.$customConfrim({
+          type:           'member',
+          resources:      records,
+          propKey:        'entity_name',
+          store:          this.$store,
+          removeCallback: async() => {
+            await this.removeMember(records);
+          }
+        });
+      }
     },
     sortChange({ field, order }) {
       if (order) {
@@ -319,7 +333,9 @@ export default {
         return;
       }
       this.dropDownMenuVisible = false;
-      await this.apiRequest.projectChangeRole(this.project.project_id, members, { role_id: parseInt(record.value, 10) });
+      try {
+        await this.apiRequest.projectChangeRole(this.project.project_id, members, { role_id: parseInt(record.value, 10) });
+      } catch (e) {}
       this.selectedRows = [];
       this.fetchMember();
     },

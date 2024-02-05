@@ -344,42 +344,8 @@ export default {
       inputFilter:         [],
       sort:                '',
       totalCount:          0,
-      columns:             [
-        {
-          field:    'name',
-          title:    'Label',
-          sortable: true,
-          search:   'name',
-          slot:     true,
-        },
-        {
-          field:    'description',
-          title:    'Description',
-          sortable: true,
-        },
-        {
-          field:    'creation_time',
-          title:    'Created',
-          slot:     true,
-          sortable: true,
-        },
-        {
-          action: {
-            options: [
-              {
-                label: 'Edit',
-                value: 'edit'
-              }, {
-                label: 'Detete',
-                value: 'delete'
-              }
-            ],
-          },
-          width: 50
-        }
-      ],
-      newForm:  {},
-      editForm: {},
+      newForm:             {},
+      editForm:            {},
     };
   },
   computed: {
@@ -420,6 +386,42 @@ export default {
         };
       });
     },
+    columns() {
+      return [
+        {
+          field:    'name',
+          title:    this.t('harborConfig.advanced.label.name'),
+          sortable: true,
+          search:   'name',
+          slot:     true,
+        },
+        {
+          field:    'description',
+          title:    this.t('harborConfig.advanced.label.describe'),
+          sortable: true,
+        },
+        {
+          field:    'creation_time',
+          title:    this.t('harborConfig.advanced.label.createTime'),
+          slot:     true,
+          sortable: true,
+        },
+        {
+          action: {
+            options: [
+              {
+                label: 'Edit',
+                value: 'edit'
+              }, {
+                label: 'Detete',
+                value: 'delete'
+              }
+            ],
+          },
+          width: 50
+        }
+      ];
+    }
   },
   watch: {
     params: {

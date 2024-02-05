@@ -13,6 +13,7 @@
       :columns="columns"
       :totalCount="totalCount"
       :subtractHeight="320"
+      :disableActionButton="disableActionButton"
       @action="action"
       @page-change="pageChange"
       @input-search="inputSearch"
@@ -105,21 +106,25 @@ export default {
       images:      [],
       sortValue:   '',
       placement:   'bottom',
-      columns:     [
+    };
+  },
+  computed: {
+    columns() {
+      return [
         {
           field:    'name',
-          title:    'Name',
+          title:    this.t('harborConfig.table.name'),
           sortable: true,
           search:   'name',
           slot:     true,
         },
         {
           field: 'artifact_count',
-          title: 'Artifacts',
+          title: this.t('harborConfig.table.artifacts'),
         },
         {
           field: 'pull_count',
-          title: 'Down Count',
+          title: this.t('harborConfig.table.downCount'),
         },
         {
           field:  'action',
@@ -128,17 +133,18 @@ export default {
           action: {
             options: [
               {
-                action: 'delete',
-                label:  'Delete',
-                icon:   'icon-trash',
+                action:         'delete',
+                label:          this.t('action.remove'),
+                icon:           'icon-trash',
+                disableActions: () => {
+                  return parseInt(this.project?.current_user_role_id, 10) !== 1 && !this?.currentUser?.sysadmin_flag;
+                }
               },
             ],
           }
         },
-      ],
-    };
-  },
-  computed: {
+      ];
+    },
     rows() {
       return this.images.map((image) => {
         const to = {
@@ -161,6 +167,9 @@ export default {
     },
     push() {
       return `docker push ${ this.apiRequest.getHarborServerIp() }/${ this.project?.name }/IMAGE[:TAG]`;
+    },
+    disableActionButton() {
+      return parseInt(this?.project?.current_user_role_id, 10) !== 1 && !this?.currentUser?.sysadmin_flag;
     },
   },
   watch: {
@@ -211,7 +220,15 @@ export default {
     },
     action(action, record) {
       if (action.action === 'delete' && record.name) {
-        this.removeImages([record.name]);
+        this.$customConfrim({
+          type:           'Image Store',
+          resources:      [record],
+          propKey:        'name',
+          store:          this.$store,
+          removeCallback: async() => {
+            await this.removeImages([record.name]);
+          }
+        });
       }
     },
     pageChange(record) {
@@ -224,9 +241,17 @@ export default {
       this.fetchImage();
     },
     bulkRemove(record) {
-      this.removeImages(record.map((image) => {
-        return image.name;
-      }));
+      this.$customConfrim({
+        type:           'Image Store',
+        resources:      record,
+        propKey:        'name',
+        store:          this.$store,
+        removeCallback: async() => {
+          await this.removeImages(record.map((image) => {
+            return image.name;
+          }));
+        }
+      });
     },
     sortChange({ field, order }) {
       if (order) {
@@ -260,6 +285,9 @@ export default {
       justify-content:center;
       align-items:center;
       margin-right:15px;
+      >span {
+        min-width: 60px;
+      }
       span {
         margin-left:14px
       }

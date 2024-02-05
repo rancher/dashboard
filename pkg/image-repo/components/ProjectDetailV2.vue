@@ -15,13 +15,18 @@
           :project="project"
         />
       </template>
-      <template v-slot:image>
+      <template
+        v-slot:image
+      >
         <ImageStore
           :apiRequest="apiRequest"
           :project="project"
         />
       </template>
-      <template v-slot:member>
+      <template
+        v-if="(isSystemAdmin || isMember) && !isLimitedGuest"
+        v-slot:member
+      >
         <Member
           :apiRequest="apiRequest"
           :project="project"
@@ -30,20 +35,29 @@
           @refresh="refresh"
         />
       </template>
-      <template v-slot:tag>
+      <template
+        v-if="(isProjectAdmin || isProjectMaster || isSystemAdmin) && !isLimitedGuest"
+        v-slot:tag
+      >
         <Labels
           :apiRequest="apiRequest"
           :project="project"
         />
       </template>
-      <template v-slot:log>
+      <template
+        v-if="(isSystemAdmin || isMember) && !isLimitedGuest"
+        v-slot:log
+      >
         <Logs
           :apiRequest="apiRequest"
           :project="project"
         />
       </template>
-      <template v-slot:access>
-        <Access
+      <template
+        v-if="(isSystemAdmin || isMember) && !isLimitedGuest"
+        v-slot:access
+      >
+        <AccessComponent
           :currentUser="currentUser"
           :apiRequest="apiRequest"
           :project="project"
@@ -61,7 +75,9 @@ import ImageStore from '@pkg/image-repo/components/v2/ImageStore.vue';
 import Member from '@pkg/image-repo/components/v2/Member.vue';
 import Labels from '@pkg/image-repo/components/v2/Labels.vue';
 import Logs from '@pkg/image-repo/components/v2/Log.vue';
-import Access from '@pkg/image-repo/components/v2/Access.vue';
+import AccessComponent from '@pkg/image-repo/components/v2/Access.vue';
+import access from '@pkg/image-repo/mixins/access.js';
+import { concat } from 'lodash';
 
 export default {
   components: {
@@ -71,9 +87,10 @@ export default {
     Member,
     Labels,
     Logs,
-    Access,
+    AccessComponent,
   },
-  props: {
+  mixins: [access],
+  props:  {
     apiRequest: {
       type:     Object,
       required: true
@@ -92,33 +109,45 @@ export default {
       project:           {},
       currentUser:       {},
       harborSysntemInfo: {},
-      tabs:              [
+    };
+  },
+  computed: {
+    tabs() {
+      let tabs = [
         {
-          label: 'Summary',
+          label: this.t('harborConfig.tab.summary'),
           name:  'summary'
         },
         {
-          label: 'Image Store',
+          label: this.t('harborConfig.tab.store'),
           name:  'image'
-        },
-        {
-          label: 'Member',
-          name:  'member'
-        },
-        {
-          label: 'Tag',
+        }
+      ];
+      const externalTabs = [{
+        label: this.t('harborConfig.tab.member'),
+        name:  'member'
+      },
+      {
+        label: this.t('harborConfig.tab.log'),
+        name:  'log'
+      },
+      {
+        label: this.t('harborConfig.tab.accessLevel'),
+        name:  'access'
+      }];
+
+      if ((this.isProjectAdmin || this.isProjectMaster || this.isSystemAdmin) && !this.isLimitedGuest) {
+        tabs.push({
+          label: this.t('harborConfig.tab.tag'),
           name:  'tag'
-        },
-        {
-          label: 'Log',
-          name:  'log'
-        },
-        {
-          label: 'Access Level',
-          name:  'access'
-        },
-      ]
-    };
+        });
+      }
+      if ((this.isSystemAdmin || this.isMember) && !this.isLimitedGuest) {
+        tabs = concat(tabs, externalTabs);
+      }
+
+      return tabs;
+    },
   },
   methods: {
     async init() {

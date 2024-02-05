@@ -2,6 +2,7 @@ import { importTypes } from '@rancher/auto-import';
 import { IPlugin } from '@shell/core/types';
 import routes from './routing/routing.js';
 import './plugin/loading';
+import './plugin/confrim';
 import './assets/styles/global.scss';
 
 // Init the package

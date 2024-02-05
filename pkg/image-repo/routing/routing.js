@@ -29,7 +29,6 @@ const routes = [{
   name:      `${ PRODUCT_NAME }-c-cluster-manager-log`,
   path:      `/${ PRODUCT_NAME }/c/:cluster/:product/:resource/log`,
   component: Log
-},
-];
+}];
 
 export default routes;

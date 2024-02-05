@@ -22,11 +22,13 @@
       :totalCount="totalCount"
       :subtractHeight="262"
       :defaultSelectOption="defaultSelectOption"
+      :disableActionButton="disableActionButton"
       @action="action"
       @page-change="pageChange"
       @input-search="inputSearch"
       @bulk-remove="bulkRemove"
       @sort-change="sortChange"
+      @checkbox-change="selectChange"
     >
       <template
         v-slot:name="{ row }"
@@ -107,6 +109,7 @@ export default {
     }
   },
   async fetch() {
+    await this.fetchCurrentUser();
     await this.getProject();
   },
   data() {
@@ -141,51 +144,12 @@ export default {
       totalCount:           0,
       page:                 1,
       inputFilter:          [],
+      selectedRows:         [],
+      currentUser:          {},
       newProjectVisible:    false,
       createProjectLoading: false,
       projects:             [],
-      columns:              [
-        {
-          field:    'name',
-          title:    'Project name',
-          sortable: true,
-          search:   'name',
-          slot:     true,
-        },
-        {
-          field: 'access',
-          title: 'Access Level',
-        },
-        {
-          field: 'role',
-          title: 'Role',
-        },
-        {
-          field: 'repo_count',
-          title: 'Number of image store',
-          width: 200,
-        },
-        {
-          field:    'creation',
-          title:    'Created',
-          sortable: true,
-        },
-        {
-          field:  'action',
-          title:  '',
-          width:  50,
-          action: {
-            options: [
-              {
-                action: 'delete',
-                label:  'Delete',
-                icon:   'icon-trash',
-              },
-            ],
-          }
-        },
-      ],
-      form: {
+      form:                 {
         name:             '',
         size:             -1,
         storageUnitValue: 'mb',
@@ -234,6 +198,10 @@ export default {
           params: { id: project.project_id }
         };
 
+        if (project.current_user_role_ids === null) {
+          project.current_user_role_id = 0;
+        }
+
         return {
           role:     this.getRole(project),
           access:   project?.metadata?.public === 'true' ? this.t('harborConfig.table.storeStatus.public') : this.t('harborConfig.table.storeStatus.private'),
@@ -242,9 +210,68 @@ export default {
           ...project
         };
       });
-    }
+    },
+    columns() {
+      return [
+        {
+          field:    'name',
+          title:    this.t('harborConfig.table.projectName'),
+          sortable: true,
+          search:   'name',
+          slot:     true,
+        },
+        {
+          field: 'access',
+          title: this.t('harborConfig.table.level'),
+        },
+        {
+          field: 'role',
+          title: this.t('harborConfig.table.role'),
+        },
+        {
+          field: 'repo_count',
+          title: this.t('harborConfig.table.count'),
+          width: 200,
+        },
+        {
+          field:    'creation',
+          title:    this.t('generic.created'),
+          sortable: true,
+        },
+        {
+          field:  'action',
+          title:  '',
+          width:  50,
+          action: {
+            options: [
+              {
+                action:         'delete',
+                label:          this.t('action.remove'),
+                icon:           'icon-trash',
+                disableActions: (record) => {
+                  return parseInt(record?.current_user_role_id, 10) !== 1 && !this?.currentUser?.sysadmin_flag;
+                }
+              },
+            ],
+          }
+        },
+      ];
+    },
+    disableActionButton() {
+      return this.selectedRows?.some((item) => {
+        return parseInt(item?.current_user_role_id, 10) !== 1;
+      }) && !this?.currentUser?.sysadmin_flag;
+    },
   },
   methods: {
+    async fetchCurrentUser() {
+      try {
+        this.loading = true;
+        const currentUser = await this.apiRequest.fetchCurrentHarborUser();
+
+        this.currentUser = currentUser;
+      } catch (e) {}
+    },
     async getProject() {
       const params = {};
 
@@ -276,9 +303,20 @@ export default {
 
       return validator.validate(this.form);
     },
+    selectChange(record) {
+      this.selectedRows = record;
+    },
     action(action, record) {
       if (action.action === 'delete' && record.project_id) {
-        this.removeProjects([record.project_id]);
+        this.$customConfrim({
+          type:           'Image Management',
+          resources:      [record],
+          propKey:        'name',
+          store:          this.$store,
+          removeCallback: async() => {
+            await this.removeProjects([record.project_id]);
+          }
+        });
       }
     },
     toggleAccessChange() {
@@ -312,16 +350,22 @@ export default {
         return project.project_id;
       });
 
-      this.removeProjects(projectIDs);
-    },
-    removeProjects(projectIDs) {
-      this.loading = true;
-      this.apiRequest.removeProjects(projectIDs).then(() => {
-        this.getProject();
-      }).catch(() => {
-        this.loading = false;
-        this.getProject();
+      this.$customConfrim({
+        type:           'Image Management',
+        resources:      record,
+        propKey:        'name',
+        store:          this.$store,
+        removeCallback: async() => {
+          await this.removeProjects(projectIDs);
+        }
       });
+    },
+    async removeProjects(projectIDs) {
+      this.loading = true;
+      try {
+        await this.apiRequest.removeProjects(projectIDs);
+      } catch (e) {}
+      await this.getProject();
     },
     showDialog() {
       this.newProjectVisible = true;

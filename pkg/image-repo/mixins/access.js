@@ -7,21 +7,28 @@ export default {
       if (this.isSystemAdmin) {
         return true;
       } else {
-        return this?.project?.currentUserRoleId === '1';
+        return parseInt(this?.project?.current_user_role_id, 10) === 1;
       }
     },
     isProjectMaster() {
       if (this.isSystemAdmin) {
         return true;
       } else {
-        return this?.project?.currentUserRoleId === '4';
+        return parseInt(this?.project?.current_user_role_id, 10) === 4;
       }
     },
     isMember() {
       if (this.isSystemAdmin) {
         return true;
       } else {
-        return parseInt(this?.project?.currentUserRoleId, 10) > 0;
+        return parseInt(this?.project?.current_user_role_id, 10) > 0;
+      }
+    },
+    isLimitedGuest() {
+      if (this.isSystemAdmin) {
+        return false;
+      } else {
+        return parseInt(this?.project?.current_user_role_id, 10) === 5;
       }
     },
   },

@@ -24,7 +24,7 @@
     </Banner>
     <div class="footer">
       <button
-        :disabled="disabled || loading"
+        :disabled="disabled || loading || disableActionButton"
         type="button"
         class="btn bg-primary"
         @click="saveAccess"
@@ -72,6 +72,11 @@ export default {
       },
       deep: true
     },
+  },
+  computed: {
+    disableActionButton() {
+      return parseInt(this?.project?.current_user_role_id, 10) !== 1 && !this?.currentUser?.sysadmin_flag;
+    }
   },
   methods: {
     changeAccess() {

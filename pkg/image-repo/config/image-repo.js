@@ -16,7 +16,7 @@ export function init($plugin, store) {
         cluster: 'local', product: 'manager', resource: 'provisioning.cattle.io.cluster'
       }
     },
-    exact:  false,
+    exact:  true,
     weight: 100,
   });
 
@@ -35,7 +35,7 @@ export function init($plugin, store) {
       path:   '/:product/c/:cluster/manager/project',
       params: { cluster: 'local' }
     },
-    exact:  false,
+    exact:  true,
     weight: 99,
   });
 
@@ -54,7 +54,7 @@ export function init($plugin, store) {
       path:   '/:product/c/:cluster/manager/log',
       params: { cluster: 'local' }
     },
-    exact:  false,
+    exact:  true,
     weight: 98,
   });
 
