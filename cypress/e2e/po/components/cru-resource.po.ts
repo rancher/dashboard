@@ -20,7 +20,9 @@ export default class CruResourcePo extends ComponentPo {
   saveAndWaitForRequests(method, endpoint: string, statusCode?: number): Cypress.Chainable {
     cy.intercept(method, endpoint).as(endpoint);
     this.saveOrCreate().click();
+    /* eslint-disable cypress/no-assigning-return-values */
+    const wait = cy.wait(`@${ endpoint }`, { timeout: 10000 });
 
-    return statusCode ? cy.wait(`@${ endpoint }`, { timeout: 10000 }).its('response.statusCode').should('eq', statusCode) : cy.wait(`@${ endpoint }`, { timeout: 10000 });
+    return statusCode ? wait.its('response.statusCode').should('eq', statusCode) : wait;
   }
 }

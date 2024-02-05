@@ -1,7 +1,7 @@
 import PagePo from '@/cypress/e2e/po/pages/page.po';
 import AgentConfigurationRke2 from '@/cypress/e2e/po/components/agent-configuration-rke2.po';
 import ClusterManagerCreatePagePo from '@/cypress/e2e/po/edit/provisioning.cattle.io.cluster/create/cluster-create.po';
-import TabbedPo from '~/cypress/e2e/po/components/tabbed.po';
+import TabbedPo from '@/cypress/e2e/po/components/tabbed.po';
 
 /**
  * Create page for an RKE2 custom cluster

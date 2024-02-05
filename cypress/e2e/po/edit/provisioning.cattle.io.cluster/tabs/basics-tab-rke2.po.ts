@@ -1,4 +1,3 @@
-/* eslint-disable cypress/no-unnecessary-waiting */
 import ComponentPo from '@/cypress/e2e/po/components/component.po';
 import LabeledSelectPo from '@/cypress/e2e/po/components/labeled-select.po';
 import NameNsDescription from '@/cypress/e2e/po/components/name-ns-description.po';

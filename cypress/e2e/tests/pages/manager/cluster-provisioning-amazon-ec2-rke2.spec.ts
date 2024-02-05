@@ -29,7 +29,7 @@ describe('Provision Node driver RKE2 cluster', { testIsolation: 'off', tags: ['@
     clusterList.createCluster();
     createRKE2ClusterPage.rkeToggle().set('RKE2/K3s');
     createRKE2ClusterPage.selectCreate(0);
-    createRKE2ClusterPage.title().should('include', 'Create Amazon EC2');
+    createRKE2ClusterPage.rke2PageTitle().should('include', 'Create Amazon EC2');
 
     // create amazon ec2 cloud credential
     cloudCredForm.nameNsDescription().name().set(this.ec2CloudCredentialName);
@@ -88,7 +88,7 @@ describe('Provision Node driver RKE2 cluster', { testIsolation: 'off', tags: ['@
     // check cluster details page > machine pools
     clusterList.list().name(this.rke2Ec2ClusterName).click();
     clusterDetails.waitForPage(null, 'machine-pools');
-    clusterDetails.mastheadTitle().should('contain', this.rke2Ec2ClusterName);
+    clusterDetails.resourceDetail().title().should('contain', this.rke2Ec2ClusterName);
     clusterDetails.machinePoolsList().details(`${ this.rke2Ec2ClusterName }-pool1-`, 1).should('contain', 'Running');
   });
 

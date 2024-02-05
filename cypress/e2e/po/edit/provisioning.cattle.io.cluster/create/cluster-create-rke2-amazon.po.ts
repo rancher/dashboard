@@ -17,10 +17,6 @@ export default class ClusterManagerCreateRke2AmazonPagePo extends ClusterManager
     return PagePo.goTo(`${ ClusterManagerCreatePagePo.url }?type=amazonec2#basic`);
   }
 
-  title(): Cypress.Chainable<string> {
-    return this.self().find('.primaryheader h1').invoke('text');
-  }
-
   cloudCredentialsForm(): AmazonCloudCredentialsCreateEditPo {
     return new AmazonCloudCredentialsCreateEditPo();
   }
