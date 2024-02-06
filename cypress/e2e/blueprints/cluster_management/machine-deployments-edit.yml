@@ -1,0 +1,52 @@
+apiVersion: cluster.x-k8s.io/v1beta1
+kind: MachineDeployment
+metadata:
+  creationTimestamp: '2023-12-07T18:14:50Z'
+  generation: 1
+  labels:
+    cluster.x-k8s.io/cluster-name: local
+  managedFields:
+    - apiVersion: cluster.x-k8s.io/v1beta1
+      fieldsType: FieldsV1
+      fieldsV1:
+        f:spec:
+          .: {}
+          f:clusterName: {}
+          f:selector: {}
+          f:template:
+            .: {}
+            f:metadata: {}
+            f:spec:
+              .: {}
+              f:clusterName: {}
+      manager: rancher
+      operation: Update
+      time: '2023-12-07T18:14:50Z'
+  name: e2e-machinedeployment-name-1701972886077
+  namespace: default
+  resourceVersion: '22851'
+  uid: f5bf052d-7bbf-483a-a20a-b2f6e48d1e15
+spec:
+  clusterName: local
+  minReadySeconds: 0
+  progressDeadlineSeconds: 600
+  replicas: 1
+  revisionHistoryLimit: 1
+  selector:
+    matchLabels:
+      cluster.x-k8s.io/cluster-name: local
+      cluster.x-k8s.io/deployment-name: e2e-machinedeployment-name-1701972886077
+  strategy:
+    rollingUpdate:
+      maxSurge: 1
+      maxUnavailable: 0
+    type: RollingUpdate
+  template:
+    metadata:
+      labels:
+        cluster.x-k8s.io/cluster-name: local
+        cluster.x-k8s.io/deployment-name: e2e-machinedeployment-name-1701972886077
+    spec:
+      bootstrap: {}
+      clusterName: local
+      infrastructureRef: {}
