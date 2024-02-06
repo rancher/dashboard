@@ -33,6 +33,12 @@ export default {
     const parsedUrl = parse(url);
     const isSteve = steveRegEx.test(parsedUrl.path);
 
+    // labelSelector
+    if ( opt.labelSelector ) {
+      url += `${ url.includes('?') ? '&' : '?' }labelSelector=${ opt.labelSelector }`;
+    }
+    // End: labelSelector
+
     // Filter
     if ( opt.filter ) {
       url += `${ (url.includes('?') ? '&' : '?') }`;
