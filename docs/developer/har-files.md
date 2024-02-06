@@ -1,5 +1,7 @@
 # Using HAR Files
 
+> &#x26a0;&#xfe0f; Documentation in this directory is intended for internal use only. Any information contained here is unsupported.
+
 A HAR file can be created from a web browser (such as Chrome) and can contain performance data but also the network requests captured over a period of time.
 
 A HAR file can therefore be a useful tool for debugging and analyzing a UI problem.
