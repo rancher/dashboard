@@ -365,10 +365,7 @@ export default {
     const typeOptions = rootGetters['type-map/optionsFor'](type);
 
     opt = opt || {};
-
-    opt.filter = opt.filter || {};
-    opt.filter['labelSelector'] = selector;
-
+    opt.labelSelector = selector;
     opt.url = getters.urlFor(type, null, opt);
     opt.depaginate = typeOptions?.depaginate;
 
