@@ -8,19 +8,17 @@ import EmberCheckboxInputPo from '@/cypress/e2e/po/components/ember/ember-checkb
 import EmberSelectPo from '@/cypress/e2e/po/components/ember/ember-select.po';
 
 /**
- * Create page for an RKE1 custom cluster
+ * Create page for an RKE1 amazonec2 cluster
  */
-export default class ClusterManagerCreateRke1CustomPagePo extends ClusterManagerCreateRKE1PagePo {
-  static url = `${ ClusterManagerCreatePagePo.url }/create?type=custom`
+export default class ClusterManagerCreateRke1Amazonec2PagePo extends ClusterManagerCreateRKE1PagePo {
+  static url = `${ ClusterManagerCreatePagePo.url }/create?type=amazonec2`
   static goTo(): Cypress.Chainable<Cypress.AUTWindow> {
-    return PagePo.goTo(ClusterManagerCreateRke1CustomPagePo.url);
+    return PagePo.goTo(ClusterManagerCreateRke1Amazonec2PagePo.url);
   }
 
-  goToCustomClusterCreation(): Cypress.Chainable<Cypress.AUTWindow> {
-    return PagePo.goTo(`${ ClusterManagerCreatePagePo.url }?type=custom`);
+  goToAmazonec2ClusterCreation(): Cypress.Chainable<Cypress.AUTWindow> {
+    return PagePo.goTo(`${ ClusterManagerCreatePagePo.url }?type=amazonec2`);
   }
-
-  // Create/Edit Page
 
   clusterName(): EmberInputPo {
     return new EmberInputPo('[data-testid="form-name-description__name"]');
@@ -38,17 +36,15 @@ export default class ClusterManagerCreateRke1CustomPagePo extends ClusterManager
     return new EmberCheckboxInputPo('.cluster-template-select');
   }
 
+  nodeTemplateDropdown(): EmberSelectPo {
+    return new EmberSelectPo('.main-row .new-select > select');
+  }
+
   rkeTemplateAndRevisionDropdown(): EmberSelectPo {
     return new EmberSelectPo('.new-select > select');
   }
 
   selectedOption(): EmberSelectPo {
     return new EmberSelectPo('.new-select > select option:selected');
-  }
-
-  // Roles Page
-
-  nodeCommand(): EmberAccordionPo {
-    return new EmberAccordionPo('cluster-driver__role');
   }
 }
