@@ -71,7 +71,7 @@ export default {
       errors:        [],
       prime:         isRancherPrime(),
       addRepos:      {
-        official: isRancherPrime(),
+        official: true,
         partners: true,
       },
       reposInfo: {
@@ -100,7 +100,7 @@ export default {
       return !!this.repos.find((r) => r.urlDisplay === UI_PLUGINS_PARTNERS_REPO_URL);
     },
     isAnyRepoAvailableForInstall() {
-      return !this.hasRancherUIPluginsRepo || !this.hasRancherUIPartnersPluginsRepo;
+      return (isRancherPrime() && !this.hasRancherUIPluginsRepo) || !this.hasRancherUIPartnersPluginsRepo;
     }
   },
 
@@ -157,7 +157,7 @@ export default {
 
       // Reset checkbox based on if the repo is already installed
       this.addRepos = {
-        official: !this.hasRancherUIPluginsRepo,
+        official: isRancherPrime() && !this.hasRancherUIPluginsRepo,
         partners: !this.hasRancherUIPartnersPluginsRepo,
       };
 
