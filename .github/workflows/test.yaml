@@ -58,7 +58,7 @@ jobs:
           cp coverage/e2e/coverage-final.json coverage-artifacts/coverage/coverage-e2e.json
           cp -r coverage/e2e/ coverage-artifacts/coverage/e2e/
         env: 
-          GREP_TAGS: '@adminUser'
+          GREP_TAGS: '@adminUser --@jenkins'
           TEST_USERNAME: admin
 
 
@@ -70,7 +70,7 @@ jobs:
           mkdir -p coverage-artifacts/coverage
           cp coverage/e2e/coverage-final.json coverage-artifacts/coverage/coverage-e2e.json
         env: 
-          GREP_TAGS: '@standardUser'
+          GREP_TAGS: '@standardUser --@jenkins'
           TEST_USERNAME: standard_user
         
       - name: Upload coverage

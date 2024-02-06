@@ -207,11 +207,132 @@ Cypress.Commands.add('getProjectByName', (clusterId, projectName) => {
 });
 
 /**
+ * create a project
+ */
+Cypress.Commands.add('createProject', (projName, clusterId, userId) => {
+  return cy.request({
+    method:  'POST',
+    url:     `${ Cypress.env('api') }/v3/projects`,
+    headers: {
+      'x-api-csrf': token.value,
+      Accept:       'application/json'
+    },
+    body: {
+      type:                          'project',
+      name:                          projName,
+      annotations:                   {},
+      labels:                        {},
+      clusterId,
+      creatorId:                     `${ clusterId }://${ userId }`,
+      containerDefaultResourceLimit: {},
+      resourceQuota:                 {},
+      namespaceDefaultResourceQuota: {}
+    }
+  })
+    .then((resp) => {
+      expect(resp.status).to.eq(201);
+    });
+});
+
+/**
+ * create a namespace
+ */
+Cypress.Commands.add('createNamespace', (nsName, projId) => {
+  return cy.request({
+    method:  'POST',
+    url:     `${ Cypress.env('api') }/v1/namespaces`,
+    headers: {
+      'x-api-csrf': token.value,
+      Accept:       'application/json'
+    },
+    body: {
+      metadata: {
+        annotations: {
+          'field.cattle.io/containerDefaultResourceLimit': '{}',
+          'field.cattle.io/projectId':                     projId
+        },
+        labels: {
+          'field.cattle.io/projectId':                  projId.split(':')[1],
+          'pod-security.kubernetes.io/enforce':         'privileged',
+          'pod-security.kubernetes.io/enforce-version': 'latest'
+        },
+        name: nsName
+      },
+      disableOpenApiValidation: false
+    }
+  })
+    .then((resp) => {
+      expect(resp.status).to.eq(201);
+    });
+});
+
+/**
+ * Create pod
+ */
+Cypress.Commands.add('createPod', (nsName, podName, image) => {
+  return cy.request({
+    method:  'POST',
+    url:     `${ Cypress.env('api') }/v1/pods`,
+    headers: {
+      'x-api-csrf': token.value,
+      Accept:       'application/json'
+    },
+    body: {
+      type:     'pod',
+      metadata: {
+        namespace: nsName, labels: { 'workload.user.cattle.io/workloadselector': `pod-${ nsName }-pod-${ podName }` }, name: `pod-${ podName }`, annotations: {}
+      },
+      spec: {
+        selector:   { matchLabels: { 'workload.user.cattle.io/workloadselector': `pod-${ nsName }-pod-${ podName }` } },
+        containers: [{
+          imagePullPolicy: 'Always', name: 'container-0', _init: false, volumeMounts: [], env: [], envFrom: [], image: `${ image }`, __active: true
+        }],
+        initContainers:   [],
+        imagePullSecrets: [],
+        volumes:          [],
+        affinity:         {}
+      }
+    }
+  })
+    .then((resp) => {
+      expect(resp.status).to.eq(201);
+    });
+});
+
+/**
+ * create aws cloud credentials
+ */
+Cypress.Commands.add('createAwsCloudCredentials', (nsName, cloudCredName, defaultRegion, accessKey, secretKey) => {
+  return cy.request({
+    method:  'POST',
+    url:     `${ Cypress.env('api') }/v3/cloudcredentials`,
+    headers: {
+      'x-api-csrf': token.value,
+      Accept:       'application/json'
+    },
+    body: {
+      type:                      'provisioning.cattle.io/cloud-credential',
+      metadata:                  { generateName: 'cc-', namespace: `${ nsName }` },
+      _name:                     `${ cloudCredName }`,
+      annotations:               { 'provisioning.cattle.io/driver': 'aws' },
+      amazonec2credentialConfig: {
+        defaultRegion: `${ defaultRegion }`, accessKey: `${ accessKey }`, secretKey: `${ secretKey }`
+      },
+      _type: 'provisioning.cattle.io/cloud-credential',
+      name:  `${ cloudCredName }`
+    }
+  })
+    .then((resp) => {
+      expect(resp.status).to.eq(201);
+    });
+});
+
+/**
  * Override user preferences to default values, allowing to pass custom preferences for a deterministic scenario
  */
 // eslint-disable-next-line no-undef
 Cypress.Commands.add('userPreferences', (preferences: Partial<UserPreferences> = {}) => {
-  return cy.intercept('/v1/userpreferences', (req) => {
+  return cy.intercept('/v1/userpreferences*', (req) => {
     req.reply({
       statusCode: 201,
       body:       {
@@ -254,11 +375,19 @@ Cypress.Commands.add('requestBase64Image', (url: string) => {
 
 /**
  * Get a v3 / v1 resource
+ * url is constructed based if resourceId is supplied or not
  */
-Cypress.Commands.add('getRancherResource', (prefix, resourceType, resourceId, expectedStatusCode = 200) => {
+
+Cypress.Commands.add('getRancherResource', (prefix, resourceType, resourceId?, expectedStatusCode = 200) => {
+  let url = `${ Cypress.env('api') }/${ prefix }/${ resourceType }`;
+
+  if (resourceId) {
+    url += `/${ resourceId }`;
+  }
+
   return cy.request({
     method:  'GET',
-    url:     `${ Cypress.env('api') }/${ prefix }/${ resourceType }/${ resourceId }`,
+    url,
     headers: {
       'x-api-csrf': token.value,
       Accept:       'application/json'
@@ -288,5 +417,42 @@ Cypress.Commands.add('setRancherResource', (prefix, resourceType, resourceId, bo
   })
     .then((resp) => {
       expect(resp.status).to.eq(200);
+    });
+});
+
+/**
+ * delete a v3 / v1 resource
+ */
+Cypress.Commands.add('deleteRancherResource', (prefix, resourceType, resourceId, expectedStatusCode = 200) => {
+  return cy.request({
+    method:  'DELETE',
+    url:     `${ Cypress.env('api') }/${ prefix }/${ resourceType }/${ resourceId }`,
+    headers: {
+      'x-api-csrf': token.value,
+      Accept:       'application/json'
+    }
+  })
+    .then((resp) => {
+      // Either 200, or 204 (No Content)
+      expect(resp.status).to.be.oneOf([200, 204]);
+    });
+});
+
+/**
+ * create a v3 / v1 resource
+ */
+Cypress.Commands.add('createRancherResource', (prefix, resourceType, body) => {
+  return cy.request({
+    method:  'POST',
+    url:     `${ Cypress.env('api') }/${ prefix }/${ resourceType }`,
+    headers: {
+      'x-api-csrf': token.value,
+      Accept:       'application/json'
+    },
+    body
+  })
+    .then((resp) => {
+      // Expect 201, Created HTTP status code
+      expect(resp.status).to.eq(201);
     });
 });

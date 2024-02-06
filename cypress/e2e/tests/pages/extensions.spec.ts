@@ -1,5 +1,5 @@
 import ExtensionsPagePo from '@/cypress/e2e/po/pages/extensions.po';
-import ReposListPagePo from '@/cypress/e2e/po/pages/repositories.po';
+import RepositoriesPagePo from '@/cypress/e2e/po/pages/chart-repositories.po';
 import PromptRemove from '@/cypress/e2e/po/prompts/promptRemove.po';
 
 const EXTENSION_NAME = 'clock';
@@ -40,7 +40,7 @@ describe('Extensions page', { tags: '@adminUser' }, () => {
     extensionsPo.addReposModal().should('not.exist');
 
     // go to repos list page
-    const appRepoList = new ReposListPagePo('local', 'apps');
+    const appRepoList = new RepositoriesPagePo('local', 'apps');
 
     appRepoList.goTo();
     appRepoList.waitForPage();
@@ -92,7 +92,7 @@ describe('Extensions page', { tags: '@adminUser' }, () => {
       }
     });
 
-    const appRepoList = new ReposListPagePo('local', 'apps');
+    const appRepoList = new RepositoriesPagePo('local', 'apps');
 
     // Ensure that the banner should be shown (by confirming that a required repo isn't there)
     appRepoList.goTo();

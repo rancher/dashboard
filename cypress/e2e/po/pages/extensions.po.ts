@@ -4,9 +4,9 @@ import LabeledSelectPo from '@/cypress/e2e/po/components/labeled-select.po';
 import TabbedPo from '@/cypress/e2e/po/components/tabbed.po';
 import ActionMenuPo from '@/cypress/e2e/po/components/action-menu.po';
 import NameNsDescriptionPo from '@/cypress/e2e/po/components/name-ns-description.po';
-import ReposListPagePo from '@/cypress/e2e/po/pages/repositories.po';
-import AppClusterRepoEditPo from '@/cypress/e2e/po/edit/catalog.cattle.io.clusterrepo.po';
+import RepositoriesPagePo from '@/cypress/e2e/po/pages/chart-repositories.po';
 import BannersPo from '@/cypress/e2e/po/components/banners.po';
+import ChartRepositoriesCreateEditPo from '@/cypress/e2e/po/edit/chart-repositories.po';
 
 export default class ExtensionsPagePo extends PagePo {
   static url = '/c/local/uiplugins'
@@ -90,25 +90,26 @@ export default class ExtensionsPagePo extends PagePo {
     this.manageReposClick();
 
     // create a new clusterrepo
-    const appRepoList = new ReposListPagePo('local', 'apps');
+    const appRepoList = new RepositoriesPagePo('local', 'apps');
 
     appRepoList.waitForPage();
+    appRepoList.waitForGoTo('/v1/catalog.cattle.io.clusterrepos?exclude=metadata.managedFields');
     appRepoList.create();
 
-    const appRepoCreate = new AppClusterRepoEditPo('local', 'create');
+    const appRepoCreate = new ChartRepositoriesCreateEditPo('local', 'apps');
 
     appRepoCreate.waitForPage();
 
     // fill the form
-    appRepoCreate.selectRadioOptionGitRepo(1);
+    appRepoCreate.repoRadioBtn().set(1);
     appRepoCreate.nameNsDescription().name().self().scrollIntoView()
       .should('be.visible');
     appRepoCreate.nameNsDescription().name().set(name);
-    appRepoCreate.enterGitRepoName(repo);
-    appRepoCreate.enterGitBranchName(branch);
+    appRepoCreate.gitRepoUrl().set(repo);
+    appRepoCreate.gitBranch().set(branch);
 
     // save it
-    return appRepoCreate.save();
+    return appRepoCreate.saveAndWaitForRequests('POST', '/v1/catalog.cattle.io.clusterrepos');
   }
 
   // ------------------ extension card ------------------

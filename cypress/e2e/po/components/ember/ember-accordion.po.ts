@@ -1,5 +1,4 @@
 import EmberComponentPo from '@/cypress/e2e/po/components/ember/ember-component.po';
-
 export default class EmberAccordionPo extends EmberComponentPo {
   private headerSelector: string;
   private contentSelector: string;
