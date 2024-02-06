@@ -19,6 +19,8 @@ import Shell from '@/cypress/e2e/po/components/shell.po';
 import BurgerMenuPo from '@/cypress/e2e/po/side-bars/burger-side-menu.po';
 import { snapshot } from '@/cypress/e2e/blueprints/manager/cluster-snapshots';
 import HomePagePo from '@/cypress/e2e/po/pages/home.po';
+import { nodeDriveResponse } from '@/cypress/e2e/tests/pages/manager/mock-responses';
+
 // At some point these will come from somewhere central, then we can make tools to remove resources from this or all runs
 const runTimestamp = +new Date();
 const runPrefix = `e2e-test-${ runTimestamp }`;
@@ -468,5 +470,41 @@ describe('Cluster Manager', { testIsolation: 'off', tags: ['@manager', '@adminUs
 
     shellPo.terminalStatus('Connected');
     shellPo.closeTerminal();
+  });
+
+  describe('Credential Step', () => {
+    it('should show credential step when `addCloudCredential` is true', () => {
+      cy.intercept({
+        method: 'GET',
+        path:   `/v1/management.cattle.io.nodedrivers*`,
+      }, (req) => {
+        req.continue((res) => {
+          res.body.data = nodeDriveResponse(false).data;
+        });
+      });
+      const clusterCreate = new ClusterManagerCreatePagePo();
+
+      clusterCreate.goTo(`type=nutanix&rkeType=rke2`);
+      clusterCreate.waitForPage();
+
+      clusterCreate.self().find('[data-testid="form"]').should('exist');
+    });
+
+    it('should NOT show credential step when `addCloudCredential` is false', () => {
+      cy.intercept({
+        method: 'GET',
+        path:   `/v1/management.cattle.io.nodedrivers*`,
+      }, (req) => {
+        req.continue((res) => {
+          res.body.data = nodeDriveResponse(true).data;
+        });
+      });
+      const clusterCreate = new ClusterManagerCreatePagePo();
+
+      clusterCreate.goTo(`type=nutanix&rkeType=rke2`);
+      clusterCreate.waitForPage();
+
+      clusterCreate.self().find('[data-testid="select-credential"]').should('exist');
+    });
   });
 });
