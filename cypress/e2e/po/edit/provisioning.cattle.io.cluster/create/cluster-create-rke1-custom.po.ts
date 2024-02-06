@@ -4,6 +4,8 @@ import EmberInputPo from '@/cypress/e2e/po/components/ember/ember-input.po';
 import ClusterManagerCreateRKE1PagePo from '@/cypress/e2e/po/edit/provisioning.cattle.io.cluster/create/cluster-create-rke1.po';
 import EmberAccordionPo from '@/cypress/e2e/po/components/ember/ember-accordion.po';
 import EmberFormMembersPo from '@/cypress/e2e/po/components/ember/ember-form-members.po';
+import EmberCheckboxInputPo from '@/cypress/e2e/po/components/ember/ember-checkbox-input.po';
+import EmberSelectPo from '@/cypress/e2e/po/components/ember/ember-select.po';
 
 /**
  * Create page for an RKE1 custom cluster
@@ -30,6 +32,18 @@ export default class ClusterManagerCreateRke1CustomPagePo extends ClusterManager
 
   memberRolesFormMembers(): EmberFormMembersPo {
     return new EmberFormMembersPo('[data-testid="cru-cluster__members__form"]') ;
+  }
+
+  clusterTemplateCheckbox(): EmberCheckboxInputPo {
+    return new EmberCheckboxInputPo('.cluster-template-select');
+  }
+
+  rkeTemplateAndRevisionDropdown(): EmberSelectPo {
+    return new EmberSelectPo('.new-select > select');
+  }
+
+  selectedOption(): EmberSelectPo {
+    return new EmberSelectPo('.new-select > select option:selected');
   }
 
   // Roles Page

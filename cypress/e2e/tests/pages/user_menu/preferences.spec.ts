@@ -1,13 +1,13 @@
 import BannersPo from '@/cypress/e2e/po/components/banners.po';
 import HomePagePo from '@/cypress/e2e/po/pages/home.po';
 import PreferencesPagePo from '@/cypress/e2e/po/pages/preferences.po';
-import ReposListPagePo from '@/cypress/e2e/po/pages/repositories.po';
 import UserMenuPo from '@/cypress/e2e/po/side-bars/user-menu.po';
+import RepositoriesPagePo from '@/cypress/e2e/po/pages/chart-repositories.po';
 // import ClusterManagerListPagePo from '@/cypress/e2e/po/pages/cluster-manager/cluster-manager-list.po';
 
 const userMenu = new UserMenuPo();
 const prefPage = new PreferencesPagePo();
-const repoListPage = new ReposListPagePo('_', 'manager');
+const repoListPage = new RepositoriesPagePo('_', 'manager');
 const repoList = repoListPage.list();
 // const clusterManagerPage = new ClusterManagerListPagePo('_');
 
@@ -360,9 +360,9 @@ describe('User can update their preferences', () => {
     Validate http request's payload & response contain correct values per selection
     */
     const buttonOptions = {
-      'Normal human': 'sublime',
       Emacs:          'emacs',
       Vim:            'vim',
+      'Normal human': 'sublime'
     };
 
     prefPage.goTo();

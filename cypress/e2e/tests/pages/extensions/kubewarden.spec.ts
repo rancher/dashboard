@@ -1,6 +1,6 @@
 import ExtensionsPagePo from '@/cypress/e2e/po/pages/extensions.po';
 import { ChartsPage } from '@/cypress/e2e/po/pages/charts.po';
-import ReposListPagePo from '@/cypress/e2e/po/pages/repositories.po';
+import RepositoriesPagePo from '@/cypress/e2e/po/pages/chart-repositories.po';
 import ProductNavPo from '@/cypress/e2e/po/side-bars/product-side-nav.po';
 import KubewardenExtensionPo from '@/cypress/e2e/po/pages/extensions/kubewarden.po';
 
@@ -54,7 +54,7 @@ describe('Kubewarden Extension', { tags: '@adminUser' }, () => {
     chartsPage.waitForPage();
     chartsPage.self().getId('charts-header-title').invoke('text').should('contain', 'Charts');
 
-    const appRepoList: ReposListPagePo = new ReposListPagePo('local', 'apps');
+    const appRepoList: RepositoriesPagePo = new RepositoriesPagePo('local', 'apps');
 
     appRepoList.goTo();
     appRepoList.waitForPage();

@@ -103,7 +103,9 @@ export default defineConfig({
     username:          process.env.TEST_USERNAME || DEFAULT_USERNAME,
     password:          process.env.CATTLE_BOOTSTRAP_PASSWORD || process.env.TEST_PASSWORD,
     bootstrapPassword: process.env.CATTLE_BOOTSTRAP_PASSWORD,
-    grepTags:          process.env.GREP_TAGS
+    grepTags:          process.env.GREP_TAGS,
+    awsAccessKey:      process.env.AWS_ACCESS_KEY_ID,
+    awsSecretKey:      process.env.AWS_SECRET_ACCESS_KEY
   },
   e2e: {
     fixturesFolder: 'cypress/e2e/blueprints',
