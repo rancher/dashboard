@@ -61,7 +61,6 @@ export default {
 
   methods: {
     showDialog() {
-      console.log('isRancherPrime()', isRancherPrime());
       this.addRepos = {
         official: isRancherPrime() && !this.hasRancherUIPluginsRepo,
         partners: !this.hasRancherUIPartnersPluginsRepo,
