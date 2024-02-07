@@ -460,7 +460,11 @@ export function dumpBlock(data, options = {}) {
 
   let out = parsed;
 
-  const blockFields = Object.keys(data).filter((k) => data[k].includes('\n'));
+  const blockFields = Object.keys(data).filter((k) => {
+    if (typeof data[k] === 'string') {
+      return data[k].includes('\n');
+    }
+  });
 
   if (blockFields.length) {
     for (const key of blockFields) {
