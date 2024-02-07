@@ -330,6 +330,26 @@ export default {
 
       const out = findBy(this.versionOptions, 'value', str);
 
+      // Adding the option 'none' to Container Network select (used it Basics component)
+      // https://github.com/rancher/dashboard/issues/10338
+      if (!out.serverArgs) {
+        out.serverArgs = {};
+      }
+
+      if (!out.serverArgs.cni) {
+        out.serverArgs.cni = {};
+      }
+
+      if (!out.serverArgs.cni?.options) {
+        out.serverArgs.cni.options = [];
+      }
+
+      // there's an update loop on refresh that might include 'none'
+      // multiple times... Prevent that
+      if (!out.serverArgs.cni.options.includes('none')) {
+        out.serverArgs.cni.options.push('none');
+      }
+
       return out;
     },
 
@@ -1405,7 +1425,9 @@ export default {
       for ( const chartName of this.addonNames ) {
         const entry = this.chartVersions[chartName];
 
-        if ( this.versionInfo[chartName] ) {
+        // prevent fetching of addon config for 'none' CNI option
+        // https://github.com/rancher/dashboard/issues/10338
+        if ( this.versionInfo[chartName] || chartName.includes('none')) {
           continue;
         }
 
