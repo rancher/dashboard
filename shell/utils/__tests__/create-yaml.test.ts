@@ -2,6 +2,7 @@ import {
   getBlockDescriptor,
   dumpBlock,
 } from '@shell/utils/create-yaml';
+import jsyaml from 'js-yaml';
 
 const key = 'example';
 const randomData = '\n      foo\n      bar\n';
@@ -59,6 +60,15 @@ describe('fx: dumpBlock', () => {
         });
       });
     });
+  });
+
+  it('should not create a data block when the value of a key is not a string', () => {
+    const data = { key: { test: 'test' } };
+
+    const expectedResult = jsyaml.dump(data);
+    const result = dumpBlock(data);
+
+    expect(result).toStrictEqual(expectedResult);
   });
 
   it('should retain line breaks when a line longer than 80 characters exists', () => {
