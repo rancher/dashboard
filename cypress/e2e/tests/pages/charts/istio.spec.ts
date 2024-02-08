@@ -8,7 +8,7 @@ describe('Charts', { tags: ['@charts', '@adminUser'] }, () => {
   const chartsPageUrl = '/c/local/apps/charts/chart?repo-type=cluster&repo=rancher-charts';
 
   describe('Istio', () => {
-    const istioVersion = '103.1.0%2Bup1.19.5';
+    const istioVersion = '104.0.0%2Bup1.18.2';
 
     const chartsIstioPage = `${ chartsPageUrl }&chart=rancher-istio&version=${ istioVersion }`;
 
