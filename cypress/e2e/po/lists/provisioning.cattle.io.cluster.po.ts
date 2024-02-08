@@ -4,6 +4,18 @@ import BaseResourceList from '@/cypress/e2e/po/lists/base-resource-list.po';
  * List component for provisioning.cattle.io.cluster resources
  */
 export default class ProvClusterListPo extends BaseResourceList {
+  openBulkActionDropdown() {
+    return this.resourceTable().sortableTable().bulkActionDropDownOpen();
+  }
+
+  bulkActionButton(name: string) {
+    return this.resourceTable().sortableTable().bulkActionDropDownButton(name);
+  }
+
+  downloadKubeConfig() {
+    return cy.getId('sortable-table-downloadKubeConfig');
+  }
+
   state(clusterName: string) {
     return this.resourceTable().sortableTable().rowWithName(clusterName).column(1);
   }

@@ -18,6 +18,8 @@ import ClusterManagerCreateRke1CustomPagePo from '@/cypress/e2e/po/edit/provisio
 import Shell from '@/cypress/e2e/po/components/shell.po';
 import BurgerMenuPo from '@/cypress/e2e/po/side-bars/burger-side-menu.po';
 import { snapshot } from '@/cypress/e2e/blueprints/manager/cluster-snapshots';
+import HomePagePo from '@/cypress/e2e/po/pages/home.po';
+import { nodeDriveResponse } from '@/cypress/e2e/tests/pages/manager/mock-responses';
 
 // At some point these will come from somewhere central, then we can make tools to remove resources from this or all runs
 const runTimestamp = +new Date();
@@ -394,6 +396,20 @@ describe('Cluster Manager', { testIsolation: 'off', tags: ['@manager', '@adminUs
     });
   });
 
+  it('can navigate to Cluster Management Page', () => {
+    HomePagePo.goTo();
+    const burgerMenu = new BurgerMenuPo();
+
+    BurgerMenuPo.toggle();
+    const clusterManagementNavItem = burgerMenu.links().contains(`Cluster Management`);
+
+    clusterManagementNavItem.should('exist');
+    clusterManagementNavItem.click();
+    const clusterList = new ClusterManagerListPagePo('_');
+
+    clusterList.waitForPage();
+  });
+
   it(`can navigate to local cluster's explore product`, () => {
     const clusterName = 'local';
     const clusterDashboard = new ClusterDashboardPagePo(clusterName);
@@ -404,6 +420,48 @@ describe('Cluster Manager', { testIsolation: 'off', tags: ['@manager', '@adminUs
     clusterDashboard.waitForPage(undefined, 'cluster-events');
   });
 
+  it('can download YAML via bulk actions', () => {
+    // Delete downloads directory. Need a fresh start to avoid conflicting file names
+    cy.deleteDownloadsFolder();
+
+    ClusterManagerListPagePo.navTo();
+    clusterList.list().resourceTable().sortableTable().rowElementWithName('local')
+      .click();
+    clusterList.list().openBulkActionDropdown();
+    clusterList.list().bulkActionButton('Download YAML').click();
+    const downloadedFilename = path.join(downloadsFolder, `local.yaml`);
+
+    cy.readFile(downloadedFilename).then((buffer) => {
+      const obj: any = jsyaml.load(buffer);
+
+      // Basic checks on the downloaded YAML
+      expect(obj.apiVersion).to.equal('provisioning.cattle.io/v1');
+      expect(obj.metadata.name).to.equal('local');
+      expect(obj.kind).to.equal('Cluster');
+    });
+  });
+
+  it('can download KubeConfig via bulk actions', () => {
+    // Delete downloads directory. Need a fresh start to avoid conflicting file names
+    cy.deleteDownloadsFolder();
+
+    ClusterManagerListPagePo.navTo();
+    clusterList.list().resourceTable().sortableTable().rowElementWithName('local')
+      .click();
+    clusterList.list().openBulkActionDropdown();
+    clusterList.list().bulkActionButton('Download KubeConfig').click();
+    const downloadedFilename = path.join(downloadsFolder, 'local.yaml');
+
+    cy.readFile(downloadedFilename).then((buffer) => {
+      const obj: any = jsyaml.load(buffer);
+
+      // Basic checks on the downloaded YAML
+      expect(obj.apiVersion).to.equal('v1');
+      expect(obj.clusters[0].name).to.equal('local');
+      expect(obj.kind).to.equal('Config');
+    });
+  });
+
   it('can connect to kubectl shell', () => {
     ClusterManagerListPagePo.navTo();
     clusterList.list().actionMenu('local').getMenuItem('Kubectl Shell').click();
@@ -412,5 +470,41 @@ describe('Cluster Manager', { testIsolation: 'off', tags: ['@manager', '@adminUs
 
     shellPo.terminalStatus('Connected');
     shellPo.closeTerminal();
+  });
+
+  describe('Credential Step', () => {
+    it('should show credential step when `addCloudCredential` is true', () => {
+      cy.intercept({
+        method: 'GET',
+        path:   `/v1/management.cattle.io.nodedrivers*`,
+      }, (req) => {
+        req.continue((res) => {
+          res.body.data = nodeDriveResponse(false).data;
+        });
+      });
+      const clusterCreate = new ClusterManagerCreatePagePo();
+
+      clusterCreate.goTo(`type=nutanix&rkeType=rke2`);
+      clusterCreate.waitForPage();
+
+      clusterCreate.self().find('[data-testid="form"]').should('exist');
+    });
+
+    it('should NOT show credential step when `addCloudCredential` is false', () => {
+      cy.intercept({
+        method: 'GET',
+        path:   `/v1/management.cattle.io.nodedrivers*`,
+      }, (req) => {
+        req.continue((res) => {
+          res.body.data = nodeDriveResponse(true).data;
+        });
+      });
+      const clusterCreate = new ClusterManagerCreatePagePo();
+
+      clusterCreate.goTo(`type=nutanix&rkeType=rke2`);
+      clusterCreate.waitForPage();
+
+      clusterCreate.self().find('[data-testid="select-credential"]').should('exist');
+    });
   });
 });

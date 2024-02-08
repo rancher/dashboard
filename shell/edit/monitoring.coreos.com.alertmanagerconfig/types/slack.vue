@@ -126,7 +126,7 @@ export default {
       </div>
       <div class="col span-6">
         <LabeledInput
-          v-model="value.httpConfig.proxyUrl"
+          v-model="value.httpConfig.proxyURL"
           :mode="mode"
           label="Proxy URL"
           placeholder="e.g. http://my-proxy/"

@@ -126,6 +126,11 @@ export default {
       type:     String,
       required: true,
     },
+
+    providerConfig: {
+      type:    Object,
+      default: () => null
+    }
   },
 
   async fetch() {
@@ -351,7 +356,7 @@ export default {
     },
 
     needCredential() {
-      if ( this.provider === 'custom' || this.provider === 'import' || this.isElementalCluster || this.mode === _VIEW ) {
+      if ( this.provider === 'custom' || this.provider === 'import' || this.isElementalCluster || this.mode === _VIEW || (this.providerConfig?.spec?.builtin === false && this.providerConfig?.spec?.addCloudCredential === false) ) {
         return false;
       }
 
@@ -2047,11 +2052,13 @@ export default {
       :cancel="cancelCredential"
       :showing-form="showForm"
       :default-on-cancel="true"
+      data-testid="select-credential"
       class="mt-20"
     />
 
     <div
       v-if="showForm"
+      data-testid="form"
       class="mt-20"
     >
       <NameNsDescription

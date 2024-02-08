@@ -1,5 +1,7 @@
 # Building an Image for Container Registries
 
+> &#x26a0;&#xfe0f; Documentation in this directory is intended for internal use only. Any information contained here is unsupported.
+
 Sometimes you may need to have a custom version of the dashboard that is packaged alongside Rancher to be hosted within Github's [container registry](https://docs.github.com/en/packages). There are a few use cases for this, for instance when developing a package/product for Rancher that doesn't need to be standalone or when it isn't necessary for the package to exist in the Dashboard by default.
 
 ---
@@ -46,8 +48,8 @@ WORKDIR /src
 COPY . .
 RUN yarn --pure-lockfile install
 
-ENV ROUTER_BASE="/dashboard" \
-    RESOURCE_BASE="/dashboard"
+ENV ROUTER_BASE="/dashboard/" \
+    RESOURCE_BASE="/dashboard/"
 RUN yarn run build
 
 FROM rancher/rancher:v2.8-head

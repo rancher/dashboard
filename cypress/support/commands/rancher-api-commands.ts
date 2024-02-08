@@ -300,6 +300,34 @@ Cypress.Commands.add('createPod', (nsName, podName, image) => {
 });
 
 /**
+ * create aws cloud credentials
+ */
+Cypress.Commands.add('createAwsCloudCredentials', (nsName, cloudCredName, defaultRegion, accessKey, secretKey) => {
+  return cy.request({
+    method:  'POST',
+    url:     `${ Cypress.env('api') }/v3/cloudcredentials`,
+    headers: {
+      'x-api-csrf': token.value,
+      Accept:       'application/json'
+    },
+    body: {
+      type:                      'provisioning.cattle.io/cloud-credential',
+      metadata:                  { generateName: 'cc-', namespace: `${ nsName }` },
+      _name:                     `${ cloudCredName }`,
+      annotations:               { 'provisioning.cattle.io/driver': 'aws' },
+      amazonec2credentialConfig: {
+        defaultRegion: `${ defaultRegion }`, accessKey: `${ accessKey }`, secretKey: `${ secretKey }`
+      },
+      _type: 'provisioning.cattle.io/cloud-credential',
+      name:  `${ cloudCredName }`
+    }
+  })
+    .then((resp) => {
+      expect(resp.status).to.eq(201);
+    });
+});
+
+/**
  * Override user preferences to default values, allowing to pass custom preferences for a deterministic scenario
  */
 // eslint-disable-next-line no-undef
@@ -395,7 +423,7 @@ Cypress.Commands.add('setRancherResource', (prefix, resourceType, resourceId, bo
 /**
  * delete a v3 / v1 resource
  */
-Cypress.Commands.add('deleteRancherResource', (prefix, resourceType, resourceId) => {
+Cypress.Commands.add('deleteRancherResource', (prefix, resourceType, resourceId, expectedStatusCode = 200) => {
   return cy.request({
     method:  'DELETE',
     url:     `${ Cypress.env('api') }/${ prefix }/${ resourceType }/${ resourceId }`,

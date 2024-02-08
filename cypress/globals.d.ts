@@ -29,6 +29,7 @@ declare global {
       login(username?: string, password?: string, cacheSession?: boolean): Chainable<Element>;
       logout(): Chainable;
       byLabel(label: string): Chainable<Element>;
+      createE2EResourceName(context: string): Chainable<Element>;
 
       createUser(params: CreateUserParams): Chainable;
       setGlobalRoleBinding(userId: string, role: string): Chainable;
@@ -38,6 +39,7 @@ declare global {
       createProject(projName: string, clusterId: string, userId: string): Chainable;
       createNamespace(nsName: string, projId: string): Chainable;
       createPod(nsName: string, podName: string, image: string): Chainable;
+      createAwsCloudCredentials(nsName: string, cloudCredName: string, defaultRegion: string, accessKey: string, secretKey: string): Chainable;
 
       getRancherResource(prefix: 'v3' | 'v1', resourceType: string, resourceId?: string, expectedStatusCode?: number): Chainable;
       setRancherResource(prefix: 'v3' | 'v1', resourceType: string, resourceId: string, body: string): Chainable;

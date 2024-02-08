@@ -19,3 +19,12 @@ Fixes #
 
 ### Screenshot/Video
 <!-- Attach screenshot or video of the changes and eventual comparison if you find it necessary -->
+
+### Checklist
+- [ ] The PR is linked to an issue, or one is not required. The linked issue has a Milestone
+- [ ] The PR has a Milestone <!-- The milestone should automatically be assigned if the linked issue has one, but does not always happen (incorrectly linked, issue has no milestone, etc) -->
+- [ ] The PR template below has been filled out
+- [ ] The PR has been self reviewed <!-- There are no TODOs, no incorrect files in the PR, all the required files are there, no commented out code, etc-->
+- [ ] The PR has a reviewer assigned
+- [ ] The PR has automated tests or clear instructions for manual tests. The linked issue has appropriate QA labels
+- [ ] The PR has reviewed with UX (if required) and tested in light and dark mode

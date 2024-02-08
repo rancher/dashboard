@@ -40,7 +40,7 @@ describe('Branding', { testIsolation: 'off' }, () => {
 
     globalSettingsNavItem.should('exist');
     globalSettingsNavItem.click();
-    const settingsPage = new SettingsPagePo('local');
+    const settingsPage = new SettingsPagePo('_');
 
     settingsPage.waitForPageWithClusterId();
 
@@ -231,7 +231,7 @@ describe('Branding', { testIsolation: 'off' }, () => {
   it('Link Color', { tags: ['@globalSettings', '@adminUser'] }, () => {
     const brandingPage = new BrandingPagePo();
 
-    BrandingPagePo.navTo();
+    brandingPage.goTo();
 
     // Set
     brandingPage.linkColorCheckbox().set();

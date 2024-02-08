@@ -1,6 +1,6 @@
-import { mount, Wrapper } from '@vue/test-utils';
 import TopLevelMenu from '@shell/components/nav/TopLevelMenu';
 import { SETTING } from '@shell/config/settings';
+import { mount, Wrapper } from '@vue/test-utils';
 
 // DISCLAIMER: This should not be added here, although we have several store requests which are irrelevant
 const defaultStore = {

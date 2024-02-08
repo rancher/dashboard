@@ -519,7 +519,10 @@ export default {
         return this.extDetailTabs.registration;
       }
 
-      if ( this.value.isHostedKubernetesProvider && !this.isClusterReady ) {
+      // Hosted kubernetes providers with private endpoints need the registration tab
+      // https://github.com/rancher/dashboard/issues/6036
+      // https://github.com/rancher/dashboard/issues/4545
+      if ( this.value.isHostedKubernetesProvider && this.value.isPrivateHostedProvider && !this.isClusterReady ) {
         return this.extDetailTabs.registration;
       }
 
@@ -552,6 +555,18 @@ export default {
 
     snapshotsGroupBy() {
       return 'backupLocation';
+    },
+
+    extDetailTabsRelated() {
+      return this.extDetailTabs?.related;
+    },
+
+    extDetailTabsEvents() {
+      return this.extDetailTabs?.events;
+    },
+
+    extDetailTabsConditions() {
+      return this.extDetailTabs?.conditions;
     }
   },
 
@@ -725,9 +740,9 @@ export default {
       :default-tab="defaultTab"
       :need-related="hasLocalAccess"
       :extension-params="extCustomParams"
-      :needRelated="extDetailTabs.related"
-      :needEvents="extDetailTabs.events"
-      :needConditions="extDetailTabs.conditions"
+      :needRelated="extDetailTabsRelated"
+      :needEvents="extDetailTabsEvents"
+      :needConditions="extDetailTabsConditions"
     >
       <Tab
         v-if="showMachines"

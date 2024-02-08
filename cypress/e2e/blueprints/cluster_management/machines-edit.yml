@@ -1,0 +1,33 @@
+apiVersion: cluster.x-k8s.io/v1beta1
+kind: Machine
+metadata:
+  creationTimestamp: '2023-12-06T22:21:54Z'
+  generation: 1
+  labels:
+    cluster.x-k8s.io/cluster-name: local
+  managedFields:
+    - apiVersion: cluster.x-k8s.io/v1beta1
+      fieldsType: FieldsV1
+      fieldsV1:
+        f:spec:
+          .: {}
+          f:bootstrap:
+            .: {}
+            f:dataSecretName: {}
+          f:clusterName: {}
+          f:infrastructureRef: {}
+      manager: rancher
+      operation: Update
+      time: '2023-12-06T22:21:54Z'
+  name: e2e-machine-name-1701901308645
+  namespace: default
+  resourceVersion: '609444'
+  uid: 7d61939a-b44a-4113-a7d1-9db2eda08811
+spec:
+  bootstrap:
+    dataSecretName: secretname
+  clusterName: local
+  infrastructureRef:
+    namespace: default
+    resourceVersion: abc123
+  nodeDeletionTimeout: 10s
