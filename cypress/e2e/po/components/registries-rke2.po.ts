@@ -25,7 +25,7 @@ export default class RegistriesRke2 extends ComponentPo {
   }
 
   registryAuthHost(index: number) {
-    return new LabeledInputPo(`[data-testid="registry-auth-host-input-${index}"]`);
+    return new LabeledInputPo(`[data-testid="registry-auth-host-input-${ index }"]`);
   }
 
   addRegistryAuthHost(index: number, host: string) {
@@ -38,7 +38,7 @@ export default class RegistriesRke2 extends ComponentPo {
 
   registryAuthSelectOrCreate(index: number) {
     return this.authSelectOrCreate(
-      `[data-testid="registry-auth-select-or-create-${index}"]`
+      `[data-testid="registry-auth-select-or-create-${ index }"]`
     );
   }
 }
