@@ -32,7 +32,7 @@ describe('Registries for RKE2', { tags: ['@manager', '@adminUser'] }, () => {
     // cluster name
     createCustomClusterPage.nameNsDescription().name().set(this.clusterName);
     // navigate to Registries tab
-    createCustomClusterPage.registries().clickTab('#registry');
+    createCustomClusterPage.clusterConfigurationTabs().clickTabWithSelector('#registry')
     // enable registry
     createCustomClusterPage.registries().enableRegistryCheckbox().set();
     // add host

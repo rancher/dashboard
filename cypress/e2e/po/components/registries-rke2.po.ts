@@ -1,5 +1,4 @@
 import ComponentPo from '@/cypress/e2e/po/components/component.po';
-import TabbedPo from '@/cypress/e2e/po/components/tabbed.po';
 import CheckboxInputPo from '@/cypress/e2e/po/components/checkbox-input.po';
 import LabeledInputPo from '@/cypress/e2e/po/components/labeled-input.po';
 import SelectOrCreateAuthPo from '@/cypress/e2e/po/components/select-or-create-auth.po';
@@ -11,10 +10,6 @@ export default class RegistriesRke2 extends ComponentPo {
 
   enableRegistryCheckbox() {
     return new CheckboxInputPo('[data-testid="registries-enable-checkbox"]');
-  }
-
-  clickTab(selector: string) {
-    new TabbedPo().clickTabWithSelector(selector);
   }
 
   clickShowAdvanced() {
