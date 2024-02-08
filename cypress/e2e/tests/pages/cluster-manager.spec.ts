@@ -38,7 +38,7 @@ describe('Cluster Manager', { testIsolation: 'off', tags: '@adminUser' }, () => 
 
   describe('Created', () => {
     const createRKE2ClusterPage = new ClusterManagerCreateRke2CustomPagePo();
-    const detailRKE2ClusterPage = new ClusterManagerDetailRke2CustomPagePo(rke2CustomName);
+    const detailRKE2ClusterPage = new ClusterManagerDetailRke2CustomPagePo('local', rke2CustomName);
 
     describe('RKE2 Custom', () => {
       const editCreatedClusterPage = new ClusterManagerEditRke2CustomPagePo(rke2CustomName);
@@ -256,7 +256,7 @@ describe('Cluster Manager', { testIsolation: 'off', tags: '@adminUser' }, () => 
       const editImportedClusterPage = new ClusterManagerEditGenericPagePo(importGenericName);
 
       it('can create new cluster', () => {
-        const detailClusterPage = new ClusterManagerDetailImportedGenericPagePo(importGenericName);
+        const detailClusterPage = new ClusterManagerDetailImportedGenericPagePo('local', importGenericName);
 
         cy.intercept('POST', `/v1/${ type }s`).as('importRequest');
 

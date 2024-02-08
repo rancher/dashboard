@@ -1,5 +1,7 @@
 import PagePo from '@/cypress/e2e/po/pages/page.po';
 import CruResourcePo from '@/cypress/e2e/po/components/cru-resource.po';
+import NameNsDescription from '@/cypress/e2e/po/components/name-ns-description.po';
+import ResourceDetailPo from '@/cypress/e2e/po/edit/resource-detail.po';
 
 export default class BaseCloudCredentialsPo extends PagePo {
   private static createPath(clusterId: string, id?: string ) {
@@ -18,5 +20,13 @@ export default class BaseCloudCredentialsPo extends PagePo {
 
   cloudServiceOptions(): CruResourcePo {
     return new CruResourcePo('[data-testid="cru-form"]');
+  }
+
+  nameNsDescription() {
+    return new NameNsDescription(this.self());
+  }
+
+  saveCreateForm(): ResourceDetailPo {
+    return new ResourceDetailPo(this.self());
   }
 }

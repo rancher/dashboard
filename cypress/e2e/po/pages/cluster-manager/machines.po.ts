@@ -36,7 +36,7 @@ export default class MachinesPagePo extends PagePo {
   }
 
   list(): MachinesListPo {
-    return new MachinesListPo('[data-testid="cluster-list-container"]');
+    return new MachinesListPo('[data-testid="sortable-table-list-container"]');
   }
 
   yamlEditor(): CodeMirrorPo {
