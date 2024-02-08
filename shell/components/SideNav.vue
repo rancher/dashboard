@@ -53,7 +53,7 @@ export default {
       }
     },
 
-    allNavLinksKey(a, b) {
+    allNavLinksIds(a, b) {
       if ( !sameContents(a, b) ) {
         this.queueUpdate();
       }
@@ -186,7 +186,7 @@ export default {
       return this.$store.getters['activeNamespaceCache'];
     },
 
-    allNavLinksKey() {
+    allNavLinksIds() {
       return this.allNavLinks.map((a) => a.id);
     },
   },

@@ -573,13 +573,11 @@ export const getters = {
   },
 
   getTree(state, getters, rootState, rootGetters) {
-    // Name the function so it's easily discernible on performance tracing
+    // Name the function so it's easily identifiable when performance tracing
     return function getTree(productId, mode, allTypes, clusterId, namespaceMode, currentType, search) {
       // getTree has four modes:
-      // - `basic` matches data types that should always be shown even if there
-      //    are 0 of them.
-      // - `used` matches the data types where there are more than 0 of them
-      //    in the current set of namespaces.
+      // - `basic` matches data types that should always be shown (even if there are 0 of them).
+      // - `used` matches the data types where there are more than 0 of them in the current set of namespaces.
       // - `all` matches all types.
       // - `favorite` matches starred types.
       // namespaceMode: 'namespaced', 'cluster', or 'both'
@@ -852,12 +850,11 @@ export const getters = {
 
   /**
    * Given many things, create a list of menu items per schema given the mode
-   *
    */
   allTypes(state, getters, rootState, rootGetters) {
-    // Name the function so it's easily discernible on performance tracing
+    // Name the function so it's easily identifiable when performance tracing
     return function allTypes(product, modes = [TYPE_MODES.ALL]) {
-      const module = findBy(state.products, 'name', product)?.inStore;
+      const module = state.products.find((p) => p.name === product)?.inStore;
       const schemas = rootGetters[`${ module }/all`](SCHEMA);
       const isLocal = !rootGetters.currentCluster?.isLocal;
       const isRancher = rootGetters.isRancher;

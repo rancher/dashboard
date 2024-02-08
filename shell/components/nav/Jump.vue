@@ -39,8 +39,8 @@ export default {
       const allTypes = allTypesByMode[TYPE_MODES.ALL];
       const out = this.$store.getters['type-map/getTree'](productId, TYPE_MODES.ALL, allTypes, clusterId, BOTH, null, this.value);
 
-      // Suplement the output with count info. Usualy the `Type` component would handle this individualy... but scales real so give it some
-      // help
+      // Suplement the output with count info. Usualy the `Type` component would handle this individualy... but scales real bad so give it
+      // some help
       const counts = this.$store.getters[`${ product.inStore }/all`](COUNT)?.[0]?.counts || {};
 
       out.forEach((o) => {

@@ -90,7 +90,7 @@ export default {
     },
 
     showCount() {
-      return typeof this.count !== 'undefined';
+      return this.count !== undefined;
     },
 
     namespaceIcon() {
@@ -98,7 +98,7 @@ export default {
     },
 
     count() {
-      if (typeof this.type.count !== 'undefined') {
+      if (this.type.count !== undefined) {
         return this.type.count;
       }
 
