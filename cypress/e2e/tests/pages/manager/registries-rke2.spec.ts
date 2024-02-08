@@ -40,11 +40,11 @@ describe('Registries for RKE2', { tags: ['@manager', '@adminUser'] }, () => {
     // click show advanced
     createCustomClusterPage.registries().clickShowAdvanced();
     // scroll down to registry auth
-    createCustomClusterPage.registries().registryAuthHost().self().scrollIntoView();
+    createCustomClusterPage.registries().registryAuthHost(0).self().scrollIntoView();
     // add url
-    createCustomClusterPage.registries().addRegistryAuthHost(registryAuthHost);
+    createCustomClusterPage.registries().addRegistryAuthHost(0, registryAuthHost);
     // create basic secret
-    createCustomClusterPage.registries().registryAuthSelectOrCreate().createBasicAuth('test-user', 'test-pass');
+    createCustomClusterPage.registries().registryAuthSelectOrCreate(0).createBasicAuth('test-user', 'test-pass');
     // save
     createCustomClusterPage.create();
 

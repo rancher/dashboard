@@ -138,14 +138,14 @@ export default {
       :mode="mode"
       @input="update"
     >
-      <template #default="{row}">
+      <template #default="{row, i}">
         <div class="row">
           <div class="col span-6">
             <LabeledInput
               v-model="row.value.hostname"
               label="Registry Hostname"
               :mode="mode"
-              data-testid="registry-auth-host-input"
+              :data-testid="`registry-auth-host-input-${i}`"
             />
 
             <SelectOrCreateAuthSecret
@@ -159,7 +159,7 @@ export default {
               :namespace="value.metadata.namespace"
               :mode="mode"
               generate-name="registryconfig-auth-"
-              data-testid="registry-auth-select-or-create"
+              :data-testid="`registry-auth-select-or-create-${i}`"
             />
           </div>
           <div class="col span-6">

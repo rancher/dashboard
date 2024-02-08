@@ -29,21 +29,21 @@ export default class RegistriesRke2 extends ComponentPo {
     this.registryHostInput().set(host);
   }
 
-  registryAuthHost() {
-    return new LabeledInputPo('[data-testid="registry-auth-host-input"]');
+  registryAuthHost(index: number) {
+    return new LabeledInputPo(`[data-testid="registry-auth-host-input-${index}"]`);
   }
 
-  addRegistryAuthHost(host: string) {
-    this.registryAuthHost().set(host);
+  addRegistryAuthHost(index: number, host: string) {
+    this.registryAuthHost(index).set(host);
   }
 
   authSelectOrCreate(selector: string) {
     return new SelectOrCreateAuthPo(selector);
   }
 
-  registryAuthSelectOrCreate() {
+  registryAuthSelectOrCreate(index: number) {
     return this.authSelectOrCreate(
-      '[data-testid="registry-auth-select-or-create"]'
+      `[data-testid="registry-auth-select-or-create-${index}"]`
     );
   }
 }
