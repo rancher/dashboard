@@ -475,6 +475,7 @@ export default {
               :disabled="disabled"
               :placeholder="t('cluster.machineConfig.amazonEc2.selectedNetwork.placeholder')"
               :label="t('cluster.machineConfig.amazonEc2.selectedNetwork.label')"
+              data-testid="amazonEc2__selectedNetwork"
               option-key="value"
               @input="updateNetwork($event)"
             >

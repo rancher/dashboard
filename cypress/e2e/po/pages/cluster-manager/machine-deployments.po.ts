@@ -35,7 +35,7 @@ export default class MachineDeploymentsPagePo extends PagePo {
   }
 
   list(): MachineDeploymentsListPo {
-    return new MachineDeploymentsListPo('[data-testid="cluster-list-container"]');
+    return new MachineDeploymentsListPo('[data-testid="sortable-table-list-container"]');
   }
 
   yamlEditor(): CodeMirrorPo {
