@@ -104,8 +104,8 @@ export default defineConfig({
     password:          process.env.CATTLE_BOOTSTRAP_PASSWORD || process.env.TEST_PASSWORD,
     bootstrapPassword: process.env.CATTLE_BOOTSTRAP_PASSWORD,
     grepTags:          process.env.GREP_TAGS,
-    awsAccessKey:      process.env.AWS_ACCESS_KEY_ID,
-    awsSecretKey:      process.env.AWS_SECRET_ACCESS_KEY
+    awsAccessKey:      process.env.AWS_ACCESS_KEY_ID, // this env var is only available to tests that run in Jenkins
+    awsSecretKey:      process.env.AWS_SECRET_ACCESS_KEY // this env var is only available to tests that run in Jenkins
   },
   e2e: {
     fixturesFolder: 'cypress/e2e/blueprints',

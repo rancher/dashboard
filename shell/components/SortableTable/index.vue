@@ -906,7 +906,7 @@ export default {
 <template>
   <div
     ref="container"
-    data-testid="cluster-list-container"
+    :data-testid="componentTestid + '-list-container'"
   >
     <div
       :class="{'titled': $slots.title && $slots.title.length}"

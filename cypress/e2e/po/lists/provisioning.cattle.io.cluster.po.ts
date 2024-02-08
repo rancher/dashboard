@@ -32,6 +32,10 @@ export default class ProvClusterListPo extends BaseResourceList {
     return this.resourceTable().sortableTable().rowWithName(clusterName).column(4);
   }
 
+  machines(clusterName: string) {
+    return this.resourceTable().sortableTable().rowWithName(clusterName).column(5);
+  }
+
   explore(clusterName: string) {
     return this.resourceTable().sortableTable().rowWithName(clusterName).column(7)
       .find('.btn');

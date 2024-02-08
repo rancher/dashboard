@@ -54,7 +54,7 @@ export default class HomePagePo extends PagePo {
   }
 
   list(): HomeClusterListPo {
-    return new HomeClusterListPo('[data-testid="cluster-list-container"]');
+    return new HomeClusterListPo('[data-testid="sortable-table-list-container"]');
   }
 
   manageButton() {
