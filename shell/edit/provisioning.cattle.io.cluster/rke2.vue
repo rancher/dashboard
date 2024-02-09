@@ -330,23 +330,11 @@ export default {
 
       const out = findBy(this.versionOptions, 'value', str);
 
-      // Adding the option 'none' to Container Network select (used it Basics component)
+      // Adding the option 'none' to Container Network select (used in Basics component)
       // https://github.com/rancher/dashboard/issues/10338
-      if (!out.serverArgs) {
-        out.serverArgs = {};
-      }
-
-      if (!out.serverArgs.cni) {
-        out.serverArgs.cni = {};
-      }
-
-      if (!out.serverArgs.cni?.options) {
-        out.serverArgs.cni.options = [];
-      }
-
       // there's an update loop on refresh that might include 'none'
       // multiple times... Prevent that
-      if (!out.serverArgs.cni.options.includes('none')) {
+      if (out.serverArgs.cni?.options && !out.serverArgs.cni.options.includes('none')) {
         out.serverArgs.cni.options.push('none');
       }
 
