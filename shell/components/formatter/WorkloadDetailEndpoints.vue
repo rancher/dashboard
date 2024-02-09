@@ -35,7 +35,7 @@ export default {
               protocol = 'https';
             }
 
-            const linkDefaultDisplay = endpoint.port ? `${ endpoint.port }${ endpoint.protocol }` : endpoint.protocol;
+            const linkDefaultDisplay = endpoint.port ? `${ endpoint.port }/${ endpoint.protocol }` : endpoint.protocol;
 
             // If there's an ingress and it has a hostname, we use the hostname address instead
             // https://github.com/rancher/dashboard/issues/8087
