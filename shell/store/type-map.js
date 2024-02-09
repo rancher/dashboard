@@ -134,7 +134,7 @@ import {
 } from '@shell/config/types';
 import { VIEW_IN_API, EXPANDED_GROUPS, FAVORITE_TYPES } from '@shell/store/prefs';
 import {
-  addObject, findBy, insertAt, isArray, removeObject, filterBy
+  addObject, findBy, isArray, removeObject, filterBy
 } from '@shell/utils/array';
 import { clone, get } from '@shell/utils/object';
 import {
@@ -151,6 +151,7 @@ import { sortBy } from '@shell/utils/sort';
 
 import { haveV2Monitoring } from '@shell/utils/monitoring';
 import { NEU_VECTOR_NAMESPACE } from '@shell/config/product/neuvector';
+import { createHeaders, rowValueGetter } from '@shell/store/type-map.utils';
 
 export const NAMESPACED = 'namespaced';
 export const CLUSTER_LEVEL = 'cluster';
@@ -206,8 +207,6 @@ export const SPOOFED_API_PREFIX = '__[[spoofedapi]]__';
 
 const instanceMethods = {};
 const graphConfigMap = {};
-
-const FIELD_REGEX = /^\$\.metadata\.fields\[([0-9]*)\]/;
 
 export const IF_HAVE = {
   V2_MONITORING:            'v2-monitoring',
@@ -503,7 +502,7 @@ export const getters = {
     };
   },
 
-  optionsFor(state) {
+  optionsFor(state, getters, rootState, rootGetters) {
     const def = {
       isCreatable:            true,
       isEditable:             true,
@@ -514,12 +513,15 @@ export const getters = {
       namespaced:             null,
       listGroups:             [],
       listGroupsWillOverride: false,
+      listMandatorySort:      null,
       depaginate:             false,
       customRoute:            undefined,
       resourceEditMasthead:   true,
     };
 
-    return (schemaOrType) => {
+    return (schemaOrType, pagination) => {
+      // Note - This can run a LOT so needs to be performant
+
       if (!schemaOrType) {
         return {};
       }
@@ -533,7 +535,20 @@ export const getters = {
 
       const opts = Object.assign({}, def, found || {});
 
-      return opts;
+      // As this runs a lot, avoid anything we don't strictly need (like going out to another store)
+      if (!pagination) {
+        return opts;
+      }
+
+      const storeOptionsFor = schemaOrType?.$ctx?.getters?.['optionsFor'];
+      const storeOpts = storeOptionsFor ? storeOptionsFor({ getters, state }, {
+        schema: schemaOrType, pagination, opts
+      }) : {};
+
+      return {
+        ...opts,
+        ...storeOpts,
+      };
     };
   },
 
@@ -1043,89 +1058,47 @@ export const getters = {
     };
   },
 
-  paginationHeadersFor(state, getters, rootState, rootGetters) {
-    return (schema) => {
-      const attributes = schema.attributes || {};
-      const columns = attributes.columns || [];
+  headersFor(state, getters, rootState, rootGetters) {
+    return (schema, pagination) => {
+      if (pagination) {
+        const storeHeadersFor = schema?.$ctx?.getters?.['headersFor'];
 
-      return state.paginationHeaders[schema.id]?.map((entry) => {
-        if ( typeof entry === 'string' ) {
-          const col = findBy(columns, 'name', entry);
+        if (storeHeadersFor) {
+          const res = storeHeadersFor({ getters, state }, { schema, pagination });
 
-          if ( col ) {
-            return {
-              ...fromSchema(col, rootGetters), // TODO: RC neater way of doing this
-              search: _rowValueGetter(col, false),
-              sort:   [_rowValueGetter(col, false)], // Doesn't work at the moment
-            };
-          } else {
-            return null;
+          if (res) {
+            return res;
           }
-        } else {
-          return entry;
         }
-      })
-        .filter((col) => !!col);
+      }
+
+      return createHeaders({ rootGetters }, {
+        headers:     state.headers,
+        typeOptions: getters['optionsFor'](schema, false),
+        schema,
+        columns:     {
+          state:     STATE,
+          name:      NAME,
+          namespace: NAMESPACE_COL,
+          age:       AGE,
+        },
+        pagination
+      });
     };
   },
 
-  headersFor(state, getters, rootState, rootGetters) {
-    return (schema) => {
-      const attributes = schema.attributes || {};
-      const columns = attributes.columns || [];
-      const typeOptions = getters['optionsFor'](schema);
+  /**
+   * Simple getter to fetch pre-configured headers used in pagination
+   */
+  configuredPaginationHeaders(state) {
+    return (schemaOrType) => state.paginationHeaders?.[schemaOrType.id || schemaOrType];
+  },
 
-      // A specific list has been provided
-      if ( state.headers[schema.id] ) {
-        return state.headers[schema.id].map((entry) => {
-          if ( typeof entry === 'string' ) {
-            const col = findBy(columns, 'name', entry);
-
-            if ( col ) {
-              return fromSchema(col, rootGetters);
-            } else {
-              return null;
-            }
-          } else {
-            return entry;
-          }
-        }).filter((col) => !!col);
-      }
-
-      // Otherwise make one up from schema
-      const out = typeOptions.showState ? [STATE] : [];
-      const namespaced = attributes.namespaced || false;
-      let hasName = false;
-
-      for ( const col of columns ) {
-        if ( col.format === 'name' ) {
-          hasName = true;
-          out.push(NAME);
-          if ( namespaced ) {
-            out.push(NAMESPACE_COL);
-          }
-        } else {
-          out.push(fromSchema(col, rootGetters));
-        }
-      }
-
-      if ( !hasName ) {
-        insertAt(out, 1, NAME);
-        if ( namespaced ) {
-          insertAt(out, 2, NAMESPACE_COL);
-        }
-      }
-
-      // Age always goes last
-      if ( out.includes(AGE) ) {
-        removeObject(out, AGE);
-        if ( typeOptions.showAge ) {
-          out.push(AGE);
-        }
-      }
-
-      return out;
-    };
+  /**
+   * Simple getter to fetch pre-configured headers (not used in paginated lists)
+   */
+  configuredHeaders(state) {
+    return (schemaOrType) => state.headers?.[schemaOrType.id || schemaOrType];
   },
 
   // ------------------------------------
@@ -1435,7 +1408,7 @@ export const getters = {
     return (schema, colName) => {
       const col = _findColumnByName(schema, colName);
 
-      return _rowValueGetter(col);
+      return rowValueGetter(col);
     };
   },
 
@@ -1773,43 +1746,6 @@ export const actions = {
   }
 };
 
-function fromSchema(col, rootGetters) {
-  let formatter, width, formatterOpts;
-
-  if ( (col.format === '' || col.format === 'date') && col.name === 'Age' ) {
-    return AGE;
-  }
-
-  if ( col.format === 'date' || col.type === 'date' ) {
-    formatter = 'Date';
-    width = 120;
-    formatterOpts = { multiline: true };
-  }
-
-  if ( col.type === 'number' || col.type === 'int' ) {
-    formatter = 'Number';
-  }
-
-  const colName = col.name.includes(' ') ? col.name.split(' ').map((word) => word.charAt(0).toUpperCase() + word.substring(1) ).join('') : col.name;
-
-  const exists = rootGetters['i18n/exists'];
-  const t = rootGetters['i18n/t'];
-  const labelKey = `tableHeaders.${ colName.charAt(0).toLowerCase() + colName.slice(1) }`;
-  const description = col.description || '';
-  const tooltip = description && description[description.length - 1] === '.' ? description.slice(0, -1) : description;
-
-  return {
-    name:  col.name.toLowerCase(),
-    label: exists(labelKey) ? t(labelKey) : col.name,
-    value: _rowValueGetter(col),
-    sort:  [col.field],
-    formatter,
-    formatterOpts,
-    width,
-    tooltip
-  };
-}
-
 function _sortGroup(tree, mode) {
   const by = ['weight:desc', 'namespaced', 'label'];
 
@@ -1960,26 +1896,6 @@ function _findColumnByName(schema, colName) {
   const columns = attributes.columns || [];
 
   return findBy(columns, 'name', colName);
-}
-
-function _rowValueGetter(col, asFn = true) {
-  // 'field' comes from the schema - typically it is of the form $.metadata.field[N]
-  // We will use JsonPath to look up this value, which is costly - so if we can detect this format
-  // Use a more efficient function to get the value
-  const value = col.field.startsWith('.') ? `$${ col.field }` : col.field;
-  const found = value.match(FIELD_REGEX);
-
-  if (found && found.length === 2) {
-    const fieldIndex = parseInt(found[1], 10);
-
-    if (asFn) {
-      return (row) => row.metadata?.fields?.[fieldIndex];
-    }
-
-    return `metadata.fields.${ fieldIndex }`;
-  }
-
-  return value;
 }
 
 // Is V1 Istio installed?

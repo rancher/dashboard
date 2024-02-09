@@ -1,11 +1,16 @@
 import pAndNFiltering from '@shell/plugins/steve/projectAndNamespaceFiltering.utils';
 
+type TypeIsCached = { [type: string]: boolean }
+
 /**
- * Sockets will not be able to subscribe to more than one namespace. If this is requested we pretend to handle it
- * - Changes to all resources are monitored (no namespace provided in sub)
- * - We ignore any events not from a required namespace (we have the conversion of project --> namespaces already)
+ * There are scenarios where we can't subscribe to subsets of a resources
+ * - Multiple namespaces or projects
+ * - Result of Pagination (a single page of resources that have been sorted / filtered)
+ *
+ * For those scenarios we subscribe to allll changes BUT ignore changes that are not applicable to that subset
+ *
  */
-class SubscribeNamespaceHandler {
+class AcceptOrRejectSocketMessage {
   typeIsNamespaced({ getters }: any, type: string): boolean {
     return getters.haveNamespace(type)?.length > 0;
   }
@@ -31,6 +36,7 @@ class SubscribeNamespaceHandler {
   }
 
   validChange({ getters, rootGetters }: any, type: string, data: any) {
+    // If the resource is in namespace outside of the one's we have selected in the header... ignore the change
     if (this.typeIsNamespaced({ getters }, type)) {
       const namespaces = this.filteredNamespaces({ rootGetters });
 
@@ -39,6 +45,7 @@ class SubscribeNamespaceHandler {
       }
     }
 
+    // If the resource does not meet the previously fetched paginated resource... ignore the change
     if (this.typeIsPaginated({ getters }, type)) {
       const page = getters['all'](type);
 
@@ -51,8 +58,16 @@ class SubscribeNamespaceHandler {
   validateBatchChange({ getters, rootGetters }: any, batch: { [key: string]: any}) {
     const namespaces = this.filteredNamespaces({ rootGetters });
 
+    const typeIs: { namespaced: TypeIsCached, paginated: TypeIsCached} = {
+      namespaced: {},
+      paginated:  {},
+    };
+
     Object.entries(batch).forEach(([type, entries]) => {
-      if (this.typeIsNamespaced({ getters }, type)) {
+      if (typeIs.namespaced[type] === undefined) {
+        typeIs.namespaced[type] = this.typeIsNamespaced({ getters }, type);
+      }
+      if (typeIs.namespaced[type]) {
         const schema = getters.schemaFor(type);
 
         if (!schema?.attributes?.namespaced) {
@@ -68,7 +83,10 @@ class SubscribeNamespaceHandler {
         });
       }
 
-      if (this.typeIsPaginated({ getters }, type)) {
+      if (typeIs.paginated[type] === undefined) {
+        typeIs.paginated[type] = this.typeIsPaginated({ getters }, type);
+      }
+      if (typeIs.paginated[type]) {
         const page = getters['all'](type);
 
         Object.keys(entries).forEach((id) => {
@@ -83,4 +101,4 @@ class SubscribeNamespaceHandler {
   }
 }
 
-export default new SubscribeNamespaceHandler();
+export default new AcceptOrRejectSocketMessage();

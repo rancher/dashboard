@@ -1,3 +1,5 @@
+export interface OptPaginationSort { field: string, asc: boolean }
+
 /**
  * Pagination settings sent to actions and persisted to store
  */
@@ -5,8 +7,8 @@ export interface OptPagination {
   namespaces?: string[];
   page: number,
   pageSize: number,
-  sort: { field: string, asc: boolean }[],
-  filter: { field: string, value: string }[]
+  sort: OptPaginationSort[],
+  filter: { field: string, value: string }[],
 }
 
 /**
@@ -20,6 +22,9 @@ export interface StorePagination {
   }
 }
 
+/**
+ * Args used for findAll action
+ */
 export type FindAllOpt = {
   [key: string]: any,
   namespaced?: string[],

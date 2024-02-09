@@ -142,6 +142,11 @@ export default {
     }
   },
 
+  /**
+   *
+   * @param {*} ctx
+   * @param { {type: string, opt: FindAllOpt} } opt
+   */
   async findAll(ctx, { type, opt }) {
     const {
       getters, commit, dispatch, rootGetters
@@ -156,11 +161,13 @@ export default {
 
     // No need to request the resources if we have them already
     if (
-      opt.force !== true &&
-      (opt.pagination ? getters['haveAllPaginated'](type, opt.pagination) : true) &&
-      (getters['haveAll'](type) || getters['haveAllNamespace'](type, opt.namespaced))
+      !opt.force &&
+      (
+        getters['haveAll'](type) ||
+        getters['haveAllNamespace'](type, opt.namespaced) ||
+        (opt.pagination ? getters['haveAllPaginated'](type, opt.pagination) : false)
+      )
     ) {
-      // TODO: RC TEST that when returning to a list we don't re-fetch
       const args = {
         type,
         revision:  '',

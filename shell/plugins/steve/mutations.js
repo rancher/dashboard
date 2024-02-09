@@ -174,6 +174,9 @@ export default {
     SteveSchema.reset(state.config.namespace);
   },
 
+  /**
+  * Load multiple different types of resources
+  */
   loadMulti(state, { data, ctx }) {
     for (const entry of data) {
       const resource = load(state, { data: entry, ctx });

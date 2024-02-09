@@ -172,6 +172,22 @@ export function init(store) {
   configureType(EVENT, { limit: 500 });
   weightType(EVENT, -1, true);
 
+  configureType(POD, {
+    listGroups: [
+      ...STEVE_LIST_GROUPS,
+      // Allow Pods to be grouped by node
+      {
+        icon:          'icon-cluster',
+        value:         'role',
+        field:         'spec.nodeName',
+        hideColumn:    NODE_COL.name,
+        groupLabelKey: 'groupByNode',
+        tooltipKey:    'resourceTable.groupBy.node'
+      }
+    ],
+    listGroupsWillOverride: true,
+  });
+
   setGroupDefaultType('serviceDiscovery', SERVICE);
 
   configureType(WORKLOAD, {
@@ -201,10 +217,6 @@ export function init(store) {
       STEVE_AGE_COL
     ]
   );
-  configureType(CONFIG_MAP, {
-    listGroups:             STEVE_LIST_GROUPS,
-    listGroupsWillOverride: true,
-  });
 
   const secretData = {
     name:      'data',
@@ -225,17 +237,13 @@ export function init(store) {
     STEVE_NAME_COL,
     STEVE_NAMESPACE_COL, {
       ...SUB_TYPE,
-      value:  '_type',
-      sort:   false,
-      search: false,
+      value:  'metadata.fields.1',
+      sort:   'metadata.fields.1',
+      search: 'metadata.fields.1',
     },
     secretData,
     STEVE_AGE_COL
   ]);
-  configureType(SECRET, {
-    listGroups:             STEVE_LIST_GROUPS,
-    listGroupsWillOverride: true,
-  });
 
   headers(INGRESS, [STATE, NAME_COL, NAMESPACE_COL, INGRESS_TARGET, INGRESS_DEFAULT_BACKEND, INGRESS_CLASS, AGE]);
   headers(SERVICE, [STATE, NAME_COL, NAMESPACE_COL, TARGET_PORT, SELECTOR, SPEC_TYPE, AGE]);
@@ -265,20 +273,6 @@ export function init(store) {
       },
       STEVE_AGE_COL
     ]);
-  configureType(POD, {
-    listGroups: [
-      ...STEVE_LIST_GROUPS,
-      // Allow Pods to be grouped by node
-      {
-        icon:       'icon-cluster',
-        value:      'role',
-        field:      'spec.nodeName',
-        hideColumn: 'groupByNode',
-        tooltipKey: 'resourceTable.groupBy.node'
-      }
-    ],
-    listGroupsWillOverride: true,
-  });
 
   headers(MANAGEMENT.PSA, [STATE, NAME_COL, {
     ...DESCRIPTION,

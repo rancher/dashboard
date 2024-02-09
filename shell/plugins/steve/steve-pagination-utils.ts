@@ -1,37 +1,18 @@
 import projectAndNamespaceFilteringUtils from '@shell/plugins/steve/projectAndNamespaceFiltering.utils';
-import { FindAllOpt } from '@shell/plugins/dashboard-store/dashboard-store.types';
-// import { getPerformanceSetting } from 'utils/settings';
+import { FindAllOpt, OptPagination, OptPaginationSort } from '@shell/types/store/dashboard-store.types';
+import { sameArrayObjects } from '@shell/utils/array';
+import { isEqual } from '@shell/utils/object';
 
 /**
- * Help functions for steve pagination
+ * Helper functions for steve pagination
  */
 class StevePaginationUtils {
-  /**
-   * Is pagination enabled at a global level
-   */
-  isEnabled({ rootGetters }: any) {
-    const currentProduct = rootGetters['currentProduct'];
-
-    // Only enable for the cluster store at the moment. In theory this should work in management as well, as they're both 'steve' stores
-    if (currentProduct?.inStore !== 'cluster') {
-      return false;
-    }
-
-    // ... no perf setting yet
-    // const perfConfig = getPerformanceSetting(rootGetters);
-
-    return true;
-  }
-
   checkAndCreateParam(opt: FindAllOpt): string | undefined {
     if (!opt.pagination) {
       return;
     }
 
-    console.warn('steve page utils', 'checkAndCreateParam', opt.pagination); // eslint-disable-line no-console
-
     const params: string[] = [];
-
     const namespaceParam = this.createNamespacesParam(opt);
 
     if (namespaceParam) {
@@ -69,9 +50,26 @@ class StevePaginationUtils {
     // Note - There is a `limit` property that is by default 100,000. This can be disabled by using `limit=-1`,
     // but we shouldn't be fetching any pages big enough to exceed the default
 
-    console.warn('steve page utils', 'checkAndCreateParam', 'res', params); // eslint-disable-line no-console
-
     return params.join('&');
+  }
+
+  paginationEqual(a?: OptPagination, b?: OptPagination): boolean {
+    const {
+      filter: aFilter, sort: aSort = [], namespaces: aNamespaces = [], ...aPrimitiveTypes
+    } = a || {};
+    const {
+      filter: bFilter, sort: bSort = [], namespaces: bNamespaces = [], ...bPrimitiveTypes
+    } = b || {};
+
+    if (isEqual(aPrimitiveTypes, bPrimitiveTypes) &&
+      isEqual(aFilter, bFilter) &&
+      sameArrayObjects(aNamespaces, bNamespaces) &&
+      sameArrayObjects<OptPaginationSort>(aSort, bSort)
+    ) {
+      return true;
+    }
+
+    return false;
   }
 
   private createNamespacesParam(opt: FindAllOpt): string | undefined {

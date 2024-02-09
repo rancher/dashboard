@@ -1,5 +1,12 @@
 import { sortBy } from '@shell/utils/sort';
-import { addObject } from '@shell/utils/array';
+import { uniq } from '@shell/utils/array';
+
+/**
+ * Always sort by something, this is the best guess on properties
+ *
+ * Can be overriden
+ */
+const DEFAULT_MANDATORY_SORT = ['nameSort', 'id'];
 
 export default {
   computed: {
@@ -21,17 +28,8 @@ export default {
         fromColumn = [fromColumn];
       }
 
-      const out = [...fromGroup, ...fromColumn];
-
-      if (this.externalPagination) {
-        addObject(out, 'metadata.name'); // TODO: RC FIX its a steve things
-      } else {
-        addObject(out, 'nameSort');
-      }
-
-      addObject(out, 'id');
-
-      return out;
+      // return the sorting based on grouping, user selection and fallback
+      return uniq([...fromGroup, ...fromColumn].concat(...(this.mandatorySort || DEFAULT_MANDATORY_SORT)));
     },
 
     arrangedRows() {
@@ -112,13 +110,11 @@ export default {
   },
 
   watch: {
-    sortFields(neu) {
-      console.warn('paging', 'watch', 'sortFields', neu); // eslint-disable-line no-console
+    sortFields() {
       this.debouncedPaginationChanged();
     },
 
-    descending(neu) {
-      console.warn('paging', 'watch', 'descending', neu); // eslint-disable-line no-console
+    descending() {
       this.debouncedPaginationChanged();
     }
   }

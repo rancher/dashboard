@@ -1,6 +1,6 @@
 import { NAMESPACE_FILTER_NS_FULL_PREFIX, NAMESPACE_FILTER_P_FULL_PREFIX } from '@shell/utils/namespace-filter';
 import { getPerformanceSetting } from '@shell/utils/settings';
-import { FindAllOpt } from '@shell/plugins/dashboard-store/dashboard-store.types';
+import { FindAllOpt } from '@shell/types/store/dashboard-store.types';
 
 class ProjectAndNamespaceFiltering {
   static param = 'projectsornamespaces'
@@ -64,8 +64,6 @@ class ProjectAndNamespaceFiltering {
     }, { include: [] as string[], exclude: [] as string[] });
 
     let res = '';
-
-    console.warn('pAndNUtil', 'createParam', namespaces.include, namespaces.exclude); // eslint-disable-line no-console
 
     if (namespaces.include.length) {
       res = `${ ProjectAndNamespaceFiltering.param }=${ namespaces.include.join(',') }`;

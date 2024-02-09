@@ -9,10 +9,15 @@ import NormanModel from './norman-class';
 import { urlFor } from '@shell/plugins/dashboard-store/getters';
 import { normalizeType } from '@shell/plugins/dashboard-store/normalize';
 import pAndNFiltering from '@shell/plugins/steve/projectAndNamespaceFiltering.utils';
-import stevePaginationUtils from '@shell/plugins/steve/pagination-utils';
+import stevePaginationUtils from '@shell/plugins/steve/steve-pagination-utils';
 import { parse } from '@shell/utils/url';
 import { splitObjectPath } from '@shell/utils/string';
 import { parseType } from '@shell/models/schema';
+import {
+  STEVE_AGE_COL,
+  STEVE_ID_COL, STEVE_LIST_GROUPS, STEVE_NAMESPACE_COL, STEVE_NAME_COL, STEVE_STATE_COL
+} from '@shell/config/pagination-table-headers';
+import { createHeaders } from '@shell/store/type-map.utils';
 
 export const STEVE_MODEL_TYPES = {
   NORMAN:  'norman',
@@ -36,13 +41,13 @@ export default {
     const parsedUrl = parse(url);
     const isSteve = steveRegEx.test(parsedUrl.path);
 
-    // TODO: RC steve (mgmt steve) vs steve (proxy to kube)
-
     // Pagination
     const stevePagination = stevePaginationUtils.checkAndCreateParam(opt);
 
     if (stevePagination) {
       url += `${ (url.includes('?') ? '&' : '?') + stevePagination }`;
+
+      return url;
     }
     // End: Pagination
 
@@ -127,7 +132,6 @@ export default {
         }
       }
     }
-
     // End: Sort
 
     return url;
@@ -290,6 +294,55 @@ export default {
     }
 
     return true;
+  },
+
+  /*
+   * Override the vanilla type-map headersFor. This allows custom columns
+   */
+  headersFor: (state, getters, rootState, rootGetters) => ({
+    getters: typeMapGetters,
+    state: typeMapState,
+  }, { schema, pagination }) => {
+    if (!pagination ) {
+      return;
+    }
+
+    return createHeaders({
+      state: typeMapState, getters: typeMapGetters, rootGetters
+    }, {
+      headers:     typeMapState.paginationHeaders,
+      typeOptions: typeMapGetters['optionsFor'](schema, true),
+      schema,
+      columns:     {
+        state:     STEVE_STATE_COL,
+        namespace: STEVE_NAMESPACE_COL,
+        age:       STEVE_AGE_COL,
+        id:        STEVE_ID_COL
+      }
+    });
+  },
+
+  /**
+   * Override the vanilla type-map optionsFor. This allows custom list values
+   */
+  optionsFor: () => (ctx, { schema, pagination, opts }) => {
+    if (pagination) {
+      // As headers are hardcoded each list should specificy the specific default sort option
+      // This avoids the sortable table adding both name and id (which when combined with group would result in 3 sort args, which isn't supported)
+      const steveOpts = { listMandatorySort: [] };
+
+      if (!opts.listGroupsWillOverride && schema.attributes.namespaced) {
+        // There's no pre-configured settings... and we're paginating... so use pagination specific groups
+        steveOpts.listGroups = STEVE_LIST_GROUPS;
+        steveOpts.listGroupsWillOverride = true;
+      }
+
+      return steveOpts;
+    }
+  },
+
+  paginationEqual: () => (a, b) => {
+    return stevePaginationUtils.paginationEqual(a, b);
   },
 
 };

@@ -19,6 +19,7 @@ import {
 import { KEY } from '@shell/utils/platform';
 import pAndNFiltering from '@shell/plugins/steve/projectAndNamespaceFiltering.utils';
 import { SETTING } from '@shell/config/settings';
+import paginationUtils from '@shell/utils/pagination-utils';
 
 const forcedNamespaceValidTypes = [NAMESPACE_FILTER_KINDS.DIVIDER, NAMESPACE_FILTER_KINDS.PROJECT, NAMESPACE_FILTER_KINDS.NAMESPACE];
 
@@ -51,6 +52,13 @@ export default {
 
     hasFilter() {
       return this.filter.length > 0;
+    },
+
+    paginatedListFilterMode() {
+      return paginationUtils.isEnabled({ rootGetters: this.$store.getters }, {
+        store:    this.currentProduct.inStore,
+        resource: { id: this.$route.params?.resource }
+      }) ? paginationUtils.validNsProjectFilters : null;
     },
 
     filtered() {
@@ -100,6 +108,8 @@ export default {
           const isNotInProjectGroup = i.id === ALL_ORPHANS;
 
           i.enabled = (!isLastSelected && kindAllowed) && !isNotInProjectGroup;
+        } else if (this.paginatedListFilterMode?.length) {
+          i.enabled = !!i.id && paginationUtils.validateNsProjectFilter(i.id);
         }
       });
 

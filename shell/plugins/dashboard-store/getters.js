@@ -303,11 +303,13 @@ export default {
     const entry = state.types[type];
 
     if ( entry ) {
-      // TODO: RC FIXME confirm that pagination === entry.havePagination
-
-      return !!entry.havePagination;
+      return entry.havePagination && getters['paginationEqual'](entry.havePagination.request, pagination);
     }
 
+    return false;
+  },
+
+  paginationEqual: () => (a, b) => {
     return false;
   },
 

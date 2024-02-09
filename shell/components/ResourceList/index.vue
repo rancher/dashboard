@@ -8,8 +8,7 @@ import IconMessage from '@shell/components/IconMessage.vue';
 import { ResourceListComponentName } from './resource-list.config';
 import { PanelLocation, ExtensionPoint } from '@shell/core/types';
 import ExtensionPanel from '@shell/components/ExtensionPanel';
-import { sameArrayObjects, sameContents } from '@shell/utils/array';
-import { isEqual } from '@shell/utils/object';
+import { sameContents } from '@shell/utils/array';
 
 export default {
   name: ResourceListComponentName,
@@ -56,7 +55,7 @@ export default {
 
       // If your list page has a fetch then it's responsible for populating rows itself
       if ( component?.fetch ) {
-        this.hasFetch = true;
+        this.componentWillFetch = true;
       }
 
       // If the custom component supports it, ask it what resources it loads, so we can
@@ -69,16 +68,15 @@ export default {
       }
     }
 
-    if ( !this.hasFetch ) {
+    if ( !this.componentWillFetch ) {
       if ( !schema ) {
         store.dispatch('loadingError', new Error(this.t('nav.failWhale.resourceListNotFound', { resource }, true)));
 
         return;
       }
 
-      // See comment for `namespaceFilterRequired` watcher, skip fetch if we don't have a valid NS
-      // TODO: RC TODO tie in to comment above
-      if (!this.namespaceFilterRequired && !this.canPaginate) {
+      // See comment for `namespaceFilter` and `pagination` watchers, skip fetch if we're not ready yet... and something is going to call fetch later on
+      if (!this.namespaceFilterRequired && (!this.canPaginate || this.refreshFlag)) {
         await this.$fetchType(resource);
       }
     }
@@ -105,7 +103,11 @@ export default {
       extensionType:                    ExtensionPoint.PANEL,
       extensionLocation:                PanelLocation.RESOURCE_LIST,
       loadResources:                    [resource], // List of resources that will be loaded, this could be many (`Workloads`)
-      hasFetch:                         false,
+      /**
+       * Will the custom component handle the fetch of resources....
+       * or will this instance fetch resources
+       */
+      componentWillFetch:               false,
       // manual refresh
       manualRefreshInit:                false,
       watch:                            false,
@@ -115,7 +117,7 @@ export default {
       // incremental loading
       loadIndeterminate:                false,
       // query param for simple filtering
-      useQueryParamsForSimpleFiltering: true
+      useQueryParamsForSimpleFiltering: true,
     };
   },
 
@@ -126,11 +128,7 @@ export default {
         return [];
       }
 
-      if (this.pagination) {
-        return this.paginationHeaders;
-      }
-
-      return this.$store.getters['type-map/headersFor'](this.schema);
+      return this.$store.getters['type-map/headersFor'](this.schema, this.canPaginate);
     },
 
     groupBy() {
@@ -144,6 +142,7 @@ export default {
   },
 
   watch: {
+
     /**
      * When a NS filter is required and the user selects a different one, kick off a new set of API requests
      *
@@ -154,29 +153,26 @@ export default {
      * This covers case 1
      */
     namespaceFilter(neu, old) {
-      if (sameContents(neu, old)) {
-        return;
-      }
+      if (neu && !this.componentWillFetch) {
+        if (sameContents(neu, old)) {
+          return;
+        }
 
-      if (neu && !this.hasFetch) {
         this.$fetchType(this.resource);
       }
     },
 
+    /**
+     * When a pagination is required and the user changes page / sort / filter, kick off a new set of API requests
+     *
+     * ResourceList has two modes
+     * 1) ResourceList component handles API request to fetch resources
+     * 2) Custom list component handles API request to fetch resources
+     *
+     * This covers case 1
+     */
     pagination(neu, old) {
-      const { filter: neuFilter, sort: neuSort, ...newPrimitiveTypes } = neu;
-      const { filter: oldFilter, sort: oldSort, ...oldPrimitiveTypes } = old;
-
-      if (
-        isEqual(newPrimitiveTypes, oldPrimitiveTypes) &&
-        isEqual(neuFilter, oldFilter) &&
-        sameArrayObjects(neuSort, oldSort)
-      ) {
-        // TODO: RC TEST more
-        return;
-      }
-
-      if (neu && !this.hasFetch) {
+      if (neu && !this.componentWillFetch && this.paginationEqual(neu, old)) {
         this.$fetchType(this.resource);
       }
     },
@@ -206,6 +202,16 @@ export default {
   >
     <template #message>
       {{ t('resourceList.nsFiltering') }}
+    </template>
+  </IconMessage>
+  <IconMessage
+    v-else-if="paginationNsFilterRequired"
+    :vertical="true"
+    :subtle="false"
+    icon="icon-filter_alt"
+  >
+    <template #message>
+      {{ t('resourceList.nsFilteringGeneric') }}
     </template>
   </IconMessage>
   <div v-else>
@@ -249,7 +255,7 @@ export default {
       :adv-filter-prevent-filtering-labels="advFilterPreventFilteringLabels"
       :use-query-params-for-simple-filtering="useQueryParamsForSimpleFiltering"
       :force-update-live-and-delayed="forceUpdateLiveAndDelayed"
-      :external-pagination="!!pagination"
+      :external-pagination="canPaginate"
       :external-pagination-result="paginationResult"
       @pagination-changed="paginationChanged"
     />

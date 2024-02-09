@@ -285,6 +285,14 @@ export default {
     },
 
     /**
+     * The list will always be sorted by these regardless of what the user has selected
+     */
+    mandatorySort: {
+      type:    Array,
+      default: null,
+    },
+
+    /**
      * Allows you to link to a custom detail page for data that
      * doesn't have a class model. For example, a receiver configuration
      * block within an AlertmanagerConfig resource.
@@ -317,10 +325,17 @@ export default {
       default: 0
     },
 
+    /**
+     * True if pagination is executed outside of the component
+     */
     externalPagination: {
       type:    Boolean,
       default: false
     },
+
+    /**
+     * If `externalPagination` is true this will be used as the current page
+     */
     externalPaginationResult: {
       type:    Object,
       default: null
@@ -360,9 +375,7 @@ export default {
     this._onScroll = this.onScroll.bind(this);
     $main?.addEventListener('scroll', this._onScroll);
 
-    if (this.externalPagination) {
-      this.debouncedPaginationChanged();
-    }
+    this.debouncedPaginationChanged();
   },
 
   beforeDestroy() {
@@ -400,21 +413,27 @@ export default {
     descending(neu, old) {
       this.watcherUpdateLiveAndDelayed(neu, old);
     },
+
     searchQuery(neu, old) {
       this.watcherUpdateLiveAndDelayed(neu, old);
     },
+
     sortFields(neu, old) {
       this.watcherUpdateLiveAndDelayed(neu, old);
     },
+
     groupBy(neu, old) {
       this.watcherUpdateLiveAndDelayed(neu, old);
     },
+
     namespaces(neu, old) {
       this.watcherUpdateLiveAndDelayed(neu, old);
     },
+
     page(neu, old) {
       this.watcherUpdateLiveAndDelayed(neu, old);
     },
+
     forceUpdateLiveAndDelayed(neu, old) {
       this.watcherUpdateLiveAndDelayed(neu, old);
     },
@@ -789,6 +808,12 @@ export default {
       // console.warn(`Performance: Table valueFor: ${ col.name } ${ col.value }`); // eslint-disable-line no-console
 
       const expr = col.value || col.name;
+
+      if (!expr) {
+        console.error('No path has been defined for this column, unable to get value of cell', col); // eslint-disable-line no-console
+
+        return '';
+      }
       const out = get(row, expr);
 
       if ( out === null || out === undefined ) {
@@ -919,13 +944,10 @@ export default {
     },
 
     paginationChanged() {
-      // eslint-disable-next-line no-console
-      console.warn('ss', 'methods', 'paginationChanged', {
-        page:    this.page,
-        perPage: this.perPage,
-        filter:  this.searchFields,
-        sort:    this.sortFields,
-      });
+      if (!this.externalPagination) {
+        return;
+      }
+
       this.$emit('pagination-changed', {
         page:    this.page,
         perPage: this.perPage,

@@ -3,7 +3,6 @@ import { ROWS_PER_PAGE } from '@shell/store/prefs';
 export default {
   computed: {
     totalRows() {
-      console.warn('ss', 'mixins', 'paging', 'computed', 'totalrows', this.externalPaginationResult); // eslint-disable-line no-console
       if (this.externalPagination) {
         return this.externalPaginationResult?.count || 0;
       }
@@ -41,7 +40,6 @@ export default {
     },
 
     pagedRows() {
-      console.warn('sortable', 'mixin', 'paging', 'pagedRows', this.externalPagination); // eslint-disable-line no-console
       if (this.externalPagination) {
         return this.rows;
       } else if ( this.paging ) {

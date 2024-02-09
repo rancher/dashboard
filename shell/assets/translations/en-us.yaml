@@ -4781,6 +4781,7 @@ resourceList:
     createFromYaml: Create from YAML
     createResource: "Create {resourceName}"
   nsFiltering: "Please select one or more namespaces or projects using the filter above."
+  nsFilteringGeneric: "Please select a valid namespace or project option using the filter above."
   nsFilterToolTip: "Filtering is restricted to projects and namespaces"
 resourceLoadingIndicator:
   loading: Loading
