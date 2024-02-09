@@ -34,6 +34,6 @@ export default class CloudCredentialsPagePo extends PagePo {
   }
 
   list(): CloudCredentialsListPo {
-    return new CloudCredentialsListPo('[data-testid="cluster-list-container"]');
+    return new CloudCredentialsListPo('[data-testid="sortable-table-list-container"]');
   }
 }

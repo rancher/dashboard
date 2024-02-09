@@ -427,6 +427,7 @@ export default {
           v-model="value.spec.kubernetesVersion"
           :mode="mode"
           :options="versionOptions"
+          data-testid="clusterBasics__kubernetesVersions"
           label-key="cluster.kubernetesVersion.label"
           @input="$emit('kubernetes-changed', $event)"
         />

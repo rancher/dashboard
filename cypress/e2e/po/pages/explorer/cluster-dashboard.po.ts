@@ -35,7 +35,7 @@ export default class ClusterDashboardPagePo extends PagePo {
   }
 
   eventslist(): EventsListPo {
-    return new EventsListPo('[data-testid="cluster-list-container"]');
+    return new EventsListPo('[data-testid="sortable-table-list-container"]');
   }
 
   fullEventsLink() {

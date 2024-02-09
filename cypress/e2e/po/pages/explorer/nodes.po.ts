@@ -15,6 +15,6 @@ export class NodesPagePo extends PagePo {
   }
 
   nodesList(): NodesListPo {
-    return new NodesListPo('[data-testid="cluster-list-container"]');
+    return new NodesListPo('[data-testid="sortable-table-list-container"]');
   }
 }

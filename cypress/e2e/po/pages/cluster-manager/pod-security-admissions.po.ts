@@ -34,6 +34,6 @@ export default class PodSecurityAdmissionsPagePo extends PagePo {
   }
 
   list(): PodSecurityAdmissionListPo {
-    return new PodSecurityAdmissionListPo('[data-testid="cluster-list-container"]');
+    return new PodSecurityAdmissionListPo('[data-testid="sortable-table-list-container"]');
   }
 }

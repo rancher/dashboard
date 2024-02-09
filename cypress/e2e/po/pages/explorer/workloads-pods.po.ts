@@ -26,7 +26,7 @@ export class WorkloadsPodsListPagePo extends PagePo {
   }
 
   list(): PodsListPo {
-    return new PodsListPo('[data-testid="cluster-list-container"]');
+    return new PodsListPo('[data-testid="sortable-table-list-container"]');
   }
 
   sortableTable() {

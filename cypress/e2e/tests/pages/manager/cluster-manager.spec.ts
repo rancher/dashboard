@@ -62,7 +62,7 @@ describe('Cluster Manager', { testIsolation: 'off', tags: ['@manager', '@adminUs
 
   describe('Created', () => {
     const createRKE2ClusterPage = new ClusterManagerCreateRke2CustomPagePo();
-    const detailRKE2ClusterPage = new ClusterManagerDetailRke2CustomPagePo(rke2CustomName);
+    const detailRKE2ClusterPage = new ClusterManagerDetailRke2CustomPagePo('local', rke2CustomName);
 
     describe('RKE2 Custom', () => {
       const editCreatedClusterPage = new ClusterManagerEditRke2CustomPagePo(rke2CustomName);
@@ -268,7 +268,7 @@ describe('Cluster Manager', { testIsolation: 'off', tags: ['@manager', '@adminUs
 
       it('can show snapshots list', () => {
         clusterList.goToClusterListAndGetClusterDetails(rke1CustomName).then((cluster) => {
-          const snapshots = new ClusterManagerDetailSnapshotsPo(cluster.id);
+          const snapshots = new ClusterManagerDetailSnapshotsPo('local', cluster.id);
 
           // We want to show 2 elements in the snapshots tab
           const snapshotId1 = 'ml-mkhz4';
@@ -341,7 +341,7 @@ describe('Cluster Manager', { testIsolation: 'off', tags: ['@manager', '@adminUs
       const editImportedClusterPage = new ClusterManagerEditGenericPagePo(importGenericName);
 
       it('can create new cluster', () => {
-        const detailClusterPage = new ClusterManagerDetailImportedGenericPagePo(importGenericName);
+        const detailClusterPage = new ClusterManagerDetailImportedGenericPagePo('local', importGenericName);
 
         cy.intercept('POST', `/v1/${ type }s`).as('importRequest');
 
