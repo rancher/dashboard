@@ -244,7 +244,8 @@ export const state = () => {
     systemNamespaces:        [],
     isSingleProduct:         undefined,
     isRancherInHarvester:    false,
-    targetRoute:             null
+    targetRoute:             null,
+    rootProduct:             undefined,
   };
 };
 
@@ -307,6 +308,13 @@ export const getters = {
     return out;
   },
 
+  // Get the root product - this is either the current product or the current product's root (if set)
+  // Used for navigation and other areas that don't want to re-evaluate when the product changes, but is still within
+  // a common root product
+  rootProduct(state) {
+    return state.rootProduct;
+  },
+
   getStoreNameByProductId(state) {
     const products = state['type-map']?.products;
 
@@ -330,13 +338,9 @@ export const getters = {
   },
 
   isExplorer(state, getters) {
-    const product = getters.currentProduct;
+    const product = getters.rootProduct;
 
-    if ( !product ) {
-      return false;
-    }
-
-    return product.name === EXPLORER || product.inStore === 'cluster';
+    return !product ? false : product.name === EXPLORER;
   },
 
   defaultClusterId(state, getters) {
@@ -652,8 +656,20 @@ export const mutations = {
     state.clusterId = neu;
   },
 
-  setProduct(state, neu) {
-    state.productId = neu;
+  setProduct(state, value) {
+    state.productId = value;
+
+    // Update rootProduct ONLY if the root product has changed as a result of the product change
+    const newProduct = this.getters['type-map/productByName'](value);
+    let newRootProduct = newProduct;
+
+    if (newProduct?.rootProduct) {
+      newRootProduct = this.getters['type-map/productByName'](newProduct.rootProduct) || newProduct;
+    }
+
+    if (newRootProduct?.name !== state.rootProduct?.name) {
+      state.rootProduct = newRootProduct;
+    }
   },
 
   setError(state, { error: obj, locationError }) {

@@ -62,7 +62,7 @@ export default {
 
   computed: {
     ...mapGetters(['clusterReady', 'isExplorer', 'isRancher', 'currentCluster',
-      'currentProduct', 'backToRancherLink', 'backToRancherGlobalLink', 'pageActions', 'isSingleProduct', 'isRancherInHarvester', 'showTopLevelMenu']),
+      'currentProduct', 'rootProduct', 'backToRancherLink', 'backToRancherGlobalLink', 'pageActions', 'isSingleProduct', 'isRancherInHarvester', 'showTopLevelMenu']),
     ...mapGetters('type-map', ['activeProducts']),
 
     appName() {
@@ -94,15 +94,15 @@ export default {
     },
 
     showKubeShell() {
-      return !this.currentProduct?.hideKubeShell;
+      return !this.rootProduct?.hideKubeShell;
     },
 
     showKubeConfig() {
-      return !this.currentProduct?.hideKubeConfig;
+      return !this.rootProduct?.hideKubeConfig;
     },
 
     showCopyConfig() {
-      return !this.currentProduct?.hideCopyConfig;
+      return !this.rootProduct?.hideCopyConfig;
     },
 
     showPreferencesLink() {
@@ -146,17 +146,17 @@ export default {
     },
 
     prod() {
-      const name = this.currentProduct.name;
+      const name = this.rootProduct.name;
 
       return this.$store.getters['i18n/withFallback'](`product."${ name }"`, null, ucFirst(name));
     },
 
     showSearch() {
-      return this.currentProduct?.inStore === 'cluster';
+      return this.rootProduct?.inStore === 'cluster';
     },
 
     showImportYaml() {
-      return this.currentProduct?.inStore !== 'harvester';
+      return this.rootProduct?.inStore !== 'harvester';
     },
 
     nameTooltip() {

@@ -37,6 +37,7 @@
 //   ifHaveType,              -- Show this product only if the given type exists in the store [inStore], This can also be specified as an object { type: TYPE, store: 'management' } if the type isn't in the current [inStore]
 //   ifHaveVerb,              -- In combination with ifHaveTYpe, show it only if the type also has this collectionMethod
 //   inStore,                 -- Which store to look at for if* above and the left-nav, defaults to "cluster"
+//   rootProduct,             -- Optional root (parent) product - if set, used to optimize navigation when product changes stays within root product
 //   inExplorer,              -- Determines if the product is to be scoped to the explorer
 //   public,                  -- If true, show to all users.  If false, only show when the Developer Tools pref is on (default true)
 //   category,                -- Group to show the product in for the nav hamburger menu
@@ -1454,6 +1455,10 @@ export const getters = {
       return !!prod;
     };
   },
+
+  productByName(state) {
+    return (productName) => state.products.find((p) => p.name === productName);
+  }
 };
 
 export const mutations = {
@@ -1513,12 +1518,27 @@ export const mutations = {
   },
 
   product(state, obj) {
-    const existing = findBy(state.products, 'name', obj.name);
+    let existing = state.products.find((p) => p.name === obj.name);
 
     if ( existing ) {
       Object.assign(existing, obj);
     } else {
       addObject(state.products, obj);
+      existing = state.products.find((p) => p.name === obj.name);
+    }
+
+    // Make sure deprecated `inExplorer` is synchronized with `rootProduct` (and vice-versa)
+    if (existing?.inExplorer) {
+      existing.rootProduct = existing.rootProduct || EXPLORER;
+    } else if (existing?.rootProduct === EXPLORER) {
+      existing.inExplorer = true;
+    }
+
+    // We make an assumption that if the store for a product is 'cluster' it will be displayed within cluster explorer
+    // Detect that here and set rootProduct and inExporer in this case
+    if (!existing?.rootProduct && existing?.inStore === 'cluster') {
+      existing.rootProduct = existing.rootProduct || EXPLORER;
+      existing.inExplorer = (existing.rootProduct === EXPLORER);
     }
   },
 

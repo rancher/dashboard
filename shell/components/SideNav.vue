@@ -74,13 +74,6 @@ export default {
       }
     },
 
-    productId(a, b) {
-      if ( a !== b) {
-        // Immediately update because you'll see it come in later
-        this.getGroups();
-      }
-    },
-
     // Queue namespaceMode and namespaces
     // Changes to namespaceMode can also change namespaces, so keep this simple and execute both in a shortened queue
 
@@ -103,6 +96,12 @@ export default {
       }
     },
 
+    rootProduct(a, b) {
+      if (a?.name === b?.name) {
+        this.getGroups();
+      }
+    },
+
     $route(a, b) {
       this.$nextTick(() => this.syncNav());
     },
@@ -111,7 +110,7 @@ export default {
 
   computed: {
     ...mapState(['managementReady', 'clusterReady']),
-    ...mapGetters(['productId', 'clusterId', 'currentProduct', 'isSingleProduct', 'namespaceMode', 'isExplorer', 'isVirtualCluster']),
+    ...mapGetters(['productId', 'clusterId', 'currentProduct', 'rootProduct', 'isSingleProduct', 'namespaceMode', 'isExplorer', 'isVirtualCluster']),
     ...mapGetters({ locale: 'i18n/selectedLocaleLabel', availableLocales: 'i18n/availableLocales' }),
     ...mapGetters('type-map', ['activeProducts']),
 
@@ -124,7 +123,7 @@ export default {
     },
 
     supportLink() {
-      const product = this.currentProduct;
+      const product = this.rootProduct;
 
       if (product?.supportRoute) {
         return { ...product.supportRoute, params: { ...product.supportRoute.params, cluster: this.clusterId } };
@@ -159,7 +158,7 @@ export default {
     },
 
     isVirtualProduct() {
-      return this.currentProduct.name === HARVESTER;
+      return this.rootProduct.name === HARVESTER;
     },
 
     allNavLinks() {
