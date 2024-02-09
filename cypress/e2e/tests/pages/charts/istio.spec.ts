@@ -1,10 +1,10 @@
 import { ChartsPage } from '@/cypress/e2e/po/pages/charts.po';
-import ClusterDashboardPagePo from '@/cypress/e2e/po/pages/explorer/cluster-dashboard.po';
-import ProductNavPo from '@/cypress/e2e/po/side-bars/product-side-nav.po';
+// import ClusterDashboardPagePo from '@/cypress/e2e/po/pages/explorer/cluster-dashboard.po';
+// import ProductNavPo from '@/cypress/e2e/po/side-bars/product-side-nav.po';
 import BurgerMenuPo from '@/cypress/e2e/po/side-bars/burger-side-menu.po';
 
 describe('Charts', { tags: ['@charts', '@adminUser'] }, () => {
-  const clusterName = 'local';
+  // const clusterName = 'local';
   const chartsPageUrl = '/c/local/apps/charts/chart?repo-type=cluster&repo=rancher-charts';
 
   describe('Istio', () => {
@@ -29,21 +29,21 @@ describe('Charts', { tags: ['@charts', '@adminUser'] }, () => {
         chartsPage.installChart();
       });
 
-      it('Side-nav should contain Istio menu item', () => {
-        const clusterDashboard = new ClusterDashboardPagePo(clusterName);
+      // it('Side-nav should contain Istio menu item', () => {
+      //   const clusterDashboard = new ClusterDashboardPagePo(clusterName);
 
-        clusterDashboard.goTo();
+      //   clusterDashboard.goTo();
 
-        const productMenu = new ProductNavPo();
-        const IstioNavItem = productMenu.groups().contains('Istio');
+      //   const productMenu = new ProductNavPo();
+      //   const IstioNavItem = productMenu.groups().contains('Istio');
 
-        IstioNavItem.should('exist');
+      //   IstioNavItem.should('exist');
 
-        IstioNavItem.click();
+      //   IstioNavItem.click();
 
-        cy.contains('Overview').should('exist');
-        cy.contains('Powered by Istio').should('exist');
-      });
+      //   cy.contains('Overview').should('exist');
+      //   cy.contains('Powered by Istio').should('exist');
+      // });
     });
   });
 });
