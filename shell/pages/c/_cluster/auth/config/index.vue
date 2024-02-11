@@ -9,14 +9,15 @@ import { Banner } from '@components/Banner';
 export default {
   components: { SelectIconGrid, Banner },
 
-  async asyncData({ store, redirect }) {
-    const authProvs = await authProvidersInfo(store);
+  async fetch({ redirect }) {
+    const authProvs = await authProvidersInfo(this.$store);
 
     if (!!authProvs.enabledLocation) {
       redirect(authProvs.enabledLocation);
     }
 
-    return { nonLocal: authProvs.nonLocal, enabled: authProvs.enabled };
+    this.$set(this, 'nonLocal', authProvs.nonLocal);
+    this.$set(this, 'enabled', authProvs.enabled);
   },
 
   data() {
@@ -35,6 +36,7 @@ export default {
 
       // Provided by asyncData later
       nonLocal: null,
+      enabled:  false
     };
   },
 

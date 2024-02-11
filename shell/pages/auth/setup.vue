@@ -49,7 +49,32 @@ export default {
         path:       'serverUrl',
         rootObject: this,
         rules:      ['required', 'https', 'url', 'trailingForwardSlash']
-      }]
+      }],
+      productName: '',
+      vendor:      getVendor(),
+      product:     getProduct(),
+      step:        parseInt(this.$route.query.step, 10) || 1,
+
+      useRandom:          true,
+      haveCurrent:        false,
+      username:           'admin',
+      isFirstLogin:       false,
+      mustChangePassword: false,
+      current:            '',
+      password:           randomStr(),
+      confirm:            '',
+
+      v3User: null,
+
+      serverUrl:  null,
+      mcmEnabled: null,
+
+      telemetry: null,
+
+      eula:       false,
+      principals: null,
+
+      errors: []
     };
   },
 
@@ -90,10 +115,10 @@ export default {
     AsyncButton, LabeledInput, CopyToClipboard, Checkbox, RadioGroup, Password, BrandImage, Banner
   },
 
-  async asyncData({ route, req, store }) {
-    const telemetrySetting = store.getters['management/byId'](MANAGEMENT.SETTING, SETTING.TELEMETRY);
-    const serverUrlSetting = store.getters['management/byId'](MANAGEMENT.SETTING, SETTING.SERVER_URL);
-    const rancherVersionSetting = store.getters['management/byId'](MANAGEMENT.SETTING, SETTING.VERSION_RANCHER);
+  async fetch() {
+    const telemetrySetting = this.$store.getters['management/byId'](MANAGEMENT.SETTING, SETTING.TELEMETRY);
+    const serverUrlSetting = this.$store.getters['management/byId'](MANAGEMENT.SETTING, SETTING.SERVER_URL);
+    const rancherVersionSetting = this.$store.getters['management/byId'](MANAGEMENT.SETTING, SETTING.VERSION_RANCHER);
     let telemetry = true;
 
     if (telemetrySetting?.value && telemetrySetting.value !== 'prompt') {
@@ -105,17 +130,17 @@ export default {
     let plSetting;
 
     try {
-      await store.dispatch('management/findAll', {
+      await this.$store.dispatch('management/findAll', {
         type: MANAGEMENT.SETTING,
         opt:  {
           load: _ALL_IF_AUTHED, url: `/v1/${ MANAGEMENT.SETTING }`, redirectUnauthorized: false
         },
       });
 
-      plSetting = store.getters['management/byId'](MANAGEMENT.SETTING, SETTING.PL);
+      plSetting = this.$store.getters['management/byId'](MANAGEMENT.SETTING, SETTING.PL);
     } catch (e) {
       // Older versions used Norman API to get these
-      plSetting = await store.dispatch('rancher/find', {
+      plSetting = await this.$store.dispatch('rancher/find', {
         type: 'setting',
         id:   SETTING.PL,
         opt:  { url: `/v3/settings/${ SETTING.PL }` }
@@ -128,13 +153,13 @@ export default {
 
     const productName = plSetting.default;
 
-    const principals = await store.dispatch('rancher/findAll', { type: NORMAN.PRINCIPAL, opt: { url: '/v3/principals' } });
+    const principals = await this.$store.dispatch('rancher/findAll', { type: NORMAN.PRINCIPAL, opt: { url: '/v3/principals' } });
     const me = findBy(principals, 'me', true);
 
-    const current = route.query[SETUP] || store.getters['auth/initialPass'];
-    const v3User = store.getters['auth/v3User'] ?? {};
+    const current = this.$route.query[SETUP] || this.$store.getters['auth/initialPass'];
+    const v3User = this.$store.getters['auth/v3User'] ?? {};
 
-    const mcmFeature = await store.dispatch('management/find', {
+    const mcmFeature = await this.$store.dispatch('management/find', {
       type: MANAGEMENT.FEATURE, id: 'multi-cluster-management', opt: { url: `/v1/${ MANAGEMENT.FEATURE }/multi-cluster-management` }
     });
 
@@ -148,36 +173,20 @@ export default {
       serverUrl = window.location.origin;
     }
 
-    const isFirstLogin = await calcIsFirstLogin(store);
-    const mustChangePassword = await calcMustChangePassword(store);
+    const isFirstLogin = await calcIsFirstLogin(this.$store);
+    const mustChangePassword = await calcMustChangePassword(this.$store);
 
-    return {
-      productName,
-      vendor:  getVendor(),
-      product: getProduct(),
-      step:    parseInt(route.query.step, 10) || 1,
-
-      useRandom:   true,
-      haveCurrent: !!current,
-      username:    me?.loginName || 'admin',
-      isFirstLogin,
-      mustChangePassword,
-      current,
-      password:    randomStr(),
-      confirm:     '',
-
-      v3User,
-
-      serverUrl,
-      mcmEnabled,
-
-      telemetry,
-
-      eula: false,
-      principals,
-
-      errors: []
-    };
+    this.$set(this, 'productName', productName);
+    this.$set(this, 'haveCurrent', !!current);
+    this.$set(this, 'username', me?.loginName || 'admin');
+    this.$set(this, 'isFirstLogin', isFirstLogin);
+    this.$set(this, 'mustChangePassword', mustChangePassword);
+    this.$set(this, 'current', current);
+    this.$set(this, 'v3User', v3User);
+    this.$set(this, 'serverUrl', serverUrl);
+    this.$set(this, 'mcmEnabled', mcmEnabled);
+    this.$set(this, 'telemetry', telemetry);
+    this.$set(this, 'principals', principals);
   },
 
   computed: {

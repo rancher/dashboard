@@ -107,17 +107,6 @@ export default {
           }
         }
 
-        if (page.$options.asyncData) {
-          p.push(
-            promisify(page.$options.asyncData, this.context)
-              .then((newData) => {
-                for (const key in newData) {
-                  Vue.set(page.$data, key, newData[key]);
-                }
-              })
-          );
-        }
-
         return Promise.all(p);
       });
 
