@@ -28,6 +28,8 @@ import Tab from '@shell/components/Tabbed/Tab.vue';
 import Tabbed from '@shell/components/Tabbed/index.vue';
 import Accordion from '@components/Accordion/Accordion.vue';
 import Banner from '@components/Banner/Banner.vue';
+import { RadioGroup } from '@components/Form/Radio';
+
 import ClusterMembershipEditor, { canViewClusterMembershipEditor } from '@shell/components/form/Members/ClusterMembershipEditor.vue';
 
 import { EKSConfig, EKSNodeGroup } from '../types';
@@ -53,6 +55,7 @@ export default defineComponent({
     CruResource,
     AccountAccess,
     LabeledSelect,
+    RadioGroup,
     // AksNodePool,
     // LabeledInput,
     // Checkbox,
@@ -98,6 +101,9 @@ export default defineComponent({
       this.normanCluster = await store.dispatch('rancher/create', { type: NORMAN.CLUSTER, ...defaultCluster }, { root: true });
     }
 
+    // TODO nb do this better?
+    // TODO nb defaults
+    this.config = this.normanCluster.eksConfig || {};
   },
 
   data() {
@@ -107,15 +113,18 @@ export default defineComponent({
     const t = store.getters['i18n/t'];
 
     return {
-      region:            '',
-      cloudCredentialId: '',
-      normanCluster:     { name: '' } as any,
-      nodePools:         [] as EKSNodeGroup[],
-      config:            { } as EKSConfig,
-      membershipUpdate:  {} as any,
-      originalVersion:   '',
+      cloudCredentialId:     '',
+      normanCluster:         { name: '' } as any,
+      nodePools:             [] as EKSNodeGroup[],
+      config:                { } as EKSConfig,
+      membershipUpdate:      {} as any,
+      originalVersion:       '',
       supportedVersionRange,
-      fvFormRuleSets:    [],
+      allKubernetesVersions: [] as string[],
+      fvFormRuleSets:        [],
+      // TODO nb default from config
+      customServiceRole:     false,
+      serviceRoleOptions:    [{ value: false, label: 'Standard: A service role will be automatically created' }, { value: true, label: 'Custom: Choose from an existing service role' }]
     };
   },
 
@@ -158,6 +167,21 @@ export default defineComponent({
       return canViewClusterMembershipEditor(this.$store);
     },
 
+    versionOptions(): string[] {
+      return this.allKubernetesVersions.filter((v: string) => {
+        const coerced = semver.coerce(v);
+
+        if (this.supportedVersionRange && !semver.satisfies(coerced, this.supportedVersionRange)) {
+          return false;
+        }
+        if (this.originalVersion && semver.gt(semver.coerce(this.originalVersion), coerced)) {
+          return false;
+        }
+
+        return true;
+      });
+    },
+
     CREATE(): string {
       return _CREATE;
     },
@@ -167,12 +191,48 @@ export default defineComponent({
     },
   },
 
-  watch: {},
+  watch: {
+    'config.region'() {
+      this.fetchKubernetesVersions();
+    },
+
+    'config.amazonCredentialSecret'() {
+      this.fetchKubernetesVersions();
+    }
+  },
 
   methods: {
+    // there is no api for fetching eks versions
+    // fetch addons and look at which versions they support
+    // this assumes that all k8s versions are compatible with at least one addon
+    async fetchKubernetesVersions() {
+      if (!this.config.region || !this.config.amazonCredentialSecret) {
+        return;
+      }
+      try {
+        const eksClient = await this.$store.dispatch('aws/eks', { region: this.config.region, cloudCredentialId: this.config.amazonCredentialSecret });
 
+        const res = await eksClient.describeAddonVersions({});
+        const addons = res?.addons;
 
+        if (!addons) {
+          return;
+        }
+        this.allKubernetesVersions = addons.reduce((versions, addon) => {
+          (addon?.addonVersions || []).forEach((addonVersion) => {
+            (addonVersion?.compatibilities || []).forEach((c) => {
+              if (!versions.includes(c.clusterVersion)) {
+                versions.push(c.clusterVersion);
+              }
+            });
+          });
 
+          return versions;
+        }, []);
+      } catch (err) {
+        this.errors.push(err);
+      }
+    },
 
     setClusterName(name: string): void {
       this.$set(this.normanCluster, 'name', name);
@@ -225,12 +285,11 @@ export default defineComponent({
     },
 
     updateRegion(e: string) {
-      // TODO nb do aws-sdk stuff
-      this.region = e;
+      // TODO nb group aws calls
+      this.$set(this.config, 'region', e);
     },
 
     updateCredential(e: any) {
-      // TODO nb do aws-sdk stuff
       this.$set(this.config, 'amazonCredentialSecret', e);
     },
   },
@@ -258,7 +317,7 @@ export default defineComponent({
       <AccountAccess
         :credential="config.amazonCredentialSecret"
         :mode="mode"
-        :region="region"
+        :region="config.region"
         @cancel-credential="cancelCredential"
         @update-region="updateRegion"
         @update-credential="updateCredential"
@@ -266,25 +325,37 @@ export default defineComponent({
     </Accordion>
     <Accordion title="Cluster Options">
       <div class="row mb-10">
-
-<!-- <LabeledSelect :options="[]" label="Kubernetes Version" v-model="config.kubernetesVersion"  /> -->
+        <div class="col span-6">
+          <LabeledSelect
+            v-model="config.kubernetesVersion"
+            :options="versionOptions"
+            label="Kubernetes Version"
+            :mode="mode"
+          />
+        </div>
       </div>
-      </Accordion>
-      <Accordion title="Cluster Membership">
-      <div>
-
+      <div class="row mb-10">
+        <div class="col span-6">
+          <RadioGroup
+            v-model="customServiceRole"
+            :mode="mode"
+            :options="serviceRoleOptions"
+          />
+        </div>
+        <div class="col span-6">
+          <LabeledSelect
+            v-if="customServiceRole"
+            v-model="config.serviceRole"
+            :mode="mode"
+            :options="[]"
+            label="Service Role"
+          />
+        </div>
       </div>
-      </Accordion>
-      <Accordion title="Cluster Agent Configuration">
-      <div>
-
-      </div>
-      </Accordion>
-      <Accordion title="Fleet Agent Configuration">
-      <div>
-
-      </div>
-      </Accordion>
+    </Accordion>
+    <Accordion title="Cluster Membership" />
+    <Accordion title="Cluster Agent Configuration" />
+    <Accordion title="Fleet Agent Configuration" />
     <template
       v-if="!hasCredential"
       #form-footer
