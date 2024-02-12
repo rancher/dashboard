@@ -15,7 +15,6 @@ import { filterOnlyKubernetesClusters, filterHiddenLocalCluster } from '@shell/u
 import { getProductFromRoute } from '@shell/middleware/authenticated';
 import { isRancherPrime } from '@shell/config/version';
 import Pinned from '@shell/components/nav/Pinned';
-import { applyProducts } from '@shell/store/type-map';
 
 export default {
   components: {

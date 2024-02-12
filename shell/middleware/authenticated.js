@@ -148,6 +148,7 @@ function invalidResource(store, to, redirect) {
 export default async function({
   route, app, store, redirect, $cookies, req, isDev, from, $plugin, next
 }) {
+  // eslint-disable-next-line no-console
   console.log('%c Used Authenticated Middleware', 'color: #000; background-color: #FF0000');
   if ( route.path && typeof route.path === 'string') {
     // Ignore webpack hot module reload requests

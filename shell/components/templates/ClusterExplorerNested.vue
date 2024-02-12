@@ -21,13 +21,14 @@ export default {
 
   methods: {
     async load() {
+      this.$store.dispatch('catalog/load', undefined, { root: true });
+      await applyProducts(this.$store, this.$plugin);
       this.$store.dispatch('loadCluster', {
         id:          this.$route.params.cluster,
         targetRoute: this.$route
       }, { root: true }).then(() => {
-        this.$store.dispatch('catalog/load', undefined, { root: true });
+
       });
-      applyProducts(this.$store, this.$plugin);
     }
   },
   watch: {
@@ -54,7 +55,7 @@ export default {
       >
         <ClusterContextualNavigation />
         <div class="resource">
-          <slot />
+          <router-view :key="$route.path" />
         </div>
       </div>
     </div>

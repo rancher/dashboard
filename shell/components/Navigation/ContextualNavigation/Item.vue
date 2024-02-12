@@ -33,7 +33,6 @@ export default {
 
   methods: {
     toggle() {
-      console.log('ggggg');
       this.$set(this, 'open', !this.open);
     }
   },

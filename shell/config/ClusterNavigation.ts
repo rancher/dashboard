@@ -208,6 +208,12 @@ const navigation: Item[] = [
     location: { name: 'configmap-list' },
     children: []
   },
+  {
+    name:     'ConfigMaps',
+    label:    'ConfigMaps2',
+    location: { name: 'configmap-list2' },
+    children: []
+  },
 
 ];
 

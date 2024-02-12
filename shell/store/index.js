@@ -36,7 +36,6 @@ import semver from 'semver';
 import { STORE, BLANK_CLUSTER } from '@shell/store/store-types';
 import { loadNavigation } from '@shell/config/ClusterNavigation';
 import { isDevBuild } from '@shell/utils/version';
-import { stringify } from 'querystring';
 
 // Disables strict mode for all store instances to prevent warning about changing state outside of mutations
 // because it's more efficient to do that sometimes.
@@ -882,7 +881,6 @@ export const actions = {
 
     console.log(`Loading ${ isMultiCluster ? 'ECM ' : '' }cluster...`); // eslint-disable-line no-console
 
-    console.log('bb');
     // If we've entered a new store ensure everything has loaded correctly
     if (newPkgClusterStore) {
       // Mirror actions on the 'cluster' store for our specific pkg `cluster` store
