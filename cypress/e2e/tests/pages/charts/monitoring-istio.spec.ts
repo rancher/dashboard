@@ -5,10 +5,13 @@ import { ChartsPage } from '@/cypress/e2e/po/pages/charts.po';
 import LabeledSelectPo from '@/cypress/e2e/po/components/labeled-select.po';
 import CheckboxPo from '@/cypress/e2e/po/components/checkbox-input.po';
 import LabeledInputPo from '@/cypress/e2e/po/components/labeled-input.po';
+import ClusterDashboardPagePo from '@/cypress/e2e/po/pages/explorer/cluster-dashboard.po';
+import ProductNavPo from '@/cypress/e2e/po/side-bars/product-side-nav.po';
 
 import { prometheusSpec } from '@/cypress/e2e/blueprints/charts/prometheus-chart';
 
 describe('Charts', { tags: ['@charts', '@adminUser'] }, () => {
+  const clusterName = 'local';
   const chartsPageUrl = '/c/local/apps/charts/chart?repo-type=cluster&repo=rancher-charts';
 
   describe('Monitoring', () => {
@@ -183,6 +186,44 @@ describe('Charts', { tags: ['@charts', '@adminUser'] }, () => {
           expect(resource.limits.cpu).to.equal('87m');
           expect(resource.limits.memory).to.equal('123Mi');
         });
+      });
+    });
+  });
+
+  describe('Istio', () => {
+    const istioVersion = '103.0.0%2Bup1.18.2';
+    const chartsIstioPage = `${ chartsPageUrl }&chart=rancher-istio&version=${ istioVersion }`;
+
+    const chartsPage: ChartsPage = new ChartsPage(chartsIstioPage);
+
+    beforeEach(() => {
+      cy.login();
+    });
+
+    describe('Istio local provisioning', () => {
+      /**
+       * Istio requires Prometheus operator to be installed, see previous steps.
+       */
+      it('Should install Istio', () => {
+        chartsPage.goTo();
+        chartsPage.goToInstall().nextPage();
+
+        cy.intercept('POST', 'v1/catalog.cattle.io.clusterrepos/rancher-charts?action=install').as('chartInstall');
+        chartsPage.installChart();
+        cy.wait('@chartInstall').its('response.statusCode').should('eq', 201);
+      });
+
+      it('Side-nav should contain Istio menu item', () => {
+        const clusterDashboard = new ClusterDashboardPagePo(clusterName);
+
+        clusterDashboard.goTo();
+
+        const productMenu = new ProductNavPo();
+
+        productMenu.navToSideMenuGroupByLabel('Istio');
+
+        cy.contains('Overview').should('exist');
+        cy.contains('Powered by Istio').should('exist');
       });
     });
   });
