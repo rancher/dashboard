@@ -28,9 +28,31 @@ export const routerOptions = {
     },
     {
       path:      '',
+      component: () => interopDefault(import('../components/templates/nothing.vue')),
+      name:      'nothing',
+    },
+    {
+      path:      '',
       component: () => interopDefault(import('../components/templates/blank.vue')),
       name:      'blank',
       children:  [
+      ]
+    },
+    {
+      name:      'cluster-explorer-nested',
+      path:      '/c/:cluster',
+      component: () => interopDefault(import('../components/templates/ClusterExplorerNested.vue')),
+      children:  [
+        {
+          path:      '/c/:cluster/configmap',
+          component: () => interopDefault(import('../pages/c/_cluster/explorer/configmap/list.vue')),
+          name:      'configmap-list'
+        },
+        {
+          path:      '/c/:cluster/configmap2',
+          component: () => interopDefault(import('../pages/c/_cluster/explorer/configmap/list.vue')),
+          name:      'configmap-list2'
+        },
       ]
     },
     {

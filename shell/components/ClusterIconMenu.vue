@@ -114,8 +114,8 @@ export default {
   .cluster-pin-icon {
     position: absolute;
     top: -6px;
-    right: -7px;
-    font-size: 14px;
+    right: -4px;
+    font-size: 12px;
     transform: scaleX(-1);
     color: var(--body-text);
   }

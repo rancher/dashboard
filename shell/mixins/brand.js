@@ -42,7 +42,7 @@ export default {
   },
 
   computed: {
-    ...mapGetters({ loggedIn: 'auth/loggedIn' }),
+    ...mapGetters({ loggedIn: 'auth/isAuthenticated' }),
 
     brand() {
       const setting = findBy(this.globalSettings, 'id', SETTING.BRAND);

@@ -103,7 +103,7 @@ export class Plugin implements IPlugin {
         const pConfig = r as PluginRouteConfig;
 
         if (pConfig.parent) {
-          this.addRoute(pConfig.parent, pConfig.route);
+          this.addRoute(pConfig.parent, pConfig as any);
         } else {
           this.addRoute(pConfig.route);
         }

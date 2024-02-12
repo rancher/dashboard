@@ -34,6 +34,7 @@ import { sortBy } from '@shell/utils/sort';
 import { addParam } from '@shell/utils/url';
 import semver from 'semver';
 import { STORE, BLANK_CLUSTER } from '@shell/store/store-types';
+import { loadNavigation } from '@shell/config/ClusterNavigation';
 import { isDevBuild } from '@shell/utils/version';
 
 // Disables strict mode for all store instances to prevent warning about changing state outside of mutations
@@ -224,31 +225,37 @@ const updateActiveNamespaceCache = (state, activeNamespaceCache) => {
 
 export const state = () => {
   return {
-    managementReady:         false,
-    clusterReady:            false,
-    isRancher:               false,
-    namespaceFilters:        [],
-    activeNamespaceCache:    {}, // Used to efficiently check if a resource should be displayed
-    activeNamespaceCacheKey: '', // Fingerprint of activeNamespaceCache
-    allNamespaces:           [],
-    allWorkspaces:           [],
-    clusterId:               null,
-    productId:               null,
-    workspace:               null,
-    error:                   null,
-    cameFromError:           false,
-    pageActions:             [],
-    serverVersion:           null,
-    systemNamespaces:        [],
-    isSingleProduct:         undefined,
-    isRancherInHarvester:    false,
-    targetRoute:             null
+    managementReady:           false,
+    clusterReady:              false,
+    clusterNavigation:         [],
+    clusterNavigationappended: [],
+    isRancher:                 false,
+    namespaceFilters:          [],
+    activeNamespaceCache:      {}, // Used to efficiently check if a resource should be displayed
+    activeNamespaceCacheKey:   '', // Fingerprint of activeNamespaceCache
+    allNamespaces:             [],
+    allWorkspaces:             [],
+    clusterId:                 null,
+    productId:                 null,
+    workspace:                 null,
+    error:                     null,
+    cameFromError:             false,
+    pageActions:               [],
+    serverVersion:             null,
+    systemNamespaces:          [],
+    isSingleProduct:           undefined,
+    isRancherInHarvester:      false,
+    targetRoute:               null
   };
 };
 
 export const getters = {
   clusterReady(state) {
     return state.clusterReady === true;
+  },
+
+  clusterNavigation(state) {
+    return state.clusterNavigation;
   },
 
   isMultiCluster(state, getters) {
@@ -598,6 +605,14 @@ export const mutations = {
   },
   clusterReady(state, ready) {
     state.clusterReady = ready;
+  },
+
+  clusterNavigation(state, config) {
+    state.clusterNavigation = [...config, ...state.clusterNavigationappended];
+  },
+
+  appendToClusterNavigation(state, { item }) {
+    state.clusterNavigationappended = [...state.clusterNavigationappended, item] ;
   },
 
   isRancherInHarvester(state, neu) {
@@ -965,6 +980,7 @@ export const actions = {
     }
 
     commit('clusterReady', true);
+    commit('clusterNavigation', loadNavigation());
 
     console.log('Done loading cluster.'); // eslint-disable-line no-console
   },

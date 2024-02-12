@@ -284,7 +284,7 @@ export const actions = {
     }
 
     if ( definition.asUserPreference ) {
-      const checkLogin = rootGetters['auth/loggedIn'];
+      const checkLogin = rootGetters['auth/isAuthenticated'];
 
       // Check for login status
       if (!checkLogin) {
