@@ -37,6 +37,11 @@ export const routerOptions = {
       name:      'configmap-list',
     },
     {
+      path:      '/c/:cluster/configmap2',
+      component: () => interopDefault(import('../pages/c/_cluster/explorer/configmap/list.vue')),
+      name:      'configmap-list2',
+    },
+    {
       path:      '',
       component: () => interopDefault(import('../components/templates/blank.vue')),
       name:      'blank',

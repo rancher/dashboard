@@ -44,7 +44,7 @@ export default {
     if (this.hasProvCluster) {
       this.$store.dispatch('management/findAll', { type: CAPI.RANCHER_CLUSTER });
     }
-    await applyProducts(this.$store, this.$plugin);
+    // await applyProducts(this.$store, this.$plugin);
   },
 
   computed: {

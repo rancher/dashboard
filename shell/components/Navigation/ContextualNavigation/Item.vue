@@ -7,6 +7,10 @@ export default {
   components: { DropdownChevron },
 
   props: {
+    location: {
+      type:    Object,
+      default: null
+    },
     label: {
       type:    String,
       default: null
@@ -48,7 +52,11 @@ export default {
 
 <template>
   <div class="item">
-    <div class="header">
+    <div
+      :is="location ? 'n-link' : 'div'"
+      :to="location"
+      class="header"
+    >
       <h6>{{ labelDisplay }}</h6>
       <DropdownChevron
         v-if="children.length > 0"
@@ -64,6 +72,7 @@ export default {
       <ContextualNavigationItem
         v-for="child in children"
         :key="child.label"
+        :location="child.location"
         :label="child.label"
         :children="child.children || {}"
       />

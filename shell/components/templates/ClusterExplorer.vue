@@ -5,6 +5,7 @@ import GlobalNavigation from '@shell/components/Navigation/GlobalNavigation';
 import ClusterExplorerHeader from '@shell/components/Navigation/Header/ClusterExplorerHeader';
 import ClusterContextualNavigation from '@shell/components/Navigation/ContextualNavigation/ClusterNavigation';
 import { mapGetters } from 'vuex';
+import { applyProducts } from '@shell/store/type-map';
 
 export default {
   components: {
@@ -24,6 +25,7 @@ export default {
         id:          this.$route.params.cluster,
         targetRoute: this.$route
       }, { root: true });
+      applyProducts(this.$store, this.$plugin);
     }
   },
   watch: {

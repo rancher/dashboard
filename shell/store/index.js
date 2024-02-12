@@ -226,26 +226,27 @@ const updateActiveNamespaceCache = (state, activeNamespaceCache) => {
 
 export const state = () => {
   return {
-    managementReady:         false,
-    clusterReady:            false,
-    clusterNavigation:       [],
-    isRancher:               false,
-    namespaceFilters:        [],
-    activeNamespaceCache:    {}, // Used to efficiently check if a resource should be displayed
-    activeNamespaceCacheKey: '', // Fingerprint of activeNamespaceCache
-    allNamespaces:           [],
-    allWorkspaces:           [],
-    clusterId:               null,
-    productId:               null,
-    workspace:               null,
-    error:                   null,
-    cameFromError:           false,
-    pageActions:             [],
-    serverVersion:           null,
-    systemNamespaces:        [],
-    isSingleProduct:         undefined,
-    isRancherInHarvester:    false,
-    targetRoute:             null
+    managementReady:           false,
+    clusterReady:              false,
+    clusterNavigation:         [],
+    clusterNavigationappended: [],
+    isRancher:                 false,
+    namespaceFilters:          [],
+    activeNamespaceCache:      {}, // Used to efficiently check if a resource should be displayed
+    activeNamespaceCacheKey:   '', // Fingerprint of activeNamespaceCache
+    allNamespaces:             [],
+    allWorkspaces:             [],
+    clusterId:                 null,
+    productId:                 null,
+    workspace:                 null,
+    error:                     null,
+    cameFromError:             false,
+    pageActions:               [],
+    serverVersion:             null,
+    systemNamespaces:          [],
+    isSingleProduct:           undefined,
+    isRancherInHarvester:      false,
+    targetRoute:               null
   };
 };
 
@@ -608,7 +609,11 @@ export const mutations = {
   },
 
   clusterNavigation(state, config) {
-    state.clusterNavigation = config;
+    state.clusterNavigation = [...config, ...state.clusterNavigationappended];
+  },
+
+  appendToClusterNavigation(state, { item }) {
+    state.clusterNavigationappended = [...state.clusterNavigationappended, item] ;
   },
 
   isRancherInHarvester(state, neu) {

@@ -1,7 +1,10 @@
+import { Location } from 'vue-router';
+
 export interface Item {
     name: string;
     label?: string;
     labelKey?: string;
+    location?: Location;
     children: Item[];
 }
 
@@ -30,6 +33,7 @@ const navigation: Item[] = [
   {
     name:     'Cluster',
     labelKey: 'nav.group.cluster',
+    location: { name: 'c-cluster-explorer' },
     children: [
       {
         name:     'projectNamespaces',
@@ -199,10 +203,12 @@ const navigation: Item[] = [
     ]
   },
   {
-    name:     'More Resources',
-    labelKey: 'nav.group.workload',
+    name:     'ConfigMaps',
+    label:    'ConfigMaps',
+    location: { name: 'configmap-list' },
     children: []
-  }
+  },
+
 ];
 
 export function loadNavigation(): Item[] {

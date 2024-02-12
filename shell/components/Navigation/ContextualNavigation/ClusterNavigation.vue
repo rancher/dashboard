@@ -21,6 +21,7 @@ export default {
       <Item
         v-for="(group, i) in clusterNavigation"
         :key="i"
+        :location="group.location"
         :label="group.label"
         :labelKey="group.labelKey"
         :children="group.children"
