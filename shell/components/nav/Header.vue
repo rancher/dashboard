@@ -69,7 +69,7 @@ export default {
     },
 
     authEnabled() {
-      return this.$store.getters['auth/enabled'];
+      return this.$store.getters['auth/isAuthenticated'];
     },
 
     principal() {

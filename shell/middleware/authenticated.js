@@ -148,6 +148,7 @@ function invalidResource(store, to, redirect) {
 export default async function({
   route, app, store, redirect, $cookies, req, isDev, from, $plugin, next
 }) {
+  console.log('%c Used Authenticated Middleware', 'color: #000; background-color: #FF0000');
   if ( route.path && typeof route.path === 'string') {
     // Ignore webpack hot module reload requests
     if ( route.path.startsWith('/__webpack_hmr/') ) {
@@ -250,13 +251,10 @@ export default async function({
 
   // Make sure you're actually logged in
   function isLoggedIn(me) {
-    store.commit('auth/hasAuth', true);
-    store.commit('auth/loggedInAs', me.id);
+    store.commit('auth/authenticateAs', me.id);
   }
 
   function notLoggedIn() {
-    store.commit('auth/hasAuth', true);
-
     if ( route.name === 'index' ) {
       return redirect(302, '/auth/login');
     } else {
@@ -264,11 +262,7 @@ export default async function({
     }
   }
 
-  function noAuth() {
-    store.commit('auth/hasAuth', false);
-  }
-
-  if ( store.getters['auth/enabled'] !== false && !store.getters['auth/loggedIn'] ) {
+  if ( store.getters['auth/enabled'] !== false && !store.getters['auth/isAuthenticated'] ) {
     // `await` so we have one successfully request whilst possibly logged in (ensures fromHeader is populated from `x-api-cattle-auth`)
     await store.dispatch('auth/getUser');
 
@@ -282,7 +276,7 @@ export default async function({
     const fromHeader = store.getters['auth/fromHeader'];
 
     if ( fromHeader === 'none' ) {
-      noAuth();
+      store.commit('setError', { error: 'No authentication provider found', locationError: new Error('Auth Middleware') });
     } else if ( fromHeader === 'true' ) {
       const me = await findMe(store);
 
@@ -299,7 +293,7 @@ export default async function({
         const status = e?._status;
 
         if ( status === 404 ) {
-          noAuth();
+          store.commit('setError', { error: 'No authentication provider found', locationError: new Error('Auth Middleware') });
         } else {
           if ( status === 401 ) {
             notLoggedIn();

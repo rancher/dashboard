@@ -116,7 +116,7 @@ export default {
       this.$router.push({ path: 'account/create-key' });
     },
     async calcCanChangePassword() {
-      if (!this.$store.getters['auth/enabled']) {
+      if (!this.$store.getters['auth/isAuthenticated']) {
         return false;
       }
 

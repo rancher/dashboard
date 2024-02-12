@@ -34,7 +34,9 @@ import { sortBy } from '@shell/utils/sort';
 import { addParam } from '@shell/utils/url';
 import semver from 'semver';
 import { STORE, BLANK_CLUSTER } from '@shell/store/store-types';
+import { loadNavigation } from '@shell/config/ClusterNavigation';
 import { isDevBuild } from '@shell/utils/version';
+import { stringify } from 'querystring';
 
 // Disables strict mode for all store instances to prevent warning about changing state outside of mutations
 // because it's more efficient to do that sometimes.
@@ -226,6 +228,7 @@ export const state = () => {
   return {
     managementReady:         false,
     clusterReady:            false,
+    clusterNavigation:       [],
     isRancher:               false,
     namespaceFilters:        [],
     activeNamespaceCache:    {}, // Used to efficiently check if a resource should be displayed
@@ -249,6 +252,10 @@ export const state = () => {
 export const getters = {
   clusterReady(state) {
     return state.clusterReady === true;
+  },
+
+  clusterNavigation(state) {
+    return state.clusterNavigation;
   },
 
   isMultiCluster(state, getters) {
@@ -600,6 +607,10 @@ export const mutations = {
     state.clusterReady = ready;
   },
 
+  clusterNavigation(state, config) {
+    state.clusterNavigation = config;
+  },
+
   isRancherInHarvester(state, neu) {
     state.isRancherInHarvester = neu;
   },
@@ -866,6 +877,7 @@ export const actions = {
 
     console.log(`Loading ${ isMultiCluster ? 'ECM ' : '' }cluster...`); // eslint-disable-line no-console
 
+    console.log('bb');
     // If we've entered a new store ensure everything has loaded correctly
     if (newPkgClusterStore) {
       // Mirror actions on the 'cluster' store for our specific pkg `cluster` store
@@ -964,6 +976,7 @@ export const actions = {
     }
 
     commit('clusterReady', true);
+    commit('clusterNavigation', loadNavigation());
 
     console.log('Done loading cluster.'); // eslint-disable-line no-console
   },

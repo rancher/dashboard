@@ -28,6 +28,16 @@ export const routerOptions = {
     },
     {
       path:      '',
+      component: () => interopDefault(import('../components/templates/nothing.vue')),
+      name:      'nothing',
+    },
+    {
+      path:      '/c/:cluster/configmap',
+      component: () => interopDefault(import('../pages/c/_cluster/explorer/configmap/list.vue')),
+      name:      'configmap-list',
+    },
+    {
+      path:      '',
       component: () => interopDefault(import('../components/templates/blank.vue')),
       name:      'blank',
       children:  [

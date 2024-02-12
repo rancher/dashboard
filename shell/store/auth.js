@@ -1,4 +1,4 @@
-import { GITHUB_NONCE, GITHUB_REDIRECT, GITHUB_SCOPE } from '@shell/config/query-params';
+import { GITHUB_NONCE, GITHUB_REDIRECT, GITHUB_SCOPE, TIMED_OUT } from '@shell/config/query-params';
 import { NORMAN } from '@shell/config/types';
 import { _MULTI } from '@shell/plugins/dashboard-store/actions';
 import { addObjects, findBy } from '@shell/utils/array';
@@ -7,6 +7,7 @@ import { base64Encode } from '@shell/utils/crypto';
 import { removeEmberPage } from '@shell/utils/ember-page';
 import { randomStr } from '@shell/utils/string';
 import { addParams, parse as parseUrl, removeParam } from '@shell/utils/url';
+import { REDIRECTED } from '@shell/config/cookies';
 
 export const BASE_SCOPES = {
   github:       ['read:org'],
@@ -27,26 +28,17 @@ export const LOGIN_ERRORS = {
 
 export const state = function() {
   return {
-    fromHeader:  null,
-    hasAuth:     null,
-    loggedIn:    false,
-    principalId: null,
-    v3User:      null,
-    initialPass: null,
+    fromHeader:      null,
+    isAuthenticated: false,
+    principalId:     null,
+    v3User:          null,
+    initialPass:     null,
   };
 };
 
 export const getters = {
   fromHeader() {
     return state.fromHeader;
-  },
-
-  enabled(state) {
-    return state.hasAuth;
-  },
-
-  loggedIn(state) {
-    return state.loggedIn;
   },
 
   principalId(state) {
@@ -63,6 +55,10 @@ export const getters = {
 
   isGithub(state) {
     return state.principalId && state.principalId.startsWith('github_user://');
+  },
+
+  isAuthenticated(state) {
+    return state.isAuthenticated;
   }
 };
 
@@ -76,22 +72,18 @@ export const mutations = {
     state.v3User = { ...v3User };
   },
 
-  hasAuth(state, hasAuth) {
-    state.hasAuth = !!hasAuth;
-  },
-
-  loggedInAs(state, principalId) {
-    state.loggedIn = true;
+  authenticateAs(state, principalId) {
+    state.isAuthenticated = true;
     state.principalId = principalId;
 
     this.$cookies.remove(KEY);
   },
 
-  loggedOut(state) {
+  reset(state) {
     // Note: plugin/norman/index watches for this mutation
     // to automatically disconnect subscribe sockets.
 
-    state.loggedIn = false;
+    state.isAuthenticated = false;
     state.principalId = null;
     state.v3User = null;
     state.initialPass = null;
@@ -105,6 +97,81 @@ export const mutations = {
 export const actions = {
   gotHeader({ commit }, fromHeader) {
     commit('gotHeader', fromHeader);
+  },
+
+  async findMe({ dispatch }) {
+    // First thing we do in loadManagement is fetch principals anyway.... so don't ?me=true here
+    const principals = await dispatch('rancher/findAll', {
+      type: NORMAN.PRINCIPAL,
+      opt:  {
+        url:                  '/v3/principals',
+        redirectUnauthorized: false,
+      }
+    }, { root: true });
+
+    const me = findBy(principals, 'me', true);
+
+    return me;
+  },
+
+  /**
+   * Attempt to authenticate the user given available information and persist result in store or redirect to the appropriate page to provide the necessary data to authenticate.
+   * @returns void
+   */
+  async authenticate({ dispatch, commit, getters }) {
+    // This tells Ember not to redirect back to us once you've already been to dashboard once.
+    if ( !this.$cookies.get(REDIRECTED) ) {
+      this.$cookies.set(REDIRECTED, 'true', {
+        path:     '/',
+        sameSite: true,
+        secure:   true,
+      });
+    }
+
+    const redirect = window.$nuxt.context.redirect;
+
+    if ( !getters['isAuthenticated'] ) {
+      // `await` so we have one successfully request whilst possibly logged in (ensures fromHeader is populated from `x-api-cattle-auth`)
+      await dispatch('getUser');
+
+      const v3User = getters['v3User'] || {};
+
+      if (v3User?.mustChangePassword) {
+        return redirect({ name: 'auth-setup' });
+      }
+
+      // In newer versions the API calls return the auth state instead of having to make a new call all the time.
+      const fromHeader = getters['fromHeader'];
+
+      if ( fromHeader === 'true' ) {
+        const me = await dispatch('findMe');
+
+        await dispatch('loadManagement', undefined, { root: true });
+        commit('authenticateAs', me.id);
+      } else if ( fromHeader === 'false' ) {
+        return redirect(302, `/auth/login?${ TIMED_OUT }`);
+      } else {
+        // Older versions look at principals and see what happens
+        try {
+          const me = await dispatch('findMe');
+
+          await dispatch('loadManagement', undefined, { root: true });
+          commit('authenticateAs', me.id);
+        } catch (e) {
+          const status = e?._status;
+
+          if ( status === 404 ) {
+            commit('setError', { error: 'No authentication provider found', locationError: new Error('auth store') }, { root: true });
+          } else {
+            if ( status === 401 ) {
+              return redirect(302, `/auth/login?${ TIMED_OUT }`);
+            } else {
+              commit('setError', { error: e, locationError: new Error('auth store') }, { root: true });
+            }
+          }
+        }
+      }
+    }
   },
 
   async getUser({ dispatch, commit, getters }) {
@@ -361,7 +428,7 @@ export const actions = {
 
     removeEmberPage();
 
-    commit('loggedOut');
+    commit('reset');
     dispatch('onLogout', null, { root: true });
   }
 };
