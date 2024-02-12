@@ -5,31 +5,64 @@ import { createCssVars } from '@shell/utils/color';
 import { setTitle } from '@shell/config/private-label';
 import { fetchInitialSettings } from '@shell/utils/settings';
 import { setFavIcon, haveSetFavIcon } from '@shell/utils/favicon';
+import { allHash } from '@shell/utils/promise';
+import { PaginationFilterField, PaginationParamFilter } from '@shell/types/store/pagination.types';
 
-const cspAdaptorApp = ['rancher-csp-adapter', 'rancher-csp-billing-adapter'];
+// For testing these could be changed to something like...
+const cspAdaptorApp = ['rancher-webhooka', 'rancher-webhook'];
+// const cspAdaptorApp = ['rancher-csp-adapter', 'rancher-csp-billing-adapter'];
 
 export const hasCspAdapter = (apps) => {
+  // This can be removed once https://github.com/rancher/dashboard/pull/10349 merges
+  // At the moment we fetch a filtered collection... but still receive updates to all of the resources.
+  // So if any other app changes it will appear in this `apps` collection
   return apps?.find((a) => cspAdaptorApp.includes(a.metadata?.name));
 };
 
 export default {
   async fetch() {
-    // For the login page, the schemas won't be loaded - we don't need the apps in this case
     try {
-      if (this.$store.getters['management/canList'](CATALOG.APP)) {
-        this.apps = await this.$store.dispatch('management/findAll', { type: CATALOG.APP });
-      }
-    } catch (e) {}
+      // Ensure we read the settings even when we are not authenticated
+      const promises = { globalSettings: fetchInitialSettings(this.$store) };
 
-    // Ensure we read the settings even when we are not authenticated
-    try {
-      await fetchInitialSettings(this.$store);
+      // For the login page, the schemas won't be loaded - we don't need the apps in this case
+      if (this.$store.getters['management/canList'](CATALOG.APP)) {
+        debugger;
+        // Restrict the amount of apps we need to fetch
+        // this.$store.getters[`management/paginationEnabled`]()
+        // if (true) {
+        promises.apps = this.$store.dispatch('management/findPage', {
+          type: CATALOG.APP,
+          opt:  { // Of type ActionFindPageArgs
+            pagination: new PaginationArgs({
+              filters: PaginationParamFilter.createSingleField(
+                new PaginationFilterField({ field: 'metadata.name', value: cspAdaptorApp.join(',') })
+              ),
+            })
+            // pagination:  new PaginationFilterField({
+            //   filters: PaginationParamFilter.createSingleField({
+            //     field: 'metadata.name',
+            //     value: cspAdaptorApp.join(',')
+            //   })
+            // }),
+          }
+        });
+        // } else {
+        //   promises.apps = this.$store.dispatch('management/findAll', { type: CATALOG.APP });
+        // }
+      }
+
+      const res = await allHash(promises);
 
       // The favicon is implicitly dependent on the initial settings having already been fetched
       if (!haveSetFavIcon()) {
         setFavIcon(this.$store);
       }
-    } catch (e) {}
+
+      this.apps = res.apps;
+    } catch (e) {
+      console.warn(e);
+    }
 
     // Setting this up front will remove `computed` churn, and we only care that we've initialised them
     this.haveAppsAndSettings = !!this.apps && !!this.globalSettings;
