@@ -15,7 +15,7 @@ import { splitObjectPath } from '@shell/utils/string';
 import { parseType } from '@shell/models/schema';
 import {
   STEVE_AGE_COL,
-  STEVE_ID_COL, STEVE_LIST_GROUPS, STEVE_NAMESPACE_COL, STEVE_NAME_COL, STEVE_STATE_COL
+  STEVE_ID_COL, STEVE_LIST_GROUPS, STEVE_NAMESPACE_COL, STEVE_STATE_COL
 } from '@shell/config/pagination-table-headers';
 import { createHeaders } from '@shell/store/type-map.utils';
 
