@@ -1,5 +1,5 @@
 
-import { SCHEMA } from '@shell/config/types';
+import { SCHEMA, COUNT } from '@shell/config/types';
 
 import { matches } from '@shell/utils/selector';
 import { typeMunge, typeRef, SIMPLE_TYPES } from '@shell/utils/create-yaml';
@@ -44,6 +44,29 @@ export const urlFor = (state, getters) => (type, id, opt) => {
 
   return url;
 };
+
+/**
+ * Find the number of resources given
+ * - if the type is namespaced
+ * - if there are any counts per namespace
+ * - if there are no namespaces
+ * - if there is no total count
+ */
+function matchingCounts(typeObj, namespaces) {
+  // That was easy
+  if ( !typeObj.namespaced || !typeObj.byNamespace || namespaces === null || typeObj.count === null) {
+    return typeObj.count;
+  }
+
+  let out = 0;
+
+  // Otherwise start with 0 and count up
+  for ( const namespace of namespaces ) {
+    out += typeObj.byNamespace[namespace]?.count || 0;
+  }
+
+  return out;
+}
 
 export default {
 
@@ -345,5 +368,40 @@ export default {
 
   gcIgnoreTypes: () => {
     return {};
-  }
+  },
+
+  /**
+   * For the given type, and it's settings, find the number of resources associated with it
+   *
+   * This takes into account if the type is namespaced.
+   *
+   * @param typeObj see inners for properties. must have at least `name` (resource type)
+   *
+   */
+  count: (state, getters, rootState, rootGetters) => (typeObj) => {
+    let _typeObj = typeObj;
+    const { name: type, count } = _typeObj;
+
+    if (!type) {
+      throw new Error(`Resource type required to calc count: ${ JSON.stringify(typeObj) }`);
+    }
+
+    if (!count) {
+      const schema = getters.schemaFor(type);
+      const counts = getters.all(COUNT)?.[0]?.counts || {};
+      const count = counts[type];
+
+      _typeObj = {
+        count:       count ? count.summary.count || 0 : null,
+        byNamespace: count ? count.namespaces : {},
+        revision:    count ? count.revision : null,
+        namespaced:  schema?.attributes?.namespaced
+      };
+    }
+
+    const namespaces = Object.keys(rootGetters.activeNamespaceCache || {});
+
+    return matchingCounts(_typeObj, namespaces.length ? namespaces : null);
+  },
+
 };
