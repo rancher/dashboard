@@ -7,19 +7,19 @@ export default class RegistriesTabPo extends ComponentPo {
   constructor(selector = '.dashboard-root') {
     super(selector);
   }
-  
+
   enableRegistryCheckbox(): CheckboxInputPo {
     return new CheckboxInputPo('[data-testid="registries-enable-checkbox"]');
   }
-  
+
   clickShowAdvanced(): void {
     this.self().find('[data-testid="registries-advanced-section"]').click();
   }
-  
+
   registryHostInput(): LabeledInputPo {
     return new LabeledInputPo('[data-testid="registry-host-input"]');
   }
-  
+
   addRegistryHost(host: string): void {
     this.registryHostInput().set(host);
   }
