@@ -1,8 +1,9 @@
 import { STATE, NAME as NAME_COL, NAMESPACE as NAMESPACE_COL, AGE } from '@shell/config/table-headers';
 
-// These contain paths set to specific values within a resource returned by the server
-// In the future specific resource types will extend these with their own definitions
-// For tidyness that should be done alongside their models
+// This file contains table headers
+// These table headers are used for server side pagination
+// They MUST contain sort and search values that are paths to raw properties (not computed properties in models)
+// They SHOULD avoid formatters that change the value from the same used by sort and search (user will see an order that doesn't match what they see)
 
 export const STEVE_NAME_COL = {
   ...NAME_COL,

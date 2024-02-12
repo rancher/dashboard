@@ -30,6 +30,11 @@ const settings: PaginationSettings = {
  * Helper functions for server side pagination
  */
 class PaginationUtils {
+  /**
+   * When a ns filter isn't one or more projects/namespaces... what the the valid values?
+   *
+   * This basically blocks 'Not in a Project'.. which would involve a projectsornamespaces param with every ns not in a project.
+   */
   validNsProjectFilters = [ALL, ALL_SYSTEM, ALL_USER, ALL_SYSTEM, NAMESPACE_FILTER_KINDS.NAMESPACE, NAMESPACE_FILTER_KINDS.PROJECT, NAMESPACED_YES, NAMESPACED_NO];
 
   /**

@@ -350,7 +350,6 @@ export default {
         type,
         revision:  out.revision,
         namespace: opt.watchNamespace || opt.namespaced, // it could be either apparently
-        // TODO:  RC watch
         // ToDo: SM namespaced is sometimes a boolean and sometimes a string, I don't see it as especially broken but we should refactor that in the future
         force:     opt.forceWatch === true,
       };
