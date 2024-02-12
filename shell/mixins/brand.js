@@ -5,30 +5,39 @@ import { findBy } from '@shell/utils/array';
 import { createCssVars } from '@shell/utils/color';
 import { _ALL_IF_AUTHED } from '@shell/plugins/dashboard-store/actions';
 import { setTitle } from '@shell/config/private-label';
+import { allHash } from '@shell/utils/promise';
 
 const cspAdaptorApp = ['rancher-csp-adapter', 'rancher-csp-billing-adapter'];
 
 export const hasCspAdapter = (apps) => {
+  // This can be removed once https://github.com/rancher/dashboard/pull/10349 merges
+  // At the moment we fetch a filtered collection... but still receive updates to all of the resources.
+  // So if any other app changes it will appear in this `apps` collection
   return apps?.find((a) => cspAdaptorApp.includes(a.metadata?.name));
 };
 
 export default {
   async fetch() {
-    // For the login page, the schemas won't be loaded - we don't need the apps in this case
     try {
-      if (this.$store.getters['management/canList'](CATALOG.APP)) {
-        this.apps = await this.$store.dispatch('management/findAll', { type: CATALOG.APP });
-      }
-    } catch (e) {}
+      const promises = {
+        // Ensure we read the settings even when we are not authenticated
+        globalSettings: this.$store.dispatch('management/findAll', {
+          type: MANAGEMENT.SETTING,
+          opt:  {
+            load: _ALL_IF_AUTHED, url: `/v1/${ MANAGEMENT.SETTING }`, redirectUnauthorized: false
+          }
+        })
+      };
 
-    // Ensure we read the settings even when we are not authenticated
-    try {
-      this.globalSettings = await this.$store.dispatch('management/findAll', {
-        type: MANAGEMENT.SETTING,
-        opt:  {
-          load: _ALL_IF_AUTHED, url: `/v1/${ MANAGEMENT.SETTING }`, redirectUnauthorized: false
-        }
-      });
+      // For the login page, the schemas won't be loaded - we don't need the apps in this case
+      if (this.$store.getters['management/canList'](CATALOG.APP)) {
+        promises.apps = await this.$store.dispatch('management/findAll', { type: CATALOG.APP, opt: { filter: { 'metadata.name': cspAdaptorApp.join(',') } } });
+      }
+
+      const res = await allHash(promises);
+
+      this.apps = res.apps;
+      this.globalSettings = res.globalSettings;
     } catch (e) {}
 
     // Setting this up front will remove `computed` churn, and we only care that we've initialised them
