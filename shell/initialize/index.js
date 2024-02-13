@@ -38,7 +38,7 @@ loadDirectives();
 Vue.component(NuxtChild.name, NuxtChild);
 Vue.component('NChild', NuxtChild);
 
-async function createApp(config = {}) {
+async function extendApp(config = {}) {
   const router = await extendRouter(config);
 
   const store = createStore();
@@ -189,4 +189,4 @@ async function createApp(config = {}) {
   };
 }
 
-export { createApp };
+export { extendApp };
