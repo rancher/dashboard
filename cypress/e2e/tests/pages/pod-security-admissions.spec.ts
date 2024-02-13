@@ -17,6 +17,7 @@ describe('Pod Security Admissions', { testIsolation: 'off', tags: ['@manager', '
 
   beforeEach(() => {
     cy.viewport(1380, 720);
+    cy.createE2EResourceName('podsecurityadmissions').as('podSecurityAdmissionsName');
   });
 
   it('can create a policy security admission', function() {
