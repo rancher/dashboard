@@ -137,13 +137,13 @@ async function render(to, from, next) {
   };
 
   // Update context
-  await setContext(app, {
+  await setContext(configApp, {
     route: to,
     from,
     next:  _next.bind(this)
   });
-  this._dateLastError = app.nuxt.dateErr;
-  this._hadError = Boolean(app.nuxt.err);
+  this._dateLastError = configApp.nuxt.dateErr;
+  this._hadError = Boolean(configApp.nuxt.err);
 
   // Get route's matched components
   const matches = [];
@@ -157,7 +157,7 @@ async function render(to, from, next) {
     // 3. Authenticated middleware would then load plugins and check to see if there was a valid route and navigate to that if it existed
     // 4. This would allow harvester cluster pages to load on page reload
     // We should really make authenticated middleware do less...
-    await callMiddleware.call(this, [{ options: { middleware: ['authenticated'] } }], app.context);
+    await callMiddleware.call(this, [{ options: { middleware: ['authenticated'] } }], configApp.context);
 
     // We used to have i18n middleware which was called each time we called middleware. This is also needed to support harvester because of the way harvester loads as outlined in the comment above
     await this.$store.dispatch('i18n/init');
@@ -174,20 +174,20 @@ async function render(to, from, next) {
 
   try {
     // Call middleware
-    await callMiddleware.call(this, Components, app.context);
+    await callMiddleware.call(this, Components, configApp.context);
     if (nextCalled) {
       return;
     }
-    if (app.context._errored) {
+    if (configApp.context._errored) {
       return next();
     }
 
     // Call middleware for layout
-    await callMiddleware.call(this, Components, app.context);
+    await callMiddleware.call(this, Components, configApp.context);
     if (nextCalled) {
       return;
     }
-    if (app.context._errored) {
+    if (configApp.context._errored) {
       return next();
     }
 
@@ -200,7 +200,7 @@ async function render(to, from, next) {
           continue;
         }
 
-        isValid = await Component.options.validate(app.context);
+        isValid = await Component.options.validate(configApp.context);
 
         if (!isValid) {
           break;
@@ -290,13 +290,13 @@ export async function mountApp(appPartials, VueClass) {
 
     // Add a one-time afterEach hook to
     // mount the app wait for redirect and route gets resolved
-    const unregisterHook = router.afterEach((to, from) => {
+    const unregisterHook = configRouter.afterEach((to, from) => {
       unregisterHook();
       clientFirstMount();
     });
 
     // Push the path and let route to be resolved
-    router.push(path, undefined, (err) => {
+    configRouter.push(path, undefined, (err) => {
       if (err) {
         const errorHandler = vueApp.config.errorHandler || console.error; // eslint-disable-line no-console
 
