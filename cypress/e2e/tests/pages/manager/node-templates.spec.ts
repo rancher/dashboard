@@ -11,12 +11,12 @@ describe('Node Templates', { testIsolation: 'off', tags: ['@manager', '@jenkins'
 
   before(() => {
     cy.login();
-    cy.createE2EResourceName('nodeTemplates').as('nodeTemplateName');
-    cy.createE2EResourceName('cloudCredential').as('cloudCredentialName');
   });
 
   beforeEach(() => {
-    cy.viewport(1380, 720);
+    cy.viewport(1440, 900);
+    cy.createE2EResourceName('nodeTemplates').as('nodeTemplateName');
+    cy.createE2EResourceName('cloudCredential').as('cloudCredentialName');
   });
 
   let removeCloudCred = false;
@@ -66,7 +66,7 @@ describe('Node Templates', { testIsolation: 'off', tags: ['@manager', '@jenkins'
   });
 
   it('can edit a node template', function() {
-    NodeTemplatesPagePo.navTo();
+    nodeTemplatesPage.goTo();
     nodeTemplatesPage.list().rowWithName(this.nodeTemplateName).should('be.visible');
     nodeTemplatesPage.list().rowActionMenuOpen(this.nodeTemplateName);
     nodeTemplatesPage.list().actionMenu().selectMenuItemByLabel('Edit');

@@ -8,6 +8,9 @@ describe('Cloud Credentials', { testIsolation: 'off', tags: ['@manager', '@jenki
 
   before(() => {
     cy.login();
+  });
+
+  beforeEach(() => {
     cy.createE2EResourceName('cloudCredential').as('cloudCredentialName');
   });
 

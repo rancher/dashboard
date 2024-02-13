@@ -8,11 +8,11 @@ describe.skip('Pod Security Policy Templates', { testIsolation: 'off', tags: ['@
 
   before(() => {
     cy.login();
-    cy.createE2EResourceName('podsecuritytemplate').as('podSecurityTemplateName');
   });
 
   beforeEach(() => {
     cy.viewport(1380, 720);
+    cy.createE2EResourceName('podsecuritytemplate').as('podSecurityTemplateName');
   });
 
   it('can create a policy template', function() {
