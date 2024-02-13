@@ -620,7 +620,7 @@ export default {
     let schema = null;
 
     while (!schema && tries > 0) {
-      // Schemas may not have been loaded, so don't error out if they aer not loaded yet
+      // Schemas may not have been loaded, so don't error out if they are not loaded yet
       // the wait here will wait for schemas to load and then for the desired schema to be available
       schema = getters['schemaFor'](type, false, false);
 
