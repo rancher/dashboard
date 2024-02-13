@@ -120,13 +120,15 @@ describe('Cluster Manager', { testIsolation: 'off', tags: '@adminUser' }, () => 
 
       it('can download KubeConfig', () => {
         clusterList.goTo();
+        cy.intercept('POST', '/v3/clusters/**').as('generateKubeconfig');
         clusterList.list().actionMenu(rke2CustomName).getMenuItem('Download KubeConfig').click();
+        cy.wait('@generateKubeconfig').its('response.statusCode').should('eq', 200);
 
         const downloadedFilename = path.join(downloadsFolder, `${ rke2CustomName }.yaml`);
 
         cy.readFile(downloadedFilename).then((buffer) => {
           // This will throw an exception which will fail the test if not valid yaml
-          const obj = jsyaml.load(buffer);
+          const obj: any = jsyaml.load(buffer);
 
           // Basic checks on the downloaded YAML
           expect(obj.clusters.length).to.equal(1);
@@ -343,7 +345,7 @@ describe('Cluster Manager', { testIsolation: 'off', tags: '@adminUser' }, () => 
     clusterList.list().resourceTable().sortableTable().rowElementWithName('local')
       .click();
     clusterList.list().openBulkActionDropdown();
-    clusterList.list().bulkActionButton('Download YAML').click();
+    clusterList.list().bulkActionButton('Download YAML').click({ force: true });
     const downloadedFilename = path.join(downloadsFolder, `local.yaml`);
 
     cy.readFile(downloadedFilename).then((buffer) => {
@@ -364,7 +366,9 @@ describe('Cluster Manager', { testIsolation: 'off', tags: '@adminUser' }, () => 
     clusterList.list().resourceTable().sortableTable().rowElementWithName('local')
       .click();
     clusterList.list().openBulkActionDropdown();
-    clusterList.list().bulkActionButton('Download KubeConfig').click();
+    cy.intercept('POST', '/v3/clusters/local?action=generateKubeconfig').as('generateKubeConfig');
+    clusterList.list().bulkActionButton('Download KubeConfig').click({ force: true });
+    cy.wait('@generateKubeConfig').its('response.statusCode').should('eq', 200);
     const downloadedFilename = path.join(downloadsFolder, 'local.yaml');
 
     cy.readFile(downloadedFilename).then((buffer) => {

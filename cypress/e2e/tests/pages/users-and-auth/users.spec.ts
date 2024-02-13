@@ -208,7 +208,7 @@ describe('Users', { tags: '@adminUser' }, () => {
       usersPo.list().openBulkActionDropdown();
 
       cy.intercept('GET', '/v1/management.cattle.io.users/*').as('downloadYaml');
-      usersPo.list().bulkActionButton('Download YAML').click();
+      usersPo.list().bulkActionButton('Download YAML').click({ force: true });
       cy.wait('@downloadYaml', { timeout: 10000 }).its('response.statusCode').should('eq', 200);
       const downloadedFilename = path.join(downloadsFolder, 'resources.zip');
 
@@ -220,7 +220,7 @@ describe('Users', { tags: '@adminUser' }, () => {
       usersPo.waitForRequests();
       usersPo.list().elementWithName(userBaseUsername).click();
       usersPo.list().openBulkActionDropdown();
-      usersPo.list().bulkActionButton('Delete').click();
+      usersPo.list().bulkActionButton('Delete').click({ force: true });
       const promptRemove = new PromptRemove();
 
       cy.intercept('DELETE', '/v3/users/*').as('deleteUser');

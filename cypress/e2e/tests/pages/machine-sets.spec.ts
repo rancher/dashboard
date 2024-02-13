@@ -15,6 +15,9 @@ describe('MachineSets', { testIsolation: 'off', tags: ['@manager', '@adminUser']
 
   before(() => {
     cy.login();
+  });
+
+  beforeEach(() => {
     cy.createE2EResourceName('machinesets').as('machineSetName');
   });
 
