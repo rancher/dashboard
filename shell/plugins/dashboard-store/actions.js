@@ -620,7 +620,7 @@ export default {
     let schema = null;
 
     while (!schema && tries > 0) {
-      schema = getters['schemaFor'](type);
+      schema = getters['schemaFor'](type, false, false);
 
       if (!schema) {
         if (tries === RETRY_LOG) {
