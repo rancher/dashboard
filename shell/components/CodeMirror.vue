@@ -159,6 +159,7 @@ export default {
         <div
           v-clean-tooltip="'Key mapping'"
           class="label"
+          data-testid="code-mirror-keymap"
           @mouseover="onKeymapMouseOver(true)"
           @mouseleave="onKeymapMouseOver(false)"
         >
