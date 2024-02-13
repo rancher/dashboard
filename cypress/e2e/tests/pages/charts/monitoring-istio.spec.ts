@@ -190,6 +190,9 @@ describe('Charts', { tags: ['@charts', '@adminUser'] }, () => {
     });
   });
 
+  /**
+   * Istio requires Prometheus operator to be installed, see previous steps.
+   */
   describe('Istio', () => {
     const istioVersion = '103.0.0%2Bup1.18.2';
     const chartsIstioPage = `${ chartsPageUrl }&chart=rancher-istio&version=${ istioVersion }`;
@@ -201,9 +204,6 @@ describe('Charts', { tags: ['@charts', '@adminUser'] }, () => {
     });
 
     describe('Istio local provisioning', () => {
-      /**
-       * Istio requires Prometheus operator to be installed, see previous steps.
-       */
       it('Should install Istio', () => {
         chartsPage.goTo();
         chartsPage.goToInstall().nextPage();

@@ -1,7 +1,7 @@
 import BaseResourceList from '@/cypress/e2e/po/lists/base-resource-list.po';
 
 /**
- * List component for home page cluster resources
+ * List component for Installed Apps page
  */
 export default class ChartInstalledAppsListPo extends BaseResourceList {
   state(name: string) {
