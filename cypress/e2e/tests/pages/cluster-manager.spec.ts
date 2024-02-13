@@ -365,9 +365,8 @@ describe('Cluster Manager', { testIsolation: 'off', tags: '@adminUser' }, () => 
     ClusterManagerListPagePo.navTo();
     clusterList.list().resourceTable().sortableTable().rowElementWithName('local')
       .click();
-    clusterList.list().openBulkActionDropdown();
     cy.intercept('POST', '/v3/clusters/local?action=generateKubeconfig').as('generateKubeConfig');
-    clusterList.list().bulkActionButton('Download KubeConfig').click({ force: true });
+    clusterList.list().downloadKubeConfig().click({ force: true });
     cy.wait('@generateKubeConfig').its('response.statusCode').should('eq', 200);
     const downloadedFilename = path.join(downloadsFolder, 'local.yaml');
 
