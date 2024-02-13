@@ -1573,8 +1573,7 @@ export default {
         set(regs, 'mirrors', {});
       }
 
-      const hostname = Object.keys(regs.configs)[0];
-      const config = regs.configs[hostname];
+      const config = regs.configs[this.registryHost];
 
       if ( config ) {
         registrySecret = config.authConfigSecretName;
