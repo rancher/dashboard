@@ -35,8 +35,8 @@ export default {
     return {
       codeMirrorRef:       null,
       loaded:              false,
-      showKeymap:          this.showKeyMapBox,
-      showKeymapCloseIcon: false,
+      showKeyMap:          this.showKeyMapBox,
+      showKeyMapCloseIcon: false,
     };
   },
 
@@ -135,12 +135,12 @@ export default {
       }
     },
 
-    closeKeymapInfo() {
-      this.showKeymap = false;
+    closeKeyMapInfo() {
+      this.showKeyMap = false;
     },
 
-    onKeymapMouseOver(v) {
-      this.showKeymapCloseIcon = v;
+    onKeyMapMouseOver(v) {
+      this.showKeyMapCloseIcon = v;
     }
   }
 };
@@ -153,23 +153,23 @@ export default {
   >
     <div v-if="loaded">
       <div
-        v-if="showKeymap && keyMap"
+        v-if="showKeyMap && keyMap"
         class="keymap overlay"
       >
         <div
           v-clean-tooltip="'Key mapping'"
           class="label"
           data-testid="code-mirror-keymap"
-          @mouseover="onKeymapMouseOver(true)"
-          @mouseleave="onKeymapMouseOver(false)"
+          @mouseover="onKeyMapMouseOver(true)"
+          @mouseleave="onKeyMapMouseOver(false)"
         >
           <span>
             {{ keyMap }}
           </span>
           <i
-            v-if="showKeymapCloseIcon"
+            v-if="showKeyMapCloseIcon"
             class="icon icon-close icon-sm"
-            @click="closeKeymapInfo"
+            @click="closeKeyMapInfo"
           />
         </div>
       </div>
