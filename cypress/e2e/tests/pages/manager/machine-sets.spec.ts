@@ -103,7 +103,7 @@ describe('MachineSets', { testIsolation: 'off', tags: ['@manager', '@adminUser']
 
   it('can download YAML', function() {
     MachineSetsPagePo.navTo();
-    machineSetsPage.list().actionMenu(this.machineSetName).getMenuItem('Download YAML').click();
+    machineSetsPage.list().actionMenu(this.machineSetName).getMenuItem('Download YAML').click({ force: true });
 
     const downloadedFilename = path.join(downloadsFolder, `${ this.machineSetName }.yaml`);
 

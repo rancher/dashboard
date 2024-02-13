@@ -106,7 +106,7 @@ describe('MachineDeployments', { testIsolation: 'off', tags: ['@manager', '@admi
 
   it('can download YAML', function() {
     MachineDeploymentsPagePo.navTo();
-    machineDeploymentsPage.list().actionMenu(this.machineDeploymentsName).getMenuItem('Download YAML').click();
+    machineDeploymentsPage.list().actionMenu(this.machineDeploymentsName).getMenuItem('Download YAML').click({ force: true });
 
     const downloadedFilename = path.join(downloadsFolder, `${ this.machineDeploymentsName }.yaml`);
 

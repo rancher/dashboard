@@ -93,7 +93,7 @@ describe('Pod Security Admissions', { testIsolation: 'off', tags: ['@manager', '
 
   it('can download YAML for a policy security admission', function() {
     PodSecurityAdmissionsPagePo.navTo();
-    podSecurityAdmissionsPage.list().actionMenu(this.podSecurityAdmissionsName).getMenuItem('Download YAML').click();
+    podSecurityAdmissionsPage.list().actionMenu(this.podSecurityAdmissionsName).getMenuItem('Download YAML').click({ force: true });
 
     const downloadedFilename = path.join(downloadsFolder, `${ this.podSecurityAdmissionsName }.yaml`);
 
