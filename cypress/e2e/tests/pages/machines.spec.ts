@@ -84,7 +84,7 @@ describe('Machines', { testIsolation: 'off', tags: ['@manager', '@adminUser'] },
 
   it('can download YAML', function() {
     MachinesPagePo.navTo();
-    machinesPage.list().actionMenu(this.machineName).getMenuItem('Download YAML').click();
+    machinesPage.list().actionMenu(this.machineName).getMenuItem('Download YAML').click({ force: true });
 
     const downloadedFilename = path.join(downloadsFolder, `${ this.machineName }.yaml`);
 
