@@ -9,6 +9,9 @@ describe('Cluster Management Helm Repositories', { testIsolation: 'off', tags: [
 
   before(() => {
     cy.login();
+  });
+
+  beforeEach(() => {
     cy.createE2EResourceName('repo').as('repoName');
   });
 

@@ -50,7 +50,7 @@ describe('Drivers', { testIsolation: 'off', tags: ['@manager', '@adminUser'] }, 
     });
 
     it('can deactivate a cluster driver', () => {
-      RkeDriversPagePo.navTo();
+      driversPage.goTo();
       driversPage.list().rowActionMenuOpen(`Example`);
       driversPage.actionMenu().selectMenuItemByLabel(`Deactivate`);
       cy.intercept('POST', '/v3/kontainerDrivers/*').as('deactivateDriver');
