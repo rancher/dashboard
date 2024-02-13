@@ -157,7 +157,7 @@ export default {
         class="keymap overlay"
       >
         <div
-          v-clean-tooltip="'Key mapping'"
+          v-clean-tooltip="t('codeMirror.keymap.tooltip')"
           class="label"
           data-testid="code-mirror-keymap"
           @mouseover="onKeyMapMouseOver(true)"

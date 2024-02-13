@@ -2078,6 +2078,10 @@ resource:
   errors:
     update: "Error updating {name}"
 
+codeMirror:
+  keymap:
+    tooltip: Key mapping preference.
+
 cruResource:
   backToForm: Back to Form
   backBody: You will lose any changes made to the YAML.
