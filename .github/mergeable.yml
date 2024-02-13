@@ -1,0 +1,15 @@
+version: 2
+mergeable:
+  - when: pull_request.*, pull_request_review.*
+    name: 'Approval check'
+    validate:
+      - do: approvals
+        min:
+          count: 1
+        limit:
+          # https://github.com/orgs/rancher/teams/ui
+          teams: ['rancher/ui']
+      - do: milestone
+        no_empty:
+          enabled: true
+          message: 'Custom message...'
