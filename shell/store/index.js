@@ -927,6 +927,12 @@ export const actions = {
     // Try and wait until the schema exists before proceeding
     await dispatch('management/waitForSchema', { type: MANAGEMENT.CLUSTER });
 
+    // Final check, if after waiting and re-fetching schemas, we still don't have the mgmt cluster schema
+    // then show an error
+    if (!getters['management/schemaFor'](MANAGEMENT.CLUSTER)) {
+      throw new Error(getters['i18n/t']('nav.errors.noMgmtClusterSchema'));
+    }
+
     // Similar to above, we're still waiting on loadManagement to fetch required resources
     // If we don't have all mgmt clusters yet a request to fetch this cluster and then all clusters (in cleanNamespaces) is kicked off
     await dispatch('management/waitForHaveAll', { type: MANAGEMENT.CLUSTER });
