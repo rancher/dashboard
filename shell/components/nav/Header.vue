@@ -63,7 +63,6 @@ export default {
   computed: {
     ...mapGetters(['clusterReady', 'isExplorer', 'isRancher', 'currentCluster',
       'currentProduct', 'rootProduct', 'backToRancherLink', 'backToRancherGlobalLink', 'pageActions', 'isSingleProduct', 'isRancherInHarvester', 'showTopLevelMenu']),
-    ...mapGetters('type-map', ['activeProducts']),
 
     appName() {
       return getProduct();
