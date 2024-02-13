@@ -24,18 +24,23 @@ export default {
     asTextArea: {
       type:    Boolean,
       default: false
-    }
+    },
+    showKeyMapBox: {
+      type:    Boolean,
+      default: false
+    },
   },
 
   data() {
     return {
-      codeMirrorRef: null,
-      loaded:        false
+      codeMirrorRef:       null,
+      loaded:              false,
+      showKeymap:          this.showKeyMapBox,
+      showKeymapCloseIcon: false,
     };
   },
 
   computed: {
-
     isDisabled() {
       return this.mode === _VIEW;
     },
@@ -69,6 +74,10 @@ export default {
       Object.assign(out, this.options);
 
       return out;
+    },
+
+    keyMap() {
+      return this.combinedOptions?.keyMap ? this.t(`prefs.keymap.${ this.combinedOptions.keyMap }`) : null;
     },
   },
 
@@ -124,6 +133,14 @@ export default {
       if ( this.$refs.codeMirrorRef ) {
         this.$refs.codeMirrorRef.codemirror.doc.setValue(value);
       }
+    },
+
+    closeKeymapInfo() {
+      this.showKeymap = false;
+    },
+
+    onKeymapMouseOver(v) {
+      this.showKeymapCloseIcon = v;
     }
   }
 };
@@ -134,18 +151,39 @@ export default {
     class="code-mirror"
     :class="{['as-text-area']: asTextArea}"
   >
-    <codemirror
-      v-if="loaded"
-      ref="codeMirrorRef"
-      :value="value"
-      :options="combinedOptions"
-      :disabled="isDisabled"
-      @ready="onReady"
-      @input="onInput"
-      @changes="onChanges"
-      @focus="onFocus"
-      @blur="onBlur"
-    />
+    <div v-if="loaded">
+      <div
+        v-if="showKeymap && keyMap"
+        class="keymap overlay"
+      >
+        <div
+          v-clean-tooltip="'Key mapping'"
+          class="label"
+          @mouseover="onKeymapMouseOver(true)"
+          @mouseleave="onKeymapMouseOver(false)"
+        >
+          <span>
+            {{ keyMap }}
+          </span>
+          <i
+            v-if="showKeymapCloseIcon"
+            class="icon icon-close icon-sm"
+            @click="closeKeymapInfo"
+          />
+        </div>
+      </div>
+      <codemirror
+        ref="codeMirrorRef"
+        :value="value"
+        :options="combinedOptions"
+        :disabled="isDisabled"
+        @ready="onReady"
+        @input="onInput"
+        @changes="onChanges"
+        @focus="onFocus"
+        @blur="onBlur"
+      />
+    </div>
     <div v-else>
       Loading...
     </div>
@@ -155,6 +193,30 @@ export default {
 <style lang="scss">
   .code-mirror {
     z-index: 0;
+
+    .overlay {
+      position: sticky;
+      display: grid;
+      top: 0;
+      float: right;
+      height: 0;
+      z-index: 1;
+
+      .label {
+        border-radius: 2px;
+        border-style: dashed;
+        border-width: 0.1px;
+        margin: 7px 7px 0 0;
+        padding: 7px;
+        color: var(--darker);
+        background-color: var(--overlay-bg);
+        font-size: 12px;
+
+        .icon {
+          cursor: pointer;
+        }
+      }
+    }
 
     .vue-codemirror .CodeMirror {
       height: initial;
@@ -248,7 +310,5 @@ export default {
         background-color: var(--primary);
       }
     }
-
   }
-
 </style>
