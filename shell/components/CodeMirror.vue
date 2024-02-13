@@ -35,8 +35,8 @@ export default {
     return {
       codeMirrorRef:       null,
       loaded:              false,
-      showKeyMap:          this.showKeyMapBox,
       showKeyMapCloseIcon: false,
+      removeKeyMapBox:     false,
     };
   },
 
@@ -76,7 +76,7 @@ export default {
       return out;
     },
 
-    keyMap() {
+    keyMapText() {
       return this.combinedOptions?.keyMap ? this.t(`prefs.keymap.${ this.combinedOptions.keyMap }`) : null;
     },
   },
@@ -136,7 +136,7 @@ export default {
     },
 
     closeKeyMapInfo() {
-      this.showKeyMap = false;
+      this.removeKeyMapBox = true;
     },
 
     onKeyMapMouseOver(v) {
@@ -153,7 +153,7 @@ export default {
   >
     <div v-if="loaded">
       <div
-        v-if="showKeyMap && keyMap"
+        v-if="showKeyMapBox && !removeKeyMapBox && keyMapText"
         class="keymap overlay"
       >
         <div
@@ -164,7 +164,7 @@ export default {
           @mouseleave="onKeyMapMouseOver(false)"
         >
           <span>
-            {{ keyMap }}
+            {{ keyMapText }}
           </span>
           <i
             v-if="showKeyMapCloseIcon"

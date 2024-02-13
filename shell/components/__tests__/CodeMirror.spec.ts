@@ -77,5 +77,23 @@ describe('component: CodeMirror.vue', () => {
 
       expect(closeIcon.element).toBeDefined();
     });
+
+    it(`should remove keyMap box`, async() => {
+      await wrapper.vm.$nextTick();
+
+      let keyMapBox = wrapper.find('[data-testid="code-mirror-keymap"]');
+
+      keyMapBox.trigger('mouseover');
+      await wrapper.vm.$nextTick();
+
+      const closeIcon = keyMapBox.find('.icon');
+
+      closeIcon.element.click();
+      await wrapper.vm.$nextTick();
+
+      keyMapBox = wrapper.find('[data-testid="code-mirror-keymap"]');
+
+      expect(keyMapBox.element).toBeUndefined();
+    });
   });
 });
