@@ -53,9 +53,7 @@ export default {
     try {
       await store.dispatch('management/findAll', {
         type: MANAGEMENT.SETTING,
-        opt:  {
-          load: _ALL_IF_AUTHED, url: `/v1/${ MANAGEMENT.SETTING }`, redirectUnauthorized: false
-        },
+        opt:  { load: _ALL_IF_AUTHED, redirectUnauthorized: false },
       });
 
       firstLoginSetting = store.getters['management/byId'](MANAGEMENT.SETTING, SETTING.FIRST_LOGIN);

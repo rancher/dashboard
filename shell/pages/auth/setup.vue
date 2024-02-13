@@ -57,9 +57,7 @@ export default {
     try {
       await store.dispatch('management/findAll', {
         type: MANAGEMENT.SETTING,
-        opt:  {
-          load: _ALL_IF_AUTHED, url: `/v1/${ MANAGEMENT.SETTING }`, redirectUnauthorized: false
-        }
+        opt:  { load: _ALL_IF_AUTHED, redirectUnauthorized: false }
       });
     } catch (e) {
     }
@@ -107,9 +105,7 @@ export default {
     try {
       await store.dispatch('management/findAll', {
         type: MANAGEMENT.SETTING,
-        opt:  {
-          load: _ALL_IF_AUTHED, url: `/v1/${ MANAGEMENT.SETTING }`, redirectUnauthorized: false
-        },
+        opt:  { load: _ALL_IF_AUTHED, redirectUnauthorized: false },
       });
 
       plSetting = store.getters['management/byId'](MANAGEMENT.SETTING, SETTING.PL);
