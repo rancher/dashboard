@@ -149,7 +149,7 @@ export default {
             />
 
             <SelectOrCreateAuthSecret
-              :key="row.value.hostname"
+              :key="`${row.value.hostname}-${row.value.authConfigSecretName}`"
               v-model="row.value.authConfigSecretName"
               :register-before-hook="wrapRegisterBeforeHook"
               :append-unique-id-to-hook="true"
