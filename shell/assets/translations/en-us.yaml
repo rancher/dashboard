@@ -1862,6 +1862,7 @@ cluster:
       header: System Services
     cni:
       label: Container Network
+      cniNoneBanner: When CNI is set to 'none' an <a href="https://ranchermanager.docs.rancher.com/reference-guides/cluster-configuration/rancher-server-configuration/rke2-cluster-configuration#additionalmanifest" target="_blank" rel="noopener noreferrer nofollow">Additional Manifest</a> deploying an alternate CNI must be specified for successful cluster provisioning.
       cilium:
         BandwidthManager:
           enable: Enable Bandwidth Manager
