@@ -229,6 +229,7 @@ export default {
       :class="{fill: true, scrolling: scrolling}"
       :value="curValue"
       :options="codeMirrorOptions"
+      :showKeyMapBox="true"
       :data-testid="componentTestid + '-code-mirror'"
       @onInput="onInput"
       @onReady="onReady"
