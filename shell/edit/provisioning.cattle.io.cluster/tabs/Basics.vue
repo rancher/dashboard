@@ -103,10 +103,6 @@ export default {
       type:     Boolean,
       required: true
     },
-    unsupportedCloudProvider: {
-      type:     Boolean,
-      required: true
-    },
     cloudProviderOptions: {
       type:     Array,
       required: true
@@ -369,7 +365,7 @@ export default {
     },
 
     canNotEditCloudProvider() {
-      const canNotEdit = this.isEdit && !this.unsupportedCloudProvider;
+      const canNotEdit = this.isEdit;
 
       return canNotEdit;
     },
@@ -496,12 +492,6 @@ export default {
       <div class="spacer" />
 
       <div class="col span-12">
-        <Banner
-          v-if="unsupportedCloudProvider"
-          class="error mt-5"
-        >
-          {{ t('cluster.rke2.cloudProvider.unsupported') }}
-        </Banner>
         <h3>
           {{ t('cluster.rke2.cloudProvider.header') }}
         </h3>
