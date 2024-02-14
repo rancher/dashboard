@@ -420,6 +420,7 @@ export default {
     <Banner
       v-if="serverConfig.cni === 'none'"
       color="warning"
+      data-testid="clusterBasics__noneOptionSelectedForCni"
     >
       <span v-clean-html="t('cluster.rke2.cni.cniNoneBanner', {}, true)" />
     </Banner>

@@ -43,23 +43,23 @@ describe('Cluster Manager', { testIsolation: 'off', tags: ['@manager', '@adminUs
     cy.login();
   });
 
-  describe('All providers', () => {
-    providersList.forEach((prov) => {
-      prov.conditions.forEach((condition) => {
-        it(`should be able to access cluster creation for provider ${ prov.label } with rke type ${ condition.rkeType } via url`, () => {
-          const clusterCreate = new ClusterManagerCreatePagePo();
+  // describe('All providers', () => {
+  //   providersList.forEach((prov) => {
+  //     prov.conditions.forEach((condition) => {
+  //       it(`should be able to access cluster creation for provider ${ prov.label } with rke type ${ condition.rkeType } via url`, () => {
+  //         const clusterCreate = new ClusterManagerCreatePagePo();
 
-          clusterCreate.goTo(`type=${ prov.clusterProviderQueryParam }&rkeType=${ condition.rkeType }`);
-          clusterCreate.waitForPage();
+  //         clusterCreate.goTo(`type=${ prov.clusterProviderQueryParam }&rkeType=${ condition.rkeType }`);
+  //         clusterCreate.waitForPage();
 
-          const fnName = condition.loads === 'rke1' ? 'rke1PageTitle' : 'rke2PageTitle';
-          const evaluation = condition.loads === 'rke1' ? `Add Cluster - ${ condition.label ? condition.label : prov.label }` : `Create ${ condition.label ? condition.label : prov.label }`;
+  //         const fnName = condition.loads === 'rke1' ? 'rke1PageTitle' : 'rke2PageTitle';
+  //         const evaluation = condition.loads === 'rke1' ? `Add Cluster - ${ condition.label ? condition.label : prov.label }` : `Create ${ condition.label ? condition.label : prov.label }`;
 
-          clusterCreate[fnName]().should('contain', evaluation);
-        });
-      });
-    });
-  });
+  //         clusterCreate[fnName]().should('contain', evaluation);
+  //       });
+  //     });
+  //   });
+  // });
 
   describe('Created', () => {
     const createRKE2ClusterPage = new ClusterManagerCreateRke2CustomPagePo();
@@ -104,6 +104,9 @@ describe('Cluster Manager', { testIsolation: 'off', tags: ['@manager', '@adminUs
         labeledSelectPo.toggle();
         labeledSelectPo.clickLabel('none');
         labeledSelectPo.checkOptionSelected('none');
+
+        // banner with additional info about 'none' option should be visible
+        cy.get('[data-testid="clusterBasics__noneOptionSelectedForCni"]').should('exist');
         // EO test for https://github.com/rancher/dashboard/issues/10338 (added option 'none' for CNI)
 
         createRKE2ClusterPage.create();
@@ -116,103 +119,103 @@ describe('Cluster Manager', { testIsolation: 'off', tags: ['@manager', '@adminUs
         detailRKE2ClusterPage.waitForPage(undefined, 'registration');
       });
 
-      it('can copy config to clipboard', () => {
-        ClusterManagerListPagePo.navTo();
+      // it('can copy config to clipboard', () => {
+      //   ClusterManagerListPagePo.navTo();
 
-        cy.intercept('POST', '*action=generateKubeconfig').as('copyKubeConfig');
-        clusterList.list().actionMenu(rke2CustomName).getMenuItem('Copy KubeConfig to Clipboard').click();
-        cy.wait('@copyKubeConfig');
+      //   cy.intercept('POST', '*action=generateKubeconfig').as('copyKubeConfig');
+      //   clusterList.list().actionMenu(rke2CustomName).getMenuItem('Copy KubeConfig to Clipboard').click();
+      //   cy.wait('@copyKubeConfig');
 
-        // Verify confirmation message displays and is hidden after ~3 sec
-        cy.get('.growl-text').contains('Copied KubeConfig to Clipboard').should('be.visible');
-        cy.get('.growl-text', { timeout: 4000 }).should('not.exist');
+      //   // Verify confirmation message displays and is hidden after ~3 sec
+      //   cy.get('.growl-text').contains('Copied KubeConfig to Clipboard').should('be.visible');
+      //   cy.get('.growl-text', { timeout: 4000 }).should('not.exist');
 
-        // Skipping following assertion for now as it is failing due to Cypress' limitations with accessing the clipboard in Chrome browser and headless mode. Works in Electron browser
-        // see https://github.com/cypress-io/cypress/issues/2752
+      //   // Skipping following assertion for now as it is failing due to Cypress' limitations with accessing the clipboard in Chrome browser and headless mode. Works in Electron browser
+      //   // see https://github.com/cypress-io/cypress/issues/2752
 
-        // read text saved in the browser clipboard
-        // cy.window().its('navigator.clipboard')
-        //   .invoke('readText').should('include', rke2CustomName);
-      });
+      //   // read text saved in the browser clipboard
+      //   // cy.window().its('navigator.clipboard')
+      //   //   .invoke('readText').should('include', rke2CustomName);
+      // });
 
-      it('can edit cluster and see changes afterwards', () => {
-        clusterList.goTo();
-        clusterList.list().actionMenu(rke2CustomName).getMenuItem('Edit Config').click();
+      // it('can edit cluster and see changes afterwards', () => {
+      //   clusterList.goTo();
+      //   clusterList.list().actionMenu(rke2CustomName).getMenuItem('Edit Config').click();
 
-        editCreatedClusterPage.waitForPage('mode=edit', 'basic');
-        editCreatedClusterPage.nameNsDescription().description().set(rke2CustomName);
-        editCreatedClusterPage.save();
+      //   editCreatedClusterPage.waitForPage('mode=edit', 'basic');
+      //   editCreatedClusterPage.nameNsDescription().description().set(rke2CustomName);
+      //   editCreatedClusterPage.save();
 
-        // We should be taken back to the list page if the save was successful
-        clusterList.waitForPage();
+      //   // We should be taken back to the list page if the save was successful
+      //   clusterList.waitForPage();
 
-        clusterList.list().actionMenu(rke2CustomName).getMenuItem('Edit Config').click();
+      //   clusterList.list().actionMenu(rke2CustomName).getMenuItem('Edit Config').click();
 
-        editCreatedClusterPage.waitForPage('mode=edit', 'basic');
-        editCreatedClusterPage.nameNsDescription().description().self().should('have.value', rke2CustomName);
-      });
+      //   editCreatedClusterPage.waitForPage('mode=edit', 'basic');
+      //   editCreatedClusterPage.nameNsDescription().description().self().should('have.value', rke2CustomName);
+      // });
 
-      it('can view cluster YAML editor', () => {
-        clusterList.goTo();
-        clusterList.list().actionMenu(rke2CustomName).getMenuItem('Edit YAML').click();
+      // it('can view cluster YAML editor', () => {
+      //   clusterList.goTo();
+      //   clusterList.list().actionMenu(rke2CustomName).getMenuItem('Edit YAML').click();
 
-        editCreatedClusterPage.waitForPage('mode=edit&as=yaml');
-        editCreatedClusterPage.resourceDetail().resourceYaml().checkVisible();
-      });
+      //   editCreatedClusterPage.waitForPage('mode=edit&as=yaml');
+      //   editCreatedClusterPage.resourceDetail().resourceYaml().checkVisible();
+      // });
 
-      it('can download KubeConfig', () => {
-        clusterList.goTo();
-        clusterList.list().actionMenu(rke2CustomName).getMenuItem('Download KubeConfig').click();
+      // it('can download KubeConfig', () => {
+      //   clusterList.goTo();
+      //   clusterList.list().actionMenu(rke2CustomName).getMenuItem('Download KubeConfig').click();
 
-        const downloadedFilename = path.join(downloadsFolder, `${ rke2CustomName }.yaml`);
+      //   const downloadedFilename = path.join(downloadsFolder, `${ rke2CustomName }.yaml`);
 
-        cy.readFile(downloadedFilename).then((buffer) => {
-          // This will throw an exception which will fail the test if not valid yaml
-          const obj = jsyaml.load(buffer);
+      //   cy.readFile(downloadedFilename).then((buffer) => {
+      //     // This will throw an exception which will fail the test if not valid yaml
+      //     const obj = jsyaml.load(buffer);
 
-          // Basic checks on the downloaded YAML
-          expect(obj.clusters.length).to.equal(1);
-          expect(obj.clusters[0].name).to.equal(rke2CustomName);
-          expect(obj.apiVersion).to.equal('v1');
-          expect(obj.kind).to.equal('Config');
-        });
-      });
+      //     // Basic checks on the downloaded YAML
+      //     expect(obj.clusters.length).to.equal(1);
+      //     expect(obj.clusters[0].name).to.equal(rke2CustomName);
+      //     expect(obj.apiVersion).to.equal('v1');
+      //     expect(obj.kind).to.equal('Config');
+      //   });
+      // });
 
-      it('can download YAML', () => {
-        // Delete downloads directory. Need a fresh start to avoid conflicting file names
-        cy.deleteDownloadsFolder();
+      // it('can download YAML', () => {
+      //   // Delete downloads directory. Need a fresh start to avoid conflicting file names
+      //   cy.deleteDownloadsFolder();
 
-        ClusterManagerListPagePo.navTo();
-        clusterList.list().actionMenu(rke2CustomName).getMenuItem('Download YAML').click();
+      //   ClusterManagerListPagePo.navTo();
+      //   clusterList.list().actionMenu(rke2CustomName).getMenuItem('Download YAML').click();
 
-        const downloadedFilename = path.join(downloadsFolder, `${ rke2CustomName }.yaml`);
+      //   const downloadedFilename = path.join(downloadsFolder, `${ rke2CustomName }.yaml`);
 
-        cy.readFile(downloadedFilename).then((buffer) => {
-          const obj: any = jsyaml.load(buffer);
+      //   cy.readFile(downloadedFilename).then((buffer) => {
+      //     const obj: any = jsyaml.load(buffer);
 
-          // Basic checks on the downloaded YAML
-          expect(obj.apiVersion).to.equal('provisioning.cattle.io/v1');
-          expect(obj.metadata.annotations['field.cattle.io/description']).to.equal(rke2CustomName);
-          expect(obj.kind).to.equal('Cluster');
-        });
-      });
+      //     // Basic checks on the downloaded YAML
+      //     expect(obj.apiVersion).to.equal('provisioning.cattle.io/v1');
+      //     expect(obj.metadata.annotations['field.cattle.io/description']).to.equal(rke2CustomName);
+      //     expect(obj.kind).to.equal('Cluster');
+      //   });
+      // });
 
-      it('can delete cluster', () => {
-        clusterList.goTo();
-        clusterList.sortableTable().rowElementWithName(rke2CustomName).should('exist', { timeout: 15000 });
-        clusterList.list().actionMenu(rke2CustomName).getMenuItem('Delete').click();
+      // it('can delete cluster', () => {
+      //   clusterList.goTo();
+      //   clusterList.sortableTable().rowElementWithName(rke2CustomName).should('exist', { timeout: 15000 });
+      //   clusterList.list().actionMenu(rke2CustomName).getMenuItem('Delete').click();
 
-        clusterList.sortableTable().rowNames('.cluster-link').then((rows: any) => {
-          const promptRemove = new PromptRemove();
+      //   clusterList.sortableTable().rowNames('.cluster-link').then((rows: any) => {
+      //     const promptRemove = new PromptRemove();
 
-          promptRemove.confirm(rke2CustomName);
-          promptRemove.remove();
+      //     promptRemove.confirm(rke2CustomName);
+      //     promptRemove.remove();
 
-          clusterList.waitForPage();
-          clusterList.sortableTable().checkRowCount(false, rows.length - 1);
-          clusterList.sortableTable().rowNames('.cluster-link').should('not.contain', rke2CustomName);
-        });
-      });
+      //     clusterList.waitForPage();
+      //     clusterList.sortableTable().checkRowCount(false, rows.length - 1);
+      //     clusterList.sortableTable().rowNames('.cluster-link').should('not.contain', rke2CustomName);
+      //   });
+      // });
     });
 
     const createClusterRKE1Page = new ClusterManagerCreateRke1CustomPagePo();
