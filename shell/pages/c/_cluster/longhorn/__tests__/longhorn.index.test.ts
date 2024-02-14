@@ -60,15 +60,14 @@ describe('page: LonghornOverview', () => {
     }
 
     const wrapper = createWrapper({
-      computed: {
-        currentCluster: () => ({ id: '_' }),
-        uiServices:     () => [longhornFrontend]
-      },
-      stubs: {
+      computed: { currentCluster: () => ({ id: '_' }) },
+      stubs:    {
         Banner:    { template: '<span />' },
         LazyImage: { template: '<span />' },
       }
     });
+
+    wrapper.setData({ uiServices: [longhornFrontend] });
 
     await wrapper.vm.$nextTick();
 

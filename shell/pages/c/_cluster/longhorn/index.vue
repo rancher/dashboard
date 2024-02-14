@@ -19,12 +19,18 @@ export default {
 
   async fetch() {
     if ( this.$store.getters['cluster/schemaFor'](SERVICE) ) {
-      await this.$store.dispatch('cluster/findAll', { type: SERVICE });
+      this.uiServices = await this.$store.dispatch('cluster/findMatching', {
+        type:     SERVICE,
+        selector: 'app=longhorn-ui'
+      });
     }
   },
 
   data() {
-    return { longhornImgSrc: require('~shell/assets/images/vendor/longhorn.svg') };
+    return {
+      longhornImgSrc: require('~shell/assets/images/vendor/longhorn.svg'),
+      uiServices:     null
+    };
   },
 
   computed: {
@@ -44,10 +50,6 @@ export default {
       }
 
       return [];
-    },
-
-    uiServices() {
-      return this.$store.getters['cluster/matching'](SERVICE, 'app=longhorn-ui');
     }
   }
 };
