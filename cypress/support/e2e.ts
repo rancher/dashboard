@@ -1,6 +1,7 @@
 import '@cypress/code-coverage/support';
 import './commands/commands';
-import './commands/rancher-api-commands.ts';
+import './commands/chainable';
+import './commands/rancher-api-commands';
 import registerCypressGrep from '@cypress/grep/src/support';
 import { addCustomCommand } from 'cypress-delete-downloads-folder';
 
