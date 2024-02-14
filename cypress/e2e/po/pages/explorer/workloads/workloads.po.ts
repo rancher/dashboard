@@ -107,6 +107,10 @@ export class WorkloadsListPageBasePo extends PagePo {
     return this.sortableTable().detailsPageLinkWithName(elemName).click();
   }
 
+  goToEditYamlPage(elemName: string) {
+    return this.sortableTable().rowActionMenuOpen(elemName).getMenuItem('Edit YAML').click();
+  }
+
   private workload() {
     return new WorkloadPagePo();
   }
