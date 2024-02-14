@@ -11,18 +11,18 @@ describe('Yaml Editor', () => {
 
   beforeEach(() => {
     cy.login();
+
+    // Create a new deployment resource
+    deploymentsCreatePage.goTo();
+    deploymentsCreatePage.createWithUI(name, containerImage, namespace);
   });
 
   describe('Edit mode', () => {
     it('Check if body and footer are visible to human eye', { tags: ['@components', '@adminUser'] }, () => {
-      // Create a new resource
-      deploymentsCreatePage.goTo();
-      deploymentsCreatePage.createWithUI(name, containerImage, namespace);
-
       // Open the YAML editor
       deploymentsListPage.goTo();
-      deploymentsListPage.listElementWithName('test-deployment').should('exist');
-      deploymentsListPage.goToEditYamlPage('test-deployment');
+      deploymentsListPage.listElementWithName(name).should('exist');
+      deploymentsListPage.goToEditYamlPage(name);
 
       const resourceYaml = new ResourceYamlPo();
 
@@ -30,5 +30,11 @@ describe('Yaml Editor', () => {
         resourceYaml.footer().isVisible();
       });
     });
+  });
+
+  afterEach(() => {
+    // Delete the deployment
+    deploymentsListPage.goTo();
+    deploymentsListPage.deleteItemWithUI(name);
   });
 });
