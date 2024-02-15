@@ -97,6 +97,10 @@ describe('Branding', { testIsolation: 'off' }, () => {
 
     BrandingPagePo.navTo();
     brandingPage.customLogoCheckbox().set();
+    // to check custom box element width and height in order to prevent regression
+    // https://github.com/rancher/dashboard/issues/10000
+    brandingPage.customLogoCheckbox().hasAppropriateWidth();
+    brandingPage.customLogoCheckbox().hasAppropriateHeight();
 
     // Upload Light Logo
     brandingPage.uploadButton('Upload Light Logo')
