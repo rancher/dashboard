@@ -77,6 +77,10 @@ export default class PreferencesPagePo extends PagePo {
     return new CheckboxInputPo('[data-testid="prefs__hideDescriptions"]');
   }
 
+  verifyHideDescriptionsCheckboxLabel() {
+    return this.hideDescriptionsCheckbox().getCheckboxLabel().should('equal', 'Hide Type Description banners above resource lists ');
+  }
+
   landingPageRadioBtn(): RadioGroupInputPo {
     return new RadioGroupInputPo('[data-testid="prefs__landingPagePreference"]');
   }
