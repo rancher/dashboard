@@ -97,8 +97,8 @@ export default {
     },
 
     rootProduct(a, b) {
-      if (a?.name === b?.name) {
-        this.getGroups();
+      if (a?.name !== b?.name) {
+        this.queueUpdate();
       }
     },
 
