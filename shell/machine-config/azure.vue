@@ -16,7 +16,7 @@ import { NORMAN } from '@shell/config/types';
 import { findBy } from '@shell/utils/array';
 import KeyValue from '@shell/components/form/KeyValue';
 import { RadioGroup } from '@components/Form/Radio';
-import { _CREATE } from '@shell/config/query-params';
+import { _CREATE, _EDIT } from '@shell/config/query-params';
 
 export const azureEnvironments = [
   { value: 'AzurePublicCloud' },
@@ -172,20 +172,17 @@ export default {
         this.loadedCredentialIdFor = this.credentialId;
       }
 
-      // if (this.mode === _CREATE) {
-      //   this.value.location = DEFAULT_REGION;
-
-      // // when you edit an Azure cluster and add a new machine pool (edit)
-      // // the location field doesn't come populated which causes the vmSizes request
-      // // to return 200 but with a null response (also a bunch of other fields are undefined...)
-      // // so let's prefill them with the defaults
-      // } else if (this.mode === _EDIT && !this.value?.location) {
-      //   for (const key in this.defaultConfig) {
-      //     if (this.value[key] === undefined) {
-      //       this.$set(this.value, key, this.defaultConfig[key]);
-      //     }
-      //   }
-      // }
+      // when you edit an Azure cluster and add a new machine pool (edit)
+      // the location field doesn't come populated which causes the vmSizes request
+      // to return 200 but with a null response (also a bunch of other fields are undefined...)
+      // so let's prefill them with the defaults
+      if (this.mode === _EDIT && !this.value?.location) {
+        for (const key in this.defaultConfig) {
+          if (this.value[key] === undefined) {
+            this.$set(this.value, key, this.defaultConfig[key]);
+          }
+        }
+      }
 
       if (!this.value.location || !findBy(this.locationOptions, 'name', this.value.location)) {
         this.locationOptions?.length && this.setLocation(this.locationOptions[this.locationOptions.length - 1]);
