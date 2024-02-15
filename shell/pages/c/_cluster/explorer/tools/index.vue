@@ -12,10 +12,11 @@ import { LEGACY } from '@shell/store/features';
 import { isAlternate } from '@shell/utils/platform';
 import IconMessage from '@shell/components/IconMessage';
 import TypeDescription from '@shell/components/TypeDescription';
+import TabTitle from '@shell/components/TabTitle';
 
 export default {
   components: {
-    AppSummaryGraph, LazyImage, Loading, IconMessage, TypeDescription
+    AppSummaryGraph, LazyImage, Loading, IconMessage, TypeDescription, TabTitle
   },
 
   async fetch() {
@@ -416,7 +417,9 @@ export default {
 <template>
   <Loading v-if="$fetchState.pending" />
   <div v-else-if="options.length">
-    <h1 v-clean-html="t('catalog.tools.header')" />
+    <h1>
+      <TabTitle>{{ t('catalog.tools.header') }}</TabTitle>
+    </h1>
     <TypeDescription
       v-if="!legacyEnabled"
       resource="chart"

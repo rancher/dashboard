@@ -5,6 +5,7 @@ import TypeDescription from '@shell/components/TypeDescription';
 import { get } from '@shell/utils/object';
 import { AS, _YAML } from '@shell/config/query-params';
 import ResourceLoadingIndicator from './ResourceLoadingIndicator';
+import TabTitle from '@shell/components/TabTitle';
 
 /**
  * Resource List Masthead component.
@@ -17,6 +18,7 @@ export default {
     Favorite,
     TypeDescription,
     ResourceLoadingIndicator,
+    TabTitle
   },
   props: {
     resource: {
@@ -102,7 +104,7 @@ export default {
 
   computed: {
     get,
-    ...mapGetters(['isExplorer']),
+    ...mapGetters(['isExplorer', 'currentCluster']),
 
     resourceName() {
       if (this.schema) {
@@ -156,9 +158,8 @@ export default {
 
     _createButtonlabel() {
       return this.createButtonLabel || this.t('resourceList.head.create');
-    }
-
-  },
+    },
+  }
 };
 </script>
 
@@ -169,7 +170,7 @@ export default {
     </slot>
     <div class="title">
       <h1 class="m-0">
-        {{ _typeDisplay }} <Favorite
+        <TabTitle>{{ _typeDisplay }}</TabTitle> <Favorite
           v-if="isExplorer"
           :resource="favoriteResource || resource"
         />

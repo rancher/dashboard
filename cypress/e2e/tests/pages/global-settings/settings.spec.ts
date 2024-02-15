@@ -19,6 +19,12 @@ describe('Settings', { testIsolation: 'off' }, () => {
     HomePagePo.goTo();
   });
 
+  it('has the correct title', () => {
+    SettingsPagePo.navTo();
+
+    cy.title().should('eq', 'Rancher - Global Settings - Settings');
+  });
+
   it('can update engine-iso-url', { tags: ['@globalSettings', '@adminUser'] }, () => {
     // Update setting
     SettingsPagePo.navTo();

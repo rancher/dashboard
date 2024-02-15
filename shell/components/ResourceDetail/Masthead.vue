@@ -12,6 +12,7 @@ import {
 } from '@shell/config/query-params';
 import { ExtensionPoint, PanelLocation } from '@shell/core/types';
 import ExtensionPanel from '@shell/components/ExtensionPanel';
+import TabTitle from '@shell/components/TabTitle';
 
 /**
  * Resource Detail Masthead component.
@@ -23,7 +24,7 @@ export default {
   name: 'MastheadResourceDetail',
 
   components: {
-    BadgeState, Banner, ButtonGroup, ExtensionPanel
+    BadgeState, Banner, ButtonGroup, ExtensionPanel, TabTitle
   },
   props: {
     value: {
@@ -412,6 +413,18 @@ export default {
       <div class="title">
         <div class="primaryheader">
           <h1>
+            <TabTitle
+              v-if="isCreate"
+              :showChild="false"
+            >
+              {{ parent.displayName }}
+            </TabTitle>
+            <TabTitle
+              v-else
+              :showChild="false"
+            >
+              {{ displayName }}
+            </TabTitle>
             <nuxt-link
               v-if="location"
               :to="location"

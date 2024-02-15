@@ -2,11 +2,13 @@
 import Favorite from '@shell/components/nav/Favorite';
 import { TYPE_MODES } from '@shell/store/type-map';
 
+import TabTitle from '@shell/components/TabTitle';
+
 const showFavoritesFor = [TYPE_MODES.FAVORITE, TYPE_MODES.USED];
 
 export default {
 
-  components: { Favorite },
+  components: { Favorite, TabTitle },
 
   props: {
     type: {
@@ -146,6 +148,12 @@ export default {
     :class="{'root': isRoot, [`depth-${depth}`]: true, 'router-link-active': isCurrent}"
     :exact="type.exact"
   >
+    <TabTitle
+      v-if="$router.resolve(type.route).route.path === $route.path"
+      :show-child="false"
+    >
+      {{ type.labelKey ? t(type.labelKey) : (type.labelDisplay || type.label) }}
+    </TabTitle>
     <a
       @click="selectType"
       @mouseenter="setNear(true)"

@@ -19,6 +19,7 @@ import { getVendor } from '@shell/config/private-label';
 import { mapFeature, MULTI_CLUSTER } from '@shell/store/features';
 import { BLANK_CLUSTER } from '@shell/store/store-types.js';
 import { filterOnlyKubernetesClusters, filterHiddenLocalCluster } from '@shell/utils/cluster';
+import TabTitle from '@shell/components/TabTitle';
 
 import { RESET_CARDS_ACTION, SET_LOGIN_ACTION } from '@shell/config/page-actions';
 
@@ -33,6 +34,7 @@ export default {
     BadgeState,
     CommunityLinks,
     SingleClusterInfo,
+    TabTitle
   },
 
   mixins: [PageHeaderActions],
@@ -298,6 +300,12 @@ export default {
     v-if="managementReady"
     class="home-page"
   >
+    <TabTitle
+      :show-child="false"
+      :breadcrumb="false"
+    >
+      {{ vendor }}
+    </TabTitle>
     <BannerGraphic
       :small="true"
       :title="t('landing.welcomeToRancher', {vendor})"
