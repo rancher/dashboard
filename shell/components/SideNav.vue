@@ -98,7 +98,8 @@ export default {
 
     rootProduct(a, b) {
       if (a?.name !== b?.name) {
-        this.queueUpdate();
+        // Immediately update because you'll see it come in later
+        this.getGroups();
       }
     },
 
