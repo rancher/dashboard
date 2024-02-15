@@ -844,9 +844,9 @@ export const actions = {
 
     // Forget the cluster if we had a cluster and we have a new cluster OR if the store changed between the old and new products OR if the pkg store changed
     // Package stores are only there for UI Extensions that have their own stores (normal case is this is undefined)
-    const forgetCurrentCluster = ((state.clusterId && id)
-      || (productConfig?.inStore && productConfig.inStore !== oldProductConfig?.inStore))
-      || (oldPkgClusterStore !== newPkgClusterStore);
+    const forgetCurrentCluster = ((state.clusterId && id) ||
+      (productConfig?.inStore && productConfig.inStore !== oldProductConfig?.inStore)) ||
+      (oldPkgClusterStore !== newPkgClusterStore);
 
     // Should we leave/forget the current cluster? Only if we're going from an existing cluster to a new cluster, or the package has changed
     // (latter catches cases like nav from explorer cluster A to epinio cluster A)
