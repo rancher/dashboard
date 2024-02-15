@@ -651,15 +651,15 @@ export default {
 
       if (!isValueInContent()) {
         const value = isArray ? [] : content[0]?.value;
-        // null and "" values are valid for hostsystem and folder
-        const isFolderNull = key === 'folder' && (this.value.folder === null || this.value.folder === '');
-        const isHostsystemNull = key === 'hostsystem' && (this.value.hostsystem === null || this.value.hostsystem === '');
+        // null and "" are valid values for hostsystem and folder
+        const isFolderNullOrEmpty = key === 'folder' && (this.value.folder === null || this.value.folder === '');
+        const isHostsystemNullOrEmpty = key === 'hostsystem' && (this.value.hostsystem === null || this.value.hostsystem === '');
 
         if (this.mode === _CREATE && value !== SENTINEL) {
           set(this.value, key, value);
         }
 
-        if ([_EDIT, _VIEW].includes(this.mode) && !isFolderNull && !isHostsystemNull) {
+        if ([_EDIT, _VIEW].includes(this.mode) && !isFolderNullOrEmpty && !isHostsystemNullOrEmpty) {
           this.manageErrors(errorActions.CREATE, key);
         }
       } else {
