@@ -62,6 +62,10 @@ describe('Charts', { tags: ['@charts', '@adminUser'] }, () => {
         enableStorageCheckbox.checkVisible();
 
         enableStorageCheckbox.set();
+        // to check custom box element width and height in order to prevent regression
+        // https://github.com/rancher/dashboard/issues/10000
+        enableStorageCheckbox.hasAppropriateWidth();
+        enableStorageCheckbox.hasAppropriateHeight();
 
         const labeledSelectPo = new LabeledSelectPo('[data-testid="select-chart-prometheus-storage-class"]');
 

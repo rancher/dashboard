@@ -29,14 +29,19 @@ export default class CheckboxInputPo extends ComponentPo {
   }
 
   isChecked(): Cypress.Chainable {
-    // to check custom box element width and height in order to prevent regression
-    // https://github.com/rancher/dashboard/issues/10000
-    const customBoxEl = this.input().find('span.checkbox-custom');
+    return this.input().find('span.checkbox-custom').should('have.attr', 'aria-checked', 'true');
+  }
 
-    customBoxEl.invoke('outerWidth').should('equal', 14);
-    customBoxEl.invoke('outerHeight').should('equal', 14);
+  // to check custom box element width and height in order to prevent regression
+  // https://github.com/rancher/dashboard/issues/10000
+  hasAppropriateWidth(): Cypress.Chainable {
+    return this.input().find('span.checkbox-custom').invoke('css', 'width').should('match', /14.*px/);
+  }
 
-    return customBoxEl.should('have.attr', 'aria-checked', 'true');
+  // to check custom box element width and height in order to prevent regression
+  // https://github.com/rancher/dashboard/issues/10000
+  hasAppropriateHeight(): Cypress.Chainable {
+    return this.input().find('span.checkbox-custom').invoke('css', 'height').should('match', /14.*px/);
   }
 
   isUnchecked(): Cypress.Chainable {
