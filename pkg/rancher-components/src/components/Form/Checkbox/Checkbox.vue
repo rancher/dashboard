@@ -319,12 +319,13 @@ $fontColor: var(--input-label);
   }
 
  .checkbox-custom {
-    height: 14px;
-    width: 14px;
+    height: 14px !important;
+    width: 14px !important;
     background-color: var(--body-bg);
     border-radius: var(--border-radius);
     transition: all 0.3s ease-out;
     border: 1px solid var(--border);
+    flex-shrink: 0;
   }
 
   input {
