@@ -319,8 +319,8 @@ $fontColor: var(--input-label);
   }
 
  .checkbox-custom {
-    height: 14px !important;
-    width: 14px !important;
+    height: 14px;
+    width: 14px;
     background-color: var(--body-bg);
     border-radius: var(--border-radius);
     transition: all 0.3s ease-out;
