@@ -12,7 +12,6 @@ describe('Pod Security Admissions', { testIsolation: 'off', tags: ['@manager', '
 
   before(() => {
     cy.login();
-    cy.createE2EResourceName('podsecurityadmissions').as('podSecurityAdmissionsName');
   });
 
   beforeEach(() => {
