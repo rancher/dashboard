@@ -84,7 +84,7 @@ export default {
       return !this.serverArg?.['kubelet-arg']?.length && !config?.['kubelet-arg']?.length;
     },
     onInputProtectKernelDefaults(value) {
-      Vue.set(this.agentConfig || this.serverConfig, 'protect-kernel-defaults', value);
+      this.agentConfig ? this.agentConfig = value : this.serverConfig['protect-kernel-defaults'] = value;
     }
   }
 };
