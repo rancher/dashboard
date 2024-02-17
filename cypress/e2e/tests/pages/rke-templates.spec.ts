@@ -49,7 +49,8 @@ describe('RKE Templates', { testIsolation: 'off', tags: ['@manager', '@adminUser
   });
 
   it('can disable RKE template revision', function() {
-    rkeTemplatesPage.goTo();
+    RkeTemplatesPagePo.navTo();
+    rkeTemplatesPage.waitForPage();
     rkeTemplatesPage.mainRow().rowActionMenuOpen(this.rkeRevisionName);
     cy.intercept('POST', '/v3/clusterTemplateRevisions/*').as('disableTemplateRevision');
     rkeTemplatesPage.actionMenu().selectMenuItemByLabel('Disable');
@@ -60,6 +61,7 @@ describe('RKE Templates', { testIsolation: 'off', tags: ['@manager', '@adminUser
 
   it('can enable RKE template revision', function() {
     RkeTemplatesPagePo.navTo();
+    rkeTemplatesPage.waitForPage();
     rkeTemplatesPage.mainRow().rowActionMenuOpen(this.rkeRevisionName);
     cy.intercept('POST', '/v3/clusterTemplateRevisions/*').as('enableTemplateRevision');
     rkeTemplatesPage.actionMenu().selectMenuItemByLabel('Enable');
@@ -70,6 +72,7 @@ describe('RKE Templates', { testIsolation: 'off', tags: ['@manager', '@adminUser
 
   it('can clone RKE template revision', function() {
     RkeTemplatesPagePo.navTo();
+    rkeTemplatesPage.waitForPage();
     rkeTemplatesPage.groupRow().groupRowWithName(this.rkeTemplateName).should('be.visible');
     rkeTemplatesPage.mainRow().rowActionMenuOpen(this.rkeRevisionName);
     rkeTemplatesPage.actionMenu().selectMenuItemByLabel('Clone Revision');
@@ -82,6 +85,7 @@ describe('RKE Templates', { testIsolation: 'off', tags: ['@manager', '@adminUser
 
   it('can delete RKE template revision', function() {
     RkeTemplatesPagePo.navTo();
+    rkeTemplatesPage.waitForPage();
     rkeTemplatesPage.mainRow().rowActionMenuOpen(`${ this.rkeRevisionName }-2`);
     rkeTemplatesPage.actionMenu().selectMenuItemByLabel(`Delete`);
     cy.intercept('DELETE', '/v3/clusterTemplateRevisions/*').as('deleteTemplateRevision');
@@ -92,6 +96,7 @@ describe('RKE Templates', { testIsolation: 'off', tags: ['@manager', '@adminUser
 
   it('can delete RKE template group', function() {
     RkeTemplatesPagePo.navTo();
+    rkeTemplatesPage.waitForPage();
     rkeTemplatesPage.groupRow().groupRowActionMenuOpen(this.rkeTemplateName);
     rkeTemplatesPage.actionMenu().selectMenuItemByLabel(`Delete`);
     cy.intercept('DELETE', '/v3/clusterTemplates/*').as('deleteTemplate');
