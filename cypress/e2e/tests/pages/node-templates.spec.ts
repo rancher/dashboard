@@ -66,7 +66,8 @@ describe('Node Templates', { testIsolation: 'off', tags: ['@manager', '@jenkins'
   });
 
   it('can edit a node template', function() {
-    nodeTemplatesPage.goTo();
+    NodeTemplatesPagePo.navTo();
+    nodeTemplatesPage.waitForPage();
     nodeTemplatesPage.list().rowWithName(this.nodeTemplateName).should('be.visible');
     nodeTemplatesPage.list().rowActionMenuOpen(this.nodeTemplateName);
     nodeTemplatesPage.list().actionMenu().selectMenuItemByLabel('Edit');
@@ -84,6 +85,8 @@ describe('Node Templates', { testIsolation: 'off', tags: ['@manager', '@jenkins'
 
   it('can clone a node template', function() {
     NodeTemplatesPagePo.navTo();
+    nodeTemplatesPage.waitForPage();
+
     nodeTemplatesPage.list().rowWithName(`${ this.nodeTemplateName }-edit`).should('be.visible');
     nodeTemplatesPage.list().rowActionMenuOpen(`${ this.nodeTemplateName }-edit`);
     nodeTemplatesPage.list().actionMenu().selectMenuItemByLabel('Clone');
@@ -101,6 +104,7 @@ describe('Node Templates', { testIsolation: 'off', tags: ['@manager', '@jenkins'
 
   it('can delete a node template', function() {
     NodeTemplatesPagePo.navTo();
+    nodeTemplatesPage.waitForPage();
 
     // delete clone node template
     nodeTemplatesPage.list().rowWithName(`${ this.nodeTemplateName }-clone`).should('be.visible');
@@ -120,6 +124,7 @@ describe('Node Templates', { testIsolation: 'off', tags: ['@manager', '@jenkins'
 
   it('can delete a node template via bulk actions', function() {
     NodeTemplatesPagePo.navTo();
+    nodeTemplatesPage.waitForPage();
 
     // delete original node template
     nodeTemplatesPage.list().rowWithName(`${ this.nodeTemplateName }-edit`).click();
