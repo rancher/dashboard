@@ -69,6 +69,8 @@ harborConfig:
     version:
       label: 版本
     harborInsecureSkipVerify: 跳过证书验证
+    count:
+      label: 存储数量
   formTag:
     btn:
       add: 新建标签
