@@ -25,17 +25,19 @@ export default {
       const count = resp?._headers && resp?._headers['x-total-count'];
 
       return count ? parseInt(count, 10) : 0;
-    }
-  },
-  changeToBytes(size, unit) {
-    if (unit === 'MB') {
-      return size * 1024 * 1024;
-    } else if (unit === 'GB') {
-      return size * 1024 * 1024 * 1024;
-    } else if ( unit === 'TB') {
-      return size * 1024 * 1024 * 1024 * 1024;
-    } else {
-      return -1;
-    }
+    },
+    changeToBytes(size, unit) {
+      const u = unit?.toUpperCase();
+
+      if (u === 'MB') {
+        return size * 1024 * 1024;
+      } else if (u === 'GB') {
+        return size * 1024 * 1024 * 1024;
+      } else if ( u === 'TB') {
+        return size * 1024 * 1024 * 1024 * 1024;
+      } else {
+        return -1;
+      }
+    },
   },
 };

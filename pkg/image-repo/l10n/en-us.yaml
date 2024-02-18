@@ -69,6 +69,8 @@ harborConfig:
     version:
       label: Version
     harborInsecureSkipVerify: Skip TLS Verify
+    count:
+      label: Count quota
   formTag:
     btn:
       add: New Tag

@@ -61,6 +61,7 @@
             :select-value="form.storageUnitValue"
             :text-label="t('harborConfig.form.storage.label')"
             type="number"
+            @input="form.size = $event?.text"
           />
         </div>
         <SwitchCheckbox
