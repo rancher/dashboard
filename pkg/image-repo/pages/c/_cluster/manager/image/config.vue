@@ -19,7 +19,6 @@
 import PageHeader from '@pkg/image-repo/components/PageHeader.vue';
 import AdminConfig from '@pkg/image-repo/components/AdminConfig.vue';
 import UserConfig from '@pkg/image-repo/components/UserConfig.vue';
-import { Banner } from '@components/Banner';
 import Loading from '@shell/components/Loading';
 import { MANAGEMENT } from '@shell/config/types';
 import { mapGetters } from 'vuex';
@@ -29,7 +28,7 @@ export default {
     this.settings = await this.$store.dispatch(`management/findAll`, { type: MANAGEMENT.SETTING });
   },
   components: {
-    PageHeader, Banner, AdminConfig, UserConfig, Loading
+    PageHeader, AdminConfig, UserConfig, Loading
   },
   data() {
     return { settings: null };

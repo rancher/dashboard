@@ -19,7 +19,7 @@ function updateLoading(el, isLoading) {
     try {
       loadingOverlay.parentNode?.removeChild(loadingOverlay);
     } catch (e) {
-      console.log(e);
+      console.log(e); // eslint-disable-line no-console
     }
   }
   const mask = document.createElement('div');
@@ -43,7 +43,7 @@ function updateLoading(el, isLoading) {
       try {
         loadingOverlay.parentNode?.removeChild(loadingOverlay);
       } catch (e) {
-        console.log(e);
+        console.log(e); // eslint-disable-line no-console
       }
     }
   }

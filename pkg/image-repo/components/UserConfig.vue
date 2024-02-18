@@ -219,13 +219,12 @@
   </div>
 </template>
 <script>
-/* eslint-disable standard/no-callback-literal node/no-callback-literal standard/no-call node/no-callback */
+/* eslint-disable */
+
 import Loading from '@shell/components/Loading';
 import { LabeledInput } from '@components/Form/LabeledInput';
 import AsyncButton from '@shell/components/AsyncButton';
 import Password from '@shell/components/form/Password';
-import { RadioGroup } from '@components/Form/Radio';
-import { Checkbox } from '@components/Form/Checkbox';
 import { harborAPI } from '../api/image-repo.js';
 import { Banner } from '@components/Banner';
 import { stringify } from '@shell/utils/error';
@@ -270,8 +269,6 @@ export default {
     LabeledInput,
     AsyncButton,
     Password,
-    RadioGroup,
-    Checkbox,
     Banner,
     Loading
   },

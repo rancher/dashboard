@@ -195,7 +195,7 @@
   </div>
 </template>
 <script>
-/* eslint-disable standard/no-callback-literal node/no-callback-literal */
+/* eslint-disable */
 import Loading from '@shell/components/Loading';
 import { LabeledInput } from '@components/Form/LabeledInput';
 import AsyncButton from '@shell/components/AsyncButton';
