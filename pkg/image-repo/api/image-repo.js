@@ -575,7 +575,20 @@ export const harborAPI = (spec = { harborVersion: '', harborServer: '' }) => {
     return factoryNewPromise(res);
   };
 
-  const fetchProjectImages = (projectName, param) => {
+  const fetchProjectImages = (param) => {
+    checkBaseUrl();
+    const p = Object.entries(param).map((item) => `${ item[0] }=${ item[1] }`).join('&');
+
+    const res = store.dispatch('management/request', {
+      url:     `${ baseUrl }/repositories?${ p }`,
+      headers: { 'X-API-Harbor-Admin-Header': store.getters['auth/isAdmin'] },
+      method:  'GET',
+    });
+
+    return factoryNewPromise(res);
+  };
+
+  const fetchProjectImagesV2 = (projectName, param) => {
     checkBaseUrl();
     const p = Object.entries(param).map((item) => `${ item[0] }=${ item[1] }`).join('&');
 
@@ -755,6 +768,8 @@ export const harborAPI = (spec = { harborVersion: '', harborServer: '' }) => {
     return Promise.all([serverSetting.save(), authSetting.save(), authModeSetting.save(), versionSetting.save()]);
   };
 
+  request.factoryNewPromise = factoryNewPromise;
+  request.checkBaseUrl = checkBaseUrl;
   request.fetchHarborServerUrl = fetchHarborServerUrl;
   request.fetchSystemInfo = fetchSystemInfo;
   request.removeProjects = removeProjects;
@@ -794,6 +809,7 @@ export const harborAPI = (spec = { harborVersion: '', harborServer: '' }) => {
   request.fetchLogsV2 = fetchLogsV2;
   request.fetchProjectSummary = fetchProjectSummary;
   request.fetchProjectImages = fetchProjectImages;
+  request.fetchProjectImagesV2 = fetchProjectImagesV2;
   request.fetchProjectMembersList = fetchProjectMembersList;
   request.fetchProjectLogs = fetchProjectLogs;
   request.fetchProjectLogsV2 = fetchProjectLogsV2;

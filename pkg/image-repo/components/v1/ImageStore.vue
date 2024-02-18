@@ -182,7 +182,7 @@ export default {
   },
   methods: {
     async fetchImage() {
-      const params = {};
+      const params = { project_id: this.project?.project_id };
 
       if (this.project?.project_id) {
         if (this.inputFilter?.length > 0 ) {
@@ -195,7 +195,7 @@ export default {
         }
         this.loading = true;
         try {
-          const images = await this.apiRequest.fetchProjectImagesV2(this.project?.name, {
+          const images = await this.apiRequest.fetchProjectImages({
             page_size: this.page_size,
             page:      this.page,
             ...params

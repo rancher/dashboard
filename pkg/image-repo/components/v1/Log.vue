@@ -1,0 +1,137 @@
+<template>
+  <div
+    v-loading="loading"
+    class="Log"
+  >
+    <HarborTable
+      ref="harborTableRef"
+      search
+      paging
+      hideSelect
+      :loading="loading"
+      :rows="logs"
+      :columns="columns"
+      :totalCount="totalCount"
+      :subtractHeight="320"
+      @page-change="pageChange"
+      @input-search="inputSearch"
+      @sort-change="sortChange"
+    />
+  </div>
+</template>
+<script>
+import HarborTable from '@pkg/image-repo/components/table/HarborTable.vue';
+import util from '../../mixins/util.js';
+
+export default {
+  components: { HarborTable },
+  mixins:     [util],
+  props:      {
+    apiRequest: {
+      type:     Object,
+      required: true
+    },
+    project: {
+      type:    Object,
+      default: () => {},
+    }
+  },
+  data() {
+    return {
+      loading:     false,
+      page:        1,
+      page_size:   10,
+      totalCount:  0,
+      inputFilter: [],
+      logs:        [],
+      sortValue:   '',
+    };
+  },
+  watch: {
+    project: {
+      immediate: true,
+      async handler() {
+        await this.fetchLogs();
+      }
+    }
+  },
+  computed: {
+    columns() {
+      return [
+        {
+          field:  'username',
+          title:  this.t('harborConfig.table.username'),
+          search: 'username',
+          width:  160,
+        },
+        {
+          field: 'resource',
+          title: this.t('harborConfig.table.imagename'),
+        },
+        {
+          field: 'resource_type',
+          title: this.t('harborConfig.table.type'),
+        },
+        {
+          field: 'operation',
+          title: this.t('harborConfig.table.operation'),
+        },
+        {
+          field: 'op_time',
+          title: this.t('harborConfig.table.timestamp'),
+        },
+      ];
+    }
+  },
+  methods: {
+    async fetchLogs() {
+      const params = {};
+
+      if (this.project?.project_id) {
+        if (this.inputFilter?.length > 0 ) {
+          this.inputFilter.forEach((item) => {
+            params[item.field] = item.value;
+          });
+        }
+        if (this.sortValue !== '') {
+          params.sort = this.sortValue;
+        }
+        this.loading = true;
+        try {
+          const logs = await this.apiRequest.fetchProjectLogs(this.project?.project_id, {
+            page_size: this.page_size,
+            page:      this.page,
+            ...params
+          });
+
+          this.logs = logs;
+          this.totalCount = this.getTotalCount(logs) || 0;
+          this.loading = false;
+        } catch (e) {
+          this.loading = false;
+        }
+      }
+    },
+    pageChange(record) {
+      this.page = record;
+      this.fetchLogs();
+    },
+    inputSearch(record) {
+      this.page = 1;
+      this.inputFilter = record;
+      this.fetchLogs();
+    },
+    sortChange({ field, order }) {
+      if (order) {
+        if (order === 'desc') {
+          field = `-${ field }`;
+        }
+        this.sortValue = field;
+      } else {
+        this.sortValue = '';
+      }
+      this.fetchLogs();
+    },
+  }
+};
+</script>
