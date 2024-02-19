@@ -98,7 +98,7 @@ export default {
     v-if="rows.length"
     class="grid"
   >
-    <div
+    <component
       :is="asLink ? 'a' : 'div'"
       v-for="(r, idx) in rows"
       :key="get(r, keyField)"
@@ -154,7 +154,7 @@ export default {
       >
         {{ get(r, descriptionField) }}
       </div>
-    </div>
+    </component>
   </div>
   <div
     v-else
