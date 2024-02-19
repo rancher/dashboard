@@ -350,7 +350,7 @@ export default {
     privateKey: 'updateKeyVal',
 
     namespace(ns) {
-      if ( ns && !this.selected.startsWith(`${ ns }/`) ) {
+      if ( ns && !this.selected?.startsWith(`${ ns }/`) ) {
         this.selected = AUTH_TYPE._NONE;
       }
     }
