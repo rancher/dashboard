@@ -1661,6 +1661,11 @@ cluster:
   advanced:
     argInfo:
       title: Additional Kubelet Args
+      tooltip:
+        mixed-args: Kubelet args are defined both at Global and Machine Selector level.<br> Click on "Add Global Argument" to add them as Global config.
+        global-args: Kubelet args are defined at Global level.<br> Click on "Add Global Argument" to add them as Global config.
+      machineGlobal:
+        listLabel: Add Global Argument
       machineSelector:
         label: Add Machine Selector
         listLabel: Add Argument
@@ -1670,7 +1675,7 @@ cluster:
         titleAlt:  |-
           {count, plural,
             =1 { For all machines, use the Kubelet args: }
-            other { For any machines, use the Kubelet args: }
+            other { For machines without matched labels below: }
           }
         kubeControllerManagerTitle: Additional Controller Manager Args
         kubeApiServerTitle: Additional API Server Args

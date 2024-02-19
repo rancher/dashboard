@@ -199,7 +199,7 @@ export default {
      * Check if current CIS profile is required and listed in the options
      */
     isCisSupported() {
-      const cisProfile = this.serverConfig.profile || this.agentConfig.profile;
+      const cisProfile = this.serverConfig?.profile || this.agentConfig?.profile;
 
       return !cisProfile || this.profileOptions.map((option) => option.value).includes(cisProfile);
     },
@@ -532,7 +532,7 @@ export default {
         class="col span-6"
       >
         <LabeledSelect
-          v-if="serverArgs && serverArgs.profile"
+          v-if="serverArgs && serverArgs.profile && serverConfig"
           v-model="serverConfig.profile"
           :mode="mode"
           :options="profileOptions"
@@ -540,7 +540,7 @@ export default {
           @input="$emit('cis-changed')"
         />
         <LabeledSelect
-          v-else-if="agentArgs && agentArgs.profile"
+          v-else-if="agentArgs && agentArgs.profile && agentConfig"
           v-model="agentConfig.profile"
           data-testid="rke2-custom-edit-cis-agent"
           :mode="mode"
