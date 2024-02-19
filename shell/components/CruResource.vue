@@ -439,7 +439,7 @@ export default {
     >
       {{ description }}
     </p>
-    <form
+    <component
       :is="(isView? 'div' : 'form')"
       data-testid="cru-form"
       class="create-resource-container cru__form"
@@ -777,7 +777,8 @@ export default {
           </template>
         </ResourceYaml>
       </section>
-    </form>
+      </com>
+    </component>
   </section>
 </template>
 
