@@ -200,6 +200,8 @@ export default {
     // on for a limit of 100, to quickly show data
     // another one with 1st page of the subset of the resource we are fetching
     // the default is 4 pages, but it can be changed on mixin/resource-fetch.js
+    let pageFetchOpts;
+
     if (opt.incremental) {
       commit('incrementLoadCounter', type);
 
@@ -207,7 +209,7 @@ export default {
         dispatch('resource-fetch/updateManualRefreshIsLoading', true, { root: true });
       }
 
-      const pageFetchOpts = {
+      pageFetchOpts = {
         ...opt,
         url: addParam(opt.url, 'limit', `${ opt.incremental }`),
       };
@@ -223,8 +225,6 @@ export default {
       if (opt.force) {
         commit('forgetType', type);
       }
-
-      dispatch('loadDataPage', { type, opt: pageFetchOpts });
     }
 
     let streamStarted = false;
@@ -318,6 +318,11 @@ export default {
           skipHaveAll,
           namespace: opt.namespaced
         });
+      }
+
+      if (opt.incremental) {
+        // This needs to come after the loadAll (which resets state) so supplements via loadDataPage aren't lost
+        dispatch('loadDataPage', { type, opt: pageFetchOpts });
       }
     }
 
