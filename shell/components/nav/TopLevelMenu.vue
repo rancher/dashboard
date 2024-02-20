@@ -151,12 +151,8 @@ export default {
       if (sorted.length >= this.maxClustersToShow) {
         const sortedPinOut = sorted.filter((item) => !item.pinned).slice(0, this.maxClustersToShow);
 
-        console.log('sortedPinOut', sortedPinOut);
-
         return sortedPinOut;
       } else {
-        console.log('filtered clusters', sorted.filter((item) => !item.pinned));
-
         return sorted.filter((item) => !item.pinned);
       }
     },
