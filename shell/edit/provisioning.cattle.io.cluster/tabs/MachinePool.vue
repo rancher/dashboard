@@ -69,6 +69,12 @@ export default {
     poolId: {
       type:     String,
       required: true,
+    },
+
+    // this is a useful info when in edit mode you add a new pool, example of use in vmwarevsphere.vue
+    poolCreateMode: {
+      type:     Boolean,
+      required: true,
     }
   },
 
@@ -269,6 +275,7 @@ export default {
       :credential-id="credentialId"
       :pool-index="idx"
       :pool-id="poolId"
+      :pool-create-mode="value.create"
       :machine-pools="machinePools"
       :busy="busy"
       @error="emitError"
