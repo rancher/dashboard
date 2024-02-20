@@ -22,6 +22,9 @@
   // dark main text
   $lightest: #ffffff;
 
+  // menu cluster description active+hover
+  $desc-light: #EEEFF4;
+
   $secondary: $lighter;
   $disabled: $light;
 
@@ -49,6 +52,8 @@
   --body-text                  : #{$lightest};
   --scrollbar-thumb            : #{$medium};
   --scrollbar-thumb-dropdown   : #{$medium};
+
+  --side-menu-desc             : #{$desc-light};
 
   --header-bg                  : #{$darker};
   --header-border              : #{$medium};

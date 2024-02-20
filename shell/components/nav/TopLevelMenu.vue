@@ -127,6 +127,7 @@ export default {
           isLocal:         x.isLocal,
           isHarvester:     x.isHarvester,
           pinned:          x.pinned,
+          description:     pCluster?.description,
           pin:             () => x.pin(),
           unpin:           () => x.unpin()
         };
@@ -150,8 +151,12 @@ export default {
       if (sorted.length >= this.maxClustersToShow) {
         const sortedPinOut = sorted.filter((item) => !item.pinned).slice(0, this.maxClustersToShow);
 
+        console.log('sortedPinOut', sortedPinOut);
+
         return sortedPinOut;
       } else {
+        console.log('filtered clusters', sorted.filter((item) => !item.pinned));
+
         return sorted.filter((item) => !item.pinned);
       }
     },
@@ -504,7 +509,13 @@ export default {
                       class="rancher-provider-icon"
                     />
                     <div class="cluster-name">
-                      {{ c.label }}
+                      <p>{{ c.label }}</p>
+                      <p
+                        v-if="c.description"
+                        class="description"
+                      >
+                        {{ c.description }}
+                      </p>
                     </div>
                     <Pinned
                       :cluster="c"
@@ -519,7 +530,15 @@ export default {
                       :cluster="c"
                       class="rancher-provider-icon"
                     />
-                    <div class="cluster-name">{{ c.label }}</div>
+                    <div class="cluster-name">
+                      <p>{{ c.label }}</p>
+                      <p
+                        v-if="c.description"
+                        class="description"
+                      >
+                        {{ c.description }}
+                      </p>
+                    </div>
                     <Pinned
                       :cluster="c"
                     />
@@ -554,7 +573,13 @@ export default {
                       class="rancher-provider-icon"
                     />
                     <div class="cluster-name">
-                      {{ c.label }}
+                      <p>{{ c.label }}</p>
+                      <p
+                        v-if="c.description"
+                        class="description"
+                      >
+                        {{ c.description }}
+                      </p>
                     </div>
                     <Pinned
                       :class="{'showPin': c.pinned}"
@@ -570,7 +595,15 @@ export default {
                       :cluster="c"
                       class="rancher-provider-icon"
                     />
-                    <div class="cluster-name">{{ c.label }}</div>
+                    <div class="cluster-name">
+                      <p>{{ c.label }}</p>
+                      <p
+                        v-if="c.description"
+                        class="description"
+                      >
+                        {{ c.description }}
+                      </p>
+                    </div>
                     <Pinned
                       :class="{'showPin': c.pinned}"
                       :cluster="c"
@@ -745,6 +778,17 @@ export default {
       outline: 0;
     }
   }
+
+  .theme-dark .cluster-name .description {
+    color: var(--input-label) !important;
+  }
+  .theme-dark .body .option  {
+    &:hover .cluster-name .description,
+    &.router-link-active .cluster-name .description,
+    &.active-menu-link .cluster-name .description {
+      color: var(--side-menu-desc) !important;
+  }
+  }
 </style>
 
 <style lang="scss" scoped>
@@ -855,6 +899,18 @@ export default {
           }
         }
 
+        .cluster-name p {
+          max-width: 220px;
+          white-space: nowrap;
+          overflow: hidden;
+          text-overflow: ellipsis;
+
+          &.description {
+            font-size: 12px;
+            color: var(--darker);
+          }
+        }
+
         &:hover {
           text-decoration: none;
 
@@ -868,9 +924,9 @@ export default {
           cursor: not-allowed;
 
           .rancher-provider-icon,
-          .cluster-name {
+          .cluster-name p {
             filter: grayscale(1);
-            color: var(--muted);
+            color: var(--muted) !important;
           }
 
           .pin {
@@ -912,6 +968,10 @@ export default {
           i {
             color: var(--primary-hover-text);
           }
+
+          div .description {
+            color: var(--default);
+          }
         }
 
         &:hover {
@@ -919,6 +979,10 @@ export default {
           background: var(--primary-hover-bg);
           > div {
             color: var(--primary-hover-text);
+
+            .description {
+              color: var(--default);
+            }
           }
           svg {
             fill: var(--primary-hover-text);
@@ -935,13 +999,6 @@ export default {
               display: block;
             }
           }
-        }
-
-        .cluster-name {
-          max-width: 220px;
-          white-space: nowrap;
-          overflow: hidden;
-          text-overflow: ellipsis;
         }
       }
 
