@@ -36,6 +36,12 @@ describe('Cluster Dashboard', { testIsolation: 'off', tags: ['@explorer', '@admi
     BurgerMenuPo.checkIfClusterMenuLinkIsHighlighted('local');
   });
 
+  it('has the correct title', () => {
+    ClusterDashboardPagePo.goTo('local');
+
+    cy.title().should('eq', 'Rancher - local - Cluster Dashboard');
+  });
+
   it('can add cluster badge', () => {
     const settings = {
       description: {

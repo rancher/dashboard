@@ -125,6 +125,18 @@ export default {
       return this.value.spec.rkeConfig.machineGlobalConfig;
     },
 
+    showCniNoneBanner() {
+      return this.serverConfig?.cni === 'none';
+    },
+
+    showCiliumIpv6Controls() {
+      return this.serverConfig?.cni === 'cilium' || this.serverConfig?.cni === 'multus,cilium';
+    },
+
+    showNetworkPolicyWarningBanner() {
+      return this.serverConfig?.cni === 'cilium' && this.value?.spec?.enableNetworkPolicy;
+    },
+
     agentConfig() {
       return this.value.agentConfig;
     },
@@ -199,7 +211,7 @@ export default {
      * Check if current CIS profile is required and listed in the options
      */
     isCisSupported() {
-      const cisProfile = this.serverConfig.profile || this.agentConfig.profile;
+      const cisProfile = this.serverConfig?.profile || this.agentConfig?.profile;
 
       return !cisProfile || this.profileOptions.map((option) => option.value).includes(cisProfile);
     },
@@ -417,6 +429,13 @@ export default {
     >
       <span v-clean-html="t('cluster.banner.cloudProviderAddConfig', {}, true)" />
     </Banner>
+    <Banner
+      v-if="showCniNoneBanner"
+      color="warning"
+      data-testid="clusterBasics__noneOptionSelectedForCni"
+    >
+      <span v-clean-html="t('cluster.rke2.cni.cniNoneBanner', {}, true)" />
+    </Banner>
     <div class="row mb-10">
       <div class="col span-6">
         <LabeledSelect
@@ -465,7 +484,7 @@ export default {
         />
       </div>
       <div
-        v-if="serverConfig.cni === 'cilium' || serverConfig.cni === 'multus,cilium'"
+        v-if="showCiliumIpv6Controls"
         class="col"
       >
         <Checkbox
@@ -525,7 +544,7 @@ export default {
         class="col span-6"
       >
         <LabeledSelect
-          v-if="serverArgs && serverArgs.profile"
+          v-if="serverArgs && serverArgs.profile && serverConfig"
           v-model="serverConfig.profile"
           :mode="mode"
           :options="profileOptions"
@@ -533,7 +552,7 @@ export default {
           @input="$emit('cis-changed')"
         />
         <LabeledSelect
-          v-else-if="agentArgs && agentArgs.profile"
+          v-else-if="agentArgs && agentArgs.profile && agentConfig"
           v-model="agentConfig.profile"
           data-testid="rke2-custom-edit-cis-agent"
           :mode="mode"
@@ -597,7 +616,7 @@ export default {
     </div>
 
     <div
-      v-if="serverConfig.cni === 'cilium' && value.spec.enableNetworkPolicy"
+      v-if="showNetworkPolicyWarningBanner"
       class="row"
     >
       <div class="col span-12">

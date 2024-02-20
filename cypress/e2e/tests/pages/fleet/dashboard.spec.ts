@@ -14,6 +14,12 @@ describe.only('Fleet Dashboard', { tags: ['@fleet', '@adminUser'] }, () => {
 
   beforeEach(() => { });
 
+  it('has the correct title', () => {
+    fleetDashboardPage.goTo();
+
+    cy.title().should('eq', 'Rancher - Continuous Delivery - Dashboard');
+  });
+
   before(() => {
     cy.login();
 

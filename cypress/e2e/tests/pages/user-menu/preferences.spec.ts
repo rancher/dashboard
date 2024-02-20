@@ -251,6 +251,11 @@ describe('User can update their preferences', () => {
     prefPage.viewInApiCheckbox().checkVisible();
     cy.intercept('PUT', 'v1/userpreferences/*').as('prefUpdate');
     prefPage.viewInApiCheckbox().set();
+    // to check custom box element width and height in order to prevent regression
+    // https://github.com/rancher/dashboard/issues/10000
+    prefPage.viewInApiCheckbox().hasAppropriateWidth();
+    prefPage.viewInApiCheckbox().hasAppropriateHeight();
+
     cy.wait('@prefUpdate').then(({ request, response }) => {
       expect(response?.statusCode).to.eq(200);
       expect(request.body.data).to.have.property('view-in-api', 'true');

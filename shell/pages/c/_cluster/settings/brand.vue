@@ -16,12 +16,13 @@ import { fetchOrCreateSetting } from '@shell/utils/settings';
 import { SETTING } from '@shell/config/settings';
 import { _EDIT, _VIEW } from '@shell/config/query-params';
 import { setFavIcon } from '@shell/utils/favicon';
+import TabTitle from '@shell/components/TabTitle';
 
 const Color = require('color');
 
 export default {
   components: {
-    LabeledInput, Checkbox, FileImageSelector, Loading, SimpleBox, AsyncButton, Banner, ColorInput, TypeDescription
+    LabeledInput, Checkbox, FileImageSelector, Loading, SimpleBox, AsyncButton, Banner, ColorInput, TypeDescription, TabTitle
   },
 
   async fetch() {
@@ -185,7 +186,7 @@ export default {
   <Loading v-if="$fetchState.pending" />
   <div v-else>
     <h1 class="mb-20">
-      {{ t('branding.label') }}
+      <TabTitle>{{ t('branding.label') }}</TabTitle>
     </h1>
     <TypeDescription resource="branding" />
     <div>

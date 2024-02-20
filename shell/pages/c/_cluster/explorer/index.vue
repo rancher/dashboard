@@ -45,6 +45,7 @@ import { ExtensionPoint, CardLocation } from '@shell/core/types';
 import { getApplicableExtensionEnhancements } from '@shell/core/plugin-helpers';
 import Certificates from '@shell/components/Certificates';
 import { NAME as EXPLORER } from '@shell/config/product/explorer';
+import TabTitle from '@shell/components/TabTitle';
 
 export const RESOURCES = [NAMESPACE, INGRESS, PV, WORKLOAD_TYPES.DEPLOYMENT, WORKLOAD_TYPES.STATEFUL_SET, WORKLOAD_TYPES.JOB, WORKLOAD_TYPES.DAEMON_SET, SERVICE];
 
@@ -77,7 +78,8 @@ export default {
     ConfigBadge,
     EventsTable,
     SimpleBox,
-    Certificates
+    Certificates,
+    TabTitle
   },
 
   mixins: [metricPoller],
@@ -423,7 +425,9 @@ export default {
     <header>
       <div class="title">
         <h1>
-          <t k="clusterIndexPage.header" />
+          <TabTitle>
+            {{ t('clusterIndexPage.header') }}
+          </TabTitle>
         </h1>
         <div>
           <span v-if="hasDescription">{{ currentCluster.spec.description }}</span>

@@ -6,6 +6,14 @@ describe('ConfigMap', { tags: ['@explorer', '@adminUser'] }, () => {
     cy.login();
   });
 
+  it('has the correct title', () => {
+    const configMapPage = new ConfigMapPagePo('local');
+
+    configMapPage.goTo();
+
+    cy.title().should('eq', 'Rancher - local - ConfigMaps');
+  });
+
   it('creates a configmap and displays it in the list', () => {
     const expectedValue = `# Sample XPlanManagerAPI Configuration (if this comment is longer than 80 characters, the output should remain the same)
 

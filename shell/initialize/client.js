@@ -22,6 +22,8 @@ import {
 import { createApp } from './index.js';
 import fetchMixin from '../mixins/fetch.client';
 import NuxtLink from '../components/nuxt/nuxt-link.client.js'; // should be included after ./index.js
+import { updatePageTitle } from '@shell/utils/title';
+import { getVendor } from '@shell/config/private-label';
 
 // Mimic old @nuxt/vue-app/template/client.js
 const isDev = process.env.dev;
@@ -690,6 +692,13 @@ async function mountApp(__app) {
   // Add beforeEach router hooks
   router.beforeEach(loadAsyncComponents.bind(_app));
   router.beforeEach(render.bind(_app));
+  router.beforeEach((from, to, next) => {
+    if (from?.name !== to?.name) {
+      updatePageTitle(getVendor());
+    }
+
+    next();
+  });
 
   // Fix in static: remove trailing slash to force hydration
   // Full static, if server-rendered: hydrate, to allow custom redirect to generated page
