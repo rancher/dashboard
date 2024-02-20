@@ -646,15 +646,16 @@ export default {
       };
 
       if (!isValueInContent()) {
-        if (this.mode === _CREATE) {
-          const value = isArray ? [] : content[0]?.value;
+        const value = isArray ? [] : content[0]?.value;
+        // null and "" are valid values for hostsystem and folder
+        const isFolderNullOrEmpty = key === 'folder' && (this.value.folder === null || this.value.folder === '');
+        const isHostsystemNullOrEmpty = key === 'hostsystem' && (this.value.hostsystem === null || this.value.hostsystem === '');
 
-          if (value !== SENTINEL) {
-            set(this.value, key, value);
-          }
+        if (this.mode === _CREATE && value !== SENTINEL) {
+          set(this.value, key, value);
         }
 
-        if ([_EDIT, _VIEW].includes(this.mode)) {
+        if ([_EDIT, _VIEW].includes(this.mode) && !isFolderNullOrEmpty && !isHostsystemNullOrEmpty) {
           this.manageErrors(errorActions.CREATE, key);
         }
       } else {
