@@ -23,66 +23,82 @@ describe('component: vmwarevsphere', () => {
     ...baseSetup,
     propsData: {
       ...baseSetup.propsData,
-      mode:  'create',
-      value: { initted: false },
+      mode:           'create',
+      poolCreateMode: true,
+      value:          { initted: false },
     }
   };
   const defaultEditSetup = {
     ...baseSetup,
     propsData: {
       ...baseSetup.propsData,
-      mode:  'edit',
-      value: { initted: false },
+      mode:           'edit',
+      poolCreateMode: false,
+      value:          { initted: false },
+    }
+  };
+  const editModeWithPoolInCreateModeSetup = {
+    ...defaultEditSetup,
+    propsData: {
+      ...defaultEditSetup.propsData,
+      poolCreateMode: true
     }
   };
 
-  it('should mount successfully with correct default values', () => {
-    const wrapper = mount(vmwarevsphere, defaultCreateSetup);
+  describe('default values', () => {
+    const testCases = [
+      defaultCreateSetup,
+      editModeWithPoolInCreateModeSetup
+    ];
 
-    const dataCenterElement = wrapper.find(`[data-testid="datacenter"]`).element;
-    const resourcePoolElement = wrapper.find(`[data-testid="resourcePool"]`).element;
-    const dataStoreElement = wrapper.find(`[data-testid="dataStore"]`).element;
-    const folderElement = wrapper.find(`[data-testid="folder"]`).element;
-    const hostElement = wrapper.find(`[data-testid="host"]`).element;
-    const gracefulShutdownTimeoutElement = wrapper.find(`[data-testid="gracefulShutdownTimeout"]`).element;
+    it.each(testCases)('should mount successfully with correct default values', (setup) => {
+      const wrapper = mount(vmwarevsphere, setup);
 
-    expect(dataCenterElement).toBeDefined();
-    expect(resourcePoolElement).toBeDefined();
-    expect(dataStoreElement).toBeDefined();
-    expect(folderElement).toBeDefined();
-    expect(hostElement).toBeDefined();
-    expect(gracefulShutdownTimeoutElement).toBeDefined();
+      const dataCenterElement = wrapper.find(`[data-testid="datacenter"]`).element;
+      const resourcePoolElement = wrapper.find(`[data-testid="resourcePool"]`).element;
+      const dataStoreElement = wrapper.find(`[data-testid="dataStore"]`).element;
+      const folderElement = wrapper.find(`[data-testid="folder"]`).element;
+      const hostElement = wrapper.find(`[data-testid="host"]`).element;
+      const gracefulShutdownTimeoutElement = wrapper.find(`[data-testid="gracefulShutdownTimeout"]`).element;
 
-    const {
-      cpuCount: defaultCpuCount,
-      diskSize: defaultDiskSize,
-      memorySize: defaultMemorySize,
-      hostsystem: defaultHostsystem,
-      cloudConfig: defaultCloudConfig,
-      gracefulShutdownTimeout: defaultGracefulShutdownTimeout,
-      cfgparam: defaultCfgparam,
-      os: defaultOs
-    } = DEFAULT_VALUES;
+      expect(dataCenterElement).toBeDefined();
+      expect(resourcePoolElement).toBeDefined();
+      expect(dataStoreElement).toBeDefined();
+      expect(folderElement).toBeDefined();
+      expect(hostElement).toBeDefined();
+      expect(gracefulShutdownTimeoutElement).toBeDefined();
 
-    const {
-      cpuCount,
-      diskSize,
-      memorySize,
-      hostsystem,
-      cloudConfig,
-      gracefulShutdownTimeout,
-      cfgparam,
-      os
-    } = wrapper.vm.$options.propsData.value;
+      const {
+        cpuCount: defaultCpuCount,
+        diskSize: defaultDiskSize,
+        memorySize: defaultMemorySize,
+        hostsystem: defaultHostsystem,
+        cloudConfig: defaultCloudConfig,
+        gracefulShutdownTimeout: defaultGracefulShutdownTimeout,
+        cfgparam: defaultCfgparam,
+        os: defaultOs
+      } = DEFAULT_VALUES;
 
-    expect(cpuCount).toStrictEqual(defaultCpuCount);
-    expect(diskSize).toStrictEqual(defaultDiskSize);
-    expect(memorySize).toStrictEqual(defaultMemorySize);
-    expect(hostsystem).toStrictEqual(defaultHostsystem);
-    expect(cloudConfig).toStrictEqual(defaultCloudConfig);
-    expect(gracefulShutdownTimeout).toStrictEqual(defaultGracefulShutdownTimeout);
-    expect(cfgparam).toStrictEqual(defaultCfgparam);
-    expect(os).toStrictEqual(defaultOs);
+      const {
+        cpuCount,
+        diskSize,
+        memorySize,
+        hostsystem,
+        cloudConfig,
+        gracefulShutdownTimeout,
+        cfgparam,
+        os
+      } = wrapper.vm.$options.propsData.value;
+
+      expect(cpuCount).toStrictEqual(defaultCpuCount);
+      expect(diskSize).toStrictEqual(defaultDiskSize);
+      expect(memorySize).toStrictEqual(defaultMemorySize);
+      expect(hostsystem).toStrictEqual(defaultHostsystem);
+      expect(cloudConfig).toStrictEqual(defaultCloudConfig);
+      expect(gracefulShutdownTimeout).toStrictEqual(defaultGracefulShutdownTimeout);
+      expect(cfgparam).toStrictEqual(defaultCfgparam);
+      expect(os).toStrictEqual(defaultOs);
+    });
   });
 
   describe('mapPathOptionsToContent', () => {
