@@ -332,12 +332,15 @@ export default {
 
       let contentText = '';
       let content;
+      let classes = '';
 
       // this is scenario where we show a tooltip when we are on the expanded menu
       if (isExpandedMenuTooltip) {
         contentText = `${ item.label }<br><br>${ item.description }`;
 
         content = !this.shown || !item.description ? null : contentText;
+        // this adds a class to the tooltip container so that we can control the max width
+        classes = 'tooltip-description';
       // this is the normal tooltip scenario where we are just passing a string
       } else {
         contentText = item;
@@ -347,7 +350,8 @@ export default {
       return {
         content,
         placement:     'right',
-        popperOptions: { modifiers: { preventOverflow: { enabled: false }, hide: { enabled: false } } }
+        popperOptions: { modifiers: { preventOverflow: { enabled: false }, hide: { enabled: false } } },
+        classes
       };
     },
   }
@@ -784,6 +788,10 @@ export default {
 </template>
 
 <style lang="scss">
+  .tooltip-description {
+    max-width: 200px;
+  }
+
   .localeSelector, .footer-tooltip {
     z-index: 1000;
   }
