@@ -75,6 +75,10 @@ describe('Banners', { testIsolation: 'off' }, () => {
 
     // Show Banner
     bannersPage.headerBannerCheckbox().set();
+    // to check custom box element width and height in order to prevent regression
+    // https://github.com/rancher/dashboard/issues/10000
+    bannersPage.headerBannerCheckbox().hasAppropriateWidth();
+    bannersPage.headerBannerCheckbox().hasAppropriateHeight();
     bannersPage.headerInput().set(settings.bannerLabel);
     bannersPage.textAlignmentRadioGroup('bannerHeader').set(2);
     bannersPage.textDecorationCheckboxes('bannerHeader', 'Underline').set();

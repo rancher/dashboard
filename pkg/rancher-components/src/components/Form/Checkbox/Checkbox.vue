@@ -325,6 +325,7 @@ $fontColor: var(--input-label);
     border-radius: var(--border-radius);
     transition: all 0.3s ease-out;
     border: 1px solid var(--border);
+    flex-shrink: 0;
   }
 
   input {

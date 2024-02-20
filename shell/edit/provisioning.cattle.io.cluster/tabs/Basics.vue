@@ -125,6 +125,18 @@ export default {
       return this.value.spec.rkeConfig.machineGlobalConfig;
     },
 
+    showCniNoneBanner() {
+      return this.serverConfig?.cni === 'none';
+    },
+
+    showCiliumIpv6Controls() {
+      return this.serverConfig?.cni === 'cilium' || this.serverConfig?.cni === 'multus,cilium';
+    },
+
+    showNetworkPolicyWarningBanner() {
+      return this.serverConfig?.cni === 'cilium' && this.value?.spec?.enableNetworkPolicy;
+    },
+
     agentConfig() {
       return this.value.agentConfig;
     },
@@ -418,7 +430,7 @@ export default {
       <span v-clean-html="t('cluster.banner.cloudProviderAddConfig', {}, true)" />
     </Banner>
     <Banner
-      v-if="serverConfig.cni === 'none'"
+      v-if="showCniNoneBanner"
       color="warning"
       data-testid="clusterBasics__noneOptionSelectedForCni"
     >
@@ -472,7 +484,7 @@ export default {
         />
       </div>
       <div
-        v-if="serverConfig.cni === 'cilium' || serverConfig.cni === 'multus,cilium'"
+        v-if="showCiliumIpv6Controls"
         class="col"
       >
         <Checkbox
@@ -604,7 +616,7 @@ export default {
     </div>
 
     <div
-      v-if="serverConfig.cni === 'cilium' && value.spec.enableNetworkPolicy"
+      v-if="showNetworkPolicyWarningBanner"
       class="row"
     >
       <div class="col span-12">
