@@ -656,9 +656,8 @@ export default {
       if (!isValueInContent()) {
         const value = isArray ? [] : content[0]?.value;
         // null and "" are valid values for hostsystem and folder
-        const isFolderNullOrEmpty = key === 'folder' && (this.value.folder === null || this.value.folder === '');
-        const isHostsystemNullOrEmpty = key === 'hostsystem' && (this.value.hostsystem === null || this.value.hostsystem === '');
-        const shouldHandleError = [_EDIT, _VIEW].includes(this.mode) && !isFolderNullOrEmpty && !isHostsystemNullOrEmpty && !this.poolCreateMode;
+        const isNullOrEmpty = ['folder', 'hostsystem'].includes(key) && (this.value[key] === null || this.value[key] === '');
+        const shouldHandleError = [_EDIT, _VIEW].includes(this.mode) && !isNullOrEmpty && !this.poolCreateMode;
 
         if ((this.mode === _CREATE || this.poolCreateMode) && value !== SENTINEL) {
           set(this.value, key, value);
