@@ -324,20 +324,31 @@ export default {
       } catch {
       }
     },
-    getTooltipConfig(item) {
-      if (!this.shown && !item) {
+
+    getTooltipConfig(item, isExpandedMenuTooltip = false) {
+      if (!item) {
         return;
       }
 
-      if (!this.shown) {
-        return {
-          content:       this.shown ? null : item,
-          placement:     'right',
-          popperOptions: { modifiers: { preventOverflow: { enabled: false }, hide: { enabled: false } } }
-        };
+      let contentText = '';
+      let content;
+
+      // this is scenario where we show a tooltip when we are on the expanded menu
+      if (isExpandedMenuTooltip) {
+        contentText = `${ item.label }<br><br>${ item.description }`;
+
+        content = !this.shown || !item.description ? null : contentText;
+      // this is the normal tooltip scenario where we are just passing a string
       } else {
-        return { content: undefined };
+        contentText = item;
+        content = this.shown ? null : contentText;
       }
+
+      return {
+        content,
+        placement:     'right',
+        popperOptions: { modifiers: { preventOverflow: { enabled: false }, hide: { enabled: false } } }
+      };
     },
   }
 };
@@ -508,10 +519,13 @@ export default {
                       :cluster="c"
                       class="rancher-provider-icon"
                     />
-                    <div class="cluster-name">
+                    <div
+                      class="cluster-name"
+                    >
                       <p>{{ c.label }}</p>
                       <p
                         v-if="c.description"
+                        v-tooltip="getTooltipConfig(c, true)"
                         class="description"
                       >
                         {{ c.description }}
@@ -530,10 +544,13 @@ export default {
                       :cluster="c"
                       class="rancher-provider-icon"
                     />
-                    <div class="cluster-name">
+                    <div
+                      class="cluster-name"
+                    >
                       <p>{{ c.label }}</p>
                       <p
                         v-if="c.description"
+                        v-tooltip="getTooltipConfig(c, true)"
                         class="description"
                       >
                         {{ c.description }}
@@ -572,10 +589,13 @@ export default {
                       :cluster="c"
                       class="rancher-provider-icon"
                     />
-                    <div class="cluster-name">
+                    <div
+                      class="cluster-name"
+                    >
                       <p>{{ c.label }}</p>
                       <p
                         v-if="c.description"
+                        v-tooltip="getTooltipConfig(c, true)"
                         class="description"
                       >
                         {{ c.description }}
@@ -595,10 +615,13 @@ export default {
                       :cluster="c"
                       class="rancher-provider-icon"
                     />
-                    <div class="cluster-name">
+                    <div
+                      class="cluster-name"
+                    >
                       <p>{{ c.label }}</p>
                       <p
                         v-if="c.description"
+                        v-tooltip="getTooltipConfig(c, true)"
                         class="description"
                       >
                         {{ c.description }}
