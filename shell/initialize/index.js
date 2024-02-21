@@ -38,6 +38,8 @@ import codeMirror from '../plugins/codemirror-loader';
 import '../plugins/formatters';
 import version from '../plugins/version';
 import steveCreateWorker from '../plugins/steve-create-worker';
+import { REDIRECTED } from '@shell/config/cookies';
+import { UPGRADED, _FLAGGED, _UNFLAG } from '@shell/config/query-params';
 
 // Prevent extensions from overriding existing directives
 // Hook into Vue.directive and keep track of the directive names that have been added
@@ -187,11 +189,6 @@ async function createApp(config = {}) {
   }
 
   // Plugin execution
-
-  // if (typeof nuxt_plugin_portalvue_6babae27 === 'function') {
-  //   await nuxt_plugin_portalvue_6babae27(app.context, inject);
-  // }
-
   if (typeof cookieUniversalNuxt === 'function') {
     await cookieUniversalNuxt(app.context, inject);
   }
@@ -275,7 +272,31 @@ async function createApp(config = {}) {
         resolve();
       });
     });
+
+    router.afterEach((to) => {
+      const upgraded = to.query[UPGRADED] === _FLAGGED;
+
+      if ( upgraded ) {
+        router.applyQuery({ [UPGRADED]: _UNFLAG });
+
+        store.dispatch('growl/success', {
+          title:   store.getters['i18n/t']('serverUpgrade.title'),
+          message: store.getters['i18n/t']('serverUpgrade.message'),
+          timeout: 0,
+        });
+      }
+    });
   });
+
+  // This tells Ember not to redirect back to us once you've already been to dashboard once.
+  // TODO: Remove this once the ember portion of the app is no longer needed
+  if ( !app.context.$cookies.get(REDIRECTED) ) {
+    app.context.$cookies.set(REDIRECTED, 'true', {
+      path:     '/',
+      sameSite: true,
+      secure:   true,
+    });
+  }
 
   return {
     store,

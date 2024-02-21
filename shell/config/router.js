@@ -27,6 +27,11 @@ export const routerOptions = {
       ]
     },
     {
+      path:      '/fail-whale',
+      component: () => interopDefault(import('../pages/fail-whale.vue')),
+      name:      'fail-whale'
+    },
+    {
       path:      '',
       component: () => interopDefault(import('../components/templates/blank.vue')),
       name:      'blank',
@@ -41,11 +46,6 @@ export const routerOptions = {
           path:      '/home',
           component: () => interopDefault(import('../pages/home.vue')),
           name:      'home'
-        },
-        {
-          path:      '/fail-whale',
-          component: () => interopDefault(import('../pages/fail-whale.vue')),
-          name:      'fail-whale'
         },
         {
           path:      '/support',
