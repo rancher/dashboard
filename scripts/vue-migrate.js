@@ -512,6 +512,8 @@ const eslintUpdates = () => {
     'vue/require-explicit-emits':         'off',
     'vue/v-on-event-hyphenation':         'off',
     'vue/no-v-for-template-key-on-child': 'off',
+    'no-unused-vars':                     'off',
+    '@typescript-eslint/no-unused-vars':  'off',
   };
 
   files.forEach((file) => {
