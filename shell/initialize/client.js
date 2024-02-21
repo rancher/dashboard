@@ -30,10 +30,7 @@ const isDev = process.env.dev;
 const debug = isDev;
 
 // Fetch mixin
-if (!Vue.__nuxt__fetch__mixin__) {
-  Vue.mixin(fetchMixin);
-  Vue.__nuxt__fetch__mixin__ = true;
-}
+Vue.mixin(fetchMixin);
 
 // Component: <NuxtLink>
 Vue.component(NuxtLink.name, NuxtLink);
@@ -173,7 +170,6 @@ async function loadAsyncComponents(to, from, next) {
     }
 
     this.error({ statusCode, message });
-    this.$nuxt.$emit('routeChanged', to, from, err);
     next();
   }
 }
@@ -444,15 +440,11 @@ async function render(to, from, next) {
   } catch (err) {
     const error = err || {};
 
-    if (error.message === 'ERR_REDIRECT') {
-      return this.$nuxt.$emit('routeChanged', to, from, error);
-    }
     _lastPaths = [];
 
     globalHandleError(error);
 
     this.error(error);
-    this.$nuxt.$emit('routeChanged', to, from, error);
     next();
   }
 }
@@ -527,11 +519,6 @@ function nuxtReady(_app) {
   if (typeof window._onNuxtLoaded === 'function') {
     window._onNuxtLoaded(_app);
   }
-  // Add router hooks
-  router.afterEach((to, from) => {
-    // Wait for fixPrepatch + $data updates
-    Vue.nextTick(() => _app.$nuxt.$emit('routeChanged', to, from));
-  });
 }
 
 const noopData = () => {

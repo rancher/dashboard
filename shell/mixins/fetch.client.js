@@ -65,7 +65,6 @@ function $fetch() {
 }
 
 async function $_fetch() { // eslint-disable-line camelcase
-  this.$nuxt.nbFetching++;
   this.$fetchState.pending = true;
   this.$fetchState.error = null;
   this._hydrated = false;
@@ -90,6 +89,4 @@ async function $_fetch() { // eslint-disable-line camelcase
   this.$fetchState.error = error;
   this.$fetchState.pending = false;
   this.$fetchState.timestamp = Date.now();
-
-  this.$nextTick(() => this.$nuxt.nbFetching--);
 }

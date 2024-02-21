@@ -30,8 +30,6 @@ export default {
     isOnline: true,
 
     showErrorPage: false,
-
-    nbFetching: 0
   }),
 
   beforeCreate() {
@@ -64,10 +62,6 @@ export default {
   computed: {
     isOffline() {
       return !this.isOnline;
-    },
-
-    isFetching() {
-      return this.nbFetching > 0;
     },
   },
 
