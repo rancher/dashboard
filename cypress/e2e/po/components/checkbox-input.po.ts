@@ -48,6 +48,10 @@ export default class CheckboxInputPo extends ComponentPo {
     return this.input().find('span.checkbox-custom').should('not.have.attr', 'aria-checked', 'true');
   }
 
+  getCheckboxLabel(): Cypress.Chainable {
+    return this.input().find('.checkbox-label').invoke('text');
+  }
+
   isDisabled(): Cypress.Chainable {
     return this.input().then((el) => {
       expect(el).attr('class').to.include('disabled');

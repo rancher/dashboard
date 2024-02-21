@@ -4304,7 +4304,7 @@ prefs:
     themeShortcut: Enable Dark/Light Theme keyboard shortcut toggle (shift+T)
     pluginDeveloper: Enable Extension developer features
   hideDesc:
-    label: Hide All Type Descriptions
+    label: Hide Type Description banners above resource lists
   helm:
     'true': Include Prerelease Versions
     'false': Show Releases Only

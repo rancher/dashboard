@@ -340,6 +340,7 @@ describe('User can update their preferences', () => {
 
     prefPage.goTo();
     prefPage.hideDescriptionsCheckbox().checkVisible();
+    prefPage.verifyHideDescriptionsCheckboxLabel();
     cy.intercept('PUT', 'v1/userpreferences/*').as('prefUpdate');
     prefPage.hideDescriptionsCheckbox().set();
     cy.wait('@prefUpdate').its('response.statusCode').should('eq', 200);
