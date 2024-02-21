@@ -2,7 +2,6 @@ import Vue from 'vue';
 import Router from 'vue-router';
 import { normalizeURL } from 'ufo';
 import { interopDefault } from '../utils/nuxt';
-import scrollBehavior from '../utils/router.scrollBehavior.js';
 
 const emptyFn = () => {};
 
@@ -12,7 +11,6 @@ export const routerOptions = {
   mode: 'history',
   // Note: router base comes from the ROUTER_BASE env var
   base: process.env.routerBase || '/',
-  scrollBehavior,
 
   routes: [
     {

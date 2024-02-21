@@ -30,13 +30,8 @@ export default {
 
     const listeners = {}
     
-    // Add triggerScroll event on beforeEnter (fix #1376)
     const beforeEnter = listeners.beforeEnter
     listeners.beforeEnter = (el) => {
-      // Ensure to trigger scroll event after calling scrollBehavior
-      window.$nuxt.$nextTick(() => {
-        window.$nuxt.$emit('triggerScroll')
-      })
       if (beforeEnter) {
         return beforeEnter.call(_parent, el)
       }
