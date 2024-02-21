@@ -75,10 +75,7 @@ export default {
 </script>
 
 <template>
-  <Loading
-    v-if="$fetchState.pending"
-    mode="content"
-  />
+  <Loading v-if="$fetchState.pending" />
   <div v-else>
     <Banner
       v-if="!hasSupport"

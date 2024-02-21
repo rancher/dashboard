@@ -226,7 +226,7 @@ export default {
     const schema = getters.schemaFor(type);
 
     if (schema.requiresResourceFields && !schema.hasResourceFields) {
-      console.warn(`pathExistsInSchema requires schema ${ schema.id } to have resources fields via schema definition but none were found`); // eslint-disable-line no-console
+      console.warn(`pathExistsInSchema requires schema ${ schema.id } to have resources fields via schema definition but none were found. has the schema 'fetchResourceFields' been called?`); // eslint-disable-line no-console
 
       return false;
     }

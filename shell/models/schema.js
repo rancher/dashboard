@@ -17,7 +17,8 @@ const mapArrayTypeRegex = /([^[\s]*)(\[(.*)\])?/;
 /**
  * For the given resourceField find the root type and, if a collection of types, it's subtype
  *
- * @param {ResourceField} field resourceField entry
+ * @param {String} str type, may contain sub type
+ * @param {ResourceField} field resourceField entry, may contain sub type
  * @returns [type, subtype]
  */
 export function parseType(str, field) {

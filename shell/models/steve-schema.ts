@@ -1,5 +1,6 @@
 import { STEVE } from '@shell/config/types';
 import Schema from './schema';
+import { wait } from '@shell/utils/async';
 
 interface ResourceField {
   type: string,
@@ -152,9 +153,9 @@ export default class SteveSchema extends Schema {
         url
       });
     } catch (e: any) {
-      if ( e?._status >= 500) {
+      if ( e?._status === 500) {
         // Rancher could be updating it's definition cache, attempt a few times
-        await new Promise((resolve) => setTimeout(resolve, 2000));
+        await wait(2000);
 
         return this.fetchResourceFields(++depth);
       }

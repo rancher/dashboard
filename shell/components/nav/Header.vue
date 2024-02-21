@@ -18,6 +18,7 @@ import { allHash } from '@shell/utils/promise';
 import { ActionLocation, ExtensionPoint } from '@shell/core/types';
 import { getApplicableExtensionEnhancements } from '@shell/core/plugin-helpers';
 import IconOrSvg from '@shell/components/IconOrSvg';
+import { wait } from '@shell/utils/async';
 
 const PAGE_HEADER_ACTION = 'page-action';
 
@@ -292,7 +293,7 @@ export default {
       // Make sure we wait at least 1 second so that the user can see the visual indication that the config has been copied
       allHash({
         copy:     this.currentCluster.copyKubeConfig(),
-        minDelay: new Promise((resolve) => setTimeout(resolve, 1000))
+        minDelay: wait(1000),
       }).finally(() => {
         this.kubeConfigCopying = false;
 
