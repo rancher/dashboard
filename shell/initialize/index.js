@@ -39,6 +39,8 @@ import '../plugins/formatters';
 import version from '../plugins/version';
 import steveCreateWorker from '../plugins/steve-create-worker';
 
+import { rancherApiPlugin, clusterApiPlugin, shellApiPlugin, extensionApiPlugin } from '../plugins/rancher-api';
+
 // Prevent extensions from overriding existing directives
 // Hook into Vue.directive and keep track of the directive names that have been added
 // and prevent an existing directive from being overwritten
@@ -91,6 +93,12 @@ async function createApp(config = {}) {
 
   // Add this.$router into store actions/mutations
   store.$router = router;
+
+  // Add racher-api classes to Vue prototype
+  Vue.use(rancherApiPlugin, { store });
+  Vue.use(clusterApiPlugin, { store });
+  Vue.use(shellApiPlugin, { store });
+  Vue.use(extensionApiPlugin, { store });
 
   // Create Root instance
 
