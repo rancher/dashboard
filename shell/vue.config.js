@@ -6,6 +6,7 @@ const CopyWebpackPlugin = require('copy-webpack-plugin');
 const serverMiddlewares = require('./server/server-middleware.js');
 const configHelper = require('./vue-config-helper.js');
 const har = require('./server/har-file');
+const NodePolyfillPlugin = require('node-polyfill-webpack-plugin');
 
 // Suppress info level logging messages from http-proxy-middleware
 // This hides all of the "[HPM Proxy created] ..." messages
@@ -352,6 +353,7 @@ module.exports = function(dir, _appConfig) {
       config.plugins.push(autoImport);
       config.plugins.push(new VirtualModulesPlugin(autoImportTypes));
       config.plugins.push(pkgImport);
+      config.plugins.push(new NodePolyfillPlugin()); // required from Webpack 5 to polyfill node modules
       // DefinePlugin does string replacement within our code. We may want to consider replacing it with something else. In code we'll see something like
       // process.env.commit even though process and env aren't even defined objects. This could cause people to be mislead.
       config.plugins.push(new webpack.DefinePlugin({
