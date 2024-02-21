@@ -5754,6 +5754,7 @@ validation:
           recordName: 'Rule group {groupIndex} rule {ruleIndex} requires a Time Series Name.'
         singleEntry: 'At least one alert rule or one recording rule is required in rule group {index}.'
   required: '"{key}" is required'
+  container-name: '"{key}" must contain numbers'
   invalid: '"{key}" is invalid'
   requiredOrOverride: '"{key}" is required or must allow override'
   roleTemplate:

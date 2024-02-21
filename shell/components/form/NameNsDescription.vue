@@ -163,6 +163,14 @@ export default {
     componentTestid: {
       type:    String,
       default: 'name-ns-description'
+    },
+    /**
+     * Validations rules
+     * ToDo change name
+     */
+    veeTokenRules: {
+      type:    [String, Object],
+      default: ''
     }
   },
 
@@ -406,7 +414,7 @@ export default {
         :mode="mode"
         :min-height="30"
         :required="nameRequired"
-        :rules="rules.namespace"
+        :vee-token-rules="veeTokenRules.namespace"
       />
       <button
         aria="Cancel create"
@@ -434,7 +442,7 @@ export default {
         :multiple="false"
         :label="t('namespace.label')"
         :placeholder="t('namespace.selectOrCreate')"
-        :rules="rules.namespace"
+        :vee-token-rules="veeTokenRules.namespace"
         required
         @selecting="selectNamespace"
       />
@@ -455,7 +463,7 @@ export default {
         :mode="mode"
         :min-height="30"
         :required="nameRequired"
-        :rules="rules.name"
+        :vee-token-rules="veeTokenRules.name"
       />
     </div>
 
@@ -472,7 +480,7 @@ export default {
         :label="t(descriptionLabel)"
         :placeholder="t(descriptionPlaceholder)"
         :min-height="30"
-        :rules="rules.description"
+        :vee-token-rules="veeTokenRules.description"
       />
     </div>
 

@@ -47,10 +47,11 @@ import { UI_MANAGED } from '@shell/config/labels-annotations';
 import { removeObject } from '@shell/utils/array';
 import { BEFORE_SAVE_HOOKS } from '@shell/mixins/child-hook';
 import NameNsDescription from '@shell/components/form/NameNsDescription';
-import formRulesGenerator from '@shell/utils/validators/formRules';
 import { TYPES as SECRET_TYPES } from '@shell/models/secret';
 import { defaultContainer } from '@shell/models/workload';
 import { allHash } from '@shell/utils/promise';
+import { veeTokenValidateUtil } from '@shell/utils/vee-validators';
+import { create } from '@shell/plugins/vee-validate';
 
 const TAB_WEIGHT_MAP = {
   general:              99,
@@ -281,16 +282,36 @@ export default {
         path: 'image', rootObject: this.container, rules: ['required'], translationKey: 'workload.container.image'
       }],
       fvReportedValidationPaths: ['spec'],
-      isNamespaceNew:            false,
-      idKey:                     ID_KEY
+
+      veeTokenRuleSets: {
+        image: {
+          id:             'container.image',
+          rules:          'containerImages',
+          translationKey: 'workload.container.image',
+          path:           'spec'
+        }
+      },
+
+      isNamespaceNew: false,
+      idKey:          ID_KEY,
+      tabErrors:      { general: false },
     };
+  },
+
+  mounted() {
+    /**
+     * Define extra rule
+     */
+    create('container-name', {
+      validate: (value) => {
+        return /[0-9]/.test(value);
+      },
+      computesRequired: true,
+    });
   },
 
   computed: {
     ...mapGetters(['currentCluster']),
-    tabErrors() {
-      return { general: this.fvGetPathErrors(['image'])?.length > 0 };
-    },
 
     defaultTab() {
       if (!!this.$route.query.sidecar || this.$route.query.init || this.mode === _CREATE) {
@@ -420,13 +441,7 @@ export default {
 
           return each;
         }),
-      ].map((container) => {
-        const containerImageRule = formRulesGenerator(this.$store.getters['i18n/t'], { name: container.name }).containerImage;
-
-        container.error = containerImageRule(container);
-
-        return container;
-      });
+      ];
     },
 
     flatResources: {
@@ -602,6 +617,15 @@ export default {
       this.$set(this.value, 'type', neu);
       delete this.value.apiVersion;
     },
+    'container.image': {
+      async handler() {
+        const res = await veeTokenValidateUtil(this.value, this.veeTokenRuleSets.image, this.$store.getters);
+
+        this.tabErrors.general = !res.valid;
+        this.container.error = !res.valid;
+      },
+      immediate: true
+    }
   },
 
   created() {

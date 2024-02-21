@@ -2,10 +2,11 @@
 import CreateEditView from '@shell/mixins/create-edit-view';
 import FormValidation from '@shell/mixins/form-validation';
 import WorkLoadMixin from '@shell/edit/workload/mixins/workload';
+import VeeTokenRules from 'mixins/vee-rules';
 
 export default {
   name:   'Workload',
-  mixins: [CreateEditView, FormValidation, WorkLoadMixin], // The order here is important since WorkLoadMixin contains some FormValidation configuration
+  mixins: [CreateEditView, FormValidation, WorkLoadMixin, VeeTokenRules], // The order here is important since WorkLoadMixin contains some FormValidation configuration
   props:  {
     value: {
       type:     Object,
@@ -19,6 +20,17 @@ export default {
   },
   data() {
     return { selectedName: null };
+  },
+  computed: {
+    veeTokenExtraRules() {
+      return {
+        containerName: {
+          id:             'containerName',
+          rules:          'container-name',
+          translationKey: 'generic.name',
+        },
+      };
+    }
   },
   methods: {
     changed(tab) {
@@ -81,16 +93,13 @@ export default {
     class="filled-height"
   >
     <CruResource
-      :validation-passed="fvFormIsValid"
       :selected-subtype="type"
       :resource="value"
       :mode="mode"
-      :errors="fvUnreportedValidationErrors"
       :done-route="doneRoute"
       :subtypes="workloadSubTypes"
       :apply-hooks="applyHooks"
       :value="value"
-      :errors-map="getErrorsMap(fvUnreportedValidationErrors)"
       @finish="save"
       @select-type="selectType"
       @error="e=>errors = e"
@@ -99,7 +108,7 @@ export default {
       <NameNsDescription
         :value="value"
         :mode="mode"
-        :rules="{name: fvGetAndReportPathRules('metadata.name'), namespace: fvGetAndReportPathRules('metadata.namespace'), description: []}"
+        :vee-token-rules="{ name: veeTokenRules.name }"
         @change="name=value.metadata.name"
         @isNamespaceNew="isNamespaceNew = $event"
       />
@@ -198,6 +207,7 @@ export default {
                       v-model="allContainers[i].name"
                       :mode="mode"
                       :label="t('workload.container.containerName')"
+                      :vee-token-rules="veeTokenRules.containerName"
                     />
                   </div>
                   <div class="col span-6">
@@ -219,7 +229,6 @@ export default {
                       :mode="mode"
                       :label="t('workload.container.image')"
                       :placeholder="t('generic.placeholder', {text: 'nginx:latest'}, true)"
-                      :rules="fvGetAndReportPathRules('image')"
                     />
                   </div>
                   <div class="col span-6">

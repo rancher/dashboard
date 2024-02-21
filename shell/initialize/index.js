@@ -20,6 +20,7 @@ import axiosShell from '../plugins/axios';
 import '../plugins/tooltip';
 import '../plugins/v-select';
 import '../plugins/vue-js-modal';
+import '../plugins/vee-validate';
 import '../plugins/js-yaml';
 import '../plugins/resize';
 import '../plugins/shortkey';
