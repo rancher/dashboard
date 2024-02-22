@@ -10,12 +10,12 @@ describe('RKE Templates', { testIsolation: 'off', tags: ['@manager', '@adminUser
 
   before(() => {
     cy.login();
-    cy.createE2EResourceName('rkeTemplate').as('rkeTemplateName');
-    cy.createE2EResourceName('rkeRevision').as('rkeRevisionName');
   });
 
   beforeEach(() => {
-    cy.viewport(1380, 720);
+    cy.viewport(1440, 900);
+    cy.createE2EResourceName('rkeTemplate').as('rkeTemplateName');
+    cy.createE2EResourceName('rkeRevision').as('rkeRevisionName');
   });
 
   it('can create RKE template and should display on RKE1 cluster creation page', function() {
@@ -50,6 +50,7 @@ describe('RKE Templates', { testIsolation: 'off', tags: ['@manager', '@adminUser
 
   it('can disable RKE template revision', function() {
     RkeTemplatesPagePo.navTo();
+    rkeTemplatesPage.waitForPage();
     rkeTemplatesPage.mainRow().rowActionMenuOpen(this.rkeRevisionName);
     cy.intercept('POST', '/v3/clusterTemplateRevisions/*').as('disableTemplateRevision');
     rkeTemplatesPage.actionMenu().selectMenuItemByLabel('Disable');
@@ -60,6 +61,7 @@ describe('RKE Templates', { testIsolation: 'off', tags: ['@manager', '@adminUser
 
   it('can enable RKE template revision', function() {
     RkeTemplatesPagePo.navTo();
+    rkeTemplatesPage.waitForPage();
     rkeTemplatesPage.mainRow().rowActionMenuOpen(this.rkeRevisionName);
     cy.intercept('POST', '/v3/clusterTemplateRevisions/*').as('enableTemplateRevision');
     rkeTemplatesPage.actionMenu().selectMenuItemByLabel('Enable');
@@ -70,6 +72,7 @@ describe('RKE Templates', { testIsolation: 'off', tags: ['@manager', '@adminUser
 
   it('can clone RKE template revision', function() {
     RkeTemplatesPagePo.navTo();
+    rkeTemplatesPage.waitForPage();
     rkeTemplatesPage.groupRow().groupRowWithName(this.rkeTemplateName).should('be.visible');
     rkeTemplatesPage.mainRow().rowActionMenuOpen(this.rkeRevisionName);
     rkeTemplatesPage.actionMenu().selectMenuItemByLabel('Clone Revision');
@@ -82,6 +85,7 @@ describe('RKE Templates', { testIsolation: 'off', tags: ['@manager', '@adminUser
 
   it('can delete RKE template revision', function() {
     RkeTemplatesPagePo.navTo();
+    rkeTemplatesPage.waitForPage();
     rkeTemplatesPage.mainRow().rowActionMenuOpen(`${ this.rkeRevisionName }-2`);
     rkeTemplatesPage.actionMenu().selectMenuItemByLabel(`Delete`);
     cy.intercept('DELETE', '/v3/clusterTemplateRevisions/*').as('deleteTemplateRevision');
@@ -92,6 +96,7 @@ describe('RKE Templates', { testIsolation: 'off', tags: ['@manager', '@adminUser
 
   it('can delete RKE template group', function() {
     RkeTemplatesPagePo.navTo();
+    rkeTemplatesPage.waitForPage();
     rkeTemplatesPage.groupRow().groupRowActionMenuOpen(this.rkeTemplateName);
     rkeTemplatesPage.actionMenu().selectMenuItemByLabel(`Delete`);
     cy.intercept('DELETE', '/v3/clusterTemplates/*').as('deleteTemplate');

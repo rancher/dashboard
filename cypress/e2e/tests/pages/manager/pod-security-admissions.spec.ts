@@ -12,11 +12,11 @@ describe('Pod Security Admissions', { testIsolation: 'off', tags: ['@manager', '
 
   before(() => {
     cy.login();
-    cy.createE2EResourceName('podsecurityadmissions').as('podSecurityAdmissionsName');
   });
 
   beforeEach(() => {
     cy.viewport(1380, 720);
+    cy.createE2EResourceName('podsecurityadmissions').as('podSecurityAdmissionsName');
   });
 
   it('can create a policy security admission', function() {
@@ -92,7 +92,7 @@ describe('Pod Security Admissions', { testIsolation: 'off', tags: ['@manager', '
 
   it('can download YAML for a policy security admission', function() {
     PodSecurityAdmissionsPagePo.navTo();
-    podSecurityAdmissionsPage.list().actionMenu(this.podSecurityAdmissionsName).getMenuItem('Download YAML').click();
+    podSecurityAdmissionsPage.list().actionMenu(this.podSecurityAdmissionsName).getMenuItem('Download YAML').click({ force: true });
 
     const downloadedFilename = path.join(downloadsFolder, `${ this.podSecurityAdmissionsName }.yaml`);
 

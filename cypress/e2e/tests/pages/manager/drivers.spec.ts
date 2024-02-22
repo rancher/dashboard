@@ -27,6 +27,7 @@ describe('Drivers', { testIsolation: 'off', tags: ['@manager', '@adminUser'] }, 
       const downloadUrl = 'https://github.com/rancher-plugins/kontainer-engine-driver-example/releases/download/v0.2.3/kontainer-engine-driver-example-copy1-linux-amd64';
 
       RkeDriversPagePo.navTo();
+      driversPage.waitForPage();
       driversPage.addClusterDriver().click();
       driversPage.createEditClusterDriver().formInput(2).set(downloadUrl);
       cy.intercept('POST', '/v3/kontainerdriver').as('createDriver');
@@ -40,6 +41,7 @@ describe('Drivers', { testIsolation: 'off', tags: ['@manager', '@adminUser'] }, 
       const downloadUrl = 'https://github.com/rancher-plugins/kontainer-engine-driver-example/releases/download/v0.2.3/kontainer-engine-driver-example-copy2-linux-amd64';
 
       RkeDriversPagePo.navTo();
+      driversPage.waitForPage();
       driversPage.list().rowActionMenuOpen(`Example`);
       driversPage.actionMenu().selectMenuItemByLabel(`Edit`);
       driversPage.createEditClusterDriver().formInput(2).set(downloadUrl);
@@ -51,6 +53,7 @@ describe('Drivers', { testIsolation: 'off', tags: ['@manager', '@adminUser'] }, 
 
     it('can deactivate a cluster driver', () => {
       RkeDriversPagePo.navTo();
+      driversPage.waitForPage();
       driversPage.list().rowActionMenuOpen(`Example`);
       driversPage.actionMenu().selectMenuItemByLabel(`Deactivate`);
       cy.intercept('POST', '/v3/kontainerDrivers/*').as('deactivateDriver');
@@ -61,6 +64,7 @@ describe('Drivers', { testIsolation: 'off', tags: ['@manager', '@adminUser'] }, 
 
     it('can activate a cluster driver', () => {
       RkeDriversPagePo.navTo();
+      driversPage.waitForPage();
       driversPage.list().rowActionMenuOpen(`Example`);
       cy.intercept('POST', '/v3/kontainerDrivers/*').as('activateDriver');
       driversPage.actionMenu().selectMenuItemByLabel(`Activate`);
@@ -70,6 +74,7 @@ describe('Drivers', { testIsolation: 'off', tags: ['@manager', '@adminUser'] }, 
 
     it('can delete a cluster driver', () => {
       RkeDriversPagePo.navTo();
+      driversPage.waitForPage();
       driversPage.list().rowActionMenuOpen(`Example`);
       driversPage.actionMenu().selectMenuItemByLabel(`Delete`);
       cy.intercept('DELETE', '/v3/kontainerDrivers/*').as('deleteDriver');

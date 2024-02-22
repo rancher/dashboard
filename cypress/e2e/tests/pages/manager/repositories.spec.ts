@@ -9,6 +9,9 @@ describe('Cluster Management Helm Repositories', { testIsolation: 'off', tags: [
 
   before(() => {
     cy.login();
+  });
+
+  beforeEach(() => {
     cy.createE2EResourceName('repo').as('repoName');
   });
 
@@ -71,7 +74,7 @@ describe('Cluster Management Helm Repositories', { testIsolation: 'off', tags: [
 
   it('can download YAML', function() {
     ChartRepositoriesPagePo.navTo();
-    repositoriesPage.list().actionMenu(this.repoName).getMenuItem('Download YAML').click();
+    repositoriesPage.list().actionMenu(this.repoName).getMenuItem('Download YAML').click({ force: true });
 
     const downloadedFilename = path.join(downloadsFolder, `${ this.repoName }.yaml`);
 

@@ -14,6 +14,24 @@ describe('Provision Node driver RKE2 cluster', { testIsolation: 'off', tags: ['@
   before(() => {
     cy.login();
     HomePagePo.goTo();
+
+    // clean up cloud credentials
+    cy.getRancherResource('v3', 'cloudcredentials', null, null).then((resp: Cypress.Response<any>) => {
+      const body = resp.body;
+
+      if (body.pagination['total'] > 0) {
+        for (const i in body.data) {
+          const id = body.data[i]['id'];
+
+          cy.deleteRancherResource('v3', 'cloudcredentials', id);
+        }
+      } else {
+        cy.log('There are no existing cloud credentials to delete');
+      }
+    });
+  });
+
+  beforeEach(() => {
     cy.createE2EResourceName('rke2ec2cluster').as('rke2Ec2ClusterName');
     cy.createE2EResourceName('ec2cloudcredential').as('ec2CloudCredentialName');
   });
@@ -36,7 +54,9 @@ describe('Provision Node driver RKE2 cluster', { testIsolation: 'off', tags: ['@
     cloudCredForm.accessKey().set(Cypress.env('awsAccessKey'));
     cloudCredForm.secretKey().set(Cypress.env('awsSecretKey'), true);
     cloudCredForm.defaultRegion().toggle();
-    cloudCredForm.defaultRegion().clickOptionWithLabel('us-west-2');
+    cloudCredForm.defaultRegion().clickOptionWithLabel('us-west-1');
+
+    cy.intercept('GET', '/v1/management.cattle.io.users?exclude=metadata.managedFields').as('pageLoad');
     cloudCredForm.saveCreateForm().cruResource().saveAndWaitForRequests('POST', '/v3/cloudcredentials').then((req) => {
       expect(req.response?.statusCode).to.equal(201);
       cloudcredentialId = req.response?.body.id;
@@ -45,6 +65,7 @@ describe('Provision Node driver RKE2 cluster', { testIsolation: 'off', tags: ['@
 
     const loadingPo = new LoadingPo('.loading-indicator');
 
+    cy.wait('@pageLoad').its('response.statusCode').should('eq', 200);
     loadingPo.checkNotExists();
     createRKE2ClusterPage.nameNsDescription().name().set(this.rke2Ec2ClusterName);
     createRKE2ClusterPage.nameNsDescription().description().set(`${ this.rke2Ec2ClusterName }-description`);
@@ -57,7 +78,7 @@ describe('Provision Node driver RKE2 cluster', { testIsolation: 'off', tags: ['@
     createRKE2ClusterPage.basicsTab().kubernetesVersions().clickOption(1);
 
     createRKE2ClusterPage.machinePoolTab().networks().toggle();
-    createRKE2ClusterPage.machinePoolTab().networks().clickOption(3);
+    createRKE2ClusterPage.machinePoolTab().networks().clickOptionWithLabel('maxdualstack-vpc');
 
     cy.intercept('POST', 'v1/provisioning.cattle.io.clusters').as('createRke2Cluster');
     createRKE2ClusterPage.create();
