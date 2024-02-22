@@ -65,11 +65,6 @@ export const routerOptions = {
           name:      'about'
         },
         {
-          path:      '/collective',
-          component: () => interopDefault(import('../pages/support/collective.vue')),
-          name:      'collective'
-        },
-        {
           path:      '/c/:cluster/uiplugins',
           name:      'c-cluster-uiplugins',
           component: () => interopDefault(import('../pages/c/_cluster/uiplugins/index.vue')),

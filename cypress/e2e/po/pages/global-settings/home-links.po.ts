@@ -33,7 +33,7 @@ export class HomeLinksPagePo extends RootClusterPage {
 
   addLinkButton() {
     return cy.getId('add_link_button');
-  }
+}
 
   removeLinkButton() {
     return cy.getId('remove-column-0');
@@ -57,4 +57,28 @@ export class HomeLinksPagePo extends RootClusterPage {
 
     return statusCode ? cy.wait(`@${ endpoint }`).its('response.statusCode').should('eq', statusCode) : cy.wait(`@${ endpoint }`);
   }
+
+  defaultLinkNames(): Cypress.Chainable {
+    return this.self().find('.ui-links-setting .kv-item.key > span').should('be.visible');
+  }
+
+  checkDefaultLinkName(index: number, text: string) {
+    return this.defaultLinkNames().eq(index).then((el) => {
+      expect(el.text().trim()).to.equal(text);
+    });
+  }
+
+  defaultLinkTargets(): Cypress.Chainable {
+    return this.self().find('.ui-links-setting .kv-item.value > span').should('be.visible');
+  }
+
+  checkDefaultLinkTargets(index: number, text: string) {
+    return this.defaultLinkTargets().eq(index).then((el) => {
+      expect(el.text().trim()).to.equal(text);
+    });
+  }
+
+  defaultLinkCheckbox(index: number) {
+    return this.self().find('div.link-show-hide-checkbox').eq(index).then((el) => new CheckboxInputPo(el));
+  }  
 }

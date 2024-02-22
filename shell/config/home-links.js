@@ -34,7 +34,7 @@ const DEFAULT_LINKS = [
 
 const COLLECTIVE_LINK = {
   key:     'suseCollective',
-  value:   `/collective`,
+  value:   'https://susecollective.suse.com/join/prime',
   enabled: true,
 };
 
@@ -73,7 +73,17 @@ export async function fetchLinks(store, hasSupport, isSupportPage, t) {
   }
 
   // If uiLinks is set and has the correct version, then we are okay, otherwise we need to migrate from the old settings
-  if (uiLinks?.version.startsWith(CUSTOM_LINKS_VERSION)) {
+  if (uiLinks?.version?.startsWith(CUSTOM_LINKS_VERSION)) {
+    // v1 > v1.1 migration
+    if (uiLinks?.version === CUSTOM_LINKS_VERSION) {
+      uiLinks.version = CUSTOM_LINKS_COLLECTIVE_VERSION;
+
+      // Add collective link so that it is enabled by default
+      if (!uiLinks.defaults.includes(COLLECTIVE_LINK.key)) {
+        uiLinks.defaults.push(COLLECTIVE_LINK.key);
+      }
+    }
+
     // Map out the default settings, as we only store keys of the ones to show
     if (uiLinks.defaults) {
       const defaults = [...DEFAULT_LINKS];
@@ -91,11 +101,6 @@ export async function fetchLinks(store, hasSupport, isSupportPage, t) {
       });
 
       uiLinks.defaults = defaults;
-    }
-
-    // v1 > v1.1 migration
-    if (uiLinks?.version === CUSTOM_LINKS_VERSION) {
-      uiLinks.version = CUSTOM_LINKS_COLLECTIVE_VERSION;
     }
 
     return ensureSupportLink(uiLinks, hasSupport, isSupportPage, t, store);

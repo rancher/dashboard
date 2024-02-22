@@ -7406,19 +7406,6 @@ support:
       title: Innovate with Freedom
       text: Take advantage of our certified compatibility with a wide range of Kubernetes providers, operating systems, and open source software.
 
-suse:
-  collective:
-    title: '<b>SUSE Collective</b> is a brand-new loyalty program that rewards our most collaborative and engaged users for being a part of the SUSE family'
-    login:
-      title: 'Already a member?'
-      action: Login to SUSE Collective
-      link: 'https://susecollective.suse.com'
-    join:
-      title: Sign up Today
-      action: Sign up to SUSE Collective
-      link: 'https://susecollective.suse.com/join/prime'
-
-
 embedding:
   retry: Retry
   unavailable: Cluster Manager UI is not available
