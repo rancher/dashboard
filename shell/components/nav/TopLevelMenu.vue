@@ -321,7 +321,7 @@ export default {
       }
     },
 
-    getTooltipConfig(item, isExpandedMenuTooltip = false) {
+    getTooltipConfig(item) {
       if (!item) {
         return;
       }
@@ -330,17 +330,19 @@ export default {
       let content;
       let classes = '';
 
-      // this is scenario where we show a tooltip when we are on the expanded menu
-      if (isExpandedMenuTooltip) {
-        contentText = `${ item.label }<br><br>${ item.description }`;
-
-        content = !this.shown || !item.description ? null : contentText;
-        // this adds a class to the tooltip container so that we can control the max width
-        classes = 'tooltip-description';
       // this is the normal tooltip scenario where we are just passing a string
-      } else {
+      if (typeof item === 'string') {
         contentText = item;
         content = this.shown ? null : contentText;
+
+      // this is scenario where we show a tooltip when we are on the expanded menu to show full description
+      } else {
+        contentText = `${ item.label }<br><br>${ item.description }`;
+
+        content = this.shown && !!item.description ? contentText : null;
+
+        // this adds a class to the tooltip container so that we can control the max width
+        classes = 'menu-description-tooltip';
       }
 
       return {
@@ -520,12 +522,12 @@ export default {
                       class="rancher-provider-icon"
                     />
                     <div
+                      v-tooltip="getTooltipConfig(c)"
                       class="cluster-name"
                     >
                       <p>{{ c.label }}</p>
                       <p
                         v-if="c.description"
-                        v-tooltip="getTooltipConfig(c, true)"
                         class="description"
                       >
                         {{ c.description }}
@@ -545,12 +547,12 @@ export default {
                       class="rancher-provider-icon"
                     />
                     <div
+                      v-tooltip="getTooltipConfig(c)"
                       class="cluster-name"
                     >
                       <p>{{ c.label }}</p>
                       <p
                         v-if="c.description"
-                        v-tooltip="getTooltipConfig(c, true)"
                         class="description"
                       >
                         {{ c.description }}
@@ -590,12 +592,12 @@ export default {
                       class="rancher-provider-icon"
                     />
                     <div
+                      v-tooltip="getTooltipConfig(c)"
                       class="cluster-name"
                     >
                       <p>{{ c.label }}</p>
                       <p
                         v-if="c.description"
-                        v-tooltip="getTooltipConfig(c, true)"
                         class="description"
                       >
                         {{ c.description }}
@@ -616,12 +618,12 @@ export default {
                       class="rancher-provider-icon"
                     />
                     <div
+                      v-tooltip="getTooltipConfig(c)"
                       class="cluster-name"
                     >
                       <p>{{ c.label }}</p>
                       <p
                         v-if="c.description"
-                        v-tooltip="getTooltipConfig(c, true)"
                         class="description"
                       >
                         {{ c.description }}
@@ -784,8 +786,12 @@ export default {
 </template>
 
 <style lang="scss">
-  .tooltip-description {
+  .menu-description-tooltip {
     max-width: 200px;
+    // needs !important so that we can
+    // offset the tooltip a bit so it doesn't
+    // overlap the pin icon and cause bad UX
+    left: 35px !important;
   }
 
   .localeSelector, .footer-tooltip {
@@ -927,13 +933,14 @@ export default {
         }
 
         .cluster-name p {
-          max-width: 220px;
+          width: 199px;
           white-space: nowrap;
           overflow: hidden;
           text-overflow: ellipsis;
 
           &.description {
             font-size: 12px;
+            padding-right: 8px;
             color: var(--darker);
           }
         }
