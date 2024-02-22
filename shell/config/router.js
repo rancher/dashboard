@@ -1,19 +1,14 @@
 import { createApp } from 'vue';
 import { createRouter } from 'vue-router';
-import { normalizeURL } from 'ufo';
 import { interopDefault } from '../utils/nuxt';
 
-const emptyFn = () => { };
-const app = createApp({});
-const router = createRouter({});
-
-app.use(router);
+const vueApp = createApp({});
 
 export const routerOptions = {
-  mode: 'history',
-  // Note: router base comes from the ROUTER_BASE env var
-  base: process.env.routerBase || '/',
-
+  history: {
+    // Note: router base comes from the ROUTER_BASE env var
+    base: process.env.routerBase || '/'
+  },
   routes: [
     {
       path:      '/',
@@ -397,29 +392,34 @@ export const routerOptions = {
         }]
     }],
 
-  fallback: false
+  // fallback: false
 };
 
+const router = createRouter(routerOptions);
+
+vueApp.use(router);
+
+// TODO: Restore logic with valid syntax
 export function extendRouter(config) {
-  const base = (config._app && config._app.basePath) || routerOptions.base;
-  const router = createRouter({ ...routerOptions, base });
+  // const base = (config._app && config._app.basePath) || routerOptions.base;
+  const router = createRouter({ ...routerOptions });
 
   // TODO: remove in Nuxt 3
-  const originalPush = router.push;
+  // const originalPush = router.push;
 
-  router.push = function push(location, onComplete = emptyFn, onAbort) {
-    return originalPush.call(this, location, onComplete, onAbort);
-  };
+  // router.push = function push(location, onComplete = emptyFn, onAbort) {
+  //   return originalPush.call(this, location, onComplete, onAbort);
+  // };
 
-  const resolve = router.resolve.bind(router);
+  // const resolve = router.resolve.bind(router);
 
-  router.resolve = (to, current, append) => {
-    if (typeof to === 'string') {
-      to = normalizeURL(to);
-    }
+  // router.resolve = (to, current, append) => {
+  //   if (typeof to === 'string') {
+  //     to = normalizeURL(to);
+  //   }
 
-    return resolve(to, current, append);
-  };
+  //   return resolve(to, current, append);
+  // };
 
   return router;
 }
