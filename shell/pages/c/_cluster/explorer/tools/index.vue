@@ -23,7 +23,6 @@ export default {
     await this.$store.dispatch('catalog/load', { force: true, reset: true });
 
     const query = this.$route.query;
-    const projects = await this.$store.dispatch('management/findAll', { type: MANAGEMENT.PROJECT });
 
     this.showDeprecated = query[DEPRECATED] === _FLAGGED;
     this.showHidden = query[HIDDEN] === _FLAGGED;
@@ -47,17 +46,21 @@ export default {
         this.v1SystemCatalog = {};
       }
 
-      // Need the project ID of the system project in order to get the apps
-      const systemProject = projects.find((p) => p.spec?.displayName === 'System');
+      if (this.$store.getters['management/schemaFor'](MANAGEMENT.PROJECT)) {
+        const projects = await this.$store.dispatch('management/findAll', { type: MANAGEMENT.PROJECT });
 
-      if (systemProject) {
-        const id = systemProject.id.replace('/', ':');
+        // Need the project ID of the system project in order to get the apps
+        const systemProject = projects?.find((p) => p.spec?.displayName === 'System');
 
-        this.systemProject = id;
-        await this.$store.dispatch('rancher/findAll', {
-          type: NORMAN.APP,
-          opt:  { url: `/v3/project/${ id }/apps`, force: true }
-        });
+        if (systemProject) {
+          const id = systemProject.id.replace('/', ':');
+
+          this.systemProject = id;
+          await this.$store.dispatch('rancher/findAll', {
+            type: NORMAN.APP,
+            opt:  { url: `/v3/project/${ id }/apps`, force: true }
+          });
+        }
       }
     }
   },
@@ -160,7 +163,7 @@ export default {
   watch: {
     namespaces() {
       // When the namespaces change, check the v1 apps - might indicate add or removal of a v1 app
-      if (this.legacyEnabled && this.systemProject) {
+      if (this.systemProject) {
         this.$store.dispatch('rancher/findAll', {
           type: NORMAN.APP,
           opt:  { url: `/v3/project/${ this.systemProject }/apps`, force: true }
@@ -430,6 +433,7 @@ export default {
         v-for="opt in options"
         :key="opt.chart.id"
         class="item"
+        :data-testid="`cluster-tools-app-${opt.chart.id}`"
       >
         <div
           class="logo"
