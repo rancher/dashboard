@@ -33,7 +33,7 @@ export class HomeLinksPagePo extends RootClusterPage {
 
   addLinkButton() {
     return cy.getId('add_link_button');
-}
+  }
 
   removeLinkButton() {
     return cy.getId('remove-column-0');
