@@ -1,8 +1,5 @@
-import { REDIRECTED } from '@shell/config/cookies';
 import { NAME as EXPLORER } from '@shell/config/product/explorer';
-import {
-  SETUP, TIMED_OUT, UPGRADED, _FLAGGED, _UNFLAG
-} from '@shell/config/query-params';
+import { SETUP, TIMED_OUT } from '@shell/config/query-params';
 import { SETTING } from '@shell/config/settings';
 import { MANAGEMENT, NORMAN, DEFAULT_WORKSPACE } from '@shell/config/types';
 import { _ALL_IF_AUTHED } from '@shell/plugins/dashboard-store/actions';
@@ -91,7 +88,7 @@ function setProduct(store, to, redirect) {
   (product && !store.getters['type-map/isProductRegistered'](product))) {
     store.dispatch('loadingError', new Error(store.getters['i18n/t']('nav.failWhale.productNotFound', { productNotFound: product }, true)));
 
-    return () => redirect(302, '/fail-whale');
+    return true;
   }
 
   if ( !product ) {
@@ -146,41 +143,8 @@ function invalidResource(store, to, redirect) {
 }
 
 export default async function({
-  route, app, store, redirect, $cookies, req, isDev, from, $plugin, next
+  route, store, redirect, from, $plugin, next
 }) {
-  if ( route.path && typeof route.path === 'string') {
-    // Ignore webpack hot module reload requests
-    if ( route.path.startsWith('/__webpack_hmr/') ) {
-      return;
-    }
-
-    // Ignore the error page
-    if ( route.path.startsWith('/fail-whale') ) {
-      return;
-    }
-  }
-
-  // This tells Ember not to redirect back to us once you've already been to dashboard once.
-  if ( !$cookies.get(REDIRECTED) ) {
-    $cookies.set(REDIRECTED, 'true', {
-      path:     '/',
-      sameSite: true,
-      secure:   true,
-    });
-  }
-
-  const upgraded = route.query[UPGRADED] === _FLAGGED;
-
-  if ( upgraded ) {
-    app.router.applyQuery({ [UPGRADED]: _UNFLAG });
-
-    store.dispatch('growl/success', {
-      title:   store.getters['i18n/t']('serverUpgrade.title'),
-      message: store.getters['i18n/t']('serverUpgrade.message'),
-      timeout: 0,
-    });
-  }
-
   // Initial ?setup=admin-password can technically be on any route
   let initialPass = route.query[SETUP];
   let firstLogin = null;
@@ -339,17 +303,7 @@ export default async function({
 
     store.app.router.beforeEach((to, from, next) => {
       // NOTE - This beforeEach runs AFTER this middleware. So anything in this middleware that requires it must set it manually
-      let redirected = setProduct(store, to, redirect);
-
-      if (redirected) {
-        return redirected();
-      }
-
-      redirected = invalidResource(store, to, redirect);
-
-      if (redirected) {
-        return redirected();
-      }
+      setProduct(store, to, redirect);
 
       next();
     });
