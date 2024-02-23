@@ -80,5 +80,5 @@ export class HomeLinksPagePo extends RootClusterPage {
 
   defaultLinkCheckbox(index: number) {
     return this.self().find('div.link-show-hide-checkbox').eq(index).then((el) => new CheckboxInputPo(el));
-  }  
+  }
 }
