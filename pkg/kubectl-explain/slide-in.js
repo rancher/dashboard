@@ -21,7 +21,7 @@ export async function explain(store, route) {
 
   // Create slide-in panel, if this is the first-time it is being shown
   if (!slideInPanel) {
-    const slideInPanelClass = Vue.extend(Panel);
+    const slideInPanelClass = Panel;
 
     // Note: because of the way we use Vue.extend and mount the component, the store
     // does not get injected into the Vue component, so we need to pass in the i18n lookup directly

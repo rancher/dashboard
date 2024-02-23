@@ -33,6 +33,7 @@ const ignore = [
 const nodeRequirement = '20.0.0';
 const isDry = process.argv.includes('--dry');
 const isVerbose = process.argv.includes('--verbose');
+const removePlaceholder = 'REMOVE';
 
 /**
  * Package updates
@@ -100,6 +101,7 @@ const packageUpdatesLibraries = (file, oldContent, parsedJson) => {
     ['@vue/eslint-config-typescript', '~9.1.0'],
     ['@vue/vue2-jest', '@vue/vue3-jest', '^27.0.0-alpha.1'],
     ['@vue/test-utils', '~2.0.0-0'],
+    ['portal-vue', '~3.0.0'],
     ['require-extension-hooks-babel', '1.0.0'],
     ['require-extension-hooks-vue', '3.0.0'],
     ['require-extension-hooks', '0.3.3'],
@@ -118,8 +120,12 @@ const packageUpdatesLibraries = (file, oldContent, parsedJson) => {
         if (parsedJson[type][library]) {
           const version = semver.coerce(parsedJson[type][library]);
 
-          // Replace with a new library if present, due breaking changes in Vue3
-          if (newLibraryVersion) {
+          if (newVersion === removePlaceholder) {
+            replaceLibraries.push([library, [parsedJson[type][library], removePlaceholder]]);
+            content = content.replaceAll(`"${ library }": "${ parsedJson[type][library] }"`, ``);
+            writeContent(file, content);
+          } else if (newLibraryVersion) {
+            // Replace with a new library if present, due breaking changes in Vue3
             replaceLibraries.push([library, [parsedJson[type][library], newVersion, newLibraryVersion]]);
             content = content.replaceAll(`"${ library }": "${ parsedJson[type][library] }"`, `"${ newVersion }": "${ newLibraryVersion }"`);
             writeContent(file, content);
@@ -238,6 +244,7 @@ const gitHubActionsUpdates = () => {
  */
 const nvmUpdates = () => {
   const files = glob.sync('**/.nvmrc', { ignore });
+  const nvmRequirement = 20;
 
   files.forEach((file) => {
     if (file) {
@@ -247,15 +254,15 @@ const nvmUpdates = () => {
 
       // Ensure node version is up to date
       if (nodeVersion && semver.lt(nodeVersion, semver.coerce(nodeRequirement))) {
-        printContent(file, `Updating node ${ [nodeVersionMatch[0], nodeRequirement] }`);
-        content = content.replaceAll(nodeVersionMatch[0], nodeRequirement);
+        printContent(file, `Updating node ${ [nodeVersionMatch[0], nvmRequirement] }`);
+        content = content.replaceAll(nodeVersionMatch[0], nvmRequirement);
 
         writeContent(file, content);
         stats.nvmrc.push(file);
         stats.total.push(file);
       }
     } else {
-      writeContent('.nvmrc', nodeRequirement);
+      writeContent('.nvmrc', nvmRequirement);
     }
   });
 };
@@ -288,7 +295,6 @@ const vueConfigUpdates = () => {
  */
 const vueSyntaxUpdates = () => {
   const files = glob.sync('**/*.{vue,js,ts}', { ignore: [...ignore, '**/*.spec.ts', '**/__tests__/**', '**/*.test.ts', 'jest.setup.js', '**/*.d.ts', '**/vue-shim.ts'] });
-  const removePlaceholder = 'REMOVE';
   const replacementCases = [
     // Prioritize set and delete to be converted since removed in Vue3
     [/Vue\.set\((.*?),\s*(.*?),\s*(.*?)\)/g, (_, obj, prop, val) => `${ obj.trim() }[${ prop.trim() }] = ${ val.trim() }`, 'removed and unnecessary due new reactivity https://vuejs.org/guide/extras/reactivity-in-depth.html'],
@@ -299,16 +305,22 @@ const vueSyntaxUpdates = () => {
     // Replace imports for all the cases where createApp is needed, before the rest of the replacements
     [`import Vue from 'vue';`, `import { createApp } from 'vue';
 const vueApp = createApp({});`, `https://v3-migration.vuejs.org/breaking-changes/global-api.html#a-new-global-api-createapp`],
-    [`Vue.config`, `vueApp.config()`, `https://v3-migration.vuejs.org/breaking-changes/global-api.html`],
-    [`Vue.directive`, `vueApp.directive`, `https://v3-migration.vuejs.org/breaking-changes/global-api.html`],
-    [`Vue.filter(`, `vueApp.filter(`, `https://v3-migration.vuejs.org/breaking-changes/global-api.html`],
-    [`Vue.mixin(`, `vueApp.mixin(`, `https://v3-migration.vuejs.org/breaking-changes/global-api.html`],
-    [`Vue.component(`, `vueApp.component(`, `https://v3-migration.vuejs.org/breaking-changes/global-api.html`],
-    [`Vue.use(`, `vueApp.use(`, `https://v3-migration.vuejs.org/breaking-changes/global-api.html`],
-    [`Vue.prototype`, `vueApp.config.globalProperties`, `https://v3-migration.vuejs.org/breaking-changes/global-api.html`],
+    [`import Vue from 'vue'`, `import { createApp } from 'vue';
+const vueApp = createApp({});`, `https://v3-migration.vuejs.org/breaking-changes/global-api.html#a-new-global-api-createapp`],
+    [`Vue.config`, `vueApp.config`, `https://v3-migration.vuejs.org/breaking-changes/global-api.html#a-new-global-api-createapp`],
+    [`Vue.directive`, `vueApp.directive`, `https://v3-migration.vuejs.org/breaking-changes/global-api.html#a-new-global-api-createapp`],
+    [`Vue.filter(`, `vueApp.filter(`, `https://v3-migration.vuejs.org/breaking-changes/global-api.html#a-new-global-api-createapp`],
+    [`Vue.mixin(`, `vueApp.mixin(`, `https://v3-migration.vuejs.org/breaking-changes/global-api.html#a-new-global-api-createapp`],
+    [`Vue.component(`, `vueApp.component(`, `https://v3-migration.vuejs.org/breaking-changes/global-api.html#a-new-global-api-createapp`],
+    [`Vue.use(`, `vueApp.use(`, `https://v3-migration.vuejs.org/breaking-changes/global-api.html#a-new-global-api-createapp`],
+    [`Vue.prototype`, `vueApp.config.globalProperties`, `https://v3-migration.vuejs.org/breaking-changes/global-api.html#a-new-global-api-createapp`],
+    ['Vue.util', '', 'Vue.util is private and no longer available https://v3-migration.vuejs.org/migration-build.html#partially-compatible-with-caveats'],
     // [`Vue.extend`, removePlaceholder, 'https://v3-migration.vuejs.org/breaking-changes/global-api.html#vue-extend-removed'],
     // [`Vue.extend`, `createApp({})`], //  (mixins)
+
     [`Vue.nextTick`, `nextTick`, 'https://v3-migration.vuejs.org/breaking-changes/global-api-treeshaking.html#global-api-treeshaking'],
+    [`this.nextTick`, `nextTick`, 'https://v3-migration.vuejs.org/breaking-changes/global-api-treeshaking.html#global-api-treeshaking'],
+    // TODO: Add missing import
 
     [/( {6}default)\(\)\s*\{([\s\S]*?)this\.([\s\S]*?\}\s*\})/g, (_, before, middle, after) => `${ before }(props) {${ middle }props.${ after }`, 'https://v3-migration.vuejs.org/breaking-changes/props-default-this.html'],
     [`value=`, `modelValue=`],
@@ -323,6 +335,9 @@ const vueApp = createApp({});`, `https://v3-migration.vuejs.org/breaking-changes
     [` $scopedSlots`, ` $slots`, `(many components loop through them) https://v3-migration.vuejs.org/breaking-changes/slots-unification.html`],
     [/slot="(\w+:\w+)"\s+slot-scope="(\w+)"/g, `$1="$2"`, `not mentioned in migration https://vuejs.org/guide/components/slots.html#scoped-slots`],
     [/this\.\$slots\['([^']+)'\]/g, `this.$slots[\'$1\']()`, `not mentioned in migration https://vuejs.org/guide/components/slots.html#scoped-slots`],
+
+    // Portals are now Vue3 Teleports
+    [/<portal|<portal-target|<\/portal|<\/portal-target/g, '', `https://v3.vuejs.org/guide/teleport.html`],
 
     // TODO: probably requires JSDom
     // [/<template v-for="([\s\S]*?)">\s*<([\s\S]*?)\s*([\s\S]*?):key="([\s\S]*?)"([\s\S]*?)<\/([\s\S]*?)>\s*<\/template>/gs, '<template v-for="$1" :key="$4"><$3 $5>$6</$7>\n</template>', `https://v3-migration.vuejs.org/breaking-changes/key-attribute.html#with-template-v-for`],
@@ -370,7 +385,8 @@ const vueApp = createApp({});`, `https://v3-migration.vuejs.org/breaking-changes
         }
       } else {
         // Regex case
-        if (text.test(content)) {
+        // TODO: Fix issue not replacing all
+        if (text.test(content) && replacement) {
           content = content.replace(new RegExp(text, 'g'), replacement);
           matchedCases.push([text, replacement, notes]);
         }
@@ -398,21 +414,45 @@ const vueApp = createApp({});`, `https://v3-migration.vuejs.org/breaking-changes
  */
 const routerUpdates = () => {
   const files = glob.sync('**/*.{vue,js,ts}', { ignore });
-  const cases = [
-    'RouteConfig',
-    'Location',
-    'imported Router',
-    'router.name',
-    'mode: \'history\''
+  const replacementCases = [
+    [`import Router from 'vue-router'`, `import { createRouter } from 'vue-router'`],
+    [`Vue.use(Router)`, `const router = createRouter({})`],
+    [`currentRoute`, '', 'The currentRoute property is now a ref() https://router.vuejs.org/guide/migration/#The-currentRoute-property-is-now-a-ref-'],
+    ['RouteConfig', ''],
+    ['Location', ''],
+    ['imported Router', ''],
+    ['router.name', ''],
+    [`mode: \'history\'`, ''],
+    ['getMatchedComponents', '', 'https://router.vuejs.org/guide/migration/#Removal-of-router-getMatchedComponents-'],
   ];
+  const matchedCases = [];
 
   files.forEach((file) => {
-    const content = fs.readFileSync(file, 'utf8');
-    // TODO: Add case for existing terms (replaceReserved)
+    let content = fs.readFileSync(file, 'utf8');
 
-    const isCase = cases.some((text) => content.includes(text));
+    replacementCases.forEach(([text, replacement, notes]) => {
+      // Simple text
+      if (typeof text === 'string') {
+        if (content.includes(text)) {
+          // Exclude cases without replacement
+          if (replacement) {
+            // Remove discontinued functionalities which do not break
+            content = content.replaceAll(text, replacement === removePlaceholder ? '' : replacement);
+          }
+          matchedCases.push([text, replacement, notes]);
+        }
+      } else {
+        // Regex case
+        if (text.test(content)) {
+          content = content.replace(new RegExp(text, 'g'), replacement);
+          matchedCases.push([text, replacement, notes]);
+        }
+      }
+    });
 
-    if (isCase) {
+    if (matchedCases.length) {
+      writeContent(file, content);
+      printContent(file, `Updating Router syntax`, matchedCases);
       stats.router.push(file);
       stats.total.push(file);
     }
