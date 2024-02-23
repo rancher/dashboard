@@ -1,9 +1,9 @@
 import HomePagePo from '@/cypress/e2e/po/pages/home.po';
-import HomeLinksSettingsPagePo from '@/cypress/e2e/po/pages/global-settings/home-links.po';
+import { HomeLinksPagePo } from '@/cypress/e2e/po/pages/global-settings/home-links.po';
 import { v1LinksSettingValue } from '@/cypress/e2e/blueprints/global/settings/links';
 
 const homePage = new HomePagePo();
-const homeLinksSettingsPage = new HomeLinksSettingsPagePo();
+const homeLinksSettingsPage = new HomeLinksPagePo();
 const COLLECTIVE_LINK = 'https://susecollective.suse.com/join/prime';
 const COLLECTIVE_BASE = 'https://susecollective.suse.com';
 
@@ -44,7 +44,7 @@ describe('SUSE Collective Page and link', { testIsolation: 'off', tags: ['@gener
     });
 
     it('should allow collective link to be hidden', () => {
-      HomeLinksSettingsPagePo.goTo();
+      HomeLinksPagePo.goTo();
       homeLinksSettingsPage.waitForPage();
 
       homeLinksSettingsPage.defaultLinkNames().should('have.length', 6);
@@ -90,7 +90,7 @@ describe('SUSE Collective Page and link', { testIsolation: 'off', tags: ['@gener
         cy.setRancherResource('v1', 'management.cattle.io.settings', 'ui-custom-links', JSON.stringify(obj));
       });
 
-      HomeLinksSettingsPagePo.goTo();
+      HomeLinksPagePo.goTo();
       homeLinksSettingsPage.waitForPage();
 
       homeLinksSettingsPage.defaultLinkNames().should('have.length', 6);
