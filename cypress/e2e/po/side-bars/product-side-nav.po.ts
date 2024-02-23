@@ -42,4 +42,11 @@ export default class ProductNavPo extends ComponentPo {
     return this.self().should('exist').find('.child.nav-type a .label').contains(label)
       .click({ force: true });
   }
+
+  /**
+   * Check existance of menu group by label
+   */
+  navToSideMenuGroupByLabelExistance(label: string, assertion: string): Cypress.Chainable {
+    return this.self().should('exist').contains('.accordion.has-children', label).should(assertion);
+  }
 }

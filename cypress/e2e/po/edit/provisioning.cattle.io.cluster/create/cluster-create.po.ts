@@ -31,6 +31,14 @@ export default class ClusterManagerCreatePagePo extends ClusterManagerCreateImpo
     return new ToggleSwitchPo('.toggle-container', this.self());
   }
 
+  rkeToggleExistance(assertion: string) {
+    this.self().find('.toggle-container').should(assertion);
+  }
+
+  gridElementExistance(groupIndex = 0, itemIndex = 0, assertion: string) {
+    this.self().find(`[data-testid="cluster-manager-create-grid-${ groupIndex }-${ itemIndex }"]`).should(assertion);
+  }
+
   selectKubeProvider(index: number) {
     return this.resourceDetail().cruResource().selectSubType(0, index).click();
   }

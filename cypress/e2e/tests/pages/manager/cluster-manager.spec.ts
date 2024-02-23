@@ -21,6 +21,7 @@ import { snapshot } from '@/cypress/e2e/blueprints/manager/cluster-snapshots';
 import HomePagePo from '@/cypress/e2e/po/pages/home.po';
 import { nodeDriveResponse } from '@/cypress/e2e/tests/pages/manager/mock-responses';
 import LabeledSelectPo from '@/cypress/e2e/po/components/labeled-select.po';
+import ProductNavPo from '@/cypress/e2e/po/side-bars/product-side-nav.po';
 
 // At some point these will come from somewhere central, then we can make tools to remove resources from this or all runs
 const runTimestamp = +new Date();
@@ -41,6 +42,43 @@ describe('Cluster Manager', { testIsolation: 'off', tags: ['@manager', '@adminUs
 
   before(() => {
     cy.login();
+  });
+
+  // testing https://github.com/rancher/dashboard/issues/9823
+  it('Toggling the user preference "rke1-ui" to false should not display RKE toggle on cluster creation screen and hide RKE1 resources from nav', () => {
+    cy.intercept('GET', 'v1/management.cattle.io.features?*', {
+      type:         'collection',
+      resourceType: 'management.cattle.io.feature',
+      data:         [
+        {
+          id:     'rke1-ui',
+          type:   'management.cattle.io.feature',
+          kind:   'Feature',
+          spec:   { value: false },
+          status: {
+            default:     true,
+            description: 'Disable RKE1 provisioning',
+            dynamic:     false,
+            lockedValue: false
+          }
+        }
+      ]
+    }).as('featuresGet');
+
+    const clusterCreate = new ClusterManagerCreatePagePo();
+
+    clusterCreate.goTo();
+    clusterCreate.waitForPage();
+
+    // seems like the waitForPage does await for full DOM render, so let's wait for a simple assertion
+    // like "gridElementExists" to make sure we aren't creating a fake assertion with the toggle
+    clusterCreate.gridElementExistance(0, 0, 'exist');
+    clusterCreate.rkeToggleExistance('not.exist');
+
+    const sideNav = new ProductNavPo();
+
+    // check that the nav group isn't visible anymore
+    sideNav.navToSideMenuGroupByLabelExistance('RKE1 Configuration', 'not.exist');
   });
 
   describe('All providers', () => {
@@ -91,6 +129,15 @@ describe('Cluster Manager', { testIsolation: 'off', tags: ['@manager', '@adminUs
         clusterList.createCluster();
 
         createRKE2ClusterPage.waitForPage();
+
+        // Test for https://github.com/rancher/dashboard/issues/9823 (default is feature flag 'rke1-ui' = true)
+        createRKE2ClusterPage.rkeToggleExistance('exist');
+
+        const sideNav = new ProductNavPo();
+
+        sideNav.navToSideMenuGroupByLabelExistance('RKE1 Configuration', 'exist');
+        // EO test for https://github.com/rancher/dashboard/issues/9823
+
         createRKE2ClusterPage.rkeToggle().set('RKE2/K3s');
 
         createRKE2ClusterPage.selectCustom(0);
