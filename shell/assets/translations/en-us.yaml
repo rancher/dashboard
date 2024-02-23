@@ -208,8 +208,6 @@ nav:
     resourceIdNotFound: Resource { resource } with id { fqid } not found, unable to display resource details
     reload: Reload
     separator: or
-  errors:
-    noMgmtClusterSchema: Management Cluster Schema is not available
 
 product:
   apps: Apps
