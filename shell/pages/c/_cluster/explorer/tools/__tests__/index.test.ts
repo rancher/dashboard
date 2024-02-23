@@ -4,53 +4,21 @@ import { shallowMount } from '@vue/test-utils';
 import { cleanHtmlDirective } from '@shell/plugins/clean-html-directive';
 import { MANAGEMENT } from '@shell/config/types';
 
-const options = () => [
-  {
-    chart: {
-      key:              'cluster/rancher-charts/rancher-alerting-drivers',
-      type:             'chart',
-      id:               'cluster/rancher-charts/rancher-alerting-drivers',
-      certified:        'rancher',
-      sideLabel:        null,
-      repoType:         'cluster',
-      repoName:         'rancher-charts',
-      repoNameDisplay:  'Rancher',
-      certifiedSort:    1,
-      icon:             '',
-      iconName:         'dot',
-      color:            'rancher',
-      chartType:        'cluster-tool',
-      chartName:        'rancher-alerting-drivers',
-      chartNameDisplay: 'Alerting Drivers',
-      chartDescription: 'The manager for third-party webhook receivers used in Prometheus Alertmanager',
-      repoKey:          '1',
-      categories:       [
-        'Monitoring'
-      ],
-    },
-    app: {
-      id:         'default/rancher-alerting-drivers',
-      type:       'catalog.cattle.io.app',
-      apiVersion: 'catalog.cattle.io/v1',
-      kind:       'App',
-      metadata:   {
-        name:      'rancher-alerting-drivers',
-        namespace: 'default',
-      },
-      spec: {
-        chart:     { metadata: { name: 'rancher-alerting-drivers' } },
-        name:      'rancher-alerting-drivers',
-        namespace: 'default',
-      },
-    }
-  }
-];
-
 describe('page: cluster tools', () => {
   const mountOptions = {
     directives: { cleanHtmlDirective },
-    computed:   { options },
-    mocks:      {
+    computed:   {
+      options: () => [
+        {
+          chart: {
+            id:       'cluster/rancher-charts/rancher-alerting-drivers',
+            iconName: 'icon',
+          },
+          app: {}
+        }
+      ]
+    },
+    mocks: {
       $route:      { query: {} },
       $fetchState: {
         pending: false, error: true, timestamp: Date.now()
