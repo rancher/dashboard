@@ -8,13 +8,13 @@ import AmazonCloudCredentialsCreateEditPo from '@/cypress/e2e/po/edit/cloud-cred
  * Create page for an RKE2 Amazon EC2 cluster
  */
 export default class ClusterManagerCreateRke2AmazonPagePo extends ClusterManagerCreatePagePo {
-  static url = `${ ClusterManagerCreatePagePo.url }/create?type=amazonec2#basic`
+  static url = `${ ClusterManagerCreatePagePo }/create?type=amazonec2#basic`
   static goTo(): Cypress.Chainable<Cypress.AUTWindow> {
     return PagePo.goTo(ClusterManagerCreateRke2AmazonPagePo.url);
   }
 
   goToAmazonClusterCreation(): Cypress.Chainable<Cypress.AUTWindow> {
-    return PagePo.goTo(`${ ClusterManagerCreatePagePo.url }?type=amazonec2#basic`);
+    return PagePo.goTo(`${ ClusterManagerCreatePagePo }?type=amazonec2#basic`);
   }
 
   cloudCredentialsForm(): AmazonCloudCredentialsCreateEditPo {
