@@ -8,13 +8,16 @@ import AzureCloudCredentialsCreateEditPo from '@/cypress/e2e/po/edit/cloud-crede
  * Create page for an RKE2 Azure cluster
  */
 export default class ClusterManagerCreateRke2AzurePagePo extends ClusterManagerCreatePagePo {
-  static url = `${ ClusterManagerCreatePagePo }/create?type=azure`
-  static goTo(): Cypress.Chainable<Cypress.AUTWindow> {
-    return PagePo.goTo(ClusterManagerCreateRke2AzurePagePo.url);
+  static url(clusterId: string) {
+    return `${ ClusterManagerCreatePagePo.url(clusterId) }/create?type=azure`;
   }
 
-  goToAzureClusterCreation(): Cypress.Chainable<Cypress.AUTWindow> {
-    return PagePo.goTo(`${ ClusterManagerCreatePagePo }?type=azure`);
+  static goTo(clusterId: string): Cypress.Chainable<Cypress.AUTWindow> {
+    return PagePo.goTo(ClusterManagerCreateRke2AzurePagePo.url(clusterId));
+  }
+
+  goToAzureClusterCreation(clusterId: string): Cypress.Chainable<Cypress.AUTWindow> {
+    return PagePo.goTo(`${ ClusterManagerCreatePagePo.url(clusterId) }?type=azure`);
   }
 
   cloudCredentialsForm(): AzureCloudCredentialsCreateEditPo {

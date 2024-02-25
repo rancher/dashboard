@@ -7,17 +7,20 @@ import RegistriesTabPo from '@/cypress/e2e/po/components/registries-tab.po';
  * Create page for an RKE2 custom cluster
  */
 export default class ClusterManagerCreateRke2CustomPagePo extends ClusterManagerCreatePagePo {
-  static url = `${ ClusterManagerCreatePagePo }/create?type=custom#basic`
-  static goTo(): Cypress.Chainable<Cypress.AUTWindow> {
-    return PagePo.goTo(ClusterManagerCreateRke2CustomPagePo.url);
+  static url(clusterId: string) {
+    return `${ ClusterManagerCreatePagePo.url(clusterId) }/create?type=custom#basic`;
   }
 
-  goToCustomClusterCreation(): Cypress.Chainable<Cypress.AUTWindow> {
-    return PagePo.goTo(`${ ClusterManagerCreatePagePo }?type=custom#basic`);
+  static goTo(clusterId: string): Cypress.Chainable<Cypress.AUTWindow> {
+    return PagePo.goTo(ClusterManagerCreateRke2CustomPagePo.url(clusterId));
   }
 
-  goToDigitalOceanCreation(): Cypress.Chainable<Cypress.AUTWindow> {
-    return PagePo.goTo(`${ ClusterManagerCreatePagePo }?type=digitalocean#basic`);
+  goToCustomClusterCreation(clusterId: string): Cypress.Chainable<Cypress.AUTWindow> {
+    return PagePo.goTo(`${ ClusterManagerCreatePagePo.url(clusterId) }?type=custom#basic`);
+  }
+
+  goToDigitalOceanCreation(clusterId: string): Cypress.Chainable<Cypress.AUTWindow> {
+    return PagePo.goTo(`${ ClusterManagerCreatePagePo.url(clusterId) }?type=digitalocean#basic`);
   }
 
   title(): Cypress.Chainable<string> {
