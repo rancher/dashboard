@@ -108,13 +108,17 @@ export default defineConfig({
         'pkg/rancher-components/src/components/**/*.{vue,ts,js}',
       ]
     },
-    api:               apiUrl,
-    username:          process.env.TEST_USERNAME || DEFAULT_USERNAME,
-    password:          process.env.CATTLE_BOOTSTRAP_PASSWORD || process.env.TEST_PASSWORD,
-    bootstrapPassword: process.env.CATTLE_BOOTSTRAP_PASSWORD,
-    grepTags:          process.env.GREP_TAGS,
-    awsAccessKey:      process.env.AWS_ACCESS_KEY_ID, // this env var is only available to tests that run in Jenkins
-    awsSecretKey:      process.env.AWS_SECRET_ACCESS_KEY // this env var is only available to tests that run in Jenkins
+    api:                 apiUrl,
+    username:            process.env.TEST_USERNAME || DEFAULT_USERNAME,
+    password:            process.env.CATTLE_BOOTSTRAP_PASSWORD || process.env.TEST_PASSWORD,
+    bootstrapPassword:   process.env.CATTLE_BOOTSTRAP_PASSWORD,
+    grepTags:            process.env.GREP_TAGS,
+    // the below env vars are only available to tests that run in Jenkins
+    awsAccessKey:        process.env.AWS_ACCESS_KEY_ID,
+    awsSecretKey:        process.env.AWS_SECRET_ACCESS_KEY,
+    azureSubscriptionId: process.env.AZURE_AKS_SUBSCRIPTION_ID,
+    azureClientId:       process.env.AZURE_CLIENT_ID,
+    azureClientSecret:   process.env.AZURE_CLIENT_SECRET
   },
   e2e: {
     fixturesFolder: 'cypress/e2e/blueprints',
