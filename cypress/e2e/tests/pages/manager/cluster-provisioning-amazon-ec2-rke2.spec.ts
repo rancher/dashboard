@@ -37,7 +37,7 @@ describe('Provision Node driver RKE2 cluster', { testIsolation: 'off', tags: ['@
   });
 
   it('can provision a Amazon EC2 RKE2 cluster with Amazon cloud provider', function() {
-    const createRKE2ClusterPage = new ClusterManagerCreateRke2AmazonPagePo();
+    const createRKE2ClusterPage = new ClusterManagerCreateRke2AmazonPagePo('_');
     const cloudCredForm = createRKE2ClusterPage.cloudCredentialsForm();
     const clusterDetails = new ClusterManagerDetailRke2AmazonEc2PagePo('_', this.rke2Ec2ClusterName);
 
@@ -48,6 +48,7 @@ describe('Provision Node driver RKE2 cluster', { testIsolation: 'off', tags: ['@
     createRKE2ClusterPage.rkeToggle().set('RKE2/K3s');
     createRKE2ClusterPage.selectCreate(0);
     createRKE2ClusterPage.rke2PageTitle().should('include', 'Create Amazon EC2');
+    createRKE2ClusterPage.waitForPage('type=amazonec2&rkeType=rke2');
 
     // create amazon ec2 cloud credential
     cloudCredForm.nameNsDescription().name().set(this.ec2CloudCredentialName);
@@ -67,6 +68,7 @@ describe('Provision Node driver RKE2 cluster', { testIsolation: 'off', tags: ['@
 
     cy.wait('@pageLoad').its('response.statusCode').should('eq', 200);
     loadingPo.checkNotExists();
+    createRKE2ClusterPage.waitForPage('type=amazonec2&rkeType=rke2', 'basic');
     createRKE2ClusterPage.nameNsDescription().name().set(this.rke2Ec2ClusterName);
     createRKE2ClusterPage.nameNsDescription().description().set(`${ this.rke2Ec2ClusterName }-description`);
 

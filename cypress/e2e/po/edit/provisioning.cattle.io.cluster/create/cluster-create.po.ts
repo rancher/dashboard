@@ -5,18 +5,16 @@ import ClusterManagerCreateImportPagePo from '@/cypress/e2e/po/edit/provisioning
  * Covers core functionality that's common to the dashboard's create cluster pages
  */
 export default class ClusterManagerCreatePagePo extends ClusterManagerCreateImportPagePo {
-  static url = '/c/local/manager/provisioning.cattle.io.cluster/create'
-
-  private static createPath(queryParams?: string) {
-    return `${ ClusterManagerCreatePagePo.url }${ queryParams ? `?${ queryParams }` : '' }`;
+  private static createPath(clusterId: string) {
+    return `/c/${ clusterId }/manager/provisioning.cattle.io.cluster/create`;
   }
 
-  static goTo(queryParams?: string): Cypress.Chainable<Cypress.AUTWindow> {
-    return super.goTo(ClusterManagerCreatePagePo.createPath(queryParams));
+  static goTo(clusterId: string): Cypress.Chainable<Cypress.AUTWindow> {
+    return super.goTo(ClusterManagerCreatePagePo.createPath(clusterId));
   }
 
-  constructor(queryParams?: string) {
-    super(ClusterManagerCreatePagePo.createPath(queryParams));
+  constructor(clusterId = 'local') {
+    super(ClusterManagerCreatePagePo.createPath(clusterId));
   }
 
   rke1PageTitle(): Cypress.Chainable<string> {

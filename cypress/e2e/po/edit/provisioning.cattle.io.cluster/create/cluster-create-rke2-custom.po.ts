@@ -8,17 +8,17 @@ import RegistriesTabPo from '@/cypress/e2e/po/components/registries-tab.po';
  * Create page for an RKE2 custom cluster
  */
 export default class ClusterManagerCreateRke2CustomPagePo extends ClusterManagerCreatePagePo {
-  static url = `${ ClusterManagerCreatePagePo.url }/create?type=custom#basic`
+  static url = `${ ClusterManagerCreatePagePo }/create?type=custom#basic`
   static goTo(): Cypress.Chainable<Cypress.AUTWindow> {
     return PagePo.goTo(ClusterManagerCreateRke2CustomPagePo.url);
   }
 
   goToCustomClusterCreation(): Cypress.Chainable<Cypress.AUTWindow> {
-    return PagePo.goTo(`${ ClusterManagerCreatePagePo.url }?type=custom#basic`);
+    return PagePo.goTo(`${ ClusterManagerCreatePagePo }?type=custom#basic`);
   }
 
   goToDigitalOceanCreation(): Cypress.Chainable<Cypress.AUTWindow> {
-    return PagePo.goTo(`${ ClusterManagerCreatePagePo.url }?type=digitalocean#basic`);
+    return PagePo.goTo(`${ ClusterManagerCreatePagePo }?type=digitalocean#basic`);
   }
 
   title(): Cypress.Chainable<string> {
