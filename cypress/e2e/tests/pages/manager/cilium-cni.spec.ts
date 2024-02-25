@@ -42,7 +42,7 @@ describe('RKE2 Cilium CNI', () => {
     cy.intercept('GET', '/v3/cloudcredentials', reply(200, cloudCredentialsResponse)).as('cloudCredentials');
 
     const clusterList = new ClusterManagerListPagePo('local');
-    const createRKE2ClusterPage = new ClusterManagerCreateRke2CustomPagePo();
+    const createRKE2ClusterPage = new ClusterManagerCreateRke2CustomPagePo('local');
     const clusterName = 'test-do-cilium';
 
     clusterList.goTo();
@@ -50,7 +50,7 @@ describe('RKE2 Cilium CNI', () => {
     clusterList.createCluster();
 
     createRKE2ClusterPage.rkeToggle().set('RKE2/K3s');
-    createRKE2ClusterPage.goToDigitalOceanCreation();
+    createRKE2ClusterPage.goToDigitalOceanCreation('local');
     createRKE2ClusterPage.waitForPage();
     createRKE2ClusterPage.nameNsDescription().name().set(clusterName);
 
@@ -98,7 +98,7 @@ describe('RKE2 Cilium CNI', () => {
     cy.intercept('GET', '/v3/cloudcredentials', reply(200, cloudCredentialsResponse)).as('cloudCredentials');
 
     const clusterList = new ClusterManagerListPagePo('local');
-    const createRKE2ClusterPage = new ClusterManagerCreateRke2CustomPagePo();
+    const createRKE2ClusterPage = new ClusterManagerCreateRke2CustomPagePo('local');
     const clusterName = 'test-do-cilium';
 
     clusterList.goTo();
@@ -106,7 +106,7 @@ describe('RKE2 Cilium CNI', () => {
     clusterList.createCluster();
 
     createRKE2ClusterPage.rkeToggle().set('RKE2/K3s');
-    createRKE2ClusterPage.goToDigitalOceanCreation();
+    createRKE2ClusterPage.goToDigitalOceanCreation('local');
     createRKE2ClusterPage.waitForPage();
     createRKE2ClusterPage.nameNsDescription().name().set(clusterName);
 
