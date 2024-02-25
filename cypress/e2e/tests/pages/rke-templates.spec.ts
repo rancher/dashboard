@@ -36,7 +36,7 @@ describe('RKE Templates', { testIsolation: 'off', tags: ['@manager', '@adminUser
     clusterList.checkIsCurrentPage();
     clusterList.createCluster();
 
-    const createClusterRKE1Page = new ClusterManagerCreateRke1CustomPagePo();
+    const createClusterRKE1Page = new ClusterManagerCreateRke1CustomPagePo('local');
 
     createClusterRKE1Page.waitForPage();
 

@@ -37,7 +37,7 @@ describe('Cluster Manager', { testIsolation: 'off', tags: '@adminUser' }, () => 
   });
 
   describe('Created', () => {
-    const createRKE2ClusterPage = new ClusterManagerCreateRke2CustomPagePo();
+    const createRKE2ClusterPage = new ClusterManagerCreateRke2CustomPagePo('local');
     const detailRKE2ClusterPage = new ClusterManagerDetailRke2CustomPagePo('local', rke2CustomName);
 
     describe('RKE2 Custom', () => {
@@ -175,7 +175,7 @@ describe('Cluster Manager', { testIsolation: 'off', tags: '@adminUser' }, () => 
       });
     });
 
-    const createClusterRKE1Page = new ClusterManagerCreateRke1CustomPagePo();
+    const createClusterRKE1Page = new ClusterManagerCreateRke1CustomPagePo('local');
 
     describe('RKE1 Custom', () => {
       it('can create new cluster', () => {

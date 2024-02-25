@@ -11,13 +11,16 @@ import EmberSelectPo from '@/cypress/e2e/po/components/ember/ember-select.po';
  * Create page for an RKE1 custom cluster
  */
 export default class ClusterManagerCreateRke1CustomPagePo extends ClusterManagerCreateRKE1PagePo {
-  static url = `${ ClusterManagerCreatePagePo }/create?type=custom`
-  static goTo(): Cypress.Chainable<Cypress.AUTWindow> {
-    return PagePo.goTo(ClusterManagerCreateRke1CustomPagePo.url);
+  static url(clusterId: string) {
+    return `${ ClusterManagerCreateRKE1PagePo.url(clusterId) }/create?type=custom`;
   }
 
-  goToCustomClusterCreation(): Cypress.Chainable<Cypress.AUTWindow> {
-    return PagePo.goTo(`${ ClusterManagerCreatePagePo }?type=custom`);
+  static goTo(clusterId: string): Cypress.Chainable<Cypress.AUTWindow> {
+    return PagePo.goTo(ClusterManagerCreateRke1CustomPagePo.url(clusterId));
+  }
+
+  goToCustomClusterCreation(clusterId: string): Cypress.Chainable<Cypress.AUTWindow> {
+    return PagePo.goTo(`${ ClusterManagerCreatePagePo.url(clusterId) }?type=custom`);
   }
 
   // Create/Edit Page
