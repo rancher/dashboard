@@ -56,7 +56,7 @@ describe('Node Templates', { testIsolation: 'off', tags: ['@manager', '@jenkins'
     clusterList.checkIsCurrentPage();
     clusterList.createCluster();
 
-    const createClusterRKE1Page = new ClusterManagerCreateRke1Amazonec2PagePo();
+    const createClusterRKE1Page = new ClusterManagerCreateRke1Amazonec2PagePo('local');
 
     createClusterRKE1Page.waitForPage();
     createClusterRKE1Page.rkeToggle().set('RKE1');
