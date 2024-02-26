@@ -29,7 +29,7 @@ function resetCustomLinks() {
   });
 }
 
-describe('SUSE Collective Page and link', { testIsolation: 'off', tags: ['@generic', '@adminUser', '@standardUser'] }, () => {
+describe('SUSE Collective Page and link', { testIsolation: 'off' }, () => {
   before(() => {
     cy.login();
   });
@@ -38,7 +38,7 @@ describe('SUSE Collective Page and link', { testIsolation: 'off', tags: ['@gener
     resetCustomLinks();
   });
 
-  describe('link can be hidden via settings', () => {
+  describe('link can be hidden via settings', { tags: ['@generic', '@adminUser'] }, () => {
     beforeEach(() => {
       interceptVersionAndSetToPrime().as('rancherVersion');
     });
@@ -117,7 +117,7 @@ describe('SUSE Collective Page and link', { testIsolation: 'off', tags: ['@gener
   });
 
   // Note: Existing home page test checks that SUSE Collective link is not present
-  describe('home page links (prime)', () => {
+  describe('home page links (prime)', { tags: ['@generic', '@adminUser', '@standardUser'] }, () => {
     beforeEach(() => {
       interceptVersionAndSetToPrime();
 
