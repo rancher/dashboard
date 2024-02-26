@@ -39,6 +39,19 @@ export default {
         out = store.getters['i18n/withFallback'](`login.serverError.${ errorMsg }`, null, errorMsg);
       }
 
+      const openerLoc = window.opener?.location;
+      const thisLoc = window.location;
+
+      // Check to see if we are verifying auth from a config page - if we are, we should reply to it, rather than redirecting
+      // This way we will show the error in the original window, rather than leaving a new window open with the error in it
+      // (user probably can not do anything useful in the new window to rectify the error)
+      if (window.opener && window.opener !== window && openerLoc && thisLoc &&
+        openerLoc.origin === thisLoc.origin && openerLoc.pathname.startsWith('/c/local/auth/config/')) {
+        reply(out, errorCode);
+
+        return;
+      }
+
       redirect(`/auth/login?err=${ escape(out) }`);
 
       return;
