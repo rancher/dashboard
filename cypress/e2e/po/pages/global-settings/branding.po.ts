@@ -35,6 +35,10 @@ export class BrandingPagePo extends RootClusterPage {
     return CheckboxInputPo.byLabel(this.self(), 'Use a Custom Logo');
   }
 
+  customLoginBackgroundCheckbox(): CheckboxInputPo {
+    return CheckboxInputPo.byLabel(this.self(), 'Use a Custom Background');
+  }
+
   customFaviconCheckbox(): CheckboxInputPo {
     return CheckboxInputPo.byLabel(this.self(), 'Use a Custom Favicon');
   }
@@ -61,6 +65,10 @@ export class BrandingPagePo extends RootClusterPage {
 
   logoPreview(theme: string) {
     return cy.getId(`branding-logo-${ theme }-preview`);
+  }
+
+  loginBackgroundPreview(theme: string) {
+    return cy.getId(`branding-login-background-${ theme }-preview`);
   }
 
   faviconPreview() {

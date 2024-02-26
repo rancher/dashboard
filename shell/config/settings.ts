@@ -71,6 +71,8 @@ export const SETTING = {
   BRAND:                                'ui-brand',
   LOGO_LIGHT:                           'ui-logo-light',
   LOGO_DARK:                            'ui-logo-dark',
+  LOGIN_BACKGROUND_LIGHT:               'ui-login-background-light',
+  LOGIN_BACKGROUND_DARK:                'ui-login-background-dark',
   PRIMARY_COLOR:                        'ui-primary-color',
   LINK_COLOR:                           'ui-link-color',
   COMMUNITY_LINKS:                      'ui-community-links',

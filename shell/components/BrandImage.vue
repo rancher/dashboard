@@ -38,6 +38,18 @@ export default {
       return setting.value;
     },
 
+    uiLoginBackgroundLight() {
+      const setting = this.managementSettings.filter((setting) => setting.id === SETTING.LOGIN_BACKGROUND_LIGHT)[0] || {};
+
+      return setting.value;
+    },
+
+    uiLoginBackgroundDark() {
+      const setting = this.managementSettings.filter((setting) => setting.id === SETTING.LOGIN_BACKGROUND_DARK)[0] || {};
+
+      return setting.value;
+    },
+
     defaultPathToBrandedImage() {
       const themePrefix = this.theme === 'dark' ? 'dark/' : '';
 
@@ -56,6 +68,16 @@ export default {
 
         if (this.uiLogoLight) {
           return this.uiLogoLight;
+        }
+      }
+
+      if (this.fileName === 'login-landscape.svg') {
+        if (this.theme === 'dark' && this.uiLoginBackgroundDark) {
+          return this.uiLoginBackgroundDark;
+        }
+
+        if (this.uiLoginBackgroundLight) {
+          return this.uiLoginBackgroundLight;
         }
       }
 

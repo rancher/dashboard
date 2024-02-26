@@ -27,12 +27,14 @@ export default {
 
   async fetch() {
     const hash = await allHash({
-      uiPLSetting:        this.$store.dispatch('management/find', { type: MANAGEMENT.SETTING, id: SETTING.PL }),
-      uiLogoDarkSetting:  fetchOrCreateSetting(this.$store, SETTING.LOGO_DARK, ''),
-      uiLogoLightSetting: fetchOrCreateSetting(this.$store, SETTING.LOGO_LIGHT, ''),
-      uiColorSetting:     fetchOrCreateSetting(this.$store, SETTING.PRIMARY_COLOR, ''),
-      uiLinkColorSetting: fetchOrCreateSetting(this.$store, SETTING.LINK_COLOR, ''),
-      uiFaviconSetting:   fetchOrCreateSetting(this.$store, SETTING.FAVICON, ''),
+      uiPLSetting:                   this.$store.dispatch('management/find', { type: MANAGEMENT.SETTING, id: SETTING.PL }),
+      uiLogoDarkSetting:             fetchOrCreateSetting(this.$store, SETTING.LOGO_DARK, ''),
+      uiLogoLightSetting:            fetchOrCreateSetting(this.$store, SETTING.LOGO_LIGHT, ''),
+      uiLoginBackgroundDarkSetting:  fetchOrCreateSetting(this.$store, SETTING.LOGIN_BACKGROUND_DARK, ''),
+      uiLoginBackgroundLightSetting: fetchOrCreateSetting(this.$store, SETTING.LOGIN_BACKGROUND_LIGHT, ''),
+      uiColorSetting:                fetchOrCreateSetting(this.$store, SETTING.PRIMARY_COLOR, ''),
+      uiLinkColorSetting:            fetchOrCreateSetting(this.$store, SETTING.LINK_COLOR, ''),
+      uiFaviconSetting:              fetchOrCreateSetting(this.$store, SETTING.FAVICON, ''),
     });
 
     Object.assign(this, hash);
@@ -48,6 +50,19 @@ export default {
         this.uiLogoLight = hash.uiLogoLightSetting.value;
 
         this.customizeLogo = true;
+      } catch {}
+    }
+    if (hash.uiLoginBackgroundDarkSetting.value) {
+      try {
+        this.uiLoginBackgroundDark = hash.uiLoginBackgroundDarkSetting.value;
+        this.customizeLoginBackground = true;
+      } catch {}
+    }
+    if (hash.uiLoginBackgroundLightSetting.value) {
+      try {
+        this.uiLoginBackgroundLight = hash.uiLoginBackgroundLightSetting.value;
+
+        this.customizeLoginBackground = true;
       } catch {}
     }
     if (hash.uiFaviconSetting.value) {
@@ -77,6 +92,12 @@ export default {
       uiLogoLightSetting: {},
       uiLogoLight:        '',
       customizeLogo:      false,
+
+      uiLoginBackgroundDarkSetting:  {},
+      uiLoginBackgroundDark:         '',
+      uiLoginBackgroundLightSetting: {},
+      uiLoginBackgroundLight:        '',
+      customizeLoginBackground:      false,
 
       uiFaviconSetting: {},
       uiFavicon:        '',
@@ -118,7 +139,7 @@ export default {
   },
 
   methods: {
-    updateLogo(img, key) {
+    updateBranding(img, key) {
       this[key] = img;
     },
 
@@ -136,6 +157,14 @@ export default {
       } else {
         this.uiLogoLightSetting.value = '';
         this.uiLogoDarkSetting.value = '';
+      }
+
+      if (this.customizeLoginBackground) {
+        this.uiLoginBackgroundLightSetting.value = this.uiLoginBackgroundLight;
+        this.uiLoginBackgroundDarkSetting.value = this.uiLoginBackgroundDark;
+      } else {
+        this.uiLoginBackgroundLightSetting.value = '';
+        this.uiLoginBackgroundDarkSetting.value = '';
       }
 
       if (this.customizeFavicon) {
@@ -163,6 +192,8 @@ export default {
           this.uiPLSetting.save(),
           this.uiLogoDarkSetting.save(),
           this.uiLogoLightSetting.save(),
+          this.uiLoginBackgroundDarkSetting.save(),
+          this.uiLoginBackgroundLightSetting.save(),
           this.uiColorSetting.save(),
           this.uiLinkColorSetting.save(),
           this.uiFaviconSetting.save()
@@ -219,7 +250,7 @@ export default {
         v-if="customizeLogo"
         class="row mb-20"
       >
-        <div class="col logo-container span-6">
+        <div class="col preview-container logo span-6">
           <div class="mb-10">
             <FileImageSelector
               :byte-limit="20000"
@@ -229,7 +260,7 @@ export default {
               :mode="mode"
               accept="image/jpeg,image/png,image/svg+xml"
               @error="setError"
-              @input="updateLogo($event, 'uiLogoLight')"
+              @input="updateBranding($event, 'uiLogoLight')"
             />
           </div>
           <SimpleBox
@@ -238,13 +269,13 @@ export default {
           >
             <label class="text-muted">{{ t('branding.logos.lightPreview') }}</label>
             <img
-              class="logo-preview"
+              class="img-preview"
               data-testid="branding-logo-light-preview"
               :src="uiLogoLight ? uiLogoLight : uiLogoDark"
             >
           </SimpleBox>
         </div>
-        <div class="col logo-container span-6">
+        <div class="col preview-container logo span-6">
           <div class="mb-10">
             <FileImageSelector
               :byte-limit="20000"
@@ -254,7 +285,7 @@ export default {
               :mode="mode"
               accept="image/jpeg,image/png,image/svg+xml"
               @error="setError"
-              @input="updateLogo($event, 'uiLogoDark')"
+              @input="updateBranding($event, 'uiLogoDark')"
             />
           </div>
           <SimpleBox
@@ -263,9 +294,80 @@ export default {
           >
             <label class="text-muted">{{ t('branding.logos.darkPreview') }}</label>
             <img
-              class="logo-preview"
+              class="img-preview"
               data-testid="branding-logo-dark-preview"
               :src="uiLogoDark ? uiLogoDark : uiLogoLight"
+            >
+          </SimpleBox>
+        </div>
+      </div>
+
+      <h3 class="mt-20 mb-5 pb-5">
+        {{ t('branding.loginBackground.label') }}
+      </h3>
+      <label class="text-label">
+        {{ t('branding.loginBackground.tip', {}, true) }}
+      </label>
+
+      <div class="row mt-10 mb-20">
+        <Checkbox
+          v-model="customizeLoginBackground"
+          :label="t('branding.loginBackground.useCustom')"
+          :mode="mode"
+        />
+      </div>
+
+      <div
+        v-if="customizeLoginBackground"
+        class="row mb-20"
+      >
+        <div class="col preview-container login-background span-6">
+          <div class="mb-10">
+            <FileImageSelector
+              :byte-limit="204800"
+              :read-as-data-url="true"
+              class="role-secondary"
+              :label="t('branding.loginBackground.uploadLight')"
+              :mode="mode"
+              accept="image/jpeg,image/png,image/svg+xml"
+              @error="setError"
+              @input="updateBranding($event, 'uiLoginBackgroundLight')"
+            />
+          </div>
+          <SimpleBox
+            v-if="uiLoginBackgroundLight || uiLoginBackgroundDark"
+            class="theme-light mb-10"
+          >
+            <label class="text-muted">{{ t('branding.loginBackground.lightPreview') }}</label>
+            <img
+              class="img-preview"
+              data-testid="branding-login-background-light-preview"
+              :src="uiLoginBackgroundLight ? uiLoginBackgroundLight : uiLoginBackgroundDark"
+            >
+          </SimpleBox>
+        </div>
+        <div class="col preview-container login-background span-6">
+          <div class="mb-10">
+            <FileImageSelector
+              :byte-limit="204800"
+              :read-as-data-url="true"
+              class="role-secondary"
+              :label="t('branding.loginBackground.uploadDark')"
+              :mode="mode"
+              accept="image/jpeg,image/png,image/svg+xml"
+              @error="setError"
+              @input="updateBranding($event, 'uiLoginBackgroundDark')"
+            />
+          </div>
+          <SimpleBox
+            v-if="uiLoginBackgroundDark || uiLoginBackgroundLight"
+            class="theme-dark  mb-10"
+          >
+            <label class="text-muted">{{ t('branding.loginBackground.darkPreview') }}</label>
+            <img
+              class="img-preview"
+              data-testid="branding-login-background-dark-preview"
+              :src="uiLoginBackgroundDark ? uiLoginBackgroundDark : uiLoginBackgroundLight"
             >
           </SimpleBox>
         </div>
@@ -290,7 +392,7 @@ export default {
         v-if="customizeFavicon"
         class="row mb-20"
       >
-        <div class="col logo-container span-12">
+        <div class="col favicon-container span-12">
           <div class="mb-10">
             <FileImageSelector
               :byte-limit="20000"
@@ -300,13 +402,13 @@ export default {
               :mode="mode"
               accept="image/jpeg,image/png,image/svg+xml"
               @error="setError"
-              @input="updateLogo($event, 'uiFavicon')"
+              @input="updateBranding($event, 'uiFavicon')"
             />
           </div>
           <SimpleBox v-if="uiFavicon">
             <label class="text-muted">{{ t('branding.favicon.preview') }}</label>
             <img
-              class="logo-preview"
+              class="favicon-preview"
               data-testid="branding-favicon-preview"
               :src="uiFavicon"
             >
@@ -393,30 +495,43 @@ export default {
     margin: auto;
   }
 }
+</style>
 
-.logo-container {
-    display: flex;
-    flex-direction: column;
+<style lang="scss">
+.preview-container {
+  display: flex;
+  flex-direction: column;
 
-    ::v-deep.simple-box {
-        position: relative;
-        flex: 1;
-        max-height: 120px;
+  .simple-box {
+    position: relative;
+    flex: 1;
 
-        .content {
-          height: 100%;
-          display: flex;
-        }
-
-        .logo-preview {
-          max-width: 100%;
-        }
+    .content {
+      height: 100%;
+      display: flex;
     }
 
-    & LABEL {
-      position: absolute;
-      top: 10px;
-      left: 10px;
+    .logo-preview {
+      max-width: 100%;
     }
+  }
+
+  &.logo {
+    .simple-box {
+      max-height: 120px;
+    }
+  }
+
+  &.login-background {
+    .simple-box {
+      max-height: 300px;
+    }
+  }
+
+  & LABEL {
+    position: absolute;
+    top: 10px;
+    left: 10px;
+  }
 }
 </style>

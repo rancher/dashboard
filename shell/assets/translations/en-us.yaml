@@ -7312,6 +7312,14 @@ branding:
     uploadLight: Upload Light Logo
     uploadDark: Upload Dark Logo
     useCustom: Use a Custom Logo
+  loginBackground:
+    label: Login Background
+    tip: 'Upload an image to replace the Rancher background in the login page. Max file size is 200KB'
+    lightPreview: Light Theme Preview
+    darkPreview: Dark Theme Preview
+    uploadLight: Upload Light Background
+    uploadDark: Upload Dark Background
+    useCustom: Use a Custom Background
   favicon:
     label: Favicon
     tip: 'Upload an icon to replace the Rancher favicon in the browser tab. Max file size is 20KB'

@@ -104,11 +104,11 @@ describe('Branding', { testIsolation: 'off' }, () => {
 
     // Upload Light Logo
     brandingPage.uploadButton('Upload Light Logo')
-      .selectFile('cypress/e2e/blueprints/logos/rancher-color.svg', { force: true });
+      .selectFile('cypress/e2e/blueprints/branding/logos/rancher-color.svg', { force: true });
 
     // Upload Dark Logo
     brandingPage.uploadButton('Upload Dark Logo')
-      .selectFile('cypress/e2e/blueprints/logos/rancher-white.svg', { force: true });
+      .selectFile('cypress/e2e/blueprints/branding/logos/rancher-white.svg', { force: true });
 
     // Apply
     brandingPage.applyAndWait('/v1/management.cattle.io.settings/ui-logo-light', 200);
@@ -128,7 +128,7 @@ describe('Branding', { testIsolation: 'off' }, () => {
       expect(response?.body.data).to.have.property('theme', '"ui-dark"');
     });
 
-    cy.fixture('logos/rancher-white.svg', 'base64').then((expectedBase64) => {
+    cy.fixture('branding/logos/rancher-white.svg', 'base64').then((expectedBase64) => {
       burgerMenu.headerBrandLogoImage().should('be.visible').and('have.attr', 'src', `data:image/svg+xml;base64,${ expectedBase64 }`);
 
       BurgerMenuPo.toggle();
@@ -146,7 +146,7 @@ describe('Branding', { testIsolation: 'off' }, () => {
       expect(response?.body.data).to.have.property('theme', '"ui-light"');
     });
 
-    cy.fixture('logos/rancher-color.svg', 'base64').then((expectedBase64) => {
+    cy.fixture('branding/logos/rancher-color.svg', 'base64').then((expectedBase64) => {
       burgerMenu.headerBrandLogoImage().should('be.visible').and('have.attr', 'src', `data:image/svg+xml;base64,${ expectedBase64 }`);
 
       BurgerMenuPo.toggle();
@@ -167,6 +167,26 @@ describe('Branding', { testIsolation: 'off' }, () => {
     burgerMenu.brandLogoImage().should('be.visible').then((el) => {
       expect(el).to.have.attr('src').includes('/img/rancher-logo.66cf5910.svg');
     });
+  });
+
+  it.skip('Login Background', { tags: ['@globalSettings', '@adminUser'] }, () => {
+    BrandingPagePo.navTo();
+    brandingPage.customLoginBackgroundCheckbox().set();
+    // to check custom box element width and height in order to prevent regression
+    // https://github.com/rancher/dashboard/issues/10000
+    brandingPage.customLoginBackgroundCheckbox().hasAppropriateWidth();
+    brandingPage.customLoginBackgroundCheckbox().hasAppropriateHeight();
+
+    brandingPage.uploadButton('Upload Light Login Background')
+      .selectFile('cypress/e2e/blueprints/branding/backgrounds/login-landscape-light.svg', { force: true });
+
+    brandingPage.uploadButton('Upload Dark Login Background')
+      .selectFile('cypress/e2e/blueprints/branding/backgrounds/login-landscape-dark.svg', { force: true });
+
+    brandingPage.applyAndWait('/v1/management.cattle.io.settings/ui-login-background-light', 200);
+
+    brandingPage.loginBackgroundPreview('dark').should('be.visible');
+    brandingPage.loginBackgroundPreview('light').should('be.visible');
   });
 
   it('Favicon', { tags: ['@globalSettings', '@adminUser'] }, () => {
