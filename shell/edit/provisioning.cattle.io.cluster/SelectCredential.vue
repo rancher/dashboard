@@ -67,12 +67,13 @@ export default {
 
   data() {
     return {
-      allCredentials:         [],
-      nodeComponent:          null,
-      credentialId:           this.value || _NONE,
-      newCredential:          null,
-      createValidationPassed: false,
-      originalId:             this.value
+      allCredentials:                [],
+      nodeComponent:                 null,
+      credentialId:                  this.value || _NONE,
+      newCredential:                 null,
+      credCustomComponentValidation: false,
+      nameRequiredValidation:        false,
+      originalId:                    this.value
     };
   },
 
@@ -150,7 +151,7 @@ export default {
       }
 
       if ( this.credentialId === _NEW ) {
-        return this.createValidationPassed;
+        return this.credCustomComponentValidation && this.nameRequiredValidation;
       }
 
       return !!this.credentialId;
@@ -168,6 +169,10 @@ export default {
   },
 
   methods: {
+    handleNameRequiredValidation() {
+      this.nameRequiredValidation = !!this.newCredential?.name?.length;
+    },
+
     async save(btnCb) {
       if ( this.errors ) {
         clear(this.errors);
@@ -207,7 +212,7 @@ export default {
     },
 
     createValidationChanged(passed) {
-      this.createValidationPassed = passed;
+      this.credCustomComponentValidation = passed;
     },
 
     backToExisting() {
@@ -247,8 +252,8 @@ export default {
         name-key="name"
         name-label="cluster.credential.name.label"
         name-placeholder="cluster.credential.name.placeholder"
-        :name-required="false"
         mode="create"
+        @change="handleNameRequiredValidation"
       />
 
       <component

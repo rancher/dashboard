@@ -36,6 +36,10 @@ export default class LabeledInputPo extends ComponentPo {
     }
   }
 
+  getAttributeValue(attr: string): Cypress.Chainable {
+    return this.input().invoke('attr', attr);
+  }
+
   clear() {
     return this.input().clear();
   }
