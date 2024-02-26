@@ -511,7 +511,7 @@ export default {
                 >
                   <nuxt-link
                     v-if="c.ready"
-                    :data-testid="`menu-cluster-${ c.id }`"
+                    :data-testid="`pinned-menu-cluster-${ c.id }`"
                     class="cluster selector option"
                     :class="{'active-menu-link': checkActiveRoute(c, true) }"
                     :to="{ name: 'c-cluster-explorer', params: { cluster: c.id } }"
@@ -540,6 +540,7 @@ export default {
                   <span
                     v-else
                     class="option cluster selector disabled"
+                    :data-testid="`pinned-menu-cluster-disabled-${ c.id }`"
                   >
                     <ClusterIconMenu
                       v-tooltip="getTooltipConfig(c.label)"
@@ -611,6 +612,7 @@ export default {
                   <span
                     v-else
                     class="option cluster selector disabled"
+                    :data-testid="`menu-cluster-disabled-${ c.id }`"
                   >
                     <ClusterIconMenu
                       v-tooltip="getTooltipConfig(c.label)"

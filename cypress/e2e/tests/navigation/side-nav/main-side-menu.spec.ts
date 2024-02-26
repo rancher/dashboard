@@ -1,10 +1,28 @@
 import HomePagePo from '@/cypress/e2e/po/pages/home.po';
 import BurgerMenuPo from '@/cypress/e2e/po/side-bars/burger-side-menu.po';
 
+const longClusterDescription = 'this-is-some-really-really-really-really-really-really-long-decription';
+
 Cypress.config();
 describe('Side Menu: main', () => {
   beforeEach(() => {
+    // since I wasn't able to fully mock a list of clusters
+    // the next best thing is to add a description to the current local cluster
+    // testing https://github.com/rancher/dashboard/issues/10441
+    cy.intercept('GET', `/v1/provisioning.cattle.io.clusters?*`, (req) => {
+      req.continue((res) => {
+        const localIndex = res.body.data.findIndex((item) => item.id.includes('/local'));
+
+        if (localIndex >= 0) {
+          res.body.data[localIndex].metadata.annotations['field.cattle.io/description'] = longClusterDescription;
+        }
+
+        res.send(res.body);
+      });
+    }).as('provClusters');
+
     cy.login();
+
     HomePagePo.goTo();
     BurgerMenuPo.toggle();
   });
@@ -12,6 +30,16 @@ describe('Side Menu: main', () => {
     BurgerMenuPo.checkOpen();
     BurgerMenuPo.toggle();
     BurgerMenuPo.checkClosed();
+  });
+
+  it('Local cluster should show a description on the side menu and display a tooltip when hovering it show the full description', { tags: ['@navigation', '@adminUser'] }, () => {
+    const burgerMenuPo = new BurgerMenuPo();
+
+    // we cannot assert text truncation because it always adds to the HTML the full content
+    // truncation (text-overflow: ellipsis) is just a CSS gimick thing that adds the ... visually
+    burgerMenuPo.getClusterDescription().should('include', longClusterDescription);
+    burgerMenuPo.showClusterDescriptionTooltip();
+    burgerMenuPo.getClusterDescriptionTooltipContent().contains(longClusterDescription);
   });
 
   it('Can display list of available clusters', { tags: ['@navigation', '@adminUser'] }, () => {
@@ -39,9 +67,9 @@ describe('Side Menu: main', () => {
     const burgerMenuPo = new BurgerMenuPo();
 
     burgerMenuPo.clusters().first().trigger('mouseover');
-    BurgerMenuPo.checkTooltipOff();
+    BurgerMenuPo.checkIconTooltipOff();
     BurgerMenuPo.toggle();
-    BurgerMenuPo.checkTooltipOn();
+    BurgerMenuPo.checkIconTooltipOn();
   });
 
   // TODO: #5966: Verify cause of race condition issue making navigation link not trigger

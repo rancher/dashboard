@@ -75,11 +75,11 @@ export default class BurgerMenuPo extends ComponentPo {
     this.sideMenu().should('have.class', 'menu-close');
   }
 
-  static checkTooltipOn(): Cypress.Chainable {
+  static checkIconTooltipOn(): Cypress.Chainable {
     return cy.get('.option').get('.cluster-icon-menu').first().should('have.class', 'has-tooltip');
   }
 
-  static checkTooltipOff(): Cypress.Chainable {
+  static checkIconTooltipOff(): Cypress.Chainable {
     return cy.get('.option').get('.cluster-icon-menu').first().should('have.not.class', 'has-tooltip');
   }
 
@@ -135,6 +135,18 @@ export default class BurgerMenuPo extends ComponentPo {
 
   unpinFirstCluster(): Cypress.Chainable {
     return this.clusterPinnedList().first().find('.pin').click();
+  }
+
+  getClusterDescription(): Cypress.Chainable {
+    return this.clusters().first().find('.description').invoke('text');
+  }
+
+  showClusterDescriptionTooltip(): Cypress.Chainable {
+    return this.clusters().first().find('.description').trigger('mouseenter');
+  }
+
+  getClusterDescriptionTooltipContent(): Cypress.Chainable {
+    return cy.get('.menu-description-tooltip .tooltip-inner');
   }
 
   /**
