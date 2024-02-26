@@ -145,6 +145,12 @@ export default Vue.extend({
     }
   },
 
+  mounted() {
+    const x = 'NOT FAIL';
+
+    console.log({ x });
+  },
+
   methods: {
     /**
      * Keyboard left/right event listener to select next/previous option. Emits
