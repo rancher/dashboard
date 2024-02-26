@@ -1528,6 +1528,9 @@ cluster:
         host:
           label: Host
           note: Specific host to create VM on (leave blank for standalone ESXi or for cluster with DRS)
+        gracefulShutdownTimeout:
+          label: Graceful Shutdown Timeout
+          note: The time in seconds to wait before forcing deleting VMs in the infrastructure. Zero means disable graceful shutdown.
       instanceOptions:
         label: Instance Options
         description: Choose the size and OS of the virtual machine
