@@ -82,7 +82,7 @@ describe('Settings', { testIsolation: 'off' }, () => {
     settingsPage.settingsValue('system-default-registry').contains(settings['system-default-registry'].new);
 
     // Check cluster manager > create
-    const createRKE2ClusterPage = new ClusterManagerCreateRke2CustomPagePo();
+    const createRKE2ClusterPage = new ClusterManagerCreateRke2CustomPagePo('local');
 
     clusterList.goTo();
     clusterList.checkIsCurrentPage();
