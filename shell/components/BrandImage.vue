@@ -38,6 +38,18 @@ export default {
       return setting.value;
     },
 
+    uiBannerLight() {
+      const setting = this.managementSettings.filter((setting) => setting.id === SETTING.BANNER_LIGHT)[0] || {};
+
+      return setting.value;
+    },
+
+    uiBannerDark() {
+      const setting = this.managementSettings.filter((setting) => setting.id === SETTING.BANNER_DARK)[0] || {};
+
+      return setting.value;
+    },
+
     uiLoginBackgroundLight() {
       const setting = this.managementSettings.filter((setting) => setting.id === SETTING.LOGIN_BACKGROUND_LIGHT)[0] || {};
 
@@ -68,6 +80,16 @@ export default {
 
         if (this.uiLogoLight) {
           return this.uiLogoLight;
+        }
+      }
+
+      if (this.fileName === 'banner.svg') {
+        if (this.theme === 'dark' && this.uiBannerDark) {
+          return this.uiBannerDark;
+        }
+
+        if (this.uiBannerLight) {
+          return this.uiBannerLight;
         }
       }
 

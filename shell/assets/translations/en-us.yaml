@@ -7312,6 +7312,14 @@ branding:
     uploadLight: Upload Light Logo
     uploadDark: Upload Dark Logo
     useCustom: Use a Custom Logo
+  banner:
+    label: Banner
+    tip: 'Upload an image to replace the Rancher banner in the Dashboard page. Max file size is 200KB'
+    lightPreview: Light Theme Preview
+    darkPreview: Dark Theme Preview
+    uploadLight: Upload Light Banner
+    uploadDark: Upload Dark Banner
+    useCustom: Use a Custom Banner
   loginBackground:
     label: Login Background
     tip: 'Upload an image to replace the Rancher background in the login page. Max file size is 200KB'

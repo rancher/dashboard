@@ -169,6 +169,26 @@ describe('Branding', { testIsolation: 'off' }, () => {
     });
   });
 
+  it.skip('Banner', { tags: ['@globalSettings', '@adminUser'] }, () => {
+    BrandingPagePo.navTo();
+    brandingPage.customBannerCheckbox().set();
+    // to check custom box element width and height in order to prevent regression
+    // https://github.com/rancher/dashboard/issues/10000
+    brandingPage.customBannerCheckbox().hasAppropriateWidth();
+    brandingPage.customBannerCheckbox().hasAppropriateHeight();
+
+    brandingPage.uploadButton('Upload Light Banner')
+      .selectFile('cypress/e2e/blueprints/branding/banners/banner-light.svg', { force: true });
+
+    brandingPage.uploadButton('Upload Dark Banner')
+      .selectFile('cypress/e2e/blueprints/branding/banners/banner-dark.svg', { force: true });
+
+    brandingPage.applyAndWait('/v1/management.cattle.io.settings/ui-banner-light', 200);
+
+    brandingPage.bannerPreview('dark').should('be.visible');
+    brandingPage.bannerPreview('light').should('be.visible');
+  });
+
   it.skip('Login Background', { tags: ['@globalSettings', '@adminUser'] }, () => {
     BrandingPagePo.navTo();
     brandingPage.customLoginBackgroundCheckbox().set();

@@ -30,6 +30,8 @@ export default {
       uiPLSetting:                   this.$store.dispatch('management/find', { type: MANAGEMENT.SETTING, id: SETTING.PL }),
       uiLogoDarkSetting:             fetchOrCreateSetting(this.$store, SETTING.LOGO_DARK, ''),
       uiLogoLightSetting:            fetchOrCreateSetting(this.$store, SETTING.LOGO_LIGHT, ''),
+      uiBannerDarkSetting:           fetchOrCreateSetting(this.$store, SETTING.BANNER_DARK, ''),
+      uiBannerLightSetting:          fetchOrCreateSetting(this.$store, SETTING.BANNER_LIGHT, ''),
       uiLoginBackgroundDarkSetting:  fetchOrCreateSetting(this.$store, SETTING.LOGIN_BACKGROUND_DARK, ''),
       uiLoginBackgroundLightSetting: fetchOrCreateSetting(this.$store, SETTING.LOGIN_BACKGROUND_LIGHT, ''),
       uiColorSetting:                fetchOrCreateSetting(this.$store, SETTING.PRIMARY_COLOR, ''),
@@ -50,6 +52,19 @@ export default {
         this.uiLogoLight = hash.uiLogoLightSetting.value;
 
         this.customizeLogo = true;
+      } catch {}
+    }
+    if (hash.uiBannerDarkSetting.value) {
+      try {
+        this.uiBannerDark = hash.uiBannerDarkSetting.value;
+        this.customizeBanner = true;
+      } catch {}
+    }
+    if (hash.uiBannerLightSetting.value) {
+      try {
+        this.uiBannerLight = hash.uiBannerLightSetting.value;
+
+        this.customizeBanner = true;
       } catch {}
     }
     if (hash.uiLoginBackgroundDarkSetting.value) {
@@ -92,6 +107,12 @@ export default {
       uiLogoLightSetting: {},
       uiLogoLight:        '',
       customizeLogo:      false,
+
+      uiBannerDarkSetting:  {},
+      uiBannerDark:         '',
+      uiBannerLightSetting: {},
+      uiBannerLight:        '',
+      customizeBanner:      false,
 
       uiLoginBackgroundDarkSetting:  {},
       uiLoginBackgroundDark:         '',
@@ -159,6 +180,14 @@ export default {
         this.uiLogoDarkSetting.value = '';
       }
 
+      if (this.customizeBanner) {
+        this.uiBannerLightSetting.value = this.uiBannerLight;
+        this.uiBannerDarkSetting.value = this.uiBannerDark;
+      } else {
+        this.uiBannerLightSetting.value = '';
+        this.uiBannerDarkSetting.value = '';
+      }
+
       if (this.customizeLoginBackground) {
         this.uiLoginBackgroundLightSetting.value = this.uiLoginBackgroundLight;
         this.uiLoginBackgroundDarkSetting.value = this.uiLoginBackgroundDark;
@@ -192,6 +221,8 @@ export default {
           this.uiPLSetting.save(),
           this.uiLogoDarkSetting.save(),
           this.uiLogoLightSetting.save(),
+          this.uiBannerDarkSetting.save(),
+          this.uiBannerLightSetting.save(),
           this.uiLoginBackgroundDarkSetting.save(),
           this.uiLoginBackgroundLightSetting.save(),
           this.uiColorSetting.save(),
@@ -297,6 +328,77 @@ export default {
               class="img-preview"
               data-testid="branding-logo-dark-preview"
               :src="uiLogoDark ? uiLogoDark : uiLogoLight"
+            >
+          </SimpleBox>
+        </div>
+      </div>
+
+      <h3 class="mt-20 mb-5 pb-5">
+        {{ t('branding.banner.label') }}
+      </h3>
+      <label class="text-label">
+        {{ t('branding.banner.tip', {}, true) }}
+      </label>
+
+      <div class="row mt-10 mb-20">
+        <Checkbox
+          v-model="customizeBanner"
+          :label="t('branding.banner.useCustom')"
+          :mode="mode"
+        />
+      </div>
+
+      <div
+        v-if="customizeBanner"
+        class="row mb-20"
+      >
+        <div class="col preview-container banner span-6">
+          <div class="mb-10">
+            <FileImageSelector
+              :byte-limit="204800"
+              :read-as-data-url="true"
+              class="role-secondary"
+              :label="t('branding.banner.uploadLight')"
+              :mode="mode"
+              accept="image/jpeg,image/png,image/svg+xml"
+              @error="setError"
+              @input="updateBranding($event, 'uiBannerLight')"
+            />
+          </div>
+          <SimpleBox
+            v-if="uiBannerLight || uiBannerDark"
+            class="theme-light mb-10"
+          >
+            <label class="text-muted">{{ t('branding.banner.lightPreview') }}</label>
+            <img
+              class="img-preview"
+              data-testid="branding-banner-light-preview"
+              :src="uiBannerLight ? uiBannerLight : uiBannerDark"
+            >
+          </SimpleBox>
+        </div>
+        <div class="col preview-container banner span-6">
+          <div class="mb-10">
+            <FileImageSelector
+              :byte-limit="204800"
+              :read-as-data-url="true"
+              class="role-secondary"
+              :label="t('branding.banner.uploadDark')"
+              :mode="mode"
+              accept="image/jpeg,image/png,image/svg+xml"
+              @error="setError"
+              @input="updateBranding($event, 'uiBannerDark')"
+            />
+          </div>
+          <SimpleBox
+            v-if="uiBannerDark || uiBannerLight"
+            class="theme-dark  mb-10"
+          >
+            <label class="text-muted">{{ t('branding.banner.darkPreview') }}</label>
+            <img
+              class="img-preview"
+              data-testid="branding-banner-dark-preview"
+              :src="uiBannerDark ? uiBannerDark : uiBannerLight"
             >
           </SimpleBox>
         </div>
@@ -519,6 +621,12 @@ export default {
   &.logo {
     .simple-box {
       max-height: 120px;
+    }
+  }
+
+  &.banner {
+    .simple-box {
+      max-height: 200px;
     }
   }
 
