@@ -51,7 +51,7 @@ export default class BurgerMenuPo extends ComponentPo {
    * Check if Cluster Top Level Menu link is highlighted
    */
   static checkIfClusterMenuLinkIsHighlighted(name: string) {
-    return this.burgerMenuGetNavClusterbyLabel(name).parent().should('have.class', 'active-menu-link');
+    return this.burgerMenuGetNavClusterbyLabel(name).parent().parent().should('have.class', 'active-menu-link');
   }
 
   /**
