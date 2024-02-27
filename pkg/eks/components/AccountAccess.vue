@@ -29,8 +29,8 @@ export default defineComponent({
     }
   },
 
-  async fetch(){
-    this.defaultRegions = await this.$store.dispatch('aws/defaultRegions')
+  async fetch() {
+    this.defaultRegions = await this.$store.dispatch('aws/defaultRegions');
   },
 
   data() {
@@ -41,11 +41,11 @@ export default defineComponent({
     isAuthenticated: {
       async handler(neu) {
         if (neu) {
-          this.fetchRegions()
+          this.fetchRegions();
         } else {
-          if(!this.defaultRegions.includes(this.region)){
-            //TODO nb default region?
-            this.$emit('update-region', 'us-east-2')
+          if (!this.defaultRegions.includes(this.region)) {
+            // TODO nb default region?
+            this.$emit('update-region', 'us-east-2');
           }
         }
       },
@@ -53,15 +53,23 @@ export default defineComponent({
     }
   },
 
-  methods:{
-    async fetchRegions(){
+  methods: {
+    async fetchRegions() {
       const { region, credential } = this as any;
-      try{
-      const ec2Client = await this.$store.dispatch('aws/ec2', { region, cloudCredentialId: credential });
 
-       const res = await ec2Client.describeRegions({})
-       this.regions = (res?.Regions||[]).map(r=>r.RegionName)
-      } catch (err){console.error(err)}
+      if (!!region && !!credential) {
+        try {
+          const ec2Client = await this.$store.dispatch('aws/ec2', { region, cloudCredentialId: credential });
+
+          const res = await ec2Client.describeRegions({});
+
+          this.regions = (res?.Regions || []).map((r) => r.RegionName);
+        } catch (err) {
+        // TODO nb reset error banners?
+        // TODO nb i18n
+          this.$emit('error', `Error fetching regions: ${ err }`);
+        }
+      }
     },
   },
 
@@ -73,7 +81,7 @@ export default defineComponent({
 
     // TODO nb format
     regionOptions(): string[] {
-     return this.regions.length? this.regions : this.defaultRegions
+      return this.regions.length ? this.regions : this.defaultRegions;
     },
 
     CREATE(): string {

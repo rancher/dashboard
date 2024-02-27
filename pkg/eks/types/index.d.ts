@@ -7,9 +7,9 @@ export interface EKSLaunchTemplate {
 export interface EKSNodeGroup {
   desiredSize?: number,
   diskSize?: number,
-  ec2SshKey?: number,
+  ec2SshKey?: string,
   gpu?: boolean,
-  imageId?: string,
+  imageId?: string | null,
   instanceType?: string,
   labels?: {
     [key: string]: string
