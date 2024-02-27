@@ -1,6 +1,6 @@
 import { DEFAULT_WORKSPACE } from '@shell/config/types';
 import { applyProducts } from '@shell/store/type-map';
-import { ClusterNotFoundError, RedirectToError } from '@shell/utils/error';
+import { ClusterNotFoundError } from '@shell/utils/error';
 import { get } from '@shell/utils/object';
 import dynamicPluginLoader from '@shell/pkg/dynamic-plugin-loader';
 import { AFTER_LOGIN_ROUTE, WORKSPACE } from '@shell/store/prefs';
@@ -175,8 +175,6 @@ export default async function({
   } catch (e) {
     if ( e.name === ClusterNotFoundError.name ) {
       return redirect(302, '/home');
-    } if ( e.name === RedirectToError.name ) {
-      return redirect(302, e.url);
     } else {
       // Sets error 500 if lost connection to API
       store.commit('setError', { error: e, locationError: new Error(store.getters['i18n/t']('nav.failWhale.authMiddleware')) });
