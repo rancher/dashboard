@@ -519,19 +519,6 @@ export default {
     <div class="row mt-20">
       <div class="col span-6">
         <LabeledSelect
-          v-model="value.environment"
-          :mode="mode"
-          :options="azureEnvironments"
-          option-key="value"
-          option-label="value"
-          :searchable="false"
-          :required="true"
-          :label="t('cluster.machineConfig.azure.environment.label')"
-          :disabled="true"
-        />
-      </div>
-      <div class="col span-6">
-        <LabeledSelect
           :value="value.location"
           :mode="mode"
           :options="locationOptionsInDropdown"
@@ -543,6 +530,17 @@ export default {
           :disabled="disabled"
           @input="setLocation"
         />
+      </div>
+      <div>
+        <label
+          v-clean-tooltip="t('cluster.machineConfig.azure.environment.tooltip')"
+          :style="{'display':'block'}"
+          class="text-label"
+        >
+          {{ t('cluster.machineConfig.azure.environment.label') }}
+          <i class="icon icon-sm icon-info" />
+        </label>
+        <span>{{ value.environment }}</span>
       </div>
     </div>
     <div class="row mt-20">
