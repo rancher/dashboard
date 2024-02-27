@@ -43,7 +43,7 @@ export default {
   },
 
   mounted() {
-    this.$router.beforeEach(this.onRouteChange);
+    this.dismissRouteHandler = this.$router.beforeEach(this.onRouteChange);
   },
 
   methods: {
@@ -54,6 +54,10 @@ export default {
 
       next();
     }
+  },
+
+  beforeDestroy() {
+    this.dismissRouteHandler();
   }
 };
 </script>
