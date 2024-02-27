@@ -196,7 +196,7 @@ function resolveComponents(route) {
 }
 
 function callMiddleware(Components, context) {
-  let midd = ['i18n'];
+  let midd = [];
   let unknownMiddleware = false;
 
   Components.forEach((Component) => {

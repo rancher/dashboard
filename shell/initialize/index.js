@@ -153,9 +153,9 @@ async function createApp(config = {}) {
 
   // Inject runtime config as $config
   inject('config', config);
-
   installPlugins(app, inject);
   installRouteGuards(app);
+  await store.dispatch('i18n/init');
 
   return {
     store,
