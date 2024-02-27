@@ -15,7 +15,6 @@ import { SETTING } from '@shell/config/settings';
 
 import CreateEditView from '@shell/mixins/create-edit-view';
 import FormValidation from '@shell/mixins/form-validation';
-import SelectCredential from '@shell/edit/provisioning.cattle.io.cluster/SelectCredential.vue';
 import CruResource from '@shell/components/CruResource.vue';
 import LabeledSelect from '@shell/components/form/LabeledSelect.vue';
 import LabeledInput from '@components/Form/LabeledInput/LabeledInput.vue';
@@ -29,10 +28,11 @@ import Tabbed from '@shell/components/Tabbed/index.vue';
 import Accordion from '@components/Accordion/Accordion.vue';
 import Banner from '@components/Banner/Banner.vue';
 import { RadioGroup } from '@components/Form/Radio';
-
 import ClusterMembershipEditor, { canViewClusterMembershipEditor } from '@shell/components/form/Members/ClusterMembershipEditor.vue';
 
 import { EKSConfig, EKSNodeGroup } from '../types';
+import NodeGroup from './NodeGroup.vue';
+import Logging from './Logging.vue';
 
 const defaultCluster = {
   dockerRootDir:           '/var/lib/docker',
@@ -43,6 +43,40 @@ const defaultCluster = {
   windowsPreferedCluster:  false,
 };
 
+// todo nb should this  be placeholder instead?
+const DEFAULT_USER_DATA =
+`MIME-Version: 1.0
+Content-Type: multipart/mixed; boundary="==MYBOUNDARY=="
+
+--==MYBOUNDARY==
+Content-Type: text/x-shellscript; charset="us-ascii"
+
+#!/bin/bash
+echo "Running custom user data script"
+
+--==MYBOUNDARY==--\\`;
+
+const DEFAULT_NODE_GROUP_CONFIG = {
+  desiredSize:          2,
+  diskSize:             20,
+  ec2SshKey:            '',
+  gpu:                  false,
+  imageId:              null,
+  instanceType:         't3.medium',
+  labels:               {},
+  maxSize:              2,
+  minSize:              2,
+  nodegroupName:        '',
+  nodeRole:             '',
+  requestSpotInstances: false,
+  resourceTags:         {},
+  spotInstanceTypes:    [],
+  subnets:              [],
+  tags:                 {},
+  type:                 'nodeGroup',
+  userData:             DEFAULT_USER_DATA,
+};
+
 // const DEFAULT_REGION = 'eastus';
 
 // const _NONE = 'none';
@@ -51,23 +85,23 @@ export default defineComponent({
   name: 'CruEKS',
 
   components: {
-    SelectCredential,
     CruResource,
     AccountAccess,
     LabeledSelect,
     RadioGroup,
-    // AksNodePool,
+    NodeGroup,
+    Logging,
     // LabeledInput,
     // Checkbox,
     // FileSelector,
     // KeyValue,
     // ArrayList,
-    // ClusterMembershipEditor,
+    ClusterMembershipEditor,
     // Labels,
-    // Tabbed,
-    // Tab,
+    Tabbed,
+    Tab,
     Accordion,
-    // Banner
+    Banner
   },
 
   mixins: [CreateEditView, FormValidation],
@@ -104,6 +138,11 @@ export default defineComponent({
     // TODO nb do this better?
     // TODO nb defaults
     this.config = this.normanCluster.eksConfig || {};
+
+    if (!this.config.nodeGroups || !this.config.nodeGroups.length) {
+      this.$set(this.config, 'nodeGroups', [{ ...DEFAULT_NODE_GROUP_CONFIG, nodegroupName: 'group1' }]);
+    }
+    this.nodeGroups = this.config.nodeGroups;
   },
 
   data() {
@@ -115,13 +154,13 @@ export default defineComponent({
     return {
       cloudCredentialId:     '',
       normanCluster:         { name: '' } as any,
-      nodePools:             [] as EKSNodeGroup[],
+      nodeGroups:            [] as EKSNodeGroup[],
       config:                { } as EKSConfig,
       membershipUpdate:      {} as any,
       originalVersion:       '',
       supportedVersionRange,
       allKubernetesVersions: [] as string[],
-      fvFormRuleSets:        [],
+      // fvFormRuleSets:        [],
       // TODO nb default from config
       customServiceRole:     false,
       serviceRoleOptions:    [{ value: false, label: 'Standard: A service role will be automatically created' }, { value: true, label: 'Custom: Choose from an existing service role' }]
@@ -137,9 +176,9 @@ export default defineComponent({
   computed: {
     ...mapGetters({ t: 'i18n/t' }),
 
-    fvExtraRules() {
-      return {};
-    },
+    // fvExtraRules() {
+    //   return {};
+    // },
 
     // upstreamSpec will be null if the user created a cluster with some invalid options such that it ultimately fails to create anything in aks
     // this allows them to go back and correct their mistakes without re-making the whole cluster
@@ -251,7 +290,7 @@ export default defineComponent({
 
     // these fields are used purely in UI, to track individual nodepool components
     cleanPoolsForSave(): void {
-      // this.nodePools.forEach((pool: AKSNodePool) => {
+      // this.nodeGroups.forEach((pool: AKSNodePool) => {
       //   Object.keys(pool).forEach((key: string) => {
       //     if (key.startsWith('_')) {
       //       delete pool[key as keyof AKSNodePool];
@@ -290,8 +329,25 @@ export default defineComponent({
     },
 
     updateCredential(e: any) {
+      // TODO nb use region from credential?
       this.$set(this.config, 'amazonCredentialSecret', e);
     },
+
+    // TODO nb warn if 0 groups
+    removeGroup(i: number) {
+      const group = this.nodeGroups[i];
+
+      removeObject(this.nodeGroups, group);
+    },
+
+    addGroup() {
+      let nextDefaultSuffix = this.nodeGroups.length + 1;
+
+      while (this.nodeGroups.find((group) => group.nodegroupName === `group${ nextDefaultSuffix }`)) {
+        nextDefaultSuffix++;
+      }
+      this.nodeGroups.push({ ...DEFAULT_NODE_GROUP_CONFIG, nodegroupName: `group${ nextDefaultSuffix }` });
+    }
   },
 
 });
@@ -310,7 +366,26 @@ export default defineComponent({
     @finish="save"
     @cancel="done"
   >
+    <Tabbed
+      class="mb-20"
+      :side-tabs="true"
+      :show-tabs-add-remove="mode !== 'view'"
+      @removeTab="removeGroup($event)"
+      @addTab="addGroup($event)"
+    >
+      <Tab
+        v-for="(node, i) in nodeGroups"
+        :key="i"
+        :name="node.nodegroupName"
+      >
+        <NodeGroup
+          :node="node"
+          :mode="mode"
+        />
+      </Tab>
+    </Tabbed>
     <Accordion
+      class="mb-20"
       title="Account Access"
       :open-initially="true"
     >
@@ -321,9 +396,14 @@ export default defineComponent({
         @cancel-credential="cancelCredential"
         @update-region="updateRegion"
         @update-credential="updateCredential"
+        @error="e=>errors.push(e)"
       />
     </Accordion>
-    <Accordion title="Cluster Options">
+    <Accordion
+      class="mb-20"
+      title="Cluster Options"
+      :open-initially="true"
+    >
       <div class="row mb-10">
         <div class="col span-6">
           <LabeledSelect
@@ -340,8 +420,10 @@ export default defineComponent({
             v-model="customServiceRole"
             :mode="mode"
             :options="serviceRoleOptions"
+            name="serviceRoleMode"
           />
         </div>
+        <!-- //TODO nb serviceroles -->
         <div class="col span-6">
           <LabeledSelect
             v-if="customServiceRole"
@@ -353,9 +435,42 @@ export default defineComponent({
         </div>
       </div>
     </Accordion>
-    <Accordion title="Cluster Membership" />
-    <Accordion title="Cluster Agent Configuration" />
-    <Accordion title="Fleet Agent Configuration" />
+    <Accordion
+      class="mb-20"
+      title="Logging"
+    >
+      <!-- //TODO nb v-model? -->
+      <Logging :mode="mode" />
+    </Accordion>
+    <Accordion
+      class="mb-20"
+      title="Cluster Agent Configuration"
+    />
+    <Accordion
+      class="mb-20"
+      title="Fleet Agent Configuration"
+    />
+    <Accordion
+      class="mb-20"
+      title="Cluster Membership"
+    >
+      <Banner
+        v-if="isEdit"
+        color="info"
+      >
+        {{ t('cluster.memberRoles.removeMessage') }}
+      </Banner>
+      <ClusterMembershipEditor
+        v-if="canManageMembers"
+        :mode="mode"
+        :parent-id="normanCluster.id ? normanCluster.id : null"
+        @membership-update="onMembershipUpdate"
+      />
+    </Accordion>
+    <Accordion
+      class="mb-20"
+      title="Labels and Annotations"
+    />
     <template
       v-if="!hasCredential"
       #form-footer
