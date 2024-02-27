@@ -80,13 +80,11 @@ jobs:
           git config --global user.email "rancherdashboardportbot@suse.com"
           git config --global user.name "Rancher Dashboard Port Bot"
           git checkout -b $BRANCH
-          git am -3 "$PATCH_FILE" 2> error.log
-          GIT_AM_EXIT_CODE=$?
 
-          if [ "$GIT_AM_EXIT_CODE" -ne 0 ]; then
-            ERROR_MESSAGE=$(cat error.log)
-            FORMATTED_ERROR_MESSAGE=$(printf "\n```\n%s\n```" "$ERROR_MESSAGE")
-            gh issue comment ${ORIGINAL_ISSUE_NUMBER} --body "Not creating port PR, there was an error running git am -3: $FORMATTED_ERROR_MESSAGE"
+          if ! git am -3 "$PATCH_FILE" > error.log 2>&1; then
+              ERROR_MESSAGE=$(cat error.log)
+              FORMATTED_ERROR_MESSAGE=$(printf "\n\`\`\`\n%s\n\`\`\`" "$ERROR_MESSAGE")
+              gh issue comment ${ORIGINAL_ISSUE_NUMBER} --body "Not creating port PR, there was an error running git am -3: $FORMATTED_ERROR_MESSAGE"
           else
               git push origin $BRANCH
               ORIGINAL_PR=$(gh pr view ${ORIGINAL_ISSUE_NUMBER} --json title,body,assignees)
