@@ -36,11 +36,22 @@ describe('Cloud Credentials', { testIsolation: 'off', tags: ['@manager', '@jenki
     cloudCredentialsPage.createEditCloudCreds().waitForPage();
     cloudCredentialsPage.createEditCloudCreds().cloudServiceOptions().selectSubTypeByIndex(0).click();
     cloudCredentialsPage.createEditCloudCreds().waitForPage('type=aws');
-    cloudCredentialsPage.createEditCloudCreds().nameNsDescription().name().set(this.cloudCredentialName);
     cloudCredentialsPage.createEditCloudCreds().nameNsDescription().description().set(`${ this.cloudCredentialName }-description`);
     cloudCredentialsPage.createEditCloudCreds().accessKey().set(Cypress.env('awsAccessKey'));
     cloudCredentialsPage.createEditCloudCreds().secretKey().set(Cypress.env('awsSecretKey'), true);
     cloudCredentialsPage.createEditCloudCreds().defaultRegion().checkOptionSelected('us-west-2');
+
+    // Testing issue https://github.com/rancher/dashboard/issues/10424
+    // making name a mandatory field with form validation + removal of "optional" from "name" placeholder
+    cloudCredentialsPage.createEditCloudCreds().nameNsDescription().name().getAttributeValue('placeholder')
+      .should('not.contain', 'optional');
+    cloudCredentialsPage.createEditCloudCreds().saveCreateForm().cruResource().saveOrCreate()
+      .expectToBeDisabled();
+    cloudCredentialsPage.createEditCloudCreds().nameNsDescription().name().set(this.cloudCredentialName);
+    cloudCredentialsPage.createEditCloudCreds().saveCreateForm().cruResource().saveOrCreate()
+      .expectToBeEnabled();
+    // EOT
+
     cloudCredentialsPage.createEditCloudCreds().saveCreateForm().cruResource().saveAndWaitForRequests('POST', '/v3/cloudcredentials')
       .then((req) => {
         cloudcredentialId = req.response?.body.id;
@@ -55,12 +66,17 @@ describe('Cloud Credentials', { testIsolation: 'off', tags: ['@manager', '@jenki
     CloudCredentialsPagePo.navTo();
     cloudCredentialsPage.list().actionMenu(this.cloudCredentialName).getMenuItem('Edit Config').click();
     cloudCredentialsPage.createEditCloudCreds(cloudcredentialId).waitForPage('mode=edit');
+    // Testing issue https://github.com/rancher/dashboard/issues/10424
+    // we now allow for editing the "name" field
+    cloudCredentialsPage.createEditCloudCreds().nameNsDescription().name().set(`${ this.cloudCredentialName }-name-edit`);
+    // EOT
     cloudCredentialsPage.createEditCloudCreds().nameNsDescription().description().set(`${ this.cloudCredentialName }-description-edit`);
     cloudCredentialsPage.createEditCloudCreds().secretKey().set(Cypress.env('awsSecretKey'), true);
     cloudCredentialsPage.createEditCloudCreds().saveCreateForm().cruResource().saveAndWaitForRequests('PUT', '/v3/cloudCredentials/**');
     cloudCredentialsPage.waitForPage();
 
     // check list details
+    cloudCredentialsPage.list().details(`${ this.cloudCredentialName }-name-edit`, 2).should('be.visible');
     cloudCredentialsPage.list().details(`${ this.cloudCredentialName }-description-edit`, 3).should('be.visible');
   });
 
