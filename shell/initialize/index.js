@@ -154,11 +154,6 @@ async function createApp(config = {}) {
   // Inject runtime config as $config
   inject('config', config);
 
-  // Replace store state before plugins execution
-  if (window.__NUXT__ && window.__NUXT__.state) {
-    store.replaceState(window.__NUXT__.state);
-  }
-
   installPlugins(app, inject);
   installRouteGuards(app);
 
