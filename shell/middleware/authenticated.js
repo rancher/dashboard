@@ -2,11 +2,9 @@
 import { SETUP } from '@shell/config/query-params';
 import { SETTING } from '@shell/config/settings';
 import { MANAGEMENT, DEFAULT_WORKSPACE } from '@shell/config/types';
-import { _ALL_IF_AUTHED } from '@shell/plugins/dashboard-store/actions';
 import { applyProducts } from '@shell/store/type-map';
 import { ClusterNotFoundError, RedirectToError } from '@shell/utils/error';
 import { get } from '@shell/utils/object';
-import { setFavIcon, haveSetFavIcon } from '@shell/utils/favicon';
 import dynamicPluginLoader from '@shell/pkg/dynamic-plugin-loader';
 import { AFTER_LOGIN_ROUTE, WORKSPACE } from '@shell/store/prefs';
 import { BACK_TO } from '@shell/config/local-storage';
@@ -21,30 +19,13 @@ export default async function({
   // Initial ?setup=admin-password can technically be on any route
   let initialPass = route.query[SETUP];
   let firstLogin = null;
+  const res = store.getters['management/byId'](MANAGEMENT.SETTING, SETTING.FIRST_LOGIN);
+  const plSetting = store.getters['management/byId'](MANAGEMENT.SETTING, SETTING.PL);
 
-  try {
-    // Load settings, which will either be just the public ones if not logged in, or all if you are
-    await store.dispatch('management/findAll', {
-      type: MANAGEMENT.SETTING,
-      opt:  {
-        load: _ALL_IF_AUTHED, url: `/v1/${ MANAGEMENT.SETTING }`, redirectUnauthorized: false
-      }
-    });
+  firstLogin = res?.value === 'true';
 
-    // Set the favicon - use custom one from store if set
-    if (!haveSetFavIcon()) {
-      setFavIcon(store);
-    }
-
-    const res = store.getters['management/byId'](MANAGEMENT.SETTING, SETTING.FIRST_LOGIN);
-    const plSetting = store.getters['management/byId'](MANAGEMENT.SETTING, SETTING.PL);
-
-    firstLogin = res?.value === 'true';
-
-    if (!initialPass && plSetting?.value === 'Harvester') {
-      initialPass = 'admin';
-    }
-  } catch (e) {
+  if (!initialPass && plSetting?.value === 'Harvester') {
+    initialPass = 'admin';
   }
 
   if ( firstLogin === null ) {

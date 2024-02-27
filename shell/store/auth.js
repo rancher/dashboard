@@ -128,7 +128,7 @@ export const actions = {
 
   async authenticate({ commit, dispatch, getters }) {
     const redirect = this.app.context.redirect;
-    const route = this.app.route;
+    const route = this.app.context.route;
 
     // Make sure you're actually logged in
     function isLoggedIn(me) {

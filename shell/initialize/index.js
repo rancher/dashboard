@@ -6,11 +6,11 @@ import { createRouter } from '../config/router.js';
 import NuxtChild from '../components/nuxt/nuxt-child.js';
 import Nuxt from '../components/nuxt/nuxt.js';
 import App from './App.js';
-import { setContext, getLocation, getRouteData, normalizeError } from '../utils/nuxt';
+import { setContext, getLocation, normalizeError } from '../utils/nuxt';
 import { createStore } from '../config/store.js';
-import { UPGRADED, _FLAGGED, _UNFLAG } from '@shell/config/query-params';
 import { loadDirectives } from '@shell/plugins';
 import { installPlugins } from '@shell/initialize/plugins';
+import { installRouteGuards } from '@shell/initialize/route-guards';
 
 // Prevent extensions from overriding existing directives
 // Hook into Vue.directive and keep track of the directive names that have been added
@@ -160,49 +160,7 @@ async function createApp(config = {}) {
   }
 
   installPlugins(app, inject);
-
-  // Wait for async component to be resolved first
-  await new Promise((resolve, reject) => {
-    // Ignore 404s rather than blindly replacing URL in browser
-    const { route } = router.resolve(app.context.route.fullPath);
-
-    if (!route.matched.length) {
-      return resolve();
-    }
-
-    router.replace(app.context.route.fullPath, resolve, (err) => {
-      // https://github.com/vuejs/vue-router/blob/v3.4.3/src/util/errors.js
-      if (!err._isRouter) {
-        return reject(err);
-      }
-      if (err.type !== 2 /* NavigationFailureType.redirected */) {
-        return resolve();
-      }
-
-      // navigated to a different route in router guard
-      const unregister = router.afterEach(async(to, from) => {
-        app.context.route = await getRouteData(to);
-        app.context.params = to.params || {};
-        app.context.query = to.query || {};
-        unregister();
-        resolve();
-      });
-    });
-
-    router.afterEach((to) => {
-      const upgraded = to.query[UPGRADED] === _FLAGGED;
-
-      if ( upgraded ) {
-        router.applyQuery({ [UPGRADED]: _UNFLAG });
-
-        store.dispatch('growl/success', {
-          title:   store.getters['i18n/t']('serverUpgrade.title'),
-          message: store.getters['i18n/t']('serverUpgrade.message'),
-          timeout: 0,
-        });
-      }
-    });
-  });
+  installRouteGuards(app);
 
   return {
     store,
