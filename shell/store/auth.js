@@ -1,5 +1,7 @@
-import { GITHUB_NONCE, GITHUB_REDIRECT, GITHUB_SCOPE, TIMED_OUT } from '@shell/config/query-params';
-import { NORMAN } from '@shell/config/types';
+import {
+  GITHUB_NONCE, GITHUB_REDIRECT, GITHUB_SCOPE, TIMED_OUT, SETUP
+} from '@shell/config/query-params';
+import { NORMAN, MANAGEMENT } from '@shell/config/types';
 import { _MULTI } from '@shell/plugins/dashboard-store/actions';
 import { addObjects, findBy } from '@shell/utils/array';
 import { openAuthPopup, returnTo } from '@shell/utils/auth';
@@ -7,6 +9,8 @@ import { base64Encode } from '@shell/utils/crypto';
 import { removeEmberPage } from '@shell/utils/ember-page';
 import { randomStr } from '@shell/utils/string';
 import { addParams, parse as parseUrl, removeParam } from '@shell/utils/url';
+
+import { SETTING } from '@shell/config/settings';
 
 export const BASE_SCOPES = {
   github:       ['read:org'],
@@ -195,6 +199,60 @@ export const actions = {
       }
 
       dispatch('gcStartIntervals', undefined, { root: true });
+    }
+  },
+
+  async attemptFirstLogin({ dispatch, rootGetters }) {
+    const redirect = this.app.context.redirect;
+    const route = this.app.context.route;
+    // Initial ?setup=admin-password can technically be on any route
+    let initialPass = route.query[SETUP];
+    let firstLogin = null;
+    const res = rootGetters['management/byId'](MANAGEMENT.SETTING, SETTING.FIRST_LOGIN);
+    const plSetting = rootGetters['management/byId'](MANAGEMENT.SETTING, SETTING.PL);
+
+    firstLogin = res?.value === 'true';
+
+    if (!initialPass && plSetting?.value === 'Harvester') {
+      initialPass = 'admin';
+    }
+
+    if ( firstLogin === null ) {
+      try {
+        const res = await dispatch('rancher/find', {
+          type: 'setting',
+          id:   SETTING.FIRST_LOGIN,
+          opt:  { url: `/v3/settings/${ SETTING.FIRST_LOGIN }` }
+        });
+
+        firstLogin = res?.value === 'true';
+
+        const plSetting = await dispatch('rancher/find', {
+          type: 'setting',
+          id:   SETTING.PL,
+          opt:  { url: `/v3/settings/${ SETTING.PL }` }
+        });
+
+        if (!initialPass && plSetting?.value === 'Harvester') {
+          initialPass = 'admin';
+        }
+      } catch (e) {
+      }
+    }
+
+    // TODO show error if firstLogin and default pass doesn't work
+    if ( firstLogin ) {
+      const ok = await tryInitialSetup(dispatch, initialPass);
+
+      if (ok) {
+        if (initialPass) {
+          dispatch('auth/setInitialPass', initialPass);
+        }
+
+        return redirect({ name: 'auth-setup' });
+      } else {
+        return redirect({ name: 'auth-login' });
+      }
     }
   },
 
@@ -451,4 +509,22 @@ async function findMe(dispatch) {
   const me = findBy(principals, 'me', true);
 
   return me;
+}
+
+async function tryInitialSetup(dispatch, password = 'admin') {
+  try {
+    const res = await dispatch('auth/login', {
+      provider: 'local',
+      body:     {
+        username: 'admin',
+        password
+      },
+    });
+
+    return res._status === 200;
+  } catch (e) {
+    console.error('Error trying initial setup', e); // eslint-disable-line no-console
+
+    return false;
+  }
 }

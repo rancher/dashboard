@@ -1,7 +1,4 @@
-
-import { SETUP } from '@shell/config/query-params';
-import { SETTING } from '@shell/config/settings';
-import { MANAGEMENT, DEFAULT_WORKSPACE } from '@shell/config/types';
+import { DEFAULT_WORKSPACE } from '@shell/config/types';
 import { applyProducts } from '@shell/store/type-map';
 import { ClusterNotFoundError, RedirectToError } from '@shell/utils/error';
 import { get } from '@shell/utils/object';
@@ -16,56 +13,7 @@ let beforeEachSetup = false;
 export default async function({
   route, store, redirect, from, $plugin, next
 }) {
-  // Initial ?setup=admin-password can technically be on any route
-  let initialPass = route.query[SETUP];
-  let firstLogin = null;
-  const res = store.getters['management/byId'](MANAGEMENT.SETTING, SETTING.FIRST_LOGIN);
-  const plSetting = store.getters['management/byId'](MANAGEMENT.SETTING, SETTING.PL);
-
-  firstLogin = res?.value === 'true';
-
-  if (!initialPass && plSetting?.value === 'Harvester') {
-    initialPass = 'admin';
-  }
-
-  if ( firstLogin === null ) {
-    try {
-      const res = await store.dispatch('rancher/find', {
-        type: 'setting',
-        id:   SETTING.FIRST_LOGIN,
-        opt:  { url: `/v3/settings/${ SETTING.FIRST_LOGIN }` }
-      });
-
-      firstLogin = res?.value === 'true';
-
-      const plSetting = await store.dispatch('rancher/find', {
-        type: 'setting',
-        id:   SETTING.PL,
-        opt:  { url: `/v3/settings/${ SETTING.PL }` }
-      });
-
-      if (!initialPass && plSetting?.value === 'Harvester') {
-        initialPass = 'admin';
-      }
-    } catch (e) {
-    }
-  }
-
-  // TODO show error if firstLogin and default pass doesn't work
-  if ( firstLogin ) {
-    const ok = await tryInitialSetup(store, initialPass);
-
-    if (ok) {
-      if (initialPass) {
-        store.dispatch('auth/setInitialPass', initialPass);
-      }
-
-      return redirect({ name: 'auth-setup' });
-    } else {
-      return redirect({ name: 'auth-login' });
-    }
-  }
-
+  await store.dispatch('auth/attemptFirstLogin');
   await store.dispatch('auth/authenticate');
 
   const backTo = window.localStorage.getItem(BACK_TO);
@@ -235,23 +183,5 @@ export default async function({
 
       return redirect(302, '/fail-whale');
     }
-  }
-}
-
-async function tryInitialSetup(store, password = 'admin') {
-  try {
-    const res = await store.dispatch('auth/login', {
-      provider: 'local',
-      body:     {
-        username: 'admin',
-        password
-      },
-    });
-
-    return res._status === 200;
-  } catch (e) {
-    console.error('Error trying initial setup', e); // eslint-disable-line no-console
-
-    return false;
   }
 }
