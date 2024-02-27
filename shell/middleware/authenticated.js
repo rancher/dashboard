@@ -1,10 +1,9 @@
-import { NAME as EXPLORER } from '@shell/config/product/explorer';
+
 import { SETUP } from '@shell/config/query-params';
 import { SETTING } from '@shell/config/settings';
 import { MANAGEMENT, DEFAULT_WORKSPACE } from '@shell/config/types';
 import { _ALL_IF_AUTHED } from '@shell/plugins/dashboard-store/actions';
 import { applyProducts } from '@shell/store/type-map';
-
 import { ClusterNotFoundError, RedirectToError } from '@shell/utils/error';
 import { get } from '@shell/utils/object';
 import { setFavIcon, haveSetFavIcon } from '@shell/utils/favicon';
@@ -12,135 +11,9 @@ import dynamicPluginLoader from '@shell/pkg/dynamic-plugin-loader';
 import { AFTER_LOGIN_ROUTE, WORKSPACE } from '@shell/store/prefs';
 import { BACK_TO } from '@shell/config/local-storage';
 import { NAME as FLEET_NAME } from '@shell/config/product/fleet.js';
-import { canViewResource } from '@shell/utils/auth';
-
-const getPackageFromRoute = (route) => {
-  if (!route?.meta) {
-    return;
-  }
-  // Sometimes meta is an array... sometimes not
-  const arraySafe = Array.isArray(route.meta) ? route.meta : [route.meta];
-
-  return arraySafe.find((m) => !!m.pkg)?.pkg;
-};
-
-const getResourceFromRoute = (to) => {
-  let resource = to.params?.resource;
-
-  if (!resource) {
-    resource = findMeta(to, 'resource');
-  }
-
-  return resource;
-};
+import { setProduct, getClusterFromRoute, getPackageFromRoute, getProductFromRoute } from '@shell/utils/router';
 
 let beforeEachSetup = false;
-
-function findMeta(route, key) {
-  if (route?.meta) {
-    const meta = Array.isArray(route.meta) ? route.meta : [route.meta];
-
-    for (let i = 0; i < meta.length; i++) {
-      if (meta[i][key]) {
-        return meta[i][key];
-      }
-    }
-  }
-
-  return undefined;
-}
-
-export function getClusterFromRoute(to) {
-  let cluster = to.params?.cluster;
-
-  if (!cluster) {
-    cluster = findMeta(to, 'cluster');
-  }
-
-  return cluster;
-}
-
-export function getProductFromRoute(to) {
-  let product = to.params?.product;
-
-  if ( !product ) {
-    const match = to.name?.match(/^c-cluster-([^-]+)/);
-
-    if ( match ) {
-      product = match[1];
-    }
-  }
-
-  // If still no product, see if the route indicates the product via route metadata
-  if (!product) {
-    product = findMeta(to, 'product');
-  }
-
-  return product;
-}
-
-function setProduct(store, to, redirect) {
-  let product = getProductFromRoute(to);
-
-  // since all products are hardcoded as routes (ex: c-local-explorer), if we match the wildcard route it means that the product does not exist
-  if ((product && (!to.matched.length || (to.matched.length && to.matched[0].path === '/c/:cluster/:product'))) ||
-  // if the product grabbed from the route is not registered, then we don't have it!
-  (product && !store.getters['type-map/isProductRegistered'](product))) {
-    store.dispatch('loadingError', new Error(store.getters['i18n/t']('nav.failWhale.productNotFound', { productNotFound: product }, true)));
-
-    return true;
-  }
-
-  if ( !product ) {
-    product = EXPLORER;
-  }
-
-  const oldProduct = store.getters['productId'];
-  const oldStore = store.getters['currentProduct']?.inStore;
-
-  if ( product !== oldProduct ) {
-    store.commit('setProduct', product);
-  }
-
-  const neuStore = store.getters['currentProduct']?.inStore;
-
-  if ( neuStore !== oldStore ) {
-    // If the product store changes, clear the catalog.
-    // There might be management catalog items in it vs cluster.
-    store.commit('catalog/reset');
-  }
-
-  return false;
-}
-
-/**
- * Check that the resource is valid, if not redirect to fail whale
- *
- * This requires that
- * - product is set
- * - product's store is set and setup (so we can check schema's within it)
- * - product's store has the schemaFor getter (extension stores might not have it)
- * - there's a resource associated with route (meta or param)
- */
-function invalidResource(store, to, redirect) {
-  const product = store.getters['currentProduct'];
-  const resource = getResourceFromRoute(to);
-
-  // In order to check a resource is valid we need these
-  if (!product || !resource) {
-    return false;
-  }
-
-  if (canViewResource(store, resource)) {
-    return false;
-  }
-
-  // Unknown resource, redirect to fail whale
-
-  store.dispatch('loadingError', new Error(store.getters['i18n/t']('nav.failWhale.resourceNotFound', { resource }, true)));
-
-  return () => redirect(302, '/fail-whale');
-}
 
 export default async function({
   route, store, redirect, from, $plugin, next
@@ -225,16 +98,11 @@ export default async function({
   // GC should be notified of route change before any find/get request is made that might be used for that page
   store.dispatch('gcRouteChanged', route);
 
-  // Load stuff
-  let localCheckResource = false;
-
   await applyProducts(store, $plugin);
 
   // Setup a beforeEach hook once to keep track of the current product
   if ( !beforeEachSetup ) {
     beforeEachSetup = true;
-    // This only needs to happen when beforeEach hook hasn't run (the initial load)
-    localCheckResource = true;
 
     store.app.router.beforeEach((to, from, next) => {
       // NOTE - This beforeEach runs AFTER this middleware. So anything in this middleware that requires it must set it manually
@@ -354,14 +222,6 @@ export default async function({
         targetRoute: route
       })
     ]);
-
-    if (localCheckResource) {
-      const redirected = invalidResource(store, route, redirect);
-
-      if (redirected) {
-        return redirected();
-      }
-    }
 
     if (!clusterId) {
       clusterId = store.getters['defaultClusterId']; // This needs the cluster list, so no parallel

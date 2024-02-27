@@ -9,6 +9,7 @@ import { ResourceListComponentName } from './resource-list.config';
 import { PanelLocation, ExtensionPoint } from '@shell/core/types';
 import ExtensionPanel from '@shell/components/ExtensionPanel';
 import { sameContents } from '@shell/utils/array';
+import ResourceValidation from '@shell/mixins/resource-validation';
 
 export default {
   name: ResourceListComponentName,
@@ -21,7 +22,7 @@ export default {
     IconMessage,
     ExtensionPanel
   },
-  mixins: [ResourceFetch],
+  mixins: [ResourceValidation, ResourceFetch],
 
   props: {
     hasAdvancedFiltering: {
