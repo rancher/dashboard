@@ -1,10 +1,10 @@
 import { NAME as EXPLORER } from '@shell/config/product/explorer';
-import { SETUP, TIMED_OUT } from '@shell/config/query-params';
+import { SETUP } from '@shell/config/query-params';
 import { SETTING } from '@shell/config/settings';
-import { MANAGEMENT, NORMAN, DEFAULT_WORKSPACE } from '@shell/config/types';
+import { MANAGEMENT, DEFAULT_WORKSPACE } from '@shell/config/types';
 import { _ALL_IF_AUTHED } from '@shell/plugins/dashboard-store/actions';
 import { applyProducts } from '@shell/store/type-map';
-import { findBy } from '@shell/utils/array';
+
 import { ClusterNotFoundError, RedirectToError } from '@shell/utils/error';
 import { get } from '@shell/utils/object';
 import { setFavIcon, haveSetFavIcon } from '@shell/utils/favicon';
@@ -212,72 +212,7 @@ export default async function({
     }
   }
 
-  // Make sure you're actually logged in
-  function isLoggedIn(me) {
-    store.commit('auth/hasAuth', true);
-    store.commit('auth/loggedInAs', me.id);
-  }
-
-  function notLoggedIn() {
-    store.commit('auth/hasAuth', true);
-
-    if ( route.name === 'index' ) {
-      return redirect(302, '/auth/login');
-    } else {
-      return redirect(302, `/auth/login?${ TIMED_OUT }`);
-    }
-  }
-
-  function noAuth() {
-    store.commit('auth/hasAuth', false);
-  }
-
-  if ( store.getters['auth/enabled'] !== false && !store.getters['auth/loggedIn'] ) {
-    // `await` so we have one successfully request whilst possibly logged in (ensures fromHeader is populated from `x-api-cattle-auth`)
-    await store.dispatch('auth/getUser');
-
-    const v3User = store.getters['auth/v3User'] || {};
-
-    if (v3User?.mustChangePassword) {
-      return redirect({ name: 'auth-setup' });
-    }
-
-    // In newer versions the API calls return the auth state instead of having to make a new call all the time.
-    const fromHeader = store.getters['auth/fromHeader'];
-
-    if ( fromHeader === 'none' ) {
-      noAuth();
-    } else if ( fromHeader === 'true' ) {
-      const me = await findMe(store);
-
-      isLoggedIn(me);
-    } else if ( fromHeader === 'false' ) {
-      notLoggedIn();
-    } else {
-      // Older versions look at principals and see what happens
-      try {
-        const me = await findMe(store);
-
-        isLoggedIn(me);
-      } catch (e) {
-        const status = e?._status;
-
-        if ( status === 404 ) {
-          noAuth();
-        } else {
-          if ( status === 401 ) {
-            notLoggedIn();
-          } else {
-            store.commit('setError', { error: e, locationError: new Error('Auth Middleware') });
-          }
-
-          return;
-        }
-      }
-    }
-
-    store.dispatch('gcStartIntervals');
-  }
+  await store.dispatch('auth/authenticate');
 
   const backTo = window.localStorage.getItem(BACK_TO);
 
@@ -460,21 +395,6 @@ export default async function({
       return redirect(302, '/fail-whale');
     }
   }
-}
-
-async function findMe(store) {
-  // First thing we do in loadManagement is fetch principals anyway.... so don't ?me=true here
-  const principals = await store.dispatch('rancher/findAll', {
-    type: NORMAN.PRINCIPAL,
-    opt:  {
-      url:                  '/v3/principals',
-      redirectUnauthorized: false,
-    }
-  });
-
-  const me = findBy(principals, 'me', true);
-
-  return me;
 }
 
 async function tryInitialSetup(store, password = 'admin') {
