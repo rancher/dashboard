@@ -370,6 +370,8 @@ module.exports = function(dir, _appConfig) {
         // Store the Router Base as env variable that we can use in `shell/config/router.js`
         'process.env.routerBase':          JSON.stringify(routerBasePath),
 
+        __VUE_PROD_HYDRATION_MISMATCH_DETAILS__: 'false',
+
         // This is a replacement of the nuxt publicRuntimeConfig
         'nuxt.publicRuntimeConfig': JSON.stringify({
           rancherEnv,
