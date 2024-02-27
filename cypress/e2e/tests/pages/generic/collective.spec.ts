@@ -34,13 +34,14 @@ describe('SUSE Collective Page and link', { testIsolation: 'off' }, () => {
     cy.login();
   });
 
-  beforeEach(() => {
-    resetCustomLinks();
-  });
-
   describe('link can be hidden via settings', { tags: ['@generic', '@adminUser'] }, () => {
     beforeEach(() => {
       interceptVersionAndSetToPrime().as('rancherVersion');
+      resetCustomLinks();
+    });
+
+    afterEach(() => {
+      resetCustomLinks();
     });
 
     it('should allow collective link to be hidden', () => {
