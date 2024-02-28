@@ -44,7 +44,9 @@ describe('Feature Flags', { testIsolation: 'off' }, () => {
 
     // Check side nav
     BurgerMenuPo.toggle();
-    virtualizationMgmtNavItem.should('be.visible');
+    const newVirtualizationMgmtNavItem = burgerMenu.links().contains('Virtualization Management');
+
+    newVirtualizationMgmtNavItem.should('be.visible');
   });
 
   it('can toggle harvester-baremetal-container-workload feature flag', { tags: ['@globalSettings', '@adminUser'] }, () => {
