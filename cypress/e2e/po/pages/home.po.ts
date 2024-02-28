@@ -115,4 +115,10 @@ export default class HomePagePo extends PagePo {
       }).click();
     }
   }
+
+  checkSupportLinkText(index: number, text: string) {
+    return this.supportLinks().eq(index).then((el) => {
+      expect(el.text().trim()).to.equal(text);
+    });
+  }
 }
