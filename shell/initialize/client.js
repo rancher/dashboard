@@ -56,17 +56,6 @@ if ($config._app) {
 Object.assign(Vue.config, { silent: false, performance: true });
 
 if (debug) {
-  const logs = NUXT.logs || [];
-
-  if (logs.length > 0) {
-    const ssrLogStyle = 'background: #2E495E;border-radius: 0.5em;color: white;font-weight: bold;padding: 2px 0.5em;';
-
-    console.group && console.group('%cNuxt SSR', ssrLogStyle); // eslint-disable-line no-console
-    logs.forEach((logObj) => (console[logObj.type] || console.log)(...logObj.args)); // eslint-disable-line no-console
-    delete NUXT.logs;
-    console.groupEnd && console.groupEnd(); // eslint-disable-line no-console
-  }
-
   // Setup global Vue error handler
   if (!Vue.config.$nuxt) {
     const defaultErrorHandler = Vue.config.errorHandler;
@@ -106,8 +95,8 @@ if (debug) {
       }
     };
     Vue.config.$nuxt = {};
+    Vue.config.$nuxt.$nuxt = true;
   }
-  Vue.config.$nuxt.$nuxt = true;
 }
 
 const errorHandler = Vue.config.errorHandler || console.error; // eslint-disable-line no-console
