@@ -92,11 +92,11 @@ if [[ "${JOB_TYPE}" == "recurring" ]]; then
     corral config vars set rancher_image_tag ${RANCHER_IMAGE_TAG}
   fi
   cd "${WORKSPACE}/corral-packages"
-  yq -i e ".variables.rancher_version += [\"${RANCHER_VERSION}\"] | .variables.rancher_version style=\"literal\"" packages/aws/rancher-rke2.yaml
-  yq -i e ".variables.kubernetes_version += [\"${RKE2_KUBERNETES_VERSION}\"] | .variables.kubernetes_version style=\"literal\"" packages/aws/rancher-rke2.yaml
-  yq -i e ".variables.cert_manager_version += [\"${CERT_MANAGER_VERSION}\"] | .variables.kubernetes_version style=\"literal\"" packages/aws/rancher-rke2.yaml
+  yq -i e ".variables.rancher_version += [\"${RANCHER_VERSION}\"] | .variables.rancher_version style=\"literal\"" packages/aws/rancher-k3s.yaml
+  yq -i e ".variables.kubernetes_version += [\"${K3S_KUBERNETES_VERSION}\"] | .variables.kubernetes_version style=\"literal\"" packages/aws/rancher-k3s.yaml
+  yq -i e ".variables.cert_manager_version += [\"${CERT_MANAGER_VERSION}\"] | .variables.kubernetes_version style=\"literal\"" packages/aws/rancher-k3s.yaml
 
-  cat packages/aws/rancher-rke2.yaml
+  cat packages/aws/rancher-k3s.yaml
   ls -al packages/aws/
   cat packages/aws/dashboard-tests.yaml
 
@@ -111,13 +111,13 @@ if [[ "${JOB_TYPE}" == "recurring" ]]; then
   corral config vars delete rancher_host
   RANCHER_HOST="jenkins-${prefix_random}.${AWS_ROUTE53_ZONE}"
 
-  RKE2_KUBERNETES_VERSION="${RKE2_KUBERNETES_VERSION//+/-}"
+  K3S_KUBERNETES_VERSION="${K3S_KUBERNETES_VERSION//+/-}"
   make init
   make build
   ls -al dist
-  echo "Corral Package string: ${RKE2_KUBERNETES_VERSION}-${RANCHER_VERSION//v}-${CERT_MANAGER_VERSION}"
+  echo "Corral Package string: ${K3S_KUBERNETES_VERSION}-${RANCHER_VERSION//v}-${CERT_MANAGER_VERSION}"
   corral create --skip-cleanup --recreate --debug rancher \
-    "dist/aws-rke2-rancher-calico-${RKE2_KUBERNETES_VERSION}-${RANCHER_VERSION//v}-${CERT_MANAGER_VERSION}"
+    "dist/aws-k3s-rancher-${K3S_KUBERNETES_VERSION}-${RANCHER_VERSION//v}-${CERT_MANAGER_VERSION}"
 fi
 
 if [[ "${JOB_TYPE}" == "existing" ]]; then
