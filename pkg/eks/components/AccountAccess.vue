@@ -3,6 +3,7 @@ import { defineComponent } from 'vue';
 import { _CREATE, _EDIT, _VIEW } from '@shell/config/query-params';
 import LabeledSelect from '@shell/components/form/LabeledSelect.vue';
 import SelectCredential from '@shell/edit/provisioning.cattle.io.cluster/SelectCredential.vue';
+import { DEFAULT_REGION } from './CruEKS.vue';
 
 export default defineComponent({
   name: 'EKSAccountAccess',
@@ -31,6 +32,9 @@ export default defineComponent({
 
   async fetch() {
     this.defaultRegions = await this.$store.dispatch('aws/defaultRegions');
+    if (this.defaultRegions.length && !this.region) {
+      (this.$emit('update-region', DEFAULT_REGION));
+    }
   },
 
   data() {
@@ -41,11 +45,14 @@ export default defineComponent({
     isAuthenticated: {
       async handler(neu) {
         if (neu) {
-          this.fetchRegions();
+          await this.fetchRegions();
         } else {
-          if (!this.defaultRegions.includes(this.region)) {
-            // TODO nb default region?
-            this.$emit('update-region', 'us-east-2');
+          if (this.defaultRegions.length && !this.defaultRegions.includes(this.region)) {
+            if (this.defaultRegions.includes(DEFAULT_REGION)) {
+              this.$emit('update-region', DEFAULT_REGION);
+            } else {
+              this.$emit('update-region', this.defaultRegions[0]);
+            }
           }
         }
       },
@@ -79,7 +86,7 @@ export default defineComponent({
       return !!this.credential;
     },
 
-    // TODO nb format
+    // TODO nb sort
     regionOptions(): string[] {
       return this.regions.length ? this.regions : this.defaultRegions;
     },
