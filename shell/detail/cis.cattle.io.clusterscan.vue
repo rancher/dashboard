@@ -10,6 +10,8 @@ import { escapeHtml, randomStr } from '@shell/utils/string';
 import { CIS } from '@shell/config/types';
 import { STATE } from '@shell/config/table-headers';
 import { get } from '@shell/utils/object';
+import { allHash } from '@shell/utils/promise';
+import { fetchSpecsScheduledScanConfig } from '@shell/models/cis.cattle.io.clusterscan';
 
 export default {
   components: {
@@ -30,7 +32,16 @@ export default {
   },
 
   async fetch() {
-    this.clusterReports = await this.value.getReports();
+    const inStore = this.$store.getters['currentProduct'].inStore;
+    const schema = this.$store.getters[`${ inStore }/schemaFor`](this.value);
+
+    const hash = await allHash({
+      clusterReports:         this.value.getReports(),
+      // Ensure the clusterscan model has everything it needs
+      hasScheduledScanConfig: fetchSpecsScheduledScanConfig(schema),
+    });
+
+    this.clusterReports = hash.clusterReports;
   },
 
   data() {

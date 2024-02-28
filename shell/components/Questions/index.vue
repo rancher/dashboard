@@ -15,6 +15,7 @@ import ReferenceType from './Reference';
 import CloudCredentialType from './CloudCredential';
 import RadioType from './Radio';
 import YamlType from './Yaml';
+import Loading from '@shell/components/Loading';
 
 export const knownTypes = {
   string:          StringType,
@@ -115,7 +116,11 @@ function migrate(expr) {
 }
 
 export default {
-  components: { Tab, ...knownTypes },
+  components: {
+    ...knownTypes,
+    Tab,
+    Loading,
+  },
 
   props: {
     mode: {
@@ -162,6 +167,13 @@ export default {
     emit: {
       type:    Boolean,
       default: false,
+    }
+  },
+
+  async fetch() {
+    // If this source is a schema, ensure the schema's `resourceFields` is populated
+    if (this.source.type === 'schema' && this.source.requiresResourceFields) {
+      await this.source.fetchResourceFields();
     }
   },
 
@@ -434,7 +446,11 @@ export default {
 </script>
 
 <template>
-  <form v-if="asTabs">
+  <Loading
+    v-if="$fetchState.pending"
+    mode="relative"
+  />
+  <form v-else-if="asTabs">
     <Tab
       v-for="g in groups"
       :key="g.name"

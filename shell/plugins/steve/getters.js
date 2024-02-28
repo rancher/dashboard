@@ -10,6 +10,8 @@ import { urlFor } from '@shell/plugins/dashboard-store/getters';
 import { normalizeType } from '@shell/plugins/dashboard-store/normalize';
 import pAndNFiltering from '@shell/utils/projectAndNamespaceFiltering.utils';
 import { parse } from '@shell/utils/url';
+import { splitObjectPath } from '@shell/utils/string';
+import { parseType } from '@shell/models/schema';
 
 export const STEVE_MODEL_TYPES = {
   NORMAN:  'norman',
@@ -215,6 +217,48 @@ export default {
     }
 
     return cache.generation;
+  },
+
+  /**
+   * Checks the norman or steve schema resourceFields for the given path
+   */
+  pathExistsInSchema: (state, getters) => (type, path) => {
+    const schema = getters.schemaFor(type);
+
+    if (schema.requiresResourceFields && !schema.hasResourceFields) {
+      console.warn(`pathExistsInSchema requires schema ${ schema.id } to have resources fields via schema definition but none were found. has the schema 'fetchResourceFields' been called?`); // eslint-disable-line no-console
+
+      return false;
+    }
+
+    const schemaDefinitions = schema.requiresResourceFields ? schema.schemaDefinitions : null;
+    const parts = splitObjectPath(path);
+    let schemaOrSchemaDefinition = schema;
+
+    // Iterate down the parts (properties) until there are no parts left (success) or the path cannot be found (failure)
+    while ( parts.length ) {
+      const key = parts.shift();
+
+      const field = schemaOrSchemaDefinition.resourceFields?.[key];
+
+      type = field?.type;
+
+      if ( !type ) {
+        return false;
+      }
+
+      if ( parts.length ) {
+        type = parseType(type, field).pop(); // Get the main part of array[map[something]] => something
+
+        schemaOrSchemaDefinition = schemaDefinitions ? schemaDefinitions?.[type] : getters.schemaFor(type);
+
+        if ( !schema ) {
+          return false;
+        }
+      }
+    }
+
+    return true;
   },
 
 };

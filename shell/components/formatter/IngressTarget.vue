@@ -1,5 +1,5 @@
 <script>
-import { WORKLOAD_TYPES } from '@shell/config/types';
+import { INGRESS, WORKLOAD_TYPES } from '@shell/config/types';
 import IngressFullPath from '@shell/components/formatter/IngressFullPath';
 
 export default {
@@ -18,7 +18,13 @@ export default {
   },
 
   async fetch() {
-    await Promise.all(Object.values(WORKLOAD_TYPES).map((type) => this.$store.dispatch('cluster/findAll', { type })));
+    const promises = Object.values(WORKLOAD_TYPES).map((type) => this.$store.dispatch('cluster/findAll', { type }));
+    const ingressSchema = this.$store.getters[`cluster/schemaFor`](INGRESS);
+
+    if (ingressSchema) {
+      promises.push(ingressSchema.fetchResourceFields());
+    }
+    await Promise.all(promises);
   },
 
   computed: {

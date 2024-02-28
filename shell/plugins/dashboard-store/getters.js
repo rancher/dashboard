@@ -3,8 +3,6 @@ import { SCHEMA, COUNT } from '@shell/config/types';
 
 import { matches } from '@shell/utils/selector';
 import { typeMunge, typeRef, SIMPLE_TYPES } from '@shell/utils/create-yaml';
-import { splitObjectPath } from '@shell/utils/string';
-import { parseType } from '@shell/models/schema';
 import Resource from '@shell/plugins/dashboard-store/resource-class';
 import mutations from './mutations';
 import { keyFieldFor, normalizeType } from './normalize';
@@ -122,30 +120,13 @@ export default {
     }
   },
 
+  /**
+   * Checks a schema for the given path
+   *
+   * Given that schema are primarily a rancher thing most logic is in the `steve` store
+   */
   pathExistsInSchema: (state, getters) => (type, path) => {
-    let schema = getters.schemaFor(type);
-    const parts = splitObjectPath(path);
-
-    while ( parts.length ) {
-      const key = parts.shift();
-
-      type = schema.resourceFields?.[key]?.type;
-
-      if ( !type ) {
-        return false;
-      }
-
-      if ( parts.length ) {
-        type = parseType(type).pop(); // Get the main part of array[map[something]] => something
-        schema = getters.schemaFor(type);
-
-        if ( !schema ) {
-          return false;
-        }
-      }
-    }
-
-    return true;
+    return false;
   },
 
   // @TODO resolve difference between this and schemaFor and have only one of them.
@@ -216,17 +197,28 @@ export default {
     return out;
   },
 
-  defaultFor: (state, getters) => (type) => {
-    const schema = getters['schemaFor'](type);
+  defaultFor: (state, getters) => (type, rootSchema, schemaDefinitions = null) => {
+    let resourceFields;
 
-    if ( !schema ) {
-      return null;
+    if (!schemaDefinitions) {
+      // Depth 0. Get the schemaDefinitions that will contain the child schema resourceFields for recursive calls
+
+      schemaDefinitions = rootSchema.schemaDefinitions || {}; // norman...
+      resourceFields = rootSchema.resourceFields || {};
+    } else {
+      if (rootSchema.requiresResourceFields) {
+        resourceFields = schemaDefinitions[type]?.resourceFields || {};
+      } else {
+        const schema = getters['schemaFor'](type);
+
+        resourceFields = schema?.resourceFields || {};
+      }
     }
 
     const out = {};
 
-    for ( const key in schema.resourceFields ) {
-      const field = schema.resourceFields[key];
+    for ( const key in resourceFields ) {
+      const field = resourceFields[key];
 
       if ( !field ) {
         // Not much to do here...
@@ -234,12 +226,12 @@ export default {
       }
 
       const type = typeMunge(field.type);
-      const mapOf = typeRef('map', type);
-      const arrayOf = typeRef('array', type);
+      const mapOf = typeRef('map', type, field);
+      const arrayOf = typeRef('array', type, field);
       const referenceTo = typeRef('reference', type);
 
       if ( mapOf || type === 'map' || type === 'json' ) {
-        out[key] = getters.defaultFor(type);
+        out[key] = getters.defaultFor(type, rootSchema, schemaDefinitions);
       } else if ( arrayOf || type === 'array' ) {
         out[key] = [];
       } else if ( referenceTo ) {
@@ -251,7 +243,7 @@ export default {
           out[key] = field['default'];
         }
       } else {
-        out[key] = getters.defaultFor(type);
+        out[key] = getters.defaultFor(type, rootSchema, schemaDefinitions);
       }
     }
 

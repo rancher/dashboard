@@ -17,8 +17,9 @@ export default {
   mixins: [CreateEditView],
   async fetch() {
     const hash = await allHash({
-      secrets:  this.$store.dispatch('cluster/findAll', { type: SECRET }),
-      services: this.$store.dispatch('cluster/findAll', { type: SERVICE }),
+      secrets:        this.$store.dispatch('cluster/findAll', { type: SECRET }),
+      services:       this.$store.dispatch('cluster/findAll', { type: SERVICE }),
+      resourceFields: this.schema.fetchResourceFields(),
     });
 
     this.allServices = hash.services;

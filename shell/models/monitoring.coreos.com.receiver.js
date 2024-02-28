@@ -66,7 +66,7 @@ export default class Receiver extends SteveModel {
   }
 
   async save() {
-    const errors = await this.validationErrors(this);
+    const errors = this.validationErrors(this);
 
     if (!isEmpty(errors)) {
       return Promise.reject(errors);

@@ -29,11 +29,11 @@ export default {
     },
   },
 
-  fetch() {
+  async fetch() {
     this.errors = [];
 
     try {
-      this.fields = this.$store.getters['plugins/fieldsForDriver'](this.provider);
+      this.fields = await this.$store.getters['plugins/fieldsForDriver'](this.provider);
       const name = `rke-machine-config.cattle.io.${ this.provider }config`;
 
       if ( !this.fields ) {
@@ -42,6 +42,15 @@ export default {
     } catch (e) {
       this.errors = exceptionToErrorsArray(e);
     }
+
+    const normanType = this.$store.getters['plugins/credentialFieldForDriver'](this.provider);
+    const normanSchema = this.$store.getters['rancher/schemaFor'](`${ normanType }credentialconfig`);
+
+    if ( normanSchema ) {
+      this.cloudCredentialKeys = Object.keys(normanSchema.resourceFields || {});
+    } else {
+      this.cloudCredentialKeys = await this.$store.getters['plugins/fieldNamesForDriver'](this.provider);
+    }
   },
 
   data() {
@@ -49,19 +58,6 @@ export default {
       errors: null,
       fields: null,
     };
-  },
-
-  computed: {
-    cloudCredentialKeys() {
-      const normanType = this.$store.getters['plugins/credentialFieldForDriver'](this.provider);
-      const normanSchema = this.$store.getters['rancher/schemaFor'](`${ normanType }credentialconfig`);
-
-      if ( normanSchema ) {
-        return Object.keys(normanSchema.resourceFields || {});
-      } else {
-        return this.$store.getters['plugins/fieldNamesForDriver'](this.provider);
-      }
-    }
   },
 
   watch: {

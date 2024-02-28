@@ -34,3 +34,5 @@ export const waitFor = (testFn: Function, msg = '', timeoutMs = 3000000, interva
     }
   }
 };
+
+export const wait = (milliseconds: number): Promise<unknown> => new Promise((resolve) => setTimeout(resolve, milliseconds));

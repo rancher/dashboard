@@ -62,7 +62,7 @@ export default {
 
   methods: {
     async saveConfigMap() {
-      const yaml = this.$refs.cru.createResourceYaml(this.yamlModifiers);
+      const yaml = await this.$refs.cru.createResourceYaml(this.yamlModifiers);
 
       await this.value.saveYaml(yaml);
       this.done();

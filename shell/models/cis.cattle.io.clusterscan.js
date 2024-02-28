@@ -7,6 +7,34 @@ import { sortBy } from '@shell/utils/sort';
 import day from 'dayjs';
 import SteveModel from '@shell/plugins/steve/steve-class';
 
+// This could be removed and just replaced with schema.fetchResourceFields()... but there's some getters that use hasSpecsScheduledScanConfig before it runs
+/**
+ * For the given schema, determine if the schema of it's associated scan's type has scheduledScanConfig
+ *
+ * This is resourceFields based, so we need to fetch schema definition
+ */
+export const fetchSpecsScheduledScanConfig = async(schema) => {
+  await schema.fetchResourceFields();
+
+  return hasSpecsScheduledScanConfig(schema);
+};
+
+/**
+ * For the given schema, determine if the schema of it's associated scan's type has scheduledScanConfig
+ *
+ * Assumes schemaDefinitions have been fetched (see async fetchSpecsScheduledScanConfig above)
+ */
+export const hasSpecsScheduledScanConfig = (schema) => {
+  const specSchemaId = get(schema, 'resourceFields.spec.type');
+  const specSchema = schema.schemaDefinitions?.[specSchemaId];
+
+  if (!specSchema) {
+    return false;
+  }
+
+  return !!get(specSchema, 'resourceFields.scheduledScanConfig');
+};
+
 export default class ClusterScan extends SteveModel {
   get _availableActions() {
     let out = super._availableActions;
@@ -64,14 +92,7 @@ export default class ClusterScan extends SteveModel {
   }
 
   canBeScheduled() {
-    const schema = this.$getters['schemaFor'](this.type);
-    const specSchema = this.$getters['schemaFor'](get(schema, 'resourceFields.spec.type') || '');
-
-    if (!specSchema) {
-      return false;
-    }
-
-    return !!get(specSchema, 'resourceFields.scheduledScanConfig');
+    return hasSpecsScheduledScanConfig(this.$getters['schemaFor'](this.type));
   }
 
   get isScheduled() {

@@ -1,9 +1,9 @@
 import _getters from '@shell/plugins/steve/getters';
 
-const { urlFor, urlOptions } = _getters;
+const { urlFor, urlOptions, pathExistsInSchema } = _getters;
 
-describe('steve: getters', () => {
-  describe('steve > getters > urlFor', () => {
+describe('steve: getters:', () => {
+  describe('urlFor', () => {
     // we're not testing function output based off of state or getter inputs here since they are dependencies
     const state = { config: { baseUrl: 'protocol' } };
     const getters = {
@@ -38,7 +38,7 @@ describe('steve: getters', () => {
     });
   });
 
-  describe('steve > getters > urlOptions', () => {
+  describe('urlOptions', () => {
     // we're not testing function output based off of state or getter inputs here since they are dependencies
     const state = { config: { baseUrl: 'protocol' } };
     const getters = {
@@ -113,6 +113,77 @@ describe('steve: getters', () => {
     });
     it('returns a string with a sorting criteria formatted for steve if the sort option is provided and an order if sortOrder is "desc" and the url starts with "/v1"', () => {
       expect(urlOptionsGetter('/v1/foo', { sortBy: 'bar', sortOrder: 'desc' })).toBe('/v1/foo?exclude=metadata.managedFields&sort=-bar');
+    });
+  });
+
+  describe('pathExistsInSchema', () => {
+    const state = {};
+
+    const getters = { schemaFor: (type: string) => ({}) };
+
+    it('expects pathExistsInSchema to return a function', () => {
+      expect(typeof pathExistsInSchema(state, getters)).toBe('function');
+    });
+
+    describe('resourceFields', () => {
+      it('requires resourceFields but no resourceFields', () => {
+        expect(pathExistsInSchema(state, {
+          ...getters,
+          schemaFor: () => ({
+            requiresResourceFields: true,
+            hasResourceFields:      false,
+          })
+        })()).toBe(false);
+      });
+
+      it('requires resourceFields but empty resourceFields', () => {
+        expect(pathExistsInSchema(state, {
+          ...getters,
+          schemaFor: () => ({
+            requiresResourceFields: true,
+            hasResourceFields:      true,
+            schemaDefinitions:      {}
+          })
+        })('', 'name')).toBe(false);
+      });
+
+      it('requires resourceFields and has resourceFields', () => {
+        expect(pathExistsInSchema(state, {
+          ...getters,
+          schemaFor: () => ({
+            requiresResourceFields: true,
+            hasResourceFields:      true,
+            resourceFields:         { name: { type: 'string' } },
+            schemaDefinitions:      { name: { } },
+          })
+        })('n/a', 'name')).toBe(true);
+      });
+
+      it('requires nested resourceFields and has resourceFields', () => {
+        expect(pathExistsInSchema(state, {
+          ...getters,
+          schemaFor: (type) => {
+            const metadata = { resourceFields: { name: { type: 'string' } } };
+
+            switch (type) {
+            case 'root':
+              return {
+                requiresResourceFields: true,
+                hasResourceFields:      true,
+                resourceFields:         { metadata: { type: 'metadata' } },
+                schemaDefinitions:      { metadata: { ...metadata } },
+              };
+            case 'metadata':
+              return {
+                requiresResourceFields: true,
+                hasResourceFields:      true,
+                ...metadata,
+              };
+            }
+            expect(type).toBe('Something known');
+          }
+        })('root', 'metadata.name')).toBe(true);
+      });
     });
   });
 });

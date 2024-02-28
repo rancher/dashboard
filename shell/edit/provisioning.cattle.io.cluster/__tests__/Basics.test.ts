@@ -1,5 +1,5 @@
 import { mount } from '@vue/test-utils';
-import Basics from '@shell/edit/provisioning.cattle.io.cluster/tabs/Basics';
+import Basics from '@shell/edit/provisioning.cattle.io.cluster/tabs/Basics.vue';
 import Checkbox from '@components/Form/Checkbox/Checkbox.vue';
 
 const defaultStubs = {
