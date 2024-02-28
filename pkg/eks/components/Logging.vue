@@ -2,21 +2,13 @@
 import { defineComponent, PropType } from 'vue';
 import { EKSConfig } from '../types';
 import { _EDIT } from '@shell/config/query-params';
-import LabeledSelect from '@shell/components/form/LabeledSelect.vue';
-import LabeledInput from '@components/Form/LabeledInput/LabeledInput.vue';
+
 import Checkbox from '@components/Form/Checkbox/Checkbox.vue';
-import KeyValue from '@shell/components/form/KeyValue.vue';
 
 export default defineComponent({
   name: 'EKSLogging',
 
-  components: {
-    // LabeledInput,
-    // LabeledSelect,
-    // KeyValue,
-
-    // Checkbox
-  },
+  components: { Checkbox },
 
   props: {
     config: {

@@ -33,6 +33,8 @@ import ClusterMembershipEditor, { canViewClusterMembershipEditor } from '@shell/
 import { EKSConfig, EKSNodeGroup } from '../types';
 import NodeGroup from './NodeGroup.vue';
 import Logging from './Logging.vue';
+import Config from './Config.vue';
+import Networking from './Networking.vue';
 
 const defaultCluster = {
   dockerRootDir:           '/var/lib/docker',
@@ -91,6 +93,9 @@ export default defineComponent({
     RadioGroup,
     NodeGroup,
     Logging,
+    Config,
+    Checkbox,
+    Networking,
     // LabeledInput,
     // Checkbox,
     // FileSelector,
@@ -147,23 +152,20 @@ export default defineComponent({
 
   data() {
     const store = this.$store as Store<any>;
-    // This setting is used by RKE1 AKS GKE and EKS - rke2/k3s have a different mechanism for fetching supported versions
-    const supportedVersionRange = store.getters['management/byId'](MANAGEMENT.SETTING, SETTING.UI_SUPPORTED_K8S_VERSIONS)?.value;
+
     const t = store.getters['i18n/t'];
 
     return {
-      cloudCredentialId:     '',
-      normanCluster:         { name: '' } as any,
-      nodeGroups:            [] as EKSNodeGroup[],
-      config:                { } as EKSConfig,
-      membershipUpdate:      {} as any,
-      originalVersion:       '',
-      supportedVersionRange,
-      allKubernetesVersions: [] as string[],
+      cloudCredentialId:  '',
+      normanCluster:      { name: '' } as any,
+      nodeGroups:         [] as EKSNodeGroup[],
+      config:             { } as EKSConfig,
+      membershipUpdate:   {} as any,
+      originalVersion:    '',
       // fvFormRuleSets:        [],
       // TODO nb default from config
-      customServiceRole:     false,
-      serviceRoleOptions:    [{ value: false, label: 'Standard: A service role will be automatically created' }, { value: true, label: 'Custom: Choose from an existing service role' }]
+      customServiceRole:  false,
+      serviceRoleOptions: [{ value: false, label: 'Standard: A service role will be automatically created' }, { value: true, label: 'Custom: Choose from an existing service role' }]
     };
   },
 
@@ -206,21 +208,6 @@ export default defineComponent({
       return canViewClusterMembershipEditor(this.$store);
     },
 
-    versionOptions(): string[] {
-      return this.allKubernetesVersions.filter((v: string) => {
-        const coerced = semver.coerce(v);
-
-        if (this.supportedVersionRange && !semver.satisfies(coerced, this.supportedVersionRange)) {
-          return false;
-        }
-        if (this.originalVersion && semver.gt(semver.coerce(this.originalVersion), coerced)) {
-          return false;
-        }
-
-        return true;
-      });
-    },
-
     CREATE(): string {
       return _CREATE;
     },
@@ -230,48 +217,7 @@ export default defineComponent({
     },
   },
 
-  watch: {
-    'config.region'() {
-      this.fetchKubernetesVersions();
-    },
-
-    'config.amazonCredentialSecret'() {
-      this.fetchKubernetesVersions();
-    }
-  },
-
   methods: {
-    // there is no api for fetching eks versions
-    // fetch addons and look at which versions they support
-    // this assumes that all k8s versions are compatible with at least one addon
-    async fetchKubernetesVersions() {
-      if (!this.config.region || !this.config.amazonCredentialSecret) {
-        return;
-      }
-      try {
-        const eksClient = await this.$store.dispatch('aws/eks', { region: this.config.region, cloudCredentialId: this.config.amazonCredentialSecret });
-
-        const res = await eksClient.describeAddonVersions({});
-        const addons = res?.addons;
-
-        if (!addons) {
-          return;
-        }
-        this.allKubernetesVersions = addons.reduce((versions, addon) => {
-          (addon?.addonVersions || []).forEach((addonVersion) => {
-            (addonVersion?.compatibilities || []).forEach((c) => {
-              if (!versions.includes(c.clusterVersion)) {
-                versions.push(c.clusterVersion);
-              }
-            });
-          });
-
-          return versions;
-        }, []);
-      } catch (err) {
-        this.errors.push(err);
-      }
-    },
 
     setClusterName(name: string): void {
       this.$set(this.normanCluster, 'name', name);
@@ -366,24 +312,6 @@ export default defineComponent({
     @finish="save"
     @cancel="done"
   >
-    <Tabbed
-      class="mb-20"
-      :side-tabs="true"
-      :show-tabs-add-remove="mode !== 'view'"
-      @removeTab="removeGroup($event)"
-      @addTab="addGroup($event)"
-    >
-      <Tab
-        v-for="(node, i) in nodeGroups"
-        :key="i"
-        :name="node.nodegroupName"
-      >
-        <NodeGroup
-          :node="node"
-          :mode="mode"
-        />
-      </Tab>
-    </Tabbed>
     <Accordion
       class="mb-20"
       title="Account Access"
@@ -404,43 +332,50 @@ export default defineComponent({
       title="Cluster Options"
       :open-initially="true"
     >
-      <div class="row mb-10">
-        <div class="col span-6">
-          <LabeledSelect
-            v-model="config.kubernetesVersion"
-            :options="versionOptions"
-            label="Kubernetes Version"
-            :mode="mode"
-          />
-        </div>
-      </div>
-      <div class="row mb-10">
-        <div class="col span-6">
-          <RadioGroup
-            v-model="customServiceRole"
-            :mode="mode"
-            :options="serviceRoleOptions"
-            name="serviceRoleMode"
-          />
-        </div>
-        <!-- //TODO nb serviceroles -->
-        <div class="col span-6">
-          <LabeledSelect
-            v-if="customServiceRole"
-            v-model="config.serviceRole"
-            :mode="mode"
-            :options="[]"
-            label="Service Role"
-          />
-        </div>
-      </div>
+      <Config
+        :mode="mode"
+        :config="config"
+        @error="e=>errors.push(e)"
+      />
     </Accordion>
+    <Tabbed
+      class="mb-20"
+      :side-tabs="true"
+      :show-tabs-add-remove="mode !== 'view'"
+      @removeTab="removeGroup($event)"
+      @addTab="addGroup($event)"
+    >
+      <Tab
+        v-for="(node, i) in nodeGroups"
+        :key="i"
+        :name="node.nodegroupName"
+      >
+        <NodeGroup
+          :node="node"
+          :mode="mode"
+        />
+      </Tab>
+    </Tabbed>
+
     <Accordion
       class="mb-20"
       title="Logging"
     >
       <!-- //TODO nb v-model? -->
-      <Logging :mode="mode" />
+      <Logging
+        :mode="mode"
+        :config="config"
+      />
+    </Accordion>
+    <Accordion
+      class="mb-20"
+      title="Networking"
+    >
+      <!-- //TODO nb v-model? -->
+      <Networking
+        :mode="mode"
+        :config="config"
+      />
     </Accordion>
     <Accordion
       class="mb-20"
