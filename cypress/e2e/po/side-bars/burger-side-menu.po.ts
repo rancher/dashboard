@@ -156,7 +156,7 @@ export default class BurgerMenuPo extends ComponentPo {
    * @returns {Cypress.Chainable}
    */
   home(): Cypress.Chainable {
-    return this.self().find('.body > div > a').first();
+    return this.self().find('.body > div > div > a').first();
   }
 
   /**
