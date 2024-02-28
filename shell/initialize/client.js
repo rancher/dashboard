@@ -2,11 +2,9 @@
 
 import Vue from 'vue';
 import fetch from 'unfetch';
-import middleware from '../config/middleware.js';
 import {
   applyAsyncData,
   promisify,
-  middlewareSeries,
   sanitizeComponent,
   resolveRouteComponents,
   getMatchedComponents,
@@ -195,35 +193,6 @@ function resolveComponents(route) {
   });
 }
 
-function callMiddleware(Components, context) {
-  let midd = [];
-  let unknownMiddleware = false;
-
-  Components.forEach((Component) => {
-    if (Component.options.middleware) {
-      midd = midd.concat(Component.options.middleware);
-    }
-  });
-
-  midd = midd.map((name) => {
-    if (typeof name === 'function') {
-      return name;
-    }
-    if (typeof middleware[name] !== 'function') {
-      unknownMiddleware = true;
-      this.error({ statusCode: 500, message: `Unknown middleware ${ name }` });
-    }
-
-    return middleware[name];
-  });
-
-  if (unknownMiddleware) {
-    return;
-  }
-
-  return middlewareSeries(midd, context);
-}
-
 async function render(to, from, next) {
   if (this._routeChanged === false && this._paramChanged === false && this._queryChanged === false) {
     return next();
@@ -301,24 +270,6 @@ async function render(to, from, next) {
   });
 
   try {
-    // Call middleware
-    await callMiddleware.call(this, Components, app.context);
-    if (nextCalled) {
-      return;
-    }
-    if (app.context._errored) {
-      return next();
-    }
-
-    // Call middleware for layout
-    await callMiddleware.call(this, Components, app.context);
-    if (nextCalled) {
-      return;
-    }
-    if (app.context._errored) {
-      return next();
-    }
-
     // Call .validate()
     let isValid = true;
 
@@ -613,33 +564,28 @@ function addHotReload($component, depth) {
       this.$loading.start();
     }
 
-    callMiddleware.call(this, Components, context)
-      .then(() => {
-        return callMiddleware.call(this, Components, context);
-      })
-
-      .then(() => {
+    (new Promise((resolve, reject) => {
       // Call asyncData(context)
-        const pAsyncData = promisify(Component.options.asyncData || noopData, context);
+      const pAsyncData = promisify(Component.options.asyncData || noopData, context);
 
-        pAsyncData.then((asyncDataResult) => {
-          applyAsyncData(Component, asyncDataResult);
-          this.$loading.increase && this.$loading.increase(30);
-        });
-        promises.push(pAsyncData);
+      pAsyncData.then((asyncDataResult) => {
+        applyAsyncData(Component, asyncDataResult);
+        this.$loading.increase && this.$loading.increase(30);
+      });
+      promises.push(pAsyncData);
 
-        // Call fetch()
-        Component.options.fetch = Component.options.fetch || noopFetch;
-        let pFetch = Component.options.fetch.length && Component.options.fetch(context);
+      // Call fetch()
+      Component.options.fetch = Component.options.fetch || noopFetch;
+      let pFetch = Component.options.fetch.length && Component.options.fetch(context);
 
-        if (!pFetch || (!(pFetch instanceof Promise) && (typeof pFetch.then !== 'function'))) {
-          pFetch = Promise.resolve(pFetch);
-        }
-        pFetch.then(() => this.$loading.increase && this.$loading.increase(30));
-        promises.push(pFetch);
+      if (!pFetch || (!(pFetch instanceof Promise) && (typeof pFetch.then !== 'function'))) {
+        pFetch = Promise.resolve(pFetch);
+      }
+      pFetch.then(() => this.$loading.increase && this.$loading.increase(30));
+      promises.push(pFetch);
 
-        return Promise.all(promises);
-      })
+      Promise.all(promises).then(resolve, reject);
+    }))
       .then(() => {
         this.$loading.finish && this.$loading.finish();
         _forceUpdate();
