@@ -36,11 +36,8 @@ export default {
     Vue.util.defineReactive(this, 'nuxt', this.$options.nuxt);
   },
   created() {
-    // Add this.$nuxt in child instances
-    this.$root.$options.$nuxt = this;
-
     // add to window so we can listen when ready
-    window.$nuxt = this;
+    window.$globalApp = this;
 
     this.refreshOnlineStatus();
     // Setup the listeners

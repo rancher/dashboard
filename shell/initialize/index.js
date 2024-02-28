@@ -75,13 +75,7 @@ Vue.component(Nuxt.name, Nuxt);
 
 Object.defineProperty(Vue.prototype, '$nuxt', {
   get() {
-    const globalNuxt = this.$root.$options.$nuxt;
-
-    if (!globalNuxt && typeof window !== 'undefined') {
-      return window.$nuxt;
-    }
-
-    return globalNuxt;
+    return window.$globalApp;
   },
   configurable: true
 });

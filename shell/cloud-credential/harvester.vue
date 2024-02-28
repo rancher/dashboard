@@ -47,11 +47,11 @@ export default {
 
       const currentCluster = this.$store.getters['management/all'](MANAGEMENT.CLUSTER).find((x) => x.id === neu);
 
-      this.$nuxt.$loading.start();
+      window.$globalApp.$loading.start();
 
       const kubeconfigContent = await currentCluster.generateKubeConfig();
 
-      this.$nuxt.$loading.finish();
+      window.$globalApp.$loading.finish();
 
       this.value.setData('kubeconfigContent', kubeconfigContent);
     },
