@@ -60,7 +60,9 @@ export default {
     // Total count of all of the resources for all of the resources being loaded
     count() {
       return this.resources.reduce((acc, r) => {
-        return acc + (this.$store.getters[`${ this.inStore }/all`](r) || []).length;
+        const add = !r ? 0 : (this.$store.getters[`${ this.inStore }/all`](r) || []).length;
+
+        return acc + add;
       }, 0);
     },
 

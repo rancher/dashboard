@@ -213,7 +213,9 @@ export default {
       const cluster = this.clusterId || this.$store.getters['defaultClusterId'];
 
       // TODO plugin routes
-      const entries = this.$store.getters['type-map/activeProducts']?.map((p) => {
+      // Note: Only need to look at root (top-level) products for the app bar
+      // This avoids having to re-calculate the app bar when a child product changes (e.g. within explorer)
+      const entries = this.$store.getters['type-map/activeRootProducts']?.map((p) => {
         // Try product-specific index first
         const to = p.to || {
           name:   `c-cluster-${ p.name }`,

@@ -201,6 +201,10 @@ export default {
     return out;
   },
 
+  schemasLoaded: (state) => {
+    return !!state.types[SCHEMA];
+  },
+
   defaultFor: (state, getters) => (type, rootSchema, schemaDefinitions = null) => {
     let resourceFields;
 
