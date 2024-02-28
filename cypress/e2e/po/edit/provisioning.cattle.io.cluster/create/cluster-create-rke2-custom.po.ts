@@ -1,6 +1,7 @@
 import PagePo from '@/cypress/e2e/po/pages/page.po';
 import AgentConfigurationRke2 from '@/cypress/e2e/po/components/agent-configuration-rke2.po';
 import ClusterManagerCreatePagePo from '@/cypress/e2e/po/edit/provisioning.cattle.io.cluster/create/cluster-create.po';
+import RegistriesTabPo from '@/cypress/e2e/po/components/registries-tab.po';
 
 /**
  * Create page for an RKE2 custom cluster
@@ -21,5 +22,9 @@ export default class ClusterManagerCreateRke2CustomPagePo extends ClusterManager
 
   agentConfiguration(): AgentConfigurationRke2 {
     return new AgentConfigurationRke2();
+  }
+
+  registries(): RegistriesTabPo {
+    return new RegistriesTabPo();
   }
 }
