@@ -12,7 +12,6 @@ import { addParam } from '@shell/utils/url';
 export const _ALL = 'all';
 export const _MERGE = 'merge';
 export const _MULTI = 'multi';
-export const _ALL_IF_AUTHED = 'allIfAuthed';
 export const _NONE = 'none';
 
 const SCHEMA_CHECK_RETRIES = 15;
@@ -176,14 +175,6 @@ export default {
 
     if ( opt.load === false || opt.load === _NONE ) {
       load = _NONE;
-    } else if ( opt.load === _ALL_IF_AUTHED ) {
-      const header = rootGetters['auth/fromHeader'];
-
-      if ( `${ header }` === 'true' || `${ header }` === 'none' ) {
-        load = _ALL;
-      } else {
-        load = _MULTI;
-      }
     }
 
     const typeOptions = rootGetters['type-map/optionsFor'](type);

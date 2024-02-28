@@ -2,7 +2,6 @@ import { NAME as EXPLORER } from '@shell/config/product/explorer';
 import { SETUP, TIMED_OUT } from '@shell/config/query-params';
 import { SETTING } from '@shell/config/settings';
 import { MANAGEMENT, NORMAN, DEFAULT_WORKSPACE } from '@shell/config/types';
-import { _ALL_IF_AUTHED } from '@shell/plugins/dashboard-store/actions';
 import { applyProducts } from '@shell/store/type-map';
 import { findBy } from '@shell/utils/array';
 import { ClusterNotFoundError, RedirectToError } from '@shell/utils/error';
@@ -14,6 +13,7 @@ import { BACK_TO } from '@shell/config/local-storage';
 import { NAME as FLEET_NAME } from '@shell/config/product/fleet.js';
 import { canViewResource } from '@shell/utils/auth';
 import { getClusterFromRoute, getProductFromRoute, getPackageFromRoute, getResourceFromRoute } from '@shell/utils/router';
+import { fetchInitialSettings } from 'utils/settings';
 
 let beforeEachSetup = false;
 
@@ -89,10 +89,7 @@ export default async function({
 
   try {
     // Load settings, which will either be just the public ones if not logged in, or all if you are
-    await store.dispatch('management/findAll', {
-      type: MANAGEMENT.SETTING,
-      opt:  { load: _ALL_IF_AUTHED, redirectUnauthorized: false }
-    });
+    await fetchInitialSettings(store);
 
     // Set the favicon - use custom one from store if set
     if (!haveSetFavIcon()) {
@@ -113,7 +110,7 @@ export default async function({
   if ( firstLogin === null ) {
     try {
       const res = await store.dispatch('rancher/find', {
-        type: 'setting',
+        type: NORMAN.SETTING,
         id:   SETTING.FIRST_LOGIN,
         opt:  { url: `/v3/settings/${ SETTING.FIRST_LOGIN }` }
       });
@@ -121,7 +118,7 @@ export default async function({
       firstLogin = res?.value === 'true';
 
       const plSetting = await store.dispatch('rancher/find', {
-        type: 'setting',
+        type: NORMAN.SETTING,
         id:   SETTING.PL,
         opt:  { url: `/v3/settings/${ SETTING.PL }` }
       });

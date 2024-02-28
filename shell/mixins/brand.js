@@ -2,8 +2,8 @@ import { mapGetters } from 'vuex';
 import { CATALOG, MANAGEMENT } from '@shell/config/types';
 import { SETTING } from '@shell/config/settings';
 import { createCssVars } from '@shell/utils/color';
-import { _ALL_IF_AUTHED } from '@shell/plugins/dashboard-store/actions';
 import { setTitle } from '@shell/config/private-label';
+import { fetchInitialSettings } from '@shell/utils/settings';
 
 const cspAdaptorApp = ['rancher-csp-adapter', 'rancher-csp-billing-adapter'];
 
@@ -22,10 +22,7 @@ export default {
 
     // Ensure we read the settings even when we are not authenticated
     try {
-      this.globalSettings = await this.$store.dispatch('management/findAll', {
-        type: MANAGEMENT.SETTING,
-        opt:  { load: _ALL_IF_AUTHED, redirectUnauthorized: false }
-      });
+      this.globalSettings = await fetchInitialSettings(this.$store);
     } catch (e) {}
 
     // Setting this up front will remove `computed` churn, and we only care that we've initialised them
