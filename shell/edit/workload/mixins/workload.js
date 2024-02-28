@@ -145,11 +145,20 @@ export default {
   },
 
   async fetch() {
-    // TODO Should remove these lines
-    await allHash({
-      rancherClusters:  this.$store.dispatch('management/findAll', { type: CAPI.RANCHER_CLUSTER }),
-      harvesterConfigs: this.$store.dispatch('management/findAll', { type: HCI.HARVESTER_CONFIG }),
-    });
+    // ? The results aren't stored, so don't know why we fetch?
+
+    // User might not have access to these resources - so check before trying to fetch
+    const fetches = {};
+
+    if (this.$store.getters[`management/canList`](CAPI.RANCHER_CLUSTER)) {
+      fetches.rancherClusters = this.$store.dispatch('management/findAll', { type: CAPI.RANCHER_CLUSTER });
+    }
+
+    if (this.$store.getters[`management/canList`](HCI.HARVESTER_CONFIG)) {
+      fetches.harvesterConfigs = this.$store.dispatch('management/findAll', { type: HCI.HARVESTER_CONFIG });
+    }
+
+    await allHash(fetches);
 
     // don't block UI for these resources
     this.resourceManagerFetchSecondaryResources(this.secondaryResourceData);
