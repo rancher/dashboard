@@ -185,11 +185,6 @@ async function createApp(config = {}) {
   // Inject runtime config as $config
   inject('config', config);
 
-  // Replace store state before plugins execution
-  if (window.__NUXT__ && window.__NUXT__.state) {
-    store.replaceState(window.__NUXT__.state);
-  }
-
   // Plugin execution
   if (typeof cookieUniversalNuxt === 'function') {
     await cookieUniversalNuxt(app.context, inject);

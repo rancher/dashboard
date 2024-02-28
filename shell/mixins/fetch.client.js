@@ -1,9 +1,6 @@
 import Vue from 'vue';
 import { hasFetch, normalizeError, addLifecycleHook } from '../utils/nuxt';
 
-const isSsrHydration = (vm) => vm.$vnode && vm.$vnode.elm && vm.$vnode.elm.dataset && vm.$vnode.elm.dataset.fetchKey;
-const nuxtState = window.__NUXT__;
-
 export default {
   beforeCreate() {
     if (!hasFetch(this)) {
@@ -19,7 +16,6 @@ export default {
     });
 
     this.$fetch = $fetch.bind(this);
-    addLifecycleHook(this, 'created', created);
     addLifecycleHook(this, 'beforeMount', beforeMount);
   }
 };
@@ -27,29 +23,6 @@ export default {
 function beforeMount() {
   if (!this._hydrated) {
     return this.$fetch();
-  }
-}
-
-function created() {
-  if (!isSsrHydration(this)) {
-    return;
-  }
-
-  // Hydrate component
-  this._hydrated = true;
-  this._fetchKey = this.$vnode.elm.dataset.fetchKey;
-  const data = nuxtState.fetch[this._fetchKey];
-
-  // If fetch error
-  if (data && data._error) {
-    this.$fetchState.error = data._error;
-
-    return;
-  }
-
-  // Merge data
-  for (const key in data) {
-    Vue.set(this.$data, key, data[key]);
   }
 }
 

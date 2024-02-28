@@ -45,8 +45,7 @@ let _lastPaths = [];
 let app;
 let router;
 
-// Try to rehydrate SSR data from window
-const NUXT = window.__NUXT__ || {};
+const NUXT = {};
 
 const $config = nuxt.publicRuntimeConfig || {}; // eslint-disable-line no-undef
 
