@@ -76,6 +76,7 @@ export default {
         <div
           v-if="!row.readonly && !isView"
           :key="i+'show'"
+          class="link-show-hide-checkbox"
         >
           <Checkbox
             v-if="!isView"
