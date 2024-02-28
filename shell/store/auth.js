@@ -1,5 +1,7 @@
-import { GITHUB_NONCE, GITHUB_REDIRECT, GITHUB_SCOPE } from '@shell/config/query-params';
-import { NORMAN } from '@shell/config/types';
+import {
+  GITHUB_NONCE, GITHUB_REDIRECT, GITHUB_SCOPE, TIMED_OUT, SETUP
+} from '@shell/config/query-params';
+import { NORMAN, MANAGEMENT } from '@shell/config/types';
 import { _MULTI } from '@shell/plugins/dashboard-store/actions';
 import { addObjects, findBy } from '@shell/utils/array';
 import { openAuthPopup, returnTo } from '@shell/utils/auth';
@@ -7,6 +9,8 @@ import { base64Encode } from '@shell/utils/crypto';
 import { removeEmberPage } from '@shell/utils/ember-page';
 import { randomStr } from '@shell/utils/string';
 import { addParams, parse as parseUrl, removeParam } from '@shell/utils/url';
+
+import { SETTING } from '@shell/config/settings';
 
 export const BASE_SCOPES = {
   github:       ['read:org'],
@@ -124,6 +128,132 @@ export const actions = {
 
       commit('gotUser', user?.[0]);
     } catch { }
+  },
+
+  async authenticate({ commit, dispatch, getters }) {
+    const redirect = this.app.context.redirect;
+    const route = this.app.context.route;
+
+    // Make sure you're actually logged in
+    function isLoggedIn(me) {
+      commit('hasAuth', true);
+      commit('loggedInAs', me.id);
+    }
+
+    function notLoggedIn() {
+      commit('hasAuth', true);
+
+      if ( route.name === 'index' ) {
+        return redirect(302, '/auth/login');
+      } else {
+        return redirect(302, `/auth/login?${ TIMED_OUT }`);
+      }
+    }
+
+    function noAuth() {
+      commit('hasAuth', false);
+    }
+
+    if ( getters['enabled'] !== false && !getters['loggedIn'] ) {
+    // `await` so we have one successfully request whilst possibly logged in (ensures fromHeader is populated from `x-api-cattle-auth`)
+      await dispatch('getUser');
+
+      const v3User = getters['v3User'] || {};
+
+      if (v3User?.mustChangePassword) {
+        return redirect({ name: 'auth-setup' });
+      }
+
+      // In newer versions the API calls return the auth state instead of having to make a new call all the time.
+      const fromHeader = getters['fromHeader'];
+
+      if ( fromHeader === 'none' ) {
+        noAuth();
+      } else if ( fromHeader === 'true' ) {
+        const me = await findMe(dispatch);
+
+        isLoggedIn(me);
+      } else if ( fromHeader === 'false' ) {
+        notLoggedIn();
+      } else {
+      // Older versions look at principals and see what happens
+        try {
+          const me = await findMe(dispatch);
+
+          isLoggedIn(me);
+        } catch (e) {
+          const status = e?._status;
+
+          if ( status === 404 ) {
+            noAuth();
+          } else {
+            if ( status === 401 ) {
+              notLoggedIn();
+            } else {
+              commit('setError', { error: e, locationError: new Error('Auth Middleware') });
+            }
+
+            return;
+          }
+        }
+      }
+
+      dispatch('gcStartIntervals', undefined, { root: true });
+    }
+  },
+
+  async attemptFirstLogin({ dispatch, rootGetters }) {
+    const redirect = this.app.context.redirect;
+    const route = this.app.context.route;
+    // Initial ?setup=admin-password can technically be on any route
+    let initialPass = route.query[SETUP];
+    let firstLogin = null;
+    const res = rootGetters['management/byId'](MANAGEMENT.SETTING, SETTING.FIRST_LOGIN);
+    const plSetting = rootGetters['management/byId'](MANAGEMENT.SETTING, SETTING.PL);
+
+    firstLogin = res?.value === 'true';
+
+    if (!initialPass && plSetting?.value === 'Harvester') {
+      initialPass = 'admin';
+    }
+
+    if ( firstLogin === null ) {
+      try {
+        const res = await dispatch('rancher/find', {
+          type: 'setting',
+          id:   SETTING.FIRST_LOGIN,
+          opt:  { url: `/v3/settings/${ SETTING.FIRST_LOGIN }` }
+        });
+
+        firstLogin = res?.value === 'true';
+
+        const plSetting = await dispatch('rancher/find', {
+          type: 'setting',
+          id:   SETTING.PL,
+          opt:  { url: `/v3/settings/${ SETTING.PL }` }
+        });
+
+        if (!initialPass && plSetting?.value === 'Harvester') {
+          initialPass = 'admin';
+        }
+      } catch (e) {
+      }
+    }
+
+    // TODO show error if firstLogin and default pass doesn't work
+    if ( firstLogin ) {
+      const ok = await tryInitialSetup(dispatch, initialPass);
+
+      if (ok) {
+        if (initialPass) {
+          dispatch('auth/setInitialPass', initialPass);
+        }
+
+        return redirect({ name: 'auth-setup' });
+      } else {
+        return redirect({ name: 'auth-login' });
+      }
+    }
   },
 
   gotUser({ commit }, user) {
@@ -365,3 +495,36 @@ export const actions = {
     dispatch('onLogout', null, { root: true });
   }
 };
+
+async function findMe(dispatch) {
+  // First thing we do in loadManagement is fetch principals anyway.... so don't ?me=true here
+  const principals = await dispatch('rancher/findAll', {
+    type: NORMAN.PRINCIPAL,
+    opt:  {
+      url:                  '/v3/principals',
+      redirectUnauthorized: false,
+    }
+  }, { root: true });
+
+  const me = findBy(principals, 'me', true);
+
+  return me;
+}
+
+async function tryInitialSetup(dispatch, password = 'admin') {
+  try {
+    const res = await dispatch('auth/login', {
+      provider: 'local',
+      body:     {
+        username: 'admin',
+        password
+      },
+    });
+
+    return res._status === 200;
+  } catch (e) {
+    console.error('Error trying initial setup', e); // eslint-disable-line no-console
+
+    return false;
+  }
+}

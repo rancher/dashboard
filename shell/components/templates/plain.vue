@@ -13,6 +13,7 @@ import AzureWarning from '@shell/components/auth/AzureWarning';
 import BrowserTabVisibility from '@shell/mixins/browser-tab-visibility';
 import Inactivity from '@shell/components/Inactivity';
 import { mapGetters } from 'vuex';
+import Authenticated from '@shell/mixins/authenticated';
 
 export default {
 
@@ -29,9 +30,7 @@ export default {
     Inactivity
   },
 
-  middleware: ['authenticated'],
-
-  mixins: [Brand, BrowserTabVisibility],
+  mixins: [Brand, Authenticated, BrowserTabVisibility],
 
   data() {
     return {

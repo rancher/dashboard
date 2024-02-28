@@ -1,11 +1,11 @@
 <script>
 import Brand from '@shell/mixins/brand';
 import Inactivity from '@shell/components/Inactivity';
+import Authenticated from '@shell/mixins/authenticated';
 
 export default {
   components: { Inactivity },
-  middleware: ['authenticated'],
-  mixins:     [Brand],
+  mixins:     [Brand, Authenticated],
 };
 </script>
 

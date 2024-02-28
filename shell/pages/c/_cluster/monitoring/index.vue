@@ -1,7 +1,7 @@
 <script>
 import isEmpty from 'lodash/isEmpty';
 
-import InstallRedirect from '@shell/utils/install-redirect';
+import { createInstallRedirectMixin } from '@shell/utils/install-redirect';
 import AlertTable from '@shell/components/AlertTable';
 import { NAME, CHART_NAME } from '@shell/config/product/monitoring';
 import { CATALOG, MONITORING } from '@shell/config/types';
@@ -21,7 +21,7 @@ export default {
     AlertTable
   },
 
-  middleware: InstallRedirect(NAME, CHART_NAME),
+  mixins: [createInstallRedirectMixin(NAME, CHART_NAME)],
 
   async fetch() {
     await this.fetchDeps();

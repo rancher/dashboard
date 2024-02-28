@@ -1,7 +1,7 @@
 <script>
 import { mapGetters } from 'vuex';
 
-import InstallRedirect from '@shell/utils/install-redirect';
+import { createInstallRedirectMixin } from '@shell/utils/install-redirect';
 
 import { NAME, CHART_NAME } from '@shell/config/product/longhorn';
 
@@ -10,7 +10,7 @@ import LazyImage from '@shell/components/LazyImage';
 export default {
   components: { LazyImage },
 
-  middleware: InstallRedirect(NAME, CHART_NAME),
+  mixins: [createInstallRedirectMixin(NAME, CHART_NAME)],
 
   data() {
     return {

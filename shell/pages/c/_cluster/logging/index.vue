@@ -1,6 +1,6 @@
 <script>
 import { NAME, CHART_NAME } from '@shell/config/product/logging';
-import InstallRedirect from '@shell/utils/install-redirect';
+import { createInstallRedirectMixin } from '@shell/utils/install-redirect';
 import { LOGGING } from '@shell/config/types';
 import SortableTable from '@shell/components/SortableTable';
 import { allHash } from '@shell/utils/promise';
@@ -10,7 +10,7 @@ import {
 import ChartHeading from '@shell/components/ChartHeading';
 
 export default {
-  middleware: InstallRedirect(NAME, CHART_NAME),
+  mixins:     [createInstallRedirectMixin(NAME, CHART_NAME)],
   components: { ChartHeading, SortableTable },
   async fetch() {
     const getAllOrDefault = (type) => {

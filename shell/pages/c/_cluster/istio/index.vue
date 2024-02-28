@@ -1,12 +1,12 @@
 <script>
 import { mapGetters } from 'vuex';
 import { NAME, CHART_NAME } from '@shell/config/product/istio';
-import InstallRedirect from '@shell/utils/install-redirect';
+import { createInstallRedirectMixin } from '@shell/utils/install-redirect';
 import { SERVICE } from '@shell/config/types';
 export default {
   components: {},
 
-  middleware: InstallRedirect(NAME, CHART_NAME),
+  mixins: [createInstallRedirectMixin(NAME, CHART_NAME)],
 
   async fetch() {
     try {

@@ -1,5 +1,5 @@
 <script>
-export default { middleware: ['unauthenticated'] };
+export default { };
 </script>
 
 <template>

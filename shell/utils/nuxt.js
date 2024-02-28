@@ -284,17 +284,6 @@ export async function setContext(app, context) {
   app.context.query = app.context.route.query || {};
 }
 
-export function middlewareSeries(promises, appContext) {
-  if (!promises.length || appContext._redirected || appContext._errored) {
-    return Promise.resolve();
-  }
-
-  return promisify(promises[0], appContext)
-    .then(() => {
-      return middlewareSeries(promises.slice(1), appContext);
-    });
-}
-
 export function promisify(fn, context) {
   let promise;
 

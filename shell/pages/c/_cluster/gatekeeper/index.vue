@@ -1,6 +1,6 @@
 <script>
 import { NAME, CHART_NAME } from '@shell/config/product/gatekeeper';
-import InstallRedirect from '@shell/utils/install-redirect';
+import { createInstallRedirectMixin } from '@shell/utils/install-redirect';
 import ChartHeading from '@shell/components/ChartHeading';
 import SortableTable from '@shell/components/SortableTable';
 import { Banner } from '@components/Banner';
@@ -13,7 +13,7 @@ export default {
   components: {
     ChartHeading, SortableTable, Banner
   },
-  middleware: InstallRedirect(NAME, CHART_NAME),
+  mixins: [createInstallRedirectMixin(NAME, CHART_NAME)],
   async fetch() {
     const constraints = this.constraint ? [this.constraint] : await this.$store.dispatch('cluster/findAll', { type: GATEKEEPER.SPOOFED.CONSTRAINT });
 
