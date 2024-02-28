@@ -164,10 +164,12 @@ async function createApp(config = {}) {
     // Check if plugin not already installed
     const installKey = `__nuxt_${ key }_installed__`;
 
-    if (Vue[installKey]) {
+    window.installedPlugins = window.installedPlugins || {};
+
+    if (window.installedPlugins[installKey]) {
       return;
     }
-    Vue[installKey] = true;
+    window[window.installedPlugins] = true;
     // Call Vue.use() to install the plugin into vm
     Vue.use(() => {
       if (!Object.prototype.hasOwnProperty.call(Vue.prototype, key)) {
