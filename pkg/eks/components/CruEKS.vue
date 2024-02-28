@@ -79,7 +79,7 @@ const DEFAULT_NODE_GROUP_CONFIG = {
   userData:             DEFAULT_USER_DATA,
 };
 
-// const DEFAULT_REGION = 'eastus';
+export const DEFAULT_REGION = 'us-east-2';
 
 // const _NONE = 'none';
 
