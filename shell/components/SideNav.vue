@@ -227,7 +227,7 @@ export default {
       const allProducts = this.$store.getters['allProducts'];
       const productMap = allProducts.reduce((acc, p) => {
         return { ...acc, [p.name]: p };
-      }, {});      
+      }, {});
 
       for (const product of allProducts) {
         if (product.rootProduct === rootProduct) {
