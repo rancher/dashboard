@@ -19,8 +19,6 @@ import { ActionLocation, ExtensionPoint } from '@shell/core/types';
 import { getApplicableExtensionEnhancements } from '@shell/core/plugin-helpers';
 import IconOrSvg from '@shell/components/IconOrSvg';
 
-const PAGE_HEADER_ACTION = 'page-action';
-
 export default {
 
   components: {
@@ -108,7 +106,7 @@ export default {
     },
 
     showPageActions() {
-      return !this.featureRancherDesktop && this.pageActions?.length;
+      return !this.featureRancherDesktop && this.pageActions && this.pageActions.length;
     },
 
     showUserMenu() {
@@ -265,7 +263,7 @@ export default {
     },
 
     pageAction(action) {
-      this.$nuxt.$emit(PAGE_HEADER_ACTION, action);
+      this.$store.dispatch('handlePageAction', action);
     },
 
     checkClusterName() {
