@@ -142,7 +142,7 @@ export default defineComponent({
 
     // TODO nb do this better?
     // TODO nb defaults
-    this.config = this.normanCluster.eksConfig || {};
+    this.config = this.normanCluster.eksConfig || { publicAccess: false };
 
     if (!this.config.nodeGroups || !this.config.nodeGroups.length) {
       this.$set(this.config, 'nodeGroups', [{ ...DEFAULT_NODE_GROUP_CONFIG, nodegroupName: 'group1' }]);
@@ -374,7 +374,9 @@ export default defineComponent({
       <!-- //TODO nb v-model? -->
       <Networking
         :mode="mode"
-        :config="config"
+        :public-access.sync="config.publicAccess"
+        :private-access.sync="config.privateAccess"
+        :public-access-sources.sync="config.publicAccessSources"
       />
     </Accordion>
     <Accordion

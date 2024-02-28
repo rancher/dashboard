@@ -42,7 +42,7 @@ export interface EKSConfig {
   loggingTypes?: string[],
   nodeGroups?: EKSNodeGroup[]
   privateAccess?: boolean,
-  publicAcces?: boolean,
+  publicAccess?: boolean,
   publicAccessSources?: string[],
   region?: string,
   secretsEncryption?: boolean,

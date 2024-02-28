@@ -105,6 +105,7 @@ export default defineComponent({
     // there is no api for fetching eks versions
     // fetch addons and look at which versions they support
     // this assumes that all k8s versions are compatible with at least one addon
+    // TODO nb move to aws store
     async fetchKubernetesVersions() {
       if (!this.config.region || !this.config.amazonCredentialSecret) {
         return;
@@ -146,7 +147,7 @@ export default defineComponent({
       }
       this.loadingKms = true;
       const store = this.$store as Store<any>;
-      const kmsClient = await store.dispatch('aws/kms', { region, amazonCredentialSecret });
+      const kmsClient = await store.dispatch('aws/kms', { region, cloudCredentialId: amazonCredentialSecret });
 
       try {
         this.kmsInfo = await kmsClient.listKeys({});
@@ -218,7 +219,8 @@ export default defineComponent({
         />
       </div>
     </div>
-    <!-- //TODO nb kms keys -->
+    <!-- //TODO nb allow custom in labeledselect -->
+    <!-- //TODO nb better placeholder for empty labeledselect -->
     <div
       v-if="encryptSecrets"
       class="row mb-10"
@@ -239,10 +241,8 @@ export default defineComponent({
             v-model="config.kmsKey"
             :mode="mode"
             :label="t('cluster.machineConfig.amazonEc2.kmsKey.label')"
+            :tooltip="t('cluster.machineConfig.amazonEc2.kmsKey.text')"
           />
-          <p class="text-muted">
-            {{ t('cluster.machineConfig.amazonEc2.kmsKey.text') }}
-          </p>
         </template>
       </div>
     </div>

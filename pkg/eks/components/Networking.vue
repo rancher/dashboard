@@ -22,9 +22,19 @@ export default defineComponent({
       type:    String,
       default: _EDIT
     },
-    config: {
-      type:     Object as PropType<EKSConfig>,
-      required: true
+
+    publicAccess: {
+      type:    Boolean,
+      default: false
+    },
+    privateAccess: {
+      type:    Boolean,
+      default: false
+    },
+    publicAccessSources: {
+      type:    Array,
+      default: () => []
+
     }
   }
 });
@@ -36,16 +46,21 @@ export default defineComponent({
       <div class="col span-6">
         <!-- //TODO nb validate that at least one is enabled -->
         <Checkbox
+          :value="publicAccess"
           :mode="mode"
           label="Public Access"
+          @input="$emit('update:publicAccess', $event)"
         />
         <Checkbox
+          :value="privateAccess"
           :mode="mode"
           label="Private Access"
+          @input="$emit('update:privateAccess', $event)"
         />
       </div>
       <div class="col span-6">
         <!-- //TODO nb vpcs -->
+        <!-- //TODO nb input event for selects -->
         <LabeledSelect
           :mode="mode"
           label="VPC and Subnet"
@@ -54,11 +69,15 @@ export default defineComponent({
       </div>
     </div>
     <div class="row mb-10">
-      <!-- //TODO nb disable if !publicAccess -->
+      <!-- //TODO nb verify disable state on edit -->
       <div class="col span-6">
         <ArrayList
+          :value="publicAccessSources"
           :mode="mode"
+          :disabled="!publicAccess"
+          :add-allowed="publicAccess"
           add-label="add endpoint"
+          @input="$emit('update:publicAccessSources', $event)"
         />
       </div>
     </div>
