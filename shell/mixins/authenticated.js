@@ -57,8 +57,7 @@ export default {
 
       const oldPkg = getPackageFromRoute(from || route);
       const oldProduct = getProductFromRoute(from || route);
-
-      // Leave an old pkg where we weren't before?
+      const newPkgPlugin = pkg ? Object.values($plugin.getPlugins()).find((p) => p.name === pkg) : null;
       const oldPkgPlugin = oldPkg ? Object.values($plugin.getPlugins()).find((p) => p.name === oldPkg) : null;
 
       if (oldPkg && oldPkg !== pkg ) {
@@ -71,19 +70,20 @@ export default {
         });
       }
 
-      // Sometimes this needs to happen before or alongside other things... but is always needed
-      const always = [
-        this.$store.dispatch('loadManagement')
-      ];
-
-      // Entering a new package where we weren't before?
-      const newPkgPlugin = pkg ? Object.values($plugin.getPlugins()).find((p) => p.name === pkg) : null;
+      await Promise.all([
+        this.$store.dispatch('loadManagement'),
+        this.$store.dispatch('loadCluster', {
+          id:          clusterId,
+          oldPkg:      oldPkgPlugin,
+          newPkg:      newPkgPlugin,
+          product,
+          oldProduct,
+          targetRoute: route
+        })
+      ]);
 
       // Note - We can't block on oldPkg !== newPkg because on a fresh load the `from` route equals the `to` route
       if (pkg && (oldPkg !== pkg || from.fullPath === route.fullPath)) {
-      // Execute mandatory store actions
-        await Promise.all(always);
-
         // Execute anything optional the plugin wants to
         await newPkgPlugin.onEnter(this.$store, {
           clusterId,
@@ -94,11 +94,6 @@ export default {
       }
 
       if (!route.matched?.length) {
-      // If there are no matching routes we could be trying to nav to a page belonging to a dynamic plugin which needs loading
-        await Promise.all([
-          ...always,
-        ]);
-
         // If a plugin claims the route and is loaded correctly we'll get a route back
         const newLocation = await dynamicPluginLoader.check({ route, store: this.$store });
 
@@ -114,32 +109,11 @@ export default {
       // Ensure that the activeNamespaceCache is updated given the change of context either from or to a place where it uses workspaces
       // When fleet moves to it's own package this should be moved to pkg onEnter/onLeave
       if ((oldProduct === FLEET_NAME || product === FLEET_NAME) && oldProduct !== product) {
-      // See note above for this.$store.app.router.beforeEach, need to setProduct manually, for the moment do this in a targeted way
-        const redirected = setProduct(this.$store, route, redirect);
-
-        if (redirected) {
-          return redirected();
-        }
-
         this.$store.commit('updateWorkspace', {
           value:   this.$store.getters['prefs/get'](WORKSPACE) || DEFAULT_WORKSPACE,
           getters: this.$store.getters
         });
       }
-
-      // Always run loadCluster, it handles 'unload' as well
-      // Run them in parallel
-      await Promise.all([
-        ...always,
-        this.$store.dispatch('loadCluster', {
-          id:          clusterId,
-          oldPkg:      oldPkgPlugin,
-          newPkg:      newPkgPlugin,
-          product,
-          oldProduct,
-          targetRoute: route
-        })
-      ]);
 
       if (!clusterId) {
         clusterId = this.$store.getters['defaultClusterId']; // This needs the cluster list, so no parallel
