@@ -1,9 +1,9 @@
 <script>
-import InstallRedirect from '@shell/utils/install-redirect';
+import { createInstallRedirectMixin } from '@shell/utils/install-redirect';
 import { NAME, CHART_NAME } from '@shell/config/product/backup';
 import { BACKUP_RESTORE } from '@shell/config/types';
 
-export default { middleware: [InstallRedirect(NAME, CHART_NAME, BACKUP_RESTORE.BACKUP)] };
+export default { mixins: [createInstallRedirectMixin(NAME, CHART_NAME, BACKUP_RESTORE.BACKUP)] };
 </script>
 
 <template>
