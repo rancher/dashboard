@@ -162,8 +162,11 @@ export default {
       return this.rootProduct.name === HARVESTER;
     },
 
+    // Nav links are only available for explorer (via the cluster store)
     allNavLinks() {
-      if ( !this.clusterId || !this.$store.getters['cluster/schemaFor'](UI.NAV_LINK) ) {
+      const isExplorer = this.rootProduct === 'explorer';
+
+      if (!isExplorer || !this.clusterId || !this.$store.getters['cluster/schemaFor'](UI.NAV_LINK, false, false)) {
         return [];
       }
 
@@ -209,19 +212,29 @@ export default {
       }
 
       const currentProduct = this.$store.getters['productId'];
+      const rootProduct = this.$store.getters['rootProduct']?.name;
 
       // Always show cluster-level types, regardless of the namespace filter
       const namespaceMode = 'both';
       const out = [];
       const loadProducts = this.isExplorer ? [EXPLORER] : [];
 
-      const productMap = this.activeProducts.reduce((acc, p) => {
-        return { ...acc, [p.name]: p };
-      }, {});
+      // Filter the set of products that have this product as the root product
+      // then only check that those are active, rather than the other way around
+      // this is slightly more performant, as we don't check the activeness of all products
+      const cache = {};
 
-      if ( this.isExplorer ) {
-        for ( const product of this.activeProducts ) {
-          if ( product.inStore === 'cluster' ) {
+      const allProducts = this.$store.getters['allProducts'];
+      const productMap = allProducts.reduce((acc, p) => {
+        return { ...acc, [p.name]: p };
+      }, {});      
+
+      for (const product of allProducts) {
+        if (product.rootProduct === rootProduct) {
+          // Check child product is active
+          const isActive = this.$store.getters['type-map/isProductActive'](product, cache);
+
+          if (isActive) {
             addObject(loadProducts, product.name);
           }
         }
