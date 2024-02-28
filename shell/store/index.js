@@ -297,7 +297,7 @@ export const getters = {
   // falls back to the explorer product and then the first active product.
   currentProduct(state, getters) {
     let product = state.productId || EXPLORER;
-    let cache = {};
+    const cache = {};
 
     // Rather than determining all active products, just check the current product (more performant)
     let res = getters['type-map/isProductActive'](product, cache);

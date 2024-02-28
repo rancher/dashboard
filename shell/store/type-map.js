@@ -1325,7 +1325,7 @@ export const getters = {
 
   /**
    * Returns a getter for testing if the specific product is active
-   * 
+   *
    * A cache object can be passed in, so if you need to call this multiple times, the cache
    * can be re-used to avoid having to enumerate schemas to calculate knownTypes and groups
    * if required
@@ -1334,12 +1334,12 @@ export const getters = {
     // Return a named function so that we can trace it in the browser performance log
     return function isProductActive(productOrId, previousCache) {
       // Use the supplied cache object if there is one, otherwise a new local object
-      let cache = previousCache || {};
-      
+      const cache = previousCache || {};
+
       if (!cache.knownTypes) {
         cache.knownTypes = {};
       }
-      
+
       if (!cache.knownGroups) {
         cache.knownGroups = {};
       }
@@ -1353,6 +1353,7 @@ export const getters = {
       }
 
       const module = p.inStore;
+      const isDev = rootGetters['prefs/get'](VIEW_IN_API);
 
       if ( !p.public && !isDev ) {
         return false;
@@ -1392,7 +1393,7 @@ export const getters = {
       }
 
       if (p.ifHave && !ifHave(rootGetters, p.ifHave)) {
-       return false;
+        return false;
       }
 
       if (p.ifHaveType) {
@@ -1423,7 +1424,7 @@ export const getters = {
       return;
     }
 
-    let cache = {};
+    const cache = {};
 
     return state.products.filter((p) => getters['isProductActive'](p, cache));
   },
@@ -1435,7 +1436,7 @@ export const getters = {
       return;
     }
 
-    let cache = {};
+    const cache = {};
 
     return state.products.filter((p) => !p.rootProduct || p.rootProduct === p.name).filter((p) => getters['isProductActive'](p, cache));
   },
