@@ -124,6 +124,8 @@ export function getProductFromRoute(to) {
 export function setProduct(store, to, redirect) {
   let product = getProductFromRoute(to);
 
+  console.log('gggg', product);
+
   // since all products are hardcoded as routes (ex: c-local-explorer), if we match the wildcard route it means that the product does not exist
   if ((product && (!to.matched.length || (to.matched.length && to.matched[0].path === '/c/:cluster/:product'))) ||
   // if the product grabbed from the route is not registered, then we don't have it!

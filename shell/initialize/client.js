@@ -279,7 +279,8 @@ async function render(to, from, next) {
     // 3. Authenticated middleware would then load plugins and check to see if there was a valid route and navigate to that if it existed
     // 4. This would allow harvester cluster pages to load on page reload
     // We should really make authenticated middleware do less...
-    await callMiddleware.call(this, [{ options: { middleware: ['authenticated'] } }], app.context);
+    // TODO: We need to figure out a new way to render harvester pages
+    // await callMiddleware.call(this, [{ options: { } }], app.context);
 
     if (nextCalled) {
       return;

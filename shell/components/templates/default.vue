@@ -24,6 +24,7 @@ import isEqual from 'lodash/isEqual';
 import { markSeenReleaseNotes } from '@shell/utils/version';
 import PageHeaderActions from '@shell/mixins/page-actions';
 import BrowserTabVisibility from '@shell/mixins/browser-tab-visibility';
+import Authenticated from '@shell/mixins/authenticated';
 import { getClusterFromRoute, getProductFromRoute } from '@shell/utils/router';
 import { BOTTOM } from '@shell/utils/position';
 import SideNav from '@shell/components/SideNav';
@@ -50,7 +51,7 @@ export default {
     SideNav,
   },
 
-  mixins: [PageHeaderActions, Brand, BrowserTabVisibility],
+  mixins: [Brand, Authenticated, PageHeaderActions, BrowserTabVisibility],
 
   // Note - This will not run on route change
   data() {
@@ -62,11 +63,6 @@ export default {
       draggable:        false,
     };
   },
-
-  // Note - These will run on route change
-  middleware: [
-    'authenticated'
-  ],
 
   computed: {
     ...mapState(['managementReady', 'clusterReady']),
@@ -128,7 +124,7 @@ export default {
     },
 
     async currentProduct(a, b) {
-      if ( !isEqual(a, b) ) {
+      if (a && b && !isEqual(a, b) ) {
         if ((a.inStore !== b.inStore || a.inStore !== 'cluster') && this.clusterId && a.name) {
           const route = {
             name:   'c-cluster-product',
