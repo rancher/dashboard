@@ -101,3 +101,9 @@ export function removeCustomLinksResponse():object {
     value:  '{"version":"v1","defaults":["docs","forums","slack","issues","getStarted","commercialSupport"],"custom":[]}'
   };
 }
+
+export const v1LinksSettingDefaultValue = {
+  version:  'v1',
+  defaults: ['docs', 'forums', 'slack', 'issues', 'getStarted', 'commercialSupport'],
+  custom:   []
+};

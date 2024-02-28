@@ -1,6 +1,6 @@
 import HomePagePo from '@/cypress/e2e/po/pages/home.po';
 import { HomeLinksPagePo } from '@/cypress/e2e/po/pages/global-settings/home-links.po';
-import { v1LinksSettingValue } from '@/cypress/e2e/blueprints/global/settings/links';
+import { v1LinksSettingDefaultValue } from '@/cypress/e2e/blueprints/global_settings/home-links-response';
 
 const homePage = new HomePagePo();
 const homeLinksSettingsPage = new HomeLinksPagePo();
@@ -85,7 +85,7 @@ describe('SUSE Collective Page and link', { testIsolation: 'off' }, () => {
       cy.getRancherResource('v1', 'management.cattle.io.settings', 'ui-custom-links').then((res) => {
         const obj = {
           ...res.body,
-          value: JSON.stringify(v1LinksSettingValue)
+          value: JSON.stringify(v1LinksSettingDefaultValue)
         };
 
         cy.setRancherResource('v1', 'management.cattle.io.settings', 'ui-custom-links', JSON.stringify(obj));
