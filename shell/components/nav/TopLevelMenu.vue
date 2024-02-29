@@ -8,7 +8,7 @@ import { CAPI, MANAGEMENT } from '@shell/config/types';
 import { MENU_MAX_CLUSTERS } from '@shell/store/prefs';
 import { sortBy } from '@shell/utils/sort';
 import { ucFirst } from '@shell/utils/string';
-import { KEY } from '@shell/utils/platform';
+import { KEY, isMac } from '@shell/utils/platform';
 import { getVersionInfo } from '@shell/utils/version';
 import { LEGACY } from '@shell/store/features';
 import { SETTING } from '@shell/config/settings';
@@ -39,6 +39,9 @@ export default {
       emptyCluster:      BLANK_CLUSTER,
       showPinClusters:   false,
       searchActive:      false,
+      routeCombo:        false,
+      keyMap:            [],
+      allowedComboKeys:  isMac ? ['KeyC', 'KeyC', 'KeyC', 'KeyC'] : ['ControlLeft', 'ControlRight', 'ShiftLeft', 'ShiftRight']
     };
   },
 
@@ -115,7 +118,18 @@ export default {
       }
 
       return kubeClusters?.map((x) => {
+        let clusterRoute = { name: 'c-cluster-explorer', params: { cluster: x.id } };
+
         const pCluster = pClusters?.find((c) => c.mgmt?.id === x.id);
+
+        // this controls the route change when the route key combo is pressed
+        if (this.isCurrRouteClusterExplorer && this.productFromRoute === this.currentProduct?.name && this.routeCombo) {
+          clusterRoute = {
+            name:   this.$route.name,
+            params: { ...this.$route.params }
+          };
+          clusterRoute.params.cluster = x.id;
+        }
 
         return {
           id:              x.id,
@@ -129,7 +143,8 @@ export default {
           pinned:          x.pinned,
           description:     pCluster?.description,
           pin:             () => x.pin(),
-          unpin:           () => x.unpin()
+          unpin:           () => x.unpin(),
+          clusterRoute
         };
       }) || [];
     },
@@ -265,10 +280,12 @@ export default {
 
   mounted() {
     document.addEventListener('keyup', this.handler);
+    document.addEventListener('keydown', this.sameRouteShortcutHandler);
   },
 
   beforeDestroy() {
     document.removeEventListener('keyup', this.handler);
+    document.removeEventListener('keydown', this.sameRouteShortcutHandler);
   },
 
   methods: {
@@ -295,9 +312,36 @@ export default {
       return this.productFromRoute === obj?.value;
     },
 
+    evaluateRouteCombo() {
+      if ((this.keyMap.includes(this.allowedComboKeys[0]) || this.keyMap.includes(this.allowedComboKeys[1])) &&
+        (this.keyMap.includes(this.allowedComboKeys[2]) || this.keyMap.includes(this.allowedComboKeys[3]))) {
+        this.routeCombo = true;
+      } else {
+        this.routeCombo = false;
+      }
+    },
+
     handler(e) {
+      // logic to add to the keyMap the combo keys
+      if (this.allowedComboKeys.includes(e.code)) {
+        const index = this.keyMap.findIndex((k) => k === e.code);
+
+        if (index >= 0) {
+          this.keyMap.splice(index, 1);
+        }
+
+        this.evaluateRouteCombo();
+      }
+
       if (e.keyCode === KEY.ESCAPE ) {
         this.hide();
+      }
+    },
+
+    sameRouteShortcutHandler(e) {
+      if (this.allowedComboKeys.includes(e.code) && !this.keyMap.includes(e.code)) {
+        this.keyMap.push(e.code);
+        this.evaluateRouteCombo();
       }
     },
 
@@ -523,11 +567,12 @@ export default {
                     :data-testid="`pinned-menu-cluster-${ c.id }`"
                     class="cluster selector option"
                     :class="{'active-menu-link': checkActiveRoute(c, true) }"
-                    :to="{ name: 'c-cluster-explorer', params: { cluster: c.id } }"
+                    :to="c.clusterRoute"
                   >
                     <ClusterIconMenu
                       v-tooltip="getTooltipConfig(c, true)"
                       :cluster="c"
+                      :route-combo="routeCombo"
                       class="rancher-provider-icon"
                     />
                     <div
@@ -594,11 +639,12 @@ export default {
                     :data-testid="`menu-cluster-${ c.id }`"
                     class="cluster selector option"
                     :class="{'active-menu-link': checkActiveRoute(c, true) }"
-                    :to="{ name: 'c-cluster-explorer', params: { cluster: c.id } }"
+                    :to="c.clusterRoute"
                   >
                     <ClusterIconMenu
                       v-tooltip="getTooltipConfig(c, true)"
                       :cluster="c"
+                      :route-combo="routeCombo"
                       class="rancher-provider-icon"
                     />
                     <div

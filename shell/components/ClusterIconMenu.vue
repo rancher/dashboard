@@ -7,6 +7,10 @@ export default {
       type:     Object,
       required: true,
     },
+    routeCombo: {
+      type:    Boolean,
+      default: false
+    },
   },
   computed: {
     isEnabled() {
@@ -96,8 +100,12 @@ export default {
       </svg>
     </div>
     <i
-      v-if="cluster.pinned"
+      v-if="!routeCombo && cluster.pinned"
       class="icon icon-pin cluster-pin-icon"
+    />
+    <i
+      v-else-if="routeCombo"
+      class="icon icon-chevron-left cluster-pin-icon"
     />
   </div>
 </template>
