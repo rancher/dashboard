@@ -4,6 +4,7 @@ import HomePagePo from '@/cypress/e2e/po/pages/home.po';
 import BurgerMenuPo from '@/cypress/e2e/po/side-bars/burger-side-menu.po';
 import ProductNavPo from '@/cypress/e2e/po/side-bars/product-side-nav.po';
 import { LoginPagePo } from '@/cypress/e2e/po/pages/login-page.po';
+import UserMenuPo from '@/cypress/e2e/po/side-bars/user-menu.po';
 
 const bannersPage = new BannersPagePo();
 const burgerMenu = new BurgerMenuPo();
@@ -197,7 +198,7 @@ describe('Banners', { testIsolation: 'off' }, () => {
     });
 
     // Check login screen
-    cy.logout();
+    new UserMenuPo().clickMenuItem('Log Out');
     loginPage.waitForPage();
     loginPage.loginPageMessage().contains('You have been logged out.').should('be.visible');
     bannersPage.banner().should('be.visible').then((el) => {
