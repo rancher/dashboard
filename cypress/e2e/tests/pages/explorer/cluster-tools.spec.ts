@@ -43,7 +43,7 @@ describe('Cluster Tools', { tags: ['@explorer', '@adminUser'] }, () => {
     });
   });
 
-  it.skip('can edit chart successfully', () => {
+  it('can edit chart successfully', () => {
     // Note: this test fails due to https://github.com/rancher/dashboard/issues/9940
     // skipping this test until issue is resolved
     clusterTools.goTo();
@@ -61,7 +61,7 @@ describe('Cluster Tools', { tags: ['@explorer', '@adminUser'] }, () => {
     cy.contains('Connected');
   });
 
-  it.skip('can uninstall chart successfully', () => {
+  it('can uninstall chart successfully', () => {
     // Note: this test fails due to https://github.com/rancher/dashboard/issues/9940
     // skipping this test until issue is resolved
     clusterTools.goTo();

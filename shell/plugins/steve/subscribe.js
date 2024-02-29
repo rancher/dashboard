@@ -847,7 +847,7 @@ const defaultActions = {
       commit('setInError', { type: msg.resourceType, reason: NO_WATCH });
     } else if ( err.includes('failed to find schema') ) {
       commit('setInError', { type: msg.resourceType, reason: NO_SCHEMA });
-    } else if ( err.includes('too old') ) {
+    } else if ( err.includes('too old') || err.includes('unable to decode an event') ) {
       // Set an error for (all) subs of this type. This..
       // 1) blocks attempts by resource.stop to resub (as type is in error)
       // 2) will be cleared when resyncWatch --> watch (with force) --> resource.start completes
