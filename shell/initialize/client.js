@@ -58,7 +58,7 @@ Object.assign(Vue.config, { silent: false, performance: true });
 if (debug) {
   const defaultErrorHandler = Vue.config.errorHandler;
 
-  Vue.config.errorHandler = async(err, vm, info, ...rest) => {
+  vueApp.config.errorHandler = async(err, vm, info, ...rest) => {
     // Call other handler if exist
     let handled = null;
 

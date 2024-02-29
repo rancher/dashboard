@@ -23,8 +23,8 @@ export function createGetCounter(counterObject, defaultKey = '') {
 export function empty() {}
 
 export function globalHandleError(error) {
-  if (Vue.config.errorHandler) {
-    Vue.config.errorHandler(error);
+  if (vueApp.config.errorHandler) {
+    vueApp.config.errorHandler(error);
   }
 }
 
