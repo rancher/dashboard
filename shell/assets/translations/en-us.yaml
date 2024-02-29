@@ -3072,6 +3072,7 @@ longhorn:
         label: 'Longhorn'
         description: 'Manage storage system via UI'
         na: Resource Unavailable
+        uiServiceUnavailable: The Longhorn UI service is not available or you do not have permission to access it.
 
 neuvector:
   overview:
