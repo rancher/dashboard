@@ -32,9 +32,6 @@ export default {
     showErrorPage: false,
   }),
 
-  beforeCreate() {
-    Vue.util.defineReactive(this, 'nuxt', this.$options.nuxt);
-  },
   created() {
     // add to window so we can listen when ready
     window.$globalApp = this;
@@ -52,7 +49,7 @@ export default {
     window.addEventListener('offline', this.refreshOnlineStatus);
 
     // Add $nuxt.error()
-    this.error = this.nuxt.error;
+    this.error = this.$options.nuxt.error;
     // Add $nuxt.context
     this.context = this.$options.context;
   },
@@ -129,10 +126,10 @@ export default {
       this.$loading.finish();
     },
     errorChanged() {
-      if (this.nuxt.err) {
+      if (this.$options.nuxt.err) {
         if (this.$loading) {
           if (this.$loading.fail) {
-            this.$loading.fail(this.nuxt.err);
+            this.$loading.fail(this.$options.nuxt.err);
           }
           if (this.$loading.finish) {
             this.$loading.finish();

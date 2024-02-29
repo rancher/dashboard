@@ -4,7 +4,6 @@
 import Vue from 'vue';
 import { createRouter } from '../config/router.js';
 import NuxtChild from '../components/nuxt/nuxt-child.js';
-import Nuxt from '../components/nuxt/nuxt.js';
 import App from './App.js';
 import { setContext, getLocation, getRouteData, normalizeError } from '../utils/nuxt';
 import { createStore } from '../config/store.js';
@@ -67,18 +66,6 @@ loadDirectives();
 // Component: <NuxtChild>
 Vue.component(NuxtChild.name, NuxtChild);
 Vue.component('NChild', NuxtChild);
-
-// Component NuxtLink is imported in server.js or client.js
-
-// Component: <Nuxt>
-Vue.component(Nuxt.name, Nuxt);
-
-Object.defineProperty(Vue.prototype, '$nuxt', {
-  get() {
-    return window.$globalApp;
-  },
-  configurable: true
-});
 
 async function createApp(config = {}) {
   const router = await createRouter(config);

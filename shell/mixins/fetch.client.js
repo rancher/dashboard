@@ -1,4 +1,3 @@
-import Vue from 'vue';
 import { hasFetch, normalizeError, addLifecycleHook } from '../utils/nuxt';
 
 export default {
@@ -9,14 +8,24 @@ export default {
 
     this._fetchDelay = typeof this.$options.fetchDelay === 'number' ? this.$options.fetchDelay : 200;
 
-    Vue.util.defineReactive(this, '$fetchState', {
-      pending:   false,
-      error:     null,
-      timestamp: Date.now()
-    });
-
     this.$fetch = $fetch.bind(this);
     addLifecycleHook(this, 'beforeMount', beforeMount);
+  },
+
+  data() {
+    return {
+      state: {
+        pending:   false,
+        error:     null,
+        timestamp: Date.now()
+      }
+    };
+  },
+
+  computed: {
+    $fetchState() {
+      return this.state;
+    }
   }
 };
 
@@ -38,8 +47,8 @@ function $fetch() {
 }
 
 async function $_fetch() { // eslint-disable-line camelcase
-  this.$fetchState.pending = true;
-  this.$fetchState.error = null;
+  this.state.pending = true;
+  this.state.error = null;
   this._hydrated = false;
   let error = null;
   const startTime = Date.now();
@@ -59,7 +68,7 @@ async function $_fetch() { // eslint-disable-line camelcase
     await new Promise((resolve) => setTimeout(resolve, delayLeft));
   }
 
-  this.$fetchState.error = error;
-  this.$fetchState.pending = false;
-  this.$fetchState.timestamp = Date.now();
+  this.state.error = error;
+  this.state.pending = false;
+  this.state.timestamp = Date.now();
 }
