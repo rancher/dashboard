@@ -47,8 +47,6 @@ export default {
   },
 
   data() {
-    const t = this.$store.getters['i18n/t'];
-
     return {
       POD_METRICS_DETAIL_URL,
       POD_METRICS_SUMMARY_URL,
