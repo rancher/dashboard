@@ -17,7 +17,7 @@ export default class ClusterManagerCreatePagePo extends ClusterManagerCreateImpo
     return super.goTo(ClusterManagerCreatePagePo.createPath(clusterId, queryParams));
   }
 
-  constructor(clusterId: string, queryParams?: string) {
+  constructor(clusterId = '_', queryParams?: string) {
     super(ClusterManagerCreatePagePo.createPath(clusterId, queryParams));
   }
 
