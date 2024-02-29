@@ -28,6 +28,9 @@ console.log(`    Username: ${ username }`);
 if (!process.env.CATTLE_BOOTSTRAP_PASSWORD && !process.env.TEST_PASSWORD) {
   console.log(' ❌ You must provide either CATTLE_BOOTSTRAP_PASSWORD or TEST_PASSWORD');
 }
+if (process.env.CATTLE_BOOTSTRAP_PASSWORD && process.env.TEST_PASSWORD) {
+  console.log(' ❗ If both CATTLE_BOOTSTRAP_PASSWORD and TEST_PASSWORD are provided, the first will be used');
+}
 if (!skipSetup && !process.env.CATTLE_BOOTSTRAP_PASSWORD) {
   console.log(' ❌ You must provide CATTLE_BOOTSTRAP_PASSWORD when running setup tests');
 }
@@ -83,7 +86,7 @@ export default defineConfig({
     },
     api:               apiUrl,
     username,
-    password:          process.env.TEST_PASSWORD,
+    password:          process.env.CATTLE_BOOTSTRAP_PASSWORD || process.env.TEST_PASSWORD,
     bootstrapPassword: process.env.CATTLE_BOOTSTRAP_PASSWORD,
     grepTags:          process.env.GREP_TAGS,
     awsAccessKey:      process.env.AWS_ACCESS_KEY_ID, // this env var is only available to tests that run in Jenkins

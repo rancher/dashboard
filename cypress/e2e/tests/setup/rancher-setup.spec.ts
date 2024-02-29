@@ -2,11 +2,6 @@ import { RancherSetupLoginPagePo } from '@/cypress/e2e/po/pages/rancher-setup-lo
 import { RancherSetupConfigurePage } from '~/cypress/e2e/po/pages/rancher-setup-configure.po';
 import HomePagePo from '~/cypress/e2e/po/pages/home.po';
 
-const user = {
-  username: Cypress.env('username'),
-  password: Cypress.env('password')
-};
-
 // Cypress or the GrepTags avoid to run multiples times the same test for each tag used.
 // This is a temporary solution till initialization is not handled as a test
 describe('Rancher setup', { tags: ['@adminUserSetup', '@standardUserSetup', '@setup', '@components', '@navigation', '@charts', '@explorer', '@extensions', '@fleet', '@generic', '@globalSettings', '@manager', '@userMenu', '@usersAndAuths'] }, () => {
@@ -61,12 +56,7 @@ describe('Rancher setup', { tags: ['@adminUserSetup', '@standardUserSetup', '@se
     cy.intercept('PUT', '/v1/userpreferences/*').as('firstLoginReq');
 
     rancherSetupConfigurePage.waitForPage();
-
     rancherSetupConfigurePage.canSubmit().should('eq', false);
-    rancherSetupConfigurePage.choosePassword().set(1);
-    rancherSetupConfigurePage.password().set(user.password);
-    rancherSetupConfigurePage.confirmPassword().set(user.password);
-
     rancherSetupConfigurePage.termsAgreement().set();
     rancherSetupConfigurePage.canSubmit().should('eq', true);
     rancherSetupConfigurePage.submit();
@@ -80,7 +70,7 @@ describe('Rancher setup', { tags: ['@adminUserSetup', '@standardUserSetup', '@se
   });
 
   it('Create standard user', () => {
-    cy.login(user.username, user.password);
+    cy.login();
 
     // Note: the username argument here should match the TEST_USERNAME env var used when running non-admin tests
     cy.createUser({
