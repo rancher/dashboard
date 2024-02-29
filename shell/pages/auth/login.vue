@@ -26,7 +26,7 @@ import {
   setVendor
 } from '@shell/config/private-label';
 import loadPlugins from '@shell/plugins/plugin';
-import { fetchInitialSettings } from '~/shell/utils/settings';
+import { fetchInitialSettings } from '@shell/utils/settings';
 
 export default {
   name:       'Login',

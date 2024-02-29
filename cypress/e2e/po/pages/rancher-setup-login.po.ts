@@ -3,18 +3,25 @@ import AsyncButtonPo from '@/cypress/e2e/po/components/async-button.po';
 import FormPo from '@/cypress/e2e/po/components/form.po';
 import PasswordPo from '@/cypress/e2e/po/components/password.po';
 
-export class RancherSetupPagePo extends PagePo {
+export class RancherSetupLoginPagePo extends PagePo {
   static url = '/auth/login'
   static goTo(): Cypress.Chainable<Cypress.AUTWindow> {
-    return super.goTo(RancherSetupPagePo.url);
+    return super.goTo(RancherSetupLoginPagePo.url);
   }
 
-  form: FormPo;
-
   constructor() {
-    super(RancherSetupPagePo.url);
+    super(RancherSetupLoginPagePo.url);
+  }
 
-    this.form = new FormPo('form', this.self());
+  form(): FormPo {
+    return new FormPo('form', this.self());
+  }
+
+  bootstrapLogin() {
+    this.canSubmit().should('eq', true);
+    this.password().set(Cypress.env('bootstrapPassword'));
+    this.canSubmit().should('eq', true);
+    this.submit();
   }
 
   hasInfoMessage() {

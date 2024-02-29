@@ -186,6 +186,8 @@ export default async function({
       isLoggedIn(me);
     } else if ( fromHeader === 'false' ) {
       notLoggedIn();
+
+      return;
     } else {
       // Older versions look at principals and see what happens
       try {

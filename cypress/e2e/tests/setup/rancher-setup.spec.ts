@@ -1,55 +1,86 @@
-import { RancherSetupPagePo } from '@/cypress/e2e/po/pages/rancher-setup.po';
-import { RancherSetupAuthVerifyPage } from '@/cypress/e2e/po/pages/rancher-setup-auth-verify.po';
+import { RancherSetupLoginPagePo } from '@/cypress/e2e/po/pages/rancher-setup-login.po';
+import { RancherSetupConfigurePage } from '~/cypress/e2e/po/pages/rancher-setup-configure.po';
+import HomePagePo from '~/cypress/e2e/po/pages/home.po';
+
+const user = {
+  username: Cypress.env('username'),
+  password: Cypress.env('password')
+};
 
 // Cypress or the GrepTags avoid to run multiples times the same test for each tag used.
 // This is a temporary solution till initialization is not handled as a test
 describe('Rancher setup', { tags: ['@adminUserSetup', '@standardUserSetup', '@setup', '@components', '@navigation', '@charts', '@explorer', '@extensions', '@fleet', '@generic', '@globalSettings', '@manager', '@userMenu', '@usersAndAuths'] }, () => {
-  it('Requires initial setup', () => {
-    cy.visit('');
+  const rancherSetupLoginPage = new RancherSetupLoginPagePo();
+  const rancherSetupConfigurePage = new RancherSetupConfigurePage();
+  const homePage = new HomePagePo();
 
-    new RancherSetupPagePo().hasInfoMessage();
-    cy.url().should('equal', `${ Cypress.config().baseUrl }/auth/login`);
+  it('Requires initial setup', () => {
+    homePage.goTo();
+
+    rancherSetupLoginPage.waitForPage();
+    rancherSetupLoginPage.hasInfoMessage();
   });
 
-  it('Set initial Docker bootstrap password and admin password as single session', () => {
-    RancherSetupPagePo.goTo(); // Needs to happen before the page element is created/located
-    cy.intercept('POST', '/v3-public/localProviders/local?action=login').as('bootstrapReq');
-    const rancherSetup = new RancherSetupPagePo();
+  it('Confirm correct number of settings requests made', () => {
+    cy.intercept('GET', '/v1/management.cattle.io.settings?exclude=metadata.managedFields').as('settingsReq');
 
-    rancherSetup.canSubmit()
-      .should('eq', true);
-    rancherSetup.password().set(Cypress.env('bootstrapPassword'));
-    rancherSetup.canSubmit()
-      .should('eq', true);
-    rancherSetup.submit();
+    rancherSetupLoginPage.goTo();
+
+    // First request will fetch a partial list of settings
+    cy.wait('@settingsReq').then((interception) => {
+      expect(interception.response.body.count).lessThan(10);
+    });
+    cy.get('@settingsReq.all').should('have.length', 1);
+
+    rancherSetupLoginPage.waitForPage();
+    rancherSetupLoginPage.bootstrapLogin();
+
+    // Second request (after user is logged in) will return the full list
+    cy.wait('@settingsReq').then((interception) => {
+      expect(interception.response.body.count).greaterThan(10);
+    });
+    rancherSetupConfigurePage.waitForPage();
+
+    // Yes this is bad, but want to ensure no other settings requests are made.
+    cy.wait(1000); // eslint-disable-line cypress/no-unnecessary-waiting
+    cy.get('@settingsReq.all').should('have.length', 2);
+  });
+
+  it('Login & Configure', () => {
+    cy.intercept('POST', '/v3-public/localProviders/local?action=login').as('bootstrapReq');
+
+    rancherSetupLoginPage.goTo();
+    rancherSetupLoginPage.waitForPage();
+    rancherSetupLoginPage.bootstrapLogin();
 
     cy.wait('@bootstrapReq').then((login) => {
       expect(login.response?.statusCode).to.equal(200);
-      cy.url().should('equal', `${ Cypress.config().baseUrl }/auth/setup`);
+      rancherSetupConfigurePage.waitForPage();
     });
 
     cy.intercept('PUT', '/v1/userpreferences/*').as('firstLoginReq');
 
-    const rancherSetupAuthVerify = new RancherSetupAuthVerifyPage();
+    rancherSetupConfigurePage.waitForPage();
 
-    rancherSetupAuthVerify.canSubmit()
-      .should('eq', false);
-    rancherSetupAuthVerify.termsAgreement().set();
-    rancherSetupAuthVerify.canSubmit()
-      .should('eq', true);
-    rancherSetupAuthVerify.submit();
+    rancherSetupConfigurePage.canSubmit().should('eq', false);
+    rancherSetupConfigurePage.choosePassword().set(1);
+    rancherSetupConfigurePage.password().set(user.password);
+    rancherSetupConfigurePage.confirmPassword().set(user.password);
+
+    rancherSetupConfigurePage.termsAgreement().set();
+    rancherSetupConfigurePage.canSubmit().should('eq', true);
+    rancherSetupConfigurePage.submit();
 
     cy.location('pathname', { timeout: 15000 }).should('include', '/home');
 
-    // TODO: This assertion is commented as it started to fail after rebasing and cannot be corrected as it's not possible to run Rancher locally
-    // cy.wait('@firstLoginReq').then((login) => {
-    //   expect(login.response?.statusCode).to.equal(200);
-    //   cy.url().should('equal', `${ Cypress.config().baseUrl }/home`);
-    // });
+    cy.wait('@firstLoginReq').then((login) => {
+      expect(login.response?.statusCode).to.equal(200);
+      homePage.waitForPage();
+    });
   });
 
-  it('Create standard user after login', () => {
-    cy.login();
+  it('Create standard user', () => {
+    cy.login(user.username, user.password);
 
     // Note: the username argument here should match the TEST_USERNAME env var used when running non-admin tests
     cy.createUser({
