@@ -27,13 +27,12 @@ import {
   STATE,
 } from '@shell/config/table-headers';
 
-import { haveV1Monitoring, monitoringStatus, canViewGrafanaLink } from '@shell/utils/monitoring';
+import { monitoringStatus, canViewGrafanaLink } from '@shell/utils/monitoring';
 import Tabbed from '@shell/components/Tabbed';
 import Tab from '@shell/components/Tabbed/Tab';
 import { allDashboardsExist } from '@shell/utils/grafana';
 import EtcdInfoBanner from '@shell/components/EtcdInfoBanner';
 import metricPoller from '@shell/mixins/metric-poller';
-import EmberPage from '@shell/components/EmberPage';
 import ResourceSummary, { resourceCounts } from '@shell/components/ResourceSummary';
 import HardwareResourceGauge from '@shell/components/HardwareResourceGauge';
 import { isEmpty } from '@shell/utils/object';
@@ -75,7 +74,6 @@ export default {
     Tabbed,
     AlertTable,
     Banner,
-    EmberPage,
     ConfigBadge,
     EventsTable,
     SimpleBox,
@@ -177,14 +175,6 @@ export default {
 
     mgmtNodes() {
       return this.$store.getters['management/all'](MANAGEMENT.CLUSTER);
-    },
-
-    hasV1Monitoring() {
-      return haveV1Monitoring(this.$store.getters);
-    },
-
-    v1MonitoringURL() {
-      return `/k/${ this.currentCluster.id }/monitoring`;
     },
 
     displayProvider() {
@@ -537,7 +527,7 @@ export default {
         /></span>
       </div>
       <div :style="{'flex':1}" />
-      <div v-if="!monitoringStatus.v2 && !monitoringStatus.v1">
+      <div v-if="!monitoringStatus.v2">
         <n-link
           :to="{name: 'c-cluster-explorer-tools'}"
           class="monitoring-install"
@@ -545,9 +535,6 @@ export default {
           <i class="icon icon-gear" />
           <span>{{ t('glance.installMonitoring') }}</span>
         </n-link>
-      </div>
-      <div v-if="monitoringStatus.v1">
-        <span>{{ t('glance.v1MonitoringInstalled') }}</span>
       </div>
       <ConfigBadge
         v-if="currentCluster.canUpdate"
@@ -589,13 +576,13 @@ export default {
     </div>
 
     <h3
-      v-if="!hasV1Monitoring && hasStats"
+      v-if="hasStats"
       class="mt-40"
     >
       {{ t('clusterIndexPage.sections.capacity.label') }}
     </h3>
     <div
-      v-if="!hasV1Monitoring && hasStats"
+      v-if="hasStats"
       class="hardware-resource-gauges"
     >
       <HardwareResourceGauge
@@ -616,7 +603,7 @@ export default {
       />
     </div>
 
-    <div v-if="!hasV1Monitoring && clusterServices">
+    <div v-if="componentServices">
       <div
         v-for="service in clusterServices"
         :key="service.name"
@@ -640,17 +627,6 @@ export default {
           {{ t(service.labelKey) }}
         </div>
       </div>
-    </div>
-
-    <div
-      v-if="hasV1Monitoring"
-      id="ember-anchor"
-      class="mt-20"
-    >
-      <EmberPage
-        inline="ember-anchor"
-        :src="v1MonitoringURL"
-      />
     </div>
 
     <div class="mt-30">

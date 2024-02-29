@@ -2313,7 +2313,6 @@ glance:
   version: Kubernetes 版本
   monitoringDashboard: 监控仪表板
   installMonitoring: 安装 Monitoring
-  v1MonitoringInstalled: 已安装 Monitoring V1
   clusterInfo: 集群信息
   eventsTable: 完整事件列表
 

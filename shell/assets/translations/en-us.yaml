@@ -2379,7 +2379,6 @@ glance:
   version: Kubernetes Version
   monitoringDashboard: Monitoring Dashboard
   installMonitoring: Install Monitoring
-  v1MonitoringInstalled: V1 Monitoring Installed
   clusterInfo: Cluster Information
   eventsTable: Full events list
   secretsTable: Full secrets list

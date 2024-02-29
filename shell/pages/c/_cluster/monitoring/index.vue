@@ -8,14 +8,12 @@ import { CATALOG, MONITORING } from '@shell/config/types';
 import { allHash } from '@shell/utils/promise';
 import { findBy } from '@shell/utils/array';
 import { getClusterPrefix } from '@shell/utils/grafana';
-import { Banner } from '@components/Banner';
 import LazyImage from '@shell/components/LazyImage';
 import SimpleBox from '@shell/components/SimpleBox';
-import { haveV1MonitoringWorkloads, canViewAlertManagerLink, canViewGrafanaLink, canViewPrometheusLink } from '@shell/utils/monitoring';
+import { canViewAlertManagerLink, canViewGrafanaLink, canViewPrometheusLink } from '@shell/utils/monitoring';
 
 export default {
   components: {
-    Banner,
     LazyImage,
     SimpleBox,
     AlertTable
@@ -39,7 +37,6 @@ export default {
         prometheus:   false,
       },
       resources:     [MONITORING.ALERTMANAGER, MONITORING.PROMETHEUS],
-      v1Installed:   false,
       externalLinks: [
         {
           enabled:     false,
@@ -92,8 +89,6 @@ export default {
   methods: {
     async fetchDeps() {
       const { $store, externalLinks } = this;
-
-      this.v1Installed = await haveV1MonitoringWorkloads($store);
       const hash = {};
 
       if ($store.getters['cluster/canList'](CATALOG.APP)) {
@@ -151,17 +146,6 @@ export default {
       </div>
     </header>
     <div>
-      <Banner
-        v-if="v1Installed"
-        color="warning"
-      >
-        <template #default>
-          <t
-            k="monitoring.v1Warning"
-            :raw="true"
-          />
-        </template>
-      </Banner>
       <div class="create-resource-container">
         <div class="subtypes-container">
           <a
