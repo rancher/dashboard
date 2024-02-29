@@ -9,7 +9,7 @@ import BrandImage from '@shell/components/BrandImage';
 import { getProduct } from '@shell/config/private-label';
 import ClusterProviderIcon from '@shell/components/ClusterProviderIcon';
 import ClusterBadge from '@shell/components/ClusterBadge';
-import { LOGGED_OUT } from '@shell/config/query-params';
+import { LOGGED_OUT, IS_SSO } from '@shell/config/query-params';
 import NamespaceFilter from './NamespaceFilter';
 import WorkspaceSwitcher from './WorkspaceSwitcher';
 import TopLevelMenu from './TopLevelMenu';
@@ -71,6 +71,14 @@ export default {
 
     authEnabled() {
       return this.$store.getters['auth/enabled'];
+    },
+
+    isAuthLocalProvider() {
+      return this.principal && this.principal.provider === 'local';
+    },
+
+    generateLogoutRoute() {
+      return this.isAuthLocalProvider ? { name: 'auth-logout', query: { [LOGGED_OUT]: true } } : { name: 'auth-logout', query: { [LOGGED_OUT]: true, [IS_SSO]: true } };
     },
 
     principal() {
@@ -693,7 +701,7 @@ export default {
               <nuxt-link
                 v-if="authEnabled"
                 tag="li"
-                :to="{name: 'auth-logout', query: { [LOGGED_OUT]: true }}"
+                :to="generateLogoutRoute"
                 class="user-menu-item"
               >
                 <a @blur="showMenu(false)">{{ t('nav.userMenu.logOut') }}</a>
