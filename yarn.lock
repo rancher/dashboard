@@ -5961,10 +5961,10 @@ custom-event-polyfill@^1.0.7:
   resolved "https://registry.yarnpkg.com/custom-event-polyfill/-/custom-event-polyfill-1.0.7.tgz#9bc993ddda937c1a30ccd335614c6c58c4f87aee"
   integrity sha512-TDDkd5DkaZxZFM8p+1I3yAlvM3rSr1wbrOliG4yJiwinMZN8z/iGL7BTlDkrJcYTmgUSb4ywVCc3ZaUtOtC76w==
 
-cy2@^4.0.6:
-  version "4.0.6"
-  resolved "https://registry.yarnpkg.com/cy2/-/cy2-4.0.6.tgz#7f248f3076c1d7f3cdb01d0371510cd29ae358eb"
-  integrity sha512-WYXRNI72/CFTQ6nv7sFEGm9WSGNlrlqDGdbtIr9Z6B4wDw35RqFKqlTdiTbuyGjbxvO2+nYEGVM89C8PxU/bxQ==
+cy2@^4.0.8:
+  version "4.0.9"
+  resolved "https://registry.yarnpkg.com/cy2/-/cy2-4.0.9.tgz#bea86be583a087b75ca4052f9ac30845ebd9332a"
+  integrity sha512-/eKvqHabrshne8zk1SeEGUtJyzfEaj9nHwbABbp7TS9I6tdBuu2QOEjhqjNRAV7JD/UDgBBd3Bw35fHD/tv9Og==
   dependencies:
     chalk "^4.1.2"
     eventemitter3 "^4.0.0"

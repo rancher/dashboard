@@ -72,12 +72,16 @@ export default {
       if (bannerSettings) {
         const parsed = JSON.parse(bannerSettings.value);
         const {
-          showFooter, showHeader, bannerFooter, bannerHeader
+          showFooter, showHeader, bannerFooter, bannerHeader, banner
         } = parsed;
+        // add defaults to accomodate older JSON structures for banner definitions without breaking the UI
+        // https://github.com/rancher/dashboard/issues/10140
+        const bannerHeaderFontSize = bannerHeader?.fontSize || banner?.fontSize || '14px';
+        const bannerFooterFontSize = bannerFooter?.fontSize || banner?.fontSize || '14px';
 
         return {
-          headerFont: showHeader === 'true' ? this.pxToEm(bannerHeader.fontSize) : '0px',
-          footerFont: showFooter === 'true' ? this.pxToEm(bannerFooter.fontSize) : '0px'
+          headerFont: showHeader === 'true' ? this.pxToEm(bannerHeaderFontSize) : '0px',
+          footerFont: showFooter === 'true' ? this.pxToEm(bannerFooterFontSize) : '0px'
         };
       }
 

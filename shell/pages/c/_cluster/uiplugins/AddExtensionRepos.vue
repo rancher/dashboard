@@ -10,6 +10,7 @@ import {
   UI_PLUGINS_PARTNERS_REPO_URL,
   UI_PLUGINS_PARTNERS_REPO_BRANCH,
 } from '@shell/config/uiplugins';
+import { isRancherPrime } from '@shell/config/version';
 
 export default {
   components: {
@@ -27,6 +28,7 @@ export default {
     return {
       errors:   [],
       repos:    [],
+      prime:    isRancherPrime(),
       addRepos: {
         official: true,
         partners: true
@@ -54,16 +56,13 @@ export default {
     },
     hasRancherUIPartnersPluginsRepo() {
       return !!this.repos.find((r) => r.urlDisplay === UI_PLUGINS_PARTNERS_REPO_URL);
-    },
-    isAnyRepoAvailableForInstall() {
-      return !this.hasRancherUIPluginsRepo || !this.hasRancherUIPartnersPluginsRepo;
     }
   },
 
   methods: {
     showDialog() {
       this.addRepos = {
-        official: !this.hasRancherUIPluginsRepo,
+        official: isRancherPrime() && !this.hasRancherUIPluginsRepo,
         partners: !this.hasRancherUIPartnersPluginsRepo,
       };
       this.$modal.show('add-extensions-repos');
@@ -121,6 +120,7 @@ export default {
       </p>
       <!-- Official repo -->
       <div
+        v-if="prime"
         class="mb-15"
       >
         <Checkbox
