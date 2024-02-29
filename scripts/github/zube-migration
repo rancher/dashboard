@@ -1,0 +1,275 @@
+#!/usr/bin/env node
+
+// Migrate Zube labels to GitHub Project Statuses
+
+const request = require('../../.github/workflows/scripts/request');
+
+console.log('GH Issues: Zube > GitHub Project Migrator');
+console.log('=========================================');
+console.log('');
+
+const STATUS_MAP = {
+  'Backlog': 'Backlog',
+  'To Triage': 'To Triage',
+  'Groomed': 'Groomed',
+};
+
+// Options
+// -m = milestone - only migrate issues with the given milestone
+// -z = zube_status - only migrate issues with the given zube label
+// -p = project - GH project in the format 'org#number'
+// -a = apply - make the changes (default is dry-run that shows which changes will be made)
+
+// Parse the options
+
+// Arguments are after the process name and script name
+const options = {
+  args: [...process.argv.slice(2)],
+  milestone: undefined,
+  zubeStatus: undefined,
+  project: undefined,
+  repo: undefined,
+  apply: false,
+};
+
+function handleOption(options, optName, flag, hasValue) {
+  const provided = options.args.findIndex((item) => item === flag);
+
+  if (provided >= 0) {
+    // Remove the arg that was found
+    options.args.splice(provided, 1);
+
+    if (hasValue) {
+      if (options.args.length < (provided + 1)) {
+        console.log(`You need to provide a value for the ${ flag } option`);
+        return;
+      } else {
+        options[optName] = options.args[provided];
+        options.args.splice(provided, 1);
+      }
+    } else {
+      options[optName] = true;
+    }
+  }
+}
+
+handleOption(options, 'project', '-p', true);
+handleOption(options, 'repo', '-r', true);
+handleOption(options, 'milestone', '-m', true);
+handleOption(options, 'zubeStatus', '-z', true);
+handleOption(options, 'apply', '-a', false);
+
+if (!process.env.TOKEN || !process.env.GH_TOKEN) {
+  console.log('You must set a GitHub token in either the TOKEN or GH_TOKEN environment variables');
+
+  return;
+}
+
+if (!options.project) {
+  console.log('You must provide a GitHub project with the -p flag in the form org#number');
+
+  return;
+} else {
+  const pParts = options.project.split('#');
+
+  if (pParts.length !== 2) {
+    console.log('GitHub project must be in the form org#number');
+
+    return;
+  }
+
+  options.project = pParts;
+}
+
+if (!options.repo) {
+  console.log('You must provide a GitHub repository with the -r flag in the form org/name');
+
+  return;
+}
+
+if (!options.milestone) {
+  console.log('You must provide a GitHub milestone with the -m flag');
+
+  return;
+}
+
+if (options.zubeStatus && !options.zubeStatus.startsWith('[zube')) {
+  options.zubeStatus = `[zube]: ${ options.zubeStatus }`;
+}
+
+// console.log(options);
+
+async function run() {
+  // Fetch the GitHub Project board
+  const project = await request.ghProject(options.project[0], options.project[1]);
+
+  if (!project || Object.keys(project).length === 0) {
+    console.log('Unable to fetch ID for specified project');
+
+    return;
+  }
+
+  // console.log(project);
+
+  // Fetch all of the matching issues
+  const issues = await request.ghFetchOpenIssues('rancher', 'dashboard', options.milestone, options.zubeStatus);
+
+  if (!issues) {
+    console.log('Unable to fetch issues');
+
+    return;
+  }
+
+  console.log(`Fetched ${ issues.length } issue(s)`);
+  console.log('');
+
+  // Process the issues and figure out which ones need updating
+
+  const updates = [];
+
+  issues.forEach((issue) => {
+    const projectInfo = issue.projectItems.nodes.find((pItem) => pItem.project.id === project.id);
+
+    // Determine the current issue state from the Zube label
+    const labels = (issue.labels?.nodes || []).filter((label) => label.name.startsWith('[zube]: ')).map((label) => label.name);
+
+    if (labels.length > 1) {
+      console.log(`Warning: Issue ${ issue.number } has more than one Zube label - ignoring`);
+    } else if (labels.length < 1) {
+      console.log(`Warning: Issue ${ issue.number } does not have a Zube label - ignoring`);
+    } else {
+      const ghStatus = STATUS_MAP[labels[0].substr(8)];
+      const statusChange = projectInfo?.status?.name !== ghStatus;
+
+      if (statusChange) {
+        updates.push({
+          ...issue,
+          idInProject: projectInfo?.id,
+          currentStatus: projectInfo?.status?.name || 'No Status',
+          status: ghStatus,
+          statusChange,
+        });
+      }
+    }
+  });
+
+  console.log(`#ISSUE ${ 'TITLE'.padEnd(80) } CHANGE   NOTE`);
+  console.log(`------ ${ '-'.padEnd(80, '-') } -------- ----`);
+
+  updates.forEach((update) => {
+    let change = ''
+    let note = ''
+    if (!update.idInProject) {
+      change = 'ADD     ';
+      note = `${update.status}`;
+    } else if (update.statusChange) {
+      change = `UPDATE  `;
+      note = `${update.currentStatus} -> ${update.status}`;
+    }
+
+    const number = `${ update.number }`.padStart(6);
+
+    console.log(`${ number } ${ update.title.substr(0,80).padEnd(80)} ${ change } ${ note }`);
+  });
+
+  console.log('');
+  console.log(`${ updates.length} issue(s) require updating out of ${ issues.length }`);
+  
+  const add = updates.filter((update) => !update.idInProject);
+
+  if (options.apply && add.length) {
+    let gQL = 'mutation {\n';
+
+    // Add all of the missing items to the project in one go
+    add.forEach((update) => {
+      gQL += `issue${ update.number }: addProjectV2ItemById(input: {projectId: "${ project.id }" contentId: "${ update.id }"}) {
+          item {
+            id
+          }
+        }\n`;
+    });
+
+    gQL += '}';
+
+    const res = await request.graphql(gQL);
+
+    if (!res.data) {
+      console.log('Error updating');
+      console.log(res);
+
+      return;
+    }
+
+    if (res.data) {
+      Object.keys(res.data).forEach((itemName) => {
+        const itemRes = res.data[itemName]?.item;
+        const number = parseInt(itemName.substr(5), 10);
+        const existingUpdate = updates.find((update) => update.number === number);
+  
+        if (existingUpdate) {
+          existingUpdate.statusChange = true;
+          existingUpdate.idInProject = itemRes.id;
+        }
+      });
+    }
+  }
+
+  // Apply all of the status changes
+  const statusChanges = updates.filter((update) => (update.idInProject && update.statusChange));
+
+  if (options.apply && statusChanges.length) {
+    let statusQL = `mutation {\n`;
+
+    statusChanges.forEach((update) => {
+      if (update.idInProject && update.statusChange) {
+        // Get the optionId for the new status
+        const optionId = project.statusField.options[update.status];
+
+        if (!optionId) {
+          console.log(`Warning: Can not find status ${ update.status } in the GitHub Project`);
+        } else {
+          statusQL += `issue${update.number}: updateProjectV2ItemFieldValue(input: {
+              projectId: "${ project.id }"
+              itemId: "${ update.idInProject }"
+              fieldId: "${ project.statusField.id }"
+              value: { 
+                singleSelectOptionId: "${ optionId }"
+              }
+            }) {
+              projectV2Item {
+                id
+              }
+            }\n`
+        }
+      }
+    });
+
+    statusQL += '}';
+
+    const statusRes = await request.graphql(statusQL);
+
+    if (!statusRes.data) {
+      console.log('Error updating statuses of issues');
+      console.log(statusRes);
+
+      return;
+    }    
+  }
+
+  if (!updates.length && !statusChanges.length) {
+    console.log('');
+    console.log('All issues are up to date - nothing to do');
+  } else {
+    console.log('');
+
+    if (options.apply) {
+      console.log('Updates applied');
+    } else {
+      console.log('To apply updates, run again with the -a flag');
+    }
+  }
+
+  console.log('');
+}
+
+run();
