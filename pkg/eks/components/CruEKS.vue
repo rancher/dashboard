@@ -46,6 +46,7 @@ const defaultCluster = {
 };
 
 // todo nb should this  be placeholder instead?
+// TODO nb move to node group
 const DEFAULT_USER_DATA =
 `MIME-Version: 1.0
 Content-Type: multipart/mixed; boundary="==MYBOUNDARY=="
@@ -66,6 +67,7 @@ const DEFAULT_NODE_GROUP_CONFIG = {
   imageId:              null,
   instanceType:         't3.medium',
   labels:               {},
+  // launchTemplate:       {},
   maxSize:              2,
   minSize:              2,
   nodegroupName:        '',
@@ -79,7 +81,7 @@ const DEFAULT_NODE_GROUP_CONFIG = {
   userData:             DEFAULT_USER_DATA,
 };
 
-export const DEFAULT_REGION = 'us-east-2';
+export const DEFAULT_REGION = 'us-west-2';
 
 // const _NONE = 'none';
 
@@ -135,7 +137,7 @@ export default defineComponent({
 
       this.normanCluster = await store.dispatch(`rancher/clone`, { resource: liveNormanCluster });
       // track original version on edit to ensure we don't offer k8s downgrades
-      this.originalVersion = this.normanCluster?.aksConfig?.kubernetesVersion;
+      this.originalVersion = this.normanCluster?.eksConfig?.kubernetesVersion;
     } else {
       this.normanCluster = await store.dispatch('rancher/create', { type: NORMAN.CLUSTER, ...defaultCluster }, { root: true });
     }
@@ -156,16 +158,22 @@ export default defineComponent({
     const t = store.getters['i18n/t'];
 
     return {
-      cloudCredentialId:  '',
-      normanCluster:      { name: '' } as any,
-      nodeGroups:         [] as EKSNodeGroup[],
-      config:             { } as EKSConfig,
-      membershipUpdate:   {} as any,
-      originalVersion:    '',
+      cloudCredentialId: '',
+      normanCluster:     { name: '' } as any,
+      nodeGroups:        [] as EKSNodeGroup[],
+      config:            { } as EKSConfig,
+      membershipUpdate:  {} as any,
+      originalVersion:   '',
       // fvFormRuleSets:        [],
       // TODO nb default from config
-      customServiceRole:  false,
-      serviceRoleOptions: [{ value: false, label: 'Standard: A service role will be automatically created' }, { value: true, label: 'Custom: Choose from an existing service role' }]
+      customServiceRole: false,
+
+      serviceRoleOptions:     [{ value: false, label: 'Standard: A service role will be automatically created' }, { value: true, label: 'Custom: Choose from an existing service role' }],
+      // todo nb spinners in node ggroup component
+      loadingInstanceTypes:   false,
+      loadingLaunchTemplates: false,
+      instanceTypes:          [],
+      launchTemplates:        []
     };
   },
 
@@ -215,6 +223,11 @@ export default defineComponent({
     VIEW(): string {
       return _VIEW;
     },
+
+    // TODO nb show more info about instance types in dropdown
+    instanceTypeOptions() {
+      return this.instanceTypes.map((type: any) => type.apiName);
+    }
   },
 
   methods: {
@@ -270,13 +283,16 @@ export default defineComponent({
     },
 
     updateRegion(e: string) {
-      // TODO nb group aws calls
+      // TODO nb group aws calls & clear their errors
       this.$set(this.config, 'region', e);
+      this.fetchInstanceTypes();
+      this.fetchLaunchTemplates();
     },
 
     updateCredential(e: any) {
-      // TODO nb use region from credential?
       this.$set(this.config, 'amazonCredentialSecret', e);
+      this.fetchInstanceTypes();
+      this.fetchLaunchTemplates();
     },
 
     // TODO nb warn if 0 groups
@@ -293,8 +309,45 @@ export default defineComponent({
         nextDefaultSuffix++;
       }
       this.nodeGroups.push({ ...DEFAULT_NODE_GROUP_CONFIG, nodegroupName: `group${ nextDefaultSuffix }` });
-    }
-  },
+    },
+
+    async fetchInstanceTypes() {
+      const store = this.$store as Store<any>;
+
+      if (!this.config.region || !this.config.amazonCredentialSecret) {
+        return;
+      }
+      this.loadingInstanceTypes = true;
+      try {
+        const ec2Client = await store.dispatch('aws/ec2', { region: this.config.region, cloudCredentialId: this.config.amazonCredentialSecret });
+
+        this.instanceTypes = await store.dispatch('aws/instanceInfo', { client: ec2Client });
+      } catch {}
+      this.loadingInstanceTypes = false;
+    },
+
+    async fetchLaunchTemplates() {
+      console.log('fetching launch templates...');
+      const store = this.$store as Store<any>;
+
+      if (!this.config.region || !this.config.amazonCredentialSecret) {
+        return;
+      }
+      this.loadingLaunchTemplates = true;
+      try {
+        const ec2Client = await store.dispatch('aws/ec2', { region: this.config.region, cloudCredentialId: this.config.amazonCredentialSecret });
+
+        const launchTemplateInfo = await ec2Client.describeLaunchTemplates({ DryRun: false });
+
+        console.log(launchTemplateInfo);
+
+        this.launchTemplates = launchTemplateInfo.LaunchTemplates;
+      } catch (err) {
+        this.errors.push(err);
+      }
+      this.loadingLaunchTemplates = false;
+    },
+  }
 
 });
 </script>
@@ -351,8 +404,22 @@ export default defineComponent({
         :name="node.nodegroupName"
       >
         <NodeGroup
-          :node="node"
           :mode="mode"
+          :launch-template.sync="node.launchTemplate"
+          :nodegroup-name.sync="node.nodegroupName"
+          :ec2-ssh-key.sync="node.ec2SshKey"
+          :tags.sync="node.tags"
+          :resource-tags.sync="node.resourceTags"
+          :disk-size.sync="node.diskSize"
+          :image-id.sync="node.imageId"
+          :instance-type.sync="node.instanceType"
+          :spot-instance-types.sync="node.spotInstanceTypes"
+          :user-data.sync="node.userData"
+          :gpu.sync="node.gpu"
+          :instance-type-options="instanceTypeOptions"
+          :launch-templates="launchTemplates"
+          :region="config.region"
+          :amazon-credential-secret="config.amazonCredentialSecret"
         />
       </Tab>
     </Tabbed>

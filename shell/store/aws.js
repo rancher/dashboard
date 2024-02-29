@@ -76,10 +76,6 @@ export const actions = {
     return import(/* webpackChunkName: "aws-ec2" */ '@aws-sdk/client-kms');
   },
 
-  // iamLib() {
-  //   return import(/* webpackChunkName: "aws-iam" */ '@aws-sdk/client-iam');
-  // },
-
   async ec2({ dispatch }, {
     region, cloudCredentialId, accessKey, secretKey
   }) {
@@ -121,20 +117,6 @@ export const actions = {
 
     return client;
   },
-
-  // async iam({ dispatch }, {
-  //   region, cloudCredentialId, accessKey, secretKey
-  // }) {
-  //   const lib = await dispatch('iamLib');
-
-  //   const client = new lib.IAM({
-  //     region,
-  //     credentialDefaultProvider: credentialDefaultProvider(accessKey, secretKey),
-  //     requestHandler:            new Handler(cloudCredentialId),
-  //   });
-
-  //   return client;
-  // },
 
   async instanceInfo({ dispatch, rootGetters, state }, { client }) {
     const data = await dispatch('depaginateList', { client, cmd: 'describeInstanceTypes' });
