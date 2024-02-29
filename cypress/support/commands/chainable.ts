@@ -8,6 +8,4 @@ Cypress.Commands.add('isVisible', { prevSubject: true }, (subject) => {
 
   expect(rect.top).not.to.be.greaterThan(bottom);
   expect(rect.bottom).not.to.be.greaterThan(bottom);
-  expect(rect.top).not.to.be.greaterThan(bottom);
-  expect(rect.bottom).not.to.be.greaterThan(bottom);
 });
