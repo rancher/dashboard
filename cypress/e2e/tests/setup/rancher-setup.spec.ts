@@ -3,7 +3,7 @@ import { RancherSetupAuthVerifyPage } from '@/cypress/e2e/po/pages/rancher-setup
 
 // Cypress or the GrepTags avoid to run multiples times the same test for each tag used.
 // This is a temporary solution till initialization is not handled as a test
-describe('Rancher setup', { tags: ['@adminUserSetup', '@standardUserSetup', '@setup', '@navigation', '@charts', '@explorer', '@extensions', '@fleet', '@generic', '@globalSettings', '@manager', '@userMenu', '@usersAndAuths'] }, () => {
+describe('Rancher setup', { tags: ['@adminUserSetup', '@standardUserSetup', '@setup', '@components', '@navigation', '@charts', '@explorer', '@extensions', '@fleet', '@generic', '@globalSettings', '@manager', '@userMenu', '@usersAndAuths'] }, () => {
   it('Requires initial setup', () => {
     cy.visit('');
 

@@ -43,7 +43,8 @@ jobs:
          ['@fleet'],
          ['@generic', '@globalSettings'],
          ['@manager'],
-         ['@userMenu', '@usersAndAuths']
+         ['@userMenu', '@usersAndAuths'],
+         ['@components'],
         ]
     runs-on: ubuntu-latest
     steps:
