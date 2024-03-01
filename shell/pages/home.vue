@@ -417,9 +417,12 @@ export default {
                   </div>
                 </template>
                 <template #col:name="{row}">
-                  <td>
+                  <td class="col-name">
                     <div class="list-cluster-name">
-                      <span v-if="row.mgmt">
+                      <p
+                        v-if="row.mgmt"
+                        class="cluster-name"
+                      >
                         <n-link
                           v-if="row.mgmt.isReady && !row.hasError"
                           :to="{ name: 'c-cluster-explorer', params: { cluster: row.mgmt.id }}"
@@ -427,12 +430,18 @@ export default {
                           {{ row.nameDisplay }}
                         </n-link>
                         <span v-else>{{ row.nameDisplay }}</span>
-                      </span>
-                      <i
-                        v-if="row.unavailableMachines"
-                        v-clean-tooltip="row.unavailableMachines"
-                        class="conditions-alert-icon icon-alert icon"
-                      />
+                        <i
+                          v-if="row.unavailableMachines"
+                          v-clean-tooltip="row.unavailableMachines"
+                          class="conditions-alert-icon icon-alert icon"
+                        />
+                      </p>
+                      <p
+                        v-if="row.description"
+                        class="cluster-description"
+                      >
+                        {{ row.description }}
+                      </p>
                     </div>
                   </td>
                 </template>
@@ -533,9 +542,23 @@ export default {
     white-space: nowrap;
   }
 
+  .col-name {
+    max-width: 280px;
+  }
+
   .list-cluster-name {
-    align-items: center;
-    display: flex;
+
+    .cluster-name {
+      display: flex;
+      align-items: center;
+    }
+
+    .cluster-description {
+      white-space: nowrap;
+      overflow: hidden;
+      text-overflow: ellipsis;
+      color: var(--muted);
+    }
 
     .conditions-alert-icon {
       color: var(--error);

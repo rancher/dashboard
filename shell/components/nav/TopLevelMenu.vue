@@ -127,6 +127,7 @@ export default {
           isLocal:         x.isLocal,
           isHarvester:     x.isHarvester,
           pinned:          x.pinned,
+          description:     pCluster?.description,
           pin:             () => x.pin(),
           unpin:           () => x.unpin()
         };
@@ -319,20 +320,45 @@ export default {
       } catch {
       }
     },
-    getTooltipConfig(item) {
-      if (!this.shown && !item) {
+
+    getTooltipConfig(item, showWhenClosed = false) {
+      if (!item) {
         return;
       }
 
-      if (!this.shown) {
-        return {
-          content:       this.shown ? null : item,
-          placement:     'right',
-          popperOptions: { modifiers: { preventOverflow: { enabled: false }, hide: { enabled: false } } }
-        };
+      let contentText = '';
+      let content;
+      let classes = '';
+
+      // this is the normal tooltip scenario where we are just passing a string
+      if (typeof item === 'string') {
+        contentText = item;
+        content = this.shown ? null : contentText;
+
+      // this is scenario where we show a tooltip when we are on the expanded menu to show full description
       } else {
-        return { content: undefined };
+        contentText = item.label;
+
+        if (item.description) {
+          contentText += `<br><br>${ item.description }`;
+        }
+
+        if (showWhenClosed) {
+          content = !this.shown ? contentText : null;
+        } else {
+          content = this.shown ? contentText : null;
+        }
+
+        // this adds a class to the tooltip container so that we can control the max width
+        classes = 'menu-description-tooltip';
       }
+
+      return {
+        content,
+        placement:     'right',
+        popperOptions: { modifiers: { preventOverflow: { enabled: false }, hide: { enabled: false } } },
+        classes
+      };
     },
   }
 };
@@ -384,25 +410,26 @@ export default {
         <div class="body">
           <div>
             <!-- Home button -->
-            <nuxt-link
-              class="option cluster selector home"
-              :to="{ name: 'home' }"
-            >
-              <svg
-                v-tooltip="getTooltipConfig(t('nav.home'))"
-                xmlns="http://www.w3.org/2000/svg"
-                height="24"
-                viewBox="0 0 24 24"
-                width="24"
-              ><path
-                d="M0 0h24v24H0z"
-                fill="none"
-              /><path d="M10 20v-6h4v6h5v-8h3L12 3 2 12h3v8z" /></svg>
-              <div class="home-text">
-                {{ t('nav.home') }}
-              </div>
-            </nuxt-link>
-
+            <div @click="hide()">
+              <nuxt-link
+                class="option cluster selector home"
+                :to="{ name: 'home' }"
+              >
+                <svg
+                  v-tooltip="getTooltipConfig(t('nav.home'))"
+                  xmlns="http://www.w3.org/2000/svg"
+                  height="24"
+                  viewBox="0 0 24 24"
+                  width="24"
+                ><path
+                  d="M0 0h24v24H0z"
+                  fill="none"
+                /><path d="M10 20v-6h4v6h5v-8h3L12 3 2 12h3v8z" /></svg>
+                <div class="home-text">
+                  {{ t('nav.home') }}
+                </div>
+              </nuxt-link>
+            </div>
             <!-- Search bar -->
             <div
               v-if="showClusterSearch"
@@ -493,18 +520,27 @@ export default {
                 >
                   <nuxt-link
                     v-if="c.ready"
-                    :data-testid="`menu-cluster-${ c.id }`"
+                    :data-testid="`pinned-menu-cluster-${ c.id }`"
                     class="cluster selector option"
                     :class="{'active-menu-link': checkActiveRoute(c, true) }"
                     :to="{ name: 'c-cluster-explorer', params: { cluster: c.id } }"
                   >
                     <ClusterIconMenu
-                      v-tooltip="getTooltipConfig(c.label)"
+                      v-tooltip="getTooltipConfig(c, true)"
                       :cluster="c"
                       class="rancher-provider-icon"
                     />
-                    <div class="cluster-name">
-                      {{ c.label }}
+                    <div
+                      v-tooltip="getTooltipConfig(c)"
+                      class="cluster-name"
+                    >
+                      <p>{{ c.label }}</p>
+                      <p
+                        v-if="c.description"
+                        class="description"
+                      >
+                        {{ c.description }}
+                      </p>
                     </div>
                     <Pinned
                       :cluster="c"
@@ -513,13 +549,25 @@ export default {
                   <span
                     v-else
                     class="option cluster selector disabled"
+                    :data-testid="`pinned-menu-cluster-disabled-${ c.id }`"
                   >
                     <ClusterIconMenu
-                      v-tooltip="getTooltipConfig(c.label)"
+                      v-tooltip="getTooltipConfig(c, true)"
                       :cluster="c"
                       class="rancher-provider-icon"
                     />
-                    <div class="cluster-name">{{ c.label }}</div>
+                    <div
+                      v-tooltip="getTooltipConfig(c)"
+                      class="cluster-name"
+                    >
+                      <p>{{ c.label }}</p>
+                      <p
+                        v-if="c.description"
+                        class="description"
+                      >
+                        {{ c.description }}
+                      </p>
+                    </div>
                     <Pinned
                       :cluster="c"
                     />
@@ -549,12 +597,21 @@ export default {
                     :to="{ name: 'c-cluster-explorer', params: { cluster: c.id } }"
                   >
                     <ClusterIconMenu
-                      v-tooltip="getTooltipConfig(c.label)"
+                      v-tooltip="getTooltipConfig(c, true)"
                       :cluster="c"
                       class="rancher-provider-icon"
                     />
-                    <div class="cluster-name">
-                      {{ c.label }}
+                    <div
+                      v-tooltip="getTooltipConfig(c)"
+                      class="cluster-name"
+                    >
+                      <p>{{ c.label }}</p>
+                      <p
+                        v-if="c.description"
+                        class="description"
+                      >
+                        {{ c.description }}
+                      </p>
                     </div>
                     <Pinned
                       :class="{'showPin': c.pinned}"
@@ -564,13 +621,25 @@ export default {
                   <span
                     v-else
                     class="option cluster selector disabled"
+                    :data-testid="`menu-cluster-disabled-${ c.id }`"
                   >
                     <ClusterIconMenu
-                      v-tooltip="getTooltipConfig(c.label)"
+                      v-tooltip="getTooltipConfig(c, true)"
                       :cluster="c"
                       class="rancher-provider-icon"
                     />
-                    <div class="cluster-name">{{ c.label }}</div>
+                    <div
+                      v-tooltip="getTooltipConfig(c)"
+                      class="cluster-name"
+                    >
+                      <p>{{ c.label }}</p>
+                      <p
+                        v-if="c.description"
+                        class="description"
+                      >
+                        {{ c.description }}
+                      </p>
+                    </div>
                     <Pinned
                       :class="{'showPin': c.pinned}"
                       :cluster="c"
@@ -728,6 +797,16 @@ export default {
 </template>
 
 <style lang="scss">
+  .menu-description-tooltip {
+    max-width: 200px;
+    // needs !important so that we can
+    // offset the tooltip a bit so it doesn't
+    // overlap the pin icon and cause bad UX
+    left: 35px !important;
+    white-space: pre-wrap;
+    word-wrap: break-word;
+  }
+
   .localeSelector, .footer-tooltip {
     z-index: 1000;
   }
@@ -744,6 +823,17 @@ export default {
     .popover:focus {
       outline: 0;
     }
+  }
+
+  .theme-dark .cluster-name .description {
+    color: var(--input-label) !important;
+  }
+  .theme-dark .body .option  {
+    &:hover .cluster-name .description,
+    &.router-link-active .cluster-name .description,
+    &.active-menu-link .cluster-name .description {
+      color: var(--side-menu-desc) !important;
+  }
   }
 </style>
 
@@ -855,6 +945,19 @@ export default {
           }
         }
 
+        .cluster-name p {
+          width: 199px;
+          white-space: nowrap;
+          overflow: hidden;
+          text-overflow: ellipsis;
+
+          &.description {
+            font-size: 12px;
+            padding-right: 8px;
+            color: var(--darker);
+          }
+        }
+
         &:hover {
           text-decoration: none;
 
@@ -868,9 +971,9 @@ export default {
           cursor: not-allowed;
 
           .rancher-provider-icon,
-          .cluster-name {
+          .cluster-name p {
             filter: grayscale(1);
-            color: var(--muted);
+            color: var(--muted) !important;
           }
 
           .pin {
@@ -912,6 +1015,10 @@ export default {
           i {
             color: var(--primary-hover-text);
           }
+
+          div .description {
+            color: var(--default);
+          }
         }
 
         &:hover {
@@ -919,6 +1026,10 @@ export default {
           background: var(--primary-hover-bg);
           > div {
             color: var(--primary-hover-text);
+
+            .description {
+              color: var(--default);
+            }
           }
           svg {
             fill: var(--primary-hover-text);
@@ -935,13 +1046,6 @@ export default {
               display: block;
             }
           }
-        }
-
-        .cluster-name {
-          max-width: 220px;
-          white-space: nowrap;
-          overflow: hidden;
-          text-overflow: ellipsis;
         }
       }
 

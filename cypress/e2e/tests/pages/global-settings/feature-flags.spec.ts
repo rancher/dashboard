@@ -39,9 +39,14 @@ describe('Feature Flags', { testIsolation: 'off' }, () => {
     // Check Updated State: should be active
     featureFlagsPage.list().details('harvester', 0).should('include.text', 'Active');
 
+    // we now need to reload the page in order to catch the update of the product on the side-nav
+    cy.reload();
+
     // Check side nav
     BurgerMenuPo.toggle();
-    virtualizationMgmtNavItem.should('be.visible');
+    const newVirtualizationMgmtNavItem = burgerMenu.links().contains('Virtualization Management');
+
+    newVirtualizationMgmtNavItem.should('be.visible');
   });
 
   it('can toggle harvester-baremetal-container-workload feature flag', { tags: ['@globalSettings', '@adminUser'] }, () => {
