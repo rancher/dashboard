@@ -803,6 +803,8 @@ export default {
     // offset the tooltip a bit so it doesn't
     // overlap the pin icon and cause bad UX
     left: 35px !important;
+    white-space: pre-wrap;
+    word-wrap: break-word;
   }
 
   .localeSelector, .footer-tooltip {
