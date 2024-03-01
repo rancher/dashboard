@@ -7,7 +7,9 @@ const loginPage = new LoginPagePo();
 
 describe('User can logout of Rancher', { tags: ['@userMenu', '@adminUser', '@standardUser', '@flaky'] }, () => {
   beforeEach(() => {
-    cy.login();
+    // we need to forcefully not use the cached session for this test suite, otherwise
+    // it get's into this weird state where it doesn't move past the login screen
+    cy.login(Cypress.env('username'), Cypress.env('password'), false);
   });
 
   it('Can logout of Rancher successfully (normal/Rancher auth user)', () => {
