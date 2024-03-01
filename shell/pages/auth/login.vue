@@ -8,7 +8,9 @@ import BrandImage from '@shell/components/BrandImage';
 import InfoBox from '@shell/components/InfoBox';
 import CopyCode from '@shell/components/CopyCode';
 import { Banner } from '@components/Banner';
-import { LOCAL, LOGGED_OUT, TIMED_OUT, _FLAGGED } from '@shell/config/query-params';
+import {
+  LOCAL, LOGGED_OUT, TIMED_OUT, IS_SSO, _FLAGGED
+} from '@shell/config/query-params';
 import { Checkbox } from '@components/Form/Checkbox';
 import Password from '@shell/components/form/Password';
 import { sortBy } from '@shell/utils/sort';
@@ -118,9 +120,10 @@ export default {
       remember: !!username,
       password: '',
 
-      timedOut:  this.$route.query[TIMED_OUT] === _FLAGGED,
-      loggedOut: this.$route.query[LOGGED_OUT] === _FLAGGED,
-      err:       this.$route.query.err,
+      timedOut:    this.$route.query[TIMED_OUT] === _FLAGGED,
+      loggedOut:   this.$route.query[LOGGED_OUT] === _FLAGGED,
+      isSsoLogout: this.$route.query[IS_SSO] === _FLAGGED,
+      err:         this.$route.query.err,
 
       providers:          [],
       providerComponents: [],
@@ -314,7 +317,7 @@ export default {
             v-else-if="loggedOut"
             class="text-success text-center"
           >
-            {{ t('login.loggedOut') }}
+            {{ isSsoLogout ? t('login.loggedOutFromSso') : t('login.loggedOut') }}
           </h4>
           <h4
             v-else-if="timedOut"

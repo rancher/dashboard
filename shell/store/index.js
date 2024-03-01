@@ -1,7 +1,9 @@
 import { BACK_TO } from '@shell/config/local-storage';
 import { setBrand, setVendor } from '@shell/config/private-label';
 import { NAME as EXPLORER } from '@shell/config/product/explorer';
-import { LOGGED_OUT, TIMED_OUT, UPGRADED, _FLAGGED } from '@shell/config/query-params';
+import {
+  LOGGED_OUT, IS_SSO, TIMED_OUT, UPGRADED, _FLAGGED
+} from '@shell/config/query-params';
 import { SETTING } from '@shell/config/settings';
 import {
   COUNT,
@@ -1057,7 +1059,10 @@ export const actions = {
         window.localStorage.setItem(BACK_TO, window.location.href);
       }
 
-      const QUERY = (LOGGED_OUT in route.query) ? LOGGED_OUT : TIMED_OUT;
+      let QUERY = (LOGGED_OUT in route.query) ? LOGGED_OUT : TIMED_OUT;
+
+      // adds IS_SSO query param to login route if logout came with an auth provider enabled
+      QUERY += (IS_SSO in route.query) ? `&${ IS_SSO }` : '';
 
       router.replace(`/auth/login?${ QUERY }`);
     }
