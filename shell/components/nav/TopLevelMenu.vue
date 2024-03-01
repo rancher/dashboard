@@ -321,7 +321,7 @@ export default {
       }
     },
 
-    getTooltipConfig(item) {
+    getTooltipConfig(item, showWhenClosed = false) {
       if (!item) {
         return;
       }
@@ -337,9 +337,17 @@ export default {
 
       // this is scenario where we show a tooltip when we are on the expanded menu to show full description
       } else {
-        contentText = `${ item.label }<br><br>${ item.description }`;
+        contentText = item.label;
 
-        content = this.shown && !!item.description ? contentText : null;
+        if (item.description) {
+          contentText += `<br><br>${ item.description }`;
+        }
+
+        if (showWhenClosed) {
+          content = !this.shown ? contentText : null;
+        } else {
+          content = this.shown ? contentText : null;
+        }
 
         // this adds a class to the tooltip container so that we can control the max width
         classes = 'menu-description-tooltip';
@@ -518,7 +526,7 @@ export default {
                     :to="{ name: 'c-cluster-explorer', params: { cluster: c.id } }"
                   >
                     <ClusterIconMenu
-                      v-tooltip="getTooltipConfig(c.label)"
+                      v-tooltip="getTooltipConfig(c, true)"
                       :cluster="c"
                       class="rancher-provider-icon"
                     />
@@ -544,7 +552,7 @@ export default {
                     :data-testid="`pinned-menu-cluster-disabled-${ c.id }`"
                   >
                     <ClusterIconMenu
-                      v-tooltip="getTooltipConfig(c.label)"
+                      v-tooltip="getTooltipConfig(c, true)"
                       :cluster="c"
                       class="rancher-provider-icon"
                     />
@@ -589,7 +597,7 @@ export default {
                     :to="{ name: 'c-cluster-explorer', params: { cluster: c.id } }"
                   >
                     <ClusterIconMenu
-                      v-tooltip="getTooltipConfig(c.label)"
+                      v-tooltip="getTooltipConfig(c, true)"
                       :cluster="c"
                       class="rancher-provider-icon"
                     />
@@ -616,7 +624,7 @@ export default {
                     :data-testid="`menu-cluster-disabled-${ c.id }`"
                   >
                     <ClusterIconMenu
-                      v-tooltip="getTooltipConfig(c.label)"
+                      v-tooltip="getTooltipConfig(c, true)"
                       :cluster="c"
                       class="rancher-provider-icon"
                     />
