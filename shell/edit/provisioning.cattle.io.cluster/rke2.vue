@@ -1689,8 +1689,7 @@ export default {
         set(regs, 'mirrors', {});
       }
 
-      const hostname = Object.keys(regs.configs)[0];
-      const config = regs.configs[hostname];
+      const config = regs.configs[this.registryHost];
 
       if ( config ) {
         registrySecret = config.authConfigSecretName;
@@ -2588,6 +2587,7 @@ export default {
               v-model="showCustomRegistryInput"
               class="mb-20"
               :label="t('cluster.privateRegistry.label')"
+              data-testid="registries-enable-checkbox"
               @input="toggleCustomRegistry"
             />
           </div>
@@ -2600,6 +2600,7 @@ export default {
                 v-model="registryHost"
                 label-key="catalog.chart.registry.custom.inputLabel"
                 placeholder-key="catalog.chart.registry.custom.placeholder"
+                data-testid="registry-host-input"
                 :min-height="30"
               />
               <SelectOrCreateAuthSecret
@@ -2625,6 +2626,7 @@ export default {
                 class="col span-12 advanced"
                 :is-open-by-default="showCustomRegistryAdvancedInput"
                 :mode="mode"
+                data-testid="registries-advanced-section"
               >
                 <Banner
                   :closable="false"
