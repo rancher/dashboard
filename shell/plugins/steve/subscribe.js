@@ -639,7 +639,13 @@ const defaultActions = {
       await dispatch('find', {
         type: resourceType,
         id,
-        opt,
+        opt:  {
+          ...opt,
+          // Pass the namespace so `find` can construct the url correctly
+          namespaced: namespace,
+          // Ensure that find calls watch with no revision (otherwise it'll use the revision from the resource which is probably stale)
+          revision:   null
+        },
       });
       commit('clearInError', params);
 
