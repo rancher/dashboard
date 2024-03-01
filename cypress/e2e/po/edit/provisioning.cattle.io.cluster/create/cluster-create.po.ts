@@ -11,6 +11,14 @@ export default abstract class ClusterManagerCreatePagePo extends ClusterManagerC
     super(ClusterManagerCreatePagePo.url);
   }
 
+  rke1PageTitle(): Cypress.Chainable<string> {
+    return cy.iFrame().find('.header h1').invoke('text');
+  }
+
+  rke2PageTitle(): Cypress.Chainable<string> {
+    return this.self().find('.primaryheader h1').invoke('text');
+  }
+
   rkeToggle() {
     return new ToggleSwitchPo('.toggle-container', this.self());
   }
