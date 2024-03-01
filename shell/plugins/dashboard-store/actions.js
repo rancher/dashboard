@@ -442,8 +442,11 @@ export default {
       const watchMsg = {
         type,
         id,
-        revision: res?.metadata?.resourceVersion,
-        force:    opt.forceWatch === true,
+        // Although not used by sockets, we need this for when resyncWatch calls find... which needs namespace to construct the url
+        namespace: opt.namespaced,
+        // Override the revision. Used in cases where the resource's own revision will be too old
+        revision:  typeof opt.revision !== 'undefined' ? opt.revision : res?.metadata?.resourceVersion,
+        force:     opt.forceWatch === true,
       };
 
       const idx = id.indexOf('/');
