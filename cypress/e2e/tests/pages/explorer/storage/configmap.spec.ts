@@ -6,7 +6,7 @@ describe('ConfigMap', () => {
     cy.login();
   });
 
-  it('creates a configmap and displays it in the list', () => {
+  it('creates a configmap and displays it in the list', { tags: ['@adminUser'] }, () => {
     const expectedValue = `# Sample XPlanManagerAPI Configuration (if this comment is longer than 80 characters, the output should remain the same)
 
 apiUrl=https://example.com/xplan-api-manager
