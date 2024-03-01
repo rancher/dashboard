@@ -128,10 +128,25 @@ export default {
     // `namespaced` is either
     // - a string representing a single namespace - add restriction to the url
     // - an array of namespaces or projects - add restriction as a param
-    if (opt?.namespaced && !pAndNFiltering.isApplicable(opt)) {
-      const parts = url.split('/');
+    if (!opt?.url && opt?.namespaced && !pAndNFiltering.isApplicable(opt)) {
+      // Update path to include `namespace`, but take into account
+      // - if there is an id
+      // - if there are query params
 
-      url = `${ parts.join('/') }/${ opt.namespaced }`;
+      // Construct a url so query params / fragments are avoided
+      const urlObj = new URL(url);
+      const parts = urlObj.pathname.split('/');
+
+      if (id) {
+        // namespace should go before the id in the path
+        parts.splice(parts.length - 1, 0, opt.namespaced);
+        urlObj.pathname = parts.join('/');
+      } else {
+        // namespace should go at the end of the path
+        urlObj.pathname = `${ urlObj.pathname.split('/').join('/') }/${ opt.namespaced }`;
+      }
+
+      url = urlObj.toString();
     }
 
     return url;
