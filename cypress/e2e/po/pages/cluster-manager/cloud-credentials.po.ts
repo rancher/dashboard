@@ -13,7 +13,7 @@ export default class CloudCredentialsPagePo extends PagePo {
     return super.goTo(CloudCredentialsPagePo.createPath(clusterId));
   }
 
-  constructor(private clusterId = 'local') {
+  constructor(private clusterId = '_') {
     super(CloudCredentialsPagePo.createPath(clusterId));
   }
 

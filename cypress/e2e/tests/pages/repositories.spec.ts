@@ -4,7 +4,7 @@ import * as path from 'path';
 import * as jsyaml from 'js-yaml';
 
 describe('Cluster Management Helm Repositories', { testIsolation: 'off', tags: ['@manager', '@adminUser'] }, () => {
-  const repositoriesPage = new ChartRepositoriesPagePo('_', 'manager');
+  const repositoriesPage = new ChartRepositoriesPagePo(undefined, 'manager');
   const downloadsFolder = Cypress.config('downloadsFolder');
 
   before(() => {

@@ -14,7 +14,7 @@ export default class RkeDriversPagePo extends PagePo {
     return super.goTo(RkeDriversPagePo.createPath(clusterId));
   }
 
-  constructor(clusterId: string) {
+  constructor(clusterId = '_') {
     super(RkeDriversPagePo.createPath(clusterId));
   }
 

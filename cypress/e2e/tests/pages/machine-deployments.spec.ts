@@ -4,7 +4,7 @@ import * as path from 'path';
 import * as jsyaml from 'js-yaml';
 
 describe('MachineDeployments', { testIsolation: 'off', tags: ['@manager', '@adminUser'] }, () => {
-  const machineDeploymentsPage = new MachineDeploymentsPagePo('_');
+  const machineDeploymentsPage = new MachineDeploymentsPagePo();
   const nsName = 'default';
   let resourceVersion = '';
   let creationTimestamp = '';

@@ -4,7 +4,7 @@ import EmberModalPo from '@/cypress/e2e/po/components/ember/ember-modal.po';
 describe.skip('Pod Security Policy Templates', { testIsolation: 'off', tags: ['@manager', '@adminUser'] }, () => {
   // Note: this test fails due to https://github.com/rancher/dashboard/issues/10187
   // skipping these tests until issue is resolved
-  const podSecurityTemplatesPage = new PodSecurityPoliciesTemplatesPagePo('_');
+  const podSecurityTemplatesPage = new PodSecurityPoliciesTemplatesPagePo();
 
   before(() => {
     cy.login();
