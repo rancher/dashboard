@@ -13,7 +13,7 @@ export default class NodeTemplatesPagePo extends PagePo {
     return super.goTo(NodeTemplatesPagePo.createPath(clusterId));
   }
 
-  constructor(clusterId: string) {
+  constructor(clusterId = '_') {
     super(NodeTemplatesPagePo.createPath(clusterId));
   }
 

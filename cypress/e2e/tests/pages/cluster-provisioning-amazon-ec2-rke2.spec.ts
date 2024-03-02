@@ -7,7 +7,7 @@ import LoadingPo from '@/cypress/e2e/po/components/loading.po';
 
 // will only run this in jenkins pipeline where cloud credentials are stored
 describe('Provision Node driver RKE2 cluster', { testIsolation: 'off', tags: ['@manager', '@adminUser', '@jenkins'] }, () => {
-  const clusterList = new ClusterManagerListPagePo('_');
+  const clusterList = new ClusterManagerListPagePo();
   let removeCloudCred = false;
   let cloudcredentialId = '';
 
@@ -37,9 +37,9 @@ describe('Provision Node driver RKE2 cluster', { testIsolation: 'off', tags: ['@
   });
 
   it('can provision a Amazon EC2 RKE2 cluster with Amazon cloud provider', function() {
-    const createRKE2ClusterPage = new ClusterManagerCreateRke2AmazonPagePo('_');
+    const createRKE2ClusterPage = new ClusterManagerCreateRke2AmazonPagePo();
     const cloudCredForm = createRKE2ClusterPage.cloudCredentialsForm();
-    const clusterDetails = new ClusterManagerDetailRke2AmazonEc2PagePo('_', this.rke2Ec2ClusterName);
+    const clusterDetails = new ClusterManagerDetailRke2AmazonEc2PagePo(undefined, this.rke2Ec2ClusterName);
 
     // create cluster
     ClusterManagerListPagePo.navTo();
@@ -95,7 +95,7 @@ describe('Provision Node driver RKE2 cluster', { testIsolation: 'off', tags: ['@
     // check states
     clusterList.list().state(this.rke2Ec2ClusterName).should('contain', 'Reconciling');
     clusterList.list().state(this.rke2Ec2ClusterName).should('contain', 'Updating');
-    clusterList.list().state(this.rke2Ec2ClusterName).contains('Active', { timeout: 400000 });
+    clusterList.list().state(this.rke2Ec2ClusterName).contains('Active', { timeout: 700000 });
 
     // check k8s version
     clusterList.list().version(this.rke2Ec2ClusterName).then(function(el) {

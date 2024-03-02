@@ -11,7 +11,7 @@ export default class MachineDeploymentsCreateEditPo extends PagePo {
     throw new Error('invalid');
   }
 
-  constructor(clusterId = 'local', nsName?: string, machineSetName?: string) {
+  constructor(clusterId = '_', nsName?: string, machineSetName?: string) {
     super(MachineDeploymentsCreateEditPo.createPath(clusterId, nsName, machineSetName));
   }
 

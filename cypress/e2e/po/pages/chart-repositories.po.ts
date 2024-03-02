@@ -16,7 +16,7 @@ export default class ChartRepositoriesPagePo extends PagePo {
     return super.goTo(ChartRepositoriesPagePo.createPath(clusterId, product));
   }
 
-  constructor(private clusterId = 'local', private product: 'apps' | 'manager') {
+  constructor(private clusterId = '_', private product: 'apps' | 'manager') {
     super(ChartRepositoriesPagePo.createPath(clusterId, product));
   }
 

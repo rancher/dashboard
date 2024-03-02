@@ -12,7 +12,7 @@ export default class PodSecurityAdmissionsPagePo extends PagePo {
     return super.goTo(PodSecurityAdmissionsPagePo.createPath(clusterId));
   }
 
-  constructor(private clusterId = 'local') {
+  constructor(private clusterId = '_') {
     super(PodSecurityAdmissionsPagePo.createPath(clusterId));
   }
 
