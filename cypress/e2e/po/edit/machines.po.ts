@@ -12,7 +12,7 @@ export default class MachinesCreateEditPo extends PagePo {
     throw new Error('invalid');
   }
 
-  constructor(clusterId = 'local', nsName?: string, machineName?: string) {
+  constructor(clusterId = '_', nsName?: string, machineName?: string) {
     super(MachinesCreateEditPo.createPath(clusterId, nsName, machineName));
   }
 

@@ -12,8 +12,8 @@ describe('Registries for RKE2', { tags: ['@manager', '@adminUser'] }, () => {
   });
 
   it('Should send the correct payload to the server', function() {
-    const clusterList = new ClusterManagerListPagePo('local');
-    const createCustomClusterPage = new ClusterManagerCreateRke2CustomPagePo('local');
+    const clusterList = new ClusterManagerListPagePo();
+    const createCustomClusterPage = new ClusterManagerCreateRke2CustomPagePo();
 
     clusterList.goTo();
 

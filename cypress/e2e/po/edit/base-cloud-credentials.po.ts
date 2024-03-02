@@ -14,7 +14,7 @@ export default class BaseCloudCredentialsPo extends PagePo {
     throw new Error('invalid');
   }
 
-  constructor(clusterId = 'local', id?: string) {
+  constructor(clusterId = '_', id?: string) {
     super(BaseCloudCredentialsPo.createPath(clusterId, id));
   }
 

@@ -13,7 +13,7 @@ export default class MachineDeploymentsPagePo extends PagePo {
     return super.goTo(MachineDeploymentsPagePo.createPath(clusterId));
   }
 
-  constructor(private clusterId = 'local') {
+  constructor(private clusterId = '_') {
     super(MachineDeploymentsPagePo.createPath(clusterId));
   }
 
