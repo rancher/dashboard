@@ -2,7 +2,7 @@ import RkeDriversPagePo from '@/cypress/e2e/po/pages/cluster-manager/rke-drivers
 import EmberModalPo from '@/cypress/e2e/po/components/ember/ember-modal.po';
 
 describe('Drivers', { testIsolation: 'off', tags: ['@manager', '@adminUser'] }, () => {
-  const driversPage = new RkeDriversPagePo('_');
+  const driversPage = new RkeDriversPagePo();
   const emberModal = new EmberModalPo();
 
   before(() => {

@@ -14,7 +14,7 @@ export default class MachineSetsPagePo extends PagePo {
     return super.goTo(MachineSetsPagePo.createPath(clusterId));
   }
 
-  constructor(private clusterId = 'local') {
+  constructor(private clusterId = '_') {
     super(MachineSetsPagePo.createPath(clusterId));
   }
 

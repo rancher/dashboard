@@ -6,7 +6,7 @@ import * as jsyaml from 'js-yaml';
 import { createPayloadData, updatePayloadData } from '@/cypress/e2e/blueprints/cluster_management/pod-security-admissions-payload';
 
 describe('Pod Security Admissions', { testIsolation: 'off', tags: ['@manager', '@adminUser'] }, () => {
-  const podSecurityAdmissionsPage = new PodSecurityAdmissionsPagePo('_');
+  const podSecurityAdmissionsPage = new PodSecurityAdmissionsPagePo();
   const resourceDetails = new ResourceDetailPo('.main-layout');
   const downloadsFolder = Cypress.config('downloadsFolder');
 

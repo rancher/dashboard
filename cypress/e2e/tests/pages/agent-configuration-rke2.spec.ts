@@ -14,9 +14,9 @@ describe('Agent Configuration for RKE2', { tags: '@adminUser' }, () => {
   });
 
   it('Should send the correct payload to the server', () => {
-    const createCustomClusterPage = new ClusterManagerCreateRke2CustomPagePo('local');
+    const createCustomClusterPage = new ClusterManagerCreateRke2CustomPagePo();
 
-    createCustomClusterPage.goToCustomClusterCreation('local');
+    createCustomClusterPage.goToCustomClusterCreation('_');
     createCustomClusterPage.waitForPage();
 
     // intercept

@@ -7,7 +7,7 @@ import LoadingPo from '@/cypress/e2e/po/components/loading.po';
 
 // will only run this in jenkins pipeline where cloud credentials are stored
 describe('Provision Node driver RKE2 cluster with Azure', { testIsolation: 'off', tags: ['@manager', '@adminUser', '@jenkins'] }, () => {
-  const clusterList = new ClusterManagerListPagePo('_');
+  const clusterList = new ClusterManagerListPagePo();
   let removeCloudCred = false;
   let cloudcredentialId = '';
 
@@ -19,9 +19,9 @@ describe('Provision Node driver RKE2 cluster with Azure', { testIsolation: 'off'
   });
 
   it('can provision a RKE2 cluster with Azure cloud provider', function() {
-    const createRKE2ClusterPage = new ClusterManagerCreateRke2AzurePagePo('_');
+    const createRKE2ClusterPage = new ClusterManagerCreateRke2AzurePagePo();
     const cloudCredForm = createRKE2ClusterPage.cloudCredentialsForm();
-    const clusterDetails = new ClusterManagerDetailRke2AzurePagePo('_', this.rke2AzureClusterName);
+    const clusterDetails = new ClusterManagerDetailRke2AzurePagePo(undefined, this.rke2AzureClusterName);
 
     // create cluster
     ClusterManagerListPagePo.navTo();

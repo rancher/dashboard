@@ -4,7 +4,7 @@ import * as path from 'path';
 import * as jsyaml from 'js-yaml';
 
 describe('MachineSets', { testIsolation: 'off', tags: ['@manager', '@adminUser'] }, () => {
-  const machineSetsPage = new MachineSetsPagePo('_');
+  const machineSetsPage = new MachineSetsPagePo();
   const nsName = 'default';
   let resourceVersion = '';
   let creationTimestamp = '';

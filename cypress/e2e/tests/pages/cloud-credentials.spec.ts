@@ -3,7 +3,7 @@ import CloudCredentialsPagePo from '@/cypress/e2e/po/pages/cluster-manager/cloud
 
 // will only run this in jenkins pipeline where cloud credentials are stored
 describe('Cloud Credentials', { testIsolation: 'off', tags: ['@manager', '@jenkins', '@adminUser', '@standardUser'] }, () => {
-  const cloudCredentialsPage = new CloudCredentialsPagePo('_');
+  const cloudCredentialsPage = new CloudCredentialsPagePo();
   let cloudcredentialId = '';
 
   before(() => {
@@ -101,7 +101,7 @@ describe('Cloud Credentials', { testIsolation: 'off', tags: ['@manager', '@jenki
     CloudCredentialsPagePo.navTo();
 
     // delete original cloud credential
-    cloudCredentialsPage.list().resourceTable().sortableTable().rowSelectCtlWithName(this.cloudCredentialName)
+    cloudCredentialsPage.list().resourceTable().sortableTable().rowSelectCtlWithName(`${ this.cloudCredentialName }-name-edit`)
       .set();
     cloudCredentialsPage.list().resourceTable().sortableTable().deleteButton()
       .click();

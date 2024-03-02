@@ -4,8 +4,8 @@ import RkeTemplatesPagePo from '@/cypress/e2e/po/pages/cluster-manager/rke-templ
 import EmberModalPo from '@/cypress/e2e/po/components/ember/ember-modal.po';
 
 describe('RKE Templates', { testIsolation: 'off', tags: ['@manager', '@adminUser'] }, () => {
-  const rkeTemplatesPage = new RkeTemplatesPagePo('_');
-  const clusterList = new ClusterManagerListPagePo('local');
+  const rkeTemplatesPage = new RkeTemplatesPagePo();
+  const clusterList = new ClusterManagerListPagePo();
   const promptRemove = new EmberModalPo();
 
   before(() => {
@@ -36,7 +36,7 @@ describe('RKE Templates', { testIsolation: 'off', tags: ['@manager', '@adminUser
     clusterList.checkIsCurrentPage();
     clusterList.createCluster();
 
-    const createClusterRKE1Page = new ClusterManagerCreateRke1CustomPagePo('local');
+    const createClusterRKE1Page = new ClusterManagerCreateRke1CustomPagePo();
 
     createClusterRKE1Page.waitForPage();
 

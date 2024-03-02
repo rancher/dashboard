@@ -12,7 +12,7 @@ export default class ClusterManagerImportPagePo extends ClusterManagerCreateImpo
     return super.goTo(ClusterManagerImportPagePo.createPath(clusterId));
   }
 
-  constructor(clusterId: string) {
+  constructor(clusterId = '_') {
     super(ClusterManagerImportPagePo.createPath(clusterId));
   }
 

@@ -14,7 +14,7 @@ export default class PodSecurityPoliciesTemplatesPagePo extends PagePo {
     return super.goTo(PodSecurityPoliciesTemplatesPagePo.createPath(clusterId));
   }
 
-  constructor(clusterId: string) {
+  constructor(clusterId = '_') {
     super(PodSecurityPoliciesTemplatesPagePo.createPath(clusterId));
   }
 

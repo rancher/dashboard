@@ -14,7 +14,7 @@ export default class ClusterManagerListPagePo extends PagePo {
     return super.goTo(ClusterManagerListPagePo.createPath(clusterId));
   }
 
-  constructor(clusterId: string) {
+  constructor(clusterId = '_') {
     super(ClusterManagerListPagePo.createPath(clusterId));
   }
 
