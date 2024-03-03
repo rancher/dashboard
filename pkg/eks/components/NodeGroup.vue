@@ -12,6 +12,7 @@ import { MANAGED_TEMPLATE_PREFIX, parseTags } from '../util/aws';
 import { isEmpty } from '@shell/utils/object';
 import debounce from 'lodash/debounce';
 import { randomStr } from '@shell/utils/string';
+import ArrayList from '@shell/components/form/ArrayList.vue';
 
 const launchTemplateFieldMapping = {
   imageId:      'ImageId',
@@ -32,7 +33,8 @@ export default defineComponent({
     LabeledSelect,
     KeyValue,
     Banner,
-    Checkbox
+    Checkbox,
+    ArrayList
   },
 
   props: {
@@ -61,6 +63,18 @@ export default defineComponent({
     imageId: {
       type:    String,
       default: ''
+    },
+    desiredSize: {
+      type:    Number,
+      default: null
+    },
+    minSize: {
+      type:    Number,
+      default: null
+    },
+    maxSize: {
+      type:    Number,
+      default: null
     },
     diskSize: {
       type:    Number,
@@ -302,8 +316,9 @@ export default defineComponent({
 
 <template>
   <div>
+    <h3>Group Details</h3>
     <div class="row mb-10">
-      <div class="col span-3">
+      <div class="col span-6">
         <LabeledInput
           :value="nodegroupName"
           label="Node Group Name"
@@ -311,40 +326,69 @@ export default defineComponent({
           @input="$emit('update:nodegroupName', $event)"
         />
       </div>
-    </div>
-    <!--
-    <div class="row mb-10">
-      <div class="col span-3">
-        <LabeledInput
-          v-model.number="node.desiredSize"
-          label="Desired ASG size"
-          :mode="mode"
-        />
-      </div>
-      <div class="col span-3">
-        <LabeledInput
-          v-model.number="node.minSize"
-          label="Minimum ASG Size"
-          :mode="mode"
-        />
-      </div>
-      <div class="col span-3">
-        <LabeledInput
-          v-model.number="node.maxSize"
-          label="Maximum ASG size"
-          :mode="mode"
-        />
-      </div>
-    </div> -->
-    <div class="row mb-10">
+
       <!-- //TODO nb node instance roles -->
-      <div class="col span-3">
+      <div class="col span-6">
         <LabeledSelect
           :mode="mode"
           label="Node Instance Role"
           :options="[]"
         />
       </div>
+    </div>
+    <div class="row mb-10">
+      <div class="col span-3">
+        <LabeledInput
+          :value="desiredSize"
+          label="Desired ASG size"
+          :mode="mode"
+          @input="$emit('update:desiredSize', $event)"
+        />
+      </div>
+      <div class="col span-3">
+        <LabeledInput
+          :value="minSize"
+          label="Minimum ASG Size"
+          :mode="mode"
+          @input="$emit('update:minSize', $event)"
+        />
+      </div>
+      <div class="col span-3">
+        <LabeledInput
+          :value="maxSize"
+          label="Maximum ASG size"
+          :mode="mode"
+          @input="$emit('update:maxSize', $event)"
+        />
+      </div>
+    </div>
+    <div class="row mb-10">
+      <div class="col span-6">
+        <KeyValue
+          :mode="mode"
+          label="Group Labels"
+          :read-allowed="false"
+        >
+          <template #title>
+            <label class="text-label">Group Labels</label>
+          </template>
+        </KeyValue>
+      </div>
+      <div class="col span-6">
+        <KeyValue
+          :mode="mode"
+          label="Group Tags"
+          :read-allowed="false"
+        >
+          <template #title>
+            <label class="text-label">Group Tags</label>
+          </template>
+        </KeyValue>
+      </div>
+    </div>
+    <hr class="mb-20">
+    <h3>Node Template Details</h3>
+    <div class="row mb-10">
       <div class="col span-3">
         <LabeledSelect
           v-model="selectedLaunchTemplate"
@@ -409,16 +453,6 @@ export default defineComponent({
     />
     <div class="row mb-10">
       <div class="col span-3">
-        <LabeledInput
-          type="multiline"
-          :value="ec2SshKey"
-          label="SSH Key"
-          :mode="mode"
-          :disabled="hasUserLaunchTemplate"
-          @input="$emit('update:ec2SshKey', $event)"
-        />
-      </div>
-      <div class="col span-3">
         <Checkbox
           :mode="mode"
           label="GPU Enabled Instance"
@@ -429,13 +463,42 @@ export default defineComponent({
         />
       </div>
       <div class="col span-3">
-        <!-- //TODO nb array list of spot instance options -->
         <Checkbox
           v-model="useSpotInstances"
           :mode="mode"
           label="Request Spot Instances"
           :disabled="hasRancherLaunchTemplate"
         />
+      </div>
+    </div>
+    <div
+      v-if="useSpotInstances && !hasUserLaunchTemplate"
+      class="row mb-10"
+    >
+      <div
+        class="col span-6"
+      >
+        <ArrayList
+          :mode="mode"
+          :value="spotInstanceTypes"
+          :disabled="hasUserLaunchTemplate"
+          title="Spot Instance Types"
+          :initial-empty-row="true"
+          @input="$emit('update:spotInstanceTypes', $event)"
+        >
+          <template #title>
+            <label class="text-label">Spot Instance Types</label>
+          </template>
+          <template #value="props">
+            <!-- //TODO nb are all instance types valid here? -->
+            <LabeledSelect
+              :options="instanceTypeOptions"
+              :loading="loadingSelectedVersion"
+              :mode="mode"
+              :value="props.row.value"
+            />
+          </template>
+        </ArrayList>
       </div>
     </div>
     <div class="row mb-10">
@@ -450,6 +513,18 @@ export default defineComponent({
         />
       </div>
       <div class="col span-6">
+        <LabeledInput
+          type="multiline"
+          :value="ec2SshKey"
+          label="SSH Key"
+          :mode="mode"
+          :disabled="hasUserLaunchTemplate"
+          @input="$emit('update:ec2SshKey', $event)"
+        />
+      </div>
+    </div>
+    <div row="mb-10">
+      <div class="col span-6">
         <KeyValue
           :key="resourceTagKey"
           :mode="mode"
@@ -461,30 +536,6 @@ export default defineComponent({
         >
           <template #title>
             <label class="text-label">Instance Resource Tags</label>
-          </template>
-        </KeyValue>
-      </div>
-    </div>
-    <div class="row mb-10">
-      <div class="col span-6">
-        <KeyValue
-          :mode="mode"
-          label="Group Labels"
-          :read-allowed="false"
-        >
-          <template #title>
-            <label class="text-label">Group Labels</label>
-          </template>
-        </KeyValue>
-      </div>
-      <div class="col span-6">
-        <KeyValue
-          :mode="mode"
-          label="Group Tags"
-          :read-allowed="false"
-        >
-          <template #title>
-            <label class="text-label">Group Tags</label>
           </template>
         </KeyValue>
       </div>
