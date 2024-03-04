@@ -33,6 +33,23 @@ export default defineComponent({
       type:    Boolean,
       default: true
     },
+
+    loadingIam: {
+      type:    Boolean,
+      default: false
+    },
+    eksRoles: {
+      type:    Array,
+      default: () => []
+    },
+    kmsKey: {
+      type:    String,
+      default: ''
+    },
+    serviceRole: {
+      type:    String,
+      default: ''
+    },
     kubernetesVersion: {
       type:    String,
       default: ''
@@ -63,6 +80,7 @@ export default defineComponent({
 
     return {
       kmsInfo:               {} as any,
+      iamInfo:               {} as any,
       canReadKms:            false,
       supportedVersionRange,
       // TODO nb defaults from config
@@ -70,7 +88,6 @@ export default defineComponent({
       encryptSecrets:        false,
       loadingVersions:       false,
       loadingKms:            false,
-      loadingServiceRoles:   false,
       // TODO nb redo as dropdown with "create one for me(default)" as the first option
       serviceRoleOptions:    [{ value: false, label: 'Standard: A service role will be automatically created' }, { value: true, label: 'Custom: Choose from an existing service role' }],
       allKubernetesVersions: eksVersions as string[],
@@ -90,7 +107,15 @@ export default defineComponent({
       this.fetchKMSKeys();
     },
     'encryptSecrets'(neu) {
-      // TODO nb if!neu clear kms field
+      if (!neu) {
+        this.$emit('update:kmsKey', '');
+      }
+    },
+
+    'customServiceRole'(neu) {
+      if (!neu) {
+        this.$emit('update:serviceRole', '');
+      }
     },
 
     versionOptions: {
@@ -100,7 +125,8 @@ export default defineComponent({
         }
       },
       immediate: true
-    }
+    },
+
   },
 
   computed: {
@@ -182,6 +208,7 @@ export default defineComponent({
       }
       this.loadingKms = false;
     },
+
   }
 });
 
@@ -232,15 +259,17 @@ export default defineComponent({
           name="serviceRoleMode"
         />
       </div>
-      <!-- //TODO nb serviceroles -->
       <div class="col span-6">
         <LabeledSelect
           v-if="customServiceRole"
-          v-model="config.serviceRole"
+          :value="serviceRole"
           :mode="mode"
-          :options="[]"
+          :options="eksRoles"
+          option-label="RoleName"
+          option-key="RoleId"
           label="Service Role"
-          :loading="loadingServiceRoles"
+          :loading="loadingIam"
+          @input="$emit('update:serviceRole', $event)"
         />
       </div>
     </div>
@@ -263,18 +292,20 @@ export default defineComponent({
       >
         <LabeledSelect
           v-if="canReadKms"
-          v-model="config.kmsKey"
+          :value="kmsKey"
           :mode="mode"
           :options="kmsOptions"
           :loading="loadingKms"
           :label="t('cluster.machineConfig.amazonEc2.kmsKey.label')"
+          @input="$emit('update:kmsKey', $event)"
         />
         <template v-else>
           <LabeledInput
-            v-model="config.kmsKey"
+            :value="kmsKey"
             :mode="mode"
             :label="t('cluster.machineConfig.amazonEc2.kmsKey.label')"
             :tooltip="t('cluster.machineConfig.amazonEc2.kmsKey.text')"
+            @input="$emit('update:kmsKey', $event)"
           />
         </template>
       </div>
@@ -287,7 +318,11 @@ export default defineComponent({
         title="Tags"
         :as-map="true"
         :read-allowed="false"
-      />
+      >
+        <template #title>
+          <label class="text-label">Tags</label>
+        </template>
+      </KeyValue>
     </div>
   </div>
 </template>
