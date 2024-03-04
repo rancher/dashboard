@@ -12,7 +12,6 @@ import { MANAGED_TEMPLATE_PREFIX, parseTags } from '../util/aws';
 import { isEmpty } from '@shell/utils/object';
 import debounce from 'lodash/debounce';
 import { randomStr } from '@shell/utils/string';
-import ArrayList from '@shell/components/form/ArrayList.vue';
 
 const launchTemplateFieldMapping = {
   imageId:      'ImageId',
@@ -34,7 +33,6 @@ export default defineComponent({
     KeyValue,
     Banner,
     Checkbox,
-    ArrayList
   },
 
   props: {
@@ -44,9 +42,25 @@ export default defineComponent({
         return {};
       }
     },
+    requestSpotInstances: {
+      type:    Boolean,
+      default: false
+    },
     spotInstanceTypes: {
       type:    Array,
       default: () => []
+    },
+    labels: {
+      type:    Object,
+      default: () => {
+        return {};
+      }
+    },
+    tags: {
+      type:    Object,
+      default: () => {
+        return {};
+      }
     },
     gpu: {
       type:    Boolean,
@@ -134,7 +148,6 @@ export default defineComponent({
       // once a specific lt has been selected, an additional query is made to get full information on every version of it
       selectedLaunchTemplateInfo:     {} as any,
       debouncedSetValuesFromTemplate: null as any,
-      useSpotInstances:               !!this.spotInstanceTypes.length,
       // the keyvalue component needs to be re-rendered if the value prop is updated by parent component when as-map=true
       // TODO nb file an issue
       resourceTagKey:                 randomStr()
@@ -156,7 +169,15 @@ export default defineComponent({
     'selectedVersionData'(neu = {}, old = {}) {
       this.loadingSelectedVersion = true;
       this.debouncedSetValuesFromTemplate(neu, old);
-    }
+    },
+
+    'requestSpotInstances'(neu) {
+      if (neu && !this.templateValue('instanceType')) {
+        this.$emit('update:instanceType', null);
+      } else {
+        this.$emit('update:spotInstanceTypes', null);
+      }
+    },
   },
 
   computed: {
@@ -309,7 +330,7 @@ export default defineComponent({
       }
 
       return null;
-    }
+    },
   },
 });
 </script>
@@ -368,6 +389,9 @@ export default defineComponent({
           :mode="mode"
           label="Group Labels"
           :read-allowed="false"
+          :value="labels"
+          :as-map="true"
+          @input="$emit('update:labels', $event)"
         >
           <template #title>
             <label class="text-label">Group Labels</label>
@@ -379,6 +403,9 @@ export default defineComponent({
           :mode="mode"
           label="Group Tags"
           :read-allowed="false"
+          :as-map="true"
+          :value="tags"
+          @input="$emit('update:tags', $event)"
         >
           <template #title>
             <label class="text-label">Group Tags</label>
@@ -414,13 +441,14 @@ export default defineComponent({
     <div class="row mb-10">
       <div class="col span-3">
         <LabeledSelect
-          :required="!useSpotInstances"
+          :required="!requestSpotInstances"
           :mode="mode"
           label="Instance Type"
           :options="instanceTypeOptions"
           :loading="loadingSelectedVersion"
           :value="instanceType"
-          :disabled="!!templateValue('instanceType')"
+          :disabled="!!templateValue('instanceType') || requestSpotInstances"
+          :tooltip="(requestSpotInstances && !templateValue('instanceType')) ? 'Instance Type will not be sent when requesting spot instances. You must include Spot Instance Types instead.': ''"
           @input="$emit('update:instanceType', $event)"
         />
       </div>
@@ -447,7 +475,7 @@ export default defineComponent({
       </div>
     </div>
     <Banner
-      v-if="useSpotInstances && hasUserLaunchTemplate"
+      v-if="requestSpotInstances && hasUserLaunchTemplate"
       color="warning"
       label="Amazon recommends selecting multiple instance types when using spot instances. Since the template you have selected allows for only one instance time, your nodes may be interrupted more often."
     />
@@ -464,41 +492,30 @@ export default defineComponent({
       </div>
       <div class="col span-3">
         <Checkbox
-          v-model="useSpotInstances"
+          :value="requestSpotInstances"
           :mode="mode"
           label="Request Spot Instances"
           :disabled="hasRancherLaunchTemplate"
+          @input="$emit('update:requestSpotInstances', $event)"
         />
       </div>
     </div>
     <div
-      v-if="useSpotInstances && !hasUserLaunchTemplate"
+      v-if="requestSpotInstances && !templateValue('instanceType')"
       class="row mb-10"
     >
       <div
         class="col span-6"
       >
-        <ArrayList
+        <!-- //TODO nb are all instance types valid here? -->
+        <LabeledSelect
           :mode="mode"
           :value="spotInstanceTypes"
-          :disabled="hasUserLaunchTemplate"
-          title="Spot Instance Types"
-          :initial-empty-row="true"
+          label="Spot Instance Types"
+          :options="instanceTypeOptions"
+          :multiple="true"
           @input="$emit('update:spotInstanceTypes', $event)"
-        >
-          <template #title>
-            <label class="text-label">Spot Instance Types</label>
-          </template>
-          <template #value="props">
-            <!-- //TODO nb are all instance types valid here? -->
-            <LabeledSelect
-              :options="instanceTypeOptions"
-              :loading="loadingSelectedVersion"
-              :mode="mode"
-              :value="props.row.value"
-            />
-          </template>
-        </ArrayList>
+        />
       </div>
     </div>
     <div class="row mb-10">
