@@ -33,7 +33,7 @@ describe('Provision Node driver RKE2 cluster with Azure', { testIsolation: 'off'
     createRKE2ClusterPage.rkeToggle().set('RKE2/K3s');
     createRKE2ClusterPage.selectCreate(1);
     createRKE2ClusterPage.rke2PageTitle().should('include', 'Create Azure');
-    createRKE2ClusterPage.waitForPage('type=azure&rkeType=rke2');
+    createRKE2ClusterPage.waitForPage('type=azure');
 
     // create Azure cloud credential
     cloudCredForm.nameNsDescription().name().set(this.azureCloudCredentialName);
@@ -51,7 +51,7 @@ describe('Provision Node driver RKE2 cluster with Azure', { testIsolation: 'off'
     const loadingPo = new LoadingPo('.loading-indicator');
 
     loadingPo.checkNotExists();
-    createRKE2ClusterPage.waitForPage('type=azure&rkeType=rke2', 'basic');
+    createRKE2ClusterPage.waitForPage('type=azure', 'basic');
     createRKE2ClusterPage.nameNsDescription().name().set(this.rke2AzureClusterName);
     createRKE2ClusterPage.nameNsDescription().description().set(`${ this.rke2AzureClusterName }-description`);
 
