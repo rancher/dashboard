@@ -11,6 +11,7 @@ import LabeledSelect from '@shell/components/form/LabeledSelect.vue';
 import KeyValue from '@shell/components/form/KeyValue.vue';
 import Checkbox from '@components/Form/Checkbox/Checkbox.vue';
 import LabeledInput from '@components/Form/LabeledInput/LabeledInput.vue';
+import eksVersions from '../assets/data/eks-versions';
 
 export default defineComponent({
   name: 'EKSConfig',
@@ -28,7 +29,22 @@ export default defineComponent({
       type:    String,
       default: _EDIT
     },
-
+    isNewOrUnprovisioned: {
+      type:    Boolean,
+      default: true
+    },
+    kubernetesVersion: {
+      type:    String,
+      default: ''
+    },
+    enableNetworkPolicy: {
+      type:    Boolean,
+      default: false
+    },
+    ebsCSIDriver: {
+      type:    Boolean,
+      default: false
+    },
     config: {
       type:     Object as PropType<EKSConfig>,
       required: true
@@ -57,7 +73,7 @@ export default defineComponent({
       loadingServiceRoles:   false,
       // TODO nb redo as dropdown with "create one for me(default)" as the first option
       serviceRoleOptions:    [{ value: false, label: 'Standard: A service role will be automatically created' }, { value: true, label: 'Custom: Choose from an existing service role' }],
-      allKubernetesVersions: [] as string[],
+      allKubernetesVersions: eksVersions as string[],
 
     };
   },
@@ -75,6 +91,15 @@ export default defineComponent({
     },
     'encryptSecrets'(neu) {
       // TODO nb if!neu clear kms field
+    },
+
+    versionOptions: {
+      handler(neu) {
+        if (neu && neu.length && !this.kubernetesVersion) {
+          this.$emit('update:kubernetesVersion', neu[0]);
+        }
+      },
+      immediate: true
     }
   },
 
@@ -93,7 +118,7 @@ export default defineComponent({
         }
 
         return true;
-      });
+      }).sort().reverse();
     },
 
     kmsOptions(): string[] {
@@ -132,7 +157,7 @@ export default defineComponent({
           return versions;
         }, []);
       } catch (err) {
-        this.$emit('error', err);
+        // if the user doesn't have permission to describe addon versions swallow the error and use a fallback list of eks versions
       }
 
       this.loadingVersions = false;
@@ -164,26 +189,37 @@ export default defineComponent({
 
 <template>
   <div>
-    <div class="row mb-10">
+    <div
+      :style="{'display':'flex',
+               'align-items':'center'}"
+      class="row mb-10"
+    >
       <div class="col span-6">
         <LabeledSelect
-          v-model="config.kubernetesVersion"
+          :value="kubernetesVersion"
           :options="versionOptions"
           label="Kubernetes Version"
           :mode="mode"
           :loading="loadingVersions"
+          @input="$emit('update:kubernetesVersion', $event)"
         />
       </div>
       <div class="col span-3">
         <Checkbox
           :mode="mode"
           label="Project Network Isolation"
+          :value="enableNetworkPolicy"
+          :disabled="!isNewOrUnprovisioned"
+          @input="$emit('update:enableNetworkPolicy', $event)"
         />
       </div>
       <div class="col span-3">
         <Checkbox
           :mode="mode"
           label="Out of tree EBS CSI Driver"
+          :value="ebsCSIDriver"
+          :disabled="!isNewOrUnprovisioned"
+          @input="$emit('update:ebsCSIDriver', $event)"
         />
       </div>
     </div>
@@ -204,7 +240,6 @@ export default defineComponent({
           :mode="mode"
           :options="[]"
           label="Service Role"
-
           :loading="loadingServiceRoles"
         />
       </div>
@@ -219,8 +254,6 @@ export default defineComponent({
         />
       </div>
     </div>
-    <!-- //TODO nb allow custom in labeledselect -->
-    <!-- //TODO nb better placeholder for empty labeledselect -->
     <div
       v-if="encryptSecrets"
       class="row mb-10"
@@ -252,6 +285,8 @@ export default defineComponent({
         v-model="config.tags"
         :mode="mode"
         title="Tags"
+        :as-map="true"
+        :read-allowed="false"
       />
     </div>
   </div>

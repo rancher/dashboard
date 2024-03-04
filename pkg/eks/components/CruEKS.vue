@@ -98,7 +98,7 @@ export default defineComponent({
     Config,
     Checkbox,
     Networking,
-    // LabeledInput,
+    LabeledInput,
     // Checkbox,
     // FileSelector,
     // KeyValue,
@@ -233,7 +233,7 @@ export default defineComponent({
   methods: {
 
     setClusterName(name: string): void {
-      this.$set(this.normanCluster, 'name', name);
+      this.$set(this.normanCluster, 'displayName', name);
       this.$set(this.config, 'clusterName', name);
     },
 
@@ -365,6 +365,25 @@ export default defineComponent({
     @finish="save"
     @cancel="done"
   >
+    <div class="row mb-10">
+      <div class="col span-6">
+        <LabeledInput
+          required
+          label="Cluster Name"
+          :value="config.displayName"
+          :mode="mode"
+          @input="setClusterName"
+        />
+      </div>
+      <div class="col span-6">
+        <LabeledInput
+          v-model="normanCluster.description"
+          :mode="mode"
+          label-key="nameNsDescription.description.label"
+          :placeholder="t('nameNsDescription.description.placeholder')"
+        />
+      </div>
+    </div>
     <!-- //TODO nb cluster name -->
     <AccountAccess
       :credential="config.amazonCredentialSecret"
@@ -384,6 +403,9 @@ export default defineComponent({
         <Config
           :mode="mode"
           :config="config"
+          :kubernetes-version.sync="config.kubernetesVersion"
+          :enable-network-policy.sync="config.enableNetworkPolicy"
+          :ebs-c-s-i-driver.sync="config.ebsCSIDriver"
           @error="e=>errors.push(e)"
         />
       </Accordion>
