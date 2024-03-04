@@ -227,7 +227,7 @@ export default defineComponent({
     // TODO nb show more info about instance types in dropdown
     instanceTypeOptions() {
       return this.instanceTypes.map((type: any) => type.apiName);
-    }
+    },
   },
 
   methods: {
@@ -365,121 +365,119 @@ export default defineComponent({
     @finish="save"
     @cancel="done"
   >
-    <Accordion
-      class="mb-20"
-      title="Account Access"
-      :open-initially="true"
-    >
-      <AccountAccess
-        :credential="config.amazonCredentialSecret"
-        :mode="mode"
-        :region="config.region"
-        @cancel-credential="cancelCredential"
-        @update-region="updateRegion"
-        @update-credential="updateCredential"
-        @error="e=>errors.push(e)"
-      />
-    </Accordion>
-    <Accordion
-      class="mb-20"
-      title="Cluster Options"
-      :open-initially="true"
-    >
-      <Config
-        :mode="mode"
-        :config="config"
-        @error="e=>errors.push(e)"
-      />
-    </Accordion>
-    <Tabbed
-      class="mb-20"
-      :side-tabs="true"
-      :show-tabs-add-remove="mode !== 'view'"
-      @removeTab="removeGroup($event)"
-      @addTab="addGroup($event)"
-    >
-      <Tab
-        v-for="(node, i) in nodeGroups"
-        :key="i"
-        :name="node.nodegroupName"
+    <!-- //TODO nb cluster name -->
+    <AccountAccess
+      :credential="config.amazonCredentialSecret"
+      :mode="mode"
+      :region="config.region"
+      @cancel-credential="cancelCredential"
+      @update-region="updateRegion"
+      @update-credential="updateCredential"
+      @error="e=>errors.push(e)"
+    />
+    <template v-if="hasCredential">
+      <Accordion
+        class="mb-20"
+        title="Cluster Options"
+        :open-initially="true"
       >
-        <NodeGroup
+        <Config
           :mode="mode"
-          :launch-template.sync="node.launchTemplate"
-          :nodegroup-name.sync="node.nodegroupName"
-          :ec2-ssh-key.sync="node.ec2SshKey"
-          :tags.sync="node.tags"
-          :resource-tags.sync="node.resourceTags"
-          :disk-size.sync="node.diskSize"
-          :image-id.sync="node.imageId"
-          :instance-type.sync="node.instanceType"
-          :spot-instance-types.sync="node.spotInstanceTypes"
-          :user-data.sync="node.userData"
-          :gpu.sync="node.gpu"
-          :desired-size.sync="node.desiredSize"
-          :min-size.sync="node.minSize"
-          :max-size.sync="node.maxSize"
-          :request-spot-instances.sync="node.requestSpotInstances"
-          :labels.sync="node.labels"
-          :instance-type-options="instanceTypeOptions"
-          :launch-templates="launchTemplates"
-          :region="config.region"
-          :amazon-credential-secret="config.amazonCredentialSecret"
+          :config="config"
+          @error="e=>errors.push(e)"
         />
-      </Tab>
-    </Tabbed>
-
-    <Accordion
-      class="mb-20"
-      title="Logging"
-    >
-      <!-- //TODO nb v-model? -->
-      <Logging
-        :mode="mode"
-        :config="config"
-      />
-    </Accordion>
-    <Accordion
-      class="mb-20"
-      title="Networking"
-    >
-      <!-- //TODO nb v-model? -->
-      <Networking
-        :mode="mode"
-        :public-access.sync="config.publicAccess"
-        :private-access.sync="config.privateAccess"
-        :public-access-sources.sync="config.publicAccessSources"
-      />
-    </Accordion>
-    <Accordion
-      class="mb-20"
-      title="Cluster Agent Configuration"
-    />
-    <Accordion
-      class="mb-20"
-      title="Fleet Agent Configuration"
-    />
-    <Accordion
-      class="mb-20"
-      title="Cluster Membership"
-    >
-      <Banner
-        v-if="isEdit"
-        color="info"
+      </Accordion>
+      <Tabbed
+        class="mb-20"
+        :side-tabs="true"
+        :show-tabs-add-remove="mode !== 'view'"
+        @removeTab="removeGroup($event)"
+        @addTab="addGroup($event)"
       >
-        {{ t('cluster.memberRoles.removeMessage') }}
-      </Banner>
-      <ClusterMembershipEditor
-        v-if="canManageMembers"
-        :mode="mode"
-        :parent-id="normanCluster.id ? normanCluster.id : null"
-        @membership-update="onMembershipUpdate"
+        <Tab
+          v-for="(node, i) in nodeGroups"
+          :key="i"
+          :name="node.nodegroupName"
+        >
+          <NodeGroup
+            :mode="mode"
+            :launch-template.sync="node.launchTemplate"
+            :nodegroup-name.sync="node.nodegroupName"
+            :ec2-ssh-key.sync="node.ec2SshKey"
+            :tags.sync="node.tags"
+            :resource-tags.sync="node.resourceTags"
+            :disk-size.sync="node.diskSize"
+            :image-id.sync="node.imageId"
+            :instance-type.sync="node.instanceType"
+            :spot-instance-types.sync="node.spotInstanceTypes"
+            :user-data.sync="node.userData"
+            :gpu.sync="node.gpu"
+            :desired-size.sync="node.desiredSize"
+            :min-size.sync="node.minSize"
+            :max-size.sync="node.maxSize"
+            :request-spot-instances.sync="node.requestSpotInstances"
+            :labels.sync="node.labels"
+            :instance-type-options="instanceTypeOptions"
+            :launch-templates="launchTemplates"
+            :region="config.region"
+            :amazon-credential-secret="config.amazonCredentialSecret"
+            :is-new-or-unprovisioned="isNewOrUnprovisioned"
+          />
+        </Tab>
+      </Tabbed>
+
+      <Accordion
+        class="mb-20"
+        title="Logging"
+      >
+        <!-- //TODO nb v-model? -->
+        <Logging
+          :mode="mode"
+          :config="config"
+        />
+      </Accordion>
+      <Accordion
+        class="mb-20"
+        title="Networking"
+      >
+        <!-- //TODO nb v-model? -->
+        <Networking
+          :mode="mode"
+          :public-access.sync="config.publicAccess"
+          :private-access.sync="config.privateAccess"
+          :public-access-sources.sync="config.publicAccessSources"
+        />
+      </Accordion>
+      <Accordion
+        class="mb-20"
+        title="Cluster Agent Configuration"
       />
-    </Accordion>
-    <Accordion
-      class="mb-20"
-      title="Labels and Annotations"
-    />
+      <Accordion
+        class="mb-20"
+        title="Fleet Agent Configuration"
+      />
+      <Accordion
+        class="mb-20"
+        title="Cluster Membership"
+      >
+        <Banner
+          v-if="isEdit"
+          color="info"
+        >
+          {{ t('cluster.memberRoles.removeMessage') }}
+        </Banner>
+        <ClusterMembershipEditor
+          v-if="canManageMembers"
+          :mode="mode"
+          :parent-id="normanCluster.id ? normanCluster.id : null"
+          @membership-update="onMembershipUpdate"
+        />
+      </Accordion>
+      <Accordion
+        class="mb-20"
+        title="Labels and Annotations"
+      />
+    </template>
     <template
       v-if="!hasCredential"
       #form-footer

@@ -103,8 +103,8 @@ export default defineComponent({
 </script>
 
 <template>
-  <div>
-    <div class="row mb-10">
+  <div class="credential-region">
+    <div class=" mb-10">
       <LabeledSelect
         :value="region"
         label="Region"
@@ -112,18 +112,37 @@ export default defineComponent({
         @input="$emit('update-region', $event)"
       />
     </div>
-    <div class="mb-10">
+    <div class="select-credential-container mb-10">
       <SelectCredential
         :value="credential"
         data-testid="crueks-select-credential"
         :mode="mode === VIEW ? VIEW : CREATE"
         provider="aws"
         :default-on-cancel="true"
-        :showing-form="!!credential"
-        class="mt-20"
+        :showing-form="!credential"
+        class="select-credential mt-20"
         :cancel="()=>$emit('cancel-credential')"
         @input="$emit('update-credential', $event)"
       />
     </div>
   </div>
 </template>
+
+<style lang="scss">
+  .credential-region {
+    display: flex;
+    flex-direction: column;
+    flex-grow:1;
+
+    &>.select-credential-container{
+      display:flex;
+      flex-direction: column;
+      flex-grow: 1;
+
+      &>.select-credential{
+        flex-grow: 1;
+      }
+    }
+  }
+
+</style>
