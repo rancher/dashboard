@@ -14,6 +14,9 @@ describe('Provision Node driver RKE2 cluster with Azure', { testIsolation: 'off'
   before(() => {
     cy.login();
     HomePagePo.goTo();
+  });
+
+  beforeEach(() => {
     cy.createE2EResourceName('rke2azure').as('rke2AzureClusterName');
     cy.createE2EResourceName('azurecloudcredential').as('azureCloudCredentialName');
   });
