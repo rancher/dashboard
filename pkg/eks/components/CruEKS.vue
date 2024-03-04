@@ -142,9 +142,13 @@ export default defineComponent({
       this.normanCluster = await store.dispatch('rancher/create', { type: NORMAN.CLUSTER, ...defaultCluster }, { root: true });
     }
 
+    if (!this.normanCluster.eksConfig) {
+      this.$set(this.normanCluster, 'eksConfig', { publicAccess: false });
+    }
+
     // TODO nb do this better?
     // TODO nb defaults
-    this.config = this.normanCluster.eksConfig || { publicAccess: false };
+    this.config = this.normanCluster.eksConfig;
 
     if (!this.config.nodeGroups || !this.config.nodeGroups.length) {
       this.$set(this.config, 'nodeGroups', [{ ...DEFAULT_NODE_GROUP_CONFIG, nodegroupName: 'group1' }]);
@@ -172,8 +176,13 @@ export default defineComponent({
       // todo nb spinners in node ggroup component
       loadingInstanceTypes:   false,
       loadingLaunchTemplates: false,
-      instanceTypes:          [],
-      launchTemplates:        []
+
+      loadingIam:      false,
+      iamInfo:         {} as any,
+      ec2Roles:        [],
+      eksRoles:        [],
+      instanceTypes:   [],
+      launchTemplates: []
     };
   },
 
@@ -181,6 +190,40 @@ export default defineComponent({
     const registerAfterHook = this.registerAfterHook as Function;
 
     registerAfterHook(this.saveRoleBindings, 'save-role-bindings');
+  },
+
+  watch: {
+    'iamInfo'(neu: any) {
+      const ec2Roles = [] as any[];
+      const eksRoles = [] as any[];
+      const allRoles = neu?.Roles;
+
+      allRoles.forEach((role:any) => {
+        const policy = JSON.parse(decodeURIComponent(role.AssumeRolePolicyDocument));
+        const statement = policy.Statement;
+
+        statement.forEach( (doc: any) => {
+          const principal = doc.Principal;
+
+          if (principal) {
+            const service = principal.Service;
+
+            if (service && service.includes('ec2.amazonaws.com') && !ec2Roles.find((r) => r.RoleId === role.RoleId) && !role.RoleName.match(/^rancher-managed/)) {
+              ec2Roles.push(role);
+            }
+            if ( service && ( service.includes('eks.amazonaws') || service.includes('EKS') ) && !eksRoles.find((r) => r.RoleId === role.RoleId)) {
+              eksRoles.push(role);
+            } else if (principal.EKS) {
+              eksRoles.push(role);
+            }
+          }
+        });
+      });
+
+      this.ec2Roles = ec2Roles;
+      this.eksRoles = eksRoles;
+      this.loadingIam = false;
+    },
   },
 
   computed: {
@@ -233,7 +276,7 @@ export default defineComponent({
   methods: {
 
     setClusterName(name: string): void {
-      this.$set(this.normanCluster, 'displayName', name);
+      this.$set(this.normanCluster, 'name', name);
       this.$set(this.config, 'clusterName', name);
     },
 
@@ -265,7 +308,7 @@ export default defineComponent({
       // if (upstreamConfig) {
       //   const diff = diffUpstreamSpec(upstreamConfig, this.config);
 
-      //   this.$set(this.normanCluster, 'aksConfig', diff);
+      //   this.$set(this.normanCluster, 'eksConfig', diff);
       // }
     },
 
@@ -287,12 +330,14 @@ export default defineComponent({
       this.$set(this.config, 'region', e);
       this.fetchInstanceTypes();
       this.fetchLaunchTemplates();
+      this.fetchServiceRoles();
     },
 
     updateCredential(e: any) {
       this.$set(this.config, 'amazonCredentialSecret', e);
       this.fetchInstanceTypes();
       this.fetchLaunchTemplates();
+      this.fetchServiceRoles();
     },
 
     // TODO nb warn if 0 groups
@@ -327,7 +372,6 @@ export default defineComponent({
     },
 
     async fetchLaunchTemplates() {
-      console.log('fetching launch templates...');
       const store = this.$store as Store<any>;
 
       if (!this.config.region || !this.config.amazonCredentialSecret) {
@@ -339,14 +383,29 @@ export default defineComponent({
 
         const launchTemplateInfo = await ec2Client.describeLaunchTemplates({ DryRun: false });
 
-        console.log(launchTemplateInfo);
-
         this.launchTemplates = launchTemplateInfo.LaunchTemplates;
       } catch (err) {
         this.errors.push(err);
       }
       this.loadingLaunchTemplates = false;
     },
+
+    async fetchServiceRoles() {
+      const { region, amazonCredentialSecret } = this.config;
+
+      if (!region || !amazonCredentialSecret) {
+        return;
+      }
+      this.loadingIam = true;
+      const store = this.$store as Store<any>;
+      const iamClient = await store.dispatch('aws/iam', { region, cloudCredentialId: amazonCredentialSecret });
+
+      try {
+        this.iamInfo = await iamClient.listRoles({});
+      } catch (e) {
+        this.errors.push(e);
+      }
+    }
   }
 
 });
@@ -403,9 +462,13 @@ export default defineComponent({
         <Config
           :mode="mode"
           :config="config"
+          :eks-roles="eksRoles"
+          :loading-iam="loadingIam"
           :kubernetes-version.sync="config.kubernetesVersion"
           :enable-network-policy.sync="config.enableNetworkPolicy"
           :ebs-c-s-i-driver.sync="config.ebsCSIDriver"
+          :service-role.sync="config.serviceRole"
+          :kms-key.sync="config.kmsKey"
           @error="e=>errors.push(e)"
         />
       </Accordion>
@@ -423,6 +486,7 @@ export default defineComponent({
         >
           <NodeGroup
             :mode="mode"
+            :node-role.sync="node.nodeRole"
             :launch-template.sync="node.launchTemplate"
             :nodegroup-name.sync="node.nodegroupName"
             :ec2-ssh-key.sync="node.ec2SshKey"
@@ -444,6 +508,7 @@ export default defineComponent({
             :region="config.region"
             :amazon-credential-secret="config.amazonCredentialSecret"
             :is-new-or-unprovisioned="isNewOrUnprovisioned"
+            :ec2-roles="ec2Roles"
           />
         </Tab>
       </Tabbed>

@@ -73,7 +73,11 @@ export const actions = {
   },
 
   kmsLib() {
-    return import(/* webpackChunkName: "aws-ec2" */ '@aws-sdk/client-kms');
+    return import(/* webpackChunkName: "aws-kms" */ '@aws-sdk/client-kms');
+  },
+
+  iamLib() {
+    return import(/* webpackChunkName: "aws-iam" */ '@aws-sdk/client-iam');
   },
 
   async ec2({ dispatch }, {
@@ -110,6 +114,20 @@ export const actions = {
     const lib = await dispatch('kmsLib');
 
     const client = new lib.KMS({
+      region,
+      credentialDefaultProvider: credentialDefaultProvider(accessKey, secretKey),
+      requestHandler:            new Handler(cloudCredentialId),
+    });
+
+    return client;
+  },
+
+  async iam({ dispatch }, {
+    region, cloudCredentialId, accessKey, secretKey
+  }) {
+    const lib = await dispatch('iamLib');
+
+    const client = new lib.IAM({
       region,
       credentialDefaultProvider: credentialDefaultProvider(accessKey, secretKey),
       requestHandler:            new Handler(cloudCredentialId),

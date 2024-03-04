@@ -1,14 +1,15 @@
 <script lang="ts">
-import { defineComponent, PropType } from 'vue';
-import { EKSConfig, EKSLaunchTemplate, EKSNodeGroup } from '../types';
+import { defineComponent } from 'vue';
 import { _EDIT } from '@shell/config/query-params';
 import LabeledSelect from '@shell/components/form/LabeledSelect.vue';
 import LabeledInput from '@components/Form/LabeledInput/LabeledInput.vue';
 import Checkbox from '@components/Form/Checkbox/Checkbox.vue';
 import KeyValue from '@shell/components/form/KeyValue.vue';
 import Banner from '@components/Banner/Banner.vue';
+import UnitInput from '@shell/components/form/UnitInput.vue';
 
 import { MANAGED_TEMPLATE_PREFIX, parseTags } from '../util/aws';
+import { mapGetters, Store } from 'vuex';
 import { isEmpty } from '@shell/utils/object';
 import debounce from 'lodash/debounce';
 import { randomStr } from '@shell/utils/string';
@@ -17,9 +18,7 @@ const launchTemplateFieldMapping = {
   imageId:      'ImageId',
   userData:     'UserData',
   instanceType: 'InstanceType',
-  // nodeRole:     'IAMInstanceProfile.Arn',
   ec2SshKey:    '',
-  // TODO nb will need to look for tgs with ResourceType: 'instance'
   resourceTags: 'TagSpecifications',
   diskSize:     'BlockDeviceMappings'
 } as {[key: string]: string};
@@ -33,9 +32,14 @@ export default defineComponent({
     KeyValue,
     Banner,
     Checkbox,
+    UnitInput
   },
 
   props: {
+    nodeRole: {
+      type:    String,
+      default: ''
+    },
     resourceTags: {
       type:    Object,
       default: () => {
@@ -119,6 +123,10 @@ export default defineComponent({
       type:    String,
       default: _EDIT
     },
+    ec2Roles: {
+      type:    Array,
+      default: () => []
+    },
     isNewOrUnprovisioned: {
       type:    Boolean,
       default: true
@@ -145,7 +153,6 @@ export default defineComponent({
   },
 
   data() {
-    // TODO nb translate
     return {
       defaultTemplateOption:          { LaunchTemplateName: `Default (one will be created automatically)` },
       loadingSelectedVersion:         false,
@@ -160,7 +167,6 @@ export default defineComponent({
 
   watch: {
     'selectedLaunchTemplate'(neu) {
-      // TODO nb re-fetch lt version info
       if (neu && !isEmpty(neu) && this.amazonCredentialSecret) {
         this.fetchLaunchTemplateVersionInfo(this.selectedLaunchTemplate);
       }
@@ -214,7 +220,6 @@ export default defineComponent({
         return this.launchTemplateOptions.find((lt: any) => lt.LaunchTemplateId === id);
       },
       set(neu: any) {
-        // TODO nb set other fields
         if (neu.LaunchTemplateName === this.defaultTemplateOption.LaunchTemplateName) {
           this.$emit('update:launchTemplate', {});
 
@@ -244,10 +249,19 @@ export default defineComponent({
       return this.selectedVersionInfo?.LaunchTemplateData;
     },
 
+    displayNodeRole: {
+      get() {
+        const arn = this.nodeRole;
+
+        return this.ec2Roles.find((role: any) => role.Arn === arn);
+      },
+      set(neu: any) {
+        this.$emit('update:nodeRole', neu.Arn);
+      }
+    },
   },
 
   methods: {
-    // TODO nb loading spinner on any potentially impacted inputs
     async fetchLaunchTemplateVersionInfo(launchTemplate: any) {
       const { region, amazonCredentialSecret } = this;
 
@@ -296,7 +310,6 @@ export default defineComponent({
         } else if (this.templateValue(rancherKey)) {
           this.$emit(`update:${ rancherKey }`, this.templateValue(rancherKey));
         } else {
-          // TODO nb set back to default?
           this.$emit(`update:${ rancherKey }`, null);
         }
       });
@@ -311,10 +324,6 @@ export default defineComponent({
         return null;
       }
 
-      // per https://github.com/rancher/rancher/issues/30613 some node group details are possible to edit when using a rancher-managed template
-      if (this.hasRancherLaunchTemplate) {
-        // TODO nb disable fields per https://github.com/rancher/rancher/issues/30613
-      }
       const launchTemplateKey = launchTemplateFieldMapping[field];
 
       if (!launchTemplateKey) {
@@ -353,12 +362,14 @@ export default defineComponent({
         />
       </div>
 
-      <!-- //TODO nb node instance roles -->
       <div class="col span-6">
         <LabeledSelect
+          v-model="displayNodeRole"
           :mode="mode"
           label="Node Instance Role"
-          :options="[]"
+          :options="ec2Roles"
+          option-label="RoleName"
+          option-key="Arn"
           :disabled="!isNewOrUnprovisioned"
         />
       </div>
@@ -439,7 +450,6 @@ export default defineComponent({
         />
       </div>
       <div class="col span-3">
-        <!-- //TODO nb format nicer (include description and which is default) -->
         <LabeledSelect
           v-if="launchTemplate"
           :value="launchTemplate.version"
@@ -474,12 +484,12 @@ export default defineComponent({
         />
       </div>
       <div class="col span-3">
-        <!-- //TODO NB unitinput? units or number? -->
-        <LabeledInput
+        <UnitInput
           :required="!templateValue('diskSize')"
           label="Node Volume Size"
           :mode="mode"
           :value="diskSize"
+          suffix="GB"
           :loading="loadingSelectedVersion"
           :disabled="!!templateValue('diskSize') || loadingSelectedVersion"
           @input="$emit('update:diskSize', $event)"
@@ -519,7 +529,6 @@ export default defineComponent({
       <div
         class="col span-6"
       >
-        <!-- //TODO nb are all instance types valid here? -->
         <LabeledSelect
           :mode="mode"
           :value="spotInstanceTypes"
