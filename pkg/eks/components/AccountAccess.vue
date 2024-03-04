@@ -120,7 +120,7 @@ export default defineComponent({
         provider="aws"
         :default-on-cancel="true"
         :showing-form="!credential"
-        class="select-credential mt-20"
+        class="select-credential"
         :cancel="()=>$emit('cancel-credential')"
         @input="$emit('update-credential', $event)"
       />

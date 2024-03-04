@@ -50,4 +50,5 @@ export interface EKSConfig {
   serviceRole?: string,
   subnets?: string[],
   tags?: string[]
+  enableNetworkPolicy?: boolean
 }
