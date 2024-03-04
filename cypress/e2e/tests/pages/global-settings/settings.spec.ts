@@ -11,7 +11,7 @@ import { settings } from '@/cypress/e2e/blueprints/global_settings/settings-data
 const settingsPage = new SettingsPagePo('local');
 const accountPage = new AccountPagePo();
 const createKeyPage = new CreateKeyPagePo();
-const clusterList = new ClusterManagerListPagePo('local');
+const clusterList = new ClusterManagerListPagePo();
 
 describe('Settings', { testIsolation: 'off' }, () => {
   before(() => {
@@ -258,53 +258,6 @@ describe('Settings', { testIsolation: 'off' }, () => {
     settingsPage.settingsValue('auth-token-max-ttl-minutes').contains(settings['auth-token-max-ttl-minutes'].original);
   });
 
-  it('can update kubeconfig-generate-token', { tags: ['@globalSettings', '@adminUser'] }, () => {
-    // Update setting
-    SettingsPagePo.navTo();
-    settingsPage.editSettingsByLabel('kubeconfig-generate-token');
-
-    const settingsEdit = settingsPage.editSettings('local', 'kubeconfig-generate-token');
-
-    settingsEdit.waitForPage();
-    settingsEdit.title().contains('Setting: kubeconfig-generate-token').should('be.visible');
-    settingsEdit.settingsRadioBtn().set(1);
-    settingsEdit.saveAndWait('kubeconfig-generate-token');
-    settingsPage.waitForPage();
-    settingsPage.settingsValue('kubeconfig-generate-token').contains(settings['kubeconfig-generate-token'].new);
-
-    // Reset
-    SettingsPagePo.navTo();
-    settingsPage.waitForPage();
-    settingsPage.editSettingsByLabel('kubeconfig-generate-token');
-
-    settingsEdit.waitForPage();
-    settingsEdit.title().contains('Setting: kubeconfig-generate-token').should('be.visible');
-    settingsEdit.useDefaultButton().click();
-    settingsEdit.saveAndWait('kubeconfig-generate-token');
-
-    settingsPage.waitForPage();
-    settingsPage.settingsValue('kubeconfig-generate-token').contains(settings['kubeconfig-generate-token'].original);
-
-    // Check kubeconfig file
-    const downloadsFolder = Cypress.config('downloadsFolder');
-
-    clusterList.goTo();
-    clusterList.list().actionMenu('local').getMenuItem('Download KubeConfig').click();
-
-    const downloadedFilename = path.join(downloadsFolder, 'local.yaml');
-
-    cy.readFile(downloadedFilename).then((buffer) => {
-      const obj: any = jsyaml.load(buffer);
-
-      // checks on the downloaded YAML
-      expect(obj.clusters.length).to.equal(1);
-      expect(obj.clusters[0].name).to.equal('local');
-      expect(obj.users[0].user.token).to.have.length.gt(0);
-      expect(obj.apiVersion).to.equal('v1');
-      expect(obj.kind).to.equal('Config');
-    });
-  });
-
   it('can update kubeconfig-default-token-ttl-minutes', { tags: ['@globalSettings', '@adminUser'] }, () => {
     // Update setting
     SettingsPagePo.navTo();
@@ -375,5 +328,52 @@ describe('Settings', { testIsolation: 'off' }, () => {
 
     settingsPage.waitForPage();
     settingsPage.settingsValue('auth-user-info-resync-cron').contains(settings['auth-user-info-resync-cron'].original);
+  });
+
+  it('can update kubeconfig-generate-token', { tags: ['@globalSettings', '@adminUser'] }, () => {
+    // Update setting
+    SettingsPagePo.navTo();
+    settingsPage.editSettingsByLabel('kubeconfig-generate-token');
+
+    const settingsEdit = settingsPage.editSettings('local', 'kubeconfig-generate-token');
+
+    settingsEdit.waitForPage();
+    settingsEdit.title().contains('Setting: kubeconfig-generate-token').should('be.visible');
+    settingsEdit.settingsRadioBtn().set(1);
+    settingsEdit.saveAndWait('kubeconfig-generate-token');
+    settingsPage.waitForPage();
+    settingsPage.settingsValue('kubeconfig-generate-token').contains(settings['kubeconfig-generate-token'].new);
+
+    // Reset
+    SettingsPagePo.navTo();
+    settingsPage.waitForPage();
+    settingsPage.editSettingsByLabel('kubeconfig-generate-token');
+
+    settingsEdit.waitForPage();
+    settingsEdit.title().contains('Setting: kubeconfig-generate-token').should('be.visible');
+    settingsEdit.useDefaultButton().click();
+    settingsEdit.saveAndWait('kubeconfig-generate-token');
+
+    settingsPage.waitForPage();
+    settingsPage.settingsValue('kubeconfig-generate-token').contains(settings['kubeconfig-generate-token'].original);
+
+    // Check kubeconfig file
+    const downloadsFolder = Cypress.config('downloadsFolder');
+
+    clusterList.goTo();
+    clusterList.list().actionMenu('local').getMenuItem('Download KubeConfig').click();
+
+    const downloadedFilename = path.join(downloadsFolder, 'local.yaml');
+
+    cy.readFile(downloadedFilename).then((buffer) => {
+      const obj: any = jsyaml.load(buffer);
+
+      // checks on the downloaded YAML
+      expect(obj.clusters.length).to.equal(1);
+      expect(obj.clusters[0].name).to.equal('local');
+      expect(obj.users[0].user.token).to.have.length.gt(0);
+      expect(obj.apiVersion).to.equal('v1');
+      expect(obj.kind).to.equal('Config');
+    });
   });
 });

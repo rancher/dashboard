@@ -14,7 +14,7 @@ export default class PodSecurityAdmissionsCreateEditPo extends PagePo {
     throw new Error('invalid');
   }
 
-  constructor(clusterId = 'local', id?: string) {
+  constructor(clusterId = '_', id?: string) {
     super(PodSecurityAdmissionsCreateEditPo.createPath(clusterId, id));
   }
 

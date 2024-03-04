@@ -38,7 +38,7 @@ const importGenericName = `${ clusterNamePartial }-import-generic`;
 const downloadsFolder = Cypress.config('downloadsFolder');
 
 describe('Cluster Manager', { testIsolation: 'off', tags: ['@manager', '@adminUser'] }, () => {
-  const clusterList = new ClusterManagerListPagePo('local');
+  const clusterList = new ClusterManagerListPagePo();
 
   before(() => {
     cy.login();
@@ -101,10 +101,10 @@ describe('Cluster Manager', { testIsolation: 'off', tags: ['@manager', '@adminUs
 
   describe('Created', () => {
     const createRKE2ClusterPage = new ClusterManagerCreateRke2CustomPagePo();
-    const detailRKE2ClusterPage = new ClusterManagerDetailRke2CustomPagePo('local', rke2CustomName);
+    const detailRKE2ClusterPage = new ClusterManagerDetailRke2CustomPagePo(undefined, rke2CustomName);
 
     describe('RKE2 Custom', () => {
-      const editCreatedClusterPage = new ClusterManagerEditRke2CustomPagePo(rke2CustomName);
+      const editCreatedClusterPage = new ClusterManagerEditRke2CustomPagePo(undefined, rke2CustomName);
 
       it('can create new cluster', () => {
         cy.intercept('POST', `/v1/${ type }s`).as('createRequest');
@@ -334,7 +334,7 @@ describe('Cluster Manager', { testIsolation: 'off', tags: ['@manager', '@adminUs
 
       it('can show snapshots list', () => {
         clusterList.goToClusterListAndGetClusterDetails(rke1CustomName).then((cluster) => {
-          const snapshots = new ClusterManagerDetailSnapshotsPo('local', cluster.id);
+          const snapshots = new ClusterManagerDetailSnapshotsPo(undefined, cluster.id);
 
           // We want to show 2 elements in the snapshots tab
           const snapshotId1 = 'ml-mkhz4';
@@ -401,13 +401,13 @@ describe('Cluster Manager', { testIsolation: 'off', tags: ['@manager', '@adminUs
   });
 
   describe('Imported', () => {
-    const importClusterPage = new ClusterManagerImportGenericPagePo('local');
+    const importClusterPage = new ClusterManagerImportGenericPagePo();
 
     describe('Generic', () => {
-      const editImportedClusterPage = new ClusterManagerEditGenericPagePo(importGenericName);
+      const editImportedClusterPage = new ClusterManagerEditGenericPagePo(undefined, importGenericName);
 
       it('can create new cluster', () => {
-        const detailClusterPage = new ClusterManagerDetailImportedGenericPagePo('local', importGenericName);
+        const detailClusterPage = new ClusterManagerDetailImportedGenericPagePo(undefined, importGenericName);
 
         cy.intercept('POST', `/v1/${ type }s`).as('importRequest');
 

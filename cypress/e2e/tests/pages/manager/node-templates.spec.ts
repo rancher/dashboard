@@ -5,8 +5,8 @@ import EmberModalPo from '@/cypress/e2e/po/components/ember/ember-modal.po';
 
 // will only run this in jenkins pipeline where cloud credentials are stored
 describe('Node Templates', { testIsolation: 'off', tags: ['@manager', '@jenkins', '@adminUser'] }, () => {
-  const nodeTemplatesPage = new NodeTemplatesPagePo('_');
-  const clusterList = new ClusterManagerListPagePo('local');
+  const nodeTemplatesPage = new NodeTemplatesPagePo();
+  const clusterList = new ClusterManagerListPagePo();
   let cloudCredentialId = '';
 
   before(() => {

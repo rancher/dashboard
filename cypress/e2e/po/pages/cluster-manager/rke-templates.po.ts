@@ -14,7 +14,7 @@ export default class RkeTemplatesPagePo extends PagePo {
     return super.goTo(RkeTemplatesPagePo.createPath(clusterId));
   }
 
-  constructor(clusterId: string) {
+  constructor(clusterId = '_') {
     super(RkeTemplatesPagePo.createPath(clusterId));
   }
 

@@ -16,7 +16,7 @@ export default class ChartRepositoriesCreateEditPo extends PagePo {
     throw new Error('invalid');
   }
 
-  constructor(clusterId = 'local', product: 'apps' | 'manager', id?: string) {
+  constructor(clusterId = '_', product: 'apps' | 'manager', id?: string) {
     super(ChartRepositoriesCreateEditPo.createPath(clusterId, product, id));
   }
 

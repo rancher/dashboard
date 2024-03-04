@@ -10,7 +10,7 @@ export class SettingsPagePo extends RootClusterPage {
     return super.goTo(SettingsPagePo.createPath(clusterId));
   }
 
-  constructor(clusterId: string) {
+  constructor(clusterId = '_') {
     super(SettingsPagePo.createPath(clusterId));
   }
 

@@ -75,6 +75,9 @@ corral config vars set aws_volume_size ${AWS_VOLUME_SIZE}
 corral config vars set aws_volume_type ${AWS_VOLUME_TYPE}
 corral config vars set volume_type ${AWS_VOLUME_TYPE}
 corral config vars set volume_iops ${AWS_VOLUME_IOPS}
+corral config vars set azure_subscription_id ${AZURE_AKS_SUBSCRIPTION_ID}
+corral config vars set azure_client_id ${AZURE_CLIENT_ID}
+corral config vars set azure_client_secret ${AZURE_CLIENT_SECRET}
 
 if [[ "${JOB_TYPE}" == "recurring" ]]; then 
   RANCHER_TYPE="recurring"
