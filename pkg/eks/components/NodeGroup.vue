@@ -119,6 +119,10 @@ export default defineComponent({
       type:    String,
       default: _EDIT
     },
+    isNewOrUnprovisioned: {
+      type:    Boolean,
+      default: true
+    },
 
     instanceTypeOptions: {
       type:    Array,
@@ -344,6 +348,7 @@ export default defineComponent({
           :value="nodegroupName"
           label="Node Group Name"
           :mode="mode"
+          :disabled="!isNewOrUnprovisioned"
           @input="$emit('update:nodegroupName', $event)"
         />
       </div>
@@ -354,6 +359,7 @@ export default defineComponent({
           :mode="mode"
           label="Node Instance Role"
           :options="[]"
+          :disabled="!isNewOrUnprovisioned"
         />
       </div>
     </div>
@@ -363,6 +369,7 @@ export default defineComponent({
           :value="desiredSize"
           label="Desired ASG size"
           :mode="mode"
+          :disabled="!isNewOrUnprovisioned"
           @input="$emit('update:desiredSize', $event)"
         />
       </div>
@@ -371,6 +378,7 @@ export default defineComponent({
           :value="minSize"
           label="Minimum ASG Size"
           :mode="mode"
+          :disabled="!isNewOrUnprovisioned"
           @input="$emit('update:minSize', $event)"
         />
       </div>
@@ -379,6 +387,7 @@ export default defineComponent({
           :value="maxSize"
           label="Maximum ASG size"
           :mode="mode"
+          :disabled="!isNewOrUnprovisioned"
           @input="$emit('update:maxSize', $event)"
         />
       </div>
@@ -387,10 +396,11 @@ export default defineComponent({
       <div class="col span-6">
         <KeyValue
           :mode="mode"
-          label="Group Labels"
+          title="Group Labels"
           :read-allowed="false"
           :value="labels"
           :as-map="true"
+          :disabled="!isNewOrUnprovisioned"
           @input="$emit('update:labels', $event)"
         >
           <template #title>
@@ -401,10 +411,11 @@ export default defineComponent({
       <div class="col span-6">
         <KeyValue
           :mode="mode"
-          label="Group Tags"
+          title="Group Tags"
           :read-allowed="false"
           :as-map="true"
           :value="tags"
+          :disabled="!isNewOrUnprovisioned"
           @input="$emit('update:tags', $event)"
         >
           <template #title>
@@ -424,6 +435,7 @@ export default defineComponent({
           :options="launchTemplateOptions"
           option-label="LaunchTemplateName"
           option-key="LaunchTemplateId"
+          :disabled="!isNewOrUnprovisioned"
         />
       </div>
       <div class="col span-3">
