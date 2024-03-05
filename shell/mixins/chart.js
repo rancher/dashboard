@@ -191,7 +191,7 @@ export default {
       }
 
       if (this.existing && this.existing.upgradeAvailable === false) {
-        warnings.unshift(this.t('catalog.install.warning.managed.edit', {
+        warnings.unshift(this.t('catalog.install.warning.managed', {
           name:    this.existing.name,
           version: this.chart ? this.query.versionName : null
         }, true));

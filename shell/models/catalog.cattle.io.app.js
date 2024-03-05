@@ -39,6 +39,14 @@ export default class CatalogApp extends SteveModel {
     return out;
   }
 
+  get warnDeletionMessage() {
+    if (this.upgradeAvailable === false) {
+      return this.t('catalog.delete.warning.managed', { name: this.name });
+    }
+
+    return null;
+  }
+
   matchingChart(includeHidden) {
     const chart = this.spec?.chart;
 
