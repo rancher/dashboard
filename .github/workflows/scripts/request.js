@@ -12,8 +12,16 @@ const https = require('https');
  * @returns Project Info (ID and Status Field info)
  */
 async function ghProject(org, num) {
+  let orgOrUser = org;
+
+  if (orgOrUser.startsWith('@')) {
+    orgOrUser = orgOrUser.substr(1);
+  }
+
+  const type = orgOrUser !== org ? 'user' : 'organization';
+  
   const gQL = `query {
-    organization(login: "${ org }") {
+    ${ type }(login: "${ orgOrUser }") {
       projectV2(number: ${ num }) {
         id
         fields(first:100) {
@@ -31,6 +39,8 @@ async function ghProject(org, num) {
       }
     }
   }`;
+
+  console.log(gQL);
 
   const res = await graphql(gQL);
 
@@ -264,11 +274,11 @@ function patch(url, data) {
 }
 
 function graphql(data) {
-    return write(GRAPHQL, data, 'POST')
+    return write(GRAPHQL, { query: data }, 'POST')
 }
 
 function write(url, data, method) {
-    const json = JSON.stringify({ query: data });
+    const json = JSON.stringify(data);
     const opts = {
         method: method || 'POST',
         headers: {

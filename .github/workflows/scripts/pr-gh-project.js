@@ -23,6 +23,15 @@ const GH_PRJ_TO_TEST = 'To Test';
 const GH_PRJ_QA_REVIEW = 'QA Review';
 const GH_PRJ_IN_REVIEW = 'In Review';
 
+function parseOrgAndRepo(repoUrl) {
+  const parts = repoUrl.split('/');
+
+  return {
+    org: parts[parts.length - 1],
+    repo: parts[parts.length - 2]
+  };
+}
+
 // Check required environment variables
 if (!process.env.GH_TOKEN) {
   console.log('You must set a GitHub token in the GH_TOKEN environment variable');
@@ -44,16 +53,6 @@ if (ghProjectId.length !== 2) {
 
   return;
 }
-
-const ghProject = await request.ghProject(ghProjectId[0], ghProjectId[1]);
-
-if (!ghProject) {
-  console.log('Error: Can not fetch GitHub Project metadata');
-
-  return; 
-}
-
-console.log(JSON.stringify(ghProject, null, 2));
 
 // The event object
 const event = require(process.env.GITHUB_EVENT_PATH);
@@ -131,6 +130,17 @@ async function waitForLabel(issue, label) {
 async function processClosedAction() {
   const pr = event.pull_request;
   const body = pr.body;
+
+  // Get the Github project data
+  const ghProject = await request.ghProject(ghProjectId[0], ghProjectId[1]);
+
+  if (!ghProject || ghProject.errors) {
+    console.log('Error: Can not fetch GitHub Project metadata');
+  
+    return; 
+  }
+  
+  console.log(JSON.stringify(ghProject, null, 2));
 
   console.log('======');
   console.log('Processing Closed PR #' + pr.number + ' : ' + pr.title);
@@ -263,6 +273,17 @@ async function processOpenOrEditAction() {
   console.log('Processing Opened/Edited PR #' + event.pull_request.number + ' : ' + event.pull_request.title);
   console.log('======');
 
+  // Get the Github project data
+  const ghProject = await request.ghProject(ghProjectId[0], ghProjectId[1]);
+
+  if (!ghProject || ghProject.errors) {
+    console.log('Error: Can not fetch GitHub Project metadata');
+  
+    return; 
+  }
+  
+  console.log(JSON.stringify(ghProject, null, 2));  
+
   const pr = event.pull_request;
   const body = pr.body;
   const issues = getReferencedIssues(body);
@@ -285,6 +306,16 @@ async function processOpenOrEditAction() {
     } else if (hasLabel(iss, BACKEND_BLOCKED_LABEL)) {
       console.log('    Issue will not be moved to In Review (Backend Blocked)');
     } else {
+      // Need to fetch the issue project status
+      const info = parseOrgAndRepo(iss.repository_url);
+      const prjIssue = request.ghProjectIssue(info.org, info.repo, i.number);
+
+      console.log(info);
+
+      console.log('-------- GH ISSUE -----');
+      console.log(JSON.stringify(prjIssue, null, 2));  
+      console.log('---------');
+
       await moveIssueToProjectState(iss, GH_PRJ_IN_REVIEW);
     }
 
