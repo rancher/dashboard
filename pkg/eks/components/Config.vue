@@ -44,7 +44,7 @@ export default defineComponent({
     },
 
     tags: {
-      type:    Array,
+      type:    Object,
       default: () => {}
     },
     kmsKey: {

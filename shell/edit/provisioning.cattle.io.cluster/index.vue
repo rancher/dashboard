@@ -21,6 +21,7 @@ import { BLANK_CLUSTER } from '@shell/store/store-types.js';
 import { ELEMENTAL_PRODUCT_NAME, ELEMENTAL_CLUSTER_PROVIDER } from '../../config/elemental-types';
 import Rke2Config from './rke2';
 import Import from './import';
+import { DRIVER_TO_IMPORT } from 'models/management.cattle.io.kontainerdriver';
 
 const SORT_GROUPS = {
   template:  1,
@@ -203,7 +204,7 @@ export default {
     emberLink() {
       if (this.value) {
         if (this.value.provisioner) {
-          const matchingSubtype = this.subTypes.find((st) => st.id.toLowerCase() === this.value.provisioner.toLowerCase());
+          const matchingSubtype = this.subTypes.find((st) => st.id.toLowerCase() === this.value.provisioner.toLowerCase() || DRIVER_TO_IMPORT[st.id.toLowerCase()] === this.value.provisioner.toLowerCase());
 
           if (matchingSubtype) {
             this.selectType(matchingSubtype.id, false);

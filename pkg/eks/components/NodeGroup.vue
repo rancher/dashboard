@@ -204,7 +204,7 @@ export default defineComponent({
     hasUserLaunchTemplate() {
       const { launchTemplate = {} } = this;
 
-      return !!launchTemplate.id && !!launchTemplate.version;
+      return !!launchTemplate?.id && !!launchTemplate?.version;
     },
 
     hasNoLaunchTemplate() {
