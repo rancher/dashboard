@@ -3,7 +3,7 @@ import { clone } from '@shell/utils/object';
 import { insertAt } from '@shell/utils/array';
 import HybridModel from '@shell/plugins/steve/hybrid-class';
 const HIDDEN = ['rke', 'rancherkubernetesengine'];
-
+const V2 = ['amazoneks', 'googlegke', 'azureaks'];
 const IMPORTABLE = ['amazoneks', 'googlegke', 'azureaks'];
 
 const defaultSpec = {
@@ -83,6 +83,22 @@ export default class Driver extends HybridModel {
 
   get showImport() {
     return this.showCreate && IMPORTABLE.includes(this.driverName);
+  }
+
+  get emberCreatePath() {
+    let driver = this.driverName;
+
+    if ( V2.includes(driver) && !driver.endsWith('v2') ) {
+      driver += 'v2';
+    }
+
+    return `/g/clusters/add/launch/${ driver }`;
+  }
+
+  get emberImportPath() {
+    const provider = DRIVER_TO_IMPORT[this.driverName] || this.driverName;
+
+    return `/g/clusters/add/launch/import?importProvider=${ provider }`;
   }
 
   get driverName() {
