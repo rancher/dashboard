@@ -228,6 +228,8 @@ export default defineComponent({
           label="Kubernetes Version"
           :mode="mode"
           :loading="loadingVersions"
+          :taggable="true"
+          :searchable="true"
           @input="$emit('update:kubernetesVersion', $event)"
         />
       </div>
