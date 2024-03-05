@@ -458,42 +458,18 @@ export default defineComponent({
         />
       </div>
     </div>
-    <Accordion
-      class="mb-20"
-      title="Account Access"
-      :open-initially="isNewOrUnprovisioned"
-    >
-      <AccountAccess
-        :credential="config.amazonCredentialSecret"
-        :mode="mode"
-        :region="config.region"
-        @cancel-credential="cancelCredential"
-        @update-region="updateRegion"
-        @update-credential="updateCredential"
-        @error="e=>errors.push(e)"
-      />
-    </Accordion>
+
+    <AccountAccess
+      :credential="config.amazonCredentialSecret"
+      :mode="mode"
+      :region="config.region"
+      @cancel-credential="cancelCredential"
+      @update-region="updateRegion"
+      @update-credential="updateCredential"
+      @error="e=>errors.push(e)"
+    />
 
     <template v-if="hasCredential">
-      <Accordion
-        class="mb-20"
-        title="Cluster Options"
-        :open-initially="true"
-      >
-        <Config
-          :mode="mode"
-          :config="config"
-          :eks-roles="eksRoles"
-          :loading-iam="loadingIam"
-          :kubernetes-version.sync="config.kubernetesVersion"
-          :enable-network-policy.sync="config.enableNetworkPolicy"
-          :ebs-c-s-i-driver.sync="config.ebsCSIDriver"
-          :service-role.sync="config.serviceRole"
-          :kms-key.sync="config.kmsKey"
-          :tags.sync="config.tags"
-          @error="e=>errors.push(e)"
-        />
-      </Accordion>
       <Tabbed
         class="mb-20"
         :side-tabs="true"
@@ -534,6 +510,26 @@ export default defineComponent({
           />
         </Tab>
       </Tabbed>
+      <Accordion
+        class="mb-20"
+        title="Cluster Options"
+        :open-initially="true"
+      >
+        <Config
+          :mode="mode"
+          :config="config"
+          :eks-roles="eksRoles"
+          :loading-iam="loadingIam"
+          :kubernetes-version.sync="config.kubernetesVersion"
+          :enable-network-policy.sync="config.enableNetworkPolicy"
+          :ebs-c-s-i-driver.sync="config.ebsCSIDriver"
+          :service-role.sync="config.serviceRole"
+          :kms-key.sync="config.kmsKey"
+          :tags.sync="config.tags"
+          @error="e=>errors.push(e)"
+        />
+      </Accordion>
+
       <Accordion
         class="mb-20"
         title="Networking"
@@ -616,6 +612,7 @@ export default defineComponent({
 </template>
 
 <style lang="scss" scoped>
+
   .networking-checkboxes {
     display: flex;
     flex-direction: column;
