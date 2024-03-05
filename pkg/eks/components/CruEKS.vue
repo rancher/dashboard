@@ -530,9 +530,12 @@ export default defineComponent({
         <!-- //TODO nb v-model? -->
         <Networking
           :mode="mode"
+          :region="config.region"
+          :amazon-credential-secret="config.amazonCredentialSecret"
           :public-access.sync="config.publicAccess"
           :private-access.sync="config.privateAccess"
           :public-access-sources.sync="config.publicAccessSources"
+          :subnets.sync="config.subnets"
         />
       </Accordion>
       <Accordion
