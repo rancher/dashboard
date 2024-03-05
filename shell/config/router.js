@@ -249,6 +249,14 @@ export const routerOptions = {
           component: () => interopDefault(import('../pages/c/_cluster/manager/cloudCredential/index.vue')),
           name:      'c-cluster-manager-cloudCredential'
         }, {
+          path:      '/c/:cluster/manager/kontainerDriver',
+          component: () => interopDefault(import('../pages/c/_cluster/manager/drivers/kontainerDriver/index.vue')),
+          name:      'c-cluster-manager-driver-kontainerdriver'
+        }, {
+          path:      '/c/:cluster/manager/nodeDriver',
+          component: () => interopDefault(import('../pages/c/_cluster/manager/drivers/nodeDriver/index.vue')),
+          name:      'c-cluster-manager-driver-nodedriver'
+        }, {
           path:      '/c/:cluster/monitoring/alertmanagerconfig',
           component: () => interopDefault(import('../pages/c/_cluster/monitoring/alertmanagerconfig/index.vue')),
           name:      'c-cluster-monitoring-alertmanagerconfig'
@@ -296,6 +304,14 @@ export const routerOptions = {
           path:      '/c/:cluster/manager/cloudCredential/create',
           component: () => interopDefault(import('../pages/c/_cluster/manager/cloudCredential/create.vue')),
           name:      'c-cluster-manager-cloudCredential-create'
+        }, {
+          path:      '/c/:cluster/manager/kontainerDriver/create',
+          component: () => interopDefault(import('../pages/c/_cluster/manager/drivers/kontainerDriver/create.vue')),
+          name:      'c-cluster-manager-driver-kontainerdriver-create'
+        }, {
+          path:      '/c/:cluster/manager/nodeDriver/create',
+          component: () => interopDefault(import('../pages/c/_cluster/manager/drivers/nodeDriver/create.vue')),
+          name:      'c-cluster-manager-driver-nodedriver-create'
         }, {
           path:      '/c/:cluster/monitoring/monitor/create',
           component: () => interopDefault(import('../pages/c/_cluster/monitoring/monitor/create.vue')),

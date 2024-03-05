@@ -78,12 +78,21 @@ export function init(store) {
   });
 
   virtualType({
-    labelKey:   'manager.drivers.label',
-    name:       'drivers',
+    labelKey:   'drivers.kontainer.title',
+    name:       'rke-kontainer-drivers',
     group:      'Root',
     namespaced: false,
     icon:       'globe',
-    route:      { name: 'c-cluster-manager-pages-page', params: { cluster: 'local', page: 'rke-drivers' } },
+    route:      { name: 'c-cluster-manager-driver-kontainerdriver' },
+    exact:      true
+  });
+  virtualType({
+    labelKey:   'drivers.node.title',
+    name:       'rke-node-drivers',
+    group:      'Root',
+    namespaced: false,
+    icon:       'globe',
+    route:      { name: 'c-cluster-manager-driver-nodedriver' },
     exact:      true
   });
 
@@ -108,6 +117,10 @@ export function init(store) {
     route:      { name: 'c-cluster-manager-pages-page', params: { cluster: 'local', page: 'node-templates' } },
     exact:      true
   });
+  basicType([
+    'rke-kontainer-drivers',
+    'rke-node-drivers',
+  ], 'drivers');
 
   basicType([
     'rke-templates',

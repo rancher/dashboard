@@ -152,6 +152,7 @@ nav:
     workload: Workloads
     monitoring: Monitoring
     advanced: Advanced
+    drivers: Drivers
     RKE1Configuration: RKE1 Configuration
     admission: Admission
     apps: Apps
@@ -2108,6 +2109,29 @@ cruResource:
   reviewYaml: "Keep editing YAML"
   previewYaml: Edit as YAML
   showYaml: View as YAML
+
+drivers:
+  kontainer: 
+    title: Cluster Drivers
+  node:
+    title: Node Drivers
+  add:
+    title: Add Driver
+    downloadUrl: 
+      label: Download URL
+      placeholder: The URL to download the machine driver binary for 64-bit Linux. 
+    customUiUrl: 
+      label: Custom UI URL
+      placeholder: The URL to load for customized Add Nodes screen for this driver. See ui-driver-skel for more info. 
+    checksum: 
+      label: Checksum
+      placeholder: Checksum to verify that the downloaded driver matches the expected checksum.
+    whitelist: Whitelist Domains
+  actions:
+    refresh: Refresh Kubernetes Metadata
+  deactivate:
+    title: Are you sure you want to deactivate {name}?
+    warning: You will no longer be able to edit the configuration of clusters using this driver. Resources in the provider will not be automatically removed. 
 
 detailText:
   collapse: Hide
@@ -5677,6 +5701,7 @@ validation:
     exactly: '"{key}" should contain {count, plural, =1 {# item} other {# items}}'
     max: '"{key}" should contain at most {count} {count, plural, =1 {item} other {items}}'
     min: '"{key}" should contain at least {count} {count, plural, =1 {item} other {items}}'
+  alphanumeric: '"{key}" must be alphanumeric'
   boolean: '"{key}" must be a boolean value.'
   chars: '"{key}" contains {count, plural, =1 {an invalid character} other {# invalid characters}}: {chars}'
   cluster:
@@ -6873,13 +6898,13 @@ typeLabel:
     }
   management.cattle.io.kontainerdriver: |-
     {count, plural,
-      one { KontainerDriver }
-      other { KontainerDrivers }
+      one { Cluster Driver }
+      other { Cluster Drivers }
     }
   management.cattle.io.nodedriver: |-
     {count, plural,
-      one { NodeDriver }
-      other { NodeDrivers }
+      one { Node Driver }
+      other { Node Drivers }
     }
   management.cattle.io.podsecuritypolicytemplate: |-
     {count, plural,
