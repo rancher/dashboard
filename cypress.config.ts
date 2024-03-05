@@ -68,6 +68,15 @@ console.log(`    Dashboard URL: ${ baseUrl }`); // eslint-disable-line no-consol
 const apiUrl = process.env.API || (baseUrl.endsWith('/dashboard') ? baseUrl.split('/').slice(0, -1).join('/') : baseUrl);
 
 console.log(`    Rancher API URL: ${ apiUrl }`); // eslint-disable-line no-console
+
+// Check API - sometimes in dev, you might have API set to a different system to the base url - this won't work
+// as the login cookie will be for the base url and any API requests will fail as not authenticated
+if (apiUrl && !baseUrl.startsWith(apiUrl)) {
+  console.log('\n ❗ API variable is different to TEST_BASE_URL - tests may fail due to authentication issues'); // eslint-disable-line no-console
+}
+
+console.log(''); // eslint-disable-line no-console
+
 export default defineConfig({
   projectId:             process.env.TEST_PROJECT_ID,
   defaultCommandTimeout: process.env.TEST_TIMEOUT ? +process.env.TEST_TIMEOUT : 60000,

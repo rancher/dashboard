@@ -4,6 +4,7 @@ import BannerGraphicPo from '@/cypress/e2e/po/components/banner-graphic.po';
 import BannersPo from '@/cypress/e2e/po/components/banners.po';
 import SimpleBoxPo from '@/cypress/e2e/po/components/simple-box.po';
 import HomeClusterListPo from '@/cypress/e2e/po/lists/home-cluster-list.po';
+import BurgerMenuPo from '@/cypress/e2e/po/side-bars/burger-side-menu.po';
 
 export default class HomePagePo extends PagePo {
   static url = '/home'
@@ -31,6 +32,13 @@ export default class HomePagePo extends PagePo {
 
   constructor() {
     super(HomePagePo.url);
+  }
+
+  static navTo() {
+    const burgerMenu = new BurgerMenuPo();
+
+    BurgerMenuPo.toggle();
+    burgerMenu.home().click();
   }
 
   title(): Cypress.Chainable<string> {
@@ -114,5 +122,11 @@ export default class HomePagePo extends PagePo {
         expect(el).to.not.have.attr('target');
       }).click();
     }
+  }
+
+  checkSupportLinkText(index: number, text: string) {
+    return this.supportLinks().eq(index).then((el) => {
+      expect(el.text().trim()).to.equal(text);
+    });
   }
 }
