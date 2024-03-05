@@ -1,10 +1,10 @@
-name: zube-integration
+name: gh-project-integration
 on:
   pull_request_target:
     types: [ opened, reopened, edited, closed ]
 
 jobs:
-  rancher_zube:
+  rancher_gh_project:
     runs-on: ubuntu-latest
     steps:
     - uses: actions/checkout@v2
@@ -15,4 +15,5 @@ jobs:
     - name: script
       env:
         GH_TOKEN: ${{ secrets.GITHUB_TOKEN }}
-      run: node .github/workflows/scripts/pr.js
+        PR_PROJECT: ${{ secrets.PR_PROJECT }}
+      run: node .github/workflows/scripts/pr-gh-project.js
