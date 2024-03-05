@@ -1529,7 +1529,7 @@ export const mutations = {
 
     // Make sure deprecated `inExplorer` is synchronized with `rootProduct` (and vice-versa)
     if (existing?.inExplorer) {
-      existing.rootProduct = existing.rootProduct || EXPLORER;
+      existing.rootProduct = EXPLORER;
     } else if (existing?.rootProduct === EXPLORER) {
       existing.inExplorer = true;
     }
@@ -1537,7 +1537,7 @@ export const mutations = {
     // We make an assumption that if the store for a product is 'cluster' it will be displayed within cluster explorer
     // Detect that here and set rootProduct and inExporer in this case
     if (!existing?.rootProduct && existing?.inStore === 'cluster') {
-      existing.rootProduct = existing.rootProduct || EXPLORER;
+      existing.rootProduct = EXPLORER;
       existing.inExplorer = (existing.rootProduct === EXPLORER);
     }
   },

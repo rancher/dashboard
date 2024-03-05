@@ -340,7 +340,7 @@ export const getters = {
   isExplorer(state, getters) {
     const product = getters.rootProduct;
 
-    return !product ? false : product.name === EXPLORER;
+    return product?.name === EXPLORER;
   },
 
   defaultClusterId(state, getters) {
