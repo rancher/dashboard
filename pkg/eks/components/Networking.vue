@@ -1,10 +1,9 @@
 <script lang="ts">
 import { _EDIT } from '@shell/config/query-params';
-import { EKSConfig } from '../types';
-import { PropType, defineComponent } from 'vue';
+import { defineComponent } from 'vue';
+import { Store } from 'vuex';
 import LabeledSelect from '@shell/components/form/LabeledSelect.vue';
 import Checkbox from '@components/Form/Checkbox/Checkbox.vue';
-import LabeledInput from '@components/Form/LabeledInput/LabeledInput.vue';
 import ArrayList from '@shell/components/form/ArrayList.vue';
 
 export default defineComponent({
@@ -14,7 +13,6 @@ export default defineComponent({
     LabeledSelect,
     ArrayList,
     Checkbox,
-    LabeledInput
   },
 
   props: {
