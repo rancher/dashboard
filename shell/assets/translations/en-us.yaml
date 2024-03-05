@@ -888,6 +888,14 @@ catalog:
     appReadmeMissing: This chart doesn't have any additional chart information.
     appReadmeTitle: Chart Information (Helm README)
     chart: Chart
+    warning:
+      managed:
+        edit:
+          Warning, Rancher manages deployment and upgrade of the {name} app. Upgrading this app is not supported.<br>
+          {version, select,
+            null { }
+            other { Under most circumstances, no user intervention should be needed to ensure that the {version} version is compatible with the version of Rancher that you are running.}
+          }
     error:
       requiresFound: '<a href="{url}">{name}</a> must be installed before you can install this chart.'
       requiresMissing: 'This chart requires another chart that provides {name}, but none was was found.'
