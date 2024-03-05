@@ -60,12 +60,11 @@ export default defineComponent({
         />
       </div>
       <div class="col span-3">
-        <!-- //TODO nb tooltip -->
+        <!-- //TODO nb tooltips -->
 
         <Checkbox
           :value="typeEnabled('api')"
           :mode="mode"
-
           label="API"
           @input="toggleType('api')"
         />
@@ -75,7 +74,6 @@ export default defineComponent({
         <Checkbox
           :value="typeEnabled('scheduler')"
           :mode="mode"
-
           label="Scheduler"
           @input="toggleType('scheduler')"
         />
@@ -85,7 +83,6 @@ export default defineComponent({
         <Checkbox
           :value="typeEnabled('controllerManager')"
           :mode="mode"
-
           label="Controller Manager"
           @input="toggleType('controllerManager')"
         />
@@ -94,7 +91,6 @@ export default defineComponent({
         <Checkbox
           :value="typeEnabled('authenticator')"
           :mode="mode"
-
           label="Authenticator"
           @input="toggleType('authenticator')"
         />

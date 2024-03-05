@@ -36,13 +36,17 @@ import Logging from './Logging.vue';
 import Config from './Config.vue';
 import Networking from './Networking.vue';
 
+import AgentConfiguration from '@shell/edit/provisioning.cattle.io.cluster/tabs/AgentConfiguration.vue';
+
 const defaultCluster = {
-  dockerRootDir:           '/var/lib/docker',
-  enableClusterAlerting:   false,
-  enableClusterMonitoring: false,
-  enableNetworkPolicy:     false,
-  labels:                  {},
-  windowsPreferedCluster:  false,
+  dockerRootDir:                       '/var/lib/docker',
+  enableClusterAlerting:               false,
+  enableClusterMonitoring:             false,
+  enableNetworkPolicy:                 false,
+  labels:                              {},
+  windowsPreferedCluster:              false,
+  fleetAgentDeploymentCustomization:   {},
+  clusterAgentDeploymentCustomization: {}
 };
 
 // todo nb should this  be placeholder instead?
@@ -58,6 +62,8 @@ Content-Type: text/x-shellscript; charset="us-ascii"
 echo "Running custom user data script"
 
 --==MYBOUNDARY==--\\`;
+
+export const DEFAULT_REGION = 'us-west-2';
 
 const DEFAULT_NODE_GROUP_CONFIG = {
   desiredSize:          2,
@@ -81,8 +87,6 @@ const DEFAULT_NODE_GROUP_CONFIG = {
   userData:             DEFAULT_USER_DATA,
 };
 
-export const DEFAULT_REGION = 'us-west-2';
-
 // const _NONE = 'none';
 
 export default defineComponent({
@@ -104,11 +108,12 @@ export default defineComponent({
     // KeyValue,
     // ArrayList,
     ClusterMembershipEditor,
-    // Labels,
+    Labels,
     Tabbed,
     Tab,
     Accordion,
-    Banner
+    Banner,
+    AgentConfiguration
   },
 
   mixins: [CreateEditView, FormValidation],
@@ -540,11 +545,23 @@ export default defineComponent({
       <Accordion
         class="mb-20"
         title="Cluster Agent Configuration"
-      />
+      >
+        <AgentConfiguration
+          v-model="normanCluster.clusterAgentDeploymentCustomization"
+          :mode="mode"
+          type="cluster"
+        />
+      </Accordion>
       <Accordion
         class="mb-20"
         title="Fleet Agent Configuration"
-      />
+      >
+        <AgentConfiguration
+          v-model="normanCluster.fleetAgentDeploymentCustomization"
+          :mode="mode"
+          type="fleet"
+        />
+      </Accordion>
       <Accordion
         class="mb-20"
         title="Cluster Membership"
@@ -565,7 +582,12 @@ export default defineComponent({
       <Accordion
         class="mb-20"
         title="Labels and Annotations"
-      />
+      >
+        <Labels
+          v-model="normanCluster"
+          :mode="mode"
+        />
+      </Accordion>
     </template>
     <template
       v-if="!hasCredential"

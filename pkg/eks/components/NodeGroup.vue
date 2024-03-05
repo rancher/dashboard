@@ -376,6 +376,7 @@ export default defineComponent({
       </div>
     </div>
     <div class="row mb-10">
+      <!-- //TODO nb validate min/max/desired -->
       <div class="col span-3">
         <LabeledInput
           :value="desiredSize"
