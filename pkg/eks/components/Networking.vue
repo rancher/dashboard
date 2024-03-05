@@ -176,6 +176,7 @@ export default defineComponent({
         />
       </div>
       <div class="col span-6">
+        <!-- //TODO nb validate that two+ subnets are chosen and that they are in two+ availabilityzones -->
         <LabeledSelect
           v-model="displaySubnets"
           :mode="mode"
