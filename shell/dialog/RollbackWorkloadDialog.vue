@@ -163,11 +163,11 @@ export default {
       return option.label;
     },
     sizeDialog() {
-      const dialogs = document.getElementsByClassName('v--modal');
+      const dialogs = document.getElementsByClassName('modal-container');
       const width = this.showDiff ? '85%' : '600px';
 
       if (dialogs.length === 1) {
-        dialogs[0].style.setProperty('--prompt-modal-width', width);
+        dialogs[0].style.setProperty('width', width);
       }
     },
     sanitizeYaml(obj, path = '') {
