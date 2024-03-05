@@ -443,7 +443,6 @@ export default defineComponent({
         />
       </div>
     </div>
-    <!-- //TODO nb cluster name -->
     <AccountAccess
       :credential="config.amazonCredentialSecret"
       :mode="mode"
@@ -469,6 +468,7 @@ export default defineComponent({
           :ebs-c-s-i-driver.sync="config.ebsCSIDriver"
           :service-role.sync="config.serviceRole"
           :kms-key.sync="config.kmsKey"
+          :tags.sync="config.tags"
           @error="e=>errors.push(e)"
         />
       </Accordion>
@@ -517,17 +517,16 @@ export default defineComponent({
         class="mb-20"
         title="Logging"
       >
-        <!-- //TODO nb v-model? -->
         <Logging
           :mode="mode"
           :config="config"
+          :logging-types.sync="config.loggingTypes"
         />
       </Accordion>
       <Accordion
         class="mb-20"
         title="Networking"
       >
-        <!-- //TODO nb v-model? -->
         <Networking
           :mode="mode"
           :region="config.region"

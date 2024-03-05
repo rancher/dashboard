@@ -42,6 +42,11 @@ export default defineComponent({
       type:    Array,
       default: () => []
     },
+
+    tags: {
+      type:    Array,
+      default: () => {}
+    },
     kmsKey: {
       type:    String,
       default: ''
@@ -315,11 +320,12 @@ export default defineComponent({
 
     <div class="col span-6">
       <KeyValue
-        v-model="config.tags"
+        :value="tags"
         :mode="mode"
         title="Tags"
         :as-map="true"
         :read-allowed="false"
+        @input="$emit('update:tags', $event)"
       >
         <template #title>
           <label class="text-label">Tags</label>
