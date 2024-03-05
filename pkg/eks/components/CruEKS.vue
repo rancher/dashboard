@@ -73,7 +73,6 @@ const DEFAULT_NODE_GROUP_CONFIG = {
   imageId:              null,
   instanceType:         't3.medium',
   labels:               {},
-  // launchTemplate:       {},
   maxSize:              2,
   minSize:              2,
   nodegroupName:        '',
@@ -87,7 +86,16 @@ const DEFAULT_NODE_GROUP_CONFIG = {
   userData:             DEFAULT_USER_DATA,
 };
 
-// const _NONE = 'none';
+const DEFAULT_EKS_CONFIG = {
+  publicAccess:        true,
+  privateAccess:       false,
+  publicAccessSources: [],
+  secretsEncryption:   false,
+  securityGroups:      [],
+  tags:                {},
+  subnets:             [],
+  loggingTypes:        [],
+};
 
 export default defineComponent({
   name: 'CruEKS',
@@ -103,10 +111,6 @@ export default defineComponent({
     Checkbox,
     Networking,
     LabeledInput,
-    // Checkbox,
-    // FileSelector,
-    // KeyValue,
-    // ArrayList,
     ClusterMembershipEditor,
     Labels,
     Tabbed,
@@ -148,7 +152,7 @@ export default defineComponent({
     }
 
     if (!this.normanCluster.eksConfig) {
-      this.$set(this.normanCluster, 'eksConfig', { publicAccess: false });
+      this.$set(this.normanCluster, 'eksConfig', { ...DEFAULT_EKS_CONFIG });
     }
 
     // TODO nb do this better?
@@ -229,6 +233,10 @@ export default defineComponent({
       this.eksRoles = eksRoles;
       this.loadingIam = false;
     },
+
+    'config.kubernetesVersion'(neu) {
+      this.nodeGroups.forEach((group:any) => this.$set(group, 'version', neu));
+    }
   },
 
   computed: {
@@ -282,7 +290,7 @@ export default defineComponent({
 
     setClusterName(name: string): void {
       this.$set(this.normanCluster, 'name', name);
-      this.$set(this.config, 'clusterName', name);
+      this.$set(this.config, 'displayName', name);
     },
 
     onMembershipUpdate(update: any): void {
@@ -358,7 +366,9 @@ export default defineComponent({
       while (this.nodeGroups.find((group) => group.nodegroupName === `group${ nextDefaultSuffix }`)) {
         nextDefaultSuffix++;
       }
-      this.nodeGroups.push({ ...DEFAULT_NODE_GROUP_CONFIG, nodegroupName: `group${ nextDefaultSuffix }` });
+      this.nodeGroups.push({
+        ...DEFAULT_NODE_GROUP_CONFIG, nodegroupName: `group${ nextDefaultSuffix }`, version: this.config?.kubernetesVersion
+      });
     },
 
     async fetchInstanceTypes() {
@@ -434,7 +444,7 @@ export default defineComponent({
         <LabeledInput
           required
           label="Cluster Name"
-          :value="config.displayName"
+          :value="normanCluster.name"
           :mode="mode"
           @input="setClusterName"
         />
@@ -448,15 +458,22 @@ export default defineComponent({
         />
       </div>
     </div>
-    <AccountAccess
-      :credential="config.amazonCredentialSecret"
-      :mode="mode"
-      :region="config.region"
-      @cancel-credential="cancelCredential"
-      @update-region="updateRegion"
-      @update-credential="updateCredential"
-      @error="e=>errors.push(e)"
-    />
+    <Accordion
+      class="mb-20"
+      title="Account Access"
+      :open-initially="isNewOrUnprovisioned"
+    >
+      <AccountAccess
+        :credential="config.amazonCredentialSecret"
+        :mode="mode"
+        :region="config.region"
+        @cancel-credential="cancelCredential"
+        @update-region="updateRegion"
+        @update-credential="updateCredential"
+        @error="e=>errors.push(e)"
+      />
+    </Accordion>
+
     <template v-if="hasCredential">
       <Accordion
         class="mb-20"
@@ -517,17 +534,6 @@ export default defineComponent({
           />
         </Tab>
       </Tabbed>
-
-      <Accordion
-        class="mb-20"
-        title="Logging"
-      >
-        <Logging
-          :mode="mode"
-          :config="config"
-          :logging-types.sync="config.loggingTypes"
-        />
-      </Accordion>
       <Accordion
         class="mb-20"
         title="Networking"
@@ -542,6 +548,17 @@ export default defineComponent({
           :subnets.sync="config.subnets"
         />
       </Accordion>
+      <Accordion
+        class="mb-20"
+        title="Logging"
+      >
+        <Logging
+          :mode="mode"
+          :config="config"
+          :logging-types.sync="config.loggingTypes"
+        />
+      </Accordion>
+
       <Accordion
         class="mb-20"
         title="Cluster Agent Configuration"

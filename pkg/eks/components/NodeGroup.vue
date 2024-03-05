@@ -156,6 +156,7 @@ export default defineComponent({
   data() {
     return {
       defaultTemplateOption:          { LaunchTemplateName: `Default (one will be created automatically)` },
+      defaultNodeRoleOption:          { RoleName: `Default (one will be created automatically)` },
       loadingSelectedVersion:         false,
       // once a specific lt has been selected, an additional query is made to get full information on every version of it
       selectedLaunchTemplateInfo:     {} as any,
@@ -254,10 +255,18 @@ export default defineComponent({
       get() {
         const arn = this.nodeRole;
 
-        return this.ec2Roles.find((role: any) => role.Arn === arn);
+        if (!arn) {
+          return this.defaultNodeRoleOption;
+        }
+
+        return this.ec2Roles.find((role: any) => role.Arn === arn) ;
       },
       set(neu: any) {
-        this.$emit('update:nodeRole', neu.Arn);
+        if (neu.Arn) {
+          this.$emit('update:nodeRole', neu.Arn);
+        } else {
+          this.$emit('update:nodeRole', '');
+        }
       }
     },
   },
@@ -368,7 +377,7 @@ export default defineComponent({
           v-model="displayNodeRole"
           :mode="mode"
           label="Node Instance Role"
-          :options="ec2Roles"
+          :options="[defaultNodeRoleOption, ...ec2Roles]"
           option-label="RoleName"
           option-key="Arn"
           :disabled="!isNewOrUnprovisioned"
@@ -464,6 +473,7 @@ export default defineComponent({
     </div>
     <div class="row mb-10">
       <div class="col span-3">
+        <!-- //TODO nb format options nicer -->
         <LabeledSelect
           :required="!requestSpotInstances"
           :mode="mode"
