@@ -35,6 +35,7 @@ export default defineComponent({
     UnitInput
   },
 
+  // todo nb organize props
   props: {
     nodeRole: {
       type:    String,

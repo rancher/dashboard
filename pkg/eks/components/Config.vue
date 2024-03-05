@@ -269,7 +269,7 @@ export default defineComponent({
           option-key="RoleId"
           label="Service Role"
           :loading="loadingIam"
-          @input="$emit('update:serviceRole', $event)"
+          @input="$emit('update:serviceRole', $event.RoleName)"
         />
       </div>
     </div>
