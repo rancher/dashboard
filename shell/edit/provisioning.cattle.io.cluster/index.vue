@@ -333,7 +333,7 @@ export default {
           machineTypes.forEach((type) => {
             const id = type.spec.displayName || type.id;
 
-            addType(this.$plugin, id, _RKE1, false, `/g/clusters/add/launch/${ id }`, this.iconClasses[id]);
+            addType(this.$plugin, id, _RKE1, false, `/g/clusters/add/launch/${ id }`, this.iconClasses[id], type);
           });
 
           addType(this.$plugin, 'custom', 'custom1', false, '/g/clusters/add/launch/custom');
@@ -341,7 +341,7 @@ export default {
           machineTypes.forEach((type) => {
             const id = type.spec.displayName || type.id;
 
-            addType(this.$plugin, id, _RKE2, false);
+            addType(this.$plugin, id, _RKE2, false, null, undefined, type);
           });
 
           addType(this.$plugin, 'custom', 'custom2', false);
