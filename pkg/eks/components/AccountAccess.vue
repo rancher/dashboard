@@ -4,6 +4,7 @@ import { _CREATE, _EDIT, _VIEW } from '@shell/config/query-params';
 import LabeledSelect from '@shell/components/form/LabeledSelect.vue';
 import SelectCredential from '@shell/edit/provisioning.cattle.io.cluster/SelectCredential.vue';
 import { DEFAULT_REGION } from './CruEKS.vue';
+import { mapGetters } from 'vuex';
 
 export default defineComponent({
   name: 'EKSAccountAccess',
@@ -81,6 +82,8 @@ export default defineComponent({
   },
 
   computed: {
+    ...mapGetters({ t: 'i18n/t' }),
+
     // once the credential is validated we can fetch a list of available regions
     isAuthenticated(): boolean {
       return !!this.credential;
@@ -107,7 +110,7 @@ export default defineComponent({
     <div class=" mb-10">
       <LabeledSelect
         :value="region"
-        label="Region"
+        label-key="eks.region.label"
         :options="regionOptions"
         @input="$emit('update-region', $event)"
       />

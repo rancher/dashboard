@@ -298,7 +298,7 @@ export default {
     <Tabbed>
       <Tab
         name="cluster-membership"
-        :label="t('members.clusterMemebership')"
+        :label="t('members.clusterMembership')"
       >
         <div
           v-if="canEditClusterMembers"

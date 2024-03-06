@@ -1,2 +1,101 @@
 eks:
   label: Amazon EKS
+  publicAccessSources: 
+    label: Public Access Endpoints
+    addEndpoint: Add Endpoint
+  subnets:
+    useCustom: Select from existing subnets
+    default: Create a new vpc and subnet automatically
+    title: VPCs and Subnets
+  clusterName:
+    label: Cluster Name
+  region:
+    label: Region
+  version:
+    label: Kubernetes Version
+  enableNetworkPolicy:
+    label: Project Network Isolation
+  ebsCSIDriver:
+    label: Out of tree EBS CSI Driver
+  serviceRole:
+    label: Service Role
+    options:
+      standard: 'Standard: A service role will be automatically created'
+      custom: 'Custom: Choose from an existing service role'
+  audit:
+    label: Audit
+    tooltip: Kubernetes audit logs provide a record of the individual users, administrators, or system components that have affected your cluster.
+  api:
+    label: API
+    tooltip: Your cluster's API server is the control plane component that exposes the Kubernetes API.
+  scheduler:
+    label: Scheduler
+    tooltip: The scheduler component manages when and where to run pods in your cluster.
+  controllerManager:
+    label: Controller Manager
+    tooltip: The controller manager manages the core control loops that are shipped with Kubernetes.
+  authenticator:
+    label: Authenticator
+    tooltip: Authenticator logs are unique to Amazon EKS. These logs represent the control plane component that Amazon EKS uses for Kubernetes Role Based Access Control (RBAC) authentication using IAM credentials.
+  encryptSecrets:
+    label: Encrypt secrets with a KMS key
+  tags:
+    label: Tags
+  privateAccess:
+    label: Private Access
+  publicAccess:
+    label: Public Access
+  vpcSubnet:
+    label: VPC and Subnet
+  nodeGroups:
+    nodeRole:
+      label: Node Instance Role
+    groupLabels:
+      label: Group Labels
+    groupTags:
+      label: Group Tags
+    launchTemplate:
+      label: Launch Template
+      version: Template Version
+    imageId:
+      label: Amazon Machine Image ID
+    diskSize:
+      label: Node Volume Size
+    gpu:
+      label: GPU Enabled Instance
+      tooltip: 'This setting is ignored when using a launch template with a custom AMI defined.'
+    requestSpotInstances:
+      label: Request Spot Instances
+      warning: "Amazon recommends selecting multiple instance types when using spot instances. Since the template you have selected allows for only one instance time, your nodes may be interrupted more often."
+    spotInstanceTypes:
+      label: Spot Instance Types
+    userData:
+      label: User Data
+    ec2SshKey:
+      label: SSH Key
+    resourceTags:
+      label: Instance Resource Tags
+    name:
+      label: Node Group Name
+    maxSize:
+      label: Maximum ASG Size
+    minSize:
+      label: Minumum ASG Size
+    desiredSize:
+      label: Desired ASG Size
+    instanceType:
+      label: Instance Type
+      tooltip: 'Instance Type will not be sent when requesting spot instances. You must include Spot Instance Types instead.'
+  defaultCreateOne: Default (One will be created automatically)
+  accordionHeaders:
+    cluster: Cluster Options
+    networking: Networking
+    logging: Logging
+    fleetAgent: Fleet Agent Configuration
+    clusterAgent: Cluster Agent Configuration
+  errors:
+    nodeGroups:
+      nameUnique: Node group names must be unique within a cluster.
+    greaterThanZero: "{key} must be greater than zero."
+    minimumSubnets: You must use at least two subnets, and they should be in different availability zones.
+    publicOrPrivate: At least one of public or private access must be enabled.
