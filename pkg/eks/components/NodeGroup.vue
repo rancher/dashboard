@@ -138,6 +138,11 @@ export default defineComponent({
       default: () => []
     },
 
+    spotInstanceTypeOptions: {
+      type:    Array,
+      default: () => []
+    },
+
     launchTemplates: {
       type:    Array,
       default: () => []
@@ -146,6 +151,15 @@ export default defineComponent({
     originalCluster: {
       type:    Object as any,
       default: null
+    },
+    loadingInstanceTypes: {
+      type:    Boolean,
+      default: false
+    },
+
+    loadingRoles: {
+      type:    Boolean,
+      default: false
     }
   },
 
@@ -238,9 +252,13 @@ export default defineComponent({
     },
 
     launchTemplateVersionOptions() {
-      const { LatestVersionNumber = '1' } = this.selectedLaunchTemplate;
+      if (this.selectedLaunchTemplate) {
+        const { LatestVersionNumber = '1' } = this.selectedLaunchTemplate;
 
-      return [...Array(LatestVersionNumber).keys()].map((version) => version + 1);
+        return [...Array(LatestVersionNumber).keys()].map((version) => version + 1);
+      }
+
+      return [];
     },
 
     selectedVersionInfo() {
@@ -381,6 +399,7 @@ export default defineComponent({
           option-label="RoleName"
           option-key="Arn"
           :disabled="!isNewOrUnprovisioned"
+          :loading="loadingRoles"
         />
       </div>
     </div>
@@ -479,7 +498,7 @@ export default defineComponent({
           :mode="mode"
           label="Instance Type"
           :options="instanceTypeOptions"
-          :loading="loadingSelectedVersion"
+          :loading="loadingSelectedVersion||loadingInstanceTypes"
           :value="instanceType"
           :disabled="!!templateValue('instanceType') || requestSpotInstances"
           :tooltip="(requestSpotInstances && !templateValue('instanceType')) ? 'Instance Type will not be sent when requesting spot instances. You must include Spot Instance Types instead.': ''"
@@ -545,8 +564,9 @@ export default defineComponent({
           :mode="mode"
           :value="spotInstanceTypes"
           label="Spot Instance Types"
-          :options="instanceTypeOptions"
+          :options="spotInstanceTypeOptions"
           :multiple="true"
+          :loading="loadingSelectedVersion||loadingInstanceTypes"
           @input="$emit('update:spotInstanceTypes', $event)"
         />
       </div>

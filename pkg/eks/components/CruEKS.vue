@@ -280,10 +280,70 @@ export default defineComponent({
       return _VIEW;
     },
 
-    // TODO nb show more info about instance types in dropdown
-    instanceTypeOptions() {
-      return this.instanceTypes.map((type: any) => type.apiName);
+    groupedInstanceTypes() {
+      const out = {} as any;
+
+      this.instanceTypes.forEach((type:any) => {
+        if (out[type.groupLabel]) {
+          out[type.groupLabel].push(type);
+        } else {
+          out[type.groupLabel] = [type];
+        }
+      });
+
+      return out;
     },
+
+    instanceTypeOptions() {
+      const out = [] as any[];
+
+      Object.keys(this.groupedInstanceTypes).forEach((groupLabel: string) => {
+        const instances = this.groupedInstanceTypes[groupLabel];
+        const groupOption = { label: groupLabel, kind: 'group' };
+        const instanceTypeOptions = instances.map((instance:any) => {
+          return {
+            value: instance.apiName,
+            label: instance.label,
+            group: instance.groupLabel
+          };
+        });
+
+        out.push(groupOption);
+        out.push(...instanceTypeOptions);
+      });
+
+      return out;
+    },
+
+    spotInstanceTypeOptions() {
+      const out = [] as any[];
+
+      Object.keys(this.groupedInstanceTypes).forEach((groupLabel: string) => {
+        const instances = this.groupedInstanceTypes[groupLabel];
+        const groupOption = { label: groupLabel, kind: 'group' };
+        const instanceTypeOptions = instances.reduce((spotInstances, instance:any) => {
+          if (!(instance.supportedUsageClasses || []).includes('spot')) {
+            return spotInstances;
+          }
+          const opt = {
+            value: instance.apiName,
+            label: instance.label,
+            group: instance.groupLabel
+          };
+
+          spotInstances.push(opt);
+
+          return spotInstances;
+        }, []);
+
+        if (instanceTypeOptions.length) {
+          out.push(groupOption);
+          out.push(...instanceTypeOptions);
+        }
+      });
+
+      return out;
+    }
   },
 
   methods: {
@@ -483,7 +543,6 @@ export default defineComponent({
           :name="node.nodegroupName"
         >
           <NodeGroup
-            :mode="mode"
             :node-role.sync="node.nodeRole"
             :launch-template.sync="node.launchTemplate"
             :nodegroup-name.sync="node.nodegroupName"
@@ -501,12 +560,16 @@ export default defineComponent({
             :max-size.sync="node.maxSize"
             :request-spot-instances.sync="node.requestSpotInstances"
             :labels.sync="node.labels"
-            :instance-type-options="instanceTypeOptions"
-            :launch-templates="launchTemplates"
             :region="config.region"
             :amazon-credential-secret="config.amazonCredentialSecret"
             :is-new-or-unprovisioned="isNewOrUnprovisioned"
+            :mode="mode"
+            :instance-type-options="instanceTypeOptions"
+            :spot-instance-type-options="spotInstanceTypeOptions"
+            :launch-templates="launchTemplates"
             :ec2-roles="ec2Roles"
+            :loading-instance-types="loadingInstanceTypes"
+            :loading-roles="loadingIam"
           />
         </Tab>
       </Tabbed>
@@ -516,16 +579,16 @@ export default defineComponent({
         :open-initially="true"
       >
         <Config
-          :mode="mode"
-          :config="config"
-          :eks-roles="eksRoles"
-          :loading-iam="loadingIam"
           :kubernetes-version.sync="config.kubernetesVersion"
           :enable-network-policy.sync="config.enableNetworkPolicy"
           :ebs-c-s-i-driver.sync="config.ebsCSIDriver"
           :service-role.sync="config.serviceRole"
           :kms-key.sync="config.kmsKey"
           :tags.sync="config.tags"
+          :mode="mode"
+          :config="config"
+          :eks-roles="eksRoles"
+          :loading-iam="loadingIam"
           @error="e=>errors.push(e)"
         />
       </Accordion>
@@ -535,13 +598,13 @@ export default defineComponent({
         title="Networking"
       >
         <Networking
-          :mode="mode"
-          :region="config.region"
-          :amazon-credential-secret="config.amazonCredentialSecret"
           :public-access.sync="config.publicAccess"
           :private-access.sync="config.privateAccess"
           :public-access-sources.sync="config.publicAccessSources"
           :subnets.sync="config.subnets"
+          :mode="mode"
+          :region="config.region"
+          :amazon-credential-secret="config.amazonCredentialSecret"
         />
       </Accordion>
       <Accordion
@@ -610,24 +673,3 @@ export default defineComponent({
     </template>
   </CruResource>
 </template>
-
-<style lang="scss" scoped>
-
-  .networking-checkboxes {
-    display: flex;
-    flex-direction: column;
-
-    &>*{
-      margin-bottom: 10px;
-    }
-  }
-
-  .node-pool {
-    padding: 10px;
-  }
-
-  .center-inputs {
-    display: flex;
-    align-items: center;
-  }
-</style>
