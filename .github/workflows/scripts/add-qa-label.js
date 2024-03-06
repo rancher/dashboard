@@ -4,6 +4,7 @@ const request = require('./request');
 
 const QA_DEV_AUTOMATION_LABEL = 'QA/dev-automation';
 const QA_MANUAL_TEST_LABEL = 'QA/manual-test';
+const QA_NONE_LABEL = 'QA/None';
 
 // The event object
 const event = require(process.env.GITHUB_EVENT_PATH);
@@ -19,7 +20,7 @@ async function processOpenAction() {
   const labels = issue.labels.map((label) => label.name);
 
   // Check we have a QA label
-  if (!labels.includes(QA_DEV_AUTOMATION_LABEL) && !labels.includes(QA_MANUAL_TEST_LABEL)) {
+  if (!labels.includes(QA_DEV_AUTOMATION_LABEL)  && !labels.includes(QA_MANUAL_TEST_LABEL) && !labels.includes(QA_NONE_LABEL)) {
     // Need to add the Dev Automation label
 
     labels.push(QA_DEV_AUTOMATION_LABEL);
