@@ -1,4 +1,3 @@
-# Docs for this workflow are here https://github.com/github/issue-labeler
 name: Add QA Label
 on:
   issues:
