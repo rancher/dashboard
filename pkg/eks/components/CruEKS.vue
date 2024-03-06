@@ -35,7 +35,6 @@ import NodeGroup from './NodeGroup.vue';
 import Logging from './Logging.vue';
 import Config from './Config.vue';
 import Networking from './Networking.vue';
-
 import AgentConfiguration from '@shell/edit/provisioning.cattle.io.cluster/tabs/AgentConfiguration.vue';
 
 const defaultCluster = {
@@ -50,7 +49,6 @@ const defaultCluster = {
 };
 
 // todo nb should this  be placeholder instead?
-// TODO nb move to node group
 const DEFAULT_USER_DATA =
 `MIME-Version: 1.0
 Content-Type: multipart/mixed; boundary="==MYBOUNDARY=="
@@ -137,7 +135,6 @@ export default defineComponent({
     }
   },
 
-  // AKS provisioning needs to use the norman API - a provisioning cluster resource will be created by the BE when the norman cluster is made but v2 prov clusters don't contain the relevant aks configuration fields
   async fetch() {
     const store = this.$store as Store<any>;
 
@@ -154,9 +151,12 @@ export default defineComponent({
     if (!this.normanCluster.eksConfig) {
       this.$set(this.normanCluster, 'eksConfig', { ...DEFAULT_EKS_CONFIG });
     }
-
-    // TODO nb do this better?
-    // TODO nb defaults
+    if (!this.normanCluster.fleetAgentDeploymentCustomization) {
+      this.$set(this.normanCluster, 'fleetAgentDeploymentCustomization', {});
+    }
+    if (!this.normanCluster.clusterAgentDeploymentCustomization) {
+      this.$set(this.normanCluster, 'clusterAgentDeploymentCustomization', {});
+    }
     this.config = this.normanCluster.eksConfig;
 
     if (!this.config.nodeGroups || !this.config.nodeGroups.length) {
@@ -177,12 +177,48 @@ export default defineComponent({
       config:            { } as EKSConfig,
       membershipUpdate:  {} as any,
       originalVersion:   '',
-      // fvFormRuleSets:        [],
+
+      fvFormRuleSets: [{
+        path:  'name',
+        rules: ['nameRequired'],
+      },
+      {
+        path:  'nodegroupNames',
+        rules: ['nodeGroupNamesUnique', 'nodeGroupNamesRequired']
+      },
+      {
+        path:  'maxSize',
+        rules: ['maxSize']
+      },
+      {
+        path:  'minSize',
+        rules: ['minSize']
+      },
+      {
+        path:  'desiredSize',
+        rules: ['desiredSize']
+      },
+      {
+        path:  'subnets',
+        rules: ['subnets']
+      },
+      {
+        path:  'instanceType',
+        rules: ['instanceType']
+      },
+      {
+        path:  'diskSize',
+        rules: ['diskSize']
+      },
+      {
+        path:  'networking',
+        rules: ['publicPrivateAccess']
+      },
+      ],
       // TODO nb default from config
       customServiceRole: false,
 
       serviceRoleOptions:     [{ value: false, label: 'Standard: A service role will be automatically created' }, { value: true, label: 'Custom: Choose from an existing service role' }],
-      // todo nb spinners in node ggroup component
       loadingInstanceTypes:   false,
       loadingLaunchTemplates: false,
 
@@ -242,9 +278,93 @@ export default defineComponent({
   computed: {
     ...mapGetters({ t: 'i18n/t' }),
 
-    // fvExtraRules() {
-    //   return {};
-    // },
+    fvExtraRules() {
+      return {
+        nameRequired: () => {
+          return !this.config.displayName ? this.t('validation.required', { key: this.t('nameNsDescription.name.label') }) : null;
+        },
+        nodeGroupNamesRequired: (node: EKSNodeGroup) => {
+          if (node) {
+            return !!node.nodegroupName ? this.t('validation.required', { key: this.t('eks.nodeGroups.name.label') }) : null;
+          }
+
+          return !!this.nodeGroups.find((group) => !group.nodegroupName) ? this.t('validation.required', { key: this.t('eks.nodeGroups.name.label') }) : null;
+        },
+        nodeGroupNamesUnique: (node: EKSNodeGroup): null | string => {
+          if (node) {
+            return node.__nameUnique === false ? this.t('eks.errors.nodeGroups.nameUnique') : null;
+          }
+          let out = null as null|string;
+
+          const names = this.nodeGroups.map((node) => node.nodegroupName);
+
+          this.nodeGroups.forEach((group) => {
+            const name = group.nodegroupName;
+
+            if (names.filter((n) => n === name).length > 1) {
+              this.$set(group, '__nameUnique', false);
+              if (!out) {
+                out = this.t('eks.errors.nodeGroups.nameUnique');
+              }
+            }
+          });
+
+          return out;
+        },
+        maxSize: (size: String) => {
+          const msg = this.t('eks.errors.greaterThanZero', { key: this.t('eks.nodeGroups.maxSize.label') });
+
+          if (size !== undefined) {
+            return size > 0 ? null : msg;
+          }
+
+          return !!this.nodeGroups.find((group) => !group.maxSize || group.maxSize <= 0) ? msg : null;
+        },
+        minSize: (size: String) => {
+          const msg = this.t('eks.errors.greaterThanZero', { key: this.t('eks.nodeGroups.minSize.label') });
+
+          if (size !== undefined) {
+            return size > 0 ? null : msg;
+          }
+
+          return !!this.nodeGroups.find((group) => !group.minSize || group.minSize <= 0) ? msg : null;
+        },
+        diskSize: (type: String) => {
+          if (type || type === '') {
+            return !type ? this.t('validation.required', { key: this.t('eks.nodeGroups.diskSize.label') }) : null;
+          }
+
+          return !!this.nodeGroups.find((group: EKSNodeGroup) => !group.diskSize ) ? this.t('validation.required', { key: this.t('eks.nodeGroups.instanceType.label') }) : null;
+        },
+        instanceType: (type: String) => {
+          if (type || type === '') {
+            return !type ? this.t('validation.required', { key: this.t('eks.nodeGroups.instanceType.label') }) : null;
+          }
+
+          return !!this.nodeGroups.find((group: EKSNodeGroup) => !group.instanceType && !group.requestSpotInstances) ? this.t('validation.required', { key: this.t('eks.nodeGroups.instanceType.label') }) : null;
+        },
+        desiredSize: (size) => {
+          const msg = this.t('eks.errors.greaterThanZero', { key: this.t('eks.nodeGroups.desiredSize.label') });
+
+          if (size !== undefined) {
+            return size > 0 ? null : msg;
+          }
+
+          return !!this.nodeGroups.find((group) => !group.desiredSize || group.desiredSize <= 0) ? msg : null;
+        },
+        subnets: (val) => {
+          const subnets = val || this.config.subnets;
+
+          return subnets && subnets.length === 1 ? this.t('eks.errors.minimumSubnets') : undefined;
+        },
+        publicPrivateAccess: () => {
+          const { publicAccess, privateAccess } = this.config;
+
+          return publicAccess || privateAccess ? undefined : this.t('eks.errors.publicOrPrivate');
+        },
+
+      };
+    },
 
     // upstreamSpec will be null if the user created a cluster with some invalid options such that it ultimately fails to create anything in aks
     // this allows them to go back and correct their mistakes without re-making the whole cluster
@@ -503,9 +623,10 @@ export default defineComponent({
       <div class="col span-6">
         <LabeledInput
           required
-          label="Cluster Name"
+          label-key="eks.clusterName.label"
           :value="normanCluster.name"
           :mode="mode"
+          :rules="fvGetAndReportPathRules('name')"
           @input="setClusterName"
         />
       </div>
@@ -543,6 +664,14 @@ export default defineComponent({
           :name="node.nodegroupName"
         >
           <NodeGroup
+            :rules="{
+              nodegroupName: fvGetAndReportPathRules('nodegroupNames'),
+              maxSize: fvGetAndReportPathRules('maxSize'),
+              minSize: fvGetAndReportPathRules('minSize'),
+              desiredSize: fvGetAndReportPathRules('desiredSize'),
+              instanceType: fvGetAndReportPathRules('instanceType'),
+              diskSize: fvGetAndReportPathRules('diskSize')
+            }"
             :node-role.sync="node.nodeRole"
             :launch-template.sync="node.launchTemplate"
             :nodegroup-name.sync="node.nodegroupName"
@@ -570,12 +699,13 @@ export default defineComponent({
             :ec2-roles="ec2Roles"
             :loading-instance-types="loadingInstanceTypes"
             :loading-roles="loadingIam"
+            :loading-launch-templates="loadingLaunchTemplates"
           />
         </Tab>
       </Tabbed>
       <Accordion
         class="mb-20"
-        title="Cluster Options"
+        :title="t('eks.accordionHeaders.cluster')"
         :open-initially="true"
       >
         <Config
@@ -595,7 +725,7 @@ export default defineComponent({
 
       <Accordion
         class="mb-20"
-        title="Networking"
+        :title="t('eks.accordionHeaders.networking')"
       >
         <Networking
           :public-access.sync="config.publicAccess"
@@ -605,11 +735,12 @@ export default defineComponent({
           :mode="mode"
           :region="config.region"
           :amazon-credential-secret="config.amazonCredentialSecret"
+          :rules="{subnets:fvGetAndReportPathRules('subnets')}"
         />
       </Accordion>
       <Accordion
         class="mb-20"
-        title="Logging"
+        :title="t('eks.accordionHeaders.logging')"
       >
         <Logging
           :mode="mode"
@@ -620,7 +751,7 @@ export default defineComponent({
 
       <Accordion
         class="mb-20"
-        title="Cluster Agent Configuration"
+        :title="t('eks.accordionHeaders.clusterAgent')"
       >
         <AgentConfiguration
           v-model="normanCluster.clusterAgentDeploymentCustomization"
@@ -630,7 +761,7 @@ export default defineComponent({
       </Accordion>
       <Accordion
         class="mb-20"
-        title="Fleet Agent Configuration"
+        :title="t('eks.accordionHeaders.fleetAgent')"
       >
         <AgentConfiguration
           v-model="normanCluster.fleetAgentDeploymentCustomization"
@@ -640,7 +771,7 @@ export default defineComponent({
       </Accordion>
       <Accordion
         class="mb-20"
-        title="Cluster Membership"
+        :title="t('members.clusterMembership')"
       >
         <Banner
           v-if="isEdit"
@@ -657,7 +788,7 @@ export default defineComponent({
       </Accordion>
       <Accordion
         class="mb-20"
-        title="Labels and Annotations"
+        :title="t('generic.labelsAndAnnotations')"
       >
         <Labels
           v-model="normanCluster"

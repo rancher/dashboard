@@ -1,5 +1,6 @@
 <script lang="ts">
 import { defineComponent, PropType } from 'vue';
+import { mapGetters } from 'vuex';
 import { EKSConfig } from '../types';
 import { _EDIT } from '@shell/config/query-params';
 
@@ -28,6 +29,8 @@ export default defineComponent({
     },
   },
 
+  computed: { ...mapGetters({ t: 'i18n/t' }) },
+
   methods: {
     typeEnabled(type: string) {
       return this.loggingTypes.includes(type);
@@ -55,17 +58,17 @@ export default defineComponent({
         <Checkbox
           :value="typeEnabled('audit')"
           :mode="mode"
-          label="Audit"
+          label-key="eks.audit.label"
+          :tooltip="t('eks.audit.tooltip')"
           @input="toggleType('audit')"
         />
       </div>
       <div class="col span-3">
-        <!-- //TODO nb tooltips -->
-
         <Checkbox
           :value="typeEnabled('api')"
           :mode="mode"
-          label="API"
+          label-key="eks.api.label"
+          :tooltip="t('eks.api.tooltip')"
           @input="toggleType('api')"
         />
       </div>
@@ -74,7 +77,8 @@ export default defineComponent({
         <Checkbox
           :value="typeEnabled('scheduler')"
           :mode="mode"
-          label="Scheduler"
+          label-key="eks.scheduler.label"
+          :tooltip="t('eks.scheduler.tooltip')"
           @input="toggleType('scheduler')"
         />
       </div>
@@ -83,7 +87,8 @@ export default defineComponent({
         <Checkbox
           :value="typeEnabled('controllerManager')"
           :mode="mode"
-          label="Controller Manager"
+          label-key="eks.controllerManager.label"
+          :tooltip="t('eks.controllerManager.tooltip')"
           @input="toggleType('controllerManager')"
         />
       </div>
@@ -91,7 +96,8 @@ export default defineComponent({
         <Checkbox
           :value="typeEnabled('authenticator')"
           :mode="mode"
-          label="Authenticator"
+          label-key="eks.authenticator.label"
+          :tooltip="t('eks.authenticator.tooltip')"
           @input="toggleType('authenticator')"
         />
       </div>

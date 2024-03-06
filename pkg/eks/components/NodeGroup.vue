@@ -7,9 +7,10 @@ import Checkbox from '@components/Form/Checkbox/Checkbox.vue';
 import KeyValue from '@shell/components/form/KeyValue.vue';
 import Banner from '@components/Banner/Banner.vue';
 import UnitInput from '@shell/components/form/UnitInput.vue';
+import { mapGetters, Store } from 'vuex';
 
 import { MANAGED_TEMPLATE_PREFIX, parseTags } from '../util/aws';
-import { mapGetters, Store } from 'vuex';
+
 import { isEmpty } from '@shell/utils/object';
 import debounce from 'lodash/debounce';
 import { randomStr } from '@shell/utils/string';
@@ -84,15 +85,15 @@ export default defineComponent({
       default: ''
     },
     desiredSize: {
-      type:    Number,
+      type:    [Number, String],
       default: null
     },
     minSize: {
-      type:    Number,
+      type:    [Number, String],
       default: null
     },
     maxSize: {
-      type:    Number,
+      type:    [Number, String],
       default: null
     },
     diskSize: {
@@ -160,6 +161,18 @@ export default defineComponent({
     loadingRoles: {
       type:    Boolean,
       default: false
+    },
+
+    loadingLaunchTemplates: {
+      type:    Boolean,
+      default: false
+    },
+
+    rules: {
+      type:    Object,
+      default: () => {
+        return {};
+      }
     }
   },
 
@@ -207,6 +220,8 @@ export default defineComponent({
   },
 
   computed: {
+    ...mapGetters({ t: 'i18n/t' }),
+
     hasRancherLaunchTemplate() {
       const eksStatus = this.originalCluster?.eksStatus || {};
       const nodegroupName = this.nodegroupName;
@@ -383,9 +398,10 @@ export default defineComponent({
       <div class="col span-6">
         <LabeledInput
           :value="nodegroupName"
-          label="Node Group Name"
+          label-key="eks.nodeGroups.name.label"
           :mode="mode"
           :disabled="!isNewOrUnprovisioned"
+          :rules="rules.nodegroupName"
           @input="$emit('update:nodegroupName', $event)"
         />
       </div>
@@ -394,7 +410,7 @@ export default defineComponent({
         <LabeledSelect
           v-model="displayNodeRole"
           :mode="mode"
-          label="Node Instance Role"
+          label-key="eks.nodeGroups.nodeRole.label"
           :options="[defaultNodeRoleOption, ...ec2Roles]"
           option-label="RoleName"
           option-key="Arn"
@@ -404,31 +420,36 @@ export default defineComponent({
       </div>
     </div>
     <div class="row mb-10">
-      <!-- //TODO nb validate min/max/desired -->
       <div class="col span-3">
         <LabeledInput
+          type="number"
           :value="desiredSize"
-          label="Desired ASG size"
+          label-key="eks.nodeGroups.desiredSize.label"
           :mode="mode"
           :disabled="!isNewOrUnprovisioned"
+          :rules="rules.desiredSize"
           @input="$emit('update:desiredSize', $event)"
         />
       </div>
       <div class="col span-3">
         <LabeledInput
+          type="number"
           :value="minSize"
-          label="Minimum ASG Size"
+          label-key="eks.nodeGroups.minSize.label"
           :mode="mode"
           :disabled="!isNewOrUnprovisioned"
+          :rules="rules.minSize"
           @input="$emit('update:minSize', $event)"
         />
       </div>
       <div class="col span-3">
         <LabeledInput
+          type="number"
           :value="maxSize"
-          label="Maximum ASG size"
+          label-key="eks.nodeGroups.maxSize.label"
           :mode="mode"
           :disabled="!isNewOrUnprovisioned"
+          :rules="rules.maxSize"
           @input="$emit('update:maxSize', $event)"
         />
       </div>
@@ -437,7 +458,7 @@ export default defineComponent({
       <div class="col span-6">
         <KeyValue
           :mode="mode"
-          title="Group Labels"
+          :title="t('eks.nodeGroups.groupLabels.label')"
           :read-allowed="false"
           :value="labels"
           :as-map="true"
@@ -445,14 +466,14 @@ export default defineComponent({
           @input="$emit('update:labels', $event)"
         >
           <template #title>
-            <label class="text-label">Group Labels</label>
+            <label class="text-label">{{ t('eks.nodeGroups.groupLabels.label') }}</label>
           </template>
         </KeyValue>
       </div>
       <div class="col span-6">
         <KeyValue
           :mode="mode"
-          title="Group Tags"
+          :title="t('eks.nodeGroups.groupTags.label')"
           :read-allowed="false"
           :as-map="true"
           :value="tags"
@@ -460,7 +481,7 @@ export default defineComponent({
           @input="$emit('update:tags', $event)"
         >
           <template #title>
-            <label class="text-label">Group Tags</label>
+            <label class="text-label">{{ t('eks.nodeGroups.groupTags.label') }}</label>
           </template>
         </KeyValue>
       </div>
@@ -472,11 +493,12 @@ export default defineComponent({
         <LabeledSelect
           v-model="selectedLaunchTemplate"
           :mode="mode"
-          label="Launch Template"
+          label-key="eks.nodeGroups.launchTemplate.label"
           :options="launchTemplateOptions"
           option-label="LaunchTemplateName"
           option-key="LaunchTemplateId"
           :disabled="!isNewOrUnprovisioned"
+          :loading="loadingLaunchTemplates"
         />
       </div>
       <div class="col span-3">
@@ -484,7 +506,7 @@ export default defineComponent({
           v-if="launchTemplate"
           :value="launchTemplate.version"
           :mode="mode"
-          label="Template Version"
+          label-key="eks.nodeGroups.launchTemplate.version"
           :options="launchTemplateVersionOptions"
           @input="$emit('update:launchTemplate', {...launchTemplate, version: $event})"
         />
@@ -492,22 +514,23 @@ export default defineComponent({
     </div>
     <div class="row mb-10">
       <div class="col span-3">
-        <!-- //TODO nb format options nicer -->
         <LabeledSelect
           :required="!requestSpotInstances"
           :mode="mode"
-          label="Instance Type"
+          label-key="eks.nodeGroups.instanceType.label"
           :options="instanceTypeOptions"
           :loading="loadingSelectedVersion||loadingInstanceTypes"
           :value="instanceType"
           :disabled="!!templateValue('instanceType') || requestSpotInstances"
-          :tooltip="(requestSpotInstances && !templateValue('instanceType')) ? 'Instance Type will not be sent when requesting spot instances. You must include Spot Instance Types instead.': ''"
+          :tooltip="(requestSpotInstances && !templateValue('instanceType')) ? t('eks.nodeGroups.instanceType.tooltip'): ''"
+          :rules="!requestSpotInstances ? rules.instanceType : []"
+
           @input="$emit('update:instanceType', $event)"
         />
       </div>
       <div class="col span-3">
         <LabeledInput
-          label="Amazon Machine Image ID"
+          label-key="eks.nodeGroups.imageId.label"
           :mode="mode"
           :value="imageId"
           :disabled="hasUserLaunchTemplate"
@@ -517,12 +540,13 @@ export default defineComponent({
       <div class="col span-3">
         <UnitInput
           :required="!templateValue('diskSize')"
-          label="Node Volume Size"
+          label-key="eks.nodeGroups.diskSize.label"
           :mode="mode"
           :value="diskSize"
           suffix="GB"
           :loading="loadingSelectedVersion"
           :disabled="!!templateValue('diskSize') || loadingSelectedVersion"
+          :rules="rules.diskSize"
           @input="$emit('update:diskSize', $event)"
         />
       </div>
@@ -530,16 +554,16 @@ export default defineComponent({
     <Banner
       v-if="requestSpotInstances && hasUserLaunchTemplate"
       color="warning"
-      label="Amazon recommends selecting multiple instance types when using spot instances. Since the template you have selected allows for only one instance time, your nodes may be interrupted more often."
+      :label="t('eks.nodeGroups.requestSpotInstances.warning')"
     />
     <div class="row mb-10">
       <div class="col span-3">
         <Checkbox
           :mode="mode"
-          label="GPU Enabled Instance"
+          label-key="eks.nodeGroups.gpu.label"
           :value="gpu"
           :disabled="!!templateValue('imageId') || hasRancherLaunchTemplate"
-          :tooltip="templateValue('imageId') ? 'This setting is ignored when using a launch template with a custom AMI defined.' : ''"
+          :tooltip="templateValue('imageId') ? t('eks.nodeGroups.gpu.tooltip') : ''"
           @input="$emit('update:gpu', $event)"
         />
       </div>
@@ -547,7 +571,7 @@ export default defineComponent({
         <Checkbox
           :value="requestSpotInstances"
           :mode="mode"
-          label="Request Spot Instances"
+          label-key="eks.nodeGroups.requestSpotInstances.label"
           :disabled="hasRancherLaunchTemplate"
           @input="$emit('update:requestSpotInstances', $event)"
         />
@@ -563,10 +587,10 @@ export default defineComponent({
         <LabeledSelect
           :mode="mode"
           :value="spotInstanceTypes"
-          label="Spot Instance Types"
+          label-key="eks.nodeGroups.spotInstanceTypes.label"
           :options="spotInstanceTypeOptions"
           :multiple="true"
-          :loading="loadingSelectedVersion||loadingInstanceTypes"
+          :loading="loadingSelectedVersion || loadingInstanceTypes"
           @input="$emit('update:spotInstanceTypes', $event)"
         />
       </div>
@@ -574,7 +598,7 @@ export default defineComponent({
     <div class="row mb-10">
       <div class="col span-6">
         <LabeledInput
-          label="User Data"
+          label-key="eks.nodeGroups.userData.label"
           :mode="mode"
           type="multiline"
           :value="userData"
@@ -586,7 +610,7 @@ export default defineComponent({
         <LabeledInput
           type="multiline"
           :value="ec2SshKey"
-          label="SSH Key"
+          label-key="eks.nodeGroups.ec2SshKey.label"
           :mode="mode"
           :disabled="hasUserLaunchTemplate"
           @input="$emit('update:ec2SshKey', $event)"
@@ -598,14 +622,14 @@ export default defineComponent({
         <KeyValue
           :key="resourceTagKey"
           :mode="mode"
-          label="Instance Resource Tags"
+          label-key="eks.nodeGroups.resourceTags.label"
           :value="resourceTags"
           :disabled="hasUserLaunchTemplate"
           :read-allowed="false"
           :as-map="true"
         >
           <template #title>
-            <label class="text-label">Instance Resource Tags</label>
+            <label class="text-label">{{ t('eks.nodeGroups.resourceTags.label') }}</label>
           </template>
         </KeyValue>
       </div>

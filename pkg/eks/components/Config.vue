@@ -82,6 +82,7 @@ export default defineComponent({
     const store = this.$store as Store<any>;
     // This setting is used by RKE1 AKS GKE and EKS - rke2/k3s have a different mechanism for fetching supported versions
     const supportedVersionRange = store.getters['management/byId'](MANAGEMENT.SETTING, SETTING.UI_SUPPORTED_K8S_VERSIONS)?.value;
+    const t = store.getters['i18n/t'];
 
     return {
       kmsInfo:               {} as any,
@@ -93,16 +94,14 @@ export default defineComponent({
       encryptSecrets:        false,
       loadingVersions:       false,
       loadingKms:            false,
-      // TODO nb redo as dropdown with "create one for me(default)" as the first option
-      serviceRoleOptions:    [{ value: false, label: 'Standard: A service role will be automatically created' }, { value: true, label: 'Custom: Choose from an existing service role' }],
       allKubernetesVersions: eksVersions as string[],
+      serviceRoleOptions:    [{ value: false, label: t('eks.serviceRole.options.standard') }, { value: true, label: t('eks.serviceRole.options.custom') }],
 
     };
   },
 
   watch: {
     'config.region'() {
-      // TODO nb loading spinners
       this.fetchKubernetesVersions();
       this.fetchKMSKeys();
     },
@@ -230,7 +229,7 @@ export default defineComponent({
         <LabeledSelect
           :value="kubernetesVersion"
           :options="versionOptions"
-          label="Kubernetes Version"
+          label-key="eks.version.label"
           :mode="mode"
           :loading="loadingVersions"
           :taggable="true"
@@ -241,7 +240,7 @@ export default defineComponent({
       <div class="col span-3">
         <Checkbox
           :mode="mode"
-          label="Project Network Isolation"
+          label-key="eks.enableNetworkPolicy.label"
           :value="enableNetworkPolicy"
           :disabled="!isNewOrUnprovisioned"
           @input="$emit('update:enableNetworkPolicy', $event)"
@@ -250,7 +249,7 @@ export default defineComponent({
       <div class="col span-3">
         <Checkbox
           :mode="mode"
-          label="Out of tree EBS CSI Driver"
+          label-key="eks.ebsCSIDriver.label"
           :value="ebsCSIDriver"
           :disabled="!isNewOrUnprovisioned"
           @input="$emit('update:ebsCSIDriver', $event)"
@@ -274,7 +273,7 @@ export default defineComponent({
           :options="eksRoles"
           option-label="RoleName"
           option-key="RoleId"
-          label="Service Role"
+          label-key="eks.serviceRole.label"
           :loading="loadingIam"
           @input="$emit('update:serviceRole', $event.RoleName)"
         />
@@ -286,7 +285,7 @@ export default defineComponent({
         <Checkbox
           v-model="encryptSecrets"
           :mode="mode"
-          label="Encrypt secrets with a KMS key"
+          label-key="eks.encryptSecrets.label"
         />
       </div>
     </div>
@@ -322,13 +321,13 @@ export default defineComponent({
       <KeyValue
         :value="tags"
         :mode="mode"
-        title="Tags"
+        :title="t('eks.tags.label')"
         :as-map="true"
         :read-allowed="false"
         @input="$emit('update:tags', $event)"
       >
         <template #title>
-          <label class="text-label">Tags</label>
+          <label class="text-label">{{ t('eks.tags.label') }}</label>
         </template>
       </KeyValue>
     </div>

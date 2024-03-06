@@ -1,10 +1,11 @@
 <script lang="ts">
 import { _EDIT } from '@shell/config/query-params';
 import { defineComponent } from 'vue';
-import { Store } from 'vuex';
+import { Store, mapGetters } from 'vuex';
 import LabeledSelect from '@shell/components/form/LabeledSelect.vue';
 import Checkbox from '@components/Form/Checkbox/Checkbox.vue';
 import ArrayList from '@shell/components/form/ArrayList.vue';
+import { RadioGroup } from '@components/Form/Radio';
 
 export default defineComponent({
   name: 'EKSNetworking',
@@ -13,6 +14,7 @@ export default defineComponent({
     LabeledSelect,
     ArrayList,
     Checkbox,
+    RadioGroup
   },
 
   props: {
@@ -44,6 +46,10 @@ export default defineComponent({
     publicAccessSources: {
       type:    Array,
       default: () => []
+    },
+    rules: {
+      type:    Object,
+      default: () => {}
     }
   },
 
@@ -65,17 +71,25 @@ export default defineComponent({
       immediate: true
     },
 
+    'chooseSubnet'(neu: boolean) {
+      if (!neu) {
+        this.$emit('update:subnets', []);
+      }
+    }
+
   },
 
   data() {
     return {
-      loadingVpcs: false,
-      vpcInfo:     {} as any,
-      subnetInfo:  {} as any
+      loadingVpcs:  false,
+      vpcInfo:      {} as any,
+      subnetInfo:   {} as any,
+      chooseSubnet: this.subnets && !!this.subnets.length
     };
   },
 
   computed: {
+    ...mapGetters({ t: 'i18n/t' }),
     // map subnets to VPCs
     // {[vpc id]: [subnets]}
     vpcOptions() {
@@ -161,48 +175,64 @@ export default defineComponent({
   <div>
     <div class="row mb-10">
       <div class="col span-6">
-        <!-- //TODO nb validate that at least one is enabled -->
         <Checkbox
           :value="publicAccess"
           :mode="mode"
-          label="Public Access"
+          label-key="eks.publicAccess.label"
           @input="$emit('update:publicAccess', $event)"
         />
         <Checkbox
           :value="privateAccess"
           :mode="mode"
-          label="Private Access"
+          label-key="eks.privateAccess.label"
           @input="$emit('update:privateAccess', $event)"
         />
       </div>
-      <div class="col span-6">
-        <!-- //TODO nb validate that two+ subnets are chosen and that they are in two+ availabilityzones -->
-        <LabeledSelect
-          v-model="displaySubnets"
-          :mode="mode"
-          label="VPC and Subnet"
-          :options="vpcOptions"
-          :loading="loadingVpcs"
-          option-key="key"
-          :multiple="true"
-        >
-          <template #option="option">
-            <span :class="{'pl-30': option._isSubnet}">{{ option.label }}</span>
-          </template>
-        </LabeledSelect>
-      </div>
     </div>
     <div class="row mb-10">
-      <!-- //TODO nb verify disable state on edit -->
       <div class="col span-6">
         <ArrayList
           :value="publicAccessSources"
           :mode="mode"
           :disabled="!publicAccess"
           :add-allowed="publicAccess"
-          add-label="add endpoint"
+          :add-label="t('eks.publicAccessSources.addEndpoint')"
           @input="$emit('update:publicAccessSources', $event)"
+        >
+          <template #title>
+            {{ t('eks.publicAccessSources.label') }}
+          </template>
+        </ArrayList>
+      </div>
+    </div>
+    <div class="row mb-10">
+      <div class="col span-6">
+        <RadioGroup
+          v-model="chooseSubnet"
+          name="subnet-mode"
+          :mode="mode"
+          :options="[{label: t('eks.subnets.default'), value: false},{label: t('eks.subnets.useCustom'), value: true}]"
+          label-key="eks.subnets.title"
         />
+      </div>
+      <div
+        v-if="chooseSubnet"
+        class="col span-6"
+      >
+        <LabeledSelect
+          v-model="displaySubnets"
+          :mode="mode"
+          label-key="eks.vpcSubnet.label"
+          :options="vpcOptions"
+          :loading="loadingVpcs"
+          option-key="key"
+          :multiple="true"
+          :rules="rules.subnets"
+        >
+          <template #option="option">
+            <span :class="{'pl-30': option._isSubnet}">{{ option.label }}</span>
+          </template>
+        </LabeledSelect>
       </div>
     </div>
   </div>

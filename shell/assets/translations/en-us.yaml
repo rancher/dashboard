@@ -3163,7 +3163,7 @@ members:
   clusterMembers: Cluster Members
   clusterAndProject: Cluster and Project Members
   createActionLabel: Add
-  clusterMemebership: Cluster Membership
+  clusterMembership: Cluster Membership
   projectMembership: Project Membership
   clusterPermissions:
     noDescription: User created - no description
