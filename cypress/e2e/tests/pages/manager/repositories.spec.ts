@@ -145,7 +145,7 @@ describe('Cluster Management Helm Repositories', { testIsolation: 'off', tags: [
     // check list details
     repositoriesPage.list().details(this.repoName, 2).should('be.visible');
     repositoriesPage.list().details(this.repoName, 1).contains('In Progress').should('be.visible');
-    repositoriesPage.list().actionMenu(`${ this.repoName }`).getMenuItem('Delete').click();
+    repositoriesPage.list().actionMenu(this.repoName).getMenuItem('Delete').click();
 
     const promptRemove = new PromptRemove();
 
@@ -156,7 +156,7 @@ describe('Cluster Management Helm Repositories', { testIsolation: 'off', tags: [
     repositoriesPage.waitForPage();
 
     // check list details
-    cy.contains(`${ this.repoName }`).should('not.exist');
+    cy.contains(this.repoName).should('not.exist');
   });
 
   it('can create a repository with SSH key', function() {
@@ -177,7 +177,7 @@ describe('Cluster Management Helm Repositories', { testIsolation: 'off', tags: [
     // check list details
     repositoriesPage.list().details(this.repoName, 2).should('be.visible');
 
-    repositoriesPage.list().actionMenu(`${ this.repoName }`).getMenuItem('Delete').click();
+    repositoriesPage.list().actionMenu(this.repoName).getMenuItem('Delete').click();
 
     const promptRemove = new PromptRemove();
 
@@ -188,6 +188,6 @@ describe('Cluster Management Helm Repositories', { testIsolation: 'off', tags: [
     repositoriesPage.waitForPage();
 
     // check list details
-    cy.contains(`${ this.repoName }`).should('not.exist');
+    cy.contains(this.repoName).should('not.exist');
   });
 });

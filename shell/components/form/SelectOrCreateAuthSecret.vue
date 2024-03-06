@@ -509,7 +509,7 @@ export default {
         <div :class="moreCols">
           <LabeledInput
             v-model="publicKey"
-            data-testid="auth-secret-basic-public-key"
+            data-testid="auth-secret-basic-username"
             :mode="mode"
             label-key="selectOrCreateAuthSecret.basic.username"
           />
@@ -517,7 +517,7 @@ export default {
         <div :class="moreCols">
           <LabeledInput
             v-model="privateKey"
-            data-testid="auth-secret-basic-private-key"
+            data-testid="auth-secret-basic-password"
             :mode="mode"
             type="password"
             label-key="selectOrCreateAuthSecret.basic.password"
