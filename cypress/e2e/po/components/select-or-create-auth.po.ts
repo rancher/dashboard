@@ -9,7 +9,7 @@ export default class SelectOrCreateAuthPo extends ComponentPo {
 
   setBasicAuthSecret(username: string, password: string) {
     const usernameInput = new LabeledInputPo(`${ this.selector } [data-testid="auth-secret-basic-username"]`, this.self());
-    const passwordInput = new LabeledInputPo(`${ this.selector } [data-testid="auth-secret-basic-ppassword"]`, this.self());
+    const passwordInput = new LabeledInputPo(`${ this.selector } [data-testid="auth-secret-basic-password"]`, this.self());
 
     usernameInput.set(username);
     passwordInput.set(password);

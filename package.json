@@ -37,7 +37,7 @@
     "generate": "yarn build",
     "dev-debug": "node --inspect ./node_modules/.bin/vue-cli-service serve",
     "cy:e2e": "cypress open --e2e --browser chrome",
-    "cy:open": "cypress open",
+    "cy:open": "CATTLE_BOOTSTRAP_PASSWORD=suse123!@#12 cypress open",
     "cy:run": "cypress run --browser chrome",
     "cy:run:sorry": "./scripts/e2e",
     "e2e:pre-dev": "yarn docker:local:stop && yarn docker:local:start && NODE_ENV=dev TEST_INSTRUMENT=true yarn build",
