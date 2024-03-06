@@ -121,8 +121,8 @@ export default {
     />
 
     <SelectOrCreateAuthSecret
-      data-testid="clusterrepo-auth-secret"
       v-model="value.spec.clientSecret"
+      data-testid="clusterrepo-auth-secret"
       :register-before-hook="registerBeforeHook"
       :namespace="secretNamespace"
       :limit-to-namespace="false"
