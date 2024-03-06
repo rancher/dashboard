@@ -23,7 +23,7 @@ export default class SelectOrCreateAuthPo extends ComponentPo {
 
   createSSHAuth(privateKey: string, publicKey: string) {
     this.authSelect().toggle();
-    this.authSelect().clickOptionWithLabel('Create a SSH Auth Secret');
+    this.authSelect().clickOptionWithLabel('Create a SSH Key Secret');
     this.setAuthSecret('ssh', privateKey, publicKey);
   }
 }
