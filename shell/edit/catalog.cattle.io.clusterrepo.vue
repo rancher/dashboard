@@ -27,6 +27,9 @@ export default {
   },
 
   computed: {
+    inStore() {
+      return this.$store.getters['currentProduct'].inStore;
+    },
     secretNamespace() {
       const tryNames = ['cattle-system', 'default'];
 
@@ -36,7 +39,7 @@ export default {
         }
       }
 
-      return this.$store.getters['cluster/all'](NAMESPACE)[0]?.id;
+      return this.$store.getters[`${ this.inStore }/all`](NAMESPACE)[0]?.id;
     }
   },
 };
@@ -100,10 +103,12 @@ export default {
     />
 
     <SelectOrCreateAuthSecret
+      data-testid="clusterrepo-auth-secret"
       v-model="value.spec.clientSecret"
       :register-before-hook="registerBeforeHook"
       :namespace="secretNamespace"
       :limit-to-namespace="false"
+      :in-store="inStore"
       generate-name="clusterrepo-auth-"
     />
 

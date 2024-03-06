@@ -28,6 +28,7 @@ declare namespace Cypress {
     login(username?: string, password?: string, cacheSession?: boolean): Chainable<Element>;
     logout(): Chainable;
     byLabel(label: string): Chainable<Element>;
+    createE2EResourceName(context: string): Chainable<Element>;
 
     createUser(params: CreateUserParams): Chainable;
     setGlobalRoleBinding(userId: string, role: string): Chainable;
