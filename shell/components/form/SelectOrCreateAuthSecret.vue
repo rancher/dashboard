@@ -207,7 +207,7 @@ export default {
         types.push(SECRET_TYPES.RKE_AUTH_CONFIG);
       }
 
-      const out = this.allSecrets
+      let out = this.allSecrets
         .filter((x) => this.namespace && this.limitToNamespace ? x.metadata.namespace === this.namespace : true)
         .filter((x) => {
           // Must match one of the types if given
@@ -254,7 +254,7 @@ export default {
       }
 
       if ( !this.limitToNamespace ) {
-        sortBy(out, 'group');
+        out = sortBy(out, 'group');
         if ( out.length ) {
           let lastGroup = '';
 
