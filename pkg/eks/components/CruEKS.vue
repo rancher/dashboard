@@ -1,33 +1,23 @@
 <script lang='ts'>
-import semver from 'semver';
 import { mapGetters, Store } from 'vuex';
 import { defineComponent } from 'vue';
 
 import AccountAccess from './AccountAccess.vue';
 
-import { randomStr } from '@shell/utils/string';
-import { isArray, removeObject } from '@shell/utils/array';
+import { removeObject } from '@shell/utils/array';
 import { _CREATE, _EDIT, _VIEW } from '@shell/config/query-params';
-import { NORMAN, MANAGEMENT } from '@shell/config/types';
-import { sortable } from '@shell/utils/version';
-import { sortBy } from '@shell/utils/sort';
-import { SETTING } from '@shell/config/settings';
+import { NORMAN } from '@shell/config/types';
 
 import CreateEditView from '@shell/mixins/create-edit-view';
 import FormValidation from '@shell/mixins/form-validation';
 import CruResource from '@shell/components/CruResource.vue';
-import LabeledSelect from '@shell/components/form/LabeledSelect.vue';
 import LabeledInput from '@components/Form/LabeledInput/LabeledInput.vue';
-import Checkbox from '@components/Form/Checkbox/Checkbox.vue';
-import FileSelector from '@shell/components/form/FileSelector.vue';
-import KeyValue from '@shell/components/form/KeyValue.vue';
-import ArrayList from '@shell/components/form/ArrayList.vue';
+
 import Labels from '@shell/components/form/Labels.vue';
 import Tab from '@shell/components/Tabbed/Tab.vue';
 import Tabbed from '@shell/components/Tabbed/index.vue';
 import Accordion from '@components/Accordion/Accordion.vue';
 import Banner from '@components/Banner/Banner.vue';
-import { RadioGroup } from '@components/Form/Radio';
 import ClusterMembershipEditor, { canViewClusterMembershipEditor } from '@shell/components/form/Members/ClusterMembershipEditor.vue';
 
 import { EKSConfig, EKSNodeGroup } from '../types';
@@ -47,19 +37,6 @@ const defaultCluster = {
   fleetAgentDeploymentCustomization:   {},
   clusterAgentDeploymentCustomization: {}
 };
-
-// todo nb should this  be placeholder instead?
-const DEFAULT_USER_DATA =
-`MIME-Version: 1.0
-Content-Type: multipart/mixed; boundary="==MYBOUNDARY=="
-
---==MYBOUNDARY==
-Content-Type: text/x-shellscript; charset="us-ascii"
-
-#!/bin/bash
-echo "Running custom user data script"
-
---==MYBOUNDARY==--\\`;
 
 export const DEFAULT_REGION = 'us-west-2';
 
@@ -81,7 +58,7 @@ const DEFAULT_NODE_GROUP_CONFIG = {
   subnets:              [],
   tags:                 {},
   type:                 'nodeGroup',
-  userData:             DEFAULT_USER_DATA,
+  userData:             '',
 };
 
 const DEFAULT_EKS_CONFIG = {
@@ -101,12 +78,9 @@ export default defineComponent({
   components: {
     CruResource,
     AccountAccess,
-    LabeledSelect,
-    RadioGroup,
     NodeGroup,
     Logging,
     Config,
-    Checkbox,
     Networking,
     LabeledInput,
     ClusterMembershipEditor,
@@ -215,10 +189,7 @@ export default defineComponent({
         rules: ['publicPrivateAccess']
       },
       ],
-      // TODO nb default from config
-      customServiceRole: false,
 
-      serviceRoleOptions:     [{ value: false, label: 'Standard: A service role will be automatically created' }, { value: true, label: 'Custom: Choose from an existing service role' }],
       loadingInstanceTypes:   false,
       loadingLaunchTemplates: false,
 
@@ -467,7 +438,6 @@ export default defineComponent({
   },
 
   methods: {
-
     setClusterName(name: string): void {
       this.$set(this.normanCluster, 'name', name);
       this.$set(this.config, 'displayName', name);
@@ -481,17 +451,6 @@ export default defineComponent({
       if (this.membershipUpdate.save) {
         await this.membershipUpdate.save(this.normanCluster.id);
       }
-    },
-
-    // these fields are used purely in UI, to track individual nodepool components
-    cleanPoolsForSave(): void {
-      // this.nodeGroups.forEach((pool: AKSNodePool) => {
-      //   Object.keys(pool).forEach((key: string) => {
-      //     if (key.startsWith('_')) {
-      //       delete pool[key as keyof AKSNodePool];
-      //     }
-      //   });
-      // });
     },
 
     // only save values that differ from upstream aks spec - see diffUpstreamSpec comments for details
@@ -519,7 +478,6 @@ export default defineComponent({
     },
 
     updateRegion(e: string) {
-      // TODO nb group aws calls & clear their errors
       this.$set(this.config, 'region', e);
       this.fetchInstanceTypes();
       this.fetchLaunchTemplates();
@@ -533,7 +491,6 @@ export default defineComponent({
       this.fetchServiceRoles();
     },
 
-    // TODO nb warn if 0 groups
     removeGroup(i: number) {
       const group = this.nodeGroups[i];
 

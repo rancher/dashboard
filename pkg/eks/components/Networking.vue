@@ -148,7 +148,6 @@ export default defineComponent({
   },
 
   methods: {
-    // todo nb validate that chosen subnets are stilla vailable
     async fetchVpcs() {
       this.loadingVpcs = true;
       const { region, amazonCredentialSecret } = this;
