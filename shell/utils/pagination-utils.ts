@@ -118,15 +118,10 @@ class PaginationUtils {
       filter: bFilter, sort: bSort = [], namespaces: bNamespaces = [], ...bPrimitiveTypes
     } = b || {};
 
-    if (isEqual(aPrimitiveTypes, bPrimitiveTypes) &&
+    return isEqual(aPrimitiveTypes, bPrimitiveTypes) &&
       isEqual(aFilter, bFilter) &&
       sameArrayObjects(aNamespaces, bNamespaces) &&
-      sameArrayObjects<OptPaginationSort>(aSort, bSort)
-    ) {
-      return true;
-    }
-
-    return false;
+      sameArrayObjects<OptPaginationSort>(aSort, bSort);
   }
 }
 
