@@ -152,7 +152,11 @@ export default {
 
   forgetType(state, type) {
     if ( forgetType(state, type) ) {
-      delete state.inError[keyForSubscribe({ type })];
+      Object.keys(state.inError).forEach((key) => {
+        if (key.startsWith(type)) {
+          delete state.inError[key];
+        }
+      });
     }
   },
 
