@@ -3,7 +3,7 @@ import { ROWS_PER_PAGE } from '@shell/store/prefs';
 export default {
   computed: {
     totalRows() {
-      if (this.externalPagination) {
+      if (this.externalPaginationEnabled) {
         return this.externalPaginationResult?.count || 0;
       }
 
@@ -40,7 +40,7 @@ export default {
     },
 
     pagedRows() {
-      if (this.externalPagination) {
+      if (this.externalPaginationEnabled) {
         return this.rows;
       } else if ( this.paging ) {
         return this.filteredRows.slice(this.indexFrom - 1, this.indexTo);

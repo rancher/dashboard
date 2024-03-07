@@ -33,7 +33,7 @@ export default {
     }),
     */
     filteredRows() {
-      if (this.externalPagination) {
+      if (this.externalPaginationEnabled) {
         return;
       }
 

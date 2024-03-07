@@ -33,7 +33,7 @@ export default {
     },
 
     arrangedRows() {
-      if (this.externalPagination) {
+      if (this.externalPaginationEnabled) {
         return;
       }
 

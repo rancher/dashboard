@@ -168,7 +168,7 @@ export default {
       default: 0
     },
 
-    externalPagination: {
+    externalPaginationEnabled: {
       type:    Boolean,
       default: false
     },
@@ -202,7 +202,7 @@ export default {
 
   computed: {
     options() {
-      return this.$store.getters[`type-map/optionsFor`](this.schema, !!this.externalPagination);
+      return this.$store.getters[`type-map/optionsFor`](this.schema, !!this.externalPaginationEnabled);
     },
 
     _listGroupMapped() {
@@ -253,7 +253,7 @@ export default {
       if ( this.headers ) {
         headers = this.headers.slice();
       } else {
-        headers = this.$store.getters['type-map/headersFor'](this.schema, !!this.externalPagination);
+        headers = this.$store.getters['type-map/headersFor'](this.schema, !!this.externalPaginationEnabled);
       }
 
       // add custom table columns provided by the extensions ExtensionPoint.TABLE_COL hook
@@ -323,7 +323,7 @@ export default {
       if (
         !this.isNamespaced || // Resource type isn't namespaced
         this.ignoreFilter || // Component owner strictly states no filtering
-        this.externalPagination ||
+        this.externalPaginationEnabled ||
         (isAll && !this.currentProduct?.hideSystemResources) || // Need all
         (this.inStore ? this.$store.getters[`${ this.inStore }/haveNamespace`](this.schema.id)?.length : false)// Store reports type has namespace filter, so rows already contain the correctly filtered resources
       ) {
@@ -549,7 +549,7 @@ export default {
     :sort-generation-fn="safeSortGenerationFn"
     :use-query-params-for-simple-filtering="useQueryParamsForSimpleFiltering"
     :force-update-live-and-delayed="forceUpdateLiveAndDelayed"
-    :external-pagination="externalPagination"
+    :external-pagination-enabled="externalPaginationEnabled"
     :external-pagination-result="externalPaginationResult"
     :mandatory-sort="_mandatorySort"
     @clickedActionButton="handleActionButtonClick"

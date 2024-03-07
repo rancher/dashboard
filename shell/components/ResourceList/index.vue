@@ -255,7 +255,7 @@ export default {
       :adv-filter-prevent-filtering-labels="advFilterPreventFilteringLabels"
       :use-query-params-for-simple-filtering="useQueryParamsForSimpleFiltering"
       :force-update-live-and-delayed="forceUpdateLiveAndDelayed"
-      :external-pagination="canPaginate"
+      :external-pagination-enabled="canPaginate"
       :external-pagination-result="paginationResult"
       @pagination-changed="paginationChanged"
     />

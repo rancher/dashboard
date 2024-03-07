@@ -328,13 +328,13 @@ export default {
     /**
      * True if pagination is executed outside of the component
      */
-    externalPagination: {
+    externalPaginationEnabled: {
       type:    Boolean,
       default: false
     },
 
     /**
-     * If `externalPagination` is true this will be used as the current page
+     * If `externalPaginationEnabled` is true this will be used as the current page
      */
     externalPaginationResult: {
       type:    Object,
@@ -944,7 +944,7 @@ export default {
     },
 
     paginationChanged() {
-      if (!this.externalPagination) {
+      if (!this.externalPaginationEnabled) {
         return;
       }
 
