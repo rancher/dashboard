@@ -6,6 +6,9 @@ const QA_DEV_AUTOMATION_LABEL = 'QA/dev-automation';
 const QA_MANUAL_TEST_LABEL = 'QA/manual-test';
 const QA_NONE_LABEL = 'QA/None';
 
+const EMBER_LABEL = 'ember';
+const TECH_DEBT_LABEL = 'kind/tech-debt';
+
 // The event object
 const event = require(process.env.GITHUB_EVENT_PATH);
 
@@ -21,11 +24,21 @@ async function processOpenAction() {
 
   // Check we have a QA label
   if (!labels.includes(QA_DEV_AUTOMATION_LABEL)  && !labels.includes(QA_MANUAL_TEST_LABEL) && !labels.includes(QA_NONE_LABEL)) {
-    // Need to add the Dev Automation label
 
-    labels.push(QA_DEV_AUTOMATION_LABEL);
+    // Add the appropriate QA label
+    if (labels.includes(EMBER_LABEL)) {
+      console.log('    Issue does not have a QA label, adding manual test label (as issue is marked as ember)');
 
-    console.log('    Issue does not a QA label, adding ...');
+      labels.push(QA_MANUAL_TEST_LABEL);
+    } else if (labels.includes(TECH_DEBT_LABEL)) {
+      console.log('    Issue does not have a QA label, adding QA/None label (as issue is marked as tech-debt)');
+
+      labels.push(QA_NONE_LABEL);
+    } else {
+      console.log('    Issue does not have a QA label, adding dev-automation label');
+
+      labels.push(QA_DEV_AUTOMATION_LABEL);
+    }
 
     // Update the labels
     const labelsAPI = `${issue.url}/labels`;
