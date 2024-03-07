@@ -119,6 +119,31 @@ export default {
         });
       }
 
+      const schema = this.$store.getters[`${ currStore }/schemaFor`](type);
+
+      if (this.canPaginate) {
+        if (!this.pagination) {
+          // This is the initial fetchType made when resource lists are created...
+          // when pagination is enabled we want to wait for the correct set of initial pagination settings to make the call
+          return;
+        }
+
+        const opt = {
+          hasManualRefresh: this.hasManualRefresh,
+          pagination:       { ...this.pagination },
+          force:            this.paginating !== null // Fix for manual refresh (before ripped out).
+        };
+
+        Vue.set(this, 'paginating', true);
+
+        const that = this;
+
+        return this.$store.dispatch(`${ currStore }/findPage`, {
+          type,
+          opt
+        }).finally(() => Vue.set(that, 'paginating', false));
+      }
+
       let incremental = 0;
 
       if (this.incremental) {
@@ -134,30 +159,14 @@ export default {
         hasManualRefresh: this.hasManualRefresh
       };
 
-      const schema = this.$store.getters[`${ currStore }/schemaFor`](type);
-
-      if (this.canPaginate) {
-        if (!this.pagination) {
-          // This is the initial fetchType made when resource lists are created...
-          // when pagination is enabled we want to wait for the correct set of initial pagination settings to make the call
-          return;
-        } else {
-          opt.pagination = { ...this.pagination };
-        }
-
-        opt.watch = false;
-        opt.force = this.paginating !== null; // Fix for manual refresh (before ripped out).
-        Vue.set(this, 'paginating', true);
-      } else if (schema?.attributes?.namespaced) { // Is this specific resource namespaced (could be primary or secondary resource)?
+      if (schema?.attributes?.namespaced) { // Is this specific resource namespaced (could be primary or secondary resource)?
         opt.namespaced = this.namespaceFilter; // namespaceFilter will only be populated if applicable for primary resource
       }
-
-      const that = this;
 
       return this.$store.dispatch(`${ currStore }/findAll`, {
         type,
         opt
-      }).finally(() => Vue.set(that, 'paginating', false));
+      });
     },
 
     __getCountForResources(resourceNames, namespace, storeType) {

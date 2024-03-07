@@ -16,7 +16,7 @@ class AcceptOrRejectSocketMessage {
   }
 
   typeIsPaginated({ getters }: any, type: string): boolean {
-    return !!getters.havePaginated(type);
+    return !!getters.havePage(type);
   }
 
   filteredNamespaces({ rootGetters }: any) {
@@ -28,7 +28,7 @@ class AcceptOrRejectSocketMessage {
    * Note - namespace can be a list of projects or namespaces
    */
   subscribeNamespace(namespace: string[]) {
-    if (pAndNFiltering.isApplicable({ namespaced: namespace }) && namespace.length) {
+    if (pAndNFiltering.isApplicable({ namespaced: namespace, type: 'n/a' }) && namespace.length) {
       return undefined; // AKA sub to everything
     }
 

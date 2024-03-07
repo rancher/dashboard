@@ -11,29 +11,29 @@ function registerType(state, type) {
 
   if ( !cache ) {
     cache = {
-      list:           [],
-      haveAll:        false,
-      haveSelector:   {},
+      list:          [],
+      haveAll:       false,
+      haveSelector:  {},
       /**
        * If the cached list only contains resources for a namespace, this will contain the ns name
        */
-      haveNamespace:  undefined,
+      haveNamespace: undefined,
       /**
        * If the cached list only contains resources from a pagination request, this will contain the pagination settings (`StorePagination`)
        */
-      havePagination: undefined,
+      havePage:      undefined,
       /**
        * The highest known resourceVersion from the server for this type
        */
-      revision:       0,
+      revision:      0,
       /**
        * Updated every time something is loaded for this type
        */
-      generation:     0,
+      generation:    0,
       /**
        * Used to cancel incremental loads if the page changes during load
        */
-      loadCounter:    0,
+      loadCounter:   0,
     };
 
     // Not enumerable so they don't get sent back to the client for SSR
@@ -150,7 +150,7 @@ export function forgetType(state, type) {
     cache.haveAll = false;
     cache.haveSelector = {};
     cache.haveNamespace = undefined;
-    cache.havePagination = undefined;
+    cache.havePage = undefined;
     cache.revision = 0;
     cache.generation = 0;
     clear(cache.list);
@@ -292,7 +292,6 @@ export function loadAll(state, {
   ctx,
   skipHaveAll,
   namespace,
-  pagination,
   revision
 }) {
   const { getters } = ctx;
@@ -326,17 +325,12 @@ export function loadAll(state, {
 
   // Allow requester to skip setting that everything has loaded
   if (!skipHaveAll) {
-    if (pagination) {
-      // havePagination is of type `StorePagination`
-      cache.havePagination = pagination;
-      cache.haveNamespace = undefined;
-      cache.haveAll = undefined;
-    } else if (namespace) {
-      cache.havePagination = false;
+    if (namespace) {
+      cache.havePage = false;
       cache.haveNamespace = namespace;
       cache.haveAll = false;
     } else {
-      cache.havePagination = false;
+      cache.havePage = false;
       cache.haveNamespace = false;
       cache.haveAll = true;
     }
@@ -433,6 +427,38 @@ export default {
   },
 
   loadAdd,
+
+  loadPage(state, {
+    type,
+    data,
+    ctx,
+    pagination,
+  }) {
+    if (!data) {
+      return;
+    }
+
+    const keyField = ctx.getters.keyFieldForType(type);
+    const proxies = data.map((x) => classify(ctx, x));
+    const cache = registerType(state, type);
+
+    clear(cache.list);
+    cache.map.clear();
+    cache.generation++;
+
+    addObjects(cache.list, proxies);
+
+    for ( let i = 0 ; i < proxies.length ; i++ ) {
+      cache.map.set(proxies[i][keyField], proxies[i]);
+    }
+
+    // havePage is of type `StorePagination`
+    cache.havePage = pagination;
+    cache.haveNamespace = undefined;
+    cache.haveAll = undefined;
+
+    return proxies;
+  },
 
   forgetAll(state, { type }) {
     const cache = registerType(state, type);

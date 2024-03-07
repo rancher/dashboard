@@ -181,7 +181,7 @@ export default {
         return;
       }
 
-      return this.$store.getters[`${ this.currentProduct.inStore }/havePaginated`](this.resource);
+      return this.$store.getters[`${ this.currentProduct.inStore }/havePage`](this.resource);
     },
 
   },

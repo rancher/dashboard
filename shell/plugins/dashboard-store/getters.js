@@ -68,6 +68,9 @@ function matchingCounts(typeObj, namespaces) {
 
 export default {
 
+  /**
+   * Get all entries in the store. This might not mean all entries of this type
+   */
   all: (state, getters, rootState) => (type) => {
     type = getters.normalizeType(type);
 
@@ -303,7 +306,7 @@ export default {
     const entry = state.types[type];
 
     if ( entry ) {
-      return entry.havePagination && getters['paginationEqual'](entry.havePagination.request, pagination);
+      return entry.havePage && getters['paginationEqual'](entry.havePage.request, pagination);
     }
 
     return false;
@@ -319,10 +322,10 @@ export default {
     return state.types[type]?.haveNamespace || null;
   },
 
-  havePaginated: (state, getters) => (type) => {
+  havePage: (state, getters) => (type) => {
     type = getters.normalizeType(type);
 
-    return state.types[type]?.havePagination || null;
+    return state.types[type]?.havePage || null;
   },
 
   haveSelector: (state, getters) => (type, selector) => {

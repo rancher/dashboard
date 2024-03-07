@@ -22,11 +22,27 @@ export interface StorePagination {
   }
 }
 
+export type CoreFindOpt = {
+  // [key: string]: any,
+  type: string,
+  force?: boolean,
+}
+
 /**
  * Args used for findAll action
  */
-export type FindAllOpt = {
-  [key: string]: any,
+export interface FindAllOpt extends CoreFindOpt {
+  watch?: boolean,
   namespaced?: string[],
-  pagination?: OptPagination,
+  incremental?: boolean,
+  hasManualRefresh?: boolean,
+  limit?: number,
+}
+
+/**
+ * Args used for findPage action
+ */
+export interface FindPageOpt extends CoreFindOpt {
+  pagination: OptPagination,
+  hasManualRefresh?: boolean,
 }

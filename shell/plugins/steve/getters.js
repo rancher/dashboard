@@ -41,6 +41,21 @@ export default {
     const parsedUrl = parse(url);
     const isSteve = steveRegEx.test(parsedUrl.path);
 
+    // Exclude
+    // excludeFields should be an array of strings representing the paths of the fields to exclude
+    // only works on Steve but is ignored without error by Norman
+    if (isSteve) {
+      if (Array.isArray(opt?.excludeFields)) {
+        opt.excludeFields = [...opt.excludeFields, 'metadata.managedFields'];
+      } else {
+        opt.excludeFields = ['metadata.managedFields'];
+      }
+      const excludeParamsString = opt.excludeFields.map((field) => `exclude=${ field }`).join('&');
+
+      url += `${ url.includes('?') ? '&' : '?' }${ excludeParamsString }`;
+    }
+    // End: Exclude
+
     // Pagination
     const stevePagination = stevePaginationUtils.checkAndCreateParam(opt);
 
@@ -93,21 +108,6 @@ export default {
       url += `${ (url.includes('?') ? '&' : '?') + namespaceProjectFilter }`;
     }
     // End: Filter
-
-    // Exclude
-    // excludeFields should be an array of strings representing the paths of the fields to exclude
-    // only works on Steve but is ignored without error by Norman
-    if (isSteve) {
-      if (Array.isArray(opt?.excludeFields)) {
-        opt.excludeFields = [...opt.excludeFields, 'metadata.managedFields'];
-      } else {
-        opt.excludeFields = ['metadata.managedFields'];
-      }
-      const excludeParamsString = opt.excludeFields.map((field) => `exclude=${ field }`).join('&');
-
-      url += `${ url.includes('?') ? '&' : '?' }${ excludeParamsString }`;
-    }
-    // End: Exclude
 
     // Limit
     const limit = opt.limit;

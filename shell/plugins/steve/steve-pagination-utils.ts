@@ -1,5 +1,5 @@
 import projectAndNamespaceFilteringUtils from '@shell/plugins/steve/projectAndNamespaceFiltering.utils';
-import { FindAllOpt, OptPagination, OptPaginationSort } from '@shell/types/store/dashboard-store.types';
+import { FindAllOpt, FindPageOpt, OptPagination, OptPaginationSort } from '@shell/types/store/dashboard-store.types';
 import { sameArrayObjects } from '@shell/utils/array';
 import { isEqual } from '@shell/utils/object';
 
@@ -7,7 +7,7 @@ import { isEqual } from '@shell/utils/object';
  * Helper functions for steve pagination
  */
 class StevePaginationUtils {
-  checkAndCreateParam(opt: FindAllOpt): string | undefined {
+  checkAndCreateParam(opt: FindPageOpt): string | undefined {
     if (!opt.pagination) {
       return;
     }
