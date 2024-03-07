@@ -2243,6 +2243,7 @@ export default {
                 :machine-pools="machinePools"
                 :busy="busy"
                 :pool-id="obj.id"
+                :pool-create-mode="obj.create"
                 @error="handleMachinePoolError"
                 @validationChanged="v=>machinePoolValidationChanged(obj.id, v)"
               />
