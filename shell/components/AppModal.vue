@@ -22,6 +22,13 @@ export default Vue.extend({
       default: 600,
     }
   },
+  computed: {
+    modalWidth(): string {
+      const uom = typeof (this.width) === 'number' ? 'px' : '';
+
+      return `${ this.width }${ uom }`;
+    }
+  },
   mounted() {
     document.addEventListener('keydown', this.handleEscapeKey);
   },
@@ -64,7 +71,7 @@ export default Vue.extend({
         <div
           ref="modalRef"
           class="modal-container"
-          :style="{ width: width }"
+          :style="{ width: modalWidth }"
           @click.stop
         >
           <slot><!--Empty content--></slot>
