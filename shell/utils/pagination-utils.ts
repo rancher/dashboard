@@ -9,6 +9,9 @@ import {
   NAMESPACE_FILTER_NS_FULL_PREFIX,
   NAMESPACE_FILTER_P_FULL_PREFIX,
 } from '@shell/utils/namespace-filter';
+import { OptPagination, OptPaginationSort } from '@shell/types/store/dashboard-store.types';
+import { sameArrayObjects } from '@shell/utils/array';
+import { isEqual } from '@shell/utils/object';
 
 // This are hardcoded atm, but will be changed via the `Performance` settings
 const settings: PaginationSettings = {
@@ -105,6 +108,25 @@ class PaginationUtils {
     }
 
     return this.validNsProjectFilters.includes(nsProjectFilter);
+  }
+
+  paginationEqual(a?: OptPagination, b?: OptPagination): boolean {
+    const {
+      filter: aFilter, sort: aSort = [], namespaces: aNamespaces = [], ...aPrimitiveTypes
+    } = a || {};
+    const {
+      filter: bFilter, sort: bSort = [], namespaces: bNamespaces = [], ...bPrimitiveTypes
+    } = b || {};
+
+    if (isEqual(aPrimitiveTypes, bPrimitiveTypes) &&
+      isEqual(aFilter, bFilter) &&
+      sameArrayObjects(aNamespaces, bNamespaces) &&
+      sameArrayObjects<OptPaginationSort>(aSort, bSort)
+    ) {
+      return true;
+    }
+
+    return false;
   }
 }
 

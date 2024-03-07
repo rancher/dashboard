@@ -8,6 +8,7 @@ import mutations from './mutations';
 import { keyFieldFor, normalizeType } from './normalize';
 import { lookup } from './model-loader';
 import garbageCollect from '@shell/utils/gc/gc';
+import paginationUtils from '@shell/utils/pagination-utils';
 
 export const urlFor = (state, getters) => (type, id, opt) => {
   opt = opt || {};
@@ -306,13 +307,9 @@ export default {
     const entry = state.types[type];
 
     if ( entry ) {
-      return entry.havePage && getters['paginationEqual'](entry.havePage.request, pagination);
+      return entry.havePage && paginationUtils.paginationEqual(entry.havePage.request, pagination);
     }
 
-    return false;
-  },
-
-  paginationEqual: () => (a, b) => {
     return false;
   },
 

@@ -341,8 +341,4 @@ export default {
     }
   },
 
-  paginationEqual: () => (a, b) => {
-    return stevePaginationUtils.paginationEqual(a, b);
-  },
-
 };

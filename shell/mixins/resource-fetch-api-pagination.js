@@ -107,8 +107,8 @@ export default {
         return false;
       }
 
-      if (this.$store.getters[`${ this.currentProduct.inStore }/paginationEqual`](neu, old)) {
-        // Same, nay bother
+      if (paginationUtils.paginationEqual(neu, old)) {
+        // Same, nae bother
         return false;
       }
 

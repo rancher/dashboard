@@ -1,7 +1,5 @@
 import projectAndNamespaceFilteringUtils from '@shell/plugins/steve/projectAndNamespaceFiltering.utils';
-import { FindAllOpt, FindPageOpt, OptPagination, OptPaginationSort } from '@shell/types/store/dashboard-store.types';
-import { sameArrayObjects } from '@shell/utils/array';
-import { isEqual } from '@shell/utils/object';
+import { FindPageOpt } from '@shell/types/store/dashboard-store.types';
 
 /**
  * Helper functions for steve pagination
@@ -53,26 +51,7 @@ class StevePaginationUtils {
     return params.join('&');
   }
 
-  paginationEqual(a?: OptPagination, b?: OptPagination): boolean {
-    const {
-      filter: aFilter, sort: aSort = [], namespaces: aNamespaces = [], ...aPrimitiveTypes
-    } = a || {};
-    const {
-      filter: bFilter, sort: bSort = [], namespaces: bNamespaces = [], ...bPrimitiveTypes
-    } = b || {};
-
-    if (isEqual(aPrimitiveTypes, bPrimitiveTypes) &&
-      isEqual(aFilter, bFilter) &&
-      sameArrayObjects(aNamespaces, bNamespaces) &&
-      sameArrayObjects<OptPaginationSort>(aSort, bSort)
-    ) {
-      return true;
-    }
-
-    return false;
-  }
-
-  private createNamespacesParam(opt: FindAllOpt): string | undefined {
+  private createNamespacesParam(opt: FindPageOpt): string | undefined {
     if (!opt.pagination?.namespaces) {
       return '';
     }
