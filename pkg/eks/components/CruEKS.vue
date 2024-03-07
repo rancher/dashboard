@@ -137,6 +137,9 @@ export default defineComponent({
       this.$set(this.config, 'nodeGroups', [{ ...DEFAULT_NODE_GROUP_CONFIG, nodegroupName: 'group1' }]);
     }
     this.nodeGroups = this.config.nodeGroups;
+    this.fetchInstanceTypes();
+    this.fetchLaunchTemplates();
+    this.fetchServiceRoles();
   },
 
   data() {
@@ -607,7 +610,10 @@ export default defineComponent({
       @error="e=>errors.push(e)"
     />
 
-    <template v-if="hasCredential">
+    <div
+      v-if="hasCredential"
+      data-testid="crueks-form"
+    >
       <Tabbed
         class="mb-20"
         :side-tabs="true"
@@ -752,7 +758,7 @@ export default defineComponent({
           :mode="mode"
         />
       </Accordion>
-    </template>
+    </div>
     <template
       v-if="!hasCredential"
       #form-footer

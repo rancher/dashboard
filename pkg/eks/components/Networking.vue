@@ -196,6 +196,7 @@ export default defineComponent({
           :disabled="!publicAccess"
           :add-allowed="publicAccess"
           :add-label="t('eks.publicAccessSources.addEndpoint')"
+          data-testid="eks-public-access-sources"
           @input="$emit('update:publicAccessSources', $event)"
         >
           <template #title>
@@ -226,7 +227,8 @@ export default defineComponent({
           :loading="loadingVpcs"
           option-key="key"
           :multiple="true"
-          :rules="rules.subnets"
+          :rules="rules && rules.subnets"
+          data-testid="eks-subnets-dropdown"
         >
           <template #option="option">
             <span :class="{'pl-30': option._isSubnet}">{{ option.label }}</span>

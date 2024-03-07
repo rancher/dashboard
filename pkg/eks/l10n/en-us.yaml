@@ -99,3 +99,4 @@ eks:
     greaterThanZero: "{key} must be greater than zero."
     minimumSubnets: You must use at least two subnets, and they should be in different availability zones.
     publicOrPrivate: At least one of public or private access must be enabled.
+    fetchingRegions: "Error fetching regions: {err}"
