@@ -25,15 +25,15 @@ const createPod = () => create(POD);
 const createPodResource = (props = {}) => createResource(POD, props);
 
 const createCache = (props: any) => ({
-  generation:     0,
-  haveAll:        false,
-  haveNamespace:  undefined,
-  havePagination: undefined,
-  haveSelector:   {},
-  list:           [],
-  loadCounter:    0,
-  revision:       0,
-  map:            new Map(),
+  generation:    0,
+  haveAll:       false,
+  haveNamespace: undefined,
+  havePage:      undefined,
+  haveSelector:  {},
+  list:          [],
+  loadCounter:   0,
+  revision:      0,
+  map:           new Map(),
   ...props
 });
 

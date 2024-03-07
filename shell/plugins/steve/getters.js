@@ -41,6 +41,80 @@ export default {
     const parsedUrl = parse(url);
     const isSteve = steveRegEx.test(parsedUrl.path);
 
+    const stevePagination = stevePaginationUtils.checkAndCreateParam(opt);
+
+    if (stevePagination) {
+      url += `${ (url.includes('?') ? '&' : '?') + stevePagination }`;
+    } else {
+      // labelSelector
+      if ( opt.labelSelector ) {
+        url += `${ url.includes('?') ? '&' : '?' }labelSelector=${ opt.labelSelector }`;
+      }
+      // End: labelSelector
+
+      // Filter
+      if ( opt.filter ) {
+        url += `${ (url.includes('?') ? '&' : '?') }`;
+        const keys = Object.keys(opt.filter);
+
+        keys.forEach((key) => {
+          let vals = opt.filter[key];
+
+          if ( !isArray(vals) ) {
+            vals = [vals];
+          }
+
+          // Steve's filter options now support more complex filtering not yet implemented here #9341
+          if (isSteve) {
+            url += `${ (url.includes('filter=') ? '&' : 'filter=') }`;
+          }
+
+          const filterStrings = vals.map((val) => {
+            return `${ encodeURI(key) }=${ encodeURI(val) }`;
+          });
+          const urlEnding = url.charAt(url.length - 1);
+          const nextStringConnector = ['&', '?', '='].includes(urlEnding) ? '' : '&';
+
+          url += `${ nextStringConnector }${ filterStrings.join('&') }`;
+        });
+      }
+
+      // `opt.namespaced` is either
+      // - a string representing a single namespace - add restriction to the url
+      // - an array of namespaces or projects - add restriction as a param
+      const namespaceProjectFilter = pAndNFiltering.checkAndCreateParam(opt);
+
+      if (namespaceProjectFilter) {
+        url += `${ (url.includes('?') ? '&' : '?') + namespaceProjectFilter }`;
+      }
+      // End: Filter
+
+      // Limit
+      const limit = opt.limit;
+
+      if ( limit ) {
+        url += `${ url.includes('?') ? '&' : '?' }limit=${ limit }`;
+      }
+      // End: Limit
+
+      // Sort
+      // Steve's sort options supports multi-column sorting and column specific sort orders, not implemented yet #9341
+      const sortBy = opt.sortBy;
+      const orderBy = opt.sortOrder;
+
+      if ( sortBy ) {
+        if (isSteve) {
+          url += `${ url.includes('?') ? '&' : '?' }sort=${ (orderBy === 'desc' ? '-' : '') + encodeURI(sortBy) }`;
+        } else {
+          url += `${ url.includes('?') ? '&' : '?' }sort=${ encodeURI(sortBy) }`;
+          if ( orderBy ) {
+            url += `${ url.includes('?') ? '&' : '?' }order=${ encodeURI(orderBy) }`;
+          }
+        }
+      }
+      // End: Sort
+    }
+
     // Exclude
     // excludeFields should be an array of strings representing the paths of the fields to exclude
     // only works on Steve but is ignored without error by Norman
@@ -55,84 +129,6 @@ export default {
       url += `${ url.includes('?') ? '&' : '?' }${ excludeParamsString }`;
     }
     // End: Exclude
-
-    // Pagination
-    const stevePagination = stevePaginationUtils.checkAndCreateParam(opt);
-
-    if (stevePagination) {
-      url += `${ (url.includes('?') ? '&' : '?') + stevePagination }`;
-
-      return url;
-    }
-    // End: Pagination
-
-    // labelSelector
-    if ( opt.labelSelector ) {
-      url += `${ url.includes('?') ? '&' : '?' }labelSelector=${ opt.labelSelector }`;
-    }
-    // End: labelSelector
-
-    // Filter
-    if ( opt.filter ) {
-      url += `${ (url.includes('?') ? '&' : '?') }`;
-      const keys = Object.keys(opt.filter);
-
-      keys.forEach((key) => {
-        let vals = opt.filter[key];
-
-        if ( !isArray(vals) ) {
-          vals = [vals];
-        }
-
-        // Steve's filter options now support more complex filtering not yet implemented here #9341
-        if (isSteve) {
-          url += `${ (url.includes('filter=') ? '&' : 'filter=') }`;
-        }
-
-        const filterStrings = vals.map((val) => {
-          return `${ encodeURI(key) }=${ encodeURI(val) }`;
-        });
-        const urlEnding = url.charAt(url.length - 1);
-        const nextStringConnector = ['&', '?', '='].includes(urlEnding) ? '' : '&';
-
-        url += `${ nextStringConnector }${ filterStrings.join('&') }`;
-      });
-    }
-
-    // `opt.namespaced` is either
-    // - a string representing a single namespace - add restriction to the url
-    // - an array of namespaces or projects - add restriction as a param
-    const namespaceProjectFilter = pAndNFiltering.checkAndCreateParam(opt);
-
-    if (namespaceProjectFilter) {
-      url += `${ (url.includes('?') ? '&' : '?') + namespaceProjectFilter }`;
-    }
-    // End: Filter
-
-    // Limit
-    const limit = opt.limit;
-
-    if ( limit ) {
-      url += `${ url.includes('?') ? '&' : '?' }limit=${ limit }`;
-    }
-    // End: Limit
-
-    // Sort
-    // Steve's sort options supports multi-column sorting and column specific sort orders, not implemented yet #9341
-    const sortBy = opt.sortBy;
-    const orderBy = opt.sortOrder;
-
-    if ( sortBy ) {
-      if (isSteve) {
-        url += `${ url.includes('?') ? '&' : '?' }sort=${ (orderBy === 'desc' ? '-' : '') + encodeURI(sortBy) }`;
-      } else {
-        url += `${ url.includes('?') ? '&' : '?' }sort=${ encodeURI(sortBy) }`;
-        if ( orderBy ) {
-          url += `${ url.includes('?') ? '&' : '?' }order=${ encodeURI(orderBy) }`;
-        }
-      }
-    }
-    // End: Sort
 
     return url;
   },

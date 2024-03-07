@@ -298,7 +298,7 @@ export default {
     return false;
   },
 
-  haveAllPaginated: (state, getters) => (type, pagination) => {
+  havePaginatedPage: (state, getters) => (type, pagination) => {
     if (!pagination) {
       return false;
     }
