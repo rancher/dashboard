@@ -1,0 +1,49 @@
+import { Canvas, Meta, Story, ArgsTable, Source } from '@storybook/addon-docs';
+import AppModal from '@shell/components/AppModal';
+
+<Meta 
+  title="Components/AppModal" 
+  component={AppModal}
+/>
+
+export const Template = (args, { argTypes }) => ({
+  components: { AppModal },
+  props:      Object.keys(argTypes),
+  template:   '<app-modal v-bind="$props">Modal content goes here</app-modal>',
+})
+
+# Modal 
+The <code>AppModal</code> component is a reusable Vue modal component that provides a simple way to display content in a modal overlay.
+
+<br/>
+
+### Description
+
+<strong>Note:</strong> AppModal renders modal content outside of the control of Vue, via <code>&lt;div id="modals" /&gt;</code> located within <code>index.html</code>. This allows Dashboard to position the modal as the very last node in the page's <code>body</code>, making styling and positioning much easier and less error-prone. 
+
+<Canvas>
+  <Story
+    name="Default"
+    args={{
+      clickToClose: true,
+      width: 800,
+    }}>
+    {Template.bind({})}
+  </Story>
+</Canvas>
+
+### Import
+
+<Source
+  language='js'
+  light
+  format={false}
+  code={`
+     import AppModal from '@shell/components/AppModal';
+  `}
+/>
+
+### Props table
+
+<ArgsTable of={AppModal} />
+
