@@ -231,6 +231,7 @@ export default defineComponent({
           :loading="loadingVersions"
           :taggable="true"
           :searchable="true"
+          data-testid="eks-version-dropdown"
           @input="$emit('update:kubernetesVersion', $event)"
         />
       </div>
@@ -260,6 +261,8 @@ export default defineComponent({
           :mode="mode"
           :options="serviceRoleOptions"
           name="serviceRoleMode"
+          data-testid="eks-service-role-radio"
+          :disabled="mode!=='create'"
         />
       </div>
       <div class="col span-6">
@@ -267,11 +270,13 @@ export default defineComponent({
           v-if="customServiceRole"
           :value="serviceRole"
           :mode="mode"
+          :disabled="mode!=='create'"
           :options="eksRoles"
           option-label="RoleName"
           option-key="RoleId"
           label-key="eks.serviceRole.label"
           :loading="loadingIam"
+          data-testid="eks-service-role-dropdown"
           @input="$emit('update:serviceRole', $event.RoleName)"
         />
       </div>
@@ -281,8 +286,10 @@ export default defineComponent({
       <div class="col span-6">
         <Checkbox
           v-model="encryptSecrets"
+          :disabled="mode!=='create'"
           :mode="mode"
           label-key="eks.encryptSecrets.label"
+          data-testid="eks-encrypt-secrets-checkbox"
         />
       </div>
     </div>
@@ -300,6 +307,8 @@ export default defineComponent({
           :options="kmsOptions"
           :loading="loadingKms"
           :label="t('cluster.machineConfig.amazonEc2.kmsKey.label')"
+          data-testid="eks-kms-dropdown"
+          :disabled="mode!=='create'"
           @input="$emit('update:kmsKey', $event)"
         />
         <template v-else>
@@ -308,6 +317,8 @@ export default defineComponent({
             :mode="mode"
             :label="t('cluster.machineConfig.amazonEc2.kmsKey.label')"
             :tooltip="t('cluster.machineConfig.amazonEc2.kmsKey.text')"
+            data-testid="eks-kms-input"
+            :disabled="mode!=='create'"
             @input="$emit('update:kmsKey', $event)"
           />
         </template>

@@ -106,6 +106,7 @@ export default defineComponent({
   <div class="credential-region">
     <div class=" mb-10">
       <LabeledSelect
+        :disabled="mode!=='create'"
         :value="region"
         label-key="eks.region.label"
         :options="regionOptions"

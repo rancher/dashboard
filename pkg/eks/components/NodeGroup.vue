@@ -210,14 +210,20 @@ export default defineComponent({
   },
 
   watch: {
-    'selectedLaunchTemplate'(neu) {
-      if (neu && !isEmpty(neu) && this.amazonCredentialSecret) {
-        this.fetchLaunchTemplateVersionInfo(this.selectedLaunchTemplate);
-      }
+    selectedLaunchTemplate: {
+      handler(neu) {
+        if (neu && neu.LaunchTemplateId && this.amazonCredentialSecret) {
+          this.fetchLaunchTemplateVersionInfo(this.selectedLaunchTemplate);
+        }
+      },
+      immediate: true
     },
 
-    'amazonCredentialSecret'() {
-      this.fetchLaunchTemplateVersionInfo(this.selectedLaunchTemplate);
+    amazonCredentialSecret: {
+      handler() {
+        this.fetchLaunchTemplateVersionInfo(this.selectedLaunchTemplate);
+      },
+      immediate: true
     },
 
     'selectedVersionData'(neu = {}, old = {}) {
@@ -263,7 +269,7 @@ export default defineComponent({
       get(): any {
         const id = this.launchTemplate?.id;
 
-        return this.launchTemplateOptions.find((lt: any) => lt.LaunchTemplateId === id);
+        return this.launchTemplateOptions.find((lt: any) => lt.LaunchTemplateId && lt.LaunchTemplateId === id) || this.defaultTemplateOption;
       },
       set(neu: any) {
         if (neu.LaunchTemplateName === this.defaultTemplateOption.LaunchTemplateName) {
@@ -421,6 +427,7 @@ export default defineComponent({
           :mode="mode"
           :disabled="!isNewOrUnprovisioned"
           :rules="rules.nodegroupName"
+          data-testid="eks-nodegroup-name"
           @input="$emit('update:nodegroupName', $event)"
         />
       </div>
@@ -518,6 +525,7 @@ export default defineComponent({
           option-key="LaunchTemplateId"
           :disabled="!isNewOrUnprovisioned"
           :loading="loadingLaunchTemplates"
+          data-testid="eks-launch-template-dropdown"
         />
       </div>
       <div class="col span-3">
@@ -527,6 +535,7 @@ export default defineComponent({
           :mode="mode"
           label-key="eks.nodeGroups.launchTemplate.version"
           :options="launchTemplateVersionOptions"
+          data-testid="eks-launch-template-version-dropdown"
           @input="$emit('update:launchTemplate', {...launchTemplate, version: $event})"
         />
       </div>
@@ -543,7 +552,7 @@ export default defineComponent({
           :disabled="!!templateValue('instanceType') || requestSpotInstances"
           :tooltip="(requestSpotInstances && !templateValue('instanceType')) ? t('eks.nodeGroups.instanceType.tooltip'): ''"
           :rules="!requestSpotInstances ? rules.instanceType : []"
-
+          data-testid="eks-instance-type-dropdown"
           @input="$emit('update:instanceType', $event)"
         />
       </div>
@@ -553,6 +562,7 @@ export default defineComponent({
           :mode="mode"
           :value="imageId"
           :disabled="hasUserLaunchTemplate"
+          data-testid="eks-image-id-input"
           @input="$emit('update:imageId', $event)"
         />
       </div>
@@ -574,6 +584,7 @@ export default defineComponent({
       v-if="requestSpotInstances && hasUserLaunchTemplate"
       color="warning"
       :label="t('eks.nodeGroups.requestSpotInstances.warning')"
+      data-testid="eks-spot-instance-banner"
     />
     <div class="row mb-10">
       <div class="col span-3">
@@ -583,6 +594,7 @@ export default defineComponent({
           :value="gpu"
           :disabled="!!templateValue('imageId') || hasRancherLaunchTemplate"
           :tooltip="templateValue('imageId') ? t('eks.nodeGroups.gpu.tooltip') : ''"
+          data-testid="eks-gpu-input"
           @input="$emit('update:gpu', $event)"
         />
       </div>
@@ -610,6 +622,7 @@ export default defineComponent({
           :options="spotInstanceTypeOptions"
           :multiple="true"
           :loading="loadingSelectedVersion || loadingInstanceTypes"
+          data-testid="eks-spot-instance-type-dropdown"
           @input="$emit('update:spotInstanceTypes', $event)"
         />
       </div>
