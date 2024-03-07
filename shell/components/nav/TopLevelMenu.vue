@@ -8,7 +8,7 @@ import { CAPI, MANAGEMENT } from '@shell/config/types';
 import { MENU_MAX_CLUSTERS } from '@shell/store/prefs';
 import { sortBy } from '@shell/utils/sort';
 import { ucFirst } from '@shell/utils/string';
-import { KEY, isMac } from '@shell/utils/platform';
+import { KEY } from '@shell/utils/platform';
 import { getVersionInfo } from '@shell/utils/version';
 import { LEGACY } from '@shell/store/features';
 import { SETTING } from '@shell/config/settings';
@@ -16,13 +16,16 @@ import { filterOnlyKubernetesClusters, filterHiddenLocalCluster } from '@shell/u
 import { getProductFromRoute } from '@shell/utils/router';
 import { isRancherPrime } from '@shell/config/version';
 import Pinned from '@shell/components/nav/Pinned';
+import KeyPress from '@shell/components/KeyPress';
+import isObject from 'lodash/isObject';
 
 export default {
   components: {
     BrandImage,
     ClusterIconMenu,
     IconOrSvg,
-    Pinned
+    Pinned,
+    KeyPress
   },
 
   data() {
@@ -40,8 +43,6 @@ export default {
       showPinClusters:   false,
       searchActive:      false,
       routeCombo:        false,
-      keyMap:            [],
-      allowedComboKeys:  isMac ? ['KeyC', 'KeyC', 'KeyC', 'KeyC'] : ['ControlLeft', 'ControlRight', 'ShiftLeft', 'ShiftRight']
     };
   },
 
@@ -118,18 +119,7 @@ export default {
       }
 
       return kubeClusters?.map((x) => {
-        let clusterRoute = { name: 'c-cluster-explorer', params: { cluster: x.id } };
-
         const pCluster = pClusters?.find((c) => c.mgmt?.id === x.id);
-
-        // this controls the route change when the route key combo is pressed
-        if (this.isCurrRouteClusterExplorer && this.productFromRoute === this.currentProduct?.name && this.routeCombo) {
-          clusterRoute = {
-            name:   this.$route.name,
-            params: { ...this.$route.params }
-          };
-          clusterRoute.params.cluster = x.id;
-        }
 
         return {
           id:              x.id,
@@ -144,7 +134,7 @@ export default {
           description:     pCluster?.description,
           pin:             () => x.pin(),
           unpin:           () => x.unpin(),
-          clusterRoute
+          clusterRoute:    { name: 'c-cluster-explorer', params: { cluster: x.id } }
         };
       }) || [];
     },
@@ -280,12 +270,10 @@ export default {
 
   mounted() {
     document.addEventListener('keyup', this.handler);
-    document.addEventListener('keydown', this.sameRouteShortcutHandler);
   },
 
   beforeDestroy() {
     document.removeEventListener('keyup', this.handler);
-    document.removeEventListener('keydown', this.sameRouteShortcutHandler);
   },
 
   methods: {
@@ -312,36 +300,30 @@ export default {
       return this.productFromRoute === obj?.value;
     },
 
-    evaluateRouteCombo() {
-      if ((this.keyMap.includes(this.allowedComboKeys[0]) || this.keyMap.includes(this.allowedComboKeys[1])) &&
-        (this.keyMap.includes(this.allowedComboKeys[2]) || this.keyMap.includes(this.allowedComboKeys[3]))) {
-        this.routeCombo = true;
-      } else {
-        this.routeCombo = false;
+    handleComboPressed(val) {
+      this.routeCombo = val;
+    },
+
+    preventCtxMenuHandler(ev, cluster) {
+      if (this.routeCombo) {
+        ev.preventDefault();
+
+        if (this.isCurrRouteClusterExplorer && this.productFromRoute === this.currentProduct?.name) {
+          const clusterRoute = {
+            name:   this.$route.name,
+            params: { ...this.$route.params }
+          };
+
+          clusterRoute.params.cluster = cluster.id;
+
+          this.$router.push(clusterRoute);
+        }
       }
     },
 
     handler(e) {
-      // logic to add to the keyMap the combo keys
-      if (this.allowedComboKeys.includes(e.code)) {
-        const index = this.keyMap.findIndex((k) => k === e.code);
-
-        if (index >= 0) {
-          this.keyMap.splice(index, 1);
-        }
-
-        this.evaluateRouteCombo();
-      }
-
       if (e.keyCode === KEY.ESCAPE ) {
         this.hide();
-      }
-    },
-
-    sameRouteShortcutHandler(e) {
-      if (this.allowedComboKeys.includes(e.code) && !this.keyMap.includes(e.code)) {
-        this.keyMap.push(e.code);
-        this.evaluateRouteCombo();
       }
     },
 
@@ -379,9 +361,20 @@ export default {
         contentText = item;
         content = this.shown ? null : contentText;
 
+      // if key combo is pressed, then we update the tooltip as well
+      } else if (this.routeCombo && isObject(item) && item.ready) {
+        contentText = 'Switch clusters and keeps location';
+
+        if (showWhenClosed) {
+          content = !this.shown ? contentText : null;
+        } else {
+          content = this.shown ? contentText : null;
+        }
+
       // this is scenario where we show a tooltip when we are on the expanded menu to show full description
       } else {
         contentText = item.label;
+        classes = 'menu-description-tooltip';
 
         if (item.description) {
           contentText += `<br><br>${ item.description }`;
@@ -391,10 +384,10 @@ export default {
           content = !this.shown ? contentText : null;
         } else {
           content = this.shown ? contentText : null;
-        }
 
-        // this adds a class to the tooltip container so that we can control the max width
-        classes = 'menu-description-tooltip';
+          // this adds a class to the tooltip container so that we can control the max width
+          classes += ' description-tooltip-pos-adjustment';
+        }
       }
 
       return {
@@ -424,6 +417,10 @@ export default {
         :style="sideMenuStyle"
         tabindex="-1"
       >
+        <KeyPress
+          :keys-to-check="[['ControlLeft', 'ShiftLeft'], ['ControlLeft', 'ShiftRight'], ['ControlRight', 'ShiftLeft'], ['ControlRight', 'ShiftRight']]"
+          @is-combo-pressed="handleComboPressed"
+        />
         <!-- Logo and name -->
         <div class="title">
           <div
@@ -568,6 +565,7 @@ export default {
                     class="cluster selector option"
                     :class="{'active-menu-link': checkActiveRoute(c, true) }"
                     :to="c.clusterRoute"
+                    @contextmenu.native="preventCtxMenuHandler($event, c)"
                   >
                     <ClusterIconMenu
                       v-tooltip="getTooltipConfig(c, true)"
@@ -640,6 +638,7 @@ export default {
                     class="cluster selector option"
                     :class="{'active-menu-link': checkActiveRoute(c, true) }"
                     :to="c.clusterRoute"
+                    @contextmenu.native="preventCtxMenuHandler($event, c)"
                   >
                     <ClusterIconMenu
                       v-tooltip="getTooltipConfig(c, true)"
@@ -845,12 +844,15 @@ export default {
 <style lang="scss">
   .menu-description-tooltip {
     max-width: 200px;
+    white-space: pre-wrap;
+    word-wrap: break-word;
+  }
+
+  .description-tooltip-pos-adjustment {
     // needs !important so that we can
     // offset the tooltip a bit so it doesn't
     // overlap the pin icon and cause bad UX
     left: 35px !important;
-    white-space: pre-wrap;
-    word-wrap: break-word;
   }
 
   .localeSelector, .footer-tooltip {
