@@ -89,8 +89,7 @@ export default defineComponent({
       iamInfo:               {} as any,
       canReadKms:            false,
       supportedVersionRange,
-      // TODO nb defaults from config
-      customServiceRole:     false,
+      customServiceRole:     this.serviceRole && this.serviceRole.length,
       encryptSecrets:        false,
       loadingVersions:       false,
       loadingKms:            false,
@@ -160,7 +159,6 @@ export default defineComponent({
     // there is no api for fetching eks versions
     // fetch addons and look at which versions they support
     // this assumes that all k8s versions are compatible with at least one addon
-    // TODO nb move to aws store
     async fetchKubernetesVersions() {
       if (!this.config.region || !this.config.amazonCredentialSecret) {
         return;
@@ -193,7 +191,6 @@ export default defineComponent({
       this.loadingVersions = false;
     },
 
-    // TODO nb move to aws store
     async fetchKMSKeys() {
       const { region, amazonCredentialSecret } = this.config;
 

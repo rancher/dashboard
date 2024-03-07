@@ -73,9 +73,7 @@ export default defineComponent({
 
           this.regions = (res?.Regions || []).map((r) => r.RegionName);
         } catch (err) {
-        // TODO nb reset error banners?
-        // TODO nb i18n
-          this.$emit('error', `Error fetching regions: ${ err }`);
+          this.$emit('error', this.t('eks.errors.fetchingRegions', { err }));
         }
       }
     },
@@ -89,7 +87,6 @@ export default defineComponent({
       return !!this.credential;
     },
 
-    // TODO nb sort
     regionOptions(): string[] {
       return this.regions.length ? this.regions : this.defaultRegions;
     },

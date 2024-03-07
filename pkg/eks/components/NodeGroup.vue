@@ -15,6 +15,7 @@ import { isEmpty } from '@shell/utils/object';
 import debounce from 'lodash/debounce';
 import { randomStr } from '@shell/utils/string';
 
+// map between fields in rancher eksConfig and amazon launch templates
 const launchTemplateFieldMapping = {
   imageId:      'ImageId',
   userData:     'UserData',
@@ -23,6 +24,18 @@ const launchTemplateFieldMapping = {
   resourceTags: 'TagSpecifications',
   diskSize:     'BlockDeviceMappings'
 } as {[key: string]: string};
+
+const DEFAULT_USER_DATA =
+`MIME-Version: 1.0
+Content-Type: multipart/mixed; boundary="==MYBOUNDARY=="
+
+--==MYBOUNDARY==
+Content-Type: text/x-shellscript; charset="us-ascii"
+
+#!/bin/bash
+echo "Running custom user data script"
+
+--==MYBOUNDARY==--\\`;
 
 export default defineComponent({
   name: 'EKSNodePool',
@@ -36,7 +49,6 @@ export default defineComponent({
     UnitInput
   },
 
-  // todo nb organize props
   props: {
     nodeRole: {
       type:    String,
@@ -181,9 +193,12 @@ export default defineComponent({
   },
 
   data() {
+    const store = this.$store as Store<any>;
+    const t = store.getters['i18n/t'];
+
     return {
-      defaultTemplateOption:          { LaunchTemplateName: `Default (one will be created automatically)` },
-      defaultNodeRoleOption:          { RoleName: `Default (one will be created automatically)` },
+      defaultTemplateOption:          { LaunchTemplateName: t('eks.defaultCreateOne') },
+      defaultNodeRoleOption:          { RoleName: t('eks.defaultCreateOne') },
       loadingSelectedVersion:         false,
       // once a specific lt has been selected, an additional query is made to get full information on every version of it
       selectedLaunchTemplateInfo:     {} as any,
@@ -302,6 +317,10 @@ export default defineComponent({
         }
       }
     },
+
+    userDataPlaceholder() {
+      return DEFAULT_USER_DATA;
+    }
   },
 
   methods: {
@@ -603,6 +622,7 @@ export default defineComponent({
           type="multiline"
           :value="userData"
           :disabled="hasUserLaunchTemplate"
+          :placeholder="userDataPlaceholder"
           @input="$emit('update:userData', $event)"
         />
       </div>
