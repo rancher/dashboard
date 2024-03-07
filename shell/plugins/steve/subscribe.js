@@ -647,11 +647,9 @@ const defaultActions = {
           revision:   null
         },
       });
-      commit('clearInError', params);
 
       return;
     }
-
     let have, want;
 
     if ( selector ) {
@@ -856,14 +854,14 @@ const defaultActions = {
     const err = msg.data?.error?.toLowerCase();
 
     if ( err.includes('watch not allowed') ) {
-      commit('setInError', { type: msg.resourceType, reason: NO_WATCH });
+      commit('setInError', { msg, reason: NO_WATCH });
     } else if ( err.includes('failed to find schema') ) {
-      commit('setInError', { type: msg.resourceType, reason: NO_SCHEMA });
+      commit('setInError', { msg, reason: NO_SCHEMA });
     } else if ( err.includes('too old') ) {
       // Set an error for (all) subs of this type. This..
       // 1) blocks attempts by resource.stop to resub (as type is in error)
       // 2) will be cleared when resyncWatch --> watch (with force) --> resource.start completes
-      commit('setInError', { type: msg.resourceType, reason: REVISION_TOO_OLD });
+      commit('setInError', { msg, reason: REVISION_TOO_OLD });
       dispatch('resyncWatch', msg);
     }
   },
@@ -1035,10 +1033,10 @@ const defaultMutations = {
     }
   },
 
-  setInError(state, msg) {
+  setInError(state, { msg, reason }) {
     const key = keyForSubscribe(msg);
 
-    state.inError[key] = msg.reason;
+    state.inError[key] = reason;
   },
 
   clearInError(state, msg) {
