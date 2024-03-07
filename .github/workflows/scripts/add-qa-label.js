@@ -26,14 +26,14 @@ async function processOpenAction() {
   if (!labels.includes(QA_DEV_AUTOMATION_LABEL)  && !labels.includes(QA_MANUAL_TEST_LABEL) && !labels.includes(QA_NONE_LABEL)) {
 
     // Add the appropriate QA label
-    if (labels.includes(EMBER_LABEL)) {
-      console.log('    Issue does not have a QA label, adding manual test label (as issue is marked as ember)');
-
-      labels.push(QA_MANUAL_TEST_LABEL);
-    } else if (labels.includes(TECH_DEBT_LABEL)) {
+    if (labels.includes(TECH_DEBT_LABEL)) {
       console.log('    Issue does not have a QA label, adding QA/None label (as issue is marked as tech-debt)');
 
       labels.push(QA_NONE_LABEL);
+    } else if (labels.includes(EMBER_LABEL)) {
+      console.log('    Issue does not have a QA label, adding manual test label (as issue is marked as ember)');
+
+      labels.push(QA_MANUAL_TEST_LABEL);
     } else {
       console.log('    Issue does not have a QA label, adding dev-automation label');
 
