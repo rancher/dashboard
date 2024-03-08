@@ -34,6 +34,24 @@ export default class BurgerMenuPo extends ComponentPo {
   }
 
   /**
+   * Navigates to a cluster on a top-level side menu entry by entry index
+   * @returns {Cypress.Chainable}
+   */
+  static burgerMenuNavToClusterbyIndex(index: number): Cypress.Chainable {
+    return this.sideMenu().should('exist').find(`.clustersList [data-testid="top-level-menu-cluster-${ index }"] a`)
+      .trigger('mousedown')
+      .click();
+  }
+
+  /**
+   * Check if cluster on a top-level side menu entry by entry index has the appropriate key combo icon
+   * @returns {Cypress.Chainable}
+   */
+  static burguerMenuNavClusterItemKeyComboIconCheck(index: number): Cypress.Chainable {
+    return this.sideMenu().should('exist').find(`.clustersList [data-testid="top-level-menu-cluster-${ index }"] a .cluster-icon-menu i`).should('have.class', 'icon-keyboard_tab');
+  }
+
+  /**
    * Get menu navigation item by label
    * @returns {Cypress.Chainable}
    */
