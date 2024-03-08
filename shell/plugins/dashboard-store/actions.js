@@ -16,7 +16,8 @@ export const _ALL_IF_AUTHED = 'allIfAuthed';
 export const _NONE = 'none';
 
 const SCHEMA_CHECK_RETRIES = 15;
-const SCHEMA_CHECK_RETRY_LOG = 10;
+const HAVE_ALL_CHECK_RETRIES = 15;
+const RETRY_LOG = 10;
 
 export async function handleSpoofedRequest(rootGetters, schemaStore, opt, product) {
   // Handle spoofed types instead of making an actual request
@@ -614,7 +615,7 @@ export default {
       schema = getters['schemaFor'](type);
 
       if (!schema) {
-        if (tries === SCHEMA_CHECK_RETRY_LOG) {
+        if (tries === RETRY_LOG) {
           console.warn(`Schema for ${ type } not available... retrying...`); // eslint-disable-line no-console
         }
         await new Promise((resolve) => setTimeout(resolve, 1000));
@@ -626,6 +627,27 @@ export default {
       // Ran out of tries - fetch the schemas again
       console.warn(`Schema for ${ type } still unavailable... loading schemas again...`); // eslint-disable-line no-console
       await dispatch('loadSchemas', true);
+    }
+  },
+
+  async waitForHaveAll({ getters }, { type, throwError = false, attempts = HAVE_ALL_CHECK_RETRIES }) {
+    let tries = attempts;
+    let haveAll = null;
+
+    while (!haveAll && tries > 0) {
+      haveAll = getters['haveAll'](type);
+
+      if (!haveAll) {
+        if (tries === RETRY_LOG) {
+          console.warn(`wait for all of ${ type } continuing...`); // eslint-disable-line no-console
+        }
+        await new Promise((resolve) => setTimeout(resolve, 1000));
+        tries--;
+      }
+    }
+
+    if (tries === 0 && throwError) {
+      throw new Error(`Failed to wait for all of ${ type }`);
     }
   },
 

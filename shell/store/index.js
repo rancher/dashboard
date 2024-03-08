@@ -713,10 +713,7 @@ export const actions = {
 
     const promises = {
       // Clusters guaranteed always available or your money back
-      clusters: dispatch('management/findAll', {
-        type: MANAGEMENT.CLUSTER,
-        opt:  { url: MANAGEMENT.CLUSTER }
-      }),
+      clusters: dispatch('management/findAll', { type: MANAGEMENT.CLUSTER }),
 
       // Features checks on its own if they are available
       features: dispatch('features/loadServer'),
@@ -887,6 +884,10 @@ export const actions = {
     // This is a workaround for a timing issue where the mgmt cluster schema may not be available
     // Try and wait until the schema exists before proceeding
     await dispatch('management/waitForSchema', { type: MANAGEMENT.CLUSTER });
+
+    // Similar to above, we're still waiting on loadManagement to fetch required resources
+    // If we don't have all mgmt clusters yet a request to fetch this cluster and then all clusters (in cleanNamespaces) is kicked off
+    await dispatch('management/waitForHaveAll', { type: MANAGEMENT.CLUSTER });
 
     // See if it really exists
     try {
