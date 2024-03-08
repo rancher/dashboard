@@ -264,11 +264,12 @@ export class Plugin implements IPlugin {
   }
 
   public register(type: string, name: string, fn: Function) {
+    const allowPaths = ['models', 'image'];
     const nparts = name.split('/');
 
     // Support components in a sub-folder - component_name/index.vue (and ignore other componnets in that folder)
     // Allow store-scoped models via sub-folder - pkgname/models/storename/type will be registered as storename/type to avoid overwriting shell/models/type
-    if (nparts.length === 2 && type !== 'models') {
+    if (nparts.length === 2 && !allowPaths.includes(type)) {
       if (nparts[1] !== 'index') {
         return;
       }
