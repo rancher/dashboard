@@ -39,7 +39,7 @@ export default {
 <template>
   <app-modal
     v-if="showModal"
-    class="change-password-modal"
+    custom-class="change-password-modal"
     name="password-modal"
     :width="500"
     :height="465"
@@ -87,38 +87,33 @@ export default {
 </template>
 
 <style lang="scss" scoped>
-    .change-password-modal {
-      ::v-deep .v--modal {
-        display: flex;
+  .prompt-password {
+    ::v-deep .card-wrap {
+      display: flex;
+      flex-direction: column;
 
-        .card-wrap {
+      .card-body {
+        flex: 1;
+        justify-content: start;
+        & > div {
+          flex: 1;
           display: flex;
-          flex-direction: column;
-
-          .card-body {
-            flex: 1;
-            justify-content: start;
-            & > div {
-              flex: 1;
-              display: flex;
-            }
-          }
-
-          .card-actions {
-            display: flex;
-            justify-content: flex-end;
-            width: 100%;
-          }
         }
       }
-    }
 
-    .prompt-password {
-      flex: 1;
-      display: flex;
-      form {
-        flex: 1;
+      .card-actions {
+        display: flex;
+        justify-content: flex-end;
+        width: 100%;
       }
     }
+  }
 
+  .prompt-password {
+    flex: 1;
+    display: flex;
+    form {
+      flex: 1;
+    }
+  }
 </style>

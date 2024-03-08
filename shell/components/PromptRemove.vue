@@ -339,6 +339,7 @@ export default {
 <template>
   <app-modal
     v-if="showModal"
+    custom-class="remove-modal"
     name="promptRemove"
     :width="400"
     height="auto"

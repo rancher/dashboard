@@ -36,7 +36,7 @@ export default {
 <template>
   <app-modal
     v-if="showModal"
-    class="remove-modal"
+    custom-class="remove-modal"
     name="disableAuthProviderModal"
     :width="400"
     height="auto"
