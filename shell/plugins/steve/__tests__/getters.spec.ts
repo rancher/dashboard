@@ -5,36 +5,63 @@ const { urlFor, urlOptions } = _getters;
 describe('steve: getters', () => {
   describe('steve > getters > urlFor', () => {
     // we're not testing function output based off of state or getter inputs here since they are dependencies
-    const state = { config: { baseUrl: 'protocol' } };
+    const baseUrl = '/v1';
+    const collectionUrl = 'https://abc.com/v1/urlFoo';
+    const namespace = 'myNamespace';
+    const state = { config: { baseUrl } };
     const getters = {
-      normalizeType: (type) => type,
-      schemaFor:     (type) => {
-        if (type === 'typeFoo') {
-          return { links: { collection: 'urlFoo' } };
+      normalizeType: (type: string) => type,
+      schemaFor:     (type: string) => {
+        if (type === 'rType') {
+          return { links: { collection: collectionUrl } };
+        }
+        if (type === 'trailingforwardslash') {
+          return { links: { collection: `${ collectionUrl }/` } };
         }
       },
       // this has its own tests so it just returns the input string
-      urlOptions: (string) => string
+      urlOptions: (url: string, opt: any) => {
+        if (opt.addParam) {
+          url += '?param=true';
+        }
+
+        return url;
+      }
     };
 
     const urlForGetter = urlFor(state, getters);
 
     // most tests for this getter will go through the dashboard-store getters test spec, this only tests logic specific to the steve variant
 
-    it('expects urlFor to return a function', () => {
-      expect(typeof urlFor(state, getters)).toBe('function');
-    });
+    it.each([
+      ['rType', undefined, undefined, collectionUrl],
 
-    it('expects function returned by urlFor to return a string a type', () => {
-      expect(urlForGetter('typeFoo')).toBe('protocol/urlFoo');
-    });
+      // No namespace
+      ['rType', undefined, { }, `${ collectionUrl }`],
+      ['rType', undefined, { addParam: true }, `${ collectionUrl }?param=true`],
+      ['rType', 'abc', { }, `${ collectionUrl }/abc`],
+      ['rType', 'abc', { addParam: true }, `${ collectionUrl }/abc?param=true`],
 
-    it('expects function returned by urlFor to return a string containing a namespace when provided with a type and a single namespace string', () => {
-      expect(urlForGetter('typeFoo', undefined, { namespaced: 'nsBar' })).toBe('protocol/urlFoo/nsBar');
-    });
+      // With namespace
+      ['rType', undefined, { namespaced: `${ namespace }` }, `${ collectionUrl }/${ namespace }`],
+      ['rType', undefined, { addParam: true, namespaced: `${ namespace }` }, `${ collectionUrl }/${ namespace }?param=true`],
+      ['rType', 'abc', { namespaced: `${ namespace }` }, `${ collectionUrl }/${ namespace }/abc`],
+      ['rType', 'abc', { addParam: true, namespaced: `${ namespace }` }, `${ collectionUrl }/${ namespace }/abc?param=true`],
 
-    it('expects function returned by urlFor to return a string not containing a namespace when provided with a type and a multiple namespaces string', () => {
-      expect(urlForGetter('typeFoo', undefined, { namespaced: ['nsBar', 'nsBaz'] })).toBe('protocol/urlFoo');
+      // With url (mostly no op)
+      ['rType', undefined, { url: `${ baseUrl }/urlFoo`, namespaced: `${ namespace }` }, `${ baseUrl }/urlFoo`],
+      ['rType', undefined, { url: `${ baseUrl }/urlFoo/abc`, namespaced: `${ namespace }` }, `${ baseUrl }/urlFoo/abc`],
+      ['rType', undefined, { url: `/urlFoo`, namespaced: `${ namespace }` }, `/urlFoo`],
+      ['rType', undefined, { url: `/urlFoo/abc`, namespaced: `${ namespace }` }, `/urlFoo/abc`],
+
+      // multiple namespaces (no op)
+      ['rType', undefined, { namespaced: [`${ namespace }`, 'nsBaz'] }, `${ collectionUrl }`],
+
+      // handle trailing space
+      ['trailingforwardslash', undefined, { namespaced: `${ namespace }` }, `${ collectionUrl }/${ namespace }`],
+
+    ])("given type '%p', id '%p' and opt '%p', should get url '%p'", (type, id, opt, url) => {
+      expect(urlForGetter(type, id, opt)).toBe(url);
     });
   });
   describe('steve > getters > urlOptions', () => {
@@ -42,13 +69,8 @@ describe('steve: getters', () => {
     const state = { config: { baseUrl: 'protocol' } };
     const getters = {
       normalizeType: (type) => type,
-      schemaFor:     (type) => {
-        if (type === 'typeFoo') {
-          return { links: { collection: 'urlFoo' } };
-        }
-      },
       // this has its own tests so it just returns the input string
-      urlOptions: (string) => string
+      urlOptions:    (string) => string
     };
 
     const urlOptionsGetter = urlOptions();
@@ -83,7 +105,7 @@ describe('steve: getters', () => {
     it('returns a string without an exclude statement if excludeFields is but the url does not start with "/v1/"', () => {
       expect(urlOptionsGetter('foo', { excludeFields: ['bar'] })).toBe('foo');
     });
-    it('returns a string without an exclude statement if excludeFields is an array but the URL doesnt include the "/v1/ string"', () => {
+    it('returns a string without an exclude statement if excludeFields is an array but the URL doesn\'t include the "/v1/ string"', () => {
       expect(urlOptionsGetter('foo', { excludeFields: ['bar'] })).toBe('foo');
     });
     it('returns a string with a limit applied if a limit is provided', () => {
