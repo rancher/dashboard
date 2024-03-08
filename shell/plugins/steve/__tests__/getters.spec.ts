@@ -15,8 +15,8 @@ describe('steve: getters:', () => {
         if (type === 'rType') {
           return { links: { collection: collectionUrl } };
         }
-        if (type === 'param') {
-          return { links: { collection: collectionUrl } };
+        if (type === 'trailingforwardslash') {
+          return { links: { collection: `${ collectionUrl }/` } };
         }
       },
       // this has its own tests so it just returns the input string
@@ -51,9 +51,14 @@ describe('steve: getters:', () => {
       // With url (mostly no op)
       ['rType', undefined, { url: `${ baseUrl }/urlFoo`, namespaced: `${ namespace }` }, `${ baseUrl }/urlFoo`],
       ['rType', undefined, { url: `${ baseUrl }/urlFoo/abc`, namespaced: `${ namespace }` }, `${ baseUrl }/urlFoo/abc`],
+      ['rType', undefined, { url: `/urlFoo`, namespaced: `${ namespace }` }, `/urlFoo`],
+      ['rType', undefined, { url: `/urlFoo/abc`, namespaced: `${ namespace }` }, `/urlFoo/abc`],
 
       // multiple namespaces (no op)
       ['rType', undefined, { namespaced: [`${ namespace }`, 'nsBaz'] }, `${ collectionUrl }`],
+
+      // handle trailing space
+      ['trailingforwardslash', undefined, { namespaced: `${ namespace }` }, `${ collectionUrl }/${ namespace }`],
 
     ])("given type '%p', id '%p' and opt '%p', should get url '%p'", (type, id, opt, url) => {
       expect(urlForGetter(type, id, opt)).toBe(url);
