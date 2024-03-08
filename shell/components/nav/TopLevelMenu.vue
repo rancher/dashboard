@@ -311,7 +311,8 @@ export default {
         if (this.isCurrRouteClusterExplorer && this.productFromRoute === this.currentProduct?.name) {
           const clusterRoute = {
             name:   this.$route.name,
-            params: { ...this.$route.params }
+            params: { ...this.$route.params },
+            query:  { ...this.$route.query }
           };
 
           clusterRoute.params.cluster = cluster.id;
@@ -374,6 +375,7 @@ export default {
       // this is scenario where we show a tooltip when we are on the expanded menu to show full description
       } else {
         contentText = item.label;
+        // this adds a class to the tooltip container so that we can control the max width
         classes = 'menu-description-tooltip';
 
         if (item.description) {
@@ -385,7 +387,7 @@ export default {
         } else {
           content = this.shown ? contentText : null;
 
-          // this adds a class to the tooltip container so that we can control the max width
+          // this adds a class to adjust tooltip position so it doesn't overlap the cluster pinning action
           classes += ' description-tooltip-pos-adjustment';
         }
       }
@@ -994,7 +996,7 @@ export default {
         }
 
         .cluster-name p {
-          width: 199px;
+          width: 195px;
           white-space: nowrap;
           overflow: hidden;
           text-overflow: ellipsis;
