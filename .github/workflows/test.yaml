@@ -190,4 +190,4 @@ jobs:
           node-version: '16.x'
       - name: Check e2e tags
         run: |
-          ./scripts/check-e2e-test-for-tags
+          ./scripts/check-e2e-tests-for-tags
