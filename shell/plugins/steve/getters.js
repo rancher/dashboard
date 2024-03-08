@@ -112,6 +112,11 @@ export default {
 
       // Construct a url so query params / fragments are avoided
       const urlObj = new URL(url);
+      const path = urlObj.pathname;
+
+      if (!!path?.length && path[path.length - 1] === '/') {
+        urlObj.pathname = path.substring(0, path.length - 1);
+      }
       const parts = urlObj.pathname.split('/');
 
       if (id) {
