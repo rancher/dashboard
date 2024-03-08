@@ -19,7 +19,7 @@ describe('Settings', { testIsolation: 'off' }, () => {
     HomePagePo.goTo();
   });
 
-  it('has the correct title', () => {
+  it('has the correct title', { tags: ['@globalSettings', '@adminUser'] }, () => {
     SettingsPagePo.navTo();
 
     cy.title().should('eq', 'Rancher - Global Settings - Settings');
