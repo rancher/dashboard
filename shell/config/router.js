@@ -1,11 +1,12 @@
 import { createApp } from 'vue';
-import { createRouter } from 'vue-router';
+import { createRouter, createWebHistory } from 'vue-router';
 import { interopDefault } from '../utils/nuxt';
 
 const vueApp = createApp({});
 
 export const routerOptions = {
   history: {
+    ...createWebHistory(),
     // Note: router base comes from the ROUTER_BASE env var
     base: process.env.routerBase || '/'
   },
@@ -391,8 +392,6 @@ export const routerOptions = {
           name:      'c-cluster-product-resource-namespace-id'
         }]
     }],
-
-  // fallback: false
 };
 
 const router = createRouter(routerOptions);
