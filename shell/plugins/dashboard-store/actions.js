@@ -442,7 +442,7 @@ export default {
       const watchMsg = {
         type,
         id,
-        // Although not used by sockets, we need this for when resyncWatch calls find... which needs namespace to construct the url
+        // Although not used by sockets, we need this for when resyncWatch calls find.... which needs namespace to construct the url
         namespace: opt.namespaced,
         // Override the revision. Used in cases where we need to avoid using the resource's own revision which would be `too old`.
         // For the above case opt.revision will be `null`. If left as `undefined` the subscribe mechanism will try to determine a revision
