@@ -53,8 +53,11 @@ export default defineComponent({
 
 <template>
   <div>
-    <div class="row mb-10">
-      <div class="col span-3">
+    <div
+      :style="{'justify-content':'space-between'}"
+      class="row mb-10"
+    >
+      <div class="col span-2">
         <Checkbox
           :value="typeEnabled('audit')"
           :mode="mode"
@@ -63,7 +66,7 @@ export default defineComponent({
           @input="toggleType('audit')"
         />
       </div>
-      <div class="col span-3">
+      <div class="col span-2">
         <Checkbox
           :value="typeEnabled('api')"
           :mode="mode"
@@ -73,7 +76,7 @@ export default defineComponent({
         />
       </div>
 
-      <div class="col span-3">
+      <div class="col span-2">
         <Checkbox
           :value="typeEnabled('scheduler')"
           :mode="mode"
@@ -83,7 +86,7 @@ export default defineComponent({
         />
       </div>
 
-      <div class="col span-3">
+      <div class="col span-2">
         <Checkbox
           :value="typeEnabled('controllerManager')"
           :mode="mode"
@@ -92,7 +95,7 @@ export default defineComponent({
           @input="toggleType('controllerManager')"
         />
       </div>
-      <div class="col span-3">
+      <div class="col span-2">
         <Checkbox
           :value="typeEnabled('authenticator')"
           :mode="mode"
