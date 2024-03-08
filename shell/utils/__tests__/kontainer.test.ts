@@ -1,4 +1,4 @@
-import { diffUpstreamSpec } from '@pkg/aks/util/aks.ts';
+import { diffUpstreamSpec } from '@shell/utils/kontainer';
 
 describe('fx: diffUpstreamSpec', () => {
   it.each([

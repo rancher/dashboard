@@ -2,17 +2,16 @@
 import { mapGetters, Store } from 'vuex';
 import { defineComponent } from 'vue';
 
-import AccountAccess from './AccountAccess.vue';
-
 import { removeObject } from '@shell/utils/array';
 import { _CREATE, _EDIT, _VIEW } from '@shell/config/query-params';
 import { NORMAN } from '@shell/config/types';
-
+import { diffUpstreamSpec } from '@shell/utils/kontainer';
 import CreateEditView from '@shell/mixins/create-edit-view';
 import FormValidation from '@shell/mixins/form-validation';
+
 import CruResource from '@shell/components/CruResource.vue';
 import LabeledInput from '@components/Form/LabeledInput/LabeledInput.vue';
-
+import AgentConfiguration from '@shell/edit/provisioning.cattle.io.cluster/tabs/AgentConfiguration.vue';
 import Labels from '@shell/components/form/Labels.vue';
 import Tab from '@shell/components/Tabbed/Tab.vue';
 import Tabbed from '@shell/components/Tabbed/index.vue';
@@ -25,7 +24,7 @@ import NodeGroup from './NodeGroup.vue';
 import Logging from './Logging.vue';
 import Config from './Config.vue';
 import Networking from './Networking.vue';
-import AgentConfiguration from '@shell/edit/provisioning.cattle.io.cluster/tabs/AgentConfiguration.vue';
+import AccountAccess from './AccountAccess.vue';
 
 const defaultCluster = {
   dockerRootDir:                       '/var/lib/docker',
@@ -458,13 +457,13 @@ export default defineComponent({
 
     // only save values that differ from upstream aks spec - see diffUpstreamSpec comments for details
     removeUnchangedConfigFields(): void {
-      // const upstreamConfig = this.normanCluster?.status?.eksStatus?.upstreamSpec;
+      const upstreamConfig = this.normanCluster?.status?.eksStatus?.upstreamSpec;
 
-      // if (upstreamConfig) {
-      //   const diff = diffUpstreamSpec(upstreamConfig, this.config);
+      if (upstreamConfig) {
+        const diff = diffUpstreamSpec(upstreamConfig, this.config);
 
-      //   this.$set(this.normanCluster, 'eksConfig', diff);
-      // }
+        this.$set(this.normanCluster, 'eksConfig', diff);
+      }
     },
 
     async actuallySave(): Promise<void> {
