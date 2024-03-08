@@ -45,18 +45,9 @@ export default {
     }
   },
 
-  data() {
-    return { showModal: false };
-  },
-
   methods: {
     hide() {
-      this.showModal = false;
       this.$emit('close');
-    },
-
-    open() {
-      this.showModal = true;
     },
   }
 };
@@ -65,7 +56,6 @@ export default {
 
 <template>
   <app-modal
-    v-if="showModal"
     :name="name"
     :width="width"
     :click-to-close="false"
@@ -73,7 +63,7 @@ export default {
     v-bind="$attrs"
     class="modal"
     data-testid="mvc__card"
-    @close="hide"
+    @close="$emit('finish', $event)"
   >
     <Card
       class="modal"
