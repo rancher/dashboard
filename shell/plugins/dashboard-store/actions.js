@@ -444,7 +444,9 @@ export default {
         id,
         // Although not used by sockets, we need this for when resyncWatch calls find... which needs namespace to construct the url
         namespace: opt.namespaced,
-        // Override the revision. Used in cases where the resource's own revision will be too old
+        // Override the revision. Used in cases where we need to avoid using the resource's own revision which would be `too old`.
+        // For the above case opt.revision will be `null`. If left as `undefined` the subscribe mechanism will try to determine a revision
+        // from resources in store (which would be this one, with the too old revision)
         revision:  typeof opt.revision !== 'undefined' ? opt.revision : res?.metadata?.resourceVersion,
         force:     opt.forceWatch === true,
       };
