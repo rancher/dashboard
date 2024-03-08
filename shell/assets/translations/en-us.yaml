@@ -1387,6 +1387,7 @@ cluster:
         label: DNS Label
       environment:
         label: Environment
+        tooltip: The environment is configured when cloud credentials are created.
       faultDomainCount:
         help: If the availability set has already been created, the fault domain count will be ignored.
         label: Fault Domain Count
