@@ -16,4 +16,8 @@ export default class EmberCheckboxInputPo extends EmberComponentPo {
   private input(): Cypress.Chainable {
     return this.self().find('.ember-checkbox');
   }
+
+  checkOptionSelected() {
+    return this.input().should('be.checked');
+  }
 }
