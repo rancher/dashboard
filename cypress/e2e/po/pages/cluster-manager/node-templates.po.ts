@@ -1,6 +1,6 @@
 import PagePo from '@/cypress/e2e/po/pages/page.po';
 import EmberSortableTablePo from '@/cypress/e2e/po/components/ember/ember-sortable-table.po';
-import EmberModalAddNodeTemplatePo from '~/cypress/e2e/po/components/ember/ember-modal-add-node-template-aws.po';
+import EmberModalAddNodeTemplatePo from '@/cypress/e2e/po/components/ember/ember-modal-add-node-template-aws.po';
 import ProductNavPo from '@/cypress/e2e/po/side-bars/product-side-nav.po';
 import BurgerMenuPo from '@/cypress/e2e/po/side-bars/burger-side-menu.po';
 
