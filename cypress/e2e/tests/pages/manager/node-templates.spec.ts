@@ -31,18 +31,12 @@ describe('Node Templates', { testIsolation: 'off', tags: ['@manager', '@jenkins'
     nodeTemplatesPage.waitForPage();
     nodeTemplatesPage.addTemplate().click();
     nodeTemplatesPage.addNodeTemplateModal().serviceProviderOptions('Amazon EC2').should('have.class', 'active');
-
     nodeTemplatesPage.addNodeTemplateModal().nextButton('Next: Authenticate & configure nodes').click();
-    nodeTemplatesPage.addNodeTemplateModal().accordion().content().find('.radio .acc-label')
-      .eq(0)
-      .click();
-    nodeTemplatesPage.addNodeTemplateModal().nextButton('Next: Select a Security Group').should('exist');
+    nodeTemplatesPage.addNodeTemplateModal().selectNetwork(2).set();
     nodeTemplatesPage.addNodeTemplateModal().nextButton('Next: Select a Security Group').click();
-    nodeTemplatesPage.addNodeTemplateModal().accordion().content().contains('.radio label', 'Choose one or more existing groups')
-      .click();
+    nodeTemplatesPage.addNodeTemplateModal().selectSecurityGroups(2).set();
     nodeTemplatesPage.addNodeTemplateModal().serviceProviderOptions('Amazon EC2').should('have.class', 'active');
     nodeTemplatesPage.addNodeTemplateModal().nextButton('Next: Set Instance options').click();
-
     nodeTemplatesPage.addNodeTemplateModal().templateName().set(this.nodeTemplateName);
     cy.intercept('POST', '/v3/nodetemplate').as('createTemplate');
 
