@@ -6,6 +6,9 @@ import EmberAccordionPo from '@/cypress/e2e/po/components/ember/ember-accordion.
 import EmberFormMembersPo from '@/cypress/e2e/po/components/ember/ember-form-members.po';
 import EmberCheckboxInputPo from '@/cypress/e2e/po/components/ember/ember-checkbox-input.po';
 import EmberSelectPo from '@/cypress/e2e/po/components/ember/ember-select.po';
+import EmberModalAddNodeTemplatePo from '@/cypress/e2e/po/components/ember/ember-modal-add-node-template-aws.po';
+import EmberFormNodePoolsPo from '@/cypress/e2e/po/components/ember/ember-form-node-pools.po';
+import EmberKubernetesOptionsPo from '@/cypress/e2e/po/components/ember/ember-kubernetes-options.po';
 
 /**
  * Create page for an RKE1 amazonec2 cluster
@@ -25,6 +28,22 @@ export default class ClusterManagerCreateRke1Amazonec2PagePo extends ClusterMana
 
   clusterName(): EmberInputPo {
     return new EmberInputPo('[data-testid="form-name-description__name"]');
+  }
+
+  nodePoolTable(): EmberFormNodePoolsPo {
+    return new EmberFormNodePoolsPo('div.ember-view');
+  }
+
+  kubernetesOptions(): EmberKubernetesOptionsPo {
+    return new EmberKubernetesOptionsPo('div.ember-view');
+  }
+
+  addNodeTemplate() {
+    return cy.iFrame().find('button').contains('Add Node Template').click();
+  }
+
+  addNodeTemplateForm(): EmberModalAddNodeTemplatePo {
+    return new EmberModalAddNodeTemplatePo();
   }
 
   memberRoles(): EmberAccordionPo {

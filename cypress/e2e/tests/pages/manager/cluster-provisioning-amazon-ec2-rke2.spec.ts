@@ -76,8 +76,10 @@ describe('Provision Node driver RKE2 cluster', { testIsolation: 'off', tags: ['@
     createRKE2ClusterPage.basicsTab().kubernetesVersions().toggle();
     createRKE2ClusterPage.basicsTab().kubernetesVersions().getOptions().each((el, index) => {
       cy.wrap(el.text().trim()).as(`k8sVersion${ index }`);
-    });
-    createRKE2ClusterPage.basicsTab().kubernetesVersions().clickOption(1);
+    })
+      .then(function() {
+        createRKE2ClusterPage.basicsTab().kubernetesVersions().clickOptionWithLabel(this.k8sVersion1);
+      });
 
     createRKE2ClusterPage.machinePoolTab().networks().toggle();
     createRKE2ClusterPage.machinePoolTab().networks().clickOptionWithLabel('maxdualstack-vpc');
