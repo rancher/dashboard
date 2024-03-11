@@ -44,7 +44,7 @@ export class HomeLinksPagePo extends RootClusterPage {
   }
 
   urlInput(): LabeledInputPo {
-    return new LabeledInputPo('[data-testid="text-area-auto-grow"]');
+    return new LabeledInputPo('[data-testid="value-multiline"]');
   }
 
   applyButton() {
