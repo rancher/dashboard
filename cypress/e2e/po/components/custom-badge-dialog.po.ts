@@ -30,7 +30,7 @@ export default class CustomBadgeDialogPo extends ComponentPo {
   }
 
   badgeCustomDescription(): LabeledInputPo {
-    return LabeledInputPo.byLabel(this.self(), 'Custom description');
+    return LabeledInputPo.byLabel(this.self(), 'Custom comment');
   }
 
   colorPicker(): ColorInputPo {

@@ -5,26 +5,30 @@ describe('component: NameNsDescription', () => {
   // Accessing to computed value due code complexity
   it('should map namespaces to options', () => {
     const namespaceName = 'test';
-    const result = [{
-      label: namespaceName,
-      value: namespaceName
-    }];
+    const result = [
+      {
+        label: namespaceName,
+        value: namespaceName,
+      },
+    ];
     const wrapper = mount(NameNsDescription, {
       propsData: {
-        value: {},
-        mode:  'create',
+        value:   {},
+        mode:    'create',
+        cluster: {},
       },
       mocks: {
         $store: {
-          getters: {
+          dispatch: jest.fn(),
+          getters:  {
             namespaces:          jest.fn(),
             allowedNamespaces:   () => ({ [namespaceName]: true }),
             currentStore:        () => 'cluster',
             'cluster/schemaFor': jest.fn(),
-            'i18n/t':            jest.fn()
+            'i18n/t':            jest.fn(),
           },
         },
-      }
+      },
     });
 
     expect((wrapper.vm as any).options).toStrictEqual(result);
@@ -40,16 +44,22 @@ describe('component: NameNsDescription', () => {
       },
       mocks: {
         $store: {
-          getters: {
-            namespaces:          jest.fn(),
-            allowedNamespaces:   () => ({ [namespaceName]: true }),
+          dispatch: jest.fn(),
+          getters:  {
+            namespaces:                         jest.fn(),
+            allowedNamespaces:                  () => ({ [namespaceName]: true }),
+            'customizations/getPreviewCluster': {
+              ready:   true,
+              isLocal: false,
+              badge:   {},
+            },
             currentStore:        () => 'cluster',
             'cluster/schemaFor': jest.fn(),
-            'i18n/t':            jest.fn()
+            'i18n/t':            jest.fn(),
           },
         },
-        $refs: { name: { focus: jest.fn() } }
-      }
+        $refs: { name: { focus: jest.fn() } },
+      },
     });
 
     (wrapper.vm as any).updateNamespace(newNamespaceName);

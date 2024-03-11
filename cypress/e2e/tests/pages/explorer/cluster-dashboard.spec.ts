@@ -45,13 +45,10 @@ describe('Cluster Dashboard', { testIsolation: 'off', tags: ['@explorer', '@admi
   it('can add cluster badge', () => {
     const settings = {
       description: {
-        original: 'Example Text',
+        original: '',
         new:      'E2E Test'
       },
-      iconText: {
-        original: 'EX',
-        new:      'E2'
-      },
+      iconText:        'E2E',
       backgroundColor: {
         original: '#ff0000',
         new:      '#f80dd8',
@@ -69,7 +66,7 @@ describe('Cluster Dashboard', { testIsolation: 'off', tags: ['@explorer', '@admi
     customClusterCard.getTitle().contains('Custom Cluster Badge');
 
     // update badge
-    clusterDashboard.customBadge().selectCheckbox('Show badge for this cluster').set();
+    clusterDashboard.customBadge().selectCheckbox('Show cluster comment').set();
     clusterDashboard.customBadge().badgeCustomDescription().set(settings.description.new);
 
     // update color
@@ -80,10 +77,8 @@ describe('Cluster Dashboard', { testIsolation: 'off', tags: ['@explorer', '@admi
     // update icon
     clusterDashboard.customBadge().clusterIcon().children().should('have.class', 'cluster-local-logo');
     clusterDashboard.customBadge().selectCheckbox('Customize cluster icon').set();
-    clusterDashboard.customBadge().clusterIcon().children().should('not.have.class', 'cluster-local-logo');
-    clusterDashboard.customBadge().clusterIcon().contains(settings.iconText.original);
-    clusterDashboard.customBadge().iconText().set(settings.iconText.new);
-    clusterDashboard.customBadge().clusterIcon().contains(settings.iconText.new);
+    clusterDashboard.customBadge().iconText().set(settings.iconText);
+    clusterDashboard.customBadge().clusterIcon().contains(settings.iconText);
 
     // Apply Changes
     clusterDashboard.customBadge().applyAndWait('/v3/clusters/local');
@@ -94,12 +89,12 @@ describe('Cluster Dashboard', { testIsolation: 'off', tags: ['@explorer', '@admi
     header.customBadge().should('contain', settings.description.new);
     const burgerMenu = new BurgerMenuPo();
 
-    burgerMenu.clusters().first().find('span').should('contain', settings.iconText.new);
+    burgerMenu.clusters().first().find('span').should('contain', settings.iconText);
 
     // Reset
     clusterDashboard.addCustomBadge('Edit Cluster Badge').click();
     clusterDashboard.customBadge().selectCheckbox('Customize cluster icon').set();
-    clusterDashboard.customBadge().selectCheckbox('Show badge for this cluster').set();
+    clusterDashboard.customBadge().selectCheckbox('Show cluster comment').set();
 
     // Apply Changes
     clusterDashboard.customBadge().applyAndWait('/v3/clusters/local');
