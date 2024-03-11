@@ -3361,15 +3361,6 @@ monitoring:
       bearerTokenSecret: Bearer Token Secret
       basicAuthUsername: Secret with Basic Auth Username
       basicAuthPassword: Secret with Basic Auth Password
-  installSteps:
-    uninstallV1:
-      stepTitle: Uninstall V1
-      stepSubtext: Uninstall Previous Monitoring
-      warning1: V1 Monitoring is currently deployed. This needs to be uninstalled before V2 monitoring can be installed.
-      warning2: <a target="blank" href="{docsBase}/monitoring-alerting/guides/migrating/" target='_blank' rel='noopener nofollow'>Learn more</a> about the migration steps to V2 Monitoring.
-      promptDescription: <div class="mt-20 mb-20">You are attempting to uninstall V1 Monitoring. Please ensure you have read the migration steps.</div>
-      success1: V1 monitoring successfully uninstalled.
-      success2: Press Next to continue
   tabs:
     alerting: Alerting
     general: General

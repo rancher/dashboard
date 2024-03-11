@@ -46,5 +46,10 @@ describe('Nodes list', { tags: ['@explorer', '@adminUser'], testIsolation: 'off'
       expect(names).to.contain('local-node');
       expect(names).to.contain('bigip1');
     });
+
+    // Simple test to assert we haven't broken Node detail page
+    // https://github.com/rancher/dashboard/issues/10490
+    nodeList.sortableTable().rowElementLinkWithIndex(0).click();
+    cy.get('.title .primaryheader h1').invoke('text').should('contain', 'Node:');
   });
 });
