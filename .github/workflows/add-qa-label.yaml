@@ -1,11 +1,13 @@
-name: zube-integration
+name: Add QA Label
 on:
-  pull_request_target:
-    types: [ opened, reopened, edited, closed ]
-
+  issues:
+    types:
+      - opened
 jobs:
-  rancher_zube:
+  add_qa_label_to_issues:
     runs-on: ubuntu-latest
+    permissions:
+      issues: write
     steps:
     - uses: actions/checkout@v2
     - name: Use Node.js
@@ -15,4 +17,4 @@ jobs:
     - name: script
       env:
         GH_TOKEN: ${{ secrets.GITHUB_TOKEN }}
-      run: node .github/workflows/scripts/pr.js
+      run: node .github/workflows/scripts/add-qa-label.js
