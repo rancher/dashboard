@@ -30,19 +30,18 @@ export default {
     isOnline: true,
 
     showErrorPage: false,
-
-    nbFetching: 0
   }),
 
-  beforeCreate() {
-    Vue.util.defineReactive(this, 'nuxt', this.$options.nuxt);
-  },
   created() {
-    // Add this.$nuxt in child instances
-    this.$root.$options.$nuxt = this;
-
     // add to window so we can listen when ready
-    window.$nuxt = this;
+    window.$globalApp = this;
+    Object.defineProperty(window, '$nuxt', {
+      get() {
+        console.warn('window.$nuxt is deprecated. It would be best to stop using globalState all together. For an alternative you can use window.$globalApp.'); // eslint-disable-line no-console
+
+        return window.$globalApp;
+      }
+    });
 
     this.refreshOnlineStatus();
     // Setup the listeners
@@ -50,7 +49,7 @@ export default {
     window.addEventListener('offline', this.refreshOnlineStatus);
 
     // Add $nuxt.error()
-    this.error = this.nuxt.error;
+    this.error = this.$options.nuxt.error;
     // Add $nuxt.context
     this.context = this.$options.context;
   },
@@ -64,10 +63,6 @@ export default {
   computed: {
     isOffline() {
       return !this.isOnline;
-    },
-
-    isFetching() {
-      return this.nbFetching > 0;
     },
   },
 
@@ -131,10 +126,10 @@ export default {
       this.$loading.finish();
     },
     errorChanged() {
-      if (this.nuxt.err) {
+      if (this.$options.nuxt.err) {
         if (this.$loading) {
           if (this.$loading.fail) {
-            this.$loading.fail(this.nuxt.err);
+            this.$loading.fail(this.$options.nuxt.err);
           }
           if (this.$loading.finish) {
             this.$loading.finish();

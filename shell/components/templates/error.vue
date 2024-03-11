@@ -12,7 +12,7 @@ export default {
 
   computed: {
     error() {
-      return window.$nuxt.nuxt.err || {};
+      return window.$globalApp.nuxt.err || {};
     },
     statusCode() {
       return (this.error && this.error.statusCode) || 599;

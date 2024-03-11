@@ -66,7 +66,7 @@ let store = {};
       // Update `root.modules` with the latest definitions.
       updateModules();
       // Trigger a hot update in the store.
-      window.$nuxt.$store.hotUpdate(store);
+      window.$globalApp.$store.hotUpdate(store);
     });
   }
 })();

@@ -240,6 +240,7 @@ export const state = () => {
     error:                   null,
     cameFromError:           false,
     pageActions:             [],
+    pageActionHandler:       null,
     serverVersion:           null,
     systemNamespaces:        [],
     isSingleProduct:         undefined,
@@ -594,6 +595,14 @@ export const getters = {
 };
 
 export const mutations = {
+  pageActionHandler(state, handler) {
+    if (handler && typeof handler === 'function') {
+      state.pageActionHandler = handler;
+    }
+  },
+  clearPageActionHandler(state) {
+    state.pageActionHandler = null;
+  },
   managementChanged(state, { ready, isRancher }) {
     state.managementReady = ready;
     state.isRancher = isRancher;
@@ -691,6 +700,11 @@ export const mutations = {
 };
 
 export const actions = {
+  handlePageAction({ state }, action) {
+    if (state.pageActionHandler) {
+      state.pageActionHandler(action);
+    }
+  },
   async loadManagement({
     getters, state, commit, dispatch, rootGetters
   }) {

@@ -1244,11 +1244,11 @@ export default class Resource {
   // ------------------------------------------------------------------
 
   currentRoute() {
-    return window.$nuxt.$route;
+    return window.$globalApp.$route;
   }
 
   currentRouter() {
-    return window.$nuxt.$router;
+    return window.$globalApp.$router;
   }
 
   get listLocation() {

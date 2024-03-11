@@ -258,8 +258,6 @@ export async function setContext(app, context) {
         throw new Error('ERR_REDIRECT');
       }
     };
-
-    app.context.nuxtState = window.__NUXT__;
   }
 
   // Dynamic keys
