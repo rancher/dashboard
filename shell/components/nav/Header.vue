@@ -20,6 +20,8 @@ import { getApplicableExtensionEnhancements } from '@shell/core/plugin-helpers';
 import IconOrSvg from '@shell/components/IconOrSvg';
 import { wait } from '@shell/utils/async';
 
+const PAGE_HEADER_ACTION = 'page-action';
+
 export default {
 
   components: {
@@ -115,7 +117,7 @@ export default {
     },
 
     showPageActions() {
-      return !this.featureRancherDesktop && this.pageActions && this.pageActions.length;
+      return !this.featureRancherDesktop && this.pageActions?.length;
     },
 
     showUserMenu() {
@@ -272,7 +274,7 @@ export default {
     },
 
     pageAction(action) {
-      this.$store.dispatch('handlePageAction', action);
+      this.$nuxt.$emit(PAGE_HEADER_ACTION, action);
     },
 
     checkClusterName() {

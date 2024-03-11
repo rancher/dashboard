@@ -4,6 +4,7 @@
 import Vue from 'vue';
 import { createRouter } from '../config/router.js';
 import NuxtChild from '../components/nuxt/nuxt-child.js';
+import Nuxt from '../components/nuxt/nuxt.js';
 import App from './App.js';
 import { setContext, getLocation, getRouteData, normalizeError } from '../utils/nuxt';
 import { createStore } from '../config/store.js';
@@ -66,6 +67,24 @@ loadDirectives();
 // Component: <NuxtChild>
 Vue.component(NuxtChild.name, NuxtChild);
 Vue.component('NChild', NuxtChild);
+
+// Component NuxtLink is imported in server.js or client.js
+
+// Component: <Nuxt>
+Vue.component(Nuxt.name, Nuxt);
+
+Object.defineProperty(Vue.prototype, '$nuxt', {
+  get() {
+    const globalNuxt = this.$root.$options.$nuxt;
+
+    if (!globalNuxt && typeof window !== 'undefined') {
+      return window.$nuxt;
+    }
+
+    return globalNuxt;
+  },
+  configurable: true
+});
 
 async function createApp(config = {}) {
   const router = await createRouter(config);
@@ -145,12 +164,10 @@ async function createApp(config = {}) {
     // Check if plugin not already installed
     const installKey = `__nuxt_${ key }_installed__`;
 
-    window.installedPlugins = window.installedPlugins || {};
-
-    if (window.installedPlugins[installKey]) {
+    if (Vue[installKey]) {
       return;
     }
-    window[window.installedPlugins] = true;
+    Vue[installKey] = true;
     // Call Vue.use() to install the plugin into vm
     Vue.use(() => {
       if (!Object.prototype.hasOwnProperty.call(Vue.prototype, key)) {
@@ -165,6 +182,11 @@ async function createApp(config = {}) {
 
   // Inject runtime config as $config
   inject('config', config);
+
+  // Replace store state before plugins execution
+  if (window.__NUXT__ && window.__NUXT__.state) {
+    store.replaceState(window.__NUXT__.state);
+  }
 
   // Plugin execution
   if (typeof cookieUniversalNuxt === 'function') {

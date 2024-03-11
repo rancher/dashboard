@@ -84,9 +84,9 @@ const setupProgress = (axios) => {
   };
 
   const $loading = () => {
-    const $globalApp = window.$globalApp;
+    const $nuxt = typeof window !== 'undefined' && window['$nuxt'];
 
-    return ($globalApp && $globalApp.$loading && $globalApp.$loading.set) ? $globalApp.$loading : noopLoading;
+    return ($nuxt && $nuxt.$loading && $nuxt.$loading.set) ? $nuxt.$loading : noopLoading;
   };
 
   let currentRequests = 0;

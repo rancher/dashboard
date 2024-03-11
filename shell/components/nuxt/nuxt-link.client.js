@@ -68,7 +68,7 @@ export default {
     },
     canPrefetch () {
       const conn = navigator.connection
-      const hasBadConnection = window.$globalApp.isOffline || (conn && ((conn.effectiveType || '').includes('2g') || conn.saveData))
+      const hasBadConnection = this.$nuxt.isOffline || (conn && ((conn.effectiveType || '').includes('2g') || conn.saveData))
 
       return !hasBadConnection
     },

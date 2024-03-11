@@ -1,23 +1,21 @@
+const PAGE_ACTION = 'page-action';
 const STORE_PAGE_ACTIONS = 'pageActions';
 
 export default {
   created() {
     this.updatePageActions();
-
-    const pageActionHandler = (action) => {
+    this.$nuxt.$on(PAGE_ACTION, (action) => {
       if (this.handlePageAction) {
         this.handlePageAction(action);
       }
-    };
-
-    this.$store.commit('pageActionHandler', pageActionHandler);
+    });
   },
 
-  unmounted() {
+  beforeDestroy() {
     if (this.pageActions) {
       this.$store.commit(STORE_PAGE_ACTIONS, []);
     }
-    this.$store.commit('clearPageActionHandler');
+    this.$nuxt.$off(PAGE_ACTION);
   },
 
   methods: {
