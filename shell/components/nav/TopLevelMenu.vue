@@ -218,7 +218,9 @@ export default {
           params: { cluster }
         };
 
-        if ( !this.$router.getMatchedComponents(to).length ) {
+        const matched = this.$router.getRoutes().filter((route) => route.name === to.name);
+
+        if ( !matched.length ) {
           to.name = 'c-cluster-product';
           to.params.product = p.name;
         }
