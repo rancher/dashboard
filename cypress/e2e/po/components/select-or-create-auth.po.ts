@@ -7,31 +7,23 @@ export default class SelectOrCreateAuthPo extends ComponentPo {
     return new LabeledSelectPo(`${ this.selector } [data-testid="auth-secret-select"]`, this.self());
   }
 
-  setBasicAuthSecret(username: string, password: string) {
-    const usernameInput = new LabeledInputPo(`${ this.selector } [data-testid="auth-secret-basic-username"]`, this.self());
-    const passwordInput = new LabeledInputPo(`${ this.selector } [data-testid="auth-secret-basic-password"]`, this.self());
+  setAuthSecret(secretType: string, username: string, password: string) {
+    const privateKey = new LabeledInputPo(`${ this.selector } [data-testid="auth-secret-${ secretType }-private-key"]`, this.self());
+    const publicKey = new LabeledInputPo(`${ this.selector } [data-testid="auth-secret-${ secretType }-public-key"]`, this.self());
 
-    usernameInput.set(username);
-    passwordInput.set(password);
-  }
-
-  setSSHSecret(privateKey: string, publicKey: string) {
-    const privateKeyInput = new LabeledInputPo(`${ this.selector } [data-testid="auth-secret-ssh-private-key"]`, this.self());
-    const publicKeyInput = new LabeledInputPo(`${ this.selector } [data-testid="auth-secret-ssh-public-key"]`, this.self());
-
-    privateKeyInput.set(privateKey);
-    publicKeyInput.set(publicKey);
+    privateKey.set(username);
+    publicKey.set(password);
   }
 
   createBasicAuth(username = 'auth-test-user', password = 'auth-test-password') {
     this.authSelect().toggle();
     this.authSelect().clickOptionWithLabel('Create a HTTP Basic Auth Secret');
-    this.setBasicAuthSecret(username, password);
+    this.setAuthSecret('basic', username, password);
   }
 
   createSSHAuth(privateKey: string, publicKey: string) {
     this.authSelect().toggle();
-    this.authSelect().clickOptionWithLabel('Create a SSH Key Secret');
-    this.setSSHSecret(privateKey, publicKey);
+    this.authSelect().clickOptionWithLabel('Create a SSH Auth Secret');
+    this.setAuthSecret('ssh', privateKey, publicKey);
   }
 }

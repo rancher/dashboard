@@ -47,7 +47,7 @@ describe('component: KeyValue', () => {
       stubs:      { CodeMirror: true }
     });
 
-    const inputFieldTextArea = wrapper.find('[data-testid="value-multiline"]');
+    const inputFieldTextArea = wrapper.find('[data-testid="text-area-auto-grow"]');
 
     inputFieldTextArea.setValue('bar\n');
 

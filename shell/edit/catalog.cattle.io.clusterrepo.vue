@@ -7,7 +7,7 @@ import { RadioGroup } from '@components/Form/Radio';
 import NameNsDescription from '@shell/components/form/NameNsDescription';
 import Labels from '@shell/components/form/Labels';
 import SelectOrCreateAuthSecret from '@shell/components/form/SelectOrCreateAuthSecret';
-import { MANAGEMENT, NAMESPACE } from '@shell/config/types';
+import { NAMESPACE } from '@shell/config/types';
 
 export default {
   name: 'CruCatalogRepo',
@@ -28,9 +28,6 @@ export default {
   },
 
   computed: {
-    inStore() {
-      return this.$store.getters['currentProduct']?.inStore || MANAGEMENT;
-    },
     secretNamespace() {
       const tryNames = ['cattle-system', 'default'];
 
@@ -40,7 +37,7 @@ export default {
         }
       }
 
-      return this.$store.getters[`${ this.inStore }/all`](NAMESPACE)[0]?.id;
+      return this.$store.getters['cluster/all'](NAMESPACE)[0]?.id;
     }
   },
 
@@ -122,11 +119,9 @@ export default {
 
     <SelectOrCreateAuthSecret
       v-model="value.spec.clientSecret"
-      data-testid="clusterrepo-auth-secret"
       :register-before-hook="registerBeforeHook"
       :namespace="secretNamespace"
       :limit-to-namespace="false"
-      :in-store="inStore"
       generate-name="clusterrepo-auth-"
     />
 

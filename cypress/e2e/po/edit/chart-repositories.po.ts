@@ -4,7 +4,6 @@ import AsyncButtonPo from '@/cypress/e2e/po/components/async-button.po';
 import LabeledSelectPo from '@/cypress/e2e/po/components/labeled-select.po';
 import RadioGroupInputPo from '@/cypress/e2e/po/components/radio-group-input.po';
 import NameNsDescription from '@/cypress/e2e/po/components/name-ns-description.po';
-import SelectOrCreateAuthPo from '@/cypress/e2e/po/components/select-or-create-auth.po';
 
 export default class ChartRepositoriesCreateEditPo extends PagePo {
   private static createPath(clusterId: string, product: 'apps' | 'manager', repoName?: string ) {
@@ -43,14 +42,6 @@ export default class ChartRepositoriesCreateEditPo extends PagePo {
 
   saveCreateForm(): AsyncButtonPo {
     return new AsyncButtonPo('[data-testid="action-button-async-button"]', this.self());
-  }
-
-  authSelectOrCreate(selector: string) {
-    return new SelectOrCreateAuthPo(selector);
-  }
-
-  clusterrepoAuthSelectOrCreate() {
-    return this.authSelectOrCreate('[data-testid="clusterrepo-auth-secret"]');
   }
 
   saveAndWaitForRequests(method: string, url: string) {
