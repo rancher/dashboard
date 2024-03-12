@@ -183,20 +183,16 @@ describe('component: vmwarevsphere', () => {
   describe('resetValueIfNecessary', () => {
     const hostsystemOptions = ['', '/Datacenter/host/Cluster/111.11.11.1'];
     const folderOptions = ['', '/Datacenter/vm', '/Datacenter/vm/sub-folder'];
-    const contentLibraryOptions = ['', 'some-content-library'];
-    const networkOptions = ['', 'some-network'];
-    const tagOptions = ['', 'some-tag'];
 
-    it('should add errors to validationError collection when values are NOT in the options', () => {
+    it('should add errors to validationError collection when values are no in the options', () => {
       const setup = {
         ...defaultEditSetup,
         propsData: {
           ...defaultEditSetup.propsData,
           value: {
             ...defaultEditSetup.propsData.value,
-            hostsystem:      'something that is not included in the options',
-            folder:          'same as above',
-            constentLibrary: 'same as above'
+            hostsystem: 'something that is not included in the options',
+            folder:     'again, something that is not included in the options'
           }
         }
       };
@@ -204,19 +200,18 @@ describe('component: vmwarevsphere', () => {
       const wrapper = mount(vmwarevsphere, setup);
 
       const hostsystemContent = wrapper.vm.mapHostOptionsToContent(hostsystemOptions);
-      const folderContent = wrapper.vm.mapHostOptionsToContent(folderOptions);
-      const contentLibraryContent = wrapper.vm.mapPathOptionsToContent(contentLibraryOptions);
 
       wrapper.vm.resetValueIfNecessary('hostsystem', hostsystemContent, hostsystemOptions);
+
+      const folderContent = wrapper.vm.mapHostOptionsToContent(folderOptions);
+
       wrapper.vm.resetValueIfNecessary('folder', folderContent, folderOptions);
-      wrapper.vm.resetValueIfNecessary('contentLibrary', contentLibraryContent, contentLibraryOptions);
 
       expect(wrapper.vm.$data.validationErrors[poolId]).toContain('hostsystem');
       expect(wrapper.vm.$data.validationErrors[poolId]).toContain('folder');
-      expect(wrapper.vm.$data.validationErrors[poolId]).toContain('contentLibrary');
     });
 
-    describe('hostsystem, folder, contentLibrary, network and tag', () => {
+    describe('hostsystem and folder', () => {
       const testCases = [null, ''];
 
       it.each(testCases)('should NOT be added to validationError collection if they are null or ""', (data) => {
@@ -226,11 +221,8 @@ describe('component: vmwarevsphere', () => {
             ...defaultEditSetup.propsData,
             value: {
               ...defaultEditSetup.propsData.value,
-              hostsystem:     data,
-              folder:         data,
-              contentLibrary: data,
-              network:        [data],
-              tag:            [data]
+              hostsystem: data,
+              folder:     data
             }
           }
         };
@@ -238,16 +230,12 @@ describe('component: vmwarevsphere', () => {
         const wrapper = mount(vmwarevsphere, setup);
 
         const hostsystemContent = wrapper.vm.mapHostOptionsToContent(hostsystemOptions);
-        const folderContent = wrapper.vm.mapHostOptionsToContent(folderOptions);
-        const contentLibraryContent = wrapper.vm.mapPathOptionsToContent(contentLibraryOptions);
-        const networkContent = wrapper.vm.mapPathOptionsToContent(networkOptions);
-        const tagContent = wrapper.vm.mapPathOptionsToContent(tagOptions);
 
         wrapper.vm.resetValueIfNecessary('hostsystem', hostsystemContent, hostsystemOptions);
+
+        const folderContent = wrapper.vm.mapHostOptionsToContent(folderOptions);
+
         wrapper.vm.resetValueIfNecessary('folder', folderContent, folderOptions);
-        wrapper.vm.resetValueIfNecessary('contentLibrary', contentLibraryContent, contentLibraryOptions);
-        wrapper.vm.resetValueIfNecessary('network', networkContent, networkOptions, true);
-        wrapper.vm.resetValueIfNecessary('tag', tagContent, tagOptions, true);
 
         expect(wrapper.vm.$data.validationErrors[poolId]).toBeUndefined();
       });
