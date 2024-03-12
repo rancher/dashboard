@@ -92,7 +92,7 @@ export default {
     },
 
     showCount() {
-      return this.count !== undefined;
+      return this.count !== undefined && this.count !== null;
     },
 
     namespaceIcon() {
@@ -170,7 +170,7 @@ export default {
         :class="{'no-icon': !type.icon}"
       />
       <span
-        v-if="showFavorite || showCount"
+        v-if="showFavorite || namespaceIcon || showCount"
         class="count"
       >
         <Favorite
@@ -179,9 +179,12 @@ export default {
         />
         <i
           v-if="namespaceIcon"
-          class="icon icon-namespace namespaced"
+          class="icon icon-namespace"
         />
-        {{ count }}
+        <span
+          v-if="showCount"
+          :class="{'namespaced': namespaceIcon}"
+        >{{ count }}</span>
       </span>
     </a>
   </n-link>
@@ -207,7 +210,7 @@ export default {
 
 <style lang="scss" scoped>
   .namespaced {
-    margin-right: 4px;
+    margin-left: 4px;
   }
 
   .child {
