@@ -30,6 +30,12 @@ export default {
     const parsedUrl = parse(url);
     const isSteve = parsedUrl.path.startsWith('/v1');
 
+    // labelSelector
+    if ( opt.labelSelector ) {
+      url += `${ url.includes('?') ? '&' : '?' }labelSelector=${ opt.labelSelector }`;
+    }
+    // End: labelSelector
+
     // Filter
     if ( opt.filter ) {
       url += `${ (url.includes('?') ? '&' : '?') }`;

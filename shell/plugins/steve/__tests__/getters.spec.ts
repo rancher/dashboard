@@ -64,6 +64,7 @@ describe('steve: getters', () => {
       expect(urlForGetter(type, id, opt)).toBe(url);
     });
   });
+
   describe('steve > getters > urlOptions', () => {
     // we're not testing function output based off of state or getter inputs here since they are dependencies
     const state = { config: { baseUrl: 'protocol' } };
@@ -93,11 +94,20 @@ describe('steve: getters', () => {
     it('returns a string with a single filter statement applied and formatted for steve if a single filter statement is applied and the url starts with "/v1"', () => {
       expect(urlOptionsGetter('/v1/foo', { filter: { bar: 'baz' } })).toBe('/v1/foo?filter=bar=baz&exclude=metadata.managedFields');
     });
+    it('returns a string with a single filter statement applied and formatted for steve if a single filter statement is NOT applied and the url starts with "/k8s/clusters/c-m-n4x45x4b/v1/"', () => {
+      expect(urlOptionsGetter('/k8s/clusters/c-m-n4x45x4b/v1/foo', { filter: { bar: 'baz' } })).toBe('/k8s/clusters/c-m-n4x45x4b/v1/foo?bar=baz');
+    });
     it('returns a string with a multiple filter statements applied if a single filter statement is applied', () => {
       expect(urlOptionsGetter('foo', { filter: { bar: 'baz', far: 'faz' } })).toBe('foo?bar=baz&far=faz');
     });
     it('returns a string with a multiple filter statements applied and formatted for steve if a single filter statement is applied and the url starts with "/v1"', () => {
       expect(urlOptionsGetter('/v1/foo', { filter: { bar: 'baz', far: 'faz' } })).toBe('/v1/foo?filter=bar=baz&far=faz&exclude=metadata.managedFields');
+    });
+    it('returns a string with a labelSelector and formatted for steve if the url starts with "/v1"', () => {
+      expect(urlOptionsGetter('/v1/foo', { labelSelector: 'a=b' })).toBe('/v1/foo?labelSelector=a=b&exclude=metadata.managedFields');
+    });
+    it('returns a string with a labelSelector and filter, and formatted for steve if the url starts with "/v1"', () => {
+      expect(urlOptionsGetter('/v1/foo', { labelSelector: 'a=b', filter: { bar: 'baz', far: 'faz' } })).toBe('/v1/foo?labelSelector=a=b&filter=bar=baz&far=faz&exclude=metadata.managedFields');
     });
     it('returns a string with an exclude statement for "bar" and "metadata.managedFields" if excludeFields is a single element array with the string "bar" and the url starts with "/v1/"', () => {
       expect(urlOptionsGetter('/v1/foo', { excludeFields: ['bar'] })).toBe('/v1/foo?exclude=bar&exclude=metadata.managedFields');
