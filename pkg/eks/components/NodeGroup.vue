@@ -288,8 +288,8 @@ export default Vue.extend({
     },
 
     launchTemplateVersionOptions(): number[] {
-      if (this.selectedLaunchTemplate) {
-        const { LatestVersionNumber = '1' } = this.selectedLaunchTemplate;
+      if (this.selectedLaunchTemplate && this.selectedLaunchTemplate.LatestVersionNumber) {
+        const { LatestVersionNumber } = this.selectedLaunchTemplate;
 
         return [...Array(LatestVersionNumber).keys()].map((version) => version + 1);
       }
@@ -347,43 +347,43 @@ export default Vue.extend({
     },
 
     setValuesFromTemplate(neu = {} as any, old = {} as any) {
-      if (!neu || isEmpty(neu)) {
-        return;
+      if (neu && !isEmpty(neu)) {
+        Object.keys(launchTemplateFieldMapping).forEach((rancherKey: string) => {
+          const awsKey = launchTemplateFieldMapping[rancherKey];
+
+          if (awsKey === 'TagSpecifications') {
+            const { TagSpecifications } = neu;
+
+            if (TagSpecifications) {
+              const tags = {} as any;
+
+              TagSpecifications.forEach((tag: any) => {
+                if (tag.ResourceType === 'instance' && tag.Tags && tag.Tags.length) {
+                  Object.assign(tags, parseTags(tag.Tags));
+                }
+              });
+              this.$emit('update:resourceTags', tags);
+            } else {
+              this.$emit('update:resourceTags', {});
+            }
+          } else if (awsKey === 'BlockDeviceMappings') {
+            const { BlockDeviceMappings } = neu;
+
+            if (BlockDeviceMappings && BlockDeviceMappings.length) {
+              const size = BlockDeviceMappings[0]?.Ebs?.VolumeSize;
+
+              this.$emit('update:diskSize', size);
+            } else {
+              this.$emit('update:diskSize', null);
+            }
+          } else if (this.templateValue(rancherKey)) {
+            this.$emit(`update:${ rancherKey }`, this.templateValue(rancherKey));
+          } else {
+            this.$emit(`update:${ rancherKey }`, null);
+          }
+        });
       }
-      Object.keys(launchTemplateFieldMapping).forEach((rancherKey: string) => {
-        const awsKey = launchTemplateFieldMapping[rancherKey];
 
-        if (awsKey === 'TagSpecifications') {
-          const { TagSpecifications } = neu;
-
-          if (TagSpecifications) {
-            const tags = {} as any;
-
-            TagSpecifications.forEach((tag: any) => {
-              if (tag.ResourceType === 'instance' && tag.Tags && tag.Tags.length) {
-                Object.assign(tags, parseTags(tag.Tags));
-              }
-            });
-            this.$emit('update:resourceTags', tags);
-          } else {
-            this.$emit('update:resourceTags', {});
-          }
-        } else if (awsKey === 'BlockDeviceMappings') {
-          const { BlockDeviceMappings } = neu;
-
-          if (BlockDeviceMappings && BlockDeviceMappings.length) {
-            const size = BlockDeviceMappings[0]?.Ebs?.VolumeSize;
-
-            this.$emit('update:diskSize', size);
-          } else {
-            this.$emit('update:diskSize', null);
-          }
-        } else if (this.templateValue(rancherKey)) {
-          this.$emit(`update:${ rancherKey }`, this.templateValue(rancherKey));
-        } else {
-          this.$emit(`update:${ rancherKey }`, null);
-        }
-      });
       this.$nextTick(() => {
         this.resourceTagKey = randomStr();
         this.loadingSelectedVersion = false;
@@ -431,6 +431,7 @@ export default Vue.extend({
           :disabled="!isNewOrUnprovisioned"
           :rules="rules.nodegroupName"
           data-testid="eks-nodegroup-name"
+          required
           @input="$emit('update:nodegroupName', $event)"
         />
       </div>
@@ -533,7 +534,7 @@ export default Vue.extend({
       </div>
       <div class="col span-3">
         <LabeledSelect
-          v-if="launchTemplate"
+          v-if="hasUserLaunchTemplate"
           :value="launchTemplate.version"
           :mode="mode"
           label-key="eks.nodeGroups.launchTemplate.version"
