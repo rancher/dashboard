@@ -76,13 +76,12 @@ const defaultComputed = {
 };
 
 const defaultGetters = {
-  currentStore:                      () => 'current_store',
-  'management/schemaFor':            jest.fn(),
-  'current_store/all':               jest.fn(),
-  'i18n/t':                          jest.fn(),
-  'i18n/withFallback':               jest.fn(),
-  'plugins/cloudProviderForDriver':  jest.fn(),
-  'customization/getPreviewCluster': jest.fn(),
+  currentStore:                     () => 'current_store',
+  'management/schemaFor':           jest.fn(),
+  'current_store/all':              jest.fn(),
+  'i18n/t':                         jest.fn(),
+  'i18n/withFallback':              jest.fn(),
+  'plugins/cloudProviderForDriver': jest.fn()
 };
 
 const defaultMocks = {

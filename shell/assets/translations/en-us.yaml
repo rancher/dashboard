@@ -2387,14 +2387,14 @@ clusterBadge:
   editLabel: Edit Cluster Badge
   modal:
     title: Custom Cluster Badge
-    checkbox: Show cluster comment
-    comment: Custom comment
+    checkbox: Show badge for this cluster
+    description: Custom description
     iconText: Icon Text
     buttonAction: Apply
     badgeBgColor: Badge background color
     badgeTextColor: Badge text color
     badgeAsIcon: Customize cluster icon
-    maxCharsTooltip: Maximum three characters
+    maxCharsTooltip: Maximum two characters
     previewTitle: "Cluster icon and name presentation:"
 
 grafanaDashboard:

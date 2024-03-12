@@ -37,7 +37,6 @@ let store = {};
   resolveStoreModules(require('../store/type-map.js'), 'type-map.js');
   resolveStoreModules(require('../store/uiplugins.ts'), 'uiplugins.ts');
   resolveStoreModules(require('../store/wm.js'), 'wm.js');
-  resolveStoreModules(require('../store/customisation.js'), 'customisation.js');
 
   // If the environment supports hot reloading...
 
@@ -63,7 +62,6 @@ let store = {};
       '../store/type-map.js',
       '../store/uiplugins.ts',
       '../store/wm.js',
-      '../store/customisation.js'
     ], () => {
       // Update `root.modules` with the latest definitions.
       updateModules();

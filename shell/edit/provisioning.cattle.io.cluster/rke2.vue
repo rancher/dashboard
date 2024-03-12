@@ -43,7 +43,7 @@ import semver from 'semver';
 
 import { SETTING } from '@shell/config/settings';
 import { base64Encode } from '@shell/utils/crypto';
-import { CAPI as CAPI_ANNOTATIONS, CLUSTER_BADGE } from '@shell/config/labels-annotations';
+import { CAPI as CAPI_ANNOTATIONS } from '@shell/config/labels-annotations';
 import AgentEnv from '@shell/edit/provisioning.cattle.io.cluster/AgentEnv';
 import Labels from '@shell/edit/provisioning.cattle.io.cluster/Labels';
 import MachinePool from '@shell/edit/provisioning.cattle.io.cluster/tabs/MachinePool';
@@ -149,15 +149,15 @@ export default {
   },
 
   data() {
-    if (!this.value.spec.rkeConfig) {
+    if ( !this.value.spec.rkeConfig ) {
       set(this.value.spec, 'rkeConfig', {});
     }
 
-    if (!this.value.spec.rkeConfig.chartValues) {
+    if ( !this.value.spec.rkeConfig.chartValues ) {
       set(this.value.spec.rkeConfig, 'chartValues', {});
     }
 
-    if (!this.value.spec.rkeConfig.upgradeStrategy) {
+    if ( !this.value.spec.rkeConfig.upgradeStrategy ) {
       set(this.value.spec.rkeConfig, 'upgradeStrategy', {
         controlPlaneConcurrency:  '1',
         controlPlaneDrainOptions: {},
@@ -166,11 +166,11 @@ export default {
       });
     }
 
-    if (!this.value.spec.rkeConfig.machineGlobalConfig) {
+    if ( !this.value.spec.rkeConfig.machineGlobalConfig ) {
       set(this.value.spec, 'rkeConfig.machineGlobalConfig', {});
     }
 
-    if (!this.value.spec.rkeConfig.machineSelectorConfig?.length) {
+    if ( !this.value.spec.rkeConfig.machineSelectorConfig?.length ) {
       set(this.value.spec, 'rkeConfig.machineSelectorConfig', [{ config: {} }]);
     }
 
@@ -221,9 +221,6 @@ export default {
   },
 
   computed: {
-    clusterBadgeAbbreviation() {
-      return this.$store.getters['customisation/getPreviewCluster'];
-    },
     rkeConfig() {
       return this.value.spec.rkeConfig;
     },
@@ -254,11 +251,11 @@ export default {
       // If there are any other properties set, or multiple configs with no selector
       // show a warning that you're editing only part of the config in the UI.
 
-      for (const conf of this.value.spec?.rkeConfig?.machineSelectorConfig) {
-        if (conf.machineLabelSelector) {
+      for ( const conf of this.value.spec?.rkeConfig?.machineSelectorConfig ) {
+        if ( conf.machineLabelSelector ) {
           const keys = Object.keys(conf.config || {});
 
-          if (keys.length === 0 || (keys.length === 1 && keys[0] === 'kubelet-arg')) {
+          if ( keys.length === 0 || (keys.length === 1 && keys[0] === 'kubelet-arg') ) {
             kubeletOnly++;
           } else {
             other++;
@@ -271,7 +268,7 @@ export default {
       // eslint-disable-next-line no-console
       console.log(`Global: ${ global }, Kubelet Only: ${ kubeletOnly }, Other: ${ other }`);
 
-      return (global > 1 || other > 0);
+      return ( global > 1 || other > 0 );
     },
 
     versionOptions() {
@@ -294,26 +291,26 @@ export default {
       const showK3s = allValidK3sVersions.length && !existingRke2;
       const out = [];
 
-      if (showRke2) {
-        if (showK3s) {
+      if ( showRke2 ) {
+        if ( showK3s ) {
           out.push({ kind: 'group', label: this.t('cluster.provider.rke2') });
         }
 
         out.push(...allValidRke2Versions);
       }
 
-      if (showK3s) {
-        if (showRke2) {
+      if ( showK3s ) {
+        if ( showRke2 ) {
           out.push({ kind: 'group', label: this.t('cluster.provider.k3s') });
         }
 
         out.push(...allValidK3sVersions);
       }
 
-      if (cur) {
+      if ( cur ) {
         const existing = out.find((x) => x.value === cur);
 
-        if (existing) {
+        if ( existing ) {
           existing.disabled = false;
         }
       }
@@ -327,7 +324,7 @@ export default {
     selectedVersion() {
       const str = this.value.spec.kubernetesVersion;
 
-      if (!str) {
+      if ( !str ) {
         return;
       }
 
@@ -366,7 +363,7 @@ export default {
     },
 
     needCredential() {
-      if (this.provider === 'custom' || this.provider === 'import' || this.isElementalCluster || this.mode === _VIEW || (this.providerConfig?.spec?.builtin === false && this.providerConfig?.spec?.addCloudCredential === false)) {
+      if ( this.provider === 'custom' || this.provider === 'import' || this.isElementalCluster || this.mode === _VIEW || (this.providerConfig?.spec?.builtin === false && this.providerConfig?.spec?.addCloudCredential === false) ) {
         return false;
       }
 
@@ -385,7 +382,7 @@ export default {
     },
 
     hasMachinePools() {
-      if (this.provider === 'custom' || this.provider === 'import') {
+      if ( this.provider === 'custom' || this.provider === 'import' ) {
         return false;
       }
 
@@ -426,7 +423,7 @@ export default {
     machineConfigSchema() {
       let schema;
 
-      if (!this.hasMachinePools) {
+      if ( !this.hasMachinePools ) {
         return null;
       } else if (this.isElementalCluster) {
         schema = ELEMENTAL_SCHEMA_IDS.MACHINE_INV_SELECTOR_TEMPLATES;
@@ -460,53 +457,53 @@ export default {
         tooltip: {},
       };
 
-      for (const role of roles) {
+      for ( const role of roles ) {
         counts[role] = 0;
         out.color[role] = NODE_TOTAL.success.color;
         out.icon[role] = NODE_TOTAL.success.icon;
       }
 
-      for (const row of this.machinePools || []) {
-        if (row.remove) {
+      for ( const row of this.machinePools || [] ) {
+        if ( row.remove ) {
           continue;
         }
 
         const qty = parseInt(row.pool.quantity, 10);
 
-        if (isNaN(qty)) {
+        if ( isNaN(qty) ) {
           continue;
         }
 
-        for (const role of roles) {
+        for ( const role of roles ) {
           counts[role] = counts[role] + (row.pool[`${ role }Role`] ? qty : 0);
         }
       }
 
-      for (const role of roles) {
+      for ( const role of roles ) {
         out.label[role] = this.t(`cluster.machinePool.nodeTotals.label.${ role }`, { count: counts[role] });
         out.tooltip[role] = this.t(`cluster.machinePool.nodeTotals.tooltip.${ role }`, { count: counts[role] });
       }
 
-      if (counts.etcd === 0) {
+      if ( counts.etcd === 0 ) {
         out.color.etcd = NODE_TOTAL.error.color;
         out.icon.etcd = NODE_TOTAL.error.icon;
-      } else if (counts.etcd === 1 || counts.etcd % 2 === 0 || counts.etcd > 7) {
+      } else if ( counts.etcd === 1 || counts.etcd % 2 === 0 || counts.etcd > 7 ) {
         out.color.etcd = NODE_TOTAL.warning.color;
         out.icon.etcd = NODE_TOTAL.warning.icon;
       }
 
-      if (counts.controlPlane === 0) {
+      if ( counts.controlPlane === 0 ) {
         out.color.controlPlane = NODE_TOTAL.error.color;
         out.icon.controlPlane = NODE_TOTAL.error.icon;
-      } else if (counts.controlPlane === 1) {
+      } else if ( counts.controlPlane === 1 ) {
         out.color.controlPlane = NODE_TOTAL.warning.color;
         out.icon.controlPlane = NODE_TOTAL.warning.icon;
       }
 
-      if (counts.worker === 0) {
+      if ( counts.worker === 0 ) {
         out.color.worker = NODE_TOTAL.error.color;
         out.icon.worker = NODE_TOTAL.error.icon;
-      } else if (counts.worker === 1) {
+      } else if ( counts.worker === 1 ) {
         out.color.worker = NODE_TOTAL.warning.color;
         out.icon.worker = NODE_TOTAL.warning.icon;
       }
@@ -536,11 +533,11 @@ export default {
       }
 
       if (this.showCloudProvider) { // Shouldn't be removed such that changes to it will re-trigger this watch
-        if (this.agentConfig?.['cloud-provider-name'] === 'rancher-vsphere') {
+        if ( this.agentConfig?.['cloud-provider-name'] === 'rancher-vsphere' ) {
           names.push('rancher-vsphere-cpi', 'rancher-vsphere-csi');
         }
 
-        if (this.agentConfig?.['cloud-provider-name'] === HARVESTER) {
+        if ( this.agentConfig?.['cloud-provider-name'] === HARVESTER ) {
           names.push(HARVESTER_CLOUD_PROVIDER);
         }
       }
@@ -565,11 +562,11 @@ export default {
         value: '',
       }];
 
-      if (!!this.agentArgs['cloud-provider-name']?.options) {
+      if ( !!this.agentArgs['cloud-provider-name']?.options ) {
         const preferred = this.$store.getters['plugins/cloudProviderForDriver'](this.provider);
 
-        for (const opt of this.agentArgs['cloud-provider-name']?.options) {
-          // If we don't have a preferred provider... show all options
+        for ( const opt of this.agentArgs['cloud-provider-name']?.options ) {
+        // If we don't have a preferred provider... show all options
           const showAllOptions = preferred === undefined;
           // If we have a preferred provider... only show default, preferred and external
           const isPreferred = opt === preferred;
@@ -592,7 +589,7 @@ export default {
 
       const cur = this.agentConfig?.['cloud-provider-name'];
 
-      if (cur && !out.find((x) => x.value === cur)) {
+      if ( cur && !out.find((x) => x.value === cur) ) {
         out.unshift({ label: `${ cur } (Current)`, value: cur });
       }
 
@@ -626,7 +623,7 @@ export default {
         }
       }
 
-      if (!out) {
+      if ( !out ) {
         out = preferred || first;
       }
 
@@ -634,7 +631,7 @@ export default {
     },
 
     appsOSWarning() {
-      if (this.mode !== _EDIT) {
+      if (this.mode !== _EDIT ) {
         return null;
       }
       const { linuxWorkerCount, windowsWorkerCount } = this.value?.mgmt?.status || {};
@@ -704,26 +701,9 @@ export default {
   },
 
   watch: {
-    clusterBadgeAbbreviation: {
-      immediate: true,
-      handler(neu) {
-        if (!neu) {
-          return;
-        }
-
-        const obj = {
-          [CLUSTER_BADGE.ICON_TEXT]: neu.badge.iconText, [CLUSTER_BADGE.COLOR]: neu.badge.color, [CLUSTER_BADGE.TEXT]: neu.badge.text
-        };
-
-        this.value.metadata.annotations = {
-          ...this.value.metadata.annotations,
-          ...obj
-        };
-      }
-    },
 
     credentialId(val) {
-      if (val) {
+      if ( val ) {
         this.credential = this.$store.getters['rancher/byId'](NORMAN.CLOUD_CREDENTIAL, this.credentialId);
 
         if (this.isHarvesterDriver) {
@@ -738,7 +718,7 @@ export default {
 
     addonNames(neu, old) {
       // To catch the 'some addons' --> 'no addons' case also check array length (`difference([], [1,2,3]) === []`)
-      const diff = old.length !== neu.length || difference(neu, old).length;
+      const diff = old.length !== neu.length || difference(neu, old).length ;
 
       if (diff) {
         // Allow time for addonNames to update... then fetch any missing addons
@@ -800,32 +780,32 @@ export default {
      * Initialize all the cluster specs
      */
     async initSpecs() {
-      if (!this.value.spec) {
+      if ( !this.value.spec ) {
         set(this.value, 'spec', {});
       }
 
-      if (!this.value.spec.machineSelectorConfig) {
+      if ( !this.value.spec.machineSelectorConfig ) {
         set(this.value.spec, 'machineSelectorConfig', []);
       }
 
-      if (!this.value.spec.machineSelectorConfig.find((x) => !x.machineLabelSelector)) {
+      if ( !this.value.spec.machineSelectorConfig.find((x) => !x.machineLabelSelector) ) {
         this.value.spec.machineSelectorConfig.unshift({ config: {} });
       }
 
-      if (this.value.spec.cloudCredentialSecretName) {
+      if ( this.value.spec.cloudCredentialSecretName ) {
         await this.$store.dispatch('rancher/findAll', { type: NORMAN.CLOUD_CREDENTIAL });
         this.credentialId = `${ this.value.spec.cloudCredentialSecretName }`;
       }
 
-      if (!this.value.spec.kubernetesVersion) {
+      if ( !this.value.spec.kubernetesVersion ) {
         set(this.value.spec, 'kubernetesVersion', this.defaultVersion);
       }
 
-      if (this.rkeConfig.etcd?.s3?.bucket) {
+      if ( this.rkeConfig.etcd?.s3?.bucket ) {
         this.s3Backup = true;
       }
 
-      if (!this.rkeConfig.etcd) {
+      if ( !this.rkeConfig.etcd ) {
         set(this.rkeConfig, 'etcd', {
           disableSnapshots:     false,
           s3:                   null,
@@ -844,14 +824,14 @@ export default {
         this.allNamespaces = await this.$store.dispatch('management/findAll', { type: NAMESPACE });
       }
 
-      if (!this.machinePools) {
+      if ( !this.machinePools ) {
         await this.initMachinePools(this.value.spec.rkeConfig.machinePools);
-        if (this.mode === _CREATE && !this.machinePools.length) {
+        if ( this.mode === _CREATE && !this.machinePools.length ) {
           await this.addMachinePool();
         }
       }
 
-      if (this.value.spec.defaultPodSecurityAdmissionConfigurationTemplateName === undefined) {
+      if ( this.value.spec.defaultPodSecurityAdmissionConfigurationTemplateName === undefined ) {
         set(this.value.spec, 'defaultPodSecurityAdmissionConfigurationTemplateName', '');
       }
     },
@@ -860,7 +840,7 @@ export default {
      * Fetch RKE versions and their configurations to be mapped to the form
      */
     async fetchRke2Versions() {
-      if (!this.rke2Versions) {
+      if ( !this.rke2Versions ) {
         const hash = {
           rke2Versions: this.$store.dispatch('management/request', { url: '/v1-rke2-release/releases' }),
           k3sVersions:  this.$store.dispatch('management/request', { url: '/v1-k3s-release/releases' }),
@@ -906,7 +886,7 @@ export default {
           defaultK3s = k3sChannels.find((x) => x.id === 'default')?.latest;
         }
 
-        if (!this.rke2Versions.length && !this.k3sVersions.length) {
+        if ( !this.rke2Versions.length && !this.k3sVersions.length ) {
           throw new Error('No version info found in KDM');
         }
 
@@ -958,12 +938,12 @@ export default {
      */
     setAgentConfiguration() {
       // Cluster Agent Configuration
-      if (!this.value.spec[CLUSTER_AGENT_CUSTOMIZATION]) {
+      if ( !this.value.spec[CLUSTER_AGENT_CUSTOMIZATION]) {
         set(this.value.spec, CLUSTER_AGENT_CUSTOMIZATION, {});
       }
 
       // Fleet Agent Configuration
-      if (!this.value.spec[FLEET_AGENT_CUSTOMIZATION]) {
+      if ( !this.value.spec[FLEET_AGENT_CUSTOMIZATION] ) {
         set(this.value.spec, FLEET_AGENT_CUSTOMIZATION, {});
       }
     },
@@ -988,8 +968,8 @@ export default {
     async initMachinePools(existing) {
       const out = [];
 
-      if (existing?.length) {
-        for (const pool of existing) {
+      if ( existing?.length ) {
+        for ( const pool of existing ) {
           let type;
 
           if (this.isElementalCluster) {
@@ -1001,7 +981,7 @@ export default {
           let config;
           let configMissing = false;
 
-          if (this.$store.getters['management/canList'](type)) {
+          if ( this.$store.getters['management/canList'](type) ) {
             try {
               config = await this.$store.dispatch('management/find', {
                 type,
@@ -1038,7 +1018,7 @@ export default {
 
     async addMachinePool(idx) {
       // this.machineConfigSchema is the schema for the Machine Pool's machine configuration for the given provider
-      if (!this.machineConfigSchema) {
+      if ( !this.machineConfigSchema ) {
         return;
       }
 
@@ -1096,7 +1076,7 @@ export default {
       this.machinePools.push(pool);
 
       this.$nextTick(() => {
-        if (this.$refs.pools?.select) {
+        if ( this.$refs.pools?.select ) {
           this.$refs.pools.select(name);
         }
       });
@@ -1105,11 +1085,11 @@ export default {
     removeMachinePool(idx) {
       const entry = this.machinePools[idx];
 
-      if (!entry) {
+      if ( !entry ) {
         return;
       }
 
-      if (entry.create) {
+      if ( entry.create ) {
         // If this is a new pool that isn't saved yet, it can just be dropped
         removeObject(this.machinePools, entry);
       } else {
@@ -1168,8 +1148,8 @@ export default {
         return await this.extensionProvider.saveMachinePoolConfigs(this.machinePools, this.value);
       }
 
-      for (const entry of this.machinePools) {
-        if (entry.remove) {
+      for ( const entry of this.machinePools ) {
+        if ( entry.remove ) {
           continue;
         }
 
@@ -1180,8 +1160,8 @@ export default {
 
         const prefix = `${ this.value.metadata.name }-${ entry.pool.name }`.substr(0, 50).toLowerCase();
 
-        if (entry.create) {
-          if (!entry.config.metadata?.name) {
+        if ( entry.create ) {
+          if ( !entry.config.metadata?.name ) {
             entry.config.metadata.generateName = `nc-${ prefix }-`;
           }
 
@@ -1191,12 +1171,12 @@ export default {
           entry.pool.machineConfigRef.name = neu.metadata.name;
           entry.create = false;
           entry.update = true;
-        } else if (entry.update) {
+        } else if ( entry.update ) {
           entry.config = await entry.config.save();
         }
 
         // Ensure Elemental clusters have a hostname prefix
-        if (this.isElementalCluster && !entry.pool.hostnamePrefix) {
+        if (this.isElementalCluster && !entry.pool.hostnamePrefix ) {
           entry.pool.hostnamePrefix = `${ prefix }-`;
         }
 
@@ -1207,11 +1187,11 @@ export default {
     },
 
     async cleanupMachinePools() {
-      for (const entry of this.machinePools) {
-        if (entry.remove && entry.config) {
+      for ( const entry of this.machinePools ) {
+        if ( entry.remove && entry.config ) {
           try {
             await entry.config.remove();
-          } catch (e) { }
+          } catch (e) {}
         }
       }
     },
@@ -1232,7 +1212,7 @@ export default {
     },
 
     cancelCredential() {
-      if (this.$refs.cruresource) {
+      if ( this.$refs.cruresource ) {
         this.$refs.cruresource.emitOrRoute();
       }
     },
@@ -1240,7 +1220,7 @@ export default {
     done() {
       let routeName = 'c-cluster-product-resource';
 
-      if (this.mode === _CREATE && (this.provider === 'import' || this.provider === 'custom')) {
+      if ( this.mode === _CREATE && (this.provider === 'import' || this.provider === 'custom') ) {
         // Go show the registration command
         routeName = 'c-cluster-product-resource-namespace-id';
       }
@@ -1385,7 +1365,7 @@ export default {
         return await this.extensionProvider?.saveCluster(this.value, this.schema);
       }
 
-      if (this.isCreate) {
+      if ( this.isCreate ) {
         url = url || this.schema.linkFor('collection');
         const res = await this.value.save({ url });
 
@@ -1430,12 +1410,12 @@ export default {
      * 2) We're ready to cache any values the user provides for each addon
      */
     async initAddons() {
-      for (const chartName of this.addonNames) {
+      for ( const chartName of this.addonNames ) {
         const entry = this.chartVersions[chartName];
 
         // prevent fetching of addon config for 'none' CNI option
         // https://github.com/rancher/dashboard/issues/10338
-        if (this.versionInfo[chartName] || chartName.includes('none')) {
+        if ( this.versionInfo[chartName] || chartName.includes('none')) {
           continue;
         }
 
@@ -1471,7 +1451,7 @@ export default {
     refreshComponentWithYamls(key) {
       const component = this.$refs[key];
 
-      if (component) {
+      if ( component ) {
         this.refreshYamls(component.$refs);
       }
     },
@@ -1479,11 +1459,11 @@ export default {
     refreshYamls(refs) {
       const keys = Object.keys(refs).filter((x) => x.startsWith('yaml'));
 
-      for (const k of keys) {
+      for ( const k of keys ) {
         const entry = refs[k];
         const list = isArray(entry) ? entry : [entry];
 
-        for (const component of list) {
+        for ( const component of list ) {
           component?.refresh(); // `yaml` ref can be undefined on switching from Basic to Addon tab (Azure --> Amazon --> addon)
         }
       }
@@ -1510,23 +1490,23 @@ export default {
     },
 
     initServerAgentArgs() {
-      for (const k in this.serverArgs) {
-        if (this.serverConfig[k] === undefined) {
+      for ( const k in this.serverArgs ) {
+        if ( this.serverConfig[k] === undefined ) {
           const def = this.serverArgs[k].default;
 
           set(this.serverConfig, k, (def !== undefined ? def : undefined));
         }
       }
 
-      for (const k in this.agentArgs) {
-        if (this.agentConfig?.[k] === undefined) {
+      for ( const k in this.agentArgs ) {
+        if ( this.agentConfig?.[k] === undefined ) {
           const def = this.agentArgs[k].default;
 
           set(this.agentConfig, k, (def !== undefined ? def : undefined));
         }
       }
 
-      if (!this.serverConfig?.profile) {
+      if ( !this.serverConfig?.profile ) {
         set(this.serverConfig, 'profile', null);
       }
     },
@@ -1559,22 +1539,22 @@ export default {
       let registrySecret = null;
       let regs = this.rkeConfig.registries;
 
-      if (!regs) {
+      if ( !regs ) {
         regs = {};
         set(this.rkeConfig, 'registries', regs);
       }
 
-      if (!regs.configs) {
+      if ( !regs.configs ) {
         set(regs, 'configs', {});
       }
 
-      if (!regs.mirrors) {
+      if ( !regs.mirrors ) {
         set(regs, 'mirrors', {});
       }
 
       const config = regs.configs[this.registryHost];
 
-      if (config) {
+      if ( config ) {
         registrySecret = config.authConfigSecretName;
       }
 
@@ -1594,21 +1574,21 @@ export default {
     setRegistryConfig() {
       const hostname = (this.registryHost || '').trim();
 
-      if (this.systemRegistry) {
+      if ( this.systemRegistry ) {
         // Empty string overrides the system default to nothing
         set(this.agentConfig, 'system-default-registry', '');
       } else {
         // No need to set anything
         set(this.agentConfig, 'system-default-registry', undefined);
       }
-      if (!hostname || hostname === this.systemRegistry) {
+      if ( !hostname || hostname === this.systemRegistry ) {
         // Undefined removes the key which uses the global setting without hardcoding it into the config
         set(this.agentConfig, 'system-default-registry', undefined);
       } else {
         set(this.agentConfig, 'system-default-registry', hostname);
       }
 
-      if (hostname && this.registrySecret) {
+      if ( hostname && this.registrySecret ) {
         // For a registry with basic auth, but no mirrors,
         // add a single registry config with the basic auth secret.
         const basicAuthConfig = {
@@ -1657,12 +1637,12 @@ export default {
         let isCurrentVersion = false;
         let label = obj.id;
 
-        if (currentVersion) {
+        if ( currentVersion ) {
           disabled = compare(obj.id, currentVersion) < 0;
           isCurrentVersion = compare(obj.id, currentVersion) === 0;
         }
 
-        if (defaultVersion) {
+        if ( defaultVersion ) {
           experimental = compare(defaultVersion, obj.id) < 0;
         }
 
@@ -1934,7 +1914,7 @@ export default {
           return this.t('cluster.banner.machinePoolError', {
             count: x[1].length, pool_name: x[0], fields: formattedFields
           }, true);
-        })
+        } )
         .filter((x) => x);
 
       if (!errors) {
@@ -1945,7 +1925,7 @@ export default {
     },
     handleS3BackupChanged(neu) {
       this.s3Backup = neu;
-      if (neu) {
+      if ( neu ) {
         // We need to make sure that s3 doesn't already have an existing value otherwise when editing a cluster with s3 defined this will clear s3.
         if (isEmpty(this.rkeConfig.etcd?.s3)) {
           set(this.rkeConfig.etcd, 's3', {});
@@ -1981,7 +1961,7 @@ export default {
       }
 
       for (const [index] of this.machinePools.entries()) { // validator machine config
-        if (typeof this.$refs.pool[index]?.test === 'function') {
+        if ( typeof this.$refs.pool[index]?.test === 'function' ) {
           try {
             const res = await this.$refs.pool[index].test();
 
@@ -2021,7 +2001,7 @@ export default {
     @done="done"
     @finish="saveOverride"
     @cancel="cancel"
-    @error="e => errors = e"
+    @error="e=>errors = e"
   >
     <div class="header-warnings">
       <Banner
@@ -2058,7 +2038,7 @@ export default {
         name-placeholder="cluster.name.placeholder"
         description-label="cluster.description.label"
         description-placeholder="cluster.description.placeholder"
-        :rules="{ name: fvGetAndReportPathRules('metadata.name') }"
+        :rules="{name:fvGetAndReportPathRules('metadata.name')}"
       />
 
       <Banner
@@ -2132,7 +2112,7 @@ export default {
                 :pool-id="obj.id"
                 :pool-create-mode="obj.create"
                 @error="handleMachinePoolError"
-                @validationChanged="v => machinePoolValidationChanged(obj.id, v)"
+                @validationChanged="v=>machinePoolValidationChanged(obj.id, v)"
               />
             </Tab>
           </template>
@@ -2372,15 +2352,13 @@ export default {
 </template>
 
 <style lang="scss" scoped>
-.min-height {
-  min-height: 40em;
-}
-
-.patch-version {
-  margin-top: 5px;
-}
-
-.header-warnings .banner {
-  margin-bottom: 0;
-}
+  .min-height {
+    min-height: 40em;
+  }
+  .patch-version {
+    margin-top: 5px;
+  }
+  .header-warnings .banner {
+    margin-bottom: 0;
+  }
 </style>

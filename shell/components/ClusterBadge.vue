@@ -9,7 +9,7 @@ export default {
 
   computed: {
     hasBadge() {
-      return !!this.cluster?.badge?.text;
+      return !!this.cluster?.badge;
     }
   }
 };

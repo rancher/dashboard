@@ -152,7 +152,7 @@ export const CLUSTER_BADGE = {
   TEXT:      'ui.rancher/badge-text',
   // Badge color - as a hex color - e.g. #ff00ff
   COLOR:     'ui.rancher/badge-color',
-  // Custom icon text - max 3 characters
+  // Custom icon text - max 2 characters
   ICON_TEXT: 'ui.rancher/badge-icon-text',
 };
 

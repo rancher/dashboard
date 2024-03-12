@@ -24,9 +24,8 @@ describe('component: RoleDetailEdit', () => {
         $fetchState: { pending: false },
         $route:      { name: 'anything' },
         $store:      {
-          dispatch: jest.fn(),
-          getters:  {
-            currentStore: () => 'store', 'i18n/t': jest.fn(), 'store/schemaFor': jest.fn(), 'store/customisation/': jest.fn()
+          getters: {
+            currentStore: () => 'store', 'i18n/t': jest.fn(), 'store/schemaFor': jest.fn()
           }
         }
       },

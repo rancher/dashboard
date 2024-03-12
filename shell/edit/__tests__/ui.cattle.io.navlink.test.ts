@@ -13,14 +13,12 @@ describe('view: ui.cattle.io.navlink should', () => {
     // Remove all these mocks after migration to Vue 2.7/3 due mixin logic
     mocks: {
       $store: {
-        dispatch: jest.fn(),
-        getters:  {
+        getters: {
           currentStore:              () => 'current_store',
           'current_store/schemaFor': jest.fn(),
           'current_store/all':       jest.fn(),
           'i18n/t':                  (val) => val,
           'i18n/exists':             jest.fn(),
-          'store/customisation/':    jest.fn()
         }
       },
       $route:  { query: { AS: '' } },

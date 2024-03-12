@@ -11,8 +11,7 @@ describe('edit: management.cattle.io.setting should', () => {
     // Remove all these mocks after migration to Vue 2.7/3 due mixin logic
     mocks: {
       $store: {
-        dispatch: jest.fn(),
-        getters:  {
+        getters: {
           currentStore:              () => 'current_store',
           'current_store/schemaFor': jest.fn(),
           'current_store/all':       jest.fn(),

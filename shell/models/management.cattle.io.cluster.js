@@ -299,10 +299,9 @@ export default class MgmtCluster extends HybridModel {
 
   // Custom badge to show for the Cluster (if the appropriate annotations are set)
   get badge() {
-    const icon = this.metadata?.annotations?.[CLUSTER_BADGE.ICON_TEXT];
-    const comment = this.metadata?.annotations?.[CLUSTER_BADGE.TEXT];
+    const text = this.metadata?.annotations?.[CLUSTER_BADGE.TEXT];
 
-    if (!icon) {
+    if (!text) {
       return undefined;
     }
 
@@ -310,10 +309,10 @@ export default class MgmtCluster extends HybridModel {
     const iconText = this.metadata?.annotations[CLUSTER_BADGE.ICON_TEXT] || '';
 
     return {
-      text:      comment || undefined,
+      text,
       color,
       textColor: textColor(parseColor(color)),
-      iconText:  iconText.substr(0, 3)
+      iconText:  iconText.substr(0, 2)
     };
   }
 

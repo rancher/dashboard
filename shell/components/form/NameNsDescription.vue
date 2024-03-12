@@ -9,14 +9,12 @@ import { _VIEW, _EDIT, _CREATE } from '@shell/config/query-params';
 import { LabeledInput } from '@components/Form/LabeledInput';
 import LabeledSelect from '@shell/components/form/LabeledSelect';
 import { normalizeName } from '@shell/utils/kube';
-import ClusterIconMenu from '@shell/components/ClusterIconMenu';
 
 export default {
   name:       'NameNsDescription',
   components: {
     LabeledInput,
-    LabeledSelect,
-    ClusterIconMenu
+    LabeledSelect
   },
 
   props: {
@@ -222,12 +220,6 @@ export default {
         !!this.forceNamespace || this.namespaceDisabled || this.mode === _EDIT
       ); // namespace is never editable
     },
-    clusterPreview() {
-      return this.$store.getters['customisation/getPreviewCluster'] || {
-        label: this.name,
-        badge: { iconText: null }
-      };
-    },
 
     nameReallyDisabled() {
       return this.nameDisabled || (this.mode === _EDIT && !this.nameEditable);
@@ -297,10 +289,6 @@ export default {
       return this.mode === _CREATE;
     },
 
-    showCustomize() {
-      return this.mode === _CREATE && this.name && this.name.length > 0;
-    },
-
     colSpan() {
       if (!this.horizontal) {
         return `span-8`;
@@ -322,14 +310,7 @@ export default {
 
   watch: {
     name(val) {
-      // Reset the badge preview when the name changes
-      if (!this.clusterPreview) {
-        return;
-      }
-      this.$set(this.clusterPreview?.badge, 'iconText', null);
-      this.$set(this.clusterPreview, 'label', val);
-
-      if (this.normalizeName) {
+      if ( this.normalizeName ) {
         val = normalizeName(val);
       }
 
@@ -364,10 +345,6 @@ export default {
     });
   },
 
-  created() {
-    this.$store.dispatch('customisation/setDefaultPreviewCluster');
-  },
-
   methods: {
     updateNamespace(val) {
       if (this.forceNamespace) {
@@ -393,8 +370,8 @@ export default {
     cancelCreateNamespace(e) {
       this.createNamespace = false;
       this.$parent.$emit('createNamespace', false);
-      // In practice we should always have a defaultNamespace... unless we're in non-kube extension world,  so fall back on options
-      this.namespace = this.$store.getters['defaultNamespace'] || this.options.find((o) => !!o.value)?.value;
+      // In practise we should always have a defaultNamespace... unless we're in non-kube extension world,  so fall back on options
+      this.namespace = this.$store.getters['defaultNamespace'] || this.options.find((o) => !!o.value)?.value ;
     },
 
     selectNamespace(e) {
@@ -408,18 +385,7 @@ export default {
         this.$parent.$emit('createNamespace', false);
         this.$emit('isNamespaceNew', false);
       }
-    },
-
-    customBadgeDialog() {
-      this.$store.dispatch('cluster/promptModal', {
-        component:      'AddCustomBadgeDialog',
-        componentProps: {
-          isCreate:       true,
-          clusterName:    this.name,
-          clusterPreview: this.clusterPreview
-        },
-      });
-    },
+    }
   },
 };
 </script>
@@ -493,24 +459,6 @@ export default {
       />
     </div>
 
-    <!-- // TODO: here goes the custom component -->
-
-    <div class="cluster-appearance">
-      <label for="name">Cluster Appearance</label>
-      <div class="cluster-appearance-preview">
-        <span>
-          <ClusterIconMenu :cluster="clusterPreview" />
-        </span>
-        <button
-          :disabled="!showCustomize"
-          @click="customBadgeDialog"
-        >
-          <i class="icon icon-brush-icon" />
-          <span>Customize</span>
-        </button>
-      </div>
-    </div>
-
     <div
       v-show="!descriptionHidden"
       :data-testid="componentTestid + '-description'"
@@ -557,16 +505,13 @@ button {
     padding-top: 7px;
   }
 }
-
 .row {
   &.name-ns-description {
     max-height: $input-height;
   }
-
   .namespace-select ::v-deep {
     .labeled-select {
       min-width: 40%;
-
       .v-select.inline {
         &.vs--single {
           padding-bottom: 2px;
@@ -582,47 +527,8 @@ button {
       max-height: initial;
     }
 
-    &>div>* {
+    & > div > * {
       margin-bottom: 20px;
-    }
-  }
-
-  .cluster-appearance {
-    display: flex;
-    flex-direction: column;
-    margin: 0px 35px 0px 0px;
-
-    &-preview {
-      display: flex;
-      justify-content: center;
-      align-self: start;
-      gap: 10px;
-      justify-content: space-between;
-
-      span {
-        display: flex;
-        align-self: center;
-        height: auto;
-      }
-
-      button {
-        display: flex;
-        align-self: center;
-        height: auto;
-        margin: 0;
-        padding: 0;
-        top: 0;
-        color: var(--link);
-
-        i {
-          margin-right: 2px;
-        }
-
-        &:disabled {
-          color: var(--disabled-text);
-          cursor: not-allowed;
-        }
-      }
     }
   }
 }
