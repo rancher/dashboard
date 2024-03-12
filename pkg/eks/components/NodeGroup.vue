@@ -1,5 +1,5 @@
 <script lang="ts">
-import { defineComponent } from 'vue';
+import Vue, { defineComponent } from 'vue';
 import { _EDIT } from '@shell/config/query-params';
 import LabeledSelect from '@shell/components/form/LabeledSelect.vue';
 import LabeledInput from '@components/Form/LabeledInput/LabeledInput.vue';
@@ -37,7 +37,7 @@ echo "Running custom user data script"
 
 --==MYBOUNDARY==--\\`;
 
-export default defineComponent({
+export default Vue.extend({
   name: 'EKSNodePool',
 
   components: {
@@ -287,7 +287,7 @@ export default defineComponent({
       }
     },
 
-    launchTemplateVersionOptions() {
+    launchTemplateVersionOptions(): number[] {
       if (this.selectedLaunchTemplate) {
         const { LatestVersionNumber = '1' } = this.selectedLaunchTemplate;
 
@@ -340,13 +340,16 @@ export default defineComponent({
       const ec2Client = await store.dispatch('aws/ec2', { region, cloudCredentialId: amazonCredentialSecret });
 
       try {
-        this.selectedLaunchTemplateInfo = await ec2Client.describeLaunchTemplateVersions({ LaunchTemplateId: launchTemplate.LaunchTemplateId, Versions: [this.launchTemplate.version] });
+        this.selectedLaunchTemplateInfo = await ec2Client.describeLaunchTemplateVersions({ LaunchTemplateId: launchTemplate.LaunchTemplateId, Versions: [...this.launchTemplateVersionOptions] });
       } catch (err) {
         this.$emit('error', err);
       }
     },
 
     setValuesFromTemplate(neu = {} as any, old = {} as any) {
+      if (!neu || isEmpty(neu)) {
+        return;
+      }
       Object.keys(launchTemplateFieldMapping).forEach((rancherKey: string) => {
         const awsKey = launchTemplateFieldMapping[rancherKey];
 
@@ -543,11 +546,11 @@ export default defineComponent({
     <div class="row mb-10">
       <div class="col span-3">
         <LabeledSelect
-          :required="!requestSpotInstances"
+          :required="!requestSpotInstances && !templateValue('instanceType')"
           :mode="mode"
           label-key="eks.nodeGroups.instanceType.label"
           :options="instanceTypeOptions"
-          :loading="loadingSelectedVersion||loadingInstanceTypes"
+          :loading="loadingInstanceTypes"
           :value="instanceType"
           :disabled="!!templateValue('instanceType') || requestSpotInstances"
           :tooltip="(requestSpotInstances && !templateValue('instanceType')) ? t('eks.nodeGroups.instanceType.tooltip'): ''"
