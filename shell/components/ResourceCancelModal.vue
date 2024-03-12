@@ -1,5 +1,9 @@
 <script>
+import AppModal from '@shell/components/AppModal.vue';
+
 export default {
+  components: { AppModal },
+
   props: {
     isCancelModal: {
       type:    Boolean,
@@ -11,18 +15,22 @@ export default {
     },
   },
 
+  data() {
+    return { showModal: false };
+  },
+
   watch: {},
 
   methods: {
     show() {
-      this.$modal.show('cancel-modal');
+      this.showModal = true;
     },
 
     /**
      * Close the modal, no op
      */
     cancelCancel() {
-      this.$modal.hide('cancel-modal');
+      this.showModal = false;
 
       this.$emit('cancel-cancel');
     },
@@ -31,7 +39,7 @@ export default {
      * Close the modal, cancel has been confirmed
      */
     confirmCancel() {
-      this.$modal.hide('cancel-modal');
+      this.showModal = false;
 
       this.$emit('confirm-cancel', this.isCancelModal);
     },
@@ -40,11 +48,13 @@ export default {
 </script>
 
 <template>
-  <modal
+  <app-modal
+    v-if="showModal"
     class="confirm-modal"
     name="cancel-modal"
     :width="440"
     height="auto"
+    @close="cancelCancel"
   >
     <div class="header">
       <h4 class="text-default-text">
@@ -80,7 +90,7 @@ export default {
         <span v-else>{{ t("cruResource.confirmBack") }}</span>
       </button>
     </div>
-  </modal>
+  </app-modal>
 </template>
 
 <style lang='scss' scoped>

@@ -9,6 +9,7 @@ import BrandImage from '@shell/components/BrandImage';
 import { getProduct } from '@shell/config/private-label';
 import ClusterProviderIcon from '@shell/components/ClusterProviderIcon';
 import ClusterBadge from '@shell/components/ClusterBadge';
+import AppModal from '@shell/components/AppModal';
 import { LOGGED_OUT, IS_SSO } from '@shell/config/query-params';
 import NamespaceFilter from './NamespaceFilter';
 import WorkspaceSwitcher from './WorkspaceSwitcher';
@@ -33,7 +34,8 @@ export default {
     BrandImage,
     ClusterBadge,
     ClusterProviderIcon,
-    IconOrSvg
+    IconOrSvg,
+    AppModal,
   },
 
   props: {
@@ -56,7 +58,9 @@ export default {
       LOGGED_OUT,
       navHeaderRight:         null,
       extensionHeaderActions: getApplicableExtensionEnhancements(this, ExtensionPoint.ACTION, ActionLocation.HEADER, this.$route),
-      ctx:                    this
+      ctx:                    this,
+      showImportModal:        false,
+      showSearchModal:        false,
     };
   },
 
@@ -248,19 +252,19 @@ export default {
     },
 
     openImport() {
-      this.$modal.show('importModal');
+      this.showImportModal = true;
     },
 
     closeImport() {
-      this.$modal.hide('importModal');
+      this.showImportModal = false;
     },
 
     openSearch() {
-      this.$modal.show('searchModal');
+      this.showSearchModal = true;
     },
 
     hideSearch() {
-      this.$modal.hide('searchModal');
+      this.showSearchModal = false;
     },
 
     showPageActionsMenu(show) {
@@ -473,18 +477,20 @@ export default {
           >
             <i class="icon icon-upload icon-lg" />
           </button>
-          <modal
+          <app-modal
+            v-if="showImportModal"
             class="import-modal"
             name="importModal"
             width="75%"
             height="auto"
             styles="max-height: 90vh;"
+            @close="closeImport"
           >
             <Import
               :cluster="currentCluster"
               @close="closeImport"
             />
-          </modal>
+          </app-modal>
 
           <button
             v-if="showKubeShell"
@@ -541,15 +547,16 @@ export default {
         >
           <i class="icon icon-search icon-lg" />
         </button>
-        <modal
-          v-if="showSearch"
+        <app-modal
+          v-if="showSearch && showSearchModal"
           class="search-modal"
           name="searchModal"
           width="50%"
           height="auto"
+          @close="hideSearch()"
         >
           <Jump @closeSearch="hideSearch()" />
-        </modal>
+        </app-modal>
       </div>
 
       <!-- Extension header actions -->

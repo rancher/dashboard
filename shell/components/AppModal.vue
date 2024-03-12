@@ -2,8 +2,9 @@
 import Vue from 'vue';
 
 export default Vue.extend({
-  name:  'AppModal',
-  props: {
+  name:         'AppModal',
+  inheritAttrs: false,
+  props:        {
     /**
      * If set to false, it will not be possible to close modal by clicking on
      * the background or by pressing Esc key.
@@ -20,6 +21,38 @@ export default Vue.extend({
     width: {
       type:    [Number, String],
       default: 600,
+      validator(value) {
+        if (typeof value === 'number') {
+          return value > 0;
+        }
+
+        if (typeof value === 'string') {
+          return /^(0*(?:[1-9][0-9]*|0)\.?\d*)+(px|%)$/.test(value) && Number(value) > 0;
+        }
+
+        return false;
+      }
+    },
+    /**
+     * List of class that will be applied to the modal window
+     */
+    customClass: {
+      type:    String,
+      default: '',
+    },
+    /**
+     * Style that will be applied to the modal window
+     */
+    styles: {
+      type:    String,
+      default: '',
+    },
+    /**
+     * Name of the modal
+     */
+    name: {
+      type:    String,
+      default: '',
     }
   },
   computed: {
@@ -27,6 +60,22 @@ export default Vue.extend({
       const uom = typeof (this.width) === 'number' ? 'px' : '';
 
       return `${ this.width }${ uom }`;
+    },
+    stylesPropToObj(): object {
+      return this.styles.split(';')
+        .map((line) => line.trim().split(':'))
+        .reduce((lines, [key, val]) => {
+          return {
+            ...lines,
+            [key]: val
+          };
+        }, { });
+    },
+    modalStyles(): object {
+      return {
+        width: this.modalWidth,
+        ...this.stylesPropToObj,
+      };
     }
   },
   mounted() {
@@ -66,12 +115,15 @@ export default Vue.extend({
     >
       <div
         class="modal-overlay"
+        :data-modal="name"
         @click="handleClickOutside"
       >
         <div
+          v-bind="$attrs"
           ref="modalRef"
+          :class="customClass"
           class="modal-container"
-          :style="{ width: modalWidth }"
+          :style="modalStyles"
           @click.stop
         >
           <slot><!--Empty content--></slot>

@@ -3,21 +3,24 @@ import { mapGetters } from 'vuex';
 import ChangePassword from '@shell/components/form/ChangePassword';
 import { Card } from '@components/Card';
 import AsyncButton from '@shell/components/AsyncButton';
+import AppModal from '@shell/components/AppModal.vue';
 
 export default {
   components: {
-    Card, AsyncButton, ChangePassword
+    Card, AsyncButton, ChangePassword, AppModal
   },
   data() {
-    return { valid: false, password: '' };
+    return {
+      valid: false, password: '', showModal: false
+    };
   },
   computed: { ...mapGetters({ t: 'i18n/t' }) },
   methods:  {
     show(show) {
       if (show) {
-        this.$modal.show('password-modal');
+        this.showModal = true;
       } else {
-        this.$modal.hide('password-modal');
+        this.showModal = false;
       }
     },
     async submit(buttonCb) {
@@ -34,11 +37,13 @@ export default {
 </script>
 
 <template>
-  <modal
+  <app-modal
+    v-if="showModal"
     class="change-password-modal"
     name="password-modal"
     :width="500"
     :height="465"
+    @close="show(false)"
   >
     <Card
       class="prompt-password"
@@ -78,7 +83,7 @@ export default {
         />
       </template>
     </Card>
-  </modal>
+  </app-modal>
 </template>
 
 <style lang="scss" scoped>
