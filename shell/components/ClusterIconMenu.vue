@@ -107,7 +107,7 @@ export default {
     position: relative;
     align-items: center;
     display: flex;
-    height: 28px;
+    height: 32px;
     justify-content: center;
     width: 42px;
   }
@@ -126,7 +126,7 @@ export default {
 
   .cluster-badge-logo {
     width: 42px;
-    height: 28px;
+    height: 32px;
     display: flex;
     align-items: center;
     justify-content: center;

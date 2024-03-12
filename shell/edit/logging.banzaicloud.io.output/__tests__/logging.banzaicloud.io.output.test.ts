@@ -16,7 +16,8 @@ describe('view: logging.banzaicloud.io.output', () => {
       },
       mocks: {
         $store: {
-          getters: {
+          dispatch: jest.fn(),
+          getters:  {
             currentStore:              () => 'current_store',
             'management/schemaFor':    jest.fn(),
             'current_store/all':       jest.fn(),
