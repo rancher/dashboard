@@ -100,14 +100,20 @@ export default defineComponent({
   },
 
   watch: {
-    'config.region'() {
-      this.fetchKubernetesVersions();
-      this.fetchKMSKeys();
+    'config.region': {
+      handler() {
+        this.fetchKubernetesVersions();
+        this.fetchKMSKeys();
+      },
+      immediate: true
     },
 
-    'config.amazonCredentialSecret'() {
-      this.fetchKubernetesVersions();
-      this.fetchKMSKeys();
+    'config.amazonCredentialSecret': {
+      handler() {
+        this.fetchKubernetesVersions();
+        this.fetchKMSKeys();
+      },
+      immediate: true
     },
     'encryptSecrets'(neu) {
       if (!neu) {
