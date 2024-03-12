@@ -661,7 +661,7 @@ export default {
           [_EDIT, _VIEW].includes(this.mode) && // error messages should only be displayed in Edit or View mode
           !this.poolCreateMode && // almost identical to Create mode
           !isNullOrEmpty && // null and empty string are valid values for some fields e.g. contentLibrary, folder and hostsystem
-          !isArray; // this flag is used for network and tag fields, and should not diplay error for them
+          !isArray; // this flag is used for network and tag fields, and should not display error for them
 
         if ((this.mode === _CREATE || this.poolCreateMode) && value !== SENTINEL) {
           set(this.value, key, value);
