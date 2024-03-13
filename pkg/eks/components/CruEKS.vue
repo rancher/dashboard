@@ -688,6 +688,7 @@ export default defineComponent({
       <Accordion
         class="mb-20"
         :title="t('eks.accordionHeaders.networking')"
+        :open-initially="true"
       >
         <Networking
           :public-access.sync="config.publicAccess"
@@ -703,6 +704,7 @@ export default defineComponent({
       <Accordion
         class="mb-20"
         :title="t('eks.accordionHeaders.logging')"
+        :open-initially="true"
       >
         <Logging
           :mode="mode"

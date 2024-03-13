@@ -89,7 +89,7 @@ export default defineComponent({
       iamInfo:               {} as any,
       canReadKms:            false,
       supportedVersionRange,
-      customServiceRole:     this.serviceRole && this.serviceRole.length,
+      customServiceRole:     !!this.serviceRole && !!this.serviceRole.length,
       encryptSecrets:        false,
       loadingVersions:       false,
       loadingKms:            false,
