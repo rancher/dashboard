@@ -52,19 +52,4 @@ describe('appModal', () => {
 
     expect(wrapper.emitted('close')).toBeFalsy();
   });
-
-  it('sets a width for the modal container', async() => {
-    const container = wrapper.find('.modal-container');
-
-    expect(container.exists()).toBeTruthy();
-    expect(wrapper.find('.modal-container').element.style.width).toBe('600px');
-  });
-
-  it('sets a percentage width for the modal container', async() => {
-    await wrapper.setProps({ width: '50%' });
-    const container = wrapper.find('.modal-container');
-
-    expect(container.exists()).toBeTruthy();
-    expect(wrapper.find('.modal-container').element.style.width).toBe('50%');
-  });
 });

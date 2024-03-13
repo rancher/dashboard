@@ -2,6 +2,7 @@
 import { config } from '@vue/test-utils';
 import { directiveSsr as t } from '@shell/plugins/i18n';
 import VTooltip from 'v-tooltip';
+import VModal from 'vue-js-modal';
 import vSelect from 'vue-select';
 import { VCleanTooltip } from '@shell/plugins/clean-tooltip-directive.js';
 import '@shell/plugins/replaceall';
@@ -13,7 +14,7 @@ global.TextEncoder = TextEncoder;
 global.TextDecoder = TextDecoder;
 
 Vue.config.productionTip = false;
-Vue.use(VTooltip);
+Vue.use(VTooltip).use(VModal);
 Vue.use(VCleanTooltip);
 Vue.component('v-select', vSelect);
 

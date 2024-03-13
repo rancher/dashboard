@@ -10,13 +10,12 @@ import AsyncButton from '@shell/components/AsyncButton';
 import { CATALOG as CATALOG_ANNOTATIONS } from '@shell/config/labels-annotations';
 import { CATALOG } from '@shell/config/types';
 import { LabeledInput } from '@components/Form/LabeledInput';
-import AppModal from '@shell/components/AppModal.vue';
 
 export default {
   name: 'PromptRemove',
 
   components: {
-    Card, Checkbox, AsyncButton, LabeledInput, AppModal
+    Card, Checkbox, AsyncButton, LabeledInput
   },
   props: {
     /**
@@ -40,8 +39,7 @@ export default {
       preventDelete:       false,
       removeComponent:     this.$store.getters['type-map/importCustomPromptRemove'](resource),
       chartsToRemoveIsApp: false,
-      chartsDeleteCrd:     false,
-      showModal:           false,
+      chartsDeleteCrd:     false
     };
   },
   computed: {
@@ -173,7 +171,7 @@ export default {
           this.chartsToRemoveIsApp = true;
         }
 
-        this.showModal = true;
+        this.$modal.show('promptRemove');
 
         let { resource } = this.$route.params;
 
@@ -185,7 +183,7 @@ export default {
 
         this.removeComponent = this.$store.getters['type-map/importCustomPromptRemove'](resource);
       } else {
-        this.showModal = false;
+        this.$modal.hide('promptRemove');
       }
     },
 
@@ -337,14 +335,13 @@ export default {
 </script>
 
 <template>
-  <app-modal
-    v-if="showModal"
-    custom-class="remove-modal"
+  <modal
+    class="remove-modal"
     name="promptRemove"
     :width="400"
     height="auto"
     styles="max-height: 100vh;"
-    @close="close"
+    @closed="close"
   >
     <Card
       class="prompt-remove"
@@ -443,7 +440,7 @@ export default {
         />
       </template>
     </Card>
-  </app-modal>
+  </modal>
 </template>
 
 <style lang='scss'>
@@ -454,6 +451,15 @@ export default {
     #confirm {
       width: 90%;
       margin-left: 3px;
+    }
+
+    .remove-modal {
+        border-radius: var(--border-radius);
+        overflow: scroll;
+        max-height: 100vh;
+        & ::-webkit-scrollbar-corner {
+          background: rgba(0,0,0,0);
+        }
     }
 
     .actions {

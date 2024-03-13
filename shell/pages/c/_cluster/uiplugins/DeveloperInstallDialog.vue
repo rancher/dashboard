@@ -1,6 +1,5 @@
 <script>
 import AsyncButton from '@shell/components/AsyncButton';
-import AppModal from '@shell/components/AppModal.vue';
 import { LabeledInput } from '@components/Form/LabeledInput';
 import Checkbox from '@components/Form/Checkbox/Checkbox.vue';
 import { UI_PLUGIN } from '@shell/config/types';
@@ -11,7 +10,6 @@ export default {
     AsyncButton,
     Checkbox,
     LabeledInput,
-    AppModal,
   },
 
   data() {
@@ -21,7 +19,6 @@ export default {
       persist:           false,
       canModifyName:     true,
       canModifyLocation: true,
-      showModal:         false,
     };
   },
 
@@ -53,10 +50,10 @@ export default {
 
   methods: {
     showDialog() {
-      this.showModal = true;
+      this.$modal.show('developerInstallPluginDialog');
     },
     closeDialog(result) {
-      this.showModal = false;
+      this.$modal.hide('developerInstallPluginDialog');
       this.$emit('closed', result);
     },
 
@@ -145,12 +142,10 @@ export default {
 </script>
 
 <template>
-  <app-modal
-    v-if="showModal"
+  <modal
     name="developerInstallPluginDialog"
     height="auto"
     :scrollable="true"
-    @close="closeDialog()"
   >
     <div class="plugin-install-dialog">
       <h4>
@@ -199,7 +194,7 @@ export default {
         </div>
       </div>
     </div>
-  </app-modal>
+  </modal>
 </template>
 
 <style lang="scss" scoped>

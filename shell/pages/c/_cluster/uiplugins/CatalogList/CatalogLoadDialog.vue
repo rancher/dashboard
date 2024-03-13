@@ -10,7 +10,6 @@ import { allHash } from '@shell/utils/promise';
 import ResourceManager from '@shell/mixins/resource-manager';
 
 import AsyncButton from '@shell/components/AsyncButton';
-import AppModal from '@shell/components/AppModal';
 import LabeledSelect from '@shell/components/form/LabeledSelect';
 import Loading from '@shell/components/Loading.vue';
 import { Banner } from '@components/Banner';
@@ -99,7 +98,7 @@ const initialState = () => {
 
 export default {
   components: {
-    AsyncButton, Banner, LabeledInput, Loading, LabeledSelect, AppModal,
+    AsyncButton, Banner, LabeledInput, Loading, LabeledSelect
   },
 
   mixins: [ResourceManager],
@@ -124,8 +123,7 @@ export default {
   data() {
     return {
       ...initialState(),
-      secondaryResourceData: null,
-      showModal:             false,
+      secondaryResourceData: null
     };
   },
 
@@ -161,11 +159,11 @@ export default {
     },
 
     showDialog() {
-      this.showModal = true;
+      this.$modal.show('catalogLoadDialog');
     },
 
     closeDialog(result) {
-      this.showModal = false;
+      this.$modal.hide('catalogLoadDialog');
       this.$emit('closed', result);
 
       // Reset state
@@ -427,12 +425,11 @@ export default {
 </script>
 
 <template>
-  <app-modal
-    v-if="showModal"
+  <modal
     name="catalogLoadDialog"
     height="auto"
     :scrollable="true"
-    @close="closeDialog()"
+    @closed="closeDialog()"
   >
     <Loading
       v-if="$fetchState.loading"
@@ -510,7 +507,7 @@ export default {
         </div>
       </div>
     </div>
-  </app-modal>
+  </modal>
 </template>
 
 <style lang="scss" scoped>

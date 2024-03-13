@@ -57,7 +57,6 @@ export default {
       },
       removeCRD:           true,
       hasPluginsInstalled: false,
-      isDialogActive:      false,
     };
   },
 
@@ -95,7 +94,7 @@ export default {
         official: !!this.officialRepo,
         partners: !!this.partnersRepo,
       };
-      this.isDialogActive = true;
+      this.$modal.show('confirm-uiplugins-remove');
     },
 
     async doRemove(btnCb) {
@@ -152,13 +151,11 @@ export default {
 </script>
 <template>
   <Dialog
-    v-if="isDialogActive"
     name="confirm-uiplugins-remove"
     :title="t('plugins.setup.remove.title')"
     mode="disable"
     data-testid="disable-ext-modal"
     @okay="doRemove"
-    @closed="isDialogActive = false"
   >
     <template>
       <p class="mb-20">

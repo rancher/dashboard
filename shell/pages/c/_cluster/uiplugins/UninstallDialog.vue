@@ -2,20 +2,14 @@
 import { mapGetters } from 'vuex';
 
 import AsyncButton from '@shell/components/AsyncButton';
-import AppModal from '@shell/components/AppModal.vue';
 import { CATALOG } from '@shell/config/types';
 import { UI_PLUGIN_NAMESPACE } from '@shell/config/uiplugins';
 
 export default {
-  components: {
-    AsyncButton,
-    AppModal,
-  },
+  components: { AsyncButton },
 
   data() {
-    return {
-      plugin: undefined, busy: false, showModal: false
-    };
+    return { plugin: undefined, busy: false };
   },
 
   computed: { ...mapGetters({ allCharts: 'catalog/charts' }) },
@@ -24,10 +18,10 @@ export default {
     showDialog(plugin) {
       this.plugin = plugin;
       this.busy = false;
-      this.showModal = true;
+      this.$modal.show('uninstallPluginDialog');
     },
     closeDialog(result) {
-      this.showModal = false;
+      this.$modal.hide('uninstallPluginDialog');
       this.$emit('closed', result);
     },
     async uninstall() {
@@ -71,12 +65,10 @@ export default {
 </script>
 
 <template>
-  <app-modal
-    v-if="showModal"
+  <modal
     name="uninstallPluginDialog"
     height="auto"
     :scrollable="true"
-    @close="closeDialog(false)"
   >
     <div
       v-if="plugin"
@@ -108,7 +100,7 @@ export default {
         </div>
       </div>
     </div>
-  </app-modal>
+  </modal>
 </template>
 
 <style lang="scss" scoped>

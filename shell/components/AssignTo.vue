@@ -25,7 +25,6 @@ export default {
       moveTo:        this.workspace,
       loaded:        false,
       allWorkspaces: [],
-      showModal:     false,
     };
   },
 
@@ -52,9 +51,9 @@ export default {
         this.allWorkspaces = await this.$store.dispatch('management/findAll', { type: FLEET.WORKSPACE });
         this.moveTo = this.workspace;
         this.loaded = true;
-        this.showModal = true;
+        this.$modal.show('assignTo');
       } else {
-        this.showModal = false;
+        this.$modal.hide('assignTo');
       }
     }
   },
@@ -106,14 +105,12 @@ export default {
 </script>
 
 <template>
-  <app-modal
-    v-if="showModal"
+  <modal
     class="assign-modal"
     name="assignTo"
     styles="background-color: var(--nav-bg); border-radius: var(--border-radius); max-height: 100vh;"
     height="auto"
     :scrollable="true"
-    @close="close"
   >
     <Card
       v-if="loaded"
@@ -168,7 +165,7 @@ export default {
         />
       </div>
     </Card>
-  </app-modal>
+  </modal>
 </template>
 
 <style lang='scss'>

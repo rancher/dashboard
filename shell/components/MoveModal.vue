@@ -2,7 +2,6 @@
 import { mapState, mapGetters } from 'vuex';
 import { Card } from '@components/Card';
 import AsyncButton from '@shell/components/AsyncButton';
-import AppModal from '@shell/components/AppModal.vue';
 import LabeledSelect from '@shell/components/form/LabeledSelect';
 import { MANAGEMENT } from '@shell/config/types';
 import Loading from '@shell/components/Loading';
@@ -10,7 +9,7 @@ import { PROJECT } from '@shell/config/labels-annotations';
 
 export default {
   components: {
-    AsyncButton, Card, LabeledSelect, Loading, AppModal
+    AsyncButton, Card, LabeledSelect, Loading
   },
 
   async fetch() {
@@ -19,7 +18,7 @@ export default {
 
   data() {
     return {
-      modalName: 'move-modal', projects: [], targetProject: null, showModal: false
+      modalName: 'move-modal', projects: [], targetProject: null
     };
   },
 
@@ -48,9 +47,9 @@ export default {
   watch: {
     showPromptMove(show) {
       if (show) {
-        this.showModal = true;
+        this.$modal.show(this.modalName);
       } else {
-        this.showModal = false;
+        this.$modal.hide(this.modalName);
       }
     }
   },
@@ -85,13 +84,12 @@ export default {
 };
 </script>
 <template>
-  <app-modal
-    v-if="showModal"
+  <modal
     class="move-modal"
     :name="modalName"
     :width="440"
     height="auto"
-    @close="close"
+    @closed="close"
   >
     <Loading v-if="$fetchState.pending" />
     <Card
@@ -138,7 +136,7 @@ export default {
         />
       </template>
     </Card>
-  </app-modal>
+  </modal>
 </template>
 
 <style lang='scss'>

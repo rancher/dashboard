@@ -3,24 +3,21 @@ import { mapGetters } from 'vuex';
 import ChangePassword from '@shell/components/form/ChangePassword';
 import { Card } from '@components/Card';
 import AsyncButton from '@shell/components/AsyncButton';
-import AppModal from '@shell/components/AppModal.vue';
 
 export default {
   components: {
-    Card, AsyncButton, ChangePassword, AppModal
+    Card, AsyncButton, ChangePassword
   },
   data() {
-    return {
-      valid: false, password: '', showModal: false
-    };
+    return { valid: false, password: '' };
   },
   computed: { ...mapGetters({ t: 'i18n/t' }) },
   methods:  {
     show(show) {
       if (show) {
-        this.showModal = true;
+        this.$modal.show('password-modal');
       } else {
-        this.showModal = false;
+        this.$modal.hide('password-modal');
       }
     },
     async submit(buttonCb) {
@@ -37,13 +34,11 @@ export default {
 </script>
 
 <template>
-  <app-modal
-    v-if="showModal"
-    custom-class="change-password-modal"
+  <modal
+    class="change-password-modal"
     name="password-modal"
     :width="500"
     :height="465"
-    @close="show(false)"
   >
     <Card
       class="prompt-password"
@@ -83,37 +78,42 @@ export default {
         />
       </template>
     </Card>
-  </app-modal>
+  </modal>
 </template>
 
 <style lang="scss" scoped>
-  .prompt-password {
-    ::v-deep .card-wrap {
-      display: flex;
-      flex-direction: column;
+    .change-password-modal {
+      ::v-deep .v--modal {
+        display: flex;
 
-      .card-body {
-        flex: 1;
-        justify-content: start;
-        & > div {
-          flex: 1;
+        .card-wrap {
           display: flex;
+          flex-direction: column;
+
+          .card-body {
+            flex: 1;
+            justify-content: start;
+            & > div {
+              flex: 1;
+              display: flex;
+            }
+          }
+
+          .card-actions {
+            display: flex;
+            justify-content: flex-end;
+            width: 100%;
+          }
         }
       }
+    }
 
-      .card-actions {
-        display: flex;
-        justify-content: flex-end;
-        width: 100%;
+    .prompt-password {
+      flex: 1;
+      display: flex;
+      form {
+        flex: 1;
       }
     }
-  }
 
-  .prompt-password {
-    flex: 1;
-    display: flex;
-    form {
-      flex: 1;
-    }
-  }
 </style>

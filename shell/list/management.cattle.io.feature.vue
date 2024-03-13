@@ -1,7 +1,6 @@
 <script>
 import { mapState, mapGetters } from 'vuex';
 import AsyncButton from '@shell/components/AsyncButton';
-import AppModal from '@shell/components/AppModal';
 import { Card } from '@components/Card';
 import ResourceTable from '@shell/components/ResourceTable';
 import { Banner } from '@components/Banner';
@@ -16,8 +15,7 @@ export default {
     Banner,
     Card,
     ResourceTable,
-    LabeledInput,
-    AppModal,
+    LabeledInput
   },
   mixins: [ResourceFetch],
   props:  {
@@ -62,7 +60,6 @@ export default {
       serverUrlSetting: {},
       serverUrl:        '',
       noUrlSet:         false,
-      showModal:        false,
     };
   },
 
@@ -93,9 +90,9 @@ export default {
   watch: {
     showPromptUpdate(show) {
       if (show) {
-        this.showModal = true;
+        this.$modal.show('toggleFlag');
       } else {
-        this.showModal = false;
+        this.$modal.hide('toggleFlag');
       }
     },
 
@@ -211,15 +208,14 @@ export default {
         </div>
       </template>
     </ResourceTable>
-    <app-modal
-      v-if="showModal"
+    <modal
       class="update-modal"
       name="toggleFlag"
       :width="350"
       height="auto"
       styles="max-height: 100vh;"
       :click-to-close="!restart || !waiting"
-      @close="close"
+      @closed="close"
     >
       <Card
         v-if="!waiting"
@@ -317,7 +313,7 @@ export default {
           </button>
         </template>
       </Card>
-    </app-modal>
+    </modal>
   </div>
 </template>
 

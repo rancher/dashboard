@@ -88,7 +88,6 @@ export default {
       },
       buttonState:            ASYNC_BUTTON_STATES.ACTION,
       defaultRegistrySetting: null,
-      showDialog:             false,
     };
   },
 
@@ -162,12 +161,11 @@ export default {
         partners: !this.hasRancherUIPartnersPluginsRepo,
       };
 
-      this.showDialog = true;
+      this.$modal.show('confirm-uiplugins-setup');
     },
 
     async dialogClosed(ok) {
       this.errors = [];
-      this.showDialog = false;
 
       // User wants to proceed
       if (ok) {
@@ -273,7 +271,6 @@ export default {
       </template>
     </IconMessage>
     <Dialog
-      v-if="showDialog"
       name="confirm-uiplugins-setup"
       :title="t('plugins.setup.install.title')"
       @closed="dialogClosed"

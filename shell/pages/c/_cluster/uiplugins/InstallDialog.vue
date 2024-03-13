@@ -1,7 +1,6 @@
 <script>
 import AsyncButton from '@shell/components/AsyncButton';
 import LabeledSelect from '@shell/components/form/LabeledSelect';
-import AppModal from '@shell/components/AppModal.vue';
 import { CATALOG, MANAGEMENT } from '@shell/config/types';
 import { CATALOG as CATALOG_ANNOTATIONS } from '@shell/config/labels-annotations';
 import { UI_PLUGIN_NAMESPACE } from '@shell/config/uiplugins';
@@ -14,7 +13,6 @@ export default {
     AsyncButton,
     Banner,
     LabeledSelect,
-    AppModal,
   },
 
   async fetch() {
@@ -33,7 +31,6 @@ export default {
       version:                '',
       update:                 false,
       mode:                   '',
-      showModal:              false,
     };
   },
 
@@ -104,11 +101,11 @@ export default {
 
       this.busy = false;
       this.update = mode !== 'install';
-      this.showModal = true;
+      this.$modal.show('installPluginDialog');
     },
 
     closeDialog(result) {
-      this.showModal = false;
+      this.$modal.hide('installPluginDialog');
       this.$emit('closed', result);
     },
 
@@ -218,12 +215,10 @@ export default {
 </script>
 
 <template>
-  <app-modal
-    v-if="showModal"
+  <modal
     name="installPluginDialog"
     height="auto"
     :scrollable="true"
-    @close="closeDialog(false)"
   >
     <div
       v-if="plugin"
@@ -271,7 +266,7 @@ export default {
         </div>
       </div>
     </div>
-  </app-modal>
+  </modal>
 </template>
 
 <style lang="scss" scoped>
