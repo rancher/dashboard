@@ -6,9 +6,10 @@ import { UI_PLUGIN_LABELS, UI_PLUGIN_NAMESPACE } from '@shell/config/uiplugins';
 import { allHash } from '@shell/utils/promise';
 
 import AsyncButton from '@shell/components/AsyncButton';
+import AppModal from '@shell/components/AppModal.vue';
 
 export default {
-  components: { AsyncButton },
+  components: { AsyncButton, AppModal },
 
   async fetch() {
     if ( this.$store.getters['management/schemaFor'](UI_PLUGIN) ) {
@@ -20,7 +21,7 @@ export default {
 
   data() {
     return {
-      catalog: undefined, busy: false, plugins: null
+      catalog: undefined, busy: false, plugins: null, showModal: false,
     };
   },
 
@@ -36,11 +37,11 @@ export default {
     showDialog(catalog) {
       this.catalog = catalog;
       this.busy = false;
-      this.$modal.show('uninstallCatalogDialog');
+      this.showModal = true;
     },
 
     closeDialog(result) {
-      this.$modal.hide('uninstallCatalogDialog');
+      this.showModal = false;
       this.$emit('closed', result);
 
       if ( result ) {
@@ -113,10 +114,12 @@ export default {
 </script>
 
 <template>
-  <modal
+  <app-modal
+    v-if="showModal"
     name="uninstallCatalogDialog"
     height="auto"
     :scrollable="true"
+    @close="closeDialog(false)"
   >
     <div
       v-if="catalog"
@@ -148,7 +151,7 @@ export default {
         </div>
       </div>
     </div>
-  </modal>
+  </app-modal>
 </template>
 
 <style lang="scss" scoped>

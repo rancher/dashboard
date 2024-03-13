@@ -1,8 +1,10 @@
 <script>
 import { Card } from '@components/Card';
+import AppModal from '@shell/components/AppModal.vue';
+
 export default {
   name:       'PromptRemove',
-  components: { Card },
+  components: { Card, AppModal },
   props:      {
     /**
      * Inherited global identifier prefix for tests
@@ -13,15 +15,18 @@ export default {
       default: 'disable-auth-provider'
     }
   },
+  data() {
+    return { showModal: false };
+  },
   methods: {
     show() {
-      this.$modal.show('disableAuthProviderModal');
+      this.showModal = true;
     },
     close() {
-      this.$modal.hide('disableAuthProviderModal');
+      this.showModal = false;
     },
     disable() {
-      this.$modal.hide('disableAuthProviderModal');
+      this.showModal = false;
       this.$emit('disable');
     },
   }
@@ -29,13 +34,14 @@ export default {
 </script>
 
 <template>
-  <modal
-    class="remove-modal"
+  <app-modal
+    v-if="showModal"
+    custom-class="remove-modal"
     name="disableAuthProviderModal"
     :width="400"
     height="auto"
     styles="max-height: 100vh;"
-    @closed="close"
+    @close="close"
   >
     <Card
       class="disable-auth-provider"
@@ -69,7 +75,7 @@ export default {
         </button>
       </template>
     </Card>
-  </modal>
+  </app-modal>
 </template>
 
 <style lang='scss'>

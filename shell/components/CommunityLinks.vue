@@ -1,5 +1,6 @@
 <script>
 import SimpleBox from '@shell/components/SimpleBox';
+import AppModal from '@shell/components/AppModal.vue';
 import Closeable from '@shell/mixins/closeable';
 import { MANAGEMENT } from '@shell/config/types';
 import { SETTING } from '@shell/config/settings';
@@ -10,7 +11,7 @@ import { fetchLinks } from '@shell/config/home-links';
 export default {
   name: 'CommunityLinks',
 
-  components: { SimpleBox },
+  components: { SimpleBox, AppModal },
 
   props: {
     linkOptions: {
@@ -32,7 +33,7 @@ export default {
   },
 
   data() {
-    return { links: {} };
+    return { links: {}, showWeChatModal: false };
   },
 
   computed: {
@@ -80,10 +81,10 @@ export default {
   },
   methods: {
     show() {
-      this.$modal.show('wechat-modal');
+      this.showWeChatModal = true;
     },
     close() {
-      this.$modal.hide('wechat-modal');
+      this.showWeChatModal = false;
     }
   },
 };
@@ -131,10 +132,12 @@ export default {
         </a>
       </div>
     </SimpleBox>
-    <modal
+    <app-modal
+      v-if="showWeChatModal"
       name="wechat-modal"
       height="auto"
       :width="640"
+      @close="close"
     >
       <div class="wechat-modal">
         <h1>{{ t('footer.wechat.modalText') }}</h1>
@@ -149,7 +152,7 @@ export default {
           </button>
         </div>
       </div>
-    </modal>
+    </app-modal>
   </div>
 </template>
 
