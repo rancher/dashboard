@@ -16,6 +16,7 @@ import { integerString, keyValueStrings } from '@shell/utils/computed';
 import { _CREATE, _EDIT, _VIEW } from '@shell/config/query-params';
 
 export const SENTINEL = '__SENTINEL__';
+const NULLABLE_EMPTY_FIELDS = ['contentLibrary', 'folder', 'hostsystem'];
 const VAPP_MODE = {
   DISABLED: 'disabled',
   AUTO:     'auto',
@@ -651,9 +652,12 @@ export default {
 
       if (!isValueInContent()) {
         const value = isArray ? [] : content[0]?.value;
-        // null and "" are valid values for hostsystem and folder
-        const isNullOrEmpty = ['folder', 'hostsystem'].includes(key) && (this.value[key] === null || this.value[key] === '');
-        const shouldHandleError = [_EDIT, _VIEW].includes(this.mode) && !isNullOrEmpty && !this.poolCreateMode;
+        const isNullOrEmpty = NULLABLE_EMPTY_FIELDS.includes(key) && (this.value[key] === null || this.value[key] === '');
+        const shouldHandleError =
+          [_EDIT, _VIEW].includes(this.mode) && // error messages should only be displayed in Edit or View mode
+          !this.poolCreateMode && // almost identical to Create mode
+          !isNullOrEmpty && // null and empty string are valid values for some fields e.g. contentLibrary, folder and hostsystem
+          !isArray; // this flag is used for network and tag fields, and should not display error for them
 
         if ((this.mode === _CREATE || this.poolCreateMode) && value !== SENTINEL) {
           set(this.value, key, value);
