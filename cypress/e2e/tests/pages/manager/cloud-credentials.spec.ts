@@ -101,7 +101,7 @@ describe('Cloud Credentials', { testIsolation: 'off', tags: ['@manager', '@jenki
     CloudCredentialsPagePo.navTo();
 
     // delete original cloud credential
-    cloudCredentialsPage.list().resourceTable().sortableTable().rowSelectCtlWithName(`${ this.cloudCredentialName }-name-edit`)
+    cloudCredentialsPage.list().resourceTable().sortableTable().rowSelectCtlWithName(`${ this.cloudCredentialName }-description-edit`)
       .set();
     cloudCredentialsPage.list().resourceTable().sortableTable().deleteButton()
       .click();

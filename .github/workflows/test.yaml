@@ -74,7 +74,7 @@ jobs:
         run: |
           yarn e2e:prod
         env: 
-          GREP_TAGS: ${{ matrix.role.tag }}Setup+${{ matrix.features[0] }} ${{ matrix.role.tag }}Setup+${{ matrix.features[1] || matrix.features[0] }}
+          GREP_TAGS: ${{ matrix.role.tag }}Setup+${{ matrix.features[0] }} --@jenkins ${{ matrix.role.tag }}Setup+${{ matrix.features[1] || matrix.features[0] }} --@jenkins 
           TEST_USERNAME: admin
           TEST_ONLY: setup
       
@@ -87,7 +87,7 @@ jobs:
           cp -r coverage/e2e/ coverage-artifacts/coverage/e2e/
         env: 
           TEST_SKIP: setup
-          GREP_TAGS: ${{ matrix.role.tag }}+${{ matrix.features[0] }} ${{ matrix.role.tag }}+${{ matrix.features[1] || matrix.features[0] }}
+          GREP_TAGS: ${{ matrix.role.tag }}+${{ matrix.features[0] }} --@jenkins ${{ matrix.role.tag }}+${{ matrix.features[1] || matrix.features[0] }} --@jenkins
           TEST_USERNAME: ${{ matrix.role.username }}
         
       - name: Upload coverage

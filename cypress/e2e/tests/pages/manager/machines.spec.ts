@@ -55,6 +55,7 @@ describe('Machines', { testIsolation: 'off', tags: ['@manager', '@adminUser'] },
 
   it('can edit a Machine', function() {
     MachinesPagePo.navTo();
+    machinesPage.waitForPage();
     machinesPage.list().actionMenu(this.machineName).getMenuItem('Edit YAML').click();
     machinesPage.createEditMachines(nsName, this.machineName).waitForPage('mode=edit&as=yaml');
 
@@ -84,6 +85,7 @@ describe('Machines', { testIsolation: 'off', tags: ['@manager', '@adminUser'] },
 
   it('can download YAML', function() {
     MachinesPagePo.navTo();
+    machinesPage.waitForPage();
     machinesPage.list().actionMenu(this.machineName).getMenuItem('Download YAML').click({ force: true });
 
     const downloadedFilename = path.join(downloadsFolder, `${ this.machineName }.yaml`);
@@ -100,6 +102,7 @@ describe('Machines', { testIsolation: 'off', tags: ['@manager', '@adminUser'] },
 
   it('can delete a Machine', function() {
     MachinesPagePo.navTo();
+    machinesPage.waitForPage();
     machinesPage.list().actionMenu(this.machineName).getMenuItem('Delete').click();
 
     const promptRemove = new PromptRemove();
