@@ -39,7 +39,7 @@ import ArrayListGrouped from '@shell/components/form/ArrayListGrouped';
 import { BadgeState } from '@components/BadgeState';
 import { Banner } from '@components/Banner';
 import { Checkbox } from '@components/Form/Checkbox';
-import CruResource from '@shell/components/CruResource';
+import CruResource, { CONTEXT_HOOK_EDIT_YAML } from '@shell/components/CruResource';
 import { LabeledInput } from '@components/Form/LabeledInput';
 import LabeledSelect from '@shell/components/form/LabeledSelect';
 import Loading from '@shell/components/Loading';
@@ -1053,7 +1053,7 @@ export default {
   },
 
   created() {
-    this.registerBeforeHook(this.saveMachinePools, 'save-machine-pools');
+    this.registerBeforeHook(this.saveMachinePools, 'save-machine-pools', 1);
     this.registerBeforeHook(this.setRegistryConfig, 'set-registry-config');
     this.registerAfterHook(this.cleanupMachinePools, 'cleanup-machine-pools');
     this.registerAfterHook(this.saveRoleBindings, 'save-role-bindings');
@@ -1421,7 +1421,33 @@ export default {
       }
     },
 
-    async saveMachinePools() {
+    async saveMachinePools(hookContext) {
+      if (hookContext === CONTEXT_HOOK_EDIT_YAML) {
+        await new Promise((resolve, reject) => {
+          this.$store.dispatch('cluster/promptModal', {
+            component:      'GenericPrompt',
+            componentProps: {
+              title:     this.t('cluster.rke2.modal.editYamlMachinePool.title'),
+              body:      this.t('cluster.rke2.modal.editYamlMachinePool.body'),
+              applyMode: 'editAndContinue',
+              confirm:   async(confirmed) => {
+                if (confirmed) {
+                  await this.validateMachinePool();
+
+                  if (this.errors.length) {
+                    reject(new Error('Machine Pool validation errors'));
+                  }
+
+                  resolve();
+                } else {
+                  reject(new Error('User Cancelled'));
+                }
+              }
+            },
+          });
+        });
+      }
+
       const finalPools = [];
 
       // If the extension provider wants to do this, let them
@@ -1576,10 +1602,6 @@ export default {
       // We cannot use the hook, because it is triggered on YAML toggle without restore initialized data
       this.agentConfigurationCleanup();
 
-      if ( this.errors ) {
-        clear(this.errors);
-      }
-
       const isEditVersion = this.isEdit && this.liveValue?.spec?.kubernetesVersion !== this.value?.spec?.kubernetesVersion;
       const hasPspManuallyAdded = !!this.value.spec.rkeConfig?.machineGlobalConfig?.['kube-apiserver-arg'];
 
@@ -1597,31 +1619,9 @@ export default {
         }
       }
 
-      if (this.value.cloudProvider === 'aws') {
-        const missingProfileName = this.machinePools.some((mp) => !mp.config.iamInstanceProfile);
+      this.validateClusterName();
 
-        if (missingProfileName) {
-          this.errors.push(this.t('cluster.validation.iamInstanceProfileName', {}, true));
-        }
-      }
-
-      for (const [index] of this.machinePools.entries()) { // validator machine config
-        if ( typeof this.$refs.pool[index]?.test === 'function' ) {
-          try {
-            const res = await this.$refs.pool[index].test();
-
-            if (Array.isArray(res) && res.length > 0) {
-              this.errors.push(...res);
-            }
-          } catch (e) {
-            this.errors.push(e);
-          }
-        }
-      }
-
-      if (!this.value.metadata.name && this.agentConfig['cloud-provider-name'] === HARVESTER) {
-        this.errors.push(this.t('validation.required', { key: this.t('cluster.name.label') }, true));
-      }
+      await this.validateMachinePool();
 
       if (this.errors.length) {
         btnCb(false);
@@ -2255,8 +2255,77 @@ export default {
       } else {
         this.$set(this.machinePoolValidation, id, value);
       }
+    },
+
+    handleMachinePoolError(error) {
+      this.machinePoolErrors = merge(this.machinePoolErrors, error);
+
+      const errors = Object.entries(this.machinePoolErrors)
+        .map((x) => {
+          if (!x[1].length) {
+            return;
+          }
+
+          const formattedFields = (() => {
+            switch (x[1].length) {
+            case 1:
+              return x[1][0];
+            case 2:
+              return `${ x[1][0] } and ${ x[1][1] }`;
+            default: {
+              const [head, ...rest] = x[1];
+
+              return `${ rest.join(', ') }, and ${ head }`;
+            }
+            }
+          })();
+
+          return this.t('cluster.banner.machinePoolError', {
+            count: x[1].length, pool_name: x[0], fields: formattedFields
+          }, true);
+        } )
+        .filter((x) => x);
+
+      if (!errors) {
+        return;
+      }
+
+      this.errors = errors;
+    },
+
+    validateClusterName() {
+      if (!this.value.metadata.name && this.agentConfig['cloud-provider-name'] === HARVESTER) {
+        this.errors.push(this.t('validation.required', { key: this.t('cluster.name.label') }, true));
+      }
+    },
+
+    async validateMachinePool() {
+      if (this.errors) {
+        clear(this.errors);
+      }
+      if (this.value.cloudProvider === 'aws') {
+        const missingProfileName = this.machinePools.some((mp) => !mp.config.iamInstanceProfile);
+
+        if (missingProfileName) {
+          this.errors.push(this.t('cluster.validation.iamInstanceProfileName', {}, true));
+        }
+      }
+
+      for (const [index] of this.machinePools.entries()) { // validator machine config
+        if ( typeof this.$refs.pool[index]?.test === 'function' ) {
+          try {
+            const res = await this.$refs.pool[index].test();
+
+            if (Array.isArray(res) && res.length > 0) {
+              this.errors.push(...res);
+            }
+          } catch (e) {
+            this.errors.push(e);
+          }
+        }
+      }
     }
-  },
+  }
 };
 </script>
 

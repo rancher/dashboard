@@ -650,6 +650,10 @@ asyncButton:
     action: Save
     success: Saved
     waiting: Saving&hellip;
+  editAndContinue:
+    action: Save and Continue
+    success: Saved
+    waiting: Saving&hellip;
   enable:
     action: Enable
     success: Enabled
@@ -1831,7 +1835,10 @@ cluster:
     modal:
       pspChange:
         title: Pod Security Policy deprecation
-        body: Kubernetes has removed support for Pod Security Policies (PSPs) starting with version 1.25. If your cluster has PodSecurityPolicy admission controller enabled via "kube-apiserver-arg.enable-admission-plugins" in Cluster YAML, it has to be <i>manually</i> removed before proceeding with the upgrade. Additionally, any PSPs that may be present in the cluster will no longer be available/enforced. Do you want to proceed?
+        body: <p>Kubernetes has removed support for Pod Security Policies (PSPs) starting with version 1.25. If your cluster has PodSecurityPolicy admission controller enabled via "kube-apiserver-arg.enable-admission-plugins" in Cluster YAML, it has to be <i>manually</i> removed before proceeding with the upgrade. Additionally, any PSPs that may be present in the cluster will no longer be available/enforced. Do you want to proceed?</p>
+      editYamlMachinePool:
+        title: Save Machine Configuration
+        body: Machine Configurations define how Pool machines are deployed<br><br> They will be saved upfront to ensure Cluster YAML can be saved.
     snapshots:
       suffix: Snapshots per node
     systemService:
