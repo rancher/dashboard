@@ -1,9 +1,9 @@
 import { _EDIT, _YAML } from '@shell/config/query-params';
-import { defineComponent } from 'vue';
+import Vue from 'vue';
 
 import impl from './impl';
 
-export default defineComponent({
+export default Vue.extend({
   ...impl,
 
   props: {

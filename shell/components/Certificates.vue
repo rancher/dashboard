@@ -1,7 +1,7 @@
 <script lang="ts">
-import { defineComponent } from 'vue';
+import Vue from 'vue';
 import { mapGetters } from 'vuex';
-import ResourceTable from '@shell/components/ResourceTable.vue';
+import ResourceTable from '@shell/components/ResourceTable';
 import { SECRET } from '@shell/config/types';
 import { NAME as NAME_COL, NAMESPACE as NAMESPACE_COL, AGE, STATE } from '@shell/config/table-headers';
 import Secret, { TYPES } from '@shell/models/secret';
@@ -19,7 +19,7 @@ interface Data {
   }
 }
 
-export default defineComponent({
+export default Vue.extend<Data, any, any, any>({
   components: {
     ResourceTable, Banner, BadgeState
   },
@@ -99,7 +99,7 @@ export default defineComponent({
   computed: {
     ...mapGetters(['isAllNamespaces']),
 
-    expiredData(): any {
+    expiredData() {
       let expiring = 0;
       let expired = 0;
 

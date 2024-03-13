@@ -1,7 +1,7 @@
 <script lang="ts">
-import { defineComponent } from 'vue';
+import Vue from 'vue';
 
-export default defineComponent({
+export default Vue.extend({
   name:         'AppModal',
   inheritAttrs: false,
   props:        {
@@ -151,6 +151,7 @@ export default defineComponent({
       border-radius: var(--border-radius);
       max-height: 95vh;
       overflow: scroll;
+      max-height: 100vh;
       border: 2px solid var(--modal-border);
     }
   }

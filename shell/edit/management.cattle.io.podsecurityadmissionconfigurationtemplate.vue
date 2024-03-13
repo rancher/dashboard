@@ -1,5 +1,5 @@
 <script lang="ts">
-import { PropType, defineComponent } from 'vue';
+import Vue, { PropType, VueConstructor } from 'vue';
 import CreateEditView from '@shell/mixins/create-edit-view';
 import CruResource from '@shell/components/CruResource.vue';
 import PodSecurityAdmission from '@shell/components/PodSecurityAdmission.vue';
@@ -9,7 +9,7 @@ import { PSA, PSAConfig, PSADefaults, PSAExemptions } from '@shell/types/pod-sec
 import { PSADimensions } from '@shell/config/pod-security-admission';
 import { MANAGEMENT } from '@shell/config/types';
 
-export default defineComponent({
+export default (Vue as VueConstructor<Vue & InstanceType<typeof CreateEditView>>).extend({
   mixins:     [CreateEditView],
   components: {
     CruResource,

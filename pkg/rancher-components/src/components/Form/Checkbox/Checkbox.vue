@@ -1,10 +1,10 @@
 <script lang="ts">
-import { PropType, defineComponent } from 'vue';
+import Vue, { PropType } from 'vue';
 import { _EDIT, _VIEW } from '@shell/config/query-params';
 import { addObject, removeObject } from '@shell/utils/array';
 import cloneDeep from 'lodash/cloneDeep';
 
-export default defineComponent({
+export default Vue.extend({
   name: 'Checkbox',
 
   props: {
@@ -140,7 +140,7 @@ export default defineComponent({
     /**
      * Toggles the checked state for the checkbox and emits an 'input' event.
      */
-    clicked(event: MouseEvent | KeyboardEvent): boolean | void {
+    clicked(event: MouseEvent): boolean | void {
       if ((event.target as HTMLLinkElement).tagName === 'A' && (event.target as HTMLLinkElement).href) {
         // Ignore links inside the checkbox label so you can click them
         return true;

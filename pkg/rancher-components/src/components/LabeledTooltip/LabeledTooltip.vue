@@ -1,7 +1,7 @@
 <script lang="ts">
-import { defineComponent } from 'vue';
+import Vue from 'vue';
 
-export default defineComponent({
+export default Vue.extend({
   props: {
     /**
      * The Labeled Tooltip value.
@@ -29,13 +29,8 @@ export default defineComponent({
     }
   },
   computed: {
-    iconClass(): string {
+    iconClass() {
       return this.status === 'error' ? 'icon-warning' : 'icon-info';
-    }
-  },
-  methods: {
-    isObject(value: string | Record<string, unknown>): value is Record<string, unknown> {
-      return typeof value === 'object' && value !== null && !!value.content;
     }
   }
 });
@@ -49,7 +44,7 @@ export default defineComponent({
   >
     <template v-if="hover">
       <i
-        v-clean-tooltip="isObject(value) ? { ...{content: value.content, classes: [`tooltip-${status}`]}, ...value } : value"
+        v-clean-tooltip="value.content ? { ...{content: value.content, classes: [`tooltip-${status}`]}, ...value } : value"
         :class="{'hover':!value, [iconClass]: true}"
         class="icon status-icon"
       />
