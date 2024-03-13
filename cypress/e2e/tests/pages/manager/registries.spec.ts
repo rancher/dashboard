@@ -44,8 +44,9 @@ describe('Registries for RKE2', { tags: ['@manager', '@adminUser'] }, () => {
       .scrollIntoView();
     // add url
     createCustomClusterPage.registries().registryConfigs().addRegistryAuthHost(0, registryAuthHost);
-    // waiting a little bit since typing in LabeledInput makes SelectOrCreateAuthSecret disabled due to debouncing
-    cy.wait(500); // eslint-disable-line cypress/no-unnecessary-waiting
+    // make sure it's not in loading state
+    createCustomClusterPage.registries().registryConfigs().registryAuthSelectOrCreate(0).loading()
+      .should('not.exist', { timeout: 1000 });
     // create basic secret
     createCustomClusterPage.registries().registryConfigs().registryAuthSelectOrCreate(0).createBasicAuth('test-user', 'test-pass');
     // save
