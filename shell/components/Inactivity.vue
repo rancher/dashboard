@@ -88,8 +88,6 @@ export default {
         if (now >= endTime) {
           this.isOpen = true;
           this.startCountdown();
-
-          this.$modal.show('inactivityModal');
         } else {
           this.inactivityTimeoutId = setTimeout(checkInactivityTimer, 1000);
         }
@@ -135,8 +133,6 @@ export default {
       this.isOpen = false;
       this.courtesyCountdown = this.courtesyTimer;
       this.clearAllTimeouts();
-
-      this.$modal.hide('inactivityModal');
     },
 
     refresh() {
@@ -179,10 +175,10 @@ export default {
 
 <template>
   <ModalWithCard
+    v-if="isOpen"
     ref="inactivityModal"
     name="inactivityModal"
     save-text="Continue"
-    :v-if="isOpen"
     @finish="resume"
   >
     <template #title>

@@ -2,12 +2,13 @@
 import { Card } from '@components/Card';
 import { Banner } from '@components/Banner';
 import AsyncButton from '@shell/components/AsyncButton';
+import AppModal from '@shell/components/AppModal.vue';
 
 export default {
   name: 'ModalWithCard',
 
   components: {
-    Card, Banner, AsyncButton
+    Card, Banner, AsyncButton, AppModal
   },
 
   props: {
@@ -46,12 +47,7 @@ export default {
 
   methods: {
     hide() {
-      this.$modal.hide(this.name);
       this.$emit('close');
-    },
-
-    open() {
-      this.$modal.show(this.name);
     },
   }
 };
@@ -59,7 +55,7 @@ export default {
 </script>
 
 <template>
-  <modal
+  <app-modal
     :name="name"
     :width="width"
     :click-to-close="false"
@@ -67,6 +63,7 @@ export default {
     v-bind="$attrs"
     class="modal"
     data-testid="mvc__card"
+    @close="$emit('finish', $event)"
   >
     <Card
       class="modal"
@@ -114,7 +111,7 @@ export default {
         </slot>
       </template>
     </Card>
-  </modal>
+  </app-modal>
 </template>
 
 <style lang="scss" scoped>

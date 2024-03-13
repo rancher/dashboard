@@ -46,7 +46,8 @@ export default {
           url:    UI_PLUGINS_PARTNERS_REPO_URL,
           branch: UI_PLUGINS_PARTNERS_REPO_BRANCH,
         }
-      }
+      },
+      isDialogActive: false,
     };
   },
 
@@ -65,7 +66,7 @@ export default {
         official: isRancherPrime() && !this.hasRancherUIPluginsRepo,
         partners: !this.hasRancherUIPartnersPluginsRepo,
       };
-      this.$modal.show('add-extensions-repos');
+      this.isDialogActive = true;
     },
 
     async doAddRepos(btnCb) {
@@ -108,11 +109,13 @@ export default {
 </script>
 <template>
   <Dialog
+    v-if="isDialogActive"
     name="add-extensions-repos"
     :title="t('plugins.addRepos.title')"
     mode="add"
     data-testid="add-extensions-repos-modal"
     @okay="doAddRepos"
+    @closed="isDialogActive = false"
   >
     <template>
       <p class="mb-20">
