@@ -9,7 +9,7 @@ interface Repo {
   name: string,
 }
 
-interface Commit {
+export interface Commit {
   message: string,
   htmlUrl: string,
   sha?: string,

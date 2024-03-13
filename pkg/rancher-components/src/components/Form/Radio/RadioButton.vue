@@ -1,8 +1,9 @@
 <script lang="ts">
-import Vue from 'vue';
+import { defineComponent } from 'vue';
 import { _VIEW } from '@shell/config/query-params';
+import { randomStr } from '@shell/utils/string';
 
-export default Vue.extend({
+export default defineComponent({
   props: {
     /**
      * The name of the input, for grouping.
@@ -71,7 +72,10 @@ export default Vue.extend({
   },
 
   data() {
-    return { isChecked: this.value === this.val };
+    return {
+      isChecked:    this.value === this.val,
+      randomString: `${ randomStr() }-radio`,
+    };
   },
 
   computed: {
@@ -115,13 +119,15 @@ export default Vue.extend({
     /**
      * Emits the input event.
      */
-    clicked({ target }: { target?: HTMLElement }) {
-      if (this.isDisabled || target?.tagName === 'A') {
+    clicked(event: MouseEvent | KeyboardEvent) {
+      const target = event.target;
+
+      if (this.isDisabled || (target instanceof HTMLElement && target.tagName === 'A')) {
         return;
       }
 
       this.$emit('input', this.val);
-    }
+    },
   }
 });
 </script>
@@ -134,7 +140,7 @@ export default Vue.extend({
     @click.stop="clicked($event)"
   >
     <input
-      :id="_uid+'-radio'"
+      :id="randomString"
       :disabled="isDisabled"
       :name="name"
       :value="''+val"
