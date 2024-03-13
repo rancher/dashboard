@@ -10,19 +10,19 @@ describe('Support Page', () => {
     cy.login();
   });
 
-  it('can navigate to Support page', { tags: ['@generic', '@adminUser'] }, () => {
+  it('can navigate to Support page', { tags: '@adminUser' }, () => {
     HomePagePo.goToAndWaitForGet();
     SupportPagePo.navTo();
     supportPage.waitForPage();
   });
 
-  it('standard user does not have access to Support page', { tags: ['@generic', '@standardUser'] }, () => {
+  it('standard user does not have access to Support page', { tags: '@standardUser' }, () => {
     HomePagePo.goToAndWaitForGet();
     BurgerMenuPo.toggle();
     burgerMenu.support().should('not.exist');
   });
 
-  describe('Support Links', { tags: ['@generic', '@adminUser'] }, () => {
+  describe('Support Links', { tags: '@adminUser' }, () => {
     // Click the support links and verify user lands on the correct page
     beforeEach(() => {
       supportPage.goTo();
@@ -77,7 +77,7 @@ describe('Support Page', () => {
     it('can click on Get Started link', () => {
     // click Get Started link
       supportPage.clickSupportLink(4, true);
-      cy.url().should('include', 'getting-started/overview');
+      cy.url().should('include', 'ranchermanager.docs.rancher.com/getting-started/overview');
     });
   });
 });
