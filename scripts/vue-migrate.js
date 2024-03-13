@@ -405,12 +405,6 @@ const vueApp = createApp({});`, `https://v3-migration.vuejs.org/breaking-changes
 /**
  * Vue Router
  * Files: .vue, .js, .ts
- *
- * RouteConfig -> RouteRecordRaw
- * Location -> RouteLocation
- * Imported Router -> router = createRouter({})
- * router.name is now string | Symbol
- * mode:   'history' -> history: createWebHistory()
  */
 const routerUpdates = () => {
   const files = glob.sync('**/*.{vue,js,ts}', { ignore });
@@ -418,11 +412,11 @@ const routerUpdates = () => {
     [`import Router from 'vue-router'`, `import { createRouter } from 'vue-router'`],
     [`Vue.use(Router)`, `const router = createRouter({})`],
     [`currentRoute`, '', 'The currentRoute property is now a ref() https://router.vuejs.org/guide/migration/#The-currentRoute-property-is-now-a-ref-'],
-    ['RouteConfig', ''],
-    ['Location', ''],
+    [/import\s*\{([^}]*)\s* RouteConfig\s*([^}]*)\}\s*from\s*'vue-router'/g, (match, before, after) => `import {${ before.trim() } RouteRecordRaw ${ after.trim() }} from 'vue-router'`],
+    [/import\s*\{([^}]*)\s* Location\s*([^}]*)\}\s*from\s*'vue-router'/g, (match, before, after) => `import {${ before.trim() } RouteLocation ${ after.trim() }} from 'vue-router'`],
     ['imported Router', ''],
-    ['router.name', ''],
-    [`mode: \'history\'`, ''],
+    ['router.name', '', 'now string | Symbol'],
+    [`mode: \'history\'`, 'history: createWebHistory()'],
     ['getMatchedComponents', '', 'https://router.vuejs.org/guide/migration/#Removal-of-router-getMatchedComponents-'],
   ];
   const matchedCases = [];
