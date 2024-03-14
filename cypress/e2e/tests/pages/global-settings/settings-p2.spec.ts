@@ -27,15 +27,11 @@ describe('Settings', { testIsolation: 'off' }, () => {
     });
   });
 
-<<<<<<< Updated upstream
-  it('can update server-url', { tags: ['@globalSettings', '@adminUser'] }, () => {
-=======
   it.skip('can update server-url', { tags: ['@globalSettings', '@adminUser'] }, () => {
     // Note: this test fails due to https://github.com/rancher/dashboard/issues/10613
     // This issue is causing e2e provisioning tests to fail
     // skipping this test until issue is resolved
 
->>>>>>> Stashed changes
     // Update setting
     SettingsPagePo.navTo();
 
