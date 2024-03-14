@@ -343,12 +343,12 @@ const vueApp = createApp({});`, `https://v3-migration.vuejs.org/breaking-changes
     // [/<template v-for="([\s\S]*?)">\s*<([\s\S]*?)\s*([\s\S]*?):key="([\s\S]*?)"([\s\S]*?)<\/([\s\S]*?)>\s*<\/template>/gs, '<template v-for="$1" :key="$4"><$3 $5>$6</$7>\n</template>', `https://v3-migration.vuejs.org/breaking-changes/key-attribute.html#with-template-v-for`],
 
     // TODO: except for <components /> elements, probably requires JSDom
-    [' is=', ``, `https://v3-migration.vuejs.org/breaking-changes/custom-elements-interop.html#customized-built-in-elements`],
-    [' :is=', ``, `https://v3-migration.vuejs.org/breaking-changes/custom-elements-interop.html#customized-built-in-elements`],
+    // [' is=', ``, `https://v3-migration.vuejs.org/breaking-changes/custom-elements-interop.html#customized-built-in-elements`],
+    // [' :is=', ``, `https://v3-migration.vuejs.org/breaking-changes/custom-elements-interop.html#customized-built-in-elements`],
 
     // Directive updates
-    [`bind(`, '', `beforeMount( but there's too many bind cases https://v3-migration.vuejs.org/breaking-changes/custom-directives.html`],
-    [`update(`, '', `removed, also common term https://v3-migration.vuejs.org/breaking-changes/custom-directives.html`],
+    // [`bind(`, '', `beforeMount( but there's too many bind cases https://v3-migration.vuejs.org/breaking-changes/custom-directives.html`], // TODO: Restrict to directives and context
+    // [`update(`, '', `removed, also common term https://v3-migration.vuejs.org/breaking-changes/custom-directives.html`], // TODO: Restrict to directives and context
     [`inserted(`, `mounted(`, 'https://v3-migration.vuejs.org/breaking-changes/custom-directives.html'],
     [`componentUpdated(`, `updated(`, 'https://v3-migration.vuejs.org/breaking-changes/custom-directives.html'],
     [`unbind`, `unmounted`, 'https://v3-migration.vuejs.org/breaking-changes/custom-directives.html'],
@@ -411,13 +411,13 @@ const routerUpdates = () => {
   const replacementCases = [
     [`import Router from 'vue-router'`, `import { createRouter } from 'vue-router'`],
     [`Vue.use(Router)`, `const router = createRouter({})`],
-    [`currentRoute`, '', 'The currentRoute property is now a ref() https://router.vuejs.org/guide/migration/#The-currentRoute-property-is-now-a-ref-'],
+    // [`currentRoute`, '', 'The currentRoute property is now a ref() https://router.vuejs.org/guide/migration/#The-currentRoute-property-is-now-a-ref-'],
     [/import\s*\{([^}]*)\s* RouteConfig\s*([^}]*)\}\s*from\s*'vue-router'/g, (match, before, after) => `import {${ before.trim() } RouteRecordRaw ${ after.trim() }} from 'vue-router'`],
     [/import\s*\{([^}]*)\s* Location\s*([^}]*)\}\s*from\s*'vue-router'/g, (match, before, after) => `import {${ before.trim() } RouteLocation ${ after.trim() }} from 'vue-router'`],
     ['imported Router', ''],
     ['router.name', '', 'now string | Symbol'],
     [`mode: \'history\'`, 'history: createWebHistory()'],
-    ['getMatchedComponents', '', 'https://router.vuejs.org/guide/migration/#Removal-of-router-getMatchedComponents-'],
+    // ['getMatchedComponents', '', 'https://router.vuejs.org/guide/migration/#Removal-of-router-getMatchedComponents-'],
   ];
   const matchedCases = [];
 
