@@ -46,6 +46,7 @@ import { getApplicableExtensionEnhancements } from '@shell/core/plugin-helpers';
 import Certificates from '@shell/components/Certificates';
 import { NAME as EXPLORER } from '@shell/config/product/explorer';
 import TabTitle from '@shell/components/TabTitle';
+import { STATES_ENUM } from '@shell/plugins/dashboard-store/resource-class';
 
 export const RESOURCES = [NAMESPACE, INGRESS, PV, WORKLOAD_TYPES.DEPLOYMENT, WORKLOAD_TYPES.STATEFUL_SET, WORKLOAD_TYPES.JOB, WORKLOAD_TYPES.DAEMON_SET, SERVICE];
 
@@ -55,13 +56,6 @@ const K8S_METRICS_DETAIL_URL = '/api/v1/namespaces/cattle-monitoring-system/serv
 const K8S_METRICS_SUMMARY_URL = '/api/v1/namespaces/cattle-monitoring-system/services/http:rancher-monitoring-grafana:80/proxy/d/rancher-k8s-components-1/rancher-kubernetes-components?orgId=1';
 const ETCD_METRICS_DETAIL_URL = '/api/v1/namespaces/cattle-monitoring-system/services/http:rancher-monitoring-grafana:80/proxy/d/rancher-etcd-nodes-1/rancher-etcd-nodes?orgId=1';
 const ETCD_METRICS_SUMMARY_URL = '/api/v1/namespaces/cattle-monitoring-system/services/http:rancher-monitoring-grafana:80/proxy/d/rancher-etcd-1/rancher-etcd?orgId=1';
-
-const SERVICE_STATUS = {
-  HEALTHY:     'healthy',
-  WARNING:     'warning',
-  UNHEALTHY:   'unhealthy',
-  UNAVAILABLE: 'unavailable'
-};
 
 const CLUSTER_COMPONENTS = [
   'etcd',
@@ -153,7 +147,7 @@ export default {
       K8S_METRICS_SUMMARY_URL,
       ETCD_METRICS_DETAIL_URL,
       ETCD_METRICS_SUMMARY_URL,
-      SERVICE_STATUS,
+      STATES_ENUM,
       clusterCounts,
       selectedTab:        'cluster-events',
       extensionCards:     getApplicableExtensionEnhancements(this, ExtensionPoint.CARD, CardLocation.CLUSTER_DASHBOARD_CARD, this.$route),
@@ -433,7 +427,7 @@ export default {
 
       // If there's no matching component status, it's "healthy"
       if ( !matching.length ) {
-        return SERVICE_STATUS.HEALTHY;
+        return STATES_ENUM.HEALTHY;
       }
 
       const count = matching.reduce((acc, status) => {
@@ -443,26 +437,26 @@ export default {
       }, 0);
 
       if (!count) {
-        return SERVICE_STATUS.UNHEALTHY;
+        return STATES_ENUM.UNHEALTHY;
       }
 
-      return SERVICE_STATUS.HEALTHY;
+      return STATES_ENUM.HEALTHY;
     },
 
     getAgentStatus(agent, disconnected = false) {
       if (!agent) {
-        return SERVICE_STATUS.UNAVAILABLE;
+        return STATES_ENUM.UNAVAILABLE;
       }
 
       if (disconnected || agent.status.conditions.find((c) => c.status !== 'True')) {
-        return SERVICE_STATUS.UNHEALTHY;
+        return STATES_ENUM.UNHEALTHY;
       }
 
       if (agent.spec.replicas !== agent.status.readyReplicas || agent.status.unavailableReplicas > 0) {
-        return SERVICE_STATUS.WARNING;
+        return STATES_ENUM.WARNING;
       }
 
-      return SERVICE_STATUS.HEALTHY;
+      return STATES_ENUM.HEALTHY;
     },
 
     showActions() {
@@ -630,11 +624,11 @@ export default {
         :class="{[service.status]: true }"
       >
         <i
-          v-if="service.status === SERVICE_STATUS.UNAVAILABLE"
+          v-if="service.status === STATES_ENUM.UNAVAILABLE"
           class="icon icon-spinner icon-spin"
         />
         <i
-          v-else-if="service.status === SERVICE_STATUS.HEALTHY"
+          v-else-if="service.status === STATES_ENUM.HEALTHY"
           class="icon icon-checkmark"
         />
         <i
