@@ -80,14 +80,23 @@ describe('Side Menu: main', () => {
       const sideNav = new ProductNavPo();
       const pagePoFake = new PagePo('');
 
+      // nav to project/namespaces in the fake cluster
       pagePoFake.navToClusterMenuEntry(fakeProvClusterId);
       sideNav.navToSideMenuEntryByLabel('Projects/Namespaces');
 
-      cy.get('body').focus().type('{shift}{ctrl}', { release: false });
+      // press key combo
+      cy.get('body').focus().type('{shift}{alt}', { release: false });
 
-      BurgerMenuPo.burguerMenuNavClusterItemKeyComboIconCheck(0);
-      // BurgerMenuPo.toggle();
-      // BurgerMenuPo.burgerMenuNavToClusterbyIndex(0);
+      // assert that icons are displayed for the key combo
+      BurgerMenuPo.burguerMenuNavClusterKeyComboIconCheck(0);
+      BurgerMenuPo.burguerMenuNavClusterKeyComboIconCheck(1);
+
+      // nav to local
+      pagePoFake.navToClusterMenuEntry('local');
+
+      // assert that we are on the expected page
+      cy.url().should('include', '/local');
+      cy.url().should('include', '/projectsnamespaces');
     });
 
     it('Local cluster should show a description on the side menu and display a tooltip when hovering it show the full description', { tags: ['@navigation', '@adminUser'] }, () => {

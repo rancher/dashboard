@@ -16,7 +16,6 @@ import { filterOnlyKubernetesClusters, filterHiddenLocalCluster } from '@shell/u
 import { getProductFromRoute } from '@shell/utils/router';
 import { isRancherPrime } from '@shell/config/version';
 import Pinned from '@shell/components/nav/Pinned';
-import KeyPress from '@shell/components/KeyPress';
 import isObject from 'lodash/isObject';
 
 export default {
@@ -24,8 +23,7 @@ export default {
     BrandImage,
     ClusterIconMenu,
     IconOrSvg,
-    Pinned,
-    KeyPress
+    Pinned
   },
 
   data() {
@@ -300,11 +298,11 @@ export default {
       return this.productFromRoute === obj?.value;
     },
 
-    handleComboPressed(val) {
-      this.routeCombo = val;
+    handleKeyComboClick() {
+      this.routeCombo = !this.routeCombo;
     },
 
-    preventCtxMenuHandler(ev, cluster) {
+    clusterMenuClick(ev, cluster) {
       if (this.routeCombo) {
         ev.preventDefault();
 
@@ -317,9 +315,11 @@ export default {
 
           clusterRoute.params.cluster = cluster.id;
 
-          this.$router.push(clusterRoute);
+          return this.$router.push(clusterRoute);
         }
       }
+
+      return this.$router.push(cluster.clusterRoute);
     },
 
     handler(e) {
@@ -419,10 +419,6 @@ export default {
         :style="sideMenuStyle"
         tabindex="-1"
       >
-        <KeyPress
-          :keys-to-check="[['ControlLeft', 'ShiftLeft'], ['ControlLeft', 'ShiftRight'], ['ControlRight', 'ShiftLeft'], ['ControlRight', 'ShiftRight']]"
-          @is-combo-pressed="handleComboPressed"
-        />
         <!-- Logo and name -->
         <div class="title">
           <div
@@ -561,13 +557,15 @@ export default {
                   :key="c.id"
                   @click="hide()"
                 >
-                  <nuxt-link
+                  <button
                     v-if="c.ready"
+                    v-shortkey.push="{windows: ['alt', 'shift'], mac: ['option', 'shift']}"
                     :data-testid="`pinned-menu-cluster-${ c.id }`"
                     class="cluster selector option"
                     :class="{'active-menu-link': checkActiveRoute(c, true) }"
                     :to="c.clusterRoute"
-                    @contextmenu.native="preventCtxMenuHandler($event, c)"
+                    @click.prevent="clusterMenuClick($event, c)"
+                    @shortkey="handleKeyComboClick"
                   >
                     <ClusterIconMenu
                       v-tooltip="getTooltipConfig(c, true)"
@@ -590,7 +588,7 @@ export default {
                     <Pinned
                       :cluster="c"
                     />
-                  </nuxt-link>
+                  </button>
                   <span
                     v-else
                     class="option cluster selector disabled"
@@ -634,13 +632,15 @@ export default {
                   :data-testid="`top-level-menu-cluster-${index}`"
                   @click="hide()"
                 >
-                  <nuxt-link
+                  <button
                     v-if="c.ready"
+                    v-shortkey.push="{windows: ['alt', 'shift'], mac: ['option', 'shift']}"
                     :data-testid="`menu-cluster-${ c.id }`"
                     class="cluster selector option"
                     :class="{'active-menu-link': checkActiveRoute(c, true) }"
                     :to="c.clusterRoute"
-                    @contextmenu.native="preventCtxMenuHandler($event, c)"
+                    @click="clusterMenuClick($event, c)"
+                    @shortkey="handleKeyComboClick"
                   >
                     <ClusterIconMenu
                       v-tooltip="getTooltipConfig(c, true)"
@@ -664,7 +664,7 @@ export default {
                       :class="{'showPin': c.pinned}"
                       :cluster="c"
                     />
-                  </nuxt-link>
+                  </button>
                   <span
                     v-else
                     class="option cluster selector disabled"
@@ -979,6 +979,10 @@ export default {
         font-size: 14px;
         height: $option-height;
         white-space: nowrap;
+        background-color: transparent;
+        width: 100%;
+        border-radius: 0;
+        border: none;
 
         .cluster-badge-logo-text {
           color: var(--default-active-text);
@@ -1000,6 +1004,7 @@ export default {
           white-space: nowrap;
           overflow: hidden;
           text-overflow: ellipsis;
+          text-align: left;
 
           &.description {
             font-size: 12px;
@@ -1033,6 +1038,8 @@ export default {
 
         &:focus {
           outline: 0;
+          box-shadow: none;
+
           > div {
             text-decoration: underline;
           }
