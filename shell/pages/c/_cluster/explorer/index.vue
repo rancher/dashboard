@@ -436,7 +436,7 @@ export default {
         return !conditions ? acc : acc + 1;
       }, 0);
 
-      if (!count) {
+      if (count > 0) {
         return STATES_ENUM.UNHEALTHY;
       }
 
