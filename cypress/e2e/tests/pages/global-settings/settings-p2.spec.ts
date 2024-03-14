@@ -11,14 +11,31 @@ const homePage = new HomePagePo();
 const accountPage = new AccountPagePo();
 const clusterList = new ClusterManagerListPagePo();
 const burgerMenu = new BurgerMenuPo();
+const settingsOrginal = [];
+let removeServerUrl = false;
 
 describe('Settings', { testIsolation: 'off' }, () => {
   before(() => {
     cy.login();
     HomePagePo.goTo();
+
+    // get settings server-url response data
+    cy.getRancherResource('v1', 'management.cattle.io.settings', 'server-url', null).then((resp: Cypress.Response<any>) => {
+      const body = resp.body;
+
+      settingsOrginal.push(body);
+    });
   });
 
+<<<<<<< Updated upstream
   it('can update server-url', { tags: ['@globalSettings', '@adminUser'] }, () => {
+=======
+  it.skip('can update server-url', { tags: ['@globalSettings', '@adminUser'] }, () => {
+    // Note: this test fails due to https://github.com/rancher/dashboard/issues/10613
+    // This issue is causing e2e provisioning tests to fail
+    // skipping this test until issue is resolved
+
+>>>>>>> Stashed changes
     // Update setting
     SettingsPagePo.navTo();
 
@@ -36,7 +53,9 @@ describe('Settings', { testIsolation: 'off' }, () => {
     settingsEdit.waitForPage();
     settingsEdit.title().contains('Setting: server-url').should('be.visible');
     settingsEdit.settingsInput().set(settings['server-url'].new);
-    settingsEdit.saveAndWait('server-url');
+    settingsEdit.saveAndWait('server-url').then(() => {
+      removeServerUrl = true;
+    });
     settingsPage.waitForPage();
     settingsPage.settingsValue('server-url').contains(settings['server-url'].new);
 
@@ -417,5 +436,18 @@ describe('Settings', { testIsolation: 'off' }, () => {
     SettingsPagePo.navTo();
     settingsPage.actionButtonByLabel('engine-install-url').should('not.exist');
     settingsPage.actionButtonByLabel('password-min-length').should('not.exist');
+  });
+
+  after(() => {
+    // get most updated version of server-url response data
+    if (removeServerUrl) {
+      cy.getRancherResource('v1', 'management.cattle.io.settings', 'server-url', null).then((resp: Cypress.Response<any>) => {
+        const response = resp.body.metadata;
+
+        // update original response data before sending request
+        settingsOrginal[0].metadata.resourceVersion = response.resourceVersion;
+        cy.setRancherResource('v1', 'management.cattle.io.settings', 'server-url', settingsOrginal[0]);
+      });
+    }
   });
 });
