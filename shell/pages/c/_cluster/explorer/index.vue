@@ -620,8 +620,9 @@ export default {
       <div
         v-for="service in clusterServices"
         :key="service.name"
-        class="k8s-component-status"
+        class="k8s-service-status"
         :class="{[service.status]: true }"
+        :data-testid="`k8s-service-${ service.name }`"
       >
         <i
           v-if="service.status === STATES_ENUM.IN_PROGRESS"
@@ -822,7 +823,7 @@ export default {
   margin-bottom: 20px;
 }
 
-.k8s-component-status {
+.k8s-service-status {
   align-items: center;
   display: inline-flex;
   border: 1px solid;
