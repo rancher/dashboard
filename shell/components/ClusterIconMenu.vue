@@ -174,3 +174,9 @@ export default {
     }
   }
 </style>
+
+<style lang="scss">
+  .theme-dark .key-combo-icon  {
+    color: var(--body-bg);
+  }
+</style>
