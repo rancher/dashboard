@@ -445,7 +445,7 @@ export default {
 
     getAgentStatus(agent, disconnected = false) {
       if (!agent) {
-        return STATES_ENUM.UNAVAILABLE;
+        return STATES_ENUM.IN_PROGRESS;
       }
 
       if (disconnected || agent.status.conditions.find((c) => c.status !== 'True')) {
@@ -624,7 +624,7 @@ export default {
         :class="{[service.status]: true }"
       >
         <i
-          v-if="service.status === STATES_ENUM.UNAVAILABLE"
+          v-if="service.status === STATES_ENUM.IN_PROGRESS"
           class="icon icon-spinner icon-spin"
         />
         <i
