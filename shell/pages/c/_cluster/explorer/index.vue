@@ -122,26 +122,7 @@ export default {
         this.$store.dispatch('management/findAll', { type: MANAGEMENT.NODE });
       }
 
-      this.canViewAgents = !!this.$store.getters['cluster/schemaFor'](WORKLOAD_TYPES.DEPLOYMENT);
-
-      if (this.canViewAgents) {
-        if (!this.currentCluster.isLocal) {
-          this.cattle = await this.$store.dispatch('cluster/find', {
-            type: WORKLOAD_TYPES.DEPLOYMENT,
-            id:   'cattle-system/cattle-cluster-agent'
-          });
-
-          // Scaling Up/Down cattle deployment causes web sockets disconnection;
-          this.interval = setInterval(() => {
-            this.disconnected = !!this.$store.getters['cluster/inError']({ type: NODE });
-          }, 1000);
-        }
-
-        this.fleet = await this.$store.dispatch('cluster/find', {
-          type: WORKLOAD_TYPES.DEPLOYMENT,
-          id:   `${ this.currentCluster.isLocal ? 'cattle-fleet-local-system' : 'cattle-fleet-system' }/fleet-agent`
-        });
-      }
+      await this.loadAgents();
     }
   },
 
@@ -424,6 +405,29 @@ export default {
   },
 
   methods: {
+    async loadAgents() {
+      this.canViewAgents = !!this.$store.getters['cluster/schemaFor'](WORKLOAD_TYPES.DEPLOYMENT);
+
+      if (this.canViewAgents) {
+        if (!this.currentCluster.isLocal) {
+          this.cattle = await this.$store.dispatch('cluster/find', {
+            type: WORKLOAD_TYPES.DEPLOYMENT,
+            id:   'cattle-system/cattle-cluster-agent'
+          });
+
+          // Scaling Up/Down cattle deployment causes web sockets disconnection;
+          this.interval = setInterval(() => {
+            this.disconnected = !!this.$store.getters['cluster/inError']({ type: NODE });
+          }, 1000);
+        }
+
+        this.fleet = await this.$store.dispatch('cluster/find', {
+          type: WORKLOAD_TYPES.DEPLOYMENT,
+          id:   `${ this.currentCluster.isLocal ? 'cattle-fleet-local-system' : 'cattle-fleet-system' }/fleet-agent`
+        });
+      }
+    },
+
     getComponentStatus(field) {
       const matching = (this.currentCluster?.status?.componentStatuses || []).filter((s) => s.name.startsWith(field));
 
