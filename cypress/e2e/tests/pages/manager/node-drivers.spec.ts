@@ -3,7 +3,7 @@ import NodeDriverListPagePo from '@/cypress/e2e/po/pages/cluster-manager/drivers
 import NodeDriverEditPo from '~/cypress/e2e/po/edit/nodeDriver.po';
 import DeactivateDriverDialogPo from '@/cypress/e2e/po/dialog/DeactivateDriverDialog.po';
 const type = 'nodeDriver';
-const name = 'https://github.com/cloud-ca/docker-machine-driver-cloudca/files/2294176/docker-machine-driver-cloudca_v1.0.3_linux-amd64.zip'; // description can be used as name to find correct element
+const name = 'https://github.com/cloudscale-ch/docker-machine-driver-cloudscale/releases/download/v1.1.0/docker-machine-driver-cloudscale_v1.1.0_linux_amd64.tar.gz'; // description can be used as name to find correct element
 
 describe('Node Drivers', { tags: ['@manager', '@adminUser'] }, () => {
   const driverList = new NodeDriverListPagePo('local');
@@ -25,14 +25,14 @@ describe('Node Drivers', { tags: ['@manager', '@adminUser'] }, () => {
     const request = {
       type,
       active: true,
-      url:    'https://github.com/cloud-ca/docker-machine-driver-cloudca/files/2294176/docker-machine-driver-cloudca_v1.0.3_linux-amd64.zip',
+      url:    'https://github.com/cloudscale-ch/docker-machine-driver-cloudscale/releases/download/v1.1.0/docker-machine-driver-cloudscale_v1.1.0_linux_amd64.tar.gz',
       uiUrl:  'https://test.com'
     };
 
     driverList.createDriver();
 
     createDriverPage.waitForPage();
-    createDriverPage.enterUrl('https://github.com/cloud-ca/docker-machine-driver-cloudca/files/2294176/docker-machine-driver-cloudca_v1.0.3_linux-amd64.zip');
+    createDriverPage.enterUrl('https://github.com/cloudscale-ch/docker-machine-driver-cloudscale/releases/download/v1.1.0/docker-machine-driver-cloudscale_v1.1.0_linux_amd64.tar.gz');
     createDriverPage.enterUiUrl('https://test.com');
 
     createDriverPage.create();
@@ -59,6 +59,6 @@ describe('Node Drivers', { tags: ['@manager', '@adminUser'] }, () => {
 
   after(() => {
     driverList.goTo();
-    driverList.sortableTable().deleteItemWithUI('https://github.com/cloud-ca/docker-machine-driver-cloudca/files/2294176/docker-machine-driver-cloudca_v1.0.3_linux-amd64.zip');
+    driverList.sortableTable().deleteItemWithUI('https://github.com/cloudscale-ch/docker-machine-driver-cloudscale/releases/download/v1.1.0/docker-machine-driver-cloudscale_v1.1.0_linux_amd64.tar.gz');
   });
 });
