@@ -71,4 +71,8 @@ export default class NodeDriversListPagePo extends PagePo {
   listElementWithName(description:string) {
     return this.sortableTable().rowElementWithName(description);
   }
+
+  waitForActiveStatus(description: string) {
+    return this.sortableTable().rowElementWithName(description).contains('tbody tr', 'Active');
+  }
 }

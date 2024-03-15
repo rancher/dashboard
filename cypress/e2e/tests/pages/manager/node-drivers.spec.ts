@@ -44,6 +44,8 @@ describe('Node Drivers', { tags: ['@manager', '@adminUser'] }, () => {
   it('can deactivate driver', () => {
     const request = { };
 
+    driverList.waitForActiveStatus(name);
+
     driverList.listElementWithName(name).find('.col-link-detail span').invoke('text').then((t) => {
       cy.intercept('POST', `/v3/nodeDrivers/${ t }?action=deactivate`).as('createRequest');
 
