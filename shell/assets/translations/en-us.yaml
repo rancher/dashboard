@@ -6549,6 +6549,16 @@ typeLabel:
       one { Cloud Credential }
       other { Cloud Credentials }
     }
+  kontainerdriver: |-
+    {count, plural,
+      one { Cluster Driver }
+      other { Cluster Drivers }
+    }
+  nodedriver: |-
+    {count, plural,
+      one { Node Driver }
+      other { Node Drivers }
+    }
   endpoints: |-
     {count, plural,
       one { Endpoint }
@@ -6902,13 +6912,13 @@ typeLabel:
     }
   management.cattle.io.kontainerdriver: |-
     {count, plural,
-      one { Cluster Driver }
-      other { Cluster Drivers }
+      one { KontainerDriver }
+      other { KontainerDrivers }
     }
   management.cattle.io.nodedriver: |-
     {count, plural,
-      one { Node Driver }
-      other { Node Drivers }
+      one { NodeDriver }
+      other { NodeDrivers }
     }
   management.cattle.io.podsecuritypolicytemplate: |-
     {count, plural,
