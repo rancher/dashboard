@@ -1,6 +1,4 @@
-import Vue from 'vue';
 import { DESCRIPTION } from '@shell/config/labels-annotations';
-import { clone } from '@shell/utils/object';
 import NormanModel from '@shell/plugins/steve/norman-class';
 
 const HIDDEN = ['rke', 'rancherkubernetesengine'];
@@ -112,12 +110,14 @@ export default class Driver extends NormanModel {
     this._description = value;
   }
 
-  async save(opt) {
-    const clone = await this.$dispatch('clone', { resource: this });
+  cleanForSave(data, forNew) {
+    const val = super.cleanForSave(data, forNew);
 
-    clone.active = true;
-    delete clone.metadata;
+    if (forNew) {
+      val.active = true;
+    }
+    delete val.metadata;
 
-    return clone._save(opt);
+    return val;
   }
 }
