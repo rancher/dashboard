@@ -36,9 +36,10 @@ export default {
   <div>
     <div class="row mb-20">
       <LabeledInput
-        v-model.trim="value.spec.url"
+        v-model.trim="value.url"
         :label="t('drivers.add.downloadUrl.label')"
         :placeholder="t('drivers.add.downloadUrl.placeholder', null, true)"
+        :tooltip="t('drivers.add.downloadUrl.tooltip', null, true)"
         :mode="mode"
         :rules="rules.url"
         :data-testid="'driver-create-url-field'"
@@ -47,27 +48,28 @@ export default {
     </div>
     <div class="row mb-20">
       <LabeledInput
-        v-model.trim="value.spec.uiUrl"
+        v-model.trim="value.checksum"
+        :label="t('drivers.add.checksum.label')"
+        :tooltip="t('drivers.add.checksum.tooltip', null, true)"
+        :mode="mode"
+        :rules="rules.checksum"
+        :data-testid="'driver-create-checksum-field'"
+      />
+    </div>
+    <div class="row mb-20">
+      <LabeledInput
+        v-model.trim="value.uiUrl"
         :label="t('drivers.add.customUiUrl.label')"
+        :tooltip="t('drivers.add.customUiUrl.tooltip', null, true)"
         :placeholder="t('drivers.add.customUiUrl.placeholder', null, true)"
         :mode="mode"
         :rules="rules.uiUrl"
         :data-testid="'driver-create-uiurl-field'"
       />
     </div>
-    <div class="row mb-20">
-      <LabeledInput
-        v-model.trim="value.spec.checksum"
-        :label="t('drivers.add.checksum.label')"
-        :placeholder="t('drivers.add.checksum.placeholder', null, true)"
-        :mode="mode"
-        :rules="rules.checksum"
-        :data-testid="'driver-create-checksum-field'"
-      />
-    </div>
     <div class="col span-6">
       <ArrayList
-        v-model="value.spec.whitelistDomains"
+        v-model="value.whitelistDomains"
         :protip="false"
         :mode="mode"
         :title="t('drivers.add.whitelist')"

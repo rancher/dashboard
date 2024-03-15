@@ -6,7 +6,7 @@ import CreateDriver from '@shell/components/CreateDriver';
 import { _CREATE } from '@shell/config/query-params';
 
 export default {
-  name: 'KontainerDriverCreate',
+  name: 'NodeDriverEdit',
 
   components: {
     CruResource,
@@ -18,10 +18,10 @@ export default {
   data() {
     return {
       fvFormRuleSets: [
-        { path: 'spec.url', rules: ['required', 'url'] },
-        { path: 'spec.uiUrl', rules: ['url'] },
-        { path: 'spec.checksum', rules: ['alphanumeric'] },
-        { path: 'spec.whitelistDomains', rules: ['wildcardHostname'] }
+        { path: 'url', rules: ['required', 'url'] },
+        { path: 'uiUrl', rules: ['url'] },
+        { path: 'checksum', rules: ['alphanumeric'] },
+        { path: 'whitelistDomains', rules: ['wildcardHostname'] }
       ]
     };
   },
@@ -43,13 +43,14 @@ export default {
   <CruResource
     :mode="mode"
     :show-as-form="true"
+    :can-yaml="false"
     :resource="value"
     :errors="fvUnreportedValidationErrors"
     :validation-passed="fvFormIsValid"
     :cancel-event="true"
     :done-route="doneRoute"
     :apply-hooks="applyHooks"
-    component-testid="driver-create"
+    component-testid="node-driver-edit"
     @done="done"
     @error="e=>errors = e"
     @finish="save"
@@ -58,7 +59,7 @@ export default {
     <CreateDriver
       :mode="mode"
       :value="value"
-      :rules="{url:fvGetAndReportPathRules('spec.url'), uiUrl:fvGetAndReportPathRules('spec.uiUrl'), checksum:fvGetAndReportPathRules('spec.checksum'), whitelistDomains:fvGetAndReportPathRules('spec.whitelistDomains')}"
+      :rules="{url:fvGetAndReportPathRules('url'), uiUrl:fvGetAndReportPathRules('uiUrl'), checksum:fvGetAndReportPathRules('checksum'), whitelistDomains:fvGetAndReportPathRules('whitelistDomains')}"
     />
   </CruResource>
 </template>

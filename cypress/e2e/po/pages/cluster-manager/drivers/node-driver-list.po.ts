@@ -1,5 +1,5 @@
 import PagePo from '@/cypress/e2e/po/pages/page.po';
-import NodeDriversListPo from '@/cypress/e2e/po/lists/management.cattle.io.nodedriver.po';
+import NodeDriversListPo from '~/cypress/e2e/po/lists/nodedriver.po';
 import BurgerMenuPo from '@/cypress/e2e/po/side-bars/burger-side-menu.po';
 import ProductNavPo from '@/cypress/e2e/po/side-bars/product-side-nav.po';
 /**
@@ -32,7 +32,7 @@ export default class NodeDriversListPagePo extends PagePo {
 
     cy.intercept({
       method: 'GET',
-      path:   '/v1/management.cattle.io.nodedrivers/',
+      path:   '/v3/nodeDrivers/',
     }, (req) => {
       req.continue((res) => {
         driverDetails = res.body.data;

@@ -42,6 +42,8 @@ export function init(store) {
     typeStoreMap: {
       [NORMAN.CLOUD_CREDENTIAL]: 'rancher',
       cloudCredential:           'rancher',
+      [NORMAN.KONTAINER_DRIVER]: 'rancher',
+      [NORMAN.NODE_DRIVER]:      'rancher',
     }
   });
 

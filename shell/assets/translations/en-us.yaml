@@ -2117,21 +2117,25 @@ drivers:
     title: Node Drivers
   add:
     title: Add Driver
+    name: 
+      label: Driver name
     downloadUrl: 
       label: Download URL
-      placeholder: The URL to download the machine driver binary for 64-bit Linux. 
+      placeholder: https://test.com/driver
+      tooltip: The URL to download the machine driver binary for 64-bit Linux. 
     customUiUrl: 
       label: Custom UI URL
-      placeholder: The URL to load for customized Add Nodes screen for this driver. See ui-driver-skel for more info. 
+      placeholder: https://test.com/ui
+      tooltip: The URL to load for customized Add Nodes screen for this driver. See ui-driver-skel for more info. 
     checksum: 
       label: Checksum
-      placeholder: Checksum to verify that the downloaded driver matches the expected checksum.
+      tooltip: Checksum to verify that the downloaded driver matches the expected checksum.
     whitelist: Whitelist Domains
   actions:
     refresh: Refresh Kubernetes Metadata
   deactivate:
-    title: Are you sure you want to deactivate {name}?
-    warning: You will no longer be able to edit the configuration of clusters using this driver. Resources in the provider will not be automatically removed. 
+    title: Are you sure?
+    warning: You will no longer be able to edit the configuration of clusters using {name} driver. Resources in the provider will not be automatically removed. 
 
 detailText:
   collapse: Hide

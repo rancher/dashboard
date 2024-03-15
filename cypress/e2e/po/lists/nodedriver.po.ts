@@ -1,16 +1,8 @@
-import AsyncButtonPo from '@/cypress/e2e/po/components/async-button.po';
 import BaseResourceList from '@/cypress/e2e/po/lists/base-resource-list.po';
 
-/**
- * List component for api key resources
- */
-export default class KontainerDriversListPo extends BaseResourceList {
+export default class NodeDriversListPo extends BaseResourceList {
   create() {
     return this.masthead().actions().eq(0).click();
-  }
-
-  refreshKubernetesMetadata(): AsyncButtonPo {
-    return new AsyncButtonPo('[data-testid="kontainer-driver-refresh"]', this.self());
   }
 
   deactivate() {

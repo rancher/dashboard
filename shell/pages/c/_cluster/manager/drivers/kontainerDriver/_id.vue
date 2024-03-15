@@ -2,14 +2,14 @@
 import ResourceDetail from '@shell/components/ResourceDetail';
 
 export default {
-  name:       'NodeDriverCreate',
+  name:       'KontainerDriverEditPage',
   components: { ResourceDetail },
 };
 </script>
 
 <template>
   <ResourceDetail
-    resource-override="nodeDriver"
-    parent-route-override="c-cluster-manager-driver-nodedriver"
+    resource-override="kontainerDriver"
+    parent-route-override="c-cluster-manager-driver-kontainerdriver"
   />
 </template>

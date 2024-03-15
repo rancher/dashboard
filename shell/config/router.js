@@ -341,6 +341,14 @@ export const routerOptions = {
           component: () => interopDefault(import('../pages/c/_cluster/manager/cloudCredential/_id.vue')),
           name:      'c-cluster-manager-cloudCredential-id'
         }, {
+          path:      '/c/:cluster/manager/kontainerDriver/:id',
+          component: () => interopDefault(import('../pages/c/_cluster/manager/drivers/kontainerDriver/_id.vue')),
+          name:      'c-cluster-manager-driver-kontainerdriver-id'
+        }, {
+          path:      '/c/:cluster/manager/nodeDriver/:id',
+          component: () => interopDefault(import('../pages/c/_cluster/manager/drivers/nodeDriver/_id.vue')),
+          name:      'c-cluster-manager-driver-nodedriver-id'
+        }, {
           path:      '/c/:cluster/manager/pages/:page?',
           component: () => interopDefault(import('../pages/c/_cluster/manager/pages/_page.vue')),
           name:      'c-cluster-manager-pages-page'

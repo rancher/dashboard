@@ -1,29 +1,33 @@
 <script>
-import { MANAGEMENT } from '@shell/config/types';
+import { NORMAN } from '@shell/config/types';
 import ResourceTable from '@shell/components/ResourceTable';
 import AsyncButton from '@shell/components/AsyncButton';
 import Loading from '@shell/components/Loading';
-import ResourceFetch from '@shell/mixins/resource-fetch';
 import Masthead from '@shell/components/ResourceList/Masthead';
 export default {
   name:       'KontainerDrivers',
   components: {
     ResourceTable, Loading, Masthead, AsyncButton
   },
-  mixins: [ResourceFetch],
 
   async fetch() {
-    await this.$fetchType(this.resource);
+    this.allDrivers = await this.$store.dispatch('rancher/findAll', { type: NORMAN.KONTAINER_DRIVER }, { root: true });
   },
 
   data() {
     return {
+      allDrivers:                       null,
       canRefreshK8sMetadata:            true,
-      resource:                         MANAGEMENT.KONTAINER_DRIVER,
-      schema:                           this.$store.getters['management/schemaFor'](MANAGEMENT.KONTAINER_DRIVER),
+      resource:                         NORMAN.KONTAINER_DRIVER,
+      schema:                           this.$store.getters['rancher/schemaFor'](NORMAN.KONTAINER_DRIVER),
       useQueryParamsForSimpleFiltering: false,
       forceUpdateLiveAndDelayed:        10
     };
+  },
+  computed: {
+    rows() {
+      return this.allDrivers || [];
+    },
   },
   methods: {
     async refreshK8sMetadata(buttonDone) {
@@ -39,10 +43,10 @@ export default {
         this.$store.dispatch('growl/fromError', { title: 'Error refreshing kontainer drivers', err }, { root: true });
         buttonDone(false);
       }
-    },
-    mounted() {
-      window.c = this;
-    },
+    }
+  },
+  mounted() {
+    window.c = this;
   }
 };
 </script>
@@ -71,7 +75,6 @@ export default {
     <ResourceTable
       :schema="schema"
       :rows="rows"
-      :loading="loading"
       :use-query-params-for-simple-filtering="useQueryParamsForSimpleFiltering"
       :force-update-live-and-delayed="forceUpdateLiveAndDelayed"
       :tableActions="true"

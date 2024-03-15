@@ -56,16 +56,15 @@ export default {
   >
     <h4
       slot="title"
-      v-clean-html="t('drivers.deactivate.title', {name})"
+      v-clean-html="t('drivers.deactivate.title')"
       class="text-default-text"
     />
 
     <template #body>
       <div class="pl-10 pr-10">
-        <Banner
-          color="warning"
-          label-key="drivers.deactivate.warning"
-        />
+        <div class="text info mb-10 mt-20">
+          <span v-clean-html="t('drivers.deactivate.warning', {name})" />
+        </div>
         <Banner
           v-for="(err, i) in errors"
           :key="i"

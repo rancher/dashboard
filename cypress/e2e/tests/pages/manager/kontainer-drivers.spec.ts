@@ -1,6 +1,6 @@
-import { isMatch } from 'lodash'; //
+import { isMatch } from 'lodash';
 import KontainerDriverListPagePo from '@/cypress/e2e/po/pages/cluster-manager/drivers/kontainer-driver-list.po';
-import MgmtKontainerDriverEditPo from '@/cypress/e2e/po/edit/management.cattle.io.kontainerdriver.po';
+import KontainerDriverEditPo from '~/cypress/e2e/po/edit/kontainerDriver.po';
 import DeactivateDriverDialogPo from '@/cypress/e2e/po/dialog/DeactivateDriverDialog.po';
 
 const type = 'kontainerDriver';
@@ -8,14 +8,14 @@ const name = 'https://test.com'; // description can be used as name to find corr
 
 describe('Kontainer Drivers', () => {
   const driverList = new KontainerDriverListPagePo('local');
-  const createDriverPage = new MgmtKontainerDriverEditPo('local');
+  const createDriverPage = new KontainerDriverEditPo('local');
 
   beforeEach(() => {
     cy.login();
     driverList.goTo();
   });
   it('should show the cluster drivers list page', () => {
-    cy.contains('.title > h1', ' Cluster Drivers ').should('be.visible');
+    cy.contains('.title > h1', 'Cluster Drivers').should('be.visible');
     driverList.sortableTable().checkVisible();
 
     // Wait for loading indicator to go
@@ -26,11 +26,10 @@ describe('Kontainer Drivers', () => {
     cy.intercept('POST', `/v3/kontainerdrivers`).as('createRequest');
     const request = {
       type,
-      active:           true,
-      checksum:         'Aaaaa1111',
-      url:              'https://test.com',
-      uiUrl:            'https://test.com',
-      whitelistDomains: []
+      active:   true,
+      checksum: 'Aaaaa1111',
+      url:      'https://test.com',
+      uiUrl:    'https://test.com'
     };
 
     driverList.createDriver();

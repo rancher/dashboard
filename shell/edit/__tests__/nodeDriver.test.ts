@@ -1,9 +1,9 @@
 /* eslint-disable jest/no-hooks */
 import { mount } from '@vue/test-utils';
-import KontainerDriverCreate from '@shell/edit/management.cattle.io.kontainerdriver.vue';
+import NodeDriverEdit from '@shell/edit/nodeDriver.vue';
 import { _CREATE } from '@shell/config/query-params';
 
-describe('view: management.cattle.io.kontainerdriver should', () => {
+describe('view: nodedriver should', () => {
   const url = 'http://test.com';
   let wrapper: any;
   const requiredSetup = () => ({
@@ -35,7 +35,7 @@ describe('view: management.cattle.io.kontainerdriver should', () => {
   });
 
   beforeEach(() => {
-    wrapper = mount(KontainerDriverCreate, { ...requiredSetup() });
+    wrapper = mount(NodeDriverEdit, { ...requiredSetup() });
   });
 
   afterEach(() => {
@@ -43,14 +43,14 @@ describe('view: management.cattle.io.kontainerdriver should', () => {
   });
 
   it('have "Create" button disabled before fields are filled in', () => {
-    const saveButton = wrapper.find('[data-testid="driver-create-save"]').element as HTMLInputElement;
+    const saveButton = wrapper.find('[data-testid="node-driver-edit-save"]').element as HTMLInputElement;
 
     expect(saveButton.disabled).toBe(true);
   });
 
   it('have "Create" button enabled when required fields are filled in', async() => {
     const urlField = wrapper.find('[data-testid="driver-create-url-field"]').find('input');
-    const saveButton = wrapper.find('[data-testid="driver-create-save"]').element as HTMLInputElement;
+    const saveButton = wrapper.find('[data-testid="node-driver-edit-save"]').element as HTMLInputElement;
 
     urlField.setValue(url);
 
@@ -63,7 +63,7 @@ describe('view: management.cattle.io.kontainerdriver should', () => {
     const urlField = wrapper.find('[data-testid="driver-create-url-field"]').find('input');
     const uiurlField = wrapper.find('[data-testid="driver-create-uiurl-field"]').find('input');
     const checksumField = wrapper.find('[data-testid="driver-create-checksum-field"]').find('input');
-    const saveButton = wrapper.find('[data-testid="driver-create-save"]').element as HTMLInputElement;
+    const saveButton = wrapper.find('[data-testid="node-driver-edit-save"]').element as HTMLInputElement;
 
     const testCases = [
       {
