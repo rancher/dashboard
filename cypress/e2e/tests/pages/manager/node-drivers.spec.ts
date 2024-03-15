@@ -5,7 +5,7 @@ import DeactivateDriverDialogPo from '@/cypress/e2e/po/dialog/DeactivateDriverDi
 const type = 'nodeDriver';
 const name = 'https://github.com/cloud-ca/docker-machine-driver-cloudca/files/2294176/docker-machine-driver-cloudca_v1.0.3_linux-amd64.zip'; // description can be used as name to find correct element
 
-describe('Node Drivers', () => {
+describe('Node Drivers', { tags: ['@manager', '@adminUser'] }, () => {
   const driverList = new NodeDriverListPagePo('local');
   const createDriverPage = new NodeDriverEditPo('local');
 

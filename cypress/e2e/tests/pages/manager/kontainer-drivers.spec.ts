@@ -6,7 +6,7 @@ import DeactivateDriverDialogPo from '@/cypress/e2e/po/dialog/DeactivateDriverDi
 const type = 'kontainerDriver';
 const name = 'https://test.com'; // description can be used as name to find correct element
 
-describe('Kontainer Drivers', () => {
+describe('Kontainer Drivers', { tags: ['@manager', '@adminUser'] }, () => {
   const driverList = new KontainerDriverListPagePo('local');
   const createDriverPage = new KontainerDriverEditPo('local');
 
