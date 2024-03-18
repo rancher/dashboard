@@ -9,7 +9,6 @@ import { addParam } from '@shell/utils/url';
 import { isRancherPrime } from '@shell/config/version';
 import { hasCspAdapter } from 'mixins/brand';
 import TabTitle from '@shell/components/TabTitle';
-import KeyValue from '@shell/components/form/KeyValue.vue';
 
 export default {
 
@@ -17,8 +16,7 @@ export default {
     BannerGraphic,
     IndentedPanel,
     CommunityLinks,
-    TabTitle,
-    KeyValue
+    TabTitle
   },
 
   async fetch() {
@@ -67,16 +65,8 @@ export default {
         'support.promos.two',
         'support.promos.three',
         'support.promos.four',
-      ],
-
-      testKV: [{ key: 'testkey', value: 'testvalue' }]
+      ]
     };
-  },
-
-  methods: {
-    updateKV() {
-      this.$set(this, 'testKV', [{ key: 'testkey', value: 'testvalue' }, { key: 'testkey1', value: 'testvalue1' }]);
-    }
   },
 
   computed: {
@@ -124,18 +114,6 @@ export default {
 </script>
 <template>
   <div>
-    <button
-      type="button"
-      class="btn role-primary"
-      @click="updateKV"
-    >
-      change kv prop
-    </button>
-    <KeyValue
-      v-model="testKV"
-      mode="edit"
-      :as-map="false"
-    />
     <BannerGraphic :title="t(title, {}, true)" />
 
     <IndentedPanel>
