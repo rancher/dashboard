@@ -15,18 +15,20 @@ describe('Provision Node driver RKE2 cluster', { testIsolation: 'off', tags: ['@
     cy.login();
     HomePagePo.goTo();
 
-    // clean up cloud credentials
+    // clean up amazon cloud credentials
     cy.getRancherResource('v3', 'cloudcredentials', null, null).then((resp: Cypress.Response<any>) => {
       const body = resp.body;
 
       if (body.pagination['total'] > 0) {
-        for (const i in body.data) {
-          const id = body.data[i]['id'];
+        body.data.forEach((item: any) => {
+          if (item.amazonec2credentialConfig) {
+            const id = item.id;
 
-          cy.deleteRancherResource('v3', 'cloudcredentials', id);
-        }
-      } else {
-        cy.log('There are no existing cloud credentials to delete');
+            cy.deleteRancherResource('v3', 'cloudcredentials', id);
+          } else {
+            cy.log('There are no existing amazon cloud credentials to delete');
+          }
+        });
       }
     });
   });

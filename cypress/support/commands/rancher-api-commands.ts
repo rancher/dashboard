@@ -465,8 +465,8 @@ Cypress.Commands.add('createRancherResource', (prefix, resourceType, body) => {
 Cypress.Commands.add('deleteNodeTemplate', (nodeTemplateId) => {
   return cy.deleteRancherResource('v3', 'nodetemplate', nodeTemplateId, false).then((resp: Cypress.Response<any>) => {
     if (resp.status === 405 && resp.body.message === 'Template is in use by a node pool.') {
-      cy.log('Template is in use by a node pool. Lets retry node deletion after 20 seconds');
-      cy.wait(20000); // eslint-disable-line cypress/no-unnecessary-waiting
+      cy.log(`error message: ${ resp.body.message }. Lets retry node deletion after 30 seconds`);
+      cy.wait(30000); // eslint-disable-line cypress/no-unnecessary-waiting
       cy.deleteRancherResource('v3', 'nodetemplate', nodeTemplateId, true);
     } else {
       expect(resp.status).to.be.oneOf([200, 204]);
