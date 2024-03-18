@@ -100,6 +100,8 @@ const packageUpdatesLibraries = (file, oldContent, parsedJson) => {
     ['@vue/eslint-config-typescript', '~9.1.0'],
     ['@vue/vue2-jest', '@vue/vue3-jest', '^27.0.0-alpha.1'],
     ['@vue/test-utils', '~2.0.0-0'],
+    ['core-js', '3.25.3'],
+    ['portal-vue', '~3.0.0'],
     ['require-extension-hooks-babel', '1.0.0'],
     ['require-extension-hooks-vue', '3.0.0'],
     ['require-extension-hooks', '0.3.3'],
