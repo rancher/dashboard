@@ -61,7 +61,7 @@ describe('component: KeyValue', () => {
 
   it.each([
     [[{ key: 'testkey', value: 'testvalue' }], [{ key: 'testkey', value: 'testvalue' }, { key: 'testkey1', value: 'testvalue1' }], false],
-    // [{ testkey: 'testvalue' }, { testkey: 'testvalue', testkey1: 'testvalue1' }, true]
+    [{ testkey: 'testvalue' }, { testkey: 'testvalue', testkey1: 'testvalue1' }, true]
   ])('should update when the parent component passes a new value', async(initialValueProp, newValueProp, asMap) => {
     const wrapper = mount(KeyValue, {
       propsData: {
@@ -81,16 +81,22 @@ describe('component: KeyValue', () => {
     expect(firstKeyInput.element.value).toBe('testkey');
     expect(firstValueInput.element.value).toBe('testvalue');
 
-    const secondKeyInput = wrapper.find('[data-testid="input-kv-item-key-1"]');
+    let secondKeyInput = wrapper.find('[data-testid="input-kv-item-key-1"]');
 
-    const secondValueInput = wrapper.find('[data-testid="input-kv-item-value-1"]');
+    let secondValueInput = wrapper.find('[data-testid="input-kv-item-value-1"]');
 
     expect(secondKeyInput.exists()).toBe(false);
     expect(secondValueInput.exists()).toBe(false);
 
-    wrapper.setProps({ value: newValueProp });
-
+    wrapper.vm.valuePropChanged(newValueProp);
     await wrapper.vm.$nextTick();
+    await wrapper.vm.$nextTick();
+
+    secondKeyInput = wrapper.find('[data-testid="input-kv-item-key-1"]');
+
+    secondValueInput = wrapper.find('[data-testid="input-kv-item-value-1"]');
+
+    expect(secondKeyInput.exists()).toBe(true);
 
     expect(secondKeyInput.element.value).toBe('testkey1');
     expect(secondValueInput.element.value).toBe('testvalue1');

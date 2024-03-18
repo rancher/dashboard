@@ -262,9 +262,9 @@ export default {
     return {
       rows,
       codeMirrorFocus: {},
+      lastUpdated:     null
     };
   },
-
   computed: {
     isView() {
       return this.mode === _VIEW;
@@ -303,17 +303,28 @@ export default {
     this.queueUpdate = debounce(this.update, 500);
   },
   watch: {
-    defaultValue: {
-      handler(neu) {
-        if (Array.isArray(neu)) {
-          this.rows = this.getRows(neu);
-          this.$emit('input', neu);
-        }
-      },
-      deep: true
+    /**
+     * KV works with v-model=value
+     * value is transformed into this.rows (base64 decode, mark supported etc)
+     * on input, this.update constructs a new value from this.rows and emits
+     * if the parent component changes value, KV needs to re-compute this.rows
+     * If the value changes because the user has edited it using KV, then KV should NOT re-compute rows
+     * the value watcher will compare the last value KV emitted with the new value KV detects and re-compute rows if they don't match
+     */
+    value: {
+      deep: true,
+      handler(neu, old) {
+        this.valuePropChanged(neu, old);
+      }
     }
   },
   methods: {
+    valuePropChanged(neu, old) {
+      if (JSON.stringify(neu) !== JSON.stringify(this.lastUpdated)) {
+        this.rows = this.getRows(neu);
+      }
+    },
+
     isProtected(key) {
       return this.protectedKeys && this.protectedKeys.includes(key);
     },
@@ -498,6 +509,8 @@ export default {
           return entry;
         });
       }
+      this.lastUpdated = out;
+
       this.$emit('input', out);
     },
     onPaste(index, event, pastedValue) {
