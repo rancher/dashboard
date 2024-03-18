@@ -14,6 +14,23 @@ describe('Provision Node driver RKE2 cluster with Azure', { testIsolation: 'off'
   before(() => {
     cy.login();
     HomePagePo.goTo();
+
+    // clean up azure cloud credentials
+    cy.getRancherResource('v3', 'cloudcredentials', null, null).then((resp: Cypress.Response<any>) => {
+      const body = resp.body;
+
+      if (body.pagination['total'] > 0) {
+        body.data.forEach((item: any) => {
+          if (item.azurecredentialConfig) {
+            const id = item.id;
+
+            cy.deleteRancherResource('v3', 'cloudcredentials', id);
+          } else {
+            cy.log('There are no existing azure cloud credentials to delete');
+          }
+        });
+      }
+    });
   });
 
   beforeEach(() => {
