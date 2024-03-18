@@ -5,7 +5,9 @@ import DeactivateDriverDialogPo from '@/cypress/e2e/po/dialog/DeactivateDriverDi
 const type = 'nodeDriver';
 const name = 'https://github.com/cloudscale-ch/docker-machine-driver-cloudscale/releases/download/v1.1.0/docker-machine-driver-cloudscale_v1.1.0_linux_amd64.tar.gz'; // description can be used as name to find correct element
 
-describe('Node Drivers', { tags: ['@manager', '@adminUser'] }, () => {
+// Note: This test fails due to https://github.com/rancher/dashboard/issues/10275
+// skipping this tests until issue has been resolved
+describe.skip('Node Drivers', { tags: ['@manager', '@adminUser'] }, () => {
   const driverList = new NodeDriverListPagePo('local');
   const createDriverPage = new NodeDriverEditPo('local');
 

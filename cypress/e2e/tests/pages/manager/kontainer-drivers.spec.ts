@@ -4,7 +4,7 @@ import KontainerDriverEditPo from '~/cypress/e2e/po/edit/kontainerDriver.po';
 import DeactivateDriverDialogPo from '@/cypress/e2e/po/dialog/DeactivateDriverDialog.po';
 
 const type = 'kontainerDriver';
-const name = 'https://test.com'; // description can be used as name to find correct element
+const name = 'https://github.com/rancher-plugins/kontainer-engine-driver-example/releases/download/v0.2.3/kontainer-engine-driver-example-copy1-linux-amd64'; // description can be used as name to find correct element
 
 describe('Kontainer Drivers', { tags: ['@manager', '@adminUser'] }, () => {
   const driverList = new KontainerDriverListPagePo('local');
@@ -28,14 +28,14 @@ describe('Kontainer Drivers', { tags: ['@manager', '@adminUser'] }, () => {
       type,
       active:   true,
       checksum: 'Aaaaa1111',
-      url:      'https://test.com',
+      url:      'https://github.com/rancher-plugins/kontainer-engine-driver-example/releases/download/v0.2.3/kontainer-engine-driver-example-copy1-linux-amd64',
       uiUrl:    'https://test.com'
     };
 
     driverList.createDriver();
 
     createDriverPage.waitForPage();
-    createDriverPage.enterUrl('https://test.com');
+    createDriverPage.enterUrl('https://github.com/rancher-plugins/kontainer-engine-driver-example/releases/download/v0.2.3/kontainer-engine-driver-example-copy1-linux-amd64');
     createDriverPage.enterUiUrl('https://test.com');
     createDriverPage.enterChecksum('Aaaaa1111');
 
@@ -74,6 +74,6 @@ describe('Kontainer Drivers', { tags: ['@manager', '@adminUser'] }, () => {
   });
   after(() => {
     driverList.goTo();
-    driverList.sortableTable().deleteItemWithUI('https://test.com');
+    driverList.sortableTable().deleteItemWithUI('https://github.com/rancher-plugins/kontainer-engine-driver-example/releases/download/v0.2.3/kontainer-engine-driver-example-copy1-linux-amd64');
   });
 });
