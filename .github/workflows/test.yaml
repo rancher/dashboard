@@ -53,7 +53,7 @@ jobs:
           fetch-depth: 1
       - uses: actions/setup-node@v3
         with:
-          node-version: '18.x'
+          node-version: '20.x'
 
       # Installing fixed version of Chrome since latest version does not work (117-118 didn't work)
       # Leaving this here again in case we need to pin to a specific Chrome version in the future
@@ -103,7 +103,7 @@ jobs:
           fetch-depth: 1
       - uses: actions/setup-node@v3
         with:
-          node-version: '18.x'
+          node-version: '20.x'
       
       - name: Install packages
         run: yarn install:ci
@@ -129,7 +129,7 @@ jobs:
           fetch-depth: 1
       - uses: actions/setup-node@v3
         with:
-          node-version: '18.x'
+          node-version: '20.x'
       
       - name: Install packages
         run: yarn install:ci
@@ -145,7 +145,7 @@ jobs:
           fetch-depth: 1
       - uses: actions/setup-node@v3
         with:
-          node-version: '18.x'
+          node-version: '20.x'
       
       - name: Install packages
         run: yarn install:ci
@@ -164,7 +164,7 @@ jobs:
 
       - uses: actions/setup-node@v3
         with:
-          node-version: '18.x'
+          node-version: '20.x'
 
       - name: Download Coverage Artifacts
         uses: actions/download-artifact@v3
@@ -187,7 +187,7 @@ jobs:
           fetch-depth: 1
       - uses: actions/setup-node@v3
         with:
-          node-version: '16.x'
+          node-version: '20.x'
       - name: Check e2e tags
         run: |
           ./scripts/check-e2e-tests-for-tags
