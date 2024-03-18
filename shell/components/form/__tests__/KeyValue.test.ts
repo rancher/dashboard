@@ -1,6 +1,7 @@
 import { mount } from '@vue/test-utils';
 import KeyValue from '@shell/components/form/KeyValue.vue';
 import { directiveSsr as t } from '@shell/plugins//i18n';
+import { cleanHtmlDirective } from '@shell/plugins/clean-html-directive';
 
 describe('component: KeyValue', () => {
   it('should display a not encoded value', () => {
@@ -56,5 +57,42 @@ describe('component: KeyValue', () => {
     const textArea = inputFieldTextArea.element as HTMLTextAreaElement;
 
     expect(textArea.value).toBe('bar\n');
+  });
+
+  it.each([
+    [[{ key: 'testkey', value: 'testvalue' }], [{ key: 'testkey', value: 'testvalue' }, { key: 'testkey1', value: 'testvalue1' }], false],
+    // [{ testkey: 'testvalue' }, { testkey: 'testvalue', testkey1: 'testvalue1' }, true]
+  ])('should update when the parent component passes a new value', async(initialValueProp, newValueProp, asMap) => {
+    const wrapper = mount(KeyValue, {
+      propsData: {
+        value:          initialValueProp,
+        mode:           'edit',
+        asMap,
+        mocks:          { $store: { getters: { 'i18n/t': jest.fn() } } },
+        directives:     { t, cleanHtmlDirective },
+        valueMultiline: false,
+      }
+    });
+
+    const firstKeyInput = wrapper.find('[data-testid="input-kv-item-key-0"]');
+
+    const firstValueInput = wrapper.find('[data-testid="input-kv-item-value-0"]');
+
+    expect(firstKeyInput.element.value).toBe('testkey');
+    expect(firstValueInput.element.value).toBe('testvalue');
+
+    const secondKeyInput = wrapper.find('[data-testid="input-kv-item-key-1"]');
+
+    const secondValueInput = wrapper.find('[data-testid="input-kv-item-value-1"]');
+
+    expect(secondKeyInput.exists()).toBe(false);
+    expect(secondValueInput.exists()).toBe(false);
+
+    wrapper.setProps({ value: newValueProp });
+
+    await wrapper.vm.$nextTick();
+
+    expect(secondKeyInput.element.value).toBe('testkey1');
+    expect(secondValueInput.element.value).toBe('testvalue1');
   });
 });

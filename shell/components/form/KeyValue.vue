@@ -303,11 +303,14 @@ export default {
     this.queueUpdate = debounce(this.update, 500);
   },
   watch: {
-    defaultValue(neu) {
-      if (Array.isArray(neu)) {
-        this.rows = this.getRows(neu);
-        this.$emit('input', neu);
-      }
+    defaultValue: {
+      handler(neu) {
+        if (Array.isArray(neu)) {
+          this.rows = this.getRows(neu);
+          this.$emit('input', neu);
+        }
+      },
+      deep: true
     }
   },
   methods: {
@@ -718,6 +721,7 @@ export default {
                 autocorrect="off"
                 autocapitalize="off"
                 spellcheck="false"
+                :data-testid="`input-kv-item-value-${i}`"
                 @input="queueUpdate"
               >
               <FileSelector
