@@ -23,14 +23,15 @@ describe('Provision Node driver RKE1 cluster with AWS', { testIsolation: 'off', 
       const body = resp.body;
 
       if (body.pagination['total'] > 0) {
-        body.data.forEach((item: any) => { 
-          if(item.driver == 'amazonec2') {
-            const id = item['id']
+        body.data.forEach((item: any) => {
+          if (item.driver == 'amazonec2') {
+            const id = item['id'];
+
             cy.deleteNodeTemplate(id);
-          }  else {
+          } else {
             cy.log('There are no existing amazonec2 node templates to delete');
           }
-        })
+        });
       }
     });
 
@@ -39,8 +40,9 @@ describe('Provision Node driver RKE1 cluster with AWS', { testIsolation: 'off', 
 
       if (body.pagination['total'] > 0) {
         body.data.forEach((item: any) => {
-          if(item.amazonec2credentialConfig) {
+          if (item.amazonec2credentialConfig) {
             const id = item.id;
+
             cy.deleteRancherResource('v3', 'cloudcredentials', id);
           } else {
             cy.log('There are no existing amazon cloud credentials to delete');
@@ -63,7 +65,7 @@ describe('Provision Node driver RKE1 cluster with AWS', { testIsolation: 'off', 
           if (item.name === name) {
             cy.wrap(item['id']).as('clusterId');
           } else {
-            cy.log(`${name} does not exist`)
+            cy.log(`${ name } does not exist`);
           }
         });
       });
