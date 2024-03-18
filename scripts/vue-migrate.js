@@ -336,6 +336,7 @@ const vueApp = createApp({});`, `https://v3-migration.vuejs.org/breaking-changes
     [` $scopedSlots`, ` $slots`, `(many components loop through them) https://v3-migration.vuejs.org/breaking-changes/slots-unification.html`],
     [/slot="(\w+:\w+)"\s+slot-scope="(\w+)"/g, `$1="$2"`, `not mentioned in migration https://vuejs.org/guide/components/slots.html#scoped-slots`],
     [/this\.\$slots\['([^']+)'\]/g, `this.$slots[\'$1\']()`, `not mentioned in migration https://vuejs.org/guide/components/slots.html#scoped-slots`],
+    // ['this.$slots', `this.$slots()`, `not mentioned in migration https://vuejs.org/guide/components/slots.html#scoped-slots`], // TODO: Add exception for existing brackets
 
     // Portals are now Vue3 Teleports
     [/<portal|<portal-target|<\/portal|<\/portal-target/g, '', `https://v3.vuejs.org/guide/teleport.html`],
