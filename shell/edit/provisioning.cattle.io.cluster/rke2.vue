@@ -223,6 +223,9 @@ export default {
   },
 
   computed: {
+    clusterName() {
+      return this.value.metadata?.name || '';
+    },
     showClusterAppearance() {
       return this.mode === _CREATE;
     },
@@ -2081,7 +2084,7 @@ export default {
           slot="customize"
         >
           <ClusterAppearance
-            :name="value.metadata.name"
+            :name="clusterName"
             :currentCluster="currentCluster"
             :mode="mode"
           />

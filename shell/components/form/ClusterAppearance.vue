@@ -85,7 +85,7 @@ export default {
     margin: 0px 35px 0px 0px;
 
     label {
-      margin: 5px;
+      margin: 6px 0 0;
     }
 
     &-preview {
