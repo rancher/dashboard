@@ -367,6 +367,10 @@ const vueApp = createApp({});`, `https://v3-migration.vuejs.org/breaking-changes
 
     // [`$children`, ``, `no migration, $refs are suggested as communication https://v3-migration.vuejs.org/breaking-changes/children.html`],
 
+    // Vuex
+    [`new Vuex.Store(`, `createStore(`, 'To install Vuex to a Vue instance, pass the store instead of Vuex https://vuex.vuejs.org/guide/migrating-to-4-0-from-3-x.html#installation-process'],
+    [`import Vuex from 'vuex'`, `import { createStore } from 'vuex'`, 'To install Vuex to a Vue instance, pass the store instead of Vuex https://vuex.vuejs.org/guide/migrating-to-4-0-from-3-x.html#installation-process'],
+
     // Extra cases TBD (it seems like we already use the suggested way for arrays)
     // watch option used on arrays not triggered by mutations https://v3-migration.vuejs.org/breaking-changes/watch.html
   ];
