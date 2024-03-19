@@ -5,7 +5,6 @@ import { get } from '@shell/utils/object';
 import { LabeledTooltip } from '@components/LabeledTooltip';
 import VueSelectOverrides from '@shell/mixins/vue-select-overrides';
 import { onClickOption, calculatePosition } from '@shell/utils/select';
-import isEqual from 'lodash/isEqual';
 
 export default {
   name: 'LabeledSelect',
