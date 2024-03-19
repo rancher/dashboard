@@ -168,6 +168,14 @@ describe('Feature Flags', { testIsolation: 'off' }, () => {
     clusterDashboard.goTo();
     sideNav.groups().contains('Legacy').should('be.visible');
 
+    sideNav.navToSideMenuGroupByLabel('Legacy');
+    // Ensuring deprecated items are removed from the side navigation
+    sideNav.visibleNavTypes().should('not.contain', 'Alerts');
+    sideNav.visibleNavTypes().should('not.contain', 'Notifiers');
+    sideNav.visibleNavTypes().should('not.contain', 'Catalogs');
+    // Project item should exist
+    sideNav.visibleNavTypes().should('contain', 'Project');
+
     // Deactivate
     FeatureFlagsPagePo.navTo();
     featureFlagsPage.list().clickRowActionMenuItem('legacy', 'Deactivate');
