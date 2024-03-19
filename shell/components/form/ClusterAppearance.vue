@@ -7,7 +7,9 @@ export default {
   title:      'ClusterAppearance',
   components: { ClusterIconMenu },
   props:      {
-    name: { type: String, default: '' }, mode: { type: String, default: _CREATE }, currentCluster: { type: Object, default: null }
+    name:           { type: String, default: '' },
+    mode:           { type: String, default: _CREATE },
+    currentCluster: { type: Object, default: null }
   },
   created() {
     this.$store.dispatch('customisation/setDefaultPreviewCluster');
