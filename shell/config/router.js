@@ -1,8 +1,5 @@
-import { createApp } from 'vue';
 import { createRouter, createWebHistory } from 'vue-router';
 import { interopDefault } from '../utils/nuxt';
-
-const vueApp = createApp({});
 
 export const routerOptions = {
   history: {
@@ -394,21 +391,10 @@ export const routerOptions = {
     }],
 };
 
-const router = createRouter(routerOptions);
-
-vueApp.use(router);
-
 // TODO: Restore logic with valid syntax
 export function extendRouter(config) {
-  // const base = (config._app && config._app.basePath) || routerOptions.base;
-  const router = createRouter({ ...routerOptions });
-
-  // TODO: remove in Nuxt 3
-  // const originalPush = router.push;
-
-  // router.push = function push(location, onComplete = emptyFn, onAbort) {
-  //   return originalPush.call(this, location, onComplete, onAbort);
-  // };
+  const base = (config._app && config._app.basePath) || routerOptions.base;
+  const router = createRouter({ ...routerOptions, base });
 
   // const resolve = router.resolve.bind(router);
 
