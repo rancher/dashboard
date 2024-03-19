@@ -1,7 +1,7 @@
 
 <script>
 import ClusterIconMenu from '@shell/components/ClusterIconMenu';
-import { _CREATE, _VIEW } from '~/shell/config/query-params';
+import { _CREATE, _VIEW } from '@shell/config/query-params';
 import { CLUSTER_BADGE } from '@shell/config/labels-annotations';
 export default {
   title:      'ClusterAppearance',

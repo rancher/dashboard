@@ -13,7 +13,7 @@ import ColorInput from '@shell/components/form/ColorInput';
 import { parseColor, textColor } from '@shell/utils/color';
 import { NORMAN } from '@shell/config/types';
 import { abbreviateClusterName } from '@shell/utils/cluster';
-import { _CREATE, _EDIT } from '~/shell/config/query-params';
+import { _CREATE, _EDIT } from '@shell/config/query-params';
 
 export default {
   name:       'AddCustomBadgeDialog',
