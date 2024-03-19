@@ -24,7 +24,7 @@ describe('Provision Node driver RKE1 cluster with AWS', { testIsolation: 'off', 
 
       if (body.pagination['total'] > 0) {
         body.data.forEach((item: any) => {
-          if (item.driver == 'amazonec2') {
+          if (item.driver === 'amazonec2') {
             const id = item['id'];
 
             cy.deleteNodeTemplate(id);
