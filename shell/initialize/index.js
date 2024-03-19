@@ -6,7 +6,7 @@ import { extendRouter } from '../config/router.js';
 import NuxtChild from '../components/nuxt/nuxt-child.js';
 import App from './App.js';
 import { setContext, getRouteData, normalizeError } from '../utils/nuxt';
-import { createStore } from '../config/store.js';
+import { extendStore } from '../config/store.js';
 import { UPGRADED, _FLAGGED, _UNFLAG } from '@shell/config/query-params';
 import { loadDirectives } from '@shell/plugins';
 import { installPlugins } from '@shell/initialize/plugins';
@@ -41,7 +41,7 @@ Vue.component('NChild', NuxtChild);
 async function extendApp(config = {}) {
   const router = extendRouter(config);
 
-  const store = createStore();
+  const store = extendStore();
 
   // Add this.$router into store actions/mutations
   store.$router = router;
