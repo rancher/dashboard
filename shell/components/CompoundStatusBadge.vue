@@ -6,6 +6,10 @@ export default {
       type:    String,
       default: ''
     },
+    tooltipClass: {
+      type:    String,
+      default: ''
+    },
     badgeClass: {
       type:    String,
       default: ''
@@ -18,13 +22,13 @@ export default {
       type:    String,
       default: ''
     },
-  },
+  }
 };
 </script>
 
 <template>
   <div
-    v-clean-tooltip.bottom="tooltipText"
+    v-clean-tooltip.bottom="{content: tooltipText, classes: tooltipClass}"
     class="compound-cluster-badge"
     :class="`bg-${badgeClass}`"
   >

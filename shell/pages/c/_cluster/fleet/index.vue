@@ -414,6 +414,7 @@ export default {
                 v-else
                 data-testid="clusters-ready"
                 :tooltip-text="getTooltipInfo('clusters', row)"
+                tooltip-class="clusters-ready-tooltip"
                 :badge-class="getStatusInfo('clusters', row).badgeClass"
                 :icon="getStatusInfo('clusters', row).icon"
                 :value="`${ row.clusterInfo.ready }/${ row.clusterInfo.total }`"
@@ -425,6 +426,7 @@ export default {
                 v-else
                 data-testid="bundles-ready"
                 :tooltip-text="getTooltipInfo('bundles', row)"
+                tooltip-class="bundles-ready-tooltip"
                 :badge-class="getStatusInfo('bundles', row).badgeClass"
                 :icon="getStatusInfo('bundles', row).icon"
                 :value="`${ row.bundlesReady.length || 0 }/${ row.bundles.length }`"
@@ -434,6 +436,7 @@ export default {
               <CompoundStatusBadge
                 data-testid="resources-ready"
                 :tooltip-text="getTooltipInfo('resources', row)"
+                tooltip-class="resources-ready-tooltip"
                 :badge-class="getStatusInfo('resources', row).badgeClass"
                 :icon="getStatusInfo('resources', row).icon"
                 :value="`${ row.status.resourceCounts.ready }/${ row.status.resourceCounts.desiredReady }`"

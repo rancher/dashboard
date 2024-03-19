@@ -23,41 +23,53 @@ describe.only('Fleet Dashboard', { tags: ['@fleet', '@adminUser'] }, () => {
   before(() => {
     cy.login();
 
-    const gitRepoCreatePage = new GitRepoCreatePo('_');
+    // const gitRepoCreatePage = new GitRepoCreatePo('_');
 
-    gitRepoCreatePage.goTo();
+    // gitRepoCreatePage.goTo();
 
-    gitRepoCreatePage.setRepoName(repoName);
-    gitRepoCreatePage.selectWorkspace('fleet-local');
-    gitRepoCreatePage.setGitRepoUrl('https://github.com/rancher/fleet-test-data.git');
-    gitRepoCreatePage.setBranchName();
-    // NB - This step is here because DOM may not be ready
-    gitRepoCreatePage.goToNext();
-    gitRepoCreatePage.create();
+    // gitRepoCreatePage.setRepoName(repoName);
+    // gitRepoCreatePage.selectWorkspace('fleet-local');
+    // gitRepoCreatePage.setGitRepoUrl('https://github.com/rancher/fleet-test-data.git');
+    // gitRepoCreatePage.setBranchName();
+    // // NB - This step is here because DOM may not be ready
+    // gitRepoCreatePage.goToNext();
+    // gitRepoCreatePage.create();
   });
 
-  it('Should display cluster status', () => {
+  it('Should display cluster status badge and hovering it should display the correct info', () => {
     // check if burguer menu nav is highlighted correctly for Fleet
     BurgerMenuPo.checkIfMenuItemLinkIsHighlighted('Continuous Delivery');
 
     const row = fleetDashboardPage.sortableTable('fleet-local').row(0);
 
     row.get('.bg-success[data-testid="clusters-ready"]').should('exist');
+    row.get('.bg-success[data-testid="clusters-ready"]').trigger('mouseenter');
+    cy.get('.clusters-ready-tooltip').should('be.visible');
+    cy.get('.clusters-ready-tooltip .tooltip-inner').contains('Ready');
+    row.get('.bg-success[data-testid="clusters-ready"]').trigger('mouseleave');
     row.get('.bg-success[data-testid="clusters-ready"] span').should('have.text', '1/1');
 
-    row.get('.bg-success[data-testid="clusters-ready"]').should('exist');
+    row.get('.bg-success[data-testid="bundles-ready"]').should('exist');
+    row.get('.bg-success[data-testid="bundles-ready"]').trigger('mouseenter');
+    cy.get('.bundles-ready-tooltip').should('be.visible');
+    cy.get('.bundles-ready-tooltip .tooltip-inner').contains('Active');
+    row.get('.bg-success[data-testid="bundles-ready"]').trigger('mouseleave');
     row.get('.bg-success[data-testid="bundles-ready"] span').should('have.text', '1/1');
 
-    row.get('.bg-success[data-testid="clusters-ready"]').should('exist');
+    row.get('.bg-success[data-testid="resources-ready"]').should('exist');
+    row.get('.bg-success[data-testid="resources-ready"]').trigger('mouseenter');
+    cy.get('.resources-ready-tooltip').should('be.visible');
+    cy.get('.resources-ready-tooltip .tooltip-inner').contains('Ready');
+    row.get('.bg-success[data-testid="resources-ready"]').trigger('mouseleave');
     row.get('.bg-success[data-testid="resources-ready"] span').should('have.text', '1/1');
   });
 
-  after(() => {
-    fleetDashboardPage = new FleetDashboardPagePo('_');
-    fleetDashboardPage.goTo();
+  // after(() => {
+  //   fleetDashboardPage = new FleetDashboardPagePo('_');
+  //   fleetDashboardPage.goTo();
 
-    const fleetLocalResourceTable = fleetDashboardPage.resourceTable('fleet-local');
+  //   const fleetLocalResourceTable = fleetDashboardPage.resourceTable('fleet-local');
 
-    fleetLocalResourceTable.sortableTable().deleteItemWithUI(repoName);
-  });
+  //   fleetLocalResourceTable.sortableTable().deleteItemWithUI(repoName);
+  // });
 });
