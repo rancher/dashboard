@@ -26,7 +26,7 @@ Vue.directive = function(name) {
 
   directiveNames[name] = true;
 
-  vueDirective.apply(Vue, arguments);
+  vueDirective.apply(vueApp, arguments);
 };
 
 // Load the directives from the plugins - we do this with a function so we know
