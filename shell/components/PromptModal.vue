@@ -105,10 +105,5 @@ export default {
     & ::-webkit-scrollbar-corner {
       background: rgba(0,0,0,0);
     }
-    & .v--modal-box.v--modal {
-      width: var(--prompt-modal-width) !important;
-      left: unset !important;
-      margin: auto !important;
-    }
   }
 </style>

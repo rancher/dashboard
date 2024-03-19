@@ -50,7 +50,7 @@ export default {
 <template>
   <app-modal
     v-if="showModal"
-    class="confirm-modal"
+    customClass="confirm-modal"
     name="cancel-modal"
     :width="440"
     height="auto"
@@ -99,32 +99,27 @@ export default {
     margin: 0 10px;
   }
 
-  .v--modal-box {
-    background-color: var(--default);
-    box-shadow: none;
-    min-height: 200px;
-    .body {
-      min-height: 75px;
-      padding: 10px 0 0 15px;
-      p {
-        margin-top: 10px;
-      }
+  .body {
+    min-height: 75px;
+    padding: 10px 0 0 15px;
+    p {
+      margin-top: 10px;
     }
-    .header {
-      background-color: var(--error);
-      padding: 15px 0 0 15px;
-      height: 50px;
+  }
+  .header {
+    background-color: var(--error);
+    padding: 15px 0 0 15px;
+    height: 50px;
 
-      h4 {
-        color: white;
-      }
+    h4 {
+      color: white;
     }
-    .footer {
-      border-top: 1px solid var(--border);
-      text-align: center;
-      padding: 10px 0 0 15px;
-      height: 60px;
-    }
+  }
+  .footer {
+    border-top: 1px solid var(--border);
+    text-align: center;
+    padding: 10px 0 0 15px;
+    height: 60px;
   }
 }
 </style>
