@@ -18,6 +18,7 @@ async function extendApp(vueApp) {
   const router = extendRouter(config);
 
   const store = extendStore();
+  vueApp.use(store);
 
   // Add this.$router into store actions/mutations
   store.$router = router;
