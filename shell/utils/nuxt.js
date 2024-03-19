@@ -69,7 +69,6 @@ export function sanitizeComponent(Component) {
     return Component;
   }
   if (!Component.options) {
-    Component = Vue.extend(Component); // fix issue #6
     Component._Ctor = Component;
   } else {
     Component._Ctor = Component;
