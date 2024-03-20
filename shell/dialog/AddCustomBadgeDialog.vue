@@ -285,6 +285,10 @@ export default {
   border: 1px solid var(--default-border);
 }
 
+.text-default-text {
+  margin-bottom: 4px;
+}
+
 .prompt-badge {
   margin: 0;
 
