@@ -15,6 +15,7 @@ describe('Rancher setup', { tags: ['@adminUserSetup', '@standardUserSetup', '@se
 
     rancherSetupLoginPage.waitForPage();
     rancherSetupLoginPage.hasInfoMessage();
+    cy.url().should('contain', `${ Cypress.config().baseUrl }/auth/login`);
   });
 
   it('Confirm correct number of settings requests made', () => {

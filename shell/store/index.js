@@ -2,7 +2,7 @@ import { BACK_TO } from '@shell/config/local-storage';
 import { setBrand, setVendor } from '@shell/config/private-label';
 import { NAME as EXPLORER } from '@shell/config/product/explorer';
 import {
-  LOGGED_OUT, IS_SSO, TIMED_OUT, UPGRADED, _FLAGGED
+  LOGGED_OUT, IS_SSO, TIMED_OUT, UPGRADED, _FLAGGED, SETUP
 } from '@shell/config/query-params';
 import { SETTING } from '@shell/config/settings';
 import {
@@ -37,6 +37,9 @@ import { addParam } from '@shell/utils/url';
 import semver from 'semver';
 import { STORE, BLANK_CLUSTER } from '@shell/store/store-types';
 import { isDevBuild } from '@shell/utils/version';
+import { canViewResource } from '@shell/utils/auth';
+import { getProductFromRoute, getResourceFromRoute } from '@shell/utils/router';
+import { fetchInitialSettings } from '@shell/utils/settings';
 
 // Disables strict mode for all store instances to prevent warning about changing state outside of mutations
 // because it's more efficient to do that sometimes.
@@ -824,6 +827,124 @@ export const actions = {
     }
 
     console.log(`Done loading management; isRancher=${ isRancher }; isMultiCluster=${ isMultiCluster }`); // eslint-disable-line no-console
+  },
+
+  /**
+   * Sets the product detected from a route
+   * @param {*} context
+   * @param {*} to Route
+   * @returns
+   */
+  async setProduct({ getters, commit, dispatch }, to) {
+    let product = getProductFromRoute(to);
+
+    // since all products are hardcoded as routes (ex: c-local-explorer), if we match the wildcard route it means that the product does not exist
+    if ((product && (!to.matched.length || (to.matched.length && to.matched[0].path === '/c/:cluster/:product'))) ||
+    // if the product grabbed from the route is not registered, then we don't have it!
+    (product && !getters['type-map/isProductRegistered'](product))) {
+      await dispatch('loadingError', new Error(getters['i18n/t']('nav.failWhale.productNotFound', { productNotFound: product }, true)));
+
+      return true;
+    }
+
+    if ( !product ) {
+      product = EXPLORER;
+    }
+
+    const oldProduct = getters['productId'];
+    const oldStore = getters['currentProduct']?.inStore;
+
+    if ( product !== oldProduct ) {
+      commit('setProduct', product);
+    }
+
+    const neuStore = getters['currentProduct']?.inStore;
+
+    if ( neuStore !== oldStore ) {
+    // If the product store changes, clear the catalog.
+    // There might be management catalog items in it vs cluster.
+      commit('catalog/reset');
+    }
+
+    return false;
+  },
+
+  /**
+ * Check that the resource is valid, if not redirect to fail whale
+ *
+ * This requires that
+ * - product is set
+ * - product's store is set and setup (so we can check schema's within it)
+ * - product's store has the schemaFor getter (extension stores might not have it)
+ * - there's a resource associated with route (meta or param)
+ */
+  validateResource({ getters, dispatch }, to) {
+    const product = getters['currentProduct'];
+    const resource = getResourceFromRoute(to);
+
+    // In order to check a resource is valid we need these
+    if (!product || !resource) {
+      return false;
+    }
+
+    if (canViewResource(this, resource)) {
+      return false;
+    }
+
+    // Unknown resource, redirect to fail whale
+
+    dispatch('loadingError', new Error(getters['i18n/t']('nav.failWhale.resourceNotFound', { resource }, true)));
+
+    return true;
+  },
+
+  async fetchRancherInitialSetupSettings({ dispatch, getters }) {
+    const route = this.app.context.route;
+
+    // Initial ?setup=admin-password can technically be on any route
+    let defaultPassword = route.query[SETUP];
+    let isFirstLogin = null;
+
+    try {
+      await fetchInitialSettings(this);
+      const res = getters['management/byId'](MANAGEMENT.SETTING, SETTING.FIRST_LOGIN);
+      const plSetting = getters['management/byId'](MANAGEMENT.SETTING, SETTING.PL);
+
+      isFirstLogin = res?.value === 'true';
+
+      if (!defaultPassword && plSetting?.value === 'Harvester') {
+        defaultPassword = 'admin';
+      }
+    } catch (e) {
+    }
+
+    if ( isFirstLogin === null ) {
+      try {
+        const res = await dispatch('rancher/find', {
+          type: 'setting',
+          id:   SETTING.FIRST_LOGIN,
+          opt:  { url: `/v3/settings/${ SETTING.FIRST_LOGIN }` }
+        });
+
+        isFirstLogin = res?.value === 'true';
+
+        const plSetting = await dispatch('rancher/find', {
+          type: 'setting',
+          id:   SETTING.PL,
+          opt:  { url: `/v3/settings/${ SETTING.PL }` }
+        });
+
+        if (!defaultPassword && plSetting?.value === 'Harvester') {
+          defaultPassword = 'admin';
+        }
+      } catch (e) {
+      }
+    }
+
+    return {
+      defaultPassword,
+      isFirstLogin
+    };
   },
 
   // Note:
