@@ -589,6 +589,7 @@ export default {
       <div class="col span-6">
         <!-- PSA template selector -->
         <LabeledSelect
+          :key="defaultPsaOptionLabel"
           v-model="value.spec.defaultPodSecurityAdmissionConfigurationTemplateName"
           :mode="mode"
           data-testid="rke2-custom-edit-psa"
