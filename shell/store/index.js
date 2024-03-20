@@ -615,7 +615,9 @@ export const mutations = {
     state.isRancherInHarvester = neu;
   },
 
-  updateNamespaces(state, { filters, all, getters }) {
+  updateNamespaces(state, opt) {
+    const { filters, all } = opt;
+
     state.namespaceFilters = filters.filter((x) => !!x);
 
     if ( all ) {
@@ -623,7 +625,7 @@ export const mutations = {
     }
     // Create map that can be used to efficiently check if a
     // resource should be displayed
-    getActiveNamespaces(state, getters);
+    getActiveNamespaces(state, opt.getters || getters);
   },
 
   changeAllNamespaces(state, namespace) {
