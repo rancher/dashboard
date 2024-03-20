@@ -22,7 +22,8 @@ import Socket, {
   EVENT_DISCONNECT_ERROR,
   NO_WATCH,
   NO_SCHEMA,
-  REVISION_TOO_OLD
+  REVISION_TOO_OLD,
+  NO_PERMS
 } from '@shell/utils/socket';
 import { normalizeType } from '@shell/plugins/dashboard-store/normalize';
 import day from 'dayjs';
@@ -426,6 +427,14 @@ const sharedActions = {
 
     if (rootGetters['type-map/isSpoofed'](type)) {
       state.debugSocket && console.info('Will not Watch (type is spoofed)', JSON.stringify(params)); // eslint-disable-line no-console
+
+      return;
+    }
+
+    const schema = getters.schemaFor(type, false, false);
+
+    if (!!schema?.attributes?.verbs?.includes && !schema.attributes.verbs.includes('watch')) {
+      state.debugSocket && console.info('Will not Watch (type does not have watch verb)', JSON.stringify(params)); // eslint-disable-line no-console
 
       return;
     }
@@ -857,6 +866,8 @@ const defaultActions = {
       // 2) will be cleared when resyncWatch --> watch (with force) --> resource.start completes
       commit('setInError', { msg, reason: REVISION_TOO_OLD });
       dispatch('resyncWatch', msg);
+    } else if ( err.includes('the server does not allow this method on the requested resource')) {
+      commit('setInError', { msg, reason: NO_PERMS });
     }
   },
 
