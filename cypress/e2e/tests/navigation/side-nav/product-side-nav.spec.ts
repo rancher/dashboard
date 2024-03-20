@@ -14,8 +14,7 @@ describe('Side navigation: Cluster ', { tags: ['@navigation', '@adminUser'] }, (
     burgerMenuPo.clusters().eq(0).should('be.visible').click();
   });
 
-  // TODO: #5966: Verify cause of race condition issue making navigation link not trigger #5966
-  it.skip('Can access to first navigation link on click', () => {
+  it('Can access to first navigation link on click', () => {
     const productNavPo = new ProductNavPo();
 
     productNavPo.visibleNavTypes().eq(0).should('be.visible').click()
@@ -24,8 +23,7 @@ describe('Side navigation: Cluster ', { tags: ['@navigation', '@adminUser'] }, (
       });
   });
 
-  // TODO: #5966: Verify cause of race condition issue making navigation link not trigger
-  it.skip('Can open second menu groups on click', () => {
+  it('Can open second menu groups on click', () => {
     const productNavPo = new ProductNavPo();
 
     productNavPo.groups().not('.expanded').eq(0)
@@ -44,8 +42,7 @@ describe('Side navigation: Cluster ', { tags: ['@navigation', '@adminUser'] }, (
     cy.get('@openGroup').find('ul').should('have.length', 0);
   });
 
-  // TODO: #5966: Verify cause of race condition issue making navigation link not trigger
-  it.skip('Should flag second menu group as active on navigation', () => {
+  it('Should flag second menu group as active on navigation', () => {
     const productNavPo = new ProductNavPo();
 
     productNavPo.groups().not('.expanded').eq(0)
@@ -54,8 +51,7 @@ describe('Side navigation: Cluster ', { tags: ['@navigation', '@adminUser'] }, (
     cy.get('@closedGroup').find('.router-link-active').should('have.length.gt', 0);
   });
 
-  // TODO: #5966: Verify cause of race condition issue making navigation link not trigger
-  it.skip('Should access to every navigation provided from the server link, including nested cases, without errors', () => {
+  it('Should access to every navigation provided from the server link, including nested cases, without errors', () => {
     const productNavPo = new ProductNavPo();
     // iterate through top-level groups
 
@@ -81,5 +77,17 @@ describe('Side navigation: Cluster ', { tags: ['@navigation', '@adminUser'] }, (
           .then((linkEl) => cy.url().should('equal', linkEl.prop('href')));
       });
     });
+  });
+
+  it('Clicking outside of text should still navigate', () => {
+    const productNavPo = new ProductNavPo();
+    const group = productNavPo.groups().eq(1);
+
+    // Select and expand current top-level group
+    group.click();
+    // Go to the second subgroup
+    productNavPo.visibleNavTypes().eq(1).click({ force: true });
+    // Click on a header and confirm it opened
+    productNavPo.tabHeaders().eq(1).click().then((els) => cy.url().should('equal', els[0].baseURI));
   });
 });

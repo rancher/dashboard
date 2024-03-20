@@ -49,4 +49,11 @@ export default class ProductNavPo extends ComponentPo {
   navToSideMenuGroupByLabelExistance(label: string, assertion: string): Cypress.Chainable {
     return this.self().should('exist').contains('.accordion.has-children', label).should(assertion);
   }
+
+  /**
+   * Get expanded tab's header
+   */
+  tabHeaders(): Cypress.Chainable {
+    return this.self().find('.header');
+  }
 }
