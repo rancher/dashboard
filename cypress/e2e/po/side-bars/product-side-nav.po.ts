@@ -51,7 +51,7 @@ export default class ProductNavPo extends ComponentPo {
   }
 
   /**
-   * Get expanded tab's header
+   * Get tab headers
    */
   tabHeaders(): Cypress.Chainable {
     return this.self().find('.header');
