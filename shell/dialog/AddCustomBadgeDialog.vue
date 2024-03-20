@@ -13,6 +13,7 @@ import ColorInput from '@shell/components/form/ColorInput';
 import { parseColor, textColor } from '@shell/utils/color';
 import { NORMAN } from '@shell/config/types';
 import { abbreviateClusterName } from '@shell/utils/cluster';
+import { _CREATE, _EDIT } from '@shell/config/query-params';
 
 export default {
   name:       'AddCustomBadgeDialog',
@@ -28,7 +29,8 @@ export default {
   },
   props: {
     isCreate:    { type: Boolean, default: false },
-    clusterName: { type: String, default: '' }
+    clusterName: { type: String, default: '' },
+    mode:        { type: String, default: _CREATE },
   },
   data() {
     return {
@@ -43,19 +45,18 @@ export default {
   },
   mounted() {
     // Generates a fake cluster object for use with badge component on cluster provisioning.
-
-    if (this.isCreate) {
+    if (this.enableFields) {
       this.cluster = this.getPreviewCluster;
       this.badgeAsIcon = true;
       this.letter = this.cluster?.badge?.iconText || abbreviateClusterName(this.clusterName);
-      this.useCustomComment = false;
+      this.useCustomComment = this.cluster?.badge?.text?.length > 0 || false;
       this.badgeBgColor = this.cluster?.badge?.color || '#f1f1f1';
       this.badgeComment = this.cluster?.badge?.text || null;
     }
   },
 
   fetch() {
-    if (this.isCreate) {
+    if (this.enableFields ) {
       return;
     }
 
@@ -74,21 +75,28 @@ export default {
   computed: {
     ...mapGetters(['currentCluster']),
     ...mapGetters('customisation', ['getPreviewCluster']),
+    enableFields() {
+      return this.isCreate || this.mode === _EDIT;
+    },
     canSubmit() {
-      if (this.isCreate) {
+      if (this.mode === _CREATE) {
         return true;
       }
 
       if (this.badgeAsIcon && this.useCustomComment) {
         return true;
       } else {
+        if (this.mode === _EDIT) {
+          return true;
+        }
+
         return this.badgeAsIcon !== this.currentCluster.metadata?.annotations[CLUSTER_BADGE.ICON_TEXT] || this.useCustomComment !== !!this.currentCluster.metadata?.annotations[CLUSTER_BADGE.TEXT];
       }
     },
     // Fake cluster object for use with badge component
     previewCluster() {
       // Make cluster object that is enough for the badge component to work
-      return !this.isCreate ? {
+      return (!this.isCreate && this.currentCluster) ? {
         isLocal:         this.currentCluster.isLocal,
         providerNavLogo: this.currentCluster.providerNavLogo,
         badge:           {
@@ -111,7 +119,11 @@ export default {
     },
 
     previewName() {
-      return this.isCreate ? this.clusterName : this.currentCluster.nameDisplay;
+      if (this.enableFields) {
+        return this.clusterName;
+      }
+
+      return this.currentCluster.nameDisplay;
     },
   },
 

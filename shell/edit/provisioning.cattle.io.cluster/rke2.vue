@@ -60,6 +60,7 @@ import Upgrade from '@shell/edit/provisioning.cattle.io.cluster/tabs/upgrade';
 import Registries from '@shell/edit/provisioning.cattle.io.cluster/tabs/registries';
 import AddOnConfig from '@shell/edit/provisioning.cattle.io.cluster/tabs/AddOnConfig';
 import Advanced from '@shell/edit/provisioning.cattle.io.cluster/tabs/Advanced';
+import ClusterAppearance from '@shell/components/form/ClusterAppearance';
 
 const HARVESTER = 'harvester';
 const HARVESTER_CLOUD_PROVIDER = 'harvester-cloud-provider';
@@ -106,7 +107,8 @@ export default {
     Upgrade,
     Registries,
     AddOnConfig,
-    Advanced
+    Advanced,
+    ClusterAppearance
   },
 
   mixins: [CreateEditView, FormValidation],
@@ -221,6 +223,12 @@ export default {
   },
 
   computed: {
+    clusterName() {
+      return this.value.metadata?.name || '';
+    },
+    showClusterAppearance() {
+      return this.mode === _CREATE;
+    },
     clusterBadgeAbbreviation() {
       return this.$store.getters['customisation/getPreviewCluster'];
     },
@@ -701,6 +709,13 @@ export default {
 
       return validRequiredPools && base;
     },
+    currentCluster() {
+      if (this.mode === _EDIT) {
+        return { ...this.value };
+      } else {
+        return this.$store.getters['customisation/getPreviewCluster'];
+      }
+    }
   },
 
   watch: {
@@ -708,6 +723,10 @@ export default {
       immediate: true,
       handler(neu) {
         if (!neu) {
+          return;
+        }
+
+        if (this.mode === _EDIT) {
           return;
         }
 
@@ -2059,7 +2078,18 @@ export default {
         description-label="cluster.description.label"
         description-placeholder="cluster.description.placeholder"
         :rules="{ name: fvGetAndReportPathRules('metadata.name') }"
-      />
+      >
+        <template
+          v-if="showClusterAppearance"
+          slot="customize"
+        >
+          <ClusterAppearance
+            :name="clusterName"
+            :currentCluster="currentCluster"
+            :mode="mode"
+          />
+        </template>
+      </NameNsDescription>
 
       <Banner
         v-if="appsOSWarning"

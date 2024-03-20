@@ -131,7 +131,7 @@ describe('component: rke2', () => {
       computed: defaultComputed,
       mocks:    {
         ...defaultMocks,
-        $store: { getters: defaultGetters },
+        $store: { dispatch: () => jest.fn(), getters: defaultGetters },
       },
       stubs: defaultStubs
     });
@@ -157,7 +157,7 @@ describe('component: rke2', () => {
       computed: defaultComputed,
       mocks:    {
         ...defaultMocks,
-        $store: { getters: defaultGetters },
+        $store: { dispatch: () => jest.fn(), getters: defaultGetters },
       },
       stubs: defaultStubs
     });
@@ -183,7 +183,7 @@ describe('component: rke2', () => {
       computed: defaultComputed,
       mocks:    {
         ...defaultMocks,
-        $store: { getters: defaultGetters },
+        $store: { dispatch: () => jest.fn(), getters: defaultGetters },
       },
       stubs: defaultStubs
     });
