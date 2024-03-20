@@ -8,7 +8,7 @@ describe('Rancher setup', { tags: ['@adminUserSetup', '@standardUserSetup', '@se
     cy.visit('');
 
     new RancherSetupPagePo().hasInfoMessage();
-    cy.url().should('equal', `${ Cypress.config().baseUrl }/auth/login`);
+    cy.url().should('contain', `${ Cypress.config().baseUrl }/auth/login`);
   });
 
   it('Set initial Docker bootstrap password and admin password as single session', () => {

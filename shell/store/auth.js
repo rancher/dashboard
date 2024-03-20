@@ -1,4 +1,4 @@
-import { GITHUB_NONCE, GITHUB_REDIRECT, GITHUB_SCOPE } from '@shell/config/query-params';
+import { GITHUB_NONCE, GITHUB_REDIRECT, GITHUB_SCOPE, TIMED_OUT } from '@shell/config/query-params';
 import { NORMAN } from '@shell/config/types';
 import { _MULTI } from '@shell/plugins/dashboard-store/actions';
 import { addObjects, findBy } from '@shell/utils/array';
@@ -130,8 +130,92 @@ export const actions = {
     commit('gotUser', user);
   },
 
+  async loggedIn({ dispatch, commit }) {
+    const me = await dispatch('findMe');
+
+    commit('hasAuth', true);
+    commit('loggedInAs', me.id);
+  },
+
+  notLoggedIn({ commit }) {
+    const { route, redirect } = this.app.context;
+
+    commit('hasAuth', true);
+
+    if ( route.name === 'index' ) {
+      redirect(302, '/auth/login');
+    } else {
+      redirect(302, `/auth/login?${ TIMED_OUT }`);
+    }
+  },
+
+  noAuth({ commit }) {
+    commit('hasAuth', false);
+  },
+
   setInitialPass({ commit }, pass) {
     commit('initialPass', pass);
+  },
+
+  async tryInitialSetup({ dispatch }, password = 'admin') {
+    try {
+      const res = await dispatch('login', {
+        provider: 'local',
+        body:     {
+          username: 'admin',
+          password
+        },
+      });
+
+      return res._status === 200;
+    } catch (e) {
+      console.error('Error trying initial setup', e); // eslint-disable-line no-console
+
+      return false;
+    }
+  },
+
+  async handleFirstLogin({ dispatch }, password) {
+    const redirect = this.app.context.redirect;
+    const needsToBeSetup = await dispatch('tryInitialSetup', password);
+
+    if (needsToBeSetup) {
+      if (password) {
+        dispatch('setInitialPass', password);
+      }
+
+      return redirect({ name: 'auth-setup' });
+    } else {
+      return redirect({ name: 'auth-login' });
+    }
+  },
+
+  async findMe({ dispatch }) {
+  // First thing we do in loadManagement is fetch principals anyway.... so don't ?me=true here
+    const principals = await dispatch('rancher/findAll', {
+      type: NORMAN.PRINCIPAL,
+      opt:  {
+        url:                  '/v3/principals',
+        redirectUnauthorized: false,
+      }
+    }, { root: true });
+
+    const me = findBy(principals, 'me', true);
+
+    return me;
+  },
+
+  async handleUserMustChangePassword({ dispatch, getters }) {
+    const redirect = this.app.context.redirect;
+
+    // `await` so we have one successfully request whilst possibly logged in (ensures fromHeader is populated from `x-api-cattle-auth`)
+    await dispatch('getUser');
+
+    const v3User = getters['v3User'] || {};
+
+    if (v3User?.mustChangePassword) {
+      redirect({ name: 'auth-setup' });
+    }
   },
 
   getAuthProviders({ dispatch }) {
