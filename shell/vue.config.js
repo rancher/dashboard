@@ -42,7 +42,6 @@ const api = configHelper.api;
 // from it, rather than from the location of this file
 module.exports = function(dir, _appConfig) {
   // Paths to the shell folder when it is included as a node dependency
-  let SHELL = 'node_modules/@rancher/shell';
   let SHELL_ABS = path.join(dir, 'node_modules/@rancher/shell');
   let COMPONENTS_DIR = path.join(SHELL_ABS, 'rancher-components');
 
@@ -60,7 +59,6 @@ module.exports = function(dir, _appConfig) {
   // If we have a local folder named 'shell' then use that rather than the one in node_modules
   // This will be the case in the main dashboard repository.
   if (fs.existsSync(path.join(dir, 'shell'))) {
-    SHELL = './shell';
     SHELL_ABS = path.join(dir, 'shell');
     COMPONENTS_DIR = path.join(dir, 'pkg', 'rancher-components', 'src', 'components');
   }
