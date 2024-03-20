@@ -150,7 +150,7 @@ export default defineComponent({
       background-color: var(--modal-bg);
       border-radius: var(--border-radius);
       max-height: 95vh;
-      overflow: scroll;
+      overflow: auto;
       border: 2px solid var(--modal-border);
     }
   }
