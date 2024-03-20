@@ -7,7 +7,7 @@ import CruResource from '@shell/components/CruResource';
 import { LabeledInput } from '@components/Form/LabeledInput';
 import { RadioGroup } from '@components/Form/Radio';
 import FileImageSelector from '@shell/components/form/FileImageSelector';
-import LabeledSelect from '@shell/components/form/LabeledSelect.vue';
+import LabeledSelect from '@shell/components/form/LabeledSelect';
 import NameNsDescription from '@shell/components/form/NameNsDescription';
 import { Banner } from '@components/Banner';
 import FormValidation from '@shell/mixins/form-validation';

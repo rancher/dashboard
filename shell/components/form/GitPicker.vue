@@ -4,7 +4,7 @@ import SortableTable from '@shell/components/SortableTable/index.vue';
 import RadioButton from '@components/Form/Radio/RadioButton.vue';
 import debounce from 'lodash/debounce';
 import { isArray } from '@shell/utils/array';
-import LabeledSelect from '@shell/components/form/LabeledSelect.vue';
+import LabeledSelect from '@shell/components/form/LabeledSelect';
 import LabeledInput from '@components/Form/LabeledInput/LabeledInput.vue';
 import { GitUtils, Commit } from '@shell/utils/git';
 import type { DebouncedFunc } from 'lodash';

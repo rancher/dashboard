@@ -376,6 +376,7 @@ BODY, .theme-light {
   --dropdown-hover-bg          : var(--link);
   --dropdown-disabled-text     : var(--muted);
   --dropdown-disabled-bg       : #{$disabled};
+  --dropdown-group-text        : #{$darker};
   --dropdown-highlight-text    : var(--link);
 
   --card-badge-text            : #ffffff;

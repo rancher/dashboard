@@ -16,7 +16,7 @@ import CreateEditView from '@shell/mixins/create-edit-view';
 import FormValidation from '@shell/mixins/form-validation';
 import SelectCredential from '@shell/edit/provisioning.cattle.io.cluster/SelectCredential.vue';
 import CruResource from '@shell/components/CruResource.vue';
-import LabeledSelect from '@shell/components/form/LabeledSelect.vue';
+import LabeledSelect from '@shell/components/form/LabeledSelect/index.vue';
 import LabeledInput from '@components/Form/LabeledInput/LabeledInput.vue';
 import Checkbox from '@components/Form/Checkbox/Checkbox.vue';
 import FileSelector from '@shell/components/form/FileSelector.vue';

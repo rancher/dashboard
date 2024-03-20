@@ -7,7 +7,7 @@ import { LabeledInput } from '@components/Form/LabeledInput';
 import { Banner } from '@components/Banner';
 import { get } from '@shell/utils/object';
 import { allHash } from '@shell/utils/promise';
-import { STORAGE_CLASS, SECRET, PV } from '@shell/config/types';
+import { STORAGE_CLASS, PV } from '@shell/config/types';
 import { mapGetters } from 'vuex';
 import { STORAGE } from '@shell/config/labels-annotations';
 
@@ -41,10 +41,8 @@ export default {
     const hash = await allHash({
       storageClasses:    this.$store.dispatch('cluster/findAll', { type: STORAGE_CLASS }),
       persistentVolumes: this.$store.dispatch('cluster/findAll', { type: PV }),
-      secrets:           this.$store.dispatch('cluster/findAll', { type: SECRET }),
     });
 
-    this.secrets = hash.secrets;
     this.storageClasses = hash.storageClasses;
     this.persistentVolumes = hash.persistentVolumes;
 
@@ -89,6 +87,12 @@ export default {
 
   watch: {
     storageSource(neu) {
+      if (!this.value.persistence) {
+        this.value.persistence = {};
+      }
+      if (!this.value.s3) {
+        this.value.s3 = {};
+      }
       switch (neu) {
       case 'pickSC':
         this.value.persistence.enabled = true;

@@ -5,7 +5,7 @@ import { Card } from '@components/Card';
 import { Banner } from '@components/Banner';
 import Date from '@shell/components/formatter/Date.vue';
 import RadioGroup from '@components/Form/Radio/RadioGroup.vue';
-import LabeledSelect from '@shell/components/form/LabeledSelect.vue';
+import LabeledSelect from '@shell/components/form/LabeledSelect';
 import { exceptionToErrorsArray } from '@shell/utils/error';
 import { CAPI, NORMAN, SNAPSHOT } from '@shell/config/types';
 import { set } from '@shell/utils/object';
