@@ -1,6 +1,5 @@
 const fs = require('fs');
 const path = require('path');
-const serveStatic = require('serve-static');
 const webpack = require('webpack');
 const { generateDynamicTypeImport } = require('./pkg/auto-import');
 const CopyWebpackPlugin = require('copy-webpack-plugin');
@@ -87,7 +86,6 @@ module.exports = function(dir, _appConfig) {
   const appConfig = _appConfig || {};
   const excludes = appConfig.excludes || [];
 
-  const serverMiddleware = [];
   const watcherIgnores = [
     /.shell/,
     /dist-pkg/,
@@ -108,33 +106,9 @@ module.exports = function(dir, _appConfig) {
         const id = `${ f.name }-${ f.version }`;
 
         nmPackages[id] = f.main;
-
-        // Add server middleware to serve up the files for this UI package
-        serverMiddleware.push({
-          path:    `/pkg/${ id }`,
-          handler: serveStatic(path.join(NM, pkg))
-        });
       }
     });
   }
-
-  serverMiddleware.push({
-    path:    '/uiplugins-catalog',
-    handler: (req, res, next) => {
-      const p = req.url.split('?');
-
-      try {
-        const proxy = createProxyMiddleware({
-          target:      p[1],
-          pathRewrite: { '^.*': p[0] }
-        });
-
-        return proxy(req, res, next);
-      } catch (e) {
-        console.error(e); // eslint-disable-line no-console
-      }
-    }
-  });
 
   function includePkg(name) {
     if (name.startsWith('.') || name === 'node_modules') {
@@ -169,13 +143,6 @@ module.exports = function(dir, _appConfig) {
         reqs += `$plugin.initPlugin('${ name }', require(\'~/pkg/${ name }\')); `;
       }
 
-      // // Serve the code for the UI package in case its used for dynamic loading (but not if the same package was provided in node_modules)
-      // if (!nmPackages[name]) {
-      //   const pkgPackageFile = require(path.join(dir, 'pkg', name, 'package.json'));
-      //   const pkgRef = `${ name }-${ pkgPackageFile.version }`;
-
-      //   serverMiddleware.push({ path: `/pkg/${ pkgRef }`, handler: serveStatic(`${ dir }/dist-pkg/${ pkgRef }`) });
-      // }
       autoImportTypes[`node_modules/@rancher/auto-import/${ name }`] = generateDynamicTypeImport(`@pkg/${ name }`, path.join(dir, `pkg/${ name }`));
     });
   }
@@ -212,11 +179,6 @@ module.exports = function(dir, _appConfig) {
       resource.request = p;
     }
   });
-
-  // Serve up the dist-pkg folder under /pkg
-  serverMiddleware.push({ path: `/pkg/`, handler: serveStatic(`${ dir }/dist-pkg/`) });
-  // Endpoint to download and unpack a tgz from the local verdaccio rgistry (dev)
-  serverMiddleware.push(path.resolve(dir, SHELL, 'server', 'verdaccio-middleware'));
 
   // ===============================================================================================
   // Dashboard nuxt configuration
