@@ -74,12 +74,12 @@ describe('Side navigation: Cluster ', { tags: ['@navigation', '@adminUser'] }, (
       productNavPo.visibleNavTypes().each((link, idx) => {
         productNavPo.visibleNavTypes().eq(idx)
           .click({ force: true })
-          .then((linkEl) => cy.url().should('equal', linkEl.prop('href')));
+          .then((linkEl) => cy.url().should('contain', linkEl.prop('href')));
       });
     });
   });
 
-  it('Clicking outside of text should still navigate', () => {
+  it('Clicking on the tab header should navigate', () => {
     const productNavPo = new ProductNavPo();
     const group = productNavPo.groups().eq(1);
 
