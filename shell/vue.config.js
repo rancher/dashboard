@@ -63,20 +63,6 @@ module.exports = function(dir, _appConfig) {
     COMPONENTS_DIR = path.join(dir, 'pkg', 'rancher-components', 'src', 'components');
   }
 
-  const babelPlugins = [
-    // TODO: Browser support
-    // ['@babel/plugin-transform-modules-commonjs'],
-    ['@babel/plugin-proposal-private-property-in-object', { loose: true }]
-  ];
-
-  if (instrumentCode) {
-    babelPlugins.push([
-      'babel-plugin-istanbul', { extension: ['.js', '.vue'] }, 'add-vue'
-    ]);
-
-    console.warn('Instrumenting code for coverage'); // eslint-disable-line no-console
-  }
-
   // ===============================================================================================
   // Functions for the UI Pluginas
   // ===============================================================================================
