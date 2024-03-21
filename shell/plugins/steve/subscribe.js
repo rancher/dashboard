@@ -843,10 +843,11 @@ const defaultActions = {
       selector:  msg.selector
     };
 
+    // Are we switching between watches on the same type that only cover a subtype of them? If so unwatch the existing one
     state.started.filter((entry) => {
       if (
         entry.type === newWatch.type &&
-        entry.namespace !== newWatch.namespace
+        (entry.namespace !== newWatch.namespace || entry.id !== newWatch.id || entry.selector !== newWatch.selector)
       ) {
         return true;
       }
