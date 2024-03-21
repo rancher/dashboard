@@ -2065,6 +2065,8 @@ clusterIndexPage:
       etcd: Etcd
       scheduler: Scheduler
       controller-manager: Controller Manager
+      cattle: Cattle
+      fleet: Fleet
     certs:
       label: Certificates
 
