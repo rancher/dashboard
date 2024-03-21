@@ -1,6 +1,6 @@
 import _actions from '@shell/plugins/dashboard-store/actions';
 
-const { findAll, findMatching } = _actions;
+const { findAll, findMatching, find } = _actions;
 
 describe('dashboard-store: actions', () => {
   describe('findAll', () => {
@@ -246,5 +246,29 @@ describe('dashboard-store: actions', () => {
         expect(getters.urlFor).toHaveBeenCalledWith(...output.getters.urlFor);
       }
     );
+  });
+
+  describe('find', () => {
+    it('rewatch for resources that are already in the store', () => {
+      const ctx = {
+        state:    { config: { namespace: 'test_store' } },
+        getters:  { byId: jest.fn().mockReturnValueOnce({ metadata: { resourceVersion: 1 } }) },
+        dispatch: jest.fn()
+      };
+
+      const type = 'test_type';
+      const id = 'test_id';
+      const opt = {};
+
+      find(ctx, {
+        type, id, opt
+      });
+
+      expect(ctx.getters.byId).toHaveBeenCalledWith(type, id);
+      expect(ctx.dispatch).toHaveBeenCalledWith('watch', {
+        id, namespace: undefined, revision: 1, type
+      });
+      expect(ctx.dispatch).toHaveBeenCalledTimes(1);
+    });
   });
 });
