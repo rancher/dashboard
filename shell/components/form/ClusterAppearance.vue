@@ -88,7 +88,7 @@ export default {
   .cluster-appearance {
     display: flex;
     flex-direction: column;
-    margin: 0px 35px 0px 0px;
+    margin: 3px 35px 0px 0px;
 
     label {
       margin: 6px 0 0;
