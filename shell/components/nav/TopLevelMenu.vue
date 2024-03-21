@@ -16,6 +16,7 @@ import { filterOnlyKubernetesClusters, filterHiddenLocalCluster } from '@shell/u
 import { getProductFromRoute } from '@shell/utils/router';
 import { isRancherPrime } from '@shell/config/version';
 import Pinned from '@shell/components/nav/Pinned';
+import isObject from 'lodash/isObject';
 
 export default {
   components: {
@@ -39,6 +40,7 @@ export default {
       emptyCluster:      BLANK_CLUSTER,
       showPinClusters:   false,
       searchActive:      false,
+      routeCombo:        false,
     };
   },
 
@@ -129,7 +131,8 @@ export default {
           pinned:          x.pinned,
           description:     pCluster?.description,
           pin:             () => x.pin(),
-          unpin:           () => x.unpin()
+          unpin:           () => x.unpin(),
+          clusterRoute:    { name: 'c-cluster-explorer', params: { cluster: x.id } }
         };
       }) || [];
     },
@@ -295,6 +298,30 @@ export default {
       return this.productFromRoute === obj?.value;
     },
 
+    handleKeyComboClick() {
+      this.routeCombo = !this.routeCombo;
+    },
+
+    clusterMenuClick(ev, cluster) {
+      if (this.routeCombo) {
+        ev.preventDefault();
+
+        if (this.isCurrRouteClusterExplorer && this.productFromRoute === this.currentProduct?.name) {
+          const clusterRoute = {
+            name:   this.$route.name,
+            params: { ...this.$route.params },
+            query:  { ...this.$route.query }
+          };
+
+          clusterRoute.params.cluster = cluster.id;
+
+          return this.$router.push(clusterRoute);
+        }
+      }
+
+      return this.$router.push(cluster.clusterRoute);
+    },
+
     handler(e) {
       if (e.keyCode === KEY.ESCAPE ) {
         this.hide();
@@ -335,9 +362,21 @@ export default {
         contentText = item;
         content = this.shown ? null : contentText;
 
+      // if key combo is pressed, then we update the tooltip as well
+      } else if (this.routeCombo && isObject(item) && item.ready) {
+        contentText = 'Switch clusters and keeps location';
+
+        if (showWhenClosed) {
+          content = !this.shown ? contentText : null;
+        } else {
+          content = this.shown ? contentText : null;
+        }
+
       // this is scenario where we show a tooltip when we are on the expanded menu to show full description
       } else {
         contentText = item.label;
+        // this adds a class to the tooltip container so that we can control the max width
+        classes = 'menu-description-tooltip';
 
         if (item.description) {
           contentText += `<br><br>${ item.description }`;
@@ -347,10 +386,10 @@ export default {
           content = !this.shown ? contentText : null;
         } else {
           content = this.shown ? contentText : null;
-        }
 
-        // this adds a class to the tooltip container so that we can control the max width
-        classes = 'menu-description-tooltip';
+          // this adds a class to adjust tooltip position so it doesn't overlap the cluster pinning action
+          classes += ' description-tooltip-pos-adjustment';
+        }
       }
 
       return {
@@ -518,16 +557,20 @@ export default {
                   :key="c.id"
                   @click="hide()"
                 >
-                  <nuxt-link
+                  <button
                     v-if="c.ready"
+                    v-shortkey.push="{windows: ['alt', 'shift'], mac: ['option', 'shift']}"
                     :data-testid="`pinned-menu-cluster-${ c.id }`"
                     class="cluster selector option"
                     :class="{'active-menu-link': checkActiveRoute(c, true) }"
-                    :to="{ name: 'c-cluster-explorer', params: { cluster: c.id } }"
+                    :to="c.clusterRoute"
+                    @click.prevent="clusterMenuClick($event, c)"
+                    @shortkey="handleKeyComboClick"
                   >
                     <ClusterIconMenu
                       v-tooltip="getTooltipConfig(c, true)"
                       :cluster="c"
+                      :route-combo="routeCombo"
                       class="rancher-provider-icon"
                     />
                     <div
@@ -545,7 +588,7 @@ export default {
                     <Pinned
                       :cluster="c"
                     />
-                  </nuxt-link>
+                  </button>
                   <span
                     v-else
                     class="option cluster selector disabled"
@@ -589,16 +632,20 @@ export default {
                   :data-testid="`top-level-menu-cluster-${index}`"
                   @click="hide()"
                 >
-                  <nuxt-link
+                  <button
                     v-if="c.ready"
+                    v-shortkey.push="{windows: ['alt', 'shift'], mac: ['option', 'shift']}"
                     :data-testid="`menu-cluster-${ c.id }`"
                     class="cluster selector option"
                     :class="{'active-menu-link': checkActiveRoute(c, true) }"
-                    :to="{ name: 'c-cluster-explorer', params: { cluster: c.id } }"
+                    :to="c.clusterRoute"
+                    @click="clusterMenuClick($event, c)"
+                    @shortkey="handleKeyComboClick"
                   >
                     <ClusterIconMenu
                       v-tooltip="getTooltipConfig(c, true)"
                       :cluster="c"
+                      :route-combo="routeCombo"
                       class="rancher-provider-icon"
                     />
                     <div
@@ -617,7 +664,7 @@ export default {
                       :class="{'showPin': c.pinned}"
                       :cluster="c"
                     />
-                  </nuxt-link>
+                  </button>
                   <span
                     v-else
                     class="option cluster selector disabled"
@@ -799,12 +846,15 @@ export default {
 <style lang="scss">
   .menu-description-tooltip {
     max-width: 200px;
+    white-space: pre-wrap;
+    word-wrap: break-word;
+  }
+
+  .description-tooltip-pos-adjustment {
     // needs !important so that we can
     // offset the tooltip a bit so it doesn't
     // overlap the pin icon and cause bad UX
     left: 35px !important;
-    white-space: pre-wrap;
-    word-wrap: break-word;
   }
 
   .localeSelector, .footer-tooltip {
@@ -929,6 +979,10 @@ export default {
         font-size: 14px;
         height: $option-height;
         white-space: nowrap;
+        background-color: transparent;
+        width: 100%;
+        border-radius: 0;
+        border: none;
 
         .cluster-badge-logo-text {
           color: var(--default-active-text);
@@ -946,10 +1000,11 @@ export default {
         }
 
         .cluster-name p {
-          width: 199px;
+          width: 195px;
           white-space: nowrap;
           overflow: hidden;
           text-overflow: ellipsis;
+          text-align: left;
 
           &.description {
             font-size: 12px;
@@ -983,6 +1038,8 @@ export default {
 
         &:focus {
           outline: 0;
+          box-shadow: none;
+
           > div {
             text-decoration: underline;
           }
