@@ -27,7 +27,7 @@ export default defineComponent({
         }
 
         if (typeof value === 'string') {
-          return /^(0*(?:[1-9][0-9]*|0)\.?\d*)+(px|%)$/.test(value) && Number(value) > 0;
+          return /^(0*(?:[1-9][0-9]*|0)\.?\d*)+(px|%)$/.test(value);
         }
 
         return false;
