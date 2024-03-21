@@ -6,7 +6,7 @@ import PromptRemove from '@/cypress/e2e/po/prompts/promptRemove.po';
 import LoadingPo from '@/cypress/e2e/po/components/loading.po';
 
 // will only run this in jenkins pipeline where cloud credentials are stored
-describe('Provision Node driver RKE2 cluster with Azure', { testIsolation: 'off', tags: ['@manager', '@adminUser', '@jenkins'] }, () => {
+describe('Provision Node driver RKE2 cluster with Azure', { testIsolation: 'off', tags: ['@manager', '@adminUser', '@standardUser', '@jenkins'] }, () => {
   const clusterList = new ClusterManagerListPagePo();
   let removeCloudCred = false;
   let cloudcredentialId = '';
