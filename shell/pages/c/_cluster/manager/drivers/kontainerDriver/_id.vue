@@ -8,5 +8,5 @@ export default {
 </script>
 
 <template>
-  <ResourceDetail />
+  <ResourceDetail resource-override="kontainerDriver" />
 </template>
