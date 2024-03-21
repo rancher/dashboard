@@ -47,7 +47,7 @@ export default {
     // Generates a fake cluster object for use with badge component on cluster provisioning.
     if (this.enableFields) {
       this.cluster = this.getPreviewCluster;
-      this.badgeAsIcon = true;
+      this.badgeAsIcon = this.cluster?.badge?.iconText?.length > 0 || false;
       this.letter = this.cluster?.badge?.iconText || abbreviateClusterName(this.clusterName);
       this.useCustomComment = this.cluster?.badge?.text?.length > 0 || false;
       this.badgeBgColor = this.cluster?.badge?.color || '#f1f1f1';
@@ -78,9 +78,12 @@ export default {
     enableFields() {
       return this.isCreate || this.mode === _EDIT;
     },
+    showPreview() {
+      return this.badgeAsIcon;
+    },
     canSubmit() {
       if (this.mode === _CREATE) {
-        return true;
+        return this.badgeAsIcon || this.useCustomComment;
       }
 
       if (this.badgeAsIcon && this.useCustomComment) {
@@ -192,14 +195,12 @@ export default {
     >
       <div>{{ t('clusterBadge.modal.previewTitle') }}</div>
 
-      <div class="mt-10 pl-20 row preview-row">
-        <div class="badge-preview col span-12">
+      <div class="mt-10 row preview-row">
+        <div
+          class="badge-preview col span-12"
+        >
           <ClusterProviderIcon
-            v-if="isCreate"
-            :cluster="previewCluster"
-          />
-          <ClusterProviderIcon
-            v-else
+            v-if="showPreview"
             :cluster="previewCluster"
           />
           <div class="cluster-name">
@@ -293,10 +294,6 @@ export default {
   </Card>
 </template>
 <style lang='scss' scoped>
-.cluster-icon {
-  border: 1px solid var(--default-border);
-}
-
 .prompt-badge {
   margin: 0;
 

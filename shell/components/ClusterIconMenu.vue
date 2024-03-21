@@ -139,7 +139,7 @@ export default {
     text-transform: uppercase;
 
     &.custom-color {
-      border-bottom: 4px solid transparent;
+      padding-bottom: 2px;
     }
 
     .custom-color-decoration {

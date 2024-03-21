@@ -64,7 +64,9 @@ export default {
 
 <template>
   <div class="cluster-appearance">
-    <label for="name">Cluster ClusterAppearance</label>
+    <label for="name">
+      {{ t('clusterBadge.setClusterAppearance') }}
+    </label>
     <div class="cluster-appearance-preview">
       <span>
         <ClusterIconMenu :cluster="clusterPreview" />
@@ -74,7 +76,9 @@ export default {
         @click="customBadgeDialog"
       >
         <i class="icon icon-brush-icon" />
-        <span>Customize</span>
+        <span>
+          {{ t('clusterBadge.customize') }}
+        </span>
       </button>
     </div>
   </div>

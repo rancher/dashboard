@@ -2384,17 +2384,19 @@ glance:
 
 clusterBadge:
   addLabel: Add Cluster Badge
+  setClusterAppearance: Cluster Appearance
+  customize: Customize
   editLabel: Edit Cluster Badge
   modal:
-    title: Custom Cluster Badge
+    title: Cluster Appearance
     checkbox: Show cluster comment
     comment: Custom comment
     iconText: Icon Text
     buttonAction: Apply
     badgeBgColor: Badge background color
     badgeTextColor: Badge text color
-    badgeAsIcon: Customize cluster icon
-    maxCharsTooltip: Maximum three characters
+    badgeAsIcon: Use custom badge
+    maxCharsTooltip: Overwrites the default cluster name abbreviation.
     previewTitle: "Cluster icon and name presentation:"
 
 grafanaDashboard:
