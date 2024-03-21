@@ -81,13 +81,16 @@ describe('Side navigation: Cluster ', { tags: ['@navigation', '@adminUser'] }, (
 
   it('Clicking on the tab header should navigate', () => {
     const productNavPo = new ProductNavPo();
-    const group = productNavPo.groups().eq(1);
+    const group = productNavPo.groups().eq(1); // First group is 'Workloads'
 
     // Select and expand current top-level group
     group.click();
-    // Go to the second subgroup
-    productNavPo.visibleNavTypes().eq(1).click({ force: true });
-    // Click on a header and confirm it opened
-    productNavPo.tabHeaders().eq(1).click().then((els) => cy.url().should('equal', els[0].baseURI));
+
+    cy.url().then((workloadsUrl) => {
+      // Go to the second subgroup
+      productNavPo.visibleNavTypes().eq(1).click({ force: true });
+      // Clicking back should take us back to workloads
+      productNavPo.tabHeaders().eq(1).click(1, 1).then(() => cy.url().should('equal', workloadsUrl));
+    });
   });
 });
