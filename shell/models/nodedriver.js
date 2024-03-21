@@ -1,6 +1,6 @@
 import Driver from '@shell/models/driver';
 
-export default class KontainerDriver extends Driver {
+export default class NodeDriver extends Driver {
   get doneRoute() {
     return 'c-cluster-manager-driver-nodedriver';
   }

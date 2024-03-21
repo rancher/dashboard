@@ -7,7 +7,7 @@ const name = 'https://github.com/cloudscale-ch/docker-machine-driver-cloudscale/
 
 // Note: This test fails due to https://github.com/rancher/dashboard/issues/10275
 // skipping this tests until issue has been resolved
-describe.skip('Node Drivers', { tags: ['@manager', '@adminUser'] }, () => {
+describe('Node Drivers', { tags: ['@manager', '@adminUser'] }, () => {
   const driverList = new NodeDriverListPagePo('local');
   const createDriverPage = new NodeDriverEditPo('local');
 
@@ -22,7 +22,7 @@ describe.skip('Node Drivers', { tags: ['@manager', '@adminUser'] }, () => {
     // Wait for loading indicator to go
     driverList.sortableTable().checkLoadingIndicatorNotVisible();
   });
-  it('can create new driver', () => {
+  it.skip('can create new driver', () => {
     cy.intercept('POST', `/v3/nodedrivers`).as('createRequest');
     const request = {
       type,
@@ -43,7 +43,7 @@ describe.skip('Node Drivers', { tags: ['@manager', '@adminUser'] }, () => {
       expect(isMatch(intercept.request.body, request)).to.equal(true);
     });
   });
-  it('can deactivate driver', () => {
+  it.skip('can deactivate driver', () => {
     const request = { };
 
     driverList.waitForActiveStatus(name);
@@ -59,9 +59,6 @@ describe.skip('Node Drivers', { tags: ['@manager', '@adminUser'] }, () => {
     cy.wait('@createRequest').then((intercept) => {
       expect(isMatch(intercept.request.body, request)).to.equal(true);
     });
-  });
-
-  after(() => {
     driverList.goTo();
     driverList.sortableTable().deleteItemWithUI('https://github.com/cloudscale-ch/docker-machine-driver-cloudscale/releases/download/v1.1.0/docker-machine-driver-cloudscale_v1.1.0_linux_amd64.tar.gz');
   });

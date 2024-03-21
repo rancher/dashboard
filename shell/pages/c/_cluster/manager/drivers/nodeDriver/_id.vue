@@ -8,8 +8,5 @@ export default {
 </script>
 
 <template>
-  <ResourceDetail
-    resource-override="nodeDriver"
-    parent-route-override="c-cluster-manager-driver-nodedriver"
-  />
+  <ResourceDetail />
 </template>

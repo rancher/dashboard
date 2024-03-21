@@ -2126,7 +2126,7 @@ drivers:
     customUiUrl: 
       label: Custom UI URL
       placeholder: https://test.com/ui
-      tooltip: The URL to load for customized Add Nodes screen for this driver. See ui-driver-skel for more info. 
+      tooltip: The URL to load for customized Add Nodes screen for this driver. See https://github.com/rancher/ui-driver-skel for more info. 
     checksum: 
       label: Checksum
       tooltip: Checksum to verify that the downloaded driver matches the expected checksum.

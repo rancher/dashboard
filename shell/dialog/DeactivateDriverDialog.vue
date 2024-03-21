@@ -56,9 +56,10 @@ export default {
   >
     <h4
       slot="title"
-      v-clean-html="t('drivers.deactivate.title')"
       class="text-default-text"
-    />
+    >
+      {{ t('drivers.deactivate.title') }}
+    </h4>
 
     <template #body>
       <div class="pl-10 pr-10">
