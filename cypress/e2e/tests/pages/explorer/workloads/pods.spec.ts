@@ -58,6 +58,8 @@ describe('Cluster Explorer', () => {
           createClonePo.nameNsDescription().name().set(clonePodName);
           createClonePo.save().wait(10000);
 
+          // Simple test to assert we haven't broken Pods detail page
+          // https://github.com/rancher/dashboard/issues/10490
           const clonedPodPage = new WorkLoadsPodDetailsPagePo(clonePodName);
 
           clonedPodPage.goTo().wait(10000);

@@ -7,10 +7,8 @@ import { STATE, SIMPLE_NAME, IMAGE_NAME } from '@shell/config/table-headers';
 import { sortableNumericSuffix } from '@shell/utils/sort';
 import { findBy } from '@shell/utils/array';
 import DashboardMetrics from '@shell/components/DashboardMetrics';
-import V1WorkloadMetrics from '@shell/mixins/v1-workload-metrics';
 import { mapGetters } from 'vuex';
 import { allDashboardsExist } from '@shell/utils/grafana';
-import LabeledSelect from '@shell/components/form/LabeledSelect';
 import day from 'dayjs';
 import { DATE_FORMAT, TIME_FORMAT } from '@shell/store/prefs';
 import { escapeHtml } from '@shell/utils/string';
@@ -28,10 +26,9 @@ export default {
     ResourceTabs,
     Tab,
     SortableTable,
-    LabeledSelect,
   },
 
-  mixins: [CreateEditView, V1WorkloadMetrics],
+  mixins: [CreateEditView],
 
   async fetch() {
     this.showMetrics = await allDashboardsExist(this.$store, this.currentCluster.id, [POD_METRICS_DETAIL_URL, POD_METRICS_SUMMARY_URL]);
@@ -50,22 +47,13 @@ export default {
   },
 
   data() {
-    const t = this.$store.getters['i18n/t'];
-    const POD_OPTION = {
-      id:    '//POD//',
-      label: t('workload.metrics.pod'),
-    };
-
     return {
       POD_METRICS_DETAIL_URL,
       POD_METRICS_SUMMARY_URL,
       POD_PROJECT_METRICS_DETAIL_URL:  '',
       POD_PROJECT_METRICS_SUMMARY_URL: '',
-      POD_OPTION,
       showMetrics:                     false,
       showProjectMetrics:              false,
-      selection:                       POD_OPTION,
-      metricsID:                       null,
     };
   },
 
@@ -194,27 +182,6 @@ export default {
       };
     },
 
-    metricsOptions() {
-      const v = this.containers.map((c) => {
-        return {
-          id:    c.name,
-          label: c.name
-        };
-      });
-
-      v.unshift(this.POD_OPTION);
-
-      return v;
-    },
-
-    v1Metrics() {
-      if (!this.metricsID) {
-        return this.v1MonitoringUrl;
-      } else {
-        return `${ this.v1MonitoringContainerBaseUrl }/${ this.metricsID }`;
-      }
-    },
-
     dateTimeFormatString() {
       const dateFormat = escapeHtml( this.$store.getters['prefs/get'](DATE_FORMAT));
       const timeFormat = escapeHtml( this.$store.getters['prefs/get'](TIME_FORMAT));
@@ -224,13 +191,6 @@ export default {
   },
 
   methods: {
-    selectionChanged(c) {
-      const id = c === this.POD_OPTION ? null : c.id;
-
-      this.metricsID = id;
-      this.selection = c;
-    },
-
     dateTimeFormat(value) {
       return value ? day(value).format(this.dateTimeFormatString) : '';
     }
@@ -258,26 +218,6 @@ export default {
         :row-actions="true"
         :table-actions="false"
       />
-    </Tab>
-    <Tab
-      v-if="v1MonitoringUrl"
-      name="v1Metrics"
-      :label="t('node.detail.tab.metrics')"
-      :weight="0"
-    >
-      <LabeledSelect
-        class="pod-metrics-chooser"
-        :value="selection"
-        label-key="workload.metrics.metricsView"
-        :options="metricsOptions"
-        @input="selectionChanged($event)"
-      />
-      <div id="ember-anchor">
-        <EmberPage
-          inline="ember-anchor"
-          :src="v1Metrics"
-        />
-      </div>
     </Tab>
     <Tab
       v-if="showMetrics"
@@ -313,10 +253,3 @@ export default {
     </Tab>
   </ResourceTabs>
 </template>
-<style scoped>
-  .pod-metrics-chooser {
-    width: fit-content;
-    margin-bottom: 10px;
-    min-width: 300px;
-  }
-</style>
