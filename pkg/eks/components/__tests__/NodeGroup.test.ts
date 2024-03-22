@@ -122,6 +122,10 @@ describe('eKS Node Groups', () => {
       ...setup
     });
 
+    // waiting for the component to fetch aws launch template info
+    await wrapper.vm.$nextTick();
+    await wrapper.vm.$nextTick();
+
     const gpuInput = wrapper.find('[data-testid="eks-gpu-input"]');
 
     expect(gpuInput.vm.disabled).toBe(true);
