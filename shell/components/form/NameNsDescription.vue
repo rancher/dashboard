@@ -1,6 +1,6 @@
 <script>
 import Vue from 'vue';
-import { mapGetters } from 'vuex';
+import { mapGetters, mapActions } from 'vuex';
 import { get, set } from '@shell/utils/object';
 import { sortBy } from '@shell/utils/sort';
 import { NAMESPACE } from '@shell/config/types';
@@ -215,6 +215,7 @@ export default {
 
   computed: {
     ...mapGetters(['currentProduct', 'currentCluster', 'namespaces', 'allowedNamespaces']),
+    ...mapActions('cru-resource', ['setCreateNamespace']),
     namespaceReallyDisabled() {
       return (
         !!this.forceNamespace || this.namespaceDisabled || this.mode === _EDIT
@@ -381,12 +382,18 @@ export default {
     selectNamespace(e) {
       if (!e || e.value === '') { // The blank value in the dropdown is labeled "Create a New Namespace"
         this.createNamespace = true;
-        this.$parent.$emit('createNamespace', true);
+        this.$store.dispatch(
+          'cru-resource/setCreateNamespace',
+          true,
+        );
         this.$emit('isNamespaceNew', true);
         Vue.nextTick(() => this.$refs.namespace.focus());
       } else {
         this.createNamespace = false;
-        this.$parent.$emit('createNamespace', false);
+        this.$store.dispatch(
+          'cru-resource/setCreateNamespace',
+          false,
+        );
         this.$emit('isNamespaceNew', false);
       }
     },
