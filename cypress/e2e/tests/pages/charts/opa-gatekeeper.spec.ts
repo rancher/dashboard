@@ -1,7 +1,7 @@
 /* eslint-disable cypress/no-unnecessary-waiting */
 import { ChartsPage } from '@/cypress/e2e/po/pages/charts.po';
 
-describe('Charts', { tags: '@adminUser' }, () => {
+describe('Charts', { tags: ['@charts', '@adminUser'] }, () => {
   beforeEach(() => {
     cy.login();
   });

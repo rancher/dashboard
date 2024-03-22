@@ -1,0 +1,44 @@
+apiVersion: cluster.x-k8s.io/v1beta1
+kind: MachineSet
+metadata:
+  creationTimestamp: '2023-12-06T23:41:44Z'
+  generation: 3
+  labels:
+    cluster.x-k8s.io/cluster-name: local
+  managedFields:
+    - apiVersion: cluster.x-k8s.io/v1beta1
+      fieldsType: FieldsV1
+      fieldsV1:
+        f:spec:
+          .: {}
+          f:clusterName: {}
+          f:replicas: {}
+          f:selector: {}
+          f:template:
+            .: {}
+            f:metadata: {}
+            f:spec:
+              .: {}
+              f:clusterName: {}
+      manager: rancher
+      operation: Update
+      time: '2023-12-06T23:46:28Z'
+  name: e2e-machine-name-1701906098950
+  namespace: default
+  resourceVersion: '647485'
+  uid: 98380f64-0706-4522-8dc2-b91a7f012dcf
+spec:
+  clusterName: local
+  deletePolicy: Random
+  replicas: 1
+  selector:
+    matchLabels:
+      cluster.x-k8s.io/set-name: e2e-machine-name-1701906098950
+  template:
+    metadata:
+      labels:
+        cluster.x-k8s.io/set-name: e2e-machine-name-1701906098950
+    spec:
+      bootstrap: {}
+      clusterName: local
+      infrastructureRef: {}

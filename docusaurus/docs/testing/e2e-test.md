@@ -9,6 +9,7 @@ Because of this, we extend the [Cypress best practices](https://docs.cypress.io/
 > This covers running E2E tests locally in a vanilla environment
 
 ### Pre-requisites
+
 - Instance of Rancher deployed and set up (passed setup pages)
 - Dashboard running locally at the default address (`https://localhost:8005`) pointing to the set up rancher
 
@@ -16,8 +17,8 @@ Because of this, we extend the [Cypress best practices](https://docs.cypress.io/
 
 This will start the cypress test runner, where you can select which tests to run
 
-```
-TEST_PASSWORD=<rancher admin password> TEST_SKIP_SETUP=true yarn cy:open
+```bash
+TEST_PASSWORD=<rancher admin password> TEST_SKIP=setup yarn cy:open
 ```
 
 ## Initial Setup
@@ -31,7 +32,7 @@ For tests against a deployed Rancher, e.g. on Digital Ocean, mainly for analyzin
 - `TEST_USERNAME`, default `admin`
 - `TEST_PASSWORD`, user password or custom during first Rancher run
 - `TEST_BASE_URL`, the address of your instance
-- `TEST_SKIP_SETUP=true`, we avoid setup as your instance is already set
+- `TEST_SKIP=setup`, we avoid setup as your instance is already set
 
 > Note: If you want to generate code coverage information, you must enable code instrumentation by setting `TEST_INSTRUMENT` to `true`.
 
@@ -53,7 +54,7 @@ NOTE: Local setup of Rancher do not work on Mac with M1 chips.
 - `TEST_PASSWORD`, user password or custom during first Rancher run
 - `CATTLE_BOOTSTRAP_PASSWORD`, initialization password which will also be used as `admin` user password (do not pick `admin` as password as it generates issues)
 - `TEST_BASE_URL=https://localhost:8005`
-- `TEST_SKIP_SETUP=false`, avoid to execute bootstrap setup tests for already initialized Rancher instances, it has to be toggled in case of new instances
+- `TEST_SKIP=setup`, avoid to execute bootstrap setup tests for already initialized Rancher instances, it has to be toggled in case of new instances
 
 You will have to run your local instance at this point:
 
@@ -73,7 +74,14 @@ If you want your tests to be tracked on Cypress dashboards you will have to enab
 - `TEST_PROJECT_ID` // Project ID used by Cypress/Sorry cypress to run the tests
 - `TEST_RUN_ID` (optional) // Identifier for your dashboard run, default value is timestamp
 
-## E2E Dashboard 
+### Skip and only features
+
+Existing `TEST_SKIP_SETUP` logic has been replaced with something more generic included in the `cypress.ts` script/utility.
+It is now possible to skip features by using the `TEST_SKIP` env var, e.g. `TEST_SKIP=setup`.
+Alternatively is possible to solely run a specific feature by using the `TEST_ONLY` env var, e.g. `TEST_ONLY=setup`.
+The features are folder name based and can be found in `cypress/e2e/tests/pages`.
+
+## E2E Dashboard
 
 ### Self-hosted: Sorry Cypress
 
@@ -190,7 +198,6 @@ To summarize what [defined in the documentation](https://docs.cypress.io/guides/
 - Inspect commands in the Cypress dashboard to view the logs
 - `.then(console.log)` to append the log to the resolved promise
 
-
 These values are provided when you create a new project within Cypress dashboard or within `Project settings`.
 
 ## Coverage
@@ -199,27 +206,75 @@ Both unit and E2E tests generate coverage respectively with Jest and NYC. These 
 
 Special attention goes to the E2E as the code is instrumented with Babel and the configuration is set within Nuxt.js.
 
->  Note: To enable instrumentation required for code coverage, you must set the environment variable `TEST_INSTRUMENT` to `true`.
-
+> Note: To enable instrumentation required for code coverage, you must set the environment variable `TEST_INSTRUMENT` to `true`.
 
 ## Cypress Tags (cypress-grep plugin)
 
-Cypress-grep is a plugin that is integrated with our project to group e2e tests by adding tags to them. 
+`[cypress-grep](https://github.com/cypress-io/cypress/tree/develop/npm/grep#cypressgrep)` is a plugin that is integrated with our project to group e2e tests by adding tags to them.
 
 Reasons we are grouping our tests:
+
 - To add test coverage for different types of users
+- Split tests for different features
+- Parallelization within CI
 - In the future support sets of tests specific to the context they run in (PR CI, overnight, etc).
 
-Tags currently in use are `@adminUser` and `@standardUser`.
+### E2E with user role tags
 
-We use `GREP_TAGS` and `TEST_USERNAME` environment variables to execute all tests which contain @adminUser or @standardUser tags respectively:
+Tags currently in use for the roles are `@adminUser` and `@standardUser`.
+
+We use `GREP_TAGS` and `TEST_USERNAME` environment variables to execute all tests which contain @admin or @standardUser tags respectively:
 
 E.g. when running locally:
-```
+
+```bash
 GREP_TAGS=@adminUser TEST_USERNAME=admin yarn cy:run
 
 OR 
 
 GREP_TAGS=@standardUser TEST_USERNAME=<standard user username> yarn cy:run
+
 ```
+
 More info about cypress-grep plugin can be found [here](https://www.npmjs.com/package/@cypress/grep#filter-with-tags).
+
+### E2E with feature tags
+
+As part of parallelization process and identification of features, tags have been added following the file tree structure of `cypress/e2e/tests/pages`.
+These are the added specs tags for each category: `@navigation`, `@charts`, `@explorer`, `@extensions`, `@fleet`, `@generic`, `@globalSettings`, `@manager`, `@userMenu`, `@usersAndAuths`.
+
+### E2E tests parallelization in CI
+
+Tests in CI are executed in parallel within GitHub workflow, reducing drastically time and avoiding to slow down the machine as it may happen with the flag `--parallel` of Cypress, which will use and need a machine with more cores.
+This process is achieved using [job matrix](https://docs.github.com/en/actions/using-jobs/using-a-matrix-for-your-jobs) definitions with objects where we intersect user roles and features.
+
+Current matrix state:
+
+```yaml
+matrix:
+  role: [
+    { username: 'admin', tag: '@adminUser' }, 
+    { username: 'standard_user', tag: '@standardUser' }
+  ]
+  features:  [
+    ['@navigation', '@extensions'],
+    ['@charts'],
+    ['@explorer'],
+    ['@fleet'],
+    ['@generic', '@globalSettings'],
+    ['@manager'],
+    ['@userMenu', '@usersAndAuths']
+  ]
+```
+
+In this case the tags defined for the process will then become `GREP_TAGS=@adminUser+@generic`. This means that the tests will need to have both tags to be executed.
+Some tests have been paired due GH limits of concurrent jobs and have then been defined as `@adminUser+@generic @adminUser+@globalSettings`. It means that either one of the 2 combinations which be considered as filter criteria.
+To summarize, space between tags is considered as `AND` operator, while `+` is considered as `OR` operator.
+
+To allow re-run of flaky tests only which may fail, the job is flagged as `fail-fast: false` and will prevent to interrupt the others.
+
+**DISCLAIMER:** It is not possible to execute multiple tests with the same ID and therefore for the temporary test initialization where we use the setup, the configuration will have extra tags such like `@adminUserSetup` and `@standardUserSetup`. This will be replaced with a script as planned.
+
+## Cypress Utilities
+
+In case of logic used within the E2E, utilities can be defined in `scripts/cypress.ts` and tested in the related file with unit tests.

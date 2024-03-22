@@ -3,7 +3,7 @@ import BurgerMenuPo from '@/cypress/e2e/po/side-bars/burger-side-menu.po';
 import ProductNavPo from '@/cypress/e2e/po/side-bars/product-side-nav.po';
 
 Cypress.config();
-describe('Side navigation: Cluster ', { tags: '@adminUser' }, () => {
+describe('Side navigation: Cluster ', { tags: ['@navigation', '@adminUser'] }, () => {
   beforeEach(() => {
     cy.login();
 

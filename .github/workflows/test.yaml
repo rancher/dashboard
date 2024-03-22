@@ -23,11 +23,28 @@ env:
   TEST_PROJECT_ID: rancher-dashboard
   CYPRESS_API_URL: http://139.59.134.103:1234/
   TEST_RUN_ID: ${{github.run_number}}-${{github.run_attempt}}-${{github.event.pull_request.title || github.event.head_commit.message}}
-  CYPRESS_coverage: true
+  # Build the dashboard to use in tests. When set to false it will grab `latest` from CDN (useful for running e2e tests quickly)
+  BUILD_DASHBOARD: true
 
 jobs:
   e2e-test:
     if: "!contains( github.event.pull_request.labels.*.name, 'ci/skip-e2e')"
+    strategy:
+      fail-fast: false
+      matrix:
+        role: [
+          { username: 'admin', tag: '@adminUser' }, 
+          { username: 'standard_user', tag: '@standardUser' }
+        ]
+        features:  [
+         ['@navigation', '@extensions'],
+         ['@charts'],
+         ['@explorer'],
+         ['@fleet'],
+         ['@generic', '@globalSettings'],
+         ['@manager'],
+         ['@userMenu', '@usersAndAuths']
+        ]
     runs-on: ubuntu-latest
     steps:
       - uses: actions/checkout@v3
@@ -37,13 +54,15 @@ jobs:
         with:
           node-version: '14.x'
 
-      - name: Install Chrome 116
-        run: |
-          sudo apt-get install -y wget
-          cd /tmp
-          wget -q http://mirror.cs.uchicago.edu/google-chrome/pool/main/g/google-chrome-stable/google-chrome-stable_116.0.5845.187-1_amd64.deb
-          sudo apt-get install -y --allow-downgrades ./google-chrome-stable_116.0.5845.187-1_amd64.deb
-          google-chrome --version
+      # Installing fixed version of Chrome since latest version does not work (117-118 didn't work)
+      # Leaving this here again in case we need to pin to a specific Chrome version in the future
+      # - name: Install Chrome 116
+      #   run: |
+      #     sudo apt-get install -y wget
+      #     cd /tmp
+      #     wget -q http://mirror.cs.uchicago.edu/google-chrome/pool/main/g/google-chrome-stable/google-chrome-stable_116.0.5845.187-1_amd64.deb
+      #     sudo apt-get install -y --allow-downgrades ./google-chrome-stable_116.0.5845.187-1_amd64.deb
+      #     google-chrome --version
 
       - name: Install packages
         run: yarn install:ci
@@ -51,39 +70,28 @@ jobs:
       - name: Prepare build
         run: yarn e2e:pre-prod
       
-      - name: Run admin user tests
+      - name: Setup Rancher and user
         run: |
           yarn e2e:prod
-          mkdir -p coverage-artifacts/coverage
-          cp coverage/e2e/coverage-final.json coverage-artifacts/coverage/coverage-e2e.json
-          cp -r coverage/e2e/ coverage-artifacts/coverage/e2e/
         env: 
-          GREP_TAGS: '@adminUser'
+          GREP_TAGS: ${{ matrix.role.tag }}Setup+${{ matrix.features[0] }} --@jenkins ${{ matrix.role.tag }}Setup+${{ matrix.features[1] || matrix.features[0] }} --@jenkins 
           TEST_USERNAME: admin
-
-
-      - name: Run standard user tests
-        if: ${{ success() || failure() }}
+          TEST_ONLY: setup
+      
+      - name: Run user tests
         run: |
           yarn e2e:prod
-          yarn docker:local:stop
-          mkdir -p coverage-artifacts/coverage
-          cp coverage/e2e/coverage-final.json coverage-artifacts/coverage/coverage-e2e.json
+          [ "$BUILD_DASHBOARD" != "false" ] || exit 0
         env: 
-          GREP_TAGS: '@standardUser'
-          TEST_USERNAME: standard_user
-        
-      - name: Upload coverage
-        uses: actions/upload-artifact@v3
-        with:
-          name: ${{github.run_number}}-${{github.run_attempt}}-coverage
-          path: coverage-artifacts/**/*
+          TEST_SKIP: setup
+          GREP_TAGS: ${{ matrix.role.tag }}+${{ matrix.features[0] }} --@jenkins ${{ matrix.role.tag }}+${{ matrix.features[1] || matrix.features[0] }} --@jenkins
+          TEST_USERNAME: ${{ matrix.role.username }}
           
       - name: Upload screenshots
         uses: actions/upload-artifact@v3
         if: ${{ failure() }}
         with:
-          name: ${{github.run_number}}-${{github.run_attempt}}-screenshots
+          name: ${{github.run_number}}-${{github.run_attempt}}-screenshots-${{ matrix.role.tag }}+${{ matrix.features[0] }}
           path: cypress/screenshots
 
   unit-test:
@@ -145,11 +153,9 @@ jobs:
         run: yarn lint
 
   coverage:
-    if: "!contains( github.event.pull_request.labels.*.name, 'ci/skip-e2e')"
     runs-on: ubuntu-latest
     needs:
       - unit-test
-      - e2e-test
     steps:
       - uses: actions/checkout@v3
         with:
@@ -164,16 +170,10 @@ jobs:
         with:
           name: ${{github.run_number}}-${{github.run_attempt}}-coverage
 
-      - name: Merge coverage files
-        run: |
-          ls
-          yarn coverage
-          ls coverage
-
-      - name: Upload merged coverage to Codecov
+      - name: Upload unit test coverage to Codecov
         uses: codecov/codecov-action@v3
         with:
           token: ${{ secrets.CODECOV_TOKEN }}
-          flags: merged
-          files: ./coverage/coverage.json
+          flags: unit
+          files: ./coverage/coverage-unit.json
           fail_ci_if_error: false
