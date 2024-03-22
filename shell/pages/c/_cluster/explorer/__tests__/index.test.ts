@@ -5,7 +5,7 @@ import { STATES_ENUM } from '@shell/plugins/dashboard-store/resource-class';
 
 describe('page: cluster dashboard', () => {
   const mountOptions = {
-    computed: { monitoringStatus: () => ({ v1: true, v2: true }) },
+    computed: { monitoringStatus: () => ({ v2: true }) },
     stubs:    {
       'n-link': true,
       LiveDate: true

@@ -603,7 +603,7 @@ export default {
       />
     </div>
 
-    <div v-if="componentServices">
+    <div v-if="clusterServices">
       <div
         v-for="service in clusterServices"
         :key="service.name"
