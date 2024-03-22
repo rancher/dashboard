@@ -6,7 +6,7 @@ import { NamespaceFilterPo } from '@/cypress/e2e/po/components/namespace-filter.
 const featureFlagsPage = new FeatureFlagsPagePo();
 let disableLegacyFlag = false;
 
-describe('Legacy: Projects', { tags: ['@explorer', '@adminUser'] }, () => {
+describe('Legacy: Projects', { tags: ['@explorer', '@adminUser'], testIsolation: 'off' }, () => {
   before(() => {
     cy.login();
 
