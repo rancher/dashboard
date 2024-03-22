@@ -19,7 +19,7 @@ describe('Legacy: Projects', { tags: ['@explorer', '@adminUser', '@standardUser'
     });
   });
 
-  it('Ensure legacy: projects is visible and defaults to embedded Apps page', () => {
+  it('Ensure legacy: projects is visible and can nav to child entry', () => {
     const configMapPage = new ConfigMapPagePo('local');
 
     configMapPage.goTo();
@@ -34,9 +34,9 @@ describe('Legacy: Projects', { tags: ['@explorer', '@adminUser', '@standardUser'
     configMapPage.navToSideMenuGroupByLabel('Legacy');
     configMapPage.productNav().navToSideMenuGroupByLabelExistence('Project', 'exist');
     configMapPage.navToSideMenuGroupByLabel('Project');
-    configMapPage.navToSideMenuEntryByLabel('Apps');
+    configMapPage.navToSideMenuEntryByLabel('Config Maps');
 
-    cy.iFrame().contains('.header h1', 'Apps');
+    cy.iFrame().contains('.header h1', 'Config Maps');
   });
 
   after(() => {
