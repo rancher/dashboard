@@ -4,6 +4,7 @@ import CardPo from '@/cypress/e2e/po/components/card.po';
 import { CypressChainable } from '@/cypress/e2e/po/po.types';
 import BurgerMenuPo from '@/cypress/e2e/po/side-bars/burger-side-menu.po';
 import ProductNavPo from '@/cypress/e2e/po/side-bars/product-side-nav.po';
+import { Promise } from 'cypress/types/bluebird';
 
 export class FeatureFlagsPagePo extends RootClusterPage {
   static url = '/c/_/settings/management.cattle.io.feature';
@@ -65,6 +66,21 @@ export class FeatureFlagsPagePo extends RootClusterPage {
       expect(response?.statusCode).to.eq(200);
       expect(request.body.spec).to.have.property('value', value);
       expect(response?.body.spec).to.have.property('value', value);
+    });
+  }
+
+  getFeatureFlag(featureFlag: string): Cypress.Chainable<Object> {
+    return cy.getRancherResource('v1', 'management.cattle.io.features', featureFlag).then((r) => r.body);
+  }
+
+  setFeatureFlag(featureFlag: string, value: boolean) {
+    return this.getFeatureFlag(featureFlag).then((res) => {
+      const obj = {
+        ...res,
+        spec: { value }
+      };
+
+      cy.setRancherResource('v1', 'management.cattle.io.features', featureFlag, JSON.stringify(obj));
     });
   }
 }
