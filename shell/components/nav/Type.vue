@@ -180,10 +180,10 @@ export default {
         <i
           v-if="namespaceIcon"
           class="icon icon-namespace"
+          :class="{'ns-and-icon': showCount}"
         />
         <span
           v-if="showCount"
-          :class="{'namespaced': namespaceIcon}"
         >{{ count }}</span>
       </span>
     </a>
@@ -209,8 +209,8 @@ export default {
 </template>
 
 <style lang="scss" scoped>
-  .namespaced {
-    margin-left: 4px;
+  .ns-and-icon {
+    margin-right: 4px;
   }
 
   .child {
