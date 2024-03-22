@@ -21,7 +21,7 @@ import { BLANK_CLUSTER } from '@shell/store/store-types.js';
 import { ELEMENTAL_PRODUCT_NAME, ELEMENTAL_CLUSTER_PROVIDER } from '../../config/elemental-types';
 import Rke2Config from './rke2';
 import Import from './import';
-import { DRIVER_TO_IMPORT } from 'models/management.cattle.io.kontainerdriver';
+import { DRIVER_TO_IMPORT } from '@shell/models/management.cattle.io.kontainerdriver';
 
 const SORT_GROUPS = {
   template:  1,

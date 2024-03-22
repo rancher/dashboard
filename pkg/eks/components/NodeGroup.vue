@@ -1,5 +1,5 @@
 <script lang="ts">
-import Vue, { defineComponent } from 'vue';
+import Vue from 'vue';
 import { _EDIT } from '@shell/config/query-params';
 import LabeledSelect from '@shell/components/form/LabeledSelect.vue';
 import LabeledInput from '@components/Form/LabeledInput/LabeledInput.vue';

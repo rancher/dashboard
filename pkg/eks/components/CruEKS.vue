@@ -142,10 +142,6 @@ export default defineComponent({
   },
 
   data() {
-    const store = this.$store as Store<any>;
-
-    const t = store.getters['i18n/t'];
-
     return {
       cloudCredentialId: '',
       normanCluster:     { name: '' } as any,
