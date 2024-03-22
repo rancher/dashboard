@@ -1,5 +1,6 @@
 import { LoginPagePo } from '@/cypress/e2e/po/pages/login-page.po';
-import HomePagePo from '~/cypress/e2e/po/pages/home.po';
+import HomePagePo from '@/cypress/e2e/po/pages/home.po';
+import { PUBLIC_SETTING_COUNT } from '@/cypress/support/utils/settings-utils';
 
 const successStatusCode = 200;
 
@@ -12,7 +13,7 @@ describe('Local authentication', { tags: ['@generic', '@adminUser', '@standardUs
 
     // First request will fetch a partial list of settings
     cy.wait('@settingsReq').then((interception) => {
-      expect(interception.response.body.count).lessThan(10);
+      expect(interception.response.body.count).lessThan(PUBLIC_SETTING_COUNT);
     });
     cy.get('@settingsReq.all').should('have.length', 1);
 
@@ -26,7 +27,7 @@ describe('Local authentication', { tags: ['@generic', '@adminUser', '@standardUs
 
     // Second request (after user is logged in) will return the full list
     cy.wait('@settingsReq').then((interception) => {
-      expect(interception.response.body.count).greaterThan(10);
+      expect(interception.response.body.count).greaterThan(PUBLIC_SETTING_COUNT);
     });
     // Yes this is bad, but want to ensure no other settings requests are made.
     cy.wait(1000); // eslint-disable-line cypress/no-unnecessary-waiting

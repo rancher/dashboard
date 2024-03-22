@@ -13,7 +13,7 @@ import { BACK_TO } from '@shell/config/local-storage';
 import { NAME as FLEET_NAME } from '@shell/config/product/fleet.js';
 import { canViewResource } from '@shell/utils/auth';
 import { getClusterFromRoute, getProductFromRoute, getPackageFromRoute, getResourceFromRoute } from '@shell/utils/router';
-import { fetchInitialSettings } from 'utils/settings';
+import { fetchInitialSettings } from '@shell/utils/settings';
 
 let beforeEachSetup = false;
 

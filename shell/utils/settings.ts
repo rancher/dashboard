@@ -50,6 +50,8 @@ export const fetchSetting = async(store: Store<any>, id: string): Promise<any> =
  */
 export const fetchInitialSettings = async(store: Store<any>): Promise<any> => {
   const generation = store.getters['management/generation'](MANAGEMENT.SETTING);
+  // We use this as it copies the previous mechanism this was based on (in findAll)
+  // There is the getter `auth/loggedInAs` (which is set given `fromHeader`), but that's initialised after the first call to here (see `authenticated`)
   const header = store.getters['auth/fromHeader'];
   const authed = `${ header }` === 'true' || `${ header }` === 'none';
 

@@ -1,6 +1,7 @@
 import { RancherSetupLoginPagePo } from '@/cypress/e2e/po/pages/rancher-setup-login.po';
 import { RancherSetupConfigurePage } from '~/cypress/e2e/po/pages/rancher-setup-configure.po';
 import HomePagePo from '~/cypress/e2e/po/pages/home.po';
+import { PUBLIC_SETTING_COUNT } from '~/cypress/support/utils/settings-utils';
 
 // Cypress or the GrepTags avoid to run multiples times the same test for each tag used.
 // This is a temporary solution till initialization is not handled as a test
@@ -23,7 +24,7 @@ describe('Rancher setup', { tags: ['@adminUserSetup', '@standardUserSetup', '@se
 
     // First request will fetch a partial list of settings
     cy.wait('@settingsReq').then((interception) => {
-      expect(interception.response.body.count).lessThan(10);
+      expect(interception.response.body.count).lessThan(PUBLIC_SETTING_COUNT);
     });
     cy.get('@settingsReq.all').should('have.length', 1);
 
@@ -32,7 +33,7 @@ describe('Rancher setup', { tags: ['@adminUserSetup', '@standardUserSetup', '@se
 
     // Second request (after user is logged in) will return the full list
     cy.wait('@settingsReq').then((interception) => {
-      expect(interception.response.body.count).greaterThan(10);
+      expect(interception.response.body.count).greaterThan(PUBLIC_SETTING_COUNT);
     });
     rancherSetupConfigurePage.waitForPage();
 

@@ -9,7 +9,7 @@ import UserMenuPo from '@/cypress/e2e/po/side-bars/user-menu.po';
 const bannersPage = new BannersPagePo();
 const burgerMenu = new BurgerMenuPo();
 const loginPage = new LoginPagePo();
-const bannersSettingsOrginal = [];
+const bannersSettingsOriginal = [];
 
 const settings = {
   bannerLabel:   'Rancher e2e',
@@ -43,7 +43,7 @@ describe('Banners', { testIsolation: 'off' }, () => {
     cy.getRancherResource('v1', 'management.cattle.io.settings', 'ui-banners', null).then((resp: Cypress.Response<any>) => {
       const body = resp.body;
 
-      bannersSettingsOrginal.push(body);
+      bannersSettingsOriginal.push(body);
     });
   });
 
@@ -198,7 +198,7 @@ describe('Banners', { testIsolation: 'off' }, () => {
     });
 
     // Check login screen
-    new UserMenuPo().clickMenuItem('Log Out');
+    cy.logout();
     loginPage.waitForPage();
     loginPage.loginPageMessage().contains('You have been logged out.').should('be.visible');
     bannersPage.banner().should('be.visible').then((el) => {
@@ -293,9 +293,9 @@ describe('Banners', { testIsolation: 'off' }, () => {
         const response = resp.body.metadata;
 
         // update original data before sending request
-        bannersSettingsOrginal[0].metadata.resourceVersion = response.resourceVersion;
+        bannersSettingsOriginal[0].metadata.resourceVersion = response.resourceVersion;
 
-        cy.setRancherResource('v1', 'management.cattle.io.settings', 'ui-banners', bannersSettingsOrginal[0]);
+        cy.setRancherResource('v1', 'management.cattle.io.settings', 'ui-banners', bannersSettingsOriginal[0]);
       });
     }
   });
