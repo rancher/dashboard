@@ -184,6 +184,11 @@ export default {
       return this.$store.getters['management/all'](MANAGEMENT.CLUSTER);
     },
 
+    showClusterTools() {
+      return this.$store.getters['cluster/canList'](CATALOG.CLUSTER_REPO) &&
+      this.$store.getters['cluster/canList'](CATALOG.APP);
+    },    
+
     displayProvider() {
       const other = 'other';
 
@@ -594,10 +599,10 @@ export default {
         /></span>
       </div>
       <div :style="{'flex':1}" />
-      <div v-if="!monitoringStatus.v2">
+      <div v-if="showClusterTools">
         <router-link
           :to="{name: 'c-cluster-explorer-tools'}"
-          class="monitoring-install"
+          class="cluster-tools-link"
         >
           <span>{{ t('nav.clusterTools') }}</span>
         </router-link>
@@ -845,7 +850,7 @@ export default {
   margin-top: 0;
 }
 
-.monitoring-install {
+.cluster-tools-link {
   display: flex;
   margin-right: 20px;
   line-height: 30px;
