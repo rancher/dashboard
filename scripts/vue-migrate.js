@@ -329,15 +329,14 @@ const vueApp = createApp({});`, `https://v3-migration.vuejs.org/breaking-changes
     [`@input=`, `@update:modelValue=`],
     // [`v-bind.sync=`, `:modelValue=`, `https://v3-migration.vuejs.org/breaking-changes/v-model.html#using-v-bind-sync`],
     [`click.native`, `click`, `https://v3-migration.vuejs.org/breaking-changes/v-model.html#using-v-bind-sync`],
-    ['this.$slots', ``, 'https://eslint.vuejs.org/rules/require-slots-as-functions.html'],
     [`v-on="$listeners"`, removePlaceholder, `removed and integrated with $attrs https://v3-migration.vuejs.org/breaking-changes/listeners-removed.html`],
     [`:listeners="$listeners"`, `:v-bind="$attrs"`, `removed and integrated with $attrs https://v3-migration.vuejs.org/breaking-changes/listeners-removed.html`],
 
     [/this\.\$scopedSlots\[(\w+)\]|this\.\$scopedSlots\.(\w+)/, (match, key1, key2) => `this.$slots.${ key1 || key2 }()`, `(many components loop through them) https://v3-migration.vuejs.org/breaking-changes/slots-unification.html`],
     [` $scopedSlots`, ` $slots`, `(many components loop through them) https://v3-migration.vuejs.org/breaking-changes/slots-unification.html`],
     [/slot="(\w+:\w+)"\s+slot-scope="(\w+)"/g, `$1="$2"`, `not mentioned in migration https://vuejs.org/guide/components/slots.html#scoped-slots`],
-    [/this\.\$slots\['([^']+)'\]/g, `this.$slots[\'$1\']()`, `not mentioned in migration https://vuejs.org/guide/components/slots.html#scoped-slots`],
-    // ['this.$slots', `this.$slots()`, `not mentioned in migration https://vuejs.org/guide/components/slots.html#scoped-slots`], // TODO: Add exception for existing brackets
+    // [/this\.\$slots\['([^']+)'\]/g, `this.$slots[\'$1\']()`, `not mentioned in migration https://vuejs.org/guide/components/slots.html#scoped-slots`],
+    [/this\.\$slots(?!\s*\(\))(\b|\?|['"\[])/g, `this.$slots()$1`, `https://eslint.vuejs.org/rules/require-slots-as-functions.html`], // TODO: Add exception for existing brackets
 
     // Portals are now Vue3 Teleports
     [/<portal|<portal-target|<\/portal|<\/portal-target/g, '', `https://v3.vuejs.org/guide/teleport.html`],
@@ -361,9 +360,9 @@ const vueApp = createApp({});`, `https://v3-migration.vuejs.org/breaking-changes
 
     // Nuxt and initalize case only
     // TODO: Use eventbus replacement as temporary solution?
-    // [`$on('event', callback)`, '', `no migration, existing lib, https://v3-migration.vuejs.org/breaking-changes/events-api.html`],
-    // [`$off('event', callback)`, '', `no migration, existing lib, https://v3-migration.vuejs.org/breaking-changes/events-api.html`],
-    // [`$once('event', callback)`, '', `no migration, existing lib, https://v3-migration.vuejs.org/breaking-changes/events-api.html`],
+    [`$on('event', callback)`, '', `no migration, existing lib, https://v3-migration.vuejs.org/breaking-changes/events-api.html`],
+    [`$off('event', callback)`, '', `no migration, existing lib, https://v3-migration.vuejs.org/breaking-changes/events-api.html`],
+    [`$once('event', callback)`, '', `no migration, existing lib, https://v3-migration.vuejs.org/breaking-changes/events-api.html`],
 
     // [`$children`, ``, `no migration, $refs are suggested as communication https://v3-migration.vuejs.org/breaking-changes/children.html`],
 
