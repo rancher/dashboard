@@ -4,7 +4,6 @@ import CardPo from '@/cypress/e2e/po/components/card.po';
 import { CypressChainable } from '@/cypress/e2e/po/po.types';
 import BurgerMenuPo from '@/cypress/e2e/po/side-bars/burger-side-menu.po';
 import ProductNavPo from '@/cypress/e2e/po/side-bars/product-side-nav.po';
-import { Promise } from 'cypress/types/bluebird';
 
 export class FeatureFlagsPagePo extends RootClusterPage {
   static url = '/c/_/settings/management.cattle.io.feature';
