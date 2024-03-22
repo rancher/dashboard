@@ -92,9 +92,12 @@ export default class SortableTablePo extends ComponentPo {
     return this.self().contains('tbody tr', name);
   }
 
-  rowElementLinkWithIndex(index: number) {
-    // return this.self().contains(`tbody tr:nth-child(${ index })`);
-    return this.self().find(`tbody tr[data-testid="sortable-table-${ index }-row"] a`);
+  rowElementLink(rowIndex: number, columnIndex: number) {
+    return this.getTableCell(rowIndex, columnIndex).find('a');
+  }
+
+  getTableCell(rowIndex: number, columnIndex: number) {
+    return this.row(rowIndex).column(columnIndex);
   }
 
   row(index: number) {
