@@ -31,6 +31,7 @@ export function init(store) {
     icon:                'cluster-management',
     removable:           false,
     showClusterSwitcher: false,
+    weight:              -1, // Place at the top
     to:                  {
       name:   'c-cluster-product-resource',
       params: {
