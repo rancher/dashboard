@@ -67,4 +67,32 @@ describe('appModal', () => {
     expect(container.exists()).toBeTruthy();
     expect(wrapper.find('.modal-container').element.style.width).toBe('50%');
   });
+
+  it('does not generate validation errors when setting a pixel width', async() => {
+    const consoleErrorSpy = jest.spyOn(console, 'error');
+
+    consoleErrorSpy.mockImplementation(() => {});
+
+    await wrapper.setProps({ width: '200px' });
+    const container = wrapper.find('.modal-container');
+
+    expect(container.exists()).toBeTruthy();
+    expect(wrapper.find('.modal-container').element.style.width).toBe('200px');
+
+    expect(consoleErrorSpy).not.toHaveBeenCalled();
+  });
+
+  it('generates validation errors with an invalid string for width', async() => {
+    const consoleErrorSpy = jest.spyOn(console, 'error');
+
+    consoleErrorSpy.mockImplementation(() => {});
+
+    await wrapper.setProps({ width: 'FAIL' });
+    const container = wrapper.find('.modal-container');
+
+    expect(container.exists()).toBeTruthy();
+    expect(wrapper.find('.modal-container').element.style.width).toBe('600px');
+
+    expect(consoleErrorSpy).toHaveBeenCalledTimes(1);
+  });
 });
