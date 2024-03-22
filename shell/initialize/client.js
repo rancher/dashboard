@@ -97,7 +97,7 @@ if (debug) {
 const errorHandler = Vue.config.errorHandler || console.error; // eslint-disable-line no-console
 
 // Create and mount App
-extendApp(nuxt.publicRuntimeConfig).then(mountApp).catch(errorHandler); // eslint-disable-line no-undef
+extendApp(NUXT.publicRuntimeConfig).then(mountApp).then(({ store }) => vueApp.use(store)).catch(errorHandler); // eslint-disable-line no-undef
 
 async function loadAsyncComponents(to, from, next) {
   // Check if route changed (this._routeChanged), only if the page is not an error (for validate())

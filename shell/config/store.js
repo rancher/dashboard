@@ -1,7 +1,4 @@
-import Vue from 'vue';
-import Vuex from 'vuex';
-
-Vue.use(Vuex);
+import { createStore } from 'vuex';
 
 const VUEX_PROPERTIES = ['state', 'getters', 'actions', 'mutations'];
 
