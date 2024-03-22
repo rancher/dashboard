@@ -148,7 +148,7 @@ import isObject from 'lodash/isObject';
 import { normalizeType } from '@shell/plugins/dashboard-store/normalize';
 import { sortBy } from '@shell/utils/sort';
 
-import { haveV1Monitoring, haveV2Monitoring } from '@shell/utils/monitoring';
+import { haveV2Monitoring } from '@shell/utils/monitoring';
 import { NEU_VECTOR_NAMESPACE } from '@shell/config/product/neuvector';
 
 export const NAMESPACED = 'namespaced';
@@ -209,7 +209,6 @@ const graphConfigMap = {};
 const FIELD_REGEX = /^\$\.metadata\.fields\[([0-9]*)\]/;
 
 export const IF_HAVE = {
-  V1_MONITORING:            'v1-monitoring',
   V2_MONITORING:            'v2-monitoring',
   PROJECT:                  'project',
   NO_PROJECT:               'no-project',
@@ -1862,9 +1861,6 @@ function ifHave(getters, option) {
   switch (option) {
   case IF_HAVE.V2_MONITORING: {
     return haveV2Monitoring(getters);
-  }
-  case IF_HAVE.V1_MONITORING: {
-    return haveV1Monitoring(getters);
   }
   case IF_HAVE.PROJECT: {
     return !!project(getters);

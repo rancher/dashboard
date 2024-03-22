@@ -24,6 +24,8 @@ describe('Workloads', { tags: ['@explorer', '@adminUser'] }, () => {
     // check if Pod is in the Workloads list
     const workload = new WorkloadPagePo('local');
 
+    // Simple test to assert we haven't broken Workloads detail page
+    // https://github.com/rancher/dashboard/issues/10490
     workload.goTo();
     workload.goToDetailsPage(podName);
 
