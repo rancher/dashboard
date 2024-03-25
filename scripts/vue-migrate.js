@@ -371,38 +371,7 @@ const vueSyntaxUpdates = () => {
     // watch option used on arrays not triggered by mutations https://v3-migration.vuejs.org/breaking-changes/watch.html
   ];
 
-  files.forEach((file) => {
-    let content = fs.readFileSync(file, 'utf8');
-    const matchedCases = [];
-
-    replacementCases.forEach(([text, replacement, notes]) => {
-      // Simple text
-      if (typeof text === 'string') {
-        if (content.includes(text)) {
-          // Exclude cases without replacement
-          if (replacement) {
-            // Remove discontinued functionalities which do not break
-            content = content.replaceAll(text, replacement === removePlaceholder ? '' : replacement);
-          }
-          matchedCases.push([text, replacement, notes]);
-        }
-      } else {
-        // Regex case
-        // TODO: Fix issue not replacing all
-        if (text.test(content) && replacement) {
-          content = content.replace(new RegExp(text, 'g'), replacement);
-          matchedCases.push([text, replacement, notes]);
-        }
-      }
-    });
-
-    if (matchedCases.length) {
-      writeContent(file, content);
-      printContent(file, `Updating Vue syntax`, matchedCases);
-      stats.vueSyntax.push(file);
-      stats.total.push(file);
-    }
-  });
+  replaceCases('vueSyntax', files, replacementCases, `Updating Vue syntax`);
 };
 
 /**
@@ -422,38 +391,8 @@ const routerUpdates = () => {
     [`mode: \'history\'`, 'history: createWebHistory()'],
     // ['getMatchedComponents', '', 'https://router.vuejs.org/guide/migration/#Removal-of-router-getMatchedComponents-'],
   ];
-  const matchedCases = [];
 
-  files.forEach((file) => {
-    let content = fs.readFileSync(file, 'utf8');
-
-    replacementCases.forEach(([text, replacement, notes]) => {
-      // Simple text
-      if (typeof text === 'string') {
-        if (content.includes(text)) {
-          // Exclude cases without replacement
-          if (replacement) {
-            // Remove discontinued functionalities which do not break
-            content = content.replaceAll(text, replacement === removePlaceholder ? '' : replacement);
-          }
-          matchedCases.push([text, replacement, notes]);
-        }
-      } else {
-        // Regex case
-        if (text.test(content)) {
-          content = content.replace(new RegExp(text, 'g'), replacement);
-          matchedCases.push([text, replacement, notes]);
-        }
-      }
-    });
-
-    if (matchedCases.length) {
-      writeContent(file, content);
-      printContent(file, `Updating Router syntax`, matchedCases);
-      stats.router.push(file);
-      stats.total.push(file);
-    }
-  });
+  replaceCases('router', files, replacementCases, `Updating Vue Router`);
 };
 
 /**
@@ -486,15 +425,7 @@ const jestUpdates = () => {
     ['findAll().at(0)', '', '']
   ];
 
-  files.forEach((file) => {
-    const content = fs.readFileSync(file, 'utf8');
-    const isCase = cases.some((text) => content.includes(text));
-
-    if (isCase) {
-      stats.jest.push(file);
-      stats.total.push(file);
-    }
-  });
+  replaceCases('jest', files, cases, `Updating Jest`);
 };
 
 /**
@@ -509,23 +440,7 @@ const jestConfigUpdates = () => {
     ['/node_modules/@vue/vue2-jest', '/node_modules/@vue/vue3-jest']
   ];
 
-  files.forEach((file) => {
-    let content = fs.readFileSync(file, 'utf8');
-
-    // Adopt new library for Vue3
-    cases.forEach(([text, replacement]) => {
-      const isCase = content.includes(text);
-
-      if (isCase) {
-        printContent(file, `Updating ${ text } to ${ replacement }`);
-        content = content.replaceAll(text, replacement);
-
-        writeContent(file, content);
-        stats.jest.push(file);
-        stats.total.push(file);
-      }
-    });
-  });
+  replaceCases('jest', files, cases, `Updating Jest config`);
 };
 
 /**
@@ -605,26 +520,7 @@ const stylesUpdates = () => {
     ['::v-deep', ':deep()'],
   ];
 
-  files.forEach((file) => {
-    const matchedCases = [];
-    let content = fs.readFileSync(file, 'utf8');
-
-    cases.forEach(([text, replacement]) => {
-      const hasMatch = content.includes(text);
-
-      if (hasMatch) {
-        content = content.replaceAll(text, replacement);
-        matchedCases.push(text);
-      }
-    });
-
-    if (matchedCases.length) {
-      writeContent(file, content);
-      printContent(file, `Updating style`, matchedCases);
-      stats.style.push(file);
-      stats.total.push(file);
-    }
-  });
+  replaceCases('style', files, cases, `Updating styles`);
 };
 
 /**
@@ -643,6 +539,44 @@ const printContent = (...args) => {
   if (isVerbose) {
     console.log(...args);
   }
+};
+
+/**
+ * Replace all cases for the provided files
+ */
+const replaceCases = (fileType, files, replacementCases, printText) => {
+  const matchedCases = [];
+
+  files.forEach((file) => {
+    let content = fs.readFileSync(file, 'utf8');
+
+    replacementCases.forEach(([text, replacement, notes]) => {
+      // Simple text
+      if (typeof text === 'string') {
+        if (content.includes(text)) {
+          // Exclude cases without replacement
+          if (replacement) {
+            // Remove discontinued functionalities which do not break
+            content = content.replaceAll(text, replacement === removePlaceholder ? '' : replacement);
+          }
+          matchedCases.push([text, replacement, notes]);
+        }
+      } else {
+        // Regex case
+        if (text.test(content)) {
+          content = content.replace(new RegExp(text, 'g'), replacement);
+          matchedCases.push([text, replacement, notes]);
+        }
+      }
+    });
+
+    if (matchedCases.length) {
+      writeContent(file, content);
+      printContent(file, printText, matchedCases);
+      stats[fileType].push(file);
+      stats.total.push(file);
+    }
+  });
 };
 
 /**
