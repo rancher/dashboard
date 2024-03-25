@@ -1,17 +1,12 @@
-import Vue from 'vue';
-import Router from 'vue-router';
-import { normalizeURL } from 'ufo';
+import { createRouter, createWebHistory } from 'vue-router';
 import { interopDefault } from '../utils/nuxt';
 
-const emptyFn = () => {};
-
-Vue.use(Router);
-
 export const routerOptions = {
-  mode: 'history',
-  // Note: router base comes from the ROUTER_BASE env var
-  base: process.env.routerBase || '/',
-
+  history: {
+    ...createWebHistory(),
+    // Note: router base comes from the ROUTER_BASE env var
+    base: process.env.routerBase || '/'
+  },
   routes: [
     {
       path:      '/',
@@ -394,30 +389,22 @@ export const routerOptions = {
           name:      'c-cluster-product-resource-namespace-id'
         }]
     }],
-
-  fallback: false
 };
 
-export function createRouter(config) {
+// TODO: Restore logic with valid syntax
+export function extendRouter(config) {
   const base = (config._app && config._app.basePath) || routerOptions.base;
-  const router = new Router({ ...routerOptions, base });
+  const router = createRouter({ ...routerOptions, base });
 
-  // TODO: remove in Nuxt 3
-  const originalPush = router.push;
+  // const resolve = router.resolve.bind(router);
 
-  router.push = function push(location, onComplete = emptyFn, onAbort) {
-    return originalPush.call(this, location, onComplete, onAbort);
-  };
+  // router.resolve = (to, current, append) => {
+  //   if (typeof to === 'string') {
+  //     to = normalizeURL(to);
+  //   }
 
-  const resolve = router.resolve.bind(router);
-
-  router.resolve = (to, current, append) => {
-    if (typeof to === 'string') {
-      to = normalizeURL(to);
-    }
-
-    return resolve(to, current, append);
-  };
+  //   return resolve(to, current, append);
+  // };
 
   return router;
 }

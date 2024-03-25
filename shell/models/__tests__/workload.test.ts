@@ -26,7 +26,7 @@ describe('class: Workload', () => {
       }
     };
 
-    customWorkload.metadata.name = 'abc';
+    (customWorkload.metadata as any).name = 'abc';
 
     it('should keep internal keys', () => {
       const workload = new Workload(customWorkload, {

@@ -23,8 +23,8 @@ export function createGetCounter(counterObject, defaultKey = '') {
 export function empty() {}
 
 export function globalHandleError(error) {
-  if (Vue.config.errorHandler) {
-    Vue.config.errorHandler(error);
+  if (vueApp.config.errorHandler) {
+    vueApp.config.errorHandler(error);
   }
 }
 
@@ -106,7 +106,6 @@ export function sanitizeComponent(Component) {
     return Component;
   }
   if (!Component.options) {
-    Component = Vue.extend(Component); // fix issue #6
     Component._Ctor = Component;
   } else {
     Component._Ctor = Component;

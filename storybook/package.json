@@ -7,7 +7,7 @@
   "private": true,
   "version": "0.0.0",
   "engines": {
-    "node": ">=14"
+    "node": ">=18"
   },
   "scripts": {
     "storybook": "start-storybook -p 6006",
@@ -31,6 +31,7 @@
     "vue-loader": "15.10.1"
   },
   "resolutions": {
-    "polished": "4.2.2"
+    "polished": "4.2.2",
+    "@storybook/manager-webpack5/html-webpack-plugin": "^5.0.0"
   }
 }

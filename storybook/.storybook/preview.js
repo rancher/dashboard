@@ -1,4 +1,4 @@
-import Vue from 'vue';
+import { createApp } from 'vue';
 import Vuex from 'vuex';
 import { themes } from '@storybook/theming';
 import { get } from '../../shell/utils/object';
@@ -15,6 +15,7 @@ import growl from './store/growl';
 import codeMirror from './store/codeMirror';
 import table from './store/table';
 
+const app = createApp({});
 
 // Register custom i18n plugin
 require('../../shell/plugins/i18n');
@@ -31,8 +32,8 @@ Vue.component('nuxt-link', {
   template: '<a>link</a>',
 })
 
-Vue.directive('clean-tooltip', VCleanTooltip);
-Vue.directive('trim-whitespace', {
+app.directive('clean-tooltip', VCleanTooltip);
+app.directive('trim-whitespace', {
   inserted:        trimWhitespace,
 });
 

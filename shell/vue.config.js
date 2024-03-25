@@ -6,6 +6,7 @@ const CopyWebpackPlugin = require('copy-webpack-plugin');
 const serverMiddlewares = require('./server/server-middleware.js');
 const configHelper = require('./vue-config-helper.js');
 const har = require('./server/har-file');
+const NodePolyfillPlugin = require('node-polyfill-webpack-plugin');
 
 // Suppress info level logging messages from http-proxy-middleware
 // This hides all of the "[HPM Proxy created] ..." messages
@@ -101,10 +102,6 @@ module.exports = function(dir, _appConfig) {
 
     return !excludes || (excludes && !excludes.includes(name));
   }
-
-  excludes.forEach((e) => {
-    watcherIgnores.push(new RegExp(`/pkg.${ e }`));
-  });
 
   // For each package in the pkg folder that is being compiled into the application,
   // Add in the code to automatically import the types from that package
@@ -255,8 +252,10 @@ module.exports = function(dir, _appConfig) {
       } : null),
       port:   (devPorts ? 8005 : 80),
       host:   '0.0.0.0',
-      public: `https://0.0.0.0:${ devPorts ? 8005 : 80 }`,
-      before(app, server) {
+      // TODO: Verify after migration completed
+      client: { webSocketURL: `https://0.0.0.0:${ devPorts ? 8005 : 80 }` },
+      proxy,
+      onBeforeSetupMiddleware({ app, server }) {
         const socketProxies = {};
 
         // Close down quickly in response to CTRL + C
@@ -293,7 +292,8 @@ module.exports = function(dir, _appConfig) {
           app.use(p, px);
         });
 
-        server.websocketProxies.push({
+        // TODO: Verify after migration completed
+        server?.websocketProxies.push({
           upgrade(req, socket, head) {
             const path = Object.keys(socketProxies).find((path) => req.url.startsWith(path));
 
@@ -312,8 +312,9 @@ module.exports = function(dir, _appConfig) {
         });
       },
     },
-    publicPath: resourceBase || undefined,
-    css:        {
+    transpileDependencies: true,
+    publicPath:            resourceBase || undefined,
+    css:                   {
       extract:       false, // inline css styles instead of including with `<links`
       loaderOptions: {
         sass: {
@@ -346,12 +347,13 @@ module.exports = function(dir, _appConfig) {
       config.resolve.alias['@pkg'] = path.join(dir, 'pkg');
       config.resolve.alias['./node_modules'] = path.join(dir, 'node_modules');
       config.resolve.alias['@components'] = COMPONENTS_DIR;
-      config.resolve.alias['vue$'] = path.resolve(process.cwd(), 'node_modules', 'vue', 'dist', dev ? 'vue.js' : 'vue.min.js');
+      config.resolve.alias['vue$'] = dev ? path.resolve(process.cwd(), 'node_modules', 'vue') : 'vue';
       config.resolve.modules.push(__dirname);
       config.plugins.push(virtualModules);
       config.plugins.push(autoImport);
       config.plugins.push(new VirtualModulesPlugin(autoImportTypes));
       config.plugins.push(pkgImport);
+      config.plugins.push(new NodePolyfillPlugin()); // required from Webpack 5 to polyfill node modules
       // DefinePlugin does string replacement within our code. We may want to consider replacing it with something else. In code we'll see something like
       // process.env.commit even though process and env aren't even defined objects. This could cause people to be mislead.
       config.plugins.push(new webpack.DefinePlugin({
@@ -368,6 +370,8 @@ module.exports = function(dir, _appConfig) {
         // Store the Router Base as env variable that we can use in `shell/config/router.js`
         'process.env.routerBase':          JSON.stringify(routerBasePath),
 
+        __VUE_PROD_HYDRATION_MISMATCH_DETAILS__: 'false',
+
         // This is a replacement of the nuxt publicRuntimeConfig
         'nuxt.publicRuntimeConfig': JSON.stringify({
           rancherEnv,
@@ -377,11 +381,25 @@ module.exports = function(dir, _appConfig) {
       }));
 
       // The static assets need to be in the built assets directory in order to get served (primarily the favicon)
-      config.plugins.push(new CopyWebpackPlugin([{ from: path.join(SHELL_ABS, 'static'), to: '.' }]));
+      config.plugins.push(new CopyWebpackPlugin({ patterns: [{ from: path.join(SHELL_ABS, 'static'), to: '.' }] }));
 
       config.resolve.extensions.push(...['.tsx', '.ts', '.js', '.vue', '.scss']);
+
+      /**
+       * Add ignored paths based on env var configuration and known cases
+       * TODO: Verify after migration completed
+       * In Webpack5 only RegExp, string and [string] types are accepted
+       * https://webpack.js.org/configuration/watch/#watchoptionsignored
+       * Example conversion:
+       * - as list: [/.shell/, /dist-pkg/, /scripts\/standalone/, /\/pkg.test-pkg/, /\/pkg.harvester/]
+       * - as chained regex rule: /.shell|dist-pkg|scripts\/standalone|\/pkg.test-pkg|\/pkg.harvester/
+       */
       config.watchOptions = config.watchOptions || {};
-      config.watchOptions.ignored = watcherIgnores;
+      const ignoredPkgs = excludes.map((excluded) => new RegExp(`/pkg.${ excluded }`));
+      const watcherIgnoresPaths = [...watcherIgnores, ...ignoredPkgs];
+      const combinedRegex = new RegExp(watcherIgnoresPaths.map(({ source }) => source).join('|'));
+
+      config.watchOptions.ignored = combinedRegex;
 
       if (dev) {
         config.devtool = 'cheap-module-source-map';
@@ -516,6 +534,7 @@ module.exports = function(dir, _appConfig) {
 
       config.module.rules.push(...loaders);
 
+      // TODO: Verify after migration completed
       // Update vue-loader to set whitespace to 'preserve'
       // This was the setting with nuxt, but is not the default with vue cli
       // Need to find the vue loader in the webpack config and update the setting
@@ -523,7 +542,7 @@ module.exports = function(dir, _appConfig) {
         if (loader.use) {
           loader.use.forEach((use) => {
             if (use.loader.includes('vue-loader')) {
-              use.options.compilerOptions.whitespace = 'preserve';
+              use.options.compilerOptions = { ...use.options.compilerOptions, whitespace: 'preserve' };
             }
           });
         }

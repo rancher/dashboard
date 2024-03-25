@@ -1,4 +1,5 @@
-import Vue from 'vue';
+import { createApp } from 'vue';
+const app = createApp({});
 
 export function trimWhitespace(el, dir) {
   for (const node of el.childNodes) {
@@ -14,24 +15,7 @@ export function trimWhitespace(el, dir) {
   }
 }
 
-export function trimWhitespaceSsr(el, dir) {
-  // This causes server<->client dom mismatches sometimes... gave up for now.
-  /*
-  for ( const node of (el.children || []) ) {
-    if ( node.text ) {
-      const trimmed = node.text.trim();
-
-      if ( trimmed !== node.text ) {
-        node.text = trimmed;
-      }
-    } else if ( node.children ) {
-      trimWhitespaceSsr(node);
-    }
-  }
-  */
-}
-
-Vue.directive('trim-whitespace', {
+app.directive('trim-whitespace', {
   inserted:         trimWhitespace,
   componentUpdated: trimWhitespace
 });

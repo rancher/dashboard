@@ -45,7 +45,7 @@ describe('component: workload', () => {
       }
     });
 
-    expect(wrapper.vm.schema).toStrictEqual(schema);
+    expect((wrapper.vm as any).schema).toStrictEqual(schema);
   });
 
   // TODO - #7473: Further tests may be defined within one of the table components

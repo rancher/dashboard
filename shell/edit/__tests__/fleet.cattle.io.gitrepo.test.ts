@@ -1,10 +1,5 @@
-import { mount, createLocalVue } from '@vue/test-utils';
+import { mount } from '@vue/test-utils';
 import GitRepo from '@shell/edit/fleet.cattle.io.gitrepo.vue';
-import Vuex from 'vuex';
-
-const localVue = createLocalVue();
-
-localVue.use(Vuex);
 
 describe('view: fleet.cattle.io.gitrepo should', () => {
   const mockStore = {
@@ -34,7 +29,6 @@ describe('view: fleet.cattle.io.gitrepo should', () => {
     metadata: { namespace: 'test' }, spec: { template: {}, correctDrift: { enabled: false } }, targetInfo: { mode: 'all' },
   };
   const wrapper = mount(GitRepo, {
-    localVue,
     propsData: { value: values },
     mocks
   });

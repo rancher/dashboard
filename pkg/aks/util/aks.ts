@@ -1,8 +1,6 @@
 import { isArray } from '@shell/utils/array';
 import { set, get } from '@shell/utils/object';
 import { addParams, QueryParams } from '@shell/utils/url';
-// eslint-disable-next-line no-unused-vars
-import { AKSVirtualNetwork } from 'types';
 import { Store } from 'vuex';
 
 // taken from https://learn.microsoft.com/en-us/azure/reliability/availability-zones-service-support#azure-regions-with-availability-zone-support

@@ -1,14 +1,12 @@
-import { createLocalVue, mount } from '@vue/test-utils';
+import { mount } from '@vue/test-utils';
 import PVC from '@shell/edit/workload/storage/persistentVolumeClaim/persistentvolumeclaim.vue';
 
 describe('component: PVC', () => {
   // TODO: Enable test after allowing to test async data with either #9711 or #9322
   // eslint-disable-next-line jest/no-disabled-tests
   it.skip('should initialize storage class on create mode', async() => {
-    const localVue = createLocalVue();
     const name = 'test';
     const wrapper = mount(PVC, {
-      localVue,
       propsData: {
         savePvcHookName: '',
         value:           { spec: { resources: { requests: {} } } }

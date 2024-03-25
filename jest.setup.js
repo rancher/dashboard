@@ -6,16 +6,18 @@ import vSelect from 'vue-select';
 import { VCleanTooltip } from '@shell/plugins/clean-tooltip-directive.js';
 import '@shell/plugins/replaceall';
 
-import Vue from 'vue';
+import { createApp } from 'vue';
 
 import { TextEncoder, TextDecoder } from 'util';
+const app = createApp({});
+
 global.TextEncoder = TextEncoder;
 global.TextDecoder = TextDecoder;
 
-Vue.config.productionTip = false;
-Vue.use(VTooltip);
-Vue.use(VCleanTooltip);
-Vue.component('v-select', vSelect);
+app.config.productionTip = false;
+app.use(VTooltip);
+app.use(VCleanTooltip);
+app.component('v-select', vSelect);
 
 /**
  * Global configuration for Jest tests
@@ -42,9 +44,9 @@ beforeEach(() => {
   jest.restoreAllMocks(); // Use this function inside your test if you need to reset mocks and restore existing functionality
 
   // Mock the $plugin object
-  config.mocks['$plugin'] = { getDynamic: () => undefined };
+  // config.mocks['$plugin'] = { getDynamic: () => undefined };
 
-  config.mocks['$store'] = { getters: { 'i18n/t': jest.fn() } };
+  // config.mocks['$store'] = { getters: { 'i18n/t': jest.fn() } };
   config.directives = { t, 'clean-tooltip': VCleanTooltip };
 
   // Overrides some components

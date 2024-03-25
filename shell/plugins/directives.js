@@ -1,6 +1,7 @@
-import Vue from 'vue';
+import { createApp } from 'vue';
+const app = createApp({});
 
-Vue.directive('focus', {
+app.directive('focus', {
   inserted(_el, _binding, vnode) {
     const element = getElement(vnode);
 

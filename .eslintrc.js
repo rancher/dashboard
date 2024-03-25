@@ -58,6 +58,9 @@ module.exports = {
 
     // FIXME: Disabled rules from the recommended
     '@typescript-eslint/no-var-requires': 'off',
+
+    // FIXME: Disabled for Vue3 migration
+    'vue/one-component-per-file': 'off',
   },
   overrides: [
     {
@@ -119,6 +122,11 @@ module.exports = {
     {
       files: ['**/*.{js,ts,vue}'],
       rules: {
+        '@typescript-eslint/ban-ts-comment': [
+          'error',
+          { 'ts-nocheck': false },
+        ],
+
         // Errors
         '@typescript-eslint/no-this-alias': 'off', // FIXME: This is seriously an issue
 

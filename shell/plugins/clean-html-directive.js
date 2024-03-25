@@ -1,5 +1,6 @@
-import Vue from 'vue';
+import { createApp } from 'vue';
 import { purifyHTML } from './clean-html';
+const app = createApp({});
 
 export const cleanHtmlDirective = {
   inserted(el, binding) {
@@ -13,4 +14,4 @@ export const cleanHtmlDirective = {
   }
 };
 
-Vue.directive('clean-html', cleanHtmlDirective);
+app.directive('clean-html', cleanHtmlDirective);
