@@ -229,6 +229,10 @@ describe('Charts', { tags: ['@charts', '@adminUser'] }, () => {
         cy.contains('Overview').should('exist');
         cy.contains('Powered by Istio').should('exist');
       });
+
+      it('test that will fail to trigger sorry cypress video', () => {
+        cy.contains('abcde12345').should('not.exist');
+      });
     });
   });
 });
