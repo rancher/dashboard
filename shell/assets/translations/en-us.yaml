@@ -5714,6 +5714,9 @@ tableHeaders:
   users: Users
   userDisplayName: Display Name
   userId: ID
+  userDeletedIn: Deleted In
+  userDisabledIn: Disabled In
+  userLastLogin: Last Login
   userStatus: Status
   username: Local Username
   value: Value
