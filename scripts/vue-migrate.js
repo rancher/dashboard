@@ -402,7 +402,7 @@ const routerUpdates = () => {
  * Files: .spec.js, .spec.ts, .test.js, .test.ts
  */
 const jestUpdates = () => {
-  const files = glob.sync(params.paths || '**/*.{spec.js,spec.ts,test.js,test.ts}', { ignore });
+  const files = glob.sync(params.paths || '**/*.{test.js,test.ts}', { ignore });
 
   const cases = [
     ['config.mocks.$myGlobal', '', ''],
