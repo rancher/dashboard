@@ -1903,8 +1903,8 @@ cluster:
       toolTip: "This can be either a fixed number of nodes (e.g. 1) at a time or a percentage (e.g. 10%)"
     drain:
       label: Drain Nodes
-      toolTip: Draining preemptively removes the pods on each node so there are no running workloads on the nodes being upgraded.  Upgrading without draining is faster and causes less shuffling around, but pods may still be restarted depending on the upgrade being performed. 
-      deleteEmptyDir: 
+      toolTip: Draining preemptively removes the pods on each node so there are no running workloads on the nodes being upgraded.  Upgrading without draining is faster and causes less shuffling around, but pods may still be restarted depending on the upgrade being performed.
+      deleteEmptyDir:
         warning: "By default, pods using emptyDir volumes will be deleted on upgrade. Operations reliant on emptyDir volumes persisting through the pod's lifecycle may be impacted."
         label: Delete pods using emptyDir volumes
         tooltip: emptyDir volumes are often used for ephemeral data, but the data will be permanently deleted.  Draining will fail if this is not set and there are pods using emptyDir.
@@ -5568,6 +5568,9 @@ tableHeaders:
   users: Users
   userDisplayName: Display Name
   userId: ID
+  userDeletedIn: Deleted In
+  userDisabledIn: Disabled In
+  userLastLogin: Last Login
   userStatus: Status
   username: Local Username
   value: Value
