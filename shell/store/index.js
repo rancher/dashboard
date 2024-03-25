@@ -615,17 +615,16 @@ export const mutations = {
     state.isRancherInHarvester = neu;
   },
 
-  updateNamespaces(state, opt) {
-    const { filters, all } = opt;
-
+  updateNamespaces(state, { filters, all, getters: optGetters }) {
     state.namespaceFilters = filters.filter((x) => !!x);
 
     if ( all ) {
       state.allNamespaces = all;
     }
-    // Create map that can be used to efficiently check if a
-    // resource should be displayed
-    getActiveNamespaces(state, opt.getters || getters);
+    // - Create map that can be used to efficiently check if a resource should be displayed.
+    // - The 'getters' parameter is required to preserve compatibility with older Harvester's versions in embedded mode.
+    //   see https://github.com/rancher/dashboard/issues/10647
+    getActiveNamespaces(state, optGetters || getters);
   },
 
   changeAllNamespaces(state, namespace) {
