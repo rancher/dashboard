@@ -1,6 +1,7 @@
 import HomePagePo from '@/cypress/e2e/po/pages/home.po';
 import BurgerMenuPo from '@/cypress/e2e/po/side-bars/burger-side-menu.po';
 import ProductNavPo from '@/cypress/e2e/po/side-bars/product-side-nav.po';
+import WorkloadPagePo from '@/cypress/e2e/po/pages/explorer/workloads.po';
 
 Cypress.config();
 describe('Side navigation: Cluster ', { tags: ['@navigation', '@adminUser'] }, () => {
@@ -84,15 +85,16 @@ describe('Side navigation: Cluster ', { tags: ['@navigation', '@adminUser'] }, (
     const group = productNavPo.groups().eq(1); // First group is 'Workloads'
 
     // Select and expand current top-level group
-    group.click().then((workloadsGroup) => {
-      const workloadsUrl = (workloadsGroup.find('a')[0] as HTMLAnchorElement).href;
+    group.click();
+    const workloads = new WorkloadPagePo();
 
+    workloads.waitForPage();
+
+    cy.url().then((workloadsUrl) => {
       // Go to the second subgroup
       productNavPo.visibleNavTypes().eq(1).click({ force: true });
       // Clicking back should take us back to workloads
-      productNavPo.tabHeaders().eq(1).click(1, 1).then(() => {
-        cy.url().should('equal', workloadsUrl);
-      });
+      productNavPo.tabHeaders().eq(1).click(1, 1).then(() => cy.url().should('equal', workloadsUrl));
     });
   });
 });
