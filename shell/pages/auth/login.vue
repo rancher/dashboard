@@ -301,8 +301,7 @@ export default {
           {{ t('login.howdy') }}
         </p>
         <h1 class="text-center login-welcome">
-          {{ t('login.welcome', {vendor}) }}<br>
-          I'm some test text to prove that the UI isn't embedded but from the branch
+          {{ t('login.welcome', {vendor}) }}
         </h1>
         <div
           class="login-messages"
