@@ -84,13 +84,15 @@ describe('Side navigation: Cluster ', { tags: ['@navigation', '@adminUser'] }, (
     const group = productNavPo.groups().eq(1); // First group is 'Workloads'
 
     // Select and expand current top-level group
-    group.click();
+    group.click().then((workloadsGroup) => {
+      const workloadsUrl = (workloadsGroup.find('a')[0] as HTMLAnchorElement).href;
 
-    cy.url().then((workloadsUrl) => {
       // Go to the second subgroup
       productNavPo.visibleNavTypes().eq(1).click({ force: true });
       // Clicking back should take us back to workloads
-      productNavPo.tabHeaders().eq(1).click(1, 1).then(() => cy.url().should('equal', workloadsUrl));
+      productNavPo.tabHeaders().eq(1).click(1, 1).then(() => {
+        cy.url().should('equal', workloadsUrl);
+      });
     });
   });
 });
