@@ -7416,17 +7416,6 @@ embedding:
   retry: Retry
   unavailable: Cluster Manager UI is not available
 
-v1ClusterTools:
-  monitoring:
-    label: Monitoring (Legacy)
-    description: 'Legacy V1 monitoring. V1 Monitoring is deprecated since Rancher 2.5.0. <a target="blank" href="{docsBase}/monitoring-alerting/guides/migrating/">Learn more</a> about the migration steps to V2 Monitoring.'
-  logging:
-    label: Logging (Legacy)
-    description: 'Legacy V1 logging. V1 Logging is deprecated since Rancher 2.5.0. <a target="blank" href="{docsBase}/logging/migrating/">Learn more</a> about migrating to V2 Logging.'
-  istio:
-    label: Istio (Legacy)
-    description: 'Legacy V1 Istio. Istio v1.5 has been deprecated since Rancher 2.5.0. <a target="blank" href="{docsBase}/istio/#migrate-from-previous-istio-version">Learn more</a> about migrating to the latest version.'
-
 legacy:
   alerts: Alerts
   apps: Apps
