@@ -37,7 +37,11 @@ export default {
     window.$globalApp = this;
     Object.defineProperty(window, '$nuxt', {
       get() {
-        console.warn('window.$nuxt is deprecated. It would be best to stop using globalState all together. For an alternative you can use window.$globalApp.'); // eslint-disable-line no-console
+        const isHarvester = this.$globalApp?.$store.getters['currentCluster']?.isHarvester;
+
+        if (!isHarvester) {
+          console.warn('window.$nuxt is deprecated. It would be best to stop using globalState all together. For an alternative you can use window.$globalApp.'); // eslint-disable-line no-console
+        }
 
         return window.$globalApp;
       }
