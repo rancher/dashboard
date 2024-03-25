@@ -236,6 +236,8 @@ export default {
           const { data: nodes } = await this.$store.dispatch('cluster/request', { url: `${ url }/${ NODE }s` });
 
           this.allNodeObjects = nodes;
+
+          this.vGpuOptions = this.getVGpus(nodes);
         } catch (err) {
           this.allNodeObjects = [];
         }
@@ -363,6 +365,7 @@ export default {
       namespaces:         [],
       namespaceOptions:   [],
       networkOptions:     [],
+      vGpuOptions:        [],
       userDataOptions:    [],
       networkDataOptions: [],
       allNodeObjects:     [],
@@ -378,7 +381,8 @@ export default {
       userDataIsBase64,
       networkDataIsBase64,
       vmAffinityIsBase64,
-      SOURCE_TYPE
+      SOURCE_TYPE,
+      vGpu:               this.value.vGpu || ''
     };
   },
 
@@ -455,6 +459,7 @@ export default {
       if (!this.isEdit) {
         this.imageOptions = [];
         this.networkOptions = [];
+        this.vGpuOptions = [];
         this.namespaces = [];
         this.storageClass = [];
         this.namespaceOptions = [];
@@ -812,6 +817,10 @@ export default {
       }
     },
 
+    updateVGpu() {
+      this.value.vGpu = this.vGpu;
+    },
+
     addCloudConfigComment(value) {
       if (typeof value === 'object' && value !== null) {
         return `#cloud-config\n${ jsyaml.dump(value) }`;
@@ -1006,6 +1015,19 @@ export default {
       this.$refs.userDataYamlEditor.updateValue(userDataYaml);
       this.$set(this, 'userData', userDataYaml);
     },
+
+    getVGpus(nodes) {
+      return nodes.reduce((acc, node) => {
+        const vGpus = Object.keys(node.status.allocatable || {})
+          .filter((k) => k.startsWith('nvidia.com/') && node.status.allocatable[k] > 0)
+          .map((k) => k.replace('nvidia.com/', '')) || [];
+
+        return [
+          ...acc,
+          ...vGpus
+        ];
+      }, []);
+    }
   }
 };
 </script>
@@ -1262,6 +1284,22 @@ export default {
       </button>
 
       <portal :to="'advanced-'+uuid">
+        <h3 class="mt-20">
+          {{ t("harvesterManager.vGpu.title") }}
+        </h3>
+        <div>
+          <LabeledSelect
+            v-model="vGpu"
+            :mode="mode"
+            :disabled="disabled"
+            :options="vGpuOptions"
+            :clearable="true"
+            label-key="harvesterManager.vGpu.label"
+            :placeholder="t('harvesterManager.vGpu.placeholder')"
+            @input="updateVGpu"
+          />
+        </div>
+
         <h3 class="mt-20">
           {{ t("cluster.credential.harvester.userData.title") }}
         </h3>

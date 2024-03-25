@@ -20,3 +20,7 @@ harvesterManager:
     addLabel: Add Workload Selector
     topologyKey:
       placeholder: 'topology.kubernetes.io/zone'
+  vGpu:
+    title: VGPU
+    label: VGPU type
+    placeholder: 'Please select a VGPU'
