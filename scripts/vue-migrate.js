@@ -547,9 +547,8 @@ const printContent = (...args) => {
  * Replace all cases for the provided files
  */
 const replaceCases = (fileType, files, replacementCases, printText) => {
-  const matchedCases = [];
-
   files.forEach((file) => {
+    const matchedCases = [];
     let content = fs.readFileSync(file, 'utf8');
 
     replacementCases.forEach(([text, replacement, notes]) => {
@@ -567,7 +566,8 @@ const replaceCases = (fileType, files, replacementCases, printText) => {
         }
       } else {
         // Regex case
-        if (text.test(content)) {
+        // TODO: Fix issue not replacing all
+        if (text.test(content) && replacement) {
           content = content.replace(new RegExp(text, 'g'), replacement);
           if (!matchedCases.includes(`${ text }, ${ replacement }, ${ notes }`)) {
             matchedCases.push(`${ text }, ${ replacement }, ${ notes }`);
