@@ -34,13 +34,14 @@ const nodeRequirement = '20.0.0';
 const isDry = process.argv.includes('--dry');
 const isVerbose = process.argv.includes('--verbose');
 const removePlaceholder = 'REMOVE';
+const params = { paths: null };
 
 /**
  * Package updates
  * Files: package.json
  */
 const packageUpdates = () => {
-  const files = glob.sync('**/package.json', { ignore });
+  const files = glob.sync(params.paths || '**/package.json', { ignore });
 
   files.forEach((file) => {
     let content = fs.readFileSync(file, 'utf8');
@@ -206,7 +207,7 @@ const packageUpdatesResolution = (file, oldContent, parsedJson) => {
  * Verify GitHub Actions use of current node version, e.g. node-version: '<18'
  */
 const gitHubActionsUpdates = () => {
-  const files = glob.sync('.github/workflows/**.{yml,yaml}', { ignore });
+  const files = glob.sync(params.paths || '.github/workflows/**.{yml,yaml}', { ignore });
 
   files.forEach((file) => {
     let content = fs.readFileSync(file, 'utf8');
@@ -244,7 +245,7 @@ const gitHubActionsUpdates = () => {
  * Verify presence of .nvmrc, create one if none, update if any
  */
 const nvmUpdates = () => {
-  const files = glob.sync('**/.nvmrc', { ignore });
+  const files = glob.sync(params.paths || '**/.nvmrc', { ignore });
   const nvmRequirement = 20;
 
   files.forEach((file) => {
@@ -276,7 +277,7 @@ const nvmUpdates = () => {
  * - devServer.public: 'path' -> client: { webSocketURL: 'path' }
  */
 const vueConfigUpdates = () => {
-  const files = glob.sync('vue.config**.js', { ignore });
+  const files = glob.sync(params.paths || 'vue.config**.js', { ignore });
 
   files.forEach((file) => {
     const content = fs.readFileSync(file, 'utf8');
@@ -295,7 +296,7 @@ const vueConfigUpdates = () => {
  * Files: .vue, .js, .ts (not .spec.ts, not .test.ts)
  */
 const vueSyntaxUpdates = () => {
-  const files = glob.sync('**/*.{vue,js,ts}', { ignore: [...ignore, '**/*.spec.ts', '**/__tests__/**', '**/*.test.ts', 'jest.setup.js', '**/*.d.ts', '**/vue-shim.ts'] });
+  const files = glob.sync(params.paths || '**/*.{vue,js,ts}', { ignore: [...ignore, '**/*.spec.ts', '**/__tests__/**', '**/*.test.ts', 'jest.setup.js', '**/*.d.ts', '**/vue-shim.ts'] });
   const replacementCases = [
     // Prioritize set and delete to be converted since removed in Vue3
     [/Vue\.set\((.*?),\s*(.*?),\s*(.*?)\)/g, (_, obj, prop, val) => `${ obj.trim() }[${ prop.trim() }] = ${ val.trim() }`, 'removed and unnecessary due new reactivity https://vuejs.org/guide/extras/reactivity-in-depth.html'],
@@ -379,7 +380,7 @@ const vueSyntaxUpdates = () => {
  * Files: .vue, .js, .ts
  */
 const routerUpdates = () => {
-  const files = glob.sync('**/*.{vue,js,ts}', { ignore });
+  const files = glob.sync(params.paths || '**/*.{vue,js,ts}', { ignore });
   const replacementCases = [
     [`import Router from 'vue-router'`, `import { createRouter } from 'vue-router'`],
     [`Vue.use(Router)`, `const router = createRouter({})`],
@@ -401,7 +402,8 @@ const routerUpdates = () => {
  * Files: .spec.js, .spec.ts, .test.js, .test.ts
  */
 const jestUpdates = () => {
-  const files = glob.sync('**/*.{spec.js,spec.ts,test.js,test.ts}', { ignore });
+  const files = glob.sync(params.paths || '**/*.{spec.js,spec.ts,test.js,test.ts}', { ignore });
+
   const cases = [
     ['config.mocks.$myGlobal', '', ''],
     ['createLocalVue', '', 'https://test-utils.vuejs.org/migration/#No-more-createLocalVue'],
@@ -435,7 +437,7 @@ const jestUpdates = () => {
  * /node_modules/@vue/vue2-jest --> reference needs new library version
  */
 const jestConfigUpdates = () => {
-  const files = glob.sync('**/jest.config.{js,ts,json}', { ignore });
+  const files = glob.sync(params.paths || '**/jest.config.{js,ts,json}', { ignore });
   const cases = [
     ['/node_modules/@vue/vue2-jest', '/node_modules/@vue/vue3-jest']
   ];
@@ -448,7 +450,7 @@ const jestConfigUpdates = () => {
  * Files: .eslintrc.js, .eslintrc.json, .eslintrc.yml
  */
 const eslintUpdates = () => {
-  const files = glob.sync('**/.eslintrc.*{js,json,yml}', { ignore });
+  const files = glob.sync(params.paths || '**/.eslintrc.*{js,json,yml}', { ignore });
   // Add cases introduced with new recommended settings
   const replacePlugins = [
     ['plugin:vue/essential', 'plugin:vue/vue3-essential'],
@@ -515,7 +517,7 @@ const tsUpdates = () => {
  * Styles updates
  */
 const stylesUpdates = () => {
-  const files = glob.sync('**/*.{vue, scss}', { ignore });
+  const files = glob.sync(params.paths || '**/*.{vue, scss}', { ignore });
   const cases = [
     ['::v-deep', ':deep()'],
   ];
@@ -603,10 +605,25 @@ const printLog = () => {
   }
 };
 
+const setParams = () => {
+  const args = process.argv.slice(2);
+  const paramKeys = ['paths'];
+
+  args.forEach((val) => {
+    paramKeys.forEach((key) => {
+      if (val.startsWith(`--${ key }=`)) {
+        params[key] = val.split('=')[1];
+      }
+    });
+  });
+};
+
 /**
  * Init application
  */
 (function() {
+  setParams();
+
   packageUpdates();
   gitHubActionsUpdates();
   nvmUpdates();
