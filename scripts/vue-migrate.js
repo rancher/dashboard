@@ -460,33 +460,30 @@ const routerUpdates = () => {
  * Jest update
  * https://test-utils.vuejs.org/migration
  * Files: .spec.js, .spec.ts, .test.js, .test.ts
- *
- * Verify presence of vue2-jest in jest config
- * config.mocks.$myGlobal -> config.global.mocks.$myGlobal
- * Remove createLocalVue
- * new Vuex.Store -> createStore
- * store -> global.store
- * propsData -> props
- * localVue.extend({}) removed and need component mount (used to test mixins)
- * Vue.nextTick -> await wrapper.vm.$nextTick()
- * mocks and stubs are now in global
- * Not keeping stubbed slots content -> config.global.renderStubDefaultSlot = true
- * findAll().at(0) removed -> findAll()[0]
  */
 const jestUpdates = () => {
   const files = glob.sync('**/*.{spec.js,spec.ts,test.js,test.ts}', { ignore });
   const cases = [
-    'config.mocks.$myGlobal',
-    'createLocalVue',
-    'new Vuex.Store',
-    'store',
-    'propsData',
-    'localVue.extend({})',
-    'Vue.nextTick',
-    'mocks',
-    'stubs',
-    'config.global.renderStubDefaultSlot = false',
-    'findAll().at(0)'
+    ['config.mocks.$myGlobal', '', ''],
+    ['createLocalVue', '', 'https://test-utils.vuejs.org/migration/#No-more-createLocalVue'],
+    ['new Vuex.Store', '', ''],
+    ['store', '', ''],
+    ['propsData', 'props', 'https://test-utils.vuejs.org/migration/#propsData-is-now-props'],
+    ['localVue.extend({})', '', ''],
+    ['Vue.nextTick', '', ''],
+    ['$destroy', '$unmount', 'https://test-utils.vuejs.org/migration/#destroy-is-now-unmount-to-match-Vue-3'],
+    ['mocks', '', 'https://test-utils.vuejs.org/migration/#mocks-and-stubs-are-now-in-global'],
+    ['stubs', '', 'https://test-utils.vuejs.org/migration/#mocks-and-stubs-are-now-in-global'],
+    ['mixins', '', 'https://test-utils.vuejs.org/migration/#mocks-and-stubs-are-now-in-global'],
+    ['plugins', '', 'https://test-utils.vuejs.org/migration/#mocks-and-stubs-are-now-in-global'],
+    ['component', '', 'https://test-utils.vuejs.org/migration/#mocks-and-stubs-are-now-in-global'],
+    ['directives', '', 'https://test-utils.vuejs.org/migration/#mocks-and-stubs-are-now-in-global'],
+    ['slots', '', 'slots‘s scope is now exposed as params https://test-utils.vuejs.org/migration/#slots-s-scope-is-now-exposed-as-params'],
+    ['scopedSlots', '', 'scopedSlots is now merged with slots https://test-utils.vuejs.org/migration/#scopedSlots-is-now-merged-with-slots'],
+    ['parentComponent', '', 'deprecated '],
+    ['contains', 'find', 'deprecated '],
+    ['config.global.renderStubDefaultSlot = false', '', ''],
+    ['findAll().at(0)', '', '']
   ];
 
   files.forEach((file) => {
