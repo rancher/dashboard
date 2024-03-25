@@ -4,6 +4,8 @@ import { ConfigMapPagePo } from '@/cypress/e2e/po/pages/explorer/config-map.po';
 import { NamespaceFilterPo } from '@/cypress/e2e/po/components/namespace-filter.po';
 
 const featureFlagsPage = new FeatureFlagsPagePo();
+const namespacePicker = new NamespaceFilterPo();
+
 let disableLegacyFlag = false;
 
 describe('Legacy: Projects', { tags: ['@explorer', '@adminUser'], testIsolation: 'off' }, () => {
@@ -24,8 +26,6 @@ describe('Legacy: Projects', { tags: ['@explorer', '@adminUser'], testIsolation:
 
     configMapPage.goTo();
 
-    const namespacePicker = new NamespaceFilterPo();
-
     namespacePicker.toggle();
     namespacePicker.clickOptionByLabel('All Namespaces');
     namespacePicker.clickOptionByLabel('Project: Default');
@@ -43,5 +43,8 @@ describe('Legacy: Projects', { tags: ['@explorer', '@adminUser'], testIsolation:
     if (disableLegacyFlag) {
       featureFlagsPage.setFeatureFlag('legacy', false);
     }
+
+    namespacePicker.toggle();
+    namespacePicker.clickOptionByLabel('Only User Namespaces'); // This is the default
   });
 });
