@@ -559,13 +559,17 @@ const replaceCases = (fileType, files, replacementCases, printText) => {
             // Remove discontinued functionalities which do not break
             content = content.replaceAll(text, replacement === removePlaceholder ? '' : replacement);
           }
-          matchedCases.push([text, replacement, notes]);
+          if (!matchedCases.includes(`${ text }, ${ replacement }, ${ notes }`)) {
+            matchedCases.push(`${ text }, ${ replacement }, ${ notes }`);
+          }
         }
       } else {
         // Regex case
         if (text.test(content)) {
           content = content.replace(new RegExp(text, 'g'), replacement);
-          matchedCases.push([text, replacement, notes]);
+          if (!matchedCases.includes(`${ text }, ${ replacement }, ${ notes }`)) {
+            matchedCases.push(`${ text }, ${ replacement }, ${ notes }`);
+          }
         }
       }
     });
