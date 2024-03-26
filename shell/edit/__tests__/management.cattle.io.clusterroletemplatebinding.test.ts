@@ -25,7 +25,7 @@ describe('view: management.cattle.io.clusterroletemplatebinding should', () => {
           'i18n/t':                  (val) => val,
           'i18n/exists':             jest.fn(),
         },
-        dispatch: { 'management/findAll': () => ([]) }
+        dispatch: jest.fn(),
       },
       $fetchState: { pending: false },
       $route:      { query: { AS: '' } },
