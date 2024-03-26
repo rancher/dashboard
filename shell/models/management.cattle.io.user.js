@@ -99,6 +99,30 @@ export default class User extends HybridModel {
     return this.$rootGetters['i18n/withFallback'](`model.authConfig.provider."${ this.provider }"`, null, this.provider);
   }
 
+  /**
+   * Gets the last-login label in milliseconds
+   * @returns {number}
+   */
+  get userLastLogin() {
+    return this.metadata?.labels?.['cattle.io/last-login'] * 1000;
+  }
+
+  /**
+   * Gets the disabled-after label in milliseconds
+   * @returns {number}
+   */
+  get userDisabledIn() {
+    return this.metadata?.labels?.['cattle.io/disable-after'] * 1000;
+  }
+
+  /**
+   * Gets the delete-after label in milliseconds
+   * @returns {number}
+   */
+  get userDeletedIn() {
+    return this.metadata?.labels?.['cattle.io/delete-after'] * 1000;
+  }
+
   get state() {
     if ( this.enabled === false ) {
       return 'inactive';
