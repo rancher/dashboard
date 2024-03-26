@@ -1,6 +1,7 @@
 import HomePagePo from '@/cypress/e2e/po/pages/home.po';
 import BurgerMenuPo from '@/cypress/e2e/po/side-bars/burger-side-menu.po';
 import ProductNavPo from '@/cypress/e2e/po/side-bars/product-side-nav.po';
+import WorkloadPagePo from '@/cypress/e2e/po/pages/explorer/workloads.po';
 
 Cypress.config();
 describe('Side navigation: Cluster ', { tags: ['@navigation', '@adminUser'] }, () => {
@@ -85,6 +86,9 @@ describe('Side navigation: Cluster ', { tags: ['@navigation', '@adminUser'] }, (
 
     // Select and expand current top-level group
     group.click();
+    const workloads = new WorkloadPagePo();
+
+    workloads.waitForPage();
 
     cy.url().then((workloadsUrl) => {
       // Go to the second subgroup
