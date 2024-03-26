@@ -34,6 +34,7 @@ const nodeRequirement = '20.0.0';
 const isDry = process.argv.includes('--dry');
 const isVerbose = process.argv.includes('--verbose');
 const removePlaceholder = 'REMOVE';
+const babelPlaceholder = 'BABEL';
 const params = { paths: null };
 
 /**
@@ -552,8 +553,11 @@ const replaceCases = (fileType, files, replacementCases, printText) => {
     let content = fs.readFileSync(file, 'utf8');
 
     replacementCases.forEach(([text, replacement, notes]) => {
-      // Simple text
-      if (typeof text === 'string') {
+      // Handle Abstract Syntax Tree with Babel for interactive replacements
+      if (text === babelPlaceholder) {
+        replacement(content, matchedCases);
+      } else if (typeof text === 'string') {
+        // Simple text case
         if (content.includes(text)) {
           // Exclude cases without replacement
           if (replacement) {
