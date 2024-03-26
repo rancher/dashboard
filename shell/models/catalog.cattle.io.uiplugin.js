@@ -1,6 +1,10 @@
 import SteveModel from '@shell/plugins/steve/steve-class';
 
-const CACHED_STATUS = 'cached';
+const CACHE_STATE = Object.freeze({
+  CACHED:   'cached',
+  DISABLED: 'disabled',
+  PENDING:  'pending',
+});
 
 export default class UIPlugin extends SteveModel {
   get name() {
@@ -15,13 +19,8 @@ export default class UIPlugin extends SteveModel {
     return this.spec?.plugin?.version;
   }
 
-  get willBeCached() {
-    return this.spec?.plugin?.noCache === false;
-  }
-
-  // Has the plugin been cached?
-  get isCached() {
-    return !this.willBeCached || (this.willBeCached && this.status?.cacheState === CACHED_STATUS);
+  get isInitialized() {
+    return this.status?.cacheState !== CACHE_STATE.PENDING;
   }
 
   get pluginMetadata() {
