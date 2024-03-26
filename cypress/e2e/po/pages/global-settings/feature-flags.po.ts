@@ -67,4 +67,19 @@ export class FeatureFlagsPagePo extends RootClusterPage {
       expect(response?.body.spec).to.have.property('value', value);
     });
   }
+
+  getFeatureFlag(featureFlag: string): Cypress.Chainable<Object> {
+    return cy.getRancherResource('v1', 'management.cattle.io.features', featureFlag).then((r) => r.body);
+  }
+
+  setFeatureFlag(featureFlag: string, value: boolean) {
+    return this.getFeatureFlag(featureFlag).then((res) => {
+      const obj = {
+        ...res,
+        spec: { value }
+      };
+
+      cy.setRancherResource('v1', 'management.cattle.io.features', featureFlag, JSON.stringify(obj));
+    });
+  }
 }

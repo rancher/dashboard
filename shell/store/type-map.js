@@ -937,11 +937,11 @@ export const getters = {
         const virtualTypes = state.virtualTypes[product] || [];
         const spoofedTypes = state.spoofedTypes[product] || [];
         const allTypes = [...virtualTypes, ...spoofedTypes];
-        const virtSpoofedModes = [...nonUsedModes];
 
         for ( const type of allTypes ) {
           const item = clone(type);
           const id = item.name;
+          const virtSpoofedModes = [...nonUsedModes];
 
           // Is there a virtual/spoofed type override for schema type?
           // Currently used by harvester, this should be investigated and removed if possible

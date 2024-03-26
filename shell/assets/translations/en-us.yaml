@@ -168,6 +168,7 @@ nav:
     RBAC: RBAC
     Scheduling: Scheduling
     Storage: Storage
+    Project: Project
   ns:
     all: All Namespaces
     clusterLevel: Only Cluster Resources
