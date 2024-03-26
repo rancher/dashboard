@@ -25,7 +25,18 @@ describe('view: management.cattle.io.clusterroletemplatebinding should', () => {
           'i18n/t':                  (val) => val,
           'i18n/exists':             jest.fn(),
         },
-        dispatch: jest.fn(),
+        dispatch: jest.fn((action, payload) => {
+          const actions = {
+            'management/findAll':              () => [],
+            'cru-resource/setCreateNamespace': jest.fn(),
+          };
+
+          if (actions[action]) {
+            return actions[action](payload);
+          }
+
+          throw new Error(`Unknown action: ${ action }`);
+        }),
       },
       $fetchState: { pending: false },
       $route:      { query: { AS: '' } },
