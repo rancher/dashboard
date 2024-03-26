@@ -424,25 +424,6 @@ export default {
       out = getters.byId(type, id);
 
       if ( out ) {
-        if ( opt.watch !== false ) {
-          const watchMsg = {
-            type,
-            id,
-            // Although not used by sockets, we need this for when resyncWatch calls find... which needs namespace to construct the url
-            namespace: opt.namespaced,
-            revision:  out?.metadata?.resourceVersion,
-          };
-
-          const idx = id.indexOf('/');
-
-          if ( idx > 0 ) {
-            watchMsg.namespace = id.substr(0, idx);
-            watchMsg.id = id.substr(idx + 1);
-          }
-
-          dispatch('watch', watchMsg);
-        }
-
         return out;
       }
     }
