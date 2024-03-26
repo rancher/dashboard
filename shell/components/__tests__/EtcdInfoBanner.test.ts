@@ -4,21 +4,21 @@ import { cleanHtmlDirective } from '@shell/plugins/clean-html-directive';
 import { CATALOG } from '@shell/config/types';
 
 describe('component: EtcdInfoBanner', () => {
-  it('should perform fetch correctly', async () => {
+  it('should perform fetch correctly', async() => {
     const mockCanList = jest.fn((resource: string) => true);
-    const mockDispatch = jest.fn((resource: string, param: any) => ({ data: { result: [] }}));
+    const mockDispatch = jest.fn((resource: string, param: any) => ({ data: { result: [] } }));
 
     const wrapper = mount(
       EtcdInfoBanner,
       {
         directives: { cleanHtmlDirective },
         mocks:      {
-          $store:      {
+          $store: {
             getters: {
-              'i18n/t': () => 'Hello',
-              currentProduct: { inStore: 'cluster' },
+              'i18n/t':          () => 'Test',
+              currentProduct:    { inStore: 'cluster' },
               'cluster/canList': mockCanList,
-              'currentCluster': { id: 'local'},
+              currentCluster:    { id: 'local' },
             },
             dispatch: mockDispatch,
           },
