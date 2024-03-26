@@ -1,7 +1,8 @@
-<script>
+<script lang="ts">
+import { defineComponent } from 'vue';
 import { Banner } from '@components/Banner';
 
-export default {
+export default defineComponent({
   name: 'AuthProviderWarningBanners',
 
   components: { Banner },
