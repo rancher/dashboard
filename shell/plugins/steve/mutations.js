@@ -7,7 +7,7 @@ import {
   load,
   remove,
   batchChanges,
-  replace
+  replace,
 } from '@shell/plugins/dashboard-store/mutations';
 import { perfLoadAll } from '@shell/plugins/steve/performanceTesting';
 import Vue from 'vue';
@@ -122,7 +122,8 @@ export default {
     ctx,
     skipHaveAll,
     namespace,
-    revision
+    revision,
+    pagination
   }) {
     // Performance testing in dev and when env var is set
     if (process.env.dev && !!process.env.perfTest) {
@@ -130,7 +131,7 @@ export default {
     }
 
     const proxies = loadAll(state, {
-      type, data, ctx, skipHaveAll, namespace, revision
+      type, data, ctx, skipHaveAll, namespace, revision, pagination
     });
 
     // If we loaded a set of pods, then update the podsByNamespace cache
@@ -172,6 +173,9 @@ export default {
     SteveSchema.reset(state.config.namespace);
   },
 
+  /**
+  * Load multiple different types of resources
+  */
   loadMulti(state, { data, ctx }) {
     for (const entry of data) {
       const resource = load(state, { data: entry, ctx });

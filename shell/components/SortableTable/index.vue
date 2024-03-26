@@ -49,10 +49,12 @@ export const COLUMN_BREAKPOINTS = {
 
 // Data Flow:
 // rows prop
-// -> arrangedRows (sorting.js)
-// -> filteredRows (filtering.js)
-// -> pagedRows    (paging.js)
-// -> groupedRows  (grouping.js)
+// --> sorting.js arrangedRows
+// --> filtering.js handleFiltering()
+// --> filtering.js filteredRows
+// --> paging.js pageRows
+// --> grouping.js groupedRows
+// --> index.vue displayedRows
 
 export default {
   name:       'SortableTable',
@@ -283,6 +285,14 @@ export default {
     },
 
     /**
+     * The list will always be sorted by these regardless of what the user has selected
+     */
+    mandatorySort: {
+      type:    Array,
+      default: null,
+    },
+
+    /**
      * Allows you to link to a custom detail page for data that
      * doesn't have a class model. For example, a receiver configuration
      * block within an AlertmanagerConfig resource.
@@ -313,6 +323,22 @@ export default {
     forceUpdateLiveAndDelayed: {
       type:    Number,
       default: 0
+    },
+
+    /**
+     * True if pagination is executed outside of the component
+     */
+    externalPaginationEnabled: {
+      type:    Boolean,
+      default: false
+    },
+
+    /**
+     * If `externalPaginationEnabled` is true this will be used as the current page
+     */
+    externalPaginationResult: {
+      type:    Object,
+      default: null
     }
   },
 
@@ -327,12 +353,14 @@ export default {
     }
 
     return {
-      currentPhase:     ASYNC_BUTTON_STATES.WAITING,
-      expanded:         {},
+      currentPhase:               ASYNC_BUTTON_STATES.WAITING,
+      expanded:                   {},
       searchQuery,
       eventualSearchQuery,
-      actionOfInterest: null,
-      loadingDelay:     false,
+      subMatches:                 null,
+      actionOfInterest:           null,
+      loadingDelay:               false,
+      debouncedPaginationChanged: null,
     };
   },
 
@@ -346,6 +374,8 @@ export default {
 
     this._onScroll = this.onScroll.bind(this);
     $main?.addEventListener('scroll', this._onScroll);
+
+    this.debouncedPaginationChanged();
   },
 
   beforeDestroy() {
@@ -383,21 +413,27 @@ export default {
     descending(neu, old) {
       this.watcherUpdateLiveAndDelayed(neu, old);
     },
+
     searchQuery(neu, old) {
       this.watcherUpdateLiveAndDelayed(neu, old);
     },
+
     sortFields(neu, old) {
       this.watcherUpdateLiveAndDelayed(neu, old);
     },
+
     groupBy(neu, old) {
       this.watcherUpdateLiveAndDelayed(neu, old);
     },
+
     namespaces(neu, old) {
       this.watcherUpdateLiveAndDelayed(neu, old);
     },
+
     page(neu, old) {
       this.watcherUpdateLiveAndDelayed(neu, old);
     },
+
     forceUpdateLiveAndDelayed(neu, old) {
       this.watcherUpdateLiveAndDelayed(neu, old);
     },
@@ -429,6 +465,7 @@ export default {
 
   created() {
     this.debouncedRefreshTableData = debounce(this.refreshTableData, 500);
+    this.debouncedPaginationChanged = debounce(this.paginationChanged, 50);
   },
 
   computed: {
@@ -771,6 +808,12 @@ export default {
       // console.warn(`Performance: Table valueFor: ${ col.name } ${ col.value }`); // eslint-disable-line no-console
 
       const expr = col.value || col.name;
+
+      if (!expr) {
+        console.error('No path has been defined for this column, unable to get value of cell', col); // eslint-disable-line no-console
+
+        return '';
+      }
       const out = get(row, expr);
 
       if ( out === null || out === undefined ) {
@@ -897,6 +940,23 @@ export default {
       this.$emit('clickedActionButton', {
         event,
         targetElement: this.$refs[`actionButton${ i }`][0],
+      });
+    },
+
+    paginationChanged() {
+      if (!this.externalPaginationEnabled) {
+        return;
+      }
+
+      this.$emit('pagination-changed', {
+        page:    this.page,
+        perPage: this.perPage,
+        filter:  {
+          searchFields: this.searchFields,
+          searchQuery:  this.searchQuery
+        },
+        sort:       this.sortFields,
+        descending: this.descending
       });
     }
   }
@@ -1443,7 +1503,7 @@ export default {
   </div>
 </template>
 
-  <style lang="scss" scoped>
+<style lang="scss" scoped>
 
   .manual-refresh {
     height: 40px;
@@ -1607,9 +1667,9 @@ export default {
     margin-left: 10px;
     min-width: 180px;
   }
-  </style>
+</style>
 
-  <style lang="scss">
+<style lang="scss">
   //
   // Important: Almost all selectors in here need to be ">"-ed together so they
   // apply only to the current table, not one nested inside another table.
@@ -1941,4 +2001,4 @@ export default {
       min-width: 200px;
     }
   }
-  </style>
+</style>

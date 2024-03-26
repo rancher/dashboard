@@ -1,5 +1,5 @@
 import xor from 'lodash/xor';
-import { get } from '@shell/utils/object';
+import { get, isEqual } from '@shell/utils/object';
 
 export function removeObject<T>(ary: T[], obj: T): T[] {
   const idx = ary.indexOf(obj);
@@ -178,6 +178,25 @@ export function hasDuplicatedStrings(items: string[], caseSensitive = true): boo
 
 export function sameContents<T>(aryA: T[], aryB: T[]): boolean {
   return xor(aryA, aryB).length === 0;
+}
+
+export function sameArrayObjects<T>(aryA: T[], aryB: T[]): boolean {
+  if (!aryA && !aryB) {
+    // catch calls from js (where props aren't type checked)
+    return false;
+  }
+  if (aryA?.length !== aryB?.length) {
+    // catch one null and not t'other, and different lengths
+    return false;
+  }
+
+  for (let i = 0; i < aryA.length; i++) {
+    if (!isEqual(aryA[i], aryB[i])) {
+      return false;
+    }
+  }
+
+  return true;
 }
 
 export function uniq<T>(ary: T[]): T[] {

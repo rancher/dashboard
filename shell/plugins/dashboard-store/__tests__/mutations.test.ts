@@ -29,6 +29,7 @@ describe('dashboard-store: mutations', () => {
     generation:    0,
     haveAll:       false,
     haveNamespace: undefined,
+    havePage:      undefined,
     haveSelector:  {},
     list:          [],
     loadCounter:   0,

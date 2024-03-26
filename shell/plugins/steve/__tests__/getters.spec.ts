@@ -125,16 +125,16 @@ describe('steve: getters:', () => {
       expect(urlOptionsGetter('foo', { sortBy: 'bar' })).toBe('foo?sort=bar');
     });
     it('returns a string with a sorting criteria formatted for steve if the sort option is provided and the url starts with "/v1"', () => {
-      expect(urlOptionsGetter('/v1/foo', { sortBy: 'bar' })).toBe('/v1/foo?exclude=metadata.managedFields&sort=bar');
+      expect(urlOptionsGetter('/v1/foo', { sortBy: 'bar' })).toBe('/v1/foo?sort=bar&exclude=metadata.managedFields');
     });
     it('returns a string with a sorting criteria if the sort option is provided and an order if sortOrder is provided', () => {
       expect(urlOptionsGetter('foo', { sortBy: 'bar', sortOrder: 'baz' })).toBe('foo?sort=bar&order=baz');
     });
     it('returns a string with a sorting criteria formatted for steve if the sort option is provided and an order if sortOrder is provided and the url starts with "/v1"', () => {
-      expect(urlOptionsGetter('/v1/foo', { sortBy: 'bar', sortOrder: 'baz' })).toBe('/v1/foo?exclude=metadata.managedFields&sort=bar');
+      expect(urlOptionsGetter('/v1/foo', { sortBy: 'bar', sortOrder: 'baz' })).toBe('/v1/foo?sort=bar&exclude=metadata.managedFields');
     });
     it('returns a string with a sorting criteria formatted for steve if the sort option is provided and an order if sortOrder is "desc" and the url starts with "/v1"', () => {
-      expect(urlOptionsGetter('/v1/foo', { sortBy: 'bar', sortOrder: 'desc' })).toBe('/v1/foo?exclude=metadata.managedFields&sort=-bar');
+      expect(urlOptionsGetter('/v1/foo', { sortBy: 'bar', sortOrder: 'desc' })).toBe('/v1/foo?sort=-bar&exclude=metadata.managedFields');
     });
   });
 

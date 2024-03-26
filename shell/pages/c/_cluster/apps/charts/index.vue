@@ -181,6 +181,7 @@ export default {
      */
     featuredCharts() {
       const filteredCharts = this.filterCharts({});
+
       const featuredCharts = filteredCharts.filter((value) => value.featured).sort((a, b) => a.featured - b.featured);
 
       return featuredCharts.slice(0, 5);
