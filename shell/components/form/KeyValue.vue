@@ -11,6 +11,7 @@ import FileSelector from '@shell/components/form/FileSelector';
 import { _EDIT, _VIEW } from '@shell/config/query-params';
 import { asciiLike } from '@shell/utils/string';
 import CodeMirror from '@shell/components/CodeMirror';
+import isEqual from 'lodash/isEqual';
 
 export default {
   name: 'KeyValue',
@@ -319,8 +320,8 @@ export default {
     }
   },
   methods: {
-    valuePropChanged(neu, old) {
-      if (JSON.stringify(neu) !== JSON.stringify(this.lastUpdated)) {
+    valuePropChanged(neu) {
+      if (!isEqual(neu, this.lastUpdated)) {
         this.rows = this.getRows(neu);
       }
     },
