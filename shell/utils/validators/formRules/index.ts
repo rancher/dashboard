@@ -145,6 +145,8 @@ export default function(t: Translation, { key = 'Value' }: ValidationOptions): {
 
   const url: Validator = (val: string) => val && !isUrl(val) ? t('validation.setting.serverUrl.url') : undefined;
 
+  const alphanumeric: Validator = (val: string) => val && !/^[a-zA-Z0-9]+$/.test(val) ? t('validation.alphanumeric', { key }) : undefined;
+
   const interval: Validator = (val: string) => !/^\d+[hms]$/.test(val) ? t('validation.monitoring.route.interval', { key }) : undefined;
 
   const containerImage: Validator = (val: any) => !val?.image ? t('workload.validation.containerImage', { name: val.name }) : undefined;
@@ -458,6 +460,7 @@ export default function(t: Translation, { key = 'Value' }: ValidationOptions): {
 
   return {
     absolutePath,
+    alphanumeric,
     backupTarget,
     betweenLengths,
     betweenValues,

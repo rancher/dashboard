@@ -152,6 +152,7 @@ nav:
     workload: Workloads
     monitoring: Monitoring
     advanced: Advanced
+    drivers: Drivers
     RKE1Configuration: RKE1 Configuration
     admission: Admission
     apps: Apps
@@ -2111,6 +2112,33 @@ cruResource:
   reviewYaml: "Keep editing YAML"
   previewYaml: Edit as YAML
   showYaml: View as YAML
+
+drivers:
+  kontainer: 
+    title: Cluster Drivers
+  node:
+    title: Node Drivers
+  add:
+    title: Add Driver
+    name: 
+      label: Driver name
+    downloadUrl: 
+      label: Download URL
+      placeholder: https://test.com/driver
+      tooltip: The URL to download the machine driver binary for 64-bit Linux. 
+    customUiUrl: 
+      label: Custom UI URL
+      placeholder: https://test.com/ui
+      tooltip: The URL to load for customized Add Nodes screen for this driver. See https://github.com/rancher/ui-driver-skel for more info. 
+    checksum: 
+      label: Checksum
+      tooltip: Checksum to verify that the downloaded driver matches the expected checksum.
+    whitelist: Whitelist Domains
+  actions:
+    refresh: Refresh Kubernetes Metadata
+  deactivate:
+    title: Are you sure?
+    warning: You will no longer be able to edit the configuration of clusters using {name} driver. Resources in the provider will not be automatically removed. 
 
 detailText:
   collapse: Hide
@@ -5670,6 +5698,7 @@ validation:
     exactly: '"{key}" should contain {count, plural, =1 {# item} other {# items}}'
     max: '"{key}" should contain at most {count} {count, plural, =1 {item} other {items}}'
     min: '"{key}" should contain at least {count} {count, plural, =1 {item} other {items}}'
+  alphanumeric: '"{key}" must be alphanumeric'
   boolean: '"{key}" must be a boolean value.'
   chars: '"{key}" contains {count, plural, =1 {an invalid character} other {# invalid characters}}: {chars}'
   cluster:
@@ -6512,6 +6541,16 @@ typeLabel:
     {count, plural,
       one { Cloud Credential }
       other { Cloud Credentials }
+    }
+  kontainerdriver: |-
+    {count, plural,
+      one { Cluster Driver }
+      other { Cluster Drivers }
+    }
+  nodedriver: |-
+    {count, plural,
+      one { Node Driver }
+      other { Node Drivers }
     }
   endpoints: |-
     {count, plural,
