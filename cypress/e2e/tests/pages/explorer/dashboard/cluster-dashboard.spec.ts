@@ -119,7 +119,7 @@ describe('Cluster Dashboard', { testIsolation: 'off', tags: ['@explorer', '@admi
     ClusterDashboardPagePo.navTo();
 
     // Add Badge
-    clusterDashboard.addCustomBadge('Add Cluster Badge').click();
+    clusterDashboard.addCustomBadge('Customize Appearance').click();
 
     const customClusterCard = new CardPo();
 
