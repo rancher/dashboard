@@ -300,10 +300,10 @@ const vueSyntaxUpdates = () => {
   const files = glob.sync(params.paths || '**/*.{vue,js,ts}', { ignore: [...ignore, '**/*.spec.ts', '**/__tests__/**', '**/*.test.ts', 'jest.setup.js', '**/*.d.ts', '**/vue-shim.ts'] });
   const replacementCases = [
     // Prioritize set and delete to be converted since removed in Vue3
-    [/Vue\.set\((.*?),\s*(.*?),\s*(.*?)\)/g, (_, obj, prop, val) => `${ obj.trim() }[${ prop.trim() }] = ${ val.trim() }`, 'removed and unnecessary due new reactivity https://vuejs.org/guide/extras/reactivity-in-depth.html'],
-    [/Vue\.set\((.*?),\s*'([^']*?)',\s*\{([\s\S]*?)\}\)/g, (_, obj, prop, val) => `${ obj.trim() }['${ prop }'] = {${ val.trim() }}`, 'removed and unnecessary due new reactivity https://vuejs.org/guide/extras/reactivity-in-depth.html'],
-    [/Vue\.set\((.*?),\s*'([^']*?)',\s*(.*?)\)/g, (_, obj, prop, val) => `${ obj.trim() }.${ prop } = ${ val.trim() }`, 'removed and unnecessary due new reactivity https://vuejs.org/guide/extras/reactivity-in-depth.html'],
-    [/Vue\.delete\((.*?),\s*(.*?)\)/g, (_, obj, prop) => `delete ${ obj.trim() }[${ prop.trim() }]`, 'removed and unnecessary due new reactivity https://vuejs.org/guide/extras/reactivity-in-depth.html'],
+    [/(this\.\$set|Vue\.set)\((.*?),\s*(.*?),\s*(.*?)\)/g, (_, obj, prop, val) => `${ obj.trim() }[${ prop.trim() }] = ${ val.trim() }`, 'removed and unnecessary due new reactivity https://vuejs.org/guide/extras/reactivity-in-depth.html'],
+    [/(this\.\$set|Vue\.set)\((.*?),\s*'([^']*?)',\s*\{([\s\S]*?)\}\)/g, (_, obj, prop, val) => `${ obj.trim() }['${ prop }'] = {${ val.trim() }}`, 'removed and unnecessary due new reactivity https://vuejs.org/guide/extras/reactivity-in-depth.html'],
+    [/(this\.\$set|Vue\.set)\((.*?),\s*'([^']*?)',\s*(.*?)\)/g, (_, obj, prop, val) => `${ obj.trim() }.${ prop } = ${ val.trim() }`, 'removed and unnecessary due new reactivity https://vuejs.org/guide/extras/reactivity-in-depth.html'],
+    [/(this\.\$set|Vue\.set)\((.*?),\s*(.*?)\)/g, (_, obj, prop) => `delete ${ obj.trim() }[${ prop.trim() }]`, 'removed and unnecessary due new reactivity https://vuejs.org/guide/extras/reactivity-in-depth.html'],
 
     // Replace imports for all the cases where createApp is needed, before the rest of the replacements
     [/import Vue from 'vue';?/g, `import { createApp } from \'vue\';\nconst vueApp = createApp({});`, `https://v3-migration.vuejs.org/breaking-changes/global-api.html#a-new-global-api-createapp`],
