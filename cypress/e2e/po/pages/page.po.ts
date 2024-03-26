@@ -85,6 +85,10 @@ export default class PagePo extends ComponentPo {
     nav.navToSideMenuEntryByLabel(label);
   }
 
+  productNav(): ProductNavPo {
+    return new ProductNavPo();
+  }
+
   header() {
     return new HeaderPo();
   }

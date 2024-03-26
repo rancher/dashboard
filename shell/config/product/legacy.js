@@ -8,23 +8,13 @@ export function init(store) {
     product,
     basicType,
     virtualType,
+    setGroupDefaultType,
   } = DSL(store, NAME);
 
   product({
     weight:              80,
     ifFeature:           LEGACY,
     showNamespaceFilter: true,
-  });
-
-  virtualType({
-    ifHave:     IF_HAVE.PROJECT,
-    labelKey:   'legacy.project.label',
-    namespaced: true,
-    name:       'v1-project',
-    weight:     105,
-    route:      { name: 'c-cluster-project-apps' },
-    exact:      true,
-    overview:   false,
   });
 
   virtualType({
@@ -68,4 +58,5 @@ export function init(store) {
     'project-config-maps',
     'project-secrets',
   ], 'Project');
+  setGroupDefaultType('project-config-maps', 'Project');
 }

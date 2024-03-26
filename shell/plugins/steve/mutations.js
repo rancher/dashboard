@@ -7,7 +7,8 @@ import {
   load,
   remove,
   batchChanges,
-  replace
+  replace,
+  loadAdd
 } from '@shell/plugins/dashboard-store/mutations';
 import { perfLoadAll } from '@shell/plugins/steve/performanceTesting';
 import Vue from 'vue';
@@ -182,6 +183,16 @@ export default {
         addObject(cache.list, resource);
         cache.map.set(resource.id, resource);
       }
+    }
+  },
+
+  loadAdd(state, { type, data: allLatest, ctx }) {
+    loadAdd(state, {
+      type, data: allLatest, ctx
+    });
+
+    if (allLatest.length && allLatest[0].type === POD) {
+      updatePodsByNamespaceCache(state, ctx, allLatest, false);
     }
   },
 

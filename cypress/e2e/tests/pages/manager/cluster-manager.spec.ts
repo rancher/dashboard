@@ -78,7 +78,7 @@ describe('Cluster Manager', { testIsolation: 'off', tags: ['@manager', '@adminUs
     const sideNav = new ProductNavPo();
 
     // check that the nav group isn't visible anymore
-    sideNav.navToSideMenuGroupByLabelExistance('RKE1 Configuration', 'not.exist');
+    sideNav.navToSideMenuGroupByLabelExistence('RKE1 Configuration', 'not.exist');
   });
 
   describe('All providers', () => {
@@ -135,7 +135,7 @@ describe('Cluster Manager', { testIsolation: 'off', tags: ['@manager', '@adminUs
 
         const sideNav = new ProductNavPo();
 
-        sideNav.navToSideMenuGroupByLabelExistance('RKE1 Configuration', 'exist');
+        sideNav.navToSideMenuGroupByLabelExistence('RKE1 Configuration', 'exist');
         // EO test for https://github.com/rancher/dashboard/issues/9823
 
         createRKE2ClusterPage.rkeToggle().set('RKE2/K3s');
