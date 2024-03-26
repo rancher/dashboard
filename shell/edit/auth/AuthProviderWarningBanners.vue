@@ -14,7 +14,7 @@ export default defineComponent({
       default:  () => { },
     }
   }
-};
+});
 </script>
 
 <template>
