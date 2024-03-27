@@ -124,7 +124,7 @@ describe('Provision Node driver RKE1 cluster with Azure', { testIsolation: 'off'
       cy.wrap(el.text().trim()).as(`k8sVersion${ index }`);
     })
       .then(function() {
-        createRKE1ClusterPage.kubernetesOptions().kubernetesVersion().selectMenuItemByOption(this.k8sVersion1);
+        createRKE1ClusterPage.kubernetesOptions().kubernetesVersion().selectMenuItemByOption(this.k8sVersion0);
       });
 
     cy.intercept('POST', 'v3/cluster?_replace=true').as('createRke1Cluster');
@@ -133,7 +133,7 @@ describe('Provision Node driver RKE1 cluster with Azure', { testIsolation: 'off'
       expect(req.response?.statusCode).to.eq(201);
       expect(req.response?.body).to.have.property('type', 'cluster');
       expect(req.response?.body).to.have.property('name', this.rke1AzureClusterName);
-      expect(req.response?.body.rancherKubernetesEngineConfig).to.have.property('kubernetesVersion', this.k8sVersion1);
+      expect(req.response?.body.rancherKubernetesEngineConfig).to.have.property('kubernetesVersion', this.k8sVersion0);
       cy.wrap(req.response?.body.id).as('clusterId');
     });
 
@@ -146,7 +146,7 @@ describe('Provision Node driver RKE1 cluster with Azure', { testIsolation: 'off'
     clusterList.sortableTable().rowWithName(this.rke1AzureClusterName).column(3).contains('—')
       .should('not.exist', { timeout: 5000 });
     clusterList.list().version(this.rke1AzureClusterName).then(function(el) {
-      const shortVersion = this.k8sVersion1.split('-');
+      const shortVersion = this.k8sVersion0.split('-');
 
       expect(el.text().trim()).contains(shortVersion[0]);
     });
