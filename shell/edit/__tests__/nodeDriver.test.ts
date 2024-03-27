@@ -2,6 +2,7 @@
 import { mount } from '@vue/test-utils';
 import NodeDriverEdit from '@shell/edit/nodeDriver.vue';
 import { _CREATE } from '@shell/config/query-params';
+import { cleanHtmlDirective } from '@shell/plugins/clean-html-directive';
 
 describe('view: nodedriver should', () => {
   const url = 'http://test.com';
@@ -15,11 +16,14 @@ describe('view: nodedriver should', () => {
           'current_store/all':       jest.fn(),
           'i18n/t':                  (val: string) => val,
           'i18n/exists':             jest.fn(),
-        }
+        },
+        dispatch: jest.fn()
       },
       $route:  { query: { AS: '' } },
       $router: { applyQuery: jest.fn() },
     },
+    directives: { cleanHtmlDirective },
+
     propsData: {
       value: {
         spec: {
