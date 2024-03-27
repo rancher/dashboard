@@ -85,7 +85,7 @@ describe('Side Menu: main', () => {
       sideNav.navToSideMenuEntryByLabel('Projects/Namespaces');
 
       // press key combo
-      cy.get('body').focus().type('{shift}{alt}', { release: false });
+      cy.get('body').focus().type('{alt}', { release: false });
 
       // assert that icons are displayed for the key combo
       BurgerMenuPo.burguerMenuNavClusterKeyComboIconCheck(0);

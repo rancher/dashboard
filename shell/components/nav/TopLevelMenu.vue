@@ -16,7 +16,6 @@ import { filterOnlyKubernetesClusters, filterHiddenLocalCluster } from '@shell/u
 import { getProductFromRoute } from '@shell/utils/router';
 import { isRancherPrime } from '@shell/config/version';
 import Pinned from '@shell/components/nav/Pinned';
-import isObject from 'lodash/isObject';
 
 export default {
   components: {
@@ -365,8 +364,12 @@ export default {
         content = this.shown ? null : contentText;
 
       // if key combo is pressed, then we update the tooltip as well
-      } else if (this.routeCombo && isObject(item) && item.ready) {
-        contentText = 'Switch clusters and keeps location';
+      } else if (this.routeCombo &&
+        typeof item === 'object' &&
+        !Array.isArray(item) &&
+        item !== null &&
+        item.ready) {
+        contentText = this.t('nav.keyComboTooltip');
 
         if (showWhenClosed) {
           content = !this.shown ? contentText : null;
@@ -561,7 +564,7 @@ export default {
                 >
                   <button
                     v-if="c.ready"
-                    v-shortkey.push="{windows: ['alt', 'shift'], mac: ['option', 'shift']}"
+                    v-shortkey.push="{windows: ['alt'], mac: ['option']}"
                     :data-testid="`pinned-menu-cluster-${ c.id }`"
                     class="cluster selector option"
                     :class="{'active-menu-link': checkActiveRoute(c, true) }"
@@ -636,7 +639,7 @@ export default {
                 >
                   <button
                     v-if="c.ready"
-                    v-shortkey.push="{windows: ['alt', 'shift'], mac: ['option', 'shift']}"
+                    v-shortkey.push="{windows: ['alt'], mac: ['option']}"
                     :data-testid="`menu-cluster-${ c.id }`"
                     class="cluster selector option"
                     :class="{'active-menu-link': checkActiveRoute(c, true) }"
