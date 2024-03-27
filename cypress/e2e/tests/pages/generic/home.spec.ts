@@ -2,6 +2,7 @@ import HomePagePo from '@/cypress/e2e/po/pages/home.po';
 import PreferencesPagePo from '@/cypress/e2e/po/pages/preferences.po';
 import ClusterManagerListPagePo from '@/cypress/e2e/po/pages/cluster-manager/cluster-manager-list.po';
 import ClusterManagerImportGenericPagePo from '@/cypress/e2e/po/edit/provisioning.cattle.io.cluster/import/cluster-import.generic.po';
+import { PARTIAL_SETTING_THRESHOLD } from '@/cypress/support/utils/settings-utils';
 
 const homePage = new HomePagePo();
 const homeClusterList = homePage.list();
@@ -9,6 +10,21 @@ const provClusterList = new ClusterManagerListPagePo('local');
 const longClusterDescription = 'this-is-some-really-really-really-really-really-really-long-decription';
 
 describe('Home Page', () => {
+  it('Confirm correct number of settings requests made', { tags: ['@generic', '@adminUser', '@standardUser'] }, () => {
+    cy.login();
+
+    cy.intercept('GET', '/v1/management.cattle.io.settings?exclude=metadata.managedFields').as('settingsReq');
+
+    homePage.goTo();
+
+    cy.wait('@settingsReq').then((interception) => {
+      expect(interception.response.body.count).greaterThan(PARTIAL_SETTING_THRESHOLD);
+    });
+    // Yes this is bad, but want to ensure no other settings requests are made.
+    cy.wait(1000); // eslint-disable-line cypress/no-unnecessary-waiting
+    cy.get('@settingsReq.all').should('have.length', 1);
+  });
+
   describe('Home Page', { testIsolation: 'off' }, () => {
     before(() => {
       // since I wasn't able to fully mock a list of clusters

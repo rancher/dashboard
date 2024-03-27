@@ -5,14 +5,14 @@ import RadioGroupInputPo from '@/cypress/e2e/po/components/radio-group-input.po'
 import AsyncButtonPo from '@/cypress/e2e/po/components/async-button.po';
 import PasswordPo from '@/cypress/e2e/po/components/password.po';
 
-export class RancherSetupAuthVerifyPage extends PagePo {
-  static url = '/auth/login'
+export class RancherSetupConfigurePage extends PagePo {
+  static url = '/auth/setup'
   static goTo(): Cypress.Chainable<Cypress.AUTWindow> {
-    return super.goTo(RancherSetupAuthVerifyPage.url);
+    return super.goTo(RancherSetupConfigurePage.url);
   }
 
   constructor() {
-    super(RancherSetupAuthVerifyPage.url);
+    super(RancherSetupConfigurePage.url);
   }
 
   choosePassword(): RadioGroupInputPo {

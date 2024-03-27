@@ -2,6 +2,7 @@ import { shallowMount } from '@vue/test-utils';
 import FixedBanner from '@shell/components/FixedBanner.vue';
 import { ExtendedVue, Vue } from 'vue/types/vue';
 import { DefaultProps } from 'vue/types/options';
+import { SETTING } from '@shell/config/settings';
 
 const SETTING_NO_CONSENT = { value: '{"loginError":{"message":"","showMessage":"false"},"bannerHeader":{"background":" #EEEFF4","color":" #141419","textAlignment":"center","fontWeight":null,"fontStyle":null,"fontSize":"14px","textDecoration":null,"text":"SOME HEADER TEXT"},"bannerFooter":{"background":" #EEEFF4","color":" #141419","textAlignment":"center","fontWeight":null,"fontStyle":null,"fontSize":"14px","textDecoration":null,"text":"SOME FOOTER TEXT"},"bannerConsent":{"background":" #EEEFF4","color":" #141419","textAlignment":"center","fontWeight":null,"fontStyle":null,"fontSize":"14px","textDecoration":null,"text":null,"button":null},"showHeader":"true","showFooter":"true","showConsent":"false"}' };
 const SETTING_WITH_CONSENT = { value: '{"loginError":{"message":"","showMessage":"false"},"bannerHeader":{"background":" #EEEFF4","color":" #141419","textAlignment":"center","fontWeight":null,"fontStyle":null,"fontSize":"14px","textDecoration":null,"text":"SOME HEADER TEXT"},"bannerFooter":{"background":" #EEEFF4","color":" #141419","textAlignment":"center","fontWeight":null,"fontStyle":null,"fontSize":"14px","textDecoration":null,"text":"SOME FOOTER TEXT"},"bannerConsent":{"background":" #EEEFF4","color":" #141419","textAlignment":"center","fontWeight":null,"fontStyle":null,"fontSize":"14px","textDecoration":null,"text":"SOME CONSENT TEXT" ,"button": "some-button-label"},"showHeader":"true","showFooter":"true","showConsent":"true"}' };
@@ -30,12 +31,8 @@ describe('component: FixedBanner', () => {
   it('should render HEADER fixed banner correctly', async() => {
     const wrapper = shallowMount(FixedBanner as unknown as ExtendedVue<Vue, {}, {}, {}, DefaultProps>, {
       propsData: { header: true },
-      mocks:     { $store: { getters: { 'management/byId': jest.fn() } } }
+      mocks:     { $store: { getters: { 'management/byId': jest.fn(), 'management/all': () => [{ id: SETTING.BANNERS, ...SETTING_NO_CONSENT }] } } }
     });
-
-    wrapper.setData({ bannerSetting: SETTING_NO_CONSENT });
-
-    await wrapper.vm.$nextTick();
 
     expect(wrapper.vm.bannerStyle).toStrictEqual(parsedBannerStyle);
 
@@ -54,12 +51,8 @@ describe('component: FixedBanner', () => {
   it('should render FOOTER fixed banner, as text array (newline char), correctly', async() => {
     const wrapper = shallowMount(FixedBanner as unknown as ExtendedVue<Vue, {}, {}, {}, DefaultProps>, {
       propsData: { footer: true },
-      mocks:     { $store: { getters: { 'management/byId': jest.fn() } } }
+      mocks:     { $store: { getters: { 'management/byId': jest.fn(), 'management/all': () => [{ id: SETTING.BANNERS, ...SETTING_NO_CONSENT }] } } }
     });
-
-    wrapper.setData({ bannerSetting: SETTING_NO_CONSENT });
-
-    await wrapper.vm.$nextTick();
 
     expect(wrapper.vm.bannerStyle).toStrictEqual(parsedBannerStyle);
 
@@ -78,12 +71,8 @@ describe('component: FixedBanner', () => {
   it('should render CONSENT as a DIALOG correctly', async() => {
     const wrapper = shallowMount(FixedBanner as unknown as ExtendedVue<Vue, {}, {}, {}, DefaultProps>, {
       propsData: { consent: true },
-      mocks:     { $store: { getters: { 'management/byId': jest.fn() } } }
+      mocks:     { $store: { getters: { 'management/byId': jest.fn(), 'management/all': () => [{ id: SETTING.BANNERS, ...SETTING_WITH_CONSENT }] } } }
     });
-
-    wrapper.setData({ bannerSetting: SETTING_WITH_CONSENT });
-
-    await wrapper.vm.$nextTick();
 
     expect(wrapper.vm.bannerStyle).toStrictEqual(parsedBannerStyle);
 
@@ -109,12 +98,8 @@ describe('component: FixedBanner', () => {
   it('clicking dialog button should hide dialog', async() => {
     const wrapper = shallowMount(FixedBanner as unknown as ExtendedVue<Vue, {}, {}, {}, DefaultProps>, {
       propsData: { consent: true },
-      mocks:     { $store: { getters: { 'management/byId': jest.fn() } } }
+      mocks:     { $store: { getters: { 'management/byId': jest.fn(), 'management/all': () => [{ id: SETTING.BANNERS, ...SETTING_WITH_CONSENT }] } } }
     });
-
-    wrapper.setData({ bannerSetting: SETTING_WITH_CONSENT });
-
-    await wrapper.vm.$nextTick();
 
     const buttonDialog = wrapper.find('.banner-dialog button');
     const spy = jest.spyOn(wrapper.vm, 'hideDialog');

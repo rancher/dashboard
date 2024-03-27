@@ -16,7 +16,7 @@ import Password from '@shell/components/form/Password';
 import { sortBy } from '@shell/utils/sort';
 import { configType } from '@shell/models/management.cattle.io.authconfig';
 import { mapGetters } from 'vuex';
-import { _ALL_IF_AUTHED, _MULTI } from '@shell/plugins/dashboard-store/actions';
+import { _MULTI } from '@shell/plugins/dashboard-store/actions';
 import { MANAGEMENT, NORMAN } from '@shell/config/types';
 import { SETTING } from '@shell/config/settings';
 import { LOGIN_ERRORS } from '@shell/store/auth';
@@ -28,6 +28,7 @@ import {
   setVendor
 } from '@shell/config/private-label';
 import loadPlugins from '@shell/plugins/plugin';
+import { fetchInitialSettings } from '@shell/utils/settings';
 
 export default {
   name:       'Login',
@@ -53,12 +54,7 @@ export default {
     // For newer versions this will return all settings if you are somehow logged in,
     // and just the public ones if you aren't.
     try {
-      await store.dispatch('management/findAll', {
-        type: MANAGEMENT.SETTING,
-        opt:  {
-          load: _ALL_IF_AUTHED, url: `/v1/${ MANAGEMENT.SETTING }`, redirectUnauthorized: false
-        },
-      });
+      await fetchInitialSettings(store);
 
       firstLoginSetting = store.getters['management/byId'](MANAGEMENT.SETTING, SETTING.FIRST_LOGIN);
       plSetting = store.getters['management/byId'](MANAGEMENT.SETTING, SETTING.PL);
@@ -66,19 +62,19 @@ export default {
     } catch (e) {
       // Older versions used Norman API to get these
       firstLoginSetting = await store.dispatch('rancher/find', {
-        type: 'setting',
+        type: NORMAN.SETTING,
         id:   SETTING.FIRST_LOGIN,
         opt:  { url: `/v3/settings/${ SETTING.FIRST_LOGIN }` }
       });
 
       plSetting = await store.dispatch('rancher/find', {
-        type: 'setting',
+        type: NORMAN.SETTING,
         id:   SETTING.PL,
         opt:  { url: `/v3/settings/${ SETTING.PL }` }
       });
 
       brand = await store.dispatch('rancher/find', {
-        type: 'setting',
+        type: NORMAN.SETTING,
         id:   SETTING.BRAND,
         opt:  { url: `/v3/settings/${ SETTING.BRAND }` }
       });

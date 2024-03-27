@@ -396,4 +396,14 @@ export default {
     return matchingCounts(_typeObj, namespaces.length ? namespaces : null);
   },
 
+  generation: (state, getters) => (type) => {
+    type = getters.normalizeType(type);
+    const entry = state.types[type];
+
+    if ( entry ) {
+      return entry.generation;
+    }
+
+    return undefined;
+  }
 };
