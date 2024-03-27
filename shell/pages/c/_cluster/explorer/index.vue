@@ -412,7 +412,7 @@ export default {
         try {
           this.fleet = await this.$store.dispatch('cluster/find', {
             type: WORKLOAD_TYPES.DEPLOYMENT,
-            id:   `${ this.currentCluster.isLocal ? 'cattle-fleet-local-system' : 'cattle-fleet-system' }/fleet-agent`
+            id:   `cattle-fleet-system/${ this.currentCluster.isLocal ? 'fleet-controller' : 'fleet-agent' }`,
           });
         } catch (err) {
           this.fleet = null;
