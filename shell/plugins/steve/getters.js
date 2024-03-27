@@ -323,7 +323,7 @@ export default {
    */
   optionsFor: () => (ctx, { schema, pagination, opts }) => {
     if (pagination) {
-      // As headers are hardcoded each list should specificy the specific default sort option
+      // As headers are hardcoded each list should specify the specific default sort option
       // This avoids the sortable table adding both name and id (which when combined with group would result in 3 sort args, which isn't supported)
       const steveOpts = { listMandatorySort: [] };
 

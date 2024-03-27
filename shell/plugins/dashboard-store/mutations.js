@@ -347,7 +347,7 @@ export function loadAll(state, {
 export function loadAdd(state, { type, data: allLatest, ctx }) {
   const { getters } = ctx;
   const keyField = getters.keyFieldForType(type);
-  const cachedArgs = createLoadArgs(ctx, allLatest?.[0].type);
+  const cachedArgs = createLoadArgs(ctx, allLatest?.[0]?.type);
 
   allLatest.forEach((entry) => {
     const existing = state.types[type].map.get(entry[keyField]);
