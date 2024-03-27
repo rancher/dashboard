@@ -129,8 +129,8 @@ export default {
     return {
       nodeHeaders,
       constraints:        [],
-      cattle:             null,
-      fleet:              null,
+      cattle:             'loading',
+      fleet:              'loading',
       canViewAgents:      false,
       disconnected:       false,
       events:             [],
@@ -394,10 +394,14 @@ export default {
 
       if (this.canViewAgents) {
         if (!this.currentCluster.isLocal) {
-          this.cattle = await this.$store.dispatch('cluster/find', {
-            type: WORKLOAD_TYPES.DEPLOYMENT,
-            id:   'cattle-system/cattle-cluster-agent'
-          });
+          try {
+            this.cattle = await this.$store.dispatch('cluster/find', {
+              type: WORKLOAD_TYPES.DEPLOYMENT,
+              id:   'cattle-system/cattle-cluster-agent'
+            });
+          } catch (err) {
+            this.cattle = null;
+          }
 
           // Scaling Up/Down cattle deployment causes web sockets disconnection;
           this.interval = setInterval(() => {
@@ -405,10 +409,14 @@ export default {
           }, 1000);
         }
 
-        this.fleet = await this.$store.dispatch('cluster/find', {
-          type: WORKLOAD_TYPES.DEPLOYMENT,
-          id:   `${ this.currentCluster.isLocal ? 'cattle-fleet-local-system' : 'cattle-fleet-system' }/fleet-agent`
-        });
+        try {
+          this.fleet = await this.$store.dispatch('cluster/find', {
+            type: WORKLOAD_TYPES.DEPLOYMENT,
+            id:   `${ this.currentCluster.isLocal ? 'cattle-fleet-local-system' : 'cattle-fleet-system' }/fleet-agent`
+          });
+        } catch (err) {
+          this.fleet = null;
+        }
       }
     },
 
@@ -434,11 +442,11 @@ export default {
     },
 
     getAgentStatus(agent, disconnected = false) {
-      if (!agent) {
+      if (agent === 'loading') {
         return STATES_ENUM.IN_PROGRESS;
       }
 
-      if (disconnected || agent.status.conditions.find((c) => c.status !== 'True')) {
+      if (!agent || disconnected || agent.status.conditions.find((c) => c.status !== 'True')) {
         return STATES_ENUM.UNHEALTHY;
       }
 
