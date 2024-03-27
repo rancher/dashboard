@@ -34,6 +34,7 @@ HELM_VERSION="${HELM_VERSION:-3.13.2}"
 NODEJS_VERSION="${NODEJS_VERSION:-14.19.1}"
 CYPRESS_VERSION="${CYPRESS_VERSION:-13.2.0}"
 YARN_VERSION="${YARN_VERSION:-1.22.19}"
+KUBECTL_VERSION="${KUBECTL_VERSION:-v1.27.10}"
 YQ_BIN="mikefarah/yq/releases/latest/download/yq_linux_amd64"
 
 mkdir -p "${WORKSPACE}/bin"
@@ -56,6 +57,7 @@ go version
 
 if [[ ! -d "${WORKSPACE}/.ssh" ]]; then mkdir -p "${WORKSPACE}/.ssh"; fi
 export PRIV_KEY="${WORKSPACE}/.ssh/jenkins_ecdsa"
+
 if [ -f "${PRIV_KEY}" ]; then rm "${PRIV_KEY}"; fi
 ssh-keygen -t ecdsa -b 521 -N "" -f "${PRIV_KEY}"
 ls -al "${WORKSPACE}/.ssh/"
@@ -99,6 +101,7 @@ if [[ "${JOB_TYPE}" == "recurring" ]]; then
   yq -i e ".variables.kubernetes_version += [\"${K3S_KUBERNETES_VERSION}\"] | .variables.kubernetes_version style=\"literal\"" packages/aws/rancher-k3s.yaml
   yq -i e ".variables.cert_manager_version += [\"${CERT_MANAGER_VERSION}\"] | .variables.kubernetes_version style=\"literal\"" packages/aws/rancher-k3s.yaml
 
+  yq -i e ".variables.kubernetes_version += [\"${K3S_KUBERNETES_VERSION}\"] | .variables.kubernetes_version style=\"literal\"" packages/aws/k3s.yaml
   cat packages/aws/rancher-k3s.yaml
   ls -al packages/aws/
   cat packages/aws/dashboard-tests.yaml
@@ -110,7 +113,6 @@ if [[ "${JOB_TYPE}" == "recurring" ]]; then
   corral config vars set server_count ${SERVER_COUNT:-3}
   corral config vars set agent_count ${AGENT_COUNT:-0}
   corral config vars set instance_type ${AWS_INSTANCE_TYPE}
-  corral config vars set aws_hostname_prefix "jenkins-${prefix_random}"
   corral config vars delete rancher_host
   RANCHER_HOST="jenkins-${prefix_random}.${AWS_ROUTE53_ZONE}"
 
@@ -119,6 +121,13 @@ if [[ "${JOB_TYPE}" == "recurring" ]]; then
   make build
   ls -al dist
   echo "Corral Package string: ${K3S_KUBERNETES_VERSION}-${RANCHER_VERSION//v}-${CERT_MANAGER_VERSION}"
+  corral config vars set aws_hostname_prefix "jenkins-${prefix_random}-i"
+  corral config vars set server_count 1
+  corral create --skip-cleanup --recreate --debug importcluster \
+    "dist/aws-k3s-${K3S_KUBERNETES_VERSION}"
+  corral config vars set imported_kubeconfig $(corral vars importcluster kubeconfig)
+  corral config vars set aws_hostname_prefix "jenkins-${prefix_random}"
+  corral config vars set server_count ${SERVER_COUNT:-3}
   corral create --skip-cleanup --recreate --debug rancher \
     "dist/aws-k3s-rancher-${K3S_KUBERNETES_VERSION}-${RANCHER_VERSION//v}-${CERT_MANAGER_VERSION}"
 fi
@@ -136,6 +145,7 @@ corral config vars set dashboard_branch ${DASHBOARD_BRANCH}
 corral config vars set cypress_tags ${CYPRESS_TAGS}
 corral config vars set cypress_version ${CYPRESS_VERSION}
 corral config vars set yarn_version ${YARN_VERSION}
+corral config vars set kubectl_version ${KUBECTL_VERSION}
 
 if [[ -n "${RANCHER_USERNAME}" ]]; then
    corral config vars set rancher_username ${RANCHER_USERNAME}
