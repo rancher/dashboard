@@ -144,7 +144,7 @@ aks:
     virtualNetworks: 'An error occured while fetching the available virtual networks: {e}'
     kubernetesVersions: 'An error occured while fetching the available kubernetes versions: {e}'
     clusterName: 
-      chars: Name may only contain alphanumerics, underscores, and hyphens.
+      chars: Name may only contain lowercase alphanumerics, underscores, and hyphens.
       startEnd: Name must start and end with an alphanumeric.
       length: Name may not exceed 63 characters.
     resourceGroup:
@@ -157,3 +157,4 @@ aks:
     outboundType: Load Balancer SKU must be 'standard' to use user defined routing.
     availabilityZones: Availability zones are not available in the selected region.
     privateDnsZone: The Private DNS Zone Resource ID should be in the format privatelink.REGION.azmk8s.io, SUBZONE.privatelink.REGION.azmk8s.io, private.REGION.azmk8s.io, or SUBZONE.private.REGION.azmk8s.io
+    poolName: Node pool names must be 1-12 characters long, consist only of lowercase letters and numbers, and start with a letter.

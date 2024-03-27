@@ -31,7 +31,7 @@ describe('fx: requiredInCluster', () => {
 describe('fx: clusterNameChars', () => {
   it.each([
     ['!!abc!!', MOCK_TRANSLATION],
-    ['123aBc-_', undefined]]
+    ['123ac-abd', undefined]]
   )('returns an error message if the cluster name contains anything other than alphanumerics, underscores, or hyphens', (name, validatorMsg) => {
     const ctx = { ...mockCtx, normanCluster: { name } };
 
@@ -51,6 +51,21 @@ describe('fx: clusterNameStartEnd', () => {
     const ctx = { ...mockCtx, normanCluster: { name } };
 
     const validator = validators.clusterNameStartEnd(ctx);
+
+    expect(validator()).toStrictEqual(validatorMsg);
+  });
+});
+
+describe('fx: resourceGroupChars', () => {
+  it.each([
+    ['test-test-test', undefined],
+    ['abc-DEF123-anc', undefined],
+    ['rancher-test-rancher-test-rancher-test-rancher-test-rancher-test-rancher-test-ra!', MOCK_TRANSLATION],
+    ['test-####-test', MOCK_TRANSLATION],
+  ])('returns an error message if node resource group includes invalid characters', (nodeGroupName, validatorMsg) => {
+    const ctx = { ...mockCtx, normanCluster: { aksConfig: { nodeGroupName } } };
+
+    const validator = validators.resourceGroupChars(ctx, '', 'aksConfig.nodeGroupName');
 
     expect(validator()).toStrictEqual(validatorMsg);
   });
