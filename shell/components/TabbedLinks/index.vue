@@ -37,7 +37,7 @@ export default {
       role="tablist"
       class="tabs clearfix"
     >
-      <n-link
+      <router-link
         v-for="tab in tabs"
         :key="tab.name"
         :to="tab.route"
@@ -50,7 +50,7 @@ export default {
         <a>
           {{ tab.label }}
         </a>
-      </n-link>
+      </router-link>
     </ul>
     <div class="tab-container">
       <slot />

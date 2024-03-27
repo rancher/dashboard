@@ -390,30 +390,30 @@ export default {
                   #header-middle
                 >
                   <div class="table-heading">
-                    <n-link
+                    <router-link
                       v-if="canManageClusters"
                       :to="manageLocation"
                       class="btn btn-sm role-secondary"
                       data-testid="cluster-management-manage-button"
                     >
                       {{ t('cluster.manageAction') }}
-                    </n-link>
-                    <n-link
+                    </router-link>
+                    <router-link
                       v-if="canCreateCluster"
                       :to="importLocation"
                       class="btn btn-sm role-primary"
                       data-testid="cluster-create-import-button"
                     >
                       {{ t('cluster.importAction') }}
-                    </n-link>
-                    <n-link
+                    </router-link>
+                    <router-link
                       v-if="canCreateCluster"
                       :to="createLocation"
                       class="btn btn-sm role-primary"
                       data-testid="cluster-create-button"
                     >
                       {{ t('generic.create') }}
-                    </n-link>
+                    </router-link>
                   </div>
                 </template>
                 <template #col:name="{row}">
@@ -423,12 +423,12 @@ export default {
                         v-if="row.mgmt"
                         class="cluster-name"
                       >
-                        <n-link
+                        <router-link
                           v-if="row.mgmt.isReady && !row.hasError"
                           :to="{ name: 'c-cluster-explorer', params: { cluster: row.mgmt.id }}"
                         >
                           {{ row.nameDisplay }}
-                        </n-link>
+                        </router-link>
                         <span v-else>{{ row.nameDisplay }}</span>
                         <i
                           v-if="row.unavailableMachines"
@@ -462,9 +462,9 @@ export default {
                   </td>
                 </template>
                 <!-- <template #cell:explorer="{row}">
-                  <n-link v-if="row && row.isReady" class="btn btn-sm role-primary" :to="{name: 'c-cluster', params: {cluster: row.id}}">
+                  <router-link v-if="row && row.isReady" class="btn btn-sm role-primary" :to="{name: 'c-cluster', params: {cluster: row.id}}">
                     {{ t('landing.clusters.explore') }}
-                  </n-link>
+                  </router-link>
                   <button v-else :disabled="true" class="btn btn-sm role-primary">
                     {{ t('landing.clusters.explore') }}
                   </button>

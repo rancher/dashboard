@@ -25,7 +25,7 @@ describe('topLevelMenu', () => {
           },
         },
       },
-      stubs: ['BrandImage', 'nuxt-link']
+      stubs: ['BrandImage', 'router-link']
     });
 
     const cluster = wrapper.find('[data-testid="top-level-menu-cluster-0"]');
@@ -87,7 +87,7 @@ describe('topLevelMenu', () => {
           },
         },
       },
-      stubs: ['BrandImage', 'nuxt-link']
+      stubs: ['BrandImage', 'router-link']
     });
 
     const description1 = wrapper.find('[data-testid="pinned-menu-cluster-an-id1"] .description');
@@ -124,7 +124,7 @@ describe('topLevelMenu', () => {
           },
         },
       },
-      stubs: ['BrandImage', 'nuxt-link']
+      stubs: ['BrandImage', 'router-link']
     });
 
     expect(wrapper.vm.globalBannerSettings).toStrictEqual({
@@ -146,7 +146,7 @@ describe('topLevelMenu', () => {
               },
             },
           },
-          stubs: ['BrandImage', 'nuxt-link']
+          stubs: ['BrandImage', 'router-link']
         });
 
         const noResults = wrapper.find('[data-testid="top-level-menu-no-results"]');
@@ -165,7 +165,7 @@ describe('topLevelMenu', () => {
               },
             },
           },
-          stubs: ['BrandImage', 'nuxt-link']
+          stubs: ['BrandImage', 'router-link']
         });
 
         const noResults = wrapper.find('[data-testid="top-level-menu-no-results"]');
@@ -187,7 +187,7 @@ describe('topLevelMenu', () => {
               },
             },
           },
-          stubs: ['BrandImage', 'nuxt-link']
+          stubs: ['BrandImage', 'router-link']
         });
 
         const noResults = wrapper.find('[data-testid="top-level-menu-no-results"]');
@@ -208,7 +208,7 @@ describe('topLevelMenu', () => {
               },
             },
           },
-          stubs: ['BrandImage', 'nuxt-link']
+          stubs: ['BrandImage', 'router-link']
         });
 
         const noResults = wrapper.find('[data-testid="top-level-menu-no-results"]');

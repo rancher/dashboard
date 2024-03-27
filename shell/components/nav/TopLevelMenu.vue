@@ -450,7 +450,7 @@ export default {
           <div>
             <!-- Home button -->
             <div @click="hide()">
-              <nuxt-link
+              <router-link
                 class="option cluster selector home"
                 :to="{ name: 'home' }"
               >
@@ -467,7 +467,7 @@ export default {
                 <div class="home-text">
                   {{ t('nav.home') }}
                 </div>
-              </nuxt-link>
+              </router-link>
             </div>
             <!-- Search bar -->
             <div
@@ -526,7 +526,7 @@ export default {
               :key="a.label"
               @click="hide()"
             >
-              <nuxt-link
+              <router-link
                 class="option"
                 :to="a.to"
                 :class="{'active-menu-link': checkActiveRoute(a) }"
@@ -536,7 +536,7 @@ export default {
                   :src="a.svg"
                 />
                 <div>{{ a.label }}</div>
-              </nuxt-link>
+              </router-link>
             </div>
           </template>
 
@@ -706,7 +706,7 @@ export default {
             </div>
 
             <!-- See all clusters -->
-            <nuxt-link
+            <router-link
               v-if="clusters.length > maxClustersToShow"
               class="clusters-all"
               :to="{name: 'c-cluster-product-resource', params: {
@@ -719,7 +719,7 @@ export default {
                 {{ shown ? t('nav.seeAllClusters') : t('nav.seeAllClustersCollapsed') }}
                 <i class="icon icon-chevron-right" />
               </span>
-            </nuxt-link>
+            </router-link>
           </template>
 
           <div class="category">
@@ -737,7 +737,7 @@ export default {
                 :key="a.label"
                 @click="hide()"
               >
-                <nuxt-link
+                <router-link
                   class="option"
                   :class="{'active-menu-link': checkActiveRoute(a) }"
                   :to="a.to"
@@ -748,7 +748,7 @@ export default {
                     :src="a.svg"
                   />
                   <span class="option-link">{{ a.label }}</span>
-                </nuxt-link>
+                </router-link>
               </div>
             </template>
             <template v-if="legacyEnabled">
@@ -765,7 +765,7 @@ export default {
                 :key="a.label"
                 @click="hide()"
               >
-                <nuxt-link
+                <router-link
                   class="option"
                   :class="{'active-menu-link': checkActiveRoute(a) }"
                   :to="a.to"
@@ -776,7 +776,7 @@ export default {
                     :src="a.svg"
                   />
                   <div>{{ a.label }}</div>
-                </nuxt-link>
+                </router-link>
               </div>
             </template>
 
@@ -795,7 +795,7 @@ export default {
                 :key="a.label"
                 @click="hide()"
               >
-                <nuxt-link
+                <router-link
                   class="option"
                   :class="{'active-menu-link': checkActiveRoute(a) }"
                   :to="a.to"
@@ -806,7 +806,7 @@ export default {
                     :src="a.svg"
                   />
                   <div>{{ a.label }}</div>
-                </nuxt-link>
+                </router-link>
               </div>
             </template>
           </div>
@@ -821,21 +821,21 @@ export default {
             class="support"
             @click="hide()"
           >
-            <nuxt-link
+            <router-link
               :to="{name: 'support'}"
             >
               {{ t('nav.support', {hasSupport}) }}
-            </nuxt-link>
+            </router-link>
           </div>
           <div
             class="version"
             @click="hide()"
           >
-            <nuxt-link
+            <router-link
               :to="{ name: 'about' }"
             >
               {{ t('about.title') }}
-            </nuxt-link>
+            </router-link>
           </div>
         </div>
       </div>

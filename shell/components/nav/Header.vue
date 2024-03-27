@@ -355,7 +355,7 @@ export default {
       class="menu-spacer"
       :class="{'isSingleProduct': isSingleProduct }"
     >
-      <n-link
+      <router-link
         v-if="isSingleProduct && !isRancherInHarvester"
         :to="singleProductLogoRoute"
       >
@@ -363,7 +363,7 @@ export default {
           class="side-menu-logo"
           :src="isSingleProduct.logo"
         >
-      </n-link>
+      </router-link>
     </div>
     <div
       v-if="!simple"
@@ -687,30 +687,30 @@ export default {
                   </template>
                 </div>
               </li>
-              <nuxt-link
+              <router-link
                 v-if="showPreferencesLink"
                 tag="li"
                 :to="{name: 'prefs'}"
                 class="user-menu-item"
               >
                 <a>{{ t('nav.userMenu.preferences') }}</a>
-              </nuxt-link>
-              <nuxt-link
+              </router-link>
+              <router-link
                 v-if="showAccountAndApiKeyLink"
                 tag="li"
                 :to="{name: 'account'}"
                 class="user-menu-item"
               >
                 <a>{{ t('nav.userMenu.accountAndKeys', {}, true) }}</a>
-              </nuxt-link>
-              <nuxt-link
+              </router-link>
+              <router-link
                 v-if="authEnabled"
                 tag="li"
                 :to="generateLogoutRoute"
                 class="user-menu-item"
               >
                 <a @blur="showMenu(false)">{{ t('nav.userMenu.logOut') }}</a>
-              </nuxt-link>
+              </router-link>
             </ul>
           </template>
         </v-popover>

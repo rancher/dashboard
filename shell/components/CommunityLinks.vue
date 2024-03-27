@@ -106,12 +106,12 @@ export default {
         :key="link.label"
         class="support-link"
       >
-        <n-link
+        <router-link
           v-if="link.value.startsWith('/') "
           :to="link.value"
         >
           {{ link.label }}
-        </n-link>
+        </router-link>
         <a
           v-else
           :href="link.value"
