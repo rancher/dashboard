@@ -126,7 +126,9 @@ export default defineComponent({
 </script>
 
 <template>
-  <div class="pool">
+  <div
+    class="pool"
+  >
     <div class="row mb-10">
       <div class="col span-3">
         <LabeledInput
@@ -136,6 +138,7 @@ export default defineComponent({
           required
           :disabled="!pool._isNewOrUnprovisioned"
           :rules="[()=>pool._validName === false ? t('aks.errors.poolName') : undefined]"
+          data-testid="pool-name"
         />
       </div>
       <div class="col span-3">

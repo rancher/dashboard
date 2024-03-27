@@ -199,7 +199,7 @@ describe('aks provisioning form', () => {
 
   it('should prevent saving if a node pool has an invalid name', async() => {
     const config = {
-      dnsPrefix: 'abc-123', resourceGroup: 'abc', clusterName: 'abc', nodePools: [{ name: 'abc' }]
+      dnsPrefix: 'abc-123', resourceGroup: 'abc', clusterName: 'abc'
     };
     const wrapper = shallowMount(CruAks, {
       propsData: {
@@ -209,7 +209,17 @@ describe('aks provisioning form', () => {
     });
 
     await setCredential(wrapper, config);
+    await wrapper.setData({ nodePools: [{ name: 'abc' }] });
+    await wrapper.vm.fvExtraRules.poolNames();
+    expect(wrapper.vm.nodePools.filter((pool) => {
+      return !pool._validName;
+    })).toHaveLength(0);
 
-    expect(wrapper.vm.fvFormIsValid).toHaveLength(0);
+    await wrapper.setData({ nodePools: [{ name: '123-abc' }, { name: 'abcABC' }, { name: 'abc' }] });
+    await wrapper.vm.fvExtraRules.poolNames();
+
+    expect(wrapper.vm.nodePools.filter((pool) => {
+      return !pool._validName;
+    })).toHaveLength(2);
   });
 });

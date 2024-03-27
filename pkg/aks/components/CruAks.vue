@@ -331,7 +331,7 @@ export default defineComponent({
           this.nodePools.forEach((pool: AKSNodePool) => {
             const name = pool.name || '';
 
-            if (!name.match(/^[a-zA-Z]+[a-zA-Z0-9]*$/)) {
+            if (!name.match(/^[a-z]+[a-z0-9]*$/)) {
               this.$set(pool, '_validName', false);
 
               allAvailable = false;
