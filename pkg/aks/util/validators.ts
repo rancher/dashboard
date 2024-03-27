@@ -28,7 +28,7 @@ export const requiredInCluster = (ctx: any, labelKey: string, clusterPath: strin
 export const clusterNameChars = (ctx: any ) => {
   return () :string | undefined => {
     const { name = '' } = get(ctx, 'normanCluster');
-    const nameIsValid = name.match(/^([A-Z]|[a-z]|[0-9]|-|_)+$/);
+    const nameIsValid = name.match(/^[a-z0-9]([-a-z0-9]*[a-z0-9])?$/);
 
     return !needsValidation(ctx) || nameIsValid ? undefined : ctx.t('aks.errors.clusterName.chars');
   };
