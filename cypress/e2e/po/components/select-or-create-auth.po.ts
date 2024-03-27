@@ -7,6 +7,10 @@ export default class SelectOrCreateAuthPo extends ComponentPo {
     return new LabeledSelectPo(`${ this.selector } [data-testid="auth-secret-select"]`, this.self());
   }
 
+  loading() {
+    return this.self().get(`${ this.selector } i.icon-spinner`);
+  }
+
   setBasicAuthSecret(username: string, password: string) {
     const usernameInput = new LabeledInputPo(`${ this.selector } [data-testid="auth-secret-basic-username"]`, this.self());
     const passwordInput = new LabeledInputPo(`${ this.selector } [data-testid="auth-secret-basic-password"]`, this.self());
