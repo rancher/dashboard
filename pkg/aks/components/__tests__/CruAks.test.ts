@@ -196,4 +196,20 @@ describe('aks provisioning form', () => {
     expect(wrapper.vm.config.userAssignedIdentity).toBeUndefined();
     expect(wrapper.vm.config.managedIdentity).toBeUndefined();
   });
+
+  it('should prevent saving if a node pool has an invalid name', async() => {
+    const config = {
+      dnsPrefix: 'abc-123', resourceGroup: 'abc', clusterName: 'abc', nodePools: [{ name: 'abc' }]
+    };
+    const wrapper = shallowMount(CruAks, {
+      propsData: {
+        value: {}, mode: 'edit', config
+      },
+      ...requiredSetup()
+    });
+
+    await setCredential(wrapper, config);
+
+    expect(wrapper.vm.fvFormIsValid).toHaveLength(0);
+  });
 });

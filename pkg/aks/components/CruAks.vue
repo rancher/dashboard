@@ -202,15 +202,13 @@ export default defineComponent({
         path:  'name',
         rules: ['nameRequired', 'clusterNameChars', 'clusterNameStartEnd', 'clusterNameLength'],
       },
-      // {
-      //   path:  'resourceGroup',
-      //   rules: ['resourceGroupRequired', 'resourceGroupLength', 'resourceGroupChars', 'resourceGroupEnd'],
-      // },
+      {
+        path:  'resourceGroup',
+        rules: ['resourceGroupRequired', 'resourceGroupLength', 'resourceGroupChars', 'resourceGroupEnd'],
+      },
       {
         path:  'nodeResourceGroup',
-        rules: ['nodeResourceGroupChars'],
-
-        // rules: ['nodeResourceGroupChars', 'nodeResourceGroupLength', 'nodeResourceGroupEnd'],
+        rules: ['nodeResourceGroupChars', 'nodeResourceGroupLength', 'nodeResourceGroupEnd'],
       },
       {
         path:  'dnsPrefix',
@@ -230,7 +228,7 @@ export default defineComponent({
       },
       {
         path:  'nodePools',
-        rules: ['availabilityZoneSupport']
+        rules: ['availabilityZoneSupport', 'poolNames']
       },
       {
         path:  'nodePoolsGeneral',
@@ -325,6 +323,25 @@ export default defineComponent({
           }
 
           return undefined;
+        },
+
+        poolNames: () => {
+          let allAvailable = true;
+
+          this.nodePools.forEach((pool: AKSNodePool) => {
+            const name = pool.name || '';
+
+            if (!name.match(/^[a-zA-Z]+[a-zA-Z0-9]*$/)) {
+              this.$set(pool, '_validName', false);
+
+              allAvailable = false;
+            } else {
+              this.$set(pool, '_validName', true);
+            }
+          });
+          if (!allAvailable) {
+            return this.t('aks.errors.poolName');
+          }
         },
 
         k8sVersionAvailable: () => {
@@ -891,7 +908,7 @@ export default defineComponent({
             :key="pool._id"
             :name="pool.name"
             :label="pool.name || t('aks.nodePools.notNamed')"
-            :error="pool._validSize === false || pool._validAZ === false"
+            :error="pool._validSize === false || pool._validAZ === false || pool._validName===false"
           >
             <AksNodePool
               :mode="mode"

@@ -52,7 +52,7 @@ export default defineComponent({
     canUseAvailabilityZones: {
       type:    Boolean,
       default: true
-    }
+    },
   },
 
   data() {
@@ -135,6 +135,7 @@ export default defineComponent({
           label-key="generic.name"
           required
           :disabled="!pool._isNewOrUnprovisioned"
+          :rules="[()=>pool._validName === false ? t('aks.errors.poolName') : undefined]"
         />
       </div>
       <div class="col span-3">

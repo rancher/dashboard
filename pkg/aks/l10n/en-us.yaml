@@ -157,3 +157,4 @@ aks:
     outboundType: Load Balancer SKU must be 'standard' to use user defined routing.
     availabilityZones: Availability zones are not available in the selected region.
     privateDnsZone: The Private DNS Zone Resource ID should be in the format privatelink.REGION.azmk8s.io, SUBZONE.privatelink.REGION.azmk8s.io, private.REGION.azmk8s.io, or SUBZONE.private.REGION.azmk8s.io
+    poolName: Node pool names must be 1-12 characters long, consist only of letters and numbers, and start with a letter.
