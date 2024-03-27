@@ -27,10 +27,11 @@ export default {
       default: true
     }
   },
-  computed: {
-    ...mapGetters(['isExplorer', 'currentCluster', 'currentProduct']),
+  computed: { ...mapGetters(['isExplorer', 'currentCluster', 'currentProduct']) },
 
-    title() {
+  methods: {
+    // This isn't a computed prop because it would trigger a recompute when the $slots changed
+    computeTitle() {
       if (!this.$slots.default || this.$slots.default.length !== 1 || this.$slots.default[0].tag || (typeof this.$slots.default[0].text !== 'string')) {
         console.error('The <TabTitle> component only supports text as the child.'); // eslint-disable-line no-console
 
@@ -56,24 +57,14 @@ export default {
       }
 
       return breadcrumb;
-    }
-
-  },
-
-  methods: {
+    },
     updatePageTitle() {
-      updatePageTitle(...this.title);
+      updatePageTitle(...this.computeTitle());
     }
   },
 
   created() {
     this.updatePageTitle();
-  },
-
-  watch: {
-    title() {
-      this.updatePageTitle();
-    }
   },
 
   // Using the render function instead of <template> because <template><slot /></template> will yield a compiler error since
@@ -84,6 +75,8 @@ export default {
         e.text = (e.text || '').trim();
       });
     }
+
+    this.updatePageTitle();
 
     return this.showChild ? this.$slots.default : null;
   }
