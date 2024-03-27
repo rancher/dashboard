@@ -167,5 +167,12 @@ describe('Side Menu: main', () => {
           });
       });
     });
+
+    it('Check first item in global section is Cluster Management', { tags: ['@navigation', '@adminUser', '@standardUser'] }, () => {
+      HomePagePo.goTo();
+      BurgerMenuPo.categoryByLabel('Global Apps').parent().parent().get('.option-link')
+        .first()
+        .should('contain.text', 'Cluster Management');
+    });
   });
 });
