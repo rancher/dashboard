@@ -2,6 +2,7 @@
 import { mount } from '@vue/test-utils';
 import KontainerDriverEdit from '@shell/edit/kontainerDriver.vue';
 import { _CREATE } from '@shell/config/query-params';
+import { cleanHtmlDirective } from '@shell/plugins/clean-html-directive';
 
 describe('view: kontainerdriver should', () => {
   const url = 'http://test.com';
@@ -15,12 +16,14 @@ describe('view: kontainerdriver should', () => {
           'current_store/all':       jest.fn(),
           'i18n/t':                  (val: string) => val,
           'i18n/exists':             jest.fn(),
-        }
+        },
+        dispatch: jest.fn()
       },
       $route:  { query: { AS: '' } },
       $router: { applyQuery: jest.fn() },
     },
-    propsData: {
+    directives: { cleanHtmlDirective },
+    propsData:  {
       value: {
         spec: {
           active:           true,
