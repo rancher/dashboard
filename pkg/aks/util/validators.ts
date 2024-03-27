@@ -67,10 +67,9 @@ export const resourceGroupLength = (ctx: any, labelKey:string, clusterPath:strin
 export const resourceGroupChars = (ctx: any, labelKey:string, clusterPath:string) => {
   return () :string | undefined => {
     const resourceGroup = get(ctx.normanCluster, clusterPath) || '';
+    const isValid = resourceGroup.match(/^[A-Za-z0-9\p{Lu}\p{Ll}\p{Lt}\p{Lo}\p{Lm}\p{Nd}\.\-_(\)]*$/);
 
-    const isValid = resourceGroup.match(/^([A-Z]|[a-z]|\p{Lu}|\p{Ll}|\p{Lt}|\p{Lo}|\p{Lm}|\p{Nd}|\.|-|_|\(|\))*$/u);
-
-    return isValid ? undefined : ctx.t('aks.errors.resourceGroup.chars', { key: ctx.t(labelKey) });
+    return isValid || !resourceGroup.length ? undefined : ctx.t('aks.errors.resourceGroup.chars', { key: ctx.t(labelKey) });
   };
 };
 

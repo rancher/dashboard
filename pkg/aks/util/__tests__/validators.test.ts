@@ -56,6 +56,21 @@ describe('fx: clusterNameStartEnd', () => {
   });
 });
 
+describe('fx: resourceGroupChars', () => {
+  it.each([
+    ['test-test-test', undefined],
+    ['abc-DEF123-anc', undefined],
+    ['rancher-test-rancher-test-rancher-test-rancher-test-rancher-test-rancher-test-ra!', MOCK_TRANSLATION],
+    ['test-####-test', MOCK_TRANSLATION],
+  ])('returns an error message if node resource group includes invalid characters', (nodeGroupName, validatorMsg) => {
+    const ctx = { ...mockCtx, normanCluster: { aksConfig: { nodeGroupName } } };
+
+    const validator = validators.resourceGroupChars(ctx, '', 'aksConfig.nodeGroupName');
+
+    expect(validator()).toStrictEqual(validatorMsg);
+  });
+});
+
 describe('fx: privateDnsZone', () => {
   it.each([
     ['test-subzone.private.eastus2.azmk8s.io', undefined],

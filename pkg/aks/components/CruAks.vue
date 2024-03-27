@@ -202,13 +202,15 @@ export default defineComponent({
         path:  'name',
         rules: ['nameRequired', 'clusterNameChars', 'clusterNameStartEnd', 'clusterNameLength'],
       },
-      {
-        path:  'resourceGroup',
-        rules: ['resourceGroupRequired', 'resourceGroupLength', 'resourceGroupChars', 'resourceGroupEnd'],
-      },
+      // {
+      //   path:  'resourceGroup',
+      //   rules: ['resourceGroupRequired', 'resourceGroupLength', 'resourceGroupChars', 'resourceGroupEnd'],
+      // },
       {
         path:  'nodeResourceGroup',
-        rules: ['nodeResourceGroupChars', 'nodeResourceGroupLength', 'nodeResourceGroupEnd'],
+        rules: ['nodeResourceGroupChars'],
+
+        // rules: ['nodeResourceGroupChars', 'nodeResourceGroupLength', 'nodeResourceGroupEnd'],
       },
       {
         path:  'dnsPrefix',
