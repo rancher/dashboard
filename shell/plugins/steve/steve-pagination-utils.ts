@@ -38,11 +38,26 @@ class StevePaginationUtils {
     }
 
     if (opt.pagination.filter?.length) {
-      const joined = opt.pagination.filter
-        .map(({ field, value }) => `${ field }=${ value }`)
-        .join(',');
+      const andFilters = opt.pagination.filter
+        .filter((orFilters) => !!orFilters.length)
+        .map((orFilters) => {
+          if (orFilters.length) {
+            const joined = orFilters
+              .map(({ field, value, notEqual }) => {
+                const equality = notEqual ? '!=' : '=';
 
-      params.push(`filter=${ joined }`);
+                return `${ field }${ equality }${ value }`;
+              })
+              .join(','); // This means OR
+
+            return `filter=${ joined }`;
+          }
+        })
+        .join('&'); // This means AND
+
+      if (andFilters) {
+        params.push(andFilters);
+      }
     }
 
     // Note - There is a `limit` property that is by default 100,000. This can be disabled by using `limit=-1`,

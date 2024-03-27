@@ -202,7 +202,7 @@ export default {
 
   computed: {
     options() {
-      return this.$store.getters[`type-map/optionsFor`](this.schema, !!this.externalPaginationEnabled);
+      return this.$store.getters[`type-map/optionsFor`](this.schema, this.externalPaginationEnabled);
     },
 
     _listGroupMapped() {
@@ -253,7 +253,7 @@ export default {
       if ( this.headers ) {
         headers = this.headers.slice();
       } else {
-        headers = this.$store.getters['type-map/headersFor'](this.schema, !!this.externalPaginationEnabled);
+        headers = this.$store.getters['type-map/headersFor'](this.schema, this.externalPaginationEnabled);
       }
 
       // add custom table columns provided by the extensions ExtensionPoint.TABLE_COL hook
@@ -368,9 +368,11 @@ export default {
           // Attempt to find the default option in available options...
           // if not use the first value in the options collection...
           // and if not that just fall back to the default
-          const defaultGroup = this.groupOptions.find((g) => g.value === DEFAULT_GROUP);
+          if (this.groupOptions.find((g) => g.value === DEFAULT_GROUP)) {
+            return DEFAULT_GROUP;
+          }
 
-          return defaultGroup ? DEFAULT_GROUP : this.groupOptions[0]?.value || DEFAULT_GROUP;
+          return this.groupOptions[0]?.value || DEFAULT_GROUP;
         }
 
         return this._group;

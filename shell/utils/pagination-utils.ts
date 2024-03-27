@@ -9,13 +9,13 @@ import {
   NAMESPACE_FILTER_NS_FULL_PREFIX,
   NAMESPACE_FILTER_P_FULL_PREFIX,
 } from '@shell/utils/namespace-filter';
-import { OptPagination, OptPaginationSort } from '@shell/types/store/dashboard-store.types';
+import { OptPagination, OptPaginationFilter, OptPaginationSort } from '@shell/types/store/dashboard-store.types';
 import { sameArrayObjects } from '@shell/utils/array';
 import { isEqual } from '@shell/utils/object';
 
 // This are hardcoded atm, but will be changed via the `Performance` settings
 const settings: PaginationSettings = {
-  enabled: false,
+  enabled: true,
   stores:  {
     cluster: {
       resources: {
@@ -110,16 +110,34 @@ class PaginationUtils {
     return this.validNsProjectFilters.includes(nsProjectFilter);
   }
 
+  paginationFiltersEqual(a: OptPaginationFilter[][], b: OptPaginationFilter[][]): boolean {
+    if (!!a && a?.length !== b?.length) {
+      return false;
+    }
+
+    for (let i = 0; i < a.length; i++) {
+      const aFilter = a[i];
+      const bFilter = b[i];
+
+      if (!isEqual(aFilter, bFilter)) {
+        return false;
+      }
+    }
+
+    return true;
+  }
+
   paginationEqual(a?: OptPagination, b?: OptPagination): boolean {
     const {
-      filter: aFilter, sort: aSort = [], namespaces: aNamespaces = [], ...aPrimitiveTypes
+      filter: aFilter = [], sort: aSort = [], namespaces: aNamespaces = [], ...aPrimitiveTypes
     } = a || {};
     const {
-      filter: bFilter, sort: bSort = [], namespaces: bNamespaces = [], ...bPrimitiveTypes
+      filter: bFilter = [], sort: bSort = [], namespaces: bNamespaces = [], ...bPrimitiveTypes
     } = b || {};
 
     return isEqual(aPrimitiveTypes, bPrimitiveTypes) &&
-      isEqual(aFilter, bFilter) &&
+      this.paginationFiltersEqual(aFilter, bFilter) &&
+      // isEqual(aFilter, bFilter) && // TODO: RC
       sameArrayObjects(aNamespaces, bNamespaces) &&
       sameArrayObjects<OptPaginationSort>(aSort, bSort);
   }

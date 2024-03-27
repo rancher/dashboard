@@ -1,7 +1,7 @@
 import {
   NAMESPACE_FILTER_ALL_SYSTEM, NAMESPACE_FILTER_ALL_USER, NAMESPACE_FILTER_ALL_ORPHANS, NAMESPACE_FILTER_NAMESPACED_YES, NAMESPACE_FILTER_NAMESPACED_NO, NAMESPACE_FILTER_ALL
 } from '@shell/utils/namespace-filter';
-import { NAMESPACE } from '@shell/config/types';
+import { MANAGEMENT, NAMESPACE } from '@shell/config/types';
 import { ALL_NAMESPACES } from '@shell/store/prefs';
 import { mapGetters } from 'vuex';
 import { ResourceListComponentName } from '../components/ResourceList/resource-list.config';
@@ -14,6 +14,12 @@ import debounce from 'lodash/debounce';
 export default {
 
   data() {
+    let defaultProject;
+
+    if (this.$store.getters['management/canList'](MANAGEMENT.PROJECT)) {
+      defaultProject = this.$store.getters['management/all'](MANAGEMENT.PROJECT)?.find((p) => p.isDefault);
+    }
+
     return {
       forceUpdateLiveAndDelayed: 0,
       /**
@@ -22,6 +28,11 @@ export default {
       pPagination:               null,
       // Avoid scenarios where namespace is updated just before other pagination changes come in
       debouncedSetPagination:    debounce(this.setPagination, 50),
+
+      // TODO: RC comment
+      defaultProjectId:  defaultProject?.metadata.name,
+      // TODO: RC comment
+      additionalFilters: [],
     };
   },
 
@@ -31,6 +42,11 @@ export default {
     },
 
     paginationChanged(event) {
+      const searchFilters = event.filter.searchQuery ? event.filter.searchFields.map((field) => ({
+        field,
+        value: event.filter.searchQuery,
+      })) : [];
+
       this.debouncedSetPagination({
         ...this.pPagination,
         page:     event.page,
@@ -39,10 +55,10 @@ export default {
           field,
           asc: !event.descending
         })),
-        filter: event.filter.searchQuery ? event.filter.searchFields.map((field) => ({
-          field,
-          value: event.filter.searchQuery,
-        })) : []
+        filter: [
+          searchFilters,
+          this.additionalFilters, // Apply the additional filters that don't come from user
+        ]
       });
     },
 
@@ -68,26 +84,49 @@ export default {
 
       const allNamespaces = this.$store.getters[`${ this.currentProduct.inStore }/all`](NAMESPACE);
 
+      this.additionalFilters = [];
+
       if (allButHidingSystemResources) {
         // Gather all system and obscure ns's and filter for resources NOT in them
         // This avoids filtering by thousands of ns that aren't system or obscure
-        namespaces = allNamespaces
-          .filter((ns) => {
-            const hideObscure = showDynamicRancherNamespaces ? false : ns.isObscure;
-            const hideSystem = productHidesSystemNamespaces ? ns.isSystem : false;
+        namespaces = allNamespaces.reduce((res, ns) => {
+          const hideObscure = showDynamicRancherNamespaces ? false : ns.isObscure;
+          const hideSystem = productHidesSystemNamespaces ? ns.isSystem : false;
 
-            return hideObscure || hideSystem;
-          })
-          .map((ns) => `-${ ns.name }`);
+          if (hideObscure || hideSystem) {
+            res.push(`-${ ns.name }`);
+          }
+
+          return res;
+        }, []);
       } else if (neu.length === 1) {
-        const allSystem = allNamespaces.filter((ns) => ns.isSystem);
-
         if (neu[0] === NAMESPACE_FILTER_ALL_SYSTEM) {
+          const allSystem = allNamespaces.filter((ns) => {
+            return ns.isSystem && ns.id !== this.defaultProjectId; // This is duped below, but stops an iteration of all ns
+          });
+
           // Filter by resources in system namespaces
           namespaces = allSystem.map((ns) => `${ ns.name }`);
+
+          // TODO: RC given the resources in the default project's ns & default project are omitted this misses the resource in the default project's ns
+          // Adding below gives us no results
+          // if (!!this.defaultProjectId) {
+          //   this.additionalFilters.push({ field: 'metadata.namespace', value: this.defaultProjectId });
+          // }
         } else if (neu[0] === NAMESPACE_FILTER_ALL_USER) {
+          const allSystem = allNamespaces.filter((ns) => {
+            // Exclude default project's ns. which means we're not excluded resources in the default project. which means we're including resources in the namespace of the default project
+            return ns.isSystem && ns.id !== this.defaultProjectId;
+          });
+
           // Filter by resources NOT in system namespaces
           namespaces = allSystem.map((ns) => `-${ ns.name }`);
+
+          if (!!this.defaultProjectId) {
+            this.additionalFilters.push({
+              field: 'metadata.namespace', value: this.defaultProjectId, notEqual: true
+            });
+          }
         } else {
           namespaces = neu;
         }
@@ -187,10 +226,27 @@ export default {
   },
 
   watch: {
+    /**
+     * Monitor the rows to ensure deleting the last entry in a server-side paginated page doesn't
+     * result in an empty page
+     */
+    rows(neu) {
+      if (!this.pagination || this.isResourceList) {
+        return;
+      }
+
+      if (this.pagination.page > 1 && neu.length === 0) {
+        this.setPagination({
+          ...this.pagination,
+          page: this.pagination.page - 1
+        });
+      }
+    },
+
     namespaceFilters: {
       immediate: true,
       async handler(neu, old) {
-        if (this.listComponent) {
+        if (this.isResourceList) {
           return;
         }
 
@@ -214,7 +270,7 @@ export default {
     },
 
     async pagination(neu, old) {
-      if (this.listComponent) {
+      if (this.isResourceList) {
         return;
       }
 

@@ -1,4 +1,5 @@
 export interface OptPaginationSort { field: string, asc: boolean }
+export interface OptPaginationFilter { field: string, value: string, notEqual: boolean }
 
 /**
  * Pagination settings sent to actions and persisted to store
@@ -8,7 +9,14 @@ export interface OptPagination {
   page: number,
   pageSize: number,
   sort: OptPaginationSort[],
-  filter: { field: string, value: string }[],
+  /**
+   * Filters can either be in the form
+   * - filter=a=1,b=2,c=3
+   *   - equates to entries in child arrays are `,` together
+   * - filter=a=1&filter=b=2&filter=c=3
+   *   - equates to level arrays are `&`d together
+   */
+  filter: OptPaginationFilter[][],
 }
 
 /**

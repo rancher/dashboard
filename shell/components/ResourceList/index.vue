@@ -176,6 +176,23 @@ export default {
         this.$fetchType(this.resource);
       }
     },
+
+    /**
+     * Monitor the rows to ensure deleting the last entry in a server-side paginated page doesn't
+     * result in an empty page
+     */
+    rows(neu) {
+      if (!this.pagination) {
+        return;
+      }
+
+      if (this.pagination.page > 1 && neu.length === 0) {
+        this.setPagination({
+          ...this.pagination,
+          page: this.pagination.page - 1
+        });
+      }
+    },
   },
 
   created() {
