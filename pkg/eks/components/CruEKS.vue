@@ -19,7 +19,7 @@ import Accordion from '@components/Accordion/Accordion.vue';
 import Banner from '@components/Banner/Banner.vue';
 import ClusterMembershipEditor, { canViewClusterMembershipEditor } from '@shell/components/form/Members/ClusterMembershipEditor.vue';
 
-import { EKSConfig, EKSNodeGroup } from '../types';
+import { EKSConfig, EKSNodeGroup, AWS, NormanCluster } from '../types';
 import NodeGroup from './NodeGroup.vue';
 import Logging from './Logging.vue';
 import Config from './Config.vue';
@@ -116,7 +116,7 @@ export default defineComponent({
 
       this.normanCluster = await store.dispatch(`rancher/clone`, { resource: liveNormanCluster });
       // track original version on edit to ensure we don't offer k8s downgrades
-      this.originalVersion = this.normanCluster?.eksConfig?.kubernetesVersion;
+      this.originalVersion = this.normanCluster?.eksConfig?.kubernetesVersion || '';
     } else {
       this.normanCluster = await store.dispatch('rancher/create', { type: NORMAN.CLUSTER, ...defaultCluster }, { root: true });
     }
@@ -130,12 +130,16 @@ export default defineComponent({
     if (!this.normanCluster.clusterAgentDeploymentCustomization) {
       this.$set(this.normanCluster, 'clusterAgentDeploymentCustomization', {});
     }
-    this.config = this.normanCluster.eksConfig;
+    this.config = this.normanCluster.eksConfig as EKSConfig;
 
     if (!this.config.nodeGroups || !this.config.nodeGroups.length) {
       this.$set(this.config, 'nodeGroups', [{ ...DEFAULT_NODE_GROUP_CONFIG, nodegroupName: 'group1' }]);
     }
-    this.nodeGroups = this.config.nodeGroups;
+    if (this.config.nodeGroups) {
+      this.nodeGroups = this.config.nodeGroups;
+    } else {
+      this.$set(this.config, 'nodeGroups', this.nodeGroups);
+    }
     this.fetchInstanceTypes();
     this.fetchLaunchTemplates();
     this.fetchServiceRoles();
@@ -144,10 +148,10 @@ export default defineComponent({
   data() {
     return {
       cloudCredentialId: '',
-      normanCluster:     { name: '' } as any,
+      normanCluster:     { name: '' } as unknown as NormanCluster,
       nodeGroups:        [] as EKSNodeGroup[],
       config:            { } as EKSConfig,
-      membershipUpdate:  {} as any,
+      membershipUpdate:  {} as {newBindings: any[], removedBindings: any[], save: Function},
       originalVersion:   '',
 
       fvFormRuleSets: [{
@@ -192,9 +196,9 @@ export default defineComponent({
       loadingLaunchTemplates: false,
 
       loadingIam:      false,
-      iamInfo:         {} as any,
-      ec2Roles:        [],
-      eksRoles:        [],
+      iamInfo:         {} as {Roles: AWS.IamRole[]},
+      ec2Roles:        [] as AWS.IamRole[],
+      eksRoles:        []as AWS.IamRole[],
       instanceTypes:   [],
       launchTemplates: []
     };
@@ -207,22 +211,22 @@ export default defineComponent({
   },
 
   watch: {
-    'iamInfo'(neu: any) {
-      const ec2Roles = [] as any[];
-      const eksRoles = [] as any[];
+    'iamInfo'(neu: {Roles: AWS.IamRole[]}) {
+      const ec2Roles = [] as AWS.IamRole[];
+      const eksRoles = [] as AWS.IamRole[];
       const allRoles = neu?.Roles;
 
-      allRoles.forEach((role:any) => {
+      allRoles.forEach((role: AWS.IamRole) => {
         const policy = JSON.parse(decodeURIComponent(role.AssumeRolePolicyDocument));
         const statement = policy.Statement;
 
-        statement.forEach( (doc: any) => {
+        statement.forEach( (doc: {Principal: {Service: string, EKS: boolean}}) => {
           const principal = doc.Principal;
 
           if (principal) {
             const service = principal.Service;
 
-            if (service && service.includes('ec2.amazonaws.com') && !ec2Roles.find((r) => r.RoleId === role.RoleId) && !role.RoleName.match(/^rancher-managed/)) {
+            if (service && service.includes('AWS.amazonaws.com') && !ec2Roles.find((r) => r.RoleId === role.RoleId) && !role.RoleName.match(/^rancher-managed/)) {
               ec2Roles.push(role);
             }
             if ( service && ( service.includes('eks.amazonaws') || service.includes('EKS') ) && !eksRoles.find((r) => r.RoleId === role.RoleId)) {
@@ -240,7 +244,7 @@ export default defineComponent({
     },
 
     'config.kubernetesVersion'(neu) {
-      this.nodeGroups.forEach((group:any) => this.$set(group, 'version', neu));
+      this.nodeGroups.forEach((group: EKSNodeGroup) => this.$set(group, 'version', neu));
     }
   },
 
@@ -280,7 +284,7 @@ export default defineComponent({
 
           return out;
         },
-        maxSize: (size: String) => {
+        maxSize: (size: number) => {
           const msg = this.t('eks.errors.greaterThanZero', { key: this.t('eks.nodeGroups.maxSize.label') });
 
           if (size !== undefined) {
@@ -289,7 +293,7 @@ export default defineComponent({
 
           return !!this.nodeGroups.find((group) => !group.maxSize || group.maxSize <= 0) ? msg : null;
         },
-        minSize: (size: String) => {
+        minSize: (size: number) => {
           const msg = this.t('eks.errors.greaterThanZero', { key: this.t('eks.nodeGroups.minSize.label') });
 
           if (size !== undefined) {
@@ -298,21 +302,21 @@ export default defineComponent({
 
           return !!this.nodeGroups.find((group) => !group.minSize || group.minSize <= 0) ? msg : null;
         },
-        diskSize: (type: String) => {
+        diskSize: (type: string) => {
           if (type || type === '') {
             return !type ? this.t('validation.required', { key: this.t('eks.nodeGroups.diskSize.label') }) : null;
           }
 
           return !!this.nodeGroups.find((group: EKSNodeGroup) => !group.diskSize ) ? this.t('validation.required', { key: this.t('eks.nodeGroups.instanceType.label') }) : null;
         },
-        instanceType: (type: String) => {
+        instanceType: (type: string) => {
           if (type || type === '') {
             return !type ? this.t('validation.required', { key: this.t('eks.nodeGroups.instanceType.label') }) : null;
           }
 
           return !!this.nodeGroups.find((group: EKSNodeGroup) => !group.instanceType && !group.requestSpotInstances) ? this.t('validation.required', { key: this.t('eks.nodeGroups.instanceType.label') }) : null;
         },
-        desiredSize: (size) => {
+        desiredSize: (size: number) => {
           const msg = this.t('eks.errors.greaterThanZero', { key: this.t('eks.nodeGroups.desiredSize.label') });
 
           if (size !== undefined) {
@@ -321,12 +325,12 @@ export default defineComponent({
 
           return !!this.nodeGroups.find((group) => !group.desiredSize || group.desiredSize <= 0) ? msg : null;
         },
-        subnets: (val) => {
+        subnets: (val: string[]) => {
           const subnets = val || this.config.subnets;
 
           return subnets && subnets.length === 1 ? this.t('eks.errors.minimumSubnets') : undefined;
         },
-        publicPrivateAccess: () => {
+        publicPrivateAccess: (): string | undefined => {
           const { publicAccess, privateAccess } = this.config;
 
           return publicAccess || privateAccess ? undefined : this.t('eks.errors.publicOrPrivate');
@@ -337,27 +341,27 @@ export default defineComponent({
 
     // upstreamSpec will be null if the user created a cluster with some invalid options such that it ultimately fails to create anything in aks
     // this allows them to go back and correct their mistakes without re-making the whole cluster
-    isNewOrUnprovisioned() {
-      return this.mode === _CREATE || !this.normanCluster?.eksStatus?.upstreamSpec;
+    isNewOrUnprovisioned(): boolean {
+      return this.mode === _CREATE || !this.normanCluster?.status?.eksStatus?.upstreamSpec;
     },
 
-    isEdit() {
+    isEdit(): boolean {
       return this.mode === _CREATE || this.mode === _EDIT;
     },
 
-    doneRoute() {
+    doneRoute(): string {
       return this.value?.listLocation?.name;
     },
 
-    hasCredential() {
+    hasCredential(): boolean {
       return !!this.config?.amazonCredentialSecret;
     },
 
-    clusterId(): String | null {
+    clusterId(): string | null {
       return this.value?.id || null;
     },
 
-    canManageMembers(): Boolean {
+    canManageMembers(): boolean {
       return canViewClusterMembershipEditor(this.$store);
     },
 
@@ -369,10 +373,10 @@ export default defineComponent({
       return _VIEW;
     },
 
-    groupedInstanceTypes() {
-      const out = {} as any;
+    groupedInstanceTypes(): {[key:string]: AWS.InstanceType[]} {
+      const out = {} as {[key:string]: AWS.InstanceType[]};
 
-      this.instanceTypes.forEach((type:any) => {
+      this.instanceTypes.forEach((type: AWS.InstanceType) => {
         if (out[type.groupLabel]) {
           out[type.groupLabel].push(type);
         } else {
@@ -383,13 +387,13 @@ export default defineComponent({
       return out;
     },
 
-    instanceTypeOptions() {
-      const out = [] as any[];
+    instanceTypeOptions(): AWS.InstanceTypeOption[] {
+      const out = [] as AWS.InstanceTypeOption[];
 
       Object.keys(this.groupedInstanceTypes).forEach((groupLabel: string) => {
         const instances = this.groupedInstanceTypes[groupLabel];
         const groupOption = { label: groupLabel, kind: 'group' };
-        const instanceTypeOptions = instances.map((instance:any) => {
+        const instanceTypeOptions = instances.map((instance: AWS.InstanceType) => {
           return {
             value: instance.apiName,
             label: instance.label,
@@ -404,13 +408,13 @@ export default defineComponent({
       return out;
     },
 
-    spotInstanceTypeOptions() {
-      const out = [] as any[];
+    spotInstanceTypeOptions(): AWS.InstanceTypeOption[] {
+      const out = [] as AWS.InstanceTypeOption[];
 
       Object.keys(this.groupedInstanceTypes).forEach((groupLabel: string) => {
         const instances = this.groupedInstanceTypes[groupLabel];
         const groupOption = { label: groupLabel, kind: 'group' };
-        const instanceTypeOptions = instances.reduce((spotInstances, instance:any) => {
+        const instanceTypeOptions = instances.reduce((spotInstances: AWS.InstanceTypeOption[], instance: AWS.InstanceType) => {
           if (!(instance.supportedUsageClasses || []).includes('spot')) {
             return spotInstances;
           }
@@ -441,7 +445,7 @@ export default defineComponent({
       this.$set(this.config, 'displayName', name);
     },
 
-    onMembershipUpdate(update: any): void {
+    onMembershipUpdate(update: {newBindings: any[], removedBindings: any[], save: Function}): void {
       this.$set(this, 'membershipUpdate', update);
     },
 
@@ -482,7 +486,7 @@ export default defineComponent({
       this.fetchServiceRoles();
     },
 
-    updateCredential(e: any) {
+    updateCredential(e: string) {
       this.$set(this.config, 'amazonCredentialSecret', e);
       this.fetchInstanceTypes();
       this.fetchLaunchTemplates();
@@ -534,8 +538,10 @@ export default defineComponent({
         const launchTemplateInfo = await ec2Client.describeLaunchTemplates({ DryRun: false });
 
         this.launchTemplates = launchTemplateInfo.LaunchTemplates;
-      } catch (err) {
-        this.errors.push(err);
+      } catch (err: any) {
+        const errors = this.errors as any[];
+
+        errors.push(err);
       }
       this.loadingLaunchTemplates = false;
     },
@@ -552,8 +558,10 @@ export default defineComponent({
 
       try {
         this.iamInfo = await iamClient.listRoles({});
-      } catch (e) {
-        this.errors.push(e);
+      } catch (err: any) {
+        const errors = this.errors as any[];
+
+        errors.push(err);
       }
     }
   }
@@ -614,7 +622,7 @@ export default defineComponent({
         :side-tabs="true"
         :show-tabs-add-remove="mode !== 'view'"
         @removeTab="removeGroup($event)"
-        @addTab="addGroup($event)"
+        @addTab="addGroup()"
       >
         <Tab
           v-for="(node, i) in nodeGroups"

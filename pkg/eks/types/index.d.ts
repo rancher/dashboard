@@ -1,3 +1,7 @@
+import NormanModel from '@shell/plugins/steve/norman-class';
+
+export * as AWS from './aws-sdk';
+
 export interface EKSLaunchTemplate {
   id?: string,
   name?: string,
@@ -30,6 +34,7 @@ export interface EKSNodeGroup {
   },
   userData?: string,
   version?: string
+  __nameUnique?: boolean
 }
 
 export interface EKSConfig {
@@ -51,4 +56,14 @@ export interface EKSConfig {
   subnets?: string[],
   tags?: string[]
   enableNetworkPolicy?: boolean
+}
+
+export interface NormanCluster extends NormanModel {
+  description?: string,
+  eksConfig?: EKSConfig,
+  name?: string,
+  fleetAgentDeploymentCustomization?: any,
+  clusterAgentDeploymentCustomization?: any,
+  id?: string,
+  status? : {[key:string]: any}
 }
