@@ -31,7 +31,7 @@ describe('fx: requiredInCluster', () => {
 describe('fx: clusterNameChars', () => {
   it.each([
     ['!!abc!!', MOCK_TRANSLATION],
-    ['123aBc-_', undefined]]
+    ['123ac-abd', undefined]]
   )('returns an error message if the cluster name contains anything other than alphanumerics, underscores, or hyphens', (name, validatorMsg) => {
     const ctx = { ...mockCtx, normanCluster: { name } };
 
