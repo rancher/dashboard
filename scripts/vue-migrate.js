@@ -459,11 +459,10 @@ const eslintUpdates = () => {
     ['plugin:vue/recommended', 'plugin:vue/vue3-recommended']
   ];
   const newRules = {
-    'vue/one-component-per-file':         'off',
-    'vue/no-deprecated-slot-attribute':   'off',
-    'vue/require-explicit-emits':         'off',
-    'vue/v-on-event-hyphenation':         'off',
-    'vue/no-v-for-template-key-on-child': 'off',
+    'vue/one-component-per-file':       'off',
+    'vue/no-deprecated-slot-attribute': 'off',
+    'vue/require-explicit-emits':       'off',
+    'vue/v-on-event-hyphenation':       'off',
   };
 
   files.forEach((file) => {
