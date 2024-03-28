@@ -166,15 +166,18 @@ export default {
         },
         {
           label:     this.t('landing.clusters.provider'),
+          subLabel:  this.t('landing.clusters.distro'),
           value:     'mgmt.status.provider',
           name:      'Provider',
           sort:      ['mgmt.status.provider'],
           formatter: 'ClusterProvider'
         },
         {
-          label: this.t('landing.clusters.kubernetesVersion'),
-          value: 'kubernetesVersion',
-          name:  'Kubernetes Version'
+          label:     this.t('landing.clusters.kubernetesVersion'),
+          subLabel:  this.t('landing.clusters.architecture'),
+          value:     'kubernetesVersionRow',
+          name:      'Kubernetes Version',
+          formatter: 'Detailed'
         },
         {
           label: this.t('tableHeaders.cpu'),

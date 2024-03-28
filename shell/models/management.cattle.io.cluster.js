@@ -1,4 +1,4 @@
-import { CATALOG, CLUSTER_BADGE } from '@shell/config/labels-annotations';
+import { CATALOG, CLUSTER_BADGE, NODE_ARCHITECTURE } from '@shell/config/labels-annotations';
 import { NODE, FLEET, MANAGEMENT, CAPI } from '@shell/config/types';
 import { insertAt, addObject, removeObject } from '@shell/utils/array';
 import { downloadFile } from '@shell/utils/download';
@@ -213,6 +213,18 @@ export default class MgmtCluster extends HybridModel {
     }
 
     return '';
+  }
+
+  get architecture() {
+    return this.nodes?.reduce((acc, node) => {
+      const arch = node.status?.nodeLabels?.[NODE_ARCHITECTURE];
+
+      if (acc && acc !== arch) {
+        return 'mixed';
+      }
+
+      return arch;
+    }, '');
   }
 
   get providerOs() {
