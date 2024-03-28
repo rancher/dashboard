@@ -160,7 +160,6 @@ export const actions = {
     const cloudCredentialId = client?.config?.requestHandler?.cloudCredentialId;
     const region = await client.config.region();
 
-    console.log('**** region: ', region, 'cloudCredentialId: ', cloudCredentialId);
     if (cloudCredentialId === rootGetters['aws/clientInfo']?.cloudCredentialId && region === rootGetters['aws/clientInfo']?.region) {
       return rootGetters['aws/instanceTypes'];
     }
