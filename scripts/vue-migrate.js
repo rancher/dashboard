@@ -346,6 +346,9 @@ const vueSyntaxUpdates = () => {
 
     // TODO: probably requires JSDom
     // [/<template v-for="([\s\S]*?)">\s*<([\s\S]*?)\s*([\s\S]*?):key="([\s\S]*?)"([\s\S]*?)<\/([\s\S]*?)>\s*<\/template>/gs, '<template v-for="$1" :key="$4"><$3 $5>$6</$7>\n</template>', `https://v3-migration.vuejs.org/breaking-changes/key-attribute.html#with-template-v-for`],
+    [/(\<\w+\s+(?:[^>]*?\s+)?v-for="\(.*?,\s*(\w+)\s*\).*?")([^>]*>)/g, '$1 :key="$2"$3', `https://v3-migration.vuejs.org/breaking-changes/key-attribute.html#with-template-v-for`],
+    [/(\<\w+\s+(?:[^>]*?\s+)?)v-for="(?!\*?\s+.*?\s+.*?)([^,]+?)\s+in\s+([^"]+?)"([^>]*>)/g, '$1 v-for="($2, i) in $3" :key="i" $4', `https://v3-migration.vuejs.org/breaking-changes/key-attribute.html#with-template-v-for`],
+    [/(<\w+(?!.*?v-for=)[^>]*?)\s*:key="[^"]*"\s*([^>]*>)/g, '$1$2', `https://v3-migration.vuejs.org/breaking-changes/key-attribute.html#with-template-v-for`],
 
     // TODO: except for <components /> elements, probably requires JSDom
     // [' is=', ``, `https://v3-migration.vuejs.org/breaking-changes/custom-elements-interop.html#customized-built-in-elements`],
