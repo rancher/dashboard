@@ -19,9 +19,6 @@ export default {
     showLocalIcon() {
       return this.cluster.isLocal && !this.cluster.isHarvester && !this.cluster.badge?.iconText;
     },
-    hasCustomColor() {
-      return this.cluster.badge?.color;
-    },
     customColor() {
       return this.cluster.badge?.color || '';
     }
@@ -49,7 +46,7 @@ export default {
   >
     <div
       class="cluster-badge-logo"
-      :class="{ 'disabled': !isEnabled, 'custom-color': hasCustomColor }"
+      :class="{ 'disabled': !isEnabled }"
     >
       <span
         class="cluster-badge-logo-text"
@@ -155,10 +152,6 @@ export default {
     border-radius: 5px;
     font-size: 12px;
     text-transform: uppercase;
-
-    &.custom-color {
-      border-bottom: 4px solid transparent;
-    }
 
     .custom-color-decoration {
       height: 4px;
