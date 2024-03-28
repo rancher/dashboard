@@ -12,6 +12,10 @@ export default {
   computed: {
     hasBadge() {
       return !!this.cluster?.badge;
+    },
+
+    tooltip() {
+      return this.t(this.hasBadge ? 'clusterBadge.editAppearance' : 'clusterBadge.customizeAppearance');
     }
   },
   methods: {
@@ -26,13 +30,14 @@ export default {
   <div class="config-badge">
     <div>
       <a
-        class="badge-install"
+        class="badge-install btn btn-sm role-secondary"
         data-testid="add-custom-cluster-badge"
         @click="customBadgeDialog"
       >
-        <i class="icon icon-cluster" />
-        <span v-if="hasBadge">{{ t('clusterBadge.editLabel') }}</span>
-        <span v-else>{{ t('clusterBadge.addLabel') }}</span>
+        <i
+          v-clean-tooltip="tooltip"
+          class="icon icon-brush-icon"
+        />
       </a>
     </div>
   </div>
@@ -46,9 +51,12 @@ export default {
     display: flex;
     margin-left: 10px;
 
+    &:hover {
+      border-color: var(--lightest);
+    }
+
     > I {
       line-height: inherit;
-      margin-right: 4px;
     }
 
     &:focus {

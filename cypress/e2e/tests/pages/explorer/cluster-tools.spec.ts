@@ -15,8 +15,7 @@ describe('Cluster Tools', { tags: ['@explorer', '@adminUser'] }, () => {
 
     clusterDashboard.goTo();
     clusterDashboard.waitForPage();
-    clusterDashboard.clusterToolsButton().click();
-
+    clusterDashboard.navToSideMenuEntryByLabel('Tools');
     clusterTools.waitForPage();
     clusterTools.featureChartCards().should('have.length.gte', 10);
   });
