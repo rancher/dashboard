@@ -1,5 +1,5 @@
 <script lang="ts">
-import { defineComponent } from 'vue';
+import { defineComponent, PropType } from 'vue';
 import { _EDIT } from '@shell/config/query-params';
 import LabeledSelect from '@shell/components/form/LabeledSelect.vue';
 import LabeledInput from '@components/Form/LabeledInput/LabeledInput.vue';
@@ -10,7 +10,7 @@ import UnitInput from '@shell/components/form/UnitInput.vue';
 import { mapGetters, Store } from 'vuex';
 
 import { MANAGED_TEMPLATE_PREFIX, parseTags } from '../util/aws';
-
+import { AWS } from '../types';
 import { isEmpty } from '@shell/utils/object';
 import debounce from 'lodash/debounce';
 import { randomStr } from '@shell/utils/string';
@@ -138,7 +138,7 @@ export default defineComponent({
       default: _EDIT
     },
     ec2Roles: {
-      type:    Array,
+      type:    Array as PropType<AWS.IamRole[]>,
       default: () => []
     },
     isNewOrUnprovisioned: {
@@ -157,12 +157,12 @@ export default defineComponent({
     },
 
     launchTemplates: {
-      type:    Array,
+      type:    Array as PropType<AWS.LaunchTemplate[]>,
       default: () => []
     },
 
     originalCluster: {
-      type:    Object as any,
+      type:    Object,
       default: null
     },
     loadingInstanceTypes: {
@@ -197,12 +197,12 @@ export default defineComponent({
     const t = store.getters['i18n/t'];
 
     return {
-      defaultTemplateOption:          { LaunchTemplateName: t('eks.defaultCreateOne') },
+      defaultTemplateOption:          { LaunchTemplateName: t('eks.defaultCreateOne') } as AWS.LaunchTemplate,
       defaultNodeRoleOption:          { RoleName: t('eks.defaultCreateOne') },
       loadingSelectedVersion:         false,
       // once a specific lt has been selected, an additional query is made to get full information on every version of it
-      selectedLaunchTemplateInfo:     {} as any,
-      debouncedSetValuesFromTemplate: null as any,
+      selectedLaunchTemplateInfo:     {} as AWS.LaunchTemplateDetail,
+      debouncedSetValuesFromTemplate: null as Function | null,
       // the keyvalue component needs to be re-rendered if the value prop is updated by parent component when as-map=true
       // TODO nb file an issue
       resourceTagKey:                 randomStr()
@@ -228,7 +228,9 @@ export default defineComponent({
 
     'selectedVersionData'(neu = {}, old = {}) {
       this.loadingSelectedVersion = true;
-      this.debouncedSetValuesFromTemplate(neu, old);
+      if (this.debouncedSetValuesFromTemplate) {
+        this.debouncedSetValuesFromTemplate(neu, old);
+      }
     },
 
     'requestSpotInstances'(neu) {
@@ -261,17 +263,17 @@ export default defineComponent({
       return !this.hasRancherLaunchTemplate && !this.hasUserLaunchTemplate;
     },
 
-    launchTemplateOptions() {
-      return [this.defaultTemplateOption, ...this.launchTemplates.filter((template: any) => !(template?.LaunchTemplateName || '').startsWith(MANAGED_TEMPLATE_PREFIX))];
+    launchTemplateOptions(): AWS.LaunchTemplate[] {
+      return [this.defaultTemplateOption, ...this.launchTemplates.filter((template) => !(template?.LaunchTemplateName || '').startsWith(MANAGED_TEMPLATE_PREFIX))];
     },
 
     selectedLaunchTemplate: {
-      get(): any {
+      get(): AWS.LaunchTemplate {
         const id = this.launchTemplate?.id;
 
-        return this.launchTemplateOptions.find((lt: any) => lt.LaunchTemplateId && lt.LaunchTemplateId === id) || this.defaultTemplateOption;
+        return this.launchTemplateOptions.find((lt: AWS.LaunchTemplate) => lt.LaunchTemplateId && lt.LaunchTemplateId === id) || this.defaultTemplateOption;
       },
-      set(neu: any) {
+      set(neu: AWS.LaunchTemplate) {
         if (neu.LaunchTemplateName === this.defaultTemplateOption.LaunchTemplateName) {
           this.$emit('update:launchTemplate', {});
 
@@ -297,11 +299,11 @@ export default defineComponent({
       return [];
     },
 
-    selectedVersionInfo() {
+    selectedVersionInfo(): AWS.LaunchTemplateVersion | null {
       return (this.selectedLaunchTemplateInfo?.LaunchTemplateVersions || []).find((v: any) => v.VersionNumber === this.launchTemplate.version) || null;
     },
 
-    selectedVersionData() {
+    selectedVersionData(): AWS.LaunchTemplateVersionData | undefined {
       return this.selectedVersionInfo?.LaunchTemplateData;
     },
 
@@ -313,9 +315,9 @@ export default defineComponent({
           return this.defaultNodeRoleOption;
         }
 
-        return this.ec2Roles.find((role: any) => role.Arn === arn) ;
+        return this.ec2Roles.find((role: AWS.IamRole) => role.Arn === arn) ;
       },
-      set(neu: any) {
+      set(neu: AWS.IamRole) {
         if (neu.Arn) {
           this.$emit('update:nodeRole', neu.Arn);
         } else {
@@ -330,7 +332,7 @@ export default defineComponent({
   },
 
   methods: {
-    async fetchLaunchTemplateVersionInfo(launchTemplate: any) {
+    async fetchLaunchTemplateVersionInfo(launchTemplate: AWS.LaunchTemplate) {
       const { region, amazonCredentialSecret } = this;
 
       if (!region || !amazonCredentialSecret) {
@@ -346,7 +348,7 @@ export default defineComponent({
       }
     },
 
-    setValuesFromTemplate(neu = {} as any, old = {} as any) {
+    setValuesFromTemplate(neu = {} as AWS.LaunchTemplateVersionData, old = {} as AWS.LaunchTemplateVersionData) {
       if (neu && !isEmpty(neu)) {
         Object.keys(launchTemplateFieldMapping).forEach((rancherKey: string) => {
           const awsKey = launchTemplateFieldMapping[rancherKey];
@@ -355,9 +357,9 @@ export default defineComponent({
             const { TagSpecifications } = neu;
 
             if (TagSpecifications) {
-              const tags = {} as any;
+              const tags = {} as {[key:string]: string};
 
-              TagSpecifications.forEach((tag: any) => {
+              TagSpecifications.forEach((tag: {Tags?: {Key: string, Value: string}[], ResourceType?: string}) => {
                 if (tag.ResourceType === 'instance' && tag.Tags && tag.Tags.length) {
                   Object.assign(tags, parseTags(tag.Tags));
                 }
@@ -390,12 +392,12 @@ export default defineComponent({
       });
     },
 
-    templateValue(field: string): any {
+    templateValue(field: string): string | null | AWS.TagSpecification | AWS.TagSpecification[] | AWS.BlockDeviceMapping[] {
       if (this.hasNoLaunchTemplate) {
         return null;
       }
 
-      const launchTemplateKey = launchTemplateFieldMapping[field];
+      const launchTemplateKey = launchTemplateFieldMapping[field] as keyof AWS.LaunchTemplateVersionData;
 
       if (!launchTemplateKey) {
         return null;
@@ -404,10 +406,14 @@ export default defineComponent({
 
       if (launchTemplateVal !== undefined && (!(typeof launchTemplateVal === 'object') || !isEmpty(launchTemplateVal))) {
         if (field === 'diskSize') {
-          return launchTemplateVal[0]?.Ebs?.VolumeSize || null;
+          const blockMapping = launchTemplateVal[0] as AWS.BlockDeviceMapping;
+
+          return blockMapping?.Ebs?.VolumeSize || null;
         }
         if (field === 'resourceTags') {
-          return (launchTemplateVal || []).filter((tag: any) => tag.ResourceType === 'instance');
+          const tags = (launchTemplateVal || []) as AWS.TagSpecification[];
+
+          return tags.filter((tag: AWS.TagSpecification) => tag.ResourceType === 'instance')[0];
         }
 
         return launchTemplateVal;
