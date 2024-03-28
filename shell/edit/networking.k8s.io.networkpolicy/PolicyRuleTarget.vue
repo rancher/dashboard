@@ -154,6 +154,7 @@ export default {
   },
   watch: {
     namespace:                    'updateMatches',
+    allNamespaces:                'updateMatches',
     'value.podSelector':          'updateMatches',
     'value.namespaceSelector':    'updateMatches',
     'value.ipBlock.cidr':         'validateCIDR',
@@ -293,7 +294,10 @@ export default {
       <div class="row">
         <div class="col span-12">
           <Banner color="success">
-            <span v-clean-html="t('networkpolicy.selectors.matchingNamespaces.matchesSome', matchingNamespaces)" />
+            <span
+              v-clean-html="t('networkpolicy.selectors.matchingNamespaces.matchesSome', matchingNamespaces)"
+              data-testid="matching-namespaces-message"
+            />
           </Banner>
         </div>
       </div>
