@@ -73,7 +73,11 @@ export const actions = {
   },
 
   kmsLib() {
-    return import(/* webpackChunkName: "aws-ec2" */ '@aws-sdk/client-kms');
+    return import(/* webpackChunkName: "aws-kms" */ '@aws-sdk/client-kms');
+  },
+
+  iamLib() {
+    return import(/* webpackChunkName: "aws-iam" */ '@aws-sdk/client-iam');
   },
 
   async ec2({ dispatch }, {
@@ -110,6 +114,20 @@ export const actions = {
     const lib = await dispatch('kmsLib');
 
     const client = new lib.KMS({
+      region,
+      credentialDefaultProvider: credentialDefaultProvider(accessKey, secretKey),
+      requestHandler:            new Handler(cloudCredentialId),
+    });
+
+    return client;
+  },
+
+  async iam({ dispatch }, {
+    region, cloudCredentialId, accessKey, secretKey
+  }) {
+    const lib = await dispatch('iamLib');
+
+    const client = new lib.IAM({
       region,
       credentialDefaultProvider: credentialDefaultProvider(accessKey, secretKey),
       requestHandler:            new Handler(cloudCredentialId),
@@ -158,11 +176,12 @@ export const actions = {
 
       list.push({
         apiName,
-        currentGeneration: row.CurrentGeneration || false,
+        currentGeneration:     row.CurrentGeneration || false,
         groupLabel,
         instanceClass,
-        memoryBytes:       row.MemoryInfo.SizeInMiB * 1024 * 1024,
-        label:             rootGetters['i18n/t']('cluster.machineConfig.aws.sizeLabel', {
+        memoryBytes:           row.MemoryInfo.SizeInMiB * 1024 * 1024,
+        supportedUsageClasses: row.SupportedUsageClasses,
+        label:                 rootGetters['i18n/t']('cluster.machineConfig.aws.sizeLabel', {
           apiName,
           cpu:    row.VCpuInfo.DefaultVCpus,
           memory: row.MemoryInfo.SizeInMiB / 1024,

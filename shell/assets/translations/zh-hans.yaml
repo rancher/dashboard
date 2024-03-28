@@ -3060,7 +3060,7 @@ members:
   clusterMembers: 集群成员
   clusterAndProject: 集群和项目成员
   createActionLabel: 添加
-  clusterMemebership: 集群成员
+  clusterMembership: 集群成员
   projectMembership: 项目成员
   clusterPermissions:
     noDescription: 已创建用户 - 没有描述
