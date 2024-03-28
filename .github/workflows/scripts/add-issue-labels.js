@@ -28,7 +28,7 @@ async function processOpenAction() {
   let didUpdateLabels = false;
 
   // Check we have a QA label
-  if (!labels.includes(QA_DEV_AUTOMATION_LABEL)  && !labels.includes(QA_MANUAL_TEST_LABEL) && !labels.includes(QA_NONE_LABEL)) {
+  if (!labels.includes(QA_DEV_AUTOMATION_LABEL) && !labels.includes(QA_MANUAL_TEST_LABEL) && !labels.includes(QA_NONE_LABEL)) {
 
     // Add the appropriate QA label
     if (labels.includes(TECH_DEBT_LABEL)) {
@@ -46,18 +46,18 @@ async function processOpenAction() {
     }
 
     didUpdateLabels = true;
-}
+  }
 
-// Check we have a Zube label
-const hasZubeLabel = labels.filter((label) => label.name.indexOf('[zube]:') === 0).length > 0;
+  // Check we have a Zube label
+  const hasZubeLabel = labels.filter((label) => label.indexOf('[zube]:') === 0).length > 0;
 
-if (!hasZubeLabel) {
-  labels.push(TRIAGE_LABEL);
-  didUpdateLabels = true;
-}
+  if (!hasZubeLabel) {
+    labels.push(TRIAGE_LABEL);
+    didUpdateLabels = true;
+  }
 
-// Update the labels if we made a change
-if (didUpdateLabels) {
+  // Update the labels if we made a change
+  if (didUpdateLabels) {
     // Update the labels
     const labelsAPI = `${issue.url}/labels`;
     await request.put(labelsAPI, { labels });
