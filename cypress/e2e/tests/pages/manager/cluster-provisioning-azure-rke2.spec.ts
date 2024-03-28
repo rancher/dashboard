@@ -6,7 +6,7 @@ import PromptRemove from '@/cypress/e2e/po/prompts/promptRemove.po';
 import LoadingPo from '@/cypress/e2e/po/components/loading.po';
 
 // will only run this in jenkins pipeline where cloud credentials are stored
-describe('Provision Node driver RKE2 cluster with Azure', { testIsolation: 'off', tags: ['@manager', '@adminUser', '@jenkins'] }, () => {
+describe('Provision Node driver RKE2 cluster with Azure', { testIsolation: 'off', tags: ['@manager', '@adminUser', '@standardUser', '@jenkins'] }, () => {
   const clusterList = new ClusterManagerListPagePo();
   let removeCloudCred = false;
   let cloudcredentialId = '';
@@ -14,6 +14,26 @@ describe('Provision Node driver RKE2 cluster with Azure', { testIsolation: 'off'
   before(() => {
     cy.login();
     HomePagePo.goTo();
+
+    // clean up azure cloud credentials
+    cy.getRancherResource('v3', 'cloudcredentials', null, null).then((resp: Cypress.Response<any>) => {
+      const body = resp.body;
+
+      if (body.pagination['total'] > 0) {
+        body.data.forEach((item: any) => {
+          if (item.azurecredentialConfig) {
+            const id = item.id;
+
+            cy.deleteRancherResource('v3', 'cloudcredentials', id);
+          } else {
+            cy.log('There are no existing azure cloud credentials to delete');
+          }
+        });
+      }
+    });
+  });
+
+  beforeEach(() => {
     cy.createE2EResourceName('rke2azure').as('rke2AzureClusterName');
     cy.createE2EResourceName('azurecloudcredential').as('azureCloudCredentialName');
   });
