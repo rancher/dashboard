@@ -1,5 +1,5 @@
 <script lang="ts">
-import Vue from 'vue';
+import { defineComponent } from 'vue';
 import { _EDIT } from '@shell/config/query-params';
 import LabeledSelect from '@shell/components/form/LabeledSelect.vue';
 import LabeledInput from '@components/Form/LabeledInput/LabeledInput.vue';
@@ -37,7 +37,7 @@ echo "Running custom user data script"
 
 --==MYBOUNDARY==--\\`;
 
-export default Vue.extend({
+export default defineComponent({
   name: 'EKSNodePool',
 
   components: {
