@@ -4,22 +4,22 @@ import CreateEditView from '@shell/mixins/create-edit-view';
 import AuthConfig from '@shell/mixins/auth-config';
 import CruResource from '@shell/components/CruResource';
 import { LabeledInput } from '@components/Form/LabeledInput';
-import { Banner } from '@components/Banner';
 import AllowedPrincipals from '@shell/components/auth/AllowedPrincipals';
 import FileSelector from '@shell/components/form/FileSelector';
 import AuthBanner from '@shell/components/auth/AuthBanner';
 import { RadioGroup } from '@components/Form/Radio';
+import AuthProviderWarningBanners from '@shell/edit/auth/AuthProviderWarningBanners';
 
 export default {
   components: {
     Loading,
     CruResource,
     LabeledInput,
-    Banner,
     AllowedPrincipals,
     FileSelector,
     AuthBanner,
-    RadioGroup
+    RadioGroup,
+    AuthProviderWarningBanners
   },
 
   mixins: [CreateEditView, AuthConfig],
@@ -141,10 +141,9 @@ export default {
       </template>
 
       <template v-else>
-        <Banner
+        <AuthProviderWarningBanners
           v-if="!model.enabled"
-          :label="t('authConfig.stateBanner.disabled', tArgs)"
-          color="warning"
+          :t-args="tArgs"
         />
 
         <h3>{{ t(`authConfig.oidc.${NAME}`) }}</h3>
@@ -271,17 +270,6 @@ export default {
           </div>
         </div>
       </template>
-      <div
-        v-if="!model.enabled"
-        class="row"
-      >
-        <div class="col span-12">
-          <Banner
-            v-clean-html="t('authConfig.associatedWarning', tArgs, true)"
-            color="info"
-          />
-        </div>
-      </div>
     </CruResource>
   </div>
 </template>

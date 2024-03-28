@@ -6,13 +6,13 @@ import CruResource from '@shell/components/CruResource';
 import InfoBox from '@shell/components/InfoBox';
 import { RadioGroup } from '@components/Form/Radio';
 import { LabeledInput } from '@components/Form/LabeledInput';
-import { Banner } from '@components/Banner';
 import AuthBanner from '@shell/components/auth/AuthBanner';
 import CopyToClipboardText from '@shell/components/CopyToClipboardText.vue';
 import AllowedPrincipals from '@shell/components/auth/AllowedPrincipals';
 import AuthConfig from '@shell/mixins/auth-config';
 import { AZURE_MIGRATED } from '@shell/config/labels-annotations';
 import { get } from '@shell/utils/object';
+import AuthProviderWarningBanners from '@shell/edit/auth/AuthProviderWarningBanners';
 
 const TENANT_ID_TOKEN = '__[[TENANT_ID]]__';
 
@@ -58,10 +58,10 @@ export default {
     InfoBox,
     RadioGroup,
     LabeledInput,
-    Banner,
     CopyToClipboardText,
     AllowedPrincipals,
-    AuthBanner
+    AuthBanner,
+    AuthProviderWarningBanners
   },
 
   mixins: [CreateEditView, AuthConfig],
@@ -322,10 +322,9 @@ export default {
       </template>
 
       <template v-else>
-        <Banner
+        <AuthProviderWarningBanners
           v-if="!model.enabled"
-          :label="t('authConfig.stateBanner.disabled', tArgs)"
-          color="warning"
+          :t-args="tArgs"
         />
 
         <InfoBox
