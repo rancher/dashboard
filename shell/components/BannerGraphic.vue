@@ -33,6 +33,7 @@ export default {
     <div class="graphic">
       <BrandImage
         class="banner"
+        data-testid="banner-brand__img"
         file-name="banner.svg"
         :draggable="false"
       />

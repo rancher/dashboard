@@ -483,6 +483,7 @@ export default {
 
       <BrandImage
         class="col span-6 landscape"
+        data-testid="login-landscape__img"
         file-name="login-landscape.svg"
       />
     </div>
