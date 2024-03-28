@@ -421,7 +421,7 @@ export default {
       </template>
     </div>
     <!-- Cluster tools -->
-    <n-link
+    <router-link
       v-if="showClusterTools"
       tag="div"
       class="tools"
@@ -434,19 +434,19 @@ export default {
         <i class="icon icon-gear" />
         <span>{{ t('nav.clusterTools') }}</span>
       </a>
-    </n-link>
+    </router-link>
     <!-- SideNav footer area (seems to be tied to harvester) -->
     <div
       v-if="showProductFooter"
       class="footer"
     >
       <!-- support link -->
-      <nuxt-link
+      <router-link
         :to="supportLink"
         class="pull-right"
       >
         {{ t('nav.support', {hasSupport: true}) }}
-      </nuxt-link>
+      </router-link>
       <!-- version number -->
       <span
         v-clean-tooltip="{content: displayVersion, placement: 'top'}"
@@ -492,12 +492,12 @@ export default {
       v-else
       class="version text-muted flex"
     >
-      <nuxt-link
+      <router-link
         v-if="singleProductAbout"
         :to="singleProductAbout"
       >
         {{ displayVersion }}
-      </nuxt-link>
+      </router-link>
       <template v-else>
         <span>{{ displayVersion }}</span>
         <span

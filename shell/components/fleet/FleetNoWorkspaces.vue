@@ -31,12 +31,12 @@ export default {
       v-if="canView"
       class="actions"
     >
-      <n-link
+      <router-link
         :to="formRoute"
         class="btn role-secondary"
       >
         {{ t('fleet.gitRepo.workspace.addWorkspace') }}
-      </n-link>
+      </router-link>
     </div>
   </div>
 </template>

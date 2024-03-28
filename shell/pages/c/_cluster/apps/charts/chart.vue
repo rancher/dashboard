@@ -129,9 +129,9 @@ export default {
             />
           </div>
           <h1>
-            <nuxt-link :to="{ name: 'c-cluster-apps-charts' }">
+            <router-link :to="{ name: 'c-cluster-apps-charts' }">
               {{ t('catalog.chart.header.charts') }}:
-            </nuxt-link>
+            </router-link>
             {{ chart.chartNameDisplay }} ({{ targetVersion }})
           </h1>
         </div>

@@ -139,7 +139,7 @@ export default {
 </script>
 
 <template>
-  <n-link
+  <router-link
     v-if="type.route"
     :key="type.name"
     :to="type.route"
@@ -187,7 +187,7 @@ export default {
         >{{ count }}</span>
       </span>
     </a>
-  </n-link>
+  </router-link>
   <li
     v-else-if="type.link"
     class="child nav-type"

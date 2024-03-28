@@ -197,12 +197,12 @@ export default {
           :key="wl.id"
           class="mt-10"
         >
-          <nuxt-link
+          <router-link
             :to="wl.link"
             class="btn role-tertiary"
           >
             {{ wl.label }}
-          </nuxt-link>
+          </router-link>
         </div>
       </template>
     </Banner>

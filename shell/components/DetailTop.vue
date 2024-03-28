@@ -185,14 +185,14 @@ export default {
         {{ t('resourceDetail.detailTop.namespaces') }}:
       </span>
       <span>
-        <nuxt-link
+        <router-link
           v-for="namespace in namespaces"
           :key="namespace.name"
           :to="namespace.detailLocation"
           class="namespaceLinkList"
         >
           {{ namespace.name }}
-        </nuxt-link>
+        </router-link>
       </span>
     </div>
 

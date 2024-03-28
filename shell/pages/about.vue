@@ -104,13 +104,13 @@ export default {
           {{ t('about.title') }}
         </TabTitle>
       </h1>
-      <n-link
+      <router-link
         :to="{ name: 'diagnostic' }"
         class="btn role-primary"
         data-testid="about__diagnostics_button"
       >
         {{ t('about.diagnostic.title') }}
-      </n-link>
+      </router-link>
     </div>
     <h3>{{ t('about.versions.title') }}</h3>
     <table>

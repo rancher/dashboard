@@ -134,13 +134,13 @@ export default {
           :class="{'mr-5': canCreateGlobalRoleBinding}"
           @click="refreshGroupMemberships"
         />
-        <n-link
+        <router-link
           v-if="canCreateGlobalRoleBinding"
           :to="assignLocation"
           class="btn role-primary"
         >
           {{ t("authGroups.actions.assignRoles") }}
-        </n-link>
+        </router-link>
       </template>
     </Masthead>
 

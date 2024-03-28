@@ -528,13 +528,13 @@ export default {
       </div>
       <div :style="{'flex':1}" />
       <div v-if="!monitoringStatus.v2">
-        <n-link
+        <router-link
           :to="{name: 'c-cluster-explorer-tools'}"
           class="monitoring-install"
         >
           <i class="icon icon-gear" />
           <span>{{ t('glance.installMonitoring') }}</span>
-        </n-link>
+        </router-link>
       </div>
       <ConfigBadge
         v-if="currentCluster.canUpdate"
@@ -637,9 +637,9 @@ export default {
           :weight="2"
         >
           <span class="events-table-link">
-            <n-link :to="allEventsLink">
+            <router-link :to="allEventsLink">
               <span>{{ t('glance.eventsTable') }}</span>
-            </n-link>
+            </router-link>
           </span>
           <EventsTable />
         </Tab>
@@ -657,9 +657,9 @@ export default {
           :weight="1"
         >
           <span class="events-table-link">
-            <n-link :to="allSecretsLink">
+            <router-link :to="allSecretsLink">
               <span>{{ t('glance.secretsTable') }}</span>
-            </n-link>
+            </router-link>
           </span>
           <Certificates v-if="selectedTab === 'cluster-certs'" />
         </Tab>

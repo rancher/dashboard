@@ -326,12 +326,12 @@ export default {
         <h3 class="mb-30">
           {{ t('fleet.dashboard.noRepo', null, true) }}
         </h3>
-        <n-link
+        <router-link
           :to="getStartedLink"
           class="btn role-secondary"
         >
           {{ t('fleet.dashboard.getStarted') }}
-        </n-link>
+        </router-link>
       </template>
     </div>
     <!-- fleet dashboard with repos -->

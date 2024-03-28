@@ -9,20 +9,20 @@ export default {
 };
 </script>
 <template>
-  <nuxt-link
+  <router-link
     v-if="link && link.name"
     :to="link"
     class="back-link"
   >
     <i class="icon icon-chevron-left" /> {{ t('generic.back') }}
-  </nuxt-link>
-  <nuxt-link
+  </router-link>
+  <router-link
     v-else
     to="/"
     class="back-link"
   >
     <i class="icon icon-chevron-left" /> {{ t('nav.home') }}
-  </nuxt-link>
+  </router-link>
 </template>
 
 <style lang="scss" scoped>

@@ -76,13 +76,13 @@ export default {
           class="error-link"
           href="/"
         >Back to Home</a>
-        <n-link
+        <router-link
           v-else
           class="error-link"
           to="/"
         >
           Back to Home
-        </n-link>
+        </router-link>
       </p>
     </div>
   </div>

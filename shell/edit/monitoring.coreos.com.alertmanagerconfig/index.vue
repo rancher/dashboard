@@ -226,7 +226,7 @@ export default {
           @clickedActionButton="setActionMenuState"
         >
           <template #header-button>
-            <nuxt-link
+            <router-link
               v-if="createReceiverLink && createReceiverLink.name"
               :to="mode !== create ? createReceiverLink : {}"
             >
@@ -242,7 +242,7 @@ export default {
                   class="icon icon-info"
                 />
               </button>
-            </nuxt-link>
+            </router-link>
           </template>
         </ResourceTable>
       </Tab>

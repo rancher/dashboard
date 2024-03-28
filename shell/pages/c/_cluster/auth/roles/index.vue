@@ -168,13 +168,13 @@ export default {
       </div>
       <div class="actions-container">
         <div class="actions">
-          <n-link
+          <router-link
             v-if="canCreate"
             :to="createLocation"
             class="btn role-primary"
           >
             {{ createLabel }}
-          </n-link>
+          </router-link>
         </div>
       </div>
     </header>

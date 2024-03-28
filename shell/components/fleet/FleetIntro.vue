@@ -41,12 +41,12 @@ export default {
       v-if="canCreateRepos"
       class="actions"
     >
-      <n-link
+      <router-link
         :to="formRoute"
         class="btn role-secondary"
       >
         {{ t('fleet.gitRepo.repo.addRepo') }}
-      </n-link>
+      </router-link>
     </div>
   </div>
 </template>

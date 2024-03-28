@@ -53,12 +53,12 @@ export default {
 
 <template>
   <span v-if="value">
-    <nuxt-link
+    <router-link
       v-if="canViewResource"
       :to="url"
     >
       {{ value }}
-    </nuxt-link>
+    </router-link>
     <template v-else>
       {{ value }}
     </template>

@@ -125,12 +125,12 @@ export default {
         v-if="canCreateCluster"
         slot="extraActions"
       >
-        <n-link
+        <router-link
           :to="importLocation"
           class="btn role-primary"
         >
           {{ t('cluster.importAction') }}
-        </n-link>
+        </router-link>
       </template>
     </Masthead>
 
@@ -163,12 +163,12 @@ export default {
       </template>
 
       <template #cell:harvester="{row}">
-        <n-link
+        <router-link
           class="btn btn-sm role-primary"
           :to="row.detailLocation"
         >
           {{ t('harvesterManager.manage') }}
-        </n-link>
+        </router-link>
       </template>
     </ResourceTable>
     <div v-else>

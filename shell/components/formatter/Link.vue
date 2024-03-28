@@ -135,7 +135,7 @@ export default {
 </script>
 
 <template>
-  <n-link
+  <router-link
     v-if="isInternal && href"
     :to="href"
     class="link-text-icon"
@@ -151,7 +151,7 @@ export default {
       :class="afterIconClass"
       class="suffix"
     />
-  </n-link>
+  </router-link>
   <a
     v-else-if="href"
     :href="href"

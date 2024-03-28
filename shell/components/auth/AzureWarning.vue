@@ -56,9 +56,9 @@ export default {
   >
     <p>
       {{ t('authConfig.azuread.updateEndpoint.banner.message') }}
-      <n-link :to="authConfigRoute">
+      <router-link :to="authConfigRoute">
         {{ t('authConfig.azuread.updateEndpoint.banner.linkText') }}
-      </n-link>
+      </router-link>
     </p>
   </div>
 </template>

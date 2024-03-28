@@ -133,23 +133,23 @@ export default {
         {{ t('generic.links') }}
       </div>
       <div class="glance-item">
-        <nuxt-link
+        <router-link
           :to="exploreLink"
           class="cluster-link"
         >
           {{ t('nav.categories.explore') }}
-        </nuxt-link>
+        </router-link>
       </div>
       <div
         v-if="showClusterTools"
         class="glance-item"
       >
-        <nuxt-link
+        <router-link
           :to="clusterToolsLink"
           class="cluster-link"
         >
           {{ t('nav.clusterTools') }}
-        </nuxt-link>
+        </router-link>
       </div>
     </div>
   </div>

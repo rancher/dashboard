@@ -272,12 +272,12 @@ export default {
           v-if="item.component"
           :value="item.value"
         />
-        <nuxt-link
+        <router-link
           v-else-if="item.to"
           :to="item.to"
         >
           {{ item.value }}
-        </nuxt-link>
+        </router-link>
         <span v-else>{{ item.value }}</span>
       </div>
     </div>

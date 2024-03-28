@@ -8,7 +8,7 @@
       <div class="title">{{ message }}</div>
       <p v-if="statusCode === 404" class="description">
         <a v-if="typeof $route === 'undefined'" class="error-link" href="/"></a>
-        <NuxtLink v-else class="error-link" to="/">Back to the home page</NuxtLink>
+        <router-link v-else class="error-link" to="/">Back to the home page</router-link>
       </p>
 
       <p class="description" v-else>An error occurred while rendering the page. Check developer tools console for details.</p>

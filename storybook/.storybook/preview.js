@@ -26,7 +26,7 @@ require('../../shell/plugins/clean-html-directive');
 Vue.use(Vuex);
 Vue.use(ShortKey, { prevent: ['input', 'textarea', 'select'] });
 
-Vue.component('nuxt-link', {
+Vue.component('router-link', {
   props:   ['to'],
   template: '<a>link</a>',
 })
