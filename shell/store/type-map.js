@@ -1358,44 +1358,66 @@ export const getters = {
     };
   },
 
-  activeProducts(state, getters, rootState, rootGetters) {
-    const knownTypes = {};
-    const knownGroups = {};
-    const isDev = rootGetters['prefs/get'](VIEW_IN_API);
+  /**
+   * Returns a getter for testing if the specific product is active
+   *
+   * A cache object can be passed in, so if you need to call this multiple times, the cache
+   * can be re-used to avoid having to enumerate schemas to calculate knownTypes and groups
+   * if required
+   */
+  isProductActive(state, getters, rootState, rootGetters) {
+    // Return a named function so that we can trace it in the browser performance log
+    return function isProductActive(productOrId, previousCache) {
+      // Use the supplied cache object if there is one, otherwise a new local object
+      const cache = previousCache || {};
 
-    if ( state.schemaGeneration < 0 ) {
-      // This does nothing, but makes activeProducts depend on schemaGeneration
-      // so that it can be used to update the product list on schema change.
-      return;
-    }
+      if (!cache.knownTypes) {
+        cache.knownTypes = {};
+      }
 
-    return state.products.filter((p) => {
+      if (!cache.knownGroups) {
+        cache.knownGroups = {};
+      }
+
+      // Get the product specified (can be product or a product id)
+      const p = (typeof productOrId === 'string') ? state.products.find((p) => p.name === productOrId) : productOrId;
+
+      // Product not known
+      if (!p) {
+        return false;
+      }
+
       const module = p.inStore;
+      const isDev = rootGetters['prefs/get'](VIEW_IN_API);
 
-      if ( p['public'] === false && !isDev ) {
+      if ( !p.public && !isDev ) {
         return false;
       }
 
-      if ( p.ifGetter && !rootGetters[p.ifGetter] ) {
+      if (p.ifGetter && !rootGetters[p.ifGetter]) {
         return false;
       }
 
-      if ( !knownTypes[module] ) {
+      // Don't need to build the cache if we don't need it (check ifHaveType)
+      if ((p.ifHaveType || p.ifHaveGroup) && !cache.knownTypes[module]) {
         const schemas = rootGetters[`${ module }/all`](SCHEMA);
+        const seenGroups = {};
 
-        knownTypes[module] = [];
-        knownGroups[module] = [];
+        cache.knownTypes[module] = [];
+        cache.knownGroups[module] = [];
 
-        for ( const s of schemas ) {
-          knownTypes[module].push(s._id);
+        for (const s of schemas) {
+          cache.knownTypes[module].push(s._id);
 
-          if ( s._group ) {
-            addObject(knownGroups[module], s._group);
+          // Can't gate this on ifHaveGroup because we may re-use the cache
+          if (s._group && !seenGroups[s._group]) {
+            cache.knownGroups[module].push(s._group);
+            seenGroups[s._group] = true;
           }
         }
       }
 
-      if ( p.ifFeature) {
+      if (p.ifFeature) {
         const features = Array.isArray(p.ifFeature) ? p.ifFeature : [p.ifFeature];
 
         for (const f of features) {
@@ -1405,38 +1427,53 @@ export const getters = {
         }
       }
 
-      if ( p.ifHave && !ifHave(rootGetters, p.ifHave)) {
+      if (p.ifHave && !ifHave(rootGetters, p.ifHave)) {
         return false;
       }
 
-      if ( p.ifHaveType ) {
-        const haveIds = knownTypes[module].filter((t) => t.match(stringToRegex(p.ifHaveType)) );
+      if (p.ifHaveType) {
+        const haveIds = cache.knownTypes[module].filter((t) => t.match(stringToRegex(p.ifHaveType)));
 
-        if ( !haveIds.length ) {
+        if (!haveIds.length) {
           return false;
         }
 
-        if ( p.ifHaveVerb && !ifHaveVerb(rootGetters, module, p.ifHaveVerb, haveIds)) {
+        if (p.ifHaveVerb && !ifHaveVerb(rootGetters, module, p.ifHaveVerb, haveIds)) {
           return false;
         }
       }
 
-      if ( p.ifHaveGroup && !knownGroups[module].find((t) => t.match(stringToRegex(p.ifHaveGroup)) ) ) {
+      if (p.ifHaveGroup && !cache.knownGroups[module].find((t) => t.match(stringToRegex(p.ifHaveGroup)))) {
         return false;
       }
 
+      // Product is active
       return true;
-    });
+    };
   },
 
-  isProductActive(state, getters) {
-    return (name) => {
-      if ( findBy(getters['activeProducts'], 'name', name) ) {
-        return true;
-      }
+  activeProducts(state, getters, rootState, rootGetters) {
+    if (state.schemaGeneration < 0) {
+      // This does nothing, but makes activeProducts depend on schemaGeneration
+      // so that it can be used to update the product list on schema change.
+      return;
+    }
 
-      return false;
-    };
+    const cache = {};
+
+    return state.products.filter((p) => getters['isProductActive'](p, cache));
+  },
+
+  activeRootProducts(state, getters, rootState, rootGetters) {
+    if (state.schemaGeneration < 0) {
+      // This does nothing, but makes activeProducts depend on schemaGeneration
+      // so that it can be used to update the product list on schema change.
+      return;
+    }
+
+    const cache = {};
+
+    return state.products.filter((p) => !p.rootProduct || p.rootProduct === p.name).filter((p) => getters['isProductActive'](p, cache));
   },
 
   rowValueGetter(state) {
@@ -1913,6 +1950,10 @@ function ifHave(getters, option) {
 
 // Could list a larger set of resources that typically only an admin user would have
 export function isAdminUser(getters) {
+  if (!getters['management/schemasLoaded']) {
+    return false;
+  }
+
   const canEditSettings = (getters['management/schemaFor'](MANAGEMENT.SETTING)?.resourceMethods || []).includes('PUT');
   const canEditFeatureFlags = (getters['management/schemaFor'](MANAGEMENT.FEATURE)?.resourceMethods || []).includes('PUT');
   const canInstallApps = (getters['management/schemaFor'](CATALOG.APP)?.resourceMethods || []).includes('PUT');
