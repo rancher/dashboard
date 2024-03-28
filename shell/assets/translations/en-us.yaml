@@ -141,6 +141,7 @@ nav:
   takeSnapshot: Take Snapshot
   seeAllClusters: See all clusters
   seeAllClustersCollapsed: See all
+  keyComboTooltip: Switch clusters and keep location
   group:
     cluster: Cluster
     inUse: More Resources
