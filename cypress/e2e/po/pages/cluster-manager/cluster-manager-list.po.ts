@@ -40,7 +40,7 @@ export default class ClusterManagerListPagePo extends PagePo {
   }
 
   list(): ProvClusterListPo {
-    return new ProvClusterListPo(this.self().find('[data-testid="cluster-list"]'));
+    return new ProvClusterListPo('[data-testid="cluster-list"]');
   }
 
   /**
