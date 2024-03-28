@@ -518,6 +518,12 @@ export default {
           style="font-size: 0.75em"
         >{{ currentCluster.kubernetesVersionExtension }}</span>
       </div>
+
+      <div>
+        <label>{{ t('glance.architecture') }}: </label>
+        <span>{{ currentCluster.architecture }}</span>
+      </div>
+
       <div>
         <label>{{ t('glance.created') }}: </label>
         <span><LiveDate

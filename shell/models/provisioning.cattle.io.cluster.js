@@ -9,7 +9,7 @@ import { ucFirst } from '@shell/utils/string';
 import { compare } from '@shell/utils/version';
 import { AS, MODE, _VIEW, _YAML } from '@shell/config/query-params';
 import { HARVESTER_NAME as HARVESTER } from '@shell/config/features';
-import { CAPI as CAPI_ANNOTATIONS } from '@shell/config/labels-annotations';
+import { CAPI as CAPI_ANNOTATIONS, NODE_ARCHITECTURE } from '@shell/config/labels-annotations';
 
 /**
  * Class representing Cluster resource.
@@ -403,6 +403,18 @@ export default class ProvCluster extends SteveModel {
     return this.mgmt?.providerLogo;
   }
 
+  get architecture() {
+    return this.nodes?.reduce((acc, node) => {
+      const arch = node.status?.nodeLabels?.[NODE_ARCHITECTURE];
+
+      if (acc && acc !== arch) {
+        return 'mixed';
+      }
+
+      return arch;
+    }, '');
+  }
+
   get kubernetesVersion() {
     const unknown = this.$rootGetters['i18n/t']('generic.unknown');
 
@@ -416,6 +428,13 @@ export default class ProvCluster extends SteveModel {
     } else {
       return unknown;
     }
+  }
+
+  get kubernetesVersionRow() {
+    return {
+      main:    this.kubernetesVersion,
+      details: this.architecture,
+    };
   }
 
   get machineProvider() {
@@ -481,6 +500,15 @@ export default class ProvCluster extends SteveModel {
         delete this.spec.rkeConfig.machinePoolDefaults;
       }
     }
+  }
+
+  get debugNodes() {
+    return this.$rootGetters['management/all'](MANAGEMENT.NODE).map((node) => {
+      return {
+        id:   node.id,
+        arch: node.status?.nodeLabels?.[NODE_ARCHITECTURE],
+      };
+    });
   }
 
   get nodes() {
