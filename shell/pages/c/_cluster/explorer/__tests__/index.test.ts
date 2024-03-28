@@ -96,7 +96,7 @@ describe('page: cluster dashboard', () => {
       const wrapper = shallowMount(Dashboard, {
         ...options,
         data: () => ({
-          [agentId]:     isLoaded ? agent : null,
+          [agentId]:     isLoaded ? agent : 'loading',
           disconnected,
           canViewAgents: true
         })
