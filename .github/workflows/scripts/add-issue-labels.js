@@ -9,6 +9,8 @@ const QA_NONE_LABEL = 'QA/None';
 const EMBER_LABEL = 'ember';
 const TECH_DEBT_LABEL = 'kind/tech-debt';
 
+const TRIAGE_LABEL = '[zube]: To Triage';
+
 // The event object
 const event = require(process.env.GITHUB_EVENT_PATH);
 
@@ -21,6 +23,9 @@ async function processOpenAction() {
 
   // Get an array of labels
   const labels = issue.labels.map((label) => label.name);
+
+  // Make a note if we changed the labels, either adding a QA or the Triage label
+  let didUpdateLabels = false;
 
   // Check we have a QA label
   if (!labels.includes(QA_DEV_AUTOMATION_LABEL)  && !labels.includes(QA_MANUAL_TEST_LABEL) && !labels.includes(QA_NONE_LABEL)) {
@@ -40,13 +45,26 @@ async function processOpenAction() {
       labels.push(QA_DEV_AUTOMATION_LABEL);
     }
 
+    didUpdateLabels = true;
+}
+
+// Check we have a Zube label
+const hasZubeLabel = labels.filter((label) => label.name.indexOf('[zube]:') === 0).length > 0;
+
+if (!hasZubeLabel) {
+  labels.push(TRIAGE_LABEL);
+  didUpdateLabels = true;
+}
+
+// Update the labels if we made a change
+if (didUpdateLabels) {
     // Update the labels
     const labelsAPI = `${issue.url}/labels`;
     await request.put(labelsAPI, { labels });
 
-    console.log('    Issue has been updated with QA label');
+    console.log('    Issue has been updated with new labels');
   } else {
-    console.log('    Issue already has a QA label, nothing to do');
+    console.log('    Issue already has required labels, nothing to do');
   }
 }
 

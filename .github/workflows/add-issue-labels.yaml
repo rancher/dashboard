@@ -1,4 +1,4 @@
-name: Add QA Label
+name: Add Issues Labels
 on:
   issues:
     types:
@@ -17,4 +17,4 @@ jobs:
     - name: script
       env:
         GH_TOKEN: ${{ secrets.GITHUB_TOKEN }}
-      run: node .github/workflows/scripts/add-qa-label.js
+      run: node .github/workflows/scripts/add-issue-labels.js
