@@ -520,7 +520,12 @@ export default defineComponent({
       try {
         const ec2Client = await store.dispatch('aws/ec2', { region: this.config.region, cloudCredentialId: this.config.amazonCredentialSecret });
 
-        this.instanceTypes = await store.dispatch('aws/instanceInfo', { client: ec2Client });
+        console.log('*******', ec2Client);
+        console.log('*******', ec2Client.config.region());
+
+        console.log('*******', ec2Client.config.requestHandler.cloudCredentialId);
+
+        this.instanceTypes = await store.dispatch('aws/describeInstanceTypes', { client: ec2Client });
       } catch {}
       this.loadingInstanceTypes = false;
     },
