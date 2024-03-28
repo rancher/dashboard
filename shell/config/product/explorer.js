@@ -1,4 +1,5 @@
 import {
+  CATALOG,
   CONFIG_MAP,
   EVENT,
   NODE, SECRET, INGRESS,
@@ -445,6 +446,7 @@ export function init(store) {
     weight:     -2,
     route:      { name: 'c-cluster-explorer-tools' },
     exact:      true,
+    ifHaveType: [CATALOG.CLUSTER_REPO, CATALOG.APP],
   });
 
   virtualType({

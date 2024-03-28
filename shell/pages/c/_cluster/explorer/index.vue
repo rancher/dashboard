@@ -852,7 +852,7 @@ export default {
 
 .cluster-tools-link {
   display: flex;
-  margin-right: 20px;
+  margin-right: 10px;
   line-height: 30px;
 
   > I {
