@@ -15,7 +15,21 @@ export default {
     }
   },
   data() {
-    return { managementSettings: this.$store.getters['management/all'](MANAGEMENT.SETTING) };
+    const managementSettings = this.$store.getters['management/all'](MANAGEMENT.SETTING);
+
+    const uiLoginBackgroundLight = managementSettings?.filter((setting) => setting.id === SETTING.LOGIN_BACKGROUND_LIGHT)?.[0]?.value;
+    const uiLoginBackgroundDark = managementSettings?.filter((setting) => setting.id === SETTING.LOGIN_BACKGROUND_DARK)?.[0]?.value;
+
+    return {
+      managementSettings,
+
+      /**
+       * Login settings fields don't require reactivity; the correct value for those fields is the initial one.
+       * This will avoid side effects after the management store is reset when landing on login page.
+       */
+      uiLoginBackgroundLight,
+      uiLoginBackgroundDark,
+    };
   },
   computed: {
     ...mapGetters({ theme: 'prefs/theme' }),
@@ -46,18 +60,6 @@ export default {
 
     uiBannerDark() {
       const setting = this.managementSettings.filter((setting) => setting.id === SETTING.BANNER_DARK)[0] || {};
-
-      return setting.value;
-    },
-
-    uiLoginBackgroundLight() {
-      const setting = this.managementSettings.filter((setting) => setting.id === SETTING.LOGIN_BACKGROUND_LIGHT)[0] || {};
-
-      return setting.value;
-    },
-
-    uiLoginBackgroundDark() {
-      const setting = this.managementSettings.filter((setting) => setting.id === SETTING.LOGIN_BACKGROUND_DARK)[0] || {};
 
       return setting.value;
     },
