@@ -16,7 +16,7 @@ export interface InstanceTypeOption {
   kind?: string
 }
 
-// describeRoles
+// iam describeRoles
 export interface IamRole {
   AssumeRolePolicyDocument: string,
   RoleId: string,
@@ -24,7 +24,7 @@ export interface IamRole {
   Arn: string
 }
 
-// list of all launch templates from describeLaunchTemplates
+// list of all launch templates from eks describeLaunchTemplates
 export interface LaunchTemplate {
   LaunchTemplateId?: string,
   Versions?: string[],
@@ -62,12 +62,12 @@ export interface LaunchTemplateVersion {
   DefaultVersion: boolean
 }
 
-// information about a specific launch template returned from describeLaunchTemplateVersions
+// information about a specific launch template returned from eks describeLaunchTemplateVersions
 export interface LaunchTemplateDetail {
   LaunchTemplateVersions: LaunchTemplateVersion[]
 }
 
-// describeVpcs
+// ec2 describeVpcs
 export interface VPC {
   VpcId: string,
   Tags: {
@@ -76,12 +76,26 @@ export interface VPC {
   }[]
 }
 
-// describeSubnets
+// ec2 describeSubnets
 export interface Subnet {
   VpcId: string,
   SubnetId: string,
   Tags: {
     Key: string,
     Value: string
+  }[]
+}
+
+// kms listKeys
+export interface KmsKey {
+   KeyArn: string
+}
+
+// eks describeAddonVersions
+export interface EKSAddon {
+  addonVersions: {
+    compatibilities: {
+      clusterVersion: string
+    }[]
   }[]
 }

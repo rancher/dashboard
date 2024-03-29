@@ -1,6 +1,6 @@
 <script lang="ts">
 import { defineComponent, PropType } from 'vue';
-import { EKSConfig } from '../types';
+import { EKSConfig, AWS } from '../types';
 import { _EDIT } from '@shell/config/query-params';
 import semver from 'semver';
 import { Store, mapGetters } from 'vuex';
@@ -85,8 +85,7 @@ export default defineComponent({
     const t = store.getters['i18n/t'];
 
     return {
-      kmsInfo:               {} as any,
-      iamInfo:               {} as any,
+      kmsInfo:               {} as {Keys:AWS.KmsKey[]},
       canReadKms:            false,
       supportedVersionRange,
       customServiceRole:     !!this.serviceRole && !!this.serviceRole.length,
@@ -179,9 +178,9 @@ export default defineComponent({
         if (!addons) {
           return;
         }
-        this.allKubernetesVersions = addons.reduce((versions: string[], addon: any) => {
-          (addon?.addonVersions || []).forEach((addonVersion: any) => {
-            (addonVersion?.compatibilities || []).forEach((c: any) => {
+        this.allKubernetesVersions = addons.reduce((versions: string[], addon: AWS.EKSAddon) => {
+          (addon?.addonVersions || []).forEach((addonVersion) => {
+            (addonVersion?.compatibilities || []).forEach((c) => {
               if (!versions.includes(c.clusterVersion)) {
                 versions.push(c.clusterVersion);
               }
