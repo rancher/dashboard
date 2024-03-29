@@ -16,14 +16,14 @@ import debounce from 'lodash/debounce';
 import { randomStr } from '@shell/utils/string';
 
 // map between fields in rancher eksConfig and amazon launch templates
-const launchTemplateFieldMapping = {
+const launchTemplateFieldMapping: {[key: string]: string} = {
   imageId:      'ImageId',
   userData:     'UserData',
   instanceType: 'InstanceType',
   ec2SshKey:    '',
   resourceTags: 'TagSpecifications',
   diskSize:     'BlockDeviceMappings'
-} as {[key: string]: string};
+};
 
 const DEFAULT_USER_DATA =
 `MIME-Version: 1.0

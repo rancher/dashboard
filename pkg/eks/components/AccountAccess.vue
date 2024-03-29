@@ -34,12 +34,12 @@ export default defineComponent({
   async fetch() {
     this.defaultRegions = await this.$store.dispatch('aws/defaultRegions');
     if (this.defaultRegions.length && !this.region) {
-      (this.$emit('update-region', DEFAULT_REGION));
+      this.$emit('update-region', DEFAULT_REGION);
     }
   },
 
   data() {
-    return { regions: [] as any[], defaultRegions: [] as string[] };
+    return { regions: [] as string[], defaultRegions: [] as string[] };
   },
 
   watch: {
@@ -63,7 +63,7 @@ export default defineComponent({
 
   methods: {
     async fetchRegions() {
-      const { region, credential } = this as any;
+      const { region, credential }: { region: string, credential: string} = this;
 
       if (!!region && !!credential) {
         try {

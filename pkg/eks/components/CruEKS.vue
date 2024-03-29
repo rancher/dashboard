@@ -205,7 +205,7 @@ export default defineComponent({
   },
 
   created() {
-    const registerAfterHook = this.registerAfterHook as Function;
+    const registerAfterHook: Function = this.registerAfterHook;
 
     registerAfterHook(this.saveRoleBindings, 'save-role-bindings');
   },

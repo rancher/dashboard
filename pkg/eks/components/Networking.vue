@@ -6,6 +6,7 @@ import LabeledSelect from '@shell/components/form/LabeledSelect.vue';
 import Checkbox from '@components/Form/Checkbox/Checkbox.vue';
 import ArrayList from '@shell/components/form/ArrayList.vue';
 import { RadioGroup } from '@components/Form/Radio';
+import { AWS } from '../types';
 
 export default defineComponent({
   name: 'EKSNetworking',
@@ -82,8 +83,8 @@ export default defineComponent({
   data() {
     return {
       loadingVpcs:  false,
-      vpcInfo:      {} as any,
-      subnetInfo:   {} as any,
+      vpcInfo:      {} as {Vpcs: AWS.VPC[]},
+      subnetInfo:   {} as {Subnets: AWS.Subnet[]},
       chooseSubnet: this.subnets && !!this.subnets.length
     };
   },
@@ -93,21 +94,21 @@ export default defineComponent({
     // map subnets to VPCs
     // {[vpc id]: [subnets]}
     vpcOptions() {
-      const out = [] as any[];
-      const vpcs = this.vpcInfo?.Vpcs || [];
-      const subnets = this.subnetInfo?.Subnets || [];
-      const mappedSubnets = {} as any;
+      const out: {key:string, label:string, _isSubnet?:boolean, kind?:string}[] = [];
+      const vpcs: AWS.VPC[] = this.vpcInfo?.Vpcs || [];
+      const subnets: AWS.Subnet[] = this.subnetInfo?.Subnets || [];
+      const mappedSubnets: {[key:string]: AWS.Subnet[]} = {};
 
-      subnets.forEach((s:any) => {
+      subnets.forEach((s) => {
         if (!mappedSubnets[s.VpcId]) {
           mappedSubnets[s.VpcId] = [s];
         } else {
           mappedSubnets[s.VpcId].push(s);
         }
       });
-      vpcs.forEach((v: any) => {
+      vpcs.forEach((v) => {
         const { VpcId = '', Tags = [] } = v;
-        const nameTag = Tags.find((t:any) => {
+        const nameTag = Tags.find((t) => {
           return t.Key === 'Name';
         })?.Value;
 
@@ -119,7 +120,7 @@ export default defineComponent({
         if (mappedSubnets[VpcId]) {
           mappedSubnets[VpcId].forEach((s) => {
             const { SubnetId, Tags = [] } = s;
-            const nameTag = Tags.find((t:any) => {
+            const nameTag = Tags.find((t) => {
               return t.Key === 'Name';
             })?.Value;
 
@@ -138,11 +139,11 @@ export default defineComponent({
     },
 
     displaySubnets: {
-      get() {
+      get(): {key:string, label:string, _isSubnet?:boolean, kind?:string}[] {
         return this.vpcOptions.filter((option) => this.subnets.includes(option.key));
       },
-      set(neu: any) {
-        this.$emit('update:subnets', neu.map((s: any) => s.key));
+      set(neu: {key:string, label:string, _isSubnet?:boolean, kind?:string}[]) {
+        this.$emit('update:subnets', neu.map((s) => s.key));
       }
     }
   },
@@ -155,7 +156,7 @@ export default defineComponent({
       if (!region || !amazonCredentialSecret) {
         return;
       }
-      const store = this.$store as Store<any>;
+      const store: Store<any> = this.$store;
       const ec2Client = await store.dispatch('aws/ec2', { region, cloudCredentialId: amazonCredentialSecret });
 
       try {

@@ -16,6 +16,7 @@ export interface InstanceTypeOption {
   kind?: string
 }
 
+// describeRoles
 export interface IamRole {
   AssumeRolePolicyDocument: string,
   RoleId: string,
@@ -64,4 +65,23 @@ export interface LaunchTemplateVersion {
 // information about a specific launch template returned from describeLaunchTemplateVersions
 export interface LaunchTemplateDetail {
   LaunchTemplateVersions: LaunchTemplateVersion[]
+}
+
+// describeVpcs
+export interface VPC {
+  VpcId: string,
+  Tags: {
+    Key: string,
+    Value: string
+  }[]
+}
+
+// describeSubnets
+export interface Subnet {
+  VpcId: string,
+  SubnetId: string,
+  Tags: {
+    Key: string,
+    Value: string
+  }[]
 }
