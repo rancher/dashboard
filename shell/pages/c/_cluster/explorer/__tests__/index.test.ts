@@ -2,11 +2,15 @@ import { clone } from '@shell/utils/object';
 import Dashboard from '@shell/pages/c/_cluster/explorer/index.vue';
 import { shallowMount } from '@vue/test-utils';
 import { STATES_ENUM } from '@shell/plugins/dashboard-store/resource-class';
+import { NODE_ARCHITECTURE } from '@shell/config/labels-annotations';
 
 describe('page: cluster dashboard', () => {
   const mountOptions = {
-    computed: { monitoringStatus: () => ({ v2: true }) },
-    stubs:    {
+    computed: {
+      monitoringStatus: () => ({ v2: true }),
+      nodes:            () => []
+    },
+    stubs: {
       'router-link': true,
       LiveDate:      true
     },
@@ -15,9 +19,11 @@ describe('page: cluster dashboard', () => {
         dispatch: jest.fn(),
         getters:  {
           currentCluster: {
-            id:       'cluster',
-            metadata: { creationTimestamp: '' },
-            status:   { provider: 'provider' },
+            id:                         'cluster',
+            metadata:                   { creationTimestamp: Date.now() },
+            status:                     { provider: 'foo' },
+            kubernetesVersionBase:      '0.0.0',
+            kubernetesVersionExtension: 'k3s'
           },
           'cluster/inError':   () => false,
           'cluster/schemaFor': jest.fn(),
@@ -147,5 +153,25 @@ describe('page: cluster dashboard', () => {
     const box = wrapper.find(`[data-testid="k8s-service-cattle"]`);
 
     expect(box.element).toBeUndefined();
+  });
+
+  describe('cluster details', () => {
+    it.each([
+      ['clusterProvider', [], 'other'],
+      ['kubernetesVersion', [], '0.0.0 k3s'],
+      ['created', [], 'glance.created'],
+      ['architecture', [{ labels: { [NODE_ARCHITECTURE]: 'amd64' } }, { labels: { [NODE_ARCHITECTURE]: '' } }], 'mixed'],
+      ['architecture', [{ labels: { [NODE_ARCHITECTURE]: 'amd64' } }], 'amd64'],
+    ])('should show %p label', (label, nodes, text) => {
+      const options = clone(mountOptions);
+
+      options.computed.nodes = () => nodes;
+
+      const wrapper = shallowMount(Dashboard, options);
+
+      const element = wrapper.find(`[data-testid="${ label }__label"]`).element;
+
+      expect(element.textContent).toContain(text);
+    });
   });
 });

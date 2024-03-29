@@ -2423,6 +2423,7 @@ glance:
   pods: Pods
   provider: Provider
   version: Kubernetes Version
+  architecture: Architecture
   monitoringDashboard: Monitoring Dashboard
   installMonitoring: Install Monitoring
   clusterInfo: Cluster Information

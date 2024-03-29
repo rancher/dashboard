@@ -17,6 +17,7 @@ import {
   CATALOG,
   SECRET
 } from '@shell/config/types';
+import { NODE_ARCHITECTURE } from '@shell/config/labels-annotations';
 import { setPromiseResult } from '@shell/utils/promise';
 import AlertTable from '@shell/components/AlertTable';
 import { Banner } from '@components/Banner';
@@ -196,6 +197,18 @@ export default {
       }
 
       return this.t(`cluster.provider.${ provider }`);
+    },
+
+    architecture() {
+      return this.nodes?.reduce((acc, node) => {
+        const arch = node.labels?.[NODE_ARCHITECTURE];
+
+        if (acc && acc !== arch) {
+          return 'mixed';
+        }
+
+        return arch;
+      }, '');
     },
 
     isHarvesterCluster() {
@@ -529,7 +542,7 @@ export default {
     <div
       class="cluster-dashboard-glance"
     >
-      <div>
+      <div data-testid="clusterProvider__label">
         <label>{{ t('glance.provider') }}: </label>
         <span v-if="isHarvesterCluster">
           <a
@@ -543,7 +556,7 @@ export default {
           {{ displayProvider }}
         </span>
       </div>
-      <div>
+      <div data-testid="kubernetesVersion__label">
         <label>{{ t('glance.version') }}: </label>
         <span>{{ currentCluster.kubernetesVersionBase }}</span>
         <span
@@ -551,7 +564,14 @@ export default {
           style="font-size: 0.75em"
         >{{ currentCluster.kubernetesVersionExtension }}</span>
       </div>
-      <div>
+      <div
+        v-if="nodes.length > 0"
+        data-testid="architecture__label"
+      >
+        <label>{{ t('glance.architecture') }}: </label>
+        <span>{{ architecture }}</span>
+      </div>
+      <div data-testid="created__label">
         <label>{{ t('glance.created') }}: </label>
         <span><LiveDate
           :value="currentCluster.metadata.creationTimestamp"
