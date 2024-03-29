@@ -32,7 +32,7 @@ export default async function(context) {
     // Fetch list of installed plugins from endpoint
     try {
       const res = await context.store.dispatch('management/request', {
-        url:                  `${ UI_PLUGIN_BASE_URL }/index.json`,
+        url:                  `${ UI_PLUGIN_BASE_URL }`,
         method:               'GET',
         headers:              { accept: 'application/json' },
         redirectUnauthorized: false,

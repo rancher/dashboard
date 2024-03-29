@@ -4,7 +4,7 @@ import semver from 'semver';
 export const UI_PLUGIN_API_VERSION = '1.2.0';
 export const UI_PLUGIN_HOST_APP = 'rancher-manager';
 
-export const UI_PLUGIN_BASE_URL = '/api/v1/namespaces/cattle-ui-plugin-system/services/http:ui-plugin-operator:80/proxy';
+export const UI_PLUGIN_BASE_URL = '/v1/uiplugins';
 
 export const UI_PLUGIN_NAMESPACE = 'cattle-ui-plugin-system';
 
