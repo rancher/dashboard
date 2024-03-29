@@ -14,5 +14,5 @@ export default function(plugin: IPlugin): void {
   plugin.register('provisioner', EKSProvisioner.ID, EKSProvisioner);
 
   // Built-in icon
-  plugin.metadata.icon = require('./icon.svg');
+  plugin.metadata.icon = require('./assets/amazoneks.svg');
 }

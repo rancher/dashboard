@@ -15,7 +15,7 @@ export class EKSProvisioner implements IClusterProvisioner {
   }
 
   get icon(): any {
-    return require('./icon.svg');
+    return require('./assets/amazoneks.svg');
   }
 
   get group(): string {

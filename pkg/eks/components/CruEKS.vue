@@ -374,7 +374,7 @@ export default defineComponent({
     },
 
     groupedInstanceTypes(): {[key:string]: AWS.InstanceType[]} {
-      const out = {} as {[key:string]: AWS.InstanceType[]};
+      const out: {[key:string]: AWS.InstanceType[]} = {};
 
       this.instanceTypes.forEach((type: AWS.InstanceType) => {
         if (out[type.groupLabel]) {
@@ -388,7 +388,7 @@ export default defineComponent({
     },
 
     instanceTypeOptions(): AWS.InstanceTypeOption[] {
-      const out = [] as AWS.InstanceTypeOption[];
+      const out: AWS.InstanceTypeOption[] = [];
 
       Object.keys(this.groupedInstanceTypes).forEach((groupLabel: string) => {
         const instances = this.groupedInstanceTypes[groupLabel];
@@ -409,7 +409,7 @@ export default defineComponent({
     },
 
     spotInstanceTypeOptions(): AWS.InstanceTypeOption[] {
-      const out = [] as AWS.InstanceTypeOption[];
+      const out: AWS.InstanceTypeOption[] = [];
 
       Object.keys(this.groupedInstanceTypes).forEach((groupLabel: string) => {
         const instances = this.groupedInstanceTypes[groupLabel];
@@ -620,7 +620,7 @@ export default defineComponent({
       <Tabbed
         class="mb-20"
         :side-tabs="true"
-        :show-tabs-add-remove="mode !== 'view'"
+        :show-tabs-add-remove="mode !== VIEW"
         @removeTab="removeGroup($event)"
         @addTab="addGroup()"
       >

@@ -456,7 +456,7 @@ export default defineComponent({
       </div>
     </div>
     <div class="row mb-10">
-      <div class="col span-3">
+      <div class="col span-4">
         <LabeledInput
           type="number"
           :value="desiredSize"
@@ -467,7 +467,7 @@ export default defineComponent({
           @input="$emit('update:desiredSize', $event)"
         />
       </div>
-      <div class="col span-3">
+      <div class="col span-4">
         <LabeledInput
           type="number"
           :value="minSize"
@@ -478,7 +478,7 @@ export default defineComponent({
           @input="$emit('update:minSize', $event)"
         />
       </div>
-      <div class="col span-3">
+      <div class="col span-4">
         <LabeledInput
           type="number"
           :value="maxSize"
@@ -525,7 +525,7 @@ export default defineComponent({
     <hr class="mb-20">
     <h3>Node Template Details</h3>
     <div class="row mb-10">
-      <div class="col span-3">
+      <div class="col span-4">
         <LabeledSelect
           v-model="selectedLaunchTemplate"
           :mode="mode"
@@ -538,7 +538,7 @@ export default defineComponent({
           data-testid="eks-launch-template-dropdown"
         />
       </div>
-      <div class="col span-3">
+      <div class="col span-4">
         <LabeledSelect
           v-if="hasUserLaunchTemplate"
           :value="launchTemplate.version"
@@ -551,7 +551,7 @@ export default defineComponent({
       </div>
     </div>
     <div class="row mb-10">
-      <div class="col span-3">
+      <div class="col span-4">
         <LabeledSelect
           :required="!requestSpotInstances && !templateValue('instanceType')"
           :mode="mode"
@@ -566,7 +566,7 @@ export default defineComponent({
           @input="$emit('update:instanceType', $event)"
         />
       </div>
-      <div class="col span-3">
+      <div class="col span-4">
         <LabeledInput
           label-key="eks.nodeGroups.imageId.label"
           :mode="mode"
@@ -576,7 +576,7 @@ export default defineComponent({
           @input="$emit('update:imageId', $event)"
         />
       </div>
-      <div class="col span-3">
+      <div class="col span-4">
         <UnitInput
           :required="!templateValue('diskSize')"
           label-key="eks.nodeGroups.diskSize.label"
@@ -597,7 +597,7 @@ export default defineComponent({
       data-testid="eks-spot-instance-banner"
     />
     <div class="row mb-10">
-      <div class="col span-3">
+      <div class="col span-4">
         <Checkbox
           :mode="mode"
           label-key="eks.nodeGroups.gpu.label"
@@ -608,7 +608,7 @@ export default defineComponent({
           @input="$emit('update:gpu', $event)"
         />
       </div>
-      <div class="col span-3">
+      <div class="col span-4">
         <Checkbox
           :value="requestSpotInstances"
           :mode="mode"
@@ -661,7 +661,7 @@ export default defineComponent({
       </div>
     </div>
     <div row="mb-10">
-      <div class="col span-6">
+      <div class="col span-12">
         <KeyValue
           :key="resourceTagKey"
           :mode="mode"
