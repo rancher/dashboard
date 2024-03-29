@@ -2831,7 +2831,9 @@ landing:
   clusters:
     title: Clusters
     provider: Provider
+    distro: Distro
     kubernetesVersion: Kubernetes Version
+    architecture: Architecture
     explorer: Explorer
     explore: Explore
     cores: |-

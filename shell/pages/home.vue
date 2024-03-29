@@ -166,15 +166,16 @@ export default {
         },
         {
           label:     this.t('landing.clusters.provider'),
+          subLabel:  this.t('landing.clusters.distro'),
           value:     'mgmt.status.provider',
           name:      'Provider',
           sort:      ['mgmt.status.provider'],
           formatter: 'ClusterProvider'
         },
         {
-          label: this.t('landing.clusters.kubernetesVersion'),
-          value: 'kubernetesVersion',
-          name:  'Kubernetes Version'
+          label:    this.t('landing.clusters.kubernetesVersion'),
+          subLabel: this.t('landing.clusters.architecture'),
+          name:     'kubernetesVersion',
         },
         {
           label: this.t('tableHeaders.cpu'),
@@ -442,6 +443,16 @@ export default {
                       >
                         {{ row.description }}
                       </p>
+                    </div>
+                  </td>
+                </template>
+                <template #col:kubernetesVersion="{row}">
+                  <td class="col-name">
+                    <span>
+                      {{ row.kubernetesVersion }}
+                    </span>
+                    <div class="text-muted">
+                      {{ row.architecture }}
                     </div>
                   </td>
                 </template>

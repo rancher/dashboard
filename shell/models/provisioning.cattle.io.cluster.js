@@ -9,7 +9,7 @@ import { ucFirst } from '@shell/utils/string';
 import { compare } from '@shell/utils/version';
 import { AS, MODE, _VIEW, _YAML } from '@shell/config/query-params';
 import { HARVESTER_NAME as HARVESTER } from '@shell/config/features';
-import { CAPI as CAPI_ANNOTATIONS } from '@shell/config/labels-annotations';
+import { CAPI as CAPI_ANNOTATIONS, NODE_ARCHITECTURE } from '@shell/config/labels-annotations';
 
 /**
  * Class representing Cluster resource.
@@ -401,6 +401,18 @@ export default class ProvCluster extends SteveModel {
 
   get providerLogo() {
     return this.mgmt?.providerLogo;
+  }
+
+  get architecture() {
+    return this.nodes?.reduce((acc, node) => {
+      const arch = node.status?.nodeLabels?.[NODE_ARCHITECTURE];
+
+      if (acc && acc !== arch) {
+        return 'mixed';
+      }
+
+      return arch;
+    }, '');
   }
 
   get kubernetesVersion() {
