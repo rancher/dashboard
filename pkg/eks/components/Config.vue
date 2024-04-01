@@ -6,7 +6,8 @@ import semver from 'semver';
 import { Store, mapGetters } from 'vuex';
 import { MANAGEMENT } from '@shell/config/types';
 import { SETTING } from '@shell/config/settings';
-import { RadioGroup } from '@components/Form/Radio';
+import RadioGroup from '@components/Form/Radio/RadioGroup.vue';
+
 import LabeledSelect from '@shell/components/form/LabeledSelect.vue';
 import KeyValue from '@shell/components/form/KeyValue.vue';
 import Checkbox from '@components/Form/Checkbox/Checkbox.vue';

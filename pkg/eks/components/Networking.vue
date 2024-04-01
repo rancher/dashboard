@@ -5,7 +5,10 @@ import { Store, mapGetters } from 'vuex';
 import LabeledSelect from '@shell/components/form/LabeledSelect.vue';
 import Checkbox from '@components/Form/Checkbox/Checkbox.vue';
 import ArrayList from '@shell/components/form/ArrayList.vue';
-import { RadioGroup } from '@components/Form/Radio';
+import Banner from '@components/Banner/Banner.vue';
+
+import RadioGroup from '@components/Form/Radio/RadioGroup.vue';
+
 import { AWS } from '../types';
 
 export default defineComponent({
@@ -15,7 +18,8 @@ export default defineComponent({
     LabeledSelect,
     ArrayList,
     Checkbox,
-    RadioGroup
+    RadioGroup,
+    Banner
   },
 
   props: {
@@ -173,6 +177,10 @@ export default defineComponent({
 
 <template>
   <div>
+    <Banner
+      color="info"
+      label-key="eks.publicAccess.tooltip"
+    />
     <div class="row mb-10">
       <div class="col span-6">
         <Checkbox
@@ -197,6 +205,7 @@ export default defineComponent({
           :disabled="!publicAccess"
           :add-allowed="publicAccess"
           :add-label="t('eks.publicAccessSources.addEndpoint')"
+          :tooltip="t('eks.publicAccessSources.tooltip')"
           data-testid="eks-public-access-sources"
           @input="$emit('update:publicAccessSources', $event)"
         >

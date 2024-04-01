@@ -424,11 +424,6 @@ export default defineComponent({
 
       return null;
     },
-
-    setUserData(e) {
-      console.log('**** yserData file', e);
-      this.$emit('update:userData', e);
-    }
   },
 });
 </script>
@@ -667,7 +662,7 @@ export default defineComponent({
           :mode="mode"
           :label="t('generic.readFromFile')"
           class="role-tertiary mt-10"
-          @selected="setUserData"
+          @selected="$emit('update:userData', $event)"
         />
       </div>
       <div class="col span-6">

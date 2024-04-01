@@ -98,13 +98,17 @@ export default defineComponent({
     VIEW(): string {
       return _VIEW;
     },
+
   },
 });
 </script>
 
 <template>
-  <div class="credential-region">
-    <div class=" mb-10">
+  <div
+    :class="{'showing-form': !credential}"
+    class="credential-region"
+  >
+    <div class="region mb-10">
       <LabeledSelect
         :disabled="mode!=='create'"
         :value="region"
@@ -113,7 +117,9 @@ export default defineComponent({
         @input="$emit('update-region', $event)"
       />
     </div>
-    <div class="select-credential-container mb-10">
+    <div
+      class="select-credential-container mb-10"
+    >
       <SelectCredential
         :value="credential"
         data-testid="crueks-select-credential"
@@ -132,17 +138,38 @@ export default defineComponent({
 <style lang="scss">
   .credential-region {
     display: flex;
-    flex-direction: column;
     flex-grow:1;
 
-    &>.select-credential-container{
+    .region {
+      flex-basis: 50%;
+      flex-grow: 0;
+      margin: 0 1.75% 0 0;
+    }
+
+    &.showing-form {
+      flex-direction: column;
+
+      &>.region {
+        margin: 0;
+      }
+
+      &>.select-credential-container{
       display:flex;
       flex-direction: column;
       flex-grow: 1;
+      }
+    }
+
+    &>.select-credential-container{
+      flex-basis: 50%;
+      // display:flex;
+      // flex-direction: column;
+      // flex-grow: 1;
 
       &>.select-credential{
         flex-grow: 1;
       }
+
     }
   }
 
