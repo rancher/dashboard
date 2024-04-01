@@ -374,13 +374,13 @@ export default {
         v-if="showCreateNsButton"
         slot="extraActions"
       >
-        <n-link
+        <router-link
           :to="createNamespaceLocationFlatList()"
           class="btn role-primary mr-10"
           data-testid="create_project_namespaces"
         >
           {{ t('projectNamespaces.createNamespace') }}
-        </n-link>
+        </router-link>
       </template>
     </Masthead>
     <!-- Extensions area -->
@@ -424,13 +424,13 @@ export default {
             </div>
           </div>
           <div class="right">
-            <n-link
+            <router-link
               v-if="isNamespaceCreatable && (canSeeProjectlessNamespaces || group.group.key !== notInProjectKey)"
               class="create-namespace btn btn-sm role-secondary mr-5"
               :to="createNamespaceLocation(group.group)"
             >
               {{ t('projectNamespaces.createNamespace') }}
-            </n-link>
+            </router-link>
             <button
               type="button"
               class="project-action btn btn-sm role-multi-action actions mr-10"
@@ -451,12 +451,12 @@ export default {
       </template>
       <template #cell:name="{row}">
         <div class="namespace-name">
-          <n-link
+          <router-link
             v-if="row.detailLocation && !row.hideDetailLocation"
             :to="row.detailLocation"
           >
             {{ row.name }}
-          </n-link>
+          </router-link>
           <span v-else>
             {{ row.name }}
           </span>

@@ -187,22 +187,22 @@ export default {
           <slot name="extraActions" />
 
           <slot name="createButton">
-            <n-link
+            <router-link
               v-if="hasEditComponent && _isCreatable"
               :to="_createLocation"
               class="btn role-primary"
               :data-testid="componentTestid+'-create'"
             >
               {{ _createButtonlabel }}
-            </n-link>
-            <n-link
+            </router-link>
+            <router-link
               v-else-if="_isYamlCreatable"
               :to="_yamlCreateLocation"
               class="btn role-primary"
               :data-testid="componentTestid+'-create-yaml'"
             >
               {{ t("resourceList.head.createFromYaml") }}
-            </n-link>
+            </router-link>
           </slot>
         </div>
       </slot>
