@@ -1,21 +1,23 @@
 <script lang="ts">
 import { defineComponent, PropType } from 'vue';
+import { mapGetters, Store } from 'vuex';
+import debounce from 'lodash/debounce';
+
 import { _EDIT } from '@shell/config/query-params';
+import { randomStr } from '@shell/utils/string';
+import { isEmpty } from '@shell/utils/object';
+
 import LabeledSelect from '@shell/components/form/LabeledSelect.vue';
 import LabeledInput from '@components/Form/LabeledInput/LabeledInput.vue';
 import Checkbox from '@components/Form/Checkbox/Checkbox.vue';
 import KeyValue from '@shell/components/form/KeyValue.vue';
 import Banner from '@components/Banner/Banner.vue';
 import UnitInput from '@shell/components/form/UnitInput.vue';
-import { mapGetters, Store } from 'vuex';
+import FileSelector from '@shell/components/form/FileSelector.vue';
 
 import { MANAGED_TEMPLATE_PREFIX, parseTags } from '../util/aws';
 import { AWS } from '../types';
 import { DEFAULT_NODE_GROUP_CONFIG } from './CruEKS.vue';
-
-import { isEmpty } from '@shell/utils/object';
-import debounce from 'lodash/debounce';
-import { randomStr } from '@shell/utils/string';
 
 // map between fields in rancher eksConfig and amazon launch templates
 const launchTemplateFieldMapping: {[key: string]: string} = {
@@ -48,7 +50,8 @@ export default defineComponent({
     KeyValue,
     Banner,
     Checkbox,
-    UnitInput
+    UnitInput,
+    FileSelector
   },
 
   props: {
@@ -421,6 +424,11 @@ export default defineComponent({
 
       return null;
     },
+
+    setUserData(e) {
+      console.log('**** yserData file', e);
+      this.$emit('update:userData', e);
+    }
   },
 });
 </script>
@@ -550,7 +558,21 @@ export default defineComponent({
         />
       </div>
     </div>
+    <Banner
+      color="info"
+      label-key="eks.nodeGroups.imageId.tooltip"
+    />
     <div class="row mb-10">
+      <div class="col span-4">
+        <LabeledInput
+          label-key="eks.nodeGroups.imageId.label"
+          :mode="mode"
+          :value="imageId"
+          :disabled="hasUserLaunchTemplate"
+          data-testid="eks-image-id-input"
+          @input="$emit('update:imageId', $event)"
+        />
+      </div>
       <div class="col span-4">
         <LabeledSelect
           :required="!requestSpotInstances && !templateValue('instanceType')"
@@ -566,16 +588,7 @@ export default defineComponent({
           @input="$emit('update:instanceType', $event)"
         />
       </div>
-      <div class="col span-4">
-        <LabeledInput
-          label-key="eks.nodeGroups.imageId.label"
-          :mode="mode"
-          :value="imageId"
-          :disabled="hasUserLaunchTemplate"
-          data-testid="eks-image-id-input"
-          @input="$emit('update:imageId', $event)"
-        />
-      </div>
+
       <div class="col span-4">
         <UnitInput
           :required="!templateValue('diskSize')"
@@ -638,8 +651,8 @@ export default defineComponent({
         />
       </div>
     </div>
-    <div class="row mb-10">
-      <div class="col span-6">
+    <div class="row mb-15">
+      <div class="col span-6 user-data">
         <LabeledInput
           label-key="eks.nodeGroups.userData.label"
           :mode="mode"
@@ -647,7 +660,14 @@ export default defineComponent({
           :value="userData"
           :disabled="hasUserLaunchTemplate"
           :placeholder="userDataPlaceholder"
+          :sub-label="t('eks.nodeGroups.userData.tooltip', {}, true)"
           @input="$emit('update:userData', $event)"
+        />
+        <FileSelector
+          :mode="mode"
+          :label="t('generic.readFromFile')"
+          class="role-tertiary mt-10"
+          @selected="setUserData"
         />
       </div>
       <div class="col span-6">
@@ -680,3 +700,11 @@ export default defineComponent({
     </div>
   </div>
 </template>
+
+<style lang="scss" scoped>
+.user-data{
+  &>button{
+    float: right;
+  }
+}
+</style>

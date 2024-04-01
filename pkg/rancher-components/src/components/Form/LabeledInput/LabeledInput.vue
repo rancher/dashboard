@@ -361,8 +361,9 @@ export default defineComponent({
     >{{ cronHint }}</label>
     <label
       v-if="subLabel"
+      v-clean-html="subLabel"
       class="sub-label"
-    >{{ subLabel }}</label>
+    />
   </div>
 </template>
 <style scoped lang="scss">

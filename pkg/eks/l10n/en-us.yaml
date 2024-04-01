@@ -59,6 +59,7 @@ eks:
       version: Template Version
     imageId:
       label: Amazon Machine Image ID
+      tooltip: 'Custom AMIs is an advanced use case. We highly recommended that you read and fully understand the requirements for creating custom EKS AMIs in the <a aria-label="Amazon guide to using custom AMIs in EKS" href="https://aws.amazon.com/premiumsupport/knowledge-center/eks-custom-linux-ami/" target="_blank">AWS documentation.</a>'
     diskSize:
       label: Node Volume Size
     gpu:
@@ -71,6 +72,7 @@ eks:
       label: Spot Instance Types
     userData:
       label: User Data
+      tooltip: 'Pass user data to <a href="https://docs.aws.amazon.com/eks/latest/userguide/launch-templates.html#launch-template-user-data" target="_blank">Amazon using cloud-init</a> to automate common operations.'
     ec2SshKey:
       label: SSH Key
     resourceTags:
