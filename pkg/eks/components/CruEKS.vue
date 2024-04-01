@@ -26,7 +26,7 @@ import Config from './Config.vue';
 import Networking from './Networking.vue';
 import AccountAccess from './AccountAccess.vue';
 
-const defaultCluster = {
+const DEFAULT_CLUSTER = {
   dockerRootDir:                       '/var/lib/docker',
   enableClusterAlerting:               false,
   enableClusterMonitoring:             false,
@@ -39,7 +39,7 @@ const defaultCluster = {
 
 export const DEFAULT_REGION = 'us-west-2';
 
-const DEFAULT_NODE_GROUP_CONFIG = {
+export const DEFAULT_NODE_GROUP_CONFIG = {
   desiredSize:          2,
   diskSize:             20,
   ec2SshKey:            '',
@@ -118,7 +118,7 @@ export default defineComponent({
       // track original version on edit to ensure we don't offer k8s downgrades
       this.originalVersion = this.normanCluster?.eksConfig?.kubernetesVersion || '';
     } else {
-      this.normanCluster = await store.dispatch('rancher/create', { type: NORMAN.CLUSTER, ...defaultCluster }, { root: true });
+      this.normanCluster = await store.dispatch('rancher/create', { type: NORMAN.CLUSTER, ...DEFAULT_CLUSTER }, { root: true });
     }
 
     if (!this.normanCluster.eksConfig) {

@@ -28,6 +28,7 @@ const mockedStore = () => {
   };
 };
 
+jest.mock('lodash/debounce', () => jest.fn((fn) => fn));
 const mockedRoute = { query: {} };
 
 const requiredSetup = () => {
@@ -177,5 +178,34 @@ describe('eKS Node Groups', () => {
     await wrapper.vm.$nextTick();
 
     expect(spotInstanceType.exists()).toBe(false);
+  });
+
+  it('should revert to the default node group value for any inputs cleared when the launch template version is changed', async() => {
+    const setup = requiredSetup();
+
+    const wrapper = shallowMount(NodeGroup, {
+      propsData: {
+        launchTemplate: {
+          id: 'lt-123123', name: 'test-template', version: 4
+        },
+        region:                 'foo',
+        amazonCredentialSecret: 'bar',
+      },
+      ...setup
+    });
+
+    await wrapper.vm.$nextTick();
+    await wrapper.vm.$nextTick();
+    const diskSizeUpdates = wrapper.emitted('update:diskSize') || [];
+    let latest = (diskSizeUpdates[diskSizeUpdates.length - 1] || [])[0];
+
+    expect(latest).toBe(80);
+
+    wrapper.setProps({ launchTemplate: {} });
+    await wrapper.vm.$nextTick();
+    await wrapper.vm.$nextTick();
+    latest = (diskSizeUpdates[diskSizeUpdates.length - 1] || [])[0];
+
+    expect(latest).toBe(20);
   });
 });

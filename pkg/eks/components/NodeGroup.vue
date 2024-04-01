@@ -11,6 +11,8 @@ import { mapGetters, Store } from 'vuex';
 
 import { MANAGED_TEMPLATE_PREFIX, parseTags } from '../util/aws';
 import { AWS } from '../types';
+import { DEFAULT_NODE_GROUP_CONFIG } from './CruEKS.vue';
+
 import { isEmpty } from '@shell/utils/object';
 import debounce from 'lodash/debounce';
 import { randomStr } from '@shell/utils/string';
@@ -349,42 +351,40 @@ export default defineComponent({
     },
 
     setValuesFromTemplate(neu = {} as AWS.LaunchTemplateVersionData, old = {} as AWS.LaunchTemplateVersionData) {
-      if (neu && !isEmpty(neu)) {
-        Object.keys(launchTemplateFieldMapping).forEach((rancherKey: string) => {
-          const awsKey = launchTemplateFieldMapping[rancherKey];
+      Object.keys(launchTemplateFieldMapping).forEach((rancherKey: string) => {
+        const awsKey = launchTemplateFieldMapping[rancherKey];
 
-          if (awsKey === 'TagSpecifications') {
-            const { TagSpecifications } = neu;
+        if (awsKey === 'TagSpecifications') {
+          const { TagSpecifications } = neu;
 
-            if (TagSpecifications) {
-              const tags = {} as {[key:string]: string};
+          if (TagSpecifications) {
+            const tags = {} as {[key:string]: string};
 
-              TagSpecifications.forEach((tag: {Tags?: {Key: string, Value: string}[], ResourceType?: string}) => {
-                if (tag.ResourceType === 'instance' && tag.Tags && tag.Tags.length) {
-                  Object.assign(tags, parseTags(tag.Tags));
-                }
-              });
-              this.$emit('update:resourceTags', tags);
-            } else {
-              this.$emit('update:resourceTags', {});
-            }
-          } else if (awsKey === 'BlockDeviceMappings') {
-            const { BlockDeviceMappings } = neu;
-
-            if (BlockDeviceMappings && BlockDeviceMappings.length) {
-              const size = BlockDeviceMappings[0]?.Ebs?.VolumeSize;
-
-              this.$emit('update:diskSize', size);
-            } else {
-              this.$emit('update:diskSize', null);
-            }
-          } else if (this.templateValue(rancherKey)) {
-            this.$emit(`update:${ rancherKey }`, this.templateValue(rancherKey));
+            TagSpecifications.forEach((tag: {Tags?: {Key: string, Value: string}[], ResourceType?: string}) => {
+              if (tag.ResourceType === 'instance' && tag.Tags && tag.Tags.length) {
+                Object.assign(tags, parseTags(tag.Tags));
+              }
+            });
+            this.$emit('update:resourceTags', tags);
           } else {
-            this.$emit(`update:${ rancherKey }`, null);
+            this.$emit('update:resourceTags', { ...DEFAULT_NODE_GROUP_CONFIG.resourceTags });
           }
-        });
-      }
+        } else if (awsKey === 'BlockDeviceMappings') {
+          const { BlockDeviceMappings } = neu;
+
+          if (BlockDeviceMappings && BlockDeviceMappings.length) {
+            const size = BlockDeviceMappings[0]?.Ebs?.VolumeSize;
+
+            this.$emit('update:diskSize', size);
+          } else {
+            this.$emit('update:diskSize', DEFAULT_NODE_GROUP_CONFIG.diskSize);
+          }
+        } else if (this.templateValue(rancherKey)) {
+          this.$emit(`update:${ rancherKey }`, this.templateValue(rancherKey));
+        } else {
+          this.$emit(`update:${ rancherKey }`, DEFAULT_NODE_GROUP_CONFIG[rancherKey as keyof typeof DEFAULT_NODE_GROUP_CONFIG]);
+        }
+      });
 
       this.$nextTick(() => {
         this.resourceTagKey = randomStr();
@@ -586,6 +586,7 @@ export default defineComponent({
           :loading="loadingSelectedVersion"
           :disabled="!!templateValue('diskSize') || loadingSelectedVersion"
           :rules="rules.diskSize"
+          data-testid="eks-disksize-input"
           @input="$emit('update:diskSize', $event)"
         />
       </div>
