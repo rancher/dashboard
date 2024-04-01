@@ -11,9 +11,7 @@ import SortableTable from '@shell/components/SortableTable';
 import { sortBy } from '@shell/utils/sort';
 import { exceptionToErrorsArray } from '@shell/utils/error';
 import { NAMESPACE } from '@shell/config/types';
-import {
-  NAME as NAME_COL, STATE, TYPE, NAMESPACE as NAMESPACE_COL, AGE
-} from '@shell/config/table-headers';
+import { NAME as NAME_COL, TYPE, NAMESPACE as NAMESPACE_COL, AGE } from '@shell/config/table-headers';
 
 export default {
   components: {
@@ -41,7 +39,7 @@ export default {
   data() {
     return {
       currentYaml:   '',
-      allNamespaces: null,
+      allNamespaces: [],
       errors:        null,
       rows:          null,
       done:          false,
@@ -64,7 +62,6 @@ export default {
 
     headers() {
       return [
-        STATE,
         TYPE,
         NAME_COL,
         NAMESPACE_COL,
@@ -98,7 +95,22 @@ export default {
 
         btnCb(true);
 
-        this.rows = res;
+        const parsedRes = [];
+
+        // cleanup metadata.state and stateDescription to not show sub-rows in this table of results
+        // https://github.com/rancher/dashboard/issues/10656
+        res.forEach((result) => {
+          if (result.metadata?.state) {
+            delete result.metadata.state;
+          }
+          if (result.stateDescription) {
+            delete result.stateDescription;
+          }
+
+          parsedRes.push(result);
+        });
+
+        this.rows = parsedRes;
         this.done = true;
       } catch (err) {
         this.errors = exceptionToErrorsArray(err);
@@ -121,11 +133,14 @@ export default {
   <Card
     v-else
     :show-highlight-border="false"
+    data-testid="import-yaml"
   >
     <template #title>
       <div style="display: block; width: 100%;">
         <template v-if="done">
-          <h4>{{ t('import.success', {count: rows.length}) }}</h4>
+          <h4 data-testid="import-yaml-success">
+            {{ t('import.success', {count: rows.length}) }}
+          </h4>
         </template>
         <template v-else>
           <h4 v-t="'import.title'" />
@@ -201,6 +216,7 @@ export default {
         <button
           type="button"
           class="btn role-secondary mr-10"
+          data-testid="import-yaml-cancel"
           @click="close"
         >
           {{ t('generic.cancel') }}
@@ -209,6 +225,7 @@ export default {
           v-if="!done"
           mode="import"
           :disabled="!currentYaml.length"
+          data-testid="import-yaml-import-action"
           @click="importYaml"
         />
       </div>

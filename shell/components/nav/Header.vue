@@ -470,6 +470,7 @@ export default {
             :disabled="!importEnabled"
             type="button"
             class="btn header-btn role-tertiary"
+            data-testid="header-action-import-yaml"
             @click="openImport()"
           >
             <i class="icon icon-upload icon-lg" />

@@ -8,6 +8,22 @@ import { WorkloadsDeploymentsListPagePo } from '@/cypress/e2e/po/pages/explorer/
 import { NodesPagePo } from '@/cypress/e2e/po/pages/explorer/nodes.po';
 import { EventsPagePo } from '@/cypress/e2e/po/pages/explorer/events.po';
 
+const configMapYaml = `apiVersion: v1
+kind: ConfigMap
+metadata:
+  name: e2e-test-${ +new Date() }
+  annotations:
+    {}
+    #  key: string
+  labels:
+    {}
+    #  key: string
+  namespace: default
+__clone: true
+#binaryData:  key: string
+#data:  key: string
+#immutable: boolean`;
+
 const clusterDashboard = new ClusterDashboardPagePo('local');
 const simpleBox = new SimpleBoxPo();
 const header = new HeaderPo();
@@ -40,6 +56,21 @@ describe('Cluster Dashboard', { testIsolation: 'off', tags: ['@explorer', '@admi
     ClusterDashboardPagePo.goTo('local');
 
     cy.title().should('eq', 'Rancher - local - Cluster Dashboard');
+  });
+
+  it('can import a YAML successfully, using the header action "Import YAML"', () => {
+    ClusterDashboardPagePo.navTo();
+
+    header.importYamlHeaderAction().click();
+    header.importYamlEditor().set(configMapYaml);
+    header.importYamlImportClick();
+
+    // we need to wait for the async action to finish in order to do further assertions
+    header.importYamlSuccessTitleCheck();
+
+    // testing https://github.com/rancher/dashboard/issues/10656
+    header.importYamlSortableTable().tableHeaderRowElementWithPartialName('State').should('not.exist');
+    header.importYamlSortableTable().getAnySubRows().should('not.exist');
   });
 
   it('can add cluster badge', () => {
