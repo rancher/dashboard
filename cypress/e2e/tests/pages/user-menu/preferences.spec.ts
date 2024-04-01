@@ -3,6 +3,10 @@ import HomePagePo from '@/cypress/e2e/po/pages/home.po';
 import PreferencesPagePo from '@/cypress/e2e/po/pages/preferences.po';
 import UserMenuPo from '@/cypress/e2e/po/side-bars/user-menu.po';
 import RepositoriesPagePo from '@/cypress/e2e/po/pages/chart-repositories.po';
+import ClusterDashboardPagePo from '@/cypress/e2e/po/pages/explorer/cluster-dashboard.po';
+import ProductNavPo from '@/cypress/e2e/po/side-bars/product-side-nav.po';
+import { HeaderPo } from '@/cypress/e2e/po/components/header.po';
+
 // import ClusterManagerListPagePo from '@/cypress/e2e/po/pages/cluster-manager/cluster-manager-list.po';
 
 const userMenu = new UserMenuPo();
@@ -49,6 +53,21 @@ describe('User can update their preferences', () => {
       prefPage.languageDropdownMenu().isClosed();
       prefPage.checkLangDomElement(key);
     }
+
+    // testing https://github.com/rancher/dashboard/issues/10153
+    ClusterDashboardPagePo.navTo();
+    const nav = new ProductNavPo();
+
+    nav.navToSideMenuEntryByLabel('节点'); // nodes list
+
+    // used as await for page load...
+    cy.contains('.title > h1', '节点').should('be.visible');
+
+    const header = new HeaderPo();
+
+    header.showKubectlExplainTooltip();
+    header.getKubectlExplainTooltipContent().contains('Describe Resource');
+    // EO test https://github.com/rancher/dashboard/issues/10153
   });
 
   it('Can select a theme', { tags: ['@userMenu', '@adminUser', '@standardUser'] }, () => {
