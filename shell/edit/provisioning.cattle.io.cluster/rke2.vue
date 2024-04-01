@@ -2046,6 +2046,7 @@ export default {
       <Banner
         v-if="isEdit"
         color="warning"
+        data-testid="edit-cluster-reprovisioning-documentation"
       >
         <span v-clean-html="t('cluster.banner.rke2-k3-reprovisioning', {}, true)" />
       </Banner>
