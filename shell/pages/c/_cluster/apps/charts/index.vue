@@ -388,6 +388,7 @@ export default {
       <h3>{{ t('catalog.charts.featuredCharts') }}</h3>
       <Carousel
         :sliders="featuredCharts"
+        data-testid="charts-carousel"
         @clicked="(row) => selectChart(row)"
       />
     </div>
@@ -446,6 +447,7 @@ export default {
           type="search"
           class="input-sm"
           :placeholder="t('catalog.charts.search')"
+          data-testid="charts-filter-input"
         >
 
         <button

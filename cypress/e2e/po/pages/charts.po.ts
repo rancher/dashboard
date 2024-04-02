@@ -11,6 +11,18 @@ export class ChartsPage extends PagePo {
     super(ChartsPage.url);
   }
 
+  chartsCarousel() {
+    return this.self().find('[data-testid="charts-carousel"]');
+  }
+
+  chartsCarouselSlides() {
+    return this.chartsCarousel().get('[id="slide-track"] > div');
+  }
+
+  chartsFilterInput() {
+    return this.self().find('[data-testid="charts-filter-input"]');
+  }
+
   goToInstall() {
     const btn = new AsyncButtonPo('.chart-header .btn.role-primary');
 
