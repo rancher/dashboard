@@ -59,6 +59,7 @@ eks:
     launchTemplate:
       label: Launch Template
       version: Template Version
+      rancherManaged: "{name} (Rancher-managed)"
     imageId:
       label: Amazon Machine Image ID
       tooltip: 'Custom AMIs is an advanced use case. We highly recommended that you read and fully understand the requirements for creating custom EKS AMIs in the <a aria-label="Amazon guide to using custom AMIs in EKS" href="https://aws.amazon.com/premiumsupport/knowledge-center/eks-custom-linux-ami/" target="_blank">AWS documentation.</a>'

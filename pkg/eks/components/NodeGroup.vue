@@ -202,7 +202,8 @@ export default defineComponent({
     const t = store.getters['i18n/t'];
 
     return {
-      defaultTemplateOption:          { LaunchTemplateName: t('eks.defaultCreateOne') } as AWS.LaunchTemplate,
+      defaultTemplateOption: { LaunchTemplateName: t('eks.defaultCreateOne') } as AWS.LaunchTemplate,
+
       defaultNodeRoleOption:          { RoleName: t('eks.defaultCreateOne') },
       loadingSelectedVersion:         false,
       // once a specific lt has been selected, an additional query is made to get full information on every version of it
@@ -250,6 +251,12 @@ export default defineComponent({
   computed: {
     ...mapGetters({ t: 'i18n/t' }),
 
+    rancherTemplate() {
+      const eksStatus = this.normanCluster?.eksStatus || {};
+
+      return eksStatus.managedLaunchTemplateID;
+    },
+
     hasRancherLaunchTemplate() {
       const eksStatus = this.normanCluster?.eksStatus || {};
       const nodegroupName = this.nodegroupName;
@@ -274,6 +281,9 @@ export default defineComponent({
 
     selectedLaunchTemplate: {
       get(): AWS.LaunchTemplate {
+        if (this.hasRancherLaunchTemplate) {
+          return { LaunchTemplateName: this.t('eks.nodeGroups.launchTemplate.rancherManaged', { name: this.rancherTemplate }) };
+        }
         const id = this.launchTemplate?.id;
 
         return this.launchTemplateOptions.find((lt: AWS.LaunchTemplate) => lt.LaunchTemplateId && lt.LaunchTemplateId === id) || this.defaultTemplateOption;

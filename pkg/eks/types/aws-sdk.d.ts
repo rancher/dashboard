@@ -97,5 +97,5 @@ export interface EKSAddon {
     compatibilities: {
       clusterVersion: string
     }[]
-  }[]
+}[]
 }
