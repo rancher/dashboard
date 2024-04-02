@@ -168,14 +168,6 @@ export default {
         (opt.pagination ? getters['havePaginatedPage'](type, opt.pagination) : false)
       )
     ) {
-      const args = {
-        type,
-        revision:  '',
-        // watchNamespace - used sometimes when we haven't fetched the results of a single namespace
-        // namespaced - used when we have fetched the result of a single namespace (see https://github.com/rancher/dashboard/pull/7329/files)
-        namespace: opt.watchNamespace || opt.namespaced
-      };
-
       if (opt.watch !== false ) {
         const args = {
           type,
