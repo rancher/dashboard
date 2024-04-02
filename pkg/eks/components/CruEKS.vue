@@ -25,7 +25,6 @@ import Logging from './Logging.vue';
 import Config from './Config.vue';
 import Networking from './Networking.vue';
 import AccountAccess from './AccountAccess.vue';
-import { SYSTEM_LABELS } from '@shell/config/labels-annotations';
 
 const DEFAULT_CLUSTER = {
   dockerRootDir:                       '/var/lib/docker',
@@ -439,10 +438,6 @@ export default defineComponent({
       });
 
       return out;
-    },
-
-    systemLabels(): string[] {
-      return SYSTEM_LABELS;
     }
   },
 
@@ -770,7 +765,6 @@ export default defineComponent({
         <Labels
           v-model="normanCluster"
           :mode="mode"
-          :protected-labels="systemLabels"
         />
       </Accordion>
     </div>

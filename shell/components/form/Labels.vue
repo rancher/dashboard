@@ -52,11 +52,6 @@ export default {
     showLabelTitle: {
       type:    Boolean,
       default: true,
-    },
-
-    protectedLabels: {
-      type:    Array,
-      default: null
     }
   },
 
@@ -88,7 +83,7 @@ export default {
             <t k="labels.labels.title" />
           </h3>
           <ToggleSwitch
-            v-if="value.hasSystemLabels || (protectedLabels && protectedLabels.length)"
+            v-if="value.hasSystemLabels"
             v-model="toggler"
             name="label-system-toggle"
             :on-label="t('labels.labels.show')"
@@ -106,7 +101,7 @@ export default {
               <KeyValue
                 key="labels"
                 :value="value.labels"
-                :protected-keys="value.systemLabels || protectedLabels || []"
+                :protected-keys="value.systemLabels || []"
                 :toggle-filter="toggler"
                 :add-label="t('labels.addLabel')"
                 :mode="mode"
@@ -129,6 +124,8 @@ export default {
         :value="value.annotations"
         :add-label="t('labels.addAnnotation')"
         :mode="mode"
+        :protected-keys="value.systemAnnotations || []"
+        :toggle-filter="toggler"
         :title="t('labels.annotations.title')"
         :title-protip="annotationTitleTooltip"
         :read-allowed="false"

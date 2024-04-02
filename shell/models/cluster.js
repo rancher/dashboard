@@ -1,29 +1,33 @@
 import NormanModel from '@shell/plugins/steve/norman-class';
-import { matchesSomeRegex } from '@shell/utils/string';
-import omitBy from 'lodash/omitBy';
 
-const LABEL_PREFIX_TO_IGNORE = [
-  'io.cattle.lifecycle.',
-  'beta.kubernetes.io/',
-  'failure-domain.beta.kubernetes.io/',
-  'node-role.kubernetes.io/',
-  'kubernetes.io/',
-  'cattle.io/',
-  'authz.management.cattle.io',
-  'rke.cattle.io',
-  'field.cattle.io',
-  'workload.user.cattle.io/',
+export const LABEL_CONTAINS_PROTECTED = [
+  'io.cattle.lifecycle',
+  'kubernetes.io',
+  'cattle.io',
   'k3s.io',
-  'node.kubernetes.io',
 ];
 
-export default class Cluster extends NormanModel {
-  // get labels() {
-  //   const all = this.labels || {};
+export const ANNOTATIONS_CONTAINS_PROTECTED = [
+  'coreos.com',
+  'cattle.io',
+  'k3s.io',
+  'kubernetes.i',
+  'k3s.io',
+];
+export default class NormanCluster extends NormanModel {
+  get systemLabels() {
+    return Object.keys(this.labels).filter((key) => LABEL_CONTAINS_PROTECTED.find((label) => key.includes(label)));
+  }
 
-  //   return omitBy(all, (value, key) => {
-  //     // return matchesSomeRegex(key, LABELS_TO_IGNORE_REGEX);
-  //     return matchesSomeRegex(key, `/^${ LABEL_PREFIX_TO_IGNORE }.*/`);
-  //   });
-  // }
+  get systemAnnotations() {
+    return Object.keys(this.annotations).filter((key) => ANNOTATIONS_CONTAINS_PROTECTED.find((annotation) => key.includes(annotation)));
+  }
+
+  get hasSystemLabels() {
+    return !!(this.systemLabels || []).length;
+  }
+
+  get hasSystemAnnotations() {
+    return !!(this.systemAnnotations || []).length;
+  }
 }
