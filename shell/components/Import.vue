@@ -203,6 +203,7 @@ export default {
         <button
           type="button"
           class="btn role-primary"
+          data-testid="import-yaml-close"
           @click="close"
         >
           {{ t('generic.close') }}

@@ -71,6 +71,8 @@ describe('Cluster Dashboard', { testIsolation: 'off', tags: ['@explorer', '@admi
     // testing https://github.com/rancher/dashboard/issues/10656
     header.importYamlSortableTable().tableHeaderRowElementWithPartialName('State').should('not.exist');
     header.importYamlSortableTable().getAnySubRows().should('not.exist');
+
+    header.importYamlCloseClick();
   });
 
   it('can add cluster badge', () => {

@@ -31,6 +31,10 @@ export class HeaderPo extends ComponentPo {
     cy.get('[data-testid="import-yaml"]').find('[data-testid="import-yaml-import-action"]').click();
   }
 
+  importYamlCloseClick() {
+    cy.get('[data-testid="import-yaml"]').find('[data-testid="import-yaml-close"]').click();
+  }
+
   importYamlSortableTable() {
     return new SortableTablePo(cy.get('[data-testid="import-yaml"]'));
   }
