@@ -229,7 +229,7 @@ export default defineComponent({
           if (principal) {
             const service = principal.Service;
 
-            if (service && service.includes('AWS.amazonaws.com') && !ec2Roles.find((r) => r.RoleId === role.RoleId) && !role.RoleName.match(/^rancher-managed/)) {
+            if (service && service.includes('ec2.amazonaws.com') && !ec2Roles.find((r) => r.RoleId === role.RoleId) && !role.RoleName.match(/^rancher-managed/)) {
               ec2Roles.push(role);
             }
             if ( service && ( service.includes('eks.amazonaws') || service.includes('EKS') ) && !eksRoles.find((r) => r.RoleId === role.RoleId)) {
