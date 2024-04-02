@@ -200,18 +200,27 @@ export default {
       return this.t(`cluster.provider.${ provider }`);
     },
 
-    architecture() {
-      const arch = this.nodes?.reduce((acc, node) => {
-        const arch = node.labels?.[NODE_ARCHITECTURE];
+    nodesArchitecture() {
+      const obj = {};
 
-        if (acc && acc !== arch) {
-          return 'mixed';
+      this.nodes?.forEach((node) => {
+        const key = capitalize(node.labels?.[NODE_ARCHITECTURE] || '');
+
+        if (key) {
+          obj[key] = (obj[key] || 0) + 1;
         }
+      });
 
-        return arch;
-      }, '');
+      return obj;
+    },
 
-      return capitalize(arch);
+    architecture() {
+      const keys = Object.keys(this.nodesArchitecture);
+
+      return {
+        label:   keys.length === 1 ? keys[0] : 'Mixed',
+        tooltip: keys.length === 1 ? undefined : keys.reduce((acc, k) => `${ acc }${ k }: ${ this.nodesArchitecture[k] }<br>`, '')
+      };
     },
 
     isHarvesterCluster() {
@@ -572,7 +581,9 @@ export default {
         data-testid="architecture__label"
       >
         <label>{{ t('glance.architecture') }}: </label>
-        <span>{{ architecture }}</span>
+        <span v-clean-tooltip="architecture.tooltip">
+          {{ architecture.label }}
+        </span>
       </div>
       <div data-testid="created__label">
         <label>{{ t('glance.created') }}: </label>

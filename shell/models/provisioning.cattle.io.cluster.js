@@ -404,18 +404,27 @@ export default class ProvCluster extends SteveModel {
     return this.mgmt?.providerLogo;
   }
 
-  get architecture() {
-    const arch = this.nodes?.reduce((acc, node) => {
-      const arch = node.status?.nodeLabels?.[NODE_ARCHITECTURE];
+  get nodesArchitecture() {
+    const obj = {};
 
-      if (acc && acc !== arch) {
-        return 'mixed';
+    this.nodes?.forEach((node) => {
+      const key = capitalize(node.status?.nodeLabels?.[NODE_ARCHITECTURE] || '');
+
+      if (key) {
+        obj[key] = (obj[key] || 0) + 1;
       }
+    });
 
-      return arch;
-    }, '');
+    return obj;
+  }
 
-    return capitalize(arch);
+  get architecture() {
+    const keys = Object.keys(this.nodesArchitecture);
+
+    return {
+      label:   keys.length === 1 ? keys[0] : 'Mixed',
+      tooltip: keys.length === 1 ? undefined : keys.reduce((acc, k) => `${ acc }${ k }: ${ this.nodesArchitecture[k] }<br>`, '')
+    };
   }
 
   get kubernetesVersion() {

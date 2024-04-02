@@ -231,8 +231,11 @@ export default {
           <span>
             {{ row.kubernetesVersion }}
           </span>
-          <div class="text-muted">
-            {{ row.architecture }}
+          <div
+            v-clean-tooltip="{content: row.architecture.tooltip, placement: 'left'}"
+            class="text-muted"
+          >
+            {{ row.architecture.label }}
           </div>
         </td>
       </template>
