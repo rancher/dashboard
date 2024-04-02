@@ -26,6 +26,7 @@ import {
 } from '@shell/utils/object';
 import { allHash } from '@shell/utils/promise';
 import { sortBy } from '@shell/utils/sort';
+import { customMerge } from '@shell/utils/custom-merge';
 
 import { compare, sortable } from '@shell/utils/version';
 import { isHarvesterSatisfiesVersion } from '@shell/utils/cluster';
@@ -1149,7 +1150,7 @@ export default {
         // We don't allow the user to edit any of the fields in metadata from the UI so it's safe to override it with the
         // metadata defined by the latest backend value. This is primarily used to ensure the resourceVersion is up to date.
         delete clonedCurrentConfig.metadata;
-        machinePool.config = merge(clonedLatestConfig, clonedCurrentConfig);
+        machinePool.config = customMerge(clonedLatestConfig, clonedCurrentConfig);
       }
     },
 
