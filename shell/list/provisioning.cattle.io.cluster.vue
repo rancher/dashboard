@@ -226,6 +226,16 @@ export default {
       <template #cell:summary="{row}">
         <span v-if="!row.stateParts.length">{{ row.nodes.length }}</span>
       </template>
+      <template #col:kubernetesVersion="{row}">
+        <td class="col-name">
+          <span>
+            {{ row.kubernetesVersion }}
+          </span>
+          <div class="text-muted">
+            {{ row.architecture }}
+          </div>
+        </td>
+      </template>
       <template #cell:explorer="{row}">
         <router-link
           v-if="row.mgmt && row.mgmt.isReady && !row.hasError"
