@@ -2,6 +2,7 @@ import HomePagePo from '@/cypress/e2e/po/pages/home.po';
 import BurgerMenuPo from '@/cypress/e2e/po/side-bars/burger-side-menu.po';
 import PagePo from '@/cypress/e2e/po/pages/page.po';
 import ProductNavPo from '@/cypress/e2e/po/side-bars/product-side-nav.po';
+import ClusterManagerListPagePo from '@/cypress/e2e/po/pages/cluster-manager/cluster-manager-list.po';
 import { generateFakeNavClusterData } from '@/cypress/e2e/blueprints/nav/fake-cluster';
 
 const longClusterDescription = 'this-is-some-really-really-really-really-really-really-long-decription';
@@ -97,6 +98,30 @@ describe('Side Menu: main', () => {
       // assert that we are on the expected page
       cy.url().should('include', '/local');
       cy.url().should('include', '/projectsnamespaces');
+    });
+
+    // testing https://github.com/rancher/dashboard/issues/10192
+    it('"documentation" link in editing a cluster should open in a new tab', { tags: ['@navigation', '@adminUser'] }, () => {
+      const page = new PagePo('');
+      const clusterList = new ClusterManagerListPagePo('_');
+
+      page.navToMenuEntry('Cluster Management');
+      clusterList.waitForPage();
+
+      clusterList.list().actionMenu(fakeProvClusterId).getMenuItem('Edit Config').click();
+
+      // since in Cypress we cannot assert directly a link on a new tab
+      // next best thing is to assert that the link has _blank
+      // change it to _seft, then assert the link of the new page
+      cy.get('[data-testid="edit-cluster-reprovisioning-documentation"] a').should('be.visible')
+        .then(($a) => {
+          expect($a).to.have.attr('target', '_blank');
+          // update attr to open in same tab
+          $a.attr('target', '_self');
+        })
+        .click();
+
+      cy.url().should('include', 'https://ranchermanager.docs.rancher.com/v2.8/how-to-guides/new-user-guides/launch-kubernetes-with-rancher/rke1-vs-rke2-differences');
     });
 
     it('Local cluster should show a description on the side menu and display a tooltip when hovering it show the full description', { tags: ['@navigation', '@adminUser'] }, () => {
