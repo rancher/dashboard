@@ -41,7 +41,6 @@ export const state = function() {
     clusterRepos:    [],
     namespacedRepos: [],
     charts:          {},
-    versionInfos:    {},
     config:          { namespace: 'catalog' },
     inStore:         undefined,
   };
@@ -322,10 +321,6 @@ export const mutations = {
     for ( const repo of loaded ) {
       state.loaded[repo._key] = true;
     }
-  },
-
-  cacheVersion(state, { key, info }) {
-    state.versionInfos[key] = info;
   }
 };
 
@@ -416,27 +411,18 @@ export const actions = {
   async getVersionInfo({ state, getters, commit }, {
     repoType, repoName, chartName, versionName
   }) {
-    const key = `${ repoType }/${ repoName }/${ chartName }/${ versionName }`;
-    let info = state.versionInfos[key];
+    const repo = getters['repo']({ repoType, repoName });
 
-    if ( !info ) {
-      const repo = getters['repo']({ repoType, repoName });
-
-      if ( !repo ) {
-        throw new Error('Repo not found');
-      }
-
-      info = await repo.followLink('info', {
-        url: addParams(repo.links.info, {
-          chartName,
-          version: versionName
-        })
-      });
-
-      commit('cacheVersion', { key, info });
+    if ( !repo ) {
+      throw new Error('Repo not found');
     }
 
-    return info;
+    return await repo.followLink('info', {
+      url: addParams(repo.links.info, {
+        chartName,
+        version: versionName
+      })
+    });
   },
 
   rehydrate(ctx) {
