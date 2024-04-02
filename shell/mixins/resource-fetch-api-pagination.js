@@ -69,7 +69,7 @@ export default {
         projectsOrNamespaces,
         filters
       } = stevePaginationUtils.createParamsFromNsFilter({
-        allNamespaces:                this.$store.getters[`${ this.currentProduct.inStore }/all`](NAMESPACE),
+        allNamespaces:                this.$store.getters[`${ this.currentProduct?.inStore }/all`](NAMESPACE),
         selection:                    neu,
         isAllNamespaces:              this.isAllNamespaces,
         isLocalCluster:               this.$store.getters['currentCluster'].isLocal,
@@ -146,7 +146,7 @@ export default {
       }
 
       return this.resource && paginationUtils.isEnabled({ rootGetters: this.$store.getters }, {
-        store:    this.currentProduct.inStore,
+        store:    this.currentProduct?.inStore,
         resource: { id: this.resource.id || this.resource }
       });
     },
@@ -164,14 +164,14 @@ export default {
         return;
       }
 
-      return this.$store.getters[`${ this.currentProduct.inStore }/havePage`](this.resource);
+      return this.$store.getters[`${ this.currentProduct?.inStore }/havePage`](this.resource);
     },
 
     /**
       * Links to ns.isSystem and covers things like ns with system annotation, hardcoded list, etc
       */
     productHidesSystemNamespaces() {
-      return this.currentProduct.hideSystemResources;
+      return this.currentProduct?.hideSystemResources;
     },
 
     /**
