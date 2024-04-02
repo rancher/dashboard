@@ -47,6 +47,7 @@ import Certificates from '@shell/components/Certificates';
 import { NAME as EXPLORER } from '@shell/config/product/explorer';
 import TabTitle from '@shell/components/TabTitle';
 import { STATES_ENUM } from '@shell/plugins/dashboard-store/resource-class';
+import capitalize from 'lodash/capitalize';
 
 export const RESOURCES = [NAMESPACE, INGRESS, PV, WORKLOAD_TYPES.DEPLOYMENT, WORKLOAD_TYPES.STATEFUL_SET, WORKLOAD_TYPES.JOB, WORKLOAD_TYPES.DAEMON_SET, SERVICE];
 
@@ -200,7 +201,7 @@ export default {
     },
 
     architecture() {
-      return this.nodes?.reduce((acc, node) => {
+      const arch = this.nodes?.reduce((acc, node) => {
         const arch = node.labels?.[NODE_ARCHITECTURE];
 
         if (acc && acc !== arch) {
@@ -209,6 +210,8 @@ export default {
 
         return arch;
       }, '');
+
+      return capitalize(arch);
     },
 
     isHarvesterCluster() {

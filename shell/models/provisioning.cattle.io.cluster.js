@@ -10,6 +10,7 @@ import { compare } from '@shell/utils/version';
 import { AS, MODE, _VIEW, _YAML } from '@shell/config/query-params';
 import { HARVESTER_NAME as HARVESTER } from '@shell/config/features';
 import { CAPI as CAPI_ANNOTATIONS, NODE_ARCHITECTURE } from '@shell/config/labels-annotations';
+import capitalize from 'lodash/capitalize';
 
 /**
  * Class representing Cluster resource.
@@ -404,7 +405,7 @@ export default class ProvCluster extends SteveModel {
   }
 
   get architecture() {
-    return this.nodes?.reduce((acc, node) => {
+    const arch = this.nodes?.reduce((acc, node) => {
       const arch = node.status?.nodeLabels?.[NODE_ARCHITECTURE];
 
       if (acc && acc !== arch) {
@@ -413,6 +414,8 @@ export default class ProvCluster extends SteveModel {
 
       return arch;
     }, '');
+
+    return capitalize(arch);
   }
 
   get kubernetesVersion() {

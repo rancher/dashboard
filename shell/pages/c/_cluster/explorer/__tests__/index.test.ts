@@ -160,8 +160,8 @@ describe('page: cluster dashboard', () => {
       ['clusterProvider', [], 'other'],
       ['kubernetesVersion', [], '0.0.0 k3s'],
       ['created', [], 'glance.created'],
-      ['architecture', [{ labels: { [NODE_ARCHITECTURE]: 'amd64' } }, { labels: { [NODE_ARCHITECTURE]: '' } }], 'mixed'],
-      ['architecture', [{ labels: { [NODE_ARCHITECTURE]: 'amd64' } }], 'amd64'],
+      ['architecture', [{ labels: { [NODE_ARCHITECTURE]: 'amd64' } }, { labels: { [NODE_ARCHITECTURE]: '' } }], 'Mixed'],
+      ['architecture', [{ labels: { [NODE_ARCHITECTURE]: 'amd64' } }], 'Amd64'],
     ])('should show %p label', (label, nodes, text) => {
       const options = clone(mountOptions);
 
