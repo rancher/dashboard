@@ -213,7 +213,6 @@ export default defineComponent({
           :disabled="!publicAccess"
           :add-allowed="publicAccess"
           :add-label="t('eks.publicAccessSources.addEndpoint')"
-          :tooltip="t('eks.publicAccessSources.tooltip')"
           data-testid="eks-public-access-sources"
           @input="$emit('update:publicAccessSources', $event)"
         >

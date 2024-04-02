@@ -624,6 +624,7 @@ export default defineComponent({
       v-if="hasCredential"
       data-testid="crueks-form"
     >
+      <div><h3>{{ t('eks.nodeGroups.title') }}</h3></div>
       <Tabbed
         class="mb-20"
         :side-tabs="true"
