@@ -355,7 +355,7 @@ export default {
         <div class="col preview-container banner span-6">
           <div class="mb-10">
             <FileImageSelector
-              :byte-limit="204800"
+              :byte-limit="200000"
               :read-as-data-url="true"
               class="role-secondary"
               :label="t('branding.banner.uploadLight')"
@@ -380,7 +380,7 @@ export default {
         <div class="col preview-container banner span-6">
           <div class="mb-10">
             <FileImageSelector
-              :byte-limit="204800"
+              :byte-limit="200000"
               :read-as-data-url="true"
               class="role-secondary"
               :label="t('branding.banner.uploadDark')"
@@ -426,7 +426,7 @@ export default {
         <div class="col preview-container login-background span-6">
           <div class="mb-10">
             <FileImageSelector
-              :byte-limit="204800"
+              :byte-limit="200000"
               :read-as-data-url="true"
               class="role-secondary"
               :label="t('branding.loginBackground.uploadLight')"
@@ -451,7 +451,7 @@ export default {
         <div class="col preview-container login-background span-6">
           <div class="mb-10">
             <FileImageSelector
-              :byte-limit="204800"
+              :byte-limit="200000"
               :read-as-data-url="true"
               class="role-secondary"
               :label="t('branding.loginBackground.uploadDark')"
