@@ -53,6 +53,11 @@ export default {
       type:    Boolean,
       default: true,
     },
+
+    protectedLabels: {
+      type:    Array,
+      default: null
+    }
   },
 
   data() {
@@ -83,7 +88,7 @@ export default {
             <t k="labels.labels.title" />
           </h3>
           <ToggleSwitch
-            v-if="value.hasSystemLabels"
+            v-if="value.hasSystemLabels || (protectedLabels && protectedLabels.length)"
             v-model="toggler"
             name="label-system-toggle"
             :on-label="t('labels.labels.show')"
@@ -101,7 +106,7 @@ export default {
               <KeyValue
                 key="labels"
                 :value="value.labels"
-                :protected-keys="value.systemLabels || []"
+                :protected-keys="value.systemLabels || protectedLabels || []"
                 :toggle-filter="toggler"
                 :add-label="t('labels.addLabel')"
                 :mode="mode"

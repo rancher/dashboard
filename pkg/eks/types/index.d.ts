@@ -65,5 +65,6 @@ export interface NormanCluster extends NormanModel {
   fleetAgentDeploymentCustomization?: any,
   clusterAgentDeploymentCustomization?: any,
   id?: string,
-  status? : {[key:string]: any}
+  status? : {[key:string]: any},
+  eksStatus?: {[key:string]:any}
 }

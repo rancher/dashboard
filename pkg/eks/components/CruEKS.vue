@@ -25,6 +25,7 @@ import Logging from './Logging.vue';
 import Config from './Config.vue';
 import Networking from './Networking.vue';
 import AccountAccess from './AccountAccess.vue';
+import { SYSTEM_LABELS } from '@shell/config/labels-annotations';
 
 const DEFAULT_CLUSTER = {
   dockerRootDir:                       '/var/lib/docker',
@@ -140,9 +141,11 @@ export default defineComponent({
     } else {
       this.$set(this.config, 'nodeGroups', this.nodeGroups);
     }
-    this.fetchInstanceTypes();
-    this.fetchLaunchTemplates();
-    this.fetchServiceRoles();
+    if (this.mode !== _VIEW) {
+      this.fetchInstanceTypes();
+      this.fetchLaunchTemplates();
+      this.fetchServiceRoles();
+    }
   },
 
   data() {
@@ -342,7 +345,7 @@ export default defineComponent({
     // upstreamSpec will be null if the user created a cluster with some invalid options such that it ultimately fails to create anything in aks
     // this allows them to go back and correct their mistakes without re-making the whole cluster
     isNewOrUnprovisioned(): boolean {
-      return this.mode === _CREATE || !this.normanCluster?.status?.eksStatus?.upstreamSpec;
+      return this.mode === _CREATE || !this.normanCluster?.eksStatus?.upstreamSpec;
     },
 
     isEdit(): boolean {
@@ -436,6 +439,10 @@ export default defineComponent({
       });
 
       return out;
+    },
+
+    systemLabels(): string[] {
+      return SYSTEM_LABELS;
     }
   },
 
@@ -457,7 +464,7 @@ export default defineComponent({
 
     // only save values that differ from upstream aks spec - see diffUpstreamSpec comments for details
     removeUnchangedConfigFields(): void {
-      const upstreamConfig = this.normanCluster?.status?.eksStatus?.upstreamSpec;
+      const upstreamConfig = this.normanCluster?.eksStatus?.upstreamSpec;
 
       if (upstreamConfig) {
         const diff = diffUpstreamSpec(upstreamConfig, this.config);
@@ -666,6 +673,7 @@ export default defineComponent({
             :loading-instance-types="loadingInstanceTypes"
             :loading-roles="loadingIam"
             :loading-launch-templates="loadingLaunchTemplates"
+            :norman-cluster="normanCluster"
           />
         </Tab>
       </Tabbed>
@@ -761,6 +769,7 @@ export default defineComponent({
         <Labels
           v-model="normanCluster"
           :mode="mode"
+          :protected-labels="systemLabels"
         />
       </Accordion>
     </div>

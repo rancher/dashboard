@@ -3,7 +3,7 @@ import { defineComponent, PropType } from 'vue';
 import { mapGetters, Store } from 'vuex';
 import debounce from 'lodash/debounce';
 
-import { _EDIT } from '@shell/config/query-params';
+import { _EDIT, _VIEW } from '@shell/config/query-params';
 import { randomStr } from '@shell/utils/string';
 import { isEmpty } from '@shell/utils/object';
 
@@ -166,7 +166,7 @@ export default defineComponent({
       default: () => []
     },
 
-    originalCluster: {
+    normanCluster: {
       type:    Object,
       default: null
     },
@@ -251,7 +251,7 @@ export default defineComponent({
     ...mapGetters({ t: 'i18n/t' }),
 
     hasRancherLaunchTemplate() {
-      const eksStatus = this.originalCluster?.eksStatus || {};
+      const eksStatus = this.normanCluster?.eksStatus || {};
       const nodegroupName = this.nodegroupName;
       const nodeGroupTemplateVersion = (eksStatus?.managedLaunchTemplateVersions || {})[nodegroupName];
 
@@ -340,7 +340,7 @@ export default defineComponent({
     async fetchLaunchTemplateVersionInfo(launchTemplate: AWS.LaunchTemplate) {
       const { region, amazonCredentialSecret } = this;
 
-      if (!region || !amazonCredentialSecret) {
+      if (!region || !amazonCredentialSecret || this.mode === _VIEW) {
         return;
       }
       const store = this.$store as Store<any>;

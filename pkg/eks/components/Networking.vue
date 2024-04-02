@@ -1,5 +1,5 @@
 <script lang="ts">
-import { _EDIT } from '@shell/config/query-params';
+import { _CREATE, _EDIT, _VIEW } from '@shell/config/query-params';
 import { defineComponent } from 'vue';
 import { Store, mapGetters } from 'vuex';
 import LabeledSelect from '@shell/components/form/LabeledSelect.vue';
@@ -61,15 +61,15 @@ export default defineComponent({
   watch: {
     amazonCredentialSecret: {
       handler(neu) {
-        if (neu) {
+        if (neu && !this.isView) {
           this.fetchVpcs();
         }
       },
       immediate: true
     },
     region: {
-      handler(neu) {
-        if (neu) {
+      handler(neu ) {
+        if (neu && !this.isView) {
           this.fetchVpcs();
         }
       },
@@ -149,6 +149,14 @@ export default defineComponent({
       set(neu: {key:string, label:string, _isSubnet?:boolean, kind?:string}[]) {
         this.$emit('update:subnets', neu.map((s) => s.key));
       }
+    },
+
+    isNew(): boolean {
+      return this.mode === _CREATE;
+    },
+
+    isView():boolean {
+      return this.mode === _VIEW;
     }
   },
 
@@ -223,6 +231,7 @@ export default defineComponent({
           :mode="mode"
           :options="[{label: t('eks.subnets.default'), value: false},{label: t('eks.subnets.useCustom'), value: true}]"
           label-key="eks.subnets.title"
+          :disabled="!isNew"
         />
       </div>
       <div

@@ -32,9 +32,11 @@ export default defineComponent({
   },
 
   async fetch() {
-    this.defaultRegions = await this.$store.dispatch('aws/defaultRegions');
-    if (this.defaultRegions.length && !this.region) {
-      this.$emit('update-region', DEFAULT_REGION);
+    if (this.mode !== _VIEW) {
+      this.defaultRegions = await this.$store.dispatch('aws/defaultRegions');
+      if (this.defaultRegions.length && !this.region) {
+        this.$emit('update-region', DEFAULT_REGION);
+      }
     }
   },
 
@@ -45,7 +47,7 @@ export default defineComponent({
   watch: {
     isAuthenticated: {
       async handler(neu) {
-        if (neu) {
+        if (neu && this.mode !== _VIEW) {
           await this.fetchRegions();
         } else {
           if (this.defaultRegions.length && !this.defaultRegions.includes(this.region)) {

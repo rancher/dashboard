@@ -1,7 +1,7 @@
 <script lang="ts">
 import { defineComponent, PropType } from 'vue';
 import { EKSConfig, AWS } from '../types';
-import { _EDIT } from '@shell/config/query-params';
+import { _EDIT, _VIEW } from '@shell/config/query-params';
 import semver from 'semver';
 import { Store, mapGetters } from 'vuex';
 import { MANAGEMENT } from '@shell/config/types';
@@ -102,16 +102,20 @@ export default defineComponent({
   watch: {
     'config.region': {
       handler() {
-        this.fetchKubernetesVersions();
-        this.fetchKMSKeys();
+        if (this.mode !== _VIEW) {
+          this.fetchKubernetesVersions();
+          this.fetchKMSKeys();
+        }
       },
       immediate: true
     },
 
     'config.amazonCredentialSecret': {
       handler() {
-        this.fetchKubernetesVersions();
-        this.fetchKMSKeys();
+        if (this.mode !== _VIEW) {
+          this.fetchKubernetesVersions();
+          this.fetchKMSKeys();
+        }
       },
       immediate: true
     },
