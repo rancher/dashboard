@@ -895,7 +895,7 @@ export default defineComponent({
           label-key="aks.location.azWarning"
           color="warning"
         />
-        <div><h3>{{ t('aks.nodePools.title') }}</h3></h4></div>
+        <div><h3>{{ t('aks.nodePools.title') }}</h3></div>
         <Tabbed
           ref="pools"
           :side-tabs="true"
