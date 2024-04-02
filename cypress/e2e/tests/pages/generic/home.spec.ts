@@ -9,6 +9,8 @@ const homeClusterList = homePage.list();
 const provClusterList = new ClusterManagerListPagePo('local');
 const longClusterDescription = 'this-is-some-really-really-really-really-really-really-long-decription';
 
+const rowDetails = (text) => text.split('\n').map((r) => r.trim()).filter((f) => f);
+
 describe('Home Page', () => {
   it('Confirm correct number of settings requests made', { tags: ['@generic', '@adminUser', '@standardUser'] }, () => {
     cy.login();
@@ -109,11 +111,11 @@ describe('Home Page', () => {
       });
 
       homeClusterList.version('local').invoke('text').then((el) => {
-        clusterDetails.push(el.trim());
+        clusterDetails.push(rowDetails(el));
       });
 
       homeClusterList.provider('local').invoke('text').then((el) => {
-        clusterDetails.push(el.trim());
+        clusterDetails.push(rowDetails(el));
       });
 
       provClusterList.goTo();
@@ -127,11 +129,17 @@ describe('Home Page', () => {
       });
 
       provClusterList.list().version('local').should((el) => {
-        expect(el).to.include.text(clusterDetails[2]);
+        const version = rowDetails(el.text());
+
+        expect(version[0]).eq(clusterDetails[2][0]);
+        expect(version[1]).eq(clusterDetails[2][1]);
       });
 
       provClusterList.list().provider('local').should((el) => {
-        expect(el).to.include.text(clusterDetails[3]);
+        const provider = rowDetails(el.text());
+
+        expect(provider[0]).eq(clusterDetails[3][0]);
+        expect(provider[1]).eq(clusterDetails[3][1]);
       });
     });
 

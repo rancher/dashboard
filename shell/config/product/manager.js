@@ -169,7 +169,7 @@ export function init(store) {
     {
       name:     'kubernetesVersion',
       labelKey: 'tableHeaders.version',
-      subLabel: 'architecture',
+      subLabel: 'Architecture',
       value:    'kubernetesVersion',
       sort:     'kubernetesVersion',
       search:   'kubernetesVersion',
@@ -177,7 +177,7 @@ export function init(store) {
     {
       name:      'provider',
       labelKey:  'tableHeaders.provider',
-      subLabel:  'distro',
+      subLabel:  'Distro',
       value:     'machineProvider',
       sort:      ['machineProvider', 'provisioner'],
       formatter: 'ClusterProvider',
