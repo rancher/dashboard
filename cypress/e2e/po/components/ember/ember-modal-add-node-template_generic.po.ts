@@ -10,10 +10,6 @@ export default class EmberModalAddNodeTemplateGenericPo extends EmberModalPo {
     return this.self().contains('.btn', label, { timeout: 10000 });
   }
 
-  checkOption(value: string) {
-    return this.self().find('.form-control').contains(value).click();
-  }
-
   templateName(): EmberInputPo {
     return new EmberInputPo('.modal-container [data-testid="form-name-description__name"]');
   }
