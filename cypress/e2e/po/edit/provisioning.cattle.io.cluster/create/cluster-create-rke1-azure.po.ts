@@ -8,7 +8,7 @@ import EmberCheckboxInputPo from '@/cypress/e2e/po/components/ember/ember-checkb
 import EmberSelectPo from '@/cypress/e2e/po/components/ember/ember-select.po';
 import EmberFormNodePoolsPo from '@/cypress/e2e/po/components/ember/ember-form-node-pools.po';
 import EmberKubernetesOptionsPo from '@/cypress/e2e/po/components/ember/ember-kubernetes-options.po';
-import EmberModalAddAzureNodeTemplatePo from '@/cypress/e2e/po/components/ember/ember-modal-add-node-template-azure.po';
+import EmberModalAddNodeTemplateAzurePo from '@/cypress/e2e/po/components/ember/ember-modal-add-node-template-azure.po';
 
 /**
  * Create page for an RKE1 azure cluster
@@ -42,8 +42,8 @@ export default class ClusterManagerCreateRke1AzurePagePo extends ClusterManagerC
     return cy.iFrame().find('button').contains('Add Node Template').click();
   }
 
-  addNodeTemplateForm(): EmberModalAddAzureNodeTemplatePo {
-    return new EmberModalAddAzureNodeTemplatePo();
+  addNodeTemplateForm(): EmberModalAddNodeTemplateAzurePo {
+    return new EmberModalAddNodeTemplateAzurePo();
   }
 
   memberRoles(): EmberAccordionPo {
