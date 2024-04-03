@@ -234,6 +234,7 @@ export default {
                 class="btn role-primary"
                 :disabled="mode === create"
                 :tooltip="t('monitoring.alertmanagerConfig.disabledReceiverButton')"
+                data-testid="v2-monitoring-add-receiver"
               >
                 {{ t('monitoring.receiver.addReceiver') }}
                 <i

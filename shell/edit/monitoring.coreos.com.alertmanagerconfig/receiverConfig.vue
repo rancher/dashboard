@@ -288,6 +288,7 @@ export default {
           :required="true"
           :mode="mode"
           :rules="fvGetAndReportPathRules('name')"
+          data-testid="v2-monitoring-receiver-name"
         />
       </div>
     </div>
