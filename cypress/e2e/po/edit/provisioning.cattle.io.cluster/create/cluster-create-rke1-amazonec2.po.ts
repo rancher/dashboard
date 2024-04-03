@@ -6,7 +6,7 @@ import EmberAccordionPo from '@/cypress/e2e/po/components/ember/ember-accordion.
 import EmberFormMembersPo from '@/cypress/e2e/po/components/ember/ember-form-members.po';
 import EmberCheckboxInputPo from '@/cypress/e2e/po/components/ember/ember-checkbox-input.po';
 import EmberSelectPo from '@/cypress/e2e/po/components/ember/ember-select.po';
-import EmberModalAddNodeTemplatePo from '@/cypress/e2e/po/components/ember/ember-modal-add-node-template-aws.po';
+import EmberModalAddNodeTemplateAwsPo from '@/cypress/e2e/po/components/ember/ember-modal-add-node-template-aws.po';
 import EmberFormNodePoolsPo from '@/cypress/e2e/po/components/ember/ember-form-node-pools.po';
 import EmberKubernetesOptionsPo from '@/cypress/e2e/po/components/ember/ember-kubernetes-options.po';
 
@@ -42,8 +42,8 @@ export default class ClusterManagerCreateRke1Amazonec2PagePo extends ClusterMana
     return cy.iFrame().find('button').contains('Add Node Template').click();
   }
 
-  addNodeTemplateForm(): EmberModalAddNodeTemplatePo {
-    return new EmberModalAddNodeTemplatePo();
+  addNodeTemplateForm(): EmberModalAddNodeTemplateAwsPo {
+    return new EmberModalAddNodeTemplateAwsPo();
   }
 
   memberRoles(): EmberAccordionPo {
