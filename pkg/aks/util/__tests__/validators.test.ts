@@ -73,12 +73,13 @@ describe('fx: resourceGroupChars', () => {
 
 describe('fx: privateDnsZone', () => {
   it.each([
-    ['test-subzone.private.eastus2.azmk8s.io', undefined],
-    ['test-subzone.privatelink.westus.azmk8s.io', undefined],
-    ['private.eastus2.azmk8s.io', undefined],
-    ['privatelink.eastus2.azmk8s.io', undefined],
-    ['aaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaa.privatelink.eastus2.azmk8s.io', MOCK_TRANSLATION],
+    ['/subscriptions/abcdef123/resourceGroups/abcdef123/providers/Microsoft.Network/privateDnsZones/test-subzone.private.eastus2.azmk8s.io', undefined],
+    ['/subscriptions/abcdef123/resourceGroups/abcdef123/providers/Microsoft.Network/privateDnsZones/test-subzone.privatelink.westus.azmk8s.io', undefined],
+    ['/subscriptions/abcdef123/resourceGroups/abcdef123/providers/Microsoft.Network/privateDnsZones/private.eastus2.azmk8s.io', undefined],
+    ['/subscriptions/abcdef123/resourceGroups/abcdef123/providers/Microsoft.Network/privateDnsZones/privatelink.eastus2.azmk8s.io', undefined],
+    ['/subscriptions/abcdef123/resourceGroups/abcdef123/providers/Microsoft.Network/privateDnsZones/aaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaa.privatelink.eastus2.azmk8s.io', MOCK_TRANSLATION],
     ['privatelink.azmk8s.io', MOCK_TRANSLATION],
+    ['privatelink.eastus2.azmk8s.io', MOCK_TRANSLATION]
   ])('returns an error message if the private dns zone does not match privatelink.REGION.azmk8s.io, SUBZONE.privatelink.REGION.azmk8s.io, private.REGION.azmk8s.io, or SUBZONE.private.REGION.azmk8s.io', (privateDnsZone, validatorMsg) => {
     const ctx = { ...mockCtx, normanCluster: { aksConfig: { privateDnsZone } } };
 
