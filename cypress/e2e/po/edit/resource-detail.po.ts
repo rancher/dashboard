@@ -15,4 +15,8 @@ export default class ResourceDetailPo extends ComponentPo {
   resourceYaml() {
     return new ResourceYamlPo(this.self());
   }
+
+  title(): Cypress.Chainable<string> {
+    return this.self().find('.primaryheader h1').invoke('text');
+  }
 }

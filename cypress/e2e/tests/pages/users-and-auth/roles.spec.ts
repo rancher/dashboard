@@ -12,7 +12,7 @@ const runPrefix = `e2e-test-${ runTimestamp }`;
 const downloadsFolder = Cypress.config('downloadsFolder');
 const globalRoleName = `${ runPrefix }-my-global-role`;
 
-describe('Roles', { tags: '@adminUser' }, () => {
+describe('Roles', { tags: ['@usersAndAuths', '@adminUser'] }, () => {
   beforeEach(() => {
     cy.login();
     cy.viewport(1280, 720);
