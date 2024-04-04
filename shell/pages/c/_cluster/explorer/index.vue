@@ -129,8 +129,9 @@ export default {
     return {
       nodeHeaders,
       constraints:        [],
-      cattle:             'loading',
-      fleet:              'loading',
+      cattleDeployment:   'loading',
+      fleetDeployment:    'loading',
+      fleetStatefulSet:   'loading',
       canViewAgents:      false,
       disconnected:       false,
       events:             [],
@@ -228,19 +229,69 @@ export default {
         if (!this.currentCluster.isLocal) {
           services.push({
             name:     'cattle',
-            status:   this.getAgentStatus(this.cattle, this.disconnected),
+            status:   this.cattleStatus,
             labelKey: 'clusterIndexPage.sections.componentStatus.cattle',
           });
         }
 
         services.push({
           name:     'fleet',
-          status:   this.getAgentStatus(this.fleet),
+          status:   this.fleetStatus,
           labelKey: 'clusterIndexPage.sections.componentStatus.fleet',
         });
       }
 
       return services;
+    },
+
+    cattleStatus() {
+      const resource = this.cattleDeployment;
+
+      if (resource === 'loading') {
+        return STATES_ENUM.IN_PROGRESS;
+      }
+
+      if (!resource || this.disconnected || resource.status.conditions?.find((c) => c.status !== 'True') || resource.metadata.state?.error) {
+        return STATES_ENUM.UNHEALTHY;
+      }
+
+      if (resource.spec.replicas !== resource.status.readyReplicas || resource.status.unavailableReplicas > 0) {
+        return STATES_ENUM.WARNING;
+      }
+
+      return STATES_ENUM.HEALTHY;
+    },
+
+    fleetStatus() {
+      const resources = [this.fleetStatefulSet];
+
+      if (this.currentCluster.isLocal) {
+        resources.push(this.fleetDeployment);
+      }
+
+      if (resources.find((r) => r === 'loading')) {
+        return STATES_ENUM.IN_PROGRESS;
+      }
+
+      for (const resource of resources) {
+        if (!resource) {
+          return STATES_ENUM.UNHEALTHY;
+        }
+      }
+
+      for (const resource of resources) {
+        if (resource.status.conditions?.find((c) => c.status !== 'True') || resource.metadata.state?.error) {
+          return STATES_ENUM.UNHEALTHY;
+        }
+      }
+
+      for (const resource of resources) {
+        if (resource.spec.replicas !== resource.status.readyReplicas || resource.status.unavailableReplicas > 0) {
+          return STATES_ENUM.WARNING;
+        }
+      }
+
+      return STATES_ENUM.HEALTHY;
     },
 
     totalCountGaugeInput() {
@@ -394,10 +445,11 @@ export default {
 
       if (this.canViewAgents) {
         if (this.currentCluster.isLocal) {
-          await this.setAgent('fleet', WORKLOAD_TYPES.DEPLOYMENT, 'cattle-fleet-system/fleet-controller');
+          await this.setAgentResource('fleetDeployment', WORKLOAD_TYPES.DEPLOYMENT, 'cattle-fleet-system/fleet-controller');
+          await this.setAgentResource('fleetStatefulSet', WORKLOAD_TYPES.STATEFUL_SET, 'cattle-fleet-local-system/fleet-agent');
         } else {
-          await this.setAgent('fleet', WORKLOAD_TYPES.STATEFUL_SET, 'cattle-fleet-system/fleet-agent');
-          await this.setAgent('cattle', WORKLOAD_TYPES.DEPLOYMENT, 'cattle-system/cattle-cluster-agent');
+          await this.setAgentResource('fleetStatefulSet', WORKLOAD_TYPES.STATEFUL_SET, 'cattle-fleet-system/fleet-agent');
+          await this.setAgentResource('cattleDeployment', WORKLOAD_TYPES.DEPLOYMENT, 'cattle-system/cattle-cluster-agent');
 
           // Scaling Up/Down cattle deployment causes web sockets disconnection;
           this.interval = setInterval(() => {
@@ -407,7 +459,7 @@ export default {
       }
     },
 
-    async setAgent(agent, type, id) {
+    async setAgentResource(agent, type, id) {
       try {
         this[agent] = await this.$store.dispatch('cluster/find', { type, id });
       } catch (err) {
@@ -431,22 +483,6 @@ export default {
 
       if (count > 0) {
         return STATES_ENUM.UNHEALTHY;
-      }
-
-      return STATES_ENUM.HEALTHY;
-    },
-
-    getAgentStatus(resource, disconnected = false) {
-      if (resource === 'loading') {
-        return STATES_ENUM.IN_PROGRESS;
-      }
-
-      if (!resource || disconnected || resource.status.conditions?.find((c) => c.status !== 'True') || resource.metadata.state?.error) {
-        return STATES_ENUM.UNHEALTHY;
-      }
-
-      if (resource.spec.replicas !== resource.status.readyReplicas || resource.status.unavailableReplicas > 0) {
-        return STATES_ENUM.WARNING;
       }
 
       return STATES_ENUM.HEALTHY;

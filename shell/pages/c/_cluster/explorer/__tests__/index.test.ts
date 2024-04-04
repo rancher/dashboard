@@ -7,8 +7,8 @@ describe('page: cluster dashboard', () => {
   const mountOptions = {
     computed: { monitoringStatus: () => ({ v2: true }) },
     stubs:    {
-      'n-link': true,
-      LiveDate: true
+      'router-link': true,
+      LiveDate:      true
     },
     mocks: {
       $store: {
@@ -62,7 +62,7 @@ describe('page: cluster dashboard', () => {
   });
 
   describe.each([
-    ['fleet', true, [
+    ['local', 'fleet', true, ['fleetDeployment', 'fleetStatefulSet'], [
       [STATES_ENUM.IN_PROGRESS, 'icon-spinner', false, false, false, '', 0, 0],
       [STATES_ENUM.UNHEALTHY, 'icon-warning', true, false, false, [{ status: 'False' }], 0, 0],
       [STATES_ENUM.UNHEALTHY, 'icon-warning', true, false, true, [{ status: 'True' }], 0, 0],
@@ -71,7 +71,16 @@ describe('page: cluster dashboard', () => {
       [STATES_ENUM.WARNING, 'icon-warning', true, false, false, [{ status: 'True' }], 0, 1],
       [STATES_ENUM.HEALTHY, 'icon-checkmark', true, false, false, [{ status: 'True' }], 1, 0],
     ]],
-    ['cattle', false, [
+    ['downstream RKE2', 'fleet', false, ['fleetStatefulSet'], [
+      [STATES_ENUM.IN_PROGRESS, 'icon-spinner', false, false, false, '', 0, 0],
+      [STATES_ENUM.UNHEALTHY, 'icon-warning', true, false, false, [{ status: 'False' }], 0, 0],
+      [STATES_ENUM.UNHEALTHY, 'icon-warning', true, false, true, [{ status: 'True' }], 0, 0],
+      [STATES_ENUM.WARNING, 'icon-warning', true, true, false, [{ status: 'True' }], 0, 0],
+      [STATES_ENUM.WARNING, 'icon-warning', true, false, false, [{ status: 'True' }], 0, 0],
+      [STATES_ENUM.WARNING, 'icon-warning', true, false, false, [{ status: 'True' }], 0, 1],
+      [STATES_ENUM.HEALTHY, 'icon-checkmark', true, false, false, [{ status: 'True' }], 1, 0],
+    ]],
+    ['downstream RKE2', 'cattle', false, ['cattleDeployment'], [
       [STATES_ENUM.IN_PROGRESS, 'icon-spinner', false, false, false, '', 0, 0],
       [STATES_ENUM.UNHEALTHY, 'icon-warning', true, false, false, [{ status: 'False' }], 0, 0],
       [STATES_ENUM.UNHEALTHY, 'icon-warning', true, true, false, [{ status: 'True' }], 0, 0],
@@ -80,26 +89,33 @@ describe('page: cluster dashboard', () => {
       [STATES_ENUM.WARNING, 'icon-warning', true, false, false, [{ status: 'True' }], 0, 1],
       [STATES_ENUM.HEALTHY, 'icon-checkmark', true, false, false, [{ status: 'True' }], 1, 0],
     ]]
-  ])('%p agent health box', (agentId, isLocal, statuses) => {
+  ])('%p cluster - %p agent health box', (_, agentId, isLocal, agentResources, statuses) => {
     it.each(statuses)('should show %p status', (status, iconClass, isLoaded, disconnected, error, conditions, readyReplicas, unavailableReplicas) => {
       const options = clone(mountOptions);
 
       options.mocks.$store.getters.currentCluster.isLocal = isLocal;
 
-      const agent = {
-        metadata: { state: { error } },
-        spec:     { replicas: 1 },
-        status:   {
-          readyReplicas,
-          unavailableReplicas,
-          conditions
-        }
-      };
+      const resources = agentResources.reduce((acc, r) => {
+        const agent = {
+          metadata: { state: { error } },
+          spec:     { replicas: 1 },
+          status:   {
+            readyReplicas,
+            unavailableReplicas,
+            conditions
+          }
+        };
+
+        return isLoaded ? {
+          ...acc,
+          [r]: agent
+        } : 'loading';
+      }, {});
 
       const wrapper = shallowMount(Dashboard, {
         ...options,
         data: () => ({
-          [agentId]:     isLoaded ? agent : 'loading',
+          ...resources,
           disconnected,
           canViewAgents: true
         })
@@ -112,5 +128,24 @@ describe('page: cluster dashboard', () => {
       expect(box.element.classList).toContain(status);
       expect(icon.element.classList).toContain(iconClass);
     });
+  });
+
+  it('local cluster - cattle agent health box - should be hidden', () => {
+    const options = clone(mountOptions);
+
+    options.mocks.$store.getters.currentCluster.isLocal = true;
+
+    const wrapper = shallowMount(Dashboard, {
+      ...options,
+      data: () => ({
+        cattleDeployment: 'loading',
+        disconnected:     false,
+        canViewAgents:    true
+      })
+    });
+
+    const box = wrapper.find(`[data-testid="k8s-service-cattle"]`);
+
+    expect(box.element).toBeUndefined();
   });
 });
