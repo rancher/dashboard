@@ -95,22 +95,7 @@ export default {
 
         btnCb(true);
 
-        const parsedRes = [];
-
-        // cleanup metadata.state and stateDescription to not show sub-rows in this table of results
-        // https://github.com/rancher/dashboard/issues/10656
-        res.forEach((result) => {
-          if (result.metadata?.state) {
-            delete result.metadata.state;
-          }
-          if (result.stateDescription) {
-            delete result.stateDescription;
-          }
-
-          parsedRes.push(result);
-        });
-
-        this.rows = parsedRes;
+        this.rows = res;
         this.done = true;
       } catch (err) {
         this.errors = exceptionToErrorsArray(err);
@@ -177,6 +162,7 @@ export default {
             :paging="true"
             :row-actions="false"
             :table-actions="false"
+            :sub-rows-description="false"
             @rowClick="rowClick"
           />
         </div>
