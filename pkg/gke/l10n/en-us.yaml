@@ -1,0 +1,166 @@
+gke: 
+  label: Google GKE
+  project:
+    label: Google Project ID
+  authenticate: Authenticate
+  version:
+    label: Kubernetes Version
+    current: Current
+    tooltip: Upgrades cannot be more than one minor version away from the current version.
+    upgrade: Upgrade the node pool version to {clusterKubernetesVersion}
+  network:
+    label: Network
+    subnetworksAvailable: subnets available
+    sharedvpc: Shared VPC
+    vpc: VPC
+  subnetwork:
+    label: Subnet
+    nodeLabel: Node Subnet
+    auto: Auto-create Subnetwork
+    name: Subnetwork Name
+    namePlaceholder: Your Subnetwork Name
+  useIpAliases:
+    label: IP Aliases
+    warning: When not using IP Aliases, you must select both a network and subnet.
+  networkPolicyConfig:
+    label: Network Policy Support (Master only)
+  networkPolicyEnabled:
+    label: Network Policy Support (Worker nodes)
+  enableNetworkPolicy:
+    label: Project Network Isolation
+  clusterIpv4Cidr:
+    label: Container Address Range
+    placeholder: '10.0.0.0/14'
+  clusterSecondaryRangeName:
+    label: Pod Secondary Address Range Name
+  servicesSecondaryRangeName:
+    label: Services Secondary Address Range Name
+  clusterIpv4CidrBlock:
+    label: Pod Secondary CIDR Block
+  servicesIpv4CidrBlock:
+    label: Services Secondary CIDR Block
+  showAdvanced: Show Advanced Options
+  hideAdvanced: Hide Advanced Options
+  enablePrivateEndpoint:
+    label: Private Endpoint
+    tooltip: When enabled, the control plane may only be accessed via the private IP.
+  enablePrivateNodes:
+    label: Private Cluster
+  masterAuthorizedNetwork:
+    enable: 
+      label: Master Authorized Network
+    cidrBlocks:
+      displayName: Display Name
+      cidr: CIDR Block
+      add: Add CIDR Block
+      label: Master Authorized Network CIDR Blocks
+  nodeIpv4CidrBlock:
+    label: Node Ipv4 CIDR Block
+  masterIpv4CidrBlock:
+    label: Master Ipv4 CIDR Block
+    placeholder: 10.42.0.0/28
+    tooltip: Master CIDR block must be at least /28
+  loggingService:
+    label: Logging
+  monitoringService:
+    label: Monitoring
+  maintenanceWindow:
+    label: Maintenance Window - UTC
+    any: Any Time
+  httpLoadBalancing:
+    label: HTTP (L7) Load Balancing
+  horizontalPodAutoscaling:
+    label: Horizontal Pod Autoscaling
+  enableKubernetesAlpha:
+    label: Alpha Features
+    warning: <a href="https://cloud.google.com/kubernetes-engine/docs/concepts/alpha-clusters" target="_blank" rel="nofollow noopener noreferrer">Kubernetes Alpha Features</a> should not be used for production clusters. <b>Alpha Clusters expire after 30 days</b>, along with other caveats. Ensure that you fully understand this feature before enabling it.
+  imageType:
+    label: Image Type
+    COS_CONTAINERD: Container-Optimized OS with Containerd
+    UBUNTU_CONTAINERD: Ubuntu with Containerd
+    WINDOWS_LTSC_CONTAINERD: Windows Long Term Service Channel with Containerd
+    # the below options are no longer supported but may be in use by older gke clusters being edited through this ui
+    COS: Container-Optimized OS with Docker
+    UBUNTU: Ubuntu with Docker
+    WINDOWS_LTSC: Windows Long Term Service Channel with Docker
+    WINDOWS_SAC: Windows Semi-Annual Channel with Docker
+    WINDOWS_SAC_CONTAINERD: Windows Semi-Annual Channel with Containerd
+  machineType:
+    label: Machine Type
+  diskType:
+    label: Disk Type
+    standard: Standard Persistent Disk
+    ssd: SSD Persistent Disk
+  diskSizeGb:
+    label: Disk Size
+  localSsdCount:
+    label: Local SSD Count
+  preemptible:
+    label: Preemptible Nodes
+  nodeLabels:
+    label: Node Labels
+    tooltip: These labels will be applied to each node in the pool.
+    add: Add Label
+  tags:
+    label: Network Tags
+    add: Add Tag
+  groupDetails: Group Details
+  nodeDetails: Node Details
+  groupName:
+    label: Name
+  initialNodeCount:
+    label: Initial Node Count
+  maxPodsConstraint:
+    label: Maximum Number of Pods per Node
+  minNodeCount:
+    label: Minimum Node Count
+  maxNodeCount:
+    label: Maximum Node Count
+  autoscaling:
+    label: Autoscaling
+  autoRepair:
+    label: Auto Repair
+  autoUpgrade:
+    label: Auto Upgrade
+  authScopes:
+    modeLabel: API Access Scopes
+    options:
+      none: None
+      enabled: Enabled
+      tablesOnly: Tables Only
+      readOnly: Read Only
+      readWrite: Read/Write
+      writeOnly: Write Only
+      full: Full
+    modes:
+      default: Allow default access
+      full: Allow full access to all cloud APIs
+      custom: Set access for each API
+    scopes:
+      userinfo: User Info
+      compute: Compute Engine
+      devstorage: Storage
+      taskqueue: Task Queue
+      bigquery: Big Query
+      sqlservice: Cloud SQL
+      clouddatastore: Cloud Datastore
+      logging: Stack Driver Logging API
+      monitoring: Stack Driver Monitoring API
+      'cloud-platform': Cloud Platform
+      'bigtable.data': Bigtable Data
+      'bigtable.admin': Bigtable Admin
+      pubsub: Cloud Pub/Sub
+      servicecontrol: Service Control
+      'service.management': Service Management
+      trace: Stackdriver Trace
+      source: Cloudsource Repositories
+      'cloud_debugger': Cloud Debugger
+  
+  
+  
+
+asyncButton:
+  authenticate:
+    action: Authenticate
+    success:  Authenticated
+    waiting: Authenticating
