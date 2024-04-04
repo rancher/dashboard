@@ -2,6 +2,7 @@
 import isEqual from 'lodash/isEqual';
 import Loading from '@shell/components/Loading';
 import CreateEditView from '@shell/mixins/create-edit-view';
+import FormValidation from '@shell/mixins/form-validation';
 import CruResource from '@shell/components/CruResource';
 import InfoBox from '@shell/components/InfoBox';
 import { RadioGroup } from '@components/Form/Radio';
@@ -13,6 +14,7 @@ import AuthConfig from '@shell/mixins/auth-config';
 import { AZURE_MIGRATED } from '@shell/config/labels-annotations';
 import { get } from '@shell/utils/object';
 import AuthProviderWarningBanners from '@shell/edit/auth/AuthProviderWarningBanners';
+import formRulesGenerator from '@shell/utils/validators/formRules/index';
 
 const TENANT_ID_TOKEN = '__[[TENANT_ID]]__';
 
@@ -44,10 +46,11 @@ const ENDPOINT_MAPPING = {
     authEndpoint:  `https://login.partner.microsoftonline.cn/${ TENANT_ID_TOKEN }/oauth2/v2.0/authorize`
   },
   custom: {
-    endpoint:      'https://login.microsoftonline.com/',
-    graphEndpoint: '',
-    tokenEndpoint: '',
-    authEndpoint:  ''
+    endpoint:           'https://login.microsoftonline.com/',
+    graphEndpoint:      '',
+    tokenEndpoint:      '',
+    authEndpoint:       '',
+    deviceAuthEndpoint: ''
   }
 };
 
@@ -64,7 +67,7 @@ export default {
     AuthProviderWarningBanners
   },
 
-  mixins: [CreateEditView, AuthConfig],
+  mixins: [CreateEditView, AuthConfig, FormValidation],
 
   async fetch() {
     await this.reloadModel();
@@ -81,11 +84,39 @@ export default {
 
       // Storing the applicationSecret is necessary because norman doesn't support returning secrets and when we
       // override the steve authconfig with a norman config the applicationSecret is lost
-      applicationSecret: this.value.applicationSecret
+      applicationSecret: this.value.applicationSecret,
+      fvFormRuleSets:    [
+        { path: 'tenantId', rules: ['tenantIdRequired'] },
+        { path: 'applicationId', rules: ['applicationIdRequired'] },
+        { path: 'applicationSecret', rules: ['applicationSecretRequired'] },
+        { path: 'endpoint', rules: ['endpointRequired', 'endpointMustBeURL'] },
+        { path: 'graphEndpoint', rules: ['graphEndpointRequired', 'graphEndpointMustBeURL'] },
+        { path: 'tokenEndpoint', rules: ['tokenEndpointRequired', 'tokenEndpointMustBeURL'] },
+        { path: 'authEndpoint', rules: ['authEndpointRequired', 'authEndpointMustBeURL'] },
+        { path: 'deviceAuthEndpoint', rules: ['deviceAuthEndpointMustBeURL'] },
+      ]
     };
   },
 
   computed: {
+    // Cannot pass this.model as a rootObject because it is undefined at that point, so had to use a workaround
+    fvExtraRules() {
+      return {
+        tenantIdRequired:            this.modelFieldRequired('tenantId', 'authConfig.azuread.tenantId.label'),
+        applicationIdRequired:       this.modelFieldRequired('applicationId', 'authConfig.azuread.applicationId.label'),
+        applicationSecretRequired:   this.applicationSecretRequired(),
+        endpointRequired:            this.modelFieldRequired('endpoint', 'authConfig.azuread.endpoint.label'),
+        endpointMustBeURL:           this.modelFieldURL('endpoint'),
+        graphEndpointRequired:       this.modelFieldRequired('graphEndpoint', 'authConfig.azuread.graphEndpoint.label'),
+        graphEndpointMustBeURL:      this.modelFieldURL('graphEndpoint'),
+        tokenEndpointRequired:       this.modelFieldRequired('tokenEndpoint', 'authConfig.azuread.tokenEndpoint.label'),
+        tokenEndpointMustBeURL:      this.modelFieldURL('tokenEndpoint'),
+        authEndpointRequired:        this.modelFieldRequired('authEndpoint', 'authConfig.azuread.authEndpoint.label'),
+        authEndpointMustBeURL:       this.modelFieldURL('authEndpoint'),
+        deviceAuthEndpointMustBeURL: this.modelFieldURL('deviceAuthEndpoint'),
+      };
+    },
+
     tArgs() {
       return {
         baseUrl:  this.baseUrl,
@@ -131,6 +162,9 @@ export default {
         title:       this.t('authConfig.azuread.updateEndpoint.modal.title'),
         body:        this.t('authConfig.azuread.updateEndpoint.modal.body', null, { raw: true })
       };
+    },
+    editMemberConfig() {
+      return this.model.enabled && !this.isEnabling && !this.editConfig;
     }
   },
 
@@ -243,6 +277,23 @@ export default {
             btnCB(false);
           });
       }
+    },
+    modelFieldRequired(path, label) {
+      return () => {
+        return !this.model[path] ? `${ this.t(label) } is required` : undefined;
+      };
+    },
+    applicationSecretRequired() {
+      return () => {
+        return !this.editMemberConfig && !this.model.applicationSecret ? `${ this.t('authConfig.azuread.applicationSecret.label') } is required` : undefined;
+      };
+    },
+    modelFieldURL(path) {
+      return () => {
+        const rule = formRulesGenerator(this.$store.getters['i18n/t'], {}).url;
+
+        return rule(this.model[path]);
+      };
     }
   }
 };
@@ -256,17 +307,17 @@ export default {
       :mode="mode"
       :resource="model"
       :subtypes="[]"
-      :validation-passed="true"
+      :validation-passed="fvFormIsValid"
       :finish-button-mode="model && model.enabled ? 'edit' : 'enable'"
       :can-yaml="false"
       :errors="errors"
       :show-cancel="showCancel"
       :cancel-event="true"
-      @error="e => (errors = e)"
+      @error="e=>errors = e"
       @finish="save"
       @cancel="cancel"
     >
-      <template v-if="model.enabled && !isEnabling && !editConfig">
+      <template v-if="editMemberConfig">
         <AuthBanner
           :t-args="tArgs"
           :disable="disable"
@@ -274,27 +325,27 @@ export default {
         >
           <template slot="rows">
             <tr>
-              <td>{{ t(`authConfig.azuread.tenantId`) }}:</td>
+              <td>{{ t(`authConfig.azuread.tenantId.label`) }}:</td>
               <td>{{ model.tenantId }}</td>
             </tr>
             <tr>
-              <td>{{ t(`authConfig.azuread.applicationId`) }}:</td>
+              <td>{{ t(`authConfig.azuread.applicationId.label`) }}:</td>
               <td>{{ model.applicationId }}</td>
             </tr>
             <tr>
-              <td>{{ t(`authConfig.azuread.endpoint`) }}:</td>
+              <td>{{ t(`authConfig.azuread.endpoint.label`) }}:</td>
               <td>{{ model.endpoint }}</td>
             </tr>
             <tr>
-              <td>{{ t(`authConfig.azuread.graphEndpoint`) }}:</td>
+              <td>{{ t(`authConfig.azuread.graphEndpoint.label`) }}:</td>
               <td>{{ model.graphEndpoint }}</td>
             </tr>
             <tr>
-              <td>{{ t(`authConfig.azuread.tokenEndpoint`) }}:</td>
+              <td>{{ t(`authConfig.azuread.tokenEndpoint.label`) }}:</td>
               <td>{{ model.tokenEndpoint }}</td>
             </tr>
             <tr>
-              <td>{{ t(`authConfig.azuread.authEndpoint`) }}:</td>
+              <td>{{ t(`authConfig.azuread.authEndpoint.label`) }}:</td>
               <td>{{ model.authEndpoint }}</td>
             </tr>
           </template>
@@ -346,11 +397,13 @@ export default {
             <LabeledInput
               id="tenant-id"
               v-model="model.tenantId"
-              label="Tenant ID"
+              :label="t('authConfig.azuread.tenantId.label')"
               :mode="mode"
               :required="true"
-              tooltip="From the Azure AD portal"
-              placeholder="A long UUID string"
+              :rules="fvGetAndReportPathRules('tenantId')"
+              :tooltip="t('authConfig.azuread.tenantId.tooltip')"
+              :placeholder="t('authConfig.azuread.tenantId.placeholder')"
+              data-testid="input-azureAD-tenantId"
             />
           </div>
         </div>
@@ -359,10 +412,12 @@ export default {
             <LabeledInput
               id="application-id"
               v-model="model.applicationId"
-              label="Application ID"
+              :label="t('authConfig.azuread.applicationId.label')"
               :mode="mode"
               :required="true"
-              placeholder="A long UUID string"
+              :rules="fvGetAndReportPathRules('applicationId')"
+              :placeholder="t('authConfig.azuread.applicationId.placeholder')"
+              data-testid="input-azureAD-applcationId"
             />
           </div>
           <div class="col span-6">
@@ -370,9 +425,11 @@ export default {
               id="application-secret"
               v-model="model.applicationSecret"
               type="password"
-              label="Application Secret"
+              :label="t('authConfig.azuread.applicationSecret.label')"
               :required="true"
+              :rules="fvGetAndReportPathRules('applicationSecret')"
               :mode="mode"
+              data-testid="input-azureAD-applicationSecret"
             />
           </div>
         </div>
@@ -380,28 +437,33 @@ export default {
           v-model="endpoint"
           class="mb-20"
           :required="true"
-          label="Endpoints"
+          :label="t('authConfig.azuread.endpoints.label')"
           name="endpoints"
           :options="['standard', 'china', 'custom']"
           :mode="mode"
-          :labels="['Standard', 'China', 'Custom']"
+          :labels="[t('authConfig.azuread.endpoints.standard'), t('authConfig.azuread.endpoints.china'), t('authConfig.azuread.endpoints.custom')]"
+          data-testid="endpoints-radio-input"
         />
         <div v-if="endpoint === 'custom'">
           <div class="row mb-20">
             <div class="col span-6">
               <LabeledInput
                 v-model="model.endpoint"
-                label="Endpoint"
+                :label="t('authConfig.azuread.endpoint.label')"
                 :mode="mode"
                 :required="true"
+                :rules="fvGetAndReportPathRules('endpoint')"
+                data-testid="input-azureAD-endpoint"
               />
             </div>
             <div class="col span-6">
               <LabeledInput
                 v-model="model.graphEndpoint"
-                label="Graph Endpoint"
+                :label="t('authConfig.azuread.graphEndpoint.label')"
                 :required="true"
+                :rules="fvGetAndReportPathRules('graphEndpoint')"
                 :mode="mode"
+                data-testid="input-azureAD-graphEndpoint"
               />
             </div>
           </div>
@@ -409,17 +471,32 @@ export default {
             <div class="col span-6">
               <LabeledInput
                 v-model="model.tokenEndpoint"
-                label="Token Endpoint"
+                :label="t('authConfig.azuread.tokenEndpoint.label')"
                 :mode="mode"
                 :required="true"
+                :rules="fvGetAndReportPathRules('tokenEndpoint')"
+                data-testid="input-azureAD-tokenEndpoint"
               />
             </div>
             <div class="col span-6">
               <LabeledInput
                 v-model="model.authEndpoint"
-                label="Auth Endpoint"
+                :label="t('authConfig.azuread.authEndpoint.label')"
                 :required="true"
+                :rules="fvGetAndReportPathRules('authEndpoint')"
                 :mode="mode"
+                data-testid="input-azureAD-authEndpoint"
+              />
+            </div>
+          </div>
+          <div class="row mb-20">
+            <div class="col span-6">
+              <LabeledInput
+                v-model="model.deviceAuthEndpoint"
+                :label="t('authConfig.azuread.deviceAuthEndpoint.label')"
+                :mode="mode"
+                :rules="fvGetAndReportPathRules('deviceAuthEndpoint')"
+                data-testid="input-azureAD-deviceAuthEndpoint"
               />
             </div>
           </div>

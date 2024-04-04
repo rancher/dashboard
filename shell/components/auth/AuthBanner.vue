@@ -54,6 +54,7 @@ export default {
       <button
         type="button"
         class="btn-sm role-primary"
+        data-testid="edit-auth-button"
         @click="edit"
       >
         {{ t('action.edit') }}
