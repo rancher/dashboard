@@ -7,7 +7,6 @@ export const prometheusSpec = {
     prometheus: {
       prometheusSpec: {
         evaluationInterval: '1m',
-        resources:          { requests: { memory: '1750Mi' } },
         retentionSize:      '50GiB',
         scrapeInterval:     '1m',
         storageSpec:        {
