@@ -411,7 +411,15 @@ export default {
 
         try {
           this.fleet = await this.$store.dispatch('cluster/find', {
-            type: WORKLOAD_TYPES.DEPLOYMENT,
+            /**
+             * local cluster
+             *  - deployment:  cattle-fleet-system/fleet-controller
+             *  - statefulset: cattle-fleet-local-system/fleet-agent
+             * downstream rke2 cluster
+             *  - deployment:  none
+             *  - statefulset: cattle-fleet-system/fleet-agent
+             */
+            type: this.currentCluster.isLocal ? WORKLOAD_TYPES.DEPLOYMENT : WORKLOAD_TYPES.STATEFUL_SET,
             id:   `cattle-fleet-system/${ this.currentCluster.isLocal ? 'fleet-controller' : 'fleet-agent' }`,
           });
         } catch (err) {
@@ -446,7 +454,7 @@ export default {
         return STATES_ENUM.IN_PROGRESS;
       }
 
-      if (!agent || disconnected || agent.status.conditions.find((c) => c.status !== 'True')) {
+      if (!agent || disconnected || agent.status.conditions?.find((c) => c.status !== 'True') || agent.metadata.state?.error) {
         return STATES_ENUM.UNHEALTHY;
       }
 

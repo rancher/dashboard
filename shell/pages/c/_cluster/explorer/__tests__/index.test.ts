@@ -63,30 +63,33 @@ describe('page: cluster dashboard', () => {
 
   describe.each([
     ['fleet', true, [
-      [STATES_ENUM.IN_PROGRESS, 'icon-spinner', false, false, '', 0, 0],
-      [STATES_ENUM.UNHEALTHY, 'icon-warning', true, false, [{ status: 'False' }], 0, 0],
-      [STATES_ENUM.WARNING, 'icon-warning', true, true, [{ status: 'True' }], 0, 0],
-      [STATES_ENUM.WARNING, 'icon-warning', true, false, [{ status: 'True' }], 0, 0],
-      [STATES_ENUM.WARNING, 'icon-warning', true, false, [{ status: 'True' }], 0, 1],
-      [STATES_ENUM.HEALTHY, 'icon-checkmark', true, false, [{ status: 'True' }], 1, 0],
+      [STATES_ENUM.IN_PROGRESS, 'icon-spinner', false, false, false, '', 0, 0],
+      [STATES_ENUM.UNHEALTHY, 'icon-warning', true, false, false, [{ status: 'False' }], 0, 0],
+      [STATES_ENUM.UNHEALTHY, 'icon-warning', true, false, true, [{ status: 'True' }], 0, 0],
+      [STATES_ENUM.WARNING, 'icon-warning', true, true, false, [{ status: 'True' }], 0, 0],
+      [STATES_ENUM.WARNING, 'icon-warning', true, false, false, [{ status: 'True' }], 0, 0],
+      [STATES_ENUM.WARNING, 'icon-warning', true, false, false, [{ status: 'True' }], 0, 1],
+      [STATES_ENUM.HEALTHY, 'icon-checkmark', true, false, false, [{ status: 'True' }], 1, 0],
     ]],
     ['cattle', false, [
-      [STATES_ENUM.IN_PROGRESS, 'icon-spinner', false, false, '', 0, 0],
-      [STATES_ENUM.UNHEALTHY, 'icon-warning', true, false, [{ status: 'False' }], 0, 0],
-      [STATES_ENUM.UNHEALTHY, 'icon-warning', true, true, [{ status: 'True' }], 0, 0],
-      [STATES_ENUM.WARNING, 'icon-warning', true, false, [{ status: 'True' }], 0, 0],
-      [STATES_ENUM.WARNING, 'icon-warning', true, false, [{ status: 'True' }], 0, 1],
-      [STATES_ENUM.HEALTHY, 'icon-checkmark', true, false, [{ status: 'True' }], 1, 0],
+      [STATES_ENUM.IN_PROGRESS, 'icon-spinner', false, false, false, '', 0, 0],
+      [STATES_ENUM.UNHEALTHY, 'icon-warning', true, false, false, [{ status: 'False' }], 0, 0],
+      [STATES_ENUM.UNHEALTHY, 'icon-warning', true, true, false, [{ status: 'True' }], 0, 0],
+      [STATES_ENUM.UNHEALTHY, 'icon-warning', true, false, true, [{ status: 'True' }], 0, 0],
+      [STATES_ENUM.WARNING, 'icon-warning', true, false, false, [{ status: 'True' }], 0, 0],
+      [STATES_ENUM.WARNING, 'icon-warning', true, false, false, [{ status: 'True' }], 0, 1],
+      [STATES_ENUM.HEALTHY, 'icon-checkmark', true, false, false, [{ status: 'True' }], 1, 0],
     ]]
   ])('%p agent health box', (agentId, isLocal, statuses) => {
-    it.each(statuses)('should show %p status', (status, iconClass, isLoaded, disconnected, conditions, readyReplicas, unavailableReplicas) => {
+    it.each(statuses)('should show %p status', (status, iconClass, isLoaded, disconnected, error, conditions, readyReplicas, unavailableReplicas) => {
       const options = clone(mountOptions);
 
       options.mocks.$store.getters.currentCluster.isLocal = isLocal;
 
       const agent = {
-        spec:   { replicas: 1 },
-        status: {
+        metadata: { state: { error } },
+        spec:     { replicas: 1 },
+        status:   {
           readyReplicas,
           unavailableReplicas,
           conditions
