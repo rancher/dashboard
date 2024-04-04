@@ -487,7 +487,7 @@ export function saferDump(obj) {
  *
  * @returns the result of jsyaml.dump with the addition of multiline indicators
  */
-export function dumpBlock(data, options = {}) {
+export function dumpBlock(data, options = { lineWidth: -1 }) {
   const parsed = jsyaml.dump(data, options);
 
   let out = parsed;
