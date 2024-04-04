@@ -91,15 +91,15 @@ describe('Branding', () => {
     cy.title().should('eq', settings.privateLabel.original);
   });
 
-  it.skip('Support Links', () => {
+  it.skip('Support Links', { tags: ['@globalSettings', '@adminUser'] }, () => {
     // Liable to change following Prime changes
   });
 
-  it.skip('Logo', () => {
+  it.skip('Logo', { tags: ['@globalSettings', '@adminUser'] }, () => {
     // Requires a way to check the actual image changes
   });
 
-  it.skip('Favicon', () => {
+  it.skip('Favicon', { tags: ['@globalSettings', '@adminUser'] }, () => {
     // Requires a way to check the actual image changes
   });
 

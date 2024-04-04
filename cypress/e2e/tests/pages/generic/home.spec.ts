@@ -76,7 +76,7 @@ describe('Home Page', () => {
       homePage.getLoginPageBanner().checkVisible();
     });
 
-    it('Can see that cluster details match those in Cluster Manangement page', { tags: '@adminUser' }, () => {
+    it('Can see that cluster details match those in Cluster Manangement page', { tags: ['@generic', '@adminUser'] }, () => {
     /**
      * Get cluster details from the Home page
      * Verify that the cluster details match those on the Cluster Management page
@@ -141,7 +141,7 @@ describe('Home Page', () => {
       genericCreateClusterPage.waitForPage();
     });
 
-    it('Can filter rows in the cluster list', { tags: '@adminUser' }, () => {
+    it('Can filter rows in the cluster list', { tags: ['@generic', '@adminUser'] }, () => {
     /**
      * Filter rows in the cluster list
      */

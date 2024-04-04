@@ -1,0 +1,223 @@
+#!/usr/bin/env node
+
+/**
+ * This script reads and parses all of the Cypress e2e tests (*.spec.ts) and
+ * looks for tests that do not have tags.
+ * 
+ * This script is used in the PR gate to ensure tests are not added without tags -
+ * this would mean that the tests would not be run as part of the e2e suite.
+ *
+ */
+
+const fs = require('fs');
+const path = require('path');
+
+const base = path.resolve(__dirname, '..');
+const testFolder = path.resolve(base, 'cypress', 'e2e', 'tests');
+
+const describe_regex = /describe(?:.skip)?\('([^']*)'.*/;
+const it_regex = /it(?:.skip)?\('([^']*)'.*/;
+const tags_regex = /tags:\s*\[(.*)\s*\]/;
+
+// Simple shell colors
+const reset = "\x1b[0m";
+const cyan = `\x1b[96m`;
+const yellow = `\x1b[33m`;
+const white = `\x1b[97m`;
+const bold = `\x1b[1m`;
+const bg_red = `\x1b[41m`;
+
+function countSpaces(line) {
+  let count = 0;
+
+  for(i = 0; i < line.length; i++) {
+    if (line[i] === ' ') {
+      count ++;
+    } else {
+      return count;
+    }
+  }
+
+  return count;
+}
+
+function processTestFile(filePath) {
+  const data = fs.readFileSync(filePath, 'utf8');
+  const chain = [];
+  const root = {
+    indent: 0,
+    name: 'ROOT',
+    suites: [],
+    tests: [],
+    fullPath: filePath,
+    file: path.relative(testFolder, filePath),
+    tags: 0,
+    skipped: false,
+  };
+
+  chain.push(root);
+
+  let lineNum = 0;
+
+  // Process file line by line
+  data.split('\n').forEach((line) => {
+    const indent = countSpaces(line);
+
+    line = line.trim();
+    lineNum++;
+
+    if (line.startsWith('describe')) {
+      let current = chain[chain.length - 1];
+
+      if (indent <= current.indent && chain.length > 1) {
+        // This is a new top-level
+        chain.pop();
+        current = chain[chain.length - 1];
+      }
+
+      // Parse the describe line
+      const m = line.match(describe_regex);
+      const item = {
+        indent,
+        name: m?.[1] || line,
+        suites: [],
+        tests: [],
+        tags: 0,
+        skipped: line.startsWith('describe.skip(') || current.skipped
+      };
+      const tags = line.match(tags_regex);
+      
+      if (tags) {
+        item.tags = (tags[1] || []).split(',').filter((t) => !!t).length;
+      } else {
+        // Inherit tags from parent
+        item.tags = current.tags;
+      }
+
+      current.suites.push(item);
+      chain.push(item);
+    } else if (line.startsWith('it')) {
+      // Parse the it line
+      const m = line.match(it_regex);
+
+      if (m) {
+        const current = chain[chain.length - 1];
+        const test = {
+          name: m[1],
+          line: lineNum,
+        };
+        const tags = line.match(tags_regex);
+
+        test.skipped = current.skipped;
+      
+        if (tags) {
+          test.tags = (tags[1] || []).split(',').filter((t) => !!t).length;
+        } else {
+          test.tags = current.tags;
+        }
+  
+        current.tests.push(test);
+      }
+    }
+  });
+
+  return root;
+}
+
+function findTestFiles(result, folder) {
+  // Find all of the test files
+  fs.readdirSync(folder).forEach((file) => {
+    const filePath = path.resolve(folder, file)
+    const isFolder = fs.lstatSync(filePath).isDirectory();
+
+    if (isFolder) {
+      findTestFiles(result, filePath);
+    } else {
+      if (file.endsWith('.spec.ts')) {
+        result.push(processTestFile(filePath));
+      }
+    }
+  });
+}
+
+function summarizeTestFile(testFile, testName, errors) {
+  const testNameBase = testName ? `${ testName }: ` : '';
+  let testCount = 0;
+
+  testFile.suites.forEach((suite) => {
+    testCount += summarizeTestFile(suite, `${testNameBase}${suite.name}`, errors);
+  });
+
+  testFile.tests.forEach((test) => {
+    if (test.tags === 0) {
+      errors.push({
+        name: `${testNameBase}${test.name}`,
+        line: test.line,
+      });
+    }
+  });
+
+  testCount += testFile.tests.length;
+  testFile.count = testCount;
+
+  return testCount;
+}
+
+function summarizeTestFiles(files) {
+  let totalErrors = 0;
+  let totalTests = 0;
+
+  console.log('');
+  console.log(`${bold}Tests File${reset}`);
+  console.log('----- ---------------------------------------------------------------');
+
+  files.forEach((testFile) => {
+    const errors = [];
+    summarizeTestFile(testFile, '', errors);
+
+    const testCount = `${testFile.count}`.padStart(5);
+
+    totalErrors += errors.length;
+    totalTests += testFile.count;
+
+    if (errors.length) {
+      console.log(`${testCount} ${bold}${yellow}${testFile.file} ${bg_red}${white} ${totalErrors} Test(s) do not have tags${reset}`);
+      errors.forEach((e) => {
+        console.log(`         ${cyan}${e.name} (line ${e.line})${reset}`);
+      });
+    } else {
+      console.log(`${testCount} ${testFile.file}`);
+    }
+  });
+
+  console.log('');
+
+  const totalCount =`${totalTests}`.padStart(5);
+
+  console.log(`${totalCount} tests in ${files.length} files`);
+
+  return totalErrors;
+}
+
+console.log('===========================');
+console.log(`${cyan}Checking e2e tests for tags${reset}`);
+console.log('===========================');
+
+const files = [];
+findTestFiles(files, testFolder);
+
+console.log(`Read ${ files.length } test files`);
+
+// Summarize the tests that were parsed
+const totalErrors = summarizeTestFiles(files);
+
+console.log('');
+
+if (totalErrors !== 0) {
+  console.log(`${bold}${bg_red}${white} ${totalErrors} Error(s) ${reset} Tests found without tags`);
+} else {
+  console.log('PASSED: No tests found without tags');
+}
+
+process.exit(totalErrors == 0 ? 0 : 1);
+

@@ -10,19 +10,19 @@ describe('Support Page', () => {
     cy.login();
   });
 
-  it('can navigate to Support page', { tags: '@adminUser' }, () => {
+  it('can navigate to Support page', { tags: ['@generic', '@adminUser'] }, () => {
     HomePagePo.goToAndWaitForGet();
     SupportPagePo.navTo();
     supportPage.waitForPage();
   });
 
-  it('standard user does not have access to Support page', { tags: '@standardUser' }, () => {
+  it('standard user does not have access to Support page', { tags: ['@generic', '@standardUser'] }, () => {
     HomePagePo.goToAndWaitForGet();
     BurgerMenuPo.toggle();
     burgerMenu.support().should('not.exist');
   });
 
-  describe('Support Links', { tags: '@adminUser' }, () => {
+  describe('Support Links', { tags: ['@generic', '@adminUser'] }, () => {
     // Click the support links and verify user lands on the correct page
     beforeEach(() => {
       supportPage.goTo();
