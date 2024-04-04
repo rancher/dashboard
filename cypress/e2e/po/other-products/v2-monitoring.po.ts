@@ -63,8 +63,8 @@ export default class V2MonitoringPo extends PagePo {
     return new LabeledInputPo(cy.get(`[data-testid="v2-monitoring-prom-rules-group-name-${ index }"]`));
   }
 
-  setPrometheusRuleGroupInterval(index: number, value: string) {
-    return new UnitInputPo(cy.get(`[data-testid="v2-monitoring-prom-rules-group-interval-${ index }"]`)).setValue(value);
+  prometheusRuleGroupInterval(index: number) {
+    return new UnitInputPo(cy.get(`[data-testid="v2-monitoring-prom-rules-group-interval-${ index }"]`));
   }
 
   newPrometheusRuleAddBtn() {
