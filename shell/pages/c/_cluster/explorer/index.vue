@@ -393,38 +393,25 @@ export default {
       this.canViewAgents = !!this.$store.getters['cluster/schemaFor'](WORKLOAD_TYPES.DEPLOYMENT);
 
       if (this.canViewAgents) {
-        if (!this.currentCluster.isLocal) {
-          try {
-            this.cattle = await this.$store.dispatch('cluster/find', {
-              type: WORKLOAD_TYPES.DEPLOYMENT,
-              id:   'cattle-system/cattle-cluster-agent'
-            });
-          } catch (err) {
-            this.cattle = null;
-          }
+        if (this.currentCluster.isLocal) {
+          await this.setAgent('fleet', WORKLOAD_TYPES.DEPLOYMENT, 'cattle-fleet-system/fleet-controller');
+        } else {
+          await this.setAgent('fleet', WORKLOAD_TYPES.STATEFUL_SET, 'cattle-fleet-system/fleet-agent');
+          await this.setAgent('cattle', WORKLOAD_TYPES.DEPLOYMENT, 'cattle-system/cattle-cluster-agent');
 
           // Scaling Up/Down cattle deployment causes web sockets disconnection;
           this.interval = setInterval(() => {
             this.disconnected = !!this.$store.getters['cluster/inError']({ type: NODE });
           }, 1000);
         }
+      }
+    },
 
-        try {
-          this.fleet = await this.$store.dispatch('cluster/find', {
-            /**
-             * local cluster
-             *  - deployment:  cattle-fleet-system/fleet-controller
-             *  - statefulset: cattle-fleet-local-system/fleet-agent
-             * downstream rke2 cluster
-             *  - deployment:  none
-             *  - statefulset: cattle-fleet-system/fleet-agent
-             */
-            type: this.currentCluster.isLocal ? WORKLOAD_TYPES.DEPLOYMENT : WORKLOAD_TYPES.STATEFUL_SET,
-            id:   `cattle-fleet-system/${ this.currentCluster.isLocal ? 'fleet-controller' : 'fleet-agent' }`,
-          });
-        } catch (err) {
-          this.fleet = null;
-        }
+    async setAgent(agent, type, id) {
+      try {
+        this[agent] = await this.$store.dispatch('cluster/find', { type, id });
+      } catch (err) {
+        this[agent] = null;
       }
     },
 
@@ -449,16 +436,16 @@ export default {
       return STATES_ENUM.HEALTHY;
     },
 
-    getAgentStatus(agent, disconnected = false) {
-      if (agent === 'loading') {
+    getAgentStatus(resource, disconnected = false) {
+      if (resource === 'loading') {
         return STATES_ENUM.IN_PROGRESS;
       }
 
-      if (!agent || disconnected || agent.status.conditions?.find((c) => c.status !== 'True') || agent.metadata.state?.error) {
+      if (!resource || disconnected || resource.status.conditions?.find((c) => c.status !== 'True') || resource.metadata.state?.error) {
         return STATES_ENUM.UNHEALTHY;
       }
 
-      if (agent.spec.replicas !== agent.status.readyReplicas || agent.status.unavailableReplicas > 0) {
+      if (resource.spec.replicas !== resource.status.readyReplicas || resource.status.unavailableReplicas > 0) {
         return STATES_ENUM.WARNING;
       }
 
