@@ -1,3 +1,4 @@
+/* eslint-disable */
 export const v1Schemas = [
   {
     id:    'monitoring.coreos.com.prometheus',
