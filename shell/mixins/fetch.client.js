@@ -35,15 +35,19 @@ function beforeMount() {
   }
 }
 
-function $fetch() {
-  if (!this._fetchPromise) {
-    this._fetchPromise = $_fetch.call(this)
-      .then(() => {
-        delete this._fetchPromise;
-      });
+function $fetch(cached = true) {
+  if (cached) {
+    if (!this._fetchPromise) {
+      this._fetchPromise = $_fetch.call(this)
+        .then(() => {
+          delete this._fetchPromise;
+        });
+    }
+
+    return this._fetchPromise;
   }
 
-  return this._fetchPromise;
+  return $_fetch.call(this);
 }
 
 async function $_fetch() { // eslint-disable-line camelcase

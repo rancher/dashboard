@@ -46,6 +46,7 @@ export default {
       paginating:                 null,
     };
   },
+
   beforeDestroy() {
     // make sure this only runs once, for the initialized instance
     if (this.init) {
@@ -77,14 +78,19 @@ export default {
       return this.rows.length ? false : this.$fetchState.pending;
     },
   },
+
   watch: {
-    refreshFlag(neu) {
+    async refreshFlag(neu) {
       // this is where the data assignment will trigger the update of the list view...
       if (this.init && neu) {
-        this.$fetch();
+        await this.$fetch();
+        if (this.canPaginate && this.fetchPageSecondaryResources) {
+          this.fetchPageSecondaryResources(true);
+        }
       }
     }
   },
+
   methods: {
     // this defines all the flags needed for the mechanism
     // to work. They should be defined based on the main list view
@@ -127,7 +133,6 @@ export default {
           // when pagination is enabled we want to wait for the correct set of initial pagination settings to make the call
           return;
         }
-
         const opt = {
           hasManualRefresh: this.hasManualRefresh,
           pagination:       { ...this.pagination },
@@ -141,7 +146,8 @@ export default {
         return this.$store.dispatch(`${ currStore }/findPage`, {
           type,
           opt
-        }).finally(() => Vue.set(that, 'paginating', false));
+        })
+          .finally(() => Vue.set(that, 'paginating', false));
       }
 
       let incremental = 0;

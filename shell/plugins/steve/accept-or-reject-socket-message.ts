@@ -3,12 +3,11 @@ import pAndNFiltering from '@shell/plugins/steve/projectAndNamespaceFiltering.ut
 type TypeIsCached = { [type: string]: boolean }
 
 /**
- * There are scenarios where we can't subscribe to subsets of a resources
+ * There are scenarios where we can't subscribe to subsets of a resource type
  * - Multiple namespaces or projects
  * - Result of Pagination (a single page of resources that have been sorted / filtered)
  *
  * For those scenarios we subscribe to allll changes BUT ignore changes that are not applicable to that subset
- *
  */
 class AcceptOrRejectSocketMessage {
   typeIsNamespaced({ getters }: any, type: string): boolean {
