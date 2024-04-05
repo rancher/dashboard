@@ -11,7 +11,7 @@ import mergeWith from 'lodash/mergeWith';
  * const lastSavedConfigFromBE = { a: ["test"] };
  * const currentConfigByUser = { a: [] };
  * merge(lastSavedConfigFromBE, currentConfigByUser); // returns { a: ["test"] }; but we expect { a: [] };
- * 
+ *
  * More info: https://github.com/lodash/lodash/issues/1313
  *
  * This helper function addresses the issue by always replacing the old array with the new array during the merge process.
