@@ -1,18 +1,20 @@
 import mergeWith from 'lodash/mergeWith';
 
 /**
- * Helper function to correctly merge array values while updating configurations.
+ * Helper function to alter Lodash merge function default behaviour on merging arrays while updating machine pool configuration.
  *
- * In rke2.vue, the syncMachineConfigWithLatest function updates machine pool configurations by
- * merging the latest configuration from the backend with the changes made by the user.
- * However, the default behavior of Lodash's merge function does not handle array removals properly,
- * resulting in undesired outcomes when merging arrays, Example:
+ * In rke2.vue, the syncMachineConfigWithLatest function updates machine pool configuration by
+ * merging the latest configuration received from the backend with the current configuration updated by the user.
+ * However, Lodash's merge function treats arrays like object so index values are merged and not appended to arrays
+ * resulting in undesired outcomes for us, Example:
  *
  * const lastSavedConfigFromBE = { a: ["test"] };
  * const currentConfigByUser = { a: [] };
- * merge(lastSavedConfigFromBE, currentConfigByUser); // { a: ["test"] }
+ * merge(lastSavedConfigFromBE, currentConfigByUser); // returns { a: ["test"] }; but we expect { a: [] };
+ * 
+ * More info: https://github.com/lodash/lodash/issues/1313
  *
- * This helper function addresses the issue by correctly handling array values during the merge process.
+ * This helper function addresses the issue by always replacing the old array with the new array during the merge process.
  */
 export function customMerge(obj1 = {}, obj2 = {}): Object {
   return mergeWith(obj1, obj2, (obj1Value, obj2Value) => {
