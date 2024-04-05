@@ -20,7 +20,7 @@ describe('steve: getters:', () => {
         }
       },
       // this has its own tests so it just returns the input string
-      urlOptions: (url: string, opt: any) => {
+      urlOptions: (url: string, opt: any, type: string) => {
         if (opt.addParam) {
           url += '?param=true';
         }

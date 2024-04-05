@@ -450,6 +450,10 @@ export default class ClusterNode extends SteveModel {
   get provider() {
     return this.$rootGetters['currentCluster'].provisioner.toLowerCase();
   }
+
+  get displayTaintsAndLabels() {
+    return !!this.spec.taints?.length || !!this.customLabelCount;
+  }
 }
 
 function calculatePercentage(allocatable, capacity) {

@@ -1,6 +1,6 @@
 import { NAMESPACE_FILTER_NS_FULL_PREFIX, NAMESPACE_FILTER_P_FULL_PREFIX } from '@shell/utils/namespace-filter';
 import { getPerformanceSetting } from '@shell/utils/settings';
-import { FindAllOpt } from '@shell/types/store/dashboard-store.types';
+import { ActionFindAllArgs } from '@shell/types/store/dashboard-store.types';
 
 class ProjectAndNamespaceFiltering {
   static param = 'projectsornamespaces'
@@ -8,7 +8,7 @@ class ProjectAndNamespaceFiltering {
   /**
    * Does the request `opt` definition require resources are fetched from a specific set namespaces/projects?
    */
-  isApplicable(opt: FindAllOpt): boolean {
+  isApplicable(opt: ActionFindAllArgs): boolean {
     return Array.isArray(opt.namespaced);
   }
 
@@ -36,7 +36,7 @@ class ProjectAndNamespaceFiltering {
   /**
    * Check if `opt` requires resources from specific ns/projects, if so return the required query param (x=y)
    */
-  checkAndCreateParam(opt: FindAllOpt): string {
+  checkAndCreateParam(opt: ActionFindAllArgs): string {
     if (!this.isApplicable(opt)) {
       return '';
     }
