@@ -696,6 +696,7 @@ export default {
               :mode="mode"
               :selectable="option => !option.disabled"
               :label="t('fleet.gitRepo.target.selectLabel')"
+              data-testid="fleet-gitrepo-target-cluster"
             >
               <template v-slot:option="opt">
                 <hr v-if="opt.kind === 'divider'">
