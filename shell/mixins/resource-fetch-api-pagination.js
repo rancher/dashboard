@@ -111,7 +111,16 @@ export default {
   },
 
   computed: {
-    ...mapGetters(['currentProduct', 'namespaceFilters', 'isAllNamespaces']),
+    ...mapGetters(['currentProduct', 'isAllNamespaces']),
+
+    /**
+     * Why is this a specific getter and not not in mapGetters?
+     *
+     * Adding it to mapGetters means the kubewarden unit tests fail as they don't mock it....
+     */
+    namespaceFilters() {
+      return this.$store.getters['namespaceFilters'];
+    },
 
     /**
      * Does the user need to update the filter to supply valid options?
@@ -157,7 +166,7 @@ export default {
       }
 
       return this.resource && paginationUtils.isEnabled({ rootGetters: this.$store.getters }, {
-        store:    this.currentProduct.inStore,
+        store:    this.currentProduct?.inStore,
         resource: { id: this.resource.id || this.resource }
       });
     },
@@ -199,7 +208,7 @@ export default {
      * result in an empty page
      */
     rows(neu) {
-      if (!this.pagination || this.isResourceList) {
+      if (!this.canPaginate || !this.pagination || this.isResourceList) {
         return;
       }
 
@@ -214,6 +223,10 @@ export default {
     namespaceFilters: {
       immediate: true,
       async handler(neu, old) {
+        if (!this.canPaginate || !this.schema?.attributes?.namespaced) {
+          return;
+        }
+
         if (this.isResourceList) {
           return;
         }
@@ -249,6 +262,10 @@ export default {
      * @param {StorePaginationResult} old
      */
     async pagination(neu, old) {
+      if (!this.canPaginate) {
+        return;
+      }
+
       // ResourceList has two modes
       // 1) ResourceList component handles API request to fetch resources
       // 2) Custom list component handles API request to fetch resources
@@ -279,7 +296,7 @@ export default {
       }
 
       if (neu.timestamp === old?.timestamp) {
-        // This occurrs when the user returns to the page... and pagination hasn't actually changed
+        // This occurs when the user returns to the page... and pagination hasn't actually changed
         return;
       }
 

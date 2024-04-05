@@ -1,14 +1,14 @@
 import { ConfigMapPagePo } from '@/cypress/e2e/po/pages/explorer/config-map.po';
 import ConfigMapPo from '@/cypress/e2e/po/components/storage/config-map.po';
 
-describe('ConfigMap', { tags: ['@explorer', '@adminUser'] }, () => {
+const configMapPage = new ConfigMapPagePo('local');
+
+describe('ConfigMap', { testIsolation: 'off', tags: ['@explorer', '@adminUser'] }, () => {
   beforeEach(() => {
     cy.login();
   });
 
   it('has the correct title', () => {
-    const configMapPage = new ConfigMapPagePo('local');
-
     configMapPage.goTo();
 
     cy.title().should('eq', 'Rancher - local - ConfigMaps');
@@ -27,9 +27,7 @@ skipGeometric=true`;
 
     // Visit the main menu and select the 'local' cluster
     // Navigate to Service Discovery => ConfigMaps
-    const configMapPage = new ConfigMapPagePo('local');
-
-    configMapPage.goTo();
+    ConfigMapPagePo.navTo();
 
     // Click on Create
     configMapPage.clickCreate();
@@ -40,7 +38,9 @@ skipGeometric=true`;
     // Enter ConfigMap description
     const configMapPo = new ConfigMapPo();
 
-    configMapPo.nameInput().set('custom-config-map');
+    const configMapName = 'custom-config-map';
+
+    configMapPo.nameInput().set(configMapName);
     configMapPo.keyInput().set('managerApiConfiguration.properties');
     configMapPo.valueInput().set(expectedValue);
     configMapPo.descriptionInput().set('Custom Config Map Description');
@@ -49,14 +49,12 @@ skipGeometric=true`;
     configMapPo.saveCreateForm().click();
 
     // Check if the ConfigMap is created successfully
-    configMapPage.listElementWithName('custom-config-map').should('exist');
+    configMapPage.waitForPage();
+    configMapPage.searchForConfigMap(configMapName);
+    configMapPage.listElementWithName(configMapName).should('exist');
 
     // Navigate back to the edit page
-    configMapPage.listElementWithName('custom-config-map')
-      .find(`button[data-testid="sortable-table-0-action-button"]`)
-      .click()
-      .get(`li[data-testid="action-menu-0-item"]`)
-      .click();
+    configMapPage.list().actionMenu(configMapName).getMenuItem('Edit Config').click();
 
     // Assert the current value yaml dumps will append a newline at the end
     configMapPo.valueInput().value().should('eq', `${ expectedValue }\n`);
