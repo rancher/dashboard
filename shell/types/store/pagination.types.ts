@@ -182,7 +182,7 @@ export abstract class PaginationParam {
 /**
  * This is a convenience class for the `filter` param which works some magic, adds defaults and converts to the required PaginationParam format
  *
- * See description for {@link `PaginationParam`} for how multiple of these can be combined together to AND or OR together
+ * See description for {@link PaginationParam} for how multiple of these can be combined together to AND or OR together
  *
  * For more information regarding the API see https://github.com/rancher/steve?tab=readme-ov-file#filter
  */
@@ -233,7 +233,7 @@ export class PaginationParamFilter extends PaginationParam {
 /**
  * This is a convenience class for the `projectsornamespaces` param which works some magic, adds defaults and converts to the required PaginationParam format
  *
- * See description for {@link `PaginationParam`} for how multiple of these can be combined together to AND or OR together
+ * See description for {@link PaginationParam} for how multiple of these can be combined together to AND or OR together
  *
  * For more information regarding the API see https://github.com/rancher/steve?tab=readme-ov-file#projectsornamespaces
  */

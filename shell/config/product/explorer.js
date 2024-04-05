@@ -235,8 +235,11 @@ export function init(store) {
       value:  'metadata.fields.1',
       sort:   'metadata.fields.1',
       search: 'metadata.fields.1',
+    }, {
+      ...SECRET_DATA,
+      sort:   false,
+      search: false,
     },
-    SECRET_DATA,
     STEVE_AGE_COL
   ]);
 
