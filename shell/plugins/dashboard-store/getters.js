@@ -8,6 +8,7 @@ import mutations from './mutations';
 import { keyFieldFor, normalizeType } from './normalize';
 import { lookup } from './model-loader';
 import garbageCollect from '@shell/utils/gc/gc';
+import paginationUtils from '@shell/utils/pagination-utils';
 
 export const urlFor = (state, getters) => (type, id, opt) => {
   opt = opt || {};
@@ -68,6 +69,9 @@ function matchingCounts(typeObj, namespaces) {
 
 export default {
 
+  /**
+   * Get all entries in the store. This might not mean all entries of this type
+   */
   all: (state, getters, rootState) => (type) => {
     type = getters.normalizeType(type);
 
@@ -294,10 +298,31 @@ export default {
     return false;
   },
 
+  havePaginatedPage: (state, getters) => (type, pagination) => {
+    if (!pagination) {
+      return false;
+    }
+
+    type = getters.normalizeType(type);
+    const entry = state.types[type];
+
+    if ( entry ) {
+      return entry.havePage && paginationUtils.paginationEqual(entry.havePage.request, pagination);
+    }
+
+    return false;
+  },
+
   haveNamespace: (state, getters) => (type) => {
     type = getters.normalizeType(type);
 
     return state.types[type]?.haveNamespace || null;
+  },
+
+  havePage: (state, getters) => (type) => {
+    type = getters.normalizeType(type);
+
+    return state.types[type]?.havePage || null;
   },
 
   haveSelector: (state, getters) => (type, selector) => {
