@@ -3,7 +3,8 @@ import { PaginationParam, PaginationFilterField, PaginationParamProjectOrNamespa
 import { NAMESPACE_FILTER_ALL_SYSTEM, NAMESPACE_FILTER_ALL_USER, NAMESPACE_FILTER_P_FULL_PREFIX } from '@shell/utils/namespace-filter';
 import Namespace from '@shell/models/namespace';
 import { uniq } from '@shell/utils/array';
-import { MANAGEMENT, POD } from '@shell/config/types';
+import { MANAGEMENT, NODE, POD } from '@shell/config/types';
+import { Schema } from 'plugins/steve/schema';
 
 class NamespaceProjectFilters {
   /**
@@ -96,6 +97,30 @@ class NamespaceProjectFilters {
  */
 class StevePaginationUtils extends NamespaceProjectFilters {
   /**
+   * Filtering with the vai cache supports specific fields
+   * 1) Those listed here
+   * 2) Those references in the schema's attributes.fields list (which is used by generic lists)
+   */
+  static VALID_FIELDS: { [type: string]: { field: string, startsWith?: boolean }[]} = {
+    '': [// all types
+      { field: 'metadata.name' },
+      { field: 'metadata.namespace' },
+      { field: 'metadata.state.name' },
+    ],
+    [NODE]: [
+      { field: 'status.nodeInfo.kubeletVersion' },
+      { field: 'status.nodeInfo.operatingSystem' },
+    ],
+    [POD]: [
+      { field: 'spec.containers.image' },
+      { field: 'spec.nodeName' },
+    ],
+    [MANAGEMENT.NODE]: [
+      { field: 'status.nodeName' }
+    ]
+  }
+
+  /**
    * Given the selection of projects or namespaces come up with `filter` and `projectsornamespace` query params
    */
   public createParamsFromNsFilter({
@@ -178,13 +203,13 @@ class StevePaginationUtils extends NamespaceProjectFilters {
     };
   }
 
-  createParamsForPagination(type: string, opt: ActionFindPageArgs): string | undefined {
+  public createParamsForPagination(schema: Schema, opt: ActionFindPageArgs): string | undefined {
     if (!opt.pagination) {
       return;
     }
 
     const params: string[] = [];
-    const namespaceParam = this.convertPaginationParams(type, opt.pagination.projectsOrNamespaces);
+    const namespaceParam = this.convertPaginationParams(schema, opt.pagination.projectsOrNamespaces);
 
     if (namespaceParam) {
       params.push(namespaceParam);
@@ -209,7 +234,7 @@ class StevePaginationUtils extends NamespaceProjectFilters {
     }
 
     if (opt.pagination.filters?.length) {
-      const filters = this.convertPaginationParams(type, opt.pagination.filters);
+      const filters = this.convertPaginationParams(schema, opt.pagination.filters);
 
       if (filters) {
         params.push(filters);
@@ -222,61 +247,63 @@ class StevePaginationUtils extends NamespaceProjectFilters {
     return params.join('&');
   }
 
-  private validateField(type: string, field?: string): boolean {
+  /**
+   * Check if the API supports filtering by this field
+   */
+  private validateField(state: { checked: string[], invalid: string[]}, schema: Schema, field?: string) {
     if (!field) {
-      return true; // no field, so not invalid
+      return; // no field, so not invalid
     }
 
-    // At the moment generic pagination is supported... but soon it will only be via the vai cache
-    // The vai cache only supports filtering by specific fields
-    // This mechanism will warn developers that they're using an unsupported field
-    return !![
-      StevePaginationUtils.VALID_FIELDS[''],
-      StevePaginationUtils.VALID_FIELDS[type]
-    ].find((fields) => {
-      return fields?.find((f) => {
-        if (f.startsWith) {
-          if (field.startsWith(f.field)) {
-            return true;
-          }
-        } else {
-          return field === f.field;
+    if (state.checked.includes(field)) {
+      return; // already checked, exit early
+    }
+
+    state.checked.push(field);
+
+    // First check in our hardcoded list of supported filters
+    if ([
+      StevePaginationUtils.VALID_FIELDS[''], // Global
+      StevePaginationUtils.VALID_FIELDS[schema.id], // Type specific
+    ].find((fields) => fields?.find((f) => {
+      if (f.startsWith) {
+        if (field.startsWith(f.field)) {
+          return true;
         }
-      });
-    });
+      } else {
+        return field === f.field;
+      }
+    }))) {
+      return;
+    }
+
+    // Then check in schema (the api automatically supports these)
+    if (!!schema?.attributes.columns.find(
+      // This isn't the most performant, but the string is tiny
+      (at) => at.field.replace('$.', '').replace('[', '.').replace(']', '') === field
+    )) {
+      return;
+    }
+
+    state.invalid.push(field);
   }
 
   /**
-   * Filtering with the vai cache only works with specific fields
+   * Convert our {@link PaginationParam} definition of params to a set of url params
    */
-  static VALID_FIELDS: { [type: string]: { field: string, startsWith?: boolean }[]} = {
-    // global
-    '': [
-      { field: 'metadata.name' },
-      { field: 'metadata.namespace' },
-      { field: 'metadata.fields.', startsWith: true },
-      { field: 'metadata.state.name' },
-    ],
-    [POD]: [
-      { field: 'spec.containers.image' },
-      { field: 'spec.nodeName' },
-    ],
-    [MANAGEMENT.NODE]: [
-      { field: 'status.nodeName' }
-    ]
-  }
-
-  private convertPaginationParams(type: string, filters: PaginationParam[] = []): string {
-    const invalidFields: string[] = [];
+  private convertPaginationParams(schema: Schema, filters: PaginationParam[] = []): string {
+    const validateFields = {
+      checked: new Array<string>(),
+      invalid: new Array<string>(),
+    };
     const res = filters
       .filter((filter) => !!filter.fields.length)
       .map((filter) => {
         const joined = filter.fields
           .map((field) => {
             if (field.field) {
-              if (!this.validateField(type, field.field)) {
-                invalidFields.push(field.field);
-              }
+              // Check if the API supports filtering by this field
+              this.validateField(validateFields, schema, field.field);
 
               return `${ field.field }${ field.equals ? '=' : '!=' }${ field.value }`;
             }
@@ -288,9 +315,8 @@ class StevePaginationUtils extends NamespaceProjectFilters {
         return `${ filter.param }${ filter.equals ? '=' : '!=' }${ joined }`;
       }).join('&'); // This means AND
 
-    if (invalidFields.length) {
-      // When we switch over fully it will mature from `debug` to `warn`
-      console.debug(`Steve Pagination API Filter does not supper filtering by the following fields: ${ uniq(invalidFields).join(', ') }`); // eslint-disable-line no-console
+    if (validateFields.invalid.length) {
+      console.warn(`Pagination API does not support filtering '${ schema.id }' by the requested fields: ${ uniq(validateFields.invalid).join(', ') }`); // eslint-disable-line no-console
     }
 
     return res;

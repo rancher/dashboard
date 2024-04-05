@@ -15,7 +15,7 @@ import { isEqual } from '@shell/utils/object';
 
 // This are hardcoded atm, but will be changed via the `Performance` settings
 const settings: PaginationSettings = {
-  enabled: true, // TODO: RC
+  enabled: false,
   stores:  {
     cluster: {
       resources: {

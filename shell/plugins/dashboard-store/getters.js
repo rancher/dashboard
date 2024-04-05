@@ -15,8 +15,10 @@ export const urlFor = (state, getters) => (type, id, opt) => {
   type = getters.normalizeType(type);
   let url = opt.url;
 
+  let schema;
+
   if ( !url ) {
-    const schema = getters.schemaFor(type);
+    schema = getters.schemaFor(type);
 
     if ( !schema ) {
       throw new Error(`Unknown schema for type: ${ type }`);
@@ -39,7 +41,7 @@ export const urlFor = (state, getters) => (type, id, opt) => {
     url = `${ baseUrl }/${ url }`;
   }
 
-  url = getters.urlOptions(url, opt, type);
+  url = getters.urlOptions(url, opt, schema);
 
   return url;
 };
@@ -352,7 +354,7 @@ export default {
 
   urlFor,
 
-  urlOptions: () => (url, opt, type) => {
+  urlOptions: () => (url, opt, schema) => {
     return url;
   },
 
