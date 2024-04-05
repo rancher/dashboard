@@ -7295,8 +7295,6 @@ const prometheusesGet = {
   ]
 };
 
-const v1Schemas = [];
-
 const v3Schemas = [
   {
     baseType:       'schema',
@@ -7858,14 +7856,6 @@ function reply(statusCode, body) {
 
 export function generateV2MonitoringForLocalCluster() {
   // all intercepts needed to mock install of V2 monitoring
-  cy.intercept('GET', `/v1/schemas?*`, (req) => {
-    req.continue((res) => {
-      const schemaData = [...res.body.data, ...v1Schemas];
-
-      res.body.data = schemaData;
-      res.send(res.body);
-    });
-  }).as('v1Schemas');
 
   cy.intercept('GET', `/v3/schemas`, (req) => {
     req.continue((res) => {
