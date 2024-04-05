@@ -1,67 +1,12 @@
-import { v1Schemas, v3Schemas, k8sSchemas } from '@/cypress/e2e/blueprints/schemas/v2-monitoring.js';
-import {
-  podMonitorsGet, serviceMonitorsGet, alertManagerConfigsGet,
-  rancherMonitoringAlertmanagerGet, alertManagerRancherMonitoringAlertmanagerGet, prometheusRulesGet, prometheusesGet
-} from '@/cypress/e2e/blueprints/other-products-requests/v2-monitoring.js';
+import { generateV2MonitoringForLocalCluster } from '~/cypress/e2e/blueprints/other-products/v2-monitoring.js';
 import V2Monitoring from '~/cypress/e2e/po/other-products/v2-monitoring.po';
-
-function reply(statusCode: number, body: any): any {
-  return (req: any) => {
-    req.reply({
-      statusCode,
-      body
-    });
-  };
-}
 
 describe('V2 monitoring Chart', { tags: ['@charts', '@adminUser'] }, () => {
   beforeEach(() => {
     cy.login();
 
     // all intercepts needed to mock install of V2 monitoring
-    cy.intercept('GET', `/v1/schemas?*`, (req) => {
-      req.continue((res) => {
-        const schemaData = [...res.body.data, ...v1Schemas];
-
-        res.body.data = schemaData;
-        res.send(res.body);
-      });
-    }).as('v1Schemas');
-
-    cy.intercept('GET', `/v3/schemas`, (req) => {
-      req.continue((res) => {
-        const schemaData = [...res.body.data, ...v3Schemas];
-
-        res.body.data = schemaData;
-        res.send(res.body);
-      });
-    }).as('v3Schemas');
-
-    cy.intercept('GET', `/k8s/clusters/local/v1/schemas?*`, (req) => {
-      req.continue((res) => {
-        const schemaData = [...res.body.data, ...k8sSchemas];
-
-        res.body.data = schemaData;
-        res.send(res.body);
-      });
-    }).as('k8sSchemas');
-
-    // NOTE: alertManagerConfigsGet has an item for the proxyURL test
-    // testing https://github.com/rancher/dashboard/issues/10389
-    const interceptsData = [
-      ['/k8s/clusters/local/v1/monitoring.coreos.com.podmonitors', podMonitorsGet],
-      ['/k8s/clusters/local/v1/monitoring.coreos.com.servicemonitors', serviceMonitorsGet],
-      ['/k8s/clusters/local/v1/monitoring.coreos.com.alertmanagerconfigs', alertManagerConfigsGet],
-      ['/k8s/clusters/local/v1/monitoring.coreos.com.alertmanagers/cattle-monitoring-system/rancher-monitoring-alertmanager', rancherMonitoringAlertmanagerGet],
-      ['/k8s/clusters/local/v1/secrets/cattle-monitoring-system/alertmanager-rancher-monitoring-alertmanager', alertManagerRancherMonitoringAlertmanagerGet],
-      ['/k8s/clusters/local/v1/monitoring.coreos.com.prometheusrules', prometheusRulesGet],
-      ['/k8s/clusters/local/v1/monitoring.coreos.com.prometheuses', prometheusesGet],
-    ];
-
-    interceptsData.forEach((requestData, i) => {
-      cy.intercept('GET', `${ requestData[0] }?*`,
-        reply(200, requestData[1])).as(`monitoring-req-${ i }`);
-    });
+    generateV2MonitoringForLocalCluster();
   });
 
   describe('V2 monitoring resources', () => {

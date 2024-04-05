@@ -1,5 +1,5 @@
 // GET /k8s/clusters/local/v1/monitoring.coreos.com.podmonitors
-export const podMonitorsGet = {
+const podMonitorsGet = {
   type:         'collection',
   links:        { self: 'https://209.97.184.234.sslip.io/k8s/clusters/local/v1/monitoring.coreos.com.podmonitors' },
   createTypes:  { 'monitoring.coreos.com.podmonitor': 'https://209.97.184.234.sslip.io/k8s/clusters/local/v1/monitoring.coreos.com.podmonitors' },
@@ -10,7 +10,7 @@ export const podMonitorsGet = {
 };
 
 // GET /k8s/clusters/local/v1/monitoring.coreos.com.servicemonitors
-export const serviceMonitorsGet = {
+const serviceMonitorsGet = {
   type:         'collection',
   links:        { self: 'https://209.97.184.234.sslip.io/k8s/clusters/local/v1/monitoring.coreos.com.servicemonitors' },
   createTypes:  { 'monitoring.coreos.com.servicemonitor': 'https://209.97.184.234.sslip.io/k8s/clusters/local/v1/monitoring.coreos.com.servicemonitors' },
@@ -1923,7 +1923,7 @@ export const serviceMonitorsGet = {
 };
 
 // GET /k8s/clusters/local/v1/monitoring.coreos.com.alertmanagerconfigs
-export const alertManagerConfigsGet = {
+const alertManagerConfigsGet = {
   type:         'collection',
   links:        { self: 'https://209.97.184.234.sslip.io/k8s/clusters/local/v1/monitoring.coreos.com.alertmanagerconfigs' },
   createTypes:  { 'monitoring.coreos.com.alertmanagerconfig': 'https://209.97.184.234.sslip.io/k8s/clusters/local/v1/monitoring.coreos.com.alertmanagerconfigs' },
@@ -1999,7 +1999,7 @@ export const alertManagerConfigsGet = {
 };
 
 // GET /k8s/clusters/local/v1/monitoring.coreos.com.alertmanagers/cattle-monitoring-system/rancher-monitoring-alertmanager
-export const rancherMonitoringAlertmanagerGet = {
+const rancherMonitoringAlertmanagerGet = {
   id:    'cattle-monitoring-system/rancher-monitoring-alertmanager',
   type:  'monitoring.coreos.com.alertmanager',
   links: {
@@ -2268,7 +2268,7 @@ export const rancherMonitoringAlertmanagerGet = {
 };
 
 // GET /k8s/clusters/local/v1/secrets/cattle-monitoring-system/alertmanager-rancher-monitoring-alertmanager
-export const alertManagerRancherMonitoringAlertmanagerGet = {
+const alertManagerRancherMonitoringAlertmanagerGet = {
   id:    'cattle-monitoring-system/alertmanager-rancher-monitoring-alertmanager',
   type:  'secret',
   links: {
@@ -2358,7 +2358,7 @@ export const alertManagerRancherMonitoringAlertmanagerGet = {
 };
 
 // GET /k8s/clusters/local/v1/monitoring.coreos.com.prometheusrules
-export const prometheusRulesGet = {
+const prometheusRulesGet = {
   type:         'collection',
   links:        { self: 'https://209.97.184.234.sslip.io/k8s/clusters/local/v1/monitoring.coreos.com.prometheusrules' },
   createTypes:  { 'monitoring.coreos.com.prometheusrule': 'https://209.97.184.234.sslip.io/k8s/clusters/local/v1/monitoring.coreos.com.prometheusrules' },
@@ -6894,7 +6894,7 @@ export const prometheusRulesGet = {
 };
 
 // GET /k8s/clusters/local/v1/monitoring.coreos.com.prometheuses
-export const prometheusesGet = {
+const prometheusesGet = {
   type:         'collection',
   links:        { self: 'https://209.97.184.234.sslip.io/k8s/clusters/local/v1/monitoring.coreos.com.prometheuses' },
   createTypes:  { 'monitoring.coreos.com.prometheus': 'https://209.97.184.234.sslip.io/k8s/clusters/local/v1/monitoring.coreos.com.prometheuses' },
@@ -7294,3 +7294,613 @@ export const prometheusesGet = {
     }
   ]
 };
+
+const v1Schemas = [];
+
+const v3Schemas = [
+  {
+    baseType:       'schema',
+    id:             'monitoringConfig',
+    links:          { self: 'https://localhost:8005/v3/schemas/monitoringConfig' },
+    pluralName:     'monitoringConfigs',
+    resourceFields: {
+      metricsServerPriorityClassName: {
+        create:   true,
+        nullable: true,
+        type:     'string',
+        update:   true
+      },
+      nodeSelector: {
+        create:   true,
+        nullable: true,
+        type:     'map[string]',
+        update:   true
+      },
+      options: {
+        create:   true,
+        nullable: true,
+        type:     'map[string]',
+        update:   true
+      },
+      provider: {
+        create:   true,
+        default:  'metrics-server',
+        nullable: true,
+        type:     'string',
+        update:   true
+      },
+      replicas: {
+        create:   true,
+        default:  1,
+        nullable: true,
+        type:     'int',
+        update:   true
+      },
+      tolerations: {
+        create:   true,
+        nullable: true,
+        type:     'array[toleration]',
+        update:   true
+      },
+      updateStrategy: {
+        create:   true,
+        nullable: true,
+        type:     'deploymentStrategy',
+        update:   true
+      }
+    },
+    type:    'schema',
+    version: {
+      group:   'management.cattle.io',
+      path:    '/v3',
+      version: 'v3'
+    }
+  }
+];
+
+const k8sSchemas = [
+  {
+    id:    'monitoring.coreos.com.thanosruler',
+    type:  'schema',
+    links: {
+      collection: 'https://localhost:8005/k8s/clusters/local/v1/monitoring.coreos.com.thanosrulers',
+      self:       'https://localhost:8005/k8s/clusters/local/v1/schemas/monitoring.coreos.com.thanosruler'
+    },
+    description:     'ThanosRuler defines a ThanosRuler deployment.',
+    pluralName:      'monitoring.coreos.com.thanosrulers',
+    resourceMethods: [
+      'GET',
+      'DELETE',
+      'PUT',
+      'PATCH'
+    ],
+    resourceFields:    null,
+    collectionMethods: [
+      'GET',
+      'POST'
+    ],
+    attributes: {
+      columns: [
+        {
+          name:  'Replicas',
+          field: '.spec.replicas',
+          type:  'integer'
+        },
+        {
+          name:  'Age',
+          field: '.metadata.creationTimestamp',
+          type:  'date'
+        },
+        {
+          name:  'Paused',
+          field: '.status.paused',
+          type:  'boolean'
+        }
+      ],
+      group:      'monitoring.coreos.com',
+      kind:       'ThanosRuler',
+      namespaced: true,
+      resource:   'thanosrulers',
+      verbs:      [
+        'delete',
+        'deletecollection',
+        'get',
+        'list',
+        'patch',
+        'create',
+        'update',
+        'watch'
+      ],
+      version: 'v1'
+    }
+  },
+  {
+    id:    'monitoring.coreos.com.prometheus',
+    type:  'schema',
+    links: {
+      collection: 'https://localhost:8005/k8s/clusters/local/v1/monitoring.coreos.com.prometheuses',
+      self:       'https://localhost:8005/k8s/clusters/local/v1/schemas/monitoring.coreos.com.prometheus'
+    },
+    description:     'Prometheus defines a Prometheus deployment.',
+    pluralName:      'monitoring.coreos.com.prometheuses',
+    resourceMethods: [
+      'GET',
+      'DELETE',
+      'PUT',
+      'PATCH'
+    ],
+    resourceFields:    null,
+    collectionMethods: [
+      'GET',
+      'POST'
+    ],
+    attributes: {
+      columns: [
+        {
+          name:  'Version',
+          field: '.spec.version',
+          type:  'string'
+        },
+        {
+          name:  'Desired',
+          field: '.spec.replicas',
+          type:  'integer'
+        },
+        {
+          name:  'Ready',
+          field: '.status.availableReplicas',
+          type:  'integer'
+        },
+        {
+          name:  'Reconciled',
+          field: ".status.conditions[?(@.type == 'Reconciled')].status",
+          type:  'string'
+        },
+        {
+          name:  'Available',
+          field: ".status.conditions[?(@.type == 'Available')].status",
+          type:  'string'
+        },
+        {
+          name:  'Age',
+          field: '.metadata.creationTimestamp',
+          type:  'date'
+        },
+        {
+          name:  'Paused',
+          field: '.status.paused',
+          type:  'boolean'
+        }
+      ],
+      group:      'monitoring.coreos.com',
+      kind:       'Prometheus',
+      namespaced: true,
+      resource:   'prometheuses',
+      verbs:      [
+        'delete',
+        'deletecollection',
+        'get',
+        'list',
+        'patch',
+        'create',
+        'update',
+        'watch'
+      ],
+      version: 'v1'
+    }
+  },
+  {
+    id:    'monitoring.coreos.com.alertmanagerconfig',
+    type:  'schema',
+    links: {
+      collection: 'https://localhost:8005/k8s/clusters/local/v1/monitoring.coreos.com.alertmanagerconfigs',
+      self:       'https://localhost:8005/k8s/clusters/local/v1/schemas/monitoring.coreos.com.alertmanagerconfig'
+    },
+    description:     'AlertmanagerConfig defines a namespaced AlertmanagerConfig to be aggregated across multiple namespaces configuring one Alertmanager cluster.',
+    pluralName:      'monitoring.coreos.com.alertmanagerconfigs',
+    resourceMethods: [
+      'GET',
+      'DELETE',
+      'PUT',
+      'PATCH'
+    ],
+    resourceFields:    null,
+    collectionMethods: [
+      'GET',
+      'POST'
+    ],
+    attributes: {
+      columns: [
+        {
+          name:        'Name',
+          type:        'string',
+          format:      'name',
+          description: 'Name must be unique within a namespace. Is required when creating resources, although some resources may allow a client to request the generation of an appropriate name automatically. Name is primarily intended for creation idempotence and configuration definition. Cannot be updated. More info: https://kubernetes.io/docs/concepts/overview/working-with-objects/names#names',
+          priority:    0,
+          field:       '$.metadata.fields[0]'
+        },
+        {
+          name:        'Age',
+          type:        'date',
+          format:      '',
+          description: 'CreationTimestamp is a timestamp representing the server time when this object was created. It is not guaranteed to be set in happens-before order across separate operations. Clients may not set this value. It is represented in RFC3339 form and is in UTC.\n\nPopulated by the system. Read-only. Null for lists. More info: https://git.k8s.io/community/contributors/devel/sig-architecture/api-conventions.md#metadata',
+          priority:    0,
+          field:       '$.metadata.fields[1]'
+        }
+      ],
+      group:            'monitoring.coreos.com',
+      kind:             'AlertmanagerConfig',
+      namespaced:       true,
+      preferredVersion: 'v1',
+      resource:         'alertmanagerconfigs',
+      verbs:            [
+        'delete',
+        'deletecollection',
+        'get',
+        'list',
+        'patch',
+        'create',
+        'update',
+        'watch'
+      ],
+      version: 'v1alpha1'
+    }
+  },
+  {
+    id:    'monitoring.coreos.com.servicemonitor',
+    type:  'schema',
+    links: {
+      collection: 'https://localhost:8005/k8s/clusters/local/v1/monitoring.coreos.com.servicemonitors',
+      self:       'https://localhost:8005/k8s/clusters/local/v1/schemas/monitoring.coreos.com.servicemonitor'
+    },
+    description:     'ServiceMonitor defines monitoring for a set of services.',
+    pluralName:      'monitoring.coreos.com.servicemonitors',
+    resourceMethods: [
+      'GET',
+      'DELETE',
+      'PUT',
+      'PATCH'
+    ],
+    resourceFields:    null,
+    collectionMethods: [
+      'GET',
+      'POST'
+    ],
+    attributes: {
+      columns: [
+        {
+          name:        'Name',
+          type:        'string',
+          format:      'name',
+          description: 'Name must be unique within a namespace. Is required when creating resources, although some resources may allow a client to request the generation of an appropriate name automatically. Name is primarily intended for creation idempotence and configuration definition. Cannot be updated. More info: https://kubernetes.io/docs/concepts/overview/working-with-objects/names#names',
+          priority:    0,
+          field:       '$.metadata.fields[0]'
+        },
+        {
+          name:        'Age',
+          type:        'date',
+          format:      '',
+          description: 'CreationTimestamp is a timestamp representing the server time when this object was created. It is not guaranteed to be set in happens-before order across separate operations. Clients may not set this value. It is represented in RFC3339 form and is in UTC.\n\nPopulated by the system. Read-only. Null for lists. More info: https://git.k8s.io/community/contributors/devel/sig-architecture/api-conventions.md#metadata',
+          priority:    0,
+          field:       '$.metadata.fields[1]'
+        }
+      ],
+      group:      'monitoring.coreos.com',
+      kind:       'ServiceMonitor',
+      namespaced: true,
+      resource:   'servicemonitors',
+      verbs:      [
+        'delete',
+        'deletecollection',
+        'get',
+        'list',
+        'patch',
+        'create',
+        'update',
+        'watch'
+      ],
+      version: 'v1'
+    }
+  },
+  {
+    id:    'monitoring.coreos.com.alertmanager',
+    type:  'schema',
+    links: {
+      collection: 'https://localhost:8005/k8s/clusters/local/v1/monitoring.coreos.com.alertmanagers',
+      self:       'https://localhost:8005/k8s/clusters/local/v1/schemas/monitoring.coreos.com.alertmanager'
+    },
+    description:     'Alertmanager describes an Alertmanager cluster.',
+    pluralName:      'monitoring.coreos.com.alertmanagers',
+    resourceMethods: [
+      'GET',
+      'DELETE',
+      'PUT',
+      'PATCH'
+    ],
+    resourceFields:    null,
+    collectionMethods: [
+      'GET',
+      'POST'
+    ],
+    attributes: {
+      columns: [
+        {
+          name:  'Version',
+          field: '.spec.version',
+          type:  'string'
+        },
+        {
+          name:  'Replicas',
+          field: '.spec.replicas',
+          type:  'integer'
+        },
+        {
+          name:  'Ready',
+          field: '.status.availableReplicas',
+          type:  'integer'
+        },
+        {
+          name:  'Reconciled',
+          field: ".status.conditions[?(@.type == 'Reconciled')].status",
+          type:  'string'
+        },
+        {
+          name:  'Available',
+          field: ".status.conditions[?(@.type == 'Available')].status",
+          type:  'string'
+        },
+        {
+          name:  'Age',
+          field: '.metadata.creationTimestamp',
+          type:  'date'
+        },
+        {
+          name:  'Paused',
+          field: '.status.paused',
+          type:  'boolean'
+        }
+      ],
+      group:      'monitoring.coreos.com',
+      kind:       'Alertmanager',
+      namespaced: true,
+      resource:   'alertmanagers',
+      verbs:      [
+        'delete',
+        'deletecollection',
+        'get',
+        'list',
+        'patch',
+        'create',
+        'update',
+        'watch'
+      ],
+      version: 'v1'
+    }
+  },
+  {
+    id:    'monitoring.coreos.com.podmonitor',
+    type:  'schema',
+    links: {
+      collection: 'https://localhost:8005/k8s/clusters/local/v1/monitoring.coreos.com.podmonitors',
+      self:       'https://localhost:8005/k8s/clusters/local/v1/schemas/monitoring.coreos.com.podmonitor'
+    },
+    description:     'PodMonitor defines monitoring for a set of pods.',
+    pluralName:      'monitoring.coreos.com.podmonitors',
+    resourceMethods: [
+      'GET',
+      'DELETE',
+      'PUT',
+      'PATCH'
+    ],
+    resourceFields:    null,
+    collectionMethods: [
+      'GET',
+      'POST'
+    ],
+    attributes: {
+      columns: [
+        {
+          name:        'Name',
+          type:        'string',
+          format:      'name',
+          description: 'Name must be unique within a namespace. Is required when creating resources, although some resources may allow a client to request the generation of an appropriate name automatically. Name is primarily intended for creation idempotence and configuration definition. Cannot be updated. More info: https://kubernetes.io/docs/concepts/overview/working-with-objects/names#names',
+          priority:    0,
+          field:       '$.metadata.fields[0]'
+        },
+        {
+          name:        'Age',
+          type:        'date',
+          format:      '',
+          description: 'CreationTimestamp is a timestamp representing the server time when this object was created. It is not guaranteed to be set in happens-before order across separate operations. Clients may not set this value. It is represented in RFC3339 form and is in UTC.\n\nPopulated by the system. Read-only. Null for lists. More info: https://git.k8s.io/community/contributors/devel/sig-architecture/api-conventions.md#metadata',
+          priority:    0,
+          field:       '$.metadata.fields[1]'
+        }
+      ],
+      group:      'monitoring.coreos.com',
+      kind:       'PodMonitor',
+      namespaced: true,
+      resource:   'podmonitors',
+      verbs:      [
+        'delete',
+        'deletecollection',
+        'get',
+        'list',
+        'patch',
+        'create',
+        'update',
+        'watch'
+      ],
+      version: 'v1'
+    }
+  },
+  {
+    id:    'monitoring.coreos.com.probe',
+    type:  'schema',
+    links: {
+      collection: 'https://localhost:8005/k8s/clusters/local/v1/monitoring.coreos.com.probes',
+      self:       'https://localhost:8005/k8s/clusters/local/v1/schemas/monitoring.coreos.com.probe'
+    },
+    description:     'Probe defines monitoring for a set of static targets or ingresses.',
+    pluralName:      'monitoring.coreos.com.probes',
+    resourceMethods: [
+      'GET',
+      'DELETE',
+      'PUT',
+      'PATCH'
+    ],
+    resourceFields:    null,
+    collectionMethods: [
+      'GET',
+      'POST'
+    ],
+    attributes: {
+      columns: [
+        {
+          name:        'Name',
+          type:        'string',
+          format:      'name',
+          description: 'Name must be unique within a namespace. Is required when creating resources, although some resources may allow a client to request the generation of an appropriate name automatically. Name is primarily intended for creation idempotence and configuration definition. Cannot be updated. More info: https://kubernetes.io/docs/concepts/overview/working-with-objects/names#names',
+          priority:    0,
+          field:       '$.metadata.fields[0]'
+        },
+        {
+          name:        'Age',
+          type:        'date',
+          format:      '',
+          description: 'CreationTimestamp is a timestamp representing the server time when this object was created. It is not guaranteed to be set in happens-before order across separate operations. Clients may not set this value. It is represented in RFC3339 form and is in UTC.\n\nPopulated by the system. Read-only. Null for lists. More info: https://git.k8s.io/community/contributors/devel/sig-architecture/api-conventions.md#metadata',
+          priority:    0,
+          field:       '$.metadata.fields[1]'
+        }
+      ],
+      group:      'monitoring.coreos.com',
+      kind:       'Probe',
+      namespaced: true,
+      resource:   'probes',
+      verbs:      [
+        'delete',
+        'deletecollection',
+        'get',
+        'list',
+        'patch',
+        'create',
+        'update',
+        'watch'
+      ],
+      version: 'v1'
+    }
+  },
+  {
+    id:    'monitoring.coreos.com.prometheusrule',
+    type:  'schema',
+    links: {
+      collection: 'https://localhost:8005/k8s/clusters/local/v1/monitoring.coreos.com.prometheusrules',
+      self:       'https://localhost:8005/k8s/clusters/local/v1/schemas/monitoring.coreos.com.prometheusrule'
+    },
+    description:     'PrometheusRule defines recording and alerting rules for a Prometheus instance',
+    pluralName:      'monitoring.coreos.com.prometheusrules',
+    resourceMethods: [
+      'GET',
+      'DELETE',
+      'PUT',
+      'PATCH'
+    ],
+    resourceFields:    null,
+    collectionMethods: [
+      'GET',
+      'POST'
+    ],
+    attributes: {
+      columns: [
+        {
+          name:        'Name',
+          type:        'string',
+          format:      'name',
+          description: 'Name must be unique within a namespace. Is required when creating resources, although some resources may allow a client to request the generation of an appropriate name automatically. Name is primarily intended for creation idempotence and configuration definition. Cannot be updated. More info: https://kubernetes.io/docs/concepts/overview/working-with-objects/names#names',
+          priority:    0,
+          field:       '$.metadata.fields[0]'
+        },
+        {
+          name:        'Age',
+          type:        'date',
+          format:      '',
+          description: 'CreationTimestamp is a timestamp representing the server time when this object was created. It is not guaranteed to be set in happens-before order across separate operations. Clients may not set this value. It is represented in RFC3339 form and is in UTC.\n\nPopulated by the system. Read-only. Null for lists. More info: https://git.k8s.io/community/contributors/devel/sig-architecture/api-conventions.md#metadata',
+          priority:    0,
+          field:       '$.metadata.fields[1]'
+        }
+      ],
+      group:      'monitoring.coreos.com',
+      kind:       'PrometheusRule',
+      namespaced: true,
+      resource:   'prometheusrules',
+      verbs:      [
+        'delete',
+        'deletecollection',
+        'get',
+        'list',
+        'patch',
+        'create',
+        'update',
+        'watch'
+      ],
+      version: 'v1'
+    }
+  }
+];
+
+function reply(statusCode, body) {
+  return (req) => {
+    req.reply({
+      statusCode,
+      body
+    });
+  };
+}
+
+export function generateV2MonitoringForLocalCluster() {
+  // all intercepts needed to mock install of V2 monitoring
+  cy.intercept('GET', `/v1/schemas?*`, (req) => {
+    req.continue((res) => {
+      const schemaData = [...res.body.data, ...v1Schemas];
+
+      res.body.data = schemaData;
+      res.send(res.body);
+    });
+  }).as('v1Schemas');
+
+  cy.intercept('GET', `/v3/schemas`, (req) => {
+    req.continue((res) => {
+      const schemaData = [...res.body.data, ...v3Schemas];
+
+      res.body.data = schemaData;
+      res.send(res.body);
+    });
+  }).as('v3Schemas');
+
+  cy.intercept('GET', `/k8s/clusters/local/v1/schemas?*`, (req) => {
+    req.continue((res) => {
+      const schemaData = [...res.body.data, ...k8sSchemas];
+
+      res.body.data = schemaData;
+      res.send(res.body);
+    });
+  }).as('k8sSchemas');
+
+  // NOTE: alertManagerConfigsGet has an item for the proxyURL test
+  // testing https://github.com/rancher/dashboard/issues/10389
+  const interceptsData = [
+    ['/k8s/clusters/local/v1/monitoring.coreos.com.podmonitors', podMonitorsGet],
+    ['/k8s/clusters/local/v1/monitoring.coreos.com.servicemonitors', serviceMonitorsGet],
+    ['/k8s/clusters/local/v1/monitoring.coreos.com.alertmanagerconfigs', alertManagerConfigsGet],
+    ['/k8s/clusters/local/v1/monitoring.coreos.com.alertmanagers/cattle-monitoring-system/rancher-monitoring-alertmanager', rancherMonitoringAlertmanagerGet],
+    ['/k8s/clusters/local/v1/secrets/cattle-monitoring-system/alertmanager-rancher-monitoring-alertmanager', alertManagerRancherMonitoringAlertmanagerGet],
+    ['/k8s/clusters/local/v1/monitoring.coreos.com.prometheusrules', prometheusRulesGet],
+    ['/k8s/clusters/local/v1/monitoring.coreos.com.prometheuses', prometheusesGet],
+  ];
+
+  interceptsData.forEach((requestData, i) => {
+    cy.intercept('GET', `${ requestData[0] }?*`,
+      reply(200, requestData[1])).as(`monitoring-req-${ i }`);
+  });
+
+  return true;
+}
