@@ -77,7 +77,7 @@ export default class SortableTablePo extends ComponentPo {
   //
 
   groupElementWithName(name: string) {
-    return this.self().contains('tr.group-row div', name);
+    return this.self().contains('tr.group-row', name);
   }
 
   rowElements(options?: any) {

@@ -32,6 +32,14 @@ export default abstract class ClusterManagerCreateRKE1PagePo extends ClusterMana
     throw new Error('RKE2 only');
   }
 
+  createRKE1(): CypressChainable {
+    return cy.iFrame().find('[data-testid="save-cancel-rke1"] button').contains('Create').click();
+  }
+
+  saveRKE1(): CypressChainable {
+    return cy.iFrame().find('[data-testid="save-cancel-rke1"] button').contains('Save').click();
+  }
+
   next() {
     return cy.iFrame().find('button').contains('Next').click();
   }
