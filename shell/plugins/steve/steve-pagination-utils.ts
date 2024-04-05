@@ -3,7 +3,7 @@ import { PaginationParam, PaginationFilterField, PaginationParamProjectOrNamespa
 import { NAMESPACE_FILTER_ALL_SYSTEM, NAMESPACE_FILTER_ALL_USER, NAMESPACE_FILTER_P_FULL_PREFIX } from '@shell/utils/namespace-filter';
 import Namespace from '@shell/models/namespace';
 import { uniq } from '@shell/utils/array';
-import { MANAGEMENT, POD } from 'config/types';
+import { MANAGEMENT, POD } from '@shell/config/types';
 
 class NamespaceProjectFilters {
   /**
@@ -184,7 +184,7 @@ class StevePaginationUtils extends NamespaceProjectFilters {
     }
 
     const params: string[] = [];
-    const namespaceParam = this.convertPaginationParams(type, opt.pagination.projectsOrNamespaces, true);
+    const namespaceParam = this.convertPaginationParams(type, opt.pagination.projectsOrNamespaces);
 
     if (namespaceParam) {
       params.push(namespaceParam);
@@ -290,7 +290,7 @@ class StevePaginationUtils extends NamespaceProjectFilters {
 
     if (invalidFields.length) {
       // When we switch over fully it will mature from `debug` to `warn`
-      console.debug(`Steve Pagination API Filter does not supper filtering by the following fields: ${ uniq(invalidFields).join(', ') }`);
+      console.debug(`Steve Pagination API Filter does not supper filtering by the following fields: ${ uniq(invalidFields).join(', ') }`); // eslint-disable-line no-console
     }
 
     return res;

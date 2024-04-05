@@ -136,27 +136,38 @@ export default defineComponent({
 
   methods: {
     async loadMetrics() {
-      if (!this.canViewNodeMetrics || !this.rows.length) {
+      if (!this.canViewNodeMetrics) {
         return;
       }
 
-      const opt: ActionFindPageArgs = {
-        force:      true,
-        pagination: new PaginationArgs({
-          page:    -1,
-          filters: new PaginationParamFilter({
-            fields: this.rows.map((r: any) => new PaginationFilterField({
-              field: 'metadata.name',
-              value: r.id
-            }))
-          })
-        })
-      };
+      if (this.canPaginate) {
+        if (!this.rows.length) {
+          return;
+        }
 
-      await this.$store.dispatch('cluster/findPage', {
-        type: METRIC.NODE,
-        opt
-      });
+        const opt: ActionFindPageArgs = {
+          force:      true,
+          pagination: new PaginationArgs({
+            page:    -1,
+            filters: new PaginationParamFilter({
+              fields: this.rows.map((r: any) => new PaginationFilterField({
+                field: 'metadata.name',
+                value: r.id
+              }))
+            })
+          })
+        };
+
+        await this.$store.dispatch('cluster/findPage', {
+          type: METRIC.NODE,
+          opt
+        });
+      } else {
+        await this.$store.dispatch('cluster/findAll', {
+          type: METRIC.NODE,
+          opt:  { force: true }
+        });
+      }
 
       this.$forceUpdate();
     },
@@ -172,23 +183,21 @@ export default defineComponent({
 
       const hash: { [key: string]: Promise<any>} = {};
 
-      if (!this.canPaginate) {
-        if (this.canViewMgmtNodes) {
-          hash.mgmtNodes = this.$fetchType(MANAGEMENT.NODE, [], 'management');
-        }
+      if (this.canViewMgmtNodes) {
+        hash.mgmtNodes = this.$fetchType(MANAGEMENT.NODE, [], 'management');
+      }
 
-        if (this.canViewNormanNodes) {
-          hash.normanNodes = this.$fetchType(NORMAN.NODE, [], 'rancher');
-        }
+      if (this.canViewNormanNodes) {
+        hash.normanNodes = this.$fetchType(NORMAN.NODE, [], 'rancher');
+      }
 
-        if (this.canViewMachines) {
-          hash.machines = this.$fetchType(CAPI.MACHINE, [], 'management');
-        }
+      if (this.canViewMachines) {
+        hash.machines = this.$fetchType(CAPI.MACHINE, [], 'management');
+      }
 
-        if (this.canViewPods) {
-          // No need to block on this
-          this.$fetchType(POD);
-        }
+      if (this.canViewPods) {
+        // No need to block on this
+        this.$fetchType(POD);
       }
 
       return hash;
