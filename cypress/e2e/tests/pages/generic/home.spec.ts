@@ -7,7 +7,7 @@ import { PARTIAL_SETTING_THRESHOLD } from '@/cypress/support/utils/settings-util
 const homePage = new HomePagePo();
 const homeClusterList = homePage.list();
 const provClusterList = new ClusterManagerListPagePo('local');
-const longClusterDescription = 'this-is-some-really-really-really-really-really-really-long-decription';
+const longClusterDescription = 'this-is-some-really-really-really-really-really-really-long-description';
 
 describe('Home Page', () => {
   it('Confirm correct number of settings requests made', { tags: ['@generic', '@adminUser', '@standardUser'] }, () => {

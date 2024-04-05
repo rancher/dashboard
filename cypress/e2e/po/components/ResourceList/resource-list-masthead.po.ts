@@ -10,6 +10,10 @@ export default class ResourceListMastheadPo extends ComponentPo {
   }
 
   create() {
+    this.actions().eq(0).click();
+  }
+
+  createYaml() {
     return this.self().find('[data-testid="masthead-create-yaml"]').click();
   }
 }

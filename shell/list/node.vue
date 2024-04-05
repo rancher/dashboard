@@ -17,7 +17,7 @@ import {
 } from '@shell/config/types';
 import { allHash } from '@shell/utils/promise';
 import { GROUP_RESOURCES, mapPref } from '@shell/store/prefs';
-import { COLUMN_BREAKPOINTS } from '~/shell/types/store/type-map';
+import { COLUMN_BREAKPOINTS } from '@shell/types/store/type-map';
 
 import ResourceFetch from '@shell/mixins/resource-fetch';
 import { mapGetters } from 'vuex';
