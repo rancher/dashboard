@@ -4335,7 +4335,7 @@ prefs:
   advFeatures:
     title: Advanced Features
     viewInApi: Enable "View in API"
-    allNamespaces: Show system Namespaces managed by Rancher (not intended for editing or deletion)
+    allNamespaces: Show dynamic Namespaces managed by Rancher (not intended for editing or deletion)
     themeShortcut: Enable Dark/Light Theme keyboard shortcut toggle (shift+T)
     pluginDeveloper: Enable Extension developer features
   hideDesc:
@@ -4781,6 +4781,7 @@ resourceList:
     createFromYaml: Create from YAML
     createResource: "Create {resourceName}"
   nsFiltering: "Please select one or more namespaces or projects using the filter above."
+  nsFilteringGeneric: "Please select a valid namespace or project option using the filter above."
   nsFilterToolTip: "Filtering is restricted to projects and namespaces"
 resourceLoadingIndicator:
   loading: Loading

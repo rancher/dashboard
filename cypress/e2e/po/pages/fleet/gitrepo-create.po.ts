@@ -2,92 +2,101 @@ import PagePo from '@/cypress/e2e/po/pages/page.po';
 import ArrayListPo from '@/cypress/e2e/po/components/array-list.po';
 import CreateEditViewPo from '@/cypress/e2e/po/components/create-edit-view.po';
 import LabeledInputPo from '@/cypress/e2e/po/components/labeled-input.po';
+import LabeledSelectPo from '@/cypress/e2e/po/components/labeled-select.po';
 import { WorkspaceSwitcherPo } from '@/cypress/e2e/po/components/workspace-switcher.po';
 import SelectOrCreateAuthPo from '@/cypress/e2e/po/components/select-or-create-auth.po';
 import { FleetGitRepoListPagePo } from '@/cypress/e2e/po/pages/fleet/fleet.cattle.io.gitrepo.po';
 
 export class GitRepoCreatePo extends PagePo {
-    static url: string;
+  static url: string;
 
-    private static createPath(
-      clusterId: string,
-      queryParams?: Record<string, string>
-    ) {
-      const urlStr = `/c/${ clusterId }/fleet/fleet.cattle.io.gitrepo/create`;
+  private static createPath(
+    clusterId: string,
+    queryParams?: Record<string, string>
+  ) {
+    const urlStr = `/c/${ clusterId }/fleet/fleet.cattle.io.gitrepo/create`;
 
-      if (!queryParams) {
-        return urlStr;
-      }
-
-      const params = new URLSearchParams(queryParams);
-
-      return `${ urlStr }?${ params.toString() }`;
+    if (!queryParams) {
+      return urlStr;
     }
 
-    static goTo(clusterId = 'local'): Cypress.Chainable<Cypress.AUTWindow> {
-      return super.goTo(GitRepoCreatePo.createPath(clusterId));
-    }
+    const params = new URLSearchParams(queryParams);
 
-    constructor(clusterId: string) {
-      super(GitRepoCreatePo.createPath(clusterId));
-    }
+    return `${ urlStr }?${ params.toString() }`;
+  }
 
-    static navTo() {
-      const listPage = new FleetGitRepoListPagePo();
+  static goTo(clusterId = 'local'): Cypress.Chainable<Cypress.AUTWindow> {
+    return super.goTo(GitRepoCreatePo.createPath(clusterId));
+  }
 
-      listPage.navTo();
-      listPage.repoList().create();
-    }
+  constructor(clusterId: string) {
+    super(GitRepoCreatePo.createPath(clusterId));
+  }
 
-    selectWorkspace(name: string) {
-      const wsSwitcher = new WorkspaceSwitcherPo();
+  static navTo() {
+    const listPage = new FleetGitRepoListPagePo();
 
-      wsSwitcher.toggle();
+    listPage.navTo();
+    listPage.repoList().create();
+  }
 
-      return wsSwitcher.clickOptionWithLabel(name);
-    }
+  selectWorkspace(name: string) {
+    const wsSwitcher = new WorkspaceSwitcherPo();
 
-    footer() {
-      return new CreateEditViewPo(this.self());
-    }
+    wsSwitcher.toggle();
 
-    setRepoName(name: string) {
-      return LabeledInputPo.byLabel(this.self(), 'Name').set(name);
-    }
+    return wsSwitcher.clickOptionWithLabel(name);
+  }
 
-    setBranchName(branch = 'dashboard-e2e-basic') {
-      return LabeledInputPo.byLabel(this.self(), 'Branch').set(branch);
-    }
+  footer() {
+    return new CreateEditViewPo(this.self());
+  }
 
-    setGitRepoUrl(url: string) {
-      return LabeledInputPo.byLabel(this.self(), 'Repository URL').set(url);
-    }
+  setRepoName(name: string) {
+    return LabeledInputPo.byLabel(this.self(), 'Name').set(name);
+  }
 
-    setHelmRepoURLRegex(regexStr = 'https://charts.rancher.io/*') {
-      return LabeledInputPo.bySelector(this.self(), '[data-testid="gitrepo-helm-repo-url-regex"]').set(regexStr);
-    }
+  setBranchName(branch = 'dashboard-e2e-basic') {
+    return LabeledInputPo.byLabel(this.self(), 'Branch').set(branch);
+  }
 
-    setGitRepoPath(path: string, index = 0) {
-      return this.gitRepoPaths().setValueAtIndex(path, index);
-    }
+  setGitRepoUrl(url: string) {
+    return LabeledInputPo.byLabel(this.self(), 'Repository URL').set(url);
+  }
 
-    goToNext() {
-      return this.footer().nextPage();
-    }
+  setHelmRepoURLRegex(regexStr = 'https://charts.rancher.io/*') {
+    return LabeledInputPo.bySelector(this.self(), '[data-testid="gitrepo-helm-repo-url-regex"]').set(regexStr);
+  }
 
-    create() {
-      return this.footer().create();
-    }
+  setGitRepoPath(path: string, index = 0) {
+    return this.gitRepoPaths().setValueAtIndex(path, index);
+  }
 
-    gitRepoPaths() {
-      return new ArrayListPo('[data-testid="gitRepo-paths"]');
-    }
+  goToNext() {
+    return this.footer().nextPage();
+  }
 
-    authSelectOrCreate(selector: string) {
-      return new SelectOrCreateAuthPo(selector);
-    }
+  targetCluster(): LabeledSelectPo {
+    return new LabeledSelectPo('[data-testid="fleet-gitrepo-target-cluster"]');
+  }
 
-    helmAuthSelectOrCreate() {
-      return this.authSelectOrCreate('[data-testid="gitrepo-helm-auth"]');
-    }
+  create() {
+    return this.footer().create();
+  }
+
+  gitRepoPaths() {
+    return new ArrayListPo('[data-testid="gitRepo-paths"]');
+  }
+
+  authSelectOrCreate(selector: string) {
+    return new SelectOrCreateAuthPo(selector);
+  }
+
+  helmAuthSelectOrCreate() {
+    return this.authSelectOrCreate('[data-testid="gitrepo-helm-auth"]');
+  }
+
+  title() {
+    return this.self().get('.title .primaryheader  h1');
+  }
 }

@@ -569,6 +569,7 @@ export default {
           :disabled="action.enabled ? !action.enabled(ctx) : false"
           type="button"
           class="btn header-btn role-tertiary"
+          :data-testid="`extension-header-action-${ action.labelKey || action.label }`"
           @shortkey="handleExtensionAction(action, $event)"
           @click="handleExtensionAction(action, $event)"
         >

@@ -10,19 +10,7 @@ export const gitRepoCreateRequest = {
     paths:        ['simple'],
     correctDrift: { enabled: false },
     targets:      [
-      {
-        clusterSelector: {
-          matchExpressions: [
-            {
-              key:      'provider.cattle.io',
-              operator: 'NotIn',
-              values:   [
-                'harvester'
-              ]
-            }
-          ]
-        }
-      }
+      { clusterName: 'some-fake-cluster-id' }
     ],
     insecureSkipTLSVerify: false,
     helmRepoURLRegex:      'https://charts.rancher.io/*',

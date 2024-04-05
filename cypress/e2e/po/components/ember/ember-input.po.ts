@@ -4,14 +4,19 @@ export default class EmberInputPo extends EmberComponentPo {
   /**
    * Type value in the input
    * @param value Value to be typed
+   * @param secret Pass in true to hide sensitive data from logs
    * @returns
    */
-  set(value: string): Cypress.Chainable {
+  set(value: string, secret?: boolean): Cypress.Chainable {
     this.input().should('be.visible');
     this.input().focus();
     this.input().clear();
 
-    return this.input().type(value);
+    if (secret) {
+      return this.input().type(value, { log: false });
+    } else {
+      return this.input().type(value);
+    }
   }
 
   clear() {

@@ -361,6 +361,13 @@ export const KEYS = {
   value:    'keysDisplay',
 };
 
+export const SECRET_DATA = {
+  name:      'data',
+  labelKey:  'tableHeaders.data',
+  value:     'dataPreview',
+  formatter: 'SecretData'
+};
+
 export const TARGET_KIND = {
   name:     'target-kind',
   labelKey: 'tableHeaders.targetKind',
