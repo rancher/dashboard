@@ -348,6 +348,10 @@ export default {
               <td>{{ t(`authConfig.azuread.authEndpoint.label`) }}:</td>
               <td>{{ model.authEndpoint }}</td>
             </tr>
+            <tr v-if="model.deviceAuthEndpoint">
+              <td>{{ t(`authConfig.azuread.deviceAuthEndpoint.label`) }}:</td>
+              <td>{{ model.deviceAuthEndpoint }}</td>
+            </tr>
           </template>
           <template
             v-if="needsUpdate"
