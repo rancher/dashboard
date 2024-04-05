@@ -1,16 +1,7 @@
 /* eslint-disable cypress/no-unnecessary-waiting */
 import { ChartsPage } from '@/cypress/e2e/po/pages/charts.po';
-import { gatekeeperSchemas } from '@/cypress/e2e/blueprints/schemas/opa-gatekeeper.js';
+import { generateOpaGatekeeperForLocalCluster } from '@/cypress/e2e/blueprints/other-products/opa-gatekeeper.js';
 import OpaGatekeeperPo from '@/cypress/e2e/po/other-products/opa-gatekeeper';
-
-function reply(statusCode: number, body: any): any {
-  return (req: any) => {
-    req.reply({
-      statusCode,
-      body
-    });
-  };
-}
 
 describe('Charts', { tags: ['@charts', '@adminUser'] }, () => {
   beforeEach(() => {
@@ -20,49 +11,7 @@ describe('Charts', { tags: ['@charts', '@adminUser'] }, () => {
   describe('OPA Gatekeeper resources', () => {
     it('should check conditions related to issue #4600 (template w/ create btn + edit constraints w/ save btn)', () => {
       // all intercepts needed to mock install of OPA-Gatekeeper
-      cy.intercept('GET', `/v1/schemas?*`, (req) => {
-        req.continue((res) => {
-          const schemaData = [...res.body.data, ...gatekeeperSchemas];
-
-          res.body.data = schemaData;
-          res.send(res.body);
-        });
-      }).as('v1Schemas');
-
-      cy.intercept('GET', `/k8s/clusters/local/v1/schemas?*`, (req) => {
-        req.continue((res) => {
-          const schemaData = [...res.body.data, ...gatekeeperSchemas];
-
-          res.body.data = schemaData;
-          res.send(res.body);
-        });
-      }).as('k8sSchemas');
-
-      cy.intercept('GET', `/v1/constraints.gatekeeper.sh.constraints?*`,
-        reply(200,
-          {
-            type:         'collection',
-            links:        { self: 'https://localhost:8005/v1/templates.gatekeeper.sh.constraints' },
-            createTypes:  { 'templates.gatekeeper.sh.constraint': 'https://localhost:8005/v1/templates.gatekeeper.sh.constraints' },
-            actions:      {},
-            resourceType: 'templates.gatekeeper.sh.constraint',
-            revision:     '17263066',
-            count:        0,
-            data:         []
-          })).as('constraint');
-
-      cy.intercept('GET', `/v1/templates.gatekeeper.sh.constrainttemplates?*`,
-        reply(200,
-          {
-            type:         'collection',
-            links:        { self: 'https://localhost:8005/v1/templates.gatekeeper.sh.constrainttemplates' },
-            createTypes:  { 'templates.gatekeeper.sh.constrainttemplate': 'https://localhost:8005/v1/templates.gatekeeper.sh.constrainttemplates' },
-            actions:      {},
-            resourceType: 'templates.gatekeeper.sh.constrainttemplate',
-            revision:     '17263066',
-            count:        0,
-            data:         []
-          })).as('constraintTemplates');
+      generateOpaGatekeeperForLocalCluster();
 
       const opaGatekeeper = new OpaGatekeeperPo('local');
 
@@ -80,6 +29,14 @@ describe('Charts', { tags: ['@charts', '@adminUser'] }, () => {
       opaGatekeeper.create().click();
       opaGatekeeper.waitForPage();
 
+      opaGatekeeper.selectContraintSubtype('k8sallowedrepos').click();
+      opaGatekeeper.saveCreateForm().expectToBeEnabled();
+
+      opaGatekeeper.navToSideMenuEntryByLabel('Constraints');
+      opaGatekeeper.create().click();
+      opaGatekeeper.waitForPage();
+
+      opaGatekeeper.selectContraintSubtype('k8srequiredlabels').click();
       opaGatekeeper.saveCreateForm().expectToBeEnabled();
     });
   });

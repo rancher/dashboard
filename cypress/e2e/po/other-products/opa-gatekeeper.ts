@@ -21,6 +21,10 @@ export default class OpaGatekeeperPo extends PagePo {
     return this.list().masthead().actions().contains('Create');
   }
 
+  selectContraintSubtype(subtype: string) {
+    return cy.get(`[data-testid="subtype-banner-item-${ subtype }"]`);
+  }
+
   createFromYaml(): Cypress.Chainable {
     return this.list().masthead().actions().contains('Create from YAML');
   }
