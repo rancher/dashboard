@@ -76,10 +76,8 @@ node {
             if ("${env.CLEANUP}".toLowerCase() == "true") {
                 try {
                   stage('Clean Test Environment') {  
-                    sh "${WORKSPACE}/bin/corral delete ci"
-                    if ("${env.JOB_TYPE}" == "recurring") {
-                      sh "${WORKSPACE}/bin/corral delete rancher"
-                    }
+                    sh "corrals=\$(${WORKSPACE}/bin/corral list | grep -v \"NAME\" | grep -v \"-\" | cut -d' ' -f 2)" +
+                    "&& for corral in \$corrals; do ${WORKSPACE}/bin/corral delete \$corral; done"
                   }
                 } catch(err) {
                   echo "Error: " + err

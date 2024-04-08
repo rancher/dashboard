@@ -405,7 +405,7 @@ describe('Cluster Manager', { testIsolation: 'off', tags: ['@manager', '@adminUs
     });
   });
 
-  describe('Imported', () => {
+  describe('Imported', { tags: ['@jenkins', '@importedCluster'] }, () => {
     const importClusterPage = new ClusterManagerImportGenericPagePo();
 
     describe('Generic', () => {
@@ -435,8 +435,22 @@ describe('Cluster Manager', { testIsolation: 'off', tags: ['@manager', '@adminUs
             spec: {}
           });
         });
-
         detailClusterPage.waitForPage(undefined, 'registration');
+        detailClusterPage.kubectlCommandForImported().then(($value) => {
+          const kubectlCommand = $value.text();
+
+          cy.log(kubectlCommand);
+          cy.exec(kubectlCommand, { failOnNonZeroExit: false }).then((result) => {
+            cy.log(result.stderr);
+            cy.log(result.stdout);
+            expect(result.code).to.eq(0);
+          });
+        });
+        ClusterManagerListPagePo.navTo();
+        clusterList.waitForPage();
+        clusterList.list().state(importGenericName).should('contain', 'Pending');
+        clusterList.list().state(importGenericName).should('contain', 'Waiting');
+        clusterList.list().state(importGenericName).contains('Active', { timeout: 700000 });
       });
 
       it('can navigate to cluster edit page', () => {
