@@ -7314,9 +7314,25 @@ branding:
     uploadLight: Upload Light Logo
     uploadDark: Upload Dark Logo
     useCustom: Use a Custom Logo
+  banner:
+    label: Banner
+    tip: 'Upload an image to replace the default Rancher banner in the Dashboard page. We recommend using an SVG image with an aspect ratio of 6:1. The default image size is 4197x633. Max file size is 200KB. Accepted formats: JPEG, PNG, SVG.'
+    lightPreview: Light Theme Preview
+    darkPreview: Dark Theme Preview
+    uploadLight: Upload Light Banner
+    uploadDark: Upload Dark Banner
+    useCustom: Use a Custom Banner
+  loginBackground:
+    label: Login Background
+    tip: 'Upload an image to replace the default Rancher background in the Login page. We recommend using an SVG image with an aspect ratio of 7:8. The default image size is 683x768. Max file size is 200KB. Accepted formats: JPEG, PNG, SVG.'
+    lightPreview: Light Theme Preview
+    darkPreview: Dark Theme Preview
+    uploadLight: Upload Light Background
+    uploadDark: Upload Dark Background
+    useCustom: Use a Custom Background
   favicon:
     label: Favicon
-    tip: 'Upload an icon to replace the Rancher favicon in the browser tab. Max file size is 20KB'
+    tip: 'Upload an icon to replace the Rancher favicon in the browser tab. Max file size is 20KB.'
     preview: Favicon Preview
     upload: Upload Favicon
     useCustom: Use a Custom Favicon
