@@ -46,10 +46,10 @@ const ENDPOINT_MAPPING = {
     authEndpoint:  `https://login.partner.microsoftonline.cn/${ TENANT_ID_TOKEN }/oauth2/v2.0/authorize`
   },
   custom: {
-    endpoint:           'https://login.microsoftonline.com/',
-    graphEndpoint:      '',
-    tokenEndpoint:      '',
-    authEndpoint:       ''
+    endpoint:      'https://login.microsoftonline.com/',
+    graphEndpoint: '',
+    tokenEndpoint: '',
+    authEndpoint:  ''
   }
 };
 
@@ -100,17 +100,17 @@ export default {
     // Cannot pass this.model as a rootObject because it is undefined at that point, so had to use a workaround
     fvExtraRules() {
       return {
-        tenantIdRequired:            this.modelFieldRequired('tenantId', 'authConfig.azuread.tenantId.label'),
-        applicationIdRequired:       this.modelFieldRequired('applicationId', 'authConfig.azuread.applicationId.label'),
-        applicationSecretRequired:   this.applicationSecretRequired(),
-        endpointRequired:            this.modelFieldRequired('endpoint', 'authConfig.azuread.endpoint.label'),
-        endpointMustBeURL:           this.modelFieldURL('endpoint'),
-        graphEndpointRequired:       this.modelFieldRequired('graphEndpoint', 'authConfig.azuread.graphEndpoint.label'),
-        graphEndpointMustBeURL:      this.modelFieldURL('graphEndpoint'),
-        tokenEndpointRequired:       this.modelFieldRequired('tokenEndpoint', 'authConfig.azuread.tokenEndpoint.label'),
-        tokenEndpointMustBeURL:      this.modelFieldURL('tokenEndpoint'),
-        authEndpointRequired:        this.modelFieldRequired('authEndpoint', 'authConfig.azuread.authEndpoint.label'),
-        authEndpointMustBeURL:       this.modelFieldURL('authEndpoint')
+        tenantIdRequired:          this.modelFieldRequired('tenantId', 'authConfig.azuread.tenantId.label'),
+        applicationIdRequired:     this.modelFieldRequired('applicationId', 'authConfig.azuread.applicationId.label'),
+        applicationSecretRequired: this.applicationSecretRequired(),
+        endpointRequired:          this.modelFieldRequired('endpoint', 'authConfig.azuread.endpoint.label'),
+        endpointMustBeURL:         this.modelFieldURL('endpoint'),
+        graphEndpointRequired:     this.modelFieldRequired('graphEndpoint', 'authConfig.azuread.graphEndpoint.label'),
+        graphEndpointMustBeURL:    this.modelFieldURL('graphEndpoint'),
+        tokenEndpointRequired:     this.modelFieldRequired('tokenEndpoint', 'authConfig.azuread.tokenEndpoint.label'),
+        tokenEndpointMustBeURL:    this.modelFieldURL('tokenEndpoint'),
+        authEndpointRequired:      this.modelFieldRequired('authEndpoint', 'authConfig.azuread.authEndpoint.label'),
+        authEndpointMustBeURL:     this.modelFieldURL('authEndpoint')
       };
     },
 

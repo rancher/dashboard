@@ -35,7 +35,6 @@ export default class AzureadPo extends PagePo {
     return radioButton.set(index);
   }
 
-
   tenantIdInputField() {
     return this.self().get('[data-testid="input-azureAD-tenantId"]').invoke('val');
   }

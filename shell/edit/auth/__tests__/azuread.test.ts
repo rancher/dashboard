@@ -144,81 +144,81 @@ describe('edit: azureAD should', () => {
 
     const testCases = [
       {
-        endpoint:           '',
-        graphEndpoint:      '',
-        tokenEndpoint:      '',
-        authEndpoint:       '',
-        result:             true
+        endpoint:      '',
+        graphEndpoint: '',
+        tokenEndpoint: '',
+        authEndpoint:  '',
+        result:        true
       },
       {
-        endpoint:           invalidEndpoint,
-        graphEndpoint:      invalidGraphEndpoint,
-        tokenEndpoint:      invalidTokenEndpoint,
-        authEndpoint:       invalidAuthEndpoint,
-        result:             true
+        endpoint:      invalidEndpoint,
+        graphEndpoint: invalidGraphEndpoint,
+        tokenEndpoint: invalidTokenEndpoint,
+        authEndpoint:  invalidAuthEndpoint,
+        result:        true
       },
       {
-        endpoint:           '',
-        graphEndpoint:      validGraphEndpoint,
-        tokenEndpoint:      validTokenEndpoint,
-        authEndpoint:       validAuthEndpoint,
-        result:             true
+        endpoint:      '',
+        graphEndpoint: validGraphEndpoint,
+        tokenEndpoint: validTokenEndpoint,
+        authEndpoint:  validAuthEndpoint,
+        result:        true
       },
       {
-        endpoint:           invalidEndpoint,
-        graphEndpoint:      validGraphEndpoint,
-        tokenEndpoint:      validTokenEndpoint,
-        authEndpoint:       validAuthEndpoint,
-        result:             true
+        endpoint:      invalidEndpoint,
+        graphEndpoint: validGraphEndpoint,
+        tokenEndpoint: validTokenEndpoint,
+        authEndpoint:  validAuthEndpoint,
+        result:        true
       },
       {
-        endpoint:           validEndpoint,
-        graphEndpoint:      '',
-        tokenEndpoint:      validTokenEndpoint,
-        authEndpoint:       validAuthEndpoint,
-        result:             true
+        endpoint:      validEndpoint,
+        graphEndpoint: '',
+        tokenEndpoint: validTokenEndpoint,
+        authEndpoint:  validAuthEndpoint,
+        result:        true
       },
       {
-        endpoint:           validEndpoint,
-        graphEndpoint:      invalidGraphEndpoint,
-        tokenEndpoint:      validTokenEndpoint,
-        authEndpoint:       validAuthEndpoint,
-        result:             true
+        endpoint:      validEndpoint,
+        graphEndpoint: invalidGraphEndpoint,
+        tokenEndpoint: validTokenEndpoint,
+        authEndpoint:  validAuthEndpoint,
+        result:        true
       },
       {
-        endpoint:           validEndpoint,
-        graphEndpoint:      validGraphEndpoint,
-        tokenEndpoint:      '',
-        authEndpoint:       validAuthEndpoint,
-        result:             true
+        endpoint:      validEndpoint,
+        graphEndpoint: validGraphEndpoint,
+        tokenEndpoint: '',
+        authEndpoint:  validAuthEndpoint,
+        result:        true
       },
       {
-        endpoint:           validEndpoint,
-        graphEndpoint:      validGraphEndpoint,
-        tokenEndpoint:      invalidTokenEndpoint,
-        authEndpoint:       validAuthEndpoint,
-        result:             true
+        endpoint:      validEndpoint,
+        graphEndpoint: validGraphEndpoint,
+        tokenEndpoint: invalidTokenEndpoint,
+        authEndpoint:  validAuthEndpoint,
+        result:        true
       },
       {
-        endpoint:           validEndpoint,
-        graphEndpoint:      validGraphEndpoint,
-        tokenEndpoint:      validTokenEndpoint,
-        authEndpoint:       '',
-        result:             true
+        endpoint:      validEndpoint,
+        graphEndpoint: validGraphEndpoint,
+        tokenEndpoint: validTokenEndpoint,
+        authEndpoint:  '',
+        result:        true
       },
       {
-        endpoint:           validEndpoint,
-        graphEndpoint:      validGraphEndpoint,
-        tokenEndpoint:      validTokenEndpoint,
-        authEndpoint:       invalidAuthEndpoint,
-        result:             true
+        endpoint:      validEndpoint,
+        graphEndpoint: validGraphEndpoint,
+        tokenEndpoint: validTokenEndpoint,
+        authEndpoint:  invalidAuthEndpoint,
+        result:        true
       },
       {
-        endpoint:           validEndpoint,
-        graphEndpoint:      validGraphEndpoint,
-        tokenEndpoint:      validTokenEndpoint,
-        authEndpoint:       validAuthEndpoint,
-        result:             false
+        endpoint:      validEndpoint,
+        graphEndpoint: validGraphEndpoint,
+        tokenEndpoint: validTokenEndpoint,
+        authEndpoint:  validAuthEndpoint,
+        result:        false
       }
     ];
 
