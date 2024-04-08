@@ -48,7 +48,7 @@ describe('Kubewarden Extension', { tags: ['@extensions', '@adminUser'] }, () => 
   });
 
   it('Check Apps/Charts and Apps/Repo pages for route collisions', () => {
-    const chartsPage: ChartsPage = new ChartsPage('/c/local/apps/charts');
+    const chartsPage: ChartsPage = new ChartsPage();
 
     chartsPage.goTo();
     chartsPage.waitForPage();
