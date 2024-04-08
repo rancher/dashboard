@@ -275,7 +275,7 @@ export function init(store) {
   headers(NODE,
     [
       STATE,
-      NAME,
+      NAME_COL,
       ROLES,
       VERSION,
       INTERNAL_EXTERNAL_IP,
