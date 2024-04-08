@@ -16,7 +16,6 @@ const endpoint = 'https://login.test.com/';
 const authEndpoint = 'https://login.test.com/564b6f53-ebf4-43c3-8077-44c56a44990a/oauth2/v2.0/authorize';
 const tokenEndpoint = 'https://login.test.com/564b6f53-ebf4-43c3-8077-44c56a44990a/oauth2/v2.0/token';
 const graphEndpoint = 'https://graph.test.com';
-const deviceAuthEndpoint = 'https://login.test.com/564b6f53-ebf4-43c3-8077-44c56a44990a/oauth2/v2.0/devicecode';
 
 const mockStatusCode = 200;
 const mockBody = {};
@@ -68,7 +67,6 @@ describe('AzureAD', { tags: ['@adminUser'] }, () => {
       expect(req.body.authEndpoint).to.equal(authEndpoint);
       expect(req.body.tokenEndpoint).to.equal(tokenEndpoint);
       expect(req.body.graphEndpoint).to.equal(graphEndpoint);
-      expect(req.body.deviceAuthEndpoint).to.equal(deviceAuthEndpoint);
 
       req.reply(mockStatusCode, mockBody);
     }).as('configureTest');
@@ -85,7 +83,6 @@ describe('AzureAD', { tags: ['@adminUser'] }, () => {
     azureadPo.enterTokenEndpoint(tokenEndpoint);
     azureadPo.enterGraphEndpoint(graphEndpoint);
     azureadPo.enterAuthEndpoint(authEndpoint);
-    azureadPo.enterDeviceAuthEndpoint(deviceAuthEndpoint);
 
     // save should be enabled after values are filled
     azureadPo.saveButton().expectToBeEnabled();

@@ -148,31 +148,27 @@ describe('edit: azureAD should', () => {
         graphEndpoint:      '',
         tokenEndpoint:      '',
         authEndpoint:       '',
-        deviceAuthEndpoint: '',
         result:             true
       },
       {
         endpoint:           invalidEndpoint,
-        graphEndpoint:      invalidAuthEndpoint,
+        graphEndpoint:      invalidGraphEndpoint,
         tokenEndpoint:      invalidTokenEndpoint,
         authEndpoint:       invalidAuthEndpoint,
-        deviceAuthEndpoint: invalidGraphEndpoint,
         result:             true
       },
       {
         endpoint:           '',
-        graphEndpoint:      validAuthEndpoint,
+        graphEndpoint:      validGraphEndpoint,
         tokenEndpoint:      validTokenEndpoint,
         authEndpoint:       validAuthEndpoint,
-        deviceAuthEndpoint: validGraphEndpoint,
         result:             true
       },
       {
         endpoint:           invalidEndpoint,
-        graphEndpoint:      validAuthEndpoint,
+        graphEndpoint:      validGraphEndpoint,
         tokenEndpoint:      validTokenEndpoint,
         authEndpoint:       validAuthEndpoint,
-        deviceAuthEndpoint: validGraphEndpoint,
         result:             true
       },
       {
@@ -180,71 +176,48 @@ describe('edit: azureAD should', () => {
         graphEndpoint:      '',
         tokenEndpoint:      validTokenEndpoint,
         authEndpoint:       validAuthEndpoint,
-        deviceAuthEndpoint: validGraphEndpoint,
         result:             true
       },
       {
         endpoint:           validEndpoint,
-        graphEndpoint:      invalidAuthEndpoint,
+        graphEndpoint:      invalidGraphEndpoint,
         tokenEndpoint:      validTokenEndpoint,
         authEndpoint:       validAuthEndpoint,
-        deviceAuthEndpoint: validGraphEndpoint,
         result:             true
       },
       {
         endpoint:           validEndpoint,
-        graphEndpoint:      validAuthEndpoint,
+        graphEndpoint:      validGraphEndpoint,
         tokenEndpoint:      '',
         authEndpoint:       validAuthEndpoint,
-        deviceAuthEndpoint: validGraphEndpoint,
         result:             true
       },
       {
         endpoint:           validEndpoint,
-        graphEndpoint:      validAuthEndpoint,
+        graphEndpoint:      validGraphEndpoint,
         tokenEndpoint:      invalidTokenEndpoint,
         authEndpoint:       validAuthEndpoint,
-        deviceAuthEndpoint: validGraphEndpoint,
         result:             true
       },
       {
         endpoint:           validEndpoint,
-        graphEndpoint:      validAuthEndpoint,
+        graphEndpoint:      validGraphEndpoint,
         tokenEndpoint:      validTokenEndpoint,
         authEndpoint:       '',
-        deviceAuthEndpoint: validGraphEndpoint,
         result:             true
       },
       {
         endpoint:           validEndpoint,
-        graphEndpoint:      validAuthEndpoint,
+        graphEndpoint:      validGraphEndpoint,
         tokenEndpoint:      validTokenEndpoint,
         authEndpoint:       invalidAuthEndpoint,
-        deviceAuthEndpoint: validGraphEndpoint,
         result:             true
       },
       {
         endpoint:           validEndpoint,
-        graphEndpoint:      validAuthEndpoint,
+        graphEndpoint:      validGraphEndpoint,
         tokenEndpoint:      validTokenEndpoint,
         authEndpoint:       validAuthEndpoint,
-        deviceAuthEndpoint: invalidGraphEndpoint,
-        result:             true
-      },
-      {
-        endpoint:           validEndpoint,
-        graphEndpoint:      validAuthEndpoint,
-        tokenEndpoint:      validTokenEndpoint,
-        authEndpoint:       validAuthEndpoint,
-        deviceAuthEndpoint: '', // this field is not mandatory
-        result:             false
-      },
-      {
-        endpoint:           validEndpoint,
-        graphEndpoint:      validAuthEndpoint,
-        tokenEndpoint:      validTokenEndpoint,
-        authEndpoint:       validAuthEndpoint,
-        deviceAuthEndpoint: validGraphEndpoint,
         result:             false
       }
     ];
@@ -266,7 +239,6 @@ describe('edit: azureAD should', () => {
     const graphEndpointInputField = wrapper.find('[data-testid="input-azureAD-graphEndpoint"]').find('input');
     const tokenEndpointInputField = wrapper.find('[data-testid="input-azureAD-tokenEndpoint"]').find('input');
     const authEndpointInputField = wrapper.find('[data-testid="input-azureAD-authEndpoint"]').find('input');
-    const deviceAuthEndpointInputField = wrapper.find('[data-testid="input-azureAD-deviceAuthEndpoint"]').find('input');
 
     for (const testCase of testCases) {
       endpointInputField.setValue(testCase.endpoint);
@@ -276,8 +248,6 @@ describe('edit: azureAD should', () => {
       tokenEndpointInputField.setValue(testCase.tokenEndpoint);
       await wrapper.vm.$nextTick();
       authEndpointInputField.setValue(testCase.authEndpoint);
-      await wrapper.vm.$nextTick();
-      deviceAuthEndpointInputField.setValue(testCase.deviceAuthEndpoint);
       await wrapper.vm.$nextTick();
 
       expect(saveButton.disabled).toBe(testCase.result);

@@ -49,8 +49,7 @@ const ENDPOINT_MAPPING = {
     endpoint:           'https://login.microsoftonline.com/',
     graphEndpoint:      '',
     tokenEndpoint:      '',
-    authEndpoint:       '',
-    deviceAuthEndpoint: ''
+    authEndpoint:       ''
   }
 };
 
@@ -93,7 +92,6 @@ export default {
         { path: 'graphEndpoint', rules: ['graphEndpointRequired', 'graphEndpointMustBeURL'] },
         { path: 'tokenEndpoint', rules: ['tokenEndpointRequired', 'tokenEndpointMustBeURL'] },
         { path: 'authEndpoint', rules: ['authEndpointRequired', 'authEndpointMustBeURL'] },
-        { path: 'deviceAuthEndpoint', rules: ['deviceAuthEndpointMustBeURL'] },
       ]
     };
   },
@@ -112,8 +110,7 @@ export default {
         tokenEndpointRequired:       this.modelFieldRequired('tokenEndpoint', 'authConfig.azuread.tokenEndpoint.label'),
         tokenEndpointMustBeURL:      this.modelFieldURL('tokenEndpoint'),
         authEndpointRequired:        this.modelFieldRequired('authEndpoint', 'authConfig.azuread.authEndpoint.label'),
-        authEndpointMustBeURL:       this.modelFieldURL('authEndpoint'),
-        deviceAuthEndpointMustBeURL: this.modelFieldURL('deviceAuthEndpoint'),
+        authEndpointMustBeURL:       this.modelFieldURL('authEndpoint')
       };
     },
 
@@ -348,10 +345,6 @@ export default {
               <td>{{ t(`authConfig.azuread.authEndpoint.label`) }}:</td>
               <td>{{ model.authEndpoint }}</td>
             </tr>
-            <tr v-if="model.deviceAuthEndpoint">
-              <td>{{ t(`authConfig.azuread.deviceAuthEndpoint.label`) }}:</td>
-              <td>{{ model.deviceAuthEndpoint }}</td>
-            </tr>
           </template>
           <template
             v-if="needsUpdate"
@@ -490,17 +483,6 @@ export default {
                 :rules="fvGetAndReportPathRules('authEndpoint')"
                 :mode="mode"
                 data-testid="input-azureAD-authEndpoint"
-              />
-            </div>
-          </div>
-          <div class="row mb-20">
-            <div class="col span-6">
-              <LabeledInput
-                v-model="model.deviceAuthEndpoint"
-                :label="t('authConfig.azuread.deviceAuthEndpoint.label')"
-                :mode="mode"
-                :rules="fvGetAndReportPathRules('deviceAuthEndpoint')"
-                data-testid="input-azureAD-deviceAuthEndpoint"
               />
             </div>
           </div>

@@ -35,9 +35,6 @@ export default class AzureadPo extends PagePo {
     return radioButton.set(index);
   }
 
-  clickEdit(): Cypress.Chainable {
-    return this.self().find(`[data-testid="edit-auth-button"]`).click();
-  }
 
   tenantIdInputField() {
     return this.self().get('[data-testid="input-azureAD-tenantId"]').invoke('val');
@@ -93,14 +90,6 @@ export default class AzureadPo extends PagePo {
 
   enterAuthEndpoint(name: string) {
     return new LabeledInputPo('[data-testid="input-azureAD-authEndpoint"]').set(name);
-  }
-
-  deviceAuthEndpointInputField() {
-    return this.self().get('[data-testid="input-azureAD-deviceAuthEndpoint"]').invoke('val');
-  }
-
-  enterDeviceAuthEndpoint(name: string) {
-    return new LabeledInputPo('[data-testid="input-azureAD-deviceAuthEndpoint"]').set(name);
   }
 
   saveButton(): AsyncButtonPo {
