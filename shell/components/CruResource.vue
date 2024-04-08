@@ -477,6 +477,7 @@ export default {
             :key="subtype.id"
             class="subtype-banner"
             :class="{ selected: subtype.id === _selectedSubtype }"
+            :data-testid="`subtype-banner-item-${subtype.id}`"
             @click="selectType(subtype.id, $event)"
           >
             <slot name="subtype-content">
