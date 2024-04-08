@@ -11,7 +11,7 @@ export const ANNOTATIONS_CONTAINS_PROTECTED = [
   'coreos.com',
   'cattle.io',
   'k3s.io',
-  'kubernetes.i',
+  'kubernetes.io',
   'k3s.io',
 ];
 export default class NormanCluster extends NormanModel {
