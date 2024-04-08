@@ -15,7 +15,7 @@ const QA_REVIEW_LABEL = '[zube]: QA Review';
 const TECH_DEBT_LABEL = 'kind/tech-debt';
 const DEV_VALIDATE_LABEL = 'status/dev-validate';
 const QA_NONE_LABEL = 'QA/None';
-const QA_DEV_AUTOMATION_LABEL = 'QA/dev-automation'
+const QA_DEV_AUTOMATION_LABEL = 'QA/dev-automation';
 
 const GH_PRJ_TRIAGE = 'Triage';
 
@@ -62,12 +62,17 @@ function getReferencedIssues(body) {
   const regexp = /[Ff]ix(es|ed)?\s*#([0-9]*)|[Cc]lose(s|d)?\s*#([0-9]*)|[Rr]esolve(s|d)?\s*#([0-9]*)/g;
   var v;
   const issues = [];
-  do {
-    v = regexp.exec(body);
-    if (v) {
-      issues.push(parseInt(v[2], 10));
-    }
-  } while (v);
+  try {
+    do {
+      v = regexp.exec(body);
+      if (v) {
+        issues.push(parseInt(v[2], 10));
+      }
+    } while (v);
+  } catch (err) {
+    console.error('Failed to find referenced issues', err);
+  }
+
   return issues;
 }
 
@@ -78,7 +83,7 @@ function hasLabel(issue, label) {
 }
 
 function moveIssueToProjectState(issue, state) {
-  console.log(`moveIssueToProjectState ${ state }`);
+  console.log(`moveIssueToProjectState ${state}`);
 
   console.log(JSON.stringify(issue, null, 2));
 }
@@ -136,10 +141,10 @@ async function processClosedAction() {
 
   if (!ghProject || ghProject.errors) {
     console.log('Error: Can not fetch GitHub Project metadata');
-  
-    return; 
+
+    return;
   }
-  
+
   console.log(JSON.stringify(ghProject, null, 2));
 
   console.log('======');
@@ -163,7 +168,7 @@ async function processClosedAction() {
   // Need to get all open PRs to see if any other references the same issues that this PR says it fixes
   const openPRs = event.repository.url + '/pulls?state=open&per_page=100';
   const r = await request.fetch(openPRs);
-  const issueMap = issues.reduce((prev, issue) => { prev[issue] = true; return prev; }, {})
+  const issueMap = issues.reduce((prev, issue) => { prev[issue] = true; return prev; }, {});
 
   // Go through all of the Open PRs and see if they fix any of the same issues that this PR does
   // If not, then the issue has been completed, so we can process it
@@ -188,7 +193,7 @@ async function processClosedAction() {
   fixed.forEach(async (i) => {
     const detail = event.repository.url + '/issues/' + i;
     const iss = await request.fetch(detail);
-    console.log('')
+    console.log('');
     console.log('Processing Issue #' + i + ' - ' + iss.title);
 
     // If the issue is a tech debt issue or says dev will validate then don't move it to 'To Test'
@@ -278,11 +283,11 @@ async function processOpenOrEditAction() {
 
   if (!ghProject || ghProject.errors) {
     console.log('Error: Can not fetch GitHub Project metadata');
-  
-    return; 
+
+    return;
   }
-  
-  console.log(JSON.stringify(ghProject, null, 2));  
+
+  console.log(JSON.stringify(ghProject, null, 2));
 
   const pr = event.pull_request;
   const body = pr.body;
@@ -298,7 +303,12 @@ async function processOpenOrEditAction() {
   for (i of issues) {
     const detail = `${event.repository.url}/issues/${i}`;
     const iss = await request.fetch(detail);
-    console.log('')
+
+    if (!iss) {
+      console.log(`Failed to find issue with number '${i}'. Body: :`, iss);
+      continue;
+    }
+    console.log('');
     console.log('Processing Issue #' + i + ' - ' + iss.title);
 
     if (pr.draft) {
@@ -313,13 +323,13 @@ async function processOpenOrEditAction() {
       console.log(info);
 
       console.log('-------- GH ISSUE -----');
-      console.log(JSON.stringify(prjIssue, null, 2));  
+      console.log(JSON.stringify(prjIssue, null, 2));
       console.log('---------');
 
       await moveIssueToProjectState(iss, GH_PRJ_IN_REVIEW);
     }
 
-    if (iss.milestone) {
+    if (iss?.milestone) {
       milestones[iss.milestone.title] = iss.milestone.number;
     }
   }
