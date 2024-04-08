@@ -584,7 +584,10 @@ export default defineComponent({
     @finish="save"
     @cancel="done"
   >
-    <div class="row mb-10">
+    <div
+      v-if="hasCredential"
+      class="row mb-10"
+    >
       <div class="col span-6">
         <LabeledInput
           required

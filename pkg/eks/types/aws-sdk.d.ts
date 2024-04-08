@@ -99,3 +99,7 @@ export interface EKSAddon {
     }[]
 }[]
 }
+
+export interface EC2Region {
+  RegionName: string
+}

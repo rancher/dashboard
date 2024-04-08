@@ -5,6 +5,7 @@ import LabeledSelect from '@shell/components/form/LabeledSelect.vue';
 import SelectCredential from '@shell/edit/provisioning.cattle.io.cluster/SelectCredential.vue';
 import { DEFAULT_REGION } from './CruEKS.vue';
 import { mapGetters } from 'vuex';
+import { AWS } from 'types';
 
 export default defineComponent({
   name: 'EKSAccountAccess',
@@ -71,7 +72,7 @@ export default defineComponent({
         try {
           const ec2Client = await this.$store.dispatch('aws/ec2', { region, cloudCredentialId: credential });
 
-          const res = await ec2Client.describeRegions({});
+          const res: {Regions: AWS.EC2Region[]} = await ec2Client.describeRegions({});
 
           this.regions = (res?.Regions || []).map((r) => r.RegionName);
         } catch (err) {
@@ -164,9 +165,6 @@ export default defineComponent({
 
     &>.select-credential-container{
       flex-basis: 50%;
-      // display:flex;
-      // flex-direction: column;
-      // flex-grow: 1;
 
       &>.select-credential{
         flex-grow: 1;
