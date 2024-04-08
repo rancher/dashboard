@@ -1,11 +1,12 @@
-/* eslint-disable cypress/no-unnecessary-waiting */
-import { ChartsPage } from '@/cypress/e2e/po/pages/charts.po';
 import { generateOpaGatekeeperForLocalCluster } from '@/cypress/e2e/blueprints/other-products/opa-gatekeeper.js';
 import OpaGatekeeperPo from '@/cypress/e2e/po/other-products/opa-gatekeeper';
+import { ChartPage } from '@/cypress/e2e/po/pages/chart.po';
+import HomePagePo from '@/cypress/e2e/po/pages/home.po';
 
-describe('Charts', { tags: ['@charts', '@adminUser'] }, () => {
-  beforeEach(() => {
+describe('Charts', { testIsolation: 'off', tags: ['@charts', '@adminUser'] }, () => {
+  before(() => {
     cy.login();
+    HomePagePo.goTo();
   });
 
   describe('OPA Gatekeeper resources', () => {
@@ -42,20 +43,14 @@ describe('Charts', { tags: ['@charts', '@adminUser'] }, () => {
   });
 
   describe('OPA Gatekeeper install', () => {
-    const chartsPageUrl = '/c/local/apps/charts/chart?repo-type=cluster&repo=rancher-charts';
-    const chartVersion = '102.1.0%2Bup3.12.0';
-    const opaGatekeeperPage = `${ chartsPageUrl }&chart=rancher-gatekeeper&${ chartVersion }`;
-
-    const chartsPage: ChartsPage = new ChartsPage(opaGatekeeperPage);
-
-    beforeEach(() => {
-      chartsPage.goTo();
-    });
+    const chartPage = new ChartPage();
 
     describe('YAML view', () => {
       beforeEach(() => {
-        chartsPage.goToInstall().nextPage();
-        chartsPage.editYaml();
+        ChartPage.navTo(null, 'OPA Gatekeeper');
+        chartPage.waitForPage('repo-type=cluster&repo=rancher-charts&chart=rancher-gatekeeper');
+        chartPage.goToInstall().nextPage();
+        chartPage.editYaml();
       });
 
       describe('UI Elements', () => {

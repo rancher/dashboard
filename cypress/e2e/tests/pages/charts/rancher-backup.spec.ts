@@ -1,20 +1,19 @@
-import { ChartsPage } from '@/cypress/e2e/po/pages/charts.po';
+import { ChartPage } from '@/cypress/e2e/po/pages/chart.po';
 import RadioGroupInputPo from '@/cypress/e2e/po/components/radio-group-input.po';
 import { exampleStorageClass, defaultStorageClass } from '@/cypress/e2e/blueprints/charts/rancher-backup-chart';
 import LabeledSelectPo from '@/cypress/e2e/po/components/labeled-select.po';
 import TabbedPo from '@/cypress/e2e/po/components/tabbed.po';
+import HomePagePo from '@/cypress/e2e/po/pages/home.po';
 
 const STORAGE_CLASS_RESOURCE = 'storage.k8s.io.storageclasses';
 
 describe('Charts', { tags: ['@charts', '@adminUser'] }, () => {
-  const chartsPageUrl = '/c/local/apps/charts/chart?repo-type=cluster&repo=rancher-charts';
-
   describe('Rancher Backups', () => {
-    const chartsBackupPage = `${ chartsPageUrl }&chart=rancher-backup`;
-    const chartsPage: ChartsPage = new ChartsPage(chartsBackupPage);
+    const chartPage = new ChartPage();
 
-    beforeEach(() => {
+    before(() => {
       cy.login();
+      HomePagePo.goTo();
     });
 
     describe('Rancher Backups storage class config', () => {
@@ -32,11 +31,16 @@ describe('Charts', { tags: ['@charts', '@adminUser'] }, () => {
       });
 
       it('Should auto-select default storage class', () => {
-        chartsPage.goTo();
-        chartsPage.goToInstall().nextPage();
+        ChartPage.navTo(null, 'Rancher Backups');
+        chartPage.waitForPage('repo-type=cluster&repo=rancher-charts&chart=rancher-backup');
+
+        const installPage = new ChartPage('local', true);
+
+        installPage.goToInstall().nextPage();
         cy.wait('@storageClasses', { timeout: 10000 }).its('response.statusCode').should('eq', 200);
         cy.wait('@persistentVolumes', { timeout: 10000 }).its('response.statusCode').should('eq', 200);
         cy.wait('@secrets', { timeout: 10000 }).its('response.statusCode').should('eq', 200);
+        installPage.waitForPage('repo-type=cluster&repo=rancher-charts&chart=rancher-backup');
 
         // Select the 'Use an existing storage class' option
         const storageOptions = new RadioGroupInputPo('[chart="[chart: cluster/rancher-charts/rancher-backup]"]');
@@ -50,10 +54,10 @@ describe('Charts', { tags: ['@charts', '@adminUser'] }, () => {
         select.checkOptionSelected('test-default-storage-class');
 
         // Verify that changing tabs doesn't reset the last selected storage class option
-        chartsPage.editYaml();
+        installPage.editYaml();
         const tabbedOptions = new TabbedPo();
 
-        chartsPage.editOptions(tabbedOptions, '[data-testid="button-group-child-0"]');
+        installPage.editOptions(tabbedOptions, '[data-testid="button-group-child-0"]');
 
         select.checkExists();
         select.checkOptionSelected('test-default-storage-class');
