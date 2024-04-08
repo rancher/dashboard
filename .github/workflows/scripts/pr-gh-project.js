@@ -9,7 +9,7 @@ const request = require('./request');
 const TECH_DEBT_LABEL = 'kind/tech-debt';
 const DEV_VALIDATE_LABEL = 'status/dev-validate';
 const QA_NONE_LABEL = 'QA/None';
-const QA_DEV_AUTOMATION_LABEL = 'QA/dev-automation'
+const QA_DEV_AUTOMATION_LABEL = 'QA/dev-automation';
 
 const GH_PRJ_TO_TEST = 'To Test';
 const GH_PRJ_QA_REVIEW = 'QA Review';
@@ -54,12 +54,17 @@ function getReferencedIssues(body) {
   const regexp = /[Ff]ix(es|ed)?\s*#([0-9]*)|[Cc]lose(s|d)?\s*#([0-9]*)|[Rr]esolve(s|d)?\s*#([0-9]*)/g;
   var v;
   const issues = [];
-  do {
-    v = regexp.exec(body);
-    if (v) {
-      issues.push(parseInt(v[2], 10));
-    }
-  } while (v);
+  try {
+    do {
+      v = regexp.exec(body);
+      if (v) {
+        issues.push(parseInt(v[2], 10));
+      }
+    } while (v);
+  } catch (err) {
+    console.error('Failed to find referenced issues', err);
+  }
+
   return issues;
 }
 
@@ -108,10 +113,9 @@ async function processClosedAction() {
 
   if (!ghProject || ghProject.errors) {
     console.log('Error: Can not fetch GitHub Project metadata');
-  
-    return; 
+
+    return;
   }
-  
   console.log('======');
   console.log('Processing Closed PR #' + pr.number + ' : ' + pr.title);
   console.log('======');
@@ -133,7 +137,7 @@ async function processClosedAction() {
   // Need to get all open PRs to see if any other references the same issues that this PR says it fixes
   const openPRs = event.repository.url + '/pulls?state=open&per_page=100';
   const r = await request.fetch(openPRs);
-  const issueMap = issues.reduce((prev, issue) => { prev[issue] = true; return prev; }, {})
+  const issueMap = issues.reduce((prev, issue) => { prev[issue] = true; return prev; }, {});
 
   // Go through all of the Open PRs and see if they fix any of the same issues that this PR does
   // If not, then the issue has been completed, so we can process it
@@ -158,7 +162,7 @@ async function processClosedAction() {
   fixed.forEach(async (i) => {
     const detail = event.repository.url + '/issues/' + i;
     const iss = await request.fetch(detail);
-    console.log('')
+    console.log('');
     console.log('Processing Issue #' + i + ' - ' + iss.title);
 
     // If the issue is a tech debt issue or says dev will validate then don't move it to 'To Test'
@@ -183,7 +187,7 @@ async function processClosedAction() {
       // Is the issue on the board?
       if (!prjIssue?.[ghProject.id]) {
         // Issue is not on the board
-        console.log(`Issue ${ i } is NOT on the project board - adding it ...`);
+        console.log(`Issue ${i} is NOT on the project board - adding it ...`);
 
         await request.ghAddIssueToProject(ghProject, iss);
 
@@ -194,7 +198,7 @@ async function processClosedAction() {
           console.log(prjIssue);
         } else {
           console.log('Added issue to the project board');
-          console.log(JSON.stringify(prjIssue, null, 2));  
+          console.log(JSON.stringify(prjIssue, null, 2));
         }
       }
 
@@ -204,12 +208,12 @@ async function processClosedAction() {
           console.log('  Updating GitHub Project to move issue to QA Review');
 
           await moveIssueToProjectState(ghProject, prjIssue[ghProject.id], iss, GH_PRJ_QA_REVIEW);
-          await removeZubeLabels(iss);        
+          await removeZubeLabels(iss);
         } else {
           console.log('  Updating GitHub Project to move issue to Test');
 
           await moveIssueToProjectState(ghProject, prjIssue[ghProject.id], iss, GH_PRJ_TO_TEST);
-          await removeZubeLabels(iss);        
+          await removeZubeLabels(iss);
         }
       }
     }
@@ -245,8 +249,8 @@ async function processOpenOrEditAction() {
 
   if (!ghProject || ghProject.errors) {
     console.log('Error: Can not fetch GitHub Project metadata');
-  
-    return; 
+
+    return;
   }
 
   const pr = event.pull_request;
@@ -263,14 +267,19 @@ async function processOpenOrEditAction() {
   for (i of issues) {
     const detail = `${event.repository.url}/issues/${i}`;
     const iss = await request.fetch(detail);
-    console.log('')
+
+    if (!iss) {
+      console.log(`Failed to find issue with number '${i}'. Body: :`, iss);
+      continue;
+    }
+    console.log('');
     console.log('Processing Issue #' + i + ' - ' + iss.title);
 
     if (pr.draft) {
       console.log('    Issue will not be moved to Review (Draft PR)');
       // TODO:
-    // } else if (hasLabel(iss, BACKEND_BLOCKED_LABEL)) {
-    //   console.log('    Issue will not be moved to Review (Backend Blocked)');
+      // } else if (hasLabel(iss, BACKEND_BLOCKED_LABEL)) {
+      //   console.log('    Issue will not be moved to Review (Backend Blocked)');
     } else {
       // Need to fetch the issue project status
       const info = parseOrgAndRepo(iss.repository_url);
@@ -279,7 +288,7 @@ async function processOpenOrEditAction() {
       // Is the issue on the board?
       if (!prjIssue?.[ghProject.id]) {
         // Issue is not on the board
-        console.log(`Issue ${ i } is NOT on the project board - adding it ...`);
+        console.log(`Issue ${i} is NOT on the project board - adding it ...`);
 
         await request.ghAddIssueToProject(ghProject, iss);
 
@@ -290,19 +299,19 @@ async function processOpenOrEditAction() {
           console.log(prjIssue);
         } else {
           console.log('Added issue to the project board');
-          console.log(JSON.stringify(prjIssue, null, 2));  
+          console.log(JSON.stringify(prjIssue, null, 2));
         }
       }
 
       if (prjIssue?.[ghProject.id]) {
         await moveIssueToProjectState(ghProject, prjIssue[ghProject.id], iss, GH_PRJ_IN_REVIEW);
-        await removeZubeLabels(iss);        
+        await removeZubeLabels(iss);
       } else {
-        console.log(`Can not move issue to state ${ GH_PRJ_IN_REVIEW } - issue is not on the board`);
+        console.log(`Can not move issue to state ${GH_PRJ_IN_REVIEW} - issue is not on the board`);
       }
     }
 
-    if (iss.milestone) {
+    if (iss?.milestone) {
       milestones[iss.milestone.title] = iss.milestone.number;
     }
   }
