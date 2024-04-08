@@ -103,7 +103,7 @@ describe('Cluster Manager', { testIsolation: 'off', tags: ['@manager', '@adminUs
     const createRKE2ClusterPage = new ClusterManagerCreateRke2CustomPagePo();
     const detailRKE2ClusterPage = new ClusterManagerDetailRke2CustomPagePo(undefined, rke2CustomName);
 
-    describe('RKE2 Custom', () => {
+    describe('RKE2 Custom', { tags: ['@jenkins', '@customCluster'] }, () => {
       const editCreatedClusterPage = new ClusterManagerEditRke2CustomPagePo(undefined, rke2CustomName);
 
       it('can create new cluster', () => {
@@ -115,7 +115,10 @@ describe('Cluster Manager', { testIsolation: 'off', tags: ['@manager', '@adminUs
             name: rke2CustomName
           },
           // Test for https://github.com/rancher/dashboard/issues/10338 (added option 'none' for CNI)
-          spec: { rkeConfig: { machineGlobalConfig: { cni: 'none' }, machinePoolDefaults: { hostnameLengthLimit: 15 } } }
+          // The test validate the warning when selecting none, but now this get back to calico.
+          // A CNI is mandatory to get the cluster active otherwise manual intervention is needed or
+          // the use of a cloud provider but that's not in scope.
+          spec: { rkeConfig: { machineGlobalConfig: { cni: 'calico' }, machinePoolDefaults: { hostnameLengthLimit: 15 } } }
         };
 
         cy.userPreferences();
@@ -156,6 +159,10 @@ describe('Cluster Manager', { testIsolation: 'off', tags: ['@manager', '@adminUs
         cy.get('[data-testid="clusterBasics__noneOptionSelectedForCni"]').should('exist');
         // EO test for https://github.com/rancher/dashboard/issues/10338 (added option 'none' for CNI)
 
+        labeledSelectPo.toggle();
+        labeledSelectPo.clickLabel('calico');
+        labeledSelectPo.checkOptionSelected('calico');
+
         // testing https://github.com/rancher/dashboard/issues/10159
         cy.get('[data-testid="btn-networking"]').click();
         createRKE2ClusterPage.network().truncateHostnameCheckbox().set();
@@ -169,6 +176,32 @@ describe('Cluster Manager', { testIsolation: 'off', tags: ['@manager', '@adminUs
         });
 
         detailRKE2ClusterPage.waitForPage(undefined, 'registration');
+
+        createRKE2ClusterPage.activateInsecureRegistrationCommandFromUI().click();
+        createRKE2ClusterPage.commandFromCustomClusterUI().then(($value) => {
+          const registrationCommand = $value.text();
+
+          cy.exec(`echo ${ Cypress.env('customNodeKey') } | base64 -d > custom_node.key && chmod 600 custom_node.key`).then((result) => {
+            cy.log('Creating the custom_node.key');
+            cy.log(result.stderr);
+            cy.log(result.stdout);
+            expect(result.code).to.eq(0);
+          });
+          cy.exec(`head custom_node.key`).then((result) => {
+            cy.log(result.stdout);
+            cy.log(result.stderr);
+            expect(result.code).to.eq(0);
+          });
+          cy.exec(createRKE2ClusterPage.customClusterRegistrationCmd(registrationCommand)).then((result) => {
+            cy.log(result.stderr);
+            cy.log(result.stdout);
+            expect(result.code).to.eq(0);
+          });
+        });
+        ClusterManagerListPagePo.navTo();
+        clusterList.waitForPage();
+        clusterList.list().state(rke2CustomName).should('contain', 'Updating');
+        clusterList.list().state(rke2CustomName).contains('Active', { timeout: 700000 });
       });
 
       it('can copy config to clipboard', () => {
