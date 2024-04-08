@@ -16,11 +16,11 @@ export const ANNOTATIONS_CONTAINS_PROTECTED = [
 ];
 export default class NormanCluster extends NormanModel {
   get systemLabels() {
-    return Object.keys(this.labels).filter((key) => LABEL_CONTAINS_PROTECTED.find((label) => key.includes(label)));
+    return Object.keys(this.labels || {}).filter((key) => LABEL_CONTAINS_PROTECTED.find((label) => key.includes(label)));
   }
 
   get systemAnnotations() {
-    return Object.keys(this.annotations).filter((key) => ANNOTATIONS_CONTAINS_PROTECTED.find((annotation) => key.includes(annotation)));
+    return Object.keys(this.annotations || {}).filter((key) => ANNOTATIONS_CONTAINS_PROTECTED.find((annotation) => key.includes(annotation)));
   }
 
   get hasSystemLabels() {
