@@ -12,4 +12,8 @@ export default class ResourceListMastheadPo extends ComponentPo {
   create() {
     return this.self().find('[data-testid="masthead-create-yaml"]').click();
   }
+
+  createProject() {
+    return this.self().find('[data-testid="masthead-create"]').click();
+  }
 }
