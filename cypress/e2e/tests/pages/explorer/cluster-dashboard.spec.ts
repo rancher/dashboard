@@ -62,17 +62,17 @@ describe('Cluster Dashboard', { testIsolation: 'off', tags: ['@explorer', '@admi
     ClusterDashboardPagePo.navTo();
 
     header.importYamlHeaderAction().click();
-    header.importYamlEditor().set(configMapYaml);
-    header.importYamlImportClick();
+    header.importYaml().importYamlEditor().set(configMapYaml);
+    header.importYaml().importYamlImportClick();
 
     // we need to wait for the async action to finish in order to do further assertions
-    header.importYamlSuccessTitleCheck();
+    header.importYaml().importYamlSuccessTitleCheck();
 
     // testing https://github.com/rancher/dashboard/issues/10656
-    header.importYamlSortableTable().tableHeaderRowElementWithPartialName('State').should('not.exist');
-    header.importYamlSortableTable().getAnySubRows().should('not.exist');
+    header.importYaml().importYamlSortableTable().tableHeaderRowElementWithPartialName('State').should('not.exist');
+    header.importYaml().importYamlSortableTable().subRows().should('not.exist');
 
-    header.importYamlCloseClick();
+    header.importYaml().importYamlCloseClick();
   });
 
   it('can add cluster badge', () => {

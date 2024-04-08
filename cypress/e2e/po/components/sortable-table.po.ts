@@ -96,7 +96,7 @@ export default class SortableTablePo extends ComponentPo {
     return this.self().contains('thead tr', name);
   }
 
-  getAnySubRows() {
+  subRows() {
     return this.self().find('tbody tr.sub-row');
   }
 
