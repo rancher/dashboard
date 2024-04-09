@@ -1,6 +1,7 @@
 import { LABEL_SELECT_NOT_OPTION_KINDS } from './LabeledSelect.utils';
 import { debounce } from 'lodash';
-import Vue, { PropType } from 'vue';
+import Vue, { PropType, defineComponent } from 'vue';
+import { ComputedOptions, MethodOptions } from 'vue/types/v3-component-options';
 
 interface Data {
   currentPage: number,
@@ -16,7 +17,17 @@ interface Data {
   debouncedRequestPagination: Function
 }
 
-interface Methods {
+interface Computed extends ComputedOptions {
+  // _options: () => any,
+
+  canLoadMore: () => boolean,
+
+  optionsInPage: () => number,
+
+  optionCounts: () => string,
+}
+
+interface Methods extends MethodOptions {
   loadMore: () => void
   setPaginationFilter: (filter: string) => void
   requestPagination: () => Promise<any>;
@@ -44,10 +55,10 @@ type PaginateFn<T = any> = (opts: {
 }>
 
 interface Props {
-  paginate: PaginateFn
+  paginate?: PaginateFn
 }
 
-export default Vue.extend<Data, Methods, any, Props>({
+export default defineComponent<Props, any, Data, Computed, Methods>({
   props: {
     paginate: {
       default: null,
@@ -89,10 +100,14 @@ export default Vue.extend<Data, Methods, any, Props>({
     },
 
     optionCounts() {
-      return this.paginate ? this.$store.getters['i18n/t']('labelSelect.pagination.counts', {
+      if (!this.paginate || this.optionsInPage === this.totalResults) {
+        return '';
+      }
+
+      return this.$store.getters['i18n/t']('labelSelect.pagination.counts', {
         count:      this.optionsInPage,
         totalCount: this.totalResults
-      }) : '';
+      });
     },
   },
 
@@ -111,7 +126,7 @@ export default Vue.extend<Data, Methods, any, Props>({
 
     async requestPagination(resetPage = false) {
       this.paginating = true;
-      const paginate: PaginateFn = this.paginate;
+      const paginate: PaginateFn = this.paginate as PaginateFn; // Checking is done via prop
 
       const {
         page,

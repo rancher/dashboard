@@ -5,6 +5,7 @@ import FileSelector from '@shell/components/form/FileSelector';
 import LabeledSelect from '@shell/components/form/LabeledSelect';
 import { mapGetters } from 'vuex';
 import { SECRET } from '@shell/config/types';
+import { PaginationParamFilter } from '~/shell/types/store/pagination.types';
 
 export default {
   components: {
@@ -91,15 +92,18 @@ export default {
     }) {
       try {
         // Construct params for request
-        const filterParam = !!filter ? [{ field: 'metadata.name', value: filter }] : [];
-        const url = this.$store.getters['cluster/urlFor'](SECRET, null, {
+        const filters = !!filter ? [PaginationParamFilter.createSingleField({ field: 'metadata.name', value: filter })] : [];
+
+        // Of type {@link ActionFindPageArgs}
+        const opt = {
           pagination: {
-            filter: filterParam,
-            sort:   [{ asc: true, field: 'metadata.namespace' }, { asc: true, field: 'metadata.name' }],
             page,
             pageSize,
-          }
-        });
+            sort: [{ asc: true, field: 'metadata.namespace' }, { asc: true, field: 'metadata.name' }],
+            filters
+          },
+        };
+        const url = this.$store.getters['cluster/urlFor'](SECRET, null, opt);
 
         // Make request (note we're not bothering to persist anything to the store, response is transient)
         const res = await this.$store.dispatch('cluster/request', { url });
