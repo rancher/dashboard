@@ -1,5 +1,6 @@
 import PagePo from '@/cypress/e2e/po/pages/page.po';
 import AsyncButtonPo from '@/cypress/e2e/po/components/async-button.po';
+import SelectPo from '@/cypress/e2e/po/components/select.po';
 
 import TabbedPo from '@/cypress/e2e/po/components/tabbed.po';
 
@@ -21,6 +22,14 @@ export class ChartsPage extends PagePo {
 
   chartsFilterInput() {
     return this.self().find('[data-testid="charts-filter-input"]');
+  }
+
+  chartsFilterCategoriesSelect() {
+    return new SelectPo(this.self().find('[data-testid="charts-filter-category"]'));
+  }
+
+  chartsFilterReposSelect() {
+    return new SelectPo(this.self().find('[data-testid="charts-filter-repos"]'));
   }
 
   goToInstall() {

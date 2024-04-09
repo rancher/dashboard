@@ -24,6 +24,24 @@ describe('Apps/Charts', { tags: ['@explorer', '@adminUser'] }, () => {
       chartsPage.chartsFilterInput().type('just some random text');
 
       chartsPage.chartsCarouselSlides().should('have.length', length);
+
+      // reset text filter input
+      chartsPage.chartsFilterInput().clear();
+
+      chartsPage.chartsFilterCategoriesSelect().toggle();
+      chartsPage.chartsFilterCategoriesSelect().clickOptionWithLabel('Applications');
+
+      chartsPage.chartsCarouselSlides().should('have.length', length);
+
+      // reset categories filter
+      chartsPage.chartsFilterCategoriesSelect().toggle();
+      chartsPage.chartsFilterCategoriesSelect().clickOptionWithLabel('All Categories');
+
+      chartsPage.chartsFilterReposSelect().toggle();
+      chartsPage.chartsFilterReposSelect().getOptions();
+      chartsPage.chartsFilterReposSelect().clickOptionWithLabelForChartReposFilter('Rancher');
+
+      chartsPage.chartsCarouselSlides().should('have.length', length);
     });
   });
 });

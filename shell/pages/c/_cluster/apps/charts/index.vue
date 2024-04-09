@@ -401,6 +401,7 @@ export default {
         :value="flattenedRepoNames"
         class="checkbox-select"
         :close-on-select="false"
+        data-testid="charts-filter-repos"
         @option:selecting="$event.all ? toggleAll(!$event.enabled) : toggleRepo($event, !$event.enabled) "
       >
         <template #selected-option="selected">
@@ -434,6 +435,7 @@ export default {
         label="label"
         style="min-width: 200px;"
         :reduce="opt => opt.value"
+        data-testid="charts-filter-category"
       >
         <template #option="opt">
           {{ opt.label }} ({{ opt.count }})
