@@ -39,11 +39,18 @@ export default {
       gitRepos: {
         inStoreType: 'management',
         type:        FLEET.GIT_REPO,
+      },
+      fleetClusters: {
+        inStoreType: 'management',
+        type:        FLEET.CLUSTER,
       }
     }, this.$store);
 
     this.gitRepos = hash.gitRepos;
     this.fleetWorkspacesData = hash.fleetWorkspaces || [];
+
+    // console.log('fleetWorkspacesData', this.fleetWorkspacesData);
+    // console.log('fleetClusters', hash.fleetClusters);
 
     try {
       const permissions = await checkPermissions({ workspaces: { type: FLEET.WORKSPACE }, gitRepos: { type: FLEET.GIT_REPO, schemaValidator: (schema) => schema.resourceMethods.includes('PUT') } }, this.$store.getters);
@@ -56,7 +63,8 @@ export default {
 
   data() {
     return {
-      headers: [
+      admissableAreas: ['clusters', 'bundles', 'resources'],
+      headers:         [
         {
           name:          'name',
           labelKey:      'tableHeaders.repoName',
@@ -109,7 +117,6 @@ export default {
       }
 
       // When user doesn't have access to the workspaces fall back to namespaces
-
       return this.allNamespaces.filter((item) => {
         return item.metadata.annotations[WORKSPACE_ANNOTATION] === WORKSPACE;
       }).map(( obj ) => {
@@ -128,6 +135,8 @@ export default {
       });
     },
     workspacesData() {
+      console.log('DATA', this.fleetWorkspaces.filter((ws) => ws.repos && ws.repos.length));
+
       return this.fleetWorkspaces.filter((ws) => ws.repos && ws.repos.length);
     },
     emptyWorkspaces() {
@@ -151,112 +160,82 @@ export default {
       });
     },
     getStatusInfo(area, row) {
+      const defaultStatusInfo = {
+        badgeClass: `${ STATES[STATES_ENUM.NOT_READY].color } badge-class-default`,
+        icon:       STATES[STATES_ENUM.NOT_READY].compoundIcon
+      };
+
       // classes are defined in the themes SASS files...
-      switch (area) {
-      case 'clusters':
-        if (row.clusterInfo?.ready === row.clusterInfo?.total && row.clusterInfo?.ready) {
-          return {
-            badgeClass: STATES[STATES_ENUM.ACTIVE].color,
-            icon:       STATES[STATES_ENUM.ACTIVE].compoundIcon
-          };
-        }
+      return this.getBadgeClassAndIcon(area, row) || defaultStatusInfo;
+    },
+    getBadgeClassAndIcon(area, row) {
+      let group;
 
+      if (!this.admissableAreas.includes(area)) {
+        return false;
+      }
+
+      if (area === 'clusters') {
+        group = row.targetClusters;
+      } else if (area === 'bundles') {
+        group = row.bundles;
+      } else if (area === 'resources') {
+        group = row.status?.resources;
+      }
+
+      if (group?.length && group?.every((item) => item.state?.toLowerCase() === STATES_ENUM.ACTIVE)) {
         return {
-          badgeClass: `${ STATES[STATES_ENUM.NOT_READY].color } badge-class-area-clusters`,
-          icon:       STATES[STATES_ENUM.NOT_READY].compoundIcon
+          badgeClass: STATES[STATES_ENUM.ACTIVE].color ? STATES[STATES_ENUM.ACTIVE].color : `${ STATES[STATES_ENUM.UNKNOWN].color } bg-unmapped-state`,
+          icon:       STATES[STATES_ENUM.ACTIVE].compoundIcon ? STATES[STATES_ENUM.ACTIVE].compoundIcon : `${ STATES[STATES_ENUM.UNKNOWN].compoundIcon } unmapped-icon`
         };
-      case 'bundles':
-        if (row.bundles?.length && row.bundles?.every((bundle) => bundle.state?.toLowerCase() === STATES_ENUM.ACTIVE)) {
-          return {
-            badgeClass: STATES[STATES_ENUM.ACTIVE].color ? STATES[STATES_ENUM.ACTIVE].color : `${ STATES[STATES_ENUM.UNKNOWN].color } bg-unmapped-state`,
-            icon:       STATES[STATES_ENUM.ACTIVE].compoundIcon ? STATES[STATES_ENUM.ACTIVE].compoundIcon : `${ STATES[STATES_ENUM.UNKNOWN].compoundIcon } unmapped-icon`
-          };
-        }
-        if (row.bundles?.length && row.bundles?.some((bundle) => bundle.state?.toLowerCase() === STATES_ENUM.ERR_APPLIED)) {
-          return {
-            badgeClass: STATES[STATES_ENUM.ERR_APPLIED].color ? STATES[STATES_ENUM.ERR_APPLIED].color : `${ STATES[STATES_ENUM.UNKNOWN].color } bg-unmapped-state`,
-            icon:       STATES[STATES_ENUM.ERR_APPLIED].compoundIcon ? STATES[STATES_ENUM.ERR_APPLIED].compoundIcon : `${ STATES[STATES_ENUM.UNKNOWN].compoundIcon } unmapped-icon`
-          };
-        }
-        if (row.bundles?.length && row.bundles?.some((bundle) => bundle.state?.toLowerCase() === STATES_ENUM.NOT_READY)) {
-          return {
-            badgeClass: STATES[STATES_ENUM.NOT_READY].color ? STATES[STATES_ENUM.NOT_READY].color : `${ STATES[STATES_ENUM.UNKNOWN].color } bg-unmapped-state`,
-            icon:       STATES[STATES_ENUM.NOT_READY].compoundIcon ? STATES[STATES_ENUM.NOT_READY].compoundIcon : `${ STATES[STATES_ENUM.UNKNOWN].compoundIcon } unmapped-icon`
-          };
-        }
-
-        if (row.bundlesReady?.length === row.bundles?.length && row.bundlesReady && row.bundles?.length) {
-          return {
-            badgeClass: STATES[STATES_ENUM.ACTIVE].color,
-            icon:       STATES[STATES_ENUM.ACTIVE].compoundIcon
-          };
-        }
-
+      }
+      if (group?.length && group?.some((item) => item.state?.toLowerCase() === STATES_ENUM.ERR_APPLIED)) {
         return {
-          badgeClass: `${ STATES[STATES_ENUM.NOT_READY].color } badge-class-area-bundles`,
-          icon:       STATES[STATES_ENUM.NOT_READY].compoundIcon
+          badgeClass: STATES[STATES_ENUM.ERR_APPLIED].color ? STATES[STATES_ENUM.ERR_APPLIED].color : `${ STATES[STATES_ENUM.UNKNOWN].color } bg-unmapped-state`,
+          icon:       STATES[STATES_ENUM.ERR_APPLIED].compoundIcon ? STATES[STATES_ENUM.ERR_APPLIED].compoundIcon : `${ STATES[STATES_ENUM.UNKNOWN].compoundIcon } unmapped-icon`
         };
-      case 'resources':
-        if (row.status?.resources?.length && row.status?.resources?.every((resource) => resource.state?.toLowerCase() === STATES_ENUM.ACTIVE)) {
-          return {
-            badgeClass: STATES[STATES_ENUM.ACTIVE].color ? STATES[STATES_ENUM.ACTIVE].color : `${ STATES[STATES_ENUM.UNKNOWN].color } bg-unmapped-state`,
-            icon:       STATES[STATES_ENUM.ACTIVE].compoundIcon ? STATES[STATES_ENUM.ACTIVE].compoundIcon : `${ STATES[STATES_ENUM.UNKNOWN].compoundIcon } unmapped-icon`
-          };
-        }
-        if (row.status?.resources?.length && row.status?.resources?.some((resource) => resource.state?.toLowerCase() === STATES_ENUM.ERR_APPLIED)) {
-          return {
-            badgeClass: STATES[STATES_ENUM.ERR_APPLIED].color ? STATES[STATES_ENUM.ERR_APPLIED].color : `${ STATES[STATES_ENUM.UNKNOWN].color } bg-unmapped-state`,
-            icon:       STATES[STATES_ENUM.ERR_APPLIED].compoundIcon ? STATES[STATES_ENUM.ERR_APPLIED].compoundIcon : `${ STATES[STATES_ENUM.UNKNOWN].compoundIcon } unmapped-icon`
-          };
-        }
-        if (row.status?.resources?.length && row.status?.resources?.some((resource) => resource.state?.toLowerCase() === STATES_ENUM.NOT_READY)) {
-          return {
-            badgeClass: STATES[STATES_ENUM.NOT_READY].color ? STATES[STATES_ENUM.NOT_READY].color : `${ STATES[STATES_ENUM.UNKNOWN].color } bg-unmapped-state`,
-            icon:       STATES[STATES_ENUM.NOT_READY].compoundIcon ? STATES[STATES_ENUM.NOT_READY].compoundIcon : `${ STATES[STATES_ENUM.UNKNOWN].compoundIcon } unmapped-icon`
-          };
-        }
+      }
+      if (group?.length && group?.some((item) => item.state?.toLowerCase() === STATES_ENUM.NOT_READY)) {
+        return {
+          badgeClass: STATES[STATES_ENUM.NOT_READY].color ? STATES[STATES_ENUM.NOT_READY].color : `${ STATES[STATES_ENUM.UNKNOWN].color } bg-unmapped-state`,
+          icon:       STATES[STATES_ENUM.NOT_READY].compoundIcon ? STATES[STATES_ENUM.NOT_READY].compoundIcon : `${ STATES[STATES_ENUM.UNKNOWN].compoundIcon } unmapped-icon`
+        };
+      }
 
+      if (area === 'resources') {
         if (row.status?.resourceCounts?.desiredReady === row.status?.resourceCounts?.ready && row.status?.resourceCounts?.desiredReady) {
           return {
             badgeClass: STATES[STATES_ENUM.ACTIVE].color,
             icon:       STATES[STATES_ENUM.ACTIVE].compoundIcon
           };
         }
-
-        return {
-          badgeClass: `${ STATES[STATES_ENUM.NOT_READY].color } badge-class-area-resources`,
-          icon:       STATES[STATES_ENUM.NOT_READY].compoundIcon
-        };
-      default:
-        return {
-          badgeClass: `${ STATES[STATES_ENUM.NOT_READY].color } badge-class-default`,
-          icon:       STATES[STATES_ENUM.NOT_READY].compoundIcon
-        };
       }
+
+      return {
+        badgeClass: `${ STATES[STATES_ENUM.NOT_READY].color } badge-class-area-${ area }`,
+        icon:       STATES[STATES_ENUM.NOT_READY].compoundIcon
+      };
     },
     getTooltipInfo(area, row) {
-      switch (area) {
-      case 'clusters':
-        if (row.clusterInfo?.total) {
-          return `Ready: ${ row.clusterInfo?.ready }<br>Total: ${ row.clusterInfo?.total }`;
-        }
+      let group;
 
-        return '';
-      case 'bundles':
-        if (row.bundles?.length) {
-          return this.generateTooltipData(row.bundles);
-        }
-
-        return '';
-      case 'resources':
-        if (row.status?.resources?.length) {
-          return this.generateTooltipData(row.status?.resources);
-        }
-
-        return '';
-      default:
+      if (!this.admissableAreas.includes(area)) {
         return {};
       }
+
+      if (area === 'clusters') {
+        group = row.targetClusters;
+      } else if (area === 'bundles') {
+        group = row.bundles;
+      } else if (area === 'resources') {
+        group = row.status?.resources;
+      }
+
+      if (group?.length) {
+        return this.generateTooltipData(group);
+      }
+
+      return '';
     },
     generateTooltipData(data) {
       const infoObj = {};
@@ -285,7 +264,22 @@ export default {
       Object.keys(this.isCollapsed).forEach((key) => {
         this.$set(this.isCollapsed, key, val);
       });
-    }
+    },
+    generateBadgeRoute(area, row) {
+      const baseRoute = {
+        name:   'c-cluster-product-resource-namespace-id',
+        params: {
+          cluster:   '_',
+          id:        row?.metadata?.name,
+          namespace: row?.metadata?.namespace,
+          product:   'fleet',
+          resource:  'fleet.cattle.io.gitrepo'
+        },
+        hash: `#${ area }`
+      };
+
+      return baseRoute;
+    },
   },
 
   watch: {
@@ -416,7 +410,8 @@ export default {
                 :tooltip-text="getTooltipInfo('clusters', row)"
                 :badge-class="getStatusInfo('clusters', row).badgeClass"
                 :icon="getStatusInfo('clusters', row).icon"
-                :value="`${ row.clusterInfo.ready }/${ row.clusterInfo.total }`"
+                :value="`${ row.targetClustersReady.length || 0 }/${ row.targetClusters.length }`"
+                :clickable-link="generateBadgeRoute('clusters', row)"
               />
             </template>
             <template #cell:bundlesReady="{row}">
@@ -428,6 +423,7 @@ export default {
                 :badge-class="getStatusInfo('bundles', row).badgeClass"
                 :icon="getStatusInfo('bundles', row).icon"
                 :value="`${ row.bundlesReady.length || 0 }/${ row.bundles.length }`"
+                :clickable-link="generateBadgeRoute('bundles', row)"
               />
             </template>
             <template #cell:resourcesReady="{row}">
@@ -437,6 +433,7 @@ export default {
                 :badge-class="getStatusInfo('resources', row).badgeClass"
                 :icon="getStatusInfo('resources', row).icon"
                 :value="`${ row.status.resourceCounts.ready }/${ row.status.resourceCounts.desiredReady }`"
+                :clickable-link="generateBadgeRoute('resources', row)"
               />
             </template>
 

@@ -104,8 +104,18 @@ export default class GitRepo extends SteveModel {
     const clusters = workspace?.clusters || [];
     const groups = workspace?.clusterGroups || [];
 
+    // console.log('this', this);
+    // console.log('targetClusters workspace', workspace);
+    // console.log('targetClusters clusters', clusters);
+    // console.log('targetClusters groups', groups);
+
     if (workspace?.id === 'fleet-local') {
+      // should we be getting the clusters from workspace.clusters instead of having to rely on the groups,
+      // which takes an additional request to be done on the Fleet dashboard screen?
+      // return clusters;
       const local = findBy(groups, 'id', 'fleet-local/default');
+
+      // console.log('local', local);
 
       if (local) {
         return local.targetClusters;
@@ -309,6 +319,14 @@ export default class GitRepo extends SteveModel {
   get bundlesReady() {
     if (this.bundles && this.bundles.length) {
       return this.bundles.filter((bundle) => bundle.state === 'active');
+    }
+
+    return 0;
+  }
+
+  get targetClustersReady() {
+    if (this.targetClusters && this.targetClusters.length) {
+      return this.targetClusters.filter((cluster) => cluster.state === 'active');
     }
 
     return 0;

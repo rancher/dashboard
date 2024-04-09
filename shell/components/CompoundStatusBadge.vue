@@ -18,12 +18,30 @@ export default {
       type:    String,
       default: ''
     },
+    clickableLink: {
+      type:    Object,
+      default: () => {}
+    }
   },
 };
 </script>
 
 <template>
+  <router-link
+    v-if="clickableLink?.name"
+    v-clean-tooltip.bottom="tooltipText"
+    class="compound-cluster-badge"
+    :class="`bg-${badgeClass}`"
+    :to="clickableLink"
+  >
+    <i
+      v-if="icon"
+      :class="`icon-${icon}`"
+    />
+    <span>{{ value }}</span>
+  </router-link>
   <div
+    v-else
     v-clean-tooltip.bottom="tooltipText"
     class="compound-cluster-badge"
     :class="`bg-${badgeClass}`"
@@ -50,4 +68,8 @@ export default {
     margin-right: 6px;
   }
 }
+a.compound-cluster-badge {
+    cursor: pointer;
+    text-decoration: none;
+  }
 </style>
