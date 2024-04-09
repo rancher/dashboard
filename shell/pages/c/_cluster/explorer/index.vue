@@ -83,7 +83,7 @@ export default {
 
   mixins: [metricPoller],
 
-  async fetch() {
+  fetch() {
     fetchClusterResources(this.$store, NODE);
 
     if (this.currentCluster) {
@@ -117,7 +117,7 @@ export default {
       this.canViewAgents = this.$store.getters['cluster/canList'](WORKLOAD_TYPES.DEPLOYMENT) && this.$store.getters['cluster/canList'](WORKLOAD_TYPES.STATEFUL_SET);
 
       if (this.canViewAgents) {
-        await this.loadAgents();
+        this.loadAgents();
       }
     }
   },
@@ -444,13 +444,13 @@ export default {
   },
 
   methods: {
-    async loadAgents() {
+    loadAgents() {
       if (this.currentCluster.isLocal) {
-        await this.setAgentResource('fleetDeployment', WORKLOAD_TYPES.DEPLOYMENT, 'cattle-fleet-system/fleet-controller');
-        await this.setAgentResource('fleetStatefulSet', WORKLOAD_TYPES.STATEFUL_SET, 'cattle-fleet-local-system/fleet-agent');
+        this.setAgentResource('fleetDeployment', WORKLOAD_TYPES.DEPLOYMENT, 'cattle-fleet-system/fleet-controller');
+        this.setAgentResource('fleetStatefulSet', WORKLOAD_TYPES.STATEFUL_SET, 'cattle-fleet-local-system/fleet-agent');
       } else {
-        await this.setAgentResource('fleetStatefulSet', WORKLOAD_TYPES.STATEFUL_SET, 'cattle-fleet-system/fleet-agent');
-        await this.setAgentResource('cattleDeployment', WORKLOAD_TYPES.DEPLOYMENT, 'cattle-system/cattle-cluster-agent');
+        this.setAgentResource('fleetStatefulSet', WORKLOAD_TYPES.STATEFUL_SET, 'cattle-fleet-system/fleet-agent');
+        this.setAgentResource('cattleDeployment', WORKLOAD_TYPES.DEPLOYMENT, 'cattle-system/cattle-cluster-agent');
 
         // Scaling Up/Down cattle deployment causes web sockets disconnection;
         this.interval = setInterval(() => {
