@@ -278,13 +278,7 @@ export default {
       }
 
       for (const resource of resources) {
-        if (!resource) {
-          return STATES_ENUM.UNHEALTHY;
-        }
-      }
-
-      for (const resource of resources) {
-        if (resource.status.conditions?.find((c) => c.status !== 'True') || resource.metadata.state?.error) {
+        if (!resource || resource.status.conditions?.find((c) => c.status !== 'True') || resource.metadata.state?.error) {
           return STATES_ENUM.UNHEALTHY;
         }
       }
