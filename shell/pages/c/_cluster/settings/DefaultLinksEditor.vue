@@ -76,11 +76,13 @@ export default {
         <div
           v-if="!row.readonly && !isView"
           :key="i+'show'"
+          class="link-show-hide-checkbox"
         >
           <Checkbox
             v-if="!isView"
             v-model="row.enabled"
             label-key="customLinks.settings.showLabel"
+            :data-testid="`custom-links__checkbox-${i}`"
             @input="showhide(row, i, $event)"
           />
         </div>

@@ -317,14 +317,15 @@ export default {
         </div>
       </div>
     </template>
-    <div
-      v-else-if="mode==='view'"
-      class="text-muted"
-    >
-      &mdash;
-    </div>
     <div v-else>
-      <slot name="empty" />
+      <slot name="empty">
+        <div
+          v-if="mode==='view'"
+          class="text-muted"
+        >
+          &mdash;
+        </div>
+      </slot>
     </div>
     <div
       v-if="showAdd && !isView"

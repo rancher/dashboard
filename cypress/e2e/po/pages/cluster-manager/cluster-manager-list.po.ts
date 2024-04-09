@@ -14,12 +14,11 @@ export default class ClusterManagerListPagePo extends PagePo {
     return super.goTo(ClusterManagerListPagePo.createPath(clusterId));
   }
 
-  constructor(clusterId: string) {
+  constructor(clusterId = '_') {
     super(ClusterManagerListPagePo.createPath(clusterId));
   }
 
   static navTo() {
-    BurgerMenuPo.toggle();
     BurgerMenuPo.burgerMenuNavToMenubyLabel('Cluster Management');
   }
 
@@ -41,7 +40,7 @@ export default class ClusterManagerListPagePo extends PagePo {
   }
 
   list(): ProvClusterListPo {
-    return new ProvClusterListPo(this.self().find('[data-testid="cluster-list"]'));
+    return new ProvClusterListPo('[data-testid="cluster-list"]');
   }
 
   /**

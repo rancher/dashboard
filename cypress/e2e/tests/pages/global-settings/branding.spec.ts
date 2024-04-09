@@ -3,6 +3,10 @@ import { SettingsPagePo } from '@/cypress/e2e/po/pages/global-settings/settings.
 import HomePagePo from '@/cypress/e2e/po/pages/home.po';
 import BurgerMenuPo from '@/cypress/e2e/po/side-bars/burger-side-menu.po';
 import ProductNavPo from '@/cypress/e2e/po/side-bars/product-side-nav.po';
+import PreferencesPagePo from '@/cypress/e2e/po/pages/preferences.po';
+
+const brandingPage = new BrandingPagePo();
+const burgerMenu = new BurgerMenuPo();
 
 const settings = {
   privateLabel: {
@@ -21,16 +25,13 @@ const settings = {
   }
 };
 
-describe('Branding', () => {
-  // If we need to speed tests up these should be combined into a single `it` (so only one page load and one refresh is used)
-  beforeEach(() => {
+describe('Branding', { testIsolation: 'off' }, () => {
+  before(() => {
     cy.login();
+    HomePagePo.goTo();
   });
 
   it('Can navigate to Branding Page', { tags: ['@globalSettings', '@adminUser', '@standardUser'] }, () => {
-    HomePagePo.goTo();
-
-    const burgerMenu = new BurgerMenuPo();
     const productMenu = new ProductNavPo();
 
     BurgerMenuPo.toggle();
@@ -39,7 +40,7 @@ describe('Branding', () => {
 
     globalSettingsNavItem.should('exist');
     globalSettingsNavItem.click();
-    const settingsPage = new SettingsPagePo();
+    const settingsPage = new SettingsPagePo('_');
 
     settingsPage.waitForPageWithClusterId();
 
@@ -51,21 +52,18 @@ describe('Branding', () => {
     brandingNavItem.should('exist');
     brandingNavItem.click();
 
-    const brandingPage = new BrandingPagePo();
-
     brandingPage.waitForPageWithClusterId();
   });
 
   it('Private Label', { tags: ['@globalSettings', '@adminUser'] }, () => {
     const brandingPage = new BrandingPagePo();
 
-    brandingPage.goTo();
+    BrandingPagePo.navTo();
 
     // Set
-    // brandingPage.privateLabel().value().should(`eq ${ settings.privateLabel.original }`);
     cy.title().should('not.eq', settings.privateLabel.new);
     brandingPage.privateLabel().set(settings.privateLabel.new);
-    brandingPage.applyAndWait('**/ui-pl');
+    brandingPage.applyAndWait('**/ui-pl', 200);
 
     // Visit the Home Page
     BurgerMenuPo.toggle();
@@ -84,38 +82,134 @@ describe('Branding', () => {
     cy.reload();
     cy.title().should('eq', settings.privateLabel.new);
 
-    brandingPage.goTo();
+    BrandingPagePo.navTo();
 
     // Reset
     brandingPage.privateLabel().set(settings.privateLabel.original);
-    brandingPage.applyAndWait('**/ui-pl');
+    brandingPage.applyAndWait('**/ui-pl', 200);
     BurgerMenuPo.toggle();
     burgerMenuPo.home().click();
     cy.title().should('eq', settings.privateLabel.original);
   });
 
-  it.skip('Support Links', () => {
-    // Liable to change following Prime changes
+  it('Logo', { tags: ['@globalSettings', '@adminUser'] }, () => {
+    const prefPage = new PreferencesPagePo();
+
+    BrandingPagePo.navTo();
+    brandingPage.customLogoCheckbox().set();
+    // to check custom box element width and height in order to prevent regression
+    // https://github.com/rancher/dashboard/issues/10000
+    brandingPage.customLogoCheckbox().hasAppropriateWidth();
+    brandingPage.customLogoCheckbox().hasAppropriateHeight();
+
+    // Upload Light Logo
+    brandingPage.uploadButton('Upload Light Logo')
+      .selectFile('cypress/e2e/blueprints/logos/rancher-color.svg', { force: true });
+
+    // Upload Dark Logo
+    brandingPage.uploadButton('Upload Dark Logo')
+      .selectFile('cypress/e2e/blueprints/logos/rancher-white.svg', { force: true });
+
+    // Apply
+    brandingPage.applyAndWait('/v1/management.cattle.io.settings/ui-logo-light', 200);
+
+    // Logo Preview
+    brandingPage.logoPreview('dark').should('be.visible');
+    brandingPage.logoPreview('light').should('be.visible');
+
+    // Set dashboard theme to Dark and check top-level navigation header for updated logo in dark mode
+    PreferencesPagePo.navTo();
+    prefPage.themeButtons().checkVisible();
+    cy.intercept('PUT', 'v1/userpreferences/*').as('prefUpdateDark');
+    prefPage.themeButtons().set('Dark');
+    cy.wait('@prefUpdateDark').then(({ request, response }) => {
+      expect(response?.statusCode).to.eq(200);
+      expect(request.body.data).to.have.property('theme', '"ui-dark"');
+      expect(response?.body.data).to.have.property('theme', '"ui-dark"');
+    });
+
+    cy.fixture('logos/rancher-white.svg', 'base64').then((expectedBase64) => {
+      burgerMenu.headerBrandLogoImage().should('be.visible').and('have.attr', 'src', `data:image/svg+xml;base64,${ expectedBase64 }`);
+
+      BurgerMenuPo.toggle();
+      burgerMenu.brandLogoImage().should('be.visible').and('have.attr', 'src', `data:image/svg+xml;base64,${ expectedBase64 }`);
+      BurgerMenuPo.toggle();
+    });
+    // Set dashboard theme to Light and check top-level navigation header for updated logo in light mode
+    PreferencesPagePo.navTo();
+    prefPage.themeButtons().checkVisible();
+    cy.intercept('PUT', 'v1/userpreferences/*').as('prefUpdateLight');
+    prefPage.themeButtons().set('Light');
+    cy.wait('@prefUpdateLight').then(({ request, response }) => {
+      expect(response?.statusCode).to.eq(200);
+      expect(request.body.data).to.have.property('theme', '"ui-light"');
+      expect(response?.body.data).to.have.property('theme', '"ui-light"');
+    });
+
+    cy.fixture('logos/rancher-color.svg', 'base64').then((expectedBase64) => {
+      burgerMenu.headerBrandLogoImage().should('be.visible').and('have.attr', 'src', `data:image/svg+xml;base64,${ expectedBase64 }`);
+
+      BurgerMenuPo.toggle();
+      burgerMenu.brandLogoImage().should('be.visible').and('have.attr', 'src', `data:image/svg+xml;base64,${ expectedBase64 }`);
+    });
+
+    // Reset
+    BrandingPagePo.navTo();
+    brandingPage.customLogoCheckbox().set();
+    brandingPage.applyAndWait('/v1/management.cattle.io.settings/ui-logo-light', 200);
+
+    HomePagePo.navTo();
+    burgerMenu.headerBrandLogoImage().should('be.visible').then((el) => {
+      expect(el).to.have.attr('src').includes('/img/rancher-logo.66cf5910.svg');
+    });
+
+    BurgerMenuPo.toggle();
+    burgerMenu.brandLogoImage().should('be.visible').then((el) => {
+      expect(el).to.have.attr('src').includes('/img/rancher-logo.66cf5910.svg');
+    });
   });
 
-  it.skip('Logo', () => {
-    // Requires a way to check the actual image changes
-  });
+  it('Favicon', { tags: ['@globalSettings', '@adminUser'] }, () => {
+    BrandingPagePo.navTo();
+    brandingPage.customFaviconCheckbox().set();
 
-  it.skip('Favicon', () => {
-    // Requires a way to check the actual image changes
+    // Upload Favicon
+    brandingPage.uploadButton('Upload Favicon')
+      .selectFile('cypress/e2e/blueprints/global/favicons/custom-favicon.svg', { force: true });
+
+    // Apply
+    cy.fixture('global/favicons/custom-favicon.svg', 'base64').then((expectedBase64) => {
+      brandingPage.applyAndWait('/v1/management.cattle.io.settings/ui-favicon').then(({ response, request }) => {
+        expect(response?.statusCode).to.eq(200);
+        expect(request.body).to.have.property('value', `data:image/svg+xml;base64,${ expectedBase64 }`);
+        expect(response?.body).to.have.property('value', `data:image/svg+xml;base64,${ expectedBase64 }`);
+      });
+
+      // Favicon Preview
+      brandingPage.faviconPreview().should('be.visible').and('have.attr', 'src', `data:image/svg+xml;base64,${ expectedBase64 }`);
+
+      // Favicon in header
+      cy.get('head link[rel="shortcut icon"]').should('have.attr', 'href', `data:image/svg+xml;base64,${ expectedBase64 }`);
+    });
+
+    // Reset
+    brandingPage.customFaviconCheckbox().set();
+    brandingPage.applyAndWait('/v1/management.cattle.io.settings/ui-favicon', 200);
+    cy.get('head link[rel="shortcut icon"]').then((el) => {
+      expect(el).attr('href').to.include('/favicon.png');
+    });
   });
 
   it('Primary Color', { tags: ['@globalSettings', '@adminUser'] }, () => {
     const brandingPage = new BrandingPagePo();
 
-    brandingPage.goTo();
+    BrandingPagePo.navTo();
 
     // Set
     brandingPage.primaryColorCheckbox().set();
     brandingPage.primaryColorPicker().value().should('not.eq', settings.primaryColor.new);
     brandingPage.primaryColorPicker().set(settings.primaryColor.new);
-    brandingPage.applyAndWait('**/ui-primary-color');
+    brandingPage.applyAndWait('**/ui-primary-color', 200);
 
     // Check in session
     brandingPage.primaryColorPicker().value().should('eq', settings.primaryColor.new);
@@ -135,7 +229,7 @@ describe('Branding', () => {
     // Reset
     brandingPage.primaryColorPicker().set(settings.primaryColor.original);
     brandingPage.primaryColorCheckbox().set();
-    brandingPage.applyAndWait('**/ui-primary-color');
+    brandingPage.applyAndWait('**/ui-primary-color', 200);
   });
 
   it('Link Color', { tags: ['@globalSettings', '@adminUser'] }, () => {
@@ -147,7 +241,7 @@ describe('Branding', () => {
     brandingPage.linkColorCheckbox().set();
     brandingPage.linkColorPicker().value().should('not.eq', settings.linkColor.new);
     brandingPage.linkColorPicker().set(settings.linkColor.new);
-    brandingPage.applyAndWait('**/ui-link-color');
+    brandingPage.applyAndWait('**/ui-link-color', 200);
 
     // Check in session
     brandingPage.linkColorPicker().value().should('eq', settings.linkColor.new);
@@ -161,6 +255,17 @@ describe('Branding', () => {
     // Reset
     brandingPage.linkColorPicker().set(settings.linkColor.original);
     brandingPage.linkColorCheckbox().set();
-    brandingPage.applyAndWait('**/ui-link-color');
+    brandingPage.applyAndWait('**/ui-link-color', 200);
+  });
+
+  it('standard user has only read access to Branding page', { tags: ['@globalSettings', '@standardUser'] }, () => {
+    // verify action buttons/checkboxes etc. are disabled/hidden for standard user
+    BrandingPagePo.navTo();
+    brandingPage.privateLabel().self().should('be.disabled');
+    brandingPage.customLogoCheckbox().isDisabled();
+    brandingPage.customFaviconCheckbox().isDisabled();
+    brandingPage.primaryColorCheckbox().isDisabled();
+    brandingPage.linkColorCheckbox().isDisabled();
+    brandingPage.applyButton().checkNotExists();
   });
 });

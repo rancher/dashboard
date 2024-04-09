@@ -9,7 +9,7 @@
   --primary-hover-text         : #{saturate($lightest, 20%)};
   --primary-active-bg          : #{darken($primary, 25%)};
   --primary-active-text        : #{contrast-color(darken($primary, 25%))};
-  --primary-border             : #($primary);
+  --primary-border             : #{$primary};
   --primary-banner-bg          : #{rgba($primary, 0.15)};
   --primary-light-bg           : #{rgba($primary, 0.05)};
 
@@ -19,7 +19,7 @@
   --info-hover-text         : #{saturate($lightest, 20%)};
   --info-active-bg          : #{darken($info, 25%)};
   --info-active-text        : #{contrast-color(darken($info, 25%))};
-  --info-border             : #($info);
+  --info-border             : #{$info};
   --info-banner-bg          : #{rgba($info, 0.15)};
   --info-light-bg           : #{rgba($info, 0.05)};
 }

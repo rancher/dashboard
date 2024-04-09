@@ -37,6 +37,8 @@ let store = {};
   resolveStoreModules(require('../store/type-map.js'), 'type-map.js');
   resolveStoreModules(require('../store/uiplugins.ts'), 'uiplugins.ts');
   resolveStoreModules(require('../store/wm.js'), 'wm.js');
+  resolveStoreModules(require('../store/customisation.js'), 'customisation.js');
+  resolveStoreModules(require('../store/cru-resource.ts'), 'cru-resource.ts');
 
   // If the environment supports hot reloading...
 
@@ -62,11 +64,13 @@ let store = {};
       '../store/type-map.js',
       '../store/uiplugins.ts',
       '../store/wm.js',
+      '../store/customisation.js',
+      '../store/cru-resource.ts',
     ], () => {
       // Update `root.modules` with the latest definitions.
       updateModules();
       // Trigger a hot update in the store.
-      window.$nuxt.$store.hotUpdate(store);
+      window.$globalApp.$store.hotUpdate(store);
     });
   }
 })();

@@ -26,9 +26,46 @@ env:
   # Build the dashboard to use in tests. When set to false it will grab `latest` from CDN (useful for running e2e tests quickly)
   BUILD_DASHBOARD: true
 
+  E2E_BUILD_DIST_NAME: dist
+  E2E_BUILD_DIST_DIR: dist
+  E2E_BUILD_DIST_EMBER_NAME: dist_ember
+  E2E_BUILD_DIST_EMBER_DIR: dist_ember
+
 jobs:
+  e2e-ui-build:
+    if: "!contains( github.event.pull_request.labels.*.name, 'ci/skip-e2e')"
+    runs-on: ubuntu-latest
+    steps:
+     - uses: actions/checkout@v3
+       with:
+        fetch-depth: 1
+     - uses: actions/setup-node@v3
+       with:
+        node-version: '14.x'
+        cache: 'yarn'
+     - name: Install packages
+       run: yarn install:ci
+     - name: Build e2e
+       run: yarn e2e:build
+     - name: Upload e2e build
+       uses: actions/upload-artifact@v4
+       with:
+        name: ${{ env.E2E_BUILD_DIST_NAME }}
+        path: ${{ env.E2E_BUILD_DIST_DIR }}/
+        if-no-files-found: error
+        retention-days: 10
+        compression-level: 9
+     - name: Upload e2e build ember
+       uses: actions/upload-artifact@v4
+       with:
+        name: ${{ env.E2E_BUILD_DIST_EMBER_NAME }}
+        path: ${{ env.E2E_BUILD_DIST_EMBER_DIR }}/
+        if-no-files-found: error
+        retention-days: 10
+        compression-level: 9
   e2e-test:
     if: "!contains( github.event.pull_request.labels.*.name, 'ci/skip-e2e')"
+    needs: e2e-ui-build
     strategy:
       fail-fast: false
       matrix:
@@ -43,7 +80,8 @@ jobs:
          ['@fleet'],
          ['@generic', '@globalSettings'],
          ['@manager'],
-         ['@userMenu', '@usersAndAuths']
+         ['@userMenu', '@usersAndAuths'],
+         ['@components'],
         ]
     runs-on: ubuntu-latest
     steps:
@@ -53,6 +91,7 @@ jobs:
       - uses: actions/setup-node@v3
         with:
           node-version: '14.x'
+          cache: 'yarn'
 
       # Installing fixed version of Chrome since latest version does not work (117-118 didn't work)
       # Leaving this here again in case we need to pin to a specific Chrome version in the future
@@ -66,15 +105,26 @@ jobs:
 
       - name: Install packages
         run: yarn install:ci
+
+      - name: Download e2e build
+        uses:  actions/download-artifact@v4
+        with:
+         name: ${{ env.E2E_BUILD_DIST_NAME }}
+         path: ${{ env.E2E_BUILD_DIST_DIR }}
+      - name: Download e2e build ember
+        uses:  actions/download-artifact@v4
+        with:
+         name: ${{ env.E2E_BUILD_DIST_EMBER_NAME }}
+         path: ${{ env.E2E_BUILD_DIST_EMBER_DIR }}
       
-      - name: Prepare build
-        run: yarn e2e:pre-prod
+      - name: Run Rancher
+        run: yarn e2e:docker
       
       - name: Setup Rancher and user
         run: |
           yarn e2e:prod
         env: 
-          GREP_TAGS: ${{ matrix.role.tag }}Setup+${{ matrix.features[0] }} ${{ matrix.role.tag }}Setup+${{ matrix.features[1] || matrix.features[0] }}
+          GREP_TAGS: ${{ matrix.role.tag }}Setup+${{ matrix.features[0] }} --@jenkins ${{ matrix.role.tag }}Setup+${{ matrix.features[1] || matrix.features[0] }} --@jenkins
           TEST_USERNAME: admin
           TEST_ONLY: setup
       
@@ -84,7 +134,7 @@ jobs:
           [ "$BUILD_DASHBOARD" != "false" ] || exit 0
         env: 
           TEST_SKIP: setup
-          GREP_TAGS: ${{ matrix.role.tag }}+${{ matrix.features[0] }} ${{ matrix.role.tag }}+${{ matrix.features[1] || matrix.features[0] }}
+          GREP_TAGS: ${{ matrix.role.tag }}+${{ matrix.features[0] }} --@jenkins ${{ matrix.role.tag }}+${{ matrix.features[1] || matrix.features[0] }} --@jenkins
           TEST_USERNAME: ${{ matrix.role.username }}
           
       - name: Upload screenshots
@@ -177,3 +227,16 @@ jobs:
           flags: unit
           files: ./coverage/coverage-unit.json
           fail_ci_if_error: false
+
+  check-e2e-tags:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v3
+        with:
+          fetch-depth: 1
+      - uses: actions/setup-node@v3
+        with:
+          node-version: '16.x'
+      - name: Check e2e tags
+        run: |
+          ./scripts/check-e2e-tests-for-tags

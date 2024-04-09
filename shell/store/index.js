@@ -1,7 +1,9 @@
 import { BACK_TO } from '@shell/config/local-storage';
 import { setBrand, setVendor } from '@shell/config/private-label';
 import { NAME as EXPLORER } from '@shell/config/product/explorer';
-import { LOGGED_OUT, TIMED_OUT, UPGRADED, _FLAGGED } from '@shell/config/query-params';
+import {
+  LOGGED_OUT, IS_SSO, TIMED_OUT, UPGRADED, _FLAGGED
+} from '@shell/config/query-params';
 import { SETTING } from '@shell/config/settings';
 import {
   COUNT,
@@ -238,11 +240,13 @@ export const state = () => {
     error:                   null,
     cameFromError:           false,
     pageActions:             [],
+    pageActionHandler:       null,
     serverVersion:           null,
     systemNamespaces:        [],
     isSingleProduct:         undefined,
     isRancherInHarvester:    false,
-    targetRoute:             null
+    targetRoute:             null,
+    rootProduct:             undefined,
   };
 };
 
@@ -305,6 +309,13 @@ export const getters = {
     return out;
   },
 
+  // Get the root product - this is either the current product or the current product's root (if set)
+  // Used for navigation and other areas that don't want to re-evaluate when the product changes, but is still within
+  // a common root product
+  rootProduct(state) {
+    return state.rootProduct;
+  },
+
   getStoreNameByProductId(state) {
     const products = state['type-map']?.products;
 
@@ -328,13 +339,9 @@ export const getters = {
   },
 
   isExplorer(state, getters) {
-    const product = getters.currentProduct;
+    const product = getters.rootProduct;
 
-    if ( !product ) {
-      return false;
-    }
-
-    return product.name === EXPLORER || product.inStore === 'cluster';
+    return product?.name === EXPLORER;
   },
 
   defaultClusterId(state, getters) {
@@ -592,6 +599,14 @@ export const getters = {
 };
 
 export const mutations = {
+  pageActionHandler(state, handler) {
+    if (handler && typeof handler === 'function') {
+      state.pageActionHandler = handler;
+    }
+  },
+  clearPageActionHandler(state) {
+    state.pageActionHandler = null;
+  },
   managementChanged(state, { ready, isRancher }) {
     state.managementReady = ready;
     state.isRancher = isRancher;
@@ -604,15 +619,16 @@ export const mutations = {
     state.isRancherInHarvester = neu;
   },
 
-  updateNamespaces(state, { filters, all }) {
+  updateNamespaces(state, { filters, all, getters: optGetters }) {
     state.namespaceFilters = filters.filter((x) => !!x);
 
     if ( all ) {
       state.allNamespaces = all;
     }
-    // Create map that can be used to efficiently check if a
-    // resource should be displayed
-    getActiveNamespaces(state, getters);
+    // - Create map that can be used to efficiently check if a resource should be displayed.
+    // - The 'getters' parameter is required to preserve compatibility with older Harvester's versions in embedded mode.
+    //   see https://github.com/rancher/dashboard/issues/10647
+    getActiveNamespaces(state, optGetters || getters);
   },
 
   changeAllNamespaces(state, namespace) {
@@ -650,8 +666,20 @@ export const mutations = {
     state.clusterId = neu;
   },
 
-  setProduct(state, neu) {
-    state.productId = neu;
+  setProduct(state, value) {
+    state.productId = value;
+
+    // Update rootProduct ONLY if the root product has changed as a result of the product change
+    const newProduct = this.getters['type-map/productByName'](value);
+    let newRootProduct = newProduct;
+
+    if (newProduct?.rootProduct) {
+      newRootProduct = this.getters['type-map/productByName'](newProduct.rootProduct) || newProduct;
+    }
+
+    if (newRootProduct?.name !== state.rootProduct?.name) {
+      state.rootProduct = newRootProduct;
+    }
   },
 
   setError(state, { error: obj, locationError }) {
@@ -689,6 +717,11 @@ export const mutations = {
 };
 
 export const actions = {
+  handlePageAction({ state }, action) {
+    if (state.pageActionHandler) {
+      state.pageActionHandler(action);
+    }
+  },
   async loadManagement({
     getters, state, commit, dispatch, rootGetters
   }) {
@@ -793,6 +826,9 @@ export const actions = {
     console.log(`Done loading management; isRancher=${ isRancher }; isMultiCluster=${ isMultiCluster }`); // eslint-disable-line no-console
   },
 
+  // Note:
+  // - state.clusterId is the old cluster id (or undefined)
+  // - id is the new cluster id (or undefined)
   async loadCluster({
     state, commit, dispatch, getters
   }, {
@@ -804,11 +840,15 @@ export const actions = {
     const sameProduct = oldProduct === product;
     const isMultiCluster = getters['isMultiCluster'];
 
-    // Are we in the same cluster and package or product?
-    if ( sameCluster && (samePackage || sameProduct)) {
+    const productConfig = state['type-map']?.products?.find((p) => p.name === product);
+    const oldProductConfig = state['type-map']?.products?.find((p) => p.name === oldProduct);
+
+    // Are we in the same cluster and package or product or root product?
+    if (sameCluster && (samePackage || sameProduct || (productConfig?.rootProduct === oldProductConfig?.rootProduct))) {
       // Do nothing, we're already connected/connecting to this cluster
       return;
     }
+
     const oldPkgClusterStore = oldPkg?.stores.find(
       (s) => getters[`${ s.storeName }/isClusterStore`]
     )?.storeName;
@@ -817,8 +857,11 @@ export const actions = {
       (s) => getters[`${ s.storeName }/isClusterStore`]
     )?.storeName;
 
-    const productConfig = state['type-map']?.products?.find((p) => p.name === product);
-    const forgetCurrentCluster = ((state.clusterId && id) || !samePackage) && !productConfig?.inExplorer;
+    // Forget the cluster if we had a cluster and we have a new cluster OR if the store changed between the old and new products OR if the pkg store changed
+    // Package stores are only there for UI Extensions that have their own stores (normal case is this is undefined)
+    const forgetCurrentCluster = ((state.clusterId && id) ||
+      (productConfig?.inStore && productConfig.inStore !== oldProductConfig?.inStore)) ||
+      (oldPkgClusterStore !== newPkgClusterStore);
 
     // Should we leave/forget the current cluster? Only if we're going from an existing cluster to a new cluster, or the package has changed
     // (latter catches cases like nav from explorer cluster A to epinio cluster A)
@@ -957,6 +1000,7 @@ export const actions = {
     commit('updateNamespaces', {
       filters: filters || [ALL_USER],
       all:     allNamespaces,
+      getters
     });
 
     if (getters['currentCluster'] && getters['currentCluster'].isHarvester) {
@@ -979,7 +1023,7 @@ export const actions = {
       }
     });
 
-    commit('updateNamespaces', { filters: ids });
+    commit('updateNamespaces', { filters: ids, getters });
   },
 
   async cleanNamespaces({ getters, dispatch }) {
@@ -1056,7 +1100,10 @@ export const actions = {
         window.localStorage.setItem(BACK_TO, window.location.href);
       }
 
-      const QUERY = (LOGGED_OUT in route.query) ? LOGGED_OUT : TIMED_OUT;
+      let QUERY = (LOGGED_OUT in route.query) ? LOGGED_OUT : TIMED_OUT;
+
+      // adds IS_SSO query param to login route if logout came with an auth provider enabled
+      QUERY += (IS_SSO in route.query) ? `&${ IS_SSO }` : '';
 
       router.replace(`/auth/login?${ QUERY }`);
     }

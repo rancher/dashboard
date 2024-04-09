@@ -1,5 +1,5 @@
 <script>
-import { WORKLOAD_TYPES } from '@shell/config/types';
+import { INGRESS, WORKLOAD_TYPES } from '@shell/config/types';
 import IngressFullPath from '@shell/components/formatter/IngressFullPath';
 
 export default {
@@ -18,7 +18,13 @@ export default {
   },
 
   async fetch() {
-    await Promise.all(Object.values(WORKLOAD_TYPES).map((type) => this.$store.dispatch('cluster/findAll', { type })));
+    const promises = Object.values(WORKLOAD_TYPES).map((type) => this.$store.dispatch('cluster/findAll', { type }));
+    const ingressSchema = this.$store.getters[`cluster/schemaFor`](INGRESS);
+
+    if (ingressSchema) {
+      promises.push(ingressSchema.fetchResourceFields());
+    }
+    await Promise.all(promises);
   },
 
   computed: {
@@ -48,12 +54,12 @@ export default {
     >
       <IngressFullPath :row="path" />
       <i class="icon icon-chevron-right" />
-      <nuxt-link
+      <router-link
         v-if="path.serviceName && path.serviceTargetTo"
         :to="path.serviceTargetTo"
       >
         {{ path.serviceName }}
-      </nuxt-link>
+      </router-link>
       <span v-else-if="path.serviceName">
         {{ path.serviceName }}
       </span>
@@ -63,12 +69,12 @@ export default {
       class="target"
     >
       {{ t('ingress.target.default') }} <i class="icon icon-chevron-right" />
-      <nuxt-link
+      <router-link
         v-if="defaultService.targetTo"
         :to="defaultService.targetTo"
       >
         {{ defaultService.name }}
-      </nuxt-link>
+      </router-link>
       <span v-else>
         {{ defaultService.name }}
       </span>

@@ -29,6 +29,7 @@ declare global {
       login(username?: string, password?: string, cacheSession?: boolean): Chainable<Element>;
       logout(): Chainable;
       byLabel(label: string): Chainable<Element>;
+      createE2EResourceName(context: string): Chainable<Element>;
 
       createUser(params: CreateUserParams): Chainable;
       setGlobalRoleBinding(userId: string, role: string): Chainable;
@@ -38,11 +39,13 @@ declare global {
       createProject(projName: string, clusterId: string, userId: string): Chainable;
       createNamespace(nsName: string, projId: string): Chainable;
       createPod(nsName: string, podName: string, image: string): Chainable;
+      createAwsCloudCredentials(nsName: string, cloudCredName: string, defaultRegion: string, accessKey: string, secretKey: string): Chainable;
 
       getRancherResource(prefix: 'v3' | 'v1', resourceType: string, resourceId?: string, expectedStatusCode?: number): Chainable;
       setRancherResource(prefix: 'v3' | 'v1', resourceType: string, resourceId: string, body: string): Chainable;
       createRancherResource(prefix: 'v3' | 'v1', resourceType: string, body: string): Chainable;
-      deleteRancherResource(prefix: 'v3' | 'v1', resourceType: string, resourceId: string): Chainable;
+      deleteRancherResource(prefix: 'v3' | 'v1', resourceType: string, resourceId: string, failOnStatusCode?: boolean): Chainable;
+      deleteNodeTemplate(nodeTemplateId: string)
 
       /**
        *  Wrapper for cy.get() to simply define the data-testid value that allows you to pass a matcher to find the element.
@@ -80,6 +83,11 @@ declare global {
       interceptAllRequests(verbs: Verbs, urls: string[], timeout: number): Chainable<string>;
 
       iFrame(): Chainable<Element>;
+
+      /**
+       * Check if an element is visible to the user on the screen.
+       */
+      isVisible(): Chainable<Element>;
     }
   }
 }

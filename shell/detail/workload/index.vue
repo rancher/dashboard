@@ -11,7 +11,6 @@ import ResourceTabs from '@shell/components/form/ResourceTabs';
 import CountGauge from '@shell/components/CountGauge';
 import { allHash } from '@shell/utils/promise';
 import DashboardMetrics from '@shell/components/DashboardMetrics';
-import V1WorkloadMetrics from '@shell/mixins/v1-workload-metrics';
 import { mapGetters } from 'vuex';
 import { allDashboardsExist } from '@shell/utils/grafana';
 import PlusMinus from '@shell/components/form/PlusMinus';
@@ -51,7 +50,7 @@ export default {
     PlusMinus
   },
 
-  mixins: [CreateEditView, V1WorkloadMetrics],
+  mixins: [CreateEditView],
 
   async fetch() {
     let hasNodes = false;
@@ -451,19 +450,6 @@ export default {
             graph-height="550px"
           />
         </template>
-      </Tab>
-      <Tab
-        v-if="v1MonitoringUrl"
-        name="v1Metrics"
-        :label="t('node.detail.tab.metrics')"
-        :weight="10"
-      >
-        <div id="ember-anchor">
-          <EmberPage
-            inline="ember-anchor"
-            :src="v1MonitoringUrl"
-          />
-        </div>
       </Tab>
       <Tab
         v-if="!isJob && !isCronJob"

@@ -145,6 +145,7 @@ export default {
     <div class="edit-change mt-20">
       <h5 v-t="'advancedSettings.edit.changeSetting'" />
       <button
+        data-testid="advanced_settings_use_default"
         :disabled="!canReset"
         type="button"
         class="btn role-primary"

@@ -1,3 +1,4 @@
+import PagePo from '@/cypress/e2e/po/pages/page.po';
 import ClusterManagerCreatePagePo from '@/cypress/e2e/po/edit/provisioning.cattle.io.cluster/create/cluster-create.po';
 import NameNsDescription from '@/cypress/e2e/po/components/name-ns-description.po';
 import { CypressChainable } from '@/cypress/e2e/po/po.types';
@@ -10,7 +11,13 @@ import { CypressChainable } from '@/cypress/e2e/po/po.types';
  * The rke create/edit page in this case is ember
  */
 export default abstract class ClusterManagerCreateRKE1PagePo extends ClusterManagerCreatePagePo {
-  static url = '/c/local/manager/provisioning.cattle.io.cluster/create'
+  static url(clusterId: string) {
+    return `${ ClusterManagerCreatePagePo.url(clusterId) }/create`;
+  }
+
+  static goTo(clusterId: string): Cypress.Chainable<Cypress.AUTWindow> {
+    return PagePo.goTo(ClusterManagerCreateRKE1PagePo.url(clusterId));
+  }
 
   // Form
   nameNsDescription(): NameNsDescription {
@@ -23,6 +30,14 @@ export default abstract class ClusterManagerCreateRKE1PagePo extends ClusterMana
 
   save(): CypressChainable {
     throw new Error('RKE2 only');
+  }
+
+  createRKE1(): CypressChainable {
+    return cy.iFrame().find('[data-testid="save-cancel-rke1"] button').contains('Create').click();
+  }
+
+  saveRKE1(): CypressChainable {
+    return cy.iFrame().find('[data-testid="save-cancel-rke1"] button').contains('Save').click();
   }
 
   next() {

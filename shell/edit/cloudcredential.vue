@@ -4,7 +4,7 @@ import { MANAGEMENT, NORMAN, SCHEMA, DEFAULT_WORKSPACE } from '@shell/config/typ
 import CreateEditView from '@shell/mixins/create-edit-view';
 import NameNsDescription from '@shell/components/form/NameNsDescription';
 import CruResource from '@shell/components/CruResource';
-import { _CREATE } from '@shell/config/query-params';
+import { _CREATE, _EDIT } from '@shell/config/query-params';
 import Loading from '@shell/components/Loading';
 import Labels from '@shell/components/form/Labels';
 import { HIDE_SENSITIVE } from '@shell/store/prefs';
@@ -70,6 +70,11 @@ export default {
       set(this.value, '_name', '');
     }
 
+    if (this.mode === _EDIT && this.value?.name?.length) {
+      this.value._name = this.value.name;
+      this.nameRequiredValidation = true;
+    }
+
     if ( this.value.provider ) {
       this.selectType(this.value.provider);
     }
@@ -77,13 +82,19 @@ export default {
 
   data() {
     return {
-      nodeDrivers:      null,
-      kontainerDrivers: null
+      credCustomComponentValidation: false,
+      nameRequiredValidation:        false,
+      nodeDrivers:                   null,
+      kontainerDrivers:              null
     };
   },
 
   computed: {
     rke2Enabled: mapFeature(RKE2_FEATURE),
+
+    validationPassed() {
+      return this.credCustomComponentValidation && this.nameRequiredValidation;
+    },
 
     storeOverride() {
       return 'rancher';
@@ -171,6 +182,14 @@ export default {
   },
 
   methods: {
+    handleNameRequiredValidation() {
+      this.nameRequiredValidation = !!this.value?._name?.length;
+    },
+
+    createValidationChanged(passed) {
+      this.credCustomComponentValidation = passed;
+    },
+
     async saveCredential(btnCb) {
       if ( this.errors ) {
         clear(this.errors);
@@ -245,7 +264,7 @@ export default {
     <CruResource
       v-else
       :mode="mode"
-      :validation-passed="true"
+      :validation-passed="validationPassed"
       :selected-subtype="value._type"
       :resource="value"
       :errors="errors"
@@ -258,12 +277,14 @@ export default {
     >
       <NameNsDescription
         v-model="value"
+        :name-editable="true"
         name-key="_name"
         description-key="description"
         name-label="cluster.credential.name.label"
         name-placeholder="cluster.credential.name.placeholder"
         :mode="mode"
         :namespaced="false"
+        @change="handleNameRequiredValidation"
       />
       <keep-alive>
         <component
@@ -273,6 +294,7 @@ export default {
           :value="value"
           :mode="mode"
           :hide-sensitive-data="hideSensitiveData"
+          @validationChanged="createValidationChanged"
         />
       </keep-alive>
     </CruResource>

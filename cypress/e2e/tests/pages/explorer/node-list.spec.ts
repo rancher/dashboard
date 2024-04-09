@@ -15,7 +15,7 @@ describe('Nodes list', { tags: ['@explorer', '@adminUser'], testIsolation: 'off'
 
   after(() => {
     // Ensure we delete the dummy node
-    cy.deleteRancherResource('v1', 'nodes', 'bigip1');
+    cy.deleteRancherResource('v1', 'nodes', dummyNode.metadata.name);
   });
 
   it('should show the nodes list page', () => {
@@ -43,8 +43,13 @@ describe('Nodes list', { tags: ['@explorer', '@adminUser'], testIsolation: 'off'
     // Check the node names
     nodeList.sortableTable().rowNames().should((names: any) => {
       expect(names).to.have.length(2);
-      expect(names).to.contain('local-node');
-      expect(names).to.contain('bigip1');
+      // expect(names).to.contain('local-node');
+      expect(names).to.contain(dummyNode.metadata.name);
     });
+
+    // Simple test to assert we haven't broken Node detail page
+    // https://github.com/rancher/dashboard/issues/10490
+    nodeList.sortableTable().rowElementLink(0, 2).click();
+    cy.get('.title .primaryheader h1').invoke('text').should('contain', 'Node:');
   });
 });

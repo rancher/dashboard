@@ -362,9 +362,12 @@ export default {
       :yamlPreview="preview"
       :yamlSave="save"
       :yamlUnpreview="unpreview"
+      :canDiff="canDiff"
     >
       <Footer
         v-if="showFooter"
+        class="footer"
+        :class="{ 'edit': !isView }"
         :mode="mode"
         :errors="errors"
         @save="save"
@@ -408,11 +411,29 @@ export default {
 </template>
 
 <style lang='scss' scoped>
-.flex-content {
-  display: flex;
-  flex-direction: column;
-  flex-grow: 1;
-}
+  .flex-content {
+    display: flex;
+    flex-direction: column;
+    flex-grow: 1;
+  }
+
+  .footer {
+    margin-top: 20px;
+    right: 0;
+    position: sticky;
+    bottom: 0;
+    background-color: var(--header-bg);
+
+    // Overrides outlet padding
+    margin-left: -$space-m;
+    margin-right: -$space-m;
+    margin-bottom: -$space-m;
+    padding: $space-s $space-m;
+
+    &.edit {
+      border-top: var(--header-border-size) solid var(--header-border);
+    }
+  }
 </style>
 
 <style lang="scss">
@@ -423,6 +444,10 @@ export default {
 
   footer .actions {
     text-align: right;
+  }
+
+  .spacer-small {
+    padding: 0;
   }
 }
 

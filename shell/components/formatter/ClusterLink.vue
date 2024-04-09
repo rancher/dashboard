@@ -56,12 +56,12 @@ export default {
 </script>
 <template>
   <span class="cluster-link">
-    <n-link
+    <router-link
       v-if="to"
       :to="to"
     >
       {{ value }}
-    </n-link>
+    </router-link>
     <span v-else>{{ value }}</span>
     <i
       v-if="row.unavailableMachines"

@@ -9,7 +9,8 @@ import BrandImage from '@shell/components/BrandImage';
 import { getProduct } from '@shell/config/private-label';
 import ClusterProviderIcon from '@shell/components/ClusterProviderIcon';
 import ClusterBadge from '@shell/components/ClusterBadge';
-import { LOGGED_OUT } from '@shell/config/query-params';
+import AppModal from '@shell/components/AppModal';
+import { LOGGED_OUT, IS_SSO } from '@shell/config/query-params';
 import NamespaceFilter from './NamespaceFilter';
 import WorkspaceSwitcher from './WorkspaceSwitcher';
 import TopLevelMenu from './TopLevelMenu';
@@ -18,8 +19,7 @@ import { allHash } from '@shell/utils/promise';
 import { ActionLocation, ExtensionPoint } from '@shell/core/types';
 import { getApplicableExtensionEnhancements } from '@shell/core/plugin-helpers';
 import IconOrSvg from '@shell/components/IconOrSvg';
-
-const PAGE_HEADER_ACTION = 'page-action';
+import { wait } from '@shell/utils/async';
 
 export default {
 
@@ -32,7 +32,8 @@ export default {
     BrandImage,
     ClusterBadge,
     ClusterProviderIcon,
-    IconOrSvg
+    IconOrSvg,
+    AppModal,
   },
 
   props: {
@@ -55,14 +56,15 @@ export default {
       LOGGED_OUT,
       navHeaderRight:         null,
       extensionHeaderActions: getApplicableExtensionEnhancements(this, ExtensionPoint.ACTION, ActionLocation.HEADER, this.$route),
-      ctx:                    this
+      ctx:                    this,
+      showImportModal:        false,
+      showSearchModal:        false,
     };
   },
 
   computed: {
     ...mapGetters(['clusterReady', 'isExplorer', 'isRancher', 'currentCluster',
-      'currentProduct', 'backToRancherLink', 'backToRancherGlobalLink', 'pageActions', 'isSingleProduct', 'isRancherInHarvester', 'showTopLevelMenu']),
-    ...mapGetters('type-map', ['activeProducts']),
+      'currentProduct', 'rootProduct', 'backToRancherLink', 'backToRancherGlobalLink', 'pageActions', 'isSingleProduct', 'isRancherInHarvester', 'showTopLevelMenu']),
 
     appName() {
       return getProduct();
@@ -70,6 +72,14 @@ export default {
 
     authEnabled() {
       return this.$store.getters['auth/enabled'];
+    },
+
+    isAuthLocalProvider() {
+      return this.principal && this.principal.provider === 'local';
+    },
+
+    generateLogoutRoute() {
+      return this.isAuthLocalProvider ? { name: 'auth-logout', query: { [LOGGED_OUT]: true } } : { name: 'auth-logout', query: { [LOGGED_OUT]: true, [IS_SSO]: true } };
     },
 
     principal() {
@@ -85,15 +95,15 @@ export default {
     },
 
     showKubeShell() {
-      return !this.currentProduct?.hideKubeShell;
+      return !this.rootProduct?.hideKubeShell;
     },
 
     showKubeConfig() {
-      return !this.currentProduct?.hideKubeConfig;
+      return !this.rootProduct?.hideKubeConfig;
     },
 
     showCopyConfig() {
-      return !this.currentProduct?.hideCopyConfig;
+      return !this.rootProduct?.hideCopyConfig;
     },
 
     showPreferencesLink() {
@@ -108,7 +118,7 @@ export default {
     },
 
     showPageActions() {
-      return !this.featureRancherDesktop && this.pageActions?.length;
+      return !this.featureRancherDesktop && this.pageActions && this.pageActions.length;
     },
 
     showUserMenu() {
@@ -137,17 +147,17 @@ export default {
     },
 
     prod() {
-      const name = this.currentProduct.name;
+      const name = this.rootProduct.name;
 
       return this.$store.getters['i18n/withFallback'](`product."${ name }"`, null, ucFirst(name));
     },
 
     showSearch() {
-      return this.currentProduct?.inStore === 'cluster';
+      return this.rootProduct?.inStore === 'cluster';
     },
 
     showImportYaml() {
-      return this.currentProduct?.inStore !== 'harvester';
+      return this.rootProduct?.inStore !== 'harvester';
     },
 
     nameTooltip() {
@@ -239,19 +249,19 @@ export default {
     },
 
     openImport() {
-      this.$modal.show('importModal');
+      this.showImportModal = true;
     },
 
     closeImport() {
-      this.$modal.hide('importModal');
+      this.showImportModal = false;
     },
 
     openSearch() {
-      this.$modal.show('searchModal');
+      this.showSearchModal = true;
     },
 
     hideSearch() {
-      this.$modal.hide('searchModal');
+      this.showSearchModal = false;
     },
 
     showPageActionsMenu(show) {
@@ -265,7 +275,7 @@ export default {
     },
 
     pageAction(action) {
-      this.$nuxt.$emit(PAGE_HEADER_ACTION, action);
+      this.$store.dispatch('handlePageAction', action);
     },
 
     checkClusterName() {
@@ -292,7 +302,7 @@ export default {
       // Make sure we wait at least 1 second so that the user can see the visual indication that the config has been copied
       allHash({
         copy:     this.currentCluster.copyKubeConfig(),
-        minDelay: new Promise((resolve) => setTimeout(resolve, 1000))
+        minDelay: wait(1000),
       }).finally(() => {
         this.kubeConfigCopying = false;
 
@@ -344,7 +354,7 @@ export default {
       class="menu-spacer"
       :class="{'isSingleProduct': isSingleProduct }"
     >
-      <n-link
+      <router-link
         v-if="isSingleProduct && !isRancherInHarvester"
         :to="singleProductLogoRoute"
       >
@@ -352,7 +362,7 @@ export default {
           class="side-menu-logo"
           :src="isSingleProduct.logo"
         >
-      </n-link>
+      </router-link>
     </div>
     <div
       v-if="!simple"
@@ -432,6 +442,7 @@ export default {
       >
         <BrandImage
           class="side-menu-logo-img"
+          data-testid="header-side-menu__brand-img"
           file-name="rancher-logo.svg"
         />
       </div>
@@ -463,18 +474,20 @@ export default {
           >
             <i class="icon icon-upload icon-lg" />
           </button>
-          <modal
+          <app-modal
+            v-if="showImportModal"
             class="import-modal"
             name="importModal"
             width="75%"
             height="auto"
             styles="max-height: 90vh;"
+            @close="closeImport"
           >
             <Import
               :cluster="currentCluster"
               @close="closeImport"
             />
-          </modal>
+          </app-modal>
 
           <button
             v-if="showKubeShell"
@@ -531,15 +544,16 @@ export default {
         >
           <i class="icon icon-search icon-lg" />
         </button>
-        <modal
-          v-if="showSearch"
+        <app-modal
+          v-if="showSearch && showSearchModal"
           class="search-modal"
           name="searchModal"
           width="50%"
           height="auto"
+          @close="hideSearch()"
         >
           <Jump @closeSearch="hideSearch()" />
-        </modal>
+        </app-modal>
       </div>
 
       <!-- Extension header actions -->
@@ -555,6 +569,7 @@ export default {
           :disabled="action.enabled ? !action.enabled(ctx) : false"
           type="button"
           class="btn header-btn role-tertiary"
+          :data-testid="`extension-header-action-${ action.labelKey || action.label }`"
           @shortkey="handleExtensionAction(action, $event)"
           @click="handleExtensionAction(action, $event)"
         >
@@ -672,30 +687,30 @@ export default {
                   </template>
                 </div>
               </li>
-              <nuxt-link
+              <router-link
                 v-if="showPreferencesLink"
                 tag="li"
                 :to="{name: 'prefs'}"
                 class="user-menu-item"
               >
                 <a>{{ t('nav.userMenu.preferences') }}</a>
-              </nuxt-link>
-              <nuxt-link
+              </router-link>
+              <router-link
                 v-if="showAccountAndApiKeyLink"
                 tag="li"
                 :to="{name: 'account'}"
                 class="user-menu-item"
               >
                 <a>{{ t('nav.userMenu.accountAndKeys', {}, true) }}</a>
-              </nuxt-link>
-              <nuxt-link
+              </router-link>
+              <router-link
                 v-if="authEnabled"
                 tag="li"
-                :to="{name: 'auth-logout', query: { [LOGGED_OUT]: true }}"
+                :to="generateLogoutRoute"
                 class="user-menu-item"
               >
                 <a @blur="showMenu(false)">{{ t('nav.userMenu.logOut') }}</a>
-              </nuxt-link>
+              </router-link>
             </ul>
           </template>
         </v-popover>

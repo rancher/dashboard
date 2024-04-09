@@ -16,10 +16,8 @@ import { downloadFile, generateZip } from '@shell/utils/download';
 import { clone, get } from '@shell/utils/object';
 import { eachLimit } from '@shell/utils/promise';
 import { sortableNumericSuffix } from '@shell/utils/sort';
-import { coerceStringTypeToScalarType, escapeHtml, ucFirst } from '@shell/utils/string';
+import { escapeHtml, ucFirst } from '@shell/utils/string';
 import {
-  displayKeyFor,
-  validateBoolean,
   validateChars,
   validateDnsLikeTypes,
   validateLength,
@@ -32,26 +30,12 @@ import forIn from 'lodash/forIn';
 import isEmpty from 'lodash/isEmpty';
 import isFunction from 'lodash/isFunction';
 import isString from 'lodash/isString';
-import uniq from 'lodash/uniq';
 import Vue from 'vue';
-
-import { normalizeType } from './normalize';
 
 import { ExtensionPoint, ActionLocation } from '@shell/core/types';
 import { getApplicableExtensionEnhancements } from '@shell/core/plugin-helpers';
 
-const STRING_LIKE_TYPES = [
-  'string',
-  'date',
-  'blob',
-  'enum',
-  'multiline',
-  'masked',
-  'password',
-  'dnsLabel',
-  'hostname',
-];
-const DNS_LIKE_TYPES = ['dnsLabel', 'dnsLabelRestricted', 'hostname'];
+export const DNS_LIKE_TYPES = ['dnsLabel', 'dnsLabelRestricted', 'hostname'];
 
 const REMAP_STATE = {
   disabled:                 'inactive',
@@ -1138,10 +1122,10 @@ export default class Resource {
    */
   processSaveResponse(res) { }
 
-  async _save(opt = {}) {
+  async _save(opt = { }) {
     const forNew = !this.id;
 
-    const errors = await this.validationErrors(this, opt.ignoreFields);
+    const errors = this.validationErrors(this, opt);
 
     if (!isEmpty(errors)) {
       return Promise.reject(errors);
@@ -1260,11 +1244,11 @@ export default class Resource {
   // ------------------------------------------------------------------
 
   currentRoute() {
-    return window.$nuxt.$route;
+    return window.$globalApp.$route;
   }
 
   currentRouter() {
-    return window.$nuxt.$router;
+    return window.$globalApp.$router;
   }
 
   get listLocation() {
@@ -1381,7 +1365,7 @@ export default class Resource {
 
   async download() {
     const value = await this.followLink('view', { headers: { accept: 'application/yaml' } });
-    const data = await this.$dispatch('cleanForDownload', value.data);
+    const data = await this.cleanForDownload(value.data);
 
     downloadFile(`${ this.nameDisplay }.yaml`, data, 'application/yaml');
   }
@@ -1404,7 +1388,7 @@ export default class Resource {
     await eachLimit(items, 10, (item, idx) => {
       return item.followLink('view', { headers: { accept: 'application/yaml' } } ).then(async(data) => {
         const yaml = data.data || data;
-        const cleanedYaml = await this.$dispatch('cleanForDownload', yaml);
+        const cleanedYaml = await this.cleanForDownload(yaml);
 
         files[`resources/${ names[idx] }`] = cleanedYaml;
       });
@@ -1479,6 +1463,10 @@ export default class Resource {
 
   cleanForDiff() {
     this.$dispatch(`cleanForDiff`, this.toJSON());
+  }
+
+  async cleanForDownload(yaml) {
+    return this.$dispatch(`cleanForDownload`, yaml);
   }
 
   yamlForSave(yaml) {
@@ -1670,93 +1658,14 @@ export default class Resource {
     return errors;
   }
 
-  validationErrors(data = this, ignoreFields) {
-    const errors = [];
-    const {
-      type: originalType,
-      schema
-    } = data;
-    const type = normalizeType(originalType);
-
-    if ( !originalType ) {
-      // eslint-disable-next-line
-      console.warn(this.t('validation.noType'), data);
-
-      return errors;
-    }
-
-    if ( !schema ) {
-      // eslint-disable-next-line
-      // console.warn(this.t('validation.noSchema'), originalType, data);
-
-      return errors;
-    }
-
-    const fields = schema.resourceFields || {};
-    const keys = Object.keys(fields);
-    let field, key, val, displayKey;
-
-    for ( let i = 0 ; i < keys.length ; i++ ) {
-      const fieldErrors = [];
-
-      key = keys[i];
-      field = fields[key];
-      val = get(data, key);
-      displayKey = displayKeyFor(type, key, this.$rootGetters);
-
-      const fieldType = field?.type ? normalizeType(field.type) : null;
-      const valIsString = isString(val);
-
-      if ( ignoreFields && ignoreFields.includes(key) ) {
-        continue;
-      }
-
-      if ( val === undefined ) {
-        val = null;
-      }
-
-      if (valIsString) {
-        if (fieldType) {
-          Vue.set(data, key, coerceStringTypeToScalarType(val, fieldType));
-        }
-
-        // Empty strings on nullable string fields -> null
-        if ( field.nullable && val.length === 0 && STRING_LIKE_TYPES.includes(fieldType)) {
-          val = null;
-
-          Vue.set(data, key, val);
-        }
-      }
-      if (fieldType === 'boolean') {
-        validateBoolean(val, field, displayKey, this.$rootGetters, fieldErrors);
-      } else {
-        validateLength(val, field, displayKey, this.$rootGetters, fieldErrors);
-        validateChars(val, field, displayKey, this.$rootGetters, fieldErrors);
-      }
-
-      if (fieldErrors.length > 0) {
-        fieldErrors.push(this.t('validation.required', { key: displayKey }));
-        errors.push(...fieldErrors);
-        continue;
-      }
-
-      // IDs claim to be these but are lies...
-      if ( key !== 'id' && !isEmpty(val) && DNS_LIKE_TYPES.includes(fieldType) ) {
-        // DNS types should be lowercase
-        const tolower = (val || '').toLowerCase();
-
-        if ( tolower !== val ) {
-          val = tolower;
-
-          Vue.set(data, key, val);
-        }
-
-        fieldErrors.push(...validateDnsLikeTypes(val, fieldType, displayKey, this.$rootGetters, fieldErrors));
-      }
-      errors.push(...fieldErrors);
-    }
-
-    return uniq([...errors, ...this.customValidationErrors(data)]);
+  /**
+   * Check this instance is valid against
+   * - any custom dashboard validation
+   *
+   * Models can override this and call super.validationErrors
+   */
+  validationErrors(data = this, opts = { }) {
+    return this.customValidationErrors(data);
   }
 
   get ownersByType() {

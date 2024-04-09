@@ -103,6 +103,27 @@ describe('formRules', () => {
     );
   });
 
+  describe('alphanumeric', () => {
+    const message = JSON.stringify({ message: 'validation.alphanumeric', key: 'testDisplayKey' });
+    const testCases = [
+      ['', undefined],
+      ['aaaAAAA111', undefined],
+      ['aaaAAAA111//', message],
+      ['/', message],
+      ['+1', message],
+      [undefined, undefined]
+    ];
+
+    it.each(testCases)(
+      'should return undefined or correct message based on the provided url',
+      (val, expected) => {
+        const formRuleResult = formRules.alphanumeric(val);
+
+        expect(formRuleResult).toStrictEqual(expected);
+      }
+    );
+  });
+
   it('"interval" : returns undefined when valid hour interval value is supplied', () => {
     const testValue = '5h';
     const formRuleResult = formRules.interval(testValue);

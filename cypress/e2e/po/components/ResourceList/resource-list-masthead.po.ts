@@ -8,4 +8,12 @@ export default class ResourceListMastheadPo extends ComponentPo {
   title() {
     return this.self().get('.title h1').invoke('text');
   }
+
+  create() {
+    this.actions().eq(0).click();
+  }
+
+  createYaml() {
+    return this.self().find('[data-testid="masthead-create-yaml"]').click();
+  }
 }

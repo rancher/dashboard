@@ -11,6 +11,7 @@ import FileSelector from '@shell/components/form/FileSelector';
 import { _EDIT, _VIEW } from '@shell/config/query-params';
 import { asciiLike } from '@shell/utils/string';
 import CodeMirror from '@shell/components/CodeMirror';
+import isEqual from 'lodash/isEqual';
 
 export default {
   name: 'KeyValue',
@@ -262,9 +263,9 @@ export default {
     return {
       rows,
       codeMirrorFocus: {},
+      lastUpdated:     null
     };
   },
-
   computed: {
     isView() {
       return this.mode === _VIEW;
@@ -303,14 +304,28 @@ export default {
     this.queueUpdate = debounce(this.update, 500);
   },
   watch: {
-    defaultValue(neu) {
-      if (Array.isArray(neu)) {
-        this.rows = this.getRows(neu);
-        this.$emit('input', neu);
+    /**
+     * KV works with v-model=value
+     * value is transformed into this.rows (base64 decode, mark supported etc)
+     * on input, this.update constructs a new value from this.rows and emits
+     * if the parent component changes value, KV needs to re-compute this.rows
+     * If the value changes because the user has edited it using KV, then KV should NOT re-compute rows
+     * the value watcher will compare the last value KV emitted with the new value KV detects and re-compute rows if they don't match
+     */
+    value: {
+      deep: true,
+      handler(neu, old) {
+        this.valuePropChanged(neu, old);
       }
     }
   },
   methods: {
+    valuePropChanged(neu) {
+      if (!isEqual(neu, this.lastUpdated)) {
+        this.rows = this.getRows(neu);
+      }
+    },
+
     isProtected(key) {
       return this.protectedKeys && this.protectedKeys.includes(key);
     },
@@ -495,6 +510,8 @@ export default {
           return entry;
         });
       }
+      this.lastUpdated = out;
+
       this.$emit('input', out);
     },
     onPaste(index, event, pastedValue) {
@@ -718,6 +735,7 @@ export default {
                 autocorrect="off"
                 autocapitalize="off"
                 spellcheck="false"
+                :data-testid="`input-kv-item-value-${i}`"
                 @input="queueUpdate"
               >
               <FileSelector
@@ -777,6 +795,7 @@ export default {
           v-if="addAllowed"
           type="button"
           class="btn role-tertiary add"
+          data-testid="add_link_button"
           :disabled="loading || disabled || (keyOptions && filteredKeyOptions.length === 0)"
           @click="add()"
         >

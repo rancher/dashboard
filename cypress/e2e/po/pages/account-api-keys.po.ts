@@ -2,6 +2,7 @@ import PagePo from '@/cypress/e2e/po/pages/page.po';
 import AsyncButtonPo from '@/cypress/e2e/po/components/async-button.po';
 import ApiKeysListPo from '@/cypress/e2e/po/lists/account-api-keys-list.po';
 import PasswordPo from '@/cypress/e2e/po/components/password.po';
+import UserMenuPo from '@/cypress/e2e/po/side-bars/user-menu.po';
 
 export default class AccountPagePo extends PagePo {
   static url = '/account'
@@ -11,6 +12,16 @@ export default class AccountPagePo extends PagePo {
 
   constructor() {
     super(AccountPagePo.url);
+  }
+
+  static navTo() {
+    const userMenu = new UserMenuPo();
+
+    userMenu.clickMenuItem('Account & API Keys');
+  }
+
+  waitForRequests() {
+    AccountPagePo.goToAndWaitForGet(this.goTo.bind(this), ['/v3/tokens'], 10000);
   }
 
   title(): Cypress.Chainable {

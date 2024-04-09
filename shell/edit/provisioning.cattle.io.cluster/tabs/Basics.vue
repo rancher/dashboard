@@ -103,10 +103,6 @@ export default {
       type:     Boolean,
       required: true
     },
-    unsupportedCloudProvider: {
-      type:     Boolean,
-      required: true
-    },
     cloudProviderOptions: {
       type:     Array,
       required: true
@@ -127,6 +123,18 @@ export default {
 
     serverConfig() {
       return this.value.spec.rkeConfig.machineGlobalConfig;
+    },
+
+    showCniNoneBanner() {
+      return this.serverConfig?.cni === 'none';
+    },
+
+    showCiliumIpv6Controls() {
+      return this.serverConfig?.cni === 'cilium' || this.serverConfig?.cni === 'multus,cilium';
+    },
+
+    showNetworkPolicyWarningBanner() {
+      return this.serverConfig?.cni === 'cilium' && this.value?.spec?.enableNetworkPolicy;
     },
 
     agentConfig() {
@@ -203,7 +211,7 @@ export default {
      * Check if current CIS profile is required and listed in the options
      */
     isCisSupported() {
-      const cisProfile = this.serverConfig.profile || this.agentConfig.profile;
+      const cisProfile = this.serverConfig?.profile || this.agentConfig?.profile;
 
       return !cisProfile || this.profileOptions.map((option) => option.value).includes(cisProfile);
     },
@@ -369,7 +377,7 @@ export default {
     },
 
     canNotEditCloudProvider() {
-      const canNotEdit = this.isEdit && !this.unsupportedCloudProvider;
+      const canNotEdit = this.isEdit;
 
       return canNotEdit;
     },
@@ -421,12 +429,20 @@ export default {
     >
       <span v-clean-html="t('cluster.banner.cloudProviderAddConfig', {}, true)" />
     </Banner>
+    <Banner
+      v-if="showCniNoneBanner"
+      color="warning"
+      data-testid="clusterBasics__noneOptionSelectedForCni"
+    >
+      <span v-clean-html="t('cluster.rke2.cni.cniNoneBanner', {}, true)" />
+    </Banner>
     <div class="row mb-10">
       <div class="col span-6">
         <LabeledSelect
           v-model="value.spec.kubernetesVersion"
           :mode="mode"
           :options="versionOptions"
+          data-testid="clusterBasics__kubernetesVersions"
           label-key="cluster.kubernetesVersion.label"
           @input="$emit('kubernetes-changed', $event)"
         />
@@ -468,7 +484,7 @@ export default {
         />
       </div>
       <div
-        v-if="serverConfig.cni === 'cilium' || serverConfig.cni === 'multus,cilium'"
+        v-if="showCiliumIpv6Controls"
         class="col"
       >
         <Checkbox
@@ -495,12 +511,6 @@ export default {
       <div class="spacer" />
 
       <div class="col span-12">
-        <Banner
-          v-if="unsupportedCloudProvider"
-          class="error mt-5"
-        >
-          {{ t('cluster.rke2.cloudProvider.unsupported') }}
-        </Banner>
         <h3>
           {{ t('cluster.rke2.cloudProvider.header') }}
         </h3>
@@ -534,7 +544,7 @@ export default {
         class="col span-6"
       >
         <LabeledSelect
-          v-if="serverArgs && serverArgs.profile"
+          v-if="serverArgs && serverArgs.profile && serverConfig"
           v-model="serverConfig.profile"
           :mode="mode"
           :options="profileOptions"
@@ -542,7 +552,7 @@ export default {
           @input="$emit('cis-changed')"
         />
         <LabeledSelect
-          v-else-if="agentArgs && agentArgs.profile"
+          v-else-if="agentArgs && agentArgs.profile && agentConfig"
           v-model="agentConfig.profile"
           data-testid="rke2-custom-edit-cis-agent"
           :mode="mode"
@@ -579,6 +589,7 @@ export default {
       <div class="col span-6">
         <!-- PSA template selector -->
         <LabeledSelect
+          :key="defaultPsaOptionLabel"
           v-model="value.spec.defaultPodSecurityAdmissionConfigurationTemplateName"
           :mode="mode"
           data-testid="rke2-custom-edit-psa"
@@ -606,7 +617,7 @@ export default {
     </div>
 
     <div
-      v-if="serverConfig.cni === 'cilium' && value.spec.enableNetworkPolicy"
+      v-if="showNetworkPolicyWarningBanner"
       class="row"
     >
       <div class="col span-12">

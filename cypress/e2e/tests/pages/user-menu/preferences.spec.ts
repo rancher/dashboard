@@ -1,13 +1,17 @@
 import BannersPo from '@/cypress/e2e/po/components/banners.po';
 import HomePagePo from '@/cypress/e2e/po/pages/home.po';
 import PreferencesPagePo from '@/cypress/e2e/po/pages/preferences.po';
-import ReposListPagePo from '@/cypress/e2e/po/pages/repositories.po';
 import UserMenuPo from '@/cypress/e2e/po/side-bars/user-menu.po';
+import RepositoriesPagePo from '@/cypress/e2e/po/pages/chart-repositories.po';
+import ClusterDashboardPagePo from '@/cypress/e2e/po/pages/explorer/cluster-dashboard.po';
+import ProductNavPo from '@/cypress/e2e/po/side-bars/product-side-nav.po';
+import { HeaderPo } from '@/cypress/e2e/po/components/header.po';
+
 // import ClusterManagerListPagePo from '@/cypress/e2e/po/pages/cluster-manager/cluster-manager-list.po';
 
 const userMenu = new UserMenuPo();
 const prefPage = new PreferencesPagePo();
-const repoListPage = new ReposListPagePo('_', 'manager');
+const repoListPage = new RepositoriesPagePo('_', 'manager');
 const repoList = repoListPage.list();
 // const clusterManagerPage = new ClusterManagerListPagePo('_');
 
@@ -49,6 +53,21 @@ describe('User can update their preferences', () => {
       prefPage.languageDropdownMenu().isClosed();
       prefPage.checkLangDomElement(key);
     }
+
+    // testing https://github.com/rancher/dashboard/issues/10153
+    ClusterDashboardPagePo.navTo();
+    const nav = new ProductNavPo();
+
+    nav.navToSideMenuEntryByLabel('事件'); // events list
+
+    // used as await for page load...
+    cy.contains('.title > h1', '事件').should('be.visible');
+
+    const header = new HeaderPo();
+
+    header.showKubectlExplainTooltip();
+    header.getKubectlExplainTooltipContent().contains('Describe Resource');
+    // EO test https://github.com/rancher/dashboard/issues/10153
   });
 
   it('Can select a theme', { tags: ['@userMenu', '@adminUser', '@standardUser'] }, () => {
@@ -251,6 +270,11 @@ describe('User can update their preferences', () => {
     prefPage.viewInApiCheckbox().checkVisible();
     cy.intercept('PUT', 'v1/userpreferences/*').as('prefUpdate');
     prefPage.viewInApiCheckbox().set();
+    // to check custom box element width and height in order to prevent regression
+    // https://github.com/rancher/dashboard/issues/10000
+    prefPage.viewInApiCheckbox().hasAppropriateWidth();
+    prefPage.viewInApiCheckbox().hasAppropriateHeight();
+
     cy.wait('@prefUpdate').then(({ request, response }) => {
       expect(response?.statusCode).to.eq(200);
       expect(request.body.data).to.have.property('view-in-api', 'true');
@@ -335,6 +359,7 @@ describe('User can update their preferences', () => {
 
     prefPage.goTo();
     prefPage.hideDescriptionsCheckbox().checkVisible();
+    prefPage.verifyHideDescriptionsCheckboxLabel();
     cy.intercept('PUT', 'v1/userpreferences/*').as('prefUpdate');
     prefPage.hideDescriptionsCheckbox().set();
     cy.wait('@prefUpdate').its('response.statusCode').should('eq', 200);
@@ -360,9 +385,9 @@ describe('User can update their preferences', () => {
     Validate http request's payload & response contain correct values per selection
     */
     const buttonOptions = {
-      'Normal human': 'sublime',
       Emacs:          'emacs',
       Vim:            'vim',
+      'Normal human': 'sublime'
     };
 
     prefPage.goTo();

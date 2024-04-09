@@ -12,7 +12,7 @@ export default {
 
   computed: {
     error() {
-      return window.$nuxt.nuxt.err || {};
+      return window.$globalApp.nuxt.err || {};
     },
     statusCode() {
       return (this.error && this.error.statusCode) || 599;
@@ -76,13 +76,13 @@ export default {
           class="error-link"
           href="/"
         >Back to Home</a>
-        <n-link
+        <router-link
           v-else
           class="error-link"
           to="/"
         >
           Back to Home
-        </n-link>
+        </router-link>
       </p>
     </div>
   </div>

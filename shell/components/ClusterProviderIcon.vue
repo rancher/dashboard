@@ -98,6 +98,7 @@ export default {
   .cluster-badge-logo {
     width: 32px;
     height: 32px;
+    padding: 0px 5px;
     display: flex;
     align-items: center;
     justify-content: center;

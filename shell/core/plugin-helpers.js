@@ -4,7 +4,7 @@ import { ucFirst, randomStr } from '@shell/utils/string';
 import {
   _EDIT, _CONFIG, _DETAIL, _LIST, _CREATE
 } from '@shell/config/query-params';
-import { getProductFromRoute } from '@shell/middleware/authenticated';
+import { getProductFromRoute } from '@shell/utils/router';
 import { isEqual } from '@shell/utils/object';
 
 function checkRouteProduct($route, locationConfigParam) {

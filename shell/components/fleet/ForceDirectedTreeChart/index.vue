@@ -377,11 +377,11 @@ export default {
               <!-- title template -->
               <td v-if="item.type === 'title-link'">
                 <span v-if="item.valueObj.detailLocation">
-                  <n-link
+                  <router-link
                     :to="item.valueObj.detailLocation"
                   >
                     {{ item.valueObj.id }}
-                  </n-link>
+                  </router-link>
                 </span>
                 <span v-else>{{ item.valueObj.id }}</span>
               </td>

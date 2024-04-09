@@ -212,13 +212,13 @@ export default {
       @click="groupSelected()"
     >
       <slot name="header">
-        <n-link
+        <router-link
           v-if="hasOverview"
           :to="group.children[0].route"
           :exact="group.children[0].exact"
         >
           <h6 v-clean-html="group.labelDisplay || group.label" />
-        </n-link>
+        </router-link>
         <h6
           v-else
           v-clean-html="group.labelDisplay || group.label"
@@ -293,7 +293,8 @@ export default {
 
     > A {
       display: block;
-      padding-left: 16px;
+      box-sizing:border-box;
+      height: 100%;
       &:hover{
         text-decoration: none;
       }
@@ -302,6 +303,7 @@ export default {
       }
       > H6 {
         text-transform: none;
+        padding: 8px 0 8px 16px;
       }
     }
   }
@@ -313,6 +315,7 @@ export default {
         background-color: var(--primary-hover-bg);
 
         h6 {
+          padding: 8px 0 8px 16px;
           font-weight: bold;
           color: var(--primary-hover-text);
         }
@@ -330,7 +333,6 @@ export default {
   .accordion {
     &.depth-0 {
       > .header {
-        padding: 8px 0;
 
         &.noHover {
           cursor: default;
@@ -338,7 +340,7 @@ export default {
 
         > H6 {
           text-transform: none;
-          padding-left: 16px;
+          padding: 8px 0 8px 16px;
         }
 
         > I {

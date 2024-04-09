@@ -1,5 +1,5 @@
 import ExtensionsPagePo from '@/cypress/e2e/po/pages/extensions.po';
-import ReposListPagePo from '@/cypress/e2e/po/pages/repositories.po';
+import RepositoriesPagePo from '@/cypress/e2e/po/pages/chart-repositories.po';
 import PromptRemove from '@/cypress/e2e/po/prompts/promptRemove.po';
 import BurgerMenuPo from '@/cypress/e2e/po/side-bars/burger-side-menu.po';
 
@@ -27,6 +27,14 @@ describe('Extensions page', { tags: ['@extensions', '@adminUser'] }, () => {
     cy.login();
   });
 
+  it('has the correct title', () => {
+    const extensionsPo = new ExtensionsPagePo();
+
+    extensionsPo.goTo();
+
+    cy.title().should('eq', 'Rancher - Extensions');
+  });
+
   it('using "Add Rancher Repositories" should add a new repository (Partners repo)', () => {
     const extensionsPo = new ExtensionsPagePo();
 
@@ -44,7 +52,7 @@ describe('Extensions page', { tags: ['@extensions', '@adminUser'] }, () => {
     extensionsPo.addReposModal().should('not.exist');
 
     // go to repos list page
-    const appRepoList = new ReposListPagePo('local', 'apps');
+    const appRepoList = new RepositoriesPagePo('local', 'apps');
 
     appRepoList.goTo();
     appRepoList.waitForPage();
@@ -96,7 +104,7 @@ describe('Extensions page', { tags: ['@extensions', '@adminUser'] }, () => {
       }
     });
 
-    const appRepoList = new ReposListPagePo('local', 'apps');
+    const appRepoList = new RepositoriesPagePo('local', 'apps');
 
     // Ensure that the banner should be shown (by confirming that a required repo isn't there)
     appRepoList.goTo();

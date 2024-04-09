@@ -89,7 +89,5 @@ export function setTitle() {
     const head = document.getElementsByTagName('head')[0];
 
     head.appendChild(link);
-  } else {
-    document.title = v;
   }
 }

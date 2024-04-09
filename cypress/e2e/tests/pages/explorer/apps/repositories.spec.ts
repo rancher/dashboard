@@ -1,4 +1,4 @@
-import ReposListPagePo from '@/cypress/e2e/po/pages/repositories.po';
+import ReposListPagePo from '@/cypress/e2e/po/pages/chart-repositories.po';
 import AppClusterRepoEditPo from '@/cypress/e2e/po/edit/catalog.cattle.io.clusterrepo.po';
 
 describe('Apps/Repositories', { tags: ['@explorer', '@adminUser'] }, () => {

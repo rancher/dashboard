@@ -31,16 +31,20 @@ jobs:
           COMMENT_BODY: ${{ github.event.comment.body }}
         run: |
           BODY_MILESTONE=$(echo "${COMMENT_BODY}" | awk '{ print $2 }')
+          echo "BODY_MILESTONE '${BODY_MILESTONE}'"
+
           # Sanitize input
           MILESTONE=${BODY_MILESTONE//[^a-zA-Z0-9\-\.]/}
+          echo "MILESTONE '${MILESTONE}'"
+
           if gh api repos/${GITHUB_REPOSITORY}/milestones --paginate | jq -e --arg MILESTONE "$MILESTONE" '.[] | select(.title == $MILESTONE)' > /dev/null; then
-              echo "Milestone exists"
-              echo "milestone_exists=true" >> $GITHUB_ENV
-           else
-              echo "Milestone ${MILESTONE} does not exist" >> $GITHUB_STEP_SUMMARY
-              gh issue comment -R ${GITHUB_REPOSITORY} ${ORIGINAL_ISSUE_NUMBER} --body "Not creating port issue, milestone ${MILESTONE} does not exist or is not an open milestone"
-              echo "milestone_exists=false" >> $GITHUB_ENV
-           fi
+            echo "Milestone '${MILESTONE}' exists"
+            echo "milestone_exists=true" >> $GITHUB_ENV
+          else
+            echo "Milestone '${MILESTONE}' does not exist" >> $GITHUB_STEP_SUMMARY
+            gh issue comment -R ${GITHUB_REPOSITORY} ${ORIGINAL_ISSUE_NUMBER} --body "Not creating port issue, milestone ${MILESTONE} does not exist or is not an open milestone"
+            echo "milestone_exists=false" >> $GITHUB_ENV
+          fi
       - name: Port issue
         if: |
           env.is_member == 'true' &&
@@ -62,6 +66,8 @@ jobs:
           fi
           additional_cmd+=("--label")
           additional_cmd+=("QA/None")
+          additional_cmd+=("--label")
+          additional_cmd+=("[zube]: Backlog")
           ORIGINAL_LABELS=$(gh issue view -R ${GITHUB_REPOSITORY} ${ORIGINAL_ISSUE_NUMBER} --json labels --jq '.labels[].name' | grep -v '^\[zube\]:' | paste -sd "," -)
           if [ -n "$ORIGINAL_LABELS" ]; then
               additional_cmd+=("--label")

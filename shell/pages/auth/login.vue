@@ -8,13 +8,15 @@ import BrandImage from '@shell/components/BrandImage';
 import InfoBox from '@shell/components/InfoBox';
 import CopyCode from '@shell/components/CopyCode';
 import { Banner } from '@components/Banner';
-import { LOCAL, LOGGED_OUT, TIMED_OUT, _FLAGGED } from '@shell/config/query-params';
+import {
+  LOCAL, LOGGED_OUT, TIMED_OUT, IS_SSO, _FLAGGED
+} from '@shell/config/query-params';
 import { Checkbox } from '@components/Form/Checkbox';
 import Password from '@shell/components/form/Password';
 import { sortBy } from '@shell/utils/sort';
 import { configType } from '@shell/models/management.cattle.io.authconfig';
 import { mapGetters } from 'vuex';
-import { _ALL_IF_AUTHED, _MULTI } from '@shell/plugins/dashboard-store/actions';
+import { _MULTI } from '@shell/plugins/dashboard-store/actions';
 import { MANAGEMENT, NORMAN } from '@shell/config/types';
 import { SETTING } from '@shell/config/settings';
 import { LOGIN_ERRORS } from '@shell/store/auth';
@@ -26,6 +28,7 @@ import {
   setVendor
 } from '@shell/config/private-label';
 import loadPlugins from '@shell/plugins/plugin';
+import { fetchInitialSettings } from '@shell/utils/settings';
 
 export default {
   name:       'Login',
@@ -51,12 +54,7 @@ export default {
     // For newer versions this will return all settings if you are somehow logged in,
     // and just the public ones if you aren't.
     try {
-      await store.dispatch('management/findAll', {
-        type: MANAGEMENT.SETTING,
-        opt:  {
-          load: _ALL_IF_AUTHED, url: `/v1/${ MANAGEMENT.SETTING }`, redirectUnauthorized: false
-        },
-      });
+      await fetchInitialSettings(store);
 
       firstLoginSetting = store.getters['management/byId'](MANAGEMENT.SETTING, SETTING.FIRST_LOGIN);
       plSetting = store.getters['management/byId'](MANAGEMENT.SETTING, SETTING.PL);
@@ -64,19 +62,19 @@ export default {
     } catch (e) {
       // Older versions used Norman API to get these
       firstLoginSetting = await store.dispatch('rancher/find', {
-        type: 'setting',
+        type: NORMAN.SETTING,
         id:   SETTING.FIRST_LOGIN,
         opt:  { url: `/v3/settings/${ SETTING.FIRST_LOGIN }` }
       });
 
       plSetting = await store.dispatch('rancher/find', {
-        type: 'setting',
+        type: NORMAN.SETTING,
         id:   SETTING.PL,
         opt:  { url: `/v3/settings/${ SETTING.PL }` }
       });
 
       brand = await store.dispatch('rancher/find', {
-        type: 'setting',
+        type: NORMAN.SETTING,
         id:   SETTING.BRAND,
         opt:  { url: `/v3/settings/${ SETTING.BRAND }` }
       });
@@ -118,9 +116,10 @@ export default {
       remember: !!username,
       password: '',
 
-      timedOut:  this.$route.query[TIMED_OUT] === _FLAGGED,
-      loggedOut: this.$route.query[LOGGED_OUT] === _FLAGGED,
-      err:       this.$route.query.err,
+      timedOut:    this.$route.query[TIMED_OUT] === _FLAGGED,
+      loggedOut:   this.$route.query[LOGGED_OUT] === _FLAGGED,
+      isSsoLogout: this.$route.query[IS_SSO] === _FLAGGED,
+      err:         this.$route.query.err,
 
       providers:          [],
       providerComponents: [],
@@ -314,7 +313,7 @@ export default {
             v-else-if="loggedOut"
             class="text-success text-center"
           >
-            {{ t('login.loggedOut') }}
+            {{ isSsoLogout ? t('login.loggedOutFromSso') : t('login.loggedOut') }}
           </h4>
           <h4
             v-else-if="timedOut"

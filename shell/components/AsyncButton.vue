@@ -1,5 +1,5 @@
 <script lang="ts">
-import Vue from 'vue';
+import { defineComponent, PropType, inject } from 'vue';
 import typeHelper from '@shell/utils/type-helpers';
 
 export const ASYNC_BUTTON_STATES = {
@@ -14,7 +14,13 @@ const TOOLTIP = 'tooltip';
 
 export type AsyncButtonCallback = (success: boolean) => void;
 
-export default Vue.extend<{ phase: string}, any, any, any>({
+interface NonReactiveProps {
+  timer: NodeJS.Timeout | undefined;
+}
+
+const provideProps: NonReactiveProps = { timer: undefined };
+
+export default defineComponent({
   props: {
     /**
      * Mode maps to keys in asyncButton.* translations
@@ -37,7 +43,7 @@ export default Vue.extend<{ phase: string}, any, any, any>({
       default: false,
     },
     type: {
-      type:    String,
+      type:    String as PropType<'button' | 'submit' | 'reset' | undefined>,
       default: 'button'
     },
     tabIndex: {
@@ -113,7 +119,13 @@ export default Vue.extend<{ phase: string}, any, any, any>({
 
   },
 
-  data(): { phase: string, timer?: NodeJS.Timeout} {
+  setup() {
+    const timer = inject('timer', provideProps.timer);
+
+    return { timer };
+  },
+
+  data() {
     return { phase: this.currentPhase };
   },
 
@@ -245,7 +257,7 @@ export default Vue.extend<{ phase: string}, any, any, any>({
         this.phase = (success ? ASYNC_BUTTON_STATES.SUCCESS : ASYNC_BUTTON_STATES.ERROR );
         this.timer = setTimeout(() => {
           this.timerDone();
-        }, this.delay );
+        }, this.delay);
       }
     },
 

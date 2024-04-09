@@ -10,7 +10,8 @@ import KeyValue from '@shell/components/form/KeyValue';
 import { mapGetters } from 'vuex';
 import { isRancherPrime } from '@shell/config/version';
 import DefaultLinksEditor from './DefaultLinksEditor';
-import { CUSTOM_LINKS_VERSION, fetchLinks } from '@shell/config/home-links';
+import { CUSTOM_LINKS_COLLECTIVE_VERSION, fetchLinks } from '@shell/config/home-links';
+import TabTitle from '@shell/components/TabTitle';
 
 export default {
   components: {
@@ -19,6 +20,7 @@ export default {
     AsyncButton,
     Banner,
     DefaultLinksEditor,
+    TabTitle
   },
   async fetch() {
     this.value = await fetchLinks(this.$store, this.hasSupport, false, (str) => this.t(str));
@@ -45,7 +47,7 @@ export default {
 
     allValues() {
       return {
-        version:  CUSTOM_LINKS_VERSION,
+        version:  CUSTOM_LINKS_COLLECTIVE_VERSION,
         defaults: this.value.defaults.filter((obj) => obj.enabled).map((obj) => obj.key),
         custom:   this.value.custom
       };
@@ -88,7 +90,7 @@ export default {
   <Loading v-if="$fetchState.pending" />
   <div v-else>
     <h1 class="mb-20">
-      {{ t("customLinks.label") }}
+      <TabTitle>{{ t("customLinks.label") }}</TabTitle>
     </h1>
     <div>
       <label class="text-label">

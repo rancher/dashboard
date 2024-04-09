@@ -14,6 +14,7 @@ import { RadioGroup } from '@components/Form/Radio';
 import { get } from '@shell/utils/object';
 import { _VIEW, _CREATE } from '@shell/config/query-params';
 import { isValidCron } from 'cron-validator';
+import { fetchSpecsScheduledScanConfig } from '@shell/models/cis.cattle.io.clusterscan';
 
 const semver = require('semver');
 
@@ -39,8 +40,10 @@ export default {
 
   async fetch() {
     const hash = await allHash({
-      profiles:   this.$store.dispatch('cluster/findAll', { type: CIS.CLUSTER_SCAN_PROFILE }),
-      benchmarks: this.$store.dispatch('cluster/findAll', { type: CIS.BENCHMARK }),
+      profiles:               this.$store.dispatch('cluster/findAll', { type: CIS.CLUSTER_SCAN_PROFILE }),
+      benchmarks:             this.$store.dispatch('cluster/findAll', { type: CIS.BENCHMARK }),
+      // Ensure the clusterscan model has everything it needs
+      hasScheduledScanConfig: fetchSpecsScheduledScanConfig(this.schema),
     });
 
     try {

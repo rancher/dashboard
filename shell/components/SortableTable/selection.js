@@ -46,9 +46,10 @@ export default {
     // NOTE: The logic here could be simplified and made more performant
     bulkActionsForSelection() {
       let disableAll = false;
+
       // pagedRows is all rows in the current page
       const all = this.pagedRows;
-      const allRows = this.arrangedRows;
+      const allRows = this.arrangedRows || all;
       let selected = this.selectedRows;
 
       // Nothing is selected

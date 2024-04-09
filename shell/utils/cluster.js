@@ -85,7 +85,7 @@ export function abbreviateClusterName(input) {
     break;
   }
   default:
-    result = segments.slice(0, 3).map((segment) => segment[0]).join('');
+    result = segments.slice(0, 2).map((segment) => segment[0]).join('') + segments.slice(-1)[0].slice(-1);
   }
 
   return result;

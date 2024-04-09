@@ -1,5 +1,5 @@
 import xor from 'lodash/xor';
-import { get } from '@shell/utils/object';
+import { get, isEqual } from '@shell/utils/object';
 
 export function removeObject<T>(ary: T[], obj: T): T[] {
   const idx = ary.indexOf(obj);
@@ -178,6 +178,45 @@ export function hasDuplicatedStrings(items: string[], caseSensitive = true): boo
 
 export function sameContents<T>(aryA: T[], aryB: T[]): boolean {
   return xor(aryA, aryB).length === 0;
+}
+
+export function sameArrayObjects<T>(aryA: T[], aryB: T[], positionAgnostic = false): boolean {
+  if (!aryA && !aryB) {
+    // catch calls from js (where props aren't type checked)
+    return false;
+  }
+  if (aryA?.length !== aryB?.length) {
+    // catch one null and not t'other, and different lengths
+    return false;
+  }
+
+  if (positionAgnostic) {
+    const consumedB: { [pos: number]: boolean } = {};
+
+    aryB.forEach((_, index) => {
+      consumedB[index] = false;
+    });
+
+    for (let i = 0; i < aryA.length; i++) {
+      const a = aryA[i];
+
+      const validA = aryB.findIndex((arB, index) => isEqual(arB, a) && !consumedB[index] );
+
+      if (validA >= 0) {
+        consumedB[validA] = true;
+      } else {
+        return false;
+      }
+    }
+  } else {
+    for (let i = 0; i < aryA.length; i++) {
+      if (!isEqual(aryA[i], aryB[i])) {
+        return false;
+      }
+    }
+  }
+
+  return true;
 }
 
 export function uniq<T>(ary: T[]): T[] {

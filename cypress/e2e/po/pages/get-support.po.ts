@@ -1,6 +1,6 @@
 import PagePo from '@/cypress/e2e/po/pages/page.po';
 import BurgerMenuPo from '@/cypress/e2e/po/side-bars/burger-side-menu.po';
-import SimpleBoxPo from '~/cypress/e2e/po/components/simple-box.po';
+import SimpleBoxPo from '@/cypress/e2e/po/components/simple-box.po';
 
 const burgerMenu = new BurgerMenuPo();
 

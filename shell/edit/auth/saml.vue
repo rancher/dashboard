@@ -10,6 +10,7 @@ import AllowedPrincipals from '@shell/components/auth/AllowedPrincipals';
 import FileSelector from '@shell/components/form/FileSelector';
 import AuthBanner from '@shell/components/auth/AuthBanner';
 import config from '@shell/edit/auth/ldap/config';
+import AuthProviderWarningBanners from '@shell/edit/auth/AuthProviderWarningBanners';
 
 export const SHIBBOLETH = 'shibboleth';
 export const OKTA = 'okta';
@@ -46,7 +47,8 @@ export default {
     Checkbox,
     FileSelector,
     config,
-    AuthBanner
+    AuthBanner,
+    AuthProviderWarningBanners
   },
 
   mixins: [CreateEditView, AuthConfig],
@@ -189,10 +191,9 @@ export default {
       </template>
 
       <template v-else>
-        <Banner
+        <AuthProviderWarningBanners
           v-if="!model.enabled"
-          :label="t('authConfig.stateBanner.disabled', tArgs)"
-          color="warning"
+          :t-args="tArgs"
         />
 
         <h3>{{ t(`authConfig.saml.${NAME}`) }}</h3>
@@ -302,16 +303,6 @@ export default {
               :mode="mode"
               @selected="$set(model, 'idpMetadataContent', $event)"
             />
-          </div>
-        </div>
-        <div
-          v-if="!model.enabled"
-          class="row"
-        >
-          <div class="col span-12">
-            <Banner color="info">
-              <div v-clean-html="t('authConfig.associatedWarning', tArgs, true)" />
-            </Banner>
           </div>
         </div>
         <div v-if="supportsLDAPSearch">

@@ -2,14 +2,46 @@ import HomePagePo from '@/cypress/e2e/po/pages/home.po';
 import PreferencesPagePo from '@/cypress/e2e/po/pages/preferences.po';
 import ClusterManagerListPagePo from '@/cypress/e2e/po/pages/cluster-manager/cluster-manager-list.po';
 import ClusterManagerImportGenericPagePo from '@/cypress/e2e/po/edit/provisioning.cattle.io.cluster/import/cluster-import.generic.po';
+import { PARTIAL_SETTING_THRESHOLD } from '@/cypress/support/utils/settings-utils';
 
 const homePage = new HomePagePo();
 const homeClusterList = homePage.list();
 const provClusterList = new ClusterManagerListPagePo('local');
+const longClusterDescription = 'this-is-some-really-really-really-really-really-really-long-description';
 
 describe('Home Page', () => {
+  it('Confirm correct number of settings requests made', { tags: ['@generic', '@adminUser', '@standardUser'] }, () => {
+    cy.login();
+
+    cy.intercept('GET', '/v1/management.cattle.io.settings?exclude=metadata.managedFields').as('settingsReq');
+
+    homePage.goTo();
+
+    cy.wait('@settingsReq').then((interception) => {
+      expect(interception.response.body.count).greaterThan(PARTIAL_SETTING_THRESHOLD);
+    });
+    // Yes this is bad, but want to ensure no other settings requests are made.
+    cy.wait(1000); // eslint-disable-line cypress/no-unnecessary-waiting
+    cy.get('@settingsReq.all').should('have.length', 1);
+  });
+
   describe('Home Page', { testIsolation: 'off' }, () => {
     before(() => {
+      // since I wasn't able to fully mock a list of clusters
+      // the next best thing is to add a description to the current local cluster
+      // testing https://github.com/rancher/dashboard/issues/10441
+      cy.intercept('GET', `/v1/provisioning.cattle.io.clusters?*`, (req) => {
+        req.continue((res) => {
+          const localIndex = res.body.data.findIndex((item) => item.id.includes('/local'));
+
+          if (localIndex >= 0) {
+            res.body.data[localIndex].metadata.annotations['field.cattle.io/description'] = longClusterDescription;
+          }
+
+          res.send(res.body);
+        });
+      }).as('provClusters');
+
       cy.login();
       HomePagePo.goToAndWaitForGet();
     });
@@ -75,7 +107,7 @@ describe('Home Page', () => {
       homePage.getLoginPageBanner().checkVisible();
     });
 
-    it('Can see that cluster details match those in Cluster Manangement page', { tags: '@adminUser' }, () => {
+    it('Can see that cluster details match those in Cluster Manangement page', { tags: ['@adminUser'] }, () => {
     /**
      * Get cluster details from the Home page
      * Verify that the cluster details match those on the Cluster Management page
@@ -140,7 +172,7 @@ describe('Home Page', () => {
       genericCreateClusterPage.waitForPage();
     });
 
-    it('Can filter rows in the cluster list', { tags: '@adminUser' }, () => {
+    it('Can filter rows in the cluster list', { tags: ['@adminUser'] }, () => {
     /**
      * Filter rows in the cluster list
      */
@@ -154,6 +186,14 @@ describe('Home Page', () => {
       homeClusterList.name('local').should((el) => {
         expect(el).to.contain.text('local');
       });
+    });
+
+    it('Should show cluster description information in the cluster list', { tags: ['@adminUser'] }, () => {
+      HomePagePo.navTo();
+      const desc = homeClusterList.resourceTable().sortableTable().rowWithName('local').column(1)
+        .get('.cluster-description');
+
+      desc.contains(longClusterDescription);
     });
   });
 

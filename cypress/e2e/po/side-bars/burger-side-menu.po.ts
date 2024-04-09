@@ -10,7 +10,9 @@ export default class BurgerMenuPo extends ComponentPo {
    * @returns {Cypress.Chainable}
    */
   static toggle(): Cypress.Chainable {
-    return cy.getId('top-level-menu').should('be.visible').click({ force: true });
+    // added wait of 500ms to make time for CSS transitions to resolve (addresses tests flakiness)
+    // unfortunately there's no "easy" (and foolproof) way of waiting for transitions and 500ms is quick and does the trick
+    return cy.getId('top-level-menu').should('be.visible').click({ force: true }).wait(500); // eslint-disable-line cypress/no-unnecessary-waiting
   }
 
   /**
@@ -19,7 +21,7 @@ export default class BurgerMenuPo extends ComponentPo {
    */
   static burgerMenuNavToMenubyLabel(label: string): Cypress.Chainable {
     return this.sideMenu().should('exist').find('.option').contains(label)
-      .click();
+      .click({ force: true });
   }
 
   /**
@@ -29,6 +31,14 @@ export default class BurgerMenuPo extends ComponentPo {
   static burgerMenuNavToClusterbyLabel(label: string): Cypress.Chainable {
     return this.sideMenu().should('exist').find('.option .cluster-name').contains(label)
       .click();
+  }
+
+  /**
+   * Check if cluster on a top-level side menu entry by entry index has the appropriate key combo icon
+   * @returns {Cypress.Chainable}
+   */
+  static burguerMenuNavClusterKeyComboIconCheck(index: number): Cypress.Chainable {
+    return this.sideMenu().should('exist').find(`.clustersList [data-testid="top-level-menu-cluster-${ index }"] .cluster-icon-menu i`).should('have.class', 'icon-keyboard_tab');
   }
 
   /**
@@ -51,7 +61,7 @@ export default class BurgerMenuPo extends ComponentPo {
    * Check if Cluster Top Level Menu link is highlighted
    */
   static checkIfClusterMenuLinkIsHighlighted(name: string) {
-    return this.burgerMenuGetNavClusterbyLabel(name).parent().should('have.class', 'active-menu-link');
+    return this.burgerMenuGetNavClusterbyLabel(name).parent().parent().should('have.class', 'active-menu-link');
   }
 
   /**
@@ -75,11 +85,11 @@ export default class BurgerMenuPo extends ComponentPo {
     this.sideMenu().should('have.class', 'menu-close');
   }
 
-  static checkTooltipOn(): Cypress.Chainable {
+  static checkIconTooltipOn(): Cypress.Chainable {
     return cy.get('.option').get('.cluster-icon-menu').first().should('have.class', 'has-tooltip');
   }
 
-  static checkTooltipOff(): Cypress.Chainable {
+  static checkIconTooltipOff(): Cypress.Chainable {
     return cy.get('.option').get('.cluster-icon-menu').first().should('have.not.class', 'has-tooltip');
   }
 
@@ -137,12 +147,24 @@ export default class BurgerMenuPo extends ComponentPo {
     return this.clusterPinnedList().first().find('.pin').click();
   }
 
+  getClusterDescription(): Cypress.Chainable {
+    return this.clusters().first().find('.description').invoke('text');
+  }
+
+  showClusterDescriptionTooltip(): Cypress.Chainable {
+    return this.clusters().first().find('.description').trigger('mouseenter');
+  }
+
+  getClusterDescriptionTooltipContent(): Cypress.Chainable {
+    return cy.get('.menu-description-tooltip .tooltip-inner');
+  }
+
   /**
    * Get the Home link
    * @returns {Cypress.Chainable}
    */
   home(): Cypress.Chainable {
-    return this.self().find('.body > div > a').first();
+    return this.self().find('.body > div > div > a').first();
   }
 
   /**
@@ -159,5 +181,21 @@ export default class BurgerMenuPo extends ComponentPo {
    */
   support(): Cypress.Chainable {
     return this.self().contains('Get Support');
+  }
+
+  /**
+    * Get the side menu logo image
+   * @returns
+   */
+  brandLogoImage(): Cypress.Chainable {
+    return cy.getId('side-menu__brand-img');
+  }
+
+  /**
+   * Get the header logo image
+   * @returns
+   */
+  headerBrandLogoImage(): Cypress.Chainable {
+    return cy.getId('header-side-menu__brand-img');
   }
 }

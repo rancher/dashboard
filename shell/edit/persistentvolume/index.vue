@@ -237,9 +237,9 @@ export default {
       <div class="row">
         <div class="col span-6 text-center">
           <label class="text-muted">Persistent Volume Claim:</label>&nbsp;
-          <n-link :to="currentClaim.detailLocation">
+          <router-link :to="currentClaim.detailLocation">
             {{ currentClaim.namespacedName }}
-          </n-link>
+          </router-link>
         </div>
         <div class="col span-6 text-center">
           <label class="text-muted">Age:</label>&nbsp;

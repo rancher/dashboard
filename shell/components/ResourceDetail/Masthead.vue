@@ -12,6 +12,7 @@ import {
 } from '@shell/config/query-params';
 import { ExtensionPoint, PanelLocation } from '@shell/core/types';
 import ExtensionPanel from '@shell/components/ExtensionPanel';
+import TabTitle from '@shell/components/TabTitle';
 
 /**
  * Resource Detail Masthead component.
@@ -23,7 +24,7 @@ export default {
   name: 'MastheadResourceDetail',
 
   components: {
-    BadgeState, Banner, ButtonGroup, ExtensionPanel
+    BadgeState, Banner, ButtonGroup, ExtensionPanel, TabTitle
   },
   props: {
     value: {
@@ -412,12 +413,24 @@ export default {
       <div class="title">
         <div class="primaryheader">
           <h1>
-            <nuxt-link
+            <TabTitle
+              v-if="isCreate"
+              :showChild="false"
+            >
+              {{ parent.displayName }}
+            </TabTitle>
+            <TabTitle
+              v-else
+              :showChild="false"
+            >
+              {{ displayName }}
+            </TabTitle>
+            <router-link
               v-if="location"
               :to="location"
             >
               {{ parent.displayName }}:
-            </nuxt-link>
+            </router-link>
             <span v-else>{{ parent.displayName }}:</span>
             <span v-if="value.detailPageHeaderActionOverride && value.detailPageHeaderActionOverride(realMode)">{{ value.detailPageHeaderActionOverride(realMode) }}</span>
             <t
@@ -448,16 +461,16 @@ export default {
           v-if="!isCreate"
           class="subheader"
         >
-          <span v-if="isNamespace && project">{{ t("resourceDetail.masthead.project") }}: <nuxt-link :to="project.detailLocation">{{ project.nameDisplay }}</nuxt-link></span>
-          <span v-else-if="isWorkspace">{{ t("resourceDetail.masthead.workspace") }}: <nuxt-link :to="workspaceLocation">{{ namespace }}</nuxt-link></span>
+          <span v-if="isNamespace && project">{{ t("resourceDetail.masthead.project") }}: <router-link :to="project.detailLocation">{{ project.nameDisplay }}</router-link></span>
+          <span v-else-if="isWorkspace">{{ t("resourceDetail.masthead.workspace") }}: <router-link :to="workspaceLocation">{{ namespace }}</router-link></span>
           <span v-else-if="namespace && !hasMultipleNamespaces">
             {{ t("resourceDetail.masthead.namespace") }}:
-            <nuxt-link
+            <router-link
               v-if="!hideNamespaceLocation"
               :to="namespaceLocation"
             >
               {{ namespace }}
-            </nuxt-link>
+            </router-link>
             <span v-else>
               {{ namespace }}
             </span>

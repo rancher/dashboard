@@ -1,5 +1,9 @@
 <script>
+import AppModal from '@shell/components/AppModal.vue';
+
 export default {
+  components: { AppModal },
+
   props: {
     isCancelModal: {
       type:    Boolean,
@@ -11,18 +15,22 @@ export default {
     },
   },
 
+  data() {
+    return { showModal: false };
+  },
+
   watch: {},
 
   methods: {
     show() {
-      this.$modal.show('cancel-modal');
+      this.showModal = true;
     },
 
     /**
      * Close the modal, no op
      */
     cancelCancel() {
-      this.$modal.hide('cancel-modal');
+      this.showModal = false;
 
       this.$emit('cancel-cancel');
     },
@@ -31,7 +39,7 @@ export default {
      * Close the modal, cancel has been confirmed
      */
     confirmCancel() {
-      this.$modal.hide('cancel-modal');
+      this.showModal = false;
 
       this.$emit('confirm-cancel', this.isCancelModal);
     },
@@ -40,11 +48,13 @@ export default {
 </script>
 
 <template>
-  <modal
-    class="confirm-modal"
+  <app-modal
+    v-if="showModal"
+    customClass="confirm-modal"
     name="cancel-modal"
     :width="440"
     height="auto"
+    @close="cancelCancel"
   >
     <div class="header">
       <h4 class="text-default-text">
@@ -80,7 +90,7 @@ export default {
         <span v-else>{{ t("cruResource.confirmBack") }}</span>
       </button>
     </div>
-  </modal>
+  </app-modal>
 </template>
 
 <style lang='scss' scoped>
@@ -89,32 +99,27 @@ export default {
     margin: 0 10px;
   }
 
-  .v--modal-box {
-    background-color: var(--default);
-    box-shadow: none;
-    min-height: 200px;
-    .body {
-      min-height: 75px;
-      padding: 10px 0 0 15px;
-      p {
-        margin-top: 10px;
-      }
+  .body {
+    min-height: 75px;
+    padding: 10px 0 0 15px;
+    p {
+      margin-top: 10px;
     }
-    .header {
-      background-color: var(--error);
-      padding: 15px 0 0 15px;
-      height: 50px;
+  }
+  .header {
+    background-color: var(--error);
+    padding: 15px 0 0 15px;
+    height: 50px;
 
-      h4 {
-        color: white;
-      }
+    h4 {
+      color: white;
     }
-    .footer {
-      border-top: 1px solid var(--border);
-      text-align: center;
-      padding: 10px 0 0 15px;
-      height: 60px;
-    }
+  }
+  .footer {
+    border-top: 1px solid var(--border);
+    text-align: center;
+    padding: 10px 0 0 15px;
+    height: 60px;
   }
 }
 </style>

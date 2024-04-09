@@ -1,6 +1,6 @@
 <script>
 import Vue from 'vue';
-import { mapGetters } from 'vuex';
+import { mapGetters, mapActions } from 'vuex';
 import { get, set } from '@shell/utils/object';
 import { sortBy } from '@shell/utils/sort';
 import { NAMESPACE } from '@shell/config/types';
@@ -14,7 +14,7 @@ export default {
   name:       'NameNsDescription',
   components: {
     LabeledInput,
-    LabeledSelect
+    LabeledSelect,
   },
 
   props: {
@@ -215,6 +215,7 @@ export default {
 
   computed: {
     ...mapGetters(['currentProduct', 'currentCluster', 'namespaces', 'allowedNamespaces']),
+    ...mapActions('cru-resource', ['setCreateNamespace']),
     namespaceReallyDisabled() {
       return (
         !!this.forceNamespace || this.namespaceDisabled || this.mode === _EDIT
@@ -289,6 +290,10 @@ export default {
       return this.mode === _CREATE;
     },
 
+    showCustomize() {
+      return this.mode === _CREATE && this.name && this.name.length > 0;
+    },
+
     colSpan() {
       if (!this.horizontal) {
         return `span-8`;
@@ -310,7 +315,7 @@ export default {
 
   watch: {
     name(val) {
-      if ( this.normalizeName ) {
+      if (this.normalizeName) {
         val = normalizeName(val);
       }
 
@@ -370,22 +375,28 @@ export default {
     cancelCreateNamespace(e) {
       this.createNamespace = false;
       this.$parent.$emit('createNamespace', false);
-      // In practise we should always have a defaultNamespace... unless we're in non-kube extension world,  so fall back on options
-      this.namespace = this.$store.getters['defaultNamespace'] || this.options.find((o) => !!o.value)?.value ;
+      // In practice we should always have a defaultNamespace... unless we're in non-kube extension world,  so fall back on options
+      this.namespace = this.$store.getters['defaultNamespace'] || this.options.find((o) => !!o.value)?.value;
     },
 
     selectNamespace(e) {
       if (!e || e.value === '') { // The blank value in the dropdown is labeled "Create a New Namespace"
         this.createNamespace = true;
-        this.$parent.$emit('createNamespace', true);
+        this.$store.dispatch(
+          'cru-resource/setCreateNamespace',
+          true,
+        );
         this.$emit('isNamespaceNew', true);
         Vue.nextTick(() => this.$refs.namespace.focus());
       } else {
         this.createNamespace = false;
-        this.$parent.$emit('createNamespace', false);
+        this.$store.dispatch(
+          'cru-resource/setCreateNamespace',
+          false,
+        );
         this.$emit('isNamespaceNew', false);
       }
-    }
+    },
   },
 };
 </script>
@@ -459,6 +470,8 @@ export default {
       />
     </div>
 
+    <slot name="customize" />
+    <!-- // TODO: here goes the custom component -->
     <div
       v-show="!descriptionHidden"
       :data-testid="componentTestid + '-description'"
@@ -505,13 +518,16 @@ button {
     padding-top: 7px;
   }
 }
+
 .row {
   &.name-ns-description {
     max-height: $input-height;
   }
+
   .namespace-select ::v-deep {
     .labeled-select {
       min-width: 40%;
+
       .v-select.inline {
         &.vs--single {
           padding-bottom: 2px;
@@ -527,9 +543,10 @@ button {
       max-height: initial;
     }
 
-    & > div > * {
+    &>div>* {
       margin-bottom: 20px;
     }
   }
+
 }
 </style>

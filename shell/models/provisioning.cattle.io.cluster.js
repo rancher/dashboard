@@ -249,6 +249,21 @@ export default class ProvCluster extends SteveModel {
     return providers.includes(this.provisioner);
   }
 
+  get isPrivateHostedProvider() {
+    if (this.isHostedKubernetesProvider && this.mgmt && this.provisioner) {
+      switch (this.provisioner.toLowerCase()) {
+      case 'gke':
+        return this.mgmt.spec?.gkeConfig?.privateClusterConfig?.enablePrivateEndpoint;
+      case 'eks':
+        return this.mgmt.spec?.eksConfig?.privateAccess;
+      case 'aks':
+        return this.mgmt.spec?.aksConfig?.privateCluster;
+      }
+    }
+
+    return false;
+  }
+
   get isLocal() {
     return this.mgmt?.isLocal;
   }
@@ -891,7 +906,27 @@ export default class ProvCluster extends SteveModel {
   }
 
   get hasError() {
-    return this.status?.conditions?.some((condition) => condition.error === true);
+    // Before we were just checking for this.status?.conditions?.some((condition) => condition.error === true)
+    // but this is wrong as an error might exist but it might not be meaningful in the context of readiness of a cluster
+    // which is what this 'hasError' is used for.
+    // We now check if there's a ready condition after an error, which helps dictate the readiness of a cluster
+    // Based on the findings in https://github.com/rancher/dashboard/issues/10043
+    if (this.status?.conditions && this.status?.conditions.length) {
+      // if there are errors, we compare with how recent the "Ready" condition is compared to that error, otherwise we just move on
+      if (this.status?.conditions.some((c) => c.error === true)) {
+        // there's no ready condition and has an error, mark it
+        if (!this.status?.conditions.some((c) => c.type === 'Ready')) {
+          return true;
+        }
+
+        const filteredConditions = this.status?.conditions.filter((c) => c.error === true || c.type === 'Ready');
+        const mostRecentCondition = filteredConditions.reduce((a, b) => ((a.lastUpdateTime > b.lastUpdateTime) ? a : b));
+
+        return mostRecentCondition.error;
+      }
+    }
+
+    return false;
   }
 
   get namespaceLocation() {

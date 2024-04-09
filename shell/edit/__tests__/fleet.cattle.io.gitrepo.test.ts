@@ -8,7 +8,8 @@ localVue.use(Vuex);
 
 describe('view: fleet.cattle.io.gitrepo should', () => {
   const mockStore = {
-    getters: {
+    dispatch: jest.fn(),
+    getters:  {
       'i18n/t':                  (text: string) => text,
       t:                         (text: string) => text,
       currentStore:              () => 'current_store',
@@ -27,7 +28,7 @@ describe('view: fleet.cattle.io.gitrepo should', () => {
           return false;
         }
       }
-    }
+    },
   };
   const values = {
     metadata: { namespace: 'test' }, spec: { template: {}, correctDrift: { enabled: false } }, targetInfo: { mode: 'all' },

@@ -3,6 +3,8 @@ import CheckboxInputPo from '@/cypress/e2e/po/components/checkbox-input.po';
 import ColorInputPo from '@/cypress/e2e/po/components/color-input.po';
 import LabeledInputPo from '@/cypress/e2e/po/components/labeled-input.po';
 import RootClusterPage from '@/cypress/e2e/po/pages/root-cluster-page';
+import BurgerMenuPo from '@/cypress/e2e/po/side-bars/burger-side-menu.po';
+import ProductNavPo from '@/cypress/e2e/po/side-bars/product-side-nav.po';
 
 export class BrandingPagePo extends RootClusterPage {
   static url = '/c/_/settings/brand';
@@ -12,6 +14,13 @@ export class BrandingPagePo extends RootClusterPage {
 
   constructor() {
     super(BrandingPagePo.url);
+  }
+
+  static navTo() {
+    const sideNav = new ProductNavPo();
+
+    BurgerMenuPo.burgerMenuNavToMenubyLabel('Global Settings');
+    sideNav.navToSideMenuEntryByLabel('Branding');
   }
 
   privateLabel(): LabeledInputPo {
@@ -24,6 +33,10 @@ export class BrandingPagePo extends RootClusterPage {
 
   customLogoCheckbox(): CheckboxInputPo {
     return CheckboxInputPo.byLabel(this.self(), 'Use a Custom Logo');
+  }
+
+  customFaviconCheckbox(): CheckboxInputPo {
+    return CheckboxInputPo.byLabel(this.self(), 'Use a Custom Favicon');
   }
 
   primaryColorCheckbox(): CheckboxInputPo {
@@ -42,13 +55,26 @@ export class BrandingPagePo extends RootClusterPage {
     return new ColorInputPo('[data-testid="link-color-input"]');
   }
 
+  uploadButton(label: string) {
+    return cy.getId('file-selector__uploader-button').contains(label).next('input');
+  }
+
+  logoPreview(theme: string) {
+    return cy.getId(`branding-logo-${ theme }-preview`);
+  }
+
+  faviconPreview() {
+    return cy.getId('branding-favicon-preview');
+  }
+
   applyButton() {
     return new AsyncButtonPo('[data-testid="branding-apply-async-button"]', this.self());
   }
 
-  applyAndWait(endpoint: string) {
+  applyAndWait(endpoint: string, statusCode?: number): Cypress.Chainable {
     cy.intercept('PUT', endpoint).as(endpoint);
     this.applyButton().click();
-    cy.wait(`@${ endpoint }`).its('response.statusCode').should('eq', 200);
+
+    return statusCode ? cy.wait(`@${ endpoint }`).its('response.statusCode').should('eq', statusCode) : cy.wait(`@${ endpoint }`);
   }
 }

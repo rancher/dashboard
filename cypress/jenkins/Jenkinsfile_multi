@@ -60,7 +60,7 @@ node {
                                         string(name: 'RANCHER_HOST', value: ""),
                                         string(name: 'RANCHER_USERNAME', value: "${RANCHER_USERNAME}"),
                                         string(name: 'RANCHER_PASSWORD', value: "${RANCHER_PASSWORD}"),
-                                        string(name: 'RKE2_KUBERNETES_VERSION', value: "${RKE2_KUBERNETES_VERSION}"),
+                                        string(name: 'K3S_KUBERNETES_VERSION', value: "${K3S_KUBERNETES_VERSION}"),
                                         string(name: 'CERT_MANAGER_VERSION', value: "${CERT_MANAGER_VERSION}"),
                                         string(name: 'SERVER_COUNT', value: "${SERVER_COUNT}"),
                                         string(name: 'AGENT_COUNT', value: "${AGENT_COUNT}"),

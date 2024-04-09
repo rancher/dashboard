@@ -1,5 +1,5 @@
 <script lang="ts">
-import Vue from 'vue';
+import { defineComponent } from 'vue';
 import { _VIEW, _CREATE } from '@shell/config/query-params';
 import LabeledSelect from '@shell/components/form/LabeledSelect/index.vue';
 import Checkbox from '@components/Form/Checkbox/Checkbox.vue';
@@ -25,7 +25,7 @@ const getExemptionControl = (): PSAExemptionControl => ({
   value:  ''
 });
 
-export default Vue.extend({
+export default defineComponent({
   components: {
     Checkbox, LabeledSelect, LabeledInput
   },

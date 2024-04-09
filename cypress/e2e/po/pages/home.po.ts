@@ -62,7 +62,7 @@ export default class HomePagePo extends PagePo {
   }
 
   list(): HomeClusterListPo {
-    return new HomeClusterListPo('[data-testid="cluster-list-container"]');
+    return new HomeClusterListPo('[data-testid="sortable-table-list-container"]');
   }
 
   manageButton() {
@@ -122,5 +122,11 @@ export default class HomePagePo extends PagePo {
         expect(el).to.not.have.attr('target');
       }).click();
     }
+  }
+
+  checkSupportLinkText(index: number, text: string) {
+    return this.supportLinks().eq(index).then((el) => {
+      expect(el.text().trim()).to.equal(text);
+    });
   }
 }

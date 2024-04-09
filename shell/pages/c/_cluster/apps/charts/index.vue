@@ -19,6 +19,7 @@ import { removeObject, addObject, findBy } from '@shell/utils/array';
 import { compatibleVersionsFor, filterAndArrangeCharts } from '@shell/store/catalog';
 import { CATALOG } from '@shell/config/labels-annotations';
 import { isUIPlugin } from '@shell/config/uiplugins';
+import TabTitle from '@shell/components/TabTitle';
 
 export default {
   name:       'Charts',
@@ -31,7 +32,8 @@ export default {
     Checkbox,
     Select,
     SelectIconGrid,
-    TypeDescription
+    TypeDescription,
+    TabTitle
   },
 
   async fetch() {
@@ -179,8 +181,6 @@ export default {
      */
     featuredCharts() {
       const filteredCharts = this.filterCharts({});
-
-      // debugger;
 
       const featuredCharts = filteredCharts.filter((value) => value.featured).sort((a, b) => a.featured - b.featured);
 
@@ -372,7 +372,7 @@ export default {
           data-testid="charts-header-title"
           class="m-0"
         >
-          {{ t('catalog.charts.header') }}
+          <TabTitle>{{ t('catalog.charts.header') }}</TabTitle>
         </h1>
       </div>
       <div

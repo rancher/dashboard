@@ -32,8 +32,7 @@ export default class ProductNavPo extends ComponentPo {
    * Navigate to a side menu group by label
    */
   navToSideMenuGroupByLabel(label: string): Cypress.Chainable {
-    return this.self().should('exist').find('.header > a > h6').contains(label)
-      .click();
+    return this.self().should('exist').contains('.accordion.has-children', label).click();
   }
 
   /**
@@ -41,6 +40,20 @@ export default class ProductNavPo extends ComponentPo {
    */
   navToSideMenuEntryByLabel(label: string): Cypress.Chainable {
     return this.self().should('exist').find('.child.nav-type a .label').contains(label)
-      .click();
+      .click({ force: true });
+  }
+
+  /**
+   * Check existence of menu group by label
+   */
+  navToSideMenuGroupByLabelExistence(label: string, assertion: string): Cypress.Chainable {
+    return this.self().should('exist').contains('.accordion.has-children', label).should(assertion);
+  }
+
+  /**
+   * Get tab headers
+   */
+  tabHeaders(): Cypress.Chainable {
+    return this.self().find('.header');
   }
 }

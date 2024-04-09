@@ -7,12 +7,13 @@ import {
   load,
   remove,
   batchChanges,
-  replace
+  replace,
+  loadAdd
 } from '@shell/plugins/dashboard-store/mutations';
-import { keyForSubscribe } from '@shell/plugins/steve/resourceWatcher';
 import { perfLoadAll } from '@shell/plugins/steve/performanceTesting';
 import Vue from 'vue';
 import { classify } from '@shell/plugins/dashboard-store/classify';
+import SteveSchema from '@shell/models/steve-schema';
 
 function registerNamespace(state, namespace) {
   let cache = state.podsByNamespace[namespace];
@@ -122,7 +123,8 @@ export default {
     ctx,
     skipHaveAll,
     namespace,
-    revision
+    revision,
+    pagination
   }) {
     // Performance testing in dev and when env var is set
     if (process.env.dev && !!process.env.perfTest) {
@@ -130,7 +132,7 @@ export default {
     }
 
     const proxies = loadAll(state, {
-      type, data, ctx, skipHaveAll, namespace, revision
+      type, data, ctx, skipHaveAll, namespace, revision, pagination
     });
 
     // If we loaded a set of pods, then update the podsByNamespace cache
@@ -151,18 +153,30 @@ export default {
 
   forgetType(state, type) {
     if ( forgetType(state, type) ) {
-      delete state.inError[keyForSubscribe({ type })];
+      Object.keys(state.inError).forEach((key) => {
+        if (key.startsWith(type)) {
+          delete state.inError[key];
+        }
+      });
     }
   },
 
   reset(state) {
+    // Reset generic store things.... then steve specific things
+
     resetStore(state, this.commit);
+
     this.commit(`${ state.config.namespace }/resetSubscriptions`);
 
     // Clear the podsByNamespace cache
     state.podsByNamespace = {};
+
+    SteveSchema.reset(state.config.namespace);
   },
 
+  /**
+  * Load multiple different types of resources
+  */
   loadMulti(state, { data, ctx }) {
     for (const entry of data) {
       const resource = load(state, { data: entry, ctx });
@@ -173,6 +187,16 @@ export default {
         addObject(cache.list, resource);
         cache.map.set(resource.id, resource);
       }
+    }
+  },
+
+  loadAdd(state, { type, data: allLatest, ctx }) {
+    loadAdd(state, {
+      type, data: allLatest, ctx
+    });
+
+    if (allLatest.length && allLatest[0].type === POD) {
+      updatePodsByNamespaceCache(state, ctx, allLatest, false);
     }
   },
 

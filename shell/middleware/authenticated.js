@@ -1,11 +1,7 @@
-import { REDIRECTED } from '@shell/config/cookies';
 import { NAME as EXPLORER } from '@shell/config/product/explorer';
-import {
-  SETUP, TIMED_OUT, UPGRADED, _FLAGGED, _UNFLAG
-} from '@shell/config/query-params';
+import { SETUP, TIMED_OUT } from '@shell/config/query-params';
 import { SETTING } from '@shell/config/settings';
 import { MANAGEMENT, NORMAN, DEFAULT_WORKSPACE } from '@shell/config/types';
-import { _ALL_IF_AUTHED } from '@shell/plugins/dashboard-store/actions';
 import { applyProducts } from '@shell/store/type-map';
 import { findBy } from '@shell/utils/array';
 import { ClusterNotFoundError, RedirectToError } from '@shell/utils/error';
@@ -16,71 +12,10 @@ import { AFTER_LOGIN_ROUTE, WORKSPACE } from '@shell/store/prefs';
 import { BACK_TO } from '@shell/config/local-storage';
 import { NAME as FLEET_NAME } from '@shell/config/product/fleet.js';
 import { canViewResource } from '@shell/utils/auth';
-
-const getPackageFromRoute = (route) => {
-  if (!route?.meta) {
-    return;
-  }
-  // Sometimes meta is an array... sometimes not
-  const arraySafe = Array.isArray(route.meta) ? route.meta : [route.meta];
-
-  return arraySafe.find((m) => !!m.pkg)?.pkg;
-};
-
-const getResourceFromRoute = (to) => {
-  let resource = to.params?.resource;
-
-  if (!resource) {
-    resource = findMeta(to, 'resource');
-  }
-
-  return resource;
-};
+import { getClusterFromRoute, getProductFromRoute, getPackageFromRoute, getResourceFromRoute } from '@shell/utils/router';
+import { fetchInitialSettings } from '@shell/utils/settings';
 
 let beforeEachSetup = false;
-
-function findMeta(route, key) {
-  if (route?.meta) {
-    const meta = Array.isArray(route.meta) ? route.meta : [route.meta];
-
-    for (let i = 0; i < meta.length; i++) {
-      if (meta[i][key]) {
-        return meta[i][key];
-      }
-    }
-  }
-
-  return undefined;
-}
-
-export function getClusterFromRoute(to) {
-  let cluster = to.params?.cluster;
-
-  if (!cluster) {
-    cluster = findMeta(to, 'cluster');
-  }
-
-  return cluster;
-}
-
-export function getProductFromRoute(to) {
-  let product = to.params?.product;
-
-  if ( !product ) {
-    const match = to.name?.match(/^c-cluster-([^-]+)/);
-
-    if ( match ) {
-      product = match[1];
-    }
-  }
-
-  // If still no product, see if the route indicates the product via route metadata
-  if (!product) {
-    product = findMeta(to, 'product');
-  }
-
-  return product;
-}
 
 function setProduct(store, to, redirect) {
   let product = getProductFromRoute(to);
@@ -91,7 +26,7 @@ function setProduct(store, to, redirect) {
   (product && !store.getters['type-map/isProductRegistered'](product))) {
     store.dispatch('loadingError', new Error(store.getters['i18n/t']('nav.failWhale.productNotFound', { productNotFound: product }, true)));
 
-    return () => redirect(302, '/fail-whale');
+    return true;
   }
 
   if ( !product ) {
@@ -146,53 +81,15 @@ function invalidResource(store, to, redirect) {
 }
 
 export default async function({
-  route, app, store, redirect, $cookies, req, isDev, from, $plugin, next
+  route, store, redirect, from, $plugin, next
 }) {
-  if ( route.path && typeof route.path === 'string') {
-    // Ignore webpack hot module reload requests
-    if ( route.path.startsWith('/__webpack_hmr/') ) {
-      return;
-    }
-
-    // Ignore the error page
-    if ( route.path.startsWith('/fail-whale') ) {
-      return;
-    }
-  }
-
-  // This tells Ember not to redirect back to us once you've already been to dashboard once.
-  if ( !$cookies.get(REDIRECTED) ) {
-    $cookies.set(REDIRECTED, 'true', {
-      path:     '/',
-      sameSite: true,
-      secure:   true,
-    });
-  }
-
-  const upgraded = route.query[UPGRADED] === _FLAGGED;
-
-  if ( upgraded ) {
-    app.router.applyQuery({ [UPGRADED]: _UNFLAG });
-
-    store.dispatch('growl/success', {
-      title:   store.getters['i18n/t']('serverUpgrade.title'),
-      message: store.getters['i18n/t']('serverUpgrade.message'),
-      timeout: 0,
-    });
-  }
-
   // Initial ?setup=admin-password can technically be on any route
   let initialPass = route.query[SETUP];
   let firstLogin = null;
 
   try {
     // Load settings, which will either be just the public ones if not logged in, or all if you are
-    await store.dispatch('management/findAll', {
-      type: MANAGEMENT.SETTING,
-      opt:  {
-        load: _ALL_IF_AUTHED, url: `/v1/${ MANAGEMENT.SETTING }`, redirectUnauthorized: false
-      }
-    });
+    await fetchInitialSettings(store);
 
     // Set the favicon - use custom one from store if set
     if (!haveSetFavIcon()) {
@@ -213,7 +110,7 @@ export default async function({
   if ( firstLogin === null ) {
     try {
       const res = await store.dispatch('rancher/find', {
-        type: 'setting',
+        type: NORMAN.SETTING,
         id:   SETTING.FIRST_LOGIN,
         opt:  { url: `/v3/settings/${ SETTING.FIRST_LOGIN }` }
       });
@@ -221,7 +118,7 @@ export default async function({
       firstLogin = res?.value === 'true';
 
       const plSetting = await store.dispatch('rancher/find', {
-        type: 'setting',
+        type: NORMAN.SETTING,
         id:   SETTING.PL,
         opt:  { url: `/v3/settings/${ SETTING.PL }` }
       });
@@ -289,6 +186,8 @@ export default async function({
       isLoggedIn(me);
     } else if ( fromHeader === 'false' ) {
       notLoggedIn();
+
+      return;
     } else {
       // Older versions look at principals and see what happens
       try {
@@ -339,17 +238,7 @@ export default async function({
 
     store.app.router.beforeEach((to, from, next) => {
       // NOTE - This beforeEach runs AFTER this middleware. So anything in this middleware that requires it must set it manually
-      let redirected = setProduct(store, to, redirect);
-
-      if (redirected) {
-        return redirected();
-      }
-
-      redirected = invalidResource(store, to, redirect);
-
-      if (redirected) {
-        return redirected();
-      }
+      setProduct(store, to, redirect);
 
       next();
     });

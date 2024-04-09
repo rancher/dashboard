@@ -2,7 +2,6 @@ import Vue from 'vue';
 import Router from 'vue-router';
 import { normalizeURL } from 'ufo';
 import { interopDefault } from '../utils/nuxt';
-import scrollBehavior from '../utils/router.scrollBehavior.js';
 
 const emptyFn = () => {};
 
@@ -12,7 +11,6 @@ export const routerOptions = {
   mode: 'history',
   // Note: router base comes from the ROUTER_BASE env var
   base: process.env.routerBase || '/',
-  scrollBehavior,
 
   routes: [
     {
@@ -25,6 +23,11 @@ export const routerOptions = {
           name:      'index'
         },
       ]
+    },
+    {
+      path:      '/fail-whale',
+      component: () => interopDefault(import('../pages/fail-whale.vue')),
+      name:      'fail-whale'
     },
     {
       path:      '',
@@ -41,11 +44,6 @@ export const routerOptions = {
           path:      '/home',
           component: () => interopDefault(import('../pages/home.vue')),
           name:      'home'
-        },
-        {
-          path:      '/fail-whale',
-          component: () => interopDefault(import('../pages/fail-whale.vue')),
-          name:      'fail-whale'
         },
         {
           path:      '/support',
@@ -251,6 +249,14 @@ export const routerOptions = {
           component: () => interopDefault(import('../pages/c/_cluster/manager/cloudCredential/index.vue')),
           name:      'c-cluster-manager-cloudCredential'
         }, {
+          path:      '/c/:cluster/manager/kontainerDriver',
+          component: () => interopDefault(import('../pages/c/_cluster/manager/drivers/kontainerDriver/index.vue')),
+          name:      'c-cluster-manager-driver-kontainerdriver'
+        }, {
+          path:      '/c/:cluster/manager/nodeDriver',
+          component: () => interopDefault(import('../pages/c/_cluster/manager/drivers/nodeDriver/index.vue')),
+          name:      'c-cluster-manager-driver-nodedriver'
+        }, {
           path:      '/c/:cluster/monitoring/alertmanagerconfig',
           component: () => interopDefault(import('../pages/c/_cluster/monitoring/alertmanagerconfig/index.vue')),
           name:      'c-cluster-monitoring-alertmanagerconfig'
@@ -299,6 +305,14 @@ export const routerOptions = {
           component: () => interopDefault(import('../pages/c/_cluster/manager/cloudCredential/create.vue')),
           name:      'c-cluster-manager-cloudCredential-create'
         }, {
+          path:      '/c/:cluster/manager/kontainerDriver/create',
+          component: () => interopDefault(import('../pages/c/_cluster/manager/drivers/kontainerDriver/create.vue')),
+          name:      'c-cluster-manager-driver-kontainerdriver-create'
+        }, {
+          path:      '/c/:cluster/manager/nodeDriver/create',
+          component: () => interopDefault(import('../pages/c/_cluster/manager/drivers/nodeDriver/create.vue')),
+          name:      'c-cluster-manager-driver-nodedriver-create'
+        }, {
           path:      '/c/:cluster/monitoring/monitor/create',
           component: () => interopDefault(import('../pages/c/_cluster/monitoring/monitor/create.vue')),
           name:      'c-cluster-monitoring-monitor-create'
@@ -326,6 +340,14 @@ export const routerOptions = {
           path:      '/c/:cluster/manager/cloudCredential/:id',
           component: () => interopDefault(import('../pages/c/_cluster/manager/cloudCredential/_id.vue')),
           name:      'c-cluster-manager-cloudCredential-id'
+        }, {
+          path:      '/c/:cluster/manager/kontainerDriver/:id',
+          component: () => interopDefault(import('../pages/c/_cluster/manager/drivers/kontainerDriver/_id.vue')),
+          name:      'c-cluster-manager-driver-kontainerdriver-id'
+        }, {
+          path:      '/c/:cluster/manager/nodeDriver/:id',
+          component: () => interopDefault(import('../pages/c/_cluster/manager/drivers/nodeDriver/_id.vue')),
+          name:      'c-cluster-manager-driver-nodedriver-id'
         }, {
           path:      '/c/:cluster/manager/pages/:page?',
           component: () => interopDefault(import('../pages/c/_cluster/manager/pages/_page.vue')),

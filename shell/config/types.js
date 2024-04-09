@@ -4,7 +4,10 @@
 
 // Steve-specific virtual types
 // Base: /v1
-export const STEVE = { PREFERENCE: 'userpreference' };
+export const STEVE = {
+  PREFERENCE:        'userpreference',
+  SCHEMA_DEFINITION: 'schemaDefinition'
+};
 
 // Old APIs via Norman
 // Base: /v3
@@ -26,10 +29,13 @@ export const NORMAN = {
   PRINCIPAL:                     'principal',
   PROJECT:                       'project',
   PROJECT_ROLE_TEMPLATE_BINDING: 'projectroletemplatebinding',
+  SETTING:                       'setting',
   SPOOFED:                       { GROUP_PRINCIPAL: 'group.principal' },
   ROLE_TEMPLATE:                 'roleTemplate',
   TOKEN:                         'token',
   USER:                          'user',
+  KONTAINER_DRIVER:              'kontainerDriver',
+  NODE_DRIVER:                   'nodeDriver'
 };
 
 // Public (via Norman)
@@ -124,19 +130,17 @@ export const MONITORING = {
   SERVICEMONITOR:     'monitoring.coreos.com.servicemonitor',
   THANOSRULER:        'monitoring.coreos.com.thanosruler',
   SPOOFED:            {
-    RECEIVER:                         'monitoring.coreos.com.receiver',
-    RECEIVER_SPEC:                    'monitoring.coreos.com.receiver.spec',
-    RECEIVER_EMAIL:                   'monitoring.coreos.com.receiver.email',
-    RECEIVER_SLACK:                   'monitoring.coreos.com.receiver.slack',
-    RECEIVER_WEBHOOK:                 'monitoring.coreos.com.receiver.webhook',
-    RECEIVER_PAGERDUTY:               'monitoring.coreos.com.receiver.pagerduty',
-    RECEIVER_OPSGENIE:                'monitoring.coreos.com.receiver.opsgenie',
-    RECEIVER_HTTP_CONFIG:             'monitoring.coreos.com.receiver.httpconfig',
-    RESPONDER:                        'monitoring.coreos.com.receiver.responder',
-    ROUTE:                            'monitoring.coreos.com.route',
-    ROUTE_SPEC:                       'monitoring.coreos.com.route.spec',
-    ALERTMANAGERCONFIG_RECEIVER_SPEC: 'monitoring.coreos.com.v1alpha1.alertmanagerconfig.spec.receivers',
-    ALERTMANAGERCONFIG_ROUTE_SPEC:    'monitoring.coreos.com.v1alpha1.alertmanagerconfig.spec.route'
+    RECEIVER:             'monitoring.coreos.com.receiver',
+    RECEIVER_SPEC:        'monitoring.coreos.com.receiver.spec',
+    RECEIVER_EMAIL:       'monitoring.coreos.com.receiver.email',
+    RECEIVER_SLACK:       'monitoring.coreos.com.receiver.slack',
+    RECEIVER_WEBHOOK:     'monitoring.coreos.com.receiver.webhook',
+    RECEIVER_PAGERDUTY:   'monitoring.coreos.com.receiver.pagerduty',
+    RECEIVER_OPSGENIE:    'monitoring.coreos.com.receiver.opsgenie',
+    RECEIVER_HTTP_CONFIG: 'monitoring.coreos.com.receiver.httpconfig',
+    RESPONDER:            'monitoring.coreos.com.receiver.responder',
+    ROUTE:                'monitoring.coreos.com.route',
+    ROUTE_SPEC:           'monitoring.coreos.com.route.spec',
   }
 };
 

@@ -154,6 +154,7 @@ export default {
           :disabled="isEdit || isView || hostnameTruncationManuallySet"
           :mode="mode"
           :label="t('cluster.rke2.truncateHostnames')"
+          data-testid="network-tab-truncate-hostname"
           @input="$emit('truncate-hostname', $event)"
         />
         <Banner

@@ -22,6 +22,9 @@
   // dark main text
   $lightest: #ffffff;
 
+  // menu cluster description active+hover
+  $desc-light: #EEEFF4;
+
   $secondary: $lighter;
   $disabled: $light;
 
@@ -37,7 +40,7 @@
   --default-hover-text         : #{saturate($lightest, 20%)};
   --default-active-bg          : #{darken($dark, 25%)};
   --default-active-text        : #{contrast-color(darken($dark, 25%))};
-  --default-border             : #($dark);
+  --default-border             : #{$dark};
   --default-banner-bg          : #{rgba($dark, 0.15)};
   --default-light-bg           : #{rgba($dark, 0.05)};
   --slider-light-bg            : #{rgba($darker, 1)};
@@ -49,6 +52,8 @@
   --body-text                  : #{$lightest};
   --scrollbar-thumb            : #{$medium};
   --scrollbar-thumb-dropdown   : #{$medium};
+
+  --side-menu-desc             : #{$desc-light};
 
   --header-bg                  : #{$darker};
   --header-border              : #{$medium};

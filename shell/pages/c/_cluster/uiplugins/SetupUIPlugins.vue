@@ -7,6 +7,7 @@ import { CATALOG as CATALOG_ANNOTATIONS } from '@shell/config/labels-annotations
 import Dialog from '@shell/components/Dialog.vue';
 import Checkbox from '@components/Form/Checkbox/Checkbox.vue';
 import Banner from '@components/Banner/Banner.vue';
+import { isRancherPrime } from '@shell/config/version';
 
 import {
   UI_PLUGIN_NAMESPACE,
@@ -68,6 +69,7 @@ export default {
       haveCharts:    false,
       installCharts: [],
       errors:        [],
+      prime:         isRancherPrime(),
       addRepos:      {
         official: true,
         partners: true,
@@ -86,6 +88,7 @@ export default {
       },
       buttonState:            ASYNC_BUTTON_STATES.ACTION,
       defaultRegistrySetting: null,
+      showDialog:             false,
     };
   },
 
@@ -98,7 +101,7 @@ export default {
       return !!this.repos.find((r) => r.urlDisplay === UI_PLUGINS_PARTNERS_REPO_URL);
     },
     isAnyRepoAvailableForInstall() {
-      return !this.hasRancherUIPluginsRepo || !this.hasRancherUIPartnersPluginsRepo;
+      return (isRancherPrime() && !this.hasRancherUIPluginsRepo) || !this.hasRancherUIPartnersPluginsRepo;
     }
   },
 
@@ -155,15 +158,16 @@ export default {
 
       // Reset checkbox based on if the repo is already installed
       this.addRepos = {
-        official: !this.hasRancherUIPluginsRepo,
+        official: isRancherPrime() && !this.hasRancherUIPluginsRepo,
         partners: !this.hasRancherUIPartnersPluginsRepo,
       };
 
-      this.$modal.show('confirm-uiplugins-setup');
+      this.showDialog = true;
     },
 
     async dialogClosed(ok) {
       this.errors = [];
+      this.showDialog = false;
 
       // User wants to proceed
       if (ok) {
@@ -269,6 +273,7 @@ export default {
       </template>
     </IconMessage>
     <Dialog
+      v-if="showDialog"
       name="confirm-uiplugins-setup"
       :title="t('plugins.setup.install.title')"
       @closed="dialogClosed"
@@ -286,6 +291,7 @@ export default {
         </Banner>
         <!-- Official rancher repo -->
         <div
+          v-if="prime"
           class="mb-15"
         >
           <Checkbox

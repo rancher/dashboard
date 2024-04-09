@@ -39,6 +39,7 @@ import {
   UI_PLUGINS_REPO_URL,
   UI_PLUGINS_PARTNERS_REPO_URL
 } from '@shell/config/uiplugins';
+import TabTitle from '@shell/components/TabTitle';
 
 const MAX_DESCRIPTION_LENGTH = 200;
 
@@ -68,6 +69,7 @@ export default {
     SetupUIPlugins,
     RemoveUIPlugins,
     AddExtensionRepos,
+    TabTitle
   },
 
   data() {
@@ -459,7 +461,7 @@ export default {
       neu.forEach((plugin) => {
         const existing = installed.find((p) => !p.removed && p.name === plugin.name && p.version === plugin.version);
 
-        if (!existing && plugin.isCached) {
+        if (!existing && plugin.isInitialized) {
           if (!this.uiErrors[plugin.name]) {
             changes++;
           }
@@ -658,7 +660,9 @@ export default {
       </template>
       <template v-else>
         <h2 data-testid="extensions-page-title">
-          {{ t('plugins.title') }}
+          <TabTitle breadcrumb="vendor-only">
+            {{ t('plugins.title') }}
+          </TabTitle>
         </h2>
       </template>
       <div class="actions-container">

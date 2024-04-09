@@ -9,7 +9,7 @@ require('dotenv').config();
  * VARIABLES
  */
 const hasCoverage = (process.env.TEST_INSTRUMENT === 'true') || false; // Add coverage if instrumented
-const testDirs = ['setup', 'pages', 'navigation', 'global-ui'];
+const testDirs = ['components', 'setup', 'pages', 'navigation', 'global-ui'];
 const skipSetup = process.env.TEST_SKIP?.includes('setup');
 const baseUrl = (process.env.TEST_BASE_URL || 'https://localhost:8005').replace(/\/$/, '');
 const DEFAULT_USERNAME = 'admin';
@@ -41,6 +41,14 @@ if (skipSetup && !process.env.TEST_PASSWORD) {
 console.log(`    Setup tests will ${ skipSetup ? 'NOT' : '' } be run`);
 console.log(`    Dashboard URL: ${ baseUrl }`);
 console.log(`    Rancher API URL: ${ apiUrl }`);
+
+// Check API - sometimes in dev, you might have API set to a different system to the base url - this won't work
+// as the login cookie will be for the base url and any API requests will fail as not authenticated
+if (apiUrl && !baseUrl.startsWith(apiUrl)) {
+  console.log('\n ❗ API variable is different to TEST_BASE_URL - tests may fail due to authentication issues');
+}
+
+console.log('');
 
 /**
  * CONFIGURATION
@@ -76,11 +84,17 @@ export default defineConfig({
         'pkg/rancher-components/src/components/**/*.{vue,ts,js}',
       ]
     },
-    api:               apiUrl,
+    api:                 apiUrl,
     username,
-    password:          process.env.CATTLE_BOOTSTRAP_PASSWORD || process.env.TEST_PASSWORD,
-    bootstrapPassword: process.env.CATTLE_BOOTSTRAP_PASSWORD,
-    grepTags:          process.env.GREP_TAGS
+    password:            process.env.CATTLE_BOOTSTRAP_PASSWORD || process.env.TEST_PASSWORD,
+    bootstrapPassword:   process.env.CATTLE_BOOTSTRAP_PASSWORD,
+    grepTags:            process.env.GREP_TAGS,
+    // the below env vars are only available to tests that run in Jenkins
+    awsAccessKey:        process.env.AWS_ACCESS_KEY_ID,
+    awsSecretKey:        process.env.AWS_SECRET_ACCESS_KEY,
+    azureSubscriptionId: process.env.AZURE_AKS_SUBSCRIPTION_ID,
+    azureClientId:       process.env.AZURE_CLIENT_ID,
+    azureClientSecret:   process.env.AZURE_CLIENT_SECRET
   },
   e2e: {
     fixturesFolder: 'cypress/e2e/blueprints',

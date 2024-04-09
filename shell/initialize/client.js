@@ -21,21 +21,21 @@ import {
 } from '../utils/nuxt.js';
 import { createApp } from './index.js';
 import fetchMixin from '../mixins/fetch.client';
-import NuxtLink from '../components/nuxt/nuxt-link.client.js'; // should be included after ./index.js
+import { nuxtLinkAlias } from '../components/nuxt/nuxt-link.client.js'; // should be included after ./index.js
+import { updatePageTitle } from '@shell/utils/title';
+import { getVendor } from '@shell/config/private-label';
 
 // Mimic old @nuxt/vue-app/template/client.js
 const isDev = process.env.dev;
 const debug = isDev;
 
 // Fetch mixin
-if (!Vue.__nuxt__fetch__mixin__) {
-  Vue.mixin(fetchMixin);
-  Vue.__nuxt__fetch__mixin__ = true;
-}
+Vue.mixin(fetchMixin);
 
 // Component: <NuxtLink>
-Vue.component(NuxtLink.name, NuxtLink);
-Vue.component('NLink', NuxtLink);
+// TODO: #9541 Remove for Vue 3 migration
+Vue.component('NuxtLink', nuxtLinkAlias('NuxtLink'));
+Vue.component('NLink', nuxtLinkAlias('NLink'));
 
 if (!global.fetch) {
   global.fetch = fetch;
@@ -46,8 +46,7 @@ let _lastPaths = [];
 let app;
 let router;
 
-// Try to rehydrate SSR data from window
-const NUXT = window.__NUXT__ || {};
+const NUXT = {};
 
 const $config = nuxt.publicRuntimeConfig || {}; // eslint-disable-line no-undef
 
@@ -58,58 +57,42 @@ if ($config._app) {
 Object.assign(Vue.config, { silent: false, performance: true });
 
 if (debug) {
-  const logs = NUXT.logs || [];
+  const defaultErrorHandler = Vue.config.errorHandler;
 
-  if (logs.length > 0) {
-    const ssrLogStyle = 'background: #2E495E;border-radius: 0.5em;color: white;font-weight: bold;padding: 2px 0.5em;';
-
-    console.group && console.group('%cNuxt SSR', ssrLogStyle); // eslint-disable-line no-console
-    logs.forEach((logObj) => (console[logObj.type] || console.log)(...logObj.args)); // eslint-disable-line no-console
-    delete NUXT.logs;
-    console.groupEnd && console.groupEnd(); // eslint-disable-line no-console
-  }
-
-  // Setup global Vue error handler
-  if (!Vue.config.$nuxt) {
-    const defaultErrorHandler = Vue.config.errorHandler;
-
-    Vue.config.errorHandler = async(err, vm, info, ...rest) => {
+  Vue.config.errorHandler = async(err, vm, info, ...rest) => {
     // Call other handler if exist
-      let handled = null;
+    let handled = null;
 
-      if (typeof defaultErrorHandler === 'function') {
-        handled = defaultErrorHandler(err, vm, info, ...rest);
+    if (typeof defaultErrorHandler === 'function') {
+      handled = defaultErrorHandler(err, vm, info, ...rest);
+    }
+    if (handled === true) {
+      return handled;
+    }
+
+    if (vm && vm.$root) {
+      const nuxtApp = Object.keys(window.$globalApp)
+        .find((nuxtInstance) => vm.$root[nuxtInstance]);
+
+      // Show Nuxt Error Page
+      if (nuxtApp && vm.$root[nuxtApp].error && info !== 'render function') {
+        const currentApp = vm.$root[nuxtApp];
+
+        currentApp.error(err);
       }
-      if (handled === true) {
-        return handled;
-      }
+    }
 
-      if (vm && vm.$root) {
-        const nuxtApp = Object.keys(Vue.config.$nuxt)
-          .find((nuxtInstance) => vm.$root[nuxtInstance]);
+    if (typeof defaultErrorHandler === 'function') {
+      return handled;
+    }
 
-        // Show Nuxt Error Page
-        if (nuxtApp && vm.$root[nuxtApp].error && info !== 'render function') {
-          const currentApp = vm.$root[nuxtApp];
-
-          currentApp.error(err);
-        }
-      }
-
-      if (typeof defaultErrorHandler === 'function') {
-        return handled;
-      }
-
-      // Log to console
-      if (process.env.NODE_ENV !== 'production') {
-        console.error(err); // eslint-disable-line no-console
-      } else {
-        console.error(err.message || err); // eslint-disable-line no-console
-      }
-    };
-    Vue.config.$nuxt = {};
-  }
-  Vue.config.$nuxt.$nuxt = true;
+    // Log to console
+    if (process.env.NODE_ENV !== 'production') {
+      console.error(err); // eslint-disable-line no-console
+    } else {
+      console.error(err.message || err); // eslint-disable-line no-console
+    }
+  };
 }
 
 const errorHandler = Vue.config.errorHandler || console.error; // eslint-disable-line no-console
@@ -171,7 +154,6 @@ async function loadAsyncComponents(to, from, next) {
     }
 
     this.error({ statusCode, message });
-    this.$nuxt.$emit('routeChanged', to, from, err);
     next();
   }
 }
@@ -442,15 +424,11 @@ async function render(to, from, next) {
   } catch (err) {
     const error = err || {};
 
-    if (error.message === 'ERR_REDIRECT') {
-      return this.$nuxt.$emit('routeChanged', to, from, error);
-    }
     _lastPaths = [];
 
     globalHandleError(error);
 
     this.error(error);
-    this.$nuxt.$emit('routeChanged', to, from, error);
     next();
   }
 }
@@ -486,8 +464,6 @@ function fixPrepatch(to, ___) {
   const instances = getMatchedComponentsInstances(to);
   const Components = getMatchedComponents(to);
 
-  let triggerScroll = false;
-
   Vue.nextTick(() => {
     instances.forEach((instance, i) => {
       if (!instance || instance._isDestroyed) {
@@ -505,17 +481,8 @@ function fixPrepatch(to, ___) {
         for (const key in newData) {
           Vue.set(instance.$data, key, newData[key]);
         }
-
-        triggerScroll = true;
       }
     });
-
-    if (triggerScroll) {
-      // Ensure to trigger scroll event after calling scrollBehavior
-      window.$nuxt.$nextTick(() => {
-        window.$nuxt.$emit('triggerScroll');
-      });
-    }
 
     checkForErrors(this);
 
@@ -536,11 +503,6 @@ function nuxtReady(_app) {
   if (typeof window._onNuxtLoaded === 'function') {
     window._onNuxtLoaded(_app);
   }
-  // Add router hooks
-  router.afterEach((to, from) => {
-    // Wait for fixPrepatch + $data updates
-    Vue.nextTick(() => _app.$nuxt.$emit('routeChanged', to, from));
-  });
 }
 
 const noopData = () => {
@@ -567,7 +529,7 @@ function hotReloadAPI(_app) {
     return;
   }
 
-  const $components = getNuxtChildComponents(_app.$nuxt, []);
+  const $components = getNuxtChildComponents(window.$globalApp, []);
 
   $components.forEach(addHotReload.bind(_app));
 }
@@ -690,6 +652,13 @@ async function mountApp(__app) {
   // Add beforeEach router hooks
   router.beforeEach(loadAsyncComponents.bind(_app));
   router.beforeEach(render.bind(_app));
+  router.beforeEach((from, to, next) => {
+    if (from?.name !== to?.name) {
+      updatePageTitle(getVendor());
+    }
+
+    next();
+  });
 
   // Fix in static: remove trailing slash to force hydration
   // Full static, if server-rendered: hydrate, to allow custom redirect to generated page

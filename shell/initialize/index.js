@@ -4,40 +4,12 @@
 import Vue from 'vue';
 import { createRouter } from '../config/router.js';
 import NuxtChild from '../components/nuxt/nuxt-child.js';
-import Nuxt from '../components/nuxt/nuxt.js';
 import App from './App.js';
 import { setContext, getLocation, getRouteData, normalizeError } from '../utils/nuxt';
 import { createStore } from '../config/store.js';
-
-/* Plugins */
+import { UPGRADED, _FLAGGED, _UNFLAG } from '@shell/config/query-params';
 import { loadDirectives } from '@shell/plugins';
-import '../plugins/portal-vue.js';
-import cookieUniversalNuxt from '../utils/cookie-universal-nuxt.js';
-import axios from '../utils/axios.js';
-import plugins from '../core/plugins.js';
-import pluginsLoader from '../core/plugins-loader.js';
-import axiosShell from '../plugins/axios';
-import '../plugins/tooltip';
-import '../plugins/v-select';
-import '../plugins/vue-js-modal';
-import '../plugins/js-yaml';
-import '../plugins/resize';
-import '../plugins/shortkey';
-import '../plugins/i18n';
-import '../plugins/global-formatters';
-import '../plugins/trim-whitespace';
-import '../plugins/extend-router';
-
-import intNumber from '../plugins/int-number';
-import positiveIntNumber from '../plugins/positive-int-number.js';
-import nuxtClientInit from '../plugins/nuxt-client-init';
-import replaceAll from '../plugins/replaceall';
-import backButton from '../plugins/back-button';
-import plugin from '../plugins/plugin';
-import codeMirror from '../plugins/codemirror-loader';
-import '../plugins/formatters';
-import version from '../plugins/version';
-import steveCreateWorker from '../plugins/steve-create-worker';
+import { installPlugins } from '@shell/initialize/plugins';
 
 // Prevent extensions from overriding existing directives
 // Hook into Vue.directive and keep track of the directive names that have been added
@@ -65,24 +37,6 @@ loadDirectives();
 // Component: <NuxtChild>
 Vue.component(NuxtChild.name, NuxtChild);
 Vue.component('NChild', NuxtChild);
-
-// Component NuxtLink is imported in server.js or client.js
-
-// Component: <Nuxt>
-Vue.component(Nuxt.name, Nuxt);
-
-Object.defineProperty(Vue.prototype, '$nuxt', {
-  get() {
-    const globalNuxt = this.$root.$options.$nuxt;
-
-    if (!globalNuxt && typeof window !== 'undefined') {
-      return window.$nuxt;
-    }
-
-    return globalNuxt;
-  },
-  configurable: true
-});
 
 async function createApp(config = {}) {
   const router = await createRouter(config);
@@ -162,10 +116,12 @@ async function createApp(config = {}) {
     // Check if plugin not already installed
     const installKey = `__nuxt_${ key }_installed__`;
 
-    if (Vue[installKey]) {
+    window.installedPlugins = window.installedPlugins || {};
+
+    if (window.installedPlugins[installKey]) {
       return;
     }
-    Vue[installKey] = true;
+    window[window.installedPlugins] = true;
     // Call Vue.use() to install the plugin into vm
     Vue.use(() => {
       if (!Object.prototype.hasOwnProperty.call(Vue.prototype, key)) {
@@ -181,72 +137,7 @@ async function createApp(config = {}) {
   // Inject runtime config as $config
   inject('config', config);
 
-  // Replace store state before plugins execution
-  if (window.__NUXT__ && window.__NUXT__.state) {
-    store.replaceState(window.__NUXT__.state);
-  }
-
-  // Plugin execution
-
-  // if (typeof nuxt_plugin_portalvue_6babae27 === 'function') {
-  //   await nuxt_plugin_portalvue_6babae27(app.context, inject);
-  // }
-
-  if (typeof cookieUniversalNuxt === 'function') {
-    await cookieUniversalNuxt(app.context, inject);
-  }
-
-  if (typeof axios === 'function') {
-    await axios(app.context, inject);
-  }
-
-  if (typeof plugins === 'function') {
-    await plugins(app.context, inject);
-  }
-
-  if (typeof pluginsLoader === 'function') {
-    await pluginsLoader(app.context, inject);
-  }
-
-  if (typeof axiosShell === 'function') {
-    await axiosShell(app.context, inject);
-  }
-
-  if (typeof intNumber === 'function') {
-    await intNumber(app.context, inject);
-  }
-
-  if (typeof positiveIntNumber === 'function') {
-    await positiveIntNumber(app.context, inject);
-  }
-
-  if (typeof nuxtClientInit === 'function') {
-    await nuxtClientInit(app.context, inject);
-  }
-
-  if (typeof replaceAll === 'function') {
-    await replaceAll(app.context, inject);
-  }
-
-  if (typeof backButton === 'function') {
-    await backButton(app.context, inject);
-  }
-
-  if (typeof plugin === 'function') {
-    await plugin(app.context, inject);
-  }
-
-  if (typeof codeMirror === 'function') {
-    await codeMirror(app.context, inject);
-  }
-
-  if (typeof version === 'function') {
-    await version(app.context, inject);
-  }
-
-  if (typeof steveCreateWorker === 'function') {
-    await steveCreateWorker(app.context, inject);
-  }
+  await installPlugins(app, inject);
 
   // Wait for async component to be resolved first
   await new Promise((resolve, reject) => {
@@ -274,6 +165,20 @@ async function createApp(config = {}) {
         unregister();
         resolve();
       });
+    });
+
+    router.afterEach((to) => {
+      const upgraded = to.query[UPGRADED] === _FLAGGED;
+
+      if ( upgraded ) {
+        router.applyQuery({ [UPGRADED]: _UNFLAG });
+
+        store.dispatch('growl/success', {
+          title:   store.getters['i18n/t']('serverUpgrade.title'),
+          message: store.getters['i18n/t']('serverUpgrade.message'),
+          timeout: 0,
+        });
+      }
     });
   });
 

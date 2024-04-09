@@ -199,6 +199,7 @@ export default {
         <RadioGroup
           v-model="form.expiryType"
           :options="expiryOptions"
+          data-testid="expiry__options"
           class="mr-20"
           name="expiryGroup"
         />

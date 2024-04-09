@@ -1,6 +1,6 @@
 import { CATTLE_PUBLIC_ENDPOINTS } from '@shell/config/labels-annotations';
 import { NODE as NODE_TYPE } from '@shell/config/types';
-import { COLUMN_BREAKPOINTS } from '@shell/components/SortableTable/index.vue';
+import { COLUMN_BREAKPOINTS } from '@shell/types/store/type-map';
 
 // Note: 'id' is always the last sort, so you don't have to specify it here.
 
@@ -359,6 +359,13 @@ export const KEYS = {
   labelKey: 'tableHeaders.keys',
   sort:     false,
   value:    'keysDisplay',
+};
+
+export const SECRET_DATA = {
+  name:      'data',
+  labelKey:  'tableHeaders.data',
+  value:     'dataPreview',
+  formatter: 'SecretData'
 };
 
 export const TARGET_KIND = {

@@ -5,6 +5,25 @@ import { get, set } from '@shell/utils/object';
 import isEmpty from 'lodash/isEmpty';
 import { ROOT_NAME } from '@shell/models/monitoring.coreos.com.route';
 
+/**
+ * Find secondary schema's related to the primary `monitoring.coreos.com.alertmanagerconfig` schema
+ */
+export const fetchAlertManagerConfigSpecs = async($store) => {
+  const schema = $store.getters['cluster/schemaFor'](MONITORING.ALERTMANAGERCONFIG);
+
+  if (!schema) {
+    return;
+  }
+
+  // Make the http request to fetch schema definitions for alertmanagerconfig
+  await schema.fetchResourceFields();
+
+  return {
+    receiverSchema: schema.schemaDefinitions?.[`${ schema.schemaDefinition.id }.spec.receivers`],
+    routeSchema:    schema.schemaDefinitions?.[`${ schema.schemaDefinition.id }.spec.route`],
+  };
+};
+
 const DEFAULT_SECRET_ID = 'cattle-monitoring-system/alertmanager-rancher-monitoring-alertmanager';
 const ALERTMANAGER_ID = 'cattle-monitoring-system/rancher-monitoring-alertmanager';
 

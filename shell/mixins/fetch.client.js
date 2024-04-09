@@ -1,8 +1,4 @@
-import Vue from 'vue';
 import { hasFetch, normalizeError, addLifecycleHook } from '../utils/nuxt';
-
-const isSsrHydration = (vm) => vm.$vnode && vm.$vnode.elm && vm.$vnode.elm.dataset && vm.$vnode.elm.dataset.fetchKey;
-const nuxtState = window.__NUXT__;
 
 export default {
   beforeCreate() {
@@ -12,15 +8,24 @@ export default {
 
     this._fetchDelay = typeof this.$options.fetchDelay === 'number' ? this.$options.fetchDelay : 200;
 
-    Vue.util.defineReactive(this, '$fetchState', {
-      pending:   false,
-      error:     null,
-      timestamp: Date.now()
-    });
-
     this.$fetch = $fetch.bind(this);
-    addLifecycleHook(this, 'created', created);
     addLifecycleHook(this, 'beforeMount', beforeMount);
+  },
+
+  data() {
+    return {
+      state: {
+        pending:   false,
+        error:     null,
+        timestamp: Date.now()
+      }
+    };
+  },
+
+  computed: {
+    $fetchState() {
+      return this.state;
+    }
   }
 };
 
@@ -30,44 +35,24 @@ function beforeMount() {
   }
 }
 
-function created() {
-  if (!isSsrHydration(this)) {
-    return;
+function $fetch(cached = true) {
+  if (cached) {
+    if (!this._fetchPromise) {
+      this._fetchPromise = $_fetch.call(this)
+        .then(() => {
+          delete this._fetchPromise;
+        });
+    }
+
+    return this._fetchPromise;
   }
 
-  // Hydrate component
-  this._hydrated = true;
-  this._fetchKey = this.$vnode.elm.dataset.fetchKey;
-  const data = nuxtState.fetch[this._fetchKey];
-
-  // If fetch error
-  if (data && data._error) {
-    this.$fetchState.error = data._error;
-
-    return;
-  }
-
-  // Merge data
-  for (const key in data) {
-    Vue.set(this.$data, key, data[key]);
-  }
-}
-
-function $fetch() {
-  if (!this._fetchPromise) {
-    this._fetchPromise = $_fetch.call(this)
-      .then(() => {
-        delete this._fetchPromise;
-      });
-  }
-
-  return this._fetchPromise;
+  return $_fetch.call(this);
 }
 
 async function $_fetch() { // eslint-disable-line camelcase
-  this.$nuxt.nbFetching++;
-  this.$fetchState.pending = true;
-  this.$fetchState.error = null;
+  this.state.pending = true;
+  this.state.error = null;
   this._hydrated = false;
   let error = null;
   const startTime = Date.now();
@@ -87,9 +72,7 @@ async function $_fetch() { // eslint-disable-line camelcase
     await new Promise((resolve) => setTimeout(resolve, delayLeft));
   }
 
-  this.$fetchState.error = error;
-  this.$fetchState.pending = false;
-  this.$fetchState.timestamp = Date.now();
-
-  this.$nextTick(() => this.$nuxt.nbFetching--);
+  this.state.error = error;
+  this.state.pending = false;
+  this.state.timestamp = Date.now();
 }

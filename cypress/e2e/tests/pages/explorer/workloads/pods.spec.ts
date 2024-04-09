@@ -64,6 +64,8 @@ describe('Cluster Explorer', () => {
           workloadsPodPage.list().resourceTable().sortableTable().rowWithName(clonePodName)
             .checkExists();
 
+          // Simple test to assert we haven't broken Pods detail page
+          // https://github.com/rancher/dashboard/issues/10490
           const clonedPodPage = new WorkLoadsPodDetailsPagePo(clonePodName);
 
           clonedPodPage.goTo();// Needs to be goTo to ensure http request is fired

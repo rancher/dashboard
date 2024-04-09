@@ -19,10 +19,15 @@ import {
   STORAGE_CLASS_PROVISIONER, PERSISTENT_VOLUME_SOURCE,
   HPA_REFERENCE, MIN_REPLICA, MAX_REPLICA, CURRENT_REPLICA,
   ACCESS_KEY, DESCRIPTION, EXPIRES, EXPIRY_STATE, SUB_TYPE, AGE_NORMAN, SCOPE_NORMAN, PERSISTENT_VOLUME_CLAIM, RECLAIM_POLICY, PV_REASON, WORKLOAD_HEALTH_SCALE, POD_RESTARTS,
-  DURATION, MESSAGE, REASON, LAST_SEEN_TIME, EVENT_TYPE, OBJECT, ROLE,
+  DURATION, MESSAGE, REASON, LAST_SEEN_TIME, EVENT_TYPE, OBJECT, ROLE, ROLES, VERSION, INTERNAL_EXTERNAL_IP, KUBE_NODE_OS, CPU, RAM, SECRET_DATA
 } from '@shell/config/table-headers';
 
 import { DSL } from '@shell/store/type-map';
+import {
+  STEVE_AGE_COL, STEVE_LIST_GROUPS, STEVE_NAMESPACE_COL, STEVE_NAME_COL, STEVE_STATE_COL
+} from '@shell/config/pagination-table-headers';
+
+import { COLUMN_BREAKPOINTS } from '@shell/types/store/type-map';
 
 export const NAME = 'explorer';
 
@@ -169,17 +174,20 @@ export function init(store) {
   configureType(EVENT, { limit: 500 });
   weightType(EVENT, -1, true);
 
-  // Allow Pods to be grouped by node
   configureType(POD, {
     listGroups: [
+      ...STEVE_LIST_GROUPS,
+      // Allow Pods to be grouped by node
       {
-        icon:       'icon-cluster',
-        value:      'role',
-        field:      'groupByNode',
-        hideColumn: 'groupByNode',
-        tooltipKey: 'resourceTable.groupBy.node'
+        icon:          'icon-cluster',
+        value:         'role',
+        field:         'spec.nodeName',
+        hideColumn:    NODE_COL.name,
+        groupLabelKey: 'groupByNode',
+        tooltipKey:    'resourceTable.groupBy.node'
       }
-    ]
+    ],
+    listGroupsWillOverride: true,
   });
 
   setGroupDefaultType('serviceDiscovery', SERVICE);
@@ -198,20 +206,43 @@ export function init(store) {
   configureType(MANAGEMENT.PSA, { localOnly: true });
 
   headers(PV, [STATE, NAME_COL, RECLAIM_POLICY, PERSISTENT_VOLUME_CLAIM, PERSISTENT_VOLUME_SOURCE, PV_REASON, AGE]);
-  headers(CONFIG_MAP, [NAME_COL, NAMESPACE_COL, KEYS, AGE]);
+
+  headers(CONFIG_MAP,
+    [NAME_COL, NAMESPACE_COL, KEYS, AGE],
+    [
+      STEVE_NAME_COL,
+      STEVE_NAMESPACE_COL, {
+        ...KEYS,
+        sort:   false,
+        search: false,
+      },
+      STEVE_AGE_COL
+    ]
+  );
+
   headers(SECRET, [
     STATE,
     NAME_COL,
     NAMESPACE_COL,
     SUB_TYPE,
-    {
-      name:      'data',
-      labelKey:  'tableHeaders.data',
-      value:     'dataPreview',
-      formatter: 'SecretData'
-    },
+    SECRET_DATA,
     AGE
+  ], [
+    STEVE_STATE_COL,
+    STEVE_NAME_COL,
+    STEVE_NAMESPACE_COL, {
+      ...SUB_TYPE,
+      value:  'metadata.fields.1',
+      sort:   'metadata.fields.1',
+      search: 'metadata.fields.1',
+    }, {
+      ...SECRET_DATA,
+      sort:   false,
+      search: false,
+    },
+    STEVE_AGE_COL
   ]);
+
   headers(INGRESS, [STATE, NAME_COL, NAMESPACE_COL, INGRESS_TARGET, INGRESS_DEFAULT_BACKEND, INGRESS_CLASS, AGE]);
   headers(SERVICE, [STATE, NAME_COL, NAMESPACE_COL, TARGET_PORT, SELECTOR, SPEC_TYPE, AGE]);
   headers(EVENT, [STATE, { ...LAST_SEEN_TIME, defaultSort: true }, EVENT_TYPE, REASON, OBJECT, 'Subobject', 'Source', MESSAGE, 'First Seen', 'Count', NAME_COL, NAMESPACE_COL]);
@@ -224,7 +255,83 @@ export function init(store) {
   headers(WORKLOAD_TYPES.JOB, [STATE, NAME_COL, NAMESPACE_COL, WORKLOAD_IMAGES, WORKLOAD_ENDPOINTS, 'Completions', DURATION, POD_RESTARTS, AGE, WORKLOAD_HEALTH_SCALE]);
   headers(WORKLOAD_TYPES.CRON_JOB, [STATE, NAME_COL, NAMESPACE_COL, WORKLOAD_IMAGES, WORKLOAD_ENDPOINTS, 'Schedule', 'Last Schedule', POD_RESTARTS, AGE, WORKLOAD_HEALTH_SCALE]);
   headers(WORKLOAD_TYPES.REPLICATION_CONTROLLER, [STATE, NAME_COL, NAMESPACE_COL, WORKLOAD_IMAGES, WORKLOAD_ENDPOINTS, 'Ready', 'Current', 'Desired', POD_RESTARTS, AGE, WORKLOAD_HEALTH_SCALE]);
-  headers(POD, [STATE, NAME_COL, NAMESPACE_COL, POD_IMAGES, 'Ready', 'Restarts', 'IP', NODE_COL, AGE]);
+
+  headers(POD,
+    [STATE, NAME_COL, NAMESPACE_COL, POD_IMAGES, 'Ready', 'Restarts', 'IP', NODE_COL, AGE],
+    [
+      STEVE_STATE_COL,
+      STEVE_NAME_COL,
+      STEVE_NAMESPACE_COL, {
+        ...POD_IMAGES,
+        sort:   false,
+        search: 'spec.containers.image'
+      }, 'Ready', 'Restarts', 'IP', {
+        ...NODE_COL,
+        search: 'spec.nodeName'
+      },
+      STEVE_AGE_COL
+    ]);
+
+  headers(NODE,
+    [
+      STATE,
+      NAME_COL,
+      ROLES,
+      VERSION,
+      INTERNAL_EXTERNAL_IP,
+      {
+        ...KUBE_NODE_OS,
+        breakpoint: COLUMN_BREAKPOINTS.LAPTOP,
+        getValue:   (row) => row.status?.nodeInfo?.operatingSystem
+      },
+      {
+        ...CPU,
+        breakpoint: COLUMN_BREAKPOINTS.LAPTOP,
+        getValue:   (row) => row.cpuUsagePercentage
+      }, {
+        ...RAM,
+        breakpoint: COLUMN_BREAKPOINTS.LAPTOP,
+        getValue:   (row) => row.ramUsagePercentage
+      },
+      AGE
+    ],
+    [
+      STEVE_STATE_COL,
+      STEVE_NAME_COL,
+      {
+        ...ROLES,
+        sort:   false,
+        search: false
+      },
+      {
+        ...VERSION,
+        value:    'status.nodeInfo.kubeletVersion',
+        getValue: undefined,
+        sort:     ['status.nodeInfo.kubeletVersion'],
+        search:   'status.nodeInfo.kubeletVersion'
+      }, {
+        ...INTERNAL_EXTERNAL_IP,
+        sort:   false,
+        search: false,
+      }, {
+        ...KUBE_NODE_OS,
+        breakpoint: COLUMN_BREAKPOINTS.LAPTOP,
+        getValue:   undefined
+      }, {
+        ...CPU,
+        breakpoint: COLUMN_BREAKPOINTS.LAPTOP,
+        getValue:   (row) => row.cpuUsagePercentage,
+        sort:       false,
+        search:     false,
+      }, {
+        ...RAM,
+        breakpoint: COLUMN_BREAKPOINTS.LAPTOP,
+        sort:       false,
+        search:     false,
+      },
+      STEVE_AGE_COL
+    ]);
+
   headers(MANAGEMENT.PSA, [STATE, NAME_COL, {
     ...DESCRIPTION,
     width: undefined

@@ -13,6 +13,7 @@ import RouteConfig from './routeConfig';
 import ResourceTable from '@shell/components/ResourceTable';
 import ActionMenu from '@shell/components/ActionMenu';
 import { _CREATE, _EDIT, _VIEW, _CONFIG } from '@shell/config/query-params';
+import { fetchAlertManagerConfigSpecs } from '@shell/utils/alertmanagerconfig';
 
 export default {
   components: {
@@ -32,11 +33,16 @@ export default {
     const inStore = this.$store.getters['currentProduct'].inStore;
     const alertmanagerConfigId = this.value.id;
 
+    const { receiverSchema, routeSchema } = await fetchAlertManagerConfigSpecs(this.$store);
+
+    this.receiverSchema = receiverSchema;
+    this.routeSchema = routeSchema;
+
     const alertmanagerConfigResource = await this.$store.dispatch(`${ inStore }/find`, { type: MONITORING.ALERTMANAGERCONFIG, id: alertmanagerConfigId });
 
     this.alertmanagerConfigId = alertmanagerConfigId;
     this.alertmanagerConfigResource = alertmanagerConfigResource;
-    this.alertmanagerConfigDetailRoute = alertmanagerConfigResource._detailLocation;
+    this.alertmanagerConfigDetailRoute = alertmanagerConfigResource?._detailLocation;
 
     const alertmanagerConfigActions = alertmanagerConfigResource.availableActions;
     const receiverActions = alertmanagerConfigResource.getReceiverActions(alertmanagerConfigActions);
@@ -48,8 +54,6 @@ export default {
     this.value.applyDefaults();
 
     const defaultReceiverValues = {};
-    const receiverSchema = this.$store.getters['cluster/schemaFor'](MONITORING.SPOOFED.ALERTMANAGERCONFIG_RECEIVER_SPEC);
-    const routeSchema = this.$store.getters['cluster/schemaFor'](MONITORING.SPOOFED.ALERTMANAGERCONFIG_ROUTE_SPEC);
     const receiverOptions = (this.value?.spec?.receivers || []).map((receiver) => receiver.name);
 
     return {
@@ -82,8 +86,6 @@ export default {
       receiverActions:      [],
       receiverOptions,
       receiverTypes:        RECEIVERS_TYPES,
-      routeSchema,
-      receiverSchema,
       selectedReceiverName: '',
       selectedRowValue:     null,
       view:                 _VIEW,
@@ -224,7 +226,7 @@ export default {
           @clickedActionButton="setActionMenuState"
         >
           <template #header-button>
-            <nuxt-link
+            <router-link
               v-if="createReceiverLink && createReceiverLink.name"
               :to="mode !== create ? createReceiverLink : {}"
             >
@@ -240,7 +242,7 @@ export default {
                   class="icon icon-info"
                 />
               </button>
-            </nuxt-link>
+            </router-link>
           </template>
         </ResourceTable>
       </Tab>

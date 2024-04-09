@@ -5,7 +5,7 @@ import ClusterManagerListPagePo from '@/cypress/e2e/po/pages/cluster-manager/clu
 import ClusterManagerEditGenericPagePo from '@/cypress/e2e/po/edit/provisioning.cattle.io.cluster/edit/cluster-edit-generic.po';
 
 describe('Cloud Credential', () => {
-  const clusterList = new ClusterManagerListPagePo('local');
+  const clusterList = new ClusterManagerListPagePo();
 
   before(() => {
     cy.login();
@@ -80,7 +80,7 @@ describe('Cloud Credential', () => {
           clusterList.checkIsCurrentPage();
           clusterList.editCluster(clusterName);
 
-          const editClusterPage = new ClusterManagerEditGenericPagePo(clusterName);
+          const editClusterPage = new ClusterManagerEditGenericPagePo(undefined, clusterName);
 
           editClusterPage.selectOptionForCloudCredentialWithLabel(`${ credsName } (${ createdCloudCredsIds[1] })`);
           editClusterPage.save();

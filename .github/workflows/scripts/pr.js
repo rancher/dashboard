@@ -11,7 +11,7 @@ const QA_REVIEW_LABEL = '[zube]: QA Review';
 const TECH_DEBT_LABEL = 'kind/tech-debt';
 const DEV_VALIDATE_LABEL = 'status/dev-validate';
 const QA_NONE_LABEL = 'QA/None';
-const QA_DEV_AUTOMATION_LABEL = 'QA/dev-automation'
+const QA_DEV_AUTOMATION_LABEL = 'QA/dev-automation';
 
 // The event object
 const event = require(process.env.GITHUB_EVENT_PATH);
@@ -21,28 +21,34 @@ function getReferencedIssues(body) {
     const regexp = /[Ff]ix(es|ed)?\s*#([0-9]*)|[Cc]lose(s|d)?\s*#([0-9]*)|[Rr]esolve(s|d)?\s*#([0-9]*)/g;
     var v;
     const issues = [];
-    do {
-        v = regexp.exec(body);
-        if (v) {
-            issues.push(parseInt(v[2], 10));
-        }
-    } while (v);
+    try {
+        do {
+            v = regexp.exec(body);
+            if (v) {
+                issues.push(parseInt(v[2], 10));
+            }
+        } while (v);
+    } catch (err) {
+        console.error('Failed to find referenced issues', err);
+    }
     return issues;
 }
 
 function hasLabel(issue, label) {
     const labels = issue.labels || [];
 
-    return !!(labels.find(l =>l.name.toLowerCase() === label.toLowerCase()));
+    return !!(labels.find(l => l.name.toLowerCase() === label.toLowerCase()));
 }
 
-function removeZubeLabels(labels) {
-    return labels.filter(l => l.name.indexOf('[zube]') === -1);
+function removeZubeLabels(issue) {
+    const labels = issue.labels || [];
+
+    return (labels || []).filter(l => l.name.indexOf('[zube]') === -1);
 }
 
 async function resetZubeLabels(issue, label) {
     // Remove all Zube labels
-    let cleanLabels = removeZubeLabels(issue.labels);
+    let cleanLabels = removeZubeLabels(issue);
 
     cleanLabels = cleanLabels.map((v) => {
         return v.name;
@@ -57,7 +63,7 @@ async function resetZubeLabels(issue, label) {
 
     // Update the labels
     const labelsAPI = `${issue.url}/labels`;
-    return request.put(labelsAPI, {labels: cleanLabels});
+    return request.put(labelsAPI, { labels: cleanLabels });
 }
 
 async function waitForLabel(issue, label) {
@@ -91,7 +97,7 @@ async function processClosedAction() {
 
     // Check that the issue was merged and not just closed
     if (!pr.merged) {
-        console.log( '  PR was closed without merging - ignoring');
+        console.log('  PR was closed without merging - ignoring');
         return;
     }
 
@@ -106,7 +112,7 @@ async function processClosedAction() {
     // Need to get all open PRs to see if any other references the same issues that this PR says it fixes
     const openPRs = event.repository.url + '/pulls?state=open&per_page=100';
     const r = await request.fetch(openPRs);
-    const issueMap = issues.reduce((prev, issue) => { prev[issue] = true; return prev; }, {})
+    const issueMap = issues.reduce((prev, issue) => { prev[issue] = true; return prev; }, {});
 
     // Go through all of the Open PRs and see if they fix any of the same issues that this PR does
     // If not, then the issue has been completed, so we can process it
@@ -128,14 +134,14 @@ async function processClosedAction() {
     // GitHub will do the closing, so we expect each issue to already be closed
     // We will fetch each issue in turn, expecting it to be closed
     // We will re-open the issue and label it as ready to test
-    fixed.forEach(async(i) => {
+    fixed.forEach(async (i) => {
         const detail = event.repository.url + '/issues/' + i;
         const iss = await request.fetch(detail);
-        console.log('')
+        console.log('');
         console.log('Processing Issue #' + i + ' - ' + iss.title);
 
         // If the issue is a tech debt issue or says dev will validate then don't move it to 'To Test'
-        if(hasLabel(iss, TECH_DEBT_LABEL) || hasLabel(iss, DEV_VALIDATE_LABEL) || hasLabel(iss, QA_NONE_LABEL)) {
+        if (hasLabel(iss, TECH_DEBT_LABEL) || hasLabel(iss, DEV_VALIDATE_LABEL) || hasLabel(iss, QA_NONE_LABEL)) {
             console.log('  Issue is tech debt/dev validate/qa none - ignoring');
         } else {
             console.log('  Waiting for Zube to mark the issue as done ...');
@@ -170,13 +176,13 @@ async function processClosedAction() {
 
             // Move to QA Review if the issue has the label that dev wrote automated tests
             if (hasLabel(iss, QA_DEV_AUTOMATION_LABEL)) {
-              console.log('  Updating labels to move issue to QA Review');
+                console.log('  Updating labels to move issue to QA Review');
 
-              await resetZubeLabels(iss, QA_REVIEW_LABEL);
+                await resetZubeLabels(iss, QA_REVIEW_LABEL);
             } else {
-              console.log('  Updating labels to move issue to Test');
+                console.log('  Updating labels to move issue to Test');
 
-              await resetZubeLabels(iss, IN_TEST_LABEL);
+                await resetZubeLabels(iss, IN_TEST_LABEL);
             }
         }
 
@@ -197,7 +203,7 @@ async function processOpenAction() {
 
         // Update the assignees
         const assigneesAPI = `${event.repository.url}/issues/${pr.number}/assignees`;
-        await request.post(assigneesAPI, {assignees: [pr.user.login]});
+        await request.post(assigneesAPI, { assignees: [pr.user.login] });
     }
 }
 
@@ -218,44 +224,49 @@ async function processOpenOrEditAction() {
     const milestones = {};
 
     for (i of issues) {
-      const detail = `${event.repository.url}/issues/${i}`;
-      const iss = await request.fetch(detail);
-      console.log('')
-      console.log('Processing Issue #' + i + ' - ' + iss.title);
+        const detail = `${event.repository.url}/issues/${i}`;
+        const iss = await request.fetch(detail);
 
-      if (pr.draft) {
-        console.log('    Issue will not be moved to In Review (Draft PR)');
-      } else if (hasLabel(iss, BACKEND_BLOCKED_LABEL)) {
-        console.log('    Issue will not be moved to In Review (Backend Blocked)');
-      } else {
-        if (!hasLabel(iss, IN_REVIEW_LABEL)) {
-            // Add the In Review label to the issue as it does not have it
-            await resetZubeLabels(iss, IN_REVIEW_LABEL);
-        } else {
-            console.log('    Issue already has the In Review label');
+        if (!iss) {
+            console.log(`Failed to find issue with number '${i}'. Body: :`, iss);
+            continue;
         }
-      }
+        console.log('');
+        console.log('Processing Issue #' + i + ' - ' + iss.title);
 
-      if (iss.milestone) {
-        milestones[iss.milestone.title] = iss.milestone.number;
-      }
+        if (pr.draft) {
+            console.log('    Issue will not be moved to In Review (Draft PR)');
+        } else if (hasLabel(iss, BACKEND_BLOCKED_LABEL)) {
+            console.log('    Issue will not be moved to In Review (Backend Blocked)');
+        } else {
+            if (!hasLabel(iss, IN_REVIEW_LABEL)) {
+                // Add the In Review label to the issue as it does not have it
+                await resetZubeLabels(iss, IN_REVIEW_LABEL);
+            } else {
+                console.log('    Issue already has the In Review label');
+            }
+        }
+
+        if (iss.milestone) {
+            milestones[iss.milestone.title] = iss.milestone.number;
+        }
     }
 
     const keys = Object.keys(milestones);
     if (keys.length === 0) {
-      console.log('No milestones on issue(s) for this PR');
+        console.log('No milestones on issue(s) for this PR');
     } else if (keys.length > 1) {
-      console.log('More than one milestone on issues for this PR');
+        console.log('More than one milestone on issues for this PR');
     } else {
-      // There is exactly 1 milestone, so use that for the PR
-      const milestoneNumber = milestones[keys[0]];
+        // There is exactly 1 milestone, so use that for the PR
+        const milestoneNumber = milestones[keys[0]];
 
-      if (event.pull_request.milestone?.number !== milestoneNumber) {
-        console.log('Updating PR with milestone: ' + keys[0]);
-        await request.patch(event.pull_request.issue_url, {milestone: milestoneNumber});
-      } else {
-        console.log('PR is already assigned to milestone ' + keys[0]);
-      }
+        if (event.pull_request.milestone?.number !== milestoneNumber) {
+            console.log('Updating PR with milestone: ' + keys[0]);
+            await request.patch(event.pull_request.issue_url, { milestone: milestoneNumber });
+        } else {
+            console.log('PR is already assigned to milestone ' + keys[0]);
+        }
     }
 }
 

@@ -18,6 +18,10 @@ import ClusterManagerCreateRke1CustomPagePo from '@/cypress/e2e/po/edit/provisio
 import Shell from '@/cypress/e2e/po/components/shell.po';
 import BurgerMenuPo from '@/cypress/e2e/po/side-bars/burger-side-menu.po';
 import { snapshot } from '@/cypress/e2e/blueprints/manager/cluster-snapshots';
+import HomePagePo from '@/cypress/e2e/po/pages/home.po';
+import { nodeDriveResponse } from '@/cypress/e2e/tests/pages/manager/mock-responses';
+import LabeledSelectPo from '@/cypress/e2e/po/components/labeled-select.po';
+import ProductNavPo from '@/cypress/e2e/po/side-bars/product-side-nav.po';
 
 // At some point these will come from somewhere central, then we can make tools to remove resources from this or all runs
 const runTimestamp = +new Date();
@@ -34,10 +38,47 @@ const importGenericName = `${ clusterNamePartial }-import-generic`;
 const downloadsFolder = Cypress.config('downloadsFolder');
 
 describe('Cluster Manager', { testIsolation: 'off', tags: ['@manager', '@adminUser'] }, () => {
-  const clusterList = new ClusterManagerListPagePo('local');
+  const clusterList = new ClusterManagerListPagePo();
 
   before(() => {
     cy.login();
+  });
+
+  // testing https://github.com/rancher/dashboard/issues/9823
+  it('Toggling the user preference "rke1-ui" to false should not display RKE toggle on cluster creation screen and hide RKE1 resources from nav', () => {
+    cy.intercept('GET', 'v1/management.cattle.io.features?*', {
+      type:         'collection',
+      resourceType: 'management.cattle.io.feature',
+      data:         [
+        {
+          id:     'rke1-ui',
+          type:   'management.cattle.io.feature',
+          kind:   'Feature',
+          spec:   { value: false },
+          status: {
+            default:     true,
+            description: 'Disable RKE1 provisioning',
+            dynamic:     false,
+            lockedValue: false
+          }
+        }
+      ]
+    }).as('featuresGet');
+
+    const clusterCreate = new ClusterManagerCreatePagePo();
+
+    clusterCreate.goTo();
+    clusterCreate.waitForPage();
+
+    // seems like the waitForPage does await for full DOM render, so let's wait for a simple assertion
+    // like "gridElementExists" to make sure we aren't creating a fake assertion with the toggle
+    clusterCreate.gridElementExistance(0, 0, 'exist');
+    clusterCreate.rkeToggleExistance('not.exist');
+
+    const sideNav = new ProductNavPo();
+
+    // check that the nav group isn't visible anymore
+    sideNav.navToSideMenuGroupByLabelExistence('RKE1 Configuration', 'not.exist');
   });
 
   describe('All providers', () => {
@@ -60,10 +101,10 @@ describe('Cluster Manager', { testIsolation: 'off', tags: ['@manager', '@adminUs
 
   describe('Created', () => {
     const createRKE2ClusterPage = new ClusterManagerCreateRke2CustomPagePo();
-    const detailRKE2ClusterPage = new ClusterManagerDetailRke2CustomPagePo(rke2CustomName);
+    const detailRKE2ClusterPage = new ClusterManagerDetailRke2CustomPagePo(undefined, rke2CustomName);
 
     describe('RKE2 Custom', () => {
-      const editCreatedClusterPage = new ClusterManagerEditRke2CustomPagePo(rke2CustomName);
+      const editCreatedClusterPage = new ClusterManagerEditRke2CustomPagePo(undefined, rke2CustomName);
 
       it('can create new cluster', () => {
         cy.intercept('POST', `/v1/${ type }s`).as('createRequest');
@@ -73,6 +114,8 @@ describe('Cluster Manager', { testIsolation: 'off', tags: ['@manager', '@adminUs
             namespace,
             name: rke2CustomName
           },
+          // Test for https://github.com/rancher/dashboard/issues/10338 (added option 'none' for CNI)
+          spec: { rkeConfig: { machineGlobalConfig: { cni: 'none' }, machinePoolDefaults: { hostnameLengthLimit: 15 } } }
         };
 
         cy.userPreferences();
@@ -86,10 +129,38 @@ describe('Cluster Manager', { testIsolation: 'off', tags: ['@manager', '@adminUs
         clusterList.createCluster();
 
         createRKE2ClusterPage.waitForPage();
+
+        // Test for https://github.com/rancher/dashboard/issues/9823 (default is feature flag 'rke1-ui' = true)
+        createRKE2ClusterPage.rkeToggleExistance('exist');
+
+        const sideNav = new ProductNavPo();
+
+        sideNav.navToSideMenuGroupByLabelExistence('RKE1 Configuration', 'exist');
+        // EO test for https://github.com/rancher/dashboard/issues/9823
+
         createRKE2ClusterPage.rkeToggle().set('RKE2/K3s');
 
         createRKE2ClusterPage.selectCustom(0);
         createRKE2ClusterPage.nameNsDescription().name().set(rke2CustomName);
+
+        // Test for https://github.com/rancher/dashboard/issues/10338 (added option 'none' for CNI)
+        const labeledSelectPo = new LabeledSelectPo('[data-testid="cluster-rke2-cni-select"]');
+
+        labeledSelectPo.checkExists();
+        labeledSelectPo.self().scrollIntoView();
+        labeledSelectPo.toggle();
+        labeledSelectPo.clickLabel('none');
+        labeledSelectPo.checkOptionSelected('none');
+
+        // banner with additional info about 'none' option should be visible
+        cy.get('[data-testid="clusterBasics__noneOptionSelectedForCni"]').should('exist');
+        // EO test for https://github.com/rancher/dashboard/issues/10338 (added option 'none' for CNI)
+
+        // testing https://github.com/rancher/dashboard/issues/10159
+        cy.get('[data-testid="btn-networking"]').click();
+        createRKE2ClusterPage.network().truncateHostnameCheckbox().set();
+        // EO test for https://github.com/rancher/dashboard/issues/10159
+
         createRKE2ClusterPage.create();
 
         cy.wait('@createRequest').then((intercept) => {
@@ -146,13 +217,15 @@ describe('Cluster Manager', { testIsolation: 'off', tags: ['@manager', '@adminUs
 
       it('can download KubeConfig', () => {
         clusterList.goTo();
+        cy.intercept('POST', '/v3/clusters/**').as('generateKubeconfig');
         clusterList.list().actionMenu(rke2CustomName).getMenuItem('Download KubeConfig').click();
+        cy.wait('@generateKubeconfig').its('response.statusCode').should('eq', 200);
 
         const downloadedFilename = path.join(downloadsFolder, `${ rke2CustomName }.yaml`);
 
         cy.readFile(downloadedFilename).then((buffer) => {
           // This will throw an exception which will fail the test if not valid yaml
-          const obj = jsyaml.load(buffer);
+          const obj: any = jsyaml.load(buffer);
 
           // Basic checks on the downloaded YAML
           expect(obj.clusters.length).to.equal(1);
@@ -266,7 +339,7 @@ describe('Cluster Manager', { testIsolation: 'off', tags: ['@manager', '@adminUs
 
       it('can show snapshots list', () => {
         clusterList.goToClusterListAndGetClusterDetails(rke1CustomName).then((cluster) => {
-          const snapshots = new ClusterManagerDetailSnapshotsPo(cluster.id);
+          const snapshots = new ClusterManagerDetailSnapshotsPo(undefined, cluster.id);
 
           // We want to show 2 elements in the snapshots tab
           const snapshotId1 = 'ml-mkhz4';
@@ -333,13 +406,13 @@ describe('Cluster Manager', { testIsolation: 'off', tags: ['@manager', '@adminUs
   });
 
   describe('Imported', () => {
-    const importClusterPage = new ClusterManagerImportGenericPagePo('local');
+    const importClusterPage = new ClusterManagerImportGenericPagePo();
 
     describe('Generic', () => {
-      const editImportedClusterPage = new ClusterManagerEditGenericPagePo(importGenericName);
+      const editImportedClusterPage = new ClusterManagerEditGenericPagePo(undefined, importGenericName);
 
       it('can create new cluster', () => {
-        const detailClusterPage = new ClusterManagerDetailImportedGenericPagePo(importGenericName);
+        const detailClusterPage = new ClusterManagerDetailImportedGenericPagePo(undefined, importGenericName);
 
         cy.intercept('POST', `/v1/${ type }s`).as('importRequest');
 
@@ -394,6 +467,20 @@ describe('Cluster Manager', { testIsolation: 'off', tags: ['@manager', '@adminUs
     });
   });
 
+  it('can navigate to Cluster Management Page', () => {
+    HomePagePo.goTo();
+    const burgerMenu = new BurgerMenuPo();
+
+    BurgerMenuPo.toggle();
+    const clusterManagementNavItem = burgerMenu.links().contains(`Cluster Management`);
+
+    clusterManagementNavItem.should('exist');
+    clusterManagementNavItem.click();
+    const clusterList = new ClusterManagerListPagePo('_');
+
+    clusterList.waitForPage();
+  });
+
   it(`can navigate to local cluster's explore product`, () => {
     const clusterName = 'local';
     const clusterDashboard = new ClusterDashboardPagePo(clusterName);
@@ -404,6 +491,49 @@ describe('Cluster Manager', { testIsolation: 'off', tags: ['@manager', '@adminUs
     clusterDashboard.waitForPage(undefined, 'cluster-events');
   });
 
+  it('can download YAML via bulk actions', () => {
+    // Delete downloads directory. Need a fresh start to avoid conflicting file names
+    cy.deleteDownloadsFolder();
+
+    ClusterManagerListPagePo.navTo();
+    clusterList.list().resourceTable().sortableTable().rowElementWithName('local')
+      .click();
+    clusterList.list().openBulkActionDropdown();
+    clusterList.list().bulkActionButton('Download YAML').click({ force: true });
+    const downloadedFilename = path.join(downloadsFolder, `local.yaml`);
+
+    cy.readFile(downloadedFilename).then((buffer) => {
+      const obj: any = jsyaml.load(buffer);
+
+      // Basic checks on the downloaded YAML
+      expect(obj.apiVersion).to.equal('provisioning.cattle.io/v1');
+      expect(obj.metadata.name).to.equal('local');
+      expect(obj.kind).to.equal('Cluster');
+    });
+  });
+
+  it('can download KubeConfig via bulk actions', () => {
+    // Delete downloads directory. Need a fresh start to avoid conflicting file names
+    cy.deleteDownloadsFolder();
+
+    ClusterManagerListPagePo.navTo();
+    clusterList.list().resourceTable().sortableTable().rowElementWithName('local')
+      .click();
+    cy.intercept('POST', '/v3/clusters/local?action=generateKubeconfig').as('generateKubeConfig');
+    clusterList.list().downloadKubeConfig().click({ force: true });
+    cy.wait('@generateKubeConfig').its('response.statusCode').should('eq', 200);
+    const downloadedFilename = path.join(downloadsFolder, 'local.yaml');
+
+    cy.readFile(downloadedFilename).then((buffer) => {
+      const obj: any = jsyaml.load(buffer);
+
+      // Basic checks on the downloaded YAML
+      expect(obj.apiVersion).to.equal('v1');
+      expect(obj.clusters[0].name).to.equal('local');
+      expect(obj.kind).to.equal('Config');
+    });
+  });
+
   it('can connect to kubectl shell', () => {
     ClusterManagerListPagePo.navTo();
     clusterList.list().actionMenu('local').getMenuItem('Kubectl Shell').click();
@@ -412,5 +542,41 @@ describe('Cluster Manager', { testIsolation: 'off', tags: ['@manager', '@adminUs
 
     shellPo.terminalStatus('Connected');
     shellPo.closeTerminal();
+  });
+
+  describe('Credential Step', () => {
+    it('should show credential step when `addCloudCredential` is true', () => {
+      cy.intercept({
+        method: 'GET',
+        path:   `/v1/management.cattle.io.nodedrivers*`,
+      }, (req) => {
+        req.continue((res) => {
+          res.body.data = nodeDriveResponse(false).data;
+        });
+      });
+      const clusterCreate = new ClusterManagerCreatePagePo();
+
+      clusterCreate.goTo(`type=nutanix&rkeType=rke2`);
+      clusterCreate.waitForPage();
+
+      clusterCreate.self().find('[data-testid="form"]').should('exist');
+    });
+
+    it('should NOT show credential step when `addCloudCredential` is false', () => {
+      cy.intercept({
+        method: 'GET',
+        path:   `/v1/management.cattle.io.nodedrivers*`,
+      }, (req) => {
+        req.continue((res) => {
+          res.body.data = nodeDriveResponse(true).data;
+        });
+      });
+      const clusterCreate = new ClusterManagerCreatePagePo();
+
+      clusterCreate.goTo(`type=nutanix&rkeType=rke2`);
+      clusterCreate.waitForPage();
+
+      clusterCreate.self().find('[data-testid="select-credential"]').should('exist');
+    });
   });
 });

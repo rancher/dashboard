@@ -1,10 +1,9 @@
 import { mapGetters } from 'vuex';
 import { CATALOG, MANAGEMENT } from '@shell/config/types';
 import { SETTING } from '@shell/config/settings';
-import { findBy } from '@shell/utils/array';
 import { createCssVars } from '@shell/utils/color';
-import { _ALL_IF_AUTHED } from '@shell/plugins/dashboard-store/actions';
 import { setTitle } from '@shell/config/private-label';
+import { fetchInitialSettings } from '@shell/utils/settings';
 
 const cspAdaptorApp = ['rancher-csp-adapter', 'rancher-csp-billing-adapter'];
 
@@ -23,12 +22,7 @@ export default {
 
     // Ensure we read the settings even when we are not authenticated
     try {
-      this.globalSettings = await this.$store.dispatch('management/findAll', {
-        type: MANAGEMENT.SETTING,
-        opt:  {
-          load: _ALL_IF_AUTHED, url: `/v1/${ MANAGEMENT.SETTING }`, redirectUnauthorized: false
-        }
-      });
+      this.globalSettings = await fetchInitialSettings(this.$store);
     } catch (e) {}
 
     // Setting this up front will remove `computed` churn, and we only care that we've initialised them
@@ -45,25 +39,25 @@ export default {
     ...mapGetters({ loggedIn: 'auth/loggedIn' }),
 
     brand() {
-      const setting = findBy(this.globalSettings, 'id', SETTING.BRAND);
+      const setting = this.globalSettings?.find((gs) => gs.id === SETTING.BRAND);
 
       return setting?.value;
     },
 
     color() {
-      const setting = findBy(this.globalSettings, 'id', SETTING.PRIMARY_COLOR);
+      const setting = this.globalSettings?.find((gs) => gs.id === SETTING.PRIMARY_COLOR);
 
       return setting?.value;
     },
 
     linkColor() {
-      const setting = findBy(this.globalSettings, 'id', SETTING.LINK_COLOR);
+      const setting = this.globalSettings?.find((gs) => gs.id === SETTING.LINK_COLOR);
 
       return setting?.value;
     },
 
     theme() {
-      const setting = findBy(this.globalSettings, 'id', SETTING.THEME);
+      const setting = this.globalSettings?.find((gs) => gs.id === SETTING.THEME);
 
       // This handles cases where the settings update after the page loads (like on log out)
       if (setting?.value) {
@@ -127,7 +121,7 @@ export default {
       // The brand setting will only get updated if...
       if (neu && !this.brand) {
         // 1) There should be a brand... but there's no brand setting
-        const brandSetting = findBy(this.globalSettings, 'id', SETTING.BRAND);
+        const brandSetting = this.globalSettings?.find((gs) => gs.id === SETTING.BRAND);
 
         if (brandSetting) {
           brandSetting.value = 'csp';

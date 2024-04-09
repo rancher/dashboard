@@ -3,6 +3,7 @@ import CheckboxInputPo from '@/cypress/e2e/po/components/checkbox-input.po';
 import ButtonGroupPo from '@/cypress/e2e/po/components/button-group.po';
 import RadioGroupInputPo from '@/cypress/e2e/po/components/radio-group-input.po';
 import LabeledSelectPo from '@/cypress/e2e/po/components/labeled-select.po';
+import UserMenuPo from '@/cypress/e2e/po/side-bars/user-menu.po';
 
 export default class PreferencesPagePo extends PagePo {
   static url = '/prefs'
@@ -12,6 +13,12 @@ export default class PreferencesPagePo extends PagePo {
 
   constructor() {
     super(PreferencesPagePo.url);
+  }
+
+  static navTo() {
+    const userMenu = new UserMenuPo();
+
+    userMenu.clickMenuItem('Preferences');
   }
 
   title(): Cypress.Chainable {
@@ -68,6 +75,10 @@ export default class PreferencesPagePo extends PagePo {
 
   hideDescriptionsCheckbox(): CheckboxInputPo {
     return new CheckboxInputPo('[data-testid="prefs__hideDescriptions"]');
+  }
+
+  verifyHideDescriptionsCheckboxLabel() {
+    return this.hideDescriptionsCheckbox().getCheckboxLabel().should('equal', 'Hide Type Description banners above resource lists ');
   }
 
   landingPageRadioBtn(): RadioGroupInputPo {

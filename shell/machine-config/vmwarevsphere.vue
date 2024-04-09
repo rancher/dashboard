@@ -16,6 +16,7 @@ import { integerString, keyValueStrings } from '@shell/utils/computed';
 import { _CREATE, _EDIT, _VIEW } from '@shell/config/query-params';
 
 export const SENTINEL = '__SENTINEL__';
+const NULLABLE_EMPTY_FIELDS = ['contentLibrary', 'folder', 'hostsystem'];
 const VAPP_MODE = {
   DISABLED: 'disabled',
   AUTO:     'auto',
@@ -168,7 +169,11 @@ export default {
     },
     disabled: {
       type:    Boolean,
-      default: false
+      default: false,
+    },
+    poolCreateMode: {
+      type:     Boolean,
+      required: true,
     },
   },
 
@@ -223,7 +228,7 @@ export default {
       },
     ];
 
-    if (this.mode === _CREATE && !this.value.initted) {
+    if ((this.mode === _CREATE || this.poolCreateMode) && !this.value.initted) {
       Object.defineProperty(this.value, 'initted', { value: true, enumerable: false });
 
       const {
@@ -444,13 +449,13 @@ export default {
       const valueInContent = content.find((c) => c.value === this.value.datacenter );
 
       if (!valueInContent) {
-        if (this.mode === _CREATE) {
+        if (this.mode === _CREATE || this.poolCreateMode) {
           set(this.value, 'datacenter', options[0]);
           set(this.value, 'cloneFrom', undefined);
           set(this.value, 'useDataStoreCluster', false);
         }
 
-        if ([_EDIT, _VIEW].includes(this.mode)) {
+        if ([_EDIT, _VIEW].includes(this.mode) && !this.poolCreateMode) {
           this.manageErrors(errorActions.CREATE, 'datacenter');
         }
       } else {
@@ -650,15 +655,19 @@ export default {
       };
 
       if (!isValueInContent()) {
-        if (this.mode === _CREATE) {
-          const value = isArray ? [] : content[0]?.value;
+        const value = isArray ? [] : content[0]?.value;
+        const isNullOrEmpty = NULLABLE_EMPTY_FIELDS.includes(key) && (this.value[key] === null || this.value[key] === '');
+        const shouldHandleError =
+          [_EDIT, _VIEW].includes(this.mode) && // error messages should only be displayed in Edit or View mode
+          !this.poolCreateMode && // almost identical to Create mode
+          !isNullOrEmpty && // null and empty string are valid values for some fields e.g. contentLibrary, folder and hostsystem
+          !isArray; // this flag is used for network and tag fields, and should not display error for them
 
-          if (value !== SENTINEL) {
-            set(this.value, key, value);
-          }
+        if ((this.mode === _CREATE || this.poolCreateMode) && value !== SENTINEL) {
+          set(this.value, key, value);
         }
 
-        if ([_EDIT, _VIEW].includes(this.mode)) {
+        if (shouldHandleError) {
           this.manageErrors(errorActions.CREATE, key);
         }
       } else {

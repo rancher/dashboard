@@ -9,9 +9,8 @@ import { findBy } from '@shell/utils/array';
 import { Checkbox } from '@components/Form/Checkbox';
 import { getVendor, getProduct, setVendor } from '@shell/config/private-label';
 import { RadioGroup } from '@components/Form/Radio';
-import { setSetting } from '@shell/utils/settings';
+import { fetchInitialSettings, setSetting } from '@shell/utils/settings';
 import { SETTING } from '@shell/config/settings';
-import { _ALL_IF_AUTHED } from '@shell/plugins/dashboard-store/actions';
 import { isDevBuild } from '@shell/utils/version';
 import { exceptionToErrorsArray } from '@shell/utils/error';
 import Password from '@shell/components/form/Password';
@@ -55,16 +54,11 @@ export default {
 
   async middleware({ store, redirect, route } ) {
     try {
-      await store.dispatch('management/findAll', {
-        type: MANAGEMENT.SETTING,
-        opt:  {
-          load: _ALL_IF_AUTHED, url: `/v1/${ MANAGEMENT.SETTING }`, redirectUnauthorized: false
-        }
-      });
+      await fetchInitialSettings(store);
     } catch (e) {
     }
 
-    const isFirstLogin = await calcIsFirstLogin(store);
+    const isFirstLogin = calcIsFirstLogin(store);
     const mustChangePassword = await calcMustChangePassword(store);
 
     if (isFirstLogin) {
@@ -105,18 +99,13 @@ export default {
     let plSetting;
 
     try {
-      await store.dispatch('management/findAll', {
-        type: MANAGEMENT.SETTING,
-        opt:  {
-          load: _ALL_IF_AUTHED, url: `/v1/${ MANAGEMENT.SETTING }`, redirectUnauthorized: false
-        },
-      });
+      await fetchInitialSettings(store);
 
       plSetting = store.getters['management/byId'](MANAGEMENT.SETTING, SETTING.PL);
     } catch (e) {
       // Older versions used Norman API to get these
       plSetting = await store.dispatch('rancher/find', {
-        type: 'setting',
+        type: NORMAN.SETTING,
         id:   SETTING.PL,
         opt:  { url: `/v3/settings/${ SETTING.PL }` }
       });

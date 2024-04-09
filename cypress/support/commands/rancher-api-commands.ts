@@ -300,6 +300,34 @@ Cypress.Commands.add('createPod', (nsName, podName, image) => {
 });
 
 /**
+ * create aws cloud credentials
+ */
+Cypress.Commands.add('createAwsCloudCredentials', (nsName, cloudCredName, defaultRegion, accessKey, secretKey) => {
+  return cy.request({
+    method:  'POST',
+    url:     `${ Cypress.env('api') }/v3/cloudcredentials`,
+    headers: {
+      'x-api-csrf': token.value,
+      Accept:       'application/json'
+    },
+    body: {
+      type:                      'provisioning.cattle.io/cloud-credential',
+      metadata:                  { generateName: 'cc-', namespace: `${ nsName }` },
+      _name:                     `${ cloudCredName }`,
+      annotations:               { 'provisioning.cattle.io/driver': 'aws' },
+      amazonec2credentialConfig: {
+        defaultRegion: `${ defaultRegion }`, accessKey: `${ accessKey }`, secretKey: `${ secretKey }`
+      },
+      _type: 'provisioning.cattle.io/cloud-credential',
+      name:  `${ cloudCredName }`
+    }
+  })
+    .then((resp) => {
+      expect(resp.status).to.eq(201);
+    });
+});
+
+/**
  * Override user preferences to default values, allowing to pass custom preferences for a deterministic scenario
  */
 // eslint-disable-next-line no-undef
@@ -395,18 +423,20 @@ Cypress.Commands.add('setRancherResource', (prefix, resourceType, resourceId, bo
 /**
  * delete a v3 / v1 resource
  */
-Cypress.Commands.add('deleteRancherResource', (prefix, resourceType, resourceId) => {
+Cypress.Commands.add('deleteRancherResource', (prefix, resourceType, resourceId, failOnStatusCode = true) => {
   return cy.request({
     method:  'DELETE',
     url:     `${ Cypress.env('api') }/${ prefix }/${ resourceType }/${ resourceId }`,
     headers: {
       'x-api-csrf': token.value,
       Accept:       'application/json'
-    }
+    },
+    failOnStatusCode,
   })
     .then((resp) => {
-      // Either 200, or 204 (No Content)
-      expect(resp.status).to.be.oneOf([200, 204]);
+      if (failOnStatusCode) {
+        expect(resp.status).to.be.oneOf([200, 204]);
+      }
     });
 });
 
@@ -427,4 +457,19 @@ Cypress.Commands.add('createRancherResource', (prefix, resourceType, body) => {
       // Expect 201, Created HTTP status code
       expect(resp.status).to.eq(201);
     });
+});
+
+/**
+ * delete a node template
+ */
+Cypress.Commands.add('deleteNodeTemplate', (nodeTemplateId) => {
+  return cy.deleteRancherResource('v3', 'nodetemplate', nodeTemplateId, false).then((resp: Cypress.Response<any>) => {
+    if (resp.status === 405 && (resp.body.message === 'Template is in use by a node pool.' || 'Template is in use by a node.')) {
+      cy.log(`error message: ${ resp.body.message }. Lets retry node deletion after 30 seconds`);
+      cy.wait(30000); // eslint-disable-line cypress/no-unnecessary-waiting
+      cy.deleteRancherResource('v3', 'nodetemplate', nodeTemplateId, true);
+    } else {
+      expect(resp.status).to.be.oneOf([200, 204]);
+    }
+  });
 });

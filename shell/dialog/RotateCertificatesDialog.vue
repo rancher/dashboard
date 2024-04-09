@@ -201,25 +201,4 @@ export default {
       min-width: 260px;
     }
   }
-
-.rotate-modal ::v-deep.v--modal-box{
-  border:none;
-
-  & .card-container{
-    margin: 0;
-
-    & .card-wrap {
-      display:flex;
-      flex-direction:column;
-    }
-
-    & .card-body {
-      flex: 1;
-    }
-
-    & .card-actions{
-      align-self: center
-    };
-  }
-}
 </style>

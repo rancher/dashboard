@@ -133,24 +133,6 @@ describe('component: LabeledSelect', () => {
         // Component is from a library and class is not going to be changed
         expect(wrapper.find('.vs__selected').text()).toBe(translation);
       });
-
-      it.each([
-        [['a'], 'b', 0],
-        [[{ value: 'a', label: 'A' }], { value: 'a', label: 'B' }, 4]
-      ])('should only check for a new label if options are objects', async(options: any[], newOption, checkUpdateCalled: number) => {
-        const spyUpdatedOption = jest.spyOn(LabeledSelect.methods, 'getUpdatedOption');
-
-        const wrapper = mount(LabeledSelect, {
-          propsData: {
-            value: 'a',
-            options
-          }
-        });
-
-        await wrapper.setProps({ options: [newOption] });
-
-        expect(spyUpdatedOption).toHaveBeenCalledTimes(checkUpdateCalled);
-      });
     });
   });
 });
