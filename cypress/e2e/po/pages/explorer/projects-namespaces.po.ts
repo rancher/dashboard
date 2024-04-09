@@ -34,7 +34,7 @@ export default class ProjectNamespacePagePo extends PagePo {
   }
 
   createProjectButtonClick(): Cypress.Chainable {
-    return new ResourceListMastheadPo(this.self()).createProject();
+    return new ResourceListMastheadPo(this.self()).create();
   }
 
   nameNsDescription() {

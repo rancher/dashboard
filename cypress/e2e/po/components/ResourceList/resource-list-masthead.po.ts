@@ -9,11 +9,11 @@ export default class ResourceListMastheadPo extends ComponentPo {
     return this.self().get('.title h1').invoke('text');
   }
 
-  create() {
+  createYaml() {
     return this.self().find('[data-testid="masthead-create-yaml"]').click();
   }
 
-  createProject() {
+  create() {
     return this.self().find('[data-testid="masthead-create"]').click();
   }
 }
