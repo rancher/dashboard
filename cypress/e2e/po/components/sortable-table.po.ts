@@ -92,6 +92,14 @@ export default class SortableTablePo extends ComponentPo {
     return this.self().contains('tbody tr', name);
   }
 
+  tableHeaderRowElementWithPartialName(name: string) {
+    return this.self().contains('thead tr', name);
+  }
+
+  subRows() {
+    return this.self().find('tbody tr.sub-row');
+  }
+
   rowElementLink(rowIndex: number, columnIndex: number) {
     return this.getTableCell(rowIndex, columnIndex).find('a');
   }

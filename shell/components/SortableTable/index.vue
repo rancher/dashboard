@@ -166,6 +166,11 @@ export default {
       default: false,
     },
 
+    subRowsDescription: {
+      type:    Boolean,
+      default: true,
+    },
+
     subExpandable: {
       type:    Boolean,
       default: false,
@@ -922,7 +927,7 @@ export default {
 
     showSubRow(row, keyField) {
       const hasInjectedSubRows = this.subRows && (!this.subExpandable || this.expanded[get(row, keyField)]);
-      const hasStateDescription = row.stateDescription;
+      const hasStateDescription = this.subRowsDescription && row.stateDescription;
 
       return hasInjectedSubRows || hasStateDescription;
     },
