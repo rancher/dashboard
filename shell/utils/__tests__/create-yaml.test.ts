@@ -44,7 +44,8 @@ describe('fx: dumpBlock', () => {
           [key]: {
             chomping,
             scalarStyle
-          }
+          },
+          lineWidth: -1
         };
 
         it(`options: { scalarStyle: ${ scalarStyle }, chomping: ${ chomping } } with indentation`, () => {
@@ -374,7 +375,7 @@ describe('fx: resourceFields', () => {
   };
 
   afterEach(() => { // eslint-disable-line jest/no-hooks
-    SteveSchema.reset();
+    SteveSchema.reset('');
   });
 
   it('schema has empty resource fields', () => {
