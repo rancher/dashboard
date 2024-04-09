@@ -207,9 +207,9 @@ describe('dashboard-store: actions', () => {
             null,
             {
               ...genericOpt,
-              depaginate:    undefined,
-              labelSelector: genericSelector,
-              url:           'getters.urlFor',
+              depaginate: undefined,
+              filter:     { labelSelector: genericSelector },
+              url:        'getters.urlFor',
             }
           ]
         },
