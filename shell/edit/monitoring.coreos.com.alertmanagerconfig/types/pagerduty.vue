@@ -188,6 +188,7 @@ export default {
           :mode="mode"
           label="Proxy URL"
           placeholder="e.g. http://my-proxy/"
+          data-testid="v2-monitoring-receiver-pagerduty-proxy-url"
         />
       </div>
     </div>
