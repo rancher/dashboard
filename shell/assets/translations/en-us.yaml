@@ -4194,6 +4194,7 @@ plugins:
   manageRepos: Manage Repositories
   addRancherRepos: Add Rancher Repositories
   manageCharts: Manage Extension Charts
+  warnNoAuth: This version of the extension will be loaded before authentication and will have access to the login process.
   manageCatalog:
     label: Manage Extension Catalogs
     title: Extension
