@@ -7,10 +7,6 @@ import {
 import SetupUIPlugins from '@shell/pages/c/_cluster/uiplugins/SetupUIPlugins.vue';
 
 describe('component: SetupUIPlugins', () => {
-  const localVue = createLocalVue();
-
-  localVue.use(Vuex);
-
   it('should NOT SHOW a checkbox to install official Rancher repo if NOT prime', async() => {
     const store = new Vuex.Store({
       modules: {
