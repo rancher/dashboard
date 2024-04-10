@@ -56,8 +56,7 @@ export class ChartPage extends PagePo {
   }
 
   editYaml() {
-    this.self().get('[data-testid="btn-group-options-view"]').contains('Edit YAML').click()
-      .wait(500);
+    this.self().get('[data-testid="btn-group-options-view"]').contains('Edit YAML').click();
 
     return this;
   }
