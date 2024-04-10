@@ -110,6 +110,7 @@ const packageUpdatesLibraries = (file, oldContent, parsedJson) => {
     ['sass-loader', '~12.0.0'],
     ['typescript', '~4.5.5'],
     ['vue-router', '~4.0.3'],
+    ['vue-virtual-scroll-list', 'vue3-virtual-scroll-list', '0.2.1'],
     ['vue', '~3.2.13'],
     ['vuex', '~4.0.0'],
     ['xterm', '5.2.1'],
@@ -326,6 +327,8 @@ const vueSyntaxUpdates = () => {
     ['Vue.util', '', 'Vue.util is private and no longer available https://v3-migration.vuejs.org/migration-build.html#partially-compatible-with-caveats'],
     // [`Vue.extend`, removePlaceholder, 'https://v3-migration.vuejs.org/breaking-changes/global-api.html#vue-extend-removed'],
     // [`Vue.extend`, `createApp({})`], //  (mixins)
+
+    [`vue-virtual-scroll-list`, `vue3-virtual-scroll-list`, 'library update'],
 
     [`Vue.nextTick`, `nextTick`, 'https://v3-migration.vuejs.org/breaking-changes/global-api-treeshaking.html#global-api-treeshaking'],
     [`this.nextTick`, `nextTick`, 'https://v3-migration.vuejs.org/breaking-changes/global-api-treeshaking.html#global-api-treeshaking'],
