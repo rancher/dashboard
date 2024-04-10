@@ -13,6 +13,7 @@ import { ChartsPage } from '@/cypress/e2e/po/pages/charts.po';
 describe('Charts', { tags: ['@charts', '@adminUser'] }, () => {
   const chartsPage = new ChartsPage();
   const chartPage = new ChartPage();
+  const installChartPage = new ChartPage('local', true);
   const terminal = new Kubectl();
 
   describe('Monitoring', { testIsolation: 'off' }, () => {
@@ -54,12 +55,14 @@ describe('Charts', { tags: ['@charts', '@adminUser'] }, () => {
           const urlVersion = chartVersion.replace('+', '%2B');
 
           chartPage.waitForPage(`repo-type=cluster&repo=rancher-charts&chart=rancher-monitoring&version=${ urlVersion }`);
+
+          const tabbedOptions = new TabbedPo();
+
+          // Navigate to the edit options page and Set prometheus storage class
+
+          installChartPage.goToInstall().nextPage().editOptions(tabbedOptions, '[data-testid="btn-prometheus"]');
+          installChartPage.waitForPage(`repo-type=cluster&repo=rancher-charts&chart=rancher-monitoring&version=${ urlVersion }`, 'prometheus');
         });
-
-        const tabbedOptions = new TabbedPo();
-
-        // Navigate to the edit options page and Set prometheus storage class
-        chartPage.goToInstall().nextPage().editOptions(tabbedOptions, '[data-testid="btn-prometheus"]');
 
         const enableStorageCheckbox = new CheckboxPo('[data-testid="checkbox-chart-enable-persistent-storage"]');
 
@@ -79,9 +82,9 @@ describe('Charts', { tags: ['@charts', '@adminUser'] }, () => {
 
         // Click on YAML. In YAML mode, the prometheus selector is present but empty
         // It should not be sent to the API
-        chartPage.editYaml();
+        installChartPage.editYaml();
 
-        chartPage.installChart();
+        installChartPage.installChart();
 
         cy.wait('@prometheusChartCreation', { requestTimeout: 10000 }).then((req) => {
           const monitoringChart = req.request?.body.charts.find((chart: any) => chart.chartName === 'rancher-monitoring');
@@ -99,12 +102,13 @@ describe('Charts', { tags: ['@charts', '@adminUser'] }, () => {
           const urlVersion = chartVersion.replace('+', '%2B');
 
           chartPage.waitForPage(`repo-type=cluster&repo=rancher-charts&chart=rancher-monitoring&version=${ urlVersion }`);
+
+          const tabbedOptions = new TabbedPo();
+
+          // Set prometheus storage class
+          chartPage.goToInstall().nextPage().editOptions(tabbedOptions, '[data-testid="btn-prometheus"]');
+          installChartPage.waitForPage(`repo-type=cluster&repo=rancher-charts&chart=rancher-monitoring&version=${ urlVersion }`, 'prometheus');
         });
-
-        const tabbedOptions = new TabbedPo();
-
-        // Set prometheus storage class
-        chartPage.goToInstall().nextPage().editOptions(tabbedOptions, '[data-testid="btn-prometheus"]');
 
         const enableStorageCheckbox = new CheckboxPo('[data-testid="checkbox-chart-enable-persistent-storage"]');
 
@@ -119,14 +123,14 @@ describe('Charts', { tags: ['@charts', '@adminUser'] }, () => {
         labeledSelectPo.clickOptionWithLabel('local-path');
 
         // Add a selector and then remove it - previously this would result in the empty selector being present
-        chartPage.self().find(`[data-testid="input-match-expression-add-rule"]`).click();
-        chartPage.self().find(`[data-testid="input-match-expression-remove-control-0"]`).click();
+        installChartPage.self().find(`[data-testid="input-match-expression-add-rule"]`).click();
+        installChartPage.self().find(`[data-testid="input-match-expression-remove-control-0"]`).click();
 
         // Click on YAML. In YAML mode, the prometheus selector is present but empty
         // It should not be sent to the API
-        chartPage.editYaml();
+        installChartPage.editYaml();
 
-        chartPage.installChart();
+        installChartPage.installChart();
 
         cy.wait('@prometheusChartCreation', { requestTimeout: 10000 }).then((req) => {
           const monitoringChart = req.request?.body.charts.find((chart: any) => chart.chartName === 'rancher-monitoring');
@@ -231,9 +235,10 @@ describe('Charts', { tags: ['@charts', '@adminUser'] }, () => {
           const urlVersion = chartVersion.replace('+', '%2B');
 
           chartPage.waitForPage(`repo-type=cluster&repo=rancher-charts&chart=rancher-istio&version=${ urlVersion }`);
-        });
 
-        chartPage.goToInstall().nextPage();
+          chartPage.goToInstall().nextPage();
+          installChartPage.waitForPage(`repo-type=cluster&repo=rancher-charts&chart=rancher-istio&version=${ urlVersion }`);
+        });
 
         cy.intercept('POST', 'v1/catalog.cattle.io.clusterrepos/rancher-charts?action=install').as('chartInstall');
         chartPage.installChart();
