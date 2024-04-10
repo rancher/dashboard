@@ -25,6 +25,7 @@ describe('Git Repo', { tags: ['@fleet', '@adminUser'] }, () => {
       cy.intercept('POST', '/v1/fleet.cattle.io.gitrepos').as('interceptGitRepo');
 
       gitRepoCreatePage.goTo();
+      gitRepoCreatePage.waitForPage();
 
       const { name } = gitRepoCreateRequest.metadata;
       const {
