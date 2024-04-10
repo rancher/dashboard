@@ -13,6 +13,10 @@ export default class SelectPo extends ComponentPo {
     return this.getOptions().contains('li', label).click();
   }
 
+  clickOptionWithLabelForChartReposFilter(label: string) {
+    return this.getOptions().contains('li', label).find('div label').click();
+  }
+
   /**
    * Checks selected option displays on dropdown
    * @param label
