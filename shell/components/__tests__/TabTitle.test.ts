@@ -4,10 +4,6 @@ import TabTitle from '@shell/components/TabTitle.vue';
 import * as privateLabel from '@shell/config/private-label';
 import * as title from '@shell/utils/title';
 
-const localVue = createLocalVue();
-
-localVue.use(Vuex);
-
 describe('component: TabTitle', () => {
   function createMocks(): any {
     const mocks = {
