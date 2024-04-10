@@ -83,57 +83,131 @@ describe('edit: azureAD should', () => {
 
     expect(saveButton.disabled).toBe(true);
   });
-  it('have "Create" button enabled and disabled depending on validation results when endpoint is standard', async() => {
+
+  it.each([
+    {
+      tenantId:          '',
+      applicationId:     '',
+      applicationSecret: '',
+      result:            true
+    },
+    {
+      tenantId:          '',
+      applicationId:     validApplicationId,
+      applicationSecret: validAppSecret,
+      result:            true
+    },
+    {
+      tenantId:          validTenantId,
+      applicationId:     '',
+      applicationSecret: validAppSecret,
+      result:            true
+    },
+    {
+      tenantId:          validTenantId,
+      applicationId:     validApplicationId,
+      applicationSecret: '',
+      result:            true
+    },
+    {
+      tenantId:          validTenantId,
+      applicationId:     validApplicationId,
+      applicationSecret: validAppSecret,
+      result:            false
+    },
+  ])('has "Create" button enabled and disabled depending on validation results when endpoint is standard', async(testCase) => {
     const tenantIdInputField = wrapper.find('[data-testid="input-azureAD-tenantId"]').find('input');
     const applicationIdInputField = wrapper.find('[data-testid="input-azureAD-applcationId"]').find('input');
     const applicationSecretInputField = wrapper.find('[data-testid="input-azureAD-applicationSecret"]').find('input');
     const saveButton = wrapper.find('[data-testid="form-save"]').element as HTMLInputElement;
 
-    const testCases = [
-      {
-        tenantId:          '',
-        applicationId:     '',
-        applicationSecret: '',
-        result:            true
-      },
-      {
-        tenantId:          '',
-        applicationId:     validApplicationId,
-        applicationSecret: validAppSecret,
-        result:            true
-      },
-      {
-        tenantId:          validTenantId,
-        applicationId:     '',
-        applicationSecret: validAppSecret,
-        result:            true
-      },
-      {
-        tenantId:          validTenantId,
-        applicationId:     validApplicationId,
-        applicationSecret: '',
-        result:            true
-      },
-      {
-        tenantId:          validTenantId,
-        applicationId:     validApplicationId,
-        applicationSecret: validAppSecret,
-        result:            false
-      },
-    ];
+    tenantIdInputField.setValue(testCase.tenantId);
+    applicationIdInputField.setValue(testCase.applicationId);
+    applicationSecretInputField.setValue(testCase.applicationSecret);
+    await wrapper.vm.$nextTick();
 
-    for (const testCase of testCases) {
-      tenantIdInputField.setValue(testCase.tenantId);
-      await wrapper.vm.$nextTick();
-      applicationIdInputField.setValue(testCase.applicationId);
-      await wrapper.vm.$nextTick();
-      applicationSecretInputField.setValue(testCase.applicationSecret);
-      await wrapper.vm.$nextTick();
-
-      expect(saveButton.disabled).toBe(testCase.result);
-    }
+    expect(saveButton.disabled).toBe(testCase.result);
   });
-  it('have "Create" button enabled and disabled depending on validation results when endpoint is custom', async() => {
+
+  it.each([
+    {
+      endpoint:      '',
+      graphEndpoint: '',
+      tokenEndpoint: '',
+      authEndpoint:  '',
+      result:        true
+    },
+    {
+      endpoint:      invalidEndpoint,
+      graphEndpoint: invalidGraphEndpoint,
+      tokenEndpoint: invalidTokenEndpoint,
+      authEndpoint:  invalidAuthEndpoint,
+      result:        true
+    },
+    {
+      endpoint:      '',
+      graphEndpoint: validGraphEndpoint,
+      tokenEndpoint: validTokenEndpoint,
+      authEndpoint:  validAuthEndpoint,
+      result:        true
+    },
+    {
+      endpoint:      invalidEndpoint,
+      graphEndpoint: validGraphEndpoint,
+      tokenEndpoint: validTokenEndpoint,
+      authEndpoint:  validAuthEndpoint,
+      result:        true
+    },
+    {
+      endpoint:      validEndpoint,
+      graphEndpoint: '',
+      tokenEndpoint: validTokenEndpoint,
+      authEndpoint:  validAuthEndpoint,
+      result:        true
+    },
+    {
+      endpoint:      validEndpoint,
+      graphEndpoint: invalidGraphEndpoint,
+      tokenEndpoint: validTokenEndpoint,
+      authEndpoint:  validAuthEndpoint,
+      result:        true
+    },
+    {
+      endpoint:      validEndpoint,
+      graphEndpoint: validGraphEndpoint,
+      tokenEndpoint: '',
+      authEndpoint:  validAuthEndpoint,
+      result:        true
+    },
+    {
+      endpoint:      validEndpoint,
+      graphEndpoint: validGraphEndpoint,
+      tokenEndpoint: invalidTokenEndpoint,
+      authEndpoint:  validAuthEndpoint,
+      result:        true
+    },
+    {
+      endpoint:      validEndpoint,
+      graphEndpoint: validGraphEndpoint,
+      tokenEndpoint: validTokenEndpoint,
+      authEndpoint:  '',
+      result:        true
+    },
+    {
+      endpoint:      validEndpoint,
+      graphEndpoint: validGraphEndpoint,
+      tokenEndpoint: validTokenEndpoint,
+      authEndpoint:  invalidAuthEndpoint,
+      result:        true
+    },
+    {
+      endpoint:      validEndpoint,
+      graphEndpoint: validGraphEndpoint,
+      tokenEndpoint: validTokenEndpoint,
+      authEndpoint:  validAuthEndpoint,
+      result:        false
+    }
+  ])('has "Create" button enabled and disabled depending on validation results when endpoint is custom', async(testCase) => {
     const tenantIdInputField = wrapper.find('[data-testid="input-azureAD-tenantId"]').find('input');
     const applicationIdInputField = wrapper.find('[data-testid="input-azureAD-applcationId"]').find('input');
     const applicationSecretInputField = wrapper.find('[data-testid="input-azureAD-applicationSecret"]').find('input');
@@ -142,91 +216,9 @@ describe('edit: azureAD should', () => {
     const customButton = endpointsRG.findAll('.radio-label').at(2);
     const saveButton = wrapper.find('[data-testid="form-save"]').element as HTMLInputElement;
 
-    const testCases = [
-      {
-        endpoint:      '',
-        graphEndpoint: '',
-        tokenEndpoint: '',
-        authEndpoint:  '',
-        result:        true
-      },
-      {
-        endpoint:      invalidEndpoint,
-        graphEndpoint: invalidGraphEndpoint,
-        tokenEndpoint: invalidTokenEndpoint,
-        authEndpoint:  invalidAuthEndpoint,
-        result:        true
-      },
-      {
-        endpoint:      '',
-        graphEndpoint: validGraphEndpoint,
-        tokenEndpoint: validTokenEndpoint,
-        authEndpoint:  validAuthEndpoint,
-        result:        true
-      },
-      {
-        endpoint:      invalidEndpoint,
-        graphEndpoint: validGraphEndpoint,
-        tokenEndpoint: validTokenEndpoint,
-        authEndpoint:  validAuthEndpoint,
-        result:        true
-      },
-      {
-        endpoint:      validEndpoint,
-        graphEndpoint: '',
-        tokenEndpoint: validTokenEndpoint,
-        authEndpoint:  validAuthEndpoint,
-        result:        true
-      },
-      {
-        endpoint:      validEndpoint,
-        graphEndpoint: invalidGraphEndpoint,
-        tokenEndpoint: validTokenEndpoint,
-        authEndpoint:  validAuthEndpoint,
-        result:        true
-      },
-      {
-        endpoint:      validEndpoint,
-        graphEndpoint: validGraphEndpoint,
-        tokenEndpoint: '',
-        authEndpoint:  validAuthEndpoint,
-        result:        true
-      },
-      {
-        endpoint:      validEndpoint,
-        graphEndpoint: validGraphEndpoint,
-        tokenEndpoint: invalidTokenEndpoint,
-        authEndpoint:  validAuthEndpoint,
-        result:        true
-      },
-      {
-        endpoint:      validEndpoint,
-        graphEndpoint: validGraphEndpoint,
-        tokenEndpoint: validTokenEndpoint,
-        authEndpoint:  '',
-        result:        true
-      },
-      {
-        endpoint:      validEndpoint,
-        graphEndpoint: validGraphEndpoint,
-        tokenEndpoint: validTokenEndpoint,
-        authEndpoint:  invalidAuthEndpoint,
-        result:        true
-      },
-      {
-        endpoint:      validEndpoint,
-        graphEndpoint: validGraphEndpoint,
-        tokenEndpoint: validTokenEndpoint,
-        authEndpoint:  validAuthEndpoint,
-        result:        false
-      }
-    ];
-
     // populate fields tested in previous test first
     tenantIdInputField.setValue(validTenantId);
-    await wrapper.vm.$nextTick();
     applicationIdInputField.setValue(validApplicationId);
-    await wrapper.vm.$nextTick();
     applicationSecretInputField.setValue(validAppSecret);
     await wrapper.vm.$nextTick();
 
@@ -240,17 +232,12 @@ describe('edit: azureAD should', () => {
     const tokenEndpointInputField = wrapper.find('[data-testid="input-azureAD-tokenEndpoint"]').find('input');
     const authEndpointInputField = wrapper.find('[data-testid="input-azureAD-authEndpoint"]').find('input');
 
-    for (const testCase of testCases) {
-      endpointInputField.setValue(testCase.endpoint);
-      await wrapper.vm.$nextTick();
-      graphEndpointInputField.setValue(testCase.graphEndpoint);
-      await wrapper.vm.$nextTick();
-      tokenEndpointInputField.setValue(testCase.tokenEndpoint);
-      await wrapper.vm.$nextTick();
-      authEndpointInputField.setValue(testCase.authEndpoint);
-      await wrapper.vm.$nextTick();
+    endpointInputField.setValue(testCase.endpoint);
+    graphEndpointInputField.setValue(testCase.graphEndpoint);
+    tokenEndpointInputField.setValue(testCase.tokenEndpoint);
+    authEndpointInputField.setValue(testCase.authEndpoint);
+    await wrapper.vm.$nextTick();
 
-      expect(saveButton.disabled).toBe(testCase.result);
-    }
+    expect(saveButton.disabled).toBe(testCase.result);
   });
 });

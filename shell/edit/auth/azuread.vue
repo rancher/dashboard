@@ -277,12 +277,12 @@ export default {
     },
     modelFieldRequired(path, label) {
       return () => {
-        return !this.model[path] ? `${ this.t(label) } is required` : undefined;
+        return !this.model[path] ? `${ this.t('validation.required', { key: this.t(label) }) }` : undefined;
       };
     },
     applicationSecretRequired() {
       return () => {
-        return !this.editMemberConfig && !this.model.applicationSecret ? `${ this.t('authConfig.azuread.applicationSecret.label') } is required` : undefined;
+        return !this.editMemberConfig && !this.model.applicationSecret ? `${ this.t('validation.required', { key: this.t('authConfig.azuread.applicationSecret.label') }) }` : undefined;
       };
     },
     modelFieldURL(path) {
