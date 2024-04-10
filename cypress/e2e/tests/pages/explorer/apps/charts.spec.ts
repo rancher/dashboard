@@ -7,8 +7,7 @@ describe('Apps/Charts', { tags: ['@explorer', '@adminUser'] }, () => {
 
   it('filtering the Charts (search box) should not impact the Charts carousel', () => {
     let length = 0;
-    const chartsPageUrl = '/c/local/apps/charts';
-    const chartsPage = new ChartsPage(chartsPageUrl);
+    const chartsPage = new ChartsPage();
 
     chartsPage.goTo();
     chartsPage.waitForPage();
