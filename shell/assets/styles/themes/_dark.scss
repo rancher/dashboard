@@ -112,7 +112,8 @@
   --dropdown-hover-bg          : var(--link);
   --dropdown-disabled-bg       : #{$disabled};
   --dropdown-disabled-text     : #{$disabled};
-  --dropdown-highlight-text     : var(--link);
+  --dropdown-group-text        : #{$disabled};
+  --dropdown-highlight-text    : var(--link);
 
   --input-text                 : #{$lightest};
   --input-label                : #{$lighter};

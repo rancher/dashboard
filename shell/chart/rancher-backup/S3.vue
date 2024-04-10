@@ -4,6 +4,8 @@ import { Checkbox } from '@components/Form/Checkbox';
 import FileSelector from '@shell/components/form/FileSelector';
 import LabeledSelect from '@shell/components/form/LabeledSelect';
 import { mapGetters } from 'vuex';
+import { SECRET } from '@shell/config/types';
+import { PaginationParamFilter } from '~/shell/types/store/pagination.types';
 
 export default {
   components: {
@@ -44,6 +46,7 @@ export default {
       this.$emit('valid', this.valid);
     }
   },
+
   computed: {
     credentialSecret: {
       get() {
@@ -75,7 +78,78 @@ export default {
         // eslint-disable-next-line no-console
         console.warn(e);
       }
-    }
+    },
+
+    /**
+     * Given inputs make a paginated request and return the result
+     */
+    async paginateSecrets({
+      pageContent,
+      page,
+      filter,
+      pageSize,
+      resetPage
+    }) {
+      try {
+        // Construct params for request
+        const filters = !!filter ? [PaginationParamFilter.createSingleField({ field: 'metadata.name', value: filter })] : [];
+
+        // Of type {@link ActionFindPageArgs}
+        const opt = {
+          pagination: {
+            page,
+            pageSize,
+            sort: [{ asc: true, field: 'metadata.namespace' }, { asc: true, field: 'metadata.name' }],
+            filters
+          },
+        };
+        const url = this.$store.getters['cluster/urlFor'](SECRET, null, opt);
+
+        // Make request (note we're not bothering to persist anything to the store, response is transient)
+        const res = await this.$store.dispatch('cluster/request', { url });
+        const options = resetPage ? res.data : pageContent.concat(res.data);
+
+        // Create the new option collection by...
+        const namespaced = {};
+
+        // ... grouping by namespace
+        options.forEach((secret) => {
+          const ns = secret.metadata.namespace;
+
+          if (secret.kind === 'group') { // this could contain a previous option set which contains groups
+            return;
+          }
+          if (!namespaced[ns]) {
+            namespaced[ns] = [];
+          }
+          namespaced[ns].push(secret);
+        });
+
+        let grouped = [];
+
+        // ... then sort groups by name and combined into a single array
+        Object.keys(namespaced).sort().forEach((ns) => {
+          grouped.push({
+            kind:     'group',
+            icon:     'icon-namespace',
+            id:       ns,
+            metadata: { name: ns },
+            disabled: true,
+          });
+          grouped = grouped.concat(namespaced[ns]);
+        });
+
+        return {
+          page:  grouped,
+          pages: res.pages,
+          total: res.count
+        };
+      } catch (err) {
+        console.error(err); // eslint-disable-line no-console
+      }
+
+      return { page: [] };
+    },
   },
 
   created() {
@@ -97,7 +171,9 @@ export default {
           :get-option-label="opt=>opt.metadata.name || ''"
           option-key="id"
           :mode="mode"
-          :options="secrets"
+          :paginate="paginateSecrets"
+          :searchable="true"
+          :filterable="false"
           :label="t('backupRestoreOperator.s3.credentialSecretName')"
         />
       </div>

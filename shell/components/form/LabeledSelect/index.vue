@@ -5,12 +5,14 @@ import { get } from '@shell/utils/object';
 import { LabeledTooltip } from '@components/LabeledTooltip';
 import VueSelectOverrides from '@shell/mixins/vue-select-overrides';
 import { onClickOption, calculatePosition } from '@shell/utils/select';
+import LabeledSelectPagination from './labeled-select-pagination';
+import { LABEL_SELECT_NOT_OPTION_KINDS } from './LabeledSelect.utils';
 
 export default {
   name: 'LabeledSelect',
 
   components: { LabeledTooltip },
-  mixins:     [CompactInput, LabeledFormElement, VueSelectOverrides],
+  mixins:     [CompactInput, LabeledFormElement, VueSelectOverrides, LabeledSelectPagination],
 
   props: {
     appendToBody: {
@@ -66,7 +68,7 @@ export default {
     selectable: {
       default: (opt) => {
         if ( opt ) {
-          if ( opt.disabled || opt.kind === 'group' || opt.kind === 'divider' || opt.loading ) {
+          if ( opt.disabled || LABEL_SELECT_NOT_OPTION_KINDS.includes(opt.kind) || opt.loading ) {
             return false;
           }
         }
@@ -88,8 +90,8 @@ export default {
       type:    [String, Object, Number, Array, Boolean]
     },
     options: {
-      type:     Array,
-      required: true
+      type:    Array,
+      default: () => ([])
     },
     closeOnSelect: {
       type:    Boolean,
@@ -108,6 +110,16 @@ export default {
     hasLabel() {
       return this.isCompact ? false : !!this.label || !!this.labelKey || !!this.$slots.label;
     },
+
+    hasGroupIcon() {
+      // Required for option.icon. Note that we only apply if paginating as well (there might be 2 x performance issues with 2k entries. one to iterate through this list, the other with conditional class per entry in dom)
+      return this.paginate ? !!this._options.find((o) => o.kind === 'group' && !!o.icon) : false;
+    },
+
+    _options() {
+      // If we're paginated show the page as provided by `paginate`. See label-select-pagination mixin
+      return this.paginate ? this.page : this.options;
+    }
   },
 
   methods: {
@@ -198,8 +210,12 @@ export default {
     },
 
     onSearch(newSearchString) {
-      if (newSearchString) {
-        this.dropdownShouldOpen(this.$refs['select-input'], true);
+      if (this.paginate) {
+        this.setPaginationFilter(newSearchString);
+      } else {
+        if (newSearchString) {
+          this.dropdownShouldOpen(this.$refs['select-input'], true);
+        }
       }
     },
 
@@ -255,13 +271,13 @@ export default {
       class="inline"
       :append-to-body="appendToBody"
       :calculate-position="positionDropdown"
-      :class="{ 'no-label': !(label || '').length }"
+      :class="{ 'no-label': !(label || '').length}"
       :clearable="clearable"
       :disabled="isView || disabled || loading"
       :get-option-key="getOptionKey"
       :get-option-label="(opt) => getOptionLabel(opt)"
       :label="optionLabel"
-      :options="options"
+      :options="_options"
       :map-keydown="mappedKeys"
       :placeholder="placeholder"
       :reduce="(x) => reduce(x)"
@@ -280,6 +296,11 @@ export default {
       <template #option="option">
         <template v-if="option.kind === 'group'">
           <div class="vs__option-kind-group">
+            <i
+              v-if="option.icon"
+              class="icon"
+              :class="{ [option.icon]: true}"
+            />
             <b>{{ getOptionLabel(option) }}</b>
             <div v-if="option.badge">
               {{ option.badge }}
@@ -296,6 +317,8 @@ export default {
         </template>
         <div
           v-else
+          class="vs__option-kind"
+          :class="{ 'has-icon' : hasGroupIcon}"
           @mousedown="(e) => onClickOption(option, e)"
         >
           {{ getOptionLabel(option) }}
@@ -315,6 +338,44 @@ export default {
           :name="slot"
           v-bind="scope"
         />
+      </template>
+      <div
+        v-if="paginate && totalResults"
+        slot="list-footer"
+        class="pagination-slot"
+      >
+        <div class="load-more">
+          <i
+            v-if="paginating"
+            class="icon icon-spinner icon-spin"
+          />
+          <div v-else>
+            <a
+              v-if="canLoadMore"
+              @click="loadMore"
+            > {{ t('labelSelect.pagination.more') }}</a>
+          </div>
+        </div>
+
+        <div class="count">
+          {{ optionCounts }}
+        </div>
+      </div>
+      <template #no-options="{ search }">
+        <div class="no-options-slot">
+          <div
+            v-if="paginating"
+            class="paginating"
+          >
+            <i class="icon icon-spinner icon-spin" />
+          </div>
+          <template v-else-if="search">
+            {{ t('labelSelect.noOptions.noMatch') }}
+          </template>
+          <template v-else>
+            {{ t('labelSelect.noOptions.empty') }}
+          </template>
+        </div>
       </template>
     </v-select>
     <i
@@ -493,21 +554,73 @@ export default {
   }
 }
 
-// Styling for option group badge
-.vs__dropdown-menu .vs__dropdown-option .vs__option-kind-group {
-  display: flex;
-  > b {
-    flex: 1;
+$icon-size: 18px;
+
+// This represents the drop down area. Note - it might be attached to body and NOT the parent label select div
+.vs__dropdown-menu {
+
+  // Styling for individual options
+  .vs__dropdown-option .vs__option-kind {
+    &-group {
+      display: flex;
+      align-items: center;
+
+      i { // icon
+        width: $icon-size;
+      }
+
+      > b { // group label
+        flex: 1;
+      }
+
+      > div { // badge
+        background-color: var(--primary);
+        border-radius: 4px;
+        color: var(--primary-text);
+        font-size: 12px;
+        height: 18px;
+        line-height: 18px;
+        margin-top: 1px;
+        padding: 0 10px;
+      }
+    }
+
+    &.has-icon {
+      padding-left: $icon-size;
+    }
   }
-  > div {
-    background-color: var(--primary);
-    border-radius: 4px;
-    color: var(--primary-text);
-    font-size: 12px;
-    height: 18px;
-    line-height: 18px;
-    margin-top: 1px;
-    padding: 0 10px;
+
+    &.has-icon .vs__option-kind div{
+    padding-left: $icon-size;
+  }
+
+  .pagination-slot {
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    position: relative;
+    margin-top: 5px;
+
+    .load-more {
+      display: flex;
+      align-items: center;
+      height: 19px;
+
+      a {
+        cursor: pointer;
+      }
+    }
+
+    .count {
+      position: absolute;
+      right: 10px;
+    }
+  }
+
+  .no-options-slot .paginating {
+    display: flex;
+    align-items: center;
+    justify-content: center;
   }
 }
 

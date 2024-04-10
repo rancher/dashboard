@@ -2810,6 +2810,13 @@ labels:
   annotations:
     title: Annotations
 
+labelSelect:
+  noOptions:
+    empty: No options
+    noMatch: No matching options
+  pagination:
+    counts: '{count} / {totalCount} items'
+    more: Load More...
 landing:
   clusters:
     title: Clusters
