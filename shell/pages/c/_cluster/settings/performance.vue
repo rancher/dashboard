@@ -8,17 +8,20 @@ import { MANAGEMENT } from '@shell/config/types';
 import { DEFAULT_PERF_SETTING, SETTING } from '@shell/config/settings';
 import { _EDIT, _VIEW } from '@shell/config/query-params';
 import UnitInput from '@shell/components/form/UnitInput';
+import { STEVE_CACHE } from '@shell/store/features';
 
 const incompatible = {
-  incrementalLoading: ['forceNsFilterV2'],
-  manualRefresh:      ['forceNsFilterV2'],
+  incrementalLoading: ['forceNsFilterV2', 'serverPagination'],
+  manualRefresh:      ['forceNsFilterV2', 'serverPagination'],
   forceNsFilterV2:    ['incrementalLoading', 'manualRefresh'],
+  serverPagination:   ['incrementalLoading', 'manualRefresh'],
 };
 
 const l10n = {
   incrementalLoading: 'incrementalLoad',
   manualRefresh:      'manualRefresh',
   forceNsFilterV2:    'nsFiltering',
+  serverPagination:   'serverPagination'
 };
 
 export default {
@@ -76,6 +79,33 @@ export default {
 
     canSave() {
       return this.value.inactivity.enabled ? this.isInactivityThresholdValid : true;
+    },
+
+    steveCacheEnabled() {
+      return this.$store.getters['features/get'](STEVE_CACHE);
+    },
+
+    steveCacheApplicableResources() {
+      const storeResources = [];
+
+      Object.entries(this.value.serverPagination.stores).forEach(([store, settings]) => {
+        const resources = [];
+
+        if (settings.resources.enableAll) {
+          resources.push('All resources');
+        } else {
+          settings.resources.enableSome.enabled.forEach((resource) => {
+            resources.push(resource);
+          });
+          if (settings.resources.enableSome.generic) {
+            resources.push('generic lists');
+          }
+        }
+
+        storeResources.push(`${ store }: ${ resources.join(', ') }`);
+      });
+
+      return storeResources.join('. ');
     }
   },
 
@@ -151,6 +181,7 @@ export default {
   },
 };
 </script>
+
 <template>
   <Loading v-if="$fetchState.pending" />
   <div v-else>
@@ -338,6 +369,35 @@ export default {
             </div>
           </div>
         </div>
+        <!-- Server Side Pagination -->
+        <div class="mt-40">
+          <h2>{{ t('performance.serverPagination.label') }}</h2>
+          <p>{{ t('performance.serverPagination.description') }}</p>
+          <Banner
+            color="error"
+            label-key="performance.experimental"
+          />
+          <Banner
+            v-if="!steveCacheEnabled"
+            color="warning"
+            label-key="performance.serverPagination.featureFlag"
+          />
+          <Checkbox
+            v-model="value.serverPagination.enabled"
+            :mode="mode"
+            :label="t('performance.serverPagination.checkboxLabel')"
+            class="mt-10 mb-20"
+            :primary="true"
+            :disabled="(!steveCacheEnabled && !value.serverPagination.enabled)"
+            @input="compatibleWarning('serverPagination', $event)"
+          />
+          <p :class="{ 'text-muted': !value.serverPagination.enabled }">
+            {{ t('performance.serverPagination.applicable') }}
+          </p>
+          <p :class="{ 'text-muted': !value.serverPagination.enabled }">
+            {{ steveCacheApplicableResources }}
+          </p>
+        </div>
         <!-- Force NS filter -->
         <div class="mt-40">
           <h2>{{ t('performance.nsFiltering.label') }}</h2>
@@ -391,6 +451,7 @@ export default {
     </div>
   </div>
 </template>
+
 <style scoped lang='scss'>
 .overlay {
   width: 100%;
