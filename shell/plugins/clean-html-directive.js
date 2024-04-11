@@ -1,4 +1,3 @@
-import Vue from 'vue';
 import { purifyHTML } from './clean-html';
 
 export const cleanHtmlDirective = {
@@ -12,5 +11,3 @@ export const cleanHtmlDirective = {
     el.innerHTML = '';
   }
 };
-
-Vue.directive('clean-html', cleanHtmlDirective);

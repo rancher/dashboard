@@ -1,15 +1,5 @@
 import Vue from 'vue';
 
-Vue.directive('focus', {
-  inserted(_el, _binding, vnode) {
-    const element = getElement(vnode);
-
-    if (element) {
-      element.focus();
-    }
-  }
-});
-
 const getElement = (vnode) => {
   const { componentInstance, componentOptions: { tag } } = vnode;
 
@@ -37,5 +27,15 @@ const getElement = (vnode) => {
 
   if (tag === 'Password') {
     return componentInstance.$refs.input.$refs.value;
+  }
+};
+
+export const focusDirective = {
+  inserted(_el, _binding, vnode) {
+    const element = getElement(vnode);
+
+    if (element) {
+      element.focus();
+    }
   }
 };
