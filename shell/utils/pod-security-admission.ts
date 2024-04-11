@@ -1,7 +1,7 @@
 import { reduce, filter, keys } from 'lodash';
 import { PSALabelPrefix, PSALabelsNamespaces } from '@shell/config/pod-security-admission';
 import { camelToTitle } from '@shell/utils/string';
-import { PSA } from '@shell/types/pod-security-admission';
+import { PSA } from 'types/resources/pod-security-admission';
 
 /**
  * Return PSA labels present in the resource

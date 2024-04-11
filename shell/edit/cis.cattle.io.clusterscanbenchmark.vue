@@ -6,6 +6,10 @@ import { LabeledInput } from '@components/Form/LabeledInput';
 import NameNsDescription from '@shell/components/form/NameNsDescription';
 import { mapGetters } from 'vuex';
 import { CONFIG_MAP } from '@shell/config/types';
+import { PaginationParamFilter } from '@shell/types/store/pagination.types';
+import { labelSelectPaginationFunction } from '@shell/components/form/LabeledSelect/labeled-select.utils';
+import paginationUtils from '@shell/utils/pagination-utils';
+
 const providers = ['aks', 'docker', 'eks', 'gke', 'k3s', 'minikube', 'rke-windows', 'rke', 'rke2'];
 
 export default {
@@ -30,7 +34,9 @@ export default {
   },
 
   async fetch() {
-    this.configMaps = await this.$store.dispatch('cluster/findAll', { type: CONFIG_MAP });
+    if (!paginationUtils.isSteveCacheEnabled({ rootGetters: this.$store.getters })) {
+      this.configMaps = await this.$store.dispatch('cluster/findAll', { type: CONFIG_MAP });
+    }
   },
 
   data() {
@@ -55,7 +61,33 @@ export default {
         this.$set(this.value.spec, 'customBenchmarkConfigMapNamespace', namespace);
       }
     },
-    ...mapGetters({ t: 'i18n/t' })
+
+    ...mapGetters({ t: 'i18n/t' }),
+  },
+
+  methods: {
+    /**
+     * @param [PaginateFnOptions] opts
+     * @returns PaginateFnResponse
+     */
+    async paginateConfigMap(opts) {
+      const { filter } = opts;
+      const filters = !!filter ? [PaginationParamFilter.createMultipleFields([
+        {
+          field: 'metadata.name', value: filter, equals: true
+        },
+        {
+          field: 'metadata.namespace', value: filter, equals: true
+        },
+      ])] : [];
+
+      return labelSelectPaginationFunction({
+        opts,
+        filters,
+        type: CONFIG_MAP,
+        ctx:  { getters: this.$store.getters, dispatch: this.$store.dispatch }
+      });
+    },
   }
 };
 </script>
@@ -92,9 +124,11 @@ export default {
         <LabeledSelect
           v-model="customConfigMap"
           :clearable="true"
-          option-label="id"
+          :get-option-label="opt=>canPaginate ? (opt.metadata.name || '') : opt.id"
+          option-key="id"
           :options="configMaps"
           :mode="mode"
+          :paginate="paginateConfigMap"
           :label="t('cis.customConfigMap')"
         />
       </div>

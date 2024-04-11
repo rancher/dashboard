@@ -6,7 +6,7 @@ import { LabeledTooltip } from '@components/LabeledTooltip';
 import VueSelectOverrides from '@shell/mixins/vue-select-overrides';
 import { onClickOption, calculatePosition } from '@shell/utils/select';
 import LabeledSelectPagination from './labeled-select-pagination';
-import { LABEL_SELECT_NOT_OPTION_KINDS } from './LabeledSelect.utils';
+import { LABEL_SELECT_NOT_OPTION_KINDS } from '@shell/types/components/labeledSelect';
 
 export default {
   name: 'LabeledSelect',
@@ -113,12 +113,12 @@ export default {
 
     hasGroupIcon() {
       // Required for option.icon. Note that we only apply if paginating as well (there might be 2 x performance issues with 2k entries. one to iterate through this list, the other with conditional class per entry in dom)
-      return this.paginate ? !!this._options.find((o) => o.kind === 'group' && !!o.icon) : false;
+      return this.canPaginate ? !!this._options.find((o) => o.kind === 'group' && !!o.icon) : false;
     },
 
     _options() {
       // If we're paginated show the page as provided by `paginate`. See label-select-pagination mixin
-      return this.paginate ? this.page : this.options;
+      return this.canPaginate ? this.page : this.options;
     }
   },
 
@@ -210,7 +210,7 @@ export default {
     },
 
     onSearch(newSearchString) {
-      if (this.paginate) {
+      if (this.canPaginate) {
         this.setPaginationFilter(newSearchString);
       } else {
         if (newSearchString) {
@@ -281,6 +281,7 @@ export default {
       :map-keydown="mappedKeys"
       :placeholder="placeholder"
       :reduce="(x) => reduce(x)"
+      :filterable="isFilterable"
       :searchable="isSearchable"
       :selectable="selectable"
       :value="value != null && !loading ? value : ''"
@@ -339,8 +340,9 @@ export default {
           v-bind="scope"
         />
       </template>
+
       <div
-        v-if="paginate && totalResults"
+        v-if="canPaginate && totalResults"
         slot="list-footer"
         class="pagination-slot"
       >

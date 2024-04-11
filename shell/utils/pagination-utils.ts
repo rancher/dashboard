@@ -12,7 +12,7 @@ import {
 import { PaginationArgs, PaginationParam, PaginationSort } from '@shell/types/store/pagination.types';
 import { sameArrayObjects } from '@shell/utils/array';
 import { isEqual } from '@shell/utils/object';
-import { STEVE_CACHE } from '@shell/store/features';
+// import { STEVE_CACHE } from '@shell/store/features';
 import { getPerformanceSetting } from '@shell/utils/settings';
 
 /**
@@ -32,6 +32,13 @@ class PaginationUtils {
     return perf.serverPagination;
   }
 
+  isSteveCacheEnabled({ rootGetters }: any): boolean {
+    // We always get Feature flags as part of start up (see `dispatch('features/loadServer')` in loadManagement)
+    // TODO: RC count / pages in api response is broken in image that provides cache FF, so just assume on for the moment
+    // return rootGetters['features/get'](STEVE_CACHE);
+    return false;
+  }
+
   /**
    * Is pagination enabled at a global level or for a specific resource
    */
@@ -41,12 +48,12 @@ class PaginationUtils {
       id: string,
     }
   }) {
-    const settings = this.getSettings({ rootGetters });
-
     // Cache must be enabled to support pagination api
-    if (!rootGetters['features/get'](STEVE_CACHE)) {
+    if (!this.isSteveCacheEnabled({ rootGetters })) {
       return false;
     }
+
+    const settings = this.getSettings({ rootGetters });
 
     // No setting, not enabled
     if (!settings?.enabled) {

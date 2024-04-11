@@ -1,7 +1,12 @@
-import { LABEL_SELECT_NOT_OPTION_KINDS } from './LabeledSelect.utils';
 import { debounce } from 'lodash';
-import Vue, { PropType, defineComponent } from 'vue';
+import { PropType, defineComponent } from 'vue';
 import { ComputedOptions, MethodOptions } from 'vue/types/v3-component-options';
+import { LabelSelectPaginateFn, LABEL_SELECT_NOT_OPTION_KINDS } from '@shell/types/components/labeledSelect';
+import paginationUtils from '@shell/utils/pagination-utils';
+
+interface Props {
+  paginate?: LabelSelectPaginateFn
+}
 
 interface Data {
   currentPage: number,
@@ -18,7 +23,7 @@ interface Data {
 }
 
 interface Computed extends ComputedOptions {
-  // _options: () => any,
+  canPaginate: () => boolean,
 
   canLoadMore: () => boolean,
 
@@ -33,36 +38,11 @@ interface Methods extends MethodOptions {
   requestPagination: () => Promise<any>;
 }
 
-/**
- * Make a http request to fetch paginated results
- *
- * @param [array] pageContent Current page
- * @param [number] page page number to fetch
- * @param [number] pageSize number of items in the page to fetch
- * @param [string] filter pagination filter. this is just a text string associated with user entered text
- * @param [boolean] resetPage true if the result should only contain the fetched page, false if the result should be added to the pageContent
- */
-type PaginateFn<T = any> = (opts: {
-  pageContent: T[],
-  page: number,
-  pageSize: number,
-  filter: string,
-  resetPage: boolean,
-}) => Promise<{
-  page: T[],
-  pages: number,
-  total: number
-}>
-
-interface Props {
-  paginate?: PaginateFn
-}
-
 export default defineComponent<Props, any, Data, Computed, Methods>({
   props: {
     paginate: {
       default: null,
-      type:    Function as PropType<PaginateFn>,
+      type:    Function as PropType<LabelSelectPaginateFn>,
     }
   },
 
@@ -84,23 +64,27 @@ export default defineComponent<Props, any, Data, Computed, Methods>({
   },
 
   async mounted() {
-    if (this.paginate) {
+    if (this.canPaginate) {
       await this.requestPagination();
     }
   },
 
   computed: {
+    canPaginate() {
+      return !!this.paginate && paginationUtils.isSteveCacheEnabled({ rootGetters: this.$store.getters });
+    },
+
     canLoadMore() {
       return this.pages > this.currentPage;
     },
 
     optionsInPage() {
       // Number of genuine options (not groups, dividers, etc)
-      return this.paginate ? this._options.filter((o: any) => !LABEL_SELECT_NOT_OPTION_KINDS.includes(o.kind)).length : 0;
+      return this.canPaginate ? this._options.filter((o: any) => !LABEL_SELECT_NOT_OPTION_KINDS.includes(o.kind)).length : 0;
     },
 
     optionCounts() {
-      if (!this.paginate || this.optionsInPage === this.totalResults) {
+      if (!this.canPaginate || this.optionsInPage === this.totalResults) {
         return '';
       }
 
@@ -126,7 +110,7 @@ export default defineComponent<Props, any, Data, Computed, Methods>({
 
     async requestPagination(resetPage = false) {
       this.paginating = true;
-      const paginate: PaginateFn = this.paginate as PaginateFn; // Checking is done via prop
+      const paginate: LabelSelectPaginateFn = this.paginate as LabelSelectPaginateFn; // Checking is done via prop
 
       const {
         page,
