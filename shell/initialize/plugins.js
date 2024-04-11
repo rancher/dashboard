@@ -37,12 +37,13 @@ export async function installPlugins(app, inject, Vue) {
     ShortKey,
     VTooltip,
     TrimWhitespace,
-    vSelect,
     intNumber,
     positiveIntNumber
   ].forEach((plugin) => {
     Vue.use(plugin);
   });
+
+  Vue.component('v-select', vSelect);
 
   const pluginDefinitions = [
     cookieUniversalNuxt,
