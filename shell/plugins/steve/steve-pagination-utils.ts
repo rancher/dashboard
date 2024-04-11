@@ -3,7 +3,7 @@ import { PaginationParam, PaginationFilterField, PaginationParamProjectOrNamespa
 import { NAMESPACE_FILTER_ALL_SYSTEM, NAMESPACE_FILTER_ALL_USER, NAMESPACE_FILTER_P_FULL_PREFIX } from '@shell/utils/namespace-filter';
 import Namespace from '@shell/models/namespace';
 import { uniq } from '@shell/utils/array';
-import { MANAGEMENT, NODE, POD } from '@shell/config/types';
+import { CONFIG_MAP, MANAGEMENT, NODE, POD } from '@shell/config/types';
 import { Schema } from 'plugins/steve/schema';
 
 class NamespaceProjectFilters {
@@ -117,6 +117,9 @@ class StevePaginationUtils extends NamespaceProjectFilters {
     ],
     [MANAGEMENT.NODE]: [
       { field: 'status.nodeName' }
+    ],
+    [CONFIG_MAP]: [
+      { field: 'metadata.labels' }
     ]
   }
 

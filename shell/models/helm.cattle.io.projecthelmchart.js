@@ -22,7 +22,7 @@ export default class ProjectHelmChart extends SteveModel {
     const clusterId = this.$rootGetters['currentCluster']?.id;
     const project = this.$rootGetters['management/byId'](MANAGEMENT.PROJECT, `${ clusterId }/${ this.projectId }`);
 
-    return project.spec.displayName;
+    return project?.spec.displayName;
   }
 
   get namespaces() {
