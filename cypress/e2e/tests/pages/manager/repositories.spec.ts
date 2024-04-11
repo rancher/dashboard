@@ -37,6 +37,7 @@ describe('Cluster Management Helm Repositories', { testIsolation: 'off', tags: [
 
   it('can refresh a repository', function() {
     ChartRepositoriesPagePo.navTo();
+    repositoriesPage.waitForPage();
     cy.intercept('PUT', `/v1/catalog.cattle.io.clusterrepos/${ this.repoName }`).as('refreshRepo');
     repositoriesPage.list().actionMenu(this.repoName).getMenuItem('Refresh').click();
     cy.wait('@refreshRepo').its('response.statusCode').should('eq', 200);
@@ -48,6 +49,7 @@ describe('Cluster Management Helm Repositories', { testIsolation: 'off', tags: [
 
   it('can edit a repository', function() {
     ChartRepositoriesPagePo.navTo();
+    repositoriesPage.waitForPage();
     repositoriesPage.list().actionMenu(this.repoName).getMenuItem('Edit Config').click();
     repositoriesPage.createEditRepositories(this.repoName).waitForPage('mode=edit');
     repositoriesPage.createEditRepositories().nameNsDescription().description().set(`${ this.repoName }-desc-edit`);
@@ -61,6 +63,7 @@ describe('Cluster Management Helm Repositories', { testIsolation: 'off', tags: [
 
   it('can clone a repository', function() {
     ChartRepositoriesPagePo.navTo();
+    repositoriesPage.waitForPage();
     repositoriesPage.list().actionMenu(this.repoName).getMenuItem('Clone').click();
     repositoriesPage.createEditRepositories(this.repoName).waitForPage('mode=clone');
     repositoriesPage.createEditRepositories().nameNsDescription().name().set(`${ this.repoName }-clone`);
@@ -74,6 +77,7 @@ describe('Cluster Management Helm Repositories', { testIsolation: 'off', tags: [
 
   it('can download YAML', function() {
     ChartRepositoriesPagePo.navTo();
+    repositoriesPage.waitForPage();
     repositoriesPage.list().actionMenu(this.repoName).getMenuItem('Download YAML').click({ force: true });
 
     const downloadedFilename = path.join(downloadsFolder, `${ this.repoName }.yaml`);
@@ -90,6 +94,7 @@ describe('Cluster Management Helm Repositories', { testIsolation: 'off', tags: [
 
   it('can delete a repository', function() {
     ChartRepositoriesPagePo.navTo();
+    repositoriesPage.waitForPage();
 
     // delete original cloned Repository
     repositoriesPage.list().actionMenu(`${ this.repoName }-clone`).getMenuItem('Delete').click();
@@ -108,6 +113,7 @@ describe('Cluster Management Helm Repositories', { testIsolation: 'off', tags: [
 
   it('can delete a repository via bulk actions', function() {
     ChartRepositoriesPagePo.navTo();
+    repositoriesPage.waitForPage();
 
     // delete original Repository
     repositoriesPage.list().resourceTable().sortableTable().rowSelectCtlWithName(this.repoName)

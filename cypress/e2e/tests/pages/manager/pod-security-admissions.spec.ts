@@ -53,6 +53,7 @@ describe('Pod Security Admissions', { testIsolation: 'off', tags: ['@manager', '
 
   it('can edit a policy security admission', function() {
     PodSecurityAdmissionsPagePo.navTo();
+    podSecurityAdmissionsPage.waitForPage();
     podSecurityAdmissionsPage.list().actionMenu(this.podSecurityAdmissionsName).getMenuItem('Edit Config').click();
     podSecurityAdmissionsPage.createPodSecurityAdmissionForm(this.podSecurityAdmissionsName).waitForPage('mode=edit');
     podSecurityAdmissionsPage.createPodSecurityAdmissionForm().nameNsDescription().description().set(`${ this.podSecurityAdmissionsName }-description-edit`);
@@ -80,6 +81,7 @@ describe('Pod Security Admissions', { testIsolation: 'off', tags: ['@manager', '
 
   it('can clone a policy security admission', function() {
     PodSecurityAdmissionsPagePo.navTo();
+    podSecurityAdmissionsPage.waitForPage();
     podSecurityAdmissionsPage.list().actionMenu(this.podSecurityAdmissionsName).getMenuItem('Clone').click();
     podSecurityAdmissionsPage.createPodSecurityAdmissionForm(this.podSecurityAdmissionsName).waitForPage('mode=clone');
     podSecurityAdmissionsPage.createPodSecurityAdmissionForm().nameNsDescription().name().set(`${ this.podSecurityAdmissionsName }-clone`);
@@ -92,6 +94,7 @@ describe('Pod Security Admissions', { testIsolation: 'off', tags: ['@manager', '
 
   it('can download YAML for a policy security admission', function() {
     PodSecurityAdmissionsPagePo.navTo();
+    podSecurityAdmissionsPage.waitForPage();
     podSecurityAdmissionsPage.list().actionMenu(this.podSecurityAdmissionsName).getMenuItem('Download YAML').click({ force: true });
 
     const downloadedFilename = path.join(downloadsFolder, `${ this.podSecurityAdmissionsName }.yaml`);
@@ -108,6 +111,7 @@ describe('Pod Security Admissions', { testIsolation: 'off', tags: ['@manager', '
 
   it('can delete a policy security admission', function() {
     PodSecurityAdmissionsPagePo.navTo();
+    podSecurityAdmissionsPage.waitForPage();
     podSecurityAdmissionsPage.list().actionMenu(`${ this.podSecurityAdmissionsName }-clone`).getMenuItem('Delete').click();
 
     const promptRemove = new PromptRemove();
@@ -124,6 +128,7 @@ describe('Pod Security Admissions', { testIsolation: 'off', tags: ['@manager', '
 
   it('can delete a policy security admission via bulk actions', function() {
     PodSecurityAdmissionsPagePo.navTo();
+    podSecurityAdmissionsPage.waitForPage();
     podSecurityAdmissionsPage.list().details(this.podSecurityAdmissionsName, 0).click();
     podSecurityAdmissionsPage.list().resourceTable().sortableTable().deleteButton()
       .click();

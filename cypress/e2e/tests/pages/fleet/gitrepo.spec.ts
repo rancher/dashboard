@@ -23,8 +23,11 @@ describe('Git Repo', { tags: ['@fleet', '@adminUser'] }, () => {
     it('Should be able to create a git repo', () => {
       cy.intercept('POST', '/v1/secrets/fleet-default').as('interceptSecret');
       cy.intercept('POST', '/v1/fleet.cattle.io.gitrepos').as('interceptGitRepo');
+      cy.intercept('GET', '/v1/secrets?exclude=metadata.managedFields').as('getSecrets');
 
       gitRepoCreatePage.goTo();
+      gitRepoCreatePage.waitForPage();
+      cy.wait('@getSecrets').its('response.statusCode').should('eq', 200);
 
       const { name } = gitRepoCreateRequest.metadata;
       const {
@@ -64,6 +67,10 @@ describe('Git Repo', { tags: ['@fleet', '@adminUser'] }, () => {
           expect(response.statusCode).to.eq(201);
           expect(request.body).to.deep.eq(gitRepoCreateRequest);
 
+          const listPage = new FleetGitRepoListPagePo();
+
+          listPage.waitForPage();
+
           const prefPage = new PreferencesPagePo();
 
           // START TESTING https://github.com/rancher/dashboard/issues/9984
@@ -74,8 +81,6 @@ describe('Git Repo', { tags: ['@fleet', '@adminUser'] }, () => {
           prefPage.languageDropdownMenu().isOpened();
           prefPage.languageDropdownMenu().clickOption(2);
           prefPage.languageDropdownMenu().isClosed();
-
-          const listPage = new FleetGitRepoListPagePo();
 
           listPage.goTo();
           listPage.waitForPage();
