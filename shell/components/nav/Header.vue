@@ -690,27 +690,48 @@ export default {
               </li>
               <router-link
                 v-if="showPreferencesLink"
-                tag="li"
+                v-slot="{ href, navigate }"
+                custom
                 :to="{name: 'prefs'}"
-                class="user-menu-item"
               >
-                <a>{{ t('nav.userMenu.preferences') }}</a>
+                <li
+                  class="user-menu-item"
+                  @click="navigate"
+                  @keypress.enter="navigate"
+                >
+                  <a :href="href">{{ t('nav.userMenu.preferences') }}</a>
+                </li>
               </router-link>
               <router-link
                 v-if="showAccountAndApiKeyLink"
-                tag="li"
+                v-slot="{ href, navigate }"
+                custom
                 :to="{name: 'account'}"
-                class="user-menu-item"
               >
-                <a>{{ t('nav.userMenu.accountAndKeys', {}, true) }}</a>
+                <li
+                  class="user-menu-item"
+                  @click="navigate"
+                  @keypress.enter="navigate"
+                >
+                  <a :href="href">{{ t('nav.userMenu.accountAndKeys', {}, true) }}</a>
+                </li>
               </router-link>
               <router-link
                 v-if="authEnabled"
-                tag="li"
+                v-slot="{ href, navigate }"
+                custom
                 :to="generateLogoutRoute"
-                class="user-menu-item"
               >
-                <a @blur="showMenu(false)">{{ t('nav.userMenu.logOut') }}</a>
+                <li
+                  class="user-menu-item"
+                  @click="navigate"
+                  @keypress.enter="navigate"
+                >
+                  <a
+                    :href="href"
+                    @blur="showMenu(false)"
+                  >{{ t('nav.userMenu.logOut') }}</a>
+                </li>
               </router-link>
             </ul>
           </template>
