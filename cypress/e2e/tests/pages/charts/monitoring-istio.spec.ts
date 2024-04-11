@@ -16,15 +16,17 @@ describe('Charts', { tags: ['@charts', '@adminUser'] }, () => {
   const installChartPage = new ChartPage('local', true);
   const terminal = new Kubectl();
 
+  before(() => {
+    cy.login();
+    cy.viewport(1280, 720);
+  });
+
   describe('Monitoring', { testIsolation: 'off' }, () => {
     describe('Prometheus local provisioner config', () => {
       const provisionerVersion = 'v0.0.24';
 
       // Install the chart
       before(() => {
-        cy.login();
-        HomePagePo.goTo();
-        cy.viewport(1280, 720);
         ChartsPage.navTo();
         chartsPage.waitForPage();
 
@@ -216,8 +218,8 @@ describe('Charts', { tags: ['@charts', '@adminUser'] }, () => {
   /**
    * Istio requires Prometheus operator to be installed, see previous steps.
    */
-  describe('Istio', { testIsolation: 'off' }, () => {
-    before(() => {
+  describe('Istio', () => {
+    beforeEach(() => {
       cy.login();
       HomePagePo.goTo();
 
