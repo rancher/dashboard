@@ -35,8 +35,11 @@ describe('Namespace picker', { testIsolation: 'off' }, () => {
 
     const workloadsPodPage = new WorkloadsPodsListPagePo('local');
 
+    cy.intercept('GET', '/v1/pods?exclude=metadata.managedFields').as('getPods');
+
     WorkloadsPodsListPagePo.navTo();
     workloadsPodPage.waitForPage();
+    cy.wait('@getPods');
 
     // Filter by Namespace: Select 'cattle-fleet-local-system'
     namespacePicker.toggle();

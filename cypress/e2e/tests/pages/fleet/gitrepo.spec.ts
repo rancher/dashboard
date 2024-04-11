@@ -79,7 +79,13 @@ describe('Git Repo', { tags: ['@fleet', '@adminUser'] }, () => {
           prefPage.languageDropdownMenu().checkVisible();
           prefPage.languageDropdownMenu().toggle();
           prefPage.languageDropdownMenu().isOpened();
+
+          cy.intercept('PUT', 'v1/userpreferences/*').as(`prefUpdateZhHans`);
           prefPage.languageDropdownMenu().clickOption(2);
+          cy.wait('@prefUpdateZhHans').then(({ response }) => {
+            expect(response?.statusCode).to.eq(200);
+            expect(response?.body.data).to.have.property('locale', 'zh-hans');
+          });
           prefPage.languageDropdownMenu().isClosed();
 
           listPage.goTo();
@@ -100,7 +106,13 @@ describe('Git Repo', { tags: ['@fleet', '@adminUser'] }, () => {
       prefPage.languageDropdownMenu().checkVisible();
       prefPage.languageDropdownMenu().toggle();
       prefPage.languageDropdownMenu().isOpened();
+
+      cy.intercept('PUT', 'v1/userpreferences/*').as(`prefUpdateEnUs`);
       prefPage.languageDropdownMenu().clickOption(1);
+      cy.wait('@prefUpdateEnUs').then(({ response }) => {
+        expect(response?.statusCode).to.eq(200);
+        expect(response?.body.data).to.have.property('locale', 'en-us');
+      });
       prefPage.languageDropdownMenu().isClosed();
 
       const fleetDashboardPage = new FleetDashboardPagePo('_');
