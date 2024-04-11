@@ -83,7 +83,7 @@ eks:
   publicAccess:
     label: Public Access
     tooltip: >-
-      Optionally limit access to the public endpoint via explicit CIDR blocks. If you limit access to specific CIDR blocks, then it is recommended that you also enable private access to avoid losing network communication to the cluster. Configuring Public/Priavte API access is an advanced use case. Users are encouraged to read the EKS cluster endpoint access control <a href="https://docs.aws.amazon.com/eks/latest/userguide/cluster-endpoint.html" target="_blank"  rel="nofollow noopener
+      Optionally limit access to the public endpoint via explicit CIDR blocks. If you limit access to specific CIDR blocks, then it is recommended that you also enable private access to avoid losing network communication to the cluster. Configuring Public/Private API access is an advanced use case. Users are encouraged to read the EKS cluster endpoint access control <a href="https://docs.aws.amazon.com/eks/latest/userguide/cluster-endpoint.html" target="_blank"  rel="nofollow noopener
       noreferrer">documentation.</a>
   publicAccessSources:
     addEndpoint: Add Endpoint
