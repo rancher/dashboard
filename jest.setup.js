@@ -4,6 +4,7 @@ import i18n from '@shell/plugins/i18n';
 import VTooltip from 'v-tooltip';
 import vSelect from 'vue-select';
 import { VCleanTooltip } from '@shell/plugins/clean-tooltip-directive.js';
+import { cleanHtmlDirective } from '@shell/plugins/clean-html-directive';
 import '@shell/plugins/replaceall';
 
 import Vue from 'vue';
@@ -15,7 +16,8 @@ global.TextDecoder = TextDecoder;
 Vue.config.productionTip = false;
 Vue.use(i18n);
 Vue.use(VTooltip);
-Vue.use(VCleanTooltip);
+Vue.directive('clean-tooltip', VCleanTooltip);
+Vue.directive('clean-html', cleanHtmlDirective);
 Vue.component('v-select', vSelect);
 
 /**
