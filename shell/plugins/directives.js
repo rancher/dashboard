@@ -1,5 +1,3 @@
-import Vue from 'vue';
-
 const getElement = (vnode) => {
   const { componentInstance, componentOptions: { tag } } = vnode;
 
