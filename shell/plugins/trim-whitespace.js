@@ -1,5 +1,3 @@
-import Vue from 'vue';
-
 export function trimWhitespace(el, dir) {
   for (const node of el.childNodes) {
     if (node.nodeType === Node.TEXT_NODE ) {
@@ -31,7 +29,11 @@ export function trimWhitespaceSsr(el, dir) {
   */
 }
 
-Vue.directive('trim-whitespace', {
-  inserted:         trimWhitespace,
-  componentUpdated: trimWhitespace
-});
+export default {
+  install(Vue, _options) {
+    Vue.directive('trim-whitespace', {
+      inserted:         trimWhitespace,
+      componentUpdated: trimWhitespace
+    });
+  }
+};
