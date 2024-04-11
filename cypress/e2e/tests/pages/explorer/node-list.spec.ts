@@ -49,6 +49,7 @@ describe('Nodes list', { tags: ['@explorer', '@adminUser'], testIsolation: 'off'
       nodeList.sortableTable().rowNames().should((names: any) => {
         expect(names).to.have.length(count);
         expect(names).to.contain(dummyNode.metadata.name);
+      });
     });
 
     // Simple test to assert we haven't broken Node detail page
