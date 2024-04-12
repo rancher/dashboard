@@ -45,6 +45,8 @@ export default {
       return stringFor(this.$store, key, args, raw);
     };
 
+    // InnerHTML: <some-tag v-t="'some.key'" />
+    // As an attribute: <some-tag v-t:title="'some.key'" />
     Vue.directive('t', {
       bind() {
         directive(...arguments);
@@ -54,6 +56,8 @@ export default {
       },
     });
 
+    // Basic (but you might want the directive above): <t k="some.key" />
+    // With interpolation: <t k="some.key" count="1" :foo="bar" />
     Vue.component('t', {
       inheritAttrs: false,
       props:        {
