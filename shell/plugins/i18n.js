@@ -1,5 +1,6 @@
-import Vue from 'vue';
 import { escapeHtml } from '../utils/string';
+import { watchEffect, ref, h } from 'vue';
+import { useStore } from '@/shell/composables/useStore';
 
 function stringFor(store, key, args, raw = false, escapehtml = true) {
   const translation = store.getters['i18n/t'](key, args);
@@ -26,82 +27,81 @@ function stringFor(store, key, args, raw = false, escapehtml = true) {
   }
 }
 
-Vue.prototype.t = function(key, args, raw) {
-  return stringFor(this.$store, key, args, raw);
+export default {
+  install: (Vue, _options) => {
+    Vue.prototype.t = function(key, args, raw) {
+      return stringFor(this.$store, key, args, raw);
+    };
+
+    Vue.directive('t', {
+      mounted(el, binding, vnode) {
+        const { ctx } = vnode;
+        const raw = binding.modifiers && binding.modifiers.raw === true;
+        const str = stringFor(ctx.$store, binding.value, {}, raw);
+
+        if (binding.arg) {
+          el.setAttribute(binding.arg, str);
+        } else {
+          el.innerHTML = str;
+        }
+      },
+      updated(el, binding, vnode) {
+        const { ctx } = vnode;
+        const raw = binding.modifiers && binding.modifiers.raw === true;
+        const str = stringFor(ctx.$store, binding.value, {}, raw);
+
+        if (binding.arg) {
+          el.setAttribute(binding.arg, str);
+        } else {
+          el.innerHTML = str;
+        }
+      }
+    });
+
+    Vue.component('t', {
+      inheritAttrs: false,
+      props:        {
+        k: {
+          type:     String,
+          required: true,
+        },
+        raw: {
+          type:    Boolean,
+          default: false,
+        },
+        tag: {
+          type:    [String, Object],
+          default: 'span'
+        },
+        escapehtml: {
+          type:    Boolean,
+          default: true,
+        }
+      },
+      setup(props, ctx) {
+        const msg = ref('');
+        const store = useStore();
+
+        // Update msg whenever k, $attrs, raw, or escapehtml changes
+        watchEffect(() => {
+          msg.value = stringFor(store, props.k, ctx.attrs, props.raw, props.escapehtml);
+        });
+
+        return { msg };
+      },
+      render() {
+        if (this.raw) {
+          return h(
+            this.tag,
+            { innerHTML: this.msg }
+          );
+        } else {
+          return h(
+            this.tag,
+            [this.msg]
+          );
+        }
+      }
+    });
+  }
 };
-
-function directive(el, binding, vnode /*, oldVnode */) {
-  const { context } = vnode;
-  const raw = binding.modifiers && binding.modifiers.raw === true;
-  const str = stringFor(context.$store, binding.value, {}, raw);
-
-  if ( binding.arg ) {
-    el.setAttribute(binding.arg, str);
-  } else {
-    el.innerHTML = str;
-  }
-}
-
-export function directiveSsr(vnode, binding) {
-  const { context } = vnode;
-  const raw = binding.modifiers && binding.modifiers.raw === true;
-  const str = stringFor(context.$store, binding.value, {}, raw);
-
-  if ( binding.arg ) {
-    vnode.data.attrs[binding.arg] = str;
-  } else {
-    vnode.data.domProps = { innerHTML: str };
-  }
-}
-
-// InnerHTML: <some-tag v-t="'some.key'" />
-// As an attribute: <some-tag v-t:title="'some.key'" />
-Vue.directive('t', {
-  bind() {
-    directive(...arguments);
-  },
-
-  update() {
-    directive(...arguments);
-  },
-});
-
-// Basic (but you might want the directive above): <t k="some.key" />
-// With interpolation: <t k="some.key" count="1" :foo="bar" />
-Vue.component('t', {
-  inheritAttrs: false,
-  props:        {
-    k: {
-      type:     String,
-      required: true,
-    },
-    raw: {
-      type:    Boolean,
-      default: false,
-    },
-    tag: {
-      type:    [String, Object],
-      default: 'span'
-    },
-    escapehtml: {
-      type:    Boolean,
-      default: true,
-    }
-  },
-
-  render(h) {
-    const msg = stringFor(this.$store, this.k, this.$attrs, this.raw, this.escapehtml);
-
-    if ( this.raw ) {
-      return h(
-        this.tag,
-        { domProps: { innerHTML: msg } }
-      );
-    } else {
-      return h(
-        this.tag,
-        [msg]
-      );
-    }
-  },
-});
