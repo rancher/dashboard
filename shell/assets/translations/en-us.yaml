@@ -529,12 +529,28 @@ authConfig:
       show: Show details
       hide: Hide details
   azuread:
-    tenantId: Tenant ID
-    applicationId: Application ID
-    endpoint: Endpoint
-    graphEndpoint: Graph Endpoint
-    tokenEndpoint: Token Endpoint
-    authEndpoint: Auth Endpoint
+    tenantId: 
+      label: Tenant ID
+      tooltip: From the Azure AD portal
+      placeholder: A long UUID string
+    applicationId: 
+      label: Application ID
+      placeholder: A long UUID string
+    applicationSecret:
+      label: Application Secret
+    endpoint: 
+      label: Endpoint
+    endpoints: 
+      label: Endpoints
+      standard: Standard
+      china: China
+      custom: Custom
+    graphEndpoint: 
+      label: Graph Endpoint
+    tokenEndpoint: 
+      label: Token Endpoint
+    authEndpoint: 
+      label: Auth Endpoint
     reply:
       info: 'Azure AD requires a whitelisted URL for your Rancher server before beginning this setup. Please ensure that the following URL is set in the Reply URL section of your Azure Portal. Please note that it may take up to 5 minutes for the whitelisted URL to propagate.'
       label: Reply URL
