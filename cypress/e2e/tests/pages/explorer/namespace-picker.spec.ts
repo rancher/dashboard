@@ -35,14 +35,12 @@ describe('Namespace picker', { testIsolation: 'off' }, () => {
 
     const workloadsPodPage = new WorkloadsPodsListPagePo('local');
 
-    cy.intercept('GET', '/v1/pods?exclude=metadata.managedFields').as('getPods');
-
     WorkloadsPodsListPagePo.navTo();
     workloadsPodPage.waitForPage();
-    cy.wait('@getPods').its('response.statusCode').should('eq', 200);
 
     // Filter by Namespace: Select 'cattle-fleet-local-system'
     namespacePicker.toggle();
+    namespacePicker.getOptions().find('#ns_cattle-fleet-local-system').should('exist');
     namespacePicker.clickOptionByLabel('cattle-fleet-local-system');
     namespacePicker.isChecked('cattle-fleet-local-system');
     namespacePicker.closeDropdown();
