@@ -39,7 +39,7 @@ describe('Namespace picker', { testIsolation: 'off' }, () => {
 
     WorkloadsPodsListPagePo.navTo();
     workloadsPodPage.waitForPage();
-    cy.wait('@getPods');
+    cy.wait('@getPods').its('response.statusCode').should('eq', 200);
 
     // Filter by Namespace: Select 'cattle-fleet-local-system'
     namespacePicker.toggle();
