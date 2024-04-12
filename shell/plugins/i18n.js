@@ -1,6 +1,6 @@
 import { escapeHtml } from '../utils/string';
 import { watchEffect, ref, h } from 'vue';
-import { useStore } from '@/shell/composables/useStore';
+import { useStore } from '../composables/useStore';
 
 function stringFor(store, key, args, raw = false, escapehtml = true) {
   const translation = store.getters['i18n/t'](key, args);
