@@ -1007,8 +1007,18 @@ export const getters = {
             continue;
           }
 
-          if (item.ifFeature && !rootGetters['features/get'](item.ifFeature)) {
-            continue;
+          if (item.ifFeature) {
+            if (item.ifFeature[0] === '!') {
+              const feature = item.ifFeature.replace('!', '');
+
+              if (rootGetters['features/get'](feature)) {
+                continue;
+              }
+            } else {
+              if (!rootGetters['features/get'](item.ifFeature)) {
+                continue;
+              }
+            }
           }
 
           if (virtSpoofedModes.includes(TYPE_MODES.BASIC) && !getters.groupForBasicType(product, id) ) {

@@ -28,6 +28,7 @@ import {
 } from '@shell/config/pagination-table-headers';
 
 import { COLUMN_BREAKPOINTS } from '@shell/types/store/type-map';
+import { STEVE_CACHE } from 'store/features';
 
 export const NAME = 'explorer';
 
@@ -414,6 +415,8 @@ export function init(store) {
     name:           WORKLOAD,
     weight:         99,
     icon:           'folder',
+    // Workloads fetch ALL resources of ALL resource types... which scales badly. Until this is replaced by an overview page disable entirely
+    ifFeature:      `!${ STEVE_CACHE }`,
     ifHaveSubTypes: Object.values(WORKLOAD_TYPES),
     route:          {
       name:   'c-cluster-product-resource',
