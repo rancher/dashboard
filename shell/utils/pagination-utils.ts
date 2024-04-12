@@ -36,7 +36,7 @@ class PaginationUtils {
     // We always get Feature flags as part of start up (see `dispatch('features/loadServer')` in loadManagement)
     // TODO: RC count / pages in api response is broken in image that provides cache FF, so just assume on for the moment
     // return rootGetters['features/get'](STEVE_CACHE);
-    return false;
+    return true;
   }
 
   /**
@@ -53,7 +53,8 @@ class PaginationUtils {
       return false;
     }
 
-    const settings = this.getSettings({ rootGetters });
+    // const settings = this.getSettings({ rootGetters });
+    const settings = { enabled: true, stores: { cluster: { resources: { enableAll: true } } } };
 
     // No setting, not enabled
     if (!settings?.enabled) {
@@ -65,6 +66,7 @@ class PaginationUtils {
       return false;
     }
 
+    // const storeSettings = settings.stores?.[enabledFor.store];
     const storeSettings = settings.stores?.[enabledFor.store];
 
     // No pagination setting for target store, not enabled
