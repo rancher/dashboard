@@ -1,7 +1,6 @@
 import '@shell/plugins/extend-router';
 import '@shell/plugins/formatters';
 import '@shell/plugins/global-formatters';
-import '@shell/plugins/i18n';
 import '@shell/plugins/vue-js-modal';
 import '@shell/plugins/js-yaml';
 import '@shell/plugins/portal-vue.js';
@@ -10,6 +9,8 @@ import '@shell/plugins/shortkey';
 import '@shell/plugins/tooltip';
 import '@shell/plugins/trim-whitespace';
 import '@shell/plugins/v-select';
+
+import i18n from '@shell/plugins/i18n';
 
 import axios from '../utils/axios.js';
 import axiosShell from '@shell/plugins/axios';
@@ -27,7 +28,9 @@ import steveCreateWorker from '@shell/plugins/steve-create-worker';
 import version from '@shell/plugins/version';
 import emberCookie from '@shell/plugins/ember-cookie';
 
-export async function installPlugins(app, inject) {
+export async function installPlugins(app, inject, Vue) {
+  Vue.use(i18n);
+
   const pluginDefinitions = [cookieUniversalNuxt, axios, plugins, pluginsLoader, axiosShell, intNumber, positiveIntNumber, nuxtClientInit, replaceAll, backButton, plugin, codeMirror, version, steveCreateWorker, emberCookie];
 
   const installations = pluginDefinitions.map(async(pluginDefinition) => {
