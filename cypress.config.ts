@@ -59,7 +59,7 @@ export default defineConfig({
   trashAssetsBeforeRuns: true,
   chromeWebSecurity:     false,
   retries:               {
-    runMode:  0,
+    runMode:  2,
     openMode: 0
   },
   env: {
