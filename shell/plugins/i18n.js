@@ -27,6 +27,18 @@ function stringFor(store, key, args, raw = false, escapehtml = true) {
   }
 }
 
+function directive(el, binding, vnode /*, oldVnode */) {
+  const { context } = vnode;
+  const raw = binding.modifiers && binding.modifiers.raw === true;
+  const str = stringFor(context.$store, binding.value, {}, raw);
+
+  if ( binding.arg ) {
+    el.setAttribute(binding.arg, str);
+  } else {
+    el.innerHTML = str;
+  }
+}
+
 export default {
   install: (Vue, _options) => {
     Vue.prototype.t = function(key, args, raw) {
@@ -34,28 +46,12 @@ export default {
     };
 
     Vue.directive('t', {
-      mounted(el, binding, vnode) {
-        const { ctx } = vnode;
-        const raw = binding.modifiers && binding.modifiers.raw === true;
-        const str = stringFor(ctx.$store, binding.value, {}, raw);
-
-        if (binding.arg) {
-          el.setAttribute(binding.arg, str);
-        } else {
-          el.innerHTML = str;
-        }
+      bind() {
+        directive(...arguments);
       },
-      updated(el, binding, vnode) {
-        const { ctx } = vnode;
-        const raw = binding.modifiers && binding.modifiers.raw === true;
-        const str = stringFor(ctx.$store, binding.value, {}, raw);
-
-        if (binding.arg) {
-          el.setAttribute(binding.arg, str);
-        } else {
-          el.innerHTML = str;
-        }
-      }
+      update() {
+        directive(...arguments);
+      },
     });
 
     Vue.component('t', {
