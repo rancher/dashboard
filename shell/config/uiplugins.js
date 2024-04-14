@@ -90,6 +90,8 @@ export function uiPluginAnnotation(chart, name) {
   return undefined;
 }
 
+// i18n-uses plugins.error.generic, plugins.error.api, plugins.error.host
+
 // Should we load a plugin, based on the metadata returned by the backend?
 // Returns error key string or false
 export function shouldNotLoadPlugin(plugin, rancherVersion, loadedPlugins) {

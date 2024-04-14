@@ -281,6 +281,7 @@ export default class GitRepo extends SteveModel {
 
     return {
       mode,
+      // i18n-uses fleet.gitRepo.targetDisplay.*
       modeDisplay: this.t(`fleet.gitRepo.targetDisplay."${ mode }"`),
       cluster,
       clusterGroup,

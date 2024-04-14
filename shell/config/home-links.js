@@ -4,6 +4,7 @@ import { SETTING } from '@shell/config/settings';
 import { allHash } from '@shell/utils/promise';
 import { isRancherPrime } from '@shell/config/version';
 
+// i18n-uses customLinks.defaults.*
 const DEFAULT_LINKS = [
   {
     key:     'docs',

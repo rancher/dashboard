@@ -19,6 +19,7 @@ import {
 import { FLEET } from '@shell/config/labels-annotations';
 import { STATES_ENUM } from '@shell/plugins/dashboard-store/resource-class';
 
+// i18n-ignore repoDisplay
 export default {
 
   name: 'FleetRepos',

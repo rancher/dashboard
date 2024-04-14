@@ -435,6 +435,7 @@ export const getters = {
   labelFor(state, getters, rootState, rootGetters) {
     return (schema, count = 1, language = null) => {
       return _applyMapping(schema, state.typeMappings, 'id', false, () => {
+        // i18n-uses typeLabel.*
         const key = `typeLabel."${ schema.id.toLowerCase() }"`;
 
         if ( rootGetters['i18n/exists'](key, language) ) {
@@ -726,6 +727,7 @@ export const getters = {
 
         // Translate if an entry exists
         let label = name;
+        // i18n-uses nav.group.*
         const key = `nav.group."${ name }"`;
 
         if ( rootGetters['i18n/exists'](key) ) {

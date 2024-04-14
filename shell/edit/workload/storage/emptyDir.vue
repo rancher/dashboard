@@ -30,10 +30,10 @@ export default {
   data() {
     return {
       mediumOpts: [{
-        label: 'workload.storage.emptyDir.medium.default',
+        label: 'workload.storage.emptyDir.medium.default', // i18n-uses workload.storage.emptyDir.medium.default
         value: ''
       }, {
-        label: 'workload.storage.emptyDir.medium.memory',
+        label: 'workload.storage.emptyDir.medium.memory', // i18n-uses workload.storage.emptyDir.medium.memory
         value: 'Memory'
       }]
     };

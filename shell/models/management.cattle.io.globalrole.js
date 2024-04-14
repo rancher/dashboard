@@ -37,6 +37,7 @@ export default class GlobalRole extends SteveDescriptionModel {
   }
 
   get nameDisplay() {
+    // i18n-uses rbac.globalRoles.role.*.label
     const path = `rbac.globalRoles.role.${ this.id }.label`;
     const label = this.displayName || this.metadata?.name || this.id;
 
@@ -46,6 +47,7 @@ export default class GlobalRole extends SteveDescriptionModel {
   get descriptionDisplay() {
     return this.description ||
     this.metadata?.annotations?.[DESCRIPTION] ||
+    // i18n-uses rbac.globalRoles.role.*.description    
     this.$rootGetters['i18n/withFallback'](`rbac.globalRoles.role.${ this.id }.description`, this.t(`rbac.globalRoles.unknownRole.description`));
   }
 
