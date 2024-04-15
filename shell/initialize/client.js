@@ -21,7 +21,7 @@ import {
 } from '../utils/nuxt.js';
 import { createApp } from './index.js';
 import fetchMixin from '../mixins/fetch.client';
-import NuxtLink from '../components/nuxt/nuxt-link.client.js'; // should be included after ./index.js
+import { nuxtLinkAlias } from '../components/nuxt/nuxt-link.client.js'; // should be included after ./index.js
 import { updatePageTitle } from '@shell/utils/title';
 import { getVendor } from '@shell/config/private-label';
 
@@ -33,8 +33,9 @@ const debug = isDev;
 Vue.mixin(fetchMixin);
 
 // Component: <NuxtLink>
-Vue.component(NuxtLink.name, NuxtLink);
-Vue.component('NLink', NuxtLink);
+// TODO: #9541 Remove for Vue 3 migration
+Vue.component('NuxtLink', nuxtLinkAlias('NuxtLink'));
+Vue.component('NLink', nuxtLinkAlias('NLink'));
 
 if (!global.fetch) {
   global.fetch = fetch;

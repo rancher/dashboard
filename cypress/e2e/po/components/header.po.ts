@@ -1,5 +1,6 @@
 import ComponentPo from '@/cypress/e2e/po/components/component.po';
 import { WorkspaceSwitcherPo } from '@/cypress/e2e/po/components/workspace-switcher.po';
+import { ImportYamlPo } from '@/cypress/e2e/po/components/import-yaml.po';
 export class HeaderPo extends ComponentPo {
   constructor() {
     super('[data-testid="header"]');
@@ -13,6 +14,14 @@ export class HeaderPo extends ComponentPo {
     return wsFilter.clickOptionWithLabel(name);
   }
 
+  importYamlHeaderAction() {
+    return this.self().find('[data-testid="header-action-import-yaml"]');
+  }
+
+  importYaml() {
+    return new ImportYamlPo();
+  }
+
   clusterIcon() {
     return this.self().find('.cluster-icon');
   }
@@ -23,5 +32,17 @@ export class HeaderPo extends ComponentPo {
 
   customBadge() {
     return this.self().find('.cluster-badge');
+  }
+
+  kubectlExplain() {
+    return this.self().find('[data-testid="extension-header-action-kubectl-explain.action"]');
+  }
+
+  showKubectlExplainTooltip(): Cypress.Chainable {
+    return this.kubectlExplain().trigger('mouseenter');
+  }
+
+  getKubectlExplainTooltipContent(): Cypress.Chainable {
+    return cy.get('.tooltip.vue-tooltip-theme .tooltip-inner');
   }
 }

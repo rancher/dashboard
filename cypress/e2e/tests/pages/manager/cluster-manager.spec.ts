@@ -115,7 +115,7 @@ describe('Cluster Manager', { testIsolation: 'off', tags: ['@manager', '@adminUs
             name: rke2CustomName
           },
           // Test for https://github.com/rancher/dashboard/issues/10338 (added option 'none' for CNI)
-          spec: { rkeConfig: { machineGlobalConfig: { cni: 'none' } } }
+          spec: { rkeConfig: { machineGlobalConfig: { cni: 'none' }, machinePoolDefaults: { hostnameLengthLimit: 15 } } }
         };
 
         cy.userPreferences();
@@ -155,6 +155,11 @@ describe('Cluster Manager', { testIsolation: 'off', tags: ['@manager', '@adminUs
         // banner with additional info about 'none' option should be visible
         cy.get('[data-testid="clusterBasics__noneOptionSelectedForCni"]').should('exist');
         // EO test for https://github.com/rancher/dashboard/issues/10338 (added option 'none' for CNI)
+
+        // testing https://github.com/rancher/dashboard/issues/10159
+        cy.get('[data-testid="btn-networking"]').click();
+        createRKE2ClusterPage.network().truncateHostnameCheckbox().set();
+        // EO test for https://github.com/rancher/dashboard/issues/10159
 
         createRKE2ClusterPage.create();
 
@@ -400,7 +405,7 @@ describe('Cluster Manager', { testIsolation: 'off', tags: ['@manager', '@adminUs
     });
   });
 
-  describe('Imported', () => {
+  describe('Imported', { tags: ['@jenkins', '@importedCluster'] }, () => {
     const importClusterPage = new ClusterManagerImportGenericPagePo();
 
     describe('Generic', () => {
@@ -430,8 +435,22 @@ describe('Cluster Manager', { testIsolation: 'off', tags: ['@manager', '@adminUs
             spec: {}
           });
         });
-
         detailClusterPage.waitForPage(undefined, 'registration');
+        detailClusterPage.kubectlCommandForImported().then(($value) => {
+          const kubectlCommand = $value.text();
+
+          cy.log(kubectlCommand);
+          cy.exec(kubectlCommand, { failOnNonZeroExit: false }).then((result) => {
+            cy.log(result.stderr);
+            cy.log(result.stdout);
+            expect(result.code).to.eq(0);
+          });
+        });
+        ClusterManagerListPagePo.navTo();
+        clusterList.waitForPage();
+        clusterList.list().state(importGenericName).should('contain', 'Pending');
+        clusterList.list().state(importGenericName).should('contain', 'Waiting');
+        clusterList.list().state(importGenericName).contains('Active', { timeout: 700000 });
       });
 
       it('can navigate to cluster edit page', () => {

@@ -2,6 +2,7 @@ import HomePagePo from '@/cypress/e2e/po/pages/home.po';
 import PreferencesPagePo from '@/cypress/e2e/po/pages/preferences.po';
 import ClusterManagerListPagePo from '@/cypress/e2e/po/pages/cluster-manager/cluster-manager-list.po';
 import ClusterManagerImportGenericPagePo from '@/cypress/e2e/po/edit/provisioning.cattle.io.cluster/import/cluster-import.generic.po';
+import { PARTIAL_SETTING_THRESHOLD } from '@/cypress/support/utils/settings-utils';
 
 const homePage = new HomePagePo();
 const homeClusterList = homePage.list();
@@ -9,25 +10,25 @@ const provClusterList = new ClusterManagerListPagePo('local');
 const longClusterDescription = 'this-is-some-really-really-really-really-really-really-long-decription';
 
 describe('Home Page', () => {
+  it('Confirm correct number of settings requests made', { tags: ['@generic', '@adminUser', '@standardUser'] }, () => {
+    cy.login();
+
+    cy.intercept('GET', '/v1/management.cattle.io.settings?exclude=metadata.managedFields').as('settingsReq');
+
+    homePage.goTo();
+
+    cy.wait('@settingsReq').then((interception) => {
+      expect(interception.response.body.count).greaterThan(PARTIAL_SETTING_THRESHOLD);
+    });
+    // Yes this is bad, but want to ensure no other settings requests are made.
+    cy.wait(1000); // eslint-disable-line cypress/no-unnecessary-waiting
+    cy.get('@settingsReq.all').should('have.length', 1);
+  });
+
   describe('Home Page', { testIsolation: 'off' }, () => {
     before(() => {
-      // since I wasn't able to fully mock a list of clusters
-      // the next best thing is to add a description to the current local cluster
-      // testing https://github.com/rancher/dashboard/issues/10441
-      cy.intercept('GET', `/v1/provisioning.cattle.io.clusters?*`, (req) => {
-        req.continue((res) => {
-          const localIndex = res.body.data.findIndex((item) => item.id.includes('/local'));
-
-          if (localIndex >= 0) {
-            res.body.data[localIndex].metadata.annotations['field.cattle.io/description'] = longClusterDescription;
-          }
-
-          res.send(res.body);
-        });
-      }).as('provClusters');
-
       cy.login();
-      HomePagePo.goToAndWaitForGet();
+      HomePagePo.goTo();
     });
 
     it('Can navigate to release notes page for latest Rancher version', { tags: ['@generic', '@adminUser', '@standardUser'] }, () => {
@@ -156,7 +157,7 @@ describe('Home Page', () => {
       genericCreateClusterPage.waitForPage();
     });
 
-    it('Can filter rows in the cluster list', { tags: ['@adminUser'] }, () => {
+    it('Can filter rows in the cluster list', { tags: ['@generic', '@adminUser'] }, () => {
     /**
      * Filter rows in the cluster list
      */
@@ -172,8 +173,23 @@ describe('Home Page', () => {
       });
     });
 
-    it('Should show cluster description information in the cluster list', { tags: ['@adminUser'] }, () => {
-      HomePagePo.navTo();
+    it('Should show cluster description information in the cluster list', { tags: ['@generic', '@adminUser'] }, () => {
+      // since I wasn't able to fully mock a list of clusters
+      // the next best thing is to add a description to the current local cluster
+      // testing https://github.com/rancher/dashboard/issues/10441
+      cy.intercept('GET', `/v1/provisioning.cattle.io.clusters?*`, (req) => {
+        req.continue((res) => {
+          const localIndex = res.body.data.findIndex((item) => item.id.includes('/local'));
+
+          if (localIndex >= 0) {
+            res.body.data[localIndex].metadata.annotations['field.cattle.io/description'] = longClusterDescription;
+          }
+
+          res.send(res.body);
+        });
+      }).as('provClusters');
+
+      homePage.goTo();
       const desc = homeClusterList.resourceTable().sortableTable().rowWithName('local').column(1)
         .get('.cluster-description');
 

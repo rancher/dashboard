@@ -16,7 +16,6 @@ import { filterOnlyKubernetesClusters, filterHiddenLocalCluster } from '@shell/u
 import { getProductFromRoute } from '@shell/utils/router';
 import { isRancherPrime } from '@shell/config/version';
 import Pinned from '@shell/components/nav/Pinned';
-import isObject from 'lodash/isObject';
 
 export default {
   components: {
@@ -221,7 +220,9 @@ export default {
           params: { cluster }
         };
 
-        if ( !this.$router.getMatchedComponents(to).length ) {
+        const matched = this.$router.getRoutes().filter((route) => route.name === to.name);
+
+        if ( !matched.length ) {
           to.name = 'c-cluster-product';
           to.params.product = p.name;
         }
@@ -363,8 +364,12 @@ export default {
         content = this.shown ? null : contentText;
 
       // if key combo is pressed, then we update the tooltip as well
-      } else if (this.routeCombo && isObject(item) && item.ready) {
-        contentText = 'Switch clusters and keeps location';
+      } else if (this.routeCombo &&
+        typeof item === 'object' &&
+        !Array.isArray(item) &&
+        item !== null &&
+        item.ready) {
+        contentText = this.t('nav.keyComboTooltip');
 
         if (showWhenClosed) {
           content = !this.shown ? contentText : null;
@@ -450,7 +455,7 @@ export default {
           <div>
             <!-- Home button -->
             <div @click="hide()">
-              <nuxt-link
+              <router-link
                 class="option cluster selector home"
                 :to="{ name: 'home' }"
               >
@@ -467,7 +472,7 @@ export default {
                 <div class="home-text">
                   {{ t('nav.home') }}
                 </div>
-              </nuxt-link>
+              </router-link>
             </div>
             <!-- Search bar -->
             <div
@@ -526,7 +531,7 @@ export default {
               :key="a.label"
               @click="hide()"
             >
-              <nuxt-link
+              <router-link
                 class="option"
                 :to="a.to"
                 :class="{'active-menu-link': checkActiveRoute(a) }"
@@ -536,7 +541,7 @@ export default {
                   :src="a.svg"
                 />
                 <div>{{ a.label }}</div>
-              </nuxt-link>
+              </router-link>
             </div>
           </template>
 
@@ -559,7 +564,7 @@ export default {
                 >
                   <button
                     v-if="c.ready"
-                    v-shortkey.push="{windows: ['alt', 'shift'], mac: ['option', 'shift']}"
+                    v-shortkey.push="{windows: ['alt'], mac: ['option']}"
                     :data-testid="`pinned-menu-cluster-${ c.id }`"
                     class="cluster selector option"
                     :class="{'active-menu-link': checkActiveRoute(c, true) }"
@@ -634,7 +639,7 @@ export default {
                 >
                   <button
                     v-if="c.ready"
-                    v-shortkey.push="{windows: ['alt', 'shift'], mac: ['option', 'shift']}"
+                    v-shortkey.push="{windows: ['alt'], mac: ['option']}"
                     :data-testid="`menu-cluster-${ c.id }`"
                     class="cluster selector option"
                     :class="{'active-menu-link': checkActiveRoute(c, true) }"
@@ -706,7 +711,7 @@ export default {
             </div>
 
             <!-- See all clusters -->
-            <nuxt-link
+            <router-link
               v-if="clusters.length > maxClustersToShow"
               class="clusters-all"
               :to="{name: 'c-cluster-product-resource', params: {
@@ -719,7 +724,7 @@ export default {
                 {{ shown ? t('nav.seeAllClusters') : t('nav.seeAllClustersCollapsed') }}
                 <i class="icon icon-chevron-right" />
               </span>
-            </nuxt-link>
+            </router-link>
           </template>
 
           <div class="category">
@@ -737,7 +742,7 @@ export default {
                 :key="a.label"
                 @click="hide()"
               >
-                <nuxt-link
+                <router-link
                   class="option"
                   :class="{'active-menu-link': checkActiveRoute(a) }"
                   :to="a.to"
@@ -748,7 +753,7 @@ export default {
                     :src="a.svg"
                   />
                   <span class="option-link">{{ a.label }}</span>
-                </nuxt-link>
+                </router-link>
               </div>
             </template>
             <template v-if="legacyEnabled">
@@ -765,7 +770,7 @@ export default {
                 :key="a.label"
                 @click="hide()"
               >
-                <nuxt-link
+                <router-link
                   class="option"
                   :class="{'active-menu-link': checkActiveRoute(a) }"
                   :to="a.to"
@@ -776,7 +781,7 @@ export default {
                     :src="a.svg"
                   />
                   <div>{{ a.label }}</div>
-                </nuxt-link>
+                </router-link>
               </div>
             </template>
 
@@ -795,7 +800,7 @@ export default {
                 :key="a.label"
                 @click="hide()"
               >
-                <nuxt-link
+                <router-link
                   class="option"
                   :class="{'active-menu-link': checkActiveRoute(a) }"
                   :to="a.to"
@@ -806,7 +811,7 @@ export default {
                     :src="a.svg"
                   />
                   <div>{{ a.label }}</div>
-                </nuxt-link>
+                </router-link>
               </div>
             </template>
           </div>
@@ -821,21 +826,21 @@ export default {
             class="support"
             @click="hide()"
           >
-            <nuxt-link
+            <router-link
               :to="{name: 'support'}"
             >
               {{ t('nav.support', {hasSupport}) }}
-            </nuxt-link>
+            </router-link>
           </div>
           <div
             class="version"
             @click="hide()"
           >
-            <nuxt-link
+            <router-link
               :to="{ name: 'about' }"
             >
               {{ t('about.title') }}
-            </nuxt-link>
+            </router-link>
           </div>
         </div>
       </div>
@@ -999,17 +1004,21 @@ export default {
           }
         }
 
-        .cluster-name p {
-          width: 195px;
-          white-space: nowrap;
-          overflow: hidden;
-          text-overflow: ellipsis;
-          text-align: left;
+        .cluster-name {
+          line-height: normal;
 
-          &.description {
-            font-size: 12px;
-            padding-right: 8px;
-            color: var(--darker);
+          & > p {
+            width: 195px;
+            white-space: nowrap;
+            overflow: hidden;
+            text-overflow: ellipsis;
+            text-align: left;
+
+            &.description {
+              font-size: 12px;
+              padding-right: 8px;
+              color: var(--darker);
+            }
           }
         }
 

@@ -366,7 +366,6 @@ authConfig:
     unrestricted: 允许所有用户访问
   allowedPrincipalIds:
     title: 授权的用户和用户组
-  associatedWarning: '注意：你认证的 {provider} 用户将作为你当前登录的 {vendor} 用户（<code>{username}</code>）的替代登录方式。此 {vendor} 用户的所有全局权限、项目和集群角色绑定也将应用到 {provider} 用户。'
   github:
     clientId:
       label: 客户端 ID
@@ -7328,17 +7327,6 @@ support:
 embedding:
   retry: 重试
   unavailable: Cluster Manager UI 不可用
-
-v1ClusterTools:
-  monitoring:
-    label: Monitoring（旧版）
-    description: '旧版 Monitoring V1。自 Rancher 2.5.0 起，我们已弃用 Monitoring V1。了解<a target="blank" href="{docsBase}/monitoring-alerting/guides/migrating/">迁移到 Monitoring V2 的步骤</a>。'
-  logging:
-    label: Logging（旧版）
-    description: '旧版 Logging V1。自 Rancher 2.5.0 起，我们已弃用 Logging V1。了解<a target="blank" href="{docsBase}/logging/migrating/">迁移到 Logging V2 的步骤</a>。'
-  istio:
-    label: Istio（旧版）
-    description: '旧版 Istio V1。自 Rancher 2.5.0 起，我们已弃用 Istio V1.5。了解<a target="blank" href="{docsBase}/istio/#migrate-from-previous-istio-version">迁移到最新版本</a> 的更多信息。'
 
 legacy:
   alerts: 告警

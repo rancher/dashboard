@@ -2,12 +2,12 @@ import HomePagePo from '@/cypress/e2e/po/pages/home.po';
 import BurgerMenuPo from '@/cypress/e2e/po/side-bars/burger-side-menu.po';
 import PagePo from '@/cypress/e2e/po/pages/page.po';
 import ProductNavPo from '@/cypress/e2e/po/side-bars/product-side-nav.po';
-import { generateFakeNavClusterData } from '@/cypress/e2e/blueprints/nav/fake-cluster';
+import ClusterManagerListPagePo from '@/cypress/e2e/po/pages/cluster-manager/cluster-manager-list.po';
+import { generateFakeClusterDataAndIntercepts } from '@/cypress/e2e/blueprints/nav/fake-cluster';
 
 const longClusterDescription = 'this-is-some-really-really-really-really-really-really-long-decription';
 const fakeProvClusterId = 'some-fake-cluster-id';
 const fakeMgmtClusterId = 'some-fake-mgmt-id';
-const fakeNavClusterData = generateFakeNavClusterData(fakeProvClusterId, fakeMgmtClusterId);
 
 Cypress.config();
 describe('Side Menu: main', () => {
@@ -17,61 +17,7 @@ describe('Side Menu: main', () => {
 
   describe('Needs intercepts BEFORE route navigation', () => {
     beforeEach(() => {
-      // add description to local cluster for testing https://github.com/rancher/dashboard/issues/10441
-      // add extra cluster to the nav list to test https://github.com/rancher/dashboard/issues/10452
-      cy.intercept('GET', `/v1/provisioning.cattle.io.clusters?*`, (req) => {
-        req.continue((res) => {
-          const localIndex = res.body.data.findIndex((item) => item.id.includes('/local'));
-
-          if (localIndex >= 0) {
-            const localCluster = res.body.data[localIndex];
-
-            localCluster.metadata.annotations['field.cattle.io/description'] = longClusterDescription;
-          }
-
-          res.body.data.unshift(fakeNavClusterData.provClusterObj);
-
-          res.send(res.body);
-        });
-      }).as('provClusters');
-
-      // add extra cluster to the nav list to test https://github.com/rancher/dashboard/issues/10452
-      cy.intercept('GET', `/v1/management.cattle.io.clusters?*`, (req) => {
-        req.continue((res) => {
-          res.body.data.unshift(fakeNavClusterData.mgmtClusterObj);
-          res.send(res.body);
-        });
-      }).as('mgmtClusters');
-
-      // intercept schemas check for enabling cluster explorer for fake cluster https://github.com/rancher/dashboard/issues/10452
-      cy.intercept('GET', `/k8s/clusters/${ fakeMgmtClusterId }/v1/schemas?*`, (req) => {
-        req.reply({
-          statusCode: 200,
-          body:       {
-            data: [
-              fakeNavClusterData.fakeNodeSchema,
-              fakeNavClusterData.fakeCountSchema,
-              fakeNavClusterData.fakeNamespaceSchema
-            ]
-          },
-        });
-      }).as('clusterSchemas');
-
-      // intercept counts for fake cluster https://github.com/rancher/dashboard/issues/10452
-      cy.intercept('GET', `/k8s/clusters/${ fakeMgmtClusterId }/v1/counts?*`, (req) => {
-        req.reply({
-          statusCode: 200,
-          body:       { data: fakeNavClusterData.fakeCountsReply },
-        });
-      }).as('clusterCounts');
-
-      // intercept namespaces for fake cluster https://github.com/rancher/dashboard/issues/10452
-      cy.intercept('GET', `/k8s/clusters/${ fakeMgmtClusterId }/v1/namespaces?*`, (req) => {
-        req.reply({
-          statusCode: 200,
-          body:       { data: fakeNavClusterData.fakeNamespacesReply },
-        });
-      }).as('clusterNamespaces');
+      generateFakeClusterDataAndIntercepts(fakeProvClusterId, fakeMgmtClusterId);
 
       HomePagePo.goTo();
     });
@@ -85,7 +31,7 @@ describe('Side Menu: main', () => {
       sideNav.navToSideMenuEntryByLabel('Projects/Namespaces');
 
       // press key combo
-      cy.get('body').focus().type('{shift}{alt}', { release: false });
+      cy.get('body').focus().type('{alt}', { release: false });
 
       // assert that icons are displayed for the key combo
       BurgerMenuPo.burguerMenuNavClusterKeyComboIconCheck(0);
@@ -97,6 +43,30 @@ describe('Side Menu: main', () => {
       // assert that we are on the expected page
       cy.url().should('include', '/local');
       cy.url().should('include', '/projectsnamespaces');
+    });
+
+    // testing https://github.com/rancher/dashboard/issues/10192
+    it('"documentation" link in editing a cluster should open in a new tab', { tags: ['@navigation', '@adminUser'] }, () => {
+      const page = new PagePo('');
+      const clusterList = new ClusterManagerListPagePo('_');
+
+      page.navToMenuEntry('Cluster Management');
+      clusterList.waitForPage();
+
+      clusterList.list().actionMenu(fakeProvClusterId).getMenuItem('Edit Config').click();
+
+      // since in Cypress we cannot assert directly a link on a new tab
+      // next best thing is to assert that the link has _blank
+      // change it to _seft, then assert the link of the new page
+      cy.get('[data-testid="edit-cluster-reprovisioning-documentation"] a').should('be.visible')
+        .then(($a) => {
+          expect($a).to.have.attr('target', '_blank');
+          // update attr to open in same tab
+          $a.attr('target', '_self');
+        })
+        .click();
+
+      cy.url().should('include', 'https://ranchermanager.docs.rancher.com/v2.8/how-to-guides/new-user-guides/launch-kubernetes-with-rancher/rke1-vs-rke2-differences#cluster-api');
     });
 
     it('Local cluster should show a description on the side menu and display a tooltip when hovering it show the full description', { tags: ['@navigation', '@adminUser'] }, () => {
@@ -166,6 +136,13 @@ describe('Side Menu: main', () => {
             cy.location('href').should('exist');
           });
       });
+    });
+
+    it('Check first item in global section is Cluster Management', { tags: ['@navigation', '@adminUser', '@standardUser'] }, () => {
+      HomePagePo.goTo();
+      BurgerMenuPo.categoryByLabel('Global Apps').parent().parent().get('.option-link')
+        .first()
+        .should('contain.text', 'Cluster Management');
     });
   });
 });

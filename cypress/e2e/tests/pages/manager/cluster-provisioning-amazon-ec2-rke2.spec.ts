@@ -6,7 +6,7 @@ import PromptRemove from '@/cypress/e2e/po/prompts/promptRemove.po';
 import LoadingPo from '@/cypress/e2e/po/components/loading.po';
 
 // will only run this in jenkins pipeline where cloud credentials are stored
-describe('Provision Node driver RKE2 cluster', { testIsolation: 'off', tags: ['@manager', '@adminUser', '@jenkins'] }, () => {
+describe('Provision Node driver RKE2 cluster', { testIsolation: 'off', tags: ['@manager', '@adminUser', '@standardUser', '@jenkins'] }, () => {
   const clusterList = new ClusterManagerListPagePo();
   let removeCloudCred = false;
   let cloudcredentialId = '';
@@ -15,18 +15,20 @@ describe('Provision Node driver RKE2 cluster', { testIsolation: 'off', tags: ['@
     cy.login();
     HomePagePo.goTo();
 
-    // clean up cloud credentials
+    // clean up amazon cloud credentials
     cy.getRancherResource('v3', 'cloudcredentials', null, null).then((resp: Cypress.Response<any>) => {
       const body = resp.body;
 
       if (body.pagination['total'] > 0) {
-        for (const i in body.data) {
-          const id = body.data[i]['id'];
+        body.data.forEach((item: any) => {
+          if (item.amazonec2credentialConfig) {
+            const id = item.id;
 
-          cy.deleteRancherResource('v3', 'cloudcredentials', id);
-        }
-      } else {
-        cy.log('There are no existing cloud credentials to delete');
+            cy.deleteRancherResource('v3', 'cloudcredentials', id);
+          } else {
+            cy.log('There are no existing amazon cloud credentials to delete');
+          }
+        });
       }
     });
   });
@@ -76,8 +78,10 @@ describe('Provision Node driver RKE2 cluster', { testIsolation: 'off', tags: ['@
     createRKE2ClusterPage.basicsTab().kubernetesVersions().toggle();
     createRKE2ClusterPage.basicsTab().kubernetesVersions().getOptions().each((el, index) => {
       cy.wrap(el.text().trim()).as(`k8sVersion${ index }`);
-    });
-    createRKE2ClusterPage.basicsTab().kubernetesVersions().clickOption(1);
+    })
+      .then(function() {
+        createRKE2ClusterPage.basicsTab().kubernetesVersions().clickOptionWithLabel(this.k8sVersion1);
+      });
 
     createRKE2ClusterPage.machinePoolTab().networks().toggle();
     createRKE2ClusterPage.machinePoolTab().networks().clickOptionWithLabel('maxdualstack-vpc');

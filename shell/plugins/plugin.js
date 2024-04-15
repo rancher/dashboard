@@ -68,7 +68,7 @@ export default async function(context) {
       const res = pluginLoads[name];
 
       if (res?.status === 'rejected') {
-        console.error(`Failed to load plugin: ${ name }`); // eslint-disable-line no-console
+        console.error(`Failed to load plugin: ${ name }. `, res.reason || 'Unknown reason'); // eslint-disable-line no-console
 
         // Record error in the uiplugins store, so that we can show this to the user
         context.store.dispatch('uiplugins/setError', { name, error: 'plugins.error.load' });

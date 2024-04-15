@@ -28,6 +28,7 @@ const createCache = (props: any) => ({
   generation:    0,
   haveAll:       false,
   haveNamespace: undefined,
+  havePage:      undefined,
   haveSelector:  {},
   list:          [],
   loadCounter:   0,

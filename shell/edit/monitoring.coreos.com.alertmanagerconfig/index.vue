@@ -226,7 +226,7 @@ export default {
           @clickedActionButton="setActionMenuState"
         >
           <template #header-button>
-            <nuxt-link
+            <router-link
               v-if="createReceiverLink && createReceiverLink.name"
               :to="mode !== create ? createReceiverLink : {}"
             >
@@ -234,6 +234,7 @@ export default {
                 class="btn role-primary"
                 :disabled="mode === create"
                 :tooltip="t('monitoring.alertmanagerConfig.disabledReceiverButton')"
+                data-testid="v2-monitoring-add-receiver"
               >
                 {{ t('monitoring.receiver.addReceiver') }}
                 <i
@@ -242,7 +243,7 @@ export default {
                   class="icon icon-info"
                 />
               </button>
-            </nuxt-link>
+            </router-link>
           </template>
         </ResourceTable>
       </Tab>

@@ -17,7 +17,7 @@ describe('Charts', { tags: ['@charts', '@adminUser'] }, () => {
   describe('Monitoring', () => {
     // Ideally we should not specify this, older versions can disappear / have issues.
     // However it seems the latest can also have issues (like no matching CRD chart)
-    const monitoringVersion = '103.0.2%2Bup45.31.1';
+    const monitoringVersion = '103.0.3%2Bup45.31.1';
     const chartsMonitoringPage = `${ chartsPageUrl }&chart=rancher-monitoring&version=${ monitoringVersion }`;
 
     const chartsPage: ChartsPage = new ChartsPage(chartsMonitoringPage);

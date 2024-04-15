@@ -64,8 +64,7 @@ export default {
 
   computed: {
     ...mapGetters(['clusterReady', 'isExplorer', 'isRancher', 'currentCluster',
-      'currentProduct', 'backToRancherLink', 'backToRancherGlobalLink', 'pageActions', 'isSingleProduct', 'isRancherInHarvester', 'showTopLevelMenu']),
-    ...mapGetters('type-map', ['activeProducts']),
+      'currentProduct', 'rootProduct', 'backToRancherLink', 'backToRancherGlobalLink', 'pageActions', 'isSingleProduct', 'isRancherInHarvester', 'showTopLevelMenu']),
 
     appName() {
       return getProduct();
@@ -96,15 +95,15 @@ export default {
     },
 
     showKubeShell() {
-      return !this.currentProduct?.hideKubeShell;
+      return !this.rootProduct?.hideKubeShell;
     },
 
     showKubeConfig() {
-      return !this.currentProduct?.hideKubeConfig;
+      return !this.rootProduct?.hideKubeConfig;
     },
 
     showCopyConfig() {
-      return !this.currentProduct?.hideCopyConfig;
+      return !this.rootProduct?.hideCopyConfig;
     },
 
     showPreferencesLink() {
@@ -148,17 +147,17 @@ export default {
     },
 
     prod() {
-      const name = this.currentProduct.name;
+      const name = this.rootProduct.name;
 
       return this.$store.getters['i18n/withFallback'](`product."${ name }"`, null, ucFirst(name));
     },
 
     showSearch() {
-      return this.currentProduct?.inStore === 'cluster';
+      return this.rootProduct?.inStore === 'cluster';
     },
 
     showImportYaml() {
-      return this.currentProduct?.inStore !== 'harvester';
+      return this.rootProduct?.inStore !== 'harvester';
     },
 
     nameTooltip() {
@@ -355,7 +354,7 @@ export default {
       class="menu-spacer"
       :class="{'isSingleProduct': isSingleProduct }"
     >
-      <n-link
+      <router-link
         v-if="isSingleProduct && !isRancherInHarvester"
         :to="singleProductLogoRoute"
       >
@@ -363,7 +362,7 @@ export default {
           class="side-menu-logo"
           :src="isSingleProduct.logo"
         >
-      </n-link>
+      </router-link>
     </div>
     <div
       v-if="!simple"
@@ -471,6 +470,7 @@ export default {
             :disabled="!importEnabled"
             type="button"
             class="btn header-btn role-tertiary"
+            data-testid="header-action-import-yaml"
             @click="openImport()"
           >
             <i class="icon icon-upload icon-lg" />
@@ -570,6 +570,7 @@ export default {
           :disabled="action.enabled ? !action.enabled(ctx) : false"
           type="button"
           class="btn header-btn role-tertiary"
+          :data-testid="`extension-header-action-${ action.labelKey || action.label }`"
           @shortkey="handleExtensionAction(action, $event)"
           @click="handleExtensionAction(action, $event)"
         >
@@ -687,30 +688,30 @@ export default {
                   </template>
                 </div>
               </li>
-              <nuxt-link
+              <router-link
                 v-if="showPreferencesLink"
                 tag="li"
                 :to="{name: 'prefs'}"
                 class="user-menu-item"
               >
                 <a>{{ t('nav.userMenu.preferences') }}</a>
-              </nuxt-link>
-              <nuxt-link
+              </router-link>
+              <router-link
                 v-if="showAccountAndApiKeyLink"
                 tag="li"
                 :to="{name: 'account'}"
                 class="user-menu-item"
               >
                 <a>{{ t('nav.userMenu.accountAndKeys', {}, true) }}</a>
-              </nuxt-link>
-              <nuxt-link
+              </router-link>
+              <router-link
                 v-if="authEnabled"
                 tag="li"
                 :to="generateLogoutRoute"
                 class="user-menu-item"
               >
                 <a @blur="showMenu(false)">{{ t('nav.userMenu.logOut') }}</a>
-              </nuxt-link>
+              </router-link>
             </ul>
           </template>
         </v-popover>

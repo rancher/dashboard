@@ -181,6 +181,7 @@ export default {
      */
     featuredCharts() {
       const filteredCharts = this.filterCharts({});
+
       const featuredCharts = filteredCharts.filter((value) => value.featured).sort((a, b) => a.featured - b.featured);
 
       return featuredCharts.slice(0, 5);
@@ -388,6 +389,7 @@ export default {
       <h3>{{ t('catalog.charts.featuredCharts') }}</h3>
       <Carousel
         :sliders="featuredCharts"
+        data-testid="charts-carousel"
         @clicked="(row) => selectChart(row)"
       />
     </div>
@@ -400,6 +402,7 @@ export default {
         :value="flattenedRepoNames"
         class="checkbox-select"
         :close-on-select="false"
+        data-testid="charts-filter-repos"
         @option:selecting="$event.all ? toggleAll(!$event.enabled) : toggleRepo($event, !$event.enabled) "
       >
         <template #selected-option="selected">
@@ -433,6 +436,7 @@ export default {
         label="label"
         style="min-width: 200px;"
         :reduce="opt => opt.value"
+        data-testid="charts-filter-category"
       >
         <template #option="opt">
           {{ opt.label }} ({{ opt.count }})
@@ -446,6 +450,7 @@ export default {
           type="search"
           class="input-sm"
           :placeholder="t('catalog.charts.search')"
+          data-testid="charts-filter-input"
         >
 
         <button

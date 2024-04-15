@@ -3,12 +3,12 @@ import Loading from '@shell/components/Loading';
 import CreateEditView from '@shell/mixins/create-edit-view';
 import CruResource from '@shell/components/CruResource';
 import { LabeledInput } from '@components/Form/LabeledInput';
-import { Banner } from '@components/Banner';
 import AllowedPrincipals from '@shell/components/auth/AllowedPrincipals';
 import config from '@shell/edit/auth/ldap/config';
 import AuthConfig from '@shell/mixins/auth-config';
 import AuthBanner from '@shell/components/auth/AuthBanner';
 import Password from '@shell/components/form/Password';
+import AuthProviderWarningBanners from '@shell/edit/auth/AuthProviderWarningBanners';
 
 const AUTH_TYPE = 'ldap';
 
@@ -17,11 +17,11 @@ export default {
     Loading,
     CruResource,
     LabeledInput,
-    Banner,
     AllowedPrincipals,
     config,
     AuthBanner,
-    Password
+    Password,
+    AuthProviderWarningBanners
   },
 
   mixins: [CreateEditView, AuthConfig],
@@ -109,10 +109,9 @@ export default {
       </template>
 
       <template v-else>
-        <Banner
+        <AuthProviderWarningBanners
           v-if="!model.enabled"
-          :label="t('authConfig.stateBanner.disabled', tArgs)"
-          color="warning"
+          :t-args="tArgs"
         />
 
         <h3>{{ t(`authConfig.ldap.${NAME}`) }}</h3>
@@ -142,17 +141,6 @@ export default {
           </div>
         </div>
       </template>
-      <div
-        v-if="!model.enabled"
-        class="row"
-      >
-        <div class="col span-12">
-          <Banner
-            v-clean-html="t('authConfig.associatedWarning', tArgs, true)"
-            color="info"
-          />
-        </div>
-      </div>
     </CruResource>
   </div>
 </template>

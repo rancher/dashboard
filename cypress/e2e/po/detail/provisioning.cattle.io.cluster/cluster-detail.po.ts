@@ -21,6 +21,10 @@ export default abstract class ClusterManagerDetailPagePo extends PagePo {
     return this.self().find('.primaryheader h1');
   }
 
+  kubectlCommandForImported() {
+    return this.self().get('code').contains('--insecure');
+  }
+
   machinePoolsList() {
     return new MachinePoolsListPo(this.self().find('[data-testid="sortable-table-list-container"]'));
   }

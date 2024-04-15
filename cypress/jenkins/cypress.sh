@@ -7,6 +7,9 @@ pwd
 ls -al
 cd "dashboard"
 
+kubectl version --client=true
+kubectl get nodes
+
 node -v
 yarn add --dev -W mocha mochawesome mochawesome-merge \
   mochawesome-report-generator cypress-multi-reporters \

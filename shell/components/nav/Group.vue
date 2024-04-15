@@ -212,13 +212,13 @@ export default {
       @click="groupSelected()"
     >
       <slot name="header">
-        <n-link
+        <router-link
           v-if="hasOverview"
           :to="group.children[0].route"
           :exact="group.children[0].exact"
         >
           <h6 v-clean-html="group.labelDisplay || group.label" />
-        </n-link>
+        </router-link>
         <h6
           v-else
           v-clean-html="group.labelDisplay || group.label"

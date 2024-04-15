@@ -1,6 +1,5 @@
 import { setFavIcon, haveSetFavIcon } from '@shell/utils/favicon';
-import { MANAGEMENT } from '@shell/config/types';
-import { _ALL_IF_AUTHED } from '@shell/plugins/dashboard-store/actions';
+import { fetchInitialSettings } from '@shell/utils/settings';
 
 export default async function({ store }) {
   if (haveSetFavIcon()) {
@@ -9,14 +8,11 @@ export default async function({ store }) {
 
   try {
     // Load settings, which will either be just the public ones if not logged in, or all if you are
-    await store.dispatch('management/findAll', {
-      type: MANAGEMENT.SETTING,
-      opt:  {
-        load: _ALL_IF_AUTHED, url: `/v1/${ MANAGEMENT.SETTING }`, redirectUnauthorized: false
-      }
-    });
-
-    // Set the favicon - use custom one from store if set
-    setFavIcon(store);
+    fetchInitialSettings(store)
+      // Don't block everything on fetching settings, just update when they come in
+      .then(() => {
+        // Set the favicon - use custom one from store if set
+        setFavIcon(store);
+      });
   } catch (e) {}
 }

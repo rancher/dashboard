@@ -245,7 +245,8 @@ export const state = () => {
     systemNamespaces:        [],
     isSingleProduct:         undefined,
     isRancherInHarvester:    false,
-    targetRoute:             null
+    targetRoute:             null,
+    rootProduct:             undefined,
   };
 };
 
@@ -308,6 +309,13 @@ export const getters = {
     return out;
   },
 
+  // Get the root product - this is either the current product or the current product's root (if set)
+  // Used for navigation and other areas that don't want to re-evaluate when the product changes, but is still within
+  // a common root product
+  rootProduct(state) {
+    return state.rootProduct;
+  },
+
   getStoreNameByProductId(state) {
     const products = state['type-map']?.products;
 
@@ -331,13 +339,9 @@ export const getters = {
   },
 
   isExplorer(state, getters) {
-    const product = getters.currentProduct;
+    const product = getters.rootProduct;
 
-    if ( !product ) {
-      return false;
-    }
-
-    return product.name === EXPLORER || product.inStore === 'cluster';
+    return product?.name === EXPLORER;
   },
 
   defaultClusterId(state, getters) {
@@ -662,8 +666,20 @@ export const mutations = {
     state.clusterId = neu;
   },
 
-  setProduct(state, neu) {
-    state.productId = neu;
+  setProduct(state, value) {
+    state.productId = value;
+
+    // Update rootProduct ONLY if the root product has changed as a result of the product change
+    const newProduct = this.getters['type-map/productByName'](value);
+    let newRootProduct = newProduct;
+
+    if (newProduct?.rootProduct) {
+      newRootProduct = this.getters['type-map/productByName'](newProduct.rootProduct) || newProduct;
+    }
+
+    if (newRootProduct?.name !== state.rootProduct?.name) {
+      state.rootProduct = newRootProduct;
+    }
   },
 
   setError(state, { error: obj, locationError }) {
@@ -810,6 +826,9 @@ export const actions = {
     console.log(`Done loading management; isRancher=${ isRancher }; isMultiCluster=${ isMultiCluster }`); // eslint-disable-line no-console
   },
 
+  // Note:
+  // - state.clusterId is the old cluster id (or undefined)
+  // - id is the new cluster id (or undefined)
   async loadCluster({
     state, commit, dispatch, getters
   }, {
@@ -821,11 +840,15 @@ export const actions = {
     const sameProduct = oldProduct === product;
     const isMultiCluster = getters['isMultiCluster'];
 
-    // Are we in the same cluster and package or product?
-    if ( sameCluster && (samePackage || sameProduct)) {
+    const productConfig = state['type-map']?.products?.find((p) => p.name === product);
+    const oldProductConfig = state['type-map']?.products?.find((p) => p.name === oldProduct);
+
+    // Are we in the same cluster and package or product or root product?
+    if (sameCluster && (samePackage || sameProduct || (productConfig?.rootProduct === oldProductConfig?.rootProduct))) {
       // Do nothing, we're already connected/connecting to this cluster
       return;
     }
+
     const oldPkgClusterStore = oldPkg?.stores.find(
       (s) => getters[`${ s.storeName }/isClusterStore`]
     )?.storeName;
@@ -834,8 +857,11 @@ export const actions = {
       (s) => getters[`${ s.storeName }/isClusterStore`]
     )?.storeName;
 
-    const productConfig = state['type-map']?.products?.find((p) => p.name === product);
-    const forgetCurrentCluster = ((state.clusterId && id) || !samePackage) && !productConfig?.inExplorer;
+    // Forget the cluster if we had a cluster and we have a new cluster OR if the store changed between the old and new products OR if the pkg store changed
+    // Package stores are only there for UI Extensions that have their own stores (normal case is this is undefined)
+    const forgetCurrentCluster = ((state.clusterId && id) ||
+      (productConfig?.inStore && productConfig.inStore !== oldProductConfig?.inStore)) ||
+      (oldPkgClusterStore !== newPkgClusterStore);
 
     // Should we leave/forget the current cluster? Only if we're going from an existing cluster to a new cluster, or the package has changed
     // (latter catches cases like nav from explorer cluster A to epinio cluster A)

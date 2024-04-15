@@ -20,9 +20,9 @@ export default {
 
 <template>
   <span>
-    <nuxt-link :to="row.detailLocation">
+    <router-link :to="row.detailLocation">
       {{ value }}
-    </nuxt-link>
+    </router-link>
     <br>
     <span class="text-small text-muted">
       {{ row.imageDisplay }}
