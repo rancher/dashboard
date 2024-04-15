@@ -164,7 +164,7 @@ export default {
 
     // Nav links are only available for explorer (via the cluster store)
     allNavLinks() {
-      const isExplorer = this.rootProduct === 'explorer';
+      const isExplorer = this.rootProduct === EXPLORER;
 
       if (!isExplorer || !this.clusterId || !this.$store.getters['cluster/schemaFor'](UI.NAV_LINK, false, false)) {
         return [];

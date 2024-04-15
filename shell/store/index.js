@@ -293,7 +293,7 @@ export const getters = {
     return getters['management/byId'](MANAGEMENT.CLUSTER, state.clusterId);
   },
 
-  // Current product checks that the current product is active, if it is not, if
+  // Current product checks that the current product is active, if it is not, it
   // falls back to the explorer product and then the first active product.
   currentProduct(state, getters) {
     let product = state.productId || EXPLORER;

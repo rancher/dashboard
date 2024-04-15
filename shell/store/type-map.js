@@ -1431,7 +1431,7 @@ export const getters = {
 
   activeRootProducts(state, getters, rootState, rootGetters) {
     if (state.schemaGeneration < 0) {
-      // This does nothing, but makes activeProducts depend on schemaGeneration
+      // This does nothing, but makes activeRootProducts depend on schemaGeneration
       // so that it can be used to update the product list on schema change.
       return;
     }
