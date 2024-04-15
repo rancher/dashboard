@@ -46,8 +46,9 @@ describe('Charts', { tags: ['@adminUser'] }, () => {
         // Verify that changing tabs doesn't change the selected storage class option
         chartsPage.editYaml();
         const tabbedOptions = new TabbedPo();
+
         chartsPage.editOptions(tabbedOptions, '[data-testid="button-group-child-0"]');
-        
+
         select.checkExists();
         select.checkOptionSelected('test-default-storage-class');
       });
