@@ -1,5 +1,6 @@
+/* eslint-disable no-console */
 import { escapeHtml } from '../utils/string';
-import { watchEffect, ref, h } from 'vue';
+import Vue, { watchEffect, ref, h } from 'vue';
 import { useStore } from '../composables/useStore';
 
 function stringFor(store, key, args, raw = false, escapehtml = true) {
@@ -54,8 +55,13 @@ export function directiveSsr(vnode, binding) {
   }
 }
 
-export default {
+const i18n = {
   install: (Vue, _options) => {
+    if (Vue.prototype.t && Vue.directive('t') && Vue.component('t')) {
+      // eslint-disable-next-line no-console
+      console.debug('Skipping i18n install. Directive, component, and option already exist.');
+    }
+
     Vue.prototype.t = function(key, args, raw) {
       return stringFor(this.$store, key, args, raw);
     };
@@ -120,3 +126,9 @@ export default {
     });
   }
 };
+
+export default i18n;
+
+console.warn('The implicit addition of i18n options has been deprecated in Rancher Shell and will be removed in a future version. Make sure to invoke `Vue.use(i18n)` to maintain compatibility.');
+
+Vue.use(i18n);
