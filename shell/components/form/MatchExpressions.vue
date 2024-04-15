@@ -71,19 +71,19 @@ export default {
     const t = this.$store.getters['i18n/t'];
 
     const podOptions = [
-      { label: t('workload.scheduling.affinity.matchExpressions.in'), value: 'In' },
-      { label: t('workload.scheduling.affinity.matchExpressions.notIn'), value: 'NotIn' },
-      { label: t('workload.scheduling.affinity.matchExpressions.exists'), value: 'Exists' },
-      { label: t('workload.scheduling.affinity.matchExpressions.doesNotExist'), value: 'DoesNotExist' },
+      { label: this.t('workload.scheduling.affinity.matchExpressions.in'), value: 'In' },
+      { label: this.t('workload.scheduling.affinity.matchExpressions.notIn'), value: 'NotIn' },
+      { label: this.t('workload.scheduling.affinity.matchExpressions.exists'), value: 'Exists' },
+      { label: this.t('workload.scheduling.affinity.matchExpressions.doesNotExist'), value: 'DoesNotExist' },
     ];
 
     const nodeOptions = [
-      { label: t('workload.scheduling.affinity.matchExpressions.in'), value: 'In' },
-      { label: t('workload.scheduling.affinity.matchExpressions.notIn'), value: 'NotIn' },
-      { label: t('workload.scheduling.affinity.matchExpressions.exists'), value: 'Exists' },
-      { label: t('workload.scheduling.affinity.matchExpressions.doesNotExist'), value: 'DoesNotExist' },
-      { label: t('workload.scheduling.affinity.matchExpressions.lessThan'), value: 'Lt' },
-      { label: t('workload.scheduling.affinity.matchExpressions.greaterThan'), value: 'Gt' },
+      { label: this.t('workload.scheduling.affinity.matchExpressions.in'), value: 'In' },
+      { label: this.t('workload.scheduling.affinity.matchExpressions.notIn'), value: 'NotIn' },
+      { label: this.t('workload.scheduling.affinity.matchExpressions.exists'), value: 'Exists' },
+      { label: this.t('workload.scheduling.affinity.matchExpressions.doesNotExist'), value: 'DoesNotExist' },
+      { label: this.t('workload.scheduling.affinity.matchExpressions.lessThan'), value: 'Lt' },
+      { label: this.t('workload.scheduling.affinity.matchExpressions.greaterThan'), value: 'Gt' },
     ];
 
     const ops = this.type === NODE ? nodeOptions : podOptions;
