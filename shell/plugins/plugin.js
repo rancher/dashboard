@@ -71,7 +71,7 @@ export default async function(context) {
         console.error(`Failed to load plugin: ${ name }. `, res.reason || 'Unknown reason'); // eslint-disable-line no-console
 
         // Record error in the uiplugins store, so that we can show this to the user
-        context.store.dispatch('uiplugins/setError', { name, error: 'plugins.error.load' });  // i18n-uses plugins.error.load
+        context.store.dispatch('uiplugins/setError', { name, error: 'plugins.error.load' }); // i18n-uses plugins.error.load
       }
     });
   }

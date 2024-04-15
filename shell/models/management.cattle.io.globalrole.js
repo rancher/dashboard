@@ -47,7 +47,7 @@ export default class GlobalRole extends SteveDescriptionModel {
   get descriptionDisplay() {
     return this.description ||
     this.metadata?.annotations?.[DESCRIPTION] ||
-    // i18n-uses rbac.globalRoles.role.*.description    
+    // i18n-uses rbac.globalRoles.role.*.description
     this.$rootGetters['i18n/withFallback'](`rbac.globalRoles.role.${ this.id }.description`, this.t(`rbac.globalRoles.unknownRole.description`));
   }
 
