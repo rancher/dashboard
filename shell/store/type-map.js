@@ -644,7 +644,7 @@ export const getters = {
           continue;
         } else if ( mode === TYPE_MODES.USED && count <= 0 ) {
           // If there's none of this type, ignore this entry when viewing only in-use types
-          // Note: count is sometimes null, which is <= 0.
+          // Note: count is sometimes null, in js `null <= 0` is `true`.
           continue;
         }
 

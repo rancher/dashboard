@@ -146,7 +146,7 @@ const getReadOnlyActiveNamespaces = (namespaces, activeNamespaces) => {
 };
 
 /**
- * Collect all the namespaces grouped by category, project or single pick
+ * Collect all the namespaces for the current cluster grouped by category, project or single pick
  * @returns Record<string, true>
  */
 const getActiveNamespaces = (state, getters, readonly = false) => {
@@ -401,6 +401,9 @@ export const getters = {
     return !filters[0].startsWith(NAMESPACE_FILTER_NS_FULL_PREFIX);
   },
 
+  /**
+   * Namespace/Project filter for the current cluster
+   */
   namespaceFilters(state) {
     const filters = state.namespaceFilters.filter((x) => !!x && !`${ x }`.startsWith(NAMESPACED_PREFIX));
 
@@ -453,6 +456,9 @@ export const getters = {
     return state.namespaceFilters;
   },
 
+  /**
+   * All namespaces in the current cluster
+   */
   allNamespaces(state) {
     return state.allNamespaces;
   },
@@ -619,6 +625,9 @@ export const mutations = {
     state.isRancherInHarvester = neu;
   },
 
+  /**
+   * Updates cluster specific ns settings, including the selected ns cache `activeNamespaceCache`
+   */
   updateNamespaces(state, { filters, all, getters: optGetters }) {
     state.namespaceFilters = filters.filter((x) => !!x);
 
@@ -898,6 +907,13 @@ export const actions = {
 
       // Use a pseudo cluster ID to pretend we have a cluster... to ensure some screens that don't care about a cluster but 'require' one to show
       if (id === BLANK_CLUSTER) {
+        // Remove previous cluster context from cached namespaces
+        commit('updateNamespaces', {
+          filters: [],
+          all:     [],
+          getters
+        });
+
         commit('clusterReady', true);
 
         return;
