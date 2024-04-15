@@ -39,6 +39,21 @@ function directive(el, binding, vnode /*, oldVnode */) {
   }
 }
 
+export function directiveSsr(vnode, binding) {
+  // eslint-disable-next-line no-console
+  console.warn('Function `directiveSsr` is deprecated. Please install i18n as a vue plugin: `Vue.use(i18n)`');
+
+  const { context } = vnode;
+  const raw = binding.modifiers && binding.modifiers.raw === true;
+  const str = stringFor(context.$store, binding.value, {}, raw);
+
+  if ( binding.arg ) {
+    vnode.data.attrs[binding.arg] = str;
+  } else {
+    vnode.data.domProps = { innerHTML: str };
+  }
+}
+
 export default {
   install: (Vue, _options) => {
     Vue.prototype.t = function(key, args, raw) {
