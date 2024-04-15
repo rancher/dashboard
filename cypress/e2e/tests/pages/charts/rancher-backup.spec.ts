@@ -6,7 +6,7 @@ import TabbedPo from '@/cypress/e2e/po/components/tabbed.po';
 
 const STORAGE_CLASS_RESOURCE = 'storage.k8s.io.storageclasses';
 
-describe('Charts', { tags: ['@adminUser'] }, () => {
+describe('Charts', { tags: ['@charts', '@adminUser'] }, () => {
   const chartsPageUrl = '/c/local/apps/charts/chart?repo-type=cluster&repo=rancher-charts';
 
   describe('Rancher Backups', () => {
