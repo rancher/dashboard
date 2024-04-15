@@ -186,6 +186,22 @@ jobs:
       - name: Run i18n linters
         run: yarn lint-l10n
 
+  check-i18n:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v3
+        with:
+          fetch-depth: 1
+      - uses: actions/setup-node@v3
+        with:
+          node-version: '14.x'
+      
+      - name: Install packages
+        run: yarn install:ci
+      
+      - name: Run i18n string check
+        run: ./scripts/check-i18n | true # Falure won't fail the job (remove when all current issues are fixed)
+
   lint:
     runs-on: ubuntu-latest
     steps:
