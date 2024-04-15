@@ -2,6 +2,7 @@ import { ChartsPage } from '@/cypress/e2e/po/pages/charts.po';
 import RadioGroupInputPo from '@/cypress/e2e/po/components/radio-group-input.po';
 import { exampleStorageClass, defaultStorageClass } from '@/cypress/e2e/blueprints/charts/rancher-backup-chart';
 import LabeledSelectPo from '@/cypress/e2e/po/components/labeled-select.po';
+import TabbedPo from '@/cypress/e2e/po/components/tabbed.po';
 
 const STORAGE_CLASS_RESOURCE = 'storage.k8s.io.storageclasses';
 
@@ -39,6 +40,14 @@ describe('Charts', { tags: ['@adminUser'] }, () => {
         // Verify that the drop-down exists and has the default storage class selected
         const select = new LabeledSelectPo('[data-testid="backup-chart-select-existing-storage-class"]');
 
+        select.checkExists();
+        select.checkOptionSelected('test-default-storage-class');
+
+        // Verify that changing tabs doesn't change the selected storage class option
+        chartsPage.editYaml();
+        const tabbedOptions = new TabbedPo();
+        chartsPage.editOptions(tabbedOptions, '[data-testid="button-group-child-0"]');
+        
         select.checkExists();
         select.checkOptionSelected('test-default-storage-class');
       });

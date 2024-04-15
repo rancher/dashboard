@@ -93,6 +93,9 @@ export default {
       case 'pickSC':
         this.value.persistence.enabled = true;
         this.value.s3.enabled = false;
+        if (this.value.persistence.storageClass) {
+          this.storageClass = this.storageClasses.find((sc) => sc.id === this.value.persistence.storageClass);
+        }
         if (this.defaultStorageClass && (!this.value.persistence.storageClass || this.value.persistence.storageClass === '-' )) {
           this.value.persistence.storageClass = this.defaultStorageClass.id;
           this.storageClass = this.defaultStorageClass;
