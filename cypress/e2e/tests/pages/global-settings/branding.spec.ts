@@ -369,6 +369,25 @@ describe('Branding', { testIsolation: 'off' }, () => {
       expect(background).to.satisfy((b) => b.startsWith(settings.primaryColor.newRGB));
     });
 
+    // check that login page has new styles applied
+    // https://github.com/rancher/dashboard/issues/10788
+    loginPage.goTo();
+
+    loginPage.submitButton().self().should('have.css', 'background').should((background: string) => {
+      expect(background).to.satisfy((b) => b.startsWith(settings.primaryColor.newRGB));
+    });
+
+    cy.reload();
+
+    loginPage.submitButton().self().should('have.css', 'background').should((background: string) => {
+      expect(background).to.satisfy((b) => b.startsWith(settings.primaryColor.newRGB));
+    });
+    // EO test https://github.com/rancher/dashboard/issues/10788
+
+    cy.login();
+    HomePagePo.goToAndWaitForGet();
+    BrandingPagePo.navTo();
+
     // Reset
     brandingPage.primaryColorPicker().set(settings.primaryColor.original);
     brandingPage.primaryColorCheckbox().set();
@@ -394,6 +413,25 @@ describe('Branding', { testIsolation: 'off' }, () => {
     cy.reload();
     brandingPage.linkColorPicker().value().should('eq', settings.linkColor.new);
     brandingPage.linkColorPicker().previewColor().should('eq', settings.linkColor.newRGB);
+
+    // check that login page has new styles applied
+    // https://github.com/rancher/dashboard/issues/10788
+    loginPage.goTo();
+
+    loginPage.password().showBtn().should('have.css', 'color').should((color: string) => {
+      expect(color).to.satisfy((b) => b.startsWith(settings.linkColor.newRGB));
+    });
+
+    cy.reload();
+
+    loginPage.password().showBtn().should('have.css', 'color').should((color: string) => {
+      expect(color).to.satisfy((b) => b.startsWith(settings.linkColor.newRGB));
+    });
+    // EO test https://github.com/rancher/dashboard/issues/10788
+
+    cy.login();
+    HomePagePo.goToAndWaitForGet();
+    BrandingPagePo.navTo();
 
     // Reset
     brandingPage.linkColorPicker().set(settings.linkColor.original);

@@ -44,7 +44,7 @@ export class LoginPagePo extends PagePo {
     });
   }
 
-  private submitButton(): AsyncButtonPo {
+  submitButton(): AsyncButtonPo {
     return new AsyncButtonPo('[data-testid="login-submit"]', this.self());
   }
 
