@@ -196,7 +196,7 @@ async function processClosedAction() {
       console.log('  Issue is tech debt/dev validate/qa none - ignoring');
     } else {
       // Put this in when we remove the Zube workflow
-      // A single workflow needs to re-open the issue after GH closes it
+      // A single workflow needs to re-open the issue after GH closes it
       // console.log('  Waiting for Zube to mark the issue as done ...');
 
       // // Output labels
