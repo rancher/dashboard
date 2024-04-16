@@ -101,10 +101,13 @@ if [[ "${JOB_TYPE}" == "recurring" ]]; then
   yq -i e ".variables.kubernetes_version += [\"${K3S_KUBERNETES_VERSION}\"] | .variables.kubernetes_version style=\"literal\"" packages/aws/rancher-k3s.yaml
   yq -i e ".variables.cert_manager_version += [\"${CERT_MANAGER_VERSION}\"] | .variables.kubernetes_version style=\"literal\"" packages/aws/rancher-k3s.yaml
 
+  echo $'manifest:\n  name: custom-node\ndescription: custom generated node\ntemplates:\n  - aws/nodes\nvariables:\n  instance_type:\n    - t3a.xlarge' > packages/aws/custom-node.yaml
+
   yq -i e ".variables.kubernetes_version += [\"${K3S_KUBERNETES_VERSION}\"] | .variables.kubernetes_version style=\"literal\"" packages/aws/k3s.yaml
   cat packages/aws/rancher-k3s.yaml
   ls -al packages/aws/
   cat packages/aws/dashboard-tests.yaml
+  cat packages/aws/custom-node.yaml
 
   prefix_random=$(cat /dev/urandom | env LC_ALL=C tr -dc 'a-z0-9' | fold -w 8 | head -n 1)
 
@@ -112,7 +115,6 @@ if [[ "${JOB_TYPE}" == "recurring" ]]; then
   corral config vars set aws_route53_zone ${AWS_ROUTE53_ZONE}
   corral config vars set server_count ${SERVER_COUNT:-3}
   corral config vars set agent_count ${AGENT_COUNT:-0}
-  corral config vars set instance_type ${AWS_INSTANCE_TYPE}
   corral config vars delete rancher_host
   RANCHER_HOST="jenkins-${prefix_random}.${AWS_ROUTE53_ZONE}"
 
@@ -120,6 +122,17 @@ if [[ "${JOB_TYPE}" == "recurring" ]]; then
   make init
   make build
   ls -al dist
+  corral config vars set node_count 1
+  corral config vars set aws_hostname_prefix "jenkins-${prefix_random}-c"
+  corral config vars delete instance_type
+  corral config vars set bastion_ip ""
+  corral create --skip-cleanup --recreate --debug customnode \
+    "dist/aws-t3a.xlarge"
+  corral config vars set custom_node_ip "$(corral vars customnode first_node_ip)"
+  corral config vars set custom_node_key "$(corral vars customnode corral_private_key | base64 -w 0)"
+
+  corral config vars set instance_type ${AWS_INSTANCE_TYPE}
+  corral config vars set aws_hostname_prefix "jenkins-${prefix_random}"
   echo "Corral Package string: ${K3S_KUBERNETES_VERSION}-${RANCHER_VERSION//v}-${CERT_MANAGER_VERSION}"
   corral config vars set aws_hostname_prefix "jenkins-${prefix_random}-i"
   corral config vars set server_count 1
@@ -171,6 +184,7 @@ chmod -R 766 "${WORKSPACE}/corral-packages"
 corral config vars set node_count 1
 corral config vars set bastion_ip ""
 corral config vars delete instance_type
+corral config vars set aws_hostname_prefix "jenkins-${prefix_random}-ci"
 corral create --skip-cleanup --recreate --debug ci dist/aws-dashboard-tests-t3a.xlarge
 corral config vars -o yaml
 corral vars ci corral_private_key -o yaml
