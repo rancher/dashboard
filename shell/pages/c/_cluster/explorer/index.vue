@@ -17,6 +17,7 @@ import {
   CATALOG,
   SECRET
 } from '@shell/config/types';
+import { NODE_ARCHITECTURE } from '@shell/config/labels-annotations';
 import { setPromiseResult } from '@shell/utils/promise';
 import AlertTable from '@shell/components/AlertTable';
 import { Banner } from '@components/Banner';
@@ -46,6 +47,7 @@ import Certificates from '@shell/components/Certificates';
 import { NAME as EXPLORER } from '@shell/config/product/explorer';
 import TabTitle from '@shell/components/TabTitle';
 import { STATES_ENUM } from '@shell/plugins/dashboard-store/resource-class';
+import capitalize from 'lodash/capitalize';
 
 export const RESOURCES = [NAMESPACE, INGRESS, PV, WORKLOAD_TYPES.DEPLOYMENT, WORKLOAD_TYPES.STATEFUL_SET, WORKLOAD_TYPES.JOB, WORKLOAD_TYPES.DAEMON_SET, SERVICE];
 
@@ -196,6 +198,29 @@ export default {
       }
 
       return this.t(`cluster.provider.${ provider }`);
+    },
+
+    nodesArchitecture() {
+      const obj = {};
+
+      this.nodes?.forEach((node) => {
+        const architecture = node.labels?.[NODE_ARCHITECTURE];
+
+        const key = architecture ? capitalize(architecture) : this.t('cluster.architecture.label.unknown');
+
+        obj[key] = (obj[key] || 0) + 1;
+      });
+
+      return obj;
+    },
+
+    architecture() {
+      const keys = Object.keys(this.nodesArchitecture);
+
+      return {
+        label:   keys.length === 1 ? keys[0] : this.t('cluster.architecture.label.mixed'),
+        tooltip: keys.length === 1 ? undefined : keys.reduce((acc, k) => `${ acc }${ k }: ${ this.nodesArchitecture[k] }<br>`, '')
+      };
     },
 
     isHarvesterCluster() {
@@ -529,7 +554,7 @@ export default {
     <div
       class="cluster-dashboard-glance"
     >
-      <div>
+      <div data-testid="clusterProvider__label">
         <label>{{ t('glance.provider') }}: </label>
         <span v-if="isHarvesterCluster">
           <a
@@ -543,7 +568,7 @@ export default {
           {{ displayProvider }}
         </span>
       </div>
-      <div>
+      <div data-testid="kubernetesVersion__label">
         <label>{{ t('glance.version') }}: </label>
         <span>{{ currentCluster.kubernetesVersionBase }}</span>
         <span
@@ -551,7 +576,16 @@ export default {
           style="font-size: 0.75em"
         >{{ currentCluster.kubernetesVersionExtension }}</span>
       </div>
-      <div>
+      <div
+        v-if="nodes.length > 0"
+        data-testid="architecture__label"
+      >
+        <label>{{ t('glance.architecture') }}: </label>
+        <span v-clean-tooltip="architecture.tooltip">
+          {{ architecture.label }}
+        </span>
+      </div>
+      <div data-testid="created__label">
         <label>{{ t('glance.created') }}: </label>
         <span><LiveDate
           :value="currentCluster.metadata.creationTimestamp"

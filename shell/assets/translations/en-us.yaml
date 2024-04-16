@@ -1726,6 +1726,11 @@ cluster:
       }
   rkeTemplateUpgrade: Template revision {name} available for upgrade
 
+  architecture:
+    label:
+      unknown: Unknown
+      mixed: Mixed
+
   availabilityWarnings:
     node: Node {name} is inactive
     machine: Machine {name} is inactive
@@ -2423,6 +2428,7 @@ glance:
   pods: Pods
   provider: Provider
   version: Kubernetes Version
+  architecture: Architecture
   monitoringDashboard: Monitoring Dashboard
   installMonitoring: Install Monitoring
   clusterInfo: Cluster Information
@@ -2830,7 +2836,9 @@ landing:
   clusters:
     title: Clusters
     provider: Provider
+    distro: Distro
     kubernetesVersion: Kubernetes Version
+    architecture: Architecture
     explorer: Explorer
     explore: Explore
     cores: |-
