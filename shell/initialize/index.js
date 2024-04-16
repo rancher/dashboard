@@ -137,7 +137,7 @@ async function createApp(config = {}) {
   // Inject runtime config as $config
   inject('config', config);
 
-  await installPlugins(app, inject);
+  await installPlugins(app, inject, Vue);
 
   // Wait for async component to be resolved first
   await new Promise((resolve, reject) => {
