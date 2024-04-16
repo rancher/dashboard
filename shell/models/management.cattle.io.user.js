@@ -235,6 +235,21 @@ export default class User extends HybridModel {
         formatter: 'CopyToClipboard',
         content:   this.username
       },
+      {
+        label:     this.t('tableHeaders.userLastLogin'),
+        formatter: 'LiveDate',
+        content:   this.userLastLogin,
+      },
+      {
+        label:     this.t('tableHeaders.userDisabledIn'),
+        formatter: 'LiveDate',
+        content:   this.userDisabledIn,
+      },
+      {
+        label:     this.t('tableHeaders.userDeletedIn'),
+        formatter: 'LiveDate',
+        content:   this.userDeletedIn,
+      },
       ...this._details
     ];
   }
