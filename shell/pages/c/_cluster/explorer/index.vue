@@ -204,11 +204,11 @@ export default {
       const obj = {};
 
       this.nodes?.forEach((node) => {
-        const key = capitalize(node.labels?.[NODE_ARCHITECTURE] || '');
+        const architecture = node.labels?.[NODE_ARCHITECTURE];
 
-        if (key) {
-          obj[key] = (obj[key] || 0) + 1;
-        }
+        const key = architecture ? capitalize(architecture) : this.t('cluster.architecture.label.unknown');
+
+        obj[key] = (obj[key] || 0) + 1;
       });
 
       return obj;
@@ -218,7 +218,7 @@ export default {
       const keys = Object.keys(this.nodesArchitecture);
 
       return {
-        label:   keys.length === 1 ? keys[0] : 'Mixed',
+        label:   keys.length === 1 ? keys[0] : this.t('cluster.architecture.label.mixed'),
         tooltip: keys.length === 1 ? undefined : keys.reduce((acc, k) => `${ acc }${ k }: ${ this.nodesArchitecture[k] }<br>`, '')
       };
     },
