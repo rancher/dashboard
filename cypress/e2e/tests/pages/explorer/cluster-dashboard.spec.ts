@@ -190,10 +190,12 @@ describe('Cluster Dashboard', { testIsolation: 'off', tags: ['@explorer', '@admi
 
       // create project
       cy.createProject(projName, 'local', userId).then((resp: Cypress.Response<any>) => {
-        const projId = resp.body.id.trim();
+        cy.wrap(resp.body.id.trim()).as('projId');
 
         // create ns
-        cy.createNamespace(nsName, projId);
+        cy.get<string>('@projId').then((projId) => {
+          cy.createNamespace(nsName, projId);
+        });
 
         // create pod
         // eslint-disable-next-line no-return-assign
@@ -217,9 +219,11 @@ describe('Cluster Dashboard', { testIsolation: 'off', tags: ['@explorer', '@admi
       .should('have.length.gte', 2);
   });
 
-  after(() => {
+  after(function() {
     if (removePod) {
       cy.deleteRancherResource('v1', `pods/${ nsName }`, `pod-${ podName }`);
+      cy.deleteRancherResource('v1', 'namespaces', `${ nsName }`);
+      cy.deleteRancherResource('v3', 'projects', this.projId);
     }
   });
 });

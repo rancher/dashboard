@@ -23,7 +23,7 @@ describe('Namespace picker', { testIsolation: 'off' }, () => {
   });
 
   it('can filter workloads by project/namespace from the picker dropdown', { tags: ['@explorer', '@adminUser'] }, () => {
-    // Verify 'Namespace: cattle-fleet-local-system' appears once when filtering by Namespace
+    // Verify 'Namespace: cattle-fleet-system' appears once when filtering by Namespace
     // Verify multiple namespaces within Project: System display when filtering by Project
 
     // group workloads by namespace
@@ -38,13 +38,14 @@ describe('Namespace picker', { testIsolation: 'off' }, () => {
     WorkloadsPodsListPagePo.navTo();
     workloadsPodPage.waitForPage();
 
-    // Filter by Namespace: Select 'cattle-fleet-local-system'
+    // Filter by Namespace: Select 'cattle-fleet-system'
     namespacePicker.toggle();
-    namespacePicker.clickOptionByLabel('cattle-fleet-local-system');
-    namespacePicker.isChecked('cattle-fleet-local-system');
+    namespacePicker.getOptions().find('#ns_cattle-fleet-system').should('exist');
+    namespacePicker.clickOptionByLabel('cattle-fleet-system');
+    namespacePicker.isChecked('cattle-fleet-system');
     namespacePicker.closeDropdown();
     workloadsPodPage.sortableTable()
-      .groupElementWithName('cattle-fleet-local-system')
+      .groupElementWithName('cattle-fleet-system')
       .scrollIntoView().should('be.visible')
       .and('have.length', 1);
 
@@ -59,7 +60,7 @@ describe('Namespace picker', { testIsolation: 'off' }, () => {
     namespacePicker.isChecked('Project: System');
     namespacePicker.closeDropdown();
     workloadsPodPage.sortableTable().groupElementWithName('kube-system').scrollIntoView().should('be.visible');
-    workloadsPodPage.sortableTable().groupElementWithName('cattle-fleet-local-system').scrollIntoView().should('be.visible');
+    workloadsPodPage.sortableTable().groupElementWithName('cattle-fleet-system').scrollIntoView().should('be.visible');
   });
 
   it('can select only one of the top 5 resource filters at a time', { tags: ['@explorer', '@adminUser', '@standardUser'] }, () => {
