@@ -88,26 +88,12 @@ export default {
   },
 
   watch: {
+    storageClasses: 'updatePickSCValues',
+
     storageSource(neu) {
       switch (neu) {
       case 'pickSC':
-        this.value.persistence.enabled = true;
-        this.value.s3.enabled = false;
-        if (this.value.persistence.storageClass) {
-          const matchedStorageClass = this.storageClasses.find((sc) => sc.id === this.value.persistence.storageClass);
-
-          if (matchedStorageClass) {
-            this.storageClass = matchedStorageClass;
-          }
-        }
-        if (this.defaultStorageClass && (!this.value.persistence.storageClass || this.value.persistence.storageClass === '-' )) {
-          this.value.persistence.storageClass = this.defaultStorageClass.id;
-          this.storageClass = this.defaultStorageClass;
-        }
-        if (this.storageClass?.reclaimPolicy === 'Delete') {
-          this.reclaimWarning = true;
-        }
-        delete this.value.persistence.volumeName;
+        this.updatePickSCValues();
         break;
       case 'pickPV':
         this.value.persistence.enabled = true;
@@ -162,6 +148,25 @@ export default {
     },
     updatePageValid(update) {
       this.$emit('valid', update);
+    },
+    updatePickSCValues() {
+      this.value.persistence.enabled = true;
+      this.value.s3.enabled = false;
+      if (this.value.persistence.storageClass) {
+        const matchedStorageClass = this.storageClasses.find((sc) => sc.id === this.value.persistence.storageClass);
+
+        if (matchedStorageClass) {
+          this.storageClass = matchedStorageClass;
+        }
+      }
+      if (this.defaultStorageClass && (!this.value.persistence.storageClass || this.value.persistence.storageClass === '-' )) {
+        this.value.persistence.storageClass = this.defaultStorageClass.id;
+        this.storageClass = this.defaultStorageClass;
+      }
+      if (this.storageClass?.reclaimPolicy === 'Delete') {
+        this.reclaimWarning = true;
+      }
+      delete this.value.persistence.volumeName;
     }
   },
   get
