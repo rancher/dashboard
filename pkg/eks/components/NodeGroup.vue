@@ -475,7 +475,6 @@ export default defineComponent({
           :value="desiredSize"
           label-key="eks.nodeGroups.desiredSize.label"
           :mode="mode"
-          :disabled="!isNewOrUnprovisioned"
           :rules="rules.desiredSize"
           @input="$emit('update:desiredSize', $event)"
         />
@@ -486,7 +485,6 @@ export default defineComponent({
           :value="minSize"
           label-key="eks.nodeGroups.minSize.label"
           :mode="mode"
-          :disabled="!isNewOrUnprovisioned"
           :rules="rules.minSize"
           @input="$emit('update:minSize', $event)"
         />
@@ -497,7 +495,6 @@ export default defineComponent({
           :value="maxSize"
           label-key="eks.nodeGroups.maxSize.label"
           :mode="mode"
-          :disabled="!isNewOrUnprovisioned"
           :rules="rules.maxSize"
           @input="$emit('update:maxSize', $event)"
         />
@@ -511,7 +508,6 @@ export default defineComponent({
           :read-allowed="false"
           :value="labels"
           :as-map="true"
-          :disabled="!isNewOrUnprovisioned"
           @input="$emit('update:labels', $event)"
         >
           <template #title>
@@ -526,7 +522,6 @@ export default defineComponent({
           :read-allowed="false"
           :as-map="true"
           :value="tags"
-          :disabled="!isNewOrUnprovisioned"
           @input="$emit('update:tags', $event)"
         >
           <template #title>
