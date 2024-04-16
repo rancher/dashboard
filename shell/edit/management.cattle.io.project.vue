@@ -103,8 +103,9 @@ export default {
   methods: {
     async save(saveCb) {
       try {
-        // clear up of the unused resourceQuotas will now be done on the model side
+        this.errors = [];
 
+        // clear up of the unused resourceQuotas will now be done on the model side
         if (this.mode === _CREATE) {
           const savedProject = await this.value.save();
 
