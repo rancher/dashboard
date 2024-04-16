@@ -410,7 +410,7 @@ export const USER_LAST_LOGIN = {
   labelKey:  'tableHeaders.userLastLogin',
   value:     'userLastLogin',
   formatter: 'LiveDate',
-  sort:      'user-last-login',
+  sort:      'userLastLogin',
 };
 
 export const USER_DISABLED_IN = {
@@ -418,7 +418,7 @@ export const USER_DISABLED_IN = {
   labelKey:  'tableHeaders.userDisabledIn',
   value:     'userDisabledIn',
   formatter: 'LiveDate',
-  sort:      'user-disabled-in',
+  sort:      'userDisabledIn',
 };
 
 export const USER_DELETED_IN = {
@@ -426,7 +426,7 @@ export const USER_DELETED_IN = {
   labelKey:  'tableHeaders.userDeletedIn',
   value:     'userDeletedIn',
   formatter: 'LiveDate',
-  sort:      'user-deleted-in',
+  sort:      'userDeletedIn',
 };
 
 export const USER_ID = {
