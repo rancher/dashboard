@@ -69,7 +69,7 @@ describe('Side Menu: main', () => {
       cy.url().should('include', 'https://ranchermanager.docs.rancher.com/v2.8/how-to-guides/new-user-guides/launch-kubernetes-with-rancher/rke1-vs-rke2-differences#cluster-api');
     });
 
-    it('Local cluster should show a description on the side menu and display a tooltip when hovering it show the full description', { tags: ['@navigation', '@adminUser'] }, () => {
+    it('Local cluster should show a name and description on the side menu and display a tooltip when hovering it show the full name and description', { tags: ['@navigation', '@adminUser'] }, () => {
       BurgerMenuPo.toggle();
 
       const burgerMenuPo = new BurgerMenuPo();
@@ -78,7 +78,8 @@ describe('Side Menu: main', () => {
       // truncation (text-overflow: ellipsis) is just a CSS gimick thing that adds the ... visually
       burgerMenuPo.getClusterDescription().should('include', longClusterDescription);
       burgerMenuPo.showClusterDescriptionTooltip();
-      burgerMenuPo.getClusterDescriptionTooltipContent().contains(longClusterDescription);
+      burgerMenuPo.getClusterDescriptionTooltipContent().should('include.text', 'local').and('be.visible');
+      burgerMenuPo.getClusterDescriptionTooltipContent().should('include.text', longClusterDescription).and('be.visible');
     });
   });
 
