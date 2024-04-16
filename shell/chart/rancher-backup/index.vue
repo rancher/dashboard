@@ -88,12 +88,22 @@ export default {
   },
 
   watch: {
-    storageClasses: 'updatePickSCValues',
+    storageClasses: 'updateStorageClass',
 
     storageSource(neu) {
       switch (neu) {
       case 'pickSC':
-        this.updatePickSCValues();
+        this.value.persistence.enabled = true;
+        this.value.s3.enabled = false;
+        this.updateStorageClass();
+        if (this.defaultStorageClass && (!this.value.persistence.storageClass || this.value.persistence.storageClass === '-' )) {
+          this.value.persistence.storageClass = this.defaultStorageClass.id;
+          this.storageClass = this.defaultStorageClass;
+        }
+        if (this.storageClass?.reclaimPolicy === 'Delete') {
+          this.reclaimWarning = true;
+        }
+        delete this.value.persistence.volumeName;
         break;
       case 'pickPV':
         this.value.persistence.enabled = true;
@@ -149,9 +159,7 @@ export default {
     updatePageValid(update) {
       this.$emit('valid', update);
     },
-    updatePickSCValues() {
-      this.value.persistence.enabled = true;
-      this.value.s3.enabled = false;
+    updateStorageClass() {
       if (this.value.persistence.storageClass) {
         const matchedStorageClass = this.storageClasses.find((sc) => sc.id === this.value.persistence.storageClass);
 
@@ -159,14 +167,6 @@ export default {
           this.storageClass = matchedStorageClass;
         }
       }
-      if (this.defaultStorageClass && (!this.value.persistence.storageClass || this.value.persistence.storageClass === '-' )) {
-        this.value.persistence.storageClass = this.defaultStorageClass.id;
-        this.storageClass = this.defaultStorageClass;
-      }
-      if (this.storageClass?.reclaimPolicy === 'Delete') {
-        this.reclaimWarning = true;
-      }
-      delete this.value.persistence.volumeName;
     }
   },
   get
