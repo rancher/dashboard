@@ -77,10 +77,13 @@ function hasLabel(issue, label) {
   return !!(labels.find(l => l.name.toLowerCase() === label.toLowerCase()));
 }
 
-function moveIssueToProjectState(issue, state) {
+async function moveIssueToProjectState(project, prjIssueID, issue, state) {
   console.log(`moveIssueToProjectState ${ state }`);
-
+  console.log(JSON.stringify(project, null, 2));
+  console.log(prjIssueID);
   console.log(JSON.stringify(issue, null, 2));
+
+  return await request.ghUpdateProjectIssueStatus(project, prjIssueID, state);
 }
 
 /**
@@ -308,7 +311,7 @@ async function processOpenOrEditAction() {
     } else {
       // Need to fetch the issue project status
       const info = parseOrgAndRepo(iss.repository_url);
-      const prjIssue = request.ghProjectIssue(info.org, info.repo, i.number);
+      let prjIssue = await request.ghProjectIssue(info.org, info.repo, i.number);
 
       console.log(info);
 
@@ -316,7 +319,28 @@ async function processOpenOrEditAction() {
       console.log(JSON.stringify(prjIssue, null, 2));  
       console.log('---------');
 
-      await moveIssueToProjectState(iss, GH_PRJ_IN_REVIEW);
+      // Is the issue on the board?
+      if (!prjIssue[ghProject.id]) {
+        // Issue is not on the board
+        console.log(`Issue ${ i } is NOT on the project board - adding it ...`);
+
+        await request.ghAddIssueToProject(ghProject, iss);
+
+        prjIssue = await request.ghProjectIssue(info.org, info.repo, i.number);
+
+        if (!prjIssue[ghProject.id]) {
+          console.log("Error: Could not add issue to Project Board");
+          console.log(prjIssue);
+          prjIssue = undefined;
+        } else {
+          console.log('Added issue to the project board');
+          console.log(JSON.stringify(prjIssue, null, 2));  
+        }
+      }
+
+      if (prjIssue[ghProject.id]) {
+        await moveIssueToProjectState(ghProject, prjIssue[ghProject.id].id, iss, GH_PRJ_IN_REVIEW);
+      }
     }
 
     if (iss.milestone) {
