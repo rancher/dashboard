@@ -297,14 +297,6 @@ export default async function({
     if (pkg && (oldPkg !== pkg || from.fullPath === route.fullPath)) {
       // Execute mandatory store actions
       await Promise.all(always);
-
-      // Execute anything optional the plugin wants to
-      await newPkgPlugin.onEnter(store, {
-        clusterId,
-        product,
-        oldProduct,
-        oldIsExt: !!oldPkg
-      });
     }
 
     if (!route.matched?.length) {
@@ -354,6 +346,17 @@ export default async function({
         targetRoute: route
       })
     ]);
+
+    // Init the package only after we have loaded the cluster store
+    if (pkg && (oldPkg !== pkg || from.fullPath === route.fullPath)) {
+      // Execute anything optional the plugin wants to
+      await newPkgPlugin.onEnter(store, {
+        clusterId,
+        product,
+        oldProduct,
+        oldIsExt: !!oldPkg
+      });
+    }
 
     if (localCheckResource) {
       const redirected = invalidResource(store, route, redirect);
