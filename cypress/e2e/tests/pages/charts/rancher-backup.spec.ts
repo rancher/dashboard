@@ -19,6 +19,9 @@ describe('Charts', { tags: ['@charts', '@adminUser'] }, () => {
 
     describe('Rancher Backups storage class config', () => {
       beforeEach(() => {
+        cy.intercept('/v1/storage.k8s.io.storageclasses?exclude=metadata.managedFields').as('storageClasses');
+        cy.intercept('/v1/persistentvolumes?exclude=metadata.managedFields').as('persistentVolumes');
+        cy.intercept('/v1/secrets?exclude=metadata.managedFields').as('secrets');
         cy.createRancherResource('v1', STORAGE_CLASS_RESOURCE, JSON.stringify(defaultStorageClass));
         cy.createRancherResource('v1', STORAGE_CLASS_RESOURCE, JSON.stringify(exampleStorageClass));
       });
@@ -31,6 +34,9 @@ describe('Charts', { tags: ['@charts', '@adminUser'] }, () => {
       it('Should auto-select default storage class', () => {
         chartsPage.goTo();
         chartsPage.goToInstall().nextPage();
+        cy.wait('@storageClasses', { timeout: 10000 }).its('response.statusCode').should('eq', 200);
+        cy.wait('@persistentVolumes', { timeout: 10000 }).its('response.statusCode').should('eq', 200);
+        cy.wait('@secrets', { timeout: 10000 }).its('response.statusCode').should('eq', 200);
 
         // Select the 'Use an existing storage class' option
         const storageOptions = new RadioGroupInputPo('[chart="[chart: cluster/rancher-charts/rancher-backup]"]');
@@ -43,7 +49,7 @@ describe('Charts', { tags: ['@charts', '@adminUser'] }, () => {
         select.checkExists();
         select.checkOptionSelected('test-default-storage-class');
 
-        // Verify that changing tabs doesn't change the selected storage class option
+        // Verify that changing tabs doesn't reset the last selected storage class option
         chartsPage.editYaml();
         const tabbedOptions = new TabbedPo();
 
