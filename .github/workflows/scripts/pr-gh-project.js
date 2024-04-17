@@ -331,7 +331,6 @@ async function processOpenOrEditAction() {
         if (!prjIssue[ghProject.id]) {
           console.log("Error: Could not add issue to Project Board");
           console.log(prjIssue);
-          prjIssue = undefined;
         } else {
           console.log('Added issue to the project board');
           console.log(JSON.stringify(prjIssue, null, 2));  
