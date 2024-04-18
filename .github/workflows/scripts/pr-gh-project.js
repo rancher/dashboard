@@ -320,7 +320,7 @@ async function processOpenOrEditAction() {
       console.log('---------');
 
       // Is the issue on the board?
-      if (!prjIssue || !prjIssue[ghProject.id]) {
+      if (!prjIssue?.[ghProject.id]) {
         // Issue is not on the board
         console.log(`Issue ${ i } is NOT on the project board - adding it ...`);
 
@@ -328,7 +328,7 @@ async function processOpenOrEditAction() {
 
         prjIssue = await request.ghProjectIssue(info.org, info.repo, i.number);
 
-        if (!prjIssue || !prjIssue[ghProject.id]) {
+        if (!prjIssue?.[ghProject.id]) {
           console.log("Error: Could not add issue to Project Board");
           console.log(prjIssue);
         } else {
@@ -337,8 +337,10 @@ async function processOpenOrEditAction() {
         }
       }
 
-      if (prjIssue[ghProject.id]) {
+      if (prjIssue?.[ghProject.id]) {
         await moveIssueToProjectState(ghProject, prjIssue[ghProject.id].id, iss, GH_PRJ_IN_REVIEW);
+      } else {
+        console.log(`Can not move issue to state ${ GH_PRJ_IN_REVIEW } - issue is not on the board`);
       }
     }
 
