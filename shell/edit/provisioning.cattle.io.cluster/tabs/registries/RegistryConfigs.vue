@@ -161,6 +161,7 @@ export default {
               :mode="mode"
               generate-name="registryconfig-auth-"
               :data-testid="`registry-auth-select-or-create-${i}`"
+              :cache-secrets="true"
             />
           </div>
           <div class="col span-6">

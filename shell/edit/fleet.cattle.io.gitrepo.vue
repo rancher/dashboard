@@ -576,10 +576,10 @@ export default {
         :mode="mode"
         generate-name="gitrepo-auth-"
         label-key="fleet.gitRepo.auth.git"
+        :cache-secrets="true"
         @input="updateAuth($event, 'clientSecretName')"
         @inputauthval="updateCachedAuthVal($event, 'clientSecretName')"
       />
-
       <SelectOrCreateAuthSecret
         data-testid="gitrepo-helm-auth"
         :value="value.spec.helmSecretName"
@@ -591,6 +591,7 @@ export default {
         generate-name="helmrepo-auth-"
         label-key="fleet.gitRepo.auth.helm"
         :pre-select="tempCachedValues.helmSecretName"
+        :cache-secrets="true"
         @input="updateAuth($event, 'helmSecretName')"
         @inputauthval="updateCachedAuthVal($event, 'helmSecretName')"
       />

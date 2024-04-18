@@ -84,6 +84,7 @@ export default {
       :allow-s3="true"
       :namespace="namespace"
       generate-name="etcd-backup-s3-"
+      :cache-secrets="true"
       @input="update"
     />
 

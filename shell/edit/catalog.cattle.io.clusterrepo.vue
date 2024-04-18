@@ -119,15 +119,16 @@ export default {
       :mode="mode"
       data-testid="clusterrepo-helm-url-input"
     />
-
     <SelectOrCreateAuthSecret
       v-model="value.spec.clientSecret"
+      :mode="mode"
       data-testid="clusterrepo-auth-secret"
       :register-before-hook="registerBeforeHook"
       :namespace="secretNamespace"
       :limit-to-namespace="false"
       :in-store="inStore"
       generate-name="clusterrepo-auth-"
+      :cache-secrets="true"
     />
 
     <Labels
