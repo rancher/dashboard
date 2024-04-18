@@ -311,7 +311,7 @@ async function processOpenOrEditAction() {
     } else {
       // Need to fetch the issue project status
       const info = parseOrgAndRepo(iss.repository_url);
-      let prjIssue = await request.ghProjectIssue(info.org, info.repo, i.number);
+      let prjIssue = await request.ghProjectIssue(info.org, info.repo, i);
 
       console.log(info);
 
@@ -326,7 +326,7 @@ async function processOpenOrEditAction() {
 
         await request.ghAddIssueToProject(ghProject, iss);
 
-        prjIssue = await request.ghProjectIssue(info.org, info.repo, i.number);
+        prjIssue = await request.ghProjectIssue(info.org, info.repo, i);
 
         if (!prjIssue?.[ghProject.id]) {
           console.log("Error: Could not add issue to Project Board");
