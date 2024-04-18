@@ -27,8 +27,8 @@ function parseOrgAndRepo(repoUrl) {
   const parts = repoUrl.split('/');
 
   return {
-    org: parts[parts.length - 1],
-    repo: parts[parts.length - 2]
+    org: parts[parts.length - 2],
+    repo: parts[parts.length - 1]
   };
 }
 
