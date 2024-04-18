@@ -37,7 +37,7 @@ describe('component: Carousel', () => {
 
     // testing https://github.com/rancher/dashboard/issues/9975
     sliders.forEach((slider, index) => {
-      expect(wrapper.find(`#slide${ index } h1`).html()).toContain(slider.chartNameDisplay);
+      expect(wrapper.find(`#slide${ index } h1`).text()).toContain(slider.chartNameDisplay);
     });
   });
 });

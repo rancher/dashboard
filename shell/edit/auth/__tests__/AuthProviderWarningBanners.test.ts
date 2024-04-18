@@ -10,10 +10,12 @@ describe('component: AuthProviderWarningBanners.vue', () => {
   });
 
   it('should render properly', () => {
-    const disabledWarningBanner = wrapper.find('[data-testid="auth-provider-disabled-warning-banner"]');
+    const providerDisabledWarningBanner = wrapper.find('[data-testid="auth-provider-disabled-warning-banner"]');
     const adminPermissionsWarningBanner = wrapper.find('[data-testid="auth-provider-admin-permissions-warning-banner"]');
 
-    expect(disabledWarningBanner.element).toBeDefined();
+    expect(providerDisabledWarningBanner.element).toBeDefined();
+    expect(providerDisabledWarningBanner.isVisible()).toBe(true);
     expect(adminPermissionsWarningBanner.element).toBeDefined();
+    expect(adminPermissionsWarningBanner.isVisible()).toBe(true);
   });
 });

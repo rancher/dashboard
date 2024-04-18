@@ -94,7 +94,9 @@ export default defineConfig({
     awsSecretKey:        process.env.AWS_SECRET_ACCESS_KEY,
     azureSubscriptionId: process.env.AZURE_AKS_SUBSCRIPTION_ID,
     azureClientId:       process.env.AZURE_CLIENT_ID,
-    azureClientSecret:   process.env.AZURE_CLIENT_SECRET
+    azureClientSecret:   process.env.AZURE_CLIENT_SECRET,
+    customNodeIp:        process.env.CUSTOM_NODE_IP,
+    customNodeKey:       process.env.CUSTOM_NODE_KEY
   },
   e2e: {
     fixturesFolder: 'cypress/e2e/blueprints',

@@ -20,4 +20,13 @@ export default class PasswordPo extends ComponentPo {
     return this.self()
       .find('input');
   }
+
+  /**
+   * Return the SHOW anchor element
+   * @returns HTML Element
+   */
+  showBtn(): Cypress.Chainable {
+    return this.self()
+      .find('.addon a');
+  }
 }

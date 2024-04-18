@@ -58,6 +58,7 @@ export default {
           v-model="value.record"
           :label="t('prometheusRule.recordingRules.name')"
           :required="true"
+          data-testid="v2-monitoring-prom-rules-recording-name"
         />
       </div>
     </div>
@@ -77,6 +78,7 @@ export default {
                 foldGutter: false,
                 readOnly: mode === 'view',
               }"
+              data-testid="v2-monitoring-prom-rules-recording-promql"
               @onInput="queueUpdate"
             />
           </template>

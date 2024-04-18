@@ -44,7 +44,7 @@ export class LoginPagePo extends PagePo {
     });
   }
 
-  private submitButton(): AsyncButtonPo {
+  submitButton(): AsyncButtonPo {
     return new AsyncButtonPo('[data-testid="login-submit"]', this.self());
   }
 
@@ -54,5 +54,13 @@ export class LoginPagePo extends PagePo {
    */
   loginPageMessage() {
     return cy.getId('login__messages');
+  }
+
+  /**
+   * Get login background image
+   * @returns
+   */
+  loginBackgroundImage() {
+    return cy.getId('login-landscape__img');
   }
 }

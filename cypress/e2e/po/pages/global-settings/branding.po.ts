@@ -35,6 +35,14 @@ export class BrandingPagePo extends RootClusterPage {
     return CheckboxInputPo.byLabel(this.self(), 'Use a Custom Logo');
   }
 
+  customBannerCheckbox(): CheckboxInputPo {
+    return CheckboxInputPo.byLabel(this.self(), 'Use a Custom Banner');
+  }
+
+  customLoginBackgroundCheckbox(): CheckboxInputPo {
+    return CheckboxInputPo.byLabel(this.self(), 'Use a Custom Background');
+  }
+
   customFaviconCheckbox(): CheckboxInputPo {
     return CheckboxInputPo.byLabel(this.self(), 'Use a Custom Favicon');
   }
@@ -61,6 +69,14 @@ export class BrandingPagePo extends RootClusterPage {
 
   logoPreview(theme: string) {
     return cy.getId(`branding-logo-${ theme }-preview`);
+  }
+
+  bannerPreview(theme: string) {
+    return cy.getId(`branding-banner-${ theme }-preview`);
+  }
+
+  loginBackgroundPreview(theme: string) {
+    return cy.getId(`branding-login-background-${ theme }-preview`);
   }
 
   faviconPreview() {

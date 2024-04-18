@@ -2,6 +2,7 @@ import ClusterDashboardPagePo from '@/cypress/e2e/po/pages/explorer/cluster-dash
 import { NamespaceFilterPo } from '@/cypress/e2e/po/components/namespace-filter.po';
 import { WorkloadsPodsListPagePo } from '@/cypress/e2e/po/pages/explorer/workloads-pods.po';
 import HomePagePo from '@/cypress/e2e/po/pages/home.po';
+import { groupByPayload } from '@/cypress/e2e/blueprints/user_preferences/group_by';
 
 const namespacePicker = new NamespaceFilterPo();
 
@@ -21,22 +22,30 @@ describe('Namespace picker', { testIsolation: 'off' }, () => {
     namespacePicker.closeDropdown();
   });
 
-  it('can filter workloads by project/namespace from the picker dropdown', { tags: ['@adminUser'] }, () => {
-    // Verify 'Namespace: cattle-fleet-local-system' appears once when filtering by Namespace
-    // Vrify multiple namespaces within Project: System display when filtering by Project
+  it('can filter workloads by project/namespace from the picker dropdown', { tags: ['@explorer', '@adminUser'] }, () => {
+    // Verify 'Namespace: cattle-fleet-system' appears once when filtering by Namespace
+    // Verify multiple namespaces within Project: System display when filtering by Project
+
+    // group workloads by namespace
+    cy.getRancherResource('v3', 'users?me=true').then((resp: Cypress.Response<any>) => {
+      const userId = resp.body.data[0].id.trim();
+
+      cy.setRancherResource('v1', 'userpreferences', userId, groupByPayload(userId, 'local', 'metadata.namespace', '{"local":["all://user"]}'));
+    });
 
     const workloadsPodPage = new WorkloadsPodsListPagePo('local');
 
     WorkloadsPodsListPagePo.navTo();
     workloadsPodPage.waitForPage();
 
-    // Filter by Namespace: Select 'cattle-fleet-local-system'
+    // Filter by Namespace: Select 'cattle-fleet-system'
     namespacePicker.toggle();
-    namespacePicker.clickOptionByLabel('cattle-fleet-local-system');
-    namespacePicker.isChecked('cattle-fleet-local-system');
+    namespacePicker.getOptions().find('#ns_cattle-fleet-system').should('exist');
+    namespacePicker.clickOptionByLabel('cattle-fleet-system');
+    namespacePicker.isChecked('cattle-fleet-system');
     namespacePicker.closeDropdown();
     workloadsPodPage.sortableTable()
-      .groupElementWithName('cattle-fleet-local-system')
+      .groupElementWithName('cattle-fleet-system')
       .scrollIntoView().should('be.visible')
       .and('have.length', 1);
 
@@ -51,10 +60,10 @@ describe('Namespace picker', { testIsolation: 'off' }, () => {
     namespacePicker.isChecked('Project: System');
     namespacePicker.closeDropdown();
     workloadsPodPage.sortableTable().groupElementWithName('kube-system').scrollIntoView().should('be.visible');
-    workloadsPodPage.sortableTable().groupElementWithName('cattle-fleet-local-system').scrollIntoView().should('be.visible');
+    workloadsPodPage.sortableTable().groupElementWithName('cattle-fleet-system').scrollIntoView().should('be.visible');
   });
 
-  it('can select only one of the top 5 resource filters at a time', { tags: ['@adminUser', '@standardUser'] }, () => {
+  it('can select only one of the top 5 resource filters at a time', { tags: ['@explorer', '@adminUser', '@standardUser'] }, () => {
     // Verify that user can only select one of the first 5 options
 
     namespacePicker.toggle();
@@ -85,7 +94,7 @@ describe('Namespace picker', { testIsolation: 'off' }, () => {
     namespacePicker.checkIcon().should('have.length', 1);
   });
 
-  it('can select multiple projects/namespaces', { tags: ['@adminUser'] }, () => {
+  it('can select multiple projects/namespaces', { tags: ['@explorer', '@adminUser'] }, () => {
     // Verify that user can select multiple options (other than the first 5 options)
 
     namespacePicker.toggle();
@@ -119,7 +128,7 @@ describe('Namespace picker', { testIsolation: 'off' }, () => {
     namespacePicker.moreOptionsSelected().should('have.class', 'has-tooltip');
   });
 
-  it('can deselect options', { tags: ['@adminUser', '@standardUser'] }, () => {
+  it('can deselect options', { tags: ['@explorer', '@adminUser', '@standardUser'] }, () => {
     namespacePicker.toggle();
 
     // Select 'default' option
@@ -146,7 +155,7 @@ describe('Namespace picker', { testIsolation: 'off' }, () => {
     namespacePicker.checkIcon().should('have.length', 1);
   });
 
-  it('can filter options by name', { tags: ['@adminUser', '@standardUser'] }, () => {
+  it('can filter options by name', { tags: ['@explorer', '@adminUser', '@standardUser'] }, () => {
     namespacePicker.toggle();
 
     // filter 'cattle-fleet'
@@ -167,7 +176,7 @@ describe('Namespace picker', { testIsolation: 'off' }, () => {
     namespacePicker.checkIcon().should('have.length', 1);
   });
 
-  it('newly created project/namespace appears in namespace picker', { tags: ['@adminUser'] }, () => {
+  it('newly created project/namespace appears in namespace picker', { tags: ['@explorer', '@adminUser'] }, () => {
     const projName = `project${ +new Date() }`;
     const nsName = `namespace${ +new Date() }`;
 
@@ -205,15 +214,7 @@ describe('Namespace picker', { testIsolation: 'off' }, () => {
     cy.getRancherResource('v3', 'users?me=true').then((resp: Cypress.Response<any>) => {
       const userId = resp.body.data[0].id.trim();
 
-      cy.setRancherResource('v1', 'userpreferences', userId, {
-        id:   userId,
-        type: 'userpreference',
-        data: {
-          cluster:         'local',
-          'group-by':      'none',
-          'ns-by-cluster': '{"local":["all://user"]}',
-        }
-      });
+      cy.setRancherResource('v1', 'userpreferences', userId, groupByPayload(userId, 'local', 'none', '{"local":["all://user"]}'));
     });
   });
 });

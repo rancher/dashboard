@@ -529,12 +529,28 @@ authConfig:
       show: Show details
       hide: Hide details
   azuread:
-    tenantId: Tenant ID
-    applicationId: Application ID
-    endpoint: Endpoint
-    graphEndpoint: Graph Endpoint
-    tokenEndpoint: Token Endpoint
-    authEndpoint: Auth Endpoint
+    tenantId: 
+      label: Tenant ID
+      tooltip: From the Azure AD portal
+      placeholder: A long UUID string
+    applicationId: 
+      label: Application ID
+      placeholder: A long UUID string
+    applicationSecret:
+      label: Application Secret
+    endpoint: 
+      label: Endpoint
+    endpoints: 
+      label: Endpoints
+      standard: Standard
+      china: China
+      custom: Custom
+    graphEndpoint: 
+      label: Graph Endpoint
+    tokenEndpoint: 
+      label: Token Endpoint
+    authEndpoint: 
+      label: Auth Endpoint
     reply:
       info: 'Azure AD requires a whitelisted URL for your Rancher server before beginning this setup. Please ensure that the following URL is set in the Reply URL section of your Azure Portal. Please note that it may take up to 5 minutes for the whitelisted URL to propagate.'
       label: Reply URL
@@ -1699,7 +1715,7 @@ cluster:
   banner:
     warning: 'This cluster contains a machineSelectorConfig, which this form does not fully support; use the YAML editor to manage the full configuration.'
     os: 'You are attempting to add a {newOS} worker node to a cluster with one or more {existingOS} worker nodes: some installed apps may need to be upgraded or removed.'
-    rke2-k3-reprovisioning: 'Making changes to cluster configuration may result in nodes reprovisioning. For more information see the <a href="{docsBase}/cluster-provisioning/rke-clusters/behavior-differences-between-rke1-and-rke2/" target="_blank" rel="noopener nofollow">documentation</a>.'
+    rke2-k3-reprovisioning: 'Making changes to cluster configuration may result in nodes reprovisioning. For more information see the <a href="{docsBase}/cluster-provisioning/rke-clusters/behavior-differences-between-rke1-and-rke2#cluster-api" target="_blank" rel="noopener nofollow">documentation</a>.'
     desiredNodeGroupWarning: There are 0 nodes available to run the cluster agent. The cluster will not become active until at least one node is available.
     haveArgInfo: Configuration information is not available for the selected Kubernetes version.  The options available on this screen will be limited; you may want to use the YAML editor.
     cloudProviderAddConfig: 'On Kubernetes 1.27 or greater, the Amazon Cloud Provider requires additional configuration. See <a href="https://ranchermanager.docs.rancher.com/how-to-guides/new-user-guides/kubernetes-clusters-in-rancher-setup/set-up-cloud-providers/amazon" target="_blank" rel="noopener noreferrer nofollow">the documentation</a> for more information.'
@@ -1709,6 +1725,11 @@ cluster:
         other { {pool_name}: The provided values for {fields} were not found in the list of expected values. This can happen with clusters provisioned outside of Rancher or when options for the provider have changed. }
       }
   rkeTemplateUpgrade: Template revision {name} available for upgrade
+
+  architecture:
+    label:
+      unknown: Unknown
+      mixed: Mixed
 
   availabilityWarnings:
     node: Node {name} is inactive
@@ -2407,6 +2428,7 @@ glance:
   pods: Pods
   provider: Provider
   version: Kubernetes Version
+  architecture: Architecture
   monitoringDashboard: Monitoring Dashboard
   installMonitoring: Install Monitoring
   clusterInfo: Cluster Information
@@ -2814,7 +2836,9 @@ landing:
   clusters:
     title: Clusters
     provider: Provider
+    distro: Distro
     kubernetesVersion: Kubernetes Version
+    architecture: Architecture
     explorer: Explorer
     explore: Explore
     cores: |-
@@ -7314,9 +7338,25 @@ branding:
     uploadLight: Upload Light Logo
     uploadDark: Upload Dark Logo
     useCustom: Use a Custom Logo
+  banner:
+    label: Banner
+    tip: 'Upload an image to replace the default Rancher banner in the Dashboard page. We recommend using an SVG image with an aspect ratio of 6:1. The default image size is 4197x633. Max file size is 200KB. Accepted formats: JPEG, PNG, SVG.'
+    lightPreview: Light Theme Preview
+    darkPreview: Dark Theme Preview
+    uploadLight: Upload Light Banner
+    uploadDark: Upload Dark Banner
+    useCustom: Use a Custom Banner
+  loginBackground:
+    label: Login Background
+    tip: 'Upload an image to replace the default Rancher background in the Login page. We recommend using an SVG image with an aspect ratio of 7:8. The default image size is 683x768. Max file size is 200KB. Accepted formats: JPEG, PNG, SVG.'
+    lightPreview: Light Theme Preview
+    darkPreview: Dark Theme Preview
+    uploadLight: Upload Light Background
+    uploadDark: Upload Dark Background
+    useCustom: Use a Custom Background
   favicon:
     label: Favicon
-    tip: 'Upload an icon to replace the Rancher favicon in the browser tab. Max file size is 20KB'
+    tip: 'Upload an icon to replace the Rancher favicon in the browser tab. Max file size is 20KB.'
     preview: Favicon Preview
     upload: Upload Favicon
     useCustom: Use a Custom Favicon

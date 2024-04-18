@@ -144,6 +144,7 @@ export default {
             :disabled="disableAddRecord"
             type="button"
             class="btn role-tertiary"
+            data-testid="v2-monitoring-add-record"
             @click="addRule('record')"
           >
             <t k="prometheusRule.recordingRules.addLabel" />

@@ -8,6 +8,22 @@ import { WorkloadsDeploymentsListPagePo } from '@/cypress/e2e/po/pages/explorer/
 import { NodesPagePo } from '@/cypress/e2e/po/pages/explorer/nodes.po';
 import { EventsPagePo } from '@/cypress/e2e/po/pages/explorer/events.po';
 
+const configMapYaml = `apiVersion: v1
+kind: ConfigMap
+metadata:
+  name: e2e-test-${ +new Date() }
+  annotations:
+    {}
+    #  key: string
+  labels:
+    {}
+    #  key: string
+  namespace: default
+__clone: true
+#binaryData:  key: string
+#data:  key: string
+#immutable: boolean`;
+
 const clusterDashboard = new ClusterDashboardPagePo('local');
 const simpleBox = new SimpleBoxPo();
 const header = new HeaderPo();
@@ -40,6 +56,23 @@ describe('Cluster Dashboard', { testIsolation: 'off', tags: ['@explorer', '@admi
     ClusterDashboardPagePo.goTo('local');
 
     cy.title().should('eq', 'Rancher - local - Cluster Dashboard');
+  });
+
+  it('can import a YAML successfully, using the header action "Import YAML"', () => {
+    ClusterDashboardPagePo.navTo();
+
+    header.importYamlHeaderAction().click();
+    header.importYaml().importYamlEditor().set(configMapYaml);
+    header.importYaml().importYamlImportClick();
+
+    // we need to wait for the async action to finish in order to do further assertions
+    header.importYaml().importYamlSuccessTitleCheck();
+
+    // testing https://github.com/rancher/dashboard/issues/10656
+    header.importYaml().importYamlSortableTable().tableHeaderRowElementWithPartialName('State').should('not.exist');
+    header.importYaml().importYamlSortableTable().subRows().should('not.exist');
+
+    header.importYaml().importYamlCloseClick();
   });
 
   it('can add cluster badge', () => {
@@ -148,9 +181,7 @@ describe('Cluster Dashboard', { testIsolation: 'off', tags: ['@explorer', '@admi
   const projName = `project${ +new Date() }`;
   const nsName = `namespace${ +new Date() }`;
 
-  // Note: This test fails due to https://github.com/rancher/dashboard/issues/10265
-  // skipping this tests until issue has been resolved
-  it.skip('can view events', () => {
+  it('can view events', () => {
     // Create a pod to trigger events
 
     // get user id
@@ -159,10 +190,12 @@ describe('Cluster Dashboard', { testIsolation: 'off', tags: ['@explorer', '@admi
 
       // create project
       cy.createProject(projName, 'local', userId).then((resp: Cypress.Response<any>) => {
-        const projId = resp.body.id.trim();
+        cy.wrap(resp.body.id.trim()).as('projId');
 
         // create ns
-        cy.createNamespace(nsName, projId);
+        cy.get<string>('@projId').then((projId) => {
+          cy.createNamespace(nsName, projId);
+        });
 
         // create pod
         // eslint-disable-next-line no-return-assign
@@ -186,9 +219,11 @@ describe('Cluster Dashboard', { testIsolation: 'off', tags: ['@explorer', '@admi
       .should('have.length.gte', 2);
   });
 
-  after(() => {
+  after(function() {
     if (removePod) {
       cy.deleteRancherResource('v1', `pods/${ nsName }`, `pod-${ podName }`);
+      cy.deleteRancherResource('v1', 'namespaces', `${ nsName }`);
+      cy.deleteRancherResource('v3', 'projects', this.projId);
     }
   });
 });

@@ -9,6 +9,8 @@ const homeClusterList = homePage.list();
 const provClusterList = new ClusterManagerListPagePo('local');
 const longClusterDescription = 'this-is-some-really-really-really-really-really-really-long-decription';
 
+const rowDetails = (text) => text.split('\n').map((r) => r.trim()).filter((f) => f);
+
 describe('Home Page', () => {
   it('Confirm correct number of settings requests made', { tags: ['@generic', '@adminUser', '@standardUser'] }, () => {
     cy.login();
@@ -27,23 +29,8 @@ describe('Home Page', () => {
 
   describe('Home Page', { testIsolation: 'off' }, () => {
     before(() => {
-      // since I wasn't able to fully mock a list of clusters
-      // the next best thing is to add a description to the current local cluster
-      // testing https://github.com/rancher/dashboard/issues/10441
-      cy.intercept('GET', `/v1/provisioning.cattle.io.clusters?*`, (req) => {
-        req.continue((res) => {
-          const localIndex = res.body.data.findIndex((item) => item.id.includes('/local'));
-
-          if (localIndex >= 0) {
-            res.body.data[localIndex].metadata.annotations['field.cattle.io/description'] = longClusterDescription;
-          }
-
-          res.send(res.body);
-        });
-      }).as('provClusters');
-
       cy.login();
-      HomePagePo.goToAndWaitForGet();
+      HomePagePo.goTo();
     });
 
     it('Can navigate to release notes page for latest Rancher version', { tags: ['@generic', '@adminUser', '@standardUser'] }, () => {
@@ -124,11 +111,11 @@ describe('Home Page', () => {
       });
 
       homeClusterList.version('local').invoke('text').then((el) => {
-        clusterDetails.push(el.trim());
+        clusterDetails.push(rowDetails(el));
       });
 
       homeClusterList.provider('local').invoke('text').then((el) => {
-        clusterDetails.push(el.trim());
+        clusterDetails.push(rowDetails(el));
       });
 
       provClusterList.goTo();
@@ -142,11 +129,17 @@ describe('Home Page', () => {
       });
 
       provClusterList.list().version('local').should((el) => {
-        expect(el).to.include.text(clusterDetails[2]);
+        const version = rowDetails(el.text());
+
+        expect(version[0]).eq(clusterDetails[2][0]);
+        expect(version[1]).eq(clusterDetails[2][1]);
       });
 
       provClusterList.list().provider('local').should((el) => {
-        expect(el).to.include.text(clusterDetails[3]);
+        const provider = rowDetails(el.text());
+
+        expect(provider[0]).eq(clusterDetails[3][0]);
+        expect(provider[1]).eq(clusterDetails[3][1]);
       });
     });
 
@@ -172,7 +165,7 @@ describe('Home Page', () => {
       genericCreateClusterPage.waitForPage();
     });
 
-    it('Can filter rows in the cluster list', { tags: ['@adminUser'] }, () => {
+    it('Can filter rows in the cluster list', { tags: ['@generic', '@adminUser'] }, () => {
     /**
      * Filter rows in the cluster list
      */
@@ -188,8 +181,23 @@ describe('Home Page', () => {
       });
     });
 
-    it('Should show cluster description information in the cluster list', { tags: ['@adminUser'] }, () => {
-      HomePagePo.navTo();
+    it('Should show cluster description information in the cluster list', { tags: ['@generic', '@adminUser'] }, () => {
+      // since I wasn't able to fully mock a list of clusters
+      // the next best thing is to add a description to the current local cluster
+      // testing https://github.com/rancher/dashboard/issues/10441
+      cy.intercept('GET', `/v1/provisioning.cattle.io.clusters?*`, (req) => {
+        req.continue((res) => {
+          const localIndex = res.body.data.findIndex((item) => item.id.includes('/local'));
+
+          if (localIndex >= 0) {
+            res.body.data[localIndex].metadata.annotations['field.cattle.io/description'] = longClusterDescription;
+          }
+
+          res.send(res.body);
+        });
+      }).as('provClusters');
+
+      homePage.goTo();
       const desc = homeClusterList.resourceTable().sortableTable().rowWithName('local').column(1)
         .get('.cluster-description');
 

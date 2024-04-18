@@ -1004,17 +1004,21 @@ export default {
           }
         }
 
-        .cluster-name p {
-          width: 195px;
-          white-space: nowrap;
-          overflow: hidden;
-          text-overflow: ellipsis;
-          text-align: left;
+        .cluster-name {
+          line-height: normal;
 
-          &.description {
-            font-size: 12px;
-            padding-right: 8px;
-            color: var(--darker);
+          & > p {
+            width: 195px;
+            white-space: nowrap;
+            overflow: hidden;
+            text-overflow: ellipsis;
+            text-align: left;
+
+            &.description {
+              font-size: 12px;
+              padding-right: 8px;
+              color: var(--darker);
+            }
           }
         }
 
