@@ -1307,6 +1307,7 @@ export default {
         <div>
           <ArrayListSelect
             v-model="vGpus"
+            class="mt-20"
             :array-list-props="{ addAllowed: true, mode, disabled }"
             :select-props="{ mode, disabled }"
             :options="vGpuOptions"
