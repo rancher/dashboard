@@ -82,6 +82,6 @@ export default {
 
 <style lang="scss" scoped>
 ::v-deep .unlabeled-select {
-    height: 61px;
-}
+  height: 61px;
+  }
 </style>
