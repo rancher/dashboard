@@ -78,8 +78,6 @@ async function ghProject(org, num) {
  * @returns Project Issue Map metadata
  */
 async function ghProjectIssue(org, repo, num) {
-  console.log(`ghProjectIssue: ${ org }/${ repo } #${ num }`);
-
   const gQL = `query {
     repository(name:"${ repo }", owner:"${ org }") {
       issue(number: ${ num }) {
@@ -102,11 +100,7 @@ async function ghProjectIssue(org, repo, num) {
     }
   }`;
 
-  console.log(gQL);
-
   const res = await graphql(gQL);
-
-  console.log(JSON.stringify(res, null, 2));
 
   if (res.data?.repository?.issue?.projectItems) {
     const projectItems = res.data?.repository?.issue?.projectItems?.nodes;
@@ -120,6 +114,7 @@ async function ghProjectIssue(org, repo, num) {
     return projectMap;
   } else {
     console.log('No project items');
+    console.log(JSON.stringify(res, null, 2));
   }
 
   return undefined;

@@ -21,7 +21,7 @@ const GH_PRJ_TRIAGE = 'Triage';
 
 const GH_PRJ_TO_TEST = 'To Test';
 const GH_PRJ_QA_REVIEW = 'QA Review';
-const GH_PRJ_IN_REVIEW = 'In Review';
+const GH_PRJ_IN_REVIEW = 'Review';
 
 function parseOrgAndRepo(repoUrl) {
   const parts = repoUrl.split('/');
@@ -315,9 +315,9 @@ async function processOpenOrEditAction() {
 
       console.log(info);
 
-      console.log('-------- GH ISSUE -----');
-      console.log(JSON.stringify(prjIssue, null, 2));  
-      console.log('---------');
+      // console.log('-------- GH ISSUE -----');
+      // console.log(JSON.stringify(prjIssue, null, 2));  
+      // console.log('---------');
 
       // Is the issue on the board?
       if (!prjIssue?.[ghProject.id]) {
