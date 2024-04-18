@@ -1,6 +1,6 @@
-import { customMerge } from '@shell/utils/custom-merge';
+import { vspherePoolConfigMerge } from '@shell/machine-config/vmwarevsphere-pool-config-merge';
 
-describe('customMerge', () => {
+describe('vspherePoolConfigMerge', () => {
   const testCases: Array<[object?, object?, object?]> = [
     // Some array test cases, an array from the first object should be replaced with the array from the second object
     [{ a: ['one'] }, { a: [] }, { a: [] }],
@@ -23,7 +23,7 @@ describe('customMerge', () => {
   ];
 
   it.each(testCases)('should merge properly', (obj1, obj2, expected) => {
-    const result = customMerge(obj1, obj2);
+    const result = vspherePoolConfigMerge(obj1, obj2);
 
     expect(result).toStrictEqual(expected);
   });

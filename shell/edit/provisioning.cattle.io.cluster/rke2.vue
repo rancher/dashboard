@@ -26,7 +26,7 @@ import {
 } from '@shell/utils/object';
 import { allHash } from '@shell/utils/promise';
 import { sortBy } from '@shell/utils/sort';
-import { customMerge } from '@shell/utils/custom-merge';
+import { vspherePoolConfigMerge } from '@shell/machine-config/vmwarevsphere-pool-config-merge';
 
 import { compare, sortable } from '@shell/utils/version';
 import { isHarvesterSatisfiesVersion } from '@shell/utils/cluster';
@@ -66,6 +66,8 @@ import ClusterAppearance from '@shell/components/form/ClusterAppearance';
 const HARVESTER = 'harvester';
 const HARVESTER_CLOUD_PROVIDER = 'harvester-cloud-provider';
 const NETBIOS_TRUNCATION_LENGTH = 15;
+
+const VMWARE_VSPHERE = 'vmwarevsphere';
 
 /**
  * Classes to be adopted by the node badges in Machine pools
@@ -1105,7 +1107,7 @@ export default {
         },
       };
 
-      if (this.provider === 'vmwarevsphere') {
+      if (this.provider === VMWARE_VSPHERE) {
         pool.pool.machineOS = 'linux';
       }
 
@@ -1150,7 +1152,12 @@ export default {
         // We don't allow the user to edit any of the fields in metadata from the UI so it's safe to override it with the
         // metadata defined by the latest backend value. This is primarily used to ensure the resourceVersion is up to date.
         delete clonedCurrentConfig.metadata;
-        machinePool.config = customMerge(clonedLatestConfig, clonedCurrentConfig);
+
+        if (this.provider === VMWARE_VSPHERE) {
+          machinePool.config = vspherePoolConfigMerge(clonedLatestConfig, clonedCurrentConfig);
+        } else {
+          machinePool.config = merge(clonedLatestConfig, clonedCurrentConfig);
+        }
       }
     },
 
