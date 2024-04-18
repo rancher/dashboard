@@ -1307,13 +1307,10 @@ export default {
         <div>
           <ArrayListSelect
             v-model="vGpus"
-            :array-list-props="{ addAllowed: true }"
-            :mode="mode"
-            :disabled="disabled"
+            :array-list-props="{ addAllowed: true, mode, disabled }"
+            :select-props="{ mode, disabled }"
             :options="vGpuOptions"
-            :clearable="true"
             label-key="harvesterManager.vGpu.label"
-            :placeholder="t('harvesterManager.vGpu.placeholder')"
             @input="updateVGpu"
           />
         </div>
