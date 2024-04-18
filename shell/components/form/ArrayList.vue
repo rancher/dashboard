@@ -49,7 +49,7 @@ export default {
     addLabel: {
       type: String,
       default() {
-        return this.$store.getters['i18n/t']('generic.add');
+        return this.t('generic.add');
       },
     },
     addAllowed: {
@@ -59,7 +59,7 @@ export default {
     removeLabel: {
       type: String,
       default() {
-        return this.$store.getters['i18n/t']('generic.remove');
+        return this.t('generic.remove');
       },
     },
     removeAllowed: {

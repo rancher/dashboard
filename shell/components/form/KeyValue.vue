@@ -60,7 +60,7 @@ export default {
     protip: {
       type: [String, Boolean],
       default() {
-        return this.$store.getters['i18n/t']('keyValue.protip', null, true);
+        return this.t('keyValue.protip', null, true);
       },
     },
     // For asMap=false, the name of the field that goes into the row objects
@@ -71,7 +71,7 @@ export default {
     keyLabel: {
       type: String,
       default() {
-        return this.$store.getters['i18n/t']('generic.key');
+        return this.t('generic.key');
       },
     },
     keyEditable: {
@@ -95,7 +95,7 @@ export default {
     keyPlaceholder: {
       type: String,
       default() {
-        return this.$store.getters['i18n/t']('keyValue.keyPlaceholder');
+        return this.t('keyValue.keyPlaceholder');
       },
     },
     /**
@@ -124,13 +124,13 @@ export default {
     valueLabel: {
       type: String,
       default() {
-        return this.$store.getters['i18n/t']('generic.value');
+        return this.t('generic.value');
       },
     },
     valuePlaceholder: {
       type: String,
       default() {
-        return this.$store.getters['i18n/t']('keyValue.valuePlaceholder');
+        return this.t('keyValue.valuePlaceholder');
       },
     },
     valueCanBeEmpty: {
@@ -186,7 +186,7 @@ export default {
     addLabel: {
       type: String,
       default() {
-        return this.$store.getters['i18n/t']('generic.add');
+        return this.t('generic.add');
       },
     },
     addIcon: {
@@ -200,7 +200,7 @@ export default {
     readLabel: {
       type: String,
       default() {
-        return this.$store.getters['i18n/t']('generic.readFromFile');
+        return this.t('generic.readFromFile');
       },
     },
     readIcon: {
@@ -266,6 +266,9 @@ export default {
   },
 
   computed: {
+    _keyPlaceholder() {
+      return this.keyPlaceholder || this.t('keyValue.keyPlaceholder');
+    },
     isView() {
       return this.mode === _VIEW;
     },
