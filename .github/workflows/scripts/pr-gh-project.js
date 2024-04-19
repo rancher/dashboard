@@ -81,9 +81,13 @@ async function moveIssueToProjectState(project, prjIssueID, issue, state) {
   console.log(`moveIssueToProjectState ${ state }`);
   console.log(JSON.stringify(project, null, 2));
   console.log(prjIssueID);
-  console.log(JSON.stringify(issue, null, 2));
+  // console.log(JSON.stringify(issue, null, 2));
 
-  return await request.ghUpdateProjectIssueStatus(project, prjIssueID, state);
+  const res = await request.ghUpdateProjectIssueStatus(project, prjIssueID, state);
+
+  console.log(JSON.stringify(res, null, 2));
+
+  return res;
 }
 
 /**
@@ -313,8 +317,7 @@ async function processOpenOrEditAction() {
       const info = parseOrgAndRepo(iss.repository_url);
       let prjIssue = await request.ghProjectIssue(info.org, info.repo, i);
 
-      console.log(info);
-
+      // console.log(info);
       // console.log('-------- GH ISSUE -----');
       // console.log(JSON.stringify(prjIssue, null, 2));  
       // console.log('---------');
@@ -338,7 +341,7 @@ async function processOpenOrEditAction() {
       }
 
       if (prjIssue?.[ghProject.id]) {
-        await moveIssueToProjectState(ghProject, prjIssue[ghProject.id].id, iss, GH_PRJ_IN_REVIEW);
+        await moveIssueToProjectState(ghProject, prjIssue[ghProject.id], iss, GH_PRJ_IN_REVIEW);
       } else {
         console.log(`Can not move issue to state ${ GH_PRJ_IN_REVIEW } - issue is not on the board`);
       }
