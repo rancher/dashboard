@@ -58,7 +58,7 @@ export default {
     },
 
     protip: {
-      type: [String, Boolean],
+      type:    [String, Boolean],
       default: '',
     },
     // For asMap=false, the name of the field that goes into the row objects
@@ -67,7 +67,7 @@ export default {
       default: 'key',
     },
     keyLabel: {
-      type: String,
+      type:    String,
       default: '',
     },
     keyEditable: {
@@ -89,7 +89,7 @@ export default {
       default: false,
     },
     keyPlaceholder: {
-      type: String,
+      type:    String,
       default: '',
     },
     /**
@@ -116,11 +116,11 @@ export default {
       default: 'value',
     },
     valueLabel: {
-      type: String,
+      type:    String,
       default: '',
     },
     valuePlaceholder: {
-      type: String,
+      type:    String,
       default: '',
     },
     valueCanBeEmpty: {
@@ -174,7 +174,7 @@ export default {
       default: () => {},
     },
     addLabel: {
-      type: String,
+      type:    String,
       default: '',
     },
     addIcon: {

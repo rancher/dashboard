@@ -34,7 +34,7 @@ export default {
     },
 
     keyLabel: {
-      type: String,
+      type:    String,
       default: '',
     },
 
@@ -50,7 +50,7 @@ export default {
     },
 
     valueLabel: {
-      type: String,
+      type:    String,
       default: '',
     },
 

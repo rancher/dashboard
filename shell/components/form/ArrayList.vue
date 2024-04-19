@@ -47,7 +47,7 @@ export default {
       default: false,
     },
     addLabel: {
-      type: String,
+      type:    String,
       default: '',
     },
     addAllowed: {
@@ -55,7 +55,7 @@ export default {
       default: true,
     },
     removeLabel: {
-      type: String,
+      type:    String,
       default: '',
     },
     removeAllowed: {
