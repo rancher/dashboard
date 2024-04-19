@@ -255,13 +255,13 @@ export default {
       return this.keyLabel || this.t('generic.key');
     },
     _keyPlaceholder() {
-      return this._keyPlaceholder || this.t('keyValue.keyPlaceholder');
+      return this.keyPlaceholder || this.t('keyValue.keyPlaceholder');
     },
     _valueLabel() {
       return this.valueLabel || this.t('generic.value');
     },
     _valuePlaceholder() {
-      return this._valuePlaceholder || this.t('keyValue.valuePlaceholder');
+      return this.valuePlaceholder || this.t('keyValue.valuePlaceholder');
     },
     _addLabel() {
       return this.addLabel || this.t('generic.add');
