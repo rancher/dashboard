@@ -59,9 +59,6 @@ export default {
 
     protip: {
       type: [String, Boolean],
-      default() {
-        return this.t('keyValue.protip', null, true);
-      },
     },
     // For asMap=false, the name of the field that goes into the row objects
     keyName: {
@@ -70,9 +67,6 @@ export default {
     },
     keyLabel: {
       type: String,
-      default() {
-        return this.t('generic.key');
-      },
     },
     keyEditable: {
       type:    Boolean,
@@ -94,9 +88,6 @@ export default {
     },
     keyPlaceholder: {
       type: String,
-      default() {
-        return this.t('keyValue.keyPlaceholder');
-      },
     },
     /**
      * List of keys which needs to be disabled and hidden based on toggler
@@ -123,15 +114,9 @@ export default {
     },
     valueLabel: {
       type: String,
-      default() {
-        return this.t('generic.value');
-      },
     },
     valuePlaceholder: {
       type: String,
-      default() {
-        return this.t('keyValue.valuePlaceholder');
-      },
     },
     valueCanBeEmpty: {
       type:    Boolean,
@@ -185,9 +170,6 @@ export default {
     },
     addLabel: {
       type: String,
-      default() {
-        return this.t('generic.add');
-      },
     },
     addIcon: {
       type:    String,
@@ -196,12 +178,6 @@ export default {
     addAllowed: {
       type:    Boolean,
       default: true,
-    },
-    readLabel: {
-      type: String,
-      default() {
-        return this.t('generic.readFromFile');
-      },
     },
     readIcon: {
       type:    String,
@@ -266,9 +242,25 @@ export default {
   },
 
   computed: {
-    _keyPlaceholder() {
-      return this.keyPlaceholder || this.t('keyValue.keyPlaceholder');
+    _protip() {
+      return this.protip || this.t('keyValue.protip', null, true);
     },
+    _keyLabel() {
+      return this.keyLabel || this.t('generic.key');
+    },
+    _keyPlaceholder() {
+      return this._keyPlaceholder || this.t('keyValue.keyPlaceholder');
+    },
+    _valueLabel() {
+      return this.valueLabel || this.t('generic.value');
+    },
+    _valuePlaceholder() {
+      return this._valuePlaceholder || this.t('keyValue.valuePlaceholder');
+    },
+    _addLabel() {
+      return this.addLabel || this.t('generic.add');
+    },
+
     isView() {
       return this.mode === _VIEW;
     },
@@ -590,15 +582,15 @@ export default {
     >
       <template v-if="rows.length || isView">
         <label class="text-label">
-          {{ keyLabel }}
+          {{ _keyLabel }}
           <i
-            v-if="protip && !isView && addAllowed"
-            v-clean-tooltip="protip"
+            v-if="_protip && !isView && addAllowed"
+            v-clean-tooltip="_protip"
             class="icon icon-info"
           />
         </label>
         <label class="text-label">
-          {{ valueLabel }}
+          {{ _valueLabel }}
         </label>
         <label
           v-for="c in extraColumns"
@@ -656,7 +648,7 @@ export default {
               ref="key"
               v-model="row[keyName]"
               :disabled="isView || disabled || !keyEditable || isProtected(row.key)"
-              :placeholder="keyPlaceholder"
+              :placeholder="_keyPlaceholder"
               :data-testid="`input-kv-item-key-${i}`"
               @input="queueUpdate"
               @paste="onPaste(i, $event)"
@@ -707,7 +699,7 @@ export default {
                 :class="{'conceal': valueConcealed}"
                 :disabled="disabled || isProtected(row.key)"
                 :mode="mode"
-                :placeholder="valuePlaceholder"
+                :placeholder="_valuePlaceholder"
                 :min-height="40"
                 :spellcheck="false"
                 @input="queueUpdate"
@@ -717,7 +709,7 @@ export default {
                 v-model="row[valueName]"
                 :disabled="isView || disabled || isProtected(row.key)"
                 :type="valueConcealed ? 'password' : 'text'"
-                :placeholder="valuePlaceholder"
+                :placeholder="_valuePlaceholder"
                 autocorrect="off"
                 autocapitalize="off"
                 spellcheck="false"
@@ -787,7 +779,7 @@ export default {
           <i
             v-if="loading"
             class="mr-5 icon icon-spinner icon-spin icon-lg"
-          /> {{ addLabel }}
+          /> {{ _addLabel }}
         </button>
         <FileSelector
           v-if="readAllowed"
