@@ -6,6 +6,10 @@ import PromptRemove from '@/cypress/e2e/po/prompts/promptRemove.po';
 import LoadingPo from '@/cypress/e2e/po/components/loading.po';
 import EmberBannersPo from '@/cypress/e2e/po/components/ember/ember-banners.po';
 
+/******
+ *  Running this test will delete node templates and cloud credentials resources from the target cluster
+ ******/
+
 // will only run this in jenkins pipeline where cloud credentials are stored
 describe('Provision Node driver RKE1 cluster with Azure', { testIsolation: 'off', tags: ['@manager', '@adminUser', '@standardUser', '@jenkins'] }, () => {
   const clusterList = new ClusterManagerListPagePo();
