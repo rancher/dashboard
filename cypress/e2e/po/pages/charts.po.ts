@@ -3,6 +3,7 @@ import AsyncButtonPo from '@/cypress/e2e/po/components/async-button.po';
 import SelectPo from '@/cypress/e2e/po/components/select.po';
 
 import TabbedPo from '@/cypress/e2e/po/components/tabbed.po';
+import BannersPo from '@/cypress/e2e/po/components/banners.po';
 
 export class ChartsPage extends PagePo {
   static url = '/c/local/apps/charts/chart?repo-type=cluster&repo=rancher-charts'
@@ -70,5 +71,9 @@ export class ChartsPage extends PagePo {
 
   tabsCountOnInstallQuestions() {
     return new TabbedPo().allTabs();
+  }
+
+  bannerContent() {
+    return new BannersPo('[data-testid="banner-content"]', this.self()).bannerElement('span');
   }
 }
