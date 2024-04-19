@@ -19,6 +19,8 @@ import { SECRET } from '@shell/config/types';
 import { _EDIT, _VIEW } from '@shell/config/query-params';
 import { TYPES } from '@shell/models/secret';
 import sortBy from 'lodash/sortBy';
+import paginationUtils from '@shell/utils/pagination-utils';
+import { PaginationArgs, PaginationFilterField, PaginationParamFilter } from '@shell/types/store/pagination.types';
 
 const NONE = '__[[NONE]]__';
 
@@ -26,14 +28,34 @@ export default {
   components: { LabeledSelect },
 
   async fetch() {
-    // Make sure secrets are in the store so that the secret
-    // selectors in the receiver config forms will have secrets
-    // to choose from.
-    const allSecrets = await this.$store.dispatch('cluster/findAll', { type: SECRET });
+    if (paginationUtils.isSteveCacheEnabled({ rootGetters: this.$store.getters })) {
+      // I don't think we need to integrate server-side pagination with the label select that this powers
+      // filtering by namespace should be enough to restrict the response to something small enough for the UI to handle
 
-    const allSecretsInNamespace = allSecrets.filter((secret) => this.types.includes(secret._type) && secret.namespace === this.namespace);
+      const findPageArgs = { // Of type ActionFindPageArgs
+        namespaced: this.namespace,
+        pagination: new PaginationArgs({
+          pageSize: -1,
+          filters:  [
+            PaginationParamFilter.createMultipleFields(this.types.map((t) => {
+              return new PaginationFilterField({ field: 'metadata.fields.2', value: t });
+            }))
+          ]
+        }),
+      };
 
-    this.secrets = allSecretsInNamespace;
+      this.secrets = await this.$store.dispatch(`cluster/findPage`, { type: SECRET, opt: findPageArgs });
+    } else {
+      // Make sure secrets are in the store so that the secret
+      // selectors in the receiver config forms will have secrets
+      // to choose from.
+      const allSecrets = await this.$store.dispatch('cluster/findAll', { type: SECRET });
+
+      const allSecretsInNamespace = allSecrets.filter((secret) => this.types.includes(secret._type) && secret.namespace === this.namespace);
+
+      // console.warn(this.secretNameLabel, 'fetch', this.namespace, allSecrets, allSecretsInNamespace);
+      this.secrets = allSecretsInNamespace;
+    }
   },
 
   props: {

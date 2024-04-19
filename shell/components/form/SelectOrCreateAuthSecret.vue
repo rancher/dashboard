@@ -398,8 +398,7 @@ export default {
   methods: {
     // TODO: RC unit tests
     async filterSecretsByApi() {
-      // Of type ActionFindPageArgs
-      const findPageArgs = {
+      const findPageArgs = { // Of type ActionFindPageArgs
         namespaced: this.filterByNamespace ? this.namespace : '',
         pagination: new PaginationArgs({
           pageSize: -1,
