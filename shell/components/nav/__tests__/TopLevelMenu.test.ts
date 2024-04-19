@@ -2,7 +2,7 @@ import TopLevelMenu from '@shell/components/nav/TopLevelMenu';
 import { SETTING } from '@shell/config/settings';
 import { mount, Wrapper } from '@vue/test-utils';
 
-// DISCLAIMER: This should not be added here, although we have several store requests which are irrelevant
+// DISCLAIMER: This should not be added here, although we have several store requests which are irrelevant//
 const defaultStore = {
   'management/byId':         jest.fn(),
   'management/schemaFor':    jest.fn(),
@@ -45,6 +45,7 @@ describe('topLevelMenu', () => {
             // from which the "description" field comes from
             // This is triggered by the "hasProvCluster" above
             // (check all "management/all" getters on the component code)
+            // https://github.com/rancher/dashboard/issues/10441
             'management/all': () => [
               // pinned ready cluster
               {
@@ -79,6 +80,70 @@ describe('topLevelMenu', () => {
                 name:        'whatever',
                 id:          'an-id4',
                 mgmt:        { id: 'an-id4' },
+                description: 'some-description4',
+                nameDisplay: 'some-label'
+              },
+            ],
+            ...defaultStore
+          },
+        },
+      },
+      stubs: ['BrandImage', 'router-link']
+    });
+
+    const description1 = wrapper.find('[data-testid="pinned-menu-cluster-an-id1"] .description');
+    const description2 = wrapper.find('[data-testid="pinned-menu-cluster-disabled-an-id2"] .description');
+    const description3 = wrapper.find('[data-testid="menu-cluster-an-id3"] .description');
+    const description4 = wrapper.find('[data-testid="menu-cluster-disabled-an-id4"] .description');
+
+    expect(description1.text()).toStrictEqual('some-description1');
+    expect(description2.text()).toStrictEqual('some-description2');
+    expect(description3.text()).toStrictEqual('some-description3');
+    expect(description4.text()).toStrictEqual('some-description4');
+  });
+
+  it('should show description if it is available on the mgmt cluster (relevant for RKE1/ember world)', async() => {
+    const wrapper: Wrapper<InstanceType<typeof TopLevelMenu>> = mount(TopLevelMenu, {
+      data: () => {
+        return { hasProvCluster: false, showPinClusters: true };
+      },
+      mocks: {
+        $store: {
+          getters: {
+            // "hasProvCluster" as false will make this getter
+            // a mgmt cluster only return, therefore covering the
+            // scenario where descriptions come from RKE1/ember world clusters
+            // https://github.com/rancher/dashboard/issues/10441
+            'management/all': () => [
+              // pinned ready cluster
+              {
+                name:        'whatever',
+                id:          'an-id1',
+                description: 'some-description1',
+                nameDisplay: 'some-label',
+                isReady:     true,
+                pinned:      true
+              },
+              // pinned NOT ready cluster
+              {
+                name:        'whatever',
+                id:          'an-id2',
+                description: 'some-description2',
+                nameDisplay: 'some-label',
+                pinned:      true
+              },
+              // unpinned ready cluster
+              {
+                name:        'whatever',
+                id:          'an-id3',
+                description: 'some-description3',
+                nameDisplay: 'some-label',
+                isReady:     true
+              },
+              // unpinned NOT ready cluster
+              {
+                name:        'whatever',
+                id:          'an-id4',
                 description: 'some-description4',
                 nameDisplay: 'some-label'
               },
