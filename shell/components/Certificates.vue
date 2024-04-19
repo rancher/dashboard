@@ -150,6 +150,7 @@ export default defineComponent({
       :rows="certs"
       :paging-label="'secret.certificate.paging'"
       :paging-params="pagingParams"
+      :ignoreFilter="true"
     >
       <template #col:certState="{row}">
         <td>
