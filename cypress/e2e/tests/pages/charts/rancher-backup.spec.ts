@@ -1,9 +1,10 @@
-import { ChartPage } from '@/cypress/e2e/po/pages/chart.po';
+import { ChartPage } from '@/cypress/e2e/po/pages/explorer/charts/chart.po';
 import RadioGroupInputPo from '@/cypress/e2e/po/components/radio-group-input.po';
 import { exampleStorageClass, defaultStorageClass } from '@/cypress/e2e/blueprints/charts/rancher-backup-chart';
 import LabeledSelectPo from '@/cypress/e2e/po/components/labeled-select.po';
 import TabbedPo from '@/cypress/e2e/po/components/tabbed.po';
 import HomePagePo from '@/cypress/e2e/po/pages/home.po';
+import { InstallChartPage } from '@/cypress/e2e/po/pages/explorer/charts/install-charts.po';
 
 const STORAGE_CLASS_RESOURCE = 'storage.k8s.io.storageclasses';
 
@@ -34,9 +35,10 @@ describe('Charts', { tags: ['@charts', '@adminUser'] }, () => {
         ChartPage.navTo(null, 'Rancher Backups');
         chartPage.waitForPage('repo-type=cluster&repo=rancher-charts&chart=rancher-backup');
 
-        const installPage = new ChartPage('local', true);
+        const installPage = new InstallChartPage();
 
-        installPage.goToInstall().nextPage();
+        chartPage.goToInstall();
+        installPage.nextPage();
         cy.wait('@storageClasses', { timeout: 10000 }).its('response.statusCode').should('eq', 200);
         cy.wait('@persistentVolumes', { timeout: 10000 }).its('response.statusCode').should('eq', 200);
         cy.wait('@secrets', { timeout: 10000 }).its('response.statusCode').should('eq', 200);

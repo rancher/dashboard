@@ -1,4 +1,4 @@
-import { ChartsPage } from '@/cypress/e2e/po/pages/charts.po';
+import { ChartsPage } from '@/cypress/e2e/po/pages/explorer/charts/charts.po';
 
 describe('Apps/Charts', { tags: ['@explorer', '@adminUser'] }, () => {
   before(() => {

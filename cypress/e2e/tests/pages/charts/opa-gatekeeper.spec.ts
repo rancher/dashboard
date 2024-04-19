@@ -1,7 +1,8 @@
 import { generateOpaGatekeeperForLocalCluster } from '@/cypress/e2e/blueprints/other-products/opa-gatekeeper.js';
 import OpaGatekeeperPo from '@/cypress/e2e/po/other-products/opa-gatekeeper';
-import { ChartPage } from '@/cypress/e2e/po/pages/chart.po';
+import { ChartPage } from '@/cypress/e2e/po/pages/explorer/charts/chart.po';
 import HomePagePo from '@/cypress/e2e/po/pages/home.po';
+import { InstallChartPage } from '@/cypress/e2e/po/pages/explorer/charts/install-charts.po';
 
 describe('Charts', { testIsolation: 'off', tags: ['@charts', '@adminUser'] }, () => {
   before(() => {
@@ -43,14 +44,15 @@ describe('Charts', { testIsolation: 'off', tags: ['@charts', '@adminUser'] }, ()
   });
 
   describe('OPA Gatekeeper install', () => {
+    const installChartPage = new InstallChartPage();
     const chartPage = new ChartPage();
 
     describe('YAML view', () => {
       beforeEach(() => {
         ChartPage.navTo(null, 'OPA Gatekeeper');
         chartPage.waitForPage('repo-type=cluster&repo=rancher-charts&chart=rancher-gatekeeper');
-        chartPage.goToInstall().nextPage();
-        chartPage.editYaml();
+        chartPage.goToInstall();
+        installChartPage.nextPage().editYaml();
       });
 
       describe('UI Elements', () => {
