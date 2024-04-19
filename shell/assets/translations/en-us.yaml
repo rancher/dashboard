@@ -240,6 +240,7 @@ suffix:
   ib: iB
   mib: MiB
   gb: GB
+  ago: ago
   revisions: |-
     {count, plural,
       =1 { Revision }
