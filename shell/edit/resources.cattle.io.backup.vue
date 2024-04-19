@@ -17,6 +17,9 @@ import { NAMESPACE, _VIEW } from '@shell/config/query-params';
 import { sortBy } from '@shell/utils/sort';
 import { get } from '@shell/utils/object';
 import { formatEncryptionSecretNames } from '@shell/utils/formatter';
+import paginationUtils from '@shell/utils/pagination-utils';
+import { PaginationArgs, PaginationParamFilter } from '@shell/types/store/pagination.types';
+import { SECRET_TYPES } from '~/shell/config/secret';
 
 export default {
 
@@ -47,18 +50,37 @@ export default {
   },
 
   async fetch() {
-    await this.$store.dispatch('catalog/load');
-
     const hash = await allHash({
-      secrets:     this.$store.dispatch('cluster/findAll', { type: SECRET }),
+      catalog:     this.$store.dispatch('catalog/load'),
       resourceSet: this.$store.dispatch('cluster/find', { type: BACKUP_RESTORE.RESOURCE_SET, id: this.value?.spec?.resourceSetName || 'rancher-resource-set' }),
       apps:        this.$store.dispatch('cluster/findAll', { type: CATALOG.APP })
-
     });
 
-    this.allSecrets = hash.secrets;
-    this.resourceSet = hash.resourceSet;
     this.apps = hash.apps;
+    this.resourceSet = hash.resourceSet;
+
+    const BRORelease = this.apps.filter((release) => get(release, 'spec.name') === 'rancher-backup')[0];
+
+    this.chartNamespace = BRORelease?.spec.namespace || '';
+
+    if (paginationUtils.isSteveCacheEnabled({ rootGetters: this.$store.getters })) {
+      const findPageArgs = { // Of type ActionFindPageArgs
+        namespaced: this.chartNamespace,
+        pagination: new PaginationArgs({
+          pageSize: -1,
+          filters:  PaginationParamFilter.createSingleField({
+            field: 'metadata.fields.2',
+            value: SECRET_TYPES.OPAQUE
+          })
+        }),
+      };
+
+      const url = this.$store.getters[`cluster/urlFor`](SECRET, null, findPageArgs);
+
+      this.secrets = await this.$store.dispatch(`cluster/request`, { url })?.data || [];
+    } else {
+      this.secrets = await this.$store.dispatch('cluster/findAll', { type: SECRET });
+    }
   },
 
   data() {
@@ -84,7 +106,7 @@ export default {
     }
 
     return {
-      allSecrets:     [],
+      secrets:        [],
       resourceSet:    null,
       s3,
       storageSource,
@@ -94,7 +116,8 @@ export default {
       name:           this.value?.metadata?.name,
       fvFormRuleSets: [{
         path: 'metadata.name', rules: ['dnsLabel', 'noUpperCase'], translationKey: 'nameNsDescription.name.label'
-      }]
+      }],
+      chartNamespace: null,
     };
   },
 
@@ -103,14 +126,8 @@ export default {
       return this.mode === _VIEW;
     },
 
-    chartNamespace() {
-      const BRORelease = this.apps.filter((release) => get(release, 'spec.name') === 'rancher-backup')[0];
-
-      return BRORelease ? BRORelease.spec.namespace : '';
-    },
-
     encryptionSecretNames() {
-      return formatEncryptionSecretNames(this.allSecrets, this.chartNamespace);
+      return formatEncryptionSecretNames(this.secrets, this.chartNamespace);
     },
 
     storageOptions() {
@@ -251,7 +268,7 @@ export default {
               <div class="col span-6">
                 <LabeledSelect
                   v-model="value.spec.encryptionConfigSecretName"
-                  :tooltip="t('backupRestoreOperator.encryptionConfigName.backuptip', {}, true)"
+                  :tooltip="t('backupRestoreOperator.encryptionConfigName.backuptip', { ns: chartNamespace}, true)"
                   :hover-tooltip="true"
                   :mode="mode"
                   :options="encryptionSecretNames"
@@ -282,9 +299,10 @@ export default {
           <template v-if="storageSource !== 'useDefault'">
             <div class="row mt-10">
               <div class="col span-12">
+                <!-- // TODO: RC search for usages of S3 (secretsnot needed now) -->
+                <!-- TODO: RC test... this isn't paginting after rmeoving thing -->
                 <S3
                   :value="s3"
-                  :secrets="allSecrets"
                   :mode="mode"
                 />
               </div>

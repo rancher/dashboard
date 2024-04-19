@@ -14,6 +14,9 @@ import { allHash } from '@shell/utils/promise';
 import { get } from '@shell/utils/object';
 import { _CREATE } from '@shell/config/query-params';
 import { formatEncryptionSecretNames } from '@shell/utils/formatter';
+import paginationUtils from '@shell/utils/pagination-utils';
+import { PaginationArgs, PaginationParamFilter } from '@shell/types/store/pagination.types';
+import { SECRET_TYPES } from '~/shell/config/secret';
 
 export default {
 
@@ -44,17 +47,38 @@ export default {
   },
 
   async fetch() {
-    await this.$store.dispatch('catalog/load');
-
+    // TODO: RC test all
     const hash = await allHash({
-      secrets: this.$store.dispatch('cluster/findAll', { type: SECRET }),
-      backups: this.$store.dispatch('cluster/findAll', { type: BACKUP_RESTORE.BACKUP }),
-      apps:    this.$store.dispatch('cluster/findAll', { type: CATALOG.APP })
+      catalog:     this.$store.dispatch('catalog/load'),
+      resourceSet: this.$store.dispatch('cluster/find', { type: BACKUP_RESTORE.RESOURCE_SET, id: this.value?.spec?.resourceSetName || 'rancher-resource-set' }),
+      apps:        this.$store.dispatch('cluster/findAll', { type: CATALOG.APP })
     });
 
-    this.allSecrets = hash.secrets;
-    this.allBackups = hash.backups;
     this.apps = hash.apps;
+    this.resourceSet = hash.resourceSet;
+
+    const BRORelease = this.apps.filter((release) => get(release, 'spec.name') === 'rancher-backup')[0];
+
+    this.chartNamespace = BRORelease?.spec.namespace || '';
+
+    if (paginationUtils.isSteveCacheEnabled({ rootGetters: this.$store.getters })) {
+      const findPageArgs = { // Of type ActionFindPageArgs
+        namespaced: this.chartNamespace,
+        pagination: new PaginationArgs({
+          pageSize: -1,
+          filters:  PaginationParamFilter.createSingleField({
+            field: 'metadata.fields.2',
+            value: SECRET_TYPES.OPAQUE
+          })
+        }),
+      };
+
+      const url = this.$store.getters[`cluster/urlFor`](SECRET, null, findPageArgs);
+
+      this.secrets = await this.$store.dispatch(`cluster/request`, { url })?.data || [];
+    } else {
+      this.secrets = await this.$store.dispatch('cluster/findAll', { type: SECRET });
+    }
   },
 
   data() {
@@ -75,7 +99,13 @@ export default {
     }
 
     return {
-      allSecrets: [], allBackups: [], s3, targetBackup: null, storageSource, apps: []
+      secrets:        [],
+      allBackups:     [],
+      s3,
+      targetBackup:   null,
+      storageSource,
+      apps:           [],
+      chartNamespace: null,
     };
   },
 
@@ -88,14 +118,8 @@ export default {
       return this.allBackups.filter((backup) => backup.state !== 'error');
     },
 
-    chartNamespace() {
-      const BRORelease = this.apps.filter((release) => get(release, 'spec.name') === 'rancher-backup')[0];
-
-      return BRORelease ? BRORelease.spec.namespace : '';
-    },
-
     encryptionSecretNames() {
-      return formatEncryptionSecretNames(this.allSecrets, this.chartNamespace);
+      return formatEncryptionSecretNames(this.secrets, this.chartNamespace);
     },
 
     isEncrypted() {
@@ -214,7 +238,6 @@ export default {
             <S3
               v-model="s3"
               :mode="mode"
-              :secrets="allSecrets"
             />
           </template>
           <div

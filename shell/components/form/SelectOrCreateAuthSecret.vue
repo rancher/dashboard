@@ -419,7 +419,7 @@ export default {
 
       const url = this.$store.getters[`${ this.inStore }/urlFor`](SECRET, null, findPageArgs);
 
-      return await this.$store.dispatch(`${ this.inStore }/request`, { url });
+      return await this.$store.dispatch(`${ this.inStore }/request`, { url }); // TODO: RC this does not return a collection... where else did i use this pattern?
     },
 
     updateKeyVal() {

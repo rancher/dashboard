@@ -776,7 +776,7 @@ backupRestoreOperator:
       warning: 'This {type} does not have its reclaim policy set to "Retain".  Your backups may be lost if the volume is changed or becomes unbound.'
   encryption: Encryption
   encryptionConfigName:
-    backuptip: 'Any secret in the <code>cattle-resources-system</code> namespace that has an <code>encryption-provider-config.yaml</code> key. <br/>The contents of this file are necessary to perform a restore from this backup, and are not stored by Rancher Backup.'
+    backuptip: 'Any secret in the <code>{ns}</code> namespace that has an <code>encryption-provider-config.yaml</code> key. <br/>The contents of this file are necessary to perform a restore from this backup, and are not stored by Rancher Backup.'
     label: Encryption Config Secret
     options:
       none: Store the contents of the backup unencrypted
