@@ -35,6 +35,7 @@ export default {
 
     keyLabel: {
       type: String,
+      default: '',
     },
 
     separatorLabel: {
@@ -50,6 +51,7 @@ export default {
 
     valueLabel: {
       type: String,
+      default: '',
     },
 
     valueBase64: {

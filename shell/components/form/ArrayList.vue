@@ -48,6 +48,7 @@ export default {
     },
     addLabel: {
       type: String,
+      default: '',
     },
     addAllowed: {
       type:    Boolean,
@@ -55,6 +56,7 @@ export default {
     },
     removeLabel: {
       type: String,
+      default: '',
     },
     removeAllowed: {
       type:    Boolean,

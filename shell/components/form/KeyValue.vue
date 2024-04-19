@@ -59,6 +59,7 @@ export default {
 
     protip: {
       type: [String, Boolean],
+      default: '',
     },
     // For asMap=false, the name of the field that goes into the row objects
     keyName: {
@@ -67,6 +68,7 @@ export default {
     },
     keyLabel: {
       type: String,
+      default: '',
     },
     keyEditable: {
       type:    Boolean,
@@ -88,6 +90,7 @@ export default {
     },
     keyPlaceholder: {
       type: String,
+      default: '',
     },
     /**
      * List of keys which needs to be disabled and hidden based on toggler
@@ -114,9 +117,11 @@ export default {
     },
     valueLabel: {
       type: String,
+      default: '',
     },
     valuePlaceholder: {
       type: String,
+      default: '',
     },
     valueCanBeEmpty: {
       type:    Boolean,
@@ -170,6 +175,7 @@ export default {
     },
     addLabel: {
       type: String,
+      default: '',
     },
     addIcon: {
       type:    String,
