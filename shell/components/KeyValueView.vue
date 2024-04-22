@@ -34,10 +34,8 @@ export default {
     },
 
     keyLabel: {
-      type: String,
-      default() {
-        return this.$store.getters['i18n/t']('generic.key');
-      },
+      type:    String,
+      default: '',
     },
 
     separatorLabel: {
@@ -52,10 +50,8 @@ export default {
     },
 
     valueLabel: {
-      type: String,
-      default() {
-        return this.$store.getters['i18n/t']('generic.value');
-      },
+      type:    String,
+      default: '',
     },
 
     valueBase64: {
@@ -70,6 +66,14 @@ export default {
   },
 
   computed: {
+    _keyLabel() {
+      return this.keyLabel || this.t('generic.key');
+    },
+
+    _valueLabel() {
+      return this.valueLabel || this.t('generic.value');
+    },
+
     threeColumns() {
       return this.showRemove;
     },
@@ -157,10 +161,10 @@ export default {
       :class="{'extra-column':threeColumns}"
     >
       <label class="text-label">
-        {{ keyLabel }}
+        {{ _keyLabel }}
       </label>
       <label class="text-label">
-        {{ valueLabel }}
+        {{ _valueLabel }}
       </label>
       <span v-if="threeColumns" />
 

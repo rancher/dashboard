@@ -47,20 +47,16 @@ export default {
       default: false,
     },
     addLabel: {
-      type: String,
-      default() {
-        return this.$store.getters['i18n/t']('generic.add');
-      },
+      type:    String,
+      default: '',
     },
     addAllowed: {
       type:    Boolean,
       default: true,
     },
     removeLabel: {
-      type: String,
-      default() {
-        return this.$store.getters['i18n/t']('generic.remove');
-      },
+      type:    String,
+      default: '',
     },
     removeAllowed: {
       type:    Boolean,
@@ -101,6 +97,13 @@ export default {
     return { rows, lastUpdateWasFromValue: false };
   },
   computed: {
+    _addLabel() {
+      return this.addLabel || this.t('generic.add');
+    },
+    _removeLabel() {
+      return this.removeLabel || this.t('generic.remove');
+    },
+
     isView() {
       return this.mode === _VIEW;
     },
@@ -311,7 +314,7 @@ export default {
               :data-testid="`remove-item-${idx}`"
               @click="remove(row, idx)"
             >
-              {{ removeLabel }}
+              {{ _removeLabel }}
             </button>
           </slot>
         </div>
@@ -347,7 +350,7 @@ export default {
             v-if="loading"
             class="mr-5 icon icon-spinner icon-spin icon-lg"
           />
-          {{ addLabel }}
+          {{ _addLabel }}
         </button>
       </slot>
     </div>
