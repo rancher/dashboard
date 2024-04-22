@@ -48,8 +48,6 @@ export default {
   },
   mounted() {
     // Generates a fake cluster object for use with badge component on cluster provisioning.
-    console.log(this.currentCluster);
-
     if (this.isCreating) {
       this.cluster = this.getPreviewCluster;
       this.badgeAsIcon = this.cluster?.badge?.iconText?.length > 0 || false;
