@@ -48,6 +48,7 @@ export default {
   },
   mounted() {
     // Generates a fake cluster object for use with badge component on cluster provisioning.
+    console.log(this.currentCluster);
 
     if (this.isCreating) {
       this.cluster = this.getPreviewCluster;
@@ -61,11 +62,11 @@ export default {
   },
 
   async fetch() {
-    await this.$store.dispatch('rancher/find', { type: NORMAN.CLUSTER, id: this.currentCluster.id });
-
     if (this.isCreating ) {
       return;
     }
+
+    await this.$store.dispatch('rancher/find', { type: NORMAN.CLUSTER, id: this.currentCluster.id });
 
     if (this.currentCluster.metadata?.annotations) {
       this.badgeComment = this.currentCluster.metadata?.annotations[CLUSTER_BADGE.TEXT];
@@ -215,37 +216,46 @@ export default {
       class="pl-10 pr-10 cluster-badge-body"
     >
       <div>{{ t('clusterBadge.modal.previewTitle') }}</div>
-      <ClusterIconMenu :cluster="previewCluster" />
-      <div class="mt-10 row preview-row">
-        <div
-          class="badge-preview col span-12"
-        >
-          <ClusterProviderIcon
-            v-if="showPreview"
-            :cluster="previewCluster"
-          />
-          <div class="cluster-name">
-            {{ previewName }}
+      <div class="badge-preview">
+        <div class="badge-preview-sidenav">
+          <p> {{ t('clusterBadge.modal.previewSide') }}</p>
+
+          <div>
+            <ClusterIconMenu :cluster="previewCluster" />
+            <span>{{ clusterName }}</span>
           </div>
-          <ClusterBadge
-            v-if="useCustomComment"
-            :cluster="previewCluster"
-          />
+        </div>
+        <span class="badge-preview-separator" />
+        <div class="badge-preview-header">
+          <p> {{ t('clusterBadge.modal.previewHeader') }}</p>
+          <div
+            class="col span-12"
+          >
+            <ClusterProviderIcon
+              v-if="showPreview"
+              :cluster="previewCluster"
+            />
+            <div class="cluster-name">
+              {{ previewName }}
+            </div>
+            <ClusterBadge
+              v-if="useCustomComment"
+              :cluster="previewCluster"
+            />
+          </div>
         </div>
       </div>
 
-      <div class="row mt-10">
-        <div class="col">
+      <div class="badge-customisation">
+        <!-- Badge Abbreviation -->
+        <div class="badge-customisation-badge">
           <Checkbox
             v-model="badgeAsIcon"
             :label="t('clusterBadge.modal.badgeAsIcon')"
-            class="mt-10"
+
             :tooltip="t('clusterBadge.modal.maxCharsTooltip')"
           />
-        </div>
-      </div>
-      <div class="row mt-10">
-        <div class="col">
+
           <LabeledInput
             v-model.trim="letter"
             :disabled="!badgeAsIcon"
@@ -254,52 +264,34 @@ export default {
             :maxlength="3"
           />
         </div>
-      </div>
 
-      <div class="row mt-10">
-        <div class="col">
+        <!-- Comment -->
+        <div>
           <Checkbox
             v-model="useCustomComment"
             :label="t('clusterBadge.modal.checkbox')"
-            class="mt-10"
+          />
+
+          <LabeledInput
+            v-model.trim="badgeComment"
+            :disabled="!useCustomComment"
+            :label="t('clusterBadge.modal.comment')"
+            :maxlength="32"
           />
         </div>
-      </div>
 
-      <div class="options">
-        <div class="row mt-10">
-          <div class="col span-12">
-            <LabeledInput
-              v-model.trim="badgeComment"
-              :disabled="!useCustomComment"
-              :label="t('clusterBadge.modal.comment')"
-              :maxlength="32"
-            />
-          </div>
-        </div>
-      </div>
-
-      <!-- Color -->
-      <div class="row mt-10">
-        <div class="col">
+        <!-- Color -->
+        <div>
           <Checkbox
             v-model="badgeColorPicker"
             :label="t('clusterBadge.modal.badgeBgColor')"
-            class="mt-10"
           />
-        </div>
-      </div>
-
-      <div class="options">
-        <div class="row mt-10">
-          <div class="col span-12">
-            <ColorInput
-              v-model="badgeBgColor"
-              :disabled="!badgeColorPicker"
-              :default-value="badgeBgColor"
-              :label="t('clusterBadge.modal.badgeBgColor')"
-            />
-          </div>
+          <ColorInput
+            v-model="badgeBgColor"
+            :disabled="!badgeColorPicker"
+            :default-value="badgeBgColor"
+            :label="t('clusterBadge.modal.badgeBgColor')"
+          />
         </div>
       </div>
     </div>
@@ -335,8 +327,52 @@ export default {
   border: 1px solid var(--default-border);
 }
 
-.text-default-text {
-  margin-bottom: 4px;
+.badge-preview {
+  display: flex;
+  width: 100%;
+  gap: 40px;
+  padding-top: 10px;
+  margin-bottom: 30px;
+
+  p {
+    font-size: 11px;
+    font-weight: light;
+    padding: 5px 0;
+  }
+
+  &-sidenav {
+    display: flex;
+    flex-direction: column;
+
+    div {
+      display: flex;
+      gap: 10px;
+      align-items: center;
+    }
+  }
+
+  &-separator {
+    display: flex;
+    border-left: 1px solid var(--border);
+    width: 2px;
+    height: 30px;
+    align-self: end;
+  }
+
+   &-header {
+    display: flex;
+    flex-direction: column;
+
+    div {
+      display: flex;
+      min-height: 32px;
+      align-items: center;
+
+      .cluster-badge {
+        min-height: auto;
+      }
+    }
+  }
 }
 
 .prompt-badge {
@@ -347,42 +383,46 @@ export default {
     display: flex;
     flex-direction: column;
 
-    .preview-row {
-      background: var(--body-bg);
-      padding: 10px;
+    .cluster-name {
+      margin: 0 10px;
+      font-size: 16px;
+    }
 
-      .badge-preview {
-        align-items: center;
-        display: flex;
-        height: 32px;
-        white-space: nowrap;
+    .cluster-badge-icon-preview {
+      width: 32px;
+      height: 32px;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      border-radius: 5px;
+      font-weight: bold;
+    }
 
-        .cluster-name {
-          margin: 0 10px;
-          font-size: 16px;
-        }
-
-        .cluster-badge-icon-preview {
-          width: 32px;
-          height: 32px;
-          display: flex;
-          align-items: center;
-          justify-content: center;
-          border-radius: 5px;
-          font-weight: bold;
-        }
-
-        .cluster-badge-preview {
-          cursor: default;
-          border-radius: 10px;
-          font-size: 12px;
-          padding: 2px 10px;
-        }
-      }
+    .cluster-badge-preview {
+      cursor: default;
+      border-radius: 10px;
+      font-size: 12px;
+      padding: 2px 10px;
     }
 
     ::v-deep .badge-icon-text input {
       text-transform: uppercase;
+    }
+  }
+}
+
+.badge-customisation {
+  display: flex;
+  gap: 10px;
+
+  div {
+    display: flex;
+    flex-direction: column;
+    flex: 1;
+    gap: 10px;
+
+    .color-input {
+      padding: 5px 10px;
     }
   }
 }

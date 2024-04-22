@@ -26,7 +26,7 @@ export default {
   <div
     v-if="cluster"
     class="cluster-icon"
-    :class="{'cluster-icon-small': small, 'cluster-icon-border': showBorders}"
+    :class="{'cluster-icon-small': small}"
   >
     <div
       v-if="useForIcon"
@@ -106,7 +106,7 @@ export default {
     width: 25px;
   }
   .cluster-badge-logo {
-    width: 32px;
+    min-width: 32px;
     height: 32px;
     padding: 0px 5px;
     display: flex;
