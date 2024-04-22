@@ -129,8 +129,6 @@ export default {
     // Fake cluster object for use with badge component
     previewCluster() {
       // Make cluster object that is enough for the badge component to work
-      console.log(this.currentCluster);
-
       return (!this.isCreate && this.currentCluster) ? {
         isLocal:         this.currentCluster.isLocal,
         providerNavLogo: this.currentCluster.providerNavLogo,
@@ -139,7 +137,7 @@ export default {
           text:      this.badgeComment,
           color:     this.badgeBgColor,
           textColor: textColor(parseColor(this.badgeBgColor)),
-          iconText:  this.badgeAsIcon ? this.letter.toUpperCase() : '',
+          iconText:  this.badgeAsIcon ? this.letter.toUpperCase() : abbreviateClusterName(this.currentCluster.nameDisplay),
         }
       } : {
         isLocal:         false,
@@ -149,7 +147,7 @@ export default {
           text:      this.badgeComment,
           color:     this.badgeBgColor,
           textColor: textColor(parseColor(this.badgeBgColor || 'white')),
-          iconText:  this.badgeAsIcon ? this.letter.toUpperCase() : '',
+          iconText:  this.badgeAsIcon ? this.letter.toUpperCase() : this.letter,
         }
       };
     },
