@@ -1,5 +1,5 @@
-import { generateV2MonitoringForLocalCluster } from '~/cypress/e2e/blueprints/other-products/v2-monitoring.js';
-import V2Monitoring from '~/cypress/e2e/po/other-products/v2-monitoring.po';
+import { generateV2MonitoringForLocalCluster } from '@/cypress/e2e/blueprints/other-products/v2-monitoring.js';
+import V2Monitoring from '@/cypress/e2e/po/other-products/v2-monitoring.po';
 
 describe('V2 monitoring Chart', { tags: ['@charts', '@adminUser'] }, () => {
   beforeEach(() => {
