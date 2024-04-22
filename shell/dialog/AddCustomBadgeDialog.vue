@@ -129,6 +129,8 @@ export default {
     // Fake cluster object for use with badge component
     previewCluster() {
       // Make cluster object that is enough for the badge component to work
+      console.log(this.currentCluster);
+
       return (!this.isCreate && this.currentCluster) ? {
         isLocal:         this.currentCluster.isLocal,
         providerNavLogo: this.currentCluster.providerNavLogo,
@@ -212,7 +214,7 @@ export default {
 
     <div
       slot="body"
-      class="pl-10 pr-10 cluster-badge-body"
+      class="cluster-badge-body"
     >
       <div>{{ t('clusterBadge.modal.previewTitle') }}</div>
       <div class="badge-preview">
@@ -322,16 +324,19 @@ export default {
   </Card>
 </template>
 <style lang='scss' scoped>
-.cluster-icon {
-  border: 1px solid var(--default-border);
+.card-container {
+  padding: 1rem;
 }
 
 .badge-preview {
   display: flex;
   width: 100%;
   gap: 40px;
-  padding-top: 10px;
+  padding: 10px 5px;
   margin-bottom: 30px;
+  margin-top: 5px;
+  background: var(--body-bg);
+  border-radius: 5px;
 
   p {
     font-size: 11px;

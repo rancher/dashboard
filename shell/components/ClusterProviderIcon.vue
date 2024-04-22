@@ -73,7 +73,7 @@ export default {
     display: flex;
     height: 32px;
     justify-content: center;
-    width: 32px;
+    width: 42px;
 
     &-border {
       border: 1px solid var(--border);
@@ -106,7 +106,7 @@ export default {
     width: 25px;
   }
   .cluster-badge-logo {
-    min-width: 32px;
+    min-width: 42px;
     height: 32px;
     padding: 0px 5px;
     display: flex;

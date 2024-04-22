@@ -39,7 +39,7 @@ export default {
     overflow: hidden;
 
      &-border {
-      border: 1px solid var(--default-border);
+      border: 1px solid var(--border);
       border-radius: 5px;
       color: var(--body-text) !important; // !important is needed to override the color set by the badge when there's a transparent background.
     }

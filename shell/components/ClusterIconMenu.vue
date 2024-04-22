@@ -148,7 +148,7 @@ export default {
     color: var(--default-active-text);
     font-weight: bold;
     background: var(--nav-icon-badge-bg);
-    border: 1px solid var(--default-border);
+    border: 1px solid var(--border);
     border-radius: 5px;
     font-size: 12px;
     text-transform: uppercase;
