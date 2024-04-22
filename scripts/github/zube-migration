@@ -9,9 +9,22 @@ console.log('=========================================');
 console.log('');
 
 const STATUS_MAP = {
-  'Backlog': 'Backlog',
   'To Triage': 'To Triage',
+  'Backlog': 'Backlog',
+  'Icebox': 'Ice Box',
   'Groomed': 'Groomed',
+  'Design Triage': 'To Triage',
+  'Backend Blocked': 'Backend Blocked',
+  'Next Up': 'Working',
+  'Reopened': 'Reopened',
+  'Working': 'Working',
+  'Review': 'Review',
+  'To Test': 'To Test',
+  'QA Review': 'QA Review',
+  'QA Next up': 'QA Working',
+  'QA Blocked': 'QA Blocked',
+  'QA Working': 'QA Working',
+  'Done': 'Done',
 };
 
 // Options
@@ -19,6 +32,7 @@ const STATUS_MAP = {
 // -z = zube_status - only migrate issues with the given zube label
 // -p = project - GH project in the format 'org#number'
 // -a = apply - make the changes (default is dry-run that shows which changes will be made)
+// -s = size = sync estimates from size labels and not status
 
 // Parse the options
 
@@ -30,6 +44,7 @@ const options = {
   project: undefined,
   repo: undefined,
   apply: false,
+  migrateSize: false,
 };
 
 function handleOption(options, optName, flag, hasValue) {
@@ -58,8 +73,9 @@ handleOption(options, 'repo', '-r', true);
 handleOption(options, 'milestone', '-m', true);
 handleOption(options, 'zubeStatus', '-z', true);
 handleOption(options, 'apply', '-a', false);
+handleOption(options, 'migrateSize', '-s', false);
 
-if (!process.env.TOKEN || !process.env.GH_TOKEN) {
+if (!process.env.TOKEN && !process.env.GH_TOKEN) {
   console.log('You must set a GitHub token in either the TOKEN or GH_TOKEN environment variables');
 
   return;
@@ -85,6 +101,16 @@ if (!options.repo) {
   console.log('You must provide a GitHub repository with the -r flag in the form org/name');
 
   return;
+} else {
+  const rParts = options.repo.split('/');
+
+  if (rParts.length !== 2) {
+    console.log('GitHub repository must be in the form org/repo');
+
+    return;
+  }
+
+  options.repo = rParts;
 }
 
 if (!options.milestone) {
@@ -99,7 +125,7 @@ if (options.zubeStatus && !options.zubeStatus.startsWith('[zube')) {
 
 // console.log(options);
 
-async function run() {
+async function syncStatus() {
   // Fetch the GitHub Project board
   const project = await request.ghProject(options.project[0], options.project[1]);
 
@@ -111,8 +137,10 @@ async function run() {
 
   // console.log(project);
 
+  console.log('Fetching issues...');
+  
   // Fetch all of the matching issues
-  const issues = await request.ghFetchOpenIssues('rancher', 'dashboard', options.milestone, options.zubeStatus);
+  const issues = await request.ghFetchOpenIssues(options.repo[0], options.repo[1], options.milestone, options.zubeStatus);
 
   if (!issues) {
     console.log('Unable to fetch issues');
@@ -272,4 +300,156 @@ async function run() {
   console.log('');
 }
 
-run();
+async function syncEstimate() {
+  // Fetch the GitHub Project board
+  const project = await request.ghProject(options.project[0], options.project[1]);
+
+  if (!project || Object.keys(project).length === 0) {
+    console.log('Unable to fetch ID for specified project');
+
+    return;
+  }
+
+  // console.log('Fetched project');
+  // console.log(project);
+
+  if (!project.storyPointsField) {
+    console.log('Error: Project does not have a Story Points field');
+
+    return;
+  }
+
+  console.log('Fetching issues...');
+
+  // Fetch all of the matching issues in the project
+  const issues = await request.ghFetchOpenIssuesInProject(options.project[0], options.project[1], options.milestone, options.zubeStatus);
+
+  if (!issues) {
+    console.log('Unable to fetch issues');
+
+    return;
+  }
+
+  console.log(`Fetched ${ issues.length } issue(s)`);
+
+  // Filter down to those with a size label
+
+  const estimated = [];
+
+  issues.forEach((issue) => {
+    const sizeLabels = (issue.labels?.nodes || []).filter((label) => label.name.startsWith('size/')).map((label) => label.name);
+
+    if (sizeLabels.length === 1) {
+      estimated.push({
+        ...issue,
+        estimate: parseInt(sizeLabels[0].split('/')[1])
+      });
+    }
+  });
+
+  console.log(`${ estimated.length } issues have a size label`);
+
+  const updates = [];
+
+  estimated.forEach((issue) => {
+    const projectInfo = issue.projectItems.nodes.find((pItem) => pItem.project.id === project.id);
+    const prjEstimate = projectInfo.storyPoints?.number;
+
+    let updating = false;
+    let action = false;
+
+    if (prjEstimate === undefined) {
+      action = true;
+    } else if (prjEstimate !== issue.estimate) {
+      updating = true;
+      action = true;
+    }
+
+    if (action) {
+      updates.push({
+        ...issue,
+        idInProject: projectInfo?.id,
+        currentEstimate: projectInfo?.storyPoints?.number || 'No Estimate',
+        estimate: issue.estimate,
+        updating,
+      });
+    }
+  });
+
+
+  if (updates.length) {
+    console.log('');
+    console.log('Updates required:');
+    console.log('');
+
+    console.log(`#ISSUE ${ 'TITLE'.padEnd(80) } CHANGE   ESTIMATE`);
+    console.log(`------ ${ '-'.padEnd(80, '-') } -------- --------`);
+  }
+
+  let updateQL = `mutation {\n`;
+
+  updates.forEach((update) => {
+    let change = '';
+    let note = '';
+    if (update.updating) {
+      change = 'UPDATE  ';
+      note = `${update.currentEstimate} -> ${update.estimate}`;
+    } else {
+      change = `SET     `;
+      note = `${update.estimate}`;
+    }
+
+    updateQL += `issue${update.number}: updateProjectV2ItemFieldValue(input: {
+        projectId: "${ project.id }"
+        itemId: "${ update.idInProject }"
+        fieldId: "${ project.storyPointsField.id }"
+        value: { 
+          number: ${ update.estimate }
+        }
+      }) {
+        projectV2Item {
+          id
+        }
+      }\n`;
+
+    const number = `${ update.number }`.padStart(6);
+
+    console.log(`${ number } ${ update.title.substr(0,80).padEnd(80)} ${ change } ${ note }`);
+  });
+
+  updateQL += '}';
+
+  if (!updates.length) {
+    console.log('');
+    console.log('All issues are up to date - nothing to do');
+  } else {
+    console.log('');
+
+    if (options.apply) {
+      const updateRes = await request.graphql(updateQL);
+
+      if (!updateRes.data) {
+        console.log('Error updating estimates of issues');
+        console.log(updateRes);
+  
+        return;
+      }
+
+      console.log(`${ updates.length} updates applied`);
+    } else {
+      console.log(`${ updates.length} issue(s) require updating out of ${ estimated.length }`);
+      console.log('');
+      console.log('To apply updates, run again with the -a flag');
+    }
+  }
+
+  console.log('');
+}
+
+// Two modes
+
+if (!options.migrateSize) {
+  syncStatus();
+} else  {
+  syncEstimate();
+}
