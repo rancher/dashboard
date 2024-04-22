@@ -11,6 +11,7 @@ import InfoBox from '@shell/components/InfoBox';
 import Loading from '@shell/components/Loading';
 import CreateEditView from '@shell/mixins/create-edit-view';
 import LabeledSelect from '@shell/components/form/LabeledSelect';
+import ArrayListSelect from '@shell/components/form/ArrayListSelect';
 import { LabeledInput } from '@components/Form/LabeledInput';
 import UnitInput from '@shell/components/form/UnitInput';
 import YamlEditor from '@shell/components/YamlEditor';
@@ -79,11 +80,13 @@ const SOURCE_TYPE = {
   IMAGE:  'image',
 };
 
+const VGPU_PREFIX = { NVIDIA: 'nvidia.com/' };
+
 export default {
   name: 'ConfigComponentHarvester',
 
   components: {
-    Checkbox, draggable, Loading, LabeledSelect, LabeledInput, UnitInput, Banner, YamlEditor, NodeAffinity, PodAffinity, InfoBox
+    ArrayListSelect, Checkbox, draggable, Loading, LabeledSelect, LabeledInput, UnitInput, Banner, YamlEditor, NodeAffinity, PodAffinity, InfoBox
   },
 
   mixins: [CreateEditView],
@@ -321,6 +324,7 @@ export default {
 
     vmAffinity = { affinity: clone(vmAffinityObj) };
 
+    let vGpus = [];
     let networkData = '';
     let userData = '';
     let installAgent;
@@ -348,6 +352,12 @@ export default {
         networkDataIsBase64 = false;
         networkData = this.value.networkData;
       }
+    }
+
+    if (this.value.vgpuInfo) {
+      const vGPURequests = JSON.parse(this.value.vgpuInfo)?.vGPURequests;
+
+      vGpus = vGPURequests?.map((r) => r.deviceName?.replace(VGPU_PREFIX.NVIDIA, '')).filter((r) => r) || [];
     }
 
     return {
@@ -378,7 +388,8 @@ export default {
       userDataIsBase64,
       networkDataIsBase64,
       vmAffinityIsBase64,
-      SOURCE_TYPE
+      SOURCE_TYPE,
+      vGpus,
     };
   },
 
@@ -448,6 +459,21 @@ export default {
         topologyKeyPlaceholder: this.t('harvesterManager.affinity.topologyKey.placeholder')
       };
     },
+
+    vGpuOptions() {
+      const vGpus = this.allNodeObjects.reduce((acc, node) => {
+        const nodeVGpus = Object.keys(node.status.allocatable || {})
+          .filter((k) => k.startsWith(VGPU_PREFIX.NVIDIA) && node.status.allocatable[k] > 0)
+          .map((k) => k.replace(VGPU_PREFIX.NVIDIA, '')) || [];
+
+        return [
+          ...acc,
+          ...nodeVGpus
+        ];
+      }, []);
+
+      return vGpus.filter((x) => !this.vGpus.includes(x));
+    }
   },
 
   watch: {
@@ -810,6 +836,19 @@ export default {
           message: this.t('harvesterManager.rke.templateError')
         }, { root: true });
       }
+    },
+
+    updateVGpu() {
+      const vGPURequests = this.vGpus?.filter((name) => name).reduce((acc, name, i) => ([
+        ...acc,
+        {
+          name:       `vgpu${ i + 1 }`,
+          deviceName: `${ VGPU_PREFIX.NVIDIA }${ name }`
+        }
+      ])
+      , []);
+
+      this.value.vgpuInfo = vGPURequests.length > 0 ? JSON.stringify({ vGPURequests }) : '';
     },
 
     addCloudConfigComment(value) {
@@ -1262,6 +1301,21 @@ export default {
       </button>
 
       <portal :to="'advanced-'+uuid">
+        <h3 class="mt-20">
+          {{ t("harvesterManager.vGpu.title") }}
+        </h3>
+        <div>
+          <ArrayListSelect
+            v-model="vGpus"
+            class="mt-20"
+            :array-list-props="{ addAllowed: true, mode, disabled }"
+            :select-props="{ mode, disabled }"
+            :options="vGpuOptions"
+            label-key="harvesterManager.vGpu.label"
+            @input="updateVGpu"
+          />
+        </div>
+
         <h3 class="mt-20">
           {{ t("cluster.credential.harvester.userData.title") }}
         </h3>
