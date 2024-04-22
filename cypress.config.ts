@@ -55,7 +55,7 @@ console.log('');
  */
 export default defineConfig({
   projectId:             process.env.TEST_PROJECT_ID,
-  defaultCommandTimeout: process.env.TEST_TIMEOUT ? +process.env.TEST_TIMEOUT : 60000,
+  defaultCommandTimeout: process.env.TEST_TIMEOUT ? +process.env.TEST_TIMEOUT : 10000,
   trashAssetsBeforeRuns: true,
   chromeWebSecurity:     false,
   retries:               {

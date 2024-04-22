@@ -4,6 +4,7 @@ import PagePo from '@/cypress/e2e/po/pages/page.po';
 import ProductNavPo from '@/cypress/e2e/po/side-bars/product-side-nav.po';
 import ClusterManagerListPagePo from '@/cypress/e2e/po/pages/cluster-manager/cluster-manager-list.po';
 import { generateFakeClusterDataAndIntercepts } from '@/cypress/e2e/blueprints/nav/fake-cluster';
+import ProjectNamespacePagePo from '@/cypress/e2e/po/pages/explorer/projects-namespaces.po';
 
 const longClusterDescription = 'this-is-some-really-really-really-really-really-really-long-decription';
 const fakeProvClusterId = 'some-fake-cluster-id';
@@ -29,6 +30,8 @@ describe('Side Menu: main', () => {
       // nav to project/namespaces in the fake cluster
       pagePoFake.navToClusterMenuEntry(fakeProvClusterId);
       sideNav.navToSideMenuEntryByLabel('Projects/Namespaces');
+
+      (new ProjectNamespacePagePo(fakeProvClusterId)).waitForPage();
 
       // press key combo
       cy.get('body').focus().type('{alt}', { release: false });

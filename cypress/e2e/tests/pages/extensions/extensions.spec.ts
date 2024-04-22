@@ -94,6 +94,7 @@ describe('Extensions page', { tags: ['@extensions', '@adminUser'] }, () => {
     appRepoList.sortableTable().rowElementWithName(UI_PLUGINS_PARTNERS_REPO_URL).should('exist');
   });
 
+    extensionsPo.waitForTabs();
   it('New repos banner should only appear once (after dismiss should NOT appear again)', () => {
     cy.getRancherResource('v3', 'setting', 'display-add-extension-repos-banner', null).then((resp: Cypress.Response<any>) => {
       const notFound = resp.status === 404;
