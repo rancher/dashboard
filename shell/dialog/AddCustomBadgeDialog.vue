@@ -132,6 +132,7 @@ export default {
       return (!this.isCreate && this.currentCluster) ? {
         isLocal:         this.currentCluster.isLocal,
         providerNavLogo: this.currentCluster.providerNavLogo,
+        ready:           this.currentCluster.ready ?? true,
         badge:           {
           text:      this.badgeComment,
           color:     this.badgeBgColor,
