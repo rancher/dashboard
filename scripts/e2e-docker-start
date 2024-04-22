@@ -6,6 +6,9 @@ DIR=$(cd $(dirname $0)/..; pwd)
 DASHBOARD_DIST=${DIR}/dist
 EMBER_DIST=${DIR}/dist_ember
 
+# Image version
+RANCHER_IMG_VERSION=v2.9-2deb6a1e64956e35d02aeaa5e179090ebfeb0d6a-linux-amd64
+
 docker run -d --restart=unless-stopped -p 80:80 -p 443:443 \
   -v ${DASHBOARD_DIST}:/usr/share/rancher/ui-dashboard/dashboard \
   -v ${EMBER_DIST}:/usr/share/rancher/ui \
@@ -14,7 +17,7 @@ docker run -d --restart=unless-stopped -p 80:80 -p 443:443 \
   -e CATTLE_PASSWORD_MIN_LENGTH=3 \
   --name cypress \
   --privileged \
-  rancher/rancher:v2.9-head
+  rancher/rancher:${RANCHER_IMG_VERSION}
 
 docker ps
 
