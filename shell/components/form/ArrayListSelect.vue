@@ -33,7 +33,7 @@ export default {
     },
 
     addAllowed() {
-      return this.filteredOptions.length > 0;
+      return this.arrayListProps?.addAllowed || this.filteredOptions.length > 0;
     },
 
     defaultAddValue() {
@@ -44,7 +44,7 @@ export default {
   methods: {
     updateRow(index, value) {
       this.value.splice(index, 1, value);
-      this.$emit(value);
+      this.$emit('input', this.value);
     },
     calculateOptions(value) {
       const valueOption = this.options.find((o) => o.value === value);
@@ -82,6 +82,6 @@ export default {
 
 <style lang="scss" scoped>
 ::v-deep .unlabeled-select {
-    height: 61px;
-}
+  height: 61px;
+  }
 </style>
