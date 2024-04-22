@@ -97,12 +97,12 @@ export default {
       :values="colorParts"
       class="mb-5"
     />
-    <n-link
+    <router-link
       v-if="linkTo"
       :to="linkTo"
     >
       {{ displayLabel }}
-    </n-link>
+    </router-link>
     <span v-else>{{ displayLabel }}</span>
 
     <template #popover>

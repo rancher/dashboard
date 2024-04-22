@@ -19,18 +19,13 @@ export default {
     },
   },
 
-  async fetch() {
-    this.bannerSetting = await this.$store.getters['management/byId'](MANAGEMENT.SETTING, SETTING.BANNERS);
-  },
-
   data() {
     return {
-      showDialog:    true,
-      showHeader:    false,
-      showFooter:    false,
-      showConsent:   false,
-      banner:        {},
-      bannerSetting: null
+      showDialog:  true,
+      showHeader:  false,
+      showFooter:  false,
+      showConsent: false,
+      banner:      {},
     };
   },
 
@@ -56,6 +51,10 @@ export default {
   },
 
   computed: {
+    bannerSetting() {
+      return this.$store.getters['management/all'](MANAGEMENT.SETTING).find((s) => s.id === SETTING.BANNERS);
+    },
+
     bannerStyle() {
       return {
         color:              this.banner.color,
@@ -74,7 +73,7 @@ export default {
       };
     },
     showBanner() {
-      if (!this.banner.text && !this.banner.background) {
+      if (!this.banner?.text && !this.banner?.background) {
         return false;
       }
 
@@ -110,34 +109,38 @@ export default {
   },
 
   watch: {
-    bannerSetting(neu) {
-      if (neu?.value && neu.value !== '') {
-        try {
-          const parsed = JSON.parse(neu.value);
-          const {
-            bannerHeader, bannerFooter, bannerConsent, banner, showHeader, showFooter, showConsent
-          } = parsed;
-          let bannerContent = parsed?.banner || {};
+    bannerSetting: {
+      handler(neu) {
+        if (neu?.value && neu.value !== '') {
+          try {
+            const parsed = JSON.parse(neu.value);
+            const {
+              bannerHeader, bannerFooter, bannerConsent, banner, showHeader, showFooter, showConsent
+            } = parsed;
+            let bannerContent = parsed?.banner || {};
 
-          if (isEmpty(banner)) {
-            if (showHeader && this.header) {
-              bannerContent = bannerHeader || {};
-            } else if (showConsent && this.consent) {
-              bannerContent = this.handleLineBreaksConsentText(bannerConsent) || {};
-            } else if (showFooter && this.footer) {
-              bannerContent = bannerFooter || {};
-            } else {
-              bannerContent = {};
+            if (isEmpty(banner)) {
+              if (showHeader && this.header) {
+                bannerContent = bannerHeader || {};
+              } else if (showConsent && this.consent) {
+                bannerContent = this.handleLineBreaksConsentText(bannerConsent) || {};
+              } else if (showFooter && this.footer) {
+                bannerContent = bannerFooter || {};
+              } else {
+                bannerContent = {};
+              }
             }
-          }
 
-          this.showHeader = showHeader === 'true';
-          this.showFooter = showFooter === 'true';
-          this.showConsent = showConsent === 'true';
-          this.banner = bannerContent;
-        } catch {}
-      }
-    }
+            this.showHeader = showHeader === 'true';
+            this.showFooter = showFooter === 'true';
+            this.showConsent = showConsent === 'true';
+            this.banner = bannerContent;
+          } catch {}
+        }
+      },
+      immediate: true
+    },
+
   }
 };
 </script>

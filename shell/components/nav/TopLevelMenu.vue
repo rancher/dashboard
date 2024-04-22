@@ -39,6 +39,7 @@ export default {
       emptyCluster:      BLANK_CLUSTER,
       showPinClusters:   false,
       searchActive:      false,
+      routeCombo:        false,
     };
   },
 
@@ -127,9 +128,10 @@ export default {
           isLocal:         x.isLocal,
           isHarvester:     x.isHarvester,
           pinned:          x.pinned,
-          description:     pCluster?.description,
+          description:     pCluster?.description || x.description,
           pin:             () => x.pin(),
-          unpin:           () => x.unpin()
+          unpin:           () => x.unpin(),
+          clusterRoute:    { name: 'c-cluster-explorer', params: { cluster: x.id } }
         };
       }) || [];
     },
@@ -218,7 +220,9 @@ export default {
           params: { cluster }
         };
 
-        if ( !this.$router.getMatchedComponents(to).length ) {
+        const matched = this.$router.getRoutes().filter((route) => route.name === to.name);
+
+        if ( !matched.length ) {
           to.name = 'c-cluster-product';
           to.params.product = p.name;
         }
@@ -295,6 +299,30 @@ export default {
       return this.productFromRoute === obj?.value;
     },
 
+    handleKeyComboClick() {
+      this.routeCombo = !this.routeCombo;
+    },
+
+    clusterMenuClick(ev, cluster) {
+      if (this.routeCombo) {
+        ev.preventDefault();
+
+        if (this.isCurrRouteClusterExplorer && this.productFromRoute === this.currentProduct?.name) {
+          const clusterRoute = {
+            name:   this.$route.name,
+            params: { ...this.$route.params },
+            query:  { ...this.$route.query }
+          };
+
+          clusterRoute.params.cluster = cluster.id;
+
+          return this.$router.push(clusterRoute);
+        }
+      }
+
+      return this.$router.push(cluster.clusterRoute);
+    },
+
     handler(e) {
       if (e.keyCode === KEY.ESCAPE ) {
         this.hide();
@@ -335,9 +363,25 @@ export default {
         contentText = item;
         content = this.shown ? null : contentText;
 
+      // if key combo is pressed, then we update the tooltip as well
+      } else if (this.routeCombo &&
+        typeof item === 'object' &&
+        !Array.isArray(item) &&
+        item !== null &&
+        item.ready) {
+        contentText = this.t('nav.keyComboTooltip');
+
+        if (showWhenClosed) {
+          content = !this.shown ? contentText : null;
+        } else {
+          content = this.shown ? contentText : null;
+        }
+
       // this is scenario where we show a tooltip when we are on the expanded menu to show full description
       } else {
         contentText = item.label;
+        // this adds a class to the tooltip container so that we can control the max width
+        classes = 'menu-description-tooltip';
 
         if (item.description) {
           contentText += `<br><br>${ item.description }`;
@@ -347,10 +391,10 @@ export default {
           content = !this.shown ? contentText : null;
         } else {
           content = this.shown ? contentText : null;
-        }
 
-        // this adds a class to the tooltip container so that we can control the max width
-        classes = 'menu-description-tooltip';
+          // this adds a class to adjust tooltip position so it doesn't overlap the cluster pinning action
+          classes += ' description-tooltip-pos-adjustment';
+        }
       }
 
       return {
@@ -411,7 +455,7 @@ export default {
           <div>
             <!-- Home button -->
             <div @click="hide()">
-              <nuxt-link
+              <router-link
                 class="option cluster selector home"
                 :to="{ name: 'home' }"
               >
@@ -428,7 +472,7 @@ export default {
                 <div class="home-text">
                   {{ t('nav.home') }}
                 </div>
-              </nuxt-link>
+              </router-link>
             </div>
             <!-- Search bar -->
             <div
@@ -487,7 +531,7 @@ export default {
               :key="a.label"
               @click="hide()"
             >
-              <nuxt-link
+              <router-link
                 class="option"
                 :to="a.to"
                 :class="{'active-menu-link': checkActiveRoute(a) }"
@@ -497,7 +541,7 @@ export default {
                   :src="a.svg"
                 />
                 <div>{{ a.label }}</div>
-              </nuxt-link>
+              </router-link>
             </div>
           </template>
 
@@ -518,16 +562,20 @@ export default {
                   :key="c.id"
                   @click="hide()"
                 >
-                  <nuxt-link
+                  <button
                     v-if="c.ready"
+                    v-shortkey.push="{windows: ['alt'], mac: ['option']}"
                     :data-testid="`pinned-menu-cluster-${ c.id }`"
                     class="cluster selector option"
                     :class="{'active-menu-link': checkActiveRoute(c, true) }"
-                    :to="{ name: 'c-cluster-explorer', params: { cluster: c.id } }"
+                    :to="c.clusterRoute"
+                    @click.prevent="clusterMenuClick($event, c)"
+                    @shortkey="handleKeyComboClick"
                   >
                     <ClusterIconMenu
                       v-tooltip="getTooltipConfig(c, true)"
                       :cluster="c"
+                      :route-combo="routeCombo"
                       class="rancher-provider-icon"
                     />
                     <div
@@ -545,7 +593,7 @@ export default {
                     <Pinned
                       :cluster="c"
                     />
-                  </nuxt-link>
+                  </button>
                   <span
                     v-else
                     class="option cluster selector disabled"
@@ -589,16 +637,20 @@ export default {
                   :data-testid="`top-level-menu-cluster-${index}`"
                   @click="hide()"
                 >
-                  <nuxt-link
+                  <button
                     v-if="c.ready"
+                    v-shortkey.push="{windows: ['alt'], mac: ['option']}"
                     :data-testid="`menu-cluster-${ c.id }`"
                     class="cluster selector option"
                     :class="{'active-menu-link': checkActiveRoute(c, true) }"
-                    :to="{ name: 'c-cluster-explorer', params: { cluster: c.id } }"
+                    :to="c.clusterRoute"
+                    @click="clusterMenuClick($event, c)"
+                    @shortkey="handleKeyComboClick"
                   >
                     <ClusterIconMenu
                       v-tooltip="getTooltipConfig(c, true)"
                       :cluster="c"
+                      :route-combo="routeCombo"
                       class="rancher-provider-icon"
                     />
                     <div
@@ -617,7 +669,7 @@ export default {
                       :class="{'showPin': c.pinned}"
                       :cluster="c"
                     />
-                  </nuxt-link>
+                  </button>
                   <span
                     v-else
                     class="option cluster selector disabled"
@@ -659,7 +711,7 @@ export default {
             </div>
 
             <!-- See all clusters -->
-            <nuxt-link
+            <router-link
               v-if="clusters.length > maxClustersToShow"
               class="clusters-all"
               :to="{name: 'c-cluster-product-resource', params: {
@@ -672,7 +724,7 @@ export default {
                 {{ shown ? t('nav.seeAllClusters') : t('nav.seeAllClustersCollapsed') }}
                 <i class="icon icon-chevron-right" />
               </span>
-            </nuxt-link>
+            </router-link>
           </template>
 
           <div class="category">
@@ -690,7 +742,7 @@ export default {
                 :key="a.label"
                 @click="hide()"
               >
-                <nuxt-link
+                <router-link
                   class="option"
                   :class="{'active-menu-link': checkActiveRoute(a) }"
                   :to="a.to"
@@ -701,7 +753,7 @@ export default {
                     :src="a.svg"
                   />
                   <span class="option-link">{{ a.label }}</span>
-                </nuxt-link>
+                </router-link>
               </div>
             </template>
             <template v-if="legacyEnabled">
@@ -718,7 +770,7 @@ export default {
                 :key="a.label"
                 @click="hide()"
               >
-                <nuxt-link
+                <router-link
                   class="option"
                   :class="{'active-menu-link': checkActiveRoute(a) }"
                   :to="a.to"
@@ -729,7 +781,7 @@ export default {
                     :src="a.svg"
                   />
                   <div>{{ a.label }}</div>
-                </nuxt-link>
+                </router-link>
               </div>
             </template>
 
@@ -748,7 +800,7 @@ export default {
                 :key="a.label"
                 @click="hide()"
               >
-                <nuxt-link
+                <router-link
                   class="option"
                   :class="{'active-menu-link': checkActiveRoute(a) }"
                   :to="a.to"
@@ -759,7 +811,7 @@ export default {
                     :src="a.svg"
                   />
                   <div>{{ a.label }}</div>
-                </nuxt-link>
+                </router-link>
               </div>
             </template>
           </div>
@@ -774,21 +826,21 @@ export default {
             class="support"
             @click="hide()"
           >
-            <nuxt-link
+            <router-link
               :to="{name: 'support'}"
             >
               {{ t('nav.support', {hasSupport}) }}
-            </nuxt-link>
+            </router-link>
           </div>
           <div
             class="version"
             @click="hide()"
           >
-            <nuxt-link
+            <router-link
               :to="{ name: 'about' }"
             >
               {{ t('about.title') }}
-            </nuxt-link>
+            </router-link>
           </div>
         </div>
       </div>
@@ -799,12 +851,15 @@ export default {
 <style lang="scss">
   .menu-description-tooltip {
     max-width: 200px;
+    white-space: pre-wrap;
+    word-wrap: break-word;
+  }
+
+  .description-tooltip-pos-adjustment {
     // needs !important so that we can
     // offset the tooltip a bit so it doesn't
     // overlap the pin icon and cause bad UX
     left: 35px !important;
-    white-space: pre-wrap;
-    word-wrap: break-word;
   }
 
   .localeSelector, .footer-tooltip {
@@ -929,6 +984,10 @@ export default {
         font-size: 14px;
         height: $option-height;
         white-space: nowrap;
+        background-color: transparent;
+        width: 100%;
+        border-radius: 0;
+        border: none;
 
         .cluster-badge-logo-text {
           color: var(--default-active-text);
@@ -945,16 +1004,21 @@ export default {
           }
         }
 
-        .cluster-name p {
-          width: 199px;
-          white-space: nowrap;
-          overflow: hidden;
-          text-overflow: ellipsis;
+        .cluster-name {
+          line-height: normal;
 
-          &.description {
-            font-size: 12px;
-            padding-right: 8px;
-            color: var(--darker);
+          & > p {
+            width: 195px;
+            white-space: nowrap;
+            overflow: hidden;
+            text-overflow: ellipsis;
+            text-align: left;
+
+            &.description {
+              font-size: 12px;
+              padding-right: 8px;
+              color: var(--darker);
+            }
           }
         }
 
@@ -983,6 +1047,8 @@ export default {
 
         &:focus {
           outline: 0;
+          box-shadow: none;
+
           > div {
             text-decoration: underline;
           }

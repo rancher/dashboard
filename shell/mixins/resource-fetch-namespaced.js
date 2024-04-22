@@ -1,7 +1,7 @@
 import { NAMESPACE_FILTER_NS_PREFIX, NAMESPACE_FILTER_P_PREFIX } from '@shell/utils/namespace-filter';
 import { mapGetters } from 'vuex';
 import { ResourceListComponentName } from '../components/ResourceList/resource-list.config';
-import pAndNFiltering from '@shell/utils/projectAndNamespaceFiltering.utils';
+import pAndNFiltering from '@shell/plugins/steve/projectAndNamespaceFiltering.utils';
 
 /**
  * Companion mixin used with `resource-fetch` for `ResourceList` to determine if the user needs to filter the list by a single namespace

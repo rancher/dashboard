@@ -6,7 +6,7 @@ import { SCHEMA, NAMESPACE } from '@shell/config/types';
 import ResourceYaml from '@shell/components/ResourceYaml';
 import { Banner } from '@components/Banner';
 import AsyncButton from '@shell/components/AsyncButton';
-import { mapGetters } from 'vuex';
+import { mapGetters, mapState, mapActions } from 'vuex';
 import { stringify, exceptionToErrorsArray } from '@shell/utils/error';
 import CruResourceFooter from '@shell/components/CruResourceFooter';
 
@@ -158,19 +158,11 @@ export default {
   },
 
   data(props) {
-    this.$on('createNamespace', (e) => {
-      // When createNamespace is set to true,
-      // the UI will attempt to create a new namespace
-      // before saving the resource.
-      this.createNamespace = e;
-    });
-
     const inStore = this.$store.getters['currentStore'](this.resource);
     const schema = this.$store.getters[`${ inStore }/schemaFor`](this.resource.type);
 
     return {
       isCancelModal:   false,
-      createNamespace: false,
       showAsForm:      this.$route.query[AS] !== _YAML,
       /**
        * Initialised on demand (given that it needs to make a request to fetch schema definition)
@@ -249,6 +241,8 @@ export default {
     },
 
     ...mapGetters({ t: 'i18n/t' }),
+    ...mapState('cru-resource', ['createNamespace']),
+    ...mapActions('cru-resource', ['setCreateNamespace']),
 
     /**
      * Prevent issues for malformed types injection
@@ -275,6 +269,14 @@ export default {
     if ( this._selectedSubtype ) {
       this.$emit('select-type', this._selectedSubtype);
     }
+  },
+
+  mounted() {
+    this.$store.dispatch('cru-resource/setCreateNamespace', false);
+  },
+
+  beforeDestroy() {
+    this.$store.dispatch('cru-resource/setCreateNamespace', false);
   },
 
   methods: {
@@ -475,6 +477,7 @@ export default {
             :key="subtype.id"
             class="subtype-banner"
             :class="{ selected: subtype.id === _selectedSubtype }"
+            :data-testid="`subtype-banner-item-${subtype.id}`"
             @click="selectType(subtype.id, $event)"
           >
             <slot name="subtype-content">

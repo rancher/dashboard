@@ -7,6 +7,10 @@ export default {
       type:     Object,
       required: true,
     },
+    routeCombo: {
+      type:    Boolean,
+      default: false
+    },
   },
   computed: {
     isEnabled() {
@@ -14,9 +18,6 @@ export default {
     },
     showLocalIcon() {
       return this.cluster.isLocal && !this.cluster.isHarvester && !this.cluster.badge?.iconText;
-    },
-    hasCustomColor() {
-      return this.cluster.badge?.color;
     },
     customColor() {
       return this.cluster.badge?.color || '';
@@ -45,7 +46,7 @@ export default {
   >
     <div
       class="cluster-badge-logo"
-      :class="{ 'disabled': !isEnabled, 'custom-color': hasCustomColor }"
+      :class="{ 'disabled': !isEnabled }"
     >
       <span
         class="cluster-badge-logo-text"
@@ -96,8 +97,12 @@ export default {
       </svg>
     </div>
     <i
-      v-if="cluster.pinned"
+      v-if="!routeCombo && cluster.pinned"
       class="icon icon-pin cluster-pin-icon"
+    />
+    <i
+      v-else-if="routeCombo"
+      class="icon icon-keyboard_tab key-combo-icon"
     />
   </div>
 </template>
@@ -119,6 +124,16 @@ export default {
     transform: scaleX(-1);
     color: var(--body-text);
   }
+  .key-combo-icon {
+    position: absolute;
+    top: -7px;
+    right: -8px;
+    font-size: 14px;
+    color: var(--body-text);
+    background-color: #dddee6;
+    padding: 2px;
+    border-radius: 2px;
+  }
 
   .cluster-local-logo {
     width: 20px;
@@ -138,10 +153,6 @@ export default {
     font-size: 12px;
     text-transform: uppercase;
 
-    &.custom-color {
-      padding-bottom: 2px;
-    }
-
     .custom-color-decoration {
       height: 4px;
       width: 100%;
@@ -154,5 +165,11 @@ export default {
       filter: grayscale(1);
       color: var(--muted);
     }
+  }
+</style>
+
+<style lang="scss">
+  .theme-dark .key-combo-icon  {
+    color: var(--body-bg);
   }
 </style>

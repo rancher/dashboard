@@ -37,6 +37,7 @@
 //   ifHaveType,              -- Show this product only if the given type exists in the store [inStore], This can also be specified as an object { type: TYPE, store: 'management' } if the type isn't in the current [inStore]
 //   ifHaveVerb,              -- In combination with ifHaveTYpe, show it only if the type also has this collectionMethod
 //   inStore,                 -- Which store to look at for if* above and the left-nav, defaults to "cluster"
+//   rootProduct,             -- Optional root (parent) product - if set, used to optimize navigation when product changes stays within root product
 //   inExplorer,              -- Determines if the product is to be scoped to the explorer
 //   public,                  -- If true, show to all users.  If false, only show when the Developer Tools pref is on (default true)
 //   category,                -- Group to show the product in for the nav hamburger menu
@@ -133,7 +134,7 @@ import {
 } from '@shell/config/types';
 import { VIEW_IN_API, EXPANDED_GROUPS, FAVORITE_TYPES } from '@shell/store/prefs';
 import {
-  addObject, findBy, insertAt, isArray, removeObject, filterBy
+  addObject, findBy, isArray, removeObject, filterBy
 } from '@shell/utils/array';
 import { clone, get } from '@shell/utils/object';
 import {
@@ -148,8 +149,9 @@ import isObject from 'lodash/isObject';
 import { normalizeType } from '@shell/plugins/dashboard-store/normalize';
 import { sortBy } from '@shell/utils/sort';
 
-import { haveV1Monitoring, haveV2Monitoring } from '@shell/utils/monitoring';
+import { haveV2Monitoring } from '@shell/utils/monitoring';
 import { NEU_VECTOR_NAMESPACE } from '@shell/config/product/neuvector';
+import { createHeaders, rowValueGetter } from '@shell/store/type-map.utils';
 
 export const NAMESPACED = 'namespaced';
 export const CLUSTER_LEVEL = 'cluster';
@@ -206,10 +208,7 @@ export const SPOOFED_API_PREFIX = '__[[spoofedapi]]__';
 const instanceMethods = {};
 const graphConfigMap = {};
 
-const FIELD_REGEX = /^\$\.metadata\.fields\[([0-9]*)\]/;
-
 export const IF_HAVE = {
-  V1_MONITORING:            'v1-monitoring',
   V2_MONITORING:            'v2-monitoring',
   PROJECT:                  'project',
   NO_PROJECT:               'no-project',
@@ -264,7 +263,7 @@ export function DSL(store, product, module = 'type-map') {
       store.commit(`${ module }/groupBy`, { type, field });
     },
 
-    headers(type, headers) {
+    headers(type, headers, paginationHeaders = []) {
       headers.forEach((header) => {
         // If on the client, then use the value getter if there is one
         if (header.getValue) {
@@ -277,6 +276,7 @@ export function DSL(store, product, module = 'type-map') {
       });
 
       store.commit(`${ module }/headers`, { type, headers });
+      store.commit(`${ module }/paginationHeaders`, { type, paginationHeaders });
     },
 
     hideBulkActions(type, field) {
@@ -406,6 +406,7 @@ export const state = function() {
     typeOptions:             [],
     groupBy:                 {},
     headers:                 {},
+    paginationHeaders:       {},
     hideBulkActions:         {},
     schemaGeneration:        1,
     cache:                   {
@@ -501,22 +502,26 @@ export const getters = {
     };
   },
 
-  optionsFor(state) {
+  optionsFor(state, getters, rootState, rootGetters) {
     const def = {
-      isCreatable:          true,
-      isEditable:           true,
-      isRemovable:          true,
-      showState:            true,
-      showAge:              true,
-      canYaml:              true,
-      namespaced:           null,
-      listGroups:           [],
-      depaginate:           false,
-      customRoute:          undefined,
-      resourceEditMasthead: true,
+      isCreatable:            true,
+      isEditable:             true,
+      isRemovable:            true,
+      showState:              true,
+      showAge:                true,
+      canYaml:                true,
+      namespaced:             null,
+      listGroups:             [],
+      listGroupsWillOverride: false,
+      listMandatorySort:      null,
+      depaginate:             false,
+      customRoute:            undefined,
+      resourceEditMasthead:   true,
     };
 
-    return (schemaOrType) => {
+    return (schemaOrType, pagination) => {
+      // Note - This can run a LOT so needs to be performant
+
       if (!schemaOrType) {
         return {};
       }
@@ -530,7 +535,20 @@ export const getters = {
 
       const opts = Object.assign({}, def, found || {});
 
-      return opts;
+      // As this runs a lot, avoid anything we don't strictly need (like going out to another store)
+      if (!pagination) {
+        return opts;
+      }
+
+      const storeOptionsFor = schemaOrType?.$ctx?.getters?.['optionsFor'];
+      const storeOpts = storeOptionsFor ? storeOptionsFor({ getters, state }, {
+        schema: schemaOrType, pagination, opts
+      }) : {};
+
+      return {
+        ...opts,
+        ...storeOpts,
+      };
     };
   },
 
@@ -938,11 +956,11 @@ export const getters = {
         const virtualTypes = state.virtualTypes[product] || [];
         const spoofedTypes = state.spoofedTypes[product] || [];
         const allTypes = [...virtualTypes, ...spoofedTypes];
-        const virtSpoofedModes = [...nonUsedModes];
 
         for ( const type of allTypes ) {
           const item = clone(type);
           const id = item.name;
+          const virtSpoofedModes = [...nonUsedModes];
 
           // Is there a virtual/spoofed type override for schema type?
           // Currently used by harvester, this should be investigated and removed if possible
@@ -1041,99 +1059,46 @@ export const getters = {
   },
 
   headersFor(state, getters, rootState, rootGetters) {
-    return (schema) => {
-      const attributes = schema.attributes || {};
-      const columns = attributes.columns || [];
-      const typeOptions = getters['optionsFor'](schema);
+    return (schema, pagination) => {
+      if (pagination) {
+        const storeHeadersFor = schema?.$ctx?.getters?.['headersFor'];
 
-      // A specific list has been provided
-      if ( state.headers[schema.id] ) {
-        return state.headers[schema.id].map((entry) => {
-          if ( typeof entry === 'string' ) {
-            const col = findBy(columns, 'name', entry);
+        if (storeHeadersFor) {
+          const res = storeHeadersFor({ getters, state }, { schema, pagination });
 
-            if ( col ) {
-              return fromSchema(col, rootGetters);
-            } else {
-              return null;
-            }
-          } else {
-            return entry;
+          if (res) {
+            return res;
           }
-        }).filter((col) => !!col);
-      }
-
-      // Otherwise make one up from schema
-      const out = typeOptions.showState ? [STATE] : [];
-      const namespaced = attributes.namespaced || false;
-      let hasName = false;
-
-      for ( const col of columns ) {
-        if ( col.format === 'name' ) {
-          hasName = true;
-          out.push(NAME);
-          if ( namespaced ) {
-            out.push(NAMESPACE_COL);
-          }
-        } else {
-          out.push(fromSchema(col, rootGetters));
         }
       }
 
-      if ( !hasName ) {
-        insertAt(out, 1, NAME);
-        if ( namespaced ) {
-          insertAt(out, 2, NAMESPACE_COL);
-        }
-      }
-
-      // Age always goes last
-      if ( out.includes(AGE) ) {
-        removeObject(out, AGE);
-        if ( typeOptions.showAge ) {
-          out.push(AGE);
-        }
-      }
-
-      return out;
-
-      function fromSchema(col, rootGetters) {
-        let formatter, width, formatterOpts;
-
-        if ( (col.format === '' || col.format === 'date') && col.name === 'Age' ) {
-          return AGE;
-        }
-
-        if ( col.format === 'date' || col.type === 'date' ) {
-          formatter = 'Date';
-          width = 120;
-          formatterOpts = { multiline: true };
-        }
-
-        if ( col.type === 'number' || col.type === 'int' ) {
-          formatter = 'Number';
-        }
-
-        const colName = col.name.includes(' ') ? col.name.split(' ').map((word) => word.charAt(0).toUpperCase() + word.substring(1) ).join('') : col.name;
-
-        const exists = rootGetters['i18n/exists'];
-        const t = rootGetters['i18n/t'];
-        const labelKey = `tableHeaders.${ colName.charAt(0).toLowerCase() + colName.slice(1) }`;
-        const description = col.description || '';
-        const tooltip = description && description[description.length - 1] === '.' ? description.slice(0, -1) : description;
-
-        return {
-          name:  col.name.toLowerCase(),
-          label: exists(labelKey) ? t(labelKey) : col.name,
-          value: _rowValueGetter(col),
-          sort:  [col.field],
-          formatter,
-          formatterOpts,
-          width,
-          tooltip
-        };
-      }
+      return createHeaders({ rootGetters }, {
+        headers:     state.headers,
+        typeOptions: getters['optionsFor'](schema, false),
+        schema,
+        columns:     {
+          state:     STATE,
+          name:      NAME,
+          namespace: NAMESPACE_COL,
+          age:       AGE,
+        },
+        pagination
+      });
     };
+  },
+
+  /**
+   * Simple getter to fetch pre-configured headers used in pagination
+   */
+  configuredPaginationHeaders(state) {
+    return (schemaOrType) => state.paginationHeaders?.[schemaOrType.id || schemaOrType];
+  },
+
+  /**
+   * Simple getter to fetch pre-configured headers (not used in paginated lists)
+   */
+  configuredHeaders(state) {
+    return (schemaOrType) => state.headers?.[schemaOrType.id || schemaOrType];
   },
 
   // ------------------------------------
@@ -1443,7 +1408,7 @@ export const getters = {
     return (schema, colName) => {
       const col = _findColumnByName(schema, colName);
 
-      return _rowValueGetter(col);
+      return rowValueGetter(col);
     };
   },
 
@@ -1454,6 +1419,10 @@ export const getters = {
       return !!prod;
     };
   },
+
+  productByName(state) {
+    return (productName) => state.products.find((p) => p.name === productName);
+  }
 };
 
 export const mutations = {
@@ -1513,12 +1482,27 @@ export const mutations = {
   },
 
   product(state, obj) {
-    const existing = findBy(state.products, 'name', obj.name);
+    let existing = state.products.find((p) => p.name === obj.name);
 
     if ( existing ) {
       Object.assign(existing, obj);
     } else {
       addObject(state.products, obj);
+      existing = state.products.find((p) => p.name === obj.name);
+    }
+
+    // Make sure deprecated `inExplorer` is synchronized with `rootProduct` (and vice-versa)
+    if (existing?.inExplorer) {
+      existing.rootProduct = EXPLORER;
+    } else if (existing?.rootProduct === EXPLORER) {
+      existing.inExplorer = true;
+    }
+
+    // We make an assumption that if the store for a product is 'cluster' it will be displayed within cluster explorer
+    // Detect that here and set rootProduct and inExporer in this case
+    if (!existing?.rootProduct && existing?.inStore === 'cluster') {
+      existing.rootProduct = EXPLORER;
+      existing.inExplorer = (existing.rootProduct === EXPLORER);
     }
   },
 
@@ -1612,6 +1596,10 @@ export const mutations = {
 
   headers(state, { type, headers }) {
     state.headers[type] = headers;
+  },
+
+  paginationHeaders(state, { type, paginationHeaders }) {
+    state.paginationHeaders[type] = paginationHeaders;
   },
 
   hideBulkActions(state, { type, field }) {
@@ -1863,9 +1851,6 @@ function ifHave(getters, option) {
   case IF_HAVE.V2_MONITORING: {
     return haveV2Monitoring(getters);
   }
-  case IF_HAVE.V1_MONITORING: {
-    return haveV1Monitoring(getters);
-  }
   case IF_HAVE.PROJECT: {
     return !!project(getters);
   }
@@ -1911,22 +1896,6 @@ function _findColumnByName(schema, colName) {
   const columns = attributes.columns || [];
 
   return findBy(columns, 'name', colName);
-}
-
-function _rowValueGetter(col) {
-  // 'field' comes from the schema - typically it is of the form $.metadata.field[N]
-  // We will use JsonPath to look up this value, which is costly - so if we can detect this format
-  // Use a more efficient function to get the value
-  const value = col.field.startsWith('.') ? `$${ col.field }` : col.field;
-  const found = value.match(FIELD_REGEX);
-
-  if (found && found.length === 2) {
-    const fieldIndex = parseInt(found[1], 10);
-
-    return (row) => row.metadata?.fields?.[fieldIndex];
-  }
-
-  return value;
 }
 
 // Is V1 Istio installed?

@@ -70,7 +70,7 @@ export default {
 
   computed: {
     ...mapState(['managementReady', 'clusterReady']),
-    ...mapGetters(['clusterId', 'currentProduct', 'isRancherInHarvester', 'showTopLevelMenu']),
+    ...mapGetters(['clusterId', 'currentProduct', 'rootProduct', 'isRancherInHarvester', 'showTopLevelMenu']),
 
     afterLoginRoute: mapPref(AFTER_LOGIN_ROUTE),
 
@@ -78,7 +78,7 @@ export default {
 
     pageActions() {
       const pageActions = [];
-      const product = this.currentProduct;
+      const product = this.rootProduct;
 
       if ( !product ) {
         return [];

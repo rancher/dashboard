@@ -237,11 +237,22 @@ export default {
           class="table-header-container"
           :class="{ 'not-filterable': hasAdvancedFiltering && !col.isFilter }"
         >
-          <span
-            v-if="col.sort"
+          <div
             v-clean-tooltip="tooltip(col)"
+            class="content"
           >
             <span v-clean-html="labelFor(col)" />
+            <span
+              v-if="col.subLabel"
+              class="text-muted"
+            >
+              {{ col.subLabel }}
+            </span>
+          </div>
+          <div
+            v-if="col.sort"
+            class="sort"
+          >
             <i
               v-show="hasAdvancedFiltering && !col.isFilter"
               v-clean-tooltip="t('sortableTable.tableHeader.noFilter')"
@@ -258,11 +269,7 @@ export default {
                 class="icon icon-sort-up icon-stack-1x"
               />
             </span>
-          </span>
-          <span
-            v-else
-            v-clean-tooltip="tooltip(col)"
-          >{{ labelFor(col) }}</span>
+          </div>
         </div>
       </th>
       <th
@@ -413,11 +420,11 @@ export default {
       color: var(--body-text);
 
       .table-header-container {
-        display: inherit;
+        display: flex;
 
-        > span {
+        .content {
           display: flex;
-          align-items: center;
+          flex-direction: column;
         }
 
         &.not-filterable {

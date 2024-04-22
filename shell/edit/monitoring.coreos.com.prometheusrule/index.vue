@@ -166,6 +166,7 @@ export default {
                 :label="t('prometheusRule.groups.name')"
                 :mode="mode"
                 :required="true"
+                :data-testid="`v2-monitoring-prom-rules-group-name-${idx}`"
               />
             </div>
           </div>
@@ -179,6 +180,7 @@ export default {
                 "
                 :label="t('prometheusRule.groups.groupInterval.label')"
                 :mode="mode"
+                :data-testid="`v2-monitoring-prom-rules-group-interval-${idx}`"
                 @input="(e) => updateGroupInterval(filteredGroups[idx], e)"
               />
             </div>

@@ -4,7 +4,6 @@ import CreateEditView from '@shell/mixins/create-edit-view';
 import CruResource from '@shell/components/CruResource';
 import { RadioGroup } from '@components/Form/Radio';
 import { LabeledInput } from '@components/Form/LabeledInput';
-import { Banner } from '@components/Banner';
 import CopyToClipboard from '@shell/components/CopyToClipboard';
 import AllowedPrincipals from '@shell/components/auth/AllowedPrincipals';
 import { MANAGEMENT } from '@shell/config/types';
@@ -12,6 +11,7 @@ import { findBy } from '@shell/utils/array';
 import AuthConfig from '@shell/mixins/auth-config';
 import AuthBanner from '@shell/components/auth/AuthBanner';
 import InfoBox from '@shell/components/InfoBox';
+import AuthProviderWarningBanners from '@shell/edit/auth/AuthProviderWarningBanners';
 
 const NAME = 'github';
 
@@ -21,11 +21,11 @@ export default {
     CruResource,
     RadioGroup,
     LabeledInput,
-    Banner,
     CopyToClipboard,
     AllowedPrincipals,
     AuthBanner,
-    InfoBox
+    InfoBox,
+    AuthProviderWarningBanners
   },
 
   mixins: [CreateEditView, AuthConfig],
@@ -153,10 +153,9 @@ export default {
       </template>
 
       <template v-else>
-        <Banner
+        <AuthProviderWarningBanners
           v-if="!model.enabled"
-          :label="t('authConfig.stateBanner.disabled', tArgs)"
-          color="warning"
+          :t-args="tArgs"
         />
 
         <h3 v-t="`authConfig.${NAME}.target.label`" />
@@ -247,17 +246,6 @@ export default {
               type="password"
               :label="t(`authConfig.${NAME}.clientSecret.label`)"
               :mode="mode"
-            />
-          </div>
-        </div>
-        <div
-          v-if="!model.enabled"
-          class="row"
-        >
-          <div class="col span-12">
-            <Banner
-              v-clean-html="t('authConfig.associatedWarning', tArgs, true)"
-              color="info"
             />
           </div>
         </div>

@@ -54,12 +54,12 @@ export default {
     >
       <IngressFullPath :row="path" />
       <i class="icon icon-chevron-right" />
-      <nuxt-link
+      <router-link
         v-if="path.serviceName && path.serviceTargetTo"
         :to="path.serviceTargetTo"
       >
         {{ path.serviceName }}
-      </nuxt-link>
+      </router-link>
       <span v-else-if="path.serviceName">
         {{ path.serviceName }}
       </span>
@@ -69,12 +69,12 @@ export default {
       class="target"
     >
       {{ t('ingress.target.default') }} <i class="icon icon-chevron-right" />
-      <nuxt-link
+      <router-link
         v-if="defaultService.targetTo"
         :to="defaultService.targetTo"
       >
         {{ defaultService.name }}
-      </nuxt-link>
+      </router-link>
       <span v-else>
         {{ defaultService.name }}
       </span>

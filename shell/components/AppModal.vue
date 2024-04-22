@@ -27,7 +27,7 @@ export default defineComponent({
         }
 
         if (typeof value === 'string') {
-          return /^(0*(?:[1-9][0-9]*|0)\.?\d*)+(px|%)$/.test(value) && Number(value) > 0;
+          return /^(0*(?:[1-9][0-9]*|0)\.?\d*)+(px|%)$/.test(value);
         }
 
         return false;
@@ -150,7 +150,7 @@ export default defineComponent({
       background-color: var(--modal-bg);
       border-radius: var(--border-radius);
       max-height: 95vh;
-      overflow: scroll;
+      overflow: auto;
       border: 2px solid var(--modal-border);
     }
   }

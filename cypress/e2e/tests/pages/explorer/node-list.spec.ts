@@ -19,6 +19,10 @@ describe('Nodes list', { tags: ['@explorer', '@adminUser'], testIsolation: 'off'
   });
 
   it('should show the nodes list page', () => {
+    cy.getRancherResource('v1', 'nodes').then((resp: Cypress.Response<any>) => {
+      cy.wrap(resp.body.count).as('count');
+    });
+
     ClusterDashboardPagePo.navTo();
 
     const nav = new ProductNavPo();
@@ -35,16 +39,22 @@ describe('Nodes list', { tags: ['@explorer', '@adminUser'], testIsolation: 'off'
     nodeList.sortableTable().checkLoadingIndicatorNotVisible();
 
     // Check table has 2 tows
-    nodeList.sortableTable().rowElements({ timeout: 2500 }).should((rows: any) => {
-      expect(rows).not.to.equal(undefined);
-      expect(rows).to.have.length(2);
+    cy.get<number>('@count').then((count) => {
+      nodeList.sortableTable().rowElements({ timeout: 2500 }).should((rows: any) => {
+        expect(rows).not.to.equal(undefined);
+        expect(rows).to.have.length(count);
+      });
+
+      // Check the node names
+      nodeList.sortableTable().rowNames().should((names: any) => {
+        expect(names).to.have.length(count);
+        expect(names).to.contain('bigip1');
+      });
     });
 
-    // Check the node names
-    nodeList.sortableTable().rowNames().should((names: any) => {
-      expect(names).to.have.length(2);
-      expect(names).to.contain('local-node');
-      expect(names).to.contain('bigip1');
-    });
+    // Simple test to assert we haven't broken Node detail page
+    // https://github.com/rancher/dashboard/issues/10490
+    nodeList.sortableTable().rowElementLink(0, 2).click();
+    cy.get('.title .primaryheader h1').invoke('text').should('contain', 'Node:');
   });
 });

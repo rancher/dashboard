@@ -14,10 +14,26 @@ function registerType(state, type) {
       list:          [],
       haveAll:       false,
       haveSelector:  {},
-      haveNamespace: undefined, // If the cached list only contains resources for a namespace, this will contain the ns name
-      revision:      0, // The highest known resourceVersion from the server for this type
-      generation:    0, // Updated every time something is loaded for this type
-      loadCounter:   0, // Used to cancel incremental loads if the page changes during load
+      /**
+       * If the cached list only contains resources for a namespace, this will contain the ns name
+       */
+      haveNamespace: undefined,
+      /**
+       * If the cached list only contains resources from a pagination request, this will contain the pagination settings (`StorePagination`)
+       */
+      havePage:      undefined,
+      /**
+       * The highest known resourceVersion from the server for this type
+       */
+      revision:      0,
+      /**
+       * Updated every time something is loaded for this type
+       */
+      generation:    0,
+      /**
+       * Used to cancel incremental loads if the page changes during load
+       */
+      loadCounter:   0,
     };
 
     // Not enumerable so they don't get sent back to the client for SSR
@@ -47,11 +63,28 @@ function replaceResource(existing, data, getters) {
   return replace(existing, data);
 }
 
-export function load(state, { data, ctx, existing }) {
+/**
+ * `load` can be called as part of a loop. to avoid common look ups create them up front and pass as `cachedArgs`
+ */
+export function createLoadArgs(ctx, dataType) {
   const { getters } = ctx;
-  let type = normalizeType(data.type);
+  const type = normalizeType(dataType);
   const keyField = getters.keyFieldForType(type);
   const opts = ctx.rootGetters[`type-map/optionsFor`](type);
+
+  return {
+    type, keyField, opts
+  };
+}
+
+export function load(state, {
+  data, ctx, existing, cachedArgs
+}) {
+  const { getters } = ctx;
+  // Optimisation. This can run once per resource loaded.., so pass in from parent
+  const { type: cachedType, keyField, opts } = cachedArgs || createLoadArgs(ctx, data.type);
+  let type = cachedType;
+
   const limit = opts?.limit;
 
   // Inject special fields for indexing schemas
@@ -117,6 +150,7 @@ export function forgetType(state, type) {
     cache.haveAll = false;
     cache.haveSelector = {};
     cache.haveNamespace = undefined;
+    cache.havePage = undefined;
     cache.revision = 0;
     cache.generation = 0;
     clear(cache.list);
@@ -291,11 +325,37 @@ export function loadAll(state, {
 
   // Allow requester to skip setting that everything has loaded
   if (!skipHaveAll) {
-    cache.haveNamespace = namespace;
-    cache.haveAll = !namespace;
+    if (namespace) {
+      cache.havePage = false;
+      cache.haveNamespace = namespace;
+      cache.haveAll = false;
+    } else {
+      cache.havePage = false;
+      cache.haveNamespace = false;
+      cache.haveAll = true;
+    }
   }
 
   return proxies;
+}
+
+/**
+ * Add a set of resources to the store for a given type
+ *
+ * Don't mark the 'haveAll' field - this is used for incremental loading
+ */
+export function loadAdd(state, { type, data: allLatest, ctx }) {
+  const { getters } = ctx;
+  const keyField = getters.keyFieldForType(type);
+  const cachedArgs = createLoadArgs(ctx, allLatest?.[0]?.type);
+
+  allLatest.forEach((entry) => {
+    const existing = state.types[type].map.get(entry[keyField]);
+
+    load(state, {
+      data: entry, ctx, existing, cachedArgs
+    });
+  });
 }
 
 export default {
@@ -310,8 +370,12 @@ export default {
     Object.assign(state.config, config);
   },
 
+  /**
+   * Load multiple different types of resources
+   */
   loadMulti(state, { data, ctx }) {
     // console.log('### Mutation loadMulti', data?.length);
+
     for ( const entry of data ) {
       load(state, { data: entry, ctx });
     }
@@ -321,9 +385,12 @@ export default {
     type, entries, ctx, selector, revision
   }) {
     const cache = registerType(state, type);
+    const cachedArgs = createLoadArgs(ctx, entries?.[0]?.type);
 
     for ( const data of entries ) {
-      load(state, { data, ctx });
+      load(state, {
+        data, ctx, cachedArgs
+      });
     }
 
     cache.haveSelector[selector] = true;
@@ -343,12 +410,13 @@ export default {
     // const allExisting = getters.all({type});
     const keyField = getters.keyFieldForType(type);
     const cache = state.types[type];
+    const cachedArgs = createLoadArgs(ctx, allLatest?.[0].type);
 
     allLatest.forEach((entry) => {
       const existing = state.types[type].map.get(entry[keyField]);
 
       load(state, {
-        data: entry, ctx, existing
+        data: entry, ctx, existing, cachedArgs
       });
     });
     cache.list.forEach((entry) => {
@@ -358,19 +426,38 @@ export default {
     });
   },
 
-  // Add a set of resources to the store for a given type
-  // Don't mark the 'haveAll' field - this is used for incremental loading
-  loadAdd(state, { type, data: allLatest, ctx }) {
-    const { getters } = ctx;
-    const keyField = getters.keyFieldForType(type);
+  loadAdd,
 
-    allLatest.forEach((entry) => {
-      const existing = state.types[type].map.get(entry[keyField]);
+  loadPage(state, {
+    type,
+    data,
+    ctx,
+    pagination,
+  }) {
+    if (!data) {
+      return;
+    }
 
-      load(state, {
-        data: entry, ctx, existing
-      });
-    });
+    const keyField = ctx.getters.keyFieldForType(type);
+    const proxies = data.map((x) => classify(ctx, x));
+    const cache = registerType(state, type);
+
+    clear(cache.list);
+    cache.map.clear();
+    cache.generation++;
+
+    addObjects(cache.list, proxies);
+
+    for ( let i = 0 ; i < proxies.length ; i++ ) {
+      cache.map.set(proxies[i][keyField], proxies[i]);
+    }
+
+    // havePage is of type `StorePagination`
+    cache.havePage = pagination;
+    cache.haveNamespace = undefined;
+    cache.haveAll = undefined;
+
+    return proxies;
   },
 
   forgetAll(state, { type }) {

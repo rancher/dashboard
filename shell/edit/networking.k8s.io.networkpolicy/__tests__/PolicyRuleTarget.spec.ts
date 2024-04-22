@@ -4,12 +4,42 @@ import { cleanHtmlDirective } from '@shell/plugins/clean-html-directive';
 import mock from '@shell/edit/networking.k8s.io.networkpolicy/__tests__/utils/mock.json';
 import { PolicyRuleTargetSelectors } from '@shell/edit/networking.k8s.io.networkpolicy/__tests__/utils/selectors.test.ts';
 
+type MatchData = {
+  matched: number;
+  matches: Array<object>;
+  none: boolean;
+  total: number;
+  sample?: string;
+}
+
+const newNamespace = {
+  id:       'new-namespace',
+  type:     'namespace',
+  kind:     'Namespace',
+  spec:     { finalizers: ['kubernetes'] },
+  status:   { phase: 'Active' },
+  metadata: {
+    annotations:       { user: 'john' },
+    name:              'default',
+    creationTimestamp: '2024-01-31T10:24:03Z',
+    fields:            ['default', 'Active', '1d'],
+    labels:            { user: 'john' },
+    relationships:     null,
+    resourceVersion:   '1',
+    state:             {
+      error:         false,
+      message:       '',
+      name:          'active',
+      transitioning: false
+    }
+  }
+};
+
 describe.each([
   'view',
   'edit',
 ])('component: PolicyRuleTarget', (mode) => {
   const mockExists = jest.fn().mockReturnValue(true);
-  const mockT = jest.fn().mockReturnValue('some-string');
 
   const wrapper = mount(PolicyRuleTarget, {
     data() {
@@ -29,7 +59,7 @@ describe.each([
       $store: {
         getters: {
           'i18n/exists': mockExists,
-          'i18n/t':      mockT
+          'i18n/t':      (key: string, matchData: MatchData) => matchData ? `${ key }-${ matchData.total }` : key,
         }
       }
     }
@@ -77,6 +107,19 @@ describe.each([
       expect(selectors.namespaceAndPod.podRule.element).toBeUndefined();
 
       expect(selectors.namespace.element).toBeDefined();
+
+      // Updating allNamespace should update the matching namespaces message too
+      await wrapper.setProps({
+        allNamespaces: [
+          ...wrapper.vm.$props.allNamespaces,
+          newNamespace
+        ]
+      });
+
+      const matchingNamespacesMessage = wrapper.find('[data-testid="matching-namespaces-message"]').text();
+      const totalInMessage = matchingNamespacesMessage.split('-')[1];
+
+      expect(totalInMessage).toBe(`${ wrapper.vm.$data.matchingNamespaces.total }`);
     });
 
     it('should display pod selector rule', async() => {

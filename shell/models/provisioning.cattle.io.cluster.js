@@ -9,7 +9,8 @@ import { ucFirst } from '@shell/utils/string';
 import { compare } from '@shell/utils/version';
 import { AS, MODE, _VIEW, _YAML } from '@shell/config/query-params';
 import { HARVESTER_NAME as HARVESTER } from '@shell/config/features';
-import { CAPI as CAPI_ANNOTATIONS } from '@shell/config/labels-annotations';
+import { CAPI as CAPI_ANNOTATIONS, NODE_ARCHITECTURE } from '@shell/config/labels-annotations';
+import capitalize from 'lodash/capitalize';
 
 /**
  * Class representing Cluster resource.
@@ -401,6 +402,36 @@ export default class ProvCluster extends SteveModel {
 
   get providerLogo() {
     return this.mgmt?.providerLogo;
+  }
+
+  get nodesArchitecture() {
+    const obj = {};
+
+    this.nodes?.forEach((node) => {
+      const architecture = node.status?.nodeLabels?.[NODE_ARCHITECTURE];
+
+      const key = architecture ? capitalize(architecture) : this.t('cluster.architecture.label.unknown');
+
+      obj[key] = (obj[key] || 0) + 1;
+    });
+
+    return obj;
+  }
+
+  get architecture() {
+    const keys = Object.keys(this.nodesArchitecture);
+
+    switch (keys.length) {
+    case 0:
+      return { label: this.t('generic.provisioning') };
+    case 1:
+      return { label: keys[0] };
+    default:
+      return {
+        label:   this.t('cluster.architecture.label.mixed'),
+        tooltip: keys.reduce((acc, k) => `${ acc }${ k }: ${ this.nodesArchitecture[k] }<br>`, '')
+      };
+    }
   }
 
   get kubernetesVersion() {

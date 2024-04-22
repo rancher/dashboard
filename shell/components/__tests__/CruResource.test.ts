@@ -20,7 +20,8 @@ describe('component: CruResource', () => {
             'current_store/all':       jest.fn(),
             'i18n/t':                  jest.fn(),
             'i18n/exists':             jest.fn(),
-          }
+          },
+          dispatch: jest.fn(),
         },
         $route:  { query: { AS: _YAML } },
         $router: { applyQuery: jest.fn() },
@@ -54,7 +55,8 @@ describe('component: CruResource', () => {
             'current_store/all':       jest.fn(),
             'i18n/t':                  jest.fn(),
             'i18n/exists':             jest.fn(),
-          }
+          },
+          dispatch: jest.fn(),
         },
         $route:  { query: { AS: _YAML } },
         $router: { applyQuery: jest.fn() },
@@ -87,7 +89,8 @@ describe('component: CruResource', () => {
             'current_store/all':       jest.fn(),
             'i18n/t':                  jest.fn(),
             'i18n/exists':             jest.fn(),
-          }
+          },
+          dispatch: jest.fn(),
         },
         $route:  { query: { AS: _YAML } },
         $router: { applyQuery: jest.fn() },
@@ -126,7 +129,8 @@ describe('component: CruResource', () => {
             'current_store/all':       jest.fn(),
             'i18n/t':                  jest.fn(),
             'i18n/exists':             jest.fn(),
-          }
+          },
+          dispatch: jest.fn(),
         },
         $route:  { query: { AS: _YAML } },
         $router: { applyQuery: jest.fn() },

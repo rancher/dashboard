@@ -40,6 +40,24 @@ export default {
       events: [],
       eventHeaders,
     };
+  },
+
+  mounted() {
+    this.dismissRouteHandler = this.$router.beforeEach(this.onRouteChange);
+  },
+
+  methods: {
+    async onRouteChange(to, from, next) {
+      if (this.$route.name !== to.name) {
+        await this.$store.dispatch('cluster/forgetType', EVENT);
+      }
+
+      next();
+    }
+  },
+
+  beforeDestroy() {
+    this.dismissRouteHandler();
   }
 };
 </script>

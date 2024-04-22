@@ -1,14 +1,19 @@
+import Vue from 'vue';
 import { mapGetters } from 'vuex';
 import { COUNT, MANAGEMENT } from '@shell/config/types';
 import { SETTING, DEFAULT_PERF_SETTING } from '@shell/config/settings';
 import ResourceFetchNamespaced from '@shell/mixins/resource-fetch-namespaced';
+import ResourceFetchApiPagination from '@shell/mixins/resource-fetch-api-pagination';
 
 // Number of pages to fetch when loading incrementally
 const PAGES = 4;
 
 export default {
 
-  mixins: [ResourceFetchNamespaced],
+  mixins: [
+    ResourceFetchNamespaced,
+    ResourceFetchApiPagination
+  ],
 
   data() {
     // fetching the settings related to manual refresh from global settings
@@ -38,6 +43,7 @@ export default {
       // incremental loading vars
       incremental:                false,
       fetchedResourceType:        [],
+      paginating:                 null,
     };
   },
   beforeDestroy() {
@@ -64,6 +70,10 @@ export default {
       }
     },
     loading() {
+      if (this.canPaginate) {
+        return this.paginating;
+      }
+
       return this.rows.length ? false : this.$fetchState.pending;
     },
   },
@@ -109,6 +119,31 @@ export default {
         });
       }
 
+      const schema = this.$store.getters[`${ currStore }/schemaFor`](type);
+
+      if (this.canPaginate) {
+        if (!this.pagination) {
+          // This is the initial fetchType made when resource lists are created...
+          // when pagination is enabled we want to wait for the correct set of initial pagination settings to make the call
+          return;
+        }
+
+        const opt = {
+          hasManualRefresh: this.hasManualRefresh,
+          pagination:       { ...this.pagination },
+          force:            this.paginating !== null // Fix for manual refresh (before ripped out).
+        };
+
+        Vue.set(this, 'paginating', true);
+
+        const that = this;
+
+        return this.$store.dispatch(`${ currStore }/findPage`, {
+          type,
+          opt
+        }).finally(() => Vue.set(that, 'paginating', false));
+      }
+
       let incremental = 0;
 
       if (this.incremental) {
@@ -123,8 +158,6 @@ export default {
         force:            this.force,
         hasManualRefresh: this.hasManualRefresh
       };
-
-      const schema = this.$store.getters[`${ currStore }/schemaFor`](type);
 
       if (schema?.attributes?.namespaced) { // Is this specific resource namespaced (could be primary or secondary resource)?
         opt.namespaced = this.namespaceFilter; // namespaceFilter will only be populated if applicable for primary resource
@@ -180,6 +213,8 @@ export default {
       // manual refresh check
       if (manualDataRefreshEnabled && resourceCount >= manualDataRefreshThreshold) {
         watch = false;
+        isTooManyItemsToAutoUpdate = true;
+      } else if (this.canPaginate) {
         isTooManyItemsToAutoUpdate = true;
       }
 

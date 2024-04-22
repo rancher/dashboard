@@ -176,13 +176,13 @@ export default {
         v-if="canImport"
         slot="extraActions"
       >
-        <n-link
+        <router-link
           :to="importLocation"
           class="btn role-primary mr-10"
           data-testid="cluster-manager-list-import"
         >
           {{ t('cluster.importAction') }}
-        </n-link>
+        </router-link>
       </template>
     </Masthead>
 
@@ -226,15 +226,28 @@ export default {
       <template #cell:summary="{row}">
         <span v-if="!row.stateParts.length">{{ row.nodes.length }}</span>
       </template>
+      <template #col:kubernetesVersion="{row}">
+        <td class="col-name">
+          <span>
+            {{ row.kubernetesVersion }}
+          </span>
+          <div
+            v-clean-tooltip="{content: row.architecture.tooltip, placement: 'left'}"
+            class="text-muted"
+          >
+            {{ row.architecture.label }}
+          </div>
+        </td>
+      </template>
       <template #cell:explorer="{row}">
-        <n-link
+        <router-link
           v-if="row.mgmt && row.mgmt.isReady && !row.hasError"
           data-testid="cluster-manager-list-explore-management"
           class="btn btn-sm role-secondary"
           :to="{name: 'c-cluster', params: {cluster: row.mgmt.id}}"
         >
           {{ t('cluster.explore') }}
-        </n-link>
+        </router-link>
         <button
           v-else
           data-testid="cluster-manager-list-explore"

@@ -121,17 +121,23 @@ export default {
     const slideTrack = document.getElementById('slide-track');
 
     if (this.slider.length === 1) {
-      // singleSlide.style = 'width: 100%; max-width: 100%';
       slideTrack.style = 'transform:translateX(0%); width:100%; left:0';
     } else {
       const node = document.getElementById('slide0');
-      const clone = node.cloneNode(true);
+
+      if (node) {
+        const clone = node.cloneNode(true);
+
+        slideTrack.appendChild(clone);
+      }
 
       const nodeLast = document.getElementById(`slide${ this.slider.length - 1 }`);
-      const cloneLast = nodeLast.cloneNode(true);
 
-      slideTrack.appendChild(clone);
-      slideTrack.insertBefore(cloneLast, slideTrack.children[0]);
+      if (nodeLast) {
+        const cloneLast = nodeLast.cloneNode(true);
+
+        slideTrack.insertBefore(cloneLast, slideTrack.children[0]);
+      }
     }
 
     const lastSeenCluster = sessionStorage.getItem(carouselSeenStorageKey);
@@ -142,7 +148,7 @@ export default {
     }
 
     this.autoScrollSlideInterval = setInterval(this.autoScrollSlide, 5000);
-  },
+  }
 
 };
 

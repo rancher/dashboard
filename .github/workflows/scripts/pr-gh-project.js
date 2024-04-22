@@ -21,14 +21,14 @@ const GH_PRJ_TRIAGE = 'Triage';
 
 const GH_PRJ_TO_TEST = 'To Test';
 const GH_PRJ_QA_REVIEW = 'QA Review';
-const GH_PRJ_IN_REVIEW = 'In Review';
+const GH_PRJ_IN_REVIEW = 'Review';
 
 function parseOrgAndRepo(repoUrl) {
   const parts = repoUrl.split('/');
 
   return {
-    org: parts[parts.length - 1],
-    repo: parts[parts.length - 2]
+    org: parts[parts.length - 2],
+    repo: parts[parts.length - 1]
   };
 }
 
@@ -77,10 +77,17 @@ function hasLabel(issue, label) {
   return !!(labels.find(l => l.name.toLowerCase() === label.toLowerCase()));
 }
 
-function moveIssueToProjectState(issue, state) {
+async function moveIssueToProjectState(project, prjIssueID, issue, state) {
   console.log(`moveIssueToProjectState ${ state }`);
+  console.log(JSON.stringify(project, null, 2));
+  console.log(prjIssueID);
+  // console.log(JSON.stringify(issue, null, 2));
 
-  console.log(JSON.stringify(issue, null, 2));
+  const res = await request.ghUpdateProjectIssueStatus(project, prjIssueID, state);
+
+  console.log(JSON.stringify(res, null, 2));
+
+  return res;
 }
 
 /**
@@ -196,7 +203,7 @@ async function processClosedAction() {
       console.log('  Issue is tech debt/dev validate/qa none - ignoring');
     } else {
       // Put this in when we remove the Zube workflow
-      // A single workflow needs to re-open the issue after GH closes it
+      // A single workflow needs to re-open the issue after GH closes it
       // console.log('  Waiting for Zube to mark the issue as done ...');
 
       // // Output labels
@@ -308,15 +315,36 @@ async function processOpenOrEditAction() {
     } else {
       // Need to fetch the issue project status
       const info = parseOrgAndRepo(iss.repository_url);
-      const prjIssue = request.ghProjectIssue(info.org, info.repo, i.number);
+      let prjIssue = await request.ghProjectIssue(info.org, info.repo, i);
 
-      console.log(info);
+      // console.log(info);
+      // console.log('-------- GH ISSUE -----');
+      // console.log(JSON.stringify(prjIssue, null, 2));  
+      // console.log('---------');
 
-      console.log('-------- GH ISSUE -----');
-      console.log(JSON.stringify(prjIssue, null, 2));  
-      console.log('---------');
+      // Is the issue on the board?
+      if (!prjIssue?.[ghProject.id]) {
+        // Issue is not on the board
+        console.log(`Issue ${ i } is NOT on the project board - adding it ...`);
 
-      await moveIssueToProjectState(iss, GH_PRJ_IN_REVIEW);
+        await request.ghAddIssueToProject(ghProject, iss);
+
+        prjIssue = await request.ghProjectIssue(info.org, info.repo, i);
+
+        if (!prjIssue?.[ghProject.id]) {
+          console.log("Error: Could not add issue to Project Board");
+          console.log(prjIssue);
+        } else {
+          console.log('Added issue to the project board');
+          console.log(JSON.stringify(prjIssue, null, 2));  
+        }
+      }
+
+      if (prjIssue?.[ghProject.id]) {
+        await moveIssueToProjectState(ghProject, prjIssue[ghProject.id], iss, GH_PRJ_IN_REVIEW);
+      } else {
+        console.log(`Can not move issue to state ${ GH_PRJ_IN_REVIEW } - issue is not on the board`);
+      }
     }
 
     if (iss.milestone) {

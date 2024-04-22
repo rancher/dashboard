@@ -40,8 +40,6 @@ async function ghProject(org, num) {
     }
   }`;
 
-  console.log(gQL);
-
   const res = await graphql(gQL);
 
   const prj = {};
@@ -70,6 +68,7 @@ async function ghProject(org, num) {
 
   return prj;
 }
+
 /**
  * Fetch the issue and get the project info for the issue (map of project ID to project issue ID)
  *
@@ -113,6 +112,9 @@ async function ghProjectIssue(org, repo, num) {
     });
 
     return projectMap;
+  } else {
+    console.log('No project items');
+    console.log(JSON.stringify(res, null, 2));
   }
 
   return undefined;
@@ -148,6 +150,24 @@ async function ghUpdateProjectIssueStatus(prj, prjIssueID, status) {
       }
     ) {
       projectV2Item {
+        id
+      }
+    }
+  }`;
+
+  return await graphql(gQL);
+}
+
+/**
+ * Add an issue to the GitHub Project boar4d
+ * @param {*} prj Project metadata
+ * @param {*} issue Issue metadata
+ * @returns Response from add request
+ */
+async function ghAddIssueToProject(prj, issue) {
+  const gQL = `mutation {
+    addProjectV2ItemById(input: {projectId: "${ prj.id }" contentId: "${ issue.node_id }"}) {
+      item {
         id
       }
     }
@@ -321,4 +341,5 @@ module.exports = {
     ghProjectIssue,
     ghUpdateProjectIssueStatus,
     ghFetchOpenIssues,
+    ghAddIssueToProject,
 };

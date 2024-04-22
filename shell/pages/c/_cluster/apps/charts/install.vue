@@ -1847,17 +1847,17 @@ export default {
         </span>
         <template v-if="!legacyEnabled">
           <span v-clean-html="t('catalog.install.error.legacy.enableLegacy.prompt', true)" />
-          <nuxt-link :to="legacyFeatureRoute">
+          <router-link :to="legacyFeatureRoute">
             {{ t('catalog.install.error.legacy.enableLegacy.goto') }}
-          </nuxt-link>
+          </router-link>
         </template>
         <template v-else-if="mcapp">
           <span v-clean-html="t('catalog.install.error.legacy.mcmNotSupported')" />
         </template>
         <template v-else>
-          <nuxt-link :to="legacyAppRoute">
+          <router-link :to="legacyAppRoute">
             <span v-clean-html="t('catalog.install.error.legacy.navigate')" />
-          </nuxt-link>
+          </router-link>
         </template>
       </Banner>
     </div>

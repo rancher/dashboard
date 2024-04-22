@@ -8,10 +8,16 @@ import HybridModel, { cleanHybridResources } from './hybrid-class';
 import NormanModel from './norman-class';
 import { urlFor } from '@shell/plugins/dashboard-store/getters';
 import { normalizeType } from '@shell/plugins/dashboard-store/normalize';
-import pAndNFiltering from '@shell/utils/projectAndNamespaceFiltering.utils';
+import pAndNFiltering from '@shell/plugins/steve/projectAndNamespaceFiltering.utils';
+import stevePaginationUtils from '@shell/plugins/steve/steve-pagination-utils';
 import { parse } from '@shell/utils/url';
 import { splitObjectPath } from '@shell/utils/string';
 import { parseType } from '@shell/models/schema';
+import {
+  STEVE_AGE_COL,
+  STEVE_ID_COL, STEVE_LIST_GROUPS, STEVE_NAMESPACE_COL, STEVE_STATE_COL
+} from '@shell/config/pagination-table-headers';
+import { createHeaders } from '@shell/store/type-map.utils';
 
 export const STEVE_MODEL_TYPES = {
   NORMAN:  'norman',
@@ -35,48 +41,79 @@ export default {
     const parsedUrl = parse(url);
     const isSteve = steveRegEx.test(parsedUrl.path);
 
-    // labelSelector
-    if ( opt.labelSelector ) {
-      url += `${ url.includes('?') ? '&' : '?' }labelSelector=${ opt.labelSelector }`;
-    }
-    // End: labelSelector
+    const stevePagination = stevePaginationUtils.checkAndCreateParam(opt);
 
-    // Filter
-    if ( opt.filter ) {
-      url += `${ (url.includes('?') ? '&' : '?') }`;
-      const keys = Object.keys(opt.filter);
+    if (stevePagination) {
+      url += `${ (url.includes('?') ? '&' : '?') + stevePagination }`;
+    } else {
+      // labelSelector
+      if ( opt.labelSelector ) {
+        url += `${ url.includes('?') ? '&' : '?' }labelSelector=${ opt.labelSelector }`;
+      }
+      // End: labelSelector
 
-      keys.forEach((key) => {
-        let vals = opt.filter[key];
+      // Filter
+      if ( opt.filter ) {
+        url += `${ (url.includes('?') ? '&' : '?') }`;
+        const keys = Object.keys(opt.filter);
 
-        if ( !isArray(vals) ) {
-          vals = [vals];
-        }
+        keys.forEach((key) => {
+          let vals = opt.filter[key];
 
-        // Steve's filter options now support more complex filtering not yet implemented here #9341
-        if (isSteve) {
-          url += `${ (url.includes('filter=') ? '&' : 'filter=') }`;
-        }
+          if ( !isArray(vals) ) {
+            vals = [vals];
+          }
 
-        const filterStrings = vals.map((val) => {
-          return `${ encodeURI(key) }=${ encodeURI(val) }`;
+          // Steve's filter options now support more complex filtering not yet implemented here #9341
+          if (isSteve) {
+            url += `${ (url.includes('filter=') ? '&' : 'filter=') }`;
+          }
+
+          const filterStrings = vals.map((val) => {
+            return `${ encodeURI(key) }=${ encodeURI(val) }`;
+          });
+          const urlEnding = url.charAt(url.length - 1);
+          const nextStringConnector = ['&', '?', '='].includes(urlEnding) ? '' : '&';
+
+          url += `${ nextStringConnector }${ filterStrings.join('&') }`;
         });
-        const urlEnding = url.charAt(url.length - 1);
-        const nextStringConnector = ['&', '?', '='].includes(urlEnding) ? '' : '&';
+      }
 
-        url += `${ nextStringConnector }${ filterStrings.join('&') }`;
-      });
+      // `opt.namespaced` is either
+      // - a string representing a single namespace - add restriction to the url
+      // - an array of namespaces or projects - add restriction as a param
+      const namespaceProjectFilter = pAndNFiltering.checkAndCreateParam(opt);
+
+      if (namespaceProjectFilter) {
+        url += `${ (url.includes('?') ? '&' : '?') + namespaceProjectFilter }`;
+      }
+      // End: Filter
+
+      // Limit
+      const limit = opt.limit;
+
+      if ( limit ) {
+        url += `${ url.includes('?') ? '&' : '?' }limit=${ limit }`;
+      }
+      // End: Limit
+
+      // Sort
+      // Steve's sort options supports multi-column sorting and column specific sort orders, not implemented yet #9341
+      const sortBy = opt.sortBy;
+      const orderBy = opt.sortOrder;
+
+      if ( sortBy ) {
+        if (isSteve) {
+          url += `${ url.includes('?') ? '&' : '?' }sort=${ (orderBy === 'desc' ? '-' : '') + encodeURI(sortBy) }`;
+        } else {
+          url += `${ url.includes('?') ? '&' : '?' }sort=${ encodeURI(sortBy) }`;
+          if ( orderBy ) {
+            url += `${ url.includes('?') ? '&' : '?' }order=${ encodeURI(orderBy) }`;
+          }
+        }
+      }
+      // End: Sort
     }
-
-    // `opt.namespaced` is either
-    // - a string representing a single namespace - add restriction to the url
-    // - an array of namespaces or projects - add restriction as a param
-    const namespaceProjectFilter = pAndNFiltering.checkAndCreateParam(opt);
-
-    if (namespaceProjectFilter) {
-      url += `${ (url.includes('?') ? '&' : '?') + namespaceProjectFilter }`;
-    }
-    // End: Filter
 
     // Exclude
     // excludeFields should be an array of strings representing the paths of the fields to exclude
@@ -92,32 +129,6 @@ export default {
       url += `${ url.includes('?') ? '&' : '?' }${ excludeParamsString }`;
     }
     // End: Exclude
-
-    // Limit
-    const limit = opt.limit;
-
-    if ( limit ) {
-      url += `${ url.includes('?') ? '&' : '?' }limit=${ limit }`;
-    }
-    // End: Limit
-
-    // Sort
-    // Steve's sort options supports multi-column sorting and column specific sort orders, not implemented yet #9341
-    const sortBy = opt.sortBy;
-    const orderBy = opt.sortOrder;
-
-    if ( sortBy ) {
-      if (isSteve) {
-        url += `${ url.includes('?') ? '&' : '?' }sort=${ (orderBy === 'desc' ? '-' : '') + encodeURI(sortBy) }`;
-      } else {
-        url += `${ url.includes('?') ? '&' : '?' }sort=${ encodeURI(sortBy) }`;
-        if ( orderBy ) {
-          url += `${ url.includes('?') ? '&' : '?' }order=${ encodeURI(orderBy) }`;
-        }
-      }
-    }
-
-    // End: Sort
 
     return url;
   },
@@ -279,6 +290,51 @@ export default {
     }
 
     return true;
+  },
+
+  /*
+   * Override the vanilla type-map headersFor. This allows custom columns
+   */
+  headersFor: (state, getters, rootState, rootGetters) => ({
+    getters: typeMapGetters,
+    state: typeMapState,
+  }, { schema, pagination }) => {
+    if (!pagination ) {
+      return;
+    }
+
+    return createHeaders({
+      state: typeMapState, getters: typeMapGetters, rootGetters
+    }, {
+      headers:     typeMapState.paginationHeaders,
+      typeOptions: typeMapGetters['optionsFor'](schema, true),
+      schema,
+      columns:     {
+        state:     STEVE_STATE_COL,
+        namespace: STEVE_NAMESPACE_COL,
+        age:       STEVE_AGE_COL,
+        id:        STEVE_ID_COL
+      }
+    });
+  },
+
+  /**
+   * Override the vanilla type-map optionsFor. This allows custom list values
+   */
+  optionsFor: () => (ctx, { schema, pagination, opts }) => {
+    if (pagination) {
+      // As headers are hardcoded each list should specify the specific default sort option
+      // This avoids the sortable table adding both name and id (which when combined with group would result in 3 sort args, which isn't supported)
+      const steveOpts = { listMandatorySort: [] };
+
+      if (!opts.listGroupsWillOverride && schema.attributes.namespaced) {
+        // There's no pre-configured settings... and we're paginating... so use pagination specific groups
+        steveOpts.listGroups = STEVE_LIST_GROUPS;
+        steveOpts.listGroupsWillOverride = true;
+      }
+
+      return steveOpts;
+    }
   },
 
 };

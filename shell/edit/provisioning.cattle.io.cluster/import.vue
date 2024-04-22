@@ -143,9 +143,9 @@ export default {
       @close="hideHarvesterNotice"
     >
       {{ t('cluster.harvester.importNotice') }}
-      <nuxt-link :to="harvesterLocation">
+      <router-link :to="harvesterLocation">
         {{ t('product.harvesterManager') }}
-      </nuxt-link>
+      </router-link>
     </Banner>
 
     <NameNsDescription

@@ -42,9 +42,10 @@ declare global {
       createAwsCloudCredentials(nsName: string, cloudCredName: string, defaultRegion: string, accessKey: string, secretKey: string): Chainable;
 
       getRancherResource(prefix: 'v3' | 'v1', resourceType: string, resourceId?: string, expectedStatusCode?: number): Chainable;
-      setRancherResource(prefix: 'v3' | 'v1', resourceType: string, resourceId: string, body: string): Chainable;
+      setRancherResource(prefix: 'v3' | 'v1', resourceType: string, resourceId: string, body: any): Chainable;
       createRancherResource(prefix: 'v3' | 'v1', resourceType: string, body: string): Chainable;
-      deleteRancherResource(prefix: 'v3' | 'v1', resourceType: string, resourceId: string): Chainable;
+      deleteRancherResource(prefix: 'v3' | 'v1', resourceType: string, resourceId: string, failOnStatusCode?: boolean): Chainable;
+      deleteNodeTemplate(nodeTemplateId: string)
 
       /**
        *  Wrapper for cy.get() to simply define the data-testid value that allows you to pass a matcher to find the element.

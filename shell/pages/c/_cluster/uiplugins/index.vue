@@ -461,7 +461,7 @@ export default {
       neu.forEach((plugin) => {
         const existing = installed.find((p) => !p.removed && p.name === plugin.name && p.version === plugin.version);
 
-        if (!existing && plugin.isCached) {
+        if (!existing && plugin.isInitialized) {
           if (!this.uiErrors[plugin.name]) {
             changes++;
           }

@@ -12,7 +12,6 @@ import { addParam } from '@shell/utils/url';
 export const _ALL = 'all';
 export const _MERGE = 'merge';
 export const _MULTI = 'multi';
-export const _ALL_IF_AUTHED = 'allIfAuthed';
 export const _NONE = 'none';
 
 const SCHEMA_CHECK_RETRIES = 15;
@@ -143,6 +142,11 @@ export default {
     }
   },
 
+  /**
+   *
+   * @param {*} ctx
+   * @param { {type: string, opt: FindAllOpt} } opt
+   */
   async findAll(ctx, { type, opt }) {
     const {
       getters, commit, dispatch, rootGetters
@@ -156,16 +160,23 @@ export default {
     }
 
     // No need to request the resources if we have them already
-    if ( opt.force !== true && (getters['haveAll'](type) || getters['haveAllNamespace'](type, opt.namespaced))) {
-      const args = {
-        type,
-        revision:  '',
-        // watchNamespace - used sometimes when we haven't fetched the results of a single namespace
-        // namespaced - used when we have fetched the result of a single namespace (see https://github.com/rancher/dashboard/pull/7329/files)
-        namespace: opt.watchNamespace || opt.namespaced
-      };
-
+    if (
+      !opt.force &&
+      (
+        getters['haveAll'](type) ||
+        getters['haveAllNamespace'](type, opt.namespaced) ||
+        (opt.pagination ? getters['havePaginatedPage'](type, opt.pagination) : false)
+      )
+    ) {
       if (opt.watch !== false ) {
+        const args = {
+          type,
+          revision:  '',
+          // watchNamespace - used sometimes when we haven't fetched the results of a single namespace
+          // namespaced - used when we have fetched the result of a single namespace (see https://github.com/rancher/dashboard/pull/7329/files)
+          namespace: opt.watchNamespace || opt.namespaced
+        };
+
         dispatch('watch', args);
       }
 
@@ -176,14 +187,6 @@ export default {
 
     if ( opt.load === false || opt.load === _NONE ) {
       load = _NONE;
-    } else if ( opt.load === _ALL_IF_AUTHED ) {
-      const header = rootGetters['auth/fromHeader'];
-
-      if ( `${ header }` === 'true' || `${ header }` === 'none' ) {
-        load = _ALL;
-      } else {
-        load = _MULTI;
-      }
     }
 
     const typeOptions = rootGetters['type-map/optionsFor'](type);
@@ -200,6 +203,8 @@ export default {
     // on for a limit of 100, to quickly show data
     // another one with 1st page of the subset of the resource we are fetching
     // the default is 4 pages, but it can be changed on mixin/resource-fetch.js
+    let pageFetchOpts;
+
     if (opt.incremental) {
       commit('incrementLoadCounter', type);
 
@@ -207,7 +212,7 @@ export default {
         dispatch('resource-fetch/updateManualRefreshIsLoading', true, { root: true });
       }
 
-      const pageFetchOpts = {
+      pageFetchOpts = {
         ...opt,
         url: addParam(opt.url, 'limit', `${ opt.incremental }`),
       };
@@ -223,8 +228,6 @@ export default {
       if (opt.force) {
         commit('forgetType', type);
       }
-
-      dispatch('loadDataPage', { type, opt: pageFetchOpts });
     }
 
     let streamStarted = false;
@@ -313,11 +316,23 @@ export default {
         commit('loadAll', {
           ctx,
           type,
-          data:      out.data,
-          revision:  out.revision,
+          data:       out.data,
+          revision:   out.revision,
           skipHaveAll,
-          namespace: opt.namespaced
+          namespace:  opt.namespaced,
+          pagination: opt.pagination ? {
+            request: opt.pagination,
+            result:  {
+              count: out.count,
+              pages: out.pages
+            }
+          } : undefined,
         });
+      }
+
+      if (opt.incremental) {
+        // This needs to come after the loadAll (which resets state) so supplements via loadDataPage aren't lost
+        dispatch('loadDataPage', { type, opt: pageFetchOpts });
       }
     }
 
@@ -337,6 +352,77 @@ export default {
     const all = findAllGetter(getters, type, opt);
 
     if (!opt.incremental && opt.hasManualRefresh) {
+      dispatch('resource-fetch/updateManualRefreshIsLoading', false, { root: true });
+    }
+
+    garbageCollect.gcUpdateLastAccessed(ctx, type);
+
+    return all;
+  },
+
+  /**
+   *
+   * @param {*} ctx
+   * @param { {type: string, opt: FindPageOpt} } opt
+   */
+  async findPage(ctx, { type, opt }) {
+    const { getters, commit, dispatch } = ctx;
+
+    opt = opt || {};
+
+    if (!opt.pagination) {
+      console.error('Attempting to find a page for a resource but no pagination settings supplied', type); // eslint-disable-line no-console
+
+      return;
+    }
+
+    type = getters.normalizeType(type);
+
+    if ( !getters.typeRegistered(type) ) {
+      commit('registerType', type);
+    }
+
+    // No need to request the resources if we have them already
+    if (!opt.force && getters['havePaginatedPage'](type, opt.pagination)) {
+      return findAllGetter(getters, type, opt);
+    }
+
+    console.log(`Find Page: [${ ctx.state.config.namespace }] ${ type }. Page: ${ opt.pagination.page }. Size: ${ opt.pagination.pageSize }`); // eslint-disable-line no-console
+    opt = opt || {};
+    opt.url = getters.urlFor(type, null, opt);
+
+    let out;
+
+    try {
+      if (opt.hasManualRefresh) {
+        dispatch('resource-fetch/updateManualRefreshIsLoading', true, { root: true });
+      }
+
+      out = await dispatch('request', { opt, type });
+    } catch (e) {
+      if (opt.hasManualRefresh) {
+        dispatch('resource-fetch/updateManualRefreshIsLoading', false, { root: true });
+      }
+
+      return Promise.reject(e);
+    }
+
+    commit('loadPage', {
+      ctx,
+      type,
+      data:       out.data,
+      pagination: opt.pagination ? {
+        request: opt.pagination,
+        result:  {
+          count: out.count,
+          pages: out.pages
+        }
+      } : undefined,
+    });
+
+    const all = findAllGetter(getters, type, opt);
+
+    if (opt.hasManualRefresh) {
       dispatch('resource-fetch/updateManualRefreshIsLoading', false, { root: true });
     }
 
@@ -625,7 +711,7 @@ export default {
     let schema = null;
 
     while (!schema && tries > 0) {
-      // Schemas may not have been loaded, so don't error out if they aer not loaded yet
+      // Schemas may not have been loaded, so don't error out if they are not loaded yet
       // the wait here will wait for schemas to load and then for the desired schema to be available
       schema = getters['schemaFor'](type, false, false);
 

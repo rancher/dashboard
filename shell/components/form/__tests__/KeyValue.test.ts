@@ -1,6 +1,7 @@
 import { mount } from '@vue/test-utils';
 import KeyValue from '@shell/components/form/KeyValue.vue';
 import { directiveSsr as t } from '@shell/plugins//i18n';
+import { cleanHtmlDirective } from '@shell/plugins/clean-html-directive';
 
 describe('component: KeyValue', () => {
   it('should display a not encoded value', () => {
@@ -56,5 +57,121 @@ describe('component: KeyValue', () => {
     const textArea = inputFieldTextArea.element as HTMLTextAreaElement;
 
     expect(textArea.value).toBe('bar\n');
+  });
+
+  it.each([
+    [[{ key: 'testkey', value: 'testvalue' }], [{ key: 'testkey', value: 'testvalue' }, { key: 'testkey1', value: 'testvalue1' }], false],
+    [{ testkey: 'testvalue' }, { testkey: 'testvalue', testkey1: 'testvalue1' }, true]
+  ])('should update when the parent component passes a new value', async(initialValueProp, newValueProp, asMap) => {
+    const wrapper = mount(KeyValue, {
+      propsData: {
+        value:          initialValueProp,
+        mode:           'edit',
+        asMap,
+        mocks:          { $store: { getters: { 'i18n/t': jest.fn() } } },
+        directives:     { t, cleanHtmlDirective },
+        valueMultiline: false,
+      }
+    });
+
+    const firstKeyInput = wrapper.find('[data-testid="input-kv-item-key-0"]');
+
+    const firstValueInput = wrapper.find('[data-testid="input-kv-item-value-0"]');
+
+    expect(firstKeyInput.element.value).toBe('testkey');
+    expect(firstValueInput.element.value).toBe('testvalue');
+
+    let secondKeyInput = wrapper.find('[data-testid="input-kv-item-key-1"]');
+
+    let secondValueInput = wrapper.find('[data-testid="input-kv-item-value-1"]');
+
+    expect(secondKeyInput.exists()).toBe(false);
+    expect(secondValueInput.exists()).toBe(false);
+
+    wrapper.vm.valuePropChanged(newValueProp);
+    await wrapper.vm.$nextTick();
+    await wrapper.vm.$nextTick();
+
+    secondKeyInput = wrapper.find('[data-testid="input-kv-item-key-1"]');
+
+    secondValueInput = wrapper.find('[data-testid="input-kv-item-value-1"]');
+
+    expect(secondKeyInput.exists()).toBe(true);
+
+    expect(secondKeyInput.element.value).toBe('testkey1');
+    expect(secondValueInput.element.value).toBe('testvalue1');
+  });
+
+  it.each([
+    [{ testkey: 'testvalue' }, true],
+    [[{ key: 'testkey', value: 'testvalue' }], false]
+  ])('should display a new row of empty inputs when the add button is pressed', async(valueProp, asMap) => {
+    const wrapper = mount(KeyValue, {
+      propsData: {
+        value:          valueProp,
+        mode:           'edit',
+        mocks:          { $store: { getters: { 'i18n/t': jest.fn() } } },
+        directives:     { t, cleanHtmlDirective },
+        valueMultiline: false,
+        asMap
+      }
+    });
+
+    let secondKeyInput = wrapper.find('[data-testid="input-kv-item-key-1"]');
+
+    let secondValueInput = wrapper.find('[data-testid="input-kv-item-value-1"]');
+
+    expect(secondKeyInput.exists()).toBe(false);
+    expect(secondValueInput.exists()).toBe(false);
+
+    const addButton = wrapper.find('[data-testid="add_link_button"]');
+
+    addButton.trigger('click');
+    await wrapper.vm.$nextTick();
+    secondKeyInput = wrapper.find('[data-testid="input-kv-item-key-1"]');
+
+    secondValueInput = wrapper.find('[data-testid="input-kv-item-value-1"]');
+
+    expect(secondKeyInput.exists()).toBe(true);
+  });
+
+  it.each([
+    [{ testkey: 'testvalue', testkey1: 'testvalue1' }, true],
+    [[{ key: 'testkey', value: 'testvalue' }, { key: 'testkey1', value: 'testvalue1' }], false]
+  ])('should remove a row when the remove button is pressed', async(valueProp, asMap) => {
+    const wrapper = mount(KeyValue, {
+      propsData: {
+        value:          valueProp,
+        mode:           'edit',
+        mocks:          { $store: { getters: { 'i18n/t': jest.fn() } } },
+        directives:     { t, cleanHtmlDirective },
+        valueMultiline: false,
+        asMap
+      }
+    });
+
+    let secondKeyInput = wrapper.find('[data-testid="input-kv-item-key-1"]');
+    let secondValueInput = wrapper.find('[data-testid="input-kv-item-value-1"]');
+
+    expect(secondKeyInput.exists()).toBe(true);
+    expect(secondValueInput.exists()).toBe(true);
+
+    const removeFirstRow = wrapper.find('[data-testid="remove-column-0"] button');
+
+    removeFirstRow.trigger('click');
+    await wrapper.vm.$nextTick();
+    secondKeyInput = wrapper.find('[data-testid="input-kv-item-key-1"]');
+
+    secondValueInput = wrapper.find('[data-testid="input-kv-item-value-1"]');
+
+    expect(secondKeyInput.exists()).toBe(false);
+    expect(secondValueInput.exists()).toBe(false);
+
+    const firstKeyInput = wrapper.find('[data-testid="input-kv-item-key-0"]');
+
+    const firstValueInput = wrapper.find('[data-testid="input-kv-item-value-0"]');
+
+    expect(firstKeyInput.element.value).toBe('testkey1');
+    expect(firstValueInput.element.value).toBe('testvalue1');
   });
 });
