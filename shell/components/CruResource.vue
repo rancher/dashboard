@@ -780,7 +780,6 @@ export default {
           </template>
         </ResourceYaml>
       </section>
-      </com>
     </component>
   </section>
 </template>
