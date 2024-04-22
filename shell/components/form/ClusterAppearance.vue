@@ -21,7 +21,7 @@ export default {
         return true;
       }
 
-      return this.name.length <= 2;
+      return this.name.length <= 1;
     },
     clusterPreview() {
       if (this.mode !== _CREATE) {

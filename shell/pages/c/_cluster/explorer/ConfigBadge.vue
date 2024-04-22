@@ -1,4 +1,5 @@
 <script>
+import { _EDIT } from '~/shell/config/query-params';
 export default {
   props: {
     cluster: {
@@ -16,7 +17,7 @@ export default {
   },
   methods: {
     customBadgeDialog() {
-      this.$store.dispatch('cluster/promptModal', { component: 'AddCustomBadgeDialog' });
+      this.$store.dispatch('cluster/promptModal', { component: 'AddCustomBadgeDialog', componentProps: { mode: _EDIT } });
     },
   },
 };

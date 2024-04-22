@@ -14,6 +14,7 @@ import { parseColor, textColor } from '@shell/utils/color';
 import { NORMAN } from '@shell/config/types';
 import { abbreviateClusterName } from '@shell/utils/cluster';
 import { _CREATE, _EDIT } from '@shell/config/query-params';
+import ClusterIconMenu from '@shell/components/ClusterIconMenu';
 
 export default {
   name:       'AddCustomBadgeDialog',
@@ -25,6 +26,7 @@ export default {
     LabeledInput,
     ColorInput,
     ClusterBadge,
+    ClusterIconMenu,
     ClusterProviderIcon,
   },
   props: {
@@ -39,44 +41,73 @@ export default {
       badgeBgColor:     '',
       badgeComment:     '',
       badgeAsIcon:      null,
+      badgeColorPicker: false,
       letter:           '',
       cluster:          {},
     };
   },
   mounted() {
     // Generates a fake cluster object for use with badge component on cluster provisioning.
-    if (this.enableFields) {
+
+    if (this.isCreating) {
       this.cluster = this.getPreviewCluster;
       this.badgeAsIcon = this.cluster?.badge?.iconText?.length > 0 || false;
       this.letter = this.cluster?.badge?.iconText || abbreviateClusterName(this.clusterName);
       this.useCustomComment = this.cluster?.badge?.text?.length > 0 || false;
-      this.badgeBgColor = this.cluster?.badge?.color || '#f1f1f1';
+      this.badgeBgColor = this.cluster?.badge?.color || 'transparent';
       this.badgeComment = this.cluster?.badge?.text || null;
+      this.badgeColorPicker = this.badgeBgColor !== 'transparent';
     }
   },
 
-  fetch() {
-    if (this.enableFields ) {
+  async fetch() {
+    await this.$store.dispatch('rancher/find', { type: NORMAN.CLUSTER, id: this.currentCluster.id });
+
+    if (this.isCreating ) {
       return;
     }
 
     if (this.currentCluster.metadata?.annotations) {
       this.badgeComment = this.currentCluster.metadata?.annotations[CLUSTER_BADGE.TEXT];
       this.useCustomComment = this.badgeComment?.length > 0;
-      this.badgeBgColor = this.currentCluster.metadata?.annotations[CLUSTER_BADGE.COLOR] || '#ff0000';
-
+      this.badgeBgColor = this.currentCluster.metadata?.annotations[CLUSTER_BADGE.COLOR] || 'transparent';
       this.badgeAsIcon = !!this.currentCluster.metadata?.annotations[CLUSTER_BADGE.ICON_TEXT] || false;
+      this.badgeColorPicker = this.badgeBgColor !== 'transparent';
 
       // TODO: Hardcode the annotations for creating cluster
       this.letter = this.currentCluster.metadata?.annotations[CLUSTER_BADGE.ICON_TEXT] || abbreviateClusterName(this.currentCluster.nameDisplay);
     }
   },
-
+  watch: {
+    // INFO: If the user has a custom comment, set the badge text
+    useCustomComment: {
+      handler(neu, old) {
+        if (neu !== old) {
+          this.badgeComment = neu ? this.badgeComment : '';
+        }
+      },
+      immediate: true,
+    },
+    badgeColorPicker: {
+      handler() {
+        this.badgeBgColor = this.badgeColorPicker ? this.badgeBgColor : 'transparent';
+      },
+      immediate: true,
+    },
+    badgeAsIcon: {
+      handler(neu, old) {
+        if (neu !== old) {
+          this.letter = neu ? this.letter : abbreviateClusterName(this.clusterName);
+        }
+      },
+      immediate: true,
+    },
+  },
   computed: {
     ...mapGetters(['currentCluster']),
     ...mapGetters('customisation', ['getPreviewCluster']),
-    enableFields() {
-      return this.isCreate || this.mode === _EDIT;
+    isCreating() {
+      return this.isCreate;
     },
     showPreview() {
       return this.badgeAsIcon;
@@ -122,14 +153,13 @@ export default {
     },
 
     previewName() {
-      if (this.enableFields) {
+      if (this.isCreating) {
         return this.clusterName;
       }
 
       return this.currentCluster.nameDisplay;
     },
   },
-
   methods: {
     close() {
       this.$emit('close');
@@ -145,24 +175,15 @@ export default {
           delete norman.annotations[CLUSTER_BADGE.ICON_TEXT];
           delete norman.annotations[CLUSTER_BADGE.TEXT];
 
-          if (this.badgeAsIcon) {
-            this.$set(norman.annotations, CLUSTER_BADGE.COLOR, this.badgeBgColor);
-            this.$set(norman.annotations, CLUSTER_BADGE.ICON_TEXT, this.letter.toUpperCase());
-            // If the user has a custom comment, set it as the badge text
-            if (this.useCustomComment) {
-              this.$set(norman.annotations, CLUSTER_BADGE.TEXT, this.badgeComment);
-            }
-          }
+          this.$set(norman.annotations, CLUSTER_BADGE.COLOR, this.badgeColorPicker ? this.badgeBgColor : 'transparent');
+          this.$set(norman.annotations, CLUSTER_BADGE.ICON_TEXT, this.letter.toUpperCase());
+          this.$set(norman.annotations, CLUSTER_BADGE.TEXT, this.badgeComment);
 
           await norman.save();
 
           buttonDone(true);
           this.close();
         } else {
-          if (!this.badgeComment) {
-            delete this.previewCluster.badge.text;
-          }
-
           this.$store.commit('customisation/setPreviewCluster', { ...this.previewCluster });
 
           buttonDone(true);
@@ -194,7 +215,7 @@ export default {
       class="pl-10 pr-10 cluster-badge-body"
     >
       <div>{{ t('clusterBadge.modal.previewTitle') }}</div>
-
+      <ClusterIconMenu :cluster="previewCluster" />
       <div class="mt-10 row preview-row">
         <div
           class="badge-preview col span-12"
@@ -233,14 +254,6 @@ export default {
             :maxlength="3"
           />
         </div>
-        <div class="col">
-          <ColorInput
-            v-model="badgeBgColor"
-            :disabled="!badgeAsIcon"
-            :default-value="badgeBgColor"
-            :label="t('clusterBadge.modal.badgeBgColor')"
-          />
-        </div>
       </div>
 
       <div class="row mt-10">
@@ -261,6 +274,30 @@ export default {
               :disabled="!useCustomComment"
               :label="t('clusterBadge.modal.comment')"
               :maxlength="32"
+            />
+          </div>
+        </div>
+      </div>
+
+      <!-- Color -->
+      <div class="row mt-10">
+        <div class="col">
+          <Checkbox
+            v-model="badgeColorPicker"
+            :label="t('clusterBadge.modal.badgeBgColor')"
+            class="mt-10"
+          />
+        </div>
+      </div>
+
+      <div class="options">
+        <div class="row mt-10">
+          <div class="col span-12">
+            <ColorInput
+              v-model="badgeBgColor"
+              :disabled="!badgeColorPicker"
+              :default-value="badgeBgColor"
+              :label="t('clusterBadge.modal.badgeBgColor')"
             />
           </div>
         </div>
@@ -303,7 +340,8 @@ export default {
     flex-direction: column;
 
     .preview-row {
-      height: 32px;
+      background: var(--body-bg);
+      padding: 10px;
 
       .badge-preview {
         align-items: center;
