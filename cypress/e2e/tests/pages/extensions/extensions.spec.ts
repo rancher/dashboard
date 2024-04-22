@@ -78,6 +78,7 @@ describe('Extensions page', { tags: ['@extensions', '@adminUser'] }, () => {
     extensionsPo.enableExtensionModalEnableClick();
 
     // wait for operation to finish and refresh...
+    extensionsPo.waitForTabs();
     extensionsPo.extensionTabs.checkVisible();
     extensionsPo.goTo();
     extensionsPo.waitForPage();

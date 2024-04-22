@@ -38,10 +38,19 @@ describe('Charts', { tags: ['@charts', '@adminUser'] }, () => {
         cy.wait('@persistentVolumes', { timeout: 10000 }).its('response.statusCode').should('eq', 200);
         cy.wait('@secrets', { timeout: 10000 }).its('response.statusCode').should('eq', 200);
 
+        // Scroll into view - scroll to bottom of view
+        cy.get('.main-layout > .outlet > .outer-container').scrollTo('bottom');
+
         // Select the 'Use an existing storage class' option
         const storageOptions = new RadioGroupInputPo('[chart="[chart: cluster/rancher-charts/rancher-backup]"]');
 
+        // Check that the control exists
+        storageOptions.checkExists();
+
         storageOptions.set(2);
+
+        // Scroll into view - scroll to bottom of view
+        cy.get('.main-layout > .outlet > .outer-container').scrollTo('bottom');
 
         // Verify that the drop-down exists and has the default storage class selected
         const select = new LabeledSelectPo('[data-testid="backup-chart-select-existing-storage-class"]');

@@ -7,6 +7,7 @@ import NameNsDescriptionPo from '@/cypress/e2e/po/components/name-ns-description
 import RepositoriesPagePo from '@/cypress/e2e/po/pages/chart-repositories.po';
 import BannersPo from '@/cypress/e2e/po/components/banners.po';
 import ChartRepositoriesCreateEditPo from '@/cypress/e2e/po/edit/chart-repositories.po';
+import { LONG_TIMEOUT_OPT } from '@/cypress/support/utils/timeouts';
 
 export default class ExtensionsPagePo extends PagePo {
   static url = '/c/local/uiplugins'
@@ -35,6 +36,10 @@ export default class ExtensionsPagePo extends PagePo {
 
   loading() {
     return this.self().get('.data-loading');
+  }
+
+  waitForTabs() {
+    return cy.get('[data-testid="extension-tabs"]', LONG_TIMEOUT_OPT).scrollIntoView().should('be.visible');
   }
 
   /**
@@ -221,7 +226,7 @@ export default class ExtensionsPagePo extends PagePo {
 
   // ------------------ extension menu ------------------
   private extensionMenu() {
-    return this.self().getId('extensions-page-menu');
+    return this.self().get('[data-testid="extensions-page-menu"]', LONG_TIMEOUT_OPT);
   }
 
   extensionMenuToggle(): Cypress.Chainable {

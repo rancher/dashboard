@@ -8,7 +8,7 @@ const namespacePicker = new NamespaceFilterPo();
 
 let disableLegacyFlag = false;
 
-describe('Legacy: Projects', { tags: ['@explorer', '@adminUser'], testIsolation: 'off' }, () => {
+describe('Legacy: Projects', { tags: ['@explorer', '@adminUser', '@ember'], testIsolation: 'off' }, () => {
   before(() => {
     cy.login();
 

@@ -61,14 +61,20 @@ describe('Charts', { tags: ['@charts', '@adminUser'] }, () => {
 
         const enableStorageCheckbox = new CheckboxPo('[data-testid="checkbox-chart-enable-persistent-storage"]');
 
-        // Scroll into view
-        enableStorageCheckbox.checkVisible();
+        // Scroll into view - scroll to bottom of view
+        cy.get('.main-layout > .outlet > .outer-container').scrollTo('bottom');
+
+        enableStorageCheckbox.self().should('be.visible');
 
         enableStorageCheckbox.set();
+
         // to check custom box element width and height in order to prevent regression
         // https://github.com/rancher/dashboard/issues/10000
         enableStorageCheckbox.hasAppropriateWidth();
         enableStorageCheckbox.hasAppropriateHeight();
+
+        // Scroll into view - scroll to bottom of view
+        cy.get('.main-layout > .outlet > .outer-container').scrollTo('bottom');
 
         const labeledSelectPo = new LabeledSelectPo('[data-testid="select-chart-prometheus-storage-class"]');
 
@@ -97,10 +103,15 @@ describe('Charts', { tags: ['@charts', '@adminUser'] }, () => {
 
         const enableStorageCheckbox = new CheckboxPo('[data-testid="checkbox-chart-enable-persistent-storage"]');
 
-        // Scroll into view
-        enableStorageCheckbox.checkVisible();
+        // Scroll into view - scroll to bottom of view
+        cy.get('.main-layout > .outlet > .outer-container').scrollTo('bottom');
+
+        enableStorageCheckbox.self().should('be.visible');
 
         enableStorageCheckbox.set();
+
+        // Scroll into view - scroll to bottom of view
+        cy.get('.main-layout > .outlet > .outer-container').scrollTo('bottom');
 
         const labeledSelectPo = new LabeledSelectPo('[data-testid="select-chart-prometheus-storage-class"]');
 
@@ -210,10 +221,20 @@ describe('Charts', { tags: ['@charts', '@adminUser'] }, () => {
       cy.login();
     });
 
+    // after(() => {
+    //   // Delete istio
+    //   cy.createRancherResource('v1', 'catalog.cattle.io.apps/istio-system/rancher-istio?action=uninstall', '');
+    // });
+
     describe('Istio local provisioning', () => {
       it('Should install Istio', () => {
         chartsPage.goTo();
+        chartsPage.waitForPage();
         chartsPage.goToInstall().nextPage();
+
+        // Disable Ingress Gateway
+        cy.get('[aria-label="Enable Ingress Gateway"]').should('exist');
+        cy.get('[aria-label="Enable Ingress Gateway"]').parent().click();
 
         cy.intercept('POST', 'v1/catalog.cattle.io.clusterrepos/rancher-charts?action=install').as('chartInstall');
         chartsPage.installChart();
