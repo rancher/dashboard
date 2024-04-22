@@ -1,7 +1,7 @@
 import HomePagePo from '@/cypress/e2e/po/pages/home.po';
-import ClusterManagerCreateRke1Amazonec2PagePo from '@/cypress/e2e/po/edit/provisioning.cattle.io.cluster/create/cluster-create-rke1-amazonec2.po';
+import ClusterManagerCreateRke1AzurePagePo from '@/cypress/e2e/po/edit/provisioning.cattle.io.cluster/create/cluster-create-rke1-azure.po';
 import ClusterManagerListPagePo from '@/cypress/e2e/po/pages/cluster-manager/cluster-manager-list.po';
-import ClusterManagerDetailRke1AmazonEc2PagePo from '@/cypress/e2e/po/detail/provisioning.cattle.io.cluster/cluster-detail-rke1-amazon.po';
+import ClusterManagerDetailRke1AzurePagePo from '@/cypress/e2e/po/detail/provisioning.cattle.io.cluster/cluster-detail-rke1-azure.po';
 import PromptRemove from '@/cypress/e2e/po/prompts/promptRemove.po';
 import LoadingPo from '@/cypress/e2e/po/components/loading.po';
 import EmberBannersPo from '@/cypress/e2e/po/components/ember/ember-banners.po';
@@ -11,32 +11,29 @@ import EmberBannersPo from '@/cypress/e2e/po/components/ember/ember-banners.po';
  ******/
 
 // will only run this in jenkins pipeline where cloud credentials are stored
-describe('Provision Node driver RKE1 cluster with AWS', { testIsolation: 'off', tags: ['@manager', '@adminUser', '@standardUser', '@jenkins'] }, () => {
+describe('Provision Node driver RKE1 cluster with Azure', { testIsolation: 'off', tags: ['@manager', '@adminUser', '@standardUser', '@jenkins'] }, () => {
   const clusterList = new ClusterManagerListPagePo();
-  const createRKE1ClusterPage = new ClusterManagerCreateRke1Amazonec2PagePo();
+  const createRKE1ClusterPage = new ClusterManagerCreateRke1AzurePagePo();
   let removeNodeTemplate = false;
   let cloudcredentialId = '';
   let nodeTemplateId = '';
-
-  const homePage = new HomePagePo();
-  const homeClusterList = homePage.list();
 
   before(() => {
     cy.login();
     HomePagePo.goTo();
 
-    // clean up amazon node templates and cloud credentials
+    // clean up azure node templates and cloud credentials
     cy.getRancherResource('v3', 'nodetemplate', null, null).then((resp: Cypress.Response<any>) => {
       const body = resp.body;
 
       if (body.pagination['total'] > 0) {
         body.data.forEach((item: any) => {
-          if (item.driver === 'amazonec2') {
+          if (item.driver === 'azure') {
             const id = item['id'];
 
-            cy.deleteNodeTemplate(id);
+            cy.deleteNodeTemplate(id, 60000);
           } else {
-            cy.log('There are no existing amazonec2 node templates to delete');
+            cy.log('There are no existing azure node templates to delete');
           }
         });
       }
@@ -47,12 +44,12 @@ describe('Provision Node driver RKE1 cluster with AWS', { testIsolation: 'off', 
 
       if (body.pagination['total'] > 0) {
         body.data.forEach((item: any) => {
-          if (item.amazonec2credentialConfig) {
+          if (item.azurecredentialConfig) {
             const id = item.id;
 
             cy.deleteRancherResource('v3', 'cloudcredentials', id);
           } else {
-            cy.log('There are no existing amazon cloud credentials to delete');
+            cy.log('There are no existing azure cloud credentials to delete');
           }
         });
       }
@@ -61,15 +58,14 @@ describe('Provision Node driver RKE1 cluster with AWS', { testIsolation: 'off', 
 
   beforeEach(() => {
     cy.viewport(1440, 900);
-    cy.createE2EResourceName('rke1ec2cluster').as('rke1Ec2ClusterName');
-    cy.createE2EResourceName('rke1ec2clusterdesc').as('rke1Ec2ClusterDescription');
+    cy.createE2EResourceName('rke1azurecluster').as('rke1AzureClusterName');
     cy.createE2EResourceName('template').as('templateName');
     cy.createE2EResourceName('node').as('nodeName');
     cy.getRancherResource('v3', 'clusters', null, null).then((resp: Cypress.Response<any>) => {
       const data = resp.body.data;
 
       data.forEach((item: any) => {
-        cy.get('@rke1Ec2ClusterName').then((name) => {
+        cy.get('@rke1AzureClusterName').then((name) => {
           if (item.name === name) {
             cy.wrap(item['id']).as('clusterId');
           } else {
@@ -80,23 +76,22 @@ describe('Provision Node driver RKE1 cluster with AWS', { testIsolation: 'off', 
     });
   });
 
-  it('can provision a Amazon EC2 rke1 cluster with Amazon cloud provider', function() {
+  it('can provision a azure rke1 cluster with Azure cloud provider', function() {
     const addNodeTemplateForm = createRKE1ClusterPage.addNodeTemplateForm();
 
     ClusterManagerListPagePo.navTo();
     clusterList.waitForPage();
     clusterList.createCluster();
     createRKE1ClusterPage.rkeToggle().set('RKE1');
-    createRKE1ClusterPage.selectCreate(0);
-    createRKE1ClusterPage.rke2PageTitle().should('include', 'Create Amazon EC2');
-    createRKE1ClusterPage.waitForPage('type=amazonec2&rkeType=rke1');
+    createRKE1ClusterPage.selectCreate(1);
+    createRKE1ClusterPage.rke2PageTitle().should('include', 'Create Azure');
+    createRKE1ClusterPage.waitForPage('type=azure&rkeType=rke1');
     createRKE1ClusterPage.addNodeTemplate();
 
-    // create amazon ec2 cloud credential and node template
-    addNodeTemplateForm.accessKey().set(Cypress.env('awsAccessKey'));
-    addNodeTemplateForm.secretKey().set(Cypress.env('awsSecretKey'), true);
-    addNodeTemplateForm.defaultRegion().selectMenuItemByOption('us-west-1');
-    addNodeTemplateForm.defaultRegion().checkOptionSelected('us-west-1');
+    // create azure cloud credential and node template
+    addNodeTemplateForm.subscriptionId().set(Cypress.env('azureSubscriptionId'));
+    addNodeTemplateForm.clientId().set(Cypress.env('azureClientId'), true);
+    addNodeTemplateForm.clientSecret().set(Cypress.env('azureClientSecret'), true);
     cy.intercept('POST', '/v3/cloudcredential').as('createCloudCred');
     addNodeTemplateForm.create();
     cy.wait('@createCloudCred').then((req) => {
@@ -104,9 +99,9 @@ describe('Provision Node driver RKE1 cluster with AWS', { testIsolation: 'off', 
       cloudcredentialId = req.response?.body.id;
     });
 
-    addNodeTemplateForm.selectNetwork(2).set();
-    addNodeTemplateForm.nextButton('Next: Select a Security Group').click();
-    addNodeTemplateForm.nextButton('Next: Set Instance options').click();
+    addNodeTemplateForm.nextButton('Next: Authenticate & configure nodes').click();
+    addNodeTemplateForm.region().checkOptionSelected('West US');
+    addNodeTemplateForm.image().set('canonical:0001-com-ubuntu-server-jammy:22_04-lts:latest');
     addNodeTemplateForm.templateName().set(this.templateName);
     cy.intercept('POST', '/v3/nodetemplate').as('createTemplate');
     addNodeTemplateForm.create();
@@ -118,11 +113,9 @@ describe('Provision Node driver RKE1 cluster with AWS', { testIsolation: 'off', 
     addNodeTemplateForm.checkNotExists();
 
     // Create cluster
-    createRKE1ClusterPage.waitForPage('type=amazonec2&rkeType=rke1');
-    createRKE1ClusterPage.rke1PageTitle().should('contain', 'Add Cluster - Amazon EC2');
-    createRKE1ClusterPage.clusterName().set(this.rke1Ec2ClusterName);
-    createRKE1ClusterPage.addDescriptionButtonClick();
-    createRKE1ClusterPage.clusterDescription().set(this.rke1Ec2ClusterDescription);
+    createRKE1ClusterPage.waitForPage('type=azure&rkeType=rke1');
+    createRKE1ClusterPage.rke1PageTitle().should('contain', 'Add Cluster - Azure');
+    createRKE1ClusterPage.clusterName().set(this.rke1AzureClusterName);
     createRKE1ClusterPage.nodePoolTable().name(1).set(this.nodeName);
     createRKE1ClusterPage.nodePoolTable().count(1).set('1');
     createRKE1ClusterPage.nodePoolTable().template(1).checkOptionSelected(this.templateName);
@@ -143,50 +136,43 @@ describe('Provision Node driver RKE1 cluster with AWS', { testIsolation: 'off', 
     cy.wait('@createRke1Cluster').then(function(req) {
       expect(req.response?.statusCode).to.eq(201);
       expect(req.response?.body).to.have.property('type', 'cluster');
-      expect(req.response?.body).to.have.property('name', this.rke1Ec2ClusterName);
+      expect(req.response?.body).to.have.property('name', this.rke1AzureClusterName);
       expect(req.response?.body.rancherKubernetesEngineConfig).to.have.property('kubernetesVersion', this.k8sVersion0);
       cy.wrap(req.response?.body.id).as('clusterId');
     });
 
     // check states
     clusterList.waitForPage();
-    clusterList.list().state(this.rke1Ec2ClusterName).should('contain', 'Provisioning');
-    clusterList.list().state(this.rke1Ec2ClusterName).contains('Active', { timeout: 700000 });
+    clusterList.list().state(this.rke1AzureClusterName).should('contain', 'Provisioning');
+    clusterList.list().state(this.rke1AzureClusterName).contains('Active', { timeout: 700000 });
 
     // check k8s version
-    clusterList.sortableTable().rowWithName(this.rke1Ec2ClusterName).column(3).contains('—')
+    clusterList.sortableTable().rowWithName(this.rke1AzureClusterName).column(3).contains('—')
       .should('not.exist', { timeout: 5000 });
-    clusterList.list().version(this.rke1Ec2ClusterName).then(function(el) {
+    clusterList.list().version(this.rke1AzureClusterName).then(function(el) {
       const shortVersion = this.k8sVersion0.split('-');
 
       expect(el.text().trim()).contains(shortVersion[0]);
     });
 
     // check provider
-    clusterList.list().provider(this.rke1Ec2ClusterName).should('contain', 'Amazon EC2');
-    clusterList.list().provider(this.rke1Ec2ClusterName).should('contain', 'RKE1');
+    clusterList.list().provider(this.rke1AzureClusterName).should('contain', 'Azure');
+    clusterList.list().provider(this.rke1AzureClusterName).should('contain', 'RKE1');
 
     // check machines
-    clusterList.list().machines(this.rke1Ec2ClusterName).should('contain', 1);
+    clusterList.list().machines(this.rke1AzureClusterName).should('contain', 1);
 
     // check cluster details page > machine pools
     cy.get<string>('@clusterId').then(function(clusterId) {
-      const clusterDetails = new ClusterManagerDetailRke1AmazonEc2PagePo(undefined, clusterId);
+      const clusterDetails = new ClusterManagerDetailRke1AzurePagePo(undefined, clusterId);
 
-      clusterList.list().name(this.rke1Ec2ClusterName).click();
+      clusterList.list().name(this.rke1AzureClusterName).click();
       clusterDetails.waitForPage(null, 'node-pools');
-      clusterDetails.resourceDetail().title().should('contain', this.rke1Ec2ClusterName);
+      clusterDetails.resourceDetail().title().should('contain', this.rke1AzureClusterName);
       clusterDetails.machinePoolsList().resourceTable().sortableTable().groupElementWithName(this.nodeName)
         .next('tr.main-row')
         .should('contain', 'Active');
     });
-
-    // https://github.com/rancher/dashboard/issues/10441 - covering RKE1/ember world descriptions
-    HomePagePo.navTo();
-    const desc = homeClusterList.resourceTable().sortableTable().rowWithName(this.rke1Ec2ClusterName).column(1)
-      .get('.cluster-description');
-
-    desc.contains(this.rke1Ec2ClusterDescription);
   });
 
   it('can add a node to the cluster', function() {
@@ -194,11 +180,11 @@ describe('Provision Node driver RKE1 cluster with AWS', { testIsolation: 'off', 
     clusterList.waitForPage();
 
     // cluster details page
-    const clusterDetails = new ClusterManagerDetailRke1AmazonEc2PagePo(undefined, this.clusterId);
+    const clusterDetails = new ClusterManagerDetailRke1AzurePagePo(undefined, this.clusterId);
 
-    clusterList.list().actionMenu(this.rke1Ec2ClusterName).getMenuItem('Edit Config').click();
+    clusterList.list().actionMenu(this.rke1AzureClusterName).getMenuItem('Edit Config').click();
     clusterDetails.waitForPage('mode=edit');
-    clusterDetails.resourceDetail().title().should('contain', this.rke1Ec2ClusterName);
+    clusterDetails.resourceDetail().title().should('contain', this.rke1AzureClusterName);
 
     const loadingPo = new LoadingPo('.loading-indicator');
 
@@ -227,9 +213,9 @@ describe('Provision Node driver RKE1 cluster with AWS', { testIsolation: 'off', 
     });
 
     // check states on cluster details page > machine pools
-    clusterList.list().name(this.rke1Ec2ClusterName).click();
+    clusterList.list().name(this.rke1AzureClusterName).click();
     clusterDetails.waitForPage(null, 'node-pools');
-    clusterDetails.resourceDetail().title().should('contain', this.rke1Ec2ClusterName);
+    clusterDetails.resourceDetail().title().should('contain', this.rke1AzureClusterName);
     clusterDetails.machinePoolsList().resourceTable().sortableTable().groupElementWithName(`${ this.nodeName }-2`)
       .next('tr.main-row')
       .should('contain', 'Provisioning');
@@ -241,28 +227,29 @@ describe('Provision Node driver RKE1 cluster with AWS', { testIsolation: 'off', 
       .should('contain', 'Active');
   });
 
-  it('can delete a Amazon EC2 RKE1 cluster', function() {
+  it('can delete a Azure RKE1 cluster', function() {
     ClusterManagerListPagePo.navTo();
     clusterList.waitForPage();
-    clusterList.list().actionMenu(this.rke1Ec2ClusterName).getMenuItem('Delete').click();
+    clusterList.list().state(this.rke1AzureClusterName).contains('Active', { timeout: 60000 });
+    clusterList.list().actionMenu(this.rke1AzureClusterName).getMenuItem('Delete').click();
 
     clusterList.sortableTable().rowNames('.cluster-link').then((rows: any) => {
       const promptRemove = new PromptRemove();
 
-      promptRemove.confirm(this.rke1Ec2ClusterName);
+      promptRemove.confirm(this.rke1AzureClusterName);
       promptRemove.remove();
 
       clusterList.waitForPage();
-      clusterList.list().state(this.rke1Ec2ClusterName).should('contain', 'Removing');
+      clusterList.list().state(this.rke1AzureClusterName).should('contain', 'Removing');
       clusterList.sortableTable().checkRowCount(false, rows.length - 1);
-      clusterList.sortableTable().rowNames('.cluster-link').should('not.contain', this.rke1Ec2ClusterName);
+      clusterList.sortableTable().rowNames('.cluster-link').should('not.contain', this.rke1AzureClusterName);
     });
   });
 
   after('clean up', () => {
     if (removeNodeTemplate) {
       // delete node template
-      cy.deleteNodeTemplate(nodeTemplateId).then(() => {
+      cy.deleteNodeTemplate(nodeTemplateId, 120000).then(() => {
         // delete cloud cred
         cy.deleteRancherResource('v3', 'cloudCredentials', cloudcredentialId);
       });
