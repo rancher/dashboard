@@ -26,7 +26,7 @@ export default function(product, chartName, defaultResourceOrRoute, install = tr
     } else if (install) {
       // The product is not installed, redirect to the details chart
 
-      await store.dispatch('catalog/load', { force: true });
+      await store.dispatch('catalog/load');
 
       const chart = store.getters['catalog/chart']({ chartName });
 
