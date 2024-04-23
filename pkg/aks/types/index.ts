@@ -1,10 +1,10 @@
-type AKSPoolMode = 'System' | 'User'
+export type AKSPoolMode = 'System' | 'User'
 
-type AKSDiskType = 'Managed' | 'Ephemeral'
+export type AKSDiskType = 'Managed' | 'Ephemeral'
 
-type LoadBalancerSku = 'Standard' | 'Basic'
+export type LoadBalancerSku = 'Standard' | 'Basic'
 
-type OutboundType = 'LoadBalancer' | 'UserDefinedRouting'
+export type OutboundType = 'LoadBalancer' | 'UserDefinedRouting'
 
 export interface AKSNodePool {
   availabilityZones?: String[],
@@ -36,7 +36,7 @@ export interface AKSConfig {
   azureCredentialSecret?: String,
   baseUrl?: String,
   clusterName?: String,
-  dnsPrefix:? String,
+  dnsPrefix?: String,
   dnsServiceIp?: String,
   dockerBridgeCidr?: String,
   httpApplicationRouting?: Boolean,
@@ -59,12 +59,12 @@ export interface AKSConfig {
   serviceCidr?: String
   sshPublicKey?: String
   subnet?: String,
-  tags?: Map<string>,
+  tags?: Map<string, string>,
   virtualNetwork?: String,
   virtualNetworkResourceGroup?: String
 }
 
-interface VirtualNetworkSubnet {
+export interface VirtualNetworkSubnet {
   name: String,
   addressRange: String
 }
