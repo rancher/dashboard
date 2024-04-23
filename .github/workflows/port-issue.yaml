@@ -66,8 +66,6 @@ jobs:
           fi
           additional_cmd+=("--label")
           additional_cmd+=("QA/None")
-          additional_cmd+=("--label")
-          additional_cmd+=("[zube]: Backlog")
           ORIGINAL_LABELS=$(gh issue view -R ${GITHUB_REPOSITORY} ${ORIGINAL_ISSUE_NUMBER} --json labels --jq '.labels[].name' | grep -v '^\[zube\]:' | paste -sd "," -)
           if [ -n "$ORIGINAL_LABELS" ]; then
               additional_cmd+=("--label")
