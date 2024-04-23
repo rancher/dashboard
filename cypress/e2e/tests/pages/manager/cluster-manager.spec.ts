@@ -22,6 +22,7 @@ import HomePagePo from '@/cypress/e2e/po/pages/home.po';
 import { nodeDriveResponse } from '@/cypress/e2e/tests/pages/manager/mock-responses';
 import LabeledSelectPo from '@/cypress/e2e/po/components/labeled-select.po';
 import ProductNavPo from '@/cypress/e2e/po/side-bars/product-side-nav.po';
+import TabbedPo from '~/cypress/e2e/po/components/tabbed.po';
 
 // At some point these will come from somewhere central, then we can make tools to remove resources from this or all runs
 const runTimestamp = +new Date();
@@ -526,6 +527,45 @@ describe('Cluster Manager', { testIsolation: 'off', tags: ['@manager', '@adminUs
     const clusterList = new ClusterManagerListPagePo('_');
 
     clusterList.waitForPage();
+  });
+
+  describe('Cluster Details Tabs', () => {
+    const tabbedPo = new TabbedPo('[data-testid="tabbed-block"]');
+    const clusterDetail = new ClusterManagerDetailImportedGenericPagePo(undefined, 'local');
+
+    beforeEach( () => {
+      ClusterManagerListPagePo.navTo();
+      const clusterList = new ClusterManagerListPagePo('_');
+
+      clusterList.waitForPage();
+      clusterList.clickOnClusterName('local');
+    });
+
+    it('can navigate to Cluster Conditions Page', () => {
+      clusterDetail.selectTab(tabbedPo, '[data-testid="btn-conditions"]');
+
+      clusterDetail.conditionsList().details('Ready', 1).should('include.text', 'True');
+    });
+
+    it('can navigate to Cluster Related Page', () => {
+      clusterDetail.selectTab(tabbedPo, '[data-testid="btn-related"]');
+
+      clusterDetail.referredToList().details('Mgmt', 2).should('include.text', 'local');
+    });
+
+    it('can navigate to Cluster Provisioning Log Page', () => {
+      clusterDetail.selectTab(tabbedPo, '[data-testid="btn-log"]');
+
+      clusterDetail.logsContainer().should('be.visible');
+    });
+
+    it('can navigate to Cluster Machines Page', () => {
+      clusterDetail.selectTab(tabbedPo, '[data-testid="btn-node-pools"]');
+
+      clusterDetail.machinePoolsList().resourceTable().sortableTable().noRowsShouldNotExist();
+      clusterDetail.machinePoolsList().details('machine-', 2).should('be.visible');
+      clusterDetail.machinePoolsList().downloadYamlButton().should('be.disabled');
+    });
   });
 
   it(`can navigate to local cluster's explore product`, () => {
