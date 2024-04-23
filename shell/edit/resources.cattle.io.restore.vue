@@ -74,8 +74,9 @@ export default {
       };
 
       const url = this.$store.getters[`cluster/urlFor`](SECRET, null, findPageArgs);
+      const res = await this.$store.dispatch(`cluster/request`, { url });
 
-      this.secrets = await this.$store.dispatch(`cluster/request`, { url })?.data || [];
+      this.secrets = res?.data || [];
     } else {
       this.secrets = await this.$store.dispatch('cluster/findAll', { type: SECRET });
     }

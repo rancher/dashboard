@@ -418,8 +418,9 @@ export default {
       }
 
       const url = this.$store.getters[`${ this.inStore }/urlFor`](SECRET, null, findPageArgs);
+      const res = await this.$store.dispatch(`cluster/request`, { url });
 
-      return await this.$store.dispatch(`${ this.inStore }/request`, { url }); // TODO: RC this does not return a collection... where else did i use this pattern?
+      return res?.data || [];
     },
 
     updateKeyVal() {

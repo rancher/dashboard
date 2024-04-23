@@ -50,10 +50,8 @@ export default {
       // selectors in the receiver config forms will have secrets
       // to choose from.
       const allSecrets = await this.$store.dispatch('cluster/findAll', { type: SECRET });
-
       const allSecretsInNamespace = allSecrets.filter((secret) => this.types.includes(secret._type) && secret.namespace === this.namespace);
 
-      // console.warn(this.secretNameLabel, 'fetch', this.namespace, allSecrets, allSecretsInNamespace);
       this.secrets = allSecretsInNamespace;
     }
   },

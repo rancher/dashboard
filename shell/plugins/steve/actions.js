@@ -19,11 +19,6 @@ export default {
 
   async request({ state, dispatch, rootGetters }, pOpt ) {
     const opt = pOpt.opt || pOpt;
-
-    if (opt.url.indexOf('/v1/configmaps/cattle-monitoring-system/prometheus-federator-system-namespaces?exclude=metadata.managedFields') >= 1) {
-      debugger;
-    }
-
     const spoofedRes = await handleSpoofedRequest(rootGetters, 'cluster', opt);
 
     if (spoofedRes) {

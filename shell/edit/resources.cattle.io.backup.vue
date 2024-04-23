@@ -75,9 +75,11 @@ export default {
         }),
       };
 
+      // Do a one time request to get these type of secrets.... and there's a control on this page that will fetch and cache secrets
       const url = this.$store.getters[`cluster/urlFor`](SECRET, null, findPageArgs);
+      const res = await this.$store.dispatch(`cluster/request`, { url });
 
-      this.secrets = await this.$store.dispatch(`cluster/request`, { url })?.data || [];
+      this.secrets = res?.data || [];
     } else {
       this.secrets = await this.$store.dispatch('cluster/findAll', { type: SECRET });
     }
@@ -299,8 +301,6 @@ export default {
           <template v-if="storageSource !== 'useDefault'">
             <div class="row mt-10">
               <div class="col span-12">
-                <!-- // TODO: RC search for usages of S3 (secretsnot needed now) -->
-                <!-- TODO: RC test... this isn't paginting after rmeoving thing -->
                 <S3
                   :value="s3"
                   :mode="mode"

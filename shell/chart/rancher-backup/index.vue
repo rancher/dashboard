@@ -186,7 +186,6 @@ export default {
       <S3
         v-if="storageSource==='s3'"
         :value="value.s3"
-        :secrets="secrets"
         :mode="mode"
         @valid="updatePageValid($event)"
       />

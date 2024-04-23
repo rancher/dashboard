@@ -123,7 +123,8 @@ export default {
 
             <LabeledSelect
               v-model="imagePullSecrets"
-              :label="t('workload.container.imagePullSecrets')"
+              label-key="workload.container.imagePullSecrets.label"
+              :tooltip="t('workload.container.imagePullSecrets.tooltip')"
               :multiple="true"
               :options="namespacedSecrets"
               :mode="mode"
