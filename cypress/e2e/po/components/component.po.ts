@@ -9,8 +9,10 @@ const isVisible = (selector: string) => () => {
 export type CypressChainableFunction = () => CypressChainable;
 export type JQueryElement = { jquery: string };
 
+export type GetOptions = Partial<Cypress.Loggable & Cypress.Timeoutable & Cypress.Withinable & Cypress.Shadow>;
+
 export default class ComponentPo {
-  public self: () => CypressChainable;
+  public self: (options?: GetOptions) => CypressChainable;
   public isVisible?: () => Cypress.Chainable<boolean>;
   protected selector = '';
 
@@ -22,7 +24,7 @@ export default class ComponentPo {
     if (typeof args[0] === 'string') {
       const [selector, parent] = args as [string, CypressChainable];
 
-      this.self = () => (parent || cy).get(selector);
+      this.self = (options) => (parent || cy).get(selector, options);
       if (!parent) {
         // only works if we can find the element via jquery
         this.isVisible = isVisible(selector);
@@ -31,15 +33,34 @@ export default class ComponentPo {
     } else if (typeof args[0] === 'function') {
       const [self] = args as [CypressChainableFunction];
 
-      this.self = self;
+      this.self = (options?) => {
+        if (options) {
+          cy.log('self() does not support options when constructed with a Cypress chainable function');
+        }
+
+        return self();
+      }
+
     } else if (args[0].jquery) {
       // Jquery element - need to wrap (using a function means its evaluated when needed)
-      this.self = () => cy.wrap(args[0]);
+      this.self = (options?) => {
+        if (options) {
+          cy.log('self() does not support options when constructed with a jQuery element');
+        }
+
+        return cy.wrap(args[0]);
+      };
     } else {
       // Note - if the element is removed from screen and shown again this will fail
       const [self] = args as [CypressChainable];
 
-      this.self = () => self;
+      this.self = (options?) => {
+        if (options) {
+          cy.log('self() does not support options when constructed with a Cypress chainable');
+        }
+
+        return self;
+      }
     }
   }
 
@@ -47,8 +68,8 @@ export default class ComponentPo {
     return this.self().invoke('attr', 'disabled').then((disabled) => disabled === 'disabled');
   }
 
-  checkVisible(): Cypress.Chainable<boolean> {
-    return this.self().scrollIntoView().should('be.visible');
+  checkVisible(options?: GetOptions): Cypress.Chainable<boolean> {
+    return this.self(options).scrollIntoView().should('be.visible');
   }
 
   checkNotVisible(): Cypress.Chainable<boolean> {

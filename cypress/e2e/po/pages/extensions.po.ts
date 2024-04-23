@@ -38,7 +38,7 @@ export default class ExtensionsPagePo extends PagePo {
   }
 
   waitForTabs() {
-    return cy.get('[data-testid="extension-tabs"]', LONG_TIMEOUT_OPT).scrollIntoView().should('be.visible');
+    return this.extensionTabs.checkVisible(LONG_TIMEOUT_OPT);
   }
 
   /**
