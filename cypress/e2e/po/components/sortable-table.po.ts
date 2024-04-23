@@ -84,8 +84,8 @@ export default class SortableTablePo extends ComponentPo {
     return this.self().find('tbody tr:not(.sub-row)', options);
   }
 
-  rowElementWithName(name: string) {
-    return this.self().contains('tbody tr', new RegExp(` ${ name } `));
+  rowElementWithName(name: string, options?: any) {
+    return this.self().contains('tbody tr', new RegExp(` ${ name } `), options);
   }
 
   rowElementWithPartialName(name: string) {

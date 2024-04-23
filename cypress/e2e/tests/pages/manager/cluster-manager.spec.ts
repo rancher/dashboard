@@ -434,7 +434,7 @@ describe('Cluster Manager', { testIsolation: 'off', tags: ['@manager', '@adminUs
         promptRemove.confirm(rke1CustomName);
         promptRemove.remove();
 
-        clusterList.sortableTable().rowElementWithName(rke1CustomName).should('not.exist', MEDIUM_TIMEOUT_OPT);
+        clusterList.sortableTable().rowElementWithName(rke1CustomName, MEDIUM_TIMEOUT_OPT).should('not.exist', MEDIUM_TIMEOUT_OPT);
       });
     });
   });
