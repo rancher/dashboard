@@ -5,7 +5,7 @@
  */
 
 import { get } from '@shell/utils/object';
-import { LoadBalancerSku, OutboundType } from '../types/index';
+import { LoadBalancerSku, OutboundType } from '@pkg/aks/types';
 
 // no need to try to validate any fields if the user is still selecting a credential and the rest of the form isn't visible
 export const needsValidation = (ctx: any): Boolean => {
