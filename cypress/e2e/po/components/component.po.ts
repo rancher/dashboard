@@ -40,7 +40,6 @@ export default class ComponentPo {
 
         return self();
       };
-
     } else if (args[0].jquery) {
       // Jquery element - need to wrap (using a function means its evaluated when needed)
       this.self = (options?) => {
