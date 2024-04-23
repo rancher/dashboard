@@ -1,6 +1,6 @@
 import '@shell/plugins/extend-router';
 import '@shell/plugins/formatters';
-import '@shell/plugins/global-formatters';
+import globalFormatter from '@shell/plugins/global-formatters';
 import '@shell/plugins/vue-js-modal';
 import '@shell/plugins/js-yaml';
 import '@shell/plugins/portal-vue.js';
@@ -8,7 +8,7 @@ import '@shell/plugins/resize';
 import '@shell/plugins/shortkey';
 import '@shell/plugins/tooltip';
 import '@shell/plugins/trim-whitespace';
-import '@shell/plugins/v-select';
+import vSelect from '@shell/plugins/v-select';
 
 import i18n from '@shell/plugins/i18n';
 
@@ -30,6 +30,8 @@ import emberCookie from '@shell/plugins/ember-cookie';
 
 export async function installPlugins(app, inject, Vue) {
   Vue.use(i18n);
+  Vue.use(vSelect);
+  Vue.use(globalFormatter);
 
   const pluginDefinitions = [cookieUniversalNuxt, axios, plugins, pluginsLoader, axiosShell, intNumber, positiveIntNumber, nuxtClientInit, replaceAll, backButton, plugin, codeMirror, version, steveCreateWorker, emberCookie];
 

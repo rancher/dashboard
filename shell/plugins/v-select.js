@@ -1,4 +1,14 @@
-import Vue from 'vue';
-import vSelect from 'vue-select';
+import vueSelect from 'vue-select';
 
-Vue.component('v-select', vSelect);
+const vSelect = {
+  install: (Vue) => {
+    if (Vue.component('v-select')) {
+      // eslint-disable-next-line no-console
+      console.debug('Skipping v-select install. Component already exists.');
+    } else {
+      Vue.component('v-select', vueSelect);
+    }
+  }
+};
+
+export default vSelect;
