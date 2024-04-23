@@ -23,6 +23,7 @@ import HomePagePo from '@/cypress/e2e/po/pages/home.po';
 import { nodeDriveResponse } from '@/cypress/e2e/tests/pages/manager/mock-responses';
 import ProductNavPo from '@/cypress/e2e/po/side-bars/product-side-nav.po';
 import TabbedPo from '@/cypress/e2e/po/components/tabbed.po';
+import { EXTRA_LONG_TIMEOUT_OPT, MEDIUM_TIMEOUT_OPT } from '@/cypress/support/utils/timeouts';
 
 // At some point these will come from somewhere central, then we can make tools to remove resources from this or all runs
 const runTimestamp = +new Date();
@@ -201,7 +202,7 @@ describe('Cluster Manager', { testIsolation: 'off', tags: ['@manager', '@adminUs
         ClusterManagerListPagePo.navTo();
         clusterList.waitForPage();
         clusterList.list().state(rke2CustomName).should('contain', 'Updating');
-        clusterList.list().state(rke2CustomName).contains('Active', { timeout: 700000 });
+        clusterList.list().state(rke2CustomName).contains('Active', EXTRA_LONG_TIMEOUT_OPT);
       });
 
       it('can copy config to clipboard', () => {
@@ -289,7 +290,7 @@ describe('Cluster Manager', { testIsolation: 'off', tags: ['@manager', '@adminUs
 
       it('can delete cluster', () => {
         clusterList.goTo();
-        clusterList.sortableTable().rowElementWithName(rke2CustomName).should('exist', { timeout: 15000 });
+        clusterList.sortableTable().rowElementWithName(rke2CustomName).should('exist', MEDIUM_TIMEOUT_OPT);
         clusterList.list().actionMenu(rke2CustomName).getMenuItem('Delete').click();
 
         clusterList.sortableTable().rowNames('.cluster-link').then((rows: any) => {
@@ -433,7 +434,7 @@ describe('Cluster Manager', { testIsolation: 'off', tags: ['@manager', '@adminUs
         promptRemove.confirm(rke1CustomName);
         promptRemove.remove();
 
-        clusterList.sortableTable().rowElementWithName(rke1CustomName).should('not.exist', { timeout: 15000 });
+        clusterList.sortableTable().rowElementWithName(rke1CustomName).should('not.exist', MEDIUM_TIMEOUT_OPT);
       });
     });
   });
@@ -483,7 +484,7 @@ describe('Cluster Manager', { testIsolation: 'off', tags: ['@manager', '@adminUs
         clusterList.waitForPage();
         clusterList.list().state(importGenericName).should('contain', 'Pending');
         clusterList.list().state(importGenericName).should('contain', 'Waiting');
-        clusterList.list().state(importGenericName).contains('Active', { timeout: 700000 });
+        clusterList.list().state(importGenericName).contains('Active', EXTRA_LONG_TIMEOUT_OPT);
         // Issue #6836: Provider field on Imported clusters states "Imported" instead of cluster type
         clusterList.list().provider(importGenericName).should('contain', 'Imported');
         clusterList.list().providerSubType(importGenericName).should('contain', 'RKE2');
@@ -498,7 +499,7 @@ describe('Cluster Manager', { testIsolation: 'off', tags: ['@manager', '@adminUs
 
       it('can delete cluster by bulk actions', () => {
         clusterList.goTo();
-        clusterList.sortableTable().rowElementWithName(importGenericName).should('exist', { timeout: 15000 });
+        clusterList.sortableTable().rowElementWithName(importGenericName).should('exist', MEDIUM_TIMEOUT_OPT);
         clusterList.sortableTable().rowSelectCtlWithName(importGenericName).set();
         clusterList.sortableTable().bulkActionDropDownOpen();
         clusterList.sortableTable().bulkActionDropDownButton('Delete').click();
