@@ -59,7 +59,7 @@ export class WorkLoadsDaemonsetsEditPagePo extends PagePo {
     return new TabbedPo().clickTabWithSelector(selector);
   }
 
-  ScalingUpgradePlicyRadioBtn(): RadioGroupInputPo {
+  ScalingUpgradePolicyRadioBtn(): RadioGroupInputPo {
     return new RadioGroupInputPo('[data-testid="input-policy-strategy"]');
   }
 

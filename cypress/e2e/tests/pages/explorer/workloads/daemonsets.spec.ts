@@ -36,7 +36,7 @@ describe('Cluster Explorer', { tags: ['@explorer', '@adminUser'] }, () => {
 
         workloadsDaemonsetsEditPage.clickTab('#DaemonSet');
         workloadsDaemonsetsEditPage.clickTab('#upgrading');
-        workloadsDaemonsetsEditPage.ScalingUpgradePlicyRadioBtn().set(1);
+        workloadsDaemonsetsEditPage.ScalingUpgradePolicyRadioBtn().set(1);
         workloadsDaemonsetsEditPage.saveCreateForm().click();
 
         workloadsDaemonsetsListPage.listElementWithName(daemonsetName).should('exist');
