@@ -1,29 +1,28 @@
 import PagePo from '@/cypress/e2e/po/pages/page.po';
-import NodeDriversListPo from '~/cypress/e2e/po/lists/nodedriver.po';
+import NodeDriversListPo from '~/cypress/e2e/po/lists/node-drivers-list.po';
 import BurgerMenuPo from '@/cypress/e2e/po/side-bars/burger-side-menu.po';
 import ProductNavPo from '@/cypress/e2e/po/side-bars/product-side-nav.po';
 /**
  * List page for nodeDriver resources
  */
-export default class NodeDriversListPagePo extends PagePo {
+export default class NodeDriversPagePo extends PagePo {
   private static createPath(clusterId: string) {
     return `/c/${ clusterId }/manager/nodeDriver`;
   }
 
   static goTo(clusterId: string): Cypress.Chainable<Cypress.AUTWindow> {
-    return super.goTo(NodeDriversListPagePo.createPath(clusterId));
+    return super.goTo(NodeDriversPagePo.createPath(clusterId));
   }
 
-  constructor(clusterId: string) {
-    super(NodeDriversListPagePo.createPath(clusterId));
+  constructor(clusterId = '_') {
+    super(NodeDriversPagePo.createPath(clusterId));
   }
 
   static navTo() {
     const sideNav = new ProductNavPo();
 
-    BurgerMenuPo.toggle();
     BurgerMenuPo.burgerMenuNavToMenubyLabel('Cluster Management');
-    sideNav.navToSideMenuEntryByLabel('Drivers');
+    sideNav.navToSideMenuGroupByLabel('Drivers');
     sideNav.navToSideMenuEntryByLabel('Node Drivers');
   }
 
@@ -44,15 +43,8 @@ export default class NodeDriversListPagePo extends PagePo {
     return cy.wait('@request', { timeout: 10000 }).then(() => driverDetails.filter((c) => c.name === driverName)[0]);
   }
 
-  list(): NodeDriversListPo {
-    return new NodeDriversListPo(this.self().find('[data-testid="node-driver-list"]'));
-  }
-
-  /**
-   * Convenience method
-   */
-  sortableTable() {
-    return this.list().resourceTable().sortableTable();
+  title() {
+    return cy.contains('.title > h1', 'Node Drivers');
   }
 
   createDriver() {
@@ -60,19 +52,7 @@ export default class NodeDriversListPagePo extends PagePo {
       .click();
   }
 
-  editDriver(description: string) {
-    this.sortableTable().rowActionMenuOpen(description).getMenuItem('Edit Config').click();
-  }
-
-  deactivateDriver(description: string) {
-    this.sortableTable().rowActionMenuOpen(description).getMenuItem('Deactivate').click();
-  }
-
-  listElementWithName(description:string) {
-    return this.sortableTable().rowElementWithName(description);
-  }
-
-  waitForActiveStatus(description: string) {
-    return this.sortableTable().rowElementWithName(description).contains('tbody tr', 'Active');
+  list(): NodeDriversListPo {
+    return new NodeDriversListPo(this.self().find('[data-testid="node-driver-list"]'));
   }
 }
