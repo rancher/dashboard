@@ -65,7 +65,23 @@ const I18N_USES = /^\s*(?:.*)\/\/ i18n-uses\s?([0-9a-zA-Z-_\,\.\"'\s\*\\]*)$/;
 const I18N_IGNORE = /^\s*(.*)\/\/ i18n-ignore\s?([0-9a-zA-Z-_\,\.\"'\s\*]*)/;
 
 // -s flag will show the details of all of the unused strings
-const showUnused = process.argv.length === 3 && process.argv[2] === '-s';
+// -x flag will cause script to return 0, even if there are errors
+let showUnused = false;
+let doNotReturnError = false;
+
+// Simple arg parsing
+if (process.argv.length > 2) {
+  process.argv.shift();
+  process.argv.shift();
+
+  process.argv.forEach((arg) => {
+    if (arg === '-s') {
+      showUnused = true;
+    } else if (arg === '-x') {
+      doNotReturnError = true;
+    }
+  });
+}
 
 function parseReference(ref) {
   if (!ref.includes('$') || ref.startsWith('${')) {
@@ -436,4 +452,10 @@ if (missingTranslations.length) {
 
 console.log(''); // eslint-disable-line no-console
 
-process.exit(missingTranslations.length == 0 ? 0 : 1);
+if (doNotReturnError) {
+  if (missingTranslations.length) {
+    console.log(`${bold}${bg_red}${white}-x specified - returning 0 from script even though errors were found${reset}`); // eslint-disable-line no-console
+  }
+} else {
+  process.exit(missingTranslations.length == 0 ? 0 : 1);
+}
