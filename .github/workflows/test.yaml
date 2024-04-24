@@ -200,7 +200,10 @@ jobs:
         run: yarn install:ci
       
       - name: Run i18n string check
-        run: ./scripts/check-i18n | true # Falure won't fail the job (remove when all current issues are fixed)
+        run: |
+          ./scripts/check-i18n -s
+          # Falure won't fail the job (remove when all current issues are fixed)
+          true
 
   lint:
     runs-on: ubuntu-latest
