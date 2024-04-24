@@ -1,0 +1,22 @@
+name: Build Dashboard (Branch)
+on:
+  push:
+    branches:
+      - master
+      - 'release-*'
+      - '*-dev'
+
+jobs:
+  build-validation:
+    name: Validate Code
+    uses: ./.github/workflows/build-dash-validation.yaml
+  build:
+    name: Build and Upload
+    uses: ./.github/workflows/build-dash-build-and-upload.yaml
+    needs:
+      - build-validation
+    permissions:
+      contents: 'read'
+      id-token: 'write'
+    with:
+      CI_BRANCH: ${{github.ref_name}}

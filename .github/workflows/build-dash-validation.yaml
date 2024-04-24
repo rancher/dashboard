@@ -1,0 +1,36 @@
+# Validation steps required before a build occurs. Not designed to replace the CI test workflow
+name: Build Validation
+
+on:
+  workflow_call:
+
+jobs:
+  unit-test:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v3
+        with:
+          fetch-depth: 1
+
+      - name: Run tests
+        uses: ./.github/actions/unit-tests
+
+  i18n-lint:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v3
+        with:
+          fetch-depth: 1
+
+      - name: Run i18n lint
+        uses: ./.github/actions/i18n-lint
+
+  lint:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v3
+        with:
+          fetch-depth: 1
+
+      - name: Run lint
+        uses: ./.github/actions/lint

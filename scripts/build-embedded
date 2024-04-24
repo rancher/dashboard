@@ -45,8 +45,11 @@ find $OUTPUT_DIR -name "index.html" -mindepth 2 -exec rm {} \;
 find $OUTPUT_DIR -type d -empty -depth -exec rmdir {} \;
 
 TARBALL=${DIR}.tar.gz
+TARBALL_FILE_PATH=dist/${TARBALL}
+echo "BUILD_EMBEDED_TGZ=${TARBALL_FILE_PATH}" >> "$GITHUB_OUTPUT"
+
 echo "Compressing to ${TARBALL}..."
-tar -czf dist/${TARBALL} $OUTPUT_DIR/
+tar -czf ${TARBALL_FILE_PATH} $OUTPUT_DIR/
 
 echo "Cleaning up..."
 rm -r $OUTPUT_DIR

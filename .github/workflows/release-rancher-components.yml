@@ -24,7 +24,7 @@ jobs:
         scope: '@rancher'
 
     - name: Install
-      run: yarn install:ci
+      run: yarn install:locked
 
     - name: Lint
       run: yarn lint:lib

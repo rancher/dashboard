@@ -1,0 +1,14 @@
+name: Setup UI Env
+description: Setup node, python and call bootstrap script
+
+runs:
+  using: 'composite'
+  steps:
+    - uses: actions/setup-node@v3
+      with:
+        node-version: '14.x'
+        cache: 'yarn'
+
+    - name: Install packages
+      shell: bash
+      run: yarn install:locked

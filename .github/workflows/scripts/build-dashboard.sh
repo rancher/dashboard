@@ -29,7 +29,7 @@ echo Creating release directory
 mkdir $RELEASE_DIR
 
 echo Installing dependencies
-yarn install:ci
+yarn install:locked
 
 echo Building
 COMMIT=$GITHUB_SHA VERSION=$GITHUB_REF_NAME OUTPUT_DIR="$ARTIFACT_LOCATION" ROUTER_BASE="$ROUTER_BASE" RANCHER_ENV=$RANCHER_ENV API=$API RESOURCE_BASE=$RESOURCE_BASE EXCLUDES_PKG=$EXCLUDES_PKG EXCLUDE_OPERATOR_PKG=$EXCLUDE_OPERATOR_PKG yarn run build --spa
