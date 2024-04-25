@@ -4,7 +4,7 @@ import { MonitoringTab } from './monitoring-tab.po';
 
 export class PrometheusTab extends MonitoringTab {
   tabID(): string {
-    return 'proemtheus';
+    return 'prometheus';
   }
 
   persistentStorage(): CheckboxInputPo {
