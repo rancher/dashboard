@@ -85,23 +85,6 @@ if (process.argv.length > 2) {
 
 function parseReference(ref) {
   if (!ref.includes('$') || ref.startsWith('${')) {
-    // if (ref.includes('?') && ref.includes(':')) {
-    //   console.log('!!! ' + ref);
-
-    //   const options = variable.substr(variable.indexOf('?') + 1);
-    //   const opts = options.split(':').map((o) => o.trim().replaceAll('\'', ''));
-  
-    //   if (opts.length === 2) {
-    //     const a  = p.map((o) => o === '$' ? opts[0] : o).join('.');
-    //     const b  = p.map((o) => o === '$' ? opts[1] : o).join('.');
-
-    //     // TODO: Not sure what this was meant to do
-  
-    //     // return [a, b];
-    //     console.log(a);
-    //     console.log(b);
-    //   }
-    // }
     return ref;
   }
 
@@ -197,11 +180,6 @@ function makeRegex(str) {
       return str;
     }
   }
-  // if ((str.startsWith('"') && str.endsWith('"')) || (str.startsWith('\'') && str.endsWith('\''))) {
-  //   return str.substr(1, str.length - 2);
-  // } else {
-  //   return new RegExp(str, 'g');
-  // }
 }
 
 function doesMatch(stringOrRegex, str) {
@@ -426,8 +404,6 @@ if (unusedKeys.length) {
 
   console.log(`Found ${yellow}${bold}${unused}${reset} unused translation strings`); // eslint-disable-line no-console
 }
-
-// List the errors
 
 // Apply the ignores
 const filteredUses = Object.keys(references).filter((r) => !uses.find((i) => r.match(i)));
