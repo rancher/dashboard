@@ -1,5 +1,6 @@
 import { NORMAN } from '@shell/config/types';
 import HybridModel, { cleanHybridResources } from '@shell/plugins/steve/hybrid-class';
+import day from 'dayjs';
 
 export default class User extends HybridModel {
   // Preserve description
@@ -234,6 +235,23 @@ export default class User extends HybridModel {
         label:     this.t('user.detail.username'),
         formatter: 'CopyToClipboard',
         content:   this.username
+      },
+      { separator: true },
+      {
+        label:         this.t('tableHeaders.userLastLogin'),
+        formatter:     'LiveDate',
+        formatterOpts: { addSuffix: true, suffix: `${ this.t('suffix.ago') } (${ day(this.userLastLogin) })` },
+        content:       this.userLastLogin,
+      },
+      {
+        label:     this.t('tableHeaders.userDisabledIn'),
+        formatter: 'LiveDate',
+        content:   this.userDisabledIn,
+      },
+      {
+        label:     this.t('tableHeaders.userDeletedIn'),
+        formatter: 'LiveDate',
+        content:   this.userDeletedIn,
       },
       ...this._details
     ];
