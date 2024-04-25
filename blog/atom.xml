@@ -2,7 +2,7 @@
 <feed xmlns="http://www.w3.org/2005/Atom">
     <id>https://rancher.github.io/dashboard/blog</id>
     <title>Rancher UI DevKit Blog</title>
-    <updated>2024-04-24T07:51:48.000Z</updated>
+    <updated>2024-04-25T10:22:51.000Z</updated>
     <generator>https://github.com/jpmonette/feed</generator>
     <link rel="alternate" href="https://rancher.github.io/dashboard/blog"/>
     <subtitle>Rancher UI DevKit Blog</subtitle>
@@ -11,7 +11,7 @@
         <title type="html"><![CDATA[The Rancher UX/UI team]]></title>
         <id>/index</id>
         <link href="https://rancher.github.io/dashboard/blog/index"/>
-        <updated>2024-04-24T07:51:48.000Z</updated>
+        <updated>2024-04-25T10:22:51.000Z</updated>
         <summary type="html"><![CDATA[Our Team]]></summary>
         <content type="html"><![CDATA[<h2 class="anchor anchorWithStickyNavbar_LWe7" id="our-team">Our Team<a class="hash-link" href="#our-team" title="Direct link to heading">​</a></h2><p>As a team, we are dedicated to creating intuitive, user-friendly interfaces that make it easy for our customers to manage their containerized applications at scale. We strive to provide a seamless experience that simplifies complex tasks and enables users to focus on what matters most - their business objectives. </p><p>We believe that good UX is a combination of empathy, user research, and iterative improvement - we are committed to constantly improving our UI based on user feedback.</p><h2 class="anchor anchorWithStickyNavbar_LWe7" id="our-goals">Our Goals<a class="hash-link" href="#our-goals" title="Direct link to heading">​</a></h2><ul><li><p><strong>Improve productivity</strong>: Make it easier for users to complete tasks quickly and efficiently. This can lead to improved productivity and a more efficient use of time and resources.</p></li><li><p><strong>Increase adoption</strong>: Make the software more approachable and easier to learn, which can increase adoption rates and reduce training costs.</p></li><li><p><strong>Reduce errors</strong>: Reduce the likelihood of errors and make it easier to recover from mistakes.</p></li><li><p><strong>Better user satisfaction</strong>: Make the software more enjoyable to use, which can lead to increased user satisfaction and better overall user experiences.</p></li><li><p><strong>Competitive advantage</strong>: Give companies a competitive advantage by providing users with a better experience and making the software more appealing to use.</p></li></ul>]]></content>
         <author>
