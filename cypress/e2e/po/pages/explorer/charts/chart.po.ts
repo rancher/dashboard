@@ -7,6 +7,10 @@ export class ChartPage extends PagePo {
     return `/c/${ clusterId }/apps/charts/chart`;
   }
 
+  waitForChartPage(repository: string, chart: string) {
+    return this.waitForPage(`repo-type=cluster&repo=${ repository }&chart=${ chart }`);
+  }
+
   static goTo(clusterId: string): Cypress.Chainable<Cypress.AUTWindow> {
     return super.goTo(ChartPage.createPath(clusterId));
   }

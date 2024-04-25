@@ -20,6 +20,10 @@ export default class Kubectl extends ComponentPo {
     this.self().get('[data-testid="wm-tab-close-button"]').click();
   }
 
+  waitForTerminalToBeVisible() {
+    this.self().get('[data-testid="wm-tab-close-button"]').should('be.visible');
+  }
+
   /**
    *
    * @param command Kube command without the 'kubectl'
