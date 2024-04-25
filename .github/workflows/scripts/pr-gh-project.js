@@ -87,7 +87,7 @@ async function removeZubeLabels(issue) {
   const currentLabels = issue.labels.map((v) => v.name);
   let cleanLabels = issue.labels.filter(l => l.name.indexOf('[zube]') === -1);
 
-  cleanLabels = cleanLabels.map((v) => v.name());
+  cleanLabels = cleanLabels.map((v) => v.name);
 
   // Turn the array of labels into just their names
   console.log('  Removing Zube labels:');
