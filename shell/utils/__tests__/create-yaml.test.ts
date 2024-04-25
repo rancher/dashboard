@@ -40,7 +40,7 @@ describe('fx: dumpBlock', () => {
 
     scalarStyles.forEach((scalarStyle) => {
       chomping.forEach((chomping) => {
-        const options = {
+        const options: any = {
           [key]: {
             chomping,
             scalarStyle

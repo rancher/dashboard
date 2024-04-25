@@ -9,8 +9,6 @@ const QA_NONE_LABEL = 'QA/None';
 const EMBER_LABEL = 'ember';
 const TECH_DEBT_LABEL = 'kind/tech-debt';
 
-const TRIAGE_LABEL = '[zube]: To Triage';
-
 // The event object
 const event = require(process.env.GITHUB_EVENT_PATH);
 
@@ -24,7 +22,8 @@ async function processOpenAction() {
   // Get an array of labels
   const labels = issue.labels.map((label) => label.name);
 
-  // Make a note if we changed the labels, either adding a QA or the Triage label
+  // Make a note if we changed the labels
+  // Leaving like this in case we want to add more label logic that might add labels
   let didUpdateLabels = false;
 
   // Check we have a QA label
@@ -48,13 +47,7 @@ async function processOpenAction() {
     didUpdateLabels = true;
   }
 
-  // Check we have a Zube label
-  const hasZubeLabel = labels.filter((label) => label.indexOf('[zube]:') === 0).length > 0;
-
-  if (!hasZubeLabel) {
-    labels.push(TRIAGE_LABEL);
-    didUpdateLabels = true;
-  }
+  // Note: Built-in GitHub Project automation will add the 'To Triage' status to new issues
 
   // Update the labels if we made a change
   if (didUpdateLabels) {

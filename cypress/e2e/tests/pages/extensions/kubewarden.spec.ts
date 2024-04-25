@@ -1,5 +1,5 @@
 import ExtensionsPagePo from '@/cypress/e2e/po/pages/extensions.po';
-import { ChartsPage } from '@/cypress/e2e/po/pages/charts.po';
+import { ChartsPage } from '@/cypress/e2e/po/pages/explorer/charts/charts.po';
 import RepositoriesPagePo from '@/cypress/e2e/po/pages/chart-repositories.po';
 import ProductNavPo from '@/cypress/e2e/po/side-bars/product-side-nav.po';
 import KubewardenExtensionPo from '@/cypress/e2e/po/pages/extensions/kubewarden.po';
@@ -48,7 +48,7 @@ describe('Kubewarden Extension', { tags: ['@extensions', '@adminUser'] }, () => 
   });
 
   it('Check Apps/Charts and Apps/Repo pages for route collisions', () => {
-    const chartsPage: ChartsPage = new ChartsPage('/c/local/apps/charts');
+    const chartsPage: ChartsPage = new ChartsPage();
 
     chartsPage.goTo();
     chartsPage.waitForPage();
