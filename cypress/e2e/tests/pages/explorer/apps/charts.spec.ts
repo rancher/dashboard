@@ -6,8 +6,7 @@ describe('Apps/Charts', { tags: ['@explorer', '@adminUser'] }, () => {
   });
 
   it('should render an informational message inside of a banner', () => {
-    const chartsPageUrl = '/c/local/apps/charts';
-    const chartsPage = new ChartsPage(chartsPageUrl);
+    const chartsPage = new ChartsPage();
 
     chartsPage.goTo();
     chartsPage.waitForPage();
