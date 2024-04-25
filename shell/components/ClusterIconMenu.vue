@@ -19,8 +19,13 @@ export default {
     showLocalIcon() {
       return this.cluster.isLocal && !this.cluster.isHarvester && !this.cluster.badge?.iconText;
     },
+
     customColor() {
-      return this.cluster.badge?.color || '';
+      return !this.cluster.removePreviewColor && this.cluster.badge?.iconText ? this.cluster.badge?.color : '';
+    },
+    addBorderBottom() {
+      // INFO: this is for the preview scenario when background is set to white (#ffffff)
+      return this.cluster.badge?.color === '#ffffff';
     }
   },
   methods: {
@@ -55,6 +60,7 @@ export default {
       </span>
       <span
         class="custom-color-decoration"
+        :class="{'custom-color-decoration-border': addBorderBottom }"
         :style="{'background': customColor}"
       />
       <svg
@@ -156,9 +162,14 @@ export default {
     .custom-color-decoration {
       height: 4px;
       width: 100%;
+      margin: 0 auto;
       position: absolute;
-      bottom: 0;
+      bottom: 0px;
       border-radius: 0px 0px 5px 5px;
+
+      &-border {
+        border-bottom: 1px solid var(--border);
+      }
     }
 
     &.disabled {

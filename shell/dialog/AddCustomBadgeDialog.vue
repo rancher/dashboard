@@ -108,32 +108,34 @@ export default {
     isCreating() {
       return this.isCreate;
     },
-    showPreview() {
-      return this.badgeAsIcon;
-    },
     canSubmit() {
       if (this.mode === _CREATE) {
         return this.badgeAsIcon || this.useCustomComment;
       }
 
-      if (this.badgeAsIcon && this.useCustomComment) {
-        return true;
-      } else {
-        if (this.mode === _EDIT) {
-          return true;
+      if (this.mode === _EDIT) {
+        if (this.useCustomComment && this.badgeComment.length <= 0) {
+          return false;
         }
 
-        return this.badgeAsIcon !== this.currentCluster.metadata?.annotations[CLUSTER_BADGE.ICON_TEXT] || this.useCustomComment !== !!this.currentCluster.metadata?.annotations[CLUSTER_BADGE.TEXT];
+        if (this.badgeAsIcon && this.letter.length <= 0) {
+          return false;
+        }
+
+        return true;
       }
+
+      return this.badgeAsIcon !== this.currentCluster.metadata?.annotations[CLUSTER_BADGE.ICON_TEXT] || this.useCustomComment !== !!this.currentCluster.metadata?.annotations[CLUSTER_BADGE.TEXT] || (this.badgeAsIcon && this.letter.length > 1);
     },
     // Fake cluster object for use with badge component
     previewCluster() {
       // Make cluster object that is enough for the badge component to work
       return (!this.isCreate && this.currentCluster) ? {
-        isLocal:         this.currentCluster.isLocal,
-        providerNavLogo: this.currentCluster.providerNavLogo,
-        ready:           this.currentCluster.ready ?? true,
-        badge:           {
+        isLocal:            this.currentCluster?.isLocal,
+        providerNavLogo:    this.currentCluster.providerNavLogo,
+        ready:              this.currentCluster.ready ?? true,
+        removePreviewColor: !this.badgeAsIcon,
+        badge:              {
           text:      this.badgeComment,
           color:     this.badgeBgColor,
           textColor: textColor(parseColor(this.badgeBgColor)),
@@ -150,6 +152,10 @@ export default {
           iconText:  this.badgeAsIcon ? this.letter.toUpperCase() : this.letter,
         }
       };
+    },
+
+    displayClusterPrevIcon() {
+      return !this.badgeAsIcon ? { ...this.previewCluster.badge, iconText: null } : this.previewCluster?.badge;
     },
 
     previewName() {
@@ -231,8 +237,7 @@ export default {
             class="col span-12"
           >
             <ClusterProviderIcon
-              v-if="showPreview"
-              :cluster="previewCluster"
+              :cluster="{...previewCluster, badge: displayClusterPrevIcon}"
             />
             <div class="cluster-name">
               {{ previewName }}
@@ -246,7 +251,7 @@ export default {
       </div>
 
       <div class="badge-customisation">
-        <!-- Badge Abbreviation -->
+        <!-- Badge abbreviation toggle & customisation -->
         <div class="badge-customisation-badge">
           <Checkbox
             v-model="badgeAsIcon"
@@ -264,7 +269,7 @@ export default {
           />
         </div>
 
-        <!-- Comment -->
+        <!-- Comment toggle & customisation section -->
         <div>
           <Checkbox
             v-model="useCustomComment"
@@ -279,7 +284,7 @@ export default {
           />
         </div>
 
-        <!-- Color -->
+        <!-- Color toggle & customisation section -->
         <div>
           <Checkbox
             v-model="badgeColorPicker"
