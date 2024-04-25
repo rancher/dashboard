@@ -66,7 +66,7 @@ describe('Charts', { tags: ['@charts', '@adminUser'] }, () => {
       it('Should not include empty prometheus selector when installing.', () => {
         ChartPage.navTo(null, 'Monitoring');
 
-        chartPage.waitForChartPage('rancher-charts','chart=rancher-monitoring');
+        chartPage.waitForChartPage('rancher-charts', 'chart=rancher-monitoring');
 
         const tabbedOptions = new TabbedPo();
 
@@ -74,7 +74,7 @@ describe('Charts', { tags: ['@charts', '@adminUser'] }, () => {
         chartPage.goToInstall();
         installChart.nextPage().selectTab(tabbedOptions, prometheus.tabID());
 
-        installChart.waitForChartPage('rancher-charts','chart=rancher-monitoring');
+        installChart.waitForChartPage('rancher-charts', 'chart=rancher-monitoring');
 
         // Scroll into view - scroll to bottom of view
         prometheus.scrollToTabBottom();
@@ -96,7 +96,7 @@ describe('Charts', { tags: ['@charts', '@adminUser'] }, () => {
         // Disable installing Alert Manager
         installChart.nextPage().selectTab(tabbedOptions, alerting.tabID());
 
-        installChart.waitForChartPage('rancher-charts','chart=rancher-monitoring');
+        installChart.waitForChartPage('rancher-charts', 'chart=rancher-monitoring');
 
         alerting.deployCheckbox().checkVisible();
         alerting.deployCheckbox().set();
@@ -120,14 +120,14 @@ describe('Charts', { tags: ['@charts', '@adminUser'] }, () => {
       it('Should not include empty prometheus selector when installing (add/remove selector).', () => {
         ChartPage.navTo(null, 'Monitoring');
 
-        chartPage.waitForChartPage('rancher-charts','chart=rancher-monitoring');
+        chartPage.waitForChartPage('rancher-charts', 'chart=rancher-monitoring');
 
         const tabbedOptions = new TabbedPo();
 
         // Set prometheus storage class
         chartPage.goToInstall();
         installChart.nextPage().editOptions(tabbedOptions, '[data-testid="btn-prometheus"]');
-        installChart.waitForChartPage('rancher-charts','chart=rancher-monitoring');
+        installChart.waitForChartPage('rancher-charts', 'chart=rancher-monitoring');
 
         // Scroll into view - scroll to bottom of view
         prometheus.scrollToTabBottom();
@@ -238,11 +238,11 @@ describe('Charts', { tags: ['@charts', '@adminUser'] }, () => {
       it('Should install Istio', () => {
         ChartPage.navTo(null, 'Istio');
 
-        chartPage.waitForChartPage('rancher-charts','chart=rancher-istio');
+        chartPage.waitForChartPage('rancher-charts', 'chart=rancher-istio');
 
         chartPage.goToInstall();
         installChart.nextPage();
-        installChart.waitForChartPage('rancher-charts','chart=rancher-istio');
+        installChart.waitForChartPage('rancher-charts', 'chart=rancher-istio');
 
         // Disable Ingress Gateway
         istio.enableIngressGatewayCheckbox().checkExists();
