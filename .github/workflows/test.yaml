@@ -60,6 +60,7 @@ jobs:
         if-no-files-found: error
         retention-days: 10
         compression-level: 9
+
   e2e-test:
     if: "!contains( github.event.pull_request.labels.*.name, 'ci/skip-e2e')"
     needs: e2e-ui-build
@@ -110,7 +111,7 @@ jobs:
          path: ${{ env.E2E_BUILD_DIST_EMBER_DIR }}
       
       - name: Run Rancher
-        run: yarn e2e:docker
+        run: yarn e2e:k3s
       
       - name: Setup Rancher and user
         run: |
