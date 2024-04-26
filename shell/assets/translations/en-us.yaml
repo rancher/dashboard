@@ -2827,8 +2827,8 @@ labels:
     title: Labels
     description: Key/value pairs that are attached to objects which specify identifying attributes.
     fleetClusterTooltip: Label changes are made to the Management Cluster and synchronized to the Fleet Cluster
-    show: Show System Label
-    hide: Hide System Label
+    show: Show System Labels and Annotations
+    hide: Hide System Labels and Annotations
   annotations:
     title: Annotations
 
@@ -3187,7 +3187,7 @@ members:
   clusterMembers: Cluster Members
   clusterAndProject: Cluster and Project Members
   createActionLabel: Add
-  clusterMemebership: Cluster Membership
+  clusterMembership: Cluster Membership
   projectMembership: Project Membership
   clusterPermissions:
     noDescription: User created - no description
