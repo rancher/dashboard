@@ -19,7 +19,7 @@ jobs:
           cache: yarn
 
       - name: Install dependencies
-        run: cd docusaurus/ && yarn install:locked
+        run: cd docusaurus/ && yarn install:ci
       - name: Build website
         run: cd docusaurus/ && yarn build
 

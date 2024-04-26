@@ -8,11 +8,11 @@ on:
 
 jobs:
   build-validation:
-    name: Validate Code
-    uses: ./.github/workflows/build-dash-validation.yaml
+    name: Build Test
+    uses: ./.github/workflows/build-test.yaml
   build:
     name: Build and Upload
-    uses: ./.github/workflows/build-dash-build-and-upload.yaml
+    uses: ./.github/workflows/build-and-upload.yaml
     needs:
       - build-validation
     permissions:

@@ -1,7 +1,8 @@
 # Validation steps required before a build occurs. Not designed to replace the CI test workflow
-name: Build Validation
+name: Build Test
 
 on:
+  # This tells GH that the workflow is reusable 
   workflow_call:
 
 jobs:
@@ -15,7 +16,7 @@ jobs:
       - name: Run tests
         uses: ./.github/actions/unit-tests
 
-  i18n-lint:
+  i18n:
     runs-on: ubuntu-latest
     steps:
       - uses: actions/checkout@v3

@@ -11,4 +11,4 @@ runs:
 
     - name: Install packages
       shell: bash
-      run: yarn install:locked
+      run: yarn install:ci
