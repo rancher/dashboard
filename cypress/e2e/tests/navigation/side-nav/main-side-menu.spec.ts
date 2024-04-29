@@ -76,7 +76,7 @@ describe('Side Menu: main', () => {
             return false;
           }
         });
-      });      
+      });
     });
 
     it('Local cluster should show a name and description on the side menu and display a tooltip when hovering it show the full name and description', { tags: ['@navigation', '@adminUser'] }, () => {
