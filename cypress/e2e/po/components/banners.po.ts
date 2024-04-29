@@ -10,6 +10,14 @@ export default class BannersPo extends ComponentPo {
   }
 
   /**
+   * Gets an element within a banner
+   * @param element The HTML element to target
+   */
+  bannerElement(element: string) {
+    return this.self().getId('banner-content').find(element);
+  }
+
+  /**
    * Click close button
    * @returns
    */
