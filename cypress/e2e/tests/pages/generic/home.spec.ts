@@ -249,6 +249,14 @@ describe('Home Page', () => {
       homePage.clickSupportLink(1, true);
 
       cy.origin('https://forums.rancher.com', () => {
+        // Handle an error on the Rancher page that can cause our tests to fail
+        // when there is an exception on the Rancher page
+        cy.on('uncaught:exception', (e) => {
+          if (e.message.indexOf('TenantFeatures') >= 0) {
+            return false;
+          }
+        });
+
         cy.url().should('include', 'forums.rancher.com/');
       });
     });
@@ -277,7 +285,17 @@ describe('Home Page', () => {
       // click Get Started link
       homePage.clickSupportLink(4, true);
 
-      cy.url().should('include', 'getting-started/overview');
+      cy.origin('https://ranchermanager.docs.rancher.com', () => {
+        // Handle an error on the Rancher docs page that can cause our tests to fail
+        // when there is an exception on the Rancher page
+        cy.on('uncaught:exception', (e) => {
+          if (e.message.indexOf('TenantFeatures') >= 0) {
+            return false;
+          }
+        });
+
+        cy.url().should('include', 'getting-started/overview');
+      });
     });
 
     it('can click on Commercial Support link', () => {
