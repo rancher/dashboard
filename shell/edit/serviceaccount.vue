@@ -9,6 +9,8 @@ import { Checkbox } from '@components/Form/Checkbox';
 import { SECRET } from '@shell/config/types';
 import { TYPES as SECRET_TYPES } from '@shell/models/secret';
 import LabeledSelect from '@shell/components/form/LabeledSelect';
+import paginationUtils from '@shell/utils/pagination-utils';
+import { PaginationArgs, PaginationParamFilter } from '@shell/types/store/pagination.types';
 
 export default {
   name: 'ServiceAccount',
@@ -36,21 +38,62 @@ export default {
   },
 
   async fetch() {
-    this.allSecrets = await this.$store.dispatch(`cluster/findAll`, { type: SECRET });
+    this.filterByApi = paginationUtils.isSteveCacheEnabled({ rootGetters: this.$store.getters });
+
+    if (this.filterByApi) {
+      this.filteredSecrets = await this.filterSecretsByApi();
+    } else {
+      this.allSecrets = await this.$store.dispatch('cluster/findAll', { type: SECRET });
+    }
   },
 
   mixins: [CreateEditView],
+
   data() {
     this.$set(this.value, 'automountServiceAccountToken', this.value.automountServiceAccountToken || false);
 
-    return { allSecrets: [] };
+    return {
+      allSecrets:      [],
+      filteredSecrets: null,
+      secretTypes:     [SECRET_TYPES.DOCKER, SECRET_TYPES.DOCKER_JSON]
+    };
+  },
+
+  watch: {
+    async 'value.metadata.namespace'() {
+      if (this.filterByApi) {
+        this.filteredSecrets = await this.filterSecretsByApi();
+      }
+    }
+  },
+
+  methods: {
+    filterSecretsByApi() {
+      const findPageArgs = { // Of type ActionFindPageArgs
+        namespaced: this.value.metadata.namespace,
+        pagination: new PaginationArgs({
+          pageSize: -1,
+          filters:  PaginationParamFilter.createMultipleFields(this.secretTypes.map((t) => ({
+            field:  'metadata.fields.2',
+            value:  t,
+            equals: true
+          })))
+        }),
+      };
+
+      return this.$store.dispatch(`cluster/findPage`, { type: SECRET, opt: findPageArgs });
+    },
   },
 
   computed: {
     namespacedSecrets() {
+      if (this.filterByApi) {
+        return this.filteredSecrets;
+      }
+
       const namespace = this.value?.metadata?.namespace;
 
-      return this.allSecrets.filter((secret) => secret.metadata.namespace === namespace && (secret._type === SECRET_TYPES.DOCKER || secret._type === SECRET_TYPES.DOCKER_JSON));
+      return this.allSecrets.filter((secret) => secret.metadata.namespace === namespace && this.secretTypes.includes(secret._type));
     },
 
     imagePullSecrets: {
