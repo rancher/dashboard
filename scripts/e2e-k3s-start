@@ -69,20 +69,22 @@ echo "Waiting for dashboard UI to be reachable.........."
 okay=0
 
 while [ $okay -lt 20 ]; do
-  STATUS=$(curl --silent --head -k $DASHBOARD_URL/dashboard/ | awk '/^HTTP/{print $2}')
+  curl --silent --location --head -k $DASHBOARD_URL/dashboard/
+
+  STATUS=$(curl --silent --location --head -k $DASHBOARD_URL/dashboard/ | awk -F'HTTP/2 ' '{print $2}' | awk 'length { print $1}')
 
   echo "Status: $STATUS (Try: $okay)"
 
   okay=$((okay+1))
 
-  if [ "$STATUS" == "302" ]; then
+  if [ "$STATUS" == "200" ]; then
     okay=100
   else
     sleep 5
   fi
 done
 
-if [ "$STATUS" != "302" ]; then
+if [ "$STATUS" != "200" ]; then
   echo "Dashboard did not become available in a reasonable time"
   exit 1
 fi
@@ -96,16 +98,16 @@ if [ "$POD_NAME" == "" ]; then
   exit 1
 fi
 
-kubectl exec $POD_NAME -n $NAMESPACE -- sh -c 'rm -rf /usr/share/rancher/ui-dashboard'
+# Remove root folders that container UIs
+kubectl exec $POD_NAME -n $NAMESPACE -- sh -c 'rm -rf /usr/share/rancher/ui-dashboard/dashboard'
 kubectl exec $POD_NAME -n $NAMESPACE -- sh -c 'rm -rf /usr/share/rancher/ui'
-
-mv $DASHBOARD_DIST dashboard
-mv $EMBER_DIST ui
 
 # TODO RC Debug (remove)
 ls -la dashboard
 ls -la ui
-
+# Copy local builds to root folders that should contain UIs
+mv $DASHBOARD_DIST dashboard
+mv $EMBER_DIST ui
 kubectl cp dashboard $POD_NAME:/usr/share/rancher/ui-dashboard -n $NAMESPACE
 kubectl cp ui $POD_NAME:/usr/share/rancher -n $NAMESPACE
 # TODO RC Debug (remove)
@@ -113,12 +115,15 @@ kubectl cp ui $POD_NAME:/usr/share/rancher -n $NAMESPACE
   # -v ${EMBER_DIST}:/usr/share/rancher/ui \
 
 
-STATUS=$(curl --silent --head -k $DASHBOARD_URL/dashboard/ | awk '/^HTTP/{print $2}')
+STATUS=$(curl --silent --location --head -k $DASHBOARD_URL/dashboard/ | awk -F'HTTP/2 ' '{print $2}' | awk 'length { print $1}')
 echo "Status: $STATUS (Try: $okay)"
 
-if [ "$STATUS" != "302" ]; then
+if [ "$STATUS" != "200" ]; then
   echo "After updating dashboard with dev build it is no longer available"
   exit 1
 fi
+
+kubectl exec $POD_NAME -n $NAMESPACE -- sh -c 'ls -la /usr/share/rancher/ui-dashboard'
+kubectl exec $POD_NAME -n $NAMESPACE -- sh -c 'ls -la /usr/share/rancher/ui-dashboard/dashboard'
 
 echo "Dashboard UI is ready"
