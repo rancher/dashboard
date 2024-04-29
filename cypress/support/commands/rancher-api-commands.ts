@@ -1,5 +1,6 @@
 import { LoginPagePo } from '@/cypress/e2e/po/pages/login-page.po';
 import { CreateUserParams } from '@/cypress/globals';
+import cypress from 'cypress';
 
 // This file contains commands which makes API requests to the rancher API.
 // It includes the `login` command to store the `token` to use
@@ -85,6 +86,7 @@ Cypress.Commands.add('createUser', (params: CreateUserParams) => {
     }
   })
     .then((resp) => {
+      cy.log(JSON.stringify(resp));
       if (resp.status === 422 && resp.body.message === 'Username is already in use.') {
         cy.log('User already exists. Skipping user creation');
 
