@@ -930,7 +930,7 @@ export default {
     flex-direction: column;
     padding: 0;
     overflow: hidden;
-    transition: width 500ms;
+    transition: width 250ms;
 
     &:focus {
       outline: 0;

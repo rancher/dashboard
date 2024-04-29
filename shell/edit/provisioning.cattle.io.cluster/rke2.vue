@@ -729,8 +729,8 @@ export default {
           return;
         }
 
-        if (this.mode === _EDIT) {
-          return;
+        if (Object.keys(neu.badge).length <= 0) {
+          return { ...this.value };
         }
 
         const obj = {
@@ -2089,7 +2089,6 @@ export default {
         :rules="{ name: fvGetAndReportPathRules('metadata.name') }"
       >
         <template
-          v-if="showClusterAppearance"
           slot="customize"
         >
           <ClusterAppearance

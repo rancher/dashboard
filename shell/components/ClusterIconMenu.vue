@@ -17,12 +17,18 @@ export default {
       return !!this.cluster?.ready;
     },
     showLocalIcon() {
+      if (this.cluster.isLocal && this.cluster.removePreviewColor) {
+        return true;
+      }
+
       return this.cluster.isLocal && !this.cluster.isHarvester && !this.cluster.badge?.iconText;
     },
+
     customColor() {
-      return this.cluster.badge?.color || '';
-    }
+      return !this.cluster.removePreviewColor && this.cluster.badge?.iconText ? this.cluster.badge?.color : '';
+    },
   },
+
   methods: {
     smallIdentifier(input) {
       if (this.cluster.badge?.iconText) {
@@ -49,6 +55,7 @@ export default {
       :class="{ 'disabled': !isEnabled }"
     >
       <span
+        v-if="!showLocalIcon"
         class="cluster-badge-logo-text"
       >
         {{ smallIdentifier(cluster.label) }}
@@ -108,6 +115,10 @@ export default {
 </template>
 
 <style lang="scss" scoped>
+  .rancher-icon-fill {
+    fill: var(--primary);
+  }
+
   .cluster-icon-menu {
     position: relative;
     align-items: center;
@@ -148,7 +159,7 @@ export default {
     color: var(--default-active-text);
     font-weight: bold;
     background: var(--nav-icon-badge-bg);
-    border: 1px solid var(--default-border);
+    border: 1px solid var(--border);
     border-radius: 5px;
     font-size: 12px;
     text-transform: uppercase;
@@ -156,13 +167,13 @@ export default {
     .custom-color-decoration {
       height: 4px;
       width: 100%;
+      margin: 0 auto;
       position: absolute;
-      bottom: 0;
+      bottom: 0px;
       border-radius: 0px 0px 5px 5px;
     }
 
     &.disabled {
-      filter: grayscale(1);
       color: var(--muted);
     }
   }
