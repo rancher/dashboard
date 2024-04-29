@@ -136,6 +136,7 @@ export default {
       :default-add-value="defaultAddValue"
       :initial-empty-row="true"
       :mode="mode"
+      data-testid="registry-authentication"
       @input="update"
     >
       <template #default="{row, i}">
