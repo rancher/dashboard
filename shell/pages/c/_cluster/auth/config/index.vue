@@ -37,7 +37,7 @@ export default {
       hasListComponent,
       hasEditComponent,
 
-      // Provided by asyncData later
+      // Provided by fetch later
       enabled:  false,
       nonLocal: null,
     };
