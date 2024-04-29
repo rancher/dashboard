@@ -7,6 +7,7 @@ import TabbedPo from '@/cypress/e2e/po/components/tabbed.po';
 import LabeledInputPo from '@/cypress/e2e/po/components/labeled-input.po';
 import NameNsDescription from '@/cypress/e2e/po/components/name-ns-description.po';
 import UnitInputPo from '@/cypress/e2e/po/components/unit-input.po';
+import LabeledSelectPo from '@/cypress/e2e/po/components/labeled-select.po';
 
 export default class V2MonitoringPo extends PagePo {
   static createPath(clusterId: string) {
@@ -23,6 +24,10 @@ export default class V2MonitoringPo extends PagePo {
 
   create(): Cypress.Chainable {
     return this.list().masthead().actions().contains('Create');
+  }
+
+  createChinese(): Cypress.Chainable {
+    return this.list().masthead().actions().contains('创建');
   }
 
   createFromYaml(): Cypress.Chainable {
@@ -81,6 +86,22 @@ export default class V2MonitoringPo extends PagePo {
 
   prometheusRulesRecordPromQl(index: number): CodeMirrorPo {
     return CodeMirrorPo.bySelector(cy.get(`body [id=group-${ index }]`), '[data-testid="v2-monitoring-prom-rules-recording-promql"]');
+  }
+
+  prometheusRulesAddAlert(index: number) {
+    return cy.get(`[id=group-${ index }] [data-testid="v2-monitoring-add-alert"]`);
+  }
+
+  alertingRuleSeveritySelect(index: number) {
+    return new LabeledSelectPo(`[id=group-${ index }] [data-testid="v2-monitoring-alerting-rules-severity"]`, this.self());
+  }
+
+  prometheusRulesAlertName(index: number) {
+    return new LabeledInputPo(cy.get(`[id=group-${ index }] [data-testid="v2-monitoring-alerting-rules-alert-name"]`));
+  }
+
+  prometheusRulesAlertPromQl(index: number): CodeMirrorPo {
+    return CodeMirrorPo.bySelector(cy.get(`body [id=group-${ index }]`), '[data-testid="v2-monitoring-alerting-rules-promql"]');
   }
 
   goToDetailsPage(elemName: string) {
