@@ -8,18 +8,13 @@ describe('Cluster Explorer', { tags: ['@explorer', '@adminUser'] }, () => {
     generateFakeClusterDataAndIntercepts(fakeProvClusterId, fakeMgmtClusterId);
 
     // to test payload of https://github.com/rancher/dashboard/issues/9874
-<<<<<<< HEAD
     cy.intercept('PUT', `k8s/clusters/${ fakeMgmtClusterId }/v1/apps.daemonsets/calico-system/calico-node`, (req: any) => {
-=======
-    cy.intercept('PUT', 'k8s/clusters/some-fake-mgmt-id/v1/apps.daemonsets/calico-system/calico-node', (req: any) => {
->>>>>>> 710cc8c9b7 (add e2e test for issue)
       req.reply({
         statusCode: 200,
-        body:       { value: {} }
+        body:       {}
       });
     }).as('daemonsetEdit');
 
-<<<<<<< HEAD
     // to prevent error when rendering the daemonsets list after save (otherwise test will fail)
     cy.intercept('GET', `k8s/clusters/${ fakeMgmtClusterId }/v1/nodes`, (req: any) => {
       req.reply({
@@ -28,8 +23,6 @@ describe('Cluster Explorer', { tags: ['@explorer', '@adminUser'] }, () => {
       });
     }).as('nodesReq');
 
-=======
->>>>>>> 710cc8c9b7 (add e2e test for issue)
     cy.login();
   });
 
