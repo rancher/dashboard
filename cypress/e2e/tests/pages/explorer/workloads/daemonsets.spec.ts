@@ -15,7 +15,7 @@ describe('Cluster Explorer', { tags: ['@explorer', '@adminUser'] }, () => {
 >>>>>>> 710cc8c9b7 (add e2e test for issue)
       req.reply({
         statusCode: 200,
-        body:       {}
+        body:       { value: {} }
       });
     }).as('daemonsetEdit');
 
