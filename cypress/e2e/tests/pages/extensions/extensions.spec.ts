@@ -2,7 +2,9 @@ import ExtensionsPagePo from '@/cypress/e2e/po/pages/extensions.po';
 import RepositoriesPagePo from '@/cypress/e2e/po/pages/chart-repositories.po';
 import PromptRemove from '@/cypress/e2e/po/prompts/promptRemove.po';
 import BurgerMenuPo from '@/cypress/e2e/po/side-bars/burger-side-menu.po';
+import { LoginPagePo } from '@/cypress/e2e/po/pages/login-page.po';
 
+const UNAUTHENTICATED_EXTENSION_NAME = 'uk-locale';
 const EXTENSION_NAME = 'clock';
 const UI_PLUGINS_PARTNERS_REPO_URL = 'https://github.com/rancher/partner-extensions';
 const UI_PLUGINS_PARTNERS_REPO_NAME = 'partner-extensions';
@@ -251,7 +253,48 @@ describe('Extensions page', { tags: ['@extensions', '@adminUser'] }, () => {
     extensionsPo.extensionCard(EXTENSION_NAME).should('be.visible');
   });
 
-  it('Should uninstall an extension', () => {
+  it('Should respect authentication when importing extension scripts', () => {
+    const extensionsPo = new ExtensionsPagePo();
+
+    extensionsPo.goTo();
+
+    extensionsPo.extensionTabAvailableClick();
+
+    // Install unauthenticated extension
+    extensionsPo.extensionCardInstallClick(UNAUTHENTICATED_EXTENSION_NAME);
+    extensionsPo.extensionInstallModal().should('be.visible');
+    extensionsPo.installModalInstallClick();
+
+    // let's check the extension reload banner and reload the page
+    extensionsPo.extensionReloadBanner().should('be.visible');
+    extensionsPo.extensionReloadClick();
+
+    // make sure both extensions have been imported
+    extensionsPo.extensionScriptImport(UNAUTHENTICATED_EXTENSION_NAME).should('exist');
+    extensionsPo.extensionScriptImport(EXTENSION_NAME).should('exist');
+
+    cy.logout();
+
+    // make sure only the unauthenticated extension has been imported after logout
+    const loginPage = new LoginPagePo();
+
+    loginPage.goTo();
+    loginPage.waitForPage();
+    loginPage.extensionScriptImport(UNAUTHENTICATED_EXTENSION_NAME).should('exist');
+    loginPage.extensionScriptImport(EXTENSION_NAME).should('not.exist');
+
+    // make sure both extensions have been imported after logging in again
+    cy.login(undefined, undefined, false);
+    extensionsPo.goTo();
+    extensionsPo.waitForPage();
+    extensionsPo.waitForTitle();
+    extensionsPo.extensionScriptImport(UNAUTHENTICATED_EXTENSION_NAME).should('exist');
+    extensionsPo.extensionScriptImport(EXTENSION_NAME).should('exist');
+  });
+
+  it('Should uninstall extensions', () => {
+    // Because we logged out in the previous test this one will also have to use an uncached login
+    cy.login(undefined, undefined, false);
     const extensionsPo = new ExtensionsPagePo();
 
     extensionsPo.goTo();
@@ -260,6 +303,10 @@ describe('Extensions page', { tags: ['@extensions', '@adminUser'] }, () => {
 
     // click on uninstall button on card
     extensionsPo.extensionCardUninstallClick(EXTENSION_NAME);
+    extensionsPo.extensionUninstallModal().should('be.visible');
+    extensionsPo.uninstallModaluninstallClick();
+
+    extensionsPo.extensionCardUninstallClick(UNAUTHENTICATED_EXTENSION_NAME);
     extensionsPo.extensionUninstallModal().should('be.visible');
     extensionsPo.uninstallModaluninstallClick();
 

@@ -64,12 +64,19 @@ export default function({
     // Load a plugin from a UI package
     loadAsync(id, mainFile) {
       return new Promise((resolve, reject) => {
+        // The plugin is already loaded so we should avoid loading it again.
+        // This will primarily affect plugins that load prior to authentication and we attempt to load again after authentication.
+        if (document.getElementById(id)) {
+          return resolve();
+        }
         const moduleUrl = mainFile;
         const element = document.createElement('script');
 
         element.src = moduleUrl;
         element.type = 'text/javascript';
         element.async = true;
+        element.id = id;
+        element.dataset.purpose = 'extension';
 
         // id is `<product>-<version>`.
         const oldPlugin = Object.values(plugins).find((p) => id.startsWith(p.name));
@@ -88,8 +95,6 @@ export default function({
 
         removed.then(() => {
           element.onload = () => {
-            element.parentElement.removeChild(element);
-
             if (!window[id]) {
               return reject(new Error('Could not load plugin code'));
             }
@@ -119,7 +124,6 @@ export default function({
           };
 
           element.onerror = (e) => {
-            element.parentElement.removeChild(element);
             // Massage the error into something useful
             const errorMessage = `Failed to load script from '${ e.target.src }'`;
 

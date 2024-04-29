@@ -1105,7 +1105,11 @@ export const actions = {
       // adds IS_SSO query param to login route if logout came with an auth provider enabled
       QUERY += (IS_SSO in route.query) ? `&${ IS_SSO }` : '';
 
-      router.replace(`/auth/login?${ QUERY }`);
+      // Go back to login and force a full page reload, this ensures we unload any dangling resources the user is no longer authorized to use (like extensions).
+      // We use document instead of router because router does a clunky job of visiting a new page and reloading. In this case it would cause the login page to flash before actually reloading.
+      const base = process.env.routerBase || '/';
+
+      document.location.href = `${ base }auth/login?${ QUERY }`;
     }
   },
 
