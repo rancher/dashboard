@@ -88,6 +88,14 @@ export default class SortableTablePo extends ComponentPo {
     return this.self().contains('tbody tr', name);
   }
 
+  rowElementLink(rowIndex: number, columnIndex: number) {
+    return this.getTableCell(rowIndex, columnIndex).find('a');
+  }
+
+  getTableCell(rowIndex: number, columnIndex: number) {
+    return this.row(rowIndex).column(columnIndex);
+  }
+
   row(index: number) {
     return new ListRowPo(this.rowElements().eq(index));
   }
