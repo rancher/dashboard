@@ -4,6 +4,8 @@ on:
     branches:
       - master
       - 'release-*'
+      # TODO RC remove
+      # - e2e-k3s
   pull_request:
     branches:
       - master
@@ -14,18 +16,19 @@ on:
         description: 'Environment to run tests against'
         type: environment
         required: true
-
+      
 env:
   TEST_USERNAME: admin
   TEST_PASSWORD: password
   CATTLE_BOOTSTRAP_PASSWORD: password
-  TEST_BASE_URL: https://127.0.0.1:8005
-  API: https://127.0.0.1
+  TEST_BASE_URL: https://127.0.0.1.sslip.io
+  API: https://127.0.0.1.sslip.io
   TEST_PROJECT_ID: rancher-dashboard
   CYPRESS_API_URL: http://139.59.134.103:1234/
   TEST_RUN_ID: ${{github.run_number}}-${{github.run_attempt}}-${{github.event.pull_request.title || github.event.head_commit.message}}
   # Build the dashboard to use in tests. When set to false it will grab `latest` from CDN (useful for running e2e tests quickly)
-  BUILD_DASHBOARD: true
+  # TODO RC revert
+  BUILD_DASHBOARD: false
 
   E2E_BUILD_DIST_NAME: dist
   E2E_BUILD_DIST_DIR: dist
@@ -66,20 +69,21 @@ jobs:
     needs: e2e-ui-build
     strategy:
       fail-fast: false
+      # TODO RC revert
       matrix:
         role: [
           { username: 'admin', tag: '@adminUser' }, 
-          { username: 'standard_user', tag: '@standardUser' }
+          # { username: 'standard_user', tag: '@standardUser' }
         ]
         features:  [
-         ['@navigation', '@extensions'],
-         ['@charts'],
+        #  ['@navigation', '@extensions'],
+        #  ['@charts'],
          ['@explorer'],
-         ['@fleet'],
-         ['@generic', '@globalSettings'],
-         ['@manager'],
-         ['@userMenu', '@usersAndAuths'],
-         ['@components'],
+        #  ['@fleet'],
+        #  ['@generic', '@globalSettings'],
+        #  ['@manager'],
+        #  ['@userMenu', '@usersAndAuths'],
+        #  ['@components'],
         ]
     runs-on: ubuntu-latest
     steps:

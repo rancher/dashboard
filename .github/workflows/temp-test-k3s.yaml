@@ -1,8 +1,9 @@
+# TODO RC Debug (remove)
 name: temp test
 on:
   push:
     branches:
-      - e2e-k3s
+      - e2e-k3saaaaaa
 
 env:
   TEST_USERNAME: admin
