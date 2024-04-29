@@ -145,6 +145,7 @@ describe('V2 monitoring Chart', { tags: ['@charts', '@adminUser'] }, () => {
 
       const prefPage = new PreferencesPagePo();
 
+      // change language to chinese
       prefPage.goTo();
       prefPage.languageDropdownMenu().checkVisible();
       prefPage.languageDropdownMenu().toggle();
