@@ -17,17 +17,18 @@ export default {
       return !!this.cluster?.ready;
     },
     showLocalIcon() {
+      if (this.cluster.isLocal && this.cluster.removePreviewColor) {
+        return true;
+      }
+
       return this.cluster.isLocal && !this.cluster.isHarvester && !this.cluster.badge?.iconText;
     },
 
     customColor() {
       return !this.cluster.removePreviewColor && this.cluster.badge?.iconText ? this.cluster.badge?.color : '';
     },
-    addBorderBottom() {
-      // INFO: this is for the preview scenario when background is set to white (#ffffff)
-      return this.cluster.badge?.color === '#ffffff';
-    }
   },
+
   methods: {
     smallIdentifier(input) {
       if (this.cluster.badge?.iconText) {
@@ -54,13 +55,13 @@ export default {
       :class="{ 'disabled': !isEnabled }"
     >
       <span
+        v-if="!showLocalIcon"
         class="cluster-badge-logo-text"
       >
         {{ smallIdentifier(cluster.label) }}
       </span>
       <span
         class="custom-color-decoration"
-        :class="{'custom-color-decoration-border': addBorderBottom }"
         :style="{'background': customColor}"
       />
       <svg
@@ -114,6 +115,10 @@ export default {
 </template>
 
 <style lang="scss" scoped>
+  .rancher-icon-fill {
+    fill: var(--primary);
+  }
+
   .cluster-icon-menu {
     position: relative;
     align-items: center;
@@ -166,14 +171,9 @@ export default {
       position: absolute;
       bottom: 0px;
       border-radius: 0px 0px 5px 5px;
-
-      &-border {
-        border-bottom: 1px solid var(--border);
-      }
     }
 
     &.disabled {
-      filter: grayscale(1);
       color: var(--muted);
     }
   }

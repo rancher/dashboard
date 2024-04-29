@@ -26,6 +26,7 @@ export default {
     clusterPreview() {
       if (this.mode !== _CREATE) {
         return {
+          ...this.currentCluster,
           badge: {
             iconText: this.currentCluster.metadata.annotations[CLUSTER_BADGE.ICON_TEXT],
             color:    this.currentCluster.metadata.annotations[CLUSTER_BADGE.COLOR],
@@ -51,10 +52,10 @@ export default {
       this.$store.dispatch('cluster/promptModal', {
         component:      'AddCustomBadgeDialog',
         componentProps: {
-          isCreate:       this.mode === _CREATE,
-          mode:           this.mode,
-          clusterName:    this.name,
-          clusterPreview: this.clusterPreview
+          isCreate:        this.mode === _CREATE,
+          mode:            this.mode,
+          clusterName:     this.name,
+          clusterExplorer: this.clusterPreview
         },
       });
     },

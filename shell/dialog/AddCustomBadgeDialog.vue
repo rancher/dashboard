@@ -30,9 +30,13 @@ export default {
     ClusterProviderIcon,
   },
   props: {
-    isCreate:    { type: Boolean, default: false },
-    clusterName: { type: String, default: '' },
-    mode:        { type: String, default: _CREATE },
+    isCreate:        { type: Boolean, default: false },
+    clusterName:     { type: String, default: '' },
+    mode:            { type: String, default: _CREATE },
+    clusterExplorer: {
+      type:    Object,
+      default: null
+    },
   },
   data() {
     return {
@@ -46,25 +50,23 @@ export default {
       cluster:          {},
     };
   },
-  mounted() {
-    // Generates a fake cluster object for use with badge component on cluster provisioning.
-    if (this.isCreating) {
-      this.cluster = this.getPreviewCluster;
-      this.badgeAsIcon = this.cluster?.badge?.iconText?.length > 0 || false;
-      this.letter = this.cluster?.badge?.iconText || abbreviateClusterName(this.clusterName);
-      this.useCustomComment = this.cluster?.badge?.text?.length > 0 || false;
-      this.badgeBgColor = this.cluster?.badge?.color || 'transparent';
-      this.badgeComment = this.cluster?.badge?.text || null;
-      this.badgeColorPicker = this.badgeBgColor !== 'transparent';
+  created() {
+    if (this.clusterExplorer) {
+      this.setBadgeProperties(this.clusterExplorer);
+    }
+
+    if (this.isCreate) {
+      this.setBadgeProperties(this.getPreviewCluster);
     }
   },
 
   async fetch() {
-    if (this.isCreating ) {
+    // INFO: Do not fetch the cluster object if it's a create or cluster explorer since it won't exist
+    if (this.isCreate || this.clusterExplorer) {
       return;
     }
-
-    await this.$store.dispatch('rancher/find', { type: NORMAN.CLUSTER, id: this.currentCluster.id });
+    // INFO: Fetch the cluster object if it's an edit
+    await this.$store.dispatch('rancher/find', { type: NORMAN.CLUSTER, id: this.currentCluster?.id });
 
     if (this.currentCluster.metadata?.annotations) {
       this.badgeComment = this.currentCluster.metadata?.annotations[CLUSTER_BADGE.TEXT];
@@ -72,8 +74,6 @@ export default {
       this.badgeBgColor = this.currentCluster.metadata?.annotations[CLUSTER_BADGE.COLOR] || 'transparent';
       this.badgeAsIcon = !!this.currentCluster.metadata?.annotations[CLUSTER_BADGE.ICON_TEXT] || false;
       this.badgeColorPicker = this.badgeBgColor !== 'transparent';
-
-      // TODO: Hardcode the annotations for creating cluster
       this.letter = this.currentCluster.metadata?.annotations[CLUSTER_BADGE.ICON_TEXT] || abbreviateClusterName(this.currentCluster.nameDisplay);
     }
   },
@@ -105,9 +105,6 @@ export default {
   computed: {
     ...mapGetters(['currentCluster']),
     ...mapGetters('customisation', ['getPreviewCluster']),
-    isCreating() {
-      return this.isCreate;
-    },
     canSubmit() {
       if (this.mode === _CREATE) {
         return this.badgeAsIcon || this.useCustomComment;
@@ -129,29 +126,7 @@ export default {
     },
     // Fake cluster object for use with badge component
     previewCluster() {
-      // Make cluster object that is enough for the badge component to work
-      return (!this.isCreate && this.currentCluster) ? {
-        isLocal:            this.currentCluster?.isLocal,
-        providerNavLogo:    this.currentCluster.providerNavLogo,
-        ready:              this.currentCluster.ready ?? true,
-        removePreviewColor: !this.badgeAsIcon,
-        badge:              {
-          text:      this.badgeComment,
-          color:     this.badgeBgColor,
-          textColor: textColor(parseColor(this.badgeBgColor)),
-          iconText:  this.badgeAsIcon ? this.letter.toUpperCase() : abbreviateClusterName(this.currentCluster.nameDisplay),
-        }
-      } : {
-        isLocal:         false,
-        ready:           true,
-        providerNavLogo: '',
-        badge:           {
-          text:      this.badgeComment,
-          color:     this.badgeBgColor,
-          textColor: textColor(parseColor(this.badgeBgColor || 'white')),
-          iconText:  this.badgeAsIcon ? this.letter.toUpperCase() : this.letter,
-        }
-      };
+      return this.isCreate || !this.currentCluster ? this.generateBadgeObject(false, '', true) : this.generateBadgeObject(this.currentCluster.isLocal, this.currentCluster.providerNavLogo, this.currentCluster.ready);
     },
 
     displayClusterPrevIcon() {
@@ -159,11 +134,11 @@ export default {
     },
 
     previewName() {
-      if (this.isCreating) {
+      if (this.isCreate || this.clusterExplorer) {
         return this.clusterName;
       }
 
-      return this.currentCluster.nameDisplay;
+      return this.currentCluster?.nameDisplay || '';
     },
   },
   methods: {
@@ -171,11 +146,38 @@ export default {
       this.$emit('close');
     },
 
+    // INFO: Set the badge properties based on the cluster object
+    setBadgeProperties(cluster) {
+      this.cluster = cluster;
+      this.badgeAsIcon = this.cluster?.badge?.iconText?.length > 0 || false;
+      this.letter = this.cluster?.badge?.iconText || abbreviateClusterName(this.clusterName);
+      this.useCustomComment = this.cluster?.badge?.text?.length > 0 || false;
+      this.badgeBgColor = this.cluster?.badge?.color || 'transparent';
+      this.badgeComment = this.cluster?.badge?.text || null;
+      this.badgeColorPicker = this.badgeBgColor !== 'transparent';
+    },
+
+    // INFO: Generate a badge object for the preview cluster
+    generateBadgeObject(isLocal, providerNavLogo, ready) {
+      return {
+        isLocal,
+        providerNavLogo,
+        ready:              ready ?? true,
+        removePreviewColor: !this.badgeAsIcon,
+        badge:              {
+          text:      this.badgeComment,
+          color:     this.badgeBgColor,
+          textColor: textColor(parseColor(this.badgeBgColor)),
+          iconText:  this.badgeAsIcon ? this.letter.toUpperCase() : abbreviateClusterName(this.previewName),
+        }
+      };
+    },
+
     async apply(buttonDone) {
       try {
-        if (!this.isCreate) {
-          // Fetch the Norman cluster object
-          const norman = await this.$store.dispatch('rancher/find', { type: NORMAN.CLUSTER, id: this.currentCluster.id });
+        // INFO: If we're editing a cluster, update the cluster object
+        if (!this.isCreate && !this.clusterExplorer) {
+          const norman = await this.$store.dispatch('rancher/find', { type: NORMAN.CLUSTER, id: this.currentCluster?.id });
 
           delete norman.annotations[CLUSTER_BADGE.COLOR];
           delete norman.annotations[CLUSTER_BADGE.ICON_TEXT];
@@ -190,6 +192,7 @@ export default {
           buttonDone(true);
           this.close();
         } else {
+          // INFO: If it's a create, update the preview cluster object in the store.
           this.$store.commit('customisation/setPreviewCluster', { ...this.previewCluster });
 
           buttonDone(true);
@@ -285,7 +288,7 @@ export default {
         </div>
 
         <!-- Color toggle & customisation section -->
-        <div>
+        <div class="badge-customisation-color">
           <Checkbox
             v-model="badgeColorPicker"
             :label="t('clusterBadge.modal.badgeBgColor')"
@@ -294,7 +297,6 @@ export default {
             v-model="badgeBgColor"
             :disabled="!badgeColorPicker"
             :default-value="badgeBgColor"
-            :label="t('clusterBadge.modal.badgeBgColor')"
           />
         </div>
       </div>
@@ -429,8 +431,16 @@ export default {
     gap: 10px;
 
     .color-input {
-      padding: 5px 10px;
+      display: flex;
+      padding: 6px 10px;
+      min-height: 61px;
     }
+  }
+
+  &-color {
+    display: flex;
+    flex-direction: column;
+    gap: 10px;
   }
 }
 
