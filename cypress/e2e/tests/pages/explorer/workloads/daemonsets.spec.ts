@@ -11,7 +11,7 @@ describe('Cluster Explorer', { tags: ['@explorer', '@adminUser'] }, () => {
     cy.intercept('PUT', 'k8s/clusters/some-fake-mgmt-id/v1/apps.daemonsets/calico-system/calico-node', (req: any) => {
       req.reply({
         statusCode: 200,
-        body:       {}
+        body:       { value: {} }
       });
     }).as('daemonsetEdit');
 
