@@ -128,6 +128,7 @@ export default {
     :class="{'show-key-selector': showKeySelector}"
   >
     <div class="input-container">
+      <!-- TODO: RC shell/edit/logging.banzaicloud.io.output/index.vue. Upfront fetches secrets used by edit/logging.banzaicloud.io.output/providers/x. Convert to pag LabeledSelect -->
       <LabeledSelect
         v-model="name"
         :disabled="!isView && disabled"

@@ -47,7 +47,6 @@ export default {
   },
 
   async fetch() {
-    // TODO: RC test all
     const hash = await allHash({
       catalog:     this.$store.dispatch('catalog/load'),
       resourceSet: this.$store.dispatch('cluster/find', { type: BACKUP_RESTORE.RESOURCE_SET, id: this.value?.spec?.resourceSetName || 'rancher-resource-set' }),

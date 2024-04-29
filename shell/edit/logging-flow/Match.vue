@@ -89,6 +89,9 @@ export default {
     </h3>
     <div class="row">
       <div class="col span-12">
+        <!-- TODO: RC shell/edit/logging-flow/index.vue. Upfront fetches all pods, to get all containers (ouch). Convert to pag LabeledSelect -->
+        <!-- There's no containers api, they're only accessible via pods -->
+        <!-- could still show a page of containers... but it would be a variable amount given those in 10 pods -->
         <Select
           v-model="value.container_names"
           class="lg"

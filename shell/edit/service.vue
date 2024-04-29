@@ -254,6 +254,7 @@ export default {
   methods: {
     updateMatchingPods: throttle(function() {
       const { value: { spec: { selector = { } } } } = this;
+      // TODO: RC pods and selectors
       const allInNamespace = this.allPods.filter((pod) => pod.metadata.namespace === this.value?.metadata?.namespace);
 
       if (isEmpty(selector)) {

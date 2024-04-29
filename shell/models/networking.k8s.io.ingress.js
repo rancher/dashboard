@@ -45,6 +45,7 @@ export default class Ingress extends SteveModel {
     const id = `${ this.namespace }/${ serviceName }`;
 
     if ( isTargetsWorkload ) {
+      // TODO: RC This is the reason shell/components/formatter/IngressTarget.vue requires ALL WORKLOADS
       const workload = workloads.find((w) => w.id === (id));
 
       return workload?.detailLocation || '';

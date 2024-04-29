@@ -45,6 +45,7 @@ export default {
   },
 
   async fetch() {
+    // TODO: RC shell/edit/networking.k8s.io.ingress/Rules.vue. used by (just?) shell/models/networking.k8s.io.ingress.js `targetTo`
     await Promise.all(Object.values(WORKLOAD_TYPES).map((type) => this.$store.dispatch('cluster/findAll', { type })));
   },
 

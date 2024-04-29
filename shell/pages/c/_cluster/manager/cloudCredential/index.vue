@@ -12,6 +12,7 @@ export default {
 
   async fetch() {
     if ( this.$store.getters['management/schemaFor'](SECRET) ) {
+      // TODO: RC shell/pages/c/_cluster/manager/cloudCredential/index.vue. Convert to pag LabeledSelect, only get secrets for current page (secondary resource)
       // Having secrets allows showing the public portion of more types but not all users can see them.
       await this.$store.dispatch('management/findAll', { type: SECRET });
     }

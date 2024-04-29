@@ -146,6 +146,7 @@ export default {
 
   methods: {
     updateMatchingPods: throttle(function() {
+      // TODO: RC pods and selectors
       const allInNamespace = this.allPods.filter((pod) => pod.metadata.namespace === this.value.metadata.namespace);
       const match = matching(allInNamespace, this.podSelectorExpressions);
       const matched = match.length || 0;

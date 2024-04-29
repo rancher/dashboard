@@ -18,6 +18,7 @@ export default {
   },
 
   async fetch() {
+    // TODO: RC shell/components/formatter/IngressTarget.vue. used by shell/models/networking.k8s.io.ingress.js `targetTo`
     const promises = Object.values(WORKLOAD_TYPES).map((type) => this.$store.dispatch('cluster/findAll', { type }));
     const ingressSchema = this.$store.getters[`cluster/schemaFor`](INGRESS);
 
