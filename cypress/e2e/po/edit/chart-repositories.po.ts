@@ -33,6 +33,10 @@ export default class ChartRepositoriesCreateEditPo extends PagePo {
     return LabeledInputPo.byLabel(this.self(), 'Git Branch');
   }
 
+  ociUrl() {
+    return LabeledInputPo.byLabel(this.self(), 'OCI Repository Host URL');
+  }
+
   authentication(): LabeledSelectPo {
     return new LabeledSelectPo('.vs__dropdown-toggle');
   }

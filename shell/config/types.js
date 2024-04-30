@@ -313,3 +313,11 @@ export const AUTH_TYPE = {
 };
 
 export const LOCAL_CLUSTER = 'local';
+
+export const CLUSTER_REPO_TYPES = {
+  HELM_URL: 'helm-url',
+  GIT_REPO: 'git-repo',
+  OCI_URL:  'oci-url'
+};
+
+export const ZERO_TIME = '0001-01-01T00:00:00Z';
