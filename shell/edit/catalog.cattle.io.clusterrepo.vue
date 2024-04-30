@@ -101,7 +101,7 @@ export default {
     },
     resetOciValues() {
       Vue.delete(this.value.spec, 'insecurePlainHttp');
-      Vue.delete(this.value.spec, 'insecureSkipVerify');
+      Vue.delete(this.value.spec, 'insecureSkipTLSVerify');
       Vue.delete(this.value.spec, 'caBundle');
       Vue.set(this.value.spec, 'exponentialBackOffValues', {});
       this.ociMinWait = undefined;
