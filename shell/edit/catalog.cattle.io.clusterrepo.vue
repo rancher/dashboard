@@ -210,7 +210,7 @@ export default {
             data-testid="clusterrepo-oci-cabundle-input"
           />
           <Checkbox
-            v-model="value.spec.insecureSkipVerify"
+            v-model="value.spec.insecureSkipTLSVerify"
             class="mt-10"
             :mode="mode"
             :label="t('catalog.repo.oci.skipTlsVerifications')"
