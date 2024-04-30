@@ -38,6 +38,10 @@ export default abstract class RoleEditPo extends PagePo {
     return new AsyncButtonPo('[data-testid="form-save"]', this.self());
   }
 
+  saveEditYamlForm(): AsyncButtonPo {
+    return new AsyncButtonPo('[data-testid="action-button-async-button"]', this.self());
+  }
+
   saveAndWaitForRequests(method: string, url: any): CypressChainable {
     cy.intercept(method, url).as('request');
     this.saveCreateForm().click();

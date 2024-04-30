@@ -3,6 +3,8 @@ import UsersPo from '@/cypress/e2e/po/pages/users-and-auth/users.po';
 import PromptRemove from '@/cypress/e2e/po/prompts/promptRemove.po';
 import BurgerMenuPo from '@/cypress/e2e/po/side-bars/burger-side-menu.po';
 import * as path from 'path';
+import * as jsyaml from 'js-yaml';
+import ProductNavPo from '@/cypress/e2e/po/side-bars/product-side-nav.po';
 
 const roles = new RolesPo('_');
 const usersPo = new UsersPo('_');
@@ -40,17 +42,48 @@ describe('Roles', { tags: ['@usersAndAuths', '@adminUser'] }, () => {
     createGlobalRole.selectVerbs(0, 3);
     createGlobalRole.selectVerbs(0, 4);
     createGlobalRole.selectResourcesByLabelValue(0, 'GlobalRoles');
+
     createGlobalRole.saveAndWaitForRequests('POST', '/v3/globalroles').then((res) => {
       const globalRoleId = res.response?.body.id;
 
       // view role details
       roles.waitForPage(undefined, fragment);
+
+      // testing https://github.com/rancher/dashboard/issues/9800
+      // confirming that the globalRole created is not flagged as built-in
+      roles.list().details(globalRoleName, 4).should('not.contain', 'i.icon-checkmark');
+      // eo test
+
       roles.list().details(globalRoleName, 2).find('a').click();
 
       const globalRoleDetails = roles.detailGlobal(globalRoleId);
 
       globalRoleDetails.waitForPage();
       globalRoleDetails.mastheadTitle().should('include', `${ globalRoleName }`);
+
+      const sideNav = new ProductNavPo();
+
+      sideNav.navToSideMenuEntryByLabel('Role Templates');
+
+      roles.waitForPage(undefined, fragment);
+
+      // testing https://github.com/rancher/dashboard/issues/9800
+      roles.list().actionMenu(globalRoleName).getMenuItem('Edit YAML').click();
+
+      createGlobalRole.yamlEditor().value().then((val) => {
+        // convert yaml into json to update values
+        const json: any = jsyaml.load(val);
+
+        json.builtin = false;
+
+        createGlobalRole.yamlEditor().set(jsyaml.dump(json));
+        createGlobalRole.saveEditYamlForm().click();
+
+        roles.waitForPage();
+        // confirming, once again, that the globalRole created is not flagged as built-in
+        roles.list().details(globalRoleName, 4).should('not.contain', 'i.icon-checkmark');
+      });
+      // eo test
     });
   });
 
