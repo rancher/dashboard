@@ -96,7 +96,7 @@ describe('Cluster Dashboard', { testIsolation: 'off', tags: ['@explorer', '@admi
 
     const customClusterCard = new CardPo();
 
-    customClusterCard.getTitle().contains('Custom Cluster Badge');
+    customClusterCard.getTitle().contains('Cluster Appearance');
 
     // update badge
     clusterDashboard.customBadge().selectCheckbox('Show cluster comment').set();
@@ -108,8 +108,7 @@ describe('Cluster Dashboard', { testIsolation: 'off', tags: ['@explorer', '@admi
     clusterDashboard.customBadge().colorPicker().previewColor().should('eq', settings.backgroundColor.newRGB);
 
     // update icon
-    clusterDashboard.customBadge().clusterIcon().children().should('have.class', 'cluster-local-logo');
-    clusterDashboard.customBadge().selectCheckbox('Customize cluster icon').set();
+    clusterDashboard.customBadge().selectCheckbox('Use custom badge').set();
     clusterDashboard.customBadge().iconText().set(settings.iconText);
     clusterDashboard.customBadge().clusterIcon().contains(settings.iconText);
 
@@ -126,7 +125,7 @@ describe('Cluster Dashboard', { testIsolation: 'off', tags: ['@explorer', '@admi
 
     // Reset
     clusterDashboard.addCustomBadge('Edit Cluster Badge').click();
-    clusterDashboard.customBadge().selectCheckbox('Customize cluster icon').set();
+    clusterDashboard.customBadge().selectCheckbox('Use custom badge').set();
     clusterDashboard.customBadge().selectCheckbox('Show cluster comment').set();
 
     // Apply Changes

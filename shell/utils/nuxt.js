@@ -72,34 +72,6 @@ export function getChildrenComponentInstancesUsingFetch(vm, instances = []) {
   return instances;
 }
 
-export function applyAsyncData(Component, asyncData) {
-  if (
-    // For SSR, we once all this function without second param to just apply asyncData
-    // Prevent doing this for each SSR request
-    !asyncData && Component.options.__hasNuxtData
-  ) {
-    return;
-  }
-
-  const ComponentData = Component.options._originDataFn || Component.options.data || function() {
-    return {};
-  };
-
-  Component.options._originDataFn = ComponentData;
-
-  Component.options.data = function() {
-    const data = ComponentData.call(this, this);
-
-    return { ...data, ...asyncData };
-  };
-
-  Component.options.__hasNuxtData = true;
-
-  if (Component._Ctor && Component._Ctor.options) {
-    Component._Ctor.options.data = Component.options.data;
-  }
-}
-
 export function sanitizeComponent(Component) {
   // If Component already sanitized
   if (Component.options && Component._Ctor === Component) {
@@ -297,7 +269,7 @@ export function promisify(fn, context) {
   let promise;
 
   if (fn.length === 2) {
-    console.warn('Callback-based asyncData, fetch or middleware calls are deprecated. Please switch to promises or async/await syntax'); // eslint-disable-line no-console
+    console.warn('Callback-based fetch or middleware calls are deprecated. Please switch to promises or async/await syntax'); // eslint-disable-line no-console
 
     // fn(context, callback)
     promise = new Promise((resolve) => {

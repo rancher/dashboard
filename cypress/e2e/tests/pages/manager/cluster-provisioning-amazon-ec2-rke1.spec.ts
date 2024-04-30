@@ -6,6 +6,10 @@ import PromptRemove from '@/cypress/e2e/po/prompts/promptRemove.po';
 import LoadingPo from '@/cypress/e2e/po/components/loading.po';
 import EmberBannersPo from '@/cypress/e2e/po/components/ember/ember-banners.po';
 
+/******
+ *  Running this test will delete node templates and cloud credentials resources from the target cluster
+ ******/
+
 // will only run this in jenkins pipeline where cloud credentials are stored
 describe('Provision Node driver RKE1 cluster with AWS', { testIsolation: 'off', tags: ['@manager', '@adminUser', '@standardUser', '@jenkins'] }, () => {
   const clusterList = new ClusterManagerListPagePo();
@@ -13,6 +17,9 @@ describe('Provision Node driver RKE1 cluster with AWS', { testIsolation: 'off', 
   let removeNodeTemplate = false;
   let cloudcredentialId = '';
   let nodeTemplateId = '';
+
+  const homePage = new HomePagePo();
+  const homeClusterList = homePage.list();
 
   before(() => {
     cy.login();
@@ -55,6 +62,7 @@ describe('Provision Node driver RKE1 cluster with AWS', { testIsolation: 'off', 
   beforeEach(() => {
     cy.viewport(1440, 900);
     cy.createE2EResourceName('rke1ec2cluster').as('rke1Ec2ClusterName');
+    cy.createE2EResourceName('rke1ec2clusterdesc').as('rke1Ec2ClusterDescription');
     cy.createE2EResourceName('template').as('templateName');
     cy.createE2EResourceName('node').as('nodeName');
     cy.getRancherResource('v3', 'clusters', null, null).then((resp: Cypress.Response<any>) => {
@@ -113,6 +121,8 @@ describe('Provision Node driver RKE1 cluster with AWS', { testIsolation: 'off', 
     createRKE1ClusterPage.waitForPage('type=amazonec2&rkeType=rke1');
     createRKE1ClusterPage.rke1PageTitle().should('contain', 'Add Cluster - Amazon EC2');
     createRKE1ClusterPage.clusterName().set(this.rke1Ec2ClusterName);
+    createRKE1ClusterPage.addDescriptionButtonClick();
+    createRKE1ClusterPage.clusterDescription().set(this.rke1Ec2ClusterDescription);
     createRKE1ClusterPage.nodePoolTable().name(1).set(this.nodeName);
     createRKE1ClusterPage.nodePoolTable().count(1).set('1');
     createRKE1ClusterPage.nodePoolTable().template(1).checkOptionSelected(this.templateName);
@@ -170,6 +180,13 @@ describe('Provision Node driver RKE1 cluster with AWS', { testIsolation: 'off', 
         .next('tr.main-row')
         .should('contain', 'Active');
     });
+
+    // https://github.com/rancher/dashboard/issues/10441 - covering RKE1/ember world descriptions
+    HomePagePo.navTo();
+    const desc = homeClusterList.resourceTable().sortableTable().rowWithName(this.rke1Ec2ClusterName).column(1)
+      .get('.cluster-description');
+
+    desc.contains(this.rke1Ec2ClusterDescription);
   });
 
   it('can add a node to the cluster', function() {

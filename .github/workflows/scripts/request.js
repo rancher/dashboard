@@ -34,11 +34,17 @@ async function ghProject(org, num) {
                 name
               }
             }
+            ... on ProjectV2FieldCommon {
+              id
+              name
+            }            
         	}
       	}        
       }
     }
   }`;
+
+  // console.log(gQL);
 
   const res = await graphql(gQL);
 
@@ -62,13 +68,21 @@ async function ghProject(org, num) {
         options: optionMap
       };
     }
+
+    const storyPointsField = v2Project.fields?.nodes.find((node) => node.name === 'Story Points');
+
+    if (storyPointsField) {
+      prj.storyPointsField = {
+        id: storyPointsField.id
+      };
+    }
+
   } else {
     console.log(res);
   }
 
   return prj;
 }
-
 /**
  * Fetch the issue and get the project info for the issue (map of project ID to project issue ID)
  *
@@ -78,8 +92,6 @@ async function ghProject(org, num) {
  * @returns Project Issue Map metadata
  */
 async function ghProjectIssue(org, repo, num) {
-  console.log(`ghProjectIssue: ${ org }/${ repo } #${ num }`);
-
   const gQL = `query {
     repository(name:"${ repo }", owner:"${ org }") {
       issue(number: ${ num }) {
@@ -102,11 +114,7 @@ async function ghProjectIssue(org, repo, num) {
     }
   }`;
 
-  console.log(gQL);
-
   const res = await graphql(gQL);
-
-  console.log(JSON.stringify(res, null, 2));
 
   if (res.data?.repository?.issue?.projectItems) {
     const projectItems = res.data?.repository?.issue?.projectItems?.nodes;
@@ -120,6 +128,7 @@ async function ghProjectIssue(org, repo, num) {
     return projectMap;
   } else {
     console.log('No project items');
+    console.log(JSON.stringify(res, null, 2));
   }
 
   return undefined;
@@ -192,6 +201,24 @@ async function ghFetchOpenIssues(org, repo, milestone, label, previous) {
     extra += ` label:\\"${label}\\"`;
   }
 
+  const query = `repo:${org}/${repo} ${extra}`;
+
+  return ghQueryIssues(query, previous);
+}
+
+async function ghFetchOpenIssuesInProject(org, projectId, milestone, label, previous) {
+  let extra = milestone ? `milestone:${ milestone }` : '';
+
+  if (label) {
+    extra += ` label:\\"${label}\\"`;
+  }
+
+  const query = `project:${org}/${projectId} ${extra}`;
+
+  return ghQueryIssues(query, previous);
+}
+
+async function ghQueryIssues(query, previous) {
   let after = '';
 
   if (previous && previous.pageInfo?.endCursor) {
@@ -199,7 +226,7 @@ async function ghFetchOpenIssues(org, repo, milestone, label, previous) {
   }
 
   const gQL = `query {
-    search(first:100, ${after} type:ISSUE, query:"is:open is:issue repo:${org}/${repo} ${extra}") {
+    search(first:100, ${after} type:ISSUE, query:"is:open is:issue ${query}") {
       issueCount,
       pageInfo {
         startCursor
@@ -230,6 +257,11 @@ async function ghFetchOpenIssues(org, repo, milestone, label, previous) {
                   id
                 }
               }
+              storyPoints: fieldValueByName(name: "Story Points") {
+                ...on ProjectV2ItemFieldNumberValue {
+                  number
+                }
+              }
             }
           }
         }
@@ -249,7 +281,7 @@ async function ghFetchOpenIssues(org, repo, milestone, label, previous) {
     }
 
     if (res.data.search.pageInfo.hasNextPage) {
-      return await ghFetchOpenIssues(org, repo, milestone, label, res.data.search)
+      return await ghQueryIssues(query, res.data.search)
     }
 
     return res.data.search.nodes;
@@ -324,7 +356,11 @@ function write(url, data, method) {
 
             response.on('end', () => {
                 let response_body = Buffer.concat(chunks_of_data);
-                resolve(JSON.parse(response_body.toString()));
+                try {
+                  resolve(JSON.parse(response_body.toString()));
+                } catch (e) {
+                  reject(response);
+                }
             });
 
             response.on('error', (error) => {
@@ -347,4 +383,5 @@ module.exports = {
     ghUpdateProjectIssueStatus,
     ghFetchOpenIssues,
     ghAddIssueToProject,
+    ghFetchOpenIssuesInProject,
 };

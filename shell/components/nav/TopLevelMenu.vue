@@ -128,7 +128,7 @@ export default {
           isLocal:         x.isLocal,
           isHarvester:     x.isHarvester,
           pinned:          x.pinned,
-          description:     pCluster?.description,
+          description:     pCluster?.description || x.description,
           pin:             () => x.pin(),
           unpin:           () => x.unpin(),
           clusterRoute:    { name: 'c-cluster-explorer', params: { cluster: x.id } }
@@ -930,7 +930,7 @@ export default {
     flex-direction: column;
     padding: 0;
     overflow: hidden;
-    transition: width 500ms;
+    transition: width 250ms;
 
     &:focus {
       outline: 0;

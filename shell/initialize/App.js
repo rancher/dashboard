@@ -1,7 +1,4 @@
 // Taken from @nuxt/vue-app/template/App.js
-
-import Vue from 'vue';
-
 import {
   getMatchedComponentsInstances, getChildrenComponentInstancesUsingFetch, promisify, globalHandleError, sanitizeComponent
 } from '../utils/nuxt';
@@ -104,17 +101,6 @@ export default {
           for (const component of getChildrenComponentInstancesUsingFetch(page.$vnode.componentInstance)) {
             p.push(component.$fetch());
           }
-        }
-
-        if (page.$options.asyncData) {
-          p.push(
-            promisify(page.$options.asyncData, this.context)
-              .then((newData) => {
-                for (const key in newData) {
-                  Vue.set(page.$data, key, newData[key]);
-                }
-              })
-          );
         }
 
         return Promise.all(p);

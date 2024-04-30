@@ -3,7 +3,6 @@ import ResourceTablePo from '@/cypress/e2e/po/components/resource-table.po';
 import CodeMirrorPo from '@/cypress/e2e/po/components/code-mirror.po';
 import OpaGatekeeperListPo from '@/cypress/e2e/po/other-products/opa-gatekeeper-list';
 import AsyncButtonPo from '@/cypress/e2e/po/components/async-button.po';
-
 export default class OpaGatekeeperPo extends PagePo {
   static createPath(clusterId: string) {
     return `/c/${ clusterId }/gatekeeper`;

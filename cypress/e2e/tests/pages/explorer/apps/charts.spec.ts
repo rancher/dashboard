@@ -1,14 +1,22 @@
-import { ChartsPage } from '@/cypress/e2e/po/pages/charts.po';
+import { ChartsPage } from '@/cypress/e2e/po/pages/explorer/charts/charts.po';
 
 describe('Apps/Charts', { tags: ['@explorer', '@adminUser'] }, () => {
-  before(() => {
+  beforeEach(() => {
     cy.login();
+  });
+
+  it('should render an informational message inside of a banner', () => {
+    const chartsPage = new ChartsPage();
+
+    chartsPage.goTo();
+    chartsPage.waitForPage();
+
+    chartsPage.bannerContent().should('be.visible').and('not.be.empty');
   });
 
   it('filtering the Charts (search box) should not impact the Charts carousel', () => {
     let length = 0;
-    const chartsPageUrl = '/c/local/apps/charts';
-    const chartsPage = new ChartsPage(chartsPageUrl);
+    const chartsPage = new ChartsPage();
 
     chartsPage.goTo();
     chartsPage.waitForPage();

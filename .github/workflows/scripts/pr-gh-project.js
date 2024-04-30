@@ -6,22 +6,14 @@
 
 const request = require('./request');
 
-const TRIAGE_LABEL = '[zube]: To Triage';
-const IN_REVIEW_LABEL = '[zube]: Review';
-const IN_TEST_LABEL = '[zube]: To Test';
-const DONE_LABEL = '[zube]: Done';
-const BACKEND_BLOCKED_LABEL = '[zube]: Backend Blocked';
-const QA_REVIEW_LABEL = '[zube]: QA Review';
 const TECH_DEBT_LABEL = 'kind/tech-debt';
 const DEV_VALIDATE_LABEL = 'status/dev-validate';
 const QA_NONE_LABEL = 'QA/None';
 const QA_DEV_AUTOMATION_LABEL = 'QA/dev-automation'
 
-const GH_PRJ_TRIAGE = 'Triage';
-
 const GH_PRJ_TO_TEST = 'To Test';
 const GH_PRJ_QA_REVIEW = 'QA Review';
-const GH_PRJ_IN_REVIEW = 'In Review';
+const GH_PRJ_IN_REVIEW = 'Review';
 
 function parseOrgAndRepo(repoUrl) {
   const parts = repoUrl.split('/');
@@ -78,56 +70,33 @@ function hasLabel(issue, label) {
 }
 
 async function moveIssueToProjectState(project, prjIssueID, issue, state) {
-  console.log(`moveIssueToProjectState ${ state }`);
-  console.log(JSON.stringify(project, null, 2));
-  console.log(prjIssueID);
-  console.log(JSON.stringify(issue, null, 2));
+  // console.log(`moveIssueToProjectState ${ state }`);
+  // console.log(JSON.stringify(project, null, 2));
+  // console.log(prjIssueID);
+  // console.log(JSON.stringify(issue, null, 2));
+  const res = await request.ghUpdateProjectIssueStatus(project, prjIssueID, state);
 
-  return await request.ghUpdateProjectIssueStatus(project, prjIssueID, state);
+  // console.log(JSON.stringify(res, null, 2));
+  return res;
 }
 
 /**
- * Remove Zube labels
+ * Remove all Zube labels from an issue
  */
-async function removeZubeLabels(issue, label) {
-  // Remove all Zube labels
-  let cleanLabels = labels.filter(l => l.name.indexOf('[zube]') === -1);
+async function removeZubeLabels(issue) {
+  const currentLabels = issue.labels.map((v) => v.name);
+  let cleanLabels = issue.labels.filter(l => l.name.indexOf('[zube]') === -1);
 
-  cleanLabels = cleanLabels.map((v) => {
-    return v.name;
-  });
+  cleanLabels = cleanLabels.map((v) => v.name);
 
   // Turn the array of labels into just their names
-  console.log(`    Current Labels: ${cleanLabels}`);
-
-  // Add the 'to test' label
-  cleanLabels.push(label);
+  console.log('  Removing Zube labels:');
+  console.log(`    Current Labels: ${currentLabels}`);
   console.log(`    New Labels    : ${cleanLabels}`);
 
   // Update the labels
   const labelsAPI = `${issue.url}/labels`;
   return request.put(labelsAPI, { labels: cleanLabels });
-}
-
-async function waitForLabel(issue, label) {
-  let tries = 0;
-  while (!hasLabel(issue, label) && tries < 10) {
-    console.log(`  Waiting for issue to have the label ${label} (${tries})`);
-
-    // Wait 10 seconds
-    await new Promise(r => setTimeout(r, 10000));
-
-    // Refetch the issue
-    issue = await request.fetch(issue.url);
-
-    tries++;
-  }
-
-  if (tries > 10) {
-    console.log('WARNING: Timed out waiting for issue to have the Done label');
-  } else {
-    console.log('  Issue has the done label');
-  }
 }
 
 async function processClosedAction() {
@@ -143,8 +112,6 @@ async function processClosedAction() {
     return; 
   }
   
-  console.log(JSON.stringify(ghProject, null, 2));
-
   console.log('======');
   console.log('Processing Closed PR #' + pr.number + ' : ' + pr.title);
   console.log('======');
@@ -198,55 +165,52 @@ async function processClosedAction() {
     if (hasLabel(iss, TECH_DEBT_LABEL) || hasLabel(iss, DEV_VALIDATE_LABEL) || hasLabel(iss, QA_NONE_LABEL)) {
       console.log('  Issue is tech debt/dev validate/qa none - ignoring');
     } else {
-      // Put this in when we remove the Zube workflow
-      // A single workflow needs to re-open the issue after GH closes it
-      // console.log('  Waiting for Zube to mark the issue as done ...');
+      // Re-open the issue after GH closes it
+      await new Promise(r => setTimeout(r, 2500));
 
-      // // Output labels
-      // const labels = iss.labels || [];
-
-      // console.log(labels.join(', '));
-
-      // // console.log(JSON.stringify(iss, null, 2));
-
-      // // The Zube Integration will label the issue with the Done label
-      // // Since it runs via a webhook, it should have done that well before our GitHub action
-      // // is scheduled and has run, but we will check it has the label and wait if not
-      // await waitForLabel(iss, DONE_LABEL);
-
-      // // Wait
-      // await new Promise(r => setTimeout(r, 10000));
-      // // Re-open the issue if it is closed
-      // if (iss.state === 'closed') {
-      //   console.log('  Re-opening issue');
-      //   await request.patch(detail, { state: 'open' });
-      // } else {
-      //   console.log('  Expecting issue to be closed, but it is not');
-      // }
-
-      // console.log('  Waiting for Zube to mark the issue as in triage ...');
-
-      // // The Zube Integration will label the issue as To Triage now that is has been re-opened
-      // // Wait for that and then we can move it to test
-      // await waitForLabel(iss, TRIAGE_LABEL);
-
-      // Move to QA Review if the issue has the label that dev wrote automated tests
-      if (hasLabel(iss, QA_DEV_AUTOMATION_LABEL)) {
-        console.log('  Updating GitHub Project to move issue to QA Review');
-
-        console.log(JSON.stringify(iss, null, 2));
-
-        // await moveIssueToProjectState(iss, GH_PRJ_QA_REVIEW);
-        // Uncomment when we switch off Zube 
-        // await removeZubeLabels(iss);
+      // Re-open the issue if it is closed (it should be)
+      if (iss.state === 'closed') {
+        console.log('  Re-opening issue');
+        await request.patch(detail, { state: 'open' });
       } else {
-        console.log('  Updating GitHub Project to move issue to Test');
+        console.log('  Expecting issue to be closed, but it is not');
+      }
 
-        console.log(JSON.stringify(iss, null, 2));
+      // Need to fetch the issue project status
+      const info = parseOrgAndRepo(iss.repository_url);
+      let prjIssue = await request.ghProjectIssue(info.org, info.repo, i);
 
-        // await moveIssueToProjectState(iss, GH_PRJ_TO_TEST);
-        // Uncomment when we switch off Zube 
-        // await removeZubeLabels(iss);
+      // Is the issue on the board?
+      if (!prjIssue?.[ghProject.id]) {
+        // Issue is not on the board
+        console.log(`Issue ${ i } is NOT on the project board - adding it ...`);
+
+        await request.ghAddIssueToProject(ghProject, iss);
+
+        prjIssue = await request.ghProjectIssue(info.org, info.repo, i);
+
+        if (!prjIssue?.[ghProject.id]) {
+          console.log("Error: Could not add issue to Project Board");
+          console.log(prjIssue);
+        } else {
+          console.log('Added issue to the project board');
+          console.log(JSON.stringify(prjIssue, null, 2));  
+        }
+      }
+
+      if (prjIssue?.[ghProject.id]) {
+        // Move to QA Review if the issue has the label that dev wrote automated tests
+        if (hasLabel(iss, QA_DEV_AUTOMATION_LABEL)) {
+          console.log('  Updating GitHub Project to move issue to QA Review');
+
+          await moveIssueToProjectState(ghProject, prjIssue[ghProject.id], iss, GH_PRJ_QA_REVIEW);
+          await removeZubeLabels(iss);        
+        } else {
+          console.log('  Updating GitHub Project to move issue to Test');
+
+          await moveIssueToProjectState(ghProject, prjIssue[ghProject.id], iss, GH_PRJ_TO_TEST);
+          await removeZubeLabels(iss);        
+        }
       }
     }
 
@@ -284,8 +248,6 @@ async function processOpenOrEditAction() {
   
     return; 
   }
-  
-  console.log(JSON.stringify(ghProject, null, 2));  
 
   const pr = event.pull_request;
   const body = pr.body;
@@ -305,19 +267,14 @@ async function processOpenOrEditAction() {
     console.log('Processing Issue #' + i + ' - ' + iss.title);
 
     if (pr.draft) {
-      console.log('    Issue will not be moved to In Review (Draft PR)');
-    } else if (hasLabel(iss, BACKEND_BLOCKED_LABEL)) {
-      console.log('    Issue will not be moved to In Review (Backend Blocked)');
+      console.log('    Issue will not be moved to Review (Draft PR)');
+      // TODO:
+    // } else if (hasLabel(iss, BACKEND_BLOCKED_LABEL)) {
+    //   console.log('    Issue will not be moved to Review (Backend Blocked)');
     } else {
       // Need to fetch the issue project status
       const info = parseOrgAndRepo(iss.repository_url);
       let prjIssue = await request.ghProjectIssue(info.org, info.repo, i);
-
-      console.log(info);
-
-      console.log('-------- GH ISSUE -----');
-      console.log(JSON.stringify(prjIssue, null, 2));  
-      console.log('---------');
 
       // Is the issue on the board?
       if (!prjIssue?.[ghProject.id]) {
@@ -338,7 +295,8 @@ async function processOpenOrEditAction() {
       }
 
       if (prjIssue?.[ghProject.id]) {
-        await moveIssueToProjectState(ghProject, prjIssue[ghProject.id].id, iss, GH_PRJ_IN_REVIEW);
+        await moveIssueToProjectState(ghProject, prjIssue[ghProject.id], iss, GH_PRJ_IN_REVIEW);
+        await removeZubeLabels(iss);        
       } else {
         console.log(`Can not move issue to state ${ GH_PRJ_IN_REVIEW } - issue is not on the board`);
       }
@@ -368,7 +326,7 @@ async function processOpenOrEditAction() {
 }
 
 // Debugging
-console.log(JSON.stringify(event, null, 2));
+// console.log(JSON.stringify(event, null, 2));
 
 // Look at the action
 if (event.action === 'opened' || event.action === 'reopened') {
