@@ -5,16 +5,10 @@ import fetch from 'unfetch';
 import middleware from '../config/middleware.js';
 import {
   middlewareSeries,
-  sanitizeComponent,
-  resolveRouteComponents,
   getMatchedComponents,
-  getMatchedComponentsInstances,
   flatMapComponents,
   setContext,
-  compile,
-  getQueryDiff,
   globalHandleError,
-  isSamePath,
   urlJoin
 } from '../utils/nuxt.js';
 import { createApp } from './index.js';
@@ -40,11 +34,8 @@ if (!global.fetch) {
 }
 
 // Global shared references
-let _lastPaths = [];
 let app;
 let router;
-
-const NUXT = {};
 
 const $config = nuxt.publicRuntimeConfig || {}; // eslint-disable-line no-undef
 
@@ -98,81 +89,6 @@ const errorHandler = Vue.config.errorHandler || console.error; // eslint-disable
 // Create and mount App
 createApp(nuxt.publicRuntimeConfig).then(mountApp).catch(errorHandler); // eslint-disable-line no-undef
 
-async function loadAsyncComponents(to, from, next) {
-  // Check if route changed (this._routeChanged), only if the page is not an error (for validate())
-  this._routeChanged = Boolean(app.nuxt.err) || from.name !== to.name;
-  this._paramChanged = !this._routeChanged && from.path !== to.path;
-  this._queryChanged = !this._paramChanged && from.fullPath !== to.fullPath;
-  this._diffQuery = (this._queryChanged ? getQueryDiff(to.query, from.query) : []);
-
-  if ((this._routeChanged || this._paramChanged) && this.$loading.start && !this.$loading.manual) {
-    this.$loading.start();
-  }
-
-  try {
-    if (this._queryChanged) {
-      const Components = await resolveRouteComponents(
-        to,
-        (Component, instance) => ({ Component, instance })
-      );
-      // Add a marker on each component that it needs to refresh or not
-      const startLoader = Components.some(({ Component, instance }) => {
-        const watchQuery = Component.options.watchQuery;
-
-        if (watchQuery === true) {
-          return true;
-        }
-        if (Array.isArray(watchQuery)) {
-          return watchQuery.some((key) => this._diffQuery[key]);
-        }
-        if (typeof watchQuery === 'function') {
-          return watchQuery.apply(instance, [to.query, from.query]);
-        }
-
-        return false;
-      });
-
-      if (startLoader && this.$loading.start && !this.$loading.manual) {
-        this.$loading.start();
-      }
-    }
-    // Call next()
-    next();
-  } catch (error) {
-    const err = error || {};
-    const statusCode = err.statusCode || err.status || (err.response && err.response.status) || 500;
-    const message = err.message || '';
-
-    // Handle chunk loading errors
-    // This may be due to a new deployment or a network problem
-    if (/^Loading( CSS)? chunk (\d)+ failed\./.test(message)) {
-      window.location.reload(true /* skip cache */);
-
-      return; // prevent error page blinking for user
-    }
-
-    this.error({ statusCode, message });
-    next();
-  }
-}
-
-// Get matched components
-function resolveComponents(route) {
-  return flatMapComponents(route, async(Component, _, match, key, index) => {
-    // If component is not resolved yet, resolve it
-    if (typeof Component === 'function' && !Component.options) {
-      Component = await Component();
-    }
-
-    // Sanitize it and save it
-    Component._Ctor = sanitizeComponent(Component);
-
-    match.components[key] = Component;
-
-    return Component;
-  });
-}
-
 function callMiddleware(Components, context) {
   let midd = ['i18n'];
   let unknownMiddleware = false;
@@ -205,16 +121,6 @@ function callMiddleware(Components, context) {
 async function render(to, from, next) {
   if (this._routeChanged === false && this._paramChanged === false && this._queryChanged === false) {
     return next();
-  }
-
-  if (to === from) {
-    _lastPaths = [];
-  } else {
-    const fromMatches = [];
-
-    _lastPaths = getMatchedComponents(from, fromMatches).map((Component, i) => {
-      return compile(from.matched[fromMatches[i]].path)(from.params);
-    });
   }
 
   // nextCalled is true when redirected
@@ -269,13 +175,6 @@ async function render(to, from, next) {
     return next();
   }
 
-  // Update ._data and other properties if hot reloaded
-  Components.forEach((Component) => {
-    if (Component._Ctor && Component._Ctor.options) {
-      Component.options.fetch = Component._Ctor.options.fetch;
-    }
-  });
-
   try {
     // Call middleware
     await callMiddleware.call(this, Components, app.context);
@@ -327,70 +226,6 @@ async function render(to, from, next) {
       return next();
     }
 
-    let instances;
-
-    // Call fetch hooks on components matched by the route.
-    await Promise.all(Components.map((Component, i) => {
-      // Check if only children route changed
-      Component._path = compile(to.matched[matches[i]].path)(to.params);
-      Component._dataRefresh = false;
-      const childPathChanged = Component._path !== _lastPaths[i];
-
-      // Refresh component (call fetch) when:
-      // Route path changed part includes current component
-      // Or route param changed part includes current component and watchParam is not `false`
-      // Or route query is changed and watchQuery returns `true`
-      if (this._routeChanged && childPathChanged) {
-        Component._dataRefresh = true;
-      } else if (this._paramChanged && childPathChanged) {
-        const watchParam = Component.options.watchParam;
-
-        Component._dataRefresh = watchParam !== false;
-      } else if (this._queryChanged) {
-        const watchQuery = Component.options.watchQuery;
-
-        if (watchQuery === true) {
-          Component._dataRefresh = true;
-        } else if (Array.isArray(watchQuery)) {
-          Component._dataRefresh = watchQuery.some((key) => this._diffQuery[key]);
-        } else if (typeof watchQuery === 'function') {
-          if (!instances) {
-            instances = getMatchedComponentsInstances(to);
-          }
-          Component._dataRefresh = watchQuery.apply(instances[i], [to.query, from.query]);
-        }
-      }
-      if (!this._hadError && this._isMounted && !Component._dataRefresh) {
-        return;
-      }
-
-      const promises = [];
-
-      const hasFetch = Boolean(Component.options.fetch) && Component.options.fetch.length;
-
-      const loadingIncrease = hasFetch ? 30 : 45;
-
-      // Check disabled page loading
-      this.$loading.manual = Component.options.loading === false;
-
-      // Call fetch(context)
-      if (hasFetch) {
-        let p = Component.options.fetch(app.context);
-
-        if (!p || (!(p instanceof Promise) && (typeof p.then !== 'function'))) {
-          p = Promise.resolve(p);
-        }
-        p.then((fetchResult) => {
-          if (this.$loading.increase) {
-            this.$loading.increase(loadingIncrease);
-          }
-        });
-        promises.push(p);
-      }
-
-      return Promise.all(promises);
-    }));
-
     // If not redirected
     if (!nextCalled) {
       if (this.$loading.finish && !this.$loading.manual) {
@@ -401,8 +236,6 @@ async function render(to, from, next) {
     }
   } catch (err) {
     const error = err || {};
-
-    _lastPaths = [];
 
     globalHandleError(error);
 
@@ -432,52 +265,6 @@ function checkForErrors(app) {
   }
 }
 
-// When navigating on a different route but the same component is used, Vue.js
-// Will not update the instance data, so we have to update $data ourselves
-function fixPrepatch(to, ___) {
-  if (this._routeChanged === false && this._paramChanged === false && this._queryChanged === false) {
-    return;
-  }
-
-  const instances = getMatchedComponentsInstances(to);
-  const Components = getMatchedComponents(to);
-
-  Vue.nextTick(() => {
-    instances.forEach((instance, i) => {
-      if (!instance || instance._isDestroyed) {
-        return;
-      }
-
-      if (
-        instance.constructor._dataRefresh &&
-        Components[i] === instance.constructor &&
-        instance.$vnode.data.keepAlive !== true &&
-        typeof instance.constructor.options.data === 'function'
-      ) {
-        const newData = instance.constructor.options.data.call(instance);
-
-        for (const key in newData) {
-          Vue.set(instance.$data, key, newData[key]);
-        }
-      }
-    });
-
-    checkForErrors(this);
-  });
-}
-
-function nuxtReady(_app) {
-  window.onNuxtReadyCbs.forEach((cb) => {
-    if (typeof cb === 'function') {
-      cb(_app);
-    }
-  });
-  // Special JSDOM
-  if (typeof window._onNuxtLoaded === 'function') {
-    window._onNuxtLoaded(_app);
-  }
-}
-
 async function mountApp(__app) {
   // Set global variables
   app = __app.app;
@@ -492,31 +279,12 @@ async function mountApp(__app) {
 
     // Add afterEach router hooks
     router.afterEach(normalizeComponents);
-
-    router.afterEach(fixPrepatch.bind(_app));
-
-    // Listen for first Vue update
-    Vue.nextTick(() => {
-      // Call window.{{globals.readyCallback}} callbacks
-      nuxtReady(_app);
-    });
   };
-
-  // Resolve route components
-  const Components = await Promise.all(resolveComponents(app.context.route));
-
-  if (Components.length) {
-    _lastPaths = router.currentRoute.matched.map((route) => compile(route.path)(router.currentRoute.params));
-  }
 
   // Initialize error handler
   _app.$loading = {}; // To avoid error while _app.$nuxt does not exist
-  if (NUXT.error) {
-    _app.error(NUXT.error);
-  }
 
   // Add beforeEach router hooks
-  router.beforeEach(loadAsyncComponents.bind(_app));
   router.beforeEach(render.bind(_app));
   router.beforeEach((from, to, next) => {
     if (from?.name !== to?.name) {
@@ -526,19 +294,10 @@ async function mountApp(__app) {
     next();
   });
 
-  // Fix in static: remove trailing slash to force hydration
-  // Full static, if server-rendered: hydrate, to allow custom redirect to generated page
-
-  // Fix in static: remove trailing slash to force hydration
-  if (NUXT.serverRendered && isSamePath(NUXT.routePath, _app.context.route.path)) {
-    return mount();
-  }
-
   // First render on client-side
   const clientFirstMount = () => {
     normalizeComponents(router.currentRoute, router.currentRoute);
     checkForErrors(_app);
-    // Don't call fixPrepatch.call(_app, router.currentRoute, router.currentRoute) since it's first render
     mount();
   };
 
