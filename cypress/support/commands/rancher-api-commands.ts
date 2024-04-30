@@ -1,6 +1,5 @@
 import { LoginPagePo } from '@/cypress/e2e/po/pages/login-page.po';
 import { CreateUserParams } from '@/cypress/globals';
-import cypress from 'cypress';
 
 // This file contains commands which makes API requests to the rancher API.
 // It includes the `login` command to store the `token` to use

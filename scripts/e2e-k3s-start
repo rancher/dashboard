@@ -69,8 +69,6 @@ echo "Waiting for dashboard UI to be reachable.........."
 okay=0
 
 while [ $okay -lt 20 ]; do
-  curl --silent --location --head -k $DASHBOARD_URL/dashboard/
-
   STATUS=$(curl --silent --location --head -k $DASHBOARD_URL/dashboard/ | awk -F'HTTP/2 ' '{print $2}' | awk 'length { print $1}')
 
   echo "Status: $STATUS (Try: $okay)"
@@ -89,7 +87,7 @@ if [ "$STATUS" != "200" ]; then
   exit 1
 fi
 
-echo "Updating UI within Rancher container"
+echo "Updating UI within Rancher container.........."
 # Note - these will pick the first container within the pod, so replicas=1 above is important
 POD_NAME=$(kubectl get pods --selector=app=rancher -n $NAMESPACE | tail -n 1 | cut -d ' ' -f1)
 echo "POD NAME: $POD_NAME"
@@ -113,7 +111,7 @@ kubectl cp ui $POD_NAME:/usr/share/rancher -n $NAMESPACE
 
 
 STATUS=$(curl --silent --location --head -k $DASHBOARD_URL/dashboard/ | awk -F'HTTP/2 ' '{print $2}' | awk 'length { print $1}')
-echo "Status: $STATUS (Try: $okay)"
+echo "Status: $STATUS"
 
 if [ "$STATUS" != "200" ]; then
   echo "After updating dashboard with dev build it is no longer available"
