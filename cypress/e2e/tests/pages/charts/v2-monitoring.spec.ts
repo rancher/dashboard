@@ -1,5 +1,6 @@
 import { generateV2MonitoringForLocalCluster } from '@/cypress/e2e/blueprints/other-products/v2-monitoring.js';
 import V2Monitoring from '@/cypress/e2e/po/other-products/v2-monitoring.po';
+import PreferencesPagePo from '@/cypress/e2e/po/pages/preferences.po';
 
 describe('V2 monitoring Chart', { tags: ['@charts', '@adminUser'] }, () => {
   beforeEach(() => {
@@ -129,6 +130,64 @@ describe('V2 monitoring Chart', { tags: ['@charts', '@adminUser'] }, () => {
             }
           ]
         });
+      });
+    });
+
+    // testing https://github.com/rancher/dashboard/issues/9923
+    it('Alerting Rules "Severity" select should NOT be translating the values to Chinese', () => {
+      // this intercept is for the payload of the creation of prometheusrules, which is what we want to test
+      cy.intercept('POST', 'k8s/clusters/local/v1/monitoring.coreos.com.prometheusrules', (req: any) => {
+        req.reply({
+          statusCode: 201,
+          body:       {}
+        });
+      }).as('prometheusRulesCreation');
+
+      const prefPage = new PreferencesPagePo();
+
+      // change language to chinese
+      prefPage.goTo();
+      prefPage.languageDropdownMenu().checkVisible();
+      prefPage.languageDropdownMenu().toggle();
+      prefPage.languageDropdownMenu().isOpened();
+      prefPage.languageDropdownMenu().getOptions().should('have.length', 2);
+      prefPage.languageDropdownMenu().clickOption(2);
+      prefPage.languageDropdownMenu().isClosed();
+
+      const v2Monitoring = new V2Monitoring('local');
+
+      // go to v2 monitoring on local cluster
+      v2Monitoring.goTo();
+      v2Monitoring.waitForPage();
+
+      // // open Advanced group (default is PrometheusRules)
+      v2Monitoring.navToSideMenuGroupByLabel('Advanced');
+      v2Monitoring.waitForPage();
+
+      // create a new PrometheusRule
+      v2Monitoring.createChinese().click();
+      v2Monitoring.waitForPage();
+
+      v2Monitoring.nameNsDescription().name().set('some-prom-rules');
+
+      v2Monitoring.prometheusRuleGroupName(0).self().scrollIntoView();
+      v2Monitoring.prometheusRuleGroupName(0).set('group-name-0');
+      v2Monitoring.prometheusRuleGroupInterval(0).setValue('60');
+
+      v2Monitoring.prometheusRulesAddAlert(0).click();
+      v2Monitoring.prometheusRulesAlertName(0).self().scrollIntoView();
+      v2Monitoring.prometheusRulesAlertName(0).set('record-0');
+      v2Monitoring.prometheusRulesAlertPromQl(0).self().scrollIntoView();
+      v2Monitoring.prometheusRulesAlertPromQl(0).set('promql-0');
+
+      // critical option
+      v2Monitoring.alertingRuleSeveritySelect(0).toggle();
+      v2Monitoring.alertingRuleSeveritySelect(0).clickOption(1);
+
+      v2Monitoring.saveCreateForm().click();
+
+      cy.wait('@prometheusRulesCreation', { requestTimeout: 4000 }).then((req) => {
+        expect(req.request.body.spec.groups[0].rules[0].labels.severity).to.equal('critical');
       });
     });
   });
