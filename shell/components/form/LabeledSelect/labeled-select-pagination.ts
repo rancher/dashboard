@@ -1,7 +1,7 @@
 import { debounce } from 'lodash';
 import { PropType, defineComponent } from 'vue';
 import { ComputedOptions, MethodOptions } from 'vue/types/v3-component-options';
-import { LabelSelectPaginateFn, LABEL_SELECT_NOT_OPTION_KINDS } from '@shell/types/components/labeledSelect';
+import { LabelSelectPaginateFn, LABEL_SELECT_NOT_OPTION_KINDS, LABEL_SELECT_KINDS } from '@shell/types/components/labeledSelect';
 import paginationUtils from '@shell/utils/pagination-utils';
 
 interface Props {
@@ -80,7 +80,9 @@ export default defineComponent<Props, any, Data, Computed, Methods>({
 
     optionsInPage() {
       // Number of genuine options (not groups, dividers, etc)
-      return this.canPaginate ? this._options.filter((o: any) => !LABEL_SELECT_NOT_OPTION_KINDS.includes(o.kind)).length : 0;
+      return this.canPaginate ? this._options.filter((o: any) => {
+        return o.kind !== LABEL_SELECT_KINDS.NONE && !LABEL_SELECT_NOT_OPTION_KINDS.includes(o.kind); // TODO: RC HEEEEER
+      }).length : 0;
     },
 
     optionCounts() {

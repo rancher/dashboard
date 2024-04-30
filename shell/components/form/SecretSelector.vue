@@ -3,7 +3,10 @@ import LabeledSelect from '@shell/components/form/LabeledSelect';
 import { SECRET } from '@shell/config/types';
 import { _EDIT, _VIEW } from '@shell/config/query-params';
 import { SECRET_TYPES as TYPES } from '@shell/config/secret';
-import sortBy from 'lodash/sortBy';
+import { PaginationParamFilter } from '@shell/types/store/pagination.types';
+import { labelSelectPaginationFunction } from '@shell/components/form/LabeledSelect/labeled-select.utils';
+import paginationUtils from '@shell/utils/pagination-utils';
+import { LABEL_SELECT_KINDS } from '@shell/types/components/labeledSelect';
 
 const NONE = '__[[NONE]]__';
 
@@ -62,6 +65,16 @@ export default {
     }
   },
 
+  async fetch() {
+    if (!paginationUtils.isSteveCacheEnabled({ rootGetters: this.$store.getters })) {
+      await this.$store.dispatch('cluster/findAll', { type: SECRET });
+    }
+  },
+
+  data() {
+    return { page: null };
+  },
+
   computed: {
     name: {
       get() {
@@ -96,15 +109,10 @@ export default {
         .filter((secret) => this.types.includes(secret._type) && secret.namespace === this.namespace);
     },
     secretNames() {
-      const mappedSecrets = this.secrets.map((secret) => ({
-        label: secret.name,
-        value: secret.name
-      })).sort();
-
-      return [{ label: 'None', value: NONE }, ...sortBy(mappedSecrets, 'label')];
+      return this.mapSecrets(this.secrets.sort((a, b) => a.name.localeCompare(b.name)));
     },
     keys() {
-      const secret = this.secrets.find((secret) => secret.name === this.name) || {};
+      const secret = (this.page || this.secrets).find((secret) => secret.name === this.name) || {};
 
       return Object.keys(secret.data || {}).map((key) => ({
         label: key,
@@ -119,6 +127,69 @@ export default {
     }
   },
 
+  methods: {
+    /**
+     * Provide a set of options for the LabelSelect ([none, ...{label, value}])
+     */
+    mapSecrets(secrets) {
+      const mappedSecrets = secrets
+        .reduce((res, s) => {
+          if (s.kind === LABEL_SELECT_KINDS.NONE) {
+            return res;
+          }
+
+          if (s.id) {
+            res.push({ label: s.name, value: s.name });
+          } else {
+            res.push(s);
+          }
+
+          return res;
+        }, []);
+
+      return [
+        {
+          label: 'None', value: NONE, kind: LABEL_SELECT_KINDS.NONE
+        },
+        ...mappedSecrets
+      ];
+    },
+
+    /**
+     * @param [PaginateFnOptions] opts
+     * @returns PaginateFnResponse
+     */
+    async paginateSecrets(opts) {
+      const { filter } = opts;
+      const filters = !!filter ? [PaginationParamFilter.createSingleField({ field: 'metadata.name', value: filter })] : [];
+
+      filters.push(
+        PaginationParamFilter.createSingleField({ field: 'metadata.namespace', value: this.namespace }),
+        PaginationParamFilter.createSingleField({ field: 'metadata.fields.1', value: this.types.join(',') })
+      );
+
+      const {
+        page,
+        ...rest
+      } = await labelSelectPaginationFunction({
+        opts,
+        filters,
+        groupByNamespace: false,
+        type:             SECRET,
+        ctx:              { getters: this.$store.getters, dispatch: this.$store.dispatch },
+        classify:         true,
+        sort:             [{ asc: true, field: 'metadata.name' }],
+      });
+
+      this.page = page;
+
+      return {
+        ...rest,
+        page: this.mapSecrets(this.page)
+      };
+    },
+  }
+
 };
 </script>
 
@@ -128,10 +199,13 @@ export default {
     :class="{'show-key-selector': showKeySelector}"
   >
     <div class="input-container">
+      <!-- key by namespace to ensure label select current page is recreated on ns change -->
       <LabeledSelect
+        :key="namespace"
         v-model="name"
         :disabled="!isView && disabled"
         :options="secretNames"
+        :paginate="paginateSecrets"
         :label="secretNameLabel"
         :mode="mode"
       />

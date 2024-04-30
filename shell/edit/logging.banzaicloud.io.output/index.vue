@@ -24,10 +24,6 @@ export default {
 
   mixins: [CreateEditView],
 
-  async fetch() {
-    await this.$store.dispatch('cluster/findAll', { type: SECRET });
-  },
-
   data() {
     const schemas = this.$store.getters['cluster/all'](SCHEMA);
 

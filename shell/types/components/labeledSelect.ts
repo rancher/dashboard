@@ -1,4 +1,13 @@
-export const LABEL_SELECT_NOT_OPTION_KINDS = ['group', 'divider'];
+export const LABEL_SELECT_KINDS = {
+  GROUP:   'group',
+  DIVIDER: 'divider',
+  NONE:    'none',
+};
+
+export const LABEL_SELECT_NOT_OPTION_KINDS = [
+  LABEL_SELECT_KINDS.GROUP,
+  LABEL_SELECT_KINDS.DIVIDER,
+];
 
 /**
  * Options used When LabelSelect requests a new page

@@ -27,6 +27,11 @@ interface lSPFOptions<T> {
    * True if the options returned should be grouped by namespace
    */
   groupByNamespace?: boolean,
+
+  /**
+   * Convert the results from JSON object to Rancher model class instance
+   */
+  classify: boolean,
 }
 
 /**
@@ -40,6 +45,7 @@ export async function labelSelectPaginationFunction<T>({
   sort = [{ asc: true, field: 'metadata.namespace' }, { asc: true, field: 'metadata.name' }],
   store = 'cluster',
   groupByNamespace = true,
+  classify = false,
 }: lSPFOptions<T>): Promise<LabelSelectPaginateFnResponse<T>> {
   const {
     pageContent, page, pageSize, resetPage
@@ -55,10 +61,15 @@ export async function labelSelectPaginationFunction<T>({
       filters
     });
     const url = ctx.getters[`${ store }/urlFor`](type, null, { pagination });
-
     // Make request (note we're not bothering to persist anything to the store, response is transient)
     const res = await ctx.dispatch(`${ store }/request`, { url });
-    const options = resetPage ? res.data : pageContent.concat(res.data);
+    let data = res.data;
+
+    if (classify) {
+      data = await ctx.dispatch('cluster/createMany', data);
+    }
+
+    const options = resetPage ? data : pageContent.concat(data);
 
     // Create the new option collection by...
     let resPage: any[];
