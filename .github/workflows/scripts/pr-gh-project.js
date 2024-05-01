@@ -57,7 +57,11 @@ function getReferencedIssues(body) {
   do {
     v = regexp.exec(body);
     if (v) {
-      issues.push(parseInt(v[2], 10));
+      const vNumber = parseInt(v[2], 10);
+
+      if (!isNaN(vNumber)) {
+        issues.push(vNumber);
+      }
     }
   } while (v);
   return issues;
