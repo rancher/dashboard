@@ -51,6 +51,7 @@ describe('MachineSets', { testIsolation: 'off', tags: ['@manager', '@adminUser']
 
   it('can edit a MachineSet', function() {
     MachineSetsPagePo.navTo();
+    machineSetsPage.waitForPage();
     machineSetsPage.list().actionMenu(this.machineSetName).getMenuItem('Edit YAML').click();
     machineSetsPage.createEditMachineSet(nsName, this.machineSetName).waitForPage('mode=edit&as=yaml');
 
@@ -80,6 +81,7 @@ describe('MachineSets', { testIsolation: 'off', tags: ['@manager', '@adminUser']
 
   it('can clone a MachineSet', function() {
     MachineSetsPagePo.navTo();
+    machineSetsPage.waitForPage();
     machineSetsPage.list().actionMenu(this.machineSetName).getMenuItem('Clone').click();
     machineSetsPage.createEditMachineSet(nsName, this.machineSetName).waitForPage('mode=clone&as=yaml');
 
@@ -103,6 +105,7 @@ describe('MachineSets', { testIsolation: 'off', tags: ['@manager', '@adminUser']
 
   it('can download YAML', function() {
     MachineSetsPagePo.navTo();
+    machineSetsPage.waitForPage();
     machineSetsPage.list().actionMenu(this.machineSetName).getMenuItem('Download YAML').click({ force: true });
 
     const downloadedFilename = path.join(downloadsFolder, `${ this.machineSetName }.yaml`);
@@ -119,6 +122,7 @@ describe('MachineSets', { testIsolation: 'off', tags: ['@manager', '@adminUser']
 
   it('can delete a MachineSet', function() {
     MachineSetsPagePo.navTo();
+    machineSetsPage.waitForPage();
 
     // delete original cloned MachineSet
     machineSetsPage.list().actionMenu(`${ this.machineDeploymentsName }-clone`).getMenuItem('Delete').click();
@@ -137,6 +141,7 @@ describe('MachineSets', { testIsolation: 'off', tags: ['@manager', '@adminUser']
 
   it('can delete MachineSet via bulk actions', function() {
     MachineSetsPagePo.navTo();
+    machineSetsPage.waitForPage();
 
     // delete original MachineSet
     machineSetsPage.list().resourceTable().sortableTable().rowSelectCtlWithName(this.machineSetName)
