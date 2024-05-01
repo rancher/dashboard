@@ -4,6 +4,7 @@ import { SETTING } from '@shell/config/settings';
 import { createCssVars } from '@shell/utils/color';
 import { setTitle } from '@shell/config/private-label';
 import { fetchInitialSettings } from '@shell/utils/settings';
+import { setFavIcon, haveSetFavIcon } from '@shell/utils/favicon';
 
 const cspAdaptorApp = ['rancher-csp-adapter', 'rancher-csp-billing-adapter'];
 
@@ -23,6 +24,11 @@ export default {
     // Ensure we read the settings even when we are not authenticated
     try {
       await fetchInitialSettings(this.$store);
+
+      // The favicon is implicitly dependent on the initial settings having already been fetched
+      if (!haveSetFavIcon()) {
+        setFavIcon(this.$store);
+      }
     } catch (e) {}
 
     // Setting this up front will remove `computed` churn, and we only care that we've initialised them
