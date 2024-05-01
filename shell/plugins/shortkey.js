@@ -3,7 +3,7 @@ import ShortKey from 'vue-shortkey';
 
 const vShortKey = {
   install: (Vue) => {
-    if (Vue.component('shortkey')) {
+    if (Vue.directive('shortkey')) {
       // eslint-disable-next-line no-console
       console.debug('Skipping shortkey install. Component already exists.');
     } else {
