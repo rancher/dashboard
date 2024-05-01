@@ -1,6 +1,6 @@
 import PagePo from '@/cypress/e2e/po/pages/page.po';
 import AsyncButtonPo from '@/cypress/e2e/po/components/async-button.po';
-import { ChartsPage } from '~/cypress/e2e/po/pages/explorer/charts/charts.po';
+import { ChartsPage } from '@/cypress/e2e/po/pages/explorer/charts/charts.po';
 
 export class ChartPage extends PagePo {
   private static createPath(clusterId: string) {
