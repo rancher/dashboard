@@ -1,0 +1,111 @@
+name: Build Dashboard and Upload
+
+on:
+  workflow_call:
+    inputs:
+      CI_BRANCH:
+        required: false
+        type: string
+      CI_BUILD_TAG:
+        required: false
+        type: string
+
+env:
+  CI_BUILD_TAG: ${{inputs.CI_BUILD_TAG}}
+  CI_BRANCH: ${{inputs.CI_BRANCH}}
+  GIT_REPO: ${{github.repository}}
+  GIT_COMMIT: ${{github.sha}}
+  REPO: ${{github.event.repository.name || ''}}
+
+jobs:
+  build-and-upload-hosted:
+    name: Build & Upload Hosted
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v3
+        with:
+          fetch-depth: 1
+
+        # Note - Cannot use the setup action here as it uses a different yarn install arg
+      - uses: actions/setup-node@v3
+        with:
+          node-version: '14.x'
+          cache: 'yarn'
+
+        # Build a directory containing the dashboard that can be used with ui-dashboard-index
+      - id: build-hosted
+        name: Build Hosted
+        run: ./scripts/build-hosted
+
+      - id: upload-gate
+        name: Upload Gate (superceded by a newer build?)
+        run: ./scripts/build-upload-gate
+
+      - name: Get gcs auth
+        uses: rancher-eio/read-vault-secrets@main
+        with:
+          secrets: |
+            secret/data/github/repo/${{ github.repository }}/google-auth/rancher/credentials token | GOOGLE_AUTH
+
+      - name: Apply gcs auth
+        # https://github.com/google-github-actions/auth
+        uses: 'google-github-actions/auth@v2'
+        with:
+          credentials_json: "${{ env.GOOGLE_AUTH }}"
+
+      - name: Upload build
+        uses: 'google-github-actions/upload-cloud-storage@v2'
+        # https://github.com/google-github-actions/upload-cloud-storage
+        with:
+          path: ${{steps.build-hosted.outputs.BUILD_HOSTED_DIR}}
+          # Example - https://releases.rancher.com/ui/2.8.0/...
+          destination: releases.rancher.com/${{ env.REPO }}/${{ steps.build-hosted.outputs.BUILD_HOSTED_LOCATION }}
+          parent: false
+          headers: |-
+            cache-control: no-cache,must-revalidate
+          process_gcloudignore: false
+
+  build-and-upload-embedded:
+    name: Build & Upload Embedded
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v3
+        with:
+          fetch-depth: 1
+
+        # Note - Cannot use the setup action here as it uses a different yarn install arg
+      - uses: actions/setup-node@v3
+        with:
+          node-version: '14.x'
+          cache: 'yarn'
+
+        # Build a tar that will be picked up by rancher builds and embedded into it
+      - id: build-embedded
+        name: Build Embedded
+        run: ./scripts/build-embedded
+        env:
+          EMBED_PKG: https://releases.rancher.com/harvester-ui/plugin/harvester-1.0.3.tar.gz
+
+      - name: Get gcs auth
+        uses: rancher-eio/read-vault-secrets@main
+        with:
+          secrets: |
+            secret/data/github/repo/${{ github.repository }}/google-auth/rancher/credentials token | GOOGLE_AUTH
+
+      - name: Apply gcs auth
+        # https://github.com/google-github-actions/auth
+        uses: 'google-github-actions/auth@v2'
+        with:
+          credentials_json: "${{ env.GOOGLE_AUTH }}"
+
+      - name: Upload tar
+        uses: 'google-github-actions/upload-cloud-storage@v2'
+        with:
+          path: ${{steps.build-embedded.outputs.BUILD_EMBEDED_TGZ}}
+          # Example - https://releases.rancher.com/ui/2.8.0.tar.gz
+          destination: releases.rancher.com/${{ env.REPO }}
+          parent: false
+          headers: |-
+            cache-control: no-cache,must-revalidate
+          process_gcloudignore: false
+  
