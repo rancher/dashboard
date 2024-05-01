@@ -55,7 +55,6 @@ export default {
     const hasAccessToOutputs = this.$store.getters[`cluster/schemaFor`](LOGGING.OUTPUT);
     const hasAccessToNamespaces = this.$store.getters[`cluster/schemaFor`](NAMESPACE);
     const hasAccessToNodes = this.$store.getters[`cluster/schemaFor`](NODE);
-    const hasAccessToPods = this.$store.getters[`cluster/schemaFor`](POD);
     const isFlow = this.value.type === LOGGING.FLOW;
 
     const getAllOrDefault = (type, hasAccess) => {
@@ -67,7 +66,6 @@ export default {
       allClusterOutputs: getAllOrDefault(LOGGING.CLUSTER_OUTPUT, hasAccessToClusterOutputs),
       allNamespaces:     getAllOrDefault(NAMESPACE, hasAccessToNamespaces),
       allNodes:          getAllOrDefault(NODE, hasAccessToNodes),
-      allPods:           getAllOrDefault(POD, hasAccessToPods),
     });
 
     for ( const k of Object.keys(hash) ) {
@@ -204,17 +202,17 @@ export default {
       return out;
     },
 
-    containerChoices() {
-      const out = [];
+    // containerChoices() {
+    //   const out = [];
 
-      for ( const pod of this.allPods ) {
-        for ( const c of (pod.spec?.containers || []) ) {
-          out.push(c.name);
-        }
-      }
+    //   for ( const pod of this.allPods ) {
+    //     for ( const c of (pod.spec?.containers || []) ) {
+    //       out.push(c.name);
+    //     }
+    //   }
 
-      return uniq(out).sort();
-    },
+    //   return uniq(out).sort();
+    // },
   },
 
   watch: {
@@ -380,13 +378,14 @@ export default {
           :mode="mode"
         >
           <template #default="props">
+            <!-- :containers="containerChoices" -->
             <Match
               class="rule mb-20"
               :value="props.row.value"
               :mode="mode"
               :namespaces="namespaceChoices"
               :nodes="nodeChoices"
-              :containers="containerChoices"
+
               :is-cluster-flow="value.type === LOGGING.CLUSTER_FLOW"
               @remove="e=>removeMatch(props.row.i)"
               @input="e=>updateMatch(e,props.row.i)"

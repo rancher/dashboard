@@ -1,7 +1,8 @@
 export const SECRET_TYPES = {
   OPAQUE:           'Opaque',
   SERVICE_ACCT:     'kubernetes.io/service-account-token',
-  DOCKER_JSON:      'kubernetes.io/dockerconfigjson',
+  DOCKER_JSON:      'kubernetes.io/dockerconfigjson', // TODO: RC why in junk namespace this not returned
+  // TODO: RC output buffer empty
   BASIC:            'kubernetes.io/basic-auth',
   SSH:              'kubernetes.io/ssh-auth',
   TLS:              'kubernetes.io/tls',
