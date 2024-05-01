@@ -29,8 +29,6 @@ import version from '@shell/plugins/version';
 import emberCookie from '@shell/plugins/ember-cookie';
 
 export async function installPlugins(app, inject, Vue) {
-  Vue.use(i18n);
-
   const pluginDefinitions = [cookieUniversalNuxt, axios, plugins, pluginsLoader, axiosShell, intNumber, positiveIntNumber, nuxtClientInit, replaceAll, backButton, plugin, codeMirror, version, steveCreateWorker, emberCookie];
 
   const installations = pluginDefinitions.map(async(pluginDefinition) => {
@@ -40,4 +38,7 @@ export async function installPlugins(app, inject, Vue) {
   });
 
   await Promise.all(installations);
+
+  // Order matters here. This is coming after the other plugins specifically so $cookies can be installed. i18n/init relies on prefs/get which relies on $cookies.
+  Vue.use(i18n, { store: app.store });
 }

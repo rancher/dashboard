@@ -1,11 +1,11 @@
 // Taken from @nuxt/vue-app/template/App.js
 import {
   getMatchedComponentsInstances, getChildrenComponentInstancesUsingFetch, promisify, globalHandleError, sanitizeComponent
-} from '../utils/nuxt';
-import NuxtError from '../components/templates/error.vue';
-import NuxtLoading from '../components/nav/GlobalLoading.vue';
+} from '@shell/utils/nuxt';
+import NuxtError from '@shell/components/templates/error.vue';
+import NuxtLoading from '@shell/components/nav/GlobalLoading.vue';
 
-import '../assets/styles/app.scss';
+import '@shell/assets/styles/app.scss';
 
 export default {
   render(h) {

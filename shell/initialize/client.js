@@ -90,7 +90,7 @@ const errorHandler = Vue.config.errorHandler || console.error; // eslint-disable
 createApp(nuxt.publicRuntimeConfig).then(mountApp).catch(errorHandler); // eslint-disable-line no-undef
 
 function callMiddleware(Components, context) {
-  let midd = ['i18n'];
+  let midd = [];
   let unknownMiddleware = false;
 
   Components.forEach((Component) => {

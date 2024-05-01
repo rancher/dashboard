@@ -14,7 +14,7 @@ global.TextEncoder = TextEncoder;
 global.TextDecoder = TextDecoder;
 
 Vue.config.productionTip = false;
-Vue.use(i18n);
+Vue.use(i18n, { store: { dispatch() {} } });
 Vue.use(VTooltip);
 Vue.use(VCleanTooltip);
 Vue.component('v-select', vSelect);
