@@ -1,7 +1,7 @@
 import { clone } from '@shell/utils/object';
 import ClusterTools from '@shell/pages/c/_cluster/explorer/tools/index.vue';
 import { shallowMount } from '@vue/test-utils';
-import { cleanHtmlDirective } from '@shell/plugins/clean-html-directive';
+import cleanHtmlDirective from '@shell/plugins/clean-html-directive';
 import { MANAGEMENT } from '@shell/config/types';
 
 describe('page: cluster tools', () => {

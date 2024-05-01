@@ -3,8 +3,7 @@ import { config } from '@vue/test-utils';
 import i18n from '@shell/plugins/i18n';
 import VTooltip from 'v-tooltip';
 import vSelect from 'vue-select';
-import { VCleanTooltip } from '@shell/plugins/clean-tooltip-directive.js';
-
+import VCleanTooltip, { VCleanTooltipDir } from '@shell/plugins/clean-tooltip-directive.js';
 import '@shell/plugins/replaceall';
 
 import Vue from 'vue';
@@ -47,7 +46,7 @@ beforeEach(() => {
   config.mocks['$plugin'] = { getDynamic: () => undefined };
 
   config.mocks['$store'] = { getters: { 'i18n/t': jest.fn() } };
-  config.directives = { 'clean-tooltip': VCleanTooltip };
+  config.directives = { 'clean-tooltip': VCleanTooltipDir };
 
   // Overrides some components
   // config.stubs['my-component'] = { template: "<div></div> "};

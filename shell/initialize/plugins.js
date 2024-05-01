@@ -1,14 +1,13 @@
 import '@shell/plugins/extend-router';
 import '@shell/plugins/formatters';
-import '@shell/plugins/global-formatters';
+import globalFormatters from '@shell/plugins/global-formatters';
 import '@shell/plugins/vue-js-modal';
 import '@shell/plugins/js-yaml';
-import '@shell/plugins/portal-vue.js';
-import '@shell/plugins/resize';
-import '@shell/plugins/shortkey';
-import '@shell/plugins/tooltip';
-import '@shell/plugins/trim-whitespace';
-import '@shell/plugins/v-select';
+import portalVue from '@shell/plugins/portal-vue.js';
+import vueResize from '@shell/plugins/resize';
+import vShortKey from '@shell/plugins/shortkey';
+import vueTooltip from '@shell/plugins/tooltip';
+import vueSelect from '@shell/plugins/v-select';
 
 import i18n from '@shell/plugins/i18n';
 
@@ -22,13 +21,21 @@ import nuxtClientInit from '@shell/plugins/nuxt-client-init';
 import plugin from '@shell/plugins/plugin';
 import plugins from '@shell/core/plugins.js';
 import pluginsLoader from '../core/plugins-loader.js';
-import * as positiveIntNumber from '@shell/plugins/positive-int-number.js';
+import positiveIntNumber from '@shell/plugins/positive-int-number.js';
 import replaceAll from '@shell/plugins/replaceall';
 import steveCreateWorker from '@shell/plugins/steve-create-worker';
 import version from '@shell/plugins/version';
 import emberCookie from '@shell/plugins/ember-cookie';
 
 export async function installPlugins(app, inject, Vue) {
+  Vue.use(vueSelect);
+  Vue.use(globalFormatters);
+  Vue.use(portalVue);
+  Vue.use(vueResize);
+  Vue.use(vueTooltip);
+  Vue.use(positiveIntNumber); // It's a directive, maybe it should be moved to plugins/index.js ?
+  Vue.use(vShortKey);
+
   const pluginDefinitions = [cookieUniversalNuxt, axios, plugins, pluginsLoader, axiosShell, intNumber, positiveIntNumber, nuxtClientInit, replaceAll, backButton, plugin, codeMirror, version, steveCreateWorker, emberCookie];
 
   const installations = pluginDefinitions.map(async(pluginDefinition) => {

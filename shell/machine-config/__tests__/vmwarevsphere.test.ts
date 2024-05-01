@@ -1,6 +1,6 @@
 import { mount } from '@vue/test-utils';
 import vmwarevsphere, { DEFAULT_VALUES, SENTINEL } from '@shell/machine-config/vmwarevsphere.vue';
-import { cleanHtmlDirective } from '@shell/plugins/clean-html-directive';
+import cleanHtmlDirective from '@shell/plugins/clean-html-directive';
 
 describe('component: vmwarevsphere', () => {
   const defaultGetters = { 'i18n/t': jest.fn().mockImplementation((key: string) => key) };

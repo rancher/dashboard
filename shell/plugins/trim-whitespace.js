@@ -1,6 +1,6 @@
 import Vue from 'vue';
 
-export function trimWhitespace(el, dir) {
+export function trimWhitespaceFn(el, dir) {
   for (const node of el.childNodes) {
     if (node.nodeType === Node.TEXT_NODE ) {
       const trimmed = node.data.trim();
@@ -14,24 +14,22 @@ export function trimWhitespace(el, dir) {
   }
 }
 
-export function trimWhitespaceSsr(el, dir) {
-  // This causes server<->client dom mismatches sometimes... gave up for now.
-  /*
-  for ( const node of (el.children || []) ) {
-    if ( node.text ) {
-      const trimmed = node.text.trim();
-
-      if ( trimmed !== node.text ) {
-        node.text = trimmed;
-      }
-    } else if ( node.children ) {
-      trimWhitespaceSsr(node);
+const trimWhitespace = {
+  install: (Vue) => {
+    if (Vue.directive('trim-whitespace')) {
+      // eslint-disable-next-line no-console
+      console.debug('Skipping trim-whitespace install. Directive already exists.');
+    } else {
+      Vue.directive('trim-whitespace', {
+        inserted:         trimWhitespace,
+        componentUpdated: trimWhitespace
+      });
     }
   }
-  */
-}
+};
 
-Vue.directive('trim-whitespace', {
-  inserted:         trimWhitespace,
-  componentUpdated: trimWhitespace
-});
+export default trimWhitespace;
+/* eslint-disable-next-line no-console */
+console.warn('The implicit addition of trim-whitespace has been deprecated in Rancher Shell and will be removed in a future version. Make sure to invoke `Vue.use(trimWhitespace)` to maintain compatibility.');
+
+Vue.use(trimWhitespace);

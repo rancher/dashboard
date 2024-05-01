@@ -1,6 +1,6 @@
 import { mount } from '@vue/test-utils';
 import KeyValue from '@shell/components/form/KeyValue.vue';
-import { cleanHtmlDirective } from '@shell/plugins/clean-html-directive';
+import cleanHtmlDirective from '@shell/plugins/clean-html-directive';
 
 describe('component: KeyValue', () => {
   it('should display a not encoded value', () => {

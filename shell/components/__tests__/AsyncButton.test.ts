@@ -1,6 +1,6 @@
 import { mount, Wrapper } from '@vue/test-utils';
 import AsyncButton, { ASYNC_BUTTON_STATES } from '@shell/components/AsyncButton.vue';
-import { cleanHtmlDirective } from '@shell/plugins/clean-html-directive';
+import cleanHtmlDirective from '@shell/plugins/clean-html-directive';
 
 describe('component: AsyncButton', () => {
   it('should render appropriately with default config', () => {

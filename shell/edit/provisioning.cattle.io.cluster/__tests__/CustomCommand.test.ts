@@ -1,6 +1,6 @@
 import { mount } from '@vue/test-utils';
 import CustomCommand from '@shell/edit/provisioning.cattle.io.cluster/CustomCommand.vue';
-import { cleanHtmlDirective } from '@shell/plugins/clean-html-directive';
+import cleanHtmlDirective from '@shell/plugins/clean-html-directive';
 jest.mock('@shell/utils/clipboard', () => {
   return { copyTextToClipboard: jest.fn(() => Promise.resolve({})) };
 });

@@ -1,6 +1,6 @@
 import AuthProviderWarningBanners from '@shell/edit/auth/AuthProviderWarningBanners.vue';
 import { mount } from '@vue/test-utils';
-import { cleanHtmlDirective } from '@shell/plugins/clean-html-directive';
+import cleanHtmlDirective from '@shell/plugins/clean-html-directive';
 
 describe('component: AuthProviderWarningBanners.vue', () => {
   const wrapper = mount(AuthProviderWarningBanners, {

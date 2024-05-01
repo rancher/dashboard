@@ -2,7 +2,7 @@
 import { mount } from '@vue/test-utils';
 import NodeDriverEdit from '@shell/edit/nodeDriver.vue';
 import { _CREATE } from '@shell/config/query-params';
-import { cleanHtmlDirective } from '@shell/plugins/clean-html-directive';
+import cleanHtmlDirective from '@shell/plugins/clean-html-directive';
 
 describe('view: nodedriver should', () => {
   const url = 'http://test.com';
