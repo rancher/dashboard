@@ -85,13 +85,11 @@ Cypress.Commands.add('createUser', (params: CreateUserParams) => {
     }
   })
     .then((resp) => {
-      cy.log(JSON.stringify(resp)); // TODO: RC
       if (resp.status === 422 && resp.body.message === 'Username is already in use.') {
         cy.log('User already exists. Skipping user creation');
 
         return '';
       } else {
-        expect(resp.body.message).to.eq('junk'); // TODO: RC
         expect(resp.status).to.eq(201);
 
         const userPrincipalId = resp.body.principalIds[0];

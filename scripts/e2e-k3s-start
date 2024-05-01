@@ -104,13 +104,10 @@ kubectl exec $POD_NAME -n $NAMESPACE -- sh -c 'rm -rf /usr/share/rancher/ui'
 # Copy local builds to root folders that should contain UIs
 mv $DASHBOARD_DIST dashboard
 mv $EMBER_DIST ui
-# # TODO RC Debug (remove)
-# ls -la dashboard
-# ls -la ui
 kubectl cp dashboard $POD_NAME:/usr/share/rancher/ui-dashboard -n $NAMESPACE
 kubectl cp ui $POD_NAME:/usr/share/rancher -n $NAMESPACE
 
-
+# Final validation
 STATUS=$(curl --silent --location --head -k $DASHBOARD_URL/dashboard/ | awk -F'HTTP/2 ' '{print $2}' | awk 'length { print $1}')
 echo "Status: $STATUS"
 
@@ -118,8 +115,5 @@ if [ "$STATUS" != "200" ]; then
   echo "After updating dashboard with dev build it is no longer available"
   exit 1
 fi
-
-# kubectl exec $POD_NAME -n $NAMESPACE -- sh -c 'ls -la /usr/share/rancher/ui-dashboard'
-# kubectl exec $POD_NAME -n $NAMESPACE -- sh -c 'ls -la /usr/share/rancher/ui-dashboard/dashboard'
 
 echo "Dashboard UI is ready"
