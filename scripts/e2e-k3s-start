@@ -48,18 +48,19 @@ echo "Installing Rancher.........."
 kubectl create ns $NAMESPACE
 helm install rancher rancher-latest/rancher \
   --namespace cattle-system \
-  --set "hostname=$DASHBOARD_URL" \
-  --set replicas=1 \
-  --set "extraEnv[0].name=CATTLE_AGENT_IMAGE" \
-  --set "extraEnv[0].value=rancher/rancher:$RANCHER_IMG_VERSION" \
-  --set rancherImage=rancher/rancher \
-  --set rancherImageTag=$RANCHER_IMG_VERSION \
-  --set rancherImagePullPolicy=Always \
-  --set 'extraEnv[0].name=CATTLE_UI_OFFLINE_PREFERRED' \
-  --set 'extraEnv[0].value=true' \
-  --set 'extraEnv[0].name=CATTLE_BOOTSTRAP_PASSWORD' \
-  --set 'extraEnv[0].value=password' \
-  --set passwordMinLength=3
+  --set hostname=$DASHBOARD_URL \
+  --set replicas="1" \
+  --set rancherImage="rancher/rancher" \
+  --set rancherImageTag="$RANCHER_IMG_VERSION" \
+  --set rancherImagePullPolicy="Always" \
+  --set extraEnv\[0\].name="CATTLE_AGENT_IMAGE" \
+  --set-string extraEnv\[0\].value="rancher/rancher:$RANCHER_IMG_VERSION" \
+  --set extraEnv\[1\].name="CATTLE_UI_OFFLINE_PREFERRED" \
+  --set-string extraEnv\[1\].value="true" \
+  --set extraEnv\[2\].name="CATTLE_BOOTSTRAP_PASSWORD" \
+  --set-string extraEnv\[2\].value="password" \
+  --set extraEnv\[3\].name="CATTLE_PASSWORD_MIN_LENGTH" \
+  --set-string extraEnv\[3\].value="3"
 
 echo "Waiting for Rancher to come up.........."
 kubectl -n cattle-system rollout status deploy/rancher
