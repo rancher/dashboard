@@ -299,6 +299,8 @@ export default {
       this.networksObj = JSON.parse(this.value.networkInfo);
       this.networksHistoric = this.value.networkInfo;
 
+      this.getEnabledVGpuDevices();
+
       this.update();
     } catch (e) {
       this.errors = exceptionToErrorsArray(e);
@@ -389,6 +391,7 @@ export default {
       networkDataIsBase64,
       vmAffinityIsBase64,
       SOURCE_TYPE,
+      vGpuEnabledDevices: {},
       vGpus,
     };
   },
@@ -700,15 +703,31 @@ export default {
     async getVmImage() {
       try {
         const clusterId = get(this.credential, 'decodedData.clusterId');
-        const url = `/k8s/clusters/${ clusterId }/v1`;
 
-        if (url) {
+        if (clusterId) {
+          const url = `/k8s/clusters/${ clusterId }/v1`;
           const res = await this.$store.dispatch('cluster/request', { url: `${ url }/${ HCI.IMAGE }s` });
 
           this.images = res?.data;
         }
       } catch (e) {
         this.errors = exceptionToErrorsArray(e);
+      }
+    },
+
+    async getEnabledVGpuDevices() {
+      const clusterId = get(this.credential, 'decodedData.clusterId');
+
+      if (clusterId) {
+        const url = `/k8s/clusters/${ clusterId }/v1`;
+        const res = await this.$store.dispatch('cluster/request', { url: `${ url }/${ HCI.VGPU_DEVICE }s` });
+
+        this.vGpuEnabledDevices = (res?.data || [])
+          .filter((v) => v.spec.enabled)
+          .reduce((acc, v) => ({
+            ...acc,
+            [`${ VGPU_PREFIX.NVIDIA }${ v.spec.vGPUTypeName.replace(' ', '_') }`]: v.id
+          }), {});
       }
     },
 
@@ -872,7 +891,7 @@ export default {
       const vGPURequests = this.vGpus?.filter((name) => name).reduce((acc, deviceName, i) => ([
         ...acc,
         {
-          name: `vgpu${ i + 1 }`,
+          name: this.vGpuEnabledDevices[deviceName] || `vgpu${ i + 1 }`,
           deviceName
         }
       ])
