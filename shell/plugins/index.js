@@ -5,13 +5,13 @@
  * of the execution order, rather than importing them at the top of a file.
  */
 import cleanHtmlDirective from '@shell/plugins/clean-html-directive';
-import VCleanTooltip from '@shell/plugins/clean-tooltip-directive';
+import vCleanTooltip from '@shell/plugins/clean-tooltip-directive';
 import focus from '@shell/plugins/directives';
-import trimWhitespace from '@shell/plugins/trim-whitespace';
+import trimWhitespaceDirective from '@shell/plugins/trim-whitespace';
 
 export function loadDirectives(Vue) {
   Vue.use(cleanHtmlDirective);
-  Vue.use(VCleanTooltip);
+  Vue.use(vCleanTooltip);
   Vue.use(focus);
-  Vue.use(trimWhitespace);
+  Vue.use(trimWhitespaceDirective);
 }

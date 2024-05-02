@@ -1,6 +1,6 @@
 import Vue from 'vue';
 
-export function trimWhitespaceFn(el, dir) {
+export function trimWhitespace(el, dir) {
   for (const node of el.childNodes) {
     if (node.nodeType === Node.TEXT_NODE ) {
       const trimmed = node.data.trim();
@@ -14,7 +14,7 @@ export function trimWhitespaceFn(el, dir) {
   }
 }
 
-const trimWhitespace = {
+const trimWhitespaceDirective = {
   install: (Vue) => {
     if (Vue.directive('trim-whitespace')) {
       // eslint-disable-next-line no-console
@@ -28,8 +28,8 @@ const trimWhitespace = {
   }
 };
 
-export default trimWhitespace;
+export default trimWhitespaceDirective;
 /* eslint-disable-next-line no-console */
-console.warn('The implicit addition of trim-whitespace has been deprecated in Rancher Shell and will be removed in a future version. Make sure to invoke `Vue.use(trimWhitespace)` to maintain compatibility.');
+console.warn('The implicit addition of trim-whitespace has been deprecated in Rancher Shell and will be removed in a future version. Make sure to invoke `Vue.use(trimWhitespaceDirective)` to maintain compatibility.');
 
-Vue.use(trimWhitespace);
+Vue.use(trimWhitespaceDirective);

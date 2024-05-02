@@ -30,20 +30,24 @@ export const VCleanTooltipDir = {
   update: bind,
 };
 
-const VCleanTooltip = {
+const vCleanTooltip = {
   install: (Vue) => {
     if (Vue.directive('clean-tooltip')) {
       // eslint-disable-next-line no-console
       console.debug('Skipping clean-tooltip install. Directive already exists.');
     } else {
-      Vue.directive('clean-tooltip', VCleanTooltipDir);
+      Vue.directive('clean-tooltip', {
+        ...VTooltip,
+        bind,
+        update: bind,
+      });
     }
   }
 
 };
 
-export default VCleanTooltip;
+export default vCleanTooltip;
 /* eslint-disable-next-line no-console */
 console.warn('The implicit addition of clean-tooltip has been deprecated in Rancher Shell and will be removed in a future version. Make sure to invoke `Vue.use(VCleanTooltip)` to maintain compatibility.');
 
-Vue.use(VCleanTooltip);
+Vue.use(vCleanTooltip);
