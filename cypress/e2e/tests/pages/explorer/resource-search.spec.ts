@@ -1,6 +1,6 @@
 import HomePagePo from '@/cypress/e2e/po/pages/home.po';
 import ClusterDashboardPagePo from '@/cypress/e2e/po/pages/explorer/cluster-dashboard.po';
-import ResourceSearchDialog from  '@/cypress/e2e/po/dialog/ResourceSearchDialog.po';
+import ResourceSearchDialog from '@/cypress/e2e/po/dialog/ResourceSearchDialog.po';
 import { NamespaceFilterPo } from '@/cypress/e2e/po/components/namespace-filter.po';
 import { ConfigMapPagePo } from '@/cypress/e2e/po/pages/explorer/config-map.po';
 
@@ -63,4 +63,3 @@ describe('Cluster Dashboard', { testIsolation: 'off', tags: ['@explorer', '@admi
     dialog.checkNotExists();
   });
 });
-
