@@ -44,7 +44,7 @@ class PaginationUtils {
     const settings = this.getSettings({ rootGetters });
 
     // Cache must be enabled to support pagination api
-    if (!rootGetters['features/get'](STEVE_CACHE)) {
+    if (!rootGetters['features/get']?.(STEVE_CACHE)) {
       return false;
     }
 
