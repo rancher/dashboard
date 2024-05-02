@@ -24,7 +24,7 @@ require('../../shell/plugins/i18n');
 require('../../shell/plugins/clean-html-directive');
 
 Vue.use(Vuex);
-Vue.use(vSelect);
+Vue.component('v-select', vSelect);
 Vue.use(VTooltip);
 Vue.use(ShortKey, { prevent: ['input', 'textarea', 'select'] });
 

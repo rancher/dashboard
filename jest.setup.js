@@ -16,7 +16,7 @@ Vue.config.productionTip = false;
 Vue.use(i18n, { store: { dispatch() {} } });
 Vue.use(VTooltip);
 Vue.use(VCleanTooltip);
-Vue.use(vSelect);
+Vue.component('v-select', vSelect);
 
 /**
  * Global configuration for Jest tests

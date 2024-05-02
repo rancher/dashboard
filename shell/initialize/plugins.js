@@ -34,11 +34,12 @@ export async function installPlugins(app, inject, Vue) {
   Vue.use(globalFormatters);
   Vue.use(positiveIntNumber); // It's a directive, maybe it should be moved to plugins/index.js ?
 
-  Vue.use(vSelect);
   Vue.use(PortalVue);
   Vue.use(VueResize);
   Vue.use(VTooltip);
   Vue.use(ShortKey, { prevent: ['input', 'textarea', 'select'] });
+
+  Vue.component('v-select', vSelect);
 
   const pluginDefinitions = [cookieUniversalNuxt, axios, plugins, pluginsLoader, axiosShell, intNumber, positiveIntNumber, nuxtClientInit, replaceAll, backButton, plugin, codeMirror, version, steveCreateWorker, emberCookie];
 
