@@ -9,6 +9,8 @@ const i18nStrings = require('../../shell/assets/translations/en-us.yaml');
 import { VCleanTooltipDir } from '@shell/plugins/clean-tooltip-directive.js';
 import ShortKey from 'vue-shortkey';
 import { trimWhitespaceFn } from '../../shell/plugins/trim-whitespace';
+import vSelect from 'vue-select';
+import VTooltip from 'v-tooltip';
 
 // Store modules
 import growl from './store/growl';
@@ -19,11 +21,11 @@ import table from './store/table';
 // Register custom i18n plugin
 require('../../shell/plugins/i18n');
 
-require('../../shell/plugins/v-select');
-require('../../shell/plugins/tooltip');
 require('../../shell/plugins/clean-html-directive');
 
 Vue.use(Vuex);
+Vue.use(vSelect);
+Vue.use(VTooltip);
 Vue.use(ShortKey, { prevent: ['input', 'textarea', 'select'] });
 
 Vue.component('router-link', {
