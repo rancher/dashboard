@@ -5,6 +5,7 @@ import LabeledSelect from '@shell/components/form/LabeledSelect';
 import KeyValue from '@shell/components/form/KeyValue';
 import ArrayList from '@shell/components/form/ArrayList';
 import StorageClassSelector from '@shell/chart/monitoring/StorageClassSelector';
+import { DEFAULT_GRAFANA_STATEFULSET_STORAGE_SIZE } from '@shell/config/types';
 
 export default {
   components: {
@@ -151,7 +152,7 @@ export default {
         newValsOut = {
           accessModes:      null,
           storageClassName: null,
-          size:             '10Gi',
+          size:             DEFAULT_GRAFANA_STATEFULSET_STORAGE_SIZE,
           subPath:          null,
           type:             'statefulset',
           enabled:          true,
@@ -236,6 +237,7 @@ export default {
             :labels="persistentStorageTypeLabels"
             :mode="mode"
             :options="persistentStorageTypes"
+            data-testid="radio-group-input-grafana-storage"
           />
         </div>
       </div>
@@ -325,6 +327,7 @@ export default {
               v-model="value.grafana.persistence.size"
               :label="t('monitoring.grafana.storage.size')"
               :mode="mode"
+              data-testid="grafana-storage-statefulset-size"
             />
           </div>
           <div class="col span-6">
