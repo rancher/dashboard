@@ -12,6 +12,23 @@ const accountPage = new AccountPagePo();
 const clusterList = new ClusterManagerListPagePo();
 const burgerMenu = new BurgerMenuPo();
 const settingsOrginal = [];
+const serverUrlLocalhostCases = [
+  'http://LOCALhosT:8005',
+  'http://localhost:8005',
+  'https://localhost:8005',
+  'localhost',
+  'http://127.0.0.1',
+  'https://127.0.0.1',
+  '127.0.0.1'
+];
+const urlWithTrailingForwardSlash = 'https://test.com/';
+const httpUrl = 'http://test.com';
+const nonUrlCases = [
+  'test',
+  'https',
+  'test.com',
+  'a.test.com'
+];
 let removeServerUrl = false;
 
 describe('Settings', { testIsolation: 'off' }, () => {
@@ -79,6 +96,41 @@ describe('Settings', { testIsolation: 'off' }, () => {
       accountPage.waitForPage();
       accountPage.isCurrentPage();
       cy.contains(text).should('be.visible');
+    });
+  });
+
+  it('can validate server-url', { tags: ['@globalSettings', '@adminUser'] }, () => {
+    SettingsPagePo.navTo();
+
+    settingsPage.editSettingsByLabel('server-url');
+
+    const settingsEdit = settingsPage.editSettings('local', 'server-url');
+
+    settingsEdit.waitForPage();
+    settingsEdit.title().contains('Setting: server-url').should('be.visible');
+
+    // Check showing localhost warning banner
+    serverUrlLocalhostCases.forEach((url) => {
+      settingsEdit.settingsInput().set(url);
+      settingsEdit.serverUrlLocalhostWarningBanner().should('exist');
+      settingsEdit.serverUrlLocalhostWarningBanner().should('be.visible');
+    });
+    // Check showing error banner when the urls has trailing forward slash
+    settingsEdit.settingsInput().set(urlWithTrailingForwardSlash);
+    settingsEdit.serverUrlTrailingForwardSlashErrorBanner().should('exist');
+    settingsEdit.serverUrlTrailingForwardSlashErrorBanner().should('be.visible');
+    // Check showing error banner when the url is not HTTPS
+    settingsEdit.settingsInput().set(httpUrl);
+    settingsEdit.serverUrlNonHttpsErrorBanner().should('exist');
+    settingsEdit.serverUrlNonHttpsErrorBanner().should('be.visible');
+    // Check showing error banner when the input value is not a url
+    nonUrlCases.forEach((inputValue) => {
+      settingsEdit.settingsInput().set(inputValue);
+      settingsEdit.serverUrlNonUrlErrorBanner().should('exist');
+      settingsEdit.serverUrlNonUrlErrorBanner().should('be.visible');
+      // A non-url is also a non-https
+      settingsEdit.serverUrlNonHttpsErrorBanner().should('exist');
+      settingsEdit.serverUrlNonHttpsErrorBanner().should('be.visible');
     });
   });
 

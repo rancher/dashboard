@@ -36,6 +36,22 @@ export default class SettingsEditPo extends PagePo {
     selectSettings.clickOptionWithLabel(label);
   }
 
+  serverUrlLocalhostWarningBanner() {
+    return this.self().find('[data-testid="setting-serverurl-localhost-warning"]');
+  }
+
+  serverUrlTrailingForwardSlashErrorBanner() {
+    return this.self().find('[data-testid="Server URL should not have a trailing forward slash."]');
+  }
+
+  serverUrlNonHttpsErrorBanner() {
+    return this.self().find('[data-testid="Server URL must be https."]');
+  }
+
+  serverUrlNonUrlErrorBanner() {
+    return this.self().find('[data-testid="Server URL must be an URL."]');
+  }
+
   useDefaultButton(): Cypress.Chainable {
     return cy.getId('advanced_settings_use_default');
   }
