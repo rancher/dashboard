@@ -703,9 +703,9 @@ export default {
     async getVmImage() {
       try {
         const clusterId = get(this.credential, 'decodedData.clusterId');
-        const url = `/k8s/clusters/${ clusterId }/v1`;
 
-        if (url) {
+        if (clusterId) {
+          const url = `/k8s/clusters/${ clusterId }/v1`;
           const res = await this.$store.dispatch('cluster/request', { url: `${ url }/${ HCI.IMAGE }s` });
 
           this.images = res?.data;
@@ -717,9 +717,9 @@ export default {
 
     async getEnabledVGpuDevices() {
       const clusterId = get(this.credential, 'decodedData.clusterId');
-      const url = `/k8s/clusters/${ clusterId }/v1`;
 
-      if (url) {
+      if (clusterId) {
+        const url = `/k8s/clusters/${ clusterId }/v1`;
         const res = await this.$store.dispatch('cluster/request', { url: `${ url }/${ HCI.VGPU_DEVICE }s` });
 
         this.vGpuEnabledDevices = (res?.data || [])
