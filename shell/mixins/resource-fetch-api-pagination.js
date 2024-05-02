@@ -1,12 +1,12 @@
 import { NAMESPACE_FILTER_NAMESPACED_YES, NAMESPACE_FILTER_NAMESPACED_NO, NAMESPACE_FILTER_ALL } from '@shell/utils/namespace-filter';
+import { NAMESPACE } from '@shell/config/types';
+import { ALL_NAMESPACES } from '@shell/store/prefs';
 import { mapGetters } from 'vuex';
 import { ResourceListComponentName } from '../components/ResourceList/resource-list.config';
 import paginationUtils from '@shell/utils/pagination-utils';
 import debounce from 'lodash/debounce';
-import { OptPaginationFilter, OptPaginationFilterField } from '@shell/types/store/dashboard-store.types';
+import { PaginationParamFilter, PaginationFilterField, PaginationArgs } from '@shell/types/store/pagination.types';
 import stevePaginationUtils from '@shell/plugins/steve/steve-pagination-utils';
-import { ALL_NAMESPACES } from '@shell/store/prefs';
-import { NAMESPACE } from '@shell/config/types';
 
 /**
  * Companion mixin used with `resource-fetch` for `ResourceList` to determine if the user needs to filter the list by a single namespace
@@ -34,18 +34,22 @@ export default {
   },
 
   methods: {
+    /**
+     * @param {PaginationArgs} pagination
+     */
     setPagination(pagination) {
-      this.pPagination = pagination;
+      if (pagination) {
+        this.pPagination = pagination;
+      }
     },
 
     paginationChanged(event) {
-      const searchFilters = event.filter.searchQuery ? event.filter.searchFields.map((field) => new OptPaginationFilterField({
+      const searchFilters = event.filter.searchQuery ? event.filter.searchFields.map((field) => new PaginationFilterField({
         field,
         value: event.filter.searchQuery,
       })) : [];
 
-      this.debouncedSetPagination({
-        ...this.pPagination,
+      const pagination = new PaginationArgs({
         page:     event.page,
         pageSize: event.perPage,
         sort:     event.sort?.map((field) => ({
@@ -53,11 +57,13 @@ export default {
           asc: !event.descending
         })),
         projectsOrNamespaces: this.requestFilters.projectsOrNamespaces,
-        filter:               [
-          new OptPaginationFilter({ fields: searchFilters }),
+        filters:              [
+          new PaginationParamFilter({ fields: searchFilters }),
           ...this.requestFilters.filters, // Apply the additional filters. these aren't from the user but from ns filtering
         ]
       });
+
+      this.debouncedSetPagination(pagination);
     },
 
     namespaceFilterChanged(neu) {
@@ -81,26 +87,40 @@ export default {
       this.requestFilters.projectsOrNamespaces = projectsOrNamespaces;
 
       // Kick off a change
-      this.debouncedSetPagination({ ...this.pPagination });
+      if (this.pPagination) {
+        this.debouncedSetPagination({ ...this.pPagination });
+      }
     },
 
+    /**
+     * @param {PaginationArgs} neu
+     * @param {PaginationArgs} old
+     */
     paginationEqual(neu, old) {
       if (!neu.page) {
-        // Not valid, don't bother
+        // Not valid, count as not equal
         return false;
       }
 
       if (paginationUtils.paginationEqual(neu, old)) {
-        // Same, nae bother
-        return false;
+        return true;
       }
 
-      return true;
+      return false;
     }
   },
 
   computed: {
-    ...mapGetters(['currentProduct', 'namespaceFilters', 'isAllNamespaces']),
+    ...mapGetters(['currentProduct', 'isAllNamespaces']),
+
+    /**
+     * Why is this a specific getter and not not in mapGetters?
+     *
+     * Adding it to mapGetters means the kubewarden unit tests fail as they don't mock it....
+     */
+    namespaceFilters() {
+      return this.$store.getters['namespaceFilters'];
+    },
 
     /**
      * Does the user need to update the filter to supply valid options?
@@ -120,14 +140,14 @@ export default {
      * ResourceList imports resource-fetch --> this mixin
      * When there is no custom list this is fine (ResourceList with mixins --> ResourceTable)
      * When there is a custom list there are two instances of this mixin (ResourceList with mixins --> CustomList with mixins --> ResourceTable)
-     * - In this scenario, reduce churn by existing earlier if mixin is from parent ResourceList and leave work for CustomList mixins
+     * - In this scenario, reduce churn by exiting earlier if mixin is from parent ResourceList and leave work for CustomList mixins
      */
     isResourceList() {
       return !!this.hasListComponent;
     },
 
     /**
-     * Is Pagination supported and ready for this list?
+     * Is Pagination supported and has the table supplied pagination settings from the table?
      */
     pagination() {
       if (this.isResourceList) {
@@ -152,7 +172,7 @@ export default {
     },
 
     paginationResult() {
-      if (this.isResourceList) {
+      if (this.isResourceList || !this.canPaginate) {
         return;
       }
 
@@ -188,7 +208,7 @@ export default {
      * result in an empty page
      */
     rows(neu) {
-      if (!this.pagination || this.isResourceList) {
+      if (!this.canPaginate || !this.pagination || this.isResourceList) {
         return;
       }
 
@@ -203,6 +223,10 @@ export default {
     namespaceFilters: {
       immediate: true,
       async handler(neu, old) {
+        if (!this.canPaginate || !this.schema?.attributes?.namespaced) {
+          return;
+        }
+
         if (this.isResourceList) {
           return;
         }
@@ -231,25 +255,52 @@ export default {
       }
     },
 
+    /**
+     * When a pagination is required and the user changes page / sort / filter, kick off a new set of API requests
+     *
+     * @param {StorePaginationResult} neu
+     * @param {StorePaginationResult} old
+     */
     async pagination(neu, old) {
-      if (this.isResourceList) {
+      if (!this.canPaginate) {
         return;
       }
 
-      // When a pagination is required and the user changes page / sort / filter, kick off a new set of API requests
-      //
       // ResourceList has two modes
       // 1) ResourceList component handles API request to fetch resources
       // 2) Custom list component handles API request to fetch resources
       //
-      // This covers case 2
-      if (neu && this.$options.name !== ResourceListComponentName && !!this.$fetch && this.paginationEqual(neu, old)) {
-        await this.$fetch();
+      // This covers case 2, so ignore case 1
+      if (this.isResourceList) {
+        return;
+      }
 
+      if (neu && this.$options.name !== ResourceListComponentName && !!this.$fetch && !this.paginationEqual(neu, old)) {
+        await this.$fetch(false);
         // Ensure any live/delayed columns get updated
         this.forceUpdateLiveAndDelayed = new Date().getTime();
       }
     },
 
+    /**
+     * If the pagination result has changed fetch secondary resources
+     *
+     * Lists should implement fetchPageSecondaryResources to fetch them
+     *
+     * @param {StorePaginationResult} neu
+     * @param {StorePaginationResult} old
+     */
+    async paginationResult(neu, old) {
+      if (!this.fetchPageSecondaryResources || !neu ) { // || neu.timestamp === old?.timestamp
+        return;
+      }
+
+      if (neu.timestamp === old?.timestamp) {
+        // This occurs when the user returns to the page... and pagination hasn't actually changed
+        return;
+      }
+
+      await this.fetchPageSecondaryResources();
+    }
   },
 };

@@ -15,8 +15,10 @@ export const urlFor = (state, getters) => (type, id, opt) => {
   type = getters.normalizeType(type);
   let url = opt.url;
 
+  let schema;
+
   if ( !url ) {
-    const schema = getters.schemaFor(type);
+    schema = getters.schemaFor(type);
 
     if ( !schema ) {
       throw new Error(`Unknown schema for type: ${ type }`);
@@ -39,7 +41,7 @@ export const urlFor = (state, getters) => (type, id, opt) => {
     url = `${ baseUrl }/${ url }`;
   }
 
-  url = getters.urlOptions(url, opt);
+  url = getters.urlOptions(url, opt, schema);
 
   return url;
 };
@@ -298,16 +300,22 @@ export default {
     return false;
   },
 
-  havePaginatedPage: (state, getters) => (type, pagination) => {
-    if (!pagination) {
+  havePaginatedPage: (state, getters) => (type, opt) => {
+    if (!opt.pagination) {
       return false;
     }
 
     type = getters.normalizeType(type);
     const entry = state.types[type];
 
-    if ( entry ) {
-      return entry.havePage && paginationUtils.paginationEqual(entry.havePage.request, pagination);
+    if ( entry?.havePage ) {
+      const { namespace: aNamespace = undefined, pagination: aPagination } = entry.havePage.request;
+      const { namespace: bNamespace = undefined, pagination: bPagination } = {
+        namespace:  opt.namespaced,
+        pagination: opt.pagination
+      };
+
+      return entry.havePage && aNamespace === bNamespace && paginationUtils.paginationEqual(aPagination, bPagination);
     }
 
     return false;
@@ -346,7 +354,7 @@ export default {
 
   urlFor,
 
-  urlOptions: () => (url, opt) => {
+  urlOptions: () => (url, opt, schema) => {
     return url;
   },
 
