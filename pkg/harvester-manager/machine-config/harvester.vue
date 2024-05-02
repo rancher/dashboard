@@ -299,9 +299,9 @@ export default {
       this.networksObj = JSON.parse(this.value.networkInfo);
       this.networksHistoric = this.value.networkInfo;
 
-      this.update();
-
       this.getEnabledVGpuDevices();
+
+      this.update();
     } catch (e) {
       this.errors = exceptionToErrorsArray(e);
     }
