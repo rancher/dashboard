@@ -38,6 +38,10 @@ export default {
 
     defaultAddValue() {
       return this.options[0]?.value;
+    },
+
+    getOptionLabel() {
+      return this.selectProps?.getOptionLabel ? (opt) => (this.selectProps?.getOptionLabel(opt) || opt) : undefined;
     }
   },
 
@@ -74,6 +78,7 @@ export default {
         :value="scope.row.value"
         v-bind="selectProps"
         :options="calculateOptions(scope.row.value)"
+        :get-option-label="getOptionLabel"
         @input="updateRow(scope.i, $event)"
       />
     </template>
