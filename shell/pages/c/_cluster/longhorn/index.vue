@@ -42,8 +42,8 @@ export default {
           {
             enabled:     true,
             iconSrc:     this.longhornImgSrc,
-            label:       'longhorn.overview.linkedList.longhorn.label',
-            description: 'longhorn.overview.linkedList.longhorn.description',
+            label:       'longhorn.overview.linkedList.longhorn.label', // i18n-uses longhorn.overview.linkedList.longhorn.label
+            description: 'longhorn.overview.linkedList.longhorn.description', // i18n-uses longhorn.overview.linkedList.longhorn.description
             link:        `/k8s/clusters/${ this.currentCluster.id }/api/v1/namespaces/${ this.uiServices[0].metadata.namespace }/services/http:longhorn-frontend:80/proxy/`
           },
         ];

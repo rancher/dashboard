@@ -8,6 +8,9 @@ import Loading from '@shell/components/Loading';
 import { addObjects, isArray } from '@shell/utils/array';
 import { Card } from '@components/Card';
 
+// i18n-uses rbac.globalRoles.types.*.label
+// i18n-uses rbac.globalRoles.types.*.description
+
 /**
  * Display checkboxes for each global role, checked for given user or principal (group). Can save changes.
  */

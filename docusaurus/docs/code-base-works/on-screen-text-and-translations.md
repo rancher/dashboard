@@ -75,3 +75,57 @@ account:
 ```
 
 If a translation is not included in the user's selected language, it will fall back to English. The only time the Rancher UI devs should modify a non-English translation is when a key is renamed.
+
+
+## Checking for missing translation strings
+
+The script `scripts/check-i18n` can be used to check for missing translation strings.
+
+It uses a set of regular expressions to detect for translation strings being used in the code base. It will report any string references that it finds that it does not find a corresponding translation for - this is an indication of a missing translation string.
+
+This script is run as part of the dashboard Continuos Integration via GitHub actions.
+
+The script accepts two optional arguments:
+
+- -s Print out the details of translations strings found in the localisation files that don't appear to be used by the code
+- -x Don't set the exit code if there are errors detected
+
+### Comments
+
+Since the script uses regular expressions, there are cases where it might:
+
+- Incorrectly detect a use of a translation string in the code that is not such
+- Not be able to detect that a translation string has been used
+
+To address these issues, you need to use comments in your code to assist the i18n checker script.
+
+Comments can be placed at the start of the line, or as part of a line of code at the end. They can not be added to templates, so
+comments should be added at the top of the code file for these.
+
+#### i18n-uses
+
+You can use a comment of the form:
+
+```
+// i18n-uses TRANSLATION
+```
+
+to indicate that the string `TRANSLATION` is used in the code.
+
+#### i18n-ignore
+
+You can use a comment of the form:
+
+```
+// i18n-ignore TRANSLATION
+```
+
+to indicate that the string `TRANSLATION` should be ignored and is not a reference to a translation string.
+
+#### Translation Strings
+
+With both `i18n-uses` and `i18n-ignore`, the `TRANSLATION` string can be:
+
+- A simple string, e.g. `area.subarea.name`
+- A regular expression, e.g. `/area\.subarea\.name/`
+- A simple string with wild-cards specified using `*`, e.g. `area.subarea.*` or `area.*.name`

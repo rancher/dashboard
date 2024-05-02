@@ -526,7 +526,7 @@ export default {
         const type = workloadTypes[prop];
         const subtype = {
           id:          type,
-          description: `workload.typeDescriptions.'${ type }'`,
+          description: `workload.typeDescriptions.'${ type }'`, // i18n-uses workload.typeDescriptions.*
           label:       this.nameDisplayFor(type),
           bannerAbbrv: this.initialDisplayFor(type),
         };

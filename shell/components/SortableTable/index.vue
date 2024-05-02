@@ -258,7 +258,7 @@ export default {
      */
     noDataKey: {
       type:    String,
-      default: 'sortableTable.noData'
+      default: 'sortableTable.noData' // i18n-uses sortableTable.noData
     },
 
     /**
