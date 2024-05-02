@@ -27,6 +27,10 @@ export class GrafanaTab extends ComponentPo {
     return new RadioGroupInputPo('[data-testid="radio-group-input-grafana-storage"');
   }
 
+  storagePvcSizeInput(): LabeledInputPo {
+    return new LabeledInputPo('[data-testid="grafana-storage-pvc-size"');
+  }
+
   storageStatefulsetSizeInput(): LabeledInputPo {
     return new LabeledInputPo('[data-testid="grafana-storage-statefulset-size"');
   }
