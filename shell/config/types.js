@@ -314,3 +314,5 @@ export const AUTH_TYPE = {
 };
 
 export const LOCAL_CLUSTER = 'local';
+
+export const DEFAULT_GRAFANA_STORAGE_SIZE = '10Gi';
