@@ -1,15 +1,17 @@
+import PortalVue from 'portal-vue';
+import VueResize from 'vue-resize';
+import ShortKey from 'vue-shortkey';
+import VTooltip from 'v-tooltip';
+import vSelect from 'vue-select';
+import 'vue-resize/dist/vue-resize.css';
+
 import '@shell/plugins/extend-router';
 import '@shell/plugins/formatters';
-import globalFormatters from '@shell/plugins/global-formatters';
 import '@shell/plugins/vue-js-modal';
 import '@shell/plugins/js-yaml';
-import portalVue from '@shell/plugins/portal-vue.js';
-import vueResize from '@shell/plugins/resize';
-import vShortKey from '@shell/plugins/shortkey';
-import vueTooltip from '@shell/plugins/tooltip';
-import vueSelect from '@shell/plugins/v-select';
 
 import i18n from '@shell/plugins/i18n';
+import globalFormatters from '@shell/plugins/global-formatters';
 
 import axios from '../utils/axios.js';
 import axiosShell from '@shell/plugins/axios';
@@ -30,11 +32,13 @@ import emberCookie from '@shell/plugins/ember-cookie';
 export async function installPlugins(app, inject, Vue) {
   Vue.use(vueSelect);
   Vue.use(globalFormatters);
-  Vue.use(portalVue);
-  Vue.use(vueResize);
-  Vue.use(vueTooltip);
   Vue.use(positiveIntNumber); // It's a directive, maybe it should be moved to plugins/index.js ?
-  Vue.use(vShortKey);
+
+  Vue.use(vSelect);
+  Vue.use(PortalVue);
+  Vue.use(VueResize);
+  Vue.use(VTooltip);
+  Vue.use(ShortKey, { prevent: ['input', 'textarea', 'select'] });
 
   const pluginDefinitions = [cookieUniversalNuxt, axios, plugins, pluginsLoader, axiosShell, intNumber, positiveIntNumber, nuxtClientInit, replaceAll, backButton, plugin, codeMirror, version, steveCreateWorker, emberCookie];
 
