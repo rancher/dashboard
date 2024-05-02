@@ -359,7 +359,7 @@ export default {
     if (this.value.vgpuInfo) {
       const vGPURequests = JSON.parse(this.value.vgpuInfo)?.vGPURequests;
 
-      vGpus = vGPURequests?.map((r) => r.deviceName).filter((r) => r) || [];
+      vGpus = vGPURequests?.map((r) => r?.name).filter((r) => r) || [];
     }
 
     return {
@@ -490,7 +490,7 @@ export default {
     },
 
     vGpuOptions() {
-      return Object.keys(this.vGpusAllocatable).filter((x) => !this.vGpus.includes(x));
+      return Object.keys(this.vGpuEnabledDevices).filter((x) => !this.vGpus.includes(x));
     }
   },
 
@@ -680,12 +680,14 @@ export default {
     },
 
     validatorVGpus(errors) {
-      const notAllocatable = this.vGpus.filter((v) => this.vGpusAllocatable[v] < this.machinePools[this.poolIndex]?.pool?.quantity);
+      const notAllocatable = this.vGpus
+        .map((id) => this.vGpuEnabledDevices[id])
+        .filter((vGpu) => this.vGpusAllocatable[vGpu?.type] < this.machinePools[this.poolIndex]?.pool?.quantity);
 
-      notAllocatable.forEach((vGpus) => {
+      notAllocatable.forEach((vGpu) => {
         const message = this.$store.getters['i18n/t']('cluster.credential.harvester.vGpus.errors.notAllocatable', {
-          vGpus,
-          pool: this.machinePools[this.poolIndex]?.pool?.name || '',
+          vGpus: vGpu?.type,
+          pool:  this.machinePools[this.poolIndex]?.pool?.name || '',
         });
 
         errors.push(message);
@@ -726,7 +728,10 @@ export default {
           .filter((v) => v.spec.enabled)
           .reduce((acc, v) => ({
             ...acc,
-            [`${ VGPU_PREFIX.NVIDIA }${ v.spec.vGPUTypeName.replace(' ', '_') }`]: v.id
+            [v.id]: {
+              type:    VGPU_PREFIX.NVIDIA + v.spec.vGPUTypeName.replace(' ', '_'),
+              profile: v.id.split('-')?.[2]
+            },
           }), {});
       }
     },
@@ -888,11 +893,11 @@ export default {
     },
 
     updateVGpu() {
-      const vGPURequests = this.vGpus?.filter((name) => name).reduce((acc, deviceName, i) => ([
+      const vGPURequests = this.vGpus?.filter((name) => name).reduce((acc, name, i) => ([
         ...acc,
         {
-          name: this.vGpuEnabledDevices[deviceName] || `vgpu${ i + 1 }`,
-          deviceName
+          name,
+          deviceName: this.vGpuEnabledDevices[name]?.type,
         }
       ])
       , []);
@@ -1096,7 +1101,9 @@ export default {
     },
 
     vGpuOptionLabel(opt) {
-      return `${ opt?.replace(VGPU_PREFIX.NVIDIA, '') } (allocatable: ${ this.vGpusAllocatable[opt] })`;
+      const vGpu = this.vGpuEnabledDevices[opt];
+
+      return `${ vGpu?.type?.replace(VGPU_PREFIX.NVIDIA, '') } (profile: ${ vGpu?.profile } - allocatable: ${ this.vGpusAllocatable[vGpu?.type] })`;
     }
   }
 };
