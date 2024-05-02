@@ -32,7 +32,7 @@ import emberCookie from '@shell/plugins/ember-cookie';
 export async function installPlugins(app, inject, Vue) {
   Vue.use(vueSelect);
   Vue.use(globalFormatters);
-  Vue.use(positiveIntNumber); // It's a directive, maybe it should be moved to plugins/index.js ?
+  Vue.use(positiveIntNumber);
 
   Vue.use(PortalVue);
   Vue.use(VueResize);

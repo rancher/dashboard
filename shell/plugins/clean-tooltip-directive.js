@@ -24,12 +24,6 @@ function bind(el, { value, oldValue, modifiers }) {
     });
 }
 
-export const VCleanTooltipDir = {
-  ...VTooltip,
-  bind,
-  update: bind,
-};
-
 const vCleanTooltip = {
   install: (Vue) => {
     if (Vue.directive('clean-tooltip')) {
