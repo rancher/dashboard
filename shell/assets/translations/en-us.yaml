@@ -7248,7 +7248,7 @@ performance:
       When enabled, resources will appear more quickly, but it may take slightly longer to load the entire set of resources. This setting only applies to resources that come from the Kubernetes API
     checkboxLabel: Enable incremental loading
     inputLabel: Resource Threshold
-    incompatibleDescription: "Incremental Loading is incomaptible with Namespace/Project filtering. Enabling this will disable it."
+    incompatibleDescription: "Incremental Loading is incomaptible with Namespace/Project filtering and Server-side Pagination. Enabling this will disable them."
   manualRefresh:
     label: Manual Refresh
     setting: You can configure a threshold above which manual refresh will be enabled.
@@ -7257,7 +7257,7 @@ performance:
       When enabled, list data will not auto-update but instead the user must manually trigger a list-view refresh. This setting only applies to resources that come from the Kubernetes API
     checkboxLabel: Enable manual refresh of data for lists
     inputLabel: Resource Threshold
-    incompatibleDescription: "Manual Refresh is incomaptible with Namespace/Project filtering. Enabling this will disable it."
+    incompatibleDescription: "Manual Refresh is incomaptible with Namespace/Project filtering and Server-side Pagination. Enabling this will disable them."
   websocketNotification:
     label: Websocket Notifications
     description: |-
@@ -7300,8 +7300,13 @@ performance:
     information: To change the automatic logout behaviour, edit the authorisation and/or session token timeout values (<code>auth-user-session-ttl-minutes</code> and <code>auth-token-max-ttl-minutes</code>) in the Settings page.
     description: When enabled and the user is inactive past the specified timeout, the UI will no longer fresh page content and the user must reload the page to continue.
     authUserTTL: This timeout cannot be higher than the user session timeout auth-user-session-ttl-minutes, which is currently {current} minutes.
-
-
+  serverPagination:
+    label: Server-side Pagination
+    description: By default Lists will fetch all resources and paginate in the browser (create the page given sorting and filtering settings). Change this setting to enable pagination server-side. This should help the responsiveness of the UI in systems with a lot of resources.
+    checkboxLabel: Enable Server-side Pagination
+    applicable: "This applies to the following resource types"
+    incompatibleDescription: "Server-side Pagination is incomaptible with Manual Refresh and Incremental Loading. Enabling this will disable them."
+    featureFlag: The Feature Flag `on-disk-steve-cache` must be enabled to use this feature
 banner:
   label: Fixed Banners
   settingName: Banners

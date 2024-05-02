@@ -2,8 +2,8 @@ import { MANAGEMENT } from '@shell/config/types';
 
 const definitions = {};
 
-export const create = function(name, def) {
-  definitions[name] = { def };
+export const create = function(name, defaultValue) {
+  definitions[name] = { def: defaultValue };
 
   return name;
 };
@@ -33,6 +33,7 @@ export const FLEET = create('continuous-delivery', true);
 export const HARVESTER = create('harvester', true);
 export const HARVESTER_CONTAINER = create('harvester-baremetal-container-workload', false);
 export const FLEET_WORKSPACE_BACK = create('provisioningv2-fleet-workspace-back-population', false);
+export const STEVE_CACHE = create('on-disk-steve-cache', false);
 
 // Not currently used.. no point defining ones we don't use
 // export const EMBEDDED_CLUSTER_API = create('embedded-cluster-api', true);
