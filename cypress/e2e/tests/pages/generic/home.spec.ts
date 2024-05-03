@@ -31,7 +31,6 @@ describe('Home Page', () => {
   describe('Home Page', { testIsolation: 'off' }, () => {
     before(() => {
       cy.login();
-      HomePagePo.goTo();
     });
 
     it('Can navigate to release notes page for latest Rancher version', { tags: ['@generic', '@adminUser', '@standardUser'] }, () => {
@@ -40,7 +39,8 @@ describe('Home Page', () => {
      * Verify release notes link is valid github page
      * Verify correct Rancher version is displayed
      */
-
+      HomePagePo.navTo();
+      homePage.waitForPage();
       homePage.restoreAndWait();
 
       cy.getRancherResource('v1', 'management.cattle.io.settings', 'server-version').then((resp: Cypress.Response<any>) => {
@@ -64,6 +64,9 @@ describe('Home Page', () => {
     /**
      * Click link and verify user lands on preferences page
      */
+
+      HomePagePo.navTo();
+      homePage.waitForPage();
       const prefPage = new PreferencesPagePo();
 
       homePage.prefPageLink().click();
@@ -79,6 +82,7 @@ describe('Home Page', () => {
      * Verify banners display on home page
      */
       HomePagePo.navTo();
+      homePage.waitForPage();
       homePage.restoreAndWait();
 
       homePage.bannerGraphic().graphicBanner().should('be.visible');
@@ -102,6 +106,9 @@ describe('Home Page', () => {
      */
 
       const clusterDetails: string[] = [];
+
+      HomePagePo.navTo();
+      homePage.waitForPage();
 
       homeClusterList.state('local').invoke('text').then((el) => {
         clusterDetails.push(el.trim());
@@ -171,6 +178,8 @@ describe('Home Page', () => {
      * Filter rows in the cluster list
      */
       HomePagePo.navTo();
+      homePage.waitForPage();
+
       homeClusterList.resourceTable().sortableTable().filter('random text');
       homeClusterList.resourceTable().sortableTable().rowElements().should((el) => {
         expect(el).to.contain.text('There are no rows which match your search query.');
@@ -199,6 +208,8 @@ describe('Home Page', () => {
       }).as('provClusters');
 
       homePage.goTo();
+      homePage.waitForPage();
+
       const desc = homeClusterList.resourceTable().sortableTable().rowWithName('local').column(1)
         .get('.cluster-description');
 
