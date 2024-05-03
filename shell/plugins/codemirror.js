@@ -3,8 +3,6 @@
  * so that it doesn't all get loaded put into vendor.js
  */
 
-import Vue from 'vue';
-import { codemirror as vueCodemirror } from 'vue-codemirror';
 import CodeMirror from 'codemirror';
 
 import 'codemirror/lib/codemirror.css';
@@ -30,23 +28,6 @@ import 'codemirror/addon/hint/show-hint.js';
 import 'codemirror/addon/hint/anyword-hint.js';
 
 import { strPad } from '@shell/utils/string';
-
-const vCodemirror = {
-  install: (Vue) => {
-    if (Vue.component('codemirror')) {
-      // eslint-disable-next-line no-console
-      console.debug('Skipping codemirror install. Component already exists.');
-    } else {
-      Vue.component('codemirror', vueCodemirror);
-    }
-  }
-};
-
-export default vCodemirror;
-/* eslint-disable-next-line no-console */
-console.warn('The implicit addition of vue-codemirror has been deprecated in Rancher Shell and will be removed in a future version. Make sure to invoke `Vue.use(vCodemirror)` to maintain compatibility.');
-
-Vue.use(vCodemirror);
 
 function isLineComment(cm, lineNo) {
   return /\bcomment\b/.test(cm.getTokenTypeAt(CodeMirror.Pos(lineNo, 0)));

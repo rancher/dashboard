@@ -17,18 +17,17 @@ import axios from '../utils/axios.js';
 import axiosShell from '@shell/plugins/axios';
 import backButton from '@shell/plugins/back-button';
 import codeMirror from '@shell/plugins/codemirror-loader';
+import VueCodemirror from 'vue-codemirror';
 import cookieUniversalNuxt from '../utils/cookie-universal-nuxt.js';
 import * as intNumber from '@shell/plugins/int-number';
 import nuxtClientInit from '@shell/plugins/nuxt-client-init';
 import plugin from '@shell/plugins/plugin';
 import plugins from '@shell/core/plugins.js';
 import pluginsLoader from '../core/plugins-loader.js';
-import positiveIntNumber from '@shell/plugins/positive-int-number.js';
 import replaceAll from '@shell/plugins/replaceall';
 import steveCreateWorker from '@shell/plugins/steve-create-worker';
 import version from '@shell/plugins/version';
 import emberCookie from '@shell/plugins/ember-cookie';
-import trimWhitespace from '@shell/plugins/trim-whitespace';
 
 export async function installPlugins(app, inject, Vue) {
   Vue.use(globalFormatters);
@@ -37,14 +36,9 @@ export async function installPlugins(app, inject, Vue) {
   Vue.use(VueResize);
   Vue.use(VTooltip);
   Vue.use(ShortKey, { prevent: ['input', 'textarea', 'select'] });
-  Vue.use(codeMirror);
+  Vue.use(VueCodemirror);
 
   Vue.component('v-select', vSelect);
-  Vue.directive('positiveIntNumber', { inserted: positiveIntNumber });
-  Vue.directive('trim-whitespace', {
-    inserted:         trimWhitespace,
-    componentUpdated: trimWhitespace
-  });
   const pluginDefinitions = [cookieUniversalNuxt, axios, plugins, pluginsLoader, axiosShell, intNumber, nuxtClientInit, replaceAll, backButton, plugin, version, steveCreateWorker, emberCookie];
 
   const installations = pluginDefinitions.map(async(pluginDefinition) => {

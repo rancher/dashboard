@@ -32,7 +32,7 @@ Vue.directive = function(name) {
 // Load the directives from the plugins - we do this with a function so we know
 // these are initialized here, after the code above which keeps track of them and
 // prevents over-writes
-loadDirectives();
+loadDirectives(Vue);
 
 // Component: <NuxtChild>
 Vue.component(NuxtChild.name, NuxtChild);
