@@ -89,7 +89,7 @@ export const routerOptions = {
           name:      'account-create-key'
         },
         {
-          path:      'auth',
+          path:      '/c/:cluster/auth',
           component: () => interopDefault(import('../pages/c/_cluster/auth/index.vue')),
           name:      'c-cluster-auth'
         },
@@ -99,7 +99,7 @@ export const routerOptions = {
           name:      'c-cluster-ecm'
         },
         {
-          path:      'settings',
+          path:      '/c/:cluster/settings',
           component: () => interopDefault(import('../pages/c/_cluster/settings/index.vue')),
           name:      'c-cluster-settings'
         }
