@@ -2,7 +2,7 @@
 
 export default {
   async fetch() {
-    await this.$store.dispatch('auth/logout', null, { root: true });
+    await this.$store.dispatch('auth/logout', { force: true }, { root: true });
   }
 };
 </script>
