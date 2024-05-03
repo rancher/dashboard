@@ -30,7 +30,6 @@ import version from '@shell/plugins/version';
 import emberCookie from '@shell/plugins/ember-cookie';
 
 export async function installPlugins(app, inject, Vue) {
-  Vue.use(vueSelect);
   Vue.use(globalFormatters);
   Vue.use(positiveIntNumber);
 
@@ -41,7 +40,7 @@ export async function installPlugins(app, inject, Vue) {
 
   Vue.component('v-select', vSelect);
 
-  const pluginDefinitions = [cookieUniversalNuxt, axios, plugins, pluginsLoader, axiosShell, intNumber, positiveIntNumber, nuxtClientInit, replaceAll, backButton, plugin, codeMirror, version, steveCreateWorker, emberCookie];
+  const pluginDefinitions = [cookieUniversalNuxt, axios, plugins, pluginsLoader, axiosShell, intNumber, nuxtClientInit, replaceAll, backButton, plugin, codeMirror, version, steveCreateWorker, emberCookie];
 
   const installations = pluginDefinitions.map(async(pluginDefinition) => {
     if (typeof pluginDefinition === 'function') {
