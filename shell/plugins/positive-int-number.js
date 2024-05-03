@@ -18,7 +18,7 @@ function positiveIntNumber(el) {
 
 export default positiveIntNumber;
 
-// This is being done for backwards compatibility with our extensions that have written tests and didn't properly make use of Vue.use() when importing and mocking translations
+// This is being done for backwards compatibility with our extensions that have written tests and didn't properly make use of Vue.use() when importing and mocking plugins
 
 const isThisFileBeingExecutedInATest = process.env.NODE_ENV === 'test';
 
