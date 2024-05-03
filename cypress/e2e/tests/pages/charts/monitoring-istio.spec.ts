@@ -219,7 +219,7 @@ describe('Charts', { tags: ['@charts', '@adminUser'] }, () => {
         grafana.storageStatefulsetSizeInput().checkVisible();
         grafana.storageStatefulsetSizeInput().self().invoke('val').should('equal', DEFAULT_GRAFANA_STORAGE_SIZE);
         // back to disabled
-        grafana.storageOptions().set(0);        
+        grafana.storageOptions().set(0);
 
         // Click on YAML. In YAML mode, the prometheus selector is present but empty
         // It should not be sent to the API
