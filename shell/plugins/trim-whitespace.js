@@ -15,7 +15,7 @@ export default function trimWhitespace(el, dir) {
 }
 
 /* eslint-disable-next-line no-console */
-console.warn('The implicit addition of trim-whitespace has been deprecated in Rancher Shell and will be removed in a future version. Make sure to invoke `Vue.use(trimWhitespaceDirective)` to maintain compatibility.');
+console.warn('The implicit addition of trim-whitespace has been deprecated in Rancher Shell and will be removed in a future version. Make sure to invoke it using Vue.directive to maintain compatibility.');
 
 Vue.directive('trim-whitespace', {
   inserted:         trimWhitespace,

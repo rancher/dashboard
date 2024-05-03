@@ -18,6 +18,6 @@ function positiveIntNumber(el) {
 
 export default positiveIntNumber;
 /* eslint-disable-next-line no-console */
-console.warn('The implicit addition of positiveIntNumber has been deprecated in Rancher Shell and will be removed in a future version. Make sure to invoke `Vue.use(positiveIntNumber)` to maintain compatibility.');
+console.warn('The implicit addition of positiveIntNumber has been deprecated in Rancher Shell and will be removed in a future version. Make sure to invoke `Vue.directive("positiveIntNumber", { inserted: positiveIntNumber })` to maintain compatibility.');
 
 Vue.directive('positiveIntNumber', { inserted: positiveIntNumber });
