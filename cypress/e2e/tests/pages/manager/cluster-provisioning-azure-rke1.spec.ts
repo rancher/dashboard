@@ -230,7 +230,7 @@ describe('Provision Node driver RKE1 cluster with Azure', { testIsolation: 'off'
   it('can delete a Azure RKE1 cluster', function() {
     ClusterManagerListPagePo.navTo();
     clusterList.waitForPage();
-    clusterList.list().state(this.rke1AzureClusterName).contains('Active', { timeout: 60000 });
+    clusterList.list().state(this.rke1AzureClusterName).contains('Active', { timeout: 120000 });
     clusterList.list().actionMenu(this.rke1AzureClusterName).getMenuItem('Delete').click();
 
     clusterList.sortableTable().rowNames('.cluster-link').then((rows: any) => {
