@@ -9,7 +9,6 @@ import '@shell/plugins/extend-router';
 import '@shell/plugins/formatters';
 import '@shell/plugins/vue-js-modal';
 import '@shell/plugins/js-yaml';
-import '@shell/plugins/trim-whitespace';
 
 import i18n from '@shell/plugins/i18n';
 import globalFormatters from '@shell/plugins/global-formatters';
@@ -24,11 +23,12 @@ import nuxtClientInit from '@shell/plugins/nuxt-client-init';
 import plugin from '@shell/plugins/plugin';
 import plugins from '@shell/core/plugins.js';
 import pluginsLoader from '../core/plugins-loader.js';
-import * as positiveIntNumber from '@shell/plugins/positive-int-number.js';
+import positiveIntNumber from '@shell/plugins/positive-int-number.js';
 import replaceAll from '@shell/plugins/replaceall';
 import steveCreateWorker from '@shell/plugins/steve-create-worker';
 import version from '@shell/plugins/version';
 import emberCookie from '@shell/plugins/ember-cookie';
+import trimWhitespace from '@shell/plugins/trim-whitespace';
 
 export async function installPlugins(app, inject, Vue) {
   Vue.use(globalFormatters);
@@ -37,10 +37,15 @@ export async function installPlugins(app, inject, Vue) {
   Vue.use(VueResize);
   Vue.use(VTooltip);
   Vue.use(ShortKey, { prevent: ['input', 'textarea', 'select'] });
+  Vue.use(codeMirror);
 
   Vue.component('v-select', vSelect);
-
-  const pluginDefinitions = [cookieUniversalNuxt, axios, plugins, pluginsLoader, axiosShell, intNumber, positiveIntNumber, nuxtClientInit, replaceAll, backButton, plugin, codeMirror, version, steveCreateWorker, emberCookie];
+  Vue.directive('positiveIntNumber', { inserted: positiveIntNumber });
+  Vue.directive('trim-whitespace', {
+    inserted:         trimWhitespace,
+    componentUpdated: trimWhitespace
+  });
+  const pluginDefinitions = [cookieUniversalNuxt, axios, plugins, pluginsLoader, axiosShell, intNumber, nuxtClientInit, replaceAll, backButton, plugin, version, steveCreateWorker, emberCookie];
 
   const installations = pluginDefinitions.map(async(pluginDefinition) => {
     if (typeof pluginDefinition === 'function') {
