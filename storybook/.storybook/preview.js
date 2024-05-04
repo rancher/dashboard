@@ -8,9 +8,10 @@ import IntlMessageFormat from 'intl-messageformat';
 import installShortcut from './theme-shortcut';
 import withEvents from 'storybook-auto-events';
 const i18nStrings = require('../../shell/assets/translations/en-us.yaml');
-import { VCleanTooltip } from '@shell/plugins/clean-tooltip-directive.js';
+import vCleanTooltip  from '@shell/plugins/clean-tooltip-directive.js';
 import ShortKey from 'vue-shortkey';
 import trimWhitespace from '@shell/plugins/trim-whitespace';
+import cleanHtmlDirective from 'plugins/clean-html-directive';
 
 
 // Store modules
@@ -21,7 +22,6 @@ import table from './store/table';
 
 // Register custom i18n plugin
 require('../../shell/plugins/i18n');
-require('../../shell/plugins/clean-html-directive');
 
 Vue.use(Vuex);
 Vue.use(ShortKey, { prevent: ['input', 'textarea', 'select'] });
@@ -33,11 +33,12 @@ Vue.component('router-link', {
   template: '<a>link</a>',
 })
 
-Vue.directive('clean-tooltip', VCleanTooltip);
+Vue.directive('clean-tooltip', vCleanTooltip);
 Vue.directive('trim-whitespace', {
   inserted:         trimWhitespace,
   componentUpdated: trimWhitespace
 });
+Vue.directive('clean-html', cleanHtmlDirective);
 
 window.__codeMirrorLoader = () => import(/* webpackChunkName: "codemirror" */ '@shell/plugins/codemirror');
 

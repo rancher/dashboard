@@ -1,15 +1,5 @@
 import Vue from 'vue';
 
-Vue.directive('focus', {
-  inserted(_el, _binding, vnode) {
-    const element = getElement(vnode);
-
-    if (element) {
-      element.focus();
-    }
-  }
-});
-
 const getElement = (vnode) => {
   const { componentInstance, componentOptions: { tag } } = vnode;
 
@@ -39,3 +29,18 @@ const getElement = (vnode) => {
     return componentInstance.$refs.input.$refs.value;
   }
 };
+
+function focusDirective(_el, _binding, vnode) {
+  const element = getElement(vnode);
+
+  if (element) {
+    element.focus();
+  }
+}
+
+Vue.directive('focus', { inserted: focusDirective });
+
+export default focusDirective;
+
+/* eslint-disable-next-line no-console */
+console.warn('The implicit addition of focus has been deprecated in Rancher Shell and will be removed in a future version. Make sure to invoke `Vue.directive("focus", { inserted: focusDirective });` to maintain compatibility.');
