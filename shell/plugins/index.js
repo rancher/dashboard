@@ -9,9 +9,9 @@ import cleanHtmlDirective from 'plugins/clean-html-directive';
 import vCleanTooltip from 'plugins/clean-tooltip-directive';
 import positiveIntNumber from '@shell/plugins/positive-int-number.js';
 import trimWhitespace from '@shell/plugins/trim-whitespace';
+import intNumberDirective from 'plugins/int-number';
 
 export function loadDirectives(Vue) {
-  Vue.directive('positiveIntNumber', { inserted: positiveIntNumber });
   Vue.directive('trim-whitespace', {
     inserted:         trimWhitespace,
     componentUpdated: trimWhitespace
@@ -19,4 +19,6 @@ export function loadDirectives(Vue) {
   Vue.directive('clean-html', cleanHtmlDirective);
   Vue.directive('clean-tooltip', vCleanTooltip);
   Vue.directive('focus', { inserted: focusDirective });
+  Vue.directive('intNumber', { inserted: intNumberDirective });
+  Vue.directive('positiveIntNumber', { inserted: positiveIntNumber });
 }
