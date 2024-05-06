@@ -3,7 +3,9 @@ import MachinePoolsListPo from '@/cypress/e2e/po/lists/machine-pools-list.po';
 import ClusterConditionsListPo from '~/cypress/e2e/po/lists/cluster-conditions-list.po';
 import ClusterProvisioningLogPo from '~/cypress/e2e/po/lists/cluster-provisioning-log.po';
 import ClusterReferredToListPo from '~/cypress/e2e/po/lists/cluster-referred-to-list.po';
+import ClusterSnapshotsListPo from '~/cypress/e2e/po/lists/cluster-snapshots-list.po';
 import TabbedPo from '~/cypress/e2e/po/components/tabbed.po';
+import ClusterRecentEventsListPo from '~/cypress/e2e/po/lists/cluster-recent-events-list.po';
 
 /**
  * Covers core functionality that's common to the dashboard's cluster detail pages
@@ -45,6 +47,14 @@ export default abstract class ClusterManagerDetailPagePo extends PagePo {
 
   referredToList() {
     return new ClusterReferredToListPo(this.self().find('[data-testid="sortable-table-list-container"]'));
+  }
+
+  snapshotsList() {
+    return new ClusterSnapshotsListPo(this.self().get('[data-testid="cluster-snapshots-list"]'));
+  }
+
+  recentEventsList() {
+    return new ClusterRecentEventsListPo(this.self().get('.sortable-table'));
   }
 
   selectTab(options: TabbedPo, selector: string) {
