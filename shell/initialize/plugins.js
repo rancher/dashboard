@@ -39,7 +39,7 @@ export async function installPlugins(app, inject, Vue) {
   Vue.use(VueCodemirror);
 
   Vue.component('v-select', vSelect);
-  const pluginDefinitions = [cookieUniversalNuxt, axios, plugins, pluginsLoader, axiosShell, intNumber, nuxtClientInit, replaceAll, backButton, plugin, version, steveCreateWorker, emberCookie];
+  const pluginDefinitions = [cookieUniversalNuxt, axios, plugins, pluginsLoader, axiosShell, intNumber, codeMirror, nuxtClientInit, replaceAll, backButton, plugin, version, steveCreateWorker, emberCookie];
 
   const installations = pluginDefinitions.map(async(pluginDefinition) => {
     if (typeof pluginDefinition === 'function') {
