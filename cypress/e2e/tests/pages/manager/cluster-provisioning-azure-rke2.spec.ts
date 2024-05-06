@@ -56,7 +56,7 @@ describe('Provision Node driver RKE2 cluster with Azure', { testIsolation: 'off'
     cloudCredForm.saveButton().expectToBeDisabled();
     cloudCredForm.nameNsDescription().name().set(this.azureCloudCredentialName);
     cloudCredForm.environment().toggle();
-    cloudCredForm.environment().clickOptionWithLabel('Create New...');
+    cloudCredForm.environment().clickOptionWithLabel('AzurePublicCloud');
     cloudCredForm.subscriptionId().set(Cypress.env('azureSubscriptionId'));
     cloudCredForm.clientId().set(Cypress.env('azureClientId'), true);
     cloudCredForm.clientSecret().set(Cypress.env('azureClientSecret'), true);
