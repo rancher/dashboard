@@ -53,12 +53,14 @@ describe('Provision Node driver RKE2 cluster with Azure', { testIsolation: 'off'
     createRKE2ClusterPage.waitForPage('type=azure&rkeType=rke2');
 
     // create Azure cloud credential
+    cloudCredForm.saveButton().expectToBeDisabled();
     cloudCredForm.nameNsDescription().name().set(this.azureCloudCredentialName);
     cloudCredForm.environment().toggle();
     cloudCredForm.environment().clickOptionWithLabel('Create New...');
     cloudCredForm.subscriptionId().set(Cypress.env('azureSubscriptionId'));
     cloudCredForm.clientId().set(Cypress.env('azureClientId'), true);
     cloudCredForm.clientSecret().set(Cypress.env('azureClientSecret'), true);
+    cloudCredForm.saveButton().expectToBeEnabled();
     cloudCredForm.saveCreateForm().cruResource().saveAndWaitForRequests('POST', '/v3/cloudcredentials').then((req) => {
       expect(req.response?.statusCode).to.equal(201);
       cloudcredentialId = req.response?.body.id;
