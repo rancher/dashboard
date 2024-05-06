@@ -11,7 +11,7 @@ const i18nStrings = require('../../shell/assets/translations/en-us.yaml');
 import vCleanTooltip  from '@shell/plugins/clean-tooltip-directive.js';
 import ShortKey from 'vue-shortkey';
 import trimWhitespace from '@shell/plugins/trim-whitespace';
-import cleanHtmlDirective from 'plugins/clean-html-directive';
+import cleanHtmlDirective from '@shell/plugins/clean-html-directive';
 
 
 // Store modules
