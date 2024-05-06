@@ -2,6 +2,12 @@ import Vue from 'vue';
 import Router from 'vue-router';
 import { normalizeURL } from 'ufo';
 import { interopDefault } from '../utils/nuxt';
+import { NAME as APPS } from '@shell/config/product/apps';
+import { NAME as EXPLORER } from '@shell/config/product/explorer';
+import { NAME as MANAGER } from '@shell/config/product/manager';
+import { CAPI, MANAGEMENT } from '@shell/config/types';
+import { NAME as MCAPPS, NAME as LEGACY } from '@shell/config/product/multi-cluster-apps';
+import { NAME as AUTH } from '@shell/config/product/auth';
 
 const emptyFn = () => {};
 
@@ -89,9 +95,18 @@ export const routerOptions = {
           name:      'account-create-key'
         },
         {
-          path:      '/c/:cluster/auth',
-          component: () => interopDefault(import('../pages/c/_cluster/auth/index.vue')),
-          name:      'c-cluster-auth'
+          path: '/c/:cluster/auth',
+          redirect(to) {
+            return {
+              name:   'c-cluster-product-resource',
+              params: {
+                ...(to?.params || {}),
+                product:  AUTH,
+                resource: MANAGEMENT.USER,
+              }
+            };
+          },
+          name: 'c-cluster-auth'
         },
         {
           path:      'ecm',
@@ -149,14 +164,30 @@ export const routerOptions = {
           name:      'clusters'
         },
         {
-          path:      '/c/:cluster',
-          name:      'c-cluster',
-          component: () => interopDefault(import('../pages/c/_cluster/index.vue')),
+          path: '/c/:cluster',
+          name: 'c-cluster',
+          redirect(to) {
+            return {
+              name:   'c-cluster-explorer',
+              params: {
+                ...(to?.params || {}),
+                product: EXPLORER,
+              }
+            };
+          }
         },
         {
-          path:      '/c/:cluster/apps',
-          component: () => interopDefault(import('../pages/c/_cluster/apps/index.vue')),
-          name:      'c-cluster-apps'
+          path: '/c/:cluster/apps',
+          redirect(to) {
+            return {
+              name:   'c-cluster-apps-charts',
+              params: {
+                ...(to?.params || {}),
+                product: APPS,
+              }
+            };
+          },
+          name: 'c-cluster-apps'
         },
         {
           path:      '/c/:cluster/explorer',
@@ -183,9 +214,19 @@ export const routerOptions = {
           component: () => interopDefault(import('../pages/c/_cluster/istio/index.vue')),
           name:      'c-cluster-istio'
         }, {
-          path:      '/c/:cluster/legacy',
-          component: () => interopDefault(import('../pages/c/_cluster/legacy/index.vue')),
-          name:      'c-cluster-legacy'
+          path: '/c/:cluster/legacy',
+          redirect(to) {
+            return {
+              name:   'c-cluster-legacy-pages-page',
+              params: {
+                ...(to?.params || {}),
+                cluster: 'local',
+                product: LEGACY,
+                page:    'alerts'
+              }
+            };
+          },
+          name: 'c-cluster-legacy'
         }, {
           path:      '/c/:cluster/logging',
           component: () => interopDefault(import('../pages/c/_cluster/logging/index.vue')),
@@ -195,13 +236,31 @@ export const routerOptions = {
           component: () => interopDefault(import('../pages/c/_cluster/longhorn/index.vue')),
           name:      'c-cluster-longhorn'
         }, {
-          path:      '/c/:cluster/manager',
-          component: () => interopDefault(import('../pages/c/_cluster/manager/index.vue')),
-          name:      'c-cluster-manager'
+          path: '/c/:cluster/manager',
+          redirect(to) {
+            return {
+              name:   'c-cluster-product-resource',
+              params: {
+                ...(to?.params || {}),
+                product:  MANAGER,
+                resource: CAPI.RANCHER_CLUSTER
+              }
+            };
+          },
+          name: 'c-cluster-manager'
         }, {
-          path:      '/c/:cluster/mcapps',
-          component: () => interopDefault(import('../pages/c/_cluster/mcapps/index.vue')),
-          name:      'c-cluster-mcapps'
+          path: '/c/:cluster/mcapps',
+          redirect(to) {
+            return {
+              name:   'c-cluster-mcapps-pages-page',
+              params: {
+                ...(to?.params || {}),
+                product: MCAPPS,
+                page:    'catalogs'
+              }
+            };
+          },
+          name: 'c-cluster-mcapps'
         }, {
           path:      '/c/:cluster/monitoring',
           component: () => interopDefault(import('../pages/c/_cluster/monitoring/index.vue')),
