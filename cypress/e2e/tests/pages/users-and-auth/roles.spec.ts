@@ -68,7 +68,7 @@ describe('Roles', { tags: ['@usersAndAuths', '@adminUser'] }, () => {
       roles.waitForPage(undefined, fragment);
 
       // testing https://github.com/rancher/dashboard/issues/9800
-      roles.list().actionMenu(globalRoleName).getMenuItem('Edit YAML').click();
+      roles.goToEditYamlPage(globalRoleName);
 
       createGlobalRole.yamlEditor().value().then((val) => {
         // convert yaml into json to update values
