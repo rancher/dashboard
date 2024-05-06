@@ -36,7 +36,7 @@ describe('Cluster Explorer', { tags: ['@explorer', '@adminUser'] }, () => {
         const workloadsDaemonsetsListPage = new WorkloadsDaemonsetsListPagePo(fakeMgmtClusterId);
 
         workloadsDaemonsetsListPage.goTo();
-        workloadsDaemonsetsListPage.listElementWithName(daemonsetName).should('exist');
+        workloadsDaemonsetsListPage.listElementWithName(daemonsetName).should('be.visible');
         workloadsDaemonsetsListPage.goToeditItemWithName(daemonsetName);
 
         // edit view daemonsets
@@ -47,7 +47,7 @@ describe('Cluster Explorer', { tags: ['@explorer', '@adminUser'] }, () => {
         workloadsDaemonsetsEditPage.ScalingUpgradePolicyRadioBtn().set(1);
         workloadsDaemonsetsEditPage.saveCreateForm().click();
 
-        workloadsDaemonsetsListPage.listElementWithName(daemonsetName).should('exist');
+        workloadsDaemonsetsListPage.listElementWithName(daemonsetName).should('be.visible');
 
         cy.wait('@daemonsetEdit', { requestTimeout: 4000 }).then((req) => {
           expect(req.request.body.spec.updateStrategy.type).to.equal('OnDelete');
