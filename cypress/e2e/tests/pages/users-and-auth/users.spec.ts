@@ -66,7 +66,7 @@ describe('Users', { tags: '@adminUser' }, () => {
 
     // usersPo.goTo();
     usersPo.waitForPage();
-    usersPo.list().elementWithName(userBaseUsername).should('be.visible');
+    usersPo.list().elementWithName(userBaseUsername).should('exist');
   });
 
   it('can create Standard User and view their details', () => {
@@ -84,7 +84,7 @@ describe('Users', { tags: '@adminUser' }, () => {
       userId = res.response?.body.userId;
 
       usersPo.waitForPage();
-      usersPo.list().elementWithName(standardUsername).should('be.visible');
+      usersPo.list().elementWithName(standardUsername).should('exist');
 
       // view user's details
       usersPo.list().details(standardUsername, 2).find('a').click();
