@@ -10,8 +10,7 @@ describe('component: NamespaceFilter', () => {
           options:  () => [],
           value:    () => [],
         },
-        mocks:      { $fetchState: { pending: false } },
-        directives: { shortkey: () => jest.fn() }
+        mocks: { $fetchState: { pending: false } }
       });
       const filter = wrapper.find(`[data-testid="namespaces-filter"]`);
 
@@ -29,8 +28,7 @@ describe('component: NamespaceFilter', () => {
         mocks: {
           $store:      { getters: { 'i18n/t': () => text, namespaceFilterMode: () => undefined } },
           $fetchState: { pending: false }
-        },
-        directives: { shortkey: () => jest.fn() }
+        }
       });
       const element = wrapper.find(`[data-testid="namespaces-values-none"]`).element.textContent;
 
@@ -48,8 +46,7 @@ describe('component: NamespaceFilter', () => {
             kind:  'special',
           }]),
         },
-        mocks:      { $fetchState: { pending: false } },
-        directives: { shortkey: () => jest.fn() }
+        mocks: { $fetchState: { pending: false } }
       });
 
       const element = wrapper.find(`[data-testid="namespaces-values-label"]`).element.textContent;
@@ -65,8 +62,7 @@ describe('component: NamespaceFilter', () => {
           options:  () => [],
           value:    () => [{ label: text }],
         },
-        directives: { shortkey: () => jest.fn() },
-        mocks:      {
+        mocks: {
           $store:      { getters: { 'i18n/t': () => text, namespaceFilterMode: () => undefined } },
           $fetchState: { pending: false }
         },
@@ -107,8 +103,7 @@ describe('component: NamespaceFilter', () => {
             },
           },
           $fetchState: { pending: false }
-        },
-        directives: { shortkey: () => jest.fn() }
+        }
       });
 
       const element = wrapper.find(`[data-testid="namespaces-value-0"]`).element.textContent;
@@ -128,8 +123,7 @@ describe('component: NamespaceFilter', () => {
         mocks: {
           $store:      { getters: { 'i18n/t': () => '', namespaceFilterMode: () => undefined } },
           $fetchState: { pending: false }
-        },
-        directives: { shortkey: () => jest.fn() }
+        }
       });
       const dropdown = wrapper.find(`[data-testid="namespaces-dropdown"]`);
 
@@ -150,8 +144,7 @@ describe('component: NamespaceFilter', () => {
         mocks: {
           $store:      { getters: { 'i18n/t': () => text, namespaceFilterMode: () => undefined } },
           $fetchState: { pending: false }
-        },
-        directives: { shortkey: () => jest.fn() }
+        }
       });
       const dropdown = wrapper.find(`[data-testid="namespaces-dropdown"]`);
 
@@ -171,8 +164,7 @@ describe('component: NamespaceFilter', () => {
         mocks: {
           $store:      { getters: { 'i18n/t': () => text, namespaceFilterMode: () => undefined } },
           $fetchState: { pending: false }
-        },
-        directives: { shortkey: () => jest.fn() }
+        }
       });
 
       (wrapper.vm as any).cachedFiltered = [
@@ -213,8 +205,7 @@ describe('component: NamespaceFilter', () => {
             dispatch: action
           },
           $fetchState: { pending: false }
-        },
-        directives: { shortkey: () => jest.fn() }
+        }
       });
 
       (wrapper.vm as any).cachedFiltered = [
