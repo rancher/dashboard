@@ -9,7 +9,6 @@ import '@shell/plugins/extend-router';
 import '@shell/plugins/formatters';
 import '@shell/plugins/vue-js-modal';
 import '@shell/plugins/js-yaml';
-import '@shell/plugins/trim-whitespace';
 
 import i18n from '@shell/plugins/i18n';
 import globalFormatters from '@shell/plugins/global-formatters';
@@ -18,13 +17,13 @@ import axios from '../utils/axios.js';
 import axiosShell from '@shell/plugins/axios';
 import backButton from '@shell/plugins/back-button';
 import codeMirror from '@shell/plugins/codemirror-loader';
+import VueCodemirror from 'vue-codemirror';
 import cookieUniversalNuxt from '../utils/cookie-universal-nuxt.js';
 import * as intNumber from '@shell/plugins/int-number';
 import nuxtClientInit from '@shell/plugins/nuxt-client-init';
 import plugin from '@shell/plugins/plugin';
 import plugins from '@shell/core/plugins.js';
 import pluginsLoader from '../core/plugins-loader.js';
-import * as positiveIntNumber from '@shell/plugins/positive-int-number.js';
 import replaceAll from '@shell/plugins/replaceall';
 import steveCreateWorker from '@shell/plugins/steve-create-worker';
 import version from '@shell/plugins/version';
@@ -37,10 +36,10 @@ export async function installPlugins(app, inject, Vue) {
   Vue.use(VueResize);
   Vue.use(VTooltip);
   Vue.use(ShortKey, { prevent: ['input', 'textarea', 'select'] });
+  Vue.use(VueCodemirror);
 
   Vue.component('v-select', vSelect);
-
-  const pluginDefinitions = [cookieUniversalNuxt, axios, plugins, pluginsLoader, axiosShell, intNumber, positiveIntNumber, nuxtClientInit, replaceAll, backButton, plugin, codeMirror, version, steveCreateWorker, emberCookie];
+  const pluginDefinitions = [cookieUniversalNuxt, axios, plugins, pluginsLoader, axiosShell, intNumber, codeMirror, nuxtClientInit, replaceAll, backButton, plugin, version, steveCreateWorker, emberCookie];
 
   const installations = pluginDefinitions.map(async(pluginDefinition) => {
     if (typeof pluginDefinition === 'function') {

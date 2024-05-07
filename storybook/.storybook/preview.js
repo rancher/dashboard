@@ -10,7 +10,7 @@ import withEvents from 'storybook-auto-events';
 const i18nStrings = require('../../shell/assets/translations/en-us.yaml');
 import { VCleanTooltip } from '@shell/plugins/clean-tooltip-directive.js';
 import ShortKey from 'vue-shortkey';
-import { trimWhitespace } from '../../shell/plugins/trim-whitespace';
+import trimWhitespace from '@shell/plugins/trim-whitespace';
 
 
 // Store modules
@@ -35,7 +35,8 @@ Vue.component('router-link', {
 
 Vue.directive('clean-tooltip', VCleanTooltip);
 Vue.directive('trim-whitespace', {
-  inserted:        trimWhitespace,
+  inserted:         trimWhitespace,
+  componentUpdated: trimWhitespace
 });
 
 window.__codeMirrorLoader = () => import(/* webpackChunkName: "codemirror" */ '@shell/plugins/codemirror');
