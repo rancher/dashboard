@@ -47,7 +47,7 @@ export class ChartsPage extends PagePo {
   }
 
   selectChart(name: string) {
-    cy.get('.grid .name').contains(name).click();
+    return cy.get('.grid .name').contains(name).click();
   }
 
   bannerContent() {

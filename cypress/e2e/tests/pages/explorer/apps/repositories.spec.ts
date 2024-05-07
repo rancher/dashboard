@@ -1,10 +1,11 @@
 import ReposListPagePo from '@/cypress/e2e/po/pages/chart-repositories.po';
 import AppClusterRepoEditPo from '@/cypress/e2e/po/edit/catalog.cattle.io.clusterrepo.po';
 import { ChartPage } from '@/cypress/e2e/po/pages/explorer/charts/chart.po';
+import { ChartsPage } from '@/cypress/e2e/po/pages/explorer/charts/charts.po';
 
 describe('Apps', () => {
-  describe('Repositories', () => {
-    describe('Add', { tags: ['@explorer', '@adminUser'] }, () => {
+  describe('Repositories', { tags: ['@explorer', '@adminUser'] }, () => {
+    describe('Add', () => {
       before(() => {
         cy.login();
 
@@ -60,10 +61,11 @@ describe('Apps', () => {
       });
     });
 
-    describe('Refresh', { tags: ['@explorer', '@adminUser', '@standardUser'] }, () => {
+    describe('Refresh', () => {
       const chartPage = new ChartPage();
       const clusterId = 'local';
       const appRepoList = new ReposListPagePo(clusterId, 'apps');
+      const chartsPage = new ChartsPage(clusterId);
 
       before(() => {
         cy.login();
@@ -77,8 +79,13 @@ describe('Apps', () => {
         cy.intercept('GET', '/v1/catalog.cattle.io.clusterrepos/rancher-charts?*').as('rancherCharts1');
 
         // Nav to a summary page for a specific chart
-        ChartPage.navTo(clusterId, 'Rancher Backups');
+        ChartsPage.navTo(clusterId);
+        chartsPage.chartsFilterReposSelect().toggle();
+        chartsPage.chartsFilterReposSelect().clickOptionWithLabelForChartReposFilter('All');
+
+        chartsPage.selectChart('Rancher Backups');
         chartPage.waitForPage();
+
         // The repo charts should have been fetched
         cy.wait('@rancherCharts1').its('request.url').should('include', 'link=index');
         // The specific version of the chart should be fetched
