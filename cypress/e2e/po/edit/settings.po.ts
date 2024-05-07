@@ -3,6 +3,7 @@ import LabeledInputPo from '@/cypress/e2e/po/components/labeled-input.po';
 import AsyncButtonPo from '@/cypress/e2e/po/components/async-button.po';
 import RadioGroupInputPo from '@/cypress/e2e/po/components/radio-group-input.po';
 import LabeledSelectPo from '@/cypress/e2e/po/components/labeled-select.po';
+import BannersPo from '@/cypress/e2e/po/components/banners.po';
 
 export default class SettingsEditPo extends PagePo {
   private static createPath(clusterId: string, setting: string) {
@@ -36,20 +37,12 @@ export default class SettingsEditPo extends PagePo {
     selectSettings.clickOptionWithLabel(label);
   }
 
-  serverUrlLocalhostWarningBanner() {
-    return this.self().find('[data-testid="setting-serverurl-localhost-warning"]');
+  serverUrlLocalhostWarningBanner(): BannersPo {
+    return new BannersPo('[data-testid="setting-serverurl-localhost-warning"]');
   }
 
-  serverUrlTrailingForwardSlashErrorBanner() {
-    return this.self().find('[data-testid="Server URL should not have a trailing forward slash."]');
-  }
-
-  serverUrlNonHttpsErrorBanner() {
-    return this.self().find('[data-testid="Server URL must be https."]');
-  }
-
-  serverUrlNonUrlErrorBanner() {
-    return this.self().find('[data-testid="Server URL must be an URL."]');
+  errorBannerContent(label: string): Cypress.Chainable {
+    return new BannersPo('[data-testid="setting-error-banner"]', this.self()).banner().contains(label);
   }
 
   useDefaultButton(): Cypress.Chainable {

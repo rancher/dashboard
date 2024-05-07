@@ -167,7 +167,7 @@ export default {
       :key="i"
       color="error"
       :label="err"
-      :data-testid="err"
+      data-testid="setting-error-banner"
     />
 
     <div class="mt-20">

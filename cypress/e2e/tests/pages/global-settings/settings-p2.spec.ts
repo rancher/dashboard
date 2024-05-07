@@ -112,25 +112,20 @@ describe('Settings', { testIsolation: 'off' }, () => {
     // Check showing localhost warning banner
     serverUrlLocalhostCases.forEach((url) => {
       settingsEdit.settingsInput().set(url);
-      settingsEdit.serverUrlLocalhostWarningBanner().should('exist');
-      settingsEdit.serverUrlLocalhostWarningBanner().should('be.visible');
+      settingsEdit.serverUrlLocalhostWarningBanner().banner().should('exist').and('be.visible');
     });
     // Check showing error banner when the urls has trailing forward slash
     settingsEdit.settingsInput().set(urlWithTrailingForwardSlash);
-    settingsEdit.serverUrlTrailingForwardSlashErrorBanner().should('exist');
-    settingsEdit.serverUrlTrailingForwardSlashErrorBanner().should('be.visible');
+    settingsEdit.errorBannerContent('Server URL should not have a trailing forward slash.').should('exist').and('be.visible');
     // Check showing error banner when the url is not HTTPS
     settingsEdit.settingsInput().set(httpUrl);
-    settingsEdit.serverUrlNonHttpsErrorBanner().should('exist');
-    settingsEdit.serverUrlNonHttpsErrorBanner().should('be.visible');
-    // Check showing error banner when the input value is not a url
+    settingsEdit.errorBannerContent('Server URL must be https.').should('exist').and('be.visible');
+    // // Check showing error banner when the input value is not a url
     nonUrlCases.forEach((inputValue) => {
       settingsEdit.settingsInput().set(inputValue);
-      settingsEdit.serverUrlNonUrlErrorBanner().should('exist');
-      settingsEdit.serverUrlNonUrlErrorBanner().should('be.visible');
+      settingsEdit.errorBannerContent('Server URL must be an URL.').should('exist').and('be.visible');
       // A non-url is also a non-https
-      settingsEdit.serverUrlNonHttpsErrorBanner().should('exist');
-      settingsEdit.serverUrlNonHttpsErrorBanner().should('be.visible');
+      settingsEdit.errorBannerContent('Server URL must be https.').should('exist').and('be.visible');
     });
   });
 
