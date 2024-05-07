@@ -4,7 +4,9 @@ import BurgerMenuPo from '@/cypress/e2e/po/side-bars/burger-side-menu.po';
 import ClusterManagerCreateRke2CustomPagePo from '@/cypress/e2e/po/edit/provisioning.cattle.io.cluster/create/cluster-create-rke2-custom.po';
 import AccountPagePo from '@/cypress/e2e/po/pages/account-api-keys.po';
 import ClusterManagerListPagePo from '@/cypress/e2e/po/pages/cluster-manager/cluster-manager-list.po';
-import { settings } from '@/cypress/e2e/blueprints/global_settings/settings-data';
+import {
+  settings, serverUrlLocalhostCases, urlWithTrailingForwardSlash, httpUrl, nonUrlCases
+} from '@/cypress/e2e/blueprints/global_settings/settings-data';
 
 const settingsPage = new SettingsPagePo('local');
 const homePage = new HomePagePo();
@@ -12,23 +14,6 @@ const accountPage = new AccountPagePo();
 const clusterList = new ClusterManagerListPagePo();
 const burgerMenu = new BurgerMenuPo();
 const settingsOrginal = [];
-const serverUrlLocalhostCases = [
-  'http://LOCALhosT:8005',
-  'http://localhost:8005',
-  'https://localhost:8005',
-  'localhost',
-  'http://127.0.0.1',
-  'https://127.0.0.1',
-  '127.0.0.1'
-];
-const urlWithTrailingForwardSlash = 'https://test.com/';
-const httpUrl = 'http://test.com';
-const nonUrlCases = [
-  'test',
-  'https',
-  'test.com',
-  'a.test.com'
-];
 let removeServerUrl = false;
 
 describe('Settings', { testIsolation: 'off' }, () => {
