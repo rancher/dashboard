@@ -9,6 +9,7 @@ import ProductNavPo from '@/cypress/e2e/po/side-bars/product-side-nav.po';
 const roles = new RolesPo('_');
 const usersPo = new UsersPo('_');
 const userCreate = usersPo.createEdit();
+const sideNav = new ProductNavPo();
 
 const runTimestamp = +new Date();
 const runPrefix = `e2e-test-${ runTimestamp }`;
@@ -28,7 +29,7 @@ describe('Roles', { tags: ['@usersAndAuths', '@adminUser'] }, () => {
     roles.goTo(undefined, fragment);
     roles.waitForPage(undefined, fragment);
 
-    // check if burguer menu nav is highlighted correctly for users & auth
+    // check if burger menu nav is highlighted correctly for users & auth
     BurgerMenuPo.checkIfMenuItemLinkIsHighlighted('Users & Authentication');
 
     roles.listCreate('Create Global Role');
@@ -51,7 +52,7 @@ describe('Roles', { tags: ['@usersAndAuths', '@adminUser'] }, () => {
 
       // testing https://github.com/rancher/dashboard/issues/9800
       // confirming that the globalRole created is not flagged as built-in
-      roles.list().details(globalRoleName, 4).should('not.contain', 'i.icon-checkmark');
+      roles.list().checkBuiltIn(globalRoleName, false);
       // eo test
 
       roles.list().details(globalRoleName, 2).find('a').click();
@@ -61,11 +62,17 @@ describe('Roles', { tags: ['@usersAndAuths', '@adminUser'] }, () => {
       globalRoleDetails.waitForPage();
       globalRoleDetails.mastheadTitle().should('include', `${ globalRoleName }`);
 
-      const sideNav = new ProductNavPo();
-
       sideNav.navToSideMenuEntryByLabel('Role Templates');
-
       roles.waitForPage(undefined, fragment);
+
+      // testing https://github.com/rancher/dashboard/issues/5291
+      roles.list().checkDefault(globalRoleName, true);
+      UsersPo.navTo();
+      usersPo.list().create();
+      userCreate.waitForPage();
+      userCreate.globalRoleBindings().roleCheckbox(globalRoleId).checkVisible();
+      userCreate.globalRoleBindings().roleCheckbox(globalRoleId).isChecked();
+      sideNav.navToSideMenuEntryByLabel('Role Templates');
 
       // testing https://github.com/rancher/dashboard/issues/9800
       roles.goToEditYamlPage(globalRoleName);
@@ -112,6 +119,7 @@ describe('Roles', { tags: ['@usersAndAuths', '@adminUser'] }, () => {
 
       // view role details
       roles.waitForPage(undefined, fragment);
+      roles.list().checkDefault(clusterRoleName, true);
       roles.list().details(clusterRoleName, 2).find('a').click();
 
       const clusterRoleDetails = roles.detailRole(clusterRoleId);
@@ -145,6 +153,7 @@ describe('Roles', { tags: ['@usersAndAuths', '@adminUser'] }, () => {
 
       // view role details
       roles.waitForPage(undefined, fragment);
+      roles.list().checkDefault(projectRoleName, true);
       roles.list().details(projectRoleName, 2).find('a').click();
 
       const projectRoleDetails = roles.detailRole(projectRoleId);

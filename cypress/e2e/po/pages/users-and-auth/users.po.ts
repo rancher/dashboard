@@ -2,6 +2,8 @@ import PagePo from '@/cypress/e2e/po/pages/page.po';
 import MgmtUsersListPo from '@/cypress/e2e/po/lists/management.cattle.io.user.po';
 import MgmtUserEditPo from '@/cypress/e2e/po/edit/management.cattle.io.user.po';
 import MgmtUserResourceDetailPo from '@/cypress/e2e/po/detail/management.cattle.io.user.po';
+import BurgerMenuPo from '@/cypress/e2e/po/side-bars/burger-side-menu.po';
+import ProductNavPo from '@/cypress/e2e/po/side-bars/product-side-nav.po';
 
 export default class UsersPo extends PagePo {
   private static createPath(clusterId: string) {
@@ -10,6 +12,13 @@ export default class UsersPo extends PagePo {
 
   static goTo(path: string): Cypress.Chainable<Cypress.AUTWindow> {
     throw new Error('invalid');
+  }
+
+  static navTo(): Cypress.Chainable<Cypress.AUTWindow> {
+    BurgerMenuPo.checkIfMenuItemLinkIsHighlighted('Users & Authentication');
+    const sideNav = new ProductNavPo();
+
+    return sideNav.navToSideMenuEntryByLabel('Users');
   }
 
   constructor(private clusterId = '_') {
