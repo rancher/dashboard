@@ -2,19 +2,6 @@ import { CATALOG } from '@shell/config/types';
 import { state, getters, actions, mutations } from '../catalog';
 import Vuex from 'vuex';
 import { createLocalVue } from '@vue/test-utils';
-import Chart from '@shell/models/chart';
-
-type getterFnsType = keyof typeof getters
-type MutationFnsType = keyof typeof mutations
-const mutationFns = Object.keys(mutations);
-
-const convert = (namespace: string, obj: any) => {
-  return Object.entries(obj).reduce((res, [key, v]) => {
-    res[`${ namespace }/${ key }`] = v;
-
-    return res;
-  }, {} as any);
-};
 
 const clusterRepo = { _key: 'testClusterRepo' };
 const repoChartName = 'abc';
@@ -88,9 +75,9 @@ describe('catalog', () => {
           },
           [clusterStore]: {
             namespaced: true,
-            getters:    { schemaFor: (state) => (schema: string) => ({}) },
+            getters:    { schemaFor: (state: any) => (schema: string) => ({}) },
             actions:    {
-              findAll: (ctx, ...args: any[]) => {
+              findAll: (ctx: any, ...args: any[]) => {
                 if (args[0].type === CATALOG.CLUSTER_REPO) {
                   return Promise.resolve([clusterRepo]);
                 }
@@ -103,7 +90,10 @@ describe('catalog', () => {
             }
           }
         },
-        state:   { $plugin: { getDynamic: () => require(`@shell/models/chart`) } },
+        state: {
+          $plugin:            { getDynamic: () => require(`@shell/models/chart`) },
+          [catalogStoreName]: { } as { [key: string]: any},
+        },
         getters: {
           currentCluster: () => ({ }),
           currentProduct: () => ({ inStore: clusterStore }),

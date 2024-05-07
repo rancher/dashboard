@@ -130,7 +130,7 @@ export default class BurgerMenuPo extends ComponentPo {
    * @returns {Cypress.Chainable}
    */
   clusters(): Cypress.Chainable {
-    return this.self().find('.body .clusters .cluster.selector.option');
+    return this.self().find('.body .clustersList .cluster.selector.option');
   }
 
   pinFirstCluster(): Cypress.Chainable {
