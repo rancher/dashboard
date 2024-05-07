@@ -1,5 +1,6 @@
 import { NORMAN } from '@shell/config/types';
 import HybridModel, { cleanHybridResources } from '@shell/plugins/steve/hybrid-class';
+import day from 'dayjs';
 
 export default class User extends HybridModel {
   // Preserve description
@@ -97,6 +98,30 @@ export default class User extends HybridModel {
 
   get providerDisplay() {
     return this.$rootGetters['i18n/withFallback'](`model.authConfig.provider."${ this.provider }"`, null, this.provider);
+  }
+
+  /**
+   * Gets the last-login label in milliseconds
+   * @returns {number}
+   */
+  get userLastLogin() {
+    return this.metadata?.labels?.['cattle.io/last-login'] * 1000;
+  }
+
+  /**
+   * Gets the disabled-after label in milliseconds
+   * @returns {number}
+   */
+  get userDisabledIn() {
+    return this.metadata?.labels?.['cattle.io/disable-after'] * 1000;
+  }
+
+  /**
+   * Gets the delete-after label in milliseconds
+   * @returns {number}
+   */
+  get userDeletedIn() {
+    return this.metadata?.labels?.['cattle.io/delete-after'] * 1000;
   }
 
   get state() {
@@ -210,6 +235,23 @@ export default class User extends HybridModel {
         label:     this.t('user.detail.username'),
         formatter: 'CopyToClipboard',
         content:   this.username
+      },
+      { separator: true },
+      {
+        label:         this.t('tableHeaders.userLastLogin'),
+        formatter:     'LiveDate',
+        formatterOpts: { addSuffix: true, suffix: `${ this.t('suffix.ago') } (${ day(this.userLastLogin) })` },
+        content:       this.userLastLogin,
+      },
+      {
+        label:     this.t('tableHeaders.userDisabledIn'),
+        formatter: 'LiveDate',
+        content:   this.userDisabledIn,
+      },
+      {
+        label:     this.t('tableHeaders.userDeletedIn'),
+        formatter: 'LiveDate',
+        content:   this.userDeletedIn,
       },
       ...this._details
     ];
