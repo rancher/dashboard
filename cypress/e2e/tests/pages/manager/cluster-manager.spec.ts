@@ -11,6 +11,7 @@ import ClusterManagerCreateRke2CustomPagePo from '@/cypress/e2e/po/edit/provisio
 import ClusterManagerEditRke2CustomPagePo from '@/cypress/e2e/po/edit/provisioning.cattle.io.cluster/edit/cluster-edit-rke2-custom.po';
 import ClusterManagerImportGenericPagePo from '@/cypress/e2e/po/edit/provisioning.cattle.io.cluster/import/cluster-import.generic.po';
 import ClusterManagerEditGenericPagePo from '@/cypress/e2e/po/edit/provisioning.cattle.io.cluster/edit/cluster-edit-generic.po';
+import ClusterManagerNamespacePagePo from '@/cypress/e2e/po/pages/cluster-manager/namespace.po';
 import PromptRemove from '@/cypress/e2e/po/prompts/promptRemove.po';
 import * as path from 'path';
 import * as jsyaml from 'js-yaml';
@@ -22,7 +23,7 @@ import HomePagePo from '@/cypress/e2e/po/pages/home.po';
 import { nodeDriveResponse } from '@/cypress/e2e/tests/pages/manager/mock-responses';
 import LabeledSelectPo from '@/cypress/e2e/po/components/labeled-select.po';
 import ProductNavPo from '@/cypress/e2e/po/side-bars/product-side-nav.po';
-import TabbedPo from '~/cypress/e2e/po/components/tabbed.po';
+import TabbedPo from '@/cypress/e2e/po/components/tabbed.po';
 
 // At some point these will come from somewhere central, then we can make tools to remove resources from this or all runs
 const runTimestamp = +new Date();
@@ -565,6 +566,18 @@ describe('Cluster Manager', { testIsolation: 'off', tags: ['@manager', '@adminUs
       clusterDetail.machinePoolsList().resourceTable().sortableTable().noRowsShouldNotExist();
       clusterDetail.machinePoolsList().details('machine-', 2).should('be.visible');
       clusterDetail.machinePoolsList().downloadYamlButton().should('be.disabled');
+    });
+
+    it('can navigate to namespace from cluster detail view', () => {
+      clusterDetail.waitForPage();
+
+      clusterDetail.namespace().should('contain.text', 'fleet-local');
+      clusterDetail.namespace().click();
+
+      const nsPage = new ClusterManagerNamespacePagePo();
+
+      nsPage.waitForPage();
+      nsPage.namespace().should('contain.text', 'fleet-local');
     });
   });
 

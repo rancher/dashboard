@@ -10,7 +10,9 @@ import TabbedPo from '~/cypress/e2e/po/components/tabbed.po';
  */
 export default abstract class ClusterManagerDetailPagePo extends PagePo {
   private static createPath(clusterId: string, clusterName: string, tab?: string) {
-    return `/c/${ clusterId }/manager/provisioning.cattle.io.cluster/fleet-default/${ clusterName }`;
+    const namespace = clusterName === 'local' ? 'fleet-local' : 'fleet-default';
+
+    return `/c/${ clusterId }/manager/provisioning.cattle.io.cluster/${ namespace }/${ clusterName }`;
   }
 
   static goTo(path: string): Cypress.Chainable<Cypress.AUTWindow> {
@@ -49,5 +51,9 @@ export default abstract class ClusterManagerDetailPagePo extends PagePo {
     options.clickTabWithSelector(selector);
 
     return this;
+  }
+
+  namespace() {
+    return cy.get('[data-testid="masthead-subheader-namespace"]');
   }
 }
