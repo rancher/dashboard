@@ -723,7 +723,7 @@ export default {
           :label="t('clusterIndexPage.sections.certs.label')"
           :weight="1"
         >
-          <span class="events-table-link">
+          <span class="cert-table-link">
             <router-link :to="allSecretsLink">
               <span>{{ t('glance.secretsTable') }}</span>
             </router-link>
@@ -860,7 +860,7 @@ export default {
   }
 }
 
-.events-table-link {
+.events-table-link, .cert-table-link {
   display: flex;
   justify-content: flex-end;
   margin-bottom: 20px;
