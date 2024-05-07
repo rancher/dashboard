@@ -1,6 +1,5 @@
 <script lang="ts">
 import { defineComponent } from 'vue';
-import { mapGetters } from 'vuex';
 import ResourceTable from '@shell/components/ResourceTable.vue';
 import { SECRET } from '@shell/config/types';
 import { NAME as NAME_COL, NAMESPACE as NAMESPACE_COL, AGE, STATE } from '@shell/config/table-headers';
@@ -131,6 +130,7 @@ export default defineComponent({
   <div>
     <Banner
       v-if="expiredData.expiring"
+      data-testid="cert-expiring-banner"
       color="warning"
       :label="expiredData.expiring"
     />
