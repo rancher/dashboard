@@ -4,6 +4,8 @@ import { MONITORING } from '@shell/config/types';
 import jsyaml from 'js-yaml';
 import SteveModel from '@shell/plugins/steve/steve-class';
 
+// i18n-uses monitoringReceiver.slack.*, monitoringReceiver.email.*, monitoringReceiver.pagerduty.*
+// i18n-uses monitoringReceiver.opsgenie.*, monitoringReceiver.webhook.*, monitoringReceiver.custom.*
 export const RECEIVERS_TYPES = [
   {
     name:  'slack',

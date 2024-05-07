@@ -1,3 +1,11 @@
+import {
+  generateFakeNodeSchema,
+  generateFakeCountSchema,
+  generateFakeNamespaceSchema,
+  generateFakeDaemonsetSchema,
+  generateFakePodSchema
+} from './k8s-schemas.ts';
+
 function generateProvClusterObj(provClusterId, mgmtClusterId) {
   return {
     id:    `fleet-default/${ provClusterId }`,
@@ -748,480 +756,6 @@ function generateMgmtClusterObj(provClusterId, mgmtClusterId) {
         platform:     'linux/amd64'
       }
     }
-  };
-}
-
-function generateFakeNodeSchema(mgmtClusterId) {
-  return {
-    id:    'node',
-    type:  'schema',
-    links: {
-      collection: `https://localhost:8005/k8s/clusters/${ mgmtClusterId }/v1/nodes`,
-      self:       `https://localhost:8005/k8s/clusters/${ mgmtClusterId }/v1/schemas/node`
-    },
-    description:     'Node is a worker node in Kubernetes. Each node will have a unique identifier in the cache (i.e. in etcd).',
-    pluralName:      'nodes',
-    resourceMethods: [
-      'GET',
-      'DELETE',
-      'PUT',
-      'PATCH'
-    ],
-    _resourceFields: {
-      apiVersion: {
-        type:        'string',
-        create:      true,
-        update:      true,
-        description: 'APIVersion defines the versioned schema of this representation of an object. Servers should convert recognized schemas to the latest internal value, and may reject unrecognized values. More info: https://git.k8s.io/community/contributors/devel/sig-architecture/api-conventions.md#resources'
-      },
-      kind: {
-        type:        'string',
-        create:      true,
-        update:      true,
-        description: 'Kind is a string value representing the REST resource this object represents. Servers may infer this from the endpoint the client submits requests to. Cannot be updated. In CamelCase. More info: https://git.k8s.io/community/contributors/devel/sig-architecture/api-conventions.md#types-kinds'
-      },
-      metadata: {
-        type:        'io.k8s.apimachinery.pkg.apis.meta.v1.ObjectMeta',
-        create:      true,
-        update:      true,
-        description: "Standard object's metadata. More info: https://git.k8s.io/community/contributors/devel/sig-architecture/api-conventions.md#metadata"
-      },
-      spec: {
-        type:        'io.k8s.api.core.v1.NodeSpec',
-        create:      true,
-        update:      true,
-        description: 'Spec defines the behavior of a node. https://git.k8s.io/community/contributors/devel/sig-architecture/api-conventions.md#spec-and-status'
-      },
-      status: {
-        type:        'io.k8s.api.core.v1.NodeStatus',
-        create:      true,
-        update:      true,
-        description: 'Most recently observed status of the node. Populated by the system. Read-only. More info: https://git.k8s.io/community/contributors/devel/sig-architecture/api-conventions.md#spec-and-status'
-      }
-    },
-    requiresResourceFields: false,
-    collectionMethods:      [
-      'GET',
-      'POST'
-    ],
-    attributes: {
-      columns: [
-        {
-          name:        'Name',
-          type:        'string',
-          format:      'name',
-          description: 'Name must be unique within a namespace. Is required when creating resources, although some resources may allow a client to request the generation of an appropriate name automatically. Name is primarily intended for creation idempotence and configuration definition. Cannot be updated. More info: https://kubernetes.io/docs/concepts/overview/working-with-objects/names#names',
-          priority:    0,
-          field:       '$.metadata.fields[0]'
-        },
-        {
-          name:        'Status',
-          type:        'string',
-          format:      '',
-          description: 'The status of the node',
-          priority:    0,
-          field:       '$.metadata.fields[1]'
-        },
-        {
-          name:        'Roles',
-          type:        'string',
-          format:      '',
-          description: 'The roles of the node',
-          priority:    0,
-          field:       '$.metadata.fields[2]'
-        },
-        {
-          name:        'Age',
-          type:        'string',
-          format:      '',
-          description: 'CreationTimestamp is a timestamp representing the server time when this object was created. It is not guaranteed to be set in happens-before order across separate operations. Clients may not set this value. It is represented in RFC3339 form and is in UTC.\n\nPopulated by the system. Read-only. Null for lists. More info: https://git.k8s.io/community/contributors/devel/sig-architecture/api-conventions.md#metadata',
-          priority:    0,
-          field:       '$.metadata.fields[3]'
-        },
-        {
-          name:        'Version',
-          type:        'string',
-          format:      '',
-          description: 'Kubelet Version reported by the node.',
-          priority:    0,
-          field:       '$.metadata.fields[4]'
-        },
-        {
-          name:        'Internal-IP',
-          type:        'string',
-          format:      '',
-          description: "List of addresses reachable to the node. Queried from cloud provider, if available. More info: https://kubernetes.io/docs/concepts/nodes/node/#addresses Note: This field is declared as mergeable, but the merge key is not sufficiently unique, which can cause data corruption when it is merged. Callers should instead use a full-replacement patch. See https://pr.k8s.io/79391 for an example. Consumers should assume that addresses can change during the lifetime of a Node. However, there are some exceptions where this may not be possible, such as Pods that inherit a Node's address in its own status or consumers of the downward API (status.hostIP).",
-          priority:    1,
-          field:       '$.metadata.fields[5]'
-        },
-        {
-          name:        'External-IP',
-          type:        'string',
-          format:      '',
-          description: "List of addresses reachable to the node. Queried from cloud provider, if available. More info: https://kubernetes.io/docs/concepts/nodes/node/#addresses Note: This field is declared as mergeable, but the merge key is not sufficiently unique, which can cause data corruption when it is merged. Callers should instead use a full-replacement patch. See https://pr.k8s.io/79391 for an example. Consumers should assume that addresses can change during the lifetime of a Node. However, there are some exceptions where this may not be possible, such as Pods that inherit a Node's address in its own status or consumers of the downward API (status.hostIP).",
-          priority:    1,
-          field:       '$.metadata.fields[6]'
-        },
-        {
-          name:        'OS-Image',
-          type:        'string',
-          format:      '',
-          description: 'OS Image reported by the node from /etc/os-release (e.g. Debian GNU/Linux 7 (wheezy)).',
-          priority:    1,
-          field:       '$.metadata.fields[7]'
-        },
-        {
-          name:        'Kernel-Version',
-          type:        'string',
-          format:      '',
-          description: "Kernel Version reported by the node from 'uname -r' (e.g. 3.16.0-0.bpo.4-amd64).",
-          priority:    1,
-          field:       '$.metadata.fields[8]'
-        },
-        {
-          name:        'Container-Runtime',
-          type:        'string',
-          format:      '',
-          description: 'ContainerRuntime Version reported by the node through runtime remote API (e.g. containerd://1.4.2).',
-          priority:    1,
-          field:       '$.metadata.fields[9]'
-        }
-      ],
-      group:      '',
-      kind:       'Node',
-      namespaced: false,
-      resource:   'nodes',
-      verbs:      [
-        'create',
-        'delete',
-        'deletecollection',
-        'get',
-        'list',
-        'patch',
-        'update',
-        'watch'
-      ],
-      version: 'v1'
-    },
-    _id:    'node',
-    _group: '',
-    store:  'cluster'
-  };
-}
-
-function generateFakeCountSchema(mgmtClusterId) {
-  return {
-    id:    'count',
-    type:  'schema',
-    links: {
-      collection: `https://localhost:8005/k8s/clusters/${ mgmtClusterId }/v1/counts`,
-      self:       `https://localhost:8005/k8s/clusters/${ mgmtClusterId }/v1/schemas/count`
-    },
-    description:     'Node is a worker node in Kubernetes. Each node will have a unique identifier in the cache (i.e. in etcd).',
-    pluralName:      'nodes',
-    resourceMethods: [
-      'GET',
-      'DELETE',
-      'PUT',
-      'PATCH'
-    ],
-    _resourceFields: {
-      apiVersion: {
-        type:        'string',
-        create:      true,
-        update:      true,
-        description: 'APIVersion defines the versioned schema of this representation of an object. Servers should convert recognized schemas to the latest internal value, and may reject unrecognized values. More info: https://git.k8s.io/community/contributors/devel/sig-architecture/api-conventions.md#resources'
-      },
-      kind: {
-        type:        'string',
-        create:      true,
-        update:      true,
-        description: 'Kind is a string value representing the REST resource this object represents. Servers may infer this from the endpoint the client submits requests to. Cannot be updated. In CamelCase. More info: https://git.k8s.io/community/contributors/devel/sig-architecture/api-conventions.md#types-kinds'
-      },
-      metadata: {
-        type:        'io.k8s.apimachinery.pkg.apis.meta.v1.ObjectMeta',
-        create:      true,
-        update:      true,
-        description: "Standard object's metadata. More info: https://git.k8s.io/community/contributors/devel/sig-architecture/api-conventions.md#metadata"
-      },
-      spec: {
-        type:        'io.k8s.api.core.v1.NodeSpec',
-        create:      true,
-        update:      true,
-        description: 'Spec defines the behavior of a node. https://git.k8s.io/community/contributors/devel/sig-architecture/api-conventions.md#spec-and-status'
-      },
-      status: {
-        type:        'io.k8s.api.core.v1.NodeStatus',
-        create:      true,
-        update:      true,
-        description: 'Most recently observed status of the node. Populated by the system. Read-only. More info: https://git.k8s.io/community/contributors/devel/sig-architecture/api-conventions.md#spec-and-status'
-      }
-    },
-    requiresResourceFields: false,
-    collectionMethods:      [
-      'GET',
-      'POST'
-    ],
-    attributes: {
-      columns: [
-        {
-          name:        'Name',
-          type:        'string',
-          format:      'name',
-          description: 'Name must be unique within a namespace. Is required when creating resources, although some resources may allow a client to request the generation of an appropriate name automatically. Name is primarily intended for creation idempotence and configuration definition. Cannot be updated. More info: https://kubernetes.io/docs/concepts/overview/working-with-objects/names#names',
-          priority:    0,
-          field:       '$.metadata.fields[0]'
-        },
-        {
-          name:        'Status',
-          type:        'string',
-          format:      '',
-          description: 'The status of the node',
-          priority:    0,
-          field:       '$.metadata.fields[1]'
-        },
-        {
-          name:        'Roles',
-          type:        'string',
-          format:      '',
-          description: 'The roles of the node',
-          priority:    0,
-          field:       '$.metadata.fields[2]'
-        },
-        {
-          name:        'Age',
-          type:        'string',
-          format:      '',
-          description: 'CreationTimestamp is a timestamp representing the server time when this object was created. It is not guaranteed to be set in happens-before order across separate operations. Clients may not set this value. It is represented in RFC3339 form and is in UTC.\n\nPopulated by the system. Read-only. Null for lists. More info: https://git.k8s.io/community/contributors/devel/sig-architecture/api-conventions.md#metadata',
-          priority:    0,
-          field:       '$.metadata.fields[3]'
-        },
-        {
-          name:        'Version',
-          type:        'string',
-          format:      '',
-          description: 'Kubelet Version reported by the node.',
-          priority:    0,
-          field:       '$.metadata.fields[4]'
-        },
-        {
-          name:        'Internal-IP',
-          type:        'string',
-          format:      '',
-          description: "List of addresses reachable to the node. Queried from cloud provider, if available. More info: https://kubernetes.io/docs/concepts/nodes/node/#addresses Note: This field is declared as mergeable, but the merge key is not sufficiently unique, which can cause data corruption when it is merged. Callers should instead use a full-replacement patch. See https://pr.k8s.io/79391 for an example. Consumers should assume that addresses can change during the lifetime of a Node. However, there are some exceptions where this may not be possible, such as Pods that inherit a Node's address in its own status or consumers of the downward API (status.hostIP).",
-          priority:    1,
-          field:       '$.metadata.fields[5]'
-        },
-        {
-          name:        'External-IP',
-          type:        'string',
-          format:      '',
-          description: "List of addresses reachable to the node. Queried from cloud provider, if available. More info: https://kubernetes.io/docs/concepts/nodes/node/#addresses Note: This field is declared as mergeable, but the merge key is not sufficiently unique, which can cause data corruption when it is merged. Callers should instead use a full-replacement patch. See https://pr.k8s.io/79391 for an example. Consumers should assume that addresses can change during the lifetime of a Node. However, there are some exceptions where this may not be possible, such as Pods that inherit a Node's address in its own status or consumers of the downward API (status.hostIP).",
-          priority:    1,
-          field:       '$.metadata.fields[6]'
-        },
-        {
-          name:        'OS-Image',
-          type:        'string',
-          format:      '',
-          description: 'OS Image reported by the node from /etc/os-release (e.g. Debian GNU/Linux 7 (wheezy)).',
-          priority:    1,
-          field:       '$.metadata.fields[7]'
-        },
-        {
-          name:        'Kernel-Version',
-          type:        'string',
-          format:      '',
-          description: "Kernel Version reported by the node from 'uname -r' (e.g. 3.16.0-0.bpo.4-amd64).",
-          priority:    1,
-          field:       '$.metadata.fields[8]'
-        },
-        {
-          name:        'Container-Runtime',
-          type:        'string',
-          format:      '',
-          description: 'ContainerRuntime Version reported by the node through runtime remote API (e.g. containerd://1.4.2).',
-          priority:    1,
-          field:       '$.metadata.fields[9]'
-        }
-      ],
-      group:      '',
-      kind:       'Node',
-      namespaced: false,
-      resource:   'nodes',
-      verbs:      [
-        'create',
-        'delete',
-        'deletecollection',
-        'get',
-        'list',
-        'patch',
-        'update',
-        'watch'
-      ],
-      version: 'v1'
-    },
-    _id:    'node',
-    _group: '',
-    store:  'cluster'
-  };
-}
-
-function generateFakeNamespaceSchema(mgmtClusterId) {
-  return {
-    id:    'namespace',
-    type:  'schema',
-    links: {
-      collection: `https://localhost:8005/k8s/clusters/${ mgmtClusterId }/v1/namespaces`,
-      self:       `https://localhost:8005/k8s/clusters/${ mgmtClusterId }/v1/schemas/namespace`
-    },
-    description:     'Node is a worker node in Kubernetes. Each node will have a unique identifier in the cache (i.e. in etcd).',
-    pluralName:      'nodes',
-    resourceMethods: [
-      'GET',
-      'DELETE',
-      'PUT',
-      'PATCH'
-    ],
-    _resourceFields: {
-      apiVersion: {
-        type:        'string',
-        create:      true,
-        update:      true,
-        description: 'APIVersion defines the versioned schema of this representation of an object. Servers should convert recognized schemas to the latest internal value, and may reject unrecognized values. More info: https://git.k8s.io/community/contributors/devel/sig-architecture/api-conventions.md#resources'
-      },
-      kind: {
-        type:        'string',
-        create:      true,
-        update:      true,
-        description: 'Kind is a string value representing the REST resource this object represents. Servers may infer this from the endpoint the client submits requests to. Cannot be updated. In CamelCase. More info: https://git.k8s.io/community/contributors/devel/sig-architecture/api-conventions.md#types-kinds'
-      },
-      metadata: {
-        type:        'io.k8s.apimachinery.pkg.apis.meta.v1.ObjectMeta',
-        create:      true,
-        update:      true,
-        description: "Standard object's metadata. More info: https://git.k8s.io/community/contributors/devel/sig-architecture/api-conventions.md#metadata"
-      },
-      spec: {
-        type:        'io.k8s.api.core.v1.NodeSpec',
-        create:      true,
-        update:      true,
-        description: 'Spec defines the behavior of a node. https://git.k8s.io/community/contributors/devel/sig-architecture/api-conventions.md#spec-and-status'
-      },
-      status: {
-        type:        'io.k8s.api.core.v1.NodeStatus',
-        create:      true,
-        update:      true,
-        description: 'Most recently observed status of the node. Populated by the system. Read-only. More info: https://git.k8s.io/community/contributors/devel/sig-architecture/api-conventions.md#spec-and-status'
-      }
-    },
-    requiresResourceFields: false,
-    collectionMethods:      [
-      'GET',
-      'POST'
-    ],
-    attributes: {
-      columns: [
-        {
-          name:        'Name',
-          type:        'string',
-          format:      'name',
-          description: 'Name must be unique within a namespace. Is required when creating resources, although some resources may allow a client to request the generation of an appropriate name automatically. Name is primarily intended for creation idempotence and configuration definition. Cannot be updated. More info: https://kubernetes.io/docs/concepts/overview/working-with-objects/names#names',
-          priority:    0,
-          field:       '$.metadata.fields[0]'
-        },
-        {
-          name:        'Status',
-          type:        'string',
-          format:      '',
-          description: 'The status of the node',
-          priority:    0,
-          field:       '$.metadata.fields[1]'
-        },
-        {
-          name:        'Roles',
-          type:        'string',
-          format:      '',
-          description: 'The roles of the node',
-          priority:    0,
-          field:       '$.metadata.fields[2]'
-        },
-        {
-          name:        'Age',
-          type:        'string',
-          format:      '',
-          description: 'CreationTimestamp is a timestamp representing the server time when this object was created. It is not guaranteed to be set in happens-before order across separate operations. Clients may not set this value. It is represented in RFC3339 form and is in UTC.\n\nPopulated by the system. Read-only. Null for lists. More info: https://git.k8s.io/community/contributors/devel/sig-architecture/api-conventions.md#metadata',
-          priority:    0,
-          field:       '$.metadata.fields[3]'
-        },
-        {
-          name:        'Version',
-          type:        'string',
-          format:      '',
-          description: 'Kubelet Version reported by the node.',
-          priority:    0,
-          field:       '$.metadata.fields[4]'
-        },
-        {
-          name:        'Internal-IP',
-          type:        'string',
-          format:      '',
-          description: "List of addresses reachable to the node. Queried from cloud provider, if available. More info: https://kubernetes.io/docs/concepts/nodes/node/#addresses Note: This field is declared as mergeable, but the merge key is not sufficiently unique, which can cause data corruption when it is merged. Callers should instead use a full-replacement patch. See https://pr.k8s.io/79391 for an example. Consumers should assume that addresses can change during the lifetime of a Node. However, there are some exceptions where this may not be possible, such as Pods that inherit a Node's address in its own status or consumers of the downward API (status.hostIP).",
-          priority:    1,
-          field:       '$.metadata.fields[5]'
-        },
-        {
-          name:        'External-IP',
-          type:        'string',
-          format:      '',
-          description: "List of addresses reachable to the node. Queried from cloud provider, if available. More info: https://kubernetes.io/docs/concepts/nodes/node/#addresses Note: This field is declared as mergeable, but the merge key is not sufficiently unique, which can cause data corruption when it is merged. Callers should instead use a full-replacement patch. See https://pr.k8s.io/79391 for an example. Consumers should assume that addresses can change during the lifetime of a Node. However, there are some exceptions where this may not be possible, such as Pods that inherit a Node's address in its own status or consumers of the downward API (status.hostIP).",
-          priority:    1,
-          field:       '$.metadata.fields[6]'
-        },
-        {
-          name:        'OS-Image',
-          type:        'string',
-          format:      '',
-          description: 'OS Image reported by the node from /etc/os-release (e.g. Debian GNU/Linux 7 (wheezy)).',
-          priority:    1,
-          field:       '$.metadata.fields[7]'
-        },
-        {
-          name:        'Kernel-Version',
-          type:        'string',
-          format:      '',
-          description: "Kernel Version reported by the node from 'uname -r' (e.g. 3.16.0-0.bpo.4-amd64).",
-          priority:    1,
-          field:       '$.metadata.fields[8]'
-        },
-        {
-          name:        'Container-Runtime',
-          type:        'string',
-          format:      '',
-          description: 'ContainerRuntime Version reported by the node through runtime remote API (e.g. containerd://1.4.2).',
-          priority:    1,
-          field:       '$.metadata.fields[9]'
-        }
-      ],
-      group:      '',
-      kind:       'Node',
-      namespaced: false,
-      resource:   'nodes',
-      verbs:      [
-        'create',
-        'delete',
-        'deletecollection',
-        'get',
-        'list',
-        'patch',
-        'update',
-        'watch'
-      ],
-      version: 'v1'
-    },
-    _id:    'node',
-    _group: '',
-    store:  'cluster'
   };
 }
 
@@ -2056,6 +1590,850 @@ function generateFakeNamespacesReply(mgmtClusterId) {
   ];
 }
 
+function generateFakeDaemonsetsReply(mgmtClusterId) {
+  return [
+    {
+      id:    'calico-system/calico-node',
+      type:  'apps.daemonset',
+      links: {
+        remove: `https://localhost:8005/k8s/clusters/${ mgmtClusterId }/v1/apps.daemonsets/calico-system/calico-node`,
+        self:   `https://localhost:8005/k8s/clusters/${ mgmtClusterId }/v1/apps.daemonsets/calico-system/calico-node`,
+        update: `https://localhost:8005/k8s/clusters/${ mgmtClusterId }/v1/apps.daemonsets/calico-system/calico-node`,
+        view:   `https://localhost:8005/k8s/clusters/${ mgmtClusterId }/apis/apps/v1/namespaces/calico-system/daemonsets/calico-node`
+      },
+      apiVersion: 'apps/v1',
+      kind:       'DaemonSet',
+      metadata:   {
+        annotations:       { 'deprecated.daemonset.template.generation': '1' },
+        creationTimestamp: '2024-04-23T12:01:36Z',
+        fields:            [
+          'calico-node',
+          1,
+          1,
+          1,
+          1,
+          1,
+          'kubernetes.io/os=linux',
+          '4h56m',
+          'calico-node',
+          'docker.io/rancher/mirrored-calico-node:v3.27.2',
+          'k8s-app=calico-node'
+        ],
+        generation:      1,
+        name:            'calico-node',
+        namespace:       'calico-system',
+        ownerReferences: [
+          {
+            apiVersion:         'operator.tigera.io/v1',
+            blockOwnerDeletion: true,
+            controller:         true,
+            kind:               'Installation',
+            name:               'default',
+            uid:                'ed1f8537-9942-42ec-a4d2-ee8bab625ab4'
+          }
+        ],
+        relationships: [
+          {
+            toType:      'pod',
+            toNamespace: 'calico-system',
+            rel:         'creates',
+            selector:    'k8s-app=calico-node'
+          },
+          {
+            toId:    'calico-system/tigera-ca-bundle',
+            toType:  'configmap',
+            rel:     'uses',
+            state:   'active',
+            message: 'Resource is always ready'
+          },
+          {
+            toId:    'calico-system/node-certs',
+            toType:  'secret',
+            rel:     'uses',
+            state:   'active',
+            message: 'Resource is always ready'
+          },
+          {
+            toId:    'calico-system/calico-node',
+            toType:  'serviceaccount',
+            rel:     'uses',
+            state:   'active',
+            message: 'Resource is current'
+          },
+          {
+            fromId:   'default',
+            fromType: 'operator.tigera.io.installation',
+            rel:      'owner',
+            state:    'active',
+            message:  'Resource is Ready'
+          },
+          {
+            toId:   'calico-system/calico-node-fg7sx',
+            toType: 'pod',
+            rel:    'owner',
+            state:  'running'
+          },
+          {
+            toId:    'calico-system/calico-node-77955f95c9',
+            toType:  'apps.controllerrevision',
+            rel:     'owner',
+            state:   'active',
+            message: 'Resource is current'
+          }
+        ],
+        resourceVersion: '1251',
+        state:           {
+          error:         false,
+          message:       'All replicas scheduled as expected. Replicas: 1',
+          name:          'active',
+          transitioning: false
+        },
+        uid: 'c5dadf5d-1e15-4e64-9094-4a6d6de0ab11'
+      },
+      spec: {
+        revisionHistoryLimit: 10,
+        selector:             { matchLabels: { 'k8s-app': 'calico-node' } },
+        template:             {
+          metadata: {
+            annotations: {
+              'hash.operator.tigera.io/cni-config':                        '401f1f4b6fdb737003bb7df66d0e201745e76fa4',
+              'hash.operator.tigera.io/system':                            'fdde45054a8ae4f629960ce37570929502e59449',
+              'tigera-operator.hash.operator.tigera.io/tigera-ca-private': '0d0dd730285875b200bbbbe68cd2211d2a90608e'
+            },
+            creationTimestamp: null,
+            labels:            {
+              'app.kubernetes.io/name': 'calico-node',
+              'k8s-app':                'calico-node'
+            }
+          },
+          spec: {
+            containers: [
+              {
+                env: [
+                  {
+                    name:  'DATASTORE_TYPE',
+                    value: 'kubernetes'
+                  },
+                  {
+                    name:  'WAIT_FOR_DATASTORE',
+                    value: 'true'
+                  },
+                  {
+                    name:  'CLUSTER_TYPE',
+                    value: 'k8s,operator'
+                  },
+                  {
+                    name:  'CALICO_DISABLE_FILE_LOGGING',
+                    value: 'false'
+                  },
+                  {
+                    name:  'FELIX_DEFAULTENDPOINTTOHOSTACTION',
+                    value: 'ACCEPT'
+                  },
+                  {
+                    name:  'FELIX_HEALTHENABLED',
+                    value: 'true'
+                  },
+                  {
+                    name:  'FELIX_HEALTHPORT',
+                    value: '9099'
+                  },
+                  {
+                    name:      'NODENAME',
+                    valueFrom: {
+                      fieldRef: {
+                        apiVersion: 'v1',
+                        fieldPath:  'spec.nodeName'
+                      }
+                    }
+                  },
+                  {
+                    name:      'NAMESPACE',
+                    valueFrom: {
+                      fieldRef: {
+                        apiVersion: 'v1',
+                        fieldPath:  'metadata.namespace'
+                      }
+                    }
+                  },
+                  {
+                    name:  'FELIX_TYPHAK8SNAMESPACE',
+                    value: 'calico-system'
+                  },
+                  {
+                    name:  'FELIX_TYPHAK8SSERVICENAME',
+                    value: 'calico-typha'
+                  },
+                  {
+                    name:  'FELIX_TYPHACAFILE',
+                    value: '/etc/pki/tls/certs/tigera-ca-bundle.crt'
+                  },
+                  {
+                    name:  'FELIX_TYPHACERTFILE',
+                    value: '/node-certs/tls.crt'
+                  },
+                  {
+                    name:  'FELIX_TYPHAKEYFILE',
+                    value: '/node-certs/tls.key'
+                  },
+                  {
+                    name:  'FIPS_MODE_ENABLED',
+                    value: 'false'
+                  },
+                  {
+                    name:  'FELIX_TYPHACN',
+                    value: 'typha-server'
+                  },
+                  {
+                    name:  'CALICO_MANAGE_CNI',
+                    value: 'true'
+                  },
+                  {
+                    name:  'CALICO_IPV4POOL_CIDR',
+                    value: '10.42.0.0/16'
+                  },
+                  {
+                    name:  'CALICO_IPV4POOL_VXLAN',
+                    value: 'Always'
+                  },
+                  {
+                    name:  'CALICO_IPV4POOL_BLOCK_SIZE',
+                    value: '26'
+                  },
+                  {
+                    name:  'CALICO_IPV4POOL_NODE_SELECTOR',
+                    value: 'all()'
+                  },
+                  {
+                    name:  'CALICO_IPV4POOL_DISABLE_BGP_EXPORT',
+                    value: 'false'
+                  },
+                  {
+                    name:  'CALICO_NETWORKING_BACKEND',
+                    value: 'vxlan'
+                  },
+                  {
+                    name:  'IP',
+                    value: 'autodetect'
+                  },
+                  {
+                    name:  'IP_AUTODETECTION_METHOD',
+                    value: 'first-found'
+                  },
+                  {
+                    name:  'IP6',
+                    value: 'none'
+                  },
+                  {
+                    name:  'FELIX_IPV6SUPPORT',
+                    value: 'false'
+                  },
+                  {
+                    name:  'KUBERNETES_SERVICE_HOST',
+                    value: '10.43.0.1'
+                  },
+                  {
+                    name:  'KUBERNETES_SERVICE_PORT',
+                    value: '443'
+                  }
+                ],
+                image:           'docker.io/rancher/mirrored-calico-node:v3.27.2',
+                imagePullPolicy: 'IfNotPresent',
+                lifecycle:       {
+                  preStop: {
+                    exec: {
+                      command: [
+                        '/bin/calico-node',
+                        '-shutdown'
+                      ]
+                    }
+                  }
+                },
+                livenessProbe: {
+                  failureThreshold: 3,
+                  httpGet:          {
+                    host:   'localhost',
+                    path:   '/liveness',
+                    port:   9099,
+                    scheme: 'HTTP'
+                  },
+                  periodSeconds:    60,
+                  successThreshold: 1,
+                  timeoutSeconds:   10
+                },
+                name:           'calico-node',
+                readinessProbe: {
+                  exec: {
+                    command: [
+                      '/bin/calico-node',
+                      '-felix-ready'
+                    ]
+                  },
+                  failureThreshold: 3,
+                  periodSeconds:    30,
+                  successThreshold: 1,
+                  timeoutSeconds:   10
+                },
+                resources:       {},
+                securityContext: {
+                  allowPrivilegeEscalation: true,
+                  capabilities:             {
+                    drop: [
+                      'ALL'
+                    ]
+                  },
+                  privileged:     true,
+                  runAsGroup:     0,
+                  runAsNonRoot:   false,
+                  runAsUser:      0,
+                  seccompProfile: { type: 'RuntimeDefault' }
+                },
+                terminationMessagePath:   '/dev/termination-log',
+                terminationMessagePolicy: 'File',
+                volumeMounts:             [
+                  {
+                    mountPath: '/etc/pki/tls/certs',
+                    name:      'tigera-ca-bundle',
+                    readOnly:  true
+                  },
+                  {
+                    mountPath: '/etc/pki/tls/cert.pem',
+                    name:      'tigera-ca-bundle',
+                    readOnly:  true,
+                    subPath:   'ca-bundle.crt'
+                  },
+                  {
+                    mountPath: '/lib/modules',
+                    name:      'lib-modules',
+                    readOnly:  true
+                  },
+                  {
+                    mountPath: '/run/xtables.lock',
+                    name:      'xtables-lock'
+                  },
+                  {
+                    mountPath: '/var/run/nodeagent',
+                    name:      'policysync'
+                  },
+                  {
+                    mountPath: '/node-certs',
+                    name:      'node-certs',
+                    readOnly:  true
+                  },
+                  {
+                    mountPath: '/var/run/calico',
+                    name:      'var-run-calico'
+                  },
+                  {
+                    mountPath: '/var/lib/calico',
+                    name:      'var-lib-calico'
+                  },
+                  {
+                    mountPath: '/var/log/calico/cni',
+                    name:      'cni-log-dir'
+                  },
+                  {
+                    mountPath: '/host/etc/cni/net.d',
+                    name:      'cni-net-dir'
+                  }
+                ]
+              }
+            ],
+            dnsPolicy:      'ClusterFirst',
+            hostNetwork:    true,
+            initContainers: [
+              {
+                image:           'docker.io/rancher/mirrored-calico-pod2daemon-flexvol:v3.27.2',
+                imagePullPolicy: 'IfNotPresent',
+                name:            'flexvol-driver',
+                resources:       {},
+                securityContext: {
+                  allowPrivilegeEscalation: true,
+                  capabilities:             {
+                    drop: [
+                      'ALL'
+                    ]
+                  },
+                  privileged:     true,
+                  runAsGroup:     0,
+                  runAsNonRoot:   false,
+                  runAsUser:      0,
+                  seccompProfile: { type: 'RuntimeDefault' }
+                },
+                terminationMessagePath:   '/dev/termination-log',
+                terminationMessagePolicy: 'File',
+                volumeMounts:             [
+                  {
+                    mountPath: '/host/driver',
+                    name:      'flexvol-driver-host'
+                  }
+                ]
+              },
+              {
+                command: [
+                  '/opt/cni/bin/install'
+                ],
+                env: [
+                  {
+                    name:  'CNI_CONF_NAME',
+                    value: '10-calico.conflist'
+                  },
+                  {
+                    name:  'SLEEP',
+                    value: 'false'
+                  },
+                  {
+                    name:  'CNI_NET_DIR',
+                    value: '/etc/cni/net.d'
+                  },
+                  {
+                    name:      'CNI_NETWORK_CONFIG',
+                    valueFrom: {
+                      configMapKeyRef: {
+                        key:  'config',
+                        name: 'cni-config'
+                      }
+                    }
+                  },
+                  {
+                    name:  'KUBERNETES_SERVICE_HOST',
+                    value: '10.43.0.1'
+                  },
+                  {
+                    name:  'KUBERNETES_SERVICE_PORT',
+                    value: '443'
+                  }
+                ],
+                image:           'docker.io/rancher/mirrored-calico-cni:v3.27.2',
+                imagePullPolicy: 'IfNotPresent',
+                name:            'install-cni',
+                resources:       {},
+                securityContext: {
+                  allowPrivilegeEscalation: true,
+                  capabilities:             {
+                    drop: [
+                      'ALL'
+                    ]
+                  },
+                  privileged:     true,
+                  runAsGroup:     0,
+                  runAsNonRoot:   false,
+                  runAsUser:      0,
+                  seccompProfile: { type: 'RuntimeDefault' }
+                },
+                terminationMessagePath:   '/dev/termination-log',
+                terminationMessagePolicy: 'File',
+                volumeMounts:             [
+                  {
+                    mountPath: '/host/opt/cni/bin',
+                    name:      'cni-bin-dir'
+                  },
+                  {
+                    mountPath: '/host/etc/cni/net.d',
+                    name:      'cni-net-dir'
+                  }
+                ]
+              }
+            ],
+            nodeSelector:                  { 'kubernetes.io/os': 'linux' },
+            priorityClassName:             'system-node-critical',
+            restartPolicy:                 'Always',
+            schedulerName:                 'default-scheduler',
+            securityContext:               {},
+            serviceAccount:                'calico-node',
+            serviceAccountName:            'calico-node',
+            terminationGracePeriodSeconds: 5,
+            tolerations:                   [
+              {
+                key:      'CriticalAddonsOnly',
+                operator: 'Exists'
+              },
+              {
+                effect:   'NoSchedule',
+                operator: 'Exists'
+              },
+              {
+                effect:   'NoExecute',
+                operator: 'Exists'
+              }
+            ],
+            volumes: [
+              {
+                hostPath: {
+                  path: '/lib/modules',
+                  type: ''
+                },
+                name: 'lib-modules'
+              },
+              {
+                hostPath: {
+                  path: '/run/xtables.lock',
+                  type: 'FileOrCreate'
+                },
+                name: 'xtables-lock'
+              },
+              {
+                hostPath: {
+                  path: '/var/run/nodeagent',
+                  type: 'DirectoryOrCreate'
+                },
+                name: 'policysync'
+              },
+              {
+                configMap: {
+                  defaultMode: 420,
+                  name:        'tigera-ca-bundle'
+                },
+                name: 'tigera-ca-bundle'
+              },
+              {
+                name:   'node-certs',
+                secret: {
+                  defaultMode: 420,
+                  secretName:  'node-certs'
+                }
+              },
+              {
+                hostPath: {
+                  path: '/var/run/calico',
+                  type: ''
+                },
+                name: 'var-run-calico'
+              },
+              {
+                hostPath: {
+                  path: '/var/lib/calico',
+                  type: ''
+                },
+                name: 'var-lib-calico'
+              },
+              {
+                hostPath: {
+                  path: '/opt/cni/bin',
+                  type: ''
+                },
+                name: 'cni-bin-dir'
+              },
+              {
+                hostPath: {
+                  path: '/etc/cni/net.d',
+                  type: ''
+                },
+                name: 'cni-net-dir'
+              },
+              {
+                hostPath: {
+                  path: '/var/log/calico/cni',
+                  type: ''
+                },
+                name: 'cni-log-dir'
+              },
+              {
+                hostPath: {
+                  path: '/var/lib/kubelet/volumeplugins/nodeagent~uds',
+                  type: 'DirectoryOrCreate'
+                },
+                name: 'flexvol-driver-host'
+              }
+            ]
+          }
+        },
+        updateStrategy: {
+          rollingUpdate: {
+            maxSurge:       0,
+            maxUnavailable: 1
+          },
+          type: 'RollingUpdate'
+        }
+      },
+      status: {
+        currentNumberScheduled: 1,
+        desiredNumberScheduled: 1,
+        numberAvailable:        1,
+        numberMisscheduled:     0,
+        numberReady:            1,
+        observedGeneration:     1,
+        updatedNumberScheduled: 1
+      }
+    },
+    {
+      id:    'kube-system/rke2-ingress-nginx-controller',
+      type:  'apps.daemonset',
+      links: {
+        remove: `https://localhost:8005/k8s/clusters/${ mgmtClusterId }/v1/apps.daemonsets/kube-system/rke2-ingress-nginx-controller`,
+        self:   `https://localhost:8005/k8s/clusters/${ mgmtClusterId }/v1/apps.daemonsets/kube-system/rke2-ingress-nginx-controller`,
+        update: `https://localhost:8005/k8s/clusters/${ mgmtClusterId }/v1/apps.daemonsets/kube-system/rke2-ingress-nginx-controller`,
+        view:   `https://localhost:8005/k8s/clusters/${ mgmtClusterId }/apis/apps/v1/namespaces/kube-system/daemonsets/rke2-ingress-nginx-controller`
+      },
+      apiVersion: 'apps/v1',
+      kind:       'DaemonSet',
+      metadata:   {
+        annotations: {
+          'deprecated.daemonset.template.generation': '1',
+          'field.cattle.io/publicEndpoints':          '[{"nodeName":":alex-test-rke2-cluster-pool1-523c624e-77kwl","addresses":["157.245.39.192"],"port":80,"protocol":"TCP","podName":"kube-system:rke2-ingress-nginx-controller-cxndl","allNodes":false},{"nodeName":":alex-test-rke2-cluster-pool1-523c624e-77kwl","addresses":["157.245.39.192"],"port":443,"protocol":"TCP","podName":"kube-system:rke2-ingress-nginx-controller-cxndl","allNodes":false}]',
+          'meta.helm.sh/release-name':                'rke2-ingress-nginx',
+          'meta.helm.sh/release-namespace':           'kube-system'
+        },
+        creationTimestamp: '2024-04-23T12:02:22Z',
+        fields:            [
+          'rke2-ingress-nginx-controller',
+          1,
+          1,
+          1,
+          1,
+          1,
+          'kubernetes.io/os=linux',
+          '4h56m',
+          'rke2-ingress-nginx-controller',
+          'rancher/nginx-ingress-controller:nginx-1.9.3-hardened1',
+          'app.kubernetes.io/component=controller,app.kubernetes.io/instance=rke2-ingress-nginx,app.kubernetes.io/name=rke2-ingress-nginx'
+        ],
+        generation: 1,
+        labels:     {
+          'app.kubernetes.io/component':  'controller',
+          'app.kubernetes.io/instance':   'rke2-ingress-nginx',
+          'app.kubernetes.io/managed-by': 'Helm',
+          'app.kubernetes.io/name':       'rke2-ingress-nginx',
+          'app.kubernetes.io/part-of':    'rke2-ingress-nginx',
+          'app.kubernetes.io/version':    '1.9.3',
+          'helm.sh/chart':                'rke2-ingress-nginx-4.8.200'
+        },
+        name:          'rke2-ingress-nginx-controller',
+        namespace:     'kube-system',
+        relationships: [
+          {
+            toType:      'pod',
+            toNamespace: 'kube-system',
+            rel:         'creates',
+            selector:    'app.kubernetes.io/component=controller,app.kubernetes.io/instance=rke2-ingress-nginx,app.kubernetes.io/name=rke2-ingress-nginx'
+          },
+          {
+            toId:    'kube-system/rke2-ingress-nginx-admission',
+            toType:  'secret',
+            rel:     'uses',
+            state:   'active',
+            message: 'Resource is always ready'
+          },
+          {
+            toId:    'kube-system/rke2-ingress-nginx',
+            toType:  'serviceaccount',
+            rel:     'uses',
+            state:   'active',
+            message: 'Resource is current'
+          },
+          {
+            fromId:   'kube-system/rke2-ingress-nginx',
+            fromType: 'catalog.cattle.io.app',
+            rel:      'helmresource',
+            state:    'deployed'
+          },
+          {
+            toId:   'kube-system/rke2-ingress-nginx-controller-cxndl',
+            toType: 'pod',
+            rel:    'owner',
+            state:  'running'
+          },
+          {
+            toId:    'kube-system/rke2-ingress-nginx-controller-775748958d',
+            toType:  'apps.controllerrevision',
+            rel:     'owner',
+            state:   'active',
+            message: 'Resource is current'
+          }
+        ],
+        resourceVersion: '2182',
+        state:           {
+          error:         false,
+          message:       'All replicas scheduled as expected. Replicas: 1',
+          name:          'active',
+          transitioning: false
+        },
+        uid: 'd4bfedf5-23ae-4817-a6cf-dd68cbb8ccd2'
+      },
+      spec: {
+        revisionHistoryLimit: 10,
+        selector:             {
+          matchLabels: {
+            'app.kubernetes.io/component': 'controller',
+            'app.kubernetes.io/instance':  'rke2-ingress-nginx',
+            'app.kubernetes.io/name':      'rke2-ingress-nginx'
+          }
+        },
+        template: {
+          metadata: {
+            creationTimestamp: null,
+            labels:            {
+              'app.kubernetes.io/component':  'controller',
+              'app.kubernetes.io/instance':   'rke2-ingress-nginx',
+              'app.kubernetes.io/managed-by': 'Helm',
+              'app.kubernetes.io/name':       'rke2-ingress-nginx',
+              'app.kubernetes.io/part-of':    'rke2-ingress-nginx',
+              'app.kubernetes.io/version':    '1.9.3',
+              'helm.sh/chart':                'rke2-ingress-nginx-4.8.200'
+            }
+          },
+          spec: {
+            containers: [
+              {
+                args: [
+                  '/nginx-ingress-controller',
+                  '--election-id=rke2-ingress-nginx-leader',
+                  '--controller-class=k8s.io/ingress-nginx',
+                  '--ingress-class=nginx',
+                  '--configmap=$(POD_NAMESPACE)/rke2-ingress-nginx-controller',
+                  '--validating-webhook=:8443',
+                  '--validating-webhook-certificate=/usr/local/certificates/cert',
+                  '--validating-webhook-key=/usr/local/certificates/key',
+                  '--watch-ingress-without-class=true'
+                ],
+                env: [
+                  {
+                    name:      'POD_NAME',
+                    valueFrom: {
+                      fieldRef: {
+                        apiVersion: 'v1',
+                        fieldPath:  'metadata.name'
+                      }
+                    }
+                  },
+                  {
+                    name:      'POD_NAMESPACE',
+                    valueFrom: {
+                      fieldRef: {
+                        apiVersion: 'v1',
+                        fieldPath:  'metadata.namespace'
+                      }
+                    }
+                  },
+                  {
+                    name:  'LD_PRELOAD',
+                    value: '/usr/local/lib/libmimalloc.so'
+                  }
+                ],
+                image:           'rancher/nginx-ingress-controller:nginx-1.9.3-hardened1',
+                imagePullPolicy: 'IfNotPresent',
+                lifecycle:       {
+                  preStop: {
+                    exec: {
+                      command: [
+                        '/wait-shutdown'
+                      ]
+                    }
+                  }
+                },
+                livenessProbe: {
+                  failureThreshold: 5,
+                  httpGet:          {
+                    path:   '/healthz',
+                    port:   10254,
+                    scheme: 'HTTP'
+                  },
+                  initialDelaySeconds: 10,
+                  periodSeconds:       10,
+                  successThreshold:    1,
+                  timeoutSeconds:      1
+                },
+                name:  'rke2-ingress-nginx-controller',
+                ports: [
+                  {
+                    containerPort: 80,
+                    hostPort:      80,
+                    name:          'http',
+                    protocol:      'TCP'
+                  },
+                  {
+                    containerPort: 443,
+                    hostPort:      443,
+                    name:          'https',
+                    protocol:      'TCP'
+                  },
+                  {
+                    containerPort: 8443,
+                    name:          'webhook',
+                    protocol:      'TCP'
+                  }
+                ],
+                readinessProbe: {
+                  failureThreshold: 3,
+                  httpGet:          {
+                    path:   '/healthz',
+                    port:   10254,
+                    scheme: 'HTTP'
+                  },
+                  initialDelaySeconds: 10,
+                  periodSeconds:       10,
+                  successThreshold:    1,
+                  timeoutSeconds:      1
+                },
+                resources: {
+                  requests: {
+                    cpu:    '100m',
+                    memory: '90Mi'
+                  }
+                },
+                securityContext: {
+                  allowPrivilegeEscalation: true,
+                  capabilities:             {
+                    add: [
+                      'NET_BIND_SERVICE'
+                    ],
+                    drop: [
+                      'ALL'
+                    ]
+                  },
+                  runAsUser: 101
+                },
+                terminationMessagePath:   '/dev/termination-log',
+                terminationMessagePolicy: 'File',
+                volumeMounts:             [
+                  {
+                    mountPath: '/usr/local/certificates/',
+                    name:      'webhook-cert',
+                    readOnly:  true
+                  }
+                ]
+              }
+            ],
+            dnsPolicy:                     'ClusterFirstWithHostNet',
+            nodeSelector:                  { 'kubernetes.io/os': 'linux' },
+            restartPolicy:                 'Always',
+            schedulerName:                 'default-scheduler',
+            securityContext:               {},
+            serviceAccount:                'rke2-ingress-nginx',
+            serviceAccountName:            'rke2-ingress-nginx',
+            terminationGracePeriodSeconds: 300,
+            volumes:                       [
+              {
+                name:   'webhook-cert',
+                secret: {
+                  defaultMode: 420,
+                  secretName:  'rke2-ingress-nginx-admission'
+                }
+              }
+            ]
+          }
+        },
+        updateStrategy: {
+          rollingUpdate: {
+            maxSurge:       0,
+            maxUnavailable: 1
+          },
+          type: 'RollingUpdate'
+        }
+      },
+      status: {
+        currentNumberScheduled: 1,
+        desiredNumberScheduled: 1,
+        numberAvailable:        1,
+        numberMisscheduled:     0,
+        numberReady:            1,
+        observedGeneration:     1,
+        updatedNumberScheduled: 1
+      }
+    }
+  ];
+}
+
 function generateFakeNavClusterData(provClusterId = 'some-prov-cluster-id', mgmtClusterId = 'some-mgmt-cluster-id'): any {
   return {
     provClusterObj:      generateProvClusterObj(provClusterId, mgmtClusterId),
@@ -2063,8 +2441,11 @@ function generateFakeNavClusterData(provClusterId = 'some-prov-cluster-id', mgmt
     fakeNodeSchema:      generateFakeNodeSchema(mgmtClusterId),
     fakeCountSchema:     generateFakeCountSchema(mgmtClusterId),
     fakeNamespaceSchema: generateFakeNamespaceSchema(mgmtClusterId),
+    fakeDaemonsetSchema: generateFakeDaemonsetSchema(mgmtClusterId),
+    fakePodSchema:       generateFakePodSchema(mgmtClusterId),
     fakeCountsReply:     generateFakeCountsReply(mgmtClusterId),
     fakeNamespacesReply: generateFakeNamespacesReply(mgmtClusterId),
+    fakeDaemonsetsReply: generateFakeDaemonsetsReply(mgmtClusterId),
   };
 }
 
@@ -2115,20 +2496,6 @@ export function generateFakeClusterDataAndIntercepts(fakeProvClusterId = 'some-p
     });
   }).as('mgmtClusters');
 
-  // intercept schemas check for enabling cluster explorer for fake cluster https://github.com/rancher/dashboard/issues/10452
-  cy.intercept('GET', `/k8s/clusters/${ fakeMgmtClusterId }/v1/schemas?*`, (req) => {
-    req.reply({
-      statusCode: 200,
-      body:       {
-        data: [
-          fakeNavClusterData.fakeNodeSchema,
-          fakeNavClusterData.fakeCountSchema,
-          fakeNavClusterData.fakeNamespaceSchema
-        ]
-      },
-    });
-  }).as('clusterSchemas');
-
   // intercept counts for fake cluster https://github.com/rancher/dashboard/issues/10452
   cy.intercept('GET', `/k8s/clusters/${ fakeMgmtClusterId }/v1/counts?*`, (req) => {
     req.reply({
@@ -2144,6 +2511,49 @@ export function generateFakeClusterDataAndIntercepts(fakeProvClusterId = 'some-p
       body:       { data: fakeNavClusterData.fakeNamespacesReply },
     });
   }).as('clusterNamespaces');
+
+  // For missing "browsable"/"editable" resources in cluster explorer, add schema HERE! first
+  // so that menu entry appears on the side-nav
+  //
+  // intercept schemas k8s API check for enabling cluster explorer for fake cluster https://github.com/rancher/dashboard/issues/10452
+  cy.intercept('GET', `/k8s/clusters/${ fakeMgmtClusterId }/v1/schemas?*`, (req) => {
+    req.reply({
+      statusCode: 200,
+      body:       {
+        data: [
+          fakeNavClusterData.fakeNodeSchema,
+          fakeNavClusterData.fakeCountSchema,
+          fakeNavClusterData.fakeNamespaceSchema,
+          fakeNavClusterData.fakeDaemonsetSchema,
+          fakeNavClusterData.fakePodSchema
+        ]
+      },
+    });
+  }).as('clusterSchemas');
+
+  // intercept pods for fake cluster https://github.com/rancher/dashboard/issues/9874
+  cy.intercept('GET', `/k8s/clusters/${ fakeMgmtClusterId }/v1/pods?*`, (req) => {
+    req.reply({
+      statusCode: 200,
+      body:       { data: [] },
+    });
+  }).as('clusterPods');
+
+  // intercept nodes for fake cluster https://github.com/rancher/dashboard/issues/9874
+  cy.intercept('GET', `/k8s/clusters/${ fakeMgmtClusterId }/v1/nodes?*`, (req) => {
+    req.reply({
+      statusCode: 200,
+      body:       { data: [] },
+    });
+  }).as('clusterPods');
+
+  // intercept apps.daemonsets for fake cluster https://github.com/rancher/dashboard/issues/9874
+  cy.intercept('GET', `/k8s/clusters/${ fakeMgmtClusterId }/v1/apps.daemonsets?*`, (req) => {
+    req.reply({
+      statusCode: 200,
+      body:       { data: fakeNavClusterData.fakeDaemonsetsReply },
+    });
+  }).as('clusterPods');
 
   return fakeNavClusterData;
 }

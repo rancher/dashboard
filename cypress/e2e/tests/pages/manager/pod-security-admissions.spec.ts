@@ -112,36 +112,50 @@ describe('Pod Security Admissions', { testIsolation: 'off', tags: ['@manager', '
   it('can delete a policy security admission', function() {
     PodSecurityAdmissionsPagePo.navTo();
     podSecurityAdmissionsPage.waitForPage();
-    podSecurityAdmissionsPage.list().actionMenu(`${ this.podSecurityAdmissionsName }-clone`).getMenuItem('Delete').click();
-
-    const promptRemove = new PromptRemove();
-
-    cy.intercept('DELETE', `/v1/management.cattle.io.podsecurityadmissionconfigurationtemplates/${ this.podSecurityAdmissionsName }-clone`).as('deletePolicyAdmission');
-
-    promptRemove.remove();
-    cy.wait('@deletePolicyAdmission');
-    podSecurityAdmissionsPage.waitForPage();
 
     // check list details
-    cy.contains(`${ this.podSecurityAdmissionsName }-clone`).should('not.exist');
+    podSecurityAdmissionsPage.list().resourceTable().sortableTable().rowNames()
+      .then((names) => {
+        if (names.filter((name) => name === `${ this.podSecurityAdmissionsName }-clone`).length > 1) {
+          cy.reload(); // need page reload here in case multiple entries are created. reload should resolve the duplicate issue
+        }
+
+        podSecurityAdmissionsPage.list().actionMenu(`${ this.podSecurityAdmissionsName }-clone`).getMenuItem('Delete').click();
+
+        const promptRemove = new PromptRemove();
+
+        cy.intercept('DELETE', `/v1/management.cattle.io.podsecurityadmissionconfigurationtemplates/${ this.podSecurityAdmissionsName }-clone`).as('deletePolicyAdmission');
+
+        promptRemove.remove();
+        cy.wait('@deletePolicyAdmission').its('response.statusCode').should('eq', 204);
+        podSecurityAdmissionsPage.waitForPage();
+        cy.contains(`${ this.podSecurityAdmissionsName }-clone`).should('not.exist');
+      });
   });
 
   it('can delete a policy security admission via bulk actions', function() {
     PodSecurityAdmissionsPagePo.navTo();
     podSecurityAdmissionsPage.waitForPage();
-    podSecurityAdmissionsPage.list().details(this.podSecurityAdmissionsName, 0).click();
-    podSecurityAdmissionsPage.list().resourceTable().sortableTable().deleteButton()
-      .click();
-
-    const promptRemove = new PromptRemove();
-
-    cy.intercept('DELETE', `/v1/management.cattle.io.podsecurityadmissionconfigurationtemplates/${ this.podSecurityAdmissionsName }`).as('deletePolicyAdmission');
-
-    promptRemove.remove();
-    cy.wait('@deletePolicyAdmission');
-    podSecurityAdmissionsPage.waitForPage();
 
     // check list details
-    cy.contains(this.podSecurityAdmissionsName).should('not.exist');
+    podSecurityAdmissionsPage.list().resourceTable().sortableTable().rowNames()
+      .then((names) => {
+        if (names.filter((name) => name === this.podSecurityAdmissionsName).length > 1) {
+          cy.reload(); // need page reload here in case multiple entries are created. reload should resolve the duplicate issue
+        }
+        podSecurityAdmissionsPage.list().details(this.podSecurityAdmissionsName, 0).click();
+        podSecurityAdmissionsPage.list().resourceTable().sortableTable().deleteButton()
+          .click();
+
+        const promptRemove = new PromptRemove();
+
+        cy.intercept('DELETE', `/v1/management.cattle.io.podsecurityadmissionconfigurationtemplates/${ this.podSecurityAdmissionsName }`).as('deletePolicyAdmission');
+
+        promptRemove.remove();
+        cy.wait('@deletePolicyAdmission').its('response.statusCode').should('eq', 204);
+
+        podSecurityAdmissionsPage.waitForPage();
+        cy.contains(this.podSecurityAdmissionsName).should('not.exist');
+      });
   });
 });

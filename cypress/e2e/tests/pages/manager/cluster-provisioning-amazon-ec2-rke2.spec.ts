@@ -53,11 +53,13 @@ describe('Provision Node driver RKE2 cluster', { testIsolation: 'off', tags: ['@
     createRKE2ClusterPage.waitForPage('type=amazonec2&rkeType=rke2');
 
     // create amazon ec2 cloud credential
+    cloudCredForm.saveButton().expectToBeDisabled();
     cloudCredForm.nameNsDescription().name().set(this.ec2CloudCredentialName);
     cloudCredForm.accessKey().set(Cypress.env('awsAccessKey'));
     cloudCredForm.secretKey().set(Cypress.env('awsSecretKey'), true);
     cloudCredForm.defaultRegion().toggle();
     cloudCredForm.defaultRegion().clickOptionWithLabel('us-west-1');
+    cloudCredForm.saveButton().expectToBeEnabled();
 
     cy.intercept('GET', '/v1/management.cattle.io.users?exclude=metadata.managedFields').as('pageLoad');
     cloudCredForm.saveCreateForm().cruResource().saveAndWaitForRequests('POST', '/v3/cloudcredentials').then((req) => {

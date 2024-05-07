@@ -20,6 +20,7 @@ interface NonReactiveProps {
 
 const provideProps: NonReactiveProps = { timer: undefined };
 
+// i18n-uses asyncButton.*
 export default defineComponent({
   props: {
     /**

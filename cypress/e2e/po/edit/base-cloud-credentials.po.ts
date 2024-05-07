@@ -2,6 +2,7 @@ import PagePo from '@/cypress/e2e/po/pages/page.po';
 import CruResourcePo from '@/cypress/e2e/po/components/cru-resource.po';
 import NameNsDescription from '@/cypress/e2e/po/components/name-ns-description.po';
 import ResourceDetailPo from '@/cypress/e2e/po/edit/resource-detail.po';
+import AsyncButtonPo from '@/cypress/e2e/po/components/async-button.po';
 
 export default class BaseCloudCredentialsPo extends PagePo {
   private static createPath(clusterId: string, id?: string ) {
@@ -28,5 +29,9 @@ export default class BaseCloudCredentialsPo extends PagePo {
 
   saveCreateForm(): ResourceDetailPo {
     return new ResourceDetailPo(this.self());
+  }
+
+  saveButton() {
+    return new AsyncButtonPo('[data-testid="form-save"]', this.self());
   }
 }

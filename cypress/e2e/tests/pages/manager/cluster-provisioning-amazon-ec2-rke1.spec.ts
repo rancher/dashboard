@@ -244,6 +244,7 @@ describe('Provision Node driver RKE1 cluster with AWS', { testIsolation: 'off', 
   it('can delete a Amazon EC2 RKE1 cluster', function() {
     ClusterManagerListPagePo.navTo();
     clusterList.waitForPage();
+    clusterList.list().state(this.rke1Ec2ClusterName).contains('Active', { timeout: 120000 });
     clusterList.list().actionMenu(this.rke1Ec2ClusterName).getMenuItem('Delete').click();
 
     clusterList.sortableTable().rowNames('.cluster-link').then((rows: any) => {

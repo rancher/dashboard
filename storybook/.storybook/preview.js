@@ -1,5 +1,7 @@
 import Vue from 'vue';
 import Vuex from 'vuex';
+import vSelect from 'vue-select';
+import VTooltip from 'v-tooltip';
 import { themes } from '@storybook/theming';
 import { get } from '../../shell/utils/object';
 import IntlMessageFormat from 'intl-messageformat';
@@ -10,6 +12,7 @@ import { VCleanTooltip } from '@shell/plugins/clean-tooltip-directive.js';
 import ShortKey from 'vue-shortkey';
 import { trimWhitespace } from '../../shell/plugins/trim-whitespace';
 
+
 // Store modules
 import growl from './store/growl';
 import codeMirror from './store/codeMirror';
@@ -18,13 +21,12 @@ import table from './store/table';
 
 // Register custom i18n plugin
 require('../../shell/plugins/i18n');
-
-require('../../shell/plugins/v-select');
-require('../../shell/plugins/tooltip');
 require('../../shell/plugins/clean-html-directive');
 
 Vue.use(Vuex);
 Vue.use(ShortKey, { prevent: ['input', 'textarea', 'select'] });
+Vue.component('v-select', vSelect);
+Vue.use(VTooltip);
 
 Vue.component('router-link', {
   props:   ['to'],

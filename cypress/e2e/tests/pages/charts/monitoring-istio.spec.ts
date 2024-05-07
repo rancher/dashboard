@@ -9,6 +9,7 @@ import { ChartsPage } from '@/cypress/e2e/po/pages/explorer/charts/charts.po';
 import { InstallChartPage } from '@/cypress/e2e/po/pages/explorer/charts/install-charts.po';
 import { PrometheusTab } from '@/cypress/e2e/po/pages/explorer/charts/tabs/prometheus-tab.po';
 import { GrafanaTab } from '@/cypress/e2e/po/pages/explorer/charts/tabs/grafana-tab.po';
+import { DEFAULT_GRAFANA_STORAGE_SIZE } from '@shell/config/types.js';
 
 describe('Charts', { tags: ['@charts', '@adminUser'] }, () => {
   const chartsPage = new ChartsPage();
@@ -171,6 +172,20 @@ describe('Charts', { tags: ['@charts', '@adminUser'] }, () => {
         grafana.memoryLimit().checkExists();
         grafana.memoryLimit().checkVisible();
         grafana.memoryLimit().set('123Mi');
+
+        // Check default Grafana storage value for pvc and statefulset types
+        // pvc
+        grafana.storageOptions().set(2);
+        grafana.storagePvcSizeInput().checkExists();
+        grafana.storagePvcSizeInput().checkVisible();
+        grafana.storagePvcSizeInput().self().invoke('val').should('equal', DEFAULT_GRAFANA_STORAGE_SIZE);
+        // statefulset
+        grafana.storageOptions().set(3);
+        grafana.storageStatefulsetSizeInput().checkExists();
+        grafana.storageStatefulsetSizeInput().checkVisible();
+        grafana.storageStatefulsetSizeInput().self().invoke('val').should('equal', DEFAULT_GRAFANA_STORAGE_SIZE);
+        // back to disabled
+        grafana.storageOptions().set(0);
 
         // Click on YAML. In YAML mode, the prometheus selector is present but empty
         // It should not be sent to the API

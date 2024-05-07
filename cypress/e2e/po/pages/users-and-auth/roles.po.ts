@@ -32,6 +32,10 @@ export default class RolesPo extends PagePo {
     return new GlobalRoleDetailPo(this.clusterId, roleId);
   }
 
+  goToEditYamlPage(elemName: string) {
+    return this.list().actionMenu(elemName).getMenuItem('Edit YAML').click();
+  }
+
   createRole(userId?: string) {
     return new RoleTemplateEditPo(this.clusterId, userId);
   }

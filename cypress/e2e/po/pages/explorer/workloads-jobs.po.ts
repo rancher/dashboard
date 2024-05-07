@@ -17,16 +17,17 @@ export class WorkloadsJobsListPagePo extends PagePo {
     super(WorkloadsJobsListPagePo.createPath(clusterId));
   }
 
-  listCreate() {
-    const baseResourceList = new BaseResourceList(this.self());
+  list() {
+    return new BaseResourceList(this.self());
+  }
 
-    return baseResourceList.masthead().actions().eq(0).click();
+  listCreate() {
+    return this.list().masthead().actions().eq(0)
+      .click();
   }
 
   listElementWithName(name:string) {
-    const baseResourceList = new BaseResourceList(this.self());
-
-    return baseResourceList.resourceTable().sortableTable().rowElementWithName(name);
+    return this.list().resourceTable().sortableTable().rowElementWithName(name);
   }
 }
 
@@ -76,5 +77,9 @@ export class WorkLoadsJobDetailsPagePo extends PagePo {
 
   saveCreateForm(): AsyncButtonPo {
     return new AsyncButtonPo('[data-testid="form-save"]', this.self());
+  }
+
+  errorBanner() {
+    return cy.get('#cru-errors');
   }
 }

@@ -778,7 +778,6 @@ export const actions = {
     }
 
     res = await allHash(promises);
-    dispatch('i18n/init');
     const isMultiCluster = getters['isMultiCluster'];
 
     // If the local cluster is a Harvester cluster and 'rancher-manager-support' is true, it means that the embedded Rancher is being used.
