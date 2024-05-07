@@ -97,8 +97,6 @@ export default defineComponent({
   },
 
   computed: {
-    ...mapGetters(['isAllNamespaces']),
-
     expiredData(): any {
       let expiring = 0;
       let expired = 0;
@@ -114,11 +112,9 @@ export default defineComponent({
         }
       }
 
-      const filterWarning = !this.isAllNamespaces ? this.t('secret.certificate.warnings.filtered') : '';
-
       return {
-        expiring: expiring ? this.t('secret.certificate.warnings.expiring', { count: expiring, filtered: !this.isAllNamespaces }) + filterWarning : '',
-        expired:  expired ? this.t('secret.certificate.warnings.expired', { count: expired, filtered: !this.isAllNamespaces }) + filterWarning : '',
+        expiring: expiring ? this.t('secret.certificate.warnings.expiring', { count: expiring }) : '',
+        expired:  expired ? this.t('secret.certificate.warnings.expired', { count: expired }) : '',
       };
     }
   },
@@ -150,7 +146,7 @@ export default defineComponent({
       :rows="certs"
       :paging-label="'secret.certificate.paging'"
       :paging-params="pagingParams"
-      :ignoreFilter="true"
+      :ignore-filter="true"
     >
       <template #col:certState="{row}">
         <td>
