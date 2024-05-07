@@ -1,7 +1,7 @@
 <script>
 import { mapGetters } from 'vuex';
 
-import InstallRedirect from '@shell/utils/install-redirect';
+import ChartProductRedirectMixin from '@shell/mixins/chart-product-redirect';
 
 import { NAME, CHART_NAME, NEU_VECTOR_NAMESPACE } from '@shell/config/product/neuvector';
 
@@ -10,7 +10,7 @@ import LazyImage from '@shell/components/LazyImage';
 export default {
   components: { LazyImage },
 
-  middleware: InstallRedirect(NAME, CHART_NAME, undefined, false),
+  mixins: [ChartProductRedirectMixin(NAME, CHART_NAME, false)],
 
   data() {
     return {
@@ -37,7 +37,7 @@ export default {
 </script>
 
 <template>
-  <section>
+  <section v-if="!redirectPending">
     <header class="row">
       <div class="col span-12">
         <h1>

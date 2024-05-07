@@ -1,6 +1,6 @@
 <script>
 import { NAME, CHART_NAME } from '@shell/config/product/gatekeeper';
-import InstallRedirect from '@shell/utils/install-redirect';
+import ChartProductRedirectMixin from '@shell/mixins/chart-product-redirect';
 import ChartHeading from '@shell/components/ChartHeading';
 import SortableTable from '@shell/components/SortableTable';
 import { Banner } from '@components/Banner';
@@ -13,7 +13,7 @@ export default {
   components: {
     ChartHeading, SortableTable, Banner
   },
-  middleware: InstallRedirect(NAME, CHART_NAME),
+  mixins: [ChartProductRedirectMixin(NAME, CHART_NAME)],
   async fetch() {
     const constraints = this.constraint ? [this.constraint] : await this.$store.dispatch('cluster/findAll', { type: GATEKEEPER.SPOOFED.CONSTRAINT });
 
@@ -50,7 +50,7 @@ export default {
 </script>
 
 <template>
-  <div>
+  <div v-if="!redirectPending">
     <ChartHeading
       :label="t('gatekeeperIndex.poweredBy')"
       url="https://github.com/open-policy-agent/gatekeeper"

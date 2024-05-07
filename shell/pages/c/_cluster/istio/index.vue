@@ -1,12 +1,12 @@
 <script>
 import { mapGetters } from 'vuex';
 import { NAME, CHART_NAME } from '@shell/config/product/istio';
-import InstallRedirect from '@shell/utils/install-redirect';
+import ChartProductRedirectMixin from '@shell/mixins/chart-product-redirect';
 import { SERVICE } from '@shell/config/types';
 export default {
   components: {},
 
-  middleware: InstallRedirect(NAME, CHART_NAME),
+  mixins: [ChartProductRedirectMixin(NAME, CHART_NAME)],
 
   async fetch() {
     try {
@@ -70,7 +70,7 @@ export default {
 </script>
 
 <template>
-  <div>
+  <div v-if="!redirectPending">
     <h1>Overview</h1>
     <h4 v-clean-html="t('istio.poweredBy', {}, true)" />
     <div class="links">

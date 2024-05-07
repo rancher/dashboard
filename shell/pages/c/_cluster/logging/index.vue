@@ -1,6 +1,6 @@
 <script>
 import { NAME, CHART_NAME } from '@shell/config/product/logging';
-import InstallRedirect from '@shell/utils/install-redirect';
+import ChartProductRedirectMixin from '@shell/mixins/chart-product-redirect';
 import { LOGGING } from '@shell/config/types';
 import SortableTable from '@shell/components/SortableTable';
 import { allHash } from '@shell/utils/promise';
@@ -10,7 +10,7 @@ import {
 import ChartHeading from '@shell/components/ChartHeading';
 
 export default {
-  middleware: InstallRedirect(NAME, CHART_NAME),
+  mixins:     [ChartProductRedirectMixin(NAME, CHART_NAME)],
   components: { ChartHeading, SortableTable },
   async fetch() {
     const getAllOrDefault = (type) => {
@@ -56,7 +56,10 @@ export default {
 </script>
 
 <template>
-  <div class="logging">
+  <div
+    v-if="!redirectPending"
+    class="logging"
+  >
     <ChartHeading
       :label="t('logging.overview.poweredBy')"
       url="https://github.com/banzaicloud/logging-operator"

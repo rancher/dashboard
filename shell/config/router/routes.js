@@ -182,14 +182,6 @@ export default [
         component: () => interopDefault(import('@shell/pages/c/_cluster/explorer/index.vue')),
         name:      'c-cluster-explorer'
       }, {
-        path:      '/c/:cluster/backup',
-        component: () => interopDefault(import('@shell/pages/c/_cluster/backup/index.vue')),
-        name:      'c-cluster-backup'
-      }, {
-        path:      '/c/:cluster/cis',
-        component: () => interopDefault(import('@shell/pages/c/_cluster/cis/index.vue')),
-        name:      'c-cluster-cis'
-      }, {
         path:      '/c/:cluster/fleet',
         component: () => interopDefault(import('@shell/pages/c/_cluster/fleet/index.vue')),
         name:      'c-cluster-fleet'

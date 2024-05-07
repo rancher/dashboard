@@ -34,6 +34,10 @@ describe('page: LonghornOverview', () => {
     return shallowMount(LonghornOverview, {
       mocks: commonMocks,
       ...overrides,
+      // Mocks redirectPending which is inherited from the ChartProductRedirectMixin mixin
+      data() {
+        return { redirectPending: false };
+      }
     });
   };
 
