@@ -1,6 +1,5 @@
 import { mount } from '@vue/test-utils';
 import KeyValue from '@shell/components/form/KeyValue.vue';
-import { cleanHtmlDirective } from '@shell/plugins/clean-html-directive';
 
 describe('component: KeyValue', () => {
   it('should display a not encoded value', () => {
@@ -65,7 +64,6 @@ describe('component: KeyValue', () => {
         mode:           'edit',
         asMap,
         mocks:          { $store: { getters: { 'i18n/t': jest.fn() } } },
-        directives:     { cleanHtmlDirective },
         valueMultiline: false,
       }
     });
@@ -107,7 +105,6 @@ describe('component: KeyValue', () => {
         value:          valueProp,
         mode:           'edit',
         mocks:          { $store: { getters: { 'i18n/t': jest.fn() } } },
-        directives:     { cleanHtmlDirective },
         valueMultiline: false,
         asMap
       }
@@ -140,7 +137,6 @@ describe('component: KeyValue', () => {
         value:          valueProp,
         mode:           'edit',
         mocks:          { $store: { getters: { 'i18n/t': jest.fn() } } },
-        directives:     { cleanHtmlDirective },
         valueMultiline: false,
         asMap
       }

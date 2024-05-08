@@ -1,12 +1,10 @@
 import AuthProviderWarningBanners from '@shell/edit/auth/AuthProviderWarningBanners.vue';
 import { mount } from '@vue/test-utils';
-import { cleanHtmlDirective } from '@shell/plugins/clean-html-directive';
 
 describe('component: AuthProviderWarningBanners.vue', () => {
   const wrapper = mount(AuthProviderWarningBanners, {
-    mocks:      { $store: { getters: { 'i18n/t': (text: string) => text } } },
-    propsData:  { tArgs: { provider: 'Any Provider', username: 'username' } },
-    directives: { cleanHtmlDirective }
+    mocks:     { $store: { getters: { 'i18n/t': (text: string) => text } } },
+    propsData: { tArgs: { provider: 'Any Provider', username: 'username' } }
   });
 
   it('should render properly', () => {
