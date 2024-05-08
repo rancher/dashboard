@@ -160,6 +160,7 @@ export default {
       v-if="showLocalhostWarning"
       color="warning"
       :label="t('validation.setting.serverUrl.localhost')"
+      data-testid="setting-serverurl-localhost-warning"
     />
 
     <Banner
@@ -167,6 +168,7 @@ export default {
       :key="i"
       color="error"
       :label="err"
+      data-testid="setting-error-banner"
     />
 
     <div class="mt-20">

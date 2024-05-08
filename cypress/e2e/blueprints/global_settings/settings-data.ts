@@ -61,3 +61,20 @@ export const settings = {
     new:      'true'
   }
 };
+export const serverUrlLocalhostCases = [
+  'http://LOCALhosT:8005',
+  'http://localhost:8005',
+  'https://localhost:8005',
+  'localhost',
+  'http://127.0.0.1',
+  'https://127.0.0.1',
+  '127.0.0.1'
+];
+export const urlWithTrailingForwardSlash = 'https://test.com/';
+export const httpUrl = 'http://test.com';
+export const nonUrlCases = [
+  'test',
+  'https',
+  'test.com',
+  'a.test.com'
+];
