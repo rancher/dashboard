@@ -338,6 +338,7 @@ export default {
                   :label="role.nameDisplay"
                   :description="role.descriptionDisplay"
                   :mode="mode"
+                  :data-testId="'grb-checkbox-' + role.id"
                   @input="checkboxChanged"
                 >
                   <template #label>
