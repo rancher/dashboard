@@ -32,6 +32,11 @@ export default class ProvClusterListPo extends BaseResourceList {
     return this.resourceTable().sortableTable().rowWithName(clusterName).column(4);
   }
 
+  providerSubType(clusterName: string) {
+    return this.resourceTable().sortableTable().rowWithName(clusterName).column(4)
+      .find(`.text-muted`);
+  }
+
   machines(clusterName: string) {
     return this.resourceTable().sortableTable().rowWithName(clusterName).column(5);
   }
