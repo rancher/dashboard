@@ -19,6 +19,19 @@ describe('Projects/Namespaces', { tags: ['@explorer', '@adminUser'] }, () => {
     projectsNamespacesPage.nsProject().checkExists();
   });
 
+  describe('Create Project validation', () => {
+    beforeEach(() => {
+      projectsNamespacesPage.goTo();
+    });
+    // Issue 5975: create button should be disabled unless name is filled in
+    it('Create button becomes available if the name is filled in', () => {
+      projectsNamespacesPage.createProjectButtonClick();
+      projectsNamespacesPage.buttonSubmit().expectToBeDisabled();
+      projectsNamespacesPage.name().set('test-1234');
+      projectsNamespacesPage.buttonSubmit().expectToBeEnabled();
+    });
+  });
+
   describe('Create Project Error Banner', () => {
     beforeEach(() => {
       projectsNamespacesPage.goTo();
