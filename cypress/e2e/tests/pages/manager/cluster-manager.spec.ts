@@ -486,6 +486,9 @@ describe('Cluster Manager', { testIsolation: 'off', tags: ['@manager', '@adminUs
         clusterList.list().state(importGenericName).should('contain', 'Pending');
         clusterList.list().state(importGenericName).should('contain', 'Waiting');
         clusterList.list().state(importGenericName).contains('Active', { timeout: 700000 });
+        // Issue #6836: Provider field on Imported clusters states "Imported" instead of cluster type
+        clusterList.list().provider(importGenericName).should('contain', 'Imported');
+        clusterList.list().providerSubType(importGenericName).should('contain', 'RKE2');
       });
 
       it('can navigate to cluster edit page', () => {
