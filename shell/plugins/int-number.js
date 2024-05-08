@@ -1,6 +1,6 @@
 import Vue from 'vue';
 
-function intNumberDirective(el) {
+function inserted(el) {
   el.addEventListener('keypress', (e) => {
     e = e || window.event;
     const charcode = typeof e.charCode === 'number' ? e.charCode : e.keyCode;
@@ -18,6 +18,7 @@ function intNumberDirective(el) {
     }
   });
 }
+const intNumberDirective = { inserted };
 
 export default intNumberDirective;
 
@@ -27,9 +28,7 @@ const isThisFileBeingExecutedInATest = process.env.NODE_ENV === 'test';
 
 if (isThisFileBeingExecutedInATest) {
   /* eslint-disable-next-line no-console */
-  console.warn('The implicit addition of intNumber has been deprecated in Rancher Shell and will be removed in a future version. Make sure to invoke `Vue.directive("intNumber", { inserted: intNumberDirective })` to maintain compatibility.');
+  console.warn('The implicit addition of intNumber has been deprecated in Rancher Shell and will be removed in a future version. Make sure to invoke `Vue.directive("intNumber", intNumberDirective)` to maintain compatibility.');
 
-  Vue.directive('intNumber', { inserted: intNumberDirective });
+  Vue.directive('intNumber', intNumberDirective);
 }
-
-Vue.directive('intNumber', { inserted: intNumberDirective });

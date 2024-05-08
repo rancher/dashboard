@@ -30,7 +30,7 @@ const getElement = (vnode) => {
   }
 };
 
-function focusDirective(_el, _binding, vnode) {
+function inserted(_el, _binding, vnode) {
   const element = getElement(vnode);
 
   if (element) {
@@ -38,9 +38,11 @@ function focusDirective(_el, _binding, vnode) {
   }
 }
 
-Vue.directive('focus', { inserted: focusDirective });
+const focusDirective = { inserted };
+
+Vue.directive('focus', focusDirective);
 
 export default focusDirective;
 
 /* eslint-disable-next-line no-console */
-console.warn('The implicit addition of focus has been deprecated in Rancher Shell and will be removed in a future version. Make sure to invoke `Vue.directive("focus", { inserted: focusDirective });` to maintain compatibility.');
+console.warn('The implicit addition of focus has been deprecated in Rancher Shell and will be removed in a future version. Make sure to invoke `Vue.directive("focus", focusDirective)` to maintain compatibility.');

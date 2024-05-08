@@ -1,6 +1,6 @@
 import Vue from 'vue';
 
-function positiveIntNumber(el) {
+function inserted(el) {
   el.addEventListener('keypress', (e) => {
     e = e || window.event;
     const charcode = typeof e.charCode === 'number' ? e.charCode : e.keyCode;
@@ -16,7 +16,9 @@ function positiveIntNumber(el) {
   });
 }
 
-export default positiveIntNumber;
+const positiveIntNumberDirective = { inserted };
+
+export default positiveIntNumberDirective;
 
 // This is being done for backwards compatibility with our extensions that have written tests and didn't properly make use of Vue.use() when importing and mocking plugins
 
@@ -24,7 +26,7 @@ const isThisFileBeingExecutedInATest = process.env.NODE_ENV === 'test';
 
 if (isThisFileBeingExecutedInATest) {
   /* eslint-disable-next-line no-console */
-  console.warn('The implicit addition of positiveIntNumber has been deprecated in Rancher Shell and will be removed in a future version. Make sure to invoke `Vue.directive("positiveIntNumber", { inserted: positiveIntNumber })` to maintain compatibility.');
+  console.warn('The implicit addition of positiveIntNumber has been deprecated in Rancher Shell and will be removed in a future version. Make sure to invoke `Vue.directive("positiveIntNumber", positiveIntNumberDirective)` to maintain compatibility.');
 
-  Vue.directive('positiveIntNumber', { inserted: positiveIntNumber });
+  Vue.directive('positiveIntNumber', positiveIntNumberDirective);
 }
