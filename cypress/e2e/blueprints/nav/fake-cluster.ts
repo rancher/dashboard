@@ -6,6 +6,18 @@ import {
   generateFakePodSchema
 } from './k8s-schemas.ts';
 
+import {
+  generateFakeNodeDriversReply,
+  generateFakeCloudCredentialsReply,
+  generateFakeMachineConfigReply,
+  generateFakeCloudCredIndividualReply,
+  generateFakeSecretsReply
+} from './edit-cluster.ts';
+
+// GENERAL DATA NOT CONFIGURABLE, for now...
+const MACHINE_POOL_ID = '995mj';
+const CLOUD_CRED_ID = 'srb7v';
+
 function generateProvClusterObj(provClusterId, mgmtClusterId) {
   return {
     id:    `fleet-default/${ provClusterId }`,
@@ -50,7 +62,7 @@ function generateProvClusterObj(provClusterId, mgmtClusterId) {
           message: 'Resource is current'
         },
         {
-          toId:    `fleet-default/nc-${ provClusterId }-pool1-48g2p`,
+          toId:    `fleet-default/nc-${ provClusterId }-pool1-${ MACHINE_POOL_ID }`,
           toType:  'rke-machine-config.cattle.io.digitaloceanconfig',
           rel:     'owner',
           state:   'active',
@@ -157,7 +169,7 @@ function generateProvClusterObj(provClusterId, mgmtClusterId) {
       uid: '326aa188-e66f-4cf0-8f54-9fc47e4c5d92'
     },
     spec: {
-      cloudCredentialSecretName: 'cattle-global-data:cc-srb7v',
+      cloudCredentialSecretName: `cattle-global-data:cc-${ CLOUD_CRED_ID }`,
       kubernetesVersion:         'v1.27.10+rke2r1',
       localClusterAuthEndpoint:  {},
       rkeConfig:                 {
@@ -180,7 +192,7 @@ function generateProvClusterObj(provClusterId, mgmtClusterId) {
             etcdRole:          true,
             machineConfigRef:  {
               kind: 'DigitaloceanConfig',
-              name: `nc-${ provClusterId }-pool1-48g2p`
+              name: `nc-${ provClusterId }-pool1-${ MACHINE_POOL_ID }`
             },
             name:                 'pool1',
             quantity:             1,
@@ -191,7 +203,7 @@ function generateProvClusterObj(provClusterId, mgmtClusterId) {
         machineSelectorConfig: [
           { config: { 'protect-kernel-defaults': false } }
         ],
-        registries:      {},
+        registries:      { configs: { reg1: { authConfigSecretName: 'registryconfig-auth-reg1' }, reg2: { authConfigSecretName: 'registryconfig-auth-reg2' } } },
         upgradeStrategy: {
           controlPlaneConcurrency:  '1',
           controlPlaneDrainOptions: {
@@ -2434,8 +2446,8 @@ function generateFakeDaemonsetsReply(mgmtClusterId) {
   ];
 }
 
-function generateFakeNavClusterData(provClusterId = 'some-prov-cluster-id', mgmtClusterId = 'some-mgmt-cluster-id'): any {
-  return {
+function generateFakeNavClusterData(provClusterId = 'some-prov-cluster-id', mgmtClusterId = 'some-mgmt-cluster-id', addEditClusterCapabilities = false): any {
+  const fakeData = {
     provClusterObj:      generateProvClusterObj(provClusterId, mgmtClusterId),
     mgmtClusterObj:      generateMgmtClusterObj(provClusterId, mgmtClusterId),
     fakeNodeSchema:      generateFakeNodeSchema(mgmtClusterId),
@@ -2447,11 +2459,21 @@ function generateFakeNavClusterData(provClusterId = 'some-prov-cluster-id', mgmt
     fakeNamespacesReply: generateFakeNamespacesReply(mgmtClusterId),
     fakeDaemonsetsReply: generateFakeDaemonsetsReply(mgmtClusterId),
   };
+
+  if (addEditClusterCapabilities) {
+    fakeData.fakeNodeDriversReply = generateFakeNodeDriversReply();
+    fakeData.fakeCloudCredentialsReply = generateFakeCloudCredentialsReply(CLOUD_CRED_ID);
+    fakeData.fakeMachineConfigReply = generateFakeMachineConfigReply(provClusterId, MACHINE_POOL_ID);
+    fakeData.fakeCloudCredIndividualReply = generateFakeCloudCredIndividualReply(CLOUD_CRED_ID);
+    fakeData.fakeSecretsReply = generateFakeSecretsReply();
+  }
+
+  return fakeData;
 }
 
-export function generateFakeClusterDataAndIntercepts(fakeProvClusterId = 'some-prov-cluster-id', fakeMgmtClusterId = 'some-mgmt-cluster-id'): {} {
+export function generateFakeClusterDataAndIntercepts(fakeProvClusterId = 'some-prov-cluster-id', fakeMgmtClusterId = 'some-mgmt-cluster-id', addEditClusterCapabilities = false): {} {
   const longClusterDescription = 'this-is-some-really-really-really-really-really-really-long-decription';
-  const fakeNavClusterData = generateFakeNavClusterData(fakeProvClusterId, fakeMgmtClusterId);
+  const fakeNavClusterData = generateFakeNavClusterData(fakeProvClusterId, fakeMgmtClusterId, addEditClusterCapabilities);
 
   // add cluster to fleet clusters for testing https://github.com/rancher/dashboard/issues/9984
   cy.intercept('GET', `/v1/fleet.cattle.io.clusters?*`, (req) => {
@@ -2554,6 +2576,156 @@ export function generateFakeClusterDataAndIntercepts(fakeProvClusterId = 'some-p
       body:       { data: fakeNavClusterData.fakeDaemonsetsReply },
     });
   }).as('clusterPods');
+
+  if (addEditClusterCapabilities) {
+    // intercept node drivers for fake cluster edit scenario
+    cy.intercept('GET', `/v1/management.cattle.io.nodedrivers?*`, (req) => {
+      req.reply({
+        statusCode: 200,
+        body:       { data: [fakeNavClusterData.fakeNodeDriversReply] },
+      });
+    }).as('nodeDrivers');
+
+    // intercept cloud credentials for fake cluster edit scenario
+    cy.intercept('GET', `/v3/cloudcredentials`, (req) => {
+      req.reply({
+        statusCode: 200,
+        body:       { data: [fakeNavClusterData.fakeCloudCredentialsReply] },
+      });
+    }).as('cloudCreds');
+
+    // intercept machine config for fake cluster edit scenario
+    cy.intercept('GET', `/v1/rke-machine-config.cattle.io.digitaloceanconfigs/fleet-default/nc-${ fakeProvClusterId }-pool1-${ MACHINE_POOL_ID }?*`, (req) => {
+      req.reply({
+        statusCode: 200,
+        body:       fakeNavClusterData.fakeMachineConfigReply,
+      });
+    }).as('machineConfigDo');
+
+    // intercept individual cloud credential request
+    cy.intercept('GET', `/v3/cloudcredentials/cattle-global-data:cc-${ CLOUD_CRED_ID }`, (req) => {
+      req.reply({
+        statusCode: 200,
+        body:       fakeNavClusterData.fakeCloudCredIndividualReply,
+      });
+    }).as('individualCloudCred');
+
+    // DIGITAL OCEAN REGIONS
+    cy.intercept('GET', `/meta/proxy/api.digitalocean.com/v2/regions?*`, (req) => {
+      req.reply({
+        statusCode: 200,
+        body:       {
+          meta:    { total: 1 },
+          regions: [
+            {
+              name:     'London 1',
+              slug:     'lon1',
+              features: [
+                'backups',
+                'ipv6',
+                'metadata',
+                'install_agent',
+                'storage',
+                'image_transfer'
+              ],
+              available: true,
+              sizes:     [
+                's-1vcpu-1gb',
+              ]
+            }
+          ]
+        },
+      });
+    }).as('doRegions');
+
+    // DIGITAL OCEAN SIZES
+    cy.intercept('GET', `/meta/proxy/api.digitalocean.com/v2/sizes?*`, (req) => {
+      req.reply({
+        statusCode: 200,
+        body:       {
+          meta:  { total: 1 },
+          sizes: [
+            {
+              slug:          's-1vcpu-1gb',
+              memory:        1024,
+              vcpus:         1,
+              disk:          25,
+              transfer:      1,
+              price_monthly: 6,
+              price_hourly:  0.00893,
+              regions:       [
+                'ams3',
+                'blr1',
+                'fra1',
+                'lon1',
+                'nyc1',
+                'nyc3',
+                'sfo2',
+                'sfo3',
+                'sgp1',
+                'syd1',
+                'tor1'
+              ],
+              available:            true,
+              description:          'Basic',
+              networking_througput: 2000
+            }
+          ]
+        },
+      });
+    }).as('doSizes');
+
+    // DIGITAL OCEAN IMAGES
+    cy.intercept('GET', `/meta/proxy/api.digitalocean.com/v2/images?*`, (req) => {
+      req.reply({
+        statusCode: 200,
+        body:       {
+          meta:   { total: 1 },
+          images: [
+            {
+              id:           129211873,
+              name:         '20.04 (LTS) x64',
+              distribution: 'Ubuntu',
+              slug:         'ubuntu-20-04-x64',
+              public:       true,
+              regions:      [
+                'tor1',
+                'syd1',
+                'sgp1',
+                'sfo3',
+                'sfo2',
+                'sfo1',
+                'nyc3',
+                'nyc2',
+                'nyc1',
+                'lon1',
+                'fra1',
+                'blr1',
+                'ams3',
+                'ams2'
+              ],
+              created_at:     '2023-03-20T19:17:23Z',
+              min_disk_size:  7,
+              type:           'base',
+              size_gigabytes: 0.72,
+              description:    'Ubuntu 20.04 (LTS) x64',
+              tags:           [],
+              status:         'available',
+              error_message:  ''
+            }
+          ]
+        },
+      });
+    }).as('doImages');
+
+    // intercept secrets req (for registries in cluster)
+    cy.intercept('GET', `/v1/secrets?*`, (req) => {
+      req.reply({
+        statusCode: 200,
+        body:       { data: fakeNavClusterData.fakeSecretsReply },
+      });
+    }).as('secretsReply');
+  }
 
   return fakeNavClusterData;
 }
