@@ -8,10 +8,10 @@ import IntlMessageFormat from 'intl-messageformat';
 import installShortcut from './theme-shortcut';
 import withEvents from 'storybook-auto-events';
 const i18nStrings = require('../../shell/assets/translations/en-us.yaml');
-import vCleanTooltip  from '@shell/plugins/clean-tooltip-directive.js';
+import vCleanTooltipDirective  from '@shell/directives/clean-tooltip-directive';
 import ShortKey from 'vue-shortkey';
-import trimWhitespace from '@shell/plugins/trim-whitespace';
-import cleanHtmlDirective from '@shell/plugins/clean-html-directive';
+import trimWhitespaceDirective from '@shell/directives/trim-whitespace';
+import cleanHtmlDirective from '@shell/directives/clean-html-directive';
 
 
 // Store modules
@@ -33,11 +33,8 @@ Vue.component('router-link', {
   template: '<a>link</a>',
 })
 
-Vue.directive('clean-tooltip', vCleanTooltip);
-Vue.directive('trim-whitespace', {
-  inserted:         trimWhitespace,
-  componentUpdated: trimWhitespace
-});
+Vue.directive('clean-tooltip', vCleanTooltipDirective);
+Vue.directive('trim-whitespace', trimWhitespaceDirective);
 Vue.directive('clean-html', cleanHtmlDirective);
 
 window.__codeMirrorLoader = () => import(/* webpackChunkName: "codemirror" */ '@shell/plugins/codemirror');

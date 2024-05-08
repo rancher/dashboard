@@ -1,6 +1,6 @@
 import Vue from 'vue';
 import { VTooltip } from 'v-tooltip';
-import { purifyHTML } from './clean-html';
+import { purifyHTML } from '@shell/plugins/clean-html';
 
 function purifyContent(value) {
   const type = typeof value;
@@ -24,13 +24,13 @@ function bind(el, { value, oldValue, modifiers }) {
     });
 }
 
-const vCleanTooltip = {
+const vCleanTooltipDirective = {
   ...VTooltip,
   bind,
   update: bind,
 };
 
-export default vCleanTooltip;
+export default vCleanTooltipDirective;
 
 // This is being done for backwards compatibility with our extensions that have written tests and didn't properly make use of Vue.use() when importing and mocking plugins
 
@@ -38,7 +38,7 @@ const isThisFileBeingExecutedInATest = process.env.NODE_ENV === 'test';
 
 if (isThisFileBeingExecutedInATest) {
   /* eslint-disable-next-line no-console */
-  console.warn('The implicit addition of clean-tooltip has been deprecated in Rancher Shell and will be removed in a future version. Make sure to invoke `Vue.directive("clean-tooltip", vCleanTooltip)` to maintain compatibility.');
+  console.warn('The implicit addition of clean-tooltip has been deprecated in Rancher Shell and will be removed in a future version. Make sure to invoke `Vue.directive("clean-tooltip", vCleanTooltipDirective)` to maintain compatibility.');
 
-  Vue.directive('clean-tooltip', vCleanTooltip);
+  Vue.directive('clean-tooltip', vCleanTooltipDirective);
 }

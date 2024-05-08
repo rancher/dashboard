@@ -1,5 +1,5 @@
 import Vue from 'vue';
-import { purifyHTML } from './clean-html';
+import { purifyHTML } from '@shell/plugins/clean-html';
 
 const cleanHtmlDirective = {
   inserted(el, binding) {

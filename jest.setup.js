@@ -3,8 +3,8 @@ import { config } from '@vue/test-utils';
 import i18n from '@shell/plugins/i18n';
 import VTooltip from 'v-tooltip';
 import vSelect from 'vue-select';
-import vCleanTooltip from '@shell/plugins/clean-tooltip-directive.js';
-import cleanHtmlDirective from '@shell/plugins/clean-html-directive';
+import vCleanTooltipDirective from '@shell/directives/clean-tooltip-directive.js';
+import cleanHtmlDirective from '@shell/directives/clean-html-directive';
 import '@shell/plugins/replaceall';
 
 import Vue from 'vue';
@@ -18,7 +18,7 @@ Vue.use(i18n);
 Vue.use(VTooltip);
 Vue.component('v-select', vSelect);
 Vue.directive('clean-html', cleanHtmlDirective);
-Vue.directive('clean-tooltip', vCleanTooltip);
+Vue.directive('clean-tooltip', vCleanTooltipDirective);
 
 /**
  * Global configuration for Jest tests
