@@ -20,12 +20,22 @@ export default class ChartRepositoriesPagePo extends PagePo {
     super(ChartRepositoriesPagePo.createPath(clusterId, product));
   }
 
-  static navTo() {
+  static navTo(clusterId = '_', product: 'apps' | 'manager' = 'manager') {
     const sideNav = new ProductNavPo();
 
-    BurgerMenuPo.burgerMenuNavToMenubyLabel('Cluster Management');
-    sideNav.groups().contains('Advanced').click();
-    sideNav.navToSideMenuEntryByLabel('Repositories');
+    if (product === 'apps') {
+      const burgerMenu = new BurgerMenuPo();
+      const sideNav = new ProductNavPo();
+
+      BurgerMenuPo.toggle();
+      burgerMenu.clusters().contains(clusterId).click();
+      sideNav.navToSideMenuGroupByLabel('Apps');
+      sideNav.navToSideMenuEntryByLabel('Repositories');
+    } else {
+      BurgerMenuPo.burgerMenuNavToMenubyLabel('Cluster Management');
+      sideNav.groups().contains('Advanced').click();
+      sideNav.navToSideMenuEntryByLabel('Repositories');
+    }
   }
 
   createEditRepositories(repoName? : string): ChartRepositoriesCreateEditPo {

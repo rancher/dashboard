@@ -324,12 +324,21 @@ export const mutations = {
     }
   },
 
+  setVersions(state, versions) {
+    state.versionInfos = versions;
+  },
+
   cacheVersion(state, { key, info }) {
     state.versionInfos[key] = info;
   }
 };
 
 export const actions = {
+  /**
+   * force: Always refresh catalog's helm repo by re-fetching index.yaml
+   *
+   * reset: clear existing charts and version cache
+   */
   async load(ctx, { force, reset } = {}) {
     const {
       state, getters, rootGetters, commit, dispatch
@@ -397,6 +406,10 @@ export const actions = {
       errors,
       loaded,
     });
+
+    if (reset) {
+      commit('setVersions', {});
+    }
   },
 
   async refresh({ getters, commit, dispatch }) {
