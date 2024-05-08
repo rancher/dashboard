@@ -1,5 +1,5 @@
 import ComponentPo from '@/cypress/e2e/po/components/component.po';
-import CheckboxInputPo from '~/cypress/e2e/po/components/checkbox-input.po';
+import CheckboxInputPo from '@/cypress/e2e/po/components/checkbox-input.po';
 
 export default class GlobalRoleBindings extends ComponentPo {
   constructor(selector = '.global-permissions') {
