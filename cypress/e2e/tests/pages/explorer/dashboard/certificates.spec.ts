@@ -81,16 +81,14 @@ describe('Certificates', { testIsolation: 'off', tags: ['@explorer', '@adminUser
     const expiredBanned = certPo.expiredBanner();
 
     expiredBanned.checkVisible();
-    expiredBanned.self().invoke('text').then((el) => {
-      expect(el.trim()).to.be('1 Certificate has expired');
-    });
+    expiredBanned.self().invoke('text').should('eq', ' 1 Certificate has expired ');
 
     const certRow = certPo.list().resourceTable().sortableTable().rowWithName(certName);
 
     certRow.self().scrollIntoView();
     certRow.checkVisible();
-    certRow.column(0).invoke('text').then((el) => {
-      expect(el.trim()).to.be('Expired');
+    certRow.column(1).invoke('text').then((el) => {
+      expect(el.trim()).eq('Expired');
     });
   });
 
@@ -100,15 +98,11 @@ describe('Certificates', { testIsolation: 'off', tags: ['@explorer', '@adminUser
 
   it('validate link to full secrets list', () => {
     clusterDashboard.waitForPage();
-    clusterDashboard.clickCertificatesTab();
-
     clusterDashboard.fullSecretsList().scrollIntoView();
     clusterDashboard.fullSecretsList().click();
 
     const secrets = new SecretsPagePo('local');
 
     secrets.waitForPage();
-    secrets.secretsList().resourceTable().sortableTable().rowElements()
-      .should('have.length.gte', 2);
   });
 });

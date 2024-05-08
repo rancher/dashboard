@@ -1,6 +1,5 @@
 import ComponentPo from '@/cypress/e2e/po/components/component.po';
 import BaseResourceList from '~/cypress/e2e/po/lists/base-resource-list.po';
-import r from 'jsrsasign';
 
 export default class CertificatesPo extends ComponentPo {
   constructor() {

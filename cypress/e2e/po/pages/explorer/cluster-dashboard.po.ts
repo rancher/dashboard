@@ -60,7 +60,7 @@ export default class ClusterDashboardPagePo extends PagePo {
   }
 
   fullSecretsList() {
-    return cy.get('.cert-table-link"').contains('Full secrets list');
+    return cy.get('.cert-table-link').contains('Full secrets list');
   }
 
   resourceSearchButton(): Cypress.Chainable {
