@@ -109,12 +109,6 @@ export default {
 
   },
 
-  created() {
-    this.providerComponents = this.providers.map((name) => {
-      return this.$store.getters['type-map/importLogin'](configType[name] || name);
-    });
-  },
-
   async fetch() {
     const { firstLoginSetting } = await this.loadInitialSettings();
     const { value } = await this.$store.dispatch('management/find', { type: MANAGEMENT.SETTING, id: SETTING.BANNERS });
@@ -135,6 +129,11 @@ export default {
     this.customLoginError = JSON.parse(value).loginError;
     this.firstLogin = firstLoginSetting?.value === 'true';
     this.username = this.firstLogin ? 'admin' : this.username;
+
+    this.providerComponents = this.providers.map((name) => {
+      return this.$store.getters['type-map/importLogin'](configType[name] || name);
+    });
+
     this.$nextTick(() => {
       this.focusSomething();
     });
