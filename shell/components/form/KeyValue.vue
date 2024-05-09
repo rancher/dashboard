@@ -220,7 +220,7 @@ export default {
     },
     parserSeparators: {
       type:    Array,
-      default: () => [': ', '='],
+      default: () => [':', '='],
     },
     loading: {
       default: false,
@@ -515,14 +515,14 @@ export default {
 
       this.$emit('input', out);
     },
-    onPaste(index, event, pastedValue) {
+    onPaste(index, event) {
       const text = event.clipboardData.getData('text/plain');
       const lines = text.split('\n');
       const splits = lines.map((line) => {
-        const splitter = !line.includes(':') || ((line.indexOf('=') < line.indexOf(':')) && line.includes(':')) ? '=' : ':';
+        const splitter = this.parserSeparators.find((sep) => line.includes(sep));
 
-        return line.split(splitter);
-      });
+        return splitter ? line.split(splitter) : '';
+      }).filter((split) => split && split.length > 0);
 
       if (splits.length === 0 || (splits.length === 1 && splits[0].length < 2)) {
         return;
