@@ -165,6 +165,9 @@ async function render(to, from, next) {
     // We should really make authenticated middleware do less...
     await callMiddleware.call(this, [{ options: { middleware: ['authenticated'] } }], app.context);
 
+    // We used to have i18n middleware which was called each time we called middleware. This is also needed to support harvester because of the way harvester loads as outlined in the comment above
+    await this.$store.dispatch('i18n/init');
+
     if (nextCalled) {
       return;
     }
