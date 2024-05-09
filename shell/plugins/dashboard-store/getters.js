@@ -400,6 +400,10 @@ export default {
    *
    * This takes into account if the type is namespaced.
    *
+   * Used in currently two places
+   * - Type
+   * - getTree
+   *
    * @param typeObj see inners for properties. must have at least `name` (resource type)
    *
    */
@@ -416,6 +420,7 @@ export default {
       const counts = getters.all(COUNT)?.[0]?.counts || {};
       const count = counts[type];
 
+      // This object aligns with `Type.vue` `type`
       _typeObj = {
         count:       count ? count.summary.count || 0 : null,
         byNamespace: count ? count.namespaces : {},
@@ -424,7 +429,7 @@ export default {
       };
     }
 
-    const namespaces = Object.keys(rootGetters.activeNamespaceCache || {});
+    const namespaces = _typeObj?.namespaced ? Object.keys(rootGetters.activeNamespaceCache || {}) : [];
 
     return matchingCounts(_typeObj, namespaces.length ? namespaces : null);
   },
