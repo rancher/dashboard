@@ -7306,7 +7306,10 @@ performance:
     checkboxLabel: Enable Server-side Pagination
     applicable: "This applies to the following resource types"
     incompatibleDescription: "Server-side Pagination is incomaptible with Manual Refresh and Incremental Loading. Enabling this will disable them."
-    featureFlag: The Feature Flag `on-disk-steve-cache` must be enabled to use this feature
+    featureFlag: The <a href="{ffUrl}">Feature Flag</a> `on-disk-steve-cache` must be enabled to use this feature
+    resources:
+      generic: most resources in the cluster's 'More Resources' section
+      all: All Resources
 banner:
   label: Fixed Banners
   settingName: Banners
