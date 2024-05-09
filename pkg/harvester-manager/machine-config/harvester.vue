@@ -729,8 +729,8 @@ export default {
           .reduce((acc, v) => ({
             ...acc,
             [v.id]: {
-              type:    VGPU_PREFIX.NVIDIA + v.spec.vGPUTypeName.replace(' ', '_'),
-              profile: v.id.split('-')?.[2]
+              type: VGPU_PREFIX.NVIDIA + v.spec.vGPUTypeName?.replace(' ', '_'),
+              id:   v.id
             },
           }), {});
       }
@@ -1103,7 +1103,7 @@ export default {
     vGpuOptionLabel(opt) {
       const vGpu = this.vGpuEnabledDevices[opt];
 
-      return `${ vGpu?.type?.replace(VGPU_PREFIX.NVIDIA, '') } (profile: ${ vGpu?.profile } - allocatable: ${ this.vGpusAllocatable[vGpu?.type] })`;
+      return `${ vGpu?.type?.replace(VGPU_PREFIX.NVIDIA, '') } - ${ vGpu?.id } (allocatable: ${ this.vGpusAllocatable[vGpu?.type] })`;
     }
   }
 };
@@ -1368,7 +1368,12 @@ export default {
           <ArrayListSelect
             v-model="vGpus"
             class="mt-20"
-            :array-list-props="{ addAllowed: true, mode, disabled }"
+            :array-list-props="{
+              addAllowed: true,
+              addDisabled: vGpus.length > 0,
+              mode,
+              disabled
+            }"
             :select-props="{
               mode,
               disabled,
