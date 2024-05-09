@@ -1,6 +1,5 @@
 <script lang="ts">
 import { defineComponent } from 'vue';
-import { mapGetters } from 'vuex';
 import ResourceTable from '@shell/components/ResourceTable.vue';
 import { SECRET } from '@shell/config/types';
 import { NAME as NAME_COL, NAMESPACE as NAMESPACE_COL, AGE, STATE } from '@shell/config/table-headers';
@@ -97,8 +96,6 @@ export default defineComponent({
   },
 
   computed: {
-    ...mapGetters(['isAllNamespaces']),
-
     expiredData(): any {
       let expiring = 0;
       let expired = 0;
@@ -114,11 +111,9 @@ export default defineComponent({
         }
       }
 
-      const filterWarning = !this.isAllNamespaces ? this.t('secret.certificate.warnings.filtered') : '';
-
       return {
-        expiring: expiring ? this.t('secret.certificate.warnings.expiring', { count: expiring, filtered: !this.isAllNamespaces }) + filterWarning : '',
-        expired:  expired ? this.t('secret.certificate.warnings.expired', { count: expired, filtered: !this.isAllNamespaces }) + filterWarning : '',
+        expiring: expiring ? this.t('secret.certificate.warnings.expiring', { count: expiring }) : '',
+        expired:  expired ? this.t('secret.certificate.warnings.expired', { count: expired }) : '',
       };
     }
   },
@@ -135,6 +130,7 @@ export default defineComponent({
   <div>
     <Banner
       v-if="expiredData.expiring"
+      data-testid="cert-expiring-banner"
       color="warning"
       :label="expiredData.expiring"
     />
@@ -150,7 +146,7 @@ export default defineComponent({
       :rows="certs"
       :paging-label="'secret.certificate.paging'"
       :paging-params="pagingParams"
-      :ignoreFilter="true"
+      :ignore-filter="true"
     >
       <template #col:certState="{row}">
         <td>

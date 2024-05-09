@@ -206,7 +206,7 @@ describe('Cluster Dashboard', { testIsolation: 'off', tags: ['@explorer', '@admi
     clusterDashboard.waitForPage(undefined, 'cluster-events');
 
     // Check events
-    clusterDashboard.eventslist().resourceTable().sortableTable().rowElements()
+    clusterDashboard.eventsList().resourceTable().sortableTable().rowElements()
       .should('have.length.gte', 2);
 
     clusterDashboard.fullEventsLink().click();

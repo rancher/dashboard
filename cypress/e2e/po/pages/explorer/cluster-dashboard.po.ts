@@ -2,6 +2,9 @@ import PagePo from '@/cypress/e2e/po/pages/page.po';
 import BurgerMenuPo from '@/cypress/e2e/po/side-bars/burger-side-menu.po';
 import CustomBadgeDialogPo from '@/cypress/e2e/po/components/custom-badge-dialog.po';
 import EventsListPo from '@/cypress/e2e/po/lists/events-list.po';
+import TabbedPo from '@/cypress/e2e/po/components/tabbed.po';
+import CertificatesPo from '@/cypress/e2e/po/components/certificates.po';
+
 export default class ClusterDashboardPagePo extends PagePo {
   private static createPath(clusterId: string) {
     return `/c/${ clusterId }/explorer`;
@@ -34,12 +37,30 @@ export default class ClusterDashboardPagePo extends PagePo {
     return new CustomBadgeDialogPo();
   }
 
-  eventslist(): EventsListPo {
+  eventsList(): EventsListPo {
     return new EventsListPo('[data-testid="sortable-table-list-container"]');
+  }
+
+  certificates(): CertificatesPo {
+    return new CertificatesPo();
+  }
+
+  clickCertificatesTab() {
+    this.tabs().self().scrollIntoView();
+
+    return this.tabs().clickNthTab(2);
+  }
+
+  tabs() {
+    return new TabbedPo('[data-testid="tabbed"]');
   }
 
   fullEventsLink() {
     return cy.get('.events-table-link').contains('Full events list');
+  }
+
+  fullSecretsList() {
+    return cy.get('.cert-table-link').contains('Full secrets list');
   }
 
   resourceSearchButton(): Cypress.Chainable {
