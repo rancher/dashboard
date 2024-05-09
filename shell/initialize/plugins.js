@@ -19,7 +19,7 @@ import backButton from '@shell/plugins/back-button';
 import codeMirror from '@shell/plugins/codemirror-loader';
 import VueCodemirror from 'vue-codemirror';
 import cookieUniversalNuxt from '../utils/cookie-universal-nuxt.js';
-import * as intNumber from '@shell/plugins/int-number';
+import * as intNumber from '@shell/directives/int-number';
 import nuxtClientInit from '@shell/plugins/nuxt-client-init';
 import plugin from '@shell/plugins/plugin';
 import plugins from '@shell/core/plugins.js';
