@@ -70,13 +70,14 @@ export const ACTIVELY_REMOVE = [
 
 const INDENT = 2;
 
-export function createYamlWithOptions(schemas, type, data, options) {
+export function createYamlWithOptions(schemas, type, data, options, commentFieldsOptions) {
   return createYaml(
     schemas,
     type,
     data,
     true, 0, '', null,
-    options
+    options,
+    commentFieldsOptions
   );
 }
 
