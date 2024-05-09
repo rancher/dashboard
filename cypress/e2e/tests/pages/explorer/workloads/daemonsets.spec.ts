@@ -1,47 +1,43 @@
 import { WorkloadsDaemonsetsListPagePo, WorkLoadsDaemonsetsEditPagePo } from '@/cypress/e2e/po/pages/explorer/workloads-daemonsets.po';
-import { generateFakeClusterDataAndIntercepts } from '@/cypress/e2e/blueprints/nav/fake-cluster';
-const fakeProvClusterId = 'some-fake-cluster-id';
-const fakeMgmtClusterId = 'some-fake-mgmt-id';
 
 describe('Cluster Explorer', { tags: ['@explorer', '@adminUser'] }, () => {
   beforeEach(() => {
-    generateFakeClusterDataAndIntercepts(fakeProvClusterId, fakeMgmtClusterId);
-
-    // to test payload of https://github.com/rancher/dashboard/issues/9874
-    cy.intercept('PUT', `k8s/clusters/${ fakeMgmtClusterId }/v1/apps.daemonsets/calico-system/calico-node`, (req: any) => {
-      req.reply({
-        statusCode: 200,
-        body:       {}
-      });
-    }).as('daemonsetEdit');
-
-    // to prevent error when rendering the daemonsets list after save (otherwise test will fail)
-    cy.intercept('GET', `k8s/clusters/${ fakeMgmtClusterId }/v1/nodes`, (req: any) => {
-      req.reply({
-        statusCode: 200,
-        body:       { data: [] }
-      });
-    }).as('nodesReq');
-
     cy.login();
   });
 
   describe('Workloads', () => {
     describe('Daemonsets', () => {
       it('modifying "Scaling and Upgrade Policy" to "On Delete" should use the correct property "OnDelete"', () => {
-        // same name as in blueprints/nav/k8s-schemas/apps.daemonsets
-        const daemonsetName = 'calico-node';
+        const daemonsetName = 'daemonset-test';
 
-        // list view daemonsets
-        const workloadsDaemonsetsListPage = new WorkloadsDaemonsetsListPagePo(fakeMgmtClusterId);
+        // to test payload of https://github.com/rancher/dashboard/issues/9874
+        // we need to mock the PUT reply otherwise we get 409 conflict
+        cy.intercept('PUT', `/v1/apps.daemonsets/default/${ daemonsetName }`, (req: any) => {
+          req.reply({
+            statusCode: 200,
+            body:       {}
+          });
+        }).as('daemonsetEdit');
+
+        // list view for daemonsets
+        const workloadsDaemonsetsListPage = new WorkloadsDaemonsetsListPagePo('local');
 
         workloadsDaemonsetsListPage.goTo();
+        workloadsDaemonsetsListPage.waitForPage();
+        workloadsDaemonsetsListPage.createDaemonset();
+
+        // create a new daemonset
+        const workloadsDaemonsetsEditPage = new WorkLoadsDaemonsetsEditPagePo('local');
+
+        workloadsDaemonsetsEditPage.nameNsDescription().name().set(daemonsetName);
+        workloadsDaemonsetsEditPage.containerImageInput().set('nginx');
+        workloadsDaemonsetsEditPage.saveCreateForm().click();
+
+        workloadsDaemonsetsListPage.waitForPage();
         workloadsDaemonsetsListPage.listElementWithName(daemonsetName).should('be.visible');
         workloadsDaemonsetsListPage.goToeditItemWithName(daemonsetName);
 
-        // edit view daemonsets
-        const workloadsDaemonsetsEditPage = new WorkLoadsDaemonsetsEditPagePo(fakeMgmtClusterId);
-
+        // edit daemonset
         workloadsDaemonsetsEditPage.clickTab('#DaemonSet');
         workloadsDaemonsetsEditPage.clickTab('#upgrading');
         workloadsDaemonsetsEditPage.ScalingUpgradePolicyRadioBtn().set(1);
