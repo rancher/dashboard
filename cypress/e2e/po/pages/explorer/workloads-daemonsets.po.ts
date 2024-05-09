@@ -3,6 +3,9 @@ import BaseResourceList from '@/cypress/e2e/po/lists/base-resource-list.po';
 import AsyncButtonPo from '@/cypress/e2e/po/components/async-button.po';
 import RadioGroupInputPo from '@/cypress/e2e/po/components/radio-group-input.po';
 import TabbedPo from '@/cypress/e2e/po/components/tabbed.po';
+import ResourceListMastheadPo from '@/cypress/e2e/po/components/ResourceList/resource-list-masthead.po';
+import NameNsDescription from '@/cypress/e2e/po/components/name-ns-description.po';
+import LabeledInputPo from '@/cypress/e2e/po/components/labeled-input.po';
 
 export class WorkloadsDaemonsetsListPagePo extends PagePo {
   private static createPath(clusterId: string) {
@@ -15,6 +18,14 @@ export class WorkloadsDaemonsetsListPagePo extends PagePo {
 
   constructor(clusterId = 'local') {
     super(WorkloadsDaemonsetsListPagePo.createPath(clusterId));
+  }
+
+  masthead() {
+    return new ResourceListMastheadPo(this.self());
+  }
+
+  createDaemonset() {
+    return this.masthead().create();
   }
 
   goToeditItemWithName(name:string) {
@@ -53,6 +64,14 @@ export class WorkLoadsDaemonsetsEditPagePo extends PagePo {
     super(WorkLoadsDaemonsetsEditPagePo.createPath(daemonsetId, clusterId, namespaceId, queryParams));
 
     WorkLoadsDaemonsetsEditPagePo.url = WorkLoadsDaemonsetsEditPagePo.createPath(daemonsetId, clusterId, namespaceId, queryParams);
+  }
+
+  nameNsDescription() {
+    return new NameNsDescription(this.self());
+  }
+
+  containerImageInput(): LabeledInputPo {
+    return LabeledInputPo.byLabel(this.self(), 'Container Image');
   }
 
   clickTab(selector: string) {
