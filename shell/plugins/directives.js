@@ -1,5 +1,5 @@
 import Vue from 'vue';
-import focusDirective from 'plugins/directives.js';
+import focusDirective from '@shell/plugins/directives.js';
 
 export default focusDirective;
 /* eslint-disable-next-line no-console */

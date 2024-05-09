@@ -1,5 +1,5 @@
 import Vue from 'vue';
-import cleanHtmlDirective from 'directives/clean-html';
+import cleanHtmlDirective from '@shell/directives/clean-html';
 
 export default cleanHtmlDirective;
 

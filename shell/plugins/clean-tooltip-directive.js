@@ -1,5 +1,5 @@
 import Vue from 'vue';
-import cleanTooltipDirective from 'directives/clean-tooltip';
+import cleanTooltipDirective from '@shell/directives/clean-tooltip';
 
 export default cleanTooltipDirective;
 /* eslint-disable-next-line no-console */
