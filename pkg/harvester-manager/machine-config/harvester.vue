@@ -729,8 +729,8 @@ export default {
           .reduce((acc, v) => ({
             ...acc,
             [v.id]: {
-              type:    VGPU_PREFIX.NVIDIA + v.spec.vGPUTypeName.replace(' ', '_'),
-              profile: v.id.split('-')?.[2]
+              type:    VGPU_PREFIX.NVIDIA + v.spec.vGPUTypeName?.replace(' ', '_'),
+              profile: v.id
             },
           }), {});
       }
@@ -1103,7 +1103,7 @@ export default {
     vGpuOptionLabel(opt) {
       const vGpu = this.vGpuEnabledDevices[opt];
 
-      return `${ vGpu?.type?.replace(VGPU_PREFIX.NVIDIA, '') } (profile: ${ vGpu?.profile } - allocatable: ${ this.vGpusAllocatable[vGpu?.type] })`;
+      return `${ vGpu?.type?.replace(VGPU_PREFIX.NVIDIA, '') } - ${ vGpu?.profile } (allocatable: ${ this.vGpusAllocatable[vGpu?.type] })`;
     }
   }
 };
