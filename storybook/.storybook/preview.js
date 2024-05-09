@@ -8,10 +8,10 @@ import IntlMessageFormat from 'intl-messageformat';
 import installShortcut from './theme-shortcut';
 import withEvents from 'storybook-auto-events';
 const i18nStrings = require('../../shell/assets/translations/en-us.yaml');
-import vCleanTooltipDirective  from '@shell/directives/clean-tooltip-directive';
+import cleanTooltipDirective  from '@shell/directives/clean-tooltip';
 import ShortKey from 'vue-shortkey';
 import trimWhitespaceDirective from '@shell/directives/trim-whitespace';
-import cleanHtmlDirective from '@shell/directives/clean-html-directive';
+import cleanHtmlDirective from '@shell/directives/clean-html';
 
 
 // Store modules
@@ -33,7 +33,7 @@ Vue.component('router-link', {
   template: '<a>link</a>',
 })
 
-Vue.directive('clean-tooltip', vCleanTooltipDirective);
+Vue.directive('clean-tooltip', cleanTooltipDirective);
 Vue.directive('trim-whitespace', trimWhitespaceDirective);
 Vue.directive('clean-html', cleanHtmlDirective);
 

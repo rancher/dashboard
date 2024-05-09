@@ -1,5 +1,3 @@
-import Vue from 'vue';
-
 function trimWhitespace(el, dir) {
   for (const node of el.childNodes) {
     if (node.nodeType === Node.TEXT_NODE ) {
@@ -19,14 +17,3 @@ const trimWhitespaceDirective = {
 };
 
 export default trimWhitespaceDirective;
-
-// This is being done for backwards compatibility with our extensions that have written tests and didn't properly make use of Vue.use() when importing and mocking plugins
-
-const isThisFileBeingExecutedInATest = process.env.NODE_ENV === 'test';
-
-if (isThisFileBeingExecutedInATest) {
-/* eslint-disable-next-line no-console */
-  console.warn('The implicit addition of trim-whitespace has been deprecated in Rancher Shell and will be removed in a future version. Make sure to invoke it using Vue.directive("trim-whitespace", trimWhitespaceDirective ) to maintain compatibility.');
-
-  Vue.directive('trim-whitespace', trimWhitespaceDirective );
-}
