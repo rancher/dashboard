@@ -54,6 +54,10 @@ export default {
       type:    Boolean,
       default: true,
     },
+    addDisabled: {
+      type:    Boolean,
+      default: false,
+    },
     removeLabel: {
       type:    String,
       default: '',
@@ -109,6 +113,9 @@ export default {
     },
     showAdd() {
       return this.addAllowed;
+    },
+    disableAdd() {
+      return this.addDisabled;
     },
     showRemove() {
       return this.removeAllowed;
@@ -342,7 +349,7 @@ export default {
         <button
           type="button"
           class="btn role-tertiary add"
-          :disabled="loading"
+          :disabled="loading || disableAdd"
           data-testid="array-list-button"
           @click="add()"
         >
