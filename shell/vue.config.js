@@ -12,6 +12,7 @@ const VirtualModulesPlugin = require('webpack-virtual-modules');
 // This hides all of the "[HPM Proxy created] ..." messages
 const oldInfoLogger = console.info; // eslint-disable-line no-console
 
+// TODO: Add explanation of this logic
 console.info = () => {}; // eslint-disable-line no-console
 
 const { createProxyMiddleware } = require('http-proxy-middleware');
@@ -21,18 +22,11 @@ console.info = oldInfoLogger; // eslint-disable-line no-console
 // This is currently hardcoded to avoid importing the TS
 // const { STANDARD } = require('./config/private-label');
 const STANDARD = 1;
-
-const dev = configHelper.dev;
-const devPorts = configHelper.devPorts;
-
-// human readable version used on rancher dashboard about page
-const dashboardVersion = process.env.DASHBOARD_VERSION;
-
+const {dev, devPorts, api} = configHelper;
+const dashboardVersion = process.env.DASHBOARD_VERSION; // semver rancher dashboard in about page
 const pl = process.env.PL || STANDARD;
 const commit = process.env.COMMIT || 'head';
 const perfTest = (process.env.PERF_TEST === 'true'); // Enable performance testing when in dev
-
-const api = configHelper.api;
 
 /**
  * Paths to the shell folder when it is included as a node dependency
@@ -111,7 +105,7 @@ const getLoaders = (SHELL_ABS) => {
   const instrumentCode = (process.env.TEST_INSTRUMENT === 'true'); // Instrument code for code coverage in e2e tests
   // Instrument code for tests
   const babelPlugins = [
-    // TODO: Browser support
+    // TODO: Browser support; also add explanation to this TODO
     // ['@babel/plugin-transform-modules-commonjs'],
     ['@babel/plugin-proposal-private-property-in-object', { loose: true }],
     ['@babel/plugin-proposal-class-properties', { loose: true }]
@@ -293,7 +287,7 @@ const getDevServerConfig = (proxy) => {
  */
 const getVirtualModules = (dir, includePkg) => {
   // Find any UI packages in node_modules
-  const modulePaths = path.join(dir, 'node_modulePaths');
+  const modulePaths = path.join(dir, 'node_modules');
   const requiredPackages = require(path.join(dir, 'package.json'));
   const librariesIndex = {};
 
@@ -309,9 +303,10 @@ const getVirtualModules = (dir, includePkg) => {
       }
     });
   }
-
+  
   let reqs = '';
   const pkgFolder = path.relative(dir, './pkg');
+
   if (fs.existsSync(pkgFolder)) {
     fs.readdirSync(pkgFolder)
       .filter((name) => !name.startsWith('.')) // Ignore hidden folders
@@ -325,11 +320,11 @@ const getVirtualModules = (dir, includePkg) => {
       });
   }
 
-  Object.keys(librariesIndex).forEach((m) => {
-    reqs += `$plugin.loadAsync('${ m }', '/pkg/${ m }/${ librariesIndex[m] }');`;
+  Object.keys(librariesIndex).forEach((i) => {
+    reqs += `$plugin.loadAsync('${ i }', '/pkg/${ i }/${ librariesIndex[i] }');`;
   });
 
-  return new VirtualModulesPlugin({ 'node_modules/@rancher/dynamic.js': `export default function ($plugin) { ${ reqs } };` });
+  return new VirtualModulesPlugin({ 'node_modules/@rancher/dynamic.js': `export default function ($plugin) { ${reqs} };` });
 };
 
 const getAutoImport = () => new webpack.NormalModuleReplacementPlugin(/^@rancher\/auto-import$/, (resource) => {
@@ -345,7 +340,7 @@ const getAutoImport = () => new webpack.NormalModuleReplacementPlugin(/^@rancher
  * This imports models, edit, detail, list etc
  * When built as a UI package, shell/pkg/vue.config.js does the same thing
  */
-const getVirtualModulesAutoImport = () => {
+const getVirtualModulesAutoImport = (dir) => {
   const autoImportTypes = {};
   const pkgFolder = path.relative(dir, './pkg');
 
@@ -364,7 +359,7 @@ const getVirtualModulesAutoImport = () => {
  * DefinePlugin does string replacement within our code. We may want to consider replacing it with something else. In code we'll see something like
  * process.env.commit even though process and env aren't even defined objects. This could cause people to be mislead.
  */
-const getCustomPlugins = (routerBasePath) => new webpack.DefinePlugin({
+const getCustomPlugins = (routerBasePath, rancherEnv) => new webpack.DefinePlugin({
   'process.env.commit':              JSON.stringify(commit),
   'process.env.version':             JSON.stringify(dashboardVersion),
   'process.env.dev':                 JSON.stringify(dev),
@@ -476,7 +471,7 @@ module.exports = function (dir, _appConfig) {
   let resourceBase = process.env.RESOURCE_BASE ?? '';
   const outputDir = process.env.OUTPUT_DIR ?? 'dist';
   const rancherEnv = process.env.RANCHER_ENV || 'web';
-
+  
   if ( resourceBase && !resourceBase.endsWith('/') ) {
     resourceBase += '/';
   }
@@ -522,9 +517,9 @@ module.exports = function (dir, _appConfig) {
       config.resolve.modules.push(__dirname);
       config.plugins.push(getVirtualModules(dir, includePkg));
       config.plugins.push(getAutoImport());
-      config.plugins.push(getVirtualModulesAutoImport());
+      config.plugins.push(getVirtualModulesAutoImport(dir));
       config.plugins.push(getPackageImport(dir));
-      config.plugins.push(getCustomPlugins(routerBasePath));
+      config.plugins.push(getCustomPlugins(routerBasePath, rancherEnv));
 
       // The static assets need to be in the built assets directory in order to get served (primarily the favicon)
       config.plugins.push(new CopyWebpackPlugin([{ from: path.join(SHELL_ABS, 'static'), to: '.' }]));
