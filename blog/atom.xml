@@ -1,17 +1,17 @@
 <?xml version="1.0" encoding="utf-8"?>
 <feed xmlns="http://www.w3.org/2005/Atom">
-    <id>https://rancher.github.io/blog</id>
+    <id>https://rancher.github.io/dashboard/blog</id>
     <title>Rancher UI DevKit Blog</title>
-    <updated>2024-05-10T16:08:40.000Z</updated>
+    <updated>2024-05-10T17:16:54.000Z</updated>
     <generator>https://github.com/jpmonette/feed</generator>
-    <link rel="alternate" href="https://rancher.github.io/blog"/>
+    <link rel="alternate" href="https://rancher.github.io/dashboard/blog"/>
     <subtitle>Rancher UI DevKit Blog</subtitle>
-    <icon>https://rancher.github.io/img/favicon.ico</icon>
+    <icon>https://rancher.github.io/dashboard/img/favicon.ico</icon>
     <entry>
         <title type="html"><![CDATA[The Rancher UX/UI team]]></title>
         <id>/index</id>
-        <link href="https://rancher.github.io/blog/index"/>
-        <updated>2024-05-10T16:08:40.000Z</updated>
+        <link href="https://rancher.github.io/dashboard/blog/index"/>
+        <updated>2024-05-10T17:16:54.000Z</updated>
         <summary type="html"><![CDATA[Our Team]]></summary>
         <content type="html"><![CDATA[<h2 class="anchor anchorWithStickyNavbar_LWe7" id="our-team">Our Team<a class="hash-link" href="#our-team" title="Direct link to heading">​</a></h2><p>As a team, we are dedicated to creating intuitive, user-friendly interfaces that make it easy for our customers to manage their containerized applications at scale. We strive to provide a seamless experience that simplifies complex tasks and enables users to focus on what matters most - their business objectives. </p><p>We believe that good UX is a combination of empathy, user research, and iterative improvement - we are committed to constantly improving our UI based on user feedback.</p><h2 class="anchor anchorWithStickyNavbar_LWe7" id="our-goals">Our Goals<a class="hash-link" href="#our-goals" title="Direct link to heading">​</a></h2><ul><li><p><strong>Improve productivity</strong>: Make it easier for users to complete tasks quickly and efficiently. This can lead to improved productivity and a more efficient use of time and resources.</p></li><li><p><strong>Increase adoption</strong>: Make the software more approachable and easier to learn, which can increase adoption rates and reduce training costs.</p></li><li><p><strong>Reduce errors</strong>: Reduce the likelihood of errors and make it easier to recover from mistakes.</p></li><li><p><strong>Better user satisfaction</strong>: Make the software more enjoyable to use, which can lead to increased user satisfaction and better overall user experiences.</p></li><li><p><strong>Competitive advantage</strong>: Give companies a competitive advantage by providing users with a better experience and making the software more appealing to use.</p></li></ul>]]></content>
         <author>
@@ -31,7 +31,7 @@
     <entry>
         <title type="html"><![CDATA[Easily configure and build ISOs with Elemental]]></title>
         <id>/2023/04/18/elemental-iso-build/elemental-iso-build</id>
-        <link href="https://rancher.github.io/blog/2023/04/18/elemental-iso-build/elemental-iso-build"/>
+        <link href="https://rancher.github.io/dashboard/blog/2023/04/18/elemental-iso-build/elemental-iso-build"/>
         <updated>2023-04-18T00:00:00.000Z</updated>
         <summary type="html"><![CDATA[Allow the user to configure and build Elemental ISO images]]></summary>
         <content type="html"><![CDATA[<h2 class="anchor anchorWithStickyNavbar_LWe7" id="building-iso-images">Building ISO Images<a class="hash-link" href="#building-iso-images" title="Direct link to heading">​</a></h2><p>Currently, when users want to add an Edge machine to an Elemental cluster they have to create an ISO image which is properly configured with the registration endpoint information by hand. </p><p>To simplify this workflow we've added the ability to build an ISO image preconfigured for a given Elemental endpoint. After booting this image, the machine will be available to Rancher for inclusion in a cluster.</p><p><img loading="lazy" alt="ISO Build" src="/assets/images/image1-e164c90121d93fcd6367ab836eb5b939.png" width="1578" height="820" class="img_ev3q"></p><p>Users can also build images directly on the dashboard for any registration endpoint.</p><p><img loading="lazy" alt="Dashboard ISO Build" src="/assets/images/image2-1570dd539651f15100bca63177336219.png" width="1578" height="711" class="img_ev3q"></p>]]></content>
@@ -50,7 +50,7 @@
     <entry>
         <title type="html"><![CDATA[Cluster creation with NetBios compatibile hostnames]]></title>
         <id>/2023/04/16/hostname-truncation/hostname-truncation</id>
-        <link href="https://rancher.github.io/blog/2023/04/16/hostname-truncation/hostname-truncation"/>
+        <link href="https://rancher.github.io/dashboard/blog/2023/04/16/hostname-truncation/hostname-truncation"/>
         <updated>2023-04-16T00:00:00.000Z</updated>
         <summary type="html"><![CDATA[Adding NetBios compatibility when creating a cluster]]></summary>
         <content type="html"><![CDATA[<h2 class="anchor anchorWithStickyNavbar_LWe7" id="truncating-hostnames">Truncating Hostnames<a class="hash-link" href="#truncating-hostnames" title="Direct link to heading">​</a></h2><p>Kubernetes allows for 63 character hostnames but for systems running Windows there is a hard limit of 15 characters. We've added a checkbox to the cluster creation UI which will tell the Rancher server to truncate the machine pool hostnames to 15 character when creating a cluster.</p><p><img loading="lazy" alt="Hostname-truncation" src="/assets/images/image-500e624e819d4c056b2784fadbfd4584.png" width="2356" height="1070" class="img_ev3q"></p><p>Users will be notified when editing clusters or singular machine pools with settings beyond those supported by the UI. Changing the truncation setting after creation is currently not supported.</p><p><img loading="lazy" alt="Hostname-truncation-cluster-warning" src="/assets/images/image1-7d5f52da58afa0d1433837d30cea11ac.png" width="2356" height="1070" class="img_ev3q"></p><p><img loading="lazy" alt="Hostname-truncation-machine-pool-warning" src="/assets/images/image2-9ea5df646bfccc6d700203998da8df9c.png" width="2356" height="1070" class="img_ev3q"></p>]]></content>
@@ -64,7 +64,7 @@
     <entry>
         <title type="html"><![CDATA[Inactivity notification and timeout settings in the UI]]></title>
         <id>/2023/04/13/socket-disconnect-modal</id>
-        <link href="https://rancher.github.io/blog/2023/04/13/socket-disconnect-modal"/>
+        <link href="https://rancher.github.io/dashboard/blog/2023/04/13/socket-disconnect-modal"/>
         <updated>2023-04-13T00:00:00.000Z</updated>
         <summary type="html"><![CDATA[Inactivity notification and timeout settings in the UI]]></summary>
         <content type="html"><![CDATA[<h2 class="anchor anchorWithStickyNavbar_LWe7" id="socket-timeout-ux">Socket Timeout UX<a class="hash-link" href="#socket-timeout-ux" title="Direct link to heading">​</a></h2><p>As part of Rancher Manager's wider performance improvement work, we looked at simple ways to improve the browser's performance.</p><p>Users often have many tabs open in their browser, each connecting to the Rancher backend via sockets. To reduce this load when browser tabs go unnoticed, we will implement a user-configurable time-out to disconnect any sockets the UI has open to the backend. </p><p>Once implemented, after a given time, the user will receive an intitial modal dialogue warning them of the pending socket time-out and allow them to reset the timer, signalling that the sockets should stay connected and a time-out modal when the time-out has expired.</p><h2 class="anchor anchorWithStickyNavbar_LWe7" id="workflow">Workflow<a class="hash-link" href="#workflow" title="Direct link to heading">​</a></h2><p>Initially, the user will receive a modal dialogue with a countdown showing the time remaining until the sockets disconnect and a button allowing them to resume the session.</p><p><strong>Session expiration modal</strong></p><p><img loading="lazy" src="https://user-images.githubusercontent.com/120640736/224100284-79b6e0b4-3dd7-43dd-a4e3-b549f2f4c159.png" alt="Resume session" class="img_ev3q"></p><p>After the timeout has expired, a modal will be shown informing the user that the sockets have been disconnected, and the user will need to refresh the page to restart the sockets.</p><p><strong>Session expired modal</strong></p><p><img loading="lazy" src="https://user-images.githubusercontent.com/120640736/224100461-60b68a5b-8161-4fd4-8073-93bcf01e890b.png" alt="Reload page" class="img_ev3q"></p>]]></content>
@@ -80,7 +80,7 @@
     <entry>
         <title type="html"><![CDATA[Flexibily create, update, and export apps with Epinio.]]></title>
         <id>/2023/04/10/epinio-gitlab/epinio-gitlab</id>
-        <link href="https://rancher.github.io/blog/2023/04/10/epinio-gitlab/epinio-gitlab"/>
+        <link href="https://rancher.github.io/dashboard/blog/2023/04/10/epinio-gitlab/epinio-gitlab"/>
         <updated>2023-04-10T00:00:00.000Z</updated>
         <summary type="html"><![CDATA[Allowing the user more flexibility in how they create and export apps]]></summary>
         <content type="html"><![CDATA[<h2 class="anchor anchorWithStickyNavbar_LWe7" id="epinio-applications-workflow-updates">Epinio Applications Workflow Updates<a class="hash-link" href="#epinio-applications-workflow-updates" title="Direct link to heading">​</a></h2><p>Based on user feedback, we've made 4 improvements to the Epinio UI which make it easier to create, update and export applications.</p><p>Epinio now supports Gitlab directly in the application deployment creation workflow.
