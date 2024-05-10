@@ -125,6 +125,7 @@ const packageUpdatesLibraries = (file, oldContent) => {
       librariesUpdates.forEach(([library, newVersion, newLibraryVersion]) => {
         if (parsedJson[type][library]) {
           const version = semver.coerce(parsedJson[type][library]);
+
           if (newVersion === removePlaceholder) {
             // Remove library
             replaceLibraries.push([library, [parsedJson[type][library], removePlaceholder]]);
@@ -321,18 +322,18 @@ const vueSyntaxUpdates = () => {
     [/\=\> Vue\.set\((.*?),\s*'([^']*?)',\s*\{([\s\S]*?)\}\)/g, (_, obj, prop, val) => `=> (${ obj.trim() }['${ prop }'] = {${ val.trim() }})`, 'removed and unnecessary due new reactivity https://vuejs.org/guide/extras/reactivity-in-depth.html'],
     [/\=\> Vue\.set\((.*?),\s*'([^']*?)',\s*(.*?)\)/g, (_, obj, prop, val) => `=> (${ obj.trim() }.${ prop } = ${ val.trim() })`, 'removed and unnecessary due new reactivity https://vuejs.org/guide/extras/reactivity-in-depth.html'],
 
-    [/Vue\.set\((.*?),\s*(.*?),\s*(.*?)\)/g, (_, obj, prop, val) => `${obj.trim()}[${prop.trim()}] = ${val.trim()}`, 'removed and unnecessary due new reactivity https://vuejs.org/guide/extras/reactivity-in-depth.html'],
+    [/Vue\.set\((.*?),\s*(.*?),\s*(.*?)\)/g, (_, obj, prop, val) => `${ obj.trim() }[${ prop.trim() }] = ${ val.trim() }`, 'removed and unnecessary due new reactivity https://vuejs.org/guide/extras/reactivity-in-depth.html'],
     [/Vue\.set\((.*?),\s*'([^']*?)',\s*\{([\s\S]*?)\}\)/g, (_, obj, prop, val) => `${ obj.trim() }['${ prop }'] = {${ val.trim() }}`, 'removed and unnecessary due new reactivity https://vuejs.org/guide/extras/reactivity-in-depth.html'],
     [/Vue\.set\((.*?),\s*'([^']*?)',\s*(.*?)\)/g, (_, obj, prop, val) => `${ obj.trim() }.${ prop } = ${ val.trim() }`, 'removed and unnecessary due new reactivity https://vuejs.org/guide/extras/reactivity-in-depth.html'],
     [/Vue\.delete\((.*?),\s*(.*?)\)/g, (_, obj, prop) => `delete ${ obj.trim() }[${ prop.trim() }]`, 'removed and unnecessary due new reactivity https://vuejs.org/guide/extras/reactivity-in-depth.html'],
-    
-    [/\=\> this\.\$set\((.*?),\s*(.*?),\s*(.*?)\)/g, (_, obj, prop, val) => `=> (${obj.trim()}[${prop.trim()}] = ${val.trim()})`, 'removed and unnecessary due new reactivity https://vuejs.org/guide/extras/reactivity-in-depth.html'],
+
+    [/\=\> this\.\$set\((.*?),\s*(.*?),\s*(.*?)\)/g, (_, obj, prop, val) => `=> (${ obj.trim() }[${ prop.trim() }] = ${ val.trim() })`, 'removed and unnecessary due new reactivity https://vuejs.org/guide/extras/reactivity-in-depth.html'],
     [/\=\> this\.\$set\((.*?),\s*'([^']*?)',\s*\{([\s\S]*?)\}\)/g, (_, obj, prop, val) => `=> (${ obj.trim() }['${ prop }'] = {${ val.trim() }})`, 'removed and unnecessary due new reactivity https://vuejs.org/guide/extras/reactivity-in-depth.html'],
     [/\=\> this\.\$set\((.*?),\s*'([^']*?)',\s*(.*?)\)/g, (_, obj, prop, val) => `=> (${ obj.trim() }.${ prop } = ${ val.trim() })`, 'removed and unnecessary due new reactivity https://vuejs.org/guide/extras/reactivity-in-depth.html'],
 
-    [/this.\$set\((.*?),\s*'([^']*?)',\s*(.*?)\)/g, (_, obj, prop, val) => obj.trim() === 'this' ? `this['${prop}'] = ${val}` : `${obj.trim()}['${prop}'] = ${val}`, 'removed and unnecessary due new reactivity https://vuejs.org/guide/extras/reactivity-in-depth.html'],
+    [/this.\$set\((.*?),\s*'([^']*?)',\s*(.*?)\)/g, (_, obj, prop, val) => obj.trim() === 'this' ? `this['${ prop }'] = ${ val }` : `${ obj.trim() }['${ prop }'] = ${ val }`, 'removed and unnecessary due new reactivity https://vuejs.org/guide/extras/reactivity-in-depth.html'],
 
-    [/this\.\$set\((.*?),\s*(.*?),\s*(.*?)\)/g, (_, obj, prop, val) => `${obj.trim()}[${prop.trim()}] = ${val.trim()}`, 'removed and unnecessary due new reactivity https://vuejs.org/guide/extras/reactivity-in-depth.html'],
+    [/this\.\$set\((.*?),\s*(.*?),\s*(.*?)\)/g, (_, obj, prop, val) => `${ obj.trim() }[${ prop.trim() }] = ${ val.trim() }`, 'removed and unnecessary due new reactivity https://vuejs.org/guide/extras/reactivity-in-depth.html'],
     [/this\.\$set\((.*?),\s*'([^']*?)',\s*\{([\s\S]*?)\}\)/g, (_, obj, prop, val) => `${ obj.trim() }['${ prop }'] = {${ val.trim() }}`, 'removed and unnecessary due new reactivity https://vuejs.org/guide/extras/reactivity-in-depth.html'],
     [/this\.\$set\((.*?),\s*'([^']*?)',\s*(.*?)\)/g, (_, obj, prop, val) => `${ obj.trim() }.${ prop } = ${ val.trim() }`, 'removed and unnecessary due new reactivity https://vuejs.org/guide/extras/reactivity-in-depth.html'],
     [/this\.\$delete\((.*?),\s*(.*?)\)/g, (_, obj, prop) => `delete ${ obj.trim() }[${ prop.trim() }]`, 'removed and unnecessary due new reactivity https://vuejs.org/guide/extras/reactivity-in-depth.html'],
@@ -442,6 +443,7 @@ const routerUpdates = () => {
  * https://test-utils.vuejs.org/migration
  * Files: .spec.js, .spec.ts, .test.js, .test.ts
  */
+// eslint-disable-next-line no-unused-vars
 const jestUpdates = () => {
   const files = glob.sync(params.paths || '**/*.{test.js,test.ts}', { ignore });
 
