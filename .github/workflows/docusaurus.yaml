@@ -22,6 +22,9 @@ jobs:
         run: cd docusaurus/ && yarn install:ci
       - name: Build website
         run: cd docusaurus/ && yarn build
+      - name: Add CNAME
+        run: |
+          cat "extensions.rancher.io" > ./docusaurus/build/CNAME
 
       # Popular action to deploy to GitHub Pages:
       # Docs: https://github.com/peaceiris/actions-gh-pages#%EF%B8%8F-docusaurus
