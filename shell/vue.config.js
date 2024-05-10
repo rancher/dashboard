@@ -22,7 +22,7 @@ console.info = oldInfoLogger; // eslint-disable-line no-console
 // This is currently hardcoded to avoid importing the TS
 // const { STANDARD } = require('./config/private-label');
 const STANDARD = 1;
-const {dev, devPorts, api} = configHelper;
+const { dev, devPorts, api } = configHelper;
 const dashboardVersion = process.env.DASHBOARD_VERSION; // semver rancher dashboard in about page
 const pl = process.env.PL || STANDARD;
 const commit = process.env.COMMIT || 'head';
@@ -54,7 +54,7 @@ const getShellPaths = (dir) => {
   }
 
   return { SHELL_ABS, COMPONENTS_DIR };
-}
+};
 
 const getProxyConfig = (proxyConfig) => ({
   ...proxyConfig,
@@ -122,49 +122,49 @@ const getLoaders = (SHELL_ABS) => {
   return [
     // Ensure there is a fallback for browsers that don't support web workers
     {
-      test: /web-worker.[a-z-]+.js/i,
-      loader: 'worker-loader',
+      test:    /web-worker.[a-z-]+.js/i,
+      loader:  'worker-loader',
       options: { inline: 'fallback' },
     },
     // Handler for csv files (e.g. ec2 instance data)
     {
-      test: /\.csv$/i,
-      loader: 'csv-loader',
+      test:    /\.csv$/i,
+      loader:  'csv-loader',
       options: {
-        dynamicTyping: true,
-        header: true,
+        dynamicTyping:  true,
+        header:         true,
         skipEmptyLines: true
       },
     },
     // Handler for yaml files (used for i18n files, for example)
     {
-      test: /\.ya?ml$/i,
-      loader: 'js-yaml-loader',
+      test:    /\.ya?ml$/i,
+      loader:  'js-yaml-loader',
       options: { name: '[path][name].[ext]' },
     },
     {
-      test: /\.m?[tj]sx?$/,
+      test:    /\.m?[tj]sx?$/,
       // This excludes no modules except for node_modules/@rancher/... so that plugins can properly compile
       // when referencing @rancher/shell
       exclude: /node_modules\/(?!(@rancher)\/).*/,
-      use: [
+      use:     [
         {
-          loader: 'cache-loader',
+          loader:  'cache-loader',
           options: {
-            cacheDirectory: 'node_modules/.cache/babel-loader',
+            cacheDirectory:  'node_modules/.cache/babel-loader',
             cacheIdentifier: 'e93f32da'
           }
         },
         {
-          loader: 'babel-loader',
+          loader:  'babel-loader',
           options: {
             presets: [
               [
                 require.resolve('@nuxt/babel-preset-app'),
                 {
-                  corejs: { version: 3 },
+                  corejs:  { version: 3 },
                   targets: { browsers: ['last 2 versions'] },
-                  modern: true
+                  modern:  true
                 }
               ],
               '@babel/preset-typescript',
@@ -176,19 +176,19 @@ const getLoaders = (SHELL_ABS) => {
     },
     {
       test: /\.tsx?$/,
-      use: [
+      use:  [
         {
-          loader: 'cache-loader',
+          loader:  'cache-loader',
           options: {
-            cacheDirectory: 'node_modules/.cache/ts-loader',
+            cacheDirectory:  'node_modules/.cache/ts-loader',
             cacheIdentifier: '3596741e'
           }
         },
         {
-          loader: 'ts-loader',
+          loader:  'ts-loader',
           options: {
-            transpileOnly: true,
-            happyPackMode: false,
+            transpileOnly:     true,
+            happyPackMode:     false,
             appendTsxSuffixTo: [
               '\\.vue$'
             ],
@@ -200,14 +200,14 @@ const getLoaders = (SHELL_ABS) => {
     // Prevent warning in log with the md files in the content folder
     {
       test: /\.md$/,
-      use: [
+      use:  [
         {
-          loader: 'frontmatter-markdown-loader',
+          loader:  'frontmatter-markdown-loader',
           options: { mode: ['body'] }
         }
       ]
     },
-  ]
+  ];
 };
 
 const getDevServerConfig = (proxy) => {
@@ -217,12 +217,12 @@ const getDevServerConfig = (proxy) => {
 
   return {
     https: (devPorts ? {
-      key: fs.readFileSync(path.resolve(__dirname, 'server/server.key')),
+      key:  fs.readFileSync(path.resolve(__dirname, 'server/server.key')),
       cert: fs.readFileSync(path.resolve(__dirname, 'server/server.crt'))
     } : null),
-    port: (devPorts ? 8005 : 80),
-    host: '0.0.0.0',
-    public: `https://0.0.0.0:${devPorts ? 8005 : 80}`,
+    port:   (devPorts ? 8005 : 80),
+    host:   '0.0.0.0',
+    public: `https://0.0.0.0:${ devPorts ? 8005 : 80 }`,
     before(app, server) {
       const socketProxies = {};
 
@@ -243,7 +243,7 @@ const getDevServerConfig = (proxy) => {
           upgrade(req, socket, head) {
             const responseHeaders = ['HTTP/1.1 101 Web Socket Protocol Handshake', 'Upgrade: WebSocket', 'Connection: Upgrade'];
 
-            socket.write(`${responseHeaders.join('\r\n')}\r\n\r\n`);
+            socket.write(`${ responseHeaders.join('\r\n') }\r\n\r\n`);
           }
         });
       }
@@ -270,20 +270,20 @@ const getDevServerConfig = (proxy) => {
             if (proxy.upgrade) {
               proxy.upgrade(req, socket, head);
             } else {
-              console.log(`Upgrade for Proxy is not defined. Cannot upgrade Web socket for ${req.url}`); // eslint-disable-line no-console
+              console.log(`Upgrade for Proxy is not defined. Cannot upgrade Web socket for ${ req.url }`); // eslint-disable-line no-console
             }
           } else {
-            console.log(`Unknown Web socket upgrade request for ${req.url}`); // eslint-disable-line no-console
+            console.log(`Unknown Web socket upgrade request for ${ req.url }`); // eslint-disable-line no-console
           }
         }
       });
     },
-  }
+  };
 };
 
 /**
  * Generate a virtual module '@rancher/dyanmic.js` which imports all of the packages that should be built into the application
- * This is imported in 'shell/extensions/extension-loader.js` which ensures the all code for plugins to be included is imported in the application 
+ * This is imported in 'shell/extensions/extension-loader.js` which ensures the all code for plugins to be included is imported in the application
  */
 const getVirtualModules = (dir, includePkg) => {
   // Find any UI packages in node_modules
@@ -303,7 +303,7 @@ const getVirtualModules = (dir, includePkg) => {
       }
     });
   }
-  
+
   let reqs = '';
   const pkgFolder = path.relative(dir, './pkg');
 
@@ -324,7 +324,7 @@ const getVirtualModules = (dir, includePkg) => {
     reqs += `$plugin.loadAsync('${ i }', '/pkg/${ i }/${ librariesIndex[i] }');`;
   });
 
-  return new VirtualModulesPlugin({ 'node_modules/@rancher/dynamic.js': `export default function ($plugin) { ${reqs} };` });
+  return new VirtualModulesPlugin({ 'node_modules/@rancher/dynamic.js': `export default function ($plugin) { ${ reqs } };` });
 };
 
 const getAutoImport = () => new webpack.NormalModuleReplacementPlugin(/^@rancher\/auto-import$/, (resource) => {
@@ -353,7 +353,7 @@ const getVirtualModulesAutoImport = (dir) => {
   }
 
   return new VirtualModulesPlugin(autoImportTypes);
-}
+};
 
 /**
  * DefinePlugin does string replacement within our code. We may want to consider replacing it with something else. In code we'll see something like
@@ -378,7 +378,7 @@ const getCustomPlugins = (routerBasePath, rancherEnv) => new webpack.DefinePlugi
     rancherEnv,
     dashboardVersion
   }),
-})
+});
 
 /**
  * Ensure we process files in the @rancher/shell folder
@@ -416,36 +416,36 @@ const preserveWhitespace = (config) => {
       });
     }
   });
-}
+};
 
 const printLogs = (dev, dashboardVersion, resourceBase, routerBasePath, pl, rancherEnv) => {
-  console.log(`Build: ${dev ? 'Development' : 'Production'}`); // eslint-disable-line no-console
+  console.log(`Build: ${ dev ? 'Development' : 'Production' }`); // eslint-disable-line no-console
 
   if (!dev) {
-    console.log(`Version: ${dashboardVersion}`); // eslint-disable-line no-console
+    console.log(`Version: ${ dashboardVersion }`); // eslint-disable-line no-console
   }
 
   if (resourceBase) {
-    console.log(`Resource Base URL: ${resourceBase}`); // eslint-disable-line no-console
+    console.log(`Resource Base URL: ${ resourceBase }`); // eslint-disable-line no-console
   }
 
   if (routerBasePath !== '/') {
-    console.log(`Router Base Path: ${routerBasePath}`); // eslint-disable-line no-console
+    console.log(`Router Base Path: ${ routerBasePath }`); // eslint-disable-line no-console
   }
 
   if (pl !== STANDARD) {
-    console.log(`PL: ${pl}`); // eslint-disable-line no-console
+    console.log(`PL: ${ pl }`); // eslint-disable-line no-console
   }
 
   console.log(`API: '${ api }'. Env: '${ rancherEnv }'`); // eslint-disable-line no-console
-}
+};
 
 /**
  * Expose a function that can be used by an app to provide a nuxt configuration for building an application
  * This takes the directory of the application as the first argument so that we can derive folder locations
  * from it, rather than from the location of this file
  */
-module.exports = function (dir, _appConfig) {
+module.exports = function(dir, _appConfig) {
   require('events').EventEmitter.defaultMaxListeners = 20;
   require('dotenv').config();
 
@@ -465,13 +465,13 @@ module.exports = function (dir, _appConfig) {
     }
 
     return !excludes || (excludes && !excludes.includes(name));
-  }
+  };
 
   const routerBasePath = process.env.ROUTER_BASE ?? '/';
   let resourceBase = process.env.RESOURCE_BASE ?? '';
   const outputDir = process.env.OUTPUT_DIR ?? 'dist';
   const rancherEnv = process.env.RANCHER_ENV || 'web';
-  
+
   if ( resourceBase && !resourceBase.endsWith('/') ) {
     resourceBase += '/';
   }
@@ -481,7 +481,7 @@ module.exports = function (dir, _appConfig) {
   const proxy = getProxyConfig(appConfig.proxy);
   const config = {
     // Vue server
-    devServer: getDevServerConfig(proxy),
+    devServer:  getDevServerConfig(proxy),
     publicPath: resourceBase || undefined,
     css:        {
       extract:       false, // inline css styles instead of including with `<links`
@@ -533,7 +533,7 @@ module.exports = function (dir, _appConfig) {
       } else {
         config.devtool = 'source-map';
       }
-      
+
       config.resolve.symlinks = false;
       processShellFiles(config, SHELL_ABS);
       config.module.rules.push(...getLoaders(SHELL_ABS));
