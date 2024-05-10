@@ -5576,8 +5576,8 @@ tableHeaders:
   users: Users
   userDisplayName: Display Name
   userId: ID
-  userDeletedIn: Deleted In
-  userDisabledIn: Disabled In
+  userDeletedIn: Delete After
+  userDisabledIn: Disable After
   userLastLogin: Last Login
   userStatus: Status
   username: Local Username
