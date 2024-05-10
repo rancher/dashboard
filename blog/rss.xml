@@ -2,17 +2,17 @@
 <rss version="2.0" xmlns:dc="http://purl.org/dc/elements/1.1/" xmlns:content="http://purl.org/rss/1.0/modules/content/">
     <channel>
         <title>Rancher UI DevKit Blog</title>
-        <link>https://extensions.rancher.io/blog</link>
+        <link>https://rancher.github.io/blog</link>
         <description>Rancher UI DevKit Blog</description>
-        <lastBuildDate>Fri, 10 May 2024 14:50:52 GMT</lastBuildDate>
+        <lastBuildDate>Fri, 10 May 2024 16:08:40 GMT</lastBuildDate>
         <docs>https://validator.w3.org/feed/docs/rss2.html</docs>
         <generator>https://github.com/jpmonette/feed</generator>
         <language>en</language>
         <item>
             <title><![CDATA[The Rancher UX/UI team]]></title>
-            <link>https://extensions.rancher.io/blog/index</link>
+            <link>https://rancher.github.io/blog/index</link>
             <guid>/index</guid>
-            <pubDate>Fri, 10 May 2024 14:50:52 GMT</pubDate>
+            <pubDate>Fri, 10 May 2024 16:08:40 GMT</pubDate>
             <description><![CDATA[Our Team]]></description>
             <content:encoded><![CDATA[<h2 class="anchor anchorWithStickyNavbar_LWe7" id="our-team">Our Team<a class="hash-link" href="#our-team" title="Direct link to heading">​</a></h2><p>As a team, we are dedicated to creating intuitive, user-friendly interfaces that make it easy for our customers to manage their containerized applications at scale. We strive to provide a seamless experience that simplifies complex tasks and enables users to focus on what matters most - their business objectives. </p><p>We believe that good UX is a combination of empathy, user research, and iterative improvement - we are committed to constantly improving our UI based on user feedback.</p><h2 class="anchor anchorWithStickyNavbar_LWe7" id="our-goals">Our Goals<a class="hash-link" href="#our-goals" title="Direct link to heading">​</a></h2><ul><li><p><strong>Improve productivity</strong>: Make it easier for users to complete tasks quickly and efficiently. This can lead to improved productivity and a more efficient use of time and resources.</p></li><li><p><strong>Increase adoption</strong>: Make the software more approachable and easier to learn, which can increase adoption rates and reduce training costs.</p></li><li><p><strong>Reduce errors</strong>: Reduce the likelihood of errors and make it easier to recover from mistakes.</p></li><li><p><strong>Better user satisfaction</strong>: Make the software more enjoyable to use, which can lead to increased user satisfaction and better overall user experiences.</p></li><li><p><strong>Competitive advantage</strong>: Give companies a competitive advantage by providing users with a better experience and making the software more appealing to use.</p></li></ul>]]></content:encoded>
             <category>Team</category>
@@ -27,7 +27,7 @@
         </item>
         <item>
             <title><![CDATA[Easily configure and build ISOs with Elemental]]></title>
-            <link>https://extensions.rancher.io/blog/2023/04/18/elemental-iso-build/elemental-iso-build</link>
+            <link>https://rancher.github.io/blog/2023/04/18/elemental-iso-build/elemental-iso-build</link>
             <guid>/2023/04/18/elemental-iso-build/elemental-iso-build</guid>
             <pubDate>Tue, 18 Apr 2023 00:00:00 GMT</pubDate>
             <description><![CDATA[Allow the user to configure and build Elemental ISO images]]></description>
@@ -38,7 +38,7 @@
         </item>
         <item>
             <title><![CDATA[Cluster creation with NetBios compatibile hostnames]]></title>
-            <link>https://extensions.rancher.io/blog/2023/04/16/hostname-truncation/hostname-truncation</link>
+            <link>https://rancher.github.io/blog/2023/04/16/hostname-truncation/hostname-truncation</link>
             <guid>/2023/04/16/hostname-truncation/hostname-truncation</guid>
             <pubDate>Sun, 16 Apr 2023 00:00:00 GMT</pubDate>
             <description><![CDATA[Adding NetBios compatibility when creating a cluster]]></description>
@@ -48,7 +48,7 @@
         </item>
         <item>
             <title><![CDATA[Inactivity notification and timeout settings in the UI]]></title>
-            <link>https://extensions.rancher.io/blog/2023/04/13/socket-disconnect-modal</link>
+            <link>https://rancher.github.io/blog/2023/04/13/socket-disconnect-modal</link>
             <guid>/2023/04/13/socket-disconnect-modal</guid>
             <pubDate>Thu, 13 Apr 2023 00:00:00 GMT</pubDate>
             <description><![CDATA[Inactivity notification and timeout settings in the UI]]></description>
@@ -60,7 +60,7 @@
         </item>
         <item>
             <title><![CDATA[Flexibily create, update, and export apps with Epinio.]]></title>
-            <link>https://extensions.rancher.io/blog/2023/04/10/epinio-gitlab/epinio-gitlab</link>
+            <link>https://rancher.github.io/blog/2023/04/10/epinio-gitlab/epinio-gitlab</link>
             <guid>/2023/04/10/epinio-gitlab/epinio-gitlab</guid>
             <pubDate>Mon, 10 Apr 2023 00:00:00 GMT</pubDate>
             <description><![CDATA[Allowing the user more flexibility in how they create and export apps]]></description>
