@@ -8,7 +8,7 @@ const darkCodeTheme = require('prism-react-renderer/themes/dracula');
 const config = {
   title:                 'Rancher UI DevKit',
   tagline:               'Rancher UI development kit',
-  url:                   'https://extensions.rancher.io',
+  url:                   'https://rancher.github.io',
   baseUrl:               '/',
   onBrokenLinks:         'throw',
   onBrokenMarkdownLinks: 'warn',
