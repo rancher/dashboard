@@ -485,6 +485,8 @@ export default {
       </div>
       <SelectIconGrid
         v-else
+        data-testid="chart-selection-grid"
+        component-test-id="chart-selection"
         :rows="filteredCharts"
         name-field="chartNameDisplay"
         description-field="chartDescription"

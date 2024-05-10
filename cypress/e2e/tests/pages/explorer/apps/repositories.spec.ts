@@ -80,10 +80,11 @@ describe('Apps', () => {
 
         // Nav to a summary page for a specific chart
         ChartsPage.navTo(clusterId);
-        chartsPage.chartsFilterReposSelect().toggle();
-        chartsPage.chartsFilterReposSelect().clickOptionWithLabelForChartReposFilter('All');
+        chartsPage.chartsFilterCategoriesSelect().checkOptionSelected('All Categories');
+        chartsPage.chartsFilterReposSelect().checkOptionSelected('All');
+        chartsPage.chartsFilterInput().clear();
 
-        chartsPage.selectChart('Rancher Backups');
+        chartsPage.charts().select('Rancher Backups');
         chartPage.waitForPage();
 
         // The repo charts should have been fetched

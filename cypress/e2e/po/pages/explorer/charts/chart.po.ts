@@ -19,7 +19,7 @@ export class ChartPage extends PagePo {
     const chartsPage = new ChartsPage(clusterId);
 
     ChartsPage.navTo();
-    chartsPage.selectChart(chartName);
+    chartsPage.charts().select(chartName);
   }
 
   goToInstall() {
