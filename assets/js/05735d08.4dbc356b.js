@@ -1,1 +1,0 @@
-"use strict";(self.webpackChunkrancher_ui_devkit=self.webpackChunkrancher_ui_devkit||[]).push([[4539],{8222:a=>{a.exports=JSON.parse('{"label":"Elemental","permalink":"/dashboard/blog/tags/elemental","allTagsPath":"/dashboard/blog/tags","count":2}')}}]);

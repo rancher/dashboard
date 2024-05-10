@@ -1,0 +1,1 @@
+"use strict";(self.webpackChunkrancher_ui_devkit=self.webpackChunkrancher_ui_devkit||[]).push([[8382],{1238:e=>{e.exports=JSON.parse('{"permalink":"/blog/tags/manager","page":1,"postsPerPage":4,"totalPages":1,"totalCount":4,"blogDescription":"Recent and upcoming changes to Rancher Manager and associated projects and products","blogTitle":"Rancher UX/UI Blog"}')}}]);

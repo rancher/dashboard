@@ -2,17 +2,17 @@
 <rss version="2.0" xmlns:dc="http://purl.org/dc/elements/1.1/" xmlns:content="http://purl.org/rss/1.0/modules/content/">
     <channel>
         <title>Rancher UI DevKit Blog</title>
-        <link>https://rancher.github.io/dashboard/blog</link>
+        <link>https://extensions.rancher.io/blog</link>
         <description>Rancher UI DevKit Blog</description>
-        <lastBuildDate>Fri, 10 May 2024 14:45:03 GMT</lastBuildDate>
+        <lastBuildDate>Fri, 10 May 2024 14:50:52 GMT</lastBuildDate>
         <docs>https://validator.w3.org/feed/docs/rss2.html</docs>
         <generator>https://github.com/jpmonette/feed</generator>
         <language>en</language>
         <item>
             <title><![CDATA[The Rancher UX/UI team]]></title>
-            <link>https://rancher.github.io/dashboard/blog/index</link>
+            <link>https://extensions.rancher.io/blog/index</link>
             <guid>/index</guid>
-            <pubDate>Fri, 10 May 2024 14:45:03 GMT</pubDate>
+            <pubDate>Fri, 10 May 2024 14:50:52 GMT</pubDate>
             <description><![CDATA[Our Team]]></description>
             <content:encoded><![CDATA[<h2 class="anchor anchorWithStickyNavbar_LWe7" id="our-team">Our Team<a class="hash-link" href="#our-team" title="Direct link to heading">​</a></h2><p>As a team, we are dedicated to creating intuitive, user-friendly interfaces that make it easy for our customers to manage their containerized applications at scale. We strive to provide a seamless experience that simplifies complex tasks and enables users to focus on what matters most - their business objectives. </p><p>We believe that good UX is a combination of empathy, user research, and iterative improvement - we are committed to constantly improving our UI based on user feedback.</p><h2 class="anchor anchorWithStickyNavbar_LWe7" id="our-goals">Our Goals<a class="hash-link" href="#our-goals" title="Direct link to heading">​</a></h2><ul><li><p><strong>Improve productivity</strong>: Make it easier for users to complete tasks quickly and efficiently. This can lead to improved productivity and a more efficient use of time and resources.</p></li><li><p><strong>Increase adoption</strong>: Make the software more approachable and easier to learn, which can increase adoption rates and reduce training costs.</p></li><li><p><strong>Reduce errors</strong>: Reduce the likelihood of errors and make it easier to recover from mistakes.</p></li><li><p><strong>Better user satisfaction</strong>: Make the software more enjoyable to use, which can lead to increased user satisfaction and better overall user experiences.</p></li><li><p><strong>Competitive advantage</strong>: Give companies a competitive advantage by providing users with a better experience and making the software more appealing to use.</p></li></ul>]]></content:encoded>
             <category>Team</category>
@@ -27,28 +27,28 @@
         </item>
         <item>
             <title><![CDATA[Easily configure and build ISOs with Elemental]]></title>
-            <link>https://rancher.github.io/dashboard/blog/2023/04/18/elemental-iso-build/elemental-iso-build</link>
+            <link>https://extensions.rancher.io/blog/2023/04/18/elemental-iso-build/elemental-iso-build</link>
             <guid>/2023/04/18/elemental-iso-build/elemental-iso-build</guid>
             <pubDate>Tue, 18 Apr 2023 00:00:00 GMT</pubDate>
             <description><![CDATA[Allow the user to configure and build Elemental ISO images]]></description>
-            <content:encoded><![CDATA[<h2 class="anchor anchorWithStickyNavbar_LWe7" id="building-iso-images">Building ISO Images<a class="hash-link" href="#building-iso-images" title="Direct link to heading">​</a></h2><p>Currently, when users want to add an Edge machine to an Elemental cluster they have to create an ISO image which is properly configured with the registration endpoint information by hand. </p><p>To simplify this workflow we've added the ability to build an ISO image preconfigured for a given Elemental endpoint. After booting this image, the machine will be available to Rancher for inclusion in a cluster.</p><p><img loading="lazy" alt="ISO Build" src="/dashboard/assets/images/image1-e164c90121d93fcd6367ab836eb5b939.png" width="1578" height="820" class="img_ev3q"></p><p>Users can also build images directly on the dashboard for any registration endpoint.</p><p><img loading="lazy" alt="Dashboard ISO Build" src="/dashboard/assets/images/image2-1570dd539651f15100bca63177336219.png" width="1578" height="711" class="img_ev3q"></p>]]></content:encoded>
+            <content:encoded><![CDATA[<h2 class="anchor anchorWithStickyNavbar_LWe7" id="building-iso-images">Building ISO Images<a class="hash-link" href="#building-iso-images" title="Direct link to heading">​</a></h2><p>Currently, when users want to add an Edge machine to an Elemental cluster they have to create an ISO image which is properly configured with the registration endpoint information by hand. </p><p>To simplify this workflow we've added the ability to build an ISO image preconfigured for a given Elemental endpoint. After booting this image, the machine will be available to Rancher for inclusion in a cluster.</p><p><img loading="lazy" alt="ISO Build" src="/assets/images/image1-e164c90121d93fcd6367ab836eb5b939.png" width="1578" height="820" class="img_ev3q"></p><p>Users can also build images directly on the dashboard for any registration endpoint.</p><p><img loading="lazy" alt="Dashboard ISO Build" src="/assets/images/image2-1570dd539651f15100bca63177336219.png" width="1578" height="711" class="img_ev3q"></p>]]></content:encoded>
             <category>Manager</category>
             <category>Elemental</category>
             <category>Extensions</category>
         </item>
         <item>
             <title><![CDATA[Cluster creation with NetBios compatibile hostnames]]></title>
-            <link>https://rancher.github.io/dashboard/blog/2023/04/16/hostname-truncation/hostname-truncation</link>
+            <link>https://extensions.rancher.io/blog/2023/04/16/hostname-truncation/hostname-truncation</link>
             <guid>/2023/04/16/hostname-truncation/hostname-truncation</guid>
             <pubDate>Sun, 16 Apr 2023 00:00:00 GMT</pubDate>
             <description><![CDATA[Adding NetBios compatibility when creating a cluster]]></description>
-            <content:encoded><![CDATA[<h2 class="anchor anchorWithStickyNavbar_LWe7" id="truncating-hostnames">Truncating Hostnames<a class="hash-link" href="#truncating-hostnames" title="Direct link to heading">​</a></h2><p>Kubernetes allows for 63 character hostnames but for systems running Windows there is a hard limit of 15 characters. We've added a checkbox to the cluster creation UI which will tell the Rancher server to truncate the machine pool hostnames to 15 character when creating a cluster.</p><p><img loading="lazy" alt="Hostname-truncation" src="/dashboard/assets/images/image-500e624e819d4c056b2784fadbfd4584.png" width="2356" height="1070" class="img_ev3q"></p><p>Users will be notified when editing clusters or singular machine pools with settings beyond those supported by the UI. Changing the truncation setting after creation is currently not supported.</p><p><img loading="lazy" alt="Hostname-truncation-cluster-warning" src="/dashboard/assets/images/image1-7d5f52da58afa0d1433837d30cea11ac.png" width="2356" height="1070" class="img_ev3q"></p><p><img loading="lazy" alt="Hostname-truncation-machine-pool-warning" src="/dashboard/assets/images/image2-9ea5df646bfccc6d700203998da8df9c.png" width="2356" height="1070" class="img_ev3q"></p>]]></content:encoded>
+            <content:encoded><![CDATA[<h2 class="anchor anchorWithStickyNavbar_LWe7" id="truncating-hostnames">Truncating Hostnames<a class="hash-link" href="#truncating-hostnames" title="Direct link to heading">​</a></h2><p>Kubernetes allows for 63 character hostnames but for systems running Windows there is a hard limit of 15 characters. We've added a checkbox to the cluster creation UI which will tell the Rancher server to truncate the machine pool hostnames to 15 character when creating a cluster.</p><p><img loading="lazy" alt="Hostname-truncation" src="/assets/images/image-500e624e819d4c056b2784fadbfd4584.png" width="2356" height="1070" class="img_ev3q"></p><p>Users will be notified when editing clusters or singular machine pools with settings beyond those supported by the UI. Changing the truncation setting after creation is currently not supported.</p><p><img loading="lazy" alt="Hostname-truncation-cluster-warning" src="/assets/images/image1-7d5f52da58afa0d1433837d30cea11ac.png" width="2356" height="1070" class="img_ev3q"></p><p><img loading="lazy" alt="Hostname-truncation-machine-pool-warning" src="/assets/images/image2-9ea5df646bfccc6d700203998da8df9c.png" width="2356" height="1070" class="img_ev3q"></p>]]></content:encoded>
             <category>Manager</category>
             <category>Windows</category>
         </item>
         <item>
             <title><![CDATA[Inactivity notification and timeout settings in the UI]]></title>
-            <link>https://rancher.github.io/dashboard/blog/2023/04/13/socket-disconnect-modal</link>
+            <link>https://extensions.rancher.io/blog/2023/04/13/socket-disconnect-modal</link>
             <guid>/2023/04/13/socket-disconnect-modal</guid>
             <pubDate>Thu, 13 Apr 2023 00:00:00 GMT</pubDate>
             <description><![CDATA[Inactivity notification and timeout settings in the UI]]></description>
@@ -60,12 +60,12 @@
         </item>
         <item>
             <title><![CDATA[Flexibily create, update, and export apps with Epinio.]]></title>
-            <link>https://rancher.github.io/dashboard/blog/2023/04/10/epinio-gitlab/epinio-gitlab</link>
+            <link>https://extensions.rancher.io/blog/2023/04/10/epinio-gitlab/epinio-gitlab</link>
             <guid>/2023/04/10/epinio-gitlab/epinio-gitlab</guid>
             <pubDate>Mon, 10 Apr 2023 00:00:00 GMT</pubDate>
             <description><![CDATA[Allowing the user more flexibility in how they create and export apps]]></description>
             <content:encoded><![CDATA[<h2 class="anchor anchorWithStickyNavbar_LWe7" id="epinio-applications-workflow-updates">Epinio Applications Workflow Updates<a class="hash-link" href="#epinio-applications-workflow-updates" title="Direct link to heading">​</a></h2><p>Based on user feedback, we've made 4 improvements to the Epinio UI which make it easier to create, update and export applications.</p><p>Epinio now supports Gitlab directly in the application deployment creation workflow.
-Users can create application deployments from Gitlab repositories:</p><p><img loading="lazy" alt="Step 1" src="/dashboard/assets/images/image4-f1aa7dfd2ba6ee68cdcaaedeeb8cc71c.png" width="1215" height="847" class="img_ev3q"></p><hr><p>The application deployment creation UI now supports custom application variables (based on schema-ish metadata). Where possible, the UI informs the user about boundaries such as min/max allowed values.</p><p><img loading="lazy" alt="Step 2" src="/dashboard/assets/images/image2-407afe4ff8bfa46c12b9f3b7dbe0d560.png" width="1248" height="864" class="img_ev3q"></p><hr><p>It's now possible to change the source of an existing application. For example, if an application was initially deployed from a GitHub repository, we can now update the source to point to Gitlab instead.</p><p><img loading="lazy" alt="Overview" src="/dashboard/assets/images/image3-88fdc27e24c9d7831d5e8ea5adf974bd.png" width="1248" height="893" class="img_ev3q"></p><hr><p>Users can export applications as a helm chart and corresponding container image(s). </p><p><img loading="lazy" alt="Export" src="/dashboard/assets/images/image1-d61e5e05810c65c93df64a06761b5a59.png" width="1250" height="896" class="img_ev3q"></p>]]></content:encoded>
+Users can create application deployments from Gitlab repositories:</p><p><img loading="lazy" alt="Step 1" src="/assets/images/image4-f1aa7dfd2ba6ee68cdcaaedeeb8cc71c.png" width="1215" height="847" class="img_ev3q"></p><hr><p>The application deployment creation UI now supports custom application variables (based on schema-ish metadata). Where possible, the UI informs the user about boundaries such as min/max allowed values.</p><p><img loading="lazy" alt="Step 2" src="/assets/images/image2-407afe4ff8bfa46c12b9f3b7dbe0d560.png" width="1248" height="864" class="img_ev3q"></p><hr><p>It's now possible to change the source of an existing application. For example, if an application was initially deployed from a GitHub repository, we can now update the source to point to Gitlab instead.</p><p><img loading="lazy" alt="Overview" src="/assets/images/image3-88fdc27e24c9d7831d5e8ea5adf974bd.png" width="1248" height="893" class="img_ev3q"></p><hr><p>Users can export applications as a helm chart and corresponding container image(s). </p><p><img loading="lazy" alt="Export" src="/assets/images/image1-d61e5e05810c65c93df64a06761b5a59.png" width="1250" height="896" class="img_ev3q"></p>]]></content:encoded>
             <category>Epinio</category>
         </item>
     </channel>

@@ -1,0 +1,1 @@
+"use strict";(self.webpackChunkrancher_ui_devkit=self.webpackChunkrancher_ui_devkit||[]).push([[8835],{7193:e=>{e.exports=JSON.parse('{"label":"Desktop","permalink":"/blog/tags/desktop","allTagsPath":"/blog/tags","count":1}')}}]);

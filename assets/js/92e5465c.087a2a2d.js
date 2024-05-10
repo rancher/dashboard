@@ -1,0 +1,1 @@
+"use strict";(self.webpackChunkrancher_ui_devkit=self.webpackChunkrancher_ui_devkit||[]).push([[2722],{7431:a=>{a.exports=JSON.parse('{"label":"Manager","permalink":"/blog/tags/manager","allTagsPath":"/blog/tags","count":4}')}}]);

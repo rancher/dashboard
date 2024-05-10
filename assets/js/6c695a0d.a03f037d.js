@@ -1,1 +1,0 @@
-"use strict";(self.webpackChunkrancher_ui_devkit=self.webpackChunkrancher_ui_devkit||[]).push([[8967],{6521:a=>{a.exports=JSON.parse('{"label":"Windows","permalink":"/dashboard/blog/tags/windows","allTagsPath":"/dashboard/blog/tags","count":1}')}}]);

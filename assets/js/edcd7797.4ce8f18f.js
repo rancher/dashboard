@@ -1,0 +1,1 @@
+"use strict";(self.webpackChunkrancher_ui_devkit=self.webpackChunkrancher_ui_devkit||[]).push([[3167],{97:e=>{e.exports=JSON.parse('{"label":"Opni","permalink":"/blog/tags/opni","allTagsPath":"/blog/tags","count":1}')}}]);
