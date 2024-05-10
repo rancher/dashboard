@@ -52,6 +52,7 @@
     "docs:install": "cd docusaurus/ && yarn install",
     "docs:build": "cd docusaurus/ && yarn build",
     "docs:start": "cd docusaurus/ && yarn start",
+    "migrate": "node ./shell/scripts/vue-migrate.js",
     "publish:lib": "cd pkg/rancher-components && npm publish"
   },
   "dependencies": {
