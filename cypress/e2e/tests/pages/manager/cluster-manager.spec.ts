@@ -21,7 +21,6 @@ import BurgerMenuPo from '@/cypress/e2e/po/side-bars/burger-side-menu.po';
 import { snapshot } from '@/cypress/e2e/blueprints/manager/cluster-snapshots';
 import HomePagePo from '@/cypress/e2e/po/pages/home.po';
 import { nodeDriveResponse } from '@/cypress/e2e/tests/pages/manager/mock-responses';
-import LabeledSelectPo from '@/cypress/e2e/po/components/labeled-select.po';
 import ProductNavPo from '@/cypress/e2e/po/side-bars/product-side-nav.po';
 import TabbedPo from '@/cypress/e2e/po/components/tabbed.po';
 
@@ -104,6 +103,7 @@ describe('Cluster Manager', { testIsolation: 'off', tags: ['@manager', '@adminUs
   describe('Created', () => {
     const createRKE2ClusterPage = new ClusterManagerCreateRke2CustomPagePo();
     const detailRKE2ClusterPage = new ClusterManagerDetailRke2CustomPagePo(undefined, rke2CustomName);
+    const tabbedPo = new TabbedPo('[data-testid="tabbed-block"]');
 
     describe('RKE2 Custom', { tags: ['@jenkins', '@customCluster'] }, () => {
       const editCreatedClusterPage = new ClusterManagerEditRke2CustomPagePo(undefined, rke2CustomName);
@@ -149,24 +149,22 @@ describe('Cluster Manager', { testIsolation: 'off', tags: ['@manager', '@adminUs
         createRKE2ClusterPage.nameNsDescription().name().set(rke2CustomName);
 
         // Test for https://github.com/rancher/dashboard/issues/10338 (added option 'none' for CNI)
-        const labeledSelectPo = new LabeledSelectPo('[data-testid="cluster-rke2-cni-select"]');
-
-        labeledSelectPo.checkExists();
-        labeledSelectPo.self().scrollIntoView();
-        labeledSelectPo.toggle();
-        labeledSelectPo.clickLabel('none');
-        labeledSelectPo.checkOptionSelected('none');
+        createRKE2ClusterPage.basicsTab().networks().checkExists();
+        createRKE2ClusterPage.basicsTab().networks().self().scrollIntoView();
+        createRKE2ClusterPage.basicsTab().networks().toggle();
+        createRKE2ClusterPage.basicsTab().networks().clickOptionWithLabel('none');
+        createRKE2ClusterPage.basicsTab().networks().checkOptionSelected('none');
 
         // banner with additional info about 'none' option should be visible
-        cy.get('[data-testid="clusterBasics__noneOptionSelectedForCni"]').should('exist');
+        createRKE2ClusterPage.basicsTab().networkNoneSelectedForCni().should('exist');
         // EO test for https://github.com/rancher/dashboard/issues/10338 (added option 'none' for CNI)
 
-        labeledSelectPo.toggle();
-        labeledSelectPo.clickLabel('calico');
-        labeledSelectPo.checkOptionSelected('calico');
+        createRKE2ClusterPage.basicsTab().networks().toggle();
+        createRKE2ClusterPage.basicsTab().networks().clickOptionWithLabel('calico');
+        createRKE2ClusterPage.basicsTab().networks().checkOptionSelected('calico');
 
         // testing https://github.com/rancher/dashboard/issues/10159
-        cy.get('[data-testid="btn-networking"]').click();
+        createRKE2ClusterPage.selectTab(tabbedPo, '[data-testid="btn-networking"]');
         createRKE2ClusterPage.network().truncateHostnameCheckbox().set();
         // EO test for https://github.com/rancher/dashboard/issues/10159
 
