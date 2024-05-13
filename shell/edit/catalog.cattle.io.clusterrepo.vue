@@ -86,18 +86,11 @@ export default {
         break;
       }
     },
-    isOciType(spec) {
-      const hasExplicitOciUrl = spec.url?.split(':')[0] === 'oci';
-      // insecurePlainHttp is only valid for OCI URL's and allows insecure connections to registries without enforcing TLS checks.
-      const hasInsecurePlainHttp = Object.prototype.hasOwnProperty.call(spec, ('insecurePlainHttp'));
-
-      return hasExplicitOciUrl || hasInsecurePlainHttp;
-    },
     updateExponentialBackOffValues(key, newVal) {
       if (!Object.prototype.hasOwnProperty.call(this.value.spec, 'exponentialBackOffValues')) {
         Vue.set(this.value.spec, 'exponentialBackOffValues', {});
       }
-      Vue.set(this.value.spec.exponentialBackOffValues, key, key === 'maxRetries' ? Number(newVal) : newVal);
+      Vue.set(this.value.spec.exponentialBackOffValues, key, Number(newVal));
     },
     resetOciValues() {
       Vue.delete(this.value.spec, 'insecurePlainHttp');

@@ -1050,10 +1050,10 @@ catalog:
         label: Exponential Back Off
         minWait:
           label: Min Wait Time (in Seconds)
-          placeholder: 1s (default)
+          placeholder: 1 (default)
         maxWait:
           label: Max Wait Time (in Seconds)
-          placeholder: 5s (default)
+          placeholder: 5 (default)
         maxRetries:
           label: Max Number of Retries
           placeholder: 5 (default)
