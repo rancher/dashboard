@@ -27,6 +27,11 @@ env:
   # Build the dashboard to use in tests. When set to false it will grab `latest` from CDN (useful for running e2e tests quickly)
   BUILD_DASHBOARD: true
 
+  E2E_BUILD_DIST_NAME: dist
+  E2E_BUILD_DIST_DIR: dist
+  E2E_BUILD_DIST_EMBER_NAME: dist_ember
+  E2E_BUILD_DIST_EMBER_DIR: dist_ember
+
 jobs:
   e2e-ui-build:
     if: "!contains( github.event.pull_request.labels.*.name, 'ci/skip-e2e')"
