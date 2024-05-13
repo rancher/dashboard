@@ -1,5 +1,12 @@
 gke: 
   label: Google GKE
+  accordion:
+    config: Config
+    advanced: Additional Options
+    networking: Networking
+    nodePools: Node Pools
+    members: Cluster Members
+    labels: Labels and Annotations
   project:
     label: Google Project ID
   authenticate: Authenticate
@@ -122,6 +129,12 @@ gke:
     label: Auto Repair
   autoUpgrade:
     label: Auto Upgrade
+  location:
+    zonal: Zonal
+    regional: Regional
+    zone: Zone
+    region: Region
+    extraZones: Extra Zones
   authScopes:
     modeLabel: API Access Scopes
     options:

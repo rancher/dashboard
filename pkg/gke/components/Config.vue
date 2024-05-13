@@ -1,32 +1,31 @@
 <script lang="ts">
-import semver from 'semver';
-
-import { mapGetters } from 'vuex';
-import { _CREATE } from '@shell/config/query-params';
 import { defineComponent } from 'vue';
+import { _CREATE } from '@shell/config/query-params';
+import RadioGroup from '@components/Form/Radio/RadioGroup.vue';
 import LabeledSelect from '@shell/components/form/LabeledSelect.vue';
 import Checkbox from '@components/Form/Checkbox/Checkbox.vue';
-import LabeledInput from '@components/Form/LabeledInput/LabeledInput.vue';
-import KeyValue from '@shell/components/form/KeyValue.vue';
-
 import {
-  getGKEVersions, getGKENetworks, getGKESubnetworks, getGKEClusters, getGKESharedSubnetworks,
-  imageTypes
+  DEFAULT_GCP_REGION, DEFAULT_GCP_ZONE, getGKEZones, regionFromZone,
+  getGKEVersions, getGKEClusters,
+
 } from '../util/gcp';
-import type { getGKEVersionsResponse, getGKEClustersResponse, getGKESubnetworksResponse, getGKESharedSubnetworksResponse } from '../types/gcp.d.ts';
-import { debounce } from 'lodash';
+import { sortBy, sortableNumericSuffix } from '@shell/utils/sort';
+
+import semver from 'semver';
+
+import type { getGKEVersionsResponse, getGKEClustersResponse } from '../types/gcp.d.ts';
+import debounce from 'lodash/debounce';
 import { MANAGEMENT } from '@shell/config/types';
 import { SETTING } from '@shell/config/settings';
-import { getGKENetworksResponse, GKESubnetwork } from '../types/gcp';
-import Banner from '@components/Banner/Banner.vue';
-
-const GKE_NONE_OPTION = 'none';
+import { mapGetters } from 'vuex';
 
 export default defineComponent({
   name: 'GKEConfig',
 
   components: {
-    LabeledSelect, Checkbox, Banner, LabeledInput, KeyValue
+    RadioGroup,
+    LabeledSelect,
+    Checkbox
   },
 
   props: {
@@ -48,6 +47,11 @@ export default defineComponent({
     region: {
       type:    String,
       default: ''
+    },
+
+    locations: {
+      type:    Array,
+      default: () => []
     },
 
     cloudCredentialId: {
@@ -80,100 +84,6 @@ export default defineComponent({
       default: ''
     },
 
-    network: {
-      type:    String,
-      default: ''
-    },
-
-    subnetwork: {
-      type:    String,
-      default: ''
-    },
-
-    useIpAliases: {
-      type:    Boolean,
-      default: false
-    },
-
-    // whether or not network policy is enabled for the cluster
-    // this toggles network policy only for the Master node
-    networkPolicyConfig: {
-      type:    Boolean,
-      default: false
-    },
-    // config.networkPolicyEnabled
-    // this toggles support for network policies accross nodes in the GKE cluster - a generic kubernetes concept
-    networkPolicyEnabled: {
-      type:    Boolean,
-      default: false
-    },
-    // normanCluster.enableNetworkPolicy
-    // this toggles 'Project Network Isolation' - a Rancher-specific feature
-    enableNetworkPolicy: {
-      type:    Boolean,
-      default: false
-    },
-
-    clusterIpv4Cidr: {
-      type:    String,
-      default: ''
-    },
-
-    clusterSecondaryRangeName: {
-      type:    String,
-      default: ''
-    },
-
-    servicesSecondaryRangeName: {
-      type:    String,
-      default: ''
-    },
-
-    clusterIpv4CidrBlock: {
-      type:    String,
-      default: ''
-    },
-
-    servicesIpv4CidrBlock: {
-      type:    String,
-      default: ''
-    },
-
-    nodeIpv4CidrBlock: {
-      type:    String,
-      default: ''
-    },
-
-    subnetworkName: {
-      type:    String,
-      default: ''
-    },
-
-    enablePrivateEndpoint: {
-      type:    Boolean,
-      default: false
-    },
-
-    enablePrivateNodes: {
-      type:    Boolean,
-      default: false
-    },
-
-    masterIpv4CidrBlock: {
-      type:    String,
-      default: ''
-    },
-
-    enableMasterAuthorizedNetwork: {
-      type:    Boolean,
-      default: false
-    },
-
-    masterAuthorizedNetworkCidrBlocks: {
-      type:    Array,
-      default: () => []
-    },
-
     defaultImageType: {
       type:    String,
       default: ''
@@ -186,40 +96,36 @@ export default defineComponent({
   },
 
   data() {
+    const t = this.$store.getters['i18n/t'];
     const supportedVersionRange = this.$store.getters['management/byId'](MANAGEMENT.SETTING, SETTING.UI_SUPPORTED_K8S_VERSIONS)?.value;
 
     return {
       debouncedLoadGCPData: () => {},
+      loadingVersions:      false,
+      loadingZones:         false,
 
-      loadingVersions:    false,
-      loadingNetworks:    false,
-      loadingSubnetworks: false,
-      showAdvanced:       false,
-
-      supportedVersionRange,
-      versionsResponse:          {} as getGKEVersionsResponse,
+      versionsResponse: {} as getGKEVersionsResponse,
       /**
        * these are NOT cluster objects in the Rancher cluster (management.cattle.io.cluster provisioning.cattle.io.cluster etc)
        * this is a list of clusters in the user's GCP project, which, on edit, will include the current cluster
        * on edit, this gcp representation of the cluster is checked for a release channel to determine which k8s versions to offer
        */
-      clustersResponse:          {} as getGKEClustersResponse,
-      networksResponse:          {} as getGKENetworksResponse,
-      subnetworksResponse:       {} as getGKESubnetworksResponse,
-      sharedSubnetworksResponse: {} as getGKESharedSubnetworksResponse
+      clustersResponse: {} as getGKEClustersResponse,
+      supportedVersionRange,
+      zoneRadioOptions: [{ label: t('gke.location.zonal'), value: false }, { label: t('gke.location.regional'), value: true }],
+      zones:            [] as any[],
+      selectedZone:     null,
     };
   },
 
   watch: {
+    versionOptions(neu) {
+      if (neu && neu.length && !this.kubernetesVersion) {
+        this.$emit('update:kubernetesVersion', this.versionOptions[0].value);
+      }
+    },
+
     cloudCredentialId() {
-      this.debouncedLoadGCPData();
-    },
-
-    zone() {
-      this.debouncedLoadGCPData();
-    },
-
-    region() {
       this.debouncedLoadGCPData();
     },
 
@@ -227,161 +133,36 @@ export default defineComponent({
       this.debouncedLoadGCPData();
     },
 
-    versionOptions(neu) {
-      if (neu && neu.length && !this.kubernetesVersion) {
-        this.$emit('update:kubernetesVersion', this.versionOptions[0].value);
-      }
-    },
-
-    networkOptions(neu) {
-      if (neu && neu.length && !this.network) {
-        const firstnetwork = neu.find((network) => network.kind !== 'group');
-
-        this.$emit('update:network', firstnetwork?.name);
-      }
-    },
-
-    subnetworkOptions(neu) {
-      if (neu && neu.length) {
-        const firstSubnet = neu[0];
-
-        if (firstSubnet?.name) {
-          this.$emit('update:subnetwork', firstSubnet.name);
+    region: {
+      handler(neu) {
+        this.$emit('update:locations', []);
+        if (!!neu) {
+          this.debouncedLoadGCPData();
         }
-      }
+      },
+      immediate: true
     },
 
-    clusterSecondaryRangeOptions(neu = []) {
-      const { servicesSecondaryRangeName, clusterSecondaryRangeName } = this;
-
-      if (servicesSecondaryRangeName) {
-        if (!neu.find((opt) => opt?.rangeName === servicesSecondaryRangeName)) {
-          this.$emit('update:servicesSecondaryRangeName', '');
-          this.$emit('update:servicesIpv4CidrBlock', '');
+    zone: {
+      handler(neu) {
+        this.$emit('update:locations', []);
+        if (!!neu) {
+          this.debouncedLoadGCPData(false);
         }
-      }
-      if (clusterSecondaryRangeName) {
-        if (!neu.find((opt) => opt.rangeName === clusterSecondaryRangeName)) {
-          this.$emit('update:clusterSecondaryRangeName', '');
-          this.$emit('update:clusterIpv4CidrBlock', '');
-        }
-      }
+      },
+      immediate: true
     },
 
-    enablePrivateEndpoint(neu) {
-      if (neu) {
-        this.$emit('update:enableMasterAuthorizedNetwork', true);
+    extraZoneOptions(neu) {
+      if (!neu || !neu.length) {
+        return;
       }
-    },
+      if (this.useRegion) {
+        const defaultExtraZone = neu[0]?.name;
 
-    enablePrivateNodes(neu) {
-      if (neu) {
-        this.$emit('update:enableMasterAuthorizedNetwork', true);
-      } else {
-        this.$emit('update:enablePrivateEndpoint', false);
-        this.$emit('update:masterIpv4CidrBlock', '');
-      }
-    },
-
-    enableMasterAuthorizedNetwork(neu) {
-      if (!neu) {
-        this.$emit('update:masterAuthorizedNetworkCidrBlocks', []);
+        this.$emit('update:locations', [defaultExtraZone]);
       }
     }
-
-  },
-
-  methods: {
-    // when credential/region/zone change, fetch dependent resources from gcp
-    loadGCPData() {
-      this.loadingVersions = true;
-      this.loadingNetworks = true;
-      this.loadingSubnetworks = true;
-      this.getVersions();
-      this.getNetworks();
-      this.getSubnetworks();
-      this.getSharedSubnetworks();
-      // gcp clusters are fetched on edit to check this cluster's release channel & offer appropriate k8s versions
-      if (this.mode !== _CREATE) {
-        this.getClusters();
-      }
-    },
-
-    getVersions() {
-      getGKEVersions(this.$store, this.cloudCredentialId, this.projectId, { zone: this.zone, region: this.region }).then((res) => {
-        this.versionsResponse = res;
-        if (res.defaultImageType) {
-          this.$emit('update:defaultImageType', res.defaultImageType);
-        }
-      }).catch((err) => {
-        this.$emit('error', err);
-      });
-    },
-
-    getNetworks() {
-      getGKENetworks(this.$store, this.cloudCredentialId, this.projectId, { zone: this.zone, region: this.region }).then((res) => {
-        this.networksResponse = res;
-      }).catch((err) => {
-        this.$emit('error', err);
-      });
-    },
-
-    getSubnetworks() {
-      let { region, zone } = this;
-
-      if (!region && !!zone) {
-        region = `${ zone.split('-')[0] }-${ zone.split('-')[1] }`;
-      }
-      getGKESubnetworks(this.$store, this.cloudCredentialId, this.projectId, { region }).then((res) => {
-        this.subnetworksResponse = res;
-      }).catch((err) => {
-        this.$emit('error', err);
-      });
-    },
-
-    getSharedSubnetworks() {
-      return getGKESharedSubnetworks(this.$store, this.cloudCredentialId, this.projectId, { zone: this.zone, region: this.region }).then((res) => {
-        this.sharedSubnetworksResponse = res;
-      }).catch((err) => {
-        this.$emit('error', err);
-      });
-    },
-
-    getClusters() {
-      getGKEClusters(this.$store, this.cloudCredentialId, this.projectId, { zone: this.zone, region: this.region }, this.clusterId).then((res) => {
-        this.clustersResponse = res;
-      }).catch((err) => {
-        this.$emit('error', err);
-      });
-    },
-    /**
-     * https://github.com/rancher/rancher/issues/33026 tl;dr:
-     * if networkPolicyEnabled is true, networkPolicyConfig must also be true
-     * if enableNetworkPolicy (project network isolation) is true, networkPolicyEnabled must also be true
-     * networkPolicyConfig does NOT require either enableNetworkPolicy nor networkPolicyEnabled to be true
-     */
-    updateNetworkPolicyEnabled(neu: boolean) {
-      if (neu) {
-        this.$emit('update:networkPolicyEnabled', true);
-        this.$emit('update:networkPolicyConfig', true);
-      } else {
-        this.$emit('update:networkPolicyEnabled', false);
-      }
-    },
-
-    updateEnableNetworkPolicy(neu: boolean) {
-      if (neu) {
-        this.$emit('update:enableNetworkPolicy', true);
-        this.$emit('update:networkPolicyEnabled', true);
-        this.$emit('update:networkPolicyConfig', true);
-      } else {
-        this.$emit('update:enableNetworkPolicy', false);
-      }
-    },
-
-    toggleAdvanced() {
-      this.showAdvanced = !this.showAdvanced;
-    },
   },
 
   computed: {
@@ -397,24 +178,78 @@ export default defineComponent({
       return cluster?.releaseChannel?.channel;
     },
 
-    subnetworks() {
-      return this.subnetworksResponse.items || [];
+    useRegion: {
+      get(): boolean {
+        return !!this.region;
+      },
+      set(neu: boolean) {
+        if (neu) {
+          this.$emit('update:zone', null);
+          this.$emit('update:region', this.defaultRegion);
+        } else {
+          this.$emit('update:region', null);
+          this.$emit('update:zone', this.defaultZone);
+        }
+      }
     },
 
-    sharedNetworks(): {[key: string]: GKESubnetwork[]} {
-      const allSharedSubnetworks = this.sharedSubnetworksResponse?.subnetworks || [];
-      const networks = {} as any;
+    zonesByRegion(): {[key:string]: any[]} {
+      const out: {[key:string]: any[]} = {};
 
-      allSharedSubnetworks.forEach((s) => {
-        const network = (s.network).split('/').pop() || s.network;
+      this.zones.forEach((zone: any) => {
+        const regionName = regionFromZone(zone);
 
-        if (network && !networks[network]) {
-          networks[network] = [];
+        if (regionName) {
+          if (!out[regionName]) {
+            out[regionName] = [];
+          }
+          out[regionName].push(zone);
         }
-        networks[network].push(s);
       });
 
-      return networks;
+      return out;
+    },
+
+    regions(): string[] {
+      return (Object.keys(this.zonesByRegion) || []).sort();
+    },
+
+    // checkboxes which appear next to the zone/region dropdown, and populate the 'locations' array
+    extraZoneOptions() {
+      if (this.region) {
+        return this.zonesByRegion[this.region] || [];
+      } if (this.zone) {
+        const zoneOption = this.zones.find((z) => z.name === this.zone);
+
+        if (!zoneOption) {
+          return [];
+        }
+        const region = regionFromZone(zoneOption);
+
+        return (this.zonesByRegion[region] || []).filter((zone) => zone.name !== this.zone);
+      }
+
+      return [];
+    },
+
+    defaultRegion() {
+      if (!this.regions || !this.regions.length || this.regions.find((r) => r === DEFAULT_GCP_REGION)) {
+        return DEFAULT_GCP_REGION;
+      }
+
+      return this.regions[0];
+    },
+
+    defaultZone() {
+      if (!this.zones || !this.zones.length || this.zones.find((z) => z?.name === DEFAULT_GCP_ZONE)) {
+        return DEFAULT_GCP_ZONE;
+      }
+
+      if (!!this.region) {
+        return this.extraZoneOptions[0]?.name;
+      }
+
+      return this.zones[0].name;
     },
 
     // if editing an existing cluster use versions from relevant release channel
@@ -460,408 +295,159 @@ export default defineComponent({
 
       return out;
     },
-
-    networkOptions() {
-      const out = [];
-      const unshared = (this.networksResponse?.items || []).map((n) => {
-        const subnetworksAvailable = this.subnetworks.find((s) => s.network === n.selfLink);
-
-        return { ...n, label: subnetworksAvailable ? `${ n.name } (${ this.t('gke.network.subnetworksAvailable') })` : n.name };
-      });
-      const shared = (Object.keys(this.sharedNetworks) || []).map((n) => {
-        const firstSubnet = this.sharedNetworks[n][0];
-        // const displayName = n.split('/').pop();
-
-        return {
-          name: n, label: `${ n } (${ this.t('gke.network.subnetworksAvailable') })`, ...firstSubnet
-        };
-      });
-
-      if (shared.length) {
-        out.push({
-          label:    this.t('gke.network.sharedvpc'),
-          kind:     'group',
-          disabled: true,
-          name:     'shared'
-        }, ...shared);
-      } if (unshared.length) {
-        out.push({
-          label:    this.t('gke.network.vpc'),
-          kind:     'group',
-          disabled: true,
-          name:     'unshared'
-        }, ...unshared);
+  },
+  methods: {
+    // when credential/region/zone change, fetch dependent resources from gcp
+    loadGCPData(loadZones = true) {
+      this.loadingVersions = true;
+      this.getVersions();
+      if (loadZones) {
+        this.loadingZones = true;
+        this.getZones();
       }
-
-      return out;
+      // gcp clusters are fetched on edit to check this cluster's release channel & offer appropriate k8s versions
+      if (this.mode !== _CREATE) {
+        this.getClusters();
+      }
     },
 
-    subnetworkOptions(): {label: string, name: string, secondaryIpRanges?: any[]}[] {
-      const out = [] as any;
-      const isShared = !!this.sharedNetworks[this.network];
+    getVersions() {
+      getGKEVersions(this.$store, this.cloudCredentialId, this.projectId, { zone: this.zone, region: this.region }).then((res) => {
+        this.versionsResponse = res;
+        if (res.defaultImageType) {
+          this.$emit('update:defaultImageType', res.defaultImageType);
+        }
+      }).catch((err) => {
+        this.$emit('error', err);
+      });
+      this.loadingVersions = false;
+    },
 
-      if (isShared) {
-        out.push(...this.sharedNetworks[this.network]);
+    getClusters() {
+      getGKEClusters(this.$store, this.cloudCredentialId, this.projectId, { zone: this.zone, region: this.region }, this.clusterId).then((res) => {
+        this.clustersResponse = res;
+      }).catch((err) => {
+        this.$emit('error', err);
+      });
+    },
+
+    async getZones() {
+      try {
+        let location: {zone?:string, region?:string} = { zone: this.zone };
+
+        if (this.useRegion) {
+          location = { region: this.region };
+        }
+        const res = await getGKEZones(this.$store, this.cloudCredentialId, this.projectId, location);
+
+        this.zones = sortBy((res.items || []).map((z) => {
+          z.disabled = z?.status?.toLowerCase() !== 'up';
+          z.sortName = sortableNumericSuffix(z.name);
+
+          return z;
+        }), 'sortName', false);
+      } catch (e) {
+        this.$emit('error', e);
+        this.zones = [];
+      }
+      this.loadingZones = false;
+    },
+
+    setRegion(neu) {
+      this.$emit('update:region', neu);
+    },
+
+    setZone(neu) {
+      this.selectedZone = neu;
+      this.$emit('update:zone', neu.name);
+    },
+
+    setExtraZone(add: boolean, zone) {
+      const out = [...this.locations];
+
+      if (add && !out.includes(zone)) {
+        out.push(zone);
       } else {
-        out.push(...(this.subnetworks.filter((s) => s.network.split('/').pop() === this.network) || []));
+        out.splice(out.indexOf(zone), 1);
       }
-
-      const labeled = out.map((sn) => {
-        const name = sn.name ? sn.name : (sn.subnetwork || '').split('/').pop();
-
-        return {
-          name, label: `${ name } (${ sn.ipCidrRange })`, ...sn
-        };
-      });
-
-      labeled.unshift({ label: this.t('gke.subnetwork.auto'), name: GKE_NONE_OPTION });
-
-      return labeled;
-    },
-
-    clusterSecondaryRangeOptions(): {rangeName: string, ipCidrRange?: string, label: string}[] {
-      if (this.selectedSubnetwork && this.selectedSubnetwork.name === GKE_NONE_OPTION) {
-        return [{
-          label:     this.t('generic.none'),
-          rangeName: GKE_NONE_OPTION
-        }];
-      }
-
-      // TODO nb none option
-      const out: {rangeName: string, ipCidrRange?: string, label: string}[] = (this.selectedSubnetwork?.secondaryIpRanges || []).map(({ ipCidrRange, rangeName }) => {
-        return {
-          rangeName,
-          ipCidrRange,
-          label: `${ rangeName } (${ ipCidrRange })`
-        };
-      });
-
-      out.unshift({
-        label:     this.t('generic.none'),
-        rangeName: GKE_NONE_OPTION
-      });
-
-      return out;
-    },
-    /**
-     * Only the user-defined network and subnetwork names appear in the GKE config
-     * selectedNetwork and selectedSubnetwork keep track of all the additional networking info from gcp api calls
-     * eg subnets' ipCidrRange, to display alongside name in the dropdown
-     */
-    // TODO nb if nothing in networkOptions matches network, error
-    selectedNetwork: {
-      get() {
-        const { network } = this;
-
-        if (!network) {
-          return null;
-        }
-
-        return this.networkOptions.find((n) => n.name === network);
-      },
-      set(neu:{name:string}) {
-        this.$emit('update:network', neu.name);
-      }
-    },
-
-    selectedSubnetwork: {
-      get(): {label: string, name: string, secondaryIpRanges?: any[]} | undefined {
-        const { subnetwork } = this;
-
-        if (!subnetwork || subnetwork === '') {
-          return { label: this.t('gke.subnetwork.auto'), name: GKE_NONE_OPTION };
-        }
-
-        return this.subnetworkOptions.find((n) => n.name === subnetwork);
-      },
-      set(neu:{name:string}) {
-        if (neu.name === GKE_NONE_OPTION) {
-          this.$emit('update:subnetwork', '');
-        } else {
-          this.$emit('update:subnetwork', neu.name);
-        }
-      }
-    },
-
-    selectedClusterSecondaryRangeName: {
-      get() {
-        if (!this.clusterSecondaryRangeName) {
-          return {
-            label:     this.t('generic.none'),
-            rangeName: GKE_NONE_OPTION
-          };
-        } else return this.clusterSecondaryRangeOptions.find((opt) => opt.rangeName === this.clusterSecondaryRangeName);
-      },
-      set(neu: {rangeName: string, ipCidrRange?: string, label: string} ) {
-        if (neu.rangeName === GKE_NONE_OPTION) {
-          this.$emit('update:clusterSecondaryRangeName', '');
-          this.$emit('update:clusterIpv4CidrBlock', '');
-        } else {
-          this.$emit('update:clusterSecondaryRangeName', neu.rangeName);
-          this.$emit('update:clusterIpv4CidrBlock', neu.ipCidrRange);
-        }
-      }
-    },
-
-    selectedServicesSecondaryRangeName: {
-      get() {
-        if (!this.servicesSecondaryRangeName) {
-          return {
-            label:     this.t('generic.none'),
-            rangeName: GKE_NONE_OPTION
-          };
-        } else return this.clusterSecondaryRangeOptions.find((opt) => opt.rangeName === this.servicesSecondaryRangeName);
-      },
-      set(neu: {rangeName: string, ipCidrRange?: string, label: string}) {
-        if (neu.rangeName === GKE_NONE_OPTION) {
-          this.$emit('update:servicesSecondaryRangeName', '');
-          this.$emit('update:servicesIpv4CidrBlock', '');
-        } else {
-          this.$emit('update:servicesSecondaryRangeName', neu.rangeName);
-          this.$emit('update:servicesIpv4CidrBlock', neu.ipCidrRange);
-        }
-      }
-    },
-  }
-
+      this.$emit('update:locations', out);
+    }
+  },
 });
 </script>
 
 <template>
   <div>
     <div class="row mb-10">
-      <div class="col span-6">
+      <div class="col span-4">
         <LabeledSelect
           :options="versionOptions"
           label-key="gke.version.label"
           :value="kubernetesVersion"
           :tooltip="isCreate? '' :t('gke.version.tooltip')"
+          :loading="loadingVersions"
           @selecting="$emit('update:kubernetesVersion', $event.value)"
         />
       </div>
-      <div class="col span-6">
-        <LabeledInput
-          :mode="mode"
-          label-key="gke.clusterIpv4Cidr.label"
-          :value="clusterIpv4Cidr"
-          :placeholder="t('gke.clusterIpv4Cidr.placeholder')"
-          :disabled="!isNewOrUnprovisioned"
-          @input="$emit('update:clusterIpv4Cidr', $event)"
-        />
-      </div>
     </div>
-    <div class="row mb-10">
-      <div class="col span-6">
-        <LabeledSelect
-          v-model="selectedNetwork"
-          :options="networkOptions"
+    <div class="row location-row mb-10">
+      <div class="col">
+        <RadioGroup
+          v-model="useRegion"
           :mode="mode"
-          label-key="gke.network.label"
-          option-key="name"
-          option-label="label"
+          :options="zoneRadioOptions"
+          name="regionmode"
           :disabled="!isNewOrUnprovisioned"
         />
       </div>
-      <div class="col span-6">
+      <div class="col span-4">
         <LabeledSelect
-          v-model="selectedSubnetwork"
-          :options="subnetworkOptions"
-          option-key="name"
-          option-label="label"
+          v-if="useRegion"
+          label-key="gke.location.region"
           :mode="mode"
-          :label-key="useIpAliases ? 'gke.subnetwork.nodeLabel' : 'gke.subnetwork.label'"
+          :options="regions"
+          :value="region"
           :disabled="!isNewOrUnprovisioned"
+          :loading="loadingZones"
+          @selecting="setRegion"
         />
-      </div>
-    </div>
-
-    <div class="row mb-10">
-      <div class="col span-6">
         <LabeledSelect
-          v-if="clusterSecondaryRangeOptions.length>1"
-          v-model="selectedClusterSecondaryRangeName"
-          :mode="mode"
-          :options="clusterSecondaryRangeOptions"
-          label-key="gke.clusterSecondaryRangeName.label"
-          :disabled="!isNewOrUnprovisioned"
-        />
-        <LabeledInput
           v-else
+          label-key="gke.location.zone"
           :mode="mode"
-          :value="subnetworkName"
-          label-key="gke.subnetwork.name"
-          :placeholder="t('gke.subnetwork.namePlaceholder')"
+          :options="zones"
+          option-key="name"
+          option-label="name"
+          :value="zone"
           :disabled="!isNewOrUnprovisioned"
-          @input="$emit('update:subnetworkName', $event)"
+          :loading="loadingZones"
+          @selecting="setZone"
         />
       </div>
-      <div class="col span-6">
-        <LabeledInput
-          :value="clusterIpv4CidrBlock"
-          :mode="mode"
-          label-key="gke.clusterIpv4CidrBlock.label"
-          :placeholder="t('gke.clusterIpv4Cidr.placeholder')"
-          :disabled="(!!selectedClusterSecondaryRangeName && !!selectedClusterSecondaryRangeName.ipCidrRange)|| !isNewOrUnprovisioned"
-          @input="$emit('update:clusterIpv4CidrBlock'), $event"
-        />
-      </div>
-    </div>
-    <div class="row mb-10">
-      <div class="col span-6">
-        <LabeledSelect
-          v-if="clusterSecondaryRangeOptions.length>1"
-          v-model="selectedServicesSecondaryRangeName"
-          :mode="mode"
-          :options="clusterSecondaryRangeOptions"
-          label-key="gke.servicesSecondaryRangeName.label"
-          :disabled="!isNewOrUnprovisioned"
-        />
-        <LabeledInput
-          v-else
-          :mode="mode"
-          :value="nodeIpv4CidrBlock"
-          label-key="gke.nodeIpv4CidrBlock.label"
-          :disabled="!isNewOrUnprovisioned"
-          @input="$emit('update:nodeIpv4CidrBlock', $event)"
-        />
-      </div>
-      <div class="col span-6">
-        <LabeledInput
-          :value="servicesIpv4CidrBlock"
-          :mode="mode"
-          label-key="gke.servicesIpv4CidrBlock.label"
-          :placeholder="t('gke.clusterIpv4Cidr.placeholder')"
-          :disabled="(!!selectedServicesSecondaryRangeName && !!selectedServicesSecondaryRangeName.ipCidrRange)|| !isNewOrUnprovisioned"
-          @input="$emit('update:servicesIpv4CidrBlock'), $event"
-        />
-      </div>
-    </div>
-    <Banner
-      v-if="!useIpAliases"
-      class="mb-10"
-      label-key="gke.useIpAliases.warning"
-      color="warning"
-    />
-    <div class="row mb-10">
-      <div class="col span-3">
-        <Checkbox
-          :value="useIpAliases"
-          :mode="mode"
-          :label="t('gke.useIpAliases.label')"
-          :disabled="!isNewOrUnprovisioned"
-          @input="$emit('update:useIpAliases', $event)"
-        />
-      </div>
-      <div class="col span-3">
-        <Checkbox
-          :value="networkPolicyConfig"
-          :mode="mode"
-          :label="t('gke.networkPolicyConfig.label')"
-          @input="$emit('update:networkPolicyConfig', $event)"
-        />
-      </div>
-      <div class="col span-3">
-        <Checkbox
-          :value="networkPolicyEnabled"
-          :mode="mode"
-          :label="t('gke.networkPolicyEnabled.label')"
-          :disabled="!isNewOrUnprovisioned"
-          @input="e=>updateNetworkPolicyEnabled(e)"
-        />
-      </div>
-      <div class="col span-3">
-        <Checkbox
-          :value="enableNetworkPolicy"
-          :mode="mode"
-          :label="t('gke.enableNetworkPolicy.label')"
-          @input="e=>updateEnableNetworkPolicy(e)"
-        />
-      </div>
-    </div>
-
-    <div>
-      <button
-        type="button"
-        class="btn role-link advanced-toggle"
-        @click="toggleAdvanced"
+      <div
+        v-if="!loadingZones"
+        class="col span-4 extra-zones"
       >
-        {{ showAdvanced ? t('gke.hideAdvanced') : t('gke.showAdvanced') }}
-      </button>
+        <span class="text-muted">{{ t('gke.location.extraZones') }}</span>
+        <Checkbox
+          v-for="zoneOpt in extraZoneOptions"
+          :key="zoneOpt.name"
+          :label="zoneOpt.name"
+          :value="locations.includes(zoneOpt.name)"
+          @input="e=>setExtraZone(e, zoneOpt.name)"
+        />
+      </div>
     </div>
-    <template v-if="showAdvanced">
-      <div class="row mb-10">
-        <div class="col span-3">
-          <Checkbox
-            :mode="mode"
-            :label="t('gke.enablePrivateNodes.label')"
-            :value="enablePrivateNodes"
-            :disabled="!isNewOrUnprovisioned"
-            @input="$emit('update:enablePrivateNodes', $event)"
-          />
-        </div>
-        <div class="col span-3">
-          <Checkbox
-            :mode="mode"
-            :label="t('gke.enablePrivateEndpoint.label')"
-            :value="enablePrivateEndpoint"
-            :disabled="!enablePrivateNodes || !isNewOrUnprovisioned"
-            :tooltip="t('gke.enablePrivateEndpoint.tooltip')"
-            @input="$emit('update:enablePrivateEndpoint', $event)"
-          />
-        </div>
-        <div class="col span-3">
-          <Checkbox
-            :mode="mode"
-            :value="enableMasterAuthorizedNetwork"
-            :label="t('gke.masterAuthorizedNetwork.enable.label')"
-            :disabled="enablePrivateEndpoint || !isNewOrUnprovisioned"
-            @input="$emit('update:enableMasterAuthorizedNetwork', $event)"
-          />
-        </div>
-      </div>
-      <div class="row mb-10">
-        <div class="col span-3">
-          <LabeledInput
-            v-show="enablePrivateNodes"
-            :mode="mode"
-            :value="masterIpv4CidrBlock"
-            label-key="gke.masterIpv4CidrBlock.label"
-            :placeholder="t('gke.masterIpv4CidrBlock.placeholder')"
-            :tooltip="t('gke.masterIpv4CidrBlock.tooltip')"
-            :disabled="!isNewOrUnprovisioned"
-            @input="$emit('update:masterIpv4CidrBlock', $event)"
-          />
-        </div>
-      </div>
-      <div class="row mb-10">
-        <div class="col span-12">
-          <KeyValue
-            v-if="enableMasterAuthorizedNetwork"
-            :label="t('gke.masterAuthorizedNetwork.cidrBlocks.label')"
-            :mode="mode"
-            :as-map="false"
-            key-name="displayName"
-            value-name="cidrBlock"
-            :key-label="t('gke.masterAuthorizedNetwork.cidrBlocks.displayName')"
-            :value-label="t('gke.masterAuthorizedNetwork.cidrBlocks.cidr')"
-            :value-placeholder="t('gke.clusterIpv4Cidr.placeholder')"
-            :value="masterAuthorizedNetworkCidrBlocks"
-            :read-allowed="false"
-            :add-label="t('gke.masterAuthorizedNetwork.cidrBlocks.add')"
-            :initial-empty-row="true"
-            :disabled="!isNewOrUnprovisioned"
-            @input="$emit('update:masterAuthorizedNetworkCidrBlocks', $event)"
-          />
-        </div>
-      </div>
-    </template>
   </div>
 </template>
 
 <style lang="scss">
-.advanced-toggle {
-  padding-left: 0px;
-  margin: 20px 0px 20px 0px;
+.location-row{
+  display: flex;
+  align-items: center;
 }
-
+.extra-zones  {
+  display: flex;
+  flex-direction: column;
+}
 </style>

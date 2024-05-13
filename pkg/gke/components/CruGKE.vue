@@ -31,9 +31,9 @@ import ClusterMembershipEditor, { canViewClusterMembershipEditor } from '@shell/
 import type { GKEConfig, GKENodePool } from '../types';
 import AccountAccess from './AccountAccess.vue';
 import AdvancedOptions from './AdvancedOptions.vue';
-import Config from './Config.vue';
+import Networking from './Networking.vue';
 import GKENodePoolComponent from './GKENodePool.vue';
-import Location from './Location.vue';
+import Config from './Config.vue';
 import { DEFAULT_GCP_ZONE, imageTypes, getGKEMachineTypes } from '../util/gcp';
 import type { getGKEMachineTypesResponse } from '../types/gcp.d.ts';
 import debounce from 'lodash/debounce';
@@ -137,9 +137,9 @@ export default defineComponent({
     CruResource,
     AccountAccess,
     AdvancedOptions,
-    Config,
+    Networking,
     GKENodePoolComponent,
-    Location,
+    Config,
     LabeledSelect,
     LabeledInput,
     Checkbox,
@@ -191,7 +191,6 @@ export default defineComponent({
     this.config = this.normanCluster.gkeConfig;
     this.nodePools = this.normanCluster.gkeConfig.nodePools;
 
-    // TODO nb make sure autoscaling management and config are defined
     this.nodePools.forEach((pool) => {
       this.$set(pool, '_id', randomStr());
       this.$set(pool, '_isNewOrUnprovisioned', this.isNewOrUnprovisioned);
@@ -340,6 +339,7 @@ export default defineComponent({
       this.errors = [];
       this.getMachineTypes();
     },
+
     getMachineTypes() {
       this.loadingMachineTypes = true;
       const zone = this.config.zone || this.config.locations?.[0];
@@ -381,6 +381,11 @@ export default defineComponent({
       this.$set(this.config, 'clusterName', name);
     },
 
+    setClusterDescription(decription: string): void {
+      this.$set(this.normanCluster, 'description', decription);
+      this.$set(this.config, 'decription', decription);
+    },
+
     onMembershipUpdate(update: any): void {
       this.$set(this, 'membershipUpdate', update);
     },
@@ -393,10 +398,17 @@ export default defineComponent({
 
     // these fields are used purely in UI, to track individual nodepool components
     cleanPoolsForSave(): void {
-
+      this.nodePools.forEach((pool: GKENodePool) => {
+        Object.keys(pool).forEach((key: string) => {
+          if (key.startsWith('_')) {
+            delete pool[key as keyof GKENodePool];
+          }
+        });
+      });
     },
 
     // only save values that differ from upstream aks spec - see diffUpstreamSpec comments for details
+    // TODO nb gke exceptions?
     removeUnchangedConfigFields(): void {
       const upstreamConfig = this.normanCluster?.status?.gkeStatus?.upstreamSpec;
 
@@ -452,7 +464,6 @@ export default defineComponent({
         <div
           class="row mb-10"
         >
-          //TODO nb config.description
           <div class="col span-6">
             <LabeledInput
               :value="normanCluster.name"
@@ -464,14 +475,15 @@ export default defineComponent({
           </div>
           <div class="col span-6">
             <LabeledInput
-              v-model="normanCluster.description"
+              :value="normanCluster.description"
               :mode="mode"
               label-key="nameNsDescription.description.label"
               :placeholder="t('nameNsDescription.description.placeholder')"
+              @input="setClusterDescription"
             />
           </div>
         </div>
-        <div><h3>{{ t('aks.nodePools.title') }}</h3></div>
+        <div><h3>{{ t('gke.accordion.nodePools') }}</h3></div>
         <Tabbed
           ref="pools"
           :side-tabs="true"
@@ -515,23 +527,29 @@ export default defineComponent({
         </Tabbed>
         <Accordion
           class="mb-20"
-          title="Location"
+          :title="t('gke.accordion.config')"
+          :open-initially="true"
         >
-          <Location
+          <Config
             :mode="mode"
-            :zone.sync="config.zone"
-            :region.sync="config.region"
-            :locations.sync="config.locations"
             :cloud-credential-id="config.googleCredentialSecret"
             :project-id="config.projectID"
             :is-new-or-unprovisioned="isNewOrUnprovisioned"
+            :original-version="originalVersion"
+            :cluster-id="normanCluster.id"
+            :cluster-name="config.clusterName"
+            :kubernetes-version.sync="config.kubernetesVersion"
+            :zone.sync="config.zone"
+            :region.sync="config.region"
+            :locations.sync="config.locations"
+            :default-image-type.sync="defaultImageType"
           />
         </Accordion>
         <Accordion
           class="mb-20"
-          title="Config"
+          :title="t('gke.accordion.networking')"
         >
-          <Config
+          <Networking
             :mode="mode"
             :zone="config.zone"
             :region="config.region"
@@ -559,13 +577,12 @@ export default defineComponent({
             :master-ipv4-cidr-block.sync="config.privateClusterConfig.masterIpv4CidrBlock"
             :enable-master-authorized-network.sync="config.masterAuthorizedNetworks.enabled"
             :master-authorized-network-cidr-blocks.sync="config.masterAuthorizedNetworks.cidrBlocks"
-            :default-image-type.sync="defaultImageType"
             :is-new-or-unprovisioned="isNewOrUnprovisioned"
           />
         </Accordion>
         <Accordion
           class="mb-20"
-          title="Additional Options"
+          :title="t('gke.accordion.advanced')"
         >
           <AdvancedOptions
             :mode="mode"
@@ -581,7 +598,7 @@ export default defineComponent({
 
         <Accordion
           class="mb-20"
-          title-key="aks.accordions.clusterMembers"
+          :title="t('gke.accordion.members')"
         >
           <Banner
             v-if="isEdit"
@@ -598,7 +615,7 @@ export default defineComponent({
         </Accordion>
         <Accordion
           class="mb-20"
-          title-key="aks.accordions.labels"
+          :title="t('gke.accordion.labels')"
         >
           //TODO nb config.labels in addition
           <Labels

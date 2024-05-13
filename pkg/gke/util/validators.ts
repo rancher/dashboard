@@ -3,6 +3,7 @@
  * initialNodeCount >=1
  * minNodeCount >= 0
  * maxNodeCount >=1
+ * maxNodeCount >= minNodeCount
  * diskSizeGb >=10
  * ssdCount >=0
  * name required
@@ -15,5 +16,5 @@
  * if enablePrivateNodes is true, masterIpv4CidrBlock is required
  * if useIpAliases is NOT true, subnetwork is required
  * if local type is zonal region should be null; if location type is regional zone should be null
- *
+ * minimal cidr validation
  */
