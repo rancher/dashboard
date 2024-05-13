@@ -64,6 +64,7 @@ jobs:
         compression-level: 9
   e2e-test:
     if: "!contains( github.event.pull_request.labels.*.name, 'ci/skip-e2e')"
+    needs: e2e-ui-build
     strategy:
       fail-fast: false
       matrix:
@@ -109,8 +110,8 @@ jobs:
          name: ${{ env.E2E_BUILD_DIST_EMBER_NAME }}
          path: ${{ env.E2E_BUILD_DIST_EMBER_DIR }}
       
-      - name: Prepare build
-        run: yarn e2e:pre-prod
+      - name: Run Rancher
+        run: yarn e2e:docker
       
       - name: Setup Rancher and user
         run: |
