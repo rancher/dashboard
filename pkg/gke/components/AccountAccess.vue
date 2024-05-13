@@ -38,12 +38,6 @@ export default defineComponent({
     },
   },
 
-  mounted() {
-    if (this.mode !== _CREATE) {
-      this.testProjectId(() => true);
-    }
-  },
-
   computed: {
     ...mapGetters({ t: 'i18n/t' }),
 
@@ -58,7 +52,6 @@ export default defineComponent({
   },
 
   methods: {
-    // TODO nb do automatically on edit
     async testProjectId(cb: (success: Boolean)=>{}) {
       const store = this.$store as Store<any>;
 

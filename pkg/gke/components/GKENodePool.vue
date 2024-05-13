@@ -45,7 +45,6 @@ export default defineComponent({
       default: ''
     },
 
-    // TODO nb add type for labeledselect options
     machineTypeOptions: {
       type:    Array as PropType<{label: string, kind?: string, value?: string, disabled?: boolean, [key: string]: any}[]>,
       default: () => []
@@ -162,13 +161,15 @@ export default defineComponent({
   },
 
   data() {
-    return { upgradeKubernetesVersion: false };
+    return { upgradeKubernetesVersion: false, initialVersion: this.version };
   },
 
   watch: {
     upgradeKubernetesVersion(neu) {
       if (neu) {
         this.$emit('update:version', this.clusterKubernetesVersion);
+      } else {
+        this.$emit('update:version', this.initialVersion);
       }
     },
 
@@ -206,7 +207,7 @@ export default defineComponent({
         return false;
       }
 
-      return this.version !== this.clusterKubernetesVersion;
+      return this.initialVersion !== this.clusterKubernetesVersion;
     },
 
     imageTypeOptions() {
@@ -269,12 +270,12 @@ export default defineComponent({
     </h3>
     <hr>
     <div class="row mb-10">
-      <div class="col span-4">
+      <div class="col span-6">
         <Checkbox
           v-if="upgradeAvailable"
           v-model="upgradeKubernetesVersion"
           :mode="mode"
-          :label="t('gke.version.upgrade', {clusterVersion: clusterKubernetesVersion})"
+          :label="t('gke.version.upgrade', {clusterKubernetesVersion, version: initialVersion})"
         />
         <div
           v-else

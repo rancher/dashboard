@@ -77,6 +77,18 @@ gke:
     tooltip: When enabled, the control plane may only be accessed via the private IP.
   enablePrivateNodes:
     label: Private Cluster
+  errors:
+    clusterNameChars: Cluster name may only contain lowercase letters, numbers, and hyphens.
+    clusterNameStartEnd: Cluster name must startd and end with a letter or number.
+    diskSizeGb: Disk Size must be at least 10GB.
+    genericKey: Value
+    initialNodeCount: Initial Node Count must be at least 1.
+    ipv4Cidr: '{key} must be a valid ipv4 cidr range.'
+    ipv4oripv6: '{key} must be a valid ipv6 or ipv4 CIDR address'
+    minMaxNodeCount: Minimum Node Count cannot exceed Maximum Node Count.
+    minNodeCount: Minimum Node Count must be               at least 1.
+    poolNamesUnique: Pool group names must be unique.
+    ssdCount: SSD Count must be a positive number.
   groupDetails: Group Details
   groupName:
     label: Name
@@ -86,7 +98,7 @@ gke:
   httpLoadBalancing:
     label: HTTP (L7) Load Balancing
   imageType:
-    # the below options are no longer supported but may be in use by older gke clusters being edited through this ui
+    # windows SAC and Docker options are no longer supported but the translations are defined here in case an older cluster is edited
     COS: Container-Optimized OS with Docker
     COS_CONTAINERD: Container-Optimized OS with Containerd
     UBUNTU: Ubuntu with Docker
@@ -108,8 +120,8 @@ gke:
     zonal: Zonal
     zone: Zone
   loggingService:
-    label: Logging
     banner: Logging and Monitoring must both be enabled or both be disabled.
+    label: Logging
   machineType:
     label: Machine Type
   maintenanceWindow:
@@ -151,6 +163,7 @@ gke:
     add: Add Label
     label: Node Labels
     tooltip: These labels will be applied to each node in the pool.
+  notNamed: Not Named
   preemptible:
     label: Preemptible Nodes
   project:
@@ -176,18 +189,4 @@ gke:
     current: Current
     label: Kubernetes Version
     tooltip: Upgrades cannot be more than one minor version away from the current version.
-    upgrade: Upgrade the node pool version to {clusterKubernetesVersion}
-  errors:
-    diskSizeGb: Disk Size must be at least 10GB.
-    initialNodeCount: Initial Node Count must be at least 1.
-    ssdCount: SSD Count must be a positive number.
-    minNodeCount: Minimum Node Count must be               at least 1.
-    minMaxNodeCount: Minimum Node Count cannot exceed Maximum Node Count.
-    poolNamesUnique: Pool group names must be unique.
-    clusterNameChars: Cluster name may only contain lowercase letters, numbers, and hyphens.
-    clusterNameStartEnd: Cluster name must startd and end with a letter or number.                  
-    ipv4Cidr: "{key} must be a valid ipv4 cidr range."
-    genericKey: Value
-    ipv4oripv6: "{key} must be a valid ipv6 or ipv4 CIDR address"
-  notNamed: Not Named
-    
+    upgrade: Upgrade the node pool version from {version} to {clusterKubernetesVersion}

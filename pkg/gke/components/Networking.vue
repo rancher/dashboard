@@ -10,8 +10,8 @@ import KeyValue from '@shell/components/form/KeyValue.vue';
 
 import { getGKENetworks, getGKESubnetworks, getGKESharedSubnetworks } from '../util/gcp';
 import type { getGKESubnetworksResponse, getGKESharedSubnetworksResponse } from '../types/gcp.d.ts';
-import { debounce } from 'lodash';
-import { getGKENetworksResponse, GKESubnetwork } from '../types/gcp';
+import debounce from 'lodash/debounce';
+import { getGKENetworksResponse, GKESubnetwork, GKENetwork } from '../types/gcp';
 import Banner from '@components/Banner/Banner.vue';
 
 const GKE_NONE_OPTION = 'none';
@@ -200,7 +200,7 @@ export default defineComponent({
 
     networkOptions(neu) {
       if (neu && neu.length && !this.network) {
-        const firstnetwork = neu.find((network) => network.kind !== 'group');
+        const firstnetwork = neu.find((network: GKENetwork) => network.kind !== 'group');
 
         this.$emit('update:network', firstnetwork?.name);
       }
@@ -414,7 +414,6 @@ export default defineComponent({
       return labeled;
     },
 
-    // TODO nb move this type somewhere
     clusterSecondaryRangeOptions(): {rangeName: string, ipCidrRange?: string, label: string}[] {
       if (this.selectedSubnetwork && this.selectedSubnetwork.name === GKE_NONE_OPTION) {
         return [{
@@ -448,7 +447,7 @@ export default defineComponent({
         const { network } = this;
 
         if (!network) {
-          return null;
+          return undefined;
         }
 
         return this.networkOptions.find((n) => n.name === network);
@@ -546,6 +545,7 @@ export default defineComponent({
           option-key="name"
           option-label="label"
           :disabled="!isNewOrUnprovisioned"
+          data-testid="gke-networks-dropdown"
         />
       </div>
       <div class="col span-6">
@@ -557,6 +557,7 @@ export default defineComponent({
           :mode="mode"
           :label-key="useIpAliases ? 'gke.subnetwork.nodeLabel' : 'gke.subnetwork.label'"
           :disabled="!isNewOrUnprovisioned"
+          data-testid="gke-subnetworks-dropdown"
         />
       </div>
     </div>
@@ -570,6 +571,7 @@ export default defineComponent({
           :options="clusterSecondaryRangeOptions"
           label-key="gke.clusterSecondaryRangeName.label"
           :disabled="!isNewOrUnprovisioned"
+          data-testid="gke-cluster-secondary-range-name-select"
         />
         <LabeledInput
           v-else
@@ -578,6 +580,7 @@ export default defineComponent({
           label-key="gke.subnetwork.name"
           :placeholder="t('gke.subnetwork.namePlaceholder')"
           :disabled="!isNewOrUnprovisioned"
+          data-testid="gke-subnetwork-name-input"
           @input="$emit('update:subnetworkName', $event)"
         />
       </div>
@@ -589,6 +592,7 @@ export default defineComponent({
           :placeholder="t('gke.clusterIpv4Cidr.placeholder')"
           :disabled="(!!selectedClusterSecondaryRangeName && !!selectedClusterSecondaryRangeName.ipCidrRange)|| !isNewOrUnprovisioned"
           :rules="rules.clusterIpv4CidrBlock"
+          data-testid="gke-cluster-secondary-range-cidr-input"
           @input="$emit('update:clusterIpv4CidrBlock', $event)"
         />
       </div>
@@ -630,6 +634,7 @@ export default defineComponent({
       class="mb-10"
       label-key="gke.useIpAliases.warning"
       color="warning"
+      data-testid="gke-use-ip-aliases-banner"
     />
     <div class="row mb-10">
       <div class="col span-3">
@@ -695,6 +700,7 @@ export default defineComponent({
             :value="enablePrivateEndpoint"
             :disabled="!enablePrivateNodes || !isNewOrUnprovisioned"
             :tooltip="t('gke.enablePrivateEndpoint.tooltip')"
+            data-testid="gke-enable-private-endpoint-checkbox"
             @input="$emit('update:enablePrivateEndpoint', $event)"
           />
         </div>
@@ -720,6 +726,7 @@ export default defineComponent({
             :disabled="!isNewOrUnprovisioned"
             required
             :rules="rules.masterIpv4CidrBlock"
+            data-testid="gke-master-ipv4-cidr-block-input"
             @input="$emit('update:masterIpv4CidrBlock', $event)"
           />
         </div>
@@ -741,6 +748,7 @@ export default defineComponent({
             :add-label="t('gke.masterAuthorizedNetwork.cidrBlocks.add')"
             :initial-empty-row="true"
             :disabled="!isNewOrUnprovisioned"
+            data-testid="gke-master-authorized-network-cidr-keyvalue"
             @input="$emit('update:masterAuthorizedNetworkCidrBlocks', $event)"
           />
         </div>

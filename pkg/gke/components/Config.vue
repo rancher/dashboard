@@ -395,6 +395,7 @@ export default defineComponent({
           :value="kubernetesVersion"
           :tooltip="isCreate? '' :t('gke.version.tooltip')"
           :loading="loadingVersions"
+          data-testid="gke-version-select"
           @selecting="$emit('update:kubernetesVersion', $event.value)"
         />
       </div>
@@ -434,6 +435,7 @@ export default defineComponent({
           :key="zoneOpt.name"
           :label="zoneOpt.name"
           :value="locations.includes(zoneOpt.name)"
+          :data-testid="`gke-extra-zones-${zoneOpt.name}`"
           @input="e=>setExtraZone(e, zoneOpt.name)"
         />
       </div>
@@ -444,6 +446,7 @@ export default defineComponent({
           :options="zoneRadioOptions"
           name="regionmode"
           :disabled="!isNewOrUnprovisioned"
+          data-testid="gke-location-mode-radio"
         />
       </div>
     </div>

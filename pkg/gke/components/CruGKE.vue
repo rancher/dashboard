@@ -1,5 +1,4 @@
 <script lang='ts'>
-import semver from 'semver';
 import { mapGetters, Store } from 'vuex';
 import { defineComponent } from 'vue';
 import cloneDeep from 'lodash/cloneDeep';
@@ -33,6 +32,7 @@ import debounce from 'lodash/debounce';
 import {
   clusterNameChars, clusterNameStartEnd, requiredInCluster, ipv4WithCidr, ipv4oripv6WithCidr
 } from '../util/validators';
+import { diffUpstreamSpec } from '@shell/utils/kontainer';
 
 const defaultMachineType = 'n1-standard-2';
 
@@ -69,7 +69,6 @@ const defaultNodePool = {
   isNew:             true,
 };
 
-// TODO nb make sure all of these nested fields are available on edit
 const defaultGkeConfig = {
   imported:      false,
   clusterAddons: {
@@ -107,8 +106,7 @@ const defaultGkeConfig = {
     enablePrivateNodes:    false,
     masterIpv4CidrBlock:   null
   },
-  // TODO nb remove
-  projectID: process.env.VUE_APP_PROJECT,
+  projectID: '',
 
   region:     '',
   subnetwork: '',
@@ -176,6 +174,15 @@ export default defineComponent({
     }
     if (!this.normanCluster.gkeConfig.nodePools) {
       this.$set(this.normanCluster.gkeConfig, 'nodePools', [{ ...cloneDeep(defaultNodePool), name: 'group-1' }]);
+    }
+    if (!this.normanCluster.gkeConfig.ipAllocationPolicy) {
+      this.$set(this.normanCluster.gkeConfig, 'ipAllocationPolicy', cloneDeep(defaultGkeConfig.ipAllocationPolicy));
+    }
+    if (!this.normanCluster.gkeConfig.clusterAddons) {
+      this.$set(this.normanCluster.gkeConfig, 'clusterAddons', cloneDeep(defaultGkeConfig.clusterAddons));
+    }
+    if (!this.normanCluster.gkeConfig.privateClusterConfig) {
+      this.$set(this.normanCluster.gkeConfig, 'privateClusterConfig', cloneDeep(defaultGkeConfig.privateClusterConfig));
     }
     this.config = this.normanCluster.gkeConfig;
     this.nodePools = this.normanCluster.gkeConfig.nodePools;
@@ -583,14 +590,13 @@ export default defineComponent({
     },
 
     // only save values that differ from upstream aks spec - see diffUpstreamSpec comments for details
-    // TODO nb gke exceptions?
     removeUnchangedConfigFields(): void {
       const upstreamConfig = this.normanCluster?.status?.gkeStatus?.upstreamSpec;
 
       if (upstreamConfig) {
-        // const diff = diffUpstreamSpec(upstreamConfig, this.config);
+        const diff = diffUpstreamSpec(upstreamConfig, this.config);
 
-        // this.$set(this.normanCluster, 'gkeConfig', diff);
+        this.$set(this.normanCluster, 'gkeConfig', diff);
       }
     },
 
