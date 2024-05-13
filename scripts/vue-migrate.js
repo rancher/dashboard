@@ -45,11 +45,10 @@ const packageUpdates = () => {
 
   files.forEach((file) => {
     let content = fs.readFileSync(file, 'utf8');
-    const parsedJson = JSON.parse(content);
     const toReplaceNode = false;
 
     // TODO: Refactor and loop?
-    const [librariesContent, replaceLibraries] = packageUpdatesLibraries(file, content, parsedJson);
+    const [librariesContent, replaceLibraries] = packageUpdatesLibraries(file, content);
 
     if (replaceLibraries.length) {
       content = librariesContent;
@@ -57,7 +56,7 @@ const packageUpdates = () => {
       stats.libraries.push(file);
     }
 
-    const [nodeContent, replaceNode] = packageUpdatesEngine(file, content, parsedJson);
+    const [nodeContent, replaceNode] = packageUpdatesEngine(file, content);
 
     if (replaceNode.length) {
       printContent(file, `Updating node`, replaceNode);
@@ -65,7 +64,7 @@ const packageUpdates = () => {
       stats.node.push(file);
     }
 
-    const [resolutionContent, replaceResolution] = packageUpdatesResolution(file, content, parsedJson);
+    const [resolutionContent, replaceResolution] = packageUpdatesResolution(file, content);
 
     if (replaceResolution.length) {
       printContent(file, `Updating resolution`, replaceResolution);
@@ -82,12 +81,14 @@ const packageUpdates = () => {
 /**
  * Verify package vue related libraries versions
  */
-const packageUpdatesLibraries = (file, oldContent, parsedJson) => {
+const packageUpdatesLibraries = (file, oldContent) => {
   let content = oldContent;
+  let parsedJson = JSON.parse(content);
   const replaceLibraries = [];
   const types = ['dependencies', 'devDependencies', 'peerDependencies'];
   // [Library name, new version or new library, new library version]
   const librariesUpdates = [
+    ['@nuxt/babel-preset-app', removePlaceholder],
     ['@types/jest', '^29.5.2'],
     ['@typescript-eslint/eslint-plugin', '~5.4.0'],
     ['@typescript-eslint/parser', '~5.4.0'],
@@ -103,6 +104,8 @@ const packageUpdatesLibraries = (file, oldContent, parsedJson) => {
     ['@vue/vue2-jest', '@vue/vue3-jest', '^27.0.0-alpha.1'],
     ['@vue/test-utils', '~2.0.0-0'],
     ['core-js', '3.25.3'],
+    ['cache-loader', '^4.1.0'],
+    ['node-polyfill-webpack-plugin', '^3.0.0'],
     ['portal-vue', '~3.0.0'],
     ['require-extension-hooks-babel', '1.0.0'],
     ['require-extension-hooks-vue', '3.0.0'],
@@ -122,20 +125,23 @@ const packageUpdatesLibraries = (file, oldContent, parsedJson) => {
       librariesUpdates.forEach(([library, newVersion, newLibraryVersion]) => {
         if (parsedJson[type][library]) {
           const version = semver.coerce(parsedJson[type][library]);
-
           if (newVersion === removePlaceholder) {
+            // Remove library
             replaceLibraries.push([library, [parsedJson[type][library], removePlaceholder]]);
-            content = content.replaceAll(`"${ library }": "${ parsedJson[type][library] }"`, ``);
+            delete parsedJson[type][library];
+            content = JSON.stringify(parsedJson, null, 2);
             writeContent(file, content);
           } else if (newLibraryVersion) {
             // Replace with a new library if present, due breaking changes in Vue3
             replaceLibraries.push([library, [parsedJson[type][library], newVersion, newLibraryVersion]]);
             content = content.replaceAll(`"${ library }": "${ parsedJson[type][library] }"`, `"${ newVersion }": "${ newLibraryVersion }"`);
+            parsedJson = JSON.parse(content);
             writeContent(file, content);
           } else if (version && semver.lt(version, semver.coerce(newVersion))) {
             // Update library version if outdated
             replaceLibraries.push([library, [parsedJson[type][library], newVersion]]);
             content = content.replaceAll(`"${ library }": "${ parsedJson[type][library] }"`, `"${ library }": "${ newVersion }"`);
+            parsedJson = JSON.parse(content);
             writeContent(file, content);
           }
         }
@@ -149,8 +155,9 @@ const packageUpdatesLibraries = (file, oldContent, parsedJson) => {
 /**
  * Verify package engines node to latest
  */
-const packageUpdatesEngine = (file, oldContent, parsedJson) => {
+const packageUpdatesEngine = (file, oldContent) => {
   let content = oldContent;
+  let parsedJson = JSON.parse(content);
   const replaceNode = [];
 
   // Verify package engines node to latest
@@ -160,6 +167,7 @@ const packageUpdatesEngine = (file, oldContent, parsedJson) => {
     if (outdated) {
       replaceNode.push([parsedJson.engines.node, nodeRequirement]);
       content = content.replaceAll(`"node": "${ parsedJson.engines.node }"`, `"node": ">=${ nodeRequirement }"`);
+      parsedJson = JSON.parse(content);
       writeContent(file, content);
     }
   }
@@ -170,8 +178,9 @@ const packageUpdatesEngine = (file, oldContent, parsedJson) => {
 /**
  * Add resolutions for VueCLI
  */
-const packageUpdatesResolution = (file, oldContent, parsedJson) => {
+const packageUpdatesResolution = (file, oldContent) => {
   let content = oldContent;
+  let parsedJson = JSON.parse(content);
   const replaceResolution = [];
   const resolutions = [
     ['@vue/cli-service/html-webpack-plugin', '^5.0.0'],
@@ -184,11 +193,13 @@ const packageUpdatesResolution = (file, oldContent, parsedJson) => {
       if (newVersion === removePlaceholder) {
         delete parsedJson.resolutions[library];
         content = JSON.stringify(parsedJson, null, 2);
+        parsedJson = JSON.parse(content);
         writeContent(file, content);
       } else if (!parsedJson.resolutions[library]) {
         // Add resolution if not present
         parsedJson.resolutions[library] = newVersion;
         content = JSON.stringify(parsedJson, null, 2);
+        parsedJson = JSON.parse(content);
         writeContent(file, content);
       } else {
         // Ensure resolution version is up to date
@@ -197,6 +208,7 @@ const packageUpdatesResolution = (file, oldContent, parsedJson) => {
         if (outdated) {
           replaceResolution.push([parsedJson.engines.node, nodeRequirement]);
           content = content.replaceAll(`"${ library }": "${ parsedJson.resolutions[library] }"`, `"${ library }": "${ newVersion }"`);
+          parsedJson = JSON.parse(content);
           writeContent(file, content);
         }
       }
@@ -305,11 +317,22 @@ const vueSyntaxUpdates = () => {
   const files = glob.sync(params.paths || '**/*.{vue,js,ts}', { ignore: [...ignore, '**/*.spec.ts', '**/__tests__/**', '**/*.test.ts', 'jest.setup.js', '**/*.d.ts', '**/vue-shim.ts'] });
   const replacementCases = [
     // Prioritize set and delete to be converted since removed in Vue3
-    [/Vue\.set\((.*?),\s*(.*?),\s*(.*?)\)/g, (_, obj, prop, val) => `${ obj.trim() }[${ prop.trim() }] = ${ val.trim() }`, 'removed and unnecessary due new reactivity https://vuejs.org/guide/extras/reactivity-in-depth.html'],
+    [/\=\> Vue\.set\((.*?),\s*(.*?),\s*(.*?)\)/g, (_, obj, prop, val) => `=> (${ obj.trim() }[${ prop.trim() }] = ${ val.trim() })`, 'removed and unnecessary due new reactivity https://vuejs.org/guide/extras/reactivity-in-depth.html'],
+    [/\=\> Vue\.set\((.*?),\s*'([^']*?)',\s*\{([\s\S]*?)\}\)/g, (_, obj, prop, val) => `=> (${ obj.trim() }['${ prop }'] = {${ val.trim() }})`, 'removed and unnecessary due new reactivity https://vuejs.org/guide/extras/reactivity-in-depth.html'],
+    [/\=\> Vue\.set\((.*?),\s*'([^']*?)',\s*(.*?)\)/g, (_, obj, prop, val) => `=> (${ obj.trim() }.${ prop } = ${ val.trim() })`, 'removed and unnecessary due new reactivity https://vuejs.org/guide/extras/reactivity-in-depth.html'],
+
+    [/Vue\.set\((.*?),\s*(.*?),\s*(.*?)\)/g, (_, obj, prop, val) => `${obj.trim()}[${prop.trim()}] = ${val.trim()}`, 'removed and unnecessary due new reactivity https://vuejs.org/guide/extras/reactivity-in-depth.html'],
     [/Vue\.set\((.*?),\s*'([^']*?)',\s*\{([\s\S]*?)\}\)/g, (_, obj, prop, val) => `${ obj.trim() }['${ prop }'] = {${ val.trim() }}`, 'removed and unnecessary due new reactivity https://vuejs.org/guide/extras/reactivity-in-depth.html'],
     [/Vue\.set\((.*?),\s*'([^']*?)',\s*(.*?)\)/g, (_, obj, prop, val) => `${ obj.trim() }.${ prop } = ${ val.trim() }`, 'removed and unnecessary due new reactivity https://vuejs.org/guide/extras/reactivity-in-depth.html'],
     [/Vue\.delete\((.*?),\s*(.*?)\)/g, (_, obj, prop) => `delete ${ obj.trim() }[${ prop.trim() }]`, 'removed and unnecessary due new reactivity https://vuejs.org/guide/extras/reactivity-in-depth.html'],
-    [/this\.\$set\((.*?),\s*(.*?),\s*(.*?)\)/g, (_, obj, prop, val) => `${ obj.trim() }[${ prop.trim() }] = ${ val.trim() }`, 'removed and unnecessary due new reactivity https://vuejs.org/guide/extras/reactivity-in-depth.html'],
+    
+    [/\=\> this\.\$set\((.*?),\s*(.*?),\s*(.*?)\)/g, (_, obj, prop, val) => `=> (${obj.trim()}[${prop.trim()}] = ${val.trim()})`, 'removed and unnecessary due new reactivity https://vuejs.org/guide/extras/reactivity-in-depth.html'],
+    [/\=\> this\.\$set\((.*?),\s*'([^']*?)',\s*\{([\s\S]*?)\}\)/g, (_, obj, prop, val) => `=> (${ obj.trim() }['${ prop }'] = {${ val.trim() }})`, 'removed and unnecessary due new reactivity https://vuejs.org/guide/extras/reactivity-in-depth.html'],
+    [/\=\> this\.\$set\((.*?),\s*'([^']*?)',\s*(.*?)\)/g, (_, obj, prop, val) => `=> (${ obj.trim() }.${ prop } = ${ val.trim() })`, 'removed and unnecessary due new reactivity https://vuejs.org/guide/extras/reactivity-in-depth.html'],
+
+    [/this.\$set\((.*?),\s*'([^']*?)',\s*(.*?)\)/g, (_, obj, prop, val) => obj.trim() === 'this' ? `this['${prop}'] = ${val}` : `${obj.trim()}['${prop}'] = ${val}`, 'removed and unnecessary due new reactivity https://vuejs.org/guide/extras/reactivity-in-depth.html'],
+
+    [/this\.\$set\((.*?),\s*(.*?),\s*(.*?)\)/g, (_, obj, prop, val) => `${obj.trim()}[${prop.trim()}] = ${val.trim()}`, 'removed and unnecessary due new reactivity https://vuejs.org/guide/extras/reactivity-in-depth.html'],
     [/this\.\$set\((.*?),\s*'([^']*?)',\s*\{([\s\S]*?)\}\)/g, (_, obj, prop, val) => `${ obj.trim() }['${ prop }'] = {${ val.trim() }}`, 'removed and unnecessary due new reactivity https://vuejs.org/guide/extras/reactivity-in-depth.html'],
     [/this\.\$set\((.*?),\s*'([^']*?)',\s*(.*?)\)/g, (_, obj, prop, val) => `${ obj.trim() }.${ prop } = ${ val.trim() }`, 'removed and unnecessary due new reactivity https://vuejs.org/guide/extras/reactivity-in-depth.html'],
     [/this\.\$delete\((.*?),\s*(.*?)\)/g, (_, obj, prop) => `delete ${ obj.trim() }[${ prop.trim() }]`, 'removed and unnecessary due new reactivity https://vuejs.org/guide/extras/reactivity-in-depth.html'],
@@ -338,6 +361,7 @@ const vueSyntaxUpdates = () => {
     [`value=`, `modelValue=`],
     [`@input=`, `@update:modelValue=`],
     // [`v-bind.sync=`, `:modelValue=`, `https://v3-migration.vuejs.org/breaking-changes/v-model.html#using-v-bind-sync`],
+    // ['v-model=', ':modelValue=', ''],
     [`click.native`, `click`, `https://v3-migration.vuejs.org/breaking-changes/v-model.html#using-v-bind-sync`],
     [`v-on="$listeners"`, removePlaceholder, `removed and integrated with $attrs https://v3-migration.vuejs.org/breaking-changes/listeners-removed.html`],
     [`:listeners="$listeners"`, `:v-bind="$attrs"`, `removed and integrated with $attrs https://v3-migration.vuejs.org/breaking-changes/listeners-removed.html`],
@@ -345,7 +369,8 @@ const vueSyntaxUpdates = () => {
     [/this\.\$scopedSlots\[(\w+)\]|this\.\$scopedSlots\.(\w+)/, (match, key1, key2) => `this.$slots.${ key1 || key2 }()`, `(many components loop through them) https://v3-migration.vuejs.org/breaking-changes/slots-unification.html`],
     [` $scopedSlots`, ` $slots`, `(many components loop through them) https://v3-migration.vuejs.org/breaking-changes/slots-unification.html`],
     [/slot="(\w+:\w+)"\s+slot-scope="(\w+)"/g, `$1="$2"`, `not mentioned in migration https://vuejs.org/guide/components/slots.html#scoped-slots`],
-    // [/this\.\$slots\['([^']+)'\]/g, `this.$slots[\'$1\']()`, `not mentioned in migration https://vuejs.org/guide/components/slots.html#scoped-slots`],
+    [/this\.\$slots\['([^']+)'\]/g, `this.$slots[\'$1\']()`, `not mentioned in migration https://vuejs.org/guide/components/slots.html#scoped-slots`],
+    // [/this\.\$slots\.([^']+)'/g, `this.$slots.$1()`, `not mentioned in migration https://vuejs.org/guide/components/slots.html#scoped-slots`],
     // [/this\.\$slots(?!\s*\(\))(\b|\?|['"\[])/g, `this.$slots()$1`, `https://eslint.vuejs.org/rules/require-slots-as-functions.html`], // TODO: Add exception for existing brackets
 
     // Portals are now Vue3 Teleports
