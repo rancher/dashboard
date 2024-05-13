@@ -36,12 +36,12 @@ const GC_IGNORE_TYPES = {
 const steveRegEx = new RegExp('(/v1)|(\/k8s\/clusters\/[a-z0-9-]+\/v1)');
 
 export default {
-  urlOptions: () => (url, opt) => {
+  urlOptions: () => (url, opt, schema) => {
     opt = opt || {};
     const parsedUrl = parse(url);
     const isSteve = steveRegEx.test(parsedUrl.path);
 
-    const stevePagination = stevePaginationUtils.checkAndCreateParam(opt);
+    const stevePagination = stevePaginationUtils.createParamsForPagination(schema, opt);
 
     if (stevePagination) {
       url += `${ (url.includes('?') ? '&' : '?') + stevePagination }`;
@@ -323,7 +323,7 @@ export default {
    */
   optionsFor: () => (ctx, { schema, pagination, opts }) => {
     if (pagination) {
-      // As headers are hardcoded each list should specify the specific default sort option
+      // As headers are hardcoded each list should have specific default sort option
       // This avoids the sortable table adding both name and id (which when combined with group would result in 3 sort args, which isn't supported)
       const steveOpts = { listMandatorySort: [] };
 

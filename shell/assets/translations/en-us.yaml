@@ -1330,6 +1330,9 @@ cluster:
         networkName: Network Name
         macAddress: Mac Address
         macFormat: 'Invalid MAC address format.'
+      vGpus:
+        errors:
+          notAllocatable: '"VGPUs" not allocatable. There are not enough [{vGpus}] devices to be allocated to each node in machine pool [{pool}]'
       volume:
         title: Volumes
         volume: Volume
@@ -4901,7 +4904,6 @@ secret:
     warnings:
       expiring: "{count} {count, plural, =1 {Certificate expires soon} other {Certificates expire soon}}"
       expired: "{count} {count, plural, =1 {Certificate has expired} other {Certificates have expired}}"
-      filtered: ". Not all may be visible given the selected project/namespace filter"
   data: Data
   registry:
     address: Registry
@@ -7140,7 +7142,7 @@ podAffinity:
 keyValue:
   keyPlaceholder: e.g. foo
   valuePlaceholder: e.g. bar
-  protip: 'Paste lines of <em>key=value</em> or <em>key: value</em> into any key field for easy bulk entry'
+  protip: 'Paste lines of <em>key=value</em> or <em>key:value</em> into any key field for easy bulk entry'
 
 registryMirror:
   header: Mirrors

@@ -291,6 +291,7 @@ export const HCI = {
   CLUSTER:          'harvesterhci.io.management.cluster',
   DASHBOARD:        'harvesterhci.io.dashboard',
   IMAGE:            'harvesterhci.io.virtualmachineimage',
+  VGPU_DEVICE:      'devices.harvesterhci.io.vgpudevice',
   SETTING:          'harvesterhci.io.setting',
   HARVESTER_CONFIG: 'rke-machine-config.cattle.io.harvesterconfig',
 };
@@ -321,3 +322,5 @@ export const CLUSTER_REPO_TYPES = {
 };
 
 export const ZERO_TIME = '0001-01-01T00:00:00Z';
+
+export const DEFAULT_GRAFANA_STORAGE_SIZE = '10Gi';

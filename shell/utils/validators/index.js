@@ -47,6 +47,7 @@ export function validateLength(val, field, displayKey, getters, errors = []) {
     return errors;
   }
 
+  // i18n-uses validation.*.exactly, validation.*.between, validation.*.min, validation.*.max
   const lengthKey = (type.indexOf('array[') === 0 ? 'arrayLength' : 'stringLength');
 
   // String and array length:

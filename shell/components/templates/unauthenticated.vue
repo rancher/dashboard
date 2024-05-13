@@ -4,8 +4,7 @@ import FixedBanner from '@shell/components/FixedBanner';
 
 export default {
   mixins:     [Brand],
-  components: { FixedBanner },
-  middleware: ['unauthenticated'],
+  components: { FixedBanner }
 };
 </script>
 

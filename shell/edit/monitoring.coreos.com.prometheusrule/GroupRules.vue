@@ -194,6 +194,7 @@ export default {
             :disabled="disableAddAlert"
             type="button"
             class="btn role-tertiary"
+            data-testid="v2-monitoring-add-alert"
             @click="addRule('alert')"
           >
             <t k="prometheusRule.alertingRules.addLabel" />

@@ -6953,7 +6953,7 @@ podAffinity:
 keyValue:
   keyPlaceholder: 例如：foo
   valuePlaceholder: 例如：bar
-  protip: '把多行 <em>key=value</em> 或 <em>key: value</em> 键值对复制到各字段中，以便批量输入'
+  protip: '把多行 <em>key=value</em> 或 <em>key:value</em> 键值对复制到各字段中，以便批量输入'
 
 registryMirror:
   header: Mirror

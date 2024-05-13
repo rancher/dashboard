@@ -6,7 +6,7 @@ export default class TabbedPo extends ComponentPo {
   }
 
   clickNthTab(optionIndex: number) {
-    return this.self().get(`li:nth-child(${ optionIndex }) a`).click();
+    return this.self().find(`li:nth-child(${ optionIndex }) a`).click();
   }
 
   clickTabWithSelector(selector: string) {

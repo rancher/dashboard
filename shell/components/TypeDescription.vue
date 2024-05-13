@@ -25,6 +25,7 @@ export default {
       if (this.resource === CATALOG.CLUSTER_REPO) {
         key = !this.currentCluster || this.currentCluster.isLocal ? 'typeDescription."catalog.cattle.io.clusterrepo.local"' : 'typeDescription."catalog.cattle.io.clusterrepo"';
       } else {
+        // i18n-uses typeDescription.*
         key = `typeDescription."${ this.resource }"`;
       }
 

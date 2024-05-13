@@ -3,6 +3,7 @@ import SelectPo from '@/cypress/e2e/po/components/select.po';
 import BurgerMenuPo from '@/cypress/e2e/po/side-bars/burger-side-menu.po';
 import ProductNavPo from '@/cypress/e2e/po/side-bars/product-side-nav.po';
 import BannersPo from '@/cypress/e2e/po/components/banners.po';
+import SelectIconGridPo from '@/cypress/e2e/po/components/select-icon-grid.po';
 
 export class ChartsPage extends PagePo {
   private static createPath(clusterId: string) {
@@ -46,8 +47,26 @@ export class ChartsPage extends PagePo {
     return new SelectPo(this.self().find('[data-testid="charts-filter-repos"]'));
   }
 
-  selectChart(name: string) {
-    cy.get('.grid .name').contains(name).click();
+  charts() {
+    return new SelectIconGridPo('[data-testid="chart-selection-grid"]', 'chart-selection');
+  }
+
+  getChart(idx: number) {
+    return this.charts().getGridEntry(idx);
+  }
+
+  getChartByName(name: string) {
+    return this.charts().self().contains(name).parent();
+  }
+
+  checkChartGenericIcon(name: string, isGeneric = true) {
+    const src = this.getChartByName(name).find('.logo img').invoke('attr', 'src');
+
+    if (isGeneric) {
+      return src.should('contain', 'generic-catalog');
+    }
+
+    return src.should('not.contain', 'generic-catalog');
   }
 
   bannerContent() {

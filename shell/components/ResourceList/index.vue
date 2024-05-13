@@ -172,7 +172,7 @@ export default {
      * This covers case 1
      */
     pagination(neu, old) {
-      if (neu && !this.componentWillFetch && this.paginationEqual(neu, old)) {
+      if (neu && !this.componentWillFetch && !this.paginationEqual(neu, old)) {
         this.$fetchType(this.resource);
       }
     },

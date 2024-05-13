@@ -8,7 +8,7 @@ import App from './App.js';
 import { setContext, getLocation, getRouteData, normalizeError } from '../utils/nuxt';
 import { createStore } from '../config/store.js';
 import { UPGRADED, _FLAGGED, _UNFLAG } from '@shell/config/query-params';
-import { loadDirectives } from '@shell/plugins';
+import { loadDirectives } from '@shell/directives/index';
 import { installPlugins } from '@shell/initialize/plugins';
 
 // Prevent extensions from overriding existing directives
@@ -32,7 +32,7 @@ Vue.directive = function(name) {
 // Load the directives from the plugins - we do this with a function so we know
 // these are initialized here, after the code above which keeps track of them and
 // prevents over-writes
-loadDirectives();
+loadDirectives(Vue);
 
 // Component: <NuxtChild>
 Vue.component(NuxtChild.name, NuxtChild);

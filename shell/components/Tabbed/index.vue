@@ -233,7 +233,10 @@ export default {
 </script>
 
 <template>
-  <div :class="{'side-tabs': !!sideTabs, 'tabs-only': tabsOnly }">
+  <div
+    :class="{'side-tabs': !!sideTabs, 'tabs-only': tabsOnly }"
+    data-testid="tabbed"
+  >
     <ul
       v-if="!hideTabs"
       ref="tablist"

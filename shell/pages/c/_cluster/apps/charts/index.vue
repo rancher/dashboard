@@ -37,7 +37,7 @@ export default {
   },
 
   async fetch() {
-    await this.$store.dispatch('catalog/load', { force: true, reset: true });
+    await this.$store.dispatch('catalog/load');
 
     const query = this.$route.query;
 
@@ -485,6 +485,8 @@ export default {
       </div>
       <SelectIconGrid
         v-else
+        data-testid="chart-selection-grid"
+        component-test-id="chart-selection"
         :rows="filteredCharts"
         name-field="chartNameDisplay"
         description-field="chartDescription"

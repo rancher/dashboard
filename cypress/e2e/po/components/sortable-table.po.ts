@@ -179,6 +179,10 @@ export default class SortableTablePo extends ComponentPo {
     return new CheckboxInputPo(this.rowWithName(clusterName).column(0));
   }
 
+  rowWithClusterName(clusterName: string) {
+    return this.rowWithName(clusterName).column(2);
+  }
+
   /**
    * Select all list items
    */

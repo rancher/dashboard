@@ -123,7 +123,7 @@ export default {
           }
         });
       } else {
-      // We have everything!
+        // We have everything!
         if (opt.hasManualRefresh) {
           dispatch('resource-fetch/updateManualRefreshIsLoading', false, { root: true });
         }
@@ -145,7 +145,7 @@ export default {
   /**
    *
    * @param {*} ctx
-   * @param { {type: string, opt: FindAllOpt} } opt
+   * @param { {type: string, opt: ActionFindPageArgs} } opt
    */
   async findAll(ctx, { type, opt }) {
     const {
@@ -164,8 +164,7 @@ export default {
       !opt.force &&
       (
         getters['haveAll'](type) ||
-        getters['haveAllNamespace'](type, opt.namespaced) ||
-        (opt.pagination ? getters['havePaginatedPage'](type, opt.pagination) : false)
+        getters['haveAllNamespace'](type, opt.namespaced)
       )
     ) {
       if (opt.watch !== false ) {
@@ -323,8 +322,9 @@ export default {
           pagination: opt.pagination ? {
             request: opt.pagination,
             result:  {
-              count: out.count,
-              pages: out.pages
+              count:     out.count,
+              pages:     out.pages,
+              timestamp: new Date().getTime()
             }
           } : undefined,
         });
@@ -383,7 +383,7 @@ export default {
     }
 
     // No need to request the resources if we have them already
-    if (!opt.force && getters['havePaginatedPage'](type, opt.pagination)) {
+    if (!opt.force && getters['havePaginatedPage'](type, opt)) {
       return findAllGetter(getters, type, opt);
     }
 
@@ -412,10 +412,14 @@ export default {
       type,
       data:       out.data,
       pagination: opt.pagination ? {
-        request: opt.pagination,
-        result:  {
-          count: out.count,
-          pages: out.pages
+        request: {
+          namespace:  opt.namespaced,
+          pagination: opt.pagination
+        },
+        result: {
+          count:     out.count,
+          pages:     out.pages,
+          timestamp: new Date().getTime()
         }
       } : undefined,
     });

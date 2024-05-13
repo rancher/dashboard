@@ -7,7 +7,7 @@ DASHBOARD_DIST=${DIR}/dist
 EMBER_DIST=${DIR}/dist_ember
 
 # Image version
-RANCHER_IMG_VERSION=v2.9-c9be13b09329bbee60a5f6419d500198f83c44d1-head
+RANCHER_IMG_VERSION=v2.9-head
 
 docker run -d --restart=unless-stopped -p 80:80 -p 443:443 \
   -v ${DASHBOARD_DIST}:/usr/share/rancher/ui-dashboard/dashboard \

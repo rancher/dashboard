@@ -19,4 +19,9 @@ export default class ChartRepositoriesListPo extends BaseResourceList {
   details(name: string, index: number) {
     return this.resourceTable().sortableTable().rowWithName(name).column(index);
   }
+
+  refreshRepo(repoName: string) {
+    return this.resourceTable().sortableTable().rowActionMenuOpen(repoName).getMenuItem('Refresh')
+      .click();
+  }
 }

@@ -389,12 +389,14 @@ export default {
                   v-if="showLocalhostWarning"
                   color="warning"
                   :label="t('validation.setting.serverUrl.localhost')"
+                  data-testid="setup-serverurl-localhost-warning"
                 />
                 <Banner
                   v-for="(err, i) in fvGetPathErrors(['serverUrl'])"
                   :key="i"
                   color="error"
                   :label="err"
+                  data-testid="setup-error-banner"
                 />
                 <LabeledInput
                   v-model="serverUrl"

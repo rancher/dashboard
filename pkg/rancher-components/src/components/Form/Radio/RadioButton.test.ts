@@ -1,6 +1,5 @@
 import { shallowMount } from '@vue/test-utils';
 import { RadioButton } from './index';
-import { cleanHtmlDirective } from '@shell/plugins/clean-html-directive';
 
 describe('radioButton.vue', () => {
   it('renders label slot contents', () => {
@@ -13,8 +12,7 @@ describe('radioButton.vue', () => {
     const wrapper = shallowMount(
       RadioButton,
       {
-        directives: { cleanHtmlDirective },
-        propsData:  {
+        propsData: {
           label: 'Test Label', val: {}, value: {}
         }
       });

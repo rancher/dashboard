@@ -540,6 +540,7 @@ export default {
           v-shortkey="{windows: ['ctrl', 'k'], mac: ['meta', 'k']}"
           type="button"
           class="btn header-btn role-tertiary"
+          data-testid="header-resource-search"
           @shortkey="openSearch()"
           @click="openSearch()"
         >

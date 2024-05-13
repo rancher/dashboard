@@ -14,6 +14,8 @@ import { ExtensionPoint, PanelLocation } from '@shell/core/types';
 import ExtensionPanel from '@shell/components/ExtensionPanel';
 import TabTitle from '@shell/components/TabTitle';
 
+// i18n-uses resourceDetail.header.*
+
 /**
  * Resource Detail Masthead component.
  *
@@ -468,6 +470,7 @@ export default {
             <router-link
               v-if="!hideNamespaceLocation"
               :to="namespaceLocation"
+              data-testid="masthead-subheader-namespace"
             >
               {{ namespace }}
             </router-link>

@@ -1,22 +1,8 @@
 import Vue from 'vue';
+import intNumberDirective from '@shell/directives/int-number';
 
-export default Vue.directive('intNumber', {
-  inserted(el) {
-    el.addEventListener('keypress', (e) => {
-      e = e || window.event;
-      const charcode = typeof e.charCode === 'number' ? e.charCode : e.keyCode;
-      const inputChar = String.fromCharCode(charcode);
-
-      // Allow digits, minus sign at the beginning, and Ctrl key combinations
-      const re = /^-?\d*$/;
-
-      if (!re.test(inputChar) && charcode > 9 && !e.ctrlKey) {
-        if (e.preventDefault) {
-          e.preventDefault();
-        } else {
-          e.returnValue = false;
-        }
-      }
-    });
-  }
-});
+export default intNumberDirective;
+/* eslint-disable-next-line no-console */
+console.warn(`Importing intNumberDirective from plugins has been deprecated, use shell/directives/int-number.js instead.
+Make sure to invoke it using Vue.directive('intNumber', intNumberDirective) to maintain compatibility.`);
+Vue.directive('intNumber', intNumberDirective);

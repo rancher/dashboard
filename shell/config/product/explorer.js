@@ -19,13 +19,15 @@ import {
   STORAGE_CLASS_PROVISIONER, PERSISTENT_VOLUME_SOURCE,
   HPA_REFERENCE, MIN_REPLICA, MAX_REPLICA, CURRENT_REPLICA,
   ACCESS_KEY, DESCRIPTION, EXPIRES, EXPIRY_STATE, SUB_TYPE, AGE_NORMAN, SCOPE_NORMAN, PERSISTENT_VOLUME_CLAIM, RECLAIM_POLICY, PV_REASON, WORKLOAD_HEALTH_SCALE, POD_RESTARTS,
-  DURATION, MESSAGE, REASON, LAST_SEEN_TIME, EVENT_TYPE, OBJECT, ROLE, SECRET_DATA
+  DURATION, MESSAGE, REASON, LAST_SEEN_TIME, EVENT_TYPE, OBJECT, ROLE, ROLES, VERSION, INTERNAL_EXTERNAL_IP, KUBE_NODE_OS, CPU, RAM, SECRET_DATA
 } from '@shell/config/table-headers';
 
 import { DSL } from '@shell/store/type-map';
 import {
   STEVE_AGE_COL, STEVE_LIST_GROUPS, STEVE_NAMESPACE_COL, STEVE_NAME_COL, STEVE_STATE_COL
 } from '@shell/config/pagination-table-headers';
+
+import { COLUMN_BREAKPOINTS } from '@shell/types/store/type-map';
 
 export const NAME = 'explorer';
 
@@ -233,8 +235,11 @@ export function init(store) {
       value:  'metadata.fields.1',
       sort:   'metadata.fields.1',
       search: 'metadata.fields.1',
+    }, {
+      ...SECRET_DATA,
+      sort:   false,
+      search: false,
     },
-    SECRET_DATA,
     STEVE_AGE_COL
   ]);
 
@@ -263,6 +268,66 @@ export function init(store) {
       }, 'Ready', 'Restarts', 'IP', {
         ...NODE_COL,
         search: 'spec.nodeName'
+      },
+      STEVE_AGE_COL
+    ]);
+
+  headers(NODE,
+    [
+      STATE,
+      NAME_COL,
+      ROLES,
+      VERSION,
+      INTERNAL_EXTERNAL_IP,
+      {
+        ...KUBE_NODE_OS,
+        breakpoint: COLUMN_BREAKPOINTS.LAPTOP,
+        getValue:   (row) => row.status?.nodeInfo?.operatingSystem
+      },
+      {
+        ...CPU,
+        breakpoint: COLUMN_BREAKPOINTS.LAPTOP,
+        getValue:   (row) => row.cpuUsagePercentage
+      }, {
+        ...RAM,
+        breakpoint: COLUMN_BREAKPOINTS.LAPTOP,
+        getValue:   (row) => row.ramUsagePercentage
+      },
+      AGE
+    ],
+    [
+      STEVE_STATE_COL,
+      STEVE_NAME_COL,
+      {
+        ...ROLES,
+        sort:   false,
+        search: false
+      },
+      {
+        ...VERSION,
+        value:    'status.nodeInfo.kubeletVersion',
+        getValue: undefined,
+        sort:     ['status.nodeInfo.kubeletVersion'],
+        search:   'status.nodeInfo.kubeletVersion'
+      }, {
+        ...INTERNAL_EXTERNAL_IP,
+        sort:   false,
+        search: false,
+      }, {
+        ...KUBE_NODE_OS,
+        breakpoint: COLUMN_BREAKPOINTS.LAPTOP,
+        getValue:   undefined
+      }, {
+        ...CPU,
+        breakpoint: COLUMN_BREAKPOINTS.LAPTOP,
+        getValue:   (row) => row.cpuUsagePercentage,
+        sort:       false,
+        search:     false,
+      }, {
+        ...RAM,
+        breakpoint: COLUMN_BREAKPOINTS.LAPTOP,
+        sort:       false,
+        search:     false,
       },
       STEVE_AGE_COL
     ]);

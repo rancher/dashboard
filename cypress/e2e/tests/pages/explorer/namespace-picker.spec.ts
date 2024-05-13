@@ -206,8 +206,8 @@ describe('Namespace picker', { testIsolation: 'off' }, () => {
         // check ns picker
         cy.reload();
         namespacePicker.toggle();
-        cy.contains(projName).should('not.exist');
-        cy.contains(nsName).should('not.exist');
+        cy.contains(projName, { timeout: 10000 }).should('not.exist');
+        cy.contains(nsName, { timeout: 10000 }).should('not.exist');
       });
     });
   });

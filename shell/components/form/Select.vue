@@ -246,7 +246,7 @@ export default {
     >
       <template #option="option">
         <div @mousedown="(e) => onClickOption(option, e)">
-          {{ option.label }}
+          {{ getOptionLabel(option.label) }}
         </div>
       </template>
       <!-- Pass down templates provided by the caller -->

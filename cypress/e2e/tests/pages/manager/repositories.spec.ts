@@ -18,31 +18,18 @@ describe('Cluster Management Helm Repositories', { testIsolation: 'off', tags: [
   it('can create a repository', function() {
     ChartRepositoriesPagePo.navTo();
     repositoriesPage.waitForPage();
-    repositoriesPage.waitForGoTo('/v1/catalog.cattle.io.clusterrepos?exclude=metadata.managedFields');
     repositoriesPage.create();
     repositoriesPage.createEditRepositories().waitForPage();
     repositoriesPage.createEditRepositories().nameNsDescription().name().set(this.repoName);
     repositoriesPage.createEditRepositories().nameNsDescription().description().set(`${ this.repoName }-description`);
     repositoriesPage.createEditRepositories().repoRadioBtn().set(1);
-    repositoriesPage.createEditRepositories().gitRepoUrl().set('https://git.rancher.io/charts');
+    repositoriesPage.createEditRepositories().gitRepoUrl().set('https://github.com/rancher/charts');
     repositoriesPage.createEditRepositories().gitBranch().set('release-v2.8');
-    repositoriesPage.createEditRepositories().saveAndWaitForRequests('POST', '/v1/catalog.cattle.io.clusterrepos');
+    repositoriesPage.createEditRepositories().saveAndWaitForRequests('POST', '/v1/catalog.cattle.io.clusterrepos').its('response.statusCode').should('eq', 201);
     repositoriesPage.waitForPage();
 
     // check list details
     repositoriesPage.list().details(this.repoName, 2).should('be.visible');
-    repositoriesPage.list().details(this.repoName, 1).contains('In Progress').should('be.visible');
-    repositoriesPage.list().details(this.repoName, 1).contains('Active').should('be.visible');
-  });
-
-  it('can refresh a repository', function() {
-    ChartRepositoriesPagePo.navTo();
-    repositoriesPage.waitForPage();
-    cy.intercept('PUT', `/v1/catalog.cattle.io.clusterrepos/${ this.repoName }`).as('refreshRepo');
-    repositoriesPage.list().actionMenu(this.repoName).getMenuItem('Refresh').click();
-    cy.wait('@refreshRepo').its('response.statusCode').should('eq', 200);
-
-    // check list details
     repositoriesPage.list().details(this.repoName, 1).contains('In Progress').should('be.visible');
     repositoriesPage.list().details(this.repoName, 1).contains('Active').should('be.visible');
   });
@@ -92,11 +79,30 @@ describe('Cluster Management Helm Repositories', { testIsolation: 'off', tags: [
     });
   });
 
+  it('can refresh a repository', function() {
+    ChartRepositoriesPagePo.navTo();
+    repositoriesPage.waitForPage();
+    cy.intercept('PUT', `/v1/catalog.cattle.io.clusterrepos/${ this.repoName }`).as('refreshRepo');
+    repositoriesPage.list().actionMenu(this.repoName).getMenuItem('Refresh').click();
+    cy.wait('@refreshRepo').its('response.statusCode').should('eq', 200);
+
+    // check list details
+    repositoriesPage.list().details(this.repoName, 1).contains('In Progress').should('be.visible');
+    repositoriesPage.list().details(this.repoName, 1).contains('Active').should('be.visible');
+  });
+
   it('can delete a repository', function() {
     ChartRepositoriesPagePo.navTo();
     repositoriesPage.waitForPage();
 
-    // delete original cloned Repository
+    // delete cloned Repository
+    repositoriesPage.list().resourceTable().sortableTable().rowNames()
+      .then((names) => {
+        if (names.filter((name) => name === `${ this.repoName }-clone`).length > 1) {
+          cy.reload(); // need page reload here in case multiple entries are created. reload should resolve the duplicate issue
+        }
+      });
+
     repositoriesPage.list().actionMenu(`${ this.repoName }-clone`).getMenuItem('Delete').click();
 
     const promptRemove = new PromptRemove();
@@ -111,90 +117,82 @@ describe('Cluster Management Helm Repositories', { testIsolation: 'off', tags: [
     cy.contains(`${ this.repoName }-clone`).should('not.exist');
   });
 
-  it('can delete a repository via bulk actions', function() {
-    ChartRepositoriesPagePo.navTo();
-    repositoriesPage.waitForPage();
-
-    // delete original Repository
-    repositoriesPage.list().resourceTable().sortableTable().rowSelectCtlWithName(this.repoName)
-      .set();
-    repositoriesPage.list().openBulkActionDropdown();
-
-    cy.intercept('DELETE', `v1/catalog.cattle.io.clusterrepos/${ this.repoName }`).as('deleteRepository');
-    repositoriesPage.list().bulkActionButton('Delete').click();
-
-    const promptRemove = new PromptRemove();
-
-    promptRemove.remove();
-    cy.wait('@deleteRepository');
-    repositoriesPage.waitForPage();
-
-    // check list details
-    cy.contains(this.repoName).should('not.exist');
-  });
-
   it('can create a repository with basic auth', function() {
     ChartRepositoriesPagePo.navTo();
     repositoriesPage.waitForPage();
-    repositoriesPage.waitForGoTo('/v1/catalog.cattle.io.clusterrepos?exclude=metadata.managedFields');
     repositoriesPage.create();
     repositoriesPage.createEditRepositories().waitForPage();
-    repositoriesPage.createEditRepositories().nameNsDescription().name().set(this.repoName);
+    repositoriesPage.createEditRepositories().nameNsDescription().name().set(`${ this.repoName }basic`);
     repositoriesPage.createEditRepositories().nameNsDescription().description().set(`${ this.repoName }-description`);
     repositoriesPage.createEditRepositories().repoRadioBtn().set(1);
-    repositoriesPage.createEditRepositories().gitRepoUrl().set('https://git.rancher.io/charts');
+    repositoriesPage.createEditRepositories().gitRepoUrl().set('https://github.com/rancher/charts');
     repositoriesPage.createEditRepositories().gitBranch().set('release-v2.8');
     repositoriesPage.createEditRepositories().clusterrepoAuthSelectOrCreate().createBasicAuth('test', 'test');
     repositoriesPage.createEditRepositories().saveAndWaitForRequests('POST', '/v1/catalog.cattle.io.clusterrepos');
     repositoriesPage.waitForPage();
 
     // check list details
-    repositoriesPage.list().details(this.repoName, 2).should('be.visible');
-    repositoriesPage.list().details(this.repoName, 1).contains('In Progress').should('be.visible');
-    repositoriesPage.list().actionMenu(this.repoName).getMenuItem('Delete').click();
-
-    const promptRemove = new PromptRemove();
-
-    cy.intercept('DELETE', `v1/catalog.cattle.io.clusterrepos/${ this.repoName }`).as('deleteRepository');
-
-    promptRemove.remove();
-    cy.wait('@deleteRepository');
-    repositoriesPage.waitForPage();
-
-    // check list details
-    cy.contains(this.repoName).should('not.exist');
+    repositoriesPage.list().details(`${ this.repoName }basic`, 2).should('be.visible');
+    repositoriesPage.list().details(`${ this.repoName }basic`, 1).contains('Active').should('be.visible');
   });
 
   it('can create a repository with SSH key', function() {
     ChartRepositoriesPagePo.navTo();
     repositoriesPage.waitForPage();
-    repositoriesPage.waitForGoTo('/v1/catalog.cattle.io.clusterrepos?exclude=metadata.managedFields');
     repositoriesPage.create();
     repositoriesPage.createEditRepositories().waitForPage();
-    repositoriesPage.createEditRepositories().nameNsDescription().name().set(this.repoName);
+    repositoriesPage.createEditRepositories().nameNsDescription().name().set(`${ this.repoName }ssh`);
     repositoriesPage.createEditRepositories().nameNsDescription().description().set(`${ this.repoName }-description`);
     repositoriesPage.createEditRepositories().repoRadioBtn().set(1);
-    repositoriesPage.createEditRepositories().gitRepoUrl().set('https://git.rancher.io/charts');
+    repositoriesPage.createEditRepositories().gitRepoUrl().set('https://github.com/rancher/charts');
     repositoriesPage.createEditRepositories().gitBranch().set('release-v2.8');
     repositoriesPage.createEditRepositories().clusterrepoAuthSelectOrCreate().createSSHAuth('privateKey', 'publicKey');
     repositoriesPage.createEditRepositories().saveAndWaitForRequests('POST', '/v1/catalog.cattle.io.clusterrepos');
     repositoriesPage.waitForPage();
 
     // check list details
-    repositoriesPage.list().details(this.repoName, 2).should('be.visible');
+    repositoriesPage.list().details(`${ this.repoName }ssh`, 2).should('be.visible');
+    repositoriesPage.list().details(`${ this.repoName }ssh`, 1).contains('Active').should('be.visible');
+  });
 
-    repositoriesPage.list().actionMenu(this.repoName).getMenuItem('Delete').click();
+  it('can delete repositories via bulk actions', function() {
+    ChartRepositoriesPagePo.navTo();
+    repositoriesPage.waitForPage();
+
+    // delete Repositories
+    repositoriesPage.list().resourceTable().sortableTable().rowNames()
+      .then((names) => {
+        if (names.filter((name1) => name1 === (this.repoName || `${ this.repoName }basic` || `${ this.repoName }ssh`)).length > 1) {
+          cy.reload(); // need page reload here in case multiple entries are created. reload should resolve the duplicate issue
+        }
+      });
+
+    repositoriesPage.list().resourceTable().sortableTable().rowSelectCtlWithName(this.repoName)
+      .set();
+    repositoriesPage.list().resourceTable().sortableTable().rowSelectCtlWithName(`${ this.repoName }basic`)
+      .set();
+    repositoriesPage.list().resourceTable().sortableTable().rowSelectCtlWithName(`${ this.repoName }ssh`)
+      .set();
+    repositoriesPage.list().openBulkActionDropdown();
+
+    cy.intercept('DELETE', `v1/catalog.cattle.io.clusterrepos/${ this.repoName }`).as('deleteRepository');
+    cy.intercept('DELETE', `v1/catalog.cattle.io.clusterrepos/${ this.repoName }basic`).as('deleteRepositoryBasic');
+    cy.intercept('DELETE', `v1/catalog.cattle.io.clusterrepos/${ this.repoName }ssh`).as('deleteRepositorySsh');
+
+    repositoriesPage.list().bulkActionButton('Delete').click();
 
     const promptRemove = new PromptRemove();
 
-    cy.intercept('DELETE', `v1/catalog.cattle.io.clusterrepos/${ this.repoName }`).as('deleteRepository');
-
     promptRemove.remove();
     cy.wait('@deleteRepository');
+    cy.wait('@deleteRepositoryBasic');
+    cy.wait('@deleteRepositorySsh');
     repositoriesPage.waitForPage();
 
     // check list details
     cy.contains(this.repoName).should('not.exist');
+    cy.contains(`${ this.repoName }basic`).should('not.exist');
+    cy.contains(`${ this.repoName }ssh`).should('not.exist');
   });
 
   it('can create an oci repository with basic auth', function() {

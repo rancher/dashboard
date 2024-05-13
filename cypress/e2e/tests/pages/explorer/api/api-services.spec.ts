@@ -1,20 +1,17 @@
 import { APIServicesPagePo } from '@/cypress/e2e/po/pages/explorer/api-services.po';
 
+const apiServicesPage = new APIServicesPagePo('local');
+
 describe('Cluster Explorer', { tags: ['@explorer', '@adminUser'] }, () => {
   beforeEach(() => {
     cy.login();
   });
 
   describe('API: APIServices', () => {
-    let apiServicesPage: APIServicesPagePo;
-
-    beforeEach(() => {
-      apiServicesPage = new APIServicesPagePo('local');
+    it('Should be able to use shift+j to select rows and the count of selected is correct', () => {
       apiServicesPage.goTo();
       apiServicesPage.waitForRequests();
-    });
 
-    it('Should be able to use shift+j to select rows and the count of selected is correct', () => {
       apiServicesPage.title().should('contain', 'APIServices');
 
       const sortableTable = apiServicesPage.sortableTable();

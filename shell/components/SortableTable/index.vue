@@ -29,21 +29,6 @@ import { getParent } from '@shell/utils/dom';
 // NOTE: This is populated by a plugin (formatters.js) to avoid issues with plugins
 export const FORMATTERS = {};
 
-export const COLUMN_BREAKPOINTS = {
-  /**
-   * Only show column if at tablet width or wider
-   */
-  TABLET:  'tablet',
-  /**
-   * Only show column if at laptop width or wider
-   */
-  LAPTOP:  'laptop',
-  /**
-   * Only show column if at desktop width or wider
-   */
-  DESKTOP: 'desktop'
-};
-
 // @TODO:
 // Fixed header/scrolling
 
@@ -273,7 +258,7 @@ export default {
      */
     noDataKey: {
       type:    String,
-      default: 'sortableTable.noData'
+      default: 'sortableTable.noData' // i18n-uses sortableTable.noData
     },
 
     /**

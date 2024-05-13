@@ -18,6 +18,7 @@ Wizard will emit these events:
     finish
 */
 
+// i18n-uses wizard.next, wizard.edit, wizard.create, wizard.view, wizard.finish
 export default {
   name: 'Wizard',
 

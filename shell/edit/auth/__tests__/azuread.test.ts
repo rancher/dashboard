@@ -2,7 +2,6 @@
 import { mount } from '@vue/test-utils';
 import AzureAD from '@shell/edit/auth/azuread.vue';
 import { _EDIT } from '@shell/config/query-params';
-import { cleanHtmlDirective } from '@shell/plugins/clean-html-directive';
 
 jest.mock('@shell/utils/clipboard', () => {
   return { copyTextToClipboard: jest.fn(() => Promise.resolve({})) };
@@ -68,7 +67,6 @@ describe('edit: azureAD should', () => {
       value: { applicationSecret: '' },
       mode:  _EDIT,
     },
-    directives: { cleanHtmlDirective },
   });
 
   beforeEach(() => {
