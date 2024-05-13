@@ -2,10 +2,8 @@ name: Build Dashboard (Branch)
 on:
   push:
     branches:
-      - 'release-2.8'
-      - '*-2.8-dev'
-      # TODO RC remove
-      - richard-cox-2.8-drone
+      - 'release-2.8*'
+      - '*-dev'
 
 jobs:
   build-validation:

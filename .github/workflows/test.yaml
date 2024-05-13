@@ -2,13 +2,10 @@ name: Tests
 on:
   push:
     branches:
-      - 'release-*'
-      # TODO RC remove
-      - richard-cox-2.8-drone
+      - 'release-2.8*'
   pull_request:
     branches:
-      - master
-      - 'release-*'
+      - 'release-2.8*'
   workflow_dispatch:
     inputs:
       environment:

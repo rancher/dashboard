@@ -1,4 +1,4 @@
-name: Build Dashboard (Release)
+name: Build Dashboard 2.8 (Release)
 on:
   push:
     tags:
