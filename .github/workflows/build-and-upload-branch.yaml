@@ -2,7 +2,6 @@ name: Build Dashboard (Branch)
 on:
   push:
     branches:
-      - master
       - 'release-*'
       - '*-dev'
       # TODO RC remove
