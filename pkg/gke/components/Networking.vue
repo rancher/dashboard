@@ -64,6 +64,11 @@ export default defineComponent({
       default: ''
     },
 
+    createSubnetwork: {
+      type:    Boolean,
+      default: false
+    },
+
     useIpAliases: {
       type:    Boolean,
       default: false
@@ -148,6 +153,13 @@ export default defineComponent({
       default: () => []
     },
 
+    rules: {
+      type:    Object,
+      default: () => {
+        return {};
+      }
+    }
+
   },
 
   created() {
@@ -196,7 +208,7 @@ export default defineComponent({
 
     subnetworkOptions(neu) {
       if (neu && neu.length) {
-        const firstSubnet = neu[0];
+        const firstSubnet = neu.find((sn: {label: string, name: string, secondaryIpRanges?: any[]}) => sn.name !== GKE_NONE_OPTION);
 
         if (firstSubnet?.name) {
           this.$emit('update:subnetwork', firstSubnet.name);
@@ -240,8 +252,15 @@ export default defineComponent({
       if (!neu) {
         this.$emit('update:masterAuthorizedNetworkCidrBlocks', []);
       }
-    }
+    },
 
+    subnetwork(neu) {
+      if (neu) {
+        this.$emit('update:createSubnetwork', false);
+      } else {
+        this.$emit('update:createSubnetwork', true);
+      }
+    }
   },
 
   methods: {
@@ -345,7 +364,6 @@ export default defineComponent({
       });
       const shared = (Object.keys(this.sharedNetworks) || []).map((n) => {
         const firstSubnet = this.sharedNetworks[n][0];
-        // const displayName = n.split('/').pop();
 
         return {
           name: n, label: `${ n } (${ this.t('gke.network.subnetworksAvailable') })`, ...firstSubnet
@@ -381,7 +399,7 @@ export default defineComponent({
         out.push(...(this.subnetworks.filter((s) => s.network.split('/').pop() === this.network) || []));
       }
 
-      const labeled = out.map((sn) => {
+      const labeled = out.map((sn: GKESubnetwork) => {
         const name = sn.name ? sn.name : (sn.subnetwork || '').split('/').pop();
 
         return {
@@ -389,11 +407,14 @@ export default defineComponent({
         };
       });
 
-      labeled.unshift({ label: this.t('gke.subnetwork.auto'), name: GKE_NONE_OPTION });
+      if (this.useIpAliases) {
+        labeled.unshift({ label: this.t('gke.subnetwork.auto'), name: GKE_NONE_OPTION });
+      }
 
       return labeled;
     },
 
+    // TODO nb move this type somewhere
     clusterSecondaryRangeOptions(): {rangeName: string, ipCidrRange?: string, label: string}[] {
       if (this.selectedSubnetwork && this.selectedSubnetwork.name === GKE_NONE_OPTION) {
         return [{
@@ -402,7 +423,6 @@ export default defineComponent({
         }];
       }
 
-      // TODO nb none option
       const out: {rangeName: string, ipCidrRange?: string, label: string}[] = (this.selectedSubnetwork?.secondaryIpRanges || []).map(({ ipCidrRange, rangeName }) => {
         return {
           rangeName,
@@ -423,7 +443,6 @@ export default defineComponent({
      * selectedNetwork and selectedSubnetwork keep track of all the additional networking info from gcp api calls
      * eg subnets' ipCidrRange, to display alongside name in the dropdown
      */
-    // TODO nb if nothing in networkOptions matches network, error
     selectedNetwork: {
       get() {
         const { network } = this;
@@ -459,7 +478,7 @@ export default defineComponent({
     },
 
     selectedClusterSecondaryRangeName: {
-      get() {
+      get(): {rangeName: string, ipCidrRange?: string, label: string} | undefined {
         if (!this.clusterSecondaryRangeName) {
           return {
             label:     this.t('generic.none'),
@@ -479,7 +498,7 @@ export default defineComponent({
     },
 
     selectedServicesSecondaryRangeName: {
-      get() {
+      get(): {rangeName: string, ipCidrRange?: string, label: string} | undefined {
         if (!this.servicesSecondaryRangeName) {
           return {
             label:     this.t('generic.none'),
@@ -512,6 +531,7 @@ export default defineComponent({
           :value="clusterIpv4Cidr"
           :placeholder="t('gke.clusterIpv4Cidr.placeholder')"
           :disabled="!isNewOrUnprovisioned"
+          :rules="rules.clusterIpv4Cidr"
           @input="$emit('update:clusterIpv4Cidr', $event)"
         />
       </div>
@@ -568,7 +588,8 @@ export default defineComponent({
           label-key="gke.clusterIpv4CidrBlock.label"
           :placeholder="t('gke.clusterIpv4Cidr.placeholder')"
           :disabled="(!!selectedClusterSecondaryRangeName && !!selectedClusterSecondaryRangeName.ipCidrRange)|| !isNewOrUnprovisioned"
-          @input="$emit('update:clusterIpv4CidrBlock'), $event"
+          :rules="rules.clusterIpv4CidrBlock"
+          @input="$emit('update:clusterIpv4CidrBlock', $event)"
         />
       </div>
     </div>
@@ -588,6 +609,7 @@ export default defineComponent({
           :value="nodeIpv4CidrBlock"
           label-key="gke.nodeIpv4CidrBlock.label"
           :disabled="!isNewOrUnprovisioned"
+          :rules="rules.nodeIpv4CidrBlock"
           @input="$emit('update:nodeIpv4CidrBlock', $event)"
         />
       </div>
@@ -598,7 +620,8 @@ export default defineComponent({
           label-key="gke.servicesIpv4CidrBlock.label"
           :placeholder="t('gke.clusterIpv4Cidr.placeholder')"
           :disabled="(!!selectedServicesSecondaryRangeName && !!selectedServicesSecondaryRangeName.ipCidrRange)|| !isNewOrUnprovisioned"
-          @input="$emit('update:servicesIpv4CidrBlock'), $event"
+          :rules="rules.servicesIpv4CidrBlock"
+          @input="$emit('update:servicesIpv4CidrBlock', $event)"
         />
       </div>
     </div>
@@ -695,6 +718,8 @@ export default defineComponent({
             :placeholder="t('gke.masterIpv4CidrBlock.placeholder')"
             :tooltip="t('gke.masterIpv4CidrBlock.tooltip')"
             :disabled="!isNewOrUnprovisioned"
+            required
+            :rules="rules.masterIpv4CidrBlock"
             @input="$emit('update:masterIpv4CidrBlock', $event)"
           />
         </div>

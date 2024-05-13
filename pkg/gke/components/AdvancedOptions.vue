@@ -66,10 +66,7 @@ export default defineComponent({
 
   computed: {
     ...mapGetters({ t: 'i18n/t' }),
-    // TODO nb on edit, logging and monitoring services need to both be off or both be on
-    // use a bnner to tell users this
-    // TODO nb verify that this is still the case
-    // https://github.com/rancher/rancher/issues/32148#issuecomment-820010852
+
     loggingEnabled: {
       get() {
         return !!this.loggingService && this.loggingService !== NONE_OPTION;
@@ -135,6 +132,18 @@ export default defineComponent({
           label: '9:00PM',
         },
       ];
+    },
+
+    /**
+     * Unclear why this is true on edit, but not create. It may be a bug: consequently, a banner is shown instead of using form validation to make this a strict requirement
+     * See https://github.com/rancher/rancher/issues/32148#issuecomment-820010852
+     */
+    showLoggingMonitoringBanner() {
+      if (this.mode === _CREATE) {
+        return false;
+      }
+
+      return this.monitoringEnabled !== this.loggingEnabled;
     }
   },
 
@@ -144,6 +153,11 @@ export default defineComponent({
 
 <template>
   <div>
+    <Banner
+      v-if="showLoggingMonitoringBanner"
+      color="warning"
+      label-key="gke.loggingService.banner"
+    />
     <div class="row mb-10">
       <div class="feature-checkboxes col span-6">
         <Checkbox

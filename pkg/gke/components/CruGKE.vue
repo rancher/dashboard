@@ -1,26 +1,19 @@
 <script lang='ts'>
 import semver from 'semver';
 import { mapGetters, Store } from 'vuex';
-import { defineAsyncComponent, defineComponent } from 'vue';
+import { defineComponent } from 'vue';
 import cloneDeep from 'lodash/cloneDeep';
 
 import { randomStr } from '@shell/utils/string';
-import { isArray, removeObject } from '@shell/utils/array';
+import { removeObject } from '@shell/utils/array';
 import { _CREATE, _EDIT, _VIEW } from '@shell/config/query-params';
 import { NORMAN, MANAGEMENT } from '@shell/config/types';
-import { sortable } from '@shell/utils/version';
-import { sortBy } from '@shell/utils/sort';
 import { SETTING } from '@shell/config/settings';
 
 import CreateEditView from '@shell/mixins/create-edit-view';
 import FormValidation from '@shell/mixins/form-validation';
 import CruResource from '@shell/components/CruResource.vue';
-import LabeledSelect from '@shell/components/form/LabeledSelect.vue';
 import LabeledInput from '@components/Form/LabeledInput/LabeledInput.vue';
-import Checkbox from '@components/Form/Checkbox/Checkbox.vue';
-import FileSelector from '@shell/components/form/FileSelector.vue';
-import KeyValue from '@shell/components/form/KeyValue.vue';
-import ArrayList from '@shell/components/form/ArrayList.vue';
 import Labels from '@shell/components/form/Labels.vue';
 import Tab from '@shell/components/Tabbed/Tab.vue';
 import Tabbed from '@shell/components/Tabbed/index.vue';
@@ -37,6 +30,9 @@ import Config from './Config.vue';
 import { DEFAULT_GCP_ZONE, imageTypes, getGKEMachineTypes } from '../util/gcp';
 import type { getGKEMachineTypesResponse } from '../types/gcp.d.ts';
 import debounce from 'lodash/debounce';
+import {
+  clusterNameChars, clusterNameStartEnd, requiredInCluster, ipv4WithCidr, ipv4oripv6WithCidr
+} from '../util/validators';
 
 const defaultMachineType = 'n1-standard-2';
 
@@ -128,8 +124,6 @@ const defaultCluster = {
   windowsPreferedCluster:  false,
 };
 
-const _NONE = 'none';
-
 export default defineComponent({
   name: 'CruGKE',
 
@@ -140,12 +134,7 @@ export default defineComponent({
     Networking,
     GKENodePoolComponent,
     Config,
-    LabeledSelect,
     LabeledInput,
-    Checkbox,
-    FileSelector,
-    KeyValue,
-    ArrayList,
     ClusterMembershipEditor,
     Labels,
     Tabbed,
@@ -194,13 +183,18 @@ export default defineComponent({
     this.nodePools.forEach((pool) => {
       this.$set(pool, '_id', randomStr());
       this.$set(pool, '_isNewOrUnprovisioned', this.isNewOrUnprovisioned);
+      if (!pool.management) {
+        this.$set(pool, 'management', {});
+      }
+      if (!pool.autoscaling) {
+        this.$set(pool, 'autoscaling', {});
+      }
     });
   },
 
   data() {
     const store = this.$store as Store<any>;
     const supportedVersionRange = store.getters['management/byId'](MANAGEMENT.SETTING, SETTING.UI_SUPPORTED_K8S_VERSIONS)?.value;
-    const t = store.getters['i18n/t'];
 
     return {
       normanCluster:    { name: '' } as any,
@@ -214,7 +208,52 @@ export default defineComponent({
       loadingMachineTypes:  false,
       machineTypesResponse: {} as getGKEMachineTypesResponse,
 
-      fvFormRuleSets:  [],
+      fvFormRuleSets: [
+        {
+          path:  'diskSizeGb',
+          rules: ['diskSizeGb']
+        },
+        {
+          path:  'initialNodeCount',
+          rules: ['initialNodeCount']
+        },
+        {
+          path:  'ssdCount',
+          rules: ['ssdCount']
+        },
+        {
+          path:  'nodeGeneral',
+          rules: ['minMaxNodeCount', 'nodePoolNameUnique']
+        },
+        {
+          path:  'poolName',
+          rules: ['poolNameRequired']
+        },
+        {
+          path:  'masterIpv4CidrBlock',
+          rules: ['masterIpv4CidrBlockRequired', 'masterIpv4CidrBlockFormat']
+        },
+        {
+          path:  'clusterName',
+          rules: ['nameRequired', 'clusterNameChars', 'clusterNameStartEnd']
+        },
+        {
+          path:  'clusterIpv4CidrBlock',
+          rules: ['clusterIpv4CidrBlockFormat']
+        },
+        {
+          path:  'nodeIpv4CidrBlock',
+          rules: ['nodeIpv4CidrBlockFormat']
+        },
+        {
+          path:  'servicesIpv4CidrBlock',
+          rules: ['servicesIpv4CidrBlockFormat']
+        },
+        {
+          path:  'clusterIpv4Cidr',
+          rules: ['clusterIpv4CidrFormat']
+        },
+      ],
       isAuthenticated: false,
 
       debouncedLoadGCPData: () => {}
@@ -245,10 +284,147 @@ export default defineComponent({
      *  */
 
     fvExtraRules() {
-      return [];
+      return {
+        clusterNameChars:    clusterNameChars(this),
+        clusterNameStartEnd: clusterNameStartEnd(this),
+        nameRequired:        requiredInCluster(this, 'nameNsDescription.name.label', 'name'),
+
+        masterIpv4CidrBlockRequired: () => {
+          if (!this.isAuthenticated) {
+            return;
+          }
+          const msg = this.t('validation.required', { key: this.t('gke.masterIpv4CidrBlock.label') });
+
+          return this.config.privateClusterConfig?.enablePrivateNodes && !this.config.privateClusterConfig?.masterIpv4CidrBlock ? msg : null;
+        },
+
+        masterIpv4CidrBlockFormat:   ipv4WithCidr(this, 'gke.masterIpv4CidrBlock.label', 'gkeConfig.privateClusterConfig.masterIpv4CidrBlock'),
+        clusterIpv4CidrBlockFormat:  ipv4WithCidr(this, 'gke.clusterIpv4CidrBlock.label', 'gkeConfig.ipAllocationPolicy.clusterIpv4CidrBlock'),
+        nodeIpv4CidrBlockFormat:     ipv4WithCidr(this, 'gke.nodeIpv4CidrBlock.label', 'gkeConfig.ipAllocationPolicy.nodeIpv4CidrBlock'),
+        servicesIpv4CidrBlockFormat: ipv4WithCidr(this, 'gke.servicesIpv4CidrBlock.label', 'gkeConfig.ipAllocationPolicy.servicesIpv4CidrBlock'),
+        clusterIpv4CidrFormat:       ipv4oripv6WithCidr(this, 'gke.clusterIpv4Cidr.label', 'gkeConfig.clusterIpv4Cidr'),
+        /**
+         * The nodepool validators below are performing double duty. When passed directly to an input, the val argument is provided and validated - this generates the error icon in the input component.
+         * otherwise they're run in the fv mixin and ALL nodepools are validated - this disables the cruresource create button
+         */
+        diskSizeGb:                  (val: number) => {
+          if (!this.isAuthenticated) {
+            return;
+          }
+          const valid = (input: number) => input >= 10;
+
+          if (val || val === 0) {
+            return !valid(val) ? this.t('gke.errors.diskSizeGb') : null;
+          }
+
+          return !!this.nodePools.find((pool: GKENodePool) => !valid(pool.config.diskSizeGb || 0) ) ? this.t('gke.errors.diskSizeGb') : null;
+        },
+
+        initialNodeCount: (val: number) => {
+          if (!this.isAuthenticated) {
+            return;
+          }
+          const valid = (input: number) => input >= 1;
+
+          if (val || val === 0) {
+            return !valid(val) ? this.t('gke.errors.initialNodeCount') : null;
+          }
+
+          return !!this.nodePools.find((pool: GKENodePool) => !valid(pool.initialNodeCount || 0) ) ? this.t('gke.errors.initialNodeCount') : null;
+        },
+
+        ssdCount: (val: number) => {
+          if (!this.isAuthenticated) {
+            return;
+          }
+          const valid = (input: number) => input >= 0;
+
+          if (val || val === 0) {
+            return !valid(val) ? this.t('gke.errors.ssdCount') : null;
+          }
+
+          return !!this.nodePools.find((pool: GKENodePool) => !valid(pool.config.localSsdCount || 0) ) ? this.t('gke.errors.ssdCount') : null;
+        },
+
+        minNodeCount: (val: number) => {
+          if (!this.isAuthenticated) {
+            return;
+          }
+          const valid = (input: number) => input >= 1;
+
+          if (val || val === 0) {
+            return !valid(val) ? this.t('gke.errors.minNodeCount') : null;
+          }
+
+          return !!this.nodePools.find((pool: GKENodePool) => !valid(p.autoscaling.minNodeCount || 0) ) ? this.t('gke.errors.minNodeCount') : null;
+        },
+
+        /**
+         * The following validators involve multiple fields on nodepools  and wont be applied as 'rules' props to input components as the above np validators are.
+         * They set a field on the nodepool object (removed before save) so the tab component can display an error icon when the pool is in error.
+         * The error message, as it is not fed to fvGetAndReportPathRules, will appear as a banner at the top of the form.
+         */
+        minMaxNodeCount: () => {
+          if (!this.isAuthenticated) {
+            return;
+          }
+          const valid = (p: GKENodePool) => (p.autoscaling.minNodeCount || 0) <= (p.autoscaling.maxNodeCount || 0);
+          let msg = null;
+
+          this.nodePools.forEach((p) => {
+            if (!valid(p)) {
+              p._minMaxValid = false;
+              msg = this.t('gke.errors.minMaxNodeCount');
+            } else {
+              p._minMaxValid = true;
+            }
+          });
+
+          return msg;
+        },
+
+        nodePoolNameUnique: () => {
+          if (!this.isAuthenticated) {
+            return;
+          }
+          let msg = null;
+          const allPoolNames: string[] = this.nodePools.map((p) => p.name);
+
+          this.nodePools.forEach((p) => {
+            if (allPoolNames.filter((n) => n === p.name).length > 1) {
+              p._nameUnique = false;
+              msg = this.t('gke.errors.poolNamesUnique');
+            } else {
+              p._nameUnique = true;
+            }
+          });
+
+          return msg;
+        },
+
+        poolNameRequired: (name:string) => {
+          if (!this.isAuthenticated) {
+            return;
+          }
+          let msg = null;
+          const valid = (n: string) => !!n;
+
+          if (name || name === '') {
+            return !valid(name) ? this.t('validation.required', { key: this.t('gke.groupName.label') }) : null;
+          }
+          this.nodePools.forEach((p) => {
+            if (!valid(p.name)) {
+              msg = this.t('validation.required', { key: this.t('gke.groupName.label') });
+            }
+          });
+
+          return msg;
+        }
+
+      };
     },
 
-    // upstreamSpec will be null if the user created a cluster with some invalid options such that it ultimately fails to create anything in aks
+    // upstreamSpec will be null if the user created a cluster with some invalid options such that it ultimately fails to create anything in gke
     // this allows them to go back and correct their mistakes without re-making the whole cluster
     isNewOrUnprovisioned() {
       return this.mode === _CREATE || !this.normanCluster?.gkeStatus?.upstreamSpec;
@@ -334,7 +510,6 @@ export default defineComponent({
   },
 
   methods: {
-    // TODO nb move all gcp api calls here?
     loadGCPData() {
       this.errors = [];
       this.getMachineTypes();
@@ -470,6 +645,7 @@ export default defineComponent({
               :mode="mode"
               label-key="generic.name"
               required
+              :rules="fvGetAndReportPathRules('clusterName')"
               @input="setClusterName"
             />
           </div>
@@ -495,10 +671,17 @@ export default defineComponent({
           <Tab
             v-for="(pool, i) in nodePools"
             :key="pool._id"
-            :name="pool.name"
-            :label="pool.name || t('gke.nodePools.notNamed')"
+            :name="pool._id"
+            :label="pool.name || t('gke.notNamed')"
+            :error="pool._minMaxValid===false || pool._nameUnique===false"
           >
             <GKENodePoolComponent
+              :rules="{
+                diskSizeGb: fvGetAndReportPathRules('diskSizeGb'),
+                initialNodeCount: fvGetAndReportPathRules('initialNodeCount'),
+                ssdCount: fvGetAndReportPathRules('ssdCount'),
+                poolName: fvGetAndReportPathRules('poolName'),
+              }"
               :mode="mode"
               :cluster-kubernetes-version="config.kubernetesVersion"
               :machine-type-options="machineTypeOptions"
@@ -518,6 +701,7 @@ export default defineComponent({
               :max-pods-constraint.sync="pool.maxPodsConstraint"
               :autoscaling.sync="pool.autoscaling.enabled"
               :min-node-count.sync="pool.autoscaling.minNodeCount"
+              :max-node-count.sync="pool.autoscaling.maxNodeCount"
               :auto-repair.sync="pool.management.autoRepair"
               :auto-upgrade.sync="pool.management.autoUpgrade"
               :oauth-scopes.sync="pool.config.oauthScopes"
@@ -543,6 +727,7 @@ export default defineComponent({
             :region.sync="config.region"
             :locations.sync="config.locations"
             :default-image-type.sync="defaultImageType"
+            :labels.sync="config.labels"
           />
         </Accordion>
         <Accordion
@@ -550,6 +735,13 @@ export default defineComponent({
           :title="t('gke.accordion.networking')"
         >
           <Networking
+            :rules="{
+              masterIpv4CidrBlock: fvGetAndReportPathRules('masterIpv4CidrBlock'),
+              clusterIpv4CidrBlock: fvGetAndReportPathRules('clusterIpv4CidrBlock'),
+              nodeIpv4CidrBlock: fvGetAndReportPathRules('nodeIpv4CidrBlock'),
+              servicesIpv4CidrBlock: fvGetAndReportPathRules('servicesIpv4CidrBlock'),
+              clusterIpv4Cidr: fvGetAndReportPathRules('clusterIpv4Cidr')
+            }"
             :mode="mode"
             :zone="config.zone"
             :region="config.region"
@@ -561,6 +753,7 @@ export default defineComponent({
             :kubernetes-version.sync="config.kubernetesVersion"
             :network.sync="config.network"
             :subnetwork.sync="config.subnetwork"
+            :create-subnetwork.sync="config.ipAllocationPolicy.createSubnetwork"
             :use-ip-aliases.sync="config.ipAllocationPolicy.useIpAliases"
             :network-policy-config.sync="config.clusterAddons.networkPolicyConfig"
             :enable-network-policy.sync="normanCluster.enableNetworkPolicy"
@@ -617,7 +810,6 @@ export default defineComponent({
           class="mb-20"
           :title="t('gke.accordion.labels')"
         >
-          //TODO nb config.labels in addition
           <Labels
             v-model="normanCluster"
             :mode="mode"

@@ -1,5 +1,5 @@
 <script lang="ts">
-import { defineComponent } from 'vue';
+import { PropType, defineComponent } from 'vue';
 import { _CREATE } from '@shell/config/query-params';
 import RadioGroup from '@components/Form/Radio/RadioGroup.vue';
 import LabeledSelect from '@shell/components/form/LabeledSelect.vue';
@@ -18,6 +18,7 @@ import debounce from 'lodash/debounce';
 import { MANAGEMENT } from '@shell/config/types';
 import { SETTING } from '@shell/config/settings';
 import { mapGetters } from 'vuex';
+import KeyValue from '@shell/components/form/KeyValue.vue';
 
 export default defineComponent({
   name: 'GKEConfig',
@@ -25,7 +26,8 @@ export default defineComponent({
   components: {
     RadioGroup,
     LabeledSelect,
-    Checkbox
+    Checkbox,
+    KeyValue
   },
 
   props: {
@@ -87,7 +89,14 @@ export default defineComponent({
     defaultImageType: {
       type:    String,
       default: ''
-    }
+    },
+    // these are gkeconfig.labels NOT normancluster.labels (handled in another accordion)
+    labels: {
+      type:    Object as PropType<{[key:string]: string}>,
+      default: () => {
+        return {};
+      }
+    },
   },
 
   created() {
@@ -100,7 +109,7 @@ export default defineComponent({
     const supportedVersionRange = this.$store.getters['management/byId'](MANAGEMENT.SETTING, SETTING.UI_SUPPORTED_K8S_VERSIONS)?.value;
 
     return {
-      debouncedLoadGCPData: () => {},
+      debouncedLoadGCPData: (zones = true) => {},
       loadingVersions:      false,
       loadingZones:         false,
 
@@ -114,7 +123,7 @@ export default defineComponent({
       supportedVersionRange,
       zoneRadioOptions: [{ label: t('gke.location.zonal'), value: false }, { label: t('gke.location.regional'), value: true }],
       zones:            [] as any[],
-      selectedZone:     null,
+      selectedZone:     null as null | {name: string},
     };
   },
 
@@ -353,16 +362,16 @@ export default defineComponent({
       this.loadingZones = false;
     },
 
-    setRegion(neu) {
+    setRegion(neu: string) {
       this.$emit('update:region', neu);
     },
 
-    setZone(neu) {
+    setZone(neu: {name: string}) {
       this.selectedZone = neu;
       this.$emit('update:zone', neu.name);
     },
 
-    setExtraZone(add: boolean, zone) {
+    setExtraZone(add: boolean, zone: string) {
       const out = [...this.locations];
 
       if (add && !out.includes(zone)) {
@@ -391,15 +400,6 @@ export default defineComponent({
       </div>
     </div>
     <div class="row location-row mb-10">
-      <div class="col">
-        <RadioGroup
-          v-model="useRegion"
-          :mode="mode"
-          :options="zoneRadioOptions"
-          name="regionmode"
-          :disabled="!isNewOrUnprovisioned"
-        />
-      </div>
       <div class="col span-4">
         <LabeledSelect
           v-if="useRegion"
@@ -426,7 +426,7 @@ export default defineComponent({
       </div>
       <div
         v-if="!loadingZones"
-        class="col span-4 extra-zones"
+        class="col span-3 extra-zones"
       >
         <span class="text-muted">{{ t('gke.location.extraZones') }}</span>
         <Checkbox
@@ -436,6 +436,34 @@ export default defineComponent({
           :value="locations.includes(zoneOpt.name)"
           @input="e=>setExtraZone(e, zoneOpt.name)"
         />
+      </div>
+      <div class="col">
+        <RadioGroup
+          v-model="useRegion"
+          :mode="mode"
+          :options="zoneRadioOptions"
+          name="regionmode"
+          :disabled="!isNewOrUnprovisioned"
+        />
+      </div>
+    </div>
+    <div class="row mt-20 mb-10">
+      <div class="col span-12">
+        <KeyValue
+          :mode="mode"
+          :value="labels"
+          :as-map="true"
+          :title="t('gke.clusterLabels.label')"
+          :add-label="t('gke.clusterLabels.add')"
+          @input="$emit('update:labels', $event)"
+        >
+          <template #title>
+            <!-- keyvalue title by default is an h3 and looks bad with the accordion header also being an h3 -->
+            <h4>
+              {{ t('gke.clusterLabels.label') }}
+            </h4>
+          </template>
+        </KeyValue>
       </div>
     </div>
   </div>

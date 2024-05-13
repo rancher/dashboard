@@ -75,7 +75,7 @@ export default defineComponent({
       type:    String,
       default: ''
     },
-    // TODO nb validate this is >=10
+
     diskSizeGb: {
       type:    Number,
       default: 0
@@ -149,8 +149,15 @@ export default defineComponent({
     },
 
     oauthScopes: {
-      type:    Array,
+      type:    Array as PropType<string[]>,
       default: () => []
+    },
+
+    rules: {
+      type:    Object,
+      default: () => {
+        return {};
+      }
     }
   },
 
@@ -172,6 +179,16 @@ export default defineComponent({
         }
       },
       immediate: true
+    },
+
+    autoscaling(neu) {
+      if (!neu) {
+        this.$emit('update:minNodeCount', null);
+        this.$emit('update:maxNodeCount', null);
+      } else {
+        this.$emit('update:minNodeCount', '1');
+        this.$emit('update:maxNodeCount', '3');
+      }
     }
   },
 
@@ -239,7 +256,7 @@ export default defineComponent({
       set(neu: {label:string, value: string}) {
         this.$emit('update:diskType', neu.value);
       }
-    }
+    },
   },
 });
 
@@ -310,6 +327,8 @@ export default defineComponent({
           label-key="gke.diskSizeGb.label"
           suffix="GB"
           :disabled="!isNew"
+          :rules="rules.diskSizeGb"
+          @input="$emit('update:diskSizeGb', $event)"
         />
       </div>
       <div class="col span-4">
@@ -318,6 +337,7 @@ export default defineComponent({
           :value="localSsdCount"
           label-key="gke.localSsdCount.label"
           :disabled="!isNew"
+          :rules="rules.ssdCount"
           @input="$emit('update:localSsdCount', $event)"
         />
       </div>
@@ -379,6 +399,8 @@ export default defineComponent({
           :value="name"
           label-key="gke.groupName.label"
           :disabled="!isNew"
+          :rules="rules.poolName"
+          required
           @input="$emit('update:name', $event)"
         />
       </div>
@@ -388,6 +410,7 @@ export default defineComponent({
           :mode="mode"
           :value="initialNodeCount"
           label-key="gke.initialNodeCount.label"
+          :rules="rules.initialNodeCount"
           @input="$emit('update:initialNodeCount', $event)"
         />
       </div>
@@ -403,7 +426,6 @@ export default defineComponent({
     </div>
     <div class="row mb-10">
       <div class="col span-4 checkbox-column">
-        <!-- TODO nb does min/max NEED to be cleared when this is disabled? -->
         <Checkbox
           :mode="mode"
           :value="autoscaling"

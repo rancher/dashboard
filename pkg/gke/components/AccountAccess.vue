@@ -1,10 +1,10 @@
 <script lang="ts">
 import { defineComponent } from 'vue';
-import { _CREATE, _VIEW } from '@shell/config/query-params';
+import { _CREATE, _EDIT, _VIEW } from '@shell/config/query-params';
 import LabeledInput from '@components/Form/LabeledInput/LabeledInput.vue';
 import SelectCredential from '@shell/edit/provisioning.cattle.io.cluster/SelectCredential.vue';
 import AsyncButton from '@shell/components/AsyncButton.vue';
-import { mapGetters } from 'vuex';
+import { mapGetters, Store } from 'vuex';
 import { getGKEZones } from '../util/gcp';
 
 export default defineComponent({
@@ -39,7 +39,7 @@ export default defineComponent({
   },
 
   mounted() {
-    if (!!this.project) {
+    if (this.mode !== _CREATE) {
       this.testProjectId(() => true);
     }
   },
@@ -60,17 +60,20 @@ export default defineComponent({
   methods: {
     // TODO nb do automatically on edit
     async testProjectId(cb: (success: Boolean)=>{}) {
-      console.log('***** testing gcp creds');
+      const store = this.$store as Store<any>;
+
       try {
-        await getGKEZones(this.$store, this.credential, this.project, {});
+        await getGKEZones(store, this.credential, this.project, {});
 
         this.$emit('update:isAuthenticated', true);
 
+        // eslint-disable-next-line standard/no-callback-literal, node/no-callback-literal
         return cb(true);
       } catch (e) {
         this.$emit('error', e);
         this.$emit('update:isAuthenticated', false);
 
+        // eslint-disable-next-line standard/no-callback-literal, node/no-callback-literal
         return cb(false);
       }
     }

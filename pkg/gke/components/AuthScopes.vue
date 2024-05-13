@@ -7,7 +7,7 @@ import RadioGroup from '@components/Form/Radio/RadioGroup.vue';
 import isEqual from 'lodash/isEqual';
 
 import {
-  addAuthScope, oauthScopeFormOptions, oauthScopeOptions, googleFullAuthUrl, getGoogleAuthDefaultURLs, getValueFromOauthScopes, googleAuthURLPrefix
+  addAuthScope, oauthScopeFormOptions, oauthScopeOptions, googleFullAuthUrl, getGoogleAuthDefaultURLs, getValueFromOauthScopes,
 } from '../util/oauth';
 
 export default defineComponent({
