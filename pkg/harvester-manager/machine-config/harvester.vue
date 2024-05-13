@@ -474,6 +474,10 @@ export default {
       ]);
 
       return vGpuTypes;
+    },
+
+    showVGpuAllocationInfo() {
+      return this.mode !== _VIEW && !!Object.values(this.vGpuDevices).find((d) => d.allocatable);
     }
   },
 
@@ -1405,6 +1409,11 @@ export default {
           {{ t("harvesterManager.vGpu.title") }}
         </h3>
         <div>
+          <Banner
+            v-if="showVGpuAllocationInfo"
+            color="warning"
+            :label="t('cluster.credential.harvester.vGpus.warnings.minimumAllocatable')"
+          />
           <ArrayListSelect
             v-model="vGpus"
             class="mt-20"
