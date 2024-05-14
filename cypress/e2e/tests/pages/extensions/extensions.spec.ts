@@ -4,6 +4,7 @@ import PromptRemove from '@/cypress/e2e/po/prompts/promptRemove.po';
 import BurgerMenuPo from '@/cypress/e2e/po/side-bars/burger-side-menu.po';
 import { LoginPagePo } from '@/cypress/e2e/po/pages/login-page.po';
 
+const DISABLED_CACHE_EXTENSION_NAME = 'clock-large';
 const UNAUTHENTICATED_EXTENSION_NAME = 'uk-locale';
 const EXTENSION_NAME = 'clock';
 const UI_PLUGINS_PARTNERS_REPO_URL = 'https://github.com/rancher/partner-extensions';
@@ -258,6 +259,36 @@ describe('Extensions page', { tags: ['@extensions', '@adminUser'] }, () => {
     extensionsPo.extensionCard(EXTENSION_NAME).should('be.visible');
   });
 
+  it('An extension larger than 20mb, which will trigger chacheState disabled, should install and work fine', () => {
+    const extensionsPo = new ExtensionsPagePo();
+
+    extensionsPo.goTo();
+
+    extensionsPo.extensionTabAvailableClick();
+
+    // click on install button on card
+    extensionsPo.extensionCardInstallClick(DISABLED_CACHE_EXTENSION_NAME);
+    extensionsPo.extensionInstallModal().should('be.visible');
+
+    // click install
+    extensionsPo.installModalInstallClick();
+
+    // let's check the extension reload banner and reload the page
+    extensionsPo.extensionReloadBanner().should('be.visible');
+    extensionsPo.extensionReloadClick();
+
+    // make sure extension card is in the installed tab
+    extensionsPo.extensionTabInstalledClick();
+    extensionsPo.extensionCardClick(DISABLED_CACHE_EXTENSION_NAME);
+    extensionsPo.extensionDetailsTitle().should('contain', DISABLED_CACHE_EXTENSION_NAME);
+    extensionsPo.extensionDetailsCloseClick();
+
+    // check if extension is working fine
+    BurgerMenuPo.burgerMenuNavToMenubyLabel('Clock-large');
+    // this checks if all 26 images are there, making sure extension is working
+    cy.get('.clock.outlet').find('img').should('have.length', 26);
+  });
+
   it('Should respect authentication when importing extension scripts', () => {
     const extensionsPo = new ExtensionsPagePo();
 
@@ -312,6 +343,10 @@ describe('Extensions page', { tags: ['@extensions', '@adminUser'] }, () => {
     extensionsPo.uninstallModaluninstallClick();
 
     extensionsPo.extensionCardUninstallClick(UNAUTHENTICATED_EXTENSION_NAME);
+    extensionsPo.extensionUninstallModal().should('be.visible');
+    extensionsPo.uninstallModaluninstallClick();
+
+    extensionsPo.extensionCardUninstallClick(DISABLED_CACHE_EXTENSION_NAME);
     extensionsPo.extensionUninstallModal().should('be.visible');
     extensionsPo.uninstallModaluninstallClick();
 
