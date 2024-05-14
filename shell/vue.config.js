@@ -282,7 +282,7 @@ const getDevServerConfig = (proxy) => {
 };
 
 /**
- * Generate a virtual module '@rancher/dyanmic.js` which imports all of the packages that should be built into the application
+ * Generate a virtual module '@rancher/dynamic.js` which imports all of the packages that should be built into the application
  * This is imported in 'shell/extensions/extension-loader.js` which ensures the all code for plugins to be included is imported in the application
  */
 const getVirtualModules = (dir, includePkg) => {
@@ -359,7 +359,7 @@ const getVirtualModulesAutoImport = (dir) => {
  * DefinePlugin does string replacement within our code. We may want to consider replacing it with something else. In code we'll see something like
  * process.env.commit even though process and env aren't even defined objects. This could cause people to be mislead.
  */
-const getCustomPlugins = (routerBasePath, rancherEnv) => new webpack.DefinePlugin({
+const createEnvVariablesPlugin = (routerBasePath, rancherEnv) => new webpack.DefinePlugin({
   'process.env.commit':              JSON.stringify(commit),
   'process.env.version':             JSON.stringify(dashboardVersion),
   'process.env.dev':                 JSON.stringify(dev),
@@ -519,7 +519,7 @@ module.exports = function(dir, _appConfig) {
       config.plugins.push(getAutoImport());
       config.plugins.push(getVirtualModulesAutoImport(dir));
       config.plugins.push(getPackageImport(dir));
-      config.plugins.push(getCustomPlugins(routerBasePath, rancherEnv));
+      config.plugins.push(createEnvVariablesPlugin(routerBasePath, rancherEnv));
 
       // The static assets need to be in the built assets directory in order to get served (primarily the favicon)
       config.plugins.push(new CopyWebpackPlugin([{ from: path.join(SHELL_ABS, 'static'), to: '.' }]));
