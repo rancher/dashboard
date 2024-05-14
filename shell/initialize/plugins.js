@@ -28,6 +28,7 @@ import replaceAll from '@shell/plugins/replaceall';
 import steveCreateWorker from '@shell/plugins/steve-create-worker';
 import version from '@shell/plugins/version';
 import emberCookie from '@shell/plugins/ember-cookie';
+import config from '@shell/utils/config';
 
 export async function installPlugins(app, Vue) {
   Vue.use(globalFormatters);
@@ -39,10 +40,7 @@ export async function installPlugins(app, Vue) {
   Vue.use(VueCodemirror);
 
   Vue.component('v-select', vSelect);
-  const pluginDefinitions = [cookieUniversalNuxt, axios, plugins, pluginsLoader, axiosShell, intNumber, codeMirror, nuxtClientInit, replaceAll, backButton, plugin, version, steveCreateWorker, emberCookie];
-
-  // Inject runtime config as $config
-  inject('config', nuxt.publicRuntimeConfig, app.context, Vue);
+  const pluginDefinitions = [config, cookieUniversalNuxt, axios, plugins, pluginsLoader, axiosShell, intNumber, codeMirror, nuxtClientInit, replaceAll, backButton, plugin, version, steveCreateWorker, emberCookie];
 
   const installations = pluginDefinitions.map(async(pluginDefinition) => {
     if (typeof pluginDefinition === 'function') {
