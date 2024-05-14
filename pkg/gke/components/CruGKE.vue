@@ -363,7 +363,7 @@ export default defineComponent({
             return !valid(val) ? this.t('gke.errors.minNodeCount') : null;
           }
 
-          return !!this.nodePools.find((pool: GKENodePool) => !valid(p.autoscaling.minNodeCount || 0) ) ? this.t('gke.errors.minNodeCount') : null;
+          return !!this.nodePools.find((pool: GKENodePool) => !valid(pool.autoscaling.minNodeCount || 0) ) ? this.t('gke.errors.minNodeCount') : null;
         },
 
         /**
@@ -674,7 +674,7 @@ export default defineComponent({
           @removeTab="removePool($event)"
         >
           <Tab
-            v-for="(pool, i) in nodePools"
+            v-for="(pool) in nodePools"
             :key="pool._id"
             :name="pool._id"
             :label="pool.name || t('gke.notNamed')"

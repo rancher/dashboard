@@ -1,3 +1,4 @@
+/* eslint-disable @typescript-eslint/explicit-module-boundary-types */
 import { get } from '@shell/utils/object';
 import ipaddr from 'ipaddr.js';
 
