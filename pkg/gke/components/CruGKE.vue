@@ -502,10 +502,7 @@ export default defineComponent({
         this.nodePools.forEach((pool) => this.$set(pool, 'config.imageType', neu));
       }
     },
-    'config.googleCredentialSecret'() {
-      this.debouncedLoadGCPData();
-    },
-    'config.projectID'() {
+    isAuthenticated() {
       this.debouncedLoadGCPData();
     },
     'config.zone'() {
@@ -519,7 +516,9 @@ export default defineComponent({
   methods: {
     loadGCPData() {
       this.errors = [];
-      this.getMachineTypes();
+      if (this.config.projectID && this.config.googleCredentialSecret) {
+        this.getMachineTypes();
+      }
     },
 
     getMachineTypes() {

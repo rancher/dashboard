@@ -714,6 +714,11 @@ export default defineComponent({
           />
         </div>
       </div>
+      <Banner
+        v-if="enablePrivateNodes"
+        color="warning"
+        label-key="gke.enablePrivateNodes.warning"
+      />
       <div class="row mb-10">
         <div class="col span-3">
           <LabeledInput

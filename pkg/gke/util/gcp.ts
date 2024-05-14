@@ -25,7 +25,7 @@ export const DEFAULT_GCP_REGION = 'us-central1';
  */
 function getGKEOptions(resource: string, store: any, cloudCredentialId: string, projectId: string, location: {zone?: string, region?: string}, clusterId?:string ) {
   if (!cloudCredentialId || !projectId) {
-    return new Promise((resolve, reject) => reject(new Error('cloud credential or project id missing')));
+    return;
   }
   if (!location.zone && !location.region) {
     location.zone = DEFAULT_GCP_ZONE;

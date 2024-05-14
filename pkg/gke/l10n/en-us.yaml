@@ -77,6 +77,7 @@ gke:
     tooltip: When enabled, the control plane may only be accessed via the private IP.
   enablePrivateNodes:
     label: Private Cluster
+    warning: GKE private clusters are an adavnced use-case which require special GKE configuration. Before enabling private clusters, ensure you have read through the <a href="https://ranchermanager.docs.rancher.com/how-to-guides/new-user-guides/kubernetes-clusters-in-rancher-setup/set-up-clusters-from-hosted-kubernetes-providers/gke" target="_blank" rel="nofollow noopener noreferrer">GKE provisioning documentation</a> for instructions on configuring  GKE so that private nodes may communicate with Rancher.
   errors:
     clusterNameChars: Cluster name may only contain lowercase letters, numbers, and hyphens.
     clusterNameStartEnd: Cluster name must startd and end with a letter or number.
