@@ -139,7 +139,7 @@ const setupProgress = (axios) => {
   axios.defaults.onDownloadProgress = onProgress;
 };
 
-export default (ctx, inject) => {
+export default (ctx, inject, Vue) => {
   // runtimeConfig
   const runtimeConfig = (ctx.$config && ctx.$config.axios) || {};
   // baseURL
@@ -167,5 +167,5 @@ export default (ctx, inject) => {
 
   // Inject axios to the context as $axios
   ctx.$axios = axios;
-  inject('axios', axios);
+  inject('axios', axios, ctx, Vue);
 };

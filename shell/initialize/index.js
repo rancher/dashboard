@@ -38,7 +38,8 @@ loadDirectives(Vue);
 Vue.component(NuxtChild.name, NuxtChild);
 Vue.component('NChild', NuxtChild);
 
-async function createApp(config = {}) {
+async function createApp() {
+  const config = nuxt.publicRuntimeConfig;
   const router = await createRouter(config);
 
   const store = createStore();
@@ -94,50 +95,7 @@ async function createApp(config = {}) {
     res:     undefined
   });
 
-  function inject(key, value) {
-    if (!key) {
-      throw new Error('inject(key, value) has no key provided');
-    }
-    if (value === undefined) {
-      throw new Error(`inject('${ key }', value) has no value provided`);
-    }
-
-    key = `$${ key }`;
-    // Add into app
-    app[key] = value;
-    // Add into context
-    if (!app.context[key]) {
-      app.context[key] = value;
-    }
-
-    // Add into store
-    store[key] = app[key];
-
-    // Check if plugin not already installed
-    const installKey = `__nuxt_${ key }_installed__`;
-
-    window.installedPlugins = window.installedPlugins || {};
-
-    if (window.installedPlugins[installKey]) {
-      return;
-    }
-    window[window.installedPlugins] = true;
-    // Call Vue.use() to install the plugin into vm
-    Vue.use(() => {
-      if (!Object.prototype.hasOwnProperty.call(Vue.prototype, key)) {
-        Object.defineProperty(Vue.prototype, key, {
-          get() {
-            return this.$root.$options[key];
-          }
-        });
-      }
-    });
-  }
-
-  // Inject runtime config as $config
-  inject('config', config);
-
-  await installPlugins(app, inject, Vue);
+  await installPlugins(app, Vue);
 
   // Wait for async component to be resolved first
   await new Promise((resolve, reject) => {

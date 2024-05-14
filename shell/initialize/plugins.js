@@ -29,7 +29,7 @@ import steveCreateWorker from '@shell/plugins/steve-create-worker';
 import version from '@shell/plugins/version';
 import emberCookie from '@shell/plugins/ember-cookie';
 
-export async function installPlugins(app, inject, Vue) {
+export async function installPlugins(app, Vue) {
   Vue.use(globalFormatters);
 
   Vue.use(PortalVue);
@@ -41,9 +41,12 @@ export async function installPlugins(app, inject, Vue) {
   Vue.component('v-select', vSelect);
   const pluginDefinitions = [cookieUniversalNuxt, axios, plugins, pluginsLoader, axiosShell, intNumber, codeMirror, nuxtClientInit, replaceAll, backButton, plugin, version, steveCreateWorker, emberCookie];
 
+  // Inject runtime config as $config
+  inject('config', nuxt.publicRuntimeConfig, app.context, Vue);
+
   const installations = pluginDefinitions.map(async(pluginDefinition) => {
     if (typeof pluginDefinition === 'function') {
-      await pluginDefinition(app.context, inject);
+      await pluginDefinition(app.context, inject, Vue);
     }
   });
 
@@ -51,4 +54,46 @@ export async function installPlugins(app, inject, Vue) {
 
   // Order matters here. This is coming after the other plugins specifically so $cookies can be installed. i18n/init relies on prefs/get which relies on $cookies.
   Vue.use(i18n, { store: app.store });
+}
+
+function inject(key, value, context, Vue) {
+  if (!key) {
+    throw new Error('inject(key, value) has no key provided');
+  }
+  if (value === undefined) {
+    throw new Error(`inject('${ key }', value) has no value provided`);
+  }
+
+  const { app, store } = context;
+
+  key = `$${ key }`;
+  // Add into app
+  app[key] = value;
+  // Add into context
+  if (!app.context[key]) {
+    app.context[key] = value;
+  }
+
+  // Add into store
+  store[key] = app[key];
+
+  // Check if plugin not already installed
+  const installKey = `__nuxt_${ key }_installed__`;
+
+  window.installedPlugins = window.installedPlugins || {};
+
+  if (window.installedPlugins[installKey]) {
+    return;
+  }
+  window[window.installedPlugins] = true;
+  // Call Vue.use() to install the plugin into vm
+  Vue.use(() => {
+    if (!Object.prototype.hasOwnProperty.call(Vue.prototype, key)) {
+      Object.defineProperty(Vue.prototype, key, {
+        get() {
+          return this.$root.$options[key];
+        }
+      });
+    }
+  });
 }
