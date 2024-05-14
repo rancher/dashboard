@@ -8,8 +8,8 @@ on:
     branches:
       - master
 jobs:
-  deploy:
-    name: Publish Docusaurus
+  build:
+    name: Build
     runs-on: ubuntu-latest
     steps:
       - uses: actions/checkout@v2
@@ -26,19 +26,26 @@ jobs:
         run: |
           echo "extensions.rancher.io" > ./docusaurus/build/CNAME
 
-      # Popular action to deploy to GitHub Pages:
-      # Docs: https://github.com/peaceiris/actions-gh-pages#%EF%B8%8F-docusaurus
-      - name: Publish Docusaurus
-        uses: peaceiris/actions-gh-pages@v3
-        if: ${{ github.event_name == 'push' && github.repository_owner == 'rancher' }}
+      - name: Upload artifact
+        uses: actions/upload-pages-artifact@v3
         with:
-          deploy_key: ${{ secrets.GH_PAGES_DEPLOY_KEY }}
-          # Build output to publish to the `gh-pages` branch:
-          publish_dir: ./docusaurus/build
-          # Remove .gitignore from excludes
-          exclude_assets: ''
-          # The following lines assign commit authorship to the official
-          # GH-Actions bot for deploys to `gh-pages` branch:
-          # https://github.com/actions/checkout/issues/13#issuecomment-724415212
-          user_name: github-actions[bot]
-          user_email: 41898282+github-actions[bot]@users.noreply.github.com
+          path: ./docusaurus/build
+
+  # Seperate the deploy job to isolate write permissions
+  deploy:
+    name: Publish
+    if: ${{ github.event_name == 'push' && github.repository_owner == 'rancher' }}
+    runs-on: ubuntu-latest
+    needs: build
+
+    # This is required to avoid https://github.com/actions/deploy-pages/issues/271
+    environment:
+      name: github-pages
+
+    permissions:
+      pages: write
+      id-token: write
+
+    steps:
+      - name: Deploy to GitHub Pages
+        uses: actions/deploy-pages@v4
