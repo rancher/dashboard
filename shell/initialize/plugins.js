@@ -13,22 +13,22 @@ import '@shell/plugins/js-yaml';
 import i18n from '@shell/plugins/i18n';
 import globalFormatters from '@shell/plugins/global-formatters';
 
-import axios from '../utils/axios.js';
+import axios from '@shell/utils/axios';
+import cookieUniversalNuxt from '@shell/utils/cookie-universal-nuxt';
+import config from '@shell/utils/config';
 import axiosShell from '@shell/plugins/axios';
 import backButton from '@shell/plugins/back-button';
 import codeMirror from '@shell/plugins/codemirror-loader';
 import VueCodemirror from 'vue-codemirror';
-import cookieUniversalNuxt from '../utils/cookie-universal-nuxt.js';
 import * as intNumber from '@shell/directives/int-number';
 import nuxtClientInit from '@shell/plugins/nuxt-client-init';
 import plugin from '@shell/plugins/plugin';
 import plugins from '@shell/core/plugins.js';
-import pluginsLoader from '../core/plugins-loader.js';
+import pluginsLoader from '@shell/core/plugins-loader.js';
 import replaceAll from '@shell/plugins/replaceall';
 import steveCreateWorker from '@shell/plugins/steve-create-worker';
 import version from '@shell/plugins/version';
 import emberCookie from '@shell/plugins/ember-cookie';
-import config from '@shell/utils/config';
 
 export async function installPlugins(app, Vue) {
   Vue.use(globalFormatters);
