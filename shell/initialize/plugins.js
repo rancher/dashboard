@@ -54,6 +54,23 @@ export async function installPlugins(app, Vue) {
   Vue.use(i18n, { store: app.store });
 }
 
+/**
+ * Injects a key-value pair into a given context and installs a Vue plugin with
+ * the provided key-value pair.
+ *
+ * @param {string} key The key to be injected
+ * @param {*} value The value to be injected
+ * @param {object} context The context object into which the key-value pair will
+ * be injected
+ * @param {object} Vue The Vue instance
+ * @returns {void}
+ *
+ * @property {object} context.app The app object within the context
+ * @property {object} context.store The store object within the context
+ *
+ * Note: This function mutates the context object, including the context app and
+ * store.
+ */
 function inject(key, value, context, Vue) {
   if (!key) {
     throw new Error('inject(key, value) has no key provided');
