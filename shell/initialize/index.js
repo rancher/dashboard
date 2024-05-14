@@ -39,6 +39,7 @@ Vue.component(NuxtChild.name, NuxtChild);
 Vue.component('NChild', NuxtChild);
 
 async function createApp() {
+  // eslint-disable-next-line no-undef
   const config = nuxt.publicRuntimeConfig;
   const router = await createRouter(config);
 
