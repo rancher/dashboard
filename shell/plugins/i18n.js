@@ -129,13 +129,3 @@ const i18n = {
 };
 
 export default i18n;
-
-// This is being done for backwards compatibility with our extensions that have written tests and didn't properly make use of Vue.use() when importing and mocking translations
-// Example failing test https://github.com/rancher/dashboard/actions/runs/8927503474/job/24521022320?pr=10923
-const isThisFileBeingExecutedInATest = process.env.NODE_ENV === 'test';
-
-if (isThisFileBeingExecutedInATest) {
-  // Go take a look at our jest.setup.js to see how we make use of Vue.use(i18n, ...)
-  console.warn('The implicit addition of i18n options has been deprecated in Rancher Shell and will be removed in a future version. Make sure to invoke `Vue.use(i18n)` to maintain compatibility.');
-  Vue.use(i18n);
-}
