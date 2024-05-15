@@ -53,6 +53,13 @@ export default defineComponent({
       type:    Boolean,
       default: true
     },
+
+    rules: {
+      type:    Object,
+      default: () => {
+        return {};
+      }
+    },
   },
 
   data() {
@@ -137,7 +144,7 @@ export default defineComponent({
           label-key="generic.name"
           required
           :disabled="!pool._isNewOrUnprovisioned"
-          :rules="[()=>pool._validName === false ? t('aks.errors.poolName') : undefined]"
+          :rules="rules.poolName"
           data-testid="pool-name"
         />
       </div>
@@ -162,7 +169,7 @@ export default defineComponent({
           :taggable="true"
           :disabled="!pool._isNewOrUnprovisioned || (!canUseAvailabilityZones && !(pool.availabilityZones && pool.availabilityZones.length))"
           :require-dirty="false"
-          :rules="[availabilityZonesSupport]"
+          :rules="rules.az"
         />
       </div>
       <div class="col span-2">
@@ -216,6 +223,7 @@ export default defineComponent({
           :mode="mode"
           label-key="aks.nodePools.count.label"
           :disabled="pool.enableAutoScaling"
+          :rules="rules.count"
         />
       </div>
       <div class="col span-3">
@@ -250,6 +258,7 @@ export default defineComponent({
             type="number"
             :mode="mode"
             label-key="aks.nodePools.minCount.label"
+            :rules="rules.min"
           />
         </div>
         <div class="col span-3">
@@ -258,6 +267,7 @@ export default defineComponent({
             type="number"
             :mode="mode"
             label-key="aks.nodePools.maxCount.label"
+            :rules="rules.max"
           />
         </div>
       </template>

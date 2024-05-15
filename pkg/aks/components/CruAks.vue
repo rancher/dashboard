@@ -229,9 +229,29 @@ export default defineComponent({
         rules: ['networkPolicyAvailable']
       },
       {
-        path:  'nodePools',
-        rules: ['availabilityZoneSupport', 'poolNames']
+        path:  'poolName',
+        rules: ['poolNames']
       },
+      {
+        path:  'poolAZ',
+        rules: ['availabilityZoneSupport']
+      },
+      {
+        path:  'poolCount',
+        rules: []
+      },
+      {
+        path:  'poolMin',
+        rules: []
+      },
+      {
+        path:  'poolMax',
+        rules: []
+      },
+      // {
+      //   path:  'nodePools',
+      //   rules: ['availabilityZoneSupport', 'poolNames']
+      // },
       {
         path:  'nodePoolsGeneral',
         rules: ['systemPoolRequired']
@@ -374,17 +394,23 @@ export default defineComponent({
           return systemPool ? undefined : this.t('aks.nodePools.mode.systemRequired');
         },
 
-        availabilityZoneSupport: () => {
+        availabilityZoneSupport: (pool: AKSNodePool) => {
           if (this.canUseAvailabilityZones) {
             return undefined;
           }
           let isUsingAvailabilityZones = false;
 
-          this.nodePools.forEach((pool: AKSNodePool) => {
+          if (pool) {
             if (pool.availabilityZones && pool.availabilityZones.length) {
               isUsingAvailabilityZones = true;
             }
-          });
+          } else {
+            this.nodePools.forEach((pool: AKSNodePool) => {
+              if (pool.availabilityZones && pool.availabilityZones.length) {
+                isUsingAvailabilityZones = true;
+              }
+            });
+          }
 
           return this.canUseAvailabilityZones || !isUsingAvailabilityZones ? undefined : this.t('aks.errors.availabilityZones');
         }
@@ -920,7 +946,12 @@ export default defineComponent({
               :loading-vm-sizes="loadingVmSizes"
               :isPrimaryPool="i===0"
               :can-use-availability-zones="canUseAvailabilityZones"
-              :rules="fvGetAndReportPathRules('nodePools')"
+              :rules="{name: fvGetAndReportPathRules('poolName'),
+                       az: fvGetAndReportPathRules('poolAZ'),
+                       count: fvGetAndReportPathRules('poolCount'),
+                       min: fvGetAndReportPathRules('poolMin'),
+                       max: fvGetAndReportPathRules('poolMax'),
+              }"
               @remove="removePool(pool)"
               @vmSizeSet="touchedVmSize = true"
             />
