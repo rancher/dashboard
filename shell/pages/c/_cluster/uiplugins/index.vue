@@ -4,7 +4,7 @@ import { mapGetters } from 'vuex';
 import { mapPref, PLUGIN_DEVELOPER } from '@shell/store/prefs';
 import { sortBy } from '@shell/utils/sort';
 import { allHash } from '@shell/utils/promise';
-import { CATALOG, UI_PLUGIN, SERVICE, MANAGEMENT } from '@shell/config/types';
+import { CATALOG, UI_PLUGIN, MANAGEMENT } from '@shell/config/types';
 import { SETTING } from '@shell/config/settings';
 import { fetchOrCreateSetting } from '@shell/utils/settings';
 import { getVersionData } from '@shell/config/version';
@@ -22,8 +22,7 @@ import CatalogLoadDialog from './CatalogList/CatalogLoadDialog.vue';
 import CatalogUninstallDialog from './CatalogList/CatalogUninstallDialog.vue';
 import DeveloperInstallDialog from './DeveloperInstallDialog.vue';
 import PluginInfoPanel from './PluginInfoPanel.vue';
-import SetupUIPlugins from './SetupUIPlugins';
-import RemoveUIPlugins from './RemoveUIPlugins';
+import SetupUIPlugins from './SetupUIPlugins.vue';
 import AddExtensionRepos from './AddExtensionRepos';
 import CatalogList from './CatalogList/index.vue';
 import Banner from '@components/Banner/Banner.vue';
@@ -67,7 +66,6 @@ export default {
     Tabbed,
     UninstallDialog,
     SetupUIPlugins,
-    RemoveUIPlugins,
     AddExtensionRepos,
     TabTitle
   },
@@ -87,7 +85,7 @@ export default {
       menuTargetElement:              null,
       menuTargetEvent:                null,
       menuOpen:                       false,
-      hasService:                     false,
+      hasFeatureFlag:                 true,
       defaultIcon:                    require('~shell/assets/images/generic-plugin.svg'),
       reloadRequired:                 false,
       rancherVersion:                 getVersionData()?.Version,
@@ -148,6 +146,10 @@ export default {
     ...mapGetters({ uiErrors: 'uiplugins/errors' }),
     ...mapGetters({ theme: 'prefs/theme' }),
 
+    extensionsFeatureFlag() {
+      return this.$store.getters['management/byId'](MANAGEMENT.FEATURE, 'uiextension');
+    },
+
     showAddReposBanner() {
       return this.addExtensionReposBannerSetting?.value === 'true' && (!this.repos.find((r) => r.urlDisplay === UI_PLUGINS_REPO_URL) || !this.repos.find((r) => r.urlDisplay === UI_PLUGINS_PARTNERS_REPO_URL));
     },
@@ -192,15 +194,6 @@ export default {
         menuActions.push({
           action:  'devLoad',
           label:   this.t('plugins.developer.label'),
-          enabled: true
-        });
-      }
-
-      if (this.hasService) {
-        menuActions.push( { divider: true });
-        menuActions.push({
-          action:  'removePluginSupport',
-          label:   this.t('plugins.setup.remove.label'),
           enabled: true
         });
       }
@@ -488,7 +481,7 @@ export default {
   methods: {
     async refreshCharts(forceChartsUpdate = false) {
       // we might need to force the request, so that we know at all times if what's the status of the offical and partners repos (installed or not)
-      // tied to the SetupUIPlugins, AddExtensionRepos and RemoveUIPlugins checkboxes
+      // tied to the SetupUIPlugins, AddExtensionRepos checkboxes
       await this.$store.dispatch('catalog/load', { reset: true, force: forceChartsUpdate });
       const c = this.$store.getters['catalog/rawCharts'];
 
@@ -496,36 +489,31 @@ export default {
     },
 
     async updateInstallStatus(forceChartsUpdate = false) {
-      let hasService;
+      let hasFeatureFlag;
 
       try {
-        const service = await this.$store.dispatch('management/find', {
-          type: SERVICE,
-          id:   `${ UI_PLUGIN_NAMESPACE }/ui-plugin-operator`,
-          opt:  { force: true },
+        const flag = await this.$store.dispatch('management/find', {
+          type: MANAGEMENT.FEATURE,
+          id:   'uiextension'
         });
 
-        hasService = !!service;
+        hasFeatureFlag = flag.spec?.value || flag.spec?.value !== false;
       } catch (e) {
-        hasService = false;
+        console.warn('Failed to check for feature flag', e); // eslint-disable-line no-console
+        hasFeatureFlag = false;
       }
 
-      if (hasService || forceChartsUpdate) {
+      if ( hasFeatureFlag || forceChartsUpdate ) {
         this.refreshCharts(forceChartsUpdate);
       }
 
-      Vue.set(this, 'hasService', hasService);
+      Vue.set(this, 'hasFeatureFlag', hasFeatureFlag);
 
-      return hasService;
+      return hasFeatureFlag;
     },
 
     filterChanged(f) {
       this.view = f.selectedName;
-    },
-
-    removePluginSupport() {
-      this.refreshCharts(true);
-      this.$refs.removeUIPlugins.showDialog();
     },
 
     // Developer Load is in the action menu
@@ -684,7 +672,7 @@ export default {
             {{ t('generic.reload') }}
           </button>
         </div>
-        <div v-if="hasService && hasMenuActions">
+        <div v-if="hasFeatureFlag && hasMenuActions">
           <button
             ref="actions"
             aria-haspopup="true"
@@ -703,7 +691,6 @@ export default {
             :custom-target-event="menuTargetEvent"
             @close="setMenu(false)"
             @devLoad="showDeveloperLoadDialog"
-            @removePluginSupport="removePluginSupport"
             @manageRepos="manageRepos"
             @addRancherRepos="showAddExtensionReposDialog"
             @manageExtensionView="manageExtensionView"
@@ -714,7 +701,7 @@ export default {
 
     <PluginInfoPanel ref="infoPanel" />
 
-    <div v-if="!hasService">
+    <div v-if="!hasFeatureFlag">
       <div
         v-if="loading"
         class="data-loading"
@@ -728,6 +715,7 @@ export default {
       <SetupUIPlugins
         v-else
         class="setup-message"
+        :has-feature-flag="hasFeatureFlag"
         @done="updateInstallStatus(true)"
         @refreshCharts="refreshCharts(true)"
       />
@@ -1006,10 +994,6 @@ export default {
     <DeveloperInstallDialog
       ref="developerInstallDialog"
       @closed="didInstall"
-    />
-    <RemoveUIPlugins
-      ref="removeUIPlugins"
-      @done="updateInstallStatus"
     />
     <AddExtensionRepos
       ref="addExtensionReposDialog"

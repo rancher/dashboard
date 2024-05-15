@@ -11,11 +11,9 @@ describe('Kubewarden Extension', { tags: ['@extensions', '@adminUser'] }, () => 
     cy.login();
 
     ExtensionsPagePo.goTo();
-    const extensionsPo = new ExtensionsPagePo();
+
     const kubewardenPo = new KubewardenExtensionPo();
 
-    // install extensions operator if it's not installed
-    extensionsPo.installExtensionsOperatorIfNeeded();
     kubewardenPo.addChartsRepoIfNeeded();
   });
 
