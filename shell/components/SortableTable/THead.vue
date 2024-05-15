@@ -136,6 +136,9 @@ export default {
     isIndeterminate() {
       return this.howMuchSelected === SOME;
     },
+    hasColumnWithSubLabel() {
+      return this.columns.some((col) => col.subLabel);
+    }
   },
 
   methods: {
@@ -206,11 +209,10 @@ export default {
 
 <template>
   <thead>
-    <tr :class="{'loading': loading}">
+    <tr :class="{'loading': loading, 'top-aligned': hasColumnWithSubLabel}">
       <th
         v-if="tableActions"
         :width="checkWidth"
-        align="middle"
       >
         <Checkbox
           v-model="isAll"
@@ -399,6 +401,11 @@ export default {
         text-decoration: underline;
         color: var(--body-text);
       }
+    }
+
+    .top-aligned th {
+      vertical-align: top;
+      padding-top: 10px;
     }
 
     thead {

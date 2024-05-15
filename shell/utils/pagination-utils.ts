@@ -12,22 +12,8 @@ import {
 import { PaginationArgs, PaginationParam, PaginationSort } from '@shell/types/store/pagination.types';
 import { sameArrayObjects } from '@shell/utils/array';
 import { isEqual } from '@shell/utils/object';
-
-// This are hardcoded atm, but will be changed via the `Performance` settings
-const settings: PaginationSettings = {
-  enabled: false,
-  stores:  {
-    cluster: {
-      resources: {
-        enableAll:  false,
-        enableSome: {
-          enabled: ['configmap', 'secret', 'pod', 'node'],
-          generic: true,
-        }
-      }
-    }
-  }
-};
+import { STEVE_CACHE } from '@shell/store/features';
+import { getPerformanceSetting } from '@shell/utils/settings';
 
 /**
  * Helper functions for server side pagination
@@ -40,6 +26,12 @@ class PaginationUtils {
    */
   validNsProjectFilters = [ALL, ALL_SYSTEM, ALL_USER, ALL_SYSTEM, NAMESPACE_FILTER_KINDS.NAMESPACE, NAMESPACE_FILTER_KINDS.PROJECT, NAMESPACED_YES, NAMESPACED_NO];
 
+  private getSettings({ rootGetters }: any): PaginationSettings {
+    const perf = getPerformanceSetting(rootGetters);
+
+    return perf.serverPagination;
+  }
+
   /**
    * Is pagination enabled at a global level or for a specific resource
    */
@@ -49,6 +41,13 @@ class PaginationUtils {
       id: string,
     }
   }) {
+    const settings = this.getSettings({ rootGetters });
+
+    // Cache must be enabled to support pagination api
+    if (!rootGetters['features/get']?.(STEVE_CACHE)) {
+      return false;
+    }
+
     // No setting, not enabled
     if (!settings?.enabled) {
       return false;
