@@ -528,6 +528,7 @@ export default {
           :required="true"
           :label="t('cluster.machineConfig.azure.location.label')"
           :disabled="disabled"
+          data-testid="machineConfig.azure.location"
           @input="setLocation"
         />
       </div>
@@ -540,7 +541,7 @@ export default {
           {{ t('cluster.machineConfig.azure.environment.label') }}
           <i class="icon icon-sm icon-info" />
         </label>
-        <span>{{ value.environment }}</span>
+        <span data-testid="machineConfig.azure.environment.value">{{ value.environment }}</span>
       </div>
     </div>
     <div class="row mt-20">
