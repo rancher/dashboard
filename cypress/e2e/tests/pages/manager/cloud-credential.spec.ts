@@ -14,7 +14,7 @@ describe('Cloud Credential', () => {
     clusterList.goTo();
   });
 
-  it.skip('Editing a cluster cloud credential should work with duplicate named cloud credentials', { tags: ['@manager', '@adminUser'] }, () => {
+  it('Editing a cluster cloud credential should work with duplicate named cloud credentials', { tags: ['@manager', '@adminUser'] }, () => {
     const credsName = 'test-do-creds';
     const clusterName = 'test-cluster-digital-ocean';
     const machinePoolId = 'dummy-id';
@@ -93,7 +93,7 @@ describe('Cloud Credential', () => {
       });
     }
   });
-  it('Changing credential environment should change the list of locations when creating an Azure cluster', {}, () => {
+  it('Changing credential environment should change the list of locations when creating an Azure cluster', { tags: ['@manager', '@adminUser'] }, () => {
     const clusterName = 'test-cluster-azure';
     const machinePoolId = 'dummy-id';
 
@@ -167,9 +167,9 @@ describe('Cloud Credential', () => {
         createdCloudCredsIds.push(resp.body.id);
 
         if (i === cloudCredsToCreate.length - 1) {
-          cy.intercept('GET', `/meta/aksLocations?cloudCredentialId=${ createdCloudCredsIds[0] }`, { body: createdCloudCredsIds[0].body });
-          cy.intercept('GET', `/meta/aksLocations?cloudCredentialId=${ createdCloudCredsIds[1] }`, { body: createdCloudCredsIds[1].body });
-          cy.intercept('GET', `/meta/aksLocations?cloudCredentialId=${ createdCloudCredsIds[2] }`, { body: createdCloudCredsIds[1].body });
+          cy.intercept('GET', `/meta/aksLocations?cloudCredentialId=${ encodeURIComponent(createdCloudCredsIds[0]) }`, { body: createdCloudCredsIds[0].body });
+          cy.intercept('GET', `/meta/aksLocations?cloudCredentialId=${ encodeURIComponent(createdCloudCredsIds[1]) }`, { body: createdCloudCredsIds[1].body });
+          cy.intercept('GET', `/meta/aksLocations?cloudCredentialId=${ encodeURIComponent(createdCloudCredsIds[2]) }`, { body: createdCloudCredsIds[1].body });
 
           clusterList.checkIsCurrentPage();
           clusterList.createCluster();

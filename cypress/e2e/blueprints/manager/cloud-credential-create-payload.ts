@@ -20,7 +20,7 @@ export function cloudCredentialCreatePayloadAzure(credName: string, environment:
       namespace:    'fleet-default'
     },
     _name:                 credName,
-    annotations:           { 'provisioning.cattle.io/driver': 'digitalocean' },
+    annotations:           { 'provisioning.cattle.io/driver': 'azure' },
     azurecredentialConfig: {
       clientId, clientSecret, environment, subscriptionId
     },
