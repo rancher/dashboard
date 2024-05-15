@@ -2912,6 +2912,7 @@ logging:
           include: Limit to specific container names
           exclude: Exclude specific container names
         placeholder: "Default: Any container"
+        enter: Enter container name to select
       namespaces:
         title:
           include: Limit to specific namespaces

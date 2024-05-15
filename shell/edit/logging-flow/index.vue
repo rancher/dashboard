@@ -385,7 +385,6 @@ export default {
               :mode="mode"
               :namespaces="namespaceChoices"
               :nodes="nodeChoices"
-
               :is-cluster-flow="value.type === LOGGING.CLUSTER_FLOW"
               @remove="e=>removeMatch(props.row.i)"
               @input="e=>updateMatch(e,props.row.i)"

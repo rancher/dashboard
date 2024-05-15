@@ -8,6 +8,7 @@ import { onClickOption, calculatePosition } from '@shell/utils/select';
 import LabeledSelectPagination from './labeled-select-pagination';
 import { LABEL_SELECT_NOT_OPTION_KINDS } from '@shell/types/components/labeledSelect';
 
+// TODO: RC change back to LabelSelect.Vue
 export default {
   name: 'LabeledSelect',
 
@@ -97,6 +98,10 @@ export default {
       type:    Boolean,
       default: true
     },
+    noOptionsLabelKey: {
+      type:    String,
+      default: 'labelSelect.noOptions.empty'
+    }
   },
 
   data() {
@@ -375,7 +380,7 @@ export default {
             {{ t('labelSelect.noOptions.noMatch') }}
           </template>
           <template v-else>
-            {{ t('labelSelect.noOptions.empty') }}
+            {{ t(noOptionsLabelKey) }}
           </template>
         </div>
       </template>
