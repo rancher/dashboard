@@ -14,6 +14,7 @@ import { sameArrayObjects } from '@shell/utils/array';
 import { isEqual } from '@shell/utils/object';
 // import { STEVE_CACHE } from '@shell/store/features';
 import { getPerformanceSetting } from '@shell/utils/settings';
+import { DEFAULT_PERF_SETTING } from 'config/settings';
 
 /**
  * Helper functions for server side pagination
@@ -54,7 +55,8 @@ class PaginationUtils {
     }
 
     // const settings = this.getSettings({ rootGetters }); // TODO: RC
-    const settings = { enabled: true, stores: { cluster: { resources: { enableAll: true } } } };
+    const settings = DEFAULT_PERF_SETTING.serverPagination;
+    // const settings = { enabled: true, stores: { cluster: { resources: { enableAll: true } } } };
 
     // No setting, not enabled
     if (!settings?.enabled) {
