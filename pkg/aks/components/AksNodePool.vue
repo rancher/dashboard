@@ -11,6 +11,7 @@ import UnitInput from '@shell/components/form/UnitInput.vue';
 import RadioGroup from '@components/Form/Radio/RadioGroup.vue';
 import Checkbox from '@components/Form/Checkbox/Checkbox.vue';
 import KeyValue from '@shell/components/form/KeyValue.vue';
+import Banner from '@components/Banner/Banner.vue';
 
 import { randomStr } from '@shell/utils/string';
 
@@ -24,7 +25,8 @@ export default defineComponent({
     UnitInput,
     RadioGroup,
     Checkbox,
-    KeyValue
+    KeyValue,
+    Banner
   },
 
   props: {
@@ -144,7 +146,7 @@ export default defineComponent({
           label-key="generic.name"
           required
           :disabled="!pool._isNewOrUnprovisioned"
-          :rules="rules.poolName"
+          :rules="rules.name"
           data-testid="pool-name"
         />
       </div>
@@ -222,8 +224,7 @@ export default defineComponent({
           type="number"
           :mode="mode"
           label-key="aks.nodePools.count.label"
-          :disabled="pool.enableAutoScaling"
-          :rules="rules.count"
+          :rules="!pool.enableAutoScaling ? rules.count : []"
         />
       </div>
       <div class="col span-3">
@@ -272,6 +273,11 @@ export default defineComponent({
         </div>
       </template>
     </div>
+    <Banner
+      v-if="pool._validMinMax === false"
+      color="error"
+      label-key="aks.errors.poolMinMax"
+    />
     <div class="row mb-10">
       <div class="col span-12">
         <div class="text-label">

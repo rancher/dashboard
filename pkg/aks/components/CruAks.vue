@@ -238,20 +238,20 @@ export default defineComponent({
       },
       {
         path:  'poolCount',
-        rules: []
+        rules: ['poolCount']
       },
       {
         path:  'poolMin',
-        rules: []
+        rules: ['poolMin']
       },
       {
         path:  'poolMax',
-        rules: []
+        rules: ['poolMax']
       },
-      // {
-      //   path:  'nodePools',
-      //   rules: ['availabilityZoneSupport', 'poolNames']
-      // },
+      {
+        path:  'poolMinMax',
+        rules: ['poolMinMax']
+      },
       {
         path:  'nodePoolsGeneral',
         rules: ['systemPoolRequired']
@@ -347,25 +347,6 @@ export default defineComponent({
           return undefined;
         },
 
-        poolNames: () => {
-          let allAvailable = true;
-
-          this.nodePools.forEach((pool: AKSNodePool) => {
-            const name = pool.name || '';
-
-            if (!name.match(/^[a-z]+[a-z0-9]*$/)) {
-              this.$set(pool, '_validName', false);
-
-              allAvailable = false;
-            } else {
-              this.$set(pool, '_validName', true);
-            }
-          });
-          if (!allAvailable) {
-            return this.t('aks.errors.poolName');
-          }
-        },
-
         k8sVersionAvailable: () => {
           if (this.touchedVersion) {
             if (!this.aksVersionOptions.find((v: any) => v.value === this.config.kubernetesVersion)) {
@@ -394,16 +375,33 @@ export default defineComponent({
           return systemPool ? undefined : this.t('aks.nodePools.mode.systemRequired');
         },
 
-        availabilityZoneSupport: (pool: AKSNodePool) => {
+        poolMinMax: () => {
+          let allValid = true;
+
+          this.nodePools.forEach((pool: AKSNodePool) => {
+            const {
+              count = 0, minCount = 0, maxCount = 0, enableAutoScaling
+            } = pool;
+
+            if (enableAutoScaling && (minCount > maxCount || count < minCount || count > maxCount) ) {
+              this.$set(pool, '_validMinMax', false);
+              allValid = false;
+            } else {
+              this.$set(pool, '_validMinMax', true);
+            }
+          });
+
+          return allValid ? undefined : this.t('aks.errors.poolMinMax');
+        },
+
+        availabilityZoneSupport: (zones: string[]) => {
           if (this.canUseAvailabilityZones) {
             return undefined;
           }
           let isUsingAvailabilityZones = false;
 
-          if (pool) {
-            if (pool.availabilityZones && pool.availabilityZones.length) {
-              isUsingAvailabilityZones = true;
-            }
+          if (zones && zones.length) {
+            isUsingAvailabilityZones = true;
           } else {
             this.nodePools.forEach((pool: AKSNodePool) => {
               if (pool.availabilityZones && pool.availabilityZones.length) {
@@ -413,7 +411,94 @@ export default defineComponent({
           }
 
           return this.canUseAvailabilityZones || !isUsingAvailabilityZones ? undefined : this.t('aks.errors.availabilityZones');
-        }
+        },
+
+        poolNames: (poolName?: string) => {
+          let allAvailable = true;
+
+          if (poolName || poolName === '') {
+            return poolName.match(/^[a-z]+[a-z0-9]*$/) ? undefined : this.t('aks.errors.poolName');
+          } else {
+            this.nodePools.forEach((pool: AKSNodePool) => {
+              const name = pool.name || '';
+
+              if (!name.match(/^[a-z]+[a-z0-9]*$/)) {
+                this.$set(pool, '_validName', false);
+
+                allAvailable = false;
+              } else {
+                this.$set(pool, '_validName', true);
+              }
+            });
+            if (!allAvailable) {
+              return this.t('aks.errors.poolName');
+            }
+          }
+        },
+
+        poolCount: (count?: number) => {
+          if (count || count === 0) {
+            return count >= 1 ? undefined : this.t('aks.errors.poolCount');
+          } else {
+            let allValid = true;
+
+            this.nodePools.forEach((pool: AKSNodePool) => {
+              const { count = 0 } = pool;
+
+              if (count < 1 && !pool.enableAutoScaling) {
+                this.$set(pool, '_validCount', false);
+                allValid = false;
+              } else {
+                this.$set(pool, '_validCount', true);
+              }
+            });
+
+            return allValid ? undefined : this.t('aks.errors.poolCount');
+          }
+        },
+
+        poolMin: (min?:number) => {
+          if (min || min === 0) {
+            return min <= 0 || min > 100 ? this.t('aks.errors.poolMin') : undefined;
+          } else {
+            let allValid = true;
+
+            this.nodePools.forEach((pool: AKSNodePool) => {
+              const poolMin = pool.minCount || 0;
+
+              if (pool.enableAutoScaling && (poolMin <= 0 || poolMin > 100)) {
+                this.$set(pool, '_validMin', false);
+                allValid = false;
+              } else {
+                this.$set(pool, '_validMin', true);
+              }
+            });
+
+            return allValid ? undefined : this.t('aks.errors.poolMin');
+          }
+        },
+
+        poolMax: (max?:number) => {
+          if (max || max === 0) {
+            return max <= 0 || max > 100 ? this.t('aks.errors.poolMax') : undefined;
+          } else {
+            let allValid = true;
+
+            this.nodePools.forEach((pool: AKSNodePool) => {
+              const poolMax = pool.maxCount || 0;
+
+              if (pool.enableAutoScaling && (poolMax <= 0 || poolMax > 100)) {
+                // TODO nb rework pool _valid... properties so tab error is less awkward
+                this.$set(pool, '_validMax', false);
+                allValid = false;
+              } else {
+                this.$set(pool, '_validMax', true);
+              }
+            });
+
+            return allValid ? undefined : this.t('aks.errors.poolMax');
+          }
+        },
 
       };
     },
@@ -936,7 +1021,7 @@ export default defineComponent({
             :key="pool._id"
             :name="pool.name"
             :label="pool.name || t('aks.nodePools.notNamed')"
-            :error="pool._validSize === false || pool._validAZ === false || pool._validName===false"
+            :error="pool._validSize === false || pool._validAZ === false || pool._validName===false || pool._validMinMax === false || pool._validCount === false || pool._validMin === false || pool._validMax===false"
           >
             <AksNodePool
               :mode="mode"
@@ -951,6 +1036,7 @@ export default defineComponent({
                        count: fvGetAndReportPathRules('poolCount'),
                        min: fvGetAndReportPathRules('poolMin'),
                        max: fvGetAndReportPathRules('poolMax'),
+                       minMax: fvGetAndReportPathRules('poolMinMax')
               }"
               @remove="removePool(pool)"
               @vmSizeSet="touchedVmSize = true"
