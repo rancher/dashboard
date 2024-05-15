@@ -447,7 +447,7 @@ export default defineComponent({
             this.nodePools.forEach((pool: AKSNodePool) => {
               const { count = 0 } = pool;
 
-              if (count < 1 && !pool.enableAutoScaling) {
+              if (count < 1) {
                 this.$set(pool._validation, '_validCount', false);
                 allValid = false;
               } else {

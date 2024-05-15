@@ -224,7 +224,7 @@ export default defineComponent({
           type="number"
           :mode="mode"
           label-key="aks.nodePools.count.label"
-          :rules="!pool.enableAutoScaling ? rules.count : []"
+          :rules="rules.count"
         />
       </div>
       <div class="col span-3">
