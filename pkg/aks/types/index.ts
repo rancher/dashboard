@@ -26,12 +26,14 @@ export interface AKSNodePool {
   vmSize?: string,
   _isNewOrUnprovisioned?: boolean,
   _id?: string
-  _validSize?: boolean
-  _validAZ?: boolean
-  _validCount?: boolean
-  _validMinMax?: boolean
-  _validMin?: boolean
-  _validMax?: boolean
+  _validation: {
+    _validSize?: boolean
+    _validAZ?: boolean
+    _validCount?: boolean
+    _validMinMax?: boolean
+    _validMin?: boolean
+    _validMax?: boolean
+  }
 }
 
 export interface AKSConfig {

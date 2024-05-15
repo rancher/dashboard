@@ -67,6 +67,7 @@ const defaultNodePool = {
   osType:                'Linux',
   vmSize:                'Standard_DS2_v2',
   _isNewOrUnprovisioned: true,
+  _validation:           {}
 };
 
 const defaultAksConfig = {
@@ -160,6 +161,7 @@ export default defineComponent({
     this.nodePools.forEach((pool: AKSNodePool) => {
       this.$set(pool, '_id', randomStr());
       this.$set(pool, '_isNewOrUnprovisioned', this.isNewOrUnprovisioned);
+      this.$set(pool, '_validation', {});
     });
   },
 
@@ -384,10 +386,10 @@ export default defineComponent({
             } = pool;
 
             if (enableAutoScaling && (minCount > maxCount || count < minCount || count > maxCount) ) {
-              this.$set(pool, '_validMinMax', false);
+              this.$set(pool._validation, '_validMinMax', false);
               allValid = false;
             } else {
-              this.$set(pool, '_validMinMax', true);
+              this.$set(pool._validation, '_validMinMax', true);
             }
           });
 
@@ -423,11 +425,11 @@ export default defineComponent({
               const name = pool.name || '';
 
               if (!name.match(/^[a-z]+[a-z0-9]*$/)) {
-                this.$set(pool, '_validName', false);
+                this.$set(pool._validation, '_validName', false);
 
                 allAvailable = false;
               } else {
-                this.$set(pool, '_validName', true);
+                this.$set(pool._validation, '_validName', true);
               }
             });
             if (!allAvailable) {
@@ -446,10 +448,10 @@ export default defineComponent({
               const { count = 0 } = pool;
 
               if (count < 1 && !pool.enableAutoScaling) {
-                this.$set(pool, '_validCount', false);
+                this.$set(pool._validation, '_validCount', false);
                 allValid = false;
               } else {
-                this.$set(pool, '_validCount', true);
+                this.$set(pool._validation, '_validCount', true);
               }
             });
 
@@ -467,10 +469,10 @@ export default defineComponent({
               const poolMin = pool.minCount || 0;
 
               if (pool.enableAutoScaling && (poolMin <= 0 || poolMin > 100)) {
-                this.$set(pool, '_validMin', false);
+                this.$set(pool._validation, '_validMin', false);
                 allValid = false;
               } else {
-                this.$set(pool, '_validMin', true);
+                this.$set(pool._validation, '_validMin', true);
               }
             });
 
@@ -488,11 +490,10 @@ export default defineComponent({
               const poolMax = pool.maxCount || 0;
 
               if (pool.enableAutoScaling && (poolMax <= 0 || poolMax > 100)) {
-                // TODO nb rework pool _valid... properties so tab error is less awkward
-                this.$set(pool, '_validMax', false);
+                this.$set(pool._validation, '_validMax', false);
                 allValid = false;
               } else {
-                this.$set(pool, '_validMax', true);
+                this.$set(pool._validation, '_validMax', true);
               }
             });
 
@@ -856,6 +857,12 @@ export default defineComponent({
       removeObject(this.nodePools, pool);
     },
 
+    poolIsValid(pool: AKSNodePool): boolean {
+      const poolValidation = pool?._validation || {};
+
+      return !Object.values(poolValidation).includes(false);
+    },
+
     selectNetwork(network: any): void {
       if (network.name === this.t('generic.none') || network === this.t('generic.none')) {
         this.$set(this.config, 'virtualNetwork', null);
@@ -1021,7 +1028,7 @@ export default defineComponent({
             :key="pool._id"
             :name="pool.name"
             :label="pool.name || t('aks.nodePools.notNamed')"
-            :error="pool._validSize === false || pool._validAZ === false || pool._validName===false || pool._validMinMax === false || pool._validCount === false || pool._validMin === false || pool._validMax===false"
+            :error="!poolIsValid(pool)"
           >
             <AksNodePool
               :mode="mode"
