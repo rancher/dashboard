@@ -4,7 +4,7 @@ import { SECRET } from '@shell/config/types';
 import { _EDIT, _VIEW } from '@shell/config/query-params';
 import { SECRET_TYPES as TYPES } from '@shell/config/secret';
 import { PaginationParamFilter } from '@shell/types/store/pagination.types';
-import { labelSelectPaginationFunction } from '@shell/components/form/LabeledSelect/labeled-select.utils';
+import { labelSelectPaginationFunction } from '@shell/components/form/labeled-select-utils/labeled-select.utils';
 import paginationUtils from '@shell/utils/pagination-utils';
 import { LABEL_SELECT_KINDS } from '@shell/types/components/labeledSelect';
 

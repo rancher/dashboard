@@ -7,7 +7,7 @@ import { _EDIT, _VIEW } from '@shell/config/query-params';
 import { randomStr } from '@shell/utils/string';
 import { isEmpty } from '@shell/utils/object';
 
-import LabeledSelect from '@shell/components/form/LabeledSelect/index.vue';
+import LabeledSelect from '@shell/components/form/LabeledSelect.vue';
 import LabeledInput from '@components/Form/LabeledInput/LabeledInput.vue';
 import Checkbox from '@components/Form/Checkbox/Checkbox.vue';
 import KeyValue from '@shell/components/form/KeyValue.vue';

@@ -7,7 +7,7 @@ import NameNsDescription from '@shell/components/form/NameNsDescription';
 import { mapGetters } from 'vuex';
 import { CONFIG_MAP } from '@shell/config/types';
 import { PaginationParamFilter } from '@shell/types/store/pagination.types';
-import { labelSelectPaginationFunction } from '@shell/components/form/LabeledSelect/labeled-select.utils';
+import { labelSelectPaginationFunction } from '@shell/components/form/labeled-select-utils/labeled-select.utils';
 import paginationUtils from '@shell/utils/pagination-utils';
 
 const providers = ['aks', 'docker', 'eks', 'gke', 'k3s', 'minikube', 'rke-windows', 'rke', 'rke2'];

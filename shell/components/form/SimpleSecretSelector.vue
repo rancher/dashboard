@@ -24,7 +24,7 @@ import { TYPES } from '@shell/models/secret';
 import { LABEL_SELECT_KINDS } from '@shell/types/components/labeledSelect';
 import paginationUtils from '@shell/utils/pagination-utils';
 import { PaginationParamFilter } from '@shell/types/store/pagination.types';
-import { labelSelectPaginationFunction } from '@shell/components/form/LabeledSelect/labeled-select.utils';
+import { labelSelectPaginationFunction } from '@shell/components/form/labeled-select-utils/labeled-select.utils';
 
 const NONE = '__[[NONE]]__';
 

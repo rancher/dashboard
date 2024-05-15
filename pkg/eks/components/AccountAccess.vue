@@ -1,7 +1,7 @@
 <script lang="ts">
 import { defineComponent } from 'vue';
 import { _CREATE, _VIEW } from '@shell/config/query-params';
-import LabeledSelect from '@shell/components/form/LabeledSelect/index.vue';
+import LabeledSelect from '@shell/components/form/LabeledSelect.vue';
 import SelectCredential from '@shell/edit/provisioning.cattle.io.cluster/SelectCredential.vue';
 import { DEFAULT_REGION } from './CruEKS.vue';
 import { mapGetters } from 'vuex';

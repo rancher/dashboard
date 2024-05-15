@@ -1,5 +1,5 @@
 import { mount } from '@vue/test-utils';
-import LabeledSelect from '@shell/components/form/LabeledSelect/index.vue';
+import LabeledSelect from '@shell/components/form/index.vue';
 
 describe('component: LabeledSelect', () => {
   describe('should display correct label', () => {

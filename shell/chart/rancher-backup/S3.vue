@@ -6,7 +6,7 @@ import LabeledSelect from '@shell/components/form/LabeledSelect';
 import { mapGetters } from 'vuex';
 import { SECRET } from '@shell/config/types';
 import { PaginationParamFilter } from '@shell/types/store/pagination.types';
-import { labelSelectPaginationFunction } from '@shell/components/form/LabeledSelect/labeled-select.utils';
+import { labelSelectPaginationFunction } from '@shell/components/form/labeled-select-utils/labeled-select.utils';
 import paginationUtils from '@shell/utils/pagination-utils';
 
 export default {
