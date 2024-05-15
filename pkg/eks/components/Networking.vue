@@ -2,7 +2,7 @@
 import { _CREATE, _EDIT, _VIEW } from '@shell/config/query-params';
 import { defineComponent } from 'vue';
 import { Store, mapGetters } from 'vuex';
-import LabeledSelect from '@shell/components/form/LabeledSelect.vue';
+import LabeledSelect from '@shell/components/form/LabeledSelect/index.vue';
 import Checkbox from '@components/Form/Checkbox/Checkbox.vue';
 import ArrayList from '@shell/components/form/ArrayList.vue';
 import Banner from '@components/Banner/Banner.vue';
