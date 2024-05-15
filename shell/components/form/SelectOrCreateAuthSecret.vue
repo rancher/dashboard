@@ -358,8 +358,7 @@ export default {
   },
 
   methods: {
-    // TODO: RC move this to other PR
-    // TODO: RC unit tests
+    // TODO: RC revert
     async fetchSecrets() {
       const namespaceFilter = this.namespace && this.limitToNamespace ? this.namespace : '';
 
@@ -382,7 +381,7 @@ export default {
         // When this is ripped out some of the additional filtering in `options` can be removed
         return await this.$store.dispatch(`${ this.inStore }/findAll`, {
           type: SECRET,
-          opt:  { namespaced: namespaceFilter } // TODO: RC test
+          opt:  { namespaced: namespaceFilter }
         });
       }
     },

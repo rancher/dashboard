@@ -81,7 +81,7 @@ export default defineComponent<Props, any, Data, Computed, Methods>({
     optionsInPage() {
       // Number of genuine options (not groups, dividers, etc)
       return this.canPaginate ? this._options.filter((o: any) => {
-        return o.kind !== LABEL_SELECT_KINDS.NONE && !LABEL_SELECT_NOT_OPTION_KINDS.includes(o.kind); // TODO: RC HEEEEER
+        return o.kind !== LABEL_SELECT_KINDS.NONE && !LABEL_SELECT_NOT_OPTION_KINDS.includes(o.kind);
       }).length : 0;
     },
 

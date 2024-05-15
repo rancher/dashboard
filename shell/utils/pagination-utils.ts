@@ -56,7 +56,6 @@ class PaginationUtils {
 
     // const settings = this.getSettings({ rootGetters }); // TODO: RC
     const settings = DEFAULT_PERF_SETTING.serverPagination;
-    // const settings = { enabled: true, stores: { cluster: { resources: { enableAll: true } } } };
 
     // No setting, not enabled
     if (!settings?.enabled) {
