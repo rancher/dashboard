@@ -44,7 +44,10 @@ export async function installPlugins(app, Vue) {
 
   const installations = pluginDefinitions.map(async(pluginDefinition) => {
     if (typeof pluginDefinition === 'function') {
-      await pluginDefinition(app.context, inject, Vue);
+      await pluginDefinition(
+        app.context,
+        (key, value) => inject(key, value, app.context, Vue)
+      );
     }
   });
 

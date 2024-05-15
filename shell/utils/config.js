@@ -1,4 +1,4 @@
-export default (context, inject, Vue) => {
+export default (context, inject) => {
   // eslint-disable-next-line no-undef
-  inject('config', nuxt.publicRuntimeConfig, context, Vue);
+  inject('config', nuxt.publicRuntimeConfig);
 };
