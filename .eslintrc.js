@@ -57,6 +57,9 @@ module.exports = {
 
     // FIXME: Disabled rules from the recommended
     '@typescript-eslint/no-var-requires': 'off',
+
+    // FIXME: Disabled for Vue3 migration
+    'vue/one-component-per-file': 'off',
   },
   overrides: [
     {
