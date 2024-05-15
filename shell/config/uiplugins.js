@@ -4,7 +4,7 @@ import semver from 'semver';
 export const UI_PLUGIN_API_VERSION = '1.2.0';
 export const UI_PLUGIN_HOST_APP = 'rancher-manager';
 
-export const UI_PLUGIN_BASE_URL = '/api/v1/namespaces/cattle-ui-plugin-system/services/http:ui-plugin-operator:80/proxy';
+export const UI_PLUGIN_BASE_URL = '/v1/uiplugins';
 
 export const UI_PLUGIN_NAMESPACE = 'cattle-ui-plugin-system';
 
@@ -89,6 +89,8 @@ export function uiPluginAnnotation(chart, name) {
 
   return undefined;
 }
+
+// i18n-uses plugins.error.generic, plugins.error.api, plugins.error.host
 
 // Should we load a plugin, based on the metadata returned by the backend?
 // Returns error key string or false

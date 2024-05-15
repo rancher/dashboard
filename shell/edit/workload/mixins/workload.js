@@ -251,6 +251,9 @@ export default {
     }
 
     this.selectContainer(container);
+    if (this.realMode === _CLONE && this.value.type === WORKLOAD_TYPES.JOB) {
+      this.cleanUpClonedJobData();
+    }
 
     return {
       secondaryResourceData:      this.secondaryResourceDataConfig(),
@@ -523,7 +526,7 @@ export default {
         const type = workloadTypes[prop];
         const subtype = {
           id:          type,
-          description: `workload.typeDescriptions.'${ type }'`,
+          description: `workload.typeDescriptions.'${ type }'`, // i18n-uses workload.typeDescriptions.*
           label:       this.nameDisplayFor(type),
           bannerAbbrv: this.initialDisplayFor(type),
         };
@@ -1022,5 +1025,35 @@ export default {
 
       //
     },
+
+    cleanUpClonedJobData() {
+      const annotations = this.value?.metadata?.annotations;
+
+      if (annotations) {
+        this.$delete(annotations, 'batch.kubernetes.io/job-tracking');
+      }
+      const labels = this.value?.metadata?.labels;
+
+      if (labels) {
+        this.$delete(labels, 'batch.kubernetes.io/controller-uid');
+        this.$delete(labels, 'batch.kubernetes.io/job-name');
+        this.$delete(labels, 'controller-uid');
+        this.$delete(labels, 'job-name');
+      }
+
+      const matchLabels = this.value?.spec?.selector?.matchLabels;
+
+      if (matchLabels) {
+        this.$delete(matchLabels, 'batch.kubernetes.io/controller-uid');
+      }
+      const templateLabels = this.value?.spec?.template?.metadata?.labels;
+
+      if (templateLabels) {
+        this.$delete(templateLabels, 'batch.kubernetes.io/controller-uid');
+        this.$delete(templateLabels, 'batch.kubernetes.io/job-name');
+        this.$delete(templateLabels, 'controller-uid');
+        this.$delete(templateLabels, 'job-name');
+      }
+    }
   },
 };

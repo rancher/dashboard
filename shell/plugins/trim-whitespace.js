@@ -1,37 +1,9 @@
 import Vue from 'vue';
+import trimWhitespaceDirective from '@shell/directives/trim-whitespace';
 
-export function trimWhitespace(el, dir) {
-  for (const node of el.childNodes) {
-    if (node.nodeType === Node.TEXT_NODE ) {
-      const trimmed = node.data.trim();
+export default trimWhitespaceDirective;
+/* eslint-disable-next-line no-console */
+console.warn(`Importing trimWhitespaceDirective from plugins has been deprecated, use shell/directives/trim-whitespace.js instead.
+Make sure to invoke it using Vue.directive('trim-whitespace', trimWhitespaceDirective ) to maintain compatibility.`);
 
-      if ( trimmed === '') {
-        node.remove();
-      } else if ( trimmed !== node.data ) {
-        node.data = trimmed;
-      }
-    }
-  }
-}
-
-export function trimWhitespaceSsr(el, dir) {
-  // This causes server<->client dom mismatches sometimes... gave up for now.
-  /*
-  for ( const node of (el.children || []) ) {
-    if ( node.text ) {
-      const trimmed = node.text.trim();
-
-      if ( trimmed !== node.text ) {
-        node.text = trimmed;
-      }
-    } else if ( node.children ) {
-      trimWhitespaceSsr(node);
-    }
-  }
-  */
-}
-
-Vue.directive('trim-whitespace', {
-  inserted:         trimWhitespace,
-  componentUpdated: trimWhitespace
-});
+Vue.directive('trim-whitespace', trimWhitespaceDirective );

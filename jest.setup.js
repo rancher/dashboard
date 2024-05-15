@@ -1,9 +1,10 @@
 /* eslint-disable no-undef */
 import { config } from '@vue/test-utils';
-import { directiveSsr as t } from '@shell/plugins/i18n';
+import i18n from '@shell/plugins/i18n';
 import VTooltip from 'v-tooltip';
 import vSelect from 'vue-select';
-import { VCleanTooltip } from '@shell/plugins/clean-tooltip-directive.js';
+import cleanTooltipDirective from '@shell/directives/clean-tooltip';
+import cleanHtmlDirective from '@shell/directives/clean-html';
 import '@shell/plugins/replaceall';
 
 import Vue from 'vue';
@@ -13,9 +14,11 @@ global.TextEncoder = TextEncoder;
 global.TextDecoder = TextDecoder;
 
 Vue.config.productionTip = false;
+Vue.use(i18n);
 Vue.use(VTooltip);
-Vue.use(VCleanTooltip);
 Vue.component('v-select', vSelect);
+Vue.directive('clean-html', cleanHtmlDirective);
+Vue.directive('clean-tooltip', cleanTooltipDirective);
 
 /**
  * Global configuration for Jest tests
@@ -45,7 +48,6 @@ beforeEach(() => {
   config.mocks['$plugin'] = { getDynamic: () => undefined };
 
   config.mocks['$store'] = { getters: { 'i18n/t': jest.fn() } };
-  config.directives = { t, 'clean-tooltip': VCleanTooltip };
 
   // Overrides some components
   // config.stubs['my-component'] = { template: "<div></div> "};

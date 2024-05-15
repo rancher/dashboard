@@ -3,6 +3,7 @@ import LabeledInputPo from '@/cypress/e2e/po/components/labeled-input.po';
 import AsyncButtonPo from '@/cypress/e2e/po/components/async-button.po';
 import RadioGroupInputPo from '@/cypress/e2e/po/components/radio-group-input.po';
 import LabeledSelectPo from '@/cypress/e2e/po/components/labeled-select.po';
+import BannersPo from '@/cypress/e2e/po/components/banners.po';
 
 export default class SettingsEditPo extends PagePo {
   private static createPath(clusterId: string, setting: string) {
@@ -34,6 +35,14 @@ export default class SettingsEditPo extends PagePo {
 
     selectSettings.toggle();
     selectSettings.clickOptionWithLabel(label);
+  }
+
+  serverUrlLocalhostWarningBanner(): BannersPo {
+    return new BannersPo('[data-testid="setting-serverurl-localhost-warning"]');
+  }
+
+  errorBannerContent(label: string): Cypress.Chainable {
+    return new BannersPo('[data-testid="setting-error-banner"]', this.self()).banner().contains(label);
   }
 
   useDefaultButton(): Cypress.Chainable {

@@ -5,18 +5,22 @@ import { sortBy } from '@shell/utils/sort';
 import { MODE, _EDIT } from '@shell/config/query-params';
 import { authProvidersInfo } from '@shell/utils/auth';
 import { Banner } from '@components/Banner';
+import Loading from '@shell/components/Loading';
 
 export default {
-  components: { SelectIconGrid, Banner },
+  components: {
+    SelectIconGrid, Banner, Loading
+  },
 
-  async asyncData({ store, redirect }) {
-    const authProvs = await authProvidersInfo(store);
+  async fetch() {
+    const authProvs = await authProvidersInfo(this.$store);
 
     if (!!authProvs.enabledLocation) {
-      redirect(authProvs.enabledLocation);
+      return this.$router.replace(authProvs.enabledLocation);
     }
 
-    return { nonLocal: authProvs.nonLocal, enabled: authProvs.enabled };
+    this.$set(this, 'enabled', authProvs.enabled);
+    this.$set(this, 'nonLocal', authProvs.nonLocal);
   },
 
   data() {
@@ -33,7 +37,8 @@ export default {
       hasListComponent,
       hasEditComponent,
 
-      // Provided by asyncData later
+      // Provided by fetch later
+      enabled:  false,
       nonLocal: null,
     };
   },
@@ -82,7 +87,8 @@ export default {
 </script>
 
 <template>
-  <div>
+  <Loading v-if="$fetchState.pending" />
+  <div v-else>
     <h1 class="m-0">
       {{ displayName }}
     </h1>

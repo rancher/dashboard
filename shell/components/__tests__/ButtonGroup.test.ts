@@ -22,8 +22,7 @@ describe('component: ButtonGroup', () => {
       propsData: {
         options,
         value: 'val1'
-      },
-      directives: { 'trim-whitespace': jest.fn() },
+      }
     });
 
     const firstBtn = wrapper.find('[data-testid="button-group-child-0"]');
@@ -68,8 +67,7 @@ describe('component: ButtonGroup', () => {
         inactiveClass: 'bg-some-inactive-class',
         iconSize:      'xxxxl',
         value:         'val1'
-      },
-      directives: { 'trim-whitespace': jest.fn() },
+      }
     });
 
     const firstBtn = wrapper.find('[data-testid="button-group-child-0"]');
@@ -110,8 +108,7 @@ describe('component: ButtonGroup', () => {
       propsData: {
         options,
         value: 'val1'
-      },
-      directives: { 'trim-whitespace': jest.fn() },
+      }
     });
 
     const firstBtn = wrapper.find('[data-testid="button-group-child-0"]');

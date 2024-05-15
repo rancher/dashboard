@@ -67,6 +67,9 @@ describe('User can update their preferences', () => {
 
     header.showKubectlExplainTooltip();
     header.getKubectlExplainTooltipContent().contains('Describe Resource');
+    cy.reload();
+    header.showKubectlExplainTooltip();
+    header.getKubectlExplainTooltipContent().contains('Describe Resource');
     // EO test https://github.com/rancher/dashboard/issues/10153
   });
 

@@ -403,14 +403,14 @@ const sharedActions = {
       return;
     }
 
-    // This is temporary and will be removed once Part 3 of https://github.com/rancher/dashboard/pull/10349 is resolved by abckend
+    // This is temporary and will be removed once Part 3 of https://github.com/rancher/dashboard/pull/10349 is resolved by backend
     // Steve cache backed api does not return a revision, so `revision` here is always undefined
     // Which means we find a revision within a resource itself and use it in the watch
     // That revision is probably too old and results in a watch error
     // Watch errors mean we make a http request to get latest revision (which is still missing) and try to re-watch with it...
     // etc
-    if (!rootGetters['features/get']?.(STEVE_CACHE) && typeof revision === 'undefined') {
-      return undefined;
+    if (typeof revision === 'undefined' && !rootGetters['features/get']?.(STEVE_CACHE)) {
+      revision = getters.nextResourceVersion(type, id);
     }
     // if ( typeof revision === 'undefined' ) {
     //   revision = getters.nextResourceVersion(type, id);

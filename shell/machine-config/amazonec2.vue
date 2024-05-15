@@ -70,7 +70,7 @@ export default {
       this.kmsClient = await this.$store.dispatch('aws/kms', { region, cloudCredentialId: this.credentialId });
 
       if ( !this.instanceInfo ) {
-        this.instanceInfo = await this.$store.dispatch('aws/instanceInfo', { client: this.ec2Client } );
+        this.instanceInfo = await this.$store.dispatch('aws/describeInstanceTypes', { client: this.ec2Client } );
       }
 
       const hash = {};

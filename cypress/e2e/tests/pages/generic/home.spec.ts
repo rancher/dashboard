@@ -3,11 +3,14 @@ import PreferencesPagePo from '@/cypress/e2e/po/pages/preferences.po';
 import ClusterManagerListPagePo from '@/cypress/e2e/po/pages/cluster-manager/cluster-manager-list.po';
 import ClusterManagerImportGenericPagePo from '@/cypress/e2e/po/edit/provisioning.cattle.io.cluster/import/cluster-import.generic.po';
 import { PARTIAL_SETTING_THRESHOLD } from '@/cypress/support/utils/settings-utils';
+import { RANCHER_PAGE_EXCEPTIONS, catchTargetPageException } from '~/cypress/support/utils/exception-utils';
 
 const homePage = new HomePagePo();
 const homeClusterList = homePage.list();
 const provClusterList = new ClusterManagerListPagePo('local');
 const longClusterDescription = 'this-is-some-really-really-really-really-really-really-long-description';
+
+const rowDetails = (text) => text.split('\n').map((r) => r.trim()).filter((f) => f);
 
 describe('Home Page', () => {
   it('Confirm correct number of settings requests made', { tags: ['@generic', '@adminUser', '@standardUser'] }, () => {
@@ -27,23 +30,7 @@ describe('Home Page', () => {
 
   describe('Home Page', { testIsolation: 'off' }, () => {
     before(() => {
-      // since I wasn't able to fully mock a list of clusters
-      // the next best thing is to add a description to the current local cluster
-      // testing https://github.com/rancher/dashboard/issues/10441
-      cy.intercept('GET', `/v1/provisioning.cattle.io.clusters?*`, (req) => {
-        req.continue((res) => {
-          const localIndex = res.body.data.findIndex((item) => item.id.includes('/local'));
-
-          if (localIndex >= 0) {
-            res.body.data[localIndex].metadata.annotations['field.cattle.io/description'] = longClusterDescription;
-          }
-
-          res.send(res.body);
-        });
-      }).as('provClusters');
-
       cy.login();
-      HomePagePo.goToAndWaitForGet();
     });
 
     it('Can navigate to release notes page for latest Rancher version', { tags: ['@generic', '@adminUser', '@standardUser'] }, () => {
@@ -52,7 +39,8 @@ describe('Home Page', () => {
      * Verify release notes link is valid github page
      * Verify correct Rancher version is displayed
      */
-
+      HomePagePo.navTo();
+      homePage.waitForPage();
       homePage.restoreAndWait();
 
       cy.getRancherResource('v1', 'management.cattle.io.settings', 'server-version').then((resp: Cypress.Response<any>) => {
@@ -76,6 +64,9 @@ describe('Home Page', () => {
     /**
      * Click link and verify user lands on preferences page
      */
+
+      HomePagePo.navTo();
+      homePage.waitForPage();
       const prefPage = new PreferencesPagePo();
 
       homePage.prefPageLink().click();
@@ -91,6 +82,7 @@ describe('Home Page', () => {
      * Verify banners display on home page
      */
       HomePagePo.navTo();
+      homePage.waitForPage();
       homePage.restoreAndWait();
 
       homePage.bannerGraphic().graphicBanner().should('be.visible');
@@ -115,6 +107,9 @@ describe('Home Page', () => {
 
       const clusterDetails: string[] = [];
 
+      HomePagePo.navTo();
+      homePage.waitForPage();
+
       homeClusterList.state('local').invoke('text').then((el) => {
         clusterDetails.push(el.trim());
       });
@@ -124,11 +119,11 @@ describe('Home Page', () => {
       });
 
       homeClusterList.version('local').invoke('text').then((el) => {
-        clusterDetails.push(el.trim());
+        clusterDetails.push(rowDetails(el));
       });
 
       homeClusterList.provider('local').invoke('text').then((el) => {
-        clusterDetails.push(el.trim());
+        clusterDetails.push(rowDetails(el));
       });
 
       provClusterList.goTo();
@@ -142,11 +137,17 @@ describe('Home Page', () => {
       });
 
       provClusterList.list().version('local').should((el) => {
-        expect(el).to.include.text(clusterDetails[2]);
+        const version = rowDetails(el.text());
+
+        expect(version[0]).eq(clusterDetails[2][0]);
+        expect(version[1]).eq(clusterDetails[2][1]);
       });
 
       provClusterList.list().provider('local').should((el) => {
-        expect(el).to.include.text(clusterDetails[3]);
+        const provider = rowDetails(el.text());
+
+        expect(provider[0]).eq(clusterDetails[3][0]);
+        expect(provider[1]).eq(clusterDetails[3][1]);
       });
     });
 
@@ -172,11 +173,13 @@ describe('Home Page', () => {
       genericCreateClusterPage.waitForPage();
     });
 
-    it('Can filter rows in the cluster list', { tags: ['@adminUser'] }, () => {
+    it('Can filter rows in the cluster list', { tags: ['@generic', '@adminUser'] }, () => {
     /**
      * Filter rows in the cluster list
      */
       HomePagePo.navTo();
+      homePage.waitForPage();
+
       homeClusterList.resourceTable().sortableTable().filter('random text');
       homeClusterList.resourceTable().sortableTable().rowElements().should((el) => {
         expect(el).to.contain.text('There are no rows which match your search query.');
@@ -188,8 +191,25 @@ describe('Home Page', () => {
       });
     });
 
-    it('Should show cluster description information in the cluster list', { tags: ['@adminUser'] }, () => {
-      HomePagePo.navTo();
+    it('Should show cluster description information in the cluster list', { tags: ['@generic', '@adminUser'] }, () => {
+      // since I wasn't able to fully mock a list of clusters
+      // the next best thing is to add a description to the current local cluster
+      // testing https://github.com/rancher/dashboard/issues/10441
+      cy.intercept('GET', `/v1/provisioning.cattle.io.clusters?*`, (req) => {
+        req.continue((res) => {
+          const localIndex = res.body.data.findIndex((item) => item.id.includes('/local'));
+
+          if (localIndex >= 0) {
+            res.body.data[localIndex].metadata.annotations['field.cattle.io/description'] = longClusterDescription;
+          }
+
+          res.send(res.body);
+        });
+      }).as('provClusters');
+
+      homePage.goTo();
+      homePage.waitForPage();
+
       const desc = homeClusterList.resourceTable().sortableTable().rowWithName('local').column(1)
         .get('.cluster-description');
 
@@ -205,46 +225,58 @@ describe('Home Page', () => {
     });
 
     it('can click on Docs link', () => {
+      catchTargetPageException(RANCHER_PAGE_EXCEPTIONS, 'https://ranchermanager.docs.rancher.com');
+
       homePage.supportLinks().should('have.length', 6);
       homePage.clickSupportLink(0, true);
+
       cy.origin('https://ranchermanager.docs.rancher.com', () => {
         cy.url().should('include', 'ranchermanager.docs.rancher.com');
       });
     });
 
     it('can click on Forums link', () => {
-    // click Forums link
+      catchTargetPageException('TenantFeatures', 'https://forums.rancher.com');
+
+      // click Forums link
       homePage.clickSupportLink(1, true);
+
       cy.origin('https://forums.rancher.com', () => {
         cy.url().should('include', 'forums.rancher.com/');
       });
     });
 
     it('can click on Slack link', () => {
-    // click Slack link
+      // click Slack link
       homePage.clickSupportLink(2, true);
+
       cy.origin('https://slack.rancher.io', () => {
         cy.url().should('include', 'slack.rancher.io/');
       });
     });
 
     it('can click on File an Issue link', () => {
-    // click File an Issue link
+      // click File an Issue link
       homePage.clickSupportLink(3, true);
+
       cy.origin('https://github.com', () => {
         cy.url().should('include', 'github.com/login');
       });
     });
 
     it('can click on Get Started link', () => {
-    // click Get Started link
+      catchTargetPageException(RANCHER_PAGE_EXCEPTIONS);
+
+      // click Get Started link
       homePage.clickSupportLink(4, true);
+
       cy.url().should('include', 'getting-started/overview');
     });
 
     it('can click on Commercial Support link', () => {
-    // click Commercial Support link
+      // click Commercial Support link
       homePage.clickSupportLink(5);
+
       cy.url().should('include', '/support');
     });
   });

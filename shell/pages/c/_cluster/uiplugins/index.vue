@@ -229,6 +229,7 @@ export default {
 
     // Message to display when the tab view is empty (depends on the tab)
     emptyMessage() {
+      // i18n-uses plugins.empty.*
       return this.t(`plugins.empty.${ this.view }`);
     },
 

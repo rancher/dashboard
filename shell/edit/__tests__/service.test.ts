@@ -1,8 +1,5 @@
 import { shallowMount, Wrapper } from '@vue/test-utils';
-
 import { _CLONE } from '@shell/config/query-params';
-import { cleanHtmlDirective } from '@shell/plugins/clean-html-directive';
-
 import ServicePage from '@shell/edit/service.vue';
 
 const createEditViewMock = {
@@ -53,8 +50,7 @@ describe('service edit', () => {
             }
           }
         },
-        computed:   { provisioningCluster: jest.fn() },
-        directives: { cleanHtmlDirective },
+        computed: { provisioningCluster: jest.fn() },
       }
     );
   };

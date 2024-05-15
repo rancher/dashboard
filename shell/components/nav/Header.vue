@@ -470,6 +470,7 @@ export default {
             :disabled="!importEnabled"
             type="button"
             class="btn header-btn role-tertiary"
+            data-testid="header-action-import-yaml"
             @click="openImport()"
           >
             <i class="icon icon-upload icon-lg" />
@@ -539,6 +540,7 @@ export default {
           v-shortkey="{windows: ['ctrl', 'k'], mac: ['meta', 'k']}"
           type="button"
           class="btn header-btn role-tertiary"
+          data-testid="header-resource-search"
           @shortkey="openSearch()"
           @click="openSearch()"
         >
@@ -689,27 +691,48 @@ export default {
               </li>
               <router-link
                 v-if="showPreferencesLink"
-                tag="li"
+                v-slot="{ href, navigate }"
+                custom
                 :to="{name: 'prefs'}"
-                class="user-menu-item"
               >
-                <a>{{ t('nav.userMenu.preferences') }}</a>
+                <li
+                  class="user-menu-item"
+                  @click="navigate"
+                  @keypress.enter="navigate"
+                >
+                  <a :href="href">{{ t('nav.userMenu.preferences') }}</a>
+                </li>
               </router-link>
               <router-link
                 v-if="showAccountAndApiKeyLink"
-                tag="li"
+                v-slot="{ href, navigate }"
+                custom
                 :to="{name: 'account'}"
-                class="user-menu-item"
               >
-                <a>{{ t('nav.userMenu.accountAndKeys', {}, true) }}</a>
+                <li
+                  class="user-menu-item"
+                  @click="navigate"
+                  @keypress.enter="navigate"
+                >
+                  <a :href="href">{{ t('nav.userMenu.accountAndKeys', {}, true) }}</a>
+                </li>
               </router-link>
               <router-link
                 v-if="authEnabled"
-                tag="li"
+                v-slot="{ href, navigate }"
+                custom
                 :to="generateLogoutRoute"
-                class="user-menu-item"
               >
-                <a @blur="showMenu(false)">{{ t('nav.userMenu.logOut') }}</a>
+                <li
+                  class="user-menu-item"
+                  @click="navigate"
+                  @keypress.enter="navigate"
+                >
+                  <a
+                    :href="href"
+                    @blur="showMenu(false)"
+                  >{{ t('nav.userMenu.logOut') }}</a>
+                </li>
               </router-link>
             </ul>
           </template>

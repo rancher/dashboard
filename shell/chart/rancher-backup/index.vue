@@ -97,6 +97,13 @@ export default {
       case 'pickSC':
         this.value.persistence.enabled = true;
         this.value.s3.enabled = false;
+        if (this.value.persistence.storageClass) {
+          const matchedStorageClass = this.storageClasses.find((sc) => sc.id === this.value.persistence.storageClass);
+
+          if (matchedStorageClass) {
+            this.storageClass = matchedStorageClass;
+          }
+        }
         if (this.defaultStorageClass && (!this.value.persistence.storageClass || this.value.persistence.storageClass === '-' )) {
           this.value.persistence.storageClass = this.defaultStorageClass.id;
           this.storageClass = this.defaultStorageClass;
@@ -159,7 +166,7 @@ export default {
     },
     updatePageValid(update) {
       this.$emit('valid', update);
-    }
+    },
   },
   get
 };

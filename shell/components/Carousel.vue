@@ -165,7 +165,7 @@ export default {
       :style="trackStyle"
       class="slide-track"
     >
-      <div
+      <component
         :is="asLink ? 'a' : 'div'"
         v-for="(slide, i) in sliders"
         :id="`slide` + i"
@@ -191,7 +191,7 @@ export default {
             <p>{{ slide.chartDescription }}</p>
           </div>
         </div>
-      </div>
+      </component>
     </div>
     <div
       class="controls"

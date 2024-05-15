@@ -104,6 +104,14 @@ export default class HomePagePo extends PagePo {
   }
 
   /**
+    * Get the home page banner image
+   * @returns
+   */
+  getBrandBannerImage(): Cypress.Chainable {
+    return cy.getId('banner-brand__img');
+  }
+
+  /**
    * Click support link
    * Cypress does not support multiple tabs - must remove target attribute before clicking
    * https://docs.cypress.io/guides/references/trade-offs#Multiple-tabs

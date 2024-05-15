@@ -53,7 +53,7 @@ class PaginationUtils {
       return false;
     }
 
-    // const settings = this.getSettings({ rootGetters });
+    // const settings = this.getSettings({ rootGetters }); // TODO: RC
     const settings = { enabled: true, stores: { cluster: { resources: { enableAll: true } } } };
 
     // No setting, not enabled

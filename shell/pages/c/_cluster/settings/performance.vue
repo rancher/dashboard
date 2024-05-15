@@ -9,6 +9,7 @@ import { DEFAULT_PERF_SETTING, SETTING } from '@shell/config/settings';
 import { _EDIT, _VIEW } from '@shell/config/query-params';
 import UnitInput from '@shell/components/form/UnitInput';
 import { STEVE_CACHE } from '@shell/store/features';
+import { NAME as SETTING_PRODUCT } from '@shell/config/product/settings';
 
 const incompatible = {
   incrementalLoading: ['forceNsFilterV2', 'serverPagination'],
@@ -67,6 +68,13 @@ export default {
       errors:                     [],
       gcStartedEnabled:           null,
       isInactivityThresholdValid: false,
+      ffUrl:                      this.$router.resolve({
+        name:   'c-cluster-product-resource',
+        params: {
+          product:  SETTING_PRODUCT,
+          resource: MANAGEMENT.FEATURE
+        }
+      }).href
     };
   },
 
@@ -92,13 +100,13 @@ export default {
         const resources = [];
 
         if (settings.resources.enableAll) {
-          resources.push('All resources');
+          resources.push(this.t('performance.serverPagination.resources.all'));
         } else {
           settings.resources.enableSome.enabled.forEach((resource) => {
             resources.push(resource);
           });
           if (settings.resources.enableSome.generic) {
-            resources.push('generic lists');
+            resources.push(this.t('performance.serverPagination.resources.generic', {}, true));
           }
         }
 
@@ -379,9 +387,10 @@ export default {
           />
           <Banner
             v-if="!steveCacheEnabled"
+            v-clean-html="t(`performance.serverPagination.featureFlag`, { ffUrl }, true)"
             color="warning"
-            label-key="performance.serverPagination.featureFlag"
           />
+          </Banner>
           <Checkbox
             v-model="value.serverPagination.enabled"
             :mode="mode"

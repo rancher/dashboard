@@ -92,4 +92,8 @@ export default class PagePo extends ComponentPo {
   header() {
     return new HeaderPo();
   }
+
+  extensionScriptImport(name: string) {
+    return this.self().get(`[data-purpose="extension"]`).get(`[id*="${ name }"]`);
+  }
 }

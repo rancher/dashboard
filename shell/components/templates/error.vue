@@ -2,9 +2,8 @@
 import Brand from '@shell/mixins/brand';
 
 export default {
-  name:       'NuxtError',
-  mixins:     [Brand],
-  middleware: ['unauthenticated'],
+  name:   'NuxtError',
+  mixins: [Brand],
 
   data() {
     return { ready: false };

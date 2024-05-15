@@ -5,15 +5,16 @@ on:
       - master
       - 'release-*'
   pull_request:
-      branches:
-        - master
-        - 'release-*'
+    branches:
+      - master
+      - 'release-*'
   workflow_dispatch:
-    environment:
-      description: 'Environment to run tests against'
-      type: environment
-      required: true 
-      
+    inputs:
+      environment:
+        description: 'Environment to run tests against'
+        type: environment
+        required: true
+
 env:
   TEST_USERNAME: admin
   TEST_PASSWORD: password
@@ -39,12 +40,8 @@ jobs:
      - uses: actions/checkout@v3
        with:
         fetch-depth: 1
-     - uses: actions/setup-node@v3
-       with:
-        node-version: '14.x'
-        cache: 'yarn'
-     - name: Install packages
-       run: yarn install:ci
+     - name: Setup env
+       uses: ./.github/actions/setup
      - name: Build e2e
        run: yarn e2e:build
      - name: Upload e2e build
@@ -88,10 +85,8 @@ jobs:
       - uses: actions/checkout@v3
         with:
           fetch-depth: 1
-      - uses: actions/setup-node@v3
-        with:
-          node-version: '14.x'
-          cache: 'yarn'
+      - name: Setup env
+        uses: ./.github/actions/setup
 
       # Installing fixed version of Chrome since latest version does not work (117-118 didn't work)
       # Leaving this here again in case we need to pin to a specific Chrome version in the future
@@ -102,9 +97,6 @@ jobs:
       #     wget -q http://mirror.cs.uchicago.edu/google-chrome/pool/main/g/google-chrome-stable/google-chrome-stable_116.0.5845.187-1_amd64.deb
       #     sudo apt-get install -y --allow-downgrades ./google-chrome-stable_116.0.5845.187-1_amd64.deb
       #     google-chrome --version
-
-      - name: Install packages
-        run: yarn install:ci
 
       - name: Download e2e build
         uses:  actions/download-artifact@v4
@@ -150,16 +142,12 @@ jobs:
       - uses: actions/checkout@v3
         with:
           fetch-depth: 1
-      - uses: actions/setup-node@v3
-        with:
-          node-version: '14.x'
-      
-      - name: Install packages
-        run: yarn install:ci
       
       - name: Run tests
+        uses: ./.github/actions/unit-tests
+
+      - name: Collect Coverage
         run: |
-          yarn test:ci
           mkdir -p coverage-artifacts/coverage
           cp coverage/unit/coverage-final.json coverage-artifacts/coverage/coverage-unit.json
           cp -r coverage/unit/ coverage-artifacts/coverage/unit/
@@ -176,17 +164,11 @@ jobs:
       - uses: actions/checkout@v3
         with:
           fetch-depth: 1
-      - uses: actions/setup-node@v3
-        with:
-          node-version: '14.x'
-      
-      - name: Install packages
-        run: yarn install:ci
-      
-      - name: Run i18n linters
-        run: yarn lint-l10n
 
-  lint:
+      - name: Run i18n lint
+        uses: ./.github/actions/i18n-lint
+
+  check-i18n:
     runs-on: ubuntu-latest
     steps:
       - uses: actions/checkout@v3
@@ -194,13 +176,25 @@ jobs:
           fetch-depth: 1
       - uses: actions/setup-node@v3
         with:
-          node-version: '14.x'
+          node-version: '16.x'
       
       - name: Install packages
         run: yarn install:ci
       
-      - name: Run linters
-        run: yarn lint
+      - name: Run i18n string check
+        run: |
+          # Falure won't fail the job (remove -x when all current issues are fixed)
+          ./scripts/check-i18n -s -x
+
+  lint:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v3
+        with:
+          fetch-depth: 1
+
+      - name: Run tests
+        uses: ./.github/actions/lint
 
   coverage:
     runs-on: ubuntu-latest

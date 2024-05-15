@@ -1,7 +1,3 @@
-<script>
-export default { middleware: ['unauthenticated'] };
-</script>
-
 <template>
   <router-view :key="$route.path" />
 </template>

@@ -302,7 +302,7 @@ export default class MgmtCluster extends HybridModel {
     const icon = this.metadata?.annotations?.[CLUSTER_BADGE.ICON_TEXT];
     const comment = this.metadata?.annotations?.[CLUSTER_BADGE.TEXT];
 
-    if (!icon) {
+    if (!icon && !comment) {
       return undefined;
     }
 

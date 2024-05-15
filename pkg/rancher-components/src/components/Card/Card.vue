@@ -151,7 +151,7 @@ export default defineComponent({
 
       .card-body {
         justify-content: flex-start;
-        overflow: scroll;
+        overflow: auto;
       }
 
       > * {

@@ -21,6 +21,7 @@ export default {
 
   computed: { ...mapGetters(['currentCluster']) },
 
+  // i18n-uses neuvector.overview.linkedList.neuvector.label, neuvector.overview.linkedList.neuvector.description
   mounted() {
     this.externalLinks = [
       {

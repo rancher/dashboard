@@ -1,6 +1,6 @@
 import ClusterToolsPagePo from '@/cypress/e2e/po/pages/explorer/cluster-tools.po';
 import ClusterDashboardPagePo from '@/cypress/e2e/po/pages/explorer/cluster-dashboard.po';
-import { InstallChartsPage } from '@/cypress/e2e/po/pages/explorer/install-charts.po';
+import { InstallChartPage } from '@/cypress/e2e/po/pages/explorer/charts/install-charts.po';
 import PromptRemove from '@/cypress/e2e/po/prompts/promptRemove.po';
 
 const clusterTools = new ClusterToolsPagePo('local');
@@ -29,14 +29,14 @@ describe('Cluster Tools', { tags: ['@explorer', '@adminUser'] }, () => {
 
       const chartType = 'rancher-alerting-drivers';
       const installAlertingDriversPage = `repo-type=cluster&repo=rancher-charts&chart=${ chartType }&version=${ chartVersion }&tools`;
-      const installCharts = new InstallChartsPage('local');
+      const installCharts = new InstallChartPage();
 
       clusterTools.goToInstall(0);
       installCharts.waitForPage(installAlertingDriversPage);
       installCharts.nextPage();
 
       cy.intercept('POST', 'v1/catalog.cattle.io.clusterrepos/rancher-charts?action=install').as('chartInstall');
-      installCharts.installChart().click();
+      installCharts.installChart();
       cy.wait('@chartInstall').its('response.statusCode').should('eq', 201);
       clusterTools.waitForPage();
       cy.contains('Connected');
@@ -50,12 +50,12 @@ describe('Cluster Tools', { tags: ['@explorer', '@adminUser'] }, () => {
     clusterTools.waitForPage();
     clusterTools.editChart(0);
 
-    const installCharts = new InstallChartsPage('local');
+    const installChart = new InstallChartPage();
 
-    installCharts.nextPage();
+    installChart.nextPage();
 
     cy.intercept('POST', 'v1/catalog.cattle.io.clusterrepos/rancher-charts?action=upgrade').as('chartUpdate');
-    installCharts.installChart().click();
+    installChart.installChart();
     cy.wait('@chartUpdate').its('response.statusCode').should('eq', 201);
     clusterTools.waitForPage();
     cy.contains('Connected');

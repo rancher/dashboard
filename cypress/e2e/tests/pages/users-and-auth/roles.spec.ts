@@ -3,10 +3,13 @@ import UsersPo from '@/cypress/e2e/po/pages/users-and-auth/users.po';
 import PromptRemove from '@/cypress/e2e/po/prompts/promptRemove.po';
 import BurgerMenuPo from '@/cypress/e2e/po/side-bars/burger-side-menu.po';
 import * as path from 'path';
+import * as jsyaml from 'js-yaml';
+import ProductNavPo from '@/cypress/e2e/po/side-bars/product-side-nav.po';
 
 const roles = new RolesPo('_');
 const usersPo = new UsersPo('_');
 const userCreate = usersPo.createEdit();
+const sideNav = new ProductNavPo();
 
 const runTimestamp = +new Date();
 const runPrefix = `e2e-test-${ runTimestamp }`;
@@ -26,7 +29,7 @@ describe('Roles', { tags: ['@usersAndAuths', '@adminUser'] }, () => {
     roles.goTo(undefined, fragment);
     roles.waitForPage(undefined, fragment);
 
-    // check if burguer menu nav is highlighted correctly for users & auth
+    // check if burger menu nav is highlighted correctly for users & auth
     BurgerMenuPo.checkIfMenuItemLinkIsHighlighted('Users & Authentication');
 
     roles.listCreate('Create Global Role');
@@ -40,17 +43,54 @@ describe('Roles', { tags: ['@usersAndAuths', '@adminUser'] }, () => {
     createGlobalRole.selectVerbs(0, 3);
     createGlobalRole.selectVerbs(0, 4);
     createGlobalRole.selectResourcesByLabelValue(0, 'GlobalRoles');
+
     createGlobalRole.saveAndWaitForRequests('POST', '/v3/globalroles').then((res) => {
       const globalRoleId = res.response?.body.id;
 
       // view role details
       roles.waitForPage(undefined, fragment);
+
+      // testing https://github.com/rancher/dashboard/issues/9800
+      // confirming that the globalRole created is not flagged as built-in
+      roles.list().checkBuiltIn(globalRoleName, false);
+      // eo test
+
       roles.list().details(globalRoleName, 2).find('a').click();
 
       const globalRoleDetails = roles.detailGlobal(globalRoleId);
 
       globalRoleDetails.waitForPage();
       globalRoleDetails.mastheadTitle().should('include', `${ globalRoleName }`);
+
+      sideNav.navToSideMenuEntryByLabel('Role Templates');
+      roles.waitForPage(undefined, fragment);
+
+      // testing https://github.com/rancher/dashboard/issues/5291
+      roles.list().checkDefault(globalRoleName, true);
+      UsersPo.navTo();
+      usersPo.list().create();
+      userCreate.waitForPage();
+      userCreate.globalRoleBindings().roleCheckbox(globalRoleId).checkVisible();
+      userCreate.globalRoleBindings().roleCheckbox(globalRoleId).isChecked();
+      sideNav.navToSideMenuEntryByLabel('Role Templates');
+
+      // testing https://github.com/rancher/dashboard/issues/9800
+      roles.goToEditYamlPage(globalRoleName);
+
+      createGlobalRole.yamlEditor().value().then((val) => {
+        // convert yaml into json to update values
+        const json: any = jsyaml.load(val);
+
+        json.builtin = false;
+
+        createGlobalRole.yamlEditor().set(jsyaml.dump(json));
+        createGlobalRole.saveEditYamlForm().click();
+
+        roles.waitForPage();
+        // confirming, once again, that the globalRole created is not flagged as built-in
+        roles.list().details(globalRoleName, 4).should('not.contain', 'i.icon-checkmark');
+      });
+      // eo test
     });
   });
 
@@ -79,6 +119,7 @@ describe('Roles', { tags: ['@usersAndAuths', '@adminUser'] }, () => {
 
       // view role details
       roles.waitForPage(undefined, fragment);
+      roles.list().checkDefault(clusterRoleName, true);
       roles.list().details(clusterRoleName, 2).find('a').click();
 
       const clusterRoleDetails = roles.detailRole(clusterRoleId);
@@ -112,6 +153,7 @@ describe('Roles', { tags: ['@usersAndAuths', '@adminUser'] }, () => {
 
       // view role details
       roles.waitForPage(undefined, fragment);
+      roles.list().checkDefault(projectRoleName, true);
       roles.list().details(projectRoleName, 2).find('a').click();
 
       const projectRoleDetails = roles.detailRole(projectRoleId);

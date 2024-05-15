@@ -4,6 +4,7 @@ import { SETTING } from '@shell/config/settings';
 import { createCssVars } from '@shell/utils/color';
 import { setTitle } from '@shell/config/private-label';
 import { fetchInitialSettings } from '@shell/utils/settings';
+import { setFavIcon, haveSetFavIcon } from '@shell/utils/favicon';
 
 const cspAdaptorApp = ['rancher-csp-adapter', 'rancher-csp-billing-adapter'];
 
@@ -22,7 +23,12 @@ export default {
 
     // Ensure we read the settings even when we are not authenticated
     try {
-      this.globalSettings = await fetchInitialSettings(this.$store);
+      await fetchInitialSettings(this.$store);
+
+      // The favicon is implicitly dependent on the initial settings having already been fetched
+      if (!haveSetFavIcon()) {
+        setFavIcon(this.$store);
+      }
     } catch (e) {}
 
     // Setting this up front will remove `computed` churn, and we only care that we've initialised them
@@ -30,13 +36,19 @@ export default {
   },
 
   data() {
-    return {
-      apps: null, globalSettings: null, haveAppsAndSettings: null
-    };
+    return { apps: null, haveAppsAndSettings: null };
   },
 
   computed: {
     ...mapGetters({ loggedIn: 'auth/loggedIn' }),
+
+    // added to fix https://github.com/rancher/dashboard/issues/10788
+    // because on logout the brand mixin is mounted, but then a management store reset happens
+    // since login view get loaded, another fetchInitialSettings get's done
+    // which in turn will populate again globalSettings
+    globalSettings() {
+      return this.$store.getters['management/all'](MANAGEMENT.SETTING);
+    },
 
     brand() {
       const setting = this.globalSettings?.find((gs) => gs.id === SETTING.BRAND);
@@ -89,57 +101,72 @@ export default {
   },
 
   watch: {
-    color(neu) {
-      if (neu) {
-        this.setCustomColor(neu);
-      } else {
-        this.removeCustomColor();
-      }
-    },
-    linkColor(neu) {
-      if (neu) {
-        this.setCustomColor(neu, 'link');
-      } else {
-        this.removeCustomColor('link');
-      }
-    },
-    theme() {
-      if (this.color) {
-        this.setCustomColor(this.color);
-      }
-      if (this.linkColor) {
-        this.setCustomColor(this.linkColor, 'link');
-      }
-      this.setBodyClass();
-    },
-
-    cspAdapter(neu) {
-      if (!this.canCalcCspAdapter) {
-        return;
-      }
-
-      // The brand setting will only get updated if...
-      if (neu && !this.brand) {
-        // 1) There should be a brand... but there's no brand setting
-        const brandSetting = this.globalSettings?.find((gs) => gs.id === SETTING.BRAND);
-
-        if (brandSetting) {
-          brandSetting.value = 'csp';
-          brandSetting.save();
+    color: {
+      handler(neu) {
+        if (neu) {
+          this.setCustomColor(neu);
         } else {
-          const schema = this.$store.getters['management/schemaFor'](MANAGEMENT.SETTING);
-          const url = schema?.linkFor('collection');
+          this.removeCustomColor();
+        }
+      },
+      immediate: true
+    },
+    linkColor: {
+      handler(neu) {
+        if (neu) {
+          this.setCustomColor(neu, 'link');
+        } else {
+          this.removeCustomColor('link');
+        }
+      },
+      immediate: true
+    },
+    theme: {
+      handler() {
+        if (this.color) {
+          this.setCustomColor(this.color);
+        }
+        if (this.linkColor) {
+          this.setCustomColor(this.linkColor, 'link');
+        }
+        this.setBodyClass();
+      },
+      immediate: true
+    },
 
-          if (url) {
-            this.$store.dispatch('management/create', {
-              type: MANAGEMENT.SETTING, metadata: { name: SETTING.BRAND }, value: 'csp', default: ''
-            }).then((setting) => setting.save());
+    cspAdapter: {
+      handler(neu) {
+        if (!this.canCalcCspAdapter) {
+          return;
+        }
+
+        // The brand setting will only get updated if...
+        if (neu && !this.brand) {
+          // 1) There should be a brand... but there's no brand setting
+          const brandSetting = this.globalSettings?.find((gs) => gs.id === SETTING.BRAND);
+
+          if (brandSetting) {
+            brandSetting.value = 'csp';
+            brandSetting.save();
+          } else {
+            const schema = this.$store.getters['management/schemaFor'](MANAGEMENT.SETTING);
+            const url = schema?.linkFor('collection');
+
+            if (url) {
+              this.$store.dispatch('management/create', {
+                type: MANAGEMENT.SETTING, metadata: { name: SETTING.BRAND }, value: 'csp', default: ''
+              }).then((setting) => setting.save());
+            }
           }
         }
-      }
+      },
+      immediate: true
     },
-    brand() {
-      this.setBodyClass();
+    brand: {
+      handler() {
+        this.setBodyClass();
+      },
+      immediate: true
     }
 
   },
