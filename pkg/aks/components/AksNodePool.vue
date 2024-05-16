@@ -62,6 +62,15 @@ export default defineComponent({
         return {};
       }
     },
+    clusterVersion: {
+      type:    String,
+      default: ''
+    },
+
+    originalClusterVersion: {
+      type:    String,
+      default: ''
+    }
   },
 
   data() {
@@ -72,6 +81,8 @@ export default defineComponent({
       osDiskTypeOptions:       ['Managed', 'Ephemeral'] as AKSDiskType[],
       modeOptions:             ['User', 'System'] as AKSPoolMode[],
       availabilityZoneOptions: [{ label: 'zone 1', value: '1' }, { label: 'zone 2', value: '2' }, { label: 'zone 3', value: '3' }],
+
+      originalOrchestratorVersion: this.pool.orchestratorVersion
     };
   },
 
@@ -107,7 +118,33 @@ export default defineComponent({
 
     isView() {
       return this.mode === _VIEW;
-    }
+    },
+
+    clusterWillUpgrade() {
+      return this.originalClusterVersion !== this.clusterVersion;
+    },
+
+    // offer a k8s version upgrade if the node pool is not on the same version as the cluster and the cluster is not currently being upgraded
+    upgradeAvailable(): boolean {
+      if (this.mode === _CREATE) {
+        return false;
+      }
+
+      return this.clusterVersion !== this.originalOrchestratorVersion && !this.clusterWillUpgrade;
+    },
+
+    willUpgrade: {
+      get() {
+        return this.upgradeAvailable && this.pool.orchestratorVersion === this.clusterVersion;
+      },
+      set(neu: boolean) {
+        if (neu) {
+          this.$set(this.pool, 'orchestratorVersion', this.clusterVersion);
+        } else {
+          this.$set(this.pool, 'orchestratorVersion', this.originalOrchestratorVersion);
+        }
+      }
+    },
   },
 
   methods: {
@@ -138,6 +175,41 @@ export default defineComponent({
   <div
     class="pool"
   >
+    <div class="row mb-10">
+      <div
+        v-if="!upgradeAvailable"
+        class="col span-3"
+      >
+        <LabeledInput
+
+          v-model="pool.orchestratorVersion"
+          :mode="mode"
+          label-key="aks.nodePools.orchestratorVersion.label"
+          disabled
+        />
+      </div>
+      <div
+        v-else
+        class="col span-6"
+      >
+        <Checkbox
+
+          v-model="willUpgrade"
+          :mode="mode"
+          :label="t('aks.nodePools.orchestratorVersion.upgrade', {from: originalOrchestratorVersion, to: clusterVersion})"
+        />
+      </div>
+      <div
+        v-if="clusterWillUpgrade"
+        class="col span-6"
+      >
+        <Banner
+          class="mt-0"
+          color="info"
+          label-key="aks.nodePools.orchestratorVersion.warning"
+        />
+      </div>
+    </div>
     <div class="row mb-10">
       <div class="col span-3">
         <LabeledInput

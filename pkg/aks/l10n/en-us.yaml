@@ -66,6 +66,10 @@ aks:
       label: Mode
     labels:
       tooltip: Configure labels for all nodes in this Node Pool.
+    orchestratorVersion: 
+      label: Node Pool Kubernetes Version
+      upgrade: Upgrade node pool Kubernetes version from {from} to {to}
+      warning: A new cluster version has been selected. Once the upgrade has completed, you can come back and upgrade the node pool version.
   linuxAdminUsername:
     label: Linux Admin Username
     placeholder: azureuser

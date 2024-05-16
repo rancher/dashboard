@@ -749,6 +749,11 @@ export default defineComponent({
       if (neu && old) {
         this.touchedVersion = true;
       }
+      if (this.mode === _CREATE) {
+        this.nodePools.forEach((pool: AKSNodePool) => {
+          this.$set(pool, 'orchestratorVersion', neu);
+        });
+      }
     },
 
     'config.privateCluster'(neu) {
@@ -1091,6 +1096,8 @@ export default defineComponent({
                                   max: fvGetAndReportPathRules('poolMax'),
                                   minMax: fvGetAndReportPathRules('poolMinMax')
               }"
+              :original-cluster-version="originalVersion"
+              :cluster-version="config.kubernetesVersion"
               @remove="removePool(pool)"
               @vmSizeSet="touchedVmSize = true"
             />
