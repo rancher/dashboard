@@ -99,7 +99,6 @@ describe('Cloud Credential', () => {
 
     const createRKE2AzureClusterPage = new ClusterManagerCreateRke2AzurePagePo();
 
-    // prepare some intercepts of XHR requests needed for the correct flow
     // intercept GET of machine configs and pass a mock (Azure)
     cy.intercept('GET', `/v1/rke-machine-config.cattle.io.azureconfigs/fleet-default/*`, (req) => {
       req.reply({
@@ -151,6 +150,17 @@ describe('Cloud Credential', () => {
       },
     ];
 
+    cy.intercept('GET', `/meta/aksVMSizesV2*`, (req) => {
+      req.reply({
+        statusCode: 200,
+        body:       [{
+          Name:                           'Standard_B2pls_v2',
+          AcceleratedNetworkingSupported: true,
+          AvailabilityZones:              []
+        }],
+      });
+    }).as('aksVMSizesV2Load');
+
     const createdCloudCredsIds = [];
 
     ClusterManagerListPagePo.navTo();
@@ -167,9 +177,24 @@ describe('Cloud Credential', () => {
         createdCloudCredsIds.push(resp.body.id);
 
         if (i === cloudCredsToCreate.length - 1) {
-          cy.intercept('GET', `/meta/aksLocations?cloudCredentialId=${ encodeURIComponent(createdCloudCredsIds[0]) }`, { body: createdCloudCredsIds[0].body });
-          cy.intercept('GET', `/meta/aksLocations?cloudCredentialId=${ encodeURIComponent(createdCloudCredsIds[1]) }`, { body: createdCloudCredsIds[1].body });
-          cy.intercept('GET', `/meta/aksLocations?cloudCredentialId=${ encodeURIComponent(createdCloudCredsIds[2]) }`, { body: createdCloudCredsIds[1].body });
+          cy.intercept('GET', `/meta/aksLocations?cloudCredentialId=${ encodeURIComponent(createdCloudCredsIds[0]) }`, (req) => {
+            req.reply({
+              statusCode: 200,
+              body:       cloudCredsToCreate[0].body,
+            });
+          }).as('aksLocations0');
+          cy.intercept('GET', `/meta/aksLocations?cloudCredentialId=${ encodeURIComponent(createdCloudCredsIds[1]) }`, (req) => {
+            req.reply({
+              statusCode: 200,
+              body:       cloudCredsToCreate[1].body,
+            });
+          }).as('aksLocations1');
+          cy.intercept('GET', `/meta/aksLocations?cloudCredentialId=${ encodeURIComponent(createdCloudCredsIds[2]) }`, (req) => {
+            req.reply({
+              statusCode: 200,
+              body:       cloudCredsToCreate[2].body,
+            });
+          }).as('aksLocations2');
 
           clusterList.checkIsCurrentPage();
           clusterList.createCluster();
@@ -179,8 +204,8 @@ describe('Cloud Credential', () => {
           createRKE2AzureClusterPage.waitForPage('type=azure&rkeType=rke2');
           createRKE2AzureClusterPage.selectOptionForCloudCredentialWithLabel(`${ cloudCredsToCreate[0].name }`);
 
+          createRKE2AzureClusterPage.machinePoolTab().location().checkOptionSelected(cloudCredsToCreate[0].body[0].name);
           createRKE2AzureClusterPage.machinePoolTab().environment().should('include', cloudCredsToCreate[0].environment );
-          createRKE2AzureClusterPage.machinePoolTab().location().getOptions().should('include', cloudCredsToCreate[0].body[0].name );
 
           createRKE2AzureClusterPage.selectOptionForCloudCredentialWithLabel(`${ cloudCredsToCreate[1].name }`);
 
