@@ -2,11 +2,11 @@
 // This file was generated during Nuxt migration
 
 import Vue from 'vue';
-import { createRouter } from '../config/router.js';
-import NuxtChild from '../components/nuxt/nuxt-child.js';
-import App from './App.js';
-import { setContext, getLocation, getRouteData, normalizeError } from '../utils/nuxt';
-import { createStore } from '../config/store.js';
+import { createRouter } from '@shell/config/router';
+import NuxtChild from '@shell/components/nuxt/nuxt-child';
+import App from '@shell/initialize/App.js';
+import { setContext, getLocation, getRouteData, normalizeError } from '@shell/utils/nuxt';
+import { createStore } from '@shell/config/store';
 import { UPGRADED, _FLAGGED, _UNFLAG } from '@shell/config/query-params';
 import { loadDirectives } from '@shell/directives/index';
 import { installPlugins } from '@shell/initialize/plugins';
