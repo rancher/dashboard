@@ -266,12 +266,6 @@ async function processOpenOrEditAction() {
   for (i of issues) {
     const detail = `${event.repository.url}/issues/${i}`;
     const iss = await request.fetch(detail);
-
-    if (!iss) {
-      console.log(`Failed to find issue with number '${i}'. Body: :`, iss);
-      continue;
-    }
-    console.log('');
     console.log('Processing Issue #' + i + ' - ' + iss.title);
 
     if (pr.draft) {

@@ -390,7 +390,6 @@ export default {
             v-clean-html="t(`performance.serverPagination.featureFlag`, { ffUrl }, true)"
             color="warning"
           />
-          </Banner>
           <Checkbox
             v-model="value.serverPagination.enabled"
             :mode="mode"

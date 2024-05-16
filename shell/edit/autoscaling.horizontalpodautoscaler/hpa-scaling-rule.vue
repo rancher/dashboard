@@ -2,7 +2,7 @@
 
 import { _EDIT } from '@shell/config/query-params';
 import LabeledSelect from '@shell/components/form/LabeledSelect';
-import { LabeledInput } from '@components/Form/LabeledInput';
+import { LabeledInput } from '@components/Form/LabeledInput.vue';
 import ArrayListGrouped from '@shell/components/form/ArrayListGrouped.vue';
 
 export default {

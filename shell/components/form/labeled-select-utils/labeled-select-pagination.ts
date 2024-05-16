@@ -38,6 +38,9 @@ interface Methods extends MethodOptions {
   requestPagination: () => Promise<any>;
 }
 
+/**
+ * 'mixin' to provide pagination support to LabeledSelect
+ */
 export default defineComponent<Props, any, Data, Computed, Methods>({
   props: {
     paginate: {

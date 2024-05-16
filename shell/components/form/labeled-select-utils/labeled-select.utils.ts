@@ -35,7 +35,7 @@ interface lSPFOptions<T> {
 }
 
 /**
- * This is a helper function to cover common functions that could happen when a LabelSelect requests a new page
+ * This is a helper function to cover common functionality that could happen when a LabelSelect requests a new page
  */
 export async function labelSelectPaginationFunction<T>({
   opts,
