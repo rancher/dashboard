@@ -4,7 +4,7 @@ import LabeledSelectPo from '@/cypress/e2e/po/components/labeled-select.po';
 
 export default class MachinePoolAzureRke2 extends MachinePoolRke2 {
   environment(): CypressChainable {
-    return this.self().get('[data-testid="machineConfig-azure-environment-value"]'); // .find('span')
+    return this.self().find('[data-testid="machineConfig-azure-environment-value"] span');
   }
 
   location(): LabeledSelectPo {

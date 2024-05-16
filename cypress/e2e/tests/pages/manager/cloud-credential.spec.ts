@@ -205,17 +205,17 @@ describe('Cloud Credential', () => {
           createRKE2AzureClusterPage.selectOptionForCloudCredentialWithLabel(`${ cloudCredsToCreate[0].name }`);
 
           createRKE2AzureClusterPage.machinePoolTab().location().checkOptionSelected(cloudCredsToCreate[0].body[0].name);
-          createRKE2AzureClusterPage.machinePoolTab().environment().should('include', cloudCredsToCreate[0].environment );
+          createRKE2AzureClusterPage.machinePoolTab().environment().should('have.text', cloudCredsToCreate[0].environment );
 
           createRKE2AzureClusterPage.selectOptionForCloudCredentialWithLabel(`${ cloudCredsToCreate[1].name }`);
 
-          createRKE2AzureClusterPage.machinePoolTab().environment().should('include', cloudCredsToCreate[1].environment );
-          createRKE2AzureClusterPage.machinePoolTab().location().getOptions().should('include', cloudCredsToCreate[1].body[0].name );
+          createRKE2AzureClusterPage.machinePoolTab().environment().should('have.text', cloudCredsToCreate[1].environment );
+          createRKE2AzureClusterPage.machinePoolTab().location().checkOptionSelected(cloudCredsToCreate[1].body[0].name );
 
           createRKE2AzureClusterPage.selectOptionForCloudCredentialWithLabel(`${ cloudCredsToCreate[2].name }`);
 
-          createRKE2AzureClusterPage.machinePoolTab().environment().should('include', cloudCredsToCreate[2].environment );
-          createRKE2AzureClusterPage.machinePoolTab().location().getOptions().should('include', cloudCredsToCreate[2].body[0].name );
+          createRKE2AzureClusterPage.machinePoolTab().environment().should('have.text', cloudCredsToCreate[2].environment );
+          createRKE2AzureClusterPage.machinePoolTab().location().checkOptionSelected(cloudCredsToCreate[2].body[0].name );
         }
       });
     }
