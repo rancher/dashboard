@@ -87,7 +87,7 @@ if (debug) {
 const errorHandler = Vue.config.errorHandler || console.error; // eslint-disable-line no-console
 
 // Create and mount App
-createApp(nuxt.publicRuntimeConfig).then(mountApp).catch(errorHandler); // eslint-disable-line no-undef
+createApp().then(mountApp).catch(errorHandler); // eslint-disable-line no-undef
 
 function callMiddleware(Components, context) {
   let midd = [];
