@@ -1128,13 +1128,6 @@ export const actions = {
     }
   },
 
-  nuxtServerInit({ dispatch, rootState }, nuxt) {
-    // Models in SSR server mode have no way to get to the route or router, so hack one in...
-    Object.defineProperty(rootState, '$router', { value: nuxt.app.router });
-    Object.defineProperty(rootState, '$route', { value: nuxt.route });
-    dispatch('prefs/loadCookies');
-  },
-
   nuxtClientInit({ dispatch, rootState }, nuxt) {
     Object.defineProperty(rootState, '$router', { value: nuxt.app.router });
     Object.defineProperty(rootState, '$route', { value: nuxt.route });
