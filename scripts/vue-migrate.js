@@ -608,7 +608,7 @@ const replaceCases = (fileType, files, replacementCases, printText) => {
         // Regex case
         // TODO: Fix issue not replacing all
         if (text.test(content) && replacement) {
-          content = content.replace(new RegExp(text, 'g'), replacement);
+          content = content.replace(new RegExp(text, 'g'), replacement === removePlaceholder ? '' : replacement);
           if (!matchedCases.includes(`${ text }, ${ replacement }, ${ notes }`)) {
             matchedCases.push(`${ text }, ${ replacement }, ${ notes }`);
           }
