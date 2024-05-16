@@ -767,7 +767,9 @@ export default defineComponent({
       this.allAksVersions = [];
       this.vmSizeOptions = [];
       this.allVirtualNetworks = [];
-      delete this.config?.kubernetesVersion;
+      if (this.mode === _CREATE) {
+        delete this.config?.kubernetesVersion;
+      }
       this.$set(this, 'errors', []);
     },
 
