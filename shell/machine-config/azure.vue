@@ -528,10 +528,11 @@ export default {
           :required="true"
           :label="t('cluster.machineConfig.azure.location.label')"
           :disabled="disabled"
+          data-testid="machineConfig-azure-location"
           @input="setLocation"
         />
       </div>
-      <div>
+      <div data-testid="machineConfig-azure-environment-value">
         <label
           v-clean-tooltip="t('cluster.machineConfig.azure.environment.tooltip')"
           :style="{'display':'block'}"
