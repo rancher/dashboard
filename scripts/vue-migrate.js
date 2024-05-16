@@ -358,7 +358,8 @@ const vueSyntaxUpdates = () => {
     // TODO: Add missing import
 
     [/( {4,}default)\(\)\s*\{([\s\S]*?)this\.([\s\S]*?\}\s*\})/g, (_, before, middle, after) => `${ before }(props) {${ middle }props.${ after }`, 'https://v3-migration.vuejs.org/breaking-changes/props-default-this.html'],
-    [`value=`, `modelValue=`],
+    // [`value=`, `modelValue=`],
+    [/value:\s*{[\s\S]*?},?\s*/g, removePlaceholder, 'Read issue for more info https://github.com/rancher/dashboard/issues/11029'],
     [`@input=`, `@update:modelValue=`],
     // [`v-bind.sync=`, `:modelValue=`, `https://v3-migration.vuejs.org/breaking-changes/v-model.html#using-v-bind-sync`],
     // ['v-model=', ':modelValue=', ''],
