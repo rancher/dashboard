@@ -6,7 +6,7 @@ import Tolerations from '@shell/components/form/Tolerations.vue';
 import Upgrading from '@shell/edit/workload/Upgrading.vue';
 import Security from '@shell/components/form/Security.vue';
 import LabeledInput from '@components/Form/LabeledInput/LabeledInput.vue';
-import LabeledSelect from '@shell/components/form/LabeledSelect';
+import LabeledSelect from '@shell/components/form/LabeledSelect.vue';
 
 export default {
   components: {

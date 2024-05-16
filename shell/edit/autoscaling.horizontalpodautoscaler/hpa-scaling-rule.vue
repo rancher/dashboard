@@ -1,8 +1,8 @@
 <script>
 
 import { _EDIT } from '@shell/config/query-params';
-import LabeledSelect from '@shell/components/form/LabeledSelect';
-import { LabeledInput } from '@components/Form/LabeledInput.vue';
+import LabeledSelect from '@shell/components/form/LabeledSelect.vue';
+import { LabeledInput } from '@components/Form/LabeledInput';
 import ArrayListGrouped from '@shell/components/form/ArrayListGrouped.vue';
 
 export default {

@@ -1,7 +1,7 @@
 <script>
 import LabeledInput from '@components/Form/LabeledInput/LabeledInput.vue';
 import UnitInput from '@shell/components/form/UnitInput.vue';
-import LabeledSelect from '@shell/components/form/LabeledSelect';
+import LabeledSelect from '@shell/components/form/LabeledSelect.vue';
 import InputWithSelect from '@shell/components/form/InputWithSelect.vue';
 import Select from '@shell/components/form/Select.vue';
 
