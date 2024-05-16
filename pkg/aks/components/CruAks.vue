@@ -1038,12 +1038,12 @@ export default defineComponent({
               :loading-vm-sizes="loadingVmSizes"
               :isPrimaryPool="i===0"
               :can-use-availability-zones="canUseAvailabilityZones"
-              :rules="{name: fvGetAndReportPathRules('poolName'),
-                       az: fvGetAndReportPathRules('poolAZ'),
-                       count: fvGetAndReportPathRules('poolCount'),
-                       min: fvGetAndReportPathRules('poolMin'),
-                       max: fvGetAndReportPathRules('poolMax'),
-                       minMax: fvGetAndReportPathRules('poolMinMax')
+              :validation-rules="{name: fvGetAndReportPathRules('poolName'),
+                                  az: fvGetAndReportPathRules('poolAZ'),
+                                  count: fvGetAndReportPathRules('poolCount'),
+                                  min: fvGetAndReportPathRules('poolMin'),
+                                  max: fvGetAndReportPathRules('poolMax'),
+                                  minMax: fvGetAndReportPathRules('poolMinMax')
               }"
               @remove="removePool(pool)"
               @vmSizeSet="touchedVmSize = true"

@@ -209,17 +209,17 @@ describe('aks provisioning form', () => {
     });
 
     await setCredential(wrapper, config);
-    await wrapper.setData({ nodePools: [{ name: 'abc' }] });
+    await wrapper.setData({ nodePools: [{ name: 'abc', _validation: {} }] });
     await wrapper.vm.fvExtraRules.poolNames();
     expect(wrapper.vm.nodePools.filter((pool) => {
-      return !pool._validName;
+      return !pool._validation._validName;
     })).toHaveLength(0);
 
-    await wrapper.setData({ nodePools: [{ name: '123-abc' }, { name: 'abcABC' }, { name: 'abc' }] });
+    await wrapper.setData({ nodePools: [{ name: '123-abc', _validation: {} }, { name: 'abcABC', _validation: {} }, { name: 'abc', _validation: {} }] });
     await wrapper.vm.fvExtraRules.poolNames();
 
     expect(wrapper.vm.nodePools.filter((pool) => {
-      return !pool._validName;
+      return !pool._validation._validName;
     })).toHaveLength(2);
   });
 });

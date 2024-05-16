@@ -56,7 +56,7 @@ export default defineComponent({
       default: true
     },
 
-    rules: {
+    validationRules: {
       type:    Object,
       default: () => {
         return {};
@@ -146,7 +146,7 @@ export default defineComponent({
           label-key="generic.name"
           required
           :disabled="!pool._isNewOrUnprovisioned"
-          :rules="rules.name"
+          :rules="validationRules.name"
           data-testid="pool-name"
         />
       </div>
@@ -158,7 +158,7 @@ export default defineComponent({
           :loading="loadingVmSizes"
           :mode="mode"
           :disabled="!pool._isNewOrUnprovisioned"
-          :rules="[()=>pool._validSize === false ? t('aks.errors.vmSizes.available') : undefined]"
+          :rules="[()=>pool._validation && pool._validation._validSize === false ? t('aks.errors.vmSizes.available') : undefined]"
         />
       </div>
       <div class="col span-3">
@@ -171,7 +171,7 @@ export default defineComponent({
           :taggable="true"
           :disabled="!pool._isNewOrUnprovisioned || (!canUseAvailabilityZones && !(pool.availabilityZones && pool.availabilityZones.length))"
           :require-dirty="false"
-          :rules="rules.az"
+          :rules="validationRules.az"
         />
       </div>
       <div class="col span-2">
@@ -224,7 +224,7 @@ export default defineComponent({
           type="number"
           :mode="mode"
           label-key="aks.nodePools.count.label"
-          :rules="rules.count"
+          :rules="validationRules.count"
         />
       </div>
       <div class="col span-3">
@@ -259,7 +259,7 @@ export default defineComponent({
             type="number"
             :mode="mode"
             label-key="aks.nodePools.minCount.label"
-            :rules="rules.min"
+            :rules="validationRules.min"
           />
         </div>
         <div class="col span-3">
@@ -268,13 +268,13 @@ export default defineComponent({
             type="number"
             :mode="mode"
             label-key="aks.nodePools.maxCount.label"
-            :rules="rules.max"
+            :rules="validationRules.max"
           />
         </div>
       </template>
     </div>
     <Banner
-      v-if="pool._validMinMax === false"
+      v-if="pool._validation && pool._validation._validMinMax === false"
       color="error"
       label-key="aks.errors.poolMinMax"
     />
