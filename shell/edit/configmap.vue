@@ -61,11 +61,17 @@ export default {
   },
 
   methods: {
-    async saveConfigMap() {
+    async saveConfigMap(saveCb) {
+      this.errors = [];
       const yaml = await this.$refs.cru.createResourceYaml(this.yamlModifiers);
 
-      await this.value.saveYaml(yaml);
-      this.done();
+      try {
+        await this.value.saveYaml(yaml);
+        this.done();
+      } catch (err) {
+        this.errors.push(err);
+        saveCb(false);
+      }
     },
 
     updateValue(val, type) {
