@@ -27,9 +27,12 @@ jobs:
           echo "extensions.rancher.io" > ./docusaurus/build/CNAME
 
       - name: Upload artifact
+        if: ${{ github.event_name == 'push' && github.repository_owner == 'rancher' }}
         uses: actions/upload-pages-artifact@v3
         with:
           path: ./docusaurus/build
+          retention-days: 10
+          compression-level: 9
 
   # Seperate the deploy job to isolate write permissions
   deploy:
