@@ -4,6 +4,7 @@ import ClusterManagerCreateRke2AzurePagePo from '@/cypress/e2e/po/edit/provision
 import ClusterManagerDetailRke2AzurePagePo from '@/cypress/e2e/po/detail/provisioning.cattle.io.cluster/cluster-detail-rke2-azure.po';
 import PromptRemove from '@/cypress/e2e/po/prompts/promptRemove.po';
 import LoadingPo from '@/cypress/e2e/po/components/loading.po';
+import TabbedPo from '~/cypress/e2e/po/components/tabbed.po';
 
 // will only run this in jenkins pipeline where cloud credentials are stored
 describe('Provision Node driver RKE2 cluster with Azure', { testIsolation: 'off', tags: ['@manager', '@adminUser', '@standardUser', '@jenkins'] }, () => {
@@ -42,6 +43,7 @@ describe('Provision Node driver RKE2 cluster with Azure', { testIsolation: 'off'
     const createRKE2ClusterPage = new ClusterManagerCreateRke2AzurePagePo();
     const cloudCredForm = createRKE2ClusterPage.cloudCredentialsForm();
     const clusterDetails = new ClusterManagerDetailRke2AzurePagePo(undefined, this.rke2AzureClusterName);
+    const tabbedPo = new TabbedPo('[data-testid="tabbed-block"]');
 
     // create cluster
     ClusterManagerListPagePo.navTo();
@@ -114,6 +116,34 @@ describe('Provision Node driver RKE2 cluster with Azure', { testIsolation: 'off'
     clusterDetails.waitForPage(null, 'machine-pools');
     clusterDetails.resourceDetail().title().should('contain', this.rke2AzureClusterName);
     clusterDetails.machinePoolsList().details(`${ this.rke2AzureClusterName }-pool1-`, 1).should('contain', 'Running');
+
+    // check cluster details page > recent events
+    ClusterManagerListPagePo.navTo();
+    clusterList.waitForPage();
+    clusterList.clickOnClusterName(this.rke2AzureClusterName);
+    clusterDetails.selectTab(tabbedPo, '[data-testid="btn-events"');
+    clusterDetails.recentEventsList().checkTableIsEmpty();
+
+    // check cluster details page > snapshots
+    ClusterManagerListPagePo.navTo();
+    clusterList.waitForPage();
+    clusterList.clickOnClusterName(this.rke2AzureClusterName);
+    clusterDetails.selectTab(tabbedPo, '[data-testid="btn-snapshots"');
+    clusterDetails.snapshotsList().checkTableIsEmpty();
+
+    // create on demand snapshot
+    clusterDetails.snapshotsList().clickOnSnapshotNow();
+
+    // wait for cluster to be active
+    ClusterManagerListPagePo.navTo();
+    clusterList.waitForPage();
+    clusterList.list().state(this.rke2AzureClusterName).should('contain', 'Updating');
+    clusterList.list().state(this.rke2AzureClusterName).contains('Active', { timeout: 700000 });
+
+    // check snapshot exist
+    clusterList.clickOnClusterName(this.rke2AzureClusterName);
+    clusterDetails.selectTab(tabbedPo, '[data-testid="btn-snapshots"');
+    clusterDetails.snapshotsList().checkSnapshotExist(`on-demand-${ this.rke2AzureClusterName }`);
   });
 
   it('can delete a Azure  RKE2 cluster', function() {
