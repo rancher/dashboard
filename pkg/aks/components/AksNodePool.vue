@@ -161,7 +161,9 @@ export default defineComponent({
     },
 
     removeTaint(idx: number): void {
-      this.taints.splice(idx, 1);
+      const neu = this.taints.splice(idx, 1).map((keyedTaint) => keyedTaint.taint);
+
+      this.$set(this.pool, 'nodeTaints', neu);
     },
 
     availabilityZonesSupport() {
