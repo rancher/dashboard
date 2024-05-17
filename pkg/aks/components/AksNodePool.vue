@@ -225,6 +225,8 @@ export default defineComponent({
           :mode="mode"
           label-key="aks.nodePools.count.label"
           :rules="validationRules.count"
+          :min="1"
+          :max="100"
         />
       </div>
       <div class="col span-3">
@@ -260,6 +262,8 @@ export default defineComponent({
             :mode="mode"
             label-key="aks.nodePools.minCount.label"
             :rules="validationRules.min"
+            :min="1"
+            :max="100"
           />
         </div>
         <div class="col span-3">
@@ -269,6 +273,8 @@ export default defineComponent({
             :mode="mode"
             label-key="aks.nodePools.maxCount.label"
             :rules="validationRules.max"
+            :min="1"
+            :max="100"
           />
         </div>
       </template>
