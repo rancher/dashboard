@@ -126,11 +126,11 @@ export default defineComponent({
 
     // offer a k8s version upgrade if the node pool is not on the same version as the cluster and the cluster is not currently being upgraded
     upgradeAvailable(): boolean {
-      if (this.mode === _CREATE) {
+      if (this.mode === _CREATE || this.pool._isNewOrUnprovisioned) {
         return false;
       }
 
-      return this.clusterVersion !== this.originalOrchestratorVersion && !this.clusterWillUpgrade;
+      return this.clusterVersion !== this.originalOrchestratorVersion;
     },
 
     willUpgrade: {
@@ -177,30 +177,29 @@ export default defineComponent({
   >
     <div class="row mb-10">
       <div
-        v-if="!upgradeAvailable"
-        class="col span-3"
-      >
-        <LabeledInput
-
-          v-model="pool.orchestratorVersion"
-          :mode="mode"
-          label-key="aks.nodePools.orchestratorVersion.label"
-          disabled
-        />
-      </div>
-      <div
-        v-else
+        v-if="upgradeAvailable && !clusterWillUpgrade"
         class="col span-6"
       >
         <Checkbox
-
           v-model="willUpgrade"
           :mode="mode"
           :label="t('aks.nodePools.orchestratorVersion.upgrade', {from: originalOrchestratorVersion, to: clusterVersion})"
         />
       </div>
       <div
-        v-if="clusterWillUpgrade"
+        v-else
+        class="col span-3"
+      >
+        <LabeledInput
+          v-model="pool.orchestratorVersion"
+          :mode="mode"
+          label-key="aks.nodePools.orchestratorVersion.label"
+          disabled
+        />
+      </div>
+
+      <div
+        v-if="clusterWillUpgrade && upgradeAvailable"
         class="col span-6"
       >
         <Banner

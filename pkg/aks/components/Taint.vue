@@ -22,7 +22,8 @@ export default defineComponent({
 
   data() {
     // taints are stored as an array of strings in the format key=value:effect
-    const { key = '', value = '', effect = EFFECT_OPTIONS[0] } = (this.taint.match(/^(?<key>([A-Z]|[a-z]|[0-9])*)=(?<value>([A-Z]|[a-z]|[0-9])*):(?<effect>([A-Z]|[a-z]|[0-9])*)$/g)?.groups || {});
+    const [key = '', valueEffect = ''] = (this.taint || '').split('=');
+    const [value = '', effect = EFFECT_OPTIONS[0]] = valueEffect.split(':');
 
     return {
       key, effect, value

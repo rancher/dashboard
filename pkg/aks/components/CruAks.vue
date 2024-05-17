@@ -749,11 +749,11 @@ export default defineComponent({
       if (neu && old) {
         this.touchedVersion = true;
       }
-      if (this.mode === _CREATE) {
-        this.nodePools.forEach((pool: AKSNodePool) => {
+      this.nodePools.forEach((pool: AKSNodePool) => {
+        if (pool._isNewOrUnprovisioned) {
           this.$set(pool, 'orchestratorVersion', neu);
-        });
-      }
+        }
+      });
     },
 
     'config.privateCluster'(neu) {
@@ -902,7 +902,7 @@ export default defineComponent({
       }
 
       this.nodePools.push({
-        ...defaultNodePool, name: poolName, _id, mode, vmSize: this.defaultVmSize, availabilityZones: this.canUseAvailabilityZones ? ['1', '2', '3'] : []
+        ...defaultNodePool, name: poolName, _id, mode, vmSize: this.defaultVmSize, availabilityZones: this.canUseAvailabilityZones ? ['1', '2', '3'] : [], orchestratorVersion: this.config.kubernetesVersion
       });
 
       this.$nextTick(() => {
