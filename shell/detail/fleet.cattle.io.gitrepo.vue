@@ -8,7 +8,6 @@ import Tab from '@shell/components/Tabbed/Tab';
 import { FLEET } from '@shell/config/types';
 import { isHarvesterCluster } from '@shell/utils/cluster';
 import FleetBundles from '@shell/components/fleet/FleetBundles.vue';
-import FleetClusters from '@shell/components/fleet/FleetClusters.vue';
 import { resourceCounts } from '@shell/components/ResourceSummary.vue';
 import { checkSchemasForFindAllHash } from '@shell/utils/auth';
 
@@ -23,7 +22,6 @@ export default {
     ResourceTabs,
     Tab,
     FleetBundles,
-    FleetClusters,
   },
 
   props: {
@@ -43,15 +41,6 @@ export default {
   computed: {
     gitRepoHasClusters() {
       return this.value?.clusterResourceStatus?.length;
-    },
-    repoClustersFiltered() {
-      if (this.gitRepoHasClusters) {
-        return this.value?.clustersList.filter((cluster) => {
-          return this.value.clusterResourceStatus.some((crsItem) => crsItem.clusterId === cluster.id);
-        });
-      }
-
-      return [];
     },
     clusterSchema() {
       return this.$store.getters['management/schemaFor'](FLEET.CLUSTER);
@@ -142,21 +131,6 @@ export default {
       class="mt-20"
       :need-related="false"
     >
-      <Tab
-        v-if="!!repoClustersFiltered.length"
-        label="Clusters"
-        name="clusters"
-        :weight="40"
-      >
-        <FleetClusters
-          :rows="repoClustersFiltered"
-          :schema="clusterSchema"
-          :paging="true"
-          :table-actions="false"
-          :search="false"
-          paging-label="sortableTable.paging.resource"
-        />
-      </Tab>
       <Tab
         v-if="!!allBundles.length"
         label="Bundles"

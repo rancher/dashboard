@@ -167,7 +167,7 @@ describe('Git Repo', { tags: ['@fleet', '@adminUser'] }, () => {
       const gitRepoDetails = new FleetGitRepoDetailsPo('fleet-local', basicRepos[1].name);
 
       gitRepoDetails.waitForPage();
-      gitRepoDetails.gitRepoTabs().clickTabWithSelector('#bundles');
+      gitRepoDetails.gitRepoTabs().clickTabWithSelector('[data-testid="bundles"]');
       gitRepoDetails.bundlesCount().should('contain', '1');
     });
 
