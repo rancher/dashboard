@@ -51,7 +51,7 @@ import {
   privateDnsZone
 } from '@pkg/aks/util/validators';
 
-const defaultNodePool = {
+export const defaultNodePool = {
   availabilityZones:     ['1', '2', '3'],
   count:                 1,
   enableAutoScaling:     false,

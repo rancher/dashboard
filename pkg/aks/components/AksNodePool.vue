@@ -186,6 +186,7 @@ export default defineComponent({
           v-model="willUpgrade"
           :mode="mode"
           :label="t('aks.nodePools.orchestratorVersion.upgrade', {from: originalOrchestratorVersion, to: clusterVersion})"
+          data-testid="aks-pool-upgrade-checkbox"
         />
       </div>
       <div
@@ -197,6 +198,7 @@ export default defineComponent({
           :mode="mode"
           label-key="aks.nodePools.orchestratorVersion.label"
           disabled
+          data-testid="aks-pool-version-display"
         />
       </div>
 
@@ -208,6 +210,7 @@ export default defineComponent({
           class="mt-0"
           color="info"
           label-key="aks.nodePools.orchestratorVersion.warning"
+          data-testid="aks-pool-upgrade-banner"
         />
       </div>
     </div>
@@ -220,7 +223,6 @@ export default defineComponent({
           required
           :disabled="!pool._isNewOrUnprovisioned"
           :rules="validationRules.name"
-          data-testid="pool-name"
         />
       </div>
       <div class="col span-3">

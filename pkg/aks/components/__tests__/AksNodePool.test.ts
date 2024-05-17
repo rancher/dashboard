@@ -1,6 +1,8 @@
 
-import { shallowMount } from '@vue/test-utils';
+import { mount, shallowMount } from '@vue/test-utils';
 import AksNodePool from '@pkg/aks/components/AksNodePool.vue';
+import { randomStr } from '@shell/utils/string';
+import { _CREATE, _EDIT } from '@shell/config/query-params';
 
 const mockedValidationMixin = {
   computed: {
@@ -14,7 +16,9 @@ const mockedValidationMixin = {
 const mockedStore = () => {
   return {
     getters: {
-      'i18n/t':                  (text: string) => text,
+      'i18n/t': (text: string, v = {}) => {
+        return `${ text }${ Object.values(v) }`;
+      },
       t:                         (text: string) => text,
       currentStore:              () => 'current_store',
       'current_store/schemaFor': jest.fn(),
@@ -39,33 +43,138 @@ const requiredSetup = () => {
   };
 };
 
-describe('aks provisioning form', () => {
-  it('should show an error if a pool has an invalid name', () => {
+const defaultPool = {
+  orchestratorVersion: '', _validation: {}, _isNewOrUnprovisioned: true, _id: randomStr()
+};
+
+describe('aks node pool component', () => {
+  it.each([
+    [_CREATE],
+    [_EDIT],
+  ])('on cluster create, or if this is a new node pool during edit, should show a disabled input for orchestratorVersion', (mode: string) => {
+    const clusterVersion = '1.23.4';
     const wrapper = shallowMount(AksNodePool, {
-      propsData: { pool: {}, mode: 'create' },
+      propsData: {
+        pool: { ...defaultPool, orchestratorVersion: clusterVersion }, mode, clusterVersion
+      },
       ...requiredSetup()
     });
 
-    const nameInput = wrapper.find(`[data-testid=pool-name]`);
+    const versionDisplay = wrapper.find('[data-testid="aks-pool-version-display"]');
 
-    expect(nameInput.exists()).toBe(true);
-    expect(nameInput.vm.rules[0]()).toBeUndefined();
-
-    wrapper.setData({ pool: { name: '123-abc', _validName: false } });
-    expect(nameInput.vm.rules[0]()).toBeDefined();
+    expect(versionDisplay.props().value).toBe(clusterVersion);
+    expect(versionDisplay.props().disabled).toBe(true);
   });
 
-  // should show a disabled input with k8s version matching cluster version on create
+  it('on edit, if the cluster version matches the node pool orchestrator version, show the same disabled input as on create', () => {
+    const clusterVersion = '1.23.4';
+    const wrapper = shallowMount(AksNodePool, {
+      propsData: {
+        pool: {
+          ...defaultPool, orchestratorVersion: clusterVersion, _isNewOrUnprovisioned: false
+        },
+        clusterVersion
+      },
+      ...requiredSetup()
 
-  // on edit, if cluster is going to be upgraded, show a disbaled input and banner informing user that they can upgrade node pool after the cluster upgrade is done
+    });
+    const versionDisplay = wrapper.find('[data-testid="aks-pool-version-display"]');
 
-  // on edit, new node pools should show a disabled input with version matching cluster version
+    expect(versionDisplay.props().value).toBe(clusterVersion);
+    expect(versionDisplay.props().disabled).toBe(true);
+  });
 
-  // on edit, if the cluster version is ahead of the node pool version and the cluster version is not being modified, show a checkbox offering to upgrade node version
+  it('on edit, if the cluster is being upgraded, should show a banner informing the user that they can upgrade the node pool after the cluster upgrade succeeds', () => {
+    const clusterVersion = '1.23.4';
+    const originalClusterVersion = '1.20.0';
+    const wrapper = shallowMount(AksNodePool, {
+      propsData: {
+        pool: {
+          ...defaultPool, orchestratorVersion: originalClusterVersion, _isNewOrUnprovisioned: false
+        },
+        clusterVersion,
+        originalClusterVersion,
+        mode: _EDIT
+      },
+      ...requiredSetup()
 
-  // checkbox label should show the current and new node version
+    });
+    const versionDisplay = wrapper.find('[data-testid="aks-pool-version-display"]');
+    const upgradeBanner = wrapper.find('[data-testid="aks-pool-upgrade-banner"]');
 
-  // when checked, checkbox should set orchestratorVersion to cluster version
+    expect(versionDisplay.props().value).toBe(originalClusterVersion);
+    expect(versionDisplay.props().disabled).toBe(true);
 
-  // when unchecked, checkbox should revert node version to original node version
+    expect(upgradeBanner.isVisible()).toBe(true);
+  });
+
+  it('on edit, if the cluster has been upgraded already, show a checkbox allowing the user to upgrade the node pool k8s version', () => {
+    const clusterVersion = '1.23.4';
+    const originalOrchestratorVersion = '1.20.0';
+    const wrapper = shallowMount(AksNodePool, {
+      propsData: {
+        pool: {
+          ...defaultPool, orchestratorVersion: originalOrchestratorVersion, _isNewOrUnprovisioned: false
+        },
+        clusterVersion,
+        originalClusterVersion: clusterVersion,
+        mode:                   _EDIT
+      },
+      ...requiredSetup()
+
+    });
+
+    const versionDisplay = wrapper.find('[data-testid="aks-pool-version-display"]');
+    const upgradeBanner = wrapper.find('[data-testid="aks-pool-upgrade-banner"]');
+    const upgradeCheckbox = wrapper.find('[data-testid="aks-pool-upgrade-checkbox"]');
+
+    expect(versionDisplay.exists()).toBe(false);
+    expect(upgradeBanner.exists()).toBe(false);
+    expect(upgradeCheckbox.isVisible()).toBe(true);
+  });
+
+  it('when the k8s version checkbox is checked, the orchestratorVersion should be set to the clusterVersion; when it is unchecked, the orchestratorVersion should be reverted', () => {
+    const clusterVersion = '1.23.4';
+    const originalOrchestratorVersion = '1.20.0';
+    const wrapper = shallowMount(AksNodePool, {
+      propsData: {
+        pool: {
+          ...defaultPool, orchestratorVersion: originalOrchestratorVersion, _isNewOrUnprovisioned: false
+        },
+        clusterVersion,
+        originalClusterVersion: clusterVersion,
+        mode:                   _EDIT
+      },
+      ...requiredSetup()
+
+    });
+
+    expect(wrapper.props().pool.orchestratorVersion).toBe(originalOrchestratorVersion);
+    wrapper.vm.willUpgrade = true;
+    expect(wrapper.props().pool.orchestratorVersion).toBe(clusterVersion);
+    wrapper.vm.willUpgrade = false;
+    expect(wrapper.props().pool.orchestratorVersion).toBe(originalOrchestratorVersion);
+  });
+
+  it('the k8s version checkbox label should include the original node pool version and the new node pool version', () => {
+    const clusterVersion = '1.23.4';
+    const originalOrchestratorVersion = '1.20.0';
+    const wrapper = mount(AksNodePool, {
+      propsData: {
+        pool: {
+          ...defaultPool, orchestratorVersion: originalOrchestratorVersion, _isNewOrUnprovisioned: false
+        },
+        clusterVersion,
+        originalClusterVersion: clusterVersion,
+        mode:                   _EDIT
+      },
+      ...requiredSetup()
+
+    });
+
+    const upgradeCheckbox = wrapper.find('[data-testid="aks-pool-upgrade-checkbox"]');
+    const checkboxLabel = upgradeCheckbox.find('.checkbox-label');
+
+    expect(checkboxLabel.text()).toContain(clusterVersion);
+  });
 });

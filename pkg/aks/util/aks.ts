@@ -122,6 +122,7 @@ export const EFFECT_OPTIONS = ['PreferNoSchedule', 'NoExecute', 'NoSchedule'];
  */
 export function parseTaint(taint: string): {key:string, value: string, effect: string} {
   const [key = '', valueEffect = ''] = (taint || '').split('=');
+
   const [value = '', effect = EFFECT_OPTIONS[0]] = valueEffect.split(':');
 
   return {
@@ -137,5 +138,5 @@ export function parseTaint(taint: string): {key:string, value: string, effect: s
  * @returns string in the format key:value=effect
  */
 export function formatTaint(key = '', value = '', effect = EFFECT_OPTIONS[0]): string {
-  return `${ key }:${ value }=${ effect }`;
+  return `${ key }:${ value }=${ effect || EFFECT_OPTIONS[0] }`;
 }

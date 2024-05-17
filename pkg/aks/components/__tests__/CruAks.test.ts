@@ -4,6 +4,8 @@ import { shallowMount, Wrapper } from '@vue/test-utils';
 import CruAks from '@pkg/aks/components/CruAks.vue';
 // eslint-disable-next-line jest/no-mocks-import
 import { mockRegions, mockVersionsSorted } from '@pkg/aks/util/__mocks__/aks';
+import { AKSNodePool } from 'types';
+import { _EDIT, _CREATE } from '@shell/config/query-params';
 
 const mockedValidationMixin = {
   computed: {
@@ -56,7 +58,7 @@ const setCredential = async(wrapper :Wrapper<any>, config = {} as any) => {
 describe('aks provisioning form', () => {
   it('should hide the form if no credential has been selected', () => {
     const wrapper = shallowMount(CruAks, {
-      propsData: { value: {}, mode: 'create' },
+      propsData: { value: {}, mode: _CREATE },
       ...requiredSetup()
     });
 
@@ -67,7 +69,7 @@ describe('aks provisioning form', () => {
 
   it('should show the form when a credential is selected', async() => {
     const wrapper = shallowMount(CruAks, {
-      propsData: { value: {}, mode: 'create' },
+      propsData: { value: {}, mode: _CREATE },
       ...requiredSetup()
     });
 
@@ -81,7 +83,7 @@ describe('aks provisioning form', () => {
 
   it('should auto-select a region when a credential is selected', async() => {
     const wrapper = shallowMount(CruAks, {
-      propsData: { value: {}, mode: 'create' },
+      propsData: { value: {}, mode: _CREATE },
       ...requiredSetup()
     });
 
@@ -99,7 +101,7 @@ describe('aks provisioning form', () => {
   ])('should list only versions satisfying the ui-default-version-range setting', async(versionRange: string, expectedVersions: string[]) => {
     const mockVersionRangeSetting = { value: versionRange };
     const wrapper = shallowMount(CruAks, {
-      propsData: { value: {}, mode: 'create' },
+      propsData: { value: {}, mode: _CREATE },
       ...requiredSetup(mockVersionRangeSetting)
     });
 
@@ -112,7 +114,7 @@ describe('aks provisioning form', () => {
 
   it('should sort versions from latest to oldest', async() => {
     const wrapper = shallowMount(CruAks, {
-      propsData: { value: {}, mode: 'create' },
+      propsData: { value: {}, mode: _CREATE },
       ...requiredSetup()
     });
 
@@ -123,9 +125,9 @@ describe('aks provisioning form', () => {
     expect(versionDropdown.props().value).toBe('1.27.0');
   });
 
-  it('should auto-select a kubernetes version when a region is selected', async() => {
+  it('should auto-select the latest kubernetes version when a region is selected during create', async() => {
     const wrapper = shallowMount(CruAks, {
-      propsData: { value: {}, mode: 'create' },
+      propsData: { value: {}, mode: _CREATE },
       ...requiredSetup()
     });
 
@@ -136,6 +138,22 @@ describe('aks provisioning form', () => {
     expect(versionDropdown.exists()).toBe(true);
     // version dropdown options are validated in another test so here we can assume they're properly sorted and filtered such that the first one is the default value
     expect(versionDropdown.props().value).toBe(versionDropdown.props().options[0].value);
+  });
+
+  it('should not auto-select the latest kubernetes version on edit', async() => {
+    const wrapper = shallowMount(CruAks, {
+      propsData: { value: {}, mode: _EDIT },
+      ...requiredSetup()
+    });
+
+    wrapper.setData({ config: { kubernetesVersion: '0.00.0' } });
+
+    await setCredential(wrapper);
+
+    const versionDropdown = wrapper.find('[data-testid="cruaks-kubernetesversion"]');
+
+    expect(versionDropdown.exists()).toBe(true);
+    expect(versionDropdown.props().value).toBe('0.00.0');
   });
 
   it.each([['1.26.0', mockVersionsSorted.filter((v: string) => semver.gte(v, '1.26.0'))], ['1.24.0', mockVersionsSorted.filter((v: string) => semver.gte(v, '1.24.0'))],
@@ -340,5 +358,35 @@ describe('aks provisioning form', () => {
     expect(wrapper.vm.config.subnet).toBeNull();
     expect(wrapper.vm.config.virtualNetwork).toBeNull();
     expect(wrapper.vm.config.virtualNetworkResourceGroup).toBeNull();
+  });
+
+  it('should update all new or unprovisioned node pools\' orchestratorVersion when the cluster version is changed', async() => {
+    const originalVersion = '1.20.0';
+    const newVersion = '1.23.4';
+    const nodePools = [{
+      name: 'abc', _validation: {}, _isNewOrUnprovisioned: true, orchestratorVersion: originalVersion
+    }, {
+      name: 'abc', _validation: {}, _isNewOrUnprovisioned: false, orchestratorVersion: originalVersion
+    }];
+    const config = {
+      dnsPrefix: 'abc-123', resourceGroup: 'abc', clusterName: 'abc', kubernetesVersion: originalVersion, nodePools
+    };
+
+    const wrapper = shallowMount(CruAks, {
+      propsData: {
+        value: {}, mode: 'edit', config
+      },
+      ...requiredSetup()
+    });
+
+    await setCredential(wrapper, config);
+
+    wrapper.setData({ config: { ...config, kubernetesVersion: newVersion } });
+    await wrapper.vm.$nextTick();
+    const pools = wrapper.vm.nodePools;
+
+    pools.forEach((pool: AKSNodePool) => {
+      expect(pool.orchestratorVersion).toBe(pool._isNewOrUnprovisioned ? newVersion : originalVersion);
+    });
   });
 });
