@@ -15,12 +15,14 @@ describe('class FleetCluster', () => {
   describe('should provide bundleInfo with error', () => {
     it.each([
       [''],
+      ['/'],
       ['1/'],
       ['/1'],
       ['1/1/2'],
       ['a/1'],
       ['a/b'],
-      ['any-string']
+      ['any-string'],
+      ['any-string1/string2']
     ])('with multiple scenarios of wrongful "readyBundles" data', (readyBundles) => {
       const fleetCluster = new FleetCluster({
         metadata: {},

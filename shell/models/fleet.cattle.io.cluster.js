@@ -137,16 +137,14 @@ export default class FleetCluster extends SteveModel {
     };
     const readyBundles = this.status?.display?.readyBundles;
 
-    if (readyBundles) {
-      if (readyBundles.includes('/')) {
-        const dataArr = readyBundles.split('/');
+    if (readyBundles && readyBundles.includes('/')) {
+      const dataArr = readyBundles.split('/');
 
-        if (dataArr.length === 2 && dataArr[0].length && dataArr[1].length && parseInt(dataArr[0]) >= 0 && parseInt(dataArr[1]) >= 0) {
-          bundlesData.ready = parseInt(dataArr[0]);
-          bundlesData.total = parseInt(dataArr[1]);
+      if (dataArr.length === 2 && parseInt(dataArr[0]) >= 0 && parseInt(dataArr[1]) >= 0) {
+        bundlesData.ready = parseInt(dataArr[0]);
+        bundlesData.total = parseInt(dataArr[1]);
 
-          return bundlesData;
-        }
+        return bundlesData;
       }
     }
 
