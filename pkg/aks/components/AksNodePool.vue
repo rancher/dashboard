@@ -251,7 +251,6 @@ export default defineComponent({
           :mode="mode"
           :options="modeOptions"
           :name="`${pool._id}-mode`"
-          :disabled="!pool._isNewOrUnprovisioned"
           :row="true"
           label-key="generic.mode"
           @input="$emit('validationChanged')"
