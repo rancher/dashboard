@@ -4,7 +4,7 @@ import Select from '@shell/components/form/Select.vue';
 import { _CREATE, _VIEW } from '@shell/config/query-params';
 import { mapGetters } from 'vuex';
 
-const EFFECT_OPTIONS = ['PreferNoSchedule', 'NoExecute', 'NoSchedule'];
+import { parseTaint, EFFECT_OPTIONS, formatTaint } from '../util/aks';
 
 export default defineComponent({
   components: { Select },
@@ -21,10 +21,7 @@ export default defineComponent({
   },
 
   data() {
-    // TODO nb move to util
-    // taints are stored as an array of strings in the format key=value:effect
-    const [key = '', valueEffect = ''] = (this.taint || '').split('=');
-    const [value = '', effect = EFFECT_OPTIONS[0]] = valueEffect.split(':');
+    const { key, effect, value } = parseTaint(this.taint);
 
     return {
       key, effect, value
@@ -45,8 +42,7 @@ export default defineComponent({
 
   methods: {
     update() {
-      // TODO nb move to util
-      const out = `${ this.key }=${ this.value }:${ this.effect }`;
+      const out = formatTaint(this.key, this.value, this.effect);
 
       this.$emit('input', out);
     }
@@ -54,6 +50,7 @@ export default defineComponent({
 
   computed: {
     ...mapGetters({ t: 'i18n/t' }),
+
     isEdit() {
       return this.mode !== _VIEW;
     },
