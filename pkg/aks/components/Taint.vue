@@ -21,6 +21,7 @@ export default defineComponent({
   },
 
   data() {
+    // TODO nb move to util
     // taints are stored as an array of strings in the format key=value:effect
     const [key = '', valueEffect = ''] = (this.taint || '').split('=');
     const [value = '', effect = EFFECT_OPTIONS[0]] = valueEffect.split(':');
@@ -44,6 +45,7 @@ export default defineComponent({
 
   methods: {
     update() {
+      // TODO nb move to util
       const out = `${ this.key }=${ this.value }:${ this.effect }`;
 
       this.$emit('input', out);
