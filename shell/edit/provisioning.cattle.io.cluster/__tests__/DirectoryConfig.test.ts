@@ -26,7 +26,7 @@ describe('component: DirectoryConfig', () => {
     }
   };
 
-  it(`should render the component with its default configuration (create scenario)`, () => {
+  it('should render the component with its default configuration (create scenario)', () => {
     wrapper = mount(
       DirectoryConfig,
       mountOptions
@@ -51,7 +51,7 @@ describe('component: DirectoryConfig', () => {
     expect(k8sDistroInput.exists()).toBe(false);
   });
 
-  it(`updating common config path should set the correct values on each data dir variable`, async() => {
+  it('updating common config path should set the correct values on each data dir variable', async() => {
     wrapper = mount(
       DirectoryConfig,
       mountOptions
@@ -68,7 +68,7 @@ describe('component: DirectoryConfig', () => {
     expect(wrapper.vm.value.k8sDistro).toStrictEqual(inputPath);
   });
 
-  it(`updating each individual data dir should set the correct values on each data dir variable`, async() => {
+  it('updating each individual data dir should set the correct values on each data dir variable', async() => {
     wrapper = mount(
       DirectoryConfig,
       mountOptions
@@ -97,7 +97,7 @@ describe('component: DirectoryConfig', () => {
     expect(wrapper.vm.value.k8sDistro).toStrictEqual(inputPath);
   });
 
-  it(`checkbox should be checked if all data dir values are the same (with all data dir values filled)`, () => {
+  it('checkbox should be checked if all data dir values are the same (with all data dir values filled)', () => {
     const newMountOptions = clone(mountOptions);
     const inputPath = 'some-data-dir';
 
@@ -130,7 +130,7 @@ describe('component: DirectoryConfig', () => {
     expect(wrapper.vm.value.k8sDistro).toStrictEqual(inputPath);
   });
 
-  it(`checkbox should NOT be checked if some data dir values are the different (with all data dir values filled)`, () => {
+  it('checkbox should NOT be checked if some data dir values are the different (with all data dir values filled)', () => {
     const newMountOptions = clone(mountOptions);
     const inputPath1 = 'some-data-dir1';
     const inputPath2 = 'some-data-dir2';
@@ -162,7 +162,7 @@ describe('component: DirectoryConfig', () => {
     expect(wrapper.vm.value.k8sDistro).toStrictEqual(inputPath3);
   });
 
-  it(`on a mode different than _CREATE all visible inputs should be disabled (with common config)`, () => {
+  it('on a mode different than _CREATE all visible inputs should be disabled (with common config)', () => {
     const newMountOptions = clone(mountOptions);
     const inputPath = 'some-data-dir';
 
@@ -192,7 +192,7 @@ describe('component: DirectoryConfig', () => {
     expect(commonInput.attributes('disabled')).toBe('disabled');
   });
 
-  it(`on a mode different than _CREATE all visible inputs should be disabled (with different values)`, () => {
+  it('on a mode different than _CREATE all visible inputs should be disabled (with different values)', () => {
     const newMountOptions = clone(mountOptions);
     const inputPath1 = 'some-data-dir1';
     const inputPath2 = 'some-data-dir2';
