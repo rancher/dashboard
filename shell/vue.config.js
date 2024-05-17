@@ -372,12 +372,6 @@ const createEnvVariablesPlugin = (routerBasePath, rancherEnv) => new webpack.Def
   'process.env.api':                 JSON.stringify(api),
   // Store the Router Base as env variable that we can use in `shell/config/router.js`
   'process.env.routerBase':          JSON.stringify(routerBasePath),
-
-  // This is a replacement of the nuxt publicRuntimeConfig
-  'nuxt.publicRuntimeConfig': JSON.stringify({
-    rancherEnv,
-    dashboardVersion
-  }),
 });
 
 /**
@@ -500,7 +494,7 @@ module.exports = function(dir, _appConfig) {
     outputDir,
     pages: {
       index: {
-        entry:    path.join(SHELL_ABS, '/initialize/client.js'),
+        entry:    path.join(SHELL_ABS, '/initialize/entry.js'),
         template: path.join(SHELL_ABS, '/public/index.html')
       }
     },

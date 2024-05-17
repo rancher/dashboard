@@ -12,7 +12,7 @@ export const routerOptions = {
   fallback: false
 };
 
-export function createRouter(config) {
+export function extendRouter(config) {
   const base = (config._app && config._app.basePath) || routerOptions.base;
   const router = new Router({ ...routerOptions, base });
 

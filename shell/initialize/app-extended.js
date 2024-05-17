@@ -1,49 +1,23 @@
 // Taken from @nuxt/vue-app/template/index.js
 // This file was generated during Nuxt migration
-
-import Vue from 'vue';
-import { createRouter } from '@shell/config/router';
-import NuxtChild from '@shell/components/nuxt/nuxt-child';
-import App from '@shell/initialize/App';
+import AppView from '@shell/initialize/App';
 import { setContext, getLocation, getRouteData, normalizeError } from '@shell/utils/nuxt';
-import { createStore } from '@shell/config/store';
+import { extendRouter } from '@shell/config/router';
+import { extendStore } from '@shell/config/store';
 import { UPGRADED, _FLAGGED, _UNFLAG } from '@shell/config/query-params';
-import { loadDirectives } from '@shell/directives/index';
-import { installPlugins } from '@shell/initialize/plugins';
+import { installInjectedPlugins } from 'initialize/install-plugins.js';
 
-// Prevent extensions from overriding existing directives
-// Hook into Vue.directive and keep track of the directive names that have been added
-// and prevent an existing directive from being overwritten
-const directiveNames = {};
-const vueDirective = Vue.directive;
+/**
+ * Bundle Vue app component and configuration to be executed on entry
+ * TODO: #11070 - Remove Nuxt residuals
+ * @param {*} vueApp Vue instance
+ * @returns
+ */
+async function extendApp(vueApp) {
+  const config = { rancherEnv: process.env.rancherEnv, dashboardVersion: process.env.dashboardVersion };
+  const router = extendRouter(config);
 
-Vue.directive = function(name) {
-  if (directiveNames[name]) {
-    console.log(`Can not override directive: ${ name }`); // eslint-disable-line no-console
-
-    return;
-  }
-
-  directiveNames[name] = true;
-
-  vueDirective.apply(Vue, arguments);
-};
-
-// Load the directives from the plugins - we do this with a function so we know
-// these are initialized here, after the code above which keeps track of them and
-// prevents over-writes
-loadDirectives(Vue);
-
-// Component: <NuxtChild>
-Vue.component(NuxtChild.name, NuxtChild);
-Vue.component('NChild', NuxtChild);
-
-async function createApp() {
-  // eslint-disable-next-line no-undef
-  const config = nuxt.publicRuntimeConfig;
-  const router = await createRouter(config);
-
-  const store = createStore();
+  const store = extendStore();
 
   // Add this.$router into store actions/mutations
   store.$router = router;
@@ -52,7 +26,7 @@ async function createApp() {
 
   // here we inject the router and store to all child components,
   // making them available everywhere as `this.$router` and `this.$store`.
-  const app = {
+  const appPartials = {
     store,
     router,
     nuxt: {
@@ -60,9 +34,9 @@ async function createApp() {
       dateErr: null,
       error(err) {
         err = err || null;
-        app.context._errored = Boolean(err);
+        appPartials.context._errored = Boolean(err);
         err = err ? normalizeError(err) : null;
-        let nuxt = app.nuxt; // to work with @vue/composition-api, see https://github.com/nuxt/nuxt.js/issues/6517#issuecomment-573280207
+        let nuxt = appPartials.nuxt; // to work with @vue/composition-api, see https://github.com/nuxt/nuxt.js/issues/6517#issuecomment-573280207
 
         if (this) {
           nuxt = this.nuxt || this.$options.nuxt;
@@ -73,41 +47,41 @@ async function createApp() {
         return err;
       }
     },
-    ...App
+    ...AppView
   };
 
   // Make app available into store via this.app
-  store.app = app;
+  store.app = appPartials;
 
-  const next = (location) => app.router.push(location);
+  const next = (location) => appPartials.router.push(location);
   // Resolve route
 
   const path = getLocation(router.options.base, router.options.mode);
   const route = router.resolve(path).route;
 
   // Set context to app.context
-  await setContext(app, {
+  await setContext(appPartials, {
     store,
     route,
     next,
-    error:   app.nuxt.error.bind(app),
+    error:   appPartials.nuxt.error.bind(appPartials),
     payload: undefined,
     req:     undefined,
     res:     undefined
   });
 
-  await installPlugins(app, Vue);
+  await installInjectedPlugins(appPartials, vueApp);
 
   // Wait for async component to be resolved first
   await new Promise((resolve, reject) => {
     // Ignore 404s rather than blindly replacing URL in browser
-    const { route } = router.resolve(app.context.route.fullPath);
+    const { route } = router.resolve(appPartials.context.route.fullPath);
 
     if (!route.matched.length) {
       return resolve();
     }
 
-    router.replace(app.context.route.fullPath, resolve, (err) => {
+    router.replace(appPartials.context.route.fullPath, resolve, (err) => {
       // https://github.com/vuejs/vue-router/blob/v3.4.3/src/util/errors.js
       if (!err._isRouter) {
         return reject(err);
@@ -118,9 +92,9 @@ async function createApp() {
 
       // navigated to a different route in router guard
       const unregister = router.afterEach(async(to, from) => {
-        app.context.route = await getRouteData(to);
-        app.context.params = to.params || {};
-        app.context.query = to.query || {};
+        appPartials.context.route = await getRouteData(to);
+        appPartials.context.params = to.params || {};
+        appPartials.context.query = to.query || {};
         unregister();
         resolve();
       });
@@ -143,9 +117,9 @@ async function createApp() {
 
   return {
     store,
-    app,
+    app: appPartials,
     router
   };
 }
 
-export { createApp };
+export { extendApp };

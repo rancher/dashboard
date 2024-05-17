@@ -7,7 +7,7 @@ import { ExtensionPoint } from './types';
 
 const MODEL_TYPE = 'models';
 
-export default function(context, inject, Vue) {
+export default function(context, inject, vueApp) {
   const {
     app, store, $axios, redirect
   } = context;
@@ -407,6 +407,6 @@ export default function(context, inject, Vue) {
       },
     },
     context,
-    Vue
+    vueApp
   );
 }
