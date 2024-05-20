@@ -322,7 +322,7 @@ async function mountApp(__app) {
     });
 
     // Push the path and let route to be resolved
-    router.push(path, undefined, (err) => {
+    router.push(path, () => {}, (err) => {
       if (err) {
         errorHandler(err);
       }
