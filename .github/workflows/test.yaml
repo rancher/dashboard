@@ -2,18 +2,17 @@ name: Tests
 on:
   push:
     branches:
-      - master
-      - 'release-*'
+      - 'release-2.8*'
   pull_request:
-      branches:
-        - master
-        - 'release-*'
+    branches:
+      - 'release-2.8*'
   workflow_dispatch:
-    environment:
-      description: 'Environment to run tests against'
-      type: environment
-      required: true 
-      
+    inputs:
+      environment:
+        description: 'Environment to run tests against'
+        type: environment
+        required: true
+
 env:
   TEST_USERNAME: admin
   TEST_PASSWORD: password
@@ -23,67 +22,115 @@ env:
   TEST_PROJECT_ID: rancher-dashboard
   CYPRESS_API_URL: http://139.59.134.103:1234/
   TEST_RUN_ID: ${{github.run_number}}-${{github.run_attempt}}-${{github.event.pull_request.title || github.event.head_commit.message}}
-  CYPRESS_coverage: true
+  # Build the dashboard to use in tests. When set to false it will grab `latest` from CDN (useful for running e2e tests quickly)
+  BUILD_DASHBOARD: true
+
+  E2E_BUILD_DIST_NAME: dist
+  E2E_BUILD_DIST_DIR: dist
+  E2E_BUILD_DIST_EMBER_NAME: dist_ember
+  E2E_BUILD_DIST_EMBER_DIR: dist_ember
 
 jobs:
+  e2e-ui-build:
+    if: "!contains( github.event.pull_request.labels.*.name, 'ci/skip-e2e')"
+    runs-on: ubuntu-latest
+    steps:
+     - uses: actions/checkout@v3
+       with:
+        fetch-depth: 1
+     - name: Setup env
+       uses: ./.github/actions/setup
+     - name: Build e2e
+       run: yarn e2e:build
+     - name: Upload e2e build
+       uses: actions/upload-artifact@v4
+       with:
+        name: ${{ env.E2E_BUILD_DIST_NAME }}
+        path: ${{ env.E2E_BUILD_DIST_DIR }}/
+        if-no-files-found: error
+        retention-days: 10
+        compression-level: 9
+     - name: Upload e2e build ember
+       uses: actions/upload-artifact@v4
+       with:
+        name: ${{ env.E2E_BUILD_DIST_EMBER_NAME }}
+        path: ${{ env.E2E_BUILD_DIST_EMBER_DIR }}/
+        if-no-files-found: error
+        retention-days: 10
+        compression-level: 9
   e2e-test:
     if: "!contains( github.event.pull_request.labels.*.name, 'ci/skip-e2e')"
+    needs: e2e-ui-build
+    strategy:
+      fail-fast: false
+      matrix:
+        role: [
+          { username: 'admin', tag: '@adminUser' }, 
+          { username: 'standard_user', tag: '@standardUser' }
+        ]
+        features:  [
+         ['@navigation', '@extensions'],
+         ['@charts'],
+         ['@explorer'],
+         ['@fleet'],
+         ['@generic', '@globalSettings'],
+         ['@manager'],
+         ['@userMenu', '@usersAndAuths']
+        ]
     runs-on: ubuntu-latest
     steps:
       - uses: actions/checkout@v3
         with:
           fetch-depth: 1
-      - uses: actions/setup-node@v3
+      - name: Setup env
+        uses: ./.github/actions/setup
+
+      # Installing fixed version of Chrome since latest version does not work (117-118 didn't work)
+      # Leaving this here again in case we need to pin to a specific Chrome version in the future
+      # - name: Install Chrome 116
+      #   run: |
+      #     sudo apt-get install -y wget
+      #     cd /tmp
+      #     wget -q http://mirror.cs.uchicago.edu/google-chrome/pool/main/g/google-chrome-stable/google-chrome-stable_116.0.5845.187-1_amd64.deb
+      #     sudo apt-get install -y --allow-downgrades ./google-chrome-stable_116.0.5845.187-1_amd64.deb
+      #     google-chrome --version
+
+      - name: Download e2e build
+        uses:  actions/download-artifact@v4
         with:
-          node-version: '14.x'
-
-      - name: Install Chrome 116
-        run: |
-          sudo apt-get install -y wget
-          cd /tmp
-          wget -q http://mirror.cs.uchicago.edu/google-chrome/pool/main/g/google-chrome-stable/google-chrome-stable_116.0.5845.187-1_amd64.deb
-          sudo apt-get install -y --allow-downgrades ./google-chrome-stable_116.0.5845.187-1_amd64.deb
-          google-chrome --version
-
-      - name: Install packages
-        run: yarn install:ci
+         name: ${{ env.E2E_BUILD_DIST_NAME }}
+         path: ${{ env.E2E_BUILD_DIST_DIR }}
+      - name: Download e2e build ember
+        uses:  actions/download-artifact@v4
+        with:
+         name: ${{ env.E2E_BUILD_DIST_EMBER_NAME }}
+         path: ${{ env.E2E_BUILD_DIST_EMBER_DIR }}
       
-      - name: Prepare build
-        run: yarn e2e:pre-prod
+      - name: Run Rancher
+        run: yarn e2e:docker
       
-      - name: Run admin user tests
+      - name: Setup Rancher and user
         run: |
           yarn e2e:prod
-          mkdir -p coverage-artifacts/coverage
-          cp coverage/e2e/coverage-final.json coverage-artifacts/coverage/coverage-e2e.json
-          cp -r coverage/e2e/ coverage-artifacts/coverage/e2e/
         env: 
-          GREP_TAGS: '@adminUser'
+          GREP_TAGS: ${{ matrix.role.tag }}Setup+${{ matrix.features[0] }} --@jenkins ${{ matrix.role.tag }}Setup+${{ matrix.features[1] || matrix.features[0] }} --@jenkins 
           TEST_USERNAME: admin
-
-
-      - name: Run standard user tests
-        if: ${{ success() || failure() }}
+          TEST_ONLY: setup
+      
+      - name: Run user tests
         run: |
           yarn e2e:prod
-          yarn docker:local:stop
-          mkdir -p coverage-artifacts/coverage
-          cp coverage/e2e/coverage-final.json coverage-artifacts/coverage/coverage-e2e.json
+          [ "$BUILD_DASHBOARD" != "false" ] || exit 0
         env: 
-          GREP_TAGS: '@standardUser'
-          TEST_USERNAME: standard_user
-        
-      - name: Upload coverage
-        uses: actions/upload-artifact@v3
-        with:
-          name: ${{github.run_number}}-${{github.run_attempt}}-coverage
-          path: coverage-artifacts/**/*
-          
+          TEST_SKIP: setup
+          GREP_TAGS: ${{ matrix.role.tag }}+${{ matrix.features[0] }} --@jenkins ${{ matrix.role.tag }}+${{ matrix.features[1] || matrix.features[0] }} --@jenkins
+          TEST_USERNAME: ${{ matrix.role.username }}
+
       - name: Upload screenshots
         uses: actions/upload-artifact@v3
         if: ${{ failure() }}
         with:
-          name: ${{github.run_number}}-${{github.run_attempt}}-screenshots
+          name: ${{github.run_number}}-${{github.run_attempt}}-screenshots-${{ matrix.role.tag }}+${{ matrix.features[0] }}
           path: cypress/screenshots
 
   unit-test:
@@ -92,16 +139,12 @@ jobs:
       - uses: actions/checkout@v3
         with:
           fetch-depth: 1
-      - uses: actions/setup-node@v3
-        with:
-          node-version: '14.x'
-      
-      - name: Install packages
-        run: yarn install:ci
       
       - name: Run tests
+        uses: ./.github/actions/unit-tests
+
+      - name: Collect Coverage
         run: |
-          yarn test:ci
           mkdir -p coverage-artifacts/coverage
           cp coverage/unit/coverage-final.json coverage-artifacts/coverage/coverage-unit.json
           cp -r coverage/unit/ coverage-artifacts/coverage/unit/
@@ -118,15 +161,9 @@ jobs:
       - uses: actions/checkout@v3
         with:
           fetch-depth: 1
-      - uses: actions/setup-node@v3
-        with:
-          node-version: '14.x'
-      
-      - name: Install packages
-        run: yarn install:ci
-      
-      - name: Run i18n linters
-        run: yarn lint-l10n
+
+      - name: Run i18n lint
+        uses: ./.github/actions/i18n-lint
 
   lint:
     runs-on: ubuntu-latest
@@ -134,22 +171,15 @@ jobs:
       - uses: actions/checkout@v3
         with:
           fetch-depth: 1
-      - uses: actions/setup-node@v3
-        with:
-          node-version: '14.x'
-      
-      - name: Install packages
-        run: yarn install:ci
-      
-      - name: Run linters
-        run: yarn lint
+
+      - name: Run tests
+        uses: ./.github/actions/lint
 
   coverage:
     if: "!contains( github.event.pull_request.labels.*.name, 'ci/skip-e2e')"
     runs-on: ubuntu-latest
     needs:
       - unit-test
-      - e2e-test
     steps:
       - uses: actions/checkout@v3
         with:
@@ -164,16 +194,23 @@ jobs:
         with:
           name: ${{github.run_number}}-${{github.run_attempt}}-coverage
 
-      - name: Merge coverage files
-        run: |
-          ls
-          yarn coverage
-          ls coverage
-
-      - name: Upload merged coverage to Codecov
+      - name: Upload unit test coverage to Codecov
         uses: codecov/codecov-action@v3
         with:
           token: ${{ secrets.CODECOV_TOKEN }}
-          flags: merged
-          files: ./coverage/coverage.json
+          flags: unit
+          files: ./coverage/coverage-unit.json
           fail_ci_if_error: false
+
+  check-e2e-tags:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v3
+        with:
+          fetch-depth: 1
+      - uses: actions/setup-node@v3
+        with:
+          node-version: '16.x'
+      - name: Check e2e tags
+        run: |
+          ./scripts/check-e2e-tests-for-tags
