@@ -244,14 +244,16 @@ export default class User extends HybridModel {
         content:       this.userLastLogin,
       },
       {
-        label:     this.t('tableHeaders.userDisabledIn'),
-        formatter: 'LiveDate',
-        content:   this.userDisabledIn,
+        label:         this.t('tableHeaders.userDisabledIn'),
+        formatter:     'LiveDate',
+        formatterOpts: { isCountdown: true },
+        content:       this.userDisabledIn,
       },
       {
-        label:     this.t('tableHeaders.userDeletedIn'),
-        formatter: 'LiveDate',
-        content:   this.userDeletedIn,
+        label:         this.t('tableHeaders.userDeletedIn'),
+        formatter:     'LiveDate',
+        formatterOpts: { isCountdown: true },
+        content:       this.userDeletedIn,
       },
       ...this._details
     ];
