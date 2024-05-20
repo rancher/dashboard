@@ -407,19 +407,21 @@ export const USER_LAST_LOGIN = {
 };
 
 export const USER_DISABLED_IN = {
-  name:      'user-disabled-in',
-  labelKey:  'tableHeaders.userDisabledIn',
-  value:     'userDisabledIn',
-  formatter: 'LiveDate',
-  sort:      'userDisabledIn',
+  name:          'user-disabled-in',
+  labelKey:      'tableHeaders.userDisabledIn',
+  value:         'userDisabledIn',
+  formatter:     'LiveDate',
+  formatterOpts: { isCountdown: true },
+  sort:          'userDisabledIn',
 };
 
 export const USER_DELETED_IN = {
-  name:      'user-deleted-in',
-  labelKey:  'tableHeaders.userDeletedIn',
-  value:     'userDeletedIn',
-  formatter: 'LiveDate',
-  sort:      'userDeletedIn',
+  name:          'user-deleted-in',
+  labelKey:      'tableHeaders.userDeletedIn',
+  value:         'userDeletedIn',
+  formatter:     'LiveDate',
+  formatterOpts: { isCountdown: true },
+  sort:          'userDeletedIn',
 };
 
 export const USER_ID = {
