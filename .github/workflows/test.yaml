@@ -61,22 +61,6 @@ jobs:
   e2e-test:
     if: "!contains( github.event.pull_request.labels.*.name, 'ci/skip-e2e')"
     needs: e2e-ui-build
-    strategy:
-      fail-fast: false
-      matrix:
-        role: [
-          { username: 'admin', tag: '@adminUser' }, 
-          { username: 'standard_user', tag: '@standardUser' }
-        ]
-        features:  [
-         ['@navigation', '@extensions'],
-         ['@charts'],
-         ['@explorer'],
-         ['@fleet'],
-         ['@generic', '@globalSettings'],
-         ['@manager'],
-         ['@userMenu', '@usersAndAuths']
-        ]
     runs-on: ubuntu-latest
     steps:
       - uses: actions/checkout@v3
@@ -100,6 +84,7 @@ jobs:
         with:
          name: ${{ env.E2E_BUILD_DIST_NAME }}
          path: ${{ env.E2E_BUILD_DIST_DIR }}
+
       - name: Download e2e build ember
         uses:  actions/download-artifact@v4
         with:
@@ -109,28 +94,33 @@ jobs:
       - name: Run Rancher
         run: yarn e2e:docker
       
-      - name: Setup Rancher and user
+      - name: Run admin user tests
         run: |
           yarn e2e:prod
+          mkdir -p coverage-artifacts/coverage
+          cp coverage/e2e/coverage-final.json coverage-artifacts/coverage/coverage-e2e.json
+          cp -r coverage/e2e/ coverage-artifacts/coverage/e2e/
         env: 
-          GREP_TAGS: ${{ matrix.role.tag }}Setup+${{ matrix.features[0] }} --@jenkins ${{ matrix.role.tag }}Setup+${{ matrix.features[1] || matrix.features[0] }} --@jenkins 
+          GREP_TAGS: '@adminUser'
           TEST_USERNAME: admin
-          TEST_ONLY: setup
-      
-      - name: Run user tests
+
+
+      - name: Run standard user tests
+        if: ${{ success() || failure() }}
         run: |
           yarn e2e:prod
-          [ "$BUILD_DASHBOARD" != "false" ] || exit 0
+          yarn docker:local:stop
+          mkdir -p coverage-artifacts/coverage
+          cp coverage/e2e/coverage-final.json coverage-artifacts/coverage/coverage-e2e.json
         env: 
-          TEST_SKIP: setup
-          GREP_TAGS: ${{ matrix.role.tag }}+${{ matrix.features[0] }} --@jenkins ${{ matrix.role.tag }}+${{ matrix.features[1] || matrix.features[0] }} --@jenkins
-          TEST_USERNAME: ${{ matrix.role.username }}
-          
+          GREP_TAGS: '@standardUser'
+          TEST_USERNAME: standard_user
+
       - name: Upload screenshots
         uses: actions/upload-artifact@v3
         if: ${{ failure() }}
         with:
-          name: ${{github.run_number}}-${{github.run_attempt}}-screenshots-${{ matrix.role.tag }}+${{ matrix.features[0] }}
+          name: ${{github.run_number}}-${{github.run_attempt}}-screenshots
           path: cypress/screenshots
 
   unit-test:
