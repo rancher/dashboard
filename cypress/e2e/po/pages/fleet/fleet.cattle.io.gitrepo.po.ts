@@ -3,6 +3,7 @@ import FleetGitRepoList from '@/cypress/e2e/po/lists/fleet/fleet.cattle.io.gitre
 import { FleetDashboardPagePo } from '@/cypress/e2e/po/pages/fleet/fleet-dashboard.po';
 import ProductNavPo from '@/cypress/e2e/po/side-bars/product-side-nav.po';
 import ResourceTablePo from '@/cypress/e2e/po/components/resource-table.po';
+import { WorkspaceSwitcherPo } from '@/cypress/e2e/po/components/workspace-switcher.po';
 
 export class FleetGitRepoListPagePo extends PagePo {
   static url = `/c/_/fleet/fleet.cattle.io.gitrepo`
@@ -33,5 +34,17 @@ export class FleetGitRepoListPagePo extends PagePo {
     const resourceTable = new ResourceTablePo(this.self());
 
     return resourceTable.sortableTable().detailsPageLinkWithName(elemName).click();
+  }
+
+  resourceTable() {
+    return new ResourceTablePo(this.self());
+  }
+
+  selectWorkspace(name: string) {
+    const wsSwitcher = new WorkspaceSwitcherPo();
+
+    wsSwitcher.toggle();
+
+    return wsSwitcher.clickOptionWithLabel(name);
   }
 }
