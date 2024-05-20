@@ -117,6 +117,14 @@ export default class User extends HybridModel {
   }
 
   /**
+   * Provides a display value for the userDisabledIn date based on the user
+   * state.
+   */
+  get userDisabledInDisplay() {
+    return this.state === 'inactive' ? null : this.userDisabledIn;
+  }
+
+  /**
    * Gets the delete-after label in milliseconds
    * @returns {number}
    */
@@ -260,7 +268,7 @@ export default class User extends HybridModel {
         label:         this.t('tableHeaders.userDisabledIn'),
         formatter:     'LiveDate',
         formatterOpts: { isCountdown: true },
-        content:       this.userDisabledIn,
+        content:       this.userDisabledInDisplay,
       },
       {
         label:         this.t('tableHeaders.userDeletedIn'),
