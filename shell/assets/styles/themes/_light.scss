@@ -251,7 +251,7 @@ BODY, .theme-light {
   --warning-light-bg           : #{rgba($warning, 0.05)};
 
   .text-warning {
-    color: var(--error) !important;
+    color: var(--warning) !important;
   }
 
   .bg-warning {
