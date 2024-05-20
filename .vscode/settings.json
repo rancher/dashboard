@@ -9,9 +9,9 @@
   "eslint.format.enable": true,
   "eslint.run": "onSave",
   "eslint.packageManager": "yarn",
-  "eslint.validate": ["vue","html","javascript","typescript"],
+  "eslint.validate": ["vue", "html", "javascript", "typescript"],
   "editor.codeActionsOnSave": {
-    "source.fixAll.eslint": true
+    "source.fixAll.eslint": "explicit"
   },
   "eslint.workingDirectories": ["./", "./pkg/rancher-components/"],
   "javascript.preferences.importModuleSpecifier": "non-relative",
