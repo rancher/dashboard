@@ -1,0 +1,14 @@
+name: Run Unit Tests
+description: Run Unit Tests
+
+runs:
+  using: 'composite'
+  steps:
+    - name: Setup env
+      uses: ./.github/actions/setup
+
+    - name: Run tests
+      shell: bash
+      run: |
+        yarn test:ci
+        

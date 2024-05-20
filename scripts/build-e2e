@@ -24,7 +24,7 @@ source scripts/version
 echo "BRANCH: ${COMMIT_BRANCH:-<none>}"
 echo "TAG: ${GIT_TAG:-<none>}"
 
-OUTPUT_DIR=dist
+OUTPUT_DIR="${E2E_BUILD_DIST_DIR:-dist}"
 
 echo "Building..."
 COMMIT=${COMMIT} VERSION=${VERSION} OUTPUT_DIR=$OUTPUT_DIR ROUTER_BASE='/dashboard/' RESOURCE_BASE='/dashboard/' yarn run build
@@ -33,7 +33,7 @@ COMMIT=${COMMIT} VERSION=${VERSION} OUTPUT_DIR=$OUTPUT_DIR ROUTER_BASE='/dashboa
 # Note - We can't pull the `latest2` directory from CDN and we don't build a tar.gz for latest builds...
 # ..so just fetch the latest index.html which references latest CDN bits
 
-OUTPUT_EMBER_DIR=dist_ember
+OUTPUT_EMBER_DIR="${E2E_BUILD_DIST_EMBER_DIR:-dist_ember}"
 
 echo "Pulling latest rancher/ui"
 mkdir $OUTPUT_EMBER_DIR
