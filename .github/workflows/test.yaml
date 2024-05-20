@@ -2,10 +2,10 @@ name: Tests
 on:
   push:
     branches:
-      - 'release-2.8.patch1'
+      - release-2.8.patch1
   pull_request:
     branches:
-      - 'release-2.8.patch1'
+      - release-2.8.patch1
   workflow_dispatch:
     inputs:
       environment:
