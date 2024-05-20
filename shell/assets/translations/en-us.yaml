@@ -5592,6 +5592,10 @@ target:
     placeholder: Select a version
 
 user:
+  state:
+    active: 'Enabled'
+    inactive: 'Disabled'
+    unknown: 'Unknown'
   detail:
     username: Username
     globalPermissions:

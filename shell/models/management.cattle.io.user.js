@@ -132,6 +132,19 @@ export default class User extends HybridModel {
     return this.metadata?.state?.name || 'unknown';
   }
 
+  get stateDisplay() {
+    switch (this.state) {
+    case 'inactive':
+      return this.t('user.state.inactive');
+    case 'active':
+      return this.t('user.state.active');
+    case 'unknown':
+      return this.t('user.state.unknown');
+    default:
+      return this.state;
+    }
+  }
+
   get description() {
     return this._description;
   }
