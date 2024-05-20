@@ -247,6 +247,9 @@ export const state = () => {
     isRancherInHarvester:    false,
     targetRoute:             null,
     rootProduct:             undefined,
+    $router:                 undefined,
+    $route:                  undefined,
+    $plugin:                 undefined,
   };
 };
 
@@ -722,6 +725,18 @@ export const mutations = {
 
   targetRoute(state, route) {
     state.targetRoute = route;
+  },
+
+  setRouter(state, router) {
+    state.$router = router;
+  },
+
+  setRoute(state, route) {
+    state.$route = route;
+  },
+
+  setPlugin(state, pluginDefinition) {
+    state.$plugin = pluginDefinition;
   }
 };
 
@@ -1128,11 +1143,10 @@ export const actions = {
     }
   },
 
-  nuxtClientInit({ dispatch, rootState }, nuxt) {
-    Object.defineProperty(rootState, '$router', { value: nuxt.app.router });
-    Object.defineProperty(rootState, '$route', { value: nuxt.route });
-    Object.defineProperty(rootState, '$plugin', { value: nuxt.app.$plugin });
-    Object.defineProperty(this, '$plugin', { value: nuxt.app.$plugin });
+  nuxtClientInit({ dispatch, commit, rootState }, nuxt) {
+    commit('setRouter', nuxt.app.router);
+    commit('setRoute', nuxt.route);
+    commit('setPlugin', nuxt.app.$plugin);
 
     dispatch('management/rehydrateSubscribe');
     dispatch('cluster/rehydrateSubscribe');
