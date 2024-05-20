@@ -85,7 +85,7 @@ export default defineComponent({
       <LabeledInput
         v-model="key"
         :mode="mode"
-        :rules="validationMessage ? [()=>validationMessage] : []"
+        :rules="validationMessage"
         type="text"
         data-testid="aks-taint-key-input"
       />
@@ -95,7 +95,7 @@ export default defineComponent({
         v-model="value"
         :mode="mode"
         type="text"
-        :rules="validationMessage ? [()=>validationMessage] : []"
+        :rules="validationMessage"
         data-testid="aks-taint-value-input"
       />
     </td>
