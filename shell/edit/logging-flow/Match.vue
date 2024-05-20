@@ -1,49 +1,51 @@
 <script>
-import KeyValue from '@shell/components/form/KeyValue';
-import Select from '@shell/components/form/Select';
+import KeyValue from "@shell/components/form/KeyValue";
+import Select from "@shell/components/form/Select";
+
+// TODO: RC fix formatting....
 
 export default {
   components: { KeyValue, Select },
 
   props: {
     mode: {
-      type:     String,
+      type: String,
       required: true,
     },
 
     value: {
-      type:    Object,
+      type: Object,
       default: () => {
         return {};
       },
     },
 
     nodes: {
-      type:    Array,
+      type: Array,
       default: () => [],
     },
 
     containers: {
-      type:    Array,
+      type: Array,
       default: () => [],
     },
 
     namespaces: {
-      type:    Array,
+      type: Array,
       default: () => [],
     },
 
     isClusterFlow: {
-      type:    Boolean,
-      default: false
-    }
+      type: Boolean,
+      default: false,
+    },
   },
 
   methods: {
     update() {},
 
     removeRule() {
-      this.$emit('remove');
+      this.$emit("remove");
     },
   },
 };
@@ -53,7 +55,11 @@ export default {
   <div>
     <KeyValue
       v-model="value.labels"
-      :title="value.select ? t('logging.flow.matches.pods.title.include') : t('logging.flow.matches.pods.title.exclude')"
+      :title="
+        value.select
+          ? t('logging.flow.matches.pods.title.include')
+          : t('logging.flow.matches.pods.title.exclude')
+      "
       :mode="mode"
       :initial-empty-row="true"
       :read-allowed="false"
@@ -65,7 +71,11 @@ export default {
     />
     <div class="spacer" />
     <h3>
-      {{ value.select ? t('logging.flow.matches.nodes.title.include') : t('logging.flow.matches.nodes.title.exclude') }}
+      {{
+        value.select
+          ? t("logging.flow.matches.nodes.title.include")
+          : t("logging.flow.matches.nodes.title.exclude")
+      }}
     </h3>
     <div class="row">
       <div class="col span-12">
@@ -85,13 +95,14 @@ export default {
     </div>
     <div class="spacer" />
     <h3>
-      {{ value.select ? t('logging.flow.matches.containerNames.title.include') : t('logging.flow.matches.containerNames.title.exclude') }}
+      {{
+        value.select
+          ? t("logging.flow.matches.containerNames.title.include")
+          : t("logging.flow.matches.containerNames.title.exclude")
+      }}
     </h3>
     <div class="row">
       <div class="col span-12">
-        <!-- TODO: RC shell/edit/logging-flow/index.vue. Upfront fetches all pods, to get all containers (ouch). Convert to pag LabeledSelect -->
-        <!-- There's no containers api, they're only accessible via pods -->
-        <!-- could still show a page of containers... but it would be a variable amount given those in 10 pods -->
         <Select
           v-model="value.container_names"
           class="lg"
@@ -108,7 +119,11 @@ export default {
     <div v-if="isClusterFlow">
       <div class="spacer" />
       <h3>
-        {{ value.select ? t('logging.flow.matches.namespaces.title.include') : t('logging.flow.matches.namespaces.title.exclude') }}
+        {{
+          value.select
+            ? t("logging.flow.matches.namespaces.title.include")
+            : t("logging.flow.matches.namespaces.title.exclude")
+        }}
       </h3>
       <div class="row">
         <div class="col span-12">

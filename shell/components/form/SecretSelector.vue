@@ -1,71 +1,75 @@
 <script>
-import LabeledSelect from '@shell/components/form/LabeledSelect';
-import { SECRET } from '@shell/config/types';
-import { _EDIT, _VIEW } from '@shell/config/query-params';
-import { SECRET_TYPES as TYPES } from '@shell/config/secret';
-import sortBy from 'lodash/sortBy';
+import LabeledSelect from "@shell/components/form/LabeledSelect";
+import { SECRET } from "@shell/config/types";
+import { _EDIT, _VIEW } from "@shell/config/query-params";
+import { SECRET_TYPES as TYPES } from "@shell/config/secret";
+import sortBy from "lodash/sortBy";
 
-const NONE = '__[[NONE]]__';
+// TODO: RC fix formatting....
+
+const NONE = "__[[NONE]]__";
 
 export default {
   components: { LabeledSelect },
 
   props: {
     value: {
-      type:     [String, Object],
+      type: [String, Object],
       required: false,
-      default:  undefined
+      default: undefined,
     },
     namespace: {
-      type:     String,
-      required: true
+      type: String,
+      required: true,
     },
     types: {
-      type:    Array,
-      default: () => Object.values(TYPES)
+      type: Array,
+      default: () => Object.values(TYPES),
     },
     disabled: {
-      type:    Boolean,
-      default: false
+      type: Boolean,
+      default: false,
     },
     mountKey: {
-      type:    String,
-      default: 'valueFrom'
+      type: String,
+      default: "valueFrom",
     },
     nameKey: {
-      type:    String,
-      default: 'name'
+      type: String,
+      default: "name",
     },
     keyKey: {
-      type:    String,
-      default: 'key'
+      type: String,
+      default: "key",
     },
     showKeySelector: {
-      type:    Boolean,
-      default: false
+      type: Boolean,
+      default: false,
     },
     secretNameLabel: {
-      type:    String,
-      default: 'Secret Name'
+      type: String,
+      default: "Secret Name",
     },
     keyNameLabel: {
-      type:    String,
-      default: 'Key'
+      type: String,
+      default: "Key",
     },
     mode: {
-      type:    String,
-      default: _EDIT
+      type: String,
+      default: _EDIT,
     },
     inStore: {
-      type:    String,
-      default: 'cluster',
-    }
+      type: String,
+      default: "cluster",
+    },
   },
 
   computed: {
     name: {
       get() {
-        const name = this.showKeySelector ? this.value?.[this.mountKey]?.secretKeyRef?.[this.nameKey] : this.value;
+        const name = this.showKeySelector
+          ? this.value?.[this.mountKey]?.secretKeyRef?.[this.nameKey]
+          : this.value;
 
         return name || NONE;
       },
@@ -74,61 +78,81 @@ export default {
         const correctedName = isNone ? undefined : name;
 
         if (this.showKeySelector) {
-          this.$emit('input', { [this.mountKey]: { secretKeyRef: { [this.nameKey]: correctedName, [this.keyKey]: '' } } });
+          this.$emit("input", {
+            [this.mountKey]: {
+              secretKeyRef: {
+                [this.nameKey]: correctedName,
+                [this.keyKey]: "",
+              },
+            },
+          });
         } else {
-          this.$emit('input', correctedName);
+          this.$emit("input", correctedName);
         }
-      }
+      },
     },
 
     key: {
       get() {
-        return this.value?.[this.mountKey]?.secretKeyRef?.[this.keyKey] || '';
+        return this.value?.[this.mountKey]?.secretKeyRef?.[this.keyKey] || "";
       },
       set(key) {
-        this.$emit('input', { [this.mountKey]: { secretKeyRef: { [this.nameKey]: this.name, [this.keyKey]: key } } });
-      }
+        this.$emit("input", {
+          [this.mountKey]: {
+            secretKeyRef: { [this.nameKey]: this.name, [this.keyKey]: key },
+          },
+        });
+      },
     },
     secrets() {
-      const allSecrets = this.$store.getters[`${ this.inStore }/all`](SECRET);
+      const allSecrets = this.$store.getters[`${this.inStore}/all`](SECRET);
 
-      return allSecrets
-        .filter((secret) => this.types.includes(secret._type) && secret.namespace === this.namespace);
+      return allSecrets.filter(
+        (secret) =>
+          this.types.includes(secret._type) &&
+          secret.namespace === this.namespace
+      );
     },
     secretNames() {
-      const mappedSecrets = this.secrets.map((secret) => ({
-        label: secret.name,
-        value: secret.name
-      })).sort();
+      const mappedSecrets = this.secrets
+        .map((secret) => ({
+          label: secret.name,
+          value: secret.name,
+        }))
+        .sort();
 
-      return [{ label: 'None', value: NONE }, ...sortBy(mappedSecrets, 'label')];
+      return [
+        { label: "None", value: NONE },
+        ...sortBy(mappedSecrets, "label"),
+      ];
     },
     keys() {
-      const secret = this.secrets.find((secret) => secret.name === this.name) || {};
+      const secret =
+        this.secrets.find((secret) => secret.name === this.name) || {};
 
       return Object.keys(secret.data || {}).map((key) => ({
         label: key,
-        value: key
+        value: key,
       }));
     },
     isView() {
       return this.mode === _VIEW;
     },
     isKeyDisabled() {
-      return !this.isView && (!this.name || this.name === NONE || this.disabled);
-    }
+      return (
+        !this.isView && (!this.name || this.name === NONE || this.disabled)
+      );
+    },
   },
-
 };
 </script>
 
 <template>
   <div
     class="secret-selector"
-    :class="{'show-key-selector': showKeySelector}"
+    :class="{ 'show-key-selector': showKeySelector }"
   >
     <div class="input-container">
-      <!-- TODO: RC shell/edit/logging.banzaicloud.io.output/index.vue. Upfront fetches secrets used by edit/logging.banzaicloud.io.output/providers/x. Convert to pag LabeledSelect -->
       <LabeledSelect
         v-model="name"
         :disabled="!isView && disabled"

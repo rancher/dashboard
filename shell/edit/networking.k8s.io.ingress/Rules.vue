@@ -1,65 +1,76 @@
 <script>
-import { WORKLOAD_TYPES } from '@shell/config/types';
-import Loading from '@shell/components/Loading';
-import SortableTable from '@shell/components/SortableTable';
-import { _VIEW } from '@shell/config/query-params';
-import ArrayListGrouped from '@shell/components/form/ArrayListGrouped';
-import { random32 } from '@shell/utils/string';
-import Rule from './Rule';
+import { WORKLOAD_TYPES } from "@shell/config/types";
+import Loading from "@shell/components/Loading";
+import SortableTable from "@shell/components/SortableTable";
+import { _VIEW } from "@shell/config/query-params";
+import ArrayListGrouped from "@shell/components/form/ArrayListGrouped";
+import { random32 } from "@shell/utils/string";
+import Rule from "./Rule";
+
+// TODO: RC fix formatting....
 
 export default {
   components: {
-    ArrayListGrouped, Loading, Rule, SortableTable
+    ArrayListGrouped,
+    Loading,
+    Rule,
+    SortableTable,
   },
 
   props: {
     value: {
-      type:    Object,
-      default: () => {}
+      type: Object,
+      default: () => {},
     },
 
     mode: {
-      type:    String,
-      default: 'edit'
+      type: String,
+      default: "edit",
     },
 
     certificates: {
-      type:    Array,
-      default: () => []
+      type: Array,
+      default: () => [],
     },
 
     serviceTargets: {
-      type:    Array,
-      default: () => []
+      type: Array,
+      default: () => [],
     },
 
     rules: {
       default: () => ({
         requestHost: [],
-        path:        [],
-        port:        [],
-        target:      []
+        path: [],
+        port: [],
+        target: [],
       }),
       type: Object,
-    }
+    },
   },
 
   async fetch() {
-    // TODO: RC shell/edit/networking.k8s.io.ingress/Rules.vue. used by (just?) shell/models/networking.k8s.io.ingress.js `targetTo`
-    await Promise.all(Object.values(WORKLOAD_TYPES).map((type) => this.$store.dispatch('cluster/findAll', { type })));
+    // TODO: RC shell/edit/networking.k8s.io.ingress/Rules.vue. used by (just? NO, 1 other) shell/models/networking.k8s.io.ingress.js `targetTo`
+    await Promise.all(
+      Object.values(WORKLOAD_TYPES).map((type) =>
+        this.$store.dispatch("cluster/findAll", { type })
+      )
+    );
   },
 
   beforeUpdate() {
     for (const rule of this.value.spec.rules) {
       if (!rule.vKey) {
-        this.$set(rule, 'vKey', random32(1));
+        this.$set(rule, "vKey", random32(1));
       }
     }
   },
 
   computed: {
     workloads() {
-      return Object.values(WORKLOAD_TYPES).flatMap((type) => this.$store.getters['cluster/all'](type));
+      return Object.values(WORKLOAD_TYPES).flatMap((type) =>
+        this.$store.getters["cluster/all"](type)
+      );
     },
     isView() {
       return this.mode === _VIEW;
@@ -67,52 +78,58 @@ export default {
     ruleHeaders() {
       const headers = [
         {
-          name:      'fullPath',
-          label:     this.t('ingress.rules.headers.path'),
-          value:     '',
-          formatter: 'IngressFullPath'
+          name: "fullPath",
+          label: this.t("ingress.rules.headers.path"),
+          value: "",
+          formatter: "IngressFullPath",
         },
         {
-          name:          'target',
-          label:         this.t('ingress.rules.headers.target'),
-          formatter:     'Link',
-          formatterOpts: { options: { internal: true }, urlKey: 'targetLink.to' },
-          value:         'targetLink',
+          name: "target",
+          label: this.t("ingress.rules.headers.target"),
+          formatter: "Link",
+          formatterOpts: {
+            options: { internal: true },
+            urlKey: "targetLink.to",
+          },
+          value: "targetLink",
         },
         {
-          name:  'port',
-          label: this.t('ingress.rules.headers.port'),
-          value: 'port',
+          name: "port",
+          label: this.t("ingress.rules.headers.port"),
+          value: "port",
         },
         {
-          name:      'certs',
-          label:     this.t('ingress.rules.headers.certificates'),
-          value:     'certs',
-          formatter: 'ListLink',
+          name: "certs",
+          label: this.t("ingress.rules.headers.certificates"),
+          value: "certs",
+          formatter: "ListLink",
         },
       ];
 
       if (this.value.showPathType) {
         headers.unshift({
-          name:  'pathType',
-          label: this.t('ingress.rules.headers.pathType'),
-          value: 'pathType',
+          name: "pathType",
+          label: this.t("ingress.rules.headers.pathType"),
+          value: "pathType",
         });
       }
 
       return headers;
     },
     rows() {
-      return this.value.createRulesForListPage(this.workloads, this.certificates);
-    }
+      return this.value.createRulesForListPage(
+        this.workloads,
+        this.certificates
+      );
+    },
   },
   methods: {
     onAdd() {
       if (this.$refs.lastRule?.focus) {
         this.$refs.lastRule.focus();
       }
-    }
-  }
+    },
+  },
 };
 </script>
 

@@ -4,6 +4,8 @@ import { get } from '@shell/utils/object';
 import isEmpty from 'lodash/isEmpty';
 import SteveModel from '@shell/plugins/steve/steve-class';
 
+// TODO: RC fix formatting....
+
 function tlsHosts(spec) {
   const tls = spec.tls || [];
 
@@ -24,7 +26,7 @@ export function ingressFullPath(resource, rule, path = {}) {
     protocol = isTlsHost(spec, hostValue) ? 'https://' : 'http://';
   }
 
-  return `${ protocol }${ hostValue }${ pathValue }`;
+  return `${protocol}${hostValue}${pathValue}`;
 }
 
 export default class Ingress extends SteveModel {
@@ -42,19 +44,20 @@ export default class Ingress extends SteveModel {
     }
 
     const isTargetsWorkload = serviceName.startsWith('ingress-');
-    const id = `${ this.namespace }/${ serviceName }`;
+    const id = `${this.namespace}/${serviceName}`;
 
-    if ( isTargetsWorkload ) {
+    if (isTargetsWorkload) {
       // TODO: RC This is the reason shell/components/formatter/IngressTarget.vue requires ALL WORKLOADS
+      // Need to expose workloadId's and fetch specific ones in IngressTarget?
       const workload = workloads.find((w) => w.id === (id));
 
       return workload?.detailLocation || '';
     } else {
       return {
-        name:   'c-cluster-product-resource-namespace-id',
+        name: 'c-cluster-product-resource-namespace-id',
         params: {
-          resource:  SERVICE,
-          id:        serviceName,
+          resource: SERVICE,
+          id: serviceName,
           namespace: this.namespace,
         }
       };
@@ -77,14 +80,14 @@ export default class Ingress extends SteveModel {
 
     return {
       // isUrl thinks urls which contain '*' are valid so I'm adding an additional check for '*'
-      isUrl:           isUrl(fullPath) && !fullPath.includes('*'),
-      pathType:        path.pathType,
+      isUrl: isUrl(fullPath) && !fullPath.includes('*'),
+      pathType: path.pathType,
       fullPath,
       serviceName,
       serviceTargetTo: this.targetTo(workloads, serviceName),
-      certs:           this.certLinks(rule, certificates),
-      targetLink:      this.targetLink(workloads, serviceName),
-      port:            get(path?.backend, this.servicePortPath)
+      certs: this.certLinks(rule, certificates),
+      targetLink: this.targetLink(workloads, serviceName),
+      port: get(path?.backend, this.servicePortPath)
     };
   }
 
@@ -98,17 +101,17 @@ export default class Ingress extends SteveModel {
 
     if (cert.secretName && certificates.includes(secretName)) {
       to = {
-        name:   'c-cluster-product-resource-namespace-id',
+        name: 'c-cluster-product-resource-namespace-id',
         params: {
           resource: SECRET,
-          id:       secretName
+          id: secretName
         }
       };
     }
 
     return {
       to,
-      text:    secretName,
+      text: secretName,
       options: { internal: true }
     };
   }
@@ -126,8 +129,8 @@ export default class Ingress extends SteveModel {
 
   targetLink(workloads, serviceName) {
     return {
-      to:      this.targetTo(workloads, serviceName),
-      text:    serviceName,
+      to: this.targetTo(workloads, serviceName),
+      text: serviceName,
       options: { internal: true }
     };
   }
@@ -136,12 +139,12 @@ export default class Ingress extends SteveModel {
     const backend = get(this.spec, this.defaultBackendPath);
     const serviceName = get(backend, this.serviceNamePath);
 
-    if ( !serviceName ) {
+    if (!serviceName) {
       return null;
     }
 
     return {
-      name:     serviceName,
+      name: serviceName,
       targetTo: this.targetTo(workloads, serviceName)
     };
   }
@@ -199,7 +202,7 @@ export default class Ingress extends SteveModel {
 
     if (this.spec?.ingressClassName) {
       out.push({
-        label:   this.t('ingress.ingressClass.label'),
+        label: this.t('ingress.ingressClass.label'),
         content: this.spec.ingressClassName,
       });
     }
