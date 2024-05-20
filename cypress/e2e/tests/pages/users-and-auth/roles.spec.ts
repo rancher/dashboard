@@ -30,7 +30,11 @@ describe('Roles', { tags: ['@usersAndAuths', '@adminUser'] }, () => {
     roles.waitForPage(undefined, fragment);
 
     // check if burger menu nav is highlighted correctly for users & auth
+    // https://github.com/rancher/dashboard/issues/10010
     BurgerMenuPo.checkIfMenuItemLinkIsHighlighted('Users & Authentication');
+
+    // catching regression https://github.com/rancher/dashboard/issues/10576
+    BurgerMenuPo.checkIfClusterMenuLinkIsHighlighted('local', false);
 
     roles.listCreate('Create Global Role');
 

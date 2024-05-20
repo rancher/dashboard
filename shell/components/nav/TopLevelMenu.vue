@@ -259,6 +259,40 @@ export default {
     productFromRoute() {
       return getProductFromRoute(this.$route);
     },
+
+    appBar() {
+      let activeFound = false;
+
+      const appBar = {
+        hciApps:           this.hciApps,
+        multiClusterApps:  this.multiClusterApps,
+        legacyApps:        this.legacyApps,
+        configurationApps: this.configurationApps,
+        pinFiltered:       this.pinFiltered,
+        clustersFiltered:  this.clustersFiltered,
+      };
+
+      Object.keys(appBar).forEach((menuSection) => {
+        const menuSectionItems = appBar[menuSection];
+        const isClusterCheck = menuSection === 'pinFiltered' || menuSection === 'clustersFiltered';
+
+        // need to reset active state on other menu items
+        menuSectionItems.forEach((item) => {
+          item.isMenuActive = false;
+        });
+
+        if (!activeFound) {
+          const currActiveMenu = menuSectionItems.find((item) => this.checkActiveRoute(item, isClusterCheck));
+
+          if (currActiveMenu) {
+            activeFound = true;
+            currActiveMenu.isMenuActive = true;
+          }
+        }
+      });
+
+      return appBar;
+    }
   },
 
   watch: {
@@ -527,14 +561,14 @@ export default {
               </a>
             </div>
             <div
-              v-for="a in hciApps"
+              v-for="a in appBar.hciApps"
               :key="a.label"
               @click="hide()"
             >
               <router-link
                 class="option"
                 :to="a.to"
-                :class="{'active-menu-link': checkActiveRoute(a) }"
+                :class="{'active-menu-link': a.isMenuActive }"
               >
                 <IconOrSvg
                   :icon="a.icon"
@@ -558,7 +592,7 @@ export default {
                 class="clustersPinned"
               >
                 <div
-                  v-for="c in pinFiltered"
+                  v-for="c in appBar.pinFiltered"
                   :key="c.id"
                   @click="hide()"
                 >
@@ -567,7 +601,7 @@ export default {
                     v-shortkey.push="{windows: ['alt'], mac: ['option']}"
                     :data-testid="`pinned-menu-cluster-${ c.id }`"
                     class="cluster selector option"
-                    :class="{'active-menu-link': checkActiveRoute(c, true) }"
+                    :class="{'active-menu-link': c.isMenuActive }"
                     :to="c.clusterRoute"
                     @click.prevent="clusterMenuClick($event, c)"
                     @shortkey="handleKeyComboClick"
@@ -632,7 +666,7 @@ export default {
               <!-- Clusters Search result -->
               <div class="clustersList">
                 <div
-                  v-for="(c, index) in clustersFiltered"
+                  v-for="(c, index) in appBar.clustersFiltered"
                   :key="c.id"
                   :data-testid="`top-level-menu-cluster-${index}`"
                   @click="hide()"
@@ -642,7 +676,7 @@ export default {
                     v-shortkey.push="{windows: ['alt'], mac: ['option']}"
                     :data-testid="`menu-cluster-${ c.id }`"
                     class="cluster selector option"
-                    :class="{'active-menu-link': checkActiveRoute(c, true) }"
+                    :class="{'active-menu-link': c.isMenuActive }"
                     :to="c.clusterRoute"
                     @click="clusterMenuClick($event, c)"
                     @shortkey="handleKeyComboClick"
@@ -738,13 +772,13 @@ export default {
                 </span>
               </div>
               <div
-                v-for="a in multiClusterApps"
+                v-for="a in appBar.multiClusterApps"
                 :key="a.label"
                 @click="hide()"
               >
                 <router-link
                   class="option"
-                  :class="{'active-menu-link': checkActiveRoute(a) }"
+                  :class="{'active-menu-link': a.isMenuActive }"
                   :to="a.to"
                 >
                   <IconOrSvg
@@ -766,13 +800,13 @@ export default {
                 </span>
               </div>
               <div
-                v-for="a in legacyApps"
+                v-for="a in appBar.legacyApps"
                 :key="a.label"
                 @click="hide()"
               >
                 <router-link
                   class="option"
-                  :class="{'active-menu-link': checkActiveRoute(a) }"
+                  :class="{'active-menu-link': a.isMenuActive }"
                   :to="a.to"
                 >
                   <IconOrSvg
@@ -796,13 +830,13 @@ export default {
                 </span>
               </div>
               <div
-                v-for="a in configurationApps"
+                v-for="a in appBar.configurationApps"
                 :key="a.label"
                 @click="hide()"
               >
                 <router-link
                   class="option"
-                  :class="{'active-menu-link': checkActiveRoute(a) }"
+                  :class="{'active-menu-link': a.isMenuActive }"
                   :to="a.to"
                 >
                   <IconOrSvg
