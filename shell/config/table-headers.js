@@ -409,7 +409,7 @@ export const USER_LAST_LOGIN = {
 export const USER_DISABLED_IN = {
   name:          'user-disabled-in',
   labelKey:      'tableHeaders.userDisabledIn',
-  value:         'userDisabledIn',
+  value:         'userDisabledInDisplay',
   formatter:     'LiveDate',
   formatterOpts: { isCountdown: true },
   sort:          'userDisabledIn',
