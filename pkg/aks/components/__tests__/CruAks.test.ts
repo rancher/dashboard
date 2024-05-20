@@ -229,14 +229,14 @@ describe('aks provisioning form', () => {
     await setCredential(wrapper, config);
     await wrapper.setData({ nodePools: [{ name: 'abc', _validation: {} }] });
     await wrapper.vm.fvExtraRules.poolNames();
-    expect(wrapper.vm.nodePools.filter((pool) => {
+    expect(wrapper.vm.nodePools.filter((pool: AKSNodePool) => {
       return !pool._validation._validName;
     })).toHaveLength(0);
 
     await wrapper.setData({ nodePools: [{ name: '123-abc', _validation: {} }, { name: 'abcABC', _validation: {} }, { name: 'abc', _validation: {} }] });
     await wrapper.vm.fvExtraRules.poolNames();
 
-    expect(wrapper.vm.nodePools.filter((pool) => {
+    expect(wrapper.vm.nodePools.filter((pool: AKSNodePool) => {
       return !pool._validation._validName;
     })).toHaveLength(2);
   });
@@ -301,6 +301,39 @@ describe('aks provisioning form', () => {
     }]);
   });
 
+  it('should prevent saving if a node pool has taints missing keys or values', async() => {
+    const config = {
+      dnsPrefix: 'abc-123', resourceGroup: 'abc', clusterName: 'abc'
+    };
+    const wrapper = shallowMount(CruAks, {
+      propsData: {
+        value: {}, mode: 'edit', config
+      },
+      ...requiredSetup()
+    });
+
+    await setCredential(wrapper, config);
+    await wrapper.setData({ nodePools: [{ name: 'abc', _validation: {} }] });
+    await wrapper.vm.fvExtraRules.poolTaints();
+    expect(wrapper.vm.nodePools.filter((pool: AKSNodePool) => {
+      return !pool._validation._validTaints;
+    })).toHaveLength(0);
+
+    await wrapper.setData({
+      nodePools: [{
+        name: 'abc', _validation: {}, nodeTaints: ['key1:val1=PreferNoExecute']
+      }, {
+        name: 'def', _validation: {}, nodeTaints: ['key1:val1=PreferNoExecute', 'key2:val2=NoExecute', ':val3=PreferNoExecute']
+      }, {
+        name: 'ghi', _validation: {}, nodeTaints: ['key1:=NoExecute']
+      }]
+    });
+    await wrapper.vm.fvExtraRules.poolTaints();
+
+    expect(wrapper.vm.nodePools.filter((pool: AKSNodePool) => {
+      return !pool._validation._validTaints;
+    })).toHaveLength(2);
+  });
   it.each([
     [2, {
       virtualNetwork: 'network2', virtualNetworkResourceGroup: 'network2Group', subnet: 'network2-subnet1'

@@ -375,11 +375,13 @@ export default defineComponent({
             <th>
               <label class="text-label">
                 {{ t('aks.nodePools.taints.key') }}
+                <span class="text-error">*</span>
               </label>
             </th>
             <th>
               <label class="text-label">
                 {{ t('aks.nodePools.taints.value') }}
+                <span class="text-error">*</span>
               </label>
             </th>
             <th>
@@ -395,6 +397,7 @@ export default defineComponent({
               :key="keyedTaint._id"
               :taint="keyedTaint.taint"
               :mode="mode"
+              :rules="validationRules.taints"
               @input="e=>updateTaint({_id:keyedTaint._id, taint: e}, i)"
               @remove="removeTaint(i)"
             />

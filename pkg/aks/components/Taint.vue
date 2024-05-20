@@ -1,13 +1,15 @@
 <script lang="ts">
 import { defineComponent } from 'vue';
 import Select from '@shell/components/form/Select.vue';
+import LabeledInput from '@components/Form/LabeledInput/LabeledInput.vue';
+
 import { _CREATE, _VIEW } from '@shell/config/query-params';
 import { mapGetters } from 'vuex';
 
-import { parseTaint, EFFECT_OPTIONS, formatTaint } from '../util/aks';
+import { parseTaint, EFFECT_OPTIONS, formatTaint } from '../util/taints';
 
 export default defineComponent({
-  components: { Select },
+  components: { Select, LabeledInput },
 
   props: {
     mode: {
@@ -17,6 +19,10 @@ export default defineComponent({
     taint: {
       type:     String,
       required: true
+    },
+    rules: {
+      type:    Array,
+      default: () => []
     }
   },
 
@@ -57,6 +63,17 @@ export default defineComponent({
 
     effectOptions() {
       return EFFECT_OPTIONS;
+    },
+
+    validationMessage() {
+      const taint = formatTaint(this.key, this.value, this.effect);
+      const rule = this.rules[0];
+
+      if (rule && typeof rule === 'function') {
+        return rule(taint);
+      } else {
+        return undefined;
+      }
     }
   },
 });
@@ -65,19 +82,22 @@ export default defineComponent({
 <template>
   <tr class="taint">
     <td :style="{'width': '40%'}">
-      <input
+      <LabeledInput
         v-model="key"
-        label="key"
         :mode="mode"
-      >
+        :rules="validationMessage ? [()=>validationMessage] : []"
+        type="text"
+        data-testid="aks-taint-key-input"
+      />
     </td>
     <td :style="{'width': '40%'}">
-      <input
+      <LabeledInput
         v-model="value"
-        label="value"
         :mode="mode"
         type="text"
-      >
+        :rules="validationMessage ? [()=>validationMessage] : []"
+        data-testid="aks-taint-value-input"
+      />
     </td>
     <td :style="{'width': '15%'}">
       <Select
@@ -85,6 +105,7 @@ export default defineComponent({
         :mode="mode"
         :options="effectOptions"
         label="effect"
+        data-testid="aks-taint-effect-select"
       />
     </td>
     <td>

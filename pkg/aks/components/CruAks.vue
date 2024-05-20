@@ -34,7 +34,8 @@ import type { AKSDiskType, AKSNodePool, AKSPoolMode, AKSConfig } from '../types/
 import {
   getAKSRegions, getAKSVirtualNetworks, getAKSVMSizes, getAKSKubernetesVersions
   , regionsWithAvailabilityZones
-} from '@pkg/aks/util/aks';
+} from '../util/aks';
+import { parseTaint } from '../util/taints';
 
 import { diffUpstreamSpec } from '@shell/utils/kontainer';
 import {
@@ -253,6 +254,10 @@ export default defineComponent({
       {
         path:  'poolMinMax',
         rules: ['poolMinMax']
+      },
+      {
+        path:  'poolTaints',
+        rules: ['poolTaints']
       },
       {
         path:  'nodePoolsGeneral',
@@ -500,6 +505,32 @@ export default defineComponent({
             return allValid ? undefined : this.t('aks.errors.poolMax');
           }
         },
+
+        poolTaints: (taint: string) => {
+          if (taint && taint !== '') {
+            const { key, value } = parseTaint(taint);
+
+            return key === '' || value === '' ? this.t('aks.errors.poolTaints') : undefined;
+          } else {
+            let allValid = true;
+
+            this.nodePools.forEach((pool) => {
+              this.$set(pool._validation, '_validTaints', true);
+              const taints = pool.nodeTaints || [];
+
+              taints.forEach((taint:string) => {
+                const { key, value } = parseTaint(taint);
+
+                if (key === '' || value === '') {
+                  allValid = false;
+                  this.$set(pool._validation, '_validTaints', false);
+                }
+              });
+            });
+
+            return allValid ? undefined : this.t('aks.errors.poolTaints');
+          }
+        }
 
       };
     },
@@ -1094,7 +1125,8 @@ export default defineComponent({
                                   count: fvGetAndReportPathRules('poolCount'),
                                   min: fvGetAndReportPathRules('poolMin'),
                                   max: fvGetAndReportPathRules('poolMax'),
-                                  minMax: fvGetAndReportPathRules('poolMinMax')
+                                  minMax: fvGetAndReportPathRules('poolMinMax'),
+                                  taints: fvGetAndReportPathRules('poolTaints')
               }"
               :original-cluster-version="originalVersion"
               :cluster-version="config.kubernetesVersion"
