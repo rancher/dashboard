@@ -6,7 +6,6 @@ import middleware from '../config/middleware.js';
 import {
   middlewareSeries,
   getMatchedComponents,
-  flatMapComponents,
   setContext,
   globalHandleError,
   urlJoin
@@ -18,8 +17,7 @@ import { updatePageTitle } from '@shell/utils/title';
 import { getVendor } from '@shell/config/private-label';
 
 // Mimic old @nuxt/vue-app/template/client.js
-const isDev = process.env.dev;
-const debug = isDev;
+const debug = process.env.dev;
 
 // Fetch mixin
 Vue.mixin(fetchMixin);
@@ -247,20 +245,6 @@ async function render(to, from, next) {
   }
 }
 
-// Fix components format in matched, it's due to code-splitting of vue-router
-function normalizeComponents(to, ___) {
-  flatMapComponents(to, (Component, _, match, key) => {
-    if (typeof Component === 'object' && !Component.options) {
-      // Updated via vue-router resolveAsyncComponents()
-      Component = Vue.extend(Component);
-      Component._Ctor = Component;
-      match.components[key] = Component;
-    }
-
-    return Component;
-  });
-}
-
 function checkForErrors(app) {
   // Hide error component if no error
   if (app._hadError && app._dateLastError === app.$options.nuxt.dateErr) {
@@ -279,9 +263,6 @@ async function mountApp(__app) {
   // Mounts Vue app to DOM element
   const mount = () => {
     _app.$mount('#app');
-
-    // Add afterEach router hooks
-    router.afterEach(normalizeComponents);
   };
 
   // Initialize error handler
@@ -299,7 +280,6 @@ async function mountApp(__app) {
 
   // First render on client-side
   const clientFirstMount = () => {
-    normalizeComponents(router.currentRoute, router.currentRoute);
     checkForErrors(_app);
     mount();
   };
