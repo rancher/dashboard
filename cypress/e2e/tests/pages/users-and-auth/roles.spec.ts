@@ -189,6 +189,24 @@ describe('Roles', { tags: ['@usersAndAuths', '@adminUser'] }, () => {
     roles.list().elementWithName(globalRoleName).should('not.exist');
   });
 
+  it('shows warning message when deleting the Administrator role', () => {
+    const fragment = 'GLOBAL';
+    const globalAdminRoleName = 'Administrator';
+
+    roles.goTo(undefined, fragment);
+    roles.waitForPage(undefined, fragment);
+
+    // Show delete confirmation dialog
+    roles.waitForRequests();
+    roles.list().elementWithName(globalAdminRoleName).click();
+    roles.list().delete().click();
+    const promptRemove = new PromptRemove();
+
+    promptRemove.warning().should('be.visible');
+    promptRemove.warning().shouldHaveCssVar('color', '--warning'); // Check warning message color
+    promptRemove.warning().first().should('contain.text', 'Caution:'); // Check warning message content
+  });
+
   it('Standard user with List, Get & Resources: Global Roles should be able to list users in Users and Auth', () => {
     const customRoleName = `${ runPrefix }-my-custom-role`;
     const standardUsername = `${ runPrefix }-standard-user-e2e`;

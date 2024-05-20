@@ -88,6 +88,9 @@ declare global {
        * Check if an element is visible to the user on the screen.
        */
       isVisible(): Chainable<Element>;
+
+      // Check css var
+      shouldHaveCssVar(name: string, value: string);
     }
   }
 }
