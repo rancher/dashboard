@@ -2,7 +2,7 @@ name: Build Dashboard (Branch)
 on:
   push:
     branches:
-      - 'release-2.8*'
+      - 'release-2.7*'
       - '*-dev'
 
 jobs:
