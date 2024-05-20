@@ -4,6 +4,7 @@ on:
     branches:
       - 'release-2.7*'
       - '*-dev'
+      - richard-cox-2.7.patch1-drone
 
 jobs:
   build-validation:
