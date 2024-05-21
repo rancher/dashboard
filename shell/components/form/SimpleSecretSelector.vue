@@ -34,7 +34,6 @@ export default {
 
   async fetch() {
     if (!paginationUtils.isEnabled({ rootGetters: this.$store.getters }, { store: 'cluster', resource: { id: SECRET } })) {
-    // if (paginationUtils.isSteveCacheEnabled({ rootGetters: this.$store.getters })) {
       // I don't think we need to integrate server-side pagination with the label select that this powers
       // filtering by namespace should be enough to restrict the response to something small enough for the UI to handle
 

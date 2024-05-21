@@ -14,8 +14,6 @@ import {
   PaginationParamFilter,
 } from '@shell/types/store/pagination.types';
 
-// TODO: RC fix formatting....
-
 export default {
   name: 'SelectOrCreateAuthSecret',
 
@@ -144,15 +142,8 @@ export default {
   },
 
   async fetch() {
-    if (
-      (this.allowSsh || this.allowBasic || this.allowRke) &&
-      this.$store.getters[`${ this.inStore }/schemaFor`](SECRET)
-    ) {
-      // TODO: RC switch all isSteveCacheEnabled
-    // if (!paginationUtils.isEnabled({ rootGetters: this.$store.getters }, { store: 'cluster', resource: { id: SECRET } })) {
-      if (
-        paginationUtils.isSteveCacheEnabled({ rootGetters: this.$store.getters })
-      ) {
+    if ( (this.allowSsh || this.allowBasic || this.allowRke) && this.$store.getters[`${ this.inStore }/schemaFor`](SECRET) ) {
+      if (paginationUtils.isEnabled({ rootGetters: this.$store.getters }, { store: 'cluster', resource: { id: SECRET } })) {
         // Filter results via api (because we shouldn't be fetching them all...)
         this.filteredSecrets = await this.filterSecretsByApi();
       } else {
@@ -164,10 +155,7 @@ export default {
       }
     }
 
-    if (
-      this.allowS3 &&
-      this.$store.getters['rancher/canList'](NORMAN.CLOUD_CREDENTIAL)
-    ) {
+    if ( this.allowS3 && this.$store.getters['rancher/canList'](NORMAN.CLOUD_CREDENTIAL) ) {
       // Avoid an async call and loading screen if already loaded by someone else
       if (this.$store.getters['rancher/haveAll'](NORMAN.CLOUD_CREDENTIAL)) {
         this.allCloudCreds = this.$store.getters['rancher/all'](
@@ -182,17 +170,17 @@ export default {
 
     let selected = this.preSelect?.selected || AUTH_TYPE._NONE;
 
-    if (!this.value) {
+    if ( !this.value ) {
       this.publicKey = this.preSelect?.publicKey || '';
       this.privateKey = this.preSelect?.privateKey || '';
     }
 
-    if (this.value) {
-      if (typeof this.value === 'object') {
+    if ( this.value ) {
+      if ( typeof this.value === 'object' ) {
         selected = `${ this.value.namespace }/${ this.value.name }`;
-      } else if (this.value.includes('/') || this.value.includes(':')) {
+      } else if ( this.value.includes('/') || this.value.includes(':') ) {
         selected = this.value;
-      } else if (this.namespace) {
+      } else if ( this.namespace ) {
         selected = `${ this.namespace }/${ this.value }`;
       } else {
         selected = this.value;
@@ -229,15 +217,15 @@ export default {
     secretTypes() {
       const types = [];
 
-      if (this.allowSsh) {
+      if ( this.allowSsh ) {
         types.push(SECRET_TYPES.SSH);
       }
 
-      if (this.allowBasic) {
+      if ( this.allowBasic ) {
         types.push(SECRET_TYPES.BASIC);
       }
 
-      if (this.allowRke) {
+      if ( this.allowRke ) {
         types.push(SECRET_TYPES.RKE_AUTH_CONFIG);
       }
 
@@ -301,13 +289,13 @@ export default {
         addObjects(out, more);
       }
 
-      if (!this.limitToNamespace) {
+      if ( !this.limitToNamespace ) {
         out = sortBy(out, 'group');
-        if (out.length) {
+        if ( out.length ) {
           let lastGroup = '';
 
-          for (let i = 0; i < out.length; i++) {
-            if (out[i].group !== lastGroup) {
+          for ( let i = 0 ; i < out.length ; i++ ) {
+            if ( out[i].group !== lastGroup ) {
               lastGroup = out[i].group;
 
               insertAt(out, i, {
@@ -322,14 +310,14 @@ export default {
         }
       }
 
-      if (out.length) {
+      if ( out.length ) {
         out.unshift({
           kind:     'title',
           label:    this.t('selectOrCreateAuthSecret.chooseExisting'),
           disabled: true,
         });
       }
-      if (this.allowNone) {
+      if ( this.allowNone ) {
         out.unshift({
           label: this.t('generic.none'),
           value: AUTH_TYPE._NONE,
@@ -340,11 +328,11 @@ export default {
         out.unshift({
           label:    'divider',
           disabled: true,
-          kind:     'divider',
+          kind:     'divider'
         });
       }
 
-      if (this.allowSsh) {
+      if ( this.allowSsh ) {
         out.unshift({
           label: this.t('selectOrCreateAuthSecret.createSsh'),
           value: AUTH_TYPE._SSH,
@@ -352,19 +340,19 @@ export default {
         });
       }
 
-      if (this.allowS3) {
+      if ( this.allowS3 ) {
         out.unshift({
           label: this.t('selectOrCreateAuthSecret.createS3'),
           value: AUTH_TYPE._S3,
-          kind:  'highlighted',
+          kind:  'highlighted'
         });
       }
 
-      if (this.allowBasic) {
+      if ( this.allowBasic ) {
         out.unshift({
           label: this.t('selectOrCreateAuthSecret.createBasic'),
           value: AUTH_TYPE._BASIC,
-          kind:  'highlighted',
+          kind:  'highlighted'
         });
       }
 
@@ -372,15 +360,11 @@ export default {
     },
 
     firstCol() {
-      if (this.vertical) {
+      if ( this.vertical ) {
         return '';
       }
 
-      if (
-        this.selected === AUTH_TYPE._SSH ||
-        this.selected === AUTH_TYPE._BASIC ||
-        this.selected === AUTH_TYPE._S3
-      ) {
+      if ( this.selected === AUTH_TYPE._SSH || this.selected === AUTH_TYPE._BASIC || this.selected === AUTH_TYPE._S3 ) {
         return 'col span-4';
       }
 
@@ -388,7 +372,7 @@ export default {
     },
 
     moreCols() {
-      if (this.vertical) {
+      if ( this.vertical ) {
         return 'mt-20';
       }
 
@@ -464,11 +448,7 @@ export default {
     },
 
     updateKeyVal() {
-      if (
-        ![AUTH_TYPE._SSH, AUTH_TYPE._BASIC, AUTH_TYPE._S3].includes(
-          this.selected
-        )
-      ) {
+      if ( ![AUTH_TYPE._SSH, AUTH_TYPE._BASIC, AUTH_TYPE._S3].includes(this.selected) ) {
         this.privateKey = '';
         this.publicKey = '';
       }
@@ -476,33 +456,25 @@ export default {
       this.$emit('inputauthval', {
         selected:   this.selected,
         privateKey: this.privateKey,
-        publicKey:  this.publicKey,
+        publicKey:  this.publicKey
       });
     },
 
     update() {
-      if (
-        !this.selected ||
-        [
-          AUTH_TYPE._SSH,
-          AUTH_TYPE._BASIC,
-          AUTH_TYPE._S3,
-          AUTH_TYPE._NONE,
-        ].includes(this.selected)
-      ) {
+      if ( (!this.selected || [AUTH_TYPE._SSH, AUTH_TYPE._BASIC, AUTH_TYPE._S3, AUTH_TYPE._NONE].includes(this.selected))) {
         this.$emit('input', null);
-      } else if (this.selected.includes(':')) {
+      } else if ( this.selected.includes(':') ) {
         // Cloud creds
         this.$emit('input', this.selected);
       } else {
         const split = this.selected.split('/');
 
-        if (this.limitToNamespace) {
+        if ( this.limitToNamespace ) {
           this.$emit('input', split[1]);
         } else {
           const out = {
             namespace: split[0],
-            name:      split[1],
+            name:      split[1]
           };
 
           this.$emit('input', out);
@@ -513,12 +485,7 @@ export default {
     },
 
     async doCreate() {
-      if (
-        ![AUTH_TYPE._SSH, AUTH_TYPE._BASIC, AUTH_TYPE._S3].includes(
-          this.selected
-        ) ||
-        this.delegateCreateToParent
-      ) {
+      if ( ![AUTH_TYPE._SSH, AUTH_TYPE._BASIC, AUTH_TYPE._S3].includes(this.selected) || this.delegateCreateToParent ) {
         return;
       }
 
@@ -537,13 +504,13 @@ export default {
           type:     SECRET,
           metadata: {
             namespace:    this.namespace,
-            generateName: this.generateName,
+            generateName: this.generateName
           },
         });
 
         let type, publicField, privateField;
 
-        switch (this.selected) {
+        switch ( this.selected ) {
         case AUTH_TYPE._SSH:
           type = SECRET_TYPES.SSH;
           publicField = 'ssh-publickey';
@@ -581,7 +548,7 @@ export default {
   <div class="select-or-create-auth-secret">
     <div
       class="mt-20"
-      :class="{ row: !vertical }"
+      :class="{'row': !vertical }"
     >
       <div :class="firstCol">
         <LabeledSelect

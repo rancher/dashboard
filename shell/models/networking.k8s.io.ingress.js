@@ -4,8 +4,6 @@ import { get } from '@shell/utils/object';
 import isEmpty from 'lodash/isEmpty';
 import SteveModel from '@shell/plugins/steve/steve-class';
 
-// TODO: RC fix formatting....
-
 function tlsHosts(spec) {
   const tls = spec.tls || [];
 
@@ -139,7 +137,7 @@ export default class Ingress extends SteveModel {
     const backend = get(this.spec, this.defaultBackendPath);
     const serviceName = get(backend, this.serviceNamePath);
 
-    if (!serviceName) {
+    if ( !serviceName ) {
       return null;
     }
 

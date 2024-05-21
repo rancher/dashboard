@@ -8,8 +8,6 @@ import { labelSelectPaginationFunction } from '@shell/components/form/labeled-se
 import paginationUtils from '@shell/utils/pagination-utils';
 import { LABEL_SELECT_KINDS } from '@shell/types/components/labeledSelect';
 
-// TODO: RC fix formatting....
-
 const NONE = '__[[NONE]]__';
 
 export default {
@@ -19,52 +17,52 @@ export default {
     value: {
       type:     [String, Object],
       required: false,
-      default:  undefined,
+      default:  undefined
     },
     namespace: {
       type:     String,
-      required: true,
+      required: true
     },
     types: {
       type:    Array,
-      default: () => Object.values(TYPES),
+      default: () => Object.values(TYPES)
     },
     disabled: {
       type:    Boolean,
-      default: false,
+      default: false
     },
     mountKey: {
       type:    String,
-      default: 'valueFrom',
+      default: 'valueFrom'
     },
     nameKey: {
       type:    String,
-      default: 'name',
+      default: 'name'
     },
     keyKey: {
       type:    String,
-      default: 'key',
+      default: 'key'
     },
     showKeySelector: {
       type:    Boolean,
-      default: false,
+      default: false
     },
     secretNameLabel: {
       type:    String,
-      default: 'Secret Name',
+      default: 'Secret Name'
     },
     keyNameLabel: {
       type:    String,
-      default: 'Key',
+      default: 'Key'
     },
     mode: {
       type:    String,
-      default: _EDIT,
+      default: _EDIT
     },
     inStore: {
       type:    String,
       default: 'cluster',
-    },
+    }
   },
 
   async fetch() {
@@ -89,18 +87,11 @@ export default {
         const correctedName = isNone ? undefined : name;
 
         if (this.showKeySelector) {
-          this.$emit('input', {
-            [this.mountKey]: {
-              secretKeyRef: {
-                [this.nameKey]: correctedName,
-                [this.keyKey]:  '',
-              },
-            },
-          });
+          this.$emit('input', { [this.mountKey]: { secretKeyRef: { [this.nameKey]: correctedName, [this.keyKey]: '' } } });
         } else {
           this.$emit('input', correctedName);
         }
-      },
+      }
     },
 
     key: {
@@ -109,15 +100,13 @@ export default {
       },
       set(key) {
         this.$emit('input', { [this.mountKey]: { secretKeyRef: { [this.nameKey]: this.name, [this.keyKey]: key } } });
-      },
+      }
     },
     secrets() {
       const allSecrets = this.$store.getters[`${ this.inStore }/all`](SECRET);
 
-      return allSecrets.filter(
-        (secret) => this.types.includes(secret._type) &&
-          secret.namespace === this.namespace
-      );
+      return allSecrets
+        .filter((secret) => this.types.includes(secret._type) && secret.namespace === this.namespace);
     },
     secretNames() {
       return this.mapSecrets(this.secrets.sort((a, b) => a.name.localeCompare(b.name)));
@@ -127,17 +116,15 @@ export default {
 
       return Object.keys(secret.data || {}).map((key) => ({
         label: key,
-        value: key,
+        value: key
       }));
     },
     isView() {
       return this.mode === _VIEW;
     },
     isKeyDisabled() {
-      return (
-        !this.isView && (!this.name || this.name === NONE || this.disabled)
-      );
-    },
+      return !this.isView && (!this.name || this.name === NONE || this.disabled);
+    }
   },
 
   methods: {
@@ -209,7 +196,7 @@ export default {
 <template>
   <div
     class="secret-selector"
-    :class="{ 'show-key-selector': showKeySelector }"
+    :class="{'show-key-selector': showKeySelector}"
   >
     <div class="input-container">
       <!-- key by namespace to ensure label select current page is recreated on ns change -->

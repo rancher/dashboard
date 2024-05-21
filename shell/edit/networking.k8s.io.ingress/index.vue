@@ -57,7 +57,7 @@ export default {
       ingressResourceFields: this.schema.fetchResourceFields(),
     };
 
-    this.filterByApi = paginationUtils.isSteveCacheEnabled({ rootGetters: this.$store.getters });
+    this.filterByApi = paginationUtils.isEnabled({ rootGetters: this.$store.getters }, { store: 'cluster', resource: { id: SECRET } });
 
     if (this.filterByApi) {
       promises.filteredSecrets = this.filterSecretsByApi();

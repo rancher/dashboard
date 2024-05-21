@@ -3,8 +3,6 @@ import KeyValue from '@shell/components/form/KeyValue';
 import Select from '@shell/components/form/Select';
 import LabeledSelect from '@shell/components/form/LabeledSelect';
 
-// TODO: RC fix formatting....
-
 export default {
   components: {
     KeyValue, Select, LabeledSelect
@@ -35,8 +33,8 @@ export default {
 
     isClusterFlow: {
       type:    Boolean,
-      default: false,
-    },
+      default: false
+    }
   },
 
   methods: {
@@ -53,11 +51,7 @@ export default {
   <div>
     <KeyValue
       v-model="value.labels"
-      :title="
-        value.select
-          ? t('logging.flow.matches.pods.title.include')
-          : t('logging.flow.matches.pods.title.exclude')
-      "
+      :title="value.select ? t('logging.flow.matches.pods.title.include') : t('logging.flow.matches.pods.title.exclude')"
       :mode="mode"
       :initial-empty-row="true"
       :read-allowed="false"
@@ -69,11 +63,7 @@ export default {
     />
     <div class="spacer" />
     <h3>
-      {{
-        value.select
-          ? t("logging.flow.matches.nodes.title.include")
-          : t("logging.flow.matches.nodes.title.exclude")
-      }}
+      {{ value.select ? t('logging.flow.matches.nodes.title.include') : t('logging.flow.matches.nodes.title.exclude') }}
     </h3>
     <div class="row">
       <div class="col span-12">
@@ -93,11 +83,7 @@ export default {
     </div>
     <div class="spacer" />
     <h3>
-      {{
-        value.select
-          ? t("logging.flow.matches.containerNames.title.include")
-          : t("logging.flow.matches.containerNames.title.exclude")
-      }}
+      {{ value.select ? t('logging.flow.matches.containerNames.title.include') : t('logging.flow.matches.containerNames.title.exclude') }}
     </h3>
     <div class="row">
       <div class="col span-12">
@@ -120,11 +106,7 @@ export default {
     <div v-if="isClusterFlow">
       <div class="spacer" />
       <h3>
-        {{
-          value.select
-            ? t("logging.flow.matches.namespaces.title.include")
-            : t("logging.flow.matches.namespaces.title.exclude")
-        }}
+        {{ value.select ? t('logging.flow.matches.namespaces.title.include') : t('logging.flow.matches.namespaces.title.exclude') }}
       </h3>
       <div class="row">
         <div class="col span-12">

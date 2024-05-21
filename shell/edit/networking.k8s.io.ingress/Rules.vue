@@ -7,35 +7,30 @@ import ArrayListGrouped from '@shell/components/form/ArrayListGrouped';
 import { random32 } from '@shell/utils/string';
 import Rule from './Rule';
 
-// TODO: RC fix formatting....
-
 export default {
   components: {
-    ArrayListGrouped,
-    Loading,
-    Rule,
-    SortableTable,
+    ArrayListGrouped, Loading, Rule, SortableTable
   },
 
   props: {
     value: {
       type:    Object,
-      default: () => {},
+      default: () => {}
     },
 
     mode: {
       type:    String,
-      default: 'edit',
+      default: 'edit'
     },
 
     certificates: {
       type:    Array,
-      default: () => [],
+      default: () => []
     },
 
     serviceTargets: {
       type:    Array,
-      default: () => [],
+      default: () => []
     },
 
     rules: {
@@ -43,18 +38,15 @@ export default {
         requestHost: [],
         path:        [],
         port:        [],
-        target:      [],
+        target:      []
       }),
       type: Object,
-    },
+    }
   },
 
   async fetch() {
     // TODO: RC shell/edit/networking.k8s.io.ingress/Rules.vue. used by (just? NO, 1 other) shell/models/networking.k8s.io.ingress.js `targetTo`
-    await Promise.all(
-      Object.values(WORKLOAD_TYPES).map((type) => this.$store.dispatch('cluster/findAll', { type })
-      )
-    );
+    await Promise.all(Object.values(WORKLOAD_TYPES).map((type) => this.$store.dispatch('cluster/findAll', { type })));
   },
 
   beforeUpdate() {
@@ -67,8 +59,7 @@ export default {
 
   computed: {
     workloads() {
-      return Object.values(WORKLOAD_TYPES).flatMap((type) => this.$store.getters['cluster/all'](type)
-      );
+      return Object.values(WORKLOAD_TYPES).flatMap((type) => this.$store.getters['cluster/all'](type));
     },
     isView() {
       return this.mode === _VIEW;
@@ -79,17 +70,14 @@ export default {
           name:      'fullPath',
           label:     this.t('ingress.rules.headers.path'),
           value:     '',
-          formatter: 'IngressFullPath',
+          formatter: 'IngressFullPath'
         },
         {
           name:          'target',
           label:         this.t('ingress.rules.headers.target'),
           formatter:     'Link',
-          formatterOpts: {
-            options: { internal: true },
-            urlKey:  'targetLink.to',
-          },
-          value: 'targetLink',
+          formatterOpts: { options: { internal: true }, urlKey: 'targetLink.to' },
+          value:         'targetLink',
         },
         {
           name:  'port',
@@ -115,19 +103,16 @@ export default {
       return headers;
     },
     rows() {
-      return this.value.createRulesForListPage(
-        this.workloads,
-        this.certificates
-      );
-    },
+      return this.value.createRulesForListPage(this.workloads, this.certificates);
+    }
   },
   methods: {
     onAdd() {
       if (this.$refs.lastRule?.focus) {
         this.$refs.lastRule.focus();
       }
-    },
-  },
+    }
+  }
 };
 </script>
 

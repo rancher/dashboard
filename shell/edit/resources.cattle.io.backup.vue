@@ -63,7 +63,7 @@ export default {
 
     this.chartNamespace = BRORelease?.spec.namespace || '';
 
-    if (paginationUtils.isSteveCacheEnabled({ rootGetters: this.$store.getters })) {
+    if (paginationUtils.isEnabled({ rootGetters: this.$store.getters }, { store: 'cluster', resource: { id: SECRET } })) {
       const findPageArgs = { // Of type ActionFindPageArgs
         namespaced: this.chartNamespace,
         pagination: new PaginationArgs({

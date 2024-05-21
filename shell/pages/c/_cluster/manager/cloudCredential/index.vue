@@ -10,8 +10,6 @@ import {
   NAME_UNLINKED,
 } from '@shell/config/table-headers';
 
-// TODO: RC fix formatting....
-
 export default {
   components: {
     Loading,
@@ -95,10 +93,10 @@ export default {
       :namespaced="false"
       group-by="providerDisplay"
     >
-      <template #cell:id="{ row }">
-        {{ row.id.replace("cattle-global-data:", "") }}
+      <template #cell:id="{row}">
+        {{ row.id.replace('cattle-global-data:', '') }}
       </template>
-      <template #cell:apikey="{ row }">
+      <template #cell:apikey="{row}">
         <span
           v-if="row.publicData"
           v-clean-html="row.publicData"
