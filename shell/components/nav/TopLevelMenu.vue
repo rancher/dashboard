@@ -281,11 +281,7 @@ export default {
         // need to reset active state on other menu items
         menuSectionItems.forEach((item) => {
           item.isMenuActive = false;
-<<<<<<< HEAD
 
-=======
-          
->>>>>>> 9b8ec51d7c (Update shell/components/nav/TopLevelMenu.vue)
           if (!activeFound && this.checkActiveRoute(item, isClusterCheck)) {
             activeFound = true;
             item.isMenuActive = true;
