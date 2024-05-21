@@ -26,7 +26,7 @@ export function ingressFullPath(resource, rule, path = {}) {
     protocol = isTlsHost(spec, hostValue) ? 'https://' : 'http://';
   }
 
-  return `${protocol}${hostValue}${pathValue}`;
+  return `${ protocol }${ hostValue }${ pathValue }`;
 }
 
 export default class Ingress extends SteveModel {
@@ -44,7 +44,7 @@ export default class Ingress extends SteveModel {
     }
 
     const isTargetsWorkload = serviceName.startsWith('ingress-');
-    const id = `${this.namespace}/${serviceName}`;
+    const id = `${ this.namespace }/${ serviceName }`;
 
     if (isTargetsWorkload) {
       // TODO: RC This is the reason shell/components/formatter/IngressTarget.vue requires ALL WORKLOADS
@@ -54,10 +54,10 @@ export default class Ingress extends SteveModel {
       return workload?.detailLocation || '';
     } else {
       return {
-        name: 'c-cluster-product-resource-namespace-id',
+        name:   'c-cluster-product-resource-namespace-id',
         params: {
-          resource: SERVICE,
-          id: serviceName,
+          resource:  SERVICE,
+          id:        serviceName,
           namespace: this.namespace,
         }
       };
@@ -80,14 +80,14 @@ export default class Ingress extends SteveModel {
 
     return {
       // isUrl thinks urls which contain '*' are valid so I'm adding an additional check for '*'
-      isUrl: isUrl(fullPath) && !fullPath.includes('*'),
-      pathType: path.pathType,
+      isUrl:           isUrl(fullPath) && !fullPath.includes('*'),
+      pathType:        path.pathType,
       fullPath,
       serviceName,
       serviceTargetTo: this.targetTo(workloads, serviceName),
-      certs: this.certLinks(rule, certificates),
-      targetLink: this.targetLink(workloads, serviceName),
-      port: get(path?.backend, this.servicePortPath)
+      certs:           this.certLinks(rule, certificates),
+      targetLink:      this.targetLink(workloads, serviceName),
+      port:            get(path?.backend, this.servicePortPath)
     };
   }
 
@@ -101,17 +101,17 @@ export default class Ingress extends SteveModel {
 
     if (cert.secretName && certificates.includes(secretName)) {
       to = {
-        name: 'c-cluster-product-resource-namespace-id',
+        name:   'c-cluster-product-resource-namespace-id',
         params: {
           resource: SECRET,
-          id: secretName
+          id:       secretName
         }
       };
     }
 
     return {
       to,
-      text: secretName,
+      text:    secretName,
       options: { internal: true }
     };
   }
@@ -129,8 +129,8 @@ export default class Ingress extends SteveModel {
 
   targetLink(workloads, serviceName) {
     return {
-      to: this.targetTo(workloads, serviceName),
-      text: serviceName,
+      to:      this.targetTo(workloads, serviceName),
+      text:    serviceName,
       options: { internal: true }
     };
   }
@@ -144,7 +144,7 @@ export default class Ingress extends SteveModel {
     }
 
     return {
-      name: serviceName,
+      name:     serviceName,
       targetTo: this.targetTo(workloads, serviceName)
     };
   }
@@ -202,7 +202,7 @@ export default class Ingress extends SteveModel {
 
     if (this.spec?.ingressClassName) {
       out.push({
-        label: this.t('ingress.ingressClass.label'),
+        label:   this.t('ingress.ingressClass.label'),
         content: this.spec.ingressClassName,
       });
     }

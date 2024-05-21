@@ -1,6 +1,6 @@
 <script>
-import KeyValue from "@shell/components/form/KeyValue";
-import Select from "@shell/components/form/Select";
+import KeyValue from '@shell/components/form/KeyValue';
+import Select from '@shell/components/form/Select';
 
 // TODO: RC fix formatting....
 
@@ -9,34 +9,34 @@ export default {
 
   props: {
     mode: {
-      type: String,
+      type:     String,
       required: true,
     },
 
     value: {
-      type: Object,
+      type:    Object,
       default: () => {
         return {};
       },
     },
 
     nodes: {
-      type: Array,
+      type:    Array,
       default: () => [],
     },
 
     containers: {
-      type: Array,
+      type:    Array,
       default: () => [],
     },
 
     namespaces: {
-      type: Array,
+      type:    Array,
       default: () => [],
     },
 
     isClusterFlow: {
-      type: Boolean,
+      type:    Boolean,
       default: false,
     },
   },
@@ -45,7 +45,7 @@ export default {
     update() {},
 
     removeRule() {
-      this.$emit("remove");
+      this.$emit('remove');
     },
   },
 };

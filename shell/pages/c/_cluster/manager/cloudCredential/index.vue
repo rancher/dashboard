@@ -1,14 +1,14 @@
 <script>
-import Loading from "@shell/components/Loading";
-import ResourceTable from "@shell/components/ResourceTable";
-import Masthead from "@shell/components/ResourceList/Masthead";
-import { NORMAN, SECRET } from "@shell/config/types";
+import Loading from '@shell/components/Loading';
+import ResourceTable from '@shell/components/ResourceTable';
+import Masthead from '@shell/components/ResourceList/Masthead';
+import { NORMAN, SECRET } from '@shell/config/types';
 import {
   AGE_NORMAN,
   DESCRIPTION,
   ID_UNLINKED,
   NAME_UNLINKED,
-} from "@shell/config/table-headers";
+} from '@shell/config/table-headers';
 
 // TODO: RC fix formatting....
 
@@ -20,24 +20,22 @@ export default {
   },
 
   async fetch() {
-    if (this.$store.getters["management/schemaFor"](SECRET)) {
+    if (this.$store.getters['management/schemaFor'](SECRET)) {
       // TODO: RC shell/pages/c/_cluster/manager/cloudCredential/index.vue.
       // list is norman creds, cannot paginate.
       // Convert anything that uses cred `publicData` to a Live column and fetch specific secrets as needed
       // Having secrets allows showing the public portion of more types but not all users can see them.
-      await this.$store.dispatch("management/findAll", { type: SECRET });
+      await this.$store.dispatch('management/findAll', { type: SECRET });
     }
 
-    this.allCredentials = await this.$store.dispatch("rancher/findAll", {
-      type: NORMAN.CLOUD_CREDENTIAL,
-    });
+    this.allCredentials = await this.$store.dispatch('rancher/findAll', { type: NORMAN.CLOUD_CREDENTIAL });
   },
 
   data() {
     return {
       allCredentials: null,
-      resource: NORMAN.CLOUD_CREDENTIAL,
-      schema: this.$store.getters["rancher/schemaFor"](NORMAN.CLOUD_CREDENTIAL),
+      resource:       NORMAN.CLOUD_CREDENTIAL,
+      schema:         this.$store.getters['rancher/schemaFor'](NORMAN.CLOUD_CREDENTIAL),
     };
   },
 
@@ -51,11 +49,11 @@ export default {
         ID_UNLINKED,
         NAME_UNLINKED,
         {
-          name: "apikey",
-          labelKey: "tableHeaders.apikey",
-          value: "publicData",
-          sort: "publicData",
-          search: "publicData",
+          name:        'apikey',
+          labelKey:    'tableHeaders.apikey',
+          value:       'publicData',
+          sort:        'publicData',
+          search:      'publicData',
           dashIfEmpty: true,
         },
         DESCRIPTION,
@@ -65,9 +63,9 @@ export default {
 
     createLocation() {
       return {
-        name: "c-cluster-manager-cloudCredential-create",
+        name:   'c-cluster-manager-cloudCredential-create',
         params: {
-          product: this.$store.getters["currentProduct"].name,
+          product:  this.$store.getters['currentProduct'].name,
           resource: this.resource,
         },
       };
@@ -101,8 +99,14 @@ export default {
         {{ row.id.replace("cattle-global-data:", "") }}
       </template>
       <template #cell:apikey="{ row }">
-        <span v-if="row.publicData" v-clean-html="row.publicData" />
-        <span v-else class="text-muted">&mdash;</span>
+        <span
+          v-if="row.publicData"
+          v-clean-html="row.publicData"
+        />
+        <span
+          v-else
+          class="text-muted"
+        >&mdash;</span>
       </template>
     </ResourceTable>
   </div>
