@@ -7,7 +7,7 @@ import { allHash } from '@shell/utils/promise';
 import { CATALOG, UI_PLUGIN, MANAGEMENT } from '@shell/config/types';
 import { SETTING } from '@shell/config/settings';
 import { fetchOrCreateSetting } from '@shell/utils/settings';
-import { getVersionData } from '@shell/config/version';
+import { getVersionData, isRancherPrime } from '@shell/config/version';
 import { CATALOG as CATALOG_ANNOTATIONS } from '@shell/config/labels-annotations';
 import { NAME as APP_PRODUCT } from '@shell/config/product/apps';
 import ActionMenu from '@shell/components/ActionMenu';
@@ -75,7 +75,6 @@ export default {
       TABS_VALUES,
       kubeVersion:                    null,
       view:                           '',
-      charts:                         [],
       installing:                     {},
       errors:                         {},
       plugins:                        [], // The installed plugins
@@ -115,7 +114,7 @@ export default {
     }
 
     if (this.$store.getters['management/schemaFor'](CATALOG.CLUSTER_REPO)) {
-      hash.repos = await this.$store.dispatch('management/findAll', { type: CATALOG.CLUSTER_REPO });
+      hash.repos = await this.$store.dispatch('management/findAll', { type: CATALOG.CLUSTER_REPO }, { force: true });
     }
 
     const res = await allHash(hash);
@@ -126,10 +125,6 @@ export default {
     this.kubeVersion = res.localCluster?.kubernetesVersionBase || [];
 
     this.addExtensionReposBannerSetting = await fetchOrCreateSetting(this.$store, SETTING.ADD_EXTENSION_REPOS_BANNER_DISPLAY, 'true', true) || {};
-
-    const c = this.$store.getters['catalog/rawCharts'];
-
-    this.charts = Object.values(c);
 
     // If there are no plugins installed, default to the catalog view
     if (this.plugins.length === 0) {
@@ -146,12 +141,22 @@ export default {
     ...mapGetters({ uiErrors: 'uiplugins/errors' }),
     ...mapGetters({ theme: 'prefs/theme' }),
 
-    extensionsFeatureFlag() {
-      return this.$store.getters['management/byId'](MANAGEMENT.FEATURE, 'uiextension');
+    charts() {
+      const c = this.$store.getters['catalog/rawCharts'];
+
+      if ( c ) {
+        return Object.values(c);
+      }
+
+      return null;
     },
 
     showAddReposBanner() {
-      return this.addExtensionReposBannerSetting?.value === 'true' && (!this.repos.find((r) => r.urlDisplay === UI_PLUGINS_REPO_URL) || !this.repos.find((r) => r.urlDisplay === UI_PLUGINS_PARTNERS_REPO_URL));
+      const hasExtensionReposBannerSetting = this.addExtensionReposBannerSetting?.value === 'true';
+      const uiPluginsRepoNotFound = isRancherPrime() && !this.repos?.find((r) => r.urlDisplay === UI_PLUGINS_REPO_URL);
+      const uiPluginsPartnersRepoNotFound = !this.repos?.find((r) => r.urlDisplay === UI_PLUGINS_PARTNERS_REPO_URL);
+
+      return hasExtensionReposBannerSetting && (uiPluginsRepoNotFound || uiPluginsPartnersRepoNotFound);
     },
 
     applyDarkModeBg() {
@@ -483,21 +488,13 @@ export default {
       // we might need to force the request, so that we know at all times if what's the status of the offical and partners repos (installed or not)
       // tied to the SetupUIPlugins, AddExtensionRepos checkboxes
       await this.$store.dispatch('catalog/load', { reset: true, force: forceChartsUpdate });
-      const c = this.$store.getters['catalog/rawCharts'];
-
-      this.charts = Object.values(c);
     },
 
     async updateInstallStatus(forceChartsUpdate = false) {
       let hasFeatureFlag;
 
       try {
-        const flag = await this.$store.dispatch('management/find', {
-          type: MANAGEMENT.FEATURE,
-          id:   'uiextension'
-        });
-
-        hasFeatureFlag = flag.spec?.value || flag.spec?.value !== false;
+        hasFeatureFlag = this.$store.getters['features/get']('uiextension');
       } catch (e) {
         console.warn('Failed to check for feature flag', e); // eslint-disable-line no-console
         hasFeatureFlag = false;

@@ -11,18 +11,18 @@ describe('Kubewarden Extension', { tags: ['@extensions', '@adminUser'] }, () => 
     cy.login();
 
     const extensionsPo = new ExtensionsPagePo();
+
     extensionsPo.goTo();
+    extensionsPo.waitForPage();
 
-    const kubewardenPo = new KubewardenExtensionPo();
-
-    kubewardenPo.addChartsRepoIfNeeded();
+    // install the ui-plugin-charts repo
+    extensionsPo.addExtensionsRepository('https://github.com/rancher/ui-plugin-charts', 'main', 'rancher-extensions');
   });
 
   beforeEach(() => {
     cy.login();
   });
 
-  
   it('Should install Kubewarden extension', () => {
     const extensionsPo = new ExtensionsPagePo();
 
@@ -68,6 +68,7 @@ describe('Kubewarden Extension', { tags: ['@extensions', '@adminUser'] }, () => 
     const productMenu = new ProductNavPo();
 
     kubewardenPo.goTo();
+    kubewardenPo.waitForPage();
 
     const kubewardenNavItem = productMenu.groups().contains('Kubewarden');
 
@@ -79,6 +80,7 @@ describe('Kubewarden Extension', { tags: ['@extensions', '@adminUser'] }, () => 
     const kubewardenPo = new KubewardenExtensionPo();
 
     kubewardenPo.goTo();
+    kubewardenPo.waitForPage();
 
     cy.get('h1').contains('Kubewarden').should('exist');
     cy.get('button').contains('Install Kubewarden').should('exist');
@@ -86,6 +88,7 @@ describe('Kubewarden Extension', { tags: ['@extensions', '@adminUser'] }, () => 
 
   it('Should uninstall Kubewarden', () => {
     const extensionsPo = new ExtensionsPagePo();
+
     extensionsPo.goTo();
     extensionsPo.waitForPage();
 

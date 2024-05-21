@@ -1,6 +1,7 @@
 <script>
 import IconMessage from '@shell/components/IconMessage.vue';
 import { MANAGEMENT } from '@shell/config/types';
+import { UIEXTENSION } from '@shell/store/features';
 
 export default {
   props: {
@@ -14,6 +15,7 @@ export default {
 
   data() {
     return {
+      UIEXTENSION,
       loading:            true,
       showFeaturesButton: false,
     };
@@ -55,9 +57,7 @@ export default {
         </h2>
         <div v-if="!loading">
           <div>
-            <p>
-              {{ t('plugins.setup.prompt.can') }}
-            </p>
+            <div v-clean-html="t('plugins.setup.prompt.can', { ff: UIEXTENSION }, true)" />
             <button
               v-if="showFeaturesButton"
               class="btn role-primary enable-plugin-support"
