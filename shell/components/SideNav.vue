@@ -433,7 +433,7 @@ export default {
       >
         {{ displayVersion }}
       </span>
-
+      
       <!-- locale selector -->
       <span v-if="isSingleProduct">
         <v-popover
@@ -478,7 +478,6 @@ export default {
         {{ displayVersion }}
       </router-link>
       <template v-else>
-        <span>{{ displayVersion }}</span>
         <span
           v-if="isVirtualCluster && isExplorer"
           v-tooltip="{content: harvesterVersion, placement: 'top'}"
@@ -550,7 +549,7 @@ export default {
     .version {
       cursor: default;
       margin: 0 10px 10px 10px;
-    }
+    }    
 
     .footer {
       margin: 20px;
@@ -576,7 +575,7 @@ export default {
       .version {
         cursor: default;
         margin: 0px;
-      }
+      }      
 
       .locale-chooser {
         cursor: pointer;

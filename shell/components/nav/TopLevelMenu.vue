@@ -280,6 +280,21 @@ export default {
       return getProductFromRoute(this.$route);
     },
 
+    aboutText() {
+      // If a version number (starts with 'v') then use that
+      if (this.displayVersion.startsWith('v')) {
+        // Don't show the '.0' for a minor release (e.g. 2.8.0, 2.9.0 etc)
+        return !this.displayVersion.endsWith('.0') ? this.displayVersion : this.displayVersion.substr(0, this.displayVersion.length - 2);
+      }
+
+      // Default fallback to 'About'
+      return this.t('about.title');
+    },
+
+    largeAboutText() {
+      return this.aboutText.length > 6;
+    }
+
     appBar() {
       let activeFound = false;
 
@@ -887,12 +902,13 @@ export default {
           </div>
           <div
             class="version"
+            :class="{'version-small': largeAboutText}"
             @click="hide()"
           >
             <router-link
               :to="{ name: 'about' }"
             >
-              {{ t('about.title') }}
+              {{ aboutText }}
             </router-link>
           </div>
         </div>
@@ -1379,14 +1395,19 @@ export default {
       }
 
       .footer {
-        margin: 20px 15px;
+        margin: 20px 10px;
+        width: 50px;
 
         .support {
           display: none;
         }
 
         .version{
-          text-align: left;
+          text-align: center;
+
+          &.version-small {
+            font-size: 12px;
+          }
         }
       }
     }
