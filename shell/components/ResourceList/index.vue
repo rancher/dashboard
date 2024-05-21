@@ -45,7 +45,7 @@ export default {
     const schema = this.schema;
 
     if ( this.hasListComponent ) {
-      // If you provide your own list then call its asyncData
+      // If you provide your own list then call its fetch
       const importer = this.listComponent;
       const component = (await importer())?.default;
 

@@ -14,7 +14,10 @@ export default {
   computed: {
     useForIcon() {
       return !!this.cluster?.badge?.iconText;
-    }
+    },
+    showBorders() {
+      return this.cluster?.badge?.color === 'transparent';
+    },
   }
 };
 </script>
@@ -28,6 +31,7 @@ export default {
     <div
       v-if="useForIcon"
       class="cluster-badge-logo"
+      :class="{ 'cluster-icon-border': showBorders}"
       :style="{ backgroundColor: cluster.badge.color, color: cluster.badge.textColor }"
     >
       {{ cluster.badge.iconText }}
@@ -69,7 +73,13 @@ export default {
     display: flex;
     height: 32px;
     justify-content: center;
-    width: 32px;
+    width: 42px;
+
+    &-border {
+      border: 1px solid var(--border);
+      border-radius: 5px;
+      color: var(--body-text) !important; // !important is needed to override the color set by the badge when there's a transparent background.
+    }
   }
 
   .cluster-icon-small {
@@ -96,7 +106,7 @@ export default {
     width: 25px;
   }
   .cluster-badge-logo {
-    width: 32px;
+    min-width: 42px;
     height: 32px;
     padding: 0px 5px;
     display: flex;

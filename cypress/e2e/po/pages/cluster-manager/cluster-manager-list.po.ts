@@ -63,4 +63,8 @@ export default class ClusterManagerListPagePo extends PagePo {
   editCluster(name: string) {
     this.sortableTable().rowActionMenuOpen(name).getMenuItem('Edit Config').click();
   }
+
+  clickOnClusterName(name: string) {
+    this.sortableTable().rowWithClusterName(name).click();
+  }
 }

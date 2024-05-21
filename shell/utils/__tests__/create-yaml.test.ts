@@ -40,11 +40,12 @@ describe('fx: dumpBlock', () => {
 
     scalarStyles.forEach((scalarStyle) => {
       chomping.forEach((chomping) => {
-        const options = {
+        const options: any = {
           [key]: {
             chomping,
             scalarStyle
-          }
+          },
+          lineWidth: -1
         };
 
         it(`options: { scalarStyle: ${ scalarStyle }, chomping: ${ chomping } } with indentation`, () => {
@@ -131,6 +132,15 @@ b c`
     const result = dumpBlock(data, yamlModifiers);
 
     expect(result).toStrictEqual(expectedResult);
+  });
+
+  it('should default to unlimited width for blocks', () => {
+    const block = { test: 'Lorem ipsum dolor sit amet, consectetur adipiscing elit, sed do eiusmod tempor incididunt ut labore et dolore magna aliqua. Ut enim ad minim veniam, quis nostrud exercitation ullamco laboris nisi ut aliquip ex ea commodo consequat. Duis aute irure dolor in reprehenderit in voluptate velit esse cillum dolore eu fugiat nulla pariatur. Excepteur sint occaecat cupidatat non proident, sunt in culpa qui officia deserunt mollit anim id est laborum.' };
+    const expected = 'test: Lorem ipsum dolor sit amet, consectetur adipiscing elit, sed do eiusmod tempor incididunt ut labore et dolore magna aliqua. Ut enim ad minim veniam, quis nostrud exercitation ullamco laboris nisi ut aliquip ex ea commodo consequat. Duis aute irure dolor in reprehenderit in voluptate velit esse cillum dolore eu fugiat nulla pariatur. Excepteur sint occaecat cupidatat non proident, sunt in culpa qui officia deserunt mollit anim id est laborum.\n';
+
+    const result = dumpBlock(block);
+
+    expect(result).toStrictEqual(expected);
   });
 });
 
@@ -374,7 +384,7 @@ describe('fx: resourceFields', () => {
   };
 
   afterEach(() => { // eslint-disable-line jest/no-hooks
-    SteveSchema.reset();
+    SteveSchema.reset('');
   });
 
   it('schema has empty resource fields', () => {

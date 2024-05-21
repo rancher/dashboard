@@ -285,6 +285,7 @@ export default {
           :label="t('prometheusRule.alertingRules.name')"
           :required="true"
           :mode="mode"
+          data-testid="v2-monitoring-alerting-rules-alert-name"
         />
       </div>
       <div class="col span-6">
@@ -314,6 +315,7 @@ export default {
                 foldGutter: false,
                 readOnly: mode === 'view',
               }"
+              data-testid="v2-monitoring-alerting-rules-promql"
               @onInput="queueUpdate"
             />
           </template>
@@ -353,6 +355,7 @@ export default {
             :label="t('prometheusRule.alertingRules.labels.severity.choices.label')"
             :localized-label="false"
             :options="severityOptions"
+            data-testid="v2-monitoring-alerting-rules-severity"
           />
         </div>
       </div>

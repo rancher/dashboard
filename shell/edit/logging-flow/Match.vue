@@ -1,11 +1,14 @@
 <script>
 import KeyValue from '@shell/components/form/KeyValue';
 import Select from '@shell/components/form/Select';
+import LabeledSelect from '@shell/components/form/LabeledSelect';
 
 // TODO: RC fix formatting....
 
 export default {
-  components: { KeyValue, Select },
+  components: {
+    KeyValue, Select, LabeledSelect
+  },
 
   props: {
     mode: {
@@ -21,11 +24,6 @@ export default {
     },
 
     nodes: {
-      type:    Array,
-      default: () => [],
-    },
-
-    containers: {
       type:    Array,
       default: () => [],
     },
@@ -103,15 +101,18 @@ export default {
     </h3>
     <div class="row">
       <div class="col span-12">
-        <Select
+        <LabeledSelect
           v-model="value.container_names"
-          class="lg"
-          :options="containers"
+          :mode="mode"
+          :options="[]"
+          :disabled="false"
           :placeholder="t('logging.flow.matches.containerNames.placeholder')"
           :multiple="true"
           :taggable="true"
           :clearable="true"
+          :searchable="true"
           :close-on-select="false"
+          no-options-label-key="logging.flow.matches.containerNames.enter"
           placement="top"
         />
       </div>

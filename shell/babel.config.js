@@ -18,7 +18,7 @@ module.exports = function(api) {
     }
   };
 
-  const plugins = [];
+  const plugins = ['@babel/plugin-transform-nullish-coalescing-operator'];
 
   if (process.env.NODE_ENV === 'test') {
     plugins.push('transform-require-context');

@@ -141,11 +141,32 @@ new LoginPagePo().username().set('admin')
 ```
 
 POs all inherit a root `component.po`. Common component functionality can be added there. They also expose their core cypress (chainable) element.
+### Best Practices to keep in mind when writing tests
 
-There are a large number of pages and components in the Dashboard and only a small set of POs. These will be expanded as the tests grow.
+- When selecting an element be sure to use the attribute `data-testid` if it exists, even in case of lists where elements are distinguished by an index suffix.
+- Utilize the `afterAll()` hook to clean up so that subsequent tests are not affected by resources created during test execution.
+- We should not add locators for DOM elements in the test files directly, we should instead create a class in a PO file for a given dashboard page which contains the locators that identify the page elements. From there, call the methods in the test file.
+For example, let’s say we wanted to automate the dashboard login page.
+The login page uses the common component for `LabeledInput` so first we create a `LabeledInputPo` which contains methods for actions to perform on a given input box such as `clear()`, `set()`, etc.
+Then we create the `LoginPagePo` which contains methods such as `username()`. For the `username()` method we create an instance of `LabeledInputPo` object and pass in the locator for the page element.
 
-Note: When selecting an element be sure to use the attribute `data-testid`, even in case of lists where elements are distinguished by an index suffix.
+```ts
+import LabeledInputPo from '@/cypress/e2e/po/components/labeled-input.po';
 
+username(): LabeledInputPo {
+  return new LabeledInputPo('[data-testid="local-login-username"]');
+  }
+```
+
+Lastly, we create a test file and call the `username()` method to utilize it in the test.
+
+```ts
+import { LoginPagePo } from '@/cypress/e2e/po/pages/login-page.po';
+
+const loginPage = new LoginPagePo();
+
+loginPage.username().set(TEST_USERNAME);
+```
 ## Tips
 
 The Cypress UI is very much your friend. There you can click pick tests to run, easily visually track the progress of the test, see the before/after state of each cypress command (specifically good for debugging failed steps), see https requests, etc.

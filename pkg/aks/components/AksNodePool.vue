@@ -5,7 +5,7 @@ import { mapGetters } from 'vuex';
 import { _CREATE, _VIEW } from '@shell/config/query-params';
 import type { AKSDiskType, AKSNodePool, AKSPoolMode } from '../types/index';
 import LabeledInput from '@components/Form/LabeledInput/LabeledInput.vue';
-import LabeledSelect from '@shell/components/form/LabeledSelect/index.vue';
+import LabeledSelect from '@shell/components/form/LabeledSelect.vue';
 import Taint from '@pkg/aks/components/Taint.vue';
 import UnitInput from '@shell/components/form/UnitInput.vue';
 import RadioGroup from '@components/Form/Radio/RadioGroup.vue';

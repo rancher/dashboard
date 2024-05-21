@@ -16,7 +16,7 @@ import CreateEditView from '@shell/mixins/create-edit-view';
 import FormValidation from '@shell/mixins/form-validation';
 import SelectCredential from '@shell/edit/provisioning.cattle.io.cluster/SelectCredential.vue';
 import CruResource from '@shell/components/CruResource.vue';
-import LabeledSelect from '@shell/components/form/LabeledSelect/index.vue';
+import LabeledSelect from '@shell/components/form/LabeledSelect.vue';
 import LabeledInput from '@components/Form/LabeledInput/LabeledInput.vue';
 import Checkbox from '@components/Form/Checkbox/Checkbox.vue';
 import FileSelector from '@shell/components/form/FileSelector.vue';
@@ -32,9 +32,11 @@ import ClusterMembershipEditor, { canViewClusterMembershipEditor } from '@shell/
 import AksNodePool from '@pkg/aks/components/AksNodePool.vue';
 import type { AKSDiskType, AKSNodePool, AKSPoolMode, AKSConfig } from '../types/index';
 import {
-  diffUpstreamSpec, getAKSRegions, getAKSVirtualNetworks, getAKSVMSizes, getAKSKubernetesVersions
+  getAKSRegions, getAKSVirtualNetworks, getAKSVMSizes, getAKSKubernetesVersions
   , regionsWithAvailabilityZones
 } from '@pkg/aks/util/aks';
+
+import { diffUpstreamSpec } from '@shell/utils/kontainer';
 import {
   requiredInCluster,
   clusterNameChars,
@@ -893,7 +895,7 @@ export default defineComponent({
           label-key="aks.location.azWarning"
           color="warning"
         />
-        <div><h4>{{ t('aks.nodePools.title') }}</h4></div>
+        <div><h3>{{ t('aks.nodePools.title') }}</h3></div>
         <Tabbed
           ref="pools"
           :side-tabs="true"
@@ -1290,4 +1292,5 @@ export default defineComponent({
     display: flex;
     align-items: center;
   }
+
 </style>

@@ -32,7 +32,7 @@ export default async function(context) {
     // Fetch list of installed plugins from endpoint
     try {
       const res = await context.store.dispatch('management/request', {
-        url:                  `${ UI_PLUGIN_BASE_URL }/index.json`,
+        url:                  `${ UI_PLUGIN_BASE_URL }`,
         method:               'GET',
         headers:              { accept: 'application/json' },
         redirectUnauthorized: false,
@@ -71,7 +71,7 @@ export default async function(context) {
         console.error(`Failed to load plugin: ${ name }. `, res.reason || 'Unknown reason'); // eslint-disable-line no-console
 
         // Record error in the uiplugins store, so that we can show this to the user
-        context.store.dispatch('uiplugins/setError', { name, error: 'plugins.error.load' });
+        context.store.dispatch('uiplugins/setError', { name, error: 'plugins.error.load' }); // i18n-uses plugins.error.load
       }
     });
   }

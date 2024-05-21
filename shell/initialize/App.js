@@ -1,14 +1,11 @@
 // Taken from @nuxt/vue-app/template/App.js
-
-import Vue from 'vue';
-
 import {
   getMatchedComponentsInstances, getChildrenComponentInstancesUsingFetch, promisify, globalHandleError, sanitizeComponent
-} from '../utils/nuxt';
-import NuxtError from '../components/templates/error.vue';
-import NuxtLoading from '../components/nav/GlobalLoading.vue';
+} from '@shell/utils/nuxt';
+import NuxtError from '@shell/components/templates/error.vue';
+import NuxtLoading from '@shell/components/nav/GlobalLoading.vue';
 
-import '../assets/styles/app.scss';
+import '@shell/assets/styles/app.scss';
 
 export default {
   render(h) {
@@ -104,17 +101,6 @@ export default {
           for (const component of getChildrenComponentInstancesUsingFetch(page.$vnode.componentInstance)) {
             p.push(component.$fetch());
           }
-        }
-
-        if (page.$options.asyncData) {
-          p.push(
-            promisify(page.$options.asyncData, this.context)
-              .then((newData) => {
-                for (const key in newData) {
-                  Vue.set(page.$data, key, newData[key]);
-                }
-              })
-          );
         }
 
         return Promise.all(p);

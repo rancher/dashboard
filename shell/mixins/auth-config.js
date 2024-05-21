@@ -55,6 +55,7 @@ export default {
     },
 
     displayName() {
+      // i18n-uses model.authConfig.provider.*
       return this.t(`model.authConfig.provider.${ this.NAME }`);
     },
 

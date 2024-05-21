@@ -233,7 +233,10 @@ export default {
 </script>
 
 <template>
-  <div :class="{'side-tabs': !!sideTabs, 'tabs-only': tabsOnly }">
+  <div
+    :class="{'side-tabs': !!sideTabs, 'tabs-only': tabsOnly }"
+    data-testid="tabbed"
+  >
     <ul
       v-if="!hideTabs"
       ref="tablist"
@@ -291,6 +294,7 @@ export default {
           <button
             type="button"
             class="btn bg-transparent"
+            data-testid="tab-list-add"
             @click="tabAddClicked"
           >
             <i class="icon icon-plus" />
@@ -299,6 +303,7 @@ export default {
             type="button"
             class="btn bg-transparent"
             :disabled="!sortedTabs.length"
+            data-testid="tab-list-remove"
             @click="tabRemoveClicked"
           >
             <i class="icon icon-minus" />

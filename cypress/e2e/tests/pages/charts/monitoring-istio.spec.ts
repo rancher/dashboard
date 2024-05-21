@@ -1,41 +1,38 @@
-/* eslint-disable cypress/no-unnecessary-waiting */
 import Kubectl from '@/cypress/e2e/po/components/kubectl.po';
 import TabbedPo from '@/cypress/e2e/po/components/tabbed.po';
-import { ChartsPage } from '@/cypress/e2e/po/pages/charts.po';
-import LabeledSelectPo from '@/cypress/e2e/po/components/labeled-select.po';
-import CheckboxPo from '@/cypress/e2e/po/components/checkbox-input.po';
-import LabeledInputPo from '@/cypress/e2e/po/components/labeled-input.po';
 import ClusterDashboardPagePo from '@/cypress/e2e/po/pages/explorer/cluster-dashboard.po';
 import ProductNavPo from '@/cypress/e2e/po/side-bars/product-side-nav.po';
-
 import { prometheusSpec } from '@/cypress/e2e/blueprints/charts/prometheus-chart';
+import HomePagePo from '@/cypress/e2e/po/pages/home.po';
+import { ChartPage } from '@/cypress/e2e/po/pages/explorer/charts/chart.po';
+import { ChartsPage } from '@/cypress/e2e/po/pages/explorer/charts/charts.po';
+import { InstallChartPage } from '@/cypress/e2e/po/pages/explorer/charts/install-charts.po';
+import { PrometheusTab } from '@/cypress/e2e/po/pages/explorer/charts/tabs/prometheus-tab.po';
+import { GrafanaTab } from '@/cypress/e2e/po/pages/explorer/charts/tabs/grafana-tab.po';
+import { DEFAULT_GRAFANA_STORAGE_SIZE } from '@shell/config/types.js';
 
 describe('Charts', { tags: ['@charts', '@adminUser'] }, () => {
-  const clusterName = 'local';
-  const chartsPageUrl = '/c/local/apps/charts/chart?repo-type=cluster&repo=rancher-charts';
+  const chartsPage = new ChartsPage();
+  const chartPage = new ChartPage();
+  const installChart = new InstallChartPage();
+  const terminal = new Kubectl();
+  const prometheus = new PrometheusTab();
 
-  describe('Monitoring', () => {
-    // Ideally we should not specify this, older versions can disappear / have issues.
-    // However it seems the latest can also have issues (like no matching CRD chart)
-    const monitoringVersion = '103.0.3%2Bup45.31.1';
-    const chartsMonitoringPage = `${ chartsPageUrl }&chart=rancher-monitoring&version=${ monitoringVersion }`;
+  before(() => {
+    cy.login();
+    cy.viewport(1280, 720);
+  });
 
-    const chartsPage: ChartsPage = new ChartsPage(chartsMonitoringPage);
-
-    before(() => {
-      cy.login();
-      cy.viewport(1280, 720);
-      chartsPage.goTo();
-    });
-
+  describe('Monitoring', { testIsolation: 'off' }, () => {
     describe('Prometheus local provisioner config', () => {
       const provisionerVersion = 'v0.0.24';
 
-      // Install the chart and navigate to the edit options page
+      // Install the chart
       before(() => {
-        // Open terminal
-        const terminal = new Kubectl();
+        ChartsPage.navTo();
+        chartsPage.waitForPage();
 
+        // Open terminal
         terminal.openTerminal();
 
         // kubectl commands
@@ -46,89 +43,93 @@ describe('Charts', { tags: ['@charts', '@adminUser'] }, () => {
         terminal.closeTerminal();
       });
 
-      // Don't actually install the chart, just navigate to the edit options page
       beforeEach(() => {
-        cy.login();
-        chartsPage.goTo();
         cy.intercept('POST', 'v1/catalog.cattle.io.clusterrepos/rancher-charts?action=install').as('prometheusChartCreation');
       });
 
       it('Should not include empty prometheus selector when installing.', () => {
+        ChartPage.navTo(null, 'Monitoring');
+
+        chartPage.waitForPage('repo-type=cluster&repo=rancher-charts&chart=rancher-monitoring');
+
         const tabbedOptions = new TabbedPo();
 
-        // Set prometheus storage class
-        chartsPage.goToInstall().nextPage().editOptions(tabbedOptions, '[data-testid="btn-prometheus"');
+        // Navigate to the edit options page and Set prometheus storage class
 
-        const enableStorageCheckbox = new CheckboxPo('[data-testid="checkbox-chart-enable-persistent-storage"]');
+        chartPage.goToInstall();
+        installChart.nextPage().editOptions(tabbedOptions, '[data-testid="btn-prometheus"]');
+        installChart.waitForPage('repo-type=cluster&repo=rancher-charts&chart=rancher-monitoring');
 
         // Scroll into view
-        enableStorageCheckbox.checkVisible();
+        prometheus.persistentStorage().checkVisible();
+        prometheus.persistentStorage().set();
 
-        enableStorageCheckbox.set();
         // to check custom box element width and height in order to prevent regression
         // https://github.com/rancher/dashboard/issues/10000
-        enableStorageCheckbox.hasAppropriateWidth();
-        enableStorageCheckbox.hasAppropriateHeight();
+        prometheus.persistentStorage().hasAppropriateWidth();
+        prometheus.persistentStorage().hasAppropriateHeight();
 
-        const labeledSelectPo = new LabeledSelectPo('[data-testid="select-chart-prometheus-storage-class"]');
-
-        labeledSelectPo.toggle();
-        labeledSelectPo.clickOptionWithLabel('local-path');
+        prometheus.storageClass().toggle();
+        prometheus.storageClass().clickOptionWithLabel('local-path');
 
         // Click on YAML. In YAML mode, the prometheus selector is present but empty
         // It should not be sent to the API
-        chartsPage.editYaml();
+        installChart.editYaml();
 
-        chartsPage.installChart();
+        installChart.installChart();
 
         cy.wait('@prometheusChartCreation', { requestTimeout: 10000 }).then((req) => {
           const monitoringChart = req.request?.body.charts.find((chart: any) => chart.chartName === 'rancher-monitoring');
 
           expect(monitoringChart.values.prometheus).to.deep.equal(prometheusSpec.values.prometheus);
         });
+
+        terminal.closeTerminal();
       });
 
       // Regression test for: https://github.com/rancher/dashboard/issues/10016
       it('Should not include empty prometheus selector when installing (add/remove selector).', () => {
+        ChartPage.navTo(null, 'Monitoring');
+
+        chartPage.waitForPage('repo-type=cluster&repo=rancher-charts&chart=rancher-monitoring');
+
         const tabbedOptions = new TabbedPo();
 
         // Set prometheus storage class
-        chartsPage.goToInstall().nextPage().editOptions(tabbedOptions, '[data-testid="btn-prometheus"');
-
-        const enableStorageCheckbox = new CheckboxPo('[data-testid="checkbox-chart-enable-persistent-storage"]');
+        chartPage.goToInstall();
+        installChart.nextPage().editOptions(tabbedOptions, '[data-testid="btn-prometheus"]');
+        installChart.waitForPage('repo-type=cluster&repo=rancher-charts&chart=rancher-monitoring');
 
         // Scroll into view
-        enableStorageCheckbox.checkVisible();
+        prometheus.persistentStorage().checkVisible();
+        prometheus.persistentStorage().set();
 
-        enableStorageCheckbox.set();
-
-        const labeledSelectPo = new LabeledSelectPo('[data-testid="select-chart-prometheus-storage-class"]');
-
-        labeledSelectPo.toggle();
-        labeledSelectPo.clickOptionWithLabel('local-path');
+        prometheus.storageClass().toggle();
+        prometheus.storageClass().clickOptionWithLabel('local-path');
 
         // Add a selector and then remove it - previously this would result in the empty selector being present
-        chartsPage.self().find(`[data-testid="input-match-expression-add-rule"]`).click();
-        chartsPage.self().find(`[data-testid="input-match-expression-remove-control-0"]`).click();
+        installChart.self().find(`[data-testid="input-match-expression-add-rule"]`).click();
+        installChart.self().find(`[data-testid="input-match-expression-remove-control-0"]`).click();
 
         // Click on YAML. In YAML mode, the prometheus selector is present but empty
         // It should not be sent to the API
-        chartsPage.editYaml();
+        installChart.editYaml();
 
-        chartsPage.installChart();
+        installChart.installChart();
 
         cy.wait('@prometheusChartCreation', { requestTimeout: 10000 }).then((req) => {
           const monitoringChart = req.request?.body.charts.find((chart: any) => chart.chartName === 'rancher-monitoring');
 
           expect(monitoringChart.values.prometheus).to.deep.equal(prometheusSpec.values.prometheus);
         });
+
+        terminal.closeTerminal();
       });
     });
 
     describe('Grafana resource configuration', () => {
       beforeEach(() => {
-        cy.login();
-        chartsPage.goTo();
+        ChartPage.navTo(null, 'Monitoring');
         cy.intercept('POST', 'v1/catalog.cattle.io.clusterrepos/rancher-charts?*', {
           statusCode: 201,
           body:       {
@@ -150,39 +151,47 @@ describe('Charts', { tags: ['@charts', '@adminUser'] }, () => {
 
       it('Should allow for Grafana resource requests/limits configuration', () => {
         const tabbedOptions = new TabbedPo();
+        const grafana = new GrafanaTab();
 
         // Set Grafana resource request/limits configuration
-        chartsPage.goToInstall().nextPage().editOptions(tabbedOptions, '[data-testid="btn-grafana"');
+        chartPage.goToInstall();
+        installChart.nextPage().editOptions(tabbedOptions, '[data-testid="btn-grafana"');
 
-        const requestsCpu = new LabeledInputPo(`[data-testid="input-grafana-requests-cpu"]`, tabbedOptions.self());
+        grafana.requestedCpu().checkExists();
+        grafana.requestedCpu().checkVisible();
+        grafana.requestedCpu().set('123m');
 
-        requestsCpu.checkExists();
-        requestsCpu.checkVisible();
-        requestsCpu.set('123m');
+        grafana.requestedMemory().checkExists();
+        grafana.requestedMemory().checkVisible();
+        grafana.requestedMemory().set('567Mi');
 
-        const requestsMemory = new LabeledInputPo(`[data-testid="input-grafana-requests-memory"]`, tabbedOptions.self());
+        grafana.cpuLimit().checkExists();
+        grafana.cpuLimit().checkVisible();
+        grafana.cpuLimit().set('87m');
 
-        requestsMemory.checkExists();
-        requestsMemory.checkVisible();
-        requestsMemory.set('567Mi');
+        grafana.memoryLimit().checkExists();
+        grafana.memoryLimit().checkVisible();
+        grafana.memoryLimit().set('123Mi');
 
-        const limitsCpu = new LabeledInputPo(`[data-testid="input-grafana-limits-cpu"]`, tabbedOptions.self());
-
-        limitsCpu.checkExists();
-        limitsCpu.checkVisible();
-        limitsCpu.set('87m');
-
-        const limitsMemory = new LabeledInputPo(`[data-testid="input-grafana-limits-memory"]`, tabbedOptions.self());
-
-        limitsMemory.checkExists();
-        limitsMemory.checkVisible();
-        limitsMemory.set('123Mi');
+        // Check default Grafana storage value for pvc and statefulset types
+        // pvc
+        grafana.storageOptions().set(2);
+        grafana.storagePvcSizeInput().checkExists();
+        grafana.storagePvcSizeInput().checkVisible();
+        grafana.storagePvcSizeInput().self().invoke('val').should('equal', DEFAULT_GRAFANA_STORAGE_SIZE);
+        // statefulset
+        grafana.storageOptions().set(3);
+        grafana.storageStatefulsetSizeInput().checkExists();
+        grafana.storageStatefulsetSizeInput().checkVisible();
+        grafana.storageStatefulsetSizeInput().self().invoke('val').should('equal', DEFAULT_GRAFANA_STORAGE_SIZE);
+        // back to disabled
+        grafana.storageOptions().set(0);
 
         // Click on YAML. In YAML mode, the prometheus selector is present but empty
         // It should not be sent to the API
-        chartsPage.editYaml();
+        installChart.editYaml();
 
-        chartsPage.installChart();
+        installChart.installChart();
 
         cy.wait('@prometheusChartCreation', { requestTimeout: 10000 }).then((req) => {
           const monitoringChart = req.request?.body.charts.find((chart: any) => chart.chartName === 'rancher-monitoring');
@@ -201,29 +210,28 @@ describe('Charts', { tags: ['@charts', '@adminUser'] }, () => {
    * Istio requires Prometheus operator to be installed, see previous steps.
    */
   describe('Istio', () => {
-    const istioVersion = '103.0.0%2Bup1.18.2';
-    const chartsIstioPage = `${ chartsPageUrl }&chart=rancher-istio&version=${ istioVersion }`;
-
-    const chartsPage: ChartsPage = new ChartsPage(chartsIstioPage);
-
     beforeEach(() => {
       cy.login();
+      HomePagePo.goTo();
     });
 
     describe('Istio local provisioning', () => {
       it('Should install Istio', () => {
-        chartsPage.goTo();
-        chartsPage.goToInstall().nextPage();
+        ChartPage.navTo(null, 'Istio');
+
+        chartPage.waitForPage('repo-type=cluster&repo=rancher-charts&chart=rancher-istio');
+
+        chartPage.goToInstall();
+        installChart.nextPage();
+        installChart.waitForPage('repo-type=cluster&repo=rancher-charts&chart=rancher-istio');
 
         cy.intercept('POST', 'v1/catalog.cattle.io.clusterrepos/rancher-charts?action=install').as('chartInstall');
-        chartsPage.installChart();
+        installChart.installChart();
         cy.wait('@chartInstall').its('response.statusCode').should('eq', 201);
       });
 
       it('Side-nav should contain Istio menu item', () => {
-        const clusterDashboard = new ClusterDashboardPagePo(clusterName);
-
-        clusterDashboard.goTo();
+        ClusterDashboardPagePo.navTo();
 
         const productMenu = new ProductNavPo();
 

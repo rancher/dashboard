@@ -52,7 +52,7 @@ export default {
     showLabelTitle: {
       type:    Boolean,
       default: true,
-    },
+    }
   },
 
   data() {
@@ -124,6 +124,8 @@ export default {
         :value="value.annotations"
         :add-label="t('labels.addAnnotation')"
         :mode="mode"
+        :protected-keys="value.systemAnnotations || []"
+        :toggle-filter="toggler"
         :title="t('labels.annotations.title')"
         :title-protip="annotationTitleTooltip"
         :read-allowed="false"

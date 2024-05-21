@@ -34,6 +34,7 @@ export function diffFrom(value, from, t) {
     diff,
     absDiff,
     label,
+    // i18n-uses unit.day, unit.hour, unit.min, unit.sec
     unitsKey: `unit.${ LABELS[i] }`,
     units:    LABELS[i],
     next,

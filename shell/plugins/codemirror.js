@@ -3,17 +3,11 @@
  * so that it doesn't all get loaded put into vendor.js
  */
 
-import Vue from 'vue';
-import VueCodemirror from 'vue-codemirror';
 import CodeMirror from 'codemirror';
 
 import 'codemirror/lib/codemirror.css';
 import 'codemirror/mode/yaml/yaml.js';
 import 'codemirror/mode/javascript/javascript.js';
-
-// import 'codemirror/mode/dockerfile/dockerfile.js';
-// import 'codemirror/mode/shell/shell.js';
-// import 'codemirror/mode/markdown/markdown.js';
 
 import 'codemirror/theme/base16-light.css';
 import 'codemirror/theme/base16-dark.css';
@@ -34,9 +28,6 @@ import 'codemirror/addon/hint/show-hint.js';
 import 'codemirror/addon/hint/anyword-hint.js';
 
 import { strPad } from '@shell/utils/string';
-
-Vue.use(VueCodemirror);
-export default VueCodemirror;
 
 function isLineComment(cm, lineNo) {
   return /\bcomment\b/.test(cm.getTokenTypeAt(CodeMirror.Pos(lineNo, 0)));

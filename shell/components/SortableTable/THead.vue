@@ -136,6 +136,9 @@ export default {
     isIndeterminate() {
       return this.howMuchSelected === SOME;
     },
+    hasColumnWithSubLabel() {
+      return this.columns.some((col) => col.subLabel);
+    }
   },
 
   methods: {
@@ -206,11 +209,10 @@ export default {
 
 <template>
   <thead>
-    <tr :class="{'loading': loading}">
+    <tr :class="{'loading': loading, 'top-aligned': hasColumnWithSubLabel}">
       <th
         v-if="tableActions"
         :width="checkWidth"
-        align="middle"
       >
         <Checkbox
           v-model="isAll"
@@ -237,11 +239,22 @@ export default {
           class="table-header-container"
           :class="{ 'not-filterable': hasAdvancedFiltering && !col.isFilter }"
         >
-          <span
-            v-if="col.sort"
+          <div
             v-clean-tooltip="tooltip(col)"
+            class="content"
           >
             <span v-clean-html="labelFor(col)" />
+            <span
+              v-if="col.subLabel"
+              class="text-muted"
+            >
+              {{ col.subLabel }}
+            </span>
+          </div>
+          <div
+            v-if="col.sort"
+            class="sort"
+          >
             <i
               v-show="hasAdvancedFiltering && !col.isFilter"
               v-clean-tooltip="t('sortableTable.tableHeader.noFilter')"
@@ -258,11 +271,7 @@ export default {
                 class="icon icon-sort-up icon-stack-1x"
               />
             </span>
-          </span>
-          <span
-            v-else
-            v-clean-tooltip="tooltip(col)"
-          >{{ labelFor(col) }}</span>
+          </div>
         </div>
       </th>
       <th
@@ -394,6 +403,11 @@ export default {
       }
     }
 
+    .top-aligned th {
+      vertical-align: top;
+      padding-top: 10px;
+    }
+
     thead {
       tr {
         background-color: var(--sortable-table-header-bg);
@@ -413,11 +427,11 @@ export default {
       color: var(--body-text);
 
       .table-header-container {
-        display: inherit;
+        display: flex;
 
-        > span {
+        .content {
           display: flex;
-          align-items: center;
+          flex-direction: column;
         }
 
         &.not-filterable {

@@ -12,8 +12,20 @@ import {
 import { PaginationArgs, PaginationParam, PaginationSort } from '@shell/types/store/pagination.types';
 import { sameArrayObjects } from '@shell/utils/array';
 import { isEqual } from '@shell/utils/object';
-// import { STEVE_CACHE } from '@shell/store/features';
+import { STEVE_CACHE } from '@shell/store/features';
 import { getPerformanceSetting } from '@shell/utils/settings';
+import { DEFAULT_PERF_SETTING } from '@shell/config/settings';
+
+/**
+ * Given the vai cache changes haven't merged, work around the settings that are blocked by it
+ *
+ * Once cache is merged (pre 2.9.0) this will be removed
+ */
+const TEMP_VAI_CACHE_MERGED = false;
+/**
+ * Given above, just a dev thing
+ */
+const TEMP_PERF_ENABLED = false;
 
 /**
  * Helper functions for server side pagination
@@ -34,9 +46,7 @@ class PaginationUtils {
 
   isSteveCacheEnabled({ rootGetters }: any): boolean {
     // We always get Feature flags as part of start up (see `dispatch('features/loadServer')` in loadManagement)
-    // TODO: RC count / pages in api response is broken in image that provides cache FF, so just assume on for the moment
-    // return rootGetters['features/get'](STEVE_CACHE);
-    return true;
+    return TEMP_VAI_CACHE_MERGED || rootGetters['features/get']?.(STEVE_CACHE);
   }
 
   /**
@@ -53,8 +63,10 @@ class PaginationUtils {
       return false;
     }
 
-    // const settings = this.getSettings({ rootGetters });
-    const settings = { enabled: true, stores: { cluster: { resources: { enableAll: true } } } };
+    const settings = TEMP_PERF_ENABLED ? {
+      ...DEFAULT_PERF_SETTING.serverPagination,
+      enabled: true,
+    } : this.getSettings({ rootGetters });
 
     // No setting, not enabled
     if (!settings?.enabled) {

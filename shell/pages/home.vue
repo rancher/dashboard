@@ -91,6 +91,10 @@ export default {
     ...mapGetters(['currentCluster', 'defaultClusterId', 'releaseNotesUrl']),
     mcm: mapFeature(MULTI_CLUSTER),
 
+    mgmtClusters() {
+      return this.$store.getters['management/all'](MANAGEMENT.CLUSTER);
+    },
+
     provClusters() {
       return this.$store.getters['management/all'](CAPI.RANCHER_CLUSTER);
     },
@@ -166,15 +170,16 @@ export default {
         },
         {
           label:     this.t('landing.clusters.provider'),
+          subLabel:  this.t('landing.clusters.distro'),
           value:     'mgmt.status.provider',
           name:      'Provider',
           sort:      ['mgmt.status.provider'],
           formatter: 'ClusterProvider'
         },
         {
-          label: this.t('landing.clusters.kubernetesVersion'),
-          value: 'kubernetesVersion',
-          name:  'Kubernetes Version'
+          label:    this.t('landing.clusters.kubernetesVersion'),
+          subLabel: this.t('landing.clusters.architecture'),
+          name:     'kubernetesVersion',
         },
         {
           label: this.t('tableHeaders.cpu'),
@@ -206,7 +211,15 @@ export default {
     },
 
     kubeClusters() {
-      return filterHiddenLocalCluster(filterOnlyKubernetesClusters(this.provClusters || [], this.$store), this.$store);
+      const filteredClusters = filterHiddenLocalCluster(filterOnlyKubernetesClusters(this.provClusters || [], this.$store), this.$store);
+
+      return filteredClusters.map((provCluster) => {
+        const mgmtCluster = this.mgmtClusters?.find((c) => provCluster.mgmt?.id === c.id);
+
+        provCluster.description = provCluster.description || mgmtCluster?.description;
+
+        return provCluster;
+      });
     }
   },
 
@@ -442,6 +455,19 @@ export default {
                       >
                         {{ row.description }}
                       </p>
+                    </div>
+                  </td>
+                </template>
+                <template #col:kubernetesVersion="{row}">
+                  <td class="col-name">
+                    <span>
+                      {{ row.kubernetesVersion }}
+                    </span>
+                    <div
+                      v-clean-tooltip="{content: row.architecture.tooltip, placement: 'left'}"
+                      class="text-muted"
+                    >
+                      {{ row.architecture.label }}
                     </div>
                   </td>
                 </template>

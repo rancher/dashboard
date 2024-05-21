@@ -423,17 +423,24 @@ export default {
     <!-- Cluster tools -->
     <router-link
       v-if="showClusterTools"
-      tag="div"
-      class="tools"
+      v-slot="{ href, navigate }"
+      custom
       :to="{name: 'c-cluster-explorer-tools', params: {cluster: clusterId}}"
     >
-      <a
-        class="tools-button"
-        @click="collapseAll()"
+      <div
+        class="tools"
+        @click="navigate"
+        @keypress.enter="navigate"
       >
-        <i class="icon icon-gear" />
-        <span>{{ t('nav.clusterTools') }}</span>
-      </a>
+        <a
+          class="tools-button"
+          :href="href"
+          @click="collapseAll()"
+        >
+          <i class="icon icon-gear" />
+          <span>{{ t('nav.clusterTools') }}</span>
+        </a>
+      </div>
     </router-link>
     <!-- SideNav footer area (seems to be tied to harvester) -->
     <div

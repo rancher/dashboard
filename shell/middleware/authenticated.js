@@ -6,7 +6,6 @@ import { applyProducts } from '@shell/store/type-map';
 import { findBy } from '@shell/utils/array';
 import { ClusterNotFoundError, RedirectToError } from '@shell/utils/error';
 import { get } from '@shell/utils/object';
-import { setFavIcon, haveSetFavIcon } from '@shell/utils/favicon';
 import dynamicPluginLoader from '@shell/pkg/dynamic-plugin-loader';
 import { AFTER_LOGIN_ROUTE, WORKSPACE } from '@shell/store/prefs';
 import { BACK_TO } from '@shell/config/local-storage';
@@ -90,11 +89,6 @@ export default async function({
   try {
     // Load settings, which will either be just the public ones if not logged in, or all if you are
     await fetchInitialSettings(store);
-
-    // Set the favicon - use custom one from store if set
-    if (!haveSetFavIcon()) {
-      setFavIcon(store);
-    }
 
     const res = store.getters['management/byId'](MANAGEMENT.SETTING, SETTING.FIRST_LOGIN);
     const plSetting = store.getters['management/byId'](MANAGEMENT.SETTING, SETTING.PL);

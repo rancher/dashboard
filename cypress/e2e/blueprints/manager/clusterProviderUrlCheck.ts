@@ -5,11 +5,11 @@ export const providersList = [
     conditions:                [
       {
         rkeType: 'rke2',
-        loads:   'rke1'
+        loads:   'rke2'
       },
       {
         rkeType: 'rke1',
-        loads:   'rke1'
+        loads:   'rke2'
       },
     ]
   },

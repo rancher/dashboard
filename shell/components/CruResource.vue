@@ -441,7 +441,7 @@ export default {
     >
       {{ description }}
     </p>
-    <form
+    <component
       :is="(isView? 'div' : 'form')"
       data-testid="cru-form"
       class="create-resource-container cru__form"
@@ -477,6 +477,7 @@ export default {
             :key="subtype.id"
             class="subtype-banner"
             :class="{ selected: subtype.id === _selectedSubtype }"
+            :data-testid="`subtype-banner-item-${subtype.id}`"
             @click="selectType(subtype.id, $event)"
           >
             <slot name="subtype-content">
@@ -779,7 +780,7 @@ export default {
           </template>
         </ResourceYaml>
       </section>
-    </form>
+    </component>
   </section>
 </template>
 

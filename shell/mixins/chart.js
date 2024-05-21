@@ -256,7 +256,7 @@ export default {
 
   methods: {
     async fetchChart() {
-      await this.$store.dispatch('catalog/load', { force: true, reset: true }); // not the problem
+      await this.$store.dispatch('catalog/load'); // not the problem
 
       if ( this.query.appNamespace && this.query.appName ) {
         // First check the URL query for an app name and namespace.

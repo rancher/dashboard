@@ -52,7 +52,7 @@ describe('MachineDeployments', { testIsolation: 'off', tags: ['@manager', '@admi
 
   it('can edit a MachineDeployments', function() {
     MachineDeploymentsPagePo.navTo();
-
+    machineDeploymentsPage.waitForPage();
     machineDeploymentsPage.list().actionMenu(this.machineDeploymentsName).getMenuItem('Edit YAML').click();
     machineDeploymentsPage.createEditMachineDeployment(nsName, this.machineDeploymentsName).waitForPage('mode=edit&as=yaml');
 
@@ -82,7 +82,7 @@ describe('MachineDeployments', { testIsolation: 'off', tags: ['@manager', '@admi
 
   it('can clone a MachineDeployments', function() {
     MachineDeploymentsPagePo.navTo();
-
+    machineDeploymentsPage.waitForPage();
     machineDeploymentsPage.list().actionMenu(this.machineDeploymentsName).getMenuItem('Clone').click();
     machineDeploymentsPage.createEditMachineDeployment(nsName, this.machineDeploymentsName).waitForPage('mode=clone&as=yaml');
 
@@ -106,6 +106,7 @@ describe('MachineDeployments', { testIsolation: 'off', tags: ['@manager', '@admi
 
   it('can download YAML', function() {
     MachineDeploymentsPagePo.navTo();
+    machineDeploymentsPage.waitForPage();
     machineDeploymentsPage.list().actionMenu(this.machineDeploymentsName).getMenuItem('Download YAML').click({ force: true });
 
     const downloadedFilename = path.join(downloadsFolder, `${ this.machineDeploymentsName }.yaml`);
@@ -122,6 +123,7 @@ describe('MachineDeployments', { testIsolation: 'off', tags: ['@manager', '@admi
 
   it('can delete a MachineDeployments', function() {
     MachineDeploymentsPagePo.navTo();
+    machineDeploymentsPage.waitForPage();
 
     // delete original cloned MachineSet
     machineDeploymentsPage.list().actionMenu(`${ this.machineDeploymentsName }-clone`).getMenuItem('Delete').click();
@@ -140,6 +142,7 @@ describe('MachineDeployments', { testIsolation: 'off', tags: ['@manager', '@admi
 
   it('can delete MachineDeployments via bulk actions', function() {
     MachineDeploymentsPagePo.navTo();
+    machineDeploymentsPage.waitForPage();
 
     // delete original MachineSet
     machineDeploymentsPage.list().resourceTable().sortableTable().rowSelectCtlWithName(`${ this.machineDeploymentsName }`)

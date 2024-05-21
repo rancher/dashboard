@@ -6,11 +6,13 @@ export default {
       required: true,
     },
   },
-
   computed: {
     hasBadge() {
       return !!this.cluster?.badge?.text;
-    }
+    },
+    showBorders() {
+      return this.cluster?.badge?.color === 'transparent';
+    },
   }
 };
 </script>
@@ -20,6 +22,7 @@ export default {
     v-if="hasBadge"
     :style="{ backgroundColor: cluster.badge.color, color: cluster.badge.textColor }"
     class="cluster-badge"
+    :class="{'cluster-badge-border': showBorders}"
   >
     {{ cluster.badge.text }}
   </div>
@@ -34,5 +37,11 @@ export default {
     max-width: 250px;
     text-overflow: ellipsis;
     overflow: hidden;
+
+     &-border {
+      border: 1px solid var(--border);
+      border-radius: 5px;
+      color: var(--body-text) !important; // !important is needed to override the color set by the badge when there's a transparent background.
+    }
   }
 </style>

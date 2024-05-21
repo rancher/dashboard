@@ -1,14 +1,18 @@
 import Vue from 'vue';
 import Vuex from 'vuex';
+import vSelect from 'vue-select';
+import VTooltip from 'v-tooltip';
 import { themes } from '@storybook/theming';
 import { get } from '../../shell/utils/object';
 import IntlMessageFormat from 'intl-messageformat';
 import installShortcut from './theme-shortcut';
 import withEvents from 'storybook-auto-events';
 const i18nStrings = require('../../shell/assets/translations/en-us.yaml');
-import { VCleanTooltip } from '@shell/plugins/clean-tooltip-directive.js';
+import cleanTooltipDirective  from '@shell/directives/clean-tooltip';
 import ShortKey from 'vue-shortkey';
-import { trimWhitespace } from '../../shell/plugins/trim-whitespace';
+import trimWhitespaceDirective from '@shell/directives/trim-whitespace';
+import cleanHtmlDirective from '@shell/directives/clean-html';
+
 
 // Store modules
 import growl from './store/growl';
@@ -19,22 +23,19 @@ import table from './store/table';
 // Register custom i18n plugin
 require('../../shell/plugins/i18n');
 
-require('../../shell/plugins/v-select');
-require('../../shell/plugins/tooltip');
-require('../../shell/plugins/clean-html-directive');
-
 Vue.use(Vuex);
 Vue.use(ShortKey, { prevent: ['input', 'textarea', 'select'] });
+Vue.component('v-select', vSelect);
+Vue.use(VTooltip);
 
 Vue.component('router-link', {
   props:   ['to'],
   template: '<a>link</a>',
 })
 
-Vue.directive('clean-tooltip', VCleanTooltip);
-Vue.directive('trim-whitespace', {
-  inserted:        trimWhitespace,
-});
+Vue.directive('clean-tooltip', cleanTooltipDirective);
+Vue.directive('trim-whitespace', trimWhitespaceDirective);
+Vue.directive('clean-html', cleanHtmlDirective);
 
 window.__codeMirrorLoader = () => import(/* webpackChunkName: "codemirror" */ '@shell/plugins/codemirror');
 

@@ -1,8 +1,8 @@
 <script>
 
 export default {
-  async asyncData({ redirect, store, router }) {
-    await store.dispatch('auth/logout', null, { root: true });
+  async fetch() {
+    await this.$store.dispatch('auth/logout', { force: true }, { root: true });
   }
 };
 </script>

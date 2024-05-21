@@ -11,6 +11,7 @@ import ClusterManagerCreateRke2CustomPagePo from '@/cypress/e2e/po/edit/provisio
 import ClusterManagerEditRke2CustomPagePo from '@/cypress/e2e/po/edit/provisioning.cattle.io.cluster/edit/cluster-edit-rke2-custom.po';
 import ClusterManagerImportGenericPagePo from '@/cypress/e2e/po/edit/provisioning.cattle.io.cluster/import/cluster-import.generic.po';
 import ClusterManagerEditGenericPagePo from '@/cypress/e2e/po/edit/provisioning.cattle.io.cluster/edit/cluster-edit-generic.po';
+import ClusterManagerNamespacePagePo from '@/cypress/e2e/po/pages/cluster-manager/namespace.po';
 import PromptRemove from '@/cypress/e2e/po/prompts/promptRemove.po';
 import * as path from 'path';
 import * as jsyaml from 'js-yaml';
@@ -22,6 +23,7 @@ import HomePagePo from '@/cypress/e2e/po/pages/home.po';
 import { nodeDriveResponse } from '@/cypress/e2e/tests/pages/manager/mock-responses';
 import LabeledSelectPo from '@/cypress/e2e/po/components/labeled-select.po';
 import ProductNavPo from '@/cypress/e2e/po/side-bars/product-side-nav.po';
+import TabbedPo from '@/cypress/e2e/po/components/tabbed.po';
 
 // At some point these will come from somewhere central, then we can make tools to remove resources from this or all runs
 const runTimestamp = +new Date();
@@ -103,7 +105,7 @@ describe('Cluster Manager', { testIsolation: 'off', tags: ['@manager', '@adminUs
     const createRKE2ClusterPage = new ClusterManagerCreateRke2CustomPagePo();
     const detailRKE2ClusterPage = new ClusterManagerDetailRke2CustomPagePo(undefined, rke2CustomName);
 
-    describe('RKE2 Custom', () => {
+    describe('RKE2 Custom', { tags: ['@jenkins', '@customCluster'] }, () => {
       const editCreatedClusterPage = new ClusterManagerEditRke2CustomPagePo(undefined, rke2CustomName);
 
       it('can create new cluster', () => {
@@ -115,7 +117,10 @@ describe('Cluster Manager', { testIsolation: 'off', tags: ['@manager', '@adminUs
             name: rke2CustomName
           },
           // Test for https://github.com/rancher/dashboard/issues/10338 (added option 'none' for CNI)
-          spec: { rkeConfig: { machineGlobalConfig: { cni: 'none' }, machinePoolDefaults: { hostnameLengthLimit: 15 } } }
+          // The test validate the warning when selecting none, but now this get back to calico.
+          // A CNI is mandatory to get the cluster active otherwise manual intervention is needed or
+          // the use of a cloud provider but that's not in scope.
+          spec: { rkeConfig: { machineGlobalConfig: { cni: 'calico' }, machinePoolDefaults: { hostnameLengthLimit: 15 } } }
         };
 
         cy.userPreferences();
@@ -156,6 +161,10 @@ describe('Cluster Manager', { testIsolation: 'off', tags: ['@manager', '@adminUs
         cy.get('[data-testid="clusterBasics__noneOptionSelectedForCni"]').should('exist');
         // EO test for https://github.com/rancher/dashboard/issues/10338 (added option 'none' for CNI)
 
+        labeledSelectPo.toggle();
+        labeledSelectPo.clickLabel('calico');
+        labeledSelectPo.checkOptionSelected('calico');
+
         // testing https://github.com/rancher/dashboard/issues/10159
         cy.get('[data-testid="btn-networking"]').click();
         createRKE2ClusterPage.network().truncateHostnameCheckbox().set();
@@ -169,6 +178,32 @@ describe('Cluster Manager', { testIsolation: 'off', tags: ['@manager', '@adminUs
         });
 
         detailRKE2ClusterPage.waitForPage(undefined, 'registration');
+
+        createRKE2ClusterPage.activateInsecureRegistrationCommandFromUI().click();
+        createRKE2ClusterPage.commandFromCustomClusterUI().then(($value) => {
+          const registrationCommand = $value.text();
+
+          cy.exec(`echo ${ Cypress.env('customNodeKey') } | base64 -d > custom_node.key && chmod 600 custom_node.key`).then((result) => {
+            cy.log('Creating the custom_node.key');
+            cy.log(result.stderr);
+            cy.log(result.stdout);
+            expect(result.code).to.eq(0);
+          });
+          cy.exec(`head custom_node.key`).then((result) => {
+            cy.log(result.stdout);
+            cy.log(result.stderr);
+            expect(result.code).to.eq(0);
+          });
+          cy.exec(createRKE2ClusterPage.customClusterRegistrationCmd(registrationCommand)).then((result) => {
+            cy.log(result.stderr);
+            cy.log(result.stdout);
+            expect(result.code).to.eq(0);
+          });
+        });
+        ClusterManagerListPagePo.navTo();
+        clusterList.waitForPage();
+        clusterList.list().state(rke2CustomName).should('contain', 'Updating');
+        clusterList.list().state(rke2CustomName).contains('Active', { timeout: 700000 });
       });
 
       it('can copy config to clipboard', () => {
@@ -405,7 +440,7 @@ describe('Cluster Manager', { testIsolation: 'off', tags: ['@manager', '@adminUs
     });
   });
 
-  describe('Imported', () => {
+  describe('Imported', { tags: ['@jenkins', '@importedCluster'] }, () => {
     const importClusterPage = new ClusterManagerImportGenericPagePo();
 
     describe('Generic', () => {
@@ -435,8 +470,25 @@ describe('Cluster Manager', { testIsolation: 'off', tags: ['@manager', '@adminUs
             spec: {}
           });
         });
-
         detailClusterPage.waitForPage(undefined, 'registration');
+        detailClusterPage.kubectlCommandForImported().then(($value) => {
+          const kubectlCommand = $value.text();
+
+          cy.log(kubectlCommand);
+          cy.exec(kubectlCommand, { failOnNonZeroExit: false }).then((result) => {
+            cy.log(result.stderr);
+            cy.log(result.stdout);
+            expect(result.code).to.eq(0);
+          });
+        });
+        ClusterManagerListPagePo.navTo();
+        clusterList.waitForPage();
+        clusterList.list().state(importGenericName).should('contain', 'Pending');
+        clusterList.list().state(importGenericName).should('contain', 'Waiting');
+        clusterList.list().state(importGenericName).contains('Active', { timeout: 700000 });
+        // Issue #6836: Provider field on Imported clusters states "Imported" instead of cluster type
+        clusterList.list().provider(importGenericName).should('contain', 'Imported');
+        clusterList.list().providerSubType(importGenericName).should('contain', 'RKE2');
       });
 
       it('can navigate to cluster edit page', () => {
@@ -479,6 +531,57 @@ describe('Cluster Manager', { testIsolation: 'off', tags: ['@manager', '@adminUs
     const clusterList = new ClusterManagerListPagePo('_');
 
     clusterList.waitForPage();
+  });
+
+  describe('Cluster Details Tabs', () => {
+    const tabbedPo = new TabbedPo('[data-testid="tabbed-block"]');
+    const clusterDetail = new ClusterManagerDetailImportedGenericPagePo(undefined, 'local');
+
+    beforeEach( () => {
+      ClusterManagerListPagePo.navTo();
+      const clusterList = new ClusterManagerListPagePo('_');
+
+      clusterList.waitForPage();
+      clusterList.clickOnClusterName('local');
+    });
+
+    it('can navigate to Cluster Conditions Page', () => {
+      clusterDetail.selectTab(tabbedPo, '[data-testid="btn-conditions"]');
+
+      clusterDetail.conditionsList().details('Ready', 1).should('include.text', 'True');
+    });
+
+    it('can navigate to Cluster Related Page', () => {
+      clusterDetail.selectTab(tabbedPo, '[data-testid="btn-related"]');
+
+      clusterDetail.referredToList().details('Mgmt', 2).should('include.text', 'local');
+    });
+
+    it('can navigate to Cluster Provisioning Log Page', () => {
+      clusterDetail.selectTab(tabbedPo, '[data-testid="btn-log"]');
+
+      clusterDetail.logsContainer().should('be.visible');
+    });
+
+    it('can navigate to Cluster Machines Page', () => {
+      clusterDetail.selectTab(tabbedPo, '[data-testid="btn-node-pools"]');
+
+      clusterDetail.machinePoolsList().resourceTable().sortableTable().noRowsShouldNotExist();
+      clusterDetail.machinePoolsList().details('machine-', 2).should('be.visible');
+      clusterDetail.machinePoolsList().downloadYamlButton().should('be.disabled');
+    });
+
+    it('can navigate to namespace from cluster detail view', () => {
+      clusterDetail.waitForPage();
+
+      clusterDetail.namespace().should('contain.text', 'fleet-local');
+      clusterDetail.namespace().click();
+
+      const nsPage = new ClusterManagerNamespacePagePo();
+
+      nsPage.waitForPage();
+      nsPage.namespace().should('contain.text', 'fleet-local');
+    });
   });
 
   it(`can navigate to local cluster's explore product`, () => {

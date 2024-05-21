@@ -21,11 +21,12 @@ export default {
         return true;
       }
 
-      return this.name.length <= 2;
+      return this.name.length <= 1;
     },
     clusterPreview() {
       if (this.mode !== _CREATE) {
         return {
+          ...this.currentCluster,
           badge: {
             iconText: this.currentCluster.metadata.annotations[CLUSTER_BADGE.ICON_TEXT],
             color:    this.currentCluster.metadata.annotations[CLUSTER_BADGE.COLOR],
@@ -51,10 +52,10 @@ export default {
       this.$store.dispatch('cluster/promptModal', {
         component:      'AddCustomBadgeDialog',
         componentProps: {
-          isCreate:       this.mode === _CREATE,
-          mode:           this.mode,
-          clusterName:    this.name,
-          clusterPreview: this.clusterPreview
+          isCreate:        this.mode === _CREATE,
+          mode:            this.mode,
+          clusterName:     this.name,
+          clusterExplorer: this.clusterPreview
         },
       });
     },
@@ -64,7 +65,9 @@ export default {
 
 <template>
   <div class="cluster-appearance">
-    <label for="name">Cluster ClusterAppearance</label>
+    <label for="name">
+      {{ t('clusterBadge.setClusterAppearance') }}
+    </label>
     <div class="cluster-appearance-preview">
       <span>
         <ClusterIconMenu :cluster="clusterPreview" />
@@ -74,7 +77,9 @@ export default {
         @click="customBadgeDialog"
       >
         <i class="icon icon-brush-icon" />
-        <span>Customize</span>
+        <span>
+          {{ t('clusterBadge.customize') }}
+        </span>
       </button>
     </div>
   </div>
@@ -84,7 +89,7 @@ export default {
   .cluster-appearance {
     display: flex;
     flex-direction: column;
-    margin: 0px 35px 0px 0px;
+    margin: 3px 35px 0px 0px;
 
     label {
       margin: 6px 0 0;

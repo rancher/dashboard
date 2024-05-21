@@ -4,7 +4,10 @@ import HomePagePo from '@/cypress/e2e/po/pages/home.po';
 import BurgerMenuPo from '@/cypress/e2e/po/side-bars/burger-side-menu.po';
 import ProductNavPo from '@/cypress/e2e/po/side-bars/product-side-nav.po';
 import PreferencesPagePo from '@/cypress/e2e/po/pages/preferences.po';
+import { LoginPagePo } from '@/cypress/e2e/po/pages/login-page.po';
 
+const loginPage = new LoginPagePo();
+const homePage = new HomePagePo();
 const brandingPage = new BrandingPagePo();
 const burgerMenu = new BurgerMenuPo();
 
@@ -28,7 +31,7 @@ const settings = {
 describe('Branding', { testIsolation: 'off' }, () => {
   before(() => {
     cy.login();
-    HomePagePo.goTo();
+    homePage.goTo();
   });
 
   it('Can navigate to Branding Page', { tags: ['@globalSettings', '@adminUser', '@standardUser'] }, () => {
@@ -71,8 +74,6 @@ describe('Branding', { testIsolation: 'off' }, () => {
 
     burgerMenuPo.home().click();
 
-    const homePage = new HomePagePo();
-
     homePage.title().should('eq', `Welcome to ${ settings.privateLabel.new }`);
 
     // Check in session
@@ -104,18 +105,18 @@ describe('Branding', { testIsolation: 'off' }, () => {
 
     // Upload Light Logo
     brandingPage.uploadButton('Upload Light Logo')
-      .selectFile('cypress/e2e/blueprints/logos/rancher-color.svg', { force: true });
+      .selectFile('cypress/e2e/blueprints/branding/logos/rancher-color.svg', { force: true });
 
     // Upload Dark Logo
     brandingPage.uploadButton('Upload Dark Logo')
-      .selectFile('cypress/e2e/blueprints/logos/rancher-white.svg', { force: true });
+      .selectFile('cypress/e2e/blueprints/branding/logos/rancher-white.svg', { force: true });
 
     // Apply
     brandingPage.applyAndWait('/v1/management.cattle.io.settings/ui-logo-light', 200);
 
     // Logo Preview
-    brandingPage.logoPreview('dark').should('be.visible');
-    brandingPage.logoPreview('light').should('be.visible');
+    brandingPage.logoPreview('dark').scrollIntoView().should('be.visible');
+    brandingPage.logoPreview('light').scrollIntoView().should('be.visible');
 
     // Set dashboard theme to Dark and check top-level navigation header for updated logo in dark mode
     PreferencesPagePo.navTo();
@@ -128,7 +129,7 @@ describe('Branding', { testIsolation: 'off' }, () => {
       expect(response?.body.data).to.have.property('theme', '"ui-dark"');
     });
 
-    cy.fixture('logos/rancher-white.svg', 'base64').then((expectedBase64) => {
+    cy.fixture('branding/logos/rancher-white.svg', 'base64').then((expectedBase64) => {
       burgerMenu.headerBrandLogoImage().should('be.visible').and('have.attr', 'src', `data:image/svg+xml;base64,${ expectedBase64 }`);
 
       BurgerMenuPo.toggle();
@@ -146,7 +147,7 @@ describe('Branding', { testIsolation: 'off' }, () => {
       expect(response?.body.data).to.have.property('theme', '"ui-light"');
     });
 
-    cy.fixture('logos/rancher-color.svg', 'base64').then((expectedBase64) => {
+    cy.fixture('branding/logos/rancher-color.svg', 'base64').then((expectedBase64) => {
       burgerMenu.headerBrandLogoImage().should('be.visible').and('have.attr', 'src', `data:image/svg+xml;base64,${ expectedBase64 }`);
 
       BurgerMenuPo.toggle();
@@ -167,6 +168,148 @@ describe('Branding', { testIsolation: 'off' }, () => {
     burgerMenu.brandLogoImage().should('be.visible').then((el) => {
       expect(el).to.have.attr('src').includes('/img/rancher-logo.66cf5910.svg');
     });
+  });
+
+  it('Banner', { tags: ['@globalSettings', '@adminUser'] }, () => {
+    const prefPage = new PreferencesPagePo();
+
+    BrandingPagePo.navTo();
+    brandingPage.customBannerCheckbox().set();
+    brandingPage.customBannerCheckbox().hasAppropriateWidth();
+    brandingPage.customBannerCheckbox().hasAppropriateHeight();
+
+    // Upload Light Banner
+    brandingPage.uploadButton('Upload Light Banner')
+      .selectFile('cypress/e2e/blueprints/branding/banners/banner-light.svg', { force: true });
+
+    // Upload Dark Banner
+    brandingPage.uploadButton('Upload Dark Banner')
+      .selectFile('cypress/e2e/blueprints/branding/banners/banner-dark.svg', { force: true });
+
+    // Apply
+    brandingPage.applyAndWait('/v1/management.cattle.io.settings/ui-banner-light', 200);
+
+    // Banner Preview
+    brandingPage.bannerPreview('dark').scrollIntoView().should('be.visible');
+    brandingPage.bannerPreview('light').scrollIntoView().should('be.visible');
+
+    // Set dashboard theme to Light and check homepage for updated banner in dark mode
+    PreferencesPagePo.navTo();
+    prefPage.themeButtons().checkVisible();
+    cy.intercept('PUT', 'v1/userpreferences/*').as('prefUpdateDark');
+    prefPage.themeButtons().set('Dark');
+    cy.wait('@prefUpdateDark').then(({ request, response }) => {
+      expect(response?.statusCode).to.eq(200);
+      expect(request.body.data).to.have.property('theme', '"ui-dark"');
+      expect(response?.body.data).to.have.property('theme', '"ui-dark"');
+    });
+
+    cy.fixture('branding/banners/banner-dark.svg', 'base64').then((expectedBase64) => {
+      homePage.goTo();
+      homePage.getBrandBannerImage().should('be.visible').and('have.attr', 'src', `data:image/svg+xml;base64,${ expectedBase64 }`);
+    });
+
+    // Set dashboard theme to Light and check homepage for updated banner in light mode
+    PreferencesPagePo.navTo();
+    prefPage.themeButtons().checkVisible();
+    cy.intercept('PUT', 'v1/userpreferences/*').as('prefUpdateLight');
+    prefPage.themeButtons().set('Light');
+    cy.wait('@prefUpdateLight').then(({ request, response }) => {
+      expect(response?.statusCode).to.eq(200);
+      expect(request.body.data).to.have.property('theme', '"ui-light"');
+      expect(response?.body.data).to.have.property('theme', '"ui-light"');
+    });
+
+    cy.fixture('branding/banners/banner-light.svg', 'base64').then((expectedBase64) => {
+      homePage.goTo();
+      homePage.getBrandBannerImage().should('be.visible').and('have.attr', 'src', `data:image/svg+xml;base64,${ expectedBase64 }`);
+    });
+
+    // Reset
+    BrandingPagePo.navTo();
+    brandingPage.customBannerCheckbox().set();
+    brandingPage.applyAndWait('/v1/management.cattle.io.settings/ui-banner-light', 200);
+
+    homePage.goTo();
+    homePage.getBrandBannerImage().should('be.visible').then((el) => {
+      expect(el).to.have.attr('src').includes('/img/banner.b321f7eb.svg');
+    });
+  });
+
+  it('Login Background', { tags: ['@globalSettings', '@adminUser'] }, () => {
+    const prefPage = new PreferencesPagePo();
+
+    BrandingPagePo.navTo();
+
+    brandingPage.customLoginBackgroundCheckbox().set();
+    brandingPage.customLoginBackgroundCheckbox().hasAppropriateWidth();
+    brandingPage.customLoginBackgroundCheckbox().hasAppropriateHeight();
+
+    // Upload Light Background
+    brandingPage.uploadButton('Upload Light Background')
+      .selectFile('cypress/e2e/blueprints/branding/backgrounds/login-landscape-light.svg', { force: true });
+
+    // Upload Dark Background
+    brandingPage.uploadButton('Upload Dark Background')
+      .selectFile('cypress/e2e/blueprints/branding/backgrounds/login-landscape-dark.svg', { force: true });
+
+    // Apply
+    brandingPage.applyAndWait('/v1/management.cattle.io.settings/ui-login-background-light', 200);
+
+    // Banner Preview
+    brandingPage.loginBackgroundPreview('dark').scrollIntoView().should('be.visible');
+    brandingPage.loginBackgroundPreview('light').scrollIntoView().should('be.visible');
+
+    // Set dashboard theme to Dark and check login page for updated background in dark mode
+    PreferencesPagePo.navTo();
+    prefPage.themeButtons().checkVisible();
+    cy.intercept('PUT', 'v1/userpreferences/*').as('prefUpdateDark');
+    prefPage.themeButtons().set('Dark');
+    cy.wait('@prefUpdateDark').then(({ request, response }) => {
+      expect(response?.statusCode).to.eq(200);
+      expect(request.body.data).to.have.property('theme', '"ui-dark"');
+      expect(response?.body.data).to.have.property('theme', '"ui-dark"');
+    });
+
+    cy.fixture('branding/backgrounds/login-landscape-dark.svg', 'base64').then((expectedBase64) => {
+      loginPage.goTo();
+      loginPage.loginBackgroundImage().should('be.visible').and('have.attr', 'src', `data:image/svg+xml;base64,${ expectedBase64 }`);
+    });
+
+    cy.login();
+    HomePagePo.goToAndWaitForGet();
+
+    // Set dashboard theme to Dark and check login page for updated background in light mode
+    PreferencesPagePo.navTo();
+    prefPage.themeButtons().checkVisible();
+    cy.intercept('PUT', 'v1/userpreferences/*').as('prefUpdateLight');
+    prefPage.themeButtons().set('Light');
+    cy.wait('@prefUpdateLight').then(({ request, response }) => {
+      expect(response?.statusCode).to.eq(200);
+      expect(request.body.data).to.have.property('theme', '"ui-light"');
+      expect(response?.body.data).to.have.property('theme', '"ui-light"');
+    });
+
+    cy.fixture('branding/backgrounds/login-landscape-light.svg', 'base64').then((expectedBase64) => {
+      loginPage.goTo();
+      loginPage.loginBackgroundImage().should('be.visible').and('have.attr', 'src', `data:image/svg+xml;base64,${ expectedBase64 }`);
+    });
+
+    cy.login();
+    HomePagePo.goToAndWaitForGet();
+
+    // Reset
+    BrandingPagePo.navTo();
+    brandingPage.customLoginBackgroundCheckbox().set();
+    brandingPage.applyAndWait('/v1/management.cattle.io.settings/ui-login-background-light', 200);
+
+    loginPage.goTo();
+    loginPage.loginBackgroundImage().should('be.visible').then((el) => {
+      expect(el).to.have.attr('src').includes('/img/login-landscape.911b980e.svg');
+    });
+
+    cy.login();
+    HomePagePo.goToAndWaitForGet();
   });
 
   it('Favicon', { tags: ['@globalSettings', '@adminUser'] }, () => {
@@ -215,7 +358,7 @@ describe('Branding', { testIsolation: 'off' }, () => {
     brandingPage.primaryColorPicker().value().should('eq', settings.primaryColor.new);
     brandingPage.primaryColorPicker().previewColor().should('eq', settings.primaryColor.newRGB);
     brandingPage.applyButton().self().should('have.css', 'background').should((background: string) => {
-      expect(background).to.satisfy((b: string) => b.startsWith(settings.primaryColor.newRGB));
+      expect(background).to.satisfy((b) => b.startsWith(settings.primaryColor.newRGB));
     });
 
     // Check over reload
@@ -223,8 +366,27 @@ describe('Branding', { testIsolation: 'off' }, () => {
     brandingPage.primaryColorPicker().value().should('eq', settings.primaryColor.new);
     brandingPage.primaryColorPicker().previewColor().should('eq', settings.primaryColor.newRGB);
     brandingPage.applyButton().self().should('have.css', 'background').should((background: string) => {
-      expect(background).to.satisfy((b: string) => b.startsWith(settings.primaryColor.newRGB));
+      expect(background).to.satisfy((b) => b.startsWith(settings.primaryColor.newRGB));
     });
+
+    // check that login page has new styles applied
+    // https://github.com/rancher/dashboard/issues/10788
+    loginPage.goTo();
+
+    loginPage.submitButton().self().should('have.css', 'background').should((background: string) => {
+      expect(background).to.satisfy((b) => b.startsWith(settings.primaryColor.newRGB));
+    });
+
+    cy.reload();
+
+    loginPage.submitButton().self().should('have.css', 'background').should((background: string) => {
+      expect(background).to.satisfy((b) => b.startsWith(settings.primaryColor.newRGB));
+    });
+    // EO test https://github.com/rancher/dashboard/issues/10788
+
+    cy.login();
+    HomePagePo.goToAndWaitForGet();
+    BrandingPagePo.navTo();
 
     // Reset
     brandingPage.primaryColorPicker().set(settings.primaryColor.original);
@@ -251,6 +413,25 @@ describe('Branding', { testIsolation: 'off' }, () => {
     cy.reload();
     brandingPage.linkColorPicker().value().should('eq', settings.linkColor.new);
     brandingPage.linkColorPicker().previewColor().should('eq', settings.linkColor.newRGB);
+
+    // check that login page has new styles applied
+    // https://github.com/rancher/dashboard/issues/10788
+    loginPage.goTo();
+
+    loginPage.password().showBtn().should('have.css', 'color').should((color: string) => {
+      expect(color).to.satisfy((b) => b.startsWith(settings.linkColor.newRGB));
+    });
+
+    cy.reload();
+
+    loginPage.password().showBtn().should('have.css', 'color').should((color: string) => {
+      expect(color).to.satisfy((b) => b.startsWith(settings.linkColor.newRGB));
+    });
+    // EO test https://github.com/rancher/dashboard/issues/10788
+
+    cy.login();
+    HomePagePo.goToAndWaitForGet();
+    BrandingPagePo.navTo();
 
     // Reset
     brandingPage.linkColorPicker().set(settings.linkColor.original);

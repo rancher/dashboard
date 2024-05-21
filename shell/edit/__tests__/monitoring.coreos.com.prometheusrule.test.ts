@@ -2,7 +2,6 @@ import { mount } from '@vue/test-utils';
 import FormValidation from '@shell/mixins/form-validation';
 import Monitoring from '@shell/edit/monitoring.coreos.com.prometheusrule/index.vue';
 import { _EDIT } from '@shell/config/query-params';
-import { cleanHtmlDirective } from '@shell/plugins/clean-html-directive';
 
 describe('edit: management.cattle.io.setting should', () => {
   const MOCKED_ERRORS = ['error1', 'error2', 'error3', 'error4', 'error5'];
@@ -37,7 +36,6 @@ describe('edit: management.cattle.io.setting should', () => {
         value:    { value: 'anything' },
         name:     ''
       },
-      directives: { cleanHtmlDirective },
       ...requiredSetup()
     });
 

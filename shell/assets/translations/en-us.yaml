@@ -529,12 +529,28 @@ authConfig:
       show: Show details
       hide: Hide details
   azuread:
-    tenantId: Tenant ID
-    applicationId: Application ID
-    endpoint: Endpoint
-    graphEndpoint: Graph Endpoint
-    tokenEndpoint: Token Endpoint
-    authEndpoint: Auth Endpoint
+    tenantId:
+      label: Tenant ID
+      tooltip: From the Azure AD portal
+      placeholder: A long UUID string
+    applicationId:
+      label: Application ID
+      placeholder: A long UUID string
+    applicationSecret:
+      label: Application Secret
+    endpoint:
+      label: Endpoint
+    endpoints:
+      label: Endpoints
+      standard: Standard
+      china: China
+      custom: Custom
+    graphEndpoint:
+      label: Graph Endpoint
+    tokenEndpoint:
+      label: Token Endpoint
+    authEndpoint:
+      label: Auth Endpoint
     reply:
       info: 'Azure AD requires a whitelisted URL for your Rancher server before beginning this setup. Please ensure that the following URL is set in the Reply URL section of your Azure Portal. Please note that it may take up to 5 minutes for the whitelisted URL to propagate.'
       label: Reply URL
@@ -1296,6 +1312,9 @@ cluster:
         networkName: Network Name
         macAddress: Mac Address
         macFormat: 'Invalid MAC address format.'
+      vGpus:
+        errors:
+          notAllocatable: '"VGPUs" not allocatable. There are not enough [{vGpus}] devices to be allocated to each node in machine pool [{pool}]'
       volume:
         title: Volumes
         volume: Volume
@@ -1699,7 +1718,7 @@ cluster:
   banner:
     warning: 'This cluster contains a machineSelectorConfig, which this form does not fully support; use the YAML editor to manage the full configuration.'
     os: 'You are attempting to add a {newOS} worker node to a cluster with one or more {existingOS} worker nodes: some installed apps may need to be upgraded or removed.'
-    rke2-k3-reprovisioning: 'Making changes to cluster configuration may result in nodes reprovisioning. For more information see the <a href="{docsBase}/cluster-provisioning/rke-clusters/behavior-differences-between-rke1-and-rke2/" target="_blank" rel="noopener nofollow">documentation</a>.'
+    rke2-k3-reprovisioning: 'Making changes to cluster configuration may result in nodes reprovisioning. For more information see the <a href="{docsBase}/cluster-provisioning/rke-clusters/behavior-differences-between-rke1-and-rke2#cluster-api" target="_blank" rel="noopener nofollow">documentation</a>.'
     desiredNodeGroupWarning: There are 0 nodes available to run the cluster agent. The cluster will not become active until at least one node is available.
     haveArgInfo: Configuration information is not available for the selected Kubernetes version.  The options available on this screen will be limited; you may want to use the YAML editor.
     cloudProviderAddConfig: 'On Kubernetes 1.27 or greater, the Amazon Cloud Provider requires additional configuration. See <a href="https://ranchermanager.docs.rancher.com/how-to-guides/new-user-guides/kubernetes-clusters-in-rancher-setup/set-up-cloud-providers/amazon" target="_blank" rel="noopener noreferrer nofollow">the documentation</a> for more information.'
@@ -1709,6 +1728,11 @@ cluster:
         other { {pool_name}: The provided values for {fields} were not found in the list of expected values. This can happen with clusters provisioned outside of Rancher or when options for the provider have changed. }
       }
   rkeTemplateUpgrade: Template revision {name} available for upgrade
+
+  architecture:
+    label:
+      unknown: Unknown
+      mixed: Mixed
 
   availabilityWarnings:
     node: Node {name} is inactive
@@ -2115,23 +2139,23 @@ cruResource:
   showYaml: View as YAML
 
 drivers:
-  kontainer: 
+  kontainer:
     title: Cluster Drivers
   node:
     title: Node Drivers
   add:
     title: Add Driver
-    name: 
+    name:
       label: Driver name
-    downloadUrl: 
+    downloadUrl:
       label: Download URL
       placeholder: https://test.com/driver
-      tooltip: The URL to download the machine driver binary for 64-bit Linux. 
-    customUiUrl: 
+      tooltip: The URL to download the machine driver binary for 64-bit Linux.
+    customUiUrl:
       label: Custom UI URL
       placeholder: https://test.com/ui
-      tooltip: The URL to load for customized Add Nodes screen for this driver. See https://github.com/rancher/ui-driver-skel for more info. 
-    checksum: 
+      tooltip: The URL to load for customized Add Nodes screen for this driver. See https://github.com/rancher/ui-driver-skel for more info.
+    checksum:
       label: Checksum
       tooltip: Checksum to verify that the downloaded driver matches the expected checksum.
     whitelist: Whitelist Domains
@@ -2139,7 +2163,7 @@ drivers:
     refresh: Refresh Kubernetes Metadata
   deactivate:
     title: Are you sure?
-    warning: You will no longer be able to edit the configuration of clusters using {name} driver. Resources in the provider will not be automatically removed. 
+    warning: You will no longer be able to edit the configuration of clusters using {name} driver. Resources in the provider will not be automatically removed.
 
 detailText:
   collapse: Hide
@@ -2407,6 +2431,7 @@ glance:
   pods: Pods
   provider: Provider
   version: Kubernetes Version
+  architecture: Architecture
   monitoringDashboard: Monitoring Dashboard
   installMonitoring: Install Monitoring
   clusterInfo: Cluster Information
@@ -2415,18 +2440,22 @@ glance:
 
 clusterBadge:
   addLabel: Add Cluster Badge
+  setClusterAppearance: Cluster Appearance
+  customize: Customize
   editLabel: Edit Cluster Badge
   modal:
-    title: Custom Cluster Badge
+    title: Cluster Appearance
     checkbox: Show cluster comment
     comment: Custom comment
     iconText: Icon Text
     buttonAction: Apply
     badgeBgColor: Badge background color
     badgeTextColor: Badge text color
-    badgeAsIcon: Customize cluster icon
-    maxCharsTooltip: Maximum three characters
-    previewTitle: "Cluster icon and name presentation:"
+    badgeAsIcon: Use custom badge
+    maxCharsTooltip: Overwrites the default cluster name abbreviation.
+    previewTitle: "Preview:"
+    previewSide: "SIDE NAVIGATION"
+    previewHeader: "RANCHER HEADER"
 
 grafanaDashboard:
   failedToLoad: Failed to load graph
@@ -2805,8 +2834,8 @@ labels:
     title: Labels
     description: Key/value pairs that are attached to objects which specify identifying attributes.
     fleetClusterTooltip: Label changes are made to the Management Cluster and synchronized to the Fleet Cluster
-    show: Show System Label
-    hide: Hide System Label
+    show: Show System Labels and Annotations
+    hide: Hide System Labels and Annotations
   annotations:
     title: Annotations
 
@@ -2821,7 +2850,9 @@ landing:
   clusters:
     title: Clusters
     provider: Provider
+    distro: Distro
     kubernetesVersion: Kubernetes Version
+    architecture: Architecture
     explorer: Explorer
     explore: Explore
     cores: |-
@@ -2881,6 +2912,7 @@ logging:
           include: Limit to specific container names
           exclude: Exclude specific container names
         placeholder: "Default: Any container"
+        enter: Enter container name to select
       namespaces:
         title:
           include: Limit to specific namespaces
@@ -3170,7 +3202,7 @@ members:
   clusterMembers: Cluster Members
   clusterAndProject: Cluster and Project Members
   createActionLabel: Add
-  clusterMemebership: Cluster Membership
+  clusterMembership: Cluster Membership
   projectMembership: Project Membership
   clusterPermissions:
     noDescription: User created - no description
@@ -4177,6 +4209,7 @@ plugins:
   manageRepos: Manage Repositories
   addRancherRepos: Add Rancher Repositories
   manageCharts: Manage Extension Charts
+  warnNoAuth: This version of the extension will be loaded before authentication and will have access to the login process.
   manageCatalog:
     label: Manage Extension Catalogs
     title: Extension
@@ -4861,7 +4894,6 @@ secret:
     warnings:
       expiring: "{count} {count, plural, =1 {Certificate expires soon} other {Certificates expire soon}}"
       expired: "{count} {count, plural, =1 {Certificate has expired} other {Certificates have expired}}"
-      filtered: ". Not all may be visible given the selected project/namespace filter"
   data: Data
   registry:
     address: Registry
@@ -7100,7 +7132,7 @@ podAffinity:
 keyValue:
   keyPlaceholder: e.g. foo
   valuePlaceholder: e.g. bar
-  protip: 'Paste lines of <em>key=value</em> or <em>key: value</em> into any key field for easy bulk entry'
+  protip: 'Paste lines of <em>key=value</em> or <em>key:value</em> into any key field for easy bulk entry'
 
 registryMirror:
   header: Mirrors
@@ -7282,7 +7314,10 @@ performance:
     checkboxLabel: Enable Server-side Pagination
     applicable: "This applies to the following resource types"
     incompatibleDescription: "Server-side Pagination is incomaptible with Manual Refresh and Incremental Loading. Enabling this will disable them."
-    featureFlag: The Feature Flag `on-disk-steve-cache` must be enabled to use this feature
+    featureFlag: The&nbsp;<a href="{ffUrl}">Feature Flag</a>&nbsp;`on-disk-steve-cache` must be enabled to use this feature
+    resources:
+      generic: most resources in the cluster's 'More Resources' section
+      all: All Resources
 banner:
   label: Fixed Banners
   settingName: Banners
@@ -7326,9 +7361,25 @@ branding:
     uploadLight: Upload Light Logo
     uploadDark: Upload Dark Logo
     useCustom: Use a Custom Logo
+  banner:
+    label: Banner
+    tip: 'Upload an image to replace the default Rancher banner in the Dashboard page. We recommend using an SVG image with an aspect ratio of 6:1. The default image size is 4197x633. Max file size is 200KB. Accepted formats: JPEG, PNG, SVG.'
+    lightPreview: Light Theme Preview
+    darkPreview: Dark Theme Preview
+    uploadLight: Upload Light Banner
+    uploadDark: Upload Dark Banner
+    useCustom: Use a Custom Banner
+  loginBackground:
+    label: Login Background
+    tip: 'Upload an image to replace the default Rancher background in the Login page. We recommend using an SVG image with an aspect ratio of 7:8. The default image size is 683x768. Max file size is 200KB. Accepted formats: JPEG, PNG, SVG.'
+    lightPreview: Light Theme Preview
+    darkPreview: Dark Theme Preview
+    uploadLight: Upload Light Background
+    uploadDark: Upload Dark Background
+    useCustom: Use a Custom Background
   favicon:
     label: Favicon
-    tip: 'Upload an icon to replace the Rancher favicon in the browser tab. Max file size is 20KB'
+    tip: 'Upload an icon to replace the Rancher favicon in the browser tab. Max file size is 20KB.'
     preview: Favicon Preview
     upload: Upload Favicon
     useCustom: Use a Custom Favicon

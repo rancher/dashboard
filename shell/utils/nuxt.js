@@ -1,14 +1,5 @@
 import Vue from 'vue';
-import {
-  isSamePath as _isSamePath, joinURL, normalizeURL, withQuery, withoutTrailingSlash
-} from 'ufo';
-
-// window.{{globals.loadedCallback}} hook
-// Useful for jsdom testing or plugins (https://github.com/tmpvar/jsdom#dealing-with-asynchronous-script-loading)
-window.onNuxtReadyCbs = [];
-window.onNuxtReady = (cb) => {
-  window.onNuxtReadyCbs.push(cb);
-};
+import { joinURL, normalizeURL, withQuery, withoutTrailingSlash } from 'ufo';
 
 export function createGetCounter(counterObject, defaultKey = '') {
   return function getCounter(id = defaultKey) {
@@ -70,34 +61,6 @@ export function getChildrenComponentInstancesUsingFetch(vm, instances = []) {
   }
 
   return instances;
-}
-
-export function applyAsyncData(Component, asyncData) {
-  if (
-    // For SSR, we once all this function without second param to just apply asyncData
-    // Prevent doing this for each SSR request
-    !asyncData && Component.options.__hasNuxtData
-  ) {
-    return;
-  }
-
-  const ComponentData = Component.options._originDataFn || Component.options.data || function() {
-    return {};
-  };
-
-  Component.options._originDataFn = ComponentData;
-
-  Component.options.data = function() {
-    const data = ComponentData.call(this, this);
-
-    return { ...data, ...asyncData };
-  };
-
-  Component.options.__hasNuxtData = true;
-
-  if (Component._Ctor && Component._Ctor.options) {
-    Component._Ctor.options.data = Component.options.data;
-  }
 }
 
 export function sanitizeComponent(Component) {
@@ -297,7 +260,7 @@ export function promisify(fn, context) {
   let promise;
 
   if (fn.length === 2) {
-    console.warn('Callback-based asyncData, fetch or middleware calls are deprecated. Please switch to promises or async/await syntax'); // eslint-disable-line no-console
+    console.warn('Callback-based fetch or middleware calls are deprecated. Please switch to promises or async/await syntax'); // eslint-disable-line no-console
 
     // fn(context, callback)
     promise = new Promise((resolve) => {
@@ -339,31 +302,6 @@ export function getLocation(base, mode) {
 }
 
 // Imported from path-to-regexp
-
-/**
- * Compile a string to a template function for the path.
- *
- * @param  {string}             str
- * @param  {Object=}            options
- * @return {!function(Object=, Object=)}
- */
-export function compile(str, options) {
-  return tokensToFunction(parse(str, options), options);
-}
-
-export function getQueryDiff(toQuery, fromQuery) {
-  const diff = {};
-  const queries = { ...toQuery, ...fromQuery };
-
-  for (const k in queries) {
-    if (String(toQuery[k]) !== String(fromQuery[k])) {
-      diff[k] = true;
-    }
-  }
-
-  return diff;
-}
-
 export function normalizeError(err) {
   let message;
 
@@ -384,236 +322,6 @@ export function normalizeError(err) {
   };
 }
 
-/**
- * The main path matching regexp utility.
- *
- * @type {RegExp}
- */
-const PATH_REGEXP = new RegExp([
-  // Match escaped characters that would otherwise appear in future matches.
-  // This allows the user to escape special characters that won't transform.
-  '(\\\\.)',
-  // Match Express-style parameters and un-named parameters with a prefix
-  // and optional suffixes. Matches appear as:
-  //
-  // "/:test(\\d+)?" => ["/", "test", "\d+", undefined, "?", undefined]
-  // "/route(\\d+)"  => [undefined, undefined, undefined, "\d+", undefined, undefined]
-  // "/*"            => ["/", undefined, undefined, undefined, undefined, "*"]
-  '([\\/.])?(?:(?:\\:(\\w+)(?:\\(((?:\\\\.|[^\\\\()])+)\\))?|\\(((?:\\\\.|[^\\\\()])+)\\))([+*?])?|(\\*))'
-].join('|'), 'g');
-
-/**
- * Parse a string for the raw tokens.
- *
- * @param  {string}  str
- * @param  {Object=} options
- * @return {!Array}
- */
-function parse(str, options) {
-  const tokens = [];
-  let key = 0;
-  let index = 0;
-  let path = '';
-  const defaultDelimiter = (options && options.delimiter) || '/';
-  let res;
-
-  while ((res = PATH_REGEXP.exec(str)) !== null) {
-    const m = res[0];
-    const escaped = res[1];
-    const offset = res.index;
-
-    path += str.slice(index, offset);
-    index = offset + m.length;
-
-    // Ignore already escaped sequences.
-    if (escaped) {
-      path += escaped[1];
-      continue;
-    }
-
-    const next = str[index];
-    const prefix = res[2];
-    const name = res[3];
-    const capture = res[4];
-    const group = res[5];
-    const modifier = res[6];
-    const asterisk = res[7];
-
-    // Push the current path onto the tokens.
-    if (path) {
-      tokens.push(path);
-      path = '';
-    }
-
-    const partial = prefix !== null && next !== null && next !== prefix;
-    const repeat = modifier === '+' || modifier === '*';
-    const optional = modifier === '?' || modifier === '*';
-    const delimiter = res[2] || defaultDelimiter;
-    const pattern = capture || group;
-
-    tokens.push({
-      name:     name || key++,
-      prefix:   prefix || '',
-      delimiter,
-      optional,
-      repeat,
-      partial,
-      asterisk: Boolean(asterisk),
-      pattern:  pattern ? escapeGroup(pattern) : (asterisk ? '.*' : `[^${ escapeString(delimiter) }]+?`)
-    });
-  }
-
-  // Match any characters still remaining.
-  if (index < str.length) {
-    path += str.substr(index);
-  }
-
-  // If the path exists, push it onto the end.
-  if (path) {
-    tokens.push(path);
-  }
-
-  return tokens;
-}
-
-/**
- * Prettier encoding of URI path segments.
- *
- * @param  {string}
- * @return {string}
- */
-function encodeURIComponentPretty(str, slashAllowed) {
-  const re = slashAllowed ? /[?#]/g : /[/?#]/g;
-
-  return encodeURI(str).replace(re, (c) => {
-    return `%${ c.charCodeAt(0).toString(16).toUpperCase() }`;
-  });
-}
-
-/**
- * Encode the asterisk parameter. Similar to `pretty`, but allows slashes.
- *
- * @param  {string}
- * @return {string}
- */
-function encodeAsterisk(str) {
-  return encodeURIComponentPretty(str, true);
-}
-
-/**
- * Escape a regular expression string.
- *
- * @param  {string} str
- * @return {string}
- */
-function escapeString(str) {
-  return str.replace(/([.+*?=^!:${}()[\]|/\\])/g, '\\$1');
-}
-
-/**
- * Escape the capturing group by escaping special characters and meaning.
- *
- * @param  {string} group
- * @return {string}
- */
-function escapeGroup(group) {
-  return group.replace(/([=!:$/()])/g, '\\$1');
-}
-
-/**
- * Expose a method for transforming tokens into the path function.
- */
-function tokensToFunction(tokens, options) {
-  // Compile all the tokens into regexps.
-  const matches = new Array(tokens.length);
-
-  // Compile all the patterns before compilation.
-  for (let i = 0; i < tokens.length; i++) {
-    if (typeof tokens[i] === 'object') {
-      matches[i] = new RegExp(`^(?:${ tokens[i].pattern })$`, flags(options));
-    }
-  }
-
-  return function(obj, opts) {
-    let path = '';
-    const data = obj || {};
-    const options = opts || {};
-    const encode = options.pretty ? encodeURIComponentPretty : encodeURIComponent;
-
-    for (let i = 0; i < tokens.length; i++) {
-      const token = tokens[i];
-
-      if (typeof token === 'string') {
-        path += token;
-
-        continue;
-      }
-
-      const value = data[token.name || 'pathMatch'];
-      let segment;
-
-      if (value === null) {
-        if (token.optional) {
-          // Prepend partial segment prefixes.
-          if (token.partial) {
-            path += token.prefix;
-          }
-
-          continue;
-        } else {
-          throw new TypeError(`Expected "${ token.name }" to be defined`);
-        }
-      }
-
-      if (Array.isArray(value)) {
-        if (!token.repeat) {
-          throw new TypeError(`Expected "${ token.name }" to not repeat, but received \`${ JSON.stringify(value) }\``);
-        }
-
-        if (value.length === 0) {
-          if (token.optional) {
-            continue;
-          } else {
-            throw new TypeError(`Expected "${ token.name }" to not be empty`);
-          }
-        }
-
-        for (let j = 0; j < value.length; j++) {
-          segment = encode(value[j]);
-
-          if (!matches[i].test(segment)) {
-            throw new TypeError(`Expected all "${ token.name }" to match "${ token.pattern }", but received \`${ JSON.stringify(segment) }\``);
-          }
-
-          path += (j === 0 ? token.prefix : token.delimiter) + segment;
-        }
-
-        continue;
-      }
-
-      segment = token.asterisk ? encodeAsterisk(value) : encode(value);
-
-      if (!matches[i].test(segment)) {
-        throw new TypeError(`Expected "${ token.name }" to match "${ token.pattern }", but received "${ segment }"`);
-      }
-
-      path += token.prefix + segment;
-    }
-
-    return path;
-  };
-}
-
-/**
- * Get the flags for a regexp from the options.
- *
- * @param  {Object} options
- * @return {string}
- */
-function flags(options) {
-  return options && options.sensitive ? '' : 'i';
-}
-
 export function addLifecycleHook(vm, hook, fn) {
   if (!vm.$options[hook]) {
     vm.$options[hook] = [];
@@ -626,8 +334,6 @@ export function addLifecycleHook(vm, hook, fn) {
 export const urlJoin = joinURL;
 
 export const stripTrailingSlash = withoutTrailingSlash;
-
-export const isSamePath = _isSamePath;
 
 export function setScrollRestoration(newVal) {
   try {

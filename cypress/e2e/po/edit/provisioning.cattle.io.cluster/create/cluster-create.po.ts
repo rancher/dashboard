@@ -52,4 +52,16 @@ export default class ClusterManagerCreatePagePo extends ClusterManagerCreateImpo
   selectCustom(index: number) {
     return this.resourceDetail().cruResource().selectSubType(2, index).click();
   }
+
+  commandFromCustomClusterUI() {
+    return this.self().get('code').contains('--insecure');
+  }
+
+  activateInsecureRegistrationCommandFromUI() {
+    return this.self().get('.checkbox-label').contains('Insecure:');
+  }
+
+  customClusterRegistrationCmd(cmd: string) {
+    return `ssh -i custom_node.key -o "StrictHostKeyChecking=no" -o "UserKnownHostsFile=/dev/null" root@${ Cypress.env('customNodeIp') } \"nohup ${ cmd }\"`;
+  }
 }

@@ -1,0 +1,129 @@
+#!/usr/bin/env node
+
+/**
+ * This script reads the AWS region data from GitHub (the AWS SDK project) and
+ * checks the regions against the amazon.js file.
+ *
+ * It will update this file with the latest regions if there are changes (regions added or removed)
+ *
+ */
+
+const fs = require('fs');
+const path = require('path');
+
+console.log('Updating Amazon EC2 region list');
+console.log('===============================');
+console.log('');
+
+const SCRIPT = process.argv[1];
+const DIR = path.resolve(SCRIPT, '../../..');
+const PARTITIONS = ['aws', 'aws-us-gov', 'aws-cn', 'aws-iso', 'aws-iso-b'];
+const ENDPOINTS_URL = 'https://raw.githubusercontent.com/boto/botocore/develop/botocore/data/endpoints.json';
+const JS_FILE = path.resolve(DIR, 'shell/assets/data/aws-regions.json');
+
+const request = require('request');
+
+function readExisting() {
+  const data = fs.readFileSync(JS_FILE).toString();
+  const items = JSON.parse(data);
+
+  return items;
+}
+
+function writeRegionFile(latest) {
+  const str = JSON.stringify(latest.sort(), undefined, 2) + '\n';
+
+  fs.writeFileSync(JS_FILE, str);
+}
+
+// List regions in a partition
+function listRegions(endpoints, partition, svc) {
+  const p = endpoints.partitions.find((p => p.partition === partition));
+
+  if (!p) {
+    console.error(`Can not find partition ${ partition }`);
+    return;
+  }
+
+  const regions = [];
+
+  Object.keys(p.services?.[svc]?.endpoints || {}).forEach((r) => {
+    const v = p.services[svc].endpoints[r];
+
+    if (!v.deprecated) {
+      regions.push(r);
+      // console.log(`    ${ r }`);
+    }
+  });
+
+  regions.sort();
+
+  return regions;
+}
+
+function checkService(endpoints, svc) {
+  const latest = [];
+
+  console.log(`Checking regions for ${ svc }`);
+
+  PARTITIONS.forEach((p) => latest.push(...listRegions(endpoints, p, svc)));
+
+  const existing = readExisting();
+  const latestMap = {};
+  const existingMap = {};
+
+  latest.forEach((r) => latestMap[r] = true);
+  existing.forEach((r) => existingMap[r] = true);
+
+  let changes = false;
+
+  latest.forEach((r) => {
+    if (!existingMap[r]) {
+      console.log('  + new region ' + r);
+      changes = true;
+    }
+  });
+
+  existing.forEach((r) => {
+    if (!latestMap[r]) {
+      console.log('  - removed region ' + r);
+      changes = true;
+    }
+  });
+
+  // Write the region file
+  if (changes) {
+    writeRegionFile(latest);
+  } else {
+    console.log('  No region changes');
+  }
+
+  console.log('');
+
+  return changes;
+}
+
+request(ENDPOINTS_URL, function (error, res, body) {
+  if (error) {
+    console.error('Could not fetch endpoints data');
+
+    process.exit(1);
+  }
+
+  if (res.statusCode !== 200) {
+    console.error(`Could not fetch endpoints data - status ${ res.statusCode } ${ res.statusMessage }`);
+
+    process.exit(2);
+  }
+
+  try {
+    const endpoints = JSON.parse(body);
+
+    checkService(endpoints, 'ec2');
+  } catch (e) {
+    console.error('Error parsing and processing data');
+    console.error(e);
+
+    process.exit(3);
+  }
+});

@@ -14,6 +14,8 @@ import { _CREATE, _VIEW } from '@shell/config/query-params';
 import FormValidation from '@shell/mixins/form-validation';
 import { fetchAlertManagerConfigSpecs } from '@shell/utils/alertmanagerconfig';
 
+// i18n-uses monitoringReceiver.slack.*, monitoringReceiver.email.*, monitoringReceiver.pagerduty.*
+// i18n-uses monitoringReceiver.opsgenie.*, monitoringReceiver.webhook.*, monitoringReceiver.custom.*
 export const RECEIVERS_TYPES = [
   {
     name:  'slack',
@@ -288,6 +290,7 @@ export default {
           :required="true"
           :mode="mode"
           :rules="fvGetAndReportPathRules('name')"
+          data-testid="v2-monitoring-receiver-name"
         />
       </div>
     </div>

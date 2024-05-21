@@ -9,4 +9,8 @@ export default class NameNsDescription extends ComponentPo {
   description() {
     return new LabeledInputPo(this.self().find('[data-testid="name-ns-description-description"] input'));
   }
+
+  project() {
+    return new LabeledInputPo(this.self().find('[data-testid="name-ns-description-project"] input'));
+  }
 }
