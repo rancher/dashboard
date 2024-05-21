@@ -9,6 +9,7 @@ import {
   ID_UNLINKED,
   NAME_UNLINKED,
 } from '@shell/config/table-headers';
+import paginationUtils from '@shell/utils/pagination-utils';
 
 export default {
   components: {
@@ -18,10 +19,7 @@ export default {
   },
 
   async fetch() {
-    if (this.$store.getters['management/schemaFor'](SECRET)) {
-      // TODO: RC shell/pages/c/_cluster/manager/cloudCredential/index.vue.
-      // list is norman creds, cannot paginate.
-      // Convert anything that uses cred `publicData` to a Live column and fetch specific secrets as needed
+    if (this.$store.getters['management/schemaFor'](SECRET) && !paginationUtils.isEnabled({ rootGetters: this.$store.getters }, { store: 'cluster', resource: { id: SECRET } })) {
       // Having secrets allows showing the public portion of more types but not all users can see them.
       await this.$store.dispatch('management/findAll', { type: SECRET });
     }
@@ -47,12 +45,12 @@ export default {
         ID_UNLINKED,
         NAME_UNLINKED,
         {
-          name:        'apikey',
-          labelKey:    'tableHeaders.apikey',
-          value:       'publicData',
-          sort:        'publicData',
-          search:      'publicData',
-          dashIfEmpty: true,
+          name:      'apikey',
+          labelKey:  'tableHeaders.apikey',
+          value:     'publicData',
+          sort:      'publicData',
+          search:    'publicData',
+          formatter: 'CloudCredPublicData',
         },
         DESCRIPTION,
         AGE_NORMAN,
@@ -70,9 +68,6 @@ export default {
     },
   },
 
-  mounted() {
-    window.c = this;
-  },
 };
 </script>
 
@@ -85,7 +80,6 @@ export default {
       :create-location="createLocation"
       :type-display="t('manager.cloudCredentials.label')"
     />
-
     <ResourceTable
       :schema="schema"
       :rows="rows"
@@ -95,16 +89,6 @@ export default {
     >
       <template #cell:id="{row}">
         {{ row.id.replace('cattle-global-data:', '') }}
-      </template>
-      <template #cell:apikey="{row}">
-        <span
-          v-if="row.publicData"
-          v-clean-html="row.publicData"
-        />
-        <span
-          v-else
-          class="text-muted"
-        >&mdash;</span>
       </template>
     </ResourceTable>
   </div>
