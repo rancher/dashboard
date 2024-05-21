@@ -1413,6 +1413,21 @@ cluster:
   name:
     label: Cluster Name
     placeholder: A unique name for the cluster
+  directoryConfig:
+    title: Data directory configuration
+    checkboxText: Use the same path for System-agent, Provisioning and K8s Distro data directories configuration
+    common: 
+      label: Data directory configuration path
+      tooltip: Data directory configuration for System-agent, Provisioning and K8s Distro
+    systemAgent: 
+      label: System-agent directory path
+      tooltip: Data directory for the system-agent connection info and plans
+    provisioning: 
+      label: Provisioning directory path
+      tooltip: Data directory for provisioning related files
+    k8sDistro: 
+      label: K8s Distro directory path
+      tooltip: Data directory for the k8s distro
   machineConfig:
     banner:
       updateInfo: Create a new pool to update machine configs

@@ -171,6 +171,14 @@ export default {
       });
     }
 
+    if (!this.value.spec.rkeConfig.dataDirectories) {
+      set(this.value.spec.rkeConfig, 'dataDirectories', {
+        systemAgent:  '',
+        provisioning: '',
+        k8sDistro:    '',
+      });
+    }
+
     if (!this.value.spec.rkeConfig.machineGlobalConfig) {
       set(this.value.spec, 'rkeConfig.machineGlobalConfig', {});
     }
