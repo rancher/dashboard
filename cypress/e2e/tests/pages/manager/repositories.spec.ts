@@ -194,4 +194,48 @@ describe('Cluster Management Helm Repositories', { testIsolation: 'off', tags: [
     cy.contains(`${ this.repoName }basic`).should('not.exist');
     cy.contains(`${ this.repoName }ssh`).should('not.exist');
   });
+
+  it('can create an oci repository with basic auth', function() {
+    ChartRepositoriesPagePo.navTo();
+    repositoriesPage.waitForPage();
+    repositoriesPage.waitForGoTo('/v1/catalog.cattle.io.clusterrepos?exclude=metadata.managedFields');
+    repositoriesPage.create();
+    repositoriesPage.createEditRepositories().waitForPage();
+    const ociUrl = 'oci://test.rancher.io/charts/mychart';
+
+    repositoriesPage.createEditRepositories().nameNsDescription().name().set(this.repoName);
+    repositoriesPage.createEditRepositories().nameNsDescription().description().set(`${ this.repoName }-description`);
+    repositoriesPage.createEditRepositories().repoRadioBtn().set(2);
+    repositoriesPage.createEditRepositories().ociUrl().set(ociUrl);
+    repositoriesPage.createEditRepositories().clusterrepoAuthSelectOrCreate().createBasicAuth('test', 'test');
+
+    cy.intercept('POST', '/v1/catalog.cattle.io.clusterrepos').as('createRepository');
+
+    repositoriesPage.createEditRepositories().saveAndWaitForRequests('POST', '/v1/catalog.cattle.io.clusterrepos');
+
+    cy.wait('@createRepository', { requestTimeout: 10000 }).then((req) => {
+      expect(req.response?.statusCode).to.equal(201);
+      expect(req.request?.body?.spec.url).to.equal(ociUrl);
+      // insecurePlainHttp should always be included in the payload for oci repo creation
+      expect(req.request?.body?.spec.insecurePlainHttp).to.equal(false);
+    });
+
+    repositoriesPage.waitForPage();
+
+    // check list details
+    repositoriesPage.list().details(this.repoName, 2).should('be.visible');
+
+    repositoriesPage.list().actionMenu(this.repoName).getMenuItem('Delete').click();
+
+    const promptRemove = new PromptRemove();
+
+    cy.intercept('DELETE', `v1/catalog.cattle.io.clusterrepos/${ this.repoName }`).as('deleteRepository');
+
+    promptRemove.remove();
+    cy.wait('@deleteRepository');
+    repositoriesPage.waitForPage();
+
+    // check list details
+    cy.contains(this.repoName).should('not.exist');
+  });
 });

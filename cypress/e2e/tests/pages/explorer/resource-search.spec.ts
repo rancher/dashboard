@@ -16,7 +16,7 @@ describe('Cluster Dashboard', { testIsolation: 'off', tags: ['@explorer', '@admi
 
   it('can show resource search dialog', () => {
     // Open the resource search
-    clusterDashboard.resourceSearchButton().click();
+    clusterDashboard.clusterActionsHeader().resourceSearchButton().click();
 
     const dialog = new ResourceSearchDialog();
 

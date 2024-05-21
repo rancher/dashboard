@@ -393,15 +393,16 @@ export function init(store) {
   });
 
   virtualType({
-    labelKey:   'members.clusterAndProject',
-    group:      'cluster',
-    namespaced: false,
-    name:       VIRTUAL_TYPES.CLUSTER_MEMBERS,
-    icon:       'globe',
-    weight:     -1,
-    route:      { name: 'c-cluster-product-members' },
-    exact:      true,
-    ifHaveType: {
+    labelKey:     'members.clusterAndProject',
+    group:        'cluster',
+    namespaced:   false,
+    name:         VIRTUAL_TYPES.CLUSTER_MEMBERS,
+    icon:         'globe',
+    weight:       -1,
+    route:        { name: 'c-cluster-product-members' },
+    exact:        false,
+    'exact-path': true,
+    ifHaveType:   {
       type:  MANAGEMENT.CLUSTER_ROLE_TEMPLATE_BINDING,
       store: 'management'
     }

@@ -7,6 +7,7 @@ import SimpleBoxPo from '@/cypress/e2e/po/components/simple-box.po';
 import { WorkloadsDeploymentsListPagePo } from '@/cypress/e2e/po/pages/explorer/workloads/workloads-deployments.po';
 import { NodesPagePo } from '@/cypress/e2e/po/pages/explorer/nodes.po';
 import { EventsPagePo } from '@/cypress/e2e/po/pages/explorer/events.po';
+import * as path from 'path';
 
 const configMapYaml = `apiVersion: v1
 kind: ConfigMap
@@ -73,6 +74,32 @@ describe('Cluster Dashboard', { testIsolation: 'off', tags: ['@explorer', '@admi
     header.importYaml().importYamlSortableTable().subRows().should('not.exist');
 
     header.importYaml().importYamlCloseClick();
+  });
+
+  it('can open the kubectl shell from header', () => {
+    ClusterDashboardPagePo.navTo();
+
+    header.kubectlShell().openAndExecuteCommand('get no');
+    header.kubectlShell().closeTerminal();
+    header.kubectlShell().checkNotVisible();
+  });
+
+  it('can download kubeconfig from header', () => {
+    const downloadsFolder = Cypress.config('downloadsFolder');
+    const downloadedFilename = path.join(downloadsFolder, 'local.yaml');
+
+    ClusterDashboardPagePo.navTo();
+
+    header.downloadKubeconfig().click();
+    cy.readFile(downloadedFilename).should('contain', 'kind: Config');
+  });
+
+  it('can copy the kubeconfig to clipboard', () => {
+    ClusterDashboardPagePo.navTo();
+    cy.intercept('POST', '*action=generateKubeconfig').as('copyKubeConfig');
+    header.copyKubeconfig().click();
+    header.copyKubeConfigCheckmark().should('be.visible');
+    cy.wait('@copyKubeConfig');
   });
 
   it('can add cluster badge', () => {

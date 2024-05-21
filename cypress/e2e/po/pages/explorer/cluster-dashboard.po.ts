@@ -4,6 +4,7 @@ import CustomBadgeDialogPo from '@/cypress/e2e/po/components/custom-badge-dialog
 import EventsListPo from '@/cypress/e2e/po/lists/events-list.po';
 import TabbedPo from '@/cypress/e2e/po/components/tabbed.po';
 import CertificatesPo from '@/cypress/e2e/po/components/certificates.po';
+import { HeaderPo } from '~/cypress/e2e/po/components/header.po';
 
 export default class ClusterDashboardPagePo extends PagePo {
   private static createPath(clusterId: string) {
@@ -63,7 +64,7 @@ export default class ClusterDashboardPagePo extends PagePo {
     return cy.get('.cert-table-link').contains('Full secrets list');
   }
 
-  resourceSearchButton(): Cypress.Chainable {
-    return cy.get('[data-testid="header-resource-search"]');
+  clusterActionsHeader() {
+    return new HeaderPo();
   }
 }

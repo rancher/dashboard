@@ -6,6 +6,7 @@ import ArrayListGrouped from '@shell/components/form/ArrayListGrouped';
 import MatchExpressions from '@shell/components/form/MatchExpressions';
 import ArrayList from '@shell/components/form/ArrayList';
 import { Checkbox } from '@components/Form/Checkbox';
+import DirectoryConfig from '@shell/edit/provisioning.cattle.io.cluster/tabs/DirectoryConfig.vue';
 
 export default {
   components: {
@@ -13,7 +14,8 @@ export default {
     ArrayListGrouped,
     MatchExpressions,
     ArrayList,
-    Checkbox
+    Checkbox,
+    DirectoryConfig
   },
 
   props: {
@@ -91,6 +93,10 @@ export default {
 <template>
   <div>
     <template v-if="haveArgInfo">
+      <DirectoryConfig
+        v-model="value.spec.rkeConfig.dataDirectories"
+        :mode="mode"
+      />
       <h3>{{ t('cluster.advanced.argInfo.title') }}</h3>
       <ArrayListGrouped
         v-if="agentArgs['kubelet-arg']"
