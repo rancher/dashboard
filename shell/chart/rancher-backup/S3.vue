@@ -36,7 +36,7 @@ export default {
   },
 
   async fetch() {
-    if (!paginationUtils.isSteveCacheEnabled({ rootGetters: this.$store.getters })) {
+    if (!paginationUtils.isEnabled({ rootGetters: this.$store.getters }, { store: 'cluster', resource: { id: SECRET } })) {
       this.secrets = await this.$store.dispatch('cluster/findAll', { type: SECRET });
     }
   },

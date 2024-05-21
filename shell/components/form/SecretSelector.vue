@@ -66,7 +66,7 @@ export default {
   },
 
   async fetch() {
-    if (!paginationUtils.isSteveCacheEnabled({ rootGetters: this.$store.getters })) {
+    if (!paginationUtils.isEnabled({ rootGetters: this.$store.getters }, { store: 'cluster', resource: { id: SECRET } })) {
       await this.$store.dispatch('cluster/findAll', { type: SECRET });
     }
   },
@@ -206,6 +206,7 @@ export default {
         :disabled="!isView && disabled"
         :options="secretNames"
         :paginate="paginateSecrets"
+        :loading="$fetchState.pending"
         :label="secretNameLabel"
         :mode="mode"
       />

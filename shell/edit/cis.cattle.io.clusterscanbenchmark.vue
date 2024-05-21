@@ -34,7 +34,7 @@ export default {
   },
 
   async fetch() {
-    if (!paginationUtils.isSteveCacheEnabled({ rootGetters: this.$store.getters })) {
+    if (!paginationUtils.isEnabled({ rootGetters: this.$store.getters }, { store: 'cluster', resource: { id: CONFIG_MAP } })) {
       this.configMaps = await this.$store.dispatch('cluster/findAll', { type: CONFIG_MAP });
     }
   },

@@ -32,11 +32,10 @@ export default {
   components: { LabeledSelect },
 
   async fetch() {
-    if (!paginationUtils.isSteveCacheEnabled({ rootGetters: this.$store.getters })) {
+    if (!paginationUtils.isEnabled({ rootGetters: this.$store.getters }, { store: 'cluster', resource: { id: SECRET } })) {
       // Make sure secrets are in the store so that the secret
       // selectors in the receiver config forms will have secrets
       // to choose from.
-      // TODO: RC test
       const allSecrets = await this.$store.dispatch('cluster/findAll', { type: SECRET });
 
       const allSecretsInNamespace = allSecrets.filter((secret) => this.types.includes(secret._type) && secret.namespace === this.namespace);
@@ -199,6 +198,7 @@ export default {
         v-model="name"
         class="col span-6"
         :disabled="!isView && disabled"
+        :loading="$fetchState.pending"
         :options="secretNames"
         :paginate="paginateSecrets"
         :label="secretNameLabel"

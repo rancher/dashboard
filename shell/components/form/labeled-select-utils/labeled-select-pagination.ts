@@ -74,7 +74,7 @@ export default defineComponent<Props, any, Data, Computed, Methods>({
 
   computed: {
     canPaginate() {
-      return !!this.paginate && paginationUtils.isSteveCacheEnabled({ rootGetters: this.$store.getters });
+      return !!this.paginate && paginationUtils.isEnabled({ rootGetters: this.$store.getters }, { store: 'cluster' });
     },
 
     canLoadMore() {

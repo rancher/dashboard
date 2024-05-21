@@ -21,11 +21,11 @@ import { DEFAULT_PERF_SETTING } from '@shell/config/settings';
  *
  * Once cache is merged (pre 2.9.0) this will be removed
  */
-const VAI_CACHE_MERGED = false;
+const TEMP_VAI_CACHE_MERGED = false;
 /**
  * Given above, just a dev thing
  */
-const PERF_ENABLED = false;
+const TEMP_PERF_ENABLED = false;
 
 /**
  * Helper functions for server side pagination
@@ -46,11 +46,7 @@ class PaginationUtils {
 
   isSteveCacheEnabled({ rootGetters }: any): boolean {
     // We always get Feature flags as part of start up (see `dispatch('features/loadServer')` in loadManagement)
-    if (VAI_CACHE_MERGED) {
-      return rootGetters['features/get'](STEVE_CACHE);
-    }
-
-    return true;
+    return TEMP_VAI_CACHE_MERGED || rootGetters['features/get'](STEVE_CACHE);
   }
 
   /**
@@ -67,10 +63,10 @@ class PaginationUtils {
       return false;
     }
 
-    const settings = VAI_CACHE_MERGED ? this.getSettings({ rootGetters }) : {
+    const settings = TEMP_PERF_ENABLED ? {
       ...DEFAULT_PERF_SETTING.serverPagination,
-      enabled: PERF_ENABLED,
-    };
+      enabled: true,
+    } : this.getSettings({ rootGetters });
 
     // No setting, not enabled
     if (!settings?.enabled) {
