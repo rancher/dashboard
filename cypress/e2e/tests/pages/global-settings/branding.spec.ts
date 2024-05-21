@@ -48,7 +48,11 @@ describe('Branding', { testIsolation: 'off' }, () => {
     settingsPage.waitForPageWithClusterId();
 
     // check if burguer menu nav is highlighted correctly for Global Settings
+    // https://github.com/rancher/dashboard/issues/10010
     BurgerMenuPo.checkIfMenuItemLinkIsHighlighted('Global Settings');
+
+    // catching regression https://github.com/rancher/dashboard/issues/10576
+    BurgerMenuPo.checkIfClusterMenuLinkIsHighlighted('local', false);
 
     const brandingNavItem = productMenu.visibleNavTypes().contains('Branding');
 

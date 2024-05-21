@@ -697,13 +697,14 @@ export const getters = {
         group.children.push({
           label,
           labelDisplay,
-          mode:     typeObj.mode,
-          exact:    typeObj.exact || false,
+          mode:         typeObj.mode,
+          exact:        typeObj.exact || false,
+          'exact-path': typeObj['exact-path'] || false,
           namespaced,
           route,
-          name:     typeObj.name,
-          weight:   typeObj.weight || getters.typeWeightFor(typeObj.schema?.id || label, isBasic),
-          overview: !!typeObj.overview,
+          name:         typeObj.name,
+          weight:       typeObj.weight || getters.typeWeightFor(typeObj.schema?.id || label, isBasic),
+          overview:     !!typeObj.overview,
         });
       }
 
