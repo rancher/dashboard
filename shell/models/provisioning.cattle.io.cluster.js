@@ -5,17 +5,16 @@ import SteveModel from '@shell/plugins/steve/steve-class';
 import { findBy } from '@shell/utils/array';
 import { get, set } from '@shell/utils/object';
 import { sortBy } from '@shell/utils/sort';
-import { ucFirst } from '@shell/utils/string';
+import { escapeHtml, ucFirst } from '@shell/utils/string';
 import { compare } from '@shell/utils/version';
 import { AS, MODE, _VIEW, _YAML } from '@shell/config/query-params';
 import { HARVESTER_NAME as HARVESTER } from '@shell/config/features';
 import { CAPI as CAPI_ANNOTATIONS, NODE_ARCHITECTURE } from '@shell/config/labels-annotations';
 import capitalize from 'lodash/capitalize';
-import { escapeHtml } from '@shell/utils/string';
 
 /**
  * Cache of instantiated provisioner helpers
- * 
+ *
  * One per type rather than one per model instance.
  */
 const customProvisionerHelperCache = {};
