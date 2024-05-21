@@ -46,7 +46,7 @@ class PaginationUtils {
 
   isSteveCacheEnabled({ rootGetters }: any): boolean {
     // We always get Feature flags as part of start up (see `dispatch('features/loadServer')` in loadManagement)
-    return TEMP_VAI_CACHE_MERGED || rootGetters['features/get'](STEVE_CACHE);
+    return TEMP_VAI_CACHE_MERGED || rootGetters['features/get']?.(STEVE_CACHE);
   }
 
   /**

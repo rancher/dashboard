@@ -101,8 +101,6 @@ export default {
           no-options-label-key="logging.flow.matches.containerNames.enter"
           placement="top"
         />
-        <br>
-        {{ value.container_names }}<br>
       </div>
     </div>
     <div v-if="isClusterFlow">
