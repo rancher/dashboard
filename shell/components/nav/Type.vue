@@ -83,6 +83,7 @@ export default {
     custom
     :to="type.route"
     :exact="type.exact"
+    :exact-path="type['exact-path']"
   >
     <li
       class="child nav-type"

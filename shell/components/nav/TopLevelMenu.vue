@@ -263,6 +263,8 @@ export default {
     appBar() {
       let activeFound = false;
 
+      // order is important for the object keys here
+      // since we want to check last pinFiltered and clustersFiltered
       const appBar = {
         hciApps:           this.hciApps,
         multiClusterApps:  this.multiClusterApps,
@@ -279,7 +281,7 @@ export default {
         // need to reset active state on other menu items
         menuSectionItems.forEach((item) => {
           item.isMenuActive = false;
-          
+
           if (!activeFound && this.checkActiveRoute(item, isClusterCheck)) {
             activeFound = true;
             item.isMenuActive = true;
