@@ -110,7 +110,7 @@ export default {
         metadata: { annotations = {} },
         spec,
       } = this.value;
-      const ports = spec.ports;
+      const ports = spec.ports ?? [];
       const publicPorts = this.hasPublic ? JSON.parse(annotations[CATTLE_PUBLIC_ENDPOINTS]) : null;
 
       return ports.map((port) => {
