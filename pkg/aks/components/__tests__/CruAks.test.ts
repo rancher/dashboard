@@ -222,4 +222,123 @@ describe('aks provisioning form', () => {
       return !pool._validation._validName;
     })).toHaveLength(2);
   });
+
+  it('should display subnets grouped by network in the virtual network dropdown', async() => {
+    const noneOption = { label: 'generic.none' };
+    const config = {
+      dnsPrefix: 'abc-123', resourceGroup: 'abc', clusterName: 'abc'
+    };
+    const wrapper = shallowMount(CruAks, {
+      propsData: {
+        value: {}, mode: 'edit', config
+      },
+      ...requiredSetup()
+    });
+
+    await setCredential(wrapper, config);
+    const virtualNetworkSelect = wrapper.find('[data-testid="aks-virtual-network-select"]');
+    const networkOpts = virtualNetworkSelect.props().options;
+
+    expect(virtualNetworkSelect.props().value).toStrictEqual(noneOption);
+
+    expect(networkOpts).toStrictEqual([{ label: 'generic.none' }, {
+      disabled: true, kind: 'group', label: 'network2'
+    }, {
+      key:            'network2-subnet1 (10.224.0.0/16)network2',
+      label:          'network2-subnet1 (10.224.0.0/16)',
+      value:          'network2-subnet1',
+      virtualNetwork: {
+        name: 'network2', resourceGroup: 'network2Group', subnets: [{ addressRange: '10.224.0.0/16', name: 'network2-subnet1' }, { addressRange: '10.1.0.0/24', name: 'network2-subnet2' }]
+      }
+    }, {
+      key:            'network2-subnet2 (10.1.0.0/24)network2',
+      label:          'network2-subnet2 (10.1.0.0/24)',
+      value:          'network2-subnet2',
+      virtualNetwork: {
+        name: 'network2', resourceGroup: 'network2Group', subnets: [{ addressRange: '10.224.0.0/16', name: 'network2-subnet1' }, { addressRange: '10.1.0.0/24', name: 'network2-subnet2' }]
+      }
+    }, {
+      disabled: true, kind: 'group', label: 'network3'
+    }, {
+      key:            'network3-subnet1 (10.224.0.0/16)network3',
+      label:          'network3-subnet1 (10.224.0.0/16)',
+      value:          'network3-subnet1',
+      virtualNetwork: {
+        name: 'network3', resourceGroup: 'network3Group', subnets: [{ addressRange: '10.224.0.0/16', name: 'network3-subnet1' }, { addressRange: '10.1.0.0/24', name: 'network3-subnet2' }, { addressRange: '', name: 'network3-subnet2' }]
+      }
+    }, {
+      key:            'network3-subnet2 (10.1.0.0/24)network3',
+      label:          'network3-subnet2 (10.1.0.0/24)',
+      value:          'network3-subnet2',
+      virtualNetwork: {
+        name: 'network3', resourceGroup: 'network3Group', subnets: [{ addressRange: '10.224.0.0/16', name: 'network3-subnet1' }, { addressRange: '10.1.0.0/24', name: 'network3-subnet2' }, { addressRange: '', name: 'network3-subnet2' }]
+      }
+    }, {
+      key:            'network3-subnet2network3',
+      label:          'network3-subnet2',
+      value:          'network3-subnet2',
+      virtualNetwork: {
+        name: 'network3', resourceGroup: 'network3Group', subnets: [{ addressRange: '10.224.0.0/16', name: 'network3-subnet1' }, { addressRange: '10.1.0.0/24', name: 'network3-subnet2' }, { addressRange: '', name: 'network3-subnet2' }]
+      }
+    }]);
+  });
+
+  it.each([
+    [2, {
+      virtualNetwork: 'network2', virtualNetworkResourceGroup: 'network2Group', subnet: 'network2-subnet1'
+    }],
+    [5, {
+      virtualNetwork: 'network3', virtualNetworkResourceGroup: 'network3Group', subnet: 'network3-subnet1'
+    }],
+    [3, {
+      virtualNetwork: 'network2', virtualNetworkResourceGroup: 'network2Group', subnet: 'network2-subnet2'
+    }],
+  ])('should set virtualNetwork, virtualNetworkResourceGroup, and subnet when a virtual network is selected', async(optionIndex, { virtualNetwork, virtualNetworkResourceGroup, subnet }) => {
+    const config = {
+      dnsPrefix: 'abc-123', resourceGroup: 'abc', clusterName: 'abc'
+    };
+    const wrapper = shallowMount(CruAks, {
+      propsData: {
+        value: {}, mode: 'edit', config
+      },
+      ...requiredSetup()
+    });
+
+    await setCredential(wrapper, config);
+    const virtualNetworkSelect = wrapper.find('[data-testid="aks-virtual-network-select"]');
+    const networkOpts = virtualNetworkSelect.props().options;
+
+    virtualNetworkSelect.vm.$emit('selecting', networkOpts[optionIndex]);
+    await wrapper.vm.$nextTick();
+
+    expect(wrapper.vm.config.subnet).toBe(subnet);
+    expect(wrapper.vm.config.virtualNetwork).toBe(virtualNetwork);
+    expect(wrapper.vm.config.virtualNetworkResourceGroup).toBe(virtualNetworkResourceGroup);
+  });
+
+  it('should clear virtualNetwork, virtualNetworkResourceGroup, and subnet when the \'none\' virtual network option is selected', async() => {
+    const config = {
+      dnsPrefix: 'abc-123', resourceGroup: 'abc', clusterName: 'abc'
+    };
+    const wrapper = shallowMount(CruAks, {
+      propsData: {
+        value: {}, mode: 'edit', config
+      },
+      ...requiredSetup()
+    });
+
+    await setCredential(wrapper, config);
+    const virtualNetworkSelect = wrapper.find('[data-testid="aks-virtual-network-select"]');
+    const networkOpts = virtualNetworkSelect.props().options;
+
+    virtualNetworkSelect.vm.$emit('selecting', networkOpts[2]);
+    await wrapper.vm.$nextTick();
+
+    virtualNetworkSelect.vm.$emit('selecting', networkOpts[0]);
+    await wrapper.vm.$nextTick();
+
+    expect(wrapper.vm.config.subnet).toBeNull();
+    expect(wrapper.vm.config.virtualNetwork).toBeNull();
+    expect(wrapper.vm.config.virtualNetworkResourceGroup).toBeNull();
+  });
 });
