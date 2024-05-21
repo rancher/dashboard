@@ -10,7 +10,8 @@ describe('Kubewarden Extension', { tags: ['@extensions', '@adminUser'] }, () => 
   before(() => {
     cy.login();
 
-    ExtensionsPagePo.goTo();
+    const extensionsPo = new ExtensionsPagePo();
+    extensionsPo.goTo();
 
     const kubewardenPo = new KubewardenExtensionPo();
 
@@ -19,11 +20,14 @@ describe('Kubewarden Extension', { tags: ['@extensions', '@adminUser'] }, () => 
 
   beforeEach(() => {
     cy.login();
-    ExtensionsPagePo.goTo();
   });
 
+  
   it('Should install Kubewarden extension', () => {
     const extensionsPo = new ExtensionsPagePo();
+
+    extensionsPo.goTo();
+    extensionsPo.waitForPage();
 
     extensionsPo.extensionTabAvailableClick();
 
@@ -82,6 +86,8 @@ describe('Kubewarden Extension', { tags: ['@extensions', '@adminUser'] }, () => 
 
   it('Should uninstall Kubewarden', () => {
     const extensionsPo = new ExtensionsPagePo();
+    extensionsPo.goTo();
+    extensionsPo.waitForPage();
 
     extensionsPo.extensionTabInstalledClick();
 
