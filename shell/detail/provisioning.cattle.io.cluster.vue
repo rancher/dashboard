@@ -377,7 +377,7 @@ export default {
     },
 
     showNodes() {
-      return !this.showMachines && this.haveNodes && !!this.nodes.length;
+      return !this.showMachines && this.haveNodes && !!this.nodes.length && this.extDetailTabs.machines;
     },
 
     showSnapshots() {
