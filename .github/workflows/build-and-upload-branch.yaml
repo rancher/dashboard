@@ -3,8 +3,6 @@ on:
   push:
     branches:
       - release-2.8.patch1
-      # TODO: RC remove
-      - richard-cox-2.8.patch1-drone
 
 jobs:
   build-validation:

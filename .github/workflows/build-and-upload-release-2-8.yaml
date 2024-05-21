@@ -3,7 +3,6 @@ on:
   push:
     tags:
       - v2.8.*
-      - richard-cox-2.8.patch1-drone-tag
 
 jobs:
   build-validation:
