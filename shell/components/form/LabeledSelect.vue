@@ -5,7 +5,7 @@ import { get } from '@shell/utils/object';
 import { LabeledTooltip } from '@components/LabeledTooltip';
 import VueSelectOverrides from '@shell/mixins/vue-select-overrides';
 import { onClickOption, calculatePosition } from '@shell/utils/select';
-import LabeledSelectPagination from './LabeledSelect/labeled-select-pagination';
+import LabeledSelectPagination from '@shell/components/form/labeled-select-utils/labeled-select-pagination';
 import { LABEL_SELECT_NOT_OPTION_KINDS } from '@shell/types/components/labeledSelect';
 
 // In theory this would be nicer as LabeledSelect/index.vue, however that would break a lot of places where we import this (which includes extensions)

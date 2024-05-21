@@ -17,16 +17,13 @@ import { getPerformanceSetting } from '@shell/utils/settings';
 import { DEFAULT_PERF_SETTING } from '@shell/config/settings';
 
 /**
- * Given the vai cache changes haven't merged, work around the settings we have that are blocked by it
+ * Given the vai cache changes haven't merged, work around the settings that are blocked by it
  *
  * Once cache is merged (pre 2.9.0) this will be removed
- *
- * TODO: RC
  */
 const VAI_CACHE_MERGED = false;
 /**
  * Given above, just a dev thing
- * TODO: RC
  */
 const PERF_ENABLED = false;
 

@@ -7,8 +7,6 @@ import { SECRET_TYPES } from '@shell/config/secret';
 import { base64Encode } from '@shell/utils/crypto';
 import { addObjects, insertAt } from '@shell/utils/array';
 import { sortBy } from '@shell/utils/sort';
-import paginationUtils from '@shell/utils/pagination-utils';
-import { PaginationArgs, PaginationFilterField, PaginationParamFilter } from '@shell/types/store/pagination.types';
 
 export default {
   name: 'SelectOrCreateAuthSecret',
@@ -49,9 +47,6 @@ export default {
       required: true,
     },
 
-    /**
-     * Limit the selection of an existing secret to the namespace provided
-     */
     limitToNamespace: {
       type:    Boolean,
       default: true,
@@ -128,7 +123,12 @@ export default {
 
   async fetch() {
     if ( (this.allowSsh || this.allowBasic || this.allowRke) && this.$store.getters[`${ this.inStore }/schemaFor`](SECRET) ) {
-      this.filteredSecrets = await this.fetchSecrets();
+      // Avoid an async call and loading screen if already loaded by someone else
+      if ( this.$store.getters[`${ this.inStore }/haveAll`](SECRET) ) {
+        this.allSecrets = this.$store.getters[`${ this.inStore }/all`](SECRET);
+      } else {
+        this.allSecrets = await this.$store.dispatch(`${ this.inStore }/findAll`, { type: SECRET });
+      }
     }
 
     if ( this.allowS3 && this.$store.getters['rancher/canList'](NORMAN.CLOUD_CREDENTIAL) ) {
@@ -168,23 +168,32 @@ export default {
 
   data(props) {
     return {
-      allCloudCreds:   [],
-      filteredSecrets: [],
-      selected:        null,
+      allCloudCreds: [],
+      allSecrets:    [],
+      selected:      null,
 
       publicKey:  '',
       privateKey: '',
-      uniqueId:   new Date().getTime(), // Allows form state to be individually tracked if the form is in a list,
-
-      SSH:   AUTH_TYPE._SSH,
-      BASIC: AUTH_TYPE._BASIC,
-      S3:    AUTH_TYPE._S3,
+      uniqueId:   new Date().getTime() // Allows form state to be individually tracked if the form is in a list
     };
   },
 
   computed: {
-    secretTypes() {
+    _SSH() {
+      return AUTH_TYPE._SSH;
+    },
+
+    _BASIC() {
+      return AUTH_TYPE._BASIC;
+    },
+
+    _S3() {
+      return AUTH_TYPE._S3;
+    },
+
+    options() {
       const types = [];
+      const keys = [];
 
       if ( this.allowSsh ) {
         types.push(SECRET_TYPES.SSH);
@@ -198,19 +207,21 @@ export default {
         types.push(SECRET_TYPES.RKE_AUTH_CONFIG);
       }
 
-      return types;
-    },
-
-    options() {
-      if (!this.filteredSecrets) {
-        return [];
-      }
-      let out = this.filteredSecrets
+      let out = this.allSecrets
         .filter((x) => this.namespace && this.limitToNamespace ? x.metadata.namespace === this.namespace : true)
         .filter((x) => {
           // Must match one of the types if given
-          if ( this.secretTypes.length && !this.secretTypes.includes(x._type) ) {
+          if ( types.length && !types.includes(x._type) ) {
             return false;
+          }
+
+          // Must match ALL of the keys if given
+          if ( keys.length ) {
+            const dataKeys = Object.keys(x.data || {});
+
+            if ( !keys.every((key) => dataKeys.includes(key)) ) {
+              return false;
+            }
           }
 
           return true;
@@ -358,34 +369,6 @@ export default {
   },
 
   methods: {
-    // TODO: RC revert
-    async fetchSecrets() {
-      const namespaceFilter = this.namespace && this.limitToNamespace ? this.namespace : '';
-
-      if (paginationUtils.isSteveCacheEnabled({ rootGetters: this.$store.getters })) {
-        // Of type ActionFindPageArgs
-        const findPageArgs = {
-          namespaced: namespaceFilter,
-          pagination: new PaginationArgs({
-            pageSize: -1,
-            filters:  [
-              PaginationParamFilter.createMultipleFields(this.secretTypes.map((t) => {
-                return new PaginationFilterField({ field: 'metadata.fields.2', value: t });
-              }))
-            ]
-          }),
-        };
-
-        return await this.$store.dispatch(`${ this.inStore }/findPage`, { type: SECRET, opt: findPageArgs });
-      } else {
-        // When this is ripped out some of the additional filtering in `options` can be removed
-        return await this.$store.dispatch(`${ this.inStore }/findAll`, {
-          type: SECRET,
-          opt:  { namespaced: namespaceFilter }
-        });
-      }
-    },
-
     updateKeyVal() {
       if ( ![AUTH_TYPE._SSH, AUTH_TYPE._BASIC, AUTH_TYPE._S3].includes(this.selected)) {
         this.privateKey = '';
@@ -502,7 +485,7 @@ export default {
           :selectable="option => !option.disabled"
         />
       </div>
-      <template v-if="selected === SSH">
+      <template v-if="selected === _SSH">
         <div :class="moreCols">
           <LabeledInput
             v-model="publicKey"
@@ -522,7 +505,7 @@ export default {
           />
         </div>
       </template>
-      <template v-else-if="selected === BASIC">
+      <template v-else-if="selected === _BASIC">
         <div :class="moreCols">
           <LabeledInput
             v-model="publicKey"
@@ -541,7 +524,7 @@ export default {
           />
         </div>
       </template>
-      <template v-else-if="selected === S3">
+      <template v-else-if="selected === _S3">
         <div :class="moreCols">
           <LabeledInput
             v-model="publicKey"
