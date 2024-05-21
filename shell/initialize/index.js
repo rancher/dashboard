@@ -4,7 +4,7 @@
 import Vue from 'vue';
 import { createRouter } from '@shell/config/router';
 import NuxtChild from '@shell/components/nuxt/nuxt-child';
-import App from '@shell/initialize/App.js';
+import App from '@shell/initialize/App';
 import { setContext, getLocation, getRouteData, normalizeError } from '@shell/utils/nuxt';
 import { createStore } from '@shell/config/store';
 import { UPGRADED, _FLAGGED, _UNFLAG } from '@shell/config/query-params';

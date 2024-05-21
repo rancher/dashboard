@@ -93,10 +93,6 @@ export function getMatchedComponents(route, matches = false, prop = 'components'
   }));
 }
 
-export function getMatchedComponentsInstances(route, matches = false) {
-  return getMatchedComponents(route, matches, 'instances');
-}
-
 export function flatMapComponents(route, fn) {
   return Array.prototype.concat.apply([], route.matched.map((m, index) => {
     return Object.keys(m.components).reduce((promises, key) => {
