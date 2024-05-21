@@ -604,7 +604,7 @@ export default defineComponent({
       if (this.loadingVirtualNetworks) {
         return out;
       }
-      (this.allVirtualNetworks || []).forEach((network) => {
+      this.allVirtualNetworks.forEach((network) => {
         if (!network.subnets) {
           return;
         }
