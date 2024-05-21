@@ -368,6 +368,37 @@ describe('aks provisioning form', () => {
     expect(wrapper.vm.config.virtualNetworkResourceGroup).toBe(virtualNetworkResourceGroup);
   });
 
+  it('should set config.monitoring to \'true\' and show log anaytics workspace name and log analytics workspace group inputs when the monitoring checkbox is checked', async() => {
+    const config = {
+      dnsPrefix: 'abc-123', resourceGroup: 'abc', clusterName: 'abc'
+    };
+    const wrapper = shallowMount(CruAks, {
+      propsData: {
+        value: {}, mode: 'edit', config
+      },
+      ...requiredSetup()
+    });
+
+    await setCredential(wrapper, config);
+    let logAnalyticsWorkspaceNameInput = wrapper.find('[data-testid="aks-log-analytics-workspace-name-input"]');
+    let logAnalyticsWorkspaceGroupInput = wrapper.find('[data-testid="aks-log-analytics-workspace-group-input"]');
+    const monitoringCheckbox = wrapper.find('[data-testid="aks-monitoring-checkbox"]');
+
+    expect(monitoringCheckbox.props().value).toBe(false);
+    expect(logAnalyticsWorkspaceNameInput.exists()).toBe(false);
+    expect(logAnalyticsWorkspaceGroupInput.exists()).toBe(false);
+    expect(wrapper.vm.$data.config.monitoring).toBeFalsy();
+
+    monitoringCheckbox.vm.$emit('input', true);
+    await wrapper.vm.$nextTick();
+    expect(wrapper.vm.$data.config.monitoring).toBe(true);
+    logAnalyticsWorkspaceNameInput = wrapper.find('[data-testid="aks-log-analytics-workspace-name-input"]');
+    logAnalyticsWorkspaceGroupInput = wrapper.find('[data-testid="aks-log-analytics-workspace-group-input"]');
+    expect(monitoringCheckbox.props().value).toBe(true);
+    expect(logAnalyticsWorkspaceNameInput.isVisible()).toBe(true);
+    expect(logAnalyticsWorkspaceGroupInput.isVisible()).toBe(true);
+  });
+
   it('should clear virtualNetwork, virtualNetworkResourceGroup, and subnet when the \'none\' virtual network option is selected', async() => {
     const config = {
       dnsPrefix: 'abc-123', resourceGroup: 'abc', clusterName: 'abc'
@@ -405,7 +436,27 @@ describe('aks provisioning form', () => {
     const config = {
       dnsPrefix: 'abc-123', resourceGroup: 'abc', clusterName: 'abc', kubernetesVersion: originalVersion, nodePools
     };
+    const wrapper = shallowMount(CruAks, {
+      propsData: {
+        value: {}, mode: 'edit', config
+      },
+      ...requiredSetup()
+    });
 
+    await setCredential(wrapper, config);
+    wrapper.setData({ config: { ...config, kubernetesVersion: newVersion } });
+    await wrapper.vm.$nextTick();
+    const pools = wrapper.vm.nodePools;
+
+    pools.forEach((pool: AKSNodePool) => {
+      expect(pool.orchestratorVersion).toBe(pool._isNewOrUnprovisioned ? newVersion : originalVersion);
+    });
+  });
+
+  it('should clear config.logAnalyticsWorkspaceName and config.logAnalyticsWorkspaceGroup when the monitoring checkbox is unchecked', async() => {
+    const config = {
+      dnsPrefix: 'abc-123', resourceGroup: 'abc', clusterName: 'abc', monitoring: true, logAnalyticsWorkspaceGroup: 'abc', logAnalyticsWorkspaceName: 'def'
+    };
     const wrapper = shallowMount(CruAks, {
       propsData: {
         value: {}, mode: 'edit', config
@@ -415,12 +466,14 @@ describe('aks provisioning form', () => {
 
     await setCredential(wrapper, config);
 
-    wrapper.setData({ config: { ...config, kubernetesVersion: newVersion } });
-    await wrapper.vm.$nextTick();
-    const pools = wrapper.vm.nodePools;
+    const monitoringCheckbox = wrapper.find('[data-testid="aks-monitoring-checkbox"]');
 
-    pools.forEach((pool: AKSNodePool) => {
-      expect(pool.orchestratorVersion).toBe(pool._isNewOrUnprovisioned ? newVersion : originalVersion);
-    });
+    expect(monitoringCheckbox.props().value).toBe(true);
+
+    monitoringCheckbox.vm.$emit('input', false);
+    await wrapper.vm.$nextTick();
+    expect(wrapper.vm.$data.config.monitoring).toBeFalsy();
+    expect(wrapper.vm.$data.config.logAnalyticsWorkspaceGroup).toBeNull();
+    expect(wrapper.vm.$data.config.logAnalyticsWorkspaceName).toBeNull();
   });
 });
