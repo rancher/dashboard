@@ -376,4 +376,18 @@ describe('Settings', { testIsolation: 'off' }, () => {
       expect(obj.kind).to.equal('Config');
     });
   });
+
+  // The server-url can not be reset as there is no default - so check that is the case
+  it('can not reset server url', { tags: ['@globalSettings', '@adminUser'] }, () => {
+    SettingsPagePo.navTo();
+    settingsPage.editSettingsByLabel('server-url');
+
+    const settingsEdit = settingsPage.editSettings('local', 'server-url');
+
+    settingsEdit.waitForPage();
+    settingsEdit.title().contains('Setting: server-url').should('be.visible');
+
+    settingsEdit.useDefaultButton().should('be.visible');
+    settingsEdit.useDefaultButton().should('be.disabled');
+  });
 });
