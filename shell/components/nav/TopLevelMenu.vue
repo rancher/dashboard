@@ -279,16 +279,12 @@ export default {
         // need to reset active state on other menu items
         menuSectionItems.forEach((item) => {
           item.isMenuActive = false;
-        });
-
-        if (!activeFound) {
-          const currActiveMenu = menuSectionItems.find((item) => this.checkActiveRoute(item, isClusterCheck));
-
-          if (currActiveMenu) {
+          
+          if (!activeFound && this.checkActiveRoute(item, isClusterCheck)) {
             activeFound = true;
-            currActiveMenu.isMenuActive = true;
+            item.isMenuActive = true;
           }
-        }
+        });
       });
 
       return appBar;
