@@ -399,11 +399,12 @@ export const USER_PROVIDER = {
 };
 
 export const USER_LAST_LOGIN = {
-  name:      'user-last-login',
-  labelKey:  'tableHeaders.userLastLogin',
-  value:     'userLastLogin',
-  formatter: 'LiveDate',
-  sort:      'userLastLogin',
+  name:          'user-last-login',
+  labelKey:      'tableHeaders.userLastLogin',
+  value:         'userLastLogin',
+  formatter:     'LiveDate',
+  formatterOpts: { addSuffix: true },
+  sort:          'userLastLogin',
 };
 
 export const USER_DISABLED_IN = {
