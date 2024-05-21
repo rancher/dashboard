@@ -109,11 +109,11 @@ describe('Users', { tags: '@adminUser' }, () => {
       // Deactivate user and check state is Inactive
       usersPo.goTo();
       usersPo.list().clickRowActionMenuItem(standardUsername, 'Deactivate');
-      usersPo.list().details(standardUsername, 1).should('include.text', 'Inactive');
+      usersPo.list().details(standardUsername, 1).should('include.text', 'Disabled');
 
       // Activate user and check state is Active
       usersPo.list().clickRowActionMenuItem(standardUsername, 'Activate');
-      usersPo.list().details(standardUsername, 1).should('include.text', 'Active');
+      usersPo.list().details(standardUsername, 1).should('include.text', 'Enabled');
     });
 
     it('can Refresh Group Memberships', () => {
@@ -192,14 +192,14 @@ describe('Users', { tags: '@adminUser' }, () => {
       usersPo.list().selectAll().set();
       usersPo.list().deactivate().click();
       cy.wait('@updateUsers');
-      cy.contains('Inactive');
-      usersPo.list().details('admin', 1).should('include.text', 'Active');
-      usersPo.list().details(userBaseUsername, 1).should('include.text', 'Inactive');
+      cy.contains('Disabled');
+      usersPo.list().details('admin', 1).should('include.text', 'Enabled');
+      usersPo.list().details(userBaseUsername, 1).should('include.text', 'Disabled');
 
       // Activate user and check state is Active
       usersPo.list().activate().click();
       cy.wait('@updateUsers');
-      usersPo.list().details(userBaseUsername, 1).should('include.text', 'Active');
+      usersPo.list().details(userBaseUsername, 1).should('include.text', 'Enabled');
     });
 
     it('can Download YAML', () => {
