@@ -8,7 +8,6 @@ import {
   getMatchedComponents,
   setContext,
   globalHandleError,
-  urlJoin
 } from '../utils/nuxt.js';
 import { createApp } from './index.js';
 import fetchMixin from '../mixins/fetch.client';
@@ -34,12 +33,6 @@ if (!global.fetch) {
 // Global shared references
 let app;
 let router;
-
-const $config = nuxt.publicRuntimeConfig || {}; // eslint-disable-line no-undef
-
-if ($config._app) {
-  __webpack_public_path__ = urlJoin($config._app.cdnURL, $config._app.assetsPath); // eslint-disable-line camelcase, no-undef
-}
 
 Object.assign(Vue.config, { silent: false, performance: true });
 
@@ -192,38 +185,6 @@ async function render(to, from, next) {
       return;
     }
     if (app.context._errored) {
-      return next();
-    }
-
-    // Call .validate()
-    let isValid = true;
-
-    try {
-      for (const Component of Components) {
-        if (typeof Component.options.validate !== 'function') {
-          continue;
-        }
-
-        isValid = await Component.options.validate(app.context);
-
-        if (!isValid) {
-          break;
-        }
-      }
-    } catch (validationError) {
-      // ...If .validate() threw an error
-      this.error({
-        statusCode: validationError.statusCode || '500',
-        message:    validationError.message
-      });
-
-      return next();
-    }
-
-    // ...If .validate() returned false
-    if (!isValid) {
-      this.error({ statusCode: 404, message: 'This page could not be found' });
-
       return next();
     }
 
