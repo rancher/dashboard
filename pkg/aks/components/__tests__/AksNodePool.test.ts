@@ -177,4 +177,31 @@ describe('aks node pool component', () => {
 
     expect(checkboxLabel.text()).toContain(clusterVersion);
   });
+
+  it('should remove taints from the pool spec when the remove button is pressed', async() => {
+    const initialTaints = ['key0=val0:PreferNoSchedule', 'key1=val1:PreferNoSchedule'];
+    const wrapper = mount(AksNodePool, {
+      propsData: {
+        pool: { ...defaultPool, nodeTaints: [...initialTaints] },
+
+        mode: _EDIT
+      },
+      ...requiredSetup()
+
+    });
+
+    const firstTaintRow = wrapper.find('[data-testid="aks-pool-taint-0"]');
+    const secondTaintRow = wrapper.find('[data-testid="aks-pool-taint-1"]');
+
+    expect(secondTaintRow.exists()).toBe(true);
+    firstTaintRow.vm.$emit('remove', 0);
+    await wrapper.vm.$nextTick();
+
+    // the first row should now be showing what had been the second taint, and second row should be gone
+    expect(firstTaintRow.props().taint).toBe(initialTaints[1]);
+    expect(secondTaintRow.exists()).toBe(false);
+
+    // above verifies that the form is showing the right thing: also verify that the node pool spec has been updated to remove the taint
+    expect(wrapper.props().pool.nodeTaints).toStrictEqual([initialTaints[1]]);
+  });
 });

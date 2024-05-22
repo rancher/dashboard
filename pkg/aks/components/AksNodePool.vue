@@ -161,9 +161,12 @@ export default defineComponent({
     },
 
     removeTaint(idx: number): void {
-      const neu = this.taints.splice(idx, 1).map((keyedTaint) => keyedTaint.taint);
+      const neu = [...this.taints];
 
-      this.$set(this.pool, 'nodeTaints', neu);
+      neu.splice(idx, 1).map((keyedTaint) => keyedTaint.taint);
+
+      this.$set(this, 'taints', neu);
+      this.$set(this.pool, 'nodeTaints', neu.map((taint) => taint.taint));
     },
 
     availabilityZonesSupport() {
@@ -398,6 +401,7 @@ export default defineComponent({
               :taint="keyedTaint.taint"
               :mode="mode"
               :rules="validationRules.taints"
+              :data-testid="`aks-pool-taint-${i}`"
               @input="e=>updateTaint({_id:keyedTaint._id, taint: e}, i)"
               @remove="removeTaint(i)"
             />
