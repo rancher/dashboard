@@ -141,6 +141,16 @@ export default {
       const out = search ? this.clusters.filter((item) => item.label?.toLowerCase().includes(search)) : this.clusters;
       const sorted = sortBy(out, ['ready:desc', 'label']);
 
+      // put local cluster on top of list always
+      // https://github.com/rancher/dashboard/issues/10975
+      if (sorted.findIndex((c) => c.id === 'local') > 0) {
+        const localCluster = sorted.find((c) => c.id === 'local');
+        const localIndex = sorted.findIndex((c) => c.id === 'local');
+
+        sorted.splice(localIndex, 1);
+        sorted.unshift(localCluster);
+      }
+
       if (search) {
         this.showPinClusters = false;
         this.searchActive = !sorted.length > 0;
@@ -162,6 +172,16 @@ export default {
     pinFiltered() {
       const out = this.clusters.filter((item) => item.pinned);
       const sorted = sortBy(out, ['ready:desc', 'label']);
+
+      // put local cluster on top of list always
+      // https://github.com/rancher/dashboard/issues/10975
+      if (sorted.findIndex((c) => c.id === 'local') > 0) {
+        const localCluster = sorted.find((c) => c.id === 'local');
+        const localIndex = sorted.findIndex((c) => c.id === 'local');
+
+        sorted.splice(localIndex, 1);
+        sorted.unshift(localCluster);
+      }
 
       return sorted;
     },
@@ -590,8 +610,9 @@ export default {
                 class="clustersPinned"
               >
                 <div
-                  v-for="c in appBar.pinFiltered"
+                  v-for="(c, index) in appBar.pinFiltered"
                   :key="c.id"
+                  :data-testid="`pinned-ready-cluster-${index}`"
                   @click="hide()"
                 >
                   <button

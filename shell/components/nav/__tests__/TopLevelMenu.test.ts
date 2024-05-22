@@ -33,6 +33,234 @@ describe('topLevelMenu', () => {
     expect(cluster.exists()).toBe(true);
   });
 
+  it('should show local cluster always on top of the list of clusters (unpinned and ready clusters)', async() => {
+    const wrapper: Wrapper<InstanceType<typeof TopLevelMenu>> = mount(TopLevelMenu, {
+      data: () => {
+        return { hasProvCluster: true, showPinClusters: true };
+      },
+      mocks: {
+        $store: {
+          getters: {
+            // these objs are doubling as a prov clusters
+            // from which the "description" field comes from
+            // This is triggered by the "hasProvCluster" above
+            // (check all "management/all" getters on the component code)
+            'management/all': () => [
+              {
+                name:        'x32-cwf5-name',
+                id:          'x32-cwf5-id',
+                mgmt:        { id: 'an-id1' },
+                nameDisplay: 'c-cluster',
+                isReady:     true
+              },
+              {
+                name:        'x33-cwf5-name',
+                id:          'x33-cwf5-id',
+                mgmt:        { id: 'an-id2' },
+                nameDisplay: 'a-cluster',
+                isReady:     true
+              },
+              {
+                name:        'x34-cwf5-name',
+                id:          'x34-cwf5-id',
+                mgmt:        { id: 'an-id3' },
+                nameDisplay: 'b-cluster',
+                isReady:     true
+              },
+              {
+                name:        'local-name',
+                id:          'local',
+                mgmt:        { id: 'an-id4' },
+                nameDisplay: 'local',
+                isReady:     true
+              },
+            ],
+            ...defaultStore
+          },
+        },
+      },
+      stubs: ['BrandImage', 'router-link']
+    });
+
+    expect(wrapper.find('[data-testid="top-level-menu-cluster-0"] .cluster-name p').text()).toStrictEqual('local');
+    expect(wrapper.find('[data-testid="top-level-menu-cluster-1"] .cluster-name p').text()).toStrictEqual('a-cluster');
+    expect(wrapper.find('[data-testid="top-level-menu-cluster-2"] .cluster-name p').text()).toStrictEqual('b-cluster');
+    expect(wrapper.find('[data-testid="top-level-menu-cluster-3"] .cluster-name p').text()).toStrictEqual('c-cluster');
+  });
+
+  it('should show local cluster always on top of the list of clusters (unpinned and mix ready/unready clusters)', async() => {
+    const wrapper: Wrapper<InstanceType<typeof TopLevelMenu>> = mount(TopLevelMenu, {
+      data: () => {
+        return { hasProvCluster: true, showPinClusters: true };
+      },
+      mocks: {
+        $store: {
+          getters: {
+            // these objs are doubling as a prov clusters
+            // from which the "description" field comes from
+            // This is triggered by the "hasProvCluster" above
+            // (check all "management/all" getters on the component code)
+            'management/all': () => [
+              {
+                name:        'x32-cwf5-name',
+                id:          'x32-cwf5-id',
+                mgmt:        { id: 'an-id1' },
+                nameDisplay: 'c-cluster',
+                isReady:     true
+              },
+              {
+                name:        'x33-cwf5-name',
+                id:          'x33-cwf5-id',
+                mgmt:        { id: 'an-id2' },
+                nameDisplay: 'a-cluster',
+                isReady:     false
+              },
+              {
+                name:        'x34-cwf5-name',
+                id:          'x34-cwf5-id',
+                mgmt:        { id: 'an-id3' },
+                nameDisplay: 'b-cluster',
+                isReady:     true
+              },
+              {
+                name:        'local-name',
+                id:          'local',
+                mgmt:        { id: 'an-id4' },
+                nameDisplay: 'local',
+                isReady:     true
+              },
+            ],
+            ...defaultStore
+          },
+        },
+      },
+      stubs: ['BrandImage', 'router-link']
+    });
+
+    expect(wrapper.find('[data-testid="top-level-menu-cluster-0"] .cluster-name p').text()).toStrictEqual('local');
+    expect(wrapper.find('[data-testid="top-level-menu-cluster-1"] .cluster-name p').text()).toStrictEqual('b-cluster');
+    expect(wrapper.find('[data-testid="top-level-menu-cluster-2"] .cluster-name p').text()).toStrictEqual('c-cluster');
+    expect(wrapper.find('[data-testid="top-level-menu-cluster-3"] .cluster-name p').text()).toStrictEqual('a-cluster');
+  });
+
+  it('should show local cluster always on top of the list of clusters (pinned and ready clusters)', async() => {
+    const wrapper: Wrapper<InstanceType<typeof TopLevelMenu>> = mount(TopLevelMenu, {
+      data: () => {
+        return { hasProvCluster: true, showPinClusters: true };
+      },
+      mocks: {
+        $store: {
+          getters: {
+            // these objs are doubling as a prov clusters
+            // from which the "description" field comes from
+            // This is triggered by the "hasProvCluster" above
+            // (check all "management/all" getters on the component code)
+            'management/all': () => [
+              {
+                name:        'x32-cwf5-name',
+                id:          'x32-cwf5-id',
+                mgmt:        { id: 'an-id1' },
+                nameDisplay: 'c-cluster',
+                isReady:     true,
+                pinned:      true
+              },
+              {
+                name:        'x33-cwf5-name',
+                id:          'x33-cwf5-id',
+                mgmt:        { id: 'an-id2' },
+                nameDisplay: 'a-cluster',
+                isReady:     true,
+                pinned:      true
+              },
+              {
+                name:        'x34-cwf5-name',
+                id:          'x34-cwf5-id',
+                mgmt:        { id: 'an-id3' },
+                nameDisplay: 'b-cluster',
+                isReady:     true,
+                pinned:      true
+              },
+              {
+                name:        'local-name',
+                id:          'local',
+                mgmt:        { id: 'an-id4' },
+                nameDisplay: 'local',
+                isReady:     true,
+                pinned:      true
+              },
+            ],
+            ...defaultStore
+          },
+        },
+      },
+      stubs: ['BrandImage', 'router-link']
+    });
+
+    expect(wrapper.find('[data-testid="pinned-ready-cluster-0"] .cluster-name p').text()).toStrictEqual('local');
+    expect(wrapper.find('[data-testid="pinned-ready-cluster-1"] .cluster-name p').text()).toStrictEqual('a-cluster');
+    expect(wrapper.find('[data-testid="pinned-ready-cluster-2"] .cluster-name p').text()).toStrictEqual('b-cluster');
+    expect(wrapper.find('[data-testid="pinned-ready-cluster-3"] .cluster-name p').text()).toStrictEqual('c-cluster');
+  });
+
+  it('should show local cluster always on top of the list of clusters (pinned and mix ready/unready clusters)', async() => {
+    const wrapper: Wrapper<InstanceType<typeof TopLevelMenu>> = mount(TopLevelMenu, {
+      data: () => {
+        return { hasProvCluster: true, showPinClusters: true };
+      },
+      mocks: {
+        $store: {
+          getters: {
+            // these objs are doubling as a prov clusters
+            // from which the "description" field comes from
+            // This is triggered by the "hasProvCluster" above
+            // (check all "management/all" getters on the component code)
+            'management/all': () => [
+              {
+                name:        'x32-cwf5-name',
+                id:          'x32-cwf5-id',
+                mgmt:        { id: 'an-id1' },
+                nameDisplay: 'c-cluster',
+                isReady:     true,
+                pinned:      true
+              },
+              {
+                name:        'x33-cwf5-name',
+                id:          'x33-cwf5-id',
+                mgmt:        { id: 'an-id2' },
+                nameDisplay: 'a-cluster',
+                isReady:     true,
+                pinned:      true
+              },
+              {
+                name:        'x34-cwf5-name',
+                id:          'x34-cwf5-id',
+                mgmt:        { id: 'an-id3' },
+                nameDisplay: 'b-cluster',
+                isReady:     false,
+                pinned:      true
+              },
+              {
+                name:        'local-name',
+                id:          'local',
+                mgmt:        { id: 'an-id4' },
+                nameDisplay: 'local',
+                isReady:     true,
+                pinned:      true
+              },
+            ],
+            ...defaultStore
+          },
+        },
+      },
+      stubs: ['BrandImage', 'router-link']
+    });
+
+    expect(wrapper.find('[data-testid="pinned-ready-cluster-0"] .cluster-name p').text()).toStrictEqual('local');
+    expect(wrapper.find('[data-testid="pinned-ready-cluster-1"] .cluster-name p').text()).toStrictEqual('a-cluster');
+    expect(wrapper.find('[data-testid="pinned-ready-cluster-2"] .cluster-name p').text()).toStrictEqual('c-cluster');
+    expect(wrapper.find('[data-testid="pinned-ready-cluster-3"] .cluster-name p').text()).toStrictEqual('b-cluster');
+  });
+
   it('should show description if it is available on the prov cluster', async() => {
     const wrapper: Wrapper<InstanceType<typeof TopLevelMenu>> = mount(TopLevelMenu, {
       data: () => {
