@@ -40,7 +40,8 @@ export default {
       const findPageArgs = { // Of type ActionFindPageArgs
         namespaced: this.namespace,
         pagination: new PaginationArgs({
-          pageSize: -1,
+          page:     null,
+          pageSize: null,
           filters:  [
             PaginationParamFilter.createMultipleFields(this.types.map((t) => {
               return new PaginationFilterField({ field: 'metadata.fields.1', value: t });

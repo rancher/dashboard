@@ -27,7 +27,8 @@ export default {
       const findPageArgs = { // Of type ActionFindPageArgs
         namespaced: this.value.metadata.namespace,
         pagination: new PaginationArgs({
-          pageSize: -1,
+          page:     null,
+          pageSize: null,
           filters:  PaginationParamFilter.createSingleField({
             field: 'metadata.fields.1', // TODO: RC test all of these references
             value: TYPES.TLS

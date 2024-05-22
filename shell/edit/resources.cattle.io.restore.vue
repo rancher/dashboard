@@ -64,7 +64,8 @@ export default {
       const findPageArgs = { // Of type ActionFindPageArgs
         namespaced: this.chartNamespace,
         pagination: new PaginationArgs({
-          pageSize: -1,
+          page:     null,
+          pageSize: null,
           filters:  PaginationParamFilter.createSingleField({
             field: 'metadata.fields.1',
             value: SECRET_TYPES.OPAQUE

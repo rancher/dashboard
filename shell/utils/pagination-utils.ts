@@ -21,7 +21,7 @@ import { DEFAULT_PERF_SETTING } from '@shell/config/settings';
  *
  * Once cache is merged (pre 2.9.0) this will be removed
  */
-const TEMP_VAI_CACHE_MERGED = false;
+export const TEMP_VAI_CACHE_MERGED = false;
 /**
  * Given above, just a dev thing
  */
@@ -32,7 +32,7 @@ const TEMP_PERF_ENABLED = false;
  */
 class PaginationUtils {
   /**
-   * When a ns filter isn't one or more projects/namespaces... what the the valid values?
+   * When a ns filter isn't one or more projects/namespaces... what are the valid values?
    *
    * This basically blocks 'Not in a Project'.. which would involve a projectsornamespaces param with every ns not in a project.
    */

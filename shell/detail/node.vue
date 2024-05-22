@@ -54,8 +54,8 @@ export default {
       // Only get pods associated with this node. The actual values used are from a get all in node model `pods` getter (this works as it just gets all...)
       const opt = { // Of type ActionFindPageArgs
         pagination: new PaginationArgs({
-          page:     -1,
-          pageSize: -1,
+          page:     null,
+          pageSize: null,
           sort:     [{ field: 'metadata.name', asc: true }],
           filters:  PaginationParamFilter.createSingleField({
             field: 'spec.nodeName',

@@ -5,6 +5,7 @@ import Namespace from '@shell/models/namespace';
 import { uniq } from '@shell/utils/array';
 import { CONFIG_MAP, MANAGEMENT, NODE, POD } from '@shell/config/types';
 import { Schema } from 'plugins/steve/schema';
+import { TEMP_VAI_CACHE_MERGED } from 'utils/pagination-utils';
 
 class NamespaceProjectFilters {
   /**
@@ -105,22 +106,44 @@ class StevePaginationUtils extends NamespaceProjectFilters {
     '': [// all types
       { field: 'metadata.name' },
       { field: 'metadata.namespace' },
-      { field: 'metadata.state.name' },
+      // { field: 'id' }, // Pending API support
+      // { field: 'metadata.state.name' }, // Pending API support
+      { field: 'metadata.creationTimestamp' },
     ],
     [NODE]: [
-      { field: 'status.nodeInfo.kubeletVersion' },
-      { field: 'status.nodeInfo.operatingSystem' },
+      // { field: 'status.nodeInfo.kubeletVersion' }, // Pending API support
+      // { field: 'status.nodeInfo.operatingSystem' }, // Pending API support
+      // { field: 'status.nodeName' }, // Pending API support
     ],
     [POD]: [
       { field: 'spec.containers.image' },
       { field: 'spec.nodeName' },
     ],
     [MANAGEMENT.NODE]: [
-      { field: 'status.nodeName' }
+      { field: 'status.nodeName' },
+      // { field: 'status.nodeInfo.kubeletVersion'}, // Pending API support
     ],
     [CONFIG_MAP]: [
       { field: 'metadata.labels' }
     ]
+  }
+
+  private convertArrayPath(path: string): string {
+    if (TEMP_VAI_CACHE_MERGED) {
+      return path;
+    }
+
+    if (path.startsWith('metadata.fields.')) {
+      const [part1, part2, ...rest] = path.split('.');
+
+      return `${ part1 }.${ part2 }[${ rest.join('.') }]`;
+    }
+
+    return path;
+  }
+
+  public createSortForPagination(sortByPath: string): string {
+    return this.convertArrayPath(sortByPath);
   }
 
   /**
@@ -220,8 +243,6 @@ class StevePaginationUtils extends NamespaceProjectFilters {
 
     if (opt.pagination.page) {
       params.push(`page=${ opt.pagination.page }`);
-    } else {
-      throw new Error(`A pagination request is required but no 'page' property provided: ${ JSON.stringify(opt) }`);
     }
 
     if (opt.pagination.pageSize) {
@@ -229,11 +250,24 @@ class StevePaginationUtils extends NamespaceProjectFilters {
     }
 
     if (opt.pagination.sort?.length) {
+      const validateFields = {
+        checked: new Array<string>(),
+        invalid: new Array<string>(),
+      };
+
       const joined = opt.pagination.sort
-        .map((s) => `${ s.asc ? '' : '-' }${ s.field }`)
+        .map((s) => {
+          this.validateField(validateFields, schema, s.field);
+
+          return `${ s.asc ? '' : '-' }${ this.convertArrayPath(s.field) }`;
+        })
         .join(',');
 
       params.push(`sort=${ joined }`);
+
+      if (validateFields.invalid.length) {
+        console.warn(`Pagination API does not support sorting '${ schema.id }' by the requested fields: ${ uniq(validateFields.invalid).join(', ') }`); // eslint-disable-line no-console
+      }
     }
 
     if (opt.pagination.filters?.length) {
@@ -308,7 +342,7 @@ class StevePaginationUtils extends NamespaceProjectFilters {
               // Check if the API supports filtering by this field
               this.validateField(validateFields, schema, field.field);
 
-              return `${ field.field }${ field.equals ? '=' : '!=' }${ field.value }`;
+              return `${ this.convertArrayPath(field.field) }${ field.equals ? '=' : '!=' }${ field.value }`;
             }
 
             return field.value;

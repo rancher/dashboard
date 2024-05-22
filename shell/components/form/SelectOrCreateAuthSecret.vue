@@ -415,7 +415,8 @@ export default {
         // Of type ActionFindPageArgs
         namespaced: this.filterByNamespace ? this.namespace : '',
         pagination: new PaginationArgs({
-          pageSize: -1,
+          page:     null,
+          pageSize: null,
           filters:  [
             PaginationParamFilter.createMultipleFields(
               this.secretTypes.map(

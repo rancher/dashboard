@@ -137,8 +137,8 @@ export default {
 
         if (paginationUtils.isEnabled({ rootGetters: this.$store.getters }, { store: 'cluster', resource: { id: CONFIG_MAP } })) {
           const pagination = new PaginationArgs({
-            page:     1,
-            pageSize: -1,
+            page:     null,
+            pageSize: null,
             filters:  [
               PaginationParamFilter.createMultipleFields([
                 new PaginationFilterField({ field: `metadata.label["${ HCI_ANNOTATIONS.CLOUD_INIT }"]`, value: 'user' }),

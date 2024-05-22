@@ -320,11 +320,11 @@ export class PaginationArgs {
     /**
      * For definition see {@link PaginationArgs} `page`
      */
-    page?: number,
+    page?: number | null,
     /**
      * For definition see {@link PaginationArgs} `pageSize`
      */
-    pageSize?: number,
+    pageSize?: number | null,
     /**
      * For definition see {@link PaginationArgs} `sort`
      */
