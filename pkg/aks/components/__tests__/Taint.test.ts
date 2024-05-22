@@ -37,16 +37,16 @@ const requiredSetup = () => {
 
 describe('aks taint component', () => {
   it.each([
-    ['key1:val1=PreferNoSchedule', {
+    ['key1=val1:PreferNoSchedule', {
       key: 'key1', value: 'val1', effect: 'PreferNoSchedule'
     }],
-    ['key2:val2=NoExecute', {
+    ['key2=val2:NoExecute', {
       key: 'key2', value: 'val2', effect: 'NoExecute'
     }],
-    [':val3=PreferNoSchedule', {
+    ['=val3:PreferNoSchedule', {
       key: '', value: 'val3', effect: 'PreferNoSchedule'
     }],
-    ['key4:=NoExecute', {
+    ['key4=:NoExecute', {
       key: 'key4', value: '', effect: 'NoExecute'
     }],
   ])('on edit, should populate each input field with parsed taint value', (taint, expected) => {
