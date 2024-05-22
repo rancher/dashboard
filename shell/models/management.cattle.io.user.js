@@ -117,6 +117,14 @@ export default class User extends HybridModel {
   }
 
   /**
+   * Provides a display value for the userDisabledIn date based on the user
+   * state.
+   */
+  get userDisabledInDisplay() {
+    return this.state === 'inactive' ? null : this.userDisabledIn;
+  }
+
+  /**
    * Gets the delete-after label in milliseconds
    * @returns {number}
    */
@@ -130,6 +138,19 @@ export default class User extends HybridModel {
     }
 
     return this.metadata?.state?.name || 'unknown';
+  }
+
+  get stateDisplay() {
+    switch (this.state) {
+    case 'inactive':
+      return this.t('user.state.inactive');
+    case 'active':
+      return this.t('user.state.active');
+    case 'unknown':
+      return this.t('user.state.unknown');
+    default:
+      return this.state;
+    }
   }
 
   get description() {
@@ -244,14 +265,16 @@ export default class User extends HybridModel {
         content:       this.userLastLogin,
       },
       {
-        label:     this.t('tableHeaders.userDisabledIn'),
-        formatter: 'LiveDate',
-        content:   this.userDisabledIn,
+        label:         this.t('tableHeaders.userDisabledIn'),
+        formatter:     'LiveDate',
+        formatterOpts: { isCountdown: true },
+        content:       this.userDisabledInDisplay,
       },
       {
-        label:     this.t('tableHeaders.userDeletedIn'),
-        formatter: 'LiveDate',
-        content:   this.userDeletedIn,
+        label:         this.t('tableHeaders.userDeletedIn'),
+        formatter:     'LiveDate',
+        formatterOpts: { isCountdown: true },
+        content:       this.userDeletedIn,
       },
       ...this._details
     ];
