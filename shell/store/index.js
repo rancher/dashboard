@@ -37,6 +37,7 @@ import { addParam } from '@shell/utils/url';
 import semver from 'semver';
 import { STORE, BLANK_CLUSTER } from '@shell/store/store-types';
 import { isDevBuild } from '@shell/utils/version';
+import { markRaw } from 'vue';
 
 // Disables strict mode for all store instances to prevent warning about changing state outside of mutations
 // because it's more efficient to do that sometimes.
@@ -247,9 +248,9 @@ export const state = () => {
     isRancherInHarvester:    false,
     targetRoute:             null,
     rootProduct:             undefined,
-    $router:                 undefined,
-    $route:                  undefined,
-    $plugin:                 undefined,
+    $router:                 markRaw(undefined),
+    $route:                  markRaw(undefined),
+    $plugin:                 markRaw(undefined),
   };
 };
 
@@ -728,15 +729,15 @@ export const mutations = {
   },
 
   setRouter(state, router) {
-    state.$router = router;
+    state.$router = markRaw(router);
   },
 
   setRoute(state, route) {
-    state.$route = route;
+    state.$route = markRaw(route);
   },
 
   setPlugin(state, pluginDefinition) {
-    state.$plugin = pluginDefinition;
+    state.$plugin = markRaw(pluginDefinition);
   }
 };
 

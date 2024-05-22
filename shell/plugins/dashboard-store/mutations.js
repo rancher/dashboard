@@ -1,4 +1,4 @@
-import Vue from 'vue';
+import Vue, { markRaw } from 'vue';
 import { addObject, addObjects, clear, removeObject } from '@shell/utils/array';
 import { SCHEMA, COUNT } from '@shell/config/types';
 import { normalizeType, keyFieldFor } from '@shell/plugins/dashboard-store/normalize';
@@ -34,10 +34,10 @@ function registerType(state, type) {
        * Used to cancel incremental loads if the page changes during load
        */
       loadCounter:   0,
-    };
 
-    // Not enumerable so they don't get sent back to the client for SSR
-    Object.defineProperty(cache, 'map', { value: new Map() });
+      // Not enumerable so they don't get sent back to the client for SSR
+      map: markRaw(new Map()),
+    };
 
     Vue.set(state.types, type, cache);
   }
