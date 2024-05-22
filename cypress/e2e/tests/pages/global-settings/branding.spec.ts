@@ -27,7 +27,7 @@ describe('Branding', () => {
     cy.login();
   });
 
-  it('Can navigate to Branding Page', { tags: ['@adminUser', '@standardUser'] }, () => {
+  it('Can navigate to Branding Page', { tags: ['@globalSettings', '@adminUser', '@standardUser'] }, () => {
     HomePagePo.goTo();
 
     const burgerMenu = new BurgerMenuPo();
@@ -53,7 +53,7 @@ describe('Branding', () => {
     brandingPage.waitForPageWithClusterId();
   });
 
-  it('Private Label', { tags: '@adminUser' }, () => {
+  it('Private Label', { tags: ['@globalSettings', '@adminUser'] }, () => {
     const brandingPage = new BrandingPagePo();
 
     brandingPage.goTo();
@@ -91,19 +91,19 @@ describe('Branding', () => {
     cy.title().should('eq', settings.privateLabel.original);
   });
 
-  it.skip('Support Links', () => {
+  it.skip('Support Links', { tags: ['@globalSettings', '@adminUser'] }, () => {
     // Liable to change following Prime changes
   });
 
-  it.skip('Logo', () => {
+  it.skip('Logo', { tags: ['@globalSettings', '@adminUser'] }, () => {
     // Requires a way to check the actual image changes
   });
 
-  it.skip('Favicon', () => {
+  it.skip('Favicon', { tags: ['@globalSettings', '@adminUser'] }, () => {
     // Requires a way to check the actual image changes
   });
 
-  it('Primary Color', { tags: '@adminUser' }, () => {
+  it('Primary Color', { tags: ['@globalSettings', '@adminUser'] }, () => {
     const brandingPage = new BrandingPagePo();
 
     brandingPage.goTo();
@@ -135,7 +135,7 @@ describe('Branding', () => {
     brandingPage.applyAndWait('**/ui-primary-color');
   });
 
-  it('Link Color', { tags: '@adminUser' }, () => {
+  it('Link Color', { tags: ['@globalSettings', '@adminUser'] }, () => {
     const brandingPage = new BrandingPagePo();
 
     brandingPage.goTo();

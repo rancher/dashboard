@@ -291,6 +291,7 @@ export const HCI = {
   CLUSTER:          'harvesterhci.io.management.cluster',
   DASHBOARD:        'harvesterhci.io.dashboard',
   IMAGE:            'harvesterhci.io.virtualmachineimage',
+  VGPU_DEVICE:      'devices.harvesterhci.io.vgpudevice',
   SETTING:          'harvesterhci.io.setting',
   HARVESTER_CONFIG: 'rke-machine-config.cattle.io.harvesterconfig',
 };

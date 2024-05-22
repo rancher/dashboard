@@ -5,7 +5,7 @@ import WorkloadPagePo from '@/cypress/e2e/po/pages/explorer/workloads.po';
 
 const podName = 'some-pod-name';
 
-describe('Workloads', { tags: '@adminUser' }, () => {
+describe('Workloads', { tags: ['@explorer', '@adminUser'] }, () => {
   beforeEach(() => {
     cy.login();
   });
@@ -24,6 +24,8 @@ describe('Workloads', { tags: '@adminUser' }, () => {
     // check if Pod is in the Workloads list
     const workload = new WorkloadPagePo('local');
 
+    // Simple test to assert we haven't broken Workloads detail page
+    // https://github.com/rancher/dashboard/issues/10490
     workload.goTo();
     workload.goToDetailsPage(podName);
 

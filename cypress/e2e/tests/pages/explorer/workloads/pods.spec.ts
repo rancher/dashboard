@@ -11,7 +11,7 @@ describe('Cluster Explorer', () => {
     describe('Pods', () => {
       const workloadsPodPage = new WorkloadsPodsListPagePo('local');
 
-      describe('Should open a terminal', { tags: ['@adminUser', '@standardUser'] }, () => {
+      describe('Should open a terminal', { tags: ['@explorer', '@adminUser'] }, () => {
         beforeEach(() => {
           workloadsPodPage.goTo();
         });
@@ -23,7 +23,7 @@ describe('Cluster Explorer', () => {
         });
       });
 
-      describe('When cloning a pod', { tags: ['@adminUser'] }, () => {
+      describe('When cloning a pod', { tags: ['@explorer', '@adminUser'] }, () => {
         const { name: origPodName, namespace } = createPodBlueprint.metadata;
         const { name: clonePodName } = clonePodBlueprint.metadata;
 
@@ -58,6 +58,8 @@ describe('Cluster Explorer', () => {
           createClonePo.nameNsDescription().name().set(clonePodName);
           createClonePo.save().wait(10000);
 
+          // Simple test to assert we haven't broken Pods detail page
+          // https://github.com/rancher/dashboard/issues/10490
           const clonedPodPage = new WorkLoadsPodDetailsPagePo(clonePodName);
 
           clonedPodPage.goTo().wait(10000);
