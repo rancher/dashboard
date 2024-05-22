@@ -130,7 +130,7 @@ export default defineComponent({
         return false;
       }
 
-      return this.clusterVersion !== this.originalOrchestratorVersion;
+      return this.clusterVersion !== this.originalOrchestratorVersion && !!this.originalOrchestratorVersion;
     },
 
     willUpgrade: {
