@@ -410,7 +410,6 @@ export default {
   },
 
   methods: {
-    // TODO: RC unit tests
     async filterSecretsByApi() {
       const findPageArgs = {
         // Of type ActionFindPageArgs
