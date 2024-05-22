@@ -66,6 +66,10 @@ aks:
       label: Mode
     labels:
       tooltip: Configure labels for all nodes in this Node Pool.
+    orchestratorVersion: 
+      label: Node Pool Kubernetes Version
+      upgrade: Upgrade node pool Kubernetes version from {from} to {to}
+      warning: A new cluster version has been selected. Once the upgrade has completed, you can come back and upgrade the node pool version.
   linuxAdminUsername:
     label: Linux Admin Username
     placeholder: azureuser
@@ -162,3 +166,4 @@ aks:
     poolMinMax: The minimum number of nodes must be less than or equal to the maximum number of nodes, and the node count must be between or equal to the minimum and maximum.
     poolMin: The minimum number of nodes must be greater than 0 and at most 100.
     poolMax: The maximum number of nodes must be greater than 0 and at most 100.
+    poolTaints: Taints must have both a key and value defined.

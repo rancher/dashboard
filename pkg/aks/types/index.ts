@@ -27,12 +27,14 @@ export interface AKSNodePool {
   _isNewOrUnprovisioned?: boolean,
   _id?: string
   _validation: {
+    _validName?: boolean
     _validSize?: boolean
     _validAZ?: boolean
     _validCount?: boolean
     _validMinMax?: boolean
     _validMin?: boolean
     _validMax?: boolean
+    _validTaints?: boolean
   }
 }
 

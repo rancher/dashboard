@@ -34,7 +34,8 @@ import type { AKSDiskType, AKSNodePool, AKSPoolMode, AKSConfig } from '../types/
 import {
   getAKSRegions, getAKSVirtualNetworks, getAKSVMSizes, getAKSKubernetesVersions
   , regionsWithAvailabilityZones
-} from '@pkg/aks/util/aks';
+} from '../util/aks';
+import { parseTaint } from '../util/taints';
 
 import { diffUpstreamSpec } from '@shell/utils/kontainer';
 import {
@@ -51,7 +52,7 @@ import {
   privateDnsZone
 } from '@pkg/aks/util/validators';
 
-const defaultNodePool = {
+export const defaultNodePool = {
   availabilityZones:     ['1', '2', '3'],
   count:                 1,
   enableAutoScaling:     false,
@@ -253,6 +254,10 @@ export default defineComponent({
       {
         path:  'poolMinMax',
         rules: ['poolMinMax']
+      },
+      {
+        path:  'poolTaints',
+        rules: ['poolTaints']
       },
       {
         path:  'nodePoolsGeneral',
@@ -500,6 +505,32 @@ export default defineComponent({
             return allValid ? undefined : this.t('aks.errors.poolMax');
           }
         },
+
+        poolTaints: (taint: string) => {
+          if (taint && taint !== '') {
+            const { key, value } = parseTaint(taint);
+
+            return key === '' || value === '' ? this.t('aks.errors.poolTaints') : undefined;
+          } else {
+            let allValid = true;
+
+            this.nodePools.forEach((pool) => {
+              this.$set(pool._validation, '_validTaints', true);
+              const taints = pool.nodeTaints || [];
+
+              taints.forEach((taint:string) => {
+                const { key, value } = parseTaint(taint);
+
+                if (key === '' || value === '') {
+                  allValid = false;
+                  this.$set(pool._validation, '_validTaints', false);
+                }
+              });
+            });
+
+            return allValid ? undefined : this.t('aks.errors.poolTaints');
+          }
+        }
 
       };
     },
@@ -749,6 +780,11 @@ export default defineComponent({
       if (neu && old) {
         this.touchedVersion = true;
       }
+      this.nodePools.forEach((pool: AKSNodePool) => {
+        if (pool._isNewOrUnprovisioned) {
+          this.$set(pool, 'orchestratorVersion', neu);
+        }
+      });
     },
 
     'config.privateCluster'(neu) {
@@ -767,7 +803,9 @@ export default defineComponent({
       this.allAksVersions = [];
       this.vmSizeOptions = [];
       this.allVirtualNetworks = [];
-      delete this.config?.kubernetesVersion;
+      if (this.mode === _CREATE) {
+        delete this.config?.kubernetesVersion;
+      }
       this.$set(this, 'errors', []);
     },
 
@@ -895,7 +933,7 @@ export default defineComponent({
       }
 
       this.nodePools.push({
-        ...defaultNodePool, name: poolName, _id, mode, vmSize: this.defaultVmSize, availabilityZones: this.canUseAvailabilityZones ? ['1', '2', '3'] : []
+        ...defaultNodePool, name: poolName, _id, mode, vmSize: this.defaultVmSize, availabilityZones: this.canUseAvailabilityZones ? ['1', '2', '3'] : [], orchestratorVersion: this.config.kubernetesVersion
       });
 
       this.$nextTick(() => {
@@ -1087,8 +1125,11 @@ export default defineComponent({
                                   count: fvGetAndReportPathRules('poolCount'),
                                   min: fvGetAndReportPathRules('poolMin'),
                                   max: fvGetAndReportPathRules('poolMax'),
-                                  minMax: fvGetAndReportPathRules('poolMinMax')
+                                  minMax: fvGetAndReportPathRules('poolMinMax'),
+                                  taints: fvGetAndReportPathRules('poolTaints')
               }"
+              :original-cluster-version="originalVersion"
+              :cluster-version="config.kubernetesVersion"
               @remove="removePool(pool)"
               @vmSizeSet="touchedVmSize = true"
             />
