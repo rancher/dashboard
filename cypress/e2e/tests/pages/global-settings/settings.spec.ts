@@ -382,7 +382,7 @@ describe('Settings', { testIsolation: 'off' }, () => {
     SettingsPagePo.navTo();
     settingsPage.editSettingsByLabel('server-url');
 
-    const settingsEdit = settingsPage.editSettings('local', 'server-url');
+    const settingsEdit = settingsPage.editSettings('_', 'server-url');
 
     settingsEdit.waitForPage();
     settingsEdit.title().contains('Setting: server-url').should('be.visible');
