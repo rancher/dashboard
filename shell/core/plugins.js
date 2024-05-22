@@ -3,7 +3,7 @@ import { clearModelCache } from '@shell/plugins/dashboard-store/model-loader';
 import { Plugin } from './plugin';
 import { PluginRoutes } from './plugin-routes';
 import { UI_PLUGIN_BASE_URL } from '@shell/config/uiplugins';
-import { ExtensionPoint } from './types';
+import { ExtensionPoint, RegistrationType, Settings } from './types';
 
 const MODEL_TYPE = 'models';
 
@@ -296,6 +296,20 @@ export default function(context, inject, vueApp) {
         plugin.locales.forEach((localeObj) => {
           store.dispatch('i18n/addLocale', localeObj);
         });
+
+      // Brand
+      if (plugin.brand) {
+        // Check for multiple settings
+        if (this.getDynamic(RegistrationType.SETTING, Settings.BRAND)) {
+          console.warning('Brand has already been set by another extension - ignoring'); // eslint-disable-line no-console
+        } else {
+          this.register(RegistrationType.SETTING, Settings.BRAND, {
+            value:     plugin.brand,
+            extension: plugin.name,
+            override:  plugin.brandOverride
+          });
+        }
+      }
 
         // Routes
         pluginRoutes.addRoutes(plugin, plugin.routes);

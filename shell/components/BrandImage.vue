@@ -2,6 +2,7 @@
 import { mapGetters } from 'vuex';
 import { MANAGEMENT } from '@shell/config/types';
 import { SETTING } from '@shell/config/settings';
+import { RegistrationType, Settings } from '@shell/core/types';
 
 export default {
   props: {
@@ -39,9 +40,18 @@ export default {
     ...mapGetters({ theme: 'prefs/theme' }),
 
     brand() {
+      // Check first if an extension has set the brand and use that
+      const brand = this.$plugin.getDynamic(RegistrationType.SETTING, Settings.BRAND);
+
+      // If the value is set from an extension, use it if it is set to be an override
+      if (brand?.value && brand?.override) {
+        return brand.value;
+      }
+
       const setting = this.managementSettings.filter((setting) => setting.id === SETTING.BRAND)[0] || {};
 
-      return setting.value;
+      // Use the setting, or the brand value from an extension as a default when not set via a setting
+      return setting.value || brand?.value;
     },
 
     uiLogoLight() {
@@ -113,11 +123,23 @@ export default {
         return this.defaultPathToBrandedImage;
       } else {
         if (this.theme === 'dark' || this.dark) {
+          const file = this.$plugin.getDynamic(RegistrationType.IMAGE, `brand/${ this.brand }/dark/${ this.fileName }`);
+
+          if (file) {
+            return file;
+          }
+
           try {
             return require(`~shell/assets/brand/${ this.brand }/dark/${ this.fileName }`);
           } catch {}
         }
         try {
+          const file = this.$plugin.getDynamic(RegistrationType.IMAGE, `brand/${ this.brand }/${ this.fileName }`);
+
+          if (file) {
+            return file;
+          }
+
           return require(`~shell/assets/brand/${ this.brand }/${ this.fileName }`);
         } catch {}
 

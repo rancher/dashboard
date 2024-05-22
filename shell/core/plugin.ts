@@ -33,6 +33,8 @@ export class Plugin implements IPlugin {
   public onEnter: OnNavToPackage = () => Promise.resolve();
   public onLeave: OnNavAwayFromPackage = () => Promise.resolve();
   public _onLogOut: OnLogOut = () => Promise.resolve();
+  public brand = '';
+  public brandOverride = false;
 
   public uiConfig: { [key: string]: any } = {};
 
@@ -225,6 +227,15 @@ export class Plugin implements IPlugin {
       path: '/home',
       component
     });
+  }
+
+  setBrand(brand: string, isOverride = false) {
+    this.brand = brand;
+    this.brandOverride = isOverride;
+  }
+
+  setImage(path: string, image: Function) {
+    this.register('image', path, image);
   }
 
   addUninstallHook(hook: Function) {

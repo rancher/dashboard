@@ -19,6 +19,19 @@ export interface PackageMetadata {
 //   children: Route[];
 // }
 
+export enum RegistrationType {
+  // Used to register a setting
+  SETTING = 'setting', // eslint-disable-line no-unused-vars
+
+  // USed to register an image
+  IMAGE = 'image', // eslint-disable-line no-unused-vars
+}
+
+export enum Settings {
+  // Used to set the brand setting
+  BRAND = 'brand' // eslint-disable-line no-unused-vars
+}
+
 export type VuexStoreObject = { [key: string]: any }
 export type CoreStoreSpecifics = { state: () => VuexStoreObject, getters: VuexStoreObject, mutations: VuexStoreObject, actions: VuexStoreObject }
 export type CoreStoreConfig = { namespace: string, baseUrl?: string, modelBaseClass?: string, supportsStream?: boolean, isClusterStore?: boolean }
@@ -531,6 +544,20 @@ export interface IPlugin {
    * @param component Home page component
    */
   setHomePage(component: any): void;
+
+  /**
+   * Sets the brand to use in the UI
+   * @param brand Brand name to use
+   * @param isOverride Indicates if the brand name should always override the ui-brand setting
+   */
+  setBrand(brand: string, isOverride?: boolean): void;
+
+  /**
+   * Sets an image override to use in the UI
+   * @param path Path of the image to set
+   * @param image Function that resolves the image (e.g. via a require)
+   */
+  setImage(path: string, image: Function): void;
 
   /**
    * Add routes to the Vue Router
