@@ -334,6 +334,7 @@ describe('aks provisioning form', () => {
       return !pool._validation._validTaints;
     })).toHaveLength(2);
   });
+
   it.each([
     [2, {
       virtualNetwork: 'network2', virtualNetworkResourceGroup: 'network2Group', subnet: 'network2-subnet1'
