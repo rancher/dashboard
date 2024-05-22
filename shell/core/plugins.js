@@ -297,19 +297,19 @@ export default function(context, inject, vueApp) {
           store.dispatch('i18n/addLocale', localeObj);
         });
 
-      // Brand
-      if (plugin.brand) {
-        // Check for multiple settings
-        if (this.getDynamic(RegistrationType.SETTING, Settings.BRAND)) {
-          console.warning('Brand has already been set by another extension - ignoring'); // eslint-disable-line no-console
-        } else {
-          this.register(RegistrationType.SETTING, Settings.BRAND, {
-            value:     plugin.brand,
-            extension: plugin.name,
-            override:  plugin.brandOverride
-          });
+        // Brand
+        if (plugin.brand) {
+          // Check for multiple settings
+          if (this.getDynamic(RegistrationType.SETTING, Settings.BRAND)) {
+            console.warning('Brand has already been set by another extension - ignoring'); // eslint-disable-line no-console
+          } else {
+            this.register(RegistrationType.SETTING, Settings.BRAND, {
+              value:     plugin.brand,
+              extension: plugin.name,
+              override:  plugin.brandOverride
+            });
+          }
         }
-      }
 
         // Routes
         pluginRoutes.addRoutes(plugin, plugin.routes);
