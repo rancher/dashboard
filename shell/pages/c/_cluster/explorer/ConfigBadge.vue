@@ -11,12 +11,8 @@ export default {
   name: 'ConfigBadge',
 
   computed: {
-    hasBadge() {
-      return !!this.cluster?.badge;
-    },
-
     tooltip() {
-      return this.t(this.hasBadge ? 'clusterBadge.editAppearance' : 'clusterBadge.customizeAppearance');
+      return this.t('clusterBadge.customizeAppearance');
     }
   },
   methods: {
