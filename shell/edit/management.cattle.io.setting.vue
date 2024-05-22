@@ -52,6 +52,12 @@ export default {
       path:  'value',
       rules: this.setting.ruleSet.map(({ name }) => name)
     }] : [];
+
+    // Don't allow the user to reset the server URL if there is no default
+    // helps to ensure that a value is always set
+    if (isServerUrl(this.value.id) && !this.value.default) {
+      this.canReset = false;
+    }
   },
 
   computed: {
