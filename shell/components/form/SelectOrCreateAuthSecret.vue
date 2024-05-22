@@ -420,7 +420,7 @@ export default {
             PaginationParamFilter.createMultipleFields(
               this.secretTypes.map(
                 (t) => new PaginationFilterField({
-                  field: 'metadata.fields.2',
+                  field: 'metadata.fields.1',
                   value: t,
                 })
               )

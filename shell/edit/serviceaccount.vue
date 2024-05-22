@@ -74,7 +74,7 @@ export default {
         pagination: new PaginationArgs({
           pageSize: -1,
           filters:  PaginationParamFilter.createMultipleFields(this.secretTypes.map((t) => ({
-            field:  'metadata.fields.2',
+            field:  'metadata.fields.1',
             value:  t,
             equals: true
           })))

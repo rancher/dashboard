@@ -43,7 +43,7 @@ export default {
           pageSize: -1,
           filters:  [
             PaginationParamFilter.createMultipleFields(this.types.map((t) => {
-              return new PaginationFilterField({ field: 'metadata.fields.2', value: t });
+              return new PaginationFilterField({ field: 'metadata.fields.1', value: t });
             }))
           ]
         }),

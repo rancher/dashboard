@@ -215,7 +215,7 @@ export default {
         pagination: new PaginationArgs({
           pageSize: -1,
           filters:  PaginationParamFilter.createSingleField({
-            field: 'metadata.fields.2',
+            field: 'metadata.fields.1',
             value: TYPES.TLS
           })
         }),
