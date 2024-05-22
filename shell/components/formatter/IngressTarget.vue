@@ -1,6 +1,7 @@
 <script>
 import { INGRESS, WORKLOAD_TYPES } from '@shell/config/types';
 import IngressFullPath from '@shell/components/formatter/IngressFullPath';
+import paginationUtils from '@shell/utils/pagination-utils';
 
 export default {
   components: { IngressFullPath },
@@ -18,8 +19,12 @@ export default {
   },
 
   async fetch() {
-    // TODO: RC shell/components/formatter/IngressTarget.vue. used by shell/models/networking.k8s.io.ingress.js `targetTo`
-    const promises = Object.values(WORKLOAD_TYPES).map((type) => this.$store.dispatch('cluster/findAll', { type }));
+    let promises = [];
+
+    if (!paginationUtils.isEnabled({ rootGetters: this.$store.getters }, { store: 'cluster' })) {
+      // This is only used by shell/models/networking.k8s.io.ingress.js `targetTo`, where we do some dodgy matching of workloads with name 'ingress-'
+      promises = Object.values(WORKLOAD_TYPES).map((type) => this.$store.dispatch('cluster/findAll', { type }));
+    }
     const ingressSchema = this.$store.getters[`cluster/schemaFor`](INGRESS);
 
     if (ingressSchema) {
