@@ -16,16 +16,18 @@ import { fetchInitialSettings } from '@shell/utils/settings';
 
 let beforeEachSetup = false;
 
-function setProduct(store, to, redirect) {
+function setProduct(store, to) {
   let product = getProductFromRoute(to);
 
   // since all products are hardcoded as routes (ex: c-local-explorer), if we match the wildcard route it means that the product does not exist
   if ((product && (!to.matched.length || (to.matched.length && to.matched[0].path === '/c/:cluster/:product'))) ||
   // if the product grabbed from the route is not registered, then we don't have it!
   (product && !store.getters['type-map/isProductRegistered'](product))) {
-    store.dispatch('loadingError', new Error(store.getters['i18n/t']('nav.failWhale.productNotFound', { productNotFound: product }, true)));
+    const error = new Error(store.getters['i18n/t']('nav.failWhale.productNotFound', { productNotFound: product }, true));
 
-    return true;
+    store.dispatch('loadingError', error);
+
+    throw new Error('loadingError', new Error(store.getters['i18n/t']('nav.failWhale.productNotFound', { productNotFound: product }, true)));
   }
 
   if ( !product ) {
@@ -46,8 +48,6 @@ function setProduct(store, to, redirect) {
     // There might be management catalog items in it vs cluster.
     store.commit('catalog/reset');
   }
-
-  return false;
 }
 
 /**
@@ -59,7 +59,7 @@ function setProduct(store, to, redirect) {
  * - product's store has the schemaFor getter (extension stores might not have it)
  * - there's a resource associated with route (meta or param)
  */
-function invalidResource(store, to, redirect) {
+function validateResource(store, to) {
   const product = store.getters['currentProduct'];
   const resource = getResourceFromRoute(to);
 
@@ -74,9 +74,11 @@ function invalidResource(store, to, redirect) {
 
   // Unknown resource, redirect to fail whale
 
-  store.dispatch('loadingError', new Error(store.getters['i18n/t']('nav.failWhale.resourceNotFound', { resource }, true)));
+  const error = new Error(store.getters['i18n/t']('nav.failWhale.resourceNotFound', { resource }, true));
 
-  return () => redirect(302, '/fail-whale');
+  store.dispatch('loadingError', error);
+
+  throw error;
 }
 
 export default async function({
@@ -232,17 +234,13 @@ export default async function({
 
     store.app.router.beforeEach((to, from, next) => {
       // NOTE - This beforeEach runs AFTER this middleware. So anything in this middleware that requires it must set it manually
-      setProduct(store, to, redirect);
+      setProduct(store, to);
 
       next();
     });
 
     // Call it for the initial pageload
-    const redirected = setProduct(store, route, redirect);
-
-    if (redirected) {
-      return redirected();
-    }
+    setProduct(store, route);
 
     store.app.router.afterEach((to, from) => {
       // Clear state used to record if back button was used for navigation
@@ -323,11 +321,7 @@ export default async function({
     // When fleet moves to it's own package this should be moved to pkg onEnter/onLeave
     if ((oldProduct === FLEET_NAME || product === FLEET_NAME) && oldProduct !== product) {
       // See note above for store.app.router.beforeEach, need to setProduct manually, for the moment do this in a targeted way
-      const redirected = setProduct(store, route, redirect);
-
-      if (redirected) {
-        return redirected();
-      }
+      setProduct(store, route);
 
       store.commit('updateWorkspace', {
         value:   store.getters['prefs/get'](WORKSPACE) || DEFAULT_WORKSPACE,
@@ -350,11 +344,7 @@ export default async function({
     ]);
 
     if (localCheckResource) {
-      const redirected = invalidResource(store, route, redirect);
-
-      if (redirected) {
-        return redirected();
-      }
+      validateResource(store, route, redirect);
     }
 
     if (!clusterId) {
