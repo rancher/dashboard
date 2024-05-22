@@ -179,12 +179,12 @@ export default defineComponent({
       originalVersion:  '',
 
       supportedVersionRange,
-      locationOptions:       [] as string[],
-      allAksVersions:        [] as string[],
-      vmSizeOptions:         [] as string[],
-      vmSizeInfo:            {} as any,
-      virtualNetworkOptions: [] as any[],
-      defaultVmSize:         defaultNodePool.vmSize as string,
+      locationOptions:    [] as string[],
+      allAksVersions:     [] as string[],
+      vmSizeOptions:      [] as string[],
+      vmSizeInfo:         {} as any,
+      allVirtualNetworks: [] as any[],
+      defaultVmSize:      defaultNodePool.vmSize as string,
 
       // if the user changes these then switches to a region without them, show a fv error
       // if they change region without having touched these, just update the (default) value
@@ -361,7 +361,7 @@ export default defineComponent({
 
         networkPolicyAvailable: () => {
           if (this.touchedVirtualNetwork && !!this.config.virtualNetwork) {
-            if (!this.virtualNetworkOptions.find((vn) => {
+            if (!this.allVirtualNetworks.find((vn) => {
               return ( vn.name === this.config.virtualNetwork && vn.resourceGroup === this.config.virtualNetworkResourceGroup);
             })) {
               return this.t('aks.virtualNetwork.notAvailableInRegion');
@@ -596,6 +596,60 @@ export default defineComponent({
       ];
     },
 
+    // in the labeledselect, networks will be shown as 'groups' with their subnets as selectable options
+    // it is possible for a virtual network to have no subnets defined - they will be excluded from this list
+    virtualNetworkOptions() {
+      const out: {label: string, kind?: string, disabled?: boolean, value?: string, virtualNetwork?: any, key?: string}[] = [{ label: this.t('generic.none') }];
+
+      if (this.loadingVirtualNetworks) {
+        return out;
+      }
+      this.allVirtualNetworks.forEach((network) => {
+        if (!network.subnets) {
+          return;
+        }
+        const groupOpt = {
+          label:    network.name,
+          kind:     'group',
+          disabled: true
+        };
+
+        out.push(groupOpt);
+        network.subnets.forEach((sn) => {
+          const label = sn.addressRange ? `${ sn.name } (${ sn.addressRange })` : sn.name;
+
+          out.push({
+            label,
+            value:          sn.name,
+            virtualNetwork: network,
+            // subnet name and addressRange may not be unique within ALL virtual networks - setting a key here keeps v-select from complaining
+            key:            label + network.name
+          });
+        });
+      });
+
+      return out;
+    },
+
+    virtualNetwork: {
+      get() {
+        return this.virtualNetworkOptions.find((opt) => opt.value === this.config.subnet) || this.t('generic.none');
+      },
+      set(neu: {label: string, kind?: string, disabled?: boolean, value?: string, virtualNetwork?: any}) {
+        if (neu.label === this.t('generic.none')) {
+          this.$set(this.config, 'virtualNetwork', null);
+          this.$set(this.config, 'virtualNetworkResourceGroup', null);
+          this.$set(this.config, 'subnet', null);
+        } else {
+          const { virtualNetwork, value: subnetName } = neu;
+
+          this.$set(this.config, 'virtualNetwork', virtualNetwork.name);
+          this.$set(this.config, 'virtualNetworkResourceGroup', virtualNetwork.resourceGroup);
+          this.$set(this.config, 'subnet', subnetName);
+        }
+      }
+    },
+
     networkPolicy: {
       get(): String {
         return this.config?.networkPolicy || _NONE;
@@ -712,7 +766,7 @@ export default defineComponent({
       this.locationOptions = [];
       this.allAksVersions = [];
       this.vmSizeOptions = [];
-      this.virtualNetworkOptions = [];
+      this.allVirtualNetworks = [];
       delete this.config?.kubernetesVersion;
       this.$set(this, 'errors', []);
     },
@@ -809,14 +863,14 @@ export default defineComponent({
 
     async getVirtualNetworks(): Promise<void> {
       this.loadingVirtualNetworks = true;
-      this.virtualNetworkOptions = [{ name: this.t('generic.none') }];
+      this.allVirtualNetworks = [];
       const { azureCredentialSecret, resourceLocation } = this.config;
 
       try {
         const res = await getAKSVirtualNetworks(this.$store, azureCredentialSecret, resourceLocation, this.clusterId);
 
         if (res && isArray(res)) {
-          this.virtualNetworkOptions.push(...res);
+          this.allVirtualNetworks.push(...res);
         }
 
         this.loadingVirtualNetworks = false;
@@ -861,16 +915,6 @@ export default defineComponent({
       const poolValidation = pool?._validation || {};
 
       return !Object.values(poolValidation).includes(false);
-    },
-
-    selectNetwork(network: any): void {
-      if (network.name === this.t('generic.none') || network === this.t('generic.none')) {
-        this.$set(this.config, 'virtualNetwork', null);
-        this.$set(this.config, 'virtualNetworkResourceGroup', null);
-      } else {
-        this.$set(this.config, 'virtualNetwork', network.name);
-        this.$set(this.config, 'virtualNetworkResourceGroup', network.resourceGroup);
-      }
     },
 
     setClusterName(name: string): void {
@@ -1217,15 +1261,17 @@ export default defineComponent({
               class="col span-3"
             >
               <LabeledSelect
-                :value="config.virtualNetwork || t('generic.none')"
+                :value="virtualNetwork"
                 label-key="aks.virtualNetwork.label"
                 :mode="mode"
                 :options="virtualNetworkOptions"
                 :loading="loadingVirtualNetworks"
-                option-label="name"
+                option-label="label"
+                option-key="key"
                 :disabled="!isNewOrUnprovisioned"
                 :rules="fvGetAndReportPathRules('networkPolicy')"
-                @selecting="selectNetwork($event)"
+                data-testid="aks-virtual-network-select"
+                @selecting="(e)=>virtualNetwork = e"
               />
             </div>
           </div>
