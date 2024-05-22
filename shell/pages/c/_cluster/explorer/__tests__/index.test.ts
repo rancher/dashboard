@@ -27,6 +27,7 @@ describe('page: cluster dashboard', () => {
           },
           'cluster/inError':   () => false,
           'cluster/schemaFor': jest.fn(),
+          'cluster/canList':   jest.fn(),
           'cluster/all':       jest.fn(),
           'i18n/exists':       jest.fn(),
           'i18n/t':            jest.fn(),
