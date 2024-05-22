@@ -62,4 +62,5 @@ export default class ClusterDashboardPagePo extends PagePo {
 
   clusterActionsHeader() {
     return new HeaderPo();
+  }
 }
