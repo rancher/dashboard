@@ -14,7 +14,8 @@ export const configType = {
   googleoauth:     'oauth',
   local:           '',
   github:          'oauth',
-  keycloakoidc:    'oidc'
+  keycloakoidc:    'oidc',
+  oidc:            'oidc',
 };
 
 const imageOverrides = { keycloakoidc: 'keycloak' };

@@ -580,11 +580,19 @@ authConfig:
       label: Endpoints
       custom: Specify
       standard: Generate
+    url: URL
+    realm: Realm
     keycloak:
       url: Keycloak URL
       realm: Keycloak Realm
     issuer: Issuer
     authEndpoint: Auth Endpoint
+    jwksUrl: JWKS URL
+    tokenEndpoint: Token Endpoint
+    userInfoEndpoint: User Info Endpoint
+    scope:
+      label: Scope
+      placeholder: openid
     cert:
       label: Certificate
       placeholder: Paste in the certificate, starting with -----BEGIN CERTIFICATE-----
