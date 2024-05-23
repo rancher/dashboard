@@ -157,7 +157,6 @@ export default defineComponent({
     }
     this.config = this.normanCluster.aksConfig;
     this.nodePools = this.normanCluster.aksConfig.nodePools;
-    this.containerMonitoring = !!(this.config.logAnalyticsWorkspaceGroup || this.config.logAnalyticsWorkspaceName);
     this.setAuthorizedIPRanges = !!(this.config?.authorizedIpRanges || []).length;
     this.nodePools.forEach((pool: AKSNodePool) => {
       this.$set(pool, '_id', randomStr());
@@ -201,7 +200,6 @@ export default defineComponent({
       loadingVersions:        false,
       loadingVmSizes:         false,
       loadingVirtualNetworks: false,
-      containerMonitoring:    false,
       setAuthorizedIPRanges:  false,
       fvFormRuleSets:         [{
         path:  'name',
@@ -793,6 +791,13 @@ export default defineComponent({
         delete this.config.privateDnsZone;
         delete this.config.userAssignedIdentity;
       }
+    },
+
+    'config.monitoring'(neu: boolean) {
+      if (!neu) {
+        this.$set(this.config, 'logAnalyticsWorkspaceGroup', null);
+        this.$set(this.config, 'logAnalyticsWorkspaceName', null);
+      }
     }
   },
 
@@ -1179,20 +1184,22 @@ export default defineComponent({
             </div>
             <div class="col span-3">
               <Checkbox
-                v-model="containerMonitoring"
+                v-model="config.monitoring"
                 :mode="mode"
                 label-key="aks.containerMonitoring.label"
+                data-testid="aks-monitoring-checkbox"
               />
             </div>
           </div>
 
           <div class="row mb-10">
-            <template v-if="containerMonitoring">
+            <template v-if="config.monitoring">
               <div class="col span-3">
                 <LabeledInput
                   v-model="config.logAnalyticsWorkspaceGroup"
                   :mode="mode"
                   label-key="aks.logAnalyticsWorkspaceGroup.label"
+                  data-testid="aks-log-analytics-workspace-group-input"
                 />
               </div>
               <div class="col span-3">
@@ -1200,6 +1207,7 @@ export default defineComponent({
                   v-model="config.logAnalyticsWorkspaceName"
                   :mode="mode"
                   label-key="aks.logAnalyticsWorkspaceName.label"
+                  data-testid="aks-log-analytics-workspace-name-input"
                 />
               </div>
             </template>
