@@ -4,7 +4,8 @@ import PromptRemove from '@/cypress/e2e/po/prompts/promptRemove.po';
 import BurgerMenuPo from '@/cypress/e2e/po/side-bars/burger-side-menu.po';
 import { LoginPagePo } from '@/cypress/e2e/po/pages/login-page.po';
 
-const DISABLED_CACHE_EXTENSION_NAME = 'clock-large';
+const DISABLED_CACHE_EXTENSION_NAME = 'large-extension';
+const DISABLED_CACHE_EXTENSION_MENU_LABEL = 'Large-extension';
 const UNAUTHENTICATED_EXTENSION_NAME = 'uk-locale';
 const EXTENSION_NAME = 'clock';
 const UI_PLUGINS_PARTNERS_REPO_URL = 'https://github.com/rancher/partner-extensions';
@@ -284,9 +285,8 @@ describe('Extensions page', { tags: ['@extensions', '@adminUser'] }, () => {
     extensionsPo.extensionDetailsCloseClick();
 
     // check if extension is working fine
-    BurgerMenuPo.burgerMenuNavToMenubyLabel('Clock-large');
-    // this checks if all 26 images are there, making sure extension is working
-    cy.get('.clock.outlet').find('img').should('have.length', 26);
+    BurgerMenuPo.burgerMenuNavToMenubyLabel(DISABLED_CACHE_EXTENSION_MENU_LABEL);
+    cy.get('h1').should('have.text', 'Large extension demo');
   });
 
   it('Should respect authentication when importing extension scripts', () => {
