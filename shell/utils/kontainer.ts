@@ -1,5 +1,28 @@
 import { isArray } from '@shell/utils/array';
-import { set, get } from '@shell/utils/object';
+import { set, get, isEmpty } from '@shell/utils/object';
+
+/**
+ * This function accepts a v3 cluster object and mutates its config field to sync values that were set outside Rancher (eg, when an imported cluster is created in its respective cloud provider).
+ * Values configured outside of rancher are not automatically propagated to the config field that the UI edits; they are reflected in the aksStatus/eksStatus/gkeStatus.upstreamSpec field.
+ * This function works in tandem with diffUpstreamSpec: the former runs when the edit form is initialized and the latter runs when the cluster is saved.
+ * @param configPrefix one of aks, eks, gke
+ * @param normanCluster v3 cluster object
+ */
+export function syncUpstreamConfig(configPrefix: string, normanCluster: {[key: string]: any}): void {
+  const configKey = `${ configPrefix }Config`;
+  const statusKey = `${ configPrefix }Status`;
+
+  const rancherConfig = normanCluster[configKey] || {};
+  const upstreamConfig = normanCluster?.[statusKey]?.upstreamSpec || {};
+
+  if (!isEmpty(upstreamConfig)) {
+    Object.keys(upstreamConfig).forEach((key) => {
+      if (isEmpty(rancherConfig[key] && !isEmpty(upstreamConfig.key))) {
+        set(rancherConfig, key, upstreamConfig[key]);
+      }
+    });
+  }
+}
 
 /**
  * Hosted provider (aks gke eks) edit functionality differs from other k8s resources
