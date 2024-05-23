@@ -5,7 +5,7 @@ import Namespace from '@shell/models/namespace';
 import { uniq } from '@shell/utils/array';
 import { CONFIG_MAP, MANAGEMENT, NODE, POD } from '@shell/config/types';
 import { Schema } from 'plugins/steve/schema';
-import { TEMP_VAI_CACHE_MERGED } from 'utils/pagination-utils';
+import { TEMP_VAI_CACHE_MERGED } from '@shell/utils/pagination-utils';
 
 class NamespaceProjectFilters {
   /**

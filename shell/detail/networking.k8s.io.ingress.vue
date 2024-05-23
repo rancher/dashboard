@@ -30,7 +30,7 @@ export default {
           page:     null,
           pageSize: null,
           filters:  PaginationParamFilter.createSingleField({
-            field: 'metadata.fields.1', // TODO: RC test all of these references
+            field: 'metadata.fields.1',
             value: TYPES.TLS
           })
         }),
