@@ -32,7 +32,8 @@ export default {
   },
   data() {
     const { host = '', http = {} } = this.value;
-    const { paths = [{ id: random32(1) }] } = http;
+    const { paths } = http;
+    paths.forEach(el => {el.id = random32(1)});
 
     return {
       host,
