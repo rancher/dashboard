@@ -33,10 +33,9 @@ export default {
 
   data() {
     return {
-      codeMirrorRef:       null,
-      loaded:              false,
-      showKeyMapCloseIcon: false,
-      removeKeyMapBox:     false,
+      codeMirrorRef:   null,
+      loaded:          false,
+      removeKeyMapBox: false,
     };
   },
 
@@ -76,9 +75,19 @@ export default {
       return out;
     },
 
-    keyMapText() {
-      return this.combinedOptions?.keyMap ? this.t(`prefs.keymap.${ this.combinedOptions.keyMap }`) : null;
+    keyMapTooltip() {
+      if (this.combinedOptions?.keyMap) {
+        const name = this.t(`prefs.keymap.${ this.combinedOptions.keyMap }`);
+
+        return this.t('codeMirror.keymap.indicatorToolip', { name });
+      }
+
+      return null;
     },
+
+    isNonDefaultKeyMap() {
+      return this.combinedOptions?.keyMap !== 'sublime';
+    }
   },
 
   created() {
@@ -138,10 +147,6 @@ export default {
     closeKeyMapInfo() {
       this.removeKeyMapBox = true;
     },
-
-    onKeyMapMouseOver(v) {
-      this.showKeyMapCloseIcon = v;
-    }
   }
 };
 </script>
@@ -153,24 +158,19 @@ export default {
   >
     <div v-if="loaded">
       <div
-        v-if="showKeyMapBox && !removeKeyMapBox && keyMapText"
+        v-if="showKeyMapBox && !removeKeyMapBox && keyMapTooltip && isNonDefaultKeyMap"
         class="keymap overlay"
       >
         <div
-          v-clean-tooltip="t('codeMirror.keymap.tooltip')"
-          class="label"
+          v-clean-tooltip="keyMapTooltip"
+          class="keymap-indicator"
           data-testid="code-mirror-keymap"
-          @mouseover="onKeyMapMouseOver(true)"
-          @mouseleave="onKeyMapMouseOver(false)"
+          @click="closeKeyMapInfo"
         >
-          <span>
-            {{ keyMapText }}
-          </span>
-          <i
-            v-if="showKeyMapCloseIcon"
-            class="icon icon-close icon-sm"
-            @click="closeKeyMapInfo"
-          />
+          <i class="icon icon-keyboard keymap-icon" />
+          <div class="close-indicator">
+            <i class="icon icon-close icon-sm" />
+          </div>
         </div>
       </div>
       <codemirror
@@ -195,26 +195,53 @@ export default {
   .code-mirror {
     z-index: 0;
 
-    .overlay {
-      position: sticky;
-      display: grid;
-      top: 0;
-      float: right;
-      height: 0;
+    // Keyboard mapping overlap
+    .keymap.overlay {
+      position: absolute;
+      display: flex;
+      top: 7px;
+      right: 7px;
       z-index: 1;
+      cursor: pointer;
 
-      .label {
-        border-radius: 2px;
-        border-style: dashed;
-        border-width: 0.1px;
-        margin: 7px 7px 0 0;
-        padding: 7px;
+      .keymap-indicator {
+        width: 48px;
+        height: 32px;
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        border: 1px solid transparent;
         color: var(--darker);
         background-color: var(--overlay-bg);
         font-size: 12px;
 
-        .icon {
-          cursor: pointer;
+        .icon-close {
+          opacity: 0;
+        }
+
+        .keymap-icon {
+          font-size: 24px;
+          opacity: 0.8;
+        }
+
+        &:hover {
+          border: 1px solid var(--primary);
+          border-radius: 4px;
+
+          .icon-close {
+            opacity: 1;
+          }
+
+          .keymap-icon {
+            opacity: 0.6;
+          }
+        }
+
+        .icon-close {
+          color: var(--primary);
+          position: absolute;
+          right: 3px;
+          top: 3px;
         }
       }
     }
