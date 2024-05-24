@@ -215,33 +215,39 @@ export default {
         background-color: var(--overlay-bg);
         font-size: 12px;
 
-        .icon-close {
-          opacity: 0;
+        .close-indicator {
+          width: 0;
+
+          .icon-close {
+            color: var(--primary);
+            opacity: 0;
+          }
         }
 
         .keymap-icon {
           font-size: 24px;
           opacity: 0.8;
+          transition: margin-right 0.2s ease-in-out;
         }
 
         &:hover {
           border: 1px solid var(--primary);
-          border-radius: 4px;
+          border-radius: var(--border-radius);;
+          
+          .close-indicator {
+            margin-left: -6px;
+            width: auto;
 
-          .icon-close {
-            opacity: 1;
+            .icon-close {
+              opacity: 1;
+              transition: opacity 0.25s ease-in-out 0.2s; // Only animate when being shown
+            }
           }
 
           .keymap-icon {
             opacity: 0.6;
+            margin-right: 10px;
           }
-        }
-
-        .icon-close {
-          color: var(--primary);
-          position: absolute;
-          right: 3px;
-          top: 3px;
         }
       }
     }
