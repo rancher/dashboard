@@ -6,6 +6,7 @@ import { LoginPagePo } from '@/cypress/e2e/po/pages/login-page.po';
 
 const DISABLED_CACHE_EXTENSION_NAME = 'large-extension';
 const DISABLED_CACHE_EXTENSION_MENU_LABEL = 'Large-extension';
+const DISABLED_CACHE_EXTENSION_TITLE = 'Large extension demo (> 20mb) - cache testing';
 const UNAUTHENTICATED_EXTENSION_NAME = 'uk-locale';
 const EXTENSION_NAME = 'clock';
 const UI_PLUGINS_PARTNERS_REPO_URL = 'https://github.com/rancher/partner-extensions';
@@ -286,7 +287,7 @@ describe('Extensions page', { tags: ['@extensions', '@adminUser'] }, () => {
 
     // check if extension is working fine
     BurgerMenuPo.burgerMenuNavToMenubyLabel(DISABLED_CACHE_EXTENSION_MENU_LABEL);
-    cy.get('h1').should('have.text', 'Large extension demo');
+    cy.get('h1').should('have.text', DISABLED_CACHE_EXTENSION_TITLE);
   });
 
   it('Should respect authentication when importing extension scripts', () => {
