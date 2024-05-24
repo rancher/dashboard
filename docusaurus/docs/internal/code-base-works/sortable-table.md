@@ -24,7 +24,7 @@ Typically a delayed component would initally not render itself at all - or rende
 
 There are two ways table headers are populated:
 
-- Custom header: You can create a customized header for the sortable table by defining it in the appropriate configuration file under shell/config/product folder. Read more [how to create custom table headers](/code-base-works/customising-how-k8s-resources-are-presented#customising-tables) for each type.
+- Custom header: You can create a customized header for the sortable table by defining it in the appropriate configuration file under shell/config/product folder. Read more [how to create custom table headers](./customising-how-k8s-resources-are-presented#customising-tables) for each type.
 
 - Header coming from Schema: If table data is coming from Schema, headers are dynamically populated by the Schema data. For the Internationalization make sure to add table headers locale key in translations YAML files.
 

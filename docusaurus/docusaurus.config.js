@@ -68,7 +68,7 @@ const config = {
         items: [
           {
             type:     'doc',
-            docId:    'home',
+            docId:    'extensions/home',
             position: 'right',
             label:    'Docs',
           },
