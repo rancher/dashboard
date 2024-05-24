@@ -87,6 +87,11 @@ export default {
       required: false
     },
 
+    altLoading: {
+      type:     Boolean,
+      required: false
+    },
+
     groupBy: {
       // Field to group rows by, row[groupBy] must be something that can be a map key
       type:    String,
@@ -343,7 +348,7 @@ export default {
     }
 
     return {
-      currentPhase:               ASYNC_BUTTON_STATES.WAITING,
+      refreshButtonPhase:         ASYNC_BUTTON_STATES.WAITING,
       expanded:                   {},
       searchQuery,
       eventualSearchQuery,
@@ -351,6 +356,10 @@ export default {
       actionOfInterest:           null,
       loadingDelay:               false,
       debouncedPaginationChanged: null,
+      /**
+       * The is the bool the DOM uses to show loading state. it's proxied from `loading` to avoid blipping the indicator (see usages)
+       */
+      pLoading:                   false,
     };
   },
 
@@ -369,9 +378,9 @@ export default {
   },
 
   beforeDestroy() {
-    clearTimeout(this.loadingDelayTimer);
     clearTimeout(this._scrollTimer);
     clearTimeout(this._loadingDelayTimer);
+    clearTimeout(this._altLoadingDelayTimer);
     clearTimeout(this._liveColumnsTimer);
     clearTimeout(this._delayedColumnsTimer);
     clearTimeout(this.manualRefreshTimer);
@@ -444,13 +453,32 @@ export default {
     manualRefreshLoadingFinished: {
       handler(neu, old) {
         // this is merely to update the manual refresh button status
-        this.currentPhase = !neu ? ASYNC_BUTTON_STATES.WAITING : ASYNC_BUTTON_STATES.ACTION;
+        this.refreshButtonPhase = !neu ? ASYNC_BUTTON_STATES.WAITING : ASYNC_BUTTON_STATES.ACTION;
         if (neu && neu !== old) {
           this.$nextTick(() => this.updateLiveAndDelayed());
         }
       },
       immediate: true
-    }
+    },
+
+    loading(neu) {
+      // Always ensure the Refresh button phase aligns with loading state (to ensure external phase changes which can then reset the internal phase changed by click)
+      this.refreshButtonPhase = neu ? ASYNC_BUTTON_STATES.WAITING : ASYNC_BUTTON_STATES.ACTION;
+
+      if (this.altLoading) {
+        // Delay setting the actual loading indicator. This should avoid flashing up the indicator if the API responds quickly
+        if (neu) {
+          this._altLoadingDelayTimer = setTimeout(() => {
+            this.pLoading = true;
+          }, 200); // this should be higher than the targetted quick response
+        } else {
+          clearTimeout(this._altLoadingDelayTimer);
+          this.pLoading = false;
+        }
+      } else {
+        this.pLoading = neu;
+      }
+    },
   },
 
   created() {
@@ -466,11 +494,16 @@ export default {
     },
 
     initalLoad() {
-      return !!(!this.loading && !this._didinit && this.rows?.length);
+      return !!(!this.pLoading && !this._didinit && this.rows?.length);
     },
 
     manualRefreshLoadingFinished() {
-      return !!(!this.loading && this._didinit && this.rows?.length && !this.isManualRefreshLoading);
+      const res = !!(!this.pLoading && this._didinit && this.rows?.length && !this.isManualRefreshLoading);
+
+      // Always ensure the Refresh button phase aligns with loading state (regardless of if manualRefreshLoadingFinished has changed or not)
+      this.refreshButtonPhase = !res || this.loading ? ASYNC_BUTTON_STATES.WAITING : ASYNC_BUTTON_STATES.ACTION;
+
+      return res;
     },
 
     fullColspan() {
@@ -570,6 +603,7 @@ export default {
         'body-dividers': this.bodyDividers,
         'overflow-y':    this.overflowY,
         'overflow-x':    this.overflowX,
+        'alt-loading':   this.altLoading && this.pLoading
       };
     },
 
@@ -1078,7 +1112,7 @@ export default {
             v-if="isTooManyItemsToAutoUpdate"
             class="manual-refresh"
             mode="manual-refresh"
-            :current-phase="currentPhase"
+            :current-phase="refreshButtonPhase"
             @click="debouncedRefreshTableData"
           />
           <div
@@ -1171,7 +1205,7 @@ export default {
         :default-sort-by="_defaultSortBy"
         :descending="descending"
         :no-rows="noRows"
-        :loading="loading && !loadingDelay"
+        :loading="pLoading && !loadingDelay"
         :no-results="noResults"
         @on-toggle-all="onToggleAll"
         @on-sort-change="changeSort"
@@ -1181,9 +1215,9 @@ export default {
       />
 
       <!-- Don't display anything if we're loading and the delay has yet to pass -->
-      <div v-if="loading && !loadingDelay" />
+      <div v-if="pLoading && !loadingDelay" />
 
-      <tbody v-else-if="loading">
+      <tbody v-else-if="pLoading && !altLoading">
         <slot name="loading">
           <tr>
             <td :colspan="fullColspan">
@@ -1428,7 +1462,7 @@ export default {
       <button
         type="button"
         class="btn btn-sm role-multi-action"
-        :disabled="page == 1"
+        :disabled="page == 1 || loading"
         @click="goToPage('first')"
       >
         <i class="icon icon-chevron-beginning" />
@@ -1436,7 +1470,7 @@ export default {
       <button
         type="button"
         class="btn btn-sm role-multi-action"
-        :disabled="page == 1"
+        :disabled="page == 1 || loading"
         @click="goToPage('prev')"
       >
         <i class="icon icon-chevron-left" />
@@ -1447,7 +1481,7 @@ export default {
       <button
         type="button"
         class="btn btn-sm role-multi-action"
-        :disabled="page == totalPages"
+        :disabled="page == totalPages || loading"
         @click="goToPage('next')"
       >
         <i class="icon icon-chevron-right" />
@@ -1455,7 +1489,7 @@ export default {
       <button
         type="button"
         class="btn btn-sm role-multi-action"
-        :disabled="page == totalPages"
+        :disabled="page == totalPages || loading"
         @click="goToPage('last')"
       >
         <i class="icon icon-chevron-end" />
@@ -1494,6 +1528,10 @@ export default {
 </template>
 
 <style lang="scss" scoped>
+  .sortable-table.alt-loading {
+    opacity: 0.5;
+    pointer-events: none;
+  }
 
   .manual-refresh {
     height: 40px;

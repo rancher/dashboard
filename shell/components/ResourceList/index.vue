@@ -264,6 +264,7 @@ export default {
       v-else
       :schema="schema"
       :rows="rows"
+      :alt-loading="canPaginate"
       :loading="loading"
       :headers="headers"
       :group-by="groupBy"
