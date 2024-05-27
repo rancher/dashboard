@@ -1,7 +1,7 @@
 import { LabelSelectPaginateFnOptions, LabelSelectPaginateFnResponse } from '@shell/types/components/labeledSelect';
 import { PaginationArgs, PaginationParam, PaginationSort } from '@shell/types/store/pagination.types';
 
-interface lSPFOptions<T> {
+export interface LabelSelectPaginationFunctionOptions<T = any> {
   opts: LabelSelectPaginateFnOptions<T>,
   /**
    * Resource type
@@ -31,7 +31,7 @@ interface lSPFOptions<T> {
   /**
    * Convert the results from JSON object to Rancher model class instance
    */
-  classify: boolean,
+  classify?: boolean,
 }
 
 /**
@@ -46,7 +46,7 @@ export async function labelSelectPaginationFunction<T>({
   store = 'cluster',
   groupByNamespace = true,
   classify = false,
-}: lSPFOptions<T>): Promise<LabelSelectPaginateFnResponse<T>> {
+}: LabelSelectPaginationFunctionOptions<T>): Promise<LabelSelectPaginateFnResponse<T>> {
   const {
     pageContent, page, pageSize, resetPage
   } = opts;
