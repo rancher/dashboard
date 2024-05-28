@@ -2,7 +2,6 @@ import { debounce } from 'lodash';
 import { PropType, defineComponent } from 'vue';
 import { ComputedOptions, MethodOptions } from 'vue/types/v3-component-options';
 import { LabelSelectPaginateFn, LABEL_SELECT_NOT_OPTION_KINDS, LABEL_SELECT_KINDS } from '@shell/types/components/labeledSelect';
-import paginationUtils from '@shell/utils/pagination-utils';
 
 interface Props {
   paginate?: LabelSelectPaginateFn
@@ -46,7 +45,20 @@ export default defineComponent<Props, any, Data, Computed, Methods>({
     paginate: {
       default: null,
       type:    Function as PropType<LabelSelectPaginateFn>,
-    }
+    },
+
+    inStore: {
+      type:    String,
+      default: 'cluster',
+    },
+
+    /**
+     * Resource to show
+     */
+    resourceType: {
+      type:    String,
+      default: null,
+    },
   },
 
   data(): Data {
@@ -74,7 +86,7 @@ export default defineComponent<Props, any, Data, Computed, Methods>({
 
   computed: {
     canPaginate() {
-      return !!this.paginate && paginationUtils.isEnabled({ rootGetters: this.$store.getters }, { store: 'cluster' });
+      return !!this.paginate && this.$store.getters[`${ this.inStore }/paginationEnabled`](this.resourceType); // TODO: RC store
     },
 
     canLoadMore() {

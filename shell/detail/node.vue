@@ -48,7 +48,7 @@ export default {
   },
 
   async fetch() {
-    this.filterByApi = paginationUtils.isEnabled({ rootGetters: this.$store.getters }, { store: 'cluster', resource: { id: POD } });
+    this.filterByApi = this.$store.getters[`cluster/paginationEnabled`](POD);
 
     if (this.filterByApi) {
       // Only get pods associated with this node. The actual values used are from a get all in node model `pods` getter (this works as it just gets all...)

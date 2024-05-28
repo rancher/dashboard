@@ -116,7 +116,7 @@ export default defineComponent({
       this.paginate = false;
       break;
     case RESOURCE_LABEL_SELECT_MODE.DYNAMIC:
-      this.paginate = paginationUtils.isEnabled({ rootGetters: this.$store.getters }, { store: this.inStore, resource: { id: this.resourceType } });
+      this.paginate = this.$store.getters[`${ this.inStore }/paginationEnabled`](this.resourceType);
       break;
     }
 

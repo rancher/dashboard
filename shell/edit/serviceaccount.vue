@@ -38,7 +38,7 @@ export default {
   },
 
   async fetch() {
-    this.filterByApi = paginationUtils.isEnabled({ rootGetters: this.$store.getters }, { store: 'cluster', resource: { id: SECRET } });
+    this.filterByApi = this.$store.getters[`cluster/paginationEnabled`](SECRET);
 
     if (this.filterByApi) {
       this.filteredSecrets = await this.filterSecretsByApi();
