@@ -135,7 +135,7 @@ export default {
       if (clusterId) {
         let configMapsUrl = `${ url }/${ CONFIG_MAP }s`;
 
-        if (paginationUtils.isEnabled({ rootGetters: this.$store.getters }, { store: 'cluster', resource: { id: CONFIG_MAP } })) {
+        if (this.$store.getters[`cluster/paginationEnabled`](CONFIG_MAP)) {
           const pagination = new PaginationArgs({
             page:     null,
             pageSize: null,

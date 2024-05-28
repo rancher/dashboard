@@ -19,7 +19,7 @@ export default {
   },
 
   async fetch() {
-    if (this.$store.getters['management/schemaFor'](SECRET) && !paginationUtils.isEnabled({ rootGetters: this.$store.getters }, { store: 'cluster', resource: { id: SECRET } })) {
+    if (this.$store.getters['management/schemaFor'](SECRET) && !this.$store.getters[`cluster/paginationEnabled`](SECRET)) {
       // Having secrets allows showing the public portion of more types but not all users can see them.
       await this.$store.dispatch('management/findAll', { type: SECRET });
     }

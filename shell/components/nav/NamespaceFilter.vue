@@ -55,10 +55,7 @@ export default {
     },
 
     paginatedListFilterMode() {
-      return paginationUtils.isEnabled({ rootGetters: this.$store.getters }, {
-        store:    this.currentProduct.inStore,
-        resource: { id: this.$route.params?.resource }
-      }) ? paginationUtils.validNsProjectFilters : null;
+      return this.$store.getters[`${ this.currentProduct.inStore }/paginationEnabled`](this.$route.params?.resource) ? paginationUtils.validNsProjectFilters : null;
     },
 
     filtered() {
