@@ -14,7 +14,6 @@ import { allHash } from '@shell/utils/promise';
 import { get } from '@shell/utils/object';
 import { _CREATE } from '@shell/config/query-params';
 import { formatEncryptionSecretNames } from '@shell/utils/formatter';
-import paginationUtils from '@shell/utils/pagination-utils';
 import { PaginationArgs, PaginationParamFilter } from '@shell/types/store/pagination.types';
 import { SECRET_TYPES } from '~/shell/config/secret';
 
@@ -60,7 +59,7 @@ export default {
 
     this.chartNamespace = BRORelease?.spec.namespace || '';
 
-    if (paginationUtils.isEnabled({ rootGetters: this.$store.getters }, { store: 'cluster', resource: { id: SECRET } })) {
+    if (this.$store.getters[`cluster/paginationEnabled`](SECRET)) {
       const findPageArgs = { // Of type ActionFindPageArgs
         namespaced: this.chartNamespace,
         pagination: new PaginationArgs({

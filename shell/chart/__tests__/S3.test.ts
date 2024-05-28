@@ -11,9 +11,10 @@ localVue.use(Vuex);
 describe('rancher-backup: S3', () => {
   const mockStore = {
     getters: {
-      'i18n/t':      (text: string) => text,
-      t:             (text: string) => text,
-      'cluster/all': () => [],
+      'i18n/t':                    (text: string) => text,
+      t:                           (text: string) => text,
+      'cluster/all':               () => [],
+      'cluster/paginationEnabled': () => false
     }
   };
   const wrapper = mount(S3, { mocks: { $store: mockStore, $fetchState: { pending: false } } });

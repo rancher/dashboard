@@ -28,7 +28,7 @@ import {
 } from '@shell/config/pagination-table-headers';
 
 import { COLUMN_BREAKPOINTS } from '@shell/types/store/type-map';
-import { STEVE_CACHE } from 'store/features';
+import { STEVE_CACHE } from '@shell/store/features';
 
 export const NAME = 'explorer';
 

@@ -6,7 +6,6 @@ import { _VIEW } from '@shell/config/query-params';
 import ArrayListGrouped from '@shell/components/form/ArrayListGrouped';
 import { random32 } from '@shell/utils/string';
 import Rule from './Rule';
-import paginationUtils from '@shell/utils/pagination-utils';
 
 export default {
   components: {
@@ -46,7 +45,7 @@ export default {
   },
 
   async fetch() {
-    if (!paginationUtils.isEnabled({ rootGetters: this.$store.getters }, { store: 'cluster' })) {
+    if (!this.$store.getters[`cluster/paginationEnabled`]()) {
       // This is only used by shell/models/networking.k8s.io.ingress.js `targetTo`, where we do some dodgy matching of workloads with name 'ingress-'
       await Promise.all(Object.values(WORKLOAD_TYPES).map((type) => this.$store.dispatch('cluster/findAll', { type })));
     }

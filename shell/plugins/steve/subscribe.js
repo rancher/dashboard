@@ -34,7 +34,6 @@ import { waitFor } from '@shell/utils/async';
 import { WORKER_MODES } from './worker';
 import acceptOrRejectSocketMessage from './accept-or-reject-socket-message';
 import { BLANK_CLUSTER, STORE } from '@shell/store/store-types.js';
-import { STEVE_CACHE } from '@shell/store/features';
 import paginationUtils from '@shell/utils/pagination-utils';
 
 // minimum length of time a disconnect notification is shown

@@ -7,7 +7,6 @@ import { SECRET_TYPES } from '@shell/config/secret';
 import { base64Encode } from '@shell/utils/crypto';
 import { addObjects, insertAt } from '@shell/utils/array';
 import { sortBy } from '@shell/utils/sort';
-import paginationUtils from '@shell/utils/pagination-utils';
 import {
   PaginationArgs,
   PaginationFilterField,
@@ -143,7 +142,7 @@ export default {
 
   async fetch() {
     if ( (this.allowSsh || this.allowBasic || this.allowRke) && this.$store.getters[`${ this.inStore }/schemaFor`](SECRET) ) {
-      if (paginationUtils.isEnabled({ rootGetters: this.$store.getters }, { store: 'cluster', resource: { id: SECRET } })) {
+      if (this.$store.getters[`${ this.inStore }/paginationEnabled`](SECRET)) {
         // Filter results via api (because we shouldn't be fetching them all...)
         this.filteredSecrets = await this.filterSecretsByApi();
       } else {
