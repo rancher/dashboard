@@ -233,7 +233,7 @@ export default {
         &:hover {
           border: 1px solid var(--primary);
           border-radius: var(--border-radius);;
-          
+
           .close-indicator {
             margin-left: -6px;
             width: auto;

@@ -16,7 +16,7 @@ const repoListPage = new RepositoriesPagePo('_', 'manager');
 const repoList = repoListPage.list();
 // const clusterManagerPage = new ClusterManagerListPagePo('_');
 
-const VIM = 'Vim'
+const VIM = 'Vim';
 const NORMAL_HUMAN = 'Normal human';
 
 const RESOURCE_FOR_CREATE_YAML = 'resourcequota';
@@ -413,7 +413,7 @@ describe('User can update their preferences', () => {
     }
   });
 
-  describe('Check keyboard mapping on YAML Editor',{ tags: ['@userMenu', '@adminUser', '@standardUser'] }, () => {
+  describe('Check keyboard mapping on YAML Editor', { tags: ['@userMenu', '@adminUser', '@standardUser'] }, () => {
     it('does not show any indicator for default keyboard mapping', () => {
       prefPage.goTo();
       prefPage.keymapButtons().checkVisible();

@@ -7,7 +7,7 @@ export default class KeyboardMappingIndicatorPo extends ComponentPo {
 
   showTooltip(): Cypress.Chainable {
     return this.self().trigger('mouseenter');
-  }  
+  }
 
   getTooltipContent(): Cypress.Chainable {
     return cy.get('.tooltip.vue-tooltip-theme .tooltip-inner');
