@@ -6,6 +6,7 @@ import RepositoriesPagePo from '@/cypress/e2e/po/pages/chart-repositories.po';
 import ClusterDashboardPagePo from '@/cypress/e2e/po/pages/explorer/cluster-dashboard.po';
 import ProductNavPo from '@/cypress/e2e/po/side-bars/product-side-nav.po';
 import { HeaderPo } from '@/cypress/e2e/po/components/header.po';
+import ResourceYamlEditorPagePo from '@/cypress/e2e/po/pages/explorer/yaml-editor.po';
 
 // import ClusterManagerListPagePo from '@/cypress/e2e/po/pages/cluster-manager/cluster-manager-list.po';
 
@@ -14,6 +15,11 @@ const prefPage = new PreferencesPagePo();
 const repoListPage = new RepositoriesPagePo('_', 'manager');
 const repoList = repoListPage.list();
 // const clusterManagerPage = new ClusterManagerListPagePo('_');
+
+const VIM = 'Vim'
+const NORMAL_HUMAN = 'Normal human';
+
+const RESOURCE_FOR_CREATE_YAML = 'resourcequota';
 
 describe('User can update their preferences', () => {
   beforeEach(() => {
@@ -405,6 +411,46 @@ describe('User can update their preferences', () => {
       });
       prefPage.keymapButtons().isSelected(key);
     }
+  });
+
+  describe('Check keyboard mapping on YAML Editor',{ tags: ['@userMenu', '@adminUser', '@standardUser'] }, () => {
+    it('does not show any indicator for default keyboard mapping', () => {
+      prefPage.goTo();
+      prefPage.keymapButtons().checkVisible();
+
+      const yamlEditor = new ResourceYamlEditorPagePo(RESOURCE_FOR_CREATE_YAML);
+
+      yamlEditor.goTo();
+      yamlEditor.waitForPage();
+
+      yamlEditor.keyboardMappingIndicator().checkNotExists();
+    });
+
+    it('does show any indicator for non-default keyboard mapping', () => {
+      prefPage.goTo();
+      prefPage.keymapButtons().checkVisible();
+
+      prefPage.keymapButtons().set(VIM);
+      prefPage.keymapButtons().isSelected(VIM);
+
+      const yamlEditor = new ResourceYamlEditorPagePo(RESOURCE_FOR_CREATE_YAML);
+
+      yamlEditor.goTo();
+      yamlEditor.waitForPage();
+
+      yamlEditor.keyboardMappingIndicator().checkExists();
+      yamlEditor.keyboardMappingIndicator().checkVisible();
+
+      yamlEditor.keyboardMappingIndicator().showTooltip();
+      yamlEditor.keyboardMappingIndicator().getTooltipContent().should('be.visible');
+      yamlEditor.keyboardMappingIndicator().getTooltipContent().contains('Key mapping: Vim');
+
+      // Reset keyboard mapping
+      prefPage.goTo();
+      prefPage.keymapButtons().checkVisible();
+
+      prefPage.keymapButtons().set(NORMAL_HUMAN);
+    });
   });
 
   it('Can select a Helm Charts option', { tags: ['@userMenu', '@adminUser', '@standardUser'] }, () => {
