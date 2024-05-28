@@ -2,19 +2,18 @@
 import createEditView from '@shell/mixins/create-edit-view';
 import CruResource from '@shell/components/CruResource';
 import LabeledSelect from '@shell/components/form/LabeledSelect';
+import ResourceLabeledSelect from '@shell/components/form/ResourceLabeledSelect';
 import { LabeledInput } from '@components/Form/LabeledInput';
 import NameNsDescription from '@shell/components/form/NameNsDescription';
 import { mapGetters } from 'vuex';
 import { CONFIG_MAP } from '@shell/config/types';
 import { PaginationParamFilter } from '@shell/types/store/pagination.types';
-import { labelSelectPaginationFunction } from '@shell/components/form/labeled-select-utils/labeled-select.utils';
-import paginationUtils from '@shell/utils/pagination-utils';
 
 const providers = ['aks', 'docker', 'eks', 'gke', 'k3s', 'minikube', 'rke-windows', 'rke', 'rke2'];
 
 export default {
   components: {
-    CruResource, LabeledSelect, LabeledInput, NameNsDescription
+    CruResource, LabeledSelect, ResourceLabeledSelect, LabeledInput, NameNsDescription
   },
 
   mixins: [createEditView],
@@ -33,18 +32,19 @@ export default {
 
   },
 
-  async fetch() {
-    if (!paginationUtils.isEnabled({ rootGetters: this.$store.getters }, { store: 'cluster', resource: { id: CONFIG_MAP } })) {
-      this.configMaps = await this.$store.dispatch('cluster/findAll', { type: CONFIG_MAP });
-    }
-  },
-
   data() {
     if (!this.value.spec) {
       this.$set(this.value, 'spec', {});
     }
 
-    return { configMaps: [], providers };
+    return {
+      CONFIG_MAP,
+      providers,
+      configMapPaginateSettings: {
+        labelSelectOptions: { 'get-option-label': (opt) => opt?.metadata?.name || opt.id || opt },
+        requestSettings:    this.pageRequestSettings,
+      }
+    };
   },
 
   computed: {
@@ -67,26 +67,24 @@ export default {
 
   methods: {
     /**
-     * @param [PaginateFnOptions] opts
-     * @returns PaginateFnResponse
+     * @param [LabelSelectPaginationFunctionOptions] opts
+     * @returns LabelSelectPaginationFunctionOptions
      */
-    async paginateConfigMap(opts) {
-      const { filter } = opts;
-      const filters = !!filter ? [PaginationParamFilter.createMultipleFields([
-        {
-          field: 'metadata.name', value: filter, equals: true
-        },
-        {
-          field: 'metadata.namespace', value: filter, equals: true
-        },
-      ])] : [];
+    pageRequestSettings(opts) {
+      const { opts: { filter } } = opts;
 
-      return labelSelectPaginationFunction({
-        opts,
-        filters,
-        type: CONFIG_MAP,
-        ctx:  { getters: this.$store.getters, dispatch: this.$store.dispatch }
-      });
+      return {
+        ...opts,
+        classify: true,
+        filters:  !!filter ? [PaginationParamFilter.createMultipleFields([
+          {
+            field: 'metadata.name', value: filter, equals: true
+          },
+          {
+            field: 'metadata.namespace', value: filter, equals: true
+          },
+        ])] : []
+      };
     },
   }
 };
@@ -121,15 +119,15 @@ export default {
         />
       </div>
       <div class="col span-6">
-        <LabeledSelect
+        <ResourceLabeledSelect
           v-model="customConfigMap"
           :clearable="true"
-          :get-option-label="opt=>canPaginate ? (opt.metadata.name || '') : opt.id"
           option-key="id"
-          :options="configMaps"
+          option-label="id"
           :mode="mode"
-          :paginate="paginateConfigMap"
           :label="t('cis.customConfigMap')"
+          :resource-type="CONFIG_MAP"
+          :paginated-resource-settings="configMapPaginateSettings"
         />
       </div>
     </div>

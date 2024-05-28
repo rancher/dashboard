@@ -1,17 +1,16 @@
 <script>
 import LabeledSelect from '@shell/components/form/LabeledSelect';
+import ResourceLabeledSelect from '@shell/components/form/ResourceLabeledSelect';
 import { SECRET } from '@shell/config/types';
 import { _EDIT, _VIEW } from '@shell/config/query-params';
 import { SECRET_TYPES as TYPES } from '@shell/config/secret';
 import { PaginationParamFilter } from '@shell/types/store/pagination.types';
-import { labelSelectPaginationFunction } from '@shell/components/form/labeled-select-utils/labeled-select.utils';
-import paginationUtils from '@shell/utils/pagination-utils';
 import { LABEL_SELECT_KINDS } from '@shell/types/components/labeledSelect';
 
 const NONE = '__[[NONE]]__';
 
 export default {
-  components: { LabeledSelect },
+  components: { LabeledSelect, ResourceLabeledSelect },
 
   props: {
     value: {
@@ -65,14 +64,31 @@ export default {
     }
   },
 
-  async fetch() {
-    if (!paginationUtils.isEnabled({ rootGetters: this.$store.getters }, { store: 'cluster', resource: { id: SECRET } })) {
-      await this.$store.dispatch('cluster/findAll', { type: SECRET });
-    }
-  },
-
   data() {
-    return { page: null };
+    return {
+      secrets:            null,
+      SECRET,
+      allSecretsSettings: {
+        mapResult: (secrets) => {
+          const allSecretsInNamespace = secrets.filter((secret) => this.types.includes(secret._type) && secret.namespace === this.namespace);
+          const mappedSecrets = this.mapSecrets(allSecretsInNamespace.sort((a, b) => a.name.localeCompare(b.name)));
+
+          this.secrets = allSecretsInNamespace; // We need the key from the selected secret
+
+          return mappedSecrets;
+        }
+      },
+      paginateSecretsSetting: {
+        requestSettings: this.paginatePageOptions,
+        mapResult:       (secrets) => {
+          const mappedSecrets = this.mapSecrets(secrets);
+
+          this.secrets = secrets; // We need the key from the selected secret. When paginating we won't touch the store, so just pass back here
+
+          return mappedSecrets;
+        }
+      }
+    };
   },
 
   computed: {
@@ -102,26 +118,20 @@ export default {
         this.$emit('input', { [this.mountKey]: { secretKeyRef: { [this.nameKey]: this.name, [this.keyKey]: key } } });
       }
     },
-    secrets() {
-      const allSecrets = this.$store.getters[`${ this.inStore }/all`](SECRET);
 
-      return allSecrets
-        .filter((secret) => this.types.includes(secret._type) && secret.namespace === this.namespace);
-    },
-    secretNames() {
-      return this.mapSecrets(this.secrets.sort((a, b) => a.name.localeCompare(b.name)));
-    },
     keys() {
-      const secret = (this.page || this.secrets).find((secret) => secret.name === this.name) || {};
+      const secret = (this.secrets || []).find((secret) => secret.name === this.name) || {};
 
       return Object.keys(secret.data || {}).map((key) => ({
         label: key,
         value: key
       }));
     },
+
     isView() {
       return this.mode === _VIEW;
     },
+
     isKeyDisabled() {
       return !this.isView && (!this.name || this.name === NONE || this.disabled);
     }
@@ -156,11 +166,12 @@ export default {
     },
 
     /**
-     * @param [PaginateFnOptions] opts
-     * @returns PaginateFnResponse
+     * @param [LabelSelectPaginationFunctionOptions] opts
+     * @returns LabelSelectPaginationFunctionOptions
      */
-    async paginateSecrets(opts) {
-      const { filter } = opts;
+    paginatePageOptions(opts) {
+      const { opts: { filter } } = opts;
+
       const filters = !!filter ? [PaginationParamFilter.createSingleField({ field: 'metadata.name', value: filter })] : [];
 
       filters.push(
@@ -168,24 +179,12 @@ export default {
         PaginationParamFilter.createSingleField({ field: 'metadata.fields.1', value: this.types.join(',') })
       );
 
-      const {
-        page,
-        ...rest
-      } = await labelSelectPaginationFunction({
-        opts,
+      return {
+        ...opts,
         filters,
         groupByNamespace: false,
-        type:             SECRET,
-        ctx:              { getters: this.$store.getters, dispatch: this.$store.dispatch },
         classify:         true,
         sort:             [{ asc: true, field: 'metadata.name' }],
-      });
-
-      this.page = page;
-
-      return {
-        ...rest,
-        page: this.mapSecrets(this.page)
       };
     },
   }
@@ -200,15 +199,16 @@ export default {
   >
     <div class="input-container">
       <!-- key by namespace to ensure label select current page is recreated on ns change -->
-      <LabeledSelect
+      <ResourceLabeledSelect
         :key="namespace"
         v-model="name"
         :disabled="!isView && disabled"
-        :options="secretNames"
-        :paginate="paginateSecrets"
-        :loading="$fetchState.pending"
         :label="secretNameLabel"
         :mode="mode"
+        :resource-type="SECRET"
+        :in-store="inStore"
+        :paginated-resource-settings="paginateSecretsSetting"
+        :all-resources-settings="allSecretsSettings"
       />
       <LabeledSelect
         v-if="showKeySelector"
