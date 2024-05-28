@@ -113,7 +113,6 @@ export default {
     </div>
     <template>
       <div
-        v-if="showCustomRegistryInput"
         class="row"
       >
         <AdvancedSection
