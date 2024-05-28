@@ -120,6 +120,7 @@ locale:
 nav:
   harvesterDashboard: Harvester Dashboard
   backToRancher: Cluster Manager
+  tools: Tools
   clusterTools: Cluster Tools
   kubeconfig:
     download: Download KubeConfig
@@ -2472,6 +2473,7 @@ glance:
   secretsTable: Full secrets list
 
 clusterBadge:
+  customizeAppearance: Customize Appearance
   addLabel: Add Cluster Badge
   setClusterAppearance: Cluster Appearance
   customize: Customize

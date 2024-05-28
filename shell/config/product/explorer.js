@@ -1,4 +1,5 @@
 import {
+  CATALOG,
   CONFIG_MAP,
   EVENT,
   NODE, SECRET, INGRESS,
@@ -67,6 +68,7 @@ export function init(store) {
     NODE,
     VIRTUAL_TYPES.CLUSTER_MEMBERS,
     EVENT,
+    'c-cluster-explorer-tools'
   ], 'cluster');
   basicType([
     LIMIT_RANGE,
@@ -433,6 +435,18 @@ export function init(store) {
     weight:           98,
     route:            { name: 'c-cluster-product-projectsnamespaces' },
     exact:            true,
+  });
+
+  virtualType({
+    labelKey:   'nav.tools',
+    group:      'cluster',
+    icon:       'globe',
+    namespaced: false,
+    name:       'c-cluster-explorer-tools',
+    weight:     -2,
+    route:      { name: 'c-cluster-explorer-tools' },
+    exact:      true,
+    ifHaveType: [CATALOG.CLUSTER_REPO, CATALOG.APP],
   });
 
   virtualType({

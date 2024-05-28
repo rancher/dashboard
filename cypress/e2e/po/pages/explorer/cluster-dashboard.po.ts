@@ -26,12 +26,8 @@ export default class ClusterDashboardPagePo extends PagePo {
     burgerMenu.clusters().contains(clusterId).click();
   }
 
-  clusterToolsButton(): Cypress.Chainable {
-    return cy.get('.tools-button').contains('Cluster Tools');
-  }
-
-  addCustomBadge(label: string) {
-    return cy.getId('add-custom-cluster-badge').contains(label);
+  customizeAppearanceButton() {
+    return cy.getId('add-custom-cluster-badge');
   }
 
   customBadge(): CustomBadgeDialogPo {

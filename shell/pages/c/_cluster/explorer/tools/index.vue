@@ -59,7 +59,7 @@ export default {
     installedAppForChart() {
       const out = {};
 
-      for ( const app of this.installedApps ) {
+      for (const app of (this.installedApps || [])) {
         const matching = app.matchingChart();
 
         if ( !matching ) {

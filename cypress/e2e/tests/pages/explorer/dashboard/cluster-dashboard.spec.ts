@@ -119,7 +119,7 @@ describe('Cluster Dashboard', { testIsolation: 'off', tags: ['@explorer', '@admi
     ClusterDashboardPagePo.navTo();
 
     // Add Badge
-    clusterDashboard.addCustomBadge('Add Cluster Badge').click();
+    clusterDashboard.customizeAppearanceButton().click();
 
     const customClusterCard = new CardPo();
 
@@ -151,7 +151,7 @@ describe('Cluster Dashboard', { testIsolation: 'off', tags: ['@explorer', '@admi
     burgerMenu.clusters().first().find('span').should('contain', settings.iconText);
 
     // Reset
-    clusterDashboard.addCustomBadge('Edit Cluster Badge').click();
+    clusterDashboard.customizeAppearanceButton().click();
     clusterDashboard.customBadge().selectCheckbox('Use custom badge').set();
     clusterDashboard.customBadge().selectCheckbox('Show cluster comment').set();
 
