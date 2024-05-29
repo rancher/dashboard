@@ -1,4 +1,5 @@
 // /* eslint-disable no-undef */
+import { createApp } from 'vue';
 import { config } from '@vue/test-utils';
 import i18n from '@shell/plugins/i18n';
 import VTooltip from 'v-tooltip';
