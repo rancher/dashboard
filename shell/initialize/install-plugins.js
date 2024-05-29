@@ -30,23 +30,24 @@ import steveCreateWorker from '@shell/plugins/steve-create-worker';
 import version from '@shell/plugins/version';
 import emberCookie from '@shell/plugins/ember-cookie';
 
-export async function installPlugins(app, Vue) {
-  Vue.use(globalFormatters);
+export async function installPlugins(vueApp) {
+  vueApp.use(globalFormatters);
+  vueApp.use(PortalVue);
+  vueApp.use(VueResize);
+  vueApp.use(VTooltip);
+  vueApp.use(ShortKey, { prevent: ['input', 'textarea', 'select'] });
+  vueApp.use(VueCodemirror);
+  vueApp.component('v-select', vSelect);
+}
 
-  Vue.use(PortalVue);
-  Vue.use(VueResize);
-  Vue.use(VTooltip);
-  Vue.use(ShortKey, { prevent: ['input', 'textarea', 'select'] });
-  Vue.use(VueCodemirror);
-
-  Vue.component('v-select', vSelect);
+export async function installInjectedPlugins(app, vueApp) {
   const pluginDefinitions = [config, cookieUniversalNuxt, axios, plugins, pluginsLoader, axiosShell, intNumber, codeMirror, nuxtClientInit, replaceAll, backButton, plugin, version, steveCreateWorker, emberCookie];
 
   const installations = pluginDefinitions.map(async(pluginDefinition) => {
     if (typeof pluginDefinition === 'function') {
       await pluginDefinition(
         app.context,
-        (key, value) => inject(key, value, app.context, Vue)
+        (key, value) => inject(key, value, app.context, vueApp)
       );
     }
   });
@@ -54,7 +55,7 @@ export async function installPlugins(app, Vue) {
   await Promise.all(installations);
 
   // Order matters here. This is coming after the other plugins specifically so $cookies can be installed. i18n/init relies on prefs/get which relies on $cookies.
-  Vue.use(i18n, { store: app.store });
+  vueApp.use(i18n, { store: app.store });
 }
 
 /**
@@ -65,7 +66,7 @@ export async function installPlugins(app, Vue) {
  * @param {*} value The value to be injected
  * @param {object} context The context object into which the key-value pair will
  * be injected
- * @param {object} Vue The Vue instance
+ * @param {object} vueApp The Vue instance
  * @returns {void}
  *
  * @property {object} context.app The app object within the context
@@ -74,7 +75,7 @@ export async function installPlugins(app, Vue) {
  * Note: This function mutates the context object, including the context app and
  * store.
  */
-function inject(key, value, context, Vue) {
+function inject(key, value, context, vueApp) {
   if (!key) {
     throw new Error('inject(key, value) has no key provided');
   }
@@ -104,10 +105,11 @@ function inject(key, value, context, Vue) {
     return;
   }
   window[window.installedPlugins] = true;
-  // Call Vue.use() to install the plugin into vm
-  Vue.use(() => {
-    if (!Object.prototype.hasOwnProperty.call(Vue.prototype, key)) {
-      Object.defineProperty(Vue.prototype, key, {
+
+  // Call vueApp.use() to install the plugin into vm
+  vueApp.use(() => {
+    if (!Object.prototype.hasOwnProperty.call(vueApp.prototype, key)) {
+      Object.defineProperty(vueApp.prototype, key, {
         get() {
           return this.$root.$options[key];
         }
