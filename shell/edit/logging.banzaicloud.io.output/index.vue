@@ -24,9 +24,16 @@ export default {
 
   mixins: [CreateEditView],
 
-  data() {
-    const schemas = this.$store.getters['cluster/all'](SCHEMA);
+  async fetch() {
+    await this.$store.dispatch('cluster/findAll', { type: SECRET });
 
+    const schemas = await this.$store.dispatch('cluster/findAll', { type: SCHEMA });
+    const resourceSchema = schemas.find((s) => s.id === LOGGING.OUTPUT);
+
+    this.schemaDefinition = await resourceSchema.fetchResourceFields();
+  },
+
+  data() {
     if (this.isCreate) {
       this.value.metadata.namespace = 'default';
     }
@@ -40,8 +47,6 @@ export default {
     }));
 
     if (this.mode !== _VIEW) {
-      this.$set(this.value, 'spec', this.value.spec || {});
-
       providers.forEach((provider) => {
         this.$set(this.value.spec, provider.name, this.value.spec[provider.name] || clone(provider.default));
       });
@@ -54,33 +59,56 @@ export default {
       return !isEmpty(correctedSpecProvider) && !isEqual(correctedSpecProvider, provider.default);
     });
 
+    const hasMultipleProvidersSelected = selectedProviders?.length > 1;
+
     const selectedProvider = selectedProviders?.[0]?.value || providers[0].value;
 
-    let bufferYaml;
-
-    if ( !isEmpty(this.value.spec[selectedProvider]?.buffer) ) {
-      bufferYaml = jsyaml.dump(this.value.spec[selectedProvider].buffer);
-    } else {
-      bufferYaml = createYaml(schemas, `logging.banzaicloud.io.v1beta1.output.spec.${ selectedProvider }.buffer`, []);
-      // createYaml doesn't support passing reference types (array, map) as the first type. As such
-      // I'm manipulating the output since I'm not sure it's something we want to actually support
-      // seeing as it's really createResourceYaml and this here is a gray area between spoofed types
-      // and just a field within a spec.
-      bufferYaml = bufferYaml.substring(bufferYaml.indexOf('\n') + 1).replace(/# {2}/g, '#');
-    }
-
     return {
-      bufferYaml,
-      initialBufferYaml:            bufferYaml,
+      schemaDefinition: null,
+      bufferYaml:       '',
       providers,
       selectedProvider,
-      hasMultipleProvidersSelected: selectedProviders?.length > 1,
-      selectedProviders,
+      hasMultipleProvidersSelected,
       LOGGING
     };
   },
 
   computed: {
+    schemas() {
+      return this.$store.getters['cluster/all'](SCHEMA);
+    },
+    // this computed also controls the display of the YamlEditor
+    // which is good in order to "wait" for the schemaDefinitions request
+    // needed to populate the data to get the 'buffer' field
+    initialBufferYaml() {
+      let bufferYaml = '';
+
+      if ( !isEmpty(this.value.spec[this.selectedProvider]?.buffer) ) {
+        bufferYaml = jsyaml.dump(this.value.spec[this.selectedProvider].buffer);
+      } else if (this.schemaDefinition) {
+        bufferYaml = createYaml(
+          this.schemas,
+          `io.banzaicloud.logging.v1beta1.Output.spec.${ this.selectedProvider }.buffer`,
+          {},
+          true,
+          1,
+          '',
+          LOGGING.OUTPUT
+        );
+
+        // createYaml doesn't support passing reference types (array, map) as the first type. As such
+        // I'm manipulating the output since I'm not sure it's something we want to actually support
+        // seeing as it's really createResourceYaml and this here is a gray area between spoofed types
+        // and just a field within a spec.
+        bufferYaml = bufferYaml.substring(bufferYaml.indexOf('\n') + 1).replace(/# {2}/g, '#');
+      }
+
+      if (bufferYaml.length) {
+        this.bufferYaml = bufferYaml;
+      }
+
+      return bufferYaml;
+    },
     EDITOR_MODES() {
       return EDITOR_MODES;
     },
@@ -221,6 +249,7 @@ export default {
           :weight="1"
         >
           <YamlEditor
+            v-if="initialBufferYaml.length"
             ref="yaml"
             v-model="bufferYaml"
             :scrolling="false"
