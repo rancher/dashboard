@@ -101,7 +101,7 @@ export default {
           userInfoEndpoint: null,
         };
         this.customEndpoint.value = false;
-        this.oidcScope = [];
+        this.oidcScope = this.model?.scope?.split(' ');
       } else {
         this.oidcScope = this.model?.scope?.split(' ');
       }
@@ -319,6 +319,7 @@ export default {
                 v-model="model.jwksUrl"
                 :label="t(`authConfig.oidc.jwksUrl`)"
                 :mode="mode"
+                :disabled="!customEndpoint.value"
               />
             </div>
             <div class="col span-6">
@@ -326,6 +327,7 @@ export default {
                 v-model="model.tokenEndpoint"
                 :label="t(`authConfig.oidc.tokenEndpoint`)"
                 :mode="mode"
+                :disabled="!customEndpoint.value"
               />
             </div>
           </div>
@@ -336,6 +338,7 @@ export default {
                 v-model="model.userInfoEndpoint"
                 :label="t(`authConfig.oidc.userInfoEndpoint`)"
                 :mode="mode"
+                :disabled="!customEndpoint.value"
               />
             </div>
           </div>
@@ -347,6 +350,7 @@ export default {
                 :mode="mode"
                 :title="t('authConfig.oidc.scope.label')"
                 :value-placeholder="t('authConfig.oidc.scope.placeholder')"
+                :disabled="!customEndpoint.value"
                 @input="updateScope"
               />
             </div>
