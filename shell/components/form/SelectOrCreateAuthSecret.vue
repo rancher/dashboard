@@ -97,12 +97,12 @@ export default {
 
     hookName: {
       type:    String,
-      default: 'registerAuthSecret',
+      default: 'registerAuthSecret'
     },
 
     appendUniqueIdToHook: {
       type:    Boolean,
-      default: false,
+      default: false
     },
 
     hookPriority: {
@@ -157,9 +157,7 @@ export default {
     if ( this.allowS3 && this.$store.getters['rancher/canList'](NORMAN.CLOUD_CREDENTIAL) ) {
       // Avoid an async call and loading screen if already loaded by someone else
       if (this.$store.getters['rancher/haveAll'](NORMAN.CLOUD_CREDENTIAL)) {
-        this.allCloudCreds = this.$store.getters['rancher/all'](
-          NORMAN.CLOUD_CREDENTIAL
-        );
+        this.allCloudCreds = this.$store.getters['rancher/all'](NORMAN.CLOUD_CREDENTIAL);
       } else {
         this.allCloudCreds = await this.$store.dispatch('rancher/findAll', { type: NORMAN.CLOUD_CREDENTIAL });
       }
@@ -313,7 +311,7 @@ export default {
         out.unshift({
           kind:     'title',
           label:    this.t('selectOrCreateAuthSecret.chooseExisting'),
-          disabled: true,
+          disabled: true
         });
       }
       if ( this.allowNone ) {
@@ -335,7 +333,7 @@ export default {
         out.unshift({
           label: this.t('selectOrCreateAuthSecret.createSsh'),
           value: AUTH_TYPE._SSH,
-          kind:  'highlighted',
+          kind:  'highlighted'
         });
       }
 
@@ -376,7 +374,7 @@ export default {
       }
 
       return 'col span-4';
-    },
+    }
   },
 
   watch: {
@@ -489,7 +487,7 @@ export default {
 
       let secret;
 
-      if (this.selected === AUTH_TYPE._S3) {
+      if ( this.selected === AUTH_TYPE._S3 ) {
         secret = await this.$store.dispatch(`rancher/create`, {
           type:               NORMAN.CLOUD_CREDENTIAL,
           s3credentialConfig: {
@@ -543,10 +541,12 @@ export default {
 </script>
 
 <template>
-  <div class="select-or-create-auth-secret">
+  <div
+    class="select-or-create-auth-secret"
+  >
     <div
       class="mt-20"
-      :class="{'row': !vertical }"
+      :class="{'row': !vertical}"
     >
       <div :class="firstCol">
         <LabeledSelect
@@ -556,7 +556,7 @@ export default {
           :label-key="labelKey"
           :loading="$fetchState.pending"
           :options="options"
-          :selectable="(option) => !option.disabled"
+          :selectable="option => !option.disabled"
         />
       </div>
       <template v-if="selected === SSH">

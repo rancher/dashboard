@@ -3,7 +3,7 @@ import { PropType, defineComponent } from 'vue';
 import LabeledSelect from '@shell/components/form/LabeledSelect.vue';
 import { PaginationParamFilter } from '@shell/types/store/pagination.types';
 import { labelSelectPaginationFunction, LabelSelectPaginationFunctionOptions } from '@shell/components/form/labeled-select-utils/labeled-select.utils';
-import { LabelSelectPaginateFn, LabelSelectPaginateFnOptions, LabelSelectPaginateFnResponse } from '~/shell/types/components/labeledSelect';
+import { LabelSelectPaginateFn, LabelSelectPaginateFnOptions, LabelSelectPaginateFnResponse } from '@shell/types/components/labeledSelect';
 
 type PaginateTypeOverridesFn = (opts: LabelSelectPaginationFunctionOptions) => LabelSelectPaginationFunctionOptions;
 

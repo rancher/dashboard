@@ -21,11 +21,11 @@ import { DEFAULT_PERF_SETTING } from '@shell/config/settings';
  *
  * Once cache is merged (pre 2.9.0) this will be removed
  */
-const TEMP_VAI_CACHE_MERGED = false;
+const TEMP_VAI_CACHE_MERGED = true;
 /**
  * Given above, just a dev thing
  */
-const TEMP_PERF_ENABLED = false;
+const TEMP_PERF_ENABLED = true;
 
 /**
  * Helper functions for server side pagination
@@ -78,7 +78,6 @@ class PaginationUtils {
       return false;
     }
 
-    // const storeSettings = settings.stores?.[enabledFor.store];
     const storeSettings = settings.stores?.[enabledFor.store];
 
     // No pagination setting for target store, not enabled

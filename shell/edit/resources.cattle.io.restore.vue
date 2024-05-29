@@ -15,7 +15,7 @@ import { get } from '@shell/utils/object';
 import { _CREATE } from '@shell/config/query-params';
 import { formatEncryptionSecretNames } from '@shell/utils/formatter';
 import { PaginationArgs, PaginationParamFilter } from '@shell/types/store/pagination.types';
-import { SECRET_TYPES } from '~/shell/config/secret';
+import { SECRET_TYPES } from '@shell/config/secret';
 
 export default {
 

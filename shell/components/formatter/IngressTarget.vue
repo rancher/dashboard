@@ -48,7 +48,7 @@ export default {
 
 <template>
   <div
-    v-if="value"
+    v-if="value && !$fetchState.pending"
     class="ingress-target"
     :reactivity="workloads.length"
   >
