@@ -156,23 +156,6 @@ const getLoaders = (SHELL_ABS) => {
             cacheDirectory:  'node_modules/.cache/babel-loader',
             cacheIdentifier: 'e93f32da'
           }
-        },
-        {
-          loader:  'babel-loader',
-          options: {
-            presets: [
-              [
-                '@babel/preset-env',
-                {
-                  corejs:      { version: 3 },
-                  targets:     { browsers: ['last 2 versions'] },
-                  useBuiltIns: 'usage',
-                }
-              ],
-              '@babel/preset-typescript',
-            ],
-            plugins: babelPlugins
-          }
         }
       ]
     },
