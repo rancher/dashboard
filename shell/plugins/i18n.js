@@ -57,19 +57,19 @@ export function directiveSsr(vnode, binding) {
 
 const i18n = {
   name:    'i18n',
-  install: (Vue, _options) => {
-    if (Vue.prototype.t && Vue.directive('t') && Vue.component('t')) {
+  install: (vueApp, _options) => {
+    if (vueApp.prototype.t && vueApp.directive('t') && vueApp.component('t')) {
       // eslint-disable-next-line no-console
       console.debug('Skipping i18n install. Directive, component, and option already exist.');
     }
 
-    Vue.prototype.t = function(key, args, raw) {
+    vueApp.prototype.t = function(key, args, raw) {
       return stringFor(this.$store, key, args, raw);
     };
 
     // InnerHTML: <some-tag v-t="'some.key'" />
     // As an attribute: <some-tag v-t:title="'some.key'" />
-    Vue.directive('t', {
+    vueApp.directive('t', {
       bind() {
         directive(...arguments);
       },
@@ -80,7 +80,7 @@ const i18n = {
 
     // Basic (but you might want the directive above): <t k="some.key" />
     // With interpolation: <t k="some.key" count="1" :foo="bar" />
-    Vue.component('t', {
+    vueApp.component('t', {
       inheritAttrs: false,
       props:        {
         k: {
