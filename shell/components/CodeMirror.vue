@@ -192,6 +192,8 @@ export default {
 </template>
 
 <style lang="scss">
+  $code-mirror-animation-time: 0.1s;
+
   .code-mirror {
     z-index: 0;
 
@@ -227,7 +229,7 @@ export default {
         .keymap-icon {
           font-size: 24px;
           opacity: 0.8;
-          transition: margin-right 0.2s ease-in-out;
+          transition: margin-right $code-mirror-animation-time ease-in-out;
         }
 
         &:hover {
@@ -240,7 +242,7 @@ export default {
 
             .icon-close {
               opacity: 1;
-              transition: opacity 0.25s ease-in-out 0.2s; // Only animate when being shown
+              transition: opacity $code-mirror-animation-time ease-in-out $code-mirror-animation-time; // Only animate when being shown
             }
           }
 

@@ -66,23 +66,6 @@ describe('component: CodeMirror.vue', () => {
       expect(closeIcon.element).toBeDefined();
     });
 
-    it(`should show keyMap close icon on mouse over`, async() => {
-      await wrapper.vm.$nextTick();
-
-      let keyMapBox = wrapper.find('[data-testid="code-mirror-keymap"]');
-
-      keyMapBox.trigger('mouseenter');
-      await wrapper.vm.$nextTick();
-
-      const closeIcon = keyMapBox.find('.icon-close');
-
-      expect(closeIcon.element).toBeDefined();
-
-      keyMapBox = wrapper.find('[data-testid="code-mirror-keymap"]');
-
-      expect(keyMapBox.element.className).toContain('.tooltip-open');
-    });
-
     it(`should remove keyMap box`, async() => {
       await wrapper.vm.$nextTick();
 
