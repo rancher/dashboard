@@ -67,6 +67,18 @@ export default {
         oidcConfig: this.model
       };
     },
+
+    validationPassed() {
+      if ( this.editConfig ) {
+        if ( !this.customEndpoint.value ) {
+          return !!(this.model.clientId && this.model.clientSecret && this.oidcUrls.url && this.oidcUrls.realm);
+        } else {
+          return !!(this.model.clientId && this.model.clientSecret && this.model.rancherUrl && this.model.issuer && this.model.authEndpoint);
+        }
+      }
+
+      return true;
+    }
   },
 
   watch: {
@@ -116,14 +128,6 @@ export default {
 
     updateScope() {
       this.model.scope = this.oidcScope.join(' ');
-    },
-
-    validationPassed() {
-      if ( !this.customEndpoint.value ) {
-        return !!(this.model.clientId && this.model.clientSecret && this.oidcUrls.url && this.oidcUrls.realm);
-      } else {
-        return !!(this.model.clientId && this.model.clientSecret && this.model.rancherUrl && this.model.issuer && this.model.authEndpoint);
-      }
     }
   }
 };
@@ -138,7 +142,7 @@ export default {
       :mode="mode"
       :resource="model"
       :subtypes="[]"
-      :validation-passed="validationPassed()"
+      :validation-passed="validationPassed"
       :finish-button-mode="model.enabled ? 'edit' : 'enable'"
       :can-yaml="false"
       :errors="errors"

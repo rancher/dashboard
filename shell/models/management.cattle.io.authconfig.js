@@ -18,7 +18,7 @@ export const configType = {
   oidc:            'oidc',
 };
 
-const imageOverrides = { keycloakoidc: 'keycloak' };
+const imageOverrides = { keycloakoidc: 'keycloak', oidc: 'openid' };
 
 export default class AuthConfig extends SteveModel {
   get _availableActions() {

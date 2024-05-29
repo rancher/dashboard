@@ -6519,7 +6519,7 @@ model:
       okta: Okta
       freeipa: FreeIPA
       googleoauth: Google
-      oidc: OIDC
+      oidc: Generic OIDC
       keycloakoidc: Keycloak
 
   cluster:

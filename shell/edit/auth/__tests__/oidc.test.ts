@@ -34,7 +34,7 @@ const mockedAuthConfigMixin = {
     return {
       isEnabling:     false,
       editConfig:     false,
-      model:          { mockModel },
+      model:          { ...mockModel },
       serverSetting:  null,
       errors:         [],
       originalModel:  null,
@@ -78,10 +78,38 @@ describe('oidc.vue', () => {
     wrapper.destroy();
   });
 
-  it('have "Create" button disabled before fields are filled in', () => {
+  it('have "Create" button enabled when provider is enabled and not editing config', () => {
+    wrapper.setData({ model: { enabled: true }, editConfig: false });
+    const saveButton = wrapper.find('[data-testid="form-save"]').element as HTMLInputElement;
+
+    expect(saveButton.disabled).toBe(false);
+  });
+
+  it('have "Create" button disabled when provider is disabled and editing config before fields are filled in', async() => {
+    wrapper.setData({ model: {}, editConfig: true });
+    await wrapper.vm.$nextTick();
+
     const saveButton = wrapper.find('[data-testid="form-save"]').element as HTMLInputElement;
 
     expect(saveButton.disabled).toBe(true);
+  });
+
+  it('have "Create" button enabled when customEndpoint is disabled and required fields are filled in', async() => {
+    wrapper.setData({ oidcUrls: { url: validUrl, realm: validRealm } });
+    await wrapper.vm.$nextTick();
+
+    const saveButton = wrapper.find('[data-testid="form-save"]').element as HTMLInputElement;
+
+    expect(saveButton.disabled).toBe(false);
+  });
+
+  it('have "Create" button enabled when customEndpoint is enabled and required fields are filled in', async() => {
+    wrapper.setData({ customEndpoint: { value: true } });
+    await wrapper.vm.$nextTick();
+
+    const saveButton = wrapper.find('[data-testid="form-save"]').element as HTMLInputElement;
+
+    expect(saveButton.disabled).toBe(false);
   });
 
   it('updates issuer endpoint when oidcUrls.url and oidcUrls.realm changes', async() => {
