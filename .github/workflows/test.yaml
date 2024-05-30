@@ -61,6 +61,22 @@ jobs:
   e2e-test:
     if: "!contains( github.event.pull_request.labels.*.name, 'ci/skip-e2e')"
     needs: e2e-ui-build
+    strategy:
+      fail-fast: false
+      matrix:
+        role: [
+          { username: 'admin', tag: '@adminUser' }, 
+          { username: 'standard_user', tag: '@standardUser' }
+        ]
+        features:  [
+         ['@navigation', '@extensions'],
+         ['@charts'],
+         ['@explorer'],
+         ['@fleet'],
+         ['@generic', '@globalSettings'],
+         ['@manager'],
+         ['@userMenu', '@usersAndAuths']
+        ]
     runs-on: ubuntu-latest
     steps:
       - uses: actions/checkout@v3
@@ -94,33 +110,28 @@ jobs:
       - name: Run Rancher
         run: yarn e2e:docker
       
-      - name: Run admin user tests
+      - name: Setup Rancher and user
         run: |
           yarn e2e:prod
-          mkdir -p coverage-artifacts/coverage
-          cp coverage/e2e/coverage-final.json coverage-artifacts/coverage/coverage-e2e.json
-          cp -r coverage/e2e/ coverage-artifacts/coverage/e2e/
         env: 
-          GREP_TAGS: '@adminUser'
+          GREP_TAGS: ${{ matrix.role.tag }}Setup+${{ matrix.features[0] }} --@jenkins ${{ matrix.role.tag }}Setup+${{ matrix.features[1] || matrix.features[0] }} --@jenkins 
           TEST_USERNAME: admin
-
-
-      - name: Run standard user tests
-        if: ${{ success() || failure() }}
+          TEST_ONLY: setup
+      
+      - name: Run user tests
         run: |
           yarn e2e:prod
-          yarn docker:local:stop
-          mkdir -p coverage-artifacts/coverage
-          cp coverage/e2e/coverage-final.json coverage-artifacts/coverage/coverage-e2e.json
+          [ "$BUILD_DASHBOARD" != "false" ] || exit 0
         env: 
-          GREP_TAGS: '@standardUser'
-          TEST_USERNAME: standard_user
-
+          TEST_SKIP: setup
+          GREP_TAGS: ${{ matrix.role.tag }}+${{ matrix.features[0] }} --@jenkins ${{ matrix.role.tag }}+${{ matrix.features[1] || matrix.features[0] }} --@jenkins
+          TEST_USERNAME: ${{ matrix.role.username }}
+          
       - name: Upload screenshots
         uses: actions/upload-artifact@v3
         if: ${{ failure() }}
         with:
-          name: ${{github.run_number}}-${{github.run_attempt}}-screenshots
+          name: ${{github.run_number}}-${{github.run_attempt}}-screenshots-${{ matrix.role.tag }}+${{ matrix.features[0] }}
           path: cypress/screenshots
 
   unit-test:
