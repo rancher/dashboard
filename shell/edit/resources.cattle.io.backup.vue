@@ -197,127 +197,126 @@ export default {
 
 <template>
   <Loading v-if="$fetchState.pending" />
-  <div v-else>
-    <CruResource
-      :validation-passed="validated"
-      :done-route="doneRoute"
-      :resource="value"
-      :mode="mode"
-      :errors="fvUnreportedValidationErrors"
-      @finish="save"
-    >
-      <template>
-        <NameNsDescription
-          :mode="mode"
-          :value="value"
-          :namespaced="false"
-          :rules="{name: fvGetAndReportPathRules('metadata.name')}"
-          @change="name=value.metadata.name"
-        />
-        <template v-if="!!resourceSet">
-          <div class="bordered-section">
-            <RadioGroup
-              v-model="setSchedule"
-              :mode="mode"
-              :label="t('backupRestoreOperator.schedule.label')"
-              name="setSchedule"
-              :options="[false, true]"
-              :labels="[t('backupRestoreOperator.schedule.options.disabled'), t('backupRestoreOperator.schedule.options.enabled')]"
-            />
-            <div
-              v-if="setSchedule"
-              class="row mt-10 mb-10"
-            >
-              <div class="col span-6">
-                <LabeledInput
-                  v-model="value.spec.schedule"
-                  type="cron"
-                  :mode="mode"
-                  :label="t('backupRestoreOperator.schedule.label')"
-                  :placeholder="t('backupRestoreOperator.schedule.placeholder')"
-                />
-              </div>
-              <div class="col span-6">
-                <UnitInput
-                  v-model="value.spec.retentionCount"
-                  :suffix="t('backupRestoreOperator.retentionCount.units', {count: value.spec.retentionCount || 0})"
-                  :mode="mode"
-                  :label="t('backupRestoreOperator.retentionCount.label')"
-                />
-              </div>
+  <CruResource
+    v-else
+    :validation-passed="validated"
+    :done-route="doneRoute"
+    :resource="value"
+    :mode="mode"
+    :errors="fvUnreportedValidationErrors"
+    @finish="save"
+  >
+    <template>
+      <NameNsDescription
+        :mode="mode"
+        :value="value"
+        :namespaced="false"
+        :rules="{name: fvGetAndReportPathRules('metadata.name')}"
+        @change="name=value.metadata.name"
+      />
+      <template v-if="!!resourceSet">
+        <div class="bordered-section">
+          <RadioGroup
+            v-model="setSchedule"
+            :mode="mode"
+            :label="t('backupRestoreOperator.schedule.label')"
+            name="setSchedule"
+            :options="[false, true]"
+            :labels="[t('backupRestoreOperator.schedule.options.disabled'), t('backupRestoreOperator.schedule.options.enabled')]"
+          />
+          <div
+            v-if="setSchedule"
+            class="row mt-10 mb-10"
+          >
+            <div class="col span-6">
+              <LabeledInput
+                v-model="value.spec.schedule"
+                type="cron"
+                :mode="mode"
+                :label="t('backupRestoreOperator.schedule.label')"
+                :placeholder="t('backupRestoreOperator.schedule.placeholder')"
+              />
+            </div>
+            <div class="col span-6">
+              <UnitInput
+                v-model="value.spec.retentionCount"
+                :suffix="t('backupRestoreOperator.retentionCount.units', {count: value.spec.retentionCount || 0})"
+                :mode="mode"
+                :label="t('backupRestoreOperator.retentionCount.label')"
+              />
             </div>
           </div>
+        </div>
 
-          <div class="bordered-section">
-            <div class="row">
-              <div class="col span-12">
-                <RadioGroup
-                  v-model="useEncryption"
-                  name="useEncryption"
-                  :label="t('backupRestoreOperator.encryption')"
-                  :options="encryptionOptions.options"
-                  :labels="encryptionOptions.labels"
-                  :mode="mode"
-                />
-              </div>
-            </div>
-            <div
-              v-if="useEncryption"
-              :style="{'align-items':'center'}"
-              class="row mt-10"
-            >
-              <div class="col span-6">
-                <LabeledSelect
-                  v-model="value.spec.encryptionConfigSecretName"
-                  :tooltip="t('backupRestoreOperator.encryptionConfigName.backuptip', { ns: chartNamespace}, true)"
-                  :hover-tooltip="true"
-                  :mode="mode"
-                  :options="encryptionSecretNames"
-                  :label="t('backupRestoreOperator.encryptionConfigName.label')"
-                />
-              </div>
-            </div>
-          </div>
-
+        <div class="bordered-section">
           <div class="row">
             <div class="col span-12">
-              <span
-                v-if="isView"
-                class="text-label"
-              >{{ t('backupRestoreOperator.s3.titles.location') }}</span>
               <RadioGroup
-                v-else
-                v-model="storageSource"
-                name="storageSource"
-                :label="t('backupRestoreOperator.s3.titles.location')"
-                :options="storageOptions.options"
-                :labels="storageOptions.labels"
+                v-model="useEncryption"
+                name="useEncryption"
+                :label="t('backupRestoreOperator.encryption')"
+                :options="encryptionOptions.options"
+                :labels="encryptionOptions.labels"
                 :mode="mode"
               />
             </div>
           </div>
-
-          <template v-if="storageSource !== 'useDefault'">
-            <div class="row mt-10">
-              <div class="col span-12">
-                <S3
-                  :value="s3"
-                  :mode="mode"
-                />
-              </div>
+          <div
+            v-if="useEncryption"
+            :style="{'align-items':'center'}"
+            class="row mt-10"
+          >
+            <div class="col span-6">
+              <LabeledSelect
+                v-model="value.spec.encryptionConfigSecretName"
+                :tooltip="t('backupRestoreOperator.encryptionConfigName.backuptip', { ns: chartNamespace}, true)"
+                :hover-tooltip="true"
+                :mode="mode"
+                :options="encryptionSecretNames"
+                :label="t('backupRestoreOperator.encryptionConfigName.label')"
+              />
             </div>
-          </template>
-          <template v-else-if="isView">
-            <span>{{ t('generic.default') }}</span>
-          </template>
+          </div>
+        </div>
+
+        <div class="row">
+          <div class="col span-12">
+            <span
+              v-if="isView"
+              class="text-label"
+            >{{ t('backupRestoreOperator.s3.titles.location') }}</span>
+            <RadioGroup
+              v-else
+              v-model="storageSource"
+              name="storageSource"
+              :label="t('backupRestoreOperator.s3.titles.location')"
+              :options="storageOptions.options"
+              :labels="storageOptions.labels"
+              :mode="mode"
+            />
+          </div>
+        </div>
+
+        <template v-if="storageSource !== 'useDefault'">
+          <div class="row mt-10">
+            <div class="col span-12">
+              <S3
+                :value="s3"
+                :mode="mode"
+              />
+            </div>
+          </div>
         </template>
-        <Banner
-          v-else
-          color="error"
-        >
-          <span v-clean-html="t('backupRestoreOperator.noResourceSet')" />
-        </Banner>
+        <template v-else-if="isView">
+          <span>{{ t('generic.default') }}</span>
+        </template>
       </template>
-    </CruResource>
-  </div>
+      <Banner
+        v-else
+        color="error"
+      >
+        <span v-clean-html="t('backupRestoreOperator.noResourceSet')" />
+      </Banner>
+    </template>
+  </CruResource>
 </template>
