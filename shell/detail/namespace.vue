@@ -232,7 +232,7 @@ export default {
       />
     </div>
     <ResourceTabs
-      v-model="value"
+      :value="value"
       :mode="mode"
     >
       <Tab :name="t('namespace.resources')">

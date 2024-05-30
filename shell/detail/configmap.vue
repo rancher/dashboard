@@ -49,7 +49,7 @@ export default {
 </script>
 
 <template>
-  <ResourceTabs v-model="value">
+  <ResourceTabs :value="value">
     <Tab
       name="data"
       label-key="secret.data"

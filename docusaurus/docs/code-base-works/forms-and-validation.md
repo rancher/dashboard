@@ -246,7 +246,7 @@ Example:
 ```html
   <LabeledInput 
     v-focus
-    v-model="value" 
+    :value="value" 
   />
 ```
 

@@ -46,7 +46,7 @@ export default {
       :mode="mode"
     />
     <ResourceTabs
-      v-model="value"
+      :value="value"
       :mode="mode"
     >
       <Tab

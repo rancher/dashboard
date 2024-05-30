@@ -126,7 +126,7 @@ export default {
       {{ t('fleet.fleetSummary.noClustersGitRepo') }}
     </Banner>
     <ResourceTabs
-      v-model="value"
+      :value="value"
       mode="view"
       class="mt-20"
       :need-related="false"

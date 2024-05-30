@@ -28,7 +28,7 @@ export default {
     <div class="row">
       <div class="col span-12 mt-10">
         <KeyValue
-          v-model="value"
+          :value="value"
           :title="question.label"
           :mode="mode"
           :protip="false"

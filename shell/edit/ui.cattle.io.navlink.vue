@@ -291,7 +291,7 @@ export default {
     @cancel="done()"
   >
     <NameNsDescription
-      v-model="value"
+      :value="value"
       :namespaced="false"
       :namespace-disabled="true"
       :mode="mode"

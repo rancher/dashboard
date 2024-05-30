@@ -120,7 +120,7 @@ export default {
       </div>
     </div>
     <TLS
-      v-model="value"
+      :value="value"
       class="mb-20"
       :mode="mode"
     />

@@ -93,7 +93,7 @@ export default {
     />
 
     <ResourceTabs
-      v-model="value"
+      :value="value"
       :mode="mode"
       :side-tabs="true"
     >

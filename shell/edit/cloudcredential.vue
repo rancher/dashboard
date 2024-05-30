@@ -276,7 +276,7 @@ export default {
       @error="e=>errors = e"
     >
       <NameNsDescription
-        v-model="value"
+        :value="value"
         :name-editable="true"
         name-key="_name"
         description-key="description"

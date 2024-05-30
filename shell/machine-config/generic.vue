@@ -88,7 +88,7 @@ export default {
   </div>
   <div v-else>
     <Questions
-      v-model="value"
+      :value="value"
       :mode="mode"
       :tabbed="false"
       :source="fields"

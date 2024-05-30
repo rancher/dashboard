@@ -306,7 +306,7 @@ export default {
     >
       <div>
         <Prometheus
-          v-model="value"
+          :value="value"
           v-bind="$attrs"
           :access-modes="accessModes"
           :mode="mode"
@@ -323,7 +323,7 @@ export default {
     >
       <div>
         <Alerting
-          v-model="value"
+          :value="value"
           :mode="mode"
           :monitoringSecrets="monitoringSecrets"
         />
@@ -336,7 +336,7 @@ export default {
     >
       <div>
         <Grafana
-          v-model="value"
+          :value="value"
           :access-modes="accessModes"
           :mode="mode"
           :pvcs="pvcs"

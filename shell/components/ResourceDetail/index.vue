@@ -403,7 +403,7 @@ export default {
     <ResourceYaml
       v-else-if="isYaml"
       ref="resourceyaml"
-      v-model="value"
+      :value="value"
       :mode="mode"
       :yaml="yaml"
       :offer-preview="offerPreview"
@@ -416,7 +416,7 @@ export default {
       :is="showComponent"
       v-else
       ref="comp"
-      v-model="value"
+      :value="value"
       v-bind="_data"
       :done-params="doneParams"
       :done-route="doneRoute"

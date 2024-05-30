@@ -36,7 +36,7 @@ export default {
   <div class="row">
     <div class="col span-12">
       <KeyValue
-        v-model="value"
+        :value="value"
         :mode="mode"
         :as-map="true"
         @update:modelValue="$emit('input', value)"
