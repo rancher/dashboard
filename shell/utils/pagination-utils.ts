@@ -21,11 +21,11 @@ import { DEFAULT_PERF_SETTING } from '@shell/config/settings';
  *
  * Once cache is merged (pre 2.9.0) this will be removed
  */
-const TEMP_VAI_CACHE_MERGED = true;
+const TEMP_VAI_CACHE_MERGED = false;
 /**
  * Given above, just a dev thing
  */
-const TEMP_PERF_ENABLED = true;
+const TEMP_PERF_ENABLED = false;
 
 /**
  * Helper functions for server side pagination
