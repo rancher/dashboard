@@ -17,7 +17,10 @@ export class FleetGitRepoListPagePo extends PagePo {
   }
 
   navTo() {
+    const fleetDashboardPage = new FleetDashboardPagePo('_');
+
     FleetDashboardPagePo.navTo();
+    fleetDashboardPage.waitForPage();
 
     const sideNav = new ProductNavPo();
 

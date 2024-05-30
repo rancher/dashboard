@@ -1,26 +1,45 @@
 import { GitRepoCreatePo } from '@/cypress/e2e/po/pages/fleet/gitrepo-create.po';
 import { FleetGitRepoListPagePo } from '@/cypress/e2e/po/pages/fleet/fleet.cattle.io.gitrepo.po';
 import FleetGitRepoDetailsPo from '@/cypress/e2e/po/detail/fleet/fleet.cattle.io.gitrepo.po';
-import { gitRepoCreateRequest } from '@/cypress/e2e/blueprints/fleet/gitrepos';
+import { gitRepoCreateRequest, gitRepoTargetAllClustersRequest } from '@/cypress/e2e/blueprints/fleet/gitrepos';
 import { generateFakeClusterDataAndIntercepts } from '@/cypress/e2e/blueprints/nav/fake-cluster';
 import PreferencesPagePo from '@/cypress/e2e/po/pages/preferences.po';
 
 const fakeProvClusterId = 'some-fake-cluster-id';
 const fakeMgmtClusterId = 'some-fake-mgmt-id';
 
-describe('Git Repo', { tags: ['@fleet', '@adminUser'] }, () => {
+describe('Git Repo', { testIsolation: 'off', tags: ['@fleet', '@adminUser'] }, () => {
   describe('Create', () => {
+    const listPage = new FleetGitRepoListPagePo();
     const gitRepoCreatePage = new GitRepoCreatePo('_');
     const reposToDelete = [];
 
-    beforeEach(() => {
-      cy.login();
+    before(() => {
+      const repoInfo =
+      {
+        repoUrl: 'https://github.com/rancher/fleet-examples.git',
+        branch:  'master',
+        paths:   'simple'
+      };
 
-      // generate a fake cluster that can be usable in fleet
-      generateFakeClusterDataAndIntercepts(fakeProvClusterId, fakeMgmtClusterId);
+      cy.login();
+      // create gitrepo in fleet-default
+      cy.createE2EResourceName('git-repo').as('gitRepo');
+      cy.get<string>('@gitRepo').then((name) => {
+        cy.createRancherResource('v1', 'fleet.cattle.io.gitrepos', gitRepoTargetAllClustersRequest('fleet-default', name, repoInfo.repoUrl, repoInfo.branch, repoInfo.paths)).then(() => {
+          reposToDelete.push(`fleet-default/${ name }`);
+        });
+      });
+    });
+
+    beforeEach(() => {
+      cy.createE2EResourceName('git-repo').as('gitRepo');
     });
 
     it('Should be able to create a git repo', () => {
+      // generate a fake cluster that can be usable in fleet
+      generateFakeClusterDataAndIntercepts(fakeProvClusterId, fakeMgmtClusterId);
+
       cy.intercept('POST', '/v1/secrets/fleet-default').as('interceptSecret');
       cy.intercept('POST', '/v1/fleet.cattle.io.gitrepos').as('interceptGitRepo');
       cy.intercept('GET', '/v1/secrets?exclude=metadata.managedFields').as('getSecrets');
@@ -116,10 +135,63 @@ describe('Git Repo', { tags: ['@fleet', '@adminUser'] }, () => {
       ;
     });
 
+    it('check table headers are available in list and details view', { tags: ['@vai'] }, function() {
+      const workspace = 'fleet-default';
+
+      // go to fleet gitrepo
+      listPage.goTo();
+      listPage.waitForPage();
+      listPage.selectWorkspace(workspace);
+
+      // check table headers
+      const expectedHeadersListView = ['State', 'Name', 'Repo', 'Target', 'Clusters Ready', 'Resources', 'Age'];
+
+      listPage.repoList().resourceTable().sortableTable().tableHeaderRow()
+        .find('.table-header-container .content')
+        .each((el, i) => {
+          expect(el.text().trim()).to.eq(expectedHeadersListView[i]);
+        });
+
+      // go to fleet gitrepo details
+      listPage.repoList().details(this.gitRepo, 2).find('a').click();
+
+      const gitRepoDetails = new FleetGitRepoDetailsPo(workspace, this.gitRepo);
+
+      gitRepoDetails.waitForPage(null, 'bundles');
+
+      // check table headers
+      const expectedHeadersDetailsView = ['State', 'Name', 'Deployments', 'Last Updated', 'Date'];
+
+      gitRepoDetails.bundlesTab().list().resourceTable().sortableTable()
+        .tableHeaderRow()
+        .find('.table-header-container .content')
+        .each((el, i) => {
+          expect(el.text().trim()).to.eq(expectedHeadersDetailsView[i]);
+        });
+    });
+
+    it('check all tabs are available in the details view', function() {
+      // testing https://github.com/rancher/dashboard/issues/11155
+
+      const workspace = 'fleet-default';
+
+      const gitRepoDetails = new FleetGitRepoDetailsPo(workspace, this.gitRepo);
+
+      listPage.goTo();
+      listPage.waitForPage();
+      listPage.selectWorkspace(workspace);
+      listPage.repoList().details(this.gitRepo, 2).find('a').click();
+      gitRepoDetails.waitForPage(null, 'bundles');
+      gitRepoDetails.gitRepoTabs().allTabs().should('have.length', 4, { timeout: 10000 });
+      const tabs = ['Bundles', 'Resources', 'Conditions', 'Recent Events'];
+
+      gitRepoDetails.gitRepoTabs().tabNames().each((el, i) => {
+        expect(el).to.eq(tabs[i]);
+      });
+    });
+
     // testing https://github.com/rancher/dashboard/issues/9866
     it('in git repo details view we should display the correct bundle count', () => {
-      const listPage = new FleetGitRepoListPagePo();
-
       const basicRepos = [
         {
           name:   'e2e-git-repo1-test-bundle-count',
@@ -134,39 +206,25 @@ describe('Git Repo', { tags: ['@fleet', '@adminUser'] }, () => {
           path:   'single-cluster/helm'
         }
       ];
+      const workspace = 'fleet-local';
+
+      // generate a fake cluster that can be usable in fleet
+      generateFakeClusterDataAndIntercepts(fakeProvClusterId, fakeMgmtClusterId);
 
       // create first git-repo in fleet-local
-      gitRepoCreatePage.goTo();
-      gitRepoCreatePage.waitForPage();
-
-      gitRepoCreatePage.selectWorkspace('fleet-local');
-
-      gitRepoCreatePage.setRepoName(basicRepos[0].name);
-      gitRepoCreatePage.setGitRepoUrl(basicRepos[0].repo);
-      gitRepoCreatePage.setBranchName(basicRepos[0].branch);
-      gitRepoCreatePage.gitRepoPaths().setValueAtIndex(basicRepos[0].path, 0);
-      gitRepoCreatePage.goToNext();
-      gitRepoCreatePage.create().then(() => {
+      cy.createRancherResource('v1', 'fleet.cattle.io.gitrepos', gitRepoTargetAllClustersRequest(workspace, basicRepos[0].name, basicRepos[0].repo, basicRepos[0].branch, basicRepos[0].path)).then(() => {
         reposToDelete.push(`fleet-local/${ basicRepos[0].name }`);
       });
 
       // create second git-repo in fleet-local
-      listPage.waitForPage();
-      listPage.repoList().create();
-
-      gitRepoCreatePage.selectWorkspace('fleet-local');
-
-      gitRepoCreatePage.setRepoName(basicRepos[1].name);
-      gitRepoCreatePage.setGitRepoUrl(basicRepos[1].repo);
-      gitRepoCreatePage.setBranchName(basicRepos[1].branch);
-      gitRepoCreatePage.gitRepoPaths().setValueAtIndex(basicRepos[1].path, 0);
-      gitRepoCreatePage.goToNext();
-      gitRepoCreatePage.create().then(() => {
+      cy.createRancherResource('v1', 'fleet.cattle.io.gitrepos', gitRepoTargetAllClustersRequest(workspace, basicRepos[1].name, basicRepos[1].repo, basicRepos[1].branch, basicRepos[1].path)).then(() => {
         reposToDelete.push(`fleet-local/${ basicRepos[1].name }`);
       });
 
+      // go to fleet gitrepo
+      listPage.goTo();
       listPage.waitForPage();
-      listPage.selectWorkspace('fleet-local');
+      listPage.selectWorkspace(workspace);
 
       listPage.goToDetailsPage(basicRepos[1].name);
 

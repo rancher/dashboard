@@ -96,6 +96,10 @@ export default class SortableTablePo extends ComponentPo {
     return this.self().contains('thead tr', name);
   }
 
+  tableHeaderRow() {
+    return this.self().find('thead tr');
+  }
+
   subRows() {
     return this.self().find('tbody tr.sub-row');
   }
@@ -140,7 +144,7 @@ export default class SortableTablePo extends ComponentPo {
   }
 
   noRowsText() {
-    return this.self().find('tbody').find('.no-rows');
+    return this.self().find('tbody', { timeout: 10000 }).find('.no-rows');
   }
 
   /**
@@ -211,6 +215,6 @@ export default class SortableTablePo extends ComponentPo {
 
   // Check that the sortable table loading indicator does not exist (data loading complete)
   checkLoadingIndicatorNotVisible() {
-    cy.get('.data-loading').should('not.exist');
+    cy.get('tbody', { timeout: 10000 }).find('.data-loading').should('not.exist');
   }
 }

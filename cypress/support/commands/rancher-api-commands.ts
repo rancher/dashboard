@@ -1,5 +1,5 @@
 import { LoginPagePo } from '@/cypress/e2e/po/pages/login-page.po';
-import { CreateUserParams } from '@/cypress/globals';
+import { CreateUserParams, CreateAmazonRke2ClusterParams } from '@/cypress/globals';
 
 // This file contains commands which makes API requests to the rancher API.
 // It includes the `login` command to store the `token` to use
@@ -472,4 +472,153 @@ Cypress.Commands.add('deleteNodeTemplate', (nodeTemplateId, timeout = 30000) => 
       expect(resp.status).to.be.oneOf([200, 204]);
     }
   });
+});
+
+/**
+ * Create RKE2 cluster with Amazon EC2 cloud provider
+ */
+Cypress.Commands.add('createAmazonRke2Cluster', (params: CreateAmazonRke2ClusterParams) => {
+  const { machineConfig, rke2ClusterAmazon, cloudCredentialsAmazon } = params;
+
+  return cy.createAwsCloudCredentials(cloudCredentialsAmazon.workspace, cloudCredentialsAmazon.name, cloudCredentialsAmazon.region, cloudCredentialsAmazon.accessKey, cloudCredentialsAmazon.secretKey)
+    .then((resp: Cypress.Response<any>) => {
+      const cloudCredentialId = resp.body.id;
+
+      return cy.createAmazonMachineConfig(
+        machineConfig.instanceType, machineConfig.region, machineConfig.vpcId, machineConfig.zone, machineConfig.type, machineConfig.clusterName, machineConfig.namespace)
+        .then((resp: Cypress.Response<any>) => {
+          const machineConfigId = resp.body.id.split('/');
+
+          return cy.request({
+            method:           'POST',
+            url:              `${ Cypress.env('api') }/v1/provisioning.cattle.io.clusters`,
+            failOnStatusCode: true,
+            headers:          {
+              'x-api-csrf': token.value,
+              Accept:       'application/json'
+            },
+            body: {
+              type:     'provisioning.cattle.io.cluster',
+              metadata: {
+                namespace:   rke2ClusterAmazon.namespace,
+                annotations: { 'field.cattle.io/description': `${ rke2ClusterAmazon.clusterName }-description` },
+                name:        rke2ClusterAmazon.clusterName
+              },
+              spec: {
+                rkeConfig: {
+                  chartValues:     { 'rke2-calico': {} },
+                  upgradeStrategy: {
+                    controlPlaneConcurrency:  '1',
+                    controlPlaneDrainOptions: {
+                      deleteEmptyDirData:              true,
+                      disableEviction:                 false,
+                      enabled:                         false,
+                      force:                           false,
+                      gracePeriod:                     -1,
+                      ignoreDaemonSets:                true,
+                      skipWaitForDeleteTimeoutSeconds: 0,
+                      timeout:                         120
+                    },
+                    workerConcurrency:  '1',
+                    workerDrainOptions: {
+                      deleteEmptyDirData:              true,
+                      disableEviction:                 false,
+                      enabled:                         false,
+                      force:                           false,
+                      gracePeriod:                     -1,
+                      ignoreDaemonSets:                true,
+                      skipWaitForDeleteTimeoutSeconds: 0,
+                      timeout:                         120
+                    }
+                  },
+                  dataDirectories: {
+                    systemAgent:  '',
+                    provisioning: '',
+                    k8sDistro:    ''
+                  },
+                  machineGlobalConfig: {
+                    cni:                   'calico',
+                    'disable-kube-proxy':  false,
+                    'etcd-expose-metrics': false
+                  },
+                  machineSelectorConfig: [
+                    { config: { 'protect-kernel-defaults': false } }
+                  ],
+                  etcd: {
+                    disableSnapshots:     false,
+                    s3:                   null,
+                    snapshotRetention:    5,
+                    snapshotScheduleCron: '0 */5 * * *'
+                  },
+                  registries: {
+                    configs: {},
+                    mirrors: {}
+                  },
+                  machinePools: [
+                    {
+                      name:                 'pool1',
+                      etcdRole:             true,
+                      controlPlaneRole:     true,
+                      workerRole:           true,
+                      hostnamePrefix:       '',
+                      labels:               {},
+                      quantity:             3,
+                      unhealthyNodeTimeout: '0m',
+                      machineConfigRef:     {
+                        kind: 'Amazonec2Config',
+                        name: machineConfigId[1]
+                      },
+                      drainBeforeDelete: true
+                    }
+                  ]
+                },
+                machineSelectorConfig: [
+                  { config: {} }
+                ],
+                kubernetesVersion:                                    'v1.29.4+rke2r1',
+                defaultPodSecurityAdmissionConfigurationTemplateName: '',
+                cloudCredentialSecretName:                            cloudCredentialId,
+                localClusterAuthEndpoint:                             {
+                  enabled: false,
+                  caCerts: '',
+                  fqdn:    ''
+                }
+              }
+            }
+          })
+            .then((resp: Cypress.Response<any>) => {
+              expect(resp.status).to.eq(201);
+            });
+        });
+    });
+});
+
+/**
+ * Create Amazon Machine config
+ */
+Cypress.Commands.add('createAmazonMachineConfig', (instanceType, region, vpcId, zone, type, clusterName, namespace) => {
+  return cy.request({
+    method:  'POST',
+    url:     `${ Cypress.env('api') }/v1/rke-machine-config.cattle.io.amazonec2configs/${ namespace }`,
+    headers: {
+      'x-api-csrf': token.value,
+      Accept:       'application/json'
+    },
+    body: {
+      instanceType,
+      metadata: {
+        annotations: {}, generateName: `nc-${ clusterName }-pool1-`, labels: {}, namespace
+      },
+      region,
+      securityGroup:         ['rancher-nodes'],
+      securityGroupReadonly: false,
+      subnetId:              null,
+      vpcId,
+      zone,
+      type
+    }
+  })
+    .then((resp) => {
+      expect(resp.status).to.eq(201);
+    });
 });

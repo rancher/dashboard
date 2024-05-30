@@ -19,6 +19,28 @@ export type CreateUserParams = {
   }
 }
 
+export type CreateAmazonRke2ClusterParams = {
+  machineConfig: {
+    instanceType: string,
+    region: string,
+    vpcId: string,
+    zone: string,
+    type: string,
+    clusterName: string,
+    namespace: string
+},
+  cloudCredentialsAmazon: {
+    workspace: string,
+    name: string,
+    region: string,
+    accessKey: string,
+    secretKey: string
+  },
+  rke2ClusterAmazon: {
+    clusterName: string,
+    namespace: string,
+  }
+}
 declare global {
   // eslint-disable-next-line no-unused-vars
   namespace Cypress {
@@ -29,7 +51,7 @@ declare global {
       login(username?: string, password?: string, cacheSession?: boolean): Chainable<Element>;
       logout(): Chainable;
       byLabel(label: string): Chainable<Element>;
-      createE2EResourceName(context: string): Chainable<Element>;
+      createE2EResourceName(context: string): Chainable;
 
       createUser(params: CreateUserParams): Chainable;
       setGlobalRoleBinding(userId: string, role: string): Chainable;
@@ -40,10 +62,12 @@ declare global {
       createNamespace(nsName: string, projId: string): Chainable;
       createPod(nsName: string, podName: string, image: string): Chainable;
       createAwsCloudCredentials(nsName: string, cloudCredName: string, defaultRegion: string, accessKey: string, secretKey: string): Chainable;
+      createAmazonMachineConfig(instanceType: string, region: string, vpcId: string, zone: string, type: string, clusterName: string, namespace: string): Chainable;
+      createAmazonRke2Cluster(params: CreateAmazonRke2ClusterParams): Chainable;
 
       getRancherResource(prefix: 'v3' | 'v1', resourceType: string, resourceId?: string, expectedStatusCode?: number): Chainable;
       setRancherResource(prefix: 'v3' | 'v1', resourceType: string, resourceId: string, body: any): Chainable;
-      createRancherResource(prefix: 'v3' | 'v1', resourceType: string, body: string): Chainable;
+      createRancherResource(prefix: 'v3' | 'v1', resourceType: string, body: any): Chainable;
       deleteRancherResource(prefix: 'v3' | 'v1', resourceType: string, resourceId: string, failOnStatusCode?: boolean): Chainable;
       deleteNodeTemplate(nodeTemplateId: string, timeout?: number)
 
