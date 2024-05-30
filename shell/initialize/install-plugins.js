@@ -3,11 +3,11 @@ import VueResize from 'vue-resize';
 import ShortKey from 'vue-shortkey';
 import VTooltip from 'v-tooltip';
 import vSelect from 'vue-select';
+import VModal from 'vue-js-modal';
 import 'vue-resize/dist/vue-resize.css';
 
 import '@shell/plugins/extend-router';
 import '@shell/plugins/formatters';
-import '@shell/plugins/vue-js-modal';
 import '@shell/plugins/js-yaml';
 
 import i18n from '@shell/plugins/i18n';
@@ -37,6 +37,7 @@ export async function installPlugins(vueApp) {
   vueApp.use(VTooltip);
   vueApp.use(ShortKey, { prevent: ['input', 'textarea', 'select'] });
   vueApp.use(VueCodemirror);
+  vueApp.use(VModal);
   vueApp.component('v-select', vSelect);
 }
 
