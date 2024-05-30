@@ -248,7 +248,8 @@ const getDevServerConfig = (proxy) => {
         app.use(p, px);
       });
 
-      server.websocketProxies.push({
+      // TODO: #9539: Verify after migration completed
+      server?.websocketProxies.push({
         upgrade(req, socket, head) {
           const path = Object.keys(socketProxies).find((path) => req.url.startsWith(path));
 
