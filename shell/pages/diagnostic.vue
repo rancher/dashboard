@@ -163,8 +163,8 @@ export default {
           const cluster = this.finalCounts.find((c) => c.capiId === res.item.capiId);
           const countIndex = cluster?.counts?.findIndex((c) => c.resource === res.item.resource);
 
-          if ( (countIndex && countIndex !== -1) || countIndex === 0 ) {
-            this.$set(cluster?.counts[countIndex], 'durationMs', res.durationMs);
+          if ( cluster && (countIndex && countIndex !== -1) || countIndex === 0 ) {
+            cluster.counts[countIndex]['durationMs'] = res.durationMs;
           }
         }
       });
