@@ -7,7 +7,6 @@ Developer documentation and documentation for our UI components is available her
 
 Rancher Dashboard supports an extension mechanism that allows developers to independently provide additional functionality to Rancher. You can learn more from our [Rancher Extensions Docs](https://rancher.github.io/dashboard/extensions/introduction).
 
-
 # What is it?
 
 Rancher Dashboard provides a sophisticated UI for managing Kubernetes clusters and Workloads.
