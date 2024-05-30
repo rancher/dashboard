@@ -109,8 +109,8 @@ function inject(key, value, context, vueApp) {
 
   // Call vueApp.use() to install the plugin into vm
   vueApp.use(() => {
-    if (!Object.prototype.hasOwnProperty.call(vueApp.prototype, key)) {
-      Object.defineProperty(vueApp.prototype, key, {
+    if (!Object.prototype.hasOwnProperty.call(vueApp.config.globalProperties, key)) {
+      Object.defineProperty(vueApp.config.globalProperties, key, {
         get() {
           return this.$root.$options[key];
         }
