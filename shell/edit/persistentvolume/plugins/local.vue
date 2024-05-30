@@ -14,7 +14,7 @@ export default {
     },
   },
   data() {
-    this.$set(this.value.spec, 'local', this.value.spec.local || {});
+    this.value.spec['local'] = this.value.spec.local || {};
 
     return { };
   },

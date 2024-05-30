@@ -600,9 +600,7 @@ export default {
     <template #subtypes>
       <div
         v-for="(obj, i) in groupedSubTypes"
-        :key="obj.id"
-        class="mb-20"
-        style="width: 100%;"
+        :key="i"
       >
         <h4>
           <div

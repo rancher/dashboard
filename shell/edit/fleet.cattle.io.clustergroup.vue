@@ -151,7 +151,7 @@ export default {
       :mode="mode"
       :value="expressions"
       :show-remove="false"
-      @input="matchChanged($event)"
+      @update:modelValue="matchChanged($event)"
     />
     <Banner
       v-if="matchingClusters"

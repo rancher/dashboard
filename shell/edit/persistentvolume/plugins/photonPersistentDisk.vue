@@ -25,9 +25,9 @@ export default {
       }
     ];
 
-    this.$set(this.value.spec, 'photonPersistentDisk', this.value.spec.photonPersistentDisk || {});
-    this.$set(this.value.spec.photonPersistentDisk, 'readOnly', this.value.spec.photonPersistentDisk.readOnly || false);
-    this.$set(this.value.spec.photonPersistentDisk, 'secretRef', this.value.spec.photonPersistentDisk.secretRef || {});
+    this.value.spec['photonPersistentDisk'] = this.value.spec.photonPersistentDisk || {};
+    this.value.spec.photonPersistentDisk['readOnly'] = this.value.spec.photonPersistentDisk.readOnly || false;
+    this.value.spec.photonPersistentDisk['secretRef'] = this.value.spec.photonPersistentDisk.secretRef || {};
 
     return { readOnlyOptions };
   },

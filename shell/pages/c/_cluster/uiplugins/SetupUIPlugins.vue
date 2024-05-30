@@ -265,7 +265,6 @@ export default {
           <div
             v-for="(e, i) in errors"
             :key="i"
-            class="plugin-setup-error"
           >
             {{ e }}
           </div>

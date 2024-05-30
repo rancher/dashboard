@@ -30,10 +30,11 @@ import forIn from 'lodash/forIn';
 import isEmpty from 'lodash/isEmpty';
 import isFunction from 'lodash/isFunction';
 import isString from 'lodash/isString';
-import Vue from 'vue';
+import { createApp } from 'vue';
 
 import { ExtensionPoint, ActionLocation } from '@shell/core/types';
 import { getApplicableExtensionEnhancements } from '@shell/core/plugin-helpers';
+const vueApp = createApp({});
 
 export const DNS_LIKE_TYPES = ['dnsLabel', 'dnsLabelRestricted', 'hostname'];
 
@@ -1626,7 +1627,7 @@ export default class Resource {
           if ( tolower !== pathValue ) {
             pathValue = tolower;
 
-            Vue.set(data, path, pathValue);
+            data[path] = pathValue;
           }
 
           errors.push(...validateDnsLikeTypes(pathValue, fieldType, displayKey, this.$rootGetters, errors));

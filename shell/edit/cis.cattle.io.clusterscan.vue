@@ -59,7 +59,7 @@ export default {
       const proxyObj = this.allProfiles.filter((profile) => profile.id === scanProfileName)[0];
 
       if (!proxyObj) {
-        this.$set(this.value.spec, 'scanProfileName', '');
+        this.value.spec['scanProfileName'] = '';
       }
     }
   },
@@ -69,10 +69,10 @@ export default {
       this.value.metadata.generateName = 'scan-';
     }
     if (!this.value.spec.scheduledScanConfig) {
-      this.$set(this.value.spec, 'scheduledScanConfig', { scanAlertRule: {} });
+      this.value.spec['scheduledScanConfig'] = { scanAlertRule: {} };
     }
     if (!this.value.spec.scheduledScanConfig.scanAlertRule) {
-      this.$set(this.value.spec.scheduledScanConfig, 'scanAlertRule', { });
+      this.value.spec.scheduledScanConfig['scanAlertRule'] = { };
     }
     const isScheduled = !!get(this.value, 'spec.scheduledScanConfig.cronSchedule');
 

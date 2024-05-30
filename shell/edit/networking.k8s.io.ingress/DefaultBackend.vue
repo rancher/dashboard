@@ -106,7 +106,7 @@ export default {
           :status="serviceTargetStatus"
           :tooltip="serviceTargetTooltip"
           :rules="rules.name"
-          @input="update(); servicePort = ''"
+          @update:modelValue="update(); servicePort = ''"
         />
       </div>
       <div
@@ -120,7 +120,7 @@ export default {
           :label="t('ingress.defaultBackend.port.label')"
           :placeholder="t('ingress.defaultBackend.port.placeholder')"
           :rules="rules.port"
-          @input="update"
+          @update:modelValue="update"
         />
         <LabeledSelect
           v-else
@@ -130,7 +130,7 @@ export default {
           :label="t('ingress.defaultBackend.port.label')"
           :placeholder="t('ingress.defaultBackend.port.placeholder')"
           :rules="rules.port"
-          @input="update"
+          @update:modelValue="update"
         />
       </div>
     </div>

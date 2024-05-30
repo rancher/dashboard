@@ -86,7 +86,7 @@ export default {
       :labels="[t('generic.no'), t('generic.yes')]"
       :tooltip="t('cluster.rke2.drain.toolTip')"
       :mode="mode"
-      @input="update"
+      @update:modelValue="update"
     />
 
     <template v-if="enabled">
@@ -95,7 +95,7 @@ export default {
           v-model="deleteEmptyDirData"
           label-key="cluster.rke2.drain.deleteEmptyDir.label"
           tooltip-key="cluster.rke2.drain.deleteEmptyDir.tooltip"
-          @input="update"
+          @update:modelValue="update"
         />
       </div>
       <div>
@@ -105,14 +105,14 @@ export default {
           label-key="cluster.rke2.drain.force.label"
           tooltip="Delete standalone pods which are not managed by a Workload controller (Deployment, Job, etc).  Draining will fail if this is not set and there are standalone pods."
           tooltop-key="cluster.rke2.drain.force.tooltip"
-          @input="update"
+          @update:modelValue="update"
         />
       </div>
       <div>
         <Checkbox
           v-model="customGracePeriod"
           label-key="cluster.rke2.drain.gracePeriod.checkboxLabel"
-          @input="update"
+          @update:modelValue="update"
         />
         <UnitInput
           v-if="customGracePeriod"
@@ -120,14 +120,14 @@ export default {
           label-key="cluster.rke2.drain.gracePeriod.inputLabel"
           :suffix="t('suffix.seconds', {count: timeout})"
           class="mb-10"
-          @input="update"
+          @update:modelValue="update"
         />
       </div>
       <div>
         <Checkbox
           v-model="customTimeout"
           label-key="cluster.rke2.drain.timeout.checkboxLabel"
-          @input="update"
+          @update:modelValue="update"
         />
         <UnitInput
           v-if="customTimeout"
@@ -135,7 +135,7 @@ export default {
           label-key="cluster.rke2.drain.timeout.inputLabel"
           :suffix="t('suffix.seconds', {count: timeout})"
           class="drain-timeout"
-          @input="update"
+          @update:modelValue="update"
         />
       </div>
     </template>

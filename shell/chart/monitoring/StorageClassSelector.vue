@@ -41,6 +41,6 @@ export default {
     :options="options"
     :push-tags="true"
     :taggable="true"
-    @input="updateName"
+    @update:modelValue="updateName"
   />
 </template>

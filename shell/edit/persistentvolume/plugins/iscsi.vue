@@ -29,11 +29,11 @@ export default {
       }
     ];
 
-    this.$set(this.value.spec, 'iscsi', this.value.spec.iscsi || {});
-    this.$set(this.value.spec.iscsi, 'readOnly', this.value.spec.iscsi.readOnly || false);
-    this.$set(this.value.spec.iscsi, 'secretRef', this.value.spec.iscsi.secretRef || {});
-    this.$set(this.value.spec.iscsi, 'chapAuthDiscovery', this.value.spec.iscsi.chapAuthDiscovery || false);
-    this.$set(this.value.spec.iscsi, 'chapAuthSession', this.value.spec.iscsi.chapAuthSession || false);
+    this.value.spec['iscsi'] = this.value.spec.iscsi || {};
+    this.value.spec.iscsi['readOnly'] = this.value.spec.iscsi.readOnly || false;
+    this.value.spec.iscsi['secretRef'] = this.value.spec.iscsi.secretRef || {};
+    this.value.spec.iscsi['chapAuthDiscovery'] = this.value.spec.iscsi.chapAuthDiscovery || false;
+    this.value.spec.iscsi['chapAuthSession'] = this.value.spec.iscsi.chapAuthSession || false;
 
     return { yesNoOptions };
   },
@@ -43,7 +43,7 @@ export default {
         return this.value.spec.iscsi.lun;
       },
       set(value) {
-        this.$set(this.value.spec.iscsi, 'lun', Number.parseInt(value, 10));
+        this.value.spec.iscsi['lun'] = Number.parseInt(value, 10);
       }
     },
   }

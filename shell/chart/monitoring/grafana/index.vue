@@ -159,12 +159,12 @@ export default {
         };
         break;
       default:
-        this.$delete(this.value.grafana, 'persistence');
+        delete this.value.grafana['persistence'];
         break;
       }
 
-      this.$set(this.value.grafana, 'persistence', resetValsOut);
-      this.$set(this.value.grafana, 'persistence', newValsOut);
+      this.value.grafana['persistence'] = resetValsOut;
+      this.value.grafana['persistence'] = newValsOut;
     },
   }
 };

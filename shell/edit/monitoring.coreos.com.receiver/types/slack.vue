@@ -24,8 +24,8 @@ export default {
     },
   },
   data() {
-    this.$set(this.value, 'http_config', this.value.http_config || {});
-    this.$set(this.value, 'send_resolved', this.value.send_resolved || false);
+    this.value['http_config'] = this.value.http_config || {};
+    this.value['send_resolved'] = this.value.send_resolved || false;
 
     if (this.mode === _CREATE) {
       this.$set(

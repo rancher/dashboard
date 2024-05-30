@@ -241,7 +241,7 @@ export default {
         set(this.value, `${ field }credentialConfig`, {});
       }
 
-      this.$set(this.value, '_type', type);
+      this.value['_type'] = type;
       this.$emit('set-subtype', this.typeDisplay(type, driver));
     },
 

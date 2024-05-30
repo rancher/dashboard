@@ -44,7 +44,7 @@ export default {
         return this.value.emptyDir.medium ?? '';
       },
       set(v) {
-        this.$set(this.value.emptyDir, 'medium', v);
+        this.value.emptyDir['medium'] = v;
       }
     },
   },

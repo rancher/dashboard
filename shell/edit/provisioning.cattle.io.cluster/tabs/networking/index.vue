@@ -155,7 +155,7 @@ export default {
           :mode="mode"
           :label="t('cluster.rke2.truncateHostnames')"
           data-testid="network-tab-truncate-hostname"
-          @input="$emit('truncate-hostname', $event)"
+          @update:modelValue="$emit('truncate-hostname', $event)"
         />
         <Banner
           v-if="hostnameTruncationManuallySet"

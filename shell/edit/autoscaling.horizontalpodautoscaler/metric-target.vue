@@ -87,7 +87,7 @@ export default {
         }
       }
 
-      this.$set(this.value, match?.specKey, nueDefault);
+      this.value[match?.specKey] = nueDefault;
       this.quantity = nueDefault;
     },
 
@@ -107,7 +107,7 @@ export default {
 
       delete this.value[toDelete.specKey];
 
-      this.$set(this.value, nue?.specKey, nueDefault);
+      this.value[nue?.specKey] = nueDefault;
       this.quantity = nueDefault;
     },
   },
@@ -137,9 +137,9 @@ export default {
     },
     updateQuantityValue(val) {
       if (this.value?.type === 'Value') {
-        this.$set(this.value, 'value', val);
+        this.value['value'] = val;
       } else {
-        this.$set(this.value, 'averageValue', val);
+        this.value['averageValue'] = val;
       }
     },
   },
@@ -180,7 +180,7 @@ export default {
           :required="true"
           :base-unit="t('suffix.cpus')"
           :output-modifier="true"
-          @input="updateQuantityValue"
+          @update:modelValue="updateQuantityValue"
         />
         <UnitInput
           v-else-if="resourceName === 'memory'"
@@ -192,7 +192,7 @@ export default {
           :required="true"
           :output-modifier="true"
           :increment="1024"
-          @input="updateQuantityValue"
+          @update:modelValue="updateQuantityValue"
         />
       </div>
       <div
@@ -206,7 +206,7 @@ export default {
           :label="t('hpa.metricTarget.quantity.label')"
           :mode="mode"
           :required="true"
-          @input="updateQuantityValue"
+          @update:modelValue="updateQuantityValue"
         />
       </div>
     </div>

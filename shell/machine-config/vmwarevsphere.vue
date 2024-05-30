@@ -1209,7 +1209,7 @@ export default {
 </template>
 
 <style lang="scss" scoped>
-::v-deep .labeled-tooltip .status-icon.icon-info {
+:deep() .labeled-tooltip .status-icon.icon-info {
     z-index: 0;
 }
 </style>

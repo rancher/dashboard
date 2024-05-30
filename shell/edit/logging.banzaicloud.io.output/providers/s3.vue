@@ -33,7 +33,7 @@ export default {
         return this.value.overwrite === 'true';
       },
       set(value) {
-        this.$set(this.value, 'overwrite', value.toString());
+        this.value['overwrite'] = value.toString();
       }
     }
   }

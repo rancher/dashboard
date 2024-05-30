@@ -23,7 +23,7 @@ export default {
     }
   },
   data() {
-    this.$set(this.value, 'tls_config', this.value.tls_config || {});
+    this.value.tls_config = this.value.tls_config || {};
 
     return {};
   },

@@ -1,5 +1,5 @@
 <script>
-import Vue from 'vue';
+import { createApp } from 'vue';
 import { mapGetters } from 'vuex';
 import { mapPref, PLUGIN_DEVELOPER } from '@shell/store/prefs';
 import { sortBy } from '@shell/utils/sort';
@@ -40,6 +40,7 @@ import {
   UI_PLUGINS_PARTNERS_REPO_URL
 } from '@shell/config/uiplugins';
 import TabTitle from '@shell/components/TabTitle';
+const vueApp = createApp({});
 
 const MAX_DESCRIPTION_LENGTH = 200;
 
@@ -430,7 +431,7 @@ export default {
           const active = op.metadata.state?.transitioning;
           const error = op.metadata.state?.error;
 
-          Vue.set(this.errors, plugin.name, error);
+          this.errors[plugin.name] = error;
 
           if (active) {
             // Can use the status directly, apart from upgrade, which maps to install
@@ -472,13 +473,13 @@ export default {
       });
 
       if (changes > 0) {
-        Vue.set(this, 'reloadRequired', true);
+        this['reloadRequired'] = true;
       }
     }
   },
 
   // Forget the types when we leave the page
-  beforeDestroy() {
+  beforeUnmount() {
     this.$store.dispatch('management/forgetType', UI_PLUGIN);
     this.$store.dispatch('management/forgetType', CATALOG.OPERATION);
     this.$store.dispatch('management/forgetType', CATALOG.APP);
@@ -514,7 +515,7 @@ export default {
         this.refreshCharts(forceChartsUpdate);
       }
 
-      Vue.set(this, 'hasService', hasService);
+      this['hasService'] = hasService;
 
       return hasService;
     },
@@ -591,7 +592,7 @@ export default {
     },
 
     updatePluginInstallStatus(name, status) {
-      Vue.set(this.installing, name, status);
+      this.installing[name] = status;
     },
 
     setMenu(event) {
@@ -812,9 +813,7 @@ export default {
             <template v-else>
               <div
                 v-for="(plugin, i) in list"
-                :key="plugin.name + i"
-                class="plugin"
-                :data-testid="`extension-card-${plugin.name}`"
+                :key="i"
                 @click="showPluginDetail(plugin)"
               >
                 <!-- plugin icon -->
@@ -1240,11 +1239,11 @@ export default {
       }
     }
   }
-  ::v-deep .checkbox-label {
+  :deep() .checkbox-label {
     font-weight: normal !important;
   }
 
-  ::v-deep .add-repos-banner .banner__content {
+  :deep() .add-repos-banner .banner__content {
     display: flex;
     justify-content: space-between;
     align-items: center;

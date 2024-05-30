@@ -405,8 +405,6 @@ export default {
         <Banner
           v-for="(err, i) in errorMessages"
           :key="i"
-          color="error"
-          :label="err"
           class="mb-0"
         />
       </div>

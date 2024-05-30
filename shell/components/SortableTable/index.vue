@@ -368,7 +368,7 @@ export default {
     this.debouncedPaginationChanged();
   },
 
-  beforeDestroy() {
+  beforeUnmount() {
     clearTimeout(this.loadingDelayTimer);
     clearTimeout(this._scrollTimer);
     clearTimeout(this._loadingDelayTimer);
@@ -508,9 +508,9 @@ export default {
     showHeaderRow() {
       return this.search ||
         this.tableActions ||
-        this.$slots['header-left']?.length ||
-        this.$slots['header-middle']?.length ||
-        this.$slots['header-right']?.length;
+        this.$slots['header-left']()()()?.length ||
+        this.$slots['header-middle']()()()?.length ||
+        this.$slots['header-right']()()()?.length;
     },
 
     columns() {
@@ -975,8 +975,7 @@ export default {
           <slot name="header-left">
             <template v-if="tableActions">
               <button
-                v-for="act in availableActions"
-                :id="act.action"
+                v-for="(act) in availableActions"
                 :key="act.action"
                 v-clean-tooltip="actionTooltip"
                 type="button"
@@ -1014,8 +1013,8 @@ export default {
                 <template #popover-content>
                   <ul class="list-unstyled menu">
                     <li
-                      v-for="act in hiddenActions"
-                      :key="act.action"
+                      v-for="(act, i) in hiddenActions"
+                      :key="i"
                       v-close-popover
                       v-clean-tooltip="{
                         content: actionTooltip,
@@ -1223,7 +1222,7 @@ export default {
         </slot>
       </tbody>
       <tbody
-        v-for="groupedRows in displayRows"
+        v-for="(groupedRows) in displayRows"
         v-else
         :key="groupedRows.key"
         :class="{ group: groupBy }"
@@ -1250,7 +1249,9 @@ export default {
             </td>
           </tr>
         </slot>
-        <template v-for="(row, i) in groupedRows.rows">
+        <template v-for="(row, i) in groupedRows.rows"
+                  :key="i"
+        >
           <slot
             name="main-row"
             :row="row.row"
@@ -1263,7 +1264,6 @@ export default {
                 because our selection.js invokes toggleClass and :class clobbers what was added by toggleClass if
                 the value of :class changes. -->
               <tr
-                :key="row.key"
                 class="main-row"
                 :data-testid="componentTestid + '-' + i + '-row'"
                 :class="{ 'has-sub-row': row.showSubRow}"
@@ -1297,7 +1297,9 @@ export default {
                     @click.stop="toggleExpand(row.row)"
                   />
                 </td>
-                <template v-for="(col, j) in row.columns">
+                <template v-for="(col, j) in row.columns"
+                          :key="j"
+                >
                   <slot
                     :name="'col:' + col.col.name"
                     :row="row.row"

@@ -64,7 +64,7 @@ export default {
         }
       };
 
-      this.$set(this.value, 'resourceQuota', resourceQuota);
+      this.value['resourceQuota'] = resourceQuota;
     }
   },
 };
@@ -84,7 +84,7 @@ export default {
     </div>
     <Row
       v-for="(limit, i) in editableLimits"
-      :key="project.id + i"
+      :key="i"
       :value="value.resourceQuota"
       :namespace="value"
       :mode="mode"
@@ -93,7 +93,7 @@ export default {
       :project-resource-quota-limits="projectResourceQuotaLimits"
       :default-resource-quota-limits="defaultResourceQuotaLimits"
       :namespace-resource-quota-limits="namespaceResourceQuotaLimits"
-      @input="update"
+      @update:modelValue="update"
     />
   </div>
 </template>

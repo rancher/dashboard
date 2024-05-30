@@ -15,8 +15,8 @@ export default {
     },
   },
   data() {
-    this.$set(this.value.spec, 'azureFile', this.value.spec.azureFile || {});
-    this.$set(this.value.spec.azureFile, 'readOnly', this.value.spec.azureFile.readOnly || false);
+    this.value.spec['azureFile'] = this.value.spec.azureFile || {};
+    this.value.spec.azureFile['readOnly'] = this.value.spec.azureFile.readOnly || false;
 
     const readOnlyOptions = [
       {

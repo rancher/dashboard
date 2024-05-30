@@ -186,7 +186,7 @@ export default {
           :output-modifier="true"
           :base-unit="t('suffix.cpus')"
           data-testid="cpu-reservation"
-          @input="updateLimits"
+          @update:modelValue="updateLimits"
         />
       </span>
       <span class="col span-6">
@@ -199,7 +199,7 @@ export default {
           :increment="1024"
           :output-modifier="true"
           data-testid="memory-reservation"
-          @input="updateLimits"
+          @update:modelValue="updateLimits"
         />
       </span>
     </div>
@@ -215,7 +215,7 @@ export default {
           :output-modifier="true"
           :base-unit="t('suffix.cpus')"
           data-testid="cpu-limit"
-          @input="updateLimits"
+          @update:modelValue="updateLimits"
         />
       </span>
       <span class="col span-6">
@@ -228,7 +228,7 @@ export default {
           :increment="1024"
           :output-modifier="true"
           data-testid="memory-limit"
-          @input="updateLimits"
+          @update:modelValue="updateLimits"
         />
       </span>
     </div>
@@ -244,7 +244,7 @@ export default {
           :mode="mode"
           :base-unit="t('suffix.gpus')"
           data-testid="gpu-limit"
-          @input="updateLimits"
+          @update:modelValue="updateLimits"
         />
       </span>
     </div>

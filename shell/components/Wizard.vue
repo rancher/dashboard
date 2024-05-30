@@ -333,11 +333,12 @@ export default {
               @keyup.right.stop="selectNext(1)"
               @keyup.left.stop="selectNext(-1)"
             >
-              <template v-for="(step, idx ) in visibleSteps">
+              <template v-for="(step, idx ) in visibleSteps"
+                        :key="idx"
+              >
                 <li
 
                   :id="step.name"
-                  :key="step.name+'li'"
                   :class="{step: true, active: step.name === activeStep.name, disabled: !isAvailable(step)}"
                   role="presentation"
                 >
@@ -372,7 +373,9 @@ export default {
         name="stepContainer"
         :activeStep="activeStep"
       >
-        <template v-for="step in steps">
+        <template  v-for="(step, i) in steps"
+                   :key="i"
+        >
           <div
             v-if="step.name === activeStep.name || step.hidden"
             :key="step.name"

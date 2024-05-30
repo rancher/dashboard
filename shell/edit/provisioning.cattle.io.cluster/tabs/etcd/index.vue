@@ -103,7 +103,7 @@ export default {
         label="Backup Snapshots to S3"
         :labels="['Disable','Enable']"
         :mode="mode"
-        @input="$emit('s3-backup-changed', $event)"
+        @update:modelValue="$emit('s3-backup-changed', $event)"
       />
 
       <S3Config
@@ -127,7 +127,7 @@ export default {
           :label="t('cluster.rke2.etcd.exportMetric.label')"
           :labels="[t('cluster.rke2.etcd.exportMetric.false'), t('cluster.rke2.etcd.exportMetric.true')]"
           :mode="mode"
-          @input="$emit('config-etcd-expose-metrics-changed', $event)"
+          @update:modelValue="$emit('config-etcd-expose-metrics-changed', $event)"
         />
       </div>
     </div>

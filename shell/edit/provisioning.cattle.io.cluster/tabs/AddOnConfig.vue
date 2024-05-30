@@ -88,8 +88,8 @@ export default {
       :key="addonsRev"
     >
       <div
-        v-for="v in addonVersions"
-        :key="v._key"
+        v-for="(v, i) in addonVersions"
+        :key="i"
       >
         <h3>{{ labelForAddon(v.name) }}</h3>
         <Questions
@@ -111,7 +111,7 @@ export default {
           :as-object="true"
           :editor-mode="mode === 'view' ? 'VIEW_CODE' : 'EDIT_CODE'"
           :hide-preview-buttons="true"
-          @input="data => $emit('update-values', v.name, data)"
+          @update:modelValue="data => $emit('update-values', v.name, data)"
         />
         <div class="spacer" />
       </div>

@@ -1,5 +1,6 @@
-import Vue from 'vue';
+import { createApp } from 'vue';
 import { normalizeURL, withQuery, withoutTrailingSlash } from 'ufo';
+const vueApp = createApp({});
 
 export function createGetCounter(counterObject, defaultKey = '') {
   return function getCounter(id = defaultKey) {

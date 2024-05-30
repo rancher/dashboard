@@ -49,7 +49,7 @@ export default {
     ];
 
     if (this.mode === _CREATE) {
-      this.$set(this.value.parameters, 'type', this.value.parameters.type || volumeTypeOptions[0].value);
+      this.value.parameters['type'] = this.value.parameters.type || volumeTypeOptions[0].value;
     }
 
     return {

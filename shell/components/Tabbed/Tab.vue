@@ -81,7 +81,7 @@ export default {
     this.addTab(this);
   },
 
-  beforeDestroy() {
+  beforeUnmount() {
     this.removeTab(this);
   }
 };

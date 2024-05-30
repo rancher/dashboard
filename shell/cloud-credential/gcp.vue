@@ -56,7 +56,7 @@ export default {
       placeholder-key="cluster.credential.gcp.authEncodedJson.placeholder"
       type="multiline"
       :mode="mode"
-      @input="value.setData('authEncodedJson', $event);"
+      @update:modelValue="value.setData('authEncodedJson', $event);"
     />
     <FileSelector
       class="role-primary btn-sm mt-20 mb-20"

@@ -31,7 +31,7 @@ export default {
   data() {
     const formatTypeOptions = ['json', 'out_file', 'ltsv', 'csv', 'msgpack', 'hash', 'single_value'];
 
-    this.$set(this.value, 'format', this.value.format || { type: formatTypeOptions[0] });
+    this.value['format'] = this.value.format || { type: formatTypeOptions[0] };
 
     return { formatTypeOptions };
   },
@@ -41,7 +41,7 @@ export default {
         return this.value.port;
       },
       set(port) {
-        updatePort((value) => this.$set(this.value, 'port', value), port);
+        updatePort((value) => (this.value.port = value), port);
       }
     }
   }

@@ -103,7 +103,7 @@ export default defineComponent({
     },
 
     hasLabelSlot(): boolean {
-      return !!this.$slots.label || !!this.$scopedSlots.label;
+      return !!this.$slots.label || !!this.$slots.label();
     }
   },
 

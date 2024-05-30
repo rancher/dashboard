@@ -19,7 +19,7 @@ describe('component: Storage', () => {
     it('should display the volume name as first input of the form array', () => {
       const name = 'whatever';
       const wrapper = mount(Storage, {
-        propsData: {
+        props: {
           savePvcHookName: '',
           value:           {
             volumes: [{
@@ -29,14 +29,16 @@ describe('component: Storage', () => {
             }]
           },
         },
-        mocks: {
-          t:      (text: string) => text, // Mock i18n global function used as alternative to the getter
-          $store: {
-            getters: {
-              'i18n/t':      jest.fn().mockImplementation((key: string) => key),
-              'i18n/exists': jest.fn()
+        global: {
+          mocks: {
+            t:      (text: string) => text, // Mock i18n global function used as alternative to the getter
+            $store: {
+              getters: {
+                'i18n/t':      jest.fn().mockImplementation((key: string) => key),
+                'i18n/exists': jest.fn()
+              }
             }
-          }
+          },
         },
       });
 
@@ -49,7 +51,7 @@ describe('component: Storage', () => {
       const name = 'whatever';
       const newName = 'new whatever';
       const wrapper = mount(Storage, {
-        propsData: {
+        props: {
           savePvcHookName: '',
           value:           {
             volumes: [{
@@ -59,14 +61,16 @@ describe('component: Storage', () => {
             }]
           },
         },
-        mocks: {
-          t:      (text: string) => text, // Mock i18n global function used as alternative to the getter
-          $store: {
-            getters: {
-              'i18n/t':      jest.fn().mockImplementation((key: string) => key),
-              'i18n/exists': jest.fn()
+        global: {
+          mocks: {
+            t:      (text: string) => text, // Mock i18n global function used as alternative to the getter
+            $store: {
+              getters: {
+                'i18n/t':      jest.fn().mockImplementation((key: string) => key),
+                'i18n/exists': jest.fn()
+              }
             }
-          }
+          },
         },
       });
 
@@ -80,10 +84,12 @@ describe('component: Storage', () => {
   // eslint-disable-next-line jest/no-disabled-tests
   it.skip('should allow to add a new volume', async() => {
     const wrapper = mount(Storage, {
-      propsData: { savePvcHookName: '' },
-      mocks:     {
-        t:      (text: string) => text, // Mock i18n global function used as alternative to the getter
-        $store: { getters: { 'i18n/t': jest.fn() } }
+      props: { savePvcHookName: '' },
+      global: {
+        mocks:     {
+          t:      (text: string) => text, // Mock i18n global function used as alternative to the getter
+          $store: { getters: { 'i18n/t': jest.fn() } }
+        },
       },
     });
 

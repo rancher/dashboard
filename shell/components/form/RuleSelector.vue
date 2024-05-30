@@ -142,7 +142,7 @@ export default {
             :mode="mode"
             :value="scope.row.value.operator"
             :options="operatorOptions"
-            @input="onOperatorInput(scope, $event)"
+            @update:modelValue="onOperatorInput(scope, $event)"
           />
         </div>
         <div class="value">
@@ -150,7 +150,7 @@ export default {
             :disabled="isValueDisabled(scope)"
             :value="getValue(scope)"
             :mode="mode"
-            @input="onValueInput(scope, $event)"
+            @update:modelValue="onValueInput(scope, $event)"
           />
         </div>
       </template>
@@ -164,7 +164,7 @@ export default {
     table-layout: initial;
   }
 
-   ::v-deep .box {
+   :deep() .box {
     display: grid;
     grid-template-columns: 25% 25% 25% 15%;
     column-gap: 1.75%;

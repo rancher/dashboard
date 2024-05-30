@@ -1,3 +1,4 @@
+import { nextTick } from 'vue';
 import { shallowMount } from '@vue/test-utils';
 import GrowlManager from '@shell/components/GrowlManager.vue';
 import { ExtendedVue, Vue } from 'vue/types/vue';
@@ -32,10 +33,12 @@ describe('component: GrowlManager', () => {
 
     const wrapper = shallowMount(GrowlManager as unknown as ExtendedVue<Vue, {}, {}, {}, DefaultProps>, {
       computed: { stack: () => stackMock },
-      mocks:    { $store: mockStore }
+      global: {
+        mocks:    { $store: mockStore },
+      }
     });
 
-    await wrapper.vm.$nextTick();
+    await nextTick();
 
     const growlMainContainer = wrapper.find('.growl-container');
     const growlListContainer = wrapper.find('.growl-list');
@@ -64,10 +67,12 @@ describe('component: GrowlManager', () => {
 
     const wrapper = shallowMount(GrowlManager as unknown as ExtendedVue<Vue, {}, {}, {}, DefaultProps>, {
       computed: { stack: () => stackMock },
-      mocks:    { $store: mockStore }
+      global: {
+        mocks:    { $store: mockStore },
+      }
     });
 
-    await wrapper.vm.$nextTick();
+    await nextTick();
 
     const growlFirstItemClose = wrapper.find('.growl-list [data-testid="growl-list-item-0"] .close.icon');
     const spyClose = jest.spyOn(wrapper.vm, 'close');
@@ -88,7 +93,9 @@ describe('component: GrowlManager', () => {
 
     const wrapper = shallowMount(GrowlManager as unknown as ExtendedVue<Vue, {}, {}, {}, DefaultProps>, {
       computed: { stack: () => stackMock },
-      mocks:    { $store: mockStore }
+      global: {
+        mocks:    { $store: mockStore },
+      }
     });
 
     const clearAllButton = wrapper.find('button[type="button"]');
@@ -97,7 +104,7 @@ describe('component: GrowlManager', () => {
 
     clearAllButton.trigger('click');
 
-    await wrapper.vm.$nextTick();
+    await nextTick();
 
     expect(spyCloseAll).toHaveBeenCalledTimes(1);
     expect(spyDispatch).toHaveBeenCalledTimes(1);
@@ -131,7 +138,7 @@ describe('component: GrowlManager', () => {
     // this is to trigger the watch so that autoRemove can do its part
     store.commit('growl/updateStack');
 
-    await wrapper.vm.$nextTick();
+    await nextTick();
 
     jest.advanceTimersByTime(1001);
 

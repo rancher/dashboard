@@ -135,7 +135,7 @@ export default {
             :options="[false,true]"
             :labels="[t('workload.container.security.privileged.false'), t('workload.container.security.privileged.true')]"
             :mode="mode"
-            @input="update"
+            @update:modelValue="update"
           />
         </div>
         <div
@@ -151,7 +151,7 @@ export default {
             :options="[false,true]"
             :labels="[t('workload.container.security.allowPrivilegeEscalation.false'), t('workload.container.security.allowPrivilegeEscalation.true')]"
             :mode="mode"
-            @input="update"
+            @update:modelValue="update"
           />
         </div>
       </div>
@@ -171,7 +171,7 @@ export default {
             :options="[false, true]"
             :labels="[t('workload.container.security.runAsNonRoot.false'), t('workload.container.security.runAsNonRoot.true')]"
             :mode="mode"
-            @input="update"
+            @update:modelValue="update"
           />
         </div>
         <div
@@ -185,7 +185,7 @@ export default {
             :options="[false, true]"
             :labels="[t('workload.container.security.readOnlyRootFilesystem.false'), t('workload.container.security.readOnlyRootFilesystem.true')]"
             :mode="mode"
-            @input="update"
+            @update:modelValue="update"
           />
         </div>
       </div>
@@ -201,7 +201,7 @@ export default {
           v-model.number="runAsUser"
           :label="t('workload.container.security.runAsUser')"
           :mode="mode"
-          @input="update"
+          @update:modelValue="update"
         />
       </div>
     </div>
@@ -220,7 +220,7 @@ export default {
           :label="t('workload.container.security.addCapabilities')"
           :options="allCapabilities"
           :disabled="mode==='view'"
-          @input="update"
+          @update:modelValue="update"
         />
       </div>
       <div
@@ -236,7 +236,7 @@ export default {
           :label="t('workload.container.security.dropCapabilities')"
           :options="allCapabilities"
           :disabled="mode==='view'"
-          @input="update"
+          @update:modelValue="update"
         />
       </div>
     </div>

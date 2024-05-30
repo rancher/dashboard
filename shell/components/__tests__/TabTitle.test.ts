@@ -1,5 +1,5 @@
-import { shallowMount, createLocalVue } from '@vue/test-utils';
-import Vuex from 'vuex';
+import { shallowMount } from '@vue/test-utils';
+import Vuex, { createStore } from 'vuex';
 import TabTitle from '@shell/components/TabTitle.vue';
 import * as privateLabel from '@shell/config/private-label';
 import * as title from '@shell/utils/title';
@@ -27,7 +27,7 @@ describe('component: TabTitle', () => {
   }
 
   function mockStore(mocks: any) {
-    return new Vuex.Store({
+    return createStore({
       getters: {
         isExplorer() {
           return mocks.isExplorer;
@@ -52,7 +52,11 @@ describe('component: TabTitle', () => {
     const store = mockStore(mocks);
 
     shallowMount(TabTitle, {
-      slots: { default: mocks.child }, store, localVue
+      slots: { default: mocks.child },
+
+      global: {
+        plugins: [store],
+      },
     });
 
     expect(mocks.updatePageTitleArgs).toStrictEqual([mocks.vendor, mocks.currentCluster.nameDisplay, mocks.child]);
@@ -65,7 +69,11 @@ describe('component: TabTitle', () => {
     const store = mockStore(mocks);
 
     shallowMount(TabTitle, {
-      slots: { default: mocks.child }, store, localVue
+      slots: { default: mocks.child },
+
+      global: {
+        plugins: [store],
+      },
     });
 
     expect(mocks.updatePageTitleArgs).toStrictEqual([mocks.vendor, mocks.currentCluster.nameDisplay, mocks.child]);
@@ -79,7 +87,11 @@ describe('component: TabTitle', () => {
     const store = mockStore(mocks);
 
     shallowMount(TabTitle, {
-      slots: { default: mocks.child }, store, localVue
+      slots: { default: mocks.child },
+
+      global: {
+        plugins: [store],
+      },
     });
 
     expect(mocks.updatePageTitleArgs).toStrictEqual([mocks.vendor, mocks.withFallback, mocks.child]);
@@ -92,7 +104,11 @@ describe('component: TabTitle', () => {
     global.console = { error: jest.fn() };
 
     shallowMount(TabTitle, {
-      slots: { }, store, localVue
+      slots: { },
+
+      global: {
+        plugins: [store],
+      },
     });
 
     expect(console.error).toHaveBeenCalledWith('The <TabTitle> component only supports text as the child.'); // eslint-disable-line no-console
@@ -103,7 +119,12 @@ describe('component: TabTitle', () => {
     const store = mockStore(mocks);
 
     shallowMount(TabTitle, {
-      slots: { default: mocks.child }, propsData: { breadcrumb: false }, store, localVue
+      slots: { default: mocks.child },
+      props: { breadcrumb: false },
+
+      global: {
+        plugins: [store],
+      },
     });
 
     expect(mocks.updatePageTitleArgs).toStrictEqual([mocks.child]);
@@ -117,7 +138,12 @@ describe('component: TabTitle', () => {
     const store = mockStore(mocks);
 
     shallowMount(TabTitle, {
-      slots: { default: mocks.child }, propsData: { includeVendor: false }, store, localVue
+      slots: { default: mocks.child },
+      props: { includeVendor: false },
+
+      global: {
+        plugins: [store],
+      },
     });
 
     expect(mocks.updatePageTitleArgs).toStrictEqual([mocks.currentCluster.nameDisplay, mocks.child]);

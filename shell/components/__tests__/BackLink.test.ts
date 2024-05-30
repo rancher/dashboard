@@ -13,8 +13,10 @@ describe('component: BackLink', () => {
     };
 
     const wrapper = shallowMount(BackLink, {
-      propsData: { link: linkRoute },
-      stubs:     { 'router-link': RouterLinkStub }
+      props: { link: linkRoute },
+      global: {
+        stubs:     { 'router-link': RouterLinkStub },
+      }
     });
 
     const link = wrapper.findComponent(RouterLinkStub);

@@ -15,9 +15,9 @@ export default {
     },
   },
   data() {
-    this.$set(this.value.spec, 'gcePersistentDisk', this.value.spec.gcePersistentDisk || {});
-    this.$set(this.value.spec.gcePersistentDisk, 'readOnly', this.value.spec.gcePersistentDisk.readOnly || false);
-    this.$set(this.value.spec.gcePersistentDisk, 'partition', this.value.spec.gcePersistentDisk.partition || 0);
+    this.value.spec['gcePersistentDisk'] = this.value.spec.gcePersistentDisk || {};
+    this.value.spec.gcePersistentDisk['readOnly'] = this.value.spec.gcePersistentDisk.readOnly || false;
+    this.value.spec.gcePersistentDisk['partition'] = this.value.spec.gcePersistentDisk.partition || 0;
 
     const readOnlyOptions = [
       {
@@ -38,7 +38,7 @@ export default {
         return this.value.spec.gcePersistentDisk.partition;
       },
       set(value) {
-        this.$set(this.value.spec.gcePersistentDisk, 'partition', Number.parseInt(value, 10));
+        this.value.spec.gcePersistentDisk['partition'] = Number.parseInt(value, 10);
       }
     }
   }

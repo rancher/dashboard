@@ -414,7 +414,7 @@ export default {
             v-model="chartsDeleteCrd"
             label-key="promptRemoveApp.removeCrd"
             class="mt-10 type"
-            @input="chartAddCrdToRemove"
+            @update:modelValue="chartAddCrdToRemove"
           />
         </labeledinput>
         <template v-else>

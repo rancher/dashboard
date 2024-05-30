@@ -28,7 +28,7 @@ if (!global.fetch) {
 }
 
 loadDebugger(vueApp);
-const errorHandler = Vue.config.errorHandler || console.error; // eslint-disable-line no-console
+const errorHandler = vueApp.config.errorHandler || console.error; // eslint-disable-line no-console
 
 // Create and mount App
 extendApp(vueApp).then((appPartials) => mountApp(appPartials, vueApp)).catch(errorHandler); // eslint-disable-line no-undef

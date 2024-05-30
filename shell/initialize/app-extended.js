@@ -62,7 +62,6 @@ async function extendApp(vueApp) {
   // const route = router.resolve(path).route;
   const route = router.currentRoute.value;
 
-
   // Set context to app.context
   await setContext(appPartials, {
     store,

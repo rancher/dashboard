@@ -223,7 +223,7 @@ export default {
         const portSpec = findBy(this.loadBalancerServicePorts, 'name', _name);
 
         if (portSpec) {
-          this.$set(row, '_listeningPort', portSpec.port);
+          row['_listeningPort'] = portSpec.port;
 
           row._serviceType = 'LoadBalancer';
 
@@ -233,7 +233,7 @@ export default {
         const portSpec = findBy(this.nodePortServicePorts, 'name', _name);
 
         if (portSpec) {
-          this.$set(row, '_listeningPort', portSpec.nodePort);
+          row['_listeningPort'] = portSpec.nodePort;
 
           row._serviceType = 'NodePort';
 
@@ -286,7 +286,7 @@ export default {
           :options="serviceTypes"
           :disabled="canNotAccessService"
           :tooltip="serviceTypeTooltip"
-          @input="queueUpdate"
+          @update:modelValue="queueUpdate"
         />
       </div>
 
@@ -296,7 +296,7 @@ export default {
           v-model="row.name"
           :mode="mode"
           :label="t('workload.container.ports.name')"
-          @input="queueUpdate"
+          @update:modelValue="queueUpdate"
         />
       </div>
 
@@ -310,7 +310,7 @@ export default {
           placeholder="e.g. 8080"
           :label="t('workload.container.ports.containerPort')"
           :required="row._serviceType === 'LoadBalancer' "
-          @input="queueUpdate"
+          @update:modelValue="queueUpdate"
         />
       </div>
 
@@ -321,7 +321,7 @@ export default {
           :options="workloadPortOptions"
           :multiple="false"
           :label="t('workload.container.ports.protocol')"
-          @input="queueUpdate"
+          @update:modelValue="queueUpdate"
         />
       </div>
 
@@ -338,7 +338,7 @@ export default {
           max="65535"
           placeholder="e.g. 80"
           :label="t('workload.container.ports.hostPort')"
-          @input="queueUpdate"
+          @update:modelValue="queueUpdate"
         />
       </div>
 
@@ -352,7 +352,7 @@ export default {
           :mode="mode"
           placeholder="e.g. 1.1.1.1"
           :label="t('workload.container.ports.hostIP')"
-          @input="queueUpdate"
+          @update:modelValue="queueUpdate"
         />
       </div>
 
@@ -378,7 +378,7 @@ export default {
           :mode="mode"
           :label="t('workload.container.ports.listeningPort')"
           :required="row._serviceType === 'LoadBalancer' "
-          @input="queueUpdate"
+          @update:modelValue="queueUpdate"
         />
       </div>
 
@@ -390,7 +390,7 @@ export default {
             :options="ipamOptions"
             :label="t('servicesPage.harvester.ipam.label')"
             :disabled="mode === 'edit'"
-            @input="queueUpdate"
+            @update:modelValue="queueUpdate"
           />
         </div>
         <div v-else>
@@ -400,7 +400,7 @@ export default {
             :options="ipamOptions"
             :label="t('servicesPage.harvester.ipam.label')"
             :disabled="true"
-            @input="queueUpdate"
+            @update:modelValue="queueUpdate"
           />
         </div>
       </div>
@@ -502,11 +502,11 @@ $checkbox: 75;
     padding: 5px 0;
   }
 }
-.ports-row .protocol ::v-deep .unlabeled-select,
-.ports-row .protocol ::v-deep .unlabeled-select .v-select {
+.ports-row .protocol :deep() .unlabeled-select,
+.ports-row .protocol :deep() .unlabeled-select .v-select {
   height: 100%;
 }
-.ports-row .protocol ::v-deep .unlabeled-select .vs__dropdown-toggle {
+.ports-row .protocol :deep() .unlabeled-select .vs__dropdown-toggle {
   padding-top: 12px;
 }
 </style>

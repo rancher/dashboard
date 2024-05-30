@@ -38,7 +38,7 @@ export default {
           type: NORMAN.CLOUD_CREDENTIAL,
           id:   this.credentialId,
         });
-        this.$set(this.value, 'clientIdentifier', this.credential.decodedData.clientIdentifier);
+        this.value['clientIdentifier'] = this.credential.decodedData.clientIdentifier;
       }
     } catch (e) {
       this.credential = null;

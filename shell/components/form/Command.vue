@@ -1,11 +1,12 @@
 <script>
-import Vue from 'vue';
+import { createApp } from 'vue';
 
 import { LabeledInput } from '@components/Form/LabeledInput';
 import ShellInput from '@shell/components/form/ShellInput';
 import LabeledSelect from '@shell/components/form/LabeledSelect';
 import { Checkbox } from '@components/Form/Checkbox';
 import EnvVars from '@shell/components/form/EnvVars';
+const vueApp = createApp({});
 
 export default {
   components: {
@@ -111,9 +112,9 @@ export default {
         const val = out[prop];
 
         if (val === '' || typeof val === 'undefined' || val === null) {
-          Vue.delete(this.value, prop);
+          delete this.value[prop];
         } else {
-          Vue.set(this.value, prop, val);
+          this.value[prop] = val;
         }
       }
 
@@ -135,7 +136,7 @@ export default {
             :mode="mode"
             :label="t('workload.container.command.command')"
             :placeholder="t('generic.placeholder', {text: '/bin/sh'}, true)"
-            @input="update"
+            @update:modelValue="update"
           />
         </slot>
       </div>
@@ -149,7 +150,7 @@ export default {
             :mode="mode"
             :label="t('workload.container.command.args')"
             :placeholder="t('generic.placeholder', {text: '/usr/sbin/httpd -f httpd.conf'}, true)"
-            @input="update"
+            @update:modelValue="update"
           />
         </slot>
       </div>
@@ -165,7 +166,7 @@ export default {
           :mode="mode"
           :label="t('workload.container.command.workingDir')"
           :placeholder="t('generic.placeholder', {text: '/myapp'}, true)"
-          @input="update"
+          @update:modelValue="update"
         />
       </div>
       <div class="col span-6">
@@ -182,7 +183,7 @@ export default {
               :label="t('workload.container.command.stdin')"
               :options="commandOptions"
               :mode="mode"
-              @input="update"
+              @update:modelValue="update"
             />
           </div>
           <div
@@ -194,7 +195,7 @@ export default {
               v-model="tty"
               :mode="mode"
               :label="t('workload.container.command.tty')"
-              @input="update"
+              @update:modelValue="update"
             />
           </div>
         </div>

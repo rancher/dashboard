@@ -1,3 +1,4 @@
+import { nextTick } from 'vue';
 import { shallowMount } from '@vue/test-utils';
 
 import IconMessage from '@shell/components/IconMessage';
@@ -32,8 +33,11 @@ describe('page: LonghornOverview', () => {
 
   const createWrapper = (overrides?: any) => {
     return shallowMount(LonghornOverview, {
-      mocks: commonMocks,
       ...overrides,
+
+      global: {
+        mocks: commonMocks,
+      },
     });
   };
 
@@ -69,7 +73,7 @@ describe('page: LonghornOverview', () => {
 
     wrapper.setData({ uiServices: [longhornFrontend] });
 
-    await wrapper.vm.$nextTick();
+    await nextTick();
 
     const containsProxyUrl = wrapper.vm.externalLinks.find((link: LinkConfig) => link.link);
 

@@ -31,8 +31,10 @@ describe('component: Carousel', () => {
     ];
 
     const wrapper = mount(Carousel, {
-      propsData: { sliders },
-      mocks:     { $store: { getters: { clusterId: () => 'some-cluster-id' } } }
+      props: { sliders },
+      global: {
+        mocks:     { $store: { getters: { clusterId: () => 'some-cluster-id' } } },
+      }
     });
 
     // testing https://github.com/rancher/dashboard/issues/9975

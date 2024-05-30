@@ -92,7 +92,7 @@ export default {
       :add-allowed="!hasSupport"
       :remove-allowed="!hasSupport"
       :initial-empty-row="true"
-      @input="update"
+      @update:modelValue="update"
     />
   </div>
 </template>

@@ -1,10 +1,11 @@
-import Vue from 'vue';
+import { createApp } from 'vue';
 import { addObject, addObjects, clear, removeObject } from '@shell/utils/array';
 import { SCHEMA, COUNT } from '@shell/config/types';
 import { normalizeType, keyFieldFor } from '@shell/plugins/dashboard-store/normalize';
 import { addSchemaIndexFields } from '@shell/plugins/steve/schema.utils';
 import { classify } from '@shell/plugins/dashboard-store/classify';
 import garbageCollect from '@shell/utils/gc/gc';
+const vueApp = createApp({});
 
 function registerType(state, type) {
   let cache = state.types[type];
@@ -39,7 +40,7 @@ function registerType(state, type) {
     // Not enumerable so they don't get sent back to the client for SSR
     Object.defineProperty(cache, 'map', { value: new Map() });
 
-    Vue.set(state.types, type, cache);
+    state.types[type] = cache;
   }
 
   return cache;
@@ -51,7 +52,7 @@ export function replace(existing, data) {
   }
 
   for ( const k of Object.keys(data) ) {
-    Vue.set(existing, k, data[k]);
+    existing[k] = data[k];
   }
 
   return existing;

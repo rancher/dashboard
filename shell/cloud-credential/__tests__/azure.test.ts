@@ -8,7 +8,7 @@ const mockStore = {
 
 describe('cloud credentials: Azure', () => {
   const wrapper = mount(AzureCloudCreds, {
-    propsData: {
+    props: {
       value: {
         decodedData: {
           environment:    '',
@@ -19,7 +19,9 @@ describe('cloud credentials: Azure', () => {
         setData: jest.fn()
       }
     },
-    mocks: { $store: mockStore }
+    global: {
+      mocks: { $store: mockStore },
+    }
   });
 
   it('should pass all the correct fields when checking if credentials are valid', async() => {

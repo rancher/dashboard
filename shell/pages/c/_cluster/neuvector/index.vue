@@ -53,9 +53,8 @@ export default {
     </header>
     <div class="links">
       <div
-        v-for="fel in externalLinks"
-        :key="fel.label"
-        class="link-container"
+        v-for="(fel, i) in externalLinks"
+        :key="i"
       >
         <a
           :href="fel.link"

@@ -165,7 +165,7 @@ export default {
           :label="t('probe.type.label')"
           :options="kindOptions"
           :placeholder="t('probe.type.placeholder')"
-          @input="update"
+          @update:modelValue="update"
         />
 
         <div
@@ -186,7 +186,7 @@ export default {
             :mode="mode"
             :label="t('probe.httpGet.port.label')"
             :placeholder="t('probe.httpGet.port.placeholder')"
-            @input="update"
+            @update:modelValue="update"
           />
 
           <div class="spacer-small" />
@@ -197,7 +197,7 @@ export default {
               :mode="mode"
               :label="t('probe.httpGet.path.label')"
               :placeholder="t('probe.httpGet.path.placeholder')"
-              @input="update"
+              @update:modelValue="update"
             />
           </div>
         </div>
@@ -215,7 +215,7 @@ export default {
             :mode="mode"
             :label="t('probe.httpGet.port.label')"
             :placeholder="t('probe.httpGet.port.placeholderDeux')"
-            @input="update"
+            @update:modelValue="update"
           />
           <div class="spacer-small" />
         </div>
@@ -230,7 +230,7 @@ export default {
               v-model="exec.command"
               :label="t('probe.command.label')"
               :placeholder="t('probe.command.placeholder')"
-              @input="update"
+              @update:modelValue="update"
             />
           </div>
           <div class="spacer-small" />
@@ -262,7 +262,7 @@ export default {
               min="1"
               :suffix="t('suffix.sec')"
               :placeholder="t('probe.checkInterval.placeholder')"
-              @input="update"
+              @update:modelValue="update"
             />
           </div>
           <div
@@ -276,7 +276,7 @@ export default {
               :label="t('probe.initialDelay.label')"
               min="0"
               :placeholder="t('probe.initialDelay.placeholder')"
-              @input="update"
+              @update:modelValue="update"
             />
           </div>
           <div
@@ -290,7 +290,7 @@ export default {
               :suffix="t('suffix.sec')"
               :label="t('probe.timeout.label')"
               :placeholder="t('probe.timeout.placeholder')"
-              @input="update"
+              @update:modelValue="update"
             />
           </div>
         </div>
@@ -309,7 +309,7 @@ export default {
               :mode="mode"
               :label="t('probe.successThreshold.label')"
               :placeholder="t('probe.successThreshold.placeholder')"
-              @input="update"
+              @update:modelValue="update"
             />
           </div>
           <div
@@ -323,7 +323,7 @@ export default {
               :mode="mode"
               :label="t('probe.failureThreshold.label')"
               :placeholder="t('probe.failureThreshold.placeholder')"
-              @input="update"
+              @update:modelValue="update"
             />
           </div>
         </div>
@@ -363,7 +363,7 @@ export default {
   .title {
     margin-bottom: 10px;
   }
-  ::v-deep .labeled-select {
+  :deep() .labeled-select {
     height: auto;
   }
 

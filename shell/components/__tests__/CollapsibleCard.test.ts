@@ -4,7 +4,7 @@ import CollapsibleCard from '@shell/components/CollapsibleCard.vue';
 describe('component: CollapsibleCard', () => {
   it('should render component with the correct data applied', () => {
     const wrapper = shallowMount(CollapsibleCard, {
-      propsData: { title: 'some-card-title' },
+      props: { title: 'some-card-title' },
       slots:     {
         'header-right': '<p>some stuff for header</p>',
         content:        '<p>some content</p>'
@@ -31,7 +31,7 @@ describe('component: CollapsibleCard', () => {
 
   it('clicking on card header should emit event', () => {
     const wrapper = shallowMount(CollapsibleCard, {
-      propsData: { title: 'some-card-title' },
+      props: { title: 'some-card-title' },
       slots:     {
         'header-right': '<p>some stuff for header</p>',
         content:        '<p>some content</p>'
@@ -48,7 +48,7 @@ describe('component: CollapsibleCard', () => {
 
   it('clicking on card title should emit event', () => {
     const wrapper = shallowMount(CollapsibleCard, {
-      propsData: { title: 'some-card-title', isTitleClickable: true },
+      props: { title: 'some-card-title', isTitleClickable: true },
       slots:     {
         'header-right': '<p>some stuff for header</p>',
         content:        '<p>some content</p>'

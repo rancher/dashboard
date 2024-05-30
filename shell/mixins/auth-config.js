@@ -102,7 +102,7 @@ export default {
       }
       if (this.value.configType === 'saml') {
         if (!this.model.rancherApiHost || !this.model.rancherApiHost.length) {
-          this.$set(this.model, 'rancherApiHost', this.serverUrl);
+          this.model['rancherApiHost'] = this.serverUrl;
         }
       }
 

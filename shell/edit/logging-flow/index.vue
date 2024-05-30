@@ -285,7 +285,7 @@ export default {
     },
 
     updateMatch(neu, idx) {
-      this.$set(this.matches, idx, neu);
+      this.matches[idx] = neu;
     },
 
     tabChanged({ tab }) {
@@ -317,11 +317,11 @@ export default {
     },
     willSave() {
       if (this.value.spec.filters && isEmpty(this.value.spec.filters)) {
-        this.$delete(this.value.spec, 'filters');
+        delete this.value.spec['filters'];
       }
 
       if (this.value.spec.match && this.isMatchEmpty(this.value.spec.match)) {
-        this.$delete(this.value.spec, 'match');
+        delete this.value.spec['match'];
       }
     },
     onYamlEditorReady(cm) {
@@ -389,7 +389,7 @@ export default {
               :containers="containerChoices"
               :is-cluster-flow="value.type === LOGGING.CLUSTER_FLOW"
               @remove="e=>removeMatch(props.row.i)"
-              @input="e=>updateMatch(e,props.row.i)"
+              @update:modelValue="e=>updateMatch(e,props.row.i)"
             />
           </template>
           <template #add>
@@ -487,7 +487,7 @@ export default {
 </template>
 
 <style lang="scss" scoped>
-::v-deep {
+:deep() {
   .icon-info {
     margin-top: -3px;
     margin-right: 4px;

@@ -144,7 +144,7 @@ export default {
 
     if (mode === _CREATE) {
       RECEIVERS_TYPES.forEach((receiverType) => {
-        this.$set(currentReceiver, receiverType.key, currentReceiver[receiverType.key] || []);
+        currentReceiver[receiverType.key] = currentReceiver[receiverType.key] || [];
       });
     }
 
@@ -206,7 +206,7 @@ export default {
         // We need this step so we don't just keep adding new keys when modifying the custom field
         Object.keys(this.value).forEach((key) => {
           if (!this.expectedFields.includes(key)) {
-            this.$delete(this.value, key);
+            delete this.value[key];
           }
         });
 
@@ -309,8 +309,6 @@ export default {
           <div
             v-for="(receiverType, i) in receiverTypes"
             :key="i"
-            class="mb-10 subtype-banner"
-            primary-color-var="--primary-color"
             @click="navigateTo(receiverType)"
           >
             <div class="left">
@@ -333,8 +331,6 @@ export default {
       <Tab
         v-for="(receiverType, i) in receiverTypes"
         :key="i"
-        :label="t(receiverType.label)"
-        :name="receiverType.name"
         :weight="receiverTypes.length - i"
       >
         <YamlEditor

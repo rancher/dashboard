@@ -30,7 +30,7 @@ export default {
       set(values) {
         const crdInfo = this.autoInstallInfo.find((info) => info.chart.name.includes('crd'));
 
-        this.$set(crdInfo, 'allValues', values);
+        crdInfo['allValues'] = values;
       }
     }
   }

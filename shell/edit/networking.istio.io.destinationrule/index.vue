@@ -78,7 +78,7 @@ export default {
             title="Name"
             :default-add-value="{}"
           >
-            <template #default="{row, i}">
+            <template #default="{row}">
               <LabeledInput
                 v-model="row.value.name"
                 :label="t('generic.name')"
@@ -86,7 +86,6 @@ export default {
                 :required="true"
               />
               <KeyValue
-                :key="i"
                 v-model="row.value.labels"
                 :mode="mode"
                 :protip="true"
@@ -118,7 +117,7 @@ export default {
                 :mode="mode"
                 :tooltip="t('istio.destinationRule.connectionPool.http1MaxPendingRequests.help')"
                 :placeholder="t('istio.destinationRule.connectionPool.http1MaxPendingRequests.placeholder')"
-                @input="set(value,'spec.trafficPolicy.connectionPool.http.http1MaxPendingRequests', $event)"
+                @update:modelValue="set(value,'spec.trafficPolicy.connectionPool.http.http1MaxPendingRequests', $event)"
               />
             </div>
             <div class="col span-4 mb-10">
@@ -128,7 +127,7 @@ export default {
                 :mode="mode"
                 :tooltip="t('istio.destinationRule.connectionPool.http2MaxRequests.help')"
                 :placeholder="t('istio.destinationRule.connectionPool.http2MaxRequests.placeholder')"
-                @input="set(value, 'spec.trafficPolicy.connectionPool.http.http2MaxRequests', $event)"
+                @update:modelValue="set(value, 'spec.trafficPolicy.connectionPool.http.http2MaxRequests', $event)"
               />
             </div>
             <div class="col span-4 mb-10">
@@ -138,7 +137,7 @@ export default {
                 :mode="mode"
                 :tooltip="t('istio.destinationRule.connectionPool.maxRequestsPerConnection.help')"
                 :placeholder="t('istio.destinationRule.connectionPool.maxRequestsPerConnection.placeholder')"
-                @input="set(value, 'spec.trafficPolicy.connectionPool.http.maxRequestsPerConnection', $event)"
+                @update:modelValue="set(value, 'spec.trafficPolicy.connectionPool.http.maxRequestsPerConnection', $event)"
               />
             </div>
           </div>
@@ -150,7 +149,7 @@ export default {
                 :mode="mode"
                 :tooltip="t('istio.destinationRule.connectionPool.maxRetries.help')"
                 :placeholder="t('istio.destinationRule.connectionPool.maxRetries.placeholder')"
-                @input="set(value, 'spec.trafficPolicy.connectionPool.http.maxRetries', $event)"
+                @update:modelValue="set(value, 'spec.trafficPolicy.connectionPool.http.maxRetries', $event)"
               />
             </div>
             <div class="col span-4 mb-10">
@@ -160,7 +159,7 @@ export default {
                 :mode="mode"
                 :tooltip="t('istio.destinationRule.connectionPool.connectTimeout.help')"
                 :placeholder="t('istio.destinationRule.connectionPool.connectTimeout.placeholder')"
-                @input="set(value, 'spec.trafficPolicy.connectionPool.tcp.duration', $event)"
+                @update:modelValue="set(value, 'spec.trafficPolicy.connectionPool.tcp.duration', $event)"
               />
             </div>
             <div class="col span-4 mb-10">
@@ -170,7 +169,7 @@ export default {
                 :mode="mode"
                 :tooltip="t('istio.destinationRule.connectionPool.maxConnections.help')"
                 :placeholder="t('istio.destinationRule.connectionPool.maxConnections.placeholder')"
-                @input="set(value,'spec.trafficPolicy.connectionPool.tcp.maxConnections', $event)"
+                @update:modelValue="set(value,'spec.trafficPolicy.connectionPool.tcp.maxConnections', $event)"
               />
             </div>
           </div>
@@ -188,7 +187,7 @@ export default {
                 :mode="mode"
                 :tooltip="t('istio.destinationRule.outlierDetection.baseEjectionTime.help')"
                 :placeholder="t('istio.destinationRule.outlierDetection.baseEjectionTime.placeholder')"
-                @input="set(value, 'spec.trafficPolicy.outlierDetection.baseEjectionTime', $event)"
+                @update:modelValue="set(value, 'spec.trafficPolicy.outlierDetection.baseEjectionTime', $event)"
               />
             </div>
             <div class="col span-6 mb-10">
@@ -198,7 +197,7 @@ export default {
                 :mode="mode"
                 :tooltip="t('istio.destinationRule.outlierDetection.consecutiveErrors.help')"
                 :placeholder="t('istio.destinationRule.outlierDetection.consecutiveErrors.placeholder')"
-                @input="set(value, 'spec.trafficPolicy.outlierDetection.consecutiveErrors', $event)"
+                @update:modelValue="set(value, 'spec.trafficPolicy.outlierDetection.consecutiveErrors', $event)"
               />
             </div>
           </div>
@@ -210,7 +209,7 @@ export default {
                 :mode="mode"
                 :tooltip="t('istio.destinationRule.outlierDetection.interval.help')"
                 :placeholder="t('istio.destinationRule.outlierDetection.interval.placeholder')"
-                @input="set(value,'spec.trafficPolicy.outlierDetection.interval', $event)"
+                @update:modelValue="set(value,'spec.trafficPolicy.outlierDetection.interval', $event)"
               />
             </div>
             <div class="col span-6 mb-10">
@@ -220,7 +219,7 @@ export default {
                 :mode="mode"
                 :tooltip="t('istio.destinationRule.outlierDetection.maxEjectionPercent.help')"
                 :placeholder="t('istio.destinationRule.outlierDetection.maxEjectionPercent.placeholder')"
-                @input="set(value, 'spec.trafficPolicy.outlierDetection.maxEjectionPercent', $event)"
+                @update:modelValue="set(value, 'spec.trafficPolicy.outlierDetection.maxEjectionPercent', $event)"
               />
             </div>
           </div>

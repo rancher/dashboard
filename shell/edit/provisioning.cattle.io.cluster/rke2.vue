@@ -1303,7 +1303,7 @@ export default {
 
     // Set busy before save and clear after save
     async saveOverride(btnCb) {
-      this.$set(this, 'busy', true);
+      this['busy'] = true;
 
       // If the provider is from an extension, let it do the provision step
       if (this.extensionProvider?.provision) {
@@ -1311,7 +1311,7 @@ export default {
         const okay = (errors || []).length === 0;
 
         this.errors = errors;
-        this.$set(this, 'busy', false);
+        this['busy'] = false;
 
         btnCb(okay);
 
@@ -1323,7 +1323,7 @@ export default {
 
       // Default save
       return this._doSaveOverride((done) => {
-        this.$set(this, 'busy', false);
+        this['busy'] = false;
 
         return btnCb(done);
       });
@@ -1573,7 +1573,7 @@ export default {
     },
 
     onMembershipUpdate(update) {
-      this.$set(this, 'membershipUpdate', update);
+      this['membershipUpdate'] = update;
     },
 
     async initRegistry() {
@@ -1915,9 +1915,9 @@ export default {
      */
     machinePoolValidationChanged(id, value) {
       if (value === undefined) {
-        this.$delete(this.machinePoolValidation, id);
+        delete this.machinePoolValidation[id];
       } else {
-        this.$set(this.machinePoolValidation, id, value);
+        this.machinePoolValidation[id] = value;
       }
     },
     handleEnabledSystemServicesChanged(val) {
@@ -2156,7 +2156,9 @@ export default {
           @addTab="addMachinePool($event)"
           @removeTab="removeMachinePool($event)"
         >
-          <template v-for="(obj, idx) in machinePools">
+          <template v-for="(obj, idx) in machinePools"
+                    :key="idx"
+          >
             <Tab
               v-if="!obj.remove"
               :key="obj.id"

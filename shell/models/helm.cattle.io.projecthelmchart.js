@@ -1,12 +1,13 @@
 import SteveModel from '@shell/plugins/steve/steve-class';
-import Vue from 'vue';
+import { createApp } from 'vue';
 import { NAMESPACE, MANAGEMENT, HELM } from '@shell/config/types';
+const vueApp = createApp({});
 
 export default class ProjectHelmChart extends SteveModel {
   applyDefaults() {
     if ( !this.spec ) {
-      Vue.set(this, 'spec', { helmApiVersion: 'monitoring.cattle.io/v1alpha1' });
-      Vue.set(this, 'metadata', { name: 'project-monitoring' });
+      this['spec'] = { helmApiVersion: 'monitoring.cattle.io/v1alpha1' };
+      this['metadata'] = { name: 'project-monitoring' };
     }
   }
 

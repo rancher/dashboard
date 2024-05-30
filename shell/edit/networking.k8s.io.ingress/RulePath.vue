@@ -120,7 +120,7 @@ export default {
         :text-value="value.path"
         :searchable="false"
         :text-rules="rules.path"
-        @input="queueUpdatePathTypeAndPath"
+        @update:modelValue="queueUpdatePathTypeAndPath"
       />
     </div>
     <div
@@ -131,7 +131,7 @@ export default {
         ref="first"
         v-model="path"
         :placeholder="t('ingress.rules.path.placeholder', undefined, true)"
-        @input="queueUpdate"
+        @update:modelValue="queueUpdate"
       >
     </div>
     <div
@@ -146,7 +146,7 @@ export default {
         :searchable="true"
         :tooltip="serviceTargetTooltip"
         :hover-tooltip="true"
-        @input="servicePort = ''; queueUpdate();"
+        @update:modelValue="servicePort = ''; queueUpdate();"
       />
     </div>
     <div
@@ -160,7 +160,7 @@ export default {
         class="fullHeightInput"
         :placeholder="t('ingress.rules.port.placeholder')"
         :rules="rules.port"
-        @input="queueUpdate"
+        @update:modelValue="queueUpdate"
       />
       <Select
         v-else
@@ -168,7 +168,7 @@ export default {
         :options="portOptions"
         :placeholder="t('ingress.rules.port.placeholder')"
         :rules="rules.port"
-        @input="queueUpdate"
+        @update:modelValue="queueUpdate"
       />
     </div>
     <button
@@ -182,7 +182,7 @@ export default {
 <style lang="scss" scoped>
 $row-height: 40px;
 
-.labeled-input ::v-deep, ::v-deep .labeled-input {
+.labeled-input :deep(), :deep() .labeled-input {
   padding: 0 !important;
   height: 100%;
   input.no-label {
@@ -190,7 +190,7 @@ $row-height: 40px;
     padding: 10px;
   }
 }
-.rule-path ::v-deep {
+.rule-path :deep() {
   .col, INPUT {
     height: $row-height;
   }

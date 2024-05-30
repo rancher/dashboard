@@ -15,8 +15,8 @@ export default {
     },
   },
   data() {
-    this.$set(this.value.spec, 'nfs', this.value.spec.nfs || {});
-    this.$set(this.value.spec.nfs, 'readOnly', this.value.spec.nfs.readOnly || false);
+    this.value.spec['nfs'] = this.value.spec.nfs || {};
+    this.value.spec.nfs['readOnly'] = this.value.spec.nfs.readOnly || false;
 
     const readOnlyOptions = [
       {

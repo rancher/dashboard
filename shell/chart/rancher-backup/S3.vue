@@ -35,7 +35,7 @@ export default {
     this.$emit('valid', this.valid);
   },
 
-  beforeDestroy() {
+  beforeUnmount() {
     this.$emit('valid', true);
   },
 
@@ -55,8 +55,8 @@ export default {
       set(neu) {
         const { name, namespace } = neu.metadata;
 
-        this.$set(this.value, 'credentialSecretName', name);
-        this.$set(this.value, 'credentialSecretNamespace', namespace);
+        this.value['credentialSecretName'] = name;
+        this.value['credentialSecretNamespace'] = namespace;
       }
     },
     valid() {
@@ -70,7 +70,7 @@ export default {
       try {
         const encoded = btoa(ca);
 
-        this.$set(this.value, 'endpointCA', encoded);
+        this.value['endpointCA'] = encoded;
       } catch (e) {
         // eslint-disable-next-line no-console
         console.warn(e);

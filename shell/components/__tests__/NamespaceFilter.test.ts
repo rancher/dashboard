@@ -10,7 +10,9 @@ describe('component: NamespaceFilter', () => {
           options:  () => [],
           value:    () => [],
         },
-        mocks: { $fetchState: { pending: false } }
+        global: {
+          mocks: { $fetchState: { pending: false } },
+        }
       });
       const filter = wrapper.find(`[data-testid="namespaces-filter"]`);
 
@@ -25,9 +27,11 @@ describe('component: NamespaceFilter', () => {
           options:  () => [],
           value:    () => [],
         },
-        mocks: {
-          $store:      { getters: { 'i18n/t': () => text, namespaceFilterMode: () => undefined } },
-          $fetchState: { pending: false }
+        global: {
+          mocks: {
+            $store:      { getters: { 'i18n/t': () => text, namespaceFilterMode: () => undefined } },
+            $fetchState: { pending: false }
+          },
         }
       });
       const element = wrapper.find(`[data-testid="namespaces-values-none"]`).element.textContent;
@@ -46,7 +50,9 @@ describe('component: NamespaceFilter', () => {
             kind:  'special',
           }]),
         },
-        mocks: { $fetchState: { pending: false } }
+        global: {
+          mocks: { $fetchState: { pending: false } },
+        }
       });
 
       const element = wrapper.find(`[data-testid="namespaces-values-label"]`).element.textContent;
@@ -62,9 +68,11 @@ describe('component: NamespaceFilter', () => {
           options:  () => [],
           value:    () => [{ label: text }],
         },
-        mocks: {
-          $store:      { getters: { 'i18n/t': () => text, namespaceFilterMode: () => undefined } },
-          $fetchState: { pending: false }
+        global: {
+          mocks: {
+            $store:      { getters: { 'i18n/t': () => text, namespaceFilterMode: () => undefined } },
+            $fetchState: { pending: false }
+          },
         },
       });
 
@@ -94,15 +102,17 @@ describe('component: NamespaceFilter', () => {
           currentProduct: () => undefined,
           key:            () => key,
         },
-        mocks: {
-          $store: {
-            getters: {
-              'i18n/t':            () => text,
-              'prefs/get':         () => preferences,
-              namespaceFilterMode: () => undefined,
+        global: {
+          mocks: {
+            $store: {
+              getters: {
+                'i18n/t':            () => text,
+                'prefs/get':         () => preferences,
+                namespaceFilterMode: () => undefined,
+              },
             },
+            $fetchState: { pending: false }
           },
-          $fetchState: { pending: false }
         }
       });
 
@@ -120,9 +130,11 @@ describe('component: NamespaceFilter', () => {
           options:  () => [],
           value:    () => [],
         },
-        mocks: {
-          $store:      { getters: { 'i18n/t': () => '', namespaceFilterMode: () => undefined } },
-          $fetchState: { pending: false }
+        global: {
+          mocks: {
+            $store:      { getters: { 'i18n/t': () => '', namespaceFilterMode: () => undefined } },
+            $fetchState: { pending: false }
+          },
         }
       });
       const dropdown = wrapper.find(`[data-testid="namespaces-dropdown"]`);
@@ -141,9 +153,11 @@ describe('component: NamespaceFilter', () => {
           options:  () => [],
           value:    () => [],
         },
-        mocks: {
-          $store:      { getters: { 'i18n/t': () => text, namespaceFilterMode: () => undefined } },
-          $fetchState: { pending: false }
+        global: {
+          mocks: {
+            $store:      { getters: { 'i18n/t': () => text, namespaceFilterMode: () => undefined } },
+            $fetchState: { pending: false }
+          },
         }
       });
       const dropdown = wrapper.find(`[data-testid="namespaces-dropdown"]`);
@@ -161,9 +175,11 @@ describe('component: NamespaceFilter', () => {
           options: () => [],
           value:   () => [],
         },
-        mocks: {
-          $store:      { getters: { 'i18n/t': () => text, namespaceFilterMode: () => undefined } },
-          $fetchState: { pending: false }
+        global: {
+          mocks: {
+            $store:      { getters: { 'i18n/t': () => text, namespaceFilterMode: () => undefined } },
+            $fetchState: { pending: false }
+          },
         }
       });
 
@@ -199,12 +215,14 @@ describe('component: NamespaceFilter', () => {
           currentProduct: () => undefined,
           key:            () => key,
         },
-        mocks: {
-          $store: {
-            getters:  { 'i18n/t': () => text, namespaceFilterMode: () => undefined },
-            dispatch: action
+        global: {
+          mocks: {
+            $store: {
+              getters:  { 'i18n/t': () => text, namespaceFilterMode: () => undefined },
+              dispatch: action
+            },
+            $fetchState: { pending: false }
           },
-          $fetchState: { pending: false }
         }
       });
 

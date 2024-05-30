@@ -9,18 +9,7 @@ describe('component: CustomCommand', () => {
   const ip = 'MY_IP';
   const checkSum = 'MY_CHECKSUM';
   const wrapper = mount(CustomCommand, {
-    mocks: {
-      $store: {
-        getters: {
-          currentStore:           () => 'current_store',
-          'management/schemaFor': jest.fn(),
-          'current_store/all':    jest.fn(),
-          'i18n/t':               jest.fn(),
-          'i18n/withFallback':    jest.fn(),
-        }
-      },
-    },
-    propsData: {
+    props: {
       cluster:      {},
       clusterToken: {
         insecureNodeCommand: ` curl --insecure -fL ${ ip }/system-agent-install.sh | sudo  sh -s - --server ${ ip } --label 'cattle.io/os=linux' --token ${ token } --ca-checksum ${ checkSum }`,
@@ -38,6 +27,19 @@ describe('component: CustomCommand', () => {
       taints:          [],
       worker:          true,
     }),
+    global: {
+      mocks: {
+        $store: {
+          getters: {
+            currentStore:           () => 'current_store',
+            'management/schemaFor': jest.fn(),
+            'current_store/all':    jest.fn(),
+            'i18n/t':               jest.fn(),
+            'i18n/withFallback':    jest.fn(),
+          }
+        },
+      },
+    },
   });
 
   it('should return linux commands with the right flags based on cluster information', () => {

@@ -86,7 +86,7 @@ export default {
           :required="true"
           :label="t('cluster.credential.azure.environment.label')"
           data-testid="azure-cloud-credentials-environment"
-          @input="value.setData('environment', $event)"
+          @update:modelValue="value.setData('environment', $event)"
         />
       </div>
       <div class="col span-6">
@@ -97,7 +97,7 @@ export default {
           :mode="mode"
           :required="true"
           data-testid="azure-cloud-credentials-subscription-id"
-          @input="value.setData('subscriptionId', $event)"
+          @update:modelValue="value.setData('subscriptionId', $event)"
         />
       </div>
     </div>
@@ -110,7 +110,7 @@ export default {
           :mode="mode"
           :required="true"
           data-testid="azure-cloud-credentials-client-id"
-          @input="value.setData('clientId', $event)"
+          @update:modelValue="value.setData('clientId', $event)"
         />
       </div>
       <div class="col span-6">
@@ -121,7 +121,7 @@ export default {
           :mode="mode"
           :required="true"
           data-testid="azure-cloud-credentials-client-secret"
-          @input="value.setData('clientSecret', $event)"
+          @update:modelValue="value.setData('clientSecret', $event)"
         />
       </div>
     </div>

@@ -213,9 +213,8 @@ export default {
         class="details"
       >
         <div
-          v-for="detail in group"
-          :key="detail.label || detail.slotName"
-          class="detail"
+          v-for="(detail, i) in group"
+          :key="i"
         >
           <span class="label">
             {{ detail.label }}:
@@ -241,7 +240,7 @@ export default {
         </span>
         <Tag
           v-for="(prop, key) in labels"
-          :key="key + prop"
+          :key="key"
         >
           <i
             v-if="internalIcons[key]"
@@ -285,8 +284,6 @@ export default {
         <DetailText
           v-for="(val, key) in annotations"
           :key="key"
-          class="annotation"
-          :value="val"
           :label="key"
         />
       </div>

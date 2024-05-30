@@ -117,7 +117,7 @@ export default defineComponent({
         :value="region"
         label-key="eks.region.label"
         :options="regionOptions"
-        @input="$emit('update-region', $event)"
+        @update:modelValue="$emit('update-region', $event)"
       />
     </div>
     <div
@@ -132,7 +132,7 @@ export default defineComponent({
         :showing-form="!credential"
         class="select-credential"
         :cancel="()=>$emit('cancel-credential')"
-        @input="$emit('update-credential', $event)"
+        @update:modelValue="$emit('update-credential', $event)"
       />
     </div>
   </div>

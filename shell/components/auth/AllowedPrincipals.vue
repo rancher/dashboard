@@ -48,9 +48,9 @@ export default {
 
   created() {
     if ( !this.authConfig.accessMode ) {
-      this.$set(this.authConfig, 'accessMode', 'restricted');
+      this.authConfig['accessMode'] = 'restricted';
     } if (!this.authConfig.allowedPrincipalIds) {
-      this.$set(this.authConfig, 'allowedPrincipalIds', []);
+      this.authConfig['allowedPrincipalIds'] = [];
     }
   },
 
@@ -92,7 +92,6 @@ export default {
         >
           <template #value="{row}">
             <Principal
-              :key="row.value"
               :value="row.value"
             />
           </template>

@@ -1,5 +1,5 @@
 <script>
-import Vue from 'vue';
+import { createApp } from 'vue';
 import { mapGetters, mapActions } from 'vuex';
 import { get, set } from '@shell/utils/object';
 import { sortBy } from '@shell/utils/sort';
@@ -9,6 +9,7 @@ import { _VIEW, _EDIT, _CREATE } from '@shell/config/query-params';
 import { LabeledInput } from '@components/Form/LabeledInput';
 import LabeledSelect from '@shell/components/form/LabeledSelect';
 import { normalizeName } from '@shell/utils/kube';
+const vueApp = createApp({});
 
 export default {
   name:       'NameNsDescription',
@@ -322,7 +323,7 @@ export default {
       if (this.nameKey) {
         set(this.value, this.nameKey, val);
       } else {
-        this.$set(this.value.metadata, 'name', val);
+        this.value.metadata['name'] = val;
       }
       this.$emit('change');
     },
@@ -387,7 +388,7 @@ export default {
           true,
         );
         this.$emit('isNamespaceNew', true);
-        Vue.nextTick(() => this.$refs.namespace.focus());
+        nextTick(() => this.$refs.namespace.focus());
       } else {
         this.createNamespace = false;
         this.$store.dispatch(
@@ -490,9 +491,8 @@ export default {
     </div>
 
     <div
-      v-for="slot in extraColumns"
-      :key="slot"
-      :class="{ col: true, [colSpan]: true }"
+      v-for="(slot, i) in extraColumns"
+      :key="i"
     >
       <slot :name="slot" />
     </div>
@@ -524,7 +524,7 @@ button {
     max-height: $input-height;
   }
 
-  .namespace-select ::v-deep {
+  .namespace-select :deep() {
     .labeled-select {
       min-width: 40%;
 

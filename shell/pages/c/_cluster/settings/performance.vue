@@ -249,7 +249,7 @@ export default {
             :label="t('performance.incrementalLoad.checkboxLabel')"
             class="mt-10 mb-20"
             :primary="true"
-            @input="compatibleWarning('incrementalLoading', $event)"
+            @update:modelValue="compatibleWarning('incrementalLoading', $event)"
           />
           <div class="ml-20">
             <p :class="{ 'text-muted': !value.incrementalLoading.enabled }">
@@ -280,7 +280,7 @@ export default {
             :label="t('performance.manualRefresh.checkboxLabel')"
             class="mt-10 mb-20"
             :primary="true"
-            @input="compatibleWarning('manualRefresh', $event)"
+            @update:modelValue="compatibleWarning('manualRefresh', $event)"
           />
           <div class="ml-20">
             <p :class="{ 'text-muted': !value.manualRefresh.enabled }">
@@ -398,7 +398,7 @@ export default {
             class="mt-10 mb-20"
             :primary="true"
             :disabled="(!steveCacheEnabled && !value.serverPagination.enabled)"
-            @input="compatibleWarning('serverPagination', $event)"
+            @update:modelValue="compatibleWarning('serverPagination', $event)"
           />
           <p :class="{ 'text-muted': !value.serverPagination.enabled }">
             {{ t('performance.serverPagination.applicable') }}
@@ -421,7 +421,7 @@ export default {
             :label="t('performance.nsFiltering.checkboxLabel')"
             class="mt-10 mb-20"
             :primary="true"
-            @input="compatibleWarning('forceNsFilterV2', $event)"
+            @update:modelValue="compatibleWarning('forceNsFilterV2', $event)"
           />
         </div>
         <!-- Advanced Websocket Worker -->
@@ -442,9 +442,10 @@ export default {
         </div>
       </div>
     </div>
-    <template v-for="err in errors">
+    <template  v-for="(err, i) in errors"
+               :key="i"
+    >
       <Banner
-        :key="err"
         color="error"
         :label="err"
       />

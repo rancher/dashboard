@@ -75,10 +75,10 @@ export default {
     },
 
     updateValue(val, type) {
-      this.$set(this.value, type, {});
+      this.value[type] = {};
 
       Object.keys(val).forEach((key) => {
-        this.$set(this.value[type], key, val[key]);
+        this.value[type][key] = val[key];
       });
     },
   }

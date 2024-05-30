@@ -83,7 +83,7 @@ export default {
 
   data() {
     if (!this.value[this.field]) {
-      this.$set(this.value, this.field, {});
+      this.value[this.field] = {};
     }
     const { podAffinity = {}, podAntiAffinity = {} } = this.value[this.field];
     const allAffinityTerms = [...(podAffinity.preferredDuringSchedulingIgnoredDuringExecution || []), ...(podAffinity.requiredDuringSchedulingIgnoredDuringExecution || [])].map((term) => {
@@ -281,7 +281,7 @@ export default {
         term.weight = this.defaultWeight;
       }
 
-      this.$set(this.allSelectorTerms, idx, clone(term));
+      this.allSelectorTerms[idx] = clone(term);
       this.queueUpdate();
     },
 
@@ -290,7 +290,7 @@ export default {
     },
 
     changeNamespaceMode(val, term, idx) {
-      this.$set(term, '_namespaceOption', val);
+      term['_namespaceOption'] = val;
 
       switch (val) {
       case NAMESPACE_SELECTION_OPTION_VALUES.POD:
@@ -314,8 +314,8 @@ export default {
         break;
 
       default:
-        this.$set(term, 'namespaces', []);
-        this.$set(term, '_namespaces', '');
+        term['namespaces'] = [];
+        term['_namespaces'] = '';
 
         if (term.namespaceSelector || term.namespaceSelector === null) {
           delete term.namespaceSelector;
@@ -324,7 +324,7 @@ export default {
         break;
       }
 
-      this.$set(this.allSelectorTerms, idx, term);
+      this.allSelectorTerms[idx] = term;
       this.queueUpdate();
     },
 
@@ -336,7 +336,7 @@ export default {
         nsArray = namespaces.split(',').map((ns) => ns.trim()).filter((ns) => ns?.length);
       }
 
-      this.$set(term, 'namespaces', nsArray);
+      term['namespaces'] = nsArray;
       this.queueUpdate();
     },
 
@@ -357,7 +357,7 @@ export default {
   <div
     :style="{'width':'100%'}"
     class="row"
-    @input="queueUpdate"
+    @update:modelValue="queueUpdate"
   >
     <div class="col span-12">
       <ArrayListGrouped
@@ -377,18 +377,17 @@ export default {
                 :value="props.row.value._anti ?t('workload.scheduling.affinity.antiAffinityOption') :t('workload.scheduling.affinity.affinityOption') "
                 :label="t('workload.scheduling.affinity.type')"
                 :data-testid="`pod-affinity-type-index${props.i}`"
-                @input="$set(props.row.value, '_anti',!props.row.value._anti)"
+                @update:modelValue="$set(props.row.value, '_anti',!props.row.value._anti)"
               />
             </div>
             <div class="col span-6">
               <LabeledSelect
-                :key="priorityDisplay(props.row.value)"
                 :mode="mode"
                 :options="[t('workload.scheduling.affinity.preferred'),t('workload.scheduling.affinity.required')]"
                 :value="priorityDisplay(props.row.value)"
                 :label="t('workload.scheduling.affinity.priority')"
                 :data-testid="`pod-affinity-priority-index${props.i}`"
-                @input="changePriority(props.row.value, props.i)"
+                @update:modelValue="changePriority(props.row.value, props.i)"
               />
             </div>
           </div>
@@ -400,7 +399,7 @@ export default {
               :mode="mode"
               :value="props.row.value._namespaceOption"
               :data-testid="`pod-affinity-namespacetype-index${props.i}`"
-              @input="changeNamespaceMode($event, props.row.value, props.i)"
+              @update:modelValue="changeNamespaceMode($event, props.row.value, props.i)"
             />
           </div>
           <div
@@ -416,7 +415,7 @@ export default {
               :options="allNamespacesOptions"
               :label="labeledInputNamespaceLabel"
               :data-testid="`pod-affinity-namespace-select-index${props.i}`"
-              @input="updateNamespaces(props.row.value, props.row.value.namespaces)"
+              @update:modelValue="updateNamespaces(props.row.value, props.row.value.namespaces)"
             />
             <LabeledInput
               v-else
@@ -425,18 +424,17 @@ export default {
               :label="labeledInputNamespaceLabel"
               :placeholder="t('harvesterManager.affinity.namespaces.placeholder')"
               :data-testid="`pod-affinity-namespace-input-index${props.i}`"
-              @input="updateNamespaces(props.row.value, props.row.value._namespaces)"
+              @update:modelValue="updateNamespaces(props.row.value, props.row.value._namespaces)"
             />
           </div>
           <MatchExpressions
-            :key="rerenderNums"
             :mode="mode"
             class=" col span-12 mt-20"
             :type="pod"
             :value="get(props.row.value, 'labelSelector.matchExpressions')"
             :show-remove="false"
             :data-testid="`pod-affinity-expressions-index${props.i}`"
-            @input="e=>updateLabelSelector(e, props)"
+            @update:modelValue="e=>updateLabelSelector(e, props)"
           />
           <div class="row mt-20">
             <div class="col span-9">
@@ -454,7 +452,7 @@ export default {
                 :disabled="mode==='view'"
                 :loading="loading"
                 :data-testid="`pod-affinity-topology-select-index${props.i}`"
-                @input="update"
+                @update:modelValue="update"
               />
               <LabeledInput
                 v-else
@@ -464,7 +462,7 @@ export default {
                 :placeholder="topologyKeyPlaceholder"
                 required
                 :data-testid="`pod-affinity-topology-input-index${props.i}`"
-                @input="update"
+                @update:modelValue="update"
               />
             </div>
             <div

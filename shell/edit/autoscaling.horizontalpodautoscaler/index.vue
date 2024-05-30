@@ -118,13 +118,13 @@ export default {
       set(hasScaleDownRules) {
         if (hasScaleDownRules) {
           if (!this.value.spec.behavior) {
-            this.$set(this.value.spec, 'behavior', {});
+            this.value.spec['behavior'] = {};
           }
           if (!this.value.spec.behavior?.scaleDown) {
-            this.$set(this.value.spec.behavior, 'scaleDown', {});
+            this.value.spec.behavior['scaleDown'] = {};
           }
         } else {
-          this.$delete(this.value.spec.behavior, 'scaleDown');
+          delete this.value.spec.behavior['scaleDown'];
         }
       }
     },
@@ -135,13 +135,13 @@ export default {
       set(hasScaleUpRules) {
         if (hasScaleUpRules) {
           if (!this.value.spec.behavior) {
-            this.$set(this.value.spec, 'behavior', {});
+            this.value.spec['behavior'] = {};
           }
           if (!this.value.spec.behavior?.scaleUp) {
-            this.$set(this.value.spec.behavior, 'scaleUp', {});
+            this.value.spec.behavior['scaleUp'] = {};
           }
         } else {
-          this.$delete(this.value.spec.behavior, 'scaleUp');
+          delete this.value.spec.behavior['scaleUp'];
         }
       }
     },
@@ -157,8 +157,7 @@ export default {
 
   methods: {
     initSpec() {
-      this.$set(this.value, 'spec', {
-        type:           'io.k8s.api.autoscaling.v1.horizontalpodautoscalerspec',
+      this.value['spec'] = {type:           'io.k8s.api.autoscaling.v1.horizontalpodautoscalerspec',
         minReplicas:    1,
         maxReplicas:    10,
         scaleTargetRef: {
@@ -166,8 +165,7 @@ export default {
           kind:       '',
           name:       '',
         },
-        metrics: [{ ...this.defaultResourceMetric }],
-      });
+        metrics: [{ ...this.defaultResourceMetric }],};
     },
     async loadWorkloads() {
       await Promise.all(

@@ -14,7 +14,7 @@ export default {
     },
   },
   data() {
-    this.$set(this.value.spec, 'vsphereVolume', this.value.spec.vsphereVolume || {});
+    this.value.spec['vsphereVolume'] = this.value.spec.vsphereVolume || {};
 
     return { };
   },

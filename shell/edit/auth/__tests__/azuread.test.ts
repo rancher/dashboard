@@ -1,3 +1,4 @@
+import { nextTick } from 'vue';
 /* eslint-disable jest/no-hooks */
 import { mount } from '@vue/test-utils';
 import AzureAD from '@shell/edit/auth/azuread.vue';
@@ -73,7 +74,7 @@ describe('edit: azureAD should', () => {
     wrapper = mount(AzureAD, { ...requiredSetup() });
   });
   afterEach(() => {
-    wrapper.destroy();
+    wrapper.unmount();
   });
 
   it('have "Create" button disabled before fields are filled in', () => {
@@ -122,7 +123,7 @@ describe('edit: azureAD should', () => {
     tenantIdInputField.setValue(testCase.tenantId);
     applicationIdInputField.setValue(testCase.applicationId);
     applicationSecretInputField.setValue(testCase.applicationSecret);
-    await wrapper.vm.$nextTick();
+    await nextTick();
 
     expect(saveButton.disabled).toBe(testCase.result);
   });
@@ -218,11 +219,11 @@ describe('edit: azureAD should', () => {
     tenantIdInputField.setValue(validTenantId);
     applicationIdInputField.setValue(validApplicationId);
     applicationSecretInputField.setValue(validAppSecret);
-    await wrapper.vm.$nextTick();
+    await nextTick();
 
     expect(saveButton.disabled).toBe(false);
     customButton.trigger('click');
-    await wrapper.vm.$nextTick();
+    await nextTick();
     expect(saveButton.disabled).toBe(true);
 
     const endpointInputField = wrapper.find('[data-testid="input-azureAD-endpoint"]').find('input');
@@ -234,7 +235,7 @@ describe('edit: azureAD should', () => {
     graphEndpointInputField.setValue(testCase.graphEndpoint);
     tokenEndpointInputField.setValue(testCase.tokenEndpoint);
     authEndpointInputField.setValue(testCase.authEndpoint);
-    await wrapper.vm.$nextTick();
+    await nextTick();
 
     expect(saveButton.disabled).toBe(testCase.result);
   });

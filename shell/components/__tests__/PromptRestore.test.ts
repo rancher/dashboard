@@ -1,3 +1,4 @@
+import { nextTick } from 'vue';
 import { shallowMount } from '@vue/test-utils';
 import { createStore } from 'vuex';
 import PromptRestore from '@shell/components/PromptRestore.vue';
@@ -90,7 +91,7 @@ describe('component: PromptRestore', () => {
     const wrapper = shallowMount(PromptRestore as unknown as ExtendedVue<Vue, {}, {}, {}, DefaultProps>, { global: { plugins: [store] } });
 
     await wrapper.vm.fetchSnapshots();
-    await wrapper.vm.$nextTick();
+    await nextTick();
 
     expect(wrapper.vm.clusterSnapshots).toHaveLength(expected);
   });
@@ -125,7 +126,7 @@ describe('component: PromptRestore', () => {
     const wrapper = shallowMount(PromptRestore as unknown as ExtendedVue<Vue, {}, {}, {}, DefaultProps>, { global: { plugins: [store] } });
 
     await wrapper.vm.fetchSnapshots();
-    await wrapper.vm.$nextTick();
+    await nextTick();
 
     expect(wrapper.vm.clusterSnapshots).toHaveLength(expected);
   });

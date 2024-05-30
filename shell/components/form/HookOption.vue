@@ -70,7 +70,7 @@ export default {
       const header = { name: '', value: '' };
 
       if (!this.value.httpGet.httpHeaders) {
-        this.$set(this.value.httpGet, 'httpHeaders', []);
+        this.value.httpGet['httpHeaders'] = [];
       }
 
       this.value.httpGet.httpHeaders.push(header);
@@ -126,7 +126,7 @@ export default {
           t('workload.container.lifecycleHook.httpGet.add'),
         ]"
         :mode="mode"
-        @input="update"
+        @update:modelValue="update"
       />
     </div>
 
@@ -148,7 +148,7 @@ export default {
     <template v-if="selectHook === 'httpGet'">
       <h4>{{ t('workload.container.lifecycleHook.httpGet.title') }}</h4>
       <div class="var-row">
-        <template @input="update">
+        <template @update:modelValue="update">
           <LabeledInput
             v-model="value.httpGet.host"
             :label="t('workload.container.lifecycleHook.httpGet.host.label')"
@@ -182,10 +182,9 @@ export default {
       <h4>{{ t('workload.container.lifecycleHook.httpHeaders.title') }}</h4>
       <div
         v-for="(header, index) in value.httpGet.httpHeaders"
-        :key="header.id"
-        class="var-row"
+        :key="index"
       >
-        <template @input="update">
+        <template @update:modelValue="update">
           <LabeledInput
             v-model="value.httpGet.httpHeaders[index].name"
             :label="t('workload.container.lifecycleHook.httpHeaders.name.label')"

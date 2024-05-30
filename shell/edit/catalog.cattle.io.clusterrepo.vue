@@ -1,5 +1,5 @@
 <script>
-import Vue from 'vue';
+import { createApp } from 'vue';
 import CreateEditView from '@shell/mixins/create-edit-view';
 import Footer from '@shell/components/form/Footer';
 import { LabeledInput } from '@components/Form/LabeledInput';
@@ -10,6 +10,7 @@ import SelectOrCreateAuthSecret from '@shell/components/form/SelectOrCreateAuthS
 import InfoBox from '@shell/components/InfoBox';
 import { Checkbox } from '@components/Form/Checkbox';
 import { MANAGEMENT, NAMESPACE, CLUSTER_REPO_TYPES } from '@shell/config/types';
+const vueApp = createApp({});
 
 export default {
   name: 'CruCatalogRepo',
@@ -61,42 +62,42 @@ export default {
       // reset input fields when switching options
       switch (clusterRepoType) {
       case CLUSTER_REPO_TYPES.GIT_REPO:
-        Vue.set(this.value.spec, 'url', '');
-        Vue.set(this.value.spec, 'clientSecret', null);
+        this.value.spec['url'] = '';
+        this.value.spec['clientSecret'] = null;
         this.resetOciValues();
         break;
       case CLUSTER_REPO_TYPES.OCI_URL:
-        Vue.set(this.value.spec, 'url', '');
+        this.value.spec['url'] = '';
         // set insecurePlainHttp to false as a secondary flag, alongside checking for 'oci://' in the URL, to determine OCI type later
-        Vue.set(this.value.spec, 'insecurePlainHttp', false);
-        Vue.set(this.value.spec, 'gitRepo', '');
-        Vue.set(this.value.spec, 'clientSecret', null);
+        this.value.spec['insecurePlainHttp'] = false;
+        this.value.spec['gitRepo'] = '';
+        this.value.spec['clientSecret'] = null;
         if (!!this.value.spec.gitBranch) {
-          Vue.set(this.value.spec, 'gitBranch', '');
+          this.value.spec['gitBranch'] = '';
         }
         break;
       case CLUSTER_REPO_TYPES.HELM_URL:
-        Vue.set(this.value.spec, 'url', '');
-        Vue.set(this.value.spec, 'gitRepo', '');
-        Vue.set(this.value.spec, 'clientSecret', null);
+        this.value.spec['url'] = '';
+        this.value.spec['gitRepo'] = '';
+        this.value.spec['clientSecret'] = null;
         this.resetOciValues();
         if (!!this.value.spec.gitBranch) {
-          Vue.set(this.value.spec, 'gitBranch', '');
+          this.value.spec['gitBranch'] = '';
         }
         break;
       }
     },
     updateExponentialBackOffValues(key, newVal) {
       if (!Object.prototype.hasOwnProperty.call(this.value.spec, 'exponentialBackOffValues')) {
-        Vue.set(this.value.spec, 'exponentialBackOffValues', {});
+        this.value.spec['exponentialBackOffValues'] = {};
       }
-      Vue.set(this.value.spec.exponentialBackOffValues, key, Number(newVal));
+      this.value.spec.exponentialBackOffValues[key] = Number(newVal);
     },
     resetOciValues() {
-      Vue.delete(this.value.spec, 'insecurePlainHttp');
-      Vue.delete(this.value.spec, 'insecureSkipTLSVerify');
-      Vue.delete(this.value.spec, 'caBundle');
-      Vue.set(this.value.spec, 'exponentialBackOffValues', {});
+      delete this.value.spec['insecurePlainHttp'];
+      delete this.value.spec['insecureSkipTLSVerify'];
+      delete this.value.spec['caBundle'];
+      this.value.spec['exponentialBackOffValues'] = {};
       this.ociMinWait = undefined;
       this.ociMaxWait = undefined;
       this.ociMaxRetries = undefined;
@@ -123,7 +124,7 @@ export default {
           :labels="[t('catalog.repo.target.http'), t('catalog.repo.target.git'), t('catalog.repo.target.oci', null, true)]"
           :mode="mode"
           data-testid="clusterrepo-radio-input"
-          @input="onTargetChange"
+          @update:modelValue="onTargetChange"
         />
       </div>
     </div>
@@ -179,7 +180,6 @@ export default {
     />
 
     <SelectOrCreateAuthSecret
-      :key="clusterRepoType"
       v-model="value.spec.clientSecret"
       data-testid="clusterrepo-auth-secret"
       :register-before-hook="registerBeforeHook"
@@ -231,7 +231,7 @@ export default {
             type="number"
             min="1"
             data-testid="clusterrepo-oci-min-wait-input"
-            @input="updateExponentialBackOffValues('minWait', $event)"
+            @update:modelValue="updateExponentialBackOffValues('minWait', $event)"
           />
         </div>
         <div class="col span-4">
@@ -243,7 +243,7 @@ export default {
             type="number"
             min="1"
             data-testid="clusterrepo-oci-max-wait-input"
-            @input="updateExponentialBackOffValues('maxWait', $event)"
+            @update:modelValue="updateExponentialBackOffValues('maxWait', $event)"
           />
         </div>
         <div class="col span-4">
@@ -255,7 +255,7 @@ export default {
             type="number"
             min="0"
             data-testid="clusterrepo-oci-max-retries-input"
-            @input="updateExponentialBackOffValues('maxRetries', $event)"
+            @update:modelValue="updateExponentialBackOffValues('maxRetries', $event)"
           />
         </div>
       </div>

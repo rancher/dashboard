@@ -29,9 +29,9 @@ export default {
       }
     ];
 
-    this.$set(this.value.spec, 'cephfs', this.value.spec.cephfs || {});
-    this.$set(this.value.spec.cephfs, 'readOnly', this.value.spec.cephfs.readOnly || false);
-    this.$set(this.value.spec.cephfs, 'secretRef', this.value.spec.cephfs.secretRef || {});
+    this.value.spec['cephfs'] = this.value.spec.cephfs || {};
+    this.value.spec.cephfs['readOnly'] = this.value.spec.cephfs.readOnly || false;
+    this.value.spec.cephfs['secretRef'] = this.value.spec.cephfs.secretRef || {};
 
     return { readOnlyOptions };
   },

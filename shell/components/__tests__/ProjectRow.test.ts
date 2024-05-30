@@ -8,7 +8,7 @@ const CONFIGMAP_STRING = RANCHER_TYPES[0].value;
 describe('component: ProjectRow.vue', () => {
   const wrapper = shallowMount(ProjectRow,
     {
-      propsData: {
+      props: {
         mode:  'edit',
         types: RANCHER_TYPES,
         type:  CONFIGMAP_STRING,

@@ -137,7 +137,7 @@ export default {
       :initial-empty-row="true"
       :mode="mode"
       data-testid="registry-authentication"
-      @input="update"
+      @update:modelValue="update"
     >
       <template #default="{row, i}">
         <div class="row">
@@ -150,7 +150,6 @@ export default {
             />
 
             <SelectOrCreateAuthSecret
-              :key="`${row.value.hostname}-${row.value.authConfigSecretName}`"
               v-model="row.value.authConfigSecretName"
               :register-before-hook="wrapRegisterBeforeHook"
               :append-unique-id-to-hook="true"

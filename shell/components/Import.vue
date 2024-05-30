@@ -176,8 +176,6 @@ export default {
       <Banner
         v-for="(err, i) in errors"
         :key="i"
-        color="error"
-        :label="err"
       />
     </template>
     <template #actions>
@@ -229,7 +227,7 @@ export default {
     min-height: $min;
     max-height: $max;
 
-    ::v-deep .code-mirror {
+    :deep() .code-mirror {
       .CodeMirror {
         position: initial;
       }

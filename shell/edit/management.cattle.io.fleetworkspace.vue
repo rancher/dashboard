@@ -57,7 +57,7 @@ export default {
   },
 
   data() {
-    this.$set(this.value, 'spec', this.value.spec || {});
+    this.value['spec'] = this.value.spec || {};
 
     return {
       fleetClusters:            null,

@@ -27,13 +27,14 @@ describe('view: management.cattle.io.setting should', () => {
 
   it('allowing to save if no rules in settings', () => {
     const wrapper = mount(BannerSettings, {
-      stubs:     { TypeDescription: true },
-      propsData: {
+      props: {
         value:      { foo: { text: '' } },
         mode:       'view',
         bannerType: 'foo'
       },
+
       computed: { hideDescriptions: () => true },
+
       data:     () => ({
         vendor:      'Rancher',
         uiPLSetting: { vendor: 'Rancher' },
@@ -43,7 +44,12 @@ describe('view: management.cattle.io.setting should', () => {
 
         errors: [],
       }),
-      ...requiredSetup()
+
+      ...requiredSetup(),
+
+      global: {
+        stubs:     { TypeDescription: true },
+      },
     });
 
     const colorInputPreview = wrapper.find('[data-testid="color-input-color-input_preview-container"]');

@@ -48,17 +48,17 @@ export default {
 
     this.storageClasses = hash.storageClasses;
     this.persistentVolumes = hash.persistentVolumes;
-    this.$set(this.spec, 'storageClassName', (this.spec.storageClassName || this.defaultStorageClassName));
+    this.spec['storageClassName'] = (this.spec.storageClassName || this.defaultStorageClassName);
   },
 
   data() {
     const spec = this.value.spec;
 
     if (!this.value.metadata) {
-      this.$set(this.value, 'metadata', {});
+      this.value['metadata'] = {};
     }
 
-    this.$set(this.value.spec, 'accessModes', this.value.spec.accessModes || []);
+    this.value.spec['accessModes'] = this.value.spec.accessModes || [];
 
     return {
       storageClasses:    [],
@@ -119,7 +119,7 @@ export default {
     }
   },
 
-  beforeDestroy() {
+  beforeUnmount() {
     this.$emit('removePvcForm', this.savePvcHookName + this.uniqueId);
   },
 
@@ -133,8 +133,8 @@ export default {
     },
 
     updatePV(pv) {
-      this.$set(this.spec, 'volumeName', pv.metadata.name);
-      this.$set(this.spec, 'storageClassName', (pv.spec.storageClassName || ''));
+      this.spec['volumeName'] = pv.metadata.name;
+      this.spec['storageClassName'] = (pv.spec.storageClassName || '');
       this.spec.resources.requests.storage = pv?.spec?.capacity?.storage;
     },
 
@@ -162,7 +162,7 @@ export default {
           :mode="mode"
           :label="t('persistentVolumeClaim.name')"
           :required="true"
-          @input="$emit('input', value)"
+          @update:modelValue="$emit('input', value)"
         />
       </div>
     </div>
@@ -194,7 +194,7 @@ export default {
           :mode="mode"
           :label="t('persistentVolumeClaim.volumes')"
           :options="availablePVs"
-          @input="updatePV"
+          @update:modelValue="updatePV"
         />
       </div>
     </div>
@@ -213,19 +213,19 @@ export default {
             :mode="mode"
             :value="value.spec.accessModes.includes('ReadWriteOnce')"
             :label="t('persistentVolumeClaim.accessModesOptions.singleNodeRW')"
-            @input="e=>updateMode('ReadWriteOnce', e)"
+            @update:modelValue="e=>updateMode('ReadWriteOnce', e)"
           />
           <Checkbox
             :mode="mode"
             :value="value.spec.accessModes.includes('ReadOnlyMany')"
             :label="t('persistentVolumeClaim.accessModesOptions.manyNodeR')"
-            @input="e=>updateMode('ReadOnlyMany', e)"
+            @update:modelValue="e=>updateMode('ReadOnlyMany', e)"
           />
           <Checkbox
             :mode="mode"
             :value="value.spec.accessModes.includes('ReadWriteMany')"
             :label="t('persistentVolumeClaim.accessModesOptions.manyNodeRW')"
-            @input="e=>updateMode('ReadWriteMany', e)"
+            @update:modelValue="e=>updateMode('ReadWriteMany', e)"
           />
         </div>
       </div>

@@ -38,7 +38,7 @@ export default {
     }
 
     if (this.mode === _CREATE) {
-      this.$set(this.value.parameters, 'kind', this.value.parameters.kind || kindOptions[0].value);
+      this.value.parameters['kind'] = this.value.parameters.kind || kindOptions[0].value;
     }
 
     return { kindOptions };

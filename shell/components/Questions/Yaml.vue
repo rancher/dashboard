@@ -32,7 +32,7 @@ export default {
         :disabled="disabled"
         :value="value"
         :data-testid="`yaml-input-${question.variable}`"
-        @input="$emit('input', $event)"
+        @update:modelValue="$emit('input', $event)"
       />
     </div>
     <div

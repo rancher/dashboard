@@ -39,7 +39,7 @@ export default {
   },
   data() {
     if (!this.value.spec[this.type]) {
-      this.$set(this.value.spec, this.type, []);
+      this.value.spec[this.type] = [];
     }
 
     return {};
@@ -70,9 +70,7 @@ export default {
         >
           <Tab
             v-for="(policyRule, idx) in value.spec[type]"
-            :key="'filtered-rule-' + type + idx"
-            :name="'rule-' + type + idx"
-            :label="policyRouleLabel(idx)"
+            :key="idx"
             :show-header="false"
             class="container-group"
           >

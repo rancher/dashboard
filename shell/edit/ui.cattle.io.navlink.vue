@@ -94,11 +94,11 @@ export default {
         switch (type) {
         case LINK_TYPE_URL:
           delete this.value.spec.toService;
-          this.$set(this.value.spec, 'toURL', '');
+          this.value.spec['toURL'] = '';
           break;
         case LINK_TYPE_SERVICE:
           delete this.value.spec.toURL;
-          this.$set(this.value.spec, 'toService', {});
+          this.value.spec['toService'] = {};
           break;
         // No default
         }
@@ -172,10 +172,10 @@ export default {
       switch (value) {
       case LINK_TARGET_SELF:
       case LINK_TARGET_BLANK:
-        this.$set(this.value.spec, 'target', value);
+        this.value.spec['target'] = value;
         break;
       default:
-        this.$set(this.value.spec, 'target', this.targetName);
+        this.value.spec['target'] = this.targetName;
         break;
       }
     },
@@ -214,13 +214,13 @@ export default {
     setDefaultValues() {
       if (!this.value.spec) {
         // Link to URL is set as default option from the data
-        this.$set(this.value, 'spec', { toURL: '' });
+        this.value['spec'] = { toURL: '' };
       }
       if (!this.value.metadata) {
-        this.$set(this.value, 'metadata', {});
+        this.value['metadata'] = {};
       }
       if (!this.value.spec.target) {
-        this.$set(this.value.spec, 'target', LINK_TARGET_BLANK);
+        this.value.spec['target'] = LINK_TARGET_BLANK;
       }
     },
     /**
@@ -231,8 +231,8 @@ export default {
       if (service) {
         const { name, namespace } = service;
 
-        this.$set(this.value.spec.toService, 'name', name);
-        this.$set(this.value.spec.toService, 'namespace', namespace);
+        this.value.spec.toService['name'] = name;
+        this.value.spec.toService['namespace'] = namespace;
       }
     },
     /**
@@ -250,7 +250,7 @@ export default {
      * Generate automatically kebab case for the displayed label
      */
     setName() {
-      this.$set(this.value.metadata, 'name', normalizeName(this.value.spec.label));
+      this.value.metadata['name'] = normalizeName(this.value.spec.label);
     },
     /**
      * Get error chained validation based on existing label
@@ -356,7 +356,7 @@ export default {
             :placeholder="t('navLink.tabs.link.toService.service.placeholder')"
             :rules="fvGetAndReportPathRules('spec.toService.namespace')"
             data-testid="Navlink-currentService-field"
-            @input="setService"
+            @update:modelValue="setService"
           />
         </div>
         <div class="col span-2">
@@ -387,7 +387,7 @@ export default {
           name="type"
           :mode="mode"
           :options="targetOptions"
-          @input="setTargetValue($event)"
+          @update:modelValue="setTargetValue($event)"
         />
       </div>
       <div class="col span-6">
@@ -396,7 +396,7 @@ export default {
           v-model="targetName"
           :mode="mode"
           :label="t('navLink.tabs.target.namedValue.label')"
-          @input="setTargetValue($event);"
+          @update:modelValue="setTargetValue($event);"
         />
       </div>
     </div>
@@ -445,7 +445,7 @@ export default {
         :label="t('navLink.tabs.groupImage.iconSrc.label')"
         accept="image/jpeg,image/png,image/svg+xml"
         @error="setImageError"
-        @input="setIcon"
+        @update:modelValue="setIcon"
       />
     </div>
     <Banner

@@ -1,3 +1,4 @@
+import { nextTick } from 'vue';
 /* eslint-disable jest/no-hooks */
 import { mount } from '@vue/test-utils';
 import Navlink from '@shell/edit/ui.cattle.io.navlink.vue';
@@ -41,7 +42,7 @@ describe('view: ui.cattle.io.navlink should', () => {
   });
 
   afterEach(() => {
-    wrapper.destroy();
+    wrapper.unmount();
   });
 
   it('have "Create" button disabled before fields are filled in', () => {
@@ -55,7 +56,7 @@ describe('view: ui.cattle.io.navlink should', () => {
 
     nameField.setValue(name);
 
-    await wrapper.vm.$nextTick();
+    await nextTick();
 
     expect(saveButton.disabled).toBe(true);
   });
@@ -67,7 +68,7 @@ describe('view: ui.cattle.io.navlink should', () => {
     nameField.setValue(name);
     urlField.setValue(url);
 
-    await wrapper.vm.$nextTick();
+    await nextTick();
 
     expect(saveButton.disabled).toBe(false);
   });
@@ -81,7 +82,7 @@ describe('view: ui.cattle.io.navlink should', () => {
 
     nameField.setValue(name);
     serviceBttn.trigger('click');
-    await wrapper.vm.$nextTick();
+    await nextTick();
 
     expect(saveButton.disabled).toBe(true);
   });
@@ -94,7 +95,7 @@ describe('view: ui.cattle.io.navlink should', () => {
 
     nameField.setValue(name);
     serviceBttn.trigger('click');
-    await wrapper.vm.$nextTick();
+    await nextTick();
 
     const schemeField = wrapper.find('[data-testid="Navlink-scheme-field"]');
     const serviceField = wrapper.find('[data-testid="Navlink-currentService-field"]');

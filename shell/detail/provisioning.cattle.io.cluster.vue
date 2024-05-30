@@ -194,7 +194,7 @@ export default {
     }
   },
 
-  beforeDestroy() {
+  beforeUnmount() {
     if ( this.logSocket ) {
       this.logSocket.disconnect();
       this.logSocket = null;
@@ -942,16 +942,14 @@ export default {
           <tbody class="logs-body">
             <template v-if="logs.length">
               <tr
-                v-for="line in logs"
-                :key="line.id"
+                v-for="(line, i) in logs"
+                :key="i"
               >
                 <td
-                  :key="line.id + '-time'"
                   v-clean-html="format(line.time)"
                   class="time"
                 />
                 <td
-                  :key="line.id + '-msg'"
                   v-clean-html="line.msg"
                   class="msg"
                 />
@@ -1112,7 +1110,7 @@ export default {
   }
 }
 
-.snapshots ::v-deep .state-description{
+.snapshots :deep() .state-description{
   font-size: .8em;
   color: var(--error);
 }

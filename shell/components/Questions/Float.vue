@@ -25,7 +25,7 @@ export default {
         :tooltip="displayTooltip"
         :rules="rules"
         :data-testid="`float-input-${question.variable}`"
-        @input="val = parseFloat($event); if ( !isNaN(val) ) { $emit('input', val) }"
+        @update:modelValue="val = parseFloat($event); if ( !isNaN(val) ) { $emit('input', val) }"
       />
     </div>
     <div

@@ -29,9 +29,9 @@ export default {
       }
     ];
 
-    this.$set(this.value.spec, 'fc', this.value.spec.fc || {});
-    this.$set(this.value.spec.fc, 'readOnly', this.value.spec.fc.readOnly || false);
-    this.$set(this.value.spec.fc, 'secretRef', this.value.spec.fc.secretRef || {});
+    this.value.spec['fc'] = this.value.spec.fc || {};
+    this.value.spec.fc['readOnly'] = this.value.spec.fc.readOnly || false;
+    this.value.spec.fc['secretRef'] = this.value.spec.fc.secretRef || {};
 
     return { readOnlyOptions };
   },
@@ -41,7 +41,7 @@ export default {
         return this.value.spec.fc.lun;
       },
       set(value) {
-        this.$set(this.value.spec.fc, 'lun', Number.parseInt(value, 10));
+        this.value.spec.fc['lun'] = Number.parseInt(value, 10);
       }
     }
   }

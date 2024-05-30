@@ -32,7 +32,7 @@ export default {
     ];
 
     if (this.mode === _CREATE) {
-      this.$set(this.value.parameters, 'diskformat', this.value.parameters.diskformat || diskFormatOptions[0].value);
+      this.value.parameters['diskformat'] = this.value.parameters.diskformat || diskFormatOptions[0].value;
     }
 
     return { diskFormatOptions };

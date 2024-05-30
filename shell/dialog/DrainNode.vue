@@ -1,5 +1,5 @@
 <script>
-import Vue from 'vue';
+import { createApp } from 'vue';
 import AsyncButton from '@shell/components/AsyncButton';
 import { Banner } from '@components/Banner';
 import { Card } from '@components/Card';
@@ -8,6 +8,7 @@ import UnitInput from '@shell/components/form/UnitInput';
 import { _EDIT, _VIEW } from '@shell/config/query-params';
 
 import { exceptionToErrorsArray } from '@shell/utils/error';
+const vueApp = createApp({});
 
 export default {
   components: {
@@ -79,7 +80,7 @@ export default {
     },
     'body.gracePeriod'(neu) {
       if (neu && neu < 1) {
-        Vue.set(this.body, 'gracePeriod', 1);
+        this.body['gracePeriod'] = 1;
       }
     },
     timeout(neu) {
@@ -90,9 +91,9 @@ export default {
     'body.timeout'(neu) {
       if (neu) {
         if (neu < 1) {
-          Vue.set(this.body, 'timeout', 1);
+          this.body['timeout'] = 1;
         } else if (neu > 10800) {
-          Vue.set(this.body, 'timeout', 10800);
+          this.body['timeout'] = 10800;
         }
       }
     },
@@ -211,8 +212,6 @@ export default {
       <Banner
         v-for="(err, i) in errors"
         :key="i"
-        color="error"
-        :label="err"
       />
     </div>
 

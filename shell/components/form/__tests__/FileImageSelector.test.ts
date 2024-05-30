@@ -8,14 +8,16 @@ describe('component: FileImageSelector', () => {
 
   beforeEach(() => {
     wrapper = mount(FileImageSelector, {
-      propsData: { label: 'upload' },
-      mocks:     {},
+      props: { label: 'upload' },
       methods:   {},
+      global: {
+        mocks:     {},
+      },
     });
   });
 
   afterEach(() => {
-    wrapper.destroy();
+    wrapper.unmount();
   });
 
   it('should render', () => {

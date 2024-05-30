@@ -217,13 +217,13 @@ export default {
   },
   methods: {
     onAdd(principalId) {
-      this.$set(this.value, 'principalId', principalId);
+      this.value['principalId'] = principalId;
     },
 
     setRoleTemplateIds(permissionGroup) {
       const roleTemplateIds = this.getRoleTemplateIds(permissionGroup);
 
-      this.$set(this.value, 'roleTemplateIds', roleTemplateIds);
+      this.value['roleTemplateIds'] = roleTemplateIds;
     },
 
     getRoleTemplateIds(permissionGroup) {
@@ -294,8 +294,8 @@ export default {
           :class="{'two-column': useTwoColumnsForCustom}"
         >
           <div
-            v-for="permission in customPermissionsUpdate"
-            :key="permission.key"
+            v-for="(permission, i) in customPermissionsUpdate"
+            :key="i"
           >
             <Checkbox
               v-model="permission.value"
@@ -317,7 +317,7 @@ export default {
 <style lang="scss" scoped>
 $detailSize: 11px;
 
-::v-deep .type-description {
+:deep() .type-description {
     font-size: $detailSize;
 }
 
@@ -332,7 +332,7 @@ label.radio {
     grid-template-columns: 1fr 1fr;
   }
 
-  ::v-deep .checkbox-label {
+  :deep() .checkbox-label {
     margin-right: 0;
   }
 }

@@ -29,8 +29,8 @@ export default {
     },
   },
   data() {
-    this.$set(this.value, 'matchers', this.value.matchers || []);
-    this.$set(this.value, 'groupBy', this.value.groupBy || []);
+    this.value['matchers'] = this.value.matchers || [];
+    this.value['groupBy'] = this.value.groupBy || [];
 
     return {
       isView:     _VIEW,

@@ -97,7 +97,7 @@ export default {
     showLdap(neu, old) {
       if (neu && !this.model.openLdapConfig) {
         // Use a spread of config, so that if don't make changes to the defaults if the user edits them
-        this.$set(this.model, 'openLdapConfig', { ...LDAP_DEFAULTS });
+        this.model['openLdapConfig'] = { ...LDAP_DEFAULTS };
       }
     }
   }
@@ -340,7 +340,7 @@ export default {
   .banner {
     display: block;
 
-    &::v-deep code {
+    &:deep() code {
       padding: 0 3px;
       margin: 0 3px;
     }

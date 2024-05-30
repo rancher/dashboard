@@ -21,11 +21,11 @@ const globalFormatters = {
 export default globalFormatters;
 
 // TODO: #9539: Verify is still used
-// // This is being done for backwards compatibility with our extensions that have written tests and didn't properly make use of Vue.use() when importing and mocking vue plugins
+// // This is being done for backwards compatibility with our extensions that have written tests and didn't properly make use of vueApp.use() when importing and mocking vue plugins
 // const isThisFileBeingExecutedInATest = process.env.NODE_ENV === 'test';
 
 // if (isThisFileBeingExecutedInATest) {
-//   console.warn('The implicit addition of global formatters has been deprecated in Rancher Shell and will be removed in a future version. Make sure to invoke `Vue.use(globalFormatters)` to maintain compatibility.');
+//   console.warn('The implicit addition of global formatters has been deprecated in Rancher Shell and will be removed in a future version. Make sure to invoke `vueApp.use(globalFormatters)` to maintain compatibility.');
 
-//   Vue.use(globalFormatters);
+//   vueApp.use(globalFormatters);
 // }

@@ -254,7 +254,7 @@ export default {
             v-if="viewOptions && mode === view"
             :value="currentView"
             :options="viewOptions"
-            @input="handleButtonGroupClick"
+            @update:modelValue="handleButtonGroupClick"
           />
 
           <button

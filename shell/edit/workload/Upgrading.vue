@@ -140,7 +140,7 @@ export default {
       }
 
       if (podSpec) {
-        this.$set(podSpec, 'terminationGracePeriodSeconds', terminationGracePeriodSeconds);
+        podSpec['terminationGracePeriodSeconds'] = terminationGracePeriodSeconds;
       }
 
       switch (this.type) {
@@ -234,7 +234,7 @@ export default {
           :options="strategyOptions.options"
           :labels="strategyOptions.labels"
           :mode="mode"
-          @input="update"
+          @update:modelValue="update"
         />
       </div>
     </div>
@@ -252,7 +252,7 @@ export default {
           :mode="mode"
           :label="t('workload.upgrading.podManagementPolicy.label')"
           :options="['OrderedReady', 'Parallel']"
-          @input="update"
+          @update:modelValue="update"
         />
       </div>
     </div>
@@ -274,7 +274,7 @@ export default {
             :mode="mode"
             type="number"
             :options="['Pods', '%']"
-            @input="e=>updateWithUnits(e, 'maxSurge')"
+            @update:modelValue="e=>updateWithUnits(e, 'maxSurge')"
           />
         </div>
         <div
@@ -289,7 +289,7 @@ export default {
             :mode="mode"
             type="number"
             :options="['Pods', '%']"
-            @input="e=>updateWithUnits(e, 'maxUnavailable')"
+            @update:modelValue="e=>updateWithUnits(e, 'maxUnavailable')"
           />
         </div>
       </div>
@@ -311,7 +311,7 @@ export default {
           label-key="workload.upgrading.minReadySeconds.label"
           tooltip-key="workload.upgrading.minReadySeconds.tip"
           :mode="mode"
-          @input="update"
+          @update:modelValue="update"
         />
       </div>
       <div
@@ -325,7 +325,7 @@ export default {
           label-key="workload.upgrading.revisionHistoryLimit.label"
           tooltip-key="workload.upgrading.revisionHistoryLimit.tip"
           :mode="mode"
-          @input="update"
+          @update:modelValue="update"
         />
       </div>
     </div>
@@ -343,7 +343,7 @@ export default {
           label-key="workload.upgrading.progressDeadlineSeconds.label"
           tooltip-key="workload.upgrading.progressDeadlineSeconds.tip"
           :mode="mode"
-          @input="update"
+          @update:modelValue="update"
         />
       </div>
     </div>
@@ -363,7 +363,7 @@ export default {
           label-key="workload.upgrading.terminationGracePeriodSeconds.label"
           tooltip-key="workload.upgrading.terminationGracePeriodSeconds.tip"
           :mode="mode"
-          @input="update"
+          @update:modelValue="update"
         />
       </div>
     </div>

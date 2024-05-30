@@ -227,8 +227,7 @@ export default {
         :width="expandWidth"
       />
       <th
-        v-for="col in columns"
-        v-show="!hasAdvancedFiltering || (hasAdvancedFiltering && col.isColVisible)"
+        v-for="(col) in columns"
         :key="col.name"
         :align="col.align || 'left'"
         :width="col.width"
@@ -319,7 +318,6 @@ export default {
             <ul>
               <li
                 v-for="(col, index) in tableColsOptions"
-                v-show="col.isTableOption"
                 :key="index"
                 :class="{ 'visible': !col.preventColToggle }"
               >
@@ -328,7 +326,7 @@ export default {
                   v-model="col.isColVisible"
                   class="table-options-checkbox"
                   :label="col.label"
-                  @input="tableOptionsCheckbox($event, col.label)"
+                  @update:modelValue="tableOptionsCheckbox($event, col.label)"
                 />
               </li>
             </ul>

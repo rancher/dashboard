@@ -24,8 +24,8 @@ export default {
     }
   },
   data() {
-    this.$set(this.value, 'sendResolved', this.value.sendResolved || false);
-    this.$set(this.value, 'requireTLS', this.value.requireTLS || false);
+    this.value['sendResolved'] = this.value.sendResolved || false;
+    this.value['requireTLS'] = this.value.requireTLS || false;
 
     return {
       view:                          _VIEW,

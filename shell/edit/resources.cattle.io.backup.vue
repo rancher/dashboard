@@ -63,7 +63,7 @@ export default {
 
   data() {
     if (!this.value.spec) {
-      this.$set(this.value, 'spec', { retentionCount: 10 });
+      this.value['spec'] = { retentionCount: 10 };
     }
     let s3 = {};
     let useEncryption = false;
@@ -151,13 +151,13 @@ export default {
       if (neu === 'useDefault') {
         delete this.value.spec.storageLocation;
       } else {
-        this.$set(this.value.spec, 'storageLocation', { s3: this.s3 });
+        this.value.spec['storageLocation'] = { s3: this.s3 };
       }
     },
 
     resourceSet(neu) {
       if (neu?.metadata?.name) {
-        this.$set(this.value.spec, 'resourceSetName', neu?.metadata?.name);
+        this.value.spec['resourceSetName'] = neu?.metadata?.name;
       }
     },
 

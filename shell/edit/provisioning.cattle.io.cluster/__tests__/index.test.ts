@@ -45,20 +45,27 @@ describe('component: Cluster: Create', () => {
 
     const wrapper = shallowMount(ClusterCreate, {
       computed:  { rke1UiEnabled: () => false },
-      propsData: {
+
+      props: {
         value:           { metadata: {}, spec: { template: {} } },
         realMode:        '',
         mode:            'edit',
         componentTestid: 'cluster-manager-create',
       },
+
       mixins: [],
-      global: { plugins: [store] },
-      mocks:  {
-        $route:      { params: {}, query: {} },
-        $router:     { applyQuery: jest.fn() },
-        $fetchState: { pending: false },
+
+      global: {
+        plugins: [store],
+
+        mocks:  {
+          $route:      { params: {}, query: {} },
+          $router:     { applyQuery: jest.fn() },
+          $fetchState: { pending: false },
+        },
+
+        stubs: { CruResource: { template: '<div><slot name="subtypes"></slot></div>' } },
       },
-      stubs: { CruResource: { template: '<div><slot name="subtypes"></slot></div>' } }
     });
 
     const element = wrapper.find('[data-testid="cluster-manager-create-rke-switch"]').element;

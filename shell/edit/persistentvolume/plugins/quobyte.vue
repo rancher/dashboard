@@ -26,8 +26,8 @@ export default {
       }
     ];
 
-    this.$set(this.value.spec, 'quobyte', this.value.spec.quobyte || {});
-    this.$set(this.value.spec.quobyte, 'readOnly', this.value.spec.quobyte.readOnly || false);
+    this.value.spec['quobyte'] = this.value.spec.quobyte || {};
+    this.value.spec.quobyte['readOnly'] = this.value.spec.quobyte.readOnly || false;
 
     return { readOnlyOptions };
   },

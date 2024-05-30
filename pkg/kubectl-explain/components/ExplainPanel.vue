@@ -32,7 +32,7 @@ export default {
     if (this.expandAll) {
       this.fields.forEach((field) => {
         if (field.$$ref) {
-          this.$set(this.expanded, field.name, this.expandAll);
+          this.expanded[field.name] = this.expandAll;
         }
       });
     }
@@ -43,7 +43,7 @@ export default {
       if (neu !== old) {
         this.fields.forEach((field) => {
           if (field.$$ref) {
-            this.$set(this.expanded, field.name, neu);
+            this.expanded[field.name] = neu;
           }
         });
       }
@@ -71,7 +71,7 @@ export default {
      * Expand a field
      */
     expand(field) {
-      this.$set(this.expanded, field, !this.expanded[field]);
+      this.expanded[field] = !this.expanded[field];
     },
     /**
      * Navigate to a field type - this loads it in place of the current definition,
@@ -100,8 +100,8 @@ export default {
       {{ $t('kubectl-explain.fields') }}
     </div>
     <div
-      v-for="field in fields"
-      :key="field.name"
+      v-for="(field, i) in fields"
+      :key="i"
     >
       <div class="field-section">
         <div class="field">
@@ -306,7 +306,7 @@ export default {
 </style>
 <style lang="scss" scoped>
   .markdown {
-    ::v-deep {
+    :deep() {
       P {
         line-height: 1.25;
         margin-bottom: 10px;

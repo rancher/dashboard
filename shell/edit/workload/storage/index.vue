@@ -129,7 +129,7 @@ export default {
      */
     initializeStorage() {
       if (!this.value.volumes) {
-        this.$set(this.value, 'volumes', []);
+        this.value['volumes'] = [];
       }
     },
 
@@ -250,7 +250,6 @@ export default {
   <div>
     <!-- Storage Volumes -->
     <ArrayListGrouped
-      :key="value.volumes.length"
       v-model="value.volumes"
       :mode="mode"
       @remove="removeVolume"
@@ -312,7 +311,7 @@ export default {
   margin: 20px 0px 20px 0px;
   position: relative;
 
-  ::v-deep .code-mirror {
+  :deep() .code-mirror {
     .CodeMirror {
       background-color: var(--yaml-editor-bg);
       & .CodeMirror-gutters {

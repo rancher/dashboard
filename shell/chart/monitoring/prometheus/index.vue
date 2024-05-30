@@ -153,8 +153,8 @@ export default {
         storageSpec['selector'] = { matchExpressions: [], matchLabels: {} };
       }
 
-      this.$set(storageSpec.selector, 'matchLabels', matchLabels);
-      this.$set(storageSpec.selector, 'matchExpressions', matchExpressions);
+      storageSpec.selector['matchLabels'] = matchLabels;
+      storageSpec.selector['matchExpressions'] = matchExpressions;
 
       // Remove an empty selector object if present
       // User can add a selector and then remove the selector - this will leave an empty structure as above
@@ -193,9 +193,8 @@ export default {
           :raw="true"
         />
         <div
-          v-for="wl in mappedFilteredWorkloads"
-          :key="wl.id"
-          class="mt-10"
+          v-for="(wl, i) in mappedFilteredWorkloads"
+          :key="i"
         >
           <router-link
             :to="wl.link"
@@ -362,7 +361,7 @@ export default {
               :mode="mode"
               :value="matchExpressions"
               :show-remove="false"
-              @input="matchChanged($event)"
+              @update:modelValue="matchChanged($event)"
             />
           </div>
         </div>

@@ -161,7 +161,7 @@ export default {
               min="1"
               max="65535"
               placeholder="e.g. 8080"
-              @input="queueUpdate"
+              @update:modelValue="queueUpdate"
             >
           </td>
           <td class="protocol">
@@ -169,7 +169,7 @@ export default {
             <select
               v-else
               v-model="row.protocol"
-              @input="queueUpdate"
+              @update:modelValue="queueUpdate"
             >
               <option value="HTTP">
                 HTTP
@@ -200,7 +200,7 @@ export default {
               min="1"
               max="65535"
               placeholder="e.g. 80"
-              @input="queueUpdate"
+              @update:modelValue="queueUpdate"
             >
           </td>
           <td class="expose">
@@ -209,7 +209,7 @@ export default {
               v-else
               v-model="row.expose"
               type="checkbox"
-              @input="queueUpdate"
+              @update:modelValue="queueUpdate"
             />
           </td>
           <td class="hostPort">
@@ -218,7 +218,7 @@ export default {
               v-else
               v-model="row.hostPort"
               type="checkbox"
-              @input="queueUpdate"
+              @update:modelValue="queueUpdate"
             />
           </td>
           <td

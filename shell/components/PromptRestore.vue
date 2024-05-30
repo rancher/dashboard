@@ -149,7 +149,7 @@ export default {
 
       const defaultSnapshot = this.toRestore[0]?.type === SNAPSHOT ? this.toRestore[0].name : this.clusterSnapshots[0]?.value;
 
-      this.$set(this, 'selectedSnapshot', defaultSnapshot);
+      this['selectedSnapshot'] = defaultSnapshot;
     },
 
     async apply(buttonDone) {
@@ -286,8 +286,6 @@ export default {
         <Banner
           v-for="(err, i) in errors"
           :key="i"
-          color="error"
-          :label="err"
         />
       </div>
     </Card>
@@ -314,7 +312,7 @@ export default {
     }
   }
 
-  .prompt-restore ::v-deep .card-wrap .card-actions {
+  .prompt-restore :deep() .card-wrap .card-actions {
     display: block;
 
     button:not(:last-child) {

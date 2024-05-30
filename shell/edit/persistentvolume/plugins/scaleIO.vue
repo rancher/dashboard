@@ -26,10 +26,10 @@ export default {
       }
     ];
 
-    this.$set(this.value.spec, 'scaleIO', this.value.spec.scaleIO || {});
-    this.$set(this.value.spec.scaleIO, 'readOnly', this.value.spec.scaleIO.readOnly || false);
-    this.$set(this.value.spec.scaleIO, 'secretRef', this.value.spec.scaleIO.secretRef || {});
-    this.$set(this.value.spec.scaleIO, 'sslEnabled', this.value.spec.scaleIO.sslEnabled || false);
+    this.value.spec['scaleIO'] = this.value.spec.scaleIO || {};
+    this.value.spec.scaleIO['readOnly'] = this.value.spec.scaleIO.readOnly || false;
+    this.value.spec.scaleIO['secretRef'] = this.value.spec.scaleIO.secretRef || {};
+    this.value.spec.scaleIO['sslEnabled'] = this.value.spec.scaleIO.sslEnabled || false;
 
     return { yesNoOptions };
   },

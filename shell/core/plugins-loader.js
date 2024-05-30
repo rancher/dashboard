@@ -1,7 +1,8 @@
-import Vue from 'vue';
+import { createApp } from 'vue';
 import $ from 'jquery';
 import JSZip from 'jszip';
 import jsyaml from 'js-yaml';
+const vueApp = createApp({});
 
 // Load any plugins that are present as npm modules
 // The 'dynamic' module is generated in webpack to load each package

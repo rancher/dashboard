@@ -71,6 +71,6 @@ export default {
     :label="label"
     :tooltip="tooltip"
     :hover-tooltip="!!tooltip"
-    @input="(e) => $emit('input', e)"
+    @update:modelValue="(e) => $emit('input', e)"
   />
 </template>

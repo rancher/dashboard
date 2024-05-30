@@ -1,12 +1,12 @@
 import { mount } from '@vue/test-utils';
 import MatchExpressions from '@shell/components/form/MatchExpressions.vue';
 import { _CREATE } from '@shell/config/query-params';
-import Vue from 'vue';
+import Vue, { nextTick } from 'vue';
 
 describe('component: MatchExpressions', () => {
   it('should display all the inputs', () => {
     const wrapper = mount(MatchExpressions, {
-      propsData: { mode: _CREATE },
+      props: { mode: _CREATE },
       data:      () => ({
         rules: [
           {
@@ -29,7 +29,7 @@ describe('component: MatchExpressions', () => {
     'values',
   ])('should emit an update on %p input', async(field) => {
     const wrapper = mount(MatchExpressions, {
-      propsData: { mode: _CREATE },
+      props: { mode: _CREATE },
       data:      () => ({
         rules: [
           {
@@ -45,7 +45,7 @@ describe('component: MatchExpressions', () => {
     const newValue = 123;
 
     input.setValue(newValue);
-    await Vue.nextTick();
+    await nextTick();
 
     expect(wrapper.emitted('input')).toHaveLength(1);
   });
@@ -54,7 +54,7 @@ describe('component: MatchExpressions', () => {
     'operator',
   ])('should emit an update on %p selection change', async(field) => {
     const wrapper = mount(MatchExpressions, {
-      propsData: { mode: _CREATE },
+      props: { mode: _CREATE },
       data:      () => ({
         rules: [
           {

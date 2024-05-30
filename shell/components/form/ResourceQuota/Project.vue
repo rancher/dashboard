@@ -26,9 +26,9 @@ export default {
   },
 
   data() {
-    this.$set(this.value, 'spec', this.value.spec || {});
-    this.$set(this.value.spec, 'namespaceDefaultResourceQuota', this.value.spec.namespaceDefaultResourceQuota || { limit: {} });
-    this.$set(this.value.spec, 'resourceQuota', this.value.spec.resourceQuota || { limit: {} });
+    this.value['spec'] = this.value.spec || {};
+    this.value.spec['namespaceDefaultResourceQuota'] = this.value.spec.namespaceDefaultResourceQuota || { limit: {} };
+    this.value.spec['resourceQuota'] = this.value.spec.resourceQuota || { limit: {} };
 
     return { typeValues: Object.keys(this.value.spec.resourceQuota.limit) };
   },
@@ -37,7 +37,7 @@ export default {
 
   methods: {
     updateType(i, type) {
-      this.$set(this.typeValues, i, type);
+      this.typeValues[i] = type;
     },
     remainingTypes(currentType) {
       return this.mappedTypes

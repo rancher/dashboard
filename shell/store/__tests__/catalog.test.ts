@@ -1,7 +1,7 @@
 import { CATALOG } from '@shell/config/types';
 import { state, getters, actions, mutations } from '../catalog';
-import Vuex from 'vuex';
-import { createLocalVue } from '@vue/test-utils';
+import Vuex, { createStore } from 'vuex';
+import '@vue/test-utils';
 
 const clusterRepo = { _key: 'testClusterRepo' };
 const repoChartName = 'abc';
@@ -46,8 +46,6 @@ describe('catalog', () => {
         mutations,
         actions,
       };
-
-      const localVue = createLocalVue();
 
       localVue.use(Vuex);
 
@@ -104,11 +102,9 @@ describe('catalog', () => {
     };
 
     it('no force', async() => {
-      const localVue = createLocalVue();
-
       localVue.use(Vuex);
 
-      const store = new Vuex.Store(constructStore());
+      const store = createStore(constructStore());
 
       // Validate initial state of store
       expect(store.getters[`${ catalogStoreName }/rawCharts`]).toStrictEqual(initialRawCharts);
@@ -135,11 +131,9 @@ describe('catalog', () => {
     });
 
     it('force', async() => {
-      const localVue = createLocalVue();
-
       localVue.use(Vuex);
 
-      const store = new Vuex.Store(constructStore());
+      const store = createStore(constructStore());
 
       // Validate initial state of store
       let rawCharts = store.getters[`${ catalogStoreName }/rawCharts`];
@@ -181,11 +175,9 @@ describe('catalog', () => {
     });
 
     it('force + reset', async() => {
-      const localVue = createLocalVue();
-
       localVue.use(Vuex);
 
-      const store = new Vuex.Store(constructStore());
+      const store = createStore(constructStore());
 
       // Validate initial state of store
       expect(store.getters[`${ catalogStoreName }/rawCharts`]).toStrictEqual(initialRawCharts);

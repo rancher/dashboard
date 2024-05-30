@@ -156,7 +156,7 @@ export default {
     this.$emit('validationChanged', true);
   },
 
-  beforeDestroy() {
+  beforeUnmount() {
     // Ensure we emit validation event so parent can forget any validation for this Machine Pool when it is removed
     this.$emit('validationChanged', undefined);
   },
@@ -322,7 +322,7 @@ export default {
             :output-modifier="true"
             :base-unit="t('cluster.machinePool.autoReplace.unit')"
             :disabled="busy"
-            @input="value.pool.unhealthyNodeTimeout = `${unhealthyNodeTimeoutInteger}s`"
+            @update:modelValue="value.pool.unhealthyNodeTimeout = `${unhealthyNodeTimeoutInteger}s`"
           />
         </div>
         <div class="col span-4">
@@ -365,8 +365,8 @@ export default {
 </template>
 
 <style lang="scss" scoped>
-  .advanced ::v-deep >.vue-portal-target:empty,
-  .advanced ::v-deep >.vue-portal-target:empty + .spacer {
+  .advanced :deep() >.vue-portal-target:empty,
+  .advanced :deep() >.vue-portal-target:empty + .spacer {
     display: none;
   }
 </style>

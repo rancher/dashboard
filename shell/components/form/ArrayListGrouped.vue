@@ -71,7 +71,7 @@ export default {
     :add-allowed="canAdd && !isView"
     :mode="mode"
     :initial-empty-row="initialEmptyRow"
-    @input="$emit('input', $event)"
+    @update:modelValue="$emit('input', $event)"
     @add="$emit('add')"
     @remove="$emit('remove', $event)"
   >
@@ -94,7 +94,7 @@ export default {
     </template>
     <!-- Pass down templates provided by the caller -->
     <template
-      v-for="(_, slot) of $scopedSlots"
+      v-for="(_, slot) of $slots"
       v-slot:[slot]="scope"
     >
       <slot

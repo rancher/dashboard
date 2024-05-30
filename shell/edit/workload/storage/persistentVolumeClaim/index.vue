@@ -73,7 +73,7 @@ export default {
     const pvc = await this.$store.dispatch('cluster/create', data);
 
     pvc.applyDefaults();
-    this.$set(this.value, '__newPvc', pvc);
+    this.value['__newPvc'] = pvc;
   },
 
   computed: {

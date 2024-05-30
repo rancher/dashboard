@@ -24,7 +24,7 @@ export default {
     }
   },
   data() {
-    this.$set(this.value, 'basic_auth', this.value.basic_auth || {});
+    this.value['basic_auth'] = this.value.basic_auth || {};
 
     const authOptions = [
       {
@@ -62,9 +62,9 @@ export default {
     initializeType(authOptions, type) {
       authOptions.forEach((authOption) => {
         if (authOption.value === type && type !== 'none') {
-          this.$set(this.value, authOption.value, this.value[authOption.value] || authOption.default);
+          this.value[authOption.value] = this.value[authOption.value] || authOption.default;
         } else if (typeof this.value[authOption.value] !== 'undefined') {
-          this.$delete(this.value, authOption.value);
+          delete this.value[authOption.value];
         }
       });
     },
@@ -85,7 +85,7 @@ export default {
           v-model="authType"
           :options="authOptions"
           label="Auth Type"
-          @input="initializeType(authOptions, authType)"
+          @update:modelValue="initializeType(authOptions, authType)"
         />
       </div>
     </div>

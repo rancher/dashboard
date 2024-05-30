@@ -205,7 +205,7 @@ export default {
     this.$nextTick(() => this.layoutHeader(null, true));
   },
 
-  beforeDestroy() {
+  beforeUnmount() {
     window.removeEventListener('resize', this.debouncedLayoutHeader);
   },
 
@@ -617,9 +617,8 @@ export default {
               @click.stop="showPageActionsMenu(false)"
             >
               <li
-                v-for="a in pageActions"
-                :key="a.label"
-                class="user-menu-item"
+                v-for="(a, i) in pageActions"
+                :key="i"
               >
                 <a
                   v-if="!a.separator"
@@ -778,8 +777,8 @@ export default {
     }
 
     .filter {
-      ::v-deep .labeled-select,
-      ::v-deep .unlabeled-select {
+      :deep() .labeled-select,
+      :deep() .unlabeled-select {
         .vs__search::placeholder {
           color: var(--body-text) !important;
         }
@@ -941,7 +940,7 @@ export default {
         width: 40px;
       }
 
-      ::v-deep > div > .btn.role-tertiary {
+      :deep() > div > .btn.role-tertiary {
         border: 1px solid var(--header-btn-bg);
         border: none;
         background: var(--header-btn-bg);
@@ -996,7 +995,7 @@ export default {
 
         .v-popover {
           display: flex;
-          ::v-deep .trigger{
+          :deep() .trigger{
           .user-image {
               display: flex;
             }
@@ -1010,7 +1009,7 @@ export default {
 
         &:focus {
           .v-popover {
-            ::v-deep .trigger {
+            :deep() .trigger {
               line-height: 0;
               .user-image {
                 max-height: 40px;
@@ -1080,17 +1079,17 @@ export default {
 
   .user-menu {
     // Remove the default padding on the popup so that the hover on menu items goes full width of the menu
-    ::v-deep .popover-inner {
+    :deep() .popover-inner {
       padding: 10px 0;
     }
 
-    ::v-deep .v-popover {
+    :deep() .v-popover {
       display: flex;
     }
   }
 
   .actions {
-    ::v-deep .popover:focus {
+    :deep() .popover:focus {
       outline: 0;
     }
 

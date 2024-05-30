@@ -35,7 +35,7 @@ export default {
 
   data() {
     if (!this.value.spec) {
-      this.$set(this.value, 'spec', {});
+      this.value['spec'] = {};
     }
 
     return { configMaps: [], providers };
@@ -51,8 +51,8 @@ export default {
       set(neu) {
         const { name, namespace } = neu.metadata;
 
-        this.$set(this.value.spec, 'customBenchmarkConfigMapName', name);
-        this.$set(this.value.spec, 'customBenchmarkConfigMapNamespace', namespace);
+        this.value.spec['customBenchmarkConfigMapName'] = name;
+        this.value.spec['customBenchmarkConfigMapNamespace'] = namespace;
       }
     },
     ...mapGetters({ t: 'i18n/t' })

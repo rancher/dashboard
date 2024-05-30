@@ -117,7 +117,7 @@ export default {
           :label="t('ingress.rules.requestHost.label')"
           :placeholder="t('ingress.rules.requestHost.placeholder')"
           :rules="rules.requestHost"
-          @input="update"
+          @update:modelValue="update"
         />
       </div>
       <div
@@ -147,7 +147,9 @@ export default {
       </div>
       <div class="col" />
     </div>
-    <template v-for="(path, i) in paths">
+    <template v-for="(path, i) in paths"
+              :key="i"
+    >
       <RulePath
         ref="paths"
         :key="path.id"
@@ -158,7 +160,7 @@ export default {
         :ingress="ingress"
         :rules="{path: rules.path, port: rules.port, target: rules.target}"
         @remove="(e) => removePath(i)"
-        @input="update"
+        @update:modelValue="update"
       />
     </template>
     <button

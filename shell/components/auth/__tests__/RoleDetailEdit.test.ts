@@ -19,22 +19,26 @@ const role = {
 describe('component: RoleDetailEdit', () => {
   it('does not have validation errors when the role has no displayName', () => {
     const wrapper = mount(RoleDetailEdit, {
-      propsData: { value: role },
-      mocks:     {
-        $fetchState: { pending: false },
-        $route:      { name: 'anything' },
-        $store:      {
-          dispatch: jest.fn(),
-          getters:  {
-            currentStore: () => 'store', 'i18n/t': jest.fn(), 'store/schemaFor': jest.fn(), 'store/customisation/': jest.fn()
+      props: { value: role },
+
+      global: {
+        mocks:     {
+          $fetchState: { pending: false },
+          $route:      { name: 'anything' },
+          $store:      {
+            dispatch: jest.fn(),
+            getters:  {
+              currentStore: () => 'store', 'i18n/t': jest.fn(), 'store/schemaFor': jest.fn(), 'store/customisation/': jest.fn()
+            }
           }
-        }
+        },
+
+        stubs: {
+          CruResource: { template: '<div><slot></slot></div>' },
+          // NameNsDescription: true,
+          Tab:         { template: '<div><slot></slot></div>' },
+        },
       },
-      stubs: {
-        CruResource: { template: '<div><slot></slot></div>' },
-        // NameNsDescription: true,
-        Tab:         { template: '<div><slot></slot></div>' },
-      }
     });
 
     expect((wrapper.vm as any).fvFormIsValid).toBe(true);

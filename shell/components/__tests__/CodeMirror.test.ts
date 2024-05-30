@@ -1,3 +1,4 @@
+import { nextTick } from 'vue';
 import { shallowMount, Wrapper } from '@vue/test-utils';
 import CodeMirror from '@shell/components/CodeMirror.vue';
 import { _EDIT, _YAML } from '@shell/config/query-params';
@@ -56,7 +57,7 @@ describe('component: CodeMirror.vue', () => {
     );
 
     it(`should show keyMap preference`, async() => {
-      await wrapper.vm.$nextTick();
+      await nextTick();
 
       const keyMapBox = wrapper.find('[data-testid="code-mirror-keymap"]');
       const closeIcon = keyMapBox.find('.icon');
@@ -66,12 +67,12 @@ describe('component: CodeMirror.vue', () => {
     });
 
     it(`should show keyMap close icon on mouse over`, async() => {
-      await wrapper.vm.$nextTick();
+      await nextTick();
 
       const keyMapBox = wrapper.find('[data-testid="code-mirror-keymap"]');
 
       keyMapBox.trigger('mouseover');
-      await wrapper.vm.$nextTick();
+      await nextTick();
 
       const closeIcon = keyMapBox.find('.icon');
 
@@ -79,17 +80,17 @@ describe('component: CodeMirror.vue', () => {
     });
 
     it(`should remove keyMap box`, async() => {
-      await wrapper.vm.$nextTick();
+      await nextTick();
 
       let keyMapBox = wrapper.find('[data-testid="code-mirror-keymap"]');
 
       keyMapBox.trigger('mouseover');
-      await wrapper.vm.$nextTick();
+      await nextTick();
 
       const closeIcon = keyMapBox.find('.icon');
 
       closeIcon.element.click();
-      await wrapper.vm.$nextTick();
+      await nextTick();
 
       keyMapBox = wrapper.find('[data-testid="code-mirror-keymap"]');
 

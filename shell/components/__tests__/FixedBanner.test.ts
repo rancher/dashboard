@@ -30,8 +30,10 @@ const parsedBannerContent = {
 describe('component: FixedBanner', () => {
   it('should render HEADER fixed banner correctly', async() => {
     const wrapper = shallowMount(FixedBanner as unknown as ExtendedVue<Vue, {}, {}, {}, DefaultProps>, {
-      propsData: { header: true },
-      mocks:     { $store: { getters: { 'management/byId': jest.fn(), 'management/all': () => [{ id: SETTING.BANNERS, ...SETTING_NO_CONSENT }] } } }
+      props: { header: true },
+      global: {
+        mocks:     { $store: { getters: { 'management/byId': jest.fn(), 'management/all': () => [{ id: SETTING.BANNERS, ...SETTING_NO_CONSENT }] } } },
+      }
     });
 
     expect(wrapper.vm.bannerStyle).toStrictEqual(parsedBannerStyle);
@@ -50,8 +52,10 @@ describe('component: FixedBanner', () => {
 
   it('should render FOOTER fixed banner, as text array (newline char), correctly', async() => {
     const wrapper = shallowMount(FixedBanner as unknown as ExtendedVue<Vue, {}, {}, {}, DefaultProps>, {
-      propsData: { footer: true },
-      mocks:     { $store: { getters: { 'management/byId': jest.fn(), 'management/all': () => [{ id: SETTING.BANNERS, ...SETTING_NO_CONSENT }] } } }
+      props: { footer: true },
+      global: {
+        mocks:     { $store: { getters: { 'management/byId': jest.fn(), 'management/all': () => [{ id: SETTING.BANNERS, ...SETTING_NO_CONSENT }] } } },
+      }
     });
 
     expect(wrapper.vm.bannerStyle).toStrictEqual(parsedBannerStyle);
@@ -70,8 +74,10 @@ describe('component: FixedBanner', () => {
 
   it('should render CONSENT as a DIALOG correctly', async() => {
     const wrapper = shallowMount(FixedBanner as unknown as ExtendedVue<Vue, {}, {}, {}, DefaultProps>, {
-      propsData: { consent: true },
-      mocks:     { $store: { getters: { 'management/byId': jest.fn(), 'management/all': () => [{ id: SETTING.BANNERS, ...SETTING_WITH_CONSENT }] } } }
+      props: { consent: true },
+      global: {
+        mocks:     { $store: { getters: { 'management/byId': jest.fn(), 'management/all': () => [{ id: SETTING.BANNERS, ...SETTING_WITH_CONSENT }] } } },
+      }
     });
 
     expect(wrapper.vm.bannerStyle).toStrictEqual(parsedBannerStyle);
@@ -97,8 +103,10 @@ describe('component: FixedBanner', () => {
 
   it('clicking dialog button should hide dialog', async() => {
     const wrapper = shallowMount(FixedBanner as unknown as ExtendedVue<Vue, {}, {}, {}, DefaultProps>, {
-      propsData: { consent: true },
-      mocks:     { $store: { getters: { 'management/byId': jest.fn(), 'management/all': () => [{ id: SETTING.BANNERS, ...SETTING_WITH_CONSENT }] } } }
+      props: { consent: true },
+      global: {
+        mocks:     { $store: { getters: { 'management/byId': jest.fn(), 'management/all': () => [{ id: SETTING.BANNERS, ...SETTING_WITH_CONSENT }] } } },
+      }
     });
 
     const buttonDialog = wrapper.find('.banner-dialog button');

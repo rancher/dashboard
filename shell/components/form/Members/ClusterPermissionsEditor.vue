@@ -202,7 +202,7 @@ export default {
     },
 
     onAdd(principalId) {
-      this.$set(this, 'principalId', principalId);
+      this['principalId'] = principalId;
       this.updateBindings();
     },
 
@@ -268,8 +268,8 @@ export default {
           :class="{'two-column': useTwoColumnsForCustom}"
         >
           <div
-            v-for="permission in customPermissionsUpdate"
-            :key="permission.key"
+            v-for="(permission, i) in customPermissionsUpdate"
+            :key="i"
           >
             <Checkbox
               v-model="permission.value"
@@ -291,7 +291,7 @@ export default {
 <style lang="scss" scoped>
 $detailSize: 11px;
 
-::v-deep .type-description {
+:deep() .type-description {
     font-size: $detailSize;
 }
 
@@ -305,7 +305,7 @@ label.radio {
   &.two-column {
     grid-template-columns: 1fr 1fr;
   }
-  ::v-deep .checkbox-label {
+  :deep() .checkbox-label {
     margin-right: 0;
   }
 }

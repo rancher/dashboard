@@ -40,8 +40,8 @@ export default {
       <table class="fixed">
         <tbody>
           <tr
-            v-for="obj in row.stateParts"
-            :key="obj.label"
+            v-for="(obj, i) in row.stateParts"
+            :key="i"
           >
             <td
               class="text-left pr-20"

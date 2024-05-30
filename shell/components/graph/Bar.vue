@@ -50,8 +50,6 @@ export default {
     <div
       v-for="(sliceStyle, i) in sliceStyles"
       :key="i"
-      class="slice"
-      :style="sliceStyle"
     />
   </div>
 </template>

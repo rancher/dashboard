@@ -70,11 +70,11 @@ export default {
     };
     const defaultAccessModes = ['ReadWriteOnce'];
 
-    this.$set(this.value, 'spec', this.value.spec || {});
-    this.$set(this.value.spec, 'accessModes', this.value.spec.accessModes || defaultAccessModes);
-    this.$set(this.value.spec, 'capacity', this.value.spec.capacity || {});
-    this.$set(this.value.spec.capacity, 'storage', this.value.spec.capacity.storage || '10Gi');
-    this.$set(this.value.spec, 'storageClassName', this.value.spec.storageClassName || NONE_OPTION.value);
+    this.value['spec'] = this.value.spec || {};
+    this.value.spec['accessModes'] = this.value.spec.accessModes || defaultAccessModes;
+    this.value.spec['capacity'] = this.value.spec.capacity || {};
+    this.value.spec.capacity['storage'] = this.value.spec.capacity.storage || '10Gi';
+    this.value.spec['storageClassName'] = this.value.spec.storageClassName || NONE_OPTION.value;
 
     const foundPlugin = this.value.isLonghorn ? LONGHORN_PLUGIN : VOLUME_PLUGINS.find((plugin) => this.value.spec[plugin.value]);
     const plugin = (foundPlugin || VOLUME_PLUGINS[0]).value;
@@ -130,14 +130,14 @@ export default {
           const defaultValue = { required: { nodeSelectorTerms: [] } };
 
           if (!this.value.spec.nodeAffinity?.required?.nodeSelectorTerms) {
-            this.$set(this.value.spec, 'nodeAffinity', this.value.spec.nodeAffinity || defaultValue);
-            this.$set(this.value.spec.nodeAffinity, 'required', this.value.spec.nodeAffinity.required || defaultValue.required);
-            this.$set(this.value.spec.nodeAffinity.required, 'nodeSelectorTerms', this.value.spec.nodeAffinity.required.nodeSelectorTerms || defaultValue.required.nodeSelectorTerms);
+            this.value.spec['nodeAffinity'] = this.value.spec.nodeAffinity || defaultValue;
+            this.value.spec.nodeAffinity['required'] = this.value.spec.nodeAffinity.required || defaultValue.required;
+            this.value.spec.nodeAffinity.required['nodeSelectorTerms'] = this.value.spec.nodeAffinity.required.nodeSelectorTerms || defaultValue.required.nodeSelectorTerms;
           }
 
-          this.$set(this.value.spec.nodeAffinity.required, 'nodeSelectorTerms', value);
+          this.value.spec.nodeAffinity.required['nodeSelectorTerms'] = value;
         } else {
-          this.$set(this.value.spec.nodeAffinity, 'nodeAffinity', undefined);
+          this.value.spec.nodeAffinity['nodeAffinity'] = undefined;
         }
       }
     },
@@ -181,7 +181,7 @@ export default {
     checkboxSetter(key, value) {
       if (value) {
         this.value.spec.accessModes.push(key);
-        this.$set(this.value, 'accessModes', uniq(this.value.spec.accessModes));
+        this.value['accessModes'] = uniq(this.value.spec.accessModes);
       } else {
         const indexOf = this.value.spec.accessModes.indexOf(key);
 
@@ -195,18 +195,18 @@ export default {
     },
     willSave() {
       if (this.value.spec.storageClassName === this.NONE_OPTION.value) {
-        this.$set(this.value.spec, 'storageClassName', null);
+        this.value.spec['storageClassName'] = null;
       }
 
       if (!this.isCreate) {
-        this.$set(this.value.spec, 'nodeAffinity', this.initialNodeAffinity);
+        this.value.spec['nodeAffinity'] = this.initialNodeAffinity;
       }
     },
     updatePlugin(value) {
       const plugin = this.plugin === LONGHORN_PLUGIN.value ? 'csi' : this.plugin;
 
       delete this.value.spec[plugin];
-      this.$set(this, 'plugin', value);
+      this['plugin'] = value;
     }
   }
 };
@@ -262,7 +262,7 @@ export default {
           :options="plugins"
           :mode="modeOverride"
           :required="true"
-          @input="updatePlugin($event)"
+          @update:modelValue="updatePlugin($event)"
         />
       </div>
       <div class="col span-6">

@@ -49,7 +49,7 @@ export default {
 
   data() {
     if (!this.value.spec.values) {
-      this.$set(this.value.spec, 'values', {});
+      this.value.spec['values'] = {};
     }
 
     return {

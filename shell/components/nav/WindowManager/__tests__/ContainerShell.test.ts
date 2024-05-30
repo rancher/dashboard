@@ -1,3 +1,4 @@
+import { nextTick } from 'vue';
 import { mount, Wrapper } from '@vue/test-utils';
 import ContainerShell from '@shell/components/nav/WindowManager/ContainerShell.vue';
 import Socket, {
@@ -85,10 +86,10 @@ describe('component: ContainerShell', () => {
     const wrapper = await mount(ContainerShell, params);
 
     // these awaits are all associated with the various async dyamic imports on xterm
-    await wrapper.vm.$nextTick();
-    await wrapper.vm.$nextTick();
-    await wrapper.vm.$nextTick();
-    await wrapper.vm.$nextTick();
+    await nextTick();
+    await nextTick();
+    await nextTick();
+    await nextTick();
 
     return wrapper;
   };

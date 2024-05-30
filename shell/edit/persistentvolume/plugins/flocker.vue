@@ -14,7 +14,7 @@ export default {
     },
   },
   data() {
-    this.$set(this.value.spec, 'flocker', this.value.spec.flocker || {});
+    this.value.spec['flocker'] = this.value.spec.flocker || {};
 
     return {};
   },

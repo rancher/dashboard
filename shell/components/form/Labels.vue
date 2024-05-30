@@ -107,7 +107,7 @@ export default {
                 :mode="mode"
                 :read-allowed="false"
                 :value-can-be-empty="true"
-                @input="value.setLabels($event)"
+                @update:modelValue="value.setLabels($event)"
               />
             </template>
           </slot>
@@ -130,7 +130,7 @@ export default {
         :title-protip="annotationTitleTooltip"
         :read-allowed="false"
         :value-can-be-empty="true"
-        @input="value.setAnnotations($event)"
+        @update:modelValue="value.setAnnotations($event)"
       />
     </div>
   </div>

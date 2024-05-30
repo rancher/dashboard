@@ -503,7 +503,7 @@ export default {
               icon-size="lg"
               :options="sensitiveOptions"
               class="mr-10"
-              @input="toggleSensitiveData"
+              @update:modelValue="toggleSensitiveData"
             />
 
             <ButtonGroup

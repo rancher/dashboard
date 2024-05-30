@@ -35,7 +35,7 @@ export default ({
           :mode="mode"
           :value="value.showMessage === 'true'"
           :label="t('notifications.loginError.showCheckboxLabel')"
-          @input="e=>$set(value, 'showMessage', e.toString())"
+          @update:modelValue="e=>$set(value, 'showMessage', e.toString())"
         />
       </div>
     </div>

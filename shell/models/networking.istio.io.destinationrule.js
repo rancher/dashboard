@@ -1,10 +1,10 @@
-import Vue from 'vue';
+import { createApp } from 'vue';
 import SteveModel from '@shell/plugins/steve/steve-class';
+const vueApp = createApp({});
 
 export default class DestinationRule extends SteveModel {
   applyDefaults() {
-    Vue.set(this, 'spec', {
-      host:          '',
+    this['spec'] = {host:          '',
       subsets:       [],
       trafficPolicy: {
         loadBalancer:   { simple: 'ROUND_ROBIN' },
@@ -14,7 +14,6 @@ export default class DestinationRule extends SteveModel {
         },
         outlierDetection: {},
         tls:              {},
-      }
-    });
+      }};
   }
 }

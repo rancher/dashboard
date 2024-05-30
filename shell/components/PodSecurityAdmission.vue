@@ -213,8 +213,7 @@ export default defineComponent({
 
     <div
       v-for="(psaControl, level, i) in psaControls"
-      :key="'psaControl-' + i"
-      class="row row--y-center mb-20"
+      :key="i"
     >
       <span class="col span-2">
         <Checkbox
@@ -224,7 +223,7 @@ export default defineComponent({
           :label="level"
           :label-key="`podSecurityAdmission.labels.${ level }`"
           :disabled="isView"
-          @input="updateLabels()"
+          @update:modelValue="updateLabels()"
         />
         <p v-else>
           <t :k="`podSecurityAdmission.labels.${level}`" />
@@ -242,7 +241,7 @@ export default defineComponent({
           :disabled="isPsaControlDisabled(psaControl.active)"
           :options="options"
           :mode="mode"
-          @input="updateLabels()"
+          @update:modelValue="updateLabels()"
         />
       </span>
 
@@ -254,7 +253,7 @@ export default defineComponent({
           :options="options"
           :placeholder="t('podSecurityAdmission.version.placeholder', { psaControl: mode })"
           :mode="mode"
-          @input="updateLabels()"
+          @update:modelValue="updateLabels()"
         />
       </span>
     </div>
@@ -272,8 +271,7 @@ export default defineComponent({
 
       <div
         v-for="(psaExemptionsControl, dimension, i) in psaExemptionsControls"
-        :key="'psaExemptionsControl-' + i"
-        class="row row--y-center mb-20"
+        :key="i"
       >
         <span class="col span-2">
           <Checkbox
@@ -282,7 +280,7 @@ export default defineComponent({
             :label="dimension"
             :label-key="`podSecurityAdmission.labels.${ dimension }`"
             :disabled="isView"
-            @input="updateExemptions()"
+            @update:modelValue="updateExemptions()"
           />
         </span>
         <span class="col span-8">
@@ -293,7 +291,7 @@ export default defineComponent({
             :options="options"
             :placeholder="t('podSecurityAdmission.exemptions.placeholder', { psaExemptionsControl: dimension })"
             :mode="mode"
-            @input="updateExemptions()"
+            @update:modelValue="updateExemptions()"
           />
         </span>
       </div>

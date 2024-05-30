@@ -72,7 +72,7 @@ export default {
     const bindings = allBindings
       .filter((b) => normalizeId(get(b, this.parentKey)) === normalizeId(this.parentId));
 
-    this.$set(this, 'lastSavedBindings', [...bindings]);
+    this['lastSavedBindings'] = [...bindings];
 
     // Add the current user as the project owner. This will get created by default
     if (this.mode === _CREATE && bindings.length === 0 && this.defaultBindingHandler) {
@@ -82,7 +82,7 @@ export default {
       bindings.push(defaultBinding);
     }
 
-    this.$set(this, 'bindings', bindings);
+    this['bindings'] = bindings;
   },
 
   data() {
@@ -150,7 +150,7 @@ export default {
     },
 
     onAddMember(bindings) {
-      this.$set(this, 'bindings', [...this.bindings, ...bindings]);
+      this['bindings'] = [...this.bindings, ...bindings];
     },
   }
 };
@@ -179,7 +179,6 @@ export default {
       <div class="columns row">
         <div class="col span-6">
           <Principal
-            :key="row.value.principalId"
             :value="row.value.principalId"
           />
         </div>

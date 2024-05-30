@@ -31,7 +31,7 @@ export default {
   },
   watch: {
     availabilityZone() {
-      this.$set(this.value.parameters, 'availability', '');
+      this.value.parameters['availability'] = '';
     }
   }
 };

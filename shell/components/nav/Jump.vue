@@ -78,8 +78,8 @@ export default {
     >
     <div class="results">
       <div
-        v-for="g in groups"
-        :key="g.name"
+        v-for="(g, i) in groups"
+        :key="i"
         class="package"
       >
         <Group

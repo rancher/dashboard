@@ -197,7 +197,7 @@ export default {
       :input-exponent="typeOption.inputExponent"
       :base-unit="typeOption.baseUnit"
       :output-modifier="true"
-      @input="update"
+      @update:modelValue="update"
     />
   </div>
 </template>

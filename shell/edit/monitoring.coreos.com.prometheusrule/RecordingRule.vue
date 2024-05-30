@@ -41,10 +41,10 @@ export default {
 
   methods: {
     updateExpression(value) {
-      this.$set(this.value, 'expr', value);
+      this.value['expr'] = value;
     },
     updateLabels(value) {
-      this.$set(this.value, 'labels', value);
+      this.value['labels'] = value;
     },
   }
 };
@@ -94,7 +94,7 @@ export default {
           :mode="mode"
           :title="t('prometheusRule.recordingRules.labels')"
           :read-allowed="false"
-          @input="queueLabelUpdate"
+          @update:modelValue="queueLabelUpdate"
         />
       </div>
     </div>

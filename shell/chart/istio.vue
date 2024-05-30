@@ -149,7 +149,7 @@ export default {
         <Checkbox
           v-model="value.cni.enabled"
           :label="t('istio.cni')"
-          @input="update"
+          @update:modelValue="update"
         />
       </div>
       <div
@@ -209,7 +209,7 @@ export default {
         <Checkbox
           v-model="value.kiali.enabled"
           :label="t('istio.kiali')"
-          @input="changeKiali"
+          @update:modelValue="changeKiali"
         />
       </div>
       <div

@@ -1,10 +1,11 @@
 <script>
-import Vue from 'vue';
+import { createApp } from 'vue';
 import ResourceTable from '@shell/components/ResourceTable';
 import { AGE } from '@shell/config/table-headers';
 import ResourceFetch from '@shell/mixins/resource-fetch';
 import { allHash } from '@shell/utils/promise';
 import { fetchSpecsScheduledScanConfig } from '@shell/models/cis.cattle.io.clusterscan';
+const vueApp = createApp({});
 
 export default {
   components: { ResourceTable },
@@ -33,7 +34,7 @@ export default {
       hasScheduledScanConfig: fetchSpecsScheduledScanConfig(this.schema),
     });
 
-    Vue.set(this, 'hasScheduledScanConfig', res.hasScheduledScanConfig);
+    this['hasScheduledScanConfig'] = res.hasScheduledScanConfig;
   },
 
   data() {

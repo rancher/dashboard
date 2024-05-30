@@ -37,7 +37,7 @@ export default {
       placeholder-key="cluster.credential.linode.accessToken.placeholder"
       type="password"
       :mode="mode"
-      @input="value.setData('token', $event);"
+      @update:modelValue="value.setData('token', $event);"
     />
     <p
       v-clean-html="t('cluster.credential.linode.accessToken.help', {}, true)"

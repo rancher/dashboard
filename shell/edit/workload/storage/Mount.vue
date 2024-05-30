@@ -88,7 +88,6 @@ export default {
     <div
       v-for="(volumeMount, i) in volumeMounts"
       :key="i"
-      class="mount-rows"
     >
       <div>
         <LabeledInput

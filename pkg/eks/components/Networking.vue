@@ -195,13 +195,13 @@ export default defineComponent({
           :value="publicAccess"
           :mode="mode"
           label-key="eks.publicAccess.label"
-          @input="$emit('update:publicAccess', $event)"
+          @update:modelValue="$emit('update:publicAccess', $event)"
         />
         <Checkbox
           :value="privateAccess"
           :mode="mode"
           label-key="eks.privateAccess.label"
-          @input="$emit('update:privateAccess', $event)"
+          @update:modelValue="$emit('update:privateAccess', $event)"
         />
       </div>
     </div>
@@ -214,7 +214,7 @@ export default defineComponent({
           :add-allowed="publicAccess"
           :add-label="t('eks.publicAccessSources.addEndpoint')"
           data-testid="eks-public-access-sources"
-          @input="$emit('update:publicAccessSources', $event)"
+          @update:modelValue="$emit('update:publicAccessSources', $event)"
         >
           <template #title>
             {{ t('eks.publicAccessSources.label') }}

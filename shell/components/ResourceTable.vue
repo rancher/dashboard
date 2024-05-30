@@ -189,7 +189,7 @@ export default {
     window.addEventListener('keyup', this.handleEnterKeyPress);
   },
 
-  beforeDestroy() {
+  beforeUnmount() {
     window.removeEventListener('keyup', this.handleEnterKeyPress);
   },
 
@@ -556,8 +556,6 @@ export default {
     :mandatory-sort="_mandatorySort"
     @clickedActionButton="handleActionButtonClick"
     @group-value-change="group = $event"
-
-    v-on="$listeners"
   >
     <template
       v-if="showGrouping"
@@ -587,8 +585,8 @@ export default {
 
     <!-- Pass down templates provided by the caller -->
     <template
-      v-for="(_, slot) of $scopedSlots"
-      v-slot:[slot]="scope"
+      v-for="(_, slot) of $slots"
+      :key="slot"
     >
       <slot
         :name="slot"

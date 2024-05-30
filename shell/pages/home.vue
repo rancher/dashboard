@@ -230,7 +230,7 @@ export default {
   },
 
   // Forget the types when we leave the page
-  beforeDestroy() {
+  beforeUnmount() {
     this.$store.dispatch('management/forgetType', CAPI.MACHINE);
     this.$store.dispatch('management/forgetType', MANAGEMENT.NODE);
     this.$store.dispatch('management/forgetType', MANAGEMENT.NODE_POOL);
@@ -527,7 +527,7 @@ export default {
   }
 
   .set-login-page, .whats-new {
-    > ::v-deep .banner__content {
+    > :deep() .banner__content {
       display: flex;
 
       > div {

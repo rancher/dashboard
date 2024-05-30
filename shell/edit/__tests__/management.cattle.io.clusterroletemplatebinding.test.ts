@@ -50,7 +50,7 @@ describe('view: management.cattle.io.clusterroletemplatebinding should', () => {
   });
 
   afterEach(() => {
-    wrapper.destroy();
+    wrapper.unmount();
   });
 
   it('should only show one error banner', async() => {

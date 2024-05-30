@@ -76,7 +76,7 @@ export default defineComponent({
     };
   },
 
-  beforeDestroy() {
+  beforeUnmount() {
     // Stop watching pods, nodes and node metrics
     if (this.canViewPods) {
       this.$store.dispatch('cluster/forgetType', POD);
@@ -173,7 +173,7 @@ export default defineComponent({
     },
 
     toggleLabels(row: any) {
-      this.$set(row, 'displayLabels', !row.displayLabels);
+      row['displayLabels'] = !row.displayLabels;
     },
 
     fetchSecondaryResources(): { [key: string]: Promise<any>} {
@@ -310,7 +310,6 @@ export default defineComponent({
       :external-pagination-enabled="canPaginate"
       :external-pagination-result="paginationResult"
       @pagination-changed="paginationChanged"
-      v-on="$listeners"
     >
       <template #sub-row="{fullColspan, row, onRowMouseEnter, onRowMouseLeave}">
         <tr
@@ -326,9 +325,8 @@ export default defineComponent({
               <span v-if="row.spec.taints && row.spec.taints.length">
                 {{ t('node.list.nodeTaint') }}:
                 <Tag
-                  v-for="taint in row.spec.taints"
-                  :key="taint.key + taint.value + taint.effect"
-                  class="mr-5 mt-2"
+                  v-for="(taint, i) in row.spec.taints"
+                  :key="i"
                 >
                   {{ taint.key }}={{ taint.value }}:{{ taint.effect }}
                 </Tag>
@@ -340,7 +338,6 @@ export default defineComponent({
                 <span
                   v-for="(label, i) in row.customLabels"
                   :key="i"
-                  class="mt-5 labels"
                 >
                   <Tag
                     v-if="i < 7"

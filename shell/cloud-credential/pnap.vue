@@ -56,7 +56,7 @@ export default {
           placeholder-key="cluster.credential.pnap.clientIdentifier.placeholder"
           type="text"
           :mode="mode"
-          @input="value.setData('clientIdentifier', $event);"
+          @update:modelValue="value.setData('clientIdentifier', $event);"
         />
       </div>
       <div class="col span-6">
@@ -66,7 +66,7 @@ export default {
           placeholder-key="cluster.credential.pnap.clientSecret.placeholder"
           type="text"
           :mode="mode"
-          @input="value.setData('clientSecret', $event);"
+          @update:modelValue="value.setData('clientSecret', $event);"
         />
       </div>
     </div>

@@ -48,7 +48,7 @@ export default {
     this.storageClassOptions = storageClasses.map((s) => s.name).sort();
     this.storageClassOptions.unshift(this.t('persistentVolumeClaim.useDefault'));
 
-    this.$set(this.value.spec, 'storageClassName', this.value.spec.storageClassName || this.storageClassOptions[0]);
+    this.value.spec['storageClassName'] = this.value.spec.storageClassName || this.storageClassOptions[0];
   },
   data() {
     const canListPersistentVolumes = this.$store.getters['cluster/canList'](PV);
@@ -66,12 +66,12 @@ export default {
 
     const defaultAccessModes = ['ReadWriteOnce'];
 
-    this.$set(this.value, 'spec', this.value.spec || {});
-    this.$set(this.value.spec, 'resources', this.value.spec.resources || {});
-    this.$set(this.value.spec.resources, 'requests', this.value.spec.resources.requests || {});
-    this.$set(this.value.spec.resources.requests, 'storage', this.value.spec.resources.requests.storage || DEFAULT_STORAGE);
+    this.value['spec'] = this.value.spec || {};
+    this.value.spec['resources'] = this.value.spec.resources || {};
+    this.value.spec.resources['requests'] = this.value.spec.resources.requests || {};
+    this.value.spec.resources.requests['storage'] = this.value.spec.resources.requests.storage || DEFAULT_STORAGE;
     if (this.realMode === _CREATE) {
-      this.$set(this.value.spec, 'accessModes', defaultAccessModes);
+      this.value.spec['accessModes'] = defaultAccessModes;
     }
 
     const defaultTab = this.$route.query[FOCUS] || null;
@@ -121,16 +121,16 @@ export default {
       set(value) {
         const persistentVolume = this.persistentVolumes.find((pv) => pv.metadata.name === value);
 
-        this.$set(this.value.spec, 'storageClassName', '');
+        this.value.spec['storageClassName'] = '';
 
         if (persistentVolume) {
-          this.$set(this.value.spec.resources.requests, 'storage', persistentVolume.spec.capacity?.storage);
+          this.value.spec.resources.requests['storage'] = persistentVolume.spec.capacity?.storage;
           if (persistentVolume.spec?.storageClassName) {
-            this.$set(this.value.spec, 'storageClassName', persistentVolume.spec?.storageClassName );
+            this.value.spec['storageClassName'] = persistentVolume.spec?.storageClassName ;
           }
         }
 
-        this.$set(this.value.spec, 'volumeName', value);
+        this.value.spec['volumeName'] = value;
       }
     },
     storageAmountMode() {
@@ -184,7 +184,7 @@ export default {
     checkboxSetter(key, value) {
       if (value) {
         this.value.spec.accessModes.push(key);
-        this.$set(this.value, 'accessModes', uniq(this.value.spec.accessModes));
+        this.value['accessModes'] = uniq(this.value.spec.accessModes);
       } else {
         const indexOf = this.value.spec.accessModes.indexOf(key);
 
@@ -200,14 +200,14 @@ export default {
     },
     updateDefaults(source) {
       if (source === 'new') {
-        this.$set(this.value.spec.resources.requests, 'storage', DEFAULT_STORAGE);
+        this.value.spec.resources.requests['storage'] = DEFAULT_STORAGE;
       }
 
-      this.$set(this, 'persistentVolume', null);
+      this['persistentVolume'] = null;
     },
     willSave() {
       if (this.value.spec.storageClassName === this.t('persistentVolumeClaim.useDefault')) {
-        this.$delete(this.value.spec, 'storageClassName');
+        delete this.value.spec['storageClassName'];
       }
     }
   }
@@ -252,7 +252,7 @@ export default {
               :mode="immutableMode"
               :label="t('persistentVolumeClaim.source.label')"
               :options="sourceOptions"
-              @input="updateDefaults"
+              @update:modelValue="updateDefaults"
             />
           </div>
           <div class="col span-6">

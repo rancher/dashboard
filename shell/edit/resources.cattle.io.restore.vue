@@ -59,7 +59,7 @@ export default {
 
   data() {
     if (!this.value.spec) {
-      this.$set(this.value, 'spec', { prune: true, deleteTimeoutSeconds: 10 });
+      this.value['spec'] = { prune: true, deleteTimeoutSeconds: 10 };
     }
 
     if (!this.value.metadata.name) {
@@ -138,7 +138,7 @@ export default {
         delete this.value.spec.storageLocation;
         delete this.value.spec.backupFilename;
       } else if (!this.value.spec.storageLocation && neu === 'configureS3') {
-        this.$set(this.value.spec, 'storageLocation', { s3: {} });
+        this.value.spec['storageLocation'] = { s3: {} };
         this.s3 = this.value.spec.storageLocation.s3;
       }
       if (neu === 'useBackup') {
@@ -176,7 +176,7 @@ export default {
       if (neu.spec.encryptionConfigSecretName && this.encryptionSecretNames.includes(neu.spec.encryptionConfigSecretName)) {
         out.encryptionConfigSecretName = neu.spec.encryptionConfigSecretName;
       }
-      this.$set(this.value, 'spec', { ...this.value.spec, ...out });
+      this.value['spec'] = { ...this.value.spec, ...out };
 
       this.targetBackup = neu;
     }
@@ -229,7 +229,7 @@ export default {
                 :mode="mode"
                 option-label="metadata.name"
                 :label="t('backupRestoreOperator.targetBackup')"
-                @input="updateTargetBackup"
+                @update:modelValue="updateTargetBackup"
               />
             </div>
           </div>

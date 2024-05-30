@@ -94,7 +94,7 @@ export default {
 </script>
 
 <template>
-  <div @input="$emit('input', model)">
+  <div @update:modelValue="$emit('input', model)">
     <template>
       <div class="row mb-20">
         <div class="col span-6">
@@ -117,7 +117,7 @@ export default {
             :step="1"
             :mode="mode"
             :label="t('authConfig.ldap.port')"
-            @input="e=>$set(model, 'port', e.replace(/[^0-9]*/g, ''))"
+            @update:modelValue="e=>$set(model, 'port', e.replace(/[^0-9]*/g, ''))"
           />
         </div>
 

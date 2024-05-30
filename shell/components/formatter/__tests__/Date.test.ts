@@ -10,8 +10,10 @@ describe('component: Date formatter', () => {
     const inputTime = dayjs().toString();
     const expectedDate = dayjs(inputTime).format(dateFormat);
     const wrapper = await mount(Date, {
-      propsData: { value: inputTime, showTime: false },
-      mocks:     { $store: { getters: { 'prefs/get': () => dateFormat } } }
+      props: { value: inputTime, showTime: false },
+      global: {
+        mocks:     { $store: { getters: { 'prefs/get': () => dateFormat } } },
+      }
     });
     const element = wrapper.find('span');
 
@@ -25,8 +27,10 @@ describe('component: Date formatter', () => {
     const inputTime = dayjs().toString();
     const expectedDate = dayjs(inputTime).format(timeFormat);
     const wrapper = await mount(Date, {
-      propsData: { value: inputTime, showDate: false },
-      mocks:     { $store: { getters: { 'prefs/get': () => timeFormat } } }
+      props: { value: inputTime, showDate: false },
+      global: {
+        mocks:     { $store: { getters: { 'prefs/get': () => timeFormat } } },
+      }
     });
     const element = wrapper.find('span');
 
@@ -38,8 +42,10 @@ describe('component: Date formatter', () => {
     'hr'
   ])('use custom tag provided by tagName prop', async(tagName) => {
     const wrapper = await mount(Date, {
-      propsData: { value: dayjs().toString(), tagName },
-      mocks:     { $store: { getters: { 'prefs/get': jest.fn() } } }
+      props: { value: dayjs().toString(), tagName },
+      global: {
+        mocks:     { $store: { getters: { 'prefs/get': jest.fn() } } },
+      }
     });
     const element = wrapper.find(tagName);
 
@@ -51,8 +57,10 @@ describe('component: Date formatter', () => {
     false
   ])('should render day and time on different lines if configured', async(multiline) => {
     const wrapper = await mount(Date, {
-      propsData: { value: dayjs().toString(), multiline },
-      mocks:     { $store: { getters: { 'prefs/get': jest.fn() } } }
+      props: { value: dayjs().toString(), multiline },
+      global: {
+        mocks:     { $store: { getters: { 'prefs/get': jest.fn() } } },
+      }
     });
 
     expect(wrapper.find('br').exists()).toBe(multiline);

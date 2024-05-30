@@ -88,8 +88,10 @@ describe('view: autoscaling.horizontalpodautoscaler', () => {
   const currentMetrics = Object.values(value.status.currentMetrics);
 
   const wrapper = shallowMount(HorizontalPodAutoScaler, {
-    mocks,
-    propsData: { value },
+    props: { value },
+    global: {
+      mocks,
+    },
   });
 
   describe.each(value.spec.metrics)('should display metrics for each resource:', (metric) => {

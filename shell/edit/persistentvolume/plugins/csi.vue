@@ -47,12 +47,12 @@ export default {
       }
     ];
 
-    this.$set(this.value.spec, 'csi', this.value.spec.csi || {});
-    this.$set(this.value.spec.csi, 'readOnly', this.value.spec.csi.readOnly || false);
-    this.$set(this.value.spec.csi, 'nodePublishSecretRef', this.value.spec.csi.nodePublishSecretRef || {});
-    this.$set(this.value.spec.csi, 'nodeStageSecretRef', this.value.spec.csi.nodeStageSecretRef || {});
-    this.$set(this.value.spec.csi, 'controllerExpandSecretRef', this.value.spec.csi.controllerExpandSecretRef || {});
-    this.$set(this.value.spec.csi, 'controllerPublishSecretRef', this.value.spec.csi.controllerPublishSecretRef || {});
+    this.value.spec['csi'] = this.value.spec.csi || {};
+    this.value.spec.csi['readOnly'] = this.value.spec.csi.readOnly || false;
+    this.value.spec.csi['nodePublishSecretRef'] = this.value.spec.csi.nodePublishSecretRef || {};
+    this.value.spec.csi['nodeStageSecretRef'] = this.value.spec.csi.nodeStageSecretRef || {};
+    this.value.spec.csi['controllerExpandSecretRef'] = this.value.spec.csi.controllerExpandSecretRef || {};
+    this.value.spec.csi['controllerPublishSecretRef'] = this.value.spec.csi.controllerPublishSecretRef || {};
 
     return {
       readOnlyOptions,

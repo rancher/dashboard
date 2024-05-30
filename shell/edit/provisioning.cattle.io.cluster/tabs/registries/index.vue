@@ -80,7 +80,7 @@ export default {
         class="mb-20"
         :label="t('cluster.privateRegistry.label')"
         data-testid="registries-enable-checkbox"
-        @input="$emit('custom-registry-changed', $event)"
+        @update:modelValue="$emit('custom-registry-changed', $event)"
       />
     </div>
     <div
@@ -94,7 +94,7 @@ export default {
           placeholder-key="catalog.chart.registry.custom.placeholder"
           :min-height="30"
           data-testid="registry-host-input"
-          @input="$emit('registry-host-changed', $event)"
+          @update:modelValue="$emit('registry-host-changed', $event)"
         />
         <SelectOrCreateAuthSecret
           v-model="registrySecret"
@@ -107,7 +107,7 @@ export default {
           :vertical="true"
           :namespace="value.metadata.namespace"
           generate-name="registryconfig-auth-"
-          @input="$emit('registry-secret-changed', $event)"
+          @update:modelValue="$emit('registry-secret-changed', $event)"
         />
       </div>
     </div>

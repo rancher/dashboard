@@ -9,34 +9,38 @@ describe('view: PersistentVolume', () => {
     };
     const resource = 'PersistentVolume';
     const wrapper = mount(PersistentVolume as ExtendedVue<Vue, {}, {}, {}, PersistentVolume>, {
-      propsData: { value: { spec: { } } },
-      mocks:     {
-        $store: {
-          dispatch: () => jest.fn(),
-          getters:  {
-            'i18n/t':            jest.fn(),
-            'i18n/exists':       jest.fn(),
-            currentStore:        () => 'cluster',
-            'features/get':      () => jest.fn(),
-            'prefs/get':         () => resource,
-            'cluster/schemaFor': () => {},
-            'cluster/all':       () => [{}],
+      props: { value: { spec: { } } },
+
+      global: {
+        mocks:     {
+          $store: {
+            dispatch: () => jest.fn(),
+            getters:  {
+              'i18n/t':            jest.fn(),
+              'i18n/exists':       jest.fn(),
+              currentStore:        () => 'cluster',
+              'features/get':      () => jest.fn(),
+              'prefs/get':         () => resource,
+              'cluster/schemaFor': () => {},
+              'cluster/all':       () => [{}],
+            }
+          },
+          $fetchState: {
+            pending: false, error: true, timestamp: Date.now()
+          },
+          $route: {
+            params: { resource },
+            query:  { AS: '' },
+            hash:   '',
+          },
+          $router: {
+            currentRoute: {},
+            replace:      jest.fn(),
           }
         },
-        $fetchState: {
-          pending: false, error: true, timestamp: Date.now()
-        },
-        $route: {
-          params: { resource },
-          query:  { AS: '' },
-          hash:   '',
-        },
-        $router: {
-          currentRoute: {},
-          replace:      jest.fn(),
-        }
+
+        stubs: { LabeledSelect: true },
       },
-      stubs: { LabeledSelect: true }
     });
 
     const select = wrapper.find('[data-testid="persistent-volume-plugin-select"]');
@@ -48,32 +52,34 @@ describe('view: PersistentVolume', () => {
     const plugin = 'csi';
     const resource = 'PersistentVolume';
     const wrapper = mount(PersistentVolume as ExtendedVue<Vue, {}, {}, {}, PersistentVolume>, {
-      propsData: { value: { spec: { [plugin]: { value: plugin } } } },
-      mocks:     {
-        $store: {
-          dispatch: () => jest.fn(),
-          getters:  {
-            'i18n/t':            jest.fn(),
-            'i18n/exists':       jest.fn(),
-            currentStore:        () => 'cluster',
-            'features/get':      () => jest.fn(),
-            'prefs/get':         () => resource,
-            'cluster/schemaFor': () => {},
-            'cluster/all':       () => [{}],
+      props: { value: { spec: { [plugin]: { value: plugin } } } },
+      global: {
+        mocks:     {
+          $store: {
+            dispatch: () => jest.fn(),
+            getters:  {
+              'i18n/t':            jest.fn(),
+              'i18n/exists':       jest.fn(),
+              currentStore:        () => 'cluster',
+              'features/get':      () => jest.fn(),
+              'prefs/get':         () => resource,
+              'cluster/schemaFor': () => {},
+              'cluster/all':       () => [{}],
+            }
+          },
+          $fetchState: {
+            pending: false, error: true, timestamp: Date.now()
+          },
+          $route: {
+            params: { resource },
+            query:  { AS: '' },
+            hash:   '',
+          },
+          $router: {
+            currentRoute: {},
+            replace:      jest.fn(),
           }
         },
-        $fetchState: {
-          pending: false, error: true, timestamp: Date.now()
-        },
-        $route: {
-          params: { resource },
-          query:  { AS: '' },
-          hash:   '',
-        },
-        $router: {
-          currentRoute: {},
-          replace:      jest.fn(),
-        }
       }
     });
 

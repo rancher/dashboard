@@ -341,9 +341,8 @@ export default {
       </h2>
       <div class="resources-count-container">
         <table
-          v-for="cluster in finalCounts"
-          :key="cluster.id"
-          class="full-width"
+          v-for="(cluster, i) in finalCounts"
+          :key="i"
         >
           <thead @click="toggleTable(cluster.id)">
             <th colspan="4">
@@ -376,8 +375,8 @@ export default {
             </tr>
 
             <tr
-              v-for="item in cluster.counts"
-              :key="item.resource"
+              v-for="(item, i) in cluster.counts"
+              :key="i"
             >
               <template v-if="item.count > 0">
                 <td scope="row">

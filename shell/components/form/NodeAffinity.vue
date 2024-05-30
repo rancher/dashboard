@@ -148,9 +148,9 @@ export default {
 
     changePriority(term) {
       if (term.weight) {
-        this.$delete(term, 'weight');
+        delete term['weight'];
       } else {
-        this.$set(term, 'weight', 1);
+        term['weight'] = 1;
       }
       this.update();
     },
@@ -170,8 +170,8 @@ export default {
           expressionsMatching[expression.matching || 'matchExpressions'].push(expression);
         });
 
-        this.$set(row, 'matchFields', expressionsMatching.matchFields);
-        this.$set(row, 'matchExpressions', expressionsMatching.matchExpressions);
+        row['matchFields'] = expressionsMatching.matchFields;
+        row['matchExpressions'] = expressionsMatching.matchExpressions;
 
         this.update();
       }
@@ -188,7 +188,7 @@ export default {
 <template>
   <div
     class="row"
-    @input="queueUpdate"
+    @update:modelValue="queueUpdate"
   >
     <div class="col span-12">
       <ArrayListGrouped
@@ -208,7 +208,7 @@ export default {
                 :label="t('workload.scheduling.affinity.priority')"
                 :mode="mode"
                 :data-testid="`node-affinity-priority-index${props.i}`"
-                @input="(changePriority(props.row.value))"
+                @update:modelValue="(changePriority(props.row.value))"
               />
             </div>
             <div
@@ -228,7 +228,6 @@ export default {
             </div>
           </div>
           <MatchExpressions
-            :key="rerenderNums"
             :value="matchingSelectorDisplay ? props.row.value : props.row.value.matchExpressions"
             :matching-selector-display="matchingSelectorDisplay"
             :mode="mode"
@@ -236,7 +235,7 @@ export default {
             :type="node"
             :show-remove="false"
             :data-testid="`node-affinity-expressions-index${props.i}`"
-            @input="(updateExpressions(props.row.value, $event))"
+            @update:modelValue="(updateExpressions(props.row.value, $event))"
           />
         </template>
       </ArrayListGrouped>

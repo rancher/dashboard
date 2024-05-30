@@ -1,5 +1,5 @@
 <script>
-import Vue from 'vue';
+import { createApp } from 'vue';
 import merge from 'lodash/merge';
 import { ucFirst } from '@shell/utils/string';
 import { isSimpleKeyValue } from '@shell/utils/object';
@@ -18,6 +18,7 @@ import { saferDump } from '@shell/utils/create-yaml';
 import NamespaceList, { NAMESPACE_FILTERS_HELPER } from './NamespaceList';
 import MatchKinds from './MatchKinds';
 import Scope, { SCOPE_OPTIONS } from './Scope';
+const vueApp = createApp({});
 
 function findConstraintTypes(schemas) {
   return schemas
@@ -68,18 +69,18 @@ export default {
     };
 
     if (this.mode === _CREATE) {
-      this.$set(this.value, 'spec', merge(this.value.spec, emptySpec));
+      this.value['spec'] = merge(this.value.spec, emptySpec);
 
       if (!this.value.spec.match.scope) {
-        this.$set(this.value.spec.match, 'scope', SCOPE_OPTIONS[0].value);
+        this.value.spec.match['scope'] = SCOPE_OPTIONS[0].value;
       }
     } else {
-      this.$set(this.value.spec, 'match', this.value.spec.match || {});
-      this.$set(this.value.spec.match, 'kinds', this.value.spec.match.kinds || [{}]);
-      this.$set(this.value.spec.match, 'labelSelector', this.value.spec.match.labelSelector || {});
-      this.$set(this.value.spec.match.labelSelector, 'matchExpressions', this.value.spec.match.labelSelector.matchExpressions || []);
-      this.$set(this.value.spec.match, 'namespaceSelector', this.value.spec.match.namespaceSelector || {});
-      this.$set(this.value.spec.match.namespaceSelector, 'labelSelector', this.value.spec.match.namespaceSelector.labelSelector || []);
+      this.value.spec['match'] = this.value.spec.match || {};
+      this.value.spec.match['kinds'] = this.value.spec.match.kinds || [{}];
+      this.value.spec.match['labelSelector'] = this.value.spec.match.labelSelector || {};
+      this.value.spec.match.labelSelector['matchExpressions'] = this.value.spec.match.labelSelector.matchExpressions || [];
+      this.value.spec.match['namespaceSelector'] = this.value.spec.match.namespaceSelector || {};
+      this.value.spec.match.namespaceSelector['labelSelector'] = this.value.spec.match.namespaceSelector.labelSelector || [];
     }
 
     const parametersYaml = saferDump(this.value?.spec?.parameters);
@@ -197,12 +198,12 @@ export default {
      */
     purgeNamespacesField(value) {
       if (value?.spec?.match?.namespaces && (value.spec.match.namespaces.length === 0)) {
-        Vue.delete(value.spec.match, 'namespaces');
+        delete value.spec.match['namespaces'];
       }
     },
 
     updateType(type) {
-      this.$set(this.value, 'type', type);
+      this.value['type'] = type;
     },
     onTabChanged({ tab }) {
       // This is necessary to force the yamlEditor to adjust the size once it has space to fill.
@@ -211,7 +212,7 @@ export default {
       }
     },
     selectTemplateSubtype(subType) {
-      this.$set(this.value, 'kind', subType);
+      this.value['kind'] = subType;
       this.$emit('set-subtype', subType);
     },
     onScopeChange(newScope) {
@@ -275,7 +276,7 @@ export default {
               <Scope
                 v-model="value.spec.match.scope"
                 :mode="mode"
-                @input="onScopeChange($event)"
+                @update:modelValue="onScopeChange($event)"
               />
             </div>
           </div>

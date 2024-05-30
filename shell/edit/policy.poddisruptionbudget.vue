@@ -27,12 +27,10 @@ export default {
 
   data() {
     if ( !this.value.spec ) {
-      this.$set(this.value, 'spec', {
-        selector: {
+      this.value['spec'] = {selector: {
           matchExpressions: [],
           matchLabels:      {},
-        }
-      });
+        }};
     }
 
     return { POD };
@@ -47,11 +45,11 @@ export default {
         const isNumeric = /^\d+$/;
 
         if (val && isNumeric.test(val)) {
-          this.$set(this.value.spec, 'minAvailable', Number.parseInt(val));
+          this.value.spec['minAvailable'] = Number.parseInt(val);
         } else if (val) {
-          this.$set(this.value.spec, 'minAvailable', val);
+          this.value.spec['minAvailable'] = val;
         } else {
-          this.$delete(this.value.spec, 'minAvailable');
+          delete this.value.spec['minAvailable'];
         }
       }
     },
@@ -63,11 +61,11 @@ export default {
         const isNumeric = /^\d+$/;
 
         if (val && isNumeric.test(val)) {
-          this.$set(this.value.spec, 'maxUnavailable', Number.parseInt(val));
+          this.value.spec['maxUnavailable'] = Number.parseInt(val);
         } else if (val) {
-          this.$set(this.value.spec, 'maxUnavailable', val);
+          this.value.spec['maxUnavailable'] = val;
         } else {
-          this.$delete(this.value.spec, 'maxUnavailable');
+          delete this.value.spec['maxUnavailable'];
         }
       }
     },

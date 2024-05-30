@@ -199,8 +199,7 @@ export default {
       :force-update-live-and-delayed="forceUpdateLiveAndDelayed"
     >
       <template
-        slot="cell:name"
-        slot-scope="scope"
+        cell:name="scope"
       >
         <div class="feature-name">
           <div>{{ scope.row.nameDisplay }}</div>
@@ -327,7 +326,7 @@ export default {
       box-shadow: none;
     }
 
-    ::v-deep .card-actions {
+    :deep() .card-actions {
       display: flex;
       justify-content: center;
     }

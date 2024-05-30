@@ -38,7 +38,7 @@ export default {
 
   data() {
     if (!this.value.spec) {
-      this.$set(this.value, 'spec', {});
+      this.value['spec'] = {};
     }
 
     return { allBenchmarks: [], name: this.value.metadata.name };

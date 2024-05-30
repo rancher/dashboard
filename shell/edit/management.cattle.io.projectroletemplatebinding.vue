@@ -15,7 +15,7 @@ export default {
   async fetch() {
     await this.$store.dispatch('management/findAll', { type: MANAGEMENT.USER });
     this.projects = await this.$store.dispatch('management/findAll', { type: MANAGEMENT.PROJECT });
-    this.$set(this.binding, 'projectId', this.binding.projectId || this.projects[0]?.id.replace('/', ':'));
+    this.binding['projectId'] = this.binding.projectId || this.projects[0]?.id.replace('/', ':');
   },
   data() {
     return {
@@ -44,7 +44,7 @@ export default {
   },
   methods: {
     onAdd(principalId) {
-      this.$set(this, 'principalId', principalId);
+      this['principalId'] = principalId;
     },
     async saveOverride() {
       const asyncBindings = this.binding.roleTemplateIds.map((roleTemplateId) => this.$store.dispatch(`management/create`, {

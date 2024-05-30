@@ -111,7 +111,7 @@ export default {
       :value="afterLoginRoute"
       name="login-route"
       :options="routeRadioOptions"
-      @input="updateLoginRoute"
+      @update:modelValue="updateLoginRoute"
     >
       <template #2="{option, listeners}">
         <div class="custom-page">

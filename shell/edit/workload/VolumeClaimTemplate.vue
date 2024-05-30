@@ -52,7 +52,7 @@ export default {
 
   methods: {
     update() {
-      this.$set(this.value, 'volumeClaimTemplates', this.templates);
+      this.value['volumeClaimTemplates'] = this.templates;
     },
 
     updatePVC(pvc) {
@@ -69,7 +69,7 @@ export default {
 
     addPVC() {
       if (!this.value.volumeClaimTemplates) {
-        this.$set(this.value, 'volumeClaimTemplates', []);
+        this.value['volumeClaimTemplates'] = [];
       }
       this.templates = this.value.volumeClaimTemplates;
 
@@ -95,7 +95,7 @@ export default {
       <ArrayListGrouped
         v-model="templates"
         class="mb-20"
-        @input="update()"
+        @update:modelValue="update()"
       >
         <template #default="props">
           <div class="bordered-section">
@@ -103,7 +103,7 @@ export default {
               v-if="props.row.value.metadata"
               :value="props.row.value"
               :mode="mode"
-              @input="updatePVC(props.row.value)"
+              @update:modelValue="updatePVC(props.row.value)"
             />
           </div>
           <Mount

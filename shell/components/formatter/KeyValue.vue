@@ -53,7 +53,6 @@ export default {
     <div
       v-for="( kv, index ) in parsed"
       :key="index"
-      class="formatter-key-value-item"
     >
       {{ kv }}
     </div>

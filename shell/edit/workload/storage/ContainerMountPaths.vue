@@ -95,10 +95,10 @@ export default {
      */
     initializeStorage() {
       if (!this.container.volumeMounts) {
-        this.$set(this.container, 'volumeMounts', []);
+        this.container['volumeMounts'] = [];
       }
       if (!this.value.volumes) {
-        this.$set(this.value, 'volumes', []);
+        this.value['volumes'] = [];
       }
     },
 
@@ -197,7 +197,6 @@ export default {
   <div>
     <!-- Storage Volumes -->
     <ArrayListGrouped
-      :key="selectedContainerVolumes.length"
       v-model="selectedContainerVolumes"
       :mode="mode"
       @remove="removeVolume"

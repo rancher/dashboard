@@ -51,7 +51,7 @@ export default {
   beforeUpdate() {
     for (const rule of this.value.spec.rules) {
       if (!rule.vKey) {
-        this.$set(rule, 'vKey', random32(1));
+        rule['vKey'] = random32(1);
       }
     }
   },

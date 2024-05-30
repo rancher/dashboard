@@ -1,5 +1,6 @@
-import { mount, createLocalVue } from '@vue/test-utils';
-import Vuex from 'vuex';
+import { nextTick } from 'vue';
+import { mount } from '@vue/test-utils';
+import Vuex, { createStore } from 'vuex';
 import {
   UI_PLUGINS_REPO_URL,
   UI_PLUGINS_PARTNERS_REPO_URL,
@@ -8,7 +9,7 @@ import SetupUIPlugins from '@shell/pages/c/_cluster/uiplugins/SetupUIPlugins.vue
 
 describe('component: SetupUIPlugins', () => {
   it('should NOT SHOW a checkbox to install official Rancher repo if NOT prime', async() => {
-    const store = new Vuex.Store({
+    const store = createStore({
       modules: {
         catalog: {
           namespaced: true,
@@ -35,22 +36,24 @@ describe('component: SetupUIPlugins', () => {
     jest.useFakeTimers();
 
     const wrapper = mount(SetupUIPlugins, {
-      store,
-      localVue,
-      // since vue-js-modal uses transitions, we need disable
-      // the default behaviour of transition-stubbing that vue-test-utils has...
-      stubs: { transition: false }
+      global: {
+        plugins: [store],
+
+        // since vue-js-modal uses transitions, we need disable
+        // the default behaviour of transition-stubbing that vue-test-utils has...
+        stubs: { transition: false },
+      },
     });
 
     wrapper.vm.enable();
 
     // these couple of nextTick + advanceTimersByTime are needed for
     // the dialog content to be rendered!
-    await wrapper.vm.$nextTick();
+    await nextTick();
 
     jest.advanceTimersByTime(1);
 
-    await wrapper.vm.$nextTick();
+    await nextTick();
 
     jest.advanceTimersByTime(1);
 
@@ -61,11 +64,11 @@ describe('component: SetupUIPlugins', () => {
     expect(partnersCheckbox.exists()).toBe(true);
 
     jest.clearAllTimers();
-    wrapper.destroy();
+    wrapper.unmount();
   });
 
   it('should SHOW a checkbox to install official Rancher repo if IS prime', async() => {
-    const store = new Vuex.Store({
+    const store = createStore({
       modules: {
         catalog: {
           namespaced: true,
@@ -92,11 +95,13 @@ describe('component: SetupUIPlugins', () => {
     jest.useFakeTimers();
 
     const wrapper = mount(SetupUIPlugins, {
-      store,
-      localVue,
-      // since vue-js-modal uses transitions, we need disable
-      // the default behaviour of transition-stubbing that vue-test-utils has...
-      stubs: { transition: false }
+      global: {
+        plugins: [store],
+
+        // since vue-js-modal uses transitions, we need disable
+        // the default behaviour of transition-stubbing that vue-test-utils has...
+        stubs: { transition: false },
+      },
     });
 
     wrapper.vm.prime = true;
@@ -104,11 +109,11 @@ describe('component: SetupUIPlugins', () => {
 
     // these couple of nextTick + advanceTimersByTime are needed for
     // the dialog content to be rendered!
-    await wrapper.vm.$nextTick();
+    await nextTick();
 
     jest.advanceTimersByTime(1);
 
-    await wrapper.vm.$nextTick();
+    await nextTick();
 
     jest.advanceTimersByTime(1);
 
@@ -119,6 +124,6 @@ describe('component: SetupUIPlugins', () => {
     expect(partnersCheckbox.exists()).toBe(true);
 
     jest.clearAllTimers();
-    wrapper.destroy();
+    wrapper.unmount();
   });
 });

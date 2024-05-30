@@ -25,8 +25,8 @@ export default {
 
   mixins: [CreateEditView, FormValidation],
   data() {
-    this.$set(this.value, 'spec', this.value.spec || {});
-    this.$set(this.value.spec, 'podSecurityPolicyTemplateId', this.value.status?.podSecurityPolicyTemplateId || '');
+    this.value['spec'] = this.value.spec || {};
+    this.value.spec['podSecurityPolicyTemplateId'] = this.value.status?.podSecurityPolicyTemplateId || '';
 
     return {
       projectRoleTemplateBindingSchema: this.$store.getters[`management/schemaFor`](MANAGEMENT.PROJECT_ROLE_TEMPLATE_BINDING),
@@ -96,9 +96,9 @@ export default {
     }
   },
   created() {
-    this.$set(this.value.metadata, 'namespace', this.$store.getters['currentCluster'].id);
-    this.$set(this.value, 'spec', this.value.spec || {});
-    this.$set(this.value.spec, 'containerDefaultResourceLimit', this.value.spec.containerDefaultResourceLimit || {});
+    this.value.metadata['namespace'] = this.$store.getters['currentCluster'].id;
+    this.value['spec'] = this.value.spec || {};
+    this.value.spec['containerDefaultResourceLimit'] = this.value.spec.containerDefaultResourceLimit || {};
   },
   methods: {
     async save(saveCb) {
@@ -141,11 +141,11 @@ export default {
     },
 
     onHasOwnerChanged(hasOwner) {
-      this.$set(this, 'membershipHasOwner', hasOwner);
+      this['membershipHasOwner'] = hasOwner;
     },
 
     onMembershipUpdate(update) {
-      this.$set(this, 'membershipUpdate', update);
+      this['membershipUpdate'] = update;
     },
 
     removeQuota(key) {
