@@ -30,7 +30,11 @@ describe('Roles', { tags: ['@usersAndAuths', '@adminUser'] }, () => {
     roles.waitForPage(undefined, fragment);
 
     // check if burger menu nav is highlighted correctly for users & auth
+    // https://github.com/rancher/dashboard/issues/10010
     BurgerMenuPo.checkIfMenuItemLinkIsHighlighted('Users & Authentication');
+
+    // catching regression https://github.com/rancher/dashboard/issues/10576
+    BurgerMenuPo.checkIfClusterMenuLinkIsHighlighted('local', false);
 
     roles.listCreate('Create Global Role');
 
@@ -187,6 +191,24 @@ describe('Roles', { tags: ['@usersAndAuths', '@adminUser'] }, () => {
     promptRemove.remove();
     cy.wait('@deleteRole').its('response.statusCode').should('be.lessThan', 300); // Can sometimes be 204
     roles.list().elementWithName(globalRoleName).should('not.exist');
+  });
+
+  it('shows warning message when deleting the Administrator role', () => {
+    const fragment = 'GLOBAL';
+    const globalAdminRoleName = 'Administrator';
+
+    roles.goTo(undefined, fragment);
+    roles.waitForPage(undefined, fragment);
+
+    // Show delete confirmation dialog
+    roles.waitForRequests();
+    roles.list().elementWithName(globalAdminRoleName).click();
+    roles.list().delete().click();
+    const promptRemove = new PromptRemove();
+
+    promptRemove.warning().should('be.visible');
+    promptRemove.warning().shouldHaveCssVar('color', '--warning'); // Check warning message color
+    promptRemove.warning().first().should('contain.text', 'Caution:'); // Check warning message content
   });
 
   it('Standard user with List, Get & Resources: Global Roles should be able to list users in Users and Auth', () => {

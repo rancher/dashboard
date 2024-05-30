@@ -1,4 +1,5 @@
 <script>
+import Loading from '@shell/components/Loading';
 import ResourceTabs from '@shell/components/form/ResourceTabs';
 import FleetSummary from '@shell/components/fleet/FleetSummary';
 import { Banner } from '@components/Banner';
@@ -14,6 +15,7 @@ export default {
   name: 'DetailGitRepo',
 
   components: {
+    Loading,
     FleetResources,
     FleetSummary,
     Banner,
@@ -31,21 +33,22 @@ export default {
 
   data() {
     return {
-      allFleet:             [],
+      allFleetClusters:     [],
       allBundles:           [],
       allBundleDeployments: [],
     };
   },
-
   computed: {
-
     gitRepoHasClusters() {
-      return this.value.status.desiredReadyClusters;
+      return this.value?.clusterResourceStatus?.length;
+    },
+    clusterSchema() {
+      return this.$store.getters['management/schemaFor'](FLEET.CLUSTER);
     },
     harvesterClusters() {
       const harvester = {};
 
-      this.allFleet.forEach((c) => {
+      this.allFleetClusters.forEach((c) => {
         if (isHarvesterCluster(c)) {
           harvester[c.metadata.name] = c;
         }
@@ -53,7 +56,6 @@ export default {
 
       return harvester;
     },
-
     bundleCounts() {
       return resourceCounts(this.$store, FLEET.BUNDLE);
     },
@@ -86,7 +88,7 @@ export default {
         type:        FLEET.BUNDLE_DEPLOYMENT
       },
 
-      allFleet: {
+      allFleetClusters: {
         inStoreType: 'management',
         type:        FLEET.CLUSTER
       },
@@ -98,14 +100,18 @@ export default {
 
     this.allBundleDeployments = allDispatches.allBundleDeployments || [];
     this.allBundles = allDispatches.allBundles || [];
-    this.allFleet = allDispatches.allFleet || [];
+    this.allFleetClusters = allDispatches.allFleetClusters || [];
   },
 
 };
 </script>
 
 <template>
-  <div class="mt-20">
+  <Loading v-if="$fetchState.pending" />
+  <div
+    v-else
+    class="mt-20"
+  >
     <FleetSummary
       v-if="gitRepoHasClusters"
       :value="value"

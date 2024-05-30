@@ -16,7 +16,6 @@ import Certificates from './Certificates';
 import Rules from './Rules';
 import IngressClass from './IngressClass';
 import Loading from '@shell/components/Loading';
-import paginationUtils from '@shell/utils/pagination-utils';
 import { PaginationArgs, PaginationParamFilter } from '@shell/types/store/pagination.types';
 
 export default {

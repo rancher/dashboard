@@ -68,3 +68,21 @@ const runTimestamp = +new Date();
 Cypress.Commands.add('createE2EResourceName', (context) => {
   return cy.wrap(`e2e-test-${ runTimestamp }-${ context }`);
 });
+
+// See: https://stackoverflow.com/questions/74785083/how-can-i-get-a-custom-css-variable-from-any-element-cypress
+Cypress.Commands.add('shouldHaveCssVar', { prevSubject: true }, (subject, styleName, cssVarName) => {
+  cy.document().then((doc) => {
+    const dummy = doc.createElement('span');
+
+    dummy.style.setProperty(styleName, `var(${ cssVarName })`);
+    doc.body.appendChild(dummy);
+
+    const evaluatedStyle = window.getComputedStyle(dummy).getPropertyValue(styleName).trim();
+
+    dummy.remove();
+
+    cy.wrap(subject)
+      .then(($el) => window.getComputedStyle($el[0]).getPropertyValue(styleName).trim())
+      .should('eq', evaluatedStyle);
+  });
+});

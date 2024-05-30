@@ -40,7 +40,6 @@ import { stringify, exceptionToErrorsArray } from '@shell/utils/error';
 import { isValidMac } from '@shell/utils/validators/cidr';
 import { HCI as HCI_ANNOTATIONS, STORAGE } from '@shell/config/labels-annotations';
 import { isEqual } from 'lodash';
-import paginationUtils from '@shell/utils/pagination-utils';
 import { PaginationArgs, PaginationFilterField, PaginationParamFilter } from '~/shell/types/store/pagination.types';
 
 const STORAGE_NETWORK = 'storage-network.settings.harvesterhci.io';

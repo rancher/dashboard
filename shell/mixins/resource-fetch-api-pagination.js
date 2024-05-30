@@ -165,7 +165,7 @@ export default {
         return;
       }
 
-      return this.resource && this.$store.getters[`${ this.currentProduct?.inStore }/paginationEnabled`](this.resource.id || this.resource);
+      return this.resource && this.$store.getters[`${ this.currentProduct?.inStore }/paginationEnabled`]?.(this.resource.id || this.resource);
     },
 
     paginationResult() {

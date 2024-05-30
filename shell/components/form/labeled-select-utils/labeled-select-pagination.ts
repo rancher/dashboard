@@ -86,7 +86,7 @@ export default defineComponent<Props, any, Data, Computed, Methods>({
 
   computed: {
     canPaginate() {
-      return !!this.paginate && this.$store.getters[`${ this.inStore }/paginationEnabled`](this.resourceType); // TODO: RC store
+      return !!this.paginate && this.$store.getters[`${ this.inStore }/paginationEnabled`](this.resourceType);
     },
 
     canLoadMore() {

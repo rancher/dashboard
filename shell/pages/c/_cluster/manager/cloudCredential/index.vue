@@ -9,7 +9,6 @@ import {
   ID_UNLINKED,
   NAME_UNLINKED,
 } from '@shell/config/table-headers';
-import paginationUtils from '@shell/utils/pagination-utils';
 
 export default {
   components: {

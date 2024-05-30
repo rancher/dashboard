@@ -91,9 +91,6 @@ export default {
     getNamespaceConfigMapId(namespace) {
       return this.currentNamespace?.metadata?.relationships.find((relationship) => relationship?.toType === 'configmap')?.toId;
     },
-    async getConfigMap(id) {
-      return await this.$store.dispatch('cluster/find', { type: CONFIG_MAP, id });
-    },
     namespaceFilter(namespace) {
       const excludeProjects = [...this.systemNamespaces?.systemProjectLabelValues || [], this.systemNamespaces?.projectReleaseLabelValue];
 

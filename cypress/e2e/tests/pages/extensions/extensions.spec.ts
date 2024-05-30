@@ -43,7 +43,11 @@ describe('Extensions page', { tags: ['@extensions', '@adminUser'] }, () => {
     extensionsPo.goTo();
 
     // check if burguer menu nav is highlighted correctly for extensions
+    // https://github.com/rancher/dashboard/issues/10010
     BurgerMenuPo.checkIfMenuItemLinkIsHighlighted('Extensions');
+
+    // catching regression https://github.com/rancher/dashboard/issues/10576
+    BurgerMenuPo.checkIfClusterMenuLinkIsHighlighted('local', false);
 
     // go to "add rancher repositories"
     extensionsPo.extensionMenuToggle();

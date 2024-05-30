@@ -215,7 +215,7 @@ export default {
       <div class="col span-6">
         <LabeledSelect
           v-model="targetType"
-          data-testid="labeled-select-type-selector"
+          data-testid="policy-rule-target-type-labeled-select"
           :mode="mode"
           :tooltip="targetType === TARGET_OPTIONS.NAMESPACE_AND_POD_SELECTOR ? t('networkpolicy.selectors.matchingNamespacesAndPods.tooltip') : null"
           :options="selectTargetOptions"

@@ -199,6 +199,7 @@ export default {
               class="mt-20 mb-10"
               :mode="mode"
               :label="t('networkpolicy.ingress.enable')"
+              data-testid="network-policy-ingress-enable-checkbox"
             />
             <PolicyRules
               v-if="hasIngressPolicies"

@@ -6,7 +6,6 @@ import Rules from '@shell/edit/networking.k8s.io.ingress/Rules';
 import ResourceTabs from '@shell/components/form/ResourceTabs';
 import Tab from '@shell/components/Tabbed/Tab';
 import { SECRET_TYPES as TYPES } from '@shell/config/secret';
-import paginationUtils from '@shell/utils/pagination-utils';
 import { PaginationArgs, PaginationParamFilter } from '@shell/types/store/pagination.types';
 
 export default {

@@ -1,7 +1,6 @@
 <script>
 import { INGRESS, WORKLOAD_TYPES } from '@shell/config/types';
 import IngressFullPath from '@shell/components/formatter/IngressFullPath';
-import paginationUtils from '@shell/utils/pagination-utils';
 
 export default {
   components: { IngressFullPath },
@@ -49,7 +48,7 @@ export default {
 
 <template>
   <div
-    v-if="value"
+    v-if="value && !$fetchState.pending"
     class="ingress-target"
     :reactivity="workloads.length"
   >

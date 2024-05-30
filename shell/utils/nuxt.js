@@ -1,5 +1,5 @@
 import Vue from 'vue';
-import { joinURL, normalizeURL, withQuery, withoutTrailingSlash } from 'ufo';
+import { normalizeURL, withQuery, withoutTrailingSlash } from 'ufo';
 
 export function createGetCounter(counterObject, defaultKey = '') {
   return function getCounter(id = defaultKey) {
@@ -91,10 +91,6 @@ export function getMatchedComponents(route, matches = false, prop = 'components'
       return m[prop][key];
     });
   }));
-}
-
-export function getMatchedComponentsInstances(route, matches = false) {
-  return getMatchedComponents(route, matches, 'instances');
 }
 
 export function flatMapComponents(route, fn) {
@@ -330,8 +326,6 @@ export function addLifecycleHook(vm, hook, fn) {
     vm.$options[hook].push(fn);
   }
 }
-
-export const urlJoin = joinURL;
 
 export const stripTrailingSlash = withoutTrailingSlash;
 

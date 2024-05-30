@@ -9,7 +9,6 @@ import { Checkbox } from '@components/Form/Checkbox';
 import { SECRET } from '@shell/config/types';
 import { TYPES as SECRET_TYPES } from '@shell/models/secret';
 import LabeledSelect from '@shell/components/form/LabeledSelect';
-import paginationUtils from '@shell/utils/pagination-utils';
 import { PaginationArgs, PaginationParamFilter } from '@shell/types/store/pagination.types';
 
 export default {

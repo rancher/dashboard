@@ -6,7 +6,6 @@ import { _VIEW } from '@shell/config/query-params';
 import ArrayListGrouped from '@shell/components/form/ArrayListGrouped';
 import { random32 } from '@shell/utils/string';
 import Rule from './Rule';
-import paginationUtils from '@shell/utils/pagination-utils';
 
 export default {
   components: {

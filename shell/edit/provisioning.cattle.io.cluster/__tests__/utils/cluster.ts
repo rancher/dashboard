@@ -60,6 +60,11 @@ export const PROV_CLUSTER = {
         configs: {},
         mirrors: {}
       },
+      dataDirectories: {
+        systemAgent:  '',
+        provisioning: '',
+        k8sDistro:    '',
+      }
     },
     defaultPodSecurityAdmissionConfigurationTemplateName: '',
   },
