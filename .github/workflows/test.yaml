@@ -2,10 +2,10 @@ name: Tests
 on:
   push:
     branches:
-      - 'release-2.8*'
+      - release-2.8.patch1
   pull_request:
     branches:
-      - 'release-2.8*'
+      - release-2.8.patch1
   workflow_dispatch:
     inputs:
       environment:
@@ -100,6 +100,7 @@ jobs:
         with:
          name: ${{ env.E2E_BUILD_DIST_NAME }}
          path: ${{ env.E2E_BUILD_DIST_DIR }}
+
       - name: Download e2e build ember
         uses:  actions/download-artifact@v4
         with:
