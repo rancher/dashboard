@@ -73,6 +73,7 @@ export default {
               :namespace="namespace"
               :all-namespaces="allNamespaces"
               :all-pods="allPods"
+              :data-testid="`policy-rule-target-${props.i}`"
             />
           </template>
         </ArrayListGrouped>

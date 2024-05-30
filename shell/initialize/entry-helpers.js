@@ -1,94 +1,80 @@
-// Taken from @nuxt/vue-app/template/client.js
-
-import Vue from 'vue';
-import fetch from 'unfetch';
-import middleware from '../config/middleware.js';
+import { updatePageTitle } from '@shell/utils/title';
+import { getVendor } from '@shell/config/private-label';
+import middleware from '@shell/config/middleware.js';
 import {
   middlewareSeries,
   getMatchedComponents,
-  flatMapComponents,
   setContext,
   globalHandleError,
-  urlJoin
-} from '../utils/nuxt.js';
-import { createApp } from './index.js';
-import fetchMixin from '../mixins/fetch.client';
-import { nuxtLinkAlias } from '../components/nuxt/nuxt-link.client.js'; // should be included after ./index.js
-import { updatePageTitle } from '@shell/utils/title';
-import { getVendor } from '@shell/config/private-label';
+} from '@shell/utils/nuxt.js';
 
-// Mimic old @nuxt/vue-app/template/client.js
-const isDev = process.env.dev;
-const debug = isDev;
-
-// Fetch mixin
-Vue.mixin(fetchMixin);
-
-// Component: <NuxtLink>
-// TODO: #9541 Remove for Vue 3 migration
-Vue.component('NuxtLink', nuxtLinkAlias('NuxtLink'));
-Vue.component('NLink', nuxtLinkAlias('NLink'));
-
-if (!global.fetch) {
-  global.fetch = fetch;
-}
-
-// Global shared references
+// Global variable used on mount, updated on route change and used in the render function
 let app;
-let router;
 
-const $config = nuxt.publicRuntimeConfig || {}; // eslint-disable-line no-undef
+/**
+ * Add error handler debugging capabilities
+ * @param {*} vueApp Vue instance
+ */
+export const loadDebugger = (vueApp) => {
+  const debug = process.env.dev;
 
-if ($config._app) {
-  __webpack_public_path__ = urlJoin($config._app.cdnURL, $config._app.assetsPath); // eslint-disable-line camelcase, no-undef
-}
+  if (debug) {
+    const defaultErrorHandler = vueApp.config.errorHandler;
 
-Object.assign(Vue.config, { silent: false, performance: true });
+    vueApp.config.errorHandler = async(err, vm, info, ...rest) => {
+      // Call other handler if exist
+      let handled = null;
 
-if (debug) {
-  const defaultErrorHandler = Vue.config.errorHandler;
-
-  Vue.config.errorHandler = async(err, vm, info, ...rest) => {
-    // Call other handler if exist
-    let handled = null;
-
-    if (typeof defaultErrorHandler === 'function') {
-      handled = defaultErrorHandler(err, vm, info, ...rest);
-    }
-    if (handled === true) {
-      return handled;
-    }
-
-    if (vm && vm.$root) {
-      const nuxtApp = Object.keys(window.$globalApp)
-        .find((nuxtInstance) => vm.$root[nuxtInstance]);
-
-      // Show Nuxt Error Page
-      if (nuxtApp && vm.$root[nuxtApp].error && info !== 'render function') {
-        const currentApp = vm.$root[nuxtApp];
-
-        currentApp.error(err);
+      if (typeof defaultErrorHandler === 'function') {
+        handled = defaultErrorHandler(err, vm, info, ...rest);
       }
-    }
+      if (handled === true) {
+        return handled;
+      }
 
-    if (typeof defaultErrorHandler === 'function') {
-      return handled;
-    }
+      if (vm && vm.$root) {
+        const nuxtApp = Object.keys(window.$globalApp)
+          .find((nuxtInstance) => vm.$root[nuxtInstance]);
 
-    // Log to console
-    if (process.env.NODE_ENV !== 'production') {
-      console.error(err); // eslint-disable-line no-console
-    } else {
-      console.error(err.message || err); // eslint-disable-line no-console
-    }
-  };
-}
+        // Show Nuxt Error Page
+        if (nuxtApp && vm.$root[nuxtApp].error && info !== 'render function') {
+          const vueApp = vm.$root[nuxtApp];
 
-const errorHandler = Vue.config.errorHandler || console.error; // eslint-disable-line no-console
+          vueApp.error(err);
+        }
+      }
 
-// Create and mount App
-createApp(nuxt.publicRuntimeConfig).then(mountApp).catch(errorHandler); // eslint-disable-line no-undef
+      if (typeof defaultErrorHandler === 'function') {
+        return handled;
+      }
 
+      // Log to console
+      if (process.env.NODE_ENV !== 'production') {
+        console.error(err); // eslint-disable-line no-console
+      } else {
+        console.error(err.message || err); // eslint-disable-line no-console
+      }
+    };
+  }
+};
+
+/**
+ * Trigger errors
+ * @param {*} app App view instance
+ */
+const checkForErrors = (app) => {
+  // Hide error component if no error
+  if (app._hadError && app._dateLastError === app.$options.nuxt.dateErr) {
+    app.error();
+  }
+};
+
+/**
+ * Add middleware to the Vue instance
+ * @param {*} Components List of Vue components
+ * @param {*} context App context
+ * @returns
+ */
 function callMiddleware(Components, context) {
   let midd = [];
   let unknownMiddleware = false;
@@ -118,6 +104,14 @@ function callMiddleware(Components, context) {
   return middlewareSeries(midd, context);
 }
 
+/**
+ * Render function used by the router guards
+ * @param {*} to Route
+ * @param {*} from Route
+ * @param {*} next callback
+ * @param {*} app
+ * @returns
+ */
 async function render(to, from, next) {
   if (this._routeChanged === false && this._paramChanged === false && this._queryChanged === false) {
     return next();
@@ -247,48 +241,29 @@ async function render(to, from, next) {
   }
 }
 
-// Fix components format in matched, it's due to code-splitting of vue-router
-function normalizeComponents(to, ___) {
-  flatMapComponents(to, (Component, _, match, key) => {
-    if (typeof Component === 'object' && !Component.options) {
-      // Updated via vue-router resolveAsyncComponents()
-      Component = Vue.extend(Component);
-      Component._Ctor = Component;
-      match.components[key] = Component;
-    }
-
-    return Component;
-  });
-}
-
-function checkForErrors(app) {
-  // Hide error component if no error
-  if (app._hadError && app._dateLastError === app.$options.nuxt.dateErr) {
-    app.error();
-  }
-}
-
-async function mountApp(__app) {
+/**
+ * Mounts the Vue app to the DOM element
+ * @param {Object} appPartials - App view partials
+ * @param {Object} VueClass - Vue instance
+ */
+export async function mountApp(appPartials, VueClass) {
   // Set global variables
-  app = __app.app;
-  router = __app.router;
+  app = appPartials.app;
+  const router = appPartials.router;
 
   // Create Vue instance
-  const _app = new Vue(app);
+  const vueApp = new VueClass(app);
 
   // Mounts Vue app to DOM element
   const mount = () => {
-    _app.$mount('#app');
-
-    // Add afterEach router hooks
-    router.afterEach(normalizeComponents);
+    vueApp.$mount('#app');
   };
 
   // Initialize error handler
-  _app.$loading = {}; // To avoid error while _app.$nuxt does not exist
+  vueApp.$loading = {}; // To avoid error while vueApp.$nuxt does not exist
 
   // Add beforeEach router hooks
-  router.beforeEach(render.bind(_app));
+  router.beforeEach(render.bind(vueApp));
   router.beforeEach((from, to, next) => {
     if (from?.name !== to?.name) {
       updatePageTitle(getVendor());
@@ -299,14 +274,13 @@ async function mountApp(__app) {
 
   // First render on client-side
   const clientFirstMount = () => {
-    normalizeComponents(router.currentRoute, router.currentRoute);
-    checkForErrors(_app);
+    checkForErrors(vueApp);
     mount();
   };
 
   // fix: force next tick to avoid having same timestamp when an error happen on spa fallback
   await new Promise((resolve) => setTimeout(resolve, 0));
-  render.call(_app, router.currentRoute, router.currentRoute, (path) => {
+  render.call(vueApp, router.currentRoute, router.currentRoute, (path) => {
     // If not redirected
     if (!path) {
       clientFirstMount();
@@ -324,6 +298,8 @@ async function mountApp(__app) {
     // Push the path and let route to be resolved
     router.push(path, undefined, (err) => {
       if (err) {
+        const errorHandler = vueApp.config.errorHandler || console.error; // eslint-disable-line no-console
+
         errorHandler(err);
       }
     });

@@ -28,7 +28,7 @@ export const requiredInCluster = (ctx: any, labelKey: string, clusterPath: strin
 export const clusterNameChars = (ctx: any ) => {
   return () :string | undefined => {
     const { name = '' } = get(ctx, 'normanCluster');
-    const nameIsValid = name.match(/^[a-z0-9]([-a-z0-9]*[a-z0-9])?$/);
+    const nameIsValid = name.match(/^[a-zA-Z0-9\-_]*$/);
 
     return !needsValidation(ctx) || nameIsValid ? undefined : ctx.t('aks.errors.clusterName.chars');
   };
@@ -52,8 +52,6 @@ export const clusterNameLength = (ctx: any) => {
   };
 };
 
-// letters, numbers, -, _, (, ), ., and unicode UppercaseLetter, LowercaseLetter, TitlecaseLetter, ModifierLetter, OtherLetter
-// https://learn.microsoft.com/en-us/azure/azure-resource-manager/management/resource-name-rules#microsoftresources
 export const resourceGroupLength = (ctx: any, labelKey:string, clusterPath:string) => {
   return () :string | undefined => {
     const resourceGroup = get(ctx.normanCluster, clusterPath) || '';
@@ -64,6 +62,8 @@ export const resourceGroupLength = (ctx: any, labelKey:string, clusterPath:strin
   };
 };
 
+// letters, numbers, -, _, (, ), ., and unicode UppercaseLetter, LowercaseLetter, TitlecaseLetter, ModifierLetter, OtherLetter
+// https://learn.microsoft.com/en-us/azure/azure-resource-manager/management/resource-name-rules#microsoftresources
 export const resourceGroupChars = (ctx: any, labelKey:string, clusterPath:string) => {
   return () :string | undefined => {
     const resourceGroup = get(ctx.normanCluster, clusterPath) || '';

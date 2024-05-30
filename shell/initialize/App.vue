@@ -1,28 +1,10 @@
-// Taken from @nuxt/vue-app/template/App.js
-import {
-  getMatchedComponentsInstances, getChildrenComponentInstancesUsingFetch, promisify, globalHandleError, sanitizeComponent
-} from '@shell/utils/nuxt';
+<script>
 import NuxtError from '@shell/components/templates/error.vue';
 import NuxtLoading from '@shell/components/nav/GlobalLoading.vue';
 
 import '@shell/assets/styles/app.scss';
 
 export default {
-  render(h) {
-    const loadingEl = h('NuxtLoading', { ref: 'loading' });
-
-    const templateEl = h('div', {
-      domProps: { id: '__layout' },
-      key:      this.showErrorPage
-    }, [this.showErrorPage ? h(sanitizeComponent(NuxtError)) : h('router-view')]);
-
-    return h('div', { domProps: { id: '__nuxt' } }, [
-      loadingEl,
-      // h(NuxtBuildIndicator), // The build indicator doesn't work as is right now and emits an error in the console so I'm leaving it out for now
-      templateEl
-    ]);
-  },
-
   data: () => ({
     isOnline: true,
 
@@ -78,43 +60,6 @@ export default {
         this.isOnline = window.navigator.onLine;
       }
     },
-
-    async refresh() {
-      const pages = getMatchedComponentsInstances(this.$route);
-
-      if (!pages.length) {
-        return;
-      }
-      this.$loading.start();
-
-      const promises = pages.map((page) => {
-        const p = [];
-
-        // Old fetch
-        if (page.$options.fetch && page.$options.fetch.length) {
-          p.push(promisify(page.$options.fetch, this.context));
-        }
-        if (page.$fetch) {
-          p.push(page.$fetch());
-        } else {
-          // Get all component instance to call $fetch
-          for (const component of getChildrenComponentInstancesUsingFetch(page.$vnode.componentInstance)) {
-            p.push(component.$fetch());
-          }
-        }
-
-        return Promise.all(p);
-      });
-
-      try {
-        await Promise.all(promises);
-      } catch (error) {
-        this.$loading.fail(error);
-        globalHandleError(error);
-        this.error(error);
-      }
-      this.$loading.finish();
-    },
     errorChanged() {
       if (this.$options.nuxt.err) {
         if (this.$loading) {
@@ -133,5 +78,18 @@ export default {
     },
   },
 
-  components: { NuxtLoading }
+  components: { NuxtLoading, NuxtError }
 };
+</script>
+<template>
+  <div id="__nuxt">
+    <NuxtLoading ref="loading" />
+    <div
+      id="__layout"
+      :key="showErrorPage"
+    >
+      <NuxtError v-if="showErrorPage" />
+      <router-view v-else />
+    </div>
+  </div>
+</template>

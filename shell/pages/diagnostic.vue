@@ -215,6 +215,7 @@ export default {
         'digitalocean',
         'linode',
         'targetRoute', // contains circular references, isn't useful (added later to store)
+        '$router', // also contains a circular reference to $store, not useful for diagnostics
       ];
 
       const clearListsKeys = [

@@ -510,6 +510,7 @@ export default {
             :disabled="!kubeConfigEnabled"
             type="button"
             class="btn header-btn role-tertiary"
+            data-testid="btn-download-kubeconfig"
             @click="currentCluster.downloadKubeConfig()"
           >
             <i class="icon icon-file icon-lg" />
@@ -521,6 +522,7 @@ export default {
             :disabled="!kubeConfigEnabled"
             type="button"
             class="btn header-btn role-tertiary"
+            data-testid="btn-copy-kubeconfig"
             @click="copyKubeConfig($event)"
           >
             <i

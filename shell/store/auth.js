@@ -344,7 +344,9 @@ export const actions = {
     }
   },
 
-  async logout({ dispatch, commit, getters }, options = {}) {
+  async logout({
+    dispatch, commit, getters, rootState
+  }, options = {}) {
     // So, we only do this check if auth has been initialized.
     //
     // It's possible to be logged in and visit auth/logout directly instead
@@ -362,7 +364,7 @@ export const actions = {
     }
 
     // Unload plugins - we will load again on login
-    await this.$plugin.logout();
+    await rootState.$plugin.logout();
 
     try {
       await dispatch('rancher/request', {

@@ -37,6 +37,7 @@ import { addParam } from '@shell/utils/url';
 import semver from 'semver';
 import { STORE, BLANK_CLUSTER } from '@shell/store/store-types';
 import { isDevBuild } from '@shell/utils/version';
+import { markRaw } from 'vue';
 
 // Disables strict mode for all store instances to prevent warning about changing state outside of mutations
 // because it's more efficient to do that sometimes.
@@ -247,6 +248,9 @@ export const state = () => {
     isRancherInHarvester:    false,
     targetRoute:             null,
     rootProduct:             undefined,
+    $router:                 markRaw(undefined),
+    $route:                  markRaw(undefined),
+    $plugin:                 markRaw(undefined),
   };
 };
 
@@ -722,6 +726,18 @@ export const mutations = {
 
   targetRoute(state, route) {
     state.targetRoute = route;
+  },
+
+  setRouter(state, router) {
+    state.$router = markRaw(router);
+  },
+
+  setRoute(state, route) {
+    state.$route = markRaw(route);
+  },
+
+  setPlugin(state, pluginDefinition) {
+    state.$plugin = markRaw(pluginDefinition);
   }
 };
 
@@ -1128,18 +1144,10 @@ export const actions = {
     }
   },
 
-  nuxtServerInit({ dispatch, rootState }, nuxt) {
-    // Models in SSR server mode have no way to get to the route or router, so hack one in...
-    Object.defineProperty(rootState, '$router', { value: nuxt.app.router });
-    Object.defineProperty(rootState, '$route', { value: nuxt.route });
-    dispatch('prefs/loadCookies');
-  },
-
-  nuxtClientInit({ dispatch, rootState }, nuxt) {
-    Object.defineProperty(rootState, '$router', { value: nuxt.app.router });
-    Object.defineProperty(rootState, '$route', { value: nuxt.route });
-    Object.defineProperty(rootState, '$plugin', { value: nuxt.app.$plugin });
-    Object.defineProperty(this, '$plugin', { value: nuxt.app.$plugin });
+  nuxtClientInit({ dispatch, commit, rootState }, nuxt) {
+    commit('setRouter', nuxt.app.router);
+    commit('setRoute', nuxt.route);
+    commit('setPlugin', nuxt.app.$plugin);
 
     dispatch('management/rehydrateSubscribe');
     dispatch('cluster/rehydrateSubscribe');

@@ -1,83 +1,20 @@
-import { NAME as EXPLORER } from '@shell/config/product/explorer';
-import { SETUP, TIMED_OUT } from '@shell/config/query-params';
+import { SETUP } from '@shell/config/query-params';
 import { SETTING } from '@shell/config/settings';
 import { MANAGEMENT, NORMAN, DEFAULT_WORKSPACE } from '@shell/config/types';
 import { applyProducts } from '@shell/store/type-map';
-import { findBy } from '@shell/utils/array';
 import { ClusterNotFoundError, RedirectToError } from '@shell/utils/error';
 import { get } from '@shell/utils/object';
 import dynamicPluginLoader from '@shell/pkg/dynamic-plugin-loader';
 import { AFTER_LOGIN_ROUTE, WORKSPACE } from '@shell/store/prefs';
 import { BACK_TO } from '@shell/config/local-storage';
 import { NAME as FLEET_NAME } from '@shell/config/product/fleet.js';
-import { canViewResource } from '@shell/utils/auth';
-import { getClusterFromRoute, getProductFromRoute, getPackageFromRoute, getResourceFromRoute } from '@shell/utils/router';
+import {
+  validateResource, setProduct, isLoggedIn, notLoggedIn, noAuth, tryInitialSetup, findMe
+} from '@shell/utils/auth';
+import { getClusterFromRoute, getProductFromRoute, getPackageFromRoute } from '@shell/utils/router';
 import { fetchInitialSettings } from '@shell/utils/settings';
 
 let beforeEachSetup = false;
-
-function setProduct(store, to, redirect) {
-  let product = getProductFromRoute(to);
-
-  // since all products are hardcoded as routes (ex: c-local-explorer), if we match the wildcard route it means that the product does not exist
-  if ((product && (!to.matched.length || (to.matched.length && to.matched[0].path === '/c/:cluster/:product'))) ||
-  // if the product grabbed from the route is not registered, then we don't have it!
-  (product && !store.getters['type-map/isProductRegistered'](product))) {
-    store.dispatch('loadingError', new Error(store.getters['i18n/t']('nav.failWhale.productNotFound', { productNotFound: product }, true)));
-
-    return true;
-  }
-
-  if ( !product ) {
-    product = EXPLORER;
-  }
-
-  const oldProduct = store.getters['productId'];
-  const oldStore = store.getters['currentProduct']?.inStore;
-
-  if ( product !== oldProduct ) {
-    store.commit('setProduct', product);
-  }
-
-  const neuStore = store.getters['currentProduct']?.inStore;
-
-  if ( neuStore !== oldStore ) {
-    // If the product store changes, clear the catalog.
-    // There might be management catalog items in it vs cluster.
-    store.commit('catalog/reset');
-  }
-
-  return false;
-}
-
-/**
- * Check that the resource is valid, if not redirect to fail whale
- *
- * This requires that
- * - product is set
- * - product's store is set and setup (so we can check schema's within it)
- * - product's store has the schemaFor getter (extension stores might not have it)
- * - there's a resource associated with route (meta or param)
- */
-function invalidResource(store, to, redirect) {
-  const product = store.getters['currentProduct'];
-  const resource = getResourceFromRoute(to);
-
-  // In order to check a resource is valid we need these
-  if (!product || !resource) {
-    return false;
-  }
-
-  if (canViewResource(store, resource)) {
-    return false;
-  }
-
-  // Unknown resource, redirect to fail whale
-
-  store.dispatch('loadingError', new Error(store.getters['i18n/t']('nav.failWhale.resourceNotFound', { resource }, true)));
-
-  return () => redirect(302, '/fail-whale');
-}
 
 export default async function({
   route, store, redirect, from, $plugin, next
@@ -139,26 +76,6 @@ export default async function({
     }
   }
 
-  // Make sure you're actually logged in
-  function isLoggedIn(me) {
-    store.commit('auth/hasAuth', true);
-    store.commit('auth/loggedInAs', me.id);
-  }
-
-  function notLoggedIn() {
-    store.commit('auth/hasAuth', true);
-
-    if ( route.name === 'index' ) {
-      return redirect(302, '/auth/login');
-    } else {
-      return redirect(302, `/auth/login?${ TIMED_OUT }`);
-    }
-  }
-
-  function noAuth() {
-    store.commit('auth/hasAuth', false);
-  }
-
   if ( store.getters['auth/enabled'] !== false && !store.getters['auth/loggedIn'] ) {
     // `await` so we have one successfully request whilst possibly logged in (ensures fromHeader is populated from `x-api-cattle-auth`)
     await store.dispatch('auth/getUser');
@@ -173,13 +90,13 @@ export default async function({
     const fromHeader = store.getters['auth/fromHeader'];
 
     if ( fromHeader === 'none' ) {
-      noAuth();
+      noAuth(store);
     } else if ( fromHeader === 'true' ) {
       const me = await findMe(store);
 
-      isLoggedIn(me);
+      isLoggedIn(store, me);
     } else if ( fromHeader === 'false' ) {
-      notLoggedIn();
+      notLoggedIn(store, redirect, route);
 
       return;
     } else {
@@ -187,15 +104,15 @@ export default async function({
       try {
         const me = await findMe(store);
 
-        isLoggedIn(me);
+        isLoggedIn(store, me);
       } catch (e) {
         const status = e?._status;
 
         if ( status === 404 ) {
-          noAuth();
+          noAuth(store);
         } else {
           if ( status === 401 ) {
-            notLoggedIn();
+            notLoggedIn(store, redirect, route);
           } else {
             store.commit('setError', { error: e, locationError: new Error('Auth Middleware') });
           }
@@ -232,17 +149,13 @@ export default async function({
 
     store.app.router.beforeEach((to, from, next) => {
       // NOTE - This beforeEach runs AFTER this middleware. So anything in this middleware that requires it must set it manually
-      setProduct(store, to, redirect);
+      setProduct(store, to);
 
       next();
     });
 
     // Call it for the initial pageload
-    const redirected = setProduct(store, route, redirect);
-
-    if (redirected) {
-      return redirected();
-    }
+    setProduct(store, route);
 
     store.app.router.afterEach((to, from) => {
       // Clear state used to record if back button was used for navigation
@@ -323,11 +236,7 @@ export default async function({
     // When fleet moves to it's own package this should be moved to pkg onEnter/onLeave
     if ((oldProduct === FLEET_NAME || product === FLEET_NAME) && oldProduct !== product) {
       // See note above for store.app.router.beforeEach, need to setProduct manually, for the moment do this in a targeted way
-      const redirected = setProduct(store, route, redirect);
-
-      if (redirected) {
-        return redirected();
-      }
+      setProduct(store, route);
 
       store.commit('updateWorkspace', {
         value:   store.getters['prefs/get'](WORKSPACE) || DEFAULT_WORKSPACE,
@@ -350,11 +259,7 @@ export default async function({
     ]);
 
     if (localCheckResource) {
-      const redirected = invalidResource(store, route, redirect);
-
-      if (redirected) {
-        return redirected();
-      }
+      validateResource(store, route, redirect);
     }
 
     if (!clusterId) {
@@ -388,38 +293,5 @@ export default async function({
 
       return redirect(302, '/fail-whale');
     }
-  }
-}
-
-async function findMe(store) {
-  // First thing we do in loadManagement is fetch principals anyway.... so don't ?me=true here
-  const principals = await store.dispatch('rancher/findAll', {
-    type: NORMAN.PRINCIPAL,
-    opt:  {
-      url:                  '/v3/principals',
-      redirectUnauthorized: false,
-    }
-  });
-
-  const me = findBy(principals, 'me', true);
-
-  return me;
-}
-
-async function tryInitialSetup(store, password = 'admin') {
-  try {
-    const res = await store.dispatch('auth/login', {
-      provider: 'local',
-      body:     {
-        username: 'admin',
-        password
-      },
-    });
-
-    return res._status === 200;
-  } catch (e) {
-    console.error('Error trying initial setup', e); // eslint-disable-line no-console
-
-    return false;
   }
 }
