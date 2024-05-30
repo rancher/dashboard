@@ -293,7 +293,7 @@ export default {
 
     largeAboutText() {
       return this.aboutText.length > 6;
-    }
+    },
 
     appBar() {
       let activeFound = false;
