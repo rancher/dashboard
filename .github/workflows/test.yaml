@@ -2,18 +2,17 @@ name: Tests
 on:
   push:
     branches:
-      - master
-      - 'release-*'
+      - 'release-2.7*'
   pull_request:
-      branches:
-        - master
-        - 'release-*'
+    branches:
+      - 'release-2.7*'
   workflow_dispatch:
-    environment:
-      description: 'Environment to run tests against'
-      type: environment
-      required: true 
-      
+    inputs:
+      environment:
+        description: 'Environment to run tests against'
+        type: environment
+        required: true
+
 env:
   TEST_USERNAME: admin
   TEST_PASSWORD: password
@@ -25,23 +24,73 @@ env:
   TEST_RUN_ID: ${{github.run_number}}-${{github.run_attempt}}-${{github.event.pull_request.title || github.event.head_commit.message}}
   CYPRESS_coverage: true
 
+  E2E_BUILD_DIST_NAME: dist
+  E2E_BUILD_DIST_DIR: dist
+  E2E_BUILD_DIST_EMBER_NAME: dist_ember
+  E2E_BUILD_DIST_EMBER_DIR: dist_ember
+
 jobs:
+  e2e-ui-build:
+    if: "!contains( github.event.pull_request.labels.*.name, 'ci/skip-e2e')"
+    runs-on: ubuntu-latest
+    steps:
+     - uses: actions/checkout@v3
+       with:
+        fetch-depth: 1
+     - name: Setup env
+       uses: ./.github/actions/setup
+     - name: Build e2e
+       run: yarn e2e:build
+     - name: Upload e2e build
+       uses: actions/upload-artifact@v4
+       with:
+        name: ${{ env.E2E_BUILD_DIST_NAME }}
+        path: ${{ env.E2E_BUILD_DIST_DIR }}/
+        if-no-files-found: error
+        retention-days: 10
+        compression-level: 9
+     - name: Upload e2e build ember
+       uses: actions/upload-artifact@v4
+       with:
+        name: ${{ env.E2E_BUILD_DIST_EMBER_NAME }}
+        path: ${{ env.E2E_BUILD_DIST_EMBER_DIR }}/
+        if-no-files-found: error
+        retention-days: 10
+        compression-level: 9
   e2e-test:
     if: "!contains( github.event.pull_request.labels.*.name, 'ci/skip-e2e')"
+    needs: e2e-ui-build
     runs-on: ubuntu-latest
     steps:
       - uses: actions/checkout@v3
         with:
           fetch-depth: 1
-      - uses: actions/setup-node@v3
+      - name: Setup env
+        uses: ./.github/actions/setup
+
+      # Installing fixed version of Chrome since latest version does not work (117-118 didn't work)
+      # Leaving this here again in case we need to pin to a specific Chrome version in the future
+      # - name: Install Chrome 116
+      #   run: |
+      #     sudo apt-get install -y wget
+      #     cd /tmp
+      #     wget -q http://mirror.cs.uchicago.edu/google-chrome/pool/main/g/google-chrome-stable/google-chrome-stable_116.0.5845.187-1_amd64.deb
+      #     sudo apt-get install -y --allow-downgrades ./google-chrome-stable_116.0.5845.187-1_amd64.deb
+      #     google-chrome --version
+
+      - name: Download e2e build
+        uses:  actions/download-artifact@v4
         with:
-          node-version: '14.x'
+         name: ${{ env.E2E_BUILD_DIST_NAME }}
+         path: ${{ env.E2E_BUILD_DIST_DIR }}
+      - name: Download e2e build ember
+        uses:  actions/download-artifact@v4
+        with:
+         name: ${{ env.E2E_BUILD_DIST_EMBER_NAME }}
+         path: ${{ env.E2E_BUILD_DIST_EMBER_DIR }}
       
-      - name: Install packages
-        run: yarn install:ci
-      
-      - name: Prepare build
-        run: yarn e2e:pre-prod
+      - name: Run Rancher
+        run: yarn e2e:docker
       
       - name: Run admin user tests
         run: |
@@ -83,16 +132,12 @@ jobs:
       - uses: actions/checkout@v3
         with:
           fetch-depth: 1
-      - uses: actions/setup-node@v3
-        with:
-          node-version: '14.x'
-      
-      - name: Install packages
-        run: yarn install:ci
       
       - name: Run tests
+        uses: ./.github/actions/unit-tests
+
+      - name: Collect Coverage
         run: |
-          yarn test:ci
           mkdir -p coverage-artifacts/coverage
           cp coverage/unit/coverage-final.json coverage-artifacts/coverage/coverage-unit.json
 
@@ -108,15 +153,9 @@ jobs:
       - uses: actions/checkout@v3
         with:
           fetch-depth: 1
-      - uses: actions/setup-node@v3
-        with:
-          node-version: '14.x'
-      
-      - name: Install packages
-        run: yarn install:ci
-      
-      - name: Run i18n linters
-        run: yarn lint-l10n
+
+      - name: Run i18n lint
+        uses: ./.github/actions/i18n-lint
 
   lint:
     runs-on: ubuntu-latest
@@ -124,15 +163,9 @@ jobs:
       - uses: actions/checkout@v3
         with:
           fetch-depth: 1
-      - uses: actions/setup-node@v3
-        with:
-          node-version: '14.x'
-      
-      - name: Install packages
-        run: yarn install:ci
-      
-      - name: Run linters
-        run: yarn lint
+
+      - name: Run tests
+        uses: ./.github/actions/lint
 
   coverage:
     if: "!contains( github.event.pull_request.labels.*.name, 'ci/skip-e2e')"

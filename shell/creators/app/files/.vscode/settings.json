@@ -10,7 +10,6 @@
     ".gitignore": true,
     ".nuxt*": true,
     ".nyc_output": true,
-    "Dockerfile": true,
     ".vscode": true,
     "LICENSE": true,
     "node_modules": true,
