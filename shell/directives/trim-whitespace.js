@@ -12,7 +12,7 @@ function trimWhitespace(el, dir) {
   }
 }
 const trimWhitespaceDirective = {
-  inserted:         trimWhitespace,
+  mounted:         trimWhitespace,
   componentUpdated: trimWhitespace
 };
 

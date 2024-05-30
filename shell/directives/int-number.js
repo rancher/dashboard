@@ -16,6 +16,6 @@ function inserted(el) {
     }
   });
 }
-const intNumberDirective = { inserted };
+const intNumberDirective = { mounted };
 
 export default intNumberDirective;
