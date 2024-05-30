@@ -106,7 +106,6 @@ export default {
     }
   }
 };
-// TODO: RC
 </script>
 
 <template>

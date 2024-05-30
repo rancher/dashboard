@@ -187,7 +187,6 @@ export default {
       :limit-to-namespace="false"
       :in-store="inStore"
       :allow-ssh="clusterRepoType !== CLUSTER_REPO_TYPES.OCI_URL"
-      :mode="mode"
       generate-name="clusterrepo-auth-"
       :cache-secrets="true"
     />
