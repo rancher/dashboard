@@ -18,9 +18,6 @@ describe('Extensions page', { tags: ['@extensions', '@adminUser'] }, () => {
     extensionsPo.goTo();
     extensionsPo.waitForPage();
 
-    // install extensions operator if it's not installed
-    extensionsPo.installExtensionsOperatorIfNeeded();
-
     // install the rancher plugin examples
     extensionsPo.addExtensionsRepository('https://github.com/rancher/ui-plugin-examples', 'main', 'rancher-plugin-examples');
   });
@@ -35,6 +32,38 @@ describe('Extensions page', { tags: ['@extensions', '@adminUser'] }, () => {
     extensionsPo.goTo();
 
     cy.title().should('eq', 'Rancher - Extensions');
+  });
+
+  it('Should check the feature flag', () => {
+    const extensionsPo = new ExtensionsPagePo();
+
+    extensionsPo.goTo();
+
+    cy.intercept('GET', '/v1/management.cattle.io.features?*', {
+      type:         'collection',
+      resourceType: 'management.cattle.io.feature',
+      data:         [
+        {
+          id:     'uiextension',
+          type:   'management.cattle.io.feature',
+          kind:   'Feature',
+          spec:   { value: true },
+          status: {
+            default:     true,
+            description: 'Enable UI Extensions when starting Rancher',
+            dynamic:     false,
+            lockedValue: null
+          }
+        }
+      ]
+    }).as('getFeatureFlag');
+
+    extensionsPo.waitForPage();
+    extensionsPo.waitForTitle();
+
+    cy.wait('@getFeatureFlag').then(() => {
+      extensionsPo.extensionTabs.checkVisible();
+    });
   });
 
   it('using "Add Rancher Repositories" should add a new repository (Partners repo)', () => {
@@ -63,34 +92,6 @@ describe('Extensions page', { tags: ['@extensions', '@adminUser'] }, () => {
     appRepoList.goTo();
     appRepoList.waitForPage();
     appRepoList.sortableTable().rowElementWithName(UI_PLUGINS_PARTNERS_REPO_URL).should('exist');
-  });
-
-  it('Should disable and enable extension support', () => {
-    const extensionsPo = new ExtensionsPagePo();
-
-    extensionsPo.goTo();
-
-    // open menu and click on disable extension support
-    extensionsPo.extensionMenuToggle();
-    extensionsPo.disableExtensionsClick();
-
-    // on the modal, keep the extensions repo and click disable
-    extensionsPo.disableExtensionModalDisableClick();
-
-    // let's wait for the install button to become visible and re-install
-    // the extensions operator
-    extensionsPo.installOperatorBtn().checkVisible();
-    extensionsPo.installOperatorBtn().click();
-    extensionsPo.enableExtensionModalEnableClick();
-
-    // wait for operation to finish and refresh...
-    extensionsPo.extensionTabs.checkVisible();
-    extensionsPo.goTo();
-    extensionsPo.waitForPage();
-
-    // let's make sure all went good
-    extensionsPo.extensionTabAvailableClick();
-    extensionsPo.extensionCard(EXTENSION_NAME).should('be.visible');
   });
 
   it('New repos banner should only appear once (after dismiss should NOT appear again)', () => {
