@@ -17,7 +17,6 @@
     "lint": "./node_modules/.bin/eslint --max-warnings 0 --ext .ts,.js,.vue .",
     "test": "./node_modules/.bin/nyc ava --serial --verbose",
     "dev": "./node_modules/.bin/vue-cli-service dev",
-    "docker-dev": "docker run --rm --name dashboard-dev -p 8005:8005 -e API=$API -v $(pwd):/src -v dashboard_node:/src/node_modules rancher/dashboard:dev",
     "build": "./node_modules/.bin/vue-cli-service build",
     "analyze": "./node_modules/.bin/vue-cli-service build --report",
     "start": "./node_modules/.bin/vue-cli-service start",
