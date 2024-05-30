@@ -1,7 +1,6 @@
 import ComponentPo from '@/cypress/e2e/po/components/component.po';
 
 export default class VersionNumberPo extends ComponentPo {
-
   checkVersion(version: string) {
     return this.self().should('contain.text', version);
   }

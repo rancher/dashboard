@@ -433,7 +433,7 @@ export default {
       >
         {{ displayVersion }}
       </span>
-      
+
       <!-- locale selector -->
       <span v-if="isSingleProduct">
         <v-popover
@@ -549,7 +549,7 @@ export default {
     .version {
       cursor: default;
       margin: 0 10px 10px 10px;
-    }    
+    }
 
     .footer {
       margin: 20px;
@@ -575,7 +575,7 @@ export default {
       .version {
         cursor: default;
         margin: 0px;
-      }      
+      }
 
       .locale-chooser {
         cursor: pointer;
