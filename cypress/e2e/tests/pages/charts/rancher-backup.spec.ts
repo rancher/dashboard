@@ -41,7 +41,7 @@ describe('Charts', { tags: ['@charts', '@adminUser'] }, () => {
         installPage.nextPage();
         cy.wait('@storageClasses', { timeout: 10000 }).its('response.statusCode').should('eq', 200);
         cy.wait('@persistentVolumes', { timeout: 10000 }).its('response.statusCode').should('eq', 200);
-        cy.wait('@secrets', { timeout: 10000 }).its('response.statusCode').should('eq', 200);
+
         installPage.waitForPage('repo-type=cluster&repo=rancher-charts&chart=rancher-backup');
 
         // Select the 'Use an existing storage class' option

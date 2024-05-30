@@ -387,10 +387,9 @@ export default {
           />
           <Banner
             v-if="!steveCacheEnabled"
+            v-clean-html="t(`performance.serverPagination.featureFlag`, { ffUrl }, true)"
             color="warning"
-          >
-            <span v-clean-html="t(`performance.serverPagination.featureFlag`, { ffUrl }, true)" />
-          </Banner>
+          />
           <Checkbox
             v-model="value.serverPagination.enabled"
             :mode="mode"

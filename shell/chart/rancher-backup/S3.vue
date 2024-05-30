@@ -2,15 +2,16 @@
 import { LabeledInput } from '@components/Form/LabeledInput';
 import { Checkbox } from '@components/Form/Checkbox';
 import FileSelector from '@shell/components/form/FileSelector';
-import LabeledSelect from '@shell/components/form/LabeledSelect';
+import ResourceLabeledSelect from '@shell/components/form/ResourceLabeledSelect';
 import { mapGetters } from 'vuex';
+import { SECRET } from '@shell/config/types';
 
 export default {
   components: {
     LabeledInput,
     Checkbox,
     FileSelector,
-    LabeledSelect,
+    ResourceLabeledSelect,
   },
 
   props: {
@@ -25,10 +26,10 @@ export default {
       default: 'create'
     },
 
-    secrets: {
-      type:    Array,
-      default: () => []
-    }
+  },
+
+  data() {
+    return { SECRET };
   },
 
   mounted() {
@@ -44,6 +45,7 @@ export default {
       this.$emit('valid', this.valid);
     }
   },
+
   computed: {
     credentialSecret: {
       get() {
@@ -75,7 +77,7 @@ export default {
         // eslint-disable-next-line no-console
         console.warn(e);
       }
-    }
+    },
   },
 
   created() {
@@ -92,13 +94,13 @@ export default {
   <div>
     <div class="row mb-10">
       <div class="col span-6">
-        <LabeledSelect
+        <ResourceLabeledSelect
           v-model="credentialSecret"
           :get-option-label="opt=>opt.metadata.name || ''"
           option-key="id"
           :mode="mode"
-          :options="secrets"
           :label="t('backupRestoreOperator.s3.credentialSecretName')"
+          :resource-type="SECRET"
         />
       </div>
       <div class="col span-6">
