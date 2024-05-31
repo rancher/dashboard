@@ -104,7 +104,9 @@ export function load(state, {
     // A specific proxy instance to used was passed in (for create -> save),
     // use it instead of making a new proxy
     entry = replaceResource(existing, data, getters);
-    addObject(cache.list, entry);
+    if (!cache.list.find((e) => e[keyField] === id)) {
+      addObject(cache.list, entry);
+    }
     cache.map.set(id, entry);
     // console.log('### Mutation added from existing proxy', type, id);
   } else {
