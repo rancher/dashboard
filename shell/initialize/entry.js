@@ -29,4 +29,4 @@ loadDebugger(vueApp);
 const errorHandler = Vue.config.errorHandler || console.error; // eslint-disable-line no-console
 
 // Create and mount App
-extendApp(vueApp).then((appPartials) => mountApp(appPartials, vueApp)).catch(errorHandler); // eslint-disable-line no-undef
+extendApp(vueApp).then((appPartials) => mountApp(appPartials, createApp)).catch(errorHandler); // eslint-disable-line no-undef

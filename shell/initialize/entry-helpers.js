@@ -52,13 +52,13 @@ export const globalHandleError = (error) => Vue.config.errorHandler && Vue.confi
 /**
  * Mounts the Vue app to the DOM element
  * @param {Object} appPartials - App view partials
- * @param {Object} VueClass - Vue instance
+ * @param {Object} createApp - Vue createApp function
  */
-export async function mountApp(appPartials, VueClass) {
+export async function mountApp(appPartials, createApp) {
   // Set global variables
   const app = appPartials.app;
   // Create Vue instance
-  const vueApp = new VueClass(app);
+  const vueApp = createApp(app);
 
   // Initialize error handler
   vueApp.$loading = {}; // To avoid error while vueApp.$loading does not exist
