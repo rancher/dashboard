@@ -15,9 +15,8 @@ import { installInjectedPlugins } from 'initialize/install-plugins.js';
  */
 async function extendApp(vueApp) {
   const config = { rancherEnv: process.env.rancherEnv, dashboardVersion: process.env.version };
-  const router = extendRouter(config);
-
   const store = extendStore();
+  const router = extendRouter(config, store);
 
   // Add this.$router into store actions/mutations
   store.$router = router;

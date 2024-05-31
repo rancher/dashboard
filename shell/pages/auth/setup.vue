@@ -9,7 +9,7 @@ import { findBy } from '@shell/utils/array';
 import { Checkbox } from '@components/Form/Checkbox';
 import { getVendor, getProduct, setVendor } from '@shell/config/private-label';
 import { RadioGroup } from '@components/Form/Radio';
-import { fetchInitialSettings, setSetting } from '@shell/utils/settings';
+import { setSetting } from '@shell/utils/settings';
 import { SETTING } from '@shell/config/settings';
 import { isDevBuild } from '@shell/utils/version';
 import { exceptionToErrorsArray } from '@shell/utils/error';
@@ -74,11 +74,6 @@ export default {
   },
 
   async middleware({ store, redirect } ) {
-    try {
-      await fetchInitialSettings(store);
-    } catch (e) {
-    }
-
     const isFirstLogin = calcIsFirstLogin(store);
     const mustChangePassword = await calcMustChangePassword(store);
 
@@ -120,8 +115,6 @@ export default {
     let plSetting;
 
     try {
-      await fetchInitialSettings(this.$store);
-
       plSetting = this.$store.getters['management/byId'](MANAGEMENT.SETTING, SETTING.PL);
     } catch (e) {
       // Older versions used Norman API to get these

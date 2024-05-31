@@ -12,7 +12,6 @@ import {
   validateResource, setProduct, isLoggedIn, notLoggedIn, noAuth, tryInitialSetup, findMe
 } from '@shell/utils/auth';
 import { getClusterFromRoute, getProductFromRoute, getPackageFromRoute } from '@shell/utils/router';
-import { fetchInitialSettings } from '@shell/utils/settings';
 
 let beforeEachSetup = false;
 
@@ -24,9 +23,6 @@ export default async function({
   let firstLogin = null;
 
   try {
-    // Load settings, which will either be just the public ones if not logged in, or all if you are
-    await fetchInitialSettings(store);
-
     const res = store.getters['management/byId'](MANAGEMENT.SETTING, SETTING.FIRST_LOGIN);
     const plSetting = store.getters['management/byId'](MANAGEMENT.SETTING, SETTING.PL);
 
