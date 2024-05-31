@@ -71,7 +71,10 @@ export default class ExtensionsPagePo extends PagePo {
     appRepoCreate.gitBranch().set(branch);
 
     // save it
-    return appRepoCreate.saveAndWaitForRequests('POST', '/v1/catalog.cattle.io.clusterrepos');
+    appRepoCreate.saveAndWaitForRequests('POST', '/v1/catalog.cattle.io.clusterrepos');
+
+    appRepoList.waitForPage();
+    appRepoList.list().state(name).should('contain', 'Active');
   }
 
   // ------------------ extension card ------------------
