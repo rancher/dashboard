@@ -3,6 +3,7 @@ import ProgressBarMulti from '@shell/components/ProgressBarMulti';
 import { ucFirst } from '@shell/utils/string';
 import { colorForState, stateSort } from '@shell/plugins/dashboard-store/resource-class';
 import { sortBy } from '@shell/utils/sort';
+import { FLEET } from '@shell/config/types';
 
 export default {
   components: { ProgressBarMulti },
@@ -32,7 +33,7 @@ export default {
     },
 
     show() {
-      return this.stateParts.length > 0 && this.row.targetClusters?.length;
+      return this.stateParts.length > 0 && (this.row.type === FLEET.CLUSTER || this.row.targetClusters?.length);
     },
 
     stateParts() {
