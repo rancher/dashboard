@@ -79,8 +79,7 @@ async function extendApp(vueApp) {
   await new Promise((resolve, reject) => {
     // Ignore 404s rather than blindly replacing URL in browser
     // TODO: #9539: Verify router possible issues
-    // const { route } = router.resolve(appPartials.context.route.fullPath);
-    const { route } = router.currentRoute.value;
+    const route = router.currentRoute.value;
 
     if (!route.matched.length) {
       return resolve();
