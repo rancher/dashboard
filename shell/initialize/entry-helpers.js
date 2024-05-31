@@ -244,15 +244,15 @@ async function render(to, from, next) {
 /**
  * Mounts the Vue app to the DOM element
  * @param {Object} appPartials - App view partials
- * @param {Object} VueClass - Vue instance
+ * @param {Object} createApp - Vue createApp function
  */
-export async function mountApp(appPartials, VueClass) {
+export async function mountApp(appPartials, createApp) {
   // Set global variables
   app = appPartials.app;
   const router = appPartials.router;
 
   // Create Vue instance
-  const vueApp = new VueClass(app);
+  const vueApp = createApp(app);
 
   // Mounts Vue app to DOM element
   const mount = () => {
