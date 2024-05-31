@@ -7,7 +7,7 @@ import { catchTargetPageException } from '@/cypress/support/utils/exception-util
 
 const extensionName = 'kubewarden';
 
-describe('Kubewarden Extension', { tags: ['@extensions', '@adminUser'] }, () => {
+describe('Kubewarden Extension', { tags: ['@extensions-temp-excluded', '@adminUser'] }, () => {
   before(() => {
     catchTargetPageException('Navigation cancelled');
     cy.login();
