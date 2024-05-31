@@ -53,7 +53,7 @@ export default class ChartRepositoriesCreateEditPo extends PagePo {
     return new SelectOrCreateAuthPo(selector);
   }
 
-  clusterrepoAuthSelectOrCreate() {
+  clusterRepoAuthSelectOrCreate() {
     return this.authSelectOrCreate('[data-testid="clusterrepo-auth-secret"]');
   }
 

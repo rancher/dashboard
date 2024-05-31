@@ -3,6 +3,8 @@ import ChartRepositoriesPagePo from '@/cypress/e2e/po/pages/chart-repositories.p
 import * as path from 'path';
 import * as jsyaml from 'js-yaml';
 
+const chartBranch = 'release-v2.9';
+
 describe('Cluster Management Helm Repositories', { testIsolation: 'off', tags: ['@manager', '@adminUser'] }, () => {
   const repositoriesPage = new ChartRepositoriesPagePo(undefined, 'manager');
   const downloadsFolder = Cypress.config('downloadsFolder');
@@ -24,7 +26,7 @@ describe('Cluster Management Helm Repositories', { testIsolation: 'off', tags: [
     repositoriesPage.createEditRepositories().nameNsDescription().description().set(`${ this.repoName }-description`);
     repositoriesPage.createEditRepositories().repoRadioBtn().set(1);
     repositoriesPage.createEditRepositories().gitRepoUrl().set('https://github.com/rancher/charts');
-    repositoriesPage.createEditRepositories().gitBranch().set('release-v2.8');
+    repositoriesPage.createEditRepositories().gitBranch().set(chartBranch);
     repositoriesPage.createEditRepositories().saveAndWaitForRequests('POST', '/v1/catalog.cattle.io.clusterrepos').its('response.statusCode').should('eq', 201);
     repositoriesPage.waitForPage();
 
@@ -126,8 +128,8 @@ describe('Cluster Management Helm Repositories', { testIsolation: 'off', tags: [
     repositoriesPage.createEditRepositories().nameNsDescription().description().set(`${ this.repoName }-description`);
     repositoriesPage.createEditRepositories().repoRadioBtn().set(1);
     repositoriesPage.createEditRepositories().gitRepoUrl().set('https://github.com/rancher/charts');
-    repositoriesPage.createEditRepositories().gitBranch().set('release-v2.8');
-    repositoriesPage.createEditRepositories().clusterrepoAuthSelectOrCreate().createBasicAuth('test', 'test');
+    repositoriesPage.createEditRepositories().gitBranch().set(chartBranch);
+    repositoriesPage.createEditRepositories().clusterRepoAuthSelectOrCreate().createBasicAuth('test', 'test');
     repositoriesPage.createEditRepositories().saveAndWaitForRequests('POST', '/v1/catalog.cattle.io.clusterrepos');
     repositoriesPage.waitForPage();
 
@@ -145,8 +147,8 @@ describe('Cluster Management Helm Repositories', { testIsolation: 'off', tags: [
     repositoriesPage.createEditRepositories().nameNsDescription().description().set(`${ this.repoName }-description`);
     repositoriesPage.createEditRepositories().repoRadioBtn().set(1);
     repositoriesPage.createEditRepositories().gitRepoUrl().set('https://github.com/rancher/charts');
-    repositoriesPage.createEditRepositories().gitBranch().set('release-v2.8');
-    repositoriesPage.createEditRepositories().clusterrepoAuthSelectOrCreate().createSSHAuth('privateKey', 'publicKey');
+    repositoriesPage.createEditRepositories().gitBranch().set(chartBranch);
+    repositoriesPage.createEditRepositories().clusterRepoAuthSelectOrCreate().createSSHAuth('privateKey', 'publicKey');
     repositoriesPage.createEditRepositories().saveAndWaitForRequests('POST', '/v1/catalog.cattle.io.clusterrepos');
     repositoriesPage.waitForPage();
 
@@ -207,7 +209,7 @@ describe('Cluster Management Helm Repositories', { testIsolation: 'off', tags: [
     repositoriesPage.createEditRepositories().nameNsDescription().description().set(`${ this.repoName }-description`);
     repositoriesPage.createEditRepositories().repoRadioBtn().set(2);
     repositoriesPage.createEditRepositories().ociUrl().set(ociUrl);
-    repositoriesPage.createEditRepositories().clusterrepoAuthSelectOrCreate().createBasicAuth('test', 'test');
+    repositoriesPage.createEditRepositories().clusterRepoAuthSelectOrCreate().createBasicAuth('test', 'test');
 
     cy.intercept('POST', '/v1/catalog.cattle.io.clusterrepos').as('createRepository');
 
