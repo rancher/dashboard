@@ -1,4 +1,6 @@
 import { mount, shallowMount } from '@vue/test-utils';
+import { SECRET } from '@shell/config/types';
+import { _CREATE } from '@shell/config/query-params';
 import rke2 from '@shell/edit/provisioning.cattle.io.cluster/rke2.vue';
 
 /**
@@ -116,7 +118,7 @@ describe('component: rke2', () => {
     const k8s = 'v1.25.0+rke2r1';
     const wrapper = mount(rke2, {
       propsData: {
-        mode:  'create',
+        mode:  _CREATE,
         value: {
           spec: {
             ...defaultSpec,
@@ -143,7 +145,7 @@ describe('component: rke2', () => {
     const k8s = 'v1.25.0+k3s1';
     const wrapper = mount(rke2, {
       propsData: {
-        mode:  'create',
+        mode:  _CREATE,
         value: {
           spec: {
             ...defaultSpec,
@@ -169,7 +171,7 @@ describe('component: rke2', () => {
     const k8s = 'v1.25.0+k3s1';
     const wrapper = mount(rke2, {
       propsData: {
-        mode:  'create',
+        mode:  _CREATE,
         value: {
           spec: {
             ...defaultSpec,
@@ -191,6 +193,63 @@ describe('component: rke2', () => {
     await wrapper.vm.initSpecs();
 
     wrapper.vm.machinePools.forEach((p: any) => expect(p.drainBeforeDelete).toBe(true));
+  });
+
+  it('should set distro root directory from k8sDistro on a Harvester cluster creation on save override (_doSaveOverride)', async() => {
+    const k8s = 'v1.25.0+k3s1';
+
+    const HARVESTER = 'harvester';
+    const HARVESTER_CLOUD_PROVIDER = 'harvester-cloud-provider';
+
+    const newSpec = Object.assign({}, defaultSpec);
+
+    newSpec.rkeConfig.dataDirectories = { k8sDistro: 'my-k8s-distro-path' };
+
+    const wrapper = mount(rke2, {
+      propsData: {
+        mode:  _CREATE,
+        value: {
+          spec: {
+            ...newSpec,
+            kubernetesVersion: k8s
+          },
+          metadata:    { name: 'cluster-name' },
+          agentConfig: { 'cloud-provider-name': HARVESTER }
+        },
+        provider: 'custom'
+      },
+      data: () => ({
+        credentialId: 'I am authenticated',
+        credential:   { decodedData: { clusterId: 'some-cluster-id' } },
+        machinePools: [],
+      }),
+      computed: defaultComputed,
+      mocks:    {
+        ...defaultMocks,
+        $store: {
+          // mock secret creation on "createKubeconfigSecret"
+          dispatch: (action: any, opts: any) => {
+            if (action === 'management/create' && opts.type === SECRET) {
+              return { save: () => jest.fn };
+            } else {
+              return jest.fn();
+            }
+          },
+          getters: defaultGetters
+        },
+      },
+      stubs: defaultStubs
+    });
+
+    // we need to mock the "save" method from the create-edit-view-mixin
+    // otherwise we get console errors
+    jest.spyOn(wrapper.vm, 'save').mockImplementation();
+    jest.spyOn(wrapper.vm, '_doSaveOverride');
+
+    await wrapper.vm._doSaveOverride(jest.fn());
+
+    expect(wrapper.vm._doSaveOverride).toHaveBeenCalled();
+    expect(wrapper.vm.chartValues[HARVESTER_CLOUD_PROVIDER].cloudConfigPath).toStrictEqual('my-k8s-distro-path/etc/config-files/cloud-provider-config');
   });
 
   // TODO: Complete test after implementing fetch https://github.com/rancher/dashboard/issues/9322
