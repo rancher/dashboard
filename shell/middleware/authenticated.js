@@ -1,6 +1,4 @@
-import { SETUP } from '@shell/config/query-params';
-import { SETTING } from '@shell/config/settings';
-import { MANAGEMENT, NORMAN, DEFAULT_WORKSPACE } from '@shell/config/types';
+import { DEFAULT_WORKSPACE } from '@shell/config/types';
 import { applyProducts } from '@shell/store/type-map';
 import { ClusterNotFoundError, RedirectToError } from '@shell/utils/error';
 import { get } from '@shell/utils/object';
@@ -9,73 +7,15 @@ import { AFTER_LOGIN_ROUTE, WORKSPACE } from '@shell/store/prefs';
 import { BACK_TO } from '@shell/config/local-storage';
 import { NAME as FLEET_NAME } from '@shell/config/product/fleet.js';
 import {
-  validateResource, setProduct, isLoggedIn, notLoggedIn, noAuth, tryInitialSetup, findMe
+  validateResource, setProduct, isLoggedIn, notLoggedIn, noAuth, findMe
 } from '@shell/utils/auth';
 import { getClusterFromRoute, getProductFromRoute, getPackageFromRoute } from '@shell/utils/router';
-import { fetchInitialSettings } from '@shell/utils/settings';
 
 let beforeEachSetup = false;
 
 export default async function({
   route, store, redirect, from, $plugin, next
 }) {
-  // Initial ?setup=admin-password can technically be on any route
-  let initialPass = route.query[SETUP];
-  let firstLogin = null;
-
-  try {
-    // Load settings, which will either be just the public ones if not logged in, or all if you are
-    await fetchInitialSettings(store);
-
-    const res = store.getters['management/byId'](MANAGEMENT.SETTING, SETTING.FIRST_LOGIN);
-    const plSetting = store.getters['management/byId'](MANAGEMENT.SETTING, SETTING.PL);
-
-    firstLogin = res?.value === 'true';
-
-    if (!initialPass && plSetting?.value === 'Harvester') {
-      initialPass = 'admin';
-    }
-  } catch (e) {
-  }
-
-  if ( firstLogin === null ) {
-    try {
-      const res = await store.dispatch('rancher/find', {
-        type: NORMAN.SETTING,
-        id:   SETTING.FIRST_LOGIN,
-        opt:  { url: `/v3/settings/${ SETTING.FIRST_LOGIN }` }
-      });
-
-      firstLogin = res?.value === 'true';
-
-      const plSetting = await store.dispatch('rancher/find', {
-        type: NORMAN.SETTING,
-        id:   SETTING.PL,
-        opt:  { url: `/v3/settings/${ SETTING.PL }` }
-      });
-
-      if (!initialPass && plSetting?.value === 'Harvester') {
-        initialPass = 'admin';
-      }
-    } catch (e) {
-    }
-  }
-
-  // TODO show error if firstLogin and default pass doesn't work
-  if ( firstLogin ) {
-    const ok = await tryInitialSetup(store, initialPass);
-
-    if (ok) {
-      if (initialPass) {
-        store.dispatch('auth/setInitialPass', initialPass);
-      }
-
-      return redirect({ name: 'auth-setup' });
-    } else {
-      return redirect({ name: 'auth-login' });
-    }
-  }
-
   if ( store.getters['auth/enabled'] !== false && !store.getters['auth/loggedIn'] ) {
     // `await` so we have one successfully request whilst possibly logged in (ensures fromHeader is populated from `x-api-cattle-auth`)
     await store.dispatch('auth/getUser');
