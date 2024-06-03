@@ -98,39 +98,52 @@ export function load(state, {
 
   cache.generation++;
 
-  let entry;
+  let entry = cache.map.get(id);
+  const inMap = !!entry;
 
+  //
+  // Determine the `entry` that should be in the local map and list cache
+  //
   if ( existing && !existing.id ) {
-    // A specific proxy instance to used was passed in (for create -> save),
-    // use it instead of making a new proxy
-    entry = replaceResource(existing, data, getters);
-    if (!cache.list.find((e) => e[keyField] === id)) {
-      addObject(cache.list, entry);
-    }
-    cache.map.set(id, entry);
-    // console.log('### Mutation added from existing proxy', type, id);
-  } else {
-    entry = cache.map.get(id);
+    // A specific proxy instance to use was passed in (for create -> save), use it instead of making a new proxy
+    // `existing` is a classified resource created locally that is most probably not in the store (unless a slow connection means it's added by socket before the API responds)
+    // Note - `existing` has no `id` because the resource was created locally and not supplied by Rancher API
 
-    if ( entry ) {
-      // There's already an entry in the store, update it
-      replaceResource(entry, data, getters);
-      // console.log('### Mutation Updated', type, id);
+    // Get the latest and greatest version of the resource
+    const latestEntry = replaceResource(existing, data, getters);
+
+    if (inMap) {
+      // There's already an entry in the store, so merge changes into it. The list entry is a reference to the map (and vice versa)
+      entry = replaceResource(entry, latestEntry, getters);
+    } else {
+      // There's no entry, using existing proxy
+      entry = latestEntry;
+    }
+  } else {
+    if (inMap) {
+      // There's already an entry in the store, so merge changes into it. The list entry is a reference to the map (and vice versa)
+      entry = replaceResource(entry, data, getters);
     } else {
       // There's no entry, make a new proxy
       entry = classify(ctx, data);
-      addObject(cache.list, entry);
-      cache.map.set(id, entry);
-      // console.log('### Mutation', type, id);
-
-      // If there is a limit to the number of resources we can store for this type then
-      // remove the first one to keep the list size to that limit
-      if (limit && cache.list.length > limit) {
-        const rm = cache.list.shift();
-
-        cache.map.delete(rm.id);
-      }
     }
+  }
+
+  //
+  // Ensure the `entry` is in both both list and cache
+  // Note - We should be safe assuming the two collections have parity (not in map means not in list)
+  //
+  if (!inMap) {
+    cache.list.push(entry);
+    cache.map.set(id, entry);
+  }
+
+  // If there is a limit to the number of resources we can store for this type then
+  // remove the first one to keep the list size to that limit
+  if (limit && cache.list.length > limit) {
+    const rm = cache.list.shift();
+
+    cache.map.delete(rm.id);
   }
 
   if ( data.baseType ) {
