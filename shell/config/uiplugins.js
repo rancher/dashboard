@@ -1,7 +1,6 @@
 import semver from 'semver';
+import { UI_EXTENSIONS_API_VERSION } from './extensions-api-version';
 
-// Version of the plugin API supported
-export const UI_PLUGIN_API_VERSION = '1.2.0';
 export const UI_PLUGIN_HOST_APP = 'rancher-manager';
 
 export const UI_PLUGIN_BASE_URL = '/v1/uiplugins';
@@ -100,9 +99,11 @@ export function shouldNotLoadPlugin(plugin, rancherVersion, loadedPlugins) {
   }
 
   // Plugin specified a required extension API version
-  const requiredAPI = plugin.metadata?.[UI_PLUGIN_METADATA.EXTENSION_VERSION];
+  // we are propagating the annotations in pkg/package.json for any extension
+  // inside the "spec.plugin.metadata" property of UIPlugin resource
+  const requiredAPI = plugin.spec?.plugin?.metadata?.[UI_PLUGIN_CHART_ANNOTATIONS.EXTENSIONS_VERSION];
 
-  if (requiredAPI && !semver.satisfies(UI_PLUGIN_API_VERSION, requiredAPI)) {
+  if (requiredAPI && !semver.satisfies(UI_EXTENSIONS_API_VERSION, requiredAPI)) {
     return 'plugins.error.api';
   }
 
@@ -143,7 +144,7 @@ export function isSupportedChartVersion(versionsData) {
   // Plugin specified a required extension API version
   const requiredAPI = version.annotations?.[UI_PLUGIN_CHART_ANNOTATIONS.EXTENSIONS_VERSION];
 
-  if (requiredAPI && !semver.satisfies(UI_PLUGIN_API_VERSION, requiredAPI)) {
+  if (requiredAPI && !semver.satisfies(UI_EXTENSIONS_API_VERSION, requiredAPI)) {
     return false;
   }
 
