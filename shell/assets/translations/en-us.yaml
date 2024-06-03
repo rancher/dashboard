@@ -2160,6 +2160,7 @@ resource:
 codeMirror:
   keymap:
     tooltip: Key mapping preference.
+    indicatorToolip: "Key mapping: {name}"
 
 cruResource:
   backToForm: Back to Form
