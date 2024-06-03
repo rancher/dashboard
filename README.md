@@ -9,7 +9,7 @@ Rancher Dashboard supports an extension mechanism that allows developers to inde
 
 Rancher Dashboard provides a sophisticated UI for managing Kubernetes clusters and Workloads.
 
-<img src="docusaurus/docs/getting-started/screenshots/home.png" />
+<img src="docusaurus/docs/internal/getting-started/screenshots/home.png" />
 
 ## Internal Developer Docs
 
