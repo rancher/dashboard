@@ -5,19 +5,19 @@ import ExternalLinkIcon from '@site/static/img/external-link.svg';
 
 const FeatureList = [
   {
-    title:       'Developer Documentation',
-    link:        'home',
+    title:       'Extensions Documentation',
+    link:        'extensions/home',
     target:      '',
     Svg:         require('@site/static/img/developer-documentation.svg').default,
     icon:        'hide',
     description: (
       <>
-        Learn the basics of working with the Rancher UI. Familiarize yourself with the development environment, concepts, extensions and new Rancher UI.
+        Learn about Rancher UI Extensions and how to get started building your own Rancher Extension.
       </>
     ),
   },
   {
-    title:       'Components & Design kit',
+    title:       'Design Kit',
     link:        'https://rancher.github.io/storybook/',
     target:      '_blank',
     Svg:         require('@site/static/img/components-and-design-kit.svg').default,

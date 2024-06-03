@@ -12,8 +12,8 @@ function HomepageHeader() {
   return (
     <header className={clsx('hero hero--primary', styles.heroBanner)}>
       <div className="container homepage-banner">
-        <h1 className="hero__title">Rancher UI DevKit</h1>
-        <p className="hero__subtitle">Rancher UI DevKit provides everything you need to start developing with the Rancher UI and Extensions</p>
+        <h1 className="hero__title">Rancher UI Extensions</h1>
+        <p className="hero__subtitle">Build and publish your own extensions for the Rancher UI</p>
       </div>
     </header>
   );
@@ -25,7 +25,7 @@ export default function Home() {
   return (
     <Layout
       title={`${ siteConfig.title }`}
-      description="Rancher UI DevKit">
+      description="Rancher UI Extensions">
       <HomepageHeader />
       <main>
         <section className={styles.features}>
@@ -34,9 +34,9 @@ export default function Home() {
             <hr/>
             <Contribute/>
             <hr/>
-            <GettingStarted/>
+            {/* <GettingStarted/>
             <hr/>
-            <Guides/>
+            <Guides/> */}
           </div>
         </section>
       </main>

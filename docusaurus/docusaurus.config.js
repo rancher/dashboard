@@ -6,8 +6,8 @@ const darkCodeTheme = require('prism-react-renderer/themes/dracula');
 
 /** @type {import('@docusaurus/types').Config} */
 const config = {
-  title:                 'Rancher UI DevKit',
-  tagline:               'Rancher UI development kit',
+  title:                 'Rancher UI Extensions',
+  tagline:               'Rancher UI Extensions Development Kit',
   url:                   'https://extensions.rancher.io',
   baseUrl:               '/',
   onBrokenLinks:         'throw',
@@ -59,7 +59,7 @@ const config = {
     /** @type {import('@docusaurus/preset-classic').ThemeConfig} */
     ({
       navbar: {
-        title: 'UI DevKit',
+        title: 'UI Extensions',
         logo:  {
           alt:     'Rancher Logo',
           src:     'img/rancher-logo.svg',
