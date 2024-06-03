@@ -1,6 +1,6 @@
 <script>
 import CreateEditView from '@shell/mixins/create-edit-view';
-import { LOGGING, SCHEMA } from '@shell/config/types';
+import { LOGGING, SCHEMA, SECRET } from '@shell/config/types';
 import Tabbed from '@shell/components/Tabbed';
 import Tab from '@shell/components/Tabbed/Tab';
 import CruResource from '@shell/components/CruResource';
