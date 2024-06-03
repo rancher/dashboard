@@ -3,10 +3,7 @@
 
 Rancher Dashboard is the UI that powers [Rancher](https://www.rancher.com/products/rancher).
 
-Developer documentation and documentation for our UI components is available here - [Rancher UI Devkit](https://rancher.github.io/dashboard/).
-
-Rancher Dashboard supports an extension mechanism that allows developers to independently provide additional functionality to Rancher. You can learn more from our [Rancher Extensions Docs](https://rancher.github.io/dashboard/extensions/introduction).
-
+Rancher Dashboard supports an extension mechanism that allows developers to independently provide additional functionality to Rancher. You can learn more from our [Rancher Extensions Docs](https://extensions.rancher.io).
 
 # What is it?
 
@@ -14,17 +11,17 @@ Rancher Dashboard provides a sophisticated UI for managing Kubernetes clusters a
 
 <img src="docusaurus/docs/getting-started/screenshots/home.png" />
 
-For more information, see our [UI Walk-through documentation](https://rancher.github.io/dashboard/getting-started/ui-walkthrough).
+## Internal Developer Docs
 
-## Developer Docs
+These docs are intended only for Dashboard UI developers.
 
-- [Rancher UI Devkit](https://rancher.github.io/dashboard/) - for our documentation home
-- [Developer Quick Start documentation](https://rancher.github.io/dashboard/getting-started/quickstart) - to get the Rancher Dashboard running
-- [Rancher Extensions Docs](https://rancher.github.io/dashboard/extensions/introduction) - to get started with Rancher Extensions 
+If you're building extensions, please see: https://extensions.rancher.io.
+
+For internal documentation, see [Rancher UI Internal Documentation](https://extensions.rancher.io/internal/docs).
 
 ## Contributing
 
-For developers, after reading through the introduction on this page, head over to our [Getting Started](https://rancher.github.io/dashboard/getting-started/concepts) guide to learn more.
+We welcome external contributions - please refer to the internal documentation above.
 
 License
 =======
