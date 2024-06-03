@@ -3,6 +3,7 @@
 const fs = require('fs-extra');
 const path = require('path');
 const https = require('https');
+var semver = require('semver')
 
 const targets = {
   dev:  './node_modules/.bin/nuxt dev',
@@ -131,6 +132,21 @@ function fetchLatestVersion() {
           console.log(`  Adding rancher-version annotation '>= ${ release.tag_name }' to package.json`);
 
           pkg.rancher = { annotations: { 'catalog.cattle.io/rancher-version': `>= ${ release.tag_name }` } };
+
+          const extensionsApiVersionText = fs.readFileSync(path.join(__dirname, '../../config/extensions-api-version.js'), { encoding: 'utf8' });
+          const extensionsApiVersion = extensionsApiVersionText.substring(
+            extensionsApiVersionText.indexOf("'") + 1, 
+            extensionsApiVersionText.lastIndexOf("'")
+          );
+
+          if (!semver.valid(extensionsApiVersion)) {
+            console.log('Wrong format for version number for Extensions API', semver.valid(extensionsApiVersion));
+          } else {
+            console.log(`  Adding catalog.cattle.io/ui-extensions-version '>= ${extensionsApiVersion }' to package.json`);
+            
+            pkg.rancher.annotations['catalog.cattle.io/ui-extensions-version'] = `>= ${ extensionsApiVersion }`;
+          }
+
           writePackageJson();
         }
       } catch (e) {
