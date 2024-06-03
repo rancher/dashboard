@@ -128,6 +128,14 @@ export default {
           @click="refreshGroupMemberships"
         />
       </template>
+      <template #subHeader>
+        <button
+          class="btn role-link btn-sm btn-user-retention"
+        >
+          <i class="icon icon-gear" />
+          User retention settings
+        </button>
+      </template>
     </Masthead>
 
     <ResourceTable
@@ -142,4 +150,11 @@ export default {
 </template>
 
 <style lang="scss">
+
+  .btn-user-retention {
+    display: flex;
+    gap: 0.25rem;
+    padding: 0;
+  }
+
 </style>
