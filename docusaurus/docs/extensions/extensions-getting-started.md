@@ -32,6 +32,40 @@ This will create a new folder `my-app` and populate it with the minimum files ne
 
 > Note: The skeleton application references the Rancher dashboard code via the `@rancher/shell` npm module.
 
+### Installing Rancher
+
+See <https://ranchermanager.docs.rancher.com/getting-started/installation-and-upgrade>. Note: Not all Linux distros and versions are supported. To make sure your OS is compatible with Rancher, see the support maintenance terms for the specific Rancher version that you are using: https://www.suse.com/suse-rancher/support-matrix/all-supported-versions
+
+The above linked installation docs cover two methods confirmed to work with the Dashboard:
+
+- [Single Docker Container](https://ranchermanager.docs.rancher.com/getting-started/installation-and-upgrade/other-installation-methods/rancher-on-a-single-node-with-docker)
+- [Kube Cluster (via Helm)](https://ranchermanager.docs.rancher.com/getting-started/installation-and-upgrade/install-upgrade-on-a-kubernetes-cluster)
+
+To use the most recent version of Rancher that is actively in development, use the version tag `v2.6-head` when installing Rancher. For example, the Docker installation command would look like this:
+
+```bash
+sudo docker run -d --restart=unless-stopped -p 80:80 -p 443:443 --privileged -e CATTLE_BOOTSTRAP_PASSWORD=OPTIONAL_PASSWORD_HERE rancher/rancher:v2.6-head
+```
+
+Dashboard provides convenience methods to start and stop Rancher in a single docker container
+
+```bash
+yarn run docker:local:start
+yarn run docker:local:stop  // default user password as "password"
+```
+
+Note that for Rancher to provision and manage downstream clusters, the Rancher server URL must be accessible from the Internet. If you’re running Rancher in Docker Desktop, the Rancher server URL is `https://localhost`. To make Rancher accessible to downstream clusters for development, you can:
+
+- Use ngrok to test provisioning with a local rancher server
+- Install Rancher on a virtual machine in Digital Ocean or Amazon EC2
+- Change the Rancher server URL using `<dashboard url>c/local/settings/management.cattle.io.setting`
+
+Also for consideration:
+
+- [K3d](https://k3d.io/v4.4.8/#installation) lets you immediately install a Kubernetes cluster in a Docker container and interact with it with kubectl for development and testing purposes.
+
+You should be able to reach the older Ember UI by navigating to the Rancher API url. This same API Url will be used later when starting up the Dashboard.
+
 #### ___Extension Options___
 
 There is one option available to be passed as an argument to the `@rancher/app` script:
@@ -48,8 +82,6 @@ You can run the app with:
 yarn install
 API=<Rancher Backend URL> yarn dev
 ```
-
-> Note: You will need to have a Rancher backend available and the `API` environment variable above set correctly to reference it. Setup instructions can be found [here](../getting-started/development_environment/#installing-rancher).
 
 You should be able to open a browser at https://127.0.0.1:8005 and you'll get the Rancher Dashboard UI. Your skeleton application is a full Rancher UI - but referenced via `npm`.
 

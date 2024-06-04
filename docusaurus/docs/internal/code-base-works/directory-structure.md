@@ -48,7 +48,7 @@ Some common model properties to overwrite are:
 * `detailLocation`: route for the detail view of one instance of the resource
 
 ### Overlapping Model Names
-It's possible that different products will use the same kubernetes resource, but need to add different model functionality (eg Harvester has a 'node' model). Files in a extension's `models` folder will overwrite any files in the `shell/models` directory across the application. To extend or overwrite model functionality for a given store, nest models within a subfolder with the same name as the vuex module's `namespace`. see [Extensions Configuration](../extensions/extensions-configuration.md) for more information on configuring an extension store.
+It's possible that different products will use the same kubernetes resource, but need to add different model functionality (eg Harvester has a 'node' model). Files in a extension's `models` folder will overwrite any files in the `shell/models` directory across the application. To extend or overwrite model functionality for a given store, nest models within a subfolder with the same name as the vuex module's `namespace`. see [Extensions Configuration](../../extensions/extensions-configuration.md) for more information on configuring an extension store.
 
 ## promptRemove**
 Components in the PromptRemove folder are used to customize the removal prompt for specific resource types. Components added to this folder should have the same file name as the resource they're intended for. These components do not control the actual removal action - they are intended to allow the developer to supply additional information about consequences of removing a given resource, eg the Global Role removal prompt warns how many users are bound to that role. 
@@ -56,8 +56,6 @@ Components in the PromptRemove folder are used to customize the removal prompt f
 
 ## l10n
 Extension translation strings are merged with those already present in `shell/assets/translations`. Translation strings with duplicate keys of those present in the relevant shell translation file will overwrite those shell translation strings _across the app_: be mindful if adding translation strings that are not explicitly scoped to your extension. Read more about translations [here](./on-screen-text-and-translations.md)
-
-
 
 ## windowComponents
 Components in this folder can be used within `WindowManager` component, which relies on the `wm` vuex store.

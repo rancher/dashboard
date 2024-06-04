@@ -478,7 +478,6 @@ export default {
         {{ displayVersion }}
       </router-link>
       <template v-else>
-        <span>{{ displayVersion }}</span>
         <span
           v-if="isVirtualCluster && isExplorer"
           v-tooltip="{content: harvesterVersion, placement: 'top'}"

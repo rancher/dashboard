@@ -28,12 +28,12 @@ The Dashboard is shipped with the Rancher package which contains the Rancher API
 
 ### Installing Rancher
 
-See <https://ranchermanager.docs.rancher.com/v2.8/pages-for-subheaders/installation-and-upgrade>. Note: Not all Linux distros and versions are supported. To make sure your OS is compatible with Rancher, see the support maintenance terms for the specific Rancher version that you are using: https://www.suse.com/suse-rancher/support-matrix/all-supported-versions/rancher-v2-7-6/
+See <https://ranchermanager.docs.rancher.com/getting-started/installation-and-upgrade>. Note: Not all Linux distros and versions are supported. To make sure your OS is compatible with Rancher, see the support maintenance terms for the specific Rancher version that you are using: https://www.suse.com/suse-rancher/support-matrix/all-supported-versions
 
 The above linked installation docs cover two methods confirmed to work with the Dashboard:
 
-- [Single Docker Container](https://ranchermanager.docs.rancher.com/v2.8/pages-for-subheaders/rancher-on-a-single-node-with-docker)
-- [Kube Cluster (via Helm)](https://ranchermanager.docs.rancher.com/v2.8/pages-for-subheaders/install-upgrade-on-a-kubernetes-cluster)
+- [Single Docker Container](https://ranchermanager.docs.rancher.com/getting-started/installation-and-upgrade/other-installation-methods/rancher-on-a-single-node-with-docker)
+- [Kube Cluster (via Helm)](https://ranchermanager.docs.rancher.com/getting-started/installation-and-upgrade/install-upgrade-on-a-kubernetes-cluster)
 
 To use the most recent version of Rancher that is actively in development, use the version tag `v2.6-head` when installing Rancher. For example, the Docker installation command would look like this:
 

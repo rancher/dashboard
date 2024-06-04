@@ -1,4 +1,5 @@
 import ComponentPo from '@/cypress/e2e/po/components/component.po';
+import VersionNumberPo from '~/cypress/e2e/po/components/version-number.po';
 
 export default class ProductNavPo extends ComponentPo {
   constructor() {
@@ -55,5 +56,12 @@ export default class ProductNavPo extends ComponentPo {
    */
   tabHeaders(): Cypress.Chainable {
     return this.self().find('.header');
+  }
+
+  /**
+   * Get version number
+   */
+  version() {
+    return new VersionNumberPo('.side-menu .version');
   }
 }

@@ -40,7 +40,6 @@ export const settings = {
     original: '0 0 * * *',
     new:      '0 9 * * *'
   },
-  'server-url':           { new: 'https://e2e-test.html' },
   'ui-index':             { new: 'https://e2e-test.html' },
   'ui-dashboard-index':   { new: 'https://e2e-test.html' },
   'ui-offline-preferred': {
