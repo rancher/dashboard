@@ -5,19 +5,47 @@ import { ChartsPage } from '@/cypress/e2e/po/pages/explorer/charts/charts.po';
 
 describe('Apps', () => {
   describe('Repositories', { tags: ['@explorer', '@adminUser'] }, () => {
+    const reposToDelete = [];
+
     describe('Add', () => {
-      before(() => {
+      const appRepoList = new ReposListPagePo('local', 'apps');
+
+      beforeEach(() => {
         cy.login();
 
-        const appRepoList = new ReposListPagePo('local', 'apps');
-
         appRepoList.goTo();
-        appRepoList.waitForPage();
+        appRepoList.waitForGoTo('/v1/catalog.cattle.io.clusterrepos?exclude=metadata.managedFields');
+
+        cy.createE2EResourceName('helm-repo-dupe-test').as('helmRepoDupeName');
+      });
+
+      it('After add Repo list should not contain multiple entries', function() {
+        const appRepoCreate = new AppClusterRepoEditPo('local', 'create');
+
+        appRepoList.sortableTable().checkLoadingIndicatorNotVisible();
+        appRepoList.sortableTable().rowCount().should('be.lessThan', 10); // catch page size 10...
+        appRepoList.sortableTable().rowCount().then((count) => {
+          // track repo rows
+
+          const initialRowCount = count;
+
+          // create a new cluster repo
+          appRepoList.create();
+          appRepoCreate.waitForPage();
+          appRepoCreate.nameNsDescription().name().self().scrollIntoView()
+            .should('be.visible');
+          appRepoCreate.nameNsDescription().name().set(this.helmRepoDupeName);
+          appRepoCreate.create().self().scrollIntoView();
+          appRepoCreate.create().click();
+
+          // test repo rows
+          appRepoList.waitForPage();
+          reposToDelete.push(this.helmRepoDupeName);
+          appRepoList.sortableTable().rowCount().should('eq', initialRowCount + 1);
+        });
       });
 
       it('Should reset input values when switching cluster repo type', () => {
-        const appRepoList = new ReposListPagePo('local', 'apps');
-
         // create a new cluster repo
         appRepoList.create();
 
@@ -164,6 +192,10 @@ describe('Apps', () => {
         // The specific version of the chart should be fetched (as the cache was cleared)
         cy.wait('@rancherCharts3').its('request.url').should('include', 'version=');
       });
+    });
+
+    after(() => {
+      reposToDelete.forEach((r) => cy.deleteRancherResource('v1', 'catalog.cattle.io.clusterrepos', r));
     });
   });
 });

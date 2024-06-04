@@ -1,11 +1,9 @@
 import { GitRepoCreatePo } from '@/cypress/e2e/po/pages/fleet/gitrepo-create.po';
 import { FleetGitRepoListPagePo } from '@/cypress/e2e/po/pages/fleet/fleet.cattle.io.gitrepo.po';
 import FleetGitRepoDetailsPo from '@/cypress/e2e/po/detail/fleet/fleet.cattle.io.gitrepo.po';
-import { FleetDashboardPagePo } from '@/cypress/e2e/po/pages/fleet/fleet-dashboard.po';
 import { gitRepoCreateRequest } from '@/cypress/e2e/blueprints/fleet/gitrepos';
 import { generateFakeClusterDataAndIntercepts } from '@/cypress/e2e/blueprints/nav/fake-cluster';
 import PreferencesPagePo from '@/cypress/e2e/po/pages/preferences.po';
-import PromptRemove from '@/cypress/e2e/po/prompts/promptRemove.po';
 
 const fakeProvClusterId = 'some-fake-cluster-id';
 const fakeMgmtClusterId = 'some-fake-mgmt-id';
@@ -13,7 +11,7 @@ const fakeMgmtClusterId = 'some-fake-mgmt-id';
 describe('Git Repo', { tags: ['@fleet', '@adminUser'] }, () => {
   describe('Create', () => {
     const gitRepoCreatePage = new GitRepoCreatePo('_');
-    const repoList = [];
+    const reposToDelete = [];
 
     beforeEach(() => {
       cy.login();
@@ -48,9 +46,9 @@ describe('Git Repo', { tags: ['@fleet', '@adminUser'] }, () => {
 
       gitRepoCreatePage.targetCluster().toggle();
       gitRepoCreatePage.targetCluster().clickOption(6);
-      gitRepoCreatePage.create();
-
-      repoList.push(name);
+      gitRepoCreatePage.create().then(() => {
+        reposToDelete.push(`fleet-default/${ name }`);
+      });
 
       // First request is for creating credentials
       let secretName = '';
@@ -92,6 +90,10 @@ describe('Git Repo', { tags: ['@fleet', '@adminUser'] }, () => {
 
           listPage.goTo();
           listPage.waitForPage();
+          listPage.repoList().resourceTable().checkVisible();
+          listPage.repoList().resourceTable().sortableTable().checkVisible();
+          listPage.repoList().resourceTable().sortableTable().checkLoadingIndicatorNotVisible();
+          listPage.repoList().resourceTable().sortableTable().noRowsShouldNotExist();
 
           // TESTING https://github.com/rancher/dashboard/issues/9984 make sure details page loads fine
           listPage.goToDetailsPage('fleet-e2e-test-gitrepo');
@@ -144,7 +146,9 @@ describe('Git Repo', { tags: ['@fleet', '@adminUser'] }, () => {
       gitRepoCreatePage.setBranchName(basicRepos[0].branch);
       gitRepoCreatePage.gitRepoPaths().setValueAtIndex(basicRepos[0].path, 0);
       gitRepoCreatePage.goToNext();
-      gitRepoCreatePage.create();
+      gitRepoCreatePage.create().then(() => {
+        reposToDelete.push(`fleet-local/${ basicRepos[0].name }`);
+      });
 
       // create second git-repo in fleet-local
       listPage.waitForPage();
@@ -157,7 +161,9 @@ describe('Git Repo', { tags: ['@fleet', '@adminUser'] }, () => {
       gitRepoCreatePage.setBranchName(basicRepos[1].branch);
       gitRepoCreatePage.gitRepoPaths().setValueAtIndex(basicRepos[1].path, 0);
       gitRepoCreatePage.goToNext();
-      gitRepoCreatePage.create();
+      gitRepoCreatePage.create().then(() => {
+        reposToDelete.push(`fleet-local/${ basicRepos[1].name }`);
+      });
 
       listPage.waitForPage();
       listPage.selectWorkspace('fleet-local');
@@ -172,26 +178,7 @@ describe('Git Repo', { tags: ['@fleet', '@adminUser'] }, () => {
     });
 
     after(() => {
-      const fleetDashboardPage = new FleetDashboardPagePo('_');
-
-      FleetDashboardPagePo.goTo();
-      const fleetDefaultResourceTable = fleetDashboardPage.resourceTable('fleet-default');
-
-      fleetDefaultResourceTable.sortableTable().deleteItemWithUI('fleet-e2e-test-gitrepo');
-
-      const listPage = new FleetGitRepoListPagePo();
-
-      listPage.navTo();
-      listPage.selectWorkspace('fleet-local');
-
-      listPage.resourceTable().sortableTable().rowSelectCtlWithName('e2e-git-repo1-test-bundle-count').set();
-      listPage.resourceTable().sortableTable().rowSelectCtlWithName('e2e-git-repo2-test-bundle-count').set();
-      listPage.resourceTable().sortableTable().bulkActionDropDownOpen();
-      listPage.resourceTable().sortableTable().bulkActionDropDownButton('Delete').click();
-
-      const promptRemove = new PromptRemove();
-
-      promptRemove.remove();
+      reposToDelete.forEach((r) => cy.deleteRancherResource('v1', 'fleet.cattle.io.gitrepo', r));
     });
   });
 });
