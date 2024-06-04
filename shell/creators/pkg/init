@@ -5,7 +5,7 @@ const path = require('path');
 const https = require('https');
 const semver = require('semver');
 
-const UI_PLUGIN_API_VERSION = '1.2.0';
+const UI_EXTENSIONS_API_VERSION = '1.2.0';
 
 const targets = {
   dev:  './node_modules/.bin/nuxt dev',
@@ -135,12 +135,12 @@ function fetchLatestVersion() {
 
           pkg.rancher = { annotations: { 'catalog.cattle.io/rancher-version': `>= ${ release.tag_name }` } };
 
-          if (!semver.valid(UI_PLUGIN_API_VERSION)) {
-            console.log('Wrong format for version number for Extensions API', semver.valid(UI_PLUGIN_API_VERSION));
+          if (!semver.valid(UI_EXTENSIONS_API_VERSION)) {
+            console.log('Wrong format for version number for Extensions API', semver.valid(UI_EXTENSIONS_API_VERSION));
           } else {
-            console.log(`  Adding catalog.cattle.io/ui-extensions-version '>= ${UI_PLUGIN_API_VERSION }' to package.json`);
+            console.log(`  Adding catalog.cattle.io/ui-extensions-version '>= ${UI_EXTENSIONS_API_VERSION }' to package.json`);
             
-            pkg.rancher.annotations['catalog.cattle.io/ui-extensions-version'] = `>= ${ UI_PLUGIN_API_VERSION }`;
+            pkg.rancher.annotations['catalog.cattle.io/ui-extensions-version'] = `>= ${ UI_EXTENSIONS_API_VERSION }`;
           }
 
           writePackageJson();
