@@ -129,12 +129,13 @@ export default {
         />
       </template>
       <template #subHeader>
-        <button
+        <router-link
+          :to="{ name: 'c-cluster-auth-user.retention'}"
           class="btn role-link btn-sm btn-user-retention"
         >
           <i class="icon icon-gear" />
           User retention settings
-        </button>
+        </router-link>
       </template>
     </Masthead>
 
