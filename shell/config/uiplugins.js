@@ -1,7 +1,7 @@
 import semver from 'semver';
 
 // Version of the plugin API supported
-export const UI_PLUGIN_API_VERSION = '1.2.0';
+export const UI_EXTENSIONS_API_VERSION = '1.2.0';
 export const UI_PLUGIN_HOST_APP = 'rancher-manager';
 
 export const UI_PLUGIN_BASE_URL = '/v1/uiplugins';
