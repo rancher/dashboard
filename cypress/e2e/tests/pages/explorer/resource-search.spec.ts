@@ -1,6 +1,6 @@
 import HomePagePo from '@/cypress/e2e/po/pages/home.po';
 import ClusterDashboardPagePo from '@/cypress/e2e/po/pages/explorer/cluster-dashboard.po';
-import ResourceSearchDialog from '@/cypress/e2e/po/dialog/ResourceSearchDialog.po';
+import ResourceSearchDialog from '@/cypress/e2e/po/prompts/ResourceSearchDialog.po';
 import { NamespaceFilterPo } from '@/cypress/e2e/po/components/namespace-filter.po';
 import { ConfigMapPagePo } from '@/cypress/e2e/po/pages/explorer/config-map.po';
 
@@ -16,7 +16,7 @@ describe('Cluster Dashboard', { testIsolation: 'off', tags: ['@explorer', '@admi
 
   it('can show resource search dialog', () => {
     // Open the resource search
-    clusterDashboard.resourceSearchButton().click();
+    clusterDashboard.clusterActionsHeader().resourceSearchButton().click();
 
     const dialog = new ResourceSearchDialog();
 

@@ -1,5 +1,5 @@
 import Vue from 'vue';
-import { joinURL, normalizeURL, withQuery, withoutTrailingSlash } from 'ufo';
+import { normalizeURL, withQuery } from 'ufo';
 
 export function createGetCounter(counterObject, defaultKey = '') {
   return function getCounter(id = defaultKey) {
@@ -26,27 +26,7 @@ export function interopDefault(promise) {
 export function hasFetch(vm) {
   return vm.$options && typeof vm.$options.fetch === 'function' && !vm.$options.fetch.length;
 }
-export function purifyData(data) {
-  if (process.env.NODE_ENV === 'production') {
-    return data;
-  }
 
-  return Object.entries(data).filter(
-    ([key, value]) => {
-      const valid = !(value instanceof Function) && !(value instanceof Promise);
-
-      if (!valid) {
-        console.warn(`${ key } is not able to be stringified. This will break in a production environment.`); // eslint-disable-line no-console
-      }
-
-      return valid;
-    }
-  ).reduce((obj, [key, value]) => {
-    obj[key] = value;
-
-    return obj;
-  }, {});
-}
 export function getChildrenComponentInstancesUsingFetch(vm, instances = []) {
   const children = vm.$children || [];
 
@@ -91,10 +71,6 @@ export function getMatchedComponents(route, matches = false, prop = 'components'
       return m[prop][key];
     });
   }));
-}
-
-export function getMatchedComponentsInstances(route, matches = false) {
-  return getMatchedComponents(route, matches, 'instances');
 }
 
 export function flatMapComponents(route, fn) {
@@ -329,14 +305,4 @@ export function addLifecycleHook(vm, hook, fn) {
   if (!vm.$options[hook].includes(fn)) {
     vm.$options[hook].push(fn);
   }
-}
-
-export const urlJoin = joinURL;
-
-export const stripTrailingSlash = withoutTrailingSlash;
-
-export function setScrollRestoration(newVal) {
-  try {
-    window.history.scrollRestoration = newVal;
-  } catch (e) {}
 }

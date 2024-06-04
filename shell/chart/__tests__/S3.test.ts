@@ -9,8 +9,15 @@ const localVue = createLocalVue();
 localVue.use(Vuex);
 
 describe('rancher-backup: S3', () => {
-  const mockStore = { getters: { 'i18n/t': (text: string) => text, t: (text: string) => text } };
-  const wrapper = mount(S3, { mocks: { $store: mockStore } });
+  const mockStore = {
+    getters: {
+      'i18n/t':                    (text: string) => text,
+      t:                           (text: string) => text,
+      'cluster/all':               () => [],
+      'cluster/paginationEnabled': () => false
+    }
+  };
+  const wrapper = mount(S3, { mocks: { $store: mockStore, $fetchState: { pending: false } } });
 
   it('should emit invalid when form is not filled', () => {
     expect(wrapper.emitted('valid')).toHaveLength(1);

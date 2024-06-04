@@ -29,58 +29,42 @@ describe('Settings', { testIsolation: 'off' }, () => {
     });
   });
 
-  it.skip('can update server-url', { tags: ['@globalSettings', '@adminUser'] }, () => {
-    // Note: this test fails due to https://github.com/rancher/dashboard/issues/10613
-    // This issue is causing e2e provisioning tests to fail
-    // skipping this test until issue is resolved
+  it('can update but not reset server-url', { tags: ['@globalSettings', '@adminUser'] }, () => {
+    // The server-url can not be reset as there is no default -
+    // so we're not updating the value of the server-url -
+    // only checking that the api request is sent and that the reset button is disabled
 
-    // Update setting
     SettingsPagePo.navTo();
-
-    // Get original value and store it via aliasing
     settingsPage.settingsValue('server-url').then((el: any) => {
-      const originalValue = el.text();
+      const value = el.text();
 
-      cy.wrap(originalValue).as('originalValue');
-    });
+      settingsPage.editSettingsByLabel('server-url');
 
-    settingsPage.editSettingsByLabel('server-url');
+      const settingsEdit = settingsPage.editSettings('local', 'server-url');
 
-    const settingsEdit = settingsPage.editSettings('local', 'server-url');
-
-    settingsEdit.waitForPage();
-    settingsEdit.title().contains('Setting: server-url').should('be.visible');
-    settingsEdit.settingsInput().set(settings['server-url'].new);
-    settingsEdit.saveAndWait('server-url').then(() => {
-      removeServerUrl = true;
-    });
-    settingsPage.waitForPage();
-    settingsPage.settingsValue('server-url').contains(settings['server-url'].new);
-
-    // Check Account and API Keys page
-    AccountPagePo.navTo();
-    accountPage.waitForPage();
-    accountPage.isCurrentPage();
-    cy.contains(settings['server-url'].new).should('be.visible');
-
-    // Reset
-    SettingsPagePo.navTo();
-    settingsPage.waitForPage();
-    settingsPage.editSettingsByLabel('server-url');
-
-    settingsEdit.waitForPage();
-    settingsEdit.title().contains('Setting: server-url').should('be.visible');
-    cy.get('@originalValue').then((text:any) => {
-      settingsEdit.useDefaultButton().click();
-      settingsEdit.saveAndWait('server-url');
+      settingsEdit.waitForPage();
+      settingsEdit.title().contains('Setting: server-url').should('be.visible');
+      settingsEdit.saveAndWait('server-url').then(() => {
+        removeServerUrl = true;
+      });
       settingsPage.waitForPage();
-      settingsPage.settingsValue('server-url').contains(text);
+      settingsPage.settingsValue('server-url').contains(value);
 
       // Check Account and API Keys page
       AccountPagePo.navTo();
       accountPage.waitForPage();
       accountPage.isCurrentPage();
-      cy.contains(text).should('be.visible');
+      cy.contains(value).should('be.visible');
+
+      // Check reset button disabled
+      SettingsPagePo.navTo();
+      settingsPage.waitForPage();
+      settingsPage.editSettingsByLabel('server-url');
+
+      settingsEdit.waitForPage();
+      settingsEdit.title().contains('Setting: server-url').should('be.visible');
+      settingsEdit.useDefaultButton().should('be.visible');
+      settingsEdit.useDefaultButton().should('be.disabled');
     });
   });
 

@@ -17,4 +17,13 @@ export default class PromptRemove extends ComponentPo {
   remove() {
     return this.self().getId('prompt-remove-confirm-button').click();
   }
+
+  deactivate() {
+    return this.self().getId('prompt-remove-confirm-button').click();
+  }
+
+  // Get the warning message
+  warning() {
+    return this.self().get('[warning] .text-warning');
+  }
 }

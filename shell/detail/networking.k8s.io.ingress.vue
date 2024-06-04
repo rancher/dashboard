@@ -6,7 +6,6 @@ import Rules from '@shell/edit/networking.k8s.io.ingress/Rules';
 import ResourceTabs from '@shell/components/form/ResourceTabs';
 import Tab from '@shell/components/Tabbed/Tab';
 import { SECRET_TYPES as TYPES } from '@shell/config/secret';
-import paginationUtils from '@shell/utils/pagination-utils';
 import { PaginationArgs, PaginationParamFilter } from '@shell/types/store/pagination.types';
 
 export default {
@@ -23,7 +22,7 @@ export default {
       resourceFields: this.schema.fetchResourceFields(),
     };
 
-    if (paginationUtils.isEnabled({ rootGetters: this.$store.getters }, { store: 'cluster', resource: { id: SECRET } })) {
+    if (this.$store.getters[`cluster/paginationEnabled`](SECRET)) {
       const findPageArgs = { // Of type ActionFindPageArgs
         namespaced: this.value.metadata.namespace,
         pagination: new PaginationArgs({

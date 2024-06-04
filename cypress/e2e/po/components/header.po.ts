@@ -1,6 +1,8 @@
 import ComponentPo from '@/cypress/e2e/po/components/component.po';
 import { WorkspaceSwitcherPo } from '@/cypress/e2e/po/components/workspace-switcher.po';
 import { ImportYamlPo } from '@/cypress/e2e/po/components/import-yaml.po';
+import Kubectl from '~/cypress/e2e/po/components/kubectl.po';
+
 export class HeaderPo extends ComponentPo {
   constructor() {
     super('[data-testid="header"]');
@@ -34,8 +36,24 @@ export class HeaderPo extends ComponentPo {
     return this.self().find('.cluster-badge');
   }
 
+  kubectlShell() {
+    return new Kubectl();
+  }
+
   kubectlExplain() {
     return this.self().find('[data-testid="extension-header-action-kubectl-explain.action"]');
+  }
+
+  downloadKubeconfig(): Cypress.Chainable {
+    return cy.get('[data-testid="btn-download-kubeconfig"]');
+  }
+
+  copyKubeconfig(): Cypress.Chainable {
+    return cy.get('[data-testid="btn-copy-kubeconfig"]');
+  }
+
+  copyKubeConfigCheckmark(): Cypress.Chainable {
+    return cy.get('.header-btn-active');
   }
 
   showKubectlExplainTooltip(): Cypress.Chainable {
@@ -44,5 +62,9 @@ export class HeaderPo extends ComponentPo {
 
   getKubectlExplainTooltipContent(): Cypress.Chainable {
     return cy.get('.tooltip.vue-tooltip-theme .tooltip-inner');
+  }
+
+  resourceSearchButton(): Cypress.Chainable {
+    return cy.get('[data-testid="header-resource-search"]');
   }
 }

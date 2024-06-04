@@ -78,7 +78,6 @@ class PaginationUtils {
       return false;
     }
 
-    // const storeSettings = settings.stores?.[enabledFor.store];
     const storeSettings = settings.stores?.[enabledFor.store];
 
     // No pagination setting for target store, not enabled

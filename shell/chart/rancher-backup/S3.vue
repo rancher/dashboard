@@ -2,19 +2,16 @@
 import { LabeledInput } from '@components/Form/LabeledInput';
 import { Checkbox } from '@components/Form/Checkbox';
 import FileSelector from '@shell/components/form/FileSelector';
-import LabeledSelect from '@shell/components/form/LabeledSelect';
+import ResourceLabeledSelect from '@shell/components/form/ResourceLabeledSelect';
 import { mapGetters } from 'vuex';
 import { SECRET } from '@shell/config/types';
-import { PaginationParamFilter } from '@shell/types/store/pagination.types';
-import { labelSelectPaginationFunction } from '@shell/components/form/labeled-select-utils/labeled-select.utils';
-import paginationUtils from '@shell/utils/pagination-utils';
 
 export default {
   components: {
     LabeledInput,
     Checkbox,
     FileSelector,
-    LabeledSelect,
+    ResourceLabeledSelect,
   },
 
   props: {
@@ -32,13 +29,7 @@ export default {
   },
 
   data() {
-    return { secrets: [] };
-  },
-
-  async fetch() {
-    if (!paginationUtils.isEnabled({ rootGetters: this.$store.getters }, { store: 'cluster', resource: { id: SECRET } })) {
-      this.secrets = await this.$store.dispatch('cluster/findAll', { type: SECRET });
-    }
+    return { SECRET };
   },
 
   mounted() {
@@ -87,22 +78,6 @@ export default {
         console.warn(e);
       }
     },
-
-    /**
-     * @param [PaginateFnOptions] opts
-     * @returns PaginateFnResponse
-     */
-    async paginateSecrets(opts) {
-      const { filter } = opts;
-      const filters = !!filter ? [PaginationParamFilter.createSingleField({ field: 'metadata.name', value: filter })] : [];
-
-      return labelSelectPaginationFunction({
-        opts,
-        filters,
-        type: SECRET,
-        ctx:  { getters: this.$store.getters, dispatch: this.$store.dispatch }
-      });
-    },
   },
 
   created() {
@@ -119,14 +94,13 @@ export default {
   <div>
     <div class="row mb-10">
       <div class="col span-6">
-        <LabeledSelect
+        <ResourceLabeledSelect
           v-model="credentialSecret"
           :get-option-label="opt=>opt.metadata.name || ''"
           option-key="id"
           :mode="mode"
-          :options="secrets"
-          :paginate="paginateSecrets"
           :label="t('backupRestoreOperator.s3.credentialSecretName')"
+          :resource-type="SECRET"
         />
       </div>
       <div class="col span-6">

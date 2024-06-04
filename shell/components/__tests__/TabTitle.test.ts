@@ -30,7 +30,7 @@ describe('component: TabTitle', () => {
     return mocks;
   }
 
-  function createStore(mocks: any) {
+  function mockStore(mocks: any) {
     return new Vuex.Store({
       getters: {
         isExplorer() {
@@ -53,7 +53,7 @@ describe('component: TabTitle', () => {
     const mocks = createMocks();
 
     mocks.isExplorer = true;
-    const store = createStore(mocks);
+    const store = mockStore(mocks);
 
     shallowMount(TabTitle, {
       slots: { default: mocks.child }, store, localVue
@@ -66,7 +66,7 @@ describe('component: TabTitle', () => {
     const mocks = createMocks();
 
     mocks.currentCluster.isHarvester = true;
-    const store = createStore(mocks);
+    const store = mockStore(mocks);
 
     shallowMount(TabTitle, {
       slots: { default: mocks.child }, store, localVue
@@ -80,7 +80,7 @@ describe('component: TabTitle', () => {
 
     mocks.currentCluster = null;
     mocks.withFallback = 'product';
-    const store = createStore(mocks);
+    const store = mockStore(mocks);
 
     shallowMount(TabTitle, {
       slots: { default: mocks.child }, store, localVue
@@ -91,7 +91,7 @@ describe('component: TabTitle', () => {
 
   it('should call console error when not passed a string as a child', () => {
     const mocks = createMocks();
-    const store = createStore(mocks);
+    const store = mockStore(mocks);
 
     global.console = { error: jest.fn() };
 
@@ -104,7 +104,7 @@ describe('component: TabTitle', () => {
 
   it('should only show child', () => {
     const mocks = createMocks();
-    const store = createStore(mocks);
+    const store = mockStore(mocks);
 
     shallowMount(TabTitle, {
       slots: { default: mocks.child }, propsData: { breadcrumb: false }, store, localVue
@@ -118,7 +118,7 @@ describe('component: TabTitle', () => {
 
     mocks.isExplorer = true;
 
-    const store = createStore(mocks);
+    const store = mockStore(mocks);
 
     shallowMount(TabTitle, {
       slots: { default: mocks.child }, propsData: { includeVendor: false }, store, localVue

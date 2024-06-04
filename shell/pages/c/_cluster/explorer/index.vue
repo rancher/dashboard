@@ -184,6 +184,11 @@ export default {
       return this.$store.getters['management/all'](MANAGEMENT.CLUSTER);
     },
 
+    showClusterTools() {
+      return this.$store.getters['cluster/canList'](CATALOG.CLUSTER_REPO) &&
+      this.$store.getters['cluster/canList'](CATALOG.APP);
+    },
+
     displayProvider() {
       const other = 'other';
 
@@ -546,8 +551,11 @@ export default {
             {{ t('clusterIndexPage.header') }}
           </TabTitle>
         </h1>
-        <div>
-          <span v-if="hasDescription">{{ currentCluster.spec.description }}</span>
+        <div
+          v-if="hasDescription"
+          class="cluster-dashboard-description"
+        >
+          <span>{{ currentCluster.spec.description }}</span>
         </div>
       </div>
     </header>
@@ -594,13 +602,12 @@ export default {
         /></span>
       </div>
       <div :style="{'flex':1}" />
-      <div v-if="!monitoringStatus.v2">
+      <div v-if="showClusterTools">
         <router-link
           :to="{name: 'c-cluster-explorer-tools'}"
-          class="monitoring-install"
+          class="cluster-tools-link"
         >
-          <i class="icon icon-gear" />
-          <span>{{ t('glance.installMonitoring') }}</span>
+          <span>{{ t('nav.clusterTools') }}</span>
         </router-link>
       </div>
       <ConfigBadge
@@ -805,9 +812,10 @@ export default {
 }
 
 .cluster-dashboard-glance {
+  align-items: center;
   border-top: 1px solid var(--border);
   border-bottom: 1px solid var(--border);
-  padding: 20px 0px;
+  padding: 10px 0px;
   display: flex;
 
   &>*:not(:nth-last-child(-n+2)) {
@@ -819,8 +827,15 @@ export default {
   }
 }
 
-.title h1 {
-  margin: 0;
+.title {
+  h1 {
+    margin: 0;
+  }
+
+  .cluster-dashboard-description {
+    margin: 5px 0;
+    opacity: 0.7;
+  }
 }
 
 .actions-span {
@@ -846,9 +861,9 @@ export default {
   margin-top: 0;
 }
 
-.monitoring-install {
+.cluster-tools-link {
   display: flex;
-  margin-left: 10px;
+  margin-right: 10px;
 
   > I {
     line-height: inherit;

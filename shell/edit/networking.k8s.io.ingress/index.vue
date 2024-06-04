@@ -16,7 +16,6 @@ import Certificates from './Certificates';
 import Rules from './Rules';
 import IngressClass from './IngressClass';
 import Loading from '@shell/components/Loading';
-import paginationUtils from '@shell/utils/pagination-utils';
 import { PaginationArgs, PaginationParamFilter } from '@shell/types/store/pagination.types';
 
 export default {
@@ -57,7 +56,7 @@ export default {
       ingressResourceFields: this.schema.fetchResourceFields(),
     };
 
-    this.filterByApi = paginationUtils.isEnabled({ rootGetters: this.$store.getters }, { store: 'cluster', resource: { id: SECRET } });
+    this.filterByApi = this.$store.getters[`cluster/paginationEnabled`](SECRET);
 
     if (this.filterByApi) {
       promises.filteredSecrets = this.filterSecretsByApi();

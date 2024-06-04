@@ -59,4 +59,20 @@ skipGeometric=true`;
     // Assert the current value yaml dumps will append a newline at the end
     configMapPo.valueInput().value().should('eq', `${ expectedValue }\n`);
   });
+
+  it('should show an error banner if the api call sends back an error', () => {
+    // Navigate to Service Discovery => ConfigMaps
+    ConfigMapPagePo.navTo();
+    // Click on Create
+    configMapPage.clickCreate();
+    // Enter ConfigMap name
+    const configMapPo = new ConfigMapPo();
+
+    // Enter an invalid name so the api call fails
+    configMapPo.nameInput().set('$^$^"£%');
+    // Click on Create
+    configMapPo.saveCreateForm().click();
+    // Error banner should be displayed
+    configMapPo.errorBanner().should('exist').and('be.visible');
+  });
 });

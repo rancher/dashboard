@@ -597,10 +597,8 @@ export default {
     margin: auto;
   }
 }
-</style>
 
-<style lang="scss">
-.preview-container {
+::v-deep.preview-container {
   display: flex;
   flex-direction: column;
 

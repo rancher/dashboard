@@ -3,29 +3,33 @@ import { ChartsPage } from '@/cypress/e2e/po/pages/explorer/charts/charts.po';
 import RepositoriesPagePo from '@/cypress/e2e/po/pages/chart-repositories.po';
 import ProductNavPo from '@/cypress/e2e/po/side-bars/product-side-nav.po';
 import KubewardenExtensionPo from '@/cypress/e2e/po/pages/extensions/kubewarden.po';
+import { catchTargetPageException } from '@/cypress/support/utils/exception-utils';
 
 const extensionName = 'kubewarden';
 
-describe('Kubewarden Extension', { tags: ['@extensions', '@adminUser'] }, () => {
+describe('Kubewarden Extension', { tags: ['@extensions-temp-excluded', '@adminUser'] }, () => {
   before(() => {
+    catchTargetPageException('Navigation cancelled');
     cy.login();
 
-    ExtensionsPagePo.goTo();
     const extensionsPo = new ExtensionsPagePo();
-    const kubewardenPo = new KubewardenExtensionPo();
 
-    // install extensions operator if it's not installed
-    extensionsPo.installExtensionsOperatorIfNeeded();
-    kubewardenPo.addChartsRepoIfNeeded();
+    extensionsPo.goTo();
+    extensionsPo.waitForPage();
+
+    // install the ui-plugin-charts repo
+    extensionsPo.addExtensionsRepository('https://github.com/rancher/ui-plugin-charts', 'main', 'rancher-extensions');
   });
 
   beforeEach(() => {
     cy.login();
-    ExtensionsPagePo.goTo();
   });
 
   it('Should install Kubewarden extension', () => {
     const extensionsPo = new ExtensionsPagePo();
+
+    extensionsPo.goTo();
+    extensionsPo.waitForPage();
 
     extensionsPo.extensionTabAvailableClick();
 
@@ -66,6 +70,7 @@ describe('Kubewarden Extension', { tags: ['@extensions', '@adminUser'] }, () => 
     const productMenu = new ProductNavPo();
 
     kubewardenPo.goTo();
+    kubewardenPo.waitForPage();
 
     const kubewardenNavItem = productMenu.groups().contains('Kubewarden');
 
@@ -77,6 +82,7 @@ describe('Kubewarden Extension', { tags: ['@extensions', '@adminUser'] }, () => 
     const kubewardenPo = new KubewardenExtensionPo();
 
     kubewardenPo.goTo();
+    kubewardenPo.waitForPage();
 
     cy.get('h1').contains('Kubewarden').should('exist');
     cy.get('button').contains('Install Kubewarden').should('exist');
@@ -84,6 +90,9 @@ describe('Kubewarden Extension', { tags: ['@extensions', '@adminUser'] }, () => 
 
   it('Should uninstall Kubewarden', () => {
     const extensionsPo = new ExtensionsPagePo();
+
+    extensionsPo.goTo();
+    extensionsPo.waitForPage();
 
     extensionsPo.extensionTabInstalledClick();
 

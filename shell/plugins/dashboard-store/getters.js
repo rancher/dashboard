@@ -443,5 +443,12 @@ export default {
     }
 
     return undefined;
+  },
+
+  paginationEnabled: (state, getters, rootState, rootGetters) => (type = null) => {
+    const store = state.config.namespace;
+    const resource = type ? { id: type } : null;
+
+    return paginationUtils.isEnabled({ rootGetters }, { store, resource });
   }
 };

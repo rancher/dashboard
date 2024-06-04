@@ -1,5 +1,4 @@
 import PagePo from '@/cypress/e2e/po/pages/page.po';
-import AsyncButtonPo from '@/cypress/e2e/po/components/async-button.po';
 import LabeledSelectPo from '@/cypress/e2e/po/components/labeled-select.po';
 import TabbedPo from '@/cypress/e2e/po/components/tabbed.po';
 import ActionMenuPo from '@/cypress/e2e/po/components/action-menu.po';
@@ -38,43 +37,6 @@ export default class ExtensionsPagePo extends PagePo {
   }
 
   /**
-   * install extensions operator
-   */
-  installExtensionsOperatorIfNeeded(attempt = 0): Cypress.Chainable | null {
-    // this will make sure we wait for the page to render first content
-    // so that the attempts aren't on a blank page
-    // this.title();
-
-    this.waitForPage();
-    this.title();
-
-    if (attempt > 30) {
-      return null;
-    }
-
-    const enableButton = this.installOperatorBtn();
-
-    if (!enableButton.isVisible) {
-      throw new Error('PO changed');
-    }
-
-    return enableButton.isVisible().then((visible) => {
-      if (visible) {
-        return enableButton.click().then(() => {
-          // don't install the parners repo yet, as it's needed for the add repositories test
-          this.enableExtensionModalParnersRepoClick();
-
-          return this.enableExtensionModalEnableClick();
-        });
-      } else {
-        return cy.wait(250).then(() => { // eslint-disable-line cypress/no-unnecessary-waiting
-          return this.installExtensionsOperatorIfNeeded(++attempt); // next attempt
-        });
-      }
-    });
-  }
-
-  /**
    * Adds a cluster repo for extensions
    * @param repo - The repository url (e.g. https://github.com/rancher/ui-plugin-examples)
    * @param branch - The git branch to target
@@ -92,7 +54,7 @@ export default class ExtensionsPagePo extends PagePo {
     // create a new clusterrepo
     const appRepoList = new RepositoriesPagePo('local', 'apps');
 
-    appRepoList.waitForPage();
+    // appRepoList.waitForPage();
     appRepoList.waitForGoTo('/v1/catalog.cattle.io.clusterrepos?exclude=metadata.managedFields');
     appRepoList.create();
 
@@ -109,7 +71,10 @@ export default class ExtensionsPagePo extends PagePo {
     appRepoCreate.gitBranch().set(branch);
 
     // save it
-    return appRepoCreate.saveAndWaitForRequests('POST', '/v1/catalog.cattle.io.clusterrepos');
+    appRepoCreate.saveAndWaitForRequests('POST', '/v1/catalog.cattle.io.clusterrepos');
+
+    appRepoList.waitForPage();
+    appRepoList.list().state(name).should('contain', 'Active');
   }
 
   // ------------------ extension card ------------------
@@ -236,10 +201,6 @@ export default class ExtensionsPagePo extends PagePo {
     return new ActionMenuPo(this.self()).getMenuItem('Add Rancher Repositories').click();
   }
 
-  disableExtensionsClick(): Cypress.Chainable {
-    return new ActionMenuPo(this.self()).getMenuItem('Disable Extension Support').click();
-  }
-
   // ------------------ ADD RANCHER REPOSITORIES modal ------------------
   addReposModal() {
     return this.self().getId('add-extensions-repos-modal');
@@ -247,45 +208,6 @@ export default class ExtensionsPagePo extends PagePo {
 
   addReposModalAddClick(): Cypress.Chainable {
     return this.addReposModal().get('.dialog-buttons button:last-child').click();
-  }
-
-  // ------------------ DISABLE EXTENSIONS modal ------------------
-  disableExtensionModal() {
-    return this.self().getId('disable-ext-modal');
-  }
-
-  removeRancherExtRepoCheckboxClick(): Cypress.Chainable {
-    return this.self().getId('disable-ext-modal-remove-official-repo').click();
-  }
-
-  disableExtensionModalCancelClick(): Cypress.Chainable {
-    return this.disableExtensionModal().get('.dialog-buttons button:first-child').click();
-  }
-
-  disableExtensionModalDisableClick(): Cypress.Chainable {
-    return this.disableExtensionModal().get('.dialog-buttons button:last-child').click();
-  }
-
-  // ------------------ ENABLE EXTENSIONS modal ------------------
-  enableExtensionModal() {
-    return this.self().get('[data-modal="confirm-uiplugins-setup"]');
-  }
-
-  enableExtensionModalParnersRepoClick(): Cypress.Chainable {
-    return this.enableExtensionModal().getId('extension-enable-operator-partners-repo').click();
-  }
-
-  enableExtensionModalCancelClick(): Cypress.Chainable {
-    return this.enableExtensionModal().get('.dialog-buttons button:first-child').click();
-  }
-
-  enableExtensionModalEnableClick(): Cypress.Chainable {
-    return this.enableExtensionModal().get('.dialog-buttons button:last-child').click();
-  }
-
-  // ------------------ install operator ------------------
-  installOperatorBtn(): AsyncButtonPo {
-    return new AsyncButtonPo('[data-testid="extension-enable-operator"]');
   }
 
   // ------------------ add a new repo (Extension Examples) ------------------
