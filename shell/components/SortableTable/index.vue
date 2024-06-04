@@ -461,23 +461,26 @@ export default {
       immediate: true
     },
 
-    loading(neu) {
-      // Always ensure the Refresh button phase aligns with loading state (to ensure external phase changes which can then reset the internal phase changed by click)
-      this.refreshButtonPhase = neu ? ASYNC_BUTTON_STATES.WAITING : ASYNC_BUTTON_STATES.ACTION;
+    loading: {
+      handler(neu, old) {
+        // Always ensure the Refresh button phase aligns with loading state (to ensure external phase changes which can then reset the internal phase changed by click)
+        this.refreshButtonPhase = neu ? ASYNC_BUTTON_STATES.WAITING : ASYNC_BUTTON_STATES.ACTION;
 
-      if (this.altLoading) {
-        // Delay setting the actual loading indicator. This should avoid flashing up the indicator if the API responds quickly
-        if (neu) {
-          this._altLoadingDelayTimer = setTimeout(() => {
-            this.pLoading = true;
-          }, 200); // this should be higher than the targetted quick response
+        if (this.altLoading) {
+          // Delay setting the actual loading indicator. This should avoid flashing up the indicator if the API responds quickly
+          if (neu) {
+            this._altLoadingDelayTimer = setTimeout(() => {
+              this.pLoading = true;
+            }, 200); // this should be higher than the targetted quick response
+          } else {
+            clearTimeout(this._altLoadingDelayTimer);
+            this.pLoading = false;
+          }
         } else {
-          clearTimeout(this._altLoadingDelayTimer);
-          this.pLoading = false;
+          this.pLoading = neu;
         }
-      } else {
-        this.pLoading = neu;
-      }
+      },
+      immediate: true
     },
   },
 
