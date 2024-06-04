@@ -38,14 +38,11 @@ export default class SteveSchema extends Schema {
    */
   requiresResourceFields: boolean;
 
-  /**
-   * The name (namespace) of the vuex store this schema lives in (i.e. cluster, management, etc)
-   */
-  store: string;
-
+  // These are just for typing, eventually we'll get them when Schema is fully converted to typescript
   id?: string;
   type?: string;
   links?: any;
+  $ctx?: any;
 
   /**
    * This should match the root Schema ctor (...args throws ts error)
@@ -53,7 +50,6 @@ export default class SteveSchema extends Schema {
   constructor(data: unknown, ctx: unknown, rehydrateNamespace?: null | undefined, setClone?: boolean) {
     super(data, ctx, rehydrateNamespace, setClone);
 
-    this.store = (ctx as any).state?.config?.namespace;
     if (!SchemaDefinitionCache[this.store]) {
       SchemaDefinitionCache[this.store] = {};
     }
@@ -177,10 +173,11 @@ export default class SteveSchema extends Schema {
    */
   _cacheSchemaDefinitionResponse(res: SchemaDefinitionResponse): void {
     const { [res.definitionType]: self, ...others } = res.definitions;
+    const store = this.store;
 
     this._schemaDefinitionsIds = { self: self.type, others: Object.keys(others) };
     Object.entries(res.definitions).forEach(([type, sd]) => {
-      SchemaDefinitionCache[this.store][type] = sd;
+      SchemaDefinitionCache[store][type] = sd;
     });
   }
 
@@ -227,5 +224,20 @@ export default class SteveSchema extends Schema {
    */
   get schemaDefinitionUrl(): string {
     return this.links?.self?.replace('/schemas/', '/schemaDefinitions/');
+  }
+
+  /*********************
+   * Local Properties
+   *
+   * This could be set in the ctor, however are removed in `replaceResource` when there are socket updates..
+   * ... so use getters instead
+   *
+   *********************/
+
+  /**
+   * The name (namespace) of the vuex store this schema lives in (i.e. cluster, management, etc)
+   */
+  get store(): string {
+    return this.$ctx.state?.config?.namespace;
   }
 }
