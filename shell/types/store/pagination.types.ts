@@ -279,11 +279,11 @@ export class PaginationArgs {
   /**
    * Page number to fetch
    */
-  page: number;
+  page: number | null;
   /**
    * Number of results in the page
    */
-  pageSize?: number;
+  pageSize?: number | null;
   /**
    * Sort the results
    *

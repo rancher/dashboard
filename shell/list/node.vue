@@ -148,8 +148,9 @@ export default defineComponent({
         const opt: ActionFindPageArgs = {
           force:      true,
           pagination: new PaginationArgs({
-            page:    -1,
-            filters: new PaginationParamFilter({
+            page:     null,
+            pageSize: null,
+            filters:  new PaginationParamFilter({
               fields: this.rows.map((r: any) => new PaginationFilterField({
                 field: 'metadata.name',
                 value: r.id
@@ -221,8 +222,9 @@ export default defineComponent({
         const opt: ActionFindPageArgs = {
           force,
           pagination: new PaginationArgs({
-            page:    -1,
-            filters: PaginationParamFilter.createMultipleFields(this.rows.map((r: any) => new PaginationFilterField({
+            page:     null,
+            pageSize: null,
+            filters:  PaginationParamFilter.createMultipleFields(this.rows.map((r: any) => new PaginationFilterField({
               field: 'status.nodeName',
               value: r.id
             }))),
@@ -243,8 +245,9 @@ export default defineComponent({
             force,
             namespaced: namespace,
             pagination: new PaginationArgs({
-              page:    -1,
-              filters: PaginationParamFilter.createMultipleFields(
+              page:     null,
+              pageSize: null,
+              filters:  PaginationParamFilter.createMultipleFields(
                 this.rows.reduce((res: PaginationFilterField[], r: any ) => {
                   const name = r.metadata?.annotations?.[CAPI_ANNOTATIONS.MACHINE_NAME];
 
@@ -270,8 +273,9 @@ export default defineComponent({
         const opt: ActionFindPageArgs = {
           force,
           pagination: new PaginationArgs({
-            page:    -1,
-            filters: PaginationParamFilter.createMultipleFields(
+            page:     null,
+            pageSize: null,
+            filters:  PaginationParamFilter.createMultipleFields(
               this.rows.map((r: any) => new PaginationFilterField({
                 field: 'spec.nodeName',
                 value: r.id,
