@@ -1,29 +1,28 @@
 import PagePo from '@/cypress/e2e/po/pages/page.po';
-import KontainerDriversListPo from '~/cypress/e2e/po/lists/kontainerdriver.po';
+import KontainerDriversListPo from '~/cypress/e2e/po/lists/kontainer-drivers-list.po';
 import BurgerMenuPo from '@/cypress/e2e/po/side-bars/burger-side-menu.po';
 import ProductNavPo from '@/cypress/e2e/po/side-bars/product-side-nav.po';
 /**
  * List page for kontainerDriver resources
  */
-export default class KontainerDriversListPagePo extends PagePo {
+export default class KontainerDriversPagePo extends PagePo {
   private static createPath(clusterId: string) {
     return `/c/${ clusterId }/manager/kontainerDriver`;
   }
 
   static goTo(clusterId: string): Cypress.Chainable<Cypress.AUTWindow> {
-    return super.goTo(KontainerDriversListPagePo.createPath(clusterId));
+    return super.goTo(KontainerDriversPagePo.createPath(clusterId));
   }
 
-  constructor(clusterId: string) {
-    super(KontainerDriversListPagePo.createPath(clusterId));
+  constructor(clusterId = '_') {
+    super(KontainerDriversPagePo.createPath(clusterId));
   }
 
   static navTo() {
     const sideNav = new ProductNavPo();
 
-    BurgerMenuPo.toggle();
     BurgerMenuPo.burgerMenuNavToMenubyLabel('Cluster Management');
-    sideNav.navToSideMenuEntryByLabel('Drivers');
+    sideNav.navToSideMenuGroupByLabel('Drivers');
   }
 
   goToDriverListAndGetDriverDetails(driverName: string): Cypress.Chainable<{ id: string }> {
@@ -43,15 +42,12 @@ export default class KontainerDriversListPagePo extends PagePo {
     return cy.wait('@request', { timeout: 10000 }).then(() => driverDetails.filter((c) => c.name === driverName)[0]);
   }
 
-  list(): KontainerDriversListPo {
-    return new KontainerDriversListPo(this.self().find('[data-testid="kontainer-driver-list"]'));
+  title() {
+    return cy.contains('.title > h1', 'Cluster Drivers');
   }
 
-  /**
-   * Convenience method
-   */
-  sortableTable() {
-    return this.list().resourceTable().sortableTable();
+  refreshKubMetadata() {
+    return cy.contains('[data-testid="kontainer-driver-refresh"]', 'Refresh Kubernetes Metadata');
   }
 
   createDriver() {
@@ -59,15 +55,7 @@ export default class KontainerDriversListPagePo extends PagePo {
       .click();
   }
 
-  editDriver(description: string) {
-    this.sortableTable().rowActionMenuOpen(description).getMenuItem('Edit Config').click();
-  }
-
-  deactivateDriver(description: string) {
-    this.sortableTable().rowActionMenuOpen(description).getMenuItem('Deactivate').click();
-  }
-
-  listElementWithName(description:string) {
-    return this.sortableTable().rowElementWithName(description);
+  list(): KontainerDriversListPo {
+    return new KontainerDriversListPo('[data-testid="kontainer-driver-list"]');
   }
 }

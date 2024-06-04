@@ -2160,6 +2160,7 @@ resource:
 codeMirror:
   keymap:
     tooltip: Key mapping preference.
+    indicatorToolip: "Key mapping: {name}"
 
 cruResource:
   backToForm: Back to Form
@@ -4328,17 +4329,17 @@ plugins:
     title: Extension support is not enabled
     prompt:
       cant: Automatic installation is not available - required Helm Charts could not be found
-      can: You need to install the Extension Operator
+      can: 'You need to enable the <code>{ff}</code> Feature Flag in Global Settings. Once enabled, Rancher will require a restart.'
       official: The Official Rancher Extensions Repository provides extensions published by Rancher
       partners: The Partners Extensions Repository provides extensions published by Rancher Partners
       community: The Community Extensions Repository provides extensions published by Rancher Community
     install:
       title: Enable Extension Support?
-      prompt: This will install the Helm charts needed to enable Extension support
+      prompt: This will lead you to the page where you can enable the Feature Flag needed to enable Extension support.
+      featuresButton: Go to Feature Flags
       airgap: Air-gapped installations should NOT enable this feature
       addRancherRepo: Add Official Rancher Extensions Repository
       addPartnersRancherRepo: Add Partners Extensions Repository
-      addCommunityRancherRepo: Add Community Extensions Repository
     remove:
       label: Disable Extension Support
       title: Disable Extension Support?

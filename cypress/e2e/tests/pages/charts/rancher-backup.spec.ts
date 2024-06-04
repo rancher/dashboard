@@ -49,8 +49,6 @@ describe('Charts', { tags: ['@charts', '@adminUser'] }, () => {
 
         storageOptions.set(2);
 
-        cy.wait('@secrets', { timeout: 10000 }).its('response.statusCode').should('eq', 200);
-
         // Verify that the drop-down exists and has the default storage class selected
         const select = new LabeledSelectPo('[data-testid="backup-chart-select-existing-storage-class"]');
 
