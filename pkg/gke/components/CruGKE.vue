@@ -624,7 +624,7 @@ export default defineComponent({
     :can-yaml="false"
     :done-route="doneRoute"
     :errors="fvUnreportedValidationErrors"
-    :validation-passed="fvFormIsValid"
+    :validation-passed="fvFormIsValid && isAuthenticated"
     @error="e=>errors=e"
     @finish="save"
   >

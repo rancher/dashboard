@@ -63,7 +63,7 @@ export default defineComponent({
         // eslint-disable-next-line standard/no-callback-literal, node/no-callback-literal
         return cb(true);
       } catch (e) {
-        this.$emit('error', e);
+        this.$emit('error', e?.data || e);
         this.$emit('update:isAuthenticated', false);
 
         // eslint-disable-next-line standard/no-callback-literal, node/no-callback-literal
@@ -74,14 +74,28 @@ export default defineComponent({
     // gcp credentials include a project id - we can grab that and auto-fill to save users having to manually enter it
     // this only applies to new credentials because of the way credential data is stored
     parseNewCredential(e) {
-      // const authJson = e?.googleCredentialConfig?.authEncodedJson
-      // if(authJson){
-      //   try{
+      const authJson = e?.googlecredentialConfig?.authEncodedJson;
 
-      //   }catch(e){
+      if (authJson) {
+        try {
+          // eslint-disable-next-line camelcase
+          const { project_id:projectId } = JSON.parse(authJson);
 
-      //   }
-      // }
+          if (projectId) {
+            this.$emit('update:project', projectId);
+          }
+        } catch (e) {
+          return;
+        }
+        // clicking the auth button instead of calling testProjectId directly gives the user a visual indication that authentication is in progress
+        this.$nextTick(() => {
+          const authBtn = this.$refs.authBtn;
+
+          if (authBtn) {
+            authBtn.clicked();
+          }
+        });
+      }
     }
   },
 });
@@ -117,6 +131,7 @@ export default defineComponent({
         class="select-credential"
         :cancel="()=>$emit('cancel-credential')"
         @input="$emit('update:credential', $event)"
+        @credential-created="parseNewCredential"
       />
     </div>
     <div
@@ -124,6 +139,7 @@ export default defineComponent({
       class="auth-button-container mb-10"
     >
       <AsyncButton
+        ref="authBtn"
         :disabled="!credential || !project || isAuthenticated"
         type="button"
         class="btn role-secondary"
