@@ -37,6 +37,14 @@ export default class ChartRepositoriesCreateEditPo extends PagePo {
     return LabeledInputPo.byLabel(this.self(), 'OCI Repository Host URL');
   }
 
+  ociMinWaitInput() {
+    return new LabeledInputPo('[data-testid="clusterrepo-oci-min-wait-input"]');
+  }
+
+  ociMaxWaitInput() {
+    return new LabeledInputPo('[data-testid="clusterrepo-oci-max-wait-input"]');
+  }
+
   authentication(): LabeledSelectPo {
     return new LabeledSelectPo('.vs__dropdown-toggle');
   }
