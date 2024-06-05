@@ -345,6 +345,13 @@ export const actions = {
     }
   },
 
+  uiLogout({ commit, dispatch }) {
+    removeEmberPage();
+
+    commit('loggedOut');
+    dispatch('onLogout', null, { root: true });
+  },
+
   async logout({
     dispatch, commit, getters, rootState
   }, options = {}) {
@@ -368,19 +375,21 @@ export const actions = {
     await rootState.$plugin.logout();
 
     try {
-      await dispatch('rancher/request', {
+      const res = await dispatch('rancher/request', {
         url:                  '/v3/tokens?action=logout',
         method:               'post',
         data:                 {},
         headers:              { 'Content-Type': 'application/json' },
         redirectUnauthorized: false,
       }, { root: true });
+
+      // Single-sign logout for SAML providers that allow for it
+      if (res.body.type === 'samlConfigLogoutOutput' && res.body.idpRedirectUrl) {
+        window.location.href = res.body.idpRedirectUrl;
+      }
     } catch (e) {
     }
 
-    removeEmberPage();
-
-    commit('loggedOut');
-    dispatch('onLogout', null, { root: true });
+    dispatch('uiLogout');
   }
 };
