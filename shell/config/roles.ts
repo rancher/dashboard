@@ -198,6 +198,15 @@ export const SCOPED_RESOURCES = {
         'StorageClasses',
         'VolumeAttachments',
       ]
+    },
+    neuvectorApi: {
+      resources: [
+        'nv-perm.admctrl',
+        'nv-perm.authentication',
+        'nv-perm.ci-scan',
+        'nv-perm.fed',
+        'nv-perm.vulnerability'
+      ]
     }
   },
   projectScopedApiGroups: {
@@ -365,6 +374,20 @@ export const SCOPED_RESOURCES = {
         'VirtualServices',
         'WorkloadEntries',
         'WorkloadGroups'
+      ]
+    },
+    neuvectorApi: {
+      resources: [
+        'nv-perm.all-permissions',
+        'nv-perm.audit-events',
+        'nv-perm.authorization',
+        'nv-perm.compliance',
+        'nv-perm.events',
+        'nv-perm.reg-scan',
+        'nv-perm.rt-policy',
+        'nv-perm.rt-scan',
+        'nv-perm.security-events',
+        'nv-perm.config',
       ]
     }
   }
