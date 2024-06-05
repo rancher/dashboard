@@ -4,6 +4,7 @@ import {
   WORKLOAD_TYPES, SCHEMA, NODE, POD, LIST_WORKLOAD_TYPES
 } from '@shell/config/types';
 import ResourceFetch from '@shell/mixins/resource-fetch';
+import { WORKLOAD_HEALTH_SCALE } from '@shell/config/table-headers';
 
 const schema = {
   id:         'workload',
@@ -93,6 +94,10 @@ export default {
       return this.$route.params.resource === schema.id;
     },
 
+    paginationEnabled() {
+      return !this.allTypes && this.$store.getters[`cluster/paginationEnabled`]();
+    },
+
     schema() {
       const { params:{ resource:type } } = this.$route;
 
@@ -120,6 +125,17 @@ export default {
 
       return out;
     },
+
+    headers() {
+      const headers = this.$store.getters['type-map/headersFor'](this.schema, false);
+
+      if (this.paginationEnabled) {
+        // See https://github.com/rancher/dashboard/issues/10417, health comes from selectors applied locally to all pods (bad)
+        return headers.filter((h) => h.name !== WORKLOAD_HEALTH_SCALE.name);
+      }
+
+      return headers;
+    }
   },
 
   // All of the resources that we will load that we need for the loading indicator
@@ -129,6 +145,11 @@ export default {
 
   methods: {
     loadHeathResources() {
+      // See https://github.com/rancher/dashboard/issues/10417, health comes from selectors applied locally to all pods (bad)
+      if (this.paginationEnabled) {
+        return;
+      }
+
       // Fetch these in the background to populate workload health
       if ( this.allTypes ) {
         this.$fetchType(POD);
@@ -167,6 +188,7 @@ export default {
   <ResourceTable
     :loading="$fetchState.pending"
     :schema="schema"
+    :headers="headers"
     :rows="filteredRows"
     :overflow-y="true"
     :use-query-params-for-simple-filtering="useQueryParamsForSimpleFiltering"

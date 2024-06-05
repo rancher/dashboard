@@ -14,25 +14,13 @@ import { sameArrayObjects } from '@shell/utils/array';
 import { isEqual } from '@shell/utils/object';
 import { STEVE_CACHE } from '@shell/store/features';
 import { getPerformanceSetting } from '@shell/utils/settings';
-import { DEFAULT_PERF_SETTING } from '@shell/config/settings';
-
-/**
- * Given the vai cache changes haven't merged, work around the settings that are blocked by it
- *
- * Once cache is merged (pre 2.9.0) this will be removed
- */
-const TEMP_VAI_CACHE_MERGED = false;
-/**
- * Given above, just a dev thing
- */
-const TEMP_PERF_ENABLED = false;
 
 /**
  * Helper functions for server side pagination
  */
 class PaginationUtils {
   /**
-   * When a ns filter isn't one or more projects/namespaces... what the the valid values?
+   * When a ns filter isn't one or more projects/namespaces... what are the valid values?
    *
    * This basically blocks 'Not in a Project'.. which would involve a projectsornamespaces param with every ns not in a project.
    */
@@ -46,7 +34,7 @@ class PaginationUtils {
 
   isSteveCacheEnabled({ rootGetters }: any): boolean {
     // We always get Feature flags as part of start up (see `dispatch('features/loadServer')` in loadManagement)
-    return TEMP_VAI_CACHE_MERGED || rootGetters['features/get']?.(STEVE_CACHE);
+    return rootGetters['features/get']?.(STEVE_CACHE);
   }
 
   /**
@@ -63,10 +51,7 @@ class PaginationUtils {
       return false;
     }
 
-    const settings = TEMP_PERF_ENABLED ? {
-      ...DEFAULT_PERF_SETTING.serverPagination,
-      enabled: true,
-    } : this.getSettings({ rootGetters });
+    const settings = this.getSettings({ rootGetters });
 
     // No setting, not enabled
     if (!settings?.enabled) {

@@ -47,6 +47,7 @@ export default {
       const searchFilters = event.filter.searchQuery ? event.filter.searchFields.map((field) => new PaginationFilterField({
         field,
         value: event.filter.searchQuery,
+        exact: false,
       })) : [];
 
       const pagination = new PaginationArgs({
