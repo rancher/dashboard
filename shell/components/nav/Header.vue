@@ -20,6 +20,7 @@ import { ActionLocation, ExtensionPoint } from '@shell/core/types';
 import { getApplicableExtensionEnhancements } from '@shell/core/plugin-helpers';
 import IconOrSvg from '@shell/components/IconOrSvg';
 import { wait } from '@shell/utils/async';
+import { authProvidersInfo } from '@shell/utils/auth';
 
 export default {
 
@@ -43,11 +44,17 @@ export default {
     }
   },
 
+  async fetch() {
+    // TODO: this needs to be a getter in order to be reactive since the Header is always present on the UI....
+    this.authInfo = await authProvidersInfo(this.$store);
+  },
+
   data() {
     const searchShortcut = isMac ? '(\u2318-K)' : '(Ctrl+K)';
     const shellShortcut = '(Ctrl+`)';
 
     return {
+      authInfo:               {},
       show:                   false,
       showTooltip:            false,
       kubeConfigCopying:      false,
@@ -65,6 +72,22 @@ export default {
   computed: {
     ...mapGetters(['clusterReady', 'isExplorer', 'isRancher', 'currentCluster',
       'currentProduct', 'rootProduct', 'backToRancherLink', 'backToRancherGlobalLink', 'pageActions', 'isSingleProduct', 'isRancherInHarvester', 'showTopLevelMenu']),
+
+    authProviderEnabled() {
+      if (this.authInfo.enabled?.length) {
+        return this.authInfo.enabled[0];
+      }
+
+      return {};
+    },
+
+    shouldShowSloLogoutModal() {
+      const {
+        logoutAllSupported, logoutAllEnabled, logoutAllForced, configType
+      } = this.authProviderEnabled;
+
+      return configType === 'saml' && logoutAllSupported && logoutAllEnabled && !logoutAllForced;
+    },
 
     appName() {
       return getProduct();
@@ -210,6 +233,13 @@ export default {
   },
 
   methods: {
+    showSloModal() {
+      this.$store.dispatch('management/promptModal', {
+        component:      'SloDialog',
+        componentProps: { authProvider: this.authProviderEnabled },
+        modalWidth:     '450px'
+      });
+    },
     // Sizes the product area of the header such that it shrinks to ensure the whole header bar can be shown
     // where possible - we use a minimum width of 32px which is enough to just show the product icon
     layoutHeader() {
@@ -678,6 +708,7 @@ export default {
               data-testid="user-menu-dropdown"
               @click.stop="showMenu(false)"
             >
+              <!-- username and icon -->
               <li
                 v-if="authEnabled"
                 class="user-info"
@@ -691,6 +722,7 @@ export default {
                   </template>
                 </div>
               </li>
+              <!-- preferences -->
               <router-link
                 v-if="showPreferencesLink"
                 v-slot="{ href, navigate }"
@@ -705,6 +737,7 @@ export default {
                   <a :href="href">{{ t('nav.userMenu.preferences') }}</a>
                 </li>
               </router-link>
+              <!-- account & api keys -->
               <router-link
                 v-if="showAccountAndApiKeyLink"
                 v-slot="{ href, navigate }"
@@ -719,8 +752,18 @@ export default {
                   <a :href="href">{{ t('nav.userMenu.accountAndKeys', {}, true) }}</a>
                 </li>
               </router-link>
+              <!-- SLO modal -->
+              <li
+                v-if="authEnabled && shouldShowSloLogoutModal"
+                class="user-menu-item no-link"
+                @click="showSloModal"
+                @keypress.enter="showSloModal"
+              >
+                <span>{{ t('nav.userMenu.logOut') }}</span>
+              </li>
+              <!-- logout -->
               <router-link
-                v-if="authEnabled"
+                v-else-if="authEnabled"
                 v-slot="{ href, navigate }"
                 custom
                 :to="generateLogoutRoute"
@@ -1100,8 +1143,8 @@ export default {
   }
 
   .user-menu-item {
-    a {
-      cursor: hand;
+    a, &.no-link > span {
+      cursor: pointer;
       padding: 0px 10px;
 
       &:hover {
@@ -1116,6 +1159,12 @@ export default {
         margin: 0 2px;
         padding: 10px 8px;
       }
+    }
+
+    &.no-link > span {
+      display: flex;
+      justify-content: space-between;
+      padding: 10px;
     }
 
     div.menu-separator {

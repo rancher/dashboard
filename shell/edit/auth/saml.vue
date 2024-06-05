@@ -11,6 +11,7 @@ import FileSelector from '@shell/components/form/FileSelector';
 import AuthBanner from '@shell/components/auth/AuthBanner';
 import config from '@shell/edit/auth/ldap/config';
 import AuthProviderWarningBanners from '@shell/edit/auth/AuthProviderWarningBanners';
+import { configType } from '@shell/models/management.cattle.io.authconfig';
 
 export const SHIBBOLETH = 'shibboleth';
 export const OKTA = 'okta';
@@ -66,6 +67,10 @@ export default {
         provider: this.displayName,
         username: this.principal.loginName || this.principal.name,
       };
+    },
+
+    isSamlProvider() {
+      return configType[this.model?.id] === 'saml';
     },
 
     toSave() {
@@ -142,8 +147,12 @@ export default {
             <tr><td>{{ t(`authConfig.saml.entityID`) }}: </td><td>{{ model.entityID }}</td></tr>
             <tr><td>{{ t(`authConfig.saml.api`) }}: </td><td>{{ model.rancherApiHost }}</td></tr>
             <tr><td>{{ t(`authConfig.saml.groups`) }}: </td><td>{{ model.groupsField }}</td></tr>
-            <tr><td>{{ t(`authConfig.saml.enableSlo`) }}: </td><td>{{ model.logoutAllEnabled }}</td></tr>
-            <tr><td>{{ t(`authConfig.saml.forceSlo`) }}: </td><td>{{ model.logoutAllForced }}</td></tr>
+            <tr v-if="isSamlProvider">
+              <td>{{ t(`authConfig.saml.enableSlo`) }}: </td><td>{{ model.logoutAllEnabled }}</td>
+            </tr>
+            <tr v-if="isSamlProvider">
+              <td>{{ t(`authConfig.saml.forceSlo`) }}: </td><td>{{ model.logoutAllForced }}</td>
+            </tr>
           </template>
 
           <template
@@ -316,29 +325,39 @@ export default {
         </div>
 
         <!-- SLO logout -->
-        <div class="row mb-20">
-          <div class="col span-4">
-            <Checkbox
-              v-model="model.logoutAllEnabled"
-              :mode="mode"
-              :disabled="!model.logoutAllSupported"
-              :label="t('authConfig.saml.enableSlo')"
-            />
+        <div
+          v-if="isSamlProvider"
+          class="mt-10 mb-30"
+        >
+          <div class="row">
+            <div class="col span-12">
+              <h3>{{ t('authConfig.saml.sloTitle') }}</h3>
+            </div>
           </div>
-          <div class="col span-4">
-            <Checkbox
-              v-model="model.logoutAllForced"
-              :mode="mode"
-              :disabled="!model.logoutAllSupported || !model.logoutAllEnabled"
-              :label="t('authConfig.saml.forceSlo')"
-            />
+          <div class="row">
+            <div class="col span-4">
+              <Checkbox
+                v-model="model.logoutAllEnabled"
+                :mode="mode"
+                :disabled="!model.logoutAllSupported"
+                :label="t('authConfig.saml.enableSlo')"
+              />
+            </div>
+            <div class="col span-4">
+              <Checkbox
+                v-model="model.logoutAllForced"
+                :mode="mode"
+                :disabled="!model.logoutAllSupported || !model.logoutAllEnabled"
+                :label="t('authConfig.saml.forceSlo')"
+              />
+            </div>
           </div>
         </div>
 
         <!-- LDAP search -->
         <div v-if="supportsLDAPSearch">
           <div class="row">
-            <h2>{{ t('authConfig.saml.search.title') }}</h2>
+            <h3>{{ t('authConfig.saml.search.title') }}</h3>
           </div>
           <div class="row">
             <Banner

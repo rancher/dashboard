@@ -507,8 +507,9 @@ authConfig:
     UID: UID Field
     adfs: Configure an AD FS account
     api: '{vendor} API Host'
-    enableSlo: Enable Single-Sign Logout (SLO)
-    forceSlo: Force Single-Sign Logout (SLO)
+    sloTitle: Configure Single Logout (SLO)
+    enableSlo: Enable Single Logout
+    forceSlo: Force Single Logout
     cert:
       label: Certificate
       placeholder: Paste in the certificate, starting with -----BEGIN CERTIFICATE-----
@@ -4649,6 +4650,12 @@ promptScaleMachineDown:
   attemptingToRemove: "You are attempting to delete {count} {type}"
   retainedMachine1: At least one Machine must exist for roles Control Plane and Etcd.
   retainedMachine2: <b>{ name }</b> will remain
+
+promptSlo:
+  title: "{name} Single Logout"
+  text: "You have Single Logout enabled on { name } auth provider. Would you like to logout from Rancher or from all apps (including Rancher) that use { name }?"
+  rancher: Only Rancher
+  all: All apps
 
 promptRemove:
   title: Are you sure?
