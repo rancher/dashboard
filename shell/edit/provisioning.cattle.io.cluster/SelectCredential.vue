@@ -84,8 +84,6 @@ export default {
     },
 
     isNew() {
-      console.log('**** isNew: ', this.credentialId === _NEW);
-
       return this.credentialId === _NEW;
     },
 
@@ -163,7 +161,6 @@ export default {
 
   watch: {
     credentialId(val) {
-      console.log('*** credentialid updated', val);
       if ( val === _NEW || val === _NONE ) {
         this.$emit('input', null);
       } else {

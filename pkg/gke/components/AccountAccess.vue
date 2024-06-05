@@ -74,7 +74,14 @@ export default defineComponent({
     // gcp credentials include a project id - we can grab that and auto-fill to save users having to manually enter it
     // this only applies to new credentials because of the way credential data is stored
     parseNewCredential(e) {
-      console.log('****', e);
+      // const authJson = e?.googleCredentialConfig?.authEncodedJson
+      // if(authJson){
+      //   try{
+
+      //   }catch(e){
+
+      //   }
+      // }
     }
   },
 });
@@ -86,7 +93,7 @@ export default defineComponent({
     class="credential-project"
   >
     <div
-      v-if="!!credential"
+      v-show="!!credential"
       class="project mb-10"
     >
       <LabeledInput
@@ -100,7 +107,6 @@ export default defineComponent({
     <div
       class="select-credential-container mb-10"
     >
-      <!-- TODO nb can't create new if one already exists...? -->
       <SelectCredential
         :value="credential"
         data-testid="crugke-select-credential"
@@ -111,11 +117,10 @@ export default defineComponent({
         class="select-credential"
         :cancel="()=>$emit('cancel-credential')"
         @input="$emit('update:credential', $event)"
-        @credential-created="parseNewCredential"
       />
     </div>
     <div
-      v-if="!!credential"
+      v-show="!!credential"
       class="auth-button-container mb-10"
     >
       <AsyncButton

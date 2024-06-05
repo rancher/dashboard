@@ -76,12 +76,12 @@ const defaultGkeConfig = {
     httpLoadBalancing:        true,
     networkPolicyConfig:      false
   },
-  clusterIpv4Cidr:        '',
-  clusterName:            '',
-  description:            '',
-  enableKubernetesAlpha:  false,
-  googleCredentialSecret: '',
-  ipAllocationPolicy:     {
+  clusterIpv4Cidr:       '',
+  clusterName:           '',
+  description:           '',
+  enableKubernetesAlpha: false,
+  // googleCredentialSecret: '',
+  ipAllocationPolicy:    {
     clusterIpv4CidrBlock:       '',
     clusterSecondaryRangeName:  null,
     createSubnetwork:           false,
@@ -604,6 +604,7 @@ export default defineComponent({
 
       return await this.normanCluster.waitForCondition('InitialRolesPopulated');
     },
+
     // fires when the 'cancel' button is pressed while the user is creating a new cloud credential
     cancelCredential(): void {
       if ( this.$refs.cruresource ) {
@@ -634,6 +635,7 @@ export default defineComponent({
         :project.sync="config.projectID"
         :is-authenticated.sync="isAuthenticated"
         @error="e=>errors.push(e)"
+        @cancel-credential="cancelCredential"
       />
 
       <div
