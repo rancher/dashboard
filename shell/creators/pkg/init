@@ -3,7 +3,6 @@
 const fs = require('fs-extra');
 const path = require('path');
 const https = require('https');
-const semver = require('semver');
 
 const targets = {
   dev:  './node_modules/.bin/nuxt dev',
