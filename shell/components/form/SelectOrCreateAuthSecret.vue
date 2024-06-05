@@ -7,6 +7,11 @@ import { SECRET_TYPES } from '@shell/config/secret';
 import { base64Encode } from '@shell/utils/crypto';
 import { addObjects, insertAt } from '@shell/utils/array';
 import { sortBy } from '@shell/utils/sort';
+import {
+  PaginationArgs,
+  PaginationFilterField,
+  PaginationParamFilter,
+} from '@shell/types/store/pagination.types';
 
 export default {
   name: 'SelectOrCreateAuthSecret',
@@ -47,6 +52,9 @@ export default {
       required: true,
     },
 
+    /**
+     * Limit the selection of an existing secret to the namespace provided
+     */
     limitToNamespace: {
       type:    Boolean,
       default: true,
@@ -117,23 +125,38 @@ export default {
      */
     delegateCreateToParent: {
       type:    Boolean,
-      default: false
-    }
+      default: false,
+    },
+
+    /**
+     * Set to false to make a fresh http request to secrets every time. This can be used when secrets have already been used for
+     * another purpose on the same page
+     *
+     * Set to true to cache the response
+     */
+    cacheSecrets: {
+      type:    Boolean,
+      default: false,
+    },
   },
 
   async fetch() {
     if ( (this.allowSsh || this.allowBasic || this.allowRke) && this.$store.getters[`${ this.inStore }/schemaFor`](SECRET) ) {
-      // Avoid an async call and loading screen if already loaded by someone else
-      if ( this.$store.getters[`${ this.inStore }/haveAll`](SECRET) ) {
-        this.allSecrets = this.$store.getters[`${ this.inStore }/all`](SECRET);
+      if (this.$store.getters[`${ this.inStore }/paginationEnabled`](SECRET)) {
+        // Filter results via api (because we shouldn't be fetching them all...)
+        this.filteredSecrets = await this.filterSecretsByApi();
       } else {
-        this.allSecrets = await this.$store.dispatch(`${ this.inStore }/findAll`, { type: SECRET });
+        // Cannot yet filter via api, so fetch all and filter later on
+        this.allSecrets = await this.$store.dispatch(
+          `${ this.inStore }/findAll`,
+          { type: SECRET }
+        );
       }
     }
 
     if ( this.allowS3 && this.$store.getters['rancher/canList'](NORMAN.CLOUD_CREDENTIAL) ) {
       // Avoid an async call and loading screen if already loaded by someone else
-      if ( this.$store.getters['rancher/haveAll'](NORMAN.CLOUD_CREDENTIAL) ) {
+      if (this.$store.getters['rancher/haveAll'](NORMAN.CLOUD_CREDENTIAL)) {
         this.allCloudCreds = this.$store.getters['rancher/all'](NORMAN.CLOUD_CREDENTIAL);
       } else {
         this.allCloudCreds = await this.$store.dispatch('rancher/findAll', { type: NORMAN.CLOUD_CREDENTIAL });
@@ -166,34 +189,30 @@ export default {
     this.update();
   },
 
-  data(props) {
+  data() {
     return {
       allCloudCreds: [],
-      allSecrets:    [],
-      selected:      null,
+
+      allSecrets:      null,
+      filteredSecrets: null,
+
+      selected: null,
+
+      filterByNamespace: this.namespace && this.limitToNamespace,
 
       publicKey:  '',
       privateKey: '',
-      uniqueId:   new Date().getTime() // Allows form state to be individually tracked if the form is in a list
+      uniqueId:   new Date().getTime(), // Allows form state to be individually tracked if the form is in a list
+
+      SSH:   AUTH_TYPE._SSH,
+      BASIC: AUTH_TYPE._BASIC,
+      S3:    AUTH_TYPE._S3,
     };
   },
 
   computed: {
-    _SSH() {
-      return AUTH_TYPE._SSH;
-    },
-
-    _BASIC() {
-      return AUTH_TYPE._BASIC;
-    },
-
-    _S3() {
-      return AUTH_TYPE._S3;
-    },
-
-    options() {
+    secretTypes() {
       const types = [];
-      const keys = [];
 
       if ( this.allowSsh ) {
         types.push(SECRET_TYPES.SSH);
@@ -207,41 +226,55 @@ export default {
         types.push(SECRET_TYPES.RKE_AUTH_CONFIG);
       }
 
-      let out = this.allSecrets
-        .filter((x) => this.namespace && this.limitToNamespace ? x.metadata.namespace === this.namespace : true)
-        .filter((x) => {
-          // Must match one of the types if given
-          if ( types.length && !types.includes(x._type) ) {
-            return false;
-          }
+      return types;
+    },
 
-          // Must match ALL of the keys if given
-          if ( keys.length ) {
-            const dataKeys = Object.keys(x.data || {});
+    /**
+     * Fitler secrets given their namespace and required secret type
+     *
+     * Convert secrets to list of options and suplement with custom entries
+     */
+    options() {
+      let filteredSecrets = [];
 
-            if ( !keys.every((key) => dataKeys.includes(key)) ) {
+      if (this.allSecrets) {
+        // Fitler secrets given their namespace and required secret type
+        filteredSecrets = this.allSecrets
+          .filter((x) => this.filterByNamespace ? x.metadata.namespace === this.namespace : true
+          )
+          .filter((x) => {
+            // Must match one of the required types
+            if (
+              this.secretTypes.length &&
+              !this.secretTypes.includes(x._type)
+            ) {
               return false;
             }
-          }
 
-          return true;
-        }).map((x) => {
-          const {
-            dataPreview, subTypeDisplay, metadata, id
-          } = x;
+            return true;
+          });
+      } else if (this.filteredSecrets) {
+        filteredSecrets = this.filteredSecrets;
+      }
 
-          const label = subTypeDisplay && dataPreview ? `${ metadata.name } (${ subTypeDisplay }: ${ dataPreview })` : `${ metadata.name } (${ subTypeDisplay })`;
+      let out = filteredSecrets.map((x) => {
+        const {
+          dataPreview, subTypeDisplay, metadata, id
+        } = x;
 
-          return {
-            label,
-            group: metadata.namespace,
-            value: id,
-          };
-        });
+        const label =
+          subTypeDisplay && dataPreview ? `${ metadata.name } (${ subTypeDisplay }: ${ dataPreview })` : `${ metadata.name } (${ subTypeDisplay })`;
 
-      if ( this.allowS3 ) {
+        return {
+          label,
+          group: metadata.namespace,
+          value: id,
+        };
+      });
+
+      if (this.allowS3) {
         const more = this.allCloudCreds
-          .filter((x) => ['aws', 's3'].includes(x.provider) )
+          .filter((x) => ['aws', 's3'].includes(x.provider))
           .map((x) => {
             return {
               label: `${ x.nameDisplay } (${ x.providerDisplay })`,
@@ -349,11 +382,16 @@ export default {
     publicKey:  'updateKeyVal',
     privateKey: 'updateKeyVal',
 
-    namespace(ns) {
-      if ( ns && !this.selected.startsWith(`${ ns }/`) ) {
+    async namespace(ns) {
+      if (ns && !this.selected.startsWith(`${ ns }/`)) {
         this.selected = AUTH_TYPE._NONE;
       }
-    }
+
+      // if ns has changed and we're filtering by api... we need to re-fetch entries
+      if (this.filteredSecrets && this.filterByNamespace) {
+        this.filteredSecrets = await this.filterSecretsByApi();
+      }
+    },
   },
 
   created() {
@@ -369,8 +407,44 @@ export default {
   },
 
   methods: {
+    async filterSecretsByApi() {
+      const findPageArgs = {
+        // Of type ActionFindPageArgs
+        namespaced: this.filterByNamespace ? this.namespace : '',
+        pagination: new PaginationArgs({
+          pageSize: -1,
+          filters:  [
+            PaginationParamFilter.createMultipleFields(
+              this.secretTypes.map(
+                (t) => new PaginationFilterField({
+                  field: 'metadata.fields.1',
+                  value: t,
+                })
+              )
+            ),
+          ],
+        }),
+      };
+
+      if (this.cacheSecrets) {
+        return await this.$store.dispatch(`${ this.inStore }/findPage`, {
+          type: SECRET,
+          opt:  findPageArgs,
+        });
+      }
+
+      const url = this.$store.getters[`${ this.inStore }/urlFor`](
+        SECRET,
+        null,
+        findPageArgs
+      );
+      const res = await this.$store.dispatch(`cluster/request`, { url });
+
+      return res?.data || [];
+    },
+
     updateKeyVal() {
-      if ( ![AUTH_TYPE._SSH, AUTH_TYPE._BASIC, AUTH_TYPE._S3].includes(this.selected)) {
+      if ( ![AUTH_TYPE._SSH, AUTH_TYPE._BASIC, AUTH_TYPE._S3].includes(this.selected) ) {
         this.privateKey = '';
         this.publicKey = '';
       }
@@ -485,7 +559,7 @@ export default {
           :selectable="option => !option.disabled"
         />
       </div>
-      <template v-if="selected === _SSH">
+      <template v-if="selected === SSH">
         <div :class="moreCols">
           <LabeledInput
             v-model="publicKey"
@@ -505,7 +579,7 @@ export default {
           />
         </div>
       </template>
-      <template v-else-if="selected === _BASIC">
+      <template v-else-if="selected === BASIC">
         <div :class="moreCols">
           <LabeledInput
             v-model="publicKey"
@@ -524,7 +598,7 @@ export default {
           />
         </div>
       </template>
-      <template v-else-if="selected === _S3">
+      <template v-else-if="selected === S3">
         <div :class="moreCols">
           <LabeledInput
             v-model="publicKey"

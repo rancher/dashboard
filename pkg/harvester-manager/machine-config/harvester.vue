@@ -40,6 +40,7 @@ import { stringify, exceptionToErrorsArray } from '@shell/utils/error';
 import { isValidMac } from '@shell/utils/validators/cidr';
 import { HCI as HCI_ANNOTATIONS, STORAGE } from '@shell/config/labels-annotations';
 import { isEqual } from 'lodash';
+import { PaginationArgs, PaginationFilterField, PaginationParamFilter } from '~/shell/types/store/pagination.types';
 
 const STORAGE_NETWORK = 'storage-network.settings.harvesterhci.io';
 
@@ -131,10 +132,27 @@ export default {
       const url = `/k8s/clusters/${ clusterId }/v1`;
 
       if (clusterId) {
+        let configMapsUrl = `${ url }/${ CONFIG_MAP }s`;
+
+        if (this.$store.getters[`cluster/paginationEnabled`](CONFIG_MAP)) {
+          const pagination = new PaginationArgs({
+            page:     1,
+            pageSize: -1,
+            filters:  [
+              PaginationParamFilter.createMultipleFields([
+                new PaginationFilterField({ field: `metadata.label["${ HCI_ANNOTATIONS.CLOUD_INIT }"]`, value: 'user' }),
+                new PaginationFilterField({ field: `metadata.label["${ HCI_ANNOTATIONS.CLOUD_INIT }"]`, value: 'network' })
+              ])
+            ]
+          });
+
+          configMapsUrl = this.$store.getters[`cluster/urlFor`](CONFIG_MAP, null, { pagination, url: configMapsUrl });
+        }
+
         const res = await allHashSettled({
           namespaces:   this.$store.dispatch('cluster/request', { url: `${ url }/${ NAMESPACE }s` }),
           images:       this.$store.dispatch('cluster/request', { url: `${ url }/${ HCI.IMAGE }s` }),
-          configMaps:   this.$store.dispatch('cluster/request', { url: `${ url }/${ CONFIG_MAP }s` }),
+          configMaps:   this.$store.dispatch('cluster/request', { url: configMapsUrl }),
           networks:     this.$store.dispatch('cluster/request', { url: `${ url }/k8s.cni.cncf.io.network-attachment-definitions` }),
           storageClass: this.$store.dispatch('cluster/request', { url: `${ url }/${ STORAGE_CLASS }es` }),
           settings:     this.$store.dispatch('cluster/request', { url: `${ url }/${ MANAGEMENT.SETTING }s` })

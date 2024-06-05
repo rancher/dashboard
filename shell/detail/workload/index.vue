@@ -65,6 +65,7 @@ export default {
     } catch {}
 
     const hash = {
+      // See https://github.com/rancher/dashboard/issues/10417, all pods bad, come from a locally applied selector in the workload model
       allPods:      this.$store.dispatch('cluster/findAll', { type: POD }),
       allServices:  this.$store.dispatch('cluster/findAll', { type: SERVICE }),
       allIngresses: this.$store.dispatch('cluster/findAll', { type: INGRESS }),

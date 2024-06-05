@@ -165,10 +165,7 @@ export default {
         return;
       }
 
-      return this.resource && paginationUtils.isEnabled({ rootGetters: this.$store.getters }, {
-        store:    this.currentProduct?.inStore,
-        resource: { id: this.resource.id || this.resource }
-      });
+      return this.resource && this.$store.getters[`${ this.currentProduct?.inStore }/paginationEnabled`]?.(this.resource.id || this.resource);
     },
 
     paginationResult() {

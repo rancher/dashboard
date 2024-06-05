@@ -64,7 +64,7 @@ export function createHeaders(
   const columnsFromSchema = attributes.columns || [];
 
   // A specific list has been provided
-  if ( headers?.[schema.id] ) {
+  if ( headers?.[schema.id]?.length ) {
     return headers[schema.id].map((entry: any) => {
       if ( typeof entry === 'string' ) {
         const col = findBy(columnsFromSchema, 'name', entry);

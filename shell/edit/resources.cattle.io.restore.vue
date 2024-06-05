@@ -14,6 +14,8 @@ import { allHash } from '@shell/utils/promise';
 import { get } from '@shell/utils/object';
 import { _CREATE } from '@shell/config/query-params';
 import { formatEncryptionSecretNames } from '@shell/utils/formatter';
+import { PaginationArgs, PaginationParamFilter } from '@shell/types/store/pagination.types';
+import { SECRET_TYPES } from '@shell/config/secret';
 
 export default {
 
@@ -44,17 +46,38 @@ export default {
   },
 
   async fetch() {
-    await this.$store.dispatch('catalog/load');
-
     const hash = await allHash({
-      secrets: this.$store.dispatch('cluster/findAll', { type: SECRET }),
-      backups: this.$store.dispatch('cluster/findAll', { type: BACKUP_RESTORE.BACKUP }),
-      apps:    this.$store.dispatch('cluster/findAll', { type: CATALOG.APP })
+      catalog:     this.$store.dispatch('catalog/load'),
+      resourceSet: this.$store.dispatch('cluster/find', { type: BACKUP_RESTORE.RESOURCE_SET, id: this.value?.spec?.resourceSetName || 'rancher-resource-set' }),
+      apps:        this.$store.dispatch('cluster/findAll', { type: CATALOG.APP })
     });
 
-    this.allSecrets = hash.secrets;
-    this.allBackups = hash.backups;
     this.apps = hash.apps;
+    this.resourceSet = hash.resourceSet;
+
+    const BRORelease = this.apps.filter((release) => get(release, 'spec.name') === 'rancher-backup')[0];
+
+    this.chartNamespace = BRORelease?.spec.namespace || '';
+
+    if (this.$store.getters[`cluster/paginationEnabled`](SECRET)) {
+      const findPageArgs = { // Of type ActionFindPageArgs
+        namespaced: this.chartNamespace,
+        pagination: new PaginationArgs({
+          pageSize: -1,
+          filters:  PaginationParamFilter.createSingleField({
+            field: 'metadata.fields.1',
+            value: SECRET_TYPES.OPAQUE
+          })
+        }),
+      };
+
+      const url = this.$store.getters[`cluster/urlFor`](SECRET, null, findPageArgs);
+      const res = await this.$store.dispatch(`cluster/request`, { url });
+
+      this.secrets = res?.data || [];
+    } else {
+      this.secrets = await this.$store.dispatch('cluster/findAll', { type: SECRET });
+    }
   },
 
   data() {
@@ -75,7 +98,13 @@ export default {
     }
 
     return {
-      allSecrets: [], allBackups: [], s3, targetBackup: null, storageSource, apps: []
+      secrets:        [],
+      allBackups:     [],
+      s3,
+      targetBackup:   null,
+      storageSource,
+      apps:           [],
+      chartNamespace: null,
     };
   },
 
@@ -88,14 +117,8 @@ export default {
       return this.allBackups.filter((backup) => backup.state !== 'error');
     },
 
-    chartNamespace() {
-      const BRORelease = this.apps.filter((release) => get(release, 'spec.name') === 'rancher-backup')[0];
-
-      return BRORelease ? BRORelease.spec.namespace : '';
-    },
-
     encryptionSecretNames() {
-      return formatEncryptionSecretNames(this.allSecrets, this.chartNamespace);
+      return formatEncryptionSecretNames(this.secrets, this.chartNamespace);
     },
 
     isEncrypted() {
@@ -186,123 +209,121 @@ export default {
 </script>
 
 <template>
-  <div>
-    <Loading v-if="$fetchState.pending" />
+  <Loading v-if="$fetchState.pending" />
 
-    <CruResource
-      :validation-passed="validationPassed"
-      :done-route="doneRoute"
-      :resource="value"
-      :mode="mode"
-      @finish="save"
-    >
-      <template>
-        <div>
-          <div class="row mb-10">
-            <div class="col span-12">
-              <RadioGroup
-                v-model="storageSource"
-                name="storageSource"
-                :label="t('backupRestoreOperator.s3.titles.backupLocation')"
-                :options="radioOptions.options"
-                :labels="radioOptions.labels"
-                :mode="mode"
-              />
-            </div>
-          </div>
-          <template v-if="storageSource === 'configureS3'">
-            <S3
-              v-model="s3"
+  <CruResource
+    v-else
+    :validation-passed="validationPassed"
+    :done-route="doneRoute"
+    :resource="value"
+    :mode="mode"
+    @finish="save"
+  >
+    <template>
+      <div>
+        <div class="row mb-10">
+          <div class="col span-12">
+            <RadioGroup
+              v-model="storageSource"
+              name="storageSource"
+              :label="t('backupRestoreOperator.s3.titles.backupLocation')"
+              :options="radioOptions.options"
+              :labels="radioOptions.labels"
               :mode="mode"
-              :secrets="allSecrets"
             />
-          </template>
-          <div
-            v-else-if="storageSource==='useBackup'"
-            class="row mb-10"
-          >
-            <div class="col span-6">
-              <LabeledSelect
-                :disabled="!availableBackups.length"
-                :value="targetBackup"
-                :options="availableBackups"
-                :mode="mode"
-                option-label="metadata.name"
-                :label="t('backupRestoreOperator.targetBackup')"
-                @input="updateTargetBackup"
-              />
-            </div>
           </div>
         </div>
-        <div class="spacer" />
+        <template v-if="storageSource === 'configureS3'">
+          <S3
+            v-model="s3"
+            :mode="mode"
+          />
+        </template>
+        <div
+          v-else-if="storageSource==='useBackup'"
+          class="row mb-10"
+        >
+          <div class="col span-6">
+            <LabeledSelect
+              :disabled="!availableBackups.length"
+              :value="targetBackup"
+              :options="availableBackups"
+              :mode="mode"
+              option-label="metadata.name"
+              :label="t('backupRestoreOperator.targetBackup')"
+              @input="updateTargetBackup"
+            />
+          </div>
+        </div>
+      </div>
+      <div class="spacer" />
 
-        <div>
-          <div
-            :style="{'align-items':'center'}"
-            class="row mb-10"
-          >
-            <div class="col span-6">
-              <LabeledInput
-                v-model="value.spec.backupFilename"
-                :spellcheck="false"
-                required
-                :mode="mode"
-                :label="t('backupRestoreOperator.backupFilename')"
-              />
-            </div>
-            <div class="col span-6">
-              <LabeledSelect
-                v-if="isEncrypted"
-                v-model="value.spec.encryptionConfigSecretName"
-                :status="mode === 'view' ? null : 'warning'"
-                :tooltip="mode === 'view' ? null : t('backupRestoreOperator.encryptionConfigName.restoretip')"
-                :hover-tooltip="true"
-                :mode="mode"
-                :options="encryptionSecretNames"
-                :label="t('backupRestoreOperator.encryptionConfigName.label')"
-              />
-            </div>
+      <div>
+        <div
+          :style="{'align-items':'center'}"
+          class="row mb-10"
+        >
+          <div class="col span-6">
+            <LabeledInput
+              v-model="value.spec.backupFilename"
+              :spellcheck="false"
+              required
+              :mode="mode"
+              :label="t('backupRestoreOperator.backupFilename')"
+            />
           </div>
-          <div
-            :style="{'align-items':'center'}"
-            class="row"
-          >
-            <div class="col span-6">
-              <Checkbox
-                v-model="value.spec.prune"
-                class="mb-5"
-                :label="t('backupRestoreOperator.prune.label')"
-                :mode="mode"
-              >
-                <template #label>
-                  <span
-                    v-clean-tooltip="t('backupRestoreOperator.prune.tip')"
-                    class="text-label"
-                  >
-                    {{ t('backupRestoreOperator.prune.label') }} <i class="icon icon-info" />
-                  </span>
-                </template>
-              </Checkbox>
-              <UnitInput
-                v-if="value.spec.prune"
-                v-model="value.spec.deleteTimeoutSeconds"
-                :suffix="t('suffix.seconds', {count: value.spec.deleteTimeoutSeconds})"
-                :mode="mode"
-                :label="t('backupRestoreOperator.deleteTimeout.label')"
-              >
-                <template #label>
-                  <label
-                    v-clean-tooltip="t('backupRestoreOperator.deleteTimeout.tip')"
-                    class="has-tooltip"
-                  >
-                    {{ t('backupRestoreOperator.deleteTimeout.label') }} <i class="icon icon-info" />
-                  </label>
-                </template>
-              </UnitInput>
-            </div>
+          <div class="col span-6">
+            <LabeledSelect
+              v-if="isEncrypted"
+              v-model="value.spec.encryptionConfigSecretName"
+              :status="mode === 'view' ? null : 'warning'"
+              :tooltip="mode === 'view' ? null : t('backupRestoreOperator.encryptionConfigName.restoretip')"
+              :hover-tooltip="true"
+              :mode="mode"
+              :options="encryptionSecretNames"
+              :label="t('backupRestoreOperator.encryptionConfigName.label')"
+            />
           </div>
         </div>
-      </template>
-    </CruResource>
-  </div>
+        <div
+          :style="{'align-items':'center'}"
+          class="row"
+        >
+          <div class="col span-6">
+            <Checkbox
+              v-model="value.spec.prune"
+              class="mb-5"
+              :label="t('backupRestoreOperator.prune.label')"
+              :mode="mode"
+            >
+              <template #label>
+                <span
+                  v-clean-tooltip="t('backupRestoreOperator.prune.tip')"
+                  class="text-label"
+                >
+                  {{ t('backupRestoreOperator.prune.label') }} <i class="icon icon-info" />
+                </span>
+              </template>
+            </Checkbox>
+            <UnitInput
+              v-if="value.spec.prune"
+              v-model="value.spec.deleteTimeoutSeconds"
+              :suffix="t('suffix.seconds', {count: value.spec.deleteTimeoutSeconds})"
+              :mode="mode"
+              :label="t('backupRestoreOperator.deleteTimeout.label')"
+            >
+              <template #label>
+                <label
+                  v-clean-tooltip="t('backupRestoreOperator.deleteTimeout.tip')"
+                  class="has-tooltip"
+                >
+                  {{ t('backupRestoreOperator.deleteTimeout.label') }} <i class="icon icon-info" />
+                </label>
+              </template>
+            </UnitInput>
+          </div>
+        </div>
+      </div>
+    </template>
+  </CruResource>
 </template>

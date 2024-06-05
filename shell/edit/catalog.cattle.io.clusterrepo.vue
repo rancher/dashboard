@@ -177,18 +177,18 @@ export default {
       :mode="mode"
       data-testid="clusterrepo-helm-url-input"
     />
-
     <SelectOrCreateAuthSecret
       :key="clusterRepoType"
       v-model="value.spec.clientSecret"
+      :mode="mode"
       data-testid="clusterrepo-auth-secret"
       :register-before-hook="registerBeforeHook"
       :namespace="secretNamespace"
       :limit-to-namespace="false"
       :in-store="inStore"
       :allow-ssh="clusterRepoType !== CLUSTER_REPO_TYPES.OCI_URL"
-      :mode="mode"
       generate-name="clusterrepo-auth-"
+      :cache-secrets="true"
     />
 
     <div v-if="clusterRepoType === CLUSTER_REPO_TYPES.OCI_URL">

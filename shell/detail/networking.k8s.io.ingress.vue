@@ -6,6 +6,7 @@ import Rules from '@shell/edit/networking.k8s.io.ingress/Rules';
 import ResourceTabs from '@shell/components/form/ResourceTabs';
 import Tab from '@shell/components/Tabbed/Tab';
 import { SECRET_TYPES as TYPES } from '@shell/config/secret';
+import { PaginationArgs, PaginationParamFilter } from '@shell/types/store/pagination.types';
 
 export default {
   name:       'CRUIngress',
@@ -16,17 +17,39 @@ export default {
   },
   mixins: [CreateEditView],
   async fetch() {
-    const hash = await allHash({
-      secrets:        this.$store.dispatch('cluster/findAll', { type: SECRET }),
+    const promises = {
       services:       this.$store.dispatch('cluster/findAll', { type: SERVICE }),
       resourceFields: this.schema.fetchResourceFields(),
-    });
+    };
+
+    if (this.$store.getters[`cluster/paginationEnabled`](SECRET)) {
+      const findPageArgs = { // Of type ActionFindPageArgs
+        namespaced: this.value.metadata.namespace,
+        pagination: new PaginationArgs({
+          pageSize: -1,
+          filters:  PaginationParamFilter.createSingleField({
+            field: 'metadata.fields.1',
+            value: TYPES.TLS
+          })
+        }),
+      };
+
+      promises.filteredSecrets = this.$store.dispatch(`cluster/findPage`, { type: SECRET, opt: findPageArgs });
+    } else {
+      promises.secrets = this.$store.dispatch('cluster/findAll', { type: SECRET });
+    }
+    const hash = await allHash(promises);
 
     this.allServices = hash.services;
     this.allSecrets = hash.secrets;
+    this.filteredSecrets = hash.filteredSecrets;
   },
   data() {
-    return { allSecrets: [], allServices: [] };
+    return {
+      allSecrets:      null,
+      filteredSecrets: null,
+      allServices:     [],
+    };
   },
   computed: {
     serviceTargets() {
@@ -41,7 +64,17 @@ export default {
       return this.isView ? this.t('ingress.rulesAndCertificates.title') : this.t('ingress.rules.title');
     },
     certificates() {
-      return this.filterByCurrentResourceNamespace(this.allSecrets.filter((secret) => secret._type === TYPES.TLS)).map((secret) => {
+      let filteredSecrets;
+
+      if (this.filteredSecrets) {
+        filteredSecrets = this.filteredSecrets;
+      } else if (this.allSecrets ) {
+        filteredSecrets = this.filterByCurrentResourceNamespace(this.allSecrets.filter((secret) => secret._type === TYPES.TLS));
+      } else {
+        return [];
+      }
+
+      return filteredSecrets.map((secret) => {
         const { id } = secret;
 
         return id.slice(id.indexOf('/') + 1);

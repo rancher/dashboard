@@ -107,6 +107,7 @@ export default {
           :vertical="true"
           :namespace="value.metadata.namespace"
           generate-name="registryconfig-auth-"
+          :cache-secrets="true"
           @input="$emit('registry-secret-changed', $event)"
         />
       </div>

@@ -254,6 +254,7 @@ export default {
   methods: {
     updateMatchingPods: throttle(function() {
       const { value: { spec: { selector = { } } } } = this;
+      // See https://github.com/rancher/dashboard/issues/10417, all pods bad, need to replace local selector somehow
       const allInNamespace = this.allPods.filter((pod) => pod.metadata.namespace === this.value?.metadata?.namespace);
 
       if (isEmpty(selector)) {

@@ -3,8 +3,7 @@ import { PropType, defineComponent } from 'vue';
 import LabeledSelect from '@shell/components/form/LabeledSelect.vue';
 import { PaginationParamFilter } from '@shell/types/store/pagination.types';
 import { labelSelectPaginationFunction, LabelSelectPaginationFunctionOptions } from '@shell/components/form/labeled-select-utils/labeled-select.utils';
-import paginationUtils from '@shell/utils/pagination-utils';
-import { LabelSelectPaginateFn, LabelSelectPaginateFnOptions, LabelSelectPaginateFnResponse } from '~/shell/types/components/labeledSelect';
+import { LabelSelectPaginateFn, LabelSelectPaginateFnOptions, LabelSelectPaginateFnResponse } from '@shell/types/components/labeledSelect';
 
 type PaginateTypeOverridesFn = (opts: LabelSelectPaginationFunctionOptions) => LabelSelectPaginationFunctionOptions;
 
@@ -116,7 +115,7 @@ export default defineComponent({
       this.paginate = false;
       break;
     case RESOURCE_LABEL_SELECT_MODE.DYNAMIC:
-      this.paginate = paginationUtils.isEnabled({ rootGetters: this.$store.getters }, { store: this.inStore, resource: { id: this.resourceType } });
+      this.paginate = this.$store.getters[`${ this.inStore }/paginationEnabled`](this.resourceType);
       break;
     }
 

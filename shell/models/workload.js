@@ -647,6 +647,7 @@ export default class Workload extends WorkloadService {
 
     const selector = convertSelectorObj(this.spec.selector);
 
+    // See https://github.com/rancher/dashboard/issues/10417, all pods bad, need to replace local selector somehow
     return matching(allInNamespace, selector);
   }
 
