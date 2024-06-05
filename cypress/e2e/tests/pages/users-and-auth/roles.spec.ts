@@ -11,10 +11,11 @@ const usersPo = new UsersPo('_');
 const userCreate = usersPo.createEdit();
 const sideNav = new ProductNavPo();
 
-const runTimestamp = +new Date();
-const runPrefix = `e2e-test-${ runTimestamp }`;
 const downloadsFolder = Cypress.config('downloadsFolder');
-const globalRoleName = `${ runPrefix }-my-global-role`;
+
+let runTimestamp;
+let runPrefix;
+let globalRoleName;
 
 describe('Roles', { tags: ['@usersAndAuths', '@adminUser'] }, () => {
   beforeEach(() => {
@@ -23,6 +24,12 @@ describe('Roles', { tags: ['@usersAndAuths', '@adminUser'] }, () => {
   });
 
   it('can create a Global Role', () => {
+    // We want to define these here because if this test fails after it created the global role all subsequent
+    // retries will reference the wrong global-role because a second roll will with the same name but different id will be created
+    runTimestamp = +new Date();
+    runPrefix = `e2e-test-${ runTimestamp }`;
+    globalRoleName = `${ runPrefix }-my-global-role`;
+
     // create global role
     const fragment = 'GLOBAL';
 
