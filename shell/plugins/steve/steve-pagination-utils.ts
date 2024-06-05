@@ -3,7 +3,9 @@ import { PaginationParam, PaginationFilterField, PaginationParamProjectOrNamespa
 import { NAMESPACE_FILTER_ALL_SYSTEM, NAMESPACE_FILTER_ALL_USER, NAMESPACE_FILTER_P_FULL_PREFIX } from '@shell/utils/namespace-filter';
 import Namespace from '@shell/models/namespace';
 import { uniq } from '@shell/utils/array';
-import { CONFIG_MAP, MANAGEMENT, NODE, POD } from '@shell/config/types';
+import {
+  CONFIG_MAP, MANAGEMENT, NAMESPACE, NODE, POD
+} from '@shell/config/types';
 import { Schema } from 'plugins/steve/schema';
 import { TEMP_VAI_CACHE_MERGED } from '@shell/utils/pagination-utils';
 
@@ -111,9 +113,8 @@ class StevePaginationUtils extends NamespaceProjectFilters {
       { field: 'metadata.creationTimestamp' },
     ],
     [NODE]: [
-      // { field: 'status.nodeInfo.kubeletVersion' }, // Pending API support
-      // { field: 'status.nodeInfo.operatingSystem' }, // Pending API support
-      // { field: 'status.nodeName' }, // Pending API support
+      { field: 'status.nodeInfo.kubeletVersion' },
+      { field: 'status.nodeInfo.operatingSystem' },
     ],
     [POD]: [
       { field: 'spec.containers.image' },
@@ -121,10 +122,12 @@ class StevePaginationUtils extends NamespaceProjectFilters {
     ],
     [MANAGEMENT.NODE]: [
       { field: 'status.nodeName' },
-      // { field: 'status.nodeInfo.kubeletVersion'}, // Pending API support
     ],
     [CONFIG_MAP]: [
-      { field: 'metadata.labels' }
+      { field: 'metadata.labels[harvesterhci.io/cloud-init-template]' }
+    ],
+    [NAMESPACE]: [
+      { field: 'metadata.labels[field.cattle.io/projectId]' }
     ]
   }
 
@@ -342,7 +345,9 @@ class StevePaginationUtils extends NamespaceProjectFilters {
               // Check if the API supports filtering by this field
               this.validateField(validateFields, schema, field.field);
 
-              return `${ this.convertArrayPath(field.field) }${ field.equals ? '=' : '!=' }${ field.value }`;
+              const exactPartial = field.exact ? `'${ field.value }'` : field.value;
+
+              return `${ this.convertArrayPath(field.field) }${ field.equals ? '=' : '!=' }${ exactPartial }`;
             }
 
             return field.value;

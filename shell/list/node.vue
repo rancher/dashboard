@@ -9,7 +9,7 @@ import { CAPI as CAPI_ANNOTATIONS } from '@shell/config/labels-annotations.js';
 
 import { defineComponent } from 'vue';
 import { ActionFindPageArgs } from '@shell/types/store/dashboard-store.types';
-import { PaginationArgs, PaginationFilterField, PaginationParamFilter } from '@shell/types/store/pagination.types';
+import { PaginationArgs, PaginationFilterArgs, PaginationFilterField, PaginationParamFilter } from '@shell/types/store/pagination.types';
 
 import {
   CAPI,
@@ -147,10 +147,8 @@ export default defineComponent({
 
         const opt: ActionFindPageArgs = {
           force:      true,
-          pagination: new PaginationArgs({
-            page:     null,
-            pageSize: null,
-            filters:  new PaginationParamFilter({
+          pagination: new PaginationFilterArgs({
+            filters: new PaginationParamFilter({
               fields: this.rows.map((r: any) => new PaginationFilterField({
                 field: 'metadata.name',
                 value: r.id
@@ -221,10 +219,8 @@ export default defineComponent({
         // See https://github.com/rancher/dashboard/issues/10743
         const opt: ActionFindPageArgs = {
           force,
-          pagination: new PaginationArgs({
-            page:     null,
-            pageSize: null,
-            filters:  PaginationParamFilter.createMultipleFields(this.rows.map((r: any) => new PaginationFilterField({
+          pagination: new PaginationFilterArgs({
+            filters: PaginationParamFilter.createMultipleFields(this.rows.map((r: any) => new PaginationFilterField({
               field: 'status.nodeName',
               value: r.id
             }))),
@@ -244,10 +240,8 @@ export default defineComponent({
           const opt: ActionFindPageArgs = {
             force,
             namespaced: namespace,
-            pagination: new PaginationArgs({
-              page:     null,
-              pageSize: null,
-              filters:  PaginationParamFilter.createMultipleFields(
+            pagination: new PaginationFilterArgs({
+              filters: PaginationParamFilter.createMultipleFields(
                 this.rows.reduce((res: PaginationFilterField[], r: any ) => {
                   const name = r.metadata?.annotations?.[CAPI_ANNOTATIONS.MACHINE_NAME];
 
@@ -272,10 +266,8 @@ export default defineComponent({
         // Note - fetching pods for current page could be a LOT still (probably max of 3k - 300 pods per node x 100 nodes in a page)
         const opt: ActionFindPageArgs = {
           force,
-          pagination: new PaginationArgs({
-            page:     null,
-            pageSize: null,
-            filters:  PaginationParamFilter.createMultipleFields(
+          pagination: new PaginationFilterArgs({
+            filters: PaginationParamFilter.createMultipleFields(
               this.rows.map((r: any) => new PaginationFilterField({
                 field: 'spec.nodeName',
                 value: r.id,
