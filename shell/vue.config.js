@@ -355,23 +355,28 @@ const getVirtualModulesAutoImport = (dir) => {
   return new VirtualModulesPlugin(autoImportTypes);
 };
 
+// Get current shell version
+const shellPkgRawData = fs.readFileSync(path.join(__dirname, 'package.json'));
+const shellPkgData = JSON.parse(shellPkgRawData);
+
 /**
  * DefinePlugin does string replacement within our code. We may want to consider replacing it with something else. In code we'll see something like
  * process.env.commit even though process and env aren't even defined objects. This could cause people to be mislead.
  */
 const createEnvVariablesPlugin = (routerBasePath, rancherEnv) => new webpack.DefinePlugin({
-  'process.env.commit':              JSON.stringify(commit),
-  'process.env.version':             JSON.stringify(dashboardVersion),
-  'process.env.dev':                 JSON.stringify(dev),
-  'process.env.pl':                  JSON.stringify(pl),
-  'process.env.perfTest':            JSON.stringify(perfTest),
-  'process.env.loginLocaleSelector': JSON.stringify(process.env.LOGIN_LOCALE_SELECTOR || 'true'),
-  'process.env.excludeOperatorPkg':  JSON.stringify(process.env.EXCLUDE_OPERATOR_PKG || 'false'),
-  'process.env.rancherEnv':          JSON.stringify(rancherEnv),
-  'process.env.harvesterPkgUrl':     JSON.stringify(process.env.HARVESTER_PKG_URL),
-  'process.env.api':                 JSON.stringify(api),
+  'process.env.UI_EXTENSIONS_API_VERSION': JSON.stringify(shellPkgData.version),
+  'process.env.commit':                    JSON.stringify(commit),
+  'process.env.version':                   JSON.stringify(dashboardVersion),
+  'process.env.dev':                       JSON.stringify(dev),
+  'process.env.pl':                        JSON.stringify(pl),
+  'process.env.perfTest':                  JSON.stringify(perfTest),
+  'process.env.loginLocaleSelector':       JSON.stringify(process.env.LOGIN_LOCALE_SELECTOR || 'true'),
+  'process.env.excludeOperatorPkg':        JSON.stringify(process.env.EXCLUDE_OPERATOR_PKG || 'false'),
+  'process.env.rancherEnv':                JSON.stringify(rancherEnv),
+  'process.env.harvesterPkgUrl':           JSON.stringify(process.env.HARVESTER_PKG_URL),
+  'process.env.api':                       JSON.stringify(api),
   // Store the Router Base as env variable that we can use in `shell/config/router.js`
-  'process.env.routerBase':          JSON.stringify(routerBasePath),
+  'process.env.routerBase':                JSON.stringify(routerBasePath),
 });
 
 /**
