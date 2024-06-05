@@ -9,7 +9,7 @@ import { CAPI as CAPI_ANNOTATIONS } from '@shell/config/labels-annotations.js';
 
 import { defineComponent } from 'vue';
 import { ActionFindPageArgs } from '@shell/types/store/dashboard-store.types';
-import { PaginationArgs, PaginationFilterArgs, PaginationFilterField, PaginationParamFilter } from '@shell/types/store/pagination.types';
+import { PaginationFilterArgs, PaginationFilterField, PaginationParamFilter } from '@shell/types/store/pagination.types';
 
 import {
   CAPI,
