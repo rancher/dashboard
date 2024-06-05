@@ -6,7 +6,7 @@ import { setTitle } from '@shell/config/private-label';
 import { fetchInitialSettings } from '@shell/utils/settings';
 import { setFavIcon, haveSetFavIcon } from '@shell/utils/favicon';
 import { allHash } from '@shell/utils/promise';
-import { PaginationFilterField, PaginationParamFilter } from '@shell/types/store/pagination.types';
+import { PaginationFilterArgs, PaginationFilterField, PaginationParamFilter } from '@shell/types/store/pagination.types';
 
 // For testing these could be changed to something like...
 const cspAdaptorApp = ['rancher-webhooka', 'rancher-webhook'];
@@ -27,29 +27,22 @@ export default {
 
       // For the login page, the schemas won't be loaded - we don't need the apps in this case
       if (this.$store.getters['management/canList'](CATALOG.APP)) {
-        debugger;
         // Restrict the amount of apps we need to fetch
         // this.$store.getters[`management/paginationEnabled`]()
         // if (true) {
         promises.apps = this.$store.dispatch('management/findPage', {
           type: CATALOG.APP,
           opt:  { // Of type ActionFindPageArgs
-            pagination: new PaginationArgs({
-              filters: PaginationParamFilter.createSingleField(
-                new PaginationFilterField({ field: 'metadata.name', value: cspAdaptorApp.join(',') })
-              ),
+            pagination: new PaginationFilterArgs({
+              filters: PaginationParamFilter.createMultipleFields(cspAdaptorApp.map(
+                (t) => new PaginationFilterField({
+                  field: 'metadata.name',
+                  value: t,
+                })
+              )),
             })
-            // pagination:  new PaginationFilterField({
-            //   filters: PaginationParamFilter.createSingleField({
-            //     field: 'metadata.name',
-            //     value: cspAdaptorApp.join(',')
-            //   })
-            // }),
           }
         });
-        // } else {
-        //   promises.apps = this.$store.dispatch('management/findAll', { type: CATALOG.APP });
-        // }
       }
 
       const res = await allHash(promises);
@@ -60,9 +53,7 @@ export default {
       }
 
       this.apps = res.apps;
-    } catch (e) {
-      console.warn(e);
-    }
+    } catch (e) { }
 
     // Setting this up front will remove `computed` churn, and we only care that we've initialised them
     this.haveAppsAndSettings = !!this.apps && !!this.globalSettings;
