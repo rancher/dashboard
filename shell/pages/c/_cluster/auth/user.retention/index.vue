@@ -21,37 +21,39 @@ export default defineComponent({
     const store = useStore();
     const disableAfterPeriod = ref(false);
     const deleteAfterPeriod = ref(false);
-    const disableAfter = ref(null);
-    const deleteAfter = ref(null);
+    const disableInactiveUserAfter = ref(null);
+    const deleteInactiveUserAfter = ref(null);
     const userRetentionCron = ref(null);
-    const shouldRunDryMode = ref(null);
-    const defaultLastLogin = ref(null);
+    const userRetentionDryRun = ref(null);
+    const userLastLoginDefault = ref(null);
+    const loading = ref(true);
 
     const fetchSetting = async(id: string) => {
-      const { value } = await store.dispatch('management/find', { type: MANAGEMENT.SETTING, id });
-
-      return value;
+      return await store.dispatch('management/find', { type: MANAGEMENT.SETTING, id });
     };
 
     onMounted(async() => {
-      disableAfter.value = await fetchSetting(SETTING.DISABLE_INACTIVE_USER_AFTER);
-      disableAfterPeriod.value = !!disableAfter.value;
-      deleteAfter.value = await fetchSetting(SETTING.DELETE_INACTIVE_USER_AFTER);
-      deleteAfterPeriod.value = !!deleteAfter.value;
+      disableInactiveUserAfter.value = await fetchSetting(SETTING.DISABLE_INACTIVE_USER_AFTER);
+      disableAfterPeriod.value = !!disableInactiveUserAfter?.value?.value;
+      deleteInactiveUserAfter.value = await fetchSetting(SETTING.DELETE_INACTIVE_USER_AFTER);
+      deleteAfterPeriod.value = !!deleteInactiveUserAfter?.value?.value;
       userRetentionCron.value = await fetchSetting(SETTING.USER_RETENTION_CRON);
-      shouldRunDryMode.value = await fetchSetting(SETTING.USER_RETENTION_DRY_RUN);
-      defaultLastLogin.value = await fetchSetting(SETTING.USER_LAST_LOGIN_DEFAULT);
+      userRetentionDryRun.value = await fetchSetting(SETTING.USER_RETENTION_DRY_RUN);
+      userLastLoginDefault.value = await fetchSetting(SETTING.USER_LAST_LOGIN_DEFAULT);
+      loading.value = false;
     });
 
 
     return {
       disableAfterPeriod,
       deleteAfterPeriod,
-      disableAfter,
-      deleteAfter,
+      disableInactiveUserAfter,
+      deleteInactiveUserAfter,
       userRetentionCron,
-      shouldRunDryMode,
-      defaultLastLogin,
+      userRetentionDryRun,
+      userLastLoginDefault,
+      save,
+      loading,
     };
   },
 });
@@ -85,14 +87,17 @@ export default defineComponent({
       </div>
     </header>
     <h2>User retention</h2>
-    <div class="form-user-retention">
+    <div
+      v-if="!loading"
+      class="form-user-retention"
+    >
       <div class="input-fieldset">
         <checkbox
           v-model="disableAfterPeriod"
           label="Disable user accounts after an inactivity  period (days since last login)"
         />
         <labeled-input
-          v-model="disableAfter"
+          v-model="disableInactiveUserAfter.value"
           label="Inactivity period (days)"
           :disabled="!disableAfterPeriod"
         />
@@ -103,7 +108,7 @@ export default defineComponent({
           label="Delete user accounts after an inactivity  period (days since last login)"
         />
         <labeled-input
-          v-model="deleteAfter"
+          v-model="deleteInactiveUserAfter.value"
           label="Inactivity period (days)"
           :disabled="!deleteAfterPeriod"
         />
@@ -113,7 +118,7 @@ export default defineComponent({
       >
         <div class="input-fieldset">
           <labeled-input
-            v-model="userRetentionCron"
+            v-model="userRetentionCron.value"
             required
             type="cron"
             label="User retention process schedule"
@@ -122,14 +127,14 @@ export default defineComponent({
         </div>
         <div class="input-fieldset condensed">
           <toggle-switch
-            v-model="shouldRunDryMode"
+            v-model="userRetentionDryRun.value"
             on-label="Run the user retention process in DRY mode (no changes will be applied)"
           />
           <span class="input-detail">You can check the logs to see which accounts would be affected</span>
         </div>
         <div class="input-fieldset condensed">
           <labeled-input
-            v-model="defaultLastLogin"
+            v-model="userLastLoginDefault.value"
             label="Default last login (ms)"
             sub-label="Accounts without a registered last login timestamp will get this as a default"
             placeholder="Unix timestamp"
