@@ -374,14 +374,20 @@ export const actions = {
     // Unload plugins - we will load again on login
     await rootState.$plugin.logout();
 
+    // SLO - Single-sign logout - will logout auth provider from all places where it's logged in
+    const logoutAction = options.slo ? 'logoutAll' : 'logout';
+
     try {
       const res = await dispatch('rancher/request', {
-        url:                  '/v3/tokens?action=logout',
+        url:                  `/v3/tokens?action=${ logoutAction }`,
         method:               'post',
         data:                 {},
         headers:              { 'Content-Type': 'application/json' },
         redirectUnauthorized: false,
       }, { root: true });
+
+      console.log('LOGOUT RES', res);
+      // debugger;
 
       // Single-sign logout for SAML providers that allow for it
       if (res.body.type === 'samlConfigLogoutOutput' && res.body.idpRedirectUrl) {
