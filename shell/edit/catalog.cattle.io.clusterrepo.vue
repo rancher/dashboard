@@ -269,6 +269,7 @@ export default {
     />
 
     <Footer
+      data-testid="clusterrepo-footer"
       :mode="mode"
       :errors="errors"
       @save="save"

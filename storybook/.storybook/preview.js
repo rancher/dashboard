@@ -19,9 +19,11 @@ import growl from './store/growl';
 import codeMirror from './store/codeMirror';
 import table from './store/table';
 
+// i18n
+import i18n from '../../shell/plugins/i18n';
 
 // Register custom i18n plugin
-require('../../shell/plugins/i18n');
+Vue.use(i18n);
 
 Vue.use(Vuex);
 Vue.use(ShortKey, { prevent: ['input', 'textarea', 'select'] });

@@ -144,6 +144,13 @@ export default class SortableTablePo extends ComponentPo {
   }
 
   /**
+   * Get the row element count on sortable table
+   */
+  rowCount(): Cypress.Chainable<number> {
+    return this.rowElements().then((el) => el.length);
+  }
+
+  /**
    * Check row element count on sortable table
    * @param isEmpty true if empty state expected (empty state message should display on row 1)
    * @param expected number of rows shown

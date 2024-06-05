@@ -75,6 +75,30 @@ export const getResourceFromRoute = (to) => {
   return resource;
 };
 
+/**
+ * Given a route it will look through the matching parent routes to see if any match the fn (predicate) criteria
+ *
+ * @param {*} to a VueRouter Route object
+ * @param {*} fn fn is a predicate which is passed a matched route. It will return true to indicate there was a matching route and false otherwise
+ * @returns true if a matching route was found, false otherwise
+ */
+export const routeMatched = (to, fn) => {
+  const matched = to?.matched || [];
+
+  return !!matched.find(fn);
+};
+
+/**
+ * Given a route and a name it will look through the matching parent routes to see if any have the specified name
+ *
+ * @param {*} to a VueRouter Route object
+ * @param {*} routeName the name of a route you're checking to see if it was matched.
+ * @returns true if a matching route was found, false otherwise
+ */
+export const routeNameMatched = (to, routeName) => {
+  return routeMatched(to, (matched) => (matched?.name === routeName));
+};
+
 function findMeta(route, key) {
   if (route?.meta) {
     const meta = Array.isArray(route.meta) ? route.meta : [route.meta];
