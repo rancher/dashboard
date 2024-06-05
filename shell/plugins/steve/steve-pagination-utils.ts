@@ -7,7 +7,6 @@ import {
   CONFIG_MAP, MANAGEMENT, NAMESPACE, NODE, POD
 } from '@shell/config/types';
 import { Schema } from 'plugins/steve/schema';
-import { TEMP_VAI_CACHE_MERGED } from '@shell/utils/pagination-utils';
 
 class NamespaceProjectFilters {
   /**
@@ -132,10 +131,6 @@ class StevePaginationUtils extends NamespaceProjectFilters {
   }
 
   private convertArrayPath(path: string): string {
-    if (TEMP_VAI_CACHE_MERGED) {
-      return path;
-    }
-
     if (path.startsWith('metadata.fields.')) {
       const [part1, part2, ...rest] = path.split('.');
 
