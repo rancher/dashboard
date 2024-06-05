@@ -171,7 +171,7 @@ export default {
         } catch (e) {}
 
         this.waitForBackend(btnCB, id);
-      }, 2500);
+      }, 5000);
     },
 
     async saveUrl(btnCB) {
