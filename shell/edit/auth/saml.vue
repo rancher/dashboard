@@ -99,6 +99,11 @@ export default {
         // Use a spread of config, so that if don't make changes to the defaults if the user edits them
         this.$set(this.model, 'openLdapConfig', { ...LDAP_DEFAULTS });
       }
+    },
+    'model.logoutAllEnabled'(neu) {
+      if (!neu && this.model.logoutAllForced) {
+        this.$set(this.model, 'logoutAllForced', false);
+      }
     }
   }
 };
@@ -137,6 +142,8 @@ export default {
             <tr><td>{{ t(`authConfig.saml.entityID`) }}: </td><td>{{ model.entityID }}</td></tr>
             <tr><td>{{ t(`authConfig.saml.api`) }}: </td><td>{{ model.rancherApiHost }}</td></tr>
             <tr><td>{{ t(`authConfig.saml.groups`) }}: </td><td>{{ model.groupsField }}</td></tr>
+            <tr><td>{{ t(`authConfig.saml.enableSlo`) }}: </td><td>{{ model.logoutAllEnabled }}</td></tr>
+            <tr><td>{{ t(`authConfig.saml.forceSlo`) }}: </td><td>{{ model.logoutAllForced }}</td></tr>
           </template>
 
           <template
@@ -197,6 +204,7 @@ export default {
         />
 
         <h3>{{ t(`authConfig.saml.${NAME}`) }}</h3>
+
         <div class="row mb-20">
           <div class="col span-6">
             <LabeledInput
@@ -234,6 +242,7 @@ export default {
             />
           </div>
         </div>
+
         <div class="row mb-20">
           <div
             v-if="NAME === 'keycloak' || NAME === 'ping'"
@@ -305,6 +314,28 @@ export default {
             />
           </div>
         </div>
+
+        <!-- SLO logout -->
+        <div class="row mb-20">
+          <div class="col span-4">
+            <Checkbox
+              v-model="model.logoutAllEnabled"
+              :mode="mode"
+              :disabled="!model.logoutAllSupported"
+              :label="t('authConfig.saml.enableSlo')"
+            />
+          </div>
+          <div class="col span-4">
+            <Checkbox
+              v-model="model.logoutAllForced"
+              :mode="mode"
+              :disabled="!model.logoutAllSupported || !model.logoutAllEnabled"
+              :label="t('authConfig.saml.forceSlo')"
+            />
+          </div>
+        </div>
+
+        <!-- LDAP search -->
         <div v-if="supportsLDAPSearch">
           <div class="row">
             <h2>{{ t('authConfig.saml.search.title') }}</h2>

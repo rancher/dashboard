@@ -106,6 +106,13 @@ export default {
         }
       }
 
+      // TO BE DELETED!!!!
+      this.$set(this.model, 'logoutAllSupported', true);
+      this.$set(this.model, 'logoutAllEnabled', false);
+      this.$set(this.model, 'logoutAllForced', false);
+
+      console.log('MODEL', this.model);
+
       if (!this.model.enabled) {
         this.applyDefaults();
       }

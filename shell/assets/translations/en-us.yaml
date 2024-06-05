@@ -507,6 +507,8 @@ authConfig:
     UID: UID Field
     adfs: Configure an AD FS account
     api: '{vendor} API Host'
+    enableSlo: Enable Single-Sign Logout (SLO)
+    forceSlo: Force Single-Sign Logout (SLO)
     cert:
       label: Certificate
       placeholder: Paste in the certificate, starting with -----BEGIN CERTIFICATE-----
