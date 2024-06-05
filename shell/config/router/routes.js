@@ -10,6 +10,7 @@ export default [
   {
     path:      '/',
     component: () => interopDefault(import('@shell/components/templates/default.vue')),
+    meta:      { requiresAuthentication: true },
     children:  [
       {
         path:      '',
@@ -27,12 +28,14 @@ export default [
     path:      '',
     component: () => interopDefault(import('@shell/components/templates/blank.vue')),
     name:      'blank',
+    meta:      { requiresAuthentication: true },
     children:  [
     ]
   },
   {
     path:      '',
     component: () => interopDefault(import('@shell/components/templates/home.vue')),
+    meta:      { requiresAuthentication: true },
     children:  [
       {
         path:      '/home',
@@ -50,6 +53,7 @@ export default [
     path:      '',
     component: () => interopDefault(import('@shell/components/templates/plain.vue')),
     name:      'plain',
+    meta:      { requiresAuthentication: true },
     children:  [
       {
         path:      '/about',
@@ -145,6 +149,7 @@ export default [
     path:      '',
     component: () => interopDefault(import('@shell/components/templates/default.vue')),
     name:      'default',
+    meta:      { requiresAuthentication: true },
     children:  [
       {
         path:      '/clusters',

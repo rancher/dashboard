@@ -297,9 +297,9 @@ export function notLoggedIn(store, redirect, route) {
   store.commit('auth/hasAuth', true);
 
   if ( route.name === 'index' ) {
-    return redirect(302, '/auth/login');
+    return redirect('/auth/login');
   } else {
-    return redirect(302, `/auth/login?${ TIMED_OUT }`);
+    return redirect(`/auth/login?${ TIMED_OUT }`);
   }
 }
 

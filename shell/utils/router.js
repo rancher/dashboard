@@ -89,14 +89,13 @@ export const routeMatched = (to, fn) => {
 };
 
 /**
- * Given a route and a name it will look through the matching parent routes to see if any have the specified name
- *
+ * Checks to see if the route requires authentication by taking a look at the route and it's parents 'meta' to see if it
+ * contains { requiresAuthentication: true }
  * @param {*} to a VueRouter Route object
- * @param {*} routeName the name of a route you're checking to see if it was matched.
- * @returns true if a matching route was found, false otherwise
+ * @returns true if the route requires authentication, false otherwise
  */
-export const routeNameMatched = (to, routeName) => {
-  return routeMatched(to, (matched) => (matched?.name === routeName));
+export const routeRequiresAuthentication = (to) => {
+  return routeMatched(to, (matched) => matched.meta?.requiresAuthentication);
 };
 
 function findMeta(route, key) {
