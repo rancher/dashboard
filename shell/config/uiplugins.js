@@ -1,7 +1,8 @@
 import semver from 'semver';
 
 // Version of the plugin API supported
-export const UI_EXTENSIONS_API_VERSION = '1.2.0';
+// here we inject the current shell version that we read in vue.config
+export const UI_EXTENSIONS_API_VERSION = process.env.UI_EXTENSIONS_API_VERSION;
 export const UI_PLUGIN_HOST_APP = 'rancher-manager';
 
 export const UI_PLUGIN_BASE_URL = '/v1/uiplugins';

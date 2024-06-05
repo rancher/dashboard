@@ -5,8 +5,6 @@ const path = require('path');
 const https = require('https');
 const semver = require('semver');
 
-const UI_EXTENSIONS_API_VERSION = '1.2.0';
-
 const targets = {
   dev:  './node_modules/.bin/nuxt dev',
   nuxt: './node_modules/.bin/nuxt',
@@ -135,12 +133,28 @@ function fetchLatestVersion() {
 
           pkg.rancher = { annotations: { 'catalog.cattle.io/rancher-version': `>= ${ release.tag_name }` } };
 
-          if (!semver.valid(UI_EXTENSIONS_API_VERSION)) {
-            console.log('Wrong format for version number for Extensions API', semver.valid(UI_EXTENSIONS_API_VERSION));
+          // read shell version from skeleton app package.json
+          const basePkgRawData = fs.readFileSync(path.join(pkgFolder, '../../package.json'));
+          const basePkg = JSON.parse(basePkgRawData);
+          const latestShellVersion = basePkg.dependencies['@rancher/shell'] || null;
+
+          if (!latestShellVersion) {
+            console.log('Could not read shell version from dependencies on base package.json in app');
           } else {
-            console.log(`  Adding catalog.cattle.io/ui-extensions-version '>= ${UI_EXTENSIONS_API_VERSION }' to package.json`);
-            
-            pkg.rancher.annotations['catalog.cattle.io/ui-extensions-version'] = `>= ${ UI_EXTENSIONS_API_VERSION }`;
+            const splitShellVersion = latestShellVersion.split('.');
+
+            if (splitShellVersion.length <= 1) {
+              console.log('Wrong semver usage/pattern for shell version from dependencies on base package.json. Must follow x.x.x');
+            } else {
+              // use only major and minor version from the shell pkg version
+              const majorVersion = splitShellVersion[0].includes('^') ? splitShellVersion[0].substring(1, 100) : splitShellVersion[0];
+              const minorVersion = splitShellVersion[1];
+              const parsedShellVersion = `${majorVersion}.${minorVersion}.0`;
+              
+              console.log(`  Adding catalog.cattle.io/ui-extensions-version '>= ${parsedShellVersion }' to package.json`);
+              
+              pkg.rancher.annotations['catalog.cattle.io/ui-extensions-version'] = `>= ${ parsedShellVersion }`;
+            }
           }
 
           writePackageJson();
