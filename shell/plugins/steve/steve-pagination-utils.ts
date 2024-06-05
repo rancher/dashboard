@@ -3,7 +3,9 @@ import { PaginationParam, PaginationFilterField, PaginationParamProjectOrNamespa
 import { NAMESPACE_FILTER_ALL_SYSTEM, NAMESPACE_FILTER_ALL_USER, NAMESPACE_FILTER_P_FULL_PREFIX } from '@shell/utils/namespace-filter';
 import Namespace from '@shell/models/namespace';
 import { uniq } from '@shell/utils/array';
-import { CONFIG_MAP, MANAGEMENT, NODE, POD } from '@shell/config/types';
+import {
+  CONFIG_MAP, MANAGEMENT, NAMESPACE, NODE, POD
+} from '@shell/config/types';
 import { Schema } from 'plugins/steve/schema';
 
 class NamespaceProjectFilters {
@@ -105,7 +107,9 @@ class StevePaginationUtils extends NamespaceProjectFilters {
     '': [// all types
       { field: 'metadata.name' },
       { field: 'metadata.namespace' },
-      { field: 'metadata.state.name' },
+      // { field: 'id' }, // Pending API support
+      // { field: 'metadata.state.name' }, // Pending API support
+      { field: 'metadata.creationTimestamp' },
     ],
     [NODE]: [
       { field: 'status.nodeInfo.kubeletVersion' },
@@ -116,11 +120,28 @@ class StevePaginationUtils extends NamespaceProjectFilters {
       { field: 'spec.nodeName' },
     ],
     [MANAGEMENT.NODE]: [
-      { field: 'status.nodeName' }
+      { field: 'status.nodeName' },
     ],
     [CONFIG_MAP]: [
-      { field: 'metadata.labels' }
+      { field: 'metadata.labels[harvesterhci.io/cloud-init-template]' }
+    ],
+    [NAMESPACE]: [
+      { field: 'metadata.labels[field.cattle.io/projectId]' }
     ]
+  }
+
+  private convertArrayPath(path: string): string {
+    if (path.startsWith('metadata.fields.')) {
+      const [part1, part2, ...rest] = path.split('.');
+
+      return `${ part1 }.${ part2 }[${ rest.join('.') }]`;
+    }
+
+    return path;
+  }
+
+  public createSortForPagination(sortByPath: string): string {
+    return this.convertArrayPath(sortByPath);
   }
 
   /**
@@ -220,8 +241,6 @@ class StevePaginationUtils extends NamespaceProjectFilters {
 
     if (opt.pagination.page) {
       params.push(`page=${ opt.pagination.page }`);
-    } else {
-      throw new Error(`A pagination request is required but no 'page' property provided: ${ JSON.stringify(opt) }`);
     }
 
     if (opt.pagination.pageSize) {
@@ -229,11 +248,24 @@ class StevePaginationUtils extends NamespaceProjectFilters {
     }
 
     if (opt.pagination.sort?.length) {
+      const validateFields = {
+        checked: new Array<string>(),
+        invalid: new Array<string>(),
+      };
+
       const joined = opt.pagination.sort
-        .map((s) => `${ s.asc ? '' : '-' }${ s.field }`)
+        .map((s) => {
+          this.validateField(validateFields, schema, s.field);
+
+          return `${ s.asc ? '' : '-' }${ this.convertArrayPath(s.field) }`;
+        })
         .join(',');
 
       params.push(`sort=${ joined }`);
+
+      if (validateFields.invalid.length) {
+        console.warn(`Pagination API does not support sorting '${ schema.id }' by the requested fields: ${ uniq(validateFields.invalid).join(', ') }`); // eslint-disable-line no-console
+      }
     }
 
     if (opt.pagination.filters?.length) {
@@ -308,7 +340,9 @@ class StevePaginationUtils extends NamespaceProjectFilters {
               // Check if the API supports filtering by this field
               this.validateField(validateFields, schema, field.field);
 
-              return `${ field.field }${ field.equals ? '=' : '!=' }${ field.value }`;
+              const exactPartial = field.exact ? `'${ field.value }'` : field.value;
+
+              return `${ this.convertArrayPath(field.field) }${ field.equals ? '=' : '!=' }${ exactPartial }`;
             }
 
             return field.value;

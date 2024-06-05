@@ -40,7 +40,7 @@ import { stringify, exceptionToErrorsArray } from '@shell/utils/error';
 import { isValidMac } from '@shell/utils/validators/cidr';
 import { HCI as HCI_ANNOTATIONS, STORAGE } from '@shell/config/labels-annotations';
 import { isEqual } from 'lodash';
-import { PaginationArgs, PaginationFilterField, PaginationParamFilter } from '~/shell/types/store/pagination.types';
+import { PaginationFilterArgs, PaginationFilterField, PaginationParamFilter } from '@shell/types/store/pagination.types';
 
 const STORAGE_NETWORK = 'storage-network.settings.harvesterhci.io';
 
@@ -135,9 +135,9 @@ export default {
         let configMapsUrl = `${ url }/${ CONFIG_MAP }s`;
 
         if (this.$store.getters[`cluster/paginationEnabled`](CONFIG_MAP)) {
-          const pagination = new PaginationArgs({
-            page:     1,
-            pageSize: -1,
+          const pagination = new PaginationFilterArgs({
+            page:     null,
+            pageSize: null,
             filters:  [
               PaginationParamFilter.createMultipleFields([
                 new PaginationFilterField({ field: `metadata.label["${ HCI_ANNOTATIONS.CLOUD_INIT }"]`, value: 'user' }),
