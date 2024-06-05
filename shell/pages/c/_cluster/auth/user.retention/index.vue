@@ -1,7 +1,11 @@
 <script lang="ts">
-import { defineComponent, ref } from 'vue';
+import { defineComponent, ref, onMounted } from 'vue';
 
 import TabTitle from '@shell/components/TabTitle';
+import { useStore } from '@shell/composables/useStore';
+import { MANAGEMENT } from '@shell/config/types';
+import { SETTING } from '@shell/config/settings';
+
 import Checkbox from '@components/Form/Checkbox/Checkbox.vue';
 import LabeledInput from '@components/Form/LabeledInput/LabeledInput.vue';
 import { ToggleSwitch } from '@components/Form/ToggleSwitch';
@@ -14,13 +18,31 @@ export default defineComponent({
     ToggleSwitch,
   },
   setup() {
+    const store = useStore();
     const disableAfterPeriod = ref(false);
     const deleteAfterPeriod = ref(false);
-    const disableAfter = ref(30);
-    const deleteAfter = ref(30);
-    const userRetentionCron = ref(0);
-    const shouldRunDryMode = ref(false);
-    const defaultLastLogin = ref(0);
+    const disableAfter = ref(null);
+    const deleteAfter = ref(null);
+    const userRetentionCron = ref(null);
+    const shouldRunDryMode = ref(null);
+    const defaultLastLogin = ref(null);
+
+    const fetchSetting = async(id: string) => {
+      const { value } = await store.dispatch('management/find', { type: MANAGEMENT.SETTING, id });
+
+      return value;
+    };
+
+    onMounted(async() => {
+      disableAfter.value = await fetchSetting(SETTING.DISABLE_INACTIVE_USER_AFTER);
+      disableAfterPeriod.value = !!disableAfter.value;
+      deleteAfter.value = await fetchSetting(SETTING.DELETE_INACTIVE_USER_AFTER);
+      deleteAfterPeriod.value = !!deleteAfter.value;
+      userRetentionCron.value = await fetchSetting(SETTING.USER_RETENTION_CRON);
+      shouldRunDryMode.value = await fetchSetting(SETTING.USER_RETENTION_DRY_RUN);
+      defaultLastLogin.value = await fetchSetting(SETTING.USER_LAST_LOGIN_DEFAULT);
+    });
+
 
     return {
       disableAfterPeriod,

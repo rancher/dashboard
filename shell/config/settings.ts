@@ -97,7 +97,15 @@ export const SETTING = {
   /**
    * manage rancher repositories in extensions (official, partners repos)
    */
-  ADD_EXTENSION_REPOS_BANNER_DISPLAY:   'display-add-extension-repos-banner'
+  ADD_EXTENSION_REPOS_BANNER_DISPLAY:   'display-add-extension-repos-banner',
+  /**
+   * User retention settings
+   */
+  USER_RETENTION_CRON:                  'user-retention-cron',
+  USER_RETENTION_DRY_RUN:               'user-retention-dry-run',
+  USER_LAST_LOGIN_DEFAULT:              'user-last-login-default',
+  DISABLE_INACTIVE_USER_AFTER:          'disable-inactive-user-after',
+  DELETE_INACTIVE_USER_AFTER:           'delete-inactive-user-after',
 };
 
 // These are the settings that are allowed to be edited via the UI
