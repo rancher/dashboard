@@ -87,7 +87,7 @@ gke:
     ipv4Cidr: '{key} must be a valid ipv4 cidr range.'
     ipv4oripv6: '{key} must be a valid ipv6 or ipv4 CIDR address'
     minMaxNodeCount: Minimum Node Count cannot exceed Maximum Node Count.
-    minNodeCount: Minimum Node Count must be               at least 1.
+    minNodeCount: Minimum Node Count must be at least 1.
     poolNamesUnique: Pool group names must be unique.
     ssdCount: SSD Count must be a positive number.
   groupDetails: Group Details
@@ -121,8 +121,9 @@ gke:
     zonal: Zonal
     zone: Zone
   loggingService:
-    banner: Logging and Monitoring must both be enabled or both be disabled.
+    infoBanner: Enabling logging and monitoring here will enable system and workload logging, as well as system monitoring and a Google-managed Prometheus service. You can learn more about these features in the Google documentation <a aria-label="Official documentation for GKE observability configuration" href="https://cloud.google.com/kubernetes-engine/docs/concepts/observability" target="_blank" rel="nofollow noopener noreferrer">here</a>.
     label: Logging
+    warningBanner: Logging and Monitoring must both be enabled or both be disabled.
   machineType:
     label: Machine Type
   maintenanceWindow:

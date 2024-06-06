@@ -154,9 +154,13 @@ export default defineComponent({
 <template>
   <div>
     <Banner
+      color="info"
+      label-key="gke.loggingService.infoBanner"
+    />
+    <Banner
       v-if="showLoggingMonitoringBanner"
       color="warning"
-      label-key="gke.loggingService.banner"
+      label-key="gke.loggingService.warningBanner"
     />
     <div class="row mb-10">
       <div class="feature-checkboxes col span-6">
