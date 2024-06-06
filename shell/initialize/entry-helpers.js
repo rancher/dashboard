@@ -1,5 +1,3 @@
-import Vue from 'vue';
-
 /**
  * Add error handler debugging capabilities
  * @param {*} vueApp Vue instance
@@ -47,18 +45,14 @@ export const loadDebugger = (vueApp) => {
   }
 };
 
-export const globalHandleError = (error) => Vue.config.errorHandler && Vue.config.errorHandler(error);
-
 /**
  * Mounts the Vue app to the DOM element
  * @param {Object} appPartials - App view partials
  * @param {Object} createApp - Vue createApp function
  */
 export async function mountApp(appPartials, createApp) {
-  // Set global variables
-  const app = appPartials.app;
   // Create Vue instance
-  const vueApp = createApp(app);
+  const vueApp = createApp(appPartials.app);
 
   // Initialize error handler
   vueApp.$loading = {}; // To avoid error while vueApp.$loading does not exist
