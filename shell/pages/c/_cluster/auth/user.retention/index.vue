@@ -124,6 +124,7 @@ export default defineComponent({
         />
         <labeled-input
           v-model="userRetentionSettings[SETTING.DISABLE_INACTIVE_USER_AFTER]"
+          class="input-field"
           label="Inactivity period (days)"
           :disabled="!disableAfterPeriod"
         />
@@ -135,6 +136,7 @@ export default defineComponent({
         />
         <labeled-input
           v-model="userRetentionSettings[SETTING.DELETE_INACTIVE_USER_AFTER]"
+          class="input-field"
           label="Inactivity period (days)"
           :disabled="!deleteAfterPeriod"
         />
@@ -145,6 +147,7 @@ export default defineComponent({
         <div class="input-fieldset">
           <labeled-input
             v-model="userRetentionSettings[SETTING.USER_RETENTION_CRON]"
+            class="input-field"
             required
             type="cron"
             label="User retention process schedule"
@@ -163,6 +166,7 @@ export default defineComponent({
         <div class="input-fieldset condensed">
           <labeled-input
             v-model="userRetentionSettings[SETTING.USER_LAST_LOGIN_DEFAULT]"
+            class="input-field"
             label="Default last login (ms)"
             sub-label="Accounts without a registered last login timestamp will get this as a default"
             placeholder="Unix timestamp"
@@ -211,6 +215,10 @@ export default defineComponent({
     &.condensed {
       gap: 0.25rem;
     }
+  }
+
+  .input-field {
+    max-width: 24rem
   }
 
   .input-detail {
