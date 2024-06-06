@@ -342,10 +342,12 @@ describe('Extensions page', { tags: ['@extensions', '@adminUser'] }, () => {
     extensionsPo.extensionCardUninstallClick(EXTENSION_NAME);
     extensionsPo.extensionUninstallModal().should('be.visible');
     extensionsPo.uninstallModaluninstallClick();
+    extensionsPo.extensionReloadBanner().should('be.visible');
 
     extensionsPo.extensionCardUninstallClick(UNAUTHENTICATED_EXTENSION_NAME);
     extensionsPo.extensionUninstallModal().should('be.visible');
     extensionsPo.uninstallModaluninstallClick();
+    extensionsPo.extensionReloadBanner().should('be.visible');
 
     extensionsPo.extensionCardUninstallClick(DISABLED_CACHE_EXTENSION_NAME);
     extensionsPo.extensionUninstallModal().should('be.visible');
