@@ -61,45 +61,54 @@ export default {
       // reset input fields when switching options
       switch (clusterRepoType) {
       case CLUSTER_REPO_TYPES.GIT_REPO:
-        Vue.set(this.value.spec, 'url', '');
-        Vue.set(this.value.spec, 'clientSecret', null);
         this.resetOciValues();
+        this.resetHelmValues();
         break;
       case CLUSTER_REPO_TYPES.OCI_URL:
-        Vue.set(this.value.spec, 'url', '');
         // set insecurePlainHttp to false as a secondary flag, alongside checking for 'oci://' in the URL, to determine OCI type later
         Vue.set(this.value.spec, 'insecurePlainHttp', false);
-        Vue.set(this.value.spec, 'gitRepo', '');
-        Vue.set(this.value.spec, 'clientSecret', null);
-        if (!!this.value.spec.gitBranch) {
-          Vue.set(this.value.spec, 'gitBranch', '');
-        }
+        this.resetGitRepoValues();
+        this.resetHelmValues();
         break;
       case CLUSTER_REPO_TYPES.HELM_URL:
-        Vue.set(this.value.spec, 'url', '');
-        Vue.set(this.value.spec, 'gitRepo', '');
-        Vue.set(this.value.spec, 'clientSecret', null);
         this.resetOciValues();
-        if (!!this.value.spec.gitBranch) {
-          Vue.set(this.value.spec, 'gitBranch', '');
-        }
+        this.resetGitRepoValues();
         break;
       }
+      this.resetClientSecret();
     },
     updateExponentialBackOffValues(key, newVal) {
       if (!Object.prototype.hasOwnProperty.call(this.value.spec, 'exponentialBackOffValues')) {
         Vue.set(this.value.spec, 'exponentialBackOffValues', {});
       }
+      // when user removes the value we remove the key too, backend will set the default value
+      if (newVal === '') {
+        Vue.delete(this.value.spec.exponentialBackOffValues, key);
+
+        return;
+      }
+
       Vue.set(this.value.spec.exponentialBackOffValues, key, Number(newVal));
     },
+    resetGitRepoValues() {
+      Vue.delete(this.value.spec, 'gitRepo');
+      Vue.delete(this.value.spec, 'gitBranch');
+    },
     resetOciValues() {
+      Vue.delete(this.value.spec, 'url');
       Vue.delete(this.value.spec, 'insecurePlainHttp');
       Vue.delete(this.value.spec, 'insecureSkipTLSVerify');
       Vue.delete(this.value.spec, 'caBundle');
-      Vue.set(this.value.spec, 'exponentialBackOffValues', {});
+      Vue.delete(this.value.spec, 'exponentialBackOffValues');
       this.ociMinWait = undefined;
       this.ociMaxWait = undefined;
       this.ociMaxRetries = undefined;
+    },
+    resetHelmValues() {
+      Vue.delete(this.value.spec, 'url');
+    },
+    resetClientSecret() {
+      Vue.set(this.value.spec, 'clientSecret', null);
     }
   },
 };
