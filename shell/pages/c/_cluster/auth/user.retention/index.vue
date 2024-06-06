@@ -1,5 +1,5 @@
 <script lang="ts">
-import { defineComponent, ref, onMounted } from 'vue';
+import { defineComponent, ref, reactive, onMounted } from 'vue';
 
 import TabTitle from '@shell/components/TabTitle';
 import CruResource from '@shell/components/CruResource.vue';
@@ -21,40 +21,54 @@ export default defineComponent({
   },
   setup() {
     const store = useStore();
+    const userRetentionSettings = reactive({
+      [SETTING.DISABLE_INACTIVE_USER_AFTER]: null,
+      [SETTING.DELETE_INACTIVE_USER_AFTER]:  null,
+      [SETTING.USER_RETENTION_CRON]:         null,
+      [SETTING.USER_RETENTION_DRY_RUN]:      null,
+      [SETTING.USER_LAST_LOGIN_DEFAULT]:     null,
+    });
     const disableAfterPeriod = ref(false);
     const deleteAfterPeriod = ref(false);
-    const disableInactiveUserAfter = ref(null);
-    const deleteInactiveUserAfter = ref(null);
-    const userRetentionCron = ref(null);
-    const userRetentionDryRun = ref(null);
-    const userLastLoginDefault = ref(null);
     const loading = ref(true);
+    let settings = null;
 
     const fetchSetting = async(id: string) => {
       return await store.dispatch('management/find', { type: MANAGEMENT.SETTING, id });
     };
 
+    const ids = Object.keys(userRetentionSettings);
+    const settingPromises = ids.map((id) => fetchSetting(id));
+
     onMounted(async() => {
-      disableInactiveUserAfter.value = await fetchSetting(SETTING.DISABLE_INACTIVE_USER_AFTER);
-      disableAfterPeriod.value = !!disableInactiveUserAfter?.value?.value;
-      deleteInactiveUserAfter.value = await fetchSetting(SETTING.DELETE_INACTIVE_USER_AFTER);
-      deleteAfterPeriod.value = !!deleteInactiveUserAfter?.value?.value;
-      userRetentionCron.value = await fetchSetting(SETTING.USER_RETENTION_CRON);
-      userRetentionDryRun.value = await fetchSetting(SETTING.USER_RETENTION_DRY_RUN);
-      userLastLoginDefault.value = await fetchSetting(SETTING.USER_LAST_LOGIN_DEFAULT);
+      settings = await Promise
+        .all(settingPromises)
+        .then((results) => results.reduce((acc, result, index) => {
+          return {
+            [ids[index]]: result,
+            ...acc,
+          };
+        }, { }));
+
+      ids.forEach((key) => {
+        userRetentionSettings[key] = settings[key].value;
+      });
+
+      disableAfterPeriod.value = !!userRetentionSettings[SETTING.DISABLE_INACTIVE_USER_AFTER];
+      deleteAfterPeriod.value = !!userRetentionSettings[SETTING.DELETE_INACTIVE_USER_AFTER];
       loading.value = false;
     });
 
     const save = async(btnCB) => {
       try {
-        await disableInactiveUserAfter?.value?.save();
-        await deleteInactiveUserAfter?.value?.save();
-        await userRetentionCron?.value?.save();
-        await userRetentionDryRun?.value?.save();
-        await userLastLoginDefault?.value?.save();
+        ids.forEach((key) => {
+          settings[key].value = userRetentionSettings[key];
+        });
+
+        await Promise.all(ids.map((setting) => settings[setting].save()));
+
         btnCB(true);
       } catch (err) {
-        console.log(err);
         btnCB(false);
       }
     };
@@ -62,13 +76,10 @@ export default defineComponent({
     return {
       disableAfterPeriod,
       deleteAfterPeriod,
-      disableInactiveUserAfter,
-      deleteInactiveUserAfter,
-      userRetentionCron,
-      userRetentionDryRun,
-      userLastLoginDefault,
       save,
       loading,
+      userRetentionSettings,
+      SETTING,
     };
   },
 });
@@ -118,7 +129,7 @@ export default defineComponent({
             label="Disable user accounts after an inactivity  period (days since last login)"
           />
           <labeled-input
-            v-model="disableInactiveUserAfter.value"
+            v-model="userRetentionSettings[SETTING.DISABLE_INACTIVE_USER_AFTER]"
             label="Inactivity period (days)"
             :disabled="!disableAfterPeriod"
           />
@@ -129,7 +140,7 @@ export default defineComponent({
             label="Delete user accounts after an inactivity  period (days since last login)"
           />
           <labeled-input
-            v-model="deleteInactiveUserAfter.value"
+            v-model="userRetentionSettings[SETTING.DELETE_INACTIVE_USER_AFTER]"
             label="Inactivity period (days)"
             :disabled="!deleteAfterPeriod"
           />
@@ -139,7 +150,7 @@ export default defineComponent({
         >
           <div class="input-fieldset">
             <labeled-input
-              v-model="userRetentionCron.value"
+              v-model="userRetentionSettings[SETTING.USER_RETENTION_CRON]"
               required
               type="cron"
               label="User retention process schedule"
@@ -148,7 +159,7 @@ export default defineComponent({
           </div>
           <div class="input-fieldset condensed">
             <toggle-switch
-              v-model="userRetentionDryRun.value"
+              v-model="userRetentionSettings[SETTING.USER_RETENTION_DRY_RUN]"
               :onValue="'true'"
               :offValue="'false'"
               on-label="Run the user retention process in DRY mode (no changes will be applied)"
@@ -157,7 +168,7 @@ export default defineComponent({
           </div>
           <div class="input-fieldset condensed">
             <labeled-input
-              v-model="userLastLoginDefault.value"
+              v-model="userRetentionSettings[SETTING.USER_LAST_LOGIN_DEFAULT]"
               label="Default last login (ms)"
               sub-label="Accounts without a registered last login timestamp will get this as a default"
               placeholder="Unix timestamp"
