@@ -120,11 +120,11 @@ async function render(to, from, next) {
   // nextCalled is true when redirected
   let nextCalled = false;
   const _next = (path) => {
-    if (from.path === path.path && this.$loading.finish) {
+    if (from.value.path === path.path && this.$loading.finish) {
       this.$loading.finish();
     }
 
-    if (from.path !== path.path && this.$loading.pause) {
+    if (from.value.path !== path.path && this.$loading.pause) {
       this.$loading.pause();
     }
 
@@ -138,8 +138,8 @@ async function render(to, from, next) {
 
   // Update context
   await setContext(configApp, {
-    route: to,
-    from,
+    route: to.value,
+    from: from.value,
     next:  _next.bind(this)
   });
   this._dateLastError = configApp.nuxt.dateErr;
@@ -147,7 +147,7 @@ async function render(to, from, next) {
 
   // Get route's matched components
   const matches = [];
-  const Components = getMatchedComponents(to, matches);
+  const Components = getMatchedComponents(to.value, matches);
 
   // If no Components matched, generate 404
   if (!Components.length) {
