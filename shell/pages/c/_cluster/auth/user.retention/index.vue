@@ -1,7 +1,7 @@
 <script lang="ts">
 import { defineComponent, ref, reactive, onMounted } from 'vue';
 
-import TabTitle from '@shell/components/TabTitle';
+import UserRetentionHeader from '@shell/components/user.retention/header';
 import Footer from '@shell/components/form/Footer';
 import { useStore } from '@shell/composables/useStore';
 import { MANAGEMENT } from '@shell/config/types';
@@ -13,10 +13,10 @@ import { ToggleSwitch } from '@components/Form/ToggleSwitch';
 
 export default defineComponent({
   components: {
-    TabTitle,
     Checkbox,
     LabeledInput,
     ToggleSwitch,
+    UserRetentionHeader,
     Footer,
   },
   setup() {
@@ -87,31 +87,7 @@ export default defineComponent({
 
 <template>
   <div>
-    <header>
-      <div class="title">
-        <h1
-          data-testid="charts-header-title"
-          class="m-0"
-        >
-          <TabTitle :showChild="false">
-            Users: Settings
-          </TabTitle>
-          <router-link
-            :to="{
-              name: 'c-cluster-product-resource',
-              params: {
-                cluster: '_',
-                product: 'auth',
-                resource: 'management.cattle.io.user',
-              }
-            }"
-          >
-            Users:
-          </router-link>
-          Settings
-        </h1>
-      </div>
-    </header>
+    <user-retention-header />
     <h2>User retention</h2>
     <div
       v-if="!loading"

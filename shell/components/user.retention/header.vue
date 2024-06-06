@@ -1,0 +1,31 @@
+<script lang="ts" setup>
+import TabTitle from '@shell/components/TabTitle';
+</script>
+
+<template>
+  <header>
+    <div class="title">
+      <h1
+        data-testid="charts-header-title"
+        class="m-0"
+      >
+        <TabTitle :show-child="false">
+          Users: Settings
+        </TabTitle>
+        <router-link
+          :to="{
+            name: 'c-cluster-product-resource',
+            params: {
+              cluster: '_',
+              product: 'auth',
+              resource: 'management.cattle.io.user',
+            }
+          }"
+        >
+          Users:
+        </router-link>
+        Settings
+      </h1>
+    </div>
+  </header>
+</template>
