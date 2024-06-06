@@ -565,7 +565,7 @@ export default defineComponent({
     <div class="row mb-10">
       <div class="col span-6">
         <LabeledSelect
-          v-if="clusterSecondaryRangeOptions.length>1"
+          v-if="!!subnetwork"
           v-model="selectedClusterSecondaryRangeName"
           :mode="mode"
           :options="clusterSecondaryRangeOptions"
@@ -600,7 +600,7 @@ export default defineComponent({
     <div class="row mb-10">
       <div class="col span-6">
         <LabeledSelect
-          v-if="clusterSecondaryRangeOptions.length>1"
+          v-if="!!subnetwork"
           v-model="selectedServicesSecondaryRangeName"
           :mode="mode"
           :options="clusterSecondaryRangeOptions"

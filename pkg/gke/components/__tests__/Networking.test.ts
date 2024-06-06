@@ -136,7 +136,7 @@ describe('gke Networking', () => {
     expect(wrapper.emitted('update:subnetwork')?.[0]?.[0]).toBe('host-shared-vpc-us-west1-subnet-public');
   });
 
-  it('should show text input for cluster and service secondary range if selected subnetwork has none defined, otherwise should show a dropdown', async() => {
+  it('should show text input for cluster and service secondary range if no subnetwork is selected, otherwise should show a dropdown', async() => {
     const setup = requiredSetup();
 
     const wrapper = shallowMount(Networking, {
