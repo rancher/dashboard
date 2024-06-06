@@ -45,8 +45,7 @@ export default {
   },
 
   async fetch() {
-    // TODO: this needs to be a getter in order to be reactive since the Header is always present on the UI....
-    this.authInfo = await authProvidersInfo(this.$store);
+    this.authInfo = await authProvidersInfo(this.$store, true);
   },
 
   data() {
