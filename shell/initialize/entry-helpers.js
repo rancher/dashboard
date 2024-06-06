@@ -9,7 +9,7 @@ import {
 } from '@shell/utils/nuxt.js';
 
 // Global variable used on mount, updated on route change and used in the render function
-let app;
+let configApp;
 
 /**
  * Add error handler debugging capabilities
@@ -109,7 +109,7 @@ function callMiddleware(Components, context) {
  * @param {*} to Route
  * @param {*} from Route
  * @param {*} next callback
- * @param {*} app
+ * @param {*} configApp - THIS IS ACTUALLY A STORED VARIABLE IN THIS HELPER (Service?)
  * @returns
  */
 async function render(to, from, next) {
@@ -248,11 +248,11 @@ async function render(to, from, next) {
  */
 export async function mountApp(appPartials, createApp) {
   // Set global variables
-  app = appPartials.app;
+  configApp = appPartials.app;
   const router = appPartials.router;
 
   // Create Vue instance
-  const vueApp = createApp(app);
+  const vueApp = createApp(configApp);
 
   // Mounts Vue app to DOM element
   const mount = () => {
