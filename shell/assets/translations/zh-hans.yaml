@@ -2791,7 +2791,7 @@ logging:
     dockerRootDirectory: Docker 根目录
     systemdLogPath: systemd 日志路径
     tooltip: '某些 Kubernetes 发行版在 <code>journald</code>中记录日志。你需要定义<code>systemdLogPath</code> 以收集日志。默认路径是<code>/run/log/journal</code>，但某些 Linux 发行版不默认使用该路径。'
-    url: '<a href="https://ranchermanager.docs.rancher.com/v2.8/integrations-in-rancher/logging/logging-helm-chart-options" target="_blank" rel="noopener nofollow noreferrer">了解更多</a>'
+    url: '<a href="{docsBase}/integrations-in-rancher/logging/logging-helm-chart-options" target="_blank" rel="noopener nofollow noreferrer">了解更多</a>'
     default: /run/log/journal
   elasticsearch:
     host: 主机
