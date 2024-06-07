@@ -107,13 +107,15 @@ export function flatMapComponents(route, fn) {
   }));
 }
 
-export function resolveRouteComponents(route, fn) {
+
+export function resolveRouteComponents(route) {
   return Promise.all(
-    flatMapComponents(route, async(Component, instance, match, key) => {
+    flatMapComponents(route, async (unknownComponent, instance, match, key) => {
+      let componentView;
       // If component is a function, resolve it
-      if (typeof Component === 'function' && !Component.options) {
+      if (typeof unknownComponent === 'function' && !unknownComponent.options) {
         try {
-          Component = await Component();
+          componentView = await unknownComponent();
         } catch (error) {
           // Handle webpack chunk loading errors
           // This may be due to a new deployment or a network problem
@@ -136,9 +138,10 @@ export function resolveRouteComponents(route, fn) {
           throw error;
         }
       }
-      match.components[key] = Component = sanitizeComponent(Component);
+      const cleanComponent = sanitizeComponent(componentView || unknownComponent);
+      match.components[key] = cleanComponent;
 
-      return typeof fn === 'function' ? fn(Component, instance, match, key) : Component;
+      return cleanComponent;
     })
   );
 }
