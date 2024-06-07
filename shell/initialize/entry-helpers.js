@@ -294,7 +294,7 @@ export async function mountApp(appPartials, VueClass) {
     // Push the path and let route to be resolved
     router.push(path, undefined, (err) => {
       if (err) {
-        const errorHandler = vueApp.config.errorHandler || console.error; // eslint-disable-line no-console
+        const errorHandler = vueApp?.config?.errorHandler || console.error; // eslint-disable-line no-console
 
         errorHandler(err);
       }

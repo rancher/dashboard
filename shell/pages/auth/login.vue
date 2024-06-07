@@ -27,7 +27,6 @@ import {
   setVendor
 } from '@shell/config/private-label';
 import loadPlugins from '@shell/plugins/plugin';
-import { fetchInitialSettings } from '@shell/utils/settings';
 import Loading from '@shell/components/Loading';
 
 export default {
@@ -147,8 +146,6 @@ export default {
       // For newer versions this will return all settings if you are somehow logged in,
       // and just the public ones if you aren't.
       try {
-        await fetchInitialSettings(this.$store);
-
         firstLoginSetting = this.$store.getters['management/byId'](MANAGEMENT.SETTING, SETTING.FIRST_LOGIN);
         plSetting = this.$store.getters['management/byId'](MANAGEMENT.SETTING, SETTING.PL);
         brand = this.$store.getters['management/byId'](MANAGEMENT.SETTING, SETTING.BRAND);
