@@ -1,7 +1,7 @@
 <script>
 import { mapGetters } from 'vuex';
 import debounce from 'lodash/debounce';
-import { NORMAN, STEVE } from '@shell/config/types';
+import { NORMAN, STEVE, MANAGEMENT } from '@shell/config/types';
 import { ucFirst } from '@shell/utils/string';
 import { isAlternate, isMac } from '@shell/utils/platform';
 import Import from '@shell/components/Import';
@@ -20,7 +20,7 @@ import { ActionLocation, ExtensionPoint } from '@shell/core/types';
 import { getApplicableExtensionEnhancements } from '@shell/core/plugin-helpers';
 import IconOrSvg from '@shell/components/IconOrSvg';
 import { wait } from '@shell/utils/async';
-import { authProvidersInfo } from '@shell/utils/auth';
+import { authProvidersInfo, parseAuthProvidersInfo } from '@shell/utils/auth';
 
 export default {
 
@@ -45,7 +45,8 @@ export default {
   },
 
   async fetch() {
-    this.authInfo = await authProvidersInfo(this.$store, true);
+    // fetch needed data to check if any auth provider is enabled
+    authProvidersInfo(this.$store);
   },
 
   data() {
@@ -73,8 +74,11 @@ export default {
       'currentProduct', 'rootProduct', 'backToRancherLink', 'backToRancherGlobalLink', 'pageActions', 'isSingleProduct', 'isRancherInHarvester', 'showTopLevelMenu']),
 
     authProviderEnabled() {
-      if (this.authInfo.enabled?.length) {
-        return this.authInfo.enabled[0];
+      const authProviders = this.$store.getters['management/all'](MANAGEMENT.AUTH_CONFIG);
+      const authInfo = parseAuthProvidersInfo(authProviders);
+
+      if (authInfo.enabled?.length) {
+        return authInfo.enabled[0];
       }
 
       return {};

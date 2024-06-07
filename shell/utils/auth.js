@@ -70,17 +70,16 @@ export function returnTo(opt, vm) {
 /**
  * Determines common auth provider info as those that are available (non-local) and the location of the enabled provider
  */
-export const authProvidersInfo = async(store, addGetter = false) => {
-  let rows;
+export const authProvidersInfo = async(store) => {
+  const rows = await store.dispatch(`management/findAll`, { type: MANAGEMENT.AUTH_CONFIG });
 
-  if (!addGetter) {
-    rows = await store.dispatch(`management/findAll`, { type: MANAGEMENT.AUTH_CONFIG });
-  } else {
-    // optionally add the getter to make this reactive to changes where needed
-    await store.dispatch(`management/findAll`, { type: MANAGEMENT.AUTH_CONFIG });
-    rows = store.getters['management/all'](MANAGEMENT.AUTH_CONFIG);
-  }
+  return parseAuthProvidersInfo(rows);
+};
 
+/**
+ * Parses auth provider's info to return if there's an auth provider enabled
+ */
+export function parseAuthProvidersInfo(rows) {
   const nonLocal = rows.filter((x) => x.name !== 'local');
   const enabled = nonLocal.filter((x) => x.enabled === true );
 
@@ -97,7 +96,7 @@ export const authProvidersInfo = async(store, addGetter = false) => {
     enabledLocation,
     enabled
   };
-};
+}
 
 export const checkSchemasForFindAllHash = (types, store) => {
   const hash = {};
