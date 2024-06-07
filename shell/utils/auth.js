@@ -1,7 +1,7 @@
 import { Popup, popupWindowOptions } from '@shell/utils/window';
 import { parse as parseUrl, addParam } from '@shell/utils/url';
 import {
-  BACK_TO, SPA, _EDIT, _FLAGGED, TIMED_OUT
+  BACK_TO, SPA, _EDIT, _FLAGGED, TIMED_OUT, IS_SLO
 } from '@shell/config/query-params';
 import { MANAGEMENT, NORMAN } from '@shell/config/types';
 import { allHash } from '@shell/utils/promise';
@@ -58,6 +58,10 @@ export function returnTo(opt, vm) {
 
   if (opt.config) {
     returnToUrl = addParam(returnToUrl, 'config', opt.config);
+  }
+
+  if (opt.isSlo) {
+    returnToUrl = addParam(returnToUrl, IS_SLO, _FLAGGED);
   }
 
   return returnToUrl;

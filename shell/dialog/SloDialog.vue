@@ -26,7 +26,13 @@ export default {
       }
 
       this.$emit('close');
-      await this.$store.dispatch('auth/logout', { force: true, slo: true }, { root: true });
+
+      await this.$store.dispatch('auth/logout',
+        {
+          force:    true,
+          slo:      true,
+          provider: this.authProvider
+        }, { root: true });
     },
   }
 };

@@ -324,6 +324,8 @@ export const actions = {
   async login({ dispatch }, { provider, body }) {
     const driver = await dispatch('getAuthProvider', provider);
 
+    console.log('LOGIN BODY', body);
+
     try {
       const res = await driver.doAction('login', {
         description:  'UI session',
@@ -374,24 +376,43 @@ export const actions = {
     // Unload plugins - we will load again on login
     await rootState.$plugin.logout();
 
+    let logoutAction = 'logout';
+    let finalRedirectUrl;
+    const data = {};
+
     // SLO - Single-sign logout - will logout auth provider from all places where it's logged in
-    const logoutAction = options.slo ? 'logoutAll' : 'logout';
+    if (options.slo) {
+      logoutAction = 'logoutAll';
+
+      // finalRedirectUrl = returnTo({
+      //   config: 'okta', route: '/auth/login', isSlo: true
+      // }, this);
+
+      finalRedirectUrl = returnTo({ isSlo: true }, this);
+
+      data.finalRedirectUrl = finalRedirectUrl;
+    }
+
+    console.log('finalRedirectUrl', finalRedirectUrl);
 
     try {
       const res = await dispatch('rancher/request', {
         url:                  `/v3/tokens?action=${ logoutAction }`,
         method:               'post',
-        data:                 {},
+        data,
         headers:              { 'Content-Type': 'application/json' },
         redirectUnauthorized: false,
       }, { root: true });
 
       console.log('LOGOUT RES', res);
+      console.log('LOGOUT RES idpRedirectUrl', res.idpRedirectUrl);
       // debugger;
 
       // Single-sign logout for SAML providers that allow for it
-      if (res.body.type === 'samlConfigLogoutOutput' && res.body.idpRedirectUrl) {
-        window.location.href = res.body.idpRedirectUrl;
+      if (res.baseType === 'samlConfigLogoutOutput' && res.idpRedirectUrl) {
+        window.location.href = res.idpRedirectUrl;
+
+        return;
       }
     } catch (e) {
     }
