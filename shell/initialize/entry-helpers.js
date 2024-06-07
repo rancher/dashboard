@@ -249,7 +249,7 @@ async function render(to, from, next) {
 export async function mountApp(appPartials, createApp) {
   // Set global variables
   configApp = appPartials.app;
-  const router = appPartials.router;
+  const configRouter = appPartials.router;
 
   // Create Vue instance
   const vueApp = createApp(configApp);
@@ -263,8 +263,8 @@ export async function mountApp(appPartials, createApp) {
   vueApp.$loading = {}; // To avoid error while vueApp.$nuxt does not exist
 
   // Add beforeEach router hooks
-  router.beforeEach(render.bind(vueApp));
-  router.beforeEach((from, to, next) => {
+  configRouter.beforeEach(render.bind(vueApp));
+  configRouter.beforeEach((from, to, next) => {
     if (from?.name !== to?.name) {
       updatePageTitle(getVendor());
     }
@@ -280,7 +280,7 @@ export async function mountApp(appPartials, createApp) {
 
   // fix: force next tick to avoid having same timestamp when an error happen on spa fallback
   await new Promise((resolve) => setTimeout(resolve, 0));
-  render.call(vueApp, router.currentRoute, router.currentRoute, (path) => {
+  render.call(vueApp, configRouter.currentRoute, configRouter.currentRoute, (path) => {
     // If not redirected
     if (!path) {
       clientFirstMount();
