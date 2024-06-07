@@ -105,6 +105,7 @@ export default {
       if (this.uiBannerIndividual.bannerFooter) {
         return _VIEW;
       }
+
       return this.bannerVal?.showFooter === 'true' ? _EDIT : _VIEW;
     },
     consentMode() {
@@ -112,6 +113,7 @@ export default {
       if (this.uiBannerIndividual.bannerConsent) {
         return _VIEW;
       }
+
       return this.bannerVal?.showConsent === 'true' ? _EDIT : _VIEW;
     }
   },
@@ -207,9 +209,15 @@ export default {
         <!-- Header Settings -->
         <h2 class="mt-40 mb-10 setting-title">
           {{ t('banner.headerBanner') }}
-          <i v-if="!!uiBannerIndividual.bannerHeader" class="icon icon-lock" />
+          <i
+            v-if="!!uiBannerIndividual.bannerHeader"
+            class="icon icon-lock"
+          />
         </h2>
-        <div v-if="!!uiBannerIndividual.bannerHeader" class="row mb-10">
+        <div
+          v-if="!!uiBannerIndividual.bannerHeader"
+          class="row mb-10"
+        >
           <Banner
             color="warning"
             class="mt-0"
@@ -236,9 +244,15 @@ export default {
         <!-- Footer settings -->
         <h2 class="mt-40 mb-10 setting-title">
           {{ t('banner.footerBanner') }}
-          <i v-if="!!uiBannerIndividual.bannerFooter" class="icon icon-lock" />
+          <i
+            v-if="!!uiBannerIndividual.bannerFooter"
+            class="icon icon-lock"
+          />
         </h2>
-        <div v-if="!!uiBannerIndividual.bannerFooter" class="row mb-10">
+        <div
+          v-if="!!uiBannerIndividual.bannerFooter"
+          class="row mb-10"
+        >
           <Banner
             color="warning"
             class="mt-0"
@@ -266,9 +280,15 @@ export default {
       <!-- Consent settings -->
       <h2 class="mt-40 mb-10 setting-title">
         {{ t('banner.loginScreenBanner') }}
-        <i v-if="!!uiBannerIndividual.bannerConsent" class="icon icon-lock" />
+        <i
+          v-if="!!uiBannerIndividual.bannerConsent"
+          class="icon icon-lock"
+        />
       </h2>
-      <div v-if="!!uiBannerIndividual.bannerConsent" class="row mb-10">
+      <div
+        v-if="!!uiBannerIndividual.bannerConsent"
+        class="row mb-10"
+      >
         <Banner
           color="warning"
           class="mt-0"

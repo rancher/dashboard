@@ -6,7 +6,7 @@ export default class FixedBannerPo extends ComponentPo {
 
   text() {
     return this.self().find('.banner').first().invoke('text')
-    .then((text) => text.trim());
+      .then((text) => text.trim());
   }
 
   backgroundColor() {

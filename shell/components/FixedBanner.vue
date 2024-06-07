@@ -22,11 +22,11 @@ export default {
 
   data() {
     return {
-      showDialog:         true,
-      showHeader:         false,
-      showFooter:         false,
-      showConsent:        false,
-      banner:             {},
+      showDialog:  true,
+      showHeader:  false,
+      showFooter:  false,
+      showConsent: false,
+      banner:      {},
     };
   },
 
@@ -52,11 +52,10 @@ export default {
   },
 
   computed: {
-
     uiBannerIndividual() {
       return getIndividualBanners(this.$store);
     },
-    
+
     bannerSetting() {
       return this.$store.getters['management/all'](MANAGEMENT.SETTING).find((s) => s.id === SETTING.BANNERS);
     },
@@ -127,7 +126,6 @@ export default {
               bannerHeader, bannerFooter, bannerConsent, banner, showHeader, showFooter, showConsent
             } = parsed;
             let bannerContent = parsed?.banner || {};
-
 
             if (isEmpty(banner)) {
               if (showHeader && this.header) {

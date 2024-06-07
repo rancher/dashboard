@@ -70,7 +70,7 @@ function bannerTests(bannerName: string) {
     const bannerSetting = makeSetting(`ui-banner-${ bannerName.toLowerCase() }`, {
       text:       'Test Banner (individual setting)',
       background: '#ff0000'
-    });      
+    });
 
     cy.createRancherResource('v1', 'management.cattle.io.settings', JSON.stringify(bannerSetting));
 
@@ -146,7 +146,6 @@ function bannerTests(bannerName: string) {
 }
 
 describe('Banners', { testIsolation: 'off', tags: ['@globalSettings', '@adminUser'] }, () => {
-
   before(() => {
     cy.login();
   });
@@ -177,7 +176,7 @@ describe('Banners', { testIsolation: 'off', tags: ['@globalSettings', '@adminUse
       // Check for title
       cy.get('.main-layout h1').should(($el) => {
         expect($el.text().trim()).equal('Fixed Banners');
-      });    
+      });
     });
   });
 

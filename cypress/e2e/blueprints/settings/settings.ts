@@ -3,7 +3,7 @@ const settingTemplate = {
   apiVersion: 'management.cattle.io/v3',
   kind:       'Setting',
   metadata:   { name: 'setting' },
-  value: ''
+  value:      ''
 };
 
 export type BooleanString = 'true' | 'false';
