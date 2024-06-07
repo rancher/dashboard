@@ -11,6 +11,7 @@ import Checkbox from '@components/Form/Checkbox/Checkbox.vue';
 import LabeledInput from '@components/Form/LabeledInput/LabeledInput.vue';
 import { ToggleSwitch } from '@components/Form/ToggleSwitch';
 
+import { isValidCron } from 'cron-validator';
 export default defineComponent({
   components: {
     Checkbox,
@@ -57,7 +58,28 @@ export default defineComponent({
       disableAfterPeriod.value = !!userRetentionSettings[SETTING.DISABLE_INACTIVE_USER_AFTER];
       deleteAfterPeriod.value = !!userRetentionSettings[SETTING.DELETE_INACTIVE_USER_AFTER];
       loading.value = false;
+
+      validateUserRetentionCron();
     });
+
+    const isFormValid = ref(false);
+    const validateUserRetentionCron = () => {
+      const { [SETTING.USER_RETENTION_CRON]: cronSetting } = userRetentionSettings;
+
+      if (!cronSetting) {
+        isFormValid.value = true;
+
+        return;
+      }
+
+      if (typeof cronSetting === 'string' && !isValidCron(cronSetting)) {
+        isFormValid.value = false;
+
+        return;
+      }
+
+      isFormValid.value = true;
+    };
 
     const save = async(btnCB) => {
       try {
@@ -80,6 +102,8 @@ export default defineComponent({
       loading,
       userRetentionSettings,
       SETTING,
+      isFormValid,
+      validateUserRetentionCron,
     };
   },
 });
@@ -128,6 +152,7 @@ export default defineComponent({
             type="cron"
             label="User retention process schedule"
             sub-label="The user retention process runs as a cron job (required)"
+            @input="validateUserRetentionCron"
           />
         </div>
         <div class="input-fieldset condensed pt-12">
@@ -153,6 +178,7 @@ export default defineComponent({
     <Footer
       class="footer-user-retention"
       mode="edit"
+      :disable-save="!isFormValid"
       @save="save"
     />
   </div>
