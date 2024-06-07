@@ -130,7 +130,7 @@ export default defineComponent({
             sub-label="The user retention process runs as a cron job (required)"
           />
         </div>
-        <div class="input-fieldset condensed">
+        <div class="input-fieldset condensed pt-12">
           <toggle-switch
             v-model="userRetentionSettings[SETTING.USER_RETENTION_DRY_RUN]"
             :onValue="'true'"
@@ -190,6 +190,10 @@ export default defineComponent({
 
     &.condensed {
       gap: 0.25rem;
+    }
+
+    &.pt-12 {
+      padding-top: 3rem;
     }
   }
 
