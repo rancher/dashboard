@@ -26,8 +26,10 @@ import AdvancedOptions from './AdvancedOptions.vue';
 import Networking from './Networking.vue';
 import GKENodePoolComponent from './GKENodePool.vue';
 import Config from './Config.vue';
-import { DEFAULT_GCP_ZONE, imageTypes, getGKEMachineTypes } from '../util/gcp';
-import type { getGKEMachineTypesResponse } from '../types/gcp.d.ts';
+import {
+  DEFAULT_GCP_ZONE, DEFAULT_GCP_SERVICE_ACCOUNT, imageTypes, getGKEMachineTypes, getGKEServiceAccounts
+} from '../util/gcp';
+import type { getGKEMachineTypesResponse, getGKEServiceAccountsResponse } from '../types/gcp.d.ts';
 import debounce from 'lodash/debounce';
 import {
   clusterNameChars, clusterNameStartEnd, requiredInCluster, ipv4WithCidr, ipv4oripv6WithCidr
@@ -41,13 +43,14 @@ const defaultDiskType = 'pd-standard';
 const defaultNodePool = {
   autoscaling: { enabled: false },
   config:      {
-    diskSizeGb:    100,
-    diskType:      defaultDiskType,
-    imageType:     imageTypes[0],
-    labels:        {},
-    localSsdCount: 0,
-    machineType:   defaultMachineType,
-    oauthScopes:   [
+    diskSizeGb:     100,
+    diskType:       defaultDiskType,
+    imageType:      imageTypes[0],
+    labels:         {},
+    localSsdCount:  0,
+    machineType:    defaultMachineType,
+    serviceAccount: null,
+    oauthScopes:    [
       'https://www.googleapis.com/auth/devstorage.read_only',
       'https://www.googleapis.com/auth/logging.write',
       'https://www.googleapis.com/auth/monitoring',
@@ -212,8 +215,10 @@ export default defineComponent({
       defaultImageType: imageTypes[0],
       supportedVersionRange,
 
-      loadingMachineTypes:  false,
-      machineTypesResponse: {} as getGKEMachineTypesResponse,
+      loadingMachineTypes:     false,
+      loadingServiceAccounts:  false,
+      machineTypesResponse:    {} as getGKEMachineTypesResponse,
+      serviceAccountsResponse: {} as getGKEServiceAccountsResponse,
 
       fvFormRuleSets: [
         {
@@ -492,6 +497,23 @@ export default defineComponent({
       });
 
       return out;
+    },
+
+    serviceAccountOptions(): {label: string, value: string | null}[] {
+      const allAccounts = this.serviceAccountsResponse?.accounts || [];
+
+      return allAccounts.reduce((opts, acct) => {
+        if (acct.displayName === DEFAULT_GCP_SERVICE_ACCOUNT) {
+          return opts;
+        } else {
+          opts.push({
+            label: acct.displayName,
+            value: acct.email
+          });
+        }
+
+        return opts;
+      }, [{ label: this.t('gke.serviceAccount.default.label'), value: null }] as {label: string, value: string | null}[] );
     }
 
   },
@@ -518,6 +540,7 @@ export default defineComponent({
       this.errors = [];
       if (this.config.projectID && this.config.googleCredentialSecret) {
         this.getMachineTypes();
+        this.getServiceAccounts();
       }
     },
 
@@ -531,6 +554,19 @@ export default defineComponent({
       }).catch((err) => {
         this.errors.push(err);
         this.loadingMachineTypes = false;
+      });
+    },
+
+    getServiceAccounts() {
+      this.loadingServiceAccounts = true;
+      const zone = this.config.zone || this.config.locations?.[0];
+
+      getGKEServiceAccounts(this.$store, this.config.googleCredentialSecret, this.config.projectID, { zone, region: this.config.region }).then((res) => {
+        this.serviceAccountsResponse = res;
+        this.loadingServiceAccounts = false;
+      }).catch((err) => {
+        this.errors.push(err);
+        this.loadingServiceAccounts = false;
       });
     },
 
@@ -692,10 +728,13 @@ export default defineComponent({
               :mode="mode"
               :cluster-kubernetes-version="config.kubernetesVersion"
               :machine-type-options="machineTypeOptions"
+              :service-account-options="serviceAccountOptions"
               :loading-machine-types="loadingMachineTypes"
+              :loading-service-accounts="loadingServiceAccounts"
               :version.sync="pool.version"
               :image-type.sync="pool.config.imageType"
               :machine-type.sync="pool.config.machineType"
+              :service-account.sync="pool.config.serviceAccount"
               :disk-type.sync="pool.config.diskType"
               :disk-size-gb.sync="pool.config.diskSizeGb"
               :local-ssd-count.sync="pool.config.localSsdCount"

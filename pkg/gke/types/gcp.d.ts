@@ -70,6 +70,16 @@ export interface GKEZone {
   sortName?: string
 }
 
+export interface GKEServiceAccount {
+  displayName: string,
+  email: string,
+  etag: string,
+  name: string,
+  oauth2ClientId: string,
+  projectId: string,
+  uniqueId: string
+}
+
 export interface getGKEVersionsResponse {
   channels: GKEVersionChannel[],
   defaultClusterVersion: string,
@@ -111,4 +121,8 @@ export interface getGKEMachineTypesResponse {
 
 export interface getGKEZonesResponse {
   items: GKEZone[]
+}
+
+export interface getGKEServiceAccountsResponse {
+  accounts: GKEServiceAccount[]
 }

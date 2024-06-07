@@ -11,6 +11,7 @@ export interface GKENodePool {
     labels?: any,
     localSsdCount?: number,
     machineType?: string,
+    serviceAccount?: string | null,
     oauthScopes?: string[],
     preemptible?: boolean,
     taints?: any,

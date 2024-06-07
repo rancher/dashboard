@@ -50,7 +50,17 @@ export default defineComponent({
       default: () => []
     },
 
+    serviceAccountOptions: {
+      type:    Array as PropType<{label: string, kind?: string, value?: string | null, }[]>,
+      default: () => []
+    },
+
     loadingMachineTypes: {
+      type:    Boolean,
+      default: false
+    },
+
+    loadingServiceAccounts: {
       type:    Boolean,
       default: false
     },
@@ -152,6 +162,11 @@ export default defineComponent({
       default: () => []
     },
 
+    serviceAccount: {
+      type:    [String, null],
+      default: null
+    },
+
     rules: {
       type:    Object,
       default: () => {
@@ -211,7 +226,7 @@ export default defineComponent({
     },
 
     imageTypeOptions() {
-      return imageTypes.map((type) => {
+      return (imageTypes || []).map((type) => {
         return {
           value: type,
           label: this.t(`gke.imageType.${ type }`, null, type)
@@ -258,6 +273,15 @@ export default defineComponent({
         this.$emit('update:diskType', neu.value);
       }
     },
+
+    selectedServiceAccount: {
+      get() {
+        return this.serviceAccountOptions.find((opt) => opt.value === this.serviceAccount) || { label: this.serviceAccount, value: this.serviceAccount };
+      },
+      set(neu) {
+        this.$emit('update:serviceAccount', neu.value);
+      }
+    }
   },
 });
 
@@ -276,6 +300,7 @@ export default defineComponent({
           v-model="upgradeKubernetesVersion"
           :mode="mode"
           :label="t('gke.version.upgrade', {clusterKubernetesVersion, version: initialVersion})"
+          data-testid="gke-k8s-upgrade-checkbox"
         />
         <div
           v-else
@@ -284,8 +309,21 @@ export default defineComponent({
             label-key="gke.version.label"
             :value="version"
             disabled
+            data-testid="gke-k8s-display"
           />
         </div>
+      </div>
+      <div class="col span-6">
+        <LabeledSelect
+          :mode="mode"
+          :options="serviceAccountOptions"
+          :loading="loadingServiceAccounts"
+          :value="selectedServiceAccount"
+          label-key="gke.serviceAccount.label"
+          :disabled="!isNew"
+          data-testid="gke-service-account-select"
+          @selecting="e=>selectedServiceAccount=e "
+        />
       </div>
     </div>
     <div class="row mb-10">

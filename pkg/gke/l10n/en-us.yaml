@@ -170,6 +170,10 @@ gke:
     label: Preemptible Nodes
   project:
     label: Google Project ID
+  serviceAccount:
+    default:
+      label: Use the default service account
+    label: Service Account
   servicesIpv4CidrBlock:
     label: Services Secondary CIDR Block
   servicesSecondaryRangeName:
