@@ -7385,6 +7385,7 @@ banner:
     label: 'Font Size'
   consent: Consent Banner
   consentFootnote: "Tip: Use \\n character for line break"
+  individualSetting: 'This banner is managed by the setting "{name}" and can not be modified in the UI'
 
 branding:
   label: Branding

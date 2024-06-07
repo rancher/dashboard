@@ -13,6 +13,7 @@ import { SETTING } from '@shell/config/settings';
 import { clone } from '@shell/utils/object';
 import { _EDIT, _VIEW } from '@shell/config/query-params';
 import NotificationSettings from '@shell/components/form/NotificationSettings.vue';
+import { getIndividualBanners, overlayIndividualBanners } from '@shell/utils/banners';
 
 const DEFAULT_BANNER_SETTING = {
   loginError:   { message: '', showMessage: 'false' },
@@ -63,20 +64,24 @@ export default {
   },
 
   async fetch() {
+    // We fetch all settings, so we can check for individual banner setting resources
+    // We will have already fetched all settings, so there is no performance impact doing this versus fetching individual settings
     const hash = await allHash({ uiBannerSetting: this.$store.dispatch('management/find', { type: MANAGEMENT.SETTING, id: SETTING.BANNERS }) });
 
     Object.assign(this, hash);
+
+    this.uiBannerIndividual = getIndividualBanners(this.$store);
   },
 
   data() {
     return {
       vendor: getVendor(),
 
-      uiBannerSetting: null,
-      bannerVal:       {},
+      uiBannerSetting:    null,
+      uiBannerIndividual: {},
+      bannerVal:          {},
 
       errors: [],
-
     };
   },
 
@@ -88,12 +93,25 @@ export default {
     },
 
     headerMode() {
+      // If the individual setting is used, then always view mode
+      if (this.uiBannerIndividual.bannerHeader) {
+        return _VIEW;
+      }
+
       return this.bannerVal?.showHeader === 'true' ? _EDIT : _VIEW;
     },
     footerMode() {
+      // If the individual setting is used, then always view mode
+      if (this.uiBannerIndividual.bannerFooter) {
+        return _VIEW;
+      }
       return this.bannerVal?.showFooter === 'true' ? _EDIT : _VIEW;
     },
     consentMode() {
+      // If the individual setting is used, then always view mode
+      if (this.uiBannerIndividual.bannerConsent) {
+        return _VIEW;
+      }
       return this.bannerVal?.showConsent === 'true' ? _EDIT : _VIEW;
     }
   },
@@ -105,6 +123,8 @@ export default {
           const parsedBanner = JSON.parse(neu.value);
 
           this.bannerVal = this.checkOrUpdateLegacyUIBannerSetting(parsedBanner);
+
+          overlayIndividualBanners(this.bannerVal, this.uiBannerIndividual);
         } catch {}
       }
     }
@@ -185,12 +205,21 @@ export default {
 
       <template>
         <!-- Header Settings -->
-        <h2 class="mt-40 mb-40">
+        <h2 class="mt-40 mb-10 setting-title">
           {{ t('banner.headerBanner') }}
+          <i v-if="!!uiBannerIndividual.bannerHeader" class="icon icon-lock" />
         </h2>
+        <div v-if="!!uiBannerIndividual.bannerHeader" class="row mb-10">
+          <Banner
+            color="warning"
+            class="mt-0"
+            :label="t('banner.individualSetting', {name: 'ui-banner-header'}, true)"
+          />
+        </div>
         <div class="row mb-20">
           <div class="col span-6">
             <Checkbox
+              :disabled="!!uiBannerIndividual.bannerHeader"
               :value="bannerVal.showHeader === 'true'"
               :label="t('banner.showHeader')"
               :mode="mode"
@@ -205,12 +234,21 @@ export default {
         />
 
         <!-- Footer settings -->
-        <h2 class="mt-40 mb-40">
+        <h2 class="mt-40 mb-10 setting-title">
           {{ t('banner.footerBanner') }}
+          <i v-if="!!uiBannerIndividual.bannerFooter" class="icon icon-lock" />
         </h2>
-        <div class="row mt-40 mb-20">
+        <div v-if="!!uiBannerIndividual.bannerFooter" class="row mb-10">
+          <Banner
+            color="warning"
+            class="mt-0"
+            :label="t('banner.individualSetting', {name: 'ui-banner-footer'}, true)"
+          />
+        </div>
+        <div class="row mb-20">
           <div class="col span-6">
             <Checkbox
+              :disabled="!!uiBannerIndividual.bannerFooter"
               :value="bannerVal.showFooter === 'true'"
               :label="t('banner.showFooter')"
               :mode="mode"
@@ -226,13 +264,22 @@ export default {
       </template>
 
       <!-- Consent settings -->
-      <h2 class="mt-40 mb-40">
+      <h2 class="mt-40 mb-10 setting-title">
         {{ t('banner.loginScreenBanner') }}
+        <i v-if="!!uiBannerIndividual.bannerConsent" class="icon icon-lock" />
       </h2>
+      <div v-if="!!uiBannerIndividual.bannerConsent" class="row mb-10">
+        <Banner
+          color="warning"
+          class="mt-0"
+          :label="t('banner.individualSetting', {name: 'ui-banner-login-consent'}, true)"
+        />
+      </div>
       <template>
-        <div class="row mt-40 mb-20">
+        <div class="row mb-20">
           <div class="col span-6">
             <Checkbox
+              :disabled="!!uiBannerIndividual.bannerConsent"
               :value="bannerVal.showConsent === 'true'"
               :label="t('banner.showConsent')"
               :mode="mode"
@@ -281,5 +328,16 @@ export default {
   left: 0;
   background-color: var(--overlay-bg);
   z-index: 1;
+}
+
+// Ensure setting titles have the icon vertically aligned when present, with spacing between
+// the icon and the text
+h2.setting-title {
+  align-items: center;
+  display: flex;
+
+  > i {
+    padding-left: 5px;
+  }
 }
 </style>
