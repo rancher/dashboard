@@ -1,5 +1,7 @@
 <script lang="ts">
-import { defineComponent, ref, reactive, onMounted } from 'vue';
+import {
+  defineComponent, ref, reactive, watch, onMounted
+} from 'vue';
 
 import UserRetentionHeader from '@shell/components/user.retention/header';
 import Footer from '@shell/components/form/Footer';
@@ -34,6 +36,56 @@ export default defineComponent({
     const loading = ref(true);
     let settings = null;
 
+    /**
+     * Watches the disable after period and removes the value if the checkbox is
+     * not selected. Lookup the value when the checkbox is selected.
+     */
+    watch(disableAfterPeriod, (newVal) => {
+      if (!newVal) {
+        userRetentionSettings[SETTING.DISABLE_INACTIVE_USER_AFTER] = null;
+
+        return;
+      }
+
+      userRetentionSettings[SETTING.DISABLE_INACTIVE_USER_AFTER] = settings[SETTING.DISABLE_INACTIVE_USER_AFTER].value;
+    });
+
+    /**
+     * Watches the delete after period and removes the value if the checkbox is
+     * not selected. Lookup the value when the checkbox is selected.
+     */
+    watch(deleteAfterPeriod, (newVal) => {
+      if (!newVal) {
+        userRetentionSettings[SETTING.DELETE_INACTIVE_USER_AFTER] = null;
+
+        return;
+      }
+
+      userRetentionSettings[SETTING.DELETE_INACTIVE_USER_AFTER] = settings[SETTING.DELETE_INACTIVE_USER_AFTER].value;
+    });
+
+    /**
+     * Watches both the disable and delete after periods. Clear all values in
+     * the form if both checkboxes are not selected. If one of the checkboxes
+     * are selected, lookup each of the values in the form.
+     */
+    watch([disableAfterPeriod, deleteAfterPeriod], ([newDisableAfterPeriod, newDeleteAfterPeriod]) => {
+      if (!newDisableAfterPeriod && !newDeleteAfterPeriod) {
+        ids.forEach((key) => {
+          userRetentionSettings[key] = null;
+        });
+
+        return;
+      }
+
+      ids.filter((id) => ![SETTING.DISABLE_INACTIVE_USER_AFTER, SETTING.DELETE_INACTIVE_USER_AFTER].includes(id))
+        .forEach((key) => {
+          if (userRetentionSettings[key] === null) {
+            userRetentionSettings[key] = settings[key].value;
+          }
+        });
+    });
+
     const fetchSetting = async(id: string) => {
       return await store.dispatch('management/find', { type: MANAGEMENT.SETTING, id });
     };
@@ -66,8 +118,15 @@ export default defineComponent({
     const validateUserRetentionCron = () => {
       const { [SETTING.USER_RETENTION_CRON]: cronSetting } = userRetentionSettings;
 
-      if (!cronSetting) {
+      // Only require user retention cron when disable or delete after are active
+      if (!disableAfterPeriod.value && !deleteAfterPeriod.value) {
         isFormValid.value = true;
+
+        return;
+      }
+
+      if (!cronSetting) {
+        isFormValid.value = false;
 
         return;
       }
