@@ -113,6 +113,8 @@ function callMiddleware(Components, context) {
  * @returns
  */
 async function render(to, from, next) {
+  const toRoute = to?.value ?? to;
+  const fromRoute = from?.value ?? from;
   if (this._routeChanged === false && this._paramChanged === false && this._queryChanged === false) {
     return next();
   }
@@ -120,11 +122,11 @@ async function render(to, from, next) {
   // nextCalled is true when redirected
   let nextCalled = false;
   const _next = (path) => {
-    if (from.value.path === path.path && this.$loading.finish) {
+    if (fromRoute.path === path.path && this.$loading.finish) {
       this.$loading.finish();
     }
 
-    if (from.value.path !== path.path && this.$loading.pause) {
+    if (fromRoute.path !== path.path && this.$loading.pause) {
       this.$loading.pause();
     }
 
@@ -138,8 +140,8 @@ async function render(to, from, next) {
 
   // Update context
   await setContext(configApp, {
-    route: to.value,
-    from: from.value,
+    route: toRoute,
+    from: fromRoute,
     next:  _next.bind(this)
   });
   this._dateLastError = configApp.nuxt.dateErr;
@@ -147,7 +149,7 @@ async function render(to, from, next) {
 
   // Get route's matched components
   const matches = [];
-  const Components = getMatchedComponents(to.value, matches);
+  const Components = getMatchedComponents(toRoute, matches);
 
   // If no Components matched, generate 404
   if (!Components.length) {
@@ -160,7 +162,7 @@ async function render(to, from, next) {
     await callMiddleware.call(this, [{ options: { middleware: ['authenticated'] } }], configApp.context);
 
     // We used to have i18n middleware which was called each time we called middleware. This is also needed to support harvester because of the way harvester loads as outlined in the comment above
-    await this.$store.dispatch('i18n/init');
+    // await this.$store.dispatch('i18n/init');
 
     if (nextCalled) {
       return;
