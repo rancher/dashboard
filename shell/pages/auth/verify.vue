@@ -1,5 +1,5 @@
 <script>
-import { GITHUB_CODE, GITHUB_NONCE, BACK_TO } from '@shell/config/query-params';
+import { GITHUB_CODE, GITHUB_NONCE, BACK_TO, IS_SLO } from '@shell/config/query-params';
 import { get } from '@shell/utils/object';
 import { base64Decode } from '@shell/utils/crypto';
 import loadPlugins from '@shell/plugins/plugin';
@@ -28,9 +28,22 @@ export default {
   async fetch() {
     const code = this.$route.query[GITHUB_CODE];
     const stateStr = this.$route.query[GITHUB_NONCE];
+    const isSlo = this.$route.query[IS_SLO];
+
+    console.log('VERIFY route', this.$route);
+    console.log('VERIFY route query', this.$route.query);
+    console.log('VERIFY isSlo', isSlo);
+
     const {
       error, error_description: errorDescription, errorCode, errorMsg
     } = this.$route.query;
+
+    if (isSlo) {
+      console.error('IS SLO!!!');
+      this.$store.dispatch('auth/uiLogout');
+
+      return;
+    }
 
     if (error || errorDescription || errorCode || errorMsg) {
       let out = errorDescription || error || errorCode;
@@ -110,6 +123,7 @@ export default {
   },
 
   mounted() {
+    console.error('MOUNTED VERIFY!');
     if ( this.testing ) {
       try {
         const {

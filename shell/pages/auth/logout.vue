@@ -14,7 +14,9 @@ export default {
 
       if (configType === 'saml' && logoutAllSupported && logoutAllEnabled && logoutAllForced) {
         // SAML - force SLO (logout from all apps)
-        await this.$store.dispatch('auth/logout', { force: true, slo: true }, { root: true });
+        await this.$store.dispatch('auth/logout', {
+          force: true, slo: true, provider: authProvider
+        }, { root: true });
       } else {
         // simple logout
         await this.$store.dispatch('auth/logout', { force: true }, { root: true });
