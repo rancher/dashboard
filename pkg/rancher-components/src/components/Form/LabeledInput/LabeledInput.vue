@@ -326,12 +326,12 @@ export default (
       v-if="cronHint || subLabel"
       class="sub-label"
     >
-      <span
+      <div
         v-if="cronHint"
       >
         {{ cronHint }}
-      </span>
-      <span
+      </div>
+      <div
         v-if="subLabel"
         v-clean-html="subLabel"
       />
