@@ -14,6 +14,59 @@ import LabeledInput from '@components/Form/LabeledInput/LabeledInput.vue';
 import { ToggleSwitch } from '@components/Form/ToggleSwitch';
 
 import { isValidCron } from 'cron-validator';
+type Links = {
+  remove: string;
+  self: string;
+  update: string;
+  view: string;
+};
+
+type FieldsV1 = {
+  'f:customized': {};
+  'f:default': {};
+  'f:source': {};
+  'f:value': {};
+};
+
+type ManagedFields = {
+  apiVersion: string;
+  fieldsType: string;
+  fieldsV1: FieldsV1;
+  manager: string;
+  operation: string;
+  time: string;
+};
+
+type Metadata = {
+  creationTimestamp: string;
+  fields: string[];
+  generation: number;
+  managedFields: ManagedFields[];
+  name: string;
+  relationships: null;
+  resourceVersion: string;
+  state: {
+    error: boolean;
+    message: string;
+    name: string;
+    transitioning: boolean;
+  };
+  uid: string;
+};
+
+type Setting = {
+  id: string;
+  type: string;
+  links: Links;
+  apiVersion: string;
+  customized: boolean;
+  default: string;
+  kind: string;
+  metadata: Metadata;
+  source: string;
+  value: string;
+};
+
 export default defineComponent({
   components: {
     Checkbox,
@@ -34,7 +87,7 @@ export default defineComponent({
     const disableAfterPeriod = ref(false);
     const deleteAfterPeriod = ref(false);
     const loading = ref(true);
-    let settings = null;
+    let settings: Setting[] = [];
 
     /**
      * Watches the disable after period and removes the value if the checkbox is
