@@ -64,7 +64,8 @@ type Setting = {
   kind: string;
   metadata: Metadata;
   source: string;
-  value: string;
+  value: string | null;
+  save: () => void;
 };
 
 export default defineComponent({
@@ -77,7 +78,7 @@ export default defineComponent({
   },
   setup() {
     const store = useStore();
-    const userRetentionSettings = reactive({
+    const userRetentionSettings = reactive<{[id: string]: string | null }>({
       [SETTING.DISABLE_INACTIVE_USER_AFTER]: null,
       [SETTING.DELETE_INACTIVE_USER_AFTER]:  null,
       [SETTING.USER_RETENTION_CRON]:         null,
@@ -87,7 +88,7 @@ export default defineComponent({
     const disableAfterPeriod = ref(false);
     const deleteAfterPeriod = ref(false);
     const loading = ref(true);
-    let settings: Setting[] = [];
+    let settings: { [id: string]: Setting } = {};
 
     /**
      * Watches the disable after period and removes the value if the checkbox is
@@ -193,7 +194,7 @@ export default defineComponent({
       isFormValid.value = true;
     };
 
-    const save = async(btnCB) => {
+    const save = async(btnCB: (arg: boolean) => void) => {
       try {
         ids.forEach((key) => {
           settings[key].value = userRetentionSettings[key];
