@@ -443,18 +443,15 @@ Cypress.Commands.add('deleteRancherResource', (prefix, resourceType, resourceId,
 /**
  * create a v3 / v1 resource
  */
-Cypress.Commands.add('createRancherResource', (prefix, resourceType, body?) => {
-  const url = !!body ? `${ prefix }/${ resourceType }` : prefix;
-  const b = !!body ? body : resourceType;
-
+Cypress.Commands.add('createRancherResource', (prefix, resourceType, body) => {
   return cy.request({
     method:  'POST',
-    url:     `${ Cypress.env('api') }/${ url }`,
+    url:     `${ Cypress.env('api') }/${ prefix }/${ resourceType }`,
     headers: {
       'x-api-csrf': token.value,
       Accept:       'application/json'
     },
-    body: b
+    body
   })
     .then((resp) => {
       // Expect 201, Created HTTP status code
