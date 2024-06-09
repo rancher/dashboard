@@ -20,7 +20,7 @@ function updateBannersSetting(fn) {
 
 // Common tests for Header and Footer banners
 function bannerTests(bannerName: string) {
-  it('Should not have banner', () => {
+  it('Should not have banner', { tags: ['@globalSettings', '@adminUser', '@standardUser'] }, () => {
     const banner = new FixedBannerPo(`#banner-${ bannerName.toLowerCase() }`);
 
     HomePagePo.goToAndWaitForGet();
@@ -28,7 +28,7 @@ function bannerTests(bannerName: string) {
     banner.checkNotExists();
   });
 
-  it('Should use banner from ui-banners setting', () => {
+  it('Should use banner from ui-banners setting', { tags: ['@globalSettings', '@adminUser', '@standardUser'] }, () => {
     const banner = new FixedBannerPo(`#banner-${ bannerName.toLowerCase() }`);
 
     HomePagePo.goToAndWaitForGet();
@@ -59,7 +59,7 @@ function bannerTests(bannerName: string) {
     banner.checkNotExists();
   });
 
-  it('Should use banner from individual setting', () => {
+  it('Should use banner from individual setting', { tags: ['@globalSettings', '@adminUser', '@standardUser'] }, () => {
     const banner = new FixedBannerPo(`#banner-${ bannerName.toLowerCase() }`);
 
     HomePagePo.goToAndWaitForGet();
@@ -88,7 +88,7 @@ function bannerTests(bannerName: string) {
     banner.checkNotExists();
   });
 
-  it('Should prefer setting from individual setting', () => {
+  it('Should prefer setting from individual setting', { tags: ['@globalSettings', '@adminUser', '@standardUser'] }, () => {
     const banner = new FixedBannerPo(`#banner-${ bannerName.toLowerCase() }`);
 
     HomePagePo.goToAndWaitForGet();
