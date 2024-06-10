@@ -12,9 +12,16 @@ import AuthBanner from '@shell/components/auth/AuthBanner';
 import config from '@shell/edit/auth/ldap/config';
 import AuthProviderWarningBanners from '@shell/edit/auth/AuthProviderWarningBanners';
 import { configType } from '@shell/models/management.cattle.io.authconfig';
+import RadioGroup from '@components/Form/Radio/RadioGroup.vue';
 
 export const SHIBBOLETH = 'shibboleth';
 export const OKTA = 'okta';
+
+const SLO_OPTION_VALUES = {
+  rancher: 'rancher',
+  all:     'all',
+  both:    'both',
+};
 
 // Standard LDAP defaults
 const LDAP_DEFAULTS = {
@@ -46,6 +53,7 @@ export default {
     Banner,
     AllowedPrincipals,
     Checkbox,
+    RadioGroup,
     FileSelector,
     config,
     AuthBanner,
@@ -57,6 +65,7 @@ export default {
     return {
       showLdap:        false,
       showLdapDetails: false,
+      sloOptionValues: SLO_OPTION_VALUES
     };
   },
 
@@ -71,6 +80,24 @@ export default {
 
     isSamlProvider() {
       return configType[this.model?.id] === 'saml';
+    },
+
+    sloOptions() {
+      return [
+        { value: SLO_OPTION_VALUES.rancher, label: this.t('authConfig.saml.sloOptions.onlyRancher') },
+        { value: SLO_OPTION_VALUES.all, label: this.t('authConfig.saml.sloOptions.logoutAll', { name: this.model?.nameDisplay }) },
+        { value: SLO_OPTION_VALUES.both, label: this.t('authConfig.saml.sloOptions.choose') },
+      ];
+    },
+
+    sloTypeText() {
+      const sloOptionSelected = this.sloOptions.find((item) => item.value === this.sloType);
+
+      if (sloOptionSelected) {
+        return sloOptionSelected.label;
+      }
+
+      return '';
     },
 
     toSave() {
@@ -105,9 +132,21 @@ export default {
         this.$set(this.model, 'openLdapConfig', { ...LDAP_DEFAULTS });
       }
     },
-    'model.logoutAllEnabled'(neu) {
-      if (!neu && this.model.logoutAllForced) {
+    // sloType is defined on shell/mixins/auth-config.js
+    sloType(neu) {
+      switch (neu) {
+      case SLO_OPTION_VALUES.rancher:
+        this.$set(this.model, 'logoutAllEnabled', false);
         this.$set(this.model, 'logoutAllForced', false);
+        break;
+      case SLO_OPTION_VALUES.all:
+        this.$set(this.model, 'logoutAllEnabled', true);
+        this.$set(this.model, 'logoutAllForced', true);
+        break;
+      case SLO_OPTION_VALUES.both:
+        this.$set(this.model, 'logoutAllEnabled', true);
+        this.$set(this.model, 'logoutAllForced', false);
+        break;
       }
     }
   }
@@ -148,10 +187,7 @@ export default {
             <tr><td>{{ t(`authConfig.saml.api`) }}: </td><td>{{ model.rancherApiHost }}</td></tr>
             <tr><td>{{ t(`authConfig.saml.groups`) }}: </td><td>{{ model.groupsField }}</td></tr>
             <tr v-if="isSamlProvider">
-              <td>{{ t(`authConfig.saml.enableSlo`) }}: </td><td>{{ model.logoutAllEnabled }}</td>
-            </tr>
-            <tr v-if="isSamlProvider">
-              <td>{{ t(`authConfig.saml.forceSlo`) }}: </td><td>{{ model.logoutAllForced }}</td>
+              <td>{{ t(`authConfig.saml.logoutType`) }}: </td><td>{{ sloTypeText }}</td>
             </tr>
           </template>
 
@@ -336,19 +372,12 @@ export default {
           </div>
           <div class="row">
             <div class="col span-4">
-              <Checkbox
-                v-model="model.logoutAllEnabled"
+              <RadioGroup
+                v-model="sloType"
                 :mode="mode"
+                :options="sloOptions"
                 :disabled="!model.logoutAllSupported"
-                :label="t('authConfig.saml.enableSlo')"
-              />
-            </div>
-            <div class="col span-4">
-              <Checkbox
-                v-model="model.logoutAllForced"
-                :mode="mode"
-                :disabled="!model.logoutAllSupported || !model.logoutAllEnabled"
-                :label="t('authConfig.saml.forceSlo')"
+                name="sloTypeRadio"
               />
             </div>
           </div>

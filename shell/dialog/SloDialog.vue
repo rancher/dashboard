@@ -19,20 +19,17 @@ export default {
 
   methods: {
     async doLogout(logoutAll = false) {
-      const options = { force: true };
+      const options = { force: true, provider: this.authProvider };
 
+      // Single Sign Logout for SAML
       if (logoutAll) {
         options.slo = true;
+        options.provider = this.authProvider;
       }
 
       this.$emit('close');
 
-      await this.$store.dispatch('auth/logout',
-        {
-          force:    true,
-          slo:      true,
-          provider: this.authProvider
-        }, { root: true });
+      await this.$store.dispatch('auth/logout', options, { root: true });
     },
   }
 };
@@ -68,7 +65,7 @@ export default {
           class="btn ml-10 btn role-primary"
           @click="doLogout(true)"
         >
-          {{ t('promptSlo.all') }}
+          {{ t('promptSlo.all', { name }) }}
         </button>
       </div>
     </template>
