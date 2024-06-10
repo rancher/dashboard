@@ -34,7 +34,7 @@ export default class ChartRepositoriesPagePo extends PagePo {
       sideNav.navToSideMenuEntryByLabel('Repositories');
     } else {
       BurgerMenuPo.burgerMenuNavToMenubyLabel('Cluster Management');
-    (new ClusterManagerListPagePo()).waitForPage();
+      (new ClusterManagerListPagePo()).waitForPage();
 
       sideNav.groups().contains('Advanced').click();
       sideNav.navToSideMenuEntryByLabel('Repositories');
