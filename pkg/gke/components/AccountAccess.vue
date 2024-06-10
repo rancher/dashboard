@@ -95,16 +95,8 @@ export default defineComponent({
             this.$emit('update:project', projectId);
           }
         } catch (e) {
-          return;
-        }
-        // clicking the auth button instead of calling testProjectId directly gives the user a visual indication that authentication is in progress
-        this.$nextTick(() => {
-          const authBtn = this.$refs.authBtn;
 
-          if (authBtn) {
-            authBtn.clicked();
-          }
-        });
+        }
       }
     }
   },
@@ -151,7 +143,6 @@ export default defineComponent({
         class="auth-button-container mb-10"
       >
         <AsyncButton
-          ref="authBtn"
           :disabled="!credential || !project || isAuthenticated"
           type="button"
           class="btn role-secondary"
