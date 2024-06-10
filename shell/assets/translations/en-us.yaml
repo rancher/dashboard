@@ -508,8 +508,11 @@ authConfig:
     adfs: Configure an AD FS account
     api: '{vendor} API Host'
     sloTitle: Configure Single Logout (SLO)
-    enableSlo: Enable Single Logout
-    forceSlo: Force Single Logout
+    logoutType: Log out mode
+    sloOptions:
+      onlyRancher: Only log out of Rancher
+      logoutAll: Log out of {name} (including Rancher and all other applications registered with the provider)
+      choose: Allow the user to choose in an extra step
     cert:
       label: Certificate
       placeholder: Paste in the certificate, starting with -----BEGIN CERTIFICATE-----
@@ -4652,10 +4655,10 @@ promptScaleMachineDown:
   retainedMachine2: <b>{ name }</b> will remain
 
 promptSlo:
-  title: "{name} Single Logout"
-  text: "You have Single Logout enabled on { name } auth provider. Would you like to logout from Rancher or from all apps (including Rancher) that use { name }?"
-  rancher: Only Rancher
-  all: All apps
+  title: "Log out"
+  text: "Choose whether to log out of only Rancher, or all {name} applications."
+  rancher: Only log out of Rancher
+  all: Log out of {name}
 
 promptRemove:
   title: Are you sure?

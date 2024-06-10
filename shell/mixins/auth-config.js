@@ -30,6 +30,7 @@ export default {
       originalModel:  null,
       principals:     [],
       authConfigName: this.$route.params.id,
+      sloType:        '',
     };
   },
 
@@ -101,17 +102,24 @@ export default {
         this.showLdap = true;
       }
       if (this.value.configType === 'saml') {
+        // TODO: TO BE DELETED!!!!
+        this.$set(this.model, 'logoutAllSupported', true);
+
         if (!this.model.rancherApiHost || !this.model.rancherApiHost.length) {
           this.$set(this.model, 'rancherApiHost', this.serverUrl);
         }
+
+        // setting data for SLO in SAML providers
+        if (this.model && Object.keys(this.model).includes('logoutAllSupported')) {
+          if (!this.model.logoutAllEnabled && !this.model.logoutAllForced) {
+            this.sloType = this.sloOptionValues.rancher;
+          } else if (this.model.logoutAllEnabled && this.model.logoutAllForced) {
+            this.sloType = this.sloOptionValues.all;
+          } else if (this.model.logoutAllEnabled && !this.model.logoutAllForced) {
+            this.sloType = this.sloOptionValues.both;
+          }
+        }
       }
-
-      // TODO: TO BE DELETED!!!!
-      this.$set(this.model, 'logoutAllSupported', true);
-      // this.$set(this.model, 'logoutAllEnabled', false);
-      // this.$set(this.model, 'logoutAllForced', false);
-
-      console.log('MODEL', this.model);
 
       if (!this.model.enabled) {
         this.applyDefaults();
