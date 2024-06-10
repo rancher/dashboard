@@ -73,7 +73,7 @@ describe('Cluster Manager', { testIsolation: 'off', tags: ['@manager', '@adminUs
 
     // seems like the waitForPage does await for full DOM render, so let's wait for a simple assertion
     // like "gridElementExists" to make sure we aren't creating a fake assertion with the toggle
-    clusterCreate.gridElementExistance(0, 0, 'exist');
+    clusterCreate.gridElementExistanceByName('Linode', 'exist');
     clusterCreate.rkeToggleExistance('not.exist');
 
     const sideNav = new ProductNavPo();

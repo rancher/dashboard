@@ -627,7 +627,7 @@ export default {
           name-field="label"
           side-label-field="tag"
           :color-for="colorFor"
-          :component-testid="'cluster-manager-create-grid-' + i"
+          component-testid="cluster-manager-create-grid"
           @clicked="clickedType"
         />
       </div>
