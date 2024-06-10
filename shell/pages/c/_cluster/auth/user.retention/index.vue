@@ -2,7 +2,7 @@
 import { ref, reactive, watch, onMounted } from 'vue';
 import { useRouter, onBeforeRouteUpdate } from 'vue-router/composables';
 
-import UserRetentionHeader from '@shell/components/user.retention/header';
+import UserRetentionHeader from '@shell/components/user.retention/user-retention-header';
 import Footer from '@shell/components/form/Footer';
 import { useStore } from '@shell/composables/useStore';
 import { MANAGEMENT } from '@shell/config/types';
@@ -145,7 +145,7 @@ onMounted(async() => {
     .all(settingPromises)
     .then((results) => results.reduce((acc, result, index) => {
       return {
-        [ids[index]]: result,
+        [result.id]: result,
         ...acc,
       };
     }, { }));
@@ -228,7 +228,6 @@ onBeforeRouteUpdate((_to, _from) => {
 <template>
   <div>
     <user-retention-header />
-    <h2>User retention</h2>
     <div
       v-if="!loading"
       class="form-user-retention"
