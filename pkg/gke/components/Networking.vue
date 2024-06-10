@@ -1,7 +1,7 @@
 <script lang="ts">
 
 import { mapGetters } from 'vuex';
-import { _CREATE } from '@shell/config/query-params';
+import { _CREATE, _VIEW } from '@shell/config/query-params';
 import { defineComponent } from 'vue';
 import LabeledSelect from '@shell/components/form/LabeledSelect.vue';
 import Checkbox from '@components/Form/Checkbox/Checkbox.vue';
@@ -266,11 +266,13 @@ export default defineComponent({
   methods: {
     // when credential/region/zone change, fetch dependent resources from gcp
     loadGCPData() {
-      this.loadingNetworks = true;
-      this.loadingSubnetworks = true;
-      this.getNetworks();
-      this.getSubnetworks();
-      this.getSharedSubnetworks();
+      if (!this.isView) {
+        this.loadingNetworks = true;
+        this.loadingSubnetworks = true;
+        this.getNetworks();
+        this.getSubnetworks();
+        this.getSharedSubnetworks();
+      }
     },
 
     getNetworks() {
@@ -334,6 +336,10 @@ export default defineComponent({
 
   computed: {
     ...mapGetters({ t: 'i18n/t' }),
+
+    isView():boolean {
+      return this.mode === _VIEW;
+    },
 
     subnetworks() {
       return this.subnetworksResponse.items || [];
@@ -446,6 +452,9 @@ export default defineComponent({
       get() {
         const { network } = this;
 
+        if (this.isView) {
+          return network;
+        }
         if (!network) {
           return undefined;
         }
@@ -458,9 +467,12 @@ export default defineComponent({
     },
 
     selectedSubnetwork: {
-      get(): {label: string, name: string, secondaryIpRanges?: any[]} | undefined {
+      get(): {label: string, name: string, secondaryIpRanges?: any[]} | undefined | string {
         const { subnetwork } = this;
 
+        if (this.isView) {
+          return subnetwork;
+        }
         if (!subnetwork || subnetwork === '') {
           return { label: this.t('gke.subnetwork.auto'), name: GKE_NONE_OPTION };
         }
@@ -477,7 +489,10 @@ export default defineComponent({
     },
 
     selectedClusterSecondaryRangeName: {
-      get(): {rangeName: string, ipCidrRange?: string, label: string} | undefined {
+      get(): {rangeName: string, ipCidrRange?: string, label: string} | undefined | string {
+        if (this.isView) {
+          return this.clusterSecondaryRangeName || GKE_NONE_OPTION;
+        }
         if (!this.clusterSecondaryRangeName) {
           return {
             label:     this.t('generic.none'),
@@ -497,7 +512,10 @@ export default defineComponent({
     },
 
     selectedServicesSecondaryRangeName: {
-      get(): {rangeName: string, ipCidrRange?: string, label: string} | undefined {
+      get(): {rangeName: string, ipCidrRange?: string, label: string} | undefined | string {
+        if (this.isView) {
+          return this.servicesSecondaryRangeName || GKE_NONE_OPTION;
+        }
         if (!this.servicesSecondaryRangeName) {
           return {
             label:     this.t('generic.none'),
@@ -637,7 +655,7 @@ export default defineComponent({
       data-testid="gke-use-ip-aliases-banner"
     />
     <div class="row mb-10">
-      <div class="col span-3">
+      <div class="col span-6 checkbox-column">
         <Checkbox
           :value="useIpAliases"
           :mode="mode"
@@ -645,16 +663,12 @@ export default defineComponent({
           :disabled="!isNewOrUnprovisioned"
           @input="$emit('update:useIpAliases', $event)"
         />
-      </div>
-      <div class="col span-3">
         <Checkbox
           :value="networkPolicyConfig"
           :mode="mode"
           :label="t('gke.networkPolicyConfig.label')"
           @input="$emit('update:networkPolicyConfig', $event)"
         />
-      </div>
-      <div class="col span-3">
         <Checkbox
           :value="networkPolicyEnabled"
           :mode="mode"
@@ -662,8 +676,6 @@ export default defineComponent({
           :disabled="!isNewOrUnprovisioned"
           @input="e=>updateNetworkPolicyEnabled(e)"
         />
-      </div>
-      <div class="col span-3">
         <Checkbox
           :value="enableNetworkPolicy"
           :mode="mode"
@@ -684,7 +696,7 @@ export default defineComponent({
     </div>
     <template v-if="showAdvanced">
       <div class="row mb-10">
-        <div class="col span-3">
+        <div class="col span-6 checkbox-column">
           <Checkbox
             :mode="mode"
             :label="t('gke.enablePrivateNodes.label')"
@@ -692,8 +704,6 @@ export default defineComponent({
             :disabled="!isNewOrUnprovisioned"
             @input="$emit('update:enablePrivateNodes', $event)"
           />
-        </div>
-        <div class="col span-3">
           <Checkbox
             :mode="mode"
             :label="t('gke.enablePrivateEndpoint.label')"
@@ -703,14 +713,32 @@ export default defineComponent({
             data-testid="gke-enable-private-endpoint-checkbox"
             @input="$emit('update:enablePrivateEndpoint', $event)"
           />
-        </div>
-        <div class="col span-3">
           <Checkbox
             :mode="mode"
             :value="enableMasterAuthorizedNetwork"
             :label="t('gke.masterAuthorizedNetwork.enable.label')"
             :disabled="enablePrivateEndpoint || !isNewOrUnprovisioned"
             @input="$emit('update:enableMasterAuthorizedNetwork', $event)"
+          />
+        </div>
+        <div class="col span-6">
+          <KeyValue
+            v-if="enableMasterAuthorizedNetwork"
+            :label="t('gke.masterAuthorizedNetwork.cidrBlocks.label')"
+            :mode="mode"
+            :as-map="false"
+            key-name="displayName"
+            value-name="cidrBlock"
+            :key-label="t('gke.masterAuthorizedNetwork.cidrBlocks.displayName')"
+            :value-label="t('gke.masterAuthorizedNetwork.cidrBlocks.cidr')"
+            :value-placeholder="t('gke.clusterIpv4Cidr.placeholder')"
+            :value="masterAuthorizedNetworkCidrBlocks"
+            :read-allowed="false"
+            :add-label="t('gke.masterAuthorizedNetwork.cidrBlocks.add')"
+            :initial-empty-row="true"
+            :disabled="!isNewOrUnprovisioned"
+            data-testid="gke-master-authorized-network-cidr-keyvalue"
+            @input="$emit('update:masterAuthorizedNetworkCidrBlocks', $event)"
           />
         </div>
       </div>
@@ -736,36 +764,22 @@ export default defineComponent({
           />
         </div>
       </div>
-      <div class="row mb-10">
-        <div class="col span-12">
-          <KeyValue
-            v-if="enableMasterAuthorizedNetwork"
-            :label="t('gke.masterAuthorizedNetwork.cidrBlocks.label')"
-            :mode="mode"
-            :as-map="false"
-            key-name="displayName"
-            value-name="cidrBlock"
-            :key-label="t('gke.masterAuthorizedNetwork.cidrBlocks.displayName')"
-            :value-label="t('gke.masterAuthorizedNetwork.cidrBlocks.cidr')"
-            :value-placeholder="t('gke.clusterIpv4Cidr.placeholder')"
-            :value="masterAuthorizedNetworkCidrBlocks"
-            :read-allowed="false"
-            :add-label="t('gke.masterAuthorizedNetwork.cidrBlocks.add')"
-            :initial-empty-row="true"
-            :disabled="!isNewOrUnprovisioned"
-            data-testid="gke-master-authorized-network-cidr-keyvalue"
-            @input="$emit('update:masterAuthorizedNetworkCidrBlocks', $event)"
-          />
-        </div>
-      </div>
+      <div class="row mb-10" />
     </template>
   </div>
 </template>
 
-<style lang="scss">
+<style scoped lang="scss">
 .advanced-toggle {
   padding-left: 0px;
   margin: 20px 0px 20px 0px;
 }
 
+.checkbox-column {
+  display: flex;
+  flex-direction: column;
+  &>*{
+    margin-top: 10px;
+  }
+}
 </style>

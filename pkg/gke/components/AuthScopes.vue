@@ -86,6 +86,12 @@ export default defineComponent({
       const newScopes = addAuthScope(this.value, scopeKey, neu);
 
       this.$emit('input', newScopes);
+    },
+
+    nextScopeKey(index: number) {
+      if (index <= Object.keys(this.formOptions).length - 2) {
+        return Object.keys(this.formOptions)[index + 1];
+      }
     }
   }
 });
@@ -106,8 +112,9 @@ export default defineComponent({
       </div>
     </div>
     <div v-if="scopeMode==='custom'">
-      <template v-for="(options, scopeKey) in formOptions">
+      <template v-for="(scopeKey, index) in Object.keys(formOptions)">
         <div
+          v-if="!(index%2)"
           :key="scopeKey"
           class="row mb-10"
         >
@@ -115,11 +122,25 @@ export default defineComponent({
             <LabeledSelect
               :value="getScopeValue(scopeKey)"
               :get-option-label="opt=> t(opt.labelKey)"
-              :options="options"
+              :options="formOptions[scopeKey]"
               :mode="mode"
               :label-key="`gke.authScopes.scopes.&quot;${scopeKey}&quot;`"
               :disabled="disabled"
               @selecting="setScopeValue(scopeKey, $event.value)"
+            />
+          </div>
+          <div
+            v-if="nextScopeKey(index)"
+            class="col span-6"
+          >
+            <LabeledSelect
+              :value="getScopeValue(nextScopeKey(index))"
+              :get-option-label="opt=> t(opt.labelKey)"
+              :options="formOptions[nextScopeKey(index)]"
+              :mode="mode"
+              :label-key="`gke.authScopes.scopes.&quot;${nextScopeKey(index)}&quot;`"
+              :disabled="disabled"
+              @selecting="setScopeValue(nextScopeKey(index), $event.value)"
             />
           </div>
         </div>

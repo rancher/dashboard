@@ -38,6 +38,12 @@ export default defineComponent({
     },
   },
 
+  created() {
+    if (this.mode === _VIEW) {
+      this.$emit('update:isAuthenticated', true);
+    }
+  },
+
   computed: {
     ...mapGetters({ t: 'i18n/t' }),
 
@@ -48,6 +54,10 @@ export default defineComponent({
     VIEW(): string {
       return _VIEW;
     },
+
+    isView():boolean {
+      return this.mode === _VIEW;
+    }
 
   },
 
@@ -119,12 +129,13 @@ export default defineComponent({
       />
     </div>
     <div
+      :class="{'view': isView}"
       class="select-credential-container mb-10"
     >
       <SelectCredential
         :value="credential"
         data-testid="crugke-select-credential"
-        :mode="(mode === VIEW || isAuthenticated) ? VIEW : CREATE"
+        :mode="(isView|| isAuthenticated) ? VIEW : CREATE"
         provider="gcp"
         :default-on-cancel="true"
         :showing-form="!credential"
@@ -134,19 +145,21 @@ export default defineComponent({
         @credential-created="parseNewCredential"
       />
     </div>
-    <div
-      v-show="!!credential"
-      class="auth-button-container mb-10"
-    >
-      <AsyncButton
-        ref="authBtn"
-        :disabled="!credential || !project || isAuthenticated"
-        type="button"
-        class="btn role-secondary"
-        mode="authenticate"
-        @click="testProjectId"
-      />
-    </div>
+    <template v-if="!isView">
+      <div
+        v-show="!!credential"
+        class="auth-button-container mb-10"
+      >
+        <AsyncButton
+          ref="authBtn"
+          :disabled="!credential || !project || isAuthenticated"
+          type="button"
+          class="btn role-secondary"
+          mode="authenticate"
+          @click="testProjectId"
+        />
+      </div>
+    </template>
   </div>
 </template>
 
@@ -178,6 +191,10 @@ export default defineComponent({
     &>.select-credential-container{
       flex-basis: 50%;
       margin: 0 1.75% 0 0;
+
+      &.view{
+        margin: 0;
+      }
 
       &>.select-credential{
         flex-grow: 1;

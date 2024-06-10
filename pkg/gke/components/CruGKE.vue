@@ -537,10 +537,12 @@ export default defineComponent({
 
   methods: {
     loadGCPData() {
-      this.errors = [];
-      if (this.config.projectID && this.config.googleCredentialSecret) {
-        this.getMachineTypes();
-        this.getServiceAccounts();
+      if (this.mode !== _VIEW) {
+        this.errors = [];
+        if (this.config.projectID && this.config.googleCredentialSecret) {
+          this.getMachineTypes();
+          this.getServiceAccounts();
+        }
       }
     },
 

@@ -1,6 +1,6 @@
 <script lang="ts">
 import { PropType, defineComponent } from 'vue';
-import { _CREATE } from '@shell/config/query-params';
+import { _CREATE, _VIEW } from '@shell/config/query-params';
 import RadioGroup from '@components/Form/Radio/RadioGroup.vue';
 import LabeledSelect from '@shell/components/form/LabeledSelect.vue';
 import Checkbox from '@components/Form/Checkbox/Checkbox.vue';
@@ -181,6 +181,10 @@ export default defineComponent({
       return this.mode === _CREATE;
     },
 
+    isView(): boolean {
+      return this.mode === _VIEW;
+    },
+
     releaseChannel(): string | undefined {
       const cluster = (this.clustersResponse?.clusters || []).find((c) => c.name === this.clusterName);
 
@@ -308,15 +312,17 @@ export default defineComponent({
   methods: {
     // when credential/region/zone change, fetch dependent resources from gcp
     loadGCPData(loadZones = true) {
-      this.loadingVersions = true;
-      this.getVersions();
-      if (loadZones) {
-        this.loadingZones = true;
-        this.getZones();
-      }
-      // gcp clusters are fetched on edit to check this cluster's release channel & offer appropriate k8s versions
-      if (this.mode !== _CREATE) {
-        this.getClusters();
+      if (!this.isView) {
+        this.loadingVersions = true;
+        this.getVersions();
+        if (loadZones) {
+          this.loadingZones = true;
+          this.getZones();
+        }
+        // gcp clusters are fetched on edit to check this cluster's release channel & offer appropriate k8s versions
+        if (this.mode !== _CREATE) {
+          this.getClusters();
+        }
       }
     },
 
@@ -396,6 +402,7 @@ export default defineComponent({
           :tooltip="isCreate? '' :t('gke.version.tooltip')"
           :loading="loadingVersions"
           data-testid="gke-version-select"
+          :mode="mode"
           @selecting="$emit('update:kubernetesVersion', $event.value)"
         />
       </div>
@@ -430,6 +437,10 @@ export default defineComponent({
         class="col span-3 extra-zones"
       >
         <span class="text-muted">{{ t('gke.location.extraZones') }}</span>
+        <span
+          v-if="isView && !locations.length"
+          class="text-muted"
+        >&mdash;</span>
         <Checkbox
           v-for="zoneOpt in extraZoneOptions"
           :key="zoneOpt.name"
