@@ -197,7 +197,7 @@ export default defineComponent({
       isFormValid.value = true;
     };
 
-    const error = ref(null);
+    const error = ref<string | null>(null);
     const save = async(btnCB: (arg: boolean) => void) => {
       try {
         error.value = null;
@@ -218,7 +218,7 @@ export default defineComponent({
         );
         routeBack();
       } catch (err) {
-        error.value = err.message;
+        error.value = (err as Error).message;
         btnCB(false);
       }
     };
