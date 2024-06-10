@@ -1,7 +1,5 @@
-<script lang="ts">
-import {
-  defineComponent, ref, reactive, watch, onMounted
-} from 'vue';
+<script lang="ts" setup>
+import { ref, reactive, watch, onMounted } from 'vue';
 import { useRouter, onBeforeRouteUpdate } from 'vue-router/composables';
 
 import UserRetentionHeader from '@shell/components/user.retention/header';
@@ -72,183 +70,158 @@ type Setting = {
   save: () => void;
 };
 
-export default defineComponent({
-  components: {
-    Banner,
-    Checkbox,
-    LabeledInput,
-    ToggleSwitch,
-    UserRetentionHeader,
-    Footer,
-  },
-  setup() {
-    const store = useStore();
-    const userRetentionSettings = reactive<{[id: string]: string | null }>({
-      [SETTING.DISABLE_INACTIVE_USER_AFTER]: null,
-      [SETTING.DELETE_INACTIVE_USER_AFTER]:  null,
-      [SETTING.USER_RETENTION_CRON]:         null,
-      [SETTING.USER_RETENTION_DRY_RUN]:      null,
-      [SETTING.USER_LAST_LOGIN_DEFAULT]:     null,
-    });
-    const disableAfterPeriod = ref(false);
-    const deleteAfterPeriod = ref(false);
-    const loading = ref(true);
-    let settings: { [id: string]: Setting } = {};
+const store = useStore();
+const userRetentionSettings = reactive<{[id: string]: string | null }>({
+  [SETTING.DISABLE_INACTIVE_USER_AFTER]: null,
+  [SETTING.DELETE_INACTIVE_USER_AFTER]:  null,
+  [SETTING.USER_RETENTION_CRON]:         null,
+  [SETTING.USER_RETENTION_DRY_RUN]:      null,
+  [SETTING.USER_LAST_LOGIN_DEFAULT]:     null,
+});
+const disableAfterPeriod = ref(false);
+const deleteAfterPeriod = ref(false);
+const loading = ref(true);
+let settings: { [id: string]: Setting } = {};
 
-    /**
-     * Watches the disable after period and removes the value if the checkbox is
-     * not selected. Lookup the value when the checkbox is selected.
-     */
-    watch(disableAfterPeriod, (newVal) => {
-      if (!newVal) {
-        userRetentionSettings[SETTING.DISABLE_INACTIVE_USER_AFTER] = null;
+/**
+ * Watches the disable after period and removes the value if the checkbox is
+ * not selected. Lookup the value when the checkbox is selected.
+ */
+watch(disableAfterPeriod, (newVal) => {
+  if (!newVal) {
+    userRetentionSettings[SETTING.DISABLE_INACTIVE_USER_AFTER] = null;
 
-        return;
-      }
+    return;
+  }
 
-      userRetentionSettings[SETTING.DISABLE_INACTIVE_USER_AFTER] = settings[SETTING.DISABLE_INACTIVE_USER_AFTER].value;
-    });
+  userRetentionSettings[SETTING.DISABLE_INACTIVE_USER_AFTER] = settings[SETTING.DISABLE_INACTIVE_USER_AFTER].value;
+});
 
-    /**
-     * Watches the delete after period and removes the value if the checkbox is
-     * not selected. Lookup the value when the checkbox is selected.
-     */
-    watch(deleteAfterPeriod, (newVal) => {
-      if (!newVal) {
-        userRetentionSettings[SETTING.DELETE_INACTIVE_USER_AFTER] = null;
+/**
+ * Watches the delete after period and removes the value if the checkbox is
+ * not selected. Lookup the value when the checkbox is selected.
+ */
+watch(deleteAfterPeriod, (newVal) => {
+  if (!newVal) {
+    userRetentionSettings[SETTING.DELETE_INACTIVE_USER_AFTER] = null;
 
-        return;
-      }
+    return;
+  }
 
-      userRetentionSettings[SETTING.DELETE_INACTIVE_USER_AFTER] = settings[SETTING.DELETE_INACTIVE_USER_AFTER].value;
-    });
+  userRetentionSettings[SETTING.DELETE_INACTIVE_USER_AFTER] = settings[SETTING.DELETE_INACTIVE_USER_AFTER].value;
+});
 
-    /**
-     * Watches both the disable and delete after periods. Clear all values in
-     * the form if both checkboxes are not selected. If one of the checkboxes
-     * are selected, lookup each of the values in the form.
-     */
-    watch([disableAfterPeriod, deleteAfterPeriod], ([newDisableAfterPeriod, newDeleteAfterPeriod]) => {
-      if (!newDisableAfterPeriod && !newDeleteAfterPeriod) {
-        ids.forEach((key) => {
-          userRetentionSettings[key] = null;
-        });
-
-        return;
-      }
-
-      ids.filter((id) => ![SETTING.DISABLE_INACTIVE_USER_AFTER, SETTING.DELETE_INACTIVE_USER_AFTER].includes(id))
-        .forEach((key) => {
-          if (userRetentionSettings[key] === null) {
-            userRetentionSettings[key] = settings[key].value;
-          }
-        });
+/**
+ * Watches both the disable and delete after periods. Clear all values in
+ * the form if both checkboxes are not selected. If one of the checkboxes
+ * are selected, lookup each of the values in the form.
+ */
+watch([disableAfterPeriod, deleteAfterPeriod], ([newDisableAfterPeriod, newDeleteAfterPeriod]) => {
+  if (!newDisableAfterPeriod && !newDeleteAfterPeriod) {
+    ids.forEach((key) => {
+      userRetentionSettings[key] = null;
     });
 
-    const fetchSetting = async(id: string) => {
-      return await store.dispatch('management/find', { type: MANAGEMENT.SETTING, id });
-    };
+    return;
+  }
 
-    const ids = Object.keys(userRetentionSettings);
-    const settingPromises = ids.map((id) => fetchSetting(id));
-
-    onMounted(async() => {
-      settings = await Promise
-        .all(settingPromises)
-        .then((results) => results.reduce((acc, result, index) => {
-          return {
-            [ids[index]]: result,
-            ...acc,
-          };
-        }, { }));
-
-      ids.forEach((key) => {
+  ids.filter((id) => ![SETTING.DISABLE_INACTIVE_USER_AFTER, SETTING.DELETE_INACTIVE_USER_AFTER].includes(id))
+    .forEach((key) => {
+      if (userRetentionSettings[key] === null) {
         userRetentionSettings[key] = settings[key].value;
-      });
-
-      disableAfterPeriod.value = !!userRetentionSettings[SETTING.DISABLE_INACTIVE_USER_AFTER];
-      deleteAfterPeriod.value = !!userRetentionSettings[SETTING.DELETE_INACTIVE_USER_AFTER];
-      loading.value = false;
-
-      validateUserRetentionCron();
-    });
-
-    const isFormValid = ref(false);
-    const validateUserRetentionCron = () => {
-      const { [SETTING.USER_RETENTION_CRON]: cronSetting } = userRetentionSettings;
-
-      // Only require user retention cron when disable or delete after are active
-      if (!disableAfterPeriod.value && !deleteAfterPeriod.value) {
-        isFormValid.value = true;
-
-        return;
-      }
-
-      if (!cronSetting) {
-        isFormValid.value = false;
-
-        return;
-      }
-
-      if (typeof cronSetting === 'string' && !isValidCron(cronSetting)) {
-        isFormValid.value = false;
-
-        return;
-      }
-
-      isFormValid.value = true;
-    };
-
-    const error = ref<string | null>(null);
-    const save = async(btnCB: (arg: boolean) => void) => {
-      try {
-        error.value = null;
-        ids.forEach((key) => {
-          settings[key].value = userRetentionSettings[key];
-        });
-
-        await Promise.all(ids.map((setting) => settings[setting].save()));
-
-        btnCB(true);
-        store.dispatch(
-          'growl/success',
-          {
-            title:   'Save user retention settings',
-            message: 'User retention settings have been updated successfully',
-          },
-          { root: true }
-        );
-        routeBack();
-      } catch (err) {
-        error.value = (err as Error).message;
-        btnCB(false);
-      }
-    };
-
-    const router = useRouter();
-    const routeBack = () => {
-      router.back();
-    };
-
-    onBeforeRouteUpdate((_to, _from) => {
-      if (!isAdminUser(store.getters)) {
-        router.replace({ name: 'home' });
       }
     });
+});
 
-    return {
-      disableAfterPeriod,
-      deleteAfterPeriod,
-      save,
-      loading,
-      userRetentionSettings,
-      SETTING,
-      isFormValid,
-      error,
-      validateUserRetentionCron,
-      routeBack,
-    };
-  },
+const fetchSetting = async(id: string) => {
+  return await store.dispatch('management/find', { type: MANAGEMENT.SETTING, id });
+};
+
+const ids = Object.keys(userRetentionSettings);
+const settingPromises = ids.map((id) => fetchSetting(id));
+
+onMounted(async() => {
+  settings = await Promise
+    .all(settingPromises)
+    .then((results) => results.reduce((acc, result, index) => {
+      return {
+        [ids[index]]: result,
+        ...acc,
+      };
+    }, { }));
+
+  ids.forEach((key) => {
+    userRetentionSettings[key] = settings[key].value;
+  });
+
+  disableAfterPeriod.value = !!userRetentionSettings[SETTING.DISABLE_INACTIVE_USER_AFTER];
+  deleteAfterPeriod.value = !!userRetentionSettings[SETTING.DELETE_INACTIVE_USER_AFTER];
+  loading.value = false;
+
+  validateUserRetentionCron();
+});
+
+const isFormValid = ref(false);
+const validateUserRetentionCron = () => {
+  const { [SETTING.USER_RETENTION_CRON]: cronSetting } = userRetentionSettings;
+
+  // Only require user retention cron when disable or delete after are active
+  if (!disableAfterPeriod.value && !deleteAfterPeriod.value) {
+    isFormValid.value = true;
+
+    return;
+  }
+
+  if (!cronSetting) {
+    isFormValid.value = false;
+
+    return;
+  }
+
+  if (typeof cronSetting === 'string' && !isValidCron(cronSetting)) {
+    isFormValid.value = false;
+
+    return;
+  }
+
+  isFormValid.value = true;
+};
+
+const error = ref<string | null>(null);
+const save = async(btnCB: (arg: boolean) => void) => {
+  try {
+    error.value = null;
+    ids.forEach((key) => {
+      settings[key].value = userRetentionSettings[key];
+    });
+
+    await Promise.all(ids.map((setting) => settings[setting].save()));
+
+    btnCB(true);
+    store.dispatch(
+      'growl/success',
+      {
+        title:   'Save user retention settings',
+        message: 'User retention settings have been updated successfully',
+      },
+      { root: true }
+    );
+    routeBack();
+  } catch (err) {
+    error.value = (err as Error).message;
+    btnCB(false);
+  }
+};
+
+const router = useRouter();
+const routeBack = () => {
+  router.back();
+};
+
+onBeforeRouteUpdate((_to, _from) => {
+  if (!isAdminUser(store.getters)) {
+    router.replace({ name: 'home' });
+  }
 });
 </script>
 
