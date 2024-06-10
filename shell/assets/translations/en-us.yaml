@@ -1752,7 +1752,7 @@ cluster:
   banner:
     warning: 'This cluster contains a machineSelectorConfig, which this form does not fully support; use the YAML editor to manage the full configuration.'
     os: 'You are attempting to add a {newOS} worker node to a cluster with one or more {existingOS} worker nodes: some installed apps may need to be upgraded or removed.'
-    rke2-k3-reprovisioning: 'Making changes to cluster configuration may result in nodes reprovisioning. For more information see the <a href="{docsBase}/cluster-provisioning/rke-clusters/behavior-differences-between-rke1-and-rke2#cluster-api" target="_blank" rel="noopener nofollow">documentation</a>.'
+    rke2-k3-reprovisioning: 'Making changes to cluster configuration may result in nodes reprovisioning. For more information see the <a href="{docsBase}/how-to-guides/new-user-guides/launch-kubernetes-with-rancher/rke1-vs-rke2-differences#cluster-api" target="_blank" rel="noopener nofollow">documentation</a>.'
     desiredNodeGroupWarning: There are 0 nodes available to run the cluster agent. The cluster will not become active until at least one node is available.
     haveArgInfo: Configuration information is not available for the selected Kubernetes version.  The options available on this screen will be limited; you may want to use the YAML editor.
     cloudProviderAddConfig: 'On Kubernetes 1.27 or greater, the Amazon Cloud Provider requires additional configuration. See <a href="https://ranchermanager.docs.rancher.com/how-to-guides/new-user-guides/kubernetes-clusters-in-rancher-setup/set-up-cloud-providers/amazon" target="_blank" rel="noopener noreferrer nofollow">the documentation</a> for more information.'
