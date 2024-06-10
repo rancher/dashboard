@@ -2,6 +2,7 @@
 import {
   defineComponent, ref, reactive, watch, onMounted
 } from 'vue';
+import { useRouter } from 'vue-router/composables';
 
 import UserRetentionHeader from '@shell/components/user.retention/header';
 import Footer from '@shell/components/form/Footer';
@@ -203,9 +204,23 @@ export default defineComponent({
         await Promise.all(ids.map((setting) => settings[setting].save()));
 
         btnCB(true);
+        store.dispatch(
+          'growl/success',
+          {
+            title:   'Save user retention settings',
+            message: 'User retention settings have been updated successfully',
+          },
+          { root: true }
+        );
+        routeBack();
       } catch (err) {
         btnCB(false);
       }
+    };
+
+    const router = useRouter();
+    const routeBack = () => {
+      router.back();
     };
 
     return {
@@ -217,6 +232,7 @@ export default defineComponent({
       SETTING,
       isFormValid,
       validateUserRetentionCron,
+      routeBack,
     };
   },
 });
@@ -293,6 +309,7 @@ export default defineComponent({
       mode="edit"
       :disable-save="!isFormValid"
       @save="save"
+      @done="routeBack"
     />
   </div>
 </template>
