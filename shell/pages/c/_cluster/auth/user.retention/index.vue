@@ -2,13 +2,14 @@
 import {
   defineComponent, ref, reactive, watch, onMounted
 } from 'vue';
-import { useRouter } from 'vue-router/composables';
+import { useRouter, onBeforeRouteUpdate } from 'vue-router/composables';
 
 import UserRetentionHeader from '@shell/components/user.retention/header';
 import Footer from '@shell/components/form/Footer';
 import { useStore } from '@shell/composables/useStore';
 import { MANAGEMENT } from '@shell/config/types';
 import { SETTING } from '@shell/config/settings';
+import { isAdminUser } from '@shell/store/type-map';
 
 import Banner from '@components/Banner/Banner.vue';
 import Checkbox from '@components/Form/Checkbox/Checkbox.vue';
@@ -16,6 +17,7 @@ import LabeledInput from '@components/Form/LabeledInput/LabeledInput.vue';
 import { ToggleSwitch } from '@components/Form/ToggleSwitch';
 
 import { isValidCron } from 'cron-validator';
+
 type Links = {
   remove: string;
   self: string;
@@ -227,6 +229,12 @@ export default defineComponent({
     const routeBack = () => {
       router.back();
     };
+
+    onBeforeRouteUpdate((_to, _from) => {
+      if (!isAdminUser(store.getters)) {
+        router.replace({ name: 'home' });
+      }
+    });
 
     return {
       disableAfterPeriod,
