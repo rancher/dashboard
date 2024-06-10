@@ -1,69 +1,7 @@
 import Vue from 'vue';
-import { normalizeURL, withQuery, withoutTrailingSlash } from 'ufo';
+import { withQuery } from 'ufo';
 
-export function createGetCounter(counterObject, defaultKey = '') {
-  return function getCounter(id = defaultKey) {
-    if (counterObject[id] === undefined) {
-      counterObject[id] = 0;
-    }
-
-    return counterObject[id]++;
-  };
-}
-
-export function empty() {}
-
-export function globalHandleError(error) {
-  if (Vue.config.errorHandler) {
-    Vue.config.errorHandler(error);
-  }
-}
-
-export function interopDefault(promise) {
-  return promise.then((m) => m.default || m);
-}
-
-export function hasFetch(vm) {
-  return vm.$options && typeof vm.$options.fetch === 'function' && !vm.$options.fetch.length;
-}
-export function purifyData(data) {
-  if (process.env.NODE_ENV === 'production') {
-    return data;
-  }
-
-  return Object.entries(data).filter(
-    ([key, value]) => {
-      const valid = !(value instanceof Function) && !(value instanceof Promise);
-
-      if (!valid) {
-        console.warn(`${ key } is not able to be stringified. This will break in a production environment.`); // eslint-disable-line no-console
-      }
-
-      return valid;
-    }
-  ).reduce((obj, [key, value]) => {
-    obj[key] = value;
-
-    return obj;
-  }, {});
-}
-export function getChildrenComponentInstancesUsingFetch(vm, instances = []) {
-  const children = vm.$children || [];
-
-  for (const child of children) {
-    if (child.$fetch) {
-      instances.push(child);
-      continue; // Don't get the children since it will reload the template
-    }
-    if (child.$children) {
-      getChildrenComponentInstancesUsingFetch(child, instances);
-    }
-  }
-
-  return instances;
-}
-
-export function sanitizeComponent(Component) {
+const sanitizeComponent = (Component) => {
   // If Component already sanitized
   if (Component.options && Component._Ctor === Component) {
     return Component;
@@ -81,9 +19,9 @@ export function sanitizeComponent(Component) {
   }
 
   return Component;
-}
+};
 
-export function getMatchedComponents(route, matches = false, prop = 'components') {
+export const getMatchedComponents = (route, matches = false, prop = 'components') => {
   return Array.prototype.concat.apply([], route.matched.map((m, index) => {
     return Object.keys(m[prop]).map((key) => {
       matches && matches.push(index);
@@ -91,9 +29,9 @@ export function getMatchedComponents(route, matches = false, prop = 'components'
       return m[prop][key];
     });
   }));
-}
+};
 
-export function flatMapComponents(route, fn) {
+const flatMapComponents = (route, fn) => {
   return Array.prototype.concat.apply([], route.matched.map((m, index) => {
     return Object.keys(m.components).reduce((promises, key) => {
       if (m.components[key]) {
@@ -105,10 +43,9 @@ export function flatMapComponents(route, fn) {
       return promises;
     }, []);
   }));
-}
+};
 
-
-export function resolveRouteComponents(route) {
+const resolveRouteComponents = (route) => {
   return Promise.all(
     flatMapComponents(route, async (unknownComponent, instance, match, key) => {
       let componentView;
@@ -144,9 +81,9 @@ export function resolveRouteComponents(route) {
       return cleanComponent;
     })
   );
-}
+};
 
-export async function getRouteData(route) {
+export const getRouteData = async (route) => {
   if (!route) {
     return;
   }
@@ -160,9 +97,9 @@ export async function getRouteData(route) {
       return { ...Component.options.meta, ...(route.matched[index] || {}).meta };
     })
   };
-}
+};
 
-export async function setContext(app, context) {
+export const setContext = async (app, context) => {
   // If context not defined, create it
   if (!app.context) {
     app.context = {
@@ -242,66 +179,14 @@ export async function setContext(app, context) {
   app.context.isHMR = Boolean(context.isHMR);
   app.context.params = app.context.route.params || {};
   app.context.query = app.context.route.query || {};
-}
+};
 
-export function middlewareSeries(promises, appContext) {
-  if (!promises.length || appContext._redirected || appContext._errored) {
-    return Promise.resolve();
-  }
-
-  return promisify(promises[0], appContext)
-    .then(() => {
-      return middlewareSeries(promises.slice(1), appContext);
-    });
-}
-
-export function promisify(fn, context) {
-  let promise;
-
-  if (fn.length === 2) {
-    console.warn('Callback-based fetch or middleware calls are deprecated. Please switch to promises or async/await syntax'); // eslint-disable-line no-console
-
-    // fn(context, callback)
-    promise = new Promise((resolve) => {
-      fn(context, (err, data) => {
-        if (err) {
-          context.error(err);
-        }
-        data = data || {};
-        resolve(data);
-      });
-    });
-  } else {
-    promise = fn(context);
-  }
-
-  if (promise && promise instanceof Promise && typeof promise.then === 'function') {
-    return promise;
-  }
-
-  return Promise.resolve(promise);
-}
-
-// Imported from vue-router
-export function getLocation(base, mode) {
-  if (mode === 'hash') {
-    return window.location.hash.replace(/^#\//, '');
-  }
-
-  base = decodeURI(base).slice(0, -1); // consideration is base is normalized with trailing slash
-  let path = decodeURI(window.location.pathname);
-
-  if (base && path.startsWith(base)) {
-    path = path.slice(base.length);
-  }
-
-  const fullPath = (path || '/') + window.location.search + window.location.hash;
-
-  return normalizeURL(fullPath);
-}
-
-// Imported from path-to-regexp
-export function normalizeError(err) {
+/**
+ * Imported from path-to-regexp
+ * @param {*} err 
+ * @returns 
+ */
+export const normalizeError = (err) => {
   let message;
 
   if (!(err.message || typeof err === 'string')) {
@@ -319,21 +204,4 @@ export function normalizeError(err) {
     message,
     statusCode: (err.statusCode || err.status || (err.response && err.response.status) || 500)
   };
-}
-
-export function addLifecycleHook(vm, hook, fn) {
-  if (!vm.$options[hook]) {
-    vm.$options[hook] = [];
-  }
-  if (!vm.$options[hook].includes(fn)) {
-    vm.$options[hook].push(fn);
-  }
-}
-
-export const stripTrailingSlash = withoutTrailingSlash;
-
-export function setScrollRestoration(newVal) {
-  try {
-    window.history.scrollRestoration = newVal;
-  } catch (e) {}
-}
+};

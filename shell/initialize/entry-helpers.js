@@ -2,10 +2,8 @@ import { updatePageTitle } from '@shell/utils/title';
 import { getVendor } from '@shell/config/private-label';
 import middleware from '@shell/config/middleware.js';
 import {
-  middlewareSeries,
   getMatchedComponents,
   setContext,
-  globalHandleError,
 } from '@shell/utils/nuxt.js';
 
 // Global variable used on mount, updated on route change and used in the render function
@@ -59,6 +57,56 @@ export const loadDebugger = (vueApp) => {
 };
 
 /**
+ * TODO: Define this logic use case
+ * @param {*} fn 
+ * @param {*} context 
+ * @returns 
+ */
+export const promisify = (fn, context) => {
+  let promise;
+
+  if (fn.length === 2) {
+    console.warn('Callback-based fetch or middleware calls are deprecated. Please switch to promises or async/await syntax'); // eslint-disable-line no-console
+
+    // fn(context, callback)
+    promise = new Promise((resolve) => {
+      fn(context, (err, data) => {
+        if (err) {
+          context.error(err);
+        }
+        data = data || {};
+        resolve(data);
+      });
+    });
+  } else {
+    promise = fn(context);
+  }
+
+  if (promise && promise instanceof Promise && typeof promise.then === 'function') {
+    return promise;
+  }
+
+  return Promise.resolve(promise);
+};
+
+/**
+ * TODO: Define this logic use case
+ * @param {*} promises 
+ * @param {*} appContext 
+ * @returns 
+ */
+export const middlewareSeries = (promises, appContext) => {
+  if (!promises.length || appContext._redirected || appContext._errored) {
+    return Promise.resolve();
+  }
+
+  return promisify(promises[0], appContext)
+    .then(() => {
+      return middlewareSeries(promises.slice(1), appContext);
+    });
+};
+
+/**
  * Trigger errors
  * @param {*} app App view instance
  */
@@ -103,6 +151,8 @@ function callMiddleware(Components, context) {
 
   return middlewareSeries(midd, context);
 }
+
+export const globalHandleError = (error) => Vue.config.errorHandler && Vue.config.errorHandler(error);
 
 /**
  * Render function used by the router guards
