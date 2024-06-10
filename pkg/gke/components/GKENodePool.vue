@@ -4,8 +4,6 @@ import { mapGetters } from 'vuex';
 import { _CREATE, _VIEW } from '@shell/config/query-params';
 
 import Checkbox from '@components/Form/Checkbox/Checkbox.vue';
-
-import { imageTypes } from '../util/gcp';
 import LabeledInput from '@components/Form/LabeledInput/LabeledInput.vue';
 import LabeledSelect from '@shell/components/form/LabeledSelect.vue';
 import UnitInput from '@shell/components/form/UnitInput.vue';
@@ -14,6 +12,8 @@ import ArrayList from '@shell/components/form/ArrayList.vue';
 import KeyValue from '@shell/components/form/KeyValue.vue';
 
 import AuthScopes from './AuthScopes.vue';
+import { GKEImageTypes } from '../util/gcp';
+import type { GKEMachineTypeOption } from '../types/index.d.ts';
 
 export default defineComponent({
   name: 'GKENodePool',
@@ -46,7 +46,7 @@ export default defineComponent({
     },
 
     machineTypeOptions: {
-      type:    Array as PropType<{label: string, kind?: string, value?: string, disabled?: boolean, [key: string]: any}[]>,
+      type:    Array as PropType<GKEMachineTypeOption[]>,
       default: () => []
     },
 
@@ -163,7 +163,7 @@ export default defineComponent({
     },
 
     serviceAccount: {
-      type:    [String, null],
+      type:    String,
       default: null
     },
 
@@ -189,7 +189,7 @@ export default defineComponent({
     },
 
     clusterKubernetesVersion: {
-      handler(neu) {
+      handler(neu: string) {
         if (neu && this.mode === _CREATE) {
           this.$emit('update:version', neu);
         }
@@ -197,7 +197,7 @@ export default defineComponent({
       immediate: true
     },
 
-    autoscaling(neu) {
+    autoscaling(neu: boolean) {
       if (!neu) {
         this.$emit('update:minNodeCount', null);
         this.$emit('update:maxNodeCount', null);
@@ -226,7 +226,7 @@ export default defineComponent({
     },
 
     imageTypeOptions() {
-      return (imageTypes || []).map((type) => {
+      return (GKEImageTypes || []).map((type) => {
         return {
           value: type,
           label: this.t(`gke.imageType.${ type }`, null, type)
@@ -251,16 +251,16 @@ export default defineComponent({
       get() {
         return this.imageTypeOptions.find((opt) => opt.value === this.imageType) || { value: this.imageType, label: this.t(`gke.imageType.${ this.imageType }`, null, this.imageType) };
       },
-      set(neu: {label: string, kind?: string, value?: string, disabled?: boolean, [key: string]: any}) {
+      set(neu: {label: string, kind?: string, value?: string, disabled?: boolean}) {
         this.$emit('update:imageType', neu.value);
       }
     },
 
     selectedMachineType: {
-      get(): {label: string, kind?: string, value?: string, disabled?: boolean, [key: string]: any}| undefined {
+      get(): GKEMachineTypeOption | undefined {
         return this.machineTypeOptions.find((opt) => opt?.value === this.machineType);
       },
-      set(neu: {label: string, kind?: string, value?: string, disabled?: boolean, [key: string]: any}) {
+      set(neu: GKEMachineTypeOption) {
         this.$emit('update:machineType', neu.value);
       }
     },
@@ -278,7 +278,7 @@ export default defineComponent({
       get() {
         return this.serviceAccountOptions.find((opt) => opt.value === this.serviceAccount) || { label: this.serviceAccount, value: this.serviceAccount };
       },
-      set(neu) {
+      set(neu: {label: string, value: string}) {
         this.$emit('update:serviceAccount', neu.value);
       }
     }

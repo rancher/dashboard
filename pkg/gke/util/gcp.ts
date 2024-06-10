@@ -78,59 +78,7 @@ export function getGKESubnetworks(store: Store<any>, cloudCredentialId: string, 
 }
 
 export function getGKESharedSubnetworks(store: Store<any>, cloudCredentialId: string, projectId: string, location: {zone?: string, region?: string}): Promise<getGKESharedSubnetworksResponse> {
-  // return getGKEOptions('gkeSharedSubnets', store, cloudCredentialId, projectId, location);
-  // TODO nb remove this test code
-  return Promise.resolve({
-    id:          '1234',
-    kind:        'faked',
-    selfLink:    'abc',
-    subnetworks: [
-      {
-        ipCidrRange: '10.3.0.0/24',
-        network:     'projects/host-project-309915/global/networks/host-shared-vpc',
-        subnetwork:  'projects/host-project-309915/regions/us-west1/subnetworks/host-shared-vpc-us-west1-subnet-public'
-      },
-      {
-        ipCidrRange: '10.4.0.0/24',
-        network:     'projects/host-project-309915/global/networks/host-shared-vpc',
-        subnetwork:  'projects/host-project-309915/regions/us-west1/subnetworks/host-shared-vpc-us-west1-subnet-private'
-      },
-      {
-        ipCidrRange:       '10.2.0.0/24',
-        network:           'projects/host-project-309915/global/networks/host-shared-vpc',
-        secondaryIpRanges: [
-          {
-            ipCidrRange: '10.7.0.0/21',
-            rangeName:   'pods',
-            status:      'UNUSED'
-          },
-          {
-            ipCidrRange: '10.8.0.0/21',
-            rangeName:   'services',
-            status:      'UNUSED'
-          }
-        ],
-        subnetwork: 'projects/host-project-309915/regions/us-east1/subnetworks/host-shared-vpc-us-east1-subnet-private'
-      },
-      {
-        ipCidrRange:       '10.1.0.0/24',
-        network:           'projects/host-project-309915/global/networks/host-shared-vpc',
-        secondaryIpRanges: [
-          {
-            ipCidrRange: '10.5.0.0/21',
-            rangeName:   'pods',
-            status:      'UNUSED'
-          },
-          {
-            ipCidrRange: '10.6.0.0/21',
-            rangeName:   'services',
-            status:      'UNUSED'
-          }
-        ],
-        subnetwork: 'projects/host-project-309915/regions/us-east1/subnetworks/host-shared-vpc-us-east1-subnet-public'
-      }
-    ]
-  });
+  return getGKEOptions('gkeSharedSubnets', store, cloudCredentialId, projectId, location);
 }
 
 export function getGKEClusters(store: Store<any>, cloudCredentialId: string, projectId: string, location: {zone?: string, region?: string}, clusterId: string): Promise<getGKEClustersResponse> {
@@ -146,7 +94,7 @@ export function getGKEServiceAccounts(store: Store<any>, cloudCredentialId: stri
  * @param zone
  * @returns region the zone is contained in
  */
-export function regionFromZone(zone: GKEZone): string|undefined {
+export function getGKERegionFromZone(zone: GKEZone): string|undefined {
   const regionUrl = zone.region || '';
 
   return regionUrl.split('/').pop();
@@ -158,7 +106,7 @@ export function regionFromZone(zone: GKEZone): string|undefined {
  * No more docker (non _containerd) since gke 1.24 https://cloud.google.com/kubernetes-engine/docs/concepts/node-images
  * We will simply exclude those options from the UI and display a warning if the user is editing a cluster with one of them already configured
  */
-export const imageTypes = [
+export const GKEImageTypes = [
   'COS_CONTAINERD',
   'WINDOWS_LTSC_CONTAINERD',
   'UBUNTU_CONTAINERD',

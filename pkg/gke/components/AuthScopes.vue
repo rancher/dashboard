@@ -7,7 +7,7 @@ import RadioGroup from '@components/Form/Radio/RadioGroup.vue';
 import isEqual from 'lodash/isEqual';
 
 import {
-  addAuthScope, oauthScopeFormOptions, oauthScopeOptions, googleFullAuthUrl, getGoogleAuthDefaultURLs, getValueFromOauthScopes,
+  addGKEAuthScope, GKEOauthScopeFormOptions, GKEOauthScopeOptions, googleFullAuthUrl, getGoogleAuthDefaultURLs, getValueFromGKEOauthScopes,
 } from '../util/oauth';
 
 export default defineComponent({
@@ -38,9 +38,9 @@ export default defineComponent({
   created() {
     if (this.mode !== _CREATE) {
       if (this.value && this.value.length === 1 && this.value[0] === googleFullAuthUrl) {
-        this.$set(this, 'scopeMode', oauthScopeOptions.FULL);
+        this.$set(this, 'scopeMode', GKEOauthScopeOptions.FULL);
       } else if (isEqual(this.value, getGoogleAuthDefaultURLs())) {
-        this.$set(this, 'scopeMode', oauthScopeOptions.DEFAULT);
+        this.$set(this, 'scopeMode', GKEOauthScopeOptions.DEFAULT);
       }
     }
   },
@@ -49,24 +49,24 @@ export default defineComponent({
     const t = this.$store.getters['i18n/t'];
 
     return {
-      formOptions:      oauthScopeFormOptions,
-      scopeModeOptions: Object.values(oauthScopeOptions).map((opt) => {
+      formOptions:      GKEOauthScopeFormOptions,
+      scopeModeOptions: Object.values(GKEOauthScopeOptions).map((opt) => {
         return {
           label: t(`gke.authScopes.modes.${ opt }`),
           value: opt
         };
       }),
-      scopeMode: oauthScopeOptions.DEFAULT
+      scopeMode: GKEOauthScopeOptions.DEFAULT
     };
   },
 
   watch: {
     scopeMode(neu) {
       switch (neu) {
-      case oauthScopeOptions.DEFAULT:
+      case GKEOauthScopeOptions.DEFAULT:
         this.$emit('input', getGoogleAuthDefaultURLs());
         break;
-      case oauthScopeOptions.FULL:
+      case GKEOauthScopeOptions.FULL:
         this.$emit('input', [googleFullAuthUrl]);
         break;
       default:
@@ -78,12 +78,12 @@ export default defineComponent({
   computed: { ...mapGetters({ t: 'i18n/t' }) },
 
   methods: {
-    getScopeValue(scopeKey:keyof typeof oauthScopeFormOptions): string {
-      return getValueFromOauthScopes(this.value, scopeKey);
+    getScopeValue(scopeKey:keyof typeof GKEOauthScopeFormOptions): string {
+      return getValueFromGKEOauthScopes(this.value, scopeKey);
     },
 
-    setScopeValue(scopeKey: keyof typeof oauthScopeFormOptions, neu: string) {
-      const newScopes = addAuthScope(this.value, scopeKey, neu);
+    setScopeValue(scopeKey: keyof typeof GKEOauthScopeFormOptions, neu: string) {
+      const newScopes = addGKEAuthScope(this.value, scopeKey, neu);
 
       this.$emit('input', newScopes);
     },

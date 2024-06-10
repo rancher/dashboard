@@ -27,9 +27,10 @@ import Networking from './Networking.vue';
 import GKENodePoolComponent from './GKENodePool.vue';
 import Config from './Config.vue';
 import {
-  DEFAULT_GCP_ZONE, DEFAULT_GCP_SERVICE_ACCOUNT, imageTypes, getGKEMachineTypes, getGKEServiceAccounts
+  DEFAULT_GCP_ZONE, DEFAULT_GCP_SERVICE_ACCOUNT, GKEImageTypes, getGKEMachineTypes, getGKEServiceAccounts
 } from '../util/gcp';
 import type { getGKEMachineTypesResponse, getGKEServiceAccountsResponse } from '../types/gcp.d.ts';
+import type { GKEMachineTypeOption } from '../types/index.d.ts';
 import debounce from 'lodash/debounce';
 import {
   clusterNameChars, clusterNameStartEnd, requiredInCluster, ipv4WithCidr, ipv4oripv6WithCidr
@@ -45,7 +46,7 @@ const defaultNodePool = {
   config:      {
     diskSizeGb:     100,
     diskType:       defaultDiskType,
-    imageType:      imageTypes[0],
+    imageType:      GKEImageTypes[0],
     labels:         {},
     localSsdCount:  0,
     machineType:    defaultMachineType,
@@ -212,7 +213,7 @@ export default defineComponent({
       config:           { } as GKEConfig,
       membershipUpdate: {} as any,
       originalVersion:  '',
-      defaultImageType: imageTypes[0],
+      defaultImageType: GKEImageTypes[0],
       supportedVersionRange,
 
       loadingMachineTypes:     false,
@@ -470,9 +471,9 @@ export default defineComponent({
       return _VIEW;
     },
 
-    machineTypeOptions(): {label: string, kind?: string, value?: string, disabled?: boolean, [key: string]: any}[] {
+    machineTypeOptions(): GKEMachineTypeOption[] {
       const allTypes = this.machineTypesResponse?.items;
-      const out = [] as {label: string, kind?: string, value?: string, disabled?: boolean, [key: string]: any}[];
+      const out: GKEMachineTypeOption[] = [];
 
       if (!allTypes) {
         return out;
@@ -486,7 +487,8 @@ export default defineComponent({
           out.push({
             label:    group,
             disabled: true,
-            kind:     'group'
+            kind:     'group',
+            name:     group,
           });
         }
         out.push( {
@@ -538,7 +540,7 @@ export default defineComponent({
   methods: {
     loadGCPData() {
       if (this.mode !== _VIEW) {
-        this.errors = [];
+        this.$set(this, 'errors', []);
         if (this.config.projectID && this.config.googleCredentialSecret) {
           this.getMachineTypes();
           this.getServiceAccounts();
@@ -546,30 +548,36 @@ export default defineComponent({
       }
     },
 
-    getMachineTypes() {
+    async getMachineTypes() {
       this.loadingMachineTypes = true;
       const zone = this.config.zone || this.config.locations?.[0];
 
-      getGKEMachineTypes(this.$store, this.config.googleCredentialSecret, this.config.projectID, { zone, region: this.config.region }).then((res) => {
+      try {
+        const res = await getGKEMachineTypes(this.$store, this.config.googleCredentialSecret, this.config.projectID, { zone, region: this.config.region });
+
         this.machineTypesResponse = res;
-        this.loadingMachineTypes = false;
-      }).catch((err) => {
-        this.errors.push(err);
-        this.loadingMachineTypes = false;
-      });
+      } catch (err: any) {
+        const errors: string[] = this.errors;
+
+        errors.push(err);
+      }
+      this.loadingMachineTypes = false;
     },
 
-    getServiceAccounts() {
+    async getServiceAccounts() {
       this.loadingServiceAccounts = true;
       const zone = this.config.zone || this.config.locations?.[0];
 
-      getGKEServiceAccounts(this.$store, this.config.googleCredentialSecret, this.config.projectID, { zone, region: this.config.region }).then((res) => {
+      try {
+        const res = await getGKEServiceAccounts(this.$store, this.config.googleCredentialSecret, this.config.projectID, { zone, region: this.config.region });
+
         this.serviceAccountsResponse = res;
-        this.loadingServiceAccounts = false;
-      }).catch((err) => {
-        this.errors.push(err);
-        this.loadingServiceAccounts = false;
-      });
+      } catch (err:any) {
+        const errors: string[] = this.errors;
+
+        errors.push(err);
+      }
+      this.loadingServiceAccounts = false;
     },
 
     addPool(): void {
@@ -583,8 +591,10 @@ export default defineComponent({
       this.nodePools.push(neu);
 
       this.$nextTick(() => {
-        if ( this.$refs.pools?.select ) {
-          this.$refs.pools.select(poolName);
+        const pools = this.$refs.pools as any as typeof Tabbed;
+
+        if ( pools && pools.select ) {
+          pools.select(poolName);
         }
       });
     },
@@ -645,8 +655,10 @@ export default defineComponent({
 
     // fires when the 'cancel' button is pressed while the user is creating a new cloud credential
     cancelCredential(): void {
-      if ( this.$refs.cruresource ) {
-        (this.$refs.cruresource as any).emitOrRoute();
+      const cruresource = this.$refs.cruresource as any as typeof CruResource;
+
+      if ( cruresource ) {
+        cruresource.emitOrRoute();
       }
     },
   },

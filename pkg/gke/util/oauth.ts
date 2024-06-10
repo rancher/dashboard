@@ -8,7 +8,7 @@
  * keys of this object are each a gcp api to which access may be granted
  * values are the labeledselect options for that key
  */
-export const oauthScopeFormOptions = {
+export const GKEOauthScopeFormOptions = {
   userinfo: [
     {
       labelKey: 'gke.authScopes.options.none',
@@ -270,7 +270,7 @@ export const oauthScopeFormOptions = {
  * full = [googleFullAuthUrl]
  * custom = show the user a big ol form
  */
-export const oauthScopeOptions = {
+export const GKEOauthScopeOptions = {
   DEFAULT: 'default',
   FULL:    'full',
   CUSTOM:  'custom'
@@ -301,7 +301,7 @@ export function getGoogleAuthDefaultURLs(): string[] {
  * @param defaultValue
  * @returns
  */
-export function getValueFromOauthScopes(oauthScopes: string[], key: string): string {
+export function getValueFromGKEOauthScopes(oauthScopes: string[], key: string): string {
   const filteredValues = oauthScopes
     .filter((scope) => scope.indexOf(key) !== -1)
     .map((scope) => {
@@ -325,12 +325,12 @@ export function getValueFromOauthScopes(oauthScopes: string[], key: string): str
  * Add a new auth scope to oauthscopes and remove any existing auth urls for that scope key
  * (ie if adding compute.readOnly, make sure there is no compute.readWrite auth url in oauthscopes)
  * @param oauthScopes gkeconfig.nodepools[].config.oauthscopes
- * @param scopeKey gcp api being scoped - will be one of the keys in oauthScopeFormOptions
- * @param scope new scope value to apply - will be one of the values in oauthScopeFormOptions[scopeKey]
+ * @param scopeKey gcp api being scoped - will be one of the keys in GKEOauthScopeFormOptions
+ * @param scope new scope value to apply - will be one of the values in GKEOauthScopeFormOptions[scopeKey]
  * @returns a new oauthscopes array
  */
-export function addAuthScope(oauthScopes: string[], scopeKey: keyof typeof oauthScopeFormOptions, scope: string): string[] {
-  const scopeKeyURLOptions = oauthScopeFormOptions[scopeKey].reduce((all: string[], { value }) => {
+export function addGKEAuthScope(oauthScopes: string[], scopeKey: keyof typeof GKEOauthScopeFormOptions, scope: string): string[] {
+  const scopeKeyURLOptions = GKEOauthScopeFormOptions[scopeKey].reduce((all: string[], { value }) => {
     if (value !== 'none') {
       const url = `${ googleAuthURLPrefix }${ value }`;
 

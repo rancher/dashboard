@@ -16,8 +16,8 @@ interface GKENetwork {
     routingMode: string
   },
   selfLink: string,
-selfLinkWIthId: string,
-subnetworks: string[]
+  selfLinkWIthId: string,
+  subnetworks: string[]
 }
 
 export interface GKESubnetwork{

@@ -217,7 +217,7 @@ export default defineComponent({
   </div>
 </template>
 
-<style lang="scss">
+<style scoped lang="scss">
 .feature-checkboxes {
   display: flex;
   flex-direction: column;

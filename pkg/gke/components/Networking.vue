@@ -13,6 +13,7 @@ import type { getGKESubnetworksResponse, getGKESharedSubnetworksResponse } from 
 import debounce from 'lodash/debounce';
 import { getGKENetworksResponse, GKESubnetwork, GKENetwork } from '../types/gcp';
 import Banner from '@components/Banner/Banner.vue';
+import { GKENetworkOption, GKESubnetworkOption, GKESecondaryRangeOption } from 'types';
 
 const GKE_NONE_OPTION = 'none';
 
@@ -216,7 +217,7 @@ export default defineComponent({
       }
     },
 
-    clusterSecondaryRangeOptions(neu = []) {
+    clusterSecondaryRangeOptions(neu: GKESecondaryRangeOption[] = []) {
       const { servicesSecondaryRangeName, clusterSecondaryRangeName } = this;
 
       if (servicesSecondaryRangeName) {
@@ -275,33 +276,40 @@ export default defineComponent({
       }
     },
 
-    getNetworks() {
-      getGKENetworks(this.$store, this.cloudCredentialId, this.projectId, { zone: this.zone, region: this.region }).then((res) => {
+    async getNetworks() {
+      try {
+        const res = await getGKENetworks(this.$store, this.cloudCredentialId, this.projectId, { zone: this.zone, region: this.region });
+
         this.networksResponse = res;
-      }).catch((err) => {
+      } catch (err:any) {
         this.$emit('error', err);
-      });
+      }
     },
 
-    getSubnetworks() {
+    async getSubnetworks() {
       let { region, zone } = this;
 
       if (!region && !!zone) {
         region = `${ zone.split('-')[0] }-${ zone.split('-')[1] }`;
       }
-      getGKESubnetworks(this.$store, this.cloudCredentialId, this.projectId, { region }).then((res) => {
+
+      try {
+        const res = await getGKESubnetworks(this.$store, this.cloudCredentialId, this.projectId, { region });
+
         this.subnetworksResponse = res;
-      }).catch((err) => {
+      } catch (err:any) {
         this.$emit('error', err);
-      });
+      }
     },
 
-    getSharedSubnetworks() {
-      return getGKESharedSubnetworks(this.$store, this.cloudCredentialId, this.projectId, { zone: this.zone, region: this.region }).then((res) => {
+    async getSharedSubnetworks() {
+      try {
+        const res = await getGKESharedSubnetworks(this.$store, this.cloudCredentialId, this.projectId, { zone: this.zone, region: this.region });
+
         this.sharedSubnetworksResponse = res;
-      }).catch((err) => {
+      } catch (err:any) {
         this.$emit('error', err);
-      });
+      }
     },
 
     /**
@@ -347,12 +355,15 @@ export default defineComponent({
 
     sharedNetworks(): {[key: string]: GKESubnetwork[]} {
       const allSharedSubnetworks = this.sharedSubnetworksResponse?.subnetworks || [];
-      const networks = {} as any;
+      const networks: {[key: string]: GKESubnetwork[]} = {};
 
       allSharedSubnetworks.forEach((s) => {
-        const network = (s.network).split('/').pop() || s.network;
+        if (!s.network) {
+          return;
+        }
+        const network = s.network.split('/').pop() || s.network;
 
-        if (network && !networks[network]) {
+        if (!networks[network]) {
           networks[network] = [];
         }
         networks[network].push(s);
@@ -361,8 +372,8 @@ export default defineComponent({
       return networks;
     },
 
-    networkOptions() {
-      const out = [];
+    networkOptions(): GKENetworkOption[] {
+      const out: GKENetworkOption[] = [];
       const unshared = (this.networksResponse?.items || []).map((n) => {
         const subnetworksAvailable = this.subnetworks.find((s) => s.network === n.selfLink);
 
@@ -395,8 +406,8 @@ export default defineComponent({
       return out;
     },
 
-    subnetworkOptions(): {label: string, name: string, secondaryIpRanges?: any[]}[] {
-      const out = [] as any;
+    subnetworkOptions(): GKESubnetworkOption[] {
+      const out: any[] = [];
       const isShared = !!this.sharedNetworks[this.network];
 
       if (isShared) {
@@ -405,7 +416,7 @@ export default defineComponent({
         out.push(...(this.subnetworks.filter((s) => s.network.split('/').pop() === this.network) || []));
       }
 
-      const labeled = out.map((sn: GKESubnetwork) => {
+      const labeled: GKESubnetworkOption[] = out.map((sn: GKESubnetwork) => {
         const name = sn.name ? sn.name : (sn.subnetwork || '').split('/').pop();
 
         return {
@@ -420,15 +431,18 @@ export default defineComponent({
       return labeled;
     },
 
-    clusterSecondaryRangeOptions(): {rangeName: string, ipCidrRange?: string, label: string}[] {
-      if (this.selectedSubnetwork && this.selectedSubnetwork.name === GKE_NONE_OPTION) {
+    clusterSecondaryRangeOptions(): GKESecondaryRangeOption[] {
+      if (typeof this.selectedSubnetwork === 'string') {
+        return [];
+      }
+      if (this.selectedSubnetwork && this.selectedSubnetwork?.name === GKE_NONE_OPTION) {
         return [{
           label:     this.t('generic.none'),
           rangeName: GKE_NONE_OPTION
         }];
       }
 
-      const out: {rangeName: string, ipCidrRange?: string, label: string}[] = (this.selectedSubnetwork?.secondaryIpRanges || []).map(({ ipCidrRange, rangeName }) => {
+      const out: GKESecondaryRangeOption[] = (this.selectedSubnetwork?.secondaryIpRanges || []).map(({ ipCidrRange, rangeName }) => {
         return {
           rangeName,
           ipCidrRange,
@@ -467,7 +481,7 @@ export default defineComponent({
     },
 
     selectedSubnetwork: {
-      get(): {label: string, name: string, secondaryIpRanges?: any[]} | undefined | string {
+      get(): GKESubnetworkOption | undefined | string {
         const { subnetwork } = this;
 
         if (this.isView) {
@@ -479,7 +493,7 @@ export default defineComponent({
 
         return this.subnetworkOptions.find((n) => n.name === subnetwork);
       },
-      set(neu:{name:string}) {
+      set(neu: GKESubnetworkOption) {
         if (neu.name === GKE_NONE_OPTION) {
           this.$emit('update:subnetwork', '');
         } else {
@@ -489,18 +503,19 @@ export default defineComponent({
     },
 
     selectedClusterSecondaryRangeName: {
-      get(): {rangeName: string, ipCidrRange?: string, label: string} | undefined | string {
+      get(): GKESecondaryRangeOption | undefined | string {
+        const noneOption = {
+          label:     this.t('generic.none'),
+          rangeName: GKE_NONE_OPTION
+        };
+
         if (this.isView) {
-          return this.clusterSecondaryRangeName || GKE_NONE_OPTION;
+          return this.clusterSecondaryRangeName || noneOption;
         }
-        if (!this.clusterSecondaryRangeName) {
-          return {
-            label:     this.t('generic.none'),
-            rangeName: GKE_NONE_OPTION
-          };
-        } else return this.clusterSecondaryRangeOptions.find((opt) => opt.rangeName === this.clusterSecondaryRangeName);
+
+        return this.clusterSecondaryRangeOptions.find((opt) => opt.rangeName === this.clusterSecondaryRangeName) || noneOption;
       },
-      set(neu: {rangeName: string, ipCidrRange?: string, label: string} ) {
+      set(neu: GKESecondaryRangeOption ) {
         if (neu.rangeName === GKE_NONE_OPTION) {
           this.$emit('update:clusterSecondaryRangeName', '');
           this.$emit('update:clusterIpv4CidrBlock', '');
@@ -512,18 +527,19 @@ export default defineComponent({
     },
 
     selectedServicesSecondaryRangeName: {
-      get(): {rangeName: string, ipCidrRange?: string, label: string} | undefined | string {
+      get(): GKESecondaryRangeOption | undefined | string {
+        const noneOption = {
+          label:     this.t('generic.none'),
+          rangeName: GKE_NONE_OPTION
+        };
+
         if (this.isView) {
-          return this.servicesSecondaryRangeName || GKE_NONE_OPTION;
+          return this.servicesSecondaryRangeName || noneOption;
         }
-        if (!this.servicesSecondaryRangeName) {
-          return {
-            label:     this.t('generic.none'),
-            rangeName: GKE_NONE_OPTION
-          };
-        } else return this.clusterSecondaryRangeOptions.find((opt) => opt.rangeName === this.servicesSecondaryRangeName);
+
+        return this.clusterSecondaryRangeOptions.find((opt) => opt.rangeName === this.servicesSecondaryRangeName) || noneOption;
       },
-      set(neu: {rangeName: string, ipCidrRange?: string, label: string}) {
+      set(neu: GKESecondaryRangeOption) {
         if (neu.rangeName === GKE_NONE_OPTION) {
           this.$emit('update:servicesSecondaryRangeName', '');
           this.$emit('update:servicesIpv4CidrBlock', '');
@@ -533,6 +549,22 @@ export default defineComponent({
         }
       }
     },
+
+    disableClusterIpv4CidrBlock() {
+      if (typeof this.selectedClusterSecondaryRangeName === 'string') {
+        return true;
+      }
+
+      return (!!this.selectedClusterSecondaryRangeName && !!this.selectedClusterSecondaryRangeName.ipCidrRange) || !this.isNewOrUnprovisioned;
+    },
+
+    disableServicesIpv4CidrBlock() {
+      if (typeof this.selectedServicesSecondaryRangeName === 'string') {
+        return true;
+      }
+
+      return (!!this.selectedServicesSecondaryRangeName && !!this.selectedServicesSecondaryRangeName.ipCidrRange) || !this.isNewOrUnprovisioned;
+    }
   }
 
 });
@@ -608,7 +640,7 @@ export default defineComponent({
           :mode="mode"
           label-key="gke.clusterIpv4CidrBlock.label"
           :placeholder="t('gke.clusterIpv4Cidr.placeholder')"
-          :disabled="(!!selectedClusterSecondaryRangeName && !!selectedClusterSecondaryRangeName.ipCidrRange)|| !isNewOrUnprovisioned"
+          :disabled="disableClusterIpv4CidrBlock"
           :rules="rules.clusterIpv4CidrBlock"
           data-testid="gke-cluster-secondary-range-cidr-input"
           @input="$emit('update:clusterIpv4CidrBlock', $event)"
@@ -641,7 +673,7 @@ export default defineComponent({
           :mode="mode"
           label-key="gke.servicesIpv4CidrBlock.label"
           :placeholder="t('gke.clusterIpv4Cidr.placeholder')"
-          :disabled="(!!selectedServicesSecondaryRangeName && !!selectedServicesSecondaryRangeName.ipCidrRange)|| !isNewOrUnprovisioned"
+          :disabled="disableServicesIpv4CidrBlock"
           :rules="rules.servicesIpv4CidrBlock"
           @input="$emit('update:servicesIpv4CidrBlock', $event)"
         />

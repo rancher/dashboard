@@ -5,7 +5,7 @@ import RadioGroup from '@components/Form/Radio/RadioGroup.vue';
 import LabeledSelect from '@shell/components/form/LabeledSelect.vue';
 import Checkbox from '@components/Form/Checkbox/Checkbox.vue';
 import {
-  DEFAULT_GCP_REGION, DEFAULT_GCP_ZONE, getGKEZones, regionFromZone,
+  DEFAULT_GCP_REGION, DEFAULT_GCP_ZONE, getGKEZones, getGKERegionFromZone,
   getGKEVersions, getGKEClusters,
 
 } from '../util/gcp';
@@ -210,7 +210,7 @@ export default defineComponent({
       const out: {[key:string]: any[]} = {};
 
       this.zones.forEach((zone: any) => {
-        const regionName = regionFromZone(zone);
+        const regionName = getGKERegionFromZone(zone);
 
         if (regionName) {
           if (!out[regionName]) {
@@ -237,9 +237,9 @@ export default defineComponent({
         if (!zoneOption) {
           return [];
         }
-        const region = regionFromZone(zoneOption);
+        const region = getGKERegionFromZone(zoneOption);
 
-        return (this.zonesByRegion[region] || []).filter((zone) => zone.name !== this.zone);
+        return region ? (this.zonesByRegion[region] || []).filter((zone) => zone.name !== this.zone) : [];
       }
 
       return [];
@@ -483,7 +483,7 @@ export default defineComponent({
   </div>
 </template>
 
-<style lang="scss">
+<style scoped lang="scss">
 .location-row{
   display: flex;
   align-items: center;

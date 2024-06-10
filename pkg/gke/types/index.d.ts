@@ -1,3 +1,5 @@
+import { GKEMachineType, GKENetwork, GKESubnetwork } from 'types/gcp';
+
 export interface GKENodePool {
   autoscaling: {
     enabled?: boolean,
@@ -73,4 +75,27 @@ export interface GKEConfig {
   region: string,
   subnetwork: string,
   zone: string
+}
+
+export interface GKEMachineTypeOption extends GKEMachineType {
+  label: string,
+  kind?:string,
+  value?:string,
+  disabled?:boolean,
+}
+
+export interface GKENetworkOption extends Partial<GKENetwork>{
+  label: string,
+  kind?: string,
+  disabled?: boolean,
+}
+
+export interface GKESubnetworkOption extends Partial<GKESubnetwork>{
+  label: string,
+}
+
+export interface GKESecondaryRangeOption {
+  label: string,
+  rangeName: string,
+  ipCidrRange?: string
 }

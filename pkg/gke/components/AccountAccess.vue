@@ -163,7 +163,7 @@ export default defineComponent({
   </div>
 </template>
 
-<style lang="scss">
+<style scoped lang="scss">
   .credential-project {
     display: flex;
 

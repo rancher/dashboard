@@ -366,7 +366,7 @@ export function getGKEClusters() {
   });
 }
 
-export function regionFromZone(zone): string|undefined {
+export function getGKERegionFromZone(zone): string|undefined {
   const regionUrl = zone.region || '';
 
   return regionUrl.split('/').pop();
