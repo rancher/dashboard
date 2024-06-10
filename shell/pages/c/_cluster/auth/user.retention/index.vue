@@ -143,7 +143,7 @@ const settingPromises = ids.map((id) => fetchSetting(id));
 onMounted(async() => {
   settings = await Promise
     .all(settingPromises)
-    .then((results) => results.reduce((acc, result, index) => {
+    .then((results) => results.reduce((acc, result) => {
       return {
         [result.id]: result,
         ...acc,
@@ -245,8 +245,9 @@ onBeforeRouteUpdate((_to, _from) => {
         />
         <labeled-input
           v-model="userRetentionSettings[SETTING.DISABLE_INACTIVE_USER_AFTER]"
+          tooltip="Uses duration units (i.e. use 30d for 30 days)"
           class="input-field"
-          label="Inactivity period (days)"
+          label="Inactivity period"
           :disabled="!disableAfterPeriod"
         />
       </div>
@@ -257,15 +258,17 @@ onBeforeRouteUpdate((_to, _from) => {
         />
         <labeled-input
           v-model="userRetentionSettings[SETTING.DELETE_INACTIVE_USER_AFTER]"
+          tooltip="Uses duration units (i.e. use 30d for 30 days)"
           class="input-field"
-          label="Inactivity period (days)"
+          label="Inactivity period"
+          sub-label="This value must be larger than the Disable period, if it's active"
           :disabled="!deleteAfterPeriod"
         />
       </div>
       <template
         v-if="disableAfterPeriod || deleteAfterPeriod"
       >
-        <div class="input-fieldset">
+        <div class="input-fieldset pt-12">
           <labeled-input
             v-model="userRetentionSettings[SETTING.USER_RETENTION_CRON]"
             class="input-field"
