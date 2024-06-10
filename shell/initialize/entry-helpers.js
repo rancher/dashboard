@@ -265,7 +265,9 @@ export async function mountApp(appPartials, VueClass) {
   // Add beforeEach router hooks
   router.beforeEach(render.bind(vueApp));
   router.afterEach((from, to) => {
-    updatePageTitle(getVendor());
+    if (from?.name !== to?.name) {
+      updatePageTitle(getVendor());
+    }
   });
 
   // First render on client-side

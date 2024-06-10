@@ -2,14 +2,14 @@ import { SETUP } from '@shell/config/query-params';
 import { SETTING } from '@shell/config/settings';
 import { MANAGEMENT, NORMAN } from '@shell/config/types';
 import { tryInitialSetup } from '@shell/utils/auth';
-import { routeNameMatched } from '@shell/utils/router';
+import { routeRequiresAuthentication } from '@shell/utils/router';
 
 export function install(router, context) {
   router.beforeEach((to, from, next) => attemptFirstLogin(to, from, next, context));
 }
 
 export async function attemptFirstLogin(to, from, next, { store }) {
-  if (routeNameMatched(to, 'unauthenticated')) {
+  if (!routeRequiresAuthentication(to)) {
     return next();
   }
 

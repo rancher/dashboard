@@ -6,9 +6,7 @@ import dynamicPluginLoader from '@shell/pkg/dynamic-plugin-loader';
 import { AFTER_LOGIN_ROUTE, WORKSPACE } from '@shell/store/prefs';
 import { BACK_TO } from '@shell/config/local-storage';
 import { NAME as FLEET_NAME } from '@shell/config/product/fleet.js';
-import {
-  validateResource, setProduct, isLoggedIn, notLoggedIn, noAuth, findMe
-} from '@shell/utils/auth';
+import { validateResource, setProduct } from '@shell/utils/auth';
 import { getClusterFromRoute, getProductFromRoute, getPackageFromRoute } from '@shell/utils/router';
 
 let beforeEachSetup = false;
@@ -17,52 +15,7 @@ export default async function({
   route, store, redirect, from, $plugin, next
 }) {
   if ( store.getters['auth/enabled'] !== false && !store.getters['auth/loggedIn'] ) {
-    // `await` so we have one successfully request whilst possibly logged in (ensures fromHeader is populated from `x-api-cattle-auth`)
-    await store.dispatch('auth/getUser');
-
-    const v3User = store.getters['auth/v3User'] || {};
-
-    if (v3User?.mustChangePassword) {
-      return redirect({ name: 'auth-setup' });
-    }
-
-    // In newer versions the API calls return the auth state instead of having to make a new call all the time.
-    const fromHeader = store.getters['auth/fromHeader'];
-
-    if ( fromHeader === 'none' ) {
-      noAuth(store);
-    } else if ( fromHeader === 'true' ) {
-      const me = await findMe(store);
-
-      isLoggedIn(store, me);
-    } else if ( fromHeader === 'false' ) {
-      notLoggedIn(store, redirect, route);
-
-      return;
-    } else {
-      // Older versions look at principals and see what happens
-      try {
-        const me = await findMe(store);
-
-        isLoggedIn(store, me);
-      } catch (e) {
-        const status = e?._status;
-
-        if ( status === 404 ) {
-          noAuth(store);
-        } else {
-          if ( status === 401 ) {
-            notLoggedIn(store, redirect, route);
-          } else {
-            store.commit('setError', { error: e, locationError: new Error('Auth Middleware') });
-          }
-
-          return;
-        }
-      }
-    }
-
-    store.dispatch('gcStartIntervals');
+    return;
   }
 
   const backTo = window.localStorage.getItem(BACK_TO);
