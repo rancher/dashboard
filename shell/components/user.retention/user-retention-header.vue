@@ -11,7 +11,7 @@ import TabTitle from '@shell/components/TabTitle';
           class="m-0"
         >
           <TabTitle :show-child="false">
-            Users: Settings
+            {{ t('user.retention.edit.title.header') }}
           </TabTitle>
           <router-link
             :to="{
@@ -23,12 +23,12 @@ import TabTitle from '@shell/components/TabTitle';
               }
             }"
           >
-            Users:
+            {{ t('user.retention.edit.title.pre') }}
           </router-link>
-          Settings
+          {{ t('user.retention.edit.title.post') }}
         </h1>
       </div>
     </header>
-    <h2>User retention</h2>
+    <h2>{{ t('user.retention.edit.title.subTitle') }}</h2>
   </div>
 </template>
