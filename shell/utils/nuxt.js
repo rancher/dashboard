@@ -22,80 +22,87 @@ const sanitizeComponent = (Component) => {
 };
 
 export const getMatchedComponents = (route, matches = false, prop = 'components') => {
-  return Array.prototype.concat.apply([], route.matched.map((m, index) => {
-    return Object.keys(m[prop]).map((key) => {
+  return Array.prototype.concat.apply([], route.matched.map((match, index) => {
+    return Object.keys(match[prop]).map((key) => {
       matches && matches.push(index);
 
-      return m[prop][key];
+      return match[prop][key];
     });
   }));
 };
 
-const flatMapComponents = (route, fn) => {
-  return Array.prototype.concat.apply([], route.matched.map((m, index) => {
-    return Object.keys(m.components).reduce((promises, key) => {
-      if (m.components[key]) {
-        promises.push(fn(m.components[key], m.instances[key], m, key, index));
-      } else {
-        delete m.components[key];
-      }
+const getComponent = async (unknownComponent) => {
+  let componentView;
+  // If component is a function, resolve it
+  if (typeof unknownComponent === 'function' && !unknownComponent.options) {
+    try {
+      componentView = await unknownComponent();
+    } catch (error) {
+      // Handle webpack chunk loading errors
+      // This may be due to a new deployment or a network problem
+      if (
+        error &&
+        error.name === 'ChunkLoadError' &&
+        typeof window !== 'undefined' &&
+        window.sessionStorage
+      ) {
+        const timeNow = Date.now();
+        const previousReloadTime = parseInt(window.sessionStorage.getItem('nuxt-reload'));
 
-      return promises;
-    }, []);
-  }));
-};
-
-const resolveRouteComponents = (route) => {
-  return Promise.all(
-    flatMapComponents(route, async (unknownComponent, instance, match, key) => {
-      let componentView;
-      // If component is a function, resolve it
-      if (typeof unknownComponent === 'function' && !unknownComponent.options) {
-        try {
-          componentView = await unknownComponent();
-        } catch (error) {
-          // Handle webpack chunk loading errors
-          // This may be due to a new deployment or a network problem
-          if (
-            error &&
-            error.name === 'ChunkLoadError' &&
-            typeof window !== 'undefined' &&
-            window.sessionStorage
-          ) {
-            const timeNow = Date.now();
-            const previousReloadTime = parseInt(window.sessionStorage.getItem('nuxt-reload'));
-
-            // check for previous reload time not to reload infinitely
-            if (!previousReloadTime || previousReloadTime + 60000 < timeNow) {
-              window.sessionStorage.setItem('nuxt-reload', timeNow);
-              window.location.reload(true /* skip cache */);
-            }
-          }
-
-          throw error;
+        // check for previous reload time not to reload infinitely
+        if (!previousReloadTime || previousReloadTime + 60000 < timeNow) {
+          window.sessionStorage.setItem('nuxt-reload', timeNow);
+          window.location.reload(true /* skip cache */);
         }
       }
-      const cleanComponent = sanitizeComponent(componentView || unknownComponent);
-      match.components[key] = cleanComponent;
 
-      return cleanComponent;
-    })
-  );
+      throw error;
+    }
+  }
+
+  return componentView || unknownComponent;
 };
 
+/**
+ * Update matched components for a given route
+ * @param {*} route 
+ * @returns 
+ */
+export const cleanMatchedComponents = (route) =>
+  Array.prototype.concat.apply([], route.matched.map((match, index) =>
+    Object.keys(match.components).reduce(async(acc, key) => {
+      if (match.components[key]) {
+        const component = await getComponent(match.components[key], match.instances[key], match, key, index);
+        const cleanComponent = sanitizeComponent(component);
+        match.components[key] = cleanComponent;
+        acc.push(cleanComponent);
+      } else {
+        delete match.components[key];
+      }
+
+      return acc;
+    }, [])
+  ));
+
+  /**
+   * Merge route meta with component meta and update matched components
+   * @param {*} route 
+   * @returns 
+   */
 export const getRouteData = async (route) => {
   if (!route) {
     return;
   }
   // Make sure the components are resolved (code-splitting)
-  await resolveRouteComponents(route);
+  await Promise.all(cleanMatchedComponents(route));
+  const meta = getMatchedComponents(route).map(
+    (matchedComponent, index) => ({ ...matchedComponent.options.meta, ...(route.matched[index] || {}).meta })
+  )
 
   // Send back a copy of route with meta based on Component definition
   return {
     ...route,
-    meta: getMatchedComponents(route).map((Component, index) => {
-      return { ...Component.options.meta, ...(route.matched[index] || {}).meta };
-    })
+    meta
   };
 };
 
