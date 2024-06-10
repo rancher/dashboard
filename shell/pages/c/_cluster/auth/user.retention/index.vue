@@ -10,6 +10,7 @@ import { useStore } from '@shell/composables/useStore';
 import { MANAGEMENT } from '@shell/config/types';
 import { SETTING } from '@shell/config/settings';
 
+import Banner from '@components/Banner/Banner.vue';
 import Checkbox from '@components/Form/Checkbox/Checkbox.vue';
 import LabeledInput from '@components/Form/LabeledInput/LabeledInput.vue';
 import { ToggleSwitch } from '@components/Form/ToggleSwitch';
@@ -71,6 +72,7 @@ type Setting = {
 
 export default defineComponent({
   components: {
+    Banner,
     Checkbox,
     LabeledInput,
     ToggleSwitch,
@@ -195,8 +197,10 @@ export default defineComponent({
       isFormValid.value = true;
     };
 
+    const error = ref(null);
     const save = async(btnCB: (arg: boolean) => void) => {
       try {
+        error.value = null;
         ids.forEach((key) => {
           settings[key].value = userRetentionSettings[key];
         });
@@ -214,6 +218,7 @@ export default defineComponent({
         );
         routeBack();
       } catch (err) {
+        error.value = err.message;
         btnCB(false);
       }
     };
@@ -231,6 +236,7 @@ export default defineComponent({
       userRetentionSettings,
       SETTING,
       isFormValid,
+      error,
       validateUserRetentionCron,
       routeBack,
     };
@@ -246,6 +252,12 @@ export default defineComponent({
       v-if="!loading"
       class="form-user-retention"
     >
+      <banner
+        v-if="error"
+        color="error"
+      >
+        {{ error }}
+      </banner>
       <div class="input-fieldset">
         <checkbox
           v-model="disableAfterPeriod"
