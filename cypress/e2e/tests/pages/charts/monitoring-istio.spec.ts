@@ -265,7 +265,7 @@ describe('Charts', { tags: ['@charts', '@adminUser'] }, () => {
 
         cy.intercept('POST', 'v1/catalog.cattle.io.clusterrepos/rancher-charts?action=install').as('chartInstall');
         installChart.installChart();
-        cy.wait('@chartInstall', { requestTimeout: 60000 }).its('response.statusCode').should('eq', 201);
+        cy.wait('@chartInstall', LONG_TIMEOUT_OPT).its('response.statusCode').should('eq', 201);
 
         terminal.waitForTerminalToBeVisible();
         terminal.closeTerminal();

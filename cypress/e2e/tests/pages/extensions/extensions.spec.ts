@@ -3,7 +3,6 @@ import RepositoriesPagePo from '@/cypress/e2e/po/pages/chart-repositories.po';
 import PromptRemove from '@/cypress/e2e/po/prompts/promptRemove.po';
 import BurgerMenuPo from '@/cypress/e2e/po/side-bars/burger-side-menu.po';
 import { LoginPagePo } from '@/cypress/e2e/po/pages/login-page.po';
-import { LONG_TIMEOUT_OPT } from '~/cypress/support/utils/timeouts';
 
 const UNAUTHENTICATED_EXTENSION_NAME = 'uk-locale';
 const EXTENSION_NAME = 'clock';
