@@ -187,28 +187,3 @@ export const setContext = async (app, context) => {
   app.context.params = app.context.route.params || {};
   app.context.query = app.context.route.query || {};
 };
-
-/**
- * Imported from path-to-regexp
- * @param {*} err 
- * @returns 
- */
-export const normalizeError = (err) => {
-  let message;
-
-  if (!(err.message || typeof err === 'string')) {
-    try {
-      message = JSON.stringify(err, null, 2);
-    } catch (e) {
-      message = `[${ err.constructor.name }]`;
-    }
-  } else {
-    message = err.message || err;
-  }
-
-  return {
-    ...err,
-    message,
-    statusCode: (err.statusCode || err.status || (err.response && err.response.status) || 500)
-  };
-};

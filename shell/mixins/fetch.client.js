@@ -1,4 +1,4 @@
-import { normalizeError } from '../utils/nuxt';
+import { normalizeError } from '@shell/utils/error';
 
 const hasFetch = (component) => component.$options && typeof component.$options.fetch === 'function' && !component.$options.fetch.length;
 
