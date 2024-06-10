@@ -420,9 +420,9 @@ describe('topLevelMenu', () => {
       stubs: ['BrandImage', 'router-link']
     });
 
-    expect(wrapper.vm.globalBannerSettings).toStrictEqual({
-      headerFont: '2em',
-      footerFont: '2em'
+    expect(wrapper.vm.sideMenuStyle).toStrictEqual({
+      marginBottom: '2em',
+      marginTop: '2em'
     });
   });
 
