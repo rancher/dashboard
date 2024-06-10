@@ -31,8 +31,9 @@ export const getMatchedComponents = (route, matches = false, prop = 'components'
   }));
 };
 
-const getComponent = async (unknownComponent) => {
+const getComponent = async(unknownComponent) => {
   let componentView;
+
   // If component is a function, resolve it
   if (typeof unknownComponent === 'function' && !unknownComponent.options) {
     try {
@@ -65,31 +66,30 @@ const getComponent = async (unknownComponent) => {
 
 /**
  * Update matched components for a given route
- * @param {*} route 
- * @returns 
+ * @param {*} route
+ * @returns
  */
-export const cleanMatchedComponents = (route) =>
-  Array.prototype.concat.apply([], route.matched.map((match, index) =>
-    Object.keys(match.components).reduce(async(acc, key) => {
-      if (match.components[key]) {
-        const component = await getComponent(match.components[key], match.instances[key], match, key, index);
-        const cleanComponent = sanitizeComponent(component);
-        match.components[key] = cleanComponent;
-        acc.push(cleanComponent);
-      } else {
-        delete match.components[key];
-      }
+export const cleanMatchedComponents = (route) => Array.prototype.concat.apply([], route.matched.map((match, index) => Object.keys(match.components).reduce(async(acc, key) => {
+  if (match.components[key]) {
+    const component = await getComponent(match.components[key], match.instances[key], match, key, index);
+    const cleanComponent = sanitizeComponent(component);
 
-      return acc;
-    }, [])
-  ));
+    match.components[key] = cleanComponent;
+    acc.push(cleanComponent);
+  } else {
+    delete match.components[key];
+  }
 
-  /**
+  return acc;
+}, [])
+));
+
+/**
    * Merge route meta with component meta and update matched components
-   * @param {*} route 
-   * @returns 
+   * @param {*} route
+   * @returns
    */
-export const getRouteData = async (route) => {
+export const getRouteData = async(route) => {
   if (!route) {
     return;
   }
@@ -97,7 +97,7 @@ export const getRouteData = async (route) => {
   await Promise.all(cleanMatchedComponents(route));
   const meta = getMatchedComponents(route).map(
     (matchedComponent, index) => ({ ...matchedComponent.options.meta, ...(route.matched[index] || {}).meta })
-  )
+  );
 
   // Send back a copy of route with meta based on Component definition
   return {
@@ -106,7 +106,7 @@ export const getRouteData = async (route) => {
   };
 };
 
-export const setContext = async (app, context) => {
+export const setContext = async(app, context) => {
   // If context not defined, create it
   if (!app.context) {
     app.context = {

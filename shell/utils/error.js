@@ -105,11 +105,10 @@ export function exceptionToErrorsArray(err) {
   }
 }
 
-
 /**
  * Imported from path-to-regexp
- * @param {*} err 
- * @returns 
+ * @param {*} err
+ * @returns
  */
 export const normalizeError = (err) => {
   let message;

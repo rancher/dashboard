@@ -11,9 +11,9 @@ import { normalizeURL } from 'ufo';
 
 /**
  * Imported from vue-router
- * @param {*} base 
- * @param {*} mode 
- * @returns 
+ * @param {*} base
+ * @param {*} mode
+ * @returns
  */
 export const getLocation = (base, mode) => {
   if (mode === 'hash') {

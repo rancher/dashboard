@@ -1,3 +1,4 @@
+import Vue from 'vue';
 import { updatePageTitle } from '@shell/utils/title';
 import { getVendor } from '@shell/config/private-label';
 import middleware from '@shell/config/middleware.js';
@@ -58,9 +59,9 @@ export const loadDebugger = (vueApp) => {
 
 /**
  * TODO: Define this logic use case
- * @param {*} fn 
- * @param {*} context 
- * @returns 
+ * @param {*} fn
+ * @param {*} context
+ * @returns
  */
 export const promisify = (fn, context) => {
   let promise;
@@ -91,9 +92,9 @@ export const promisify = (fn, context) => {
 
 /**
  * TODO: Define this logic use case
- * @param {*} promises 
- * @param {*} appContext 
- * @returns 
+ * @param {*} promises
+ * @param {*} appContext
+ * @returns
  */
 export const middlewareSeries = (promises, appContext) => {
   if (!promises.length || appContext._redirected || appContext._errored) {
