@@ -1,10 +1,11 @@
-import { interopDefault } from '@shell/utils/nuxt';
 import { NAME as APPS } from '@shell/config/product/apps';
 import { NAME as EXPLORER } from '@shell/config/product/explorer';
 import { NAME as MANAGER } from '@shell/config/product/manager';
 import { CAPI, MANAGEMENT } from '@shell/config/types';
 import { NAME as MCAPPS, NAME as LEGACY } from '@shell/config/product/multi-cluster-apps';
 import { NAME as AUTH } from '@shell/config/product/auth';
+
+const interopDefault = (promise) => promise.then((page) => page.default || page);
 
 export default [
   {
