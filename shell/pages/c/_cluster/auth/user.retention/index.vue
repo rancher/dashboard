@@ -241,27 +241,27 @@ onBeforeRouteUpdate((_to, _from) => {
       <div class="input-fieldset">
         <checkbox
           v-model="disableAfterPeriod"
-          label="Disable user accounts after an inactivity  period (days since last login)"
+          :label="t('user.retention.edit.form.disableAfter.checkbox')"
         />
         <labeled-input
           v-model="userRetentionSettings[SETTING.DISABLE_INACTIVE_USER_AFTER]"
-          tooltip="Uses duration units (i.e. use 30d for 30 days)"
+          :tooltip="t('user.retention.edit.form.disableAfter.input.tooltip')"
           class="input-field"
-          label="Inactivity period"
+          :label="t('user.retention.edit.form.disableAfter.input.label')"
           :disabled="!disableAfterPeriod"
         />
       </div>
       <div class="input-fieldset">
         <checkbox
           v-model="deleteAfterPeriod"
-          label="Delete user accounts after an inactivity  period (days since last login)"
+          :label="t('user.retention.edit.form.deleteAfter.checkbox')"
         />
         <labeled-input
           v-model="userRetentionSettings[SETTING.DELETE_INACTIVE_USER_AFTER]"
-          tooltip="Uses duration units (i.e. use 30d for 30 days)"
+          :tooltip="t('user.retention.edit.form.deleteAfter.input.tooltip')"
           class="input-field"
-          label="Inactivity period"
-          sub-label="This value must be larger than the Disable period, if it's active"
+          :label="t('user.retention.edit.form.deleteAfter.input.label')"
+          :sub-label="t('user.retention.edit.form.deleteAfter.input.subLabel')"
           :disabled="!deleteAfterPeriod"
         />
       </div>
@@ -274,8 +274,8 @@ onBeforeRouteUpdate((_to, _from) => {
             class="input-field"
             required
             type="cron"
-            label="User retention process schedule"
-            sub-label="The user retention process runs as a cron job (required)"
+            :label="t('user.retention.edit.form.cron.label')"
+            :sub-label="t('user.retention.edit.form.cron.subLabel')"
             @input="validateUserRetentionCron"
           />
         </div>
@@ -284,17 +284,17 @@ onBeforeRouteUpdate((_to, _from) => {
             v-model="userRetentionSettings[SETTING.USER_RETENTION_DRY_RUN]"
             :onValue="'true'"
             :offValue="'false'"
-            on-label="Run the user retention process in DRY mode (no changes will be applied)"
+            :on-label="t('user.retention.edit.form.dryRun.label')"
           />
-          <span class="input-detail">You can check the logs to see which accounts would be affected</span>
+          <span class="input-detail">{{ t('user.retention.edit.form.dryRun.subLabel') }}</span>
         </div>
         <div class="input-fieldset condensed">
           <labeled-input
             v-model="userRetentionSettings[SETTING.USER_LAST_LOGIN_DEFAULT]"
             class="input-field"
-            label="Default last login (ms)"
-            sub-label="Accounts without a registered last login timestamp will get this as a default"
-            placeholder="Unix timestamp"
+            :label="t('user.retention.edit.form.defaultLastLogin.label')"
+            :sub-label="t('user.retention.edit.form.defaultLastLogin.subLabel')"
+            :placeholder="t('user.retention.edit.form.defaultLastLogin.placeholder')"
           />
         </div>
       </template>

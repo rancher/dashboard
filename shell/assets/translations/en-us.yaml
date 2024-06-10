@@ -5633,6 +5633,37 @@ user:
         placeholder: e.g. This account is for John Smith
   list:
     errorRefreshingGroupMemberships: Error refreshing group memberships
+  retention:
+    button:
+      label: User retention settings
+    edit:
+      title:
+        header: "Users: Settings"
+        pre: "Users:"
+        post: Settings
+        subTitle: User retention
+      form:
+        disableAfter:
+          checkbox: Disable user accounts after an inactivity period (duration since last login)
+          input:
+            label: Inactivity period
+            tooltip: Uses duration units (i.e. use 30d for 30 days)
+        deleteAfter:
+          checkbox: Delete user accounts after an inactivity period (duration since last login)
+          input:
+            label: Inactivity period
+            tooltip: Uses duration units (i.e. use 30d for 30 days)
+            subLabel: This value must be larger than the Disable period, if it's active
+        cron:
+          label: User retention process schedule
+          subLabel: The user retention process runs as a cron job (required)
+        dryRun:
+          label: Run the user retention process in DRY mode (no changes will be applied)
+          subLabel: You can check the logs to see which accounts would be affected
+        defaultLastLogin:
+          label: Default last login (ms)
+          subLabel: Accounts without a registered last login timestamp will get this as a default
+          placeholder: Unix timestamp
 validation:
   noUpperCase: 'Alphanumeric characters in "{key}" must be lowercase'
   arrayLength:
