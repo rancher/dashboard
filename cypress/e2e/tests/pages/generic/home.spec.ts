@@ -228,18 +228,9 @@ describe('Home Page', () => {
       catchTargetPageException(RANCHER_PAGE_EXCEPTIONS, 'https://ranchermanager.docs.rancher.com');
 
       homePage.supportLinks().should('have.length', 6);
+      homePage.clickSupportLink(0, true);
 
       cy.origin('https://ranchermanager.docs.rancher.com', () => {
-        // Handle an error on the Rancher docs page that can cause our tests to fail
-        // when there is an exception on the Rancher page
-        cy.on('uncaught:exception', (e) => {
-          if (e.message.indexOf('TenantFeatures') >= 0) {
-            return false;
-          }
-        });
-
-        homePage.clickSupportLink(0, true);
-
         cy.url().should('include', 'ranchermanager.docs.rancher.com');
       });
     });
@@ -248,18 +239,9 @@ describe('Home Page', () => {
       catchTargetPageException('TenantFeatures', 'https://forums.rancher.com');
 
       // click Forums link
+      homePage.clickSupportLink(1, true);
 
       cy.origin('https://forums.rancher.com', () => {
-        // Handle an error on the Rancher page that can cause our tests to fail
-        // when there is an exception on the Rancher page
-        cy.on('uncaught:exception', (e) => {
-          if (e.message.indexOf('TenantFeatures') >= 0) {
-            return false;
-          }
-        });
-
-        homePage.clickSupportLink(1, true);
-
         cy.url().should('include', 'forums.rancher.com/');
       });
     });
@@ -286,19 +268,9 @@ describe('Home Page', () => {
       catchTargetPageException(RANCHER_PAGE_EXCEPTIONS);
 
       // click Get Started link
-      cy.origin('https://ranchermanager.docs.rancher.com', () => {
-        // Handle an error on the Rancher docs page that can cause our tests to fail
-        // when there is an exception on the Rancher page
-        cy.on('uncaught:exception', (e) => {
-          if (e.message.indexOf('TenantFeatures') >= 0) {
-            return false;
-          }
-        });
+      homePage.clickSupportLink(4, true);
 
-        homePage.clickSupportLink(4, true);
-
-        cy.url().should('include', 'getting-started/overview');
-      });
+      cy.url().should('include', 'getting-started/overview');
     });
 
     it('can click on Commercial Support link', () => {

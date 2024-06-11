@@ -70,13 +70,6 @@ describe('Side Menu: main', () => {
         .click();
 
       cy.url().should('include', 'https://ranchermanager.docs.rancher.com/v2.9/how-to-guides/new-user-guides/launch-kubernetes-with-rancher/rke1-vs-rke2-differences#cluster-api');
-        // Handle an error on the Rancher docs page that can cause our tests to fail when there is an exception on the Rancher page
-        cy.on('uncaught:exception', (e) => {
-          if (e.message.indexOf('TenantFeatures') >= 0) {
-            return false;
-          }
-        });
-      });
     });
 
     it('Local cluster should show a name and description on the side menu and display a tooltip when hovering it show the full name and description', { tags: ['@navigation', '@adminUser'] }, () => {
