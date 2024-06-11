@@ -413,8 +413,9 @@ export default {
           type:     SECRET,
           metadata: {
             namespace:    this.value.metadata.namespace,
-            generateName: 'auth-'
-          },
+            generateName: 'auth-',
+            labels:       { 'fleet.cattle.io/managed': 'true' }
+          }
         });
 
         let type, publicField, privateField;
