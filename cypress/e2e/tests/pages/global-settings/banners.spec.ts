@@ -359,6 +359,7 @@ describe('Banners', { testIsolation: 'off' }, () => {
       // Update the ui-banners setting to enable the banner
       updateBannersSetting((value) => {
         value[`show${ bannerName }`] = 'true';
+        value[`banner${ bannerName }`] = value[`banner${ bannerName }`] || {};
         value[`banner${ bannerName }`].text = 'TEST Banner (ui-banners)';
         value[`banner${ bannerName }`].background = '#00ff00';
       });
@@ -418,6 +419,7 @@ describe('Banners', { testIsolation: 'off' }, () => {
       // Update the ui-banners setting to enable the banner
       updateBannersSetting((value) => {
         value[`show${ bannerName }`] = 'true';
+        value[`banner${ bannerName }`] = value[`banner${ bannerName }`] || {};
         value[`banner${ bannerName }`].text = 'TEST Banner (ui-banners)';
         value[`banner${ bannerName }`].background = '#00ff00';
       });
