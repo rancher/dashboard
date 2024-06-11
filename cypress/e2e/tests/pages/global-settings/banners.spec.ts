@@ -5,7 +5,6 @@ import BurgerMenuPo from '@/cypress/e2e/po/side-bars/burger-side-menu.po';
 import ProductNavPo from '@/cypress/e2e/po/side-bars/product-side-nav.po';
 import { LoginPagePo } from '@/cypress/e2e/po/pages/login-page.po';
 import FixedBannerPo from '~/cypress/e2e/po/components/fixed-banner.po';
-import { makeSetting } from '~/cypress/e2e/blueprints/settings/settings';
 
 const bannersPage = new BannersPagePo();
 const burgerMenu = new BurgerMenuPo();
@@ -314,11 +313,28 @@ describe('Banners', { testIsolation: 'off' }, () => {
     });
   }
 
+  function updateIndividualBannersSetting(id, value = null) {
+    cy.getRancherResource('v1', 'management.cattle.io.settings').then((data: any) => {
+      const banner = data.body.data.find((setting) => setting.id === id);
+
+      // Update the banner value to be the stringified JSON of the value
+      banner.value = value === null ? '' : JSON.stringify(value);
+
+      cy.setRancherResource('v1', 'management.cattle.io.settings', id, banner);
+    });
+  }
+
   // Common tests for Header and Footer banners
   function bannerTests(bannerName: string) {
     before(() => {
       cy.then(() => Cypress.session.clearAllSavedSessions());
       cy.login();
+
+      // Make sure banner is not shown from the ui-banners setting for this banner
+      updateBannersSetting((value) => {
+        value[`show${ bannerName }`] = 'false';
+      });
+
       HomePagePo.goTo();
     });
 
@@ -369,12 +385,10 @@ describe('Banners', { testIsolation: 'off' }, () => {
       banner.checkNotExists();
 
       // Set the banner via the individual setting
-      const bannerSetting = makeSetting(`ui-banner-${ bannerName.toLowerCase() }`, {
+      updateIndividualBannersSetting(`ui-banner-${ bannerName.toLowerCase() }`, {
         text:       'Test Banner (individual setting)',
         background: '#ff0000'
       });
-
-      cy.createRancherResource('v1', 'management.cattle.io.settings', JSON.stringify(bannerSetting));
 
       HomePagePo.goToAndWaitForGet();
 
@@ -383,7 +397,8 @@ describe('Banners', { testIsolation: 'off' }, () => {
       banner.text().should('eq', 'Test Banner (individual setting)');
       banner.backgroundColor().should('eq', 'rgb(255, 0, 0)');
 
-      cy.deleteRancherResource('k8s', 'clusters/local/apis/management.cattle.io/v3/settings', `ui-banner-${ bannerName.toLowerCase() }`);
+      // Unset the individual banner
+      updateIndividualBannersSetting(`ui-banner-${ bannerName.toLowerCase() }`);
 
       HomePagePo.goToAndWaitForGet();
 
@@ -412,12 +427,10 @@ describe('Banners', { testIsolation: 'off' }, () => {
       banner.backgroundColor().should('eq', 'rgb(0, 255, 0)');
 
       // Set the banner via the individual setting
-      const bannerSetting = makeSetting(`ui-banner-${ bannerName.toLowerCase() }`, {
+      updateIndividualBannersSetting(`ui-banner-${ bannerName.toLowerCase() }`, {
         text:       'Test Banner (individual setting)',
         background: '#ff0000'
       });
-
-      cy.createRancherResource('v1', 'management.cattle.io.settings', JSON.stringify(bannerSetting));
 
       HomePagePo.goToAndWaitForGet();
 
@@ -439,7 +452,8 @@ describe('Banners', { testIsolation: 'off' }, () => {
       banner.text().should('eq', 'Test Banner (individual setting)');
       banner.backgroundColor().should('eq', 'rgb(255, 0, 0)');
 
-      cy.deleteRancherResource('k8s', 'clusters/local/apis/management.cattle.io/v3/settings', `ui-banner-${ bannerName.toLowerCase() }`);
+      // Unset the individual banner
+      updateIndividualBannersSetting(`ui-banner-${ bannerName.toLowerCase() }`);
 
       HomePagePo.goToAndWaitForGet();
 
@@ -456,6 +470,18 @@ describe('Banners', { testIsolation: 'off' }, () => {
   });
 
   describe('Login Consent Banner (Individual Setting)', () => {
+    before(() => {
+      cy.then(() => Cypress.session.clearAllSavedSessions());
+      cy.login();
+
+      // Make sure banner is not shown from the ui-banners setting for this banner
+      updateBannersSetting((value) => {
+        value.showConsent = 'false';
+      });
+
+      HomePagePo.goTo();
+    });
+
     it('Should not have banner', { tags: ['@globalSettings', '@adminUser', '@standardUser'] }, () => {
       const banner = new FixedBannerPo('#banner-consent');
 
@@ -477,12 +503,10 @@ describe('Banners', { testIsolation: 'off' }, () => {
       HomePagePo.goTo();
 
       // Set the banner via the individual setting
-      const bannerSetting = makeSetting('ui-banner-login-consent', {
+      updateIndividualBannersSetting('ui-banner-login-consent', {
         text:       'Test Banner (individual setting)',
         background: '#ff0000'
       });
-
-      cy.createRancherResource('v1', 'management.cattle.io.settings', JSON.stringify(bannerSetting));
 
       cy.logout();
       cy.then(() => Cypress.session.clearAllSavedSessions());
@@ -503,8 +527,8 @@ describe('Banners', { testIsolation: 'off' }, () => {
       cy.login();
       HomePagePo.goTo();
 
-      // Delete the individual setting
-      cy.deleteRancherResource('k8s', 'clusters/local/apis/management.cattle.io/v3/settings', 'ui-banner-login-consent');
+      // Unset the individual setting
+      updateIndividualBannersSetting('ui-banner-login-consent');
     });
 
     it('Should prefer banner from individual setting ', { tags: ['@globalSettings', '@adminUser'] }, () => {
@@ -513,24 +537,22 @@ describe('Banners', { testIsolation: 'off' }, () => {
       HomePagePo.goTo();
 
       // Set the banner via the individual setting
-      const bannerSetting = makeSetting('ui-banner-login-consent', {
+      updateIndividualBannersSetting('ui-banner-login-consent', {
         text:       'Test Banner (individual setting)',
         background: '#ff0000'
       });
-
-      cy.createRancherResource('v1', 'management.cattle.io.settings', JSON.stringify(bannerSetting));
 
       const bannerName = 'Consent';
 
       // Update the ui-banners setting to enable the banner
       updateBannersSetting((value) => {
         value[`show${ bannerName }`] = 'true';
+        value[`banner${ bannerName }`] = value[`banner${ bannerName }`] || {};
         value[`banner${ bannerName }`].text = 'TEST Banner (ui-banners)';
         value[`banner${ bannerName }`].background = '#00ff00';
       });
 
       // Back to the login screen - check the banner is using the individual setting
-
       cy.logout();
       cy.then(() => Cypress.session.clearAllSavedSessions());
 
@@ -551,8 +573,8 @@ describe('Banners', { testIsolation: 'off' }, () => {
       cy.login();
       HomePagePo.goToAndWaitForGet();
 
-      // Delete the individual setting
-      cy.deleteRancherResource('k8s', 'clusters/local/apis/management.cattle.io/v3/settings', 'ui-banner-login-consent');
+      // Unset the individual setting
+      updateIndividualBannersSetting('ui-banner-login-consent');
 
       // Turn off the banner via the banners setting
       updateBannersSetting((value) => {
