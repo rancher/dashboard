@@ -76,10 +76,6 @@ export default {
     if ( this.value?.graphEndpoint ) {
       this.setInitialEndpoint(this.value.graphEndpoint);
     }
-
-    if ( !this.value.groupMembershipFilter ) {
-      this.model.groupMembershipFilter = '';
-    }
   },
 
   data() {
@@ -461,7 +457,6 @@ export default {
                 :label="t('authConfig.azuread.groupMembershipFilter.label')"
                 placeholder="e.g. (displayName eq 'group1') or (displayName eq 'group2')"
                 :mode="mode"
-                :required="true"
                 class="mb-10"
                 data-testid="input-azureAD-groupMembershipFilter"
               />
