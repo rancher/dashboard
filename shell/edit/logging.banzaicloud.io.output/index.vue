@@ -26,9 +26,8 @@ export default {
   mixins: [CreateEditView],
 
   async fetch() {
-    const resourceSchema = await this.$store.dispatch('cluster/find', { type: SCHEMA, id: LOGGING.OUTPUT });
-
-    this.schemaDefinition = await resourceSchema.fetchResourceFields();
+    this.resourceSchema = await this.$store.dispatch('cluster/find', { type: SCHEMA, id: LOGGING.OUTPUT });
+    this.schemaDefinition = await this.resourceSchema.fetchResourceFields();
 
     let bufferYaml = '';
 

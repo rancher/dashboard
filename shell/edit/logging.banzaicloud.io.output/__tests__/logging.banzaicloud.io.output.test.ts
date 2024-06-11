@@ -118,7 +118,8 @@ describe('view: logging.banzaicloud.io.output', () => {
         }
       },
       mocks: {
-        $store: {
+        $fetchState: { pending: false },
+        $store:      {
           dispatch: jest.fn(),
           getters:  {
             currentStore:              () => 'current_store',
@@ -155,9 +156,16 @@ describe('view: logging.banzaicloud.io.output', () => {
         }
       },
       mocks: {
-        $store: {
-          dispatch: jest.fn(),
-          getters:  {
+        $fetchState: { pending: false },
+        $store:      {
+          dispatch(arg: any) {
+            if (arg === 'cluster/find') {
+              return outputSchema;
+            }
+
+            return jest.fn();
+          },
+          getters: {
             currentStore:              () => 'current_store',
             'management/schemaFor':    jest.fn(),
             'current_store/all':       jest.fn(),
@@ -176,9 +184,8 @@ describe('view: logging.banzaicloud.io.output', () => {
       }
     });
 
-    // need to set the data for schemaDefinition in order to trigger
-    // the recompute of `initialBufferYaml` in the component
-    wrapper.setData({ schemaDefinition: outputSchema.schemaDefinitions });
+    // call async fetch - needed for test assertion
+    await Banzai.fetch.call(wrapper.vm);
 
     const yaml = `#chunk_limit_records: int
 #chunk_limit_size: string
@@ -227,9 +234,16 @@ describe('view: logging.banzaicloud.io.output', () => {
         }
       },
       mocks: {
-        $store: {
-          dispatch: jest.fn(),
-          getters:  {
+        $fetchState: { pending: false },
+        $store:      {
+          dispatch(arg: any) {
+            if (arg === 'cluster/find') {
+              return outputSchema;
+            }
+
+            return jest.fn();
+          },
+          getters: {
             currentStore:              () => 'current_store',
             'management/schemaFor':    jest.fn(),
             'current_store/all':       jest.fn(),
@@ -247,6 +261,9 @@ describe('view: logging.banzaicloud.io.output', () => {
         $router: { replace: jest.fn() },
       }
     });
+
+    // call async fetch - needed for test assertion
+    await Banzai.fetch.call(wrapper.vm);
 
     expect(wrapper.vm.initialBufferYaml).toContain('#chunk_limit_records: int');
     expect(wrapper.vm.bufferYaml).toContain('#chunk_limit_records: int');
