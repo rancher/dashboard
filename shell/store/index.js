@@ -769,13 +769,23 @@ export const actions = {
       rancherSchemas: dispatch('rancher/loadSchemas', true),
     });
 
+    // Note - why aren't we watching anything fetched in the `promises` object?
+    // To watch we need feature flags to know that the vai cache is on or not.
+    // So to work around this we won't fetch anything initially... and then watch once we have them all
+    // The alternative is simpler (fetch features up front) but would add another blocking request in
+
     const promises = {
       // Clusters guaranteed always available or your money back
-      clusters: dispatch('management/findAll', { type: MANAGEMENT.CLUSTER }),
+      clusters: dispatch('management/findAll', { type: MANAGEMENT.CLUSTER, opt: { watch: false } }),
 
       // Features checks on its own if they are available
       features: dispatch('features/loadServer'),
     };
+
+    const toWatch = [
+      MANAGEMENT.CLUSTER,
+      MANAGEMENT.FEATURE,
+    ];
 
     const isRancher = res.rancherSchemas.status === 'fulfilled' && !!getters['management/schemaFor'](MANAGEMENT.PROJECT);
 
@@ -785,24 +795,33 @@ export const actions = {
     }
 
     if ( getters['management/schemaFor'](COUNT) ) {
-      promises['counts'] = dispatch('management/findAll', { type: COUNT });
+      promises['counts'] = dispatch('management/findAll', { type: COUNT, opt: { watch: false } });
+      toWatch.push(COUNT);
     }
 
     if ( getters['management/canList'](MANAGEMENT.SETTING) ) {
-      promises['settings'] = dispatch('management/findAll', { type: MANAGEMENT.SETTING });
+      promises['settings'] = dispatch('management/findAll', { type: MANAGEMENT.SETTING, opt: { watch: false } });
+      toWatch.push(MANAGEMENT.SETTING);
     }
 
     if ( getters['management/schemaFor'](NAMESPACE) ) {
-      promises['namespaces'] = dispatch('management/findAll', { type: NAMESPACE });
+      promises['namespaces'] = dispatch('management/findAll', { type: NAMESPACE, opt: { watch: false } });
+      toWatch.push(NAMESPACE);
     }
 
     const fleetSchema = getters['management/schemaFor'](FLEET.WORKSPACE);
 
     if (fleetSchema?.links?.collection) {
-      promises['workspaces'] = dispatch('management/findAll', { type: FLEET.WORKSPACE });
+      promises['workspaces'] = dispatch('management/findAll', { type: FLEET.WORKSPACE, opt: { watch: false } });
+      toWatch.push(FLEET.WORKSPACE);
     }
 
     res = await allHash(promises);
+
+    toWatch.forEach((type) => {
+      dispatch('management/watch', { type });
+    });
+
     const isMultiCluster = getters['isMultiCluster'];
 
     // If the local cluster is a Harvester cluster and 'rancher-manager-support' is true, it means that the embedded Rancher is being used.
