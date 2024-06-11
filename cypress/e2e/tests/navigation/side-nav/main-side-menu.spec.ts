@@ -4,7 +4,6 @@ import PagePo from '@/cypress/e2e/po/pages/page.po';
 import ProductNavPo from '@/cypress/e2e/po/side-bars/product-side-nav.po';
 import ClusterManagerListPagePo from '@/cypress/e2e/po/pages/cluster-manager/cluster-manager-list.po';
 import { generateFakeClusterDataAndIntercepts } from '@/cypress/e2e/blueprints/nav/fake-cluster';
-import ProjectNamespacePagePo from '@/cypress/e2e/po/pages/explorer/projects-namespaces.po';
 
 const longClusterDescription = 'this-is-some-really-really-really-really-really-really-long-decription';
 const fakeProvClusterId = 'some-fake-cluster-id';
@@ -30,8 +29,6 @@ describe('Side Menu: main', () => {
       // nav to project/namespaces in the fake cluster
       pagePoFake.navToClusterMenuEntry(fakeProvClusterId);
       sideNav.navToSideMenuEntryByLabel('Projects/Namespaces');
-
-      (new ProjectNamespacePagePo(fakeProvClusterId)).waitForPage();
 
       // press key combo
       cy.get('body').focus().type('{alt}', { release: false });
@@ -60,7 +57,7 @@ describe('Side Menu: main', () => {
 
       // since in Cypress we cannot assert directly a link on a new tab
       // next best thing is to assert that the link has _blank
-      // change it to _self, then assert the link of the new page
+      // change it to _seft, then assert the link of the new page
       cy.get('[data-testid="edit-cluster-reprovisioning-documentation"] a').should('be.visible')
         .then(($a) => {
           expect($a).to.have.attr('target', '_blank');
