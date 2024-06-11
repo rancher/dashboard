@@ -422,7 +422,7 @@ describe('topLevelMenu', () => {
 
     expect(wrapper.vm.sideMenuStyle).toStrictEqual({
       marginBottom: '2em',
-      marginTop: '2em'
+      marginTop:    '2em'
     });
   });
 
