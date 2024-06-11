@@ -102,9 +102,6 @@ export default {
         this.showLdap = true;
       }
       if (this.value.configType === 'saml') {
-        // TODO: TO BE DELETED!!!!
-        this.$set(this.model, 'logoutAllSupported', true);
-
         if (!this.model.rancherApiHost || !this.model.rancherApiHost.length) {
           this.$set(this.model, 'rancherApiHost', this.serverUrl);
         }

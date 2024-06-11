@@ -507,8 +507,7 @@ authConfig:
     UID: UID Field
     adfs: Configure an AD FS account
     api: '{vendor} API Host'
-    sloTitle: Configure Single Logout (SLO)
-    logoutType: Log out mode
+    sloTitle: Log Out behaviour
     sloOptions:
       onlyRancher: Only log out of Rancher
       logoutAll: Log out of {name} (including Rancher and all other applications registered with the provider)
