@@ -87,6 +87,11 @@ export default {
       required: false
     },
 
+    /**
+     * Alt Loading - True: Always show table rows and obscure them when `loading`. Intended for use with server-side pagination.
+     *
+     * Alt Loading - False: Hide the table rows when `loading`. Intended when all resources are provided up front.
+     */
     altLoading: {
       type:     Boolean,
       required: false
@@ -359,7 +364,7 @@ export default {
       /**
        * The is the bool the DOM uses to show loading state. it's proxied from `loading` to avoid blipping the indicator (see usages)
        */
-      pLoading:                   false,
+      isLoading:                  false,
     };
   },
 
@@ -470,14 +475,14 @@ export default {
           // Delay setting the actual loading indicator. This should avoid flashing up the indicator if the API responds quickly
           if (neu) {
             this._altLoadingDelayTimer = setTimeout(() => {
-              this.pLoading = true;
+              this.isLoading = true;
             }, 200); // this should be higher than the targetted quick response
           } else {
             clearTimeout(this._altLoadingDelayTimer);
-            this.pLoading = false;
+            this.isLoading = false;
           }
         } else {
-          this.pLoading = neu;
+          this.isLoading = neu;
         }
       },
       immediate: true
@@ -497,11 +502,11 @@ export default {
     },
 
     initalLoad() {
-      return !!(!this.pLoading && !this._didinit && this.rows?.length);
+      return !!(!this.isLoading && !this._didinit && this.rows?.length);
     },
 
     manualRefreshLoadingFinished() {
-      const res = !!(!this.pLoading && this._didinit && this.rows?.length && !this.isManualRefreshLoading);
+      const res = !!(!this.isLoading && this._didinit && this.rows?.length && !this.isManualRefreshLoading);
 
       // Always ensure the Refresh button phase aligns with loading state (regardless of if manualRefreshLoadingFinished has changed or not)
       this.refreshButtonPhase = !res || this.loading ? ASYNC_BUTTON_STATES.WAITING : ASYNC_BUTTON_STATES.ACTION;
@@ -606,7 +611,7 @@ export default {
         'body-dividers': this.bodyDividers,
         'overflow-y':    this.overflowY,
         'overflow-x':    this.overflowX,
-        'alt-loading':   this.altLoading && this.pLoading
+        'alt-loading':   this.altLoading && this.isLoading
       };
     },
 
@@ -1208,7 +1213,7 @@ export default {
         :default-sort-by="_defaultSortBy"
         :descending="descending"
         :no-rows="noRows"
-        :loading="pLoading && !loadingDelay"
+        :loading="isLoading && !loadingDelay"
         :no-results="noResults"
         @on-toggle-all="onToggleAll"
         @on-sort-change="changeSort"
@@ -1218,9 +1223,9 @@ export default {
       />
 
       <!-- Don't display anything if we're loading and the delay has yet to pass -->
-      <div v-if="pLoading && !loadingDelay" />
+      <div v-if="isLoading && !loadingDelay" />
 
-      <tbody v-else-if="pLoading && !altLoading">
+      <tbody v-else-if="isLoading && !altLoading">
         <slot name="loading">
           <tr>
             <td :colspan="fullColspan">
