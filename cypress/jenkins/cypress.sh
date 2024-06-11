@@ -15,8 +15,6 @@ yarn add --dev -W mocha mochawesome mochawesome-merge \
   mochawesome-report-generator cypress-multi-reporters \
   mocha-junit-reporter
 
-./node_modules/.bin/cypress install --force
-
 NO_COLOR=1 CYPRESS_grepTags="CYPRESSTAGS" cypress run --browser chrome \
   --reporter cypress-multi-reporters \
   --reporter-options \
