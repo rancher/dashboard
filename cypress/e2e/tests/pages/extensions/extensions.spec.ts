@@ -10,20 +10,20 @@ const UI_PLUGINS_PARTNERS_REPO_URL = 'https://github.com/rancher/partner-extensi
 const UI_PLUGINS_PARTNERS_REPO_NAME = 'partner-extensions';
 
 describe('Extensions page', { tags: ['@extensions', '@adminUser'] }, () => {
-  before(() => {
+  beforeEach(() => {
     cy.login();
+  });
 
+  it('add repository', () => {
+    // This should be in a `before` however is flaky. Move it to an `it` to let cypress retry
     const extensionsPo = new ExtensionsPagePo();
 
     extensionsPo.goTo();
     extensionsPo.waitForPage();
+    extensionsPo.extensionTabInstalledClick(); // Avoid nav guard failures that probably auto move user to this tab
 
     // install the rancher plugin examples
     extensionsPo.addExtensionsRepository('https://github.com/rancher/ui-plugin-examples', 'main', 'rancher-plugin-examples');
-  });
-
-  beforeEach(() => {
-    cy.login();
   });
 
   it('has the correct title', () => {
