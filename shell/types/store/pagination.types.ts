@@ -376,7 +376,7 @@ export class PaginationArgs {
  *
  * Use this for making requests that utilise filtering backed by the new vai cache backed API
  */
-export class PaginationFilterArgs extends PaginationArgs {
+export class FilterArgs extends PaginationArgs {
   /**
      * Creates an instance of PaginationArgs.
      *

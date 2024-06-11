@@ -8,7 +8,7 @@ import { base64Encode } from '@shell/utils/crypto';
 import { addObjects, insertAt } from '@shell/utils/array';
 import { sortBy } from '@shell/utils/sort';
 import {
-  PaginationFilterArgs,
+  FilterArgs,
   PaginationFilterField,
   PaginationParamFilter,
 } from '@shell/types/store/pagination.types';
@@ -411,7 +411,7 @@ export default {
       const findPageArgs = {
         // Of type ActionFindPageArgs
         namespaced: this.filterByNamespace ? this.namespace : '',
-        pagination: new PaginationFilterArgs({
+        pagination: new FilterArgs({
           filters: [
             PaginationParamFilter.createMultipleFields(
               this.secretTypes.map(

@@ -16,7 +16,7 @@ import Certificates from './Certificates';
 import Rules from './Rules';
 import IngressClass from './IngressClass';
 import Loading from '@shell/components/Loading';
-import { PaginationFilterArgs, PaginationParamFilter } from '@shell/types/store/pagination.types';
+import { FilterArgs, PaginationParamFilter } from '@shell/types/store/pagination.types';
 
 export default {
   name:       'CRUIngress',
@@ -211,7 +211,7 @@ export default {
     filterSecretsByApi() {
       const findPageArgs = { // Of type ActionFindPageArgs
         namespaced: this.value.metadata.namespace,
-        pagination: new PaginationFilterArgs({
+        pagination: new FilterArgs({
           filters: PaginationParamFilter.createSingleField({
             field: 'metadata.fields.1',
             value: TYPES.TLS
