@@ -363,6 +363,7 @@ const vueSyntaxUpdates = () => {
     [`@input=`, `@update:modelValue=`],
     // [`v-bind.sync=`, `:modelValue=`, `https://v3-migration.vuejs.org/breaking-changes/v-model.html#using-v-bind-sync`],
     // ['v-model=', ':modelValue=', ''],
+    [/:([a-z-0-9]+)\.sync/g, (_, propName) => `v-model:${ propName }`, `https://v3-migration.vuejs.org/breaking-changes/v-model.html#migration-strategy`],
     [`click.native`, `click`, `https://v3-migration.vuejs.org/breaking-changes/v-model.html#using-v-bind-sync`],
     [`v-on="$listeners"`, removePlaceholder, `removed and integrated with $attrs https://v3-migration.vuejs.org/breaking-changes/listeners-removed.html`],
     [`:listeners="$listeners"`, `:v-bind="$attrs"`, `removed and integrated with $attrs https://v3-migration.vuejs.org/breaking-changes/listeners-removed.html`],

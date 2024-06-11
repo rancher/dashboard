@@ -265,7 +265,9 @@ export async function mountApp(appPartials, VueClass) {
   // Add beforeEach router hooks
   router.beforeEach(render.bind(vueApp));
   router.afterEach((from, to) => {
-    updatePageTitle(getVendor());
+    if (from?.name !== to?.name) {
+      updatePageTitle(getVendor());
+    }
   });
 
   // First render on client-side
@@ -294,7 +296,7 @@ export async function mountApp(appPartials, VueClass) {
     // Push the path and let route to be resolved
     router.push(path, undefined, (err) => {
       if (err) {
-        const errorHandler = vueApp.config.errorHandler || console.error; // eslint-disable-line no-console
+        const errorHandler = vueApp?.config?.errorHandler || console.error; // eslint-disable-line no-console
 
         errorHandler(err);
       }

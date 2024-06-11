@@ -1,7 +1,7 @@
 // Taken from @nuxt/vue-app/template/index.js
 // This file was generated during Nuxt migration
 import AppView from '@shell/initialize/App';
-import { setContext, getLocation, normalizeError } from '@shell/utils/nuxt';
+import { setContext, getLocation, getRouteData, normalizeError } from '@shell/utils/nuxt';
 import { extendRouter } from '@shell/config/router';
 import { extendStore } from '@shell/config/store';
 import { UPGRADED, _FLAGGED, _UNFLAG } from '@shell/config/query-params';
@@ -53,8 +53,8 @@ async function extendApp(vueApp) {
   store.app = appPartials;
 
   const next = (location) => appPartials.router.push(location);
-
   // Resolve route
+
   const path = getLocation(router.options.base, router.options.mode);
   const route = router.resolve(path).route;
 
@@ -71,18 +71,47 @@ async function extendApp(vueApp) {
 
   await installInjectedPlugins(appPartials, vueApp);
 
-  router.afterEach((to) => {
-    const upgraded = to.query[UPGRADED] === _FLAGGED;
+  // Wait for async component to be resolved first
+  await new Promise((resolve, reject) => {
+    // Ignore 404s rather than blindly replacing URL in browser
+    const { route } = router.resolve(appPartials.context.route.fullPath);
 
-    if ( upgraded ) {
-      router.applyQuery({ [UPGRADED]: _UNFLAG });
-
-      store.dispatch('growl/success', {
-        title:   store.getters['i18n/t']('serverUpgrade.title'),
-        message: store.getters['i18n/t']('serverUpgrade.message'),
-        timeout: 0,
-      });
+    if (!route.matched.length) {
+      return resolve();
     }
+
+    router.replace(appPartials.context.route.fullPath, resolve, (err) => {
+      // https://github.com/vuejs/vue-router/blob/v3.4.3/src/util/errors.js
+      if (!err._isRouter) {
+        return reject(err);
+      }
+      if (err.type !== 2 /* NavigationFailureType.redirected */) {
+        return resolve();
+      }
+
+      // navigated to a different route in router guard
+      const unregister = router.afterEach(async(to, from) => {
+        appPartials.context.route = await getRouteData(to);
+        appPartials.context.params = to.params || {};
+        appPartials.context.query = to.query || {};
+        unregister();
+        resolve();
+      });
+    });
+
+    router.afterEach((to) => {
+      const upgraded = to.query[UPGRADED] === _FLAGGED;
+
+      if ( upgraded ) {
+        router.applyQuery({ [UPGRADED]: _UNFLAG });
+
+        store.dispatch('growl/success', {
+          title:   store.getters['i18n/t']('serverUpgrade.title'),
+          message: store.getters['i18n/t']('serverUpgrade.message'),
+          timeout: 0,
+        });
+      }
+    });
   });
 
   return {

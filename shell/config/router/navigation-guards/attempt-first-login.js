@@ -2,14 +2,14 @@ import { SETUP } from '@shell/config/query-params';
 import { SETTING } from '@shell/config/settings';
 import { MANAGEMENT, NORMAN } from '@shell/config/types';
 import { tryInitialSetup } from '@shell/utils/auth';
-import { routeNameMatched } from '@shell/utils/router';
+import { routeRequiresAuthentication } from '@shell/utils/router';
 
 export function install(router, context) {
-  router.beforeEach((from, to, next) => attemptFirstLogin(from, to, next, context));
+  router.beforeEach((to, from, next) => attemptFirstLogin(to, from, next, context));
 }
 
-export async function attemptFirstLogin(from, to, next, { store }) {
-  if (routeNameMatched(to, 'unauthenticated')) {
+export async function attemptFirstLogin(to, from, next, { store }) {
+  if (!routeRequiresAuthentication(to)) {
     return next();
   }
 
@@ -27,6 +27,7 @@ export async function attemptFirstLogin(from, to, next, { store }) {
       initialPass = 'admin';
     }
   } catch (e) {
+    console.error('Failed looking up first login setting', e); // eslint-disable-line no-console
   }
 
   if ( firstLogin === null ) {
@@ -49,6 +50,7 @@ export async function attemptFirstLogin(from, to, next, { store }) {
         initialPass = 'admin';
       }
     } catch (e) {
+      console.error('Failed looking up first login setting', e); // eslint-disable-line no-console
     }
   }
 
