@@ -552,6 +552,12 @@ authConfig:
       label: Token Endpoint
     authEndpoint:
       label: Auth Endpoint
+    groupMembershipFilter:
+      label: Group Membership Filter
+      enable: Limit users by group membership
+      tooltip: Limit users by applying a GroupMembershipFilter
+      externalHelp: See the OData filter expression documentation for more information.
+      externalHelpLink: https://learn.microsoft.com/en-us/dynamics365/business-central/dev-itpro/webservices/use-filter-expressions-in-odata-uris#filter-expressions
     reply:
       info: 'Azure AD requires a whitelisted URL for your Rancher server before beginning this setup. Please ensure that the following URL is set in the Reply URL section of your Azure Portal. Please note that it may take up to 5 minutes for the whitelisted URL to propagate.'
       label: Reply URL
