@@ -59,6 +59,11 @@ export default {
       required: false
     },
 
+    altLoading: {
+      type:     Boolean,
+      required: false
+    },
+
     keyField: {
       // Field that is unique for each row.
       type:    String,
@@ -532,6 +537,7 @@ export default {
     :headers="_headers"
     :rows="filteredRows"
     :loading="loading"
+    :alt-loading="altLoading"
     :group-by="computedGroupBy"
     :group="group"
     :group-options="groupOptions"
