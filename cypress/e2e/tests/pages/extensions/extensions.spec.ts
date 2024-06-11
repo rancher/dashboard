@@ -78,8 +78,6 @@ describe('Extensions page', { tags: ['@extensions', '@adminUser'] }, () => {
     // catching regression https://github.com/rancher/dashboard/issues/10576
     BurgerMenuPo.checkIfClusterMenuLinkIsHighlighted('local', false);
 
-    extensionsPo.waitForTabs();
-
     // go to "add rancher repositories"
     extensionsPo.extensionMenuToggle();
     extensionsPo.addRepositoriesClick();
