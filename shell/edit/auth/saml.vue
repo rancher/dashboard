@@ -78,8 +78,8 @@ export default {
       };
     },
 
-    isSamlProvider() {
-      return configType[this.model?.id] === 'saml';
+    isLogoutAllSupported() {
+      return this.model?.logoutAllSupported;
     },
 
     sloOptions() {
@@ -186,8 +186,8 @@ export default {
             <tr><td>{{ t(`authConfig.saml.entityID`) }}: </td><td>{{ model.entityID }}</td></tr>
             <tr><td>{{ t(`authConfig.saml.api`) }}: </td><td>{{ model.rancherApiHost }}</td></tr>
             <tr><td>{{ t(`authConfig.saml.groups`) }}: </td><td>{{ model.groupsField }}</td></tr>
-            <tr v-if="isSamlProvider">
-              <td>{{ t(`authConfig.saml.logoutType`) }}: </td><td>{{ sloTypeText }}</td>
+            <tr v-if="isLogoutAllSupported">
+              <td>{{ t(`authConfig.saml.sloTitle`) }}: </td><td>{{ sloTypeText }}</td>
             </tr>
           </template>
 
@@ -362,7 +362,7 @@ export default {
 
         <!-- SLO logout -->
         <div
-          v-if="isSamlProvider"
+          v-if="isLogoutAllSupported"
           class="mt-10 mb-30"
         >
           <div class="row">

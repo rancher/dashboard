@@ -30,16 +30,13 @@ export default {
     const stateStr = this.$route.query[GITHUB_NONCE];
     const isSlo = this.$route.query[IS_SLO];
 
-    console.log('VERIFY route', this.$route);
-    console.log('VERIFY route query', this.$route.query);
-    console.log('VERIFY isSlo', isSlo);
-
     const {
       error, error_description: errorDescription, errorCode, errorMsg
     } = this.$route.query;
 
+    // check for existance of IS_SLO query param to
+    // differenciate between a login and a logout
     if (isSlo) {
-      console.error('IS SLO!!!');
       this.$store.dispatch('auth/uiLogout');
 
       return;
@@ -123,7 +120,6 @@ export default {
   },
 
   mounted() {
-    console.error('MOUNTED VERIFY!');
     if ( this.testing ) {
       try {
         const {
