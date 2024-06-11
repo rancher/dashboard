@@ -9,7 +9,7 @@ import { Checkbox } from '@components/Form/Checkbox';
 import { SECRET } from '@shell/config/types';
 import { TYPES as SECRET_TYPES } from '@shell/models/secret';
 import LabeledSelect from '@shell/components/form/LabeledSelect';
-import { PaginationArgs, PaginationParamFilter } from '@shell/types/store/pagination.types';
+import { FilterArgs, PaginationParamFilter } from '@shell/types/store/pagination.types';
 
 export default {
   name: 'ServiceAccount',
@@ -70,10 +70,8 @@ export default {
     filterSecretsByApi() {
       const findPageArgs = { // Of type ActionFindPageArgs
         namespaced: this.value.metadata.namespace,
-        pagination: new PaginationArgs({
-          page:     null,
-          pageSize: null,
-          filters:  PaginationParamFilter.createMultipleFields(this.secretTypes.map((t) => ({
+        pagination: new FilterArgs({
+          filters: PaginationParamFilter.createMultipleFields(this.secretTypes.map((t) => ({
             field:  'metadata.fields.1',
             value:  t,
             equals: true

@@ -6,7 +6,7 @@ import BaseResourceList from '@/cypress/e2e/po/lists/base-resource-list.po';
  */
 export default class MgmtUsersListPo extends BaseResourceList {
   create() {
-    return this.masthead().actions().eq(0).click();
+    return cy.get('[data-testid="masthead-create"]').click();
   }
 
   refreshGroupMembership(): AsyncButtonPo {
