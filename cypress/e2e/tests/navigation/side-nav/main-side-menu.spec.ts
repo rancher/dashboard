@@ -4,6 +4,7 @@ import PagePo from '@/cypress/e2e/po/pages/page.po';
 import ProductNavPo from '@/cypress/e2e/po/side-bars/product-side-nav.po';
 import ClusterManagerListPagePo from '@/cypress/e2e/po/pages/cluster-manager/cluster-manager-list.po';
 import { generateFakeClusterDataAndIntercepts } from '@/cypress/e2e/blueprints/nav/fake-cluster';
+import { RANCHER_PAGE_EXCEPTIONS, catchTargetPageException } from '@/cypress/support/utils/exception-utils';
 
 const longClusterDescription = 'this-is-some-really-really-really-really-really-really-long-decription';
 const fakeProvClusterId = 'some-fake-cluster-id';
@@ -47,6 +48,8 @@ describe('Side Menu: main', () => {
 
     // testing https://github.com/rancher/dashboard/issues/10192
     it('"documentation" link in editing a cluster should open in a new tab', { tags: ['@navigation', '@adminUser'] }, () => {
+      catchTargetPageException(RANCHER_PAGE_EXCEPTIONS);
+
       const page = new PagePo('');
       const clusterList = new ClusterManagerListPagePo('_');
 
