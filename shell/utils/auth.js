@@ -71,9 +71,13 @@ export function returnTo(opt, vm) {
  * Determines common auth provider info as those that are available (non-local) and the location of the enabled provider
  */
 export const authProvidersInfo = async(store) => {
-  const rows = await store.dispatch(`management/findAll`, { type: MANAGEMENT.AUTH_CONFIG });
+  try {
+    const rows = await store.dispatch(`management/findAll`, { type: MANAGEMENT.AUTH_CONFIG });
 
-  return parseAuthProvidersInfo(rows);
+    return parseAuthProvidersInfo(rows);
+  } catch (error) {
+    return {};
+  }
 };
 
 /**
