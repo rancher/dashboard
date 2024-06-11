@@ -1,6 +1,7 @@
 <script>
 import CreateEditView from '@shell/mixins/create-edit-view';
-import { LOGGING, SCHEMA, SECRET } from '@shell/config/types';
+import Loading from '@shell/components/Loading';
+import { LOGGING, SCHEMA } from '@shell/config/types';
 import Tabbed from '@shell/components/Tabbed';
 import Tab from '@shell/components/Tabbed/Tab';
 import CruResource from '@shell/components/CruResource';
@@ -19,18 +20,42 @@ import YamlEditor, { EDITOR_MODES } from '@shell/components/YamlEditor';
 
 export default {
   components: {
-    Banner, CruResource, Labels, LabeledSelect, NameNsDescription, Tab, Tabbed, YamlEditor
+    Banner, CruResource, Labels, LabeledSelect, NameNsDescription, Tab, Tabbed, YamlEditor, Loading
   },
 
   mixins: [CreateEditView],
 
   async fetch() {
-    await this.$store.dispatch('cluster/findAll', { type: SECRET });
-
-    const schemas = await this.$store.dispatch('cluster/findAll', { type: SCHEMA });
-    const resourceSchema = schemas.find((s) => s.id === LOGGING.OUTPUT);
+    const resourceSchema = await this.$store.dispatch('cluster/find', { type: SCHEMA, id: LOGGING.OUTPUT });
 
     this.schemaDefinition = await resourceSchema.fetchResourceFields();
+
+    let bufferYaml = '';
+
+    if ( !isEmpty(this.value.spec[this.selectedProvider]?.buffer) ) {
+      bufferYaml = jsyaml.dump(this.value.spec[this.selectedProvider].buffer);
+    } else if (this.schemaDefinition) {
+      bufferYaml = createYaml(
+        this.schemas,
+        `io.banzaicloud.logging.v1beta1.Output.spec.${ this.selectedProvider }.buffer`,
+        {},
+        true,
+        1,
+        '',
+        LOGGING.OUTPUT
+      );
+
+      // createYaml doesn't support passing reference types (array, map) as the first type. As such
+      // I'm manipulating the output since I'm not sure it's something we want to actually support
+      // seeing as it's really createResourceYaml and this here is a gray area between spoofed types
+      // and just a field within a spec.
+      bufferYaml = bufferYaml.substring(bufferYaml.indexOf('\n') + 1).replace(/# {2}/g, '#');
+    }
+
+    if (bufferYaml.length) {
+      this.bufferYaml = bufferYaml;
+      this.initialBufferYaml = bufferYaml;
+    }
   },
 
   data() {
@@ -76,38 +101,6 @@ export default {
   computed: {
     schemas() {
       return this.$store.getters['cluster/all'](SCHEMA);
-    },
-    // this computed also controls the display of the YamlEditor
-    // which is good in order to "wait" for the schemaDefinitions request
-    // needed to populate the data to get the 'buffer' field
-    initialBufferYaml() {
-      let bufferYaml = '';
-
-      if ( !isEmpty(this.value.spec[this.selectedProvider]?.buffer) ) {
-        bufferYaml = jsyaml.dump(this.value.spec[this.selectedProvider].buffer);
-      } else if (this.schemaDefinition) {
-        bufferYaml = createYaml(
-          this.schemas,
-          `io.banzaicloud.logging.v1beta1.Output.spec.${ this.selectedProvider }.buffer`,
-          {},
-          true,
-          1,
-          '',
-          LOGGING.OUTPUT
-        );
-
-        // createYaml doesn't support passing reference types (array, map) as the first type. As such
-        // I'm manipulating the output since I'm not sure it's something we want to actually support
-        // seeing as it's really createResourceYaml and this here is a gray area between spoofed types
-        // and just a field within a spec.
-        bufferYaml = bufferYaml.substring(bufferYaml.indexOf('\n') + 1).replace(/# {2}/g, '#');
-      }
-
-      if (bufferYaml.length) {
-        this.bufferYaml = bufferYaml;
-      }
-
-      return bufferYaml;
     },
     EDITOR_MODES() {
       return EDITOR_MODES;
@@ -181,7 +174,11 @@ export default {
 </script>
 
 <template>
-  <div class="output">
+  <Loading v-if="$fetchState.pending" />
+  <div
+    v-else
+    class="output"
+  >
     <CruResource
       :done-route="doneRoute"
       :mode="cruMode"
@@ -249,7 +246,6 @@ export default {
           :weight="1"
         >
           <YamlEditor
-            v-if="initialBufferYaml.length"
             ref="yaml"
             v-model="bufferYaml"
             :scrolling="false"
