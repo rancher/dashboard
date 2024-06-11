@@ -25,8 +25,8 @@ export const STEVE_STATE_COL = {
   ...STATE,
   // value:  'metadata.state.name', Use the state as defined by the resource rather than converted via the model.
   // This means we'll show something different to what we sort and filter on.
-  sort:   ['metadata.state.name'],
-  search: 'metadata.state.name',
+  sort:   [], // ['metadata.state.name'], // Pending API support
+  search: false, // 'metadata.state.name', // Pending API support
 };
 
 export const STEVE_AGE_COL = {

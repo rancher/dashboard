@@ -14,7 +14,7 @@ import { allHash } from '@shell/utils/promise';
 import { get } from '@shell/utils/object';
 import { _CREATE } from '@shell/config/query-params';
 import { formatEncryptionSecretNames } from '@shell/utils/formatter';
-import { PaginationArgs, PaginationParamFilter } from '@shell/types/store/pagination.types';
+import { FilterArgs, PaginationParamFilter } from '@shell/types/store/pagination.types';
 import { SECRET_TYPES } from '@shell/config/secret';
 
 export default {
@@ -62,9 +62,8 @@ export default {
     if (this.$store.getters[`cluster/paginationEnabled`](SECRET)) {
       const findPageArgs = { // Of type ActionFindPageArgs
         namespaced: this.chartNamespace,
-        pagination: new PaginationArgs({
-          pageSize: -1,
-          filters:  PaginationParamFilter.createSingleField({
+        pagination: new FilterArgs({
+          filters: PaginationParamFilter.createSingleField({
             field: 'metadata.fields.1',
             value: SECRET_TYPES.OPAQUE
           })

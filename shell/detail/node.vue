@@ -19,7 +19,7 @@ import { mapGetters } from 'vuex';
 import { allDashboardsExist } from '@shell/utils/grafana';
 import Loading from '@shell/components/Loading';
 import metricPoller from '@shell/mixins/metric-poller';
-import { PaginationArgs, PaginationParamFilter } from '@shell/types/store/pagination.types';
+import { FilterArgs, PaginationParamFilter } from '@shell/types/store/pagination.types';
 
 const NODE_METRICS_DETAIL_URL = '/api/v1/namespaces/cattle-monitoring-system/services/http:rancher-monitoring-grafana:80/proxy/d/rancher-node-detail-1/rancher-node-detail?orgId=1';
 const NODE_METRICS_SUMMARY_URL = '/api/v1/namespaces/cattle-monitoring-system/services/http:rancher-monitoring-grafana:80/proxy/d/rancher-node-1/rancher-node?orgId=1';
@@ -52,11 +52,9 @@ export default {
     if (this.filterByApi) {
       // Only get pods associated with this node. The actual values used are from a get all in node model `pods` getter (this works as it just gets all...)
       const opt = { // Of type ActionFindPageArgs
-        pagination: new PaginationArgs({
-          page:     -1,
-          pageSize: -1,
-          sort:     [{ field: 'metadata.name', asc: true }],
-          filters:  PaginationParamFilter.createSingleField({
+        pagination: new FilterArgs({
+          sort:    [{ field: 'metadata.name', asc: true }],
+          filters: PaginationParamFilter.createSingleField({
             field: 'spec.nodeName',
             value: this.value.id,
           })
