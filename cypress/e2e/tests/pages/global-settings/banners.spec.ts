@@ -338,7 +338,7 @@ describe('Banners', { testIsolation: 'off' }, () => {
       HomePagePo.goTo();
     });
 
-    it('Should not have banner', { tags: ['@globalSettings', '@adminUser', '@standardUser'] }, () => {
+    it('Should not have banner', { tags: ['@globalSettings', '@adminUser'] }, () => {
       const banner = new FixedBannerPo(`#banner-${ bannerName.toLowerCase() }`);
 
       HomePagePo.goToAndWaitForGet();
@@ -482,7 +482,7 @@ describe('Banners', { testIsolation: 'off' }, () => {
       HomePagePo.goTo();
     });
 
-    it('Should not have banner', { tags: ['@globalSettings', '@adminUser', '@standardUser'] }, () => {
+    it('Should not have banner', { tags: ['@globalSettings', '@adminUser'] }, () => {
       const banner = new FixedBannerPo('#banner-consent');
 
       cy.logout();
