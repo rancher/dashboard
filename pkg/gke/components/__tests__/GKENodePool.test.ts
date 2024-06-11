@@ -1,5 +1,4 @@
 import { shallowMount } from '@vue/test-utils';
-import flushPromises from 'flush-promises';
 
 import GKENodePool from '@pkg/gke/components/GKENodePool.vue';
 import { _EDIT } from '@shell/config/query-params';

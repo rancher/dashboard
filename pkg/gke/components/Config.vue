@@ -326,24 +326,29 @@ export default defineComponent({
       }
     },
 
-    getVersions() {
-      getGKEVersions(this.$store, this.cloudCredentialId, this.projectId, { zone: this.zone, region: this.region }).then((res) => {
+    async getVersions() {
+      try {
+        const res = await getGKEVersions(this.$store, this.cloudCredentialId, this.projectId, { zone: this.zone, region: this.region });
+
         this.versionsResponse = res;
         if (res.defaultImageType) {
           this.$emit('update:defaultImageType', res.defaultImageType);
         }
-      }).catch((err) => {
+      } catch (err:any) {
         this.$emit('error', err);
-      });
+      }
+
       this.loadingVersions = false;
     },
 
-    getClusters() {
-      getGKEClusters(this.$store, this.cloudCredentialId, this.projectId, { zone: this.zone, region: this.region }, this.clusterId).then((res) => {
+    async getClusters() {
+      try {
+        const res = await getGKEClusters(this.$store, this.cloudCredentialId, this.projectId, { zone: this.zone, region: this.region }, this.clusterId);
+
         this.clustersResponse = res;
-      }).catch((err) => {
+      } catch (err:any) {
         this.$emit('error', err);
-      });
+      }
     },
 
     async getZones() {

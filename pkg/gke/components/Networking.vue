@@ -209,7 +209,7 @@ export default defineComponent({
 
     subnetworkOptions(neu) {
       if (neu && neu.length) {
-        const firstSubnet = neu.find((sn: {label: string, name: string, secondaryIpRanges?: any[]}) => sn.name !== GKE_NONE_OPTION);
+        const firstSubnet = neu.find((sn: GKESubnetworkOption) => sn.name !== GKE_NONE_OPTION);
 
         if (firstSubnet?.name) {
           this.$emit('update:subnetwork', firstSubnet.name);
