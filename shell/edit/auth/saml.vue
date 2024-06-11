@@ -11,7 +11,6 @@ import FileSelector from '@shell/components/form/FileSelector';
 import AuthBanner from '@shell/components/auth/AuthBanner';
 import config from '@shell/edit/auth/ldap/config';
 import AuthProviderWarningBanners from '@shell/edit/auth/AuthProviderWarningBanners';
-import { configType } from '@shell/models/management.cattle.io.authconfig';
 import RadioGroup from '@components/Form/Radio/RadioGroup.vue';
 
 export const SHIBBOLETH = 'shibboleth';
