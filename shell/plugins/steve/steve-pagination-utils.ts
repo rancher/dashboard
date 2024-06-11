@@ -132,7 +132,7 @@ class StevePaginationUtils extends NamespaceProjectFilters {
 
   private convertArrayPath(path: string): string {
     if (path.startsWith('metadata.fields.')) {
-      return `metadata.fields[${ path.substring(16, path.length) }]`;
+      return `metadata.fields[${ path.substring(16) }]`;
     }
 
     return path;

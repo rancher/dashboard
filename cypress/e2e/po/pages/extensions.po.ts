@@ -54,8 +54,9 @@ export default class ExtensionsPagePo extends PagePo {
     // create a new clusterrepo
     const appRepoList = new RepositoriesPagePo('local', 'apps');
 
-    // appRepoList.waitForPage();
-    appRepoList.waitForGoTo('/v1/catalog.cattle.io.clusterrepos?exclude=metadata.managedFields');
+    appRepoList.waitForPage();
+    appRepoList.list().checkVisible();
+
     appRepoList.create();
 
     const appRepoCreate = new ChartRepositoriesCreateEditPo('local', 'apps');

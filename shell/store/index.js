@@ -770,8 +770,8 @@ export const actions = {
     });
 
     // Note - why aren't we watching anything fetched in the `promises` object?
-    // To watch we need feature flags to know that the vai cache is on or not.
-    // So to work around this we won't fetch anything initially... and then watch once we have them all
+    // To watch we need feature flags to know that the vai cache is enabled.
+    // So to work around this we won't watch anything initially... and then watch once we have feature flags
     // The alternative is simpler (fetch features up front) but would add another blocking request in
 
     const promises = {
@@ -818,6 +818,7 @@ export const actions = {
 
     res = await allHash(promises);
 
+    // See comment above. Now that we have feature flags we can watch resources
     toWatch.forEach((type) => {
       dispatch('management/watch', { type });
     });

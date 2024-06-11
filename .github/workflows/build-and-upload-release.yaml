@@ -2,7 +2,7 @@ name: Build Dashboard (Release)
 on:
   push:
     tags:
-      - v[2-9].*
+      - v2.9.*
 
 jobs:
   build-validation:
