@@ -251,6 +251,7 @@ export const state = () => {
     $router:                 markRaw(undefined),
     $route:                  markRaw(undefined),
     $plugin:                 markRaw(undefined),
+    $axios:                  markRaw(undefined),
   };
 };
 
@@ -738,6 +739,10 @@ export const mutations = {
 
   setPlugin(state, pluginDefinition) {
     state.$plugin = markRaw(pluginDefinition);
+  },
+
+  setAxios(state, axios) {
+    state.$axios = markRaw(axios);
   }
 };
 
@@ -1168,7 +1173,7 @@ export const actions = {
     commit('setRouter', nuxt.app.router);
     commit('setRoute', nuxt.route);
     commit('setPlugin', nuxt.app.$plugin);
-    Object.defineProperty(rootState, '$axios', { value: nuxt.app.$axios });
+    commit('setAxios', nuxt.app.$axios);
 
     dispatch('management/rehydrateSubscribe');
     dispatch('cluster/rehydrateSubscribe');
