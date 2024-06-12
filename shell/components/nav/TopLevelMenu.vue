@@ -16,6 +16,7 @@ import { filterOnlyKubernetesClusters, filterHiddenLocalCluster } from '@shell/u
 import { getProductFromRoute } from '@shell/utils/router';
 import { isRancherPrime } from '@shell/config/version';
 import Pinned from '@shell/components/nav/Pinned';
+import { getGlobalBannerFontSizes } from '@shell/utils/banners';
 
 export default {
   components: {
@@ -59,35 +60,14 @@ export default {
       },
     },
     sideMenuStyle() {
+      const globalBannerSettings = getGlobalBannerFontSizes(this.$store);
+
       return {
-        marginBottom: this.globalBannerSettings?.footerFont,
-        marginTop:    this.globalBannerSettings?.headerFont
+        marginBottom: globalBannerSettings?.footerFont,
+        marginTop:    globalBannerSettings?.headerFont
       };
     },
 
-    globalBannerSettings() {
-      const settings = this.$store.getters['management/all'](MANAGEMENT.SETTING);
-      const bannerSettings = settings?.find((s) => s.id === SETTING.BANNERS);
-
-      if (bannerSettings) {
-        const parsed = JSON.parse(bannerSettings.value);
-        const {
-          showFooter, showHeader, bannerFooter, bannerHeader, banner
-        } = parsed;
-
-        // add defaults to accomodate older JSON structures for banner definitions without breaking the UI
-        // https://github.com/rancher/dashboard/issues/10140
-        const bannerHeaderFontSize = bannerHeader?.fontSize || banner?.fontSize || '14px';
-        const bannerFooterFontSize = bannerFooter?.fontSize || banner?.fontSize || '14px';
-
-        return {
-          headerFont: showHeader === 'true' ? this.pxToEm(bannerHeaderFontSize) : '0px',
-          footerFont: showFooter === 'true' ? this.pxToEm(bannerFooterFontSize) : '0px'
-        };
-      }
-
-      return undefined;
-    },
     legacyEnabled() {
       return this.features(LEGACY);
     },
@@ -343,19 +323,6 @@ export default {
   },
 
   methods: {
-    /**
-     * Converts a pixel value to an em value based on the default font size.
-     * @param {number} elementFontSize - The font size of the element in pixels.
-     * @param {number} [defaultFontSize=14] - The default font size in pixels.
-     * @returns {string} The converted value in em units.
-     */
-    pxToEm(elementFontSize, defaultFontSize = 14) {
-      const lineHeightInPx = 2 * parseInt(elementFontSize);
-      const lineHeightInEm = lineHeightInPx / defaultFontSize;
-
-      return `${ lineHeightInEm }em`;
-    },
-
     checkActiveRoute(obj, isClusterRoute) {
       // for Cluster links in main nav: check if route is a cluster explorer one + check if route cluster matches cluster obj id + check if curr product matches route product
       if (isClusterRoute) {
