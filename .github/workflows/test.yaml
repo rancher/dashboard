@@ -14,13 +14,13 @@ on:
         description: 'Environment to run tests against'
         type: environment
         required: true
-
+      
 env:
   TEST_USERNAME: admin
   TEST_PASSWORD: password
   CATTLE_BOOTSTRAP_PASSWORD: password
-  TEST_BASE_URL: https://127.0.0.1:8005
-  API: https://127.0.0.1
+  TEST_BASE_URL: https://127.0.0.1.sslip.io
+  API: https://127.0.0.1.sslip.io
   TEST_PROJECT_ID: rancher-dashboard
   CYPRESS_API_URL: http://139.59.134.103:1234/
   TEST_RUN_ID: ${{github.run_number}}-${{github.run_attempt}}-${{github.event.pull_request.title || github.event.head_commit.message}}
@@ -60,6 +60,7 @@ jobs:
         if-no-files-found: error
         retention-days: 10
         compression-level: 9
+
   e2e-test:
     if: "!contains( github.event.pull_request.labels.*.name, 'ci/skip-e2e')"
     needs: e2e-ui-build
@@ -110,7 +111,7 @@ jobs:
          path: ${{ env.E2E_BUILD_DIST_EMBER_DIR }}
       
       - name: Run Rancher
-        run: yarn e2e:docker
+        run: yarn e2e:k3s
       
       - name: Setup Rancher and user
         run: |
