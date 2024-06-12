@@ -7,8 +7,8 @@ describe('eks versions', () => {
     eksVersions.forEach((version) => {
       const m = version.match(EKS_VERSION_REGEX);
 
-      expect(m).not.toBe(undefined);
-      expect(m).not.toBe(null);
+      expect(m).toBeDefined();
+      expect(m).not.toBeNull();
       expect(m?.length).toBe(1);
       expect(m?.[0]).toBe(version);
     });
