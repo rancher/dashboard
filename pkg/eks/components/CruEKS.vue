@@ -253,12 +253,19 @@ export default defineComponent({
   computed: {
     ...mapGetters({ t: 'i18n/t' }),
 
+    needsValidaation() {
+      return !!this.config.amazonCredentialSecret;
+    },
+
     fvExtraRules() {
       return {
         nameRequired: () => {
-          return !this.config.displayName ? this.t('validation.required', { key: this.t('nameNsDescription.name.label') }) : null;
+          return this.needsValidation && !this.config.displayName ? this.t('validation.required', { key: this.t('nameNsDescription.name.label') }) : null;
         },
         nodeGroupNamesRequired: (node: EKSNodeGroup) => {
+          if (!this.needsValidation) {
+            return;
+          }
           if (node) {
             return !!node.nodegroupName ? this.t('validation.required', { key: this.t('eks.nodeGroups.name.label') }) : null;
           }
@@ -266,6 +273,9 @@ export default defineComponent({
           return !!this.nodeGroups.find((group) => !group.nodegroupName) ? this.t('validation.required', { key: this.t('eks.nodeGroups.name.label') }) : null;
         },
         nodeGroupNamesUnique: (node: EKSNodeGroup): null | string => {
+          if (!this.needsValidation) {
+            return null;
+          }
           if (node) {
             return node.__nameUnique === false ? this.t('eks.errors.nodeGroups.nameUnique') : null;
           }
@@ -287,6 +297,9 @@ export default defineComponent({
           return out;
         },
         maxSize: (size: number) => {
+          if (!this.needsValidation) {
+            return null;
+          }
           const msg = this.t('eks.errors.greaterThanZero', { key: this.t('eks.nodeGroups.maxSize.label') });
 
           if (size !== undefined) {
@@ -296,6 +309,9 @@ export default defineComponent({
           return !!this.nodeGroups.find((group) => !group.maxSize || group.maxSize <= 0) ? msg : null;
         },
         minSize: (size: number) => {
+          if (!this.needsValidation) {
+            return null;
+          }
           const msg = this.t('eks.errors.greaterThanZero', { key: this.t('eks.nodeGroups.minSize.label') });
 
           if (size !== undefined) {
@@ -305,6 +321,9 @@ export default defineComponent({
           return !!this.nodeGroups.find((group) => !group.minSize || group.minSize <= 0) ? msg : null;
         },
         diskSize: (type: string) => {
+          if (!this.needsValidation) {
+            return null;
+          }
           if (type || type === '') {
             return !type ? this.t('validation.required', { key: this.t('eks.nodeGroups.diskSize.label') }) : null;
           }
@@ -312,6 +331,9 @@ export default defineComponent({
           return !!this.nodeGroups.find((group: EKSNodeGroup) => !group.diskSize ) ? this.t('validation.required', { key: this.t('eks.nodeGroups.instanceType.label') }) : null;
         },
         instanceType: (type: string) => {
+          if (!this.needsValidation) {
+            return null;
+          }
           if (type || type === '') {
             return !type ? this.t('validation.required', { key: this.t('eks.nodeGroups.instanceType.label') }) : null;
           }
@@ -319,6 +341,9 @@ export default defineComponent({
           return !!this.nodeGroups.find((group: EKSNodeGroup) => !group.instanceType && !group.requestSpotInstances) ? this.t('validation.required', { key: this.t('eks.nodeGroups.instanceType.label') }) : null;
         },
         desiredSize: (size: number) => {
+          if (!this.needsValidation) {
+            return null;
+          }
           const msg = this.t('eks.errors.greaterThanZero', { key: this.t('eks.nodeGroups.desiredSize.label') });
 
           if (size !== undefined) {
@@ -328,11 +353,17 @@ export default defineComponent({
           return !!this.nodeGroups.find((group) => !group.desiredSize || group.desiredSize <= 0) ? msg : null;
         },
         subnets: (val: string[]) => {
+          if (!this.needsValidation) {
+            return null;
+          }
           const subnets = val || this.config.subnets;
 
           return subnets && subnets.length === 1 ? this.t('eks.errors.minimumSubnets') : undefined;
         },
         publicPrivateAccess: (): string | undefined => {
+          if (!this.needsValidation) {
+            return null;
+          }
           const { publicAccess, privateAccess } = this.config;
 
           return publicAccess || privateAccess ? undefined : this.t('eks.errors.publicOrPrivate');
