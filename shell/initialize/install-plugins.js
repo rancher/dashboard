@@ -54,6 +54,10 @@ export async function installInjectedPlugins(app, vueApp) {
 
   await Promise.all(installations);
 
+  // We had i18n/init happening asynchronously within the i18n installation method. We need this to happen synchronously otherwise we end up with race conditions where some pages won't load when translated.
+  // If there's any performance reasons this can be done concurrently with all of the installation promises above but I felt it was organizationally better to keep both i18n items together.
+  await app.store.dispatch('i18n/init');
+
   // Order matters here. This is coming after the other plugins specifically so $cookies can be installed. i18n/init relies on prefs/get which relies on $cookies.
   vueApp.use(i18n, { store: app.store });
 }
