@@ -81,7 +81,7 @@ export default {
       filtersYaml = jsyaml.dump(this.value.spec.filters);
     } else {
       // Note - no need to call fetchResourceFields here (spoofed type has popoulated resourceFields)
-      filtersYaml = createYaml(schemas, LOGGING.SPOOFED.FILTERS, []);
+      filtersYaml = createYaml(schemas, LOGGING.SPOOFED.FILTERS, {});
       // createYaml doesn't support passing reference types (array, map) as the first type. As such
       // I'm manipulating the output since I'm not sure it's something we want to actually support
       // seeing as it's really createResourceYaml and this here is a gray area between spoofed types
