@@ -469,7 +469,7 @@ export default {
      * Extension provider where being provisioned by an extension
      */
     extensionProvider() {
-      return this.value.customProvisionerHelper;
+      return this.value?.customProvisionerHelper;
     },
 
     /**
