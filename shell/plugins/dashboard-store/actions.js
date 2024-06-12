@@ -645,7 +645,10 @@ export default {
     const schema = ctx.getters['schemaFor'](userData.type);
 
     if (schema) {
-      await schema.fetchResourceFields();
+      if (schema.fetchResourceFields) {
+        // fetch resourceFields for createYaml
+        await schema.fetchResourceFields();
+      }
       data = ctx.getters['defaultFor'](userData.type, schema);
     }
 
