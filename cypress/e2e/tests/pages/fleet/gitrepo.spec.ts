@@ -4,6 +4,7 @@ import FleetGitRepoDetailsPo from '@/cypress/e2e/po/detail/fleet/fleet.cattle.io
 import { gitRepoCreateRequest, gitRepoTargetAllClustersRequest } from '@/cypress/e2e/blueprints/fleet/gitrepos';
 import { generateFakeClusterDataAndIntercepts } from '@/cypress/e2e/blueprints/nav/fake-cluster';
 import PreferencesPagePo from '@/cypress/e2e/po/pages/preferences.po';
+import { EXTRA_LONG_TIMEOUT_OPT } from '@/cypress/support/utils/timeouts';
 
 const fakeProvClusterId = 'some-fake-cluster-id';
 const fakeMgmtClusterId = 'some-fake-mgmt-id';
@@ -46,7 +47,7 @@ describe('Git Repo', { testIsolation: 'off', tags: ['@fleet', '@adminUser'] }, (
 
       gitRepoCreatePage.goTo();
       gitRepoCreatePage.waitForPage();
-      cy.wait('@getSecrets').its('response.statusCode').should('eq', 200);
+      cy.wait('@getSecrets', EXTRA_LONG_TIMEOUT_OPT).its('response.statusCode').should('eq', 200);
 
       const { name } = gitRepoCreateRequest.metadata;
       const {

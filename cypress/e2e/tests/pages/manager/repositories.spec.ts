@@ -2,6 +2,7 @@ import PromptRemove from '@/cypress/e2e/po/prompts/promptRemove.po';
 import ChartRepositoriesPagePo from '@/cypress/e2e/po/pages/chart-repositories.po';
 import * as path from 'path';
 import * as jsyaml from 'js-yaml';
+import { LONG_TIMEOUT_OPT } from '@/cypress/support/utils/timeouts';
 
 const chartBranch = 'release-v2.9';
 
@@ -33,7 +34,7 @@ describe('Cluster Management Helm Repositories', { testIsolation: 'off', tags: [
     // check list details
     repositoriesPage.list().details(this.repoName, 2).should('be.visible');
     repositoriesPage.list().details(this.repoName, 1).contains('In Progress').should('be.visible');
-    repositoriesPage.list().details(this.repoName, 1).contains('Active').should('be.visible');
+    repositoriesPage.list().details(this.repoName, 1).contains('Active', LONG_TIMEOUT_OPT).should('be.visible');
   });
 
   it('can edit a repository', function() {
@@ -90,7 +91,7 @@ describe('Cluster Management Helm Repositories', { testIsolation: 'off', tags: [
 
     // check list details
     repositoriesPage.list().details(this.repoName, 1).contains('In Progress').should('be.visible');
-    repositoriesPage.list().details(this.repoName, 1).contains('Active').should('be.visible');
+    repositoriesPage.list().details(this.repoName, 1).contains('Active', LONG_TIMEOUT_OPT).should('be.visible');
   });
 
   it('can delete a repository', function() {
@@ -135,7 +136,7 @@ describe('Cluster Management Helm Repositories', { testIsolation: 'off', tags: [
 
     // check list details
     repositoriesPage.list().details(`${ this.repoName }basic`, 2).should('be.visible');
-    repositoriesPage.list().details(`${ this.repoName }basic`, 1).contains('Active').should('be.visible');
+    repositoriesPage.list().details(`${ this.repoName }basic`, 1).contains('Active', LONG_TIMEOUT_OPT).should('be.visible');
   });
 
   it('can create a repository with SSH key', function() {

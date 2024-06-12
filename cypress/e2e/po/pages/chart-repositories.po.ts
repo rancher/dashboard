@@ -1,6 +1,7 @@
 import PagePo from '@/cypress/e2e/po/pages/page.po';
 import ChartRepositoriesListPo from '@/cypress/e2e/po/lists/chart-repositories.po';
 import ChartRepositoriesCreateEditPo from '@/cypress/e2e/po/edit/chart-repositories.po';
+import ClusterManagerListPagePo from '@/cypress/e2e/po/pages/cluster-manager/cluster-manager-list.po';
 import ProductNavPo from '@/cypress/e2e/po/side-bars/product-side-nav.po';
 import BurgerMenuPo from '@/cypress/e2e/po/side-bars/burger-side-menu.po';
 
@@ -33,6 +34,8 @@ export default class ChartRepositoriesPagePo extends PagePo {
       sideNav.navToSideMenuEntryByLabel('Repositories');
     } else {
       BurgerMenuPo.burgerMenuNavToMenubyLabel('Cluster Management');
+      (new ClusterManagerListPagePo()).waitForPage();
+
       sideNav.groups().contains('Advanced').click();
       sideNav.navToSideMenuEntryByLabel('Repositories');
     }

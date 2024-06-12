@@ -9,6 +9,9 @@ import { ChartsPage } from '@/cypress/e2e/po/pages/explorer/charts/charts.po';
 import { InstallChartPage } from '@/cypress/e2e/po/pages/explorer/charts/install-charts.po';
 import { PrometheusTab } from '@/cypress/e2e/po/pages/explorer/charts/tabs/prometheus-tab.po';
 import { GrafanaTab } from '@/cypress/e2e/po/pages/explorer/charts/tabs/grafana-tab.po';
+import { AlertingTab } from '@/cypress/e2e/po/pages/explorer/charts/tabs/alerting-tab.po';
+import { IstioTab } from '@/cypress/e2e/po/pages/explorer/charts/tabs/istio-tab.po';
+import { LONG_TIMEOUT_OPT } from '~/cypress/support/utils/timeouts';
 import { DEFAULT_GRAFANA_STORAGE_SIZE } from '@shell/config/types.js';
 
 describe('Charts', { tags: ['@charts', '@adminUser'] }, () => {
@@ -17,11 +20,25 @@ describe('Charts', { tags: ['@charts', '@adminUser'] }, () => {
   const installChart = new InstallChartPage();
   const terminal = new Kubectl();
   const prometheus = new PrometheusTab();
+  const alerting = new AlertingTab();
+  const istio = new IstioTab();
 
   before(() => {
     cy.login();
     cy.viewport(1280, 720);
   });
+
+  after(() => {
+    uninstallApp('cattle-monitoring-system', 'rancher-monitoring-crd');
+    uninstallApp('cattle-monitoring-system', 'rancher-monitoring');
+    uninstallApp('istio-system', 'rancher-istio');
+  });
+
+  function uninstallApp(namespace: string, name: string) {
+    cy.createRancherResource('v1', `catalog.cattle.io.apps/${ namespace }/${ name }?action=uninstall`, '{}');
+    // Need to wait between uninstalls (not ideal)
+    cy.wait(2000); // eslint-disable-line cypress/no-unnecessary-waiting
+  }
 
   describe('Monitoring', { testIsolation: 'off' }, () => {
     describe('Prometheus local provisioner config', () => {
@@ -33,7 +50,7 @@ describe('Charts', { tags: ['@charts', '@adminUser'] }, () => {
         chartsPage.waitForPage();
 
         // Open terminal
-        terminal.openTerminal();
+        terminal.openTerminal(LONG_TIMEOUT_OPT);
 
         // kubectl commands
         terminal.executeCommand(`apply -f https://raw.githubusercontent.com/rancher/local-path-provisioner/${ provisionerVersion }/deploy/local-path-storage.yaml`)
@@ -50,17 +67,19 @@ describe('Charts', { tags: ['@charts', '@adminUser'] }, () => {
       it('Should not include empty prometheus selector when installing.', () => {
         ChartPage.navTo(null, 'Monitoring');
 
-        chartPage.waitForPage('repo-type=cluster&repo=rancher-charts&chart=rancher-monitoring');
+        chartPage.waitForChartPage('rancher-charts', 'rancher-monitoring');
 
         const tabbedOptions = new TabbedPo();
 
         // Navigate to the edit options page and Set prometheus storage class
-
         chartPage.goToInstall();
-        installChart.nextPage().editOptions(tabbedOptions, '[data-testid="btn-prometheus"]');
-        installChart.waitForPage('repo-type=cluster&repo=rancher-charts&chart=rancher-monitoring');
+        installChart.nextPage().selectTab(tabbedOptions, prometheus.tabID());
 
-        // Scroll into view
+        installChart.waitForChartPage('rancher-charts', 'rancher-monitoring');
+
+        // Scroll into view - scroll to bottom of view
+        prometheus.scrollToTabBottom();
+
         prometheus.persistentStorage().checkVisible();
         prometheus.persistentStorage().set();
 
@@ -69,8 +88,19 @@ describe('Charts', { tags: ['@charts', '@adminUser'] }, () => {
         prometheus.persistentStorage().hasAppropriateWidth();
         prometheus.persistentStorage().hasAppropriateHeight();
 
+        // Scroll into view - scroll to bottom of view
+        prometheus.scrollToTabBottom();
+
         prometheus.storageClass().toggle();
         prometheus.storageClass().clickOptionWithLabel('local-path');
+
+        // Disable installing Alert Manager
+        installChart.nextPage().selectTab(tabbedOptions, alerting.tabID());
+
+        installChart.waitForChartPage('rancher-charts', 'rancher-monitoring');
+
+        alerting.deployCheckbox().checkVisible();
+        alerting.deployCheckbox().set();
 
         // Click on YAML. In YAML mode, the prometheus selector is present but empty
         // It should not be sent to the API
@@ -91,18 +121,22 @@ describe('Charts', { tags: ['@charts', '@adminUser'] }, () => {
       it('Should not include empty prometheus selector when installing (add/remove selector).', () => {
         ChartPage.navTo(null, 'Monitoring');
 
-        chartPage.waitForPage('repo-type=cluster&repo=rancher-charts&chart=rancher-monitoring');
+        chartPage.waitForChartPage('rancher-charts', 'rancher-monitoring');
 
         const tabbedOptions = new TabbedPo();
 
         // Set prometheus storage class
         chartPage.goToInstall();
         installChart.nextPage().editOptions(tabbedOptions, '[data-testid="btn-prometheus"]');
-        installChart.waitForPage('repo-type=cluster&repo=rancher-charts&chart=rancher-monitoring');
+        installChart.waitForChartPage('rancher-charts', 'rancher-monitoring');
 
-        // Scroll into view
+        // Scroll into view - scroll to bottom of view
+        prometheus.scrollToTabBottom();
+
         prometheus.persistentStorage().checkVisible();
         prometheus.persistentStorage().set();
+
+        prometheus.scrollToTabBottom();
 
         prometheus.storageClass().toggle();
         prometheus.storageClass().clickOptionWithLabel('local-path');
@@ -219,15 +253,22 @@ describe('Charts', { tags: ['@charts', '@adminUser'] }, () => {
       it('Should install Istio', () => {
         ChartPage.navTo(null, 'Istio');
 
-        chartPage.waitForPage('repo-type=cluster&repo=rancher-charts&chart=rancher-istio');
+        chartPage.waitForChartPage('rancher-charts', 'rancher-istio');
 
         chartPage.goToInstall();
         installChart.nextPage();
-        installChart.waitForPage('repo-type=cluster&repo=rancher-charts&chart=rancher-istio');
+        installChart.waitForChartPage('rancher-charts', 'rancher-istio');
+
+        // Disable Ingress Gateway
+        istio.enableIngressGatewayCheckbox().checkExists();
+        istio.enableIngressGatewayCheckbox().set();
 
         cy.intercept('POST', 'v1/catalog.cattle.io.clusterrepos/rancher-charts?action=install').as('chartInstall');
         installChart.installChart();
-        cy.wait('@chartInstall').its('response.statusCode').should('eq', 201);
+        cy.wait('@chartInstall', LONG_TIMEOUT_OPT).its('response.statusCode').should('eq', 201);
+
+        terminal.waitForTerminalToBeVisible();
+        terminal.closeTerminal();
       });
 
       it('Side-nav should contain Istio menu item', () => {

@@ -1,4 +1,4 @@
-import ComponentPo from '@/cypress/e2e/po/components/component.po';
+import ComponentPo, { GetOptions } from '@/cypress/e2e/po/components/component.po';
 import ActionMenuPo from '@/cypress/e2e/po/components/action-menu.po';
 import CheckboxInputPo from '@/cypress/e2e/po/components/checkbox-input.po';
 import ListRowPo from '@/cypress/e2e/po/components/list-row.po';
@@ -84,8 +84,8 @@ export default class SortableTablePo extends ComponentPo {
     return this.self().find('tbody tr:not(.sub-row)', options);
   }
 
-  rowElementWithName(name: string) {
-    return this.self().contains('tbody tr', new RegExp(` ${ name } `));
+  rowElementWithName(name: string, options?: GetOptions) {
+    return this.self().contains('tbody tr', new RegExp(` ${ name } `), options);
   }
 
   rowElementWithPartialName(name: string) {
