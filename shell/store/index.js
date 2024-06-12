@@ -259,7 +259,7 @@ export const state = () => {
     $router:                 markRaw({}),
     $route:                  markRaw({}),
     $plugin:                 markRaw({}),
-    /**
+    $axios:                  markRaw({}),
      * Cache state of side nav clusters. This avoids flickering when the user changes pages and the side nav component re-renders
      */
     sideNavCache:            undefined,
@@ -763,6 +763,10 @@ export const mutations = {
 
   setSideNavCache(state, sideNavCache) {
     state.sideNavCache = sideNavCache;
+  },
+
+  setAxios(state, axios) {
+    state.$axios = markRaw(axios || {});
   }
 };
 
@@ -1210,7 +1214,7 @@ export const actions = {
     commit('setRouter', nuxt.app.router);
     commit('setRoute', nuxt.route);
     commit('setPlugin', nuxt.app.$plugin);
-    Object.defineProperty(rootState, '$axios', { value: nuxt.app.$axios });
+    commit('setAxios', nuxt.app.$axios);
 
     dispatch('management/rehydrateSubscribe');
     dispatch('cluster/rehydrateSubscribe');
