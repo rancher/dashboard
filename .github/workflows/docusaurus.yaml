@@ -2,11 +2,11 @@ name: Publish Docusaurus
 
 on:
   push:
-    branches:
-      - master
+    branches: ['master']
+    paths: ['docusaurus/**']
   pull_request:
-    branches:
-      - master
+    branches: ['master']
+    paths: ['docusaurus/**']
 jobs:
   build:
     name: Build
