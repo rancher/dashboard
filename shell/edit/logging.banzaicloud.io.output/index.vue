@@ -26,16 +26,17 @@ export default {
   mixins: [CreateEditView],
 
   async fetch() {
-    this.resourceSchema = await this.$store.dispatch('cluster/find', { type: SCHEMA, id: LOGGING.OUTPUT });
-    this.schemaDefinition = await this.resourceSchema.fetchResourceFields();
+    const schemas = this.$store.getters['cluster/all'](SCHEMA);
+    const resourceSchema = this.$store.getters['cluster/byId'](SCHEMA, LOGGING.OUTPUT);
+    const schemaDefinition = await resourceSchema.fetchResourceFields();
 
     let bufferYaml = '';
 
     if ( !isEmpty(this.value.spec[this.selectedProvider]?.buffer) ) {
       bufferYaml = jsyaml.dump(this.value.spec[this.selectedProvider].buffer);
-    } else if (this.schemaDefinition) {
+    } else if (schemaDefinition) {
       bufferYaml = createYaml(
-        this.schemas,
+        schemas,
         `io.banzaicloud.logging.v1beta1.Output.spec.${ this.selectedProvider }.buffer`,
         {},
         true,
@@ -88,8 +89,7 @@ export default {
     const selectedProvider = selectedProviders?.[0]?.value || providers[0].value;
 
     return {
-      schemaDefinition: null,
-      bufferYaml:       '',
+      bufferYaml: '',
       providers,
       selectedProvider,
       hasMultipleProvidersSelected,
@@ -98,9 +98,6 @@ export default {
   },
 
   computed: {
-    schemas() {
-      return this.$store.getters['cluster/all'](SCHEMA);
-    },
     EDITOR_MODES() {
       return EDITOR_MODES;
     },
