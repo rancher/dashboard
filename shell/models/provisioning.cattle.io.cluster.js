@@ -11,45 +11,33 @@ import { AS, MODE, _VIEW, _YAML } from '@shell/config/query-params';
 import { HARVESTER_NAME as HARVESTER } from '@shell/config/features';
 import { CAPI as CAPI_ANNOTATIONS, NODE_ARCHITECTURE } from '@shell/config/labels-annotations';
 import capitalize from 'lodash/capitalize';
-
-/**
- * Cache of instantiated provisioner helpers
- *
- * One per type rather than one per model instance.
- */
-const customProvisionerHelperCache = {};
+import { ModelExtensions } from 'utils/model-extensions';
 
 /**
  * Class representing Cluster resource.
  * @extends SteveModel
  */
 export default class ProvCluster extends SteveModel {
+  constructor(data, ctx, rehydrateNamespace = null, setClone = false) {
+    super(data, ctx, rehydrateNamespace, setClone);
+  }
+
+  /**
+   * Instance of model extensions utility that we can use for accessing model helpers provided by extensions
+   */
+  get modelExtensions() {
+    if (!this._modelExtensions) {
+      this._modelExtensions = new ModelExtensions(this, 'provisioner', (model) => model.machineProvider);
+    }
+
+    return this._modelExtensions;
+  }
+
   /**
    * customProvisionerHelper returns a custom helper if applicable that can be used for this cluster
    */
   get customProvisionerHelper() {
-    const fromAnnotation = this.annotations?.[CAPI_ANNOTATIONS.UI_CUSTOM_PROVIDER];
-
-    if (fromAnnotation) {
-      // Check if we have an instance of the helper already cached
-      if (!customProvisionerHelperCache[fromAnnotation]) {
-        const customProvisionerCls = this.$rootState.$plugin.getDynamic('provisioner', fromAnnotation);
-
-        if (customProvisionerCls) {
-          const context = {
-            dispatch: this.$dispatch,
-            getters:  this.$getters,
-            $plugin:  this.$rootState.$plugin,
-            $t:       this.t
-          };
-
-          customProvisionerHelperCache[fromAnnotation] = new customProvisionerCls(context);
-        }
-      }
-    }
-
-    // Helper, of undefined if no helper for this cluster
-    return customProvisionerHelperCache[fromAnnotation];
+    return this.modelExtensions.modelHelper;
   }
 
   get details() {
@@ -201,7 +189,15 @@ export default class ProvCluster extends SteveModel {
         enabled: canSaveRKETemplate,
       }, { divider: true }];
 
-    return actions.concat(out);
+    const all = actions.concat(out);
+
+    // If we have a helper that wants to modify the available actions, let it do it
+    if (this.customProvisionerHelper?.availableActions) {
+      // Provider can either modify the provided list or return one of its own
+      return this.customProvisionerHelper?.availableActions(this, all) || all;
+    }
+
+    return all;
   }
 
   get normanCluster() {
