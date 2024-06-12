@@ -1,0 +1,17 @@
+version: 2
+mergeable:
+  - when: pull_request.*, pull_request_review.*
+    name: 'Approved by rancher/ui team member'
+    validate:
+      - do: approvals
+        min:
+          count: 1
+        limit:
+          teams: ['rancher/ui'] # This should work, but doesn't. It also requires users to make their membership visible
+          users: ['izaac', 'kwwii', 'rak-phillip', 'nwmac', 'cnotv', 'gaktive', 'richard-cox', 'torchiaf', 'jordojordo', 'mantis-toboggan-md', 'codyrancher', 'scures', 'aalves08', 'edenhernandez-suse', 'yonasberhe23', 'eva-vashkevich', 'momesgin']
+  - when: pull_request.*, pull_request_review.*
+    name: 'Has a milestone'
+    validate:
+      - do: milestone
+        no_empty:
+          enabled: true
