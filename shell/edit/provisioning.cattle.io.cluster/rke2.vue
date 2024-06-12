@@ -1384,7 +1384,9 @@ export default {
             set(this.chartValues, `${ HARVESTER_CLOUD_PROVIDER }.global.cattle.clusterName`, this.value.metadata.name);
           }
 
-          set(this.chartValues, `${ HARVESTER_CLOUD_PROVIDER }.cloudConfigPath`, '/var/lib/rancher/rke2/etc/config-files/cloud-provider-config');
+          const distroRoot = this.value?.spec?.rkeConfig?.dataDirectories?.k8sDistro?.length ? this.value?.spec?.rkeConfig?.dataDirectories?.k8sDistro : '/var/lib/rancher/rke2';
+
+          set(this.chartValues, `${ HARVESTER_CLOUD_PROVIDER }.cloudConfigPath`, `${ distroRoot }/etc/config-files/cloud-provider-config`);
         }
       } catch (err) {
         this.errors.push(err);

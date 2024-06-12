@@ -69,14 +69,25 @@ export class PaginationFilterField {
    * Equality field within the object to filter by for example the `=` or `!=` of x=y
    */
   equals: boolean;
+  /**
+   * Match the field exactly. False for partial matches
+   *
+   * Value: pod1
+   * Exact: true. "p" no, "pod", no, "pod1" yes
+   * Exact: false. "p" yes, "pod", yes, "pod1" yes
+   */
+  exact: boolean;
 
   constructor(
-    { field, value, equals = true }:
-    { field?: string; value: string; equals?: boolean; }
+    {
+      field, value, equals = true, exact = true
+    }:
+    { field?: string; value: string; equals?: boolean; exact?: boolean;}
   ) {
     this.field = field;
     this.value = value;
     this.equals = equals;
+    this.exact = exact;
   }
 }
 
@@ -274,16 +285,18 @@ export class PaginationParamProjectOrNamespace extends PaginationParam {
 
 /**
  * Pagination settings sent to actions and persisted to store
+ *
+ * Use this for making pagination requests that utilise the new vai cache backed API
  */
 export class PaginationArgs {
   /**
    * Page number to fetch
    */
-  page: number;
+  page: number | null;
   /**
    * Number of results in the page
    */
-  pageSize?: number;
+  pageSize?: number | null;
   /**
    * Sort the results
    *
@@ -320,11 +333,11 @@ export class PaginationArgs {
     /**
      * For definition see {@link PaginationArgs} `page`
      */
-    page?: number,
+    page?: number | null,
     /**
      * For definition see {@link PaginationArgs} `pageSize`
      */
-    pageSize?: number,
+    pageSize?: number | null,
     /**
      * For definition see {@link PaginationArgs} `sort`
      */
@@ -355,6 +368,47 @@ export class PaginationArgs {
     } else {
       this.projectsOrNamespaces = [];
     }
+  }
+}
+
+/**
+ * Wrapper around {@link PaginationArgs}
+ *
+ * Use this for making requests that utilise filtering backed by the new vai cache backed API
+ */
+export class FilterArgs extends PaginationArgs {
+  /**
+     * Creates an instance of PaginationArgs.
+     *
+     * Contains defaults to avoid creating complex json objects all the time
+     */
+  constructor({
+    sort = [],
+    filters = [],
+    projectsOrNamespaces = [],
+  }:
+  // This would be neater as just Partial<PaginationArgs> but we lose all jsdoc
+  {
+    /**
+     * For definition see {@link PaginationArgs} `sort`
+     */
+    sort?: PaginationSort[],
+    /**
+     * Automatically wrap if not an array
+     *
+     * For definition see {@link PaginationArgs} `filters`
+     */
+    filters?: PaginationParamFilter | PaginationParamFilter[],
+    /**
+     * Automatically wrap if not an array
+     *
+     * For definition see {@link PaginationArgs} `projectsOrNamespaces`
+     */
+    projectsOrNamespaces?: PaginationParamProjectOrNamespace | PaginationParamProjectOrNamespace[],
+  }) {
+    super({
+      page: null, pageSize: null, sort, filters, projectsOrNamespaces
+    });
   }
 }
 
