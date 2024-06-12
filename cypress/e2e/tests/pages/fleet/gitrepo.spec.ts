@@ -52,15 +52,18 @@ describe('Git Repo', { tags: ['@fleet', '@adminUser'] }, () => {
 
       // First request is for creating credentials
       let secretName = '';
-      let secretLabels = {};
+      let requestLabels = null;
+      let secretLabels = null;
 
       cy.wait('@interceptSecret')
         .then(({ request, response }) => {
+          requestLabels = request.body.metadata.labels;
+          expect(requestLabels).to.not.be.null.and.to.have.property('fleet.cattle.io/managed').with.value('true');
           expect(response.statusCode).to.eq(201);
           secretName = response.body.metadata.name;
           secretLabels = response.body.metadata.labels;
           expect(secretName).not.to.eq('');
-          expect(secretLabels).to.have.property('fleet.cattle.io/managed').with.value('true');
+          expect(secretLabels).to.not.be.null.and.to.have.property('fleet.cattle.io/managed').with.value('true');
 
           // Second request is for creating the git repo
           return cy.wait('@interceptGitRepo');
