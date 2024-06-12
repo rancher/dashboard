@@ -7,6 +7,7 @@ import CruResource from '@shell/components/CruResource';
 import InfoBox from '@shell/components/InfoBox';
 import { RadioGroup } from '@components/Form/Radio';
 import { LabeledInput } from '@components/Form/LabeledInput';
+import { Checkbox } from '@components/Form/Checkbox';
 import AuthBanner from '@shell/components/auth/AuthBanner';
 import CopyToClipboardText from '@shell/components/CopyToClipboardText.vue';
 import AllowedPrincipals from '@shell/components/auth/AllowedPrincipals';
@@ -60,6 +61,7 @@ export default {
     InfoBox,
     RadioGroup,
     LabeledInput,
+    Checkbox,
     CopyToClipboardText,
     AllowedPrincipals,
     AuthBanner,
@@ -78,8 +80,9 @@ export default {
 
   data() {
     return {
-      endpoint:    'standard',
-      oldEndpoint: false,
+      isGroupMembershipFilterEnabled: !!this.value.groupMembershipFilter,
+      endpoint:                       'standard',
+      oldEndpoint:                    false,
 
       // Storing the applicationSecret is necessary because norman doesn't support returning secrets and when we
       // override the steve authconfig with a norman config the applicationSecret is lost
@@ -191,6 +194,13 @@ export default {
   },
 
   methods: {
+    toggleGroupMembershipFilter(enabled) {
+      // reset the value of groupMembershipFilter when its filter gets disabled
+      if (!enabled) {
+        this.model.groupMembershipFilter = '';
+      }
+    },
+
     setEndpoints(endpoint) {
       if (this.editConfig || !this.model.enabled) {
         const endpointType = this.oldEndpoint && endpoint !== 'custom' ? OLD_ENDPOINTS : ENDPOINT_MAPPING;
@@ -428,6 +438,36 @@ export default {
               :mode="mode"
               data-testid="input-azureAD-applicationSecret"
             />
+          </div>
+        </div>
+        <div class="row mb-20">
+          <div class="col span-12">
+            <Checkbox
+              v-model="isGroupMembershipFilterEnabled"
+              class="mb-10 mr-10"
+              :mode="mode"
+              :label="t('authConfig.azuread.groupMembershipFilter.enable')"
+              :tooltip="t('authConfig.azuread.groupMembershipFilter.tooltip')"
+              data-testid="checkbox-azureAD-groupMembershipFilter"
+              @input="toggleGroupMembershipFilter"
+            />
+            <div v-if="isGroupMembershipFilterEnabled">
+              <LabeledInput
+                v-model="model.groupMembershipFilter"
+                :label="t('authConfig.azuread.groupMembershipFilter.label')"
+                placeholder="e.g. (displayName eq 'group1') or (displayName eq 'group2')"
+                :mode="mode"
+                class="mb-10"
+                data-testid="input-azureAD-groupMembershipFilter"
+              />
+              <a
+                :href="t('authConfig.azuread.groupMembershipFilter.externalHelpLink')"
+                target="_blank"
+                rel="noopener noreferrer nofollow"
+              >
+                {{ t('authConfig.azuread.groupMembershipFilter.externalHelp') }} <i class="icon icon-external-link" />
+              </a>
+            </div>
           </div>
         </div>
         <RadioGroup
