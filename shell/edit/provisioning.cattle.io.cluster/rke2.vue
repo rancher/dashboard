@@ -469,20 +469,7 @@ export default {
      * Extension provider where being provisioned by an extension
      */
     extensionProvider() {
-      const extClass = this.$plugin.getDynamic('provisioner', this.provider);
-
-      if (extClass) {
-        return new extClass({
-          dispatch: this.$store.dispatch,
-          getters:  this.$store.getters,
-          axios:    this.$store.$axios,
-          $plugin:  this.$store.app.$plugin,
-          $t:       this.t,
-          isCreate: this.isCreate
-        });
-      }
-
-      return undefined;
+      return this.value.customProvisionerHelper;
     },
 
     /**
