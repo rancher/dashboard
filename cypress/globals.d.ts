@@ -108,10 +108,14 @@ declare global {
 
       iFrame(): Chainable<Element>;
 
-      /**
-       * Check if an element is visible to the user on the screen.
-       */
+      // Check if an element is visible to the user on the screen.
       isVisible(): Chainable<Element>;
+
+      // Check if an element is disabled
+      isDisabled(): Chainable<Element>;
+
+      // Check if an element is disabled
+      isEnabled(): Chainable<Element>;
 
       // Check css var
       shouldHaveCssVar(name: string, value: string);
