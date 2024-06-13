@@ -590,9 +590,11 @@ authConfig:
     jwksUrl: JWKS URL
     tokenEndpoint: Token Endpoint
     userInfoEndpoint: User Info Endpoint
+    acrValue: Authorization Context Reference
     scope:
       label: Scope
       placeholder: openid
+      protip: The scope parameter requires <code>openid</code> to be present. If you are using a custom scope, ensure that openid is included.
     cert:
       label: Certificate
       placeholder: Paste in the certificate, starting with -----BEGIN CERTIFICATE-----

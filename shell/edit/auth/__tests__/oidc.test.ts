@@ -116,11 +116,11 @@ describe('oidc.vue', () => {
     wrapper.setData({ oidcUrls: { url: validUrl } });
     await wrapper.vm.$nextTick();
 
-    expect(wrapper.vm.model.issuer).toBe(`${ validUrl }/auth/realms/`);
+    expect(wrapper.vm.model.issuer).toBe(`${ validUrl }/realms/`);
 
     wrapper.setData({ oidcUrls: { realm: validRealm } });
     await wrapper.vm.$nextTick();
 
-    expect(wrapper.vm.model.issuer).toBe(`${ validUrl }/auth/realms/${ validRealm }`);
+    expect(wrapper.vm.model.issuer).toBe(`${ validUrl }/realms/${ validRealm }`);
   });
 });

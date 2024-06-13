@@ -71,9 +71,9 @@ export default {
     validationPassed() {
       if ( this.editConfig ) {
         if ( !this.customEndpoint.value ) {
-          return !!(this.model.clientId && this.model.clientSecret && this.oidcUrls.url && this.oidcUrls.realm);
+          return !!(this.model.clientId && this.model.clientSecret && this.oidcUrls.url && this.oidcUrls.realm && this.oidcScope.includes('openid'));
         } else {
-          return !!(this.model.clientId && this.model.clientSecret && this.model.rancherUrl && this.model.issuer && this.model.authEndpoint);
+          return !!(this.model.clientId && this.model.clientSecret && this.model.rancherUrl && this.model.issuer && this.model.authEndpoint && this.oidcScope.includes('openid'));
         }
       }
 
@@ -122,7 +122,7 @@ export default {
       }
       const url = this.oidcUrls.url.replaceAll(' ', '');
 
-      this.model.issuer = `${ url }/auth/realms/${ this.oidcUrls.realm || '' }`;
+      this.model.issuer = `${ url }/realms/${ this.oidcUrls.realm || '' }`;
       this.model.authEndpoint = `${ this.model.issuer || '' }/protocol/openid-connect/auth`;
     },
 
@@ -188,7 +188,7 @@ export default {
               v-model="model.clientId"
               :label="t(`authConfig.oidc.clientId`)"
               :mode="mode"
-              required
+              requiredoidcScope
               data-testid="oidc-client-id"
             />
           </div>
@@ -232,6 +232,19 @@ export default {
               :label="t('generic.readFromFile')"
               :mode="mode"
               @selected="$set(model, 'certificate', $event)"
+            />
+          </div>
+        </div>
+
+        <div class="row mb-20">
+          <div class="col span-6">
+            <ArrayList
+              v-model="oidcScope"
+              :mode="mode"
+              :title="t('authConfig.oidc.scope.label')"
+              :value-placeholder="t('authConfig.oidc.scope.placeholder')"
+              :protip="t('authConfig.oidc.scope.protip', {}, true)"
+              @input="updateScope"
             />
           </div>
         </div>
@@ -341,17 +354,12 @@ export default {
                 :disabled="!customEndpoint.value"
               />
             </div>
-          </div>
-
-          <div class="row mb-20">
             <div class="col span-6">
-              <ArrayList
-                v-model="oidcScope"
+              <LabeledInput
+                v-model="model.acrValue"
+                :label="t(`authConfig.oidc.acrValue`)"
                 :mode="mode"
-                :title="t('authConfig.oidc.scope.label')"
-                :value-placeholder="t('authConfig.oidc.scope.placeholder')"
                 :disabled="!customEndpoint.value"
-                @input="updateScope"
               />
             </div>
           </div>
