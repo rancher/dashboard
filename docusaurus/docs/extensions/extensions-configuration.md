@@ -72,6 +72,7 @@ It's possible that different products will use the same kubernetes resource, but
 | `catalog.cattle.io/ui-extensions-version` | `Range` | Determines the Extensions API version that is compatible with the Extension package. |
 | `catalog.cattle.io/ui-version` | `Range` | Determines the Rancher UI version that is compatible with the Extension package. |
 | `catalog.cattle.io/display-name` | `String` | Specifies the Display Name for an Extension package's card on the "Extensions" page. |
+| `noAuth` | `String` | Boolean in string format. If `noAuth` is set to `"true"` then the extension will be loaded even when the user is logged out. (Rancher 2.9 - Extensions API 2.0) |
 
 ## Example Configuration
 
@@ -89,7 +90,8 @@ ___`./pkg/my-package/package.json`___
       "catalog.cattle.io/rancher-version": ">= 2.7.7-0 < 2.9.0-0",
       "catalog.cattle.io/ui-extensions-version": ">= 1.1.0",
       "catalog.cattle.io/ui-version": ">= 2.7.7-0 < 2.9.0-0",
-      "catalog.cattle.io/display-name": "My Super Great Extension"
+      "catalog.cattle.io/display-name": "My Super Great Extension",
+      "noAuth": "true"
     }
   },
   ...
