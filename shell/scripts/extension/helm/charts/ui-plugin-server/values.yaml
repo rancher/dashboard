@@ -4,3 +4,4 @@ plugin:
   enabled: true
   versionOverride: ""
   noCache: false
+  metadata: {}
