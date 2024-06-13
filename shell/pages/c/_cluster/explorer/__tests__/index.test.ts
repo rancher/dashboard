@@ -30,7 +30,7 @@ describe('page: cluster dashboard', () => {
           'cluster/canList':   jest.fn(),
           'cluster/all':       jest.fn(),
           'i18n/exists':       jest.fn(),
-          'i18n/t':            jest.fn(),
+          'i18n/t':            (label: string) => label === 'generic.provisioning' ? '—' : jest.fn()(),
         }
       }
     },
@@ -158,14 +158,15 @@ describe('page: cluster dashboard', () => {
 
   describe('cluster details', () => {
     it.each([
-      ['clusterProvider', [], 'other'],
-      ['kubernetesVersion', [], '0.0.0 k3s'],
-      ['created', [], 'glance.created'],
-      ['architecture', [{ labels: { [NODE_ARCHITECTURE]: 'amd64' } }, { labels: { [NODE_ARCHITECTURE]: 'intel' } }], 'mixed'],
-      ['architecture', [{ labels: { [NODE_ARCHITECTURE]: 'amd64' } }, { labels: { } }], 'mixed'],
-      ['architecture', [{ labels: { [NODE_ARCHITECTURE]: 'amd64' } }], 'Amd64'],
-      ['architecture', [{ labels: { } }], 'unknown'],
-    ])('should show %p label', (label, nodes, text) => {
+      ['clusterProvider', 'other', []],
+      ['kubernetesVersion', '0.0.0 k3s', []],
+      ['created', 'glance.created', []],
+      ['architecture', 'mixed', [{ labels: { [NODE_ARCHITECTURE]: 'amd64' } }, { labels: { [NODE_ARCHITECTURE]: 'intel' } }]],
+      ['architecture', 'mixed', [{ labels: { [NODE_ARCHITECTURE]: 'amd64' } }, { labels: { } }]],
+      ['architecture', 'Amd64', [{ labels: { [NODE_ARCHITECTURE]: 'amd64' } }]],
+      ['architecture', 'unknown', [{ labels: { } }]],
+      ['architecture', '—', [{ metadata: { state: { transitioning: true } } }]],
+    ])('should show %p label %p', (label, text, nodes) => {
       const options = clone(mountOptions);
 
       options.computed.nodes = () => nodes;

@@ -408,11 +408,13 @@ export default class ProvCluster extends SteveModel {
     const obj = {};
 
     this.nodes?.forEach((node) => {
-      const architecture = node.status?.nodeLabels?.[NODE_ARCHITECTURE];
+      if (!node.metadata?.state?.transitioning) {
+        const architecture = node.status?.nodeLabels?.[NODE_ARCHITECTURE];
 
-      const key = architecture ? capitalize(architecture) : this.t('cluster.architecture.label.unknown');
+        const key = architecture ? capitalize(architecture) : this.t('cluster.architecture.label.unknown');
 
-      obj[key] = (obj[key] || 0) + 1;
+        obj[key] = (obj[key] || 0) + 1;
+      }
     });
 
     return obj;

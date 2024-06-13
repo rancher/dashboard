@@ -209,11 +209,13 @@ export default {
       const obj = {};
 
       this.nodes?.forEach((node) => {
-        const architecture = node.labels?.[NODE_ARCHITECTURE];
+        if (!node.metadata?.state?.transitioning) {
+          const architecture = node.labels?.[NODE_ARCHITECTURE];
 
-        const key = architecture ? capitalize(architecture) : this.t('cluster.architecture.label.unknown');
+          const key = architecture ? capitalize(architecture) : this.t('cluster.architecture.label.unknown');
 
-        obj[key] = (obj[key] || 0) + 1;
+          obj[key] = (obj[key] || 0) + 1;
+        }
       });
 
       return obj;
@@ -222,10 +224,17 @@ export default {
     architecture() {
       const keys = Object.keys(this.nodesArchitecture);
 
-      return {
-        label:   keys.length === 1 ? keys[0] : this.t('cluster.architecture.label.mixed'),
-        tooltip: keys.length === 1 ? undefined : keys.reduce((acc, k) => `${ acc }${ k }: ${ this.nodesArchitecture[k] }<br>`, '')
-      };
+      switch (keys.length) {
+      case 0:
+        return { label: this.t('generic.provisioning') };
+      case 1:
+        return { label: keys[0] };
+      default:
+        return {
+          label:   this.t('cluster.architecture.label.mixed'),
+          tooltip: keys.reduce((acc, k) => `${ acc }${ k }: ${ this.nodesArchitecture[k] }<br>`, '')
+        };
+      }
     },
 
     isHarvesterCluster() {
