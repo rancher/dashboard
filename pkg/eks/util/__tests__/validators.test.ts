@@ -76,7 +76,7 @@ describe('validate EKS node group names', () => {
       t:               mockTranslation,
       needsValidation: true
     } as any as CruEKSContext, 'validation.required'],
-  ])('should validate all node groups if not passed a specific node group', (ctx, expected) => {
+  ])('should validate that all node groups have names if not passed a specific node group', (ctx, expected) => {
     const res = EKSValidators.nodeGroupNamesRequired(ctx)(undefined);
 
     expect(res).toBe(expected);
@@ -122,8 +122,4 @@ describe('validate EKS node group names', () => {
 
     expect(res).toBe(expected);
   });
-});
-
-describe('validate EKS node group max size', () => {
-
 });

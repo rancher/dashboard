@@ -90,7 +90,7 @@ eks:
     addEndpoint: Add Endpoint
     label: Public Access Endpoints
   region:
-    label: RegionW
+    label: Region
   scheduler:
     label: Scheduler
     tooltip: The scheduler component manages when and where to run pods in your cluster.

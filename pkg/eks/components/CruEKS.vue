@@ -525,9 +525,10 @@ export default defineComponent({
         <LabeledInput
           required
           label-key="eks.clusterName.label"
-          :value="normanCluster.name"
+          :value="config.displayName"
           :mode="mode"
           :rules="fvGetAndReportPathRules('name')"
+          data-testid="eks-name-input"
           @input="setClusterName"
         />
       </div>
