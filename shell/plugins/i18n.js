@@ -58,8 +58,6 @@ export function directiveSsr(vnode, binding) {
 const i18n = {
   name:    'i18n',
   install: (Vue, _options) => {
-    _options?.store?.dispatch('i18n/init');
-
     if (Vue.prototype.t && Vue.directive('t') && Vue.component('t')) {
       // eslint-disable-next-line no-console
       console.debug('Skipping i18n install. Directive, component, and option already exist.');
