@@ -76,7 +76,6 @@ export default {
   },
 
   mixins: [
-    ChildHook,
     ChartMixin
   ],
 
@@ -839,6 +838,8 @@ export default {
   },
 
   methods: {
+    ...ChildHook.methods,
+
     async getClusterRegistry() {
       const hasPermissionToSeeProvCluster = this.$store.getters[`management/schemaFor`](CAPI.RANCHER_CLUSTER);
 
