@@ -471,7 +471,7 @@ export default {
     extensionProvider() {
       // Note we don't use the model customProvisionerHelper here, as for create it won't be set
       // Instead we create from the provider value
-     const extClass = this.$plugin.getDynamic('provisioner', this.provider);
+      const extClass = this.$plugin.getDynamic('provisioner', this.provider);
 
       if (extClass) {
         return new extClass({
