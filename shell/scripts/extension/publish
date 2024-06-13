@@ -23,7 +23,7 @@ GITHUB_SOURCE=$(git config --get remote.origin.url | sed -e 's/^git@.*:\([[:grap
 GITHUB_BRANCH="main"
 
 usage() {
-  echo "Usage: $0 [<options>] [plugins]"
+  echo "Usage: $0 [<options>] [extensions]"
   echo " options:"
   echo "  -s <repo>    Specify destination GitHub repository (org/name) - defaults to the git origin"
   echo "  -b <branch>  Specify destination GitHub branch"
@@ -86,7 +86,7 @@ shift $((OPTIND-1))
 PLUGINS=( "$@" )
 BUILT="false"
 
-echo -e "${CYAN}${BOLD}Publishing UI Plugins${RESET}"
+echo -e "${CYAN}${BOLD}Publishing UI Extensions${RESET}"
 
 pushd ${BASE_DIR} > /dev/null
 
@@ -184,7 +184,7 @@ if [ "${GITHUB_BUILD}" == "false" ]; then
   if [ "${PODMAN_CONTAINER}" == "false" ]; then
     docker images > /dev/null
     if [ $? -ne 0 ]; then
-      echo "docker is not running - this is required to build container images for the UI Plugins"
+      echo "docker is not running - this is required to build container images for the UI Extensions"
       exit 1
     fi
   fi
@@ -229,7 +229,7 @@ for d in pkg/*/ ; do
       continue
     fi
 
-    echo -e "${CYAN}${BOLD}Building plugin: ${pkg} (${PKG_VERSION}) ${RESET}"
+    echo -e "${CYAN}${BOLD}Building extension: ${pkg} (${PKG_VERSION}) ${RESET}"
 
     echo "Package version: ${PKG_VERSION}"
     echo "Package folder:  ${PKG_NAME}"
@@ -237,10 +237,10 @@ for d in pkg/*/ ; do
     # --------------------------------------------------------------------------------
     # Build the plugin from source
     # --------------------------------------------------------------------------------
-    echo -e "${CYAN}Building plugin from source code${RESET}"
+    echo -e "${CYAN}Building extension from source code${RESET}"
     FORCE_COLOR=1 yarn build-pkg $pkg | cat
 
-    echo -e "${CYAN}Adding plugin code ...${RESET}"
+    echo -e "${CYAN}Adding extension code ...${RESET}"
 
     EXT_FOLDER=${BASE_DIR}/extensions/${pkg}/${PKG_VERSION}
     PKG_DIST="${BASE_DIR}/dist-pkg/${PKG_NAME}"
