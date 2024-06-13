@@ -46,14 +46,9 @@ const name = args[2];
 const folder = path.resolve('.');
 const pkgFolder = path.join(folder, 'pkg', name);
 
-if (!fs.existsSync(path.join(pkgFolder, `../../${ shellPkgPath }/package.json`))) {
-  console.log('');
-  console.log('@rancher/shell not found in node_modules! Please do "yarn install" and make sure you run this command from the base folder of your app');
-  process.exit(1);
-}
-
 let addTypeFolders = false;
 let addWorkflowFolder = false;
+let ignoreShellPkgPathCheck = false;
 
 if (args.length > 3) {
   for (let i = 3; i < args.length; i++) {
@@ -64,10 +59,20 @@ if (args.length > 3) {
     case '-w':
       addWorkflowFolder = true;
       break;
+    case '-i':
+    ignoreShellPkgPathCheck = true;
+      break;
     default:
       break;
     }
   }
+}
+
+
+if (!ignoreShellPkgPathCheck && !fs.existsSync(path.join(pkgFolder, `../../${ shellPkgPath }/package.json`))) {
+  console.log('');
+  console.log('@rancher/shell not found in node_modules! Please do "yarn install" and make sure you run this command from the base folder of your app');
+  process.exit(1);
 }
 
 const isNodeModulesShell = !fs.existsSync(path.join(folder, 'shell'));
