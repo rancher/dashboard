@@ -30,7 +30,7 @@ interface IModel {
 // Function that for a model will return the name of the model extension to use for it
 type UseForFunction = (model: any) => string;
 
-// Cache of instantiated model helpers for a given model and helpername
+// Cache of instantiated model helpers for a given model and helper name
 const modelExtensionCache: {[modelName: string]: {[name: string]: any[]}} = {};
 
 // Cache of instantiated functions to determine if a helper should be used for a given model
