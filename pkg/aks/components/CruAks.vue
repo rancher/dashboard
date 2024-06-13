@@ -37,7 +37,7 @@ import {
 } from '../util/aks';
 import { parseTaint } from '../util/taints';
 
-import { diffUpstreamSpec } from '@shell/utils/kontainer';
+import { diffUpstreamSpec, syncUpstreamConfig } from '@shell/utils/kontainer';
 import {
   requiredInCluster,
   clusterNameChars,
@@ -144,6 +144,12 @@ export default defineComponent({
       const liveNormanCluster = await this.value.findNormanCluster();
 
       this.normanCluster = await store.dispatch(`rancher/clone`, { resource: liveNormanCluster });
+
+      // ensure any fields editable through this UI that have been altered in azure portal are shown here - see syncUpstreamConfig jsdoc for details
+      if (!this.isNewOrUnprovisioned) {
+        syncUpstreamConfig('aks', this.normanCluster);
+      }
+
       // track original version on edit to ensure we don't offer k8s downgrades
       this.originalVersion = this.normanCluster?.aksConfig?.kubernetesVersion;
     } else {
@@ -736,12 +742,14 @@ export default defineComponent({
       }
     },
 
-    setAuthorizedIpRanges(neu) {
+    setAuthorizedIPRanges(neu) {
       if (neu) {
         this.$set(this.config, 'privateCluster', false);
         delete this.config.managedIdentity;
         delete this.config.privateDnsZone;
         delete this.config.userAssignedIdentity;
+      } else {
+        this.$set(this.config, 'authorizedIpRanges', []);
       }
     },
 
