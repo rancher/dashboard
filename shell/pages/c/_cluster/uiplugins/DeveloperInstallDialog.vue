@@ -107,7 +107,8 @@ export default {
               metadata: {
                 developer: 'true',
                 direct:    'true'
-              }
+              },
+              noAuth: true
             }
           }
         });
