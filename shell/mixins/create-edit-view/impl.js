@@ -10,8 +10,6 @@ export default {
 
   name: 'CreateEditView',
 
-  mixins: [ChildHook],
-
   data() {
     // Keep label and annotation filters in data so each resource CRUD page can alter individually
     return { errors: [] };
@@ -90,6 +88,8 @@ export default {
   },
 
   methods: {
+    ...ChildHook.methods,
+
     done() {
       if ( this.doneEvent ) {
         this.$emit('done');

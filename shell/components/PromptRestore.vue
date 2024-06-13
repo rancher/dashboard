@@ -30,10 +30,6 @@ export default {
 
   name: 'PromptRestore',
 
-  mixins: [
-    ChildHook,
-  ],
-
   data() {
     return {
       errors:           [],
@@ -98,6 +94,8 @@ export default {
   },
 
   methods: {
+    ...ChildHook.methods,
+
     close() {
       this.errors = [];
       this.labels = {};
