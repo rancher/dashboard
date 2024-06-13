@@ -8,7 +8,7 @@ import { WorkloadsDeploymentsListPagePo } from '@/cypress/e2e/po/pages/explorer/
 import { NodesPagePo } from '@/cypress/e2e/po/pages/explorer/nodes.po';
 import { EventsPagePo } from '@/cypress/e2e/po/pages/explorer/events.po';
 import * as path from 'path';
-import { generateEventsDataLarge, generateEventsDataSmall } from '@/cypress/e2e/blueprints/explorer/cluster/events';
+import { generateEventsDataLarge, generateEventsDataSmall, eventsNoDataset } from '@/cypress/e2e/blueprints/explorer/cluster/events';
 import { groupByPayload } from '@/cypress/e2e/blueprints/user_preferences/group_by';
 import HomePagePo from '@/cypress/e2e/po/pages/home.po';
 
@@ -366,6 +366,41 @@ describe('Cluster Dashboard', { testIsolation: 'off', tags: ['@explorer', '@admi
       events.sortableTable().checkRowCount(false, 3);
       events.sortableTable().pagination().checkNotExists();
     });
+  });
+  it('can view events table empty if no events', { tags: ['@vai'] }, () => {
+    const events = new EventsPagePo('local');
+
+    HomePagePo.goTo();
+
+    eventsNoDataset();
+    ClusterDashboardPagePo.navTo();
+    cy.wait('@eventsNoData');
+    clusterDashboard.waitForPage(undefined, 'cluster-events');
+
+    clusterDashboard.eventsList().resourceTable().sortableTable().checkRowCount(true, 1);
+
+    const expectedHeaders = ['Reason', 'Object', 'Message', 'Name', 'Date'];
+
+    clusterDashboard.eventsList().resourceTable().sortableTable().tableHeaderRow()
+      .find('.table-header-container .content')
+      .each((el, i) => {
+        expect(el.text().trim()).to.eq(expectedHeaders[i]);
+      });
+
+    clusterDashboard.fullEventsLink().click();
+    cy.wait('@eventsNoData');
+    events.waitForPage();
+
+    events.eventslist().resourceTable().sortableTable().checkRowCount(true, 1);
+
+    const expectedFullHeaders = ['State', 'Last Seen', 'Type', 'Reason', 'Object',
+      'Subobject', 'Source', 'Message', 'First Seen', 'Count', 'Name', 'Namespace'];
+
+    events.eventslist().resourceTable().sortableTable().tableHeaderRow()
+      .find('.table-header-container .content')
+      .each((el, i) => {
+        expect(el.text().trim()).to.eq(expectedFullHeaders[i]);
+      });
   });
 
   after(function() {
