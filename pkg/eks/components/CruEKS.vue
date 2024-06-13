@@ -25,6 +25,7 @@ import Logging from './Logging.vue';
 import Config from './Config.vue';
 import Networking from './Networking.vue';
 import AccountAccess from './AccountAccess.vue';
+import EKSValidators from '../util/validators';
 
 const DEFAULT_CLUSTER = {
   dockerRootDir:                       '/var/lib/docker',
@@ -162,7 +163,8 @@ export default defineComponent({
       },
       {
         path:  'nodegroupNames',
-        rules: ['nodeGroupNamesUnique', 'nodeGroupNamesRequired']
+        rules: ['nodeGroupNamesRequired', 'nodeGroupNamesUnique']
+
       },
       {
         path:  'maxSize',
@@ -253,122 +255,22 @@ export default defineComponent({
   computed: {
     ...mapGetters({ t: 'i18n/t' }),
 
-    needsValidaation() {
+    needsValidation() {
       return !!this.config.amazonCredentialSecret;
     },
 
     fvExtraRules() {
       return {
-        nameRequired: () => {
-          return this.needsValidation && !this.config.displayName ? this.t('validation.required', { key: this.t('nameNsDescription.name.label') }) : null;
-        },
-        nodeGroupNamesRequired: (node: EKSNodeGroup) => {
-          if (!this.needsValidation) {
-            return;
-          }
-          if (node) {
-            return !!node.nodegroupName ? this.t('validation.required', { key: this.t('eks.nodeGroups.name.label') }) : null;
-          }
-
-          return !!this.nodeGroups.find((group) => !group.nodegroupName) ? this.t('validation.required', { key: this.t('eks.nodeGroups.name.label') }) : null;
-        },
-        nodeGroupNamesUnique: (node: EKSNodeGroup): null | string => {
-          if (!this.needsValidation) {
-            return null;
-          }
-          if (node) {
-            return node.__nameUnique === false ? this.t('eks.errors.nodeGroups.nameUnique') : null;
-          }
-          let out = null as null|string;
-
-          const names = this.nodeGroups.map((node) => node.nodegroupName);
-
-          this.nodeGroups.forEach((group) => {
-            const name = group.nodegroupName;
-
-            if (names.filter((n) => n === name).length > 1) {
-              this.$set(group, '__nameUnique', false);
-              if (!out) {
-                out = this.t('eks.errors.nodeGroups.nameUnique');
-              }
-            }
-          });
-
-          return out;
-        },
-        maxSize: (size: number) => {
-          if (!this.needsValidation) {
-            return null;
-          }
-          const msg = this.t('eks.errors.greaterThanZero', { key: this.t('eks.nodeGroups.maxSize.label') });
-
-          if (size !== undefined) {
-            return size > 0 ? null : msg;
-          }
-
-          return !!this.nodeGroups.find((group) => !group.maxSize || group.maxSize <= 0) ? msg : null;
-        },
-        minSize: (size: number) => {
-          if (!this.needsValidation) {
-            return null;
-          }
-          const msg = this.t('eks.errors.greaterThanZero', { key: this.t('eks.nodeGroups.minSize.label') });
-
-          if (size !== undefined) {
-            return size > 0 ? null : msg;
-          }
-
-          return !!this.nodeGroups.find((group) => !group.minSize || group.minSize <= 0) ? msg : null;
-        },
-        diskSize: (type: string) => {
-          if (!this.needsValidation) {
-            return null;
-          }
-          if (type || type === '') {
-            return !type ? this.t('validation.required', { key: this.t('eks.nodeGroups.diskSize.label') }) : null;
-          }
-
-          return !!this.nodeGroups.find((group: EKSNodeGroup) => !group.diskSize ) ? this.t('validation.required', { key: this.t('eks.nodeGroups.instanceType.label') }) : null;
-        },
-        instanceType: (type: string) => {
-          if (!this.needsValidation) {
-            return null;
-          }
-          if (type || type === '') {
-            return !type ? this.t('validation.required', { key: this.t('eks.nodeGroups.instanceType.label') }) : null;
-          }
-
-          return !!this.nodeGroups.find((group: EKSNodeGroup) => !group.instanceType && !group.requestSpotInstances) ? this.t('validation.required', { key: this.t('eks.nodeGroups.instanceType.label') }) : null;
-        },
-        desiredSize: (size: number) => {
-          if (!this.needsValidation) {
-            return null;
-          }
-          const msg = this.t('eks.errors.greaterThanZero', { key: this.t('eks.nodeGroups.desiredSize.label') });
-
-          if (size !== undefined) {
-            return size > 0 ? null : msg;
-          }
-
-          return !!this.nodeGroups.find((group) => !group.desiredSize || group.desiredSize <= 0) ? msg : null;
-        },
-        subnets: (val: string[]) => {
-          if (!this.needsValidation) {
-            return null;
-          }
-          const subnets = val || this.config.subnets;
-
-          return subnets && subnets.length === 1 ? this.t('eks.errors.minimumSubnets') : undefined;
-        },
-        publicPrivateAccess: (): string | undefined => {
-          if (!this.needsValidation) {
-            return null;
-          }
-          const { publicAccess, privateAccess } = this.config;
-
-          return publicAccess || privateAccess ? undefined : this.t('eks.errors.publicOrPrivate');
-        },
-
+        nameRequired:           EKSValidators.clusterNameRequired(this),
+        nodeGroupNamesRequired: EKSValidators.nodeGroupNamesRequired(this),
+        nodeGroupNamesUnique:   EKSValidators.nodeGroupNamesUnique(this),
+        maxSize:                EKSValidators.maxSize(this),
+        minSize:                EKSValidators.minSize(this),
+        diskSize:               EKSValidators.diskSize(this),
+        instanceType:           EKSValidators.instanceType(this),
+        desiredSize:            EKSValidators.desiredSize(this),
+        subnets:                EKSValidators.subnets(this),
+        publicPrivateAccess:    EKSValidators.publicPrivateAccess(this),
       };
     },
 
@@ -664,7 +566,8 @@ export default defineComponent({
         <Tab
           v-for="(node, i) in nodeGroups"
           :key="i"
-          :name="node.nodegroupName"
+          :label="node.nodegroupName || t('eks.nodeGroups.unnamed')"
+          :name="`${node.nodegroupName} ${i}`"
         >
           <NodeGroup
             :rules="{
