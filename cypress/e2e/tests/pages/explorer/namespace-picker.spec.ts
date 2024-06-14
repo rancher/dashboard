@@ -2,7 +2,6 @@ import ClusterDashboardPagePo from '@/cypress/e2e/po/pages/explorer/cluster-dash
 import { NamespaceFilterPo } from '@/cypress/e2e/po/components/namespace-filter.po';
 import { WorkloadsPodsListPagePo } from '@/cypress/e2e/po/pages/explorer/workloads-pods.po';
 import HomePagePo from '@/cypress/e2e/po/pages/home.po';
-import { groupByPayload } from '@/cypress/e2e/blueprints/user_preferences/group_by';
 
 const namespacePicker = new NamespaceFilterPo();
 
@@ -27,11 +26,7 @@ describe('Namespace picker', { testIsolation: 'off' }, () => {
     // Verify multiple namespaces within Project: System display when filtering by Project
 
     // group workloads by namespace
-    cy.getRancherResource('v3', 'users?me=true').then((resp: Cypress.Response<any>) => {
-      const userId = resp.body.data[0].id.trim();
-
-      cy.setRancherResource('v1', 'userpreferences', userId, groupByPayload(userId, 'local', 'metadata.namespace', '{"local":["all://user"]}'));
-    });
+    cy.updateResourceListViewPref('local', 'metadata.namespace', '{"local":["all://user"]}');
 
     const workloadsPodPage = new WorkloadsPodsListPagePo('local');
 
@@ -192,7 +187,7 @@ describe('Namespace picker', { testIsolation: 'off' }, () => {
         const projId = resp.body.id.trim();
 
         // create ns
-        cy.createNamespace(nsName, projId);
+        cy.createNamespaceInProject(nsName, projId);
 
         // check ns picker
         namespacePicker.toggle();
@@ -213,11 +208,6 @@ describe('Namespace picker', { testIsolation: 'off' }, () => {
   });
 
   after('clean up', () => {
-    // get user id
-    cy.getRancherResource('v3', 'users?me=true').then((resp: Cypress.Response<any>) => {
-      const userId = resp.body.data[0].id.trim();
-
-      cy.setRancherResource('v1', 'userpreferences', userId, groupByPayload(userId, 'local', 'none', '{"local":["all://user"]}'));
-    });
+    cy.updateResourceListViewPref('local', 'none', '{"local":["all://user"]}');
   });
 });

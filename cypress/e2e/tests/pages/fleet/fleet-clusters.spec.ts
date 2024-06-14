@@ -359,7 +359,7 @@ describe('Fleet Clusters', { tags: ['@fleet', '@adminUser'] }, () => {
         const expectedHeaders = ['State', 'Name', 'Bundles Ready', 'Repos Ready', 'Resources', 'Last Seen', 'Age'];
 
         fleetClusterListPage.clusterList().resourceTable().sortableTable().tableHeaderRow()
-          .find('.table-header-container .content')
+          .within('.table-header-container .content')
           .each((el, i) => {
             expect(el.text().trim()).to.eq(expectedHeaders[i]);
           });
@@ -376,7 +376,7 @@ describe('Fleet Clusters', { tags: ['@fleet', '@adminUser'] }, () => {
 
         fleetClusterDetailsPage.gitReposTab().list().resourceTable().sortableTable()
           .tableHeaderRow()
-          .find('.table-header-container .content')
+          .within('.table-header-container .content')
           .each((el, i) => {
             expect(el.text().trim()).to.eq(expectedHeadersDetailsView[i]);
           });
