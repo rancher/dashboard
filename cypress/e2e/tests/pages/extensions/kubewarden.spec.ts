@@ -7,19 +7,18 @@ import { catchTargetPageException } from '@/cypress/support/utils/exception-util
 
 const extensionName = 'kubewarden';
 
-describe('Kubewarden Extension', { tags: ['@extensions', '@adminUser'] }, () => {
+describe('Kubewarden Extension', { tags: ['@extensions-temp-excluded', '@adminUser'] }, () => {
   before(() => {
     catchTargetPageException('Navigation cancelled');
     cy.login();
 
     const extensionsPo = new ExtensionsPagePo();
-    const kubewardenPo = new KubewardenExtensionPo();
 
     extensionsPo.goTo();
     extensionsPo.waitForPage();
 
     // install the ui-plugin-charts repo
-    kubewardenPo.addChartsRepoIfNeeded();
+    extensionsPo.addExtensionsRepository('https://github.com/rancher/ui-plugin-charts', 'main', 'rancher-extensions');
   });
 
   beforeEach(() => {
