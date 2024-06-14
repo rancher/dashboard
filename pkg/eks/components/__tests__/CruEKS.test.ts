@@ -71,4 +71,49 @@ describe('eKS provisioning form', () => {
     await setCredential(wrapper);
     expect(wrapper.find(formSelector).exists()).toBe(true);
   });
+
+  it('should not use form validation if no credential is selected', async() => {
+    const wrapper = shallowMount(CruEKS, {
+      propsData: { value: {}, mode: 'create' },
+      ...requiredSetup()
+    });
+
+    let fvRules = wrapper.vm.fvExtraRules;
+
+    expect(fvRules).toStrictEqual({});
+
+    await setCredential(wrapper);
+    await wrapper.vm.$nextTick();
+
+    fvRules = wrapper.vm.fvExtraRules;
+
+    expect(Object.keys(fvRules).length).toBeGreaterThan(0);
+  });
+
+  it('should update both cluster.name and config.displayName when the name input is altered', async() => {
+    const wrapper = shallowMount(CruEKS, {
+      propsData: { value: {}, mode: 'create' },
+      ...requiredSetup()
+    });
+
+    const formSelector = '[data-testid="crueks-form"]';
+
+    expect(wrapper.find(formSelector).exists()).toBe(false);
+
+    await setCredential(wrapper);
+
+    const nameInput = wrapper.find('[data-testid="eks-name-input"]');
+
+    nameInput.vm.$emit('input', 'abc');
+    await wrapper.vm.$nextTick();
+    expect(wrapper.vm.config.displayName).toStrictEqual('abc');
+    expect(wrapper.vm.normanCluster.name).toStrictEqual('abc');
+    expect(nameInput.props().value).toStrictEqual('abc');
+
+    nameInput.vm.$emit('input', 'def');
+    await wrapper.vm.$nextTick();
+    expect(wrapper.vm.config.displayName).toStrictEqual('def');
+    expect(wrapper.vm.normanCluster.name).toStrictEqual('def');
+    expect(nameInput.props().value).toStrictEqual('def');
+  });
 });

@@ -75,6 +75,7 @@ eks:
     spotInstanceTypes:
       label: Spot Instance Types
     title: Node Groups
+    unnamed: Unnamed Node Group
     userData:
       label: User Data
       tooltip: Pass user data to <a href="https://docs.aws.amazon.com/eks/latest/userguide/launch-templates.html#launch-template-user-data" target="_blank">Amazon using cloud-init</a> to automate common operations.
