@@ -291,7 +291,7 @@ describe('gke Networking', () => {
 
     let masterIpv4CidrBlockInput = wrapper.find('[data-testid="gke-master-ipv4-cidr-block-input"]');
 
-    expect(masterIpv4CidrBlockInput.isVisible()).toBe(false);
+    expect(masterIpv4CidrBlockInput.exists()).toBe(false);
 
     wrapper.setProps({ enablePrivateNodes: true });
     await wrapper.vm.$nextTick();

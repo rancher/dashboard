@@ -43,7 +43,6 @@ export default {
   },
 
   async fetch() {
-    console.log('*** select credential value: ', this.value);
     this.allCredentials = await this.$store.dispatch('rancher/findAll', { type: NORMAN.CLOUD_CREDENTIAL });
 
     const field = this.$store.getters['plugins/credentialFieldForDriver'](this.driverName);

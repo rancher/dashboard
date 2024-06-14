@@ -90,7 +90,8 @@ export default defineComponent({
     Tab,
     Accordion,
     Banner,
-    AgentConfiguration
+    AgentConfiguration,
+    Loading
   },
 
   mixins: [CreateEditView, FormValidation],

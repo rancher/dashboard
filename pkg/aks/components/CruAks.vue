@@ -117,7 +117,8 @@ export default defineComponent({
     Tabbed,
     Tab,
     Accordion,
-    Banner
+    Banner,
+    Loading
   },
 
   mixins: [CreateEditView, FormValidation],
