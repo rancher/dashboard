@@ -18,6 +18,7 @@ import Tabbed from '@shell/components/Tabbed/index.vue';
 import Accordion from '@components/Accordion/Accordion.vue';
 import Banner from '@components/Banner/Banner.vue';
 import ClusterMembershipEditor, { canViewClusterMembershipEditor } from '@shell/components/form/Members/ClusterMembershipEditor.vue';
+import Loading from '@shell/components/Loading.vue';
 
 import { EKSConfig, EKSNodeGroup, AWS, NormanCluster } from '../types';
 import NodeGroup from './NodeGroup.vue';
@@ -505,7 +506,10 @@ export default defineComponent({
 </script>
 
 <template>
+  <Loading v-if="$fetchState.pending" />
+
   <CruResource
+    v-else
     ref="cruresource"
     :resource="value"
     :mode="mode"

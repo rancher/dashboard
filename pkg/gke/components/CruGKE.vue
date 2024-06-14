@@ -18,6 +18,7 @@ import Tab from '@shell/components/Tabbed/Tab.vue';
 import Tabbed from '@shell/components/Tabbed/index.vue';
 import Accordion from '@components/Accordion/Accordion.vue';
 import Banner from '@components/Banner/Banner.vue';
+import Loading from '@shell/components/Loading.vue';
 
 import ClusterMembershipEditor, { canViewClusterMembershipEditor } from '@shell/components/form/Members/ClusterMembershipEditor.vue';
 import type { GKEConfig, GKENodePool } from '../types';
@@ -142,7 +143,8 @@ export default defineComponent({
     Tabbed,
     Tab,
     Accordion,
-    Banner
+    Banner,
+    Loading
   },
 
   mixins: [CreateEditView, FormValidation],
@@ -667,7 +669,9 @@ export default defineComponent({
 </script>
 
 <template>
+  <Loading v-if="$fetchState.pending" />
   <CruResource
+    v-else
     ref="cruresource"
     :resource="value"
     :mode="mode"

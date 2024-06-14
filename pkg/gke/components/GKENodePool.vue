@@ -289,6 +289,82 @@ export default defineComponent({
 
 <template>
   <div>
+    <h3>{{ t('gke.groupDetails') }}</h3>
+    <hr>
+    <div class="row mb-10">
+      <div class="col span-4">
+        <LabeledInput
+          :mode="mode"
+          :value="name"
+          label-key="gke.groupName.label"
+          :disabled="!isNew"
+          :rules="rules.poolName"
+          required
+          @input="$emit('update:name', $event)"
+        />
+      </div>
+      <div class="col span-4">
+        <LabeledInput
+          type="number"
+          :mode="mode"
+          :value="initialNodeCount"
+          label-key="gke.initialNodeCount.label"
+          :rules="rules.initialNodeCount"
+          @input="$emit('update:initialNodeCount', $event)"
+        />
+      </div>
+      <div class="col span-4">
+        <LabeledInput
+          type="number"
+          :mode="mode"
+          :value="maxPodsConstraint"
+          label-key="gke.maxPodsConstraint.label"
+          @input="$emit('update:maxPodsConstraint', $event)"
+        />
+      </div>
+    </div>
+    <div class="row mb-10">
+      <div class="col span-4 checkbox-column">
+        <Checkbox
+          :mode="mode"
+          :value="autoscaling"
+          label-key="gke.autoscaling.label"
+          @input="$emit('update:autoscaling', $event)"
+        />
+        <Checkbox
+          :mode="mode"
+          :value="autoRepair"
+          label-key="gke.autoRepair.label"
+          @input="$emit('update:autoRepair', $event)"
+        />
+        <Checkbox
+          :mode="mode"
+          :value="autoUpgrade"
+          label-key="gke.autoUpgrade.label"
+          @input="$emit('update:autoUpgrade', $event)"
+        />
+      </div>
+      <template v-if="autoscaling">
+        <div class="col span-4">
+          <LabeledInput
+            :mode="mode"
+            type="number"
+            :value="minNodeCount"
+            label-key="gke.minNodeCount.label"
+            @input="$emit('update:minNodeCount', $event)"
+          />
+        </div>
+        <div class="col span-4">
+          <LabeledInput
+            :mode="mode"
+            type="number"
+            :value="maxNodeCount"
+            label-key="gke.maxNodeCount.label"
+            @input="$emit('update:maxNodeCount', $event)"
+          />
+        </div>
+      </template>
+    </div>
     <h3 class="mt-20">
       {{ t('gke.nodeDetails') }}
     </h3>
@@ -427,83 +503,6 @@ export default defineComponent({
           @input="$emit('update:tags', $event)"
         />
       </div>
-    </div>
-
-    <h3>{{ t('gke.groupDetails') }}</h3>
-    <hr>
-    <div class="row mb-10">
-      <div class="col span-4">
-        <LabeledInput
-          :mode="mode"
-          :value="name"
-          label-key="gke.groupName.label"
-          :disabled="!isNew"
-          :rules="rules.poolName"
-          required
-          @input="$emit('update:name', $event)"
-        />
-      </div>
-      <div class="col span-4">
-        <LabeledInput
-          type="number"
-          :mode="mode"
-          :value="initialNodeCount"
-          label-key="gke.initialNodeCount.label"
-          :rules="rules.initialNodeCount"
-          @input="$emit('update:initialNodeCount', $event)"
-        />
-      </div>
-      <div class="col span-4">
-        <LabeledInput
-          type="number"
-          :mode="mode"
-          :value="maxPodsConstraint"
-          label-key="gke.maxPodsConstraint.label"
-          @input="$emit('update:maxPodsConstraint', $event)"
-        />
-      </div>
-    </div>
-    <div class="row mb-10">
-      <div class="col span-4 checkbox-column">
-        <Checkbox
-          :mode="mode"
-          :value="autoscaling"
-          label-key="gke.autoscaling.label"
-          @input="$emit('update:autoscaling', $event)"
-        />
-        <Checkbox
-          :mode="mode"
-          :value="autoRepair"
-          label-key="gke.autoRepair.label"
-          @input="$emit('update:autoRepair', $event)"
-        />
-        <Checkbox
-          :mode="mode"
-          :value="autoUpgrade"
-          label-key="gke.autoUpgrade.label"
-          @input="$emit('update:autoUpgrade', $event)"
-        />
-      </div>
-      <template v-if="autoscaling">
-        <div class="col span-4">
-          <LabeledInput
-            :mode="mode"
-            type="number"
-            :value="minNodeCount"
-            label-key="gke.minNodeCount.label"
-            @input="$emit('update:minNodeCount', $event)"
-          />
-        </div>
-        <div class="col span-4">
-          <LabeledInput
-            :mode="mode"
-            type="number"
-            :value="maxNodeCount"
-            label-key="gke.maxNodeCount.label"
-            @input="$emit('update:maxNodeCount', $event)"
-          />
-        </div>
-      </template>
     </div>
 
     <AuthScopes
