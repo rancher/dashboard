@@ -104,7 +104,7 @@ export function shouldNotLoadPlugin(plugin, rancherVersion, loadedPlugins) {
   // we are propagating the annotations in pkg/package.json for any extension
   // inside the "spec.plugin.metadata" property of UIPlugin resource
   // defaults to 1.2.0 (rancher 2.8) if there's no annotation present
-  const requiredAPI = plugin.spec?.plugin?.metadata?.[UI_PLUGIN_CHART_ANNOTATIONS.EXTENSIONS_VERSION];
+  const requiredAPI = plugin.spec?.plugin?.metadata?.[UI_PLUGIN_CHART_ANNOTATIONS.EXTENSIONS_VERSION] || '1.2.0';
 
   if (requiredAPI && !semver.satisfies(UI_EXTENSIONS_API_VERSION, requiredAPI)) {
     return 'plugins.error.api';
