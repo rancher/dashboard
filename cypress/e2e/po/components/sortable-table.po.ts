@@ -3,6 +3,7 @@ import ActionMenuPo from '@/cypress/e2e/po/components/action-menu.po';
 import CheckboxInputPo from '@/cypress/e2e/po/components/checkbox-input.po';
 import ListRowPo from '@/cypress/e2e/po/components/list-row.po';
 import PromptRemove from '@/cypress/e2e/po/prompts/promptRemove.po';
+import PaginationPo from '@/cypress/e2e/po/components/pagination.po';
 
 export default class SortableTablePo extends ComponentPo {
   //
@@ -216,5 +217,10 @@ export default class SortableTablePo extends ComponentPo {
   // Check that the sortable table loading indicator does not exist (data loading complete)
   checkLoadingIndicatorNotVisible() {
     cy.get('tbody', { timeout: 10000 }).find('.data-loading').should('not.exist');
+  }
+
+  // pagination
+  pagination() {
+    return new PaginationPo();
   }
 }
