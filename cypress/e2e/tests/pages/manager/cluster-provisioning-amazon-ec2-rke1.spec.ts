@@ -147,9 +147,13 @@ describe('Provision Node driver RKE1 cluster with AWS', { testIsolation: 'off', 
       expect(req.response?.body.rancherKubernetesEngineConfig).to.have.property('kubernetesVersion', this.k8sVersion0);
       cy.wrap(req.response?.body.id).as('clusterId');
     });
+    clusterList.waitForPage();
+
+    // check Architecture
+    // testing https://github.com/rancher/dashboard/issues/10831
+    clusterList.list().version(this.rke1Ec2ClusterName).should('contain', '—').and('not.contain', 'Unknown');
 
     // check states
-    clusterList.waitForPage();
     clusterList.list().state(this.rke1Ec2ClusterName).should('contain', 'Provisioning');
     clusterList.list().state(this.rke1Ec2ClusterName).contains('Active', { timeout: 700000 });
 

@@ -100,6 +100,10 @@ describe('Provision Node driver RKE2 cluster', { testIsolation: 'off', tags: ['@
     });
     clusterList.waitForPage();
 
+    // check Architecture
+    // testing https://github.com/rancher/dashboard/issues/10831
+    clusterList.list().version(this.rke2Ec2ClusterName).should('contain', '—').and('not.contain', 'Mixed');
+
     // check states
     clusterList.list().state(this.rke2Ec2ClusterName).should('contain', 'Reconciling');
     clusterList.list().state(this.rke2Ec2ClusterName).should('contain', 'Updating');
