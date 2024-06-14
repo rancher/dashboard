@@ -341,19 +341,6 @@ export function init(store) {
   }, AGE]);
   headers(STORAGE_CLASS, [STATE, NAME_COL, STORAGE_CLASS_PROVISIONER, STORAGE_CLASS_DEFAULT, AGE]);
 
-  headers(RBAC.ROLE, [
-    STATE,
-    NAME_COL,
-    NAMESPACE_COL,
-    AGE
-  ]);
-
-  headers(RBAC.CLUSTER_ROLE, [
-    STATE,
-    NAME_COL,
-    AGE,
-  ]);
-
   configureType(MANAGEMENT.CLUSTER_ROLE_TEMPLATE_BINDING, {
     listGroups: [
       {
