@@ -22,7 +22,7 @@ import { base64Decode, base64Encode } from '@shell/utils/crypto';
 import SelectOrCreateAuthSecret from '@shell/components/form/SelectOrCreateAuthSecret';
 import { _CREATE } from '@shell/config/query-params';
 import { isHarvesterCluster } from '@shell/utils/cluster';
-import { CAPI, CATALOG } from '@shell/config/labels-annotations';
+import { CAPI, CATALOG, FLEET as FLEET_LABELS } from '@shell/config/labels-annotations';
 import { SECRET_TYPES } from '@shell/config/secret';
 import { checkSchemasForFindAllHash } from '@shell/utils/auth';
 import Checkbox from '@components/Form/Checkbox/Checkbox.vue';
@@ -413,8 +413,9 @@ export default {
           type:     SECRET,
           metadata: {
             namespace:    this.value.metadata.namespace,
-            generateName: 'auth-'
-          },
+            generateName: 'auth-',
+            labels:       { [FLEET_LABELS.MANAGED]: 'true' }
+          }
         });
 
         let type, publicField, privateField;
