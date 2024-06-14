@@ -5,24 +5,16 @@ export interface CruEKSContext {
   t: Function,
   config: EKSConfig,
   nodeGroups: EKSNodeGroup[],
-  needsValidation: boolean
 }
 
 const clusterNameRequired = (ctx: CruEKSContext) => {
   return (): string | null => {
-    if (!ctx.needsValidation) {
-      return null;
-    }
-
     return !ctx.config.displayName ? ctx.t('validation.required', { key: ctx.t('nameNsDescription.name.label') }) : null;
   };
 };
 
 const nodeGroupNamesRequired = (ctx: CruEKSContext) => {
   return (nodeName: string | undefined): null | string => {
-    if (!ctx.needsValidation) {
-      return null;
-    }
     if (nodeName !== undefined) {
       return nodeName === '' ? ctx.t('validation.required', { key: ctx.t('eks.nodeGroups.name.label') }) : null;
     }
@@ -33,9 +25,6 @@ const nodeGroupNamesRequired = (ctx: CruEKSContext) => {
 
 const nodeGroupNamesUnique = (ctx: CruEKSContext) => {
   return (nodeName: string | undefined): null | string => {
-    if (!ctx.needsValidation) {
-      return null;
-    }
     let out = null as null|string;
 
     const names = ctx.nodeGroups.map((node) => node.nodegroupName);
@@ -62,9 +51,6 @@ const nodeGroupNamesUnique = (ctx: CruEKSContext) => {
 
 const maxSize = (ctx: CruEKSContext) => {
   return (size: number): null | string => {
-    if (!ctx.needsValidation) {
-      return null;
-    }
     const msg = ctx.t('eks.errors.greaterThanZero', { key: ctx.t('eks.nodeGroups.maxSize.label') });
 
     if (size !== undefined) {
@@ -77,9 +63,6 @@ const maxSize = (ctx: CruEKSContext) => {
 
 const minSize = (ctx: CruEKSContext) => {
   return (size: number): null | string => {
-    if (!ctx.needsValidation) {
-      return null;
-    }
     const msg = ctx.t('eks.errors.greaterThanZero', { key: ctx.t('eks.nodeGroups.minSize.label') });
 
     if (size !== undefined) {
@@ -92,9 +75,6 @@ const minSize = (ctx: CruEKSContext) => {
 
 const diskSize = (ctx: CruEKSContext) => {
   return (size: string): null | string => {
-    if (!ctx.needsValidation) {
-      return null;
-    }
     if (size || size === '') {
       return !size ? ctx.t('validation.required', { key: ctx.t('eks.nodeGroups.diskSize.label') }) : null;
     }
@@ -105,9 +85,6 @@ const diskSize = (ctx: CruEKSContext) => {
 
 const instanceType = (ctx: CruEKSContext) => {
   return (type: string): null | string => {
-    if (!ctx.needsValidation) {
-      return null;
-    }
     if (type || type === '') {
       return !type ? ctx.t('validation.required', { key: ctx.t('eks.nodeGroups.instanceType.label') }) : null;
     }
@@ -118,9 +95,6 @@ const instanceType = (ctx: CruEKSContext) => {
 
 const desiredSize = (ctx: CruEKSContext) => {
   return (size: number): null | string => {
-    if (!ctx.needsValidation) {
-      return null;
-    }
     const msg = ctx.t('eks.errors.greaterThanZero', { key: ctx.t('eks.nodeGroups.desiredSize.label') });
 
     if (size !== undefined) {
@@ -133,9 +107,6 @@ const desiredSize = (ctx: CruEKSContext) => {
 
 const subnets = (ctx: CruEKSContext) => {
   return (val: string[]): null | string => {
-    if (!ctx.needsValidation) {
-      return null;
-    }
     const subnets = val || ctx.config.subnets;
 
     return subnets && subnets.length === 1 ? ctx.t('eks.errors.minimumSubnets') : undefined;
@@ -144,9 +115,6 @@ const subnets = (ctx: CruEKSContext) => {
 
 const publicPrivateAccess = (ctx: CruEKSContext) => {
   return (): string | null => {
-    if (!ctx.needsValidation) {
-      return null;
-    }
     const { publicAccess, privateAccess } = ctx.config;
 
     return publicAccess || privateAccess ? undefined : ctx.t('eks.errors.publicOrPrivate');

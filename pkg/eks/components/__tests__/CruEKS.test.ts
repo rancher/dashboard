@@ -72,6 +72,24 @@ describe('eKS provisioning form', () => {
     expect(wrapper.find(formSelector).exists()).toBe(true);
   });
 
+  it('should not use form validation if no credential is selected', async() => {
+    const wrapper = shallowMount(CruEKS, {
+      propsData: { value: {}, mode: 'create' },
+      ...requiredSetup()
+    });
+
+    let fvRules = wrapper.vm.fvExtraRules;
+
+    expect(fvRules).toStrictEqual({});
+
+    await setCredential(wrapper);
+    await wrapper.vm.$nextTick();
+
+    fvRules = wrapper.vm.fvExtraRules;
+
+    expect(Object.keys(fvRules).length).toBeGreaterThan(0);
+  });
+
   it('should update both cluster.name and config.displayName when the name input is altered', async() => {
     const wrapper = shallowMount(CruEKS, {
       propsData: { value: {}, mode: 'create' },

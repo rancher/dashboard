@@ -15,18 +15,6 @@ describe('validate EKS Cluster name', () => {
     expect(res).toBeDefined();
   });
 
-  it('should not return an error if cruEKS needsValidation is false', () => {
-    const ctx = {
-      config:          { displayName: '' },
-      t:               mockTranslation,
-      needsValidation: false
-    } as any as CruEKSContext;
-
-    const res = EKSValidators.clusterNameRequired(ctx)();
-
-    expect(res).toBeNull();
-  });
-
   it('should not return an error if name is defined', () => {
     const ctx = {
       config:          { displayName: 'abc' },

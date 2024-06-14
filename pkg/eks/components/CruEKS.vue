@@ -255,23 +255,23 @@ export default defineComponent({
   computed: {
     ...mapGetters({ t: 'i18n/t' }),
 
-    needsValidation() {
-      return !!this.config.amazonCredentialSecret;
-    },
+    fvExtraRules(): {[key:string]: Function} {
+      if (this.hasCredential) {
+        return {
+          nameRequired:           EKSValidators.clusterNameRequired(this),
+          nodeGroupNamesRequired: EKSValidators.nodeGroupNamesRequired(this),
+          nodeGroupNamesUnique:   EKSValidators.nodeGroupNamesUnique(this),
+          maxSize:                EKSValidators.maxSize(this),
+          minSize:                EKSValidators.minSize(this),
+          diskSize:               EKSValidators.diskSize(this),
+          instanceType:           EKSValidators.instanceType(this),
+          desiredSize:            EKSValidators.desiredSize(this),
+          subnets:                EKSValidators.subnets(this),
+          publicPrivateAccess:    EKSValidators.publicPrivateAccess(this),
+        };
+      }
 
-    fvExtraRules() {
-      return {
-        nameRequired:           EKSValidators.clusterNameRequired(this),
-        nodeGroupNamesRequired: EKSValidators.nodeGroupNamesRequired(this),
-        nodeGroupNamesUnique:   EKSValidators.nodeGroupNamesUnique(this),
-        maxSize:                EKSValidators.maxSize(this),
-        minSize:                EKSValidators.minSize(this),
-        diskSize:               EKSValidators.diskSize(this),
-        instanceType:           EKSValidators.instanceType(this),
-        desiredSize:            EKSValidators.desiredSize(this),
-        subnets:                EKSValidators.subnets(this),
-        publicPrivateAccess:    EKSValidators.publicPrivateAccess(this),
-      };
+      return {};
     },
 
     // upstreamSpec will be null if the user created a cluster with some invalid options such that it ultimately fails to create anything in aks
