@@ -1,3 +1,14 @@
+// GET /v1/events - return empty events data
+const eventsGetEmptyEventsSet = {
+  type:         'collection',
+  links:        { self: `${ Cypress.env('api') }/v1/events` },
+  createTypes:  { event: `${ Cypress.env('api') }/v1/events` },
+  actions:      {},
+  resourceType: 'event',
+  revision:     '95942',
+  data:         []
+};
+
 // GET /v1/events - small set of events data
 const eventsGetResponseSmallSet = {
   type:         'collection',
@@ -3902,6 +3913,10 @@ function reply(statusCode: number, body: any) {
       body
     });
   };
+}
+
+export function eventsNoDataset(): Cypress.Chainable<Response> {
+  return cy.intercept('GET', '/v1/events?*', reply(200, eventsGetEmptyEventsSet)).as('eventsNoData');
 }
 
 export function generateEventsDataSmall(): Cypress.Chainable<Response> {
