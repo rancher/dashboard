@@ -592,9 +592,9 @@ authConfig:
     userInfoEndpoint: User Info Endpoint
     acrValue: Authorization Context Reference
     scope:
-      label: Scope
+      label: Scopes
       placeholder: openid
-      protip: The scope parameter requires <code>openid</code> to be present. If you are using a custom scope, ensure that openid is included.
+      protip: The <code>openid</code> scope is required. If you are using custom scopes, ensure that it is included.
     cert:
       label: Certificate
       placeholder: Paste in the certificate, starting with -----BEGIN CERTIFICATE-----

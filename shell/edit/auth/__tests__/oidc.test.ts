@@ -78,8 +78,10 @@ describe('oidc.vue', () => {
     wrapper.destroy();
   });
 
-  it('have "Create" button enabled when provider is enabled and not editing config', () => {
+  it('have "Create" button enabled when provider is enabled and not editing config', async() => {
     wrapper.setData({ model: { enabled: true }, editConfig: false });
+    await wrapper.vm.$nextTick();
+
     const saveButton = wrapper.find('[data-testid="form-save"]').element as HTMLInputElement;
 
     expect(saveButton.disabled).toBe(false);
@@ -94,8 +96,17 @@ describe('oidc.vue', () => {
     expect(saveButton.disabled).toBe(true);
   });
 
-  it('have "Create" button enabled when customEndpoint is disabled and required fields are filled in', async() => {
+  it('have "Create" button disabled when provider is disabled and editing config after required fields and scope is missing openid', async() => {
     wrapper.setData({ oidcUrls: { url: validUrl, realm: validRealm } });
+    await wrapper.vm.$nextTick();
+
+    const saveButton = wrapper.find('[data-testid="form-save"]').element as HTMLInputElement;
+
+    expect(saveButton.disabled).toBe(true);
+  });
+
+  it('have "Create" button enabled when customEndpoint is disabled and required fields are filled in', async() => {
+    wrapper.setData({ oidcUrls: { url: validUrl, realm: validRealm }, oidcScope: validScope.split(' ') });
     await wrapper.vm.$nextTick();
 
     const saveButton = wrapper.find('[data-testid="form-save"]').element as HTMLInputElement;
@@ -104,7 +115,7 @@ describe('oidc.vue', () => {
   });
 
   it('have "Create" button enabled when customEndpoint is enabled and required fields are filled in', async() => {
-    wrapper.setData({ customEndpoint: { value: true } });
+    wrapper.setData({ customEndpoint: { value: true }, oidcScope: validScope.split(' ') });
     await wrapper.vm.$nextTick();
 
     const saveButton = wrapper.find('[data-testid="form-save"]').element as HTMLInputElement;

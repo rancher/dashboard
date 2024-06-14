@@ -69,15 +69,22 @@ export default {
     },
 
     validationPassed() {
-      if ( this.editConfig ) {
-        if ( !this.customEndpoint.value ) {
-          return !!(this.model.clientId && this.model.clientSecret && this.oidcUrls.url && this.oidcUrls.realm && this.oidcScope.includes('openid'));
-        } else {
-          return !!(this.model.clientId && this.model.clientSecret && this.model.rancherUrl && this.model.issuer && this.model.authEndpoint && this.oidcScope.includes('openid'));
-        }
+      if ( this.model.enabled && !this.editConfig ) {
+        return true;
       }
 
-      return true;
+      const { clientId, clientSecret } = this.model;
+      const isValidScope = this.model.id === 'keycloakoidc' || this.oidcScope?.includes('openid');
+
+      if ( !this.customEndpoint.value ) {
+        const { url, realm } = this.oidcUrls;
+
+        return !!(clientId && clientSecret && url && realm && isValidScope);
+      } else {
+        const { rancherUrl, issuer, authEndpoint } = this.model;
+
+        return !!(clientId && clientSecret && rancherUrl && issuer && isValidScope);
+      }
     }
   },
 
@@ -121,9 +128,10 @@ export default {
         return;
       }
       const url = this.oidcUrls.url.replaceAll(' ', '');
+      const realmsPath = this.model.id === 'keycloakoidc' ? 'auth/realms' : 'realms';
 
-      this.model.issuer = `${ url }/realms/${ this.oidcUrls.realm || '' }`;
-      this.model.authEndpoint = `${ this.model.issuer || '' }/protocol/openid-connect/auth`;
+      this.model.issuer = `${ url }/${ realmsPath }/${ this.oidcUrls.realm || '' }`;
+      this.model.authEndpoint = '';
     },
 
     updateScope() {
@@ -188,7 +196,7 @@ export default {
               v-model="model.clientId"
               :label="t(`authConfig.oidc.clientId`)"
               :mode="mode"
-              requiredoidcScope
+              required
               data-testid="oidc-client-id"
             />
           </div>
@@ -318,7 +326,6 @@ export default {
               v-model="model.authEndpoint"
               :label="t(`authConfig.oidc.authEndpoint`)"
               :mode="mode"
-              required
               :disabled="!customEndpoint.value"
               data-testid="oidc-auth-endpoint"
             />
