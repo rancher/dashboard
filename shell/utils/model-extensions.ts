@@ -23,7 +23,7 @@ interface IModel {
   $axios: any;
   $plugin: any;
   t: any;
-  _modelHelper?: any;
+  __modelHelper?: any;
   annotations: {[key: string]: string};
 }
 
@@ -51,8 +51,8 @@ export class ModelExtensions {
    */
   get modelHelper(): any {
     // Use cached helper if set
-    if (this.model._modelHelper) {
-      return this.model._modelHelper;
+    if (this.model.__modelHelper) {
+      return this.model.__modelHelper;
     }
 
     // First ask all of the helpers that have a 'useForModel' function if they should be used
@@ -64,9 +64,9 @@ export class ModelExtensions {
     }
 
     // Cache for next time
-    this.model._modelHelper = helper ? this.instantiateModelHelper(helper) : undefined;
+    this.model.__modelHelper = helper ? this.instantiateModelHelper(helper) : undefined;
 
-    return this.model._modelHelper;
+    return this.model.__modelHelper;
   }
 
   /**
