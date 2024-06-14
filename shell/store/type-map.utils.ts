@@ -105,7 +105,7 @@ export function createHeaders(
   }
 
   // Age always goes last
-  const ageColumnActual = out.find((o) => o.name === 'Age');
+  const ageColumnActual = out.find((o) => o.name.toLocaleLowerCase() === 'age');
 
   if ( ageColumnActual ) {
     removeObject(out, ageColumnActual);
