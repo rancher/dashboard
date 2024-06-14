@@ -131,7 +131,7 @@ gke:
     label: Maintenance Window - UTC
   masterAuthorizedNetwork:
     cidrBlocks:
-      add: Add CIDR Block
+      add: Add Authorized Network
       cidr: CIDR Block
       displayName: Display Name
       label: Master Authorized Network CIDR Blocks

@@ -145,7 +145,7 @@ export default defineComponent({
         <AsyncButton
           :disabled="!credential || !project || isAuthenticated"
           type="button"
-          class="btn role-secondary"
+          class="btn"
           mode="authenticate"
           @click="testProjectId"
         />
@@ -157,7 +157,7 @@ export default defineComponent({
 <style scoped lang="scss">
   .credential-project {
     display: flex;
-
+    min-width: 150px;
     .project {
       flex-basis: 50%;
       flex-grow: 0;
@@ -196,6 +196,10 @@ export default defineComponent({
 
   .auth-button-container {
     align-content: center;
+    min-width: 150px;
+    display: flex;
+    align-items: center;
+    justify-content: center;
   }
 
 </style>
