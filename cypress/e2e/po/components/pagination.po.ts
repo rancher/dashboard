@@ -6,19 +6,19 @@ export default class PaginationPo extends ComponentPo {
   }
 
   beginningButton() {
-    return this.self().find('button:nth-child(1)');
+    return this.self().find('[data-testid="pagination-first"]');
   }
 
   leftButton() {
-    return this.self().find('button:nth-child(2)');
+    return this.self().find('[data-testid="pagination-prev"]');
   }
 
   rightButton() {
-    return this.self().find('button:nth-child(4)');
+    return this.self().find('[data-testid="pagination-next"]');
   }
 
   endButton() {
-    return this.self().find('button:nth-child(5)');
+    return this.self().find('[data-testid="pagination-last"]');
   }
 
   paginationText() {
