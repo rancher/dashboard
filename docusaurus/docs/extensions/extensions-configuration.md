@@ -96,7 +96,7 @@ ___`./pkg/my-package/package.json`___
       "catalog.cattle.io/ui-version": ">= 2.7.7-0 < 2.9.0-0",
       "catalog.cattle.io/display-name": "My Super Great Extension"
     },
-    "noAuth": "true"
+    "noAuth": true
   },
   ...
 }
