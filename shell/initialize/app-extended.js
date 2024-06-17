@@ -1,12 +1,12 @@
 // Taken from @nuxt/vue-app/template/index.js
 // This file was generated during Nuxt migration
 import AppView from '@shell/initialize/App';
-import { setContext, getRouteData } from '@shell/utils/nuxt';
+import { setContext, getRouteData } from '@shell/initialize/entry-helpers';
 import { normalizeError } from '@shell/utils/error';
 import { extendRouter } from '@shell/config/router';
 import { extendStore } from '@shell/config/store';
 import { UPGRADED, _FLAGGED, _UNFLAG } from '@shell/config/query-params';
-import { installInjectedPlugins } from 'initialize/install-plugins.js';
+import { installInjectedPlugins } from '@shell/initialize/install-plugins.js';
 import { normalizeURL } from 'ufo';
 
 /**
