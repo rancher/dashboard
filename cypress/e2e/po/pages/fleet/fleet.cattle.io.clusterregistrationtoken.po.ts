@@ -1,21 +1,21 @@
 import PagePo from '@/cypress/e2e/po/pages/page.po';
-import FleetGitRepoList from '@/cypress/e2e/po/lists/fleet/fleet.cattle.io.gitrepo.po';
 import { FleetDashboardPagePo } from '@/cypress/e2e/po/pages/fleet/fleet-dashboard.po';
 import ProductNavPo from '@/cypress/e2e/po/side-bars/product-side-nav.po';
 import ResourceTablePo from '@/cypress/e2e/po/components/resource-table.po';
+import FleetClusterRegistrationTokensList from '@/cypress/e2e/po/lists/fleet/fleet.cattle.io.clusterregistrationtoken.po';
 
-export class FleetGitRepoListPagePo extends PagePo {
-  static url = `/c/_/fleet/fleet.cattle.io.gitrepo`
+export class FleetClusterRegistrationTokenListPagePo extends PagePo {
+  static url = `/c/_/fleet/fleet.cattle.io.clusterregistrationtoken`
 
   constructor() {
-    super(FleetGitRepoListPagePo.url);
+    super(FleetClusterRegistrationTokenListPagePo.url);
   }
 
   goTo() {
-    return cy.visit(FleetGitRepoListPagePo.url);
+    return cy.visit(FleetClusterRegistrationTokenListPagePo.url);
   }
 
-  navTo() {
+  static navTo() {
     const fleetDashboardPage = new FleetDashboardPagePo('_');
 
     FleetDashboardPagePo.navTo();
@@ -23,13 +23,12 @@ export class FleetGitRepoListPagePo extends PagePo {
 
     const sideNav = new ProductNavPo();
 
-    sideNav.navToSideMenuEntryByLabel('Git Repos');
-
-    this.repoList().checkVisible();
+    sideNav.navToSideMenuGroupByLabel('Advanced');
+    sideNav.navToSideMenuEntryByLabel('Cluster Registration Tokens');
   }
 
-  repoList() {
-    return new FleetGitRepoList(this.self());
+  tokensList() {
+    return new FleetClusterRegistrationTokensList('[data-testid="sortable-table-list-container"]');
   }
 
   goToDetailsPage(elemName: string) {

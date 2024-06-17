@@ -5,6 +5,7 @@ import { gitRepoCreateRequest, gitRepoTargetAllClustersRequest } from '@/cypress
 import { generateFakeClusterDataAndIntercepts } from '@/cypress/e2e/blueprints/nav/fake-cluster';
 import PreferencesPagePo from '@/cypress/e2e/po/pages/preferences.po';
 import { EXTRA_LONG_TIMEOUT_OPT } from '@/cypress/support/utils/timeouts';
+import { HeaderPo } from '@/cypress/e2e/po/components/header.po';
 
 const fakeProvClusterId = 'some-fake-cluster-id';
 const fakeMgmtClusterId = 'some-fake-mgmt-id';
@@ -13,6 +14,7 @@ describe('Git Repo', { testIsolation: 'off', tags: ['@fleet', '@adminUser'] }, (
   describe('Create', () => {
     const listPage = new FleetGitRepoListPagePo();
     const gitRepoCreatePage = new GitRepoCreatePo('_');
+    const headerPo = new HeaderPo();
     const reposToDelete = [];
 
     before(() => {
@@ -56,7 +58,7 @@ describe('Git Repo', { testIsolation: 'off', tags: ['@fleet', '@adminUser'] }, (
 
       gitRepoCreatePage.setRepoName(name);
       gitRepoCreatePage.setGitRepoUrl(repo);
-      gitRepoCreatePage.selectWorkspace('fleet-default');
+      headerPo.selectWorkspace('fleet-default');
       gitRepoCreatePage.setBranchName(branch);
       gitRepoCreatePage.helmAuthSelectOrCreate().createBasicAuth('test', 'test');
       gitRepoCreatePage.setHelmRepoURLRegex(helmRepoURLRegex);
@@ -148,7 +150,7 @@ describe('Git Repo', { testIsolation: 'off', tags: ['@fleet', '@adminUser'] }, (
       // go to fleet gitrepo
       listPage.goTo();
       listPage.waitForPage();
-      listPage.selectWorkspace(workspace);
+      headerPo.selectWorkspace(workspace);
 
       // check table headers
       const expectedHeadersListView = ['State', 'Name', 'Repo', 'Target', 'Clusters Ready', 'Resources', 'Age'];
@@ -186,7 +188,7 @@ describe('Git Repo', { testIsolation: 'off', tags: ['@fleet', '@adminUser'] }, (
 
       listPage.goTo();
       listPage.waitForPage();
-      listPage.selectWorkspace(workspace);
+      headerPo.selectWorkspace(workspace);
       listPage.repoList().details(this.gitRepo, 2).find('a').click();
       gitRepoDetails.waitForPage(null, 'bundles');
       gitRepoDetails.gitRepoTabs().allTabs().should('have.length', 4, { timeout: 10000 });
@@ -235,7 +237,7 @@ describe('Git Repo', { testIsolation: 'off', tags: ['@fleet', '@adminUser'] }, (
     //   // go to fleet gitrepo
     //   listPage.goTo();
     //   listPage.waitForPage();
-    //   listPage.selectWorkspace(workspace);
+    //   headerPo.selectWorkspace(workspace);
 
     //   listPage.goToDetailsPage(basicRepos[1].name);
 
@@ -253,7 +255,7 @@ describe('Git Repo', { testIsolation: 'off', tags: ['@fleet', '@adminUser'] }, (
 
       listPage.goTo();
       listPage.waitForPage();
-      listPage.selectWorkspace(workspace);
+      headerPo.selectWorkspace(workspace);
       listPage.repoList().details(this.gitRepo, 2).find('a').click();
 
       gitRepoDetails.waitForPage(null, 'bundles');

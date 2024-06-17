@@ -37,6 +37,15 @@ describe('CustomResourceDefinitions', { testIsolation: 'off', tags: ['@explorer'
         .column(1)
         .scrollIntoView()
         .should('be.visible');
+
+      // check table headers
+      const expectedHeaders = ['State', 'Name', 'Created At'];
+
+      crdsPage.list().resourceTable().sortableTable().tableHeaderRow()
+        .get('.table-header-container .content')
+        .each((el, i) => {
+          expect(el.text().trim()).to.eq(expectedHeaders[i]);
+        });
     });
 
     it('pagination is visible and user is able to navigate through crd data', () => {

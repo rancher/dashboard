@@ -1,9 +1,10 @@
 import { IngressPagePo } from '@/cypress/e2e/po/pages/explorer/ingress.po';
+import { generateIngressesDataSmall, ingressesNoData } from '@/cypress/e2e/blueprints/explorer/workloads/service-discovery/ingresses-get';
 
 const ingressPagePo = new IngressPagePo();
 
-describe('ConfigMap', { testIsolation: 'off', tags: ['@explorer', '@adminUser'] }, () => {
-  beforeEach(() => {
+describe('Ingresses', { testIsolation: 'off', tags: ['@explorer', '@adminUser'] }, () => {
+  before(() => {
     cy.login();
   });
 
@@ -21,5 +22,80 @@ describe('ConfigMap', { testIsolation: 'off', tags: ['@explorer', '@adminUser'] 
 
     // testing https://github.com/rancher/dashboard/issues/11086
     cy.get('@consoleWarn').should('not.be.calledWith', warnMsg);
+  });
+
+  describe('List', { tags: ['@vai'] }, () => {
+    before('set up', () => {
+      cy.updateNamespaceFilter('local', 'none', '{\"local\":[]}');
+    });
+
+    it('validate services table in empty state', () => {
+      ingressesNoData();
+      ingressPagePo.goTo();
+      ingressPagePo.waitForPage();
+      cy.wait('@ingressesNoData');
+
+      const expectedHeaders = ['State', 'Name', 'Namespace', 'Target', 'Default', 'Ingress Class', 'Age'];
+
+      ingressPagePo.list().resourceTable().sortableTable().tableHeaderRow()
+        .get('.table-header-container .content')
+        .each((el, i) => {
+          expect(el.text().trim()).to.eq(expectedHeaders[i]);
+        });
+
+      ingressPagePo.list().resourceTable().sortableTable().checkRowCount(true, 1);
+    });
+
+    it('flat list: validate ingresses table', () => {
+      generateIngressesDataSmall();
+      ingressPagePo.goTo();
+      ingressPagePo.waitForPage();
+      cy.wait('@ingressesDataSmall');
+
+      // check table headers are visible
+      const expectedHeaders = ['State', 'Name', 'Namespace', 'Target', 'Default', 'Ingress Class', 'Age'];
+
+      ingressPagePo.list().resourceTable().sortableTable().tableHeaderRow()
+        .get('.table-header-container .content')
+        .each((el, i) => {
+          expect(el.text().trim()).to.eq(expectedHeaders[i]);
+        });
+
+      ingressPagePo.list().resourceTable().sortableTable().checkVisible();
+      ingressPagePo.list().resourceTable().sortableTable().checkLoadingIndicatorNotVisible();
+      ingressPagePo.list().resourceTable().sortableTable().noRowsShouldNotExist();
+      ingressPagePo.list().resourceTable().sortableTable().checkRowCount(false, 2);
+    });
+
+    it('group by namespace: validate ingresses table', () => {
+      generateIngressesDataSmall();
+      ingressPagePo.goTo();
+      ingressPagePo.waitForPage();
+      cy.wait('@ingressesDataSmall');
+
+      // group by namespace
+      ingressPagePo.list().resourceTable().sortableTable().groupByButtons(1)
+        .click();
+
+      //  check table headers are visible
+      const expectedHeaders = ['State', 'Name', 'Target', 'Default', 'Ingress Class', 'Age'];
+
+      ingressPagePo.list().resourceTable().sortableTable().tableHeaderRow()
+        .get('.table-header-container .content')
+        .each((el, i) => {
+          expect(el.text().trim()).to.eq(expectedHeaders[i]);
+        });
+
+      ingressPagePo.list().resourceTable().sortableTable().checkVisible();
+      ingressPagePo.list().resourceTable().sortableTable().checkLoadingIndicatorNotVisible();
+      ingressPagePo.list().resourceTable().sortableTable().noRowsShouldNotExist();
+      ingressPagePo.list().resourceTable().sortableTable().groupElementWithName('Namespace: cattle-system')
+        .should('be.visible');
+      ingressPagePo.list().resourceTable().sortableTable().checkRowCount(false, 2);
+    });
+
+    after('clean up', () => {
+      cy.updateNamespaceFilter('local', 'none', '{"local":["all://user"]}');
+    });
   });
 });

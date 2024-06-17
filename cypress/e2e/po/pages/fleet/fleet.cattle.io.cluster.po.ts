@@ -15,7 +15,7 @@ export class FleetClusterListPagePo extends PagePo {
       return cy.visit(FleetClusterListPagePo.url);
     }
 
-    navTo() {
+    static navTo() {
       const fleetDashboardPage = new FleetDashboardPagePo('_');
 
       FleetDashboardPagePo.navTo();

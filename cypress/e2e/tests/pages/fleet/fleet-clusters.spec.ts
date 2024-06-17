@@ -7,11 +7,13 @@ import FleetClusterDetailsPo from '@/cypress/e2e/po/detail/fleet/fleet.cattle.io
 import { WorkloadsDeploymentsListPagePo } from '@/cypress/e2e/po/pages/explorer/workloads/workloads-deployments.po';
 import * as path from 'path';
 import * as jsyaml from 'js-yaml';
+import { HeaderPo } from '@/cypress/e2e/po/components/header.po';
 
 describe('Fleet Clusters', { tags: ['@fleet', '@adminUser'] }, () => {
   const fleetClusterListPage = new FleetClusterListPagePo();
   const fleetGitRepoListPage = new FleetGitRepoListPagePo();
   const clusterList = new ClusterManagerListPagePo();
+  const headerPo = new HeaderPo();
   const gitRepoUrl = 'https://github.com/rancher/fleet-examples.git';
   const branch = 'master';
   const paths = 'simple';
@@ -86,13 +88,13 @@ describe('Fleet Clusters', { tags: ['@fleet', '@adminUser'] }, () => {
       // go to fleet gitrepo and wait until git repo is in active state
       fleetGitRepoListPage.navTo();
       fleetGitRepoListPage.waitForPage();
-      fleetGitRepoListPage.selectWorkspace(namespace);
+      headerPo.selectWorkspace(namespace);
       fleetGitRepoListPage.repoList().details(this.gitRepo, 1).contains('Active', { timeout: 600000 });
 
       // go to fleet clusters
       fleetClusterListPage.navTo();
       fleetClusterListPage.waitForPage();
-      fleetClusterListPage.selectWorkspace(namespace);
+      headerPo.selectWorkspace(namespace);
       fleetClusterListPage.sortableTable().checkLoadingIndicatorNotVisible();
 
       // get cluster state
@@ -146,7 +148,7 @@ describe('Fleet Clusters', { tags: ['@fleet', '@adminUser'] }, () => {
       // go to fleet clusters
       fleetClusterListPage.navTo();
       fleetClusterListPage.waitForPage();
-      fleetClusterListPage.selectWorkspace(namespace);
+      headerPo.selectWorkspace(namespace);
       fleetClusterListPage.clusterList().details(this.rke2Ec2ClusterName, 2).find('a').click();
       fleetClusterDetailsPage.waitForPage(null, 'repos');
       fleetClusterDetailsPage.clusterTabs().allTabs().should('have.length', 4, { timeout: 10000 });
@@ -183,7 +185,7 @@ describe('Fleet Clusters', { tags: ['@fleet', '@adminUser'] }, () => {
       // go to fleet clusters
       fleetClusterListPage.navTo();
       fleetClusterListPage.waitForPage();
-      fleetClusterListPage.selectWorkspace(namespace);
+      headerPo.selectWorkspace(namespace);
 
       cy.intercept('PUT', `v1/fleet.cattle.io.clusters/${ namespace }/${ this.rke2Ec2ClusterName }`).as('pauseAndUnpause');
 
@@ -216,7 +218,7 @@ describe('Fleet Clusters', { tags: ['@fleet', '@adminUser'] }, () => {
       // go to fleet clusters
       fleetClusterListPage.navTo();
       fleetClusterListPage.waitForPage();
-      fleetClusterListPage.selectWorkspace(namespace);
+      headerPo.selectWorkspace(namespace);
       fleetClusterListPage.clusterList().actionMenu(this.rke2Ec2ClusterName).getMenuItem('Edit Config').click();
 
       const editFleetCluster = fleetClusterListPage.editFleetCluster(undefined, this.rke2Ec2ClusterName);
@@ -237,7 +239,7 @@ describe('Fleet Clusters', { tags: ['@fleet', '@adminUser'] }, () => {
 
       fleetClusterListPage.navTo();
       fleetClusterListPage.waitForPage();
-      fleetClusterListPage.selectWorkspace(namespace);
+      headerPo.selectWorkspace(namespace);
       fleetClusterListPage.clusterList().actionMenu(this.rke2Ec2ClusterName).getMenuItem('Download YAML').click();
 
       const downloadedFilename = path.join(downloadsFolder, `${ this.rke2Ec2ClusterName }.yaml`);
@@ -278,7 +280,7 @@ describe('Fleet Clusters', { tags: ['@fleet', '@adminUser'] }, () => {
 
       fleetClusterListPage.navTo();
       fleetClusterListPage.waitForPage();
-      fleetClusterListPage.selectWorkspace(namespace);
+      headerPo.selectWorkspace(namespace);
       fleetClusterListPage.sortableTable().checkLoadingIndicatorNotVisible();
       fleetClusterListPage.sortableTable().checkRowCount(true, 1);
     });
@@ -310,7 +312,7 @@ describe('Fleet Clusters', { tags: ['@fleet', '@adminUser'] }, () => {
 
       // NB: No additional clusters are provisioned
       // Look only at the local clusters
-      fleetClusterListPage.selectWorkspace();
+      headerPo.selectWorkspace(workspace);
     });
 
     it('should be able to list clusters in local workspace', () => {
@@ -319,7 +321,7 @@ describe('Fleet Clusters', { tags: ['@fleet', '@adminUser'] }, () => {
 
     it('should only display action menu with allowed actions only', () => {
       fleetClusterListPage.goTo();
-      fleetClusterListPage.selectWorkspace();
+      headerPo.selectWorkspace(workspace);
 
       const constActionMenu = fleetClusterListPage.rowActionMenuOpen('local');
 
@@ -357,7 +359,7 @@ describe('Fleet Clusters', { tags: ['@fleet', '@adminUser'] }, () => {
         // go to fleet gitrepo and wait until git repo is in active state
         fleetGitRepoListPage.navTo();
         fleetGitRepoListPage.waitForPage();
-        fleetGitRepoListPage.selectWorkspace(workspace);
+        headerPo.selectWorkspace(workspace);
         fleetGitRepoListPage.repoList().rowWithName(repoName).checkVisible();
 
         // go to fleet cluster list
