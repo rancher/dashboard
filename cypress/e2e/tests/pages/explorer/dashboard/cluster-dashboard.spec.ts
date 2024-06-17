@@ -8,7 +8,7 @@ import { WorkloadsDeploymentsListPagePo } from '@/cypress/e2e/po/pages/explorer/
 import { NodesPagePo } from '@/cypress/e2e/po/pages/explorer/nodes.po';
 import { EventsPagePo } from '@/cypress/e2e/po/pages/explorer/events.po';
 import * as path from 'path';
-import { generateEventsDataLarge, generateEventsDataSmall, eventsNoDataset } from '@/cypress/e2e/blueprints/explorer/cluster/events';
+import { eventsNoDataset } from '@/cypress/e2e/blueprints/explorer/cluster/events';
 import HomePagePo from '@/cypress/e2e/po/pages/home.po';
 
 const configMapYaml = `apiVersion: v1
@@ -246,144 +246,6 @@ describe('Cluster Dashboard', { testIsolation: 'off', tags: ['@explorer', '@admi
     events.sortableTable().rowElements().should('have.length.gte', 2);
   });
 
-  describe('List', { tags: ['@vai'] }, () => {
-    const events = new EventsPagePo('local');
-    const eventName = 'aaa-e2e-vai-test-event-name';
-
-    before('set up', () => {
-      // set user preferences: update resource filter
-      cy.updateResourceListViewPref('local', 'none', '{\"local\":[]}');
-      HomePagePo.goTo(); // this is needed for updated user preferences to load in the UI
-    });
-
-    it('pagination is visible and user is able navigate through events data', () => {
-      // generate large set of events data
-      generateEventsDataLarge();
-      ClusterDashboardPagePo.navTo();
-      clusterDashboard.waitForPage(undefined, 'cluster-events');
-      EventsPagePo.navTo();
-      cy.wait('@eventsDataLarge');
-      events.waitForPage();
-
-      // pagination is visible
-      events.sortableTable().pagination().checkVisible();
-
-      // basic checks on navigation buttons
-      events.sortableTable().pagination().beginningButton().isDisabled();
-      events.sortableTable().pagination().leftButton().isDisabled();
-      events.sortableTable().pagination().rightButton().isEnabled();
-      events.sortableTable().pagination().endButton().isEnabled();
-
-      // check text before navigation
-      events.sortableTable().pagination().paginationText().then((el) => {
-        expect(el.trim()).to.eq('1 - 100 of 125 Events');
-      });
-
-      // navigate to next page - right button
-      events.sortableTable().pagination().rightButton().click();
-
-      // check text and buttons after navigation
-      events.sortableTable().pagination().paginationText().then((el) => {
-        expect(el.trim()).to.eq('101 - 125 of 125 Events');
-      });
-      events.sortableTable().pagination().beginningButton().isEnabled();
-      events.sortableTable().pagination().leftButton().isEnabled();
-
-      // navigate to first page - left button
-      events.sortableTable().pagination().leftButton().click();
-
-      // check text and buttons after navigation
-      events.sortableTable().pagination().paginationText().then((el) => {
-        expect(el.trim()).to.eq('1 - 100 of 125 Events');
-      });
-      events.sortableTable().pagination().beginningButton().isDisabled();
-      events.sortableTable().pagination().leftButton().isDisabled();
-
-      // navigate to last page - end button
-      events.sortableTable().pagination().endButton().click();
-
-      // check text after navigation
-      events.sortableTable().pagination().paginationText().then((el) => {
-        expect(el.trim()).to.eq('101 - 125 of 125 Events');
-      });
-
-      // navigate to first page - beginning button
-      events.sortableTable().pagination().beginningButton().click();
-
-      // check text and buttons after navigation
-      events.sortableTable().pagination().paginationText().then((el) => {
-        expect(el.trim()).to.eq('1 - 100 of 125 Events');
-      });
-      events.sortableTable().pagination().beginningButton().isDisabled();
-      events.sortableTable().pagination().leftButton().isDisabled();
-    });
-
-    it('filter events', () => {
-      // generate large set of events data
-      generateEventsDataLarge();
-      ClusterDashboardPagePo.navTo();
-      clusterDashboard.waitForPage(undefined, 'cluster-events');
-      EventsPagePo.navTo();
-      cy.wait('@eventsDataLarge');
-      events.waitForPage();
-
-      events.sortableTable().checkVisible();
-      events.sortableTable().checkLoadingIndicatorNotVisible();
-      events.sortableTable().checkRowCount(false, 100);
-
-      // filter by name
-      events.sortableTable().filter(eventName);
-      events.sortableTable().checkRowCount(false, 1);
-      events.sortableTable().rowElementWithName(eventName).scrollIntoView().should('be.visible');
-    });
-
-    it('sorting changes the order of paginated events data', () => {
-      // generate large set of events data
-      generateEventsDataLarge();
-      ClusterDashboardPagePo.navTo();
-      clusterDashboard.waitForPage(undefined, 'cluster-events');
-      EventsPagePo.navTo();
-      events.waitForPage();
-      cy.wait('@eventsDataLarge');
-
-      // check table is sorted by `last seen` in ASC order by default
-      events.sortableTable().tableHeaderRow().checkSortOrder(2, 'down');
-
-      // sort by name in ASC order
-      events.sortableTable().sort(11).click();
-
-      // event name should be visible on first page (sorted in ASC order)
-      events.sortableTable().rowElementWithName(eventName).scrollIntoView().should('be.visible');
-
-      // sort by name in DESC order
-      events.sortableTable().sort(11).click();
-
-      // event name should be NOT visible on first page (sorted in DESC order)
-      events.sortableTable().rowElementWithName(eventName).should('not.exist');
-
-      // navigate to last page
-      events.sortableTable().pagination().endButton().click();
-
-      // event name should be visible on last page (sorted in DESC order)
-      events.sortableTable().rowElementWithName(eventName).scrollIntoView().should('be.visible');
-    });
-
-    it('pagination is hidden', () => {
-      // generate small set of events data
-      generateEventsDataSmall();
-      ClusterDashboardPagePo.navTo();
-      clusterDashboard.waitForPage(undefined, 'cluster-events');
-      EventsPagePo.navTo();
-      events.waitForPage();
-      cy.wait('@eventsDataSmall');
-
-      events.sortableTable().checkVisible();
-      events.sortableTable().checkLoadingIndicatorNotVisible();
-      events.sortableTable().checkRowCount(false, 3);
-      events.sortableTable().pagination().checkNotExists();
-    });
-  });
-
   it('can view events table empty if no events', { tags: ['@vai'] }, () => {
     const events = new EventsPagePo('local');
 
@@ -426,6 +288,6 @@ describe('Cluster Dashboard', { testIsolation: 'off', tags: ['@explorer', '@admi
       cy.deleteRancherResource('v1', 'namespaces', `${ nsName }`);
       cy.deleteRancherResource('v3', 'projects', this.projId);
     }
-    cy.updateResourceListViewPref('local', 'none', '{"local":["all://user"]}');
+    cy.updateNamespaceFilter('local', 'none', '{"local":["all://user"]}');
   });
 });

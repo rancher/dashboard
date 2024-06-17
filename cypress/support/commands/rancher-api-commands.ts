@@ -763,10 +763,37 @@ Cypress.Commands.add('createAmazonMachineConfig', (instanceType, region, vpcId, 
 });
 
 // update resource list view preference
-Cypress.Commands.add('updateResourceListViewPref', (clusterName: string, groupBy:string, namespaceFilter: string) => {
+Cypress.Commands.add('updateNamespaceFilter', (clusterName: string, groupBy:string, namespaceFilter: string) => {
   return cy.getRancherResource('v3', 'users?me=true').then((resp: Cypress.Response<any>) => {
     const userId = resp.body.data[0].id.trim();
 
     cy.setRancherResource('v1', 'userpreferences', userId, groupByPayload(userId, clusterName, groupBy, namespaceFilter));
   });
+});
+
+/**
+ * Create token (API Keys)
+ */
+Cypress.Commands.add('createToken', (description: string, ttl = 3600000, failOnStatusCode = true, clusterId?: string) => {
+  return cy.request({
+    method:  'POST',
+    url:     `${ Cypress.env('api') }/v3/tokens`,
+    headers: {
+      'x-api-csrf': token.value,
+      Accept:       'application/json'
+    },
+    failOnStatusCode,
+    body: {
+      type:     'token',
+      metadata: {},
+      description,
+      clusterId,
+      ttl
+    }
+  })
+    .then((resp) => {
+      if (failOnStatusCode) {
+        expect(resp.status).to.eq(201);
+      }
+    });
 });

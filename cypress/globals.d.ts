@@ -75,6 +75,7 @@ declare global {
       createNamespaceInProject(nsName: string, projId: string): Chainable;
       createNamespace(nsName: string): Chainable;
       createPod(nsName: string, podName: string, image: string, failOnStatusCode?: boolean): Chainable;
+      createToken(description: string, ttl: number, failOnStatusCode?: boolean, clusterId?: string): Chainable;
       createAwsCloudCredentials(nsName: string, cloudCredName: string, defaultRegion: string, accessKey: string, secretKey: string): Chainable;
       createAmazonMachineConfig(instanceType: string, region: string, vpcId: string, zone: string, type: string, clusterName: string, namespace: string): Chainable;
       createAmazonRke2Cluster(params: CreateAmazonRke2ClusterParams): Chainable;
@@ -87,12 +88,12 @@ declare global {
       deleteNodeTemplate(nodeTemplateId: string, timeout?: number)
 
       /**
-       * update resource list view preference
+       * update namespace filter
        * @param clusterName
-       * @param groupBy to update resource list view to 'flat list', 'group by namespaces', or 'group by node' ('none', 'metadata.namespace', or 'role')
+       * @param groupBy to update list view to 'flat list', 'group by namespaces', or 'group by node' ('none', 'metadata.namespace', or 'role')
        * @param namespaceFilter to filter by 'only user namespaces', 'all namespace', etc. ('{"local":["all://user"]}', '{\"local\":[]}', etc.)
        */
-      updateResourceListViewPref(clusterName: string, groupBy:string, namespaceFilter: string): Chainable;
+      updateNamespaceFilter(clusterName: string, groupBy:string, namespaceFilter: string): Chainable;
 
       /**
        *  Wrapper for cy.get() to simply define the data-testid value that allows you to pass a matcher to find the element.

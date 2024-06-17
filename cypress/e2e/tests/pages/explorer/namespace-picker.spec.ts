@@ -26,7 +26,7 @@ describe('Namespace picker', { testIsolation: 'off' }, () => {
     // Verify multiple namespaces within Project: System display when filtering by Project
 
     // group workloads by namespace
-    cy.updateResourceListViewPref('local', 'metadata.namespace', '{"local":["all://user"]}');
+    cy.updateNamespaceFilter('local', 'metadata.namespace', '{"local":["all://user"]}');
 
     const workloadsPodPage = new WorkloadsPodsListPagePo('local');
 
@@ -208,6 +208,6 @@ describe('Namespace picker', { testIsolation: 'off' }, () => {
   });
 
   after('clean up', () => {
-    cy.updateResourceListViewPref('local', 'none', '{"local":["all://user"]}');
+    cy.updateNamespaceFilter('local', 'none', '{"local":["all://user"]}');
   });
 });
