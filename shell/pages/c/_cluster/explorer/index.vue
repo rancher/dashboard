@@ -306,11 +306,15 @@ export default {
     },
 
     fleetStatus() {
-      const resources = [this.fleetStatefulSet];
-
-      if (this.currentCluster.isLocal) {
-        resources.push(this.fleetDeployment);
-      }
+      const resources = this.currentCluster.isLocal ? [
+        /**
+         * 'fleetStatefulSet' could take a while to be created by rancher.
+         * During that startup period, only 'fleetDeployment' will be used to calculate the fleet agent status.
+         */
+        ...(this.fleetStatefulSet ? [this.fleetStatefulSet, this.fleetDeployment] : [this.fleetDeployment]),
+      ] : [
+        this.fleetStatefulSet
+      ];
 
       if (resources.find((r) => r === 'loading')) {
         return STATES_ENUM.IN_PROGRESS;
