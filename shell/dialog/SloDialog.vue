@@ -1,8 +1,10 @@
 <script>
 import { Card } from '@components/Card';
+import AsyncButton from '@shell/components/AsyncButton';
+import { IS_SSO, LOGGED_OUT } from '@shell/config/query-params';
 
 export default {
-  components: { Card },
+  components: { Card, AsyncButton },
 
   props: {
     authProvider: {
@@ -21,16 +23,23 @@ export default {
     async doLogout(logoutAll = false) {
       const options = { force: true, provider: this.authProvider };
 
-      // Single Sign Logout for SAML
       if (logoutAll) {
+        // SLO - Single Log Out
         options.slo = true;
         options.provider = this.authProvider;
+
+        await this.$store.dispatch('auth/logout', options, { root: true });
+
+        this.$emit('close');
+      } else {
+        // Rancher Log Out (ensure we show the logging out page as per standard log out)
+        this.$router.replace({ name: 'auth-logout', query: { [LOGGED_OUT]: true, [IS_SSO]: true } });
       }
-
-      this.$emit('close');
-
-      await this.$store.dispatch('auth/logout', options, { root: true });
     },
+
+    cancel() {
+      this.$emit('close');
+    }
   }
 };
 </script>
@@ -55,18 +64,24 @@ export default {
     <template #actions>
       <div class="btn-block">
         <button
-          class="btn role-secondary mr-10"
-          @click="doLogout()"
+          class="btn role-secondary"
+          @click="cancel()"
         >
-          {{ t('promptSlo.rancher') }}
+          {{ t('generic.cancel') }}
         </button>
         <div class="spacer" />
         <button
-          class="btn ml-10 btn role-primary"
-          @click="doLogout(true)"
+          class="btn role-secondary"
+          @click="doLogout()"
         >
-          {{ t('promptSlo.all', { name }) }}
+          {{ t('promptSlo.rancher.active') }}
         </button>
+        <AsyncButton
+          class="ml-10"
+          :action-label="t('promptSlo.all.active', { name })"
+          :waiting-label="t('promptSlo.all.waiting')"
+          @click="doLogout(true)"
+        />
       </div>
     </template>
   </Card>

@@ -1,7 +1,7 @@
 <script>
 import Loading from '@shell/components/Loading';
 import CreateEditView from '@shell/mixins/create-edit-view';
-import AuthConfig from '@shell/mixins/auth-config';
+import AuthConfig, { SLO_OPTION_VALUES } from '@shell/mixins/auth-config';
 import CruResource from '@shell/components/CruResource';
 import { LabeledInput } from '@components/Form/LabeledInput';
 import { Checkbox } from '@components/Form/Checkbox';
@@ -15,12 +15,6 @@ import RadioGroup from '@components/Form/Radio/RadioGroup.vue';
 
 export const SHIBBOLETH = 'shibboleth';
 export const OKTA = 'okta';
-
-const SLO_OPTION_VALUES = {
-  rancher: 'rancher',
-  all:     'all',
-  both:    'both',
-};
 
 // Standard LDAP defaults
 const LDAP_DEFAULTS = {
@@ -63,8 +57,7 @@ export default {
   data() {
     return {
       showLdap:        false,
-      showLdapDetails: false,
-      sloOptionValues: SLO_OPTION_VALUES
+      showLdapDetails: false
     };
   },
 
@@ -83,7 +76,7 @@ export default {
 
     sloOptions() {
       return [
-        { value: SLO_OPTION_VALUES.rancher, label: this.t('authConfig.saml.sloOptions.onlyRancher') },
+        { value: SLO_OPTION_VALUES.rancher, label: this.t('authConfig.saml.sloOptions.onlyRancher', { name: this.model?.nameDisplay }) },
         { value: SLO_OPTION_VALUES.all, label: this.t('authConfig.saml.sloOptions.logoutAll', { name: this.model?.nameDisplay }) },
         { value: SLO_OPTION_VALUES.both, label: this.t('authConfig.saml.sloOptions.choose') },
       ];
@@ -92,11 +85,7 @@ export default {
     sloTypeText() {
       const sloOptionSelected = this.sloOptions.find((item) => item.value === this.sloType);
 
-      if (sloOptionSelected) {
-        return sloOptionSelected.label;
-      }
-
-      return '';
+      return sloOptionSelected?.label || '';
     },
 
     toSave() {

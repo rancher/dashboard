@@ -507,11 +507,11 @@ authConfig:
     UID: UID Field
     adfs: Configure an AD FS account
     api: '{vendor} API Host'
-    sloTitle: Log Out behaviour
+    sloTitle: Log Out behavior
     sloOptions:
-      onlyRancher: Only log out of Rancher
-      logoutAll: Log out of {name} (including Rancher and all other applications registered with the provider)
-      choose: Allow the user to choose in an extra step
+      onlyRancher: Log out of Rancher and not {name}
+      logoutAll: Log out of {name} (including Rancher and all other applications registered with {name})
+      choose: Allow the user to choose one of the above in an additional log out step
     cert:
       label: Certificate
       placeholder: Paste in the certificate, starting with -----BEGIN CERTIFICATE-----
@@ -4655,9 +4655,12 @@ promptScaleMachineDown:
 
 promptSlo:
   title: "Log out"
-  text: "Choose whether to log out of only Rancher, or all {name} applications."
-  rancher: Only log out of Rancher
-  all: Log out of {name}
+  text: "Log out of only Rancher, or all {name} applications."
+  rancher:
+    active: Only log out of Rancher
+  all:
+    active: Log out of {name}
+    waiting: Logging Out
 
 promptRemove:
   title: Are you sure?

@@ -44,7 +44,7 @@ export default {
     }
   },
 
-  async fetch() {
+  fetch() {
     // fetch needed data to check if any auth provider is enabled
     authProvidersInfo(this.$store);
   },
@@ -77,11 +77,7 @@ export default {
       const authProviders = this.$store.getters['management/all'](MANAGEMENT.AUTH_CONFIG);
       const authInfo = parseAuthProvidersInfo(authProviders);
 
-      if (authInfo.enabled?.length) {
-        return authInfo.enabled[0];
-      }
-
-      return {};
+      return authInfo.enabled?.[0] || {};
     },
 
     shouldShowSloLogoutModal() {
@@ -240,7 +236,7 @@ export default {
       this.$store.dispatch('management/promptModal', {
         component:      'SloDialog',
         componentProps: { authProvider: this.authProviderEnabled },
-        modalWidth:     '450px'
+        modalWidth:     '500px'
       });
     },
     // Sizes the product area of the header such that it shrinks to ensure the whole header bar can be shown
