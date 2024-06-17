@@ -1,7 +1,12 @@
 import Vue from 'vue';
 import { withQuery } from 'ufo';
 
-const sanitizeComponent = (Component) => {
+/**
+ * Extend component properties
+ * @param {*} Component
+ * @returns
+ */
+const patchComponent = (Component) => {
   // If Component already sanitized
   if (Component.options && Component._Ctor === Component) {
     return Component;
@@ -65,24 +70,30 @@ const getComponent = async(unknownComponent) => {
 };
 
 /**
- * Update matched components for a given route
+ * Patch all the matched components of a given route
  * @param {*} route
  * @returns
  */
-export const cleanMatchedComponents = (route) => Array.prototype.concat.apply([], route.matched.map((match, index) => Object.keys(match.components).reduce(async(acc, key) => {
-  if (match.components[key]) {
-    const component = await getComponent(match.components[key], match.instances[key], match, key, index);
-    const cleanComponent = sanitizeComponent(component);
+const patchMatchedComponents = (route) => Array.prototype.concat.apply(
+  [],
+  route.matched.map(
+    (match, index) => Object
+      .keys(match.components)
+      .reduce(async(acc, key) => {
+        if (match.components[key]) {
+          const component = await getComponent(match.components[key], match.instances[key], match, key, index);
+          const patchedComponent = patchComponent(component);
 
-    match.components[key] = cleanComponent;
-    acc.push(cleanComponent);
-  } else {
-    delete match.components[key];
-  }
+          match.components[key] = patchedComponent;
+          acc.push(patchedComponent);
+        } else {
+          delete match.components[key];
+        }
 
-  return acc;
-}, [])
-));
+        return acc;
+      }, [])
+  )
+);
 
 /**
    * Merge route meta with component meta and update matched components
@@ -94,7 +105,7 @@ export const getRouteData = async(route) => {
     return;
   }
   // Make sure the components are resolved (code-splitting)
-  await Promise.all(cleanMatchedComponents(route));
+  await Promise.all(patchMatchedComponents(route));
   const meta = getMatchedComponents(route).map(
     (matchedComponent, index) => ({ ...matchedComponent.options.meta, ...(route.matched[index] || {}).meta })
   );
@@ -106,6 +117,11 @@ export const getRouteData = async(route) => {
   };
 };
 
+/**
+ * Add missing context for the Vue instance
+ * @param {*} app
+ * @param {*} context
+ */
 export const setContext = async(app, context) => {
   // If context not defined, create it
   if (!app.context) {
