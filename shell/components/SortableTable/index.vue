@@ -1470,6 +1470,7 @@ export default {
       <button
         type="button"
         class="btn btn-sm role-multi-action"
+        data-testid="pagination-first"
         :disabled="page == 1 || loading"
         @click="goToPage('first')"
       >
@@ -1478,6 +1479,7 @@ export default {
       <button
         type="button"
         class="btn btn-sm role-multi-action"
+        data-testid="pagination-prev"
         :disabled="page == 1 || loading"
         @click="goToPage('prev')"
       >
@@ -1489,6 +1491,7 @@ export default {
       <button
         type="button"
         class="btn btn-sm role-multi-action"
+        data-testid="pagination-next"
         :disabled="page == totalPages || loading"
         @click="goToPage('next')"
       >
@@ -1497,6 +1500,7 @@ export default {
       <button
         type="button"
         class="btn btn-sm role-multi-action"
+        data-testid="pagination-last"
         :disabled="page == totalPages || loading"
         @click="goToPage('last')"
       >
