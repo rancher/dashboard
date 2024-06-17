@@ -7,11 +7,12 @@ import Brand from '@shell/mixins/brand';
 import FixedBanner from '@shell/components/FixedBanner';
 import GrowlManager from '@shell/components/GrowlManager';
 import BrowserTabVisibility from '@shell/mixins/browser-tab-visibility';
+import PromptModal from '@shell/components/PromptModal';
 
 export default {
 
   components: {
-    BrandImage, FixedBanner, GrowlManager, Header
+    BrandImage, FixedBanner, GrowlManager, Header, PromptModal
   },
   mixins: [Brand, BrowserTabVisibility],
 
@@ -59,6 +60,7 @@ export default {
 <template>
   <div class="dashboard-root">
     <FixedBanner :header="true" />
+    <PromptModal />
     <div
       class="dashboard-content"
       :class="{'dashboard-padding-left': showTopLevelMenu}"
