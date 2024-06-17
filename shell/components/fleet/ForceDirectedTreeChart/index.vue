@@ -347,7 +347,10 @@ export default {
 
 <template>
   <div>
-    <div class="chart-container">
+    <div
+      class="chart-container"
+      data-testid="gitrepo_graph"
+    >
       <!-- loading status container -->
       <div
         v-if="!isChartFirstRenderAnimationFinished"

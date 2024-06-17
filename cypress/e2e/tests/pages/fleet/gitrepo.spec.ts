@@ -242,6 +242,22 @@ describe('Git Repo', { testIsolation: 'off', tags: ['@fleet', '@adminUser'] }, (
       gitRepoDetails.bundlesCount().should('contain', '1');
     });
 
+    it('check if graph is visible', function() {
+      const workspace = 'fleet-default';
+
+      const gitRepoDetails = new FleetGitRepoDetailsPo(workspace, this.gitRepo);
+
+      listPage.goTo();
+      listPage.waitForPage();
+      listPage.selectWorkspace(workspace);
+      listPage.repoList().details(this.gitRepo, 2).find('a').click();
+
+      gitRepoDetails.waitForPage(null, 'bundles');
+
+      gitRepoDetails.showGraph();
+      gitRepoDetails.graph().should('contain', this.gitRepo);
+    });
+
     after(() => {
       reposToDelete.forEach((r) => cy.deleteRancherResource('v1', 'fleet.cattle.io.gitrepo', r));
     });

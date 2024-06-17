@@ -29,4 +29,16 @@ export default class FleetGitRepoDetailsPo extends PagePo {
   bundlesTab() {
     return new BundlesTab();
   }
+
+  shwoConfig() {
+    this.self().find('[data-testid="button-group-child-1"]').click();
+  }
+
+  showGraph() {
+    this.self().find('[data-testid="button-group-child-2"]').click();
+  }
+
+  graph() {
+    return this.self().find('[data-testid="gitrepo_graph"]');
+  }
 }
