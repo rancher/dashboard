@@ -4,6 +4,9 @@ import PromptRemove from '@/cypress/e2e/po/prompts/promptRemove.po';
 import BurgerMenuPo from '@/cypress/e2e/po/side-bars/burger-side-menu.po';
 import { LoginPagePo } from '@/cypress/e2e/po/pages/login-page.po';
 
+const DISABLED_CACHE_EXTENSION_NAME = 'large-extension';
+const DISABLED_CACHE_EXTENSION_MENU_LABEL = 'Large-extension';
+const DISABLED_CACHE_EXTENSION_TITLE = 'Large extension demo (> 20mb) - cache testing';
 const UNAUTHENTICATED_EXTENSION_NAME = 'uk-locale';
 const EXTENSION_NAME = 'clock';
 const UI_PLUGINS_PARTNERS_REPO_URL = 'https://github.com/rancher/partner-extensions';
@@ -258,6 +261,35 @@ describe('Extensions page', { tags: ['@extensions', '@adminUser'] }, () => {
     extensionsPo.extensionCard(EXTENSION_NAME).should('be.visible');
   });
 
+  it('An extension larger than 20mb, which will trigger chacheState disabled, should install and work fine', () => {
+    const extensionsPo = new ExtensionsPagePo();
+
+    extensionsPo.goTo();
+
+    extensionsPo.extensionTabAvailableClick();
+
+    // click on install button on card
+    extensionsPo.extensionCardInstallClick(DISABLED_CACHE_EXTENSION_NAME);
+    extensionsPo.extensionInstallModal().should('be.visible');
+
+    // click install
+    extensionsPo.installModalInstallClick();
+
+    // let's check the extension reload banner and reload the page
+    extensionsPo.extensionReloadBanner().should('be.visible');
+    extensionsPo.extensionReloadClick();
+
+    // make sure extension card is in the installed tab
+    extensionsPo.extensionTabInstalledClick();
+    extensionsPo.extensionCardClick(DISABLED_CACHE_EXTENSION_NAME);
+    extensionsPo.extensionDetailsTitle().should('contain', DISABLED_CACHE_EXTENSION_NAME);
+    extensionsPo.extensionDetailsCloseClick();
+
+    // check if extension is working fine
+    BurgerMenuPo.burgerMenuNavToMenubyLabel(DISABLED_CACHE_EXTENSION_MENU_LABEL);
+    cy.get('h1').should('have.text', DISABLED_CACHE_EXTENSION_TITLE);
+  });
+
   it('Should respect authentication when importing extension scripts', () => {
     const extensionsPo = new ExtensionsPagePo();
 
@@ -310,8 +342,14 @@ describe('Extensions page', { tags: ['@extensions', '@adminUser'] }, () => {
     extensionsPo.extensionCardUninstallClick(EXTENSION_NAME);
     extensionsPo.extensionUninstallModal().should('be.visible');
     extensionsPo.uninstallModaluninstallClick();
+    extensionsPo.extensionReloadBanner().should('be.visible');
 
     extensionsPo.extensionCardUninstallClick(UNAUTHENTICATED_EXTENSION_NAME);
+    extensionsPo.extensionUninstallModal().should('be.visible');
+    extensionsPo.uninstallModaluninstallClick();
+    extensionsPo.extensionReloadBanner().should('be.visible');
+
+    extensionsPo.extensionCardUninstallClick(DISABLED_CACHE_EXTENSION_NAME);
     extensionsPo.extensionUninstallModal().should('be.visible');
     extensionsPo.uninstallModaluninstallClick();
 
