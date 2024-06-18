@@ -1,4 +1,4 @@
-import { shallowMount, WrapperArray } from '@vue/test-utils';
+import { shallowMount } from '@vue/test-utils';
 import flushPromises from 'flush-promises';
 
 import Config from '@pkg/gke/components/Config.vue';
