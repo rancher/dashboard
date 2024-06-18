@@ -1,11 +1,36 @@
 // Taken from @nuxt/vue-app/template/index.js
 // This file was generated during Nuxt migration
 import AppView from '@shell/initialize/App';
-import { setContext, getLocation, getRouteData, normalizeError } from '@shell/utils/nuxt';
+import { setContext, getRouteData } from '@shell/initialize/entry-helpers';
+import { normalizeError } from '@shell/utils/error';
 import { extendRouter } from '@shell/config/router';
 import { extendStore } from '@shell/config/store';
 import { UPGRADED, _FLAGGED, _UNFLAG } from '@shell/config/query-params';
-import { installInjectedPlugins } from 'initialize/install-plugins.js';
+import { installInjectedPlugins } from '@shell/initialize/install-plugins.js';
+import { normalizeURL } from 'ufo';
+
+/**
+ * Imported from vue-router
+ * @param {*} base
+ * @param {*} mode
+ * @returns
+ */
+export const getLocation = (base, mode) => {
+  if (mode === 'hash') {
+    return window.location.hash.replace(/^#\//, '');
+  }
+
+  base = decodeURI(base).slice(0, -1); // consideration is base is normalized with trailing slash
+  let path = decodeURI(window.location.pathname);
+
+  if (base && path.startsWith(base)) {
+    path = path.slice(base.length);
+  }
+
+  const fullPath = (path || '/') + window.location.search + window.location.hash;
+
+  return normalizeURL(fullPath);
+};
 
 /**
  * Bundle Vue app component and configuration to be executed on entry

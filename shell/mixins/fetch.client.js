@@ -1,4 +1,15 @@
-import { hasFetch, normalizeError, addLifecycleHook } from '../utils/nuxt';
+import { normalizeError } from '@shell/utils/error';
+
+const hasFetch = (component) => component.$options && typeof component.$options.fetch === 'function' && !component.$options.fetch.length;
+
+export const addLifecycleHook = (vm, hook, fn) => {
+  if (!vm.$options[hook]) {
+    vm.$options[hook] = [];
+  }
+  if (!vm.$options[hook].includes(fn)) {
+    vm.$options[hook].push(fn);
+  }
+};
 
 export default {
   beforeCreate() {
