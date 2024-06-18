@@ -1,5 +1,5 @@
 import flushPromises from 'flush-promises';
-import { mount, shallowMount, Wrapper } from '@vue/test-utils';
+import { shallowMount, Wrapper } from '@vue/test-utils';
 import { EKSConfig, EKSNodeGroup } from 'types';
 import CruEKS from '@pkg/eks/components/CruEKS.vue';
 
@@ -130,7 +130,7 @@ describe('eKS provisioning form', () => {
     expect(wrapper.vm.nodeGroups.filter((group: EKSNodeGroup) => !group._isNew)).toHaveLength(1);
   });
 
-  it('should update new node pool\s version when cluster version is updated', async() => {
+  it('should update new node pools\' version when cluster version is updated', async() => {
     const wrapper = shallowMount(CruEKS, {
       propsData: { value: {}, mode: 'edit' },
       ...requiredSetup()

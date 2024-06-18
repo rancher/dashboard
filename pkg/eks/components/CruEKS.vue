@@ -566,7 +566,6 @@ export default defineComponent({
         class="mb-20"
         :side-tabs="true"
         :show-tabs-add-remove="mode !== VIEW"
-        data-testid="eks-node-group-tabbed"
         @removeTab="removeGroup($event)"
         @addTab="addGroup()"
       >
