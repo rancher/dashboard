@@ -52,7 +52,7 @@ export default defineComponent({
     },
 
     locations: {
-      type:    Array,
+      type:    Array as PropType<string[]>,
       default: () => []
     },
 
@@ -229,7 +229,13 @@ export default defineComponent({
     },
 
     // checkboxes which appear next to the zone/region dropdown, and populate the 'locations' array
-    extraZoneOptions() {
+    extraZoneOptions(): {name: string}[] {
+      // region/zone data isnt fetched in view mode: display any selected extra zones instead
+      if (this.mode === _VIEW) {
+        return this.locations.map((zone:string) => {
+          return { name: zone };
+        });
+      }
       if (this.region) {
         const out = this.zonesByRegion[this.region] || [];
 
