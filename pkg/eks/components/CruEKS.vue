@@ -59,6 +59,7 @@ export const DEFAULT_NODE_GROUP_CONFIG = {
   tags:                 {},
   type:                 'nodeGroup',
   userData:             '',
+  _isNew:               true,
 };
 
 const DEFAULT_EKS_CONFIG = {
@@ -599,7 +600,8 @@ export default defineComponent({
             :region="config.region"
             :amazon-credential-secret="config.amazonCredentialSecret"
             :is-new-or-unprovisioned="isNewOrUnprovisioned"
-            :mode="mode"
+            :pool-is-new="node._isNew"
+            :mode="mode"s
             :instance-type-options="instanceTypeOptions"
             :spot-instance-type-options="spotInstanceTypeOptions"
             :launch-templates="launchTemplates"

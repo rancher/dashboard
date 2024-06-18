@@ -151,6 +151,11 @@ export default defineComponent({
       default: true
     },
 
+    poolIsNew: {
+      type:    Boolean,
+      default: true
+    },
+
     instanceTypeOptions: {
       type:    Array,
       default: () => []
@@ -343,6 +348,10 @@ export default defineComponent({
 
     userDataPlaceholder() {
       return DEFAULT_USER_DATA;
+    },
+
+    poolIsUnprovisioned() {
+      return this.isNewOrUnprovisioned || this.poolIsNew;
     }
   },
 
@@ -447,7 +456,7 @@ export default defineComponent({
           :value="nodegroupName"
           label-key="eks.nodeGroups.name.label"
           :mode="mode"
-          :disabled="!isNewOrUnprovisioned"
+          :disabled="!poolIsUnprovisioned"
           :rules="rules.nodegroupName"
           data-testid="eks-nodegroup-name"
           required
@@ -463,7 +472,7 @@ export default defineComponent({
           :options="[defaultNodeRoleOption, ...ec2Roles]"
           option-label="RoleName"
           option-key="Arn"
-          :disabled="!isNewOrUnprovisioned"
+          :disabled="!poolIsUnprovisioned"
           :loading="loadingRoles"
         />
       </div>
@@ -541,7 +550,7 @@ export default defineComponent({
           :options="launchTemplateOptions"
           option-label="LaunchTemplateName"
           option-key="LaunchTemplateId"
-          :disabled="!isNewOrUnprovisioned"
+          :disabled="!poolIsUnprovisioned"
           :loading="loadingLaunchTemplates"
           data-testid="eks-launch-template-dropdown"
         />
