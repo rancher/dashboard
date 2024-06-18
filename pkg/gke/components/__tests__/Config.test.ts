@@ -1,7 +1,8 @@
-import { shallowMount } from '@vue/test-utils';
+import { shallowMount, WrapperArray } from '@vue/test-utils';
 import flushPromises from 'flush-promises';
 
 import Config from '@pkg/gke/components/Config.vue';
+import Checkbox from '@components/Form/Checkbox/Checkbox.vue';
 
 const mockedValidationMixin = {
   computed: {
@@ -165,5 +166,44 @@ describe('gke Config', () => {
 
       expect(extraZonesCheckbox.exists()).toBe(true);
     });
+  });
+
+  it.each([
+    [['us-east1-b', 'us-east1-c', 'us-east1-f']],
+    [['us-east1-b', 'us-east1-c']],
+    [[]]
+  ])('should populate extra zones with any zones already configured in locations', async(locations: string[]) => {
+    const setup = requiredSetup();
+
+    const wrapper = shallowMount(Config, {
+      propsData: {
+        zone:              '',
+        region:            'us-east1',
+        cloudCredentialId: '',
+        projectId:         'test-project',
+        locations
+      },
+      ...setup
+    });
+
+    wrapper.setProps({ cloudCredentialId: 'abc' });
+    await flushPromises();
+
+    // verify that each location has a checkbox and it is checked
+    locations.forEach((location) => {
+      const extraZonesCheckbox = wrapper.find(`[data-testid="gke-extra-zones-${ location }"]`);
+
+      expect(extraZonesCheckbox.exists()).toBe(true);
+      expect(extraZonesCheckbox.props().value).toBe(true);
+    });
+
+    const allExtraZoneCheckboxes = wrapper.findAllComponents(Checkbox);
+
+    // verify that there are no checked zone checkboxes NOT in locations
+    const checkedNotInLocations = allExtraZoneCheckboxes.filter((zoneCheckbox) => {
+      return !!zoneCheckbox.props().value && !locations.includes(zoneCheckbox.props().name);
+    });
+
+    expect(Object.keys(checkedNotInLocations)).toHaveLength(0);
   });
 });

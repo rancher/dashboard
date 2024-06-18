@@ -144,17 +144,6 @@ export default defineComponent({
 
     region: {
       handler(neu) {
-        this.$emit('update:locations', []);
-        if (!!neu) {
-          this.debouncedLoadGCPData();
-        }
-      },
-      immediate: true
-    },
-
-    zone: {
-      handler(neu) {
-        this.$emit('update:locations', []);
         if (!!neu) {
           this.debouncedLoadGCPData(false);
         }
@@ -162,14 +151,26 @@ export default defineComponent({
       immediate: true
     },
 
-    extraZoneOptions(neu) {
+    zone: {
+      handler(neu) {
+        if (!!neu) {
+          this.debouncedLoadGCPData(false);
+        }
+      },
+      immediate: true
+    },
+
+    extraZoneOptions(neu, old) {
       if (!neu || !neu.length) {
         return;
       }
       if (this.useRegion) {
-        const defaultExtraZone = neu[0]?.name;
+        // checking old.length here ensures we don't clear out preconfigured location data when the form initially loads
+        if (old.length) {
+          const defaultExtraZone = neu[0]?.name;
 
-        this.$emit('update:locations', [defaultExtraZone]);
+          this.$emit('update:locations', [defaultExtraZone]);
+        }
       }
     }
   },
@@ -230,7 +231,9 @@ export default defineComponent({
     // checkboxes which appear next to the zone/region dropdown, and populate the 'locations' array
     extraZoneOptions() {
       if (this.region) {
-        return this.zonesByRegion[this.region] || [];
+        const out = this.zonesByRegion[this.region] || [];
+
+        return out;
       } if (this.zone) {
         const zoneOption = this.zones.find((z) => z.name === this.zone);
 
@@ -440,6 +443,7 @@ export default defineComponent({
       <div
         v-if="!loadingZones"
         class="col span-3 extra-zones"
+        data-testid="gke-extra-zones-container"
       >
         <span class="text-muted">{{ t('gke.location.extraZones') }}</span>
         <span
@@ -452,6 +456,8 @@ export default defineComponent({
           :label="zoneOpt.name"
           :value="locations.includes(zoneOpt.name)"
           :data-testid="`gke-extra-zones-${zoneOpt.name}`"
+          :disabled="!isNewOrUnprovisioned"
+          class="extra-zone-checkbox"
           @input="e=>setExtraZone(e, zoneOpt.name)"
         />
       </div>
