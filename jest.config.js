@@ -40,6 +40,9 @@ module.exports = {
     '^.+\\.tsx?$': 'ts-jest', // process `*.ts` files with `ts-jest`
     '^.+\\.svg$':  '<rootDir>/svgTransform.js' // to mock `*.svg` files
   },
+  transformIgnorePatterns: [
+    '<rootDir>/node_modules/(?!jsonpath-plus)'
+  ],
   snapshotSerializers: ['<rootDir>/node_modules/jest-serializer-vue'],
 
   // Coverage
