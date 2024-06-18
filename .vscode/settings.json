@@ -1,7 +1,6 @@
 {
   "files.exclude": {
     ".eslintcache": true,
-    ".nuxt*": true,
     "yarn-error.log": true,
     "pkg/**/.shell": true,
     "pkg/**/node_modules": true
