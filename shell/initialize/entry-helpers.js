@@ -29,12 +29,12 @@ export const loadDebugger = (vueApp) => {
       }
 
       if (vm && vm.$root) {
-        const nuxtApp = Object.keys(window.$globalApp)
-          .find((nuxtInstance) => vm.$root[nuxtInstance]);
+        const globalApp = Object.keys(window.$globalApp)
+          .find((instance) => vm.$root[instance]);
 
         // Show Nuxt Error Page
-        if (nuxtApp && vm.$root[nuxtApp].error && info !== 'render function') {
-          const vueApp = vm.$root[nuxtApp];
+        if (globalApp && vm.$root[globalApp].error && info !== 'render function') {
+          const vueApp = vm.$root[globalApp];
 
           vueApp.error(err);
         }
@@ -102,17 +102,6 @@ export const middlewareSeries = (promises, appContext) => {
     .then(() => {
       return middlewareSeries(promises.slice(1), appContext);
     });
-};
-
-/**
- * Trigger errors
- * @param {*} app App view instance
- */
-const checkForErrors = (app) => {
-  // Hide error component if no error
-  if (app._hadError && app._dateLastError === app.$options.nuxt.dateErr) {
-    app.error();
-  }
 };
 
 /**
@@ -190,8 +179,6 @@ async function render(to, from, next) {
     from,
     next:  _next.bind(this)
   });
-  this._dateLastError = app.nuxt.dateErr;
-  this._hadError = Boolean(app.nuxt.err);
 
   // Get route's matched components
   const matches = [];
@@ -284,7 +271,6 @@ async function render(to, from, next) {
 
     globalHandleError(error);
 
-    this.error(error);
     next();
   }
 }
@@ -320,7 +306,6 @@ export async function mountApp(appPartials, VueClass) {
 
   // First render on client-side
   const clientFirstMount = () => {
-    checkForErrors(vueApp);
     mount();
   };
 
