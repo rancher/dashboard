@@ -1,9 +1,20 @@
 import { NAME as APPS } from '@shell/config/product/apps';
 import { NAME as EXPLORER } from '@shell/config/product/explorer';
 import { NAME as MANAGER } from '@shell/config/product/manager';
-import { CAPI, MANAGEMENT } from '@shell/config/types';
+import { CAPI, MANAGEMENT, BACKUP_RESTORE, CIS } from '@shell/config/types';
 import { NAME as MCAPPS, NAME as LEGACY } from '@shell/config/product/multi-cluster-apps';
 import { NAME as AUTH } from '@shell/config/product/auth';
+
+// All these imports are related to the install-redirect.js navigation guard.
+import { installRedirectRouteMeta } from 'config/router/navigation-guards/install-redirect';
+import { NAME as BACKUP_NAME, CHART_NAME as BACKUP_CHART_NAME } from '@shell/config/product/backup';
+import { NAME as CIS_NAME, CHART_NAME as CIS_CHART_NAME } from '@shell/config/product/cis';
+import { NAME as GATEKEEPER_NAME, CHART_NAME as GATEKEEPER_CHART_NAME } from '@shell/config/product/gatekeeper';
+import { NAME as ISTIO_NAME, CHART_NAME as ISTIO_CHART_NAME } from '@shell/config/product/istio';
+import { NAME as LOGGING_NAME, CHART_NAME as LOGGING_CHART_NAME } from '@shell/config/product/logging';
+import { NAME as MONITORING_NAME, CHART_NAME as MONITORING_CHART_NAME } from '@shell/config/product/monitoring';
+import { NAME as NEUVECTOR_NAME, CHART_NAME as NEUVECTOR_CHART_NAME } from '@shell/config/product/neuvector';
+import { NAME as LONGHORN_NAME, CHART_NAME as LONGHORN_CHART_NAME } from '@shell/config/product/longhorn';
 
 const interopDefault = (promise) => promise.then((page) => page.default || page);
 
@@ -14,7 +25,8 @@ const interopDefault = (promise) => promise.then((page) => page.default || page)
 export default [
   {
     path:      '/',
-    component: () => interopDefault(import('@shell/components/templates/default.vue')),
+    component: () => interopDefault(import('@shell/pages/index.vue')),
+    name:      'index',
     meta:      { requiresAuthentication: true },
     children:  [
       {
@@ -192,25 +204,27 @@ export default [
         component: () => interopDefault(import('@shell/pages/c/_cluster/explorer/index.vue')),
         name:      'c-cluster-explorer'
       }, {
-        path:      '/c/:cluster/backup',
-        component: () => interopDefault(import('@shell/pages/c/_cluster/backup/index.vue')),
-        name:      'c-cluster-backup'
+        path: '/c/:cluster/backup',
+        name: 'c-cluster-backup',
+        meta: { ...installRedirectRouteMeta(BACKUP_NAME, BACKUP_CHART_NAME, BACKUP_RESTORE.BACKUP) }
       }, {
-        path:      '/c/:cluster/cis',
-        component: () => interopDefault(import('@shell/pages/c/_cluster/cis/index.vue')),
-        name:      'c-cluster-cis'
+        path: '/c/:cluster/cis',
+        name: 'c-cluster-cis',
+        meta: { ...installRedirectRouteMeta(CIS_NAME, CIS_CHART_NAME, CIS.CLUSTER_SCAN) }
       }, {
         path:      '/c/:cluster/fleet',
         component: () => interopDefault(import('@shell/pages/c/_cluster/fleet/index.vue')),
-        name:      'c-cluster-fleet'
+        name:      'c-cluster-fleet',
       }, {
         path:      '/c/:cluster/gatekeeper',
         component: () => interopDefault(import('@shell/pages/c/_cluster/gatekeeper/index.vue')),
-        name:      'c-cluster-gatekeeper'
+        name:      'c-cluster-gatekeeper',
+        meta:      { ...installRedirectRouteMeta(GATEKEEPER_NAME, GATEKEEPER_CHART_NAME) }
       }, {
         path:      '/c/:cluster/istio',
         component: () => interopDefault(import('@shell/pages/c/_cluster/istio/index.vue')),
-        name:      'c-cluster-istio'
+        name:      'c-cluster-istio',
+        meta:      { ...installRedirectRouteMeta(ISTIO_NAME, ISTIO_CHART_NAME) }
       }, {
         path: '/c/:cluster/legacy',
         redirect(to) {
@@ -228,11 +242,13 @@ export default [
       }, {
         path:      '/c/:cluster/logging',
         component: () => interopDefault(import('@shell/pages/c/_cluster/logging/index.vue')),
-        name:      'c-cluster-logging'
+        name:      'c-cluster-logging',
+        meta:      { ...installRedirectRouteMeta(LOGGING_NAME, LOGGING_CHART_NAME) }
       }, {
         path:      '/c/:cluster/longhorn',
         component: () => interopDefault(import('@shell/pages/c/_cluster/longhorn/index.vue')),
-        name:      'c-cluster-longhorn'
+        name:      'c-cluster-longhorn',
+        meta:      { ...installRedirectRouteMeta(LONGHORN_NAME, LONGHORN_CHART_NAME) }
       }, {
         path: '/c/:cluster/manager',
         redirect(to) {
@@ -262,7 +278,8 @@ export default [
       }, {
         path:      '/c/:cluster/monitoring',
         component: () => interopDefault(import('@shell/pages/c/_cluster/monitoring/index.vue')),
-        name:      'c-cluster-monitoring'
+        name:      'c-cluster-monitoring',
+        meta:      { ...installRedirectRouteMeta(MONITORING_NAME, MONITORING_CHART_NAME) }
       }, {
 
         path:      '/c/:cluster/manager/jwt.authentication',
@@ -272,7 +289,8 @@ export default [
 
         path:      '/c/:cluster/neuvector',
         component: () => interopDefault(import('@shell/pages/c/_cluster/neuvector/index.vue')),
-        name:      'c-cluster-neuvector'
+        name:      'c-cluster-neuvector',
+        meta:      { ...installRedirectRouteMeta(NEUVECTOR_NAME, NEUVECTOR_CHART_NAME, undefined, false) }
       }, {
         path:      '/c/:cluster/apps/charts',
         component: () => interopDefault(import('@shell/pages/c/_cluster/apps/charts/index.vue')),

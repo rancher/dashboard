@@ -1,9 +1,6 @@
 <script>
 import isEmpty from 'lodash/isEmpty';
-
-import InstallRedirect from '@shell/utils/install-redirect';
 import AlertTable from '@shell/components/AlertTable';
-import { NAME, CHART_NAME } from '@shell/config/product/monitoring';
 import { CATALOG, MONITORING } from '@shell/config/types';
 import { allHash } from '@shell/utils/promise';
 import { findBy } from '@shell/utils/array';
@@ -11,15 +8,15 @@ import { getClusterPrefix } from '@shell/utils/grafana';
 import LazyImage from '@shell/components/LazyImage';
 import SimpleBox from '@shell/components/SimpleBox';
 import { canViewAlertManagerLink, canViewGrafanaLink, canViewPrometheusLink } from '@shell/utils/monitoring';
+import Loading from '@shell/components/Loading';
 
 export default {
   components: {
     LazyImage,
     SimpleBox,
-    AlertTable
+    AlertTable,
+    Loading
   },
-
-  middleware: InstallRedirect(NAME, CHART_NAME),
 
   async fetch() {
     await this.fetchDeps();
@@ -131,7 +128,8 @@ export default {
 </script>
 
 <template>
-  <section>
+  <Loading v-if="$fetchState.pending" />
+  <section v-else>
     <header class="row">
       <div class="col span-12">
         <h1>

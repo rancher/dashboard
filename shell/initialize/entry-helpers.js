@@ -96,57 +96,6 @@ export const promisify = (fn, context) => {
   return Promise.resolve(promise);
 };
 
-/**
- * TODO: Define this logic use case
- * @param {*} promises
- * @param {*} appContext
- * @returns
- */
-export const middlewareSeries = (promises, appContext) => {
-  if (!promises.length || appContext._redirected || appContext._errored) {
-    return Promise.resolve();
-  }
-
-  return promisify(promises[0], appContext)
-    .then(() => {
-      return middlewareSeries(promises.slice(1), appContext);
-    });
-};
-
-/**
- * Add middleware to the Vue instance
- * @param {*} Components List of Vue components
- * @param {*} context App context
- * @returns
- */
-function callMiddleware(Components, context) {
-  let midd = [];
-
-  Components.forEach((Component) => {
-    if (Component.options.middleware) {
-      midd = midd.concat(Component.options.middleware);
-    }
-  });
-
-  midd = midd.filter((middleware) => {
-    const isMiddlwareFunction = typeof middleware === 'function';
-
-    if (!isMiddlwareFunction) {
-      console.warn('All middleware is deprecated. For a short time inline middleware specified as a function will continue to work.', `We noticed '${ middleware }' middleware is still being used.`); // eslint-disable-line no-console
-    }
-
-    return isMiddlwareFunction;
-  });
-
-  midd = midd.map((name) => {
-    if (typeof name === 'function') {
-      return name;
-    }
-  });
-
-  return middlewareSeries(midd, context);
-}
-
 export const globalHandleError = (error) => Vue.config.errorHandler && Vue.config.errorHandler(error);
 
 /**
@@ -197,24 +146,6 @@ async function render(to, from, next) {
   const Components = getMatchedComponents(to, matches);
 
   try {
-    // Call middleware
-    await callMiddleware.call(this, Components, app.context);
-    if (nextCalled) {
-      return;
-    }
-    if (app.context._errored) {
-      return next();
-    }
-
-    // Call middleware for layout
-    await callMiddleware.call(this, Components, app.context);
-    if (nextCalled) {
-      return;
-    }
-    if (app.context._errored) {
-      return next();
-    }
-
     // Call .validate()
     let isValid = true;
 
@@ -520,7 +451,6 @@ export const setContext = async(app, context) => {
 
   app.context.next = context.next;
   app.context._redirected = false;
-  app.context._errored = false;
   app.context.isHMR = Boolean(context.isHMR);
   app.context.params = app.context.route.params || {};
   app.context.query = app.context.route.query || {};
