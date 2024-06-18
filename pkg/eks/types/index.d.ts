@@ -35,6 +35,7 @@ export interface EKSNodeGroup {
   userData?: string,
   version?: string
   __nameUnique?: boolean
+  _isNew?: boolean,
 }
 
 export interface EKSConfig {

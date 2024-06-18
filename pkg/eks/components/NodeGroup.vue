@@ -138,6 +138,22 @@ export default defineComponent({
       type:    Object,
       default: () => {}
     },
+
+    version: {
+      type:    String,
+      default: ''
+    },
+
+    clusterVersion: {
+      type:    String,
+      default: ''
+    },
+
+    originalClusterVersion: {
+      type:    String,
+      default: ''
+    },
+
     mode: {
       type:    String,
       default: _EDIT
@@ -153,7 +169,7 @@ export default defineComponent({
 
     poolIsNew: {
       type:    Boolean,
-      default: true
+      default: false
     },
 
     instanceTypeOptions: {
@@ -207,6 +223,7 @@ export default defineComponent({
     const t = store.getters['i18n/t'];
 
     return {
+      originalNodeVersion:   this.version,
       defaultTemplateOption: { LaunchTemplateName: t('eks.defaultCreateOne') } as AWS.LaunchTemplate,
 
       defaultNodeRoleOption:          { RoleName: t('eks.defaultCreateOne') },
@@ -352,7 +369,28 @@ export default defineComponent({
 
     poolIsUnprovisioned() {
       return this.isNewOrUnprovisioned || this.poolIsNew;
-    }
+    },
+
+    clusterWillUpgrade() {
+      return this.clusterVersion !== this.originalClusterVersion;
+    },
+
+    nodeCanUpgrade() {
+      return !this.clusterWillUpgrade && this.originalNodeVersion !== this.clusterVersion && !this.poolIsNew;
+    },
+
+    willUpgrade: {
+      get() {
+        return this.nodeCanUpgrade && this.version === this.clusterVersion;
+      },
+      set(neu: boolean) {
+        if (neu) {
+          this.$emit('update:version', this.clusterVersion);
+        } else {
+          this.$emit('update:version', this.originalNodeVersion);
+        }
+      }
+    },
   },
 
   methods: {
@@ -531,6 +569,7 @@ export default defineComponent({
           :read-allowed="false"
           :as-map="true"
           :value="tags"
+          data-testid="eks-resource-tags-input"
           @input="$emit('update:tags', $event)"
         >
           <template #title>
@@ -541,7 +580,28 @@ export default defineComponent({
     </div>
     <hr class="mb-20">
     <h3>Node Template Details</h3>
+    <Banner
+      v-if="clusterWillUpgrade && !poolIsUnprovisioned"
+      color="info"
+      label-key="eks.nodeGroups.kubernetesVersion.clusterWillUpgrade"
+      data-testid="eks-version-upgrade-banner"
+    />
     <div class="row mb-10">
+      <div class="col span-4 upgrade-version">
+        <LabeledInput
+          v-if="!nodeCanUpgrade"
+          label-key="eks.nodeGroups.kubernetesVersion.label"
+          :disabled="true"
+          :value="version"
+          data-testid="eks-version-display"
+        />
+        <Checkbox
+          v-else
+          v-model="willUpgrade"
+          :label="t('eks.nodeGroups.kubernetesVersion.upgrade', {from: originalNodeVersion, to: clusterVersion})"
+          data-testid="eks-version-upgrade-checkbox"
+        />
+      </div>
       <div class="col span-4">
         <LabeledSelect
           v-model="selectedLaunchTemplate"
@@ -716,5 +776,10 @@ export default defineComponent({
   &>button{
     float: right;
   }
+}
+
+.upgrade-version {
+  display: flex;
+  align-items: center;
 }
 </style>

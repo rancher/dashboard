@@ -249,7 +249,11 @@ export default defineComponent({
     },
 
     'config.kubernetesVersion'(neu) {
-      this.nodeGroups.forEach((group: EKSNodeGroup) => this.$set(group, 'version', neu));
+      this.nodeGroups.forEach((group: EKSNodeGroup) => {
+        if (group._isNew) {
+          this.$set(group, 'version', neu);
+        }
+      });
     }
   },
 
@@ -562,6 +566,7 @@ export default defineComponent({
         class="mb-20"
         :side-tabs="true"
         :show-tabs-add-remove="mode !== VIEW"
+        data-testid="eks-node-group-tabbed"
         @removeTab="removeGroup($event)"
         @addTab="addGroup()"
       >
@@ -597,11 +602,14 @@ export default defineComponent({
             :max-size.sync="node.maxSize"
             :request-spot-instances.sync="node.requestSpotInstances"
             :labels.sync="node.labels"
+            :version.sync="node.version"
+            :cluster-version="config.kubernetesVersion"
+            :original-cluster-version="originalVersion"
             :region="config.region"
             :amazon-credential-secret="config.amazonCredentialSecret"
             :is-new-or-unprovisioned="isNewOrUnprovisioned"
             :pool-is-new="node._isNew"
-            :mode="mode"s
+            :mode="mode"
             :instance-type-options="instanceTypeOptions"
             :spot-instance-type-options="spotInstanceTypeOptions"
             :launch-templates="launchTemplates"

@@ -55,6 +55,10 @@ eks:
     instanceType:
       label: Instance Type
       tooltip: Instance Type will not be sent when requesting spot instances. You must include Spot Instance Types instead.
+    kubernetesVersion:
+      clusterWillUpgrade: A new control plane Kubernetes version has been selected. Once that upgrade is complete, you can come back and upgrade the node group.
+      label: Node Kubernetes Version
+      upgrade: Upgrade the node Kubernetes version from {from} to {to}
     launchTemplate:
       label: Launch Template
       rancherManaged: '{name} (Rancher-managed)'
