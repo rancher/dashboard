@@ -1,5 +1,4 @@
 import { DEFAULT_WORKSPACE } from '@shell/config/types';
-import { applyProducts } from '@shell/store/type-map';
 import { ClusterNotFoundError, RedirectToError } from '@shell/utils/error';
 import { get } from '@shell/utils/object';
 import { AFTER_LOGIN_ROUTE, WORKSPACE } from '@shell/store/prefs';
@@ -7,45 +6,11 @@ import { NAME as FLEET_NAME } from '@shell/config/product/fleet.js';
 import { validateResource, setProduct } from '@shell/utils/auth';
 import { getClusterFromRoute, getProductFromRoute, getPackageFromRoute } from '@shell/utils/router';
 
-let beforeEachSetup = false;
-
 export default async function({
   route, store, redirect, from, $plugin, next
 }) {
   if ( store.getters['auth/enabled'] !== false && !store.getters['auth/loggedIn'] ) {
     return;
-  }
-
-  // GC should be notified of route change before any find/get request is made that might be used for that page
-  store.dispatch('gcRouteChanged', route);
-
-  // Load stuff
-  let localCheckResource = false;
-
-  await applyProducts(store, $plugin);
-
-  // Setup a beforeEach hook once to keep track of the current product
-  if ( !beforeEachSetup ) {
-    beforeEachSetup = true;
-    // This only needs to happen when beforeEach hook hasn't run (the initial load)
-    localCheckResource = true;
-
-    store.app.router.beforeEach((to, from, next) => {
-      // NOTE - This beforeEach runs AFTER this middleware. So anything in this middleware that requires it must set it manually
-      setProduct(store, to);
-
-      next();
-    });
-
-    // Call it for the initial pageload
-    setProduct(store, route);
-
-    store.app.router.afterEach((to, from) => {
-      // Clear state used to record if back button was used for navigation
-      setTimeout(() => {
-        window._popStateDetected = false;
-      }, 1);
-    });
   }
 
   try {
@@ -123,9 +88,7 @@ export default async function({
       })
     ]);
 
-    if (localCheckResource) {
-      validateResource(store, route, redirect);
-    }
+    validateResource(store, route, redirect);
 
     if (!clusterId) {
       clusterId = store.getters['defaultClusterId']; // This needs the cluster list, so no parallel
