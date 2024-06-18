@@ -691,6 +691,7 @@ export default defineComponent({
           :disabled="hasUserLaunchTemplate"
           :read-allowed="false"
           :as-map="true"
+          @input="$emit('update:resourceTags', $event)"
         >
           <template #title>
             <label class="text-label">{{ t('eks.nodeGroups.resourceTags.label') }}</label>
