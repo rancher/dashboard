@@ -696,6 +696,11 @@ export const mutations = {
   },
 
   setError(state, { error: obj, locationError }) {
+    // We don't want to clobber one error with another, doing so can hide the original cause of an error
+    if (obj && state.error) {
+      return;
+    }
+
     const err = new ApiError(obj);
 
     console.log('Loading error', err); // eslint-disable-line no-console

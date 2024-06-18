@@ -1,7 +1,6 @@
 import Vue from 'vue';
 import { updatePageTitle } from '@shell/utils/title';
 import { getVendor } from '@shell/config/private-label';
-import middleware from '@shell/config/middleware.js';
 import { withQuery } from 'ufo';
 
 // Global variable used on mount, updated on route change and used in the render function
@@ -97,58 +96,6 @@ export const promisify = (fn, context) => {
   return Promise.resolve(promise);
 };
 
-/**
- * TODO: Define this logic use case
- * @param {*} promises
- * @param {*} appContext
- * @returns
- */
-export const middlewareSeries = (promises, appContext) => {
-  if (!promises.length || appContext._redirected || appContext._errored) {
-    return Promise.resolve();
-  }
-
-  return promisify(promises[0], appContext)
-    .then(() => {
-      return middlewareSeries(promises.slice(1), appContext);
-    });
-};
-
-/**
- * Add middleware to the Vue instance
- * @param {*} Components List of Vue components
- * @param {*} context App context
- * @returns
- */
-function callMiddleware(Components, context) {
-  let midd = [];
-  let unknownMiddleware = false;
-
-  Components.forEach((Component) => {
-    if (Component.options.middleware) {
-      midd = midd.concat(Component.options.middleware);
-    }
-  });
-
-  midd = midd.map((name) => {
-    if (typeof name === 'function') {
-      return name;
-    }
-    if (typeof middleware[name] !== 'function') {
-      unknownMiddleware = true;
-      errorRedirect(this, new Error(`500: Unknown middleware ${ name }`));
-    }
-
-    return middleware[name];
-  });
-
-  if (unknownMiddleware) {
-    return;
-  }
-
-  return middlewareSeries(midd, context);
-}
-
 export const globalHandleError = (error) => Vue.config.errorHandler && Vue.config.errorHandler(error);
 
 /**
@@ -199,24 +146,6 @@ async function render(to, from, next) {
   const Components = getMatchedComponents(to, matches);
 
   try {
-    // Call middleware
-    await callMiddleware.call(this, Components, app.context);
-    if (nextCalled) {
-      return;
-    }
-    if (app.context._errored) {
-      return next();
-    }
-
-    // Call middleware for layout
-    await callMiddleware.call(this, Components, app.context);
-    if (nextCalled) {
-      return;
-    }
-    if (app.context._errored) {
-      return next();
-    }
-
     // Call .validate()
     let isValid = true;
 
@@ -522,7 +451,6 @@ export const setContext = async(app, context) => {
 
   app.context.next = context.next;
   app.context._redirected = false;
-  app.context._errored = false;
   app.context.isHMR = Boolean(context.isHMR);
   app.context.params = app.context.route.params || {};
   app.context.query = app.context.route.query || {};

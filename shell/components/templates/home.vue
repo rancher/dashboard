@@ -23,8 +23,6 @@ export default {
 
   mixins: [Brand, BrowserTabVisibility],
 
-  middleware: ['authenticated'],
-
   data() {
     return {
       // Assume home pages have routes where the name is the key to use for string lookup
