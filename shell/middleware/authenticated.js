@@ -3,7 +3,6 @@ import { applyProducts } from '@shell/store/type-map';
 import { ClusterNotFoundError, RedirectToError } from '@shell/utils/error';
 import { get } from '@shell/utils/object';
 import { AFTER_LOGIN_ROUTE, WORKSPACE } from '@shell/store/prefs';
-import { BACK_TO } from '@shell/config/local-storage';
 import { NAME as FLEET_NAME } from '@shell/config/product/fleet.js';
 import { validateResource, setProduct } from '@shell/utils/auth';
 import { getClusterFromRoute, getProductFromRoute, getPackageFromRoute } from '@shell/utils/router';
@@ -15,14 +14,6 @@ export default async function({
 }) {
   if ( store.getters['auth/enabled'] !== false && !store.getters['auth/loggedIn'] ) {
     return;
-  }
-
-  const backTo = window.localStorage.getItem(BACK_TO);
-
-  if (backTo) {
-    window.localStorage.removeItem(BACK_TO);
-
-    window.location.href = backTo;
   }
 
   // GC should be notified of route change before any find/get request is made that might be used for that page
