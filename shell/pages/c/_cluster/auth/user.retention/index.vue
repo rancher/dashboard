@@ -241,10 +241,12 @@ onBeforeRouteUpdate((_to, _from) => {
       <div class="input-fieldset">
         <checkbox
           v-model="disableAfterPeriod"
+          data-testid="disableAfterPeriod"
           :label="t('user.retention.edit.form.disableAfter.checkbox')"
         />
         <labeled-input
           v-model="userRetentionSettings[SETTING.DISABLE_INACTIVE_USER_AFTER]"
+          data-testid="disableAfterPeriodInput"
           :tooltip="t('user.retention.edit.form.disableAfter.input.tooltip')"
           class="input-field"
           :label="t('user.retention.edit.form.disableAfter.input.label')"
@@ -254,10 +256,12 @@ onBeforeRouteUpdate((_to, _from) => {
       <div class="input-fieldset">
         <checkbox
           v-model="deleteAfterPeriod"
+          data-testid="deleteAfterPeriod"
           :label="t('user.retention.edit.form.deleteAfter.checkbox')"
         />
         <labeled-input
           v-model="userRetentionSettings[SETTING.DELETE_INACTIVE_USER_AFTER]"
+          data-testid="deleteAfterPeriodInput"
           :tooltip="t('user.retention.edit.form.deleteAfter.input.tooltip')"
           class="input-field"
           :label="t('user.retention.edit.form.deleteAfter.input.label')"
@@ -271,6 +275,7 @@ onBeforeRouteUpdate((_to, _from) => {
         <div class="input-fieldset pt-12">
           <labeled-input
             v-model="userRetentionSettings[SETTING.USER_RETENTION_CRON]"
+            data-testid="userRetentionCron"
             class="input-field"
             required
             type="cron"
@@ -282,6 +287,7 @@ onBeforeRouteUpdate((_to, _from) => {
         <div class="input-fieldset condensed pt-12">
           <toggle-switch
             v-model="userRetentionSettings[SETTING.USER_RETENTION_DRY_RUN]"
+            data-testid="userRetentionDryRun"
             :onValue="'true'"
             :offValue="'false'"
             :on-label="t('user.retention.edit.form.dryRun.label')"
@@ -291,6 +297,7 @@ onBeforeRouteUpdate((_to, _from) => {
         <div class="input-fieldset condensed">
           <labeled-input
             v-model="userRetentionSettings[SETTING.USER_LAST_LOGIN_DEFAULT]"
+            data-testid="userLastLoginDefault"
             class="input-field"
             :label="t('user.retention.edit.form.defaultLastLogin.label')"
             :sub-label="t('user.retention.edit.form.defaultLastLogin.subLabel')"
