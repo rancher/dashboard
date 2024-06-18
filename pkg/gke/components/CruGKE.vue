@@ -586,7 +586,7 @@ export default defineComponent({
       const poolName = `group-${ this.nodePools.length + 1 }`;
       const _id = randomStr();
       const neu = {
-        ...cloneDeep(defaultNodePool), name: poolName, _id, _isNewOrUnprovisioned: true
+        ...cloneDeep(defaultNodePool), name: poolName, _id, _isNewOrUnprovisioned: true, version: this.config.kubernetesVersion
       };
 
       neu.config.imageType = this.defaultImageType;
