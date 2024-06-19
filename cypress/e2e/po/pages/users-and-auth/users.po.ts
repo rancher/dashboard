@@ -2,6 +2,7 @@ import PagePo from '@/cypress/e2e/po/pages/page.po';
 import MgmtUsersListPo from '@/cypress/e2e/po/lists/management.cattle.io.user.po';
 import MgmtUserEditPo from '@/cypress/e2e/po/edit/management.cattle.io.user.po';
 import MgmtUserResourceDetailPo from '@/cypress/e2e/po/detail/management.cattle.io.user.po';
+import LinkPo from '@/cypress/e2e/po/components/link.po';
 
 export default class UsersPo extends PagePo {
   private static createPath(clusterId: string) {
@@ -30,5 +31,9 @@ export default class UsersPo extends PagePo {
 
   detail(userId: string) {
     return new MgmtUserResourceDetailPo(this.clusterId, userId);
+  }
+
+  userRetentionLink() {
+    return new LinkPo('[data-testid="router-link-user-retention"]', this.self());
   }
 }

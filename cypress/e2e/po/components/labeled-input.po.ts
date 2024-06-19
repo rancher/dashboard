@@ -41,7 +41,11 @@ export default class LabeledInputPo extends ComponentPo {
   }
 
   value(): Cypress.Chainable {
-    throw new Error('Not implements');
+    return this.input().then(($element) => {
+      console.log($element);
+
+      return $element.prop('value');
+    });
     // The text for the input field is in a shadow dom element. Neither the proposed two methods
     // to dive in to the shadow dom work
     // return this.input().find('div', { includeShadowDom: true }).invoke('text');
