@@ -1,11 +1,13 @@
 export function install(router, context) {
-  router.afterEach((to, from) => loadHistory(to, from, context));
+  router.beforeEach((to, from, next) => loadHistory(to, from, next, context));
 }
 
-export async function loadHistory(to, from, { store }) {
-  // GC should be notified of route change before any find/get request is made that might be used for that page
+export async function loadHistory(to, from, next) {
   // Clear state used to record if back button was used for navigation
+  // TODO: Investigate if this can be removed. This is only used on the templates/error.vue page and seems hacky.
   setTimeout(() => {
     window._popStateDetected = false;
   }, 1);
+
+  next();
 }

@@ -4,31 +4,37 @@ import { get } from '@shell/utils/object';
 import { AFTER_LOGIN_ROUTE, WORKSPACE } from '@shell/store/prefs';
 import { NAME as FLEET_NAME } from '@shell/config/product/fleet.js';
 import { validateResource, setProduct } from '@shell/utils/auth';
-import { getClusterFromRoute, getProductFromRoute, getPackageFromRoute } from '@shell/utils/router';
+import { getClusterFromRoute, getProductFromRoute, getPackageFromRoute, routeRequiresAuthentication } from '@shell/utils/router';
 
-export default async function({
-  route, store, redirect, from, $plugin, next
-}) {
-  if ( store.getters['auth/enabled'] !== false && !store.getters['auth/loggedIn'] ) {
-    return;
+export function install(router, context) {
+  router.beforeEach((to, from, next) => loadClusters(to, from, next, context));
+}
+
+export async function loadClusters(to, from, next, { store }) {
+  if (!routeRequiresAuthentication(to)) {
+    return next();
   }
 
   try {
-    let clusterId = get(route, 'params.cluster');
+    let clusterId = get(to, 'params.cluster');
 
     // Route can provide cluster ID via metadata
-    if (!clusterId && route) {
-      clusterId = getClusterFromRoute(route);
+    if (!clusterId && to) {
+      clusterId = getClusterFromRoute(to);
     }
 
-    const pkg = getPackageFromRoute(route);
-    const product = getProductFromRoute(route);
+    const pkg = getPackageFromRoute(to);
+    const product = getProductFromRoute(to);
 
     const oldPkg = getPackageFromRoute(from);
     const oldProduct = getProductFromRoute(from);
 
+    // TODO: Replace all references to store.$plugin.
+    //       Unfortunately the initialization code has circular dependencies between creating
+    //       the router and creating the store that will need to be untangled before this can be tackled.
+
     // Leave an old pkg where we weren't before?
-    const oldPkgPlugin = oldPkg ? Object.values($plugin.getPlugins()).find((p) => p.name === oldPkg) : null;
+    const oldPkgPlugin = oldPkg ? Object.values(store.$plugin.getPlugins()).find((p) => p.name === oldPkg) : null;
 
     if (oldPkg && oldPkg !== pkg ) {
       // Execute anything optional the plugin wants to. For example resetting it's store to remove data
@@ -46,10 +52,10 @@ export default async function({
     ];
 
     // Entering a new package where we weren't before?
-    const newPkgPlugin = pkg ? Object.values($plugin.getPlugins()).find((p) => p.name === pkg) : null;
+    const newPkgPlugin = pkg ? Object.values(store.$plugin.getPlugins()).find((p) => p.name === pkg) : null;
 
     // Note - We can't block on oldPkg !== newPkg because on a fresh load the `from` route equals the `to` route
-    if (pkg && (oldPkg !== pkg || from.fullPath === route.fullPath)) {
+    if (pkg && (oldPkg !== pkg || from.fullPath === to.fullPath)) {
       // Execute mandatory store actions
       await Promise.all(always);
 
@@ -66,7 +72,7 @@ export default async function({
     // When fleet moves to it's own package this should be moved to pkg onEnter/onLeave
     if ((oldProduct === FLEET_NAME || product === FLEET_NAME) && oldProduct !== product) {
       // See note above for store.app.router.beforeEach, need to setProduct manually, for the moment do this in a targeted way
-      setProduct(store, route);
+      setProduct(store, to);
 
       store.commit('updateWorkspace', {
         value:   store.getters['prefs/get'](WORKSPACE) || DEFAULT_WORKSPACE,
@@ -84,11 +90,11 @@ export default async function({
         newPkg:      newPkgPlugin,
         product,
         oldProduct,
-        targetRoute: route
+        targetRoute: to
       })
     ]);
 
-    validateResource(store, route, redirect);
+    validateResource(store, to);
 
     if (!clusterId) {
       clusterId = store.getters['defaultClusterId']; // This needs the cluster list, so no parallel
@@ -110,16 +116,17 @@ export default async function({
         });
       }
     }
+    next();
   } catch (e) {
     if ( e.name === ClusterNotFoundError.name ) {
-      return redirect(302, '/home');
+      return next('/home');
     } if ( e.name === RedirectToError.name ) {
-      return redirect(302, e.url);
+      return next(e.url);
     } else {
       // Sets error 500 if lost connection to API
       store.commit('setError', { error: e, locationError: new Error(store.getters['i18n/t']('nav.failWhale.authMiddleware')) });
 
-      return redirect(302, '/fail-whale');
+      return next('/fail-whale');
     }
   }
 }

@@ -1,7 +1,6 @@
 import Vue from 'vue';
 import { updatePageTitle } from '@shell/utils/title';
 import { getVendor } from '@shell/config/private-label';
-import middleware from '@shell/config/middleware.js';
 import { withQuery } from 'ufo';
 
 // Global variable used on mount, updated on route change and used in the render function
@@ -122,7 +121,6 @@ export const middlewareSeries = (promises, appContext) => {
  */
 function callMiddleware(Components, context) {
   let midd = [];
-  let unknownMiddleware = false;
 
   Components.forEach((Component) => {
     if (Component.options.middleware) {
@@ -130,21 +128,21 @@ function callMiddleware(Components, context) {
     }
   });
 
+  midd = midd.filter((middleware) => {
+    const isMiddlwareFunction = typeof middleware === 'function';
+
+    if (!isMiddlwareFunction) {
+      console.warn('All middleware is deprecated. For a short time inline middleware specified as a function will continue to work.', `We noticed '${ middleware }' middleware is still being used.`); // eslint-disable-line no-console
+    }
+
+    return isMiddlwareFunction;
+  });
+
   midd = midd.map((name) => {
     if (typeof name === 'function') {
       return name;
     }
-    if (typeof middleware[name] !== 'function') {
-      unknownMiddleware = true;
-      errorRedirect(this, new Error(`500: Unknown middleware ${ name }`));
-    }
-
-    return middleware[name];
   });
-
-  if (unknownMiddleware) {
-    return;
-  }
 
   return middlewareSeries(midd, context);
 }
