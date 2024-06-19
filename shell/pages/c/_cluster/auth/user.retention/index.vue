@@ -15,6 +15,7 @@ import LabeledInput from '@components/Form/LabeledInput/LabeledInput.vue';
 import { ToggleSwitch } from '@components/Form/ToggleSwitch';
 
 import { isValidCron } from 'cron-validator';
+import dayjs from 'dayjs';
 
 type Links = {
   remove: string;
@@ -122,16 +123,28 @@ watch([disableAfterPeriod, deleteAfterPeriod], ([newDisableAfterPeriod, newDelet
       userRetentionSettings[key] = null;
     });
 
+    validateUserRetentionCron();
+
     return;
   }
 
   ids.filter((id) => ![SETTING.DISABLE_INACTIVE_USER_AFTER, SETTING.DELETE_INACTIVE_USER_AFTER].includes(id))
-    .forEach((key) => {
-      if (userRetentionSettings[key] === null) {
-        userRetentionSettings[key] = settings[key].value;
-      }
-    });
+    .forEach(assignSettings);
+
+  validateUserRetentionCron();
 });
+
+const assignSettings = (key: string) => {
+  if (settings[key].id === SETTING.USER_LAST_LOGIN_DEFAULT && settings[key].value !== null && typeof settings[key].value === 'string') {
+    const value = settings[key].value as string;
+
+    userRetentionSettings[key] = dayjs(value).valueOf().toString();
+
+    return;
+  }
+
+  userRetentionSettings[key] = settings[key].value;
+};
 
 const fetchSetting = async(id: string) => {
   return await store.dispatch('management/find', { type: MANAGEMENT.SETTING, id });
@@ -150,9 +163,7 @@ onMounted(async() => {
       };
     }, { }));
 
-  ids.forEach((key) => {
-    userRetentionSettings[key] = settings[key].value;
-  });
+  ids.forEach(assignSettings);
 
   disableAfterPeriod.value = !!userRetentionSettings[SETTING.DISABLE_INACTIVE_USER_AFTER];
   deleteAfterPeriod.value = !!userRetentionSettings[SETTING.DELETE_INACTIVE_USER_AFTER];
@@ -193,6 +204,10 @@ const save = async(btnCB: (arg: boolean) => void) => {
     error.value = null;
     ids.forEach((key) => {
       settings[key].value = userRetentionSettings[key];
+
+      if (key === SETTING.USER_LAST_LOGIN_DEFAULT && userRetentionSettings[key]) {
+        settings[key].value = dayjs(Number(userRetentionSettings[key])).format();
+      }
     });
 
     await Promise.all(ids.map((setting) => settings[setting].save()));

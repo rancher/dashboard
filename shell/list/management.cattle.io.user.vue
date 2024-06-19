@@ -139,6 +139,7 @@ export default {
         <router-link
           :to="{ name: 'c-cluster-auth-user.retention'}"
           class="btn role-link btn-sm btn-user-retention"
+          data-testid="router-link-user-retention"
         >
           <i class="icon icon-gear" />
           User retention settings
