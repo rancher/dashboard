@@ -55,6 +55,16 @@ export const loadDebugger = (vueApp) => {
 };
 
 /**
+ * Handle errors with a redirect
+ * @param {*} context
+ * @param {*} message
+ */
+const errorRedirect = (context, message) => {
+  context.$store.commit('setError', { error: new Error(message) });
+  context.$router.replace('/fail-whale');
+};
+
+/**
  * TODO: Define this logic use case
  * @param {*} fn
  * @param {*} context
@@ -126,7 +136,7 @@ function callMiddleware(Components, context) {
     }
     if (typeof middleware[name] !== 'function') {
       unknownMiddleware = true;
-      this.error({ statusCode: 500, message: `Unknown middleware ${ name }` });
+      errorRedirect(this, new Error(`500: Unknown middleware ${ name }`));
     }
 
     return middleware[name];
@@ -202,7 +212,8 @@ async function render(to, from, next) {
     }
 
     // Show error page
-    this.error({ statusCode: 404, message: 'This page could not be found' });
+    // this.error({ statusCode: 404, message: 'This page could not be found' });
+    errorRedirect(this, new Error('404: This page could not be found'));
 
     return next();
   }
@@ -243,17 +254,14 @@ async function render(to, from, next) {
       }
     } catch (validationError) {
       // ...If .validate() threw an error
-      this.error({
-        statusCode: validationError.statusCode || '500',
-        message:    validationError.message
-      });
+      errorRedirect(this, new Error(`${ validationError.statusCode || '500' }: ${ validationError.message }`));
 
       return next();
     }
 
     // ...If .validate() returned false
     if (!isValid) {
-      this.error({ statusCode: 404, message: 'This page could not be found' });
+      errorRedirect(this, new Error('404: This page could not be found'));
 
       return next();
     }
