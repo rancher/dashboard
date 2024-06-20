@@ -28,31 +28,44 @@ export default {
   async fetch() {
     const code = this.$route.query[GITHUB_CODE];
     const stateStr = this.$route.query[GITHUB_NONCE];
-    const isSlo = this.$route.query[IS_SLO];
-
     const {
       error, error_description: errorDescription, errorCode, errorMsg
     } = this.$route.query;
 
-    // check for existance of IS_SLO query param to
-    // differenciate between a login and a logout
-    if (isSlo) {
+    if (error || errorDescription || errorCode || errorMsg) {
+      let out = errorDescription || error || errorCode;
+
+      if (this.isSlo) {
+        if (errorMsg) {
+          out = this.$store.getters['i18n/withFallback'](`logout.serverError.${ errorMsg }`, null, errorMsg);
+        }
+
+        await this.$router.replace({ name: 'home' });
+
+        this.$store.dispatch('growl/error', {
+          title:   this.t('logout.failure'),
+          message: out
+        }, { root: true });
+
+        return;
+      } else {
+        if (errorMsg) {
+          out = this.$store.getters['i18n/withFallback'](`login.serverError.${ errorMsg }`, null, errorMsg);
+        }
+
+        this.$router.replace(`/auth/login?err=${ escape(out) }`);
+
+        return;
+      }
+    }
+
+    // check for existance of IS_SLO query param to differenciate between a login and a logout
+    if (this.isSlo) {
       this.$store.dispatch('auth/uiLogout');
 
       return;
     }
 
-    if (error || errorDescription || errorCode || errorMsg) {
-      let out = errorDescription || error || errorCode;
-
-      if (errorMsg) {
-        out = this.$store.getters['i18n/withFallback'](`login.serverError.${ errorMsg }`, null, errorMsg);
-      }
-
-      this.$router.replace(`/auth/login?err=${ escape(out) }`);
-
-      return;
-    }
     let parsed;
 
     try {
@@ -116,7 +129,15 @@ export default {
 
     const { test } = parsed;
 
-    return { testing: test };
+    /**
+     * Is Single Log Out
+     */
+    const isSlo = this.$route.query[IS_SLO];
+
+    return {
+      testing: test,
+      isSlo
+    };
   },
 
   mounted() {
@@ -156,6 +177,9 @@ export default {
     <h1 class="text-center mt-50">
       <span v-if="testing">
         Testing Configuration&hellip;
+      </span>
+      <span v-else-if="isSlo">
+        Logging Out&hellip;
       </span>
       <span v-else>
         Logging In&hellip;
