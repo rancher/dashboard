@@ -3294,10 +3294,10 @@ login:
 
 logout:
   message: Logging Out...
-  failure: Unable to log out
-  serverError:
-    unknown: "An unknown error occurred while attempting to logout. Please contact your system administrator."
-    noResponse: "No response received"
+  error: 'An error occurred logging out: {msg}'
+  specificError:
+    unknown: Unknown.\n\nPlease contact your system administrator.
+    500: "Server-side error.\n\nPlease contact your system administrator."
 
 managementNode:
   customName: Custom Name
