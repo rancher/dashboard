@@ -66,6 +66,7 @@ aks:
       label: Mode
     labels:
       tooltip: Configure labels for all nodes in this Node Pool.
+      add: Add Label
     orchestratorVersion: 
       label: Node Pool Kubernetes Version
       upgrade: Upgrade node pool Kubernetes version from {from} to {to}

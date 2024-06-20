@@ -16,8 +16,8 @@ const mockedValidationMixin = {
 const mockedStore = () => {
   return {
     getters: {
-      'i18n/t': (text: string, v = {}) => {
-        return `${ text }${ Object.values(v) }`;
+      'i18n/t': (text: string, v: {[key:string]: string}) => {
+        return `${ text }${ Object.values(v || {}) }`;
       },
       t:                         (text: string) => text,
       currentStore:              () => 'current_store',
@@ -203,5 +203,27 @@ describe('aks node pool component', () => {
 
     // above verifies that the form is showing the right thing: also verify that the node pool spec has been updated to remove the taint
     expect(wrapper.props().pool.nodeTaints).toStrictEqual([initialTaints[1]]);
+  });
+
+  it('should add nodeLabels to the pool spec when the labels keyvalue is edited', async() => {
+    const labels = { abc: 'def', efg: 'hij' };
+    const newLabels = { abc: 'def' };
+    const wrapper = mount(AksNodePool, {
+      propsData: {
+        pool: { ...defaultPool, nodeLabels: { ...labels } },
+
+        mode: _EDIT
+      },
+      ...requiredSetup()
+
+    });
+    const labelInput = wrapper.find('[data-testid="aks-node-labels-input"]');
+
+    expect(labelInput.props().value).toStrictEqual(labels);
+
+    labelInput.vm.$emit('input', newLabels);
+    await wrapper.vm.$nextTick();
+
+    expect(wrapper.props().pool.nodeLabels).toStrictEqual(newLabels);
   });
 });
