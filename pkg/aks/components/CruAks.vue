@@ -983,17 +983,6 @@ export default defineComponent({
       }
     },
 
-    // these fields are used purely in UI, to track individual nodepool components
-    cleanPoolsForSave(): void {
-      this.nodePools.forEach((pool: AKSNodePool) => {
-        Object.keys(pool).forEach((key: string) => {
-          if (key.startsWith('_')) {
-            delete pool[key as keyof AKSNodePool];
-          }
-        });
-      });
-    },
-
     // only save values that differ from upstream aks spec - see diffUpstreamSpec comments for details
     removeUnchangedConfigFields(): void {
       const upstreamConfig = this.normanCluster?.status?.aksStatus?.upstreamSpec;
