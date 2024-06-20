@@ -81,6 +81,11 @@ export default {
     },
 
     shouldShowSloLogoutModal() {
+      if (this.isAuthLocalProvider) {
+        // If the user logged in as a local user... they cannot log out as if they were an auth config user
+        return false;
+      }
+
       const {
         logoutAllSupported, logoutAllEnabled, logoutAllForced, configType
       } = this.authProviderEnabled;
