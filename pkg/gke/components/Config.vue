@@ -237,9 +237,7 @@ export default defineComponent({
         });
       }
       if (this.region) {
-        const out = this.zonesByRegion[this.region] || [];
-
-        return out;
+        return this.zonesByRegion[this.region] || [];
       } if (this.zone) {
         const zoneOption = this.zones.find((z) => z.name === this.zone);
 
