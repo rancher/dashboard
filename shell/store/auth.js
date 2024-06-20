@@ -373,15 +373,12 @@ export const actions = {
     await rootState.$plugin.logout();
 
     let logoutAction = 'logout';
-    let finalRedirectUrl;
     const data = {};
 
     // SLO - Single-sign logout - will logout auth provider from all places where it's logged in
     if (options.slo) {
       logoutAction = 'logoutAll';
-      finalRedirectUrl = returnTo({ isSlo: true }, this);
-
-      data.finalRedirectUrl = finalRedirectUrl;
+      data.finalRedirectUrl = returnTo({ isSlo: true }, this);
     }
 
     try {

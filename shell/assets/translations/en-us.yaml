@@ -510,7 +510,7 @@ authConfig:
     sloTitle: Log Out behavior
     sloOptions:
       onlyRancher: Log out of Rancher and not {name}
-      logoutAll: Log out of {name} (including Rancher and all other applications registered with {name})
+      logoutAll: Log out of Rancher and {name} (includes all other applications registered with {name})
       choose: Allow the user to choose one of the above in an additional log out step
     cert:
       label: Certificate
@@ -3294,6 +3294,10 @@ login:
 
 logout:
   message: Logging Out...
+  failure: Unable to log out
+  serverError:
+    unknown: "An unknown error occurred while attempting to logout. Please contact your system administrator."
+    noResponse: "No response received"
 
 managementNode:
   customName: Custom Name
