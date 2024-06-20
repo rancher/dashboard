@@ -129,10 +129,9 @@ export default {
 
     const { test } = parsed;
 
-    /**
-     * Is Single Log Out
-     */
-    const isSlo = this.$route.query[IS_SLO];
+    // Is Single Log Out
+    // support just `is-slo` with no value
+    const isSlo = Object.keys(this.$route.query).includes(IS_SLO) && this.$route.query[IS_SLO] !== false;
 
     return {
       testing: test,
