@@ -1,5 +1,7 @@
 <script>
-import { GITHUB_CODE, GITHUB_NONCE, BACK_TO, IS_SLO } from '@shell/config/query-params';
+import {
+  GITHUB_CODE, GITHUB_NONCE, BACK_TO, IS_SLO, _FLAGGED
+} from '@shell/config/query-params';
 import { get } from '@shell/utils/object';
 import { base64Decode } from '@shell/utils/crypto';
 import loadPlugins from '@shell/plugins/plugin';
@@ -36,16 +38,15 @@ export default {
       let out = errorDescription || error || errorCode;
 
       if (this.isSlo) {
-        if (errorMsg) {
-          out = this.$store.getters['i18n/withFallback'](`logout.serverError.${ errorMsg }`, null, errorMsg);
+        console.error('Failed to log out of auth provider', error, errorDescription, errorCode, errorMsg); // eslint-disable-line no-console
+
+        let out = this.$store.getters['i18n/withFallback'](`logout.specificError.unknown`);
+
+        if (errorCode) {
+          out = this.$store.getters['i18n/withFallback'](`logout.specificError.${ errorCode }`, null, out);
         }
 
-        await this.$router.replace({ name: 'home' });
-
-        this.$store.dispatch('growl/error', {
-          title:   this.t('logout.failure'),
-          message: out
-        }, { root: true });
+        this.$router.replace(`/auth/login?${ IS_SLO }&err=${ escape(out) }`);
 
         return;
       } else {
@@ -130,8 +131,7 @@ export default {
     const { test } = parsed;
 
     // Is Single Log Out
-    // support just `is-slo` with no value
-    const isSlo = Object.keys(this.$route.query).includes(IS_SLO) && this.$route.query[IS_SLO] !== false;
+    const isSlo = this.$route.query[IS_SLO] === _FLAGGED;
 
     return {
       testing: test,

@@ -9,7 +9,8 @@ import InfoBox from '@shell/components/InfoBox';
 import CopyCode from '@shell/components/CopyCode';
 import { Banner } from '@components/Banner';
 import {
-  LOCAL, LOGGED_OUT, TIMED_OUT, IS_SSO, _FLAGGED
+  LOCAL, LOGGED_OUT, TIMED_OUT, IS_SSO, _FLAGGED,
+  IS_SLO
 } from '@shell/config/query-params';
 import { Checkbox } from '@components/Form/Checkbox';
 import Password from '@shell/components/form/Password';
@@ -47,6 +48,7 @@ export default {
       timedOut:           this.$route.query[TIMED_OUT] === _FLAGGED,
       loggedOut:          this.$route.query[LOGGED_OUT] === _FLAGGED,
       isSsoLogout:        this.$route.query[IS_SSO] === _FLAGGED,
+      isSlo:              this.$route.query[IS_SLO] === _FLAGGED,
       err:                this.$route.query.err,
       showLocaleSelector: !process.env.loginLocaleSelector || process.env.loginLocaleSelector === 'true',
 
@@ -78,6 +80,10 @@ export default {
     },
 
     errorMessage() {
+      if (this.isSlo) {
+        return this.err?.length ? this.t('logout.error', { msg: this.err }) : '';
+      }
+
       if (this.err === LOGIN_ERRORS.CLIENT_UNAUTHORIZED) {
         return this.t('login.clientError');
       } else if (this.err === LOGIN_ERRORS.CLIENT || this.err === LOGIN_ERRORS.SERVER) {
