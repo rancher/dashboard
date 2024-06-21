@@ -376,4 +376,32 @@ describe('Settings', { testIsolation: 'off' }, () => {
       expect(obj.kind).to.equal('Config');
     });
   });
+
+  it('can update agent-tls-mode', { tags: ['@globalSettings', '@adminUser'] }, () => {
+    // Update setting
+    SettingsPagePo.navTo();
+    settingsPage.editSettingsByLabel('agent-tls-mode');
+
+    const settingsEdit = settingsPage.editSettings('local', 'agent-tls-mode');
+
+    settingsEdit.waitForPage();
+    settingsEdit.title().contains('Setting: agent-tls-mode').should('be.visible');
+    settingsEdit.selectSettingsByLabel('System Store');
+    settingsEdit.saveAndWait('agent-tls-mode');
+    settingsPage.waitForPage();
+    settingsPage.settingsValue('agent-tls-mode').contains('System Store');
+
+    // Reset
+    SettingsPagePo.navTo();
+    settingsPage.waitForPage();
+    settingsPage.editSettingsByLabel('agent-tls-mode');
+
+    settingsEdit.waitForPage();
+    settingsEdit.title().contains('Setting: agent-tls-mode').should('be.visible');
+    settingsEdit.useDefaultButton().click();
+    settingsEdit.saveAndWait('agent-tls-mode');
+
+    settingsPage.waitForPage();
+    settingsPage.settingsValue('agent-tls-mode').contains('Strict');
+  });
 });
