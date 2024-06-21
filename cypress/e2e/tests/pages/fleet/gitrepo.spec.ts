@@ -202,49 +202,49 @@ describe('Git Repo', { testIsolation: 'off', tags: ['@fleet', '@adminUser'] }, (
     //   - These bundles never successfully deployed given the fleet-agent failed to deploy (given the server-url in tests is localhost)
     //   - They passed before because fleet reported gitrepo status.resources for bundles that failed to deploy, now it does not and the test fails
     // testing https://github.com/rancher/dashboard/issues/9866
-    it.skip('in git repo details view we should display the correct bundle count', () => {
-      const basicRepos = [
-        {
-          name:   'e2e-git-repo1-test-bundle-count',
-          repo:   'https://github.com/rancher/fleet-examples.git',
-          branch: 'master',
-          path:   'simple'
-        },
-        {
-          name:   'e2e-git-repo2-test-bundle-count',
-          repo:   'https://github.com/rancher/fleet-examples.git',
-          branch: 'master',
-          path:   'single-cluster/helm'
-        }
-      ];
-      const workspace = 'fleet-local';
+    // it('in git repo details view we should display the correct bundle count', () => {
+    //   const basicRepos = [
+    //     {
+    //       name:   'e2e-git-repo1-test-bundle-count',
+    //       repo:   'https://github.com/rancher/fleet-examples.git',
+    //       branch: 'master',
+    //       path:   'simple'
+    //     },
+    //     {
+    //       name:   'e2e-git-repo2-test-bundle-count',
+    //       repo:   'https://github.com/rancher/fleet-examples.git',
+    //       branch: 'master',
+    //       path:   'single-cluster/helm'
+    //     }
+    //   ];
+    //   const workspace = 'fleet-local';
 
-      // generate a fake cluster that can be usable in fleet
-      generateFakeClusterDataAndIntercepts(fakeProvClusterId, fakeMgmtClusterId);
+    //   // generate a fake cluster that can be usable in fleet
+    //   generateFakeClusterDataAndIntercepts(fakeProvClusterId, fakeMgmtClusterId);
 
-      // create first git-repo in fleet-local
-      cy.createRancherResource('v1', 'fleet.cattle.io.gitrepos', gitRepoTargetAllClustersRequest(workspace, basicRepos[0].name, basicRepos[0].repo, basicRepos[0].branch, basicRepos[0].path)).then(() => {
-        reposToDelete.push(`fleet-local/${ basicRepos[0].name }`);
-      });
+    //   // create first git-repo in fleet-local
+    //   cy.createRancherResource('v1', 'fleet.cattle.io.gitrepos', gitRepoTargetAllClustersRequest(workspace, basicRepos[0].name, basicRepos[0].repo, basicRepos[0].branch, basicRepos[0].path)).then(() => {
+    //     reposToDelete.push(`fleet-local/${ basicRepos[0].name }`);
+    //   });
 
-      // create second git-repo in fleet-local
-      cy.createRancherResource('v1', 'fleet.cattle.io.gitrepos', gitRepoTargetAllClustersRequest(workspace, basicRepos[1].name, basicRepos[1].repo, basicRepos[1].branch, basicRepos[1].path)).then(() => {
-        reposToDelete.push(`fleet-local/${ basicRepos[1].name }`);
-      });
+    //   // create second git-repo in fleet-local
+    //   cy.createRancherResource('v1', 'fleet.cattle.io.gitrepos', gitRepoTargetAllClustersRequest(workspace, basicRepos[1].name, basicRepos[1].repo, basicRepos[1].branch, basicRepos[1].path)).then(() => {
+    //     reposToDelete.push(`fleet-local/${ basicRepos[1].name }`);
+    //   });
 
-      // go to fleet gitrepo
-      listPage.goTo();
-      listPage.waitForPage();
-      listPage.selectWorkspace(workspace);
+    //   // go to fleet gitrepo
+    //   listPage.goTo();
+    //   listPage.waitForPage();
+    //   listPage.selectWorkspace(workspace);
 
-      listPage.goToDetailsPage(basicRepos[1].name);
+    //   listPage.goToDetailsPage(basicRepos[1].name);
 
-      const gitRepoDetails = new FleetGitRepoDetailsPo('fleet-local', basicRepos[1].name);
+    //   const gitRepoDetails = new FleetGitRepoDetailsPo('fleet-local', basicRepos[1].name);
 
-      gitRepoDetails.waitForPage();
-      gitRepoDetails.gitRepoTabs().clickTabWithSelector('[data-testid="bundles"]');
-      gitRepoDetails.bundlesCount().should('contain', '1');
-    });
+    //   gitRepoDetails.waitForPage();
+    //   gitRepoDetails.gitRepoTabs().clickTabWithSelector('[data-testid="bundles"]');
+    //   gitRepoDetails.bundlesCount().should('contain', '1');
+    // });
 
     after(() => {
       reposToDelete.forEach((r) => cy.deleteRancherResource('v1', 'fleet.cattle.io.gitrepo', r));
