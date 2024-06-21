@@ -76,8 +76,6 @@ export default defineConfig({
         'docusaurus/**/*.*',
         'stories/**/*.*',
         'drone/**/*.*',
-        '.nuxt/**/*.*',
-        '.nuxt-prod/**/*.*',
       ],
       include: [
         'shell/**/*.{vue,ts,js}',

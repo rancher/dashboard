@@ -29,12 +29,12 @@ export const loadDebugger = (vueApp) => {
       }
 
       if (vm && vm.$root) {
-        const nuxtApp = Object.keys(window.$globalApp)
-          .find((nuxtInstance) => vm.$root[nuxtInstance]);
+        const globalApp = Object.keys(window.$globalApp)
+          .find((instance) => vm.$root[instance]);
 
         // Show Nuxt Error Page
-        if (nuxtApp && vm.$root[nuxtApp].error && info !== 'render function') {
-          const vueApp = vm.$root[nuxtApp];
+        if (globalApp && vm.$root[globalApp].error && info !== 'render function') {
+          const vueApp = vm.$root[globalApp];
 
           vueApp.error(err);
         }
@@ -52,6 +52,16 @@ export const loadDebugger = (vueApp) => {
       }
     };
   }
+};
+
+/**
+ * Handle errors with a redirect
+ * @param {*} context
+ * @param {*} message
+ */
+const errorRedirect = (context, message) => {
+  context.$store.commit('setError', { error: new Error(message) });
+  context.$router.replace('/fail-whale');
 };
 
 /**
@@ -105,17 +115,6 @@ export const middlewareSeries = (promises, appContext) => {
 };
 
 /**
- * Trigger errors
- * @param {*} app App view instance
- */
-const checkForErrors = (app) => {
-  // Hide error component if no error
-  if (app._hadError && app._dateLastError === app.$options.nuxt.dateErr) {
-    app.error();
-  }
-};
-
-/**
  * Add middleware to the Vue instance
  * @param {*} Components List of Vue components
  * @param {*} context App context
@@ -137,7 +136,7 @@ function callMiddleware(Components, context) {
     }
     if (typeof middleware[name] !== 'function') {
       unknownMiddleware = true;
-      this.error({ statusCode: 500, message: `Unknown middleware ${ name }` });
+      errorRedirect(this, new Error(`500: Unknown middleware ${ name }`));
     }
 
     return middleware[name];
@@ -190,8 +189,6 @@ async function render(to, from, next) {
     from,
     next:  _next.bind(this)
   });
-  this._dateLastError = app.nuxt.dateErr;
-  this._hadError = Boolean(app.nuxt.err);
 
   // Get route's matched components
   const matches = [];
@@ -215,7 +212,8 @@ async function render(to, from, next) {
     }
 
     // Show error page
-    this.error({ statusCode: 404, message: 'This page could not be found' });
+    // this.error({ statusCode: 404, message: 'This page could not be found' });
+    errorRedirect(this, new Error('404: This page could not be found'));
 
     return next();
   }
@@ -256,17 +254,14 @@ async function render(to, from, next) {
       }
     } catch (validationError) {
       // ...If .validate() threw an error
-      this.error({
-        statusCode: validationError.statusCode || '500',
-        message:    validationError.message
-      });
+      errorRedirect(this, new Error(`${ validationError.statusCode || '500' }: ${ validationError.message }`));
 
       return next();
     }
 
     // ...If .validate() returned false
     if (!isValid) {
-      this.error({ statusCode: 404, message: 'This page could not be found' });
+      errorRedirect(this, new Error('404: This page could not be found'));
 
       return next();
     }
@@ -284,7 +279,6 @@ async function render(to, from, next) {
 
     globalHandleError(error);
 
-    this.error(error);
     next();
   }
 }
@@ -320,7 +314,6 @@ export async function mountApp(appPartials, VueClass) {
 
   // First render on client-side
   const clientFirstMount = () => {
-    checkForErrors(vueApp);
     mount();
   };
 

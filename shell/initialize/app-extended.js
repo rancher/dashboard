@@ -2,7 +2,6 @@
 // This file was generated during Nuxt migration
 import AppView from '@shell/initialize/App';
 import { setContext, getRouteData } from '@shell/initialize/entry-helpers';
-import { normalizeError } from '@shell/utils/error';
 import { extendRouter } from '@shell/config/router';
 import { extendStore } from '@shell/config/store';
 import { UPGRADED, _FLAGGED, _UNFLAG } from '@shell/config/query-params';
@@ -34,7 +33,6 @@ export const getLocation = (base, mode) => {
 
 /**
  * Bundle Vue app component and configuration to be executed on entry
- * TODO: #11070 - Remove Nuxt residuals
  * @param {*} vueApp Vue instance
  * @returns
  */
@@ -53,24 +51,6 @@ async function extendApp(vueApp) {
   const appPartials = {
     store,
     router,
-    nuxt: {
-      err:     null,
-      dateErr: null,
-      error(err) {
-        err = err || null;
-        appPartials.context._errored = Boolean(err);
-        err = err ? normalizeError(err) : null;
-        let nuxt = appPartials.nuxt; // to work with @vue/composition-api, see https://github.com/nuxt/nuxt.js/issues/6517#issuecomment-573280207
-
-        if (this) {
-          nuxt = this.nuxt || this.$options.nuxt;
-        }
-        nuxt.dateErr = Date.now();
-        nuxt.err = err;
-
-        return err;
-      }
-    },
     ...AppView
   };
 
@@ -88,7 +68,6 @@ async function extendApp(vueApp) {
     store,
     route,
     next,
-    error:   appPartials.nuxt.error.bind(appPartials),
     payload: undefined,
     req:     undefined,
     res:     undefined
