@@ -198,6 +198,35 @@ export default {
     </h1>
     <div>
       <div class="ui-perf-setting">
+        <!-- Server Side Pagination -->
+        <div class="mt-40">
+          <h2>{{ t('performance.serverPagination.label') }}</h2>
+          <p>{{ t('performance.serverPagination.description') }}</p>
+          <Banner
+            color="error"
+            label-key="performance.experimental"
+          />
+          <Banner
+            v-if="!steveCacheEnabled"
+            v-clean-html="t(`performance.serverPagination.featureFlag`, { ffUrl }, true)"
+            color="warning"
+          />
+          <Checkbox
+            v-model="value.serverPagination.enabled"
+            :mode="mode"
+            :label="t('performance.serverPagination.checkboxLabel')"
+            class="mt-10 mb-20"
+            :primary="true"
+            :disabled="(!steveCacheEnabled && !value.serverPagination.enabled)"
+            @input="compatibleWarning('serverPagination', $event)"
+          />
+          <p :class="{ 'text-muted': !value.serverPagination.enabled }">
+            {{ t('performance.serverPagination.applicable') }}
+          </p>
+          <p :class="{ 'text-muted': !value.serverPagination.enabled }">
+            {{ steveCacheApplicableResources }}
+          </p>
+        </div>
         <!-- Inactivity -->
         <div class="mt-20">
           <h2>{{ t('performance.inactivity.title') }}</h2>
@@ -376,35 +405,6 @@ export default {
               />
             </div>
           </div>
-        </div>
-        <!-- Server Side Pagination -->
-        <div class="mt-40">
-          <h2>{{ t('performance.serverPagination.label') }}</h2>
-          <p>{{ t('performance.serverPagination.description') }}</p>
-          <Banner
-            color="error"
-            label-key="performance.experimental"
-          />
-          <Banner
-            v-if="!steveCacheEnabled"
-            v-clean-html="t(`performance.serverPagination.featureFlag`, { ffUrl }, true)"
-            color="warning"
-          />
-          <Checkbox
-            v-model="value.serverPagination.enabled"
-            :mode="mode"
-            :label="t('performance.serverPagination.checkboxLabel')"
-            class="mt-10 mb-20"
-            :primary="true"
-            :disabled="(!steveCacheEnabled && !value.serverPagination.enabled)"
-            @input="compatibleWarning('serverPagination', $event)"
-          />
-          <p :class="{ 'text-muted': !value.serverPagination.enabled }">
-            {{ t('performance.serverPagination.applicable') }}
-          </p>
-          <p :class="{ 'text-muted': !value.serverPagination.enabled }">
-            {{ steveCacheApplicableResources }}
-          </p>
         </div>
         <!-- Force NS filter -->
         <div class="mt-40">

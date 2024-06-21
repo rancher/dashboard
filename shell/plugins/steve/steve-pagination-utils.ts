@@ -329,7 +329,7 @@ class StevePaginationUtils extends NamespaceProjectFilters {
       checked: new Array<string>(),
       invalid: new Array<string>(),
     };
-    const res = filters
+    const filterStrings = filters
       .filter((filter) => !!filter.fields.length)
       .map((filter) => {
         const joined = filter.fields
@@ -348,7 +348,14 @@ class StevePaginationUtils extends NamespaceProjectFilters {
           .join(','); // This means OR
 
         return `${ filter.param }${ filter.equals ? '=' : '!=' }${ joined }`;
-      }).join('&'); // This means AND
+      });
+    const unique = filterStrings.reduce((res, s) => {
+      res[s] = true;
+
+      return res;
+    }, { } as {[filterString: string] : boolean });
+
+    const res = Object.keys(unique).join('&'); // This means AND
 
     if (validateFields.invalid.length) {
       console.warn(`Pagination API does not support filtering '${ schema.id }' by the requested fields: ${ uniq(validateFields.invalid).join(', ') }`); // eslint-disable-line no-console
