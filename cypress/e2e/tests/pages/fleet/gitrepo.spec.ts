@@ -197,8 +197,12 @@ describe('Git Repo', { testIsolation: 'off', tags: ['@fleet', '@adminUser'] }, (
       });
     });
 
+    // disabling test until it can be updated to account for a fleet change:
+    //   - This test creates repos in the fleet-local workspace to test bundles in the upstream cluster
+    //   - These bundles never successfully deployed given the fleet-agent failed to deploy (given the server-url in tests is localhost)
+    //   - They passed before because fleet reported gitrepo status.resources for bundles that failed to deploy, now it does not and the test fails
     // testing https://github.com/rancher/dashboard/issues/9866
-    it('in git repo details view we should display the correct bundle count', () => {
+    it.skip('in git repo details view we should display the correct bundle count', () => {
       const basicRepos = [
         {
           name:   'e2e-git-repo1-test-bundle-count',
