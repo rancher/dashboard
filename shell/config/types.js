@@ -17,7 +17,7 @@ export const NORMAN = {
   ETCD_BACKUP:                   'etcdbackup',
   CLUSTER:                       'cluster',
   CLUSTER_TOKEN:                 'clusterregistrationtoken',
-  CLUSTER_ROLE_TEMPLATE_BINDING: 'clusterRoleTemplateBinding',
+  CLUSTER_ROLE_TEMPLATE_BINDING: 'clusterroletemplatebinding',
   CLOUD_CREDENTIAL:              'cloudcredential',
   FLEET_WORKSPACES:              'fleetworkspace',
   GLOBAL_ROLE:                   'globalRole',

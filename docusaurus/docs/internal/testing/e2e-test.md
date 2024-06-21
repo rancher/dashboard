@@ -111,7 +111,7 @@ It's also possible to run a workflow in GitHub Actions E2E test using these valu
 
 ## Local and CI/prod run
 
-It is possible to start the project and run all the tests at once with a single command. There's however a difference between `dev` and `production` run. The first will not require an official certificate and will build the project in `.nuxt`, while the production will enable all the SSL configurations to run encrypted.
+It is possible to start the project and run all the tests at once with a single command. There's however a difference between `dev` and `production` run. The first will not require an official certificate and will build the project in `dist`, while the production will enable all the SSL configurations to run encrypted.
 
 - `yarn e2e:pre-dev`, to optionally initialize Docker and build the project, if not already done
 - `yarn e2e:dev`, single run local development

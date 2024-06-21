@@ -31,8 +31,6 @@ export default {
     window.addEventListener('online', this.refreshOnlineStatus);
     window.addEventListener('offline', this.refreshOnlineStatus);
 
-    // Add $nuxt.error()
-    this.error = this.$options.nuxt.error;
     // Add $nuxt.context
     this.context = this.$options.context;
   },
@@ -40,8 +38,6 @@ export default {
   mounted() {
     this.$loading = this.$refs.loading;
   },
-
-  watch: { 'nuxt.err': 'errorChanged' },
 
   computed: {
     isOffline() {
@@ -58,22 +54,6 @@ export default {
         this.isOnline = true;
       } else {
         this.isOnline = window.navigator.onLine;
-      }
-    },
-    errorChanged() {
-      if (this.$options.nuxt.err) {
-        if (this.$loading) {
-          if (this.$loading.fail) {
-            this.$loading.fail(this.$options.nuxt.err);
-          }
-          if (this.$loading.finish) {
-            this.$loading.finish();
-          }
-        }
-
-        this.showErrorPage = true;
-      } else {
-        this.showErrorPage = false;
       }
     },
   },

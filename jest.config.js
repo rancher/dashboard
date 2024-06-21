@@ -27,8 +27,6 @@ module.exports = {
     '<rootDir>/stories/',
     '<rootDir>/shell/scripts/',
     '<rootDir>/drone',
-    '<rootDir>/.nuxt',
-    '<rootDir>/.nuxt-prod',
   ],
   testPathIgnorePatterns: [
     '<rootDir>/node_modules/',

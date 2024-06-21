@@ -344,11 +344,51 @@ describe('Extensions page', { tags: ['@extensions', '@adminUser'] }, () => {
     extensionsPo.uninstallModaluninstallClick();
     extensionsPo.extensionReloadBanner().should('be.visible');
 
+    // let's check the extension reload banner and reload the page
+    extensionsPo.extensionReloadBanner().should('be.visible');
+    extensionsPo.extensionReloadClick();
+
+    // make sure extension card is in the available tab
+    extensionsPo.extensionTabAvailableClick();
+    extensionsPo.extensionCardClick(EXTENSION_NAME);
+    extensionsPo.extensionDetailsTitle().should('contain', EXTENSION_NAME);
+  });
+
+  it('Should uninstall unathenticated extensions', () => {
+    // Because we logged out in the previous test this one will also have to use an uncached login
+    cy.login(undefined, undefined, false);
+    const extensionsPo = new ExtensionsPagePo();
+
+    extensionsPo.goTo();
+
+    extensionsPo.extensionTabInstalledClick();
+
+    // click on uninstall button on card
     extensionsPo.extensionCardUninstallClick(UNAUTHENTICATED_EXTENSION_NAME);
     extensionsPo.extensionUninstallModal().should('be.visible');
     extensionsPo.uninstallModaluninstallClick();
     extensionsPo.extensionReloadBanner().should('be.visible');
 
+    // let's check the extension reload banner and reload the page
+    extensionsPo.extensionReloadBanner().should('be.visible');
+    extensionsPo.extensionReloadClick();
+
+    // make sure extension card is in the available tab
+    extensionsPo.extensionTabAvailableClick();
+    extensionsPo.extensionCardClick(UNAUTHENTICATED_EXTENSION_NAME);
+    extensionsPo.extensionDetailsTitle().should('contain', UNAUTHENTICATED_EXTENSION_NAME);
+  });
+
+  it('Should uninstall un-cached extensions', () => {
+    // Because we logged out in the previous test this one will also have to use an uncached login
+    cy.login(undefined, undefined, false);
+    const extensionsPo = new ExtensionsPagePo();
+
+    extensionsPo.goTo();
+
+    extensionsPo.extensionTabInstalledClick();
+
+    // click on uninstall button on card
     extensionsPo.extensionCardUninstallClick(DISABLED_CACHE_EXTENSION_NAME);
     extensionsPo.extensionUninstallModal().should('be.visible');
     extensionsPo.uninstallModaluninstallClick();
@@ -359,7 +399,7 @@ describe('Extensions page', { tags: ['@extensions', '@adminUser'] }, () => {
 
     // make sure extension card is in the available tab
     extensionsPo.extensionTabAvailableClick();
-    extensionsPo.extensionCardClick(EXTENSION_NAME);
-    extensionsPo.extensionDetailsTitle().should('contain', EXTENSION_NAME);
+    extensionsPo.extensionCardClick(DISABLED_CACHE_EXTENSION_NAME);
+    extensionsPo.extensionDetailsTitle().should('contain', DISABLED_CACHE_EXTENSION_NAME);
   });
 });
