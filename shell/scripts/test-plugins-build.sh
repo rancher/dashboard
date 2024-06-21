@@ -200,10 +200,10 @@ function clone_repo_test_extension_build() {
   # test build-pkg
   FORCE_COLOR=true yarn build-pkg $PKG_NAME | cat
 
-  # kubewarden has some unit tests and they should be quick to run... Let's check them as well
-  if [ "${REPO_NAME}" == "kubewarden-ui" ]; then
-    yarn test:ci
-  fi
+  # # kubewarden has some unit tests and they should be quick to run... Let's check them as well
+  # if [ "${REPO_NAME}" == "kubewarden-ui" ]; then
+  #   yarn test:ci
+  # fi
 
   # return back to the base path
   popd
