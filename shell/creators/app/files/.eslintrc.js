@@ -8,7 +8,6 @@ module.exports = {
   extends: [
     'standard',
     'eslint:recommended',
-    '@nuxtjs/eslint-config-typescript',
     'plugin:cypress/recommended'
   ],
   // add your custom rules here
@@ -23,7 +22,6 @@ module.exports = {
     'no-new':                   'off',
     'no-plusplus':              'off',
     'no-useless-escape':        'off',
-    'nuxt/no-cjs-in-config':    'off',
     'semi-spacing':             'off',
     'space-in-parens':          'off',
     strict:                     'off',
