@@ -155,8 +155,11 @@ export default {
       }
 
       if ( as === _YAML ) {
-        // fetch resourceFields for createYaml
-        await schema.fetchResourceFields();
+        if (schema?.fetchResourceFields) {
+          // fetch resourceFields for createYaml
+          await schema.fetchResourceFields();
+        }
+
         yaml = createYaml(schemas, resource, data);
       }
     } else {

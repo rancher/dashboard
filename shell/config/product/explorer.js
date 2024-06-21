@@ -29,6 +29,7 @@ import {
 
 import { COLUMN_BREAKPOINTS } from '@shell/types/store/type-map';
 import { STEVE_CACHE } from '@shell/store/features';
+import { configureConditionalDepaginate } from '@shell/store/type-map.utils';
 
 export const NAME = 'explorer';
 
@@ -56,7 +57,9 @@ export function init(store) {
     typeStoreMap:        {
       [MANAGEMENT.PROJECT]:                       'management',
       [MANAGEMENT.CLUSTER_ROLE_TEMPLATE_BINDING]: 'management',
-      [MANAGEMENT.PROJECT_ROLE_TEMPLATE_BINDING]: 'management'
+      [MANAGEMENT.PROJECT_ROLE_TEMPLATE_BINDING]: 'management',
+      [NORMAN.CLUSTER_ROLE_TEMPLATE_BINDING]:     'rancher',
+      [NORMAN.PROJECT_ROLE_TEMPLATE_BINDING]:     'rancher',
     }
   });
 
@@ -164,12 +167,16 @@ export function init(store) {
   mapGroup(/^(.*\.)?cluster\.x-k8s\.io$/, 'clusterProvisioning');
   mapGroup(/^(aks|eks|gke|rke|rke-machine-config|rke-machine|provisioning)\.cattle\.io$/, 'clusterProvisioning');
 
+  const dePaginateBindings = configureConditionalDepaginate({ maxResourceCount: 5000 });
+  const dePaginateNormanBindings = configureConditionalDepaginate({ maxResourceCount: 5000, isNorman: true }) ;
+
   configureType(NODE, { isCreatable: false, isEditable: true });
   configureType(WORKLOAD_TYPES.JOB, { isEditable: false, match: WORKLOAD_TYPES.JOB });
-  configureType(MANAGEMENT.CLUSTER_ROLE_TEMPLATE_BINDING, { isEditable: false });
-  configureType(MANAGEMENT.PROJECT_ROLE_TEMPLATE_BINDING, { isEditable: false, depaginate: true });
+  configureType(MANAGEMENT.CLUSTER_ROLE_TEMPLATE_BINDING, { isEditable: false, depaginate: dePaginateBindings });
+  configureType(MANAGEMENT.PROJECT_ROLE_TEMPLATE_BINDING, { isEditable: false, depaginate: dePaginateBindings });
   configureType(MANAGEMENT.PROJECT, { displayName: store.getters['i18n/t']('namespace.project.label') });
-  configureType(NORMAN.PROJECT_ROLE_TEMPLATE_BINDING, { depaginate: true });
+  configureType(NORMAN.CLUSTER_ROLE_TEMPLATE_BINDING, { depaginate: dePaginateNormanBindings });
+  configureType(NORMAN.PROJECT_ROLE_TEMPLATE_BINDING, { depaginate: dePaginateNormanBindings });
   configureType(SNAPSHOT, { depaginate: true });
   configureType(NORMAN.ETCD_BACKUP, { depaginate: true });
 
