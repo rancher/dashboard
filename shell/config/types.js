@@ -324,3 +324,6 @@ export const CLUSTER_REPO_TYPES = {
 export const ZERO_TIME = '0001-01-01T00:00:00Z';
 
 export const DEFAULT_GRAFANA_STORAGE_SIZE = '10Gi';
+
+export const DEPRECATED = 'Deprecated';
+export const EXPERIMENTAL = 'Experimental';

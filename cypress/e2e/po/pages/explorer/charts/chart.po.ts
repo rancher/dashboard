@@ -1,6 +1,7 @@
 import PagePo from '@/cypress/e2e/po/pages/page.po';
 import AsyncButtonPo from '@/cypress/e2e/po/components/async-button.po';
 import { ChartsPage } from '@/cypress/e2e/po/pages/explorer/charts/charts.po';
+import BannersPo from '@/cypress/e2e/po/components/banners.po';
 
 export class ChartPage extends PagePo {
   private static createPath(clusterId: string) {
@@ -32,5 +33,9 @@ export class ChartPage extends PagePo {
     btn.click(true);
 
     return this;
+  }
+
+  deprecationAndExperimentalWarning() {
+    return new BannersPo('[data-testid="deprecation-and-experimental-banner"]', this.self());
   }
 }

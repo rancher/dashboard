@@ -4,6 +4,7 @@ import BurgerMenuPo from '@/cypress/e2e/po/side-bars/burger-side-menu.po';
 import ProductNavPo from '@/cypress/e2e/po/side-bars/product-side-nav.po';
 import BannersPo from '@/cypress/e2e/po/components/banners.po';
 import SelectIconGridPo from '@/cypress/e2e/po/components/select-icon-grid.po';
+import CheckboxInputPo from '@/cypress/e2e/po/components/checkbox-input.po';
 
 export class ChartsPage extends PagePo {
   private static createPath(clusterId: string) {
@@ -47,20 +48,22 @@ export class ChartsPage extends PagePo {
     return new SelectPo(this.self().find('[data-testid="charts-filter-repos"]'));
   }
 
+  chartsShowDeprecatedFilterCheckbox() {
+    return new CheckboxInputPo(this.self().find('[data-testid="charts-show-deprecated-filter"]'));
+  }
+
   charts() {
     return new SelectIconGridPo('[data-testid="chart-selection-grid"]', 'chart-selection');
   }
 
-  getChart(idx: number) {
-    return this.charts().getGridEntry(idx);
-  }
-
   getChartByName(name: string) {
-    return this.charts().self().contains(name).parent();
+    return this.charts().self().find(`[data-testid="select-icon-grid-${ name }"]`);
   }
 
   checkChartGenericIcon(name: string, isGeneric = true) {
-    const src = this.getChartByName(name).find('.logo img').invoke('attr', 'src');
+    const src = this.charts().self().contains(name).parent()
+      .find('.logo img')
+      .invoke('attr', 'src');
 
     if (isGeneric) {
       return src.should('contain', 'generic-catalog');

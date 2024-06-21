@@ -1,4 +1,4 @@
-import { CATALOG } from '@shell/config/types';
+import { CATALOG, EXPERIMENTAL, DEPRECATED } from '@shell/config/types';
 import { CATALOG as CATALOG_ANNOTATIONS } from '@shell/config/labels-annotations';
 import { addParams } from '@shell/utils/url';
 import { allHash, allHashSettled } from '@shell/utils/promise';
@@ -102,7 +102,7 @@ export const getters = {
 
   chart(state, getters) {
     return ({
-      key, repoType, repoName, chartName, preferRepoType, preferRepoName, includeHidden
+      key, repoType, repoName, chartName, preferRepoType, preferRepoName, includeHidden, showDeprecated
     }) => {
       if ( key && !repoType && !repoName && !chartName) {
         const parsed = parseKey(key);
@@ -116,7 +116,7 @@ export const getters = {
         repoType,
         repoName,
         chartName,
-        deprecated: false,
+        deprecated: !!showDeprecated,
       });
 
       if ( includeHidden === false ) {
@@ -501,8 +501,10 @@ function addChart(ctx, map, chart, repo) {
     certified = CATALOG_ANNOTATIONS._OTHER;
   }
 
-  if ( chart.annotations?.[CATALOG_ANNOTATIONS.EXPERIMENTAL] ) {
-    sideLabel = 'Experimental';
+  if ( chart.deprecated ) {
+    sideLabel = DEPRECATED;
+  } else if ( chart.annotations?.[CATALOG_ANNOTATIONS.EXPERIMENTAL] ) {
+    sideLabel = EXPERIMENTAL;
   } else if (
     !repo.isRancherSource &&
     certifiedAnnotation &&
@@ -536,6 +538,7 @@ function addChart(ctx, map, chart, repo) {
       versions:            [],
       categories:          filterCategories(chart.keywords),
       deprecated:          !!chart.deprecated,
+      experimental:        !!chart.annotations?.[CATALOG_ANNOTATIONS.EXPERIMENTAL],
       hidden:              !!chart.annotations?.[CATALOG_ANNOTATIONS.HIDDEN],
       targetNamespace:     chart.annotations?.[CATALOG_ANNOTATIONS.NAMESPACE],
       targetName:          chart.annotations?.[CATALOG_ANNOTATIONS.RELEASE_NAME],
