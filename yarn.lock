@@ -3125,11 +3125,6 @@
   resolved "https://registry.npmjs.org/@pkgjs/parseargs/-/parseargs-0.11.0.tgz#a77ea742fab25775145434eb1d2328cf5013ac33"
   integrity sha512-+1VkjdD0QBLPodGrJUeqarH8VAIvQODIbwh9XpP5Syisf7YoQgsJKPNFoqqLQlu+VQ/tVSshMR6loPMn8U+dPg==
 
-"@nuxtjs/webpack-profile@0.1.0":
-  version "0.1.0"
-  resolved "https://registry.yarnpkg.com/@nuxtjs/webpack-profile/-/webpack-profile-0.1.0.tgz#e2986b675ad4e4e626f35b4dd36faf3278136e90"
-  integrity sha512-0cajz0CIZDc/ltysyIo+ag0OF28yybtU69b148WhE2FHr8qms9oTQjWQ5Na9Azn6xRHRDOEFyYm96eaXI11iCw==
-
 "@polka/url@^1.0.0-next.20":
   version "1.0.0-next.25"
   resolved "https://registry.npmjs.org/@polka/url/-/url-1.0.0-next.25.tgz#f077fdc0b5d0078d30893396ff4827a13f99e817"
