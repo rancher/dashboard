@@ -8,6 +8,7 @@ import NameNsDescription from '@shell/components/form/NameNsDescription';
 import { Banner } from '@components/Banner';
 import { CAPI } from '@shell/config/labels-annotations';
 import { clear } from '@shell/utils/array';
+import cloneDeep from 'lodash/cloneDeep';
 
 const _NEW = '_NEW';
 const _NONE = '_NONE';
@@ -177,6 +178,7 @@ export default {
       if ( this.errors ) {
         clear(this.errors);
       }
+      const fullCredential = cloneDeep(this.newCredential);
 
       if ( typeof this.$refs.create?.test === 'function' ) {
         try {
@@ -204,6 +206,8 @@ export default {
         const res = await this.newCredential.save();
 
         this.credentialId = res.id;
+        // full cloud credential data is not stored in the cloud credentail CRD, but consuming components may want to use it
+        this.$emit('credential-created', fullCredential);
         btnCb(true);
       } catch (e) {
         this.errors = [e];
