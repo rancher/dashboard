@@ -142,7 +142,6 @@
     "@cypress/grep": "^3.1.5",
     "@cypress/vue": "5.0.5",
     "@cypress/webpack-dev-server": "3.4.1",
-    "@nuxt/types": "2.14.6",
     "@types/copy-webpack-plugin": "^5.0.3",
     "@types/dompurify": "3.0.0",
     "@types/is-url": "1.2.30",
