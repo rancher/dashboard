@@ -299,7 +299,6 @@ export default defineComponent({
     const registerBeforeHook = this.registerBeforeHook as Function;
     const registerAfterHook = this.registerAfterHook as Function;
 
-    registerBeforeHook(this.cleanPoolsForSave);
     registerBeforeHook(this.removeUnchangedConfigFields);
     registerAfterHook(this.saveRoleBindings, 'save-role-bindings');
   },
