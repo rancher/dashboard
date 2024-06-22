@@ -405,6 +405,33 @@ export const USER_PROVIDER = {
   sort:        'providerDisplay',
 };
 
+export const USER_LAST_LOGIN = {
+  name:          'user-last-login',
+  labelKey:      'tableHeaders.userLastLogin',
+  value:         'userLastLogin',
+  formatter:     'LiveDate',
+  formatterOpts: { addSuffix: true },
+  sort:          'userLastLogin',
+};
+
+export const USER_DISABLED_IN = {
+  name:          'user-disabled-in',
+  labelKey:      'tableHeaders.userDisabledIn',
+  value:         'userDisabledInDisplay',
+  formatter:     'LiveDate',
+  formatterOpts: { isCountdown: true },
+  sort:          'userDisabledIn',
+};
+
+export const USER_DELETED_IN = {
+  name:          'user-deleted-in',
+  labelKey:      'tableHeaders.userDeletedIn',
+  value:         'userDeletedIn',
+  formatter:     'LiveDate',
+  formatterOpts: { isCountdown: true },
+  sort:          'userDeletedIn',
+};
+
 export const USER_ID = {
   name:          'user-id',
   labelKey:      'tableHeaders.userId',
