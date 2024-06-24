@@ -81,7 +81,7 @@ export default {
 
         return !!(clientId && clientSecret && url && realm && isValidScope);
       } else {
-        const { rancherUrl, issuer, authEndpoint } = this.model;
+        const { rancherUrl, issuer } = this.model;
 
         return !!(clientId && clientSecret && rancherUrl && issuer && isValidScope);
       }
@@ -115,9 +115,9 @@ export default {
     },
 
     editConfig(neu, old) {
-      // Cover use case where user edits existing oidc (oidcUrls aren't persisted, so if we have issuer & authEndpoint set custom endpoints to true)
+      // Cover use case where user edits existing oidc (oidcUrls aren't persisted, so if we have issuer set custom endpoints to true)
       if (!old && neu) {
-        this.customEndpoint.value = (!this.oidcUrls.url && !this.oidcUrls.authEndpoint) && (!!this.model.issuer && !!this.model.authEndpoint);
+        this.customEndpoint.value = !this.oidcUrls.url && !!this.model.issuer;
       }
     }
   },
@@ -131,7 +131,6 @@ export default {
       const realmsPath = this.model.id === 'keycloakoidc' ? 'auth/realms' : 'realms';
 
       this.model.issuer = `${ url }/${ realmsPath }/${ this.oidcUrls.realm || '' }`;
-      this.model.authEndpoint = '';
     },
 
     updateScope() {

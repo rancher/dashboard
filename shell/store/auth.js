@@ -297,8 +297,6 @@ export const actions = {
       if (!!driver?.actions?.testAndEnable) {
         const finalRedirectUrl = returnTo({ config: provider }, this);
 
-        console.log('### testAndEnable finalRedirectUrl: ', provider, finalRedirectUrl);
-
         const res = await driver.doAction('testAndEnable', { finalRedirectUrl });
 
         const { idpRedirectUrl } = res;
@@ -306,11 +304,8 @@ export const actions = {
         return openAuthPopup(idpRedirectUrl, provider);
       } else {
       // github, google, azuread, oidc
-        console.log('## test body: ', JSON.parse(JSON.stringify(body)));
         const res = await driver.doAction('configureTest', body);
         const { redirectUrl } = res;
-
-        console.log('### test res: ', res);
 
         const url = await dispatch('redirectTo', {
           provider,
@@ -318,8 +313,6 @@ export const actions = {
           test:     true,
           redirect: false
         });
-
-        console.log('### test url', url);
 
         return openAuthPopup(url, provider);
       }
