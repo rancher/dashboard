@@ -18,7 +18,6 @@ describe('JWT Authentication', { testIsolation: 'off', tags: ['@manager', '@admi
     cy.createE2EResourceName('rke2cluster1').as('rke2Ec2ClusterName1');
 
     cy.get<string>('@rke2Ec2ClusterName0').then((name) => {
-      console.log(name)
       instance0 = name;
       // create real cluster
       cy.createAmazonRke2Cluster({
@@ -47,7 +46,6 @@ describe('JWT Authentication', { testIsolation: 'off', tags: ['@manager', '@admi
       });
     });
     cy.get<string>('@rke2Ec2ClusterName1').then((name) => {
-      console.log(name)
       instance1 = name;
       // create real cluster
       cy.createAmazonRke2Cluster({
@@ -75,12 +73,10 @@ describe('JWT Authentication', { testIsolation: 'off', tags: ['@manager', '@admi
         removeCluster1 = true;
       });
     });
-    
   });
   beforeEach(() => {
     cy.login();
     HomePagePo.goTo();
-    
   });
 
   it('should show the JWT Authentication list page', () => {
@@ -121,17 +117,17 @@ describe('JWT Authentication', { testIsolation: 'off', tags: ['@manager', '@admi
   it('should be able to enable JWT Authentication in bulk', () => {
     jwtAuthenticationPage.goTo();
     cy.intercept('POST', `/v1/management.cattle.io.clusterproxyconfigs`).as('enableJWT');
-    
+
     jwtAuthenticationPage.list().resourceTable().sortableTable().rowSelectCtlWithName(instance0)
       .set();
-      jwtAuthenticationPage.list().resourceTable().sortableTable().rowSelectCtlWithName(instance1)
+    jwtAuthenticationPage.list().resourceTable().sortableTable().rowSelectCtlWithName(instance1)
       .set();
-      jwtAuthenticationPage.list().activate();
+    jwtAuthenticationPage.list().activate();
 
-      cy.wait('@enableJWT', { requestTimeout: 10000 }).then(({ request, response }) => {
-        expect(response?.statusCode).to.eq(201);
-        expect(request.body.enabled).to.equal(true);
-      });
+    cy.wait('@enableJWT', { requestTimeout: 10000 }).then(({ request, response }) => {
+      expect(response?.statusCode).to.eq(201);
+      expect(request.body.enabled).to.equal(true);
+    });
     jwtAuthenticationPage.list().state(instance0).should('contain', 'Enabled');
     jwtAuthenticationPage.list().state(instance1).should('contain', 'Enabled');
   });
@@ -139,17 +135,16 @@ describe('JWT Authentication', { testIsolation: 'off', tags: ['@manager', '@admi
   it('should be able to disable JWT Authentication in bulk', () => {
     jwtAuthenticationPage.goTo();
     cy.intercept('DELETE', `/v1/management.cattle.io.clusterproxyconfigs/**`).as('disableJWT');
-    
-    
+
     jwtAuthenticationPage.list().resourceTable().sortableTable().rowSelectCtlWithName(instance0)
       .set();
-      jwtAuthenticationPage.list().resourceTable().sortableTable().rowSelectCtlWithName(instance1)
+    jwtAuthenticationPage.list().resourceTable().sortableTable().rowSelectCtlWithName(instance1)
       .set();
-      jwtAuthenticationPage.list().deactivate();
+    jwtAuthenticationPage.list().deactivate();
 
-      cy.wait('@disableJWT', { requestTimeout: 10000 }).then(({ request, response }) => {
-        expect(response?.statusCode).to.eq(204);
-      });
+    cy.wait('@disableJWT', { requestTimeout: 10000 }).then(({ request, response }) => {
+      expect(response?.statusCode).to.eq(204);
+    });
 
     jwtAuthenticationPage.list().state(instance0).should('contain', 'Disabled');
     jwtAuthenticationPage.list().state(instance1).should('contain', 'Disabled');
@@ -170,6 +165,5 @@ describe('JWT Authentication', { testIsolation: 'off', tags: ['@manager', '@admi
         removeCluster1 = false;
       });
     }
-    
   });
 });

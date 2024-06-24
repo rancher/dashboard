@@ -9,7 +9,6 @@ import { allHash } from '@shell/utils/promise';
 import ResourceFetch from '@shell/mixins/resource-fetch';
 import { BadgeState } from '@components/BadgeState';
 import TypeDescription from '@shell/components/TypeDescription';
-import AsyncButton from '@shell/components/AsyncButton';
 
 import { exceptionToErrorsArray } from '@shell/utils/error';
 import Banner from '@components/Banner/Banner.vue';
@@ -53,7 +52,7 @@ export default {
       this.errors = this.errors.filter((_, i) => i !== index);
     },
     sortGenerationFn() {
-      //This is needed to make sure table gets refreshed when the status changes. Otherwise, it uses cached values.
+      // This is needed to make sure table gets refreshed when the status changes. Otherwise, it uses cached values.
       const base = defaultTableSortGenerationFn(this.schema, this.$store);
 
       return base + this.forceUpdateLiveAndDelayed;
@@ -104,16 +103,17 @@ export default {
         label:      this.t('jwt.actions.activate'),
         invoke:     async(opts, resources) => {
           const promises = [];
-          try{
-          resources.forEach((resource) => {
-            const res = resource.enable();
 
-            promises.push(res);
-          });
-          await Promise.all(promises);
-        } catch (e) {
-              this.errors = exceptionToErrorsArray(e);
-            }
+          try {
+            resources.forEach((resource) => {
+              const res = resource.enable();
+
+              promises.push(res);
+            });
+            await Promise.all(promises);
+          } catch (e) {
+            this.errors = exceptionToErrorsArray(e);
+          }
         }
       };
       const disableAction = {
@@ -126,16 +126,17 @@ export default {
         label:      this.t('jwt.actions.deactivate'),
         invoke:     async(opts, resources) => {
           const promises = [];
-          try{
-          resources.forEach((resource) => {
-            const res = resource.disable();
 
-            promises.push(res);
-          });
-          await Promise.all(promises);
-        } catch (e) {
-              this.errors = exceptionToErrorsArray(e);
-            }
+          try {
+            resources.forEach((resource) => {
+              const res = resource.disable();
+
+              promises.push(res);
+            });
+            await Promise.all(promises);
+          } catch (e) {
+            this.errors = exceptionToErrorsArray(e);
+          }
         }
       };
 
@@ -160,23 +161,21 @@ export default {
           const creationTimestamp = cluster.metadata.creationTimestamp;
           const availableActions = value ? [disableAction] : [enableAction];
           const enable = async() => {
-            
-              if (!configName) {
-                const clusterProxyConfig = await this.$store.dispatch('management/create', {
-                  enabled:  true,
-                  metadata: { namespace: id, generateName: 'cluster-proxy-config-' },
-                });
+            if (!configName) {
+              const clusterProxyConfig = await this.$store.dispatch('management/create', {
+                enabled:  true,
+                metadata: { namespace: id, generateName: 'cluster-proxy-config-' },
+              });
 
-                return clusterProxyConfig.save({ url: 'v1/management.cattle.io.clusterproxyconfigs', method: 'POST' });
-              } else {
-                config.enabled = true;
+              return clusterProxyConfig.save({ url: 'v1/management.cattle.io.clusterproxyconfigs', method: 'POST' });
+            } else {
+              config.enabled = true;
 
-                return config.save();
-              }
-            
+              return config.save();
+            }
           };
           const disable = async() => {
-              return config.remove();
+            return config.remove();
           };
 
           rows.push({
