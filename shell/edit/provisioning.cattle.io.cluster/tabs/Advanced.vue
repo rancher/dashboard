@@ -92,6 +92,12 @@ export default {
 
 <template>
   <div>
+    <Banner
+      class="mt-0"
+      color="info"
+      label-key="cluster.jwtAuthentication.banner"
+      data-testid="jwt-authentication-banner"
+    />
     <template v-if="haveArgInfo">
       <DirectoryConfig
         v-model="value.spec.rkeConfig.dataDirectories"

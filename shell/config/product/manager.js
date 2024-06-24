@@ -5,7 +5,8 @@ import {
   NORMAN,
   HCI,
   MANAGEMENT,
-  SNAPSHOT
+  SNAPSHOT,
+  VIRTUAL_TYPES
 } from '@shell/config/types';
 import { MULTI_CLUSTER, RKE1_UI } from '@shell/store/features';
 import { DSL } from '@shell/store/type-map';
@@ -41,10 +42,11 @@ export function init(store) {
       }
     },
     typeStoreMap: {
-      [NORMAN.CLOUD_CREDENTIAL]: 'rancher',
-      cloudCredential:           'rancher',
-      [NORMAN.KONTAINER_DRIVER]: 'rancher',
-      [NORMAN.NODE_DRIVER]:      'rancher',
+      [NORMAN.CLOUD_CREDENTIAL]:          'rancher',
+      cloudCredential:                    'rancher',
+      [NORMAN.KONTAINER_DRIVER]:          'rancher',
+      [NORMAN.NODE_DRIVER]:               'rancher',
+      [VIRTUAL_TYPES.JWT_AUTHENTICATION]: 'management',
     }
   });
 
@@ -120,6 +122,17 @@ export function init(store) {
     route:      { name: 'c-cluster-manager-pages-page', params: { cluster: 'local', page: 'node-templates' } },
     exact:      true
   });
+
+  virtualType({
+    labelKey:   'manager.jwtAuthentication.label',
+    name:       VIRTUAL_TYPES.JWT_AUTHENTICATION,
+    group:      'Root',
+    namespaced: false,
+    icon:       'globe',
+    route:      { name: 'c-cluster-manager-jwt-authentication' },
+    exact:      true
+  });
+
   basicType([
     'rke-kontainer-drivers',
     'rke-node-drivers',
@@ -130,18 +143,20 @@ export function init(store) {
     'rke-node-templates'
   ], 'RKE1Configuration');
 
-  weightType(CAPI.MACHINE_DEPLOYMENT, 3, true);
-  weightType(CAPI.MACHINE_SET, 2, true);
-  weightType(CAPI.MACHINE, 1, true);
-  weightType(CATALOG.CLUSTER_REPO, 0, true);
+  weightType(CAPI.MACHINE_DEPLOYMENT, 4, true);
+  weightType(CAPI.MACHINE_SET, 3, true);
+  weightType(CAPI.MACHINE, 2, true);
+  weightType(CATALOG.CLUSTER_REPO, 1, true);
   weightType(MANAGEMENT.PSA, 5, true);
+  weightType(VIRTUAL_TYPES.JWT_AUTHENTICATION, 0, true);
 
   basicType([
     CAPI.MACHINE_DEPLOYMENT,
     CAPI.MACHINE_SET,
     CAPI.MACHINE,
     CATALOG.CLUSTER_REPO,
-    MANAGEMENT.PSA
+    MANAGEMENT.PSA,
+    VIRTUAL_TYPES.JWT_AUTHENTICATION
   ], 'advanced');
 
   weightGroup('advanced', -1, true);

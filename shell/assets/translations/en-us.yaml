@@ -159,6 +159,7 @@ nav:
     admission: Admission
     apps: Apps
     clusterProvisioning: Cluster Provisioning
+    jwt.authentication: JWT Authentication
     core: Core
     legacy: Legacy
     API: API
@@ -1181,6 +1182,9 @@ cis:
   testsToSkip: Tests to Skip
 
 cluster:
+  jwtAuthentication:
+    banner: "Service Account access with JWT authentication can be configured after cluster creation from <br>
+      <code>Cluster Management > Advanced > JWT Authentication</code>"
   addonChart:
     rancher-vsphere-cpi: vSphere CPI Configuration
     rancher-vsphere-csi: vSphere CSI Configuration
@@ -2881,6 +2885,21 @@ istio:
     description: Description
   tracing: Enable Jaeger Tracing (limited)
   v1Warning: Please uninstall the current Istio version in the <code>istio-system</code> namespace before attempting to install this version.
+
+jwt:
+  title: JWT Authentication
+  actions:
+    activate: Enable
+    deactivate: Disable
+    refresh: Refresh
+  state:
+    enabled: Enabled
+    disabled: Disabled
+  headers:
+    clusterName: Cluster Name
+    updatedOn: JWT enabled on
+    clusterAge: Cluster Age
+
 
 labels:
   addLabel: Add Label
@@ -6601,6 +6620,7 @@ typeDescription:
   #       Should fit on one line.
   #       If you link to anything external, it MUST have
   #       target="_blank" rel="noopener noreferrer nofollow"
+  jwt.authentication: Enable this feature on a cluster to add support for JWT authenticating downstream service accounts.
   branding: "Branding allows administrators to globally re-brand the UI by customizing the Rancher product name, logos and color scheme."
   chart: "All charts have at least one version that is installable on clusters with Linux and Windows nodes unless otherwise indicated."
   cis.cattle.io.clusterscanbenchmark: A benchmark version is the name of benchmark to run using kube-bench as well as the valid configuration parameters for that benchmark.
@@ -7657,6 +7677,8 @@ manager:
     label: RKE Templates
   nodeTemplates:
     label: Node Templates
+  jwtAuthentication:
+    label: JWT Authentication
 
 auth:
   roleTemplate: Role Templates
