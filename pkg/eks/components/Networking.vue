@@ -89,7 +89,7 @@ export default defineComponent({
       loadingVpcs:  false,
       vpcInfo:      {} as {Vpcs: AWS.VPC[]},
       subnetInfo:   {} as {Subnets: AWS.Subnet[]},
-      chooseSubnet: this.subnets && !!this.subnets.length
+      chooseSubnet: !!this.subnets && !!this.subnets.length
     };
   },
 

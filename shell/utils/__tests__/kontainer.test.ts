@@ -1,4 +1,4 @@
-import { diffUpstreamSpec } from '@shell/utils/kontainer';
+import { diffUpstreamSpec, syncUpstreamConfig } from '@shell/utils/kontainer';
 
 describe('fx: diffUpstreamSpec', () => {
   it.each([
@@ -88,5 +88,49 @@ describe('fx: diffUpstreamSpec', () => {
     [{ labels: { a: 'a', b: 'b' } }, { labels: { a: 'a', b: 'b' } }, {}],
   ])('should include all of tags and labels unless upstream and local are deeply equal', (upstream, local, diff) => {
     expect(diffUpstreamSpec(upstream, local)).toStrictEqual(diff);
+  });
+});
+
+describe('fx: syncUpstreamSpec', () => {
+  it('should set any fields defined in upstream spec and not local spec', () => {
+    const upstream = {
+      string:                 'def',
+      'other-string':         '123',
+      emptyArray:             [],
+      emptyObject:            {},
+      nonEmptyArray:          [1, 2, 3],
+      nonEmptyObject:         { foo: 'bar' },
+      falseBoolean:           false,
+      trueBoolean:            true,
+      alreadySet:             'abc',
+      alreadySetArray:        [2, 3, 4],
+      alreadySetBooleanFalse: false,
+      alreadySetBooleanTrue:  true
+    };
+    const local = {
+      alreadySet:             'def',
+      alreadySetArray:        [1, 2, 3],
+      alreadySetBooleanFalse: false,
+      alreadySetBooleanTrue:  true
+    };
+
+    const expected = {
+      string:                 'def',
+      'other-string':         '123',
+      nonEmptyArray:          [1, 2, 3],
+      nonEmptyObject:         { foo: 'bar' },
+      falseBoolean:           false,
+      trueBoolean:            true,
+      alreadySet:             'def',
+      alreadySetArray:        [1, 2, 3],
+      alreadySetBooleanFalse: false,
+      alreadySetBooleanTrue:  true
+    };
+
+    const testCluster = { eksConfig: local, eksStatus: { upstreamSpec: upstream } };
+
+    syncUpstreamConfig( 'eks', testCluster);
+
+    expect(testCluster.eksConfig).toStrictEqual(expected);
   });
 });

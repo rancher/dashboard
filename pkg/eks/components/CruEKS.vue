@@ -121,7 +121,7 @@ export default defineComponent({
       this.normanCluster = await store.dispatch(`rancher/clone`, { resource: liveNormanCluster });
       // ensure any fields editable through this UI that have been altered in azure portal are shown here - see syncUpstreamConfig jsdoc for details
       if (!this.isNewOrUnprovisioned) {
-        syncUpstreamConfig('aks', this.normanCluster);
+        syncUpstreamConfig('eks', this.normanCluster);
       }
       // track original version on edit to ensure we don't offer k8s downgrades
       this.originalVersion = this.normanCluster?.eksConfig?.kubernetesVersion || '';
@@ -140,7 +140,7 @@ export default defineComponent({
     }
     this.config = this.normanCluster.eksConfig as EKSConfig;
 
-    if (!this.config.nodeGroups || !this.config.nodeGroups.length) {
+    if ((!this.config.nodeGroups || !this.config.nodeGroups.length) && this.mode === _CREATE) {
       this.$set(this.config, 'nodeGroups', [{ ...DEFAULT_NODE_GROUP_CONFIG, nodegroupName: 'group1' }]);
     }
     if (this.config.nodeGroups) {
@@ -382,7 +382,7 @@ export default defineComponent({
       });
 
       return out;
-    }
+    },
   },
 
   methods: {
@@ -413,6 +413,9 @@ export default defineComponent({
     },
 
     async actuallySave(): Promise<void> {
+      if (!this.isNewOrUnprovisioned && !this.nodeGroups.length) {
+        delete this.normanCluster.eksConfig.nodeGroups;
+      }
       await this.normanCluster.save();
 
       return await this.normanCluster.waitForCondition('InitialRolesPopulated');
@@ -527,6 +530,7 @@ export default defineComponent({
     :done-route="doneRoute"
     :errors="fvUnreportedValidationErrors"
     :validation-passed="fvFormIsValid"
+    data-testid="eks-cruresource"
     @error="e=>errors=e"
     @finish="save"
     @cancel="done"
