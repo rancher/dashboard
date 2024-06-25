@@ -8,7 +8,11 @@ module.exports = {
   extends: [
     'standard',
     'eslint:recommended',
-    'plugin:cypress/recommended'
+    'plugin:@typescript-eslint/recommended',
+    '@vue/standard',
+    '@vue/typescript/recommended',
+    'plugin:vue/recommended',
+    'plugin:cypress/recommended',
   ],
   // add your custom rules here
   rules: {
