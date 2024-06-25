@@ -1,6 +1,6 @@
 <script lang="ts">
 import { _CREATE, _EDIT, _VIEW } from '@shell/config/query-params';
-import { defineComponent } from 'vue';
+import { PropType, defineComponent } from 'vue';
 import { Store, mapGetters } from 'vuex';
 import LabeledSelect from '@shell/components/form/LabeledSelect.vue';
 import Checkbox from '@components/Form/Checkbox/Checkbox.vue';
@@ -27,31 +27,42 @@ export default defineComponent({
       type:    String,
       default: _EDIT
     },
+
     region: {
       type:    String,
       default: ''
     },
+
     amazonCredentialSecret: {
       type:    String,
       default: ''
     },
 
     subnets: {
-      type:    Array,
+      type:    Array as PropType<string[]>,
       default: () => []
     },
+
     publicAccess: {
       type:    Boolean,
       default: false
     },
+
     privateAccess: {
       type:    Boolean,
       default: false
     },
+
     publicAccessSources: {
       type:    Array,
       default: () => []
     },
+
+    statusSubnets: {
+      type:    Array as PropType<string[]>,
+      default: () => []
+    },
+
     rules: {
       type:    Object,
       default: () => {}
@@ -143,8 +154,11 @@ export default defineComponent({
     },
 
     displaySubnets: {
-      get(): {key:string, label:string, _isSubnet?:boolean, kind?:string}[] {
-        return this.vpcOptions.filter((option) => this.subnets.includes(option.key));
+      get(): {key:string, label:string, _isSubnet?:boolean, kind?:string}[] | string[] {
+        const subnets: string[] = this.chooseSubnet ? this.subnets : this.statusSubnets;
+
+        // vpcOptions will be empty in 'view config' mode, where aws API requests are not made
+        return this.vpcOptions.length ? this.vpcOptions.filter((option) => subnets.includes(option.key)) : subnets;
       },
       set(neu: {key:string, label:string, _isSubnet?:boolean, kind?:string}[]) {
         this.$emit('update:subnets', neu.map((s) => s.key));
@@ -223,7 +237,10 @@ export default defineComponent({
       </div>
     </div>
     <div class="row mb-10">
-      <div class="col span-6">
+      <div
+        v-if="isNew"
+        class="col span-6"
+      >
         <RadioGroup
           v-model="chooseSubnet"
           name="subnet-mode"
@@ -234,11 +251,12 @@ export default defineComponent({
         />
       </div>
       <div
-        v-if="chooseSubnet"
+        v-if="chooseSubnet || !isNew"
         class="col span-6"
       >
         <LabeledSelect
           v-model="displaySubnets"
+          :disabled="!isNew"
           :mode="mode"
           label-key="eks.vpcSubnet.label"
           :options="vpcOptions"

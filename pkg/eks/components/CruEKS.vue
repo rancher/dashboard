@@ -307,6 +307,11 @@ export default defineComponent({
       return this.value?.id || null;
     },
 
+    // used to display VPC/subnet information in the networking tab for imported clusters and clusters with the 'create a vpc and subnets automatically' option selected
+    statusSubnets(): string[] {
+      return this.normanCluster?.eksStatus?.subnets || [];
+    },
+
     canManageMembers(): boolean {
       return canViewClusterMembershipEditor(this.$store);
     },
@@ -665,6 +670,7 @@ export default defineComponent({
           :mode="mode"
           :region="config.region"
           :amazon-credential-secret="config.amazonCredentialSecret"
+          :status-subnets="statusSubnets"
           :rules="{subnets:fvGetAndReportPathRules('subnets')}"
         />
       </Accordion>
