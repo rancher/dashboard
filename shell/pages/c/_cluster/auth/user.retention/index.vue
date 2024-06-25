@@ -88,7 +88,7 @@ let settings: { [id: string]: Setting } = {};
  * Watches the disable after period and removes the value if the checkbox is
  * not selected. Lookup the value when the checkbox is selected.
  */
-watch(disableAfterPeriod, (newVal) => {
+watch(disableAfterPeriod, (newVal: string) => {
   if (!newVal) {
     userRetentionSettings[SETTING.DISABLE_INACTIVE_USER_AFTER] = null;
 
@@ -102,7 +102,7 @@ watch(disableAfterPeriod, (newVal) => {
  * Watches the delete after period and removes the value if the checkbox is
  * not selected. Lookup the value when the checkbox is selected.
  */
-watch(deleteAfterPeriod, (newVal) => {
+watch(deleteAfterPeriod, (newVal: string) => {
   if (!newVal) {
     userRetentionSettings[SETTING.DELETE_INACTIVE_USER_AFTER] = null;
 
@@ -117,7 +117,7 @@ watch(deleteAfterPeriod, (newVal) => {
  * the form if both checkboxes are not selected. If one of the checkboxes
  * are selected, lookup each of the values in the form.
  */
-watch([disableAfterPeriod, deleteAfterPeriod], ([newDisableAfterPeriod, newDeleteAfterPeriod]) => {
+watch([disableAfterPeriod, deleteAfterPeriod], ([newDisableAfterPeriod, newDeleteAfterPeriod]: [newDisabledAfterPeriod: string, newDeleteAfterPeriod: string]) => {
   if (!newDisableAfterPeriod && !newDeleteAfterPeriod) {
     ids.forEach((key) => {
       userRetentionSettings[key] = null;
@@ -233,7 +233,7 @@ const routeBack = () => {
   router.back();
 };
 
-onBeforeRouteUpdate((_to, _from) => {
+onBeforeRouteUpdate((_to: unknown, _from: unknown) => {
   if (!isAdminUser(store.getters)) {
     router.replace({ name: 'home' });
   }
