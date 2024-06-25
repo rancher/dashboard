@@ -24,7 +24,9 @@
     "shell": "file:./..",
     "storybook-auto-events": "^0.1.1",
     "storybook-dark-mode": "^1.0.8",
-    "vue-shortkey": "3.1.7"
+    "vue-shortkey": "3.1.7",
+    "playwright": "1.44.0",
+    "playwright-core": "1.44.0"
   },
   "dependencies": {
     "tsconfig-paths-webpack-plugin": "^4.0.0",
