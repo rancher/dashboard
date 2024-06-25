@@ -76,14 +76,18 @@ export default {
       const { clientId, clientSecret } = this.model;
       const isValidScope = this.model.id === 'keycloakoidc' || this.oidcScope?.includes('openid');
 
+      if ( !isValidScope ) {
+        return false;
+      }
+
       if ( !this.customEndpoint.value ) {
         const { url, realm } = this.oidcUrls;
 
-        return !!(clientId && clientSecret && url && realm && isValidScope);
+        return !!(clientId && clientSecret && url && realm);
       } else {
         const { rancherUrl, issuer } = this.model;
 
-        return !!(clientId && clientSecret && rancherUrl && issuer && isValidScope);
+        return !!(clientId && clientSecret && rancherUrl && issuer);
       }
     }
   },
@@ -127,10 +131,16 @@ export default {
       if (!this.oidcUrls.url) {
         return;
       }
+      const isKeycloak = this.model.id === 'keycloakoidc';
+
       const url = this.oidcUrls.url.replaceAll(' ', '');
-      const realmsPath = this.model.id === 'keycloakoidc' ? 'auth/realms' : 'realms';
+      const realmsPath = isKeycloak ? 'auth/realms' : 'realms';
 
       this.model.issuer = `${ url }/${ realmsPath }/${ this.oidcUrls.realm || '' }`;
+
+      if ( isKeycloak ) {
+        this.model.authEndpoint = `${ this.model.issuer || '' }/protocol/openid-connect/auth`;
+      }
     },
 
     updateScope() {
@@ -326,6 +336,7 @@ export default {
               :label="t(`authConfig.oidc.authEndpoint`)"
               :mode="mode"
               :disabled="!customEndpoint.value"
+              :required="model.id === 'keycloakoidc'"
               data-testid="oidc-auth-endpoint"
             />
           </div>
