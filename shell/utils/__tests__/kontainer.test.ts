@@ -96,12 +96,6 @@ describe('fx: syncUpstreamSpec', () => {
     const upstream = {
       string:                 'def',
       'other-string':         '123',
-      emptyArray:             [],
-      emptyObject:            {},
-      nonEmptyArray:          [1, 2, 3],
-      nonEmptyObject:         { foo: 'bar' },
-      falseBoolean:           false,
-      trueBoolean:            true,
       alreadySet:             'abc',
       alreadySetArray:        [2, 3, 4],
       alreadySetBooleanFalse: false,
@@ -117,12 +111,62 @@ describe('fx: syncUpstreamSpec', () => {
     const expected = {
       string:                 'def',
       'other-string':         '123',
-      nonEmptyArray:          [1, 2, 3],
-      nonEmptyObject:         { foo: 'bar' },
-      falseBoolean:           false,
-      trueBoolean:            true,
       alreadySet:             'def',
       alreadySetArray:        [1, 2, 3],
+      alreadySetBooleanFalse: false,
+      alreadySetBooleanTrue:  true
+    };
+
+    const testCluster = { eksConfig: local, eksStatus: { upstreamSpec: upstream } };
+
+    syncUpstreamConfig( 'eks', testCluster);
+
+    expect(testCluster.eksConfig).toStrictEqual(expected);
+  });
+
+  it('should not set empty objects or arrays from upstream spec', () => {
+    const upstream = {
+      emptyArray:      [],
+      emptyObject:     {},
+      nonEmptyArray:   [1, 2, 3],
+      nonEmptyObject:  { foo: 'bar' },
+      alreadySet:      'abc',
+      alreadySetArray: [2, 3, 4],
+    };
+    const local = {
+      alreadySet:      'def',
+      alreadySetArray: [1, 2, 3],
+    };
+
+    const expected = {
+      nonEmptyArray:   [1, 2, 3],
+      nonEmptyObject:  { foo: 'bar' },
+      alreadySet:      'def',
+      alreadySetArray: [1, 2, 3],
+    };
+
+    const testCluster = { eksConfig: local, eksStatus: { upstreamSpec: upstream } };
+
+    syncUpstreamConfig( 'eks', testCluster);
+
+    expect(testCluster.eksConfig).toStrictEqual(expected);
+  });
+
+  it('should not overwrite boolean values explicitly set false', () => {
+    const upstream = {
+      falseBoolean:           false,
+      trueBoolean:            true,
+      alreadySetBooleanFalse: true,
+      alreadySetBooleanTrue:  false
+    };
+    const local = {
+      alreadySetBooleanFalse: false,
+      alreadySetBooleanTrue:  true
+    };
+
+    const expected = {
+      falseBoolean:           false,
+      trueBoolean:            true,
       alreadySetBooleanFalse: false,
       alreadySetBooleanTrue:  true
     };
