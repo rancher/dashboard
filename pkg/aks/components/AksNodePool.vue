@@ -447,11 +447,12 @@ export default defineComponent({
           />
         </div>
         <KeyValue
-          v-model="pool.labels"
+          v-model="pool.nodeLabels"
           :mode="mode"
           :value-can-be-empty="true"
-          add-label-key="Add Label"
+          :add-label="t('aks.nodePools.labels.add')"
           :read-allowed="false"
+          data-testid="aks-node-labels-input"
         />
       </div>
     </div>

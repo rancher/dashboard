@@ -301,7 +301,6 @@ export default defineComponent({
     const registerBeforeHook = this.registerBeforeHook as Function;
     const registerAfterHook = this.registerAfterHook as Function;
 
-    registerBeforeHook(this.cleanPoolsForSave);
     registerBeforeHook(this.removeUnchangedConfigFields);
     registerAfterHook(this.saveRoleBindings, 'save-role-bindings');
   },
@@ -983,17 +982,6 @@ export default defineComponent({
       if (this.membershipUpdate.save) {
         await this.membershipUpdate.save(this.normanCluster.id);
       }
-    },
-
-    // these fields are used purely in UI, to track individual nodepool components
-    cleanPoolsForSave(): void {
-      this.nodePools.forEach((pool: AKSNodePool) => {
-        Object.keys(pool).forEach((key: string) => {
-          if (key.startsWith('_')) {
-            delete pool[key as keyof AKSNodePool];
-          }
-        });
-      });
     },
 
     // only save values that differ from upstream aks spec - see diffUpstreamSpec comments for details
