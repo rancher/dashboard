@@ -16,7 +16,7 @@ import Banner from '@components/Banner/Banner.vue';
 export default {
   name:       'ClusterProxyConfig',
   components: {
-    ResourceTable, Loading, Masthead, BadgeState, Banner, TypeDescription, AsyncButton
+    ResourceTable, Loading, Masthead, BadgeState, Banner, TypeDescription
   },
   mixins: [ResourceFetch],
   async fetch() {
