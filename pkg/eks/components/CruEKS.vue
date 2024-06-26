@@ -60,6 +60,7 @@ export const DEFAULT_NODE_GROUP_CONFIG = {
   tags:                 {},
   type:                 'nodeGroup',
   userData:             '',
+  _isNew:               true,
 };
 
 const DEFAULT_EKS_CONFIG = {
@@ -250,7 +251,11 @@ export default defineComponent({
     },
 
     'config.kubernetesVersion'(neu) {
-      this.nodeGroups.forEach((group: EKSNodeGroup) => this.$set(group, 'version', neu));
+      this.nodeGroups.forEach((group: EKSNodeGroup) => {
+        if (group._isNew) {
+          this.$set(group, 'version', neu);
+        }
+      });
     }
   },
 
@@ -601,9 +606,13 @@ export default defineComponent({
             :max-size.sync="node.maxSize"
             :request-spot-instances.sync="node.requestSpotInstances"
             :labels.sync="node.labels"
+            :version.sync="node.version"
+            :cluster-version="config.kubernetesVersion"
+            :original-cluster-version="originalVersion"
             :region="config.region"
             :amazon-credential-secret="config.amazonCredentialSecret"
             :is-new-or-unprovisioned="isNewOrUnprovisioned"
+            :pool-is-new="node._isNew"
             :mode="mode"
             :instance-type-options="instanceTypeOptions"
             :spot-instance-type-options="spotInstanceTypeOptions"

@@ -1,6 +1,6 @@
 import flushPromises from 'flush-promises';
 import { shallowMount, Wrapper } from '@vue/test-utils';
-import { EKSConfig } from 'types';
+import { EKSConfig, EKSNodeGroup } from 'types';
 import CruEKS from '@pkg/eks/components/CruEKS.vue';
 
 const mockedValidationMixin = {
@@ -115,5 +115,35 @@ describe('eKS provisioning form', () => {
     expect(wrapper.vm.config.displayName).toStrictEqual('def');
     expect(wrapper.vm.normanCluster.name).toStrictEqual('def');
     expect(nameInput.props().value).toStrictEqual('def');
+  });
+
+  it('should set _isNew to true when a pool is added', async() => {
+    const wrapper = shallowMount(CruEKS, {
+      propsData: { value: {}, mode: 'edit' },
+      ...requiredSetup()
+    });
+
+    wrapper.setData({ nodeGroups: [{ name: 'abc' }] });
+    wrapper.vm.addGroup();
+    await wrapper.vm.$nextTick();
+    expect(wrapper.vm.nodeGroups).toHaveLength(2);
+    expect(wrapper.vm.nodeGroups.filter((group: EKSNodeGroup) => !group._isNew)).toHaveLength(1);
+  });
+
+  it('should update new node pools\' version when cluster version is updated', async() => {
+    const wrapper = shallowMount(CruEKS, {
+      propsData: { value: {}, mode: 'edit' },
+      ...requiredSetup()
+    });
+
+    wrapper.setData({ nodeGroups: [{ name: 'abc' }] });
+    wrapper.vm.addGroup();
+    await wrapper.vm.$nextTick();
+
+    wrapper.setData({ config: { kubernetesVersion: '1.24' } });
+
+    await wrapper.vm.$nextTick();
+
+    expect(wrapper.vm.nodeGroups.filter((group: EKSNodeGroup) => group.version === '1.24')).toHaveLength(1);
   });
 });
