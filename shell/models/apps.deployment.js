@@ -14,7 +14,8 @@ export default class Deployment extends Workload {
   get replicaSetId() {
     const set = this.metadata?.relationships?.find((relationship) => {
       return relationship.rel === 'owner' &&
-            relationship.toType === WORKLOAD_TYPES.REPLICA_SET;
+            relationship.toType === WORKLOAD_TYPES.REPLICA_SET &&
+            relationship.message.split(':')[1].trim() > 0;
     });
 
     return set?.toId?.replace(`${ this.namespace }/`, '');
