@@ -135,7 +135,7 @@ watch([disableAfterPeriod, deleteAfterPeriod], ([newDisableAfterPeriod, newDelet
 });
 
 const assignSettings = (key: string) => {
-  if (settings[key].id === SETTING.USER_LAST_LOGIN_DEFAULT && settings[key].value !== null && typeof settings[key].value === 'string') {
+  if (settings[key].id === SETTING.USER_LAST_LOGIN_DEFAULT && settings[key].value && typeof settings[key].value === 'string') {
     const value = settings[key].value as string;
 
     userRetentionSettings[key] = dayjs(value).valueOf().toString();
