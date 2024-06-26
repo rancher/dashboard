@@ -230,6 +230,16 @@ export default {
             apiGroupLabel = scope.includes('cluster') ? labelForNoApiGroup : labelForNamespacedResourcesWithNoApiGroup;
             apiGroupValue = '';
           }
+
+          if (apiGroup === 'neuvectorApi') {
+            // Some NeuVector resources are namespaced, in which case they go under a different heading
+            const labelForClusterScoped = this.t('rbac.roletemplate.tabs.grantResources.neuvector.labelClusterScoped');
+            const labelForNamespaceScoped = this.t('rbac.roletemplate.tabs.grantResources.neuvector.labelNamespaceScoped');
+
+            apiGroupLabel = scope.includes('cluster') ? labelForClusterScoped : labelForNamespaceScoped;
+            apiGroupValue = 'api.neuvector.com';
+          }
+
           options.push({
             kind:      'group',
             optionKey: apiGroupLabel,
