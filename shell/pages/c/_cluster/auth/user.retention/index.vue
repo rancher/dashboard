@@ -88,7 +88,7 @@ let settings: { [id: string]: Setting } = {};
  * Watches the disable after period and removes the value if the checkbox is
  * not selected. Lookup the value when the checkbox is selected.
  */
-watch(disableAfterPeriod, (newVal: string) => {
+watch(disableAfterPeriod, (newVal) => {
   if (!newVal) {
     userRetentionSettings[SETTING.DISABLE_INACTIVE_USER_AFTER] = null;
 
@@ -102,7 +102,7 @@ watch(disableAfterPeriod, (newVal: string) => {
  * Watches the delete after period and removes the value if the checkbox is
  * not selected. Lookup the value when the checkbox is selected.
  */
-watch(deleteAfterPeriod, (newVal: string) => {
+watch(deleteAfterPeriod, (newVal) => {
   if (!newVal) {
     userRetentionSettings[SETTING.DELETE_INACTIVE_USER_AFTER] = null;
 
@@ -117,7 +117,7 @@ watch(deleteAfterPeriod, (newVal: string) => {
  * the form if both checkboxes are not selected. If one of the checkboxes
  * are selected, lookup each of the values in the form.
  */
-watch([disableAfterPeriod, deleteAfterPeriod], ([newDisableAfterPeriod, newDeleteAfterPeriod]: [newDisabledAfterPeriod: string, newDeleteAfterPeriod: string]) => {
+watch([disableAfterPeriod, deleteAfterPeriod], ([newDisableAfterPeriod, newDeleteAfterPeriod]) => {
   if (!newDisableAfterPeriod && !newDeleteAfterPeriod) {
     ids.forEach((key) => {
       userRetentionSettings[key] = null;
