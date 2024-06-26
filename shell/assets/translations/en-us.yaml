@@ -580,11 +580,21 @@ authConfig:
       label: Endpoints
       custom: Specify
       standard: Generate
+    url: URL
+    realm: Realm
     keycloak:
       url: Keycloak URL
       realm: Keycloak Realm
     issuer: Issuer
     authEndpoint: Auth Endpoint
+    jwksUrl: JWKS URL
+    tokenEndpoint: Token Endpoint
+    userInfoEndpoint: User Info Endpoint
+    acrValue: Authorization Context Reference
+    scope:
+      label: Scopes
+      placeholder: openid
+      protip: The <code>openid</code> scope is required. If you are using custom scopes, ensure that it is included.
     cert:
       label: Certificate
       placeholder: Paste in the certificate, starting with -----BEGIN CERTIFICATE-----
@@ -6511,7 +6521,7 @@ model:
       okta: Okta
       freeipa: FreeIPA
       googleoauth: Google
-      oidc: OIDC
+      oidc: Generic OIDC
       keycloakoidc: Keycloak
 
   cluster:

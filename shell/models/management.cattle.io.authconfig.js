@@ -14,10 +14,11 @@ export const configType = {
   googleoauth:     'oauth',
   local:           '',
   github:          'oauth',
-  keycloakoidc:    'oidc'
+  keycloakoidc:    'oidc',
+  oidc:            'oidc',
 };
 
-const imageOverrides = { keycloakoidc: 'keycloak' };
+const imageOverrides = { keycloakoidc: 'keycloak', oidc: 'openid' };
 
 export default class AuthConfig extends SteveModel {
   get _availableActions() {

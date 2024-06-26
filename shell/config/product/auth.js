@@ -174,6 +174,7 @@ export function init(store) {
   componentForType(`${ MANAGEMENT.AUTH_CONFIG }/googleoauth`, 'auth/googleoauth');
   componentForType(`${ MANAGEMENT.AUTH_CONFIG }/azuread`, 'auth/azuread');
   componentForType(`${ MANAGEMENT.AUTH_CONFIG }/keycloakoidc`, 'auth/oidc');
+  componentForType(`${ MANAGEMENT.AUTH_CONFIG }/oidc`, 'auth/oidc');
 
   basicType([
     'config',
