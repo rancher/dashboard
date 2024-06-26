@@ -31,6 +31,8 @@
     "vue-loader": "15.10.1"
   },
   "resolutions": {
-    "polished": "4.2.2"
+    "polished": "4.2.2",
+    "playwright": "1.44.0",
+    "playwright-core": "1.44.0"
   }
 }
