@@ -18,21 +18,21 @@
     "@storybook/addon-actions": "^6.3.8",
     "@storybook/addon-essentials": "^6.3.8",
     "@storybook/addon-links": "^6.3.8",
-    "@storybook/test-runner": "0.18.2",
+    "@storybook/test-runner": "^0.11.0",
     "@storybook/vue": "^6.3.8",
     "axe-playwright": "^1.2.3",
     "shell": "file:./..",
     "storybook-auto-events": "^0.1.1",
     "storybook-dark-mode": "^1.0.8",
-    "vue-shortkey": "3.1.7",
-    "playwright": "1.44.0",
-    "playwright-core": "1.44.0"
+    "vue-shortkey": "3.1.7"
   },
   "dependencies": {
     "tsconfig-paths-webpack-plugin": "^4.0.0",
     "vue-loader": "15.10.1"
   },
   "resolutions": {
-    "polished": "4.2.2"
+    "polished": "4.2.2",
+    "playwright": "1.44.0",
+    "playwright-core": "1.44.0"
   }
 }
