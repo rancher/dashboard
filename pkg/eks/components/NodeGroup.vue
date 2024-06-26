@@ -391,13 +391,17 @@ export default defineComponent({
         }
       }
     },
+
+    isView() {
+      return this.mode === _VIEW;
+    }
   },
 
   methods: {
     async fetchLaunchTemplateVersionInfo(launchTemplate: AWS.LaunchTemplate) {
       const { region, amazonCredentialSecret } = this;
 
-      if (!region || !amazonCredentialSecret || this.mode === _VIEW) {
+      if (!region || !amazonCredentialSecret || this.isView) {
         return;
       }
       const store = this.$store as Store<any>;
@@ -600,6 +604,7 @@ export default defineComponent({
           v-model="willUpgrade"
           :label="t('eks.nodeGroups.kubernetesVersion.upgrade', {from: originalNodeVersion, to: clusterVersion})"
           data-testid="eks-version-upgrade-checkbox"
+          :disabled="isView"
         />
       </div>
       <div class="col span-4">
