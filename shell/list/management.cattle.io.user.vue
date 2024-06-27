@@ -142,7 +142,7 @@ export default {
           data-testid="router-link-user-retention"
         >
           <i class="icon icon-gear" />
-          User retention settings
+          {{ t('user.retention.button.label') }}
         </router-link>
       </template>
     </Masthead>

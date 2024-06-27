@@ -5798,6 +5798,9 @@ user:
   retention:
     button:
       label: User retention settings
+    growl:
+      title: Save user retention settings
+      message: User retention settings have been updated successfully
     edit:
       title:
         header: "Users: Settings"
