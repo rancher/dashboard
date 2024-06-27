@@ -5,6 +5,7 @@ import { useRouter, onBeforeRouteUpdate } from 'vue-router/composables';
 import UserRetentionHeader from '@shell/components/user.retention/user-retention-header.vue';
 import Footer from '@shell/components/form/Footer.vue';
 import { useStore } from '@shell/composables/useStore';
+import { useI18n } from '@shell/composables/useI18n';
 import { MANAGEMENT } from '@shell/config/types';
 import { SETTING } from '@shell/config/settings';
 import { isAdminUser } from '@shell/store/type-map';
@@ -173,6 +174,7 @@ onMounted(async() => {
 });
 
 const isFormValid = ref(false);
+const { t } = useI18n(store);
 const validateUserRetentionCron = () => {
   const { [SETTING.USER_RETENTION_CRON]: cronSetting } = userRetentionSettings;
 
@@ -216,8 +218,8 @@ const save = async(btnCB: (arg: boolean) => void) => {
     store.dispatch(
       'growl/success',
       {
-        title:   'Save user retention settings',
-        message: 'User retention settings have been updated successfully',
+        title:   t('user.retention.growl.title'),
+        message: t('user.retention.growl.message'),
       },
       { root: true }
     );
