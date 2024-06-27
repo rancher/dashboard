@@ -69,6 +69,7 @@ export default {
 
         const sort = (a, b) => a.nameDisplay.localeCompare(b.nameDisplay);
 
+        // global roles are not sorted
         this.sortedRoles.builtin = this.sortedRoles.builtin.sort(sort);
         this.sortedRoles.custom = this.sortedRoles.custom.sort(sort);
 
@@ -76,12 +77,33 @@ export default {
           this.globalRoleBindings = await this.$store.dispatch('management/findAll', { type: MANAGEMENT.GLOBAL_ROLE_BINDING, opt: { force: true } });
         }
 
+        // Sort the global roles - use the order defined in 'globalPermissions' and then add the remaining roles after
+        const globalRoles = [];
+        const globalRolesAdded = {};
+
+        this.globalPermissions.forEach((id) => {
+          const role = this.sortedRoles.global.find((r) => r.id === id);
+
+          if (role) {
+            globalRoles.push(role);
+            globalRolesAdded[id] = true;
+          }
+        });
+
+        // Remaining global roles
+        const remainingGlobalRoles = this.sortedRoles.global.filter((r) => !globalRolesAdded[r.id]);
+
+        this.sortedRoles.global = globalRoles;
+        this.sortedRoles.global.push(...remainingGlobalRoles);
+        // End sort of global roles
+
         this.update();
       }
     } catch (e) { }
   },
   data() {
     return {
+      // This not only identifies global roles but the order here is the order we want to display them in the UI
       globalPermissions: [
         'admin',
         'restricted-admin',

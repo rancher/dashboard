@@ -95,6 +95,36 @@ describe('Users', { tags: ['@usersAndAuths', '@adminUser'] }, () => {
     });
   });
 
+  it('shows global roles in specific order', () => {
+    // Intercept roles request and change the order
+    cy.intercept('GET', `/v1/management.cattle.io.globalroles?*`, (req) => {
+      req.continue((res) => {
+        // Move the Administrator role to the end of the list
+        const adminIndex = res.body.data.findIndex((item) => item.id === 'admin');
+        const adminRole = res.body.data[adminIndex];
+
+        res.body.data.splice(adminIndex, 1);
+        res.body.data.push(adminRole);
+
+        res.send(res.body);
+      });
+    });
+
+    usersPo.goTo();
+    usersPo.list().create();
+    userCreate.waitForPage();
+
+    const mgmtUserEditPo = new MgmtUserEditPo();
+
+    mgmtUserEditPo.globalRoleBindings().globalOptions().then((list) => {
+      expect(list.length).to.eq(4);
+      expect(list[0]).to.eq('Administrator');
+      expect(list[1]).to.eq('Restricted Administrator');
+      expect(list[2]).to.eq('Standard User');
+      expect(list[3]).to.eq('User-Base');
+    });
+  });
+
   it('can Refresh Group Memberships', () => {
     // Refresh Group Membership and verify request is made
     usersPo.goTo();
