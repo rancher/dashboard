@@ -376,6 +376,7 @@ export default {
               :value="toRemove"
               :names="names"
               :type="type"
+              :done-location="doneLocation"
               @errors="e => error = e"
               @done="done"
             />
