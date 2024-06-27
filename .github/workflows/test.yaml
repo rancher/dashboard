@@ -37,29 +37,31 @@ jobs:
     if: "!contains( github.event.pull_request.labels.*.name, 'ci/skip-e2e')"
     runs-on: ubuntu-latest
     steps:
-     - uses: actions/checkout@v3
-       with:
-        fetch-depth: 1
-     - name: Setup env
-       uses: ./.github/actions/setup
-     - name: Build e2e
-       run: yarn e2e:build
-     - name: Upload e2e build
-       uses: actions/upload-artifact@v4
-       with:
-        name: ${{ env.E2E_BUILD_DIST_NAME }}
-        path: ${{ env.E2E_BUILD_DIST_DIR }}/
-        if-no-files-found: error
-        retention-days: 10
-        compression-level: 9
-     - name: Upload e2e build ember
-       uses: actions/upload-artifact@v4
-       with:
-        name: ${{ env.E2E_BUILD_DIST_EMBER_NAME }}
-        path: ${{ env.E2E_BUILD_DIST_EMBER_DIR }}/
-        if-no-files-found: error
-        retention-days: 10
-        compression-level: 9
+      - uses: actions/checkout@v4
+        with:
+          fetch-depth: 1
+      - name: Setup env
+        uses: ./.github/actions/setup
+      - name: Build e2e
+        run: yarn e2e:build
+      - name: Upload e2e build
+        uses: actions/upload-artifact@v4
+        with:
+          name: ${{ env.E2E_BUILD_DIST_NAME }}
+          path: ${{ env.E2E_BUILD_DIST_DIR }}/
+          if-no-files-found: error
+          retention-days: 10
+          compression-level: 9
+      - name: Upload e2e build ember
+        uses: actions/upload-artifact@v4
+        with:
+          name: ${{ env.E2E_BUILD_DIST_EMBER_NAME }}
+          path: ${{ env.E2E_BUILD_DIST_EMBER_DIR }}/
+          if-no-files-found: error
+          retention-days: 10
+          compression-level: 9
+
+
   e2e-test:
     if: "!contains( github.event.pull_request.labels.*.name, 'ci/skip-e2e')"
     needs: e2e-ui-build
@@ -83,7 +85,7 @@ jobs:
         ]
     runs-on: ubuntu-latest
     steps:
-      - uses: actions/checkout@v3
+      - uses: actions/checkout@v4
         with:
           fetch-depth: 1
       - name: Setup env
@@ -130,16 +132,17 @@ jobs:
           TEST_USERNAME: ${{ matrix.role.username }}
           
       - name: Upload screenshots
-        uses: actions/upload-artifact@v3
+        uses: actions/upload-artifact@v4
         if: ${{ failure() }}
         with:
           name: ${{github.run_number}}-${{github.run_attempt}}-screenshots-${{ matrix.role.tag }}+${{ matrix.features[0] }}
           path: cypress/screenshots
 
+
   unit-test:
     runs-on: ubuntu-latest
     steps:
-      - uses: actions/checkout@v3
+      - uses: actions/checkout@v4
         with:
           fetch-depth: 1
       
@@ -153,25 +156,38 @@ jobs:
           cp -r coverage/unit/ coverage-artifacts/coverage/unit/
 
       - name: Upload coverage
-        uses: actions/upload-artifact@v3
+        uses: actions/upload-artifact@v4
         with:
           name: ${{github.run_number}}-${{github.run_attempt}}-coverage
           path: coverage-artifacts/**/*
 
+
   i18n:
     runs-on: ubuntu-latest
     steps:
-      - uses: actions/checkout@v3
+      - uses: actions/checkout@v4
         with:
           fetch-depth: 1
 
       - name: Run i18n lint
         uses: ./.github/actions/i18n-lint
 
+
+  lint:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+        with:
+          fetch-depth: 1
+
+      - name: Run tests
+        uses: ./.github/actions/lint
+      
+
   check-i18n:
     runs-on: ubuntu-latest
     steps:
-      - uses: actions/checkout@v3
+      - uses: actions/checkout@v4
         with:
           fetch-depth: 1
       - uses: actions/setup-node@v4
@@ -186,15 +202,6 @@ jobs:
           # Falure won't fail the job (remove -x when all current issues are fixed)
           ./scripts/check-i18n -s -x
 
-  lint:
-    runs-on: ubuntu-latest
-    steps:
-      - uses: actions/checkout@v3
-        with:
-          fetch-depth: 1
-
-      - name: Run tests
-        uses: ./.github/actions/lint
 
   # coverage:
   #   runs-on: ubuntu-latest
@@ -223,7 +230,7 @@ jobs:
   check-e2e-tags:
     runs-on: ubuntu-latest
     steps:
-      - uses: actions/checkout@v3
+      - uses: actions/checkout@v4
         with:
           fetch-depth: 1
       - uses: actions/setup-node@v4
