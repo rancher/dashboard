@@ -2897,7 +2897,7 @@ jwt:
     disabled: Disabled
   headers:
     clusterName: Cluster Name
-    updatedOn: JWT enabled on
+    updatedOn: JWT Enabled On
     clusterAge: Cluster Age
 
 

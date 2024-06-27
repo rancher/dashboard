@@ -33,7 +33,6 @@ export default {
 
   data() {
     return {
-      clusterRows:                      [],
       clusters:                         [],
       proxyConfigs:                     [],
       resource:                         MANAGEMENT.CLUSTER_PROXY_CONFIG,
@@ -44,10 +43,6 @@ export default {
     };
   },
   methods: {
-    formatRows() {
-
-    },
-
     closeError(index) {
       this.errors = this.errors.filter((_, i) => i !== index);
     },

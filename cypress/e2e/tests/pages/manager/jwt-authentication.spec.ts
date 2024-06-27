@@ -20,16 +20,7 @@ describe('JWT Authentication', { testIsolation: 'off', tags: ['@manager', '@admi
     cy.get<string>('@rke2Ec2ClusterName0').then((name) => {
       instance0 = name;
       // create real cluster
-      cy.createAmazonRke2Cluster({
-        machineConfig: {
-          instanceType: 't3a.medium',
-          region,
-          vpcId:        'vpc-081cec85dbe35e9bd',
-          zone:         'a',
-          type:         'rke-machine-config.cattle.io.amazonec2config',
-          clusterName:  name,
-          namespace
-        },
+      cy.createAmazonRke2ClusterWithoutMachineConfig({
         cloudCredentialsAmazon: {
           workspace: namespace,
           name,
@@ -48,16 +39,7 @@ describe('JWT Authentication', { testIsolation: 'off', tags: ['@manager', '@admi
     cy.get<string>('@rke2Ec2ClusterName1').then((name) => {
       instance1 = name;
       // create real cluster
-      cy.createAmazonRke2Cluster({
-        machineConfig: {
-          instanceType: 't3a.medium',
-          region,
-          vpcId:        'vpc-081cec85dbe35e9bd',
-          zone:         'a',
-          type:         'rke-machine-config.cattle.io.amazonec2config',
-          clusterName:  name,
-          namespace
-        },
+      cy.createAmazonRke2ClusterWithoutMachineConfig({
         cloudCredentialsAmazon: {
           workspace: namespace,
           name,
@@ -153,14 +135,14 @@ describe('JWT Authentication', { testIsolation: 'off', tags: ['@manager', '@admi
   after('clean up', () => {
     if (removeCluster0) {
       //  delete cluster
-      cy.get<string>('@rke2Ec2ClusterName0').then((name) => {
+      cy.get<string>('@rke2Ec2ClusterName0').then((name)  => {
         cy.deleteRancherResource('v1', `provisioning.cattle.io.clusters/${ namespace }`, name);
         removeCluster0 = false;
       });
     }
     if (removeCluster1) {
       //  delete cluster
-      cy.get<string>('@rke2Ec2ClusterName1').then((name) => {
+      cy.get<string>('@rke2Ec2ClusterName1').then((name)  => {
         cy.deleteRancherResource('v1', `provisioning.cattle.io.clusters/${ namespace }`, name);
         removeCluster1 = false;
       });

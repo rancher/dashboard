@@ -41,6 +41,19 @@ export type CreateAmazonRke2ClusterParams = {
     namespace: string,
   }
 }
+export type CreateAmazonRke2ClusterWithoutMachineConfigParams = {
+  cloudCredentialsAmazon: {
+    workspace: string,
+    name: string,
+    region: string,
+    accessKey: string,
+    secretKey: string
+  },
+  rke2ClusterAmazon: {
+    clusterName: string,
+    namespace: string,
+  }
+}
 declare global {
   // eslint-disable-next-line no-unused-vars
   namespace Cypress {
@@ -65,6 +78,7 @@ declare global {
       createAwsCloudCredentials(nsName: string, cloudCredName: string, defaultRegion: string, accessKey: string, secretKey: string): Chainable;
       createAmazonMachineConfig(instanceType: string, region: string, vpcId: string, zone: string, type: string, clusterName: string, namespace: string): Chainable;
       createAmazonRke2Cluster(params: CreateAmazonRke2ClusterParams): Chainable;
+      createAmazonRke2ClusterWithoutMachineConfig(params: CreateAmazonRke2ClusterWithoutMachineConfigParams): Chainable;
 
       getRancherResource(prefix: 'v3' | 'v1', resourceType: string, resourceId?: string, expectedStatusCode?: number): Chainable;
       setRancherResource(prefix: 'v3' | 'v1', resourceType: string, resourceId: string, body: any): Chainable;
