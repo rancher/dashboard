@@ -194,7 +194,7 @@ const validateUserRetentionCron = () => {
   if (typeof cronSetting === 'string' && !isValidCron(cronSetting)) {
     isFormValid.value = false;
 
-    return;
+    return t('user.retention.edit.form.cron.errorMessage');
   }
 
   isFormValid.value = true;
@@ -296,8 +296,9 @@ onBeforeRouteUpdate((_to: unknown, _from: unknown) => {
             class="input-field"
             required
             type="cron"
+            :tooltip="t('user.retention.edit.form.cron.subLabel')"
+            :rules="[validateUserRetentionCron]"
             :label="t('user.retention.edit.form.cron.label')"
-            :sub-label="t('user.retention.edit.form.cron.subLabel')"
             @input="validateUserRetentionCron"
           />
         </div>

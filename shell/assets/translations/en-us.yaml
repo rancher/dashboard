@@ -5822,6 +5822,7 @@ user:
         cron:
           label: User retention process schedule
           subLabel: The user retention process runs as a cron job (required)
+          errorMessage: User retention process schedule must be a valid cron expression
         dryRun:
           label: Run the user retention process in DRY mode (no changes will be applied)
           subLabel: You can check the logs to see which accounts would be affected
