@@ -898,6 +898,9 @@ catalog:
     errors:
       clusterToolExists: This chart has a fixed namespace and name. A matching <a href="{url}">application</a> has been found and any changes will be made to it.
     global: Global
+    deprecatedWarning: '{chartName} has been marked as deprecated. Use caution when installing this helm chart as it might be removed in the future.'
+    experimentalWarning: '{chartName} has been marked as experimental. Use caution when installing this helm chart as it might not function as expected.'
+    deprecatedAndExperimentalWarning: '{chartName} has been marked as deprecated and experimental. Use caution when installing this helm chart as it might be removed in the future and might not function as expected.'
   charts:
     all: All
     categories:
@@ -919,6 +922,8 @@ catalog:
       linux: Linux
       windows: Windows
     search: Filter
+    deprecatedChartsFilter:
+      label: Show deprecated apps
   install:
     action:
       goToUpgrade: Edit/Upgrade
