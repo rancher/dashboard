@@ -21,6 +21,7 @@ export const USER_STATE = {
   sort:      ['stateSort', 'nameSort'],
   value:     'stateDisplay',
   getValue:  (row) => row.stateDisplay,
+  width:     72,
   default:   'unknown',
   formatter: 'BadgeStateFormatter',
 };
