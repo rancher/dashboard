@@ -14,6 +14,7 @@ describe('JWT Authentication', { testIsolation: 'off', tags: ['@manager', '@admi
 
   before(() => {
     cy.login();
+    HomePagePo.goTo();
     cy.createE2EResourceName('rke2cluster0').as('rke2Ec2ClusterName0');
     cy.createE2EResourceName('rke2cluster1').as('rke2Ec2ClusterName1');
 
@@ -55,10 +56,6 @@ describe('JWT Authentication', { testIsolation: 'off', tags: ['@manager', '@admi
         removeCluster1 = true;
       });
     });
-  });
-  beforeEach(() => {
-    cy.login();
-    HomePagePo.goTo();
   });
 
   it('should show the JWT Authentication list page', () => {
@@ -135,14 +132,14 @@ describe('JWT Authentication', { testIsolation: 'off', tags: ['@manager', '@admi
   after('clean up', () => {
     if (removeCluster0) {
       //  delete cluster
-      cy.get<string>('@rke2Ec2ClusterName0').then((name)  => {
+      cy.get<string>('@rke2Ec2ClusterName0').then((name) => {
         cy.deleteRancherResource('v1', `provisioning.cattle.io.clusters/${ namespace }`, name);
         removeCluster0 = false;
       });
     }
     if (removeCluster1) {
       //  delete cluster
-      cy.get<string>('@rke2Ec2ClusterName1').then((name)  => {
+      cy.get<string>('@rke2Ec2ClusterName1').then((name) => {
         cy.deleteRancherResource('v1', `provisioning.cattle.io.clusters/${ namespace }`, name);
         removeCluster1 = false;
       });
