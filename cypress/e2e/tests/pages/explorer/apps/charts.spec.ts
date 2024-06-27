@@ -80,6 +80,8 @@ describe('Apps/Charts', { tags: ['@explorer', '@adminUser'] }, () => {
     generateDeprecatedAndExperimentalChart();
     chartsPage.getChartByName('deprecatedAndExperimentalChart').click();
     cy.wait('@generateDeprecatedAndExperimentalChart');
+    // checking the "deprecated" query to be included in the url
+    cy.location('search').should('include', 'deprecated=true');
     // checking the warning banner to be visible
     chartPage.deprecationAndExperimentalWarning().banner().should('exist').and('be.visible');
   });
