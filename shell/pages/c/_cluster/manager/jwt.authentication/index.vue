@@ -183,9 +183,6 @@ export default {
       return rows;
     },
   },
-  mounted() {
-    window.c = this;
-  },
 };
 </script>
 
