@@ -633,106 +633,105 @@ Cypress.Commands.add('createAmazonRke2ClusterWithoutMachineConfig', (params: Cre
     .then((resp: Cypress.Response<any>) => {
       const cloudCredentialId = resp.body.id;
 
-          return cy.request({
-            method:           'POST',
-            url:              `${ Cypress.env('api') }/v1/provisioning.cattle.io.clusters`,
-            failOnStatusCode: true,
-            headers:          {
-              'x-api-csrf': token.value,
-              Accept:       'application/json'
-            },
-            body: {
-              type:     'provisioning.cattle.io.cluster',
-              metadata: {
-                namespace:   rke2ClusterAmazon.namespace,
-                annotations: { 'field.cattle.io/description': `${ rke2ClusterAmazon.clusterName }-description` },
-                name:        rke2ClusterAmazon.clusterName
-              },
-              spec: {
-                rkeConfig: {
-                  chartValues:     { 'rke2-calico': {} },
-                  upgradeStrategy: {
-                    controlPlaneConcurrency:  '1',
-                    controlPlaneDrainOptions: {
-                      deleteEmptyDirData:              true,
-                      disableEviction:                 false,
-                      enabled:                         false,
-                      force:                           false,
-                      gracePeriod:                     -1,
-                      ignoreDaemonSets:                true,
-                      skipWaitForDeleteTimeoutSeconds: 0,
-                      timeout:                         120
-                    },
-                    workerConcurrency:  '1',
-                    workerDrainOptions: {
-                      deleteEmptyDirData:              true,
-                      disableEviction:                 false,
-                      enabled:                         false,
-                      force:                           false,
-                      gracePeriod:                     -1,
-                      ignoreDaemonSets:                true,
-                      skipWaitForDeleteTimeoutSeconds: 0,
-                      timeout:                         120
-                    }
-                  },
-                  dataDirectories: {
-                    systemAgent:  '',
-                    provisioning: '',
-                    k8sDistro:    ''
-                  },
-                  machineGlobalConfig: {
-                    cni:                   'calico',
-                    'disable-kube-proxy':  false,
-                    'etcd-expose-metrics': false
-                  },
-                  machineSelectorConfig: [
-                    { config: { 'protect-kernel-defaults': false } }
-                  ],
-                  etcd: {
-                    disableSnapshots:     false,
-                    s3:                   null,
-                    snapshotRetention:    5,
-                    snapshotScheduleCron: '0 */5 * * *'
-                  },
-                  registries: {
-                    configs: {},
-                    mirrors: {}
-                  },
-                  machinePools: [
-                    {
-                      name:                 'pool1',
-                      etcdRole:             true,
-                      controlPlaneRole:     true,
-                      workerRole:           true,
-                      hostnamePrefix:       '',
-                      labels:               {},
-                      quantity:             3,
-                      unhealthyNodeTimeout: '0m',
-                      machineConfigRef:     {
-                      },
-                      drainBeforeDelete: true
-                    }
-                  ]
+      return cy.request({
+        method:           'POST',
+        url:              `${ Cypress.env('api') }/v1/provisioning.cattle.io.clusters`,
+        failOnStatusCode: true,
+        headers:          {
+          'x-api-csrf': token.value,
+          Accept:       'application/json'
+        },
+        body: {
+          type:     'provisioning.cattle.io.cluster',
+          metadata: {
+            namespace:   rke2ClusterAmazon.namespace,
+            annotations: { 'field.cattle.io/description': `${ rke2ClusterAmazon.clusterName }-description` },
+            name:        rke2ClusterAmazon.clusterName
+          },
+          spec: {
+            rkeConfig: {
+              chartValues:     { 'rke2-calico': {} },
+              upgradeStrategy: {
+                controlPlaneConcurrency:  '1',
+                controlPlaneDrainOptions: {
+                  deleteEmptyDirData:              true,
+                  disableEviction:                 false,
+                  enabled:                         false,
+                  force:                           false,
+                  gracePeriod:                     -1,
+                  ignoreDaemonSets:                true,
+                  skipWaitForDeleteTimeoutSeconds: 0,
+                  timeout:                         120
                 },
-                machineSelectorConfig: [
-                  { config: {} }
-                ],
-                kubernetesVersion:                                    'v1.29.4+rke2r1',
-                defaultPodSecurityAdmissionConfigurationTemplateName: '',
-                cloudCredentialSecretName:                            cloudCredentialId,
-                localClusterAuthEndpoint:                             {
-                  enabled: false,
-                  caCerts: '',
-                  fqdn:    ''
+                workerConcurrency:  '1',
+                workerDrainOptions: {
+                  deleteEmptyDirData:              true,
+                  disableEviction:                 false,
+                  enabled:                         false,
+                  force:                           false,
+                  gracePeriod:                     -1,
+                  ignoreDaemonSets:                true,
+                  skipWaitForDeleteTimeoutSeconds: 0,
+                  timeout:                         120
                 }
-              }
+              },
+              dataDirectories: {
+                systemAgent:  '',
+                provisioning: '',
+                k8sDistro:    ''
+              },
+              machineGlobalConfig: {
+                cni:                   'calico',
+                'disable-kube-proxy':  false,
+                'etcd-expose-metrics': false
+              },
+              machineSelectorConfig: [
+                { config: { 'protect-kernel-defaults': false } }
+              ],
+              etcd: {
+                disableSnapshots:     false,
+                s3:                   null,
+                snapshotRetention:    5,
+                snapshotScheduleCron: '0 */5 * * *'
+              },
+              registries: {
+                configs: {},
+                mirrors: {}
+              },
+              machinePools: [
+                {
+                  name:                 'pool1',
+                  etcdRole:             true,
+                  controlPlaneRole:     true,
+                  workerRole:           true,
+                  hostnamePrefix:       '',
+                  labels:               {},
+                  quantity:             3,
+                  unhealthyNodeTimeout: '0m',
+                  machineConfigRef:     {},
+                  drainBeforeDelete:    true
+                }
+              ]
+            },
+            machineSelectorConfig: [
+              { config: {} }
+            ],
+            kubernetesVersion:                                    'v1.29.4+rke2r1',
+            defaultPodSecurityAdmissionConfigurationTemplateName: '',
+            cloudCredentialSecretName:                            cloudCredentialId,
+            localClusterAuthEndpoint:                             {
+              enabled: false,
+              caCerts: '',
+              fqdn:    ''
             }
-          })
-            .then((resp: Cypress.Response<any>) => {
-              expect(resp.status).to.eq(201);
-            });
+          }
+        }
+      })
+        .then((resp: Cypress.Response<any>) => {
+          expect(resp.status).to.eq(201);
         });
     });
+});
 
 /**
  * Create Amazon Machine config
