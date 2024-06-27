@@ -154,7 +154,7 @@ describe('Git Repo', { testIsolation: 'off', tags: ['@fleet', '@adminUser'] }, (
       const expectedHeadersListView = ['State', 'Name', 'Repo', 'Target', 'Clusters Ready', 'Resources', 'Age'];
 
       listPage.repoList().resourceTable().sortableTable().tableHeaderRow()
-        .find('.table-header-container .content')
+        .within('.table-header-container .content')
         .each((el, i) => {
           expect(el.text().trim()).to.eq(expectedHeadersListView[i]);
         });
@@ -171,7 +171,7 @@ describe('Git Repo', { testIsolation: 'off', tags: ['@fleet', '@adminUser'] }, (
 
       gitRepoDetails.bundlesTab().list().resourceTable().sortableTable()
         .tableHeaderRow()
-        .find('.table-header-container .content')
+        .within('.table-header-container .content')
         .each((el, i) => {
           expect(el.text().trim()).to.eq(expectedHeadersDetailsView[i]);
         });

@@ -1,5 +1,6 @@
 import { LoginPagePo } from '@/cypress/e2e/po/pages/login-page.po';
 import { CreateUserParams, CreateAmazonRke2ClusterParams } from '@/cypress/globals';
+import { groupByPayload } from '@/cypress/e2e/blueprints/user_preferences/group_by';
 
 // This file contains commands which makes API requests to the rancher API.
 // It includes the `login` command to store the `token` to use
@@ -235,9 +236,9 @@ Cypress.Commands.add('createProject', (projName, clusterId, userId) => {
 });
 
 /**
- * create a namespace
+ * create a namespace in project
  */
-Cypress.Commands.add('createNamespace', (nsName, projId) => {
+Cypress.Commands.add('createNamespaceInProject', (nsName, projId) => {
   return cy.request({
     method:  'POST',
     url:     `${ Cypress.env('api') }/v1/namespaces`,
@@ -267,9 +268,34 @@ Cypress.Commands.add('createNamespace', (nsName, projId) => {
 });
 
 /**
+ * create a namespace
+ */
+Cypress.Commands.add('createNamespace', (nsName) => {
+  return cy.request({
+    method:  'POST',
+    url:     `${ Cypress.env('api') }/v1/namespaces`,
+    headers: {
+      'x-api-csrf': token.value,
+      Accept:       'application/json'
+    },
+    body: {
+      type:     'namespace',
+      metadata: {
+        annotations: { 'field.cattle.io/containerDefaultResourceLimit': '{}' },
+        name:        nsName
+      },
+      disableOpenApiValidation: false
+    }
+  })
+    .then((resp) => {
+      expect(resp.status).to.eq(201);
+    });
+});
+
+/**
  * Create pod
  */
-Cypress.Commands.add('createPod', (nsName, podName, image) => {
+Cypress.Commands.add('createPod', (nsName, podName, image, failOnStatusCode = true) => {
   return cy.request({
     method:  'POST',
     url:     `${ Cypress.env('api') }/v1/pods`,
@@ -277,6 +303,7 @@ Cypress.Commands.add('createPod', (nsName, podName, image) => {
       'x-api-csrf': token.value,
       Accept:       'application/json'
     },
+    failOnStatusCode,
     body: {
       type:     'pod',
       metadata: {
@@ -295,7 +322,9 @@ Cypress.Commands.add('createPod', (nsName, podName, image) => {
     }
   })
     .then((resp) => {
-      expect(resp.status).to.eq(201);
+      if (failOnStatusCode) {
+        expect(resp.status).to.eq(201);
+      }
     });
 });
 
@@ -621,4 +650,13 @@ Cypress.Commands.add('createAmazonMachineConfig', (instanceType, region, vpcId, 
     .then((resp) => {
       expect(resp.status).to.eq(201);
     });
+});
+
+// update resource list view preference
+Cypress.Commands.add('updateResourceListViewPref', (clusterName: string, groupBy:string, namespaceFilter: string) => {
+  return cy.getRancherResource('v3', 'users?me=true').then((resp: Cypress.Response<any>) => {
+    const userId = resp.body.data[0].id.trim();
+
+    cy.setRancherResource('v1', 'userpreferences', userId, groupByPayload(userId, clusterName, groupBy, namespaceFilter));
+  });
 });
