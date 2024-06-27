@@ -5736,6 +5736,7 @@ tableHeaders:
   userDeletedIn: Delete After
   userDisabledIn: Disable After
   userLastLogin: Last Login
+  userState: Enabled
   userStatus: Status
   username: Local Username
   value: Value
