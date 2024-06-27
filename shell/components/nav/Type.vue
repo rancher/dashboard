@@ -99,7 +99,7 @@ export default {
       </TabTitle>
       <a
         :href="href"
-        @click="selectType"
+        @click="selectType(); navigate($event);"
         @mouseenter="setNear(true)"
         @mouseleave="setNear(false)"
       >
