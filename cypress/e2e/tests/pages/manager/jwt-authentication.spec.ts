@@ -68,7 +68,8 @@ describe('JWT Authentication', { testIsolation: 'off', tags: ['@manager', '@admi
     jwtAuthenticationPage.list().state(instance1).should('contain', 'Disabled');
   });
   it('should be able to enable JWT Authentication for a cluster', () => {
-    jwtAuthenticationPage.goTo();
+    JWTAuthenticationPagePo.navTo();
+    jwtAuthenticationPage.waitForPage();
     cy.intercept('POST', `/v1/management.cattle.io.clusterproxyconfigs`).as('enableJWT');
     jwtAuthenticationPage.list().clickRowActionMenuItem(instance0, 'Enable');
 
@@ -81,7 +82,8 @@ describe('JWT Authentication', { testIsolation: 'off', tags: ['@manager', '@admi
     jwtAuthenticationPage.list().state(instance1).should('contain', 'Disabled');
   });
   it('should be able to disable JWT Authentication for a cluster', () => {
-    jwtAuthenticationPage.goTo();
+    JWTAuthenticationPagePo.navTo();
+    jwtAuthenticationPage.waitForPage();
 
     cy.intercept('DELETE', `/v1/management.cattle.io.clusterproxyconfigs/**`).as('disableJWT');
     jwtAuthenticationPage.list().clickRowActionMenuItem(instance0, 'Disable');
@@ -94,7 +96,8 @@ describe('JWT Authentication', { testIsolation: 'off', tags: ['@manager', '@admi
     jwtAuthenticationPage.list().state(instance1).should('contain', 'Disabled');
   });
   it('should be able to enable JWT Authentication in bulk', () => {
-    jwtAuthenticationPage.goTo();
+    JWTAuthenticationPagePo.navTo();
+    jwtAuthenticationPage.waitForPage();
     cy.intercept('POST', `/v1/management.cattle.io.clusterproxyconfigs`).as('enableJWT');
 
     jwtAuthenticationPage.list().resourceTable().sortableTable().rowSelectCtlWithName(instance0)
@@ -112,7 +115,8 @@ describe('JWT Authentication', { testIsolation: 'off', tags: ['@manager', '@admi
   });
 
   it('should be able to disable JWT Authentication in bulk', () => {
-    jwtAuthenticationPage.goTo();
+    JWTAuthenticationPagePo.navTo();
+    jwtAuthenticationPage.waitForPage();
     cy.intercept('DELETE', `/v1/management.cattle.io.clusterproxyconfigs/**`).as('disableJWT');
 
     jwtAuthenticationPage.list().resourceTable().sortableTable().rowSelectCtlWithName(instance0)
