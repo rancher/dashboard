@@ -227,7 +227,7 @@ const packageUpdatesResolution = (file, oldContent) => {
  * Verify GitHub Actions use of current node version, e.g. node-version: '<18'
  */
 const gitHubActionsUpdates = () => {
-  const files = glob.sync(params.paths || '.github/workflows/**.{yml,yaml}', { ignore });
+  const files = glob.sync(params.paths || '.github/{actions,workflows}/**.{yml,yaml}', { ignore });
 
   files.forEach((file) => {
     let content = fs.readFileSync(file, 'utf8');
