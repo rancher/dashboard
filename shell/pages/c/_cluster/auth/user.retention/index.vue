@@ -2,8 +2,8 @@
 import { ref, reactive, watch, onMounted } from 'vue';
 import { useRouter, onBeforeRouteUpdate } from 'vue-router/composables';
 
-import UserRetentionHeader from '@shell/components/user.retention/user-retention-header';
-import Footer from '@shell/components/form/Footer';
+import UserRetentionHeader from '@shell/components/user.retention/user-retention-header.vue';
+import Footer from '@shell/components/form/Footer.vue';
 import { useStore } from '@shell/composables/useStore';
 import { MANAGEMENT } from '@shell/config/types';
 import { SETTING } from '@shell/config/settings';
