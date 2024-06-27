@@ -5647,12 +5647,12 @@ user:
           checkbox: Disable user accounts after an inactivity period (duration since last login)
           input:
             label: Inactivity period
-            tooltip: Uses duration units (i.e. use 30d for 30 days)
+            tooltip: Uses duration units (e.g. use 30h for 30 hours)
         deleteAfter:
           checkbox: Delete user accounts after an inactivity period (duration since last login)
           input:
             label: Inactivity period
-            tooltip: Uses duration units (i.e. use 30d for 30 days)
+            tooltip: Uses duration units (e.g. use 30h for 30 hours)
             subLabel: This value must be larger than the Disable period, if it's active
         cron:
           label: User retention process schedule
