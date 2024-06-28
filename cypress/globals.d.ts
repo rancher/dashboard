@@ -41,6 +41,19 @@ export type CreateAmazonRke2ClusterParams = {
     namespace: string,
   }
 }
+export type CreateAmazonRke2ClusterWithoutMachineConfigParams = {
+  cloudCredentialsAmazon: {
+    workspace: string,
+    name: string,
+    region: string,
+    accessKey: string,
+    secretKey: string
+  },
+  rke2ClusterAmazon: {
+    clusterName: string,
+    namespace: string,
+  }
+}
 declare global {
   // eslint-disable-next-line no-unused-vars
   namespace Cypress {
@@ -59,17 +72,27 @@ declare global {
       setProjectRoleBinding(clusterId: string, userPrincipalId: string, projectName: string, role: string): Chainable;
       getProjectByName(clusterId: string, projectName: string): Chainable;
       createProject(projName: string, clusterId: string, userId: string): Chainable;
-      createNamespace(nsName: string, projId: string): Chainable;
-      createPod(nsName: string, podName: string, image: string): Chainable;
+      createNamespaceInProject(nsName: string, projId: string): Chainable;
+      createNamespace(nsName: string): Chainable;
+      createPod(nsName: string, podName: string, image: string, failOnStatusCode?: boolean): Chainable;
       createAwsCloudCredentials(nsName: string, cloudCredName: string, defaultRegion: string, accessKey: string, secretKey: string): Chainable;
       createAmazonMachineConfig(instanceType: string, region: string, vpcId: string, zone: string, type: string, clusterName: string, namespace: string): Chainable;
       createAmazonRke2Cluster(params: CreateAmazonRke2ClusterParams): Chainable;
+      createAmazonRke2ClusterWithoutMachineConfig(params: CreateAmazonRke2ClusterWithoutMachineConfigParams): Chainable;
 
       getRancherResource(prefix: 'v3' | 'v1', resourceType: string, resourceId?: string, expectedStatusCode?: number): Chainable;
       setRancherResource(prefix: 'v3' | 'v1', resourceType: string, resourceId: string, body: any): Chainable;
       createRancherResource(prefix: 'v3' | 'v1', resourceType: string, body: any): Chainable;
       deleteRancherResource(prefix: 'v3' | 'v1' | 'k8s', resourceType: string, resourceId: string, failOnStatusCode?: boolean): Chainable;
       deleteNodeTemplate(nodeTemplateId: string, timeout?: number)
+
+      /**
+       * update resource list view preference
+       * @param clusterName
+       * @param groupBy to update resource list view to 'flat list', 'group by namespaces', or 'group by node' ('none', 'metadata.namespace', or 'role')
+       * @param namespaceFilter to filter by 'only user namespaces', 'all namespace', etc. ('{"local":["all://user"]}', '{\"local\":[]}', etc.)
+       */
+      updateResourceListViewPref(clusterName: string, groupBy:string, namespaceFilter: string): Chainable;
 
       /**
        *  Wrapper for cy.get() to simply define the data-testid value that allows you to pass a matcher to find the element.

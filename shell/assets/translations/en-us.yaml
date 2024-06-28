@@ -159,6 +159,7 @@ nav:
     admission: Admission
     apps: Apps
     clusterProvisioning: Cluster Provisioning
+    jwt.authentication: JWT Authentication
     core: Core
     legacy: Legacy
     API: API
@@ -898,6 +899,9 @@ catalog:
     errors:
       clusterToolExists: This chart has a fixed namespace and name. A matching <a href="{url}">application</a> has been found and any changes will be made to it.
     global: Global
+    deprecatedWarning: '{chartName} has been marked as deprecated. Use caution when installing this helm chart as it might be removed in the future.'
+    experimentalWarning: '{chartName} has been marked as experimental. Use caution when installing this helm chart as it might not function as expected.'
+    deprecatedAndExperimentalWarning: '{chartName} has been marked as deprecated and experimental. Use caution when installing this helm chart as it might be removed in the future and might not function as expected.'
   charts:
     all: All
     categories:
@@ -919,6 +923,8 @@ catalog:
       linux: Linux
       windows: Windows
     search: Filter
+    deprecatedChartsFilter:
+      label: Show deprecated apps
   install:
     action:
       goToUpgrade: Edit/Upgrade
@@ -1176,6 +1182,9 @@ cis:
   testsToSkip: Tests to Skip
 
 cluster:
+  jwtAuthentication:
+    banner: "Service Account access with JWT authentication can be configured after cluster creation from <br>
+      <code>Cluster Management > Advanced > JWT Authentication</code>"
   addonChart:
     rancher-vsphere-cpi: vSphere CPI Configuration
     rancher-vsphere-csi: vSphere CSI Configuration
@@ -2877,6 +2886,21 @@ istio:
     description: Description
   tracing: Enable Jaeger Tracing (limited)
   v1Warning: Please uninstall the current Istio version in the <code>istio-system</code> namespace before attempting to install this version.
+
+jwt:
+  title: JWT Authentication
+  actions:
+    activate: Enable
+    deactivate: Disable
+    refresh: Refresh
+  state:
+    enabled: Enabled
+    disabled: Disabled
+  headers:
+    clusterName: Cluster Name
+    updatedOn: JWT Enabled On
+    clusterAge: Cluster Age
+
 
 labels:
   addLabel: Add Label
@@ -5796,6 +5820,41 @@ user:
         placeholder: e.g. This account is for John Smith
   list:
     errorRefreshingGroupMemberships: Error refreshing group memberships
+  retention:
+    button:
+      label: User retention settings
+    growl:
+      title: Save user retention settings
+      message: User retention settings have been updated successfully
+    edit:
+      title:
+        header: "Users: Settings"
+        pre: "Users:"
+        post: Settings
+        subTitle: User retention
+      form:
+        disableAfter:
+          checkbox: Disable user accounts after an inactivity period (duration since last login)
+          input:
+            label: Inactivity period
+            tooltip: Uses duration units (e.g. use 30h for 30 hours)
+        deleteAfter:
+          checkbox: Delete user accounts after an inactivity period (duration since last login)
+          input:
+            label: Inactivity period
+            tooltip: Uses duration units (e.g. use 30h for 30 hours)
+            subLabel: This value must be larger than the Disable period, if it's active
+        cron:
+          label: User retention process schedule
+          subLabel: The user retention process runs as a cron job (required)
+          errorMessage: User retention process schedule must be a valid cron expression
+        dryRun:
+          label: Run the user retention process in DRY mode (no changes will be applied)
+          subLabel: You can check the logs to see which accounts would be affected
+        defaultLastLogin:
+          label: Default last login (ms)
+          subLabel: Accounts without a registered last login timestamp will get this as a default
+          placeholder: Unix timestamp
 validation:
   noUpperCase: 'Alphanumeric characters in "{key}" must be lowercase'
   arrayLength:
@@ -6562,6 +6621,7 @@ typeDescription:
   #       Should fit on one line.
   #       If you link to anything external, it MUST have
   #       target="_blank" rel="noopener noreferrer nofollow"
+  jwt.authentication: Enable this feature on a cluster to add support for JWT authenticating downstream service accounts.
   branding: "Branding allows administrators to globally re-brand the UI by customizing the Rancher product name, logos and color scheme."
   chart: "All charts have at least one version that is installable on clusters with Linux and Windows nodes unless otherwise indicated."
   cis.cattle.io.clusterscanbenchmark: A benchmark version is the name of benchmark to run using kube-bench as well as the valid configuration parameters for that benchmark.
@@ -7272,6 +7332,9 @@ advancedSettings:
     'ui-default-landing': 'The default page users land on after login.'
     'brand': Folder name for an alternative theme defined in '/assets/brand'
     'hide-local-cluster': Hide the local cluster
+    'agent-tls-mode': "Rancher Certificate Verification. In `strict` mode the agents (system, cluster, fleet, etc) will only trust Rancher installations which are using a certificate signed by the CABundle in the `cacerts` setting. When the mode is system-store, the agents will trust any certificate signed by a CABundle in the operating system’s trust store."
+  warnings:
+    'agent-tls-mode': 'Changing this setting will cause all agents to be redeployed.'
   editHelp:
     'ui-banners': This setting takes a JSON object containing 3 root parameters; <code>banner</code>, <code>showHeader</code>, <code>showFooter</code>. <code>banner</code> is an object containing; <code>textColor</code>, <code>background</code>, and <code>text</code>, where <code>textColor</code> and <code>background</code> are any valid CSS color value.
   enum:
@@ -7294,6 +7357,9 @@ advancedSettings:
       info: Info
       debug: Debug
       trace: Trace
+    'agent-tls-mode':
+      strict: 'Strict'
+      system-store: 'System Store'
 
 featureFlags:
   label: Feature Flags
@@ -7618,6 +7684,8 @@ manager:
     label: RKE Templates
   nodeTemplates:
     label: Node Templates
+  jwtAuthentication:
+    label: JWT Authentication
 
 auth:
   roleTemplate: Role Templates

@@ -4,6 +4,7 @@ import CheckboxInputPo from '@/cypress/e2e/po/components/checkbox-input.po';
 import ListRowPo from '@/cypress/e2e/po/components/list-row.po';
 import PromptRemove from '@/cypress/e2e/po/prompts/promptRemove.po';
 import PaginationPo from '@/cypress/e2e/po/components/pagination.po';
+import HeaderRowPo from '@/cypress/e2e/po/components/header-row.po';
 
 export default class SortableTablePo extends ComponentPo {
   //
@@ -98,7 +99,12 @@ export default class SortableTablePo extends ComponentPo {
   }
 
   tableHeaderRow() {
-    return this.self().find('thead tr');
+    return new HeaderRowPo(this.self());
+  }
+
+  // sort
+  sort(index: number) {
+    return this.tableHeaderRow().column(index).find('.sort');
   }
 
   subRows() {

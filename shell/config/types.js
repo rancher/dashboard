@@ -191,6 +191,7 @@ export const MANAGEMENT = {
   GLOBAL_DNS_PROVIDER:           'management.cattle.io.globaldnsprovider',
   RKE_TEMPLATE:                  'management.cattle.io.clustertemplate',
   RKE_TEMPLATE_REVISION:         'management.cattle.io.clustertemplaterevision',
+  CLUSTER_PROXY_CONFIG:          'management.cattle.io.clusterproxyconfig'
 };
 
 export const CAPI = {
@@ -283,7 +284,8 @@ export const UI = { NAV_LINK: 'ui.cattle.io.navlink' };
 export const VIRTUAL_TYPES = {
   CLUSTER_MEMBERS:    'cluster-members',
   PROJECT_NAMESPACES: 'projects-namespaces',
-  NAMESPACES:         'namespaces'
+  NAMESPACES:         'namespaces',
+  JWT_AUTHENTICATION: 'jwt.authentication'
 };
 
 // harvester
@@ -324,3 +326,6 @@ export const CLUSTER_REPO_TYPES = {
 export const ZERO_TIME = '0001-01-01T00:00:00Z';
 
 export const DEFAULT_GRAFANA_STORAGE_SIZE = '10Gi';
+
+export const DEPRECATED = 'Deprecated';
+export const EXPERIMENTAL = 'Experimental';

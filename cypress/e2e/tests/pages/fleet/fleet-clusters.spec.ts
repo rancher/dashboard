@@ -157,6 +157,15 @@ describe('Fleet Clusters', { tags: ['@fleet', '@adminUser'] }, () => {
       });
     });
 
+    it('Git Repos Tab Add Repository button takes you to the correct page', function() {
+      const fleetClusterDetailsPage = new FleetClusterDetailsPo(namespace, this.rke2Ec2ClusterName);
+
+      fleetClusterDetailsPage.waitForPage(null, 'repos');
+      fleetClusterDetailsPage.gitReposTab().addRepostoryButton().click();
+
+      cy.url().should('include', `${ Cypress.config().baseUrl }/c/_/fleet/fleet.cattle.io.gitrepo/create`);
+    });
+
     it('adding git repo should add bundles on downstream cluster (deployments added)', function() {
       const deploymentsList = new WorkloadsDeploymentsListPagePo(this.clusterId);
 
@@ -359,7 +368,7 @@ describe('Fleet Clusters', { tags: ['@fleet', '@adminUser'] }, () => {
         const expectedHeaders = ['State', 'Name', 'Bundles Ready', 'Repos Ready', 'Resources', 'Last Seen', 'Age'];
 
         fleetClusterListPage.clusterList().resourceTable().sortableTable().tableHeaderRow()
-          .find('.table-header-container .content')
+          .within('.table-header-container .content')
           .each((el, i) => {
             expect(el.text().trim()).to.eq(expectedHeaders[i]);
           });
@@ -376,7 +385,7 @@ describe('Fleet Clusters', { tags: ['@fleet', '@adminUser'] }, () => {
 
         fleetClusterDetailsPage.gitReposTab().list().resourceTable().sortableTable()
           .tableHeaderRow()
-          .find('.table-header-container .content')
+          .within('.table-header-container .content')
           .each((el, i) => {
             expect(el.text().trim()).to.eq(expectedHeadersDetailsView[i]);
           });

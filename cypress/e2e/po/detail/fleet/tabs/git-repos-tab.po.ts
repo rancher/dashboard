@@ -9,4 +9,8 @@ export default class GitReposTab extends ComponentPo {
   list() {
     return new BaseResourceList('#repos [data-testid="sortable-table-list-container"]');
   }
+
+  addRepostoryButton() {
+    return this.self().get('.btn').contains('Add Repository');
+  }
 }

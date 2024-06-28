@@ -7,6 +7,10 @@ import { NAME as AUTH } from '@shell/config/product/auth';
 
 const interopDefault = (promise) => promise.then((page) => page.default || page);
 
+/**
+ * Note: router resolves routes in the order of this file, so if wrong route is being loaded, confirm that the order is correct
+ * https://v3.router.vuejs.org/guide/essentials/dynamic-matching.html#matching-priority
+ */
 export default [
   {
     path:      '/',
@@ -260,6 +264,12 @@ export default [
         component: () => interopDefault(import('@shell/pages/c/_cluster/monitoring/index.vue')),
         name:      'c-cluster-monitoring'
       }, {
+
+        path:      '/c/:cluster/manager/jwt.authentication',
+        component: () => interopDefault(import('@shell/pages/c/_cluster/manager/jwt.authentication/index.vue')),
+        name:      'c-cluster-manager-jwt-authentication'
+      }, {
+
         path:      '/c/:cluster/neuvector',
         component: () => interopDefault(import('@shell/pages/c/_cluster/neuvector/index.vue')),
         name:      'c-cluster-neuvector'
@@ -349,6 +359,10 @@ export default [
         path:      '/c/:cluster/auth/group.principal/assign-edit',
         component: () => interopDefault(import('@shell/pages/c/_cluster/auth/group.principal/assign-edit.vue')),
         name:      'c-cluster-auth-group.principal-assign-edit'
+      }, {
+        path:      '/c/:cluster/auth/user.retention',
+        component: () => interopDefault(import('@shell/pages/c/_cluster/auth/user.retention/index.vue')),
+        name:      'c-cluster-auth-user.retention'
       }, {
         path:      '/c/:cluster/legacy/project/pipelines',
         component: () => interopDefault(import('@shell/pages/c/_cluster/legacy/project/pipelines.vue')),

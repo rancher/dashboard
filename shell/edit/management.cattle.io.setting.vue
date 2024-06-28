@@ -79,6 +79,10 @@ export default {
       return isServerUrl(this.value.id) && isLocalhost(this.value.value);
     },
 
+    showWarningBanner() {
+      return this.setting?.warning;
+    },
+
     validationPassed() {
       return this.fvFormIsValid && this.fvGetPathErrors(['value']).length === 0;
     }
@@ -141,6 +145,13 @@ export default {
     @finish="saveSettings"
     @cancel="done"
   >
+    <Banner
+      v-if="showWarningBanner"
+      color="warning"
+      :label="t(`advancedSettings.warnings.${ setting.warning }`)"
+      data-testid="advanced_settings_warning_banner"
+    />
+
     <h4>{{ description }}</h4>
 
     <h5

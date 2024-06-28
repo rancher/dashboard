@@ -9,7 +9,6 @@ import { NodesPagePo } from '@/cypress/e2e/po/pages/explorer/nodes.po';
 import { EventsPagePo } from '@/cypress/e2e/po/pages/explorer/events.po';
 import * as path from 'path';
 import { generateEventsDataLarge, generateEventsDataSmall, eventsNoDataset } from '@/cypress/e2e/blueprints/explorer/cluster/events';
-import { groupByPayload } from '@/cypress/e2e/blueprints/user_preferences/group_by';
 import HomePagePo from '@/cypress/e2e/po/pages/home.po';
 
 const configMapYaml = `apiVersion: v1
@@ -223,7 +222,7 @@ describe('Cluster Dashboard', { testIsolation: 'off', tags: ['@explorer', '@admi
 
         // create ns
         cy.get<string>('@projId').then((projId) => {
-          cy.createNamespace(nsName, projId);
+          cy.createNamespaceInProject(nsName, projId);
         });
 
         // create pod
@@ -247,16 +246,13 @@ describe('Cluster Dashboard', { testIsolation: 'off', tags: ['@explorer', '@admi
     events.sortableTable().rowElements().should('have.length.gte', 2);
   });
 
-  describe('pagination', { tags: ['@vai'] }, () => {
+  describe('List', { tags: ['@vai'] }, () => {
     const events = new EventsPagePo('local');
+    const eventName = 'aaa-e2e-vai-test-event-name';
 
     before('set up', () => {
       // set user preferences: update resource filter
-      cy.getRancherResource('v3', 'users?me=true').then((resp: Cypress.Response<any>) => {
-        const userId = resp.body.data[0].id.trim();
-
-        cy.setRancherResource('v1', 'userpreferences', userId, groupByPayload(userId, 'local', 'none', '{\"local\":[]}'));
-      });
+      cy.updateResourceListViewPref('local', 'none', '{\"local\":[]}');
       HomePagePo.goTo(); // this is needed for updated user preferences to load in the UI
     });
 
@@ -322,9 +318,26 @@ describe('Cluster Dashboard', { testIsolation: 'off', tags: ['@explorer', '@admi
       events.sortableTable().pagination().leftButton().isDisabled();
     });
 
-    it('sorting changes the order of paginated events data', () => {
-      const eventName = 'aaa-e2e-vai-test-event-name';
+    it('filter events', () => {
+      // generate large set of events data
+      generateEventsDataLarge();
+      ClusterDashboardPagePo.navTo();
+      clusterDashboard.waitForPage(undefined, 'cluster-events');
+      EventsPagePo.navTo();
+      cy.wait('@eventsDataLarge');
+      events.waitForPage();
 
+      events.sortableTable().checkVisible();
+      events.sortableTable().checkLoadingIndicatorNotVisible();
+      events.sortableTable().checkRowCount(false, 100);
+
+      // filter by name
+      events.sortableTable().filter(eventName);
+      events.sortableTable().checkRowCount(false, 1);
+      events.sortableTable().rowElementWithName(eventName).scrollIntoView().should('be.visible');
+    });
+
+    it('sorting changes the order of paginated events data', () => {
       // generate large set of events data
       generateEventsDataLarge();
       ClusterDashboardPagePo.navTo();
@@ -333,14 +346,17 @@ describe('Cluster Dashboard', { testIsolation: 'off', tags: ['@explorer', '@admi
       events.waitForPage();
       cy.wait('@eventsDataLarge');
 
+      // check table is sorted by `last seen` in ASC order by default
+      events.sortableTable().tableHeaderRow().checkSortOrder(2, 'down');
+
       // sort by name in ASC order
-      events.sortableTable().tableHeaderRow().contains('Name').click();
+      events.sortableTable().sort(11).click();
 
       // event name should be visible on first page (sorted in ASC order)
       events.sortableTable().rowElementWithName(eventName).scrollIntoView().should('be.visible');
 
       // sort by name in DESC order
-      events.sortableTable().tableHeaderRow().contains('Name').click();
+      events.sortableTable().sort(11).click();
 
       // event name should be NOT visible on first page (sorted in DESC order)
       events.sortableTable().rowElementWithName(eventName).should('not.exist');
@@ -367,6 +383,7 @@ describe('Cluster Dashboard', { testIsolation: 'off', tags: ['@explorer', '@admi
       events.sortableTable().pagination().checkNotExists();
     });
   });
+
   it('can view events table empty if no events', { tags: ['@vai'] }, () => {
     const events = new EventsPagePo('local');
 
@@ -382,7 +399,7 @@ describe('Cluster Dashboard', { testIsolation: 'off', tags: ['@explorer', '@admi
     const expectedHeaders = ['Reason', 'Object', 'Message', 'Name', 'Date'];
 
     clusterDashboard.eventsList().resourceTable().sortableTable().tableHeaderRow()
-      .find('.table-header-container .content')
+      .within('.table-header-container .content')
       .each((el, i) => {
         expect(el.text().trim()).to.eq(expectedHeaders[i]);
       });
@@ -397,7 +414,7 @@ describe('Cluster Dashboard', { testIsolation: 'off', tags: ['@explorer', '@admi
       'Subobject', 'Source', 'Message', 'First Seen', 'Count', 'Name', 'Namespace'];
 
     events.eventslist().resourceTable().sortableTable().tableHeaderRow()
-      .find('.table-header-container .content')
+      .within('.table-header-container .content')
       .each((el, i) => {
         expect(el.text().trim()).to.eq(expectedFullHeaders[i]);
       });
@@ -409,12 +426,6 @@ describe('Cluster Dashboard', { testIsolation: 'off', tags: ['@explorer', '@admi
       cy.deleteRancherResource('v1', 'namespaces', `${ nsName }`);
       cy.deleteRancherResource('v3', 'projects', this.projId);
     }
-
-    // reset user preferences: update resource filter
-    cy.getRancherResource('v3', 'users?me=true').then((resp: Cypress.Response<any>) => {
-      const userId = resp.body.data[0].id.trim();
-
-      cy.setRancherResource('v1', 'userpreferences', userId, groupByPayload(userId, 'local', 'none', '{"local":["all://user"]}'));
-    });
+    cy.updateResourceListViewPref('local', 'none', '{"local":["all://user"]}');
   });
 });

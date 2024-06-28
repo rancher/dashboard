@@ -1,23 +1,21 @@
 import { ChartsPage } from '@/cypress/e2e/po/pages/explorer/charts/charts.po';
+import { ChartPage } from '@/cypress/e2e/po/pages/explorer/charts/chart.po';
+import { generateDeprecatedAndExperimentalCharts, generateDeprecatedAndExperimentalChart } from '@/cypress/e2e/blueprints/charts/charts';
 
 const chartsPage = new ChartsPage();
 
 describe('Apps/Charts', { tags: ['@explorer', '@adminUser'] }, () => {
   beforeEach(() => {
     cy.login();
+    chartsPage.goTo();
+    chartsPage.waitForPage();
   });
 
   it('should render an informational message inside of a banner', () => {
-    chartsPage.goTo();
-    chartsPage.waitForPage();
-
     chartsPage.bannerContent().should('be.visible').and('not.be.empty');
   });
 
   it('filtering the Charts (search box) should not impact the Charts carousel', () => {
-    chartsPage.goTo();
-    chartsPage.waitForPage();
-
     // has the correct title (Meta tag)
     // testing https://github.com/rancher/dashboard/issues/9822
     cy.title().should('eq', 'Rancher - local - Charts');
@@ -54,12 +52,37 @@ describe('Apps/Charts', { tags: ['@explorer', '@adminUser'] }, () => {
   });
 
   it('Charts have expected icons', () => {
-    chartsPage.goTo();
-    chartsPage.waitForPage();
-
     chartsPage.checkChartGenericIcon('External IP Webhook', true);
     chartsPage.checkChartGenericIcon('Alerting Driver', false);
     chartsPage.checkChartGenericIcon('CIS Benchmark', false);
     chartsPage.checkChartGenericIcon('Logging', false);
+  });
+
+  it('Show deprecated apps filter works properly', () => {
+    generateDeprecatedAndExperimentalCharts();
+    cy.wait('@generateDeprecatedAndExperimentalCharts');
+    // by default "Show deprecated apps" filter is not enabled (except if "deprecated" query param exists in the url)
+    chartsPage.chartsShowDeprecatedFilterCheckbox().isUnchecked();
+    // a deprecated chart should not be listed before enabling the checkbox
+    chartsPage.getChartByName('deprecatedChart').should('not.exist');
+    // an experimental chart should still be visible
+    chartsPage.getChartByName('experimentalChart').should('exist').scrollIntoView().and('be.visible');
+    // a chart that's deprecated & experimental should not be listed before enabling the checkbox
+    chartsPage.getChartByName('deprecatedAndExperimentalChart').should('not.exist');
+    // enabling the checkbox
+    chartsPage.chartsShowDeprecatedFilterCheckbox().set();
+    chartsPage.getChartByName('deprecatedChart').should('exist').scrollIntoView().and('be.visible');
+    chartsPage.getChartByName('experimentalChart').should('exist').scrollIntoView().and('be.visible');
+    chartsPage.getChartByName('deprecatedAndExperimentalChart').should('exist').scrollIntoView().and('be.visible');
+    // going to chart's page
+    const chartPage = new ChartPage();
+
+    generateDeprecatedAndExperimentalChart();
+    chartsPage.getChartByName('deprecatedAndExperimentalChart').click();
+    cy.wait('@generateDeprecatedAndExperimentalChart');
+    // checking the "deprecated" query to be included in the url
+    cy.location('search').should('include', 'deprecated=true');
+    // checking the warning banner to be visible
+    chartPage.deprecationAndExperimentalWarning().banner().should('exist').and('be.visible');
   });
 });

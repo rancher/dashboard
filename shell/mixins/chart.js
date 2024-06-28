@@ -2,7 +2,7 @@
 import { mapGetters } from 'vuex';
 
 import {
-  REPO_TYPE, REPO, CHART, VERSION, NAMESPACE, NAME, DESCRIPTION as DESCRIPTION_QUERY, DEPRECATED, HIDDEN, _FLAGGED, _CREATE, _EDIT
+  REPO_TYPE, REPO, CHART, VERSION, NAMESPACE, NAME, DESCRIPTION as DESCRIPTION_QUERY, DEPRECATED as DEPRECATED_QUERY, HIDDEN, _FLAGGED, _CREATE, _EDIT
 } from '@shell/config/query-params';
 import { CATALOG as CATALOG_ANNOTATIONS } from '@shell/config/labels-annotations';
 import { SHOW_PRE_RELEASE, mapPref } from '@shell/store/prefs';
@@ -38,10 +38,11 @@ export default {
     chart() {
       if ( this.repo && this.query.chartName ) {
         return this.$store.getters['catalog/chart']({
-          repoType:      this.query.repoType,
-          repoName:      this.query.repoName,
-          chartName:     this.query.chartName,
-          includeHidden: true,
+          repoType:       this.query.repoType,
+          repoName:       this.query.repoName,
+          chartName:      this.query.chartName,
+          includeHidden:  true,
+          showDeprecated: this.showDeprecated
         });
       }
 
@@ -136,16 +137,18 @@ export default {
         versionName:  query[VERSION],
         appNamespace: query[NAMESPACE] || '',
         appName:      query[NAME] || '',
-        description:  query[DESCRIPTION_QUERY]
+        description:  query[DESCRIPTION_QUERY],
+        hidden:       query[HIDDEN],
+        deprecated:   query[DEPRECATED_QUERY]
       };
     },
 
     showDeprecated() {
-      return this.$route.query[DEPRECATED] === _FLAGGED;
+      return this.query.deprecated === 'true' || this.query.deprecated === _FLAGGED;
     },
 
     showHidden() {
-      return this.$route.query[HIDDEN] === _FLAGGED;
+      return this.query.hidden === _FLAGGED;
     },
 
     // If the user is installing the app for the first time,
