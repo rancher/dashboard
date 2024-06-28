@@ -5,6 +5,10 @@ export default class AsyncButtonPo extends ComponentPo {
     return this.self().click({ force });
   }
 
+  expectToBeDisabled(): Cypress.Chainable {
+    return this.self().should('have.attr', 'disabled', 'disabled');
+  }
+
   expectToBeEnabled(): Cypress.Chainable {
     return this.self().should('not.have.attr', 'disabled');
   }
