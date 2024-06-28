@@ -6,12 +6,14 @@ import ResourceTable from '@shell/components/ResourceTable';
 import Masthead from '@shell/components/ResourceList/Masthead';
 import ResourceFetch from '@shell/mixins/resource-fetch';
 import { isAdminUser } from '@shell/store/type-map';
+import TableDataUserIcon from '@shell/components/TableDataUserIcon';
 
 export default {
   components: {
     AsyncButton,
     ResourceTable,
-    Masthead
+    Masthead,
+    TableDataUserIcon,
   },
   mixins: [ResourceFetch],
   props:  {
@@ -154,16 +156,23 @@ export default {
       :loading="loading"
       :use-query-params-for-simple-filtering="useQueryParamsForSimpleFiltering"
       :force-update-live-and-delayed="forceUpdateLiveAndDelayed"
-    />
+    >
+      <template #col:user-state="{row}">
+        <td>
+          <TableDataUserIcon
+            :user-state="row.stateDisplay"
+            :is-active="row.state === 'active'"
+          />
+        </td>
+      </template>
+    </ResourceTable>
   </div>
 </template>
 
 <style lang="scss">
-
   .btn-user-retention {
     display: flex;
     gap: 0.25rem;
     padding: 0;
   }
-
 </style>

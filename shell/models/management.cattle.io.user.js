@@ -223,7 +223,7 @@ export default class User extends HybridModel {
     return [
       {
         action:     'activate',
-        label:      this.t('action.activate'),
+        label:      this.t('action.enable'),
         icon:       'icon icon-play',
         bulkable:   true,
         bulkAction: 'activateBulk',
@@ -232,7 +232,7 @@ export default class User extends HybridModel {
       },
       {
         action:     'deactivate',
-        label:      this.t('action.deactivate'),
+        label:      this.t('action.disable'),
         icon:       'icon icon-pause',
         bulkable:   true,
         bulkAction: 'deactivateBulk',

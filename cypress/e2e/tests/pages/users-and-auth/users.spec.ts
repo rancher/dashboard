@@ -107,12 +107,12 @@ describe('Users', { tags: ['@usersAndAuths', '@adminUser'] }, () => {
     it('can Deactivate and Activate user', () => {
       // Deactivate user and check state is Inactive
       usersPo.goTo();
-      usersPo.list().clickRowActionMenuItem(standardUsername, 'Deactivate');
-      usersPo.list().details(standardUsername, 1).should('include.text', 'Disabled');
+      usersPo.list().clickRowActionMenuItem(standardUsername, 'Disable');
+      usersPo.list().details(standardUsername, 1).find('i').should('have.class', 'icon-user-xmark');
 
       // Activate user and check state is Active
-      usersPo.list().clickRowActionMenuItem(standardUsername, 'Activate');
-      usersPo.list().details(standardUsername, 1).should('include.text', 'Enabled');
+      usersPo.list().clickRowActionMenuItem(standardUsername, 'Enable');
+      usersPo.list().details(standardUsername, 1).find('i').should('have.class', 'icon-user-check');
     });
 
     it('can Refresh Group Memberships', () => {
@@ -191,14 +191,13 @@ describe('Users', { tags: ['@usersAndAuths', '@adminUser'] }, () => {
       usersPo.list().selectAll().set();
       usersPo.list().deactivate().click();
       cy.wait('@updateUsers');
-      cy.contains('Disabled');
-      usersPo.list().details('admin', 1).should('include.text', 'Enabled');
-      usersPo.list().details(userBaseUsername, 1).should('include.text', 'Disabled');
+      usersPo.list().details('admin', 1).find('i').should('have.class', 'icon-user-check');
+      usersPo.list().details(userBaseUsername, 1).find('i').should('have.class', 'icon-user-xmark');
 
       // Activate user and check state is Active
       usersPo.list().activate().click();
       cy.wait('@updateUsers');
-      usersPo.list().details(userBaseUsername, 1).should('include.text', 'Enabled');
+      usersPo.list().details(userBaseUsername, 1).find('i').should('have.class', 'icon-user-check');
     });
 
     it('can Download YAML', () => {

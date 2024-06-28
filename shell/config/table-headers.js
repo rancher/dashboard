@@ -15,6 +15,17 @@ export const STATE = {
   formatter: 'BadgeStateFormatter',
 };
 
+export const USER_STATE = {
+  name:      'user-state',
+  labelKey:  'tableHeaders.userState',
+  sort:      ['stateSort', 'nameSort'],
+  value:     'stateDisplay',
+  getValue:  (row) => row.stateDisplay,
+  width:     72,
+  default:   'unknown',
+  formatter: 'BadgeStateFormatter',
+};
+
 export const DOWNLOAD = {
   name:          'download',
   labelKey:      'tableHeaders.download',
