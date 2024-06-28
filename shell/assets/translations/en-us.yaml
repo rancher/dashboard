@@ -7331,6 +7331,9 @@ advancedSettings:
     'ui-default-landing': 'The default page users land on after login.'
     'brand': Folder name for an alternative theme defined in '/assets/brand'
     'hide-local-cluster': Hide the local cluster
+    'agent-tls-mode': "Rancher Certificate Verification. In `strict` mode the agents (system, cluster, fleet, etc) will only trust Rancher installations which are using a certificate signed by the CABundle in the `cacerts` setting. When the mode is system-store, the agents will trust any certificate signed by a CABundle in the operating system’s trust store."
+  warnings:
+    'agent-tls-mode': 'Changing this setting will cause all agents to be redeployed.'
   editHelp:
     'ui-banners': This setting takes a JSON object containing 3 root parameters; <code>banner</code>, <code>showHeader</code>, <code>showFooter</code>. <code>banner</code> is an object containing; <code>textColor</code>, <code>background</code>, and <code>text</code>, where <code>textColor</code> and <code>background</code> are any valid CSS color value.
   enum:
@@ -7353,6 +7356,9 @@ advancedSettings:
       info: Info
       debug: Debug
       trace: Trace
+    'agent-tls-mode':
+      strict: 'Strict'
+      system-store: 'System Store'
 
 featureFlags:
   label: Feature Flags
