@@ -1370,6 +1370,7 @@ cluster:
       placeholder: 'Namespace/Name'
       cluster: Imported Harvester Cluster
       installGuestAgent: Install guest agent
+      tokenExpirationWarning: 'Warning: Harvester Cloud Credentials use an underlying authentication token that may have an expiry time - please see the following <a href="https://harvesterhci.io/kb/renew_harvester_cloud_credentials" target="_blank" rel="noopener nofollow">knowledge base article</a> for possible implications on management operations.'
   description:
     label: Cluster Description
     placeholder: Any text you want that better describes this cluster
