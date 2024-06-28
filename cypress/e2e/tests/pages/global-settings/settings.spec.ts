@@ -258,6 +258,34 @@ describe('Settings', { testIsolation: 'off' }, () => {
     settingsPage.settingsValue('auth-token-max-ttl-minutes').contains(settings['auth-token-max-ttl-minutes'].original);
   });
 
+  it('can update agent-tls-mode', { tags: ['@globalSettings', '@adminUser'] }, () => {
+    // Update setting
+    SettingsPagePo.navTo();
+    settingsPage.editSettingsByLabel('agent-tls-mode');
+
+    const settingsEdit = settingsPage.editSettings('local', 'agent-tls-mode');
+
+    settingsEdit.waitForPage();
+    settingsEdit.title().contains('Setting: agent-tls-mode').should('be.visible');
+    settingsEdit.selectSettingsByLabel('System Store');
+    settingsEdit.saveAndWait('agent-tls-mode');
+    settingsPage.waitForPage();
+    settingsPage.settingsValue('agent-tls-mode').contains('System Store');
+
+    // Reset
+    SettingsPagePo.navTo();
+    settingsPage.waitForPage();
+    settingsPage.editSettingsByLabel('agent-tls-mode');
+
+    settingsEdit.waitForPage();
+    settingsEdit.title().contains('Setting: agent-tls-mode').should('be.visible');
+    settingsEdit.useDefaultButton().click();
+    settingsEdit.saveAndWait('agent-tls-mode');
+
+    settingsPage.waitForPage();
+    settingsPage.settingsValue('agent-tls-mode').contains('Strict');
+  });
+
   it('can update kubeconfig-default-token-ttl-minutes', { tags: ['@globalSettings', '@adminUser'] }, () => {
     // Update setting
     SettingsPagePo.navTo();
@@ -375,33 +403,5 @@ describe('Settings', { testIsolation: 'off' }, () => {
       expect(obj.apiVersion).to.equal('v1');
       expect(obj.kind).to.equal('Config');
     });
-  });
-
-  it('can update agent-tls-mode', { tags: ['@globalSettings', '@adminUser'] }, () => {
-    // Update setting
-    SettingsPagePo.navTo();
-    settingsPage.editSettingsByLabel('agent-tls-mode');
-
-    const settingsEdit = settingsPage.editSettings('local', 'agent-tls-mode');
-
-    settingsEdit.waitForPage();
-    settingsEdit.title().contains('Setting: agent-tls-mode').should('be.visible');
-    settingsEdit.selectSettingsByLabel('System Store');
-    settingsEdit.saveAndWait('agent-tls-mode');
-    settingsPage.waitForPage();
-    settingsPage.settingsValue('agent-tls-mode').contains('System Store');
-
-    // Reset
-    SettingsPagePo.navTo();
-    settingsPage.waitForPage();
-    settingsPage.editSettingsByLabel('agent-tls-mode');
-
-    settingsEdit.waitForPage();
-    settingsEdit.title().contains('Setting: agent-tls-mode').should('be.visible');
-    settingsEdit.useDefaultButton().click();
-    settingsEdit.saveAndWait('agent-tls-mode');
-
-    settingsPage.waitForPage();
-    settingsPage.settingsValue('agent-tls-mode').contains('Strict');
   });
 });
