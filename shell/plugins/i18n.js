@@ -1,7 +1,7 @@
 import Vue from 'vue';
 import { escapeHtml } from '../utils/string';
 
-function stringFor(store, key, args, raw = false, escapehtml = true) {
+export function stringFor(store, key, args, raw = false, escapehtml = true) {
   const translation = store.getters['i18n/t'](key, args);
 
   let out;

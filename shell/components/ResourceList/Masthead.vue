@@ -163,7 +163,7 @@ export default {
 </script>
 
 <template>
-  <header>
+  <header class="with-subheader">
     <slot name="typeDescription">
       <TypeDescription :resource="resource" />
     </slot>
@@ -179,6 +179,11 @@ export default {
         :resources="loadResources"
         :indeterminate="loadIndeterminate"
       />
+    </div>
+    <div class="sub-header">
+      <slot name="subHeader">
+        <!--Slot content-->
+      </slot>
     </div>
     <div class="actions-container">
       <slot name="actions">
@@ -220,5 +225,17 @@ export default {
 
   header {
     margin-bottom: 20px;
+  }
+
+  header.with-subheader {
+    grid-template-areas:
+      'type-banner type-banner'
+      'title actions'
+      'sub-header sub-header'
+      'state-banner state-banner';
+  }
+
+  .sub-header {
+    grid-area: sub-header;
   }
 </style>

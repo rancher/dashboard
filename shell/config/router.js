@@ -267,6 +267,10 @@ export const routerOptions = {
     component: () => interopDefault(import('../pages/c/_cluster/auth/group.principal/assign-edit.vue' /* webpackChunkName: "pages/c/_cluster/auth/group.principal/assign-edit" */)),
     name:      'c-cluster-auth-group.principal-assign-edit'
   }, {
+    path:      '/c/:cluster/auth/user.retention',
+    component: () => interopDefault(import('@shell/pages/c/_cluster/auth/user.retention/index.vue')),
+    name:      'c-cluster-auth-user.retention'
+  }, {
     path:      '/c/:cluster/legacy/project/pipelines',
     component: () => interopDefault(import('../pages/c/_cluster/legacy/project/pipelines.vue' /* webpackChunkName: "pages/c/_cluster/legacy/project/pipelines" */)),
     name:      'c-cluster-legacy-project-pipelines'
