@@ -241,6 +241,10 @@ export default {
     operatingSystem(os) {
       this.$router.applyQuery({ [OPERATING_SYSTEM]: os || undefined });
     },
+
+    showDeprecated(neu) {
+      this.$router.applyQuery({ [DEPRECATED_QUERY]: neu || undefined });
+    }
   },
 
   mounted() {
