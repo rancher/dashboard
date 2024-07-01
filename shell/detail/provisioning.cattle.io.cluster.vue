@@ -512,12 +512,12 @@ export default {
         return false;
       }
 
-      if ( this.value.isImported ) {
-        return !this.value.mgmt?.isReady && this.extDetailTabs.registration;
-      }
-
       if ( this.value.isCustom ) {
         return this.extDetailTabs.registration;
+      }
+
+      if ( this.value.isImported ) {
+        return !this.value.mgmt?.isReady && this.extDetailTabs.registration;
       }
 
       // Hosted kubernetes providers with private endpoints need the registration tab
