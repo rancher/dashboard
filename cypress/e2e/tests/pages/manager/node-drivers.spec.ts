@@ -80,7 +80,7 @@ describe.skip('Node Drivers', { testIsolation: 'off', tags: ['@manager', '@admin
       expect(isMatch(request.body, requestData)).to.equal(true);
       driverId = response.body.id;
     });
-    driversPage.list().details(downloadUrl1, 1).should('contain', 'Active');
+    driversPage.list().details(cloudCaDriver, 1).should('contain', 'Active');
   });
 
   it('can edit a node driver', () => {
@@ -112,12 +112,8 @@ describe.skip('Node Drivers', { testIsolation: 'off', tags: ['@manager', '@admin
       expect(isMatch(request.body, requestData)).to.equal(true);
     });
 
-    // Will use the below assertions until this issue is resolved https://github.com/rancher/dashboard/issues/11046.
-    // Using 'downloadUrl' instead of driver name
-    // driversPage.list().details(cloudCaDriver, 1).should('contain', 'Downloading');
-    // driversPage.list().details(cloudCaDriver, 1).contains('Active', { timeout: 15000 });
-    driversPage.list().details(downloadUrl2, 1).should('contain', 'Downloading');
-    driversPage.list().details(downloadUrl2, 1).contains('Active', { timeout: 60000 });
+    driversPage.list().details(cloudCaDriver, 1).should('contain', 'Downloading');
+    driversPage.list().details(cloudCaDriver, 1).contains('Active', { timeout: 15000 });
 
     ClusterManagerListPagePo.navTo();
     clusterList.waitForPage();
@@ -135,13 +131,13 @@ describe.skip('Node Drivers', { testIsolation: 'off', tags: ['@manager', '@admin
 
     NodeDriversPagePo.navTo();
     driversPage.waitForPage();
-    driversPage.list().details(downloadUrl2, 1).should('contain', 'Active');
-    driversPage.list().details(downloadUrl2, 2).find('span')
+    driversPage.list().details(cloudCaDriver, 1).should('contain', 'Active');
+    driversPage.list().details(cloudCaDriver, 2).find('span')
       .invoke('text')
       .then((t) => {
         cy.intercept('POST', `/v3/nodeDrivers/${ t }?action=deactivate`).as('deactivateDriver');
 
-        driversPage.list().actionMenu(downloadUrl2).getMenuItem('Deactivate').click();
+        driversPage.list().actionMenu(cloudCaDriver).getMenuItem('Deactivate').click();
         const deactivateDialog = new DeactivateDriverDialogPo();
 
         deactivateDialog.deactivate();
@@ -165,11 +161,11 @@ describe.skip('Node Drivers', { testIsolation: 'off', tags: ['@manager', '@admin
 
     NodeDriversPagePo.navTo();
     driversPage.waitForPage();
-    driversPage.list().details(downloadUrl2, 2).find('span').invoke('text')
+    driversPage.list().details(cloudCaDriver, 2).find('span').invoke('text')
       .then((t) => {
         cy.intercept('POST', `/v3/nodeDrivers/${ t }?action=activate`).as('activateDriver');
 
-        driversPage.list().actionMenu(downloadUrl2).getMenuItem('Activate').click();
+        driversPage.list().actionMenu(cloudCaDriver).getMenuItem('Activate').click();
       });
     cy.wait('@activateDriver').then(({ request, response }) => {
       expect(response?.statusCode).to.eq(200);
@@ -246,8 +242,7 @@ describe.skip('Node Drivers', { testIsolation: 'off', tags: ['@manager', '@admin
     createCluster.gridElementExistanceByName(openStackDriver, 'not.exist');
   });
 
-  it.skip('can delete drivers in bulk', () => {
-    // Skipping this test until issue is resolved https://github.com/rancher/dashboard/issues/10718
+  it('can delete drivers in bulk', () => {
     NodeDriversPagePo.navTo();
     driversPage.waitForPage();
     driversPage.list().resourceTable().sortableTable().rowSelectCtlWithName(oracleDriver)

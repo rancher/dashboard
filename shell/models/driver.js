@@ -1,6 +1,7 @@
 import { DESCRIPTION } from '@shell/config/labels-annotations';
 import NormanModel from '@shell/plugins/steve/norman-class';
 import { KONTAINER_TO_DRIVER } from './management.cattle.io.kontainerdriver';
+import capitalize from 'lodash/capitalize';
 
 export default class Driver extends NormanModel {
   get canViewYaml() {
@@ -20,12 +21,12 @@ export default class Driver extends NormanModel {
       }
     }
 
-    return KONTAINER_TO_DRIVER[this.id] || this.id;
+    return KONTAINER_TO_DRIVER[this.id] || this.name || this.id;
   }
 
   get nameDisplay() {
     const path = `cluster.provider.${ this.driverName }`;
-    const label = this.driverName || this.name || this.id;
+    const label = capitalize(this.driverName);
 
     return this.$rootGetters['i18n/withFallback'](path, label);
   }
