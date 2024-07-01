@@ -9,7 +9,7 @@ export default class NodeDriver extends Driver {
     const out = [
       {
         action:     'activate',
-        label:      'Activate',
+        label:      this.t('action.activate'),
         icon:       'icon icon-play',
         bulkable:   true,
         bulkAction: 'activateBulk',
@@ -17,7 +17,7 @@ export default class NodeDriver extends Driver {
       },
       {
         action:     'deactivate',
-        label:      'Deactivate',
+        label:      this.t('action.deactivate'),
         icon:       'icon icon-pause',
         bulkable:   true,
         bulkAction: 'deactivateBulk',
