@@ -1,6 +1,7 @@
-import { WorkloadsPodsListPagePo, WorkLoadsPodDetailsPagePo } from '@/cypress/e2e/po/pages/explorer/workloads-pods.po';
+import { WorkloadsPodsListPagePo, WorkLoadsPodDetailsPagePo, WorkloadsPodsCreatePagePo } from '@/cypress/e2e/po/pages/explorer/workloads-pods.po';
 import { createPodBlueprint, clonePodBlueprint } from '@/cypress/e2e/blueprints/explorer/workload-pods';
 import PodPo from '@/cypress/e2e/po/components/workloads/pod.po';
+import PromptRemove from '@/cypress/e2e/po/prompts/promptRemove.po';
 import HomePagePo from '@/cypress/e2e/po/pages/home.po';
 import { generatePodsDataSmall } from '@/cypress/e2e/blueprints/explorer/workloads/pods/pods-get';
 
@@ -238,6 +239,60 @@ describe('Pods', { testIsolation: 'off', tags: ['@explorer', '@adminUser'] }, ()
           expect(clonedSpec).to.deep.eq(origPodSpec);
           expect(clonedSpec.containers[0].resources).to.deep.eq(createPodBlueprint.spec.containers[0].resources);
         });
+    });
+  });
+
+  describe('should delete pod', () => {
+    const podName = `test-pod-${ Date.now() }`;
+
+    beforeEach(() => {
+      workloadsPodPage.goTo();
+    });
+
+    it('dialog should open/close as expected', () => {
+      const podCreatePage = new WorkloadsPodsCreatePagePo('local');
+
+      podCreatePage.goTo();
+
+      podCreatePage.createWithUI(podName, 'nginx', 'default');
+
+      // Should be on the list view
+      const podsListPage = new WorkloadsPodsListPagePo('local');
+
+      // Filter the list to just show the newly created pod
+      podsListPage.list().resourceTable().sortableTable().filter(podName);
+      podsListPage.list().resourceTable().sortableTable().checkRowCount(false, 1);
+
+      // Open action menu and delete for the first item
+      podsListPage.list().resourceTable().sortableTable().rowActionMenuOpen(podName)
+        .getMenuItem('Delete')
+        .click();
+
+      let dialog = new PromptRemove();
+
+      dialog.checkExists();
+      dialog.checkVisible();
+
+      dialog.cancel();
+      dialog.checkNotExists();
+
+      podsListPage.list().resourceTable().sortableTable().checkRowCount(false, 1);
+
+      // Open action menu and delete for the first item
+      podsListPage.list().resourceTable().sortableTable().rowActionMenuOpen(podName)
+        .getMenuItem('Delete')
+        .click();
+
+      dialog = new PromptRemove();
+
+      dialog.checkExists();
+      dialog.checkVisible();
+      dialog.remove();
+      dialog.checkNotExists();
+
+      podsListPage.list().resourceTable().sortableTable().checkRowCount(true, 1, true);
+
+      podsListPage.list().resourceTable().sortableTable().resetFilter();
     });
   });
 

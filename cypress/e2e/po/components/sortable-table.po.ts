@@ -74,6 +74,12 @@ export default class SortableTablePo extends ComponentPo {
       .type(searchText);
   }
 
+  resetFilter() {
+    return cy.get('[data-testid="search-box-filter-row"] input')
+      .focus()
+      .clear();
+  }
+
   //
   // sortable-table
   //
@@ -167,12 +173,12 @@ export default class SortableTablePo extends ComponentPo {
    * @param expected number of rows shown
    * @returns
    */
-  checkRowCount(isEmpty: boolean, expected: number) {
+  checkRowCount(isEmpty: boolean, expected: number, hasFilter = false) {
     return this.rowElements().should((el) => {
       if (isEmpty) {
         expect(el).to.have.length(expected);
-        expect(el).to.have.text('There are no rows to show.');
-        expect(el).to.have.attr('class', 'no-rows');
+        expect(el).to.have.text(hasFilter ? 'There are no rows which match your search query.' : 'There are no rows to show.');
+        expect(el).to.have.attr('class', hasFilter ? 'no-results' : 'no-rows');
       } else {
         expect(el).to.have.length(expected);
         expect(el).to.have.attr('data-node-id');
