@@ -572,7 +572,7 @@ authConfig:
         title: Are you sure? This update is irreversible.
         body: '<p><b>You may need to make some additional changes</b>. Please ensure the Azure AD app has the Directory.Read.All <b>Application</b> permission added to Microsoft Graph.<br> If any endpoints were customized while configuring Azure AD authentication in Rancher, they will not be automatically updated. </p>'
   oidc:
-    oidc: Configure an OIDC account
+    genericoidc: Configure an OIDC account
     keycloakoidc: Configure a Keycloak OIDC account
     rancherUrl: Rancher URL
     clientId: Client ID
@@ -6582,7 +6582,7 @@ model:
       okta: Okta
       freeipa: FreeIPA
       googleoauth: Google
-      oidc: Generic OIDC
+      genericoidc: Generic OIDC
       keycloakoidc: Keycloak
 
   cluster:

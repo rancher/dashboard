@@ -71,7 +71,7 @@ export const authProvidersInfo = async(store) => {
   const nonLocal = rows.filter((x) => x.name !== 'local');
   const enabled = nonLocal.filter((x) => x.enabled === true );
 
-  const supportedNonLocal = nonLocal.filter((x) => x.id !== 'genericoidc');
+  const supportedNonLocal = nonLocal.filter((x) => x.id !== 'oidc');
 
   const enabledLocation = enabled.length === 1 ? {
     name:   'c-cluster-auth-config-id',

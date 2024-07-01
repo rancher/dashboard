@@ -273,7 +273,7 @@ export default {
 
         // KeyCloakOIDCConfig --> OIDCConfig
         set(this.model, 'rancherUrl', `${ serverUrl }/verify-auth`);
-        set(this.model, 'scope', BASE_SCOPES.oidc[0]);
+        set(this.model, 'scope', this.model.id === 'keycloakoidc' ? BASE_SCOPES.keycloakoidc[0] : BASE_SCOPES.genericoidc[0]);
         break;
       }
 
