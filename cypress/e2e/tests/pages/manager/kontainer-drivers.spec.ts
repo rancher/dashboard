@@ -84,11 +84,11 @@ describe('Kontainer Drivers', { testIsolation: 'off', tags: ['@manager', '@admin
 
     KontainerDriversPagePo.navTo();
     driversPage.waitForPage();
-    driversPage.list().details(exampleDriver, 2).find('span').invoke('text')
+    driversPage.list().details(downloadUrl, 2).find('span').invoke('text')
       .then((t) => {
         cy.intercept('POST', `/v3/kontainerDrivers/${ t }?action=deactivate`).as('deactivateDriver');
 
-        driversPage.list().actionMenu(exampleDriver).getMenuItem('Deactivate').click();
+        driversPage.list().actionMenu(downloadUrl).getMenuItem('Deactivate').click();
         const deactivateDialog = new DeactivateDriverDialogPo();
 
         deactivateDialog.deactivate();
@@ -112,11 +112,11 @@ describe('Kontainer Drivers', { testIsolation: 'off', tags: ['@manager', '@admin
 
     KontainerDriversPagePo.navTo();
     driversPage.waitForPage();
-    driversPage.list().details(exampleDriver, 2).find('span').invoke('text')
+    driversPage.list().details(downloadUrl, 2).find('span').invoke('text')
       .then((t) => {
         cy.intercept('POST', `/v3/kontainerDrivers/${ t }?action=activate`).as('activateDriver');
 
-        driversPage.list().actionMenu(exampleDriver).getMenuItem('Activate').click();
+        driversPage.list().actionMenu(downloadUrl).getMenuItem('Activate').click();
       });
     cy.wait('@activateDriver').then(({ request, response }) => {
       expect(response?.statusCode).to.eq(200);
@@ -134,7 +134,7 @@ describe('Kontainer Drivers', { testIsolation: 'off', tags: ['@manager', '@admin
   it('can edit a cluster driver', () => {
     KontainerDriversPagePo.navTo();
     driversPage.waitForPage();
-    driversPage.list().actionMenu(exampleDriver).getMenuItem('Edit Config').click();
+    driversPage.list().actionMenu(downloadUrl).getMenuItem('Edit Config').click();
     createDriverPage.downloadUrl().set(downloadUrlUpdated);
     cy.intercept('PUT', '/v3/kontainerDrivers/*').as('updateDriver');
     createDriverPage.saveCreateForm().createEditView().save();
