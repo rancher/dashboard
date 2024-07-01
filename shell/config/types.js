@@ -93,6 +93,24 @@ export const WORKLOAD_TYPES = {
   REPLICATION_CONTROLLER: 'replicationcontroller',
 };
 
+export const WORKLOAD_TYPE_TO_KIND_MAPPING = {
+  // Each deployment creates a replicaset and the metrics are published for a replicaset.
+  [WORKLOAD_TYPES.DEPLOYMENT]:             'ReplicaSet',
+  [WORKLOAD_TYPES.CRON_JOB]:               'CronJob',
+  [WORKLOAD_TYPES.DAEMON_SET]:             'DaemonSet',
+  [WORKLOAD_TYPES.JOB]:                    'Job',
+  [WORKLOAD_TYPES.STATEFUL_SET]:           'StatefulSet',
+  [WORKLOAD_TYPES.REPLICA_SET]:            'ReplicaSet',
+  [WORKLOAD_TYPES.REPLICATION_CONTROLLER]: 'ReplicationController',
+};
+
+export const METRICS_SUPPORTED_KINDS = [
+  WORKLOAD_TYPES.DAEMON_SET,
+  WORKLOAD_TYPES.REPLICA_SET,
+  WORKLOAD_TYPES.STATEFUL_SET,
+  WORKLOAD_TYPES.DEPLOYMENT
+];
+
 const {
   DAEMON_SET, CRON_JOB, JOB, ...scalableWorkloads
 } = WORKLOAD_TYPES;

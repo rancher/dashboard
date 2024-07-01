@@ -14,8 +14,8 @@ import YamlEditor from '@shell/components/YamlEditor';
 import { get, set } from '@shell/utils/object';
 import { integerString, keyValueStrings } from '@shell/utils/computed';
 import { _CREATE, _EDIT, _VIEW } from '@shell/config/query-params';
+import { DEFAULT_VALUES, SENTINEL, OS_OPTIONS } from '@shell/machine-config/vmwarevsphere-config';
 
-export const SENTINEL = '__SENTINEL__';
 const NULLABLE_EMPTY_FIELDS = ['contentLibrary', 'folder', 'hostsystem'];
 const VAPP_MODE = {
   DISABLED: 'disabled',
@@ -34,21 +34,6 @@ const INITIAL_VAPP_OPTIONS = {
   vappIpallocationpolicy: '',
   vappTransport:          '',
   vappProperty:           []
-};
-const OS_OPTIONS = [
-  'linux',
-  'windows'
-];
-
-export const DEFAULT_VALUES = {
-  cpuCount:                '2',
-  diskSize:                '20000',
-  memorySize:              '4096',
-  hostsystem:              '',
-  cloudConfig:             '#cloud-config\n\n',
-  gracefulShutdownTimeout: '0',
-  cfgparam:                ['disk.enableUUID=TRUE'],
-  os:                      OS_OPTIONS[0]
 };
 
 const getDefaultVappOptions = (networks) => {
