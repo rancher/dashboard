@@ -1,7 +1,7 @@
 <script>
 import isEmpty from 'lodash/isEmpty';
 
-import InstallRedirect from '@shell/utils/install-redirect';
+import ChartProductRedirectMixin from '@shell/mixins/chart-product-redirect';
 import AlertTable from '@shell/components/AlertTable';
 import { NAME, CHART_NAME } from '@shell/config/product/monitoring';
 import { CATALOG, MONITORING } from '@shell/config/types';
@@ -19,7 +19,7 @@ export default {
     AlertTable
   },
 
-  middleware: InstallRedirect(NAME, CHART_NAME),
+  mixins: [ChartProductRedirectMixin(NAME, CHART_NAME)],
 
   async fetch() {
     await this.fetchDeps();
@@ -131,7 +131,7 @@ export default {
 </script>
 
 <template>
-  <section>
+  <section v-if="!redirectPending">
     <header class="row">
       <div class="col span-12">
         <h1>

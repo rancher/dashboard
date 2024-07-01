@@ -1,7 +1,7 @@
 <script>
 import { mapGetters } from 'vuex';
 
-import InstallRedirect from '@shell/utils/install-redirect';
+import ChartProductRedirectMixin from '@shell/mixins/chart-product-redirect';
 
 import { SERVICE } from '@shell/config/types';
 import { NAME, CHART_NAME } from '@shell/config/product/longhorn';
@@ -15,7 +15,7 @@ export default {
     IconMessage, LazyImage, Loading
   },
 
-  middleware: InstallRedirect(NAME, CHART_NAME),
+  mixins: [ChartProductRedirectMixin(NAME, CHART_NAME)],
 
   async fetch() {
     if ( this.$store.getters['cluster/schemaFor'](SERVICE) ) {
@@ -56,7 +56,7 @@ export default {
 </script>
 
 <template>
-  <Loading v-if="$fetchState.pending" />
+  <Loading v-if="$fetchState.pending || redirectPending" />
   <section v-else>
     <header class="row">
       <div class="col span-12">
