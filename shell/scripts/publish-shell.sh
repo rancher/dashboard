@@ -78,7 +78,7 @@ function publish() {
   # Make a note of dependency versions, if required
   node ${SCRIPT_DIR}/record-deps.js
 
-  yarn publish . --new-version ${PKG_VERSION} ${PUBLISH_ARGS}
+  yarn publish . --new-version ${PKG_VERSION} ${PUBLISH_ARGS} --tag v1.2
   RET=$?
 
   popd >/dev/null
