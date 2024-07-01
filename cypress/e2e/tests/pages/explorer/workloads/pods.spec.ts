@@ -249,10 +249,6 @@ describe('Pods', { testIsolation: 'off', tags: ['@explorer', '@adminUser'] }, ()
       workloadsPodPage.goTo();
     });
 
-    after(() => {
-      cy.deleteRancherResource('v1', `pods/default`, podName);
-    });
-
     it('dialog should open/close as expected', () => {
       const podCreatePage = new WorkloadsPodsCreatePagePo('local');
 
