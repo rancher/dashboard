@@ -170,7 +170,9 @@ export default {
           }
         } catch (e) {}
 
-        this.waitForBackend(btnCB, id);
+        if (this.waiting) {
+          this.waitForBackend(btnCB, id);
+        }
       }, 5000);
     },
 
