@@ -37,6 +37,7 @@ import { findBy, insertAt } from '@shell/utils/array';
 import Vue from 'vue';
 import { saferDump } from '@shell/utils/create-yaml';
 import { LINUX, WINDOWS } from '@shell/store/catalog';
+import { SETTING } from '@shell/config/settings';
 
 const VALUES_STATE = {
   FORM: 'FORM',
@@ -126,7 +127,7 @@ export default {
     try {
       this.serverUrlSetting = await this.$store.dispatch('management/find', {
         type: MANAGEMENT.SETTING,
-        id:   'server-url'
+        id:   SETTING.SERVER_URL,
       });
     } catch (e) {
       console.error('Unable to fetch `server-url` setting: ', e); // eslint-disable-line no-console
@@ -888,7 +889,7 @@ export default {
       // runtime will pull images from docker.io.
       const globalRegistry = await this.$store.dispatch('management/find', {
         type: MANAGEMENT.SETTING,
-        id:   'system-default-registry'
+        id:   SETTING.SYSTEM_DEFAULT_REGISTRY,
       });
 
       return globalRegistry.value;

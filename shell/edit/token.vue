@@ -13,6 +13,7 @@ import Select from '@shell/components/form/Select';
 import CreateEditView from '@shell/mixins/create-edit-view';
 import { diffFrom } from '@shell/utils/time';
 import { filterHiddenLocalCluster, filterOnlyKubernetesClusters } from '@shell/utils/cluster';
+import { SETTING } from '@shell/config/settings';
 
 export default {
   components: {
@@ -29,7 +30,7 @@ export default {
 
   data() {
     // Get the setting that defines the max token TTL allowed (in minutes)
-    const maxTTLSetting = this.$store.getters['management/byId'](MANAGEMENT.SETTING, 'auth-token-max-ttl-minutes');
+    const maxTTLSetting = this.$store.getters['management/byId'](MANAGEMENT.SETTING, SETTING.AUTH_TOKEN_MAX_TTL_MINUTES);
     let maxTTL = 0;
 
     try {

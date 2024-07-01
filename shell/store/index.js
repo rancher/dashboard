@@ -594,7 +594,7 @@ export const getters = {
   },
 
   releaseNotesUrl(state, getters) {
-    const version = getters['management/byId'](MANAGEMENT.SETTING, 'server-version')?.value;
+    const version = getters['management/byId'](MANAGEMENT.SETTING, SETTING.VERSION_RANCHER)?.value;
 
     const base = 'https://github.com/rancher/rancher/releases';
 

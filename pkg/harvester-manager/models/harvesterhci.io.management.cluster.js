@@ -66,7 +66,7 @@ export default class HciCluster extends ProvCluster {
 
     if (uiOfflinePreferred === 'dynamic') {
       // We shouldn't need to worry about the version of the dashboard when embedded in harvester (aka in isSingleProduct)
-      const version = this.$rootGetters['management/byId'](MANAGEMENT.SETTING, 'server-version')?.value;
+      const version = this.$rootGetters['management/byId'](MANAGEMENT.SETTING, SETTING.VERSION_RANCHER)?.value;
 
       if (version.endsWith('-head')) {
         uiOfflinePreferred = 'false';
