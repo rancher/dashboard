@@ -31,6 +31,8 @@ const typeFolders = [
   'detail'
 ];
 
+const shellPkgPath = 'node_modules/@rancher/shell';
+
 console.log('');
 console.log('Creating Skeleton UI Package');
 
@@ -46,6 +48,7 @@ const pkgFolder = path.join(folder, 'pkg', name);
 
 let addTypeFolders = false;
 let addWorkflowFolder = false;
+let ignoreShellPkgPathCheck = false;
 
 if (args.length > 3) {
   for (let i = 3; i < args.length; i++) {
@@ -56,10 +59,20 @@ if (args.length > 3) {
     case '-w':
       addWorkflowFolder = true;
       break;
+    case '-i':
+    ignoreShellPkgPathCheck = true;
+      break;
     default:
       break;
     }
   }
+}
+
+
+if (!ignoreShellPkgPathCheck && !fs.existsSync(path.join(pkgFolder, `../../${ shellPkgPath }/package.json`))) {
+  console.log('');
+  console.log('@rancher/shell not found in node_modules! Please do "yarn install" and make sure you run this command from the base folder of your app');
+  process.exit(1);
 }
 
 const isNodeModulesShell = !fs.existsSync(path.join(folder, 'shell'));
@@ -131,6 +144,25 @@ function fetchLatestVersion() {
           console.log(`  Adding rancher-version annotation '>= ${ release.tag_name }' to package.json`);
 
           pkg.rancher = { annotations: { 'catalog.cattle.io/rancher-version': `>= ${ release.tag_name }` } };
+
+          // read shell version from node_modules/@rancher/shell/package.json
+          const shellPkgRawData = fs.readFileSync(path.join(pkgFolder, `../../${ shellPkgPath }/package.json`));
+          const shellPkg = JSON.parse(shellPkgRawData);
+          const latestShellVersion = shellPkg.version || null;
+
+          if (!latestShellVersion) {
+            console.log('Could not get a shell version from node_modules/@rancher/shell/package.json in app');
+          } else {
+            const splitShellVersion = latestShellVersion.split('.');
+            const majorVersion = splitShellVersion[0];
+            const minorVersion = splitShellVersion[1];
+            const parsedShellVersion = `${majorVersion}.${minorVersion}.0`;
+            
+            console.log(`  Adding catalog.cattle.io/ui-extensions-version '>= ${parsedShellVersion }' to package.json`);
+            
+            pkg.rancher.annotations['catalog.cattle.io/ui-extensions-version'] = `>= ${ parsedShellVersion }`;
+          }
+
           writePackageJson();
         }
       } catch (e) {

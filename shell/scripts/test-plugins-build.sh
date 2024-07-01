@@ -119,7 +119,7 @@ if [ "${SKIP_STANDALONE}" == "false" ]; then
 
   # Package creator
   echo "Verifying package creator package"
-  yarn create @rancher/pkg test-pkg
+  yarn create @rancher/pkg test-pkg -i
 
   echo "Building test package"
   FORCE_COLOR=true yarn build-pkg test-pkg | cat
@@ -152,7 +152,7 @@ if [ $TEST_PERSIST_BUILD != "true" ]; then
   rm -rf ./pkg/test-pkg
 fi
 
-yarn create @rancher/pkg test-pkg -t
+yarn create @rancher/pkg test-pkg -t -i
 cp ${SHELL_DIR}/list/catalog.cattle.io.clusterrepo.vue ./pkg/test-pkg/list
 FORCE_COLOR=true yarn build-pkg test-pkg | cat
 if [ $TEST_PERSIST_BUILD != "true" ]; then
