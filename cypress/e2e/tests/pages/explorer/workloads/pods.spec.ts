@@ -239,64 +239,64 @@ describe('Pods', { testIsolation: 'off', tags: ['@explorer', '@adminUser'] }, ()
           expect(clonedSpec).to.deep.eq(origPodSpec);
           expect(clonedSpec.containers[0].resources).to.deep.eq(createPodBlueprint.spec.containers[0].resources);
         });
-        });
-      });
+    });
+  });
 
-      describe('should delete pod', { tags: ['@explorer', '@adminUser'] }, () => {
-        const podName = `test-pod-${ Date.now() }`;
+  describe('should delete pod', () => {
+    const podName = `test-pod-${ Date.now() }`;
 
-        beforeEach(() => {
-          workloadsPodPage.goTo();
-        });
+    beforeEach(() => {
+      workloadsPodPage.goTo();
+    });
 
-        after(() => {
-          // cy.deleteRancherResource('v1', `pods/default`, podName);
-        });
+    after(() => {
+      cy.deleteRancherResource('v1', `pods/default`, podName);
+    });
 
-        it('dialog should open/close as expected', () => {
-          const podCreatePage = new WorkloadsPodsCreatePagePo('local');
+    it('dialog should open/close as expected', () => {
+      const podCreatePage = new WorkloadsPodsCreatePagePo('local');
 
-          podCreatePage.goTo();
+      podCreatePage.goTo();
 
-          podCreatePage.createWithUI(podName, 'nginx', 'default');
+      podCreatePage.createWithUI(podName, 'nginx', 'default');
 
-          // Should be on the list view
-          const podsListPage = new WorkloadsPodsListPagePo('local');
+      // Should be on the list view
+      const podsListPage = new WorkloadsPodsListPagePo('local');
 
-          // Filter the list to just show the newly created pod
-          podsListPage.list().resourceTable().sortableTable().filter(podName);
-          podsListPage.list().resourceTable().sortableTable().checkRowCount(false, 1);
+      // Filter the list to just show the newly created pod
+      podsListPage.list().resourceTable().sortableTable().filter(podName);
+      podsListPage.list().resourceTable().sortableTable().checkRowCount(false, 1);
 
-          // Open action menu and delete for the first item
-          podsListPage.list().resourceTable().sortableTable().rowActionMenuOpen(podName)
-            .getMenuItem('Delete')
-            .click();
+      // Open action menu and delete for the first item
+      podsListPage.list().resourceTable().sortableTable().rowActionMenuOpen(podName)
+        .getMenuItem('Delete')
+        .click();
 
-          let dialog = new PromptRemove();
+      let dialog = new PromptRemove();
 
-          dialog.checkExists();
-          dialog.checkVisible();
+      dialog.checkExists();
+      dialog.checkVisible();
 
-          dialog.cancel();
-          dialog.checkNotExists();
+      dialog.cancel();
+      dialog.checkNotExists();
 
-          podsListPage.list().resourceTable().sortableTable().checkRowCount(false, 1);
+      podsListPage.list().resourceTable().sortableTable().checkRowCount(false, 1);
 
-          // Open action menu and delete for the first item
-          podsListPage.list().resourceTable().sortableTable().rowActionMenuOpen(podName)
-            .getMenuItem('Delete')
-            .click();
+      // Open action menu and delete for the first item
+      podsListPage.list().resourceTable().sortableTable().rowActionMenuOpen(podName)
+        .getMenuItem('Delete')
+        .click();
 
-          dialog = new PromptRemove();
+      dialog = new PromptRemove();
 
-          dialog.checkExists();
-          dialog.checkVisible();
-          dialog.remove();
-          dialog.checkNotExists();
+      dialog.checkExists();
+      dialog.checkVisible();
+      dialog.remove();
+      dialog.checkNotExists();
 
-          podsListPage.list().resourceTable().sortableTable().checkRowCount(true, 1, true);
+      podsListPage.list().resourceTable().sortableTable().checkRowCount(true, 1, true);
 
-          podsListPage.list().resourceTable().sortableTable().resetFilter();
+      podsListPage.list().resourceTable().sortableTable().resetFilter();
     });
   });
 
