@@ -21,4 +21,3 @@ export interface ActionFindAllArgs extends ActionCoreFindArgs {
    */
   depaginate?: boolean,
 }
-
