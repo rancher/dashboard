@@ -84,15 +84,13 @@ describe('Kontainer Drivers', { testIsolation: 'off', tags: ['@manager', '@admin
 
     KontainerDriversPagePo.navTo();
     driversPage.waitForPage();
-    driversPage.list().details(downloadUrl, 2).find('span').invoke('text')
-      .then((t) => {
-        cy.intercept('POST', `/v3/kontainerDrivers/${ t }?action=deactivate`).as('deactivateDriver');
 
-        driversPage.list().actionMenu(downloadUrl).getMenuItem('Deactivate').click();
-        const deactivateDialog = new DeactivateDriverDialogPo();
+    cy.intercept('POST', `/v3/kontainerDrivers/*?action=deactivate`).as('deactivateDriver');
 
-        deactivateDialog.deactivate();
-      });
+    driversPage.list().actionMenu(downloadUrl).getMenuItem('Deactivate').click();
+    const deactivateDialog = new DeactivateDriverDialogPo();
+
+    deactivateDialog.deactivate();
 
     cy.wait('@deactivateDriver').then(({ request, response }) => {
       expect(response?.statusCode).to.eq(200);
@@ -112,12 +110,11 @@ describe('Kontainer Drivers', { testIsolation: 'off', tags: ['@manager', '@admin
 
     KontainerDriversPagePo.navTo();
     driversPage.waitForPage();
-    driversPage.list().details(downloadUrl, 2).find('span').invoke('text')
-      .then((t) => {
-        cy.intercept('POST', `/v3/kontainerDrivers/${ t }?action=activate`).as('activateDriver');
 
-        driversPage.list().actionMenu(downloadUrl).getMenuItem('Activate').click();
-      });
+    cy.intercept('POST', `/v3/kontainerDrivers/*?action=activate`).as('activateDriver');
+
+    driversPage.list().actionMenu(downloadUrl).getMenuItem('Activate').click();
+
     cy.wait('@activateDriver').then(({ request, response }) => {
       expect(response?.statusCode).to.eq(200);
       expect(isMatch(request.body, requestData)).to.equal(true);
