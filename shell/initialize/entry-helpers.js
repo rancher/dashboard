@@ -3,6 +3,7 @@ import { updatePageTitle } from '@shell/utils/title';
 import { getVendor } from '@shell/config/private-label';
 import middleware from '@shell/config/middleware.js';
 import { withQuery } from 'ufo';
+import dynamicPluginLoader from '@shell/pkg/dynamic-plugin-loader';
 
 // Global variable used on mount, updated on route change and used in the render function
 let app;
@@ -196,20 +197,19 @@ async function render(to, from, next) {
 
   // If no Components matched, generate 404
   if (!Components.length) {
-    // Call the authenticated middleware. This used to attempt to load the error layout but because it was missing it would:
-    // 1. load the default layout instead
-    // 2. then call the authenticated middleware
-    // 3. Authenticated middleware would then load plugins and check to see if there was a valid route and navigate to that if it existed
-    // 4. This would allow harvester cluster pages to load on page reload
-    // We should really make authenticated middleware do less...
-    await callMiddleware.call(this, [{ options: { middleware: ['authenticated'] } }], app.context);
+    // Handle the loading of dynamic plugins (Harvester) because we only want to attempt to load those plugins and routes if we first couldn't find a page.
+    // We should probably get rid of this concept entirely and just load plugins at the start.
+    await app.context.store.dispatch('loadManagement');
+    const newLocation = await dynamicPluginLoader.check({ route: { path: window.location.pathname }, store: app.context.store });
 
-    if (nextCalled) {
-      return;
+    // If we have a new location, double check that it's actually valid
+    const resolvedRoute = newLocation ? app.context.store.app.router.resolve(newLocation) : null;
+
+    if (resolvedRoute?.route.matched.length) {
+      // Note - don't use `redirect` or `store.app.route` (breaks feature by failing to run middleware in default layout)
+      return next(newLocation);
     }
 
-    // Show error page
-    // this.error({ statusCode: 404, message: 'This page could not be found' });
     errorRedirect(this, new Error('404: This page could not be found'));
 
     return next();
