@@ -758,6 +758,7 @@ export default {
             :name="'col:' + c"
             :row="row"
             :queue-update="queueUpdate"
+            :i="i"
           />
         </div>
         <div
