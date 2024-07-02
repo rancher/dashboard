@@ -51,14 +51,12 @@ export default {
     },
     async apply(buttonDone) {
       try {
-        await Promise.all(this.drivers.map((driver) => {
-          const url = `v3/${ this.driverType }/${ escape(driver.id) }?action=deactivate`;
-
-          this.$store.dispatch('rancher/request', {
-            url,
+        await Promise.all(this.drivers.map(
+          (driver) => this.$store.dispatch('rancher/request', {
+            url: `v3/${ this.driverType }/${ escape(driver.id) }?action=deactivate`,
             method: 'POST'
-          });
-        }));
+          })
+        ));
 
         this.close(buttonDone);
       } catch (err) {
