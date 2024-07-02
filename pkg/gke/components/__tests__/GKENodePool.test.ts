@@ -151,7 +151,7 @@ describe('gke node pool', () => {
       ...setup
     });
 
-    const taints = wrapper.find('data-testid="gke-taints-comp"');
+    const taints = wrapper.find('[data-testid="gke-taints-comp"]');
 
     // the effectValues prop functionality is tested in the Taints component's unit tests
     expect(taints.props().effectValues).toStrictEqual({
