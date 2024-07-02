@@ -19,14 +19,14 @@ const validScope = 'openid profile email';
 
 const mockModel = {
   enabled:      false,
-  id:           'oidc',
+  id:           'genericoidc',
   rancherUrl:   validRancherUrl,
   issuer:       validIssuer,
   authEndpoint: validAuthEndpoint,
   scope:        validScope,
   clientId:     validClientId,
   clientSecret: validClientSecret,
-  type:         'oidcConfig',
+  type:         'genericOIDCConfig',
 };
 
 const mockedAuthConfigMixin = {
