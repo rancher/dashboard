@@ -16,8 +16,9 @@ export default class UsersPo extends PagePo {
   }
 
   static navTo(): Cypress.Chainable<Cypress.AUTWindow> {
-    BurgerMenuPo.checkIfMenuItemLinkIsHighlighted('Users & Authentication');
     const sideNav = new ProductNavPo();
+
+    BurgerMenuPo.burgerMenuNavToMenubyLabel('Users & Authentication');
 
     return sideNav.navToSideMenuEntryByLabel('Users');
   }

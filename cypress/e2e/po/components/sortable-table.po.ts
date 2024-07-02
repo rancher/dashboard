@@ -68,7 +68,7 @@ export default class SortableTablePo extends ComponentPo {
    * @returns
    */
   filter(searchText: string) {
-    return cy.get('[data-testid="search-box-filter-row"] input')
+    return this.self().find('[data-testid="search-box-filter-row"] input')
       .focus()
       .clear()
       .type(searchText);

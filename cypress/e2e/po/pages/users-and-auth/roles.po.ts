@@ -5,10 +5,11 @@ import RoleTemplateEditPo from '@/cypress/e2e/po/edit/management.cattle.io.rolet
 import BaseResourceList from '@/cypress/e2e/po/lists/base-resource-list.po';
 import RoleListPo from '@/cypress/e2e/po/lists/role-list.po';
 import PagePo from '@/cypress/e2e/po/pages/page.po';
+import BurgerMenuPo from '@/cypress/e2e/po/side-bars/burger-side-menu.po';
+import ProductNavPo from '@/cypress/e2e/po/side-bars/product-side-nav.po';
 
 export default class RolesPo extends PagePo {
   private static createPath(clusterId: string) {
-    // return (roleId ? `/c/${ clusterId }/auth/roles/${ resource }/${ roleId }` : `/c/${ clusterId }/auth/roles${ resource }`);
     return `/c/${ clusterId }/auth/roles`;
   }
 
@@ -18,6 +19,13 @@ export default class RolesPo extends PagePo {
 
   constructor(private clusterId = '_') {
     super(RolesPo.createPath(clusterId));
+  }
+
+  static navTo() {
+    const sideNav = new ProductNavPo();
+
+    BurgerMenuPo.burgerMenuNavToMenubyLabel('Users & Authentication');
+    sideNav.navToSideMenuEntryByLabel('Role Templates');
   }
 
   waitForRequests() {
@@ -33,7 +41,7 @@ export default class RolesPo extends PagePo {
   }
 
   goToEditYamlPage(elemName: string) {
-    return this.list().actionMenu(elemName).getMenuItem('Edit YAML').click();
+    return this.list('GLOBAL').actionMenu(elemName).getMenuItem('Edit YAML').click();
   }
 
   createRole(userId?: string) {
@@ -51,7 +59,12 @@ export default class RolesPo extends PagePo {
       .click();
   }
 
-  list() {
-    return new RoleListPo(this.self());
+  /**
+   * resource list per tab
+   * @param tabIdSelector
+   * @returns
+   */
+  list(tabIdSelector: 'GLOBAL' | 'CLUSTER' | 'NAMESPACE') {
+    return new RoleListPo(`#${ tabIdSelector } [data-testid="sortable-table-list-container"]`);
   }
 }

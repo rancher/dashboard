@@ -797,3 +797,34 @@ Cypress.Commands.add('createToken', (description: string, ttl = 3600000, failOnS
       }
     });
 });
+
+/**
+ * Create global role
+ */
+Cypress.Commands.add('createGlobalRole', (name, apiGroups: string[], resourceNames: string[], resources: string[], verbs: string[], newUserDefault = false, failOnStatusCode = true) => {
+  return cy.request({
+    method:  'POST',
+    url:     `${ Cypress.env('api') }/v3/globalroles`,
+    headers: {
+      'x-api-csrf': token.value,
+      Accept:       'application/json'
+    },
+    failOnStatusCode,
+    body: {
+      type:  'globalRole',
+      name,
+      rules: [{
+        apiGroups,
+        resourceNames,
+        resources,
+        verbs
+      }],
+      newUserDefault
+    }
+  })
+    .then((resp) => {
+      if (failOnStatusCode) {
+        expect(resp.status).to.eq(201);
+      }
+    });
+});

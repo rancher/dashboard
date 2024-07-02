@@ -3,6 +3,9 @@ import UsersPo from '@/cypress/e2e/po/pages/users-and-auth/users.po';
 import PromptRemove from '@/cypress/e2e/po/prompts/promptRemove.po';
 import * as jsyaml from 'js-yaml';
 import * as path from 'path';
+import { generateUsersDataSmall } from '@/cypress/e2e/blueprints/users/users-get';
+import HomePagePo from '~/cypress/e2e/po/pages/home.po';
+import BurgerMenuPo from '~/cypress/e2e/po/side-bars/burger-side-menu.po';
 
 const usersPo = new UsersPo('_');
 const userCreate = usersPo.createEdit();
@@ -26,6 +29,8 @@ describe('Users', { tags: ['@usersAndAuths', '@adminUser'] }, () => {
     const adminPassword = 'admin-password';
 
     usersPo.goTo();
+    usersPo.waitForPage();
+    BurgerMenuPo.checkIfMenuItemLinkIsHighlighted('Users & Authentication');
     usersPo.list().create();
 
     userCreate.waitForPage();
@@ -257,6 +262,222 @@ describe('Users', { tags: ['@usersAndAuths', '@adminUser'] }, () => {
       promptRemove.remove();
       cy.wait('@deleteUser').its('response.statusCode').should('eq', 200);
       usersPo.list().elementWithName(userBaseUsername).should('not.exist');
+    });
+  });
+
+  describe('List', { testIsolation: 'off', tags: ['@vai'] }, () => {
+    const uniqueUserName = 'aaa-e2e-test-name';
+    const userIdsList = [];
+
+    before('set up', () => {
+      cy.login();
+
+      // create users
+      let i = 0;
+
+      while (i < 100) {
+        const userName = `e2e-${ Cypress._.uniqueId(Date.now().toString()) }`;
+
+        cy.createUser({ username: userName }).then((resp: Cypress.Response<any>) => {
+          const userId = resp.body.id;
+
+          userIdsList.push(userId);
+        });
+
+        i++;
+      }
+
+      // create one more for sorting test
+      cy.createUser({ username: uniqueUserName }).then((resp: Cypress.Response<any>) => {
+        const userId = resp.body.id;
+
+        userIdsList.push(userId);
+      });
+    });
+
+    it('pagination is visible and user is able to navigate through users data', () => {
+      UsersPo.navTo();
+      usersPo.waitForPage();
+
+      // get users count
+      cy.getRancherResource('v3', 'users').then((resp: Cypress.Response<any>) => {
+        const count = resp.body.data.length;
+
+        // pagination is visible
+        usersPo.list().resourceTable().sortableTable().pagination()
+          .checkVisible();
+
+        // basic checks on navigation buttons
+        usersPo.list().resourceTable().sortableTable().pagination()
+          .beginningButton()
+          .isDisabled();
+        usersPo.list().resourceTable().sortableTable().pagination()
+          .leftButton()
+          .isDisabled();
+        usersPo.list().resourceTable().sortableTable().pagination()
+          .rightButton()
+          .isEnabled();
+        usersPo.list().resourceTable().sortableTable().pagination()
+          .endButton()
+          .isEnabled();
+
+        // check text before navigation
+        usersPo.list().resourceTable().sortableTable().pagination()
+          .paginationText()
+          .then((el) => {
+            expect(el.trim()).to.eq(`1 - 100 of ${ count } Users`);
+          });
+
+        // navigate to next page - right button
+        usersPo.list().resourceTable().sortableTable().pagination()
+          .rightButton()
+          .click();
+
+        // check text and buttons after navigation
+        usersPo.list().resourceTable().sortableTable().pagination()
+          .paginationText()
+          .then((el) => {
+            expect(el.trim()).to.eq(`101 - ${ count } of ${ count } Users`);
+          });
+        usersPo.list().resourceTable().sortableTable().pagination()
+          .beginningButton()
+          .isEnabled();
+        usersPo.list().resourceTable().sortableTable().pagination()
+          .leftButton()
+          .isEnabled();
+
+        // navigate to first page - left button
+        usersPo.list().resourceTable().sortableTable().pagination()
+          .leftButton()
+          .click();
+
+        // check text and buttons after navigation
+        usersPo.list().resourceTable().sortableTable().pagination()
+          .paginationText()
+          .then((el) => {
+            expect(el.trim()).to.eq(`1 - 100 of ${ count } Users`);
+          });
+        usersPo.list().resourceTable().sortableTable().pagination()
+          .beginningButton()
+          .isDisabled();
+        usersPo.list().resourceTable().sortableTable().pagination()
+          .leftButton()
+          .isDisabled();
+
+        // navigate to last page - end button
+        usersPo.list().resourceTable().sortableTable().pagination()
+          .endButton()
+          .click();
+
+        // check row count on last page
+        usersPo.list().resourceTable().sortableTable().checkRowCount(false, count - 100);
+
+        // check text after navigation
+        usersPo.list().resourceTable().sortableTable().pagination()
+          .paginationText()
+          .then((el) => {
+            expect(el.trim()).to.eq(`101 - ${ count } of ${ count } Users`);
+          });
+
+        // navigate to first page - beginning button
+        usersPo.list().resourceTable().sortableTable().pagination()
+          .beginningButton()
+          .click();
+
+        // check text and buttons after navigation
+        usersPo.list().resourceTable().sortableTable().pagination()
+          .paginationText()
+          .then((el) => {
+            expect(el.trim()).to.eq(`1 - 100 of ${ count } Users`);
+          });
+        usersPo.list().resourceTable().sortableTable().pagination()
+          .beginningButton()
+          .isDisabled();
+        usersPo.list().resourceTable().sortableTable().pagination()
+          .leftButton()
+          .isDisabled();
+      });
+    });
+
+    it('filter users', () => {
+      UsersPo.navTo();
+      usersPo.waitForPage();
+
+      usersPo.list().resourceTable().sortableTable().checkVisible();
+      usersPo.list().resourceTable().sortableTable().checkLoadingIndicatorNotVisible();
+
+      // filter by id
+      usersPo.list().resourceTable().sortableTable().filter(userIdsList[0]);
+      usersPo.list().resourceTable().sortableTable().checkRowCount(false, 1);
+      usersPo.list().resourceTable().sortableTable().rowElementWithName(userIdsList[0])
+        .should('be.visible');
+
+      // filter by name
+      usersPo.list().resourceTable().sortableTable().filter(uniqueUserName);
+      usersPo.list().resourceTable().sortableTable().checkRowCount(false, 1);
+      usersPo.list().resourceTable().sortableTable().rowElementWithName(uniqueUserName)
+        .should('be.visible');
+
+      usersPo.list().resourceTable().sortableTable().resetFilter();
+    });
+
+    it('sorting changes the order of paginated users data', () => {
+      UsersPo.navTo();
+      usersPo.waitForPage();
+
+      // check table is sorted by name in ASC order by default
+      usersPo.list().resourceTable().sortableTable().tableHeaderRow()
+        .checkSortOrder(3, 'down');
+
+      // user name should be visible on first page (sorted in ASC order)
+      usersPo.list().resourceTable().sortableTable().rowElementWithName(uniqueUserName)
+        .should('be.visible');
+
+      // navigate to last page
+      usersPo.list().resourceTable().sortableTable().pagination()
+        .endButton()
+        .click();
+
+      // user name should NOT be visible on last page (sorted in ASC order)
+      usersPo.list().resourceTable().sortableTable().rowElementWithName(uniqueUserName)
+        .should('not.exist');
+
+      // sort by name in DESC order
+      usersPo.list().resourceTable().sortableTable().sort(3)
+        .click();
+      usersPo.list().resourceTable().sortableTable().tableHeaderRow()
+        .checkSortOrder(3, 'up');
+
+      // user name should be NOT visible on first page (sorted in DESC order)
+      usersPo.list().resourceTable().sortableTable().rowElementWithName(uniqueUserName)
+        .should('not.exist');
+
+      // navigate to last page
+      usersPo.list().resourceTable().sortableTable().pagination()
+        .endButton()
+        .click();
+
+      // user name should be visible on last page (sorted in DESC order)
+      usersPo.list().resourceTable().sortableTable().rowElementWithName(uniqueUserName)
+        .scrollIntoView()
+        .should('be.visible');
+    });
+
+    it('pagination is hidden', () => {
+      generateUsersDataSmall();
+      HomePagePo.goTo(); // this is needed here for the intercept to work
+      UsersPo.navTo();
+      cy.wait('@usersDataSmall');
+
+      usersPo.list().resourceTable().sortableTable().checkVisible();
+      usersPo.list().resourceTable().sortableTable().checkLoadingIndicatorNotVisible();
+      usersPo.list().resourceTable().sortableTable().checkRowCount(false, 2);
+      usersPo.list().resourceTable().sortableTable().pagination()
+        .checkNotExists();
+    });
+
+    after(() => {
+      userIdsList.forEach((r) => cy.deleteRancherResource('v3', 'Users', r, false));
     });
   });
 });

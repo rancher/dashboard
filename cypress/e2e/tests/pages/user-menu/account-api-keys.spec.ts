@@ -208,10 +208,11 @@ describe('Account and API Keys', { testIsolation: 'off' }, () => {
       accountPage.sortableTable().filter(uniqueTokenDesc);
       accountPage.sortableTable().checkRowCount(false, 1);
       accountPage.sortableTable().rowElementWithName(uniqueTokenDesc).scrollIntoView().should('be.visible');
+
+      accountPage.sortableTable().resetFilter();
     });
 
     it('sorting changes the order of paginated tokens data', () => {
-      HomePagePo.goTo();
       AccountPagePo.navTo();
       accountPage.waitForPage();
 
