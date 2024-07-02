@@ -47,7 +47,7 @@ export default {
     },
 
     defaultAddData() {
-      return { effect: this.effectOptions[0] };
+      return { effect: this.effectOptions[0].value };
     }
   }
 };

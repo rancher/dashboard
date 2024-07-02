@@ -28,7 +28,8 @@ describe('component: Taints', () => {
 
     expect(secondEffectInput.exists()).toBe(true);
 
-    expect(secondEffectInput.props().value).toStrictEqual({ label: 'foo', value: 'FOO_EFFECT' });
+    expect(secondEffectInput.props().value).toStrictEqual('FOO_EFFECT');
+    expect(wrapper.vm.defaultAddData).toStrictEqual({ effect: 'FOO_EFFECT' });
   });
 
   it('should use default effect values of NoSchedule, PreferNoSchedule, and PreferNoExecute', async() => {
@@ -48,16 +49,22 @@ describe('component: Taints', () => {
 
     expect(firstEffectInput.props().value).toBe('');
     expect(firstEffectInput.props().options).toStrictEqual(expectedEffectOptions);
+  });
+
+  it('should set the effect value to NoSchedule by default', async() => {
+    const wrapper = mount(Taints, { propsData: { value: [] } });
 
     const taintKV = wrapper.find('[data-testid="taints-keyvalue"]');
 
     taintKV.vm.add();
     await wrapper.vm.$nextTick();
 
-    const secondEffectInput = wrapper.find('[data-testid="taints-effect-row-1"]');
+    const effectInput = wrapper.find('[data-testid="taints-effect-row-0"]');
 
-    expect(secondEffectInput.exists()).toBe(true);
+    expect(effectInput.exists()).toBe(true);
 
-    expect(secondEffectInput.props().value).toStrictEqual({ label: 'NoSchedule', value: 'NoSchedule' });
+    expect(effectInput.props().value).toStrictEqual('NoSchedule');
+
+    expect(wrapper.vm.defaultAddData).toStrictEqual({ effect: 'NoSchedule' });
   });
 });
