@@ -418,7 +418,7 @@ export default defineComponent({
     },
 
     async actuallySave(): Promise<void> {
-      if (!this.isNewOrUnprovisioned && !this.nodeGroups.length) {
+      if (!this.isNewOrUnprovisioned && !this.nodeGroups.length && !!this.normanCluster?.eksConfig?.nodeGroups) {
         delete this.normanCluster.eksConfig.nodeGroups;
       }
       await this.normanCluster.save();
