@@ -36,7 +36,7 @@ import debounce from 'lodash/debounce';
 import {
   clusterNameChars, clusterNameStartEnd, requiredInCluster, ipv4WithCidr, ipv4oripv6WithCidr
 } from '../util/validators';
-import { diffUpstreamSpec } from '@shell/utils/kontainer';
+import { diffUpstreamSpec, syncUpstreamConfig } from '@shell/utils/kontainer';
 
 const defaultMachineType = 'n1-standard-2';
 
@@ -174,6 +174,10 @@ export default defineComponent({
       this.originalVersion = this.normanCluster?.gkeConfig?.kubernetesVersion;
     } else {
       this.normanCluster = await store.dispatch('rancher/create', { type: NORMAN.CLUSTER, ...defaultCluster }, { root: true });
+    }
+    // ensure any fields editable through this UI that have been altered in aws are shown here - see syncUpstreamConfig jsdoc for details
+    if (!this.isNewOrUnprovisioned) {
+      syncUpstreamConfig('gke', this.normanCluster);
     }
     if (!this.normanCluster.gkeConfig) {
       this.$set(this.normanCluster, 'gkeConfig', { ...defaultGkeConfig });

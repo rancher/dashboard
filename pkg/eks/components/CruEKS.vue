@@ -119,7 +119,7 @@ export default defineComponent({
       const liveNormanCluster = await this.value.findNormanCluster();
 
       this.normanCluster = await store.dispatch(`rancher/clone`, { resource: liveNormanCluster });
-      // ensure any fields editable through this UI that have been altered in azure portal are shown here - see syncUpstreamConfig jsdoc for details
+      // ensure any fields editable through this UI that have been altered in aws are shown here - see syncUpstreamConfig jsdoc for details
       if (!this.isNewOrUnprovisioned) {
         syncUpstreamConfig('eks', this.normanCluster);
       }
@@ -419,7 +419,7 @@ export default defineComponent({
 
     async actuallySave(): Promise<void> {
       if (!this.isNewOrUnprovisioned && !this.nodeGroups.length && !!this.normanCluster?.eksConfig?.nodeGroups) {
-        delete this.normanCluster.eksConfig.nodeGroups;
+        this.$set(this.normanCluster.eksConfig, 'nodeGroups', null);
       }
       await this.normanCluster.save();
 
