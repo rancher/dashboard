@@ -19,6 +19,7 @@ describe('Kontainer Drivers', { testIsolation: 'off', tags: ['@manager', '@admin
   let driverId = '';
   const oracleDriver = 'Oracle OKE';
   const linodeDriver = 'Linode LKE';
+  const exampleDriver = 'Example';
 
   before(() => {
     cy.login();
@@ -64,12 +65,8 @@ describe('Kontainer Drivers', { testIsolation: 'off', tags: ['@manager', '@admin
       driverId = response?.body.id;
     });
 
-    // Will use the below assertions until this issue is resolved https://github.com/rancher/dashboard/issues/11046.
-    // Using 'downloadUrl' instead of driver name
-    // driversPage.list().details('Example', 1).should('contain', 'Activating');
-    // driversPage.list().details('Example', 1).contains('Active', { timeout: 60000 });
-    driversPage.list().details(downloadUrl, 1).should('contain', 'Activating');
-    driversPage.list().details(downloadUrl, 1).contains('Active', { timeout: 60000 });
+    driversPage.list().details(exampleDriver, 1).should('contain', 'Activating');
+    driversPage.list().details(exampleDriver, 1).contains('Active', { timeout: 60000 });
 
     ClusterManagerListPagePo.navTo();
     clusterList.waitForPage();
@@ -87,15 +84,13 @@ describe('Kontainer Drivers', { testIsolation: 'off', tags: ['@manager', '@admin
 
     KontainerDriversPagePo.navTo();
     driversPage.waitForPage();
-    driversPage.list().details(downloadUrl, 2).find('span').invoke('text')
-      .then((t) => {
-        cy.intercept('POST', `/v3/kontainerDrivers/${ t }?action=deactivate`).as('deactivateDriver');
 
-        driversPage.list().actionMenu(downloadUrl).getMenuItem('Deactivate').click();
-        const deactivateDialog = new DeactivateDriverDialogPo();
+    cy.intercept('POST', `/v3/kontainerDrivers/*?action=deactivate`).as('deactivateDriver');
 
-        deactivateDialog.deactivate();
-      });
+    driversPage.list().actionMenu(downloadUrl).getMenuItem('Deactivate').click();
+    const deactivateDialog = new DeactivateDriverDialogPo();
+
+    deactivateDialog.deactivate();
 
     cy.wait('@deactivateDriver').then(({ request, response }) => {
       expect(response?.statusCode).to.eq(200);
@@ -115,12 +110,11 @@ describe('Kontainer Drivers', { testIsolation: 'off', tags: ['@manager', '@admin
 
     KontainerDriversPagePo.navTo();
     driversPage.waitForPage();
-    driversPage.list().details(downloadUrl, 2).find('span').invoke('text')
-      .then((t) => {
-        cy.intercept('POST', `/v3/kontainerDrivers/${ t }?action=activate`).as('activateDriver');
 
-        driversPage.list().actionMenu(downloadUrl).getMenuItem('Activate').click();
-      });
+    cy.intercept('POST', `/v3/kontainerDrivers/*?action=activate`).as('activateDriver');
+
+    driversPage.list().actionMenu(downloadUrl).getMenuItem('Activate').click();
+
     cy.wait('@activateDriver').then(({ request, response }) => {
       expect(response?.statusCode).to.eq(200);
       expect(isMatch(request.body, requestData)).to.equal(true);
@@ -180,8 +174,7 @@ describe('Kontainer Drivers', { testIsolation: 'off', tags: ['@manager', '@admin
     createCluster.gridElementExistanceByName(linodeDriver, 'exist');
   });
 
-  it.skip('can deactivate drivers in bulk', () => {
-    // Skipping this test until issue is resolved https://github.com/rancher/dashboard/issues/10718
+  it('can deactivate drivers in bulk', () => {
     KontainerDriversPagePo.navTo();
     driversPage.waitForPage();
     driversPage.list().details(oracleDriver, 1).should('contain', 'Active');

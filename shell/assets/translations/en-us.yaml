@@ -2225,7 +2225,22 @@ drivers:
     refresh: Refresh Kubernetes Metadata
   deactivate:
     title: Are you sure?
-    warning: You will no longer be able to edit the configuration of clusters using {name} driver. Resources in the provider will not be automatically removed.
+    andOthers: |-
+      {count, plural,
+      =0 {}
+      =1 { and <b>one other </b>}
+      other { and <b>{count} other </b>}
+      }
+    warningDrivers: |-
+      {count, plural,
+      =1 { You will no longer be able to edit the configuration of clusters using {names} driver.}
+      other { You will no longer be able to edit the configuration of clusters using {names} drivers.}
+      }
+    warning: |-
+      {count, plural,
+      =1 { {warningDrivers} Resources in the corresponding provider will not be automatically removed.}
+      other { {warningDrivers} Resources in the corresponding providers will not be automatically removed.}
+      }
 
 detailText:
   collapse: Hide

@@ -44,9 +44,6 @@ export default {
         buttonDone(false);
       }
     }
-  },
-  mounted() {
-    window.c = this;
   }
 };
 </script>

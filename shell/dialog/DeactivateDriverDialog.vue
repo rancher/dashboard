@@ -3,6 +3,8 @@ import AsyncButton from '@shell/components/AsyncButton';
 import { Card } from '@components/Card';
 import { Banner } from '@components/Banner';
 import { exceptionToErrorsArray } from '@shell/utils/error';
+import { resourceNames } from '@shell/utils/string';
+import { mapGetters } from 'vuex';
 
 export default {
   components: {
@@ -12,20 +14,35 @@ export default {
   },
 
   props: {
-    url: {
-      type:    String,
-      default: null,
+    drivers: {
+      type:     Array,
+      required: true
     },
-    name: {
-      type:    String,
-      default: null,
+    driverType: {
+      type:     String,
+      required: true
     }
   },
 
   data() {
     return { errors: [] };
   },
+  computed: {
+    formattedText() {
+      const namesSliced = this.drivers.map((obj) => obj.nameDisplay).slice(0, 5);
+      const remaining = this.drivers.length - namesSliced.length;
+
+      const plusMore = this.t('drivers.deactivate.andOthers', { count: remaining });
+      const names = resourceNames(namesSliced, plusMore, this.t);
+      const count = remaining || namesSliced.length;
+      const warningDrivers = this.t('drivers.deactivate.warningDrivers', { names, count });
+
+      return this.t('drivers.deactivate.warning', { warningDrivers, count: namesSliced.length });
+    },
+    ...mapGetters({ t: 'i18n/t' }),
+  },
   methods: {
+    resourceNames,
     close(buttonDone) {
       if (buttonDone && typeof buttonDone === 'function') {
         buttonDone(true);
@@ -34,10 +51,12 @@ export default {
     },
     async apply(buttonDone) {
       try {
-        await this.$store.dispatch('rancher/request', {
-          url:    this.url,
-          method: 'post'
-        });
+        await Promise.all(this.drivers.map(
+          (driver) => this.$store.dispatch('rancher/request', {
+            url:    `v3/${ this.driverType }/${ escape(driver.id) }?action=deactivate`,
+            method: 'POST'
+          })
+        ));
 
         this.close(buttonDone);
       } catch (err) {
@@ -64,7 +83,7 @@ export default {
     <template #body>
       <div class="pl-10 pr-10">
         <div class="text info mb-10 mt-20">
-          <span v-clean-html="t('drivers.deactivate.warning', {name})" />
+          <span v-clean-html="formattedText" />
         </div>
         <Banner
           v-for="(err, i) in errors"
