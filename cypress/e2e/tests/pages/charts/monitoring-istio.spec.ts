@@ -71,6 +71,9 @@ describe('Charts', { tags: ['@charts', '@adminUser'] }, () => {
 
         const tabbedOptions = new TabbedPo();
 
+        // Latest (`104.0.0+up45.31.1`) is broken (crd installs, but not actual chart), use `103.1.1+up45.31.1` instead
+        chartPage.selectVersion('103.1.1+up45.31...');
+
         // Navigate to the edit options page and Set prometheus storage class
         chartPage.goToInstall();
         installChart.nextPage().selectTab(tabbedOptions, prometheus.tabID());

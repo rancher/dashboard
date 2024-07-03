@@ -38,4 +38,8 @@ export class ChartPage extends PagePo {
   deprecationAndExperimentalWarning() {
     return new BannersPo('[data-testid="deprecation-and-experimental-banner"]', this.self());
   }
+
+  selectVersion(version: string) {
+    return this.self().find('.chart-content__right-bar__section--cVersion').contains(version).click();
+  }
 }
