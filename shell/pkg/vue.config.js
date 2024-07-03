@@ -3,6 +3,7 @@ const path = require('path');
 const webpack = require('webpack');
 const BundleAnalyzerPlugin = require('webpack-bundle-analyzer').BundleAnalyzerPlugin;
 const VirtualModulesPlugin = require('webpack-virtual-modules');
+const RancherDefineComponentPlugin = require('./define-component-plugin');
 const { generateTypeImport } = require('./auto-import');
 
 module.exports = function(dir) {
@@ -77,6 +78,8 @@ module.exports = function(dir) {
       config.plugins.unshift(dynamicImporterOverride);
       config.plugins.unshift(modelLoaderImporterOverride);
       config.plugins.unshift(autoImportPlugin);
+      config.plugins.unshift(new RancherDefineComponentPlugin());
+
       // config.plugins.unshift(debug);
 
       // These modules will be externalised and not included with the build of a package library
