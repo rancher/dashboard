@@ -139,4 +139,23 @@ describe('gke node pool', () => {
 
     expect(wrapper.emitted()?.['update:version']?.[1][0]).toBe('1.20.4');
   });
+
+  it('should use NO_SCHEDULE, PREFER_NO_SCHEDULE, and NO_EXECUTE for taint values', async() => {
+    const setup = requiredSetup();
+    const wrapper = shallowMount(GKENodePool, {
+      propsData: {
+        clusterKubernetesVersion: '1.23.4',
+        version:                  '1.20.4',
+        mode:                     _EDIT
+      },
+      ...setup
+    });
+
+    const taints = wrapper.find('[data-testid="gke-taints-comp"]');
+
+    // the effectValues prop functionality is tested in the Taints component's unit tests
+    expect(taints.props().effectValues).toStrictEqual({
+      NO_SCHEDULE: 'NoSchedule', PREFER_NO_SCHEDULE: 'PreferNoSchedule', NO_EXECUTE: 'NoExecute'
+    });
+  });
 });

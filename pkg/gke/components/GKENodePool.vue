@@ -474,6 +474,8 @@ export default defineComponent({
           :mode="mode"
           :value="taints"
           :disabled="!isNew"
+          :effect-values="{NO_SCHEDULE:'NoSchedule', PREFER_NO_SCHEDULE: 'PreferNoSchedule', NO_EXECUTE: 'NoExecute'}"
+          data-testid="gke-taints-comp"
           @input="$emit('update:taints', $event)"
         />
       </div>
