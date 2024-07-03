@@ -2,7 +2,6 @@ import { DEFAULT_WORKSPACE } from '@shell/config/types';
 import { applyProducts } from '@shell/store/type-map';
 import { ClusterNotFoundError, RedirectToError } from '@shell/utils/error';
 import { get } from '@shell/utils/object';
-import dynamicPluginLoader from '@shell/pkg/dynamic-plugin-loader';
 import { AFTER_LOGIN_ROUTE, WORKSPACE } from '@shell/store/prefs';
 import { BACK_TO } from '@shell/config/local-storage';
 import { NAME as FLEET_NAME } from '@shell/config/product/fleet.js';
@@ -105,24 +104,6 @@ export default async function({
         oldProduct,
         oldIsExt: !!oldPkg
       });
-    }
-
-    if (!route.matched?.length) {
-      // If there are no matching routes we could be trying to nav to a page belonging to a dynamic plugin which needs loading
-      await Promise.all([
-        ...always,
-      ]);
-
-      // If a plugin claims the route and is loaded correctly we'll get a route back
-      const newLocation = await dynamicPluginLoader.check({ route, store });
-
-      // If we have a new location, double check that it's actually valid
-      const resolvedRoute = newLocation ? store.app.router.resolve(newLocation) : null;
-
-      if (resolvedRoute?.route.matched.length) {
-        // Note - don't use `redirect` or `store.app.route` (breaks feature by failing to run middleware in default layout)
-        return next(newLocation);
-      }
     }
 
     // Ensure that the activeNamespaceCache is updated given the change of context either from or to a place where it uses workspaces
