@@ -177,7 +177,7 @@ export default {
     },
     customPermissionsUpdate() {
       return this.customPermissions.reduce((acc, customPermissionsItem) => {
-        const lockedExist = this.roleTemplates.find((roleTemplateItem) => roleTemplateItem.displayName === customPermissionsItem.label);
+        const lockedExist = this.roleTemplates.find((roleTemplateItem) => roleTemplateItem.id === customPermissionsItem.key);
 
         if (lockedExist.locked) {
           customPermissionsItem['locked'] = true;
