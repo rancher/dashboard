@@ -14,7 +14,7 @@ import i18n from '@shell/plugins/i18n';
 import globalFormatters from '@shell/plugins/global-formatters';
 
 import axios from '@shell/utils/axios';
-import cookieUniversalNuxt from '@shell/utils/cookie-universal-nuxt';
+import cookieUniversal from '@shell/utils/cookie-universal';
 import config from '@shell/utils/config';
 import axiosShell from '@shell/plugins/axios';
 import backButton from '@shell/plugins/back-button';
@@ -41,7 +41,7 @@ export async function installPlugins(vueApp) {
 }
 
 export async function installInjectedPlugins(app, vueApp) {
-  const pluginDefinitions = [config, cookieUniversalNuxt, axios, plugins, pluginsLoader, axiosShell, intNumber, codeMirror, nuxtClientInit, replaceAll, backButton, plugin, version, steveCreateWorker, emberCookie];
+  const pluginDefinitions = [config, cookieUniversal, axios, plugins, pluginsLoader, axiosShell, intNumber, codeMirror, nuxtClientInit, replaceAll, backButton, plugin, version, steveCreateWorker, emberCookie];
 
   const installations = pluginDefinitions.map(async(pluginDefinition) => {
     if (typeof pluginDefinition === 'function') {
