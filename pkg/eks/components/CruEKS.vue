@@ -5,7 +5,7 @@ import { defineComponent } from 'vue';
 import { removeObject } from '@shell/utils/array';
 import { _CREATE, _EDIT, _VIEW } from '@shell/config/query-params';
 import { NORMAN } from '@shell/config/types';
-import { diffUpstreamSpec } from '@shell/utils/kontainer';
+import { diffUpstreamSpec, syncUpstreamConfig } from '@shell/utils/kontainer';
 import CreateEditView from '@shell/mixins/create-edit-view';
 import FormValidation from '@shell/mixins/form-validation';
 
@@ -119,6 +119,10 @@ export default defineComponent({
       const liveNormanCluster = await this.value.findNormanCluster();
 
       this.normanCluster = await store.dispatch(`rancher/clone`, { resource: liveNormanCluster });
+      // ensure any fields editable through this UI that have been altered in aws are shown here - see syncUpstreamConfig jsdoc for details
+      if (!this.isNewOrUnprovisioned) {
+        syncUpstreamConfig('eks', this.normanCluster);
+      }
       // track original version on edit to ensure we don't offer k8s downgrades
       this.originalVersion = this.normanCluster?.eksConfig?.kubernetesVersion || '';
     } else {
@@ -136,7 +140,7 @@ export default defineComponent({
     }
     this.config = this.normanCluster.eksConfig as EKSConfig;
 
-    if (!this.config.nodeGroups || !this.config.nodeGroups.length) {
+    if ((!this.config.nodeGroups || !this.config.nodeGroups.length) && this.mode === _CREATE) {
       this.$set(this.config, 'nodeGroups', [{ ...DEFAULT_NODE_GROUP_CONFIG, nodegroupName: 'group1' }]);
     }
     if (this.config.nodeGroups) {
@@ -303,6 +307,11 @@ export default defineComponent({
       return this.value?.id || null;
     },
 
+    // used to display VPC/subnet information in the networking tab for imported clusters and clusters with the 'create a vpc and subnets automatically' option selected
+    statusSubnets(): string[] {
+      return this.normanCluster?.eksStatus?.subnets || [];
+    },
+
     canManageMembers(): boolean {
       return canViewClusterMembershipEditor(this.$store);
     },
@@ -378,7 +387,7 @@ export default defineComponent({
       });
 
       return out;
-    }
+    },
   },
 
   methods: {
@@ -409,6 +418,9 @@ export default defineComponent({
     },
 
     async actuallySave(): Promise<void> {
+      if (!this.isNewOrUnprovisioned && !this.nodeGroups.length && !!this.normanCluster?.eksConfig?.nodeGroups) {
+        this.$set(this.normanCluster.eksConfig, 'nodeGroups', null);
+      }
       await this.normanCluster.save();
 
       return await this.normanCluster.waitForCondition('InitialRolesPopulated');
@@ -658,6 +670,7 @@ export default defineComponent({
           :mode="mode"
           :region="config.region"
           :amazon-credential-secret="config.amazonCredentialSecret"
+          :status-subnets="statusSubnets"
           :rules="{subnets:fvGetAndReportPathRules('subnets')}"
         />
       </Accordion>

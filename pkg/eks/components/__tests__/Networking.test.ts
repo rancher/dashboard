@@ -1,5 +1,6 @@
 
 /* eslint-disable jest/no-mocks-import */
+import { _CREATE, _EDIT } from '@shell/config/query-params';
 import { shallowMount } from '@vue/test-utils';
 import Networking from '../Networking.vue';
 
@@ -56,7 +57,7 @@ describe('eKS Networking', () => {
     const setup = requiredSetup();
 
     const wrapper = shallowMount(Networking, {
-      propsData: { },
+      propsData: { mode: _CREATE },
       ...setup
     });
 
@@ -69,5 +70,24 @@ describe('eKS Networking', () => {
     wrapper.setData({ chooseSubnet: false });
     await wrapper.vm.$nextTick();
     expect(subnetDropdown.exists()).toBe(false);
+  });
+
+  it('should show a list of subnets in use if a cluster has already provisioned and the \'create automatically\' vpc option was selected', async() => {
+    const setup = requiredSetup();
+
+    const wrapper = shallowMount(Networking, {
+      propsData: {
+        mode: _EDIT, subnets: [], statusSubnets: ['bc', 'def']
+      },
+      ...setup
+    });
+
+    await wrapper.vm.$nextTick();
+
+    const subnetDropdown = wrapper.find('[data-testid="eks-subnets-dropdown"]');
+
+    expect(subnetDropdown.exists()).toBe(true);
+
+    expect(subnetDropdown.props().value).toStrictEqual(['bc', 'def']);
   });
 });
