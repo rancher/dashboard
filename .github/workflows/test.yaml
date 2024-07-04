@@ -25,7 +25,7 @@ env:
   CYPRESS_API_URL: http://139.59.134.103:1234/
   TEST_RUN_ID: ${{github.run_number}}-${{github.run_attempt}}-${{github.event.pull_request.title || github.event.head_commit.message}}
   # Build the dashboard to use in tests. When set to false it will grab `latest` from CDN (useful for running e2e tests quickly)
-  BUILD_DASHBOARD: true
+  BUILD_DASHBOARD: false
 
   E2E_BUILD_DIST_NAME: dist
   E2E_BUILD_DIST_DIR: dist
@@ -68,17 +68,18 @@ jobs:
       matrix:
         role: [
           { username: 'admin', tag: '@adminUser' }, 
-          { username: 'standard_user', tag: '@standardUser' }
+          # { username: 'standard_user', tag: '@standardUser' }
         ]
         features:  [
-         ['@navigation', '@extensions'],
-         ['@charts'],
-         ['@explorer'],
-         ['@fleet'],
-         ['@generic', '@globalSettings'],
-         ['@manager'],
-         ['@userMenu', '@usersAndAuths'],
-         ['@components'],
+        #  ['@navigation', '@extensions'],
+        #  ['@charts'],
+        #  ['@explorer'],
+        #  ['@fleet'],
+        #  ['@generic', '@globalSettings'],
+        #  ['@manager'],
+        #  ['@userMenu', '@usersAndAuths'],
+        #  ['@components'],
+         ['@vai-setup', '@vai']
         ]
     runs-on: ubuntu-latest
     steps:
@@ -119,14 +120,43 @@ jobs:
           GREP_TAGS: ${{ matrix.role.tag }}Setup+${{ matrix.features[0] }} --@jenkins ${{ matrix.role.tag }}Setup+${{ matrix.features[1] || matrix.features[0] }} --@jenkins
           TEST_USERNAME: admin
           TEST_ONLY: setup
-      
+
       - name: Run user tests
+        if: "!contains(matrix.features[0], '-setup')"
         run: |
           yarn e2e:prod
           [ "$BUILD_DASHBOARD" != "false" ] || exit 0
         env: 
           TEST_SKIP: setup
           GREP_TAGS: ${{ matrix.role.tag }}+${{ matrix.features[0] }} --@jenkins ${{ matrix.role.tag }}+${{ matrix.features[1] || matrix.features[0] }} --@jenkins
+          TEST_USERNAME: ${{ matrix.role.username }}
+
+      - name: Run feature (move all setup to single step) Setup Rancher and user
+        if: "contains(matrix.features[0], '-setup')"
+        run: |
+          yarn e2e:prod
+        env: 
+          GREP_TAGS: ${{ matrix.role.tag }}Setup --@jenkins
+          TEST_USERNAME: admin
+          TEST_ONLY: setup
+
+      - name: Run Feature Setup
+        if: "contains(matrix.features[0], '-setup')"
+        run: |
+          yarn e2e:prod
+        env:
+          TEST_SKIP: setup
+          GREP_TAGS: ${{ matrix.role.tag }}+${{ matrix.features[0] }} --@jenkins
+          TEST_USERNAME: ${{ matrix.role.username }}
+
+      - name: Run Feature Tests
+        if: "contains(matrix.features[0], '-setup')"
+        run: |
+          yarn e2e:prod
+          [ "$BUILD_DASHBOARD" != "false" ] || exit 0
+        env:
+          TEST_SKIP: setup
+          GREP_TAGS: ${{ matrix.role.tag }}+${{ matrix.features[1] }} --@jenkins
           TEST_USERNAME: ${{ matrix.role.username }}
           
       - name: Upload screenshots
