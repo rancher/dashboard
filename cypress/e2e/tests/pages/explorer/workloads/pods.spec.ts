@@ -7,41 +7,51 @@ import { generatePodsDataSmall } from '@/cypress/e2e/blueprints/explorer/workloa
 
 describe('Pods', { testIsolation: 'off', tags: ['@explorer', '@adminUser'] }, () => {
   const workloadsPodPage = new WorkloadsPodsListPagePo('local');
-  const nsName = `namespace${ +new Date() }`;
-  const nsName2 = `namespace${ +new Date() }abc`;
-  const uniquePod = 'aaa-e2e-test-pod-name';
-  const podNamesList = [];
 
   before(() => {
     cy.login();
   });
 
   describe('List', { tags: ['@vai'] }, () => {
+    const uniquePod = 'aaa-e2e-test-pod-name';
+    const podNamesList = [];
+    let nsName1: string;
+    let nsName2: string;
+
     before('set up', () => {
-      cy.updateResourceListViewPref('local', 'none', '{\"local\":[]}');
+      cy.updateNamespaceFilter('local', 'none', '{\"local\":[]}');
 
-      // create namespaces
-      cy.createNamespace(nsName);
-      cy.createNamespace(nsName2);
+      cy.createE2EResourceName('ns1').then((ns1) => {
+        nsName1 = ns1;
+        // create namespace
+        cy.createNamespace(nsName1);
 
-      // create pods
-      let i = 0;
+        // create pods
+        let i = 0;
 
-      while (i < 100) {
-        const podName = `e2e-${ Cypress._.uniqueId(Date.now().toString()) }`;
+        while (i < 100) {
+          const podName = `e2e-${ Cypress._.uniqueId(Date.now().toString()) }`;
 
-        cy.createPod(nsName, podName, 'nginx:latest', false).then(() => {
-          podNamesList.push(`pod-${ podName }`);
-        });
+          cy.createPod(nsName1, podName, 'nginx:latest', false).then(() => {
+            podNamesList.push(`pod-${ podName }`);
+          });
 
-        i++;
-      }
+          i++;
+        }
+      });
 
-      // create unique pod for sorting test
-      cy.createPod(nsName2, uniquePod, 'nginx:latest');
+      cy.createE2EResourceName('ns2').then((ns2) => {
+        nsName2 = ns2;
+
+        // create namespace
+        cy.createNamespace(nsName2);
+
+        // create unique pod for filtering/sorting test
+        cy.createPod(nsName2, uniquePod, 'nginx:latest');
+      });
     });
 
-    it('pagination is visible and user is able navigate through pods data', () => {
+    it('pagination is visible and user is able to navigate through pods data', () => {
       // get pods count
       cy.getRancherResource('v1', 'pods').then((resp: Cypress.Response<any>) => {
         const count = resp.body.count;
@@ -126,9 +136,6 @@ describe('Pods', { testIsolation: 'off', tags: ['@explorer', '@adminUser'] }, ()
       WorkloadsPodsListPagePo.navTo();
       workloadsPodPage.waitForPage();
 
-      /**
-       * Sort by Name
-       */
       // check table is sorted by name in ASC order by default
       workloadsPodPage.sortableTable().tableHeaderRow().checkSortOrder(2, 'down');
 
@@ -161,6 +168,14 @@ describe('Pods', { testIsolation: 'off', tags: ['@explorer', '@adminUser'] }, ()
       workloadsPodPage.sortableTable().checkLoadingIndicatorNotVisible();
       workloadsPodPage.sortableTable().checkRowCount(false, 3);
       workloadsPodPage.sortableTable().pagination().checkNotExists();
+    });
+
+    after('clean up', () => {
+      cy.updateNamespaceFilter('local', 'none', '{"local":["all://user"]}');
+
+      // delete namespace (this will also delete all pods in it)
+      cy.deleteRancherResource('v1', 'namespaces', nsName1);
+      cy.deleteRancherResource('v1', 'namespaces', nsName2);
     });
   });
 
@@ -243,7 +258,7 @@ describe('Pods', { testIsolation: 'off', tags: ['@explorer', '@adminUser'] }, ()
   });
 
   describe('should delete pod', () => {
-    const podName = `test-pod-${ Date.now() }`;
+    const podName = `pod-${ Date.now() }`;
 
     beforeEach(() => {
       workloadsPodPage.goTo();
@@ -294,11 +309,5 @@ describe('Pods', { testIsolation: 'off', tags: ['@explorer', '@adminUser'] }, ()
 
       podsListPage.list().resourceTable().sortableTable().resetFilter();
     });
-  });
-
-  after(() => {
-    // delete namespace (this will also delete all pods in it)
-    cy.deleteRancherResource('v1', 'namespaces', nsName);
-    cy.deleteRancherResource('v1', 'namespaces', nsName2);
   });
 });
