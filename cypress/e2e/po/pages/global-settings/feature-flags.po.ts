@@ -4,15 +4,19 @@ import CardPo from '@/cypress/e2e/po/components/card.po';
 import { CypressChainable } from '@/cypress/e2e/po/po.types';
 import BurgerMenuPo from '@/cypress/e2e/po/side-bars/burger-side-menu.po';
 import ProductNavPo from '@/cypress/e2e/po/side-bars/product-side-nav.po';
+import { EXTRA_LONG_TIMEOUT_OPT } from '@/cypress/support/utils/timeouts';
 
 export class FeatureFlagsPagePo extends RootClusterPage {
-  static url = '/c/_/settings/management.cattle.io.feature';
-  static goTo(): Cypress.Chainable<Cypress.AUTWindow> {
-    return super.goTo(FeatureFlagsPagePo.url);
+  private static createPath(clusterId: string) {
+    return `/c/${ clusterId }/settings/management.cattle.io.feature`;
   }
 
-  constructor() {
-    super(FeatureFlagsPagePo.url);
+  static goTo(clusterId: string): Cypress.Chainable<Cypress.AUTWindow> {
+    return super.goTo(FeatureFlagsPagePo.createPath(clusterId));
+  }
+
+  constructor(clusterId = '_') {
+    super(FeatureFlagsPagePo.createPath(clusterId));
   }
 
   static navTo() {
@@ -57,15 +61,33 @@ export class FeatureFlagsPagePo extends RootClusterPage {
    * @param value
    * @returns
    */
-  clickCardActionButtonAndWait(label: 'Activate' | 'Deactivate', endpoint: string, value: boolean): Cypress.Chainable {
+  clickCardActionButtonAndWait(
+    label: 'Activate' | 'Deactivate',
+    endpoint: string,
+    value: boolean,
+    config: {
+      waitForModal: boolean
+      waitForRequest: boolean
+    } = {
+      waitForModal:   false,
+      waitForRequest: true,
+    }) {
     cy.intercept('PUT', `/v1/management.cattle.io.features/${ endpoint }`).as(endpoint);
     this.cardActionButton(label).click();
 
-    return cy.wait(`@${ endpoint }`).then(({ request, response }) => {
-      expect(response?.statusCode).to.eq(200);
-      expect(request.body.spec).to.have.property('value', value);
-      expect(response?.body.spec).to.have.property('value', value);
-    });
+    if (config.waitForRequest) {
+      cy.wait(`@${ endpoint }`).then(({ request, response }) => {
+        expect(response?.statusCode).to.eq(200);
+        expect(request.body.spec).to.have.property('value', value);
+        expect(response?.body.spec).to.have.property('value', value);
+      });
+    }
+
+    if (config.waitForModal) {
+      const card = new CardPo();
+
+      card.checkNotExists(EXTRA_LONG_TIMEOUT_OPT);
+    }
   }
 
   getFeatureFlag(featureFlag: string): Cypress.Chainable<Object> {
