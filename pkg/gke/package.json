@@ -1,7 +1,7 @@
 {
   "name": "gke",
-  "description": "gke plugin",
-  "version": "0.1.0",
+  "description": "Create Google Kubernetes Engine clusters in Rancher",
+  "version": "1.0.0",
   "private": false,
   "rancher": {
     "annotations": {
