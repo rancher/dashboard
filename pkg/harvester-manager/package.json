@@ -1,7 +1,7 @@
 {
   "name": "harvester-manager",
   "description": "Provides the Virtualization Management feature in Rancher Manager",
-  "version": "0.1.0",
+  "version": "1.0.0",
   "private": false,
   "rancher": {
     "annotations": {
