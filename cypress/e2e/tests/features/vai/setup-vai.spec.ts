@@ -6,7 +6,7 @@ import { FeatureFlagsPagePo } from '@/cypress/e2e/po/pages/global-settings/featu
 const performancePage = new PerformancePagePo('local');
 const featureFlagsPage = new FeatureFlagsPagePo('local');
 
-describe('Setup Vai', { testIsolation: 'off', tags: ['@vai-setup', '@adminUser'] }, () => {
+describe('Setup Vai', { testIsolation: 'off', tags: ['@vaiFeatureSetup', '@adminUser'] }, () => {
   before(() => {
     cy.login();
     HomePagePo.goTo();

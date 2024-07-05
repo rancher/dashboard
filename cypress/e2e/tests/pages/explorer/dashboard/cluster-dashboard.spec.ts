@@ -246,7 +246,7 @@ describe('Cluster Dashboard', { testIsolation: 'off', tags: ['@explorer', '@admi
     events.sortableTable().rowElements().should('have.length.gte', 2);
   });
 
-  it('can view events table empty if no events', { tags: ['@vai'] }, () => {
+  it('can view events table empty if no events', { tags: ['@vai', '@adminUser'] }, () => {
     const events = new EventsPagePo('local');
 
     HomePagePo.goTo();

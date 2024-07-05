@@ -11,7 +11,7 @@ describe('Events', { testIsolation: 'off', tags: ['@explorer', '@adminUser'] }, 
     cy.login();
   });
 
-  describe('List', { tags: ['@vai'] }, () => {
+  describe('List', { tags: ['@vai', '@adminUser'] }, () => {
     const uniquePod = 'aaa-e2e-test-pod-name';
     const podNamesList = [];
     let nsName1: string;
