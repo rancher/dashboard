@@ -855,7 +855,7 @@ export default {
           }
         }
 
-        > i {
+        > i, > img {
           display: block;
           width: 42px;
           font-size: $icon-size;
@@ -866,9 +866,6 @@ export default {
         svg {
           margin-right: 16px;
           fill: var(--link);
-        }
-        img {
-          margin-right: 16px;
         }
 
         &.nuxt-link-active {
