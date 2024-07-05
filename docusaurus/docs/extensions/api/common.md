@@ -1,4 +1,4 @@
-# Common Types
+# Common Types - LocationConfig
 
 ## Where
 
