@@ -79,7 +79,7 @@ jobs:
         #  ['@manager'],
         #  ['@userMenu', '@usersAndAuths'],
         #  ['@components'],
-         ['@vai-setup', '@vai']
+         ['@vaisetup', '@vai']
         ]
     runs-on: ubuntu-latest
     steps:
@@ -122,7 +122,7 @@ jobs:
           TEST_ONLY: setup
 
       - name: Run user tests
-        if: "!contains(matrix.features[0], '-setup')"
+        if: "!contains(matrix.features[0], 'vaisetup')"
         run: |
           yarn e2e:prod
           [ "$BUILD_DASHBOARD" != "false" ] || exit 0
@@ -132,7 +132,7 @@ jobs:
           TEST_USERNAME: ${{ matrix.role.username }}
 
       - name: Run feature (move all setup to single step) Setup Rancher and user
-        if: "contains(matrix.features[0], '-setup')"
+        if: "contains(matrix.features[0], 'vaisetup')"
         run: |
           yarn e2e:prod
         env: 
@@ -141,7 +141,7 @@ jobs:
           TEST_ONLY: setup
 
       - name: Run Feature Setup
-        if: "contains(matrix.features[0], '-setup')"
+        if: "contains(matrix.features[0], 'vaisetup')"
         run: |
           yarn e2e:prod
         env:
@@ -150,7 +150,7 @@ jobs:
           TEST_USERNAME: ${{ matrix.role.username }}
 
       - name: Run Feature Tests
-        if: "contains(matrix.features[0], '-setup')"
+        if: "contains(matrix.features[0], 'vaisetup')"
         run: |
           yarn e2e:prod
           [ "$BUILD_DASHBOARD" != "false" ] || exit 0
