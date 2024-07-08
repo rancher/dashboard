@@ -12,13 +12,13 @@ jobs:
   storybook:
     runs-on: ubuntu-latest
     steps:
-    - uses: actions/checkout@v2
+    - uses: actions/checkout@v4
     - name: Use Node.js
-      uses: actions/setup-node@v1
+      uses: actions/setup-node@v4
       with:
-        node-version: '18.x'
+        node-version: '16.20.2'
     - name: Install packages
-      run: yarn install
+      run: yarn install --frozen-lockfile
     - name: Build Storybook
       run: |
         yarn build-storybook
