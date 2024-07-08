@@ -78,6 +78,7 @@ describe('fx: privateDnsZone', () => {
     ['/subscriptions/abcdef123/resourceGroups/abcdef123/providers/Microsoft.Network/privateDnsZones/test-subzone.privatelink.westus.azmk8s.io', undefined],
     ['/subscriptions/abcdef123/resourceGroups/abcdef123/providers/Microsoft.Network/privateDnsZones/private.eastus2.azmk8s.io', undefined],
     ['/subscriptions/abcdef123/resourceGroups/abcdef123/providers/Microsoft.Network/privateDnsZones/privatelink.eastus2.azmk8s.io', undefined],
+    ['system', undefined],
     ['/subscriptions/abcdef123/resourceGroups/abcdef123/providers/Microsoft.Network/privateDnsZones/aaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaa.privatelink.eastus2.azmk8s.io', MOCK_TRANSLATION],
     ['privatelink.azmk8s.io', MOCK_TRANSLATION],
     ['privatelink.eastus2.azmk8s.io', MOCK_TRANSLATION]
