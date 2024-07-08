@@ -34,6 +34,7 @@
     "polished": "4.2.2",
     "playwright": "1.44.0",
     "playwright-core": "1.44.0",
-    "glob": "10.4.2"
+    "glob": "10.4.2",
+    "jackspeak": "3.4.0"
   }
 }
