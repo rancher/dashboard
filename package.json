@@ -47,7 +47,7 @@
     "e2e:prod": "BUILD_DASHBOARD=$BUILD_DASHBOARD GREP_TAGS=$GREP_TAGS TEST_USERNAME=$TEST_USERNAME TEST_BASE_URL=https://127.0.0.1/dashboard yarn cy:run:sorry",
     "coverage": "npx nyc merge coverage coverage/coverage.json",
     "storybook": "cd storybook && yarn install && yarn storybook",
-    "build-storybook": "cd storybook && yarn install --no-lockfile && NODE_OPTIONS=--max_old_space_size=4096 yarn build-storybook --quiet",
+    "build-storybook": "cd storybook && yarn install && NODE_OPTIONS=--max_old_space_size=4096 yarn build-storybook --quiet",
     "storybook-test": "cd storybook && yarn test-storybook --stories-json ",
     "docs:install": "cd docusaurus/ && yarn install",
     "docs:build": "cd docusaurus/ && yarn build",
