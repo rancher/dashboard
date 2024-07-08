@@ -2,10 +2,10 @@ import dynamicPluginLoader from '@shell/pkg/dynamic-plugin-loader';
 import { routeRequiresAuthentication } from '@shell/utils/router';
 
 export function install(router, context) {
-  router.beforeEach((to, from, next) => loadHarvester(to, from, next, context));
+  router.beforeEach((to, from, next) => runtimeExtensionRoute(to, from, next, context));
 }
 
-export async function loadHarvester(to, from, next, { store }) {
+export async function runtimeExtensionRoute(to, from, next, { store }) {
   if (!routeRequiresAuthentication(to) || to.name !== '404') {
     return next();
   }

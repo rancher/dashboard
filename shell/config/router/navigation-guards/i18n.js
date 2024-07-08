@@ -1,5 +1,5 @@
 export function install(router, context) {
-  router.beforeEach((to, from, next) => loadI18n(to, from, next, context));
+  router.beforeEach(async(to, from, next) => await loadI18n(to, from, next, context));
 }
 
 export async function loadI18n(to, from, next, { store }) {
