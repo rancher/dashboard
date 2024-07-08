@@ -36,6 +36,6 @@
     "playwright-core": "1.44.0",
     "glob": "10.4.2",
     "jackspeak": "3.4.0",
-    "lru-cache": "10.3.0"
+    "lru-cache": "10.2.2"
   }
 }
