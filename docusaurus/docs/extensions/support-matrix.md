@@ -2,7 +2,7 @@
 
 ## Shell support matrix
 
-The Shell package is the core package that allows for an Extension to incorporate with a Rancher Dashboard.  
+The Shell package enables Extensions to integrate with Rancher.  
 It's important to know which version of the Shell package is compatible with each Rancher version:
 
 | | Rancher 2.7.x | Rancher 2.8.x | Rancher 2.9.x |
