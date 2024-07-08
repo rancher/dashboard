@@ -204,6 +204,7 @@
     "d3-color": "3.1.0",
     "ejs": "3.1.9",
     "follow-redirects": "1.15.2",
+    "glob": "8.1.0",
     "glob-parent": "6.0.2",
     "json5": "2.2.3",
     "merge": "2.1.1",
