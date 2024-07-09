@@ -46,7 +46,7 @@ These changes bring Shell versions in line with standard versioning patterns. On
 }
 ```
 
-> With these annotations your extension will be restricted to Rancher version greater or equal to `2.9.0` and will also be restricted to a UI Extensions version (Shell version) greater than or equal to `2.0.1`.  
+> With these annotations your extension will be restricted to Rancher version greater or equal to `2.9.0` and will also be restricted to a UI Extensions version (Shell version) greater or equal to `2.0.1`.  
 These are not mandatory but highly recommended to ensure your extension versions reference Rancher / Shell versions they're compatible with.  
 For more information about the annotation we allow for, check the documentation [here](./extensions-configuration#configurable-annotations).
 
