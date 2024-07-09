@@ -361,4 +361,37 @@ describe('gke Networking', () => {
     masterAuthorizedNetworkCidrInput = wrapper.find('[data-testid="gke-master-authorized-network-cidr-keyvalue"]');
     expect(masterAuthorizedNetworkCidrInput.isVisible()).toBe(true);
   });
+
+  it('should allow the user to edit the master authorized network cidr block list for new or existing node pools', async() => {
+    const setup = requiredSetup();
+
+    const wrapper = shallowMount(Networking, {
+      propsData: {
+        zone:                          'test-zone',
+        region:                        'test-region',
+        cloudCredentialId:             '',
+        projectId:                     'test-project',
+        enablePrivateNodes:            false,
+        enableMasterAuthorizedNetwork: true,
+        isNewOrUnprovisioned:          false,
+      },
+      ...setup
+    });
+
+    wrapper.setProps({ cloudCredentialId: 'abc' });
+    await flushPromises();
+
+    wrapper.setData({ showAdvanced: true });
+    await wrapper.vm.$nextTick();
+
+    const masterAuthorizedNetworkCidrInput = wrapper.find('[data-testid="gke-master-authorized-network-cidr-keyvalue"]');
+
+    expect(masterAuthorizedNetworkCidrInput.isVisible()).toBe(true);
+    expect(masterAuthorizedNetworkCidrInput.props().disabled).toBe(false);
+
+    wrapper.setProps({ isNewOrUnprovisioned: true });
+    await wrapper.vm.$nextTick();
+
+    expect(masterAuthorizedNetworkCidrInput.props().disabled).toBe(false);
+  });
 });
