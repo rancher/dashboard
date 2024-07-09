@@ -118,7 +118,8 @@ const sidebars = {
               ]
             }
           ]
-        }
+        },
+        'extensions/known-issues',
       ]
     },
   ],

@@ -16,10 +16,10 @@ Effectively, we've had to split Shell into two different versions:
 
 - `1.2.3` - which is compliant with any **pre-2.9.0** Rancher system (effectively should be the same as using `0.5.3`).
 
-- `2.0.0` - which is compliant and **needed** for a **2.9.0** Rancher system
+- `2.0.1` - which is compliant and **needed** for a **2.9.0** Rancher system
 
 
-For future releases of your extension to **work on Rancher 2.9.0** you will need to build and release a new version of your extension using Shell `2.0.0`.
+For future releases of your extension to **work on Rancher 2.9.0** you will need to build and release a new version of your extension using Shell `2.0.1`.
 
 > If your extension is using Shell `0.5.3` and you **don't need** to be compliant with Rancher 2.9.0, there's no update to do.
 
@@ -39,14 +39,14 @@ These changes bring Shell versions in line with standard versioning patterns. On
   "rancher": {
     "annotations": {
       "catalog.cattle.io/rancher-version": ">= 2.9.0",
-      "catalog.cattle.io/ui-extensions-version": ">= 2.0.0"
+      "catalog.cattle.io/ui-extensions-version": ">= 2.0.1"
     }
   },
   ....
 }
 ```
 
-> With these annotations your extension will be restricted to Rancher version greater or equal to `2.9.0` and will also be restricted to a UI Extensions version (Shell version) greater than or equal to `2.0.0`.  
+> With these annotations your extension will be restricted to Rancher version greater or equal to `2.9.0` and will also be restricted to a UI Extensions version (Shell version) greater than or equal to `2.0.1`.  
 These are not mandatory but highly recommended to ensure your extension versions reference Rancher / Shell versions they're compatible with.  
 For more information about the annotation we allow for, check the documentation [here](./extensions-configuration#configurable-annotations).
 

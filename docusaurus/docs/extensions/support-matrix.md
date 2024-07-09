@@ -9,7 +9,7 @@ It's important to know which version of the Shell package is compatible with eac
 |---|---|---|---|
 |Shell **0.3.8**|Supported|Limited support|Not supported|
 |Shell 0.5.3/**1.2.3**|Limited support|Supported|Not supported|
-|Shell **2.0.0**|Not supported|Not supported|Supported|
+|Shell **2.0.1**|Not supported|Not supported|Supported|
 
 To know more about the Shell package versioning take a look at the diagram [here](./rancher-2.9-support).
 
