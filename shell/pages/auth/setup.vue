@@ -276,7 +276,10 @@ export default {
 </script>
 
 <template>
-  <Loading v-if="$fetchState.pending" />
+  <Loading
+    v-if="$fetchState.pending"
+    mode="relative"
+  />
   <form
     v-else
     class="setup"
