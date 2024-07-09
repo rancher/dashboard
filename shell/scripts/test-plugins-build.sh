@@ -220,5 +220,6 @@ function clone_repo_test_extension_build() {
 # Don't forget to add the unit tests exception to clone_repo_test_extension_build function if a new extension has those
 clone_repo_test_extension_build "kubewarden-ui" "kubewarden"
 clone_repo_test_extension_build "elemental-ui" "elemental"
+clone_repo_test_extension_build "capi-ui-extension" "capi-ui"
 
 echo "All done"
