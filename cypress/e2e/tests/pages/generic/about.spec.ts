@@ -110,53 +110,55 @@ describe('About Page', { testIsolation: 'off', tags: ['@generic', '@adminUser', 
     });
   });
 
-  describe('CLI Downloads', () => {
-    // workaround to make the following CLI tests work https://github.com/cypress-io/cypress/issues/8089#issuecomment-1585159023
-    beforeEach(() => {
-      aboutPage.goTo();
-      cy.intercept('GET', 'https://releases.rancher.com/cli2/**').as('download');
-    });
+  // Removed given https://github.com/rancher/rancher/issues/46068
+  // Re-instate given https://github.com/rancher/dashboard/issues/11387
+  // describe('CLI Downloads', () => {
+  //   // workaround to make the following CLI tests work https://github.com/cypress-io/cypress/issues/8089#issuecomment-1585159023
+  //   beforeEach(() => {
+  //     aboutPage.goTo();
+  //     cy.intercept('GET', 'https://releases.rancher.com/cli2/**').as('download');
+  //   });
 
-    it('can download macOS CLI', () => {
-      aboutPage.getLinkDestination('rancher-darwin').then((el) => {
-        const macOsVersion = el.split('/')[5];
+  //   it('can download macOS CLI', () => {
+  //     aboutPage.getLinkDestination('rancher-darwin').then((el) => {
+  //       const macOsVersion = el.split('/')[5];
 
-        aboutPage.getCliDownloadLinkByLabel('rancher-darwin').then((el: any) => {
-          el.attr('download', '');
-        }).click();
-        cy.wait('@download').then(({ request, response }) => {
-          expect(response?.statusCode).to.eq(200);
-          expect(request.url).includes(macOsVersion);
-        });
-      });
-    });
+  //       aboutPage.getCliDownloadLinkByLabel('rancher-darwin').then((el: any) => {
+  //         el.attr('download', '');
+  //       }).click();
+  //       cy.wait('@download').then(({ request, response }) => {
+  //         expect(response?.statusCode).to.eq(200);
+  //         expect(request.url).includes(macOsVersion);
+  //       });
+  //     });
+  //   });
 
-    it('can download Linux CLI', () => {
-      aboutPage.getLinkDestination('rancher-linux').then((el) => {
-        const linuxVersion = el.split('/')[5];
+  //   it('can download Linux CLI', () => {
+  //     aboutPage.getLinkDestination('rancher-linux').then((el) => {
+  //       const linuxVersion = el.split('/')[5];
 
-        aboutPage.getCliDownloadLinkByLabel('rancher-linux').then((el: any) => {
-          el.attr('download', '');
-        }).click();
-        cy.wait('@download').then(({ request, response }) => {
-          expect(response?.statusCode).to.eq(200);
-          expect(request.url).includes(linuxVersion);
-        });
-      });
-    });
+  //       aboutPage.getCliDownloadLinkByLabel('rancher-linux').then((el: any) => {
+  //         el.attr('download', '');
+  //       }).click();
+  //       cy.wait('@download').then(({ request, response }) => {
+  //         expect(response?.statusCode).to.eq(200);
+  //         expect(request.url).includes(linuxVersion);
+  //       });
+  //     });
+  //   });
 
-    it('can download Windows CLI', () => {
-      aboutPage.getLinkDestination('rancher-windows').then((el) => {
-        const windowsVersion = el.split('/')[5];
+  //   it('can download Windows CLI', () => {
+  //     aboutPage.getLinkDestination('rancher-windows').then((el) => {
+  //       const windowsVersion = el.split('/')[5];
 
-        aboutPage.getCliDownloadLinkByLabel('rancher-windows').then((el: any) => {
-          el.attr('download', '');
-        }).click();
-        cy.wait('@download').then(({ request, response }) => {
-          expect(response?.statusCode).to.eq(200);
-          expect(request.url).includes(windowsVersion);
-        });
-      });
-    });
-  });
+  //       aboutPage.getCliDownloadLinkByLabel('rancher-windows').then((el: any) => {
+  //         el.attr('download', '');
+  //       }).click();
+  //       cy.wait('@download').then(({ request, response }) => {
+  //         expect(response?.statusCode).to.eq(200);
+  //         expect(request.url).includes(windowsVersion);
+  //       });
+  //     });
+  //   });
+  // });
 });

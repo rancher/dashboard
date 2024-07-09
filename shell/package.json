@@ -1,6 +1,6 @@
 {
   "name": "@rancher/shell",
-  "version": "2.0.0",
+  "version": "2.0.1",
   "description": "Rancher Dashboard Shell",
   "repository": "https://github.com/rancherlabs/dashboard",
   "license": "Apache-2.0",
@@ -153,7 +153,8 @@
     "nth-check": ">=2.0.1",
     "follow-redirects": ">=1.14.7",
     "merge": ">=2.1.1",
-    "semver": ">=7.5.2"
+    "semver": ">=7.5.2",
+    "glob": "7.2.3"
   },
   "nyc": {
     "extension": [
