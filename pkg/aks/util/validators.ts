@@ -133,7 +133,7 @@ export const privateDnsZone = (ctx: any, labelKey: string, clusterPath: string) 
   return () :string | undefined => {
     const toValidate = (get(ctx.normanCluster, clusterPath) || '').toLowerCase();
     const subscriptionRegex = /^\/subscriptions\/.+\/resourcegroups\/.+\/providers\/microsoft\.network\/privatednszones\/([a-zA-Z0-9-]{1,32}\.){0,32}private(link){0,1}\.[a-zA-Z0-9]+\.azmk8s\.io$/;
-    const isValid = toValidate.match(subscriptionRegex);
+    const isValid = toValidate.match(subscriptionRegex) || toValidate === 'system';
 
     return isValid || !toValidate.length ? undefined : ctx.t('aks.errors.privateDnsZone', {}, true);
   };
