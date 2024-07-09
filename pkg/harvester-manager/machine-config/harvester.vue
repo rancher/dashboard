@@ -18,9 +18,10 @@ import YamlEditor from '@shell/components/YamlEditor';
 import { Checkbox } from '@components/Form/Checkbox';
 import { Banner } from '@components/Banner';
 import { clone, get } from '@shell/utils/object';
+import { uniq, removeObject } from '@shell/utils/array';
 
 import { _CREATE } from '@shell/config/query-params';
-import { removeObject } from '@shell/utils/array';
+
 import { mapGetters } from 'vuex';
 import {
   HCI,
@@ -315,7 +316,7 @@ export default {
       this.networksObj = JSON.parse(this.value.networkInfo);
       this.networksHistoric = this.value.networkInfo;
 
-      this.getEnabledVGpuDevices();
+      this.getAvailableVGpuDevices();
 
       this.update();
     } catch (e) {
@@ -407,7 +408,8 @@ export default {
       networkDataIsBase64,
       vmAffinityIsBase64,
       SOURCE_TYPE,
-      vGpuEnabledDevices: {},
+      vGpuDevices:        {},
+      vGpusInit:          vGpus,
       vGpus,
     };
   },
@@ -479,34 +481,11 @@ export default {
       };
     },
 
-    vGpusAllocatable() {
-      const allocatable = this.allNodeObjects.reduce((acc, node) => [
-        ...acc,
-        ...Object.keys(node.status.allocatable || {}).filter((k) => k.startsWith(VGPU_PREFIX.NVIDIA)),
-      ], []);
-
-      return allocatable.reduce((acc, v) => {
-        let available = 0;
-
-        this.allNodeObjects.forEach((n) => {
-          if (n.status.allocatable[v]) {
-            available += Number(n.status.allocatable[v]);
-          }
-        });
-
-        if (available > 0) {
-          return {
-            ...acc,
-            [v]: available
-          };
-        }
-
-        return acc;
-      }, {});
-    },
-
     vGpuOptions() {
-      return Object.keys(this.vGpuEnabledDevices).filter((x) => !this.vGpus.includes(x));
+      return uniq([
+        ...this.vGpusInit,
+        ...Object.keys(this.vGpuDevices).filter((k) => this.vGpuDevices[k].enabled && this.vGpuDevices[k].allocatable > 0),
+      ]);
     }
   },
 
@@ -626,8 +605,6 @@ export default {
 
       this.validatorDiskAndNetowrk(errors);
 
-      this.validatorVGpus(errors);
-
       podAffinityValidator(this.vmAffinity.affinity, this.$store.getters, errors);
 
       return { errors };
@@ -695,21 +672,6 @@ export default {
       }
     },
 
-    validatorVGpus(errors) {
-      const notAllocatable = this.vGpus
-        .map((id) => this.vGpuEnabledDevices[id])
-        .filter((vGpu) => this.vGpusAllocatable[vGpu?.type] < this.machinePools[this.poolIndex]?.pool?.quantity);
-
-      notAllocatable.forEach((vGpu) => {
-        const message = this.$store.getters['i18n/t']('cluster.credential.harvester.vGpus.errors.notAllocatable', {
-          vGpus: vGpu?.type,
-          pool:  this.machinePools[this.poolIndex]?.pool?.name || '',
-        });
-
-        errors.push(message);
-      });
-    },
-
     valuesChanged(value, type) {
       this.value[type] = base64Encode(value);
     },
@@ -733,22 +695,35 @@ export default {
       }
     },
 
-    async getEnabledVGpuDevices() {
+    async getAvailableVGpuDevices() {
       const clusterId = get(this.credential, 'decodedData.clusterId');
 
       if (clusterId) {
         const url = `/k8s/clusters/${ clusterId }/v1`;
-        const res = await this.$store.dispatch('cluster/request', { url: `${ url }/${ HCI.VGPU_DEVICE }s` });
 
-        this.vGpuEnabledDevices = (res?.data || [])
-          .filter((v) => v.spec.enabled)
-          .reduce((acc, v) => ({
-            ...acc,
-            [v.id]: {
-              type: VGPU_PREFIX.NVIDIA + v.spec.vGPUTypeName?.replace(' ', '_'),
-              id:   v.id
-            },
-          }), {});
+        const vGpus = await this.$store.dispatch('cluster/request', { url: `${ url }/${ HCI.VGPU_DEVICE }s` });
+        const harvesterCluster = await this.$store.dispatch('cluster/request', { url: `${ url }/harvester/cluster/local` });
+
+        let deviceCapacity = {};
+
+        if (harvesterCluster?.links?.deviceCapacity) {
+          deviceCapacity = await this.$store.dispatch('cluster/request', { url: harvesterCluster?.links?.deviceCapacity });
+        }
+
+        this.vGpuDevices = (vGpus?.data || [])
+          .reduce((acc, v) => {
+            const type = v.spec.vGPUTypeName ? `${ VGPU_PREFIX.NVIDIA }${ v.spec.vGPUTypeName.replace(' ', '_') }` : '';
+
+            return {
+              ...acc,
+              [v.id]: {
+                id:          v.id,
+                enabled:     v.spec.enabled,
+                allocatable: deviceCapacity[type] ? Number(deviceCapacity[type]) : 0,
+                type,
+              },
+            };
+          }, {});
       }
     },
 
@@ -909,14 +884,13 @@ export default {
     },
 
     updateVGpu() {
-      const vGPURequests = this.vGpus?.filter((name) => name).reduce((acc, name, i) => ([
+      const vGPURequests = this.vGpus?.filter((name) => name).reduce((acc, name) => ([
         ...acc,
         {
           name,
-          deviceName: this.vGpuEnabledDevices[name]?.type,
+          deviceName: this.vGpuDevices[name]?.type,
         }
-      ])
-      , []);
+      ]), []);
 
       this.value.vgpuInfo = vGPURequests.length > 0 ? JSON.stringify({ vGPURequests }) : '';
     },
@@ -1117,9 +1091,19 @@ export default {
     },
 
     vGpuOptionLabel(opt) {
-      const vGpu = this.vGpuEnabledDevices[opt];
+      const vGpu = this.vGpuDevices[opt];
 
-      return `${ vGpu?.type?.replace(VGPU_PREFIX.NVIDIA, '') } - ${ vGpu?.id } (allocatable: ${ this.vGpusAllocatable[vGpu?.type] })`;
+      if (vGpu) {
+        let label = `${ vGpu.type?.replace(VGPU_PREFIX.NVIDIA, '') } - ${ vGpu.id }`;
+
+        if (vGpu.allocatable > 0) {
+          label += ` (allocatable: ${ vGpu.allocatable })`;
+        }
+
+        return label;
+      }
+
+      return opt;
     }
   }
 };
