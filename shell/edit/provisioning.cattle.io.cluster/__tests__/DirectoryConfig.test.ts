@@ -51,6 +51,35 @@ describe('component: DirectoryConfig', () => {
     expect(k8sDistroInput.exists()).toBe(false);
   });
 
+  it('should render the component with configuration being an empty object, without errors', () => {
+    const newMountOptions = clone(mountOptions);
+
+    newMountOptions.propsData.value = {};
+
+    wrapper = mount(
+      DirectoryConfig,
+      newMountOptions
+    );
+
+    const title = wrapper.find('h3');
+    const checkbox = wrapper.find('[data-testid="rke2-directory-config-individual-config-checkbox"]');
+    const commonInput = wrapper.find('[data-testid="rke2-directory-config-common-data-dir"]');
+    const systemAgentInput = wrapper.find('[data-testid="rke2-directory-config-systemAgent-data-dir"]');
+    const provisioningInput = wrapper.find('[data-testid="rke2-directory-config-provisioning-data-dir"]');
+    const k8sDistroInput = wrapper.find('[data-testid="rke2-directory-config-k8sDistro-data-dir"]');
+
+    expect(title.exists()).toBe(true);
+    expect(checkbox.exists()).toBe(true);
+    // for the default config, checkbox should be checked
+    expect(wrapper.vm.isSettingCommonConfig).toBe(true);
+    expect(commonInput.exists()).toBe(true);
+
+    // since we have all of the vars empty, then the individual inputs should not be there
+    expect(systemAgentInput.exists()).toBe(false);
+    expect(provisioningInput.exists()).toBe(false);
+    expect(k8sDistroInput.exists()).toBe(false);
+  });
+
   it('updating common config path should set the correct values on each data dir variable', async() => {
     wrapper = mount(
       DirectoryConfig,

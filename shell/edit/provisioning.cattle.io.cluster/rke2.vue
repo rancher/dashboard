@@ -171,12 +171,26 @@ export default {
       });
     }
 
+    // default for dataDirectories configuration obj
     if (!this.value.spec.rkeConfig.dataDirectories) {
       set(this.value.spec.rkeConfig, 'dataDirectories', {
         systemAgent:  '',
         provisioning: '',
         k8sDistro:    '',
       });
+    }
+
+    // default for dataDirectories configuration systemAgent config
+    if (!this.value.spec.rkeConfig.dataDirectories.systemAgent) {
+      set(this.value.spec.rkeConfig.dataDirectories, 'systemAgent', '');
+    }
+    // default for dataDirectories configuration provisioning config
+    if (!this.value.spec.rkeConfig.dataDirectories.provisioning) {
+      set(this.value.spec.rkeConfig.dataDirectories, 'provisioning', '');
+    }
+    // default for dataDirectories configuration k8sDistro config
+    if (!this.value.spec.rkeConfig.dataDirectories.k8sDistro) {
+      set(this.value.spec.rkeConfig.dataDirectories, 'k8sDistro', '');
     }
 
     if (!this.value.spec.rkeConfig.machineGlobalConfig) {
