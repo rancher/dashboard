@@ -28,5 +28,8 @@
   "dependencies": {
     "tsconfig-paths-webpack-plugin": "^4.0.0",
     "vue-loader": "15.10.1"
+  },
+  "resolutions": {
+    "glob": "7.2.3"
   }
 }
