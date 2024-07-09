@@ -1,8 +1,11 @@
 # Known issues
 
-- Running `yarn create @rancher/app app-name` + `yarn create @rancher/pkg your-extension-name` might generate a situation where trying to install dependencies will hit a problem with the `glob` package not being the appropriate version for the recommended node version (tries to install `glob` version only compatible with node v18).   
-If that is the case, the fix is to add to your app's `package.json` the following resolution:
+- Running `yarn install` might throw the following error:
+```
+error glob@10.4.3: The engine "node" is incompatible with this module
+```
 
+To resolve this add the following `resolution` to the root application's `package.json`:
 ```
 {
   "name": "app-name",
