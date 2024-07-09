@@ -158,10 +158,12 @@ export default defineComponent({
       type:    String,
       default: _EDIT
     },
+
     ec2Roles: {
       type:    Array as PropType<AWS.IamRole[]>,
       default: () => []
     },
+
     isNewOrUnprovisioned: {
       type:    Boolean,
       default: true
@@ -187,10 +189,16 @@ export default defineComponent({
       default: () => []
     },
 
+    sshKeyPairs: {
+      type:    Array as PropType<string[]>,
+      default: () => []
+    },
+
     normanCluster: {
       type:    Object,
       default: null
     },
+
     loadingInstanceTypes: {
       type:    Boolean,
       default: false
@@ -202,6 +210,11 @@ export default defineComponent({
     },
 
     loadingLaunchTemplates: {
+      type:    Boolean,
+      default: false
+    },
+
+    loadingSshKeyPairs: {
       type:    Boolean,
       default: false
     },
@@ -268,6 +281,15 @@ export default defineComponent({
         this.$emit('update:spotInstanceTypes', null);
       }
     },
+
+    sshKeyPairs: {
+      handler(neu) {
+        if (!neu.includes(this.ec2SshKey)) {
+          this.$emit('update:ec2SshKey', '');
+        }
+      },
+      deep: true
+    }
   },
 
   computed: {
@@ -491,7 +513,7 @@ export default defineComponent({
 
 <template>
   <div>
-    <h3>Group Details</h3>
+    <h3>{{ t('eks.nodeGroups.groupDetails') }}</h3>
     <div class="row mb-10">
       <div class="col span-6">
         <LabeledInput
@@ -583,7 +605,7 @@ export default defineComponent({
       </div>
     </div>
     <hr class="mb-20">
-    <h3>Node Template Details</h3>
+    <h3>{{ t('eks.nodeGroups.templateDetails') }}</h3>
     <Banner
       v-if="clusterWillUpgrade && !poolIsUnprovisioned"
       color="info"
@@ -745,12 +767,16 @@ export default defineComponent({
         />
       </div>
       <div class="col span-6">
-        <LabeledInput
-          type="multiline"
+        <LabeledSelect
+          :loading="loadingSshKeyPairs"
           :value="ec2SshKey"
+          :options="sshKeyPairs"
           label-key="eks.nodeGroups.ec2SshKey.label"
           :mode="mode"
           :disabled="hasUserLaunchTemplate"
+          :taggable="true"
+          :searchable="true"
+          data-testid="eks-nodegroup-ec2-key-select"
           @input="$emit('update:ec2SshKey', $event)"
         />
       </div>

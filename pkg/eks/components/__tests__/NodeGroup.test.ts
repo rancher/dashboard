@@ -3,6 +3,7 @@
 import { shallowMount } from '@vue/test-utils';
 import NodeGroup from '@pkg/eks/components/NodeGroup.vue';
 import describeLaunchTemplateVersionsResponseData from '../__mocks__/describeLaunchTemplateVersions.js';
+
 const mockedValidationMixin = {
   computed: {
     fvFormIsValid:                jest.fn(),
@@ -416,5 +417,63 @@ describe('eks node groups: edit', () => {
     const nameInput = wrapper.find('[data-testid="eks-nodegroup-name"]');
 
     expect(nameInput.props().disabled).toBe(true);
+  });
+
+  it('should show a dropdown of sshKeys used to update the ec2Key prop', async() => {
+    const setup = requiredSetup();
+
+    const wrapper = shallowMount(NodeGroup, {
+      propsData: {
+        launchTemplate:         {},
+        region:                 'foo',
+        amazonCredentialSecret: 'bar',
+        poolIsNew:              false,
+        isNewOrUnprovisioned:   false
+      },
+      ...setup
+    });
+
+    const ec2KeyDropdown = wrapper.find('[data-testid="eks-nodegroup-ec2-key-select"]');
+
+    expect(ec2KeyDropdown.exists()).toBe(true);
+    expect(ec2KeyDropdown.props().options).toHaveLength(0);
+    wrapper.setProps({ sshKeyPairs: ['abc-123', 'def-456'] });
+    await wrapper.vm.$nextTick();
+    expect(ec2KeyDropdown.props().options).toHaveLength(2);
+
+    ec2KeyDropdown.vm.$emit('input', '123-abc');
+    await wrapper.vm.$nextTick();
+
+    expect(wrapper.emitted('update:ec2SshKey')?.[1]?.[0]).toBe('123-abc');
+  });
+
+  it('should clear the ec2Key value if it is not found in list of available keys', async() => {
+    const setup = requiredSetup();
+
+    const wrapper = shallowMount(NodeGroup, {
+      propsData: {
+        launchTemplate:         {},
+        region:                 'foo',
+        amazonCredentialSecret: 'bar',
+        poolIsNew:              false,
+        isNewOrUnprovisioned:   false,
+        ec2SshKey:              'hij-789'
+      },
+      ...setup
+    });
+
+    expect(wrapper.emitted('update:ec2SshKey')).toBeUndefined();
+
+    wrapper.setProps({ sshKeyPairs: ['abc-123', 'def-456'] });
+    await wrapper.vm.$nextTick();
+    expect(wrapper.emitted('update:ec2SshKey')?.[0][0]).toBe('');
+
+    expect(wrapper.emitted('update:ec2SshKey')).toHaveLength(1);
+
+    wrapper.setProps({ ec2SshKey: 'abc-123' });
+    wrapper.setProps({ sshKeyPairs: ['abc-123', 'xyz-999'] });
+    await wrapper.vm.$nextTick();
+
+    expect(wrapper.emitted('update:ec2SshKey')).toHaveLength(1);
   });
 });

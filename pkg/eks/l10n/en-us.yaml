@@ -45,6 +45,7 @@ eks:
     gpu:
       label: GPU Enabled Instance
       tooltip: This setting is ignored when using a launch template with a custom AMI defined.
+    groupDetails: Group Details
     groupLabels:
       label: Group Labels
     groupTags:
@@ -78,6 +79,7 @@ eks:
       label: Instance Resource Tags
     spotInstanceTypes:
       label: Spot Instance Types
+    templateDetails: Template Details
     title: Node Groups
     unnamed: Unnamed Node Group
     userData:
