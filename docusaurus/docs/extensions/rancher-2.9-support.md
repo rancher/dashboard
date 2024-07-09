@@ -3,7 +3,7 @@
 ## What happened
 
 Rancher 2.9.0 contains many improvements, unfortunately some make necessary changes that invalidate certain versions of Rancher Extensions working with certain versions of Rancher.  
-To support these changes we have made some importance changes to Rancher Shell (our core JS package) which helps and protects version compatibility.
+To support these changes we have made some important changes to Rancher Shell (our core JS package) which helps and protects version compatibility.
 
 
 ## What changed in Shell
