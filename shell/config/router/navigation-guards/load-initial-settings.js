@@ -1,7 +1,7 @@
 import { fetchInitialSettings } from '@shell/utils/settings';
 
 export function install(router, context) {
-  router.beforeEach((to, from, next) => loadInitialSettings(to, from, next, context));
+  router.beforeEach(async(to, from, next) => await loadInitialSettings(to, from, next, context));
 }
 
 export async function loadInitialSettings(to, from, next, { store }) {

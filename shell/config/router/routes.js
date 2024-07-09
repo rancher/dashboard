@@ -484,4 +484,12 @@ export default [
         component: () => interopDefault(import('@shell/pages/c/_cluster/_product/_resource/_namespace/_id.vue')),
         name:      'c-cluster-product-resource-namespace-id'
       }]
-  }];
+  },
+  {
+    path:      '*',
+    name:      '404',
+    component: () => interopDefault(import('@shell/pages/404.vue')),
+    meta:      { requiresAuthentication: true },
+  },
+
+];

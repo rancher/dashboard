@@ -3,7 +3,6 @@ import { updatePageTitle } from '@shell/utils/title';
 import { getVendor } from '@shell/config/private-label';
 import middleware from '@shell/config/middleware.js';
 import { withQuery } from 'ufo';
-import dynamicPluginLoader from '@shell/pkg/dynamic-plugin-loader';
 
 // Global variable used on mount, updated on route change and used in the render function
 let app;
@@ -198,26 +197,6 @@ async function render(to, from, next) {
   // Get route's matched components
   const matches = [];
   const Components = getMatchedComponents(to, matches);
-
-  // If no Components matched, generate 404
-  if (!Components.length) {
-    // Handle the loading of dynamic plugins (Harvester) because we only want to attempt to load those plugins and routes if we first couldn't find a page.
-    // We should probably get rid of this concept entirely and just load plugins at the start.
-    await app.context.store.dispatch('loadManagement');
-    const newLocation = await dynamicPluginLoader.check({ route: { path: window.location.pathname }, store: app.context.store });
-
-    // If we have a new location, double check that it's actually valid
-    const resolvedRoute = newLocation?.path ? app.context.store.app.router.resolve({ path: newLocation.path.replace(/^\/{0,1}dashboard/, '') }) : null;
-
-    if (resolvedRoute?.route.matched.length) {
-      // Note - don't use `redirect` or `store.app.route` (breaks feature by failing to run middleware in default layout)
-      return next(resolvedRoute.resolved.path);
-    }
-
-    errorRedirect(this, new Error('404: This page could not be found'));
-
-    return next();
-  }
 
   try {
     // Call middleware

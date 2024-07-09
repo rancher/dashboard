@@ -2,7 +2,7 @@ import { routeRequiresAuthentication } from '@shell/utils/router';
 import { isLoggedIn, notLoggedIn, noAuth, findMe } from '@shell/utils/auth';
 
 export function install(router, context) {
-  router.beforeEach((to, from, next) => authenticate(to, from, next, context));
+  router.beforeEach(async(to, from, next) => await authenticate(to, from, next, context));
 }
 
 export async function authenticate(to, from, next, { store }) {
