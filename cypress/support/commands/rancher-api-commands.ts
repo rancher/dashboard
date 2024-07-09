@@ -828,3 +828,29 @@ Cypress.Commands.add('createGlobalRole', (name, apiGroups: string[], resourceNam
       }
     });
 });
+
+/**
+* Create fleet workspace
+*/
+Cypress.Commands.add('createFleetWorkspace', (name: string, description?: string, failOnStatusCode = true) => {
+ return cy.request({
+   method:  'POST',
+   url:     `${ Cypress.env('api') }/v3/fleetworkspaces`,
+   headers: {
+    'x-api-csrf': token.value,
+    Accept:       'application/json'
+  },
+  failOnStatusCode,
+  body: {
+    type:        'fleetworkspace',
+    name,
+    annotations: { 'field.cattle.io/description': description },
+    labels:      {}
+  }
+})
+  .then((resp) => {
+    if (failOnStatusCode) {
+      expect(resp.status).to.eq(201);
+    }
+  });
+});

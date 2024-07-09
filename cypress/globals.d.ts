@@ -77,6 +77,7 @@ declare global {
       createPod(nsName: string, podName: string, image: string, failOnStatusCode?: boolean): Chainable;
       createToken(description: string, ttl: number, failOnStatusCode?: boolean, clusterId?: string): Chainable;
       createGlobalRole(name: string, apiGroups: string[], resourceNames: string[], resources: string[], verbs: string[], newUserDefault: boolean, failOnStatusCode?: boolean): Chainable;
+      createFleetWorkspace(name: string, description?: string, failOnStatusCode?: boolean): Chainable;
       createAwsCloudCredentials(nsName: string, cloudCredName: string, defaultRegion: string, accessKey: string, secretKey: string): Chainable;
       createAmazonMachineConfig(instanceType: string, region: string, vpcId: string, zone: string, type: string, clusterName: string, namespace: string): Chainable;
       createAmazonRke2Cluster(params: CreateAmazonRke2ClusterParams): Chainable;
