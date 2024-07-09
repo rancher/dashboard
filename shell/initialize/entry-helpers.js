@@ -191,6 +191,10 @@ async function render(to, from, next) {
     next:  _next.bind(this)
   });
 
+  if (this.$loading.start && !this.$loading.manual) {
+    this.$loading.start();
+  }
+
   // Get route's matched components
   const matches = [];
   const Components = getMatchedComponents(to, matches);
