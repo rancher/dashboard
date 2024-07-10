@@ -1,6 +1,5 @@
 import { FleetWorkspaceListPagePo } from '@/cypress/e2e/po/pages/fleet/fleet.cattle.io.fleetworkspace.po';
 import FleetWorkspaceDetailsPo from '@/cypress/e2e/po/detail/fleet/fleet.cattle.io.fleetworkspace.po';
-import HomePagePo from '@/cypress/e2e/po/pages/home.po';
 import { generateFleetWorkspacesDataSmall } from '@/cypress/e2e/blueprints/fleet/workspaces-get';
 
 const defaultWorkspace = 'fleet-default';
@@ -9,11 +8,11 @@ const workspaceNameList = [];
 describe('Workspaces', { testIsolation: 'off', tags: ['@fleet', '@adminUser'] }, () => {
   const fleetWorkspacesPage = new FleetWorkspaceListPagePo();
 
-  describe('List', { tags: ['@vai'] }, () => {
-    before(() => {
-      cy.login();
-    });
+  before(() => {
+    cy.login();
+  });
 
+  describe('List', { tags: ['@vai'] }, () => {
     it('check table headers are available in list and details view', () => {
       FleetWorkspaceListPagePo.navTo();
       fleetWorkspacesPage.waitForPage();
@@ -207,8 +206,7 @@ describe('Workspaces', { testIsolation: 'off', tags: ['@fleet', '@adminUser'] },
 
     it('pagination is hidden', () => {
       generateFleetWorkspacesDataSmall();
-      HomePagePo.goTo(); // this is needed here for the intercept to work
-      FleetWorkspaceListPagePo.navTo();
+      fleetWorkspacesPage.goTo();
       fleetWorkspacesPage.waitForPage();
       cy.wait('@fleetworkspacesDataSmall');
 
