@@ -25,17 +25,17 @@ export default {
     let atLeastOneDirWithAnIdentifier = false;
     let allDirsWithSameIdentifier = false;
 
-    if (this.value.systemAgent.length || this.value.provisioning.length || this.value.k8sDistro.length) {
+    if (this.value?.systemAgent?.length || this.value?.provisioning?.length || this.value?.k8sDistro?.length) {
       atLeastOneDirWithAnIdentifier = true;
-      if (this.value.systemAgent === this.value.provisioning && this.value.provisioning === this.value.k8sDistro &&
-      this.value.systemAgent === this.value.k8sDistro) {
+      if (this.value?.systemAgent === this.value?.provisioning && this.value?.provisioning === this.value?.k8sDistro &&
+      this.value?.systemAgent === this.value?.k8sDistro) {
         allDirsWithSameIdentifier = true;
       }
     }
 
     return {
       isSettingCommonConfig: !(atLeastOneDirWithAnIdentifier && !allDirsWithSameIdentifier),
-      commonConfig:          allDirsWithSameIdentifier ? this.value.systemAgent : '',
+      commonConfig:          allDirsWithSameIdentifier ? this.value?.systemAgent : '',
     };
   },
   watch: {
