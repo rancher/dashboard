@@ -1,4 +1,6 @@
 import * as validators from '@pkg/aks/util/validators';
+import { set } from '@shell/utils/object';
+import { AKSNodePool } from 'types';
 
 validators.requiredTranslation = (ctx, label) => `${ label } is required.`;
 
@@ -6,7 +8,11 @@ validators.needsValidation = () => true;
 
 const MOCK_TRANSLATION = 'abc';
 
-const mockCtx = { normanCluster: { }, t: () => MOCK_TRANSLATION };
+const mockCtx = {
+  normanCluster: { },
+  t:             () => MOCK_TRANSLATION,
+  $set:          set
+};
 
 describe('fx: requiredInCluster', () => {
   it('returns an error message containing the field label if field is not defined in cluster', () => {
@@ -88,5 +94,48 @@ describe('fx: privateDnsZone', () => {
     const validator = validators.privateDnsZone(ctx, '', 'aksConfig.privateDnsZone');
 
     expect(validator()).toStrictEqual(validatorMsg);
+  });
+});
+
+describe('fx: nodePoolNames', () => {
+  it('returns an error when the provided pool name exceeds 12 characters', () => {
+    const validator = validators.nodePoolNames(mockCtx);
+
+    expect(validator('abcdefghijklm')).toStrictEqual(MOCK_TRANSLATION);
+
+    expect(validator('abcdefghijkl')).toBeUndefined();
+  });
+
+  it('validates each node pool in the provided context when not passed a node pool name', () => {
+    const ctx = { ...mockCtx, nodePools: [{ name: 'abcdefghijklm', _validation: {} }, { name: 'abcdefghijkl', _validation: {} }] as unknown as AKSNodePool[] };
+    const validator = validators.nodePoolNames(ctx);
+
+    validator();
+    expect(ctx.nodePools[0]?._validation?._validName).toStrictEqual(false);
+
+    expect(ctx.nodePools[1]?._validation?._validName).toStrictEqual(true);
+  });
+
+  it.each([
+    ['abc123', undefined],
+    ['abcabc', undefined],
+    ['abc-abc', MOCK_TRANSLATION],
+    ['abc abc', MOCK_TRANSLATION],
+    ['abc_abc', MOCK_TRANSLATION],
+    ['abcABC', MOCK_TRANSLATION],
+    ['abc:abc', MOCK_TRANSLATION],
+  ])('returns an error when the provided pool name includes characters other than lowercase letters and numbers', (name, expected) => {
+    const validator = validators.nodePoolNames(mockCtx);
+
+    expect(validator(name)).toStrictEqual(expected);
+  });
+
+  it.each([
+    ['123abc', MOCK_TRANSLATION],
+    ['Abcabc', MOCK_TRANSLATION],
+  ])('returns an error when the provided pool name does not start with a lowercase letter', (name, expected) => {
+    const validator = validators.nodePoolNames(mockCtx);
+
+    expect(validator(name)).toStrictEqual(expected);
   });
 });
