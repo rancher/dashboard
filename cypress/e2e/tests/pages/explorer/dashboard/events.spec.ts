@@ -1,7 +1,6 @@
 import ClusterDashboardPagePo from '@/cypress/e2e/po/pages/explorer/cluster-dashboard.po';
 import { EventsPagePo } from '@/cypress/e2e/po/pages/explorer/events.po';
 import { generateEventsDataSmall } from '@/cypress/e2e/blueprints/explorer/cluster/events';
-import HomePagePo from '@/cypress/e2e/po/pages/home.po';
 import LoadingPo from '@/cypress/e2e/po/components/loading.po';
 
 const clusterDashboard = new ClusterDashboardPagePo('local');
@@ -142,10 +141,11 @@ describe('Events', { testIsolation: 'off', tags: ['@explorer', '@adminUser'] }, 
       events.eventslist().resourceTable().sortableTable().rowElementWithPartialName(uniquePod)
         .should('have.length.lte', 5);
       events.sortableTable().rowElementWithPartialName(uniquePod).should('be.visible');
+
+      events.sortableTable().resetFilter();
     });
 
     it('sorting changes the order of paginated events data', () => {
-      HomePagePo.goTo();
       ClusterDashboardPagePo.navTo();
       clusterDashboard.waitForPage(undefined, 'cluster-events');
       EventsPagePo.navTo();

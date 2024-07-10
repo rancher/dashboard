@@ -62,20 +62,24 @@ export default class SortableTablePo extends ComponentPo {
     return cy.get('.action-availability');
   }
 
+  filterComponent() {
+    return this.self().find('[data-testid="search-box-filter-row"] input');
+  }
+
   /**
    * Search box to query rows
    * @param searchText
    * @returns
    */
   filter(searchText: string) {
-    return cy.get('[data-testid="search-box-filter-row"] input')
+    return this.filterComponent()
       .focus()
       .clear()
       .type(searchText);
   }
 
   resetFilter() {
-    return cy.get('[data-testid="search-box-filter-row"] input')
+    return this.filterComponent()
       .focus()
       .clear();
   }
