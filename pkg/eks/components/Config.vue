@@ -4,7 +4,6 @@ import { EKSConfig, AWS } from '../types';
 import { _EDIT, _VIEW } from '@shell/config/query-params';
 import semver from 'semver';
 import { Store, mapGetters } from 'vuex';
-import sortBy from 'lodash/sortBy';
 
 import { MANAGEMENT } from '@shell/config/types';
 import { SETTING } from '@shell/config/settings';
