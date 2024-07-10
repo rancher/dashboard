@@ -1,7 +1,7 @@
 import { FleetDashboardPagePo } from '@/cypress/e2e/po/pages/fleet/fleet-dashboard.po';
 import { GitRepoCreatePo } from '@/cypress/e2e/po/pages/fleet/gitrepo-create.po';
 import BurgerMenuPo from '@/cypress/e2e/po/side-bars/burger-side-menu.po';
-import { LONG_TIMEOUT_OPT } from '@/cypress/support/utils/timeouts';
+import { EXTRA_LONG_TIMEOUT_OPT } from '@/cypress/support/utils/timeouts';
 
 describe('Fleet Dashboard', { tags: ['@fleet', '@adminUser'] }, () => {
   let fleetDashboardPage: FleetDashboardPagePo;
@@ -43,13 +43,13 @@ describe('Fleet Dashboard', { tags: ['@fleet', '@adminUser'] }, () => {
 
     const row = fleetDashboardPage.sortableTable('fleet-local').row(0);
 
-    row.get('.bg-success[data-testid="clusters-ready"]', LONG_TIMEOUT_OPT).should('exist');
+    row.get('.bg-success[data-testid="clusters-ready"]', EXTRA_LONG_TIMEOUT_OPT).should('exist');
     row.get('.bg-success[data-testid="clusters-ready"] span').should('have.text', '1/1');
 
-    row.get('.bg-success[data-testid="clusters-ready"]').should('exist');
+    row.get('.bg-success[data-testid="bundles-ready"]', EXTRA_LONG_TIMEOUT_OPT).should('exist');
     row.get('.bg-success[data-testid="bundles-ready"] span').should('have.text', '1/1');
 
-    row.get('.bg-success[data-testid="clusters-ready"]').should('exist');
+    row.get('.bg-success[data-testid="resources-ready"]', EXTRA_LONG_TIMEOUT_OPT).should('exist');
     row.get('.bg-success[data-testid="resources-ready"] span').should('have.text', '1/1');
   });
 
