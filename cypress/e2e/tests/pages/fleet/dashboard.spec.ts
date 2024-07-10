@@ -3,7 +3,7 @@ import { GitRepoCreatePo } from '@/cypress/e2e/po/pages/fleet/gitrepo-create.po'
 import BurgerMenuPo from '@/cypress/e2e/po/side-bars/burger-side-menu.po';
 import { LONG_TIMEOUT_OPT } from '@/cypress/support/utils/timeouts';
 
-describe.only('Fleet Dashboard', { tags: ['@fleet', '@adminUser'] }, () => {
+describe('Fleet Dashboard', { tags: ['@fleet', '@adminUser'] }, () => {
   let fleetDashboardPage: FleetDashboardPagePo;
   const repoName = 'fleet-e2e-test-dashboard';
 

@@ -6,7 +6,7 @@ import { generateFleetWorkspacesDataSmall } from '@/cypress/e2e/blueprints/fleet
 const defaultWorkspace = 'fleet-default';
 const workspaceNameList = [];
 
-describe.only('Workspaces', { testIsolation: 'off', tags: ['@fleet', '@adminUser'] }, () => {
+describe('Workspaces', { testIsolation: 'off', tags: ['@fleet', '@adminUser'] }, () => {
   const fleetWorkspacesPage = new FleetWorkspaceListPagePo();
 
   describe('List', { tags: ['@vai'] }, () => {
