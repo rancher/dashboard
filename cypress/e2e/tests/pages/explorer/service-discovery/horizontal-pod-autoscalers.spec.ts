@@ -1,5 +1,5 @@
 import { HorizontalPodAutoscalersPagePo } from '@/cypress/e2e/po/pages/explorer/horizontal-pod-autoscalers.po';
-import { generateHorizontalPodAutoscalersDataSmall, horizontalPodAutoScalersNoData } from '~/cypress/e2e/blueprints/explorer/workloads/service-discovery/horizontal-pod-autoscalers-get';
+import { generateHorizontalPodAutoscalersDataSmall, horizontalPodAutoScalersNoData } from '@/cypress/e2e/blueprints/explorer/workloads/service-discovery/horizontal-pod-autoscalers-get';
 
 const horizontalPodAutoscalersPage = new HorizontalPodAutoscalersPagePo();
 

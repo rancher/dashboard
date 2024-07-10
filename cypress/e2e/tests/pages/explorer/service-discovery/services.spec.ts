@@ -1,4 +1,4 @@
-import { ServicesPagePo } from '~/cypress/e2e/po/pages/explorer/services.po';
+import { ServicesPagePo } from '@/cypress/e2e/po/pages/explorer/services.po';
 import { generateServicesDataSmall, servicesNoData } from '@/cypress/e2e/blueprints/explorer/workloads/service-discovery/services-get';
 
 const servicesPagePo = new ServicesPagePo();

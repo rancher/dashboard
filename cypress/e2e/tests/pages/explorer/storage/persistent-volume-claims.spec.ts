@@ -19,7 +19,7 @@ describe('PersistentVolumeClaims', { testIsolation: 'off', tags: ['@explorer', '
       persistentVolumeClaimsPage.waitForPage();
       cy.wait('@persistentvolumeclaimsNoData');
 
-      const expectedHeaders = ['State', 'Name', 'Namespace', 'Status', 'Volume', 'Capacity', 'Access Modes', 'Storage Class', 'Volume Mode', 'Age'];
+      const expectedHeaders = ['State', 'Name', 'Namespace', 'Status', 'Volume', 'Capacity', 'Access Modes', 'Storage Class', 'VolumeAttributesClass', 'Volume Mode', 'Age'];
 
       persistentVolumeClaimsPage.list().resourceTable().sortableTable().tableHeaderRow()
         .get('.table-header-container .content')
@@ -37,7 +37,7 @@ describe('PersistentVolumeClaims', { testIsolation: 'off', tags: ['@explorer', '
       cy.wait('@persistentvolumeclaimsDataSmall');
 
       // check table headers are visible
-      const expectedHeaders = ['State', 'Name', 'Namespace', 'Status', 'Volume', 'Capacity', 'Access Modes', 'Storage Class', 'Volume Mode', 'Age'];
+      const expectedHeaders = ['State', 'Name', 'Namespace', 'Status', 'Volume', 'Capacity', 'Access Modes', 'Storage Class', 'VolumeAttributesClass', 'Volume Mode', 'Age'];
 
       persistentVolumeClaimsPage.list().resourceTable().sortableTable().tableHeaderRow()
         .get('.table-header-container .content')
@@ -62,7 +62,7 @@ describe('PersistentVolumeClaims', { testIsolation: 'off', tags: ['@explorer', '
         .click();
 
       //  check table headers are visible
-      const expectedHeaders = ['State', 'Name', 'Status', 'Volume', 'Capacity', 'Access Modes', 'Storage Class', 'Volume Mode', 'Age'];
+      const expectedHeaders = ['State', 'Name', 'Status', 'Volume', 'Capacity', 'Access Modes', 'Storage Class', 'VolumeAttributesClass', 'Volume Mode', 'Age'];
 
       persistentVolumeClaimsPage.list().resourceTable().sortableTable().tableHeaderRow()
         .get('.table-header-container .content')

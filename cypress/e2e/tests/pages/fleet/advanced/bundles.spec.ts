@@ -1,4 +1,4 @@
-import { FleetBundlesListPagePo } from '~/cypress/e2e/po/pages/fleet/fleet.cattle.io.bundle.po';
+import { FleetBundlesListPagePo } from '@/cypress/e2e/po/pages/fleet/fleet.cattle.io.bundle.po';
 import FleetBundleDetailsPo from '@/cypress/e2e/po/detail/fleet/fleet.cattle.io.bundle.po';
 import { HeaderPo } from '@/cypress/e2e/po/components/header.po';
 

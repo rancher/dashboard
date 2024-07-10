@@ -92,7 +92,7 @@ describe('Fleet Clusters', { tags: ['@fleet', '@adminUser'] }, () => {
       fleetGitRepoListPage.repoList().details(this.gitRepo, 1).contains('Active', { timeout: 600000 });
 
       // go to fleet clusters
-      fleetClusterListPage.navTo();
+      FleetClusterListPagePo.navTo();
       fleetClusterListPage.waitForPage();
       headerPo.selectWorkspace(namespace);
       fleetClusterListPage.sortableTable().checkLoadingIndicatorNotVisible();
@@ -146,7 +146,7 @@ describe('Fleet Clusters', { tags: ['@fleet', '@adminUser'] }, () => {
       const fleetClusterDetailsPage = new FleetClusterDetailsPo(namespace, this.rke2Ec2ClusterName);
 
       // go to fleet clusters
-      fleetClusterListPage.navTo();
+      FleetClusterListPagePo.navTo();
       fleetClusterListPage.waitForPage();
       headerPo.selectWorkspace(namespace);
       fleetClusterListPage.clusterList().details(this.rke2Ec2ClusterName, 2).find('a').click();
@@ -183,7 +183,7 @@ describe('Fleet Clusters', { tags: ['@fleet', '@adminUser'] }, () => {
 
     it('can Pause/Unpause', function() {
       // go to fleet clusters
-      fleetClusterListPage.navTo();
+      FleetClusterListPagePo.navTo();
       fleetClusterListPage.waitForPage();
       headerPo.selectWorkspace(namespace);
 
@@ -216,7 +216,7 @@ describe('Fleet Clusters', { tags: ['@fleet', '@adminUser'] }, () => {
 
     it('can Edit Config', function() {
       // go to fleet clusters
-      fleetClusterListPage.navTo();
+      FleetClusterListPagePo.navTo();
       fleetClusterListPage.waitForPage();
       headerPo.selectWorkspace(namespace);
       fleetClusterListPage.clusterList().actionMenu(this.rke2Ec2ClusterName).getMenuItem('Edit Config').click();
@@ -237,7 +237,7 @@ describe('Fleet Clusters', { tags: ['@fleet', '@adminUser'] }, () => {
     it('can Download YAML', function() {
       cy.deleteDownloadsFolder();
 
-      fleetClusterListPage.navTo();
+      FleetClusterListPagePo.navTo();
       fleetClusterListPage.waitForPage();
       headerPo.selectWorkspace(namespace);
       fleetClusterListPage.clusterList().actionMenu(this.rke2Ec2ClusterName).getMenuItem('Download YAML').click();
@@ -278,7 +278,7 @@ describe('Fleet Clusters', { tags: ['@fleet', '@adminUser'] }, () => {
         });
       }
 
-      fleetClusterListPage.navTo();
+      FleetClusterListPagePo.navTo();
       fleetClusterListPage.waitForPage();
       headerPo.selectWorkspace(namespace);
       fleetClusterListPage.sortableTable().checkLoadingIndicatorNotVisible();
@@ -363,7 +363,7 @@ describe('Fleet Clusters', { tags: ['@fleet', '@adminUser'] }, () => {
         fleetGitRepoListPage.repoList().rowWithName(repoName).checkVisible();
 
         // go to fleet cluster list
-        fleetClusterListPage.navTo();
+        FleetClusterListPagePo.navTo();
         fleetClusterListPage.waitForPage();
 
         // check table headers

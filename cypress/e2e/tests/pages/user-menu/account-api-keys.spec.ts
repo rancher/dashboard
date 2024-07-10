@@ -24,8 +24,10 @@ describe('Account and API Keys', { testIsolation: 'off' }, () => {
      * Verify page title
      * Verify user can change their password and change it back
      */
+      const homePage = new HomePagePo();
 
-      HomePagePo.goToAndWaitForGet();
+      HomePagePo.goTo();
+      homePage.waitForPage();
       userMenu.clickMenuItem('Account & API Keys');
       accountPage.waitForPage();
       accountPage.checkIsCurrentPage();

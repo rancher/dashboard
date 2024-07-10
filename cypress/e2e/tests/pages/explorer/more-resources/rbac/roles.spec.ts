@@ -1,5 +1,5 @@
 import { RolesPagePo } from '@/cypress/e2e/po/pages/explorer/roles.po';
-import { generateRolesDataSmall, rolesNoData } from '~/cypress/e2e/blueprints/explorer/rbac/roles-get';
+import { generateRolesDataSmall, rolesNoData } from '@/cypress/e2e/blueprints/explorer/rbac/roles-get';
 
 const rolesPage = new RolesPagePo();
 

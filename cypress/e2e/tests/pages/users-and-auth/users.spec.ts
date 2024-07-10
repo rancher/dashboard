@@ -4,8 +4,8 @@ import PromptRemove from '@/cypress/e2e/po/prompts/promptRemove.po';
 import * as jsyaml from 'js-yaml';
 import * as path from 'path';
 import { generateUsersDataSmall } from '@/cypress/e2e/blueprints/users/users-get';
-import HomePagePo from '~/cypress/e2e/po/pages/home.po';
-import BurgerMenuPo from '~/cypress/e2e/po/side-bars/burger-side-menu.po';
+import HomePagePo from '@/cypress/e2e/po/pages/home.po';
+import BurgerMenuPo from '@/cypress/e2e/po/side-bars/burger-side-menu.po';
 
 const usersPo = new UsersPo('_');
 const userCreate = usersPo.createEdit();

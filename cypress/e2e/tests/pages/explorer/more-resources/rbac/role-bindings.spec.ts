@@ -1,5 +1,5 @@
 import { RoleBindingsPagePo } from '@/cypress/e2e/po/pages/explorer/role-bindings.po';
-import { generateRoleBindingDataSmall, roleBindingNoData } from '~/cypress/e2e/blueprints/explorer/rbac/role-bindings-get';
+import { generateRoleBindingDataSmall, roleBindingNoData } from '@/cypress/e2e/blueprints/explorer/rbac/role-bindings-get';
 
 const roleBindingsPage = new RoleBindingsPagePo();
 

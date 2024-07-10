@@ -1,4 +1,4 @@
-import { FleetClusterRegistrationTokenListPagePo } from '~/cypress/e2e/po/pages/fleet/fleet.cattle.io.clusterregistrationtoken.po';
+import { FleetClusterRegistrationTokenListPagePo } from '@/cypress/e2e/po/pages/fleet/fleet.cattle.io.clusterregistrationtoken.po';
 import { HeaderPo } from '@/cypress/e2e/po/components/header.po';
 import { clusterRegistrationTokensNoData, generateclusterRegistrationTokensDataSmall } from '@/cypress/e2e/blueprints/fleet/cluster-registration-tokens-get';
 

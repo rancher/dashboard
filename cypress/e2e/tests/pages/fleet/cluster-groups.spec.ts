@@ -1,4 +1,4 @@
-import { FleetClusterGroupsListPagePo } from '~/cypress/e2e/po/pages/fleet/fleet.cattle.io.clustergroup.po';
+import { FleetClusterGroupsListPagePo } from '@/cypress/e2e/po/pages/fleet/fleet.cattle.io.clustergroup.po';
 import FleetClusterGroupDetailsPo from '@/cypress/e2e/po/detail/fleet/fleet.cattle.io.clustergroup.po';
 import { HeaderPo } from '@/cypress/e2e/po/components/header.po';
 
