@@ -781,7 +781,6 @@ export default defineComponent({
           class="col span-6"
         >
           <KeyValue
-
             :label="t('gke.masterAuthorizedNetwork.cidrBlocks.label')"
             :mode="mode"
             :as-map="false"
@@ -794,7 +793,6 @@ export default defineComponent({
             :read-allowed="false"
             :add-label="t('gke.masterAuthorizedNetwork.cidrBlocks.add')"
             :initial-empty-row="true"
-            :disabled="!isNewOrUnprovisioned"
             data-testid="gke-master-authorized-network-cidr-keyvalue"
             @input="$emit('update:masterAuthorizedNetworkCidrBlocks', $event)"
           />
