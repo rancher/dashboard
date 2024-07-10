@@ -17,15 +17,16 @@ export const STEVE_ID_COL = {
   name:     'steve-id',
   labelKey: 'tableHeaders.id',
   value:    'id',
-  sort:     ['id'],
-  search:   'id',
+  sort:     false, // sort:     ['id'], // Pending API support
+  search:   false, // search:   'id', // Pending API support
 };
 
 export const STEVE_STATE_COL = {
   ...STATE,
-  // value:  'metadata.state.name', Use the state as defined by the resource rather than converted via the model.
+  // Note, we're show the 'state' as per model, not the 'metadata.state.name' that's available in the model to remotely sort/filter
+  // Need to investigate whether we should 'dumb down' the state we show to the native one (tracked via https://github.com/rancher/dashboard/issues/8527)
   // This means we'll show something different to what we sort and filter on.
-  sort:   [], // ['metadata.state.name'], // Pending API support
+  sort:   false, // ['metadata.state.name'], // Pending API support
   search: false, // 'metadata.state.name', // Pending API support
 };
 
