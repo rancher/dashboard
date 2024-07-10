@@ -152,6 +152,7 @@ export default defineComponent({
       this.fetchInstanceTypes();
       this.fetchLaunchTemplates();
       this.fetchServiceRoles();
+      this.fetchSshKeys();
     }
   },
 
@@ -205,13 +206,14 @@ export default defineComponent({
 
       loadingInstanceTypes:   false,
       loadingLaunchTemplates: false,
-
-      loadingIam:      false,
-      iamInfo:         {} as {Roles: AWS.IamRole[]},
-      ec2Roles:        [] as AWS.IamRole[],
-      eksRoles:        []as AWS.IamRole[],
-      instanceTypes:   [],
-      launchTemplates: []
+      loadingSshKeyPairs:     false,
+      loadingIam:             false,
+      iamInfo:                {} as {Roles: AWS.IamRole[]},
+      ec2Roles:               [] as AWS.IamRole[],
+      eksRoles:               [] as AWS.IamRole[],
+      sshKeyPairs:            [] as string[],
+      instanceTypes:          [],
+      launchTemplates:        []
     };
   },
 
@@ -438,6 +440,7 @@ export default defineComponent({
       this.fetchInstanceTypes();
       this.fetchLaunchTemplates();
       this.fetchServiceRoles();
+      this.fetchSshKeys();
     },
 
     updateCredential(e: string) {
@@ -445,6 +448,7 @@ export default defineComponent({
       this.fetchInstanceTypes();
       this.fetchLaunchTemplates();
       this.fetchServiceRoles();
+      this.fetchSshKeys();
     },
 
     removeGroup(i: number) {
@@ -517,7 +521,33 @@ export default defineComponent({
 
         errors.push(err);
       }
-    }
+    },
+
+    async fetchSshKeys() {
+      const { region, amazonCredentialSecret } = this.config;
+
+      if (!region || !amazonCredentialSecret) {
+        return;
+      }
+      this.loadingSshKeyPairs = true;
+      const store = this.$store as Store<any>;
+
+      try {
+        const ec2Client = await store.dispatch('aws/ec2', { region: this.config.region, cloudCredentialId: this.config.amazonCredentialSecret });
+
+        const keyPairRes: {KeyPairs: {KeyName: string}[]} = await ec2Client.describeKeyPairs({ DryRun: false });
+
+        this.$set(this, 'sshKeyPairs', (keyPairRes.KeyPairs || []).map((key) => {
+          return key.KeyName;
+        }).sort());
+      } catch (err: any) {
+        const errors = this.errors as any[];
+
+        errors.push(err);
+      }
+
+      this.loadingSshKeyPairs = false;
+    },
   }
 
 });
@@ -630,9 +660,11 @@ export default defineComponent({
             :spot-instance-type-options="spotInstanceTypeOptions"
             :launch-templates="launchTemplates"
             :ec2-roles="ec2Roles"
+            :ssh-key-pairs="sshKeyPairs"
             :loading-instance-types="loadingInstanceTypes"
             :loading-roles="loadingIam"
             :loading-launch-templates="loadingLaunchTemplates"
+            :loading-ssh-key-pairs="loadingSshKeyPairs"
             :norman-cluster="normanCluster"
           />
         </Tab>
