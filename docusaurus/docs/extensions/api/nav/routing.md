@@ -63,6 +63,9 @@ export function init($plugin: IPlugin, store: any) {
       params: {
         product: YOUR_PRODUCT_NAME,
         cluster: BLANK_CLUSTER
+      },
+      meta: {
+        product: YOUR_PRODUCT_NAME
       }
     }
   });
@@ -82,6 +85,10 @@ export function init($plugin: IPlugin, store: any) {
         product: YOUR_PRODUCT_NAME,
         cluster: BLANK_CLUSTER,
         resource: YOUR_K8S_RESOURCE_NAME
+      },
+      meta: {
+        product: YOUR_PRODUCT_NAME,
+        cluster: BLANK_CLUSTER
       }
     }
   });
@@ -95,6 +102,10 @@ export function init($plugin: IPlugin, store: any) {
     route:    {
       name:   `${ YOUR_PRODUCT_NAME }-c-cluster-${ CUSTOM_PAGE_NAME }`,
       params: {
+        product: YOUR_PRODUCT_NAME,
+        cluster: BLANK_CLUSTER
+      },
+      meta: {
         product: YOUR_PRODUCT_NAME,
         cluster: BLANK_CLUSTER
       }
@@ -116,6 +127,10 @@ route: {
   params: { 
     product: YOUR_PRODUCT_NAME, 
     cluster: BLANK_CLUSTER 
+  },
+  meta: {
+    product: YOUR_PRODUCT_NAME,
+    cluster: BLANK_CLUSTER
   }
 }
 ```
@@ -320,6 +335,9 @@ export function init($plugin: IPlugin, store: any) {
       name: `c-cluster-${ YOUR_PRODUCT_NAME }-${ CUSTOM_PAGE_NAME }`,
       params: {
         product: YOUR_PRODUCT_NAME
+      },
+      meta: {
+        product: YOUR_PRODUCT_NAME
       }
     }
   });
@@ -338,6 +356,9 @@ export function init($plugin: IPlugin, store: any) {
       params: {
         product: YOUR_PRODUCT_NAME,
         resource: YOUR_K8S_RESOURCE_NAME
+      },
+      meta: {
+        product: YOUR_PRODUCT_NAME
       }
     }
   });
@@ -351,6 +372,9 @@ export function init($plugin: IPlugin, store: any) {
     route:    {
       name:   `c-cluster-${ YOUR_PRODUCT_NAME }-${ CUSTOM_PAGE_NAME }`,
       params: {
+        product: YOUR_PRODUCT_NAME
+      },
+      meta: {
         product: YOUR_PRODUCT_NAME
       }
     }
@@ -396,7 +420,7 @@ const routes = [
     component: MyCustomPage,
     meta:      {
       product: YOUR_PRODUCT_NAME
-    },
+    }
   }
 ];
 
