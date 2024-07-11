@@ -25,7 +25,7 @@ export const loadDebugger = (vueApp) => {
         const globalApp = Object.keys(window.$globalApp)
           .find((instance) => vm.$root[instance]);
 
-        // Show Nuxt Error Page
+        // Show Error Page
         if (globalApp && vm.$root[globalApp].error && info !== 'render function') {
           const vueApp = vm.$root[globalApp];
 
@@ -61,7 +61,7 @@ export async function mountApp(appPartials, VueClass) {
   const vueApp = new VueClass(app);
 
   // Initialize error handler
-  vueApp.$loading = {}; // To avoid error while vueApp.$nuxt does not exist
+  vueApp.$loading = {}; // To avoid error while vueApp.$loading does not exist
 
   vueApp.$mount('#app');
 }

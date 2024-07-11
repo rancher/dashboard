@@ -1,7 +1,7 @@
 #!/bin/bash
 
 # Directories and folders not to replace in
-GREP_EXCLUDES="--exclude-dir=.git --exclude-dir=node_modules --exclude=rejig --exclude=nuxt.config.js --exclude-dir=shell --exclude-dir=pkg --exclude-dir=pkg-dist --exclude-dir=dist"
+GREP_EXCLUDES="--exclude-dir=.git --exclude-dir=node_modules --exclude=rejig --exclude-dir=shell --exclude-dir=pkg --exclude-dir=pkg-dist --exclude-dir=dist"
 GREP_REVERT_EXCLUDES="${GREP_EXCLUDES} --exclude=vue.config.js --exclude=jest.config.js --exclude=tsconfig.default.json --exclude=tsconfig.json --exclude=tsconfig.pkg.json --exclude=extension.js --exclude=extensions.js --exclude=model-loader.js"
 
 echo "Re-jigging codebase"
@@ -16,16 +16,12 @@ if [ "$1" == "-d" ]; then
   TEMP_DIR=$(mktemp -d)
   cp ${DIR}/PLUGINS.md ${TEMP_DIR}
   cp ${DIR}/scripts/rejig ${TEMP_DIR}
-  cp ${DIR}/nuxt.config.js ${TEMP_DIR}
-  cp ${DIR}/shell/nuxt.config.js ${TEMP_DIR}/nuxt.config.js.sh
 
   git reset --hard
   git clean -fd
 
   mv ${TEMP_DIR}/PLUGINS.md ${DIR}
   mv ${TEMP_DIR}/rejig ${DIR}/scripts
-  mv ${TEMP_DIR}/nuxt.config.js ${DIR}
-  mv ${TEMP_DIR}/nuxt.config.js.sh ${DIR}/shell/nuxt.config.js
 
   rm -rf ${TEMP_DIR}
   echo "Reset"
