@@ -345,6 +345,7 @@ export default defineComponent({
           :options="securityGroupOptions"
           :multiple="true"
           :value="securityGroups"
+          :loading="loadingSecurityGroups"
           data-testid="eks-security-groups-dropdown"
           @input="$emit('update:securityGroups', $event)"
         />
