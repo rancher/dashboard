@@ -24,8 +24,9 @@ describe('chartMixin', () => {
   localVue.mixin(ChartMixin);
 
   it.each(testCases.opa)(
-    'should add OPA deprecation warning properly', (chartId, expected) => {
+    'should add OPA deprecation warning properly', async(chartId, expected) => {
       const store = new Vuex.Store({
+        actions: { 'catalog/load': () => {} },
         getters: {
           currentCluster: () => {},
           isRancher:      () => true,
@@ -43,6 +44,8 @@ describe('chartMixin', () => {
       const instance = new vm({ store });
 
       instance.$route = { query: { chart: 'chart_name' } };
+
+      await instance.fetchChart();
 
       const warnings = instance.warnings;
 

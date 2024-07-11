@@ -27,6 +27,8 @@ export default {
       existing:         null,
 
       ignoreWarning: false,
+
+      chart: null,
     };
   },
 
@@ -34,20 +36,6 @@ export default {
     ...mapGetters(['currentCluster', 'isRancher']),
 
     showPreRelease: mapPref(SHOW_PRE_RELEASE),
-
-    chart() {
-      if ( this.repo && this.query.chartName ) {
-        return this.$store.getters['catalog/chart']({
-          repoType:       this.query.repoType,
-          repoName:       this.query.repoName,
-          chartName:      this.query.chartName,
-          includeHidden:  true,
-          showDeprecated: this.showDeprecated
-        });
-      }
-
-      return null;
-    },
 
     repo() {
       return this.$store.getters['catalog/repo']({
@@ -258,10 +246,38 @@ export default {
   },
 
   methods: {
+    /**
+     * Populate `this.chart`
+     *
+     * `chart` used to be a computed property pointing at getter catalog/chart
+     *
+     * this however stopped recalculating given changes to the store
+     *
+     * (the store would populate a charts collection, which the getter uses to find the chart,
+     * however this did not kick off the computed property, so this.charts was not populated)
+     *
+     * Now we find and cache the chart
+     */
+    fetchStoreChart() {
+      if (!this.chart && this.repo && this.query.chartName) {
+        this.chart = this.$store.getters['catalog/chart']({
+          repoType:       this.query.repoType,
+          repoName:       this.query.repoName,
+          chartName:      this.query.chartName,
+          includeHidden:  true,
+          showDeprecated: this.showDeprecated
+        });
+      }
+
+      return this.chart;
+    },
+
     async fetchChart() {
       this.versionInfoError = null;
 
       await this.$store.dispatch('catalog/load'); // not the problem
+
+      this.fetchStoreChart();
 
       if ( this.query.appNamespace && this.query.appName ) {
         // First check the URL query for an app name and namespace.
