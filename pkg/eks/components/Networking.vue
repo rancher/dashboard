@@ -158,7 +158,7 @@ export default defineComponent({
               key:       SubnetId,
               label:     `${ nameTag } (${ SubnetId })`,
               _isSubnet: true,
-              disabled:  this.selectedVpc && VpcId !== this.selectedVpc
+              disabled:  !!this.selectedVpc && VpcId !== this.selectedVpc
             };
 
             out.push(subnetFormOption);
@@ -345,6 +345,7 @@ export default defineComponent({
           :options="securityGroupOptions"
           :multiple="true"
           :value="securityGroups"
+          data-testid="eks-security-groups-dropdown"
           @input="$emit('update:securityGroups', $event)"
         />
       </div>
