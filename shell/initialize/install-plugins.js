@@ -101,7 +101,7 @@ function inject(key, value, context, vueApp) {
   store[key] = app[key];
 
   // Check if plugin not already installed
-  const installKey = `__nuxt_${ key }_installed__`;
+  const installKey = `__plugin_${ key }_installed__`;
 
   window.installedPlugins = window.installedPlugins || {};
 
