@@ -6,10 +6,7 @@
   "rancher": {
     "catalog.cattle.io/ui-hidden-builtin": true
   },
-  "scripts": {
-    "dev": "./node_modules/.bin/nuxt dev",
-    "nuxt": "./node_modules/.bin/nuxt"
-  },
+
   "engines": {
     "node": ">=12"
   },
