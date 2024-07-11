@@ -160,7 +160,7 @@ export default defineComponent({
 
           if (semver.gt(coerced, withinOneMinor)) {
             versions.push({
-              value: v, label: `${ v } (minor version >1 not allowed by EKS)`, disabled: true
+              value: v, label: `${ v } ${ this.t('eks.version.upgradeWarning') }`, disabled: true
             });
           } else {
             versions.push({ value: v, label: v });

@@ -113,5 +113,6 @@ eks:
     label: Tags
   version:
     label: Kubernetes Version
+    upgradeWarning: (minor versio n >1 not allowed by EKS)
   vpcSubnet:
     label: VPC and Subnet
