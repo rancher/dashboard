@@ -699,6 +699,7 @@ export default defineComponent({
           :private-access.sync="config.privateAccess"
           :public-access-sources.sync="config.publicAccessSources"
           :subnets.sync="config.subnets"
+          :security-groups.sync="config.securityGroups"
           :mode="mode"
           :region="config.region"
           :amazon-credential-secret="config.amazonCredentialSecret"
