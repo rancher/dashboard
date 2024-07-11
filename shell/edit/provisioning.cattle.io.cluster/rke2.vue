@@ -370,7 +370,7 @@ export default {
       // https://github.com/rancher/dashboard/issues/10338
       // there's an update loop on refresh that might include 'none'
       // multiple times... Prevent that
-      if (out.serverArgs?.cni?.options && !out.serverArgs?.cni?.options.includes('none')) {
+      if (out?.serverArgs?.cni?.options && !out.serverArgs?.cni?.options.includes('none')) {
         out.serverArgs.cni.options.push('none');
       }
 
