@@ -7,6 +7,7 @@ import SelectOrCreateAuthSecret from '@shell/components/form/SelectOrCreateAuthS
 import CreateEditView from '@shell/mixins/create-edit-view';
 import SecretSelector from '@shell/components/form/SecretSelector';
 import { SECRET_TYPES as TYPES } from '@shell/config/secret';
+import { base64Decode, base64Encode } from '@shell/utils/crypto';
 
 export default {
   components: {
@@ -55,7 +56,7 @@ export default {
       if (configMap[hostname]) {
         configMap[hostname].insecureSkipVerify = configMap[hostname].insecureSkipVerify ?? defaultAddValue.insecureSkipVerify;
         configMap[hostname].authConfigSecretName = configMap[hostname].authConfigSecretName ?? defaultAddValue.authConfigSecretName;
-        configMap[hostname].caBundle = configMap[hostname].caBundle ?? defaultAddValue.caBundle;
+        configMap[hostname].caBundle = base64Decode(configMap[hostname].caBundle ?? defaultAddValue.caBundle);
         configMap[hostname].tlsSecretName = configMap[hostname].tlsSecretName ?? defaultAddValue.tlsSecretName;
       }
       entries.push({
@@ -94,7 +95,11 @@ export default {
           continue;
         }
 
-        configs[h] = { ...entry };
+        configs[h] = {
+          ...entry,
+          caBundle: base64Encode(entry.caBundle)
+        };
+
         delete configs[h].hostname;
       }
 
@@ -175,6 +180,7 @@ export default {
 
             <LabeledInput
               v-model="row.value.caBundle"
+              :data-testid="`registry-caBundle-${i}`"
               class="mt-20"
               type="multiline"
               label="CA Cert Bundle"
