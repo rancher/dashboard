@@ -4,6 +4,7 @@ import { EKSConfig, AWS } from '../types';
 import { _EDIT, _VIEW } from '@shell/config/query-params';
 import semver from 'semver';
 import { Store, mapGetters } from 'vuex';
+
 import { MANAGEMENT } from '@shell/config/types';
 import { SETTING } from '@shell/config/settings';
 import RadioGroup from '@components/Form/Radio/RadioGroup.vue';
@@ -145,19 +146,29 @@ export default defineComponent({
   computed: {
     ...mapGetters({ t: 'i18n/t' }),
 
-    versionOptions(): string[] {
-      return this.allKubernetesVersions.filter((v: string) => {
+    versionOptions(): {value: string, label: string, disabled?:boolean}[] {
+      return this.allKubernetesVersions.reduce((versions, v: string) => {
         const coerced = semver.coerce(v);
 
         if (this.supportedVersionRange && !semver.satisfies(coerced, this.supportedVersionRange)) {
-          return false;
+          return versions;
         }
-        if (this.originalVersion && semver.gt(semver.coerce(this.originalVersion), coerced)) {
-          return false;
+        if (!this.originalVersion) {
+          versions.push({ value: v, label: v });
+        } else if (semver.lte(semver.coerce(this.originalVersion), coerced)) {
+          const withinOneMinor = semver.inc(semver.coerce(this.originalVersion), 'minor');
+
+          if (semver.gt(coerced, withinOneMinor)) {
+            versions.push({
+              value: v, label: `${ v } ${ this.t('eks.version.upgradeWarning') }`, disabled: true
+            });
+          } else {
+            versions.push({ value: v, label: v });
+          }
         }
 
-        return true;
-      }).sort().reverse();
+        return versions;
+      }, [] as {value: string, label: string, disabled?:boolean}[]);
     },
 
     kmsOptions(): string[] {

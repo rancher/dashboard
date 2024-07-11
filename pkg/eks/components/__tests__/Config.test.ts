@@ -179,8 +179,30 @@ describe('eKS K8s configuration', () => {
 
     await setCredential(wrapper);
     expect(wrapper.exists()).toBe(true);
-    const versionOptions = wrapper.find('[data-testid="eks-version-dropdown"]').vm.options;
+    const versionOptions = (wrapper.find('[data-testid="eks-version-dropdown"]').vm.options || []).map((opt: {label: string, value: string, disabled?:boolean}) => opt.value);
 
     expect(versionOptions).toStrictEqual(expectedVersions);
+  });
+
+  it.each([
+    ['1.26', ['1.27', '1.26'], ['1.29', '1.28']],
+    ['1.25', ['1.26', '1.25'], ['1.29', '1.28', '1.27']],
+  ])('should only allow the user to select a kubernetes version within one minor version of the current version when editing', async(originalVersion, enabledVersions, disabledVersions) => {
+    const setup = requiredSetup({ value: '>1.24' });
+    const wrapper = shallowMount(Config, {
+      propsData: {
+        config: { amazonCredentialSecret: '', region: '' },
+        originalVersion
+      },
+      ...setup
+    });
+
+    await setCredential(wrapper);
+
+    const versionOptions = wrapper.find('[data-testid="eks-version-dropdown"]').vm.options || [];
+
+    expect(versionOptions.filter((opt: {label: string, value: string, disabled?:boolean}) => opt.disabled).map((opt: {label: string, value: string, disabled?:boolean}) => opt.value)).toStrictEqual(disabledVersions);
+
+    expect(versionOptions.filter((opt: {label: string, value: string, disabled?:boolean}) => !opt.disabled).map((opt: {label: string, value: string, disabled?:boolean}) => opt.value)).toStrictEqual(enabledVersions);
   });
 });

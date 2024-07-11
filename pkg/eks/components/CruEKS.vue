@@ -685,6 +685,7 @@ export default defineComponent({
           :config="config"
           :eks-roles="eksRoles"
           :loading-iam="loadingIam"
+          :original-version="originalVersion"
           @error="e=>errors.push(e)"
         />
       </Accordion>
