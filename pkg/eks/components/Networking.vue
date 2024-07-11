@@ -43,6 +43,11 @@ export default defineComponent({
       default: () => []
     },
 
+    securityGroups: {
+      type:    Array as PropType<string[]>,
+      default: () => []
+    },
+
     publicAccess: {
       type:    Boolean,
       default: false
@@ -74,6 +79,7 @@ export default defineComponent({
       handler(neu) {
         if (neu && !this.isView) {
           this.fetchVpcs();
+          this.fetchSecurityGroups();
         }
       },
       immediate: true
@@ -82,6 +88,7 @@ export default defineComponent({
       handler(neu ) {
         if (neu && !this.isView) {
           this.fetchVpcs();
+          this.fetchSecurityGroups();
         }
       },
       immediate: true
@@ -91,16 +98,24 @@ export default defineComponent({
       if (!neu) {
         this.$emit('update:subnets', []);
       }
+    },
+
+    selectedVpc(neu: string, old: string) {
+      if (!!old) {
+        this.$emit('update:securityGroups', []);
+      }
     }
 
   },
 
   data() {
     return {
-      loadingVpcs:  false,
-      vpcInfo:      {} as {Vpcs: AWS.VPC[]},
-      subnetInfo:   {} as {Subnets: AWS.Subnet[]},
-      chooseSubnet: !!this.subnets && !!this.subnets.length
+      loadingVpcs:           false,
+      loadingSecurityGroups: false,
+      vpcInfo:               {} as {Vpcs: AWS.VPC[]},
+      subnetInfo:            {} as {Subnets: AWS.Subnet[]},
+      securityGroupInfo:     {} as {SecurityGroups: AWS.SecurityGroup[]},
+      chooseSubnet:          !!this.subnets && !!this.subnets.length
     };
   },
 
@@ -142,7 +157,8 @@ export default defineComponent({
             const subnetFormOption = {
               key:       SubnetId,
               label:     `${ nameTag } (${ SubnetId })`,
-              _isSubnet: true
+              _isSubnet: true,
+              disabled:  !!this.selectedVpc && VpcId !== this.selectedVpc
             };
 
             out.push(subnetFormOption);
@@ -151,6 +167,22 @@ export default defineComponent({
       });
 
       return out;
+    },
+
+    securityGroupOptions() {
+      const allGroups = this.securityGroupInfo?.SecurityGroups || [];
+
+      return allGroups.reduce((opts, sg) => {
+        if (sg.VpcId !== this.selectedVpc) {
+          return opts;
+        }
+        opts.push({
+          label: `${ sg.GroupName } (${ sg.GroupId })`,
+          value: sg.GroupId
+        });
+
+        return opts;
+      }, [] as {label: string, value: string}[]);
     },
 
     displaySubnets: {
@@ -163,6 +195,14 @@ export default defineComponent({
       set(neu: {key:string, label:string, _isSubnet?:boolean, kind?:string}[]) {
         this.$emit('update:subnets', neu.map((s) => s.key));
       }
+    },
+
+    selectedVpc() {
+      if (!this.chooseSubnet) {
+        return null;
+      }
+
+      return (this.subnetInfo?.Subnets || []).find((s) => this.subnets.includes(s.SubnetId))?.VpcId;
     },
 
     isNew(): boolean {
@@ -193,6 +233,24 @@ export default defineComponent({
       }
       this.loadingVpcs = false;
     },
+
+    async fetchSecurityGroups() {
+      this.loadingSecurityGroups = true;
+      const { region, amazonCredentialSecret } = this;
+
+      if (!region || !amazonCredentialSecret) {
+        return;
+      }
+      const store: Store<any> = this.$store;
+      const ec2Client = await store.dispatch('aws/ec2', { region, cloudCredentialId: amazonCredentialSecret });
+
+      try {
+        this.securityGroupInfo = await ec2Client.describeSecurityGroups({ });
+      } catch (err) {
+        this.$emit('error', err);
+      }
+      this.loadingSecurityGroups = false;
+    }
   }
 });
 </script>
@@ -250,6 +308,10 @@ export default defineComponent({
           :disabled="!isNew"
         />
       </div>
+    </div>
+    <div
+      class="row mb-10"
+    >
       <div
         v-if="chooseSubnet || !isNew"
         class="col span-6"
@@ -270,6 +332,23 @@ export default defineComponent({
             <span :class="{'pl-30': option._isSubnet}">{{ option.label }}</span>
           </template>
         </LabeledSelect>
+      </div>
+      <div
+        v-if="chooseSubnet"
+        class="col span-6"
+      >
+        <LabeledSelect
+          :mode="mode"
+          :disabled="!isNew"
+          label-key="eks.securityGroups.label"
+          :tooltip="t('eks.securityGroups.tooltip')"
+          :options="securityGroupOptions"
+          :multiple="true"
+          :value="securityGroups"
+          :loading="loadingSecurityGroups"
+          data-testid="eks-security-groups-dropdown"
+          @input="$emit('update:securityGroups', $event)"
+        />
       </div>
     </div>
   </div>
