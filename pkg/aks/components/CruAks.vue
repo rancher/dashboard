@@ -50,8 +50,9 @@ import {
   ipv4WithOrWithoutCidr,
   ipv4WithCidr,
   outboundTypeUserDefined,
-  privateDnsZone
-} from '@pkg/aks/util/validators';
+  privateDnsZone,
+  nodePoolNames
+} from '../util/validators';
 
 export const defaultNodePool = {
   availabilityZones:     ['1', '2', '3'],
@@ -334,6 +335,7 @@ export default defineComponent({
         dockerBridgeCidr:        ipv4WithCidr(this, 'aks.dockerBridgeCidr.label', 'aksConfig.dockerBridgeCidr'),
         outboundType:            outboundTypeUserDefined(this, 'aks.outboundType.label', 'aksConfig.outboundType'),
         privateDnsZone:          privateDnsZone(this, 'aks.privateDnsZone.label', 'aksConfig.privateDnsZone'),
+        poolNames:               nodePoolNames(this),
 
         vmSizeAvailable: () => {
           if (this.touchedVmSize) {
@@ -423,29 +425,6 @@ export default defineComponent({
           }
 
           return this.canUseAvailabilityZones || !isUsingAvailabilityZones ? undefined : this.t('aks.errors.availabilityZones');
-        },
-
-        poolNames: (poolName?: string) => {
-          let allAvailable = true;
-
-          if (poolName || poolName === '') {
-            return poolName.match(/^[a-z]+[a-z0-9]*$/) ? undefined : this.t('aks.errors.poolName');
-          } else {
-            this.nodePools.forEach((pool: AKSNodePool) => {
-              const name = pool.name || '';
-
-              if (!name.match(/^[a-z]+[a-z0-9]*$/)) {
-                this.$set(pool._validation, '_validName', false);
-
-                allAvailable = false;
-              } else {
-                this.$set(pool._validation, '_validName', true);
-              }
-            });
-            if (!allAvailable) {
-              return this.t('aks.errors.poolName');
-            }
-          }
         },
 
         poolCount: (count?: number) => {

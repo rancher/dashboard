@@ -5,7 +5,7 @@
  */
 
 import { get } from '@shell/utils/object';
-import { LoadBalancerSku, OutboundType } from '@pkg/aks/types';
+import { LoadBalancerSku, OutboundType, AKSNodePool } from '../types';
 
 // no need to try to validate any fields if the user is still selecting a credential and the rest of the form isn't visible
 export const needsValidation = (ctx: any): Boolean => {
@@ -136,5 +136,32 @@ export const privateDnsZone = (ctx: any, labelKey: string, clusterPath: string) 
     const isValid = toValidate.match(subscriptionRegex) || toValidate === 'system';
 
     return isValid || !toValidate.length ? undefined : ctx.t('aks.errors.privateDnsZone', {}, true);
+  };
+};
+
+export const nodePoolNames = (ctx: any) => {
+  return (poolName:string) :string | undefined => {
+    let allAvailable = true;
+
+    const isValid = (name:string) => name.match(/^[a-z]+[a-z0-9]*$/) && name.length <= 12;
+
+    if (poolName || poolName === '') {
+      return isValid(poolName) ? undefined : ctx.t('aks.errors.poolName');
+    } else {
+      ctx.nodePools.forEach((pool: AKSNodePool) => {
+        const name = pool.name || '';
+
+        if (!isValid(name)) {
+          ctx.$set(pool._validation, '_validName', false);
+
+          allAvailable = false;
+        } else {
+          ctx.$set(pool._validation, '_validName', true);
+        }
+      });
+      if (!allAvailable) {
+        return ctx.t('aks.errors.poolName');
+      }
+    }
   };
 };
