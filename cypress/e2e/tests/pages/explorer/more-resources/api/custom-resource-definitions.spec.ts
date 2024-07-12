@@ -14,7 +14,7 @@ describe('CustomResourceDefinitions', { testIsolation: 'off', tags: ['@explorer'
 
   describe('List', { tags: ['@vai', '@adminUser'] }, () => {
     it('can create a crd and see it in list view', () => {
-      CustomResourceDefinitionsPagePo.navTo();
+      crdsPage.goTo();
       crdsPage.waitForPage();
       crdsPage.create();
 
@@ -53,7 +53,7 @@ describe('CustomResourceDefinitions', { testIsolation: 'off', tags: ['@explorer'
       cy.getRancherResource('v1', 'apiextensions.k8s.io.customresourcedefinitions').then((resp: Cypress.Response<any>) => {
         const count = resp.body.count;
 
-        CustomResourceDefinitionsPagePo.navTo();
+        crdsPage.goTo(); // Remove any odd state from previous create (which can result in additional table row not from backend)
         crdsPage.waitForPage();
 
         // pagination is visible

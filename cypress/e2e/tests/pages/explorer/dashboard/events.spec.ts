@@ -146,8 +146,6 @@ describe('Events', { testIsolation: 'off', tags: ['@explorer', '@adminUser'] }, 
     });
 
     it('sorting changes the order of paginated events data', () => {
-      ClusterDashboardPagePo.navTo();
-      clusterDashboard.waitForPage(undefined, 'cluster-events');
       EventsPagePo.navTo();
       events.waitForPage();
 
@@ -178,8 +176,6 @@ describe('Events', { testIsolation: 'off', tags: ['@explorer', '@adminUser'] }, 
     it('pagination is hidden', () => {
       // generate small set of events data
       generateEventsDataSmall();
-      ClusterDashboardPagePo.navTo();
-      clusterDashboard.waitForPage(undefined, 'cluster-events');
       EventsPagePo.navTo();
       events.waitForPage();
       cy.wait('@eventsDataSmall');
