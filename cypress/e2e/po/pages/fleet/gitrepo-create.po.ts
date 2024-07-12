@@ -3,7 +3,6 @@ import ArrayListPo from '@/cypress/e2e/po/components/array-list.po';
 import CreateEditViewPo from '@/cypress/e2e/po/components/create-edit-view.po';
 import LabeledInputPo from '@/cypress/e2e/po/components/labeled-input.po';
 import LabeledSelectPo from '@/cypress/e2e/po/components/labeled-select.po';
-import { WorkspaceSwitcherPo } from '@/cypress/e2e/po/components/workspace-switcher.po';
 import SelectOrCreateAuthPo from '@/cypress/e2e/po/components/select-or-create-auth.po';
 import { FleetGitRepoListPagePo } from '@/cypress/e2e/po/pages/fleet/fleet.cattle.io.gitrepo.po';
 
@@ -38,14 +37,6 @@ export class GitRepoCreatePo extends PagePo {
 
     listPage.navTo();
     listPage.repoList().create();
-  }
-
-  selectWorkspace(name: string) {
-    const wsSwitcher = new WorkspaceSwitcherPo();
-
-    wsSwitcher.toggle();
-
-    return wsSwitcher.clickOptionWithLabel(name);
   }
 
   footer() {

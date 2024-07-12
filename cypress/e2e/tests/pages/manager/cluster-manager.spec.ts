@@ -417,8 +417,11 @@ describe('Cluster Manager', { testIsolation: 'off', tags: ['@manager', '@adminUs
           snapshots.goTo();
           snapshots.waitForPage();
 
+          snapshots.list().resourceTable().sortableTable().groupElementWithName('Location')
+            .should('have.length', 1); // 1 group row
+
           snapshots.list().resourceTable().sortableTable().rowElements()
-            .should('have.length.gte', 3); // 2 main rows + 1 group row
+            .should('have.length.gte', 2); // 2 main rows
         });
       });
 

@@ -212,4 +212,24 @@ describe('Feature Flags', { testIsolation: 'off' }, () => {
       featureFlagsPage.list().details(featureFlags, 4).should('not.exist');
     });
   });
+
+  describe('List', { tags: ['@vai', '@globalSettings', '@adminUser', '@standardUser'] }, () => {
+    it('validate feature flags table header content', () => {
+      FeatureFlagsPagePo.navTo();
+
+      // check table headers are visible
+      const expectedHeaders = ['State', 'Name', 'Description', 'Restart Required'];
+
+      featureFlagsPage.list().resourceTable().sortableTable().tableHeaderRow()
+        .get('.table-header-container .content')
+        .each((el, i) => {
+          expect(el.text().trim()).to.eq(expectedHeaders[i]);
+        });
+
+      featureFlagsPage.list().resourceTable().sortableTable().checkVisible();
+      featureFlagsPage.list().resourceTable().sortableTable().checkLoadingIndicatorNotVisible();
+      featureFlagsPage.list().resourceTable().sortableTable().noRowsShouldNotExist();
+      featureFlagsPage.list().resourceTable().sortableTable().checkRowCount(false, 15);
+    });
+  });
 });

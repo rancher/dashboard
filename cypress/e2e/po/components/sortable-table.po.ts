@@ -52,6 +52,15 @@ export default class SortableTablePo extends ComponentPo {
   }
 
   /**
+   * Get group by buttons (flat list, group by namespace, or group by node)
+   * @param index
+   * @returns
+   */
+  groupByButtons(index: number) {
+    return this.self().find(`[data-testid="button-group-child-${ index }"]`);
+  }
+
+  /**
    * Delete button (displays on page after row element selected)
    */
   deleteButton() {
@@ -93,7 +102,7 @@ export default class SortableTablePo extends ComponentPo {
   }
 
   rowElements(options?: any) {
-    return this.self().find('tbody tr:not(.sub-row)', options);
+    return this.self().find('tbody tr:not(.sub-row):not(.group-row)', options);
   }
 
   rowElementWithName(name: string, options?: GetOptions) {
