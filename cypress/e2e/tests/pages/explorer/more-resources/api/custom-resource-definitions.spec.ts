@@ -12,7 +12,7 @@ describe('CustomResourceDefinitions', { testIsolation: 'off', tags: ['@explorer'
     cy.login();
   });
 
-  describe('List', { tags: ['@vai'] }, () => {
+  describe('List', { tags: ['@vai', '@adminUser'] }, () => {
     it('can create a crd and see it in list view', () => {
       CustomResourceDefinitionsPagePo.navTo();
       crdsPage.waitForPage();
@@ -170,10 +170,10 @@ describe('CustomResourceDefinitions', { testIsolation: 'off', tags: ['@explorer'
       crdsPage.sortableTable().checkRowCount(false, 2);
       crdsPage.sortableTable().pagination().checkNotExists();
     });
-  });
 
-  after('clean up', () => {
-    // delete crd
-    cy.deleteRancherResource('v1', 'apiextensions.k8s.io.customresourcedefinitions', crdName);
+    after('clean up', () => {
+      // delete crd
+      cy.deleteRancherResource('v1', 'apiextensions.k8s.io.customresourcedefinitions', crdName);
+    });
   });
 });

@@ -8,7 +8,7 @@ describe('StorageClasses', { testIsolation: 'off', tags: ['@explorer', '@adminUs
     cy.login();
   });
 
-  describe('List', { tags: ['@vai'] }, () => {
+  describe('List', { tags: ['@vai', '@adminUser'] }, () => {
     before('set up', () => {
       cy.updateNamespaceFilter('local', 'none', '{\"local\":[]}');
     });

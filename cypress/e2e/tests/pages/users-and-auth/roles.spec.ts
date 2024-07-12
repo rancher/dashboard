@@ -221,7 +221,7 @@ describe('Roles Templates', { tags: ['@usersAndAuths', '@adminUser'] }, () => {
     });
   });
 
-  describe('List', { testIsolation: 'off', tags: ['@vai'] }, () => {
+  describe('List', { testIsolation: 'off', tags: ['@vai', '@adminUser'] }, () => {
     const uniqueRoleName = 'aaa-e2e-test-name';
     const globalRolesIdsList = [];
     const rolesList = roles.list('GLOBAL');

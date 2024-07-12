@@ -8,7 +8,7 @@ describe('Contents', { testIsolation: 'off', tags: ['@explorer', '@adminUser'] }
     cy.login();
   });
 
-  describe('List', { tags: ['@vai'] }, () => {
+  describe('List', { tags: ['@vai', '@adminUser'] }, () => {
     it('validate fleet contents table in empty state', () => {
       fleetContentsNoData();
       contentsPagePo.goTo();

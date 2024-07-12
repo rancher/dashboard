@@ -260,9 +260,9 @@ describe('Account and API Keys', { testIsolation: 'off' }, () => {
       accountPage.sortableTable().checkRowCount(false, 3);
       accountPage.sortableTable().pagination().checkNotExists();
     });
-  });
 
-  after(() => {
-    tokenIdsList.forEach((r) => cy.deleteRancherResource('v3', 'tokens', r, false));
+    after(() => {
+      tokenIdsList.forEach((r) => cy.deleteRancherResource('v3', 'tokens', r, false));
+    });
   });
 });

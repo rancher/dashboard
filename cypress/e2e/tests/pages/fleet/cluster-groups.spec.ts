@@ -6,7 +6,7 @@ describe('Cluster Groups', { testIsolation: 'off', tags: ['@fleet', '@adminUser'
   const fleetClusterGroups = new FleetClusterGroupsListPagePo();
   const headerPo = new HeaderPo();
 
-  describe('List', { tags: ['@vai'] }, () => {
+  describe('List', { tags: ['@vai', '@adminUser'] }, () => {
     before(() => {
       cy.login();
     });

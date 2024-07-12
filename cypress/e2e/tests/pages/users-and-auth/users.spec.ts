@@ -265,7 +265,7 @@ describe('Users', { tags: ['@usersAndAuths', '@adminUser'] }, () => {
     });
   });
 
-  describe('List', { testIsolation: 'off', tags: ['@vai'] }, () => {
+  describe('List', { testIsolation: 'off', tags: ['@vai', '@adminUser'] }, () => {
     const uniqueUserName = 'aaa-e2e-test-name';
     const userIdsList = [];
 
