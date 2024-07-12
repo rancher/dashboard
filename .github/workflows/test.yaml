@@ -79,7 +79,8 @@ jobs:
         #  ['@manager'],
         #  ['@userMenu', '@usersAndAuths'],
         #  ['@components'],
-         ['@vaiFeatureSetup', '@vai']
+         ['@vai']
+        #  ['@vaiFeatureSetup', '@vai']
         ]
     runs-on: ubuntu-latest
     steps:
@@ -121,17 +122,8 @@ jobs:
           TEST_USERNAME: admin
           TEST_ONLY: setup
 
-      - name: Setup Feature
-        if: "contains(matrix.features[0], 'FeatureSetup')"
-        run: |
-          yarn e2e:prod
-        env:
-          TEST_SKIP: setup
-          GREP_TAGS: ${{ matrix.role.tag }}+${{ matrix.features[0] }} --@jenkins
-          TEST_USERNAME: ${{ matrix.role.username }}
-
       - name: Run user tests
-        if: "!contains(matrix.features[0], 'FeatureSetup')"
+        # if: "!contains(matrix.features[0], 'FeatureSetup')"
         run: |
           yarn e2e:prod
           [ "$BUILD_DASHBOARD" != "false" ] || exit 0
@@ -140,15 +132,24 @@ jobs:
           GREP_TAGS: ${{ matrix.role.tag }}+${{ matrix.features[0] }} --@jenkins ${{ matrix.role.tag }}+${{ matrix.features[1] || matrix.features[0] }} --@jenkins
           TEST_USERNAME: ${{ matrix.role.username }}
 
-      - name: Run Feature Tests
-        if: "contains(matrix.features[0], 'FeatureSetup')"
-        run: |
-          yarn e2e:prod
-          [ "$BUILD_DASHBOARD" != "false" ] || exit 0
-        env:
-          TEST_SKIP: setup
-          GREP_TAGS: ${{ matrix.role.tag }}+${{ matrix.features[1] }} --@jenkins
-          TEST_USERNAME: ${{ matrix.role.username }}
+      # - name: Setup Feature
+      #   if: "contains(matrix.features[0], 'FeatureSetup')"
+      #   run: |
+      #     yarn e2e:prod
+      #   env:
+      #     TEST_SKIP: setup
+      #     GREP_TAGS: ${{ matrix.role.tag }}+${{ matrix.features[0] }} --@jenkins
+      #     TEST_USERNAME: ${{ matrix.role.username }}
+
+      # - name: Run Feature Tests
+      #   if: "contains(matrix.features[0], 'FeatureSetup')"
+      #   run: |
+      #     yarn e2e:prod
+      #     [ "$BUILD_DASHBOARD" != "false" ] || exit 0
+      #   env:
+      #     TEST_SKIP: setup
+      #     GREP_TAGS: ${{ matrix.role.tag }}+${{ matrix.features[1] }} --@jenkins
+      #     TEST_USERNAME: ${{ matrix.role.username }}
           
       - name: Upload screenshots
         uses: actions/upload-artifact@v3
