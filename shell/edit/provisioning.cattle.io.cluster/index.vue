@@ -330,6 +330,14 @@ export default {
           });
         });
 
+        if (isElementalActive) {
+          // !this.subType means we are on the /create screen - we only want to show for rke2
+          // if a subType is selected, always add the ELEMENTAL_CLUSTER_PROVIDER type to cover edit scenarios
+          if ((!this.subType && !this.isRke1) || this.subType) {
+            addType(this.$plugin, ELEMENTAL_CLUSTER_PROVIDER, 'custom2', false);
+          }
+        }
+
         if (this.isRke1 ) {
           machineTypes.forEach((type) => {
             const id = type.spec.displayName || type.id;
@@ -346,10 +354,6 @@ export default {
           });
 
           addType(this.$plugin, 'custom', 'custom2', false);
-
-          if (isElementalActive) {
-            addType(this.$plugin, ELEMENTAL_CLUSTER_PROVIDER, 'custom2', false);
-          }
         }
 
         // Add from extensions
