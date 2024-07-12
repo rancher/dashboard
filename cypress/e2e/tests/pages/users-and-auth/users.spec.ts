@@ -296,7 +296,7 @@ describe('Users', { tags: ['@usersAndAuths', '@adminUser'] }, () => {
     });
 
     it('pagination is visible and user is able to navigate through users data', () => {
-      UsersPo.navTo();
+      usersPo.goTo(); // This is needed for the @vai only world
       usersPo.waitForPage();
 
       // get users count
@@ -465,8 +465,9 @@ describe('Users', { tags: ['@usersAndAuths', '@adminUser'] }, () => {
 
     it('pagination is hidden', () => {
       generateUsersDataSmall();
-      HomePagePo.goTo(); // this is needed here for the intercept to work
+      usersPo.goTo(); // this is needed here for the intercept to work
       UsersPo.navTo();
+      usersPo.waitForPage();
       cy.wait('@usersDataSmall');
 
       usersPo.list().resourceTable().sortableTable().checkVisible();
