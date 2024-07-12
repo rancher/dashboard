@@ -5,7 +5,7 @@ const globalRolesGetResponseSmallSet = {
   createTypes:  { 'management.cattle.io.globalrole': 'https://yonasb29head.qa.rancher.space/v1/management.cattle.io.globalroles' },
   actions:      {},
   resourceType: 'management.cattle.io.globalrole',
-  revision:     '123',
+  revision:     Number.MAX_VALUE, // The UI will use this point in history to start watching for changes from. If it's too low (than the global system revision) we will spam with requests
   count:        2,
   data:         [
     {

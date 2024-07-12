@@ -80,8 +80,6 @@ export default class ComponentPo {
   }
 
   checkNotExists(options?: GetOptions): Cypress.Chainable<boolean> {
-    cy.log(this.selector, options);
-
     return this.self(options).should('not.exist');
   }
 }
