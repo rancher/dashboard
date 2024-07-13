@@ -4,6 +4,7 @@ import { FLEET, NORMAN } from '@shell/config/types';
 import LabeledSelect from '@shell/components/form/LabeledSelect';
 import KeyValue from '@shell/components/form/KeyValue';
 import AsyncButton from '@shell/components/AsyncButton';
+import AppModal from '@shell/components/AppModal.vue';
 import { Card } from '@components/Card';
 import { Banner } from '@components/Banner';
 import { exceptionToErrorsArray } from '@shell/utils/error';
@@ -16,6 +17,7 @@ export default {
     KeyValue,
     AsyncButton,
     Banner,
+    AppModal
   },
 
   data() {
