@@ -207,7 +207,7 @@ jobs:
 
       - uses: actions/setup-node@v3
         with:
-          node-version: '14.x'
+          node-version: '16.x'
 
       - name: Download Coverage Artifacts
         uses: actions/download-artifact@v3
