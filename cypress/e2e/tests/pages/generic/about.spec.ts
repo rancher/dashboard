@@ -85,6 +85,7 @@ describe('About Page', { testIsolation: 'off', tags: ['@generic', '@adminUser', 
       aboutPage.goTo();
     });
 
+  // reinstate when server-version issue is corrected https://github.com/rancher/rancher/issues/46152
   //   it('can download Linux Image List', () => {
   //     // Download txt and verify file exists
   //     const downloadedFilename = path.join(downloadsFolder, 'rancher-linux-images.txt');
@@ -110,6 +111,7 @@ describe('About Page', { testIsolation: 'off', tags: ['@generic', '@adminUser', 
   //   });
   // });
 
+  // reinstate when server-version issue is corrected https://github.com/rancher/rancher/issues/46152
   // Removed given https://github.com/rancher/rancher/issues/46068
   // Re-instate given https://github.com/rancher/dashboard/issues/11387
   // describe('CLI Downloads', () => {
