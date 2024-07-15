@@ -83,9 +83,12 @@ export default {
       // These aren't explicitly used, but need to be listening for change events
       mgmtClusters: this.$store.dispatch('management/findAll', { type: MANAGEMENT.CLUSTER }),
       provClusters: this.$store.dispatch('management/findAll', { type: CAPI.RANCHER_CLUSTER }),
-
-      catalog: this.$store.dispatch('catalog/load'),
     };
+
+    // No need to fetch charts when you're editing an RKE1 cluster
+    if (!this.isRke1 || (this.isRke1 && this.mode !== 'edit')) {
+      hash['catalog'] = this.$store.dispatch('catalog/load');
+    }
 
     if (this.$store.getters[`management/canList`](MANAGEMENT.NODE_DRIVER)) {
       hash.nodeDrivers = this.$store.dispatch('management/findAll', { type: MANAGEMENT.NODE_DRIVER });
