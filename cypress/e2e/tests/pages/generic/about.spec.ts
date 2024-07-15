@@ -1,10 +1,10 @@
 import HomePagePo from '@/cypress/e2e/po/pages/home.po';
 import AboutPagePo from '@/cypress/e2e/po/pages/about.po';
 import DiagnosticsPagePo from '@/cypress/e2e/po/pages/diagnostics.po';
-import * as path from 'path';
+// import * as path from 'path';
 
 const aboutPage = new AboutPagePo();
-const downloadsFolder = Cypress.config('downloadsFolder');
+// const downloadsFolder = Cypress.config('downloadsFolder');
 
 describe('About Page', { testIsolation: 'off', tags: ['@generic', '@adminUser', '@standardUser'] }, () => {
   before(() => {

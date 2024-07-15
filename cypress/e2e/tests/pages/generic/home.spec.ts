@@ -44,7 +44,7 @@ describe('Home Page', () => {
       homePage.restoreAndWait();
 
       cy.getRancherResource('v1', 'management.cattle.io.settings', 'server-version').then((resp: Cypress.Response<any>) => {
-        const rancherVersion = resp.body['value'].split('-', 1)[0].slice(1);
+        // const rancherVersion = resp.body['value'].split('-', 1)[0].slice(1);
 
         homePage.changelog().self().contains('Learn more about the improvements and new capabilities in this version.');
         // reinstate when server-version issue is corrected https://github.com/rancher/rancher/issues/46152
