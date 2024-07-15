@@ -80,10 +80,10 @@ describe('About Page', { testIsolation: 'off', tags: ['@generic', '@adminUser', 
     });
   });
 
-  describe('Image List', () => {
-    before(() => {
-      aboutPage.goTo();
-    });
+  // describe('Image List', () => {
+  //   before(() => {
+  //     aboutPage.goTo();
+  //   });
 
   // reinstate when server-version issue is corrected https://github.com/rancher/rancher/issues/46152
   //   it('can download Linux Image List', () => {
