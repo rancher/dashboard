@@ -128,7 +128,8 @@ describe('CustomResourceDefinitions', { testIsolation: 'off', tags: ['@explorer'
     it('sorting changes the order of paginated CRDs data', () => {
       CustomResourceDefinitionsPagePo.navTo();
       crdsPage.waitForPage();
-      crdsPage.sortableTable().checkLoadingIndicatorNotVisible();
+      crdsPage.sortableTable().checkVisible();
+      crdsPage.sortableTable().checkNoRowsNotVisible();
 
       let indexBeforeSort: number;
 

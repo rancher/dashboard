@@ -176,7 +176,7 @@ describe('Events', { testIsolation: 'off', tags: ['@explorer', '@adminUser'] }, 
     it('pagination is hidden', () => {
       // generate small set of events data
       generateEventsDataSmall();
-      EventsPagePo.navTo();
+      events.goTo();
       events.waitForPage();
       cy.wait('@eventsDataSmall');
 
