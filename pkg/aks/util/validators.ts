@@ -165,3 +165,15 @@ export const nodePoolNames = (ctx: any) => {
     }
   };
 };
+
+export const nodePoolNamesUnique = (ctx: any) => {
+  return () :string | undefined => {
+    const poolNames = (ctx.nodePools || []).map((pool: AKSNodePool) => pool.name);
+
+    const hasDuplicates = poolNames.some((name: string, idx: number) => poolNames.indexOf(name) !== idx);
+
+    if (hasDuplicates) {
+      return ctx.t('aks.errors.poolNamesUnique');
+    }
+  };
+};

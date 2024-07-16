@@ -168,3 +168,4 @@ aks:
     poolMin: The minimum number of nodes must be greater than 0 and at most 100.
     poolMax: The maximum number of nodes must be greater than 0 and at most 100.
     poolTaints: Taints must have both a key and value defined.
+    poolNamesUnique: Node pool names must be unique.

@@ -51,7 +51,8 @@ import {
   ipv4WithCidr,
   outboundTypeUserDefined,
   privateDnsZone,
-  nodePoolNames
+  nodePoolNames,
+  nodePoolNamesUnique
 } from '../util/validators';
 
 export const defaultNodePool = {
@@ -243,6 +244,10 @@ export default defineComponent({
         rules: ['poolNames']
       },
       {
+        path:  'poolNamesUnique',
+        rules: ['poolNamesUnique']
+      },
+      {
         path:  'poolAZ',
         rules: ['availabilityZoneSupport']
       },
@@ -336,6 +341,7 @@ export default defineComponent({
         outboundType:            outboundTypeUserDefined(this, 'aks.outboundType.label', 'aksConfig.outboundType'),
         privateDnsZone:          privateDnsZone(this, 'aks.privateDnsZone.label', 'aksConfig.privateDnsZone'),
         poolNames:               nodePoolNames(this),
+        poolNamesUnique:         nodePoolNamesUnique(this),
 
         vmSizeAvailable: () => {
           if (this.touchedVmSize) {
@@ -1093,7 +1099,7 @@ export default defineComponent({
           <Tab
             v-for="(pool, i) in nodePools"
             :key="pool._id"
-            :name="pool.name"
+            :name="pool._id || pool.name"
             :label="pool.name || t('aks.nodePools.notNamed')"
             :error="!poolIsValid(pool)"
           >
