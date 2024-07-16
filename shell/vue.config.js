@@ -499,6 +499,8 @@ module.exports = function(dir, _appConfig) {
     },
     outputDir,
     pages: {
+      // Taken from @nuxt/vue-app/template/index.js
+      // TODO: Add more clarification to this comment
       index: {
         entry:    path.join(SHELL_ABS, '/initialize/entry.js'),
         template: path.join(SHELL_ABS, '/public/index.html')
