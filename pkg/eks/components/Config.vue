@@ -135,7 +135,7 @@ export default defineComponent({
     versionOptions: {
       handler(neu) {
         if (neu && neu.length && !this.kubernetesVersion) {
-          this.$emit('update:kubernetesVersion', neu[0]);
+          this.$emit('update:kubernetesVersion', neu[0].value);
         }
       },
       immediate: true
