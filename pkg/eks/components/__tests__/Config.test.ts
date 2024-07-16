@@ -5,6 +5,8 @@ import { EKSConfig } from 'types';
 import Config from '@pkg/eks/components/Config.vue';
 import listKeysResponseData from '../__mocks__/listKeys';
 import describeAddonVersionsResponseData from '../__mocks__/describeAddonVersions';
+import versionsFallbackData from '../../assets/data/eks-versions';
+import { _EDIT } from '@shell/config/query-params';
 
 const mockedValidationMixin = {
   computed: {
@@ -110,6 +112,42 @@ describe('eKS K8s configuration', () => {
     expect(spy).toHaveBeenCalledWith('aws/kms', { cloudCredentialId: 'oof', region: 'bar' });
   });
 
+  it('should set the cluster kubernetes version to the latest available version after versions have been loaded', async() => {
+    const setup = requiredSetup({ value: '>=1.25' });
+
+    const wrapper = shallowMount(Config, { propsData: { config: { amazonCredentialSecret: '', region: '' } }, ...setup });
+
+    // when the component loads initially it uses fallback data for k8s versions
+    expect(wrapper.emitted('update:kubernetesVersion')?.[0]?.[0]).toBe(versionsFallbackData[0]);
+    expect(wrapper.emitted('update:kubernetesVersion')).toHaveLength(1);
+
+    await setCredential(wrapper);
+    // once a credential is provided, the component fetches k8s versions from aws api - ensure that it updates the default version to the latest from THIS data set instead
+    expect(wrapper.emitted('update:kubernetesVersion')?.[1]?.[0]).toBe('2.0');
+    expect(wrapper.emitted('update:kubernetesVersion')).toHaveLength(2);
+  });
+
+  it('should not update the cluster kubernetes version upon fetching version data if editing a cluster with version already set', async() => {
+    const setup = requiredSetup({ value: '>=1.25' });
+
+    const wrapper = shallowMount(Config, {
+      propsData: {
+        config:            { amazonCredentialSecret: '', region: '' },
+        kubernetesVersion: '1.23',
+        mode:              _EDIT
+      },
+      ...setup
+    });
+
+    // make sure the version isn't overwritten with fallback version data
+    expect(wrapper.emitted('update:kubernetesVersion')).toBeUndefined();
+
+    // make sure that when the version list is fetched from api, the cluster version isnt overwritten then either
+    await setCredential(wrapper);
+
+    expect(wrapper.emitted('update:kubernetesVersion')).toBeUndefined();
+  });
+
   it('should show an input for a KMS key when the encrypt secrets checkbox is checked', async() => {
     const setup = requiredSetup();
 
@@ -170,8 +208,8 @@ describe('eKS K8s configuration', () => {
   });
 
   it.each([
-    ['>1.24', ['1.29', '1.28', '1.27', '1.26', '1.25']],
-    ['>1.26', ['1.29', '1.28', '1.27']]
+    ['>1.24', ['2.0', '1.29', '1.28', '1.27', '1.26', '1.25']],
+    ['>1.26', ['2.0', '1.29', '1.28', '1.27']]
   ])('should only show kubernetes versions within the supported version range global setting', async(versionSettingValue, expectedVersions) => {
     const setup = requiredSetup({ value: versionSettingValue });
 
@@ -185,8 +223,8 @@ describe('eKS K8s configuration', () => {
   });
 
   it.each([
-    ['1.26', ['1.27', '1.26'], ['1.29', '1.28']],
-    ['1.25', ['1.26', '1.25'], ['1.29', '1.28', '1.27']],
+    ['1.26', ['1.27', '1.26'], ['2.0', '1.29', '1.28']],
+    ['1.25', ['1.26', '1.25'], ['2.0', '1.29', '1.28', '1.27']],
   ])('should only allow the user to select a kubernetes version within one minor version of the current version when editing', async(originalVersion, enabledVersions, disabledVersions) => {
     const setup = requiredSetup({ value: '>1.24' });
     const wrapper = shallowMount(Config, {
