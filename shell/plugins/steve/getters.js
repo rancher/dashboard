@@ -119,11 +119,13 @@ export default {
     // excludeFields should be an array of strings representing the paths of the fields to exclude
     // only works on Steve but is ignored without error by Norman
     if (isSteve) {
-      if (Array.isArray(opt?.excludeFields)) {
-        opt.excludeFields = [...opt.excludeFields, 'metadata.managedFields'];
-      } else {
-        opt.excludeFields = ['metadata.managedFields'];
+      if (!Array.isArray(opt?.excludeFields)) {
+        const excludeFields = ['metadata.managedFields'];
+
+        // for some resources, we might want to include fields, excluded by default.
+        opt.excludeFields = Array.isArray(opt?.omitExcludeFields) ? excludeFields.filter((f) => !f.includes(opt.omitExcludeFields)) : excludeFields;
       }
+
       const excludeParamsString = opt.excludeFields.map((field) => `exclude=${ field }`).join('&');
 
       url += `${ url.includes('?') ? '&' : '?' }${ excludeParamsString }`;

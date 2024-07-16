@@ -22,7 +22,7 @@ export default {
   async fetch() {
     const hash = {
       mgmtClusters: this.$fetchType(MANAGEMENT.CLUSTER),
-      proxyConfig:  this.$fetchType(MANAGEMENT.CLUSTER_PROXY_CONFIG)
+      proxyConfig:  this.$store.dispatch('management/findAll', { type: MANAGEMENT.CLUSTER_PROXY_CONFIG, opt: { omitExcludeFields: ['metadata.managedFields'] } })
     };
 
     const res = await allHash(hash);
@@ -150,7 +150,8 @@ export default {
 
           const value = config?.enabled || '';
           const configName = config?.metadata?.name || '';
-          const updatedOn = value ? config?.metadata?.creationTimestamp : '';
+          const updatedOn = value ? config?.metadata?.managedFields.find((field) => field.operation === 'Update')?.time : '';
+
           const stateBackground = value ? colorForState(STATES_ENUM.ACTIVE).replace('text', 'bg') : colorForState(STATES_ENUM.INFO).replace('text', 'bg');
           const stateLabel = value ? this.t('jwt.state.enabled') : this.t('jwt.state.disabled');
           const creationTimestamp = cluster.metadata.creationTimestamp;
@@ -159,7 +160,7 @@ export default {
             if (!configName) {
               const clusterProxyConfig = await this.$store.dispatch('management/create', {
                 enabled:  true,
-                metadata: { namespace: id, generateName: 'cluster-proxy-config-' },
+                metadata: { namespace: id, name: 'cluster-proxy-config' },
               });
 
               return clusterProxyConfig.save({ url: 'v1/management.cattle.io.clusterproxyconfigs', method: 'POST' });
@@ -170,7 +171,9 @@ export default {
             }
           };
           const disable = async() => {
-            return config.remove();
+            config.enabled = false;
+
+            return config.save();
           };
 
           rows.push({
