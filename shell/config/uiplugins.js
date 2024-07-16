@@ -183,7 +183,7 @@ export function isChartVersionAvailableForInstall(versionsData, returnObj = fals
 
   const parsedRancherVersion = rancherVersion.split('-')?.[0];
   const regexHashString = new RegExp('^[A-Za-z0-9]{9}$');
-  const isRancherVersionHashString = regexHashString.test(rancherVersion);
+  const isRancherVersionHashStringOrHead = regexHashString.test(rancherVersion) || rancherVersion.includes('head');
   const requiredUiVersion = version.annotations?.[UI_PLUGIN_CHART_ANNOTATIONS.UI_VERSION];
   const requiredKubeVersion = version.annotations?.[UI_PLUGIN_CHART_ANNOTATIONS.KUBE_VERSION];
   const versionObj = { ...version };
@@ -192,7 +192,7 @@ export function isChartVersionAvailableForInstall(versionsData, returnObj = fals
   versionObj.isCompatibleWithKubeVersion = true;
 
   // if it's a head version of Rancher, then we skip the validation and enable them all
-  if (!isRancherVersionHashString && requiredUiVersion && !semver.satisfies(parsedRancherVersion, requiredUiVersion)) {
+  if (!isRancherVersionHashStringOrHead && requiredUiVersion && !semver.satisfies(parsedRancherVersion, requiredUiVersion)) {
     if (!returnObj) {
       return false;
     }
