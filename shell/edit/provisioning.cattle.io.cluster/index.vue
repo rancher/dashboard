@@ -85,8 +85,10 @@ export default {
       provClusters: this.$store.dispatch('management/findAll', { type: CAPI.RANCHER_CLUSTER }),
     };
 
-    // No need to fetch charts when you're editing an RKE1 cluster
-    if (!this.isRke1 || (this.isRke1 && this.mode !== 'edit')) {
+    // No need to fetch charts when editing an RKE1 cluster
+    // The computed property `isRke1` in this file is based on the RKE1/RKE2 toggle, which is not applicable in this case
+    // Instead, we should rely on the value from the model: `this.value.isRke1`
+    if (!this.value.isRke1 || (this.value.isRke1 && this.mode !== 'edit')) {
       hash['catalog'] = this.$store.dispatch('catalog/load');
     }
 
