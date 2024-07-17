@@ -32,7 +32,6 @@ const deleteAfterPeriod = ref(false);
 const loading = ref(true);
 const {
   validateUserRetentionCron,
-  validateDurationFormat,
   validateDeleteInactiveUserAfter,
   validateDurationAgainstAuthUserSession,
   setValidation,
@@ -199,7 +198,7 @@ onBeforeRouteUpdate((_to: unknown, _from: unknown) => {
           class="input-field"
           :label="t('user.retention.edit.form.disableAfter.input.label')"
           :disabled="!disableAfterPeriod"
-          :rules="[validateDurationFormat, validateDurationAgainstAuthUserSession]"
+          :rules="[validateDurationAgainstAuthUserSession]"
           @update:validation="e => setValidation(SETTING.DISABLE_INACTIVE_USER_AFTER, e)"
         />
       </div>
@@ -217,7 +216,7 @@ onBeforeRouteUpdate((_to: unknown, _from: unknown) => {
           :label="t('user.retention.edit.form.deleteAfter.input.label')"
           :sub-label="t('user.retention.edit.form.deleteAfter.input.subLabel')"
           :disabled="!deleteAfterPeriod"
-          :rules="[validateDurationFormat, validateDurationAgainstAuthUserSession, validateDeleteInactiveUserAfter]"
+          :rules="[validateDurationAgainstAuthUserSession, validateDeleteInactiveUserAfter]"
           @update:validation="e => setValidation(SETTING.DELETE_INACTIVE_USER_AFTER, e)"
         />
       </div>

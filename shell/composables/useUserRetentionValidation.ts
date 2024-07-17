@@ -82,6 +82,21 @@ export const useUserRetentionValidation = (disableAfterPeriod: Ref<boolean>, del
     validation.value[formField] = isValid;
   }
 
+  const parseDuration = (duration: string) => {
+    const durationPattern = /^(\d+)h|(\d+)m|(\d+)s$/;
+    const match = duration?.match(durationPattern);
+
+    if (!match) {
+      throw new Error('Invalid duration format. Accepted duration units are Hours, Minutes, and Seconds ({h|m|s})');
+    }
+
+    const hours = match[1] ? parseInt(match[1]) : 0;
+    const minutes = match[2] ? parseInt(match[2]) : 0;
+    const seconds = match[3] ? parseInt(match[3]) : 0;
+
+    return dayjs.duration({ hours, minutes, seconds });
+  };
+
   const validateUserRetentionCron = (cronSetting: string | null) => {
     // Only require user retention cron when disable or delete after are active
     if (!disableAfterPeriod.value && !deleteAfterPeriod.value) {
@@ -97,58 +112,34 @@ export const useUserRetentionValidation = (disableAfterPeriod: Ref<boolean>, del
     }
   };
 
-  const validateDurationFormat = (duration: string) => {
-    const durationPattern = /^(\d+)h|(\d+)m|(\d+)s$/;
-    const match = duration?.match(durationPattern);
-
-    if (!match) {
-      return 'Invalid duration format. Accepted duration units are Hours, Minutes, and Seconds ({h|m|s})';
-    }
-  }
-
   const validateDeleteInactiveUserAfter = (duration: string) => {
-    const durationPattern = /^(\d+)h|(\d+)m|(\d+)s$/;
-    const match = duration?.match(durationPattern);
+    try {
+      const inputDuration = parseDuration(duration);
+      const minDuration = dayjs.duration({ hours: 336 });
 
-    if (!match) {
-      return 'Invalid duration format';
+      if (inputDuration.asMilliseconds() < minDuration.asMilliseconds()) {
+        return `Invalid value: "${duration}": must be at least 336h0m0s`;
+      }
+    } catch (error: any) {
+      return error.message;
     }
-
-    const hours = match[1] ? parseInt(match[1]) : 0;
-    const minutes = match[2] ? parseInt(match[2]) : 0;
-    const seconds = match[3] ? parseInt(match[3]) : 0;
-
-    const inputDuration = dayjs.duration({ hours, minutes, seconds });
-    const minDuration = dayjs.duration({ hours: 336 });
-
-    if (inputDuration.asMilliseconds() < minDuration.asMilliseconds()) {
-      return `Invalid value: "${duration}": must be at least 336h0m0s`;
-    };
   }
 
   const validateDurationAgainstAuthUserSession = (duration: string) => {
-    const durationPattern = /^(\d+)h|(\d+)m|(\d+)s$/;
-    const match = duration?.match(durationPattern);
+    try {
+      const inputDuration = parseDuration(duration);
+      const minDuration = dayjs.duration({ minutes: authUserSessionTtlMinutes.value?.value });
 
-    if (!match) {
-      return 'Invalid duration format';
+      if (inputDuration.asMilliseconds() < minDuration.asMilliseconds()) {
+        return `Invalid value: "${duration}": must be at least ${SETTING.AUTH_USER_SESSION_TTL_MINUTES} (${authUserSessionTtlMinutes.value?.value}m)`;
+      }
+    } catch (error: any) {
+      return error.message;
     }
-
-    const hours = match[1] ? parseInt(match[1]) : 0;
-    const minutes = match[2] ? parseInt(match[2]) : 0;
-    const seconds = match[3] ? parseInt(match[3]) : 0;
-
-    const inputDuration = dayjs.duration({ hours, minutes, seconds });
-    const minDuration = dayjs.duration({ minutes: authUserSessionTtlMinutes.value?.value });
-
-    if (inputDuration.asMilliseconds() < minDuration.asMilliseconds()) {
-      return `Invalid value: "${duration}": must be at least ${SETTING.AUTH_USER_SESSION_TTL_MINUTES} (${authUserSessionTtlMinutes.value?.value}m)`;
-    };
   }
 
   return {
     validateUserRetentionCron,
-    validateDurationFormat,
     validateDeleteInactiveUserAfter,
     validateDurationAgainstAuthUserSession,
     setValidation,
