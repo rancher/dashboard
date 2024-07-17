@@ -6,6 +6,7 @@ import UserRetentionHeader from '@shell/components/user.retention/user-retention
 import Footer from '@shell/components/form/Footer.vue';
 import { useStore } from '@shell/composables/useStore';
 import { useI18n } from '@shell/composables/useI18n';
+import { useUserRetentionValidation, Setting } from '@shell/composables/useUserRetentionValidation';
 import { MANAGEMENT } from '@shell/config/types';
 import { SETTING } from '@shell/config/settings';
 import { isAdminUser } from '@shell/store/type-map';
@@ -15,64 +16,7 @@ import Checkbox from '@components/Form/Checkbox/Checkbox.vue';
 import LabeledInput from '@components/Form/LabeledInput/LabeledInput.vue';
 import { ToggleSwitch } from '@components/Form/ToggleSwitch';
 
-import { isValidCron } from 'cron-validator';
 import dayjs from 'dayjs';
-import duration from 'dayjs/plugin/duration';
-dayjs.extend(duration);
-
-type Links = {
-  remove: string;
-  self: string;
-  update: string;
-  view: string;
-};
-
-type FieldsV1 = {
-  'f:customized': {};
-  'f:default': {};
-  'f:source': {};
-  'f:value': {};
-};
-
-type ManagedFields = {
-  apiVersion: string;
-  fieldsType: string;
-  fieldsV1: FieldsV1;
-  manager: string;
-  operation: string;
-  time: string;
-};
-
-type Metadata = {
-  creationTimestamp: string;
-  fields: string[];
-  generation: number;
-  managedFields: ManagedFields[];
-  name: string;
-  relationships: null;
-  resourceVersion: string;
-  state: {
-    error: boolean;
-    message: string;
-    name: string;
-    transitioning: boolean;
-  };
-  uid: string;
-};
-
-type Setting = {
-  id: string;
-  type: string;
-  links: Links;
-  apiVersion: string;
-  customized: boolean;
-  default: string;
-  kind: string;
-  metadata: Metadata;
-  source: string;
-  value: string | null;
-  save: () => void;
-};
 
 const store = useStore();
 const userRetentionSettings = reactive<{[id: string]: string | null }>({
@@ -86,6 +30,14 @@ const authUserSessionTtlMinutes = ref<Setting | null>(null);
 const disableAfterPeriod = ref(false);
 const deleteAfterPeriod = ref(false);
 const loading = ref(true);
+const {
+  validateUserRetentionCron,
+  validateDurationFormat,
+  validateDeleteInactiveUserAfter,
+  validateDurationAgainstAuthUserSession,
+  setValidation,
+  isFormValid,
+} = useUserRetentionValidation(disableAfterPeriod, deleteAfterPeriod, authUserSessionTtlMinutes);
 let settings: { [id: string]: Setting } = {};
 
 /**
@@ -127,7 +79,7 @@ watch([disableAfterPeriod, deleteAfterPeriod], ([newDisableAfterPeriod, newDelet
       userRetentionSettings[key] = null;
     });
 
-    validateUserRetentionCron();
+    validateUserRetentionCron(userRetentionSettings[SETTING.USER_RETENTION_CRON]);
 
     return;
   }
@@ -135,7 +87,7 @@ watch([disableAfterPeriod, deleteAfterPeriod], ([newDisableAfterPeriod, newDelet
   ids.filter((id) => ![SETTING.DISABLE_INACTIVE_USER_AFTER, SETTING.DELETE_INACTIVE_USER_AFTER].includes(id))
     .forEach(assignSettings);
 
-  validateUserRetentionCron();
+  validateUserRetentionCron(userRetentionSettings[SETTING.USER_RETENTION_CRON]);
 });
 
 const assignSettings = (key: string) => {
@@ -175,91 +127,10 @@ onMounted(async() => {
   deleteAfterPeriod.value = !!userRetentionSettings[SETTING.DELETE_INACTIVE_USER_AFTER];
   loading.value = false;
 
-  validateUserRetentionCron();
+  validateUserRetentionCron(userRetentionSettings[SETTING.USER_RETENTION_CRON]);
 });
 
-const validation = ref({
-  [SETTING.DISABLE_INACTIVE_USER_AFTER]: true,
-  [SETTING.DELETE_INACTIVE_USER_AFTER]: true,
-  [SETTING.USER_RETENTION_CRON]: true,
-})
-const isFormValid = computed(() => {
-  const validations = validation.value
-  return !Object.values(validations).includes(false);
-})
-const setValidation = (formField: string, isValid: boolean) => {
-  validation.value[formField] = isValid;
-}
 const { t } = useI18n(store);
-
-const validateUserRetentionCron = () => {
-  const { [SETTING.USER_RETENTION_CRON]: cronSetting } = userRetentionSettings;
-
-  // Only require user retention cron when disable or delete after are active
-  if (!disableAfterPeriod.value && !deleteAfterPeriod.value) {
-    return;
-  }
-
-  if (!cronSetting) {
-    return;
-  }
-
-  if (typeof cronSetting === 'string' && !isValidCron(cronSetting)) {
-    return t('user.retention.edit.form.cron.errorMessage');
-  }
-};
-
-const validateDurationFormat = (duration: string) => {
-  const durationPattern = /^(\d+)h|(\d+)m|(\d+)s$/;
-  const match = duration?.match(durationPattern);
-
-  if (!match) {
-    return 'Invalid duration format. Accepted duration units are Hours, Minutes, and Seconds ({h|m|s})';
-  }
-}
-
-const validateDeleteInactiveUserAfter = () => {
-  const { [SETTING.DELETE_INACTIVE_USER_AFTER]: cronSetting } = userRetentionSettings;
-
-  const durationPattern = /^(\d+)h|(\d+)m|(\d+)s$/;
-  const match = cronSetting?.match(durationPattern);
-
-  if (!match) {
-    return 'Invalid duration format';
-  }
-
-  const hours = match[1] ? parseInt(match[1]) : 0;
-  const minutes = match[2] ? parseInt(match[2]) : 0;
-  const seconds = match[3] ? parseInt(match[3]) : 0;
-
-  const inputDuration = dayjs.duration({ hours, minutes, seconds });
-  const minDuration = dayjs.duration({ hours: 336 });
-
-  if (inputDuration.asMilliseconds() < minDuration.asMilliseconds()) {
-    return `Invalid value: "${ cronSetting }": must be at least 336h0m0s`;
-  };
-}
-
-const validateDurationAgainstAuthUserSession = (duration: string) => {
-  const durationPattern = /^(\d+)h|(\d+)m|(\d+)s$/;
-  const match = duration?.match(durationPattern);
-
-  if (!match) {
-    return 'Invalid duration format';
-  }
-
-  const hours = match[1] ? parseInt(match[1]) : 0;
-  const minutes = match[2] ? parseInt(match[2]) : 0;
-  const seconds = match[3] ? parseInt(match[3]) : 0;
-
-  const inputDuration = dayjs.duration({ hours, minutes, seconds });
-  const minDuration = dayjs.duration({ minutes: authUserSessionTtlMinutes.value?.value });
-
-  if (inputDuration.asMilliseconds() < minDuration.asMilliseconds()) {
-    return `Invalid value: "${ duration }": must be at least ${ SETTING.AUTH_USER_SESSION_TTL_MINUTES } (${ authUserSessionTtlMinutes.value?.value }m)`;
-  };
-}
-
 const error = ref<string | null>(null);
 const save = async(btnCB: (arg: boolean) => void) => {
   try {
