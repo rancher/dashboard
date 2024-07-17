@@ -429,7 +429,7 @@ export default {
       };
     }
 
-    const namespaces = _typeObj?.namespaced ? Object.keys(rootGetters.activeNamespaceCache || {}) : [];
+    const namespaces = _typeObj?.namespaced && !rootGetters.isAllNamespaces ? Object.keys(rootGetters.activeNamespaceCache || {}) : [];
 
     return matchingCounts(_typeObj, namespaces.length ? namespaces : null);
   },
