@@ -146,4 +146,30 @@ describe('eKS provisioning form', () => {
 
     expect(wrapper.vm.nodeGroups.filter((group: EKSNodeGroup) => group.version === '1.24')).toHaveLength(1);
   });
+
+  it('should configure enable network policy at the cluster level not within eksConfig', async() => {
+    const wrapper = shallowMount(CruEKS, {
+      propsData: { value: {}, mode: 'edit' },
+      ...requiredSetup()
+    });
+
+    await setCredential(wrapper);
+
+    const configComponent = wrapper.find('[data-testid="eks-config-section"]');
+
+    configComponent.vm.$emit('update:enableNetworkPolicy', true);
+
+    await wrapper.vm.$nextTick();
+    expect(wrapper.vm.normanCluster.enableNetworkPolicy).toBe(true);
+
+    configComponent.vm.$emit('update:enableNetworkPolicy', false);
+
+    await wrapper.vm.$nextTick();
+    expect(wrapper.vm.normanCluster.enableNetworkPolicy).toBe(false);
+
+    wrapper.setData({ normanCluster: { ...wrapper.vm.normanCluster, enableNetworkPolicy: true } });
+    await wrapper.vm.$nextTick();
+
+    expect(configComponent.props().enableNetworkPolicy).toBe(true);
+  });
 });
