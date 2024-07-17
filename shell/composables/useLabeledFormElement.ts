@@ -104,8 +104,10 @@ export const useLabeledFormElement = (props: LabeledFormElementProps, emit: (eve
     }
 
     if (ruleMessages.length > 0 && (blurred.value || focused.value)) {
+      emit('update:validation', false);
       return ruleMessages.join(', ');
     } else {
+      emit('update:validation', true);
       return undefined;
     }
   });

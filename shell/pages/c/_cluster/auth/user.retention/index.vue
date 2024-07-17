@@ -173,31 +173,33 @@ onMounted(async() => {
   validateUserRetentionCron();
 });
 
-const isFormValid = ref(false);
+const validation = ref({
+  [SETTING.DELETE_INACTIVE_USER_AFTER]: true,
+  [SETTING.USER_RETENTION_CRON]: true,
+})
+const isFormValid = computed(() => {
+  const validations = validation.value
+  return !Object.values(validations).includes(false);
+})
+const setValidation = (formField: string, isValid: boolean) => {
+  validation.value[formField] = isValid;
+}
 const { t } = useI18n(store);
 const validateUserRetentionCron = () => {
   const { [SETTING.USER_RETENTION_CRON]: cronSetting } = userRetentionSettings;
 
   // Only require user retention cron when disable or delete after are active
   if (!disableAfterPeriod.value && !deleteAfterPeriod.value) {
-    isFormValid.value = true;
-
     return;
   }
 
   if (!cronSetting) {
-    isFormValid.value = false;
-
     return;
   }
 
   if (typeof cronSetting === 'string' && !isValidCron(cronSetting)) {
-    isFormValid.value = false;
-
     return t('user.retention.edit.form.cron.errorMessage');
   }
-
-  isFormValid.value = true;
 };
 
 const error = ref<string | null>(null);
@@ -299,7 +301,7 @@ onBeforeRouteUpdate((_to: unknown, _from: unknown) => {
             :tooltip="t('user.retention.edit.form.cron.subLabel')"
             :rules="[validateUserRetentionCron]"
             :label="t('user.retention.edit.form.cron.label')"
-            @input="validateUserRetentionCron"
+            @update:validation="e => setValidation(SETTING.USER_RETENTION_CRON, e)"
           />
         </div>
         <div class="input-fieldset condensed pt-12">
