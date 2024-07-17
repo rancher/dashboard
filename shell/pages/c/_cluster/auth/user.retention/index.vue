@@ -1,5 +1,5 @@
 <script lang="ts" setup>
-import { ref, reactive, watch, onMounted } from 'vue';
+import { ref, reactive, watch, onMounted, computed } from 'vue';
 import { useRouter, onBeforeRouteUpdate } from 'vue-router/composables';
 
 import UserRetentionHeader from '@shell/components/user.retention/user-retention-header.vue';
@@ -17,6 +17,8 @@ import { ToggleSwitch } from '@components/Form/ToggleSwitch';
 
 import { isValidCron } from 'cron-validator';
 import dayjs from 'dayjs';
+import duration from 'dayjs/plugin/duration';
+dayjs.extend(duration);
 
 type Links = {
   remove: string;
@@ -202,6 +204,28 @@ const validateUserRetentionCron = () => {
   }
 };
 
+const validateDeleteInactiveUserAfter = () => {
+  const { [SETTING.DELETE_INACTIVE_USER_AFTER]: cronSetting } = userRetentionSettings;
+
+  const durationPattern = /^(\d+)h|(\d+)m|(\d+)s$/;
+  const match = cronSetting?.match(durationPattern);
+
+  if (!match) {
+    return 'Invalid duration format';
+  }
+
+  const hours = match[1] ? parseInt(match[1]) : 0;
+  const minutes = match[2] ? parseInt(match[2]) : 0;
+  const seconds = match[3] ? parseInt(match[3]) : 0;
+
+  const inputDuration = dayjs.duration({ hours, minutes, seconds });
+  const minDuration = dayjs.duration({ hours: 336 });
+
+  if (inputDuration.asMilliseconds() < minDuration.asMilliseconds()) {
+    return `Invalid value: "${ cronSetting }": must be at least 336h0m0s`;
+  };
+}
+
 const error = ref<string | null>(null);
 const save = async(btnCB: (arg: boolean) => void) => {
   try {
@@ -286,6 +310,8 @@ onBeforeRouteUpdate((_to: unknown, _from: unknown) => {
           :label="t('user.retention.edit.form.deleteAfter.input.label')"
           :sub-label="t('user.retention.edit.form.deleteAfter.input.subLabel')"
           :disabled="!deleteAfterPeriod"
+          :rules="[validateDeleteInactiveUserAfter]"
+          @update:validation="e => setValidation(SETTING.DELETE_INACTIVE_USER_AFTER, e)"
         />
       </div>
       <template
