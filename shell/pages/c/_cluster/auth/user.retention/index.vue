@@ -176,6 +176,7 @@ onMounted(async() => {
 });
 
 const validation = ref({
+  [SETTING.DISABLE_INACTIVE_USER_AFTER]: true,
   [SETTING.DELETE_INACTIVE_USER_AFTER]: true,
   [SETTING.USER_RETENTION_CRON]: true,
 })
@@ -203,6 +204,15 @@ const validateUserRetentionCron = () => {
     return t('user.retention.edit.form.cron.errorMessage');
   }
 };
+
+const validateDurationFormat = (duration: string) => {
+  const durationPattern = /^(\d+)h|(\d+)m|(\d+)s$/;
+  const match = duration?.match(durationPattern);
+
+  if (!match) {
+    return 'Invalid duration format. Accepted duration units are Hours, Minutes, and Seconds ({h|m|s})';
+  }
+}
 
 const validateDeleteInactiveUserAfter = () => {
   const { [SETTING.DELETE_INACTIVE_USER_AFTER]: cronSetting } = userRetentionSettings;
@@ -294,6 +304,8 @@ onBeforeRouteUpdate((_to: unknown, _from: unknown) => {
           class="input-field"
           :label="t('user.retention.edit.form.disableAfter.input.label')"
           :disabled="!disableAfterPeriod"
+          :rules="[validateDurationFormat]"
+          @update:validation="e => setValidation(SETTING.DISABLE_INACTIVE_USER_AFTER, e)"
         />
       </div>
       <div class="input-fieldset">
@@ -310,7 +322,7 @@ onBeforeRouteUpdate((_to: unknown, _from: unknown) => {
           :label="t('user.retention.edit.form.deleteAfter.input.label')"
           :sub-label="t('user.retention.edit.form.deleteAfter.input.subLabel')"
           :disabled="!deleteAfterPeriod"
-          :rules="[validateDeleteInactiveUserAfter]"
+          :rules="[validateDurationFormat, validateDeleteInactiveUserAfter]"
           @update:validation="e => setValidation(SETTING.DELETE_INACTIVE_USER_AFTER, e)"
         />
       </div>
