@@ -150,8 +150,11 @@ export default {
 
           const value = config?.enabled || '';
           const configName = config?.metadata?.name || '';
-          const updatedOn = value ? config?.metadata?.managedFields.find((field) => field.operation === 'Update')?.time : '';
+          let updatedOn = '';
 
+          if (value) {
+            updatedOn = config?.metadata?.managedFields?.find((field) => field.operation === 'Update')?.time || '';
+          }
           const stateBackground = value ? colorForState(STATES_ENUM.ACTIVE).replace('text', 'bg') : colorForState(STATES_ENUM.INFO).replace('text', 'bg');
           const stateLabel = value ? this.t('jwt.state.enabled') : this.t('jwt.state.disabled');
           const creationTimestamp = cluster.metadata.creationTimestamp;
@@ -160,7 +163,7 @@ export default {
             if (!configName) {
               const clusterProxyConfig = await this.$store.dispatch('management/create', {
                 enabled:  true,
-                metadata: { namespace: id, name: 'cluster-proxy-config' },
+                metadata: { namespace: id, name: 'clusterproxyconfig' },
               });
 
               return clusterProxyConfig.save({ url: 'v1/management.cattle.io.clusterproxyconfigs', method: 'POST' });
