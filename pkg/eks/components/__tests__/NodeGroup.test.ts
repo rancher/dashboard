@@ -351,6 +351,63 @@ describe('eks node groups: edit', () => {
     expect(wrapper.emitted('update:version')?.[0]?.[0]).toBe('1.24');
   });
 
+  it('should report that a pool is being upgraded when the upgrade checkbox is checked', async() => {
+    const setup = requiredSetup();
+
+    const wrapper = shallowMount(NodeGroup, {
+      propsData: {
+        launchTemplate:         {},
+        region:                 'foo',
+        amazonCredentialSecret: 'bar',
+        version:                '1.23',
+        clusterVersion:         '1.24',
+        originalClusterVersion: '1.24',
+        isNewOrUnprovisioned:   false
+      },
+      ...setup
+    });
+
+    expect(wrapper.emitted('update:poolIsUpgrading')).toBeUndefined();
+
+    const upgradeVersionCheckbox = wrapper.find('[data-testid="eks-version-upgrade-checkbox"]');
+
+    upgradeVersionCheckbox.vm.$emit('input', true);
+    await wrapper.vm.$nextTick();
+
+    expect(wrapper.emitted('update:poolIsUpgrading')?.[0]?.[0]).toBe(true);
+  });
+
+  it('should report that a pool is NOT being upgraded when the upgrade checkbox is unchecked', async() => {
+    const setup = requiredSetup();
+
+    const wrapper = shallowMount(NodeGroup, {
+      propsData: {
+        launchTemplate:         {},
+        region:                 'foo',
+        amazonCredentialSecret: 'bar',
+        version:                '1.23',
+        clusterVersion:         '1.24',
+        originalClusterVersion: '1.24',
+        isNewOrUnprovisioned:   false
+      },
+      ...setup
+    });
+
+    expect(wrapper.emitted('update:poolIsUpgrading')).toBeUndefined();
+
+    const upgradeVersionCheckbox = wrapper.find('[data-testid="eks-version-upgrade-checkbox"]');
+
+    wrapper.setProps({ version: '1.24' });
+    await wrapper.vm.$nextTick();
+
+    expect(upgradeVersionCheckbox.props().value).toBe(true);
+
+    upgradeVersionCheckbox.vm.$emit('input', false);
+    await wrapper.vm.$nextTick();
+
+    expect(wrapper.emitted('update:poolIsUpgrading')?.[0]?.[0]).toBe(false);
+  });
+
   it('should revert the node version to its original version when the upgrade checkbox is unchecked', async() => {
     const setup = requiredSetup();
 

@@ -199,6 +199,11 @@ export default defineComponent({
       default: null
     },
 
+    poolIsUpgrading: {
+      type:    Boolean,
+      default: false
+    },
+
     loadingInstanceTypes: {
       type:    Boolean,
       default: false
@@ -408,8 +413,10 @@ export default defineComponent({
       set(neu: boolean) {
         if (neu) {
           this.$emit('update:version', this.clusterVersion);
+          this.$emit('update:poolIsUpgrading', true);
         } else {
           this.$emit('update:version', this.originalNodeVersion);
+          this.$emit('update:poolIsUpgrading', false);
         }
       }
     },

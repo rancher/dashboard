@@ -36,6 +36,7 @@ export interface EKSNodeGroup {
   version?: string
   __nameUnique?: boolean
   _isNew?: boolean,
+  _isUpgrading: boolean
 }
 
 export interface EKSConfig {

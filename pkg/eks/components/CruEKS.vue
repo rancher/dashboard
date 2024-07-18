@@ -656,6 +656,7 @@ export default defineComponent({
             :request-spot-instances.sync="node.requestSpotInstances"
             :labels.sync="node.labels"
             :version.sync="node.version"
+            :pool-is-upgrading.sync="node._isUpgrading"
             :cluster-version="config.kubernetesVersion"
             :original-cluster-version="originalVersion"
             :region="config.region"
