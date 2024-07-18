@@ -1,4 +1,4 @@
-import { Ref, ref, computed } from 'vue';
+import { Ref, ComputedRef, ref, computed } from 'vue';
 
 import { SETTING } from '@shell/config/settings';
 import { useStore } from '@shell/composables/useStore';
@@ -63,7 +63,17 @@ export type Setting = {
   save: () => void;
 };
 
-export const useUserRetentionValidation = (disableAfterPeriod: Ref<boolean>, deleteAfterPeriod: Ref<boolean>, authUserSessionTtlMinutes: Ref<Setting | null>) => {
+interface UseUserRetentionValidation {
+  validateUserRetentionCron: (cronSetting: string | null) => string | undefined;
+  validateDeleteInactiveUserAfter: (duration: string) => string | undefined;
+  validateDurationAgainstAuthUserSession: (duration: string) => string | undefined;
+  setValidation: (formField: string, isValid: boolean) => void;
+  removeCronValidation: () => void;
+  addCronValidation: () => void;
+  isFormValid: ComputedRef<boolean>;
+}
+
+export const useUserRetentionValidation = (disableAfterPeriod: Ref<boolean>, deleteAfterPeriod: Ref<boolean>, authUserSessionTtlMinutes: Ref<Setting | null>): UseUserRetentionValidation => {
   const store = useStore();
   const { t } = useI18n(store);
 
@@ -113,7 +123,7 @@ export const useUserRetentionValidation = (disableAfterPeriod: Ref<boolean>, del
     });
   };
 
-  const validateUserRetentionCron = (cronSetting: string | null) => {
+  const validateUserRetentionCron = (cronSetting: string | null): string | undefined => {
     // Only require user retention cron when disable or delete after are active
     if (!disableAfterPeriod.value && !deleteAfterPeriod.value) {
       return;
@@ -127,7 +137,7 @@ export const useUserRetentionValidation = (disableAfterPeriod: Ref<boolean>, del
     }
   };
 
-  const validateDeleteInactiveUserAfter = (duration: string) => {
+  const validateDeleteInactiveUserAfter = (duration: string): string | undefined => {
     try {
       const inputDuration = parseDuration(duration);
       const minDuration = dayjs.duration({ hours: 336 });
@@ -140,7 +150,7 @@ export const useUserRetentionValidation = (disableAfterPeriod: Ref<boolean>, del
     }
   };
 
-  const validateDurationAgainstAuthUserSession = (duration: string) => {
+  const validateDurationAgainstAuthUserSession = (duration: string): string | undefined => {
     try {
       const inputDuration = parseDuration(duration);
       const minDuration = dayjs.duration({ minutes: authUserSessionTtlMinutes.value?.value });
