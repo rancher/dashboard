@@ -1,5 +1,5 @@
 <script lang="ts" setup>
-import { ref, reactive, watch, onMounted, computed } from 'vue';
+import { ref, reactive, watch, onMounted } from 'vue';
 import { useRouter, onBeforeRouteUpdate } from 'vue-router/composables';
 
 import UserRetentionHeader from '@shell/components/user.retention/user-retention-header.vue';
@@ -82,6 +82,7 @@ const userRetentionSettings = reactive<{[id: string]: string | null }>({
   [SETTING.USER_RETENTION_DRY_RUN]:      null,
   [SETTING.USER_LAST_LOGIN_DEFAULT]:     null,
 });
+const authUserSessionTtlMinutes = ref<Setting | null>(null);
 const disableAfterPeriod = ref(false);
 const deleteAfterPeriod = ref(false);
 const loading = ref(true);
@@ -168,6 +169,8 @@ onMounted(async() => {
 
   ids.forEach(assignSettings);
 
+  authUserSessionTtlMinutes.value = await fetchSetting(SETTING.AUTH_USER_SESSION_TTL_MINUTES);
+
   disableAfterPeriod.value = !!userRetentionSettings[SETTING.DISABLE_INACTIVE_USER_AFTER];
   deleteAfterPeriod.value = !!userRetentionSettings[SETTING.DELETE_INACTIVE_USER_AFTER];
   loading.value = false;
@@ -188,6 +191,7 @@ const setValidation = (formField: string, isValid: boolean) => {
   validation.value[formField] = isValid;
 }
 const { t } = useI18n(store);
+
 const validateUserRetentionCron = () => {
   const { [SETTING.USER_RETENTION_CRON]: cronSetting } = userRetentionSettings;
 
@@ -233,6 +237,26 @@ const validateDeleteInactiveUserAfter = () => {
 
   if (inputDuration.asMilliseconds() < minDuration.asMilliseconds()) {
     return `Invalid value: "${ cronSetting }": must be at least 336h0m0s`;
+  };
+}
+
+const validateDurationAgainstAuthUserSession = (duration: string) => {
+  const durationPattern = /^(\d+)h|(\d+)m|(\d+)s$/;
+  const match = duration?.match(durationPattern);
+
+  if (!match) {
+    return 'Invalid duration format';
+  }
+
+  const hours = match[1] ? parseInt(match[1]) : 0;
+  const minutes = match[2] ? parseInt(match[2]) : 0;
+  const seconds = match[3] ? parseInt(match[3]) : 0;
+
+  const inputDuration = dayjs.duration({ hours, minutes, seconds });
+  const minDuration = dayjs.duration({ minutes: authUserSessionTtlMinutes.value?.value });
+
+  if (inputDuration.asMilliseconds() < minDuration.asMilliseconds()) {
+    return `Invalid value: "${ duration }": must be at least ${ SETTING.AUTH_USER_SESSION_TTL_MINUTES } (${ authUserSessionTtlMinutes.value?.value }m)`;
   };
 }
 
@@ -304,7 +328,7 @@ onBeforeRouteUpdate((_to: unknown, _from: unknown) => {
           class="input-field"
           :label="t('user.retention.edit.form.disableAfter.input.label')"
           :disabled="!disableAfterPeriod"
-          :rules="[validateDurationFormat]"
+          :rules="[validateDurationFormat, validateDurationAgainstAuthUserSession]"
           @update:validation="e => setValidation(SETTING.DISABLE_INACTIVE_USER_AFTER, e)"
         />
       </div>
@@ -322,7 +346,7 @@ onBeforeRouteUpdate((_to: unknown, _from: unknown) => {
           :label="t('user.retention.edit.form.deleteAfter.input.label')"
           :sub-label="t('user.retention.edit.form.deleteAfter.input.subLabel')"
           :disabled="!deleteAfterPeriod"
-          :rules="[validateDurationFormat, validateDeleteInactiveUserAfter]"
+          :rules="[validateDurationFormat, validateDurationAgainstAuthUserSession, validateDeleteInactiveUserAfter]"
           @update:validation="e => setValidation(SETTING.DELETE_INACTIVE_USER_AFTER, e)"
         />
       </div>
