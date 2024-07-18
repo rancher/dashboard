@@ -1,13 +1,14 @@
 <script lang="ts">
 import { defineComponent, PropType } from 'vue';
 import { EKSConfig, AWS } from '../types';
-import { _EDIT, _VIEW } from '@shell/config/query-params';
+import { _EDIT, _VIEW, _CREATE } from '@shell/config/query-params';
 import semver from 'semver';
 import { Store, mapGetters } from 'vuex';
 
 import { MANAGEMENT } from '@shell/config/types';
 import { SETTING } from '@shell/config/settings';
 import RadioGroup from '@components/Form/Radio/RadioGroup.vue';
+import Banner from '@components/Banner/Banner.vue';
 
 import LabeledSelect from '@shell/components/form/LabeledSelect.vue';
 import KeyValue from '@shell/components/form/KeyValue.vue';
@@ -23,7 +24,8 @@ export default defineComponent({
     RadioGroup,
     KeyValue,
     Checkbox,
-    LabeledInput
+    LabeledInput,
+    Banner
   },
 
   props: {
@@ -31,6 +33,7 @@ export default defineComponent({
       type:    String,
       default: _EDIT
     },
+
     isNewOrUnprovisioned: {
       type:    Boolean,
       default: true
@@ -40,6 +43,7 @@ export default defineComponent({
       type:    Boolean,
       default: false
     },
+
     eksRoles: {
       type:    Array,
       default: () => []
@@ -49,26 +53,32 @@ export default defineComponent({
       type:    Object,
       default: () => {}
     },
+
     kmsKey: {
       type:    String,
       default: ''
     },
+
     serviceRole: {
       type:    String,
       default: ''
     },
+
     kubernetesVersion: {
       type:    String,
       default: ''
     },
+
     enableNetworkPolicy: {
       type:    Boolean,
       default: false
     },
+
     ebsCSIDriver: {
       type:    Boolean,
       default: false
     },
+
     config: {
       type:     Object as PropType<EKSConfig>,
       required: true
@@ -120,6 +130,7 @@ export default defineComponent({
       },
       immediate: true
     },
+
     'encryptSecrets'(neu) {
       if (!neu) {
         this.$emit('update:kmsKey', '');
@@ -145,6 +156,23 @@ export default defineComponent({
 
   computed: {
     ...mapGetters({ t: 'i18n/t' }),
+
+    // the control plane k8s version can't be more than one minor version ahead of any node pools
+    // verify that all nodepools are on the same version as the control plane before showing upgrade optiopns
+    canUpgrade(): boolean {
+      if (this.mode === _CREATE) {
+        return true;
+      }
+      const nodeGroups = this.config?.nodeGroups || [];
+
+      const needsUpgrade = nodeGroups.filter((group) => semver.gt(semver.coerce(this.originalVersion), semver.coerce(group.version)) || group._isUpgrading);
+
+      return !needsUpgrade.length;
+    },
+
+    hasUpgradesAvailable() {
+      return this.versionOptions.filter((opt) => !opt.disabled).length > 1;
+    },
 
     versionOptions(): {value: string, label: string, disabled?:boolean}[] {
       return this.allKubernetesVersions.reduce((versions, v: string) => {
@@ -238,6 +266,12 @@ export default defineComponent({
 
 <template>
   <div>
+    <Banner
+      v-if="!canUpgrade && hasUpgradesAvailable"
+      color="info"
+      label-key="eks.version.upgradeDisallowed"
+      data-testid="eks-version-upgrade-disallowed-banner"
+    />
     <div
       :style="{'display':'flex',
                'align-items':'center'}"
@@ -253,6 +287,7 @@ export default defineComponent({
           :taggable="true"
           :searchable="true"
           data-testid="eks-version-dropdown"
+          :disabled="!canUpgrade && hasUpgradesAvailable"
           @input="$emit('update:kubernetesVersion', $event)"
         />
       </div>

@@ -118,6 +118,7 @@ eks:
     label: Tags
   version:
     label: Kubernetes Version
-    upgradeWarning: (minor versio n >1 not allowed by EKS)
+    upgradeWarning: (minor version >1 not allowed by EKS)
+    upgradeDisallowed: "EKS only allows upgrades of one minor version: you must upgrade all node group versions before upgrading the cluster version."
   vpcSubnet:
     label: VPC and Subnet

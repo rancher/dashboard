@@ -243,4 +243,68 @@ describe('eKS K8s configuration', () => {
 
     expect(versionOptions.filter((opt: {label: string, value: string, disabled?:boolean}) => !opt.disabled).map((opt: {label: string, value: string, disabled?:boolean}) => opt.value)).toStrictEqual(enabledVersions);
   });
+
+  it('should not allow the user to upgrade if any node groups are of a lower version', async() => {
+    const setup = requiredSetup({ value: '>1.24' });
+    const wrapper = shallowMount(Config, {
+      propsData: {
+        config: {
+          amazonCredentialSecret: '', region: '', nodeGroups: [{ version: '1.26' }, { version: '1.25' }]
+        },
+        originalVersion: '1.26',
+      },
+      ...setup
+    });
+
+    await setCredential(wrapper);
+
+    const versionDropdown = wrapper.find('[data-testid="eks-version-dropdown"]');
+    const upgradesDisallowedBanner = wrapper.find('[data-testid="eks-version-upgrade-disallowed-banner"]');
+
+    expect(versionDropdown.props().disabled).toBe(true);
+    expect(upgradesDisallowedBanner.isVisible()).toBe(true);
+  });
+
+  // setting/unsetting _isUpgrading is tested in ./NodeGroup.test.ts
+  it('should not allow the user to upgrade if any node groups are currently being upgraded', async() => {
+    const setup = requiredSetup({ value: '>1.24' });
+    const wrapper = shallowMount(Config, {
+      propsData: {
+        config: {
+          amazonCredentialSecret: '', region: '', nodeGroups: [{ version: '1.26' }, { version: '1.26', _isUpgrading: true }]
+        },
+        originalVersion: '1.26',
+      },
+      ...setup
+    });
+
+    await setCredential(wrapper);
+
+    const versionDropdown = wrapper.find('[data-testid="eks-version-dropdown"]');
+    const upgradesDisallowedBanner = wrapper.find('[data-testid="eks-version-upgrade-disallowed-banner"]');
+
+    expect(versionDropdown.props().disabled).toBe(true);
+    expect(upgradesDisallowedBanner.isVisible()).toBe(true);
+  });
+
+  it('should allow the user to upgrade if all node groups are the same version as the current cluster version', async() => {
+    const setup = requiredSetup({ value: '>1.24' });
+    const wrapper = shallowMount(Config, {
+      propsData: {
+        config: {
+          amazonCredentialSecret: '', region: '', nodeGroups: [{ version: '1.26' }, { version: '1.26' }]
+        },
+        originalVersion: '1.26',
+      },
+      ...setup
+    });
+
+    await setCredential(wrapper);
+
+    const versionDropdown = wrapper.find('[data-testid="eks-version-dropdown"]');
+    const upgradesDisallowedBanner = wrapper.find('[data-testid="eks-version-upgrade-disallowed-banner"]');
+
+    expect(versionDropdown.props().disabled).toBe(false);
+    expect(upgradesDisallowedBanner.exists()).toBe(false);
+  });
 });
