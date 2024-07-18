@@ -7,6 +7,7 @@ interface LabeledFormElementProps {
   required: boolean;
   disabled: boolean;
   rules: Array<any>;
+  requireDirty?: boolean;
 }
 
 interface UseLabeledFormElement {
@@ -63,6 +64,10 @@ export const labeledFormElementProps = {
     type:    Boolean,
     default: false,
   },
+  requireDirty: {
+    default: true,
+    type:    Boolean
+  }
 };
 
 export const useLabeledFormElement = (props: LabeledFormElementProps, emit: (event: string, ...args: any[]) => void): UseLabeledFormElement => {
@@ -91,6 +96,8 @@ export const useLabeledFormElement = (props: LabeledFormElementProps, emit: (eve
       const message = requiredRule(value);
 
       if (!!message) {
+        emit('update:validation', false);
+
         return message;
       }
     }
@@ -103,11 +110,13 @@ export const useLabeledFormElement = (props: LabeledFormElementProps, emit: (eve
       }
     }
 
-    if (ruleMessages.length > 0 && (blurred.value || focused.value)) {
+    if (ruleMessages.length > 0 && (blurred.value || focused.value || !props.requireDirty)) {
       emit('update:validation', false);
+
       return ruleMessages.join(', ');
     } else {
       emit('update:validation', true);
+
       return undefined;
     }
   });

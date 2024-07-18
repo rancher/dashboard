@@ -233,6 +233,7 @@ onBeforeRouteUpdate((_to: unknown, _from: unknown) => {
             :tooltip="t('user.retention.edit.form.cron.subLabel')"
             :rules="[validateUserRetentionCron]"
             :label="t('user.retention.edit.form.cron.label')"
+            :require-dirty="false"
             @update:validation="e => setValidation(SETTING.USER_RETENTION_CRON, e)"
           />
         </div>
