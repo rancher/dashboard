@@ -244,6 +244,10 @@ export default class SortableTablePo extends ComponentPo {
     cy.get('tbody', { timeout: 10000 }).find('.data-loading').should('not.exist');
   }
 
+  checkNoRowsNotVisible() {
+    cy.get('tbody', { timeout: 10000 }).find('.no-rows').should('not.exist');
+  }
+
   // pagination
   pagination() {
     return new PaginationPo();

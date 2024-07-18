@@ -1,16 +1,12 @@
-import PagePo from '@/cypress/e2e/po/pages/page.po';
 import MgmtUsersListPo from '@/cypress/e2e/po/lists/management.cattle.io.user.po';
 import MgmtUserEditPo from '@/cypress/e2e/po/edit/management.cattle.io.user.po';
 import MgmtUserResourceDetailPo from '@/cypress/e2e/po/detail/management.cattle.io.user.po';
 import BurgerMenuPo from '@/cypress/e2e/po/side-bars/burger-side-menu.po';
 import ProductNavPo from '@/cypress/e2e/po/side-bars/product-side-nav.po';
 import LinkPo from '@/cypress/e2e/po/components/link.po';
+import ClusterPage from '@/cypress/e2e/po/pages/cluster-page.po';
 
-export default class UsersPo extends PagePo {
-  private static createPath(clusterId: string) {
-    return `/c/${ clusterId }/auth/management.cattle.io.user`;
-  }
-
+export default class UsersPo extends ClusterPage {
   static goTo(path: string): Cypress.Chainable<Cypress.AUTWindow> {
     throw new Error('invalid');
   }
@@ -24,7 +20,7 @@ export default class UsersPo extends PagePo {
   }
 
   constructor(private clusterId = '_') {
-    super(UsersPo.createPath(clusterId));
+    super(clusterId, 'auth/management.cattle.io.user');
   }
 
   waitForRequests() {

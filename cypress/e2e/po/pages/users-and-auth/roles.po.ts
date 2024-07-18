@@ -4,21 +4,17 @@ import GlobalRoleEditPo from '@/cypress/e2e/po/edit/management.cattle.io.globalr
 import RoleTemplateEditPo from '@/cypress/e2e/po/edit/management.cattle.io.roletemplate.po';
 import BaseResourceList from '@/cypress/e2e/po/lists/base-resource-list.po';
 import RoleListPo from '@/cypress/e2e/po/lists/role-list.po';
-import PagePo from '@/cypress/e2e/po/pages/page.po';
 import BurgerMenuPo from '@/cypress/e2e/po/side-bars/burger-side-menu.po';
 import ProductNavPo from '@/cypress/e2e/po/side-bars/product-side-nav.po';
+import ClusterPage from '@/cypress/e2e/po/pages/cluster-page.po';
 
-export default class RolesPo extends PagePo {
-  private static createPath(clusterId: string) {
-    return `/c/${ clusterId }/auth/roles`;
-  }
-
+export default class RolesPo extends ClusterPage {
   static goTo(path: string): Cypress.Chainable<Cypress.AUTWindow> {
     throw new Error('invalid');
   }
 
   constructor(private clusterId = '_') {
-    super(RolesPo.createPath(clusterId));
+    super(clusterId, 'auth/roles');
   }
 
   static navTo() {

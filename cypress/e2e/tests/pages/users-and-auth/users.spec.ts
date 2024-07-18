@@ -4,7 +4,6 @@ import PromptRemove from '@/cypress/e2e/po/prompts/promptRemove.po';
 import * as jsyaml from 'js-yaml';
 import * as path from 'path';
 import { generateUsersDataSmall } from '@/cypress/e2e/blueprints/users/users-get';
-import HomePagePo from '@/cypress/e2e/po/pages/home.po';
 import BurgerMenuPo from '@/cypress/e2e/po/side-bars/burger-side-menu.po';
 
 const usersPo = new UsersPo('_');
@@ -265,7 +264,7 @@ describe('Users', { tags: ['@usersAndAuths', '@adminUser'] }, () => {
     });
   });
 
-  describe('List', { testIsolation: 'off', tags: ['@vai'] }, () => {
+  describe('List', { testIsolation: 'off', tags: ['@vai', '@adminUser'] }, () => {
     const uniqueUserName = 'aaa-e2e-test-name';
     const userIdsList = [];
 
@@ -296,7 +295,7 @@ describe('Users', { tags: ['@usersAndAuths', '@adminUser'] }, () => {
     });
 
     it('pagination is visible and user is able to navigate through users data', () => {
-      UsersPo.navTo();
+      usersPo.goTo(); // This is needed for the @vai only world
       usersPo.waitForPage();
 
       // get users count
@@ -465,8 +464,9 @@ describe('Users', { tags: ['@usersAndAuths', '@adminUser'] }, () => {
 
     it('pagination is hidden', () => {
       generateUsersDataSmall();
-      HomePagePo.goTo(); // this is needed here for the intercept to work
+      usersPo.goTo(); // this is needed here for the intercept to work
       UsersPo.navTo();
+      usersPo.waitForPage();
       cy.wait('@usersDataSmall');
 
       usersPo.list().resourceTable().sortableTable().checkVisible();

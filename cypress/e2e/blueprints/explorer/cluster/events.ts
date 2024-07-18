@@ -5,7 +5,7 @@ const eventsGetEmptyEventsSet = {
   createTypes:  { event: `${ Cypress.env('api') }/v1/events` },
   actions:      {},
   resourceType: 'event',
-  revision:     '95942',
+  revision:     Number.MAX_VALUE, // The UI will use this point in history to start watching for changes from. If it's too low (than the global system revision) we will spam with requests
   data:         []
 };
 
@@ -16,7 +16,7 @@ const eventsGetResponseSmallSet = {
   createTypes:  { event: `${ Cypress.env('api') }/v1/events` },
   actions:      {},
   resourceType: 'event',
-  revision:     '95942',
+  revision:     Number.MAX_VALUE, // The UI will use this point in history to start watching for changes from. If it's too low (than the global system revision) we will spam with requests
   count:        3,
   data:         [
     {

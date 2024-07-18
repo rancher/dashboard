@@ -71,14 +71,15 @@ jobs:
           { username: 'standard_user', tag: '@standardUser' }
         ]
         features:  [
-         ['@navigation', '@extensions'],
-         ['@charts'],
-         ['@explorer'],
-         ['@fleet'],
-         ['@generic', '@globalSettings'],
-         ['@manager'],
-         ['@userMenu', '@usersAndAuths'],
-         ['@components'],
+          ['@navigation', '@extensions'],
+          ['@charts'],
+          ['@explorer'],
+          ['@fleet'],
+          ['@generic', '@globalSettings'],
+          ['@manager'],
+          ['@userMenu', '@usersAndAuths'],
+          ['@components'],
+          ['@vai']
         ]
     runs-on: ubuntu-latest
     steps:
@@ -119,7 +120,6 @@ jobs:
           GREP_TAGS: ${{ matrix.role.tag }}Setup+${{ matrix.features[0] }} --@jenkins ${{ matrix.role.tag }}Setup+${{ matrix.features[1] || matrix.features[0] }} --@jenkins
           TEST_USERNAME: admin
           TEST_ONLY: setup
-      
       - name: Run user tests
         run: |
           yarn e2e:prod

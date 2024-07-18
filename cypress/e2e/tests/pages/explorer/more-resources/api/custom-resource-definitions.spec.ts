@@ -12,9 +12,9 @@ describe('CustomResourceDefinitions', { testIsolation: 'off', tags: ['@explorer'
     cy.login();
   });
 
-  describe('List', { tags: ['@vai'] }, () => {
+  describe('List', { tags: ['@vai', '@adminUser'] }, () => {
     it('can create a crd and see it in list view', () => {
-      CustomResourceDefinitionsPagePo.navTo();
+      crdsPage.goTo();
       crdsPage.waitForPage();
       crdsPage.create();
 
@@ -53,7 +53,7 @@ describe('CustomResourceDefinitions', { testIsolation: 'off', tags: ['@explorer'
       cy.getRancherResource('v1', 'apiextensions.k8s.io.customresourcedefinitions').then((resp: Cypress.Response<any>) => {
         const count = resp.body.count;
 
-        CustomResourceDefinitionsPagePo.navTo();
+        crdsPage.goTo(); // Remove any odd state from previous create (which can result in additional table row not from backend)
         crdsPage.waitForPage();
 
         // pagination is visible
@@ -128,7 +128,8 @@ describe('CustomResourceDefinitions', { testIsolation: 'off', tags: ['@explorer'
     it('sorting changes the order of paginated CRDs data', () => {
       CustomResourceDefinitionsPagePo.navTo();
       crdsPage.waitForPage();
-      crdsPage.sortableTable().checkLoadingIndicatorNotVisible();
+      crdsPage.sortableTable().checkVisible();
+      crdsPage.sortableTable().checkNoRowsNotVisible();
 
       let indexBeforeSort: number;
 
@@ -170,10 +171,10 @@ describe('CustomResourceDefinitions', { testIsolation: 'off', tags: ['@explorer'
       crdsPage.sortableTable().checkRowCount(false, 2);
       crdsPage.sortableTable().pagination().checkNotExists();
     });
-  });
 
-  after('clean up', () => {
-    // delete crd
-    cy.deleteRancherResource('v1', 'apiextensions.k8s.io.customresourcedefinitions', crdName);
+    after('clean up', () => {
+      // delete crd
+      cy.deleteRancherResource('v1', 'apiextensions.k8s.io.customresourcedefinitions', crdName);
+    });
   });
 });
