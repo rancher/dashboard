@@ -69,30 +69,32 @@ export const useUserRetentionValidation = (disableAfterPeriod: Ref<boolean>, del
 
   const validation = ref({
     [SETTING.DISABLE_INACTIVE_USER_AFTER]: true,
-    [SETTING.DELETE_INACTIVE_USER_AFTER]: true,
-    [SETTING.USER_RETENTION_CRON]: true,
-  })
+    [SETTING.DELETE_INACTIVE_USER_AFTER]:  true,
+    [SETTING.USER_RETENTION_CRON]:         true,
+  });
 
   const isFormValid = computed(() => {
-    const validations = validation.value
+    const validations = validation.value;
+
     return !Object.values(validations).includes(false);
-  })
+  });
 
   const setValidation = (formField: string, isValid: boolean) => {
     validation.value[formField] = isValid;
-  }
+  };
 
   const removeCronValidation = () => {
     const { [SETTING.USER_RETENTION_CRON]: _, ...rest } = validation.value;
+
     validation.value = rest;
-  }
+  };
 
   const addCronValidation = () => {
     validation.value = {
       ...validation.value,
       [SETTING.USER_RETENTION_CRON]: true,
-    }
-  }
+    };
+  };
 
   const parseDuration = (duration: string) => {
     const durationPattern = /^(\d+)h|(\d+)m|(\d+)s$/;
@@ -106,7 +108,9 @@ export const useUserRetentionValidation = (disableAfterPeriod: Ref<boolean>, del
     const minutes = match[2] ? parseInt(match[2]) : 0;
     const seconds = match[3] ? parseInt(match[3]) : 0;
 
-    return dayjs.duration({ hours, minutes, seconds });
+    return dayjs.duration({
+      hours, minutes, seconds
+    });
   };
 
   const validateUserRetentionCron = (cronSetting: string | null) => {
@@ -129,12 +133,12 @@ export const useUserRetentionValidation = (disableAfterPeriod: Ref<boolean>, del
       const minDuration = dayjs.duration({ hours: 336 });
 
       if (inputDuration.asMilliseconds() < minDuration.asMilliseconds()) {
-        return `Invalid value: "${duration}": must be at least 336h0m0s`;
+        return `Invalid value: "${ duration }": must be at least 336h0m0s`;
       }
     } catch (error: any) {
       return error.message;
     }
-  }
+  };
 
   const validateDurationAgainstAuthUserSession = (duration: string) => {
     try {
@@ -142,12 +146,12 @@ export const useUserRetentionValidation = (disableAfterPeriod: Ref<boolean>, del
       const minDuration = dayjs.duration({ minutes: authUserSessionTtlMinutes.value?.value });
 
       if (inputDuration.asMilliseconds() < minDuration.asMilliseconds()) {
-        return `Invalid value: "${duration}": must be at least ${SETTING.AUTH_USER_SESSION_TTL_MINUTES} (${authUserSessionTtlMinutes.value?.value}m)`;
+        return `Invalid value: "${ duration }": must be at least ${ SETTING.AUTH_USER_SESSION_TTL_MINUTES } (${ authUserSessionTtlMinutes.value?.value }m)`;
       }
     } catch (error: any) {
       return error.message;
     }
-  }
+  };
 
   return {
     validateUserRetentionCron,
@@ -157,5 +161,5 @@ export const useUserRetentionValidation = (disableAfterPeriod: Ref<boolean>, del
     removeCronValidation,
     addCronValidation,
     isFormValid,
-  }
+  };
 };
