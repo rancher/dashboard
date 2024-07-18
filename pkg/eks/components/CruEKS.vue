@@ -202,6 +202,10 @@ export default defineComponent({
         path:  'networking',
         rules: ['publicPrivateAccess']
       },
+      {
+        path:  'minMaxDesired',
+        rules: ['minMaxDesired', 'minLessThanMax']
+      },
       ],
 
       loadingInstanceTypes:   false,
@@ -281,6 +285,8 @@ export default defineComponent({
           desiredSize:            EKSValidators.desiredSize(this),
           subnets:                EKSValidators.subnets(this),
           publicPrivateAccess:    EKSValidators.publicPrivateAccess(this),
+          minMaxDesired:          EKSValidators.minMaxDesired(this),
+          minLessThanMax:         EKSValidators.minLessThanMax(this),
         };
       }
 
@@ -629,7 +635,8 @@ export default defineComponent({
               minSize: fvGetAndReportPathRules('minSize'),
               desiredSize: fvGetAndReportPathRules('desiredSize'),
               instanceType: fvGetAndReportPathRules('instanceType'),
-              diskSize: fvGetAndReportPathRules('diskSize')
+              diskSize: fvGetAndReportPathRules('diskSize'),
+              minMaxDesired: fvGetAndReportPathRules('minMaxDesired')
             }"
             :node-role.sync="node.nodeRole"
             :launch-template.sync="node.launchTemplate"

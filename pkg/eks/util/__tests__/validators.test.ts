@@ -100,3 +100,106 @@ describe('validate EKS node group names', () => {
     expect(res).toBe(expected);
   });
 });
+
+describe('validate EKS node group desired size', () => {
+  it('should return an error if the desired size is less than the minimum size', () => {
+    const ctx = {
+      config: { },
+      t:      mockTranslation,
+    } as any as CruEKSContext;
+
+    const res = EKSValidators.minMaxDesired(ctx)({
+      minSize: 2, desiredSize: 1, maxSize: 2
+    });
+
+    expect(res).toBeDefined();
+  });
+
+  it('should return an error if the desired size is greater than the maximum size', () => {
+    const ctx = {
+      config: { },
+      t:      mockTranslation,
+    } as any as CruEKSContext;
+
+    const res = EKSValidators.minMaxDesired(ctx)({
+      minSize: 1, desiredSize: 3, maxSize: 2
+    });
+
+    expect(res).toBeDefined();
+  });
+
+  it('should not return an error if the desired size is equal to the minimum and maximum sizes', () => {
+    const ctx = {
+      config: { },
+      t:      mockTranslation,
+    } as any as CruEKSContext;
+
+    const res = EKSValidators.minMaxDesired(ctx)({
+      minSize: 1, desiredSize: 1, maxSize: 1
+    });
+
+    expect(res).toBeUndefined();
+  });
+
+  it.each([
+    [[{
+      minSize: 1, desiredSize: 1, maxSize: 1
+    }, {
+      minSize: 1, desiredSize: 3, maxSize: 1
+    }], 'eks.errors.minMaxDesired'],
+    [[{
+      minSize: 1, desiredSize: 1, maxSize: 1
+    }, {
+      minSize: 1, desiredSize: 3, maxSize: 4
+    }], undefined]
+  ])('should validate each node group in the component context if not called with specific size arguments', (nodeGroups, errMsg) => {
+    const ctx = {
+      config: { },
+      t:      mockTranslation,
+      nodeGroups
+    } as any as CruEKSContext;
+
+    const res = EKSValidators.minMaxDesired(ctx)();
+
+    expect(res).toBe(errMsg);
+  });
+});
+
+describe('validate EKS node group minimum and maximum size', () => {
+  it('should return an error if the minimum size is greater than the maximum size', () => {
+    const ctx = {
+      config: { },
+      t:      mockTranslation,
+    } as any as CruEKSContext;
+
+    const res = EKSValidators.minLessThanMax(ctx)({ minSize: 2, maxSize: 1 });
+
+    expect(res).toBe('eks.errors.minLessThanMax');
+  });
+
+  it('should not return an error if the minimum and maximum sizes are equal', () => {
+    const ctx = {
+      config: { },
+      t:      mockTranslation,
+    } as any as CruEKSContext;
+
+    const res = EKSValidators.minLessThanMax(ctx)({ minSize: 2, maxSize: 2 });
+
+    expect(res).toBeUndefined();
+  });
+
+  it.each([
+    [[{ minSize: 1, maxSize: 1 }, { minSize: 3, maxSize: 1 }], 'eks.errors.minLessThanMax'],
+    [[{ minSize: 1, maxSize: 1 }, { minSize: 1, maxSize: 4 }], undefined]
+  ])('should validate each node group in the component context if not called with specific size arguments', (nodeGroups, errMsg) => {
+    const ctx = {
+      config: { },
+      t:      mockTranslation,
+      nodeGroups
+    } as any as CruEKSContext;
+
+    const res = EKSValidators.minLessThanMax(ctx)();
+
+    expect(res).toBe(errMsg);
+  });
+});
