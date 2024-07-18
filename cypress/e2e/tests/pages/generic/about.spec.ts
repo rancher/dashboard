@@ -1,10 +1,10 @@
 import HomePagePo from '@/cypress/e2e/po/pages/home.po';
 import AboutPagePo from '@/cypress/e2e/po/pages/about.po';
 import DiagnosticsPagePo from '@/cypress/e2e/po/pages/diagnostics.po';
-// import * as path from 'path';
+import * as path from 'path';
 
 const aboutPage = new AboutPagePo();
-// const downloadsFolder = Cypress.config('downloadsFolder');
+const downloadsFolder = Cypress.config('downloadsFolder');
 
 describe('About Page', { testIsolation: 'off', tags: ['@generic', '@adminUser', '@standardUser'] }, () => {
   before(() => {
@@ -80,36 +80,35 @@ describe('About Page', { testIsolation: 'off', tags: ['@generic', '@adminUser', 
     });
   });
 
-  // describe('Image List', () => {
-  //   before(() => {
-  //     aboutPage.goTo();
-  //   });
+  describe('Image List', () => {
+    before(() => {
+      aboutPage.goTo();
+    });
 
-  // reinstate when server-version issue is corrected https://github.com/rancher/rancher/issues/46152
-  //   it('can download Linux Image List', () => {
-  //     // Download txt and verify file exists
-  //     const downloadedFilename = path.join(downloadsFolder, 'rancher-linux-images.txt');
+    it('can download Linux Image List', () => {
+      // Download txt and verify file exists
+      const downloadedFilename = path.join(downloadsFolder, 'rancher-linux-images.txt');
 
-  //     aboutPage.getLinuxDownloadLink().click();
+      aboutPage.getLinuxDownloadLink().click();
 
-  //     cy.getRancherResource('v1', 'management.cattle.io.settings', 'server-version').then((resp: Cypress.Response<any>) => {
-  //       const rancherVersion = resp.body['value'];
+      cy.getRancherResource('v1', 'management.cattle.io.settings', 'server-version').then((resp: Cypress.Response<any>) => {
+        const rancherVersion = resp.body['value'];
 
-  //       cy.readFile(downloadedFilename).should('contain', rancherVersion);
-  //     });
-  //   });
+        cy.readFile(downloadedFilename).should('contain', rancherVersion);
+      });
+    });
 
-  //   it('can download Windows Image List', () => {
-  //     const downloadedFilename = path.join(downloadsFolder, 'rancher-windows-images.txt');
+    it('can download Windows Image List', () => {
+      const downloadedFilename = path.join(downloadsFolder, 'rancher-windows-images.txt');
 
-  //     aboutPage.getWindowsDownloadLink().click();
-  //     cy.getRancherResource('v1', 'management.cattle.io.settings', 'server-version').then((resp: Cypress.Response<any>) => {
-  //       const rancherVersion = resp.body['value'];
+      aboutPage.getWindowsDownloadLink().click();
+      cy.getRancherResource('v1', 'management.cattle.io.settings', 'server-version').then((resp: Cypress.Response<any>) => {
+        const rancherVersion = resp.body['value'];
 
-  //       cy.readFile(downloadedFilename).should('contain', rancherVersion);
-  //     });
-  //   });
-  // });
+        cy.readFile(downloadedFilename).should('contain', rancherVersion);
+      });
+    });
+  });
 
   describe('CLI Downloads', () => {
     // workaround to make the following CLI tests work https://github.com/cypress-io/cypress/issues/8089#issuecomment-1585159023

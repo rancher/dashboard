@@ -12,7 +12,7 @@ describe('Workspaces', { testIsolation: 'off', tags: ['@fleet', '@adminUser'] },
     cy.login();
   });
 
-  describe('List', { tags: ['@vai'] }, () => {
+  describe('List', { tags: ['@vai', '@adminUser'] }, () => {
     it('check table headers are available in list and details view', () => {
       FleetWorkspaceListPagePo.navTo();
       fleetWorkspacesPage.waitForPage();

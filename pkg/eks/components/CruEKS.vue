@@ -202,6 +202,10 @@ export default defineComponent({
         path:  'networking',
         rules: ['publicPrivateAccess']
       },
+      {
+        path:  'minMaxDesired',
+        rules: ['minMaxDesired', 'minLessThanMax']
+      },
       ],
 
       loadingInstanceTypes:   false,
@@ -281,6 +285,8 @@ export default defineComponent({
           desiredSize:            EKSValidators.desiredSize(this),
           subnets:                EKSValidators.subnets(this),
           publicPrivateAccess:    EKSValidators.publicPrivateAccess(this),
+          minMaxDesired:          EKSValidators.minMaxDesired(this),
+          minLessThanMax:         EKSValidators.minLessThanMax(this),
         };
       }
 
@@ -629,7 +635,8 @@ export default defineComponent({
               minSize: fvGetAndReportPathRules('minSize'),
               desiredSize: fvGetAndReportPathRules('desiredSize'),
               instanceType: fvGetAndReportPathRules('instanceType'),
-              diskSize: fvGetAndReportPathRules('diskSize')
+              diskSize: fvGetAndReportPathRules('diskSize'),
+              minMaxDesired: fvGetAndReportPathRules('minMaxDesired')
             }"
             :node-role.sync="node.nodeRole"
             :launch-template.sync="node.launchTemplate"
@@ -676,7 +683,7 @@ export default defineComponent({
       >
         <Config
           :kubernetes-version.sync="config.kubernetesVersion"
-          :enable-network-policy.sync="config.enableNetworkPolicy"
+          :enable-network-policy.sync="normanCluster.enableNetworkPolicy"
           :ebs-c-s-i-driver.sync="config.ebsCSIDriver"
           :service-role.sync="config.serviceRole"
           :kms-key.sync="config.kmsKey"
@@ -686,6 +693,7 @@ export default defineComponent({
           :eks-roles="eksRoles"
           :loading-iam="loadingIam"
           :original-version="originalVersion"
+          data-testid="eks-config-section"
           @error="e=>errors.push(e)"
         />
       </Accordion>

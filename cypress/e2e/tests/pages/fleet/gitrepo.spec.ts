@@ -144,7 +144,7 @@ describe('Git Repo', { testIsolation: 'off', tags: ['@fleet', '@adminUser'] }, (
       ;
     });
 
-    it('check table headers are available in list and details view', { tags: ['@vai'] }, function() {
+    it('check table headers are available in list and details view', { tags: ['@vai', '@adminUser'] }, function() {
       const workspace = 'fleet-default';
 
       // go to fleet gitrepo

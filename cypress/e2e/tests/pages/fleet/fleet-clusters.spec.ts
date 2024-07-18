@@ -345,7 +345,7 @@ describe('Fleet Clusters', { tags: ['@fleet', '@adminUser'] }, () => {
       });
     });
 
-    it('check table headers are available in list and details view', { tags: ['@vai'] }, () => {
+    it('check table headers are available in list and details view', { tags: ['@vai', '@adminUser'] }, () => {
       const clusterName = 'local';
 
       // create gitrepo

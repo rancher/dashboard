@@ -8,7 +8,7 @@ describe('RoleBindings', { testIsolation: 'off', tags: ['@explorer', '@adminUser
     cy.login();
   });
 
-  describe('List', { tags: ['@vai'] }, () => {
+  describe('List', { tags: ['@vai', '@adminUser'] }, () => {
     before('set up', () => {
       cy.updateNamespaceFilter('local', 'none', '{\"local\":[]}');
     });

@@ -10,7 +10,7 @@ describe('Bundles', { testIsolation: 'off', tags: ['@fleet', '@adminUser'] }, ()
   const fleetBundles = new FleetBundlesListPagePo();
   const headerPo = new HeaderPo();
 
-  describe('List', { tags: ['@vai'] }, () => {
+  describe('List', { tags: ['@vai', '@adminUser'] }, () => {
     before(() => {
       cy.login();
     });

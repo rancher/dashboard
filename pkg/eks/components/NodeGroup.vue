@@ -414,6 +414,22 @@ export default defineComponent({
       }
     },
 
+    minMaxDesiredErrors() {
+      const errs = (this.rules?.minMaxDesired || []).reduce((errs: string[], rule: Function) => {
+        const err = rule({
+          minSize: this.minSize, maxSize: this.maxSize, desiredSize: this.desiredSize
+        });
+
+        if (err) {
+          errs.push(err);
+        }
+
+        return errs;
+      }, [] as string[]);
+
+      return errs.length ? errs.join(' ') : null;
+    },
+
     isView() {
       return this.mode === _VIEW;
     }
@@ -549,7 +565,7 @@ export default defineComponent({
           label-key="eks.nodeGroups.desiredSize.label"
           :mode="mode"
           :rules="rules.desiredSize"
-          @input="$emit('update:desiredSize', $event)"
+          @input="$emit('update:desiredSize', parseInt($event))"
         />
       </div>
       <div class="col span-4">
@@ -559,7 +575,7 @@ export default defineComponent({
           label-key="eks.nodeGroups.minSize.label"
           :mode="mode"
           :rules="rules.minSize"
-          @input="$emit('update:minSize', $event)"
+          @input="$emit('update:minSize', parseInt($event))"
         />
       </div>
       <div class="col span-4">
@@ -569,10 +585,15 @@ export default defineComponent({
           label-key="eks.nodeGroups.maxSize.label"
           :mode="mode"
           :rules="rules.maxSize"
-          @input="$emit('update:maxSize', $event)"
+          @input="$emit('update:maxSize', parseInt($event))"
         />
       </div>
     </div>
+    <Banner
+      v-if="!!minMaxDesiredErrors"
+      color="error"
+      :label="minMaxDesiredErrors"
+    />
     <div class="row mb-10">
       <div class="col span-6">
         <KeyValue

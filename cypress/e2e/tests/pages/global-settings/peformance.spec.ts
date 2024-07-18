@@ -1,6 +1,5 @@
 import { PerformancePagePo } from '@/cypress/e2e/po/pages/global-settings/performance.po';
 import HomePagePo from '@/cypress/e2e/po/pages/home.po';
-import CardPo from '@/cypress/e2e/po/components/card.po';
 
 const performancePage = new PerformancePagePo();
 const performanceSettingsOrginal = [];
@@ -169,10 +168,8 @@ describe('Performance', { testIsolation: 'off', tags: ['@globalSettings', '@admi
     performancePage.namespaceFilteringCheckbox().isUnchecked();
     performancePage.namespaceFilteringCheckbox().set();
 
-    const cardPo = new CardPo();
-
-    cardPo.getBody().contains('Required Namespace / Project Filtering is incomaptible with Manual Refresh and Incremental Loading. Enabling this will disable them.');
-    cardPo.getActionButton().contains('Enable').click();
+    performancePage.incompatibleModal().getBody().contains('Required Namespace / Project Filtering is incompatible with Manual Refresh and Incremental Loading. Enabling this will disable them.');
+    performancePage.incompatibleModal().submit('Enable');
     performancePage.namespaceFilteringCheckbox().isChecked();
     performancePage.applyAndWait('forceNsFilterV2-true').then(({ request, response }) => {
       expect(response?.statusCode).to.eq(200);

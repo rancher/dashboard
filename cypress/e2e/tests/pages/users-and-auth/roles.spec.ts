@@ -6,18 +6,18 @@ import * as path from 'path';
 import * as jsyaml from 'js-yaml';
 import ProductNavPo from '@/cypress/e2e/po/side-bars/product-side-nav.po';
 import { generateGlobalRolesDataSmall } from '@/cypress/e2e/blueprints/roles/global-roles-get';
-import HomePagePo from '@/cypress/e2e/po/pages/home.po';
+import { BLANK_CLUSTER } from '@shell/store/store-types.js';
 
-const roles = new RolesPo('_');
-const usersPo = new UsersPo('_');
+const roles = new RolesPo(BLANK_CLUSTER);
+const usersPo = new UsersPo(BLANK_CLUSTER);
 const userCreate = usersPo.createEdit();
 const sideNav = new ProductNavPo();
 
 const downloadsFolder = Cypress.config('downloadsFolder');
 
-let runTimestamp;
-let runPrefix;
-let globalRoleName;
+let runTimestamp: number;
+let runPrefix: string;
+let globalRoleName: string;
 
 describe('Roles Templates', { tags: ['@usersAndAuths', '@adminUser'] }, () => {
   describe('Roles', () => {
@@ -25,9 +25,10 @@ describe('Roles Templates', { tags: ['@usersAndAuths', '@adminUser'] }, () => {
       cy.login();
       cy.viewport(1280, 720);
     });
+
     it('can create a Global Role', () => {
-    // We want to define these here because if this test fails after it created the global role all subsequent
-    // retries will reference the wrong global-role because a second roll will with the same name but different id will be created
+      // We want to define these here because if this test fails after it created the global role all subsequent
+      // retries will reference the wrong global-role because a second roll will with the same name but different id will be created
       runTimestamp = +new Date();
       runPrefix = `e2e-test-${ runTimestamp }`;
       globalRoleName = `${ runPrefix }-my-global-role`;
@@ -221,7 +222,7 @@ describe('Roles Templates', { tags: ['@usersAndAuths', '@adminUser'] }, () => {
     });
   });
 
-  describe('List', { testIsolation: 'off', tags: ['@vai'] }, () => {
+  describe('List', { testIsolation: 'off', tags: ['@vai', '@adminUser'] }, () => {
     const uniqueRoleName = 'aaa-e2e-test-name';
     const globalRolesIdsList = [];
     const rolesList = roles.list('GLOBAL');
@@ -257,6 +258,7 @@ describe('Roles Templates', { tags: ['@usersAndAuths', '@adminUser'] }, () => {
       cy.getRancherResource('v1', 'management.cattle.io.globalroles').then((resp: Cypress.Response<any>) => {
         const count = resp.body.count;
 
+        usersPo.goTo(); // This is needed for the @vai only world
         RolesPo.navTo();
         roles.waitForPage();
 
@@ -430,8 +432,9 @@ describe('Roles Templates', { tags: ['@usersAndAuths', '@adminUser'] }, () => {
 
     it('pagination is hidden', () => {
       generateGlobalRolesDataSmall();
-      HomePagePo.goTo(); // this is needed here for the intercept to work
+      usersPo.goTo(); // this is needed here for the intercept to work
       RolesPo.navTo();
+      roles.waitForPage();
       cy.wait('@globalRolesDataSmall');
 
       rolesList.resourceTable().sortableTable().checkVisible();
