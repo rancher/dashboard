@@ -35,6 +35,8 @@ const {
   validateDeleteInactiveUserAfter,
   validateDurationAgainstAuthUserSession,
   setValidation,
+  removeCronValidation,
+  addCronValidation,
   isFormValid,
 } = useUserRetentionValidation(disableAfterPeriod, deleteAfterPeriod, authUserSessionTtlMinutes);
 let settings: { [id: string]: Setting } = {};
@@ -78,7 +80,7 @@ watch([disableAfterPeriod, deleteAfterPeriod], ([newDisableAfterPeriod, newDelet
       userRetentionSettings[key] = null;
     });
 
-    validateUserRetentionCron(userRetentionSettings[SETTING.USER_RETENTION_CRON]);
+    removeCronValidation();
 
     return;
   }
@@ -86,7 +88,7 @@ watch([disableAfterPeriod, deleteAfterPeriod], ([newDisableAfterPeriod, newDelet
   ids.filter((id) => ![SETTING.DISABLE_INACTIVE_USER_AFTER, SETTING.DELETE_INACTIVE_USER_AFTER].includes(id))
     .forEach(assignSettings);
 
-  validateUserRetentionCron(userRetentionSettings[SETTING.USER_RETENTION_CRON]);
+  addCronValidation();
 });
 
 const assignSettings = (key: string) => {
@@ -125,8 +127,6 @@ onMounted(async() => {
   disableAfterPeriod.value = !!userRetentionSettings[SETTING.DISABLE_INACTIVE_USER_AFTER];
   deleteAfterPeriod.value = !!userRetentionSettings[SETTING.DELETE_INACTIVE_USER_AFTER];
   loading.value = false;
-
-  validateUserRetentionCron(userRetentionSettings[SETTING.USER_RETENTION_CRON]);
 });
 
 const { t } = useI18n(store);

@@ -82,6 +82,18 @@ export const useUserRetentionValidation = (disableAfterPeriod: Ref<boolean>, del
     validation.value[formField] = isValid;
   }
 
+  const removeCronValidation = () => {
+    const { [SETTING.USER_RETENTION_CRON]: _, ...rest } = validation.value;
+    validation.value = rest;
+  }
+
+  const addCronValidation = () => {
+    validation.value = {
+      ...validation.value,
+      [SETTING.USER_RETENTION_CRON]: true,
+    }
+  }
+
   const parseDuration = (duration: string) => {
     const durationPattern = /^(\d+)h|(\d+)m|(\d+)s$/;
     const match = duration?.match(durationPattern);
@@ -103,11 +115,10 @@ export const useUserRetentionValidation = (disableAfterPeriod: Ref<boolean>, del
       return;
     }
 
-    if (!cronSetting) {
-      return;
-    }
-
-    if (typeof cronSetting === 'string' && !isValidCron(cronSetting)) {
+    if (
+      !cronSetting ||
+      (typeof cronSetting === 'string' && !isValidCron(cronSetting))
+    ) {
       return t('user.retention.edit.form.cron.errorMessage');
     }
   };
@@ -143,6 +154,8 @@ export const useUserRetentionValidation = (disableAfterPeriod: Ref<boolean>, del
     validateDeleteInactiveUserAfter,
     validateDurationAgainstAuthUserSession,
     setValidation,
+    removeCronValidation,
+    addCronValidation,
     isFormValid,
   }
 };
