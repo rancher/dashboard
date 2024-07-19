@@ -2,7 +2,9 @@
 
 ## First login
 
-Please refer to the [Rancher documentation.](https://extensions.rancher.io/internal/code-base-works/auth-sessions-and-tokens) for detailed password requirements.
+After instantiating Rancher for the first time, it will be required to pick a bootstrap password, which will be the `admin` password. Is it possible to include as environment variable `CATTLE_BOOTSTRAP_PASSWORD`.
+
+Please refer to the [Rancher documentation.](https://ranchermanager.docs.rancher.com/getting-started/installation-and-upgrade/resources/bootstrap-password#password-requirements) for detailed password requirements.
 
 ## Cookies
 
