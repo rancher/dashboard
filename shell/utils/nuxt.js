@@ -84,7 +84,8 @@ export function sanitizeComponent(Component) {
 }
 
 export function getMatchedComponents(route, matches = false, prop = 'components') {
-  return Array.prototype.concat.apply([], route.matched.map((m, index) => {
+  const matched = route?.matched ?? route?.value?.matched ?? [];
+  return Array.prototype.concat.apply([], matched.map((m, index) => {
     return Object.keys(m[prop]).map((key) => {
       matches && matches.push(index);
 
@@ -94,7 +95,9 @@ export function getMatchedComponents(route, matches = false, prop = 'components'
 }
 
 export function flatMapComponents(route, fn) {
-  return Array.prototype.concat.apply([], route.matched.map((m, index) => {
+  const matched = route?.matched ?? route?.value?.matched ?? [];
+
+  return Array.prototype.concat.apply([], matched.map((m, index) => {
     return Object.keys(m.components).reduce((promises, key) => {
       if (m.components[key]) {
         promises.push(fn(m.components[key], m.instances[key], m, key, index));
