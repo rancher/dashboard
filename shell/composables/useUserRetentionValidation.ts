@@ -77,6 +77,9 @@ export const useUserRetentionValidation = (disableAfterPeriod: Ref<boolean>, del
   const store = useStore();
   const { t } = useI18n(store);
 
+  /**
+   * Tracks the validation state for user retention fields
+   */
   const validation = ref({
     [SETTING.DISABLE_INACTIVE_USER_AFTER]: true,
     [SETTING.DELETE_INACTIVE_USER_AFTER]:  true,
@@ -106,6 +109,11 @@ export const useUserRetentionValidation = (disableAfterPeriod: Ref<boolean>, del
     };
   };
 
+  /**
+   * Takes a duration string and produces a dayjs duration object.
+   * @param duration Duration string in {h|m|s} (e.g. 6h3m2s)
+   * @returns Day.js duration object
+   */
   const parseDuration = (duration: string) => {
     const durationPattern = /^(\d+)h|(\d+)m|(\d+)s$/;
     const match = duration?.match(durationPattern);
@@ -123,6 +131,12 @@ export const useUserRetentionValidation = (disableAfterPeriod: Ref<boolean>, del
     });
   };
 
+  /**
+   * Asserts that a given string is a valid cron expression
+   * @param cronSetting Cron expression to test
+   * @returns Undefined if cron expression is valid; Error string for an invalid
+   * cron expression.
+   */
   const validateUserRetentionCron = (cronSetting: string | null): string | undefined => {
     // Only require user retention cron when disable or delete after are active
     if (!disableAfterPeriod.value && !deleteAfterPeriod.value) {
@@ -137,6 +151,13 @@ export const useUserRetentionValidation = (disableAfterPeriod: Ref<boolean>, del
     }
   };
 
+  /**
+   * Asserts that the provided duration is greater than the default minimum of
+   * 336h
+   * @param duration Duration string in {h|m|s} (e.g. 6h3m2s)
+   * @returns Undefined if duration is valid; Error string for an invalid
+   * duration
+   */
   const validateDeleteInactiveUserAfter = (duration: string): string | undefined => {
     try {
       const inputDuration = parseDuration(duration);
@@ -150,6 +171,12 @@ export const useUserRetentionValidation = (disableAfterPeriod: Ref<boolean>, del
     }
   };
 
+  /**
+   * Asserts that the provided duration is not less than the user session TTL
+   * @param duration Duration string in {h|m|s} (e.g. 6h3m2s)
+   * @returns Undefined if duration is valid; Error string for an invalid
+   * duration
+   */
   const validateDurationAgainstAuthUserSession = (duration: string): string | undefined => {
     try {
       const inputDuration = parseDuration(duration);
