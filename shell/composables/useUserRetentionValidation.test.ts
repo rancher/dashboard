@@ -1,5 +1,6 @@
 import { ref } from 'vue';
-import { useUserRetentionValidation, Setting } from './useUserRetentionValidation';
+import { useUserRetentionValidation } from './useUserRetentionValidation';
+import type { Setting } from '@shell/types/resources/settings';
 
 const mockStore = { dispatch: jest.fn() };
 

@@ -3,65 +3,12 @@ import { Ref, ComputedRef, ref, computed } from 'vue';
 import { SETTING } from '@shell/config/settings';
 import { useStore } from '@shell/composables/useStore';
 import { useI18n } from '@shell/composables/useI18n';
+import type { Setting } from '@shell/types/resources/settings';
 
 import { isValidCron } from 'cron-validator';
 import dayjs from 'dayjs';
 import duration from 'dayjs/plugin/duration';
 dayjs.extend(duration);
-
-type Links = {
-  remove: string;
-  self: string;
-  update: string;
-  view: string;
-};
-
-type FieldsV1 = {
-  'f:customized': {};
-  'f:default': {};
-  'f:source': {};
-  'f:value': {};
-};
-
-type ManagedFields = {
-  apiVersion: string;
-  fieldsType: string;
-  fieldsV1: FieldsV1;
-  manager: string;
-  operation: string;
-  time: string;
-};
-
-type Metadata = {
-  creationTimestamp: string;
-  fields: string[];
-  generation: number;
-  managedFields: ManagedFields[];
-  name: string;
-  relationships: null;
-  resourceVersion: string;
-  state: {
-    error: boolean;
-    message: string;
-    name: string;
-    transitioning: boolean;
-  };
-  uid: string;
-};
-
-export type Setting = {
-  id: string;
-  type: string;
-  links: Links;
-  apiVersion: string;
-  customized: boolean;
-  default: string;
-  kind: string;
-  metadata: Metadata;
-  source: string;
-  value: string | null;
-  save: () => void;
-};
 
 interface UseUserRetentionValidation {
   validateUserRetentionCron: (cronSetting: string | null) => string | undefined;

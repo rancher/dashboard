@@ -6,10 +6,12 @@ import UserRetentionHeader from '@shell/components/user.retention/user-retention
 import Footer from '@shell/components/form/Footer.vue';
 import { useStore } from '@shell/composables/useStore';
 import { useI18n } from '@shell/composables/useI18n';
-import { useUserRetentionValidation, Setting } from '@shell/composables/useUserRetentionValidation';
+import { useUserRetentionValidation } from '@shell/composables/useUserRetentionValidation';
 import { MANAGEMENT } from '@shell/config/types';
 import { SETTING } from '@shell/config/settings';
 import { isAdminUser } from '@shell/store/type-map';
+
+import type { Setting } from '@shell/types/resources/settings';
 
 import Banner from '@components/Banner/Banner.vue';
 import Checkbox from '@components/Form/Checkbox/Checkbox.vue';
