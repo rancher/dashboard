@@ -1,4 +1,5 @@
-import Vue from 'vue';
+import { createApp } from 'vue';
+const vueApp = createApp({});
 import { parse } from '@shell/utils/url';
 import { CATALOG } from '@shell/config/labels-annotations';
 import { insertAt } from '@shell/utils/array';
@@ -9,7 +10,7 @@ import SteveModel from '@shell/plugins/steve/steve-class';
 export default class ClusterRepo extends SteveModel {
   applyDefaults() {
     if ( !this.spec ) {
-      Vue.set(this, 'spec', { url: '' });
+      this['spec'] = { url: '' };
     }
   }
 

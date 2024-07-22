@@ -129,7 +129,7 @@ export default {
      */
     initializeStorage() {
       if (!this.value.volumes) {
-        this.$set(this.value, 'volumes', []);
+        this.value['volumes'] = [];
       }
     },
 
@@ -250,7 +250,6 @@ export default {
   <div>
     <!-- Storage Volumes -->
     <ArrayListGrouped
-      :key="value.volumes.length"
       v-model="value.volumes"
       :mode="mode"
       @remove="removeVolume"
@@ -262,7 +261,7 @@ export default {
           <component
             :is="getComponent(volumeType(props.row.value))"
             v-if="getComponent(volumeType(props.row.value))"
-            :value="props.row.value"
+            :modelValue="props.row.value"
             :pod-spec="value"
             :mode="mode"
             :namespace="namespace"
@@ -277,7 +276,7 @@ export default {
           <div v-else-if="isView">
             <CodeMirror
               ref="cm"
-              :value="yamlDisplay(props.row.value)"
+              :modelValue="yamlDisplay(props.row.value)"
               :options="{ readOnly: true, cursorBlinkRate: -1 }"
             />
           </div>
@@ -312,7 +311,7 @@ export default {
   margin: 20px 0px 20px 0px;
   position: relative;
 
-  ::v-deep .code-mirror {
+  :deep() .code-mirror {
     .CodeMirror {
       background-color: var(--yaml-editor-bg);
       & .CodeMirror-gutters {

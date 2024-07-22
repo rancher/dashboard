@@ -33,7 +33,7 @@ export default {
 <template>
   <LabeledSelect
     v-bind="$attrs"
-    :value="value"
+    :modelValue="value"
     option-key="metadata.name"
     option-label="metadata.name"
     :create-option="createNewStorageClassName"
@@ -41,6 +41,6 @@ export default {
     :options="options"
     :push-tags="true"
     :taggable="true"
-    @input="updateName"
+    @update:modelValue="updateName"
   />
 </template>

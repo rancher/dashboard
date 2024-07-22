@@ -76,7 +76,7 @@ export default {
         this.value.simple = this.simpleOptions[0];
       } else {
         delete this.value.simple;
-        this.$set(this.value, 'consistentHash', { minimumRingSize: 1024 });
+        this.value['consistentHash'] = { minimumRingSize: 1024 };
         // set hashMode here to trigger watcher and initialize relevant object props
         this.hashMode = 'useHeader';
       }
@@ -87,16 +87,16 @@ export default {
       case 'useHeader':
         delete this.value.consistentHash.httpCookie;
         delete this.value.consistentHash.useSourceIp;
-        this.$set(this.value.consistentHash, 'httpHeaderName', '');
+        this.value.consistentHash['httpHeaderName'] = '';
         break;
       case 'useCookie':
         delete this.value.consistentHash.httpHeaderName;
-        this.$set(this.value.consistentHash, 'httpCookie', {});
+        this.value.consistentHash['httpCookie'] = {};
         break;
       default:
         delete this.value.consistentHash.httpCookie;
         delete this.value.consistentHash.httpHeaderName;
-        this.$set(this.value.consistentHash, 'useSourceIp', true);
+        this.value.consistentHash['useSourceIp'] = true;
         break;
       }
     }

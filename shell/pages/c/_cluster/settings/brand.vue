@@ -291,7 +291,7 @@ export default {
               :mode="mode"
               accept="image/jpeg,image/png,image/svg+xml"
               @error="setError"
-              @input="updateBranding($event, 'uiLogoLight')"
+              @update:modelValue="updateBranding($event, 'uiLogoLight')"
             />
           </div>
           <SimpleBox
@@ -316,7 +316,7 @@ export default {
               :mode="mode"
               accept="image/jpeg,image/png,image/svg+xml"
               @error="setError"
-              @input="updateBranding($event, 'uiLogoDark')"
+              @update:modelValue="updateBranding($event, 'uiLogoDark')"
             />
           </div>
           <SimpleBox
@@ -362,7 +362,7 @@ export default {
               :mode="mode"
               accept="image/jpeg,image/png,image/svg+xml"
               @error="setError"
-              @input="updateBranding($event, 'uiBannerLight')"
+              @update:modelValue="updateBranding($event, 'uiBannerLight')"
             />
           </div>
           <SimpleBox
@@ -387,7 +387,7 @@ export default {
               :mode="mode"
               accept="image/jpeg,image/png,image/svg+xml"
               @error="setError"
-              @input="updateBranding($event, 'uiBannerDark')"
+              @update:modelValue="updateBranding($event, 'uiBannerDark')"
             />
           </div>
           <SimpleBox
@@ -433,7 +433,7 @@ export default {
               :mode="mode"
               accept="image/jpeg,image/png,image/svg+xml"
               @error="setError"
-              @input="updateBranding($event, 'uiLoginBackgroundLight')"
+              @update:modelValue="updateBranding($event, 'uiLoginBackgroundLight')"
             />
           </div>
           <SimpleBox
@@ -458,7 +458,7 @@ export default {
               :mode="mode"
               accept="image/jpeg,image/png,image/svg+xml"
               @error="setError"
-              @input="updateBranding($event, 'uiLoginBackgroundDark')"
+              @update:modelValue="updateBranding($event, 'uiLoginBackgroundDark')"
             />
           </div>
           <SimpleBox
@@ -504,7 +504,7 @@ export default {
               :mode="mode"
               accept="image/jpeg,image/png,image/svg+xml"
               @error="setError"
-              @input="updateBranding($event, 'uiFavicon')"
+              @update:modelValue="updateBranding($event, 'uiFavicon')"
             />
           </div>
           <SimpleBox v-if="uiFavicon">
@@ -570,9 +570,8 @@ export default {
         </span>
       </div>
     </div>
-    <template v-for="err in errors">
+    <template  v-for="(err, i) in errors" :key="i" >
       <Banner
-        :key="err"
         color="error"
         :label="err"
       />
@@ -598,7 +597,7 @@ export default {
   }
 }
 
-::v-deep.preview-container {
+:deep().preview-container {
   display: flex;
   flex-direction: column;
 

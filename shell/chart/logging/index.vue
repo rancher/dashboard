@@ -28,10 +28,10 @@ export default {
       // Save a note so that form -> yaml -> form doesn't reset these
       Object.defineProperty(this.value, '_setSources', { enumerable: false, value: true });
 
-      this.$set(this.value, 'additionalLoggingSources', this.value.additionalLoggingSources || {});
-      this.$set(this.value.additionalLoggingSources, provider, this.value.additionalLoggingSources[provider] || {});
-      this.$set(this.value.additionalLoggingSources[provider], 'enabled', true);
-      this.$set(this.value, 'global', this.value.global || {});
+      this.value['additionalLoggingSources'] = this.value.additionalLoggingSources || {};
+      this.value.additionalLoggingSources[provider] = this.value.additionalLoggingSources[provider] || {};
+      this.value.additionalLoggingSources[provider]['enabled'] = true;
+      this.value['global'] = this.value.global || {};
     }
   },
 };

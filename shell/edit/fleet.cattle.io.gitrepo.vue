@@ -1,5 +1,6 @@
 <script>
-import Vue from 'vue';
+import { createApp } from 'vue';
+const vueApp = createApp({});
 import { exceptionToErrorsArray } from '@shell/utils/error';
 import { mapGetters } from 'vuex';
 import {
@@ -83,7 +84,7 @@ export default {
     this.tlsMode = tls;
 
     if (this.value.spec.correctDrift === undefined) {
-      Vue.set(this.value.spec, 'correctDrift', { enabled: false });
+      this.value.spec['correctDrift'] = { enabled: false };
     }
 
     this.updateTargets();
@@ -460,7 +461,7 @@ export default {
     },
 
     stepOneReady() {
-      this.$set(this.addRepositorySteps[0], 'ready', this.stepOneRequires);
+      this.addRepositorySteps[0]['ready'] = this.stepOneRequires;
     },
 
     updateTls() {
@@ -557,18 +558,18 @@ export default {
             :data-testid="`gitrepo-${ref}`"
             :mode="mode"
             :select-label="t('fleet.gitRepo.ref.label')"
-            :select-value="ref"
+            :select-modelValue="ref"
             :text-label="t(`fleet.gitRepo.ref.${ref}Label`)"
             :text-placeholder="t(`fleet.gitRepo.ref.${ref}Placeholder`)"
-            :text-value="refValue"
+            :text-modelValue="refValue"
             :text-required="true"
             :options="[{label: t('fleet.gitRepo.ref.branch'), value: 'branch'}, {label: t('fleet.gitRepo.ref.revision'), value: 'revision'}]"
-            @input="changeRef($event)"
+            @update:modelValue="changeRef($event)"
           />
         </div>
       </div>
       <SelectOrCreateAuthSecret
-        :value="value.spec.clientSecretName"
+        :modelValue="value.spec.clientSecretName"
         :register-before-hook="registerBeforeHook"
         :namespace="value.metadata.namespace"
         :delegate-create-to-parent="true"
@@ -578,12 +579,12 @@ export default {
         generate-name="gitrepo-auth-"
         label-key="fleet.gitRepo.auth.git"
         :cache-secrets="true"
-        @input="updateAuth($event, 'clientSecretName')"
+        @update:modelValue="updateAuth($event, 'clientSecretName')"
         @inputauthval="updateCachedAuthVal($event, 'clientSecretName')"
       />
       <SelectOrCreateAuthSecret
         data-testid="gitrepo-helm-auth"
-        :value="value.spec.helmSecretName"
+        :modelValue="value.spec.helmSecretName"
         :register-before-hook="registerBeforeHook"
         :namespace="value.metadata.namespace"
         :delegate-create-to-parent="true"
@@ -593,7 +594,7 @@ export default {
         label-key="fleet.gitRepo.auth.helm"
         :pre-select="tempCachedValues.helmSecretName"
         :cache-secrets="true"
-        @input="updateAuth($event, 'helmSecretName')"
+        @update:modelValue="updateAuth($event, 'helmSecretName')"
         @inputauthval="updateCachedAuthVal($event, 'helmSecretName')"
       />
 
@@ -620,9 +621,9 @@ export default {
             <LabeledSelect
               :label="t('fleet.gitRepo.tls.label')"
               :mode="mode"
-              :value="tlsMode"
+              :modelValue="tlsMode"
               :options="tlsOptions"
-              @input="updateTlsMode($event)"
+              @update:modelValue="updateTlsMode($event)"
             />
           </div>
           <div
@@ -723,9 +724,7 @@ export default {
         </div>
 
         <Banner
-          v-for="(err, i) in targetAdvancedErrors"
-          :key="i"
-          color="error"
+          v-for="(err, i) in targetAdvancedErrors" :key="i"color="error"
           :label="err"
         />
       </template>
@@ -752,7 +751,7 @@ export default {
       </div>
       <div class="spacer" />
       <Labels
-        :value="value"
+        :modelValue="value"
         :mode="mode"
         :display-side-by-side="false"
       />

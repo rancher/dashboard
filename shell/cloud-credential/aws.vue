@@ -70,31 +70,31 @@ export default {
   />
   <div v-else>
     <LabeledInput
-      :value="value.decodedData.accessKey"
+      :modelValue="value.decodedData.accessKey"
       label-key="cluster.credential.aws.accessKey.label"
       placeholder-key="cluster.credential.aws.accessKey.placeholder"
       type="text"
       :mode="mode"
-      @input="value.setData('accessKey', $event);"
+      @update:modelValue="value.setData('accessKey', $event);"
     />
     <LabeledInput
-      :value="value.decodedData.secretKey"
+      :modelValue="value.decodedData.secretKey"
       class="mt-20"
       label-key="cluster.credential.aws.secretKey.label"
       placeholder-key="cluster.credential.aws.secretKey.placeholder"
       type="password"
       :mode="mode"
-      @input="value.setData('secretKey', $event);"
+      @update:modelValue="value.setData('secretKey', $event);"
     />
     <LabeledSelect
-      :value="value.decodedData.defaultRegion"
+      :modelValue="value.decodedData.defaultRegion"
       class="mt-20"
       label-key="cluster.credential.aws.defaultRegion.label"
       placeholder-key="cluster.credential.aws.defaultRegion.placeholder"
       :mode="mode"
       :taggable="true"
       :options="knownRegions"
-      @input="value.setData('defaultRegion', $event);"
+      @update:modelValue="value.setData('defaultRegion', $event);"
     />
     <p
       v-clean-html="t('cluster.credential.aws.defaultRegion.help', {}, true)"

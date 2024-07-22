@@ -75,9 +75,9 @@ export default {
     ];
 
     if (this.mode === _CREATE) {
-      this.$set(this.value.parameters, 'type', this.value.parameters.type || volumeTypeOptions[0].value);
-      this.$set(this.value.parameters, 'encrypted', this.value.parameters.encrypted || encryptionOptions[0].value);
-      this.$set(this.value.parameters, 'iopsPerGB', this.value.parameters.iopsPerGB || '0');
+      this.value.parameters['type'] = this.value.parameters.type || volumeTypeOptions[0].value;
+      this.value.parameters['encrypted'] = this.value.parameters.encrypted || encryptionOptions[0].value;
+      this.value.parameters['iopsPerGB'] = this.value.parameters.iopsPerGB || '0';
     }
 
     return {
@@ -96,7 +96,7 @@ export default {
         return Number.parseInt(this.value.parameters.iopsPerGB);
       },
       set(value) {
-        this.$set(this.value.parameters, 'iopsPerGB', value.toString());
+        this.value.parameters['iopsPerGB'] = value.toString();
       }
     }
   }

@@ -1,4 +1,5 @@
-import Vue from 'vue';
+import { createApp } from 'vue';
+const vueApp = createApp({});
 import { get } from '@shell/utils/object';
 import { DESCRIPTION } from '@shell/config/labels-annotations';
 import { NORMAN } from '@shell/config/types';
@@ -106,7 +107,7 @@ export default class RoleTemplate extends SteveDescriptionModel {
   }
 
   updateSubtype(subtype) {
-    Vue.set(this, '_subtype', subtype);
+    this['_subtype'] = subtype;
     this.context = SUBTYPE_MAPPING[subtype].context;
   }
 
@@ -119,7 +120,7 @@ export default class RoleTemplate extends SteveDescriptionModel {
   updateDefault(value) {
     const defaultKey = SUBTYPE_MAPPING[this.subtype].defaultKey;
 
-    Vue.set(this, defaultKey, value);
+    this[defaultKey] = value;
   }
 
   get listLocation() {

@@ -139,7 +139,7 @@ export default {
         :placement="$attrs.placement ? $attrs.placement : null"
         :v-bind="$attrs"
         :loading="loading"
-        @input="changeSelected"
+        @update:modelValue="changeSelected"
       />
       <button
         v-if="!isView"

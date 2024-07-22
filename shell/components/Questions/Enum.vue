@@ -34,11 +34,11 @@ export default {
         :placeholder="question.description"
         :required="question.required"
         :multiple="question.multiple"
-        :value="value"
+        :modelValue="value"
         :disabled="disabled"
         :tooltip="displayTooltip"
         :searchable="question.searchable"
-        @input="$emit('input', $event)"
+        @update:modelValue="$emit('input', $event)"
       />
     </div>
     <div

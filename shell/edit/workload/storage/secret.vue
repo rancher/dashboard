@@ -101,9 +101,9 @@ export default {
         const dec = parseInt(neu, 8);
 
         if (isconfigMap) {
-          this.$set(this.value.configMap, 'defaultMode', dec);
+          this.value.configMap['defaultMode'] = dec;
         } else {
-          this.$set(this.value.secret, 'defaultMode', dec);
+          this.value.secret['defaultMode'] = dec;
         }
       },
     },
@@ -114,9 +114,9 @@ export default {
       },
       set(neu) {
         if (this.type === 'configMap') {
-          this.$set(this.value.configMap, 'optional', neu);
+          this.value.configMap['optional'] = neu;
         } else {
-          this.$set(this.value.secret, 'optional', neu);
+          this.value.secret['optional'] = neu;
         }
       }
     },

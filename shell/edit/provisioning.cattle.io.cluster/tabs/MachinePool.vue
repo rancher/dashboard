@@ -270,7 +270,7 @@ export default {
       :cluster="cluster"
       :uuid="uuid"
       :mode="mode"
-      :value="value.config"
+      :modelValue="value.config"
       :provider="provider"
       :credential-id="credentialId"
       :pool-index="idx"
@@ -322,7 +322,7 @@ export default {
             :output-modifier="true"
             :base-unit="t('cluster.machinePool.autoReplace.unit')"
             :disabled="busy"
-            @input="value.pool.unhealthyNodeTimeout = `${unhealthyNodeTimeoutInteger}s`"
+            @update:modelValue="value.pool.unhealthyNodeTimeout = `${unhealthyNodeTimeoutInteger}s`"
           />
         </div>
         <div class="col span-4">
@@ -365,8 +365,8 @@ export default {
 </template>
 
 <style lang="scss" scoped>
-  .advanced ::v-deep >.vue-portal-target:empty,
-  .advanced ::v-deep >.vue-portal-target:empty + .spacer {
+  .advanced :deep() >.vue-portal-target:empty,
+  .advanced :deep() >.vue-portal-target:empty + .spacer {
     display: none;
   }
 </style>

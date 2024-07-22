@@ -207,26 +207,23 @@ export default defineComponent({
       @keyup.up.stop="clickNext(-1)"
     >
       <div
-        v-for="(option, i) in normalizedOptions"
-        :key="name+'-'+i"
-      >
+        v-for="(option, i) in normalizedOptions" :key="i">
         <slot
-          :listeners="$listeners"
+          :v-bind="$attrs"
           :option="option"
           :is-disabled="isDisabled"
           :name="i"
         >
           <!-- Default input -->
           <RadioButton
-            :key="name+'-'+i"
             :name="name"
-            :value="value"
+            :modelValue="value"
             :label="option.label"
             :description="option.description"
             :val="option.value"
             :disabled="isDisabled"
             :mode="mode"
-            v-on="$listeners"
+            
           />
         </slot>
       </div>

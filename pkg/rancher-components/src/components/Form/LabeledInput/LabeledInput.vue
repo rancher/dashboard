@@ -315,11 +315,11 @@ export default defineComponent({
         v-bind="$attrs"
         :maxlength="_maxlength"
         :disabled="isDisabled"
-        :value="value"
+        :modelValue="value"
         :placeholder="_placeholder"
         autocapitalize="off"
         :class="{ conceal: type === 'multiline-password' }"
-        @input="onInput"
+        @update:modelValue="onInput"
         @focus="onFocus"
         @blur="onBlur"
       />
@@ -331,12 +331,12 @@ export default defineComponent({
         :maxlength="_maxlength"
         :disabled="isDisabled"
         :type="type === 'cron' ? 'text' : type"
-        :value="value"
+        :modelValue="value"
         :placeholder="_placeholder"
         autocomplete="off"
         autocapitalize="off"
         :data-lpignore="ignorePasswordManagers"
-        @input="onInput"
+        @update:modelValue="onInput"
         @focus="onFocus"
         @blur="onBlur"
         @change="onChange"
@@ -347,13 +347,13 @@ export default defineComponent({
     <LabeledTooltip
       v-if="hasTooltip && !focused"
       :hover="hoverTooltip"
-      :value="tooltipValue"
+      :modelValue="tooltipValue"
       :status="status"
     />
     <LabeledTooltip
       v-if="!!validationMessage"
       :hover="hoverTooltip"
-      :value="validationMessage"
+      :modelValue="validationMessage"
     />
     <div
       v-if="cronHint || subLabel"

@@ -39,7 +39,7 @@ function registerType(state, type) {
       map: markRaw(new Map()),
     };
 
-    Vue.set(state.types, type, cache);
+    state.types[type] = cache;
   }
 
   return cache;
@@ -51,7 +51,7 @@ export function replace(existing, data) {
   }
 
   for ( const k of Object.keys(data) ) {
-    Vue.set(existing, k, data[k]);
+    existing[k] = data[k];
   }
 
   return existing;

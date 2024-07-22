@@ -38,7 +38,7 @@ export default {
 
   data() {
     if (!this.value.spec) {
-      this.$set(this.value, 'spec', {});
+      this.value['spec'] = {};
     }
 
     return { allBenchmarks: [], name: this.value.metadata.name };
@@ -119,7 +119,7 @@ export default {
           <div class="col span-12">
             <NameNsDescription
               :mode="mode"
-              :value="value"
+              :modelValue="value"
               :namespaced="false"
               @change="name=value.metadata.name"
             />

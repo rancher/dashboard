@@ -59,49 +59,49 @@ export default defineComponent({
     >
       <div class="col span-2">
         <Checkbox
-          :value="typeEnabled('audit')"
+          :modelValue="typeEnabled('audit')"
           :mode="mode"
           label-key="eks.audit.label"
           :tooltip="t('eks.audit.tooltip')"
-          @input="toggleType('audit')"
+          @update:modelValue="toggleType('audit')"
         />
       </div>
       <div class="col span-2">
         <Checkbox
-          :value="typeEnabled('api')"
+          :modelValue="typeEnabled('api')"
           :mode="mode"
           label-key="eks.api.label"
           :tooltip="t('eks.api.tooltip')"
-          @input="toggleType('api')"
+          @update:modelValue="toggleType('api')"
         />
       </div>
 
       <div class="col span-2">
         <Checkbox
-          :value="typeEnabled('scheduler')"
+          :modelValue="typeEnabled('scheduler')"
           :mode="mode"
           label-key="eks.scheduler.label"
           :tooltip="t('eks.scheduler.tooltip')"
-          @input="toggleType('scheduler')"
+          @update:modelValue="toggleType('scheduler')"
         />
       </div>
 
       <div class="col span-2">
         <Checkbox
-          :value="typeEnabled('controllerManager')"
+          :modelValue="typeEnabled('controllerManager')"
           :mode="mode"
           label-key="eks.controllerManager.label"
           :tooltip="t('eks.controllerManager.tooltip')"
-          @input="toggleType('controllerManager')"
+          @update:modelValue="toggleType('controllerManager')"
         />
       </div>
       <div class="col span-2">
         <Checkbox
-          :value="typeEnabled('authenticator')"
+          :modelValue="typeEnabled('authenticator')"
           :mode="mode"
           label-key="eks.authenticator.label"
           :tooltip="t('eks.authenticator.tooltip')"
-          @input="toggleType('authenticator')"
+          @update:modelValue="toggleType('authenticator')"
         />
       </div>
     </div>

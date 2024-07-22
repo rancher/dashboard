@@ -26,9 +26,9 @@ export default {
       }
     ];
 
-    this.$set(this.value.spec, 'portworxVolume', this.value.spec.portworxVolume || {});
-    this.$set(this.value.spec.portworxVolume, 'readOnly', this.value.spec.portworxVolume.readOnly || false);
-    this.$set(this.value.spec.portworxVolume, 'secretRef', this.value.spec.portworxVolume.secretRef || {});
+    this.value.spec['portworxVolume'] = this.value.spec.portworxVolume || {};
+    this.value.spec.portworxVolume['readOnly'] = this.value.spec.portworxVolume.readOnly || false;
+    this.value.spec.portworxVolume['secretRef'] = this.value.spec.portworxVolume.secretRef || {};
 
     return { readOnlyOptions };
   },

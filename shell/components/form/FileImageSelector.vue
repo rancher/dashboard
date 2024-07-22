@@ -59,7 +59,7 @@ export default {
 <template>
   <FileSelector
     v-if="!value && !isView"
-    :value="value"
+    :modelValue="value"
     class="btn role-primary"
     :mode="mode"
     :read-as-data-url="true"

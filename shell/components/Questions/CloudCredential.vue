@@ -38,9 +38,9 @@ export default {
         :label="displayLabel"
         :placeholder="question.description"
         :required="question.required"
-        :value="value"
+        :modelValue="value"
         :tooltip="displayTooltip"
-        @input="!$fetchState.pending && $emit('input', $event)"
+        @update:modelValue="!$fetchState.pending && $emit('input', $event)"
       />
     </div>
     <div class="col span-6 mt-10">

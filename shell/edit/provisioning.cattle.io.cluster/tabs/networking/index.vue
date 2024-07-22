@@ -149,13 +149,13 @@ export default {
       >
         <Checkbox
           v-if="!isView || isView && !hostnameTruncationManuallySet"
-          :value="truncateHostnames"
+          :modelValue="truncateHostnames"
           class="mt-20"
           :disabled="isEdit || isView || hostnameTruncationManuallySet"
           :mode="mode"
           :label="t('cluster.rke2.truncateHostnames')"
           data-testid="network-tab-truncate-hostname"
-          @input="$emit('truncate-hostname', $event)"
+          @update:modelValue="$emit('truncate-hostname', $event)"
         />
         <Banner
           v-if="hostnameTruncationManuallySet"

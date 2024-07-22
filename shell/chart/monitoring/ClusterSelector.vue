@@ -115,7 +115,7 @@ export default {
     // This method is not that dissimilar to persistentStorageType in Grafana config
     // The reason for the divergence is that Grafana has a subkey on the chart
     // where these keys are at the root of the chart. Vue complains about calling
-    // this.$set(this, 'value', obj) as we need to do here to reset the values in bulk.
+    // this['value'] = obj as we need to do here to reset the values in bulk.
     // So rather than call each set on each line individually I give you this.
     clusterType(clusterType, oldClusterType) {
       if (isEmpty(clusterType)) {
@@ -131,16 +131,16 @@ export default {
 
         if (oldClusterType.group === 'managed') {
           if (oldClusterType.id === 'gke') {
-            this.$set(this.value.coreDns, 'enabled', true);
-            this.$set(this.value.kubeDns, 'enabled', false);
+            this.value.coreDns['enabled'] = true;
+            this.value.kubeDns['enabled'] = false;
           }
         } else if (oldClusterType.group !== 'other') { // old cluster type only sets some values to false, if they need to be reset true it will happen below
           this.setClusterTypeEnabledValues([oldConfigKeys, false]);
         }
 
         if (oldClusterType.group === 'k3s') {
-          this.$set(this.value.prometheus.prometheusSpec.resources.limits, 'memory', '1500Mi');
-          this.$set(this.value.prometheus.prometheusSpec.resources.requests, 'memory', '750Mi');
+          this.value.prometheus.prometheusSpec.resources.limits['memory'] = '1500Mi';
+          this.value.prometheus.prometheusSpec.resources.requests['memory'] = '750Mi';
         }
       }
       const { configKeys } = findBy(this.clusterTypes, 'id', clusterType.id);
@@ -151,21 +151,21 @@ export default {
         this.setClusterTypeEnabledValues([configKeys, false]);
 
         if (clusterType.id === 'gke') {
-          this.$set(this.value.coreDns, 'enabled', false);
-          this.$set(this.value.kubeDns, 'enabled', true);
+          this.value.coreDns['enabled'] = false;
+          this.value.kubeDns['enabled'] = true;
         }
       } else {
         this.setClusterTypeEnabledValues([configKeys, true]);
       }
 
       if (clusterType.group === 'k3s') {
-        this.$set(this.value.prometheus.prometheusSpec.resources.limits, 'memory', '3000Mi');
-        this.$set(this.value.prometheus.prometheusSpec.resources.requests, 'memory', '1750Mi');
+        this.value.prometheus.prometheusSpec.resources.limits['memory'] = '3000Mi';
+        this.value.prometheus.prometheusSpec.resources.requests['memory'] = '1750Mi';
       }
 
       if (clusterType.id === 'rke.windows') {
         if (!this.value.global.cattle.windows) {
-          this.$set(this.value.global.cattle, 'windows', { enabled: true });
+          this.value.global.cattle['windows'] = { enabled: true };
         } else {
           this.value.global.cattle.windows.enabled = true;
         }
@@ -193,9 +193,9 @@ export default {
 
       keyNames.forEach((kn) => {
         if (!value[kn]) {
-          this.$set(value, kn, {});
+          value[kn] = {};
         }
-        this.$set(value[kn], 'enabled', valueToSet);
+        value[kn]['enabled'] = valueToSet;
       });
     },
   },

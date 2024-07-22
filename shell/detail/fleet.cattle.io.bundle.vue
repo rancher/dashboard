@@ -85,7 +85,7 @@ export default {
     </div>
     <FleetBundleResources
       v-if="hasRepoLabel"
-      :value="bundleResources"
+      :modelValue="bundleResources"
     />
     <SortableTable
       v-else

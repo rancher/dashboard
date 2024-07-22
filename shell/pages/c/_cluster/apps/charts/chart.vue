@@ -203,17 +203,13 @@ export default {
           <span v-clean-html="osWarning" />
         </Banner>
         <Banner
-          v-for="msg in requires"
-          :key="msg"
-          color="error"
+           v-for="(msg, i) in requires" :key="i" color="error"
         >
           <span v-clean-html="msg" />
         </Banner>
 
         <Banner
-          v-for="msg in warnings"
-          :key="msg"
-          color="warning"
+           v-for="(msg, i) in warnings" :key="i" color="warning"
         >
           <span v-clean-html="msg" />
         </Banner>
@@ -272,7 +268,7 @@ export default {
             </a>
             <DateFormatter
               v-if="vers.created !== ZERO_TIME"
-              :value="vers.created"
+              :modelValue="vers.created"
               :show-time="false"
             />
           </div>

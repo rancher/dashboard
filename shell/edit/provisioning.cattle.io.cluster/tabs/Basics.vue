@@ -444,14 +444,14 @@ export default {
           :options="versionOptions"
           data-testid="clusterBasics__kubernetesVersions"
           label-key="cluster.kubernetesVersion.label"
-          @input="$emit('kubernetes-changed', $event)"
+          @update:modelValue="$emit('kubernetes-changed', $event)"
         />
         <Checkbox
-          :value="showDeprecatedPatchVersions"
+          :modelValue="showDeprecatedPatchVersions"
           :label="t('cluster.kubernetesVersion.deprecatedPatches')"
           :tooltip="t('cluster.kubernetesVersion.deprecatedPatchWarning')"
           class="patch-version"
-          @input="$emit('show-deprecated-patch-versions-changed', $event)"
+          @update:modelValue="$emit('show-deprecated-patch-versions-changed', $event)"
         />
       </div>
       <div
@@ -549,7 +549,7 @@ export default {
           :mode="mode"
           :options="profileOptions"
           :label="t('cluster.rke2.cis.sever')"
-          @input="$emit('cis-changed')"
+          @update:modelValue="$emit('cis-changed')"
         />
         <LabeledSelect
           v-else-if="agentArgs && agentArgs.profile && agentConfig"
@@ -558,7 +558,7 @@ export default {
           :mode="mode"
           :options="profileOptions"
           :label="t('cluster.rke2.cis.agent')"
-          @input="$emit('cis-changed')"
+          @update:modelValue="$emit('cis-changed')"
         />
       </div>
     </div>
@@ -568,7 +568,7 @@ export default {
         v-model="cisOverride"
         :mode="mode"
         :label="t('cluster.rke2.cis.override')"
-        @input="$emit('psa-default-changed')"
+        @update:modelValue="$emit('psa-default-changed')"
       />
 
       <Banner
@@ -589,7 +589,6 @@ export default {
       <div class="col span-6">
         <!-- PSA template selector -->
         <LabeledSelect
-          :key="defaultPsaOptionLabel"
           v-model="value.spec.defaultPodSecurityAdmissionConfigurationTemplateName"
           :mode="mode"
           data-testid="rke2-custom-edit-psa"
@@ -641,9 +640,7 @@ export default {
           </h3>
         </div>
         <Checkbox
-          v-for="opt in disableOptions"
-          :key="opt.value"
-          v-model="enabledSystemServices"
+           v-for="(opt, i) in disableOptions" :key="i" v-model="enabledSystemServices"
           :mode="mode"
           :label="opt.label"
           :value-when-true="opt.value"

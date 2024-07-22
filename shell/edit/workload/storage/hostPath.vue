@@ -73,7 +73,7 @@ export default {
 
   created() {
     if (!this.value.hostPath.type) {
-      this.$set(this.value.hostPath, 'type', '');
+      this.value.hostPath['type'] = '';
     }
   },
 

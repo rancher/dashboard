@@ -44,12 +44,12 @@ export default {
     if (this.isCreate) {
       const nonRootRoutes = (await routes).filter((route) => !route.isRoot);
 
-      this.$set(this.value.spec, 'name', createDefaultRouteName(nonRootRoutes.length));
+      this.value.spec['name'] = createDefaultRouteName(nonRootRoutes.length);
     }
   },
 
   data() {
-    this.$set(this.value.spec, 'group_by', this.value.spec.group_by || []);
+    this.value.spec['group_by'] = this.value.spec.group_by || [];
 
     return {
       receiverOptions:      [],

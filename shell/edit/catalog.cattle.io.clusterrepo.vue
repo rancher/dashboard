@@ -1,5 +1,6 @@
 <script>
-import Vue from 'vue';
+import { createApp } from 'vue';
+const vueApp = createApp({});
 import CreateEditView from '@shell/mixins/create-edit-view';
 import Footer from '@shell/components/form/Footer';
 import { LabeledInput } from '@components/Form/LabeledInput';
@@ -66,7 +67,7 @@ export default {
         break;
       case CLUSTER_REPO_TYPES.OCI_URL:
         // set insecurePlainHttp to false as a secondary flag, alongside checking for 'oci://' in the URL, to determine OCI type later
-        Vue.set(this.value.spec, 'insecurePlainHttp', false);
+        this.value.spec['insecurePlainHttp'] = false;
         this.resetGitRepoValues();
         this.resetHelmValues();
         break;
@@ -79,36 +80,36 @@ export default {
     },
     updateExponentialBackOffValues(key, newVal) {
       if (!Object.prototype.hasOwnProperty.call(this.value.spec, 'exponentialBackOffValues')) {
-        Vue.set(this.value.spec, 'exponentialBackOffValues', {});
+        this.value.spec['exponentialBackOffValues'] = {};
       }
       // when user removes the value we remove the key too, backend will set the default value
       if (newVal === '') {
-        Vue.delete(this.value.spec.exponentialBackOffValues, key);
+        delete this.value.spec.exponentialBackOffValues[key];
 
         return;
       }
 
-      Vue.set(this.value.spec.exponentialBackOffValues, key, Number(newVal));
+      this.value.spec.exponentialBackOffValues[key] = Number(newVal);
     },
     resetGitRepoValues() {
-      Vue.delete(this.value.spec, 'gitRepo');
-      Vue.delete(this.value.spec, 'gitBranch');
+      delete this.value.spec['gitRepo'];
+      delete this.value.spec['gitBranch'];
     },
     resetOciValues() {
-      Vue.delete(this.value.spec, 'url');
-      Vue.delete(this.value.spec, 'insecurePlainHttp');
-      Vue.delete(this.value.spec, 'insecureSkipTLSVerify');
-      Vue.delete(this.value.spec, 'caBundle');
-      Vue.delete(this.value.spec, 'exponentialBackOffValues');
+      delete this.value.spec['url'];
+      delete this.value.spec['insecurePlainHttp'];
+      delete this.value.spec['insecureSkipTLSVerify'];
+      delete this.value.spec['caBundle'];
+      delete this.value.spec['exponentialBackOffValues'];
       this.ociMinWait = undefined;
       this.ociMaxWait = undefined;
       this.ociMaxRetries = undefined;
     },
     resetHelmValues() {
-      Vue.delete(this.value.spec, 'url');
+      delete this.value.spec['url'];
     },
     resetClientSecret() {
-      Vue.set(this.value.spec, 'clientSecret', null);
+      this.value.spec['clientSecret'] = null;
     }
   },
 };
@@ -132,7 +133,7 @@ export default {
           :labels="[t('catalog.repo.target.http'), t('catalog.repo.target.git'), t('catalog.repo.target.oci', null, true)]"
           :mode="mode"
           data-testid="clusterrepo-radio-input"
-          @input="onTargetChange"
+          @update:modelValue="onTargetChange"
         />
       </div>
     </div>
@@ -187,7 +188,6 @@ export default {
       data-testid="clusterrepo-helm-url-input"
     />
     <SelectOrCreateAuthSecret
-      :key="clusterRepoType"
       v-model="value.spec.clientSecret"
       :mode="mode"
       data-testid="clusterrepo-auth-secret"
@@ -240,7 +240,7 @@ export default {
             type="number"
             min="1"
             data-testid="clusterrepo-oci-min-wait-input"
-            @input="updateExponentialBackOffValues('minWait', $event)"
+            @update:modelValue="updateExponentialBackOffValues('minWait', $event)"
           />
         </div>
         <div class="col span-4">
@@ -252,7 +252,7 @@ export default {
             type="number"
             min="1"
             data-testid="clusterrepo-oci-max-wait-input"
-            @input="updateExponentialBackOffValues('maxWait', $event)"
+            @update:modelValue="updateExponentialBackOffValues('maxWait', $event)"
           />
         </div>
         <div class="col span-4">
@@ -264,7 +264,7 @@ export default {
             type="number"
             min="0"
             data-testid="clusterrepo-oci-max-retries-input"
-            @input="updateExponentialBackOffValues('maxRetries', $event)"
+            @update:modelValue="updateExponentialBackOffValues('maxRetries', $event)"
           />
         </div>
       </div>
@@ -272,7 +272,7 @@ export default {
 
     <Labels
       default-section-class="mt-20"
-      :value="value"
+      :modelValue="value"
       :mode="mode"
       :display-side-by-side="false"
     />

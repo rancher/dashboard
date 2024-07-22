@@ -400,7 +400,7 @@ export default {
   <nav class="side-nav">
     <!-- Actual nav -->
     <div class="nav">
-      <template v-for="(g) in groups">
+      <template  v-for="((g), i) in groups" :key="i" >
         <Group
           ref="groups"
           :key="g.name"
@@ -454,9 +454,7 @@ export default {
               style="margin: -1px;"
             >
               <li
-                v-for="(label, name) in availableLocales"
-                :key="name"
-                class="hand"
+                v-for="(label, name) in availableLocales" :key="name"class="hand"
                 @click="switchLocale(name)"
               >
                 {{ label }}
@@ -505,7 +503,7 @@ export default {
     overflow-y: auto;
 
     // h6 is used in Group element
-    ::v-deep h6 {
+    :deep() h6 {
       margin: 0;
       letter-spacing: normal;
       line-height: 15px;

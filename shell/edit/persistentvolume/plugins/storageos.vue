@@ -26,9 +26,9 @@ export default {
       }
     ];
 
-    this.$set(this.value.spec, 'storageos', this.value.spec.storageos || {});
-    this.$set(this.value.spec.storageos, 'readOnly', this.value.spec.storageos.readOnly || false);
-    this.$set(this.value.spec.storageos, 'secretRef', this.value.spec.storageos.secretRef || {});
+    this.value.spec['storageos'] = this.value.spec.storageos || {};
+    this.value.spec.storageos['readOnly'] = this.value.spec.storageos.readOnly || false;
+    this.value.spec.storageos['secretRef'] = this.value.spec.storageos.secretRef || {};
 
     return { yesNoOptions };
   },

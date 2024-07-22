@@ -87,7 +87,7 @@ export default {
     }
 
     if (!this.value._type) {
-      this.$set(this.value, '_type', TYPES.OPAQUE);
+      this.value['_type'] = TYPES.OPAQUE;
     }
 
     return {
@@ -172,7 +172,7 @@ export default {
         >
           <div class="col span-12">
             <DetailText
-              :value="registryUrl"
+              :modelValue="registryUrl"
               label-key="secret.registry.domainName"
             />
           </div>
@@ -180,13 +180,13 @@ export default {
         <div class="row mt-20">
           <div class="col span-6">
             <DetailText
-              :value="username"
+              :modelValue="username"
               label-key="secret.registry.username"
             />
           </div>
           <div class="col span-6">
             <DetailText
-              :value="password"
+              :modelValue="password"
               label-key="secret.registry.password"
               :conceal="true"
             />
@@ -200,14 +200,14 @@ export default {
       >
         <div class="col span-6">
           <DetailText
-            :value="key"
+            :modelValue="key"
             label-key="secret.certificate.privateKey"
             :conceal="true"
           />
         </div>
         <div class="col span-6">
           <DetailText
-            :value="crt"
+            :modelValue="crt"
             label-key="secret.certificate.certificate"
           />
         </div>
@@ -219,13 +219,13 @@ export default {
       >
         <div class="col span-6">
           <DetailText
-            :value="crt"
+            :modelValue="crt"
             label-key="secret.serviceAcct.ca"
           />
         </div>
         <div class="col span-6">
           <DetailText
-            :value="key"
+            :modelValue="key"
             label-key="secret.serviceAcct.token"
             :conceal="true"
           />
@@ -238,13 +238,13 @@ export default {
       >
         <div class="col span-6">
           <DetailText
-            :value="username"
+            :modelValue="username"
             label-key="secret.ssh.public"
           />
         </div>
         <div class="col span-6">
           <DetailText
-            :value="password"
+            :modelValue="password"
             label-key="secret.ssh.private"
             :conceal="true"
           />
@@ -253,12 +253,10 @@ export default {
 
       <div v-else>
         <div
-          v-for="(row,idx) in parsedRows"
-          :key="idx"
-          class="entry"
+          v-for="(row,idx) in parsedRows" :key="idx"class="entry"
         >
           <DetailText
-            :value="row.value"
+            :modelValue="row.value"
             :label="row.key"
             :conceal="true"
           />

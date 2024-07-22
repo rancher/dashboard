@@ -110,9 +110,7 @@ export default {
           {{ t('moveModal.description') }}
           <ul class="namespaces">
             <li
-              v-for="namespace in toMove"
-              :key="namespace.id"
-            >
+               v-for="(namespace, i) in toMove" :key="i" >
               {{ namespace.nameDisplay }}
             </li>
           </ul>

@@ -20,12 +20,12 @@ export default {
         :label="displayLabel"
         :placeholder="question.default"
         :required="question.required"
-        :value="value"
+        :modelValue="value"
         :disabled="disabled"
         :tooltip="displayTooltip"
         :rules="rules"
         :data-testid="`int-input-${question.variable}`"
-        @input="val = parseInt($event, 10); if ( !isNaN(val) ) { $emit('input', val) }"
+        @update:modelValue="val = parseInt($event, 10); if ( !isNaN(val) ) { $emit('input', val) }"
       />
     </div>
     <div

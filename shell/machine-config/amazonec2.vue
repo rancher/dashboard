@@ -63,7 +63,7 @@ export default {
       const region = this.value.region || this.credential?.decodedData.defaultRegion || this.$store.getters['aws/defaultRegion'];
 
       if ( !this.value.region ) {
-        this.$set(this.value, 'region', region);
+        this.value['region'] = region;
       }
 
       this.ec2Client = await this.$store.dispatch('aws/ec2', { region, cloudCredentialId: this.credentialId });
@@ -100,18 +100,18 @@ export default {
       }
 
       if ( !this.value.zone ) {
-        this.$set(this.value, 'zone', 'a');
+        this.value['zone'] = 'a';
       }
 
       if ( !this.value.instanceType ) {
-        this.$set(this.value, 'instanceType', this.$store.getters['aws/defaultInstanceType']);
+        this.value['instanceType'] = this.$store.getters['aws/defaultInstanceType'];
       }
 
       this.initNetwork();
       this.initTags();
 
       if ( !this.value.securityGroup?.length ) {
-        this.$set(this.value, 'securityGroup', [DEFAULT_GROUP]);
+        this.value['securityGroup'] = [DEFAULT_GROUP];
       }
 
       if ( this.value.securityGroup?.length === 1 && this.value.securityGroup[0] === DEFAULT_GROUP ) {
@@ -374,7 +374,7 @@ export default {
         ary.push(k, tags[k]);
       }
 
-      this.$set(this.value, 'tags', ary.join(','));
+      this.value['tags'] = ary.join(',');
     },
 
     test() {
@@ -396,9 +396,7 @@ export default {
     <template v-else>
       <div v-if="errors.length">
         <div
-          v-for="(err, idx) in errors"
-          :key="idx"
-        >
+          v-for="(err, idx) in errors" :key="idx">
           <Banner
             color="error"
             :label="stringify(err)"
@@ -468,7 +466,7 @@ export default {
           <div class="col span-6">
             <LabeledSelect
               :mode="mode"
-              :value="selectedNetwork"
+              :modelValue="selectedNetwork"
               :options="networkOptions"
               :searchable="true"
               :required="true"
@@ -477,7 +475,7 @@ export default {
               :label="t('cluster.machineConfig.amazonEc2.selectedNetwork.label')"
               data-testid="amazonEc2__selectedNetwork"
               option-key="value"
-              @input="updateNetwork($event)"
+              @update:modelValue="updateNetwork($event)"
             >
               <template v-slot:option="opt">
                 <div :class="{'vpc': opt.kind === 'vpc', 'vpc-subnet': opt.kind !== 'vpc'}">
@@ -664,13 +662,13 @@ export default {
           <div class="row mt-20">
             <div class="col span-12">
               <KeyValue
-                :value="tags"
+                :modelValue="tags"
                 :mode="mode"
                 :read-allowed="false"
                 :label="t('cluster.machineConfig.amazonEc2.tagTitle')"
                 :add-label="t('labels.addTag')"
                 :disabled="disabled"
-                @input="updateTags"
+                @update:modelValue="updateTags"
               />
             </div>
           </div>

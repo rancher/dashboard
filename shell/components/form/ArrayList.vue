@@ -246,9 +246,7 @@ export default {
         </slot>
       </div>
       <div
-        v-for="(row, idx) in rows"
-        :key="idx"
-        :data-testid="`array-list-box${ idx }`"
+        v-for="(row, idx) in rows" :key="idx":data-testid="`array-list-box${ idx }`"
         class="box"
       >
         <slot
@@ -277,7 +275,7 @@ export default {
                 :mode="mode"
                 :disabled="disabled"
                 @paste="onPaste(idx, $event)"
-                @input="queueUpdate"
+                @update:modelValue="queueUpdate"
               />
               <LabeledInput
                 v-else-if="rules.length > 0"
@@ -289,7 +287,7 @@ export default {
                 :rules="rules"
                 :compact="false"
                 @paste="onPaste(idx, $event)"
-                @input="queueUpdate"
+                @update:modelValue="queueUpdate"
               />
               <input
                 v-else
@@ -299,7 +297,7 @@ export default {
                 :placeholder="valuePlaceholder"
                 :disabled="isView || disabled"
                 @paste="onPaste(idx, $event)"
-                @input="queueUpdate"
+                @update:modelValue="queueUpdate"
               >
             </slot>
           </div>

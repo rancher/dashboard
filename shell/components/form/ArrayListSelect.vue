@@ -70,28 +70,28 @@ export default {
 <template>
   <ArrayList
     v-bind="arrayListProps"
-    :value="value"
+    :modelValue="value"
     class="array-list-select"
     :add-allowed="addAllowed || loading"
     :loading="loading"
     :defaultAddValue="defaultAddValue"
     :disabled="disabled"
-    @input="$emit('input', $event)"
+    @update:modelValue="$emit('input', $event)"
   >
     <template v-slot:columns="scope">
       <Select
-        :value="scope.row.value"
+        :modelValue="scope.row.value"
         v-bind="selectProps"
         :options="calculateOptions(scope.row.value)"
         :get-option-label="getOptionLabel"
-        @input="updateRow(scope.i, $event)"
+        @update:modelValue="updateRow(scope.i, $event)"
       />
     </template>
   </ArrayList>
 </template>
 
 <style lang="scss" scoped>
-::v-deep .unlabeled-select {
+:deep() .unlabeled-select {
   height: 61px;
   }
 </style>

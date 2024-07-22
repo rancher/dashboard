@@ -232,12 +232,12 @@ export default {
     <div>{{ t('accountAndKeys.apiKeys.info.keyCreated') }}</div>
 
     <DetailText
-      :value="accessKey"
+      :modelValue="accessKey"
       label-key="accountAndKeys.apiKeys.info.accessKey"
       class="mt-20"
     />
     <DetailText
-      :value="secretKey"
+      :modelValue="secretKey"
       label-key="accountAndKeys.apiKeys.info.secretKey"
       class="mt-20"
     />
@@ -247,7 +247,7 @@ export default {
     </p>
 
     <DetailText
-      :value="token"
+      :modelValue="token"
       label-key="accountAndKeys.apiKeys.info.bearerToken"
       class="mt-20"
     />

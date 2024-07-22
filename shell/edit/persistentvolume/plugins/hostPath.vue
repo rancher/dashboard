@@ -50,8 +50,8 @@ export default {
       },
     ];
 
-    this.$set(this.value.spec, 'hostPath', this.value.spec.hostPath || {});
-    this.$set(this.value.spec.hostPath, 'type', this.value.spec.hostPath.type || mustBeOptions[0].value);
+    this.value.spec['hostPath'] = this.value.spec.hostPath || {};
+    this.value.spec.hostPath['type'] = this.value.spec.hostPath.type || mustBeOptions[0].value;
 
     return { mustBeOptions };
   },

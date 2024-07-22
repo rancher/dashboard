@@ -5,7 +5,7 @@ export default {};
 <template>
   <div
     class="indented-panel"
-    v-on="$listeners"
+    
   >
     <slot />
   </div>

@@ -17,11 +17,11 @@ export default {
       <Checkbox
         :mode="mode"
         :label="displayLabel"
-        :value="value"
+        :modelValue="value"
         :disabled="disabled"
         :tooltip="displayTooltip"
         :data-testid="`boolean-input-${question.variable}`"
-        @input="$emit('input', $event)"
+        @update:modelValue="$emit('input', $event)"
       />
     </div>
     <div

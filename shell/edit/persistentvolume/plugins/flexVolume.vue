@@ -29,9 +29,9 @@ export default {
       }
     ];
 
-    this.$set(this.value.spec, 'flexVolume', this.value.spec.flexVolume || {});
-    this.$set(this.value.spec.flexVolume, 'readOnly', this.value.spec.flexVolume.readOnly || false);
-    this.$set(this.value.spec.flexVolume, 'secretRef', this.value.spec.flexVolume.secretRef || {});
+    this.value.spec['flexVolume'] = this.value.spec.flexVolume || {};
+    this.value.spec.flexVolume['readOnly'] = this.value.spec.flexVolume.readOnly || false;
+    this.value.spec.flexVolume['secretRef'] = this.value.spec.flexVolume.secretRef || {};
 
     return { readOnlyOptions };
   },

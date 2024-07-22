@@ -130,11 +130,11 @@ export default {
           class="icon icon-info"
         />
       </h3>
-      <ArrayListGrouped :value="recordingRules">
+      <ArrayListGrouped :modelValue="recordingRules">
         <template #default="props">
           <RecordingRule
             class="rule"
-            :value="props.row.value"
+            :modelValue="props.row.value"
             :mode="mode"
           />
         </template>
@@ -180,11 +180,11 @@ export default {
           :label="t('prometheusRule.alertingRules.bannerText')"
         />
       </div>
-      <ArrayListGrouped :value="alertingRules">
+      <ArrayListGrouped :modelValue="alertingRules">
         <template #default="props">
           <AlertingRule
             class="rule"
-            :value="props.row.value"
+            :modelValue="props.row.value"
             :mode="mode"
           />
         </template>

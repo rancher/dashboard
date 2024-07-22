@@ -42,9 +42,9 @@ export default {
     :label="t('gatekeeperConstraint.tab.namespaces.sub.scope.title')"
     :hover-tooltip="true"
     tooltip="Determines if cluster-scoped and/or namespaced-scoped resources are selected."
-    :value="value"
+    :modelValue="value"
     :mode="mode"
     :options="SCOPE_OPTIONS"
-    @input="e=>$emit('input', e)"
+    @update:modelValue="e=>$emit('input', e)"
   />
 </template>

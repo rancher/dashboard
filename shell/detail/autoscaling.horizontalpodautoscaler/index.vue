@@ -97,9 +97,7 @@ export default {
       :weight="4"
     >
       <div
-        v-for="(metric, index) in mappedMetrics"
-        :key="`${index}${metric.metricName}`"
-      >
+        v-for="(metric, index) in mappedMetrics" :key="index">
         <InfoBox>
           <div class="row info-row">
             <div class="col span-6 info-column">
@@ -193,9 +191,7 @@ export default {
       :weight="3"
     >
       <div
-        v-for="(type, i) in ['scaleDown', 'scaleUp']"
-        :key="`${i}`"
-      >
+        v-for="(type, i) in ['scaleDown', 'scaleUp']" :key="i">
         <InfoBox v-if="!!value.spec.behavior[type]">
           <div class="row info-row">
             <div class="col span-6 info-column">
@@ -210,9 +206,7 @@ export default {
             <div class="col span-6 info-column">
               <label class="text-label"><t k="hpa.scalingRule.policyHeader" /></label>
               <ul
-                v-for="(current, currentIndex) in value.spec.behavior[type].policies"
-                :key="`${currentIndex}`"
-              >
+                v-for="(current, currentIndex) in value.spec.behavior[type].policies" :key="currentIndex">
                 <li>
                   <span>{{ current.value }}</span>
                   <span>{{ current.type }}</span>
@@ -239,7 +233,7 @@ export default {
 
 <style lang="scss" scoped>
 .hpa-metrics-table {
-  .info-box ::v-deep {
+  .info-box :deep() {
     background-color: var(--simple-box-bg);
   }
   .row {

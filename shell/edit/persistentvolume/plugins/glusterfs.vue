@@ -26,8 +26,8 @@ export default {
       }
     ];
 
-    this.$set(this.value.spec, 'glusterfs', this.value.spec.glusterfs || {});
-    this.$set(this.value.spec.glusterfs, 'readOnly', this.value.spec.glusterfs.readOnly || false);
+    this.value.spec['glusterfs'] = this.value.spec.glusterfs || {};
+    this.value.spec.glusterfs['readOnly'] = this.value.spec.glusterfs.readOnly || false;
 
     return { readOnlyOptions };
   },

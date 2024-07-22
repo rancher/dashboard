@@ -48,7 +48,7 @@ export default {
     <h2 class="mt-20">
       Resource Summary
     </h2>
-    <ResourcesSummary :value="value.status.resourceCounts" />
+    <ResourcesSummary :modelValue="value.status.resourceCounts" />
 
     <ResourceTabs
       v-model="value"

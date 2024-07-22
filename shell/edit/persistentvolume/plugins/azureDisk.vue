@@ -56,10 +56,10 @@ export default {
       }
     ];
 
-    this.$set(this.value.spec, 'azureDisk', this.value.spec.azureDisk || {});
-    this.$set(this.value.spec.azureDisk, 'readOnly', this.value.spec.azureDisk.readOnly || false);
-    this.$set(this.value.spec.azureDisk, 'cachingMode', this.value.spec.azureDisk.cachingMode || cachingModeOptions[0].value);
-    this.$set(this.value.spec.azureDisk, 'kind', this.value.spec.azureDisk.kind || kindOptions[2].value);
+    this.value.spec['azureDisk'] = this.value.spec.azureDisk || {};
+    this.value.spec.azureDisk['readOnly'] = this.value.spec.azureDisk.readOnly || false;
+    this.value.spec.azureDisk['cachingMode'] = this.value.spec.azureDisk.cachingMode || cachingModeOptions[0].value;
+    this.value.spec.azureDisk['kind'] = this.value.spec.azureDisk.kind || kindOptions[2].value;
 
     return {
       kindOptions, readOnlyOptions, cachingModeOptions

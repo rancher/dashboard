@@ -117,7 +117,7 @@ export default {
           );
         }
       } else {
-        this.$set(this.value.alertmanager.alertmanagerSpec, 'configSecret', '');
+        this.value.alertmanager.alertmanagerSpec['configSecret'] = '';
       }
     },
   },
@@ -126,7 +126,7 @@ export default {
     const amSecrets = this.value?.alertmanager?.alertmanagerSpec?.secrets ?? [];
 
     if (this.existingSecret && amSecrets.length <= 0) {
-      this.$set(this.value.alertmanager.alertmanagerSpec, 'useExistingSecret', true);
+      this.value.alertmanager.alertmanagerSpec['useExistingSecret'] = true;
     }
   },
 };

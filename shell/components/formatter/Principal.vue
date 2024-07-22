@@ -15,8 +15,7 @@ export default {
 <template>
   <div>
     <PrincipalComponent
-      :key="value"
-      :value="value"
+      :modelValue="value"
       :use-muted="false"
     />
   </div>

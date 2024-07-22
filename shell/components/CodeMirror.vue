@@ -175,11 +175,11 @@ export default {
       </div>
       <codemirror
         ref="codeMirrorRef"
-        :value="value"
+        :modelValue="value"
         :options="combinedOptions"
         :disabled="isDisabled"
         @ready="onReady"
-        @input="onInput"
+        @update:modelValue="onInput"
         @changes="onChanges"
         @focus="onFocus"
         @blur="onBlur"

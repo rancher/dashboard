@@ -89,7 +89,7 @@ export default {
           v-model="promptConfirmation"
           :label="t('promptRemove.promptConfirmation')"
           class="mt-10"
-          @input="update()"
+          @update:modelValue="update()"
         />
       </div>
       <div class="text-info mt-20">

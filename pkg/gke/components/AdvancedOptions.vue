@@ -175,23 +175,23 @@ export default defineComponent({
           label-key="gke.monitoringService.label"
         />
         <Checkbox
-          :value="httpLoadBalancing"
+          :modelValue="httpLoadBalancing"
           :mode="mode"
           label-key="gke.httpLoadBalancing.label"
-          @input="$emit('update:httpLoadBalancing', $event)"
+          @update:modelValue="$emit('update:httpLoadBalancing', $event)"
         />
         <Checkbox
-          :value="horizontalPodAutoscaling"
+          :modelValue="horizontalPodAutoscaling"
           :mode="mode"
           label-key="gke.horizontalPodAutoscaling.label"
-          @input="$emit('update:horizontalPodAutoscaling', $event)"
+          @update:modelValue="$emit('update:horizontalPodAutoscaling', $event)"
         />
         <Checkbox
-          :value="enableKubernetesAlpha"
+          :modelValue="enableKubernetesAlpha"
           :mode="mode"
           label-key="gke.enableKubernetesAlpha.label"
           :disabled="!isNewOrUnprovisioned"
-          @input="$emit('update:enableKubernetesAlpha', $event)"
+          @update:modelValue="$emit('update:enableKubernetesAlpha', $event)"
         />
       </div>
       <div class="col span-6">
@@ -199,7 +199,7 @@ export default defineComponent({
           :mode="mode"
           :options="maintenanceWindowOpts"
           label-key="gke.maintenanceWindow.label"
-          :value="maintenanceWindow"
+          :modelValue="maintenanceWindow"
           @selecting="$emit('update:maintenanceWindow', $event.value)"
         />
       </div>

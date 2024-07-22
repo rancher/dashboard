@@ -72,7 +72,7 @@ export default {
       v-t="'fleet.cluster.summary'"
       class="mt-20"
     />
-    <ResourcesSummary :value="value.status.resourceCounts" />
+    <ResourcesSummary :modelValue="value.status.resourceCounts" />
 
     <ResourceTabs
       v-model="value"

@@ -85,7 +85,7 @@ export default {
 
   data() {
     if (!this.value.spec) {
-      this.$set(this.value, 'spec', { retentionCount: 10 });
+      this.value['spec'] = { retentionCount: 10 };
     }
     let s3 = {};
     let useEncryption = false;
@@ -168,13 +168,13 @@ export default {
       if (neu === 'useDefault') {
         delete this.value.spec.storageLocation;
       } else {
-        this.$set(this.value.spec, 'storageLocation', { s3: this.s3 });
+        this.value.spec['storageLocation'] = { s3: this.s3 };
       }
     },
 
     resourceSet(neu) {
       if (neu?.metadata?.name) {
-        this.$set(this.value.spec, 'resourceSetName', neu?.metadata?.name);
+        this.value.spec['resourceSetName'] = neu?.metadata?.name;
       }
     },
 
@@ -208,7 +208,7 @@ export default {
     <template>
       <NameNsDescription
         :mode="mode"
-        :value="value"
+        :modelValue="value"
         :namespaced="false"
         :rules="{name: fvGetAndReportPathRules('metadata.name')}"
         @change="name=value.metadata.name"
@@ -300,7 +300,7 @@ export default {
           <div class="row mt-10">
             <div class="col span-12">
               <S3
-                :value="s3"
+                :modelValue="s3"
                 :mode="mode"
               />
             </div>

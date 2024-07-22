@@ -85,7 +85,7 @@ export default {
       :namespace="namespace"
       generate-name="etcd-backup-s3-"
       :cache-secrets="true"
-      @input="update"
+      @update:modelValue="update"
     />
 
     <div class="row mt-20">
@@ -95,7 +95,7 @@ export default {
           label="Bucket"
           :placeholder="ccData.defaultBucket"
           :required="!ccData.defaultBucket"
-          @input="update"
+          @update:modelValue="update"
         />
       </div>
       <div class="col span-6">
@@ -103,7 +103,7 @@ export default {
           v-model="config.folder"
           label="Folder"
           :placeholder="ccData.defaultFolder"
-          @input="update"
+          @update:modelValue="update"
         />
       </div>
     </div>
@@ -114,7 +114,7 @@ export default {
           v-model="config.region"
           label="Region"
           :placeholder="ccData.defaultRegion"
-          @input="update"
+          @update:modelValue="update"
         />
       </div>
       <div class="col span-6">
@@ -122,7 +122,7 @@ export default {
           v-model="config.endpoint"
           label="Endpoint"
           :placeholder="ccData.defaultEndpoint"
-          @input="update"
+          @update:modelValue="update"
         />
       </div>
     </div>
@@ -135,7 +135,7 @@ export default {
         v-model="config.skipSSLVerify"
         :mode="mode"
         label="Accept any certificate (insecure)"
-        @input="update"
+        @update:modelValue="update"
       />
 
       <LabeledInput
@@ -144,7 +144,7 @@ export default {
         type="multiline"
         label="Endpoint CA Cert"
         :placeholder="ccData.defaultEndpointCA"
-        @input="update"
+        @update:modelValue="update"
       />
     </div>
   </div>

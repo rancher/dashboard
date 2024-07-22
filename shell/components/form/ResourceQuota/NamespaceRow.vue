@@ -176,7 +176,7 @@ export default {
     <Select
       class="mr-10"
       :mode="mode"
-      :value="type"
+      :modelValue="type"
       :disabled="true"
       :options="types"
     />
@@ -184,20 +184,20 @@ export default {
       <PercentageBar
         v-clean-tooltip="tooltip"
         class="percentage-bar"
-        :value="percentageUsed"
+        :modelValue="percentageUsed"
         :slices="slices"
         :color-stops="{'100': '--primary'}"
       />
     </div>
     <UnitInput
-      :value="value.limit[type]"
+      :modelValue="value.limit[type]"
       :mode="mode"
       :placeholder="typeOption.placeholder"
       :increment="typeOption.increment"
       :input-exponent="typeOption.inputExponent"
       :base-unit="typeOption.baseUnit"
       :output-modifier="true"
-      @input="update"
+      @update:modelValue="update"
     />
   </div>
 </template>

@@ -176,11 +176,11 @@ export default {
     <template #cell:state="{row}">
       <BadgeState
         v-if="row.real"
-        :value="row.real"
+        :modelValue="row.real"
       />
       <BadgeState
         v-else
-        :value="row"
+        :modelValue="row"
       />
     </template>
   </ResourceTable>

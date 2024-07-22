@@ -30,9 +30,9 @@ export default {
         class="yaml-editor mb-6"
         :editor-mode="mode === VIEW ? 'VIEW_CODE' : 'EDIT_CODE'"
         :disabled="disabled"
-        :value="value"
+        :modelValue="value"
         :data-testid="`yaml-input-${question.variable}`"
-        @input="$emit('input', $event)"
+        @update:modelValue="$emit('input', $event)"
       />
     </div>
     <div

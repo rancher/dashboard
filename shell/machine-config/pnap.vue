@@ -38,7 +38,7 @@ export default {
           type: NORMAN.CLOUD_CREDENTIAL,
           id:   this.credentialId,
         });
-        this.$set(this.value, 'clientIdentifier', this.credential.decodedData.clientIdentifier);
+        this.value['clientIdentifier'] = this.credential.decodedData.clientIdentifier;
       }
     } catch (e) {
       this.credential = null;
@@ -179,9 +179,7 @@ export default {
   />
   <div v-else-if="errors.length">
     <div
-      v-for="(err, idx) in errors"
-      :key="idx"
-    >
+      v-for="(err, idx) in errors" :key="idx">
       <Banner
         color="error"
         :label="stringify(err)"

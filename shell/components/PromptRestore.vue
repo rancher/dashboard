@@ -149,7 +149,7 @@ export default {
 
       const defaultSnapshot = this.toRestore[0]?.type === SNAPSHOT ? this.toRestore[0].name : this.clusterSnapshots[0]?.value;
 
-      this.$set(this, 'selectedSnapshot', defaultSnapshot);
+      this['selectedSnapshot'] = defaultSnapshot;
     },
 
     async apply(buttonDone) {
@@ -251,7 +251,7 @@ export default {
             <p>
               <Date
                 v-if="snapshot"
-                :value="snapshot.createdAt || snapshot.created || snapshot.metadata.creationTimestamp"
+                :modelValue="snapshot.createdAt || snapshot.created || snapshot.metadata.creationTimestamp"
               />
             </p>
           </div>
@@ -284,9 +284,7 @@ export default {
         />
 
         <Banner
-          v-for="(err, i) in errors"
-          :key="i"
-          color="error"
+          v-for="(err, i) in errors" :key="i"color="error"
           :label="err"
         />
       </div>
@@ -314,7 +312,7 @@ export default {
     }
   }
 
-  .prompt-restore ::v-deep .card-wrap .card-actions {
+  .prompt-restore :deep() .card-wrap .card-actions {
     display: block;
 
     button:not(:last-child) {

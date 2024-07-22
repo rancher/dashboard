@@ -125,7 +125,7 @@ export default {
           },
         };
 
-        this.$set(this.value, 'overrideResourceRequirements', cleanUp(out));
+        this.value['overrideResourceRequirements'] = cleanUp(out);
       },
     },
 
@@ -168,18 +168,18 @@ export default {
 
         // Copy the default so that the user can edit it
         // this will cover the pod affinities
-        this.$set(this.value, 'overrideAffinity', parsedDefaultAffinites);
+        this.value['overrideAffinity'] = parsedDefaultAffinites;
 
         // in order not to break the node affinity component, let's go for a slightly different way of handling the logic here
         if (parsedDefaultAffinites.nodeAffinity) {
           this.nodeAffinity = parsedDefaultAffinites.nodeAffinity;
         }
       } else {
-        this.$set(this.value, 'overrideAffinity', {});
+        this.value['overrideAffinity'] = {};
       }
     },
     updateNodeAffinity(val) {
-      this.$set(this.value.overrideAffinity, 'nodeAffinity', val);
+      this.value.overrideAffinity['nodeAffinity'] = val;
     }
   }
 };
@@ -238,7 +238,7 @@ export default {
         :options="affinityOptions"
         class="mt-10"
         data-testid="affinity-options"
-        @input="affinitySettingChange"
+        @update:modelValue="affinitySettingChange"
       />
 
       <Banner
@@ -283,7 +283,7 @@ export default {
         :mode="mode"
         class="mt-0"
         data-testid="node-affinity"
-        @input="updateNodeAffinity"
+        @update:modelValue="updateNodeAffinity"
       />
     </GroupPanel>
   </div>

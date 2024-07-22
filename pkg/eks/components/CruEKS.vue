@@ -130,23 +130,23 @@ export default defineComponent({
     }
 
     if (!this.normanCluster.eksConfig) {
-      this.$set(this.normanCluster, 'eksConfig', { ...DEFAULT_EKS_CONFIG });
+      this.normanCluster['eksConfig'] = { ...DEFAULT_EKS_CONFIG };
     }
     if (!this.normanCluster.fleetAgentDeploymentCustomization) {
-      this.$set(this.normanCluster, 'fleetAgentDeploymentCustomization', {});
+      this.normanCluster['fleetAgentDeploymentCustomization'] = {};
     }
     if (!this.normanCluster.clusterAgentDeploymentCustomization) {
-      this.$set(this.normanCluster, 'clusterAgentDeploymentCustomization', {});
+      this.normanCluster['clusterAgentDeploymentCustomization'] = {};
     }
     this.config = this.normanCluster.eksConfig as EKSConfig;
 
     if ((!this.config.nodeGroups || !this.config.nodeGroups.length) && this.mode === _CREATE) {
-      this.$set(this.config, 'nodeGroups', [{ ...DEFAULT_NODE_GROUP_CONFIG, nodegroupName: 'group1' }]);
+      this.config['nodeGroups'] = [{ ...DEFAULT_NODE_GROUP_CONFIG, nodegroupName: 'group1' }];
     }
     if (this.config.nodeGroups) {
       this.nodeGroups = this.config.nodeGroups;
     } else {
-      this.$set(this.config, 'nodeGroups', this.nodeGroups);
+      this.config['nodeGroups'] = this.nodeGroups;
     }
     if (this.mode !== _VIEW) {
       this.fetchInstanceTypes();
@@ -263,7 +263,7 @@ export default defineComponent({
     'config.kubernetesVersion'(neu) {
       this.nodeGroups.forEach((group: EKSNodeGroup) => {
         if (group._isNew) {
-          this.$set(group, 'version', neu);
+          group['version'] = neu;
         }
       });
     }
@@ -400,12 +400,12 @@ export default defineComponent({
 
   methods: {
     setClusterName(name: string): void {
-      this.$set(this.normanCluster, 'name', name);
-      this.$set(this.config, 'displayName', name);
+      this.normanCluster['name'] = name;
+      this.config['displayName'] = name;
     },
 
     onMembershipUpdate(update: {newBindings: any[], removedBindings: any[], save: Function}): void {
-      this.$set(this, 'membershipUpdate', update);
+      this['membershipUpdate'] = update;
     },
 
     async saveRoleBindings(): Promise<void> {
@@ -421,13 +421,13 @@ export default defineComponent({
       if (upstreamConfig) {
         const diff = diffUpstreamSpec(upstreamConfig, this.config);
 
-        this.$set(this.normanCluster, 'eksConfig', diff);
+        this.normanCluster['eksConfig'] = diff;
       }
     },
 
     async actuallySave(): Promise<void> {
       if (!this.isNewOrUnprovisioned && !this.nodeGroups.length && !!this.normanCluster?.eksConfig?.nodeGroups) {
-        this.$set(this.normanCluster.eksConfig, 'nodeGroups', null);
+        this.normanCluster.eksConfig['nodeGroups'] = null;
       }
       await this.normanCluster.save();
 
@@ -442,7 +442,7 @@ export default defineComponent({
     },
 
     updateRegion(e: string) {
-      this.$set(this.config, 'region', e);
+      this.config['region'] = e;
       this.fetchInstanceTypes();
       this.fetchLaunchTemplates();
       this.fetchServiceRoles();
@@ -450,7 +450,7 @@ export default defineComponent({
     },
 
     updateCredential(e: string) {
-      this.$set(this.config, 'amazonCredentialSecret', e);
+      this.config['amazonCredentialSecret'] = e;
       this.fetchInstanceTypes();
       this.fetchLaunchTemplates();
       this.fetchServiceRoles();
@@ -543,7 +543,7 @@ export default defineComponent({
 
         const keyPairRes: {KeyPairs: {KeyName: string}[]} = await ec2Client.describeKeyPairs({ DryRun: false });
 
-        this.$set(this, 'sshKeyPairs', (keyPairRes.KeyPairs || []).map((key) => {
+        this['sshKeyPairs'] = (keyPairRes.KeyPairs || [].map((key) => {
           return key.KeyName;
         }).sort());
       } catch (err: any) {
@@ -583,11 +583,11 @@ export default defineComponent({
         <LabeledInput
           required
           label-key="eks.clusterName.label"
-          :value="config.displayName"
+          :modelValue="config.displayName"
           :mode="mode"
           :rules="fvGetAndReportPathRules('name')"
           data-testid="eks-name-input"
-          @input="setClusterName"
+          @update:modelValue="setClusterName"
         />
       </div>
       <div class="col span-6">
@@ -623,9 +623,7 @@ export default defineComponent({
         @addTab="addGroup()"
       >
         <Tab
-          v-for="(node, i) in nodeGroups"
-          :key="i"
-          :label="node.nodegroupName || t('eks.nodeGroups.unnamed')"
+          v-for="(node, i) in nodeGroups" :key="i":label="node.nodegroupName || t('eks.nodeGroups.unnamed')"
           :name="`${node.nodegroupName} ${i}`"
         >
           <NodeGroup
@@ -638,25 +636,25 @@ export default defineComponent({
               diskSize: fvGetAndReportPathRules('diskSize'),
               minMaxDesired: fvGetAndReportPathRules('minMaxDesired')
             }"
-            :node-role.sync="node.nodeRole"
-            :launch-template.sync="node.launchTemplate"
-            :nodegroup-name.sync="node.nodegroupName"
-            :ec2-ssh-key.sync="node.ec2SshKey"
-            :tags.sync="node.tags"
-            :resource-tags.sync="node.resourceTags"
-            :disk-size.sync="node.diskSize"
-            :image-id.sync="node.imageId"
-            :instance-type.sync="node.instanceType"
-            :spot-instance-types.sync="node.spotInstanceTypes"
-            :user-data.sync="node.userData"
-            :gpu.sync="node.gpu"
-            :desired-size.sync="node.desiredSize"
-            :min-size.sync="node.minSize"
-            :max-size.sync="node.maxSize"
-            :request-spot-instances.sync="node.requestSpotInstances"
-            :labels.sync="node.labels"
-            :version.sync="node.version"
-            :pool-is-upgrading.sync="node._isUpgrading"
+            v-model:node-role="node.nodeRole"
+            v-model:launch-template="node.launchTemplate"
+            v-model:nodegroup-name="node.nodegroupName"
+            v-model:ec2-ssh-key="node.ec2SshKey"
+            v-model:tags="node.tags"
+            v-model:resource-tags="node.resourceTags"
+            v-model:disk-size="node.diskSize"
+            v-model:image-id="node.imageId"
+            v-model:instance-type="node.instanceType"
+            v-model:spot-instance-types="node.spotInstanceTypes"
+            v-model:user-data="node.userData"
+            v-model:gpu="node.gpu"
+            v-model:desired-size="node.desiredSize"
+            v-model:min-size="node.minSize"
+            v-model:max-size="node.maxSize"
+            v-model:request-spot-instances="node.requestSpotInstances"
+            v-model:labels="node.labels"
+            v-model:version="node.version"
+            v-model:pool-is-upgrading="node._isUpgrading"
             :cluster-version="config.kubernetesVersion"
             :original-cluster-version="originalVersion"
             :region="config.region"
@@ -683,12 +681,12 @@ export default defineComponent({
         :open-initially="true"
       >
         <Config
-          :kubernetes-version.sync="config.kubernetesVersion"
-          :enable-network-policy.sync="normanCluster.enableNetworkPolicy"
-          :ebs-c-s-i-driver.sync="config.ebsCSIDriver"
-          :service-role.sync="config.serviceRole"
-          :kms-key.sync="config.kmsKey"
-          :tags.sync="config.tags"
+          v-model:kubernetes-version="config.kubernetesVersion"
+          v-model:enable-network-policy="normanCluster.enableNetworkPolicy"
+          v-model:ebs-c-s-i-driver="config.ebsCSIDriver"
+          v-model:service-role="config.serviceRole"
+          v-model:kms-key="config.kmsKey"
+          v-model:tags="config.tags"
           :mode="mode"
           :config="config"
           :eks-roles="eksRoles"
@@ -705,11 +703,11 @@ export default defineComponent({
         :open-initially="true"
       >
         <Networking
-          :public-access.sync="config.publicAccess"
-          :private-access.sync="config.privateAccess"
-          :public-access-sources.sync="config.publicAccessSources"
-          :subnets.sync="config.subnets"
-          :security-groups.sync="config.securityGroups"
+          v-model:public-access="config.publicAccess"
+          v-model:private-access="config.privateAccess"
+          v-model:public-access-sources="config.publicAccessSources"
+          v-model:subnets="config.subnets"
+          v-model:security-groups="config.securityGroups"
           :mode="mode"
           :region="config.region"
           :amazon-credential-secret="config.amazonCredentialSecret"
@@ -725,7 +723,7 @@ export default defineComponent({
         <Logging
           :mode="mode"
           :config="config"
-          :logging-types.sync="config.loggingTypes"
+          v-model:logging-types="config.loggingTypes"
         />
       </Accordion>
 

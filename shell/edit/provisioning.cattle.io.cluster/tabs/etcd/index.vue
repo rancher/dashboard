@@ -97,13 +97,13 @@ export default {
       <div class="spacer" />
 
       <RadioGroup
-        :value="s3Backup"
+        :modelValue="s3Backup"
         name="etcd-s3"
         :options="[false, true]"
         label="Backup Snapshots to S3"
         :labels="['Disable','Enable']"
         :mode="mode"
-        @input="$emit('s3-backup-changed', $event)"
+        @update:modelValue="$emit('s3-backup-changed', $event)"
       />
 
       <S3Config
@@ -121,13 +121,13 @@ export default {
       <div class="col span-6">
         <RadioGroup
           v-if="argsEtcdExposeMetrics"
-          :value="configEtcdExposeMetrics"
+          :modelValue="configEtcdExposeMetrics"
           name="etcd-expose-metrics"
           :options="[false, true]"
           :label="t('cluster.rke2.etcd.exportMetric.label')"
           :labels="[t('cluster.rke2.etcd.exportMetric.false'), t('cluster.rke2.etcd.exportMetric.true')]"
           :mode="mode"
-          @input="$emit('config-etcd-expose-metrics-changed', $event)"
+          @update:modelValue="$emit('config-etcd-expose-metrics-changed', $event)"
         />
       </div>
     </div>

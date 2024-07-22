@@ -159,12 +159,12 @@ export default {
         };
         break;
       default:
-        this.$delete(this.value.grafana, 'persistence');
+        delete this.value.grafana['persistence'];
         break;
       }
 
-      this.$set(this.value.grafana, 'persistence', resetValsOut);
-      this.$set(this.value.grafana, 'persistence', newValsOut);
+      this.value.grafana['persistence'] = resetValsOut;
+      this.value.grafana['persistence'] = newValsOut;
     },
   }
 };
@@ -245,7 +245,7 @@ export default {
         <div class="row">
           <div class="col span-6">
             <StorageClassSelector
-              :value="value.grafana.persistence.existingClaim"
+              :modelValue="value.grafana.persistence.existingClaim"
               :mode="mode"
               :options="pvcs"
               :label="t('monitoring.grafana.storage.existingClaim')"
@@ -267,7 +267,7 @@ export default {
           <div class="col span-6">
             <div v-if="showStorageClasses">
               <StorageClassSelector
-                :value="value.grafana.persistence.storageClassName"
+                :modelValue="value.grafana.persistence.storageClassName"
                 :mode="mode"
                 :options="storageClasses"
                 :label="t('monitoring.prometheus.storage.className')"
@@ -334,7 +334,7 @@ export default {
           <div class="col span-6">
             <div v-if="showStorageClasses">
               <StorageClassSelector
-                :value="value.grafana.persistence.storageClassName"
+                :modelValue="value.grafana.persistence.storageClassName"
                 :mode="mode"
                 :options="storageClasses"
                 :label="t('monitoring.prometheus.storage.className')"

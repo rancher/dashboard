@@ -1,5 +1,6 @@
 <script>
-import Vue from 'vue';
+import { createApp } from 'vue';
+const vueApp = createApp({});
 import AsyncButton from '@shell/components/AsyncButton';
 import { Banner } from '@components/Banner';
 import { Card } from '@components/Card';
@@ -79,7 +80,7 @@ export default {
     },
     'body.gracePeriod'(neu) {
       if (neu && neu < 1) {
-        Vue.set(this.body, 'gracePeriod', 1);
+        this.body['gracePeriod'] = 1;
       }
     },
     timeout(neu) {
@@ -90,9 +91,9 @@ export default {
     'body.timeout'(neu) {
       if (neu) {
         if (neu < 1) {
-          Vue.set(this.body, 'timeout', 1);
+          this.body['timeout'] = 1;
         } else if (neu > 10800) {
-          Vue.set(this.body, 'timeout', 10800);
+          this.body['timeout'] = 10800;
         }
       }
     },
@@ -209,9 +210,7 @@ export default {
         />
       </div>
       <Banner
-        v-for="(err, i) in errors"
-        :key="i"
-        color="error"
+        v-for="(err, i) in errors" :key="i"color="error"
         :label="err"
       />
     </div>

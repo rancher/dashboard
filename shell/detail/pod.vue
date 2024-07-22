@@ -202,7 +202,7 @@ export default {
   <ResourceTabs
     mode="view"
     class="mt-20"
-    :value="value"
+    :modelValue="value"
   >
     <Tab
       :label="t('workload.container.titles.containers')"

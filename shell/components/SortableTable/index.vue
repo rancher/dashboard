@@ -549,9 +549,9 @@ export default {
     showHeaderRow() {
       return this.search ||
         this.tableActions ||
-        this.$slots['header-left']?.length ||
-        this.$slots['header-middle']?.length ||
-        this.$slots['header-right']?.length;
+        this.$slots['header-left']()?.length ||
+        this.$slots['header-middle']()?.length ||
+        this.$slots['header-right']()?.length;
     },
 
     columns() {
@@ -1017,7 +1017,7 @@ export default {
           <slot name="header-left">
             <template v-if="tableActions">
               <button
-                v-for="act in availableActions"
+                 v-for="(act, i) in availableActions" :key="i" 
                 :id="act.action"
                 :key="act.action"
                 v-clean-tooltip="actionTooltip"
@@ -1056,9 +1056,7 @@ export default {
                 <template #popover-content>
                   <ul class="list-unstyled menu">
                     <li
-                      v-for="act in hiddenActions"
-                      :key="act.action"
-                      v-close-popover
+                       v-for="(act, i) in hiddenActions" :key="i" v-close-popover
                       v-clean-tooltip="{
                         content: actionTooltip,
                         placement: 'right'
@@ -1104,9 +1102,7 @@ export default {
             class="advanced-filters-applied"
           >
             <li
-              v-for="(filter, i) in advancedFilteringValues"
-              :key="i"
-            >
+              v-for="(filter, i) in advancedFilteringValues" :key="i">
               <span class="label">{{ `"${filter.value}" ${ t('sortableTable.in') } ${filter.label}` }}</span>
               <span
                 class="cross"
@@ -1265,7 +1261,7 @@ export default {
         </slot>
       </tbody>
       <tbody
-        v-for="groupedRows in displayRows"
+         v-for="(groupedRows, i) in displayRows" :key="i" 
         v-else
         :key="groupedRows.key"
         :class="{ group: groupBy }"
@@ -1292,7 +1288,7 @@ export default {
             </td>
           </tr>
         </slot>
-        <template v-for="(row, i) in groupedRows.rows">
+        <template v-for="(row, i) in groupedRows.rows" :key="i">
           <slot
             name="main-row"
             :row="row.row"
@@ -1305,7 +1301,6 @@ export default {
                 because our selection.js invokes toggleClass and :class clobbers what was added by toggleClass if
                 the value of :class changes. -->
               <tr
-                :key="row.key"
                 class="main-row"
                 :data-testid="componentTestid + '-' + i + '-row'"
                 :class="{ 'has-sub-row': row.showSubRow}"
@@ -1321,7 +1316,7 @@ export default {
                     class="selection-checkbox"
                     :data-node-id="row.key"
                     :data-testid="componentTestid + '-' + i + '-checkbox'"
-                    :value="selectedRows.includes(row.row)"
+                    :modelValue="selectedRows.includes(row.row)"
                   />
                 </td>
                 <td
@@ -1339,7 +1334,7 @@ export default {
                     @click.stop="toggleExpand(row.row)"
                   />
                 </td>
-                <template v-for="(col, j) in row.columns">
+                <template v-for="(col, j) in row.columns" :key="j">
                   <slot
                     :name="'col:' + col.col.name"
                     :row="row.row"
@@ -1361,13 +1356,13 @@ export default {
                         :name="'cell:' + col.col.name"
                         :row="row.row"
                         :col="col.col"
-                        :value="col.value"
+                        :modelValue="col.value"
                       >
                         <component
                           :is="col.component"
                           v-if="col.component && col.needRef"
                           ref="column"
-                          :value="col.value"
+                          :modelValue="col.value"
                           :row="row.row"
                           :col="col.col"
                           v-bind="col.col.formatterOpts"
@@ -1377,7 +1372,7 @@ export default {
                         <component
                           :is="col.component"
                           v-else-if="col.component"
-                          :value="col.value"
+                          :modelValue="col.value"
                           :row="row.row"
                           :col="col.col"
                           v-bind="col.col.formatterOpts"
@@ -1386,7 +1381,7 @@ export default {
                         <component
                           :is="col.col.formatter"
                           v-else-if="col.col.formatter"
-                          :value="col.value"
+                          :modelValue="col.value"
                           :row="row.row"
                           :col="col.col"
                           v-bind="col.col.formatterOpts"

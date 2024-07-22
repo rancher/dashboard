@@ -160,18 +160,18 @@ export default defineComponent({
       this.normanCluster = await store.dispatch('rancher/create', { type: NORMAN.CLUSTER, ...defaultCluster }, { root: true });
     }
     if (!this.normanCluster.aksConfig) {
-      this.$set(this.normanCluster, 'aksConfig', { ...defaultAksConfig });
+      this.normanCluster['aksConfig'] = { ...defaultAksConfig };
     }
     if (!this.normanCluster.aksConfig.nodePools) {
-      this.$set(this.normanCluster.aksConfig, 'nodePools', [{ ...defaultNodePool }]);
+      this.normanCluster.aksConfig['nodePools'] = [{ ...defaultNodePool }];
     }
     this.config = this.normanCluster.aksConfig;
     this.nodePools = this.normanCluster.aksConfig.nodePools;
     this.setAuthorizedIPRanges = !!(this.config?.authorizedIpRanges || []).length;
     this.nodePools.forEach((pool: AKSNodePool) => {
-      this.$set(pool, '_id', randomStr());
-      this.$set(pool, '_isNewOrUnprovisioned', this.isNewOrUnprovisioned);
-      this.$set(pool, '_validation', {});
+      pool['_id'] = randomStr();
+      pool['_isNewOrUnprovisioned'] = this.isNewOrUnprovisioned;
+      pool['_validation'] = {};
     });
   },
 
@@ -350,13 +350,13 @@ export default defineComponent({
 
             this.nodePools.forEach((pool: AKSNodePool) => {
               if (!this.vmSizeOptions.find((opt: String) => opt === pool.vmSize)) {
-                this.$set(pool, '_validSize', false);
+                pool['_validSize'] = false;
                 const { name } = pool;
 
                 badPools.push(name);
                 allAvailable = false;
               } else {
-                this.$set(pool, '_validSize', true);
+                pool['_validSize'] = true;
               }
             });
             if (!allAvailable) {
@@ -404,10 +404,10 @@ export default defineComponent({
             } = pool;
 
             if (enableAutoScaling && (minCount > maxCount || count < minCount || count > maxCount) ) {
-              this.$set(pool._validation, '_validMinMax', false);
+              pool._validation['_validMinMax'] = false;
               allValid = false;
             } else {
-              this.$set(pool._validation, '_validMinMax', true);
+              pool._validation['_validMinMax'] = true;
             }
           });
 
@@ -443,10 +443,10 @@ export default defineComponent({
               const { count = 0 } = pool;
 
               if (count < 1) {
-                this.$set(pool._validation, '_validCount', false);
+                pool._validation['_validCount'] = false;
                 allValid = false;
               } else {
-                this.$set(pool._validation, '_validCount', true);
+                pool._validation['_validCount'] = true;
               }
             });
 
@@ -464,10 +464,10 @@ export default defineComponent({
               const poolMin = pool.minCount || 0;
 
               if (pool.enableAutoScaling && (poolMin <= 0 || poolMin > 100)) {
-                this.$set(pool._validation, '_validMin', false);
+                pool._validation['_validMin'] = false;
                 allValid = false;
               } else {
-                this.$set(pool._validation, '_validMin', true);
+                pool._validation['_validMin'] = true;
               }
             });
 
@@ -485,10 +485,10 @@ export default defineComponent({
               const poolMax = pool.maxCount || 0;
 
               if (pool.enableAutoScaling && (poolMax <= 0 || poolMax > 100)) {
-                this.$set(pool._validation, '_validMax', false);
+                pool._validation['_validMax'] = false;
                 allValid = false;
               } else {
-                this.$set(pool._validation, '_validMax', true);
+                pool._validation['_validMax'] = true;
               }
             });
 
@@ -505,7 +505,7 @@ export default defineComponent({
             let allValid = true;
 
             this.nodePools.forEach((pool) => {
-              this.$set(pool._validation, '_validTaints', true);
+              pool._validation['_validTaints'] = true;
               const taints = pool.nodeTaints || [];
 
               taints.forEach((taint:string) => {
@@ -513,7 +513,7 @@ export default defineComponent({
 
                 if (key === '' || value === '') {
                   allValid = false;
-                  this.$set(pool._validation, '_validTaints', false);
+                  pool._validation['_validTaints'] = false;
                 }
               });
             });
@@ -572,7 +572,7 @@ export default defineComponent({
       const sorted = sortBy(filteredAndSortable, 'sort', true);
 
       if (!this.config.kubernetesVersion) {
-        this.$set(this.config, 'kubernetesVersion', sorted[0]?.value);
+        this.config['kubernetesVersion'] = sorted[0]?.value;
       }
 
       return sorted;
@@ -658,15 +658,15 @@ export default defineComponent({
       },
       set(neu: {label: string, kind?: string, disabled?: boolean, value?: string, virtualNetwork?: any}) {
         if (neu.label === this.t('generic.none')) {
-          this.$set(this.config, 'virtualNetwork', null);
-          this.$set(this.config, 'virtualNetworkResourceGroup', null);
-          this.$set(this.config, 'subnet', null);
+          this.config['virtualNetwork'] = null;
+          this.config['virtualNetworkResourceGroup'] = null;
+          this.config['subnet'] = null;
         } else {
           const { virtualNetwork, value: subnetName } = neu;
 
-          this.$set(this.config, 'virtualNetwork', virtualNetwork.name);
-          this.$set(this.config, 'virtualNetworkResourceGroup', virtualNetwork.resourceGroup);
-          this.$set(this.config, 'subnet', subnetName);
+          this.config['virtualNetwork'] = virtualNetwork.name;
+          this.config['virtualNetworkResourceGroup'] = virtualNetwork.resourceGroup;
+          this.config['subnet'] = subnetName;
         }
       }
     },
@@ -677,9 +677,9 @@ export default defineComponent({
       },
       set(neu: string): void {
         if (neu === _NONE) {
-          this.$set(this.config, 'networkPolicy', null);
+          this.config['networkPolicy'] = null;
         } else {
-          this.$set(this.config, 'networkPolicy', neu);
+          this.config['networkPolicy'] = neu;
         }
       }
     },
@@ -716,32 +716,32 @@ export default defineComponent({
   watch: {
     canEditLoadBalancerSKU(neu) {
       if (!neu) {
-        this.$set(this.config, 'loadBalancerSku', 'Standard');
+        this.config['loadBalancerSku'] = 'Standard';
       }
     },
 
     hasAzureCNI(neu) {
       if (!neu) {
         if (this.config.networkPolicy === 'azure') {
-          this.$set(this.config, 'networkPolicy', undefined);
+          this.config['networkPolicy'] = undefined;
         }
       }
     },
 
     setAuthorizedIPRanges(neu) {
       if (neu) {
-        this.$set(this.config, 'privateCluster', false);
+        this.config['privateCluster'] = false;
         delete this.config.managedIdentity;
         delete this.config.privateDnsZone;
         delete this.config.userAssignedIdentity;
       } else {
-        this.$set(this.config, 'authorizedIpRanges', []);
+        this.config['authorizedIpRanges'] = [];
       }
     },
 
     canEnableNetworkPolicy(neu) {
       if (!neu) {
-        this.$set(this.value, 'enableNetworkPolicy', false);
+        this.value['enableNetworkPolicy'] = false;
       }
     },
 
@@ -774,7 +774,7 @@ export default defineComponent({
       }
       this.nodePools.forEach((pool: AKSNodePool) => {
         if (pool._isNewOrUnprovisioned) {
-          this.$set(pool, 'orchestratorVersion', neu);
+          pool['orchestratorVersion'] = neu;
         }
       });
     },
@@ -789,8 +789,8 @@ export default defineComponent({
 
     'config.monitoring'(neu: boolean) {
       if (!neu) {
-        this.$set(this.config, 'logAnalyticsWorkspaceGroup', null);
-        this.$set(this.config, 'logAnalyticsWorkspaceName', null);
+        this.config['logAnalyticsWorkspaceGroup'] = null;
+        this.config['logAnalyticsWorkspaceName'] = null;
       }
     }
   },
@@ -805,7 +805,7 @@ export default defineComponent({
       if (this.mode === _CREATE) {
         delete this.config?.kubernetesVersion;
       }
-      this.$set(this, 'errors', []);
+      this['errors'] = [];
     },
 
     async getLocations(): Promise<void> {
@@ -814,7 +814,7 @@ export default defineComponent({
       }
       this.loadingLocations = true;
       // this will force the resourceLocation watcher to re-run every time new locations are fetched even if the default one selected hasn't changed
-      this.$set(this.config, 'resourceLocation', '');
+      this.config['resourceLocation'] = '';
 
       const { azureCredentialSecret } = this.config;
 
@@ -835,9 +835,9 @@ export default defineComponent({
         this.locationOptions = [{ displayName: this.t('aks.location.withAZ'), kind: 'group' }, ...withAZ, { displayName: this.t('aks.location.withoutAZ'), kind: 'group' }, ...withoutAZ];
         if (!this.config?.resourceLocation) {
           if (res.find((r: any) => r.name === DEFAULT_REGION)) {
-            this.$set(this.config, 'resourceLocation', DEFAULT_REGION);
+            this.config['resourceLocation'] = DEFAULT_REGION;
           } else {
-            this.$set(this.config, 'resourceLocation', res[0]?.name);
+            this.config['resourceLocation'] = res[0]?.name;
           }
         }
         this.loadingLocations = false;
@@ -955,12 +955,12 @@ export default defineComponent({
     },
 
     setClusterName(name: string): void {
-      this.$set(this.normanCluster, 'name', name);
-      this.$set(this.config, 'clusterName', name);
+      this.normanCluster['name'] = name;
+      this.config['clusterName'] = name;
     },
 
     onMembershipUpdate(update: any): void {
-      this.$set(this, 'membershipUpdate', update);
+      this['membershipUpdate'] = update;
     },
 
     async saveRoleBindings(): Promise<void> {
@@ -976,7 +976,7 @@ export default defineComponent({
       if (upstreamConfig) {
         const diff = diffUpstreamSpec(upstreamConfig, this.config);
 
-        this.$set(this.normanCluster, 'aksConfig', diff);
+        this.normanCluster['aksConfig'] = diff;
       }
     },
 
@@ -1030,12 +1030,12 @@ export default defineComponent({
       <div class="row mb-10">
         <div class="col span-3">
           <LabeledInput
-            :value="normanCluster.name"
+            :modelValue="normanCluster.name"
             :mode="mode"
             label-key="generic.name"
             required
             :rules="fvGetAndReportPathRules('name')"
-            @input="setClusterName"
+            @update:modelValue="setClusterName"
           />
         </div>
         <div class="col span-3">
@@ -1097,9 +1097,7 @@ export default defineComponent({
           @removeTab="removePool($event)"
         >
           <Tab
-            v-for="(pool, i) in nodePools"
-            :key="pool._id"
-            :name="pool._id || pool.name"
+            v-for="(pool, i) in nodePools" :key="i":name="pool._id || pool.name"
             :label="pool.name || t('aks.nodePools.notNamed')"
             :error="!poolIsValid(pool)"
           >
@@ -1296,7 +1294,7 @@ export default defineComponent({
               class="col span-3"
             >
               <LabeledSelect
-                :value="virtualNetwork"
+                :modelValue="virtualNetwork"
                 label-key="aks.virtualNetwork.label"
                 :mode="mode"
                 :options="virtualNetworkOptions"
@@ -1391,7 +1389,7 @@ export default defineComponent({
                 value-placeholder="10.0.0.0/14"
                 :label="t('aks.authorizedIpRanges.label')"
                 :rules="fvGetAndReportPathRules('authorizedIpRanges')"
-                @input="$emit('validationChanged')"
+                @update:modelValue="$emit('validationChanged')"
               >
                 <template #title>
                   <div class="text-label">

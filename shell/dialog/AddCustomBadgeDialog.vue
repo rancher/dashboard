@@ -183,9 +183,9 @@ export default {
           delete norman.annotations[CLUSTER_BADGE.ICON_TEXT];
           delete norman.annotations[CLUSTER_BADGE.TEXT];
 
-          this.$set(norman.annotations, CLUSTER_BADGE.COLOR, this.badgeColorPicker ? this.badgeBgColor : 'transparent');
-          this.$set(norman.annotations, CLUSTER_BADGE.ICON_TEXT, this.letter.toUpperCase());
-          this.$set(norman.annotations, CLUSTER_BADGE.TEXT, this.badgeComment);
+          norman.annotations[CLUSTER_BADGE.COLOR] = this.badgeColorPicker ? this.badgeBgColor : 'transparent';
+          norman.annotations[CLUSTER_BADGE.ICON_TEXT] = this.letter.toUpperCase();
+          norman.annotations[CLUSTER_BADGE.TEXT] = this.badgeComment;
 
           await norman.save();
 
@@ -296,7 +296,7 @@ export default {
           <ColorInput
             v-model="badgeBgColor"
             :disabled="!badgeColorPicker"
-            :default-value="badgeBgColor"
+            :default-modelValue="badgeBgColor"
           />
         </div>
       </div>
@@ -307,9 +307,7 @@ export default {
       class="bottom"
     >
       <Banner
-        v-for="(err, i) in errors"
-        :key="i"
-        color="error"
+        v-for="(err, i) in errors" :key="i"color="error"
         :label="err"
       />
       <div class="buttons">
@@ -414,7 +412,7 @@ export default {
       padding: 2px 10px;
     }
 
-    ::v-deep .badge-icon-text input {
+    :deep() .badge-icon-text input {
       text-transform: uppercase;
     }
   }

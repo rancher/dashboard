@@ -423,7 +423,7 @@ export default defineComponent({
           :rules="[reposRules]"
           :delay="debounceTime"
           :status="status(hasError.repo)"
-          @input="fetchRepos"
+          @update:modelValue="fetchRepos"
         />
       </div>
 
@@ -443,7 +443,7 @@ export default defineComponent({
           :status="status(hasError.repo)"
           :option-label="'name'"
           @search="onSearchRepo"
-          @input="fetchBranches"
+          @update:modelValue="fetchBranches"
         />
       </div>
       <!-- Deals with Branches  -->
@@ -463,7 +463,7 @@ export default defineComponent({
           :status="status(hasError.branch)"
           :option-label="'name'"
           @search="onSearchBranch"
-          @input="fetchCommits"
+          @update:modelValue="fetchCommits"
         />
       </div>
       <!-- Deals with Commits, display & allow to pick from it  -->
@@ -486,9 +486,9 @@ export default defineComponent({
         >
           <template #cell:index="{row}">
             <RadioButton
-              :value="selectedCommitId"
+              :modelValue="selectedCommitId"
               :val="row.commitId"
-              @input="final($event)"
+              @update:modelValue="final($event)"
             />
           </template>
 

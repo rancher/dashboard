@@ -196,12 +196,12 @@ export default {
   },
 
   created() {
-    this.$set(this.value, 'spec', this.value.spec || {});
-    this.$set(this.value.spec, 'rules', this.value.spec.rules || [{}]);
-    this.$set(this.value.spec, 'backend', this.value.spec.backend || {});
+    this.value['spec'] = this.value.spec || {};
+    this.value.spec['rules'] = this.value.spec.rules || [{}];
+    this.value.spec['backend'] = this.value.spec.backend || {};
 
     if (!this.value.spec.tls || Object.keys(this.value.spec.tls[0] || {}).length === 0) {
-      this.$set(this.value.spec, 'tls', []);
+      this.value.spec['tls'] = [];
     }
 
     this.registerBeforeHook(this.willSave, 'willSave');
@@ -261,13 +261,13 @@ export default {
   >
     <NameNsDescription
       v-if="!isView"
-      :value="value"
+      :modelValue="value"
       :rules="{name: fvGetAndReportPathRules('metadata.name'), namespace: fvGetAndReportPathRules('metadata.namespace'), description: []}"
       :mode="mode"
       :register-before-hook="registerBeforeHook"
     />
     <Error
-      :value="value.spec"
+      :modelValue="value.spec"
       :rules="fvGetAndReportPathRules('spec')"
       as-banner
     />
@@ -331,7 +331,7 @@ export default {
       >
         <Labels
           default-container-class="labels-and-annotations-container"
-          :value="value"
+          :modelValue="value"
           :mode="mode"
           :display-side-by-side="false"
         />

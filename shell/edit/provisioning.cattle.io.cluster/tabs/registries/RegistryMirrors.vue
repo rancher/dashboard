@@ -87,10 +87,10 @@ export default {
     <ArrayListGrouped
       v-model="entries"
       :add-label="t('registryMirror.addLabel')"
-      :default-add-value="defaultAddValue"
+      :default-add-modelValue="defaultAddValue"
       :initial-empty-row="true"
       :mode="mode"
-      @input="update"
+      @update:modelValue="update"
     >
       <template #default="{row}">
         <div class="row">

@@ -1,5 +1,6 @@
 <script>
-import Vue from 'vue';
+import { createApp } from 'vue';
+const vueApp = createApp({});
 import { _VIEW } from '@shell/config/query-params';
 import { Banner } from '@components/Banner';
 import ArrayListGrouped from '@shell/components/form/ArrayListGrouped';
@@ -84,7 +85,7 @@ export default {
       return !this.serverArg?.['kubelet-arg']?.length && !config?.['kubelet-arg']?.length;
     },
     onInputProtectKernelDefaults(value) {
-      Vue.set(this.agentConfig || this.serverConfig, 'protect-kernel-defaults', value);
+      this.agentConfig || this.serverConfig['protect-kernel-defaults'] = value;
     }
   }
 };
@@ -111,7 +112,7 @@ export default {
         :mode="mode"
         :add-label="t('cluster.advanced.argInfo.machineSelector.label')"
         :can-remove="canRemoveKubeletRow"
-        :default-add-value="{machineLabelSelector: { matchExpressions: [], matchLabels: {} }, config: {'kubelet-arg': []}}"
+        :default-add-modelValue="{machineLabelSelector: { matchExpressions: [], matchLabels: {} }, config: {'kubelet-arg': []}}"
       >
         <template #default="{row, i}">
           <template v-if="row.value.machineLabelSelector">
@@ -205,10 +206,10 @@ export default {
         <div class="col span-12">
           <Checkbox
             data-testid="protect-kernel-defaults"
-            :value="protectKernelDefaults"
+            :modelValue="protectKernelDefaults"
             :mode="mode"
             :label="t('cluster.advanced.agentArgs.label')"
-            @input="onInputProtectKernelDefaults($event)"
+            @update:modelValue="onInputProtectKernelDefaults($event)"
           />
         </div>
       </div>

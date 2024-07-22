@@ -124,7 +124,7 @@ export default {
       <div class="glance-item">
         <label>{{ t('glance.created') }}: </label>
         <span><LiveDate
-          :value="clusterDetail.metadata.creationTimestamp"
+          :modelValue="clusterDetail.metadata.creationTimestamp"
           :add-suffix="true"
           :show-tooltip="true"
         /></span>

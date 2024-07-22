@@ -410,7 +410,7 @@ export default defineComponent({
         <LabeledSelect
           :options="versionOptions"
           label-key="gke.version.label"
-          :value="kubernetesVersion"
+          :modelValue="kubernetesVersion"
           :tooltip="isCreate? '' :t('gke.version.tooltip')"
           :loading="loadingVersions"
           data-testid="gke-version-select"
@@ -426,7 +426,7 @@ export default defineComponent({
           label-key="gke.location.region"
           :mode="mode"
           :options="regions"
-          :value="region"
+          :modelValue="region"
           :disabled="!isNewOrUnprovisioned"
           :loading="loadingZones"
           @selecting="setRegion"
@@ -438,7 +438,7 @@ export default defineComponent({
           :options="zones"
           option-key="name"
           option-label="name"
-          :value="zone"
+          :modelValue="zone"
           :disabled="!isNewOrUnprovisioned"
           :loading="loadingZones"
           @selecting="setZone"
@@ -455,14 +455,12 @@ export default defineComponent({
           class="text-muted"
         >&mdash;</span>
         <Checkbox
-          v-for="zoneOpt in extraZoneOptions"
-          :key="zoneOpt.name"
-          :label="zoneOpt.name"
-          :value="locations.includes(zoneOpt.name)"
+           v-for="(zoneOpt, i) in extraZoneOptions" :key="i" :label="zoneOpt.name"
+          :modelValue="locations.includes(zoneOpt.name)"
           :data-testid="`gke-extra-zones-${zoneOpt.name}`"
           :disabled="!isNewOrUnprovisioned"
           class="extra-zone-checkbox"
-          @input="e=>setExtraZone(e, zoneOpt.name)"
+          @update:modelValue="e=>setExtraZone(e, zoneOpt.name)"
         />
       </div>
       <div class="col">
@@ -480,11 +478,11 @@ export default defineComponent({
       <div class="col span-12">
         <KeyValue
           :mode="mode"
-          :value="labels"
+          :modelValue="labels"
           :as-map="true"
           :title="t('gke.clusterLabels.label')"
           :add-label="t('gke.clusterLabels.add')"
-          @input="$emit('update:labels', $event)"
+          @update:modelValue="$emit('update:labels', $event)"
         >
           <template #title>
             <!-- keyvalue title by default is an h3 and looks bad with the accordion header also being an h3 -->

@@ -81,7 +81,7 @@ export default {
           :options="effectOptions"
           :disabled="disabled"
           class="compact-select"
-          @input="queueUpdate"
+          @update:modelValue="queueUpdate"
         />
       </template>
     </KeyValue>

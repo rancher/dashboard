@@ -25,7 +25,7 @@ export default {
 
   created() {
     if (!this.value.kind) {
-      this.$set(this.value, 'kind', 'Shared');
+      this.value['kind'] = 'Shared';
     }
   },
 

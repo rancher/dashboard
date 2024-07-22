@@ -29,8 +29,8 @@ export default {
     },
   },
   data() {
-    this.$set(this.value, 'matchers', this.value.matchers || []);
-    this.$set(this.value, 'groupBy', this.value.groupBy || []);
+    this.value['matchers'] = this.value.matchers || [];
+    this.value['groupBy'] = this.value.groupBy || [];
 
     return {
       isView:     _VIEW,
@@ -117,7 +117,7 @@ export default {
       class="mt-20"
       :mode="mode"
       :add-label="t('monitoringRoute.matching.addMatcher')"
-      :default-add-value="{ matchers: [] }"
+      :default-add-modelValue="{ matchers: [] }"
     >
       <template #default="props">
         <div class="row mt-20 mb-20">

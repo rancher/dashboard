@@ -28,17 +28,17 @@ export default {
   },
   data() {
     if (!this.value.spec.behavior[this.type].policies) {
-      this.$set(this.value.spec.behavior[this.type], 'policies', []);
+      this.value.spec.behavior[this.type]['policies'] = [];
     }
     if (!this.value.spec.behavior[this.type].selectPolicy) {
-      this.$set(this.value.spec.behavior[this.type], 'selectPolicy', 'Max');
+      this.value.spec.behavior[this.type]['selectPolicy'] = 'Max';
     }
     if (this.value.spec.behavior[this.type].stabilizationWindowSeconds === null || typeof this.value.spec.behavior[this.type].stabilizationWindowSeconds === 'undefined') {
       if (this.type === 'scaleUp') {
-        this.$set(this.value.spec.behavior[this.type], 'stabilizationWindowSeconds', 0);
+        this.value.spec.behavior[this.type]['stabilizationWindowSeconds'] = 0;
       }
       if (this.type === 'scaleDown') {
-        this.$set(this.value.spec.behavior[this.type], 'stabilizationWindowSeconds', 300);
+        this.value.spec.behavior[this.type]['stabilizationWindowSeconds'] = 300;
       }
     }
 
@@ -54,7 +54,7 @@ export default {
         <ArrayListGrouped
           v-model="value.spec.behavior[type].policies"
           :add-label="t('hpa.scalingRule.addPolicy')"
-          :default-add-value="{}"
+          :default-add-modelValue="{}"
           :mode="mode"
         >
           <template #default="props">

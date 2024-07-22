@@ -428,7 +428,7 @@ export default {
         return (row.value.length || row.key.length);
       });
 
-      this.$set(this, 'rows', cleaned);
+      this['rows'] = cleaned;
     },
     onFileSelected(file) {
       const { name, value } = this.fileModifier(file.name, file.value);
@@ -566,7 +566,7 @@ export default {
      * Set focus on CodeMirror fields
      */
     onFocusMarkdownMultiline(idx, value) {
-      this.$set(this.codeMirrorFocus, idx, value);
+      this.codeMirrorFocus[idx] = value;
     },
     onValueFileSelected(idx, file) {
       const { name, value } = file;
@@ -616,9 +616,7 @@ export default {
           {{ _valueLabel }}
         </label>
         <label
-          v-for="c in extraColumns"
-          :key="c"
-        >
+           v-for="(c, i) in extraColumns" :key="i" >
           <slot :name="'label:'+c">{{ c }}</slot>
         </label>
         <slot
@@ -637,12 +635,11 @@ export default {
         </div>
       </template>
       <template
-        v-for="(row,i) in filteredRows"
+        v-for="(row,i) in filteredRows" :key="i"
         v-else
       >
         <!-- Key -->
         <div
-          :key="i+'key'"
           class="kv-item key"
         >
           <slot
@@ -664,7 +661,7 @@ export default {
               :taggable="keyTaggable"
               :options="calculateOptions(row[keyName])"
               :data-testid="`select-kv-item-key-${i}`"
-              @input="queueUpdate"
+              @update:modelValue="queueUpdate"
             />
             <input
               v-else
@@ -673,7 +670,7 @@ export default {
               :disabled="isView || disabled || !keyEditable || isProtected(row.key)"
               :placeholder="_keyPlaceholder"
               :data-testid="`input-kv-item-key-${i}`"
-              @input="queueUpdate"
+              @update:modelValue="queueUpdate"
               @paste="onPaste(i, $event)"
             >
           </slot>
@@ -681,7 +678,6 @@ export default {
 
         <!-- Value -->
         <div
-          :key="i+'value'"
           :data-testid="`kv-item-value-${i}`"
           class="kv-item value"
         >
@@ -709,7 +705,7 @@ export default {
                 ref="cm"
                 data-testid="code-mirror-multiline-field"
                 :class="{['focus']: codeMirrorFocus[i]}"
-                :value="row[valueName]"
+                :modelValue="row[valueName]"
                 :as-text-area="true"
                 :mode="mode"
                 @onInput="onInputMarkdownMultiline(i, $event)"
@@ -725,7 +721,7 @@ export default {
                 :placeholder="_valuePlaceholder"
                 :min-height="40"
                 :spellcheck="false"
-                @input="queueUpdate"
+                @update:modelValue="queueUpdate"
               />
               <input
                 v-else
@@ -737,7 +733,7 @@ export default {
                 autocapitalize="off"
                 spellcheck="false"
                 :data-testid="`input-kv-item-value-${i}`"
-                @input="queueUpdate"
+                @update:modelValue="queueUpdate"
               >
               <FileSelector
                 v-if="parseValueFromFile && readAllowed && !isView && isValueFieldEmpty(row[valueName])"
@@ -750,9 +746,7 @@ export default {
           </slot>
         </div>
         <div
-          v-for="c in extraColumns"
-          :key="i + c"
-          class="kv-item extra"
+           v-for="(c, i) in extraColumns" :key="i" class="kv-item extra"
         >
           <slot
             :name="'col:' + c"

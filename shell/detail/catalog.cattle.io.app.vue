@@ -125,7 +125,7 @@ export default {
         />
         <RelatedResources
           v-else
-          :value="value"
+          :modelValue="value"
           rel="helmresource"
         />
       </Tab>
@@ -137,7 +137,7 @@ export default {
         <YamlEditor
           ref="yaml"
           :scrolling="false"
-          :value="valuesYaml"
+          :modelValue="valuesYaml"
           editor-mode="VIEW_CODE"
         />
       </Tab>

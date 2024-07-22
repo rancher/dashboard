@@ -32,9 +32,9 @@ export default {
     const formatTypeOptions = ['json', 'out_file', 'ltsv', 'csv', 'msgpack', 'hash', 'single_value'];
     const transportOptions = ['tls', 'udp', 'tcp'];
 
-    this.$set(this.value, 'format', this.value.format || { type: formatTypeOptions[0] });
-    this.$set(this.value, 'buffer', this.value.buffer || {});
-    this.$set(this.value, 'transport', this.value.transport || transportOptions[0]);
+    this.value['format'] = this.value.format || { type: formatTypeOptions[0] };
+    this.value['buffer'] = this.value.buffer || {};
+    this.value['transport'] = this.value.transport || transportOptions[0];
 
     return { formatTypeOptions, transportOptions };
   },
@@ -44,7 +44,7 @@ export default {
         return this.value.port;
       },
       set(port) {
-        this.$set(this.value, 'port', Number.parseInt(port));
+        this.value['port'] = Number.parseInt(port);
       }
     },
     chunkLimitRecords: {
@@ -52,7 +52,7 @@ export default {
         return this.value.buffer.chunk_limit_records;
       },
       set(chunkLimitRecords) {
-        this.$set(this.value.buffer, 'chunk_limit_records', Number.parseInt(chunkLimitRecords));
+        this.value.buffer['chunk_limit_records'] = Number.parseInt(chunkLimitRecords);
       }
     }
   }

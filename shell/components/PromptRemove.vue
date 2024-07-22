@@ -373,7 +373,7 @@ export default {
               v-bind="_data"
               :close="close"
               :needs-confirm="needsConfirm"
-              :value="toRemove"
+              :modelValue="toRemove"
               :names="names"
               :type="type"
               :done-location="doneLocation"
@@ -415,7 +415,7 @@ export default {
             v-model="chartsDeleteCrd"
             label-key="promptRemoveApp.removeCrd"
             class="mt-10 type"
-            @input="chartAddCrdToRemove"
+            @update:modelValue="chartAddCrdToRemove"
           />
         </labeledinput>
         <template v-else>

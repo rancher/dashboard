@@ -92,7 +92,7 @@ export default {
       });
     },
     onMembershipUpdate(update) {
-      this.$set(this, 'membershipUpdate', update);
+      this['membershipUpdate'] = update;
     },
   },
 };

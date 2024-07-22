@@ -85,7 +85,7 @@ export default {
       <slot
         name="option"
         :label="opt.label"
-        :value="opt.value"
+        :modelValue="opt.value"
       >
         <i
           v-if="opt.icon"

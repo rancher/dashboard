@@ -30,12 +30,12 @@ export default {
         :label="displayLabel"
         :placeholder="question.default"
         :required="question.required"
-        :value="value"
+        :modelValue="value"
         :disabled="disabled"
         :tooltip="displayTooltip"
         :rules="rules"
         :data-testid="`string-input-${question.variable}`"
-        @input="$emit('input', $event)"
+        @update:modelValue="$emit('input', $event)"
       />
     </div>
     <div

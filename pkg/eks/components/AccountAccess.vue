@@ -114,17 +114,17 @@ export default defineComponent({
     <div class="region mb-10">
       <LabeledSelect
         :disabled="mode!=='create'"
-        :value="region"
+        :modelValue="region"
         label-key="eks.region.label"
         :options="regionOptions"
-        @input="$emit('update-region', $event)"
+        @update:modelValue="$emit('update-region', $event)"
       />
     </div>
     <div
       class="select-credential-container mb-10"
     >
       <SelectCredential
-        :value="credential"
+        :modelValue="credential"
         data-testid="crueks-select-credential"
         :mode="mode === VIEW ? VIEW : CREATE"
         provider="aws"
@@ -132,7 +132,7 @@ export default defineComponent({
         :showing-form="!credential"
         class="select-credential"
         :cancel="()=>$emit('cancel-credential')"
-        @input="$emit('update-credential', $event)"
+        @update:modelValue="$emit('update-credential', $event)"
       />
     </div>
   </div>

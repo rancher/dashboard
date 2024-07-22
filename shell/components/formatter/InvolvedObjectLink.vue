@@ -43,7 +43,7 @@ export default {
   <span v-if="kind && value.kind && value.name">
     <LinkName
       :type="kind"
-      :value="`${value.kind} ${value.name}`"
+      :modelValue="`${value.kind} ${value.name}`"
       :object-id="value.name"
       :namespace="value.namespace"
       :product="product"

@@ -77,7 +77,7 @@ export default {
     <div class="row mb-10">
       <div class="col span-6">
         <LabeledSelect
-          :value="value.decodedData.environment"
+          :modelValue="value.decodedData.environment"
           :mode="mode"
           :options="azureEnvironments"
           option-key="value"
@@ -86,42 +86,42 @@ export default {
           :required="true"
           :label="t('cluster.credential.azure.environment.label')"
           data-testid="azure-cloud-credentials-environment"
-          @input="value.setData('environment', $event)"
+          @update:modelValue="value.setData('environment', $event)"
         />
       </div>
       <div class="col span-6">
         <LabeledInput
-          :value="value.decodedData.subscriptionId"
+          :modelValue="value.decodedData.subscriptionId"
           label-key="cluster.credential.azure.subscriptionId.label"
           type="text"
           :mode="mode"
           :required="true"
           data-testid="azure-cloud-credentials-subscription-id"
-          @input="value.setData('subscriptionId', $event)"
+          @update:modelValue="value.setData('subscriptionId', $event)"
         />
       </div>
     </div>
     <div class="row mb-10">
       <div class="col span-6">
         <LabeledInput
-          :value="value.decodedData.clientId"
+          :modelValue="value.decodedData.clientId"
           label-key="cluster.credential.azure.clientId.label"
           type="text"
           :mode="mode"
           :required="true"
           data-testid="azure-cloud-credentials-client-id"
-          @input="value.setData('clientId', $event)"
+          @update:modelValue="value.setData('clientId', $event)"
         />
       </div>
       <div class="col span-6">
         <LabeledInput
-          :value="value.decodedData.clientSecret"
+          :modelValue="value.decodedData.clientSecret"
           label-key="cluster.credential.azure.clientSecret.label"
           type="password"
           :mode="mode"
           :required="true"
           data-testid="azure-cloud-credentials-client-secret"
-          @input="value.setData('clientSecret', $event)"
+          @update:modelValue="value.setData('clientSecret', $event)"
         />
       </div>
     </div>

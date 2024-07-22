@@ -261,7 +261,7 @@ export default {
               :title="t('authConfig.oidc.scope.label')"
               :value-placeholder="t('authConfig.oidc.scope.placeholder')"
               :protip="t('authConfig.oidc.scope.protip', {}, true)"
-              @input="updateScope"
+              @update:modelValue="updateScope"
             />
           </div>
         </div>
@@ -390,7 +390,7 @@ export default {
   .banner {
     display: block;
 
-    &::v-deep code {
+    &:deep() code {
       padding: 0 3px;
       margin: 0 3px;
     }

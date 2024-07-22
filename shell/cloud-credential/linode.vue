@@ -32,12 +32,12 @@ export default {
 <template>
   <div>
     <LabeledInput
-      :value="value.decodedData.token"
+      :modelValue="value.decodedData.token"
       label-key="cluster.credential.linode.accessToken.label"
       placeholder-key="cluster.credential.linode.accessToken.placeholder"
       type="password"
       :mode="mode"
-      @input="value.setData('token', $event);"
+      @update:modelValue="value.setData('token', $event);"
     />
     <p
       v-clean-html="t('cluster.credential.linode.accessToken.help', {}, true)"

@@ -76,12 +76,12 @@ export default {
       </h3>
       <Checkbox
         class="mb-10"
-        :value="isSettingCommonConfig"
+        :modelValue="isSettingCommonConfig"
         :mode="mode"
         :label="t('cluster.directoryConfig.checkboxText')"
         :disabled="disableEditInput"
         data-testid="rke2-directory-config-individual-config-checkbox"
-        @input="handleCommonConfig"
+        @update:modelValue="handleCommonConfig"
       />
       <LabeledInput
         v-if="isSettingCommonConfig"

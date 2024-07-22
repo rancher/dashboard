@@ -54,7 +54,7 @@ export default {
   beforeUpdate() {
     for (const rule of this.value.spec.rules) {
       if (!rule.vKey) {
-        this.$set(rule, 'vKey', random32(1));
+        rule['vKey'] = random32(1);
       }
     }
   },
@@ -136,7 +136,7 @@ export default {
     <ArrayListGrouped
       v-model="value.spec.rules"
       :add-label="t('ingress.rules.addRule')"
-      :default-add-value="{}"
+      :default-add-modelValue="{}"
       :mode="mode"
       @add="onAdd"
     >

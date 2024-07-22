@@ -31,7 +31,7 @@ export default {
         return this.value.servers[0].port;
       },
       set(port) {
-        updatePort((value) => this.$set(this.value.servers[0], 'port', value), port);
+        updatePort((value) => (this.value.servers[0]['port'] = value), port);
       }
     }
   }

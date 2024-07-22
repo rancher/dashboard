@@ -228,10 +228,10 @@ export default {
           <div class="col span-6">
             <Checkbox
               :disabled="!!uiBannerIndividual.bannerHeader"
-              :value="bannerVal.showHeader === 'true'"
+              :modelValue="bannerVal.showHeader === 'true'"
               :label="t('banner.showHeader')"
               :mode="mode"
-              @input="e=>$set(bannerVal, 'showHeader', e.toString())"
+              @update:modelValue="e=>$set(bannerVal, 'showHeader', e.toString())"
             />
           </div>
         </div>
@@ -263,10 +263,10 @@ export default {
           <div class="col span-6">
             <Checkbox
               :disabled="!!uiBannerIndividual.bannerFooter"
-              :value="bannerVal.showFooter === 'true'"
+              :modelValue="bannerVal.showFooter === 'true'"
               :label="t('banner.showFooter')"
               :mode="mode"
-              @input="e=>$set(bannerVal, 'showFooter', e.toString())"
+              @update:modelValue="e=>$set(bannerVal, 'showFooter', e.toString())"
             />
           </div>
         </div>
@@ -300,10 +300,10 @@ export default {
           <div class="col span-6">
             <Checkbox
               :disabled="!!uiBannerIndividual.bannerConsent"
-              :value="bannerVal.showConsent === 'true'"
+              :modelValue="bannerVal.showConsent === 'true'"
               :label="t('banner.showConsent')"
               :mode="mode"
-              @input="e => $set(bannerVal, 'showConsent', e.toString())"
+              @update:modelValue="e => $set(bannerVal, 'showConsent', e.toString())"
             />
           </div>
         </div>
@@ -322,9 +322,8 @@ export default {
         :label="t('notifications.loginError.messageLabel')"
       />
     </div>
-    <template v-for="err in errors">
+    <template  v-for="(err, i) in errors" :key="i" >
       <Banner
-        :key="err"
         color="error"
         :label="err"
       />

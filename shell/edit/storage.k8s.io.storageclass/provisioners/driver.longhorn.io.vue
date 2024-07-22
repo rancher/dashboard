@@ -16,14 +16,12 @@ export default {
   },
   data() {
     if (this.mode === _CREATE) {
-      this.$set(this.value, 'parameters', {
-        numberOfReplicas:    '3',
+      this.value['parameters'] = {numberOfReplicas:    '3',
         staleReplicaTimeout: '2880',
         fromBackup:          null,
         diskSelector:        null,
         nodeSelector:        null,
-        recurringJobs:       null,
-      });
+        recurringJobs:       null,};
     }
 
     return {};

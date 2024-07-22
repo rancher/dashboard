@@ -349,7 +349,7 @@ export default {
       <PlusMinus
         class="text-right"
         :label="t('tableHeaders.scale')"
-        :value="value.spec.replicas"
+        :modelValue="value.spec.replicas"
         :disabled="!isScalable"
         @minus="scaleDown"
         @plus="scaleUp"
@@ -365,9 +365,7 @@ export default {
     >
       <template v-if="value.jobGauges">
         <CountGauge
-          v-for="(group, key) in value.jobGauges"
-          :key="key"
-          :total="isCronJob? totalRuns : value.pods.length"
+          v-for="(group, key) in value.jobGauges" :key="key":total="isCronJob? totalRuns : value.pods.length"
           :useful="group.count || 0"
           :graphical="showJobGaugeCircles"
           :primary-color-var="`--sizzle-${group.color}`"
@@ -376,9 +374,7 @@ export default {
       </template>
       <template v-else>
         <CountGauge
-          v-for="(group, key) in value.podGauges"
-          :key="key"
-          :total="value.pods.length"
+          v-for="(group, key) in value.podGauges" :key="key":total="value.pods.length"
           :useful="group.count || 0"
           :graphical="showPodGaugeCircles"
           :primary-color-var="`--sizzle-${group.color}`"
@@ -387,7 +383,7 @@ export default {
       </template>
     </div>
     <ResourceTabs
-      :value="value"
+      :modelValue="value"
     >
       <Tab
         v-if="isCronJob"

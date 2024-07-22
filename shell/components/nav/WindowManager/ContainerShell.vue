@@ -476,7 +476,7 @@ export default {
 }
 
 .containerPicker {
-  ::v-deep &.unlabeled-select {
+  :deep() &.unlabeled-select {
     display: inline-block;
     min-width: 200px;
     height: 30px;

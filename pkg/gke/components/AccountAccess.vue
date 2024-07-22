@@ -114,10 +114,10 @@ export default defineComponent({
     >
       <LabeledInput
         :disabled="isAuthenticated"
-        :value="project"
+        :modelValue="project"
         label-key="gke.project.label"
         required
-        @input="$emit('update:project', $event)"
+        @update:modelValue="$emit('update:project', $event)"
       />
     </div>
     <div
@@ -125,7 +125,7 @@ export default defineComponent({
       class="select-credential-container mb-10"
     >
       <SelectCredential
-        :value="credential"
+        :modelValue="credential"
         data-testid="crugke-select-credential"
         :mode="(isView|| isAuthenticated) ? VIEW : CREATE"
         provider="gcp"
@@ -133,7 +133,7 @@ export default defineComponent({
         :showing-form="!credential"
         class="select-credential"
         :cancel="()=>$emit('cancel-credential')"
-        @input="$emit('update:credential', $event)"
+        @update:modelValue="$emit('update:credential', $event)"
         @credential-created="parseNewCredential"
       />
     </div>

@@ -94,7 +94,7 @@ export default {
     <ArrayListGrouped
       v-model="value.spec.tls"
       :add-label="t('ingress.certificates.addCertificate')"
-      :default-add-value="defaultAddValue"
+      :default-add-modelValue="defaultAddValue"
       :mode="mode"
     >
       <template #default="props">

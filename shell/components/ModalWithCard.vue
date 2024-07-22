@@ -82,9 +82,7 @@ export default {
         <slot name="content" />
 
         <div
-          v-for="(err,idx) in errors"
-          :key="idx"
-        >
+          v-for="(err,idx) in errors" :key="idx">
           <Banner
             class="banner"
             color="error"

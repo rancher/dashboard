@@ -61,7 +61,7 @@ export default {
         <ArrayListGrouped
           v-model="value[targetKey]"
           :add-label="t(`networkpolicy.rules.${type}.add`)"
-          :default-add-value="{}"
+          :default-add-modelValue="{}"
           :mode="mode"
         >
           <template #default="props">
@@ -91,7 +91,7 @@ export default {
         <ArrayListGrouped
           v-model="value.ports"
           :add-label="t('networkpolicy.rules.addPort')"
-          :default-add-value="{}"
+          :default-add-modelValue="{}"
           :mode="mode"
         >
           <template #default="props">

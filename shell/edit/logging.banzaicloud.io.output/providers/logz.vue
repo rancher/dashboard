@@ -34,7 +34,7 @@ export default {
         return this.value.endpoint.port;
       },
       set(port) {
-        updatePort((value) => this.$set(this.value.endpoint, 'port', value), port);
+        updatePort((value) => (this.value.endpoint['port'] = value), port);
       }
     }
   }

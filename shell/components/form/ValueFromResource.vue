@@ -270,7 +270,7 @@ export default {
         :searchable="false"
         :reduce="e=>e.value"
         :label="t('workload.container.command.fromResource.type')"
-        @input="updateRow"
+        @update:modelValue="updateRow"
       />
     </div>
 
@@ -280,7 +280,7 @@ export default {
         :label="nameLabel"
         :placeholder="t('workload.container.command.fromResource.name.placeholder')"
         :mode="mode"
-        @input="updateRow"
+        @update:modelValue="updateRow"
       />
     </div>
 
@@ -293,7 +293,7 @@ export default {
         :label="t('workload.container.command.fromResource.value.label')"
         :placeholder="t('workload.container.command.fromResource.value.placeholder')"
         :mode="mode"
-        @input="updateRow"
+        @update:modelValue="updateRow"
       />
     </div>
 
@@ -319,7 +319,7 @@ export default {
           option-label="label"
           :label="t('workload.container.command.fromResource.key.label')"
           :loading="loading"
-          @input="updateRow"
+          @update:modelValue="updateRow"
         />
       </div>
     </template>
@@ -331,7 +331,7 @@ export default {
           :label="t('workload.container.command.fromResource.containerName')"
           :placeholder="t('workload.container.command.fromResource.source.placeholder')"
           :mode="mode"
-          @input="updateRow"
+          @update:modelValue="updateRow"
         />
       </div>
       <div>
@@ -343,7 +343,7 @@ export default {
           :mode="mode"
           :searchable="false"
           :placeholder="t('workload.container.command.fromResource.key.placeholder', null, true)"
-          @input="updateRow"
+          @update:modelValue="updateRow"
         />
       </div>
     </template>
@@ -355,7 +355,7 @@ export default {
           :placeholder="t('workload.container.command.fromResource.key.placeholder', null, true)"
           :label="t('workload.container.command.fromResource.key.label')"
           :mode="mode"
-          @input="updateRow"
+          @update:modelValue="updateRow"
         />
       </div>
     </template>

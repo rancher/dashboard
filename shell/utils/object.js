@@ -2,7 +2,8 @@ import cloneDeep from 'lodash/cloneDeep';
 import flattenDeep from 'lodash/flattenDeep';
 import compact from 'lodash/compact';
 import { JSONPath } from 'jsonpath-plus';
-import Vue from 'vue';
+import { createApp } from 'vue';
+const vueApp = createApp({});
 import transform from 'lodash/transform';
 import isObject from 'lodash/isObject';
 import isArray from 'lodash/isArray';
@@ -24,10 +25,10 @@ export function set(obj, path, value) {
     const key = parts[i];
 
     if ( i === parts.length - 1 ) {
-      Vue.set(ptr, key, value);
+      ptr[key] = value;
     } else if ( !ptr[key] ) {
       // Make sure parent keys exist
-      Vue.set(ptr, key, {});
+      ptr[key] = {};
     }
 
     ptr = ptr[key];
@@ -95,14 +96,14 @@ export function remove(obj, path) {
   // Remove the very last part of the path
 
   if (parentAry.length === 1) {
-    Vue.set(obj, path, undefined);
+    obj[path] = undefined;
     delete obj[path];
   } else {
     const leafKey = parentAry.pop();
     const parent = get(obj, joinObjectPath(parentAry));
 
     if ( parent ) {
-      Vue.set(parent, leafKey, undefined);
+      parent[leafKey] = undefined;
       delete parent[leafKey];
     }
   }

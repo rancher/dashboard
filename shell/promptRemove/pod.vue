@@ -131,9 +131,7 @@ export default {
       label-key="promptForceRemove.podRemoveWarning"
     />
     <Banner
-      v-for="(error, i) in errors"
-      :key="i"
-      class=""
+      v-for="(error, i) in errors" :key="i"class=""
       color="error"
       :label="error"
     />

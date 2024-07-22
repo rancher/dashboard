@@ -320,7 +320,7 @@ export default {
     parseDeploymentValues(name) {
       let out = {};
 
-      this.$set(this.deploymentValues.metadata, 'name', name);
+      this.deploymentValues.metadata['name'] = name;
 
       const addLabel = { [UI_PLUGIN_LABELS.CATALOG_IMAGE]: name };
       const addTo = ['metadata.labels', 'spec.selector.matchLabels', 'spec.template.metadata.labels'];

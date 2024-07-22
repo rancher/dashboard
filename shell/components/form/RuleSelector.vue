@@ -113,7 +113,7 @@ export default {
       :protip="false"
       :show-header="true"
       :add-label="addLabel"
-      :default-add-value="defaultAddValue"
+      :default-add-modelValue="defaultAddValue"
       :mode="mode"
     >
       <template v-slot:column-headers>
@@ -140,17 +140,17 @@ export default {
         <div class="operator">
           <Select
             :mode="mode"
-            :value="scope.row.value.operator"
+            :modelValue="scope.row.value.operator"
             :options="operatorOptions"
-            @input="onOperatorInput(scope, $event)"
+            @update:modelValue="onOperatorInput(scope, $event)"
           />
         </div>
         <div class="value">
           <LabeledInput
             :disabled="isValueDisabled(scope)"
-            :value="getValue(scope)"
+            :modelValue="getValue(scope)"
             :mode="mode"
-            @input="onValueInput(scope, $event)"
+            @update:modelValue="onValueInput(scope, $event)"
           />
         </div>
       </template>
@@ -164,7 +164,7 @@ export default {
     table-layout: initial;
   }
 
-   ::v-deep .box {
+   :deep() .box {
     display: grid;
     grid-template-columns: 25% 25% 25% 15%;
     column-gap: 1.75%;

@@ -206,7 +206,7 @@ export default {
         name="route"
       >
         <RouteConfig
-          :value="value.spec.route"
+          :modelValue="value.spec.route"
           :mode="mode"
           :receiver-options="receiverOptions"
         />

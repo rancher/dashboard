@@ -63,7 +63,7 @@ export default defineComponent({
       <input
         type="checkbox"
         :checked="state"
-        @input="toggle(null)"
+        @update:modelValue="toggle(null)"
       >
       <span class="slider round" />
     </label>

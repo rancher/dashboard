@@ -154,7 +154,7 @@ export default {
             :options="networkModeChoices"
             :label="t('workload.networking.networkMode.label')"
             :placeholder="t('workload.networking.networkMode.placeholder')"
-            @input="update"
+            @update:modelValue="update"
           />
         </div>
 
@@ -165,7 +165,7 @@ export default {
             :options="dnsPolicyChoices"
             :label="t('workload.networking.dnsPolicy.label')"
             :placeholder="t('workload.networking.dnsPolicy.placeholder')"
-            @input="update"
+            @update:modelValue="update"
           />
         </div>
       </div>
@@ -177,7 +177,7 @@ export default {
             :mode="mode"
             :label="t('workload.networking.hostname.label')"
             :placeholder="t('workload.networking.hostname.placeholder')"
-            @input="update"
+            @update:modelValue="update"
           />
         </div>
         <div class="col span-6">
@@ -186,7 +186,7 @@ export default {
             :mode="mode"
             :label="t('workload.networking.subdomain.label')"
             :placeholder="t('workload.networking.subdomain.placeholder')"
-            @input="update"
+            @update:modelValue="update"
           />
         </div>
       </div>
@@ -205,7 +205,7 @@ export default {
             :add-label="t('workload.networking.nameservers.add')"
             :mode="mode"
             :protip="false"
-            @input="update"
+            @update:modelValue="update"
           />
         </div>
         <div class="col span-6">
@@ -217,7 +217,7 @@ export default {
             :add-label="t('workload.networking.searches.add')"
             :mode="mode"
             :protip="false"
-            @input="update"
+            @update:modelValue="update"
           />
         </div>
       </div>
@@ -236,7 +236,7 @@ export default {
           :read-allowed="false"
           :as-map="false"
           :value-label="t('generic.value')"
-          @input="update"
+          @update:modelValue="update"
         />
       </div>
     </div>
@@ -259,7 +259,7 @@ export default {
           :value-label="t('workload.networking.hostAliases.valueLabel')"
           :value-placeholder="t('workload.networking.hostAliases.valuePlaceholder')"
           :add-label="t('workload.networking.hostAliases.add')"
-          @input="updateHostAliases"
+          @update:modelValue="updateHostAliases"
         >
           <template #title>
             <h3>{{ t('workload.networking.hostAliases.label') }}</h3>

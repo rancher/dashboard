@@ -187,9 +187,8 @@ export default {
         </div>
       </div>
 
-      <template v-for="(row,i) in rows">
+      <template v-for="(row,i) in rows" :key="i">
         <div
-          :key="i+'key'"
           class="kv-item key"
         >
           <slot
@@ -202,7 +201,6 @@ export default {
         </div>
 
         <div
-          :key="i+'value'"
           class="kv-item value"
         >
           <slot

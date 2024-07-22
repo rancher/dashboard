@@ -16,11 +16,11 @@ export default {
         :mode="mode"
         :labels="Array.isArray(question.options) ? question.options : Object.values(question.options)"
         :options="Array.isArray(question.options) ? question.options : Object.keys(question.options)"
-        :value="value"
+        :modelValue="value"
         :disabled="disabled"
         :label="displayLabel"
         :tooltip="displayTooltip"
-        @input="$emit('input', $event)"
+        @update:modelValue="$emit('input', $event)"
       />
     </div>
     <div

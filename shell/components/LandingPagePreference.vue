@@ -108,17 +108,17 @@ export default {
     </p>
     <RadioGroup
       id="login-route"
-      :value="afterLoginRoute"
+      :modelValue="afterLoginRoute"
       name="login-route"
       :options="routeRadioOptions"
-      @input="updateLoginRoute"
+      @update:modelValue="updateLoginRoute"
     >
       <template #2="{option, listeners}">
         <div class="custom-page">
           <RadioButton
             :label="option.label"
             :val="false"
-            :value="afterLoginRoute=== 'home' || afterLoginRoute === 'last-visited'"
+            :modelValue="afterLoginRoute=== 'home' || afterLoginRoute === 'last-visited'"
             v-on="listeners"
           />
           <Select

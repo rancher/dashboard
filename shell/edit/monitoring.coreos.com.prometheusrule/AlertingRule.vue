@@ -78,12 +78,12 @@ export default {
       set(value) {
         if (value) {
           if (isEmpty(this.value?.labels)) {
-            this.$set(this.value, 'labels', { severity: 'none' });
+            this.value['labels'] = { severity: 'none' };
           } else {
-            this.$set(this.value.labels, 'severity', 'none');
+            this.value.labels['severity'] = 'none';
           }
         } else {
-          this.$set(this.value.labels, 'severity', '');
+          this.value.labels['severity'] = '';
           delete this.value.labels.severity;
         }
       },
@@ -100,12 +100,12 @@ export default {
       set(value) {
         if (value) {
           if (isEmpty(this.value?.annotations)) {
-            this.$set(this.value, 'annotations', { summary: '' });
+            this.value['annotations'] = { summary: '' };
           } else {
-            this.$set(this.value.annotations, 'summary', '');
+            this.value.annotations['summary'] = '';
           }
         } else {
-          this.$set(this.value.annotations, 'summary', '');
+          this.value.annotations['summary'] = '';
           delete this.value.annotations.summary;
         }
       },
@@ -122,12 +122,12 @@ export default {
       set(value) {
         if (value) {
           if (isEmpty(this.value?.annotations)) {
-            this.$set(this.value, 'annotations', { message: '' });
+            this.value['annotations'] = { message: '' };
           } else {
-            this.$set(this.value.annotations, 'message', '');
+            this.value.annotations['message'] = '';
           }
         } else {
-          this.$set(this.value.annotations, 'message', '');
+          this.value.annotations['message'] = '';
           delete this.value.annotations.message;
         }
       },
@@ -144,12 +144,12 @@ export default {
       set(value) {
         if (value) {
           if (isEmpty(this.value?.annotations)) {
-            this.$set(this.value, 'annotations', { description: '' });
+            this.value['annotations'] = { description: '' };
           } else {
-            this.$set(this.value.annotations, 'description', '');
+            this.value.annotations['description'] = '';
           }
         } else {
-          this.$set(this.value.annotations, 'description', '');
+          this.value.annotations['description'] = '';
           delete this.value.annotations.description;
         }
       },
@@ -166,12 +166,12 @@ export default {
       set(value) {
         if (value) {
           if (isEmpty(this.value?.annotations)) {
-            this.$set(this.value, 'annotations', { runbook_url: '' });
+            this.value['annotations'] = { runbook_url: '' };
           } else {
-            this.$set(this.value.annotations, 'runbook_url', '');
+            this.value.annotations['runbook_url'] = '';
           }
         } else {
-          this.$set(this.value.annotations, 'runbook_url', '');
+          this.value.annotations['runbook_url'] = '';
           delete this.value.annotations.runbook_url;
         }
       },
@@ -213,7 +213,7 @@ export default {
         return undefined;
       },
       set(v) {
-        this.$set(this.value, 'for', [null, undefined].includes(v) ? undefined : `${ v }s`);
+        this.value['for'] = [null, undefined].includes(v ? undefined : `${ v }s`);
       }
     }
   },
@@ -223,9 +223,9 @@ export default {
       const neu = value === 'custom' ? '' : value;
 
       if (this.value?.labels) {
-        this.$set(this.value.labels, 'severity', neu);
+        this.value.labels['severity'] = neu;
       } else {
-        this.$set(this.value, 'labels', { severity: neu });
+        this.value['labels'] = { severity: neu };
       }
     },
   },
@@ -252,7 +252,7 @@ export default {
         neu['severity'] = this.selectedSeverityLabel;
       }
 
-      this.$set(this.value, 'labels', neu);
+      this.value['labels'] = neu;
     },
     updateAnnotations(value) {
       const {
@@ -267,10 +267,10 @@ export default {
         }
       });
 
-      this.$set(this.value, 'annotations', neu);
+      this.value['annotations'] = neu;
     },
     updateExpression(value) {
-      this.$set(this.value, 'expr', value);
+      this.value['expr'] = value;
     }
   },
 };
@@ -309,7 +309,7 @@ export default {
           <template #field>
             <CodeMirror
               class="mt-20"
-              :value="value.expr"
+              :modelValue="value.expr"
               :options="{
                 mode: null,
                 foldGutter: false,
@@ -363,12 +363,12 @@ export default {
         <div class="col span-12">
           <KeyValue
             key="labels"
-            :value="filteredLabels"
+            :modelValue="filteredLabels"
             :add-label="t('labels.addLabel')"
             :mode="mode"
             :read-allowed="false"
             :value-multiline="false"
-            @input="queueLabelUpdate"
+            @update:modelValue="queueLabelUpdate"
           />
         </div>
       </div>
@@ -503,11 +503,11 @@ export default {
         <div :class="[{ hide: isView && Object.keys(filteredAnnotations).length === 0}, 'row', 'mt-0']">
           <KeyValue
             key="annotations"
-            :value="filteredAnnotations"
+            :modelValue="filteredAnnotations"
             :add-label="t('labels.addAnnotation')"
             :mode="mode"
             :read-allowed="false"
-            @input="queueAnnotationUpdate"
+            @update:modelValue="queueAnnotationUpdate"
           />
         </div>
       </div>

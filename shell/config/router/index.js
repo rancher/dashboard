@@ -1,9 +1,10 @@
-import Vue from 'vue';
-import Router from 'vue-router';
+import { createApp } from 'vue';
+const vueApp = createApp({});
+import { createRouter } from 'vue-router';
 import Routes from '@shell/config/router/routes';
 import { installNavigationGuards } from '@shell/config/router/navigation-guards';
 
-Vue.use(Router);
+vueApp.use(Router);
 
 export const routerOptions = {
   mode:     'history',

@@ -32,12 +32,12 @@ export default {
 <template>
   <div>
     <LabeledInput
-      :value="value.decodedData.accessToken"
+      :modelValue="value.decodedData.accessToken"
       label-key="cluster.credential.digitalocean.accessToken.label"
       placeholder-key="cluster.credential.digitalocean.accessToken.placeholder"
       type="password"
       :mode="mode"
-      @input="value.setData('accessToken', $event);"
+      @update:modelValue="value.setData('accessToken', $event);"
     />
     <p
       v-clean-html="t('cluster.credential.digitalocean.accessToken.help', {}, true)"

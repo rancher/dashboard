@@ -46,7 +46,7 @@ export default {
     <t k="secret.certificate.cn" /> {{ cn }} <span v-if="row.unrepeatedSans.length">{{ t('secret.certificate.plusMore', {n:row.unrepeatedSans.length}) }}</span><br>
     <t k="secret.certificate.expires" />: <DateComponent
       :class="dateClass"
-      :value="expiration"
+      :modelValue="expiration"
     />
   </div>
   <div v-else>

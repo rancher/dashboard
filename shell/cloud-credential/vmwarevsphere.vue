@@ -50,45 +50,45 @@ export default {
     <div class="row mb-10">
       <div class="col span-6">
         <LabeledInput
-          :value="value.decodedData.vcenter"
+          :modelValue="value.decodedData.vcenter"
           label-key="cluster.credential.vmwarevsphere.server.label"
           placeholder-key="cluster.credential.vmwarevsphere.server.placeholder"
           :required="true"
           :mode="mode"
-          @input="value.setData('vcenter', $event);"
+          @update:modelValue="value.setData('vcenter', $event);"
         />
       </div>
       <div class="col span-6">
         <LabeledInput
-          :value="value.decodedData.vcenterPort"
+          :modelValue="value.decodedData.vcenterPort"
           label-key="cluster.credential.vmwarevsphere.port.label"
           :required="true"
           type="number"
           min="1"
           max="65535"
           :mode="mode"
-          @input="value.setData('vcenterPort', $event);"
+          @update:modelValue="value.setData('vcenterPort', $event);"
         />
       </div>
     </div>
     <div class="row mb-10">
       <div class="col span-6">
         <LabeledInput
-          :value="value.decodedData.username"
+          :modelValue="value.decodedData.username"
           label-key="cluster.credential.vmwarevsphere.username.label"
           :required="true"
           :mode="mode"
-          @input="value.setData('username', $event);"
+          @update:modelValue="value.setData('username', $event);"
         />
       </div>
       <div class="col span-6">
         <LabeledInput
-          :value="value.decodedData.password"
+          :modelValue="value.decodedData.password"
           label-key="cluster.credential.vmwarevsphere.password.label"
           :required="true"
           type="password"
           :mode="mode"
-          @input="value.setData('password', $event);"
+          @update:modelValue="value.setData('password', $event);"
         />
       </div>
     </div>

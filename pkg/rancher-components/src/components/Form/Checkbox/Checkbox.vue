@@ -223,7 +223,7 @@ export default defineComponent({
     >
       <input
         :checked="isChecked"
-        :value="valueWhenTrue"
+        :modelValue="valueWhenTrue"
         type="checkbox"
         :tabindex="-1"
         :name="id"

@@ -202,7 +202,7 @@ export default {
       :weight="-1"
       :display-alert-icon="conditionsHaveIssues"
     >
-      <Conditions :value="value" />
+      <Conditions :modelValue="value" />
     </Tab>
 
     <Tab
@@ -232,7 +232,7 @@ export default {
       <h3 v-t="'resourceTabs.related.from'" />
       <RelatedResources
         :ignore-types="[value.type]"
-        :value="value"
+        :modelValue="value"
         direction="from"
       />
 
@@ -242,7 +242,7 @@ export default {
       />
       <RelatedResources
         :ignore-types="[value.type]"
-        :value="value"
+        :modelValue="value"
         direction="to"
       />
     </Tab>

@@ -220,7 +220,7 @@ export default {
         v-model="taints"
         class="mb-10"
         mode="edit"
-        :value="taints"
+        :modelValue="taints"
       />
 
       <a

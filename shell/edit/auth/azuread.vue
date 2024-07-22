@@ -137,7 +137,7 @@ export default {
       const applicationSecret = this.getNewApplicationSecret();
 
       if (applicationSecret) {
-        this.$set(this.model, 'applicationSecret', applicationSecret);
+        this.model['applicationSecret'] = applicationSecret;
       }
 
       return {
@@ -186,7 +186,7 @@ export default {
         this.model.rancherUrl = this.model.rancherUrl || this.replyUrl;
 
         if (this.model.applicationSecret) {
-          this.$set(this, 'applicationSecret', this.model.applicationSecret);
+          this['applicationSecret'] = this.model.applicationSecret;
         }
       }
     },
@@ -449,7 +449,7 @@ export default {
               :label="t('authConfig.azuread.groupMembershipFilter.enable')"
               :tooltip="t('authConfig.azuread.groupMembershipFilter.tooltip')"
               data-testid="checkbox-azureAD-groupMembershipFilter"
-              @input="toggleGroupMembershipFilter"
+              @update:modelValue="toggleGroupMembershipFilter"
             />
             <div v-if="isGroupMembershipFilterEnabled">
               <LabeledInput

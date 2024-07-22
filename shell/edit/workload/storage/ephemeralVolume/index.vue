@@ -75,7 +75,7 @@ export default {
       >
         <component
           :is="driverComponent"
-          :value="value.csi.volumeAttributes"
+          :modelValue="value.csi.volumeAttributes"
           :mode="mode"
         />
       </div>

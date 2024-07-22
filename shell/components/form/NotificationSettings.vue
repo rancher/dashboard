@@ -33,9 +33,9 @@ export default ({
       <div class="col span-6">
         <Checkbox
           :mode="mode"
-          :value="value.showMessage === 'true'"
+          :modelValue="value.showMessage === 'true'"
           :label="t('notifications.loginError.showCheckboxLabel')"
-          @input="e=>$set(value, 'showMessage', e.toString())"
+          @update:modelValue="e=>$set(value, 'showMessage', e.toString())"
         />
       </div>
     </div>

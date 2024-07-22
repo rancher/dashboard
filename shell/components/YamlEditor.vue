@@ -227,7 +227,7 @@ export default {
       v-if="showCodeEditor"
       ref="cm"
       :class="{fill: true, scrolling: scrolling}"
-      :value="curValue"
+      :modelValue="curValue"
       :options="codeMirrorOptions"
       :showKeyMapBox="true"
       :data-testid="componentTestid + '-code-mirror'"
@@ -256,7 +256,7 @@ export default {
     flex: 1;
   }
 
-  ::v-deep .code-mirror  {
+  :deep() .code-mirror  {
     position: relative;
 
     .CodeMirror {

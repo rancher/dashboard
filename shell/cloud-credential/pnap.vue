@@ -51,22 +51,22 @@ export default {
     <div class="row mt-20">
       <div class="col span-6">
         <LabeledInput
-          :value="value.decodedData.clientIdentifier"
+          :modelValue="value.decodedData.clientIdentifier"
           label-key="cluster.credential.pnap.clientIdentifier.label"
           placeholder-key="cluster.credential.pnap.clientIdentifier.placeholder"
           type="text"
           :mode="mode"
-          @input="value.setData('clientIdentifier', $event);"
+          @update:modelValue="value.setData('clientIdentifier', $event);"
         />
       </div>
       <div class="col span-6">
         <LabeledInput
-          :value="value.decodedData.clientSecret"
+          :modelValue="value.decodedData.clientSecret"
           label-key="cluster.credential.pnap.clientSecret.label"
           placeholder-key="cluster.credential.pnap.clientSecret.placeholder"
           type="text"
           :mode="mode"
-          @input="value.setData('clientSecret', $event);"
+          @update:modelValue="value.setData('clientSecret', $event);"
         />
       </div>
     </div>

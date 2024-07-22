@@ -748,9 +748,7 @@ export default {
   />
   <div v-else-if="errors.length">
     <div
-      v-for="(err, idx) in errors"
-      :key="idx"
-    >
+      v-for="(err, idx) in errors" :key="idx">
       <Banner
         color="error"
         :label="stringify(err)"
@@ -1209,7 +1207,7 @@ export default {
 </template>
 
 <style lang="scss" scoped>
-::v-deep .labeled-tooltip .status-icon.icon-info {
+:deep() .labeled-tooltip .status-icon.icon-info {
     z-index: 0;
 }
 </style>

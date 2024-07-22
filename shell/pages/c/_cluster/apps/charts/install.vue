@@ -34,7 +34,8 @@ import { exceptionToErrorsArray } from '@shell/utils/error';
 import { clone, diff, get, set } from '@shell/utils/object';
 import { ignoreVariables } from './install.helpers';
 import { findBy, insertAt } from '@shell/utils/array';
-import Vue from 'vue';
+import { createApp } from 'vue';
+const vueApp = createApp({});
 import { saferDump } from '@shell/utils/create-yaml';
 import { LINUX, WINDOWS } from '@shell/store/catalog';
 import { SETTING } from '@shell/config/settings';
@@ -1323,7 +1324,7 @@ export default {
 
       if (step) {
         for (const prop in update) {
-          Vue.set(step, prop, update[prop]);
+          step[prop] = update[prop];
         }
       }
     }
@@ -1401,17 +1402,13 @@ export default {
             class="mb-15"
           >
             <Banner
-              v-for="msg in requires"
-              :key="msg"
-              color="error"
+               v-for="(msg, i) in requires" :key="i" color="error"
             >
               <span v-clean-html="msg" />
             </Banner>
 
             <Banner
-              v-for="msg in warnings"
-              :key="msg"
-              color="warning"
+               v-for="(msg, i) in warnings" :key="i" color="warning"
             >
               <span v-clean-html="msg" />
             </Banner>
@@ -1425,21 +1422,21 @@ export default {
               <LabeledSelect
                 v-if="chart"
                 :label="t('catalog.install.version')"
-                :value="query.versionName"
+                :modelValue="query.versionName"
                 :options="filteredVersions"
                 :selectable="version => !version.disabled"
-                @input="selectVersion"
+                @update:modelValue="selectVersion"
               />
               <!-- Can't find the chart for the app, let the user try to select one -->
               <LabeledSelect
                 v-else
                 :label="t('catalog.install.chart')"
-                :value="chart"
+                :modelValue="chart"
                 :options="charts"
                 :selectable="option => !option.disabled"
                 :get-option-label="opt => getOptionLabel(opt)"
                 option-key="key"
-                @input="selectChart($event)"
+                @update:modelValue="selectChart($event)"
               >
                 <template v-slot:option="opt">
                   <template v-if="opt.kind === 'divider'">
@@ -1532,10 +1529,10 @@ export default {
             <LabeledSelect
               v-if="chart"
               :label="t('catalog.install.version')"
-              :value="query.versionName"
+              :modelValue="query.versionName"
               :options="filteredVersions"
               :selectable="version => !version.disabled"
-              @input="selectVersion"
+              @update:modelValue="selectVersion"
             />
           </div>
           <div class="step__values__controls--spacer">
@@ -1914,7 +1911,7 @@ export default {
     // Hack - We're adding an absolute tag under the logo that we want to consume space without breaking vertical alignment of row.
     // W  ith the slots available this isn't possible without adding tag specific styles to the root wizard classes
     &.windowsIncompatible {
-      ::v-deep .header {
+      :deep() .header {
         padding-bottom: 15px;
       }
     }
@@ -1956,7 +1953,7 @@ export default {
       &__content {
         flex: 1;
 
-        ::v-deep .tab-container {
+        :deep() .tab-container {
           overflow: auto;
         }
       }
@@ -2016,7 +2013,7 @@ export default {
 
       padding-bottom: 10px;
 
-      ::v-deep .chart-readmes {
+      :deep() .chart-readmes {
         flex: 1;
         overflow: auto;
       }
@@ -2044,7 +2041,7 @@ export default {
     }
   }
 
-  ::v-deep .yaml-editor {
+  :deep() .yaml-editor {
     flex: 1
   }
 

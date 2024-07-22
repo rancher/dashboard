@@ -609,7 +609,7 @@ export default {
       <div data-testid="created__label">
         <label>{{ t('glance.created') }}: </label>
         <span><LiveDate
-          :value="currentCluster.metadata.creationTimestamp"
+          :modelValue="currentCluster.metadata.creationTimestamp"
           :add-suffix="true"
           :show-tooltip="true"
         /></span>
@@ -692,9 +692,7 @@ export default {
 
     <div v-if="clusterServices">
       <div
-        v-for="service in clusterServices"
-        :key="service.name"
-        class="k8s-service-status"
+         v-for="(service, i) in clusterServices" :key="i" class="k8s-service-status"
         :class="{[service.status]: true }"
         :data-testid="`k8s-service-${ service.name }`"
       >
@@ -866,7 +864,7 @@ export default {
   align-items: center;
 }
 
-.etcd-metrics ::v-deep .external-link {
+.etcd-metrics :deep() .external-link {
   top: -107px;
 }
 

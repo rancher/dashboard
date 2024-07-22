@@ -64,13 +64,13 @@ export default {
 <template>
   <LabeledSelect
     v-bind="$attrs"
-    :value="value"
+    :modelValue="value"
     :mode="mode"
     :multiple="true"
     :options="namespaceOptions"
     :label="label"
     :tooltip="tooltip"
     :hover-tooltip="!!tooltip"
-    @input="(e) => $emit('input', e)"
+    @update:modelValue="(e) => $emit('input', e)"
   />
 </template>

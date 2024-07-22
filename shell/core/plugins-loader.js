@@ -1,4 +1,5 @@
-import Vue from 'vue';
+import { createApp } from 'vue';
+const vueApp = createApp({});
 import $ from 'jquery';
 import JSZip from 'jszip';
 import jsyaml from 'js-yaml';

@@ -61,7 +61,7 @@ export default {
       !this.value[TARGET_OPTIONS.NAMESPACE_AND_POD_SELECTOR]
     ) {
       this.$nextTick(() => {
-        this.$set(this.value, TARGET_OPTIONS.IP_BLOCK, {});
+        this.value[TARGET_OPTIONS.IP_BLOCK] = {};
       });
     }
 
@@ -86,7 +86,7 @@ export default {
         );
       },
       set(podSelectorExpressions) {
-        this.$set(this.value, TARGET_OPTIONS.POD_SELECTOR, simplify(podSelectorExpressions));
+        this.value[TARGET_OPTIONS.POD_SELECTOR] = simplify(podSelectorExpressions);
       }
     },
     namespaceSelectorExpressions: {
@@ -97,7 +97,7 @@ export default {
         );
       },
       set(namespaceSelectorExpressions) {
-        this.$set(this.value, TARGET_OPTIONS.NAMESPACE_SELECTOR, simplify(namespaceSelectorExpressions));
+        this.value[TARGET_OPTIONS.NAMESPACE_SELECTOR] = simplify(namespaceSelectorExpressions);
       }
     },
     selectTargetOptions() {
@@ -126,12 +126,12 @@ export default {
         return null;
       },
       set(targetType) {
-        this.$delete(this.value, TARGET_OPTIONS.IP_BLOCK);
-        this.$delete(this.value, TARGET_OPTIONS.NAMESPACE_SELECTOR);
-        this.$delete(this.value, TARGET_OPTIONS.POD_SELECTOR);
-        this.$delete(this.value, TARGET_OPTIONS.NAMESPACE_AND_POD_SELECTOR);
+        delete this.value[TARGET_OPTIONS.IP_BLOCK];
+        delete this.value[TARGET_OPTIONS.NAMESPACE_SELECTOR];
+        delete this.value[TARGET_OPTIONS.POD_SELECTOR];
+        delete this.value[TARGET_OPTIONS.NAMESPACE_AND_POD_SELECTOR];
         this.$nextTick(() => {
-          this.$set(this.value, targetType, {});
+          this.value[targetType] = {};
         });
       }
     },

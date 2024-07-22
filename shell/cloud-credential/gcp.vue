@@ -51,12 +51,12 @@ export default {
 <template>
   <div>
     <LabeledInput
-      :value="value.decodedData.authEncodedJson"
+      :modelValue="value.decodedData.authEncodedJson"
       label-key="cluster.credential.gcp.authEncodedJson.label"
       placeholder-key="cluster.credential.gcp.authEncodedJson.placeholder"
       type="multiline"
       :mode="mode"
-      @input="value.setData('authEncodedJson', $event);"
+      @update:modelValue="value.setData('authEncodedJson', $event);"
     />
     <FileSelector
       class="role-primary btn-sm mt-20 mb-20"

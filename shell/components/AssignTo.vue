@@ -148,9 +148,7 @@ export default {
           />
 
           <Banner
-            v-for="(err, i) in errors"
-            :key="i"
-            color="error"
+            v-for="(err, i) in errors" :key="i"color="error"
             :label="err"
           />
         </form>

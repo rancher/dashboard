@@ -23,7 +23,7 @@ export default {
     }
   },
   data() {
-    this.$set(this.value, 'tlsConfig', this.value.tlsConfig || {});
+    this.value['tlsConfig'] = this.value.tlsConfig || {};
 
     return {
       initialCaSecretKey:          this.value.tlsConfig.ca?.secret?.key ? this.value.tlsConfig.ca.secret.key : '',

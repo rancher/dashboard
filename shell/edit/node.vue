@@ -41,7 +41,7 @@ export default {
     @cancel="done"
   >
     <NameNsDescription
-      :value="value"
+      :modelValue="value"
       :namespaced="false"
       :mode="mode"
     />
@@ -66,7 +66,7 @@ export default {
       >
         <Labels
           default-container-class="labels-and-annotations-container"
-          :value="value"
+          :modelValue="value"
           :mode="mode"
           :display-side-by-side="false"
         />

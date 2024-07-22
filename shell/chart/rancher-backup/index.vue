@@ -192,7 +192,7 @@ export default {
       />
       <S3
         v-if="storageSource==='s3'"
-        :value="value.s3"
+        :modelValue="value.s3"
         :mode="mode"
         @valid="updatePageValid($event)"
       />
@@ -201,7 +201,6 @@ export default {
           <template v-if="storageSource === 'pickSC'">
             <div class="col span-6">
               <LabeledSelect
-                :key="storageSource"
                 v-model="storageClass"
                 :get-option-label="opt => opt.id || opt"
                 :label="t('backupRestoreOperator.deployment.storage.storageClass.label')"
@@ -226,7 +225,6 @@ export default {
             class="col span-6"
           >
             <LabeledSelect
-              :key="storageSource"
               v-model="persistentVolume"
               :get-option-label="opt => opt.id || opt"
               :label="t('backupRestoreOperator.deployment.storage.persistentVolume.label')"
@@ -244,7 +242,7 @@ export default {
 </template>
 
 <style lang='scss' scoped>
-::v-deep .radio-group.label>SPAN {
+:deep() .radio-group.label>SPAN {
   font-size: 1em;
 }
 </style>

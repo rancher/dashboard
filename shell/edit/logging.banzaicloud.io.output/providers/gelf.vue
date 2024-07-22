@@ -30,8 +30,8 @@ export default {
   data() {
     const protocolOptions = ['tcp', 'udp'];
 
-    this.$set(this.value, 'tls_options', this.value.tls_options || {});
-    this.$set(this.value, 'protocol', this.value.protocol || protocolOptions[0]);
+    this.value['tls_options'] = this.value.tls_options || {};
+    this.value['protocol'] = this.value.protocol || protocolOptions[0];
 
     return { protocolOptions };
   },
@@ -41,7 +41,7 @@ export default {
         return this.value.port;
       },
       set(port) {
-        this.$set(this.value, 'port', Number.parseInt(port));
+        this.value['port'] = Number.parseInt(port);
       }
     },
     no_verify: {
@@ -49,7 +49,7 @@ export default {
         return this.value.tls_options.no_verify === 'true';
       },
       set(noVerify) {
-        this.$set(this.value.tls_options, 'no_verify', noVerify ? 'true' : null);
+        this.value.tls_options['no_verify'] = noVerify ? 'true' : null;
       }
     },
     all_ciphers: {
@@ -57,7 +57,7 @@ export default {
         return this.value.tls_options.all_ciphers === 'true';
       },
       set(allCiphers) {
-        this.$set(this.value.tls_options, 'all_ciphers', allCiphers ? 'true' : null);
+        this.value.tls_options['all_ciphers'] = allCiphers ? 'true' : null;
       }
     },
   }

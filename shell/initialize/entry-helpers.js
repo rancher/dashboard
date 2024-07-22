@@ -1,4 +1,5 @@
-import Vue from 'vue';
+import { createApp } from 'vue';
+const vueApp = createApp({});
 import { updatePageTitle } from '@shell/utils/title';
 import { getVendor } from '@shell/config/private-label';
 import { withQuery } from 'ufo';
@@ -96,7 +97,7 @@ export const promisify = (fn, context) => {
   return Promise.resolve(promise);
 };
 
-export const globalHandleError = (error) => Vue.config.errorHandler && Vue.config.errorHandler(error);
+export const globalHandleError = (error) => vueApp.config.errorHandler && vueApp.config.errorHandler(error);
 
 /**
  * Render function used by the router guards

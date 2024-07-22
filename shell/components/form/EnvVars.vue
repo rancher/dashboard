@@ -59,7 +59,7 @@ export default {
   watch: {
     'value.tty'(neu) {
       if (neu) {
-        this.$set(this.value, 'stdin', true);
+        this.value['stdin'] = true;
       }
     }
   },
@@ -84,8 +84,8 @@ export default {
           envVar.push(row.value);
         }
       });
-      this.$set(this.value, 'env', envVar);
-      this.$set(this.value, 'envFrom', envVarSource);
+      this.value['env'] = envVar;
+      this.value['envFrom'] = envVarSource;
     },
 
     updateRow() {
@@ -106,9 +106,7 @@ export default {
 <template>
   <div :style="{'width':'100%'}">
     <div
-      v-for="(row, i) in allEnv"
-      :key="row.id"
-    >
+      v-for="(row, i) in allEnv" :key="i">
       <ValueFromResource
         v-model="row.value"
         :all-secrets="secrets"
@@ -116,7 +114,7 @@ export default {
         :mode="mode"
         :loading="loading"
         @remove="removeRow(i)"
-        @input="updateRow"
+        @update:modelValue="updateRow"
       />
     </div>
     <button
@@ -131,7 +129,7 @@ export default {
 </template>
 
 <style lang='scss' scoped>
-.value-from ::v-deep {
+.value-from :deep() {
   .v-select {
     height: 50px;
   }

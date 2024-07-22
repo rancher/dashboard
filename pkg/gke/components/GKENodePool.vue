@@ -295,31 +295,31 @@ export default defineComponent({
       <div class="col span-4">
         <LabeledInput
           :mode="mode"
-          :value="name"
+          :modelValue="name"
           label-key="gke.groupName.label"
           :disabled="!isNew"
           :rules="rules.poolName"
           required
-          @input="$emit('update:name', $event)"
+          @update:modelValue="$emit('update:name', $event)"
         />
       </div>
       <div class="col span-4">
         <LabeledInput
           type="number"
           :mode="mode"
-          :value="initialNodeCount"
+          :modelValue="initialNodeCount"
           label-key="gke.initialNodeCount.label"
           :rules="rules.initialNodeCount"
-          @input="$emit('update:initialNodeCount', $event)"
+          @update:modelValue="$emit('update:initialNodeCount', $event)"
         />
       </div>
       <div class="col span-4">
         <LabeledInput
           type="number"
           :mode="mode"
-          :value="maxPodsConstraint"
+          :modelValue="maxPodsConstraint"
           label-key="gke.maxPodsConstraint.label"
-          @input="$emit('update:maxPodsConstraint', $event)"
+          @update:modelValue="$emit('update:maxPodsConstraint', $event)"
         />
       </div>
     </div>
@@ -327,21 +327,21 @@ export default defineComponent({
       <div class="col span-4 checkbox-column">
         <Checkbox
           :mode="mode"
-          :value="autoscaling"
+          :modelValue="autoscaling"
           label-key="gke.autoscaling.label"
-          @input="$emit('update:autoscaling', $event)"
+          @update:modelValue="$emit('update:autoscaling', $event)"
         />
         <Checkbox
           :mode="mode"
-          :value="autoRepair"
+          :modelValue="autoRepair"
           label-key="gke.autoRepair.label"
-          @input="$emit('update:autoRepair', $event)"
+          @update:modelValue="$emit('update:autoRepair', $event)"
         />
         <Checkbox
           :mode="mode"
-          :value="autoUpgrade"
+          :modelValue="autoUpgrade"
           label-key="gke.autoUpgrade.label"
-          @input="$emit('update:autoUpgrade', $event)"
+          @update:modelValue="$emit('update:autoUpgrade', $event)"
         />
       </div>
       <template v-if="autoscaling">
@@ -349,18 +349,18 @@ export default defineComponent({
           <LabeledInput
             :mode="mode"
             type="number"
-            :value="minNodeCount"
+            :modelValue="minNodeCount"
             label-key="gke.minNodeCount.label"
-            @input="$emit('update:minNodeCount', $event)"
+            @update:modelValue="$emit('update:minNodeCount', $event)"
           />
         </div>
         <div class="col span-4">
           <LabeledInput
             :mode="mode"
             type="number"
-            :value="maxNodeCount"
+            :modelValue="maxNodeCount"
             label-key="gke.maxNodeCount.label"
-            @input="$emit('update:maxNodeCount', $event)"
+            @update:modelValue="$emit('update:maxNodeCount', $event)"
           />
         </div>
       </template>
@@ -383,7 +383,7 @@ export default defineComponent({
         >
           <LabeledInput
             label-key="gke.version.label"
-            :value="version"
+            :modelValue="version"
             disabled
             data-testid="gke-k8s-display"
           />
@@ -394,7 +394,7 @@ export default defineComponent({
           :mode="mode"
           :options="serviceAccountOptions"
           :loading="loadingServiceAccounts"
-          :value="selectedServiceAccount"
+          :modelValue="selectedServiceAccount"
           label-key="gke.serviceAccount.label"
           :disabled="!isNew"
           data-testid="gke-service-account-select"
@@ -405,7 +405,7 @@ export default defineComponent({
     <div class="row mb-10">
       <div class="col span-6">
         <LabeledSelect
-          :value="selectedImageType"
+          :modelValue="selectedImageType"
           :mode="mode"
           :options="imageTypeOptions"
           label-key="gke.imageType.label"
@@ -417,7 +417,7 @@ export default defineComponent({
           :mode="mode"
           :options="machineTypeOptions"
           :loading="loadingMachineTypes"
-          :value="selectedMachineType"
+          :modelValue="selectedMachineType"
           label-key="gke.machineType.label"
           :disabled="!isNew"
           @selecting="selectedMachineType = $event"
@@ -429,7 +429,7 @@ export default defineComponent({
         <LabeledSelect
           :mode="mode"
           :options="diskTypeOptions"
-          :value="selectedDiskType"
+          :modelValue="selectedDiskType"
           label-key="gke.diskType.label"
           :disabled="!isNew"
           @selecting="selectedDiskType=$event"
@@ -438,22 +438,22 @@ export default defineComponent({
       <div class="col span-4">
         <UnitInput
           :mode="mode"
-          :value="diskSizeGb"
+          :modelValue="diskSizeGb"
           label-key="gke.diskSizeGb.label"
           suffix="GB"
           :disabled="!isNew"
           :rules="rules.diskSizeGb"
-          @input="$emit('update:diskSizeGb', $event)"
+          @update:modelValue="$emit('update:diskSizeGb', $event)"
         />
       </div>
       <div class="col span-4">
         <LabeledInput
           :mode="mode"
-          :value="localSsdCount"
+          :modelValue="localSsdCount"
           label-key="gke.localSsdCount.label"
           :disabled="!isNew"
           :rules="rules.ssdCount"
-          @input="$emit('update:localSsdCount', $event)"
+          @update:modelValue="$emit('update:localSsdCount', $event)"
         />
       </div>
     </div>
@@ -462,9 +462,9 @@ export default defineComponent({
         <Checkbox
           label-key="gke.preemptible.label"
           :mode="mode"
-          :value="preemptible"
+          :modelValue="preemptible"
           :disabled="!isNew"
-          @input="$emit('update:preemptible', $event)"
+          @update:modelValue="$emit('update:preemptible', $event)"
         />
       </div>
     </div>
@@ -472,11 +472,11 @@ export default defineComponent({
       <div class="col span-12">
         <Taints
           :mode="mode"
-          :value="taints"
+          :modelValue="taints"
           :disabled="!isNew"
           :effect-values="{NO_SCHEDULE:'NoSchedule', PREFER_NO_SCHEDULE: 'PreferNoSchedule', NO_EXECUTE: 'NoExecute'}"
           data-testid="gke-taints-comp"
-          @input="$emit('update:taints', $event)"
+          @update:modelValue="$emit('update:taints', $event)"
         />
       </div>
     </div>
@@ -484,14 +484,14 @@ export default defineComponent({
       <div class="col span-12">
         <KeyValue
           :mode="mode"
-          :value="labels"
+          :modelValue="labels"
           :title="t('gke.nodeLabels.label')"
           :read-allowed="false"
           :as-map="true"
           :title-protip="t('gke.nodeLabels.tooltip')"
           :add-label="t('gke.nodeLabels.add')"
           :disabled="!isNew"
-          @input="$emit('update:labels', $event)"
+          @update:modelValue="$emit('update:labels', $event)"
         />
       </div>
     </div>
@@ -499,19 +499,19 @@ export default defineComponent({
       <div class="col span-6">
         <ArrayList
           :mode="isNew ? mode : _VIEW"
-          :value="tags"
+          :modelValue="tags"
           :title="t('gke.tags.label')"
           :add-label="t('gke.tags.add')"
-          @input="$emit('update:tags', $event)"
+          @update:modelValue="$emit('update:tags', $event)"
         />
       </div>
     </div>
 
     <AuthScopes
       :mode="mode"
-      :value="oauthScopes"
+      :modelValue="oauthScopes"
       :disabled="!isNew"
-      @input="$emit('update:oauthScopes', $event)"
+      @update:modelValue="$emit('update:oauthScopes', $event)"
     />
   </div>
 </template>

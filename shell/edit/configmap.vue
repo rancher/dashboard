@@ -75,10 +75,10 @@ export default {
     },
 
     updateValue(val, type) {
-      this.$set(this.value, type, {});
+      this.value[type] = {};
 
       Object.keys(val).forEach((key) => {
-        this.$set(this.value[type], key, val[key]);
+        this.value[type][key] = val[key];
       });
     },
   }
@@ -100,7 +100,7 @@ export default {
     @cancel="done"
   >
     <NameNsDescription
-      :value="value"
+      :modelValue="value"
       :mode="mode"
       :register-before-hook="registerBeforeHook"
     />
@@ -147,7 +147,7 @@ export default {
       >
         <Labels
           default-container-class="labels-and-annotations-container"
-          :value="value"
+          :modelValue="value"
           :mode="mode"
           :display-side-by-side="false"
         />

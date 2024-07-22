@@ -84,7 +84,7 @@ export default {
       class="mt-0"
     />
     <KeyValue
-      :value="value.decodedData"
+      :modelValue="value.decodedData"
       :key-options="hasSupport || !keyOptions.length ? null : keyOptions"
       :key-editable="!hasSupport"
       :mode="mode"
@@ -92,7 +92,7 @@ export default {
       :add-allowed="!hasSupport"
       :remove-allowed="!hasSupport"
       :initial-empty-row="true"
-      @input="update"
+      @update:modelValue="update"
     />
   </div>
 </template>

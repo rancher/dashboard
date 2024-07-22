@@ -211,7 +211,7 @@ export default {
 <template>
   <LabeledInput
     ref="value"
-    :value="displayValue"
+    :modelValue="displayValue"
     v-bind="$attrs"
     type="number"
     :min="min"

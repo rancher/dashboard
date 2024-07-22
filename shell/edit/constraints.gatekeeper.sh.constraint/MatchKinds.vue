@@ -31,13 +31,13 @@ export default {
 <template>
   <div class="match-kinds">
     <ArrayListGrouped
-      :value="value"
+      :modelValue="value"
       class="match-kinds-list"
       :protip="false"
       add-label="Add Rule"
       :mode="mode"
-      :default-add-value="defaultAddValue"
-      @input="(e) => $emit('input', e)"
+      :default-add-modelValue="defaultAddValue"
+      @update:modelValue="(e) => $emit('input', e)"
     >
       <template #default="props">
         <div class="row">

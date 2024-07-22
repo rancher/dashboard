@@ -58,7 +58,7 @@ export default {
   >
     <CreateDriver
       :mode="mode"
-      :value="value"
+      :modelValue="value"
       :rules="{url:fvGetAndReportPathRules('url'), uiUrl:fvGetAndReportPathRules('uiUrl'), checksum:fvGetAndReportPathRules('checksum'), whitelistDomains:fvGetAndReportPathRules('whitelistDomains')}"
     />
   </CruResource>

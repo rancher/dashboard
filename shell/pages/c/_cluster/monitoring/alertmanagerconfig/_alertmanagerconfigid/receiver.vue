@@ -252,9 +252,9 @@ export default {
         <div class="actions">
           <ButtonGroup
             v-if="viewOptions && mode === view"
-            :value="currentView"
+            :modelValue="currentView"
             :options="viewOptions"
-            @input="handleButtonGroupClick"
+            @update:modelValue="handleButtonGroupClick"
           />
 
           <button
@@ -273,7 +273,7 @@ export default {
     <ResourceYaml
       v-if="currentView === yaml && alertmanagerConfigResource"
       ref="resourceyaml"
-      :value="alertmanagerConfigResource"
+      :modelValue="alertmanagerConfigResource"
       :mode="mode"
       :initial-yaml-for-diff="null"
       :yaml="resourceYaml"
@@ -286,7 +286,7 @@ export default {
     <ReceiverConfig
       v-if="(currentView === config || currentView === detail) && alertmanagerConfigResource"
       ref="config"
-      :value="receiverValue"
+      :modelValue="receiverValue"
       :mode="mode"
       :alertmanager-config-id="alertmanagerConfigId"
       :alertmanager-config-resource="alertmanagerConfigResource"

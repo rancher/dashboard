@@ -29,9 +29,9 @@ export default {
       }
     ];
 
-    this.$set(this.value.spec, 'rbd', this.value.spec.rbd || {});
-    this.$set(this.value.spec.rbd, 'readOnly', this.value.spec.rbd.readOnly || false);
-    this.$set(this.value.spec.rbd, 'secretRef', this.value.spec.rbd.secretRef || {});
+    this.value.spec['rbd'] = this.value.spec.rbd || {};
+    this.value.spec.rbd['readOnly'] = this.value.spec.rbd.readOnly || false;
+    this.value.spec.rbd['secretRef'] = this.value.spec.rbd.secretRef || {};
 
     return { readOnlyOptions };
   },

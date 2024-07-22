@@ -26,8 +26,8 @@ export default {
     }
   },
   data() {
-    this.$set(this.value, 'http_config', this.value.http_config || {});
-    this.$set(this.value, 'send_resolved', typeof this.value.send_resolved === 'boolean' ? this.value.send_resolved : true);
+    this.value['http_config'] = this.value.http_config || {};
+    this.value['send_resolved'] = typeof this.value.send_resolved === 'boolean' ? this.value.send_resolved : true;
 
     const integrationMapping = {
       'Events API v2': 'routing_key',

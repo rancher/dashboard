@@ -577,11 +577,11 @@ export default defineComponent({
         <LabeledInput
           :mode="mode"
           label-key="gke.clusterIpv4Cidr.label"
-          :value="clusterIpv4Cidr"
+          :modelValue="clusterIpv4Cidr"
           :placeholder="t('gke.clusterIpv4Cidr.placeholder')"
           :disabled="!isNewOrUnprovisioned"
           :rules="rules.clusterIpv4Cidr"
-          @input="$emit('update:clusterIpv4Cidr', $event)"
+          @update:modelValue="$emit('update:clusterIpv4Cidr', $event)"
         />
       </div>
     </div>
@@ -626,24 +626,24 @@ export default defineComponent({
         <LabeledInput
           v-else
           :mode="mode"
-          :value="subnetworkName"
+          :modelValue="subnetworkName"
           label-key="gke.subnetwork.name"
           :placeholder="t('gke.subnetwork.namePlaceholder')"
           :disabled="!isNewOrUnprovisioned"
           data-testid="gke-subnetwork-name-input"
-          @input="$emit('update:subnetworkName', $event)"
+          @update:modelValue="$emit('update:subnetworkName', $event)"
         />
       </div>
       <div class="col span-6">
         <LabeledInput
-          :value="clusterIpv4CidrBlock"
+          :modelValue="clusterIpv4CidrBlock"
           :mode="mode"
           label-key="gke.clusterIpv4CidrBlock.label"
           :placeholder="t('gke.clusterIpv4Cidr.placeholder')"
           :disabled="disableClusterIpv4CidrBlock"
           :rules="rules.clusterIpv4CidrBlock"
           data-testid="gke-cluster-secondary-range-cidr-input"
-          @input="$emit('update:clusterIpv4CidrBlock', $event)"
+          @update:modelValue="$emit('update:clusterIpv4CidrBlock', $event)"
         />
       </div>
     </div>
@@ -660,22 +660,22 @@ export default defineComponent({
         <LabeledInput
           v-else
           :mode="mode"
-          :value="nodeIpv4CidrBlock"
+          :modelValue="nodeIpv4CidrBlock"
           label-key="gke.nodeIpv4CidrBlock.label"
           :disabled="!isNewOrUnprovisioned"
           :rules="rules.nodeIpv4CidrBlock"
-          @input="$emit('update:nodeIpv4CidrBlock', $event)"
+          @update:modelValue="$emit('update:nodeIpv4CidrBlock', $event)"
         />
       </div>
       <div class="col span-6">
         <LabeledInput
-          :value="servicesIpv4CidrBlock"
+          :modelValue="servicesIpv4CidrBlock"
           :mode="mode"
           label-key="gke.servicesIpv4CidrBlock.label"
           :placeholder="t('gke.clusterIpv4Cidr.placeholder')"
           :disabled="disableServicesIpv4CidrBlock"
           :rules="rules.servicesIpv4CidrBlock"
-          @input="$emit('update:servicesIpv4CidrBlock', $event)"
+          @update:modelValue="$emit('update:servicesIpv4CidrBlock', $event)"
         />
       </div>
     </div>
@@ -689,30 +689,30 @@ export default defineComponent({
     <div class="row mb-10">
       <div class="col span-6 checkbox-column">
         <Checkbox
-          :value="useIpAliases"
+          :modelValue="useIpAliases"
           :mode="mode"
           :label="t('gke.useIpAliases.label')"
           :disabled="!isNewOrUnprovisioned"
-          @input="$emit('update:useIpAliases', $event)"
+          @update:modelValue="$emit('update:useIpAliases', $event)"
         />
         <Checkbox
-          :value="networkPolicyConfig"
+          :modelValue="networkPolicyConfig"
           :mode="mode"
           :label="t('gke.networkPolicyConfig.label')"
-          @input="$emit('update:networkPolicyConfig', $event)"
+          @update:modelValue="$emit('update:networkPolicyConfig', $event)"
         />
         <Checkbox
-          :value="networkPolicyEnabled"
+          :modelValue="networkPolicyEnabled"
           :mode="mode"
           :label="t('gke.networkPolicyEnabled.label')"
           :disabled="!isNewOrUnprovisioned"
-          @input="e=>updateNetworkPolicyEnabled(e)"
+          @update:modelValue="e=>updateNetworkPolicyEnabled(e)"
         />
         <Checkbox
-          :value="enableNetworkPolicy"
+          :modelValue="enableNetworkPolicy"
           :mode="mode"
           :label="t('gke.enableNetworkPolicy.label')"
-          @input="e=>updateEnableNetworkPolicy(e)"
+          @update:modelValue="e=>updateEnableNetworkPolicy(e)"
         />
       </div>
     </div>
@@ -736,25 +736,25 @@ export default defineComponent({
           <Checkbox
             :mode="mode"
             :label="t('gke.enablePrivateNodes.label')"
-            :value="enablePrivateNodes"
+            :modelValue="enablePrivateNodes"
             :disabled="!isNewOrUnprovisioned"
-            @input="$emit('update:enablePrivateNodes', $event)"
+            @update:modelValue="$emit('update:enablePrivateNodes', $event)"
           />
           <Checkbox
             :mode="mode"
             :label="t('gke.enablePrivateEndpoint.label')"
-            :value="enablePrivateEndpoint"
+            :modelValue="enablePrivateEndpoint"
             :disabled="!enablePrivateNodes || !isNewOrUnprovisioned"
             :tooltip="t('gke.enablePrivateEndpoint.tooltip')"
             data-testid="gke-enable-private-endpoint-checkbox"
-            @input="$emit('update:enablePrivateEndpoint', $event)"
+            @update:modelValue="$emit('update:enablePrivateEndpoint', $event)"
           />
           <Checkbox
             :mode="mode"
-            :value="enableMasterAuthorizedNetwork"
+            :modelValue="enableMasterAuthorizedNetwork"
             :label="t('gke.masterAuthorizedNetwork.enable.label')"
             :disabled="enablePrivateEndpoint || !isNewOrUnprovisioned"
-            @input="$emit('update:enableMasterAuthorizedNetwork', $event)"
+            @update:modelValue="$emit('update:enableMasterAuthorizedNetwork', $event)"
           />
         </div>
       </div>
@@ -765,7 +765,7 @@ export default defineComponent({
         >
           <LabeledInput
             :mode="mode"
-            :value="masterIpv4CidrBlock"
+            :modelValue="masterIpv4CidrBlock"
             label-key="gke.masterIpv4CidrBlock.label"
             :placeholder="t('gke.masterIpv4CidrBlock.placeholder')"
             :tooltip="t('gke.masterIpv4CidrBlock.tooltip')"
@@ -773,7 +773,7 @@ export default defineComponent({
             required
             :rules="rules.masterIpv4CidrBlock"
             data-testid="gke-master-ipv4-cidr-block-input"
-            @input="$emit('update:masterIpv4CidrBlock', $event)"
+            @update:modelValue="$emit('update:masterIpv4CidrBlock', $event)"
           />
         </div>
         <div
@@ -789,12 +789,12 @@ export default defineComponent({
             :key-label="t('gke.masterAuthorizedNetwork.cidrBlocks.displayName')"
             :value-label="t('gke.masterAuthorizedNetwork.cidrBlocks.cidr')"
             :value-placeholder="t('gke.clusterIpv4Cidr.placeholder')"
-            :value="masterAuthorizedNetworkCidrBlocks"
+            :modelValue="masterAuthorizedNetworkCidrBlocks"
             :read-allowed="false"
             :add-label="t('gke.masterAuthorizedNetwork.cidrBlocks.add')"
             :initial-empty-row="true"
             data-testid="gke-master-authorized-network-cidr-keyvalue"
-            @input="$emit('update:masterAuthorizedNetworkCidrBlocks', $event)"
+            @update:modelValue="$emit('update:masterAuthorizedNetworkCidrBlocks', $event)"
           />
         </div>
       </div>

@@ -140,12 +140,12 @@ export default {
       :loading="loading"
       :use-query-params-for-simple-filtering="useQueryParamsForSimpleFiltering"
       key-field="_key"
-      v-on="$listeners"
+      
     >
       <template #cell:repo="{ row }">
         <Link
           :row="row"
-          :value="row.spec.repo"
+          :modelValue="row.spec.repo"
           label-key="repoDisplay"
           before-icon-key="repoIcon"
           url-key="spec.repo"
@@ -156,7 +156,7 @@ export default {
             <Shortened
               long-value-key="status.commit"
               :row="row"
-              :value="row.commitDisplay"
+              :modelValue="row.commitDisplay"
             />
           </div>
         </template>

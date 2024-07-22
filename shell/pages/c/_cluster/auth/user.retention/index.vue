@@ -299,7 +299,7 @@ onBeforeRouteUpdate((_to: unknown, _from: unknown) => {
             :tooltip="t('user.retention.edit.form.cron.subLabel')"
             :rules="[validateUserRetentionCron]"
             :label="t('user.retention.edit.form.cron.label')"
-            @input="validateUserRetentionCron"
+            @update:modelValue="validateUserRetentionCron"
           />
         </div>
         <div class="input-fieldset condensed pt-12">
@@ -354,7 +354,7 @@ onBeforeRouteUpdate((_to: unknown, _from: unknown) => {
     margin-top: 20px;
     padding: 10px 20px;
 
-    ::v-deep .spacer-small {
+    :deep() .spacer-small {
       padding: 0;
     }
   }

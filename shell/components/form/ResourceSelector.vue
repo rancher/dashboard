@@ -82,8 +82,8 @@ export default {
       set(selectorExpressions) {
         const { matchLabels, matchExpressions } = simplify(selectorExpressions);
 
-        this.$set(this.value, 'matchLabels', matchLabels);
-        this.$set(this.value, 'matchExpressions', matchExpressions);
+        this.value['matchLabels'] = matchLabels;
+        this.value['matchExpressions'] = matchExpressions;
       }
     },
   },

@@ -227,7 +227,7 @@ export default {
       <h3>{{ t('namespace.resources') }}</h3>
       <ResourcesSummary
         state-key="namespace.resourceStates"
-        :value="accumulatedStateCounts"
+        :modelValue="accumulatedStateCounts"
         :required-states="summaryStates"
       />
     </div>

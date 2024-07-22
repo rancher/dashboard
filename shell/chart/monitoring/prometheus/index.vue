@@ -153,8 +153,8 @@ export default {
         storageSpec['selector'] = { matchExpressions: [], matchLabels: {} };
       }
 
-      this.$set(storageSpec.selector, 'matchLabels', matchLabels);
-      this.$set(storageSpec.selector, 'matchExpressions', matchExpressions);
+      storageSpec.selector['matchLabels'] = matchLabels;
+      storageSpec.selector['matchExpressions'] = matchExpressions;
 
       // Remove an empty selector object if present
       // User can add a selector and then remove the selector - this will leave an empty structure as above
@@ -193,9 +193,7 @@ export default {
           :raw="true"
         />
         <div
-          v-for="wl in mappedFilteredWorkloads"
-          :key="wl.id"
-          class="mt-10"
+           v-for="(wl, i) in mappedFilteredWorkloads" :key="i" class="mt-10"
         >
           <router-link
             :to="wl.link"
@@ -326,7 +324,7 @@ export default {
               <StorageClassSelector
                 :mode="mode"
                 :options="storageClasses"
-                :value="value.prometheus.prometheusSpec.storageSpec.volumeClaimTemplate.spec.storageClassName"
+                :modelValue="value.prometheus.prometheusSpec.storageSpec.volumeClaimTemplate.spec.storageClassName"
                 :label="t('monitoring.prometheus.storage.className')"
                 @updateName="(name) => $set(value.prometheus.prometheusSpec.storageSpec.volumeClaimTemplate.spec, 'storageClassName', name)"
               />
@@ -360,9 +358,9 @@ export default {
             <MatchExpressions
               :initial-empty-row="false"
               :mode="mode"
-              :value="matchExpressions"
+              :modelValue="matchExpressions"
               :show-remove="false"
-              @input="matchChanged($event)"
+              @update:modelValue="matchChanged($event)"
             />
           </div>
         </div>

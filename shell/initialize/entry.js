@@ -1,6 +1,7 @@
 // Taken from @nuxt/vue-app/template/index.js
 // TODO: Add more clarification to this comment
-import Vue from 'vue';
+import { createApp } from 'vue';
+const vueApp = createApp({});
 import fetch from 'unfetch';
 import { extendApp } from './app-extended.js';
 import fetchMixin from '@shell/mixins/fetch.client.js';
@@ -10,7 +11,7 @@ import { installComponents } from '@shell/initialize/install-components.js';
 import { installPlugins } from '@shell/initialize/install-plugins.js';
 
 // Fetch mixin
-Vue.mixin(fetchMixin);
+vueApp.mixin(fetchMixin);
 
 // Bulk install components
 installComponents(Vue);
@@ -26,7 +27,7 @@ if (!global.fetch) {
 }
 
 loadDebugger(Vue);
-const errorHandler = Vue.config.errorHandler || console.error; // eslint-disable-line no-console
+const errorHandler = vueApp.config.errorHandler || console.error; // eslint-disable-line no-console
 
 // Create and mount App
 extendApp(Vue).then((appPartials) => mountApp(appPartials, Vue)).catch(errorHandler); // eslint-disable-line no-undef

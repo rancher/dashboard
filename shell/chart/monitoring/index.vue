@@ -188,14 +188,14 @@ export default {
       merge(this.value, extendedDefaults);
 
       if (this.provider.startsWith('rke2')) {
-        this.$set(this.value.rke2IngressNginx, 'enabled', true);
-        this.$set(this.value.rke2Etcd, 'enabled', true);
-        this.$set(this.value.rkeEtcd, 'enabled', false);
+        this.value.rke2IngressNginx['enabled'] = true;
+        this.value.rke2Etcd['enabled'] = true;
+        this.value.rkeEtcd['enabled'] = false;
       } else if (this.provider.startsWith('rke')) {
-        this.$set(this.value, 'ingressNginx', this.value.ingressNginx || {});
-        this.$set(this.value.ingressNginx, 'enabled', true);
+        this.value['ingressNginx'] = this.value.ingressNginx || {};
+        this.value.ingressNginx['enabled'] = true;
       } else {
-        this.$set(this.value.rkeEtcd, 'enabled', false);
+        this.value.rkeEtcd['enabled'] = false;
       }
     }
 
@@ -247,7 +247,7 @@ export default {
         <div class="row mb-20">
           <div class="col span-6">
             <ClusterSelector
-              :value="value"
+              :modelValue="value"
               :mode="mode"
               @onClusterTypeChanged="clusterType = $event"
             />

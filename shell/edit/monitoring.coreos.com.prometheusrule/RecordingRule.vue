@@ -41,10 +41,10 @@ export default {
 
   methods: {
     updateExpression(value) {
-      this.$set(this.value, 'expr', value);
+      this.value['expr'] = value;
     },
     updateLabels(value) {
-      this.$set(this.value, 'labels', value);
+      this.value['labels'] = value;
     },
   }
 };
@@ -72,7 +72,7 @@ export default {
           <template #field>
             <CodeMirror
               class="mt-20"
-              :value="value.expr"
+              :modelValue="value.expr"
               :options="{
                 mode: null,
                 foldGutter: false,
@@ -89,12 +89,12 @@ export default {
       <div class="col span-12">
         <KeyValue
           key="labels"
-          :value="value.labels"
+          :modelValue="value.labels"
           :add-label="t('labels.addLabel')"
           :mode="mode"
           :title="t('prometheusRule.recordingRules.labels')"
           :read-allowed="false"
-          @input="queueLabelUpdate"
+          @update:modelValue="queueLabelUpdate"
         />
       </div>
     </div>

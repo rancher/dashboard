@@ -226,9 +226,7 @@ export default {
         />
       </form>
       <Banner
-        v-for="(error, i) in errors"
-        :key="i"
-        class=""
+        v-for="(error, i) in errors" :key="i"class=""
         color="error"
         :label="error"
       />
@@ -278,7 +276,7 @@ export default {
 .prompt-rollback {
   margin: 0;
 
-  & ::v-deep .card-actions {
+  & :deep() .card-actions {
     display: grid;
   }
 }
@@ -286,7 +284,7 @@ export default {
 .yaml-editor {
   max-height: 70vh;
 
-  & ::v-deep.root {
+  & :deep().root {
     max-height: 65vh;
   }
 }
@@ -301,7 +299,7 @@ export default {
   }
 }
 
-::v-deep .card-body {
+:deep() .card-body {
   max-height: calc(95vh - 135px);
   overflow: hidden;
 }

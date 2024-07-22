@@ -349,7 +349,7 @@ export default {
 
     remove(row) {
       if ( row.existing ) {
-        this.$set(row, 'remove', true);
+        row['remove'] = true;
       } else {
         removeObject(this.rows, row);
       }
@@ -382,9 +382,7 @@ export default {
   </div>
   <div v-else>
     <div
-      v-for="(row, idx) in unremovedRows"
-      :key="idx"
-      class="role-row"
+      v-for="(row, idx) in unremovedRows" :key="idx"class="role-row"
       :class="{[mode]: true}"
     >
       <div class="subject">

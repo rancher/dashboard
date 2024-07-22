@@ -89,7 +89,7 @@ export default {
 
     <Labels
       default-section-class="mt-20"
-      :value="normanCluster"
+      :modelValue="normanCluster"
       :mode="mode"
       :display-side-by-side="false"
       :label-title-tooltip="t('labels.labels.fleetClusterTooltip')"

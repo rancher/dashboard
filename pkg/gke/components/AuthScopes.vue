@@ -38,9 +38,9 @@ export default defineComponent({
   created() {
     if (this.mode !== _CREATE) {
       if (this.value && this.value.length === 1 && this.value[0] === googleFullAuthUrl) {
-        this.$set(this, 'scopeMode', GKEOauthScopeOptions.FULL);
+        this['scopeMode'] = GKEOauthScopeOptions.FULL;
       } else if (isEqual(this.value, getGoogleAuthDefaultURLs())) {
-        this.$set(this, 'scopeMode', GKEOauthScopeOptions.DEFAULT);
+        this['scopeMode'] = GKEOauthScopeOptions.DEFAULT;
       }
     }
   },
@@ -112,7 +112,7 @@ export default defineComponent({
       </div>
     </div>
     <div v-if="scopeMode==='custom'">
-      <template v-for="(scopeKey, index) in Object.keys(formOptions)">
+      <template v-for="(scopeKey, index) in Object.keys(formOptions)" :key="index">
         <div
           v-if="!(index%2)"
           :key="scopeKey"
@@ -120,7 +120,7 @@ export default defineComponent({
         >
           <div class="col span-6">
             <LabeledSelect
-              :value="getScopeValue(scopeKey)"
+              :modelValue="getScopeValue(scopeKey)"
               :get-option-label="opt=> t(opt.labelKey)"
               :options="formOptions[scopeKey]"
               :mode="mode"
@@ -134,7 +134,7 @@ export default defineComponent({
             class="col span-6"
           >
             <LabeledSelect
-              :value="getScopeValue(nextScopeKey(index))"
+              :modelValue="getScopeValue(nextScopeKey(index))"
               :get-option-label="opt=> t(opt.labelKey)"
               :options="formOptions[nextScopeKey(index)]"
               :mode="mode"

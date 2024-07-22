@@ -561,9 +561,7 @@ export default {
               </a>
             </div>
             <div
-              v-for="a in appBar.hciApps"
-              :key="a.label"
-              @click="hide()"
+               v-for="(a, i) in appBar.hciApps" :key="i" @click="hide()"
             >
               <router-link
                 class="option"
@@ -592,9 +590,7 @@ export default {
                 class="clustersPinned"
               >
                 <div
-                  v-for="(c, index) in appBar.pinFiltered"
-                  :key="c.id"
-                  :data-testid="`pinned-ready-cluster-${index}`"
+                  v-for="(c, index) in appBar.pinFiltered" :key="index":data-testid="`pinned-ready-cluster-${index}`"
                   @click="hide()"
                 >
                   <button
@@ -667,9 +663,7 @@ export default {
               <!-- Clusters Search result -->
               <div class="clustersList">
                 <div
-                  v-for="(c, index) in appBar.clustersFiltered"
-                  :key="c.id"
-                  :data-testid="`top-level-menu-cluster-${index}`"
+                  v-for="(c, index) in appBar.clustersFiltered" :key="index":data-testid="`top-level-menu-cluster-${index}`"
                   @click="hide()"
                 >
                   <button
@@ -773,9 +767,7 @@ export default {
                 </span>
               </div>
               <div
-                v-for="a in appBar.multiClusterApps"
-                :key="a.label"
-                @click="hide()"
+                 v-for="(a, i) in appBar.multiClusterApps" :key="i" @click="hide()"
               >
                 <router-link
                   class="option"
@@ -801,9 +793,7 @@ export default {
                 </span>
               </div>
               <div
-                v-for="a in appBar.legacyApps"
-                :key="a.label"
-                @click="hide()"
+                 v-for="(a, i) in appBar.legacyApps" :key="i" @click="hide()"
               >
                 <router-link
                   class="option"
@@ -831,9 +821,7 @@ export default {
                 </span>
               </div>
               <div
-                v-for="a in appBar.configurationApps"
-                :key="a.label"
-                @click="hide()"
+                 v-for="(a, i) in appBar.configurationApps" :key="i" @click="hide()"
               >
                 <router-link
                   class="option"
@@ -1450,15 +1438,15 @@ export default {
   }
 
   .localeSelector {
-    ::v-deep .popover-inner {
+    :deep() .popover-inner {
       padding: 50px 0;
     }
 
-    ::v-deep .popover-arrow {
+    :deep() .popover-arrow {
       display: none;
     }
 
-    ::v-deep .popover:focus {
+    :deep() .popover:focus {
       outline: 0;
     }
 

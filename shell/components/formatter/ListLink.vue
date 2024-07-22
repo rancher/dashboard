@@ -23,12 +23,10 @@ export default {
 <template>
   <span>
     <span
-      v-for="(el, i) in value"
-      :key="el.key"
-    >
+      v-for="(el, i) in value" :key="i">
       <Link
         :row="el"
-        :value="el"
+        :modelValue="el"
         :options="el.options || options"
         v-bind="el"
       /><span v-if="i != value.length - 1">, </span>

@@ -182,6 +182,6 @@ export default defineComponent({
     :loading="$fetchState.pending"
     :options="allOfType"
     :paginate="paginateType"
-    v-on="$listeners"
+    
   />
 </template>

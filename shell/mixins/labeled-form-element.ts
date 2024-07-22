@@ -1,4 +1,5 @@
-import Vue from 'vue';
+import { createApp } from 'vue';
+const vueApp = createApp({});
 import { _EDIT, _VIEW } from '@shell/config/query-params';
 import { getWidth, setWidth } from '@shell/utils/width';
 

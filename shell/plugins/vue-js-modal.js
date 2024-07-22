@@ -1,4 +1,5 @@
-import Vue from 'vue';
+import { createApp } from 'vue';
+const vueApp = createApp({});
 import VModal from 'vue-js-modal';
 
-Vue.use(VModal);
+vueApp.use(VModal);

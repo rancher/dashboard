@@ -78,7 +78,7 @@ export default {
           mode="apply"
           class="btn bg-error ml-10"
           :disabled="!valid"
-          value="LOGIN"
+          modelValue="LOGIN"
           @click="submit"
         />
       </template>
@@ -88,7 +88,7 @@ export default {
 
 <style lang="scss" scoped>
   .prompt-password {
-    ::v-deep .card-wrap {
+    :deep() .card-wrap {
       display: flex;
       flex-direction: column;
 

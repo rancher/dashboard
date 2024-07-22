@@ -28,10 +28,10 @@ export default {
     };
 
     if (this.mode === _CREATE) {
-      this.$set(this.value.spec, 'csi', this.value.spec.csi || {});
-      this.$set(this.value.spec.csi, 'driver', LONGHORN_DRIVER);
-      this.$set(this.value.spec.csi, 'readOnly', this.value.spec.csi.readOnly || false);
-      this.$set(this.value.spec.csi, 'volumeAttributes', this.value.spec.csi.volumeAttributes || defaultVolumeAttributes);
+      this.value.spec['csi'] = this.value.spec.csi || {};
+      this.value.spec.csi['driver'] = LONGHORN_DRIVER;
+      this.value.spec.csi['readOnly'] = this.value.spec.csi.readOnly || false;
+      this.value.spec.csi['volumeAttributes'] = this.value.spec.csi.volumeAttributes || defaultVolumeAttributes;
     }
 
     const readOnlyOptions = [

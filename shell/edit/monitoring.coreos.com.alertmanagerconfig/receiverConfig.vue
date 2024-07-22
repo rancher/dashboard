@@ -144,7 +144,7 @@ export default {
 
     if (mode === _CREATE) {
       RECEIVERS_TYPES.forEach((receiverType) => {
-        this.$set(currentReceiver, receiverType.key, currentReceiver[receiverType.key] || []);
+        currentReceiver[receiverType.key] = currentReceiver[receiverType.key] || [];
       });
     }
 
@@ -206,7 +206,7 @@ export default {
         // We need this step so we don't just keep adding new keys when modifying the custom field
         Object.keys(this.value).forEach((key) => {
           if (!this.expectedFields.includes(key)) {
-            this.$delete(this.value, key);
+            delete this.value[key];
           }
         });
 
@@ -307,9 +307,7 @@ export default {
       >
         <div class="box-container create-resource-container ">
           <div
-            v-for="(receiverType, i) in receiverTypes"
-            :key="i"
-            class="mb-10 subtype-banner"
+            v-for="(receiverType, i) in receiverTypes" :key="i"class="mb-10 subtype-banner"
             primary-color-var="--primary-color"
             @click="navigateTo(receiverType)"
           >
@@ -331,9 +329,7 @@ export default {
         </div>
       </Tab>
       <Tab
-        v-for="(receiverType, i) in receiverTypes"
-        :key="i"
-        :label="t(receiverType.label)"
+        v-for="(receiverType, i) in receiverTypes" :key="i":label="t(receiverType.label)"
         :name="receiverType.name"
         :weight="receiverTypes.length - i"
       >
@@ -349,13 +345,13 @@ export default {
             v-model="value[receiverType.key]"
             class="namespace-list"
             :mode="mode"
-            :default-add-value="{}"
+            :default-add-modelValue="{}"
             :add-label="t('monitoringReceiver.addButton', { type: t(receiverType.label) })"
           >
             <template #default="props">
               <component
                 :is="getComponent(receiverType.name)"
-                :value="props.row.value"
+                :modelValue="props.row.value"
                 :mode="mode"
                 :namespace="alertmanagerConfigNamespace"
               />

@@ -38,17 +38,17 @@ export default {
 
       // Require SSL verification by default
       if (typeof this.value.ssl_verify === 'undefined') {
-        this.$set(this.value, 'ssl_verify', true);
+        this.value['ssl_verify'] = true;
       }
 
       // Use the SSL version TLSv1_2 by default to match Ember
       if (typeof this.value.ssl_version === 'undefined') {
-        this.$set(this.value, 'ssl_version', sslVersions[0]);
+        this.value['ssl_version'] = sslVersions[0];
       }
 
       // Suppress type name by default
       if (typeof this.value.suppress_type_name === 'undefined') {
-        this.$set(this.value, 'suppress_type_name', true);
+        this.value['suppress_type_name'] = true;
       }
     }
 
@@ -60,7 +60,7 @@ export default {
         return this.value.port;
       },
       set(port) {
-        updatePort((value) => this.$set(this.value, 'port', value), port);
+        updatePort((value) => (this.value['port'] = value), port);
       }
     }
   }

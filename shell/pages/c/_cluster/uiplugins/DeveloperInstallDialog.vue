@@ -166,7 +166,7 @@ export default {
             v-model="location"
             v-focus
             label-key="plugins.developer.fields.url"
-            @input="updateLocation"
+            @update:modelValue="updateLocation"
           />
         </div>
       </div>
@@ -175,7 +175,7 @@ export default {
           <LabeledInput
             v-model="name"
             label-key="plugins.developer.fields.name"
-            @input="updateName"
+            @update:modelValue="updateName"
           />
         </div>
         <div class="fields mt-10">

@@ -149,9 +149,9 @@ export default {
     <h2 v-t="'fleet.clusterGroup.selector.label'" />
     <MatchExpressions
       :mode="mode"
-      :value="expressions"
+      :modelValue="expressions"
       :show-remove="false"
-      @input="matchChanged($event)"
+      @update:modelValue="matchChanged($event)"
     />
     <Banner
       v-if="matchingClusters"
@@ -175,7 +175,7 @@ export default {
 
     <Labels
       default-section-class="mt-20"
-      :value="value"
+      :modelValue="value"
       :mode="mode"
       :display-side-by-side="false"
     />

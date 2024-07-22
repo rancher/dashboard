@@ -177,7 +177,7 @@ export default {
               :placeholder="t(`authConfig.${NAME}.host.placeholder`)"
               :required="true"
               :mode="mode"
-              @input="updateHost($event.selected, $event.text)"
+              @update:modelValue="updateHost($event.selected, $event.text)"
             />
           </div>
         </div>
@@ -261,7 +261,7 @@ export default {
   .banner {
     display: block;
 
-    &::v-deep code {
+    &:deep() code {
       padding: 0 3px;
       margin: 0 3px;
     }

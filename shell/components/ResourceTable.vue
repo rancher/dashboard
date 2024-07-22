@@ -563,7 +563,7 @@ export default {
     @clickedActionButton="handleActionButtonClick"
     @group-value-change="group = $event"
 
-    v-on="$listeners"
+    
   >
     <template
       v-if="showGrouping"
@@ -593,7 +593,7 @@ export default {
 
     <!-- Pass down templates provided by the caller -->
     <template
-      v-for="(_, slot) of $scopedSlots"
+      v-for="(_, slot) of $slots" :key="slot"
       v-slot:[slot]="scope"
     >
       <slot

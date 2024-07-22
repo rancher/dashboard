@@ -163,7 +163,7 @@ export default {
     <CodeMirror
       v-else-if="jsonStr"
       :options="{mode:{name:'javascript', json:true}, lineNumbers:false, foldGutter:false, readOnly:true}"
-      :value="jsonStr"
+      :modelValue="jsonStr"
       :class="{'conceal': concealed}"
     />
 

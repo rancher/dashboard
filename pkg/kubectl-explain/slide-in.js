@@ -1,4 +1,5 @@
-import Vue from 'vue';
+import { createApp } from 'vue';
+const vueApp = createApp({});
 
 import Panel from './components/SlideInPanel';
 import { OpenAPI } from './open-api';

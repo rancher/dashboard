@@ -21,7 +21,7 @@ export default {
     }
   },
   data() {
-    this.$set(this.value, 'basicAuth', this.value.basicAuth || {});
+    this.value['basicAuth'] = this.value.basicAuth || {};
 
     const authOptions = [
       {
@@ -70,7 +70,7 @@ export default {
             this.value[authOption.value] || authOption.default
           );
         } else if (typeof this.value[authOption.value] !== 'undefined') {
-          this.$delete(this.value, authOption.value);
+          delete this.value[authOption.value];
         }
       });
     },
@@ -248,7 +248,7 @@ export default {
           :disabled="mode === view"
           :options="authOptions"
           label="Auth Type"
-          @input="initializeType(authOptions, authType)"
+          @update:modelValue="initializeType(authOptions, authType)"
         />
       </div>
     </div>

@@ -26,8 +26,8 @@ export default {
     }
   },
   data() {
-    this.$set(this.value, 'send_resolved', this.value.send_resolved || false);
-    this.$set(this.value, 'require_tls', this.value.require_tls || false);
+    this.value['send_resolved'] = this.value.send_resolved || false;
+    this.value['require_tls'] = this.value.require_tls || false;
 
     return {};
   },

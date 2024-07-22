@@ -80,7 +80,7 @@ export default {
 <template>
   <div
     class="cert row"
-    @input="update"
+    @update:modelValue="update"
   >
     <div class="col span-6">
       <LabeledSelect
@@ -94,16 +94,16 @@ export default {
         :tooltip="certificateTooltip"
         :hover-tooltip="true"
         :searchable="true"
-        @input="onSecretInput"
+        @update:modelValue="onSecretInput"
       />
     </div>
     <div class="col span-6">
       <ArrayList
-        :value="hosts"
+        :modelValue="hosts"
         :add-label="t('ingress.certificates.addHost')"
         :rules="rules.host"
         :initial-empty-row="true"
-        @input="onHostsInput"
+        @update:modelValue="onHostsInput"
       />
     </div>
   </div>
