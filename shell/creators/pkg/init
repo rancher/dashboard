@@ -4,11 +4,6 @@ const fs = require('fs-extra');
 const path = require('path');
 const https = require('https');
 
-const targets = {
-  dev:  './node_modules/.bin/nuxt dev',
-  nuxt: './node_modules/.bin/nuxt',
-};
-
 const files = [
   'tsconfig.json',
   'vue.config.js',
@@ -95,13 +90,6 @@ const pkg = JSON.parse(rawdata);
 
 pkg.name = name;
 pkg.description = `${ name } plugin`;
-
-Object.keys(targets).forEach((target) => {
-  if (!pkg.scripts[target]) {
-    pkg.scripts[target] = targets[target];
-    console.log(`  Adding script '${ target }' to package.json`);
-  }
-});
 
 // Add annotation for the latest Rancher version by default
 function fetchLatestVersion() {

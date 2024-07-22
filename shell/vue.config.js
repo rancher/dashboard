@@ -441,7 +441,7 @@ const printLogs = (dev, dashboardVersion, resourceBase, routerBasePath, pl, ranc
 };
 
 /**
- * Expose a function that can be used by an app to provide a nuxt configuration for building an application
+ * Expose a function that can be used by an app to provide a configuration for building an application
  * This takes the directory of the application as the first argument so that we can derive folder locations
  * from it, rather than from the location of this file
  */
@@ -499,6 +499,8 @@ module.exports = function(dir, _appConfig) {
     },
     outputDir,
     pages: {
+      // Taken from @nuxt/vue-app/template/index.js
+      // TODO: Add more clarification to this comment
       index: {
         entry:    path.join(SHELL_ABS, '/initialize/entry.js'),
         template: path.join(SHELL_ABS, '/public/index.html')

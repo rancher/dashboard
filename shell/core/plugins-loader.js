@@ -14,7 +14,6 @@ export default function({
   $axios,
   redirect,
   $plugin,
-  nuxt
 }, inject) {
   if (dynamicLoader) {
     dynamicLoader.default($plugin);

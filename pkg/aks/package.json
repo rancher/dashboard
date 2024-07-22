@@ -8,10 +8,7 @@
       "catalog.cattle.io/display-name": "AKS Provisioning"
     }
   },
-  "scripts": {
-    "dev": "./node_modules/.bin/nuxt dev",
-    "nuxt": "./node_modules/.bin/nuxt"
-  },
+
   "engines": {
     "node": ">=12"
   },
