@@ -504,7 +504,7 @@ export default [
       }]
   },
   {
-    path:      '/:catchAll(.*)',
+    path:      '/:catchAll(.*)*',
     name:      '404',
     component: () => interopDefault(import('@shell/pages/404.vue')),
     meta:      { requiresAuthentication: true },
