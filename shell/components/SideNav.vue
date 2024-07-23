@@ -401,12 +401,11 @@ export default {
     <!-- Actual nav -->
     <div class="nav">
       <template
-        v-for="((g), i) in groups"
-        :key="i"
+        v-for="(g) in groups"
+        :key="g.name"
       >
         <Group
           ref="groups"
-          :key="g.name"
           id-prefix=""
           class="package"
           :group="g"

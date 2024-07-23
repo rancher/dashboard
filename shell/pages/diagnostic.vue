@@ -163,7 +163,7 @@ export default {
           const countIndex = cluster?.counts?.findIndex((c) => c.resource === res.item.resource);
 
           if ( (countIndex && countIndex !== -1) || countIndex === 0 ) {
-            cluster?.counts[countIndex]['durationMs'] = res.durationMs;
+            cluster.counts[countIndex]['durationMs'] = res.durationMs;
           }
         }
       });
@@ -375,8 +375,8 @@ export default {
             </tr>
 
             <tr
-              v-for="(item, i) in cluster.counts"
-              :key="i"
+              v-for="(item, j) in cluster.counts"
+              :key="j"
             >
               <template v-if="item.count > 0">
                 <td scope="row">
