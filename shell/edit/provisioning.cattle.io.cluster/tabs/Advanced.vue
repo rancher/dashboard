@@ -1,6 +1,5 @@
 <script>
 import { createApp } from 'vue';
-const vueApp = createApp({});
 import { _VIEW } from '@shell/config/query-params';
 import { Banner } from '@components/Banner';
 import ArrayListGrouped from '@shell/components/form/ArrayListGrouped';
@@ -8,6 +7,7 @@ import MatchExpressions from '@shell/components/form/MatchExpressions';
 import ArrayList from '@shell/components/form/ArrayList';
 import { Checkbox } from '@components/Form/Checkbox';
 import DirectoryConfig from '@shell/edit/provisioning.cattle.io.cluster/tabs/DirectoryConfig.vue';
+const vueApp = createApp({});
 
 export default {
   components: {
@@ -85,7 +85,7 @@ export default {
       return !this.serverArg?.['kubelet-arg']?.length && !config?.['kubelet-arg']?.length;
     },
     onInputProtectKernelDefaults(value) {
-      this.agentConfig || this.serverConfig['protect-kernel-defaults'] = value;
+      this.agentConfig ? this.agentConfig = value : this.serverConfig['protect-kernel-defaults'] = value;
     }
   }
 };

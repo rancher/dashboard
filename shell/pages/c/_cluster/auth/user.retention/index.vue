@@ -1,6 +1,6 @@
 <script lang="ts" setup>
 import { ref, reactive, watch, onMounted } from 'vue';
-import { useRouter, onBeforeRouteUpdate } from 'vue-router/composables';
+import { useRouter, onBeforeRouteUpdate } from 'vue-router';
 
 import UserRetentionHeader from '@shell/components/user.retention/user-retention-header.vue';
 import Footer from '@shell/components/form/Footer.vue';
