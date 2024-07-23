@@ -340,6 +340,9 @@ module.exports = function(dir, _appConfig) {
     },
 
     configureWebpack(config) {
+      // TODO VUE3: We may want to look into what we want the value to actually be. For the time being this was causing a warning in our CLI because it would set process.env.NODE_ENV to 'development' even thought it was
+      //            already set to 'dev' and we're using 'dev' in other locations so I don't think we want to do that. Config details found here: https://webpack.js.org/configuration/optimization/#optimizationnodeenv.
+      config.optimization.nodeEnv = false;
       config.resolve.alias['~'] = dir;
       config.resolve.alias['@'] = dir;
       config.resolve.alias['~assets'] = path.join(__dirname, 'assets');
