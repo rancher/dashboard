@@ -419,7 +419,7 @@ export default {
         },
         result: {
           count:     out.count,
-          pages:     out.pages,
+          pages:     out.pages || Math.ceil(out.count / (opt.pagination.pageSize || Number.MAX_SAFE_INTEGER)),
           timestamp: new Date().getTime()
         }
       } : undefined,

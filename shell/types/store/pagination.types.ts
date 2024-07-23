@@ -227,7 +227,7 @@ export class PaginationParamFilter extends PaginationParam {
   /**
    * Convenience method when you just want an instance of {@link PaginationParamFilter} with a simple `filter=x=y` param
    */
-  static createSingleField(field: { field?: string; value: string; equals?: boolean; }): PaginationParam {
+  static createSingleField(field: { field?: string; value: string; equals?: boolean; exact?: boolean }): PaginationParam {
     return new PaginationParamFilter({ fields: [new PaginationFilterField(field)] });
   }
 
