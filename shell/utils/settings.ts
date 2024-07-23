@@ -102,5 +102,7 @@ export const getPerformanceSetting = (rootGetters: Record<string, (arg0: string,
   }
 
   // Start with the default and overwrite the values from the setting - ensures we have defaults for newly added options
-  return Object.assign(DEFAULT_PERF_SETTING, perfSetting || {});
+  const safeDefaults = Object.assign({}, DEFAULT_PERF_SETTING);
+
+  return Object.assign(safeDefaults, perfSetting || {});
 };

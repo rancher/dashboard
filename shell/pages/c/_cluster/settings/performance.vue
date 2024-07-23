@@ -61,7 +61,7 @@ export default {
 
   data() {
     return {
-      uiPerfSetting:              DEFAULT_PERF_SETTING,
+      uiPerfSetting:              null,
       authUserTTL:                null,
       bannerVal:                  {},
       value:                      {},
