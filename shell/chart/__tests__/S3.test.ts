@@ -1,12 +1,8 @@
 /* eslint-disable jest/no-hooks */
-import { mount, createLocalVue } from '@vue/test-utils';
+import { mount } from '@vue/test-utils';
 
 import S3 from '@shell/chart/rancher-backup/S3';
 import Vuex from 'vuex';
-
-const localVue = createLocalVue();
-
-localVue.use(Vuex);
 
 describe('rancher-backup: S3', () => {
   const mockStore = {
@@ -17,7 +13,7 @@ describe('rancher-backup: S3', () => {
       'cluster/paginationEnabled': () => false
     }
   };
-  const wrapper = mount(S3, { mocks: { $store: mockStore, $fetchState: { pending: false } } });
+  const wrapper = mount(S3, { plugins: [Vuex], mocks: { $store: mockStore, $fetchState: { pending: false } } });
 
   it('should emit invalid when form is not filled', () => {
     expect(wrapper.emitted('valid')).toHaveLength(1);
