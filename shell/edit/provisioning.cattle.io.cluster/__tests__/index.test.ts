@@ -1,13 +1,9 @@
-import { shallowMount, createLocalVue } from '@vue/test-utils';
+import { shallowMount } from '@vue/test-utils';
 import Vuex from 'vuex';
 import ClusterCreate from '@shell/edit/provisioning.cattle.io.cluster/index.vue';
 
 describe('component: Cluster: Create', () => {
   it('should hide RKE1 and RKE2 toggle button if RKE1 ui feature flag is NOT set', () => {
-    const localVue = createLocalVue();
-
-    localVue.use(Vuex);
-
     const store = new Vuex.Store({
       modules: {
         i18n: {
@@ -55,10 +51,10 @@ describe('component: Cluster: Create', () => {
         mode:            'edit',
         componentTestid: 'cluster-manager-create',
       },
-      mixins: [],
+      mixins:  [],
       store,
-      localVue,
-      mocks:  {
+      plugins: [Vuex],
+      mocks:   {
         $route:      { params: {}, query: {} },
         $router:     { applyQuery: jest.fn() },
         $fetchState: { pending: false },

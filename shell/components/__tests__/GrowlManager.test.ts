@@ -1,4 +1,4 @@
-import { shallowMount, createLocalVue } from '@vue/test-utils';
+import { shallowMount } from '@vue/test-utils';
 import GrowlManager from '@shell/components/GrowlManager.vue';
 import Vuex from 'vuex';
 import { ExtendedVue, Vue } from 'vue/types/vue';
@@ -104,10 +104,6 @@ describe('component: GrowlManager', () => {
   });
 
   it('growl should auto remove itself after set interval of 1 second', async() => {
-    const localVue = createLocalVue();
-
-    localVue.use(Vuex);
-
     const store = new Vuex.Store({
       modules: {
         growl: {
@@ -128,7 +124,7 @@ describe('component: GrowlManager', () => {
 
     const wrapper = shallowMount(GrowlManager as unknown as ExtendedVue<Vue, {}, {}, {}, DefaultProps>, {
       store,
-      localVue
+      plugins: [Vuex]
     });
 
     const spyCloseExpired = jest.spyOn(wrapper.vm, 'closeExpired');

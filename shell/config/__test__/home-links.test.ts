@@ -1,5 +1,4 @@
 import Vuex from 'vuex';
-import { createLocalVue } from '@vue/test-utils';
 import { ensureSupportLink } from '@shell/config/home-links.js';
 import { getters, state, mutations } from '@shell/store/i18n.js';
 
@@ -12,10 +11,6 @@ jest.mock('@shell/assets/translations/en-us.yaml', () => ({
 }));
 
 describe('fx: ensureSupportLink', () => {
-  const localVue = createLocalVue();
-
-  localVue.use(Vuex);
-
   const store = new Vuex.Store({
     state,
     getters: {
