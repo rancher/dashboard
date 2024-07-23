@@ -1,4 +1,4 @@
-import { shallowMount, createLocalVue } from '@vue/test-utils';
+import { shallowMount } from '@vue/test-utils';
 import PromptRestore from '@shell/components/PromptRestore.vue';
 import Vuex from 'vuex';
 import { ExtendedVue, Vue } from 'vue/types/vue';
@@ -59,10 +59,6 @@ const RKE1_WITH_ERROR_SNAPSHOT = {
 };
 
 describe('component: PromptRestore', () => {
-  const localVue = createLocalVue();
-
-  localVue.use(Vuex);
-
   const rke2TestCases = [
     [[], 0],
     [[RKE2_FAILED_SNAPSHOT], 0],
@@ -93,7 +89,7 @@ describe('component: PromptRestore', () => {
 
     const wrapper = shallowMount(PromptRestore as unknown as ExtendedVue<Vue, {}, {}, {}, DefaultProps>, {
       store,
-      localVue
+      plugins: [Vuex]
     });
 
     await wrapper.vm.fetchSnapshots();
@@ -131,7 +127,7 @@ describe('component: PromptRestore', () => {
 
     const wrapper = shallowMount(PromptRestore as unknown as ExtendedVue<Vue, {}, {}, {}, DefaultProps>, {
       store,
-      localVue
+      plugins: [Vuex]
     });
 
     await wrapper.vm.fetchSnapshots();
