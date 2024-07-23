@@ -43,7 +43,7 @@
     "e2e:pre-dev": "yarn docker:local:stop && yarn docker:local:start && NODE_ENV=dev TEST_INSTRUMENT=true yarn build",
     "e2e:dev": "START_SERVER_AND_TEST_INSECURE=1 server-test start:dev https-get://localhost:8005 cy:run:sorry",
     "e2e:build": "mkdir dist && TEST_INSTRUMENT=true ./scripts/build-e2e",
-    "e2e:docker": "yarn docker:local:stop && ./scripts/e2e-docker-start ",
+    "e2e:docker": "yarn docker:local:stop && ./scripts/e2e-docker-start $RANCHER-VERSION-E2E",
     "e2e:prod": "BUILD_DASHBOARD=$BUILD_DASHBOARD GREP_TAGS=$GREP_TAGS TEST_USERNAME=$TEST_USERNAME TEST_BASE_URL=https://127.0.0.1/dashboard yarn cy:run:sorry",
     "coverage": "npx nyc merge coverage coverage/coverage.json",
     "storybook": "cd storybook && yarn install && yarn storybook",

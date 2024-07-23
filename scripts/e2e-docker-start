@@ -5,19 +5,40 @@ DIR=$(cd $(dirname $0)/..; pwd)
 # See `script/build-e2e`
 DASHBOARD_DIST=${DIR}/dist
 EMBER_DIST=${DIR}/dist_ember
+IS_HEAD_VERSION="true"
+USER_DEFINED_RANCHER_VERSION="false"
 
-# Image version
-RANCHER_IMG_VERSION=v2.9-head
+if [ $# -eq 1 ] then
+  IS_HEAD_VERSION="false"
+  USER_DEFINED_RANCHER_VERSION=$1
+fi
 
-docker run -d --restart=unless-stopped -p 80:80 -p 443:443 \
-  -v ${DASHBOARD_DIST}:/usr/share/rancher/ui-dashboard/dashboard \
-  -v ${EMBER_DIST}:/usr/share/rancher/ui \
-  -e CATTLE_UI_OFFLINE_PREFERRED=true \
-  -e CATTLE_BOOTSTRAP_PASSWORD=password \
-  -e CATTLE_PASSWORD_MIN_LENGTH=3 \
-  --name cypress \
-  --privileged \
-  rancher/rancher:${RANCHER_IMG_VERSION}
+if [ "$IS_HEAD_VERSION" == "true" ]; then
+  # Image version
+  RANCHER_IMG_VERSION=v2.9-head
+
+  docker run -d --restart=unless-stopped -p 80:80 -p 443:443 \
+    -v ${DASHBOARD_DIST}:/usr/share/rancher/ui-dashboard/dashboard \
+    -v ${EMBER_DIST}:/usr/share/rancher/ui \
+    -e CATTLE_UI_OFFLINE_PREFERRED=true \
+    -e CATTLE_BOOTSTRAP_PASSWORD=password \
+    -e CATTLE_PASSWORD_MIN_LENGTH=3 \
+    --name cypress \
+    --privileged \
+    rancher/rancher:${RANCHER_IMG_VERSION}
+else
+  # We will only hit this scenario for the extensions-compatibility-tests workflow...
+
+  docker run -d --restart=unless-stopped -p 80:80 -p 443:443 \
+    # -v ${DASHBOARD_DIST}:/usr/share/rancher/ui-dashboard/dashboard \
+    # -v ${EMBER_DIST}:/usr/share/rancher/ui \
+    -e CATTLE_UI_OFFLINE_PREFERRED=true \
+    -e CATTLE_BOOTSTRAP_PASSWORD=password \
+    -e CATTLE_PASSWORD_MIN_LENGTH=3 \
+    --name cypress \
+    --privileged \
+    rancher/rancher:${USER_DEFINED_RANCHER_VERSION}
+fi
 
 docker ps
 
