@@ -183,7 +183,7 @@ export default defineComponent({
       this.normanCluster['gkeConfig'] = { ...defaultGkeConfig };
     }
     if (!this.normanCluster.gkeConfig.nodePools) {
-      this.normanCluster.gkeConfig['nodePools'] = [{ ...cloneDeep(defaultNodePool, name: 'group-1' }]);
+      this.normanCluster.gkeConfig['nodePools'] = [{ ...cloneDeep(defaultNodePool), name: 'group-1' }];
     }
     if (!this.normanCluster.gkeConfig.ipAllocationPolicy) {
       this.normanCluster.gkeConfig['ipAllocationPolicy'] = cloneDeep(defaultGkeConfig.ipAllocationPolicy);
@@ -688,10 +688,10 @@ export default defineComponent({
   >
     <template>
       <AccountAccess
-        :mode="mode"
         v-model:credential="config.googleCredentialSecret"
         v-model:project="config.projectID"
         v-model:is-authenticated="isAuthenticated"
+        :mode="mode"
         @error="e=>errors.push(e)"
         @cancel-credential="cancelCredential"
       />
@@ -734,23 +734,13 @@ export default defineComponent({
           @removeTab="removePool($event)"
         >
           <Tab
-             v-for="((pool), i) in nodePools" :key="i" :name="pool._id || pool.name"
+            v-for="(pool) in nodePools"
+            :key="pool._id"
+            :name="pool._id || pool.name"
             :label="pool.name || t('gke.notNamed')"
             :error="pool._minMaxValid===false || pool._nameUnique===false"
           >
             <GKENodePoolComponent
-              :rules="{
-                diskSizeGb: fvGetAndReportPathRules('diskSizeGb'),
-                initialNodeCount: fvGetAndReportPathRules('initialNodeCount'),
-                ssdCount: fvGetAndReportPathRules('ssdCount'),
-                poolName: fvGetAndReportPathRules('poolName'),
-              }"
-              :mode="mode"
-              :cluster-kubernetes-version="config.kubernetesVersion"
-              :machine-type-options="machineTypeOptions"
-              :service-account-options="serviceAccountOptions"
-              :loading-machine-types="loadingMachineTypes"
-              :loading-service-accounts="loadingServiceAccounts"
               v-model:version="pool.version"
               v-model:image-type="pool.config.imageType"
               v-model:machine-type="pool.config.machineType"
@@ -765,12 +755,24 @@ export default defineComponent({
               v-model:name="pool.name"
               v-model:initial-node-count="pool.initialNodeCount"
               v-model:max-pods-constraint="pool.maxPodsConstraint"
+              :rules="{
+                diskSizeGb: fvGetAndReportPathRules('diskSizeGb'),
+                initialNodeCount: fvGetAndReportPathRules('initialNodeCount'),
+                ssdCount: fvGetAndReportPathRules('ssdCount'),
+                poolName: fvGetAndReportPathRules('poolName'),
+              }"
               v-model:autoscaling="pool.autoscaling.enabled"
+              :mode="mode"
               v-model:min-node-count="pool.autoscaling.minNodeCount"
+              :cluster-kubernetes-version="config.kubernetesVersion"
               v-model:max-node-count="pool.autoscaling.maxNodeCount"
+              :machine-type-options="machineTypeOptions"
               v-model:auto-repair="pool.management.autoRepair"
+              :service-account-options="serviceAccountOptions"
               v-model:auto-upgrade="pool.management.autoUpgrade"
+              :loading-machine-types="loadingMachineTypes"
               v-model:oauth-scopes="pool.config.oauthScopes"
+              :loading-service-accounts="loadingServiceAccounts"
               :is-new="pool._isNewOrUnprovisioned"
             />
           </Tab>
@@ -781,6 +783,12 @@ export default defineComponent({
           :open-initially="true"
         >
           <Config
+            v-model:kubernetes-version="config.kubernetesVersion"
+            v-model:zone="config.zone"
+            v-model:region="config.region"
+            v-model:locations="config.locations"
+            v-model:default-image-type="defaultImageType"
+            v-model:labels="config.labels"
             :mode="mode"
             :cloud-credential-id="config.googleCredentialSecret"
             :project-id="config.projectID"
@@ -788,12 +796,6 @@ export default defineComponent({
             :original-version="originalVersion"
             :cluster-id="normanCluster.id"
             :cluster-name="config.clusterName"
-            v-model:kubernetes-version="config.kubernetesVersion"
-            v-model:zone="config.zone"
-            v-model:region="config.region"
-            v-model:locations="config.locations"
-            v-model:default-image-type="defaultImageType"
-            v-model:labels="config.labels"
           />
         </Accordion>
         <Accordion
@@ -801,21 +803,6 @@ export default defineComponent({
           :title="t('gke.accordion.networking')"
         >
           <Networking
-            :rules="{
-              masterIpv4CidrBlock: fvGetAndReportPathRules('masterIpv4CidrBlock'),
-              clusterIpv4CidrBlock: fvGetAndReportPathRules('clusterIpv4CidrBlock'),
-              nodeIpv4CidrBlock: fvGetAndReportPathRules('nodeIpv4CidrBlock'),
-              servicesIpv4CidrBlock: fvGetAndReportPathRules('servicesIpv4CidrBlock'),
-              clusterIpv4Cidr: fvGetAndReportPathRules('clusterIpv4Cidr')
-            }"
-            :mode="mode"
-            :zone="config.zone"
-            :region="config.region"
-            :cloud-credential-id="config.googleCredentialSecret"
-            :project-id="config.projectID"
-            :original-version="originalVersion"
-            :cluster-id="normanCluster.id"
-            :cluster-name="config.clusterName"
             v-model:kubernetes-version="config.kubernetesVersion"
             v-model:network="config.network"
             v-model:subnetwork="config.subnetwork"
@@ -828,14 +815,29 @@ export default defineComponent({
             v-model:cluster-secondary-range-name="config.ipAllocationPolicy.clusterSecondaryRangeName"
             v-model:services-secondary-range-name="config.ipAllocationPolicy.servicesSecondaryRangeName"
             v-model:cluster-ipv4-cidr-block="config.ipAllocationPolicy.clusterIpv4CidrBlock"
+            :rules="{
+              masterIpv4CidrBlock: fvGetAndReportPathRules('masterIpv4CidrBlock'),
+              clusterIpv4CidrBlock: fvGetAndReportPathRules('clusterIpv4CidrBlock'),
+              nodeIpv4CidrBlock: fvGetAndReportPathRules('nodeIpv4CidrBlock'),
+              servicesIpv4CidrBlock: fvGetAndReportPathRules('servicesIpv4CidrBlock'),
+              clusterIpv4Cidr: fvGetAndReportPathRules('clusterIpv4Cidr')
+            }"
             v-model:services-ipv4-cidr-block="config.ipAllocationPolicy.servicesIpv4CidrBlock"
+            :mode="mode"
             v-model:node-ipv4-cidr-block="config.ipAllocationPolicy.nodeIpv4CidrBlock"
+            :zone="config.zone"
             v-model:subnetwork-name="config.ipAllocationPolicy.subnetworkName"
+            :region="config.region"
             v-model:enable-private-endpoint="config.privateClusterConfig.enablePrivateEndpoint"
+            :cloud-credential-id="config.googleCredentialSecret"
             v-model:enable-private-nodes="config.privateClusterConfig.enablePrivateNodes"
+            :project-id="config.projectID"
             v-model:master-ipv4-cidr-block="config.privateClusterConfig.masterIpv4CidrBlock"
+            :original-version="originalVersion"
             v-model:enable-master-authorized-network="config.masterAuthorizedNetworks.enabled"
+            :cluster-id="normanCluster.id"
             v-model:master-authorized-network-cidr-blocks="config.masterAuthorizedNetworks.cidrBlocks"
+            :cluster-name="config.clusterName"
             :is-new-or-unprovisioned="isNewOrUnprovisioned"
           />
         </Accordion>
@@ -844,13 +846,13 @@ export default defineComponent({
           :title="t('gke.accordion.advanced')"
         >
           <AdvancedOptions
-            :mode="mode"
             v-model:logging-service="config.loggingService"
             v-model:monitoring-service="config.monitoringService"
             v-model:maintenance-window="config.maintenanceWindow"
             v-model:http-load-balancing="config.clusterAddons.httpLoadBalancing"
             v-model:horizontal-pod-autoscaling="config.clusterAddons.horizontalPodAutoscaling"
             v-model:enable-kubernetes-alpha="config.enableKubernetesAlpha"
+            :mode="mode"
             :is-new-or-unprovisioned="isNewOrUnprovisioned"
           />
         </Accordion>
