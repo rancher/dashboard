@@ -255,8 +255,9 @@ module.exports = function(dir, _appConfig) {
       // TODO: Verify after migration completed
       client: { webSocketURL: `https://0.0.0.0:${ devPorts ? 8005 : 80 }` },
       proxy,
-      onBeforeSetupMiddleware({ app, server }) {
+      onBeforeSetupMiddleware(server) {
         const socketProxies = {};
+        const app = server.app;
 
         // Close down quickly in response to CTRL + C
         process.once('SIGINT', () => {
@@ -271,7 +272,7 @@ module.exports = function(dir, _appConfig) {
           console.log('Installing HAR file middleware'); // eslint-disable-line no-console
           app.use(har.harProxy(harData, process.env.HAR_DIR));
 
-          server.websocketProxies.push({
+          server.webSocketProxies.push({
             upgrade(req, socket, head) {
               const responseHeaders = ['HTTP/1.1 101 Web Socket Protocol Handshake', 'Upgrade: WebSocket', 'Connection: Upgrade'];
 
@@ -293,7 +294,7 @@ module.exports = function(dir, _appConfig) {
         });
 
         // TODO: Verify after migration completed
-        server?.websocketProxies.push({
+        server?.webSocketProxies.push({
           upgrade(req, socket, head) {
             const path = Object.keys(socketProxies).find((path) => req.url.startsWith(path));
 
