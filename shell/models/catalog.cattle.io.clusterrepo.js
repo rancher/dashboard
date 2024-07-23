@@ -1,11 +1,11 @@
 import { createApp } from 'vue';
-const vueApp = createApp({});
 import { parse } from '@shell/utils/url';
 import { CATALOG } from '@shell/config/labels-annotations';
 import { insertAt } from '@shell/utils/array';
 import { CATALOG as CATALOG_TYPE } from '@shell/config/types';
 
 import SteveModel from '@shell/plugins/steve/steve-class';
+const vueApp = createApp({});
 
 export default class ClusterRepo extends SteveModel {
   applyDefaults() {

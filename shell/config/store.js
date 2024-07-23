@@ -1,6 +1,6 @@
 import { createApp } from 'vue';
-const vueApp = createApp({});
 import { createStore } from 'vuex';
+const vueApp = createApp({});
 
 vueApp.use(Vuex);
 

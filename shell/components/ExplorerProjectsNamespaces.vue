@@ -401,7 +401,6 @@ export default {
       :loading="loading"
       group-tooltip="resourceTable.groupBy.project"
       key-field="_key"
-      
     >
       <template #group-by="group">
         <div
@@ -473,7 +472,8 @@ export default {
         </div>
       </template>
       <template
-         v-for="(project, i) in projectsWithoutNamespaces" :key="i" 
+        v-for="(project, i) in projectsWithoutNamespaces"
+        :key="i"
         v-slot:[slotName(project)]
       >
         <tr

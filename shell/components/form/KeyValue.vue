@@ -616,7 +616,9 @@ export default {
           {{ _valueLabel }}
         </label>
         <label
-           v-for="(c, i) in extraColumns" :key="i" >
+          v-for="(c, i) in extraColumns"
+          :key="i"
+        >
           <slot :name="'label:'+c">{{ c }}</slot>
         </label>
         <slot
@@ -635,8 +637,9 @@ export default {
         </div>
       </template>
       <template
-        v-for="(row,i) in filteredRows" :key="i"
+        v-for="(row,i) in filteredRows"
         v-else
+        :key="i"
       >
         <!-- Key -->
         <div
@@ -746,7 +749,9 @@ export default {
           </slot>
         </div>
         <div
-           v-for="(c, i) in extraColumns" :key="i" class="kv-item extra"
+          v-for="(c, i) in extraColumns"
+          :key="i"
+          class="kv-item extra"
         >
           <slot
             :name="'col:' + c"

@@ -109,7 +109,7 @@ export default {
     });
   },
 
-  beforeDestroy() {
+  beforeUnmount() {
     this.workloadTypes.forEach((type) => {
       this.$store.dispatch('cluster/forgetType', type);
     });

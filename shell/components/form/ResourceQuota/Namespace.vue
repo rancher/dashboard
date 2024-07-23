@@ -83,7 +83,9 @@ export default {
       </div>
     </div>
     <Row
-      v-for="(limit, i) in editableLimits" :key="i":modelValue="value.resourceQuota"
+      v-for="(limit, i) in editableLimits"
+      :key="i"
+      :modelValue="value.resourceQuota"
       :namespace="value"
       :mode="mode"
       :types="mappedTypes"

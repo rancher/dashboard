@@ -1,10 +1,10 @@
 <script>
 import { createApp } from 'vue';
-const vueApp = createApp({});
 import ProgressBarMulti from '@shell/components/ProgressBarMulti';
 import PlusMinus from '@shell/components/form/PlusMinus';
 import { POD, SCALABLE_WORKLOAD_TYPES } from '@shell/config/types';
 import { ucFirst } from '@shell/utils/string';
+const vueApp = createApp({});
 
 const SCALABLE_TYPES = Object.values(SCALABLE_WORKLOAD_TYPES);
 const INVALID_TYPES = [POD];
@@ -27,7 +27,7 @@ export default {
     },
   },
 
-  beforeDestroy() {
+  beforeUnmount() {
     document.removeEventListener('click', this.onClickOutside);
   },
 
@@ -202,7 +202,9 @@ export default {
     >
       <div>
         <div
-           v-for="(obj, i) in parts" :key="i" class="counts"
+          v-for="(obj, i) in parts"
+          :key="i"
+          class="counts"
         >
           <span class="counts-label">{{ obj.label }}</span>
           <span>{{ obj.value }}</span>

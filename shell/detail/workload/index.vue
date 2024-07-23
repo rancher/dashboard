@@ -365,7 +365,9 @@ export default {
     >
       <template v-if="value.jobGauges">
         <CountGauge
-          v-for="(group, key) in value.jobGauges" :key="key":total="isCronJob? totalRuns : value.pods.length"
+          v-for="(group, key) in value.jobGauges"
+          :key="key"
+          :total="isCronJob? totalRuns : value.pods.length"
           :useful="group.count || 0"
           :graphical="showJobGaugeCircles"
           :primary-color-var="`--sizzle-${group.color}`"
@@ -374,7 +376,9 @@ export default {
       </template>
       <template v-else>
         <CountGauge
-          v-for="(group, key) in value.podGauges" :key="key":total="value.pods.length"
+          v-for="(group, key) in value.podGauges"
+          :key="key"
+          :total="value.pods.length"
           :useful="group.count || 0"
           :graphical="showPodGaugeCircles"
           :primary-color-var="`--sizzle-${group.color}`"

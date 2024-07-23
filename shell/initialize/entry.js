@@ -1,7 +1,6 @@
 // Taken from @nuxt/vue-app/template/index.js
 // TODO: Add more clarification to this comment
 import { createApp } from 'vue';
-const vueApp = createApp({});
 import fetch from 'unfetch';
 import { extendApp } from './app-extended.js';
 import fetchMixin from '@shell/mixins/fetch.client.js';
@@ -9,6 +8,7 @@ import { loadDebugger, mountApp } from '@shell/initialize/entry-helpers';
 import { installDirectives } from '@shell/initialize/install-directives.js';
 import { installComponents } from '@shell/initialize/install-components.js';
 import { installPlugins } from '@shell/initialize/install-plugins.js';
+const vueApp = createApp({});
 
 // Fetch mixin
 vueApp.mixin(fetchMixin);

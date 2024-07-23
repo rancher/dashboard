@@ -1,6 +1,6 @@
 import { createApp } from 'vue';
-const vueApp = createApp({});
 import positiveIntNumberDirective from '@shell/directives/positive-int-number';
+const vueApp = createApp({});
 
 export default positiveIntNumberDirective;
 /* eslint-disable-next-line no-console */

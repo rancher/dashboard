@@ -155,7 +155,9 @@ export default ({
             {{ t('banner.bannerDecoration.label') }}
           </h3>
           <div
-             v-for="(o, i) in textDecorationOptions" :key="i" >
+            v-for="(o, i) in textDecorationOptions"
+            :key="i"
+          >
             <Checkbox
               v-model="value[bannerType][o.style]"
               name="bannerDecoration"

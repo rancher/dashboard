@@ -577,7 +577,9 @@ export default {
         :search="false"
       />
       <div
-        v-for="(inherited, index) of inheritedRules" :key="index">
+        v-for="(inherited, index) of inheritedRules"
+        :key="index"
+      >
         <div class="spacer" />
         <h3>
           Inherited from {{ inherited.template.nameDisplay }}

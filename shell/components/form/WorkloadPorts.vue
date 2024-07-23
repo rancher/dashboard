@@ -268,7 +268,9 @@ export default {
       {{ t('workload.container.ports.detailedDescription') }}
     </p>
     <div
-      v-for="(row, idx) in rows" :key="idx"class="ports-row"
+      v-for="(row, idx) in rows"
+      :key="idx"
+      class="ports-row"
       :class="{
         'show-host':row._showHost,
         'loadBalancer': row._serviceType === 'LoadBalancer',

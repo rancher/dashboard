@@ -1,8 +1,8 @@
 import { createApp } from 'vue';
-const vueApp = createApp({});
 
 import Panel from './components/SlideInPanel';
 import { OpenAPI } from './open-api';
+const vueApp = createApp({});
 
 const PANEL_ID = 'kubectl-explain';
 

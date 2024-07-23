@@ -35,10 +35,10 @@ import { clone, diff, get, set } from '@shell/utils/object';
 import { ignoreVariables } from './install.helpers';
 import { findBy, insertAt } from '@shell/utils/array';
 import { createApp } from 'vue';
-const vueApp = createApp({});
 import { saferDump } from '@shell/utils/create-yaml';
 import { LINUX, WINDOWS } from '@shell/store/catalog';
 import { SETTING } from '@shell/config/settings';
+const vueApp = createApp({});
 
 const VALUES_STATE = {
   FORM: 'FORM',
@@ -836,7 +836,7 @@ export default {
     this.preFormYamlOption = this.valuesComponent || this.hasQuestions ? VALUES_STATE.FORM : VALUES_STATE.YAML;
   },
 
-  beforeDestroy() {
+  beforeUnmount() {
     this.shownReadmeWindows.forEach((name) => this.$store.dispatch('wm/close', name, { root: true }));
   },
 
@@ -1402,13 +1402,17 @@ export default {
             class="mb-15"
           >
             <Banner
-               v-for="(msg, i) in requires" :key="i" color="error"
+              v-for="(msg, i) in requires"
+              :key="i"
+              color="error"
             >
               <span v-clean-html="msg" />
             </Banner>
 
             <Banner
-               v-for="(msg, i) in warnings" :key="i" color="warning"
+              v-for="(msg, i) in warnings"
+              :key="i"
+              color="warning"
             >
               <span v-clean-html="msg" />
             </Banner>

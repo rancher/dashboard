@@ -169,7 +169,9 @@ export default {
         />
       </div>
       <div
-        v-for="(row, idx) in rows" :key="idx"class="ports-row"
+        v-for="(row, idx) in rows"
+        :key="idx"
+        class="ports-row"
         :class="{'show-protocol':showProtocol, 'show-node-port':showNodePort}"
       >
         <div

@@ -83,7 +83,7 @@ export default {
     };
   },
 
-  beforeDestroy() {
+  beforeUnmount() {
     this.$store.dispatch('cluster/forgetType', EVENT);
   },
 

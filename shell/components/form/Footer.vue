@@ -50,7 +50,9 @@ export default defineComponent({
     <div class="spacer-small" />
 
     <div
-      v-for="(err,idx) in errors" :key="idx">
+      v-for="(err,idx) in errors"
+      :key="idx"
+    >
       <Banner
         color="error"
         :label="err"

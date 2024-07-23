@@ -144,7 +144,9 @@ export default {
       </thead>
       <tbody>
         <tr
-          v-for="(row, idx) in rows" :key="idx">
+          v-for="(row, idx) in rows"
+          :key="idx"
+        >
           <td
             v-if="padLeft"
             class="left"

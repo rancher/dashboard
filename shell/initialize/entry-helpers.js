@@ -1,8 +1,8 @@
 import { createApp } from 'vue';
-const vueApp = createApp({});
 import { updatePageTitle } from '@shell/utils/title';
 import { getVendor } from '@shell/config/private-label';
 import { withQuery } from 'ufo';
+const vueApp = createApp({});
 
 // Global variable used on mount, updated on route change and used in the render function
 let app;

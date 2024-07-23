@@ -1,11 +1,11 @@
 <script>
 import { createApp } from 'vue';
-const vueApp = createApp({});
 import ResourceTable from '@shell/components/ResourceTable';
 import { AGE } from '@shell/config/table-headers';
 import ResourceFetch from '@shell/mixins/resource-fetch';
 import { allHash } from '@shell/utils/promise';
 import { fetchSpecsScheduledScanConfig } from '@shell/models/cis.cattle.io.clusterscan';
+const vueApp = createApp({});
 
 export default {
   components: { ResourceTable },

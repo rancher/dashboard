@@ -1,6 +1,5 @@
 <script>
 import { createApp } from 'vue';
-const vueApp = createApp({});
 import AsyncButton from '@shell/components/AsyncButton';
 import { Banner } from '@components/Banner';
 import { Card } from '@components/Card';
@@ -9,6 +8,7 @@ import UnitInput from '@shell/components/form/UnitInput';
 import { _EDIT, _VIEW } from '@shell/config/query-params';
 
 import { exceptionToErrorsArray } from '@shell/utils/error';
+const vueApp = createApp({});
 
 export default {
   components: {
@@ -210,7 +210,9 @@ export default {
         />
       </div>
       <Banner
-        v-for="(err, i) in errors" :key="i"color="error"
+        v-for="(err, i) in errors"
+        :key="i"
+        color="error"
         :label="err"
       />
     </div>

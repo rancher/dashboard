@@ -147,7 +147,9 @@ export default {
       <div class="create-resource-container">
         <div class="subtypes-container">
           <a
-             v-for="(fel, i) in externalLinks" :key="i" v-clean-tooltip="
+            v-for="(fel, i) in externalLinks"
+            :key="i"
+            v-clean-tooltip="
               !fel.enabled ? t('monitoring.overview.linkedList.na') : undefined
             "
             :href="fel.enabled ? fel.link : void 0"

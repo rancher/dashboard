@@ -153,7 +153,9 @@ export default {
         @removeTab="removeGroupRule"
       >
         <Tab
-          v-for="(group, idx) in filteredGroups" :key="idx":name="'group-' + idx"
+          v-for="(group, idx) in filteredGroups"
+          :key="idx"
+          :name="'group-' + idx"
           :label="ruleGroupLabel(idx)"
           class="container-group"
         >

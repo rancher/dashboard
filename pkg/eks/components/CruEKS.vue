@@ -623,19 +623,12 @@ export default defineComponent({
         @addTab="addGroup()"
       >
         <Tab
-          v-for="(node, i) in nodeGroups" :key="i":label="node.nodegroupName || t('eks.nodeGroups.unnamed')"
+          v-for="(node, i) in nodeGroups"
+          :key="i"
+          :label="node.nodegroupName || t('eks.nodeGroups.unnamed')"
           :name="`${node.nodegroupName} ${i}`"
         >
           <NodeGroup
-            :rules="{
-              nodegroupName: fvGetAndReportPathRules('nodegroupNames'),
-              maxSize: fvGetAndReportPathRules('maxSize'),
-              minSize: fvGetAndReportPathRules('minSize'),
-              desiredSize: fvGetAndReportPathRules('desiredSize'),
-              instanceType: fvGetAndReportPathRules('instanceType'),
-              diskSize: fvGetAndReportPathRules('diskSize'),
-              minMaxDesired: fvGetAndReportPathRules('minMaxDesired')
-            }"
             v-model:node-role="node.nodeRole"
             v-model:launch-template="node.launchTemplate"
             v-model:nodegroup-name="node.nodegroupName"
@@ -655,6 +648,15 @@ export default defineComponent({
             v-model:labels="node.labels"
             v-model:version="node.version"
             v-model:pool-is-upgrading="node._isUpgrading"
+            :rules="{
+              nodegroupName: fvGetAndReportPathRules('nodegroupNames'),
+              maxSize: fvGetAndReportPathRules('maxSize'),
+              minSize: fvGetAndReportPathRules('minSize'),
+              desiredSize: fvGetAndReportPathRules('desiredSize'),
+              instanceType: fvGetAndReportPathRules('instanceType'),
+              diskSize: fvGetAndReportPathRules('diskSize'),
+              minMaxDesired: fvGetAndReportPathRules('minMaxDesired')
+            }"
             :cluster-version="config.kubernetesVersion"
             :original-cluster-version="originalVersion"
             :region="config.region"
@@ -721,9 +723,9 @@ export default defineComponent({
         :open-initially="true"
       >
         <Logging
+          v-model:logging-types="config.loggingTypes"
           :mode="mode"
           :config="config"
-          v-model:logging-types="config.loggingTypes"
         />
       </Accordion>
 

@@ -2,9 +2,9 @@ import { ANNOTATIONS_TO_IGNORE_REGEX, LABELS_TO_IGNORE_REGEX, DESCRIPTION } from
 import omitBy from 'lodash/omitBy';
 import pickBy from 'lodash/pickBy';
 import { createApp } from 'vue';
-const vueApp = createApp({});
 import { matchesSomeRegex } from '@shell/utils/string';
 import Resource from '@shell/plugins/dashboard-store/resource-class';
+const vueApp = createApp({});
 
 // these are defined elsewhere in Steve models and will cause the error  "Cannot set property <whatever> of [object Object] which has only a getter" if defined at top-level
 export function cleanHybridResources(data) {

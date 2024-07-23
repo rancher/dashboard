@@ -55,7 +55,9 @@ export default {
       label-key="secret.data"
     >
       <div
-        v-for="(row,idx) in parsedRows" :key="idx"class="mb-20"
+        v-for="(row,idx) in parsedRows"
+        :key="idx"
+        class="mb-20"
       >
         <DetailText
           :modelValue="row.value"

@@ -159,7 +159,7 @@ export default {
     };
   },
 
-  beforeDestroy() {
+  beforeUnmount() {
     // Remove the data and stop watching resources that were fetched in this page
     // Events in particular can lead to change messages having to be processed when we are no longer interested in events
     this.$store.dispatch('cluster/forgetType', EVENT);
@@ -692,7 +692,9 @@ export default {
 
     <div v-if="clusterServices">
       <div
-         v-for="(service, i) in clusterServices" :key="i" class="k8s-service-status"
+        v-for="(service, i) in clusterServices"
+        :key="i"
+        class="k8s-service-status"
         :class="{[service.status]: true }"
         :data-testid="`k8s-service-${ service.name }`"
       >

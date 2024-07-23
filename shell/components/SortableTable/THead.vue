@@ -227,8 +227,9 @@ export default {
         :width="expandWidth"
       />
       <th
-         v-for="(col, i) in columns" :key="i" 
+        v-for="(col, i) in columns"
         v-show="!hasAdvancedFiltering || (hasAdvancedFiltering && col.isColVisible)"
+        :key="i"
         :key="col.name"
         :align="col.align || 'left'"
         :width="col.width"
@@ -318,8 +319,9 @@ export default {
             </p>
             <ul>
               <li
-                v-for="(col, index) in tableColsOptions" :key="index"
+                v-for="(col, index) in tableColsOptions"
                 v-show="col.isTableOption"
+                :key="index"
                 :key="index"
                 :class="{ 'visible': !col.preventColToggle }"
               >

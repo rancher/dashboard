@@ -269,7 +269,9 @@ export default {
       <span />
     </div>
     <div
-      v-for="(row, index) in rules" :key="index"class="match-expression-row"
+      v-for="(row, index) in rules"
+      :key="index"
+      class="match-expression-row"
       :class="{'view':isView, 'mb-10': index !== rules.length - 1, 'match-expression-row-matching': matchingSelectorDisplay}"
     >
       <!-- Select for matchFields and matchExpressions -->

@@ -382,7 +382,7 @@ export default {
     this.debouncedPaginationChanged();
   },
 
-  beforeDestroy() {
+  beforeUnmount() {
     clearTimeout(this._scrollTimer);
     clearTimeout(this._loadingDelayTimer);
     clearTimeout(this._altLoadingDelayTimer);
@@ -1017,8 +1017,9 @@ export default {
           <slot name="header-left">
             <template v-if="tableActions">
               <button
-                 v-for="(act, i) in availableActions" :key="i" 
+                v-for="(act, i) in availableActions"
                 :id="act.action"
+                :key="i"
                 :key="act.action"
                 v-clean-tooltip="actionTooltip"
                 type="button"
@@ -1056,7 +1057,9 @@ export default {
                 <template #popover-content>
                   <ul class="list-unstyled menu">
                     <li
-                       v-for="(act, i) in hiddenActions" :key="i" v-close-popover
+                      v-for="(act, i) in hiddenActions"
+                      :key="i"
+                      v-close-popover
                       v-clean-tooltip="{
                         content: actionTooltip,
                         placement: 'right'
@@ -1102,7 +1105,9 @@ export default {
             class="advanced-filters-applied"
           >
             <li
-              v-for="(filter, i) in advancedFilteringValues" :key="i">
+              v-for="(filter, i) in advancedFilteringValues"
+              :key="i"
+            >
               <span class="label">{{ `"${filter.value}" ${ t('sortableTable.in') } ${filter.label}` }}</span>
               <span
                 class="cross"
@@ -1261,8 +1266,9 @@ export default {
         </slot>
       </tbody>
       <tbody
-         v-for="(groupedRows, i) in displayRows" :key="i" 
+        v-for="(groupedRows, i) in displayRows"
         v-else
+        :key="i"
         :key="groupedRows.key"
         :class="{ group: groupBy }"
       >
@@ -1288,7 +1294,10 @@ export default {
             </td>
           </tr>
         </slot>
-        <template v-for="(row, i) in groupedRows.rows" :key="i">
+        <template
+          v-for="(row, i) in groupedRows.rows"
+          :key="i"
+        >
           <slot
             name="main-row"
             :row="row.row"
@@ -1334,7 +1343,10 @@ export default {
                     @click.stop="toggleExpand(row.row)"
                   />
                 </td>
-                <template v-for="(col, j) in row.columns" :key="j">
+                <template
+                  v-for="(col, j) in row.columns"
+                  :key="j"
+                >
                   <slot
                     :name="'col:' + col.col.name"
                     :row="row.row"

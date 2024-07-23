@@ -253,7 +253,9 @@ export default {
 
       <div v-else>
         <div
-          v-for="(row,idx) in parsedRows" :key="idx"class="entry"
+          v-for="(row,idx) in parsedRows"
+          :key="idx"
+          class="entry"
         >
           <DetailText
             :modelValue="row.value"

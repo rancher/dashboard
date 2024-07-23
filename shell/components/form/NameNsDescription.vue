@@ -1,6 +1,5 @@
 <script>
 import { createApp } from 'vue';
-const vueApp = createApp({});
 import { mapGetters, mapActions } from 'vuex';
 import { get, set } from '@shell/utils/object';
 import { sortBy } from '@shell/utils/sort';
@@ -10,6 +9,7 @@ import { _VIEW, _EDIT, _CREATE } from '@shell/config/query-params';
 import { LabeledInput } from '@components/Form/LabeledInput';
 import LabeledSelect from '@shell/components/form/LabeledSelect';
 import { normalizeName } from '@shell/utils/kube';
+const vueApp = createApp({});
 
 export default {
   name:       'NameNsDescription',
@@ -491,7 +491,9 @@ export default {
     </div>
 
     <div
-       v-for="(slot, i) in extraColumns" :key="i" :class="{ col: true, [colSpan]: true }"
+      v-for="(slot, i) in extraColumns"
+      :key="i"
+      :class="{ col: true, [colSpan]: true }"
     >
       <slot :name="slot" />
     </div>

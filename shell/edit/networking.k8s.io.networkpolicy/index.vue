@@ -54,11 +54,13 @@ export default {
 
   data() {
     if ( !this.value.spec ) {
-      this.value['spec'] = {policyTypes: [],
+      this.value['spec'] = {
+        policyTypes: [],
         podSelector: {
           matchExpressions: [],
           matchLabels:      {},
-        }};
+        }
+      };
     }
 
     const matchingPods = {

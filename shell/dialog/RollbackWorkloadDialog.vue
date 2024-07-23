@@ -226,7 +226,9 @@ export default {
         />
       </form>
       <Banner
-        v-for="(error, i) in errors" :key="i"class=""
+        v-for="(error, i) in errors"
+        :key="i"
+        class=""
         color="error"
         :label="error"
       />

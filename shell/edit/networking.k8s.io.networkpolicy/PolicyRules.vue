@@ -69,7 +69,9 @@ export default {
           @removeTab="removePolicyRule"
         >
           <Tab
-            v-for="(policyRule, idx) in value.spec[type]" :key="idx":name="'rule-' + type + idx"
+            v-for="(policyRule, idx) in value.spec[type]"
+            :key="idx"
+            :name="'rule-' + type + idx"
             :label="policyRouleLabel(idx)"
             :show-header="false"
             class="container-group"

@@ -121,7 +121,7 @@ export default {
     },
   },
 
-  beforeDestroy() {
+  beforeUnmount() {
     clearInterval(this.keepAliveTimer);
     this.cleanup();
   },

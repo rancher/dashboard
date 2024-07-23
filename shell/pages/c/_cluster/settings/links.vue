@@ -117,7 +117,10 @@ export default {
         :mode="mode"
       />
     </div>
-    <template  v-for="(err, i) in errors" :key="i" >
+    <template
+      v-for="(err, i) in errors"
+      :key="i"
+    >
       <Banner
         color="error"
         :label="err"

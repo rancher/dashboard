@@ -158,7 +158,9 @@ export default {
         @changed="changed"
       >
         <Tab
-          v-for="(tab, i) in allContainers" :key="i":label="tab.name"
+          v-for="(tab, i) in allContainers"
+          :key="i"
+          :label="tab.name"
           :name="tab[idKey]"
           :weight="tab.weight"
           :error="!!tab.error"

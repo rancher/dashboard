@@ -218,7 +218,7 @@ export default defineComponent({
     }
   },
 
-  beforeDestroy() {
+  beforeUnmount() {
     if (this.timer) {
       clearTimeout(this.timer);
     }

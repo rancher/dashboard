@@ -246,7 +246,9 @@ export default {
         </slot>
       </div>
       <div
-        v-for="(row, idx) in rows" :key="idx":data-testid="`array-list-box${ idx }`"
+        v-for="(row, idx) in rows"
+        :key="idx"
+        :data-testid="`array-list-box${ idx }`"
         class="box"
       >
         <slot

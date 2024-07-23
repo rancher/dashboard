@@ -307,7 +307,9 @@ export default {
       >
         <div class="box-container create-resource-container ">
           <div
-            v-for="(receiverType, i) in receiverTypes" :key="i"class="mb-10 subtype-banner"
+            v-for="(receiverType, i) in receiverTypes"
+            :key="i"
+            class="mb-10 subtype-banner"
             primary-color-var="--primary-color"
             @click="navigateTo(receiverType)"
           >
@@ -329,7 +331,9 @@ export default {
         </div>
       </Tab>
       <Tab
-        v-for="(receiverType, i) in receiverTypes" :key="i":label="t(receiverType.label)"
+        v-for="(receiverType, i) in receiverTypes"
+        :key="i"
+        :label="t(receiverType.label)"
         :name="receiverType.name"
         :weight="receiverTypes.length - i"
       >

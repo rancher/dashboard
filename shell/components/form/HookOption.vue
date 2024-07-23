@@ -181,7 +181,9 @@ export default {
 
       <h4>{{ t('workload.container.lifecycleHook.httpHeaders.title') }}</h4>
       <div
-        v-for="(header, index) in value.httpGet.httpHeaders" :key="index"class="var-row"
+        v-for="(header, index) in value.httpGet.httpHeaders"
+        :key="index"
+        class="var-row"
       >
         <template @update:modelValue="update">
           <LabeledInput
