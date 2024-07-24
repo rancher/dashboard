@@ -10,8 +10,8 @@ RANCHER_IMG_VERSION=v2.9-head
 IS_HEAD_VERSION="true"
 
 # check if script invoke contains any argument...
-if [ $# -eq 1 ] then
-  if [[ $string =~ "-head" ]] then
+if [ $# -eq 1 ]; then
+  if [[ $1 =~ "-head" ]]; then
     RANCHER_IMG_VERSION=$1
   else
     IS_HEAD_VERSION="false"
