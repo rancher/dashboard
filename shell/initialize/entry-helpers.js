@@ -58,6 +58,7 @@ export const loadDebugger = (vueApp) => {
  * @param {*} message
  */
 const errorRedirect = (context, message) => {
+  console.log('zzzzzzzzzzzzzzzzz', message);
   context.$store.commit('setError', { error: new Error(message) });
   context.$router.replace('/fail-whale');
 };
@@ -95,7 +96,8 @@ export const promisify = (fn, context) => {
   return Promise.resolve(promise);
 };
 
-export const globalHandleError = (error) => vueApp.config.errorHandler && vueApp.config.errorHandler(error);
+// eslint-disable-next-line no-console
+export const globalHandleError = console.error;
 
 /**
  * Render function used by the router guards
@@ -141,31 +143,9 @@ async function render(to, from, next) {
   }
 
   // Get route's matched components
-  const matches = [];
-  const Components = getMatchedComponents(to, matches);
-
   try {
     // Call .validate()
-    let isValid = true;
-
-    try {
-      for (const Component of Components) {
-        if (typeof Component.options.validate !== 'function') {
-          continue;
-        }
-
-        isValid = await Component.options.validate(app.context);
-
-        if (!isValid) {
-          break;
-        }
-      }
-    } catch (validationError) {
-      // ...If .validate() threw an error
-      errorRedirect(this, new Error(`${ validationError.statusCode || '500' }: ${ validationError.message }`));
-
-      return next();
-    }
+    const isValid = true;
 
     // ...If .validate() returned false
     if (!isValid) {
@@ -201,9 +181,13 @@ export async function mountApp(appPartials, vueApp) {
   app = appPartials.app;
   const router = appPartials.router;
 
+  vueApp.use(router);
+  vueApp.use(app.store);
+  // vueApp.use(store)
+
   // Mounts Vue app to DOM element
   const mount = () => {
-    vueApp.$mount('#app');
+    vueApp.mount('#app');
   };
 
   // Initialize error handler

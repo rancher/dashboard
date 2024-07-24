@@ -115,7 +115,7 @@ function inject(key, value, context, vueApp) {
     if (!vueApp.config.globalProperties[key]) {
       Object.defineProperty(vueApp.config.globalProperties, key, {
         get() {
-          return this.$root.$options[key];
+          return app.context[key];
         }
       });
     }
