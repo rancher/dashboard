@@ -77,12 +77,27 @@ export const getMatchedComponents = (route, matches = false, prop = 'components'
    * @param {*} route
    * @returns
    */
-export const getRouteData = (route) => {
+export const getRouteData = async(route) => {
   if (!route) {
     return;
   }
 
-  const meta = route.matched.map((record) => record.meta || {});
+  // Ensure we're working with the _value property of the route object
+  const routeValue = route._value || route;
+
+  if (!routeValue.matched) {
+    console.warn('Route matched property is undefined:', routeValue);
+
+    return routeValue;
+  }
+
+  const meta = routeValue.matched.map((record) => {
+    // Merge component meta and route record meta
+    const componentMeta = record.components?.default?.meta || {};
+    const recordMeta = record.meta || {};
+
+    return { ...componentMeta, ...recordMeta };
+  });
 
   return {
     ...routeValue,

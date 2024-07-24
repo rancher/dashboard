@@ -1,11 +1,8 @@
 /* eslint-disable no-console */
-import { createApp } from 'vue';
-const vueApp = createApp({});
-
 const components = require.context('@shell/components/formatter', false, /[A-Z]\w+\.(vue)$/);
 
 const globalFormatters = {
-  install: (Vue) => {
+  install: (vueApp) => {
     components.keys().forEach((fileName) => {
       const componentConfig = components(fileName);
       const componentName = fileName.split('/').pop().split('.')[0];
@@ -21,12 +18,3 @@ const globalFormatters = {
 };
 
 export default globalFormatters;
-
-// This is being done for backwards compatibility with our extensions that have written tests and didn't properly make use of vueApp.use() when importing and mocking vue plugins
-const isThisFileBeingExecutedInATest = process.env.NODE_ENV === 'test';
-
-if (isThisFileBeingExecutedInATest) {
-  console.warn('The implicit addition of global formatters has been deprecated in Rancher Shell and will be removed in a future version. Make sure to invoke `vueApp.use(globalFormatters)` to maintain compatibility.');
-
-  vueApp.use(globalFormatters);
-}

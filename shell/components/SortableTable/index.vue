@@ -1013,9 +1013,8 @@ export default {
           <slot name="header-left">
             <template v-if="tableActions">
               <button
-                v-for="(act, i) in availableActions"
+                v-for="(act) in availableActions"
                 :id="act.action"
-                :key="i"
                 :key="act.action"
                 v-clean-tooltip="actionTooltip"
                 type="button"
@@ -1264,9 +1263,8 @@ export default {
         </slot>
       </tbody>
       <tbody
-        v-for="(groupedRows, i) in displayRows"
+        v-for="(groupedRows) in displayRows"
         v-else
-        :key="i"
         :key="groupedRows.key"
         :class="{ group: groupBy }"
       >
