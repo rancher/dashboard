@@ -14,6 +14,6 @@ function mounted(el) {
   });
 }
 
-const positiveIntNumberDirective = { inserted };
+const positiveIntNumberDirective = { mounted };
 
 export default positiveIntNumberDirective;
