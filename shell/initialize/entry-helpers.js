@@ -147,6 +147,6 @@ export const setContext = async(app, context) => {
 
   app.context.next = context.next;
   app.context._redirected = false;
-  app.context.params = app.context.route.params || {};
-  app.context.query = app.context.route.query || {};
+  app.context.params = app.context.route?.params || {};
+  app.context.query = app.context.route?.query || {};
 };
