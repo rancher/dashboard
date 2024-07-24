@@ -6,21 +6,16 @@ DIR=$(cd $(dirname $0)/..; pwd)
 DASHBOARD_DIST=${DIR}/dist
 EMBER_DIST=${DIR}/dist_ember
 
+# Image version
 RANCHER_IMG_VERSION=v2.9-head
-IS_HEAD_VERSION="true"
+HAS_ARGS="false"
 
 # check if script invoke contains any argument...
 if [ $# -eq 1 ]; then
-  if [[ $1 =~ "-head" ]]; then
-    RANCHER_IMG_VERSION=$1
-  else
-    IS_HEAD_VERSION="false"
-    RANCHER_IMG_VERSION=$1
-  fi
+  RANCHER_IMG_VERSION=$1
 fi
 
-if [ "$IS_HEAD_VERSION" == "true" ]; then
-  # Image version
+if [ "$HAS_ARGS" == "false" ]; then
   RANCHER_IMG_VERSION=v2.9-head
 
   docker run -d --restart=unless-stopped -p 80:80 -p 443:443 \
