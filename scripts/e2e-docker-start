@@ -5,12 +5,18 @@ DIR=$(cd $(dirname $0)/..; pwd)
 # See `script/build-e2e`
 DASHBOARD_DIST=${DIR}/dist
 EMBER_DIST=${DIR}/dist_ember
-IS_HEAD_VERSION="true"
-USER_DEFINED_RANCHER_VERSION="false"
 
+RANCHER_IMG_VERSION=v2.9-head
+IS_HEAD_VERSION="true"
+
+# check if script invoke contains any argument...
 if [ $# -eq 1 ] then
-  IS_HEAD_VERSION="false"
-  USER_DEFINED_RANCHER_VERSION=$1
+  if [[ $string =~ "-head" ]] then
+    RANCHER_IMG_VERSION=$1
+  else
+    IS_HEAD_VERSION="false"
+    RANCHER_IMG_VERSION=$1
+  fi
 fi
 
 if [ "$IS_HEAD_VERSION" == "true" ]; then
@@ -27,17 +33,14 @@ if [ "$IS_HEAD_VERSION" == "true" ]; then
     --privileged \
     rancher/rancher:${RANCHER_IMG_VERSION}
 else
-  # We will only hit this scenario for the extensions-compatibility-tests workflow...
-
+  # We will only hit this scenario for the extensions-compatibility-tests workflow and if it's not a -head version
   docker run -d --restart=unless-stopped -p 80:80 -p 443:443 \
-    # -v ${DASHBOARD_DIST}:/usr/share/rancher/ui-dashboard/dashboard \
-    # -v ${EMBER_DIST}:/usr/share/rancher/ui \
     -e CATTLE_UI_OFFLINE_PREFERRED=true \
     -e CATTLE_BOOTSTRAP_PASSWORD=password \
     -e CATTLE_PASSWORD_MIN_LENGTH=3 \
     --name cypress \
     --privileged \
-    rancher/rancher:${USER_DEFINED_RANCHER_VERSION}
+    rancher/rancher:${RANCHER_IMG_VERSION}
 fi
 
 docker ps
