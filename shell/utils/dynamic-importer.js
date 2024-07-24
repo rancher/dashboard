@@ -85,7 +85,7 @@ export function loadProduct(name) {
 
 export function listProducts() {
   const ctx = require.context('@shell/config/product', true, /.*/);
-  const products = ctx.keys().filter(path => !path.endsWith('.js')).map(path => path.substr(2));
+  const products = ctx.keys().filter(path => !path.endsWith('.js') && path.startsWith('./')).map(path => path.substr(2));
 
   return products;
 }

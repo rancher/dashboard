@@ -1,7 +1,7 @@
 import { productsLoaded } from '@shell/store/type-map';
 import { clearModelCache } from '@shell/plugins/dashboard-store/model-loader';
 import { Plugin } from './plugin';
-// import { PluginRoutes } from './plugin-routes';
+import { PluginRoutes } from './plugin-routes';
 import { UI_PLUGIN_BASE_URL } from '@shell/config/uiplugins';
 import { ExtensionPoint } from './types';
 
@@ -18,7 +18,7 @@ export default function(context, inject, vueApp) {
   // Track which plugin loaded what, so we can unload stuff
   const plugins = {};
 
-  // const pluginRoutes = new PluginRoutes(app.router);
+  const pluginRoutes = new PluginRoutes(app.router);
 
   const uiConfig = {};
 
