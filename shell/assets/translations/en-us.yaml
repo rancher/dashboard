@@ -4733,8 +4733,7 @@ rbac:
         noApiGroupClusterScope: Core K8s API, Cluster Scoped
         noApiGroupNamespaceScope: Core K8s API, Namespaced
         neuvector:
-          labelClusterScoped: NeuVector, Cluster Scoped
-          labelNamespaceScoped: NeuVector, Namespaced
+          labelClusterScoped: NeuVector Permission
         deprecatedLabel: (deprecated)
         resourceOptionInfo: The resource options are not a complete list of every resource available in every Rancher-managed Kubernetes cluster. Resources and API groups may need to be manually entered in advanced use cases.
         tableHeaders:

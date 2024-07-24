@@ -232,12 +232,11 @@ export default {
           }
 
           if (apiGroup === 'neuvectorApi') {
-            // Some NeuVector resources are namespaced, in which case they go under a different heading
+            // NeuVector Permission CRD resources are cluster scoped
             const labelForClusterScoped = this.t('rbac.roletemplate.tabs.grantResources.neuvector.labelClusterScoped');
-            const labelForNamespaceScoped = this.t('rbac.roletemplate.tabs.grantResources.neuvector.labelNamespaceScoped');
 
-            apiGroupLabel = scope.includes('cluster') ? labelForClusterScoped : labelForNamespaceScoped;
-            apiGroupValue = 'api.neuvector.com';
+            apiGroupLabel = labelForClusterScoped;
+            apiGroupValue = 'permission.neuvector.com';
           }
 
           options.push({
