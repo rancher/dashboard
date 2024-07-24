@@ -1,8 +1,4 @@
-import { createApp } from 'vue';
 import { createStore } from 'vuex';
-const vueApp = createApp({});
-
-vueApp.use(Vuex);
 
 const VUEX_PROPERTIES = ['state', 'getters', 'actions', 'mutations'];
 

@@ -6,8 +6,8 @@ import vSelect from 'vue-select';
 import 'vue-resize/dist/vue-resize.css';
 
 // import '@shell/plugins/extend-router';
-import '@shell/plugins/formatters';
-import '@shell/plugins/vue-js-modal';
+// import '@shell/plugins/formatters';
+// import '@shell/plugins/vue-js-modal';
 import '@shell/plugins/js-yaml';
 
 import i18n from '@shell/plugins/i18n';
@@ -112,8 +112,8 @@ function inject(key, value, context, vueApp) {
 
   // Call vueApp.use() to install the plugin into vm
   vueApp.use(() => {
-    if (!Object.prototype.hasOwnProperty.call(vueApp.prototype, key)) {
-      Object.defineProperty(vueApp.prototype, key, {
+    if (!vueApp.config.globalProperties[key]) {
+      Object.defineProperty(vueApp.config.globalProperties, key, {
         get() {
           return this.$root.$options[key];
         }

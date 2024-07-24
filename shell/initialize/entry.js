@@ -14,20 +14,20 @@ const vueApp = createApp({});
 vueApp.mixin(fetchMixin);
 
 // Bulk install components
-installComponents(Vue);
+installComponents(vueApp);
 
 // Bulk install directives
-installDirectives(Vue);
+installDirectives(vueApp);
 
 // Bulk install Plugins. Note: Some are added within the App itself
-installPlugins(Vue);
+installPlugins(vueApp);
 
 if (!global.fetch) {
   global.fetch = fetch;
 }
 
-loadDebugger(Vue);
+loadDebugger(vueApp);
 const errorHandler = vueApp.config.errorHandler || console.error; // eslint-disable-line no-console
 
 // Create and mount App
-extendApp(Vue).then((appPartials) => mountApp(appPartials, Vue)).catch(errorHandler); // eslint-disable-line no-undef
+extendApp(vueApp).then((appPartials) => mountApp(appPartials, vueApp)).catch(errorHandler); // eslint-disable-line no-undef

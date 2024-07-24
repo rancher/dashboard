@@ -70,19 +70,18 @@ async function extendApp(vueApp) {
     req:     undefined,
     res:     undefined
   });
-
   await installInjectedPlugins(appPartials, vueApp);
 
   // Wait for async component to be resolved first
   await new Promise((resolve, reject) => {
     // Ignore 404s rather than blindly replacing URL in browser
-    const { route } = router.resolve(appPartials.context.route.fullPath);
+    const route = router.resolve(router.currentRoute.value.fullPath);
 
     if (!route.matched.length) {
       return resolve();
     }
 
-    router.replace(appPartials.context.route.fullPath, resolve, (err) => {
+    router.replace(router.currentRoute.value.fullPath, resolve, (err) => {
       // https://github.com/vuejs/vue-router/blob/v3.4.3/src/util/errors.js
       if (!err._isRouter) {
         return reject(err);
