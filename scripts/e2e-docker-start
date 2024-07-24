@@ -13,6 +13,7 @@ HAS_ARGS="false"
 # check if script invoke contains any argument...
 if [ $# -eq 1 ]; then
   RANCHER_IMG_VERSION=$1
+  HAS_ARGS="true"
 fi
 
 if [ "$HAS_ARGS" == "false" ]; then
