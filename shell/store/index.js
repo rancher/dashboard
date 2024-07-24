@@ -248,9 +248,9 @@ export const state = () => {
     isRancherInHarvester:    false,
     targetRoute:             null,
     rootProduct:             undefined,
-    $router:                 markRaw(undefined),
-    $route:                  markRaw(undefined),
-    $plugin:                 markRaw(undefined),
+    $router:                 markRaw({}),
+    $route:                  markRaw({}),
+    $plugin:                 markRaw({}),
   };
 };
 
