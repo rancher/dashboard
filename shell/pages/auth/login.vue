@@ -273,7 +273,7 @@ export default {
           this.$store.dispatch('auth/setInitialPass', this.password);
           this.$router.push({ name: 'auth-setup' });
         } else {
-          this.$router.replace('/');
+          // this.$router.replace('/');
         }
       } catch (err) {
         this.err = err;

@@ -8,7 +8,9 @@ import { loadDebugger, mountApp } from '@shell/initialize/entry-helpers';
 import { installDirectives } from '@shell/initialize/install-directives.js';
 import { installComponents } from '@shell/initialize/install-components.js';
 import { installPlugins } from '@shell/initialize/install-plugins.js';
-const vueApp = createApp({});
+import AppView from '@shell/initialize/App';
+
+const vueApp = createApp(AppView);
 
 // Fetch mixin
 vueApp.mixin(fetchMixin);

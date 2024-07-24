@@ -1,4 +1,3 @@
-import AppView from '@shell/initialize/App';
 import { setContext, getRouteData } from '@shell/initialize/entry-helpers';
 import { extendRouter } from '@shell/config/router';
 import { extendStore } from '@shell/config/store';
@@ -49,7 +48,6 @@ async function extendApp(vueApp) {
   const appPartials = {
     store,
     router,
-    ...AppView
   };
 
   // Make app available into store via this.app
@@ -81,7 +79,7 @@ async function extendApp(vueApp) {
       return resolve();
     }
 
-    router.replace(router.currentRoute.value.fullPath, resolve, (err) => {
+    router.replace(router.currentRoute.value.fullPath).then(resolve, (err) => {
       // https://github.com/vuejs/vue-router/blob/v3.4.3/src/util/errors.js
       if (!err._isRouter) {
         return reject(err);
