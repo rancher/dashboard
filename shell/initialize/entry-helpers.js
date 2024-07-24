@@ -1,8 +1,6 @@
-import { createApp } from 'vue';
 import { updatePageTitle } from '@shell/utils/title';
 import { getVendor } from '@shell/config/private-label';
 import { withQuery } from 'ufo';
-const vueApp = createApp({});
 
 // Global variable used on mount, updated on route change and used in the render function
 let app;
@@ -196,15 +194,12 @@ async function render(to, from, next) {
 /**
  * Mounts the Vue app to the DOM element
  * @param {Object} appPartials - App view partials
- * @param {Object} VueClass - Vue instance
+ * @param {Object} vueApp- Vue instance
  */
-export async function mountApp(appPartials, VueClass) {
+export async function mountApp(appPartials, vueApp) {
   // Set global variables
   app = appPartials.app;
   const router = appPartials.router;
-
-  // Create Vue instance
-  const vueApp = new VueClass(app);
 
   // Mounts Vue app to DOM element
   const mount = () => {
@@ -255,31 +250,6 @@ export async function mountApp(appPartials, VueClass) {
   });
 }
 
-/**
- * Extend component properties
- * @param {*} Component
- * @returns
- */
-const patchComponent = (Component) => {
-  // If Component already sanitized
-  if (Component.options && Component._Ctor === Component) {
-    return Component;
-  }
-  if (!Component.options) {
-    Component = Vue.extend(Component); // fix issue #6
-    Component._Ctor = Component;
-  } else {
-    Component._Ctor = Component;
-    Component.extendOptions = Component.options;
-  }
-  // If no component name defined, set file path as name, (also fixes #5703)
-  if (!Component.options.name && Component.options.__file) {
-    Component.options.name = Component.options.__file;
-  }
-
-  return Component;
-};
-
 export const getMatchedComponents = (route, matches = false, prop = 'components') => {
   return Array.prototype.concat.apply([], route.matched.map((match, index) => {
     return Object.keys(match[prop]).map((key) => {
@@ -290,81 +260,18 @@ export const getMatchedComponents = (route, matches = false, prop = 'components'
   }));
 };
 
-const getComponent = async(unknownComponent) => {
-  let componentView;
-
-  // If component is a function, resolve it
-  if (typeof unknownComponent === 'function' && !unknownComponent.options) {
-    try {
-      componentView = await unknownComponent();
-    } catch (error) {
-      // Handle webpack chunk loading errors
-      // This may be due to a new deployment or a network problem
-      if (
-        error &&
-        error.name === 'ChunkLoadError' &&
-        typeof window !== 'undefined' &&
-        window.sessionStorage
-      ) {
-        const timeNow = Date.now();
-        const previousReloadTime = parseInt(window.sessionStorage.getItem('nuxt-reload'));
-
-        // check for previous reload time not to reload infinitely
-        if (!previousReloadTime || previousReloadTime + 60000 < timeNow) {
-          window.sessionStorage.setItem('nuxt-reload', timeNow);
-          window.location.reload(true /* skip cache */);
-        }
-      }
-
-      throw error;
-    }
-  }
-
-  return componentView || unknownComponent;
-};
-
-/**
- * Patch all the matched components of a given route
- * @param {*} route
- * @returns
- */
-const patchMatchedComponents = (route) => Array.prototype.concat.apply(
-  [],
-  route.matched.map(
-    (match, index) => Object
-      .keys(match.components)
-      .reduce(async(acc, key) => {
-        if (match.components[key]) {
-          const component = await getComponent(match.components[key], match.instances[key], match, key, index);
-          const patchedComponent = patchComponent(component);
-
-          match.components[key] = patchedComponent;
-          acc.push(patchedComponent);
-        } else {
-          delete match.components[key];
-        }
-
-        return acc;
-      }, [])
-  )
-);
-
 /**
    * Merge route meta with component meta and update matched components
    * @param {*} route
    * @returns
    */
-export const getRouteData = async(route) => {
+export const getRouteData = (route) => {
   if (!route) {
     return;
   }
-  // Make sure the components are resolved (code-splitting)
-  await Promise.all(patchMatchedComponents(route));
-  const meta = getMatchedComponents(route).map(
-    (matchedComponent, index) => ({ ...matchedComponent.options.meta, ...(route.matched[index] || {}).meta })
-  );
 
-  // Send back a copy of route with meta based on Component definition
+  const meta = route.matched.map((record) => record.meta || {});
+
   return {
     ...route,
     meta
