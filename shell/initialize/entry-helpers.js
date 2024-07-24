@@ -53,14 +53,9 @@ export const globalHandleError = (error) => vueApp.config.errorHandler && vueApp
 /**
  * Mounts the Vue app to the DOM element
  * @param {Object} appPartials - App view partials
- * @param {Object} VueClass - Vue instance
+ * @param {Object} vueApp- Vue instance
  */
-export async function mountApp(appPartials, VueClass) {
-  // Set global variables
-  const app = appPartials.app;
-  // Create Vue instance
-  const vueApp = new VueClass(app);
-
+export async function mountApp(appPartials, vueApp) {
   // Initialize error handler
   vueApp.$loading = {}; // To avoid error while vueApp.$loading does not exist
 
@@ -82,30 +77,13 @@ export const getMatchedComponents = (route, matches = false, prop = 'components'
    * @param {*} route
    * @returns
    */
-export const getRouteData = async(route) => {
+export const getRouteData = (route) => {
   if (!route) {
     return;
   }
 
-  // Ensure we're working with the _value property of the route object
-  const routeValue = route._value || route;
+  const meta = route.matched.map((record) => record.meta || {});
 
-  if (!routeValue.matched) {
-    // eslint-disable-next-line no-console
-    console.warn('Route matched property is undefined:', routeValue);
-
-    return routeValue;
-  }
-
-  const meta = routeValue.matched.map((record) => {
-    // Merge component meta and route record meta
-    const componentMeta = record.components?.default?.meta || {};
-    const recordMeta = record.meta || {};
-
-    return { ...componentMeta, ...recordMeta };
-  });
-
-  // Send back a copy of route with meta based on Component definition
   return {
     ...routeValue,
     meta
