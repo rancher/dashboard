@@ -36,6 +36,6 @@ function mounted(_el, _binding, vnode) {
   }
 }
 
-const focusDirective = { inserted };
+const focusDirective = { mounted };
 
 export default focusDirective;
