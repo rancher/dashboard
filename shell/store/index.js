@@ -734,15 +734,15 @@ export const mutations = {
   },
 
   setRouter(state, router) {
-    state.$router = markRaw(router);
+    state.$router = markRaw(router || {});
   },
 
   setRoute(state, route) {
-    state.$route = markRaw(route);
+    state.$route = markRaw(route || {});
   },
 
   setPlugin(state, pluginDefinition) {
-    state.$plugin = markRaw(pluginDefinition);
+    state.$plugin = markRaw(pluginDefinition || {});
   }
 };
 

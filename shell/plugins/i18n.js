@@ -57,7 +57,7 @@ export function directiveSsr(vnode, binding) {
 
 const i18n = {
   name:    'i18n',
-  install: (Vue, _options) => {
+  install: (vueApp, _options) => {
     if (vueApp.config.globalProperties.t && vueApp.directive('t') && vueApp.component('t')) {
       // eslint-disable-next-line no-console
       console.debug('Skipping i18n install. Directive, component, and option already exist.');
