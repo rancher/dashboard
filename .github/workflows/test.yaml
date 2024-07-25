@@ -71,15 +71,7 @@ jobs:
           { username: 'standard_user', tag: '@standardUser' }
         ]
         features:  [
-          # ['@navigation', '@extensions'],
-          # ['@charts'],
-          ['@explorer'],
-          # ['@fleet'],
-          # ['@generic', '@globalSettings'],
-          # ['@manager'],
-          # ['@userMenu', '@usersAndAuths'],
-          # ['@components'],
-          # ['@vai']
+          ['@explorer']
         ]
     runs-on: ubuntu-latest
     steps:
