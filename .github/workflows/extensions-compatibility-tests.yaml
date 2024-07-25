@@ -7,22 +7,6 @@ on:
     branches:
       - master
 
-# on:
-#   push:
-#     branches:
-#       - master
-#       - 'release-*'
-#   pull_request:
-#     branches:
-#       - master
-#       - 'release-*'
-#   workflow_dispatch:
-#     inputs:
-#       environment:
-#         description: 'Environment to run tests against'
-#         type: environment
-#         required: true
-
 env:
   TEST_USERNAME: admin
   TEST_PASSWORD: password
@@ -35,13 +19,8 @@ env:
   # Build the dashboard to use in tests. When set to false it will grab `latest` from CDN (useful for running e2e tests quickly)
   BUILD_DASHBOARD: true
 
-  # E2E_BUILD_DIST_NAME: dist
-  # E2E_BUILD_DIST_DIR: dist
-  # E2E_BUILD_DIST_EMBER_NAME: dist_ember
-  # E2E_BUILD_DIST_EMBER_DIR: dist_ember
-
 jobs:
-  e2e-test-rancher-2-dot-8:
+  e2e-test-extensions-compatibility:
     if: "!contains( github.event.pull_request.labels.*.name, 'ci/skip-e2e')"
     strategy:
       fail-fast: false
@@ -55,11 +34,10 @@ jobs:
           # ['@kubewarden'],
           # ['@neuvector']
         ]
-        # rancherEnv: [
-        #   ['v2.7-head'],
-        #   ['v2.8-head'],
-        #   ['v2.9-head'],
-        # ]
+        rancherEnv: [
+          'v2.8-head',
+          'v2.9-head',
+        ]
     runs-on: ubuntu-latest
     steps:
       - uses: actions/checkout@v3
@@ -68,13 +46,11 @@ jobs:
       - name: Setup env
         uses: ./.github/actions/setup
       
-      # this is where docker is set up with the enviroment... 
-      - name: Run Rancher 2.8
-        run: export RANCHER_VERSION_E2E="v2.8-head" && yarn e2e:docker # runs scripts/e2e-docker-start
-        # env:
-        #   RANCHER_VERSION_E2E: v2.8-head
+      # this is where docker is set up with the enviroment
+      - name: Run Rancher ${{ matrix.rancherEnv }}
+        run: export RANCHER_VERSION_E2E=${{ matrix.rancherEnv }} && yarn e2e:docker
       
-      ## this is just setting up rancher and user...
+      ## this is just setting up rancher and user
       - name: Setup Rancher and user
         run: |
           yarn e2e:prod
@@ -83,7 +59,7 @@ jobs:
           TEST_USERNAME: ${{ matrix.role.username }}
           TEST_ONLY: setup
 
-      # This is the actual test runs!!!!
+      # This is the actual triggering of the e2e test specs
       - name: Run user tests
         run: |
           yarn e2e:prod

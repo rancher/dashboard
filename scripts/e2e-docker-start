@@ -10,20 +10,15 @@ EMBER_DIST=${DIR}/dist_ember
 RANCHER_IMG_VERSION=v2.9-head
 HAS_ARGS="false"
 
-echo "on my script"
-echo "RANCHER_VERSION_E2E=${RANCHER_VERSION_E2E}"
-
-# check if script invoke contains any argument...
-# if [ -z "$RANCHER_VERSION_E2E" ]; then
+# check if script invoke contains any argument. If so, adjust RANCHER_IMG_VERSION
 if [ $# -eq 1 ]; then
   RANCHER_IMG_VERSION=$1
   HAS_ARGS="true"
 fi
 
 if [ "$HAS_ARGS" == "false" ]; then
-  RANCHER_IMG_VERSION=v2.9-head
-
-  echo "normal flow without args... RANCHER_IMG_VERSION=${RANCHER_IMG_VERSION}"
+  # this flow is what test.yaml is expected to to be following
+  echo "normal flow without args. Defaults to v2.9-head"
 
   docker run -d --restart=unless-stopped -p 80:80 -p 443:443 \
     -v ${DASHBOARD_DIST}:/usr/share/rancher/ui-dashboard/dashboard \
