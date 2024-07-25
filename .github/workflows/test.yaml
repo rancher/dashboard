@@ -218,9 +218,7 @@ jobs:
         run : .github/workflows/scripts/install-codecov.sh
 
       - name: Upload tests coverage report to Codecov
-        env:
-          CODECOV_TOKEN: ${{ secrets.CODECOV_TOKEN }}
-        run: ./codecov --verbose upload-process -t "$CODECOV_TOKEN" -n ${{github.run_number}}-${{github.run_attempt}}-coverage -F unit -f ./coverage/coverage-unit.json
+        run: ./codecov --verbose upload-process -t ${{secrets.CODECOV_TOKEN}} -n ${{github.run_number}}-${{github.run_attempt}}-coverage -F unit -f ./coverage/coverage-unit.json
 
   check-e2e-tags:
     runs-on: ubuntu-latest
