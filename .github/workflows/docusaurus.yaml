@@ -13,9 +13,15 @@ jobs:
     runs-on: ubuntu-latest
     steps:
       - uses: actions/checkout@v2
+<<<<<<< HEAD
       - uses: actions/setup-node@v4
         with:
           node-version-file: '.nvmrc'
+=======
+      - uses: actions/setup-node@v3
+        with:
+          node-version: 16.x
+>>>>>>> b7384b5fad (Revert "script adjustment/fix")
           cache: yarn
 
       - name: Install dependencies

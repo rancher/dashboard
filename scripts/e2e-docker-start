@@ -10,9 +10,6 @@ EMBER_DIST=${DIR}/dist_ember
 RANCHER_IMG_VERSION=v2.9-head
 HAS_ARGS="false"
 
-echo "on my sript"
-echo "RANCHER_VERSION_E2E=${RANCHER_VERSION_E2E}"
-
 # check if script invoke contains any argument...
 # if [ $# -eq 1 ]; then
 if [ -z "$RANCHER_VERSION_E2E" ]; then

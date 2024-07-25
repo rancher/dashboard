@@ -1,16 +1,14 @@
-name: Build Dashboard (Release)
+name: Build Dashboard (Branch)
 on:
   push:
-    tags:
-<<<<<<< HEAD
-      - v2.*
-=======
-      - v2.9.*
->>>>>>> b7384b5fad (Revert "script adjustment/fix")
+    branches:
+      - master
+      - 'release-*'
+      - '*-dev'
 
 jobs:
   build-validation:
-    name: Validate Code
+    name: Build Test
     uses: ./.github/workflows/build-test.yaml
   build:
     name: Build and Upload
@@ -21,4 +19,4 @@ jobs:
       contents: 'read'
       id-token: 'write'
     with:
-      CI_BUILD_TAG: ${{github.ref_name}}
+      CI_BRANCH: ${{github.ref_name}}
