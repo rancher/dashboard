@@ -880,7 +880,7 @@ export default class Resource {
   // You can add custom actions by overriding your own availableActions (and probably reading super._availableActions)
   get _availableActions() {
     // get menu actions available by plugins configuration
-    const currentRoute = this.currentRouter().app._route;
+    const currentRoute = this.currentRouter().currentRoute.value;
     const extensionMenuActions = getApplicableExtensionEnhancements(this.$rootState, ExtensionPoint.ACTION, ActionLocation.TABLE, currentRoute, this);
 
     const all = [
