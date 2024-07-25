@@ -13,7 +13,9 @@ HAS_ARGS="false"
 echo "on my script"
 echo "RANCHER_VERSION_E2E=${RANCHER_VERSION_E2E}"
 
-if [ -z "$RANCHER_VERSION_E2E" ]; then
+# check if script invoke contains any argument...
+# if [ -z "$RANCHER_VERSION_E2E" ]; then
+if [ $# -eq 1 ]; then
   RANCHER_IMG_VERSION=$1
   HAS_ARGS="true"
 fi
