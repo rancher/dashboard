@@ -6,7 +6,6 @@ import { ChartsPage } from '@/cypress/e2e/po/pages/explorer/charts/charts.po';
 describe('Apps', () => {
   describe('Repositories', { tags: ['@explorer', '@adminUser'] }, () => {
     describe('Add', () => {
-      const reposToDelete = [];
       const appRepoList = new ReposListPagePo('local', 'apps');
 
       beforeEach(() => {
@@ -18,29 +17,38 @@ describe('Apps', () => {
         cy.createE2EResourceName('helm-repo-dupe-test').as('helmRepoDupeName');
       });
 
-      it('After add Repo list should not contain multiple entries', function() {
-        const appRepoCreate = new AppClusterRepoEditPo('local', 'create');
+      describe('Contained', () => {
+        const reposToDelete = [];
 
-        appRepoList.sortableTable().checkLoadingIndicatorNotVisible();
-        appRepoList.sortableTable().rowCount().should('be.lessThan', 10); // catch page size 10...
-        appRepoList.sortableTable().rowCount().then((count) => {
-          // track repo rows
+        it('After add Repo list should not contain multiple entries', function() {
+          const appRepoCreate = new AppClusterRepoEditPo('local', 'create');
 
-          const initialRowCount = count;
+          appRepoList.sortableTable().checkLoadingIndicatorNotVisible();
+          appRepoList.sortableTable().rowCount().should('be.lessThan', 10); // catch page size 10...
+          appRepoList.sortableTable().rowCount().then((count) => {
+            // track repo rows
 
-          // create a new cluster repo
-          appRepoList.create();
-          appRepoCreate.waitForPage();
-          appRepoCreate.nameNsDescription().name().self().scrollIntoView()
-            .should('be.visible');
-          appRepoCreate.nameNsDescription().name().set(this.helmRepoDupeName);
-          appRepoCreate.create().self().scrollIntoView();
-          appRepoCreate.create().click();
+            const initialRowCount = count;
 
-          // test repo rows
-          appRepoList.waitForPage();
-          reposToDelete.push(this.helmRepoDupeName);
-          appRepoList.sortableTable().rowCount().should('eq', initialRowCount + 1);
+            // create a new cluster repo
+            appRepoList.create();
+            appRepoCreate.waitForPage();
+            appRepoCreate.nameNsDescription().name().self().scrollIntoView()
+              .should('be.visible');
+            appRepoCreate.nameNsDescription().name().set(this.helmRepoDupeName);
+            appRepoCreate.create().self().scrollIntoView();
+            appRepoCreate.create().click();
+
+            // test repo rows
+            appRepoList.waitForPage();
+            reposToDelete.push(this.helmRepoDupeName);
+            appRepoList.sortableTable().rowCount().should('eq', initialRowCount + 1);
+          });
+        });
+
+        // Ensure this runs after an attempt, rather than all attemps (`after` only runs once after all cypress retries)
+        afterEach(() => {
+          reposToDelete.forEach((r) => cy.deleteRancherResource('v1', 'catalog.cattle.io.clusterrepos', r));
         });
       });
 
@@ -130,10 +138,6 @@ describe('Apps', () => {
         appRepoCreate.authSelectOrCreate().authSelect().getOptions().contains('Create a SSH Key Secret')
           .should('not.exist');
       });
-
-      after(() => {
-        reposToDelete.forEach((r) => cy.deleteRancherResource('v1', 'catalog.cattle.io.clusterrepos', r));
-      });
     });
 
     describe('Refresh', () => {
@@ -142,7 +146,7 @@ describe('Apps', () => {
       const appRepoList = new ReposListPagePo(clusterId, 'apps');
       const chartsPage = new ChartsPage(clusterId);
 
-      before(() => {
+      beforeEach(() => {
         cy.login();
 
         appRepoList.goTo();
