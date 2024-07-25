@@ -5,9 +5,8 @@ import { ChartsPage } from '@/cypress/e2e/po/pages/explorer/charts/charts.po';
 
 describe('Apps', () => {
   describe('Repositories', { tags: ['@explorer', '@adminUser'] }, () => {
-    const reposToDelete = [];
-
     describe('Add', () => {
+      const reposToDelete = [];
       const appRepoList = new ReposListPagePo('local', 'apps');
 
       beforeEach(() => {
@@ -131,6 +130,10 @@ describe('Apps', () => {
         appRepoCreate.authSelectOrCreate().authSelect().getOptions().contains('Create a SSH Key Secret')
           .should('not.exist');
       });
+
+      after(() => {
+        reposToDelete.forEach((r) => cy.deleteRancherResource('v1', 'catalog.cattle.io.clusterrepos', r));
+      });
     });
 
     describe('Refresh', () => {
@@ -192,10 +195,6 @@ describe('Apps', () => {
         // The specific version of the chart should be fetched (as the cache was cleared)
         cy.wait('@rancherCharts3').its('request.url').should('include', 'version=');
       });
-    });
-
-    after(() => {
-      reposToDelete.forEach((r) => cy.deleteRancherResource('v1', 'catalog.cattle.io.clusterrepos', r));
     });
   });
 });
