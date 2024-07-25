@@ -1,9 +1,16 @@
 <<<<<<< HEAD
+<<<<<<< HEAD
+=======
+>>>>>>> 25d6584234 (comment workflows)
 name: check-plugins-build
 on:
   pull_request:
     branches:
+<<<<<<< HEAD
       - master
+=======
+      - master-bananas
+>>>>>>> 25d6584234 (comment workflows)
 env:
   TEST_PERSIST_BUILD: true
 jobs:
@@ -15,6 +22,7 @@ jobs:
     - name: Setup Node.js
       uses: actions/setup-node@v4
       with:
+<<<<<<< HEAD
 <<<<<<< HEAD
         node-version-file: '.nvmrc'
 =======
@@ -45,14 +53,20 @@ jobs:
 #       run: ./shell/scripts/test-plugins-build.sh
 #       shell: bash
 >>>>>>> 25d643d2d3 (comment workflows)
+=======
+        node-version: '16.20.2'
+    - name: Validate Plugin build system
+      run: ./shell/scripts/test-plugins-build.sh
+      shell: bash
+>>>>>>> 25d6584234 (comment workflows)
 
-#     - name: Upload files
-#       uses: actions/upload-artifact@v3
-#       if: failure()
-#       with:
-#         name: test
-#         path: |
-#           /tmp/tmp.**/test-app
-#           !/tmp/tmp.**/test-app/node_modules/
-#           !/tmp/tmp.**/test-app/pkg/test-pkg/node_modules/
-#         retention-days: 2
+    - name: Upload files
+      uses: actions/upload-artifact@v3
+      if: failure()
+      with:
+        name: test
+        path: |
+          /tmp/tmp.**/test-app
+          !/tmp/tmp.**/test-app/node_modules/
+          !/tmp/tmp.**/test-app/pkg/test-pkg/node_modules/
+        retention-days: 2
