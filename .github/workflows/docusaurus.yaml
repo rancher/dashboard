@@ -1,19 +1,29 @@
-# name: Publish Docusaurus
+name: Publish Docusaurus
 
 <<<<<<< HEAD
+<<<<<<< HEAD
+=======
+>>>>>>> 25d6584234 (comment workflows)
 on:
   push:
     branches:
       - master
+<<<<<<< HEAD
   pull_request:
     branches:
       - master
+=======
+  # pull_request:
+  #   branches:
+  #     - master
+>>>>>>> 25d6584234 (comment workflows)
 jobs:
   build:
     name: Build
     runs-on: ubuntu-latest
     steps:
       - uses: actions/checkout@v2
+<<<<<<< HEAD
 <<<<<<< HEAD
       - uses: actions/setup-node@v4
         with:
@@ -43,38 +53,44 @@ jobs:
 #           node-version: 16.x
 #           cache: yarn
 >>>>>>> 25d643d2d3 (comment workflows)
+=======
+      - uses: actions/setup-node@v3
+        with:
+          node-version: 16.x
+          cache: yarn
+>>>>>>> 25d6584234 (comment workflows)
 
-#       - name: Install dependencies
-#         run: cd docusaurus/ && yarn install:ci
-#       - name: Build website
-#         run: cd docusaurus/ && yarn build
-#       - name: Add CNAME
-#         run: |
-#           echo "extensions.rancher.io" > ./docusaurus/build/CNAME
+      - name: Install dependencies
+        run: cd docusaurus/ && yarn install:ci
+      - name: Build website
+        run: cd docusaurus/ && yarn build
+      - name: Add CNAME
+        run: |
+          echo "extensions.rancher.io" > ./docusaurus/build/CNAME
 
-#       - name: Upload artifact
-#         if: ${{ github.event_name == 'push' && github.repository_owner == 'rancher' }}
-#         uses: actions/upload-pages-artifact@v3
-#         with:
-#           path: ./docusaurus/build
-#           retention-days: 10
-#           compression-level: 9
+      - name: Upload artifact
+        if: ${{ github.event_name == 'push' && github.repository_owner == 'rancher' }}
+        uses: actions/upload-pages-artifact@v3
+        with:
+          path: ./docusaurus/build
+          retention-days: 10
+          compression-level: 9
 
-#   # Seperate the deploy job to isolate write permissions
-#   deploy:
-#     name: Publish
-#     if: ${{ github.event_name == 'push' && github.repository_owner == 'rancher' }}
-#     runs-on: ubuntu-latest
-#     needs: build
+  # Seperate the deploy job to isolate write permissions
+  deploy:
+    name: Publish
+    if: ${{ github.event_name == 'push' && github.repository_owner == 'rancher' }}
+    runs-on: ubuntu-latest
+    needs: build
 
-#     # This is required to avoid https://github.com/actions/deploy-pages/issues/271
-#     environment:
-#       name: github-pages
+    # This is required to avoid https://github.com/actions/deploy-pages/issues/271
+    environment:
+      name: github-pages
 
-#     permissions:
-#       pages: write
-#       id-token: write
+    permissions:
+      pages: write
+      id-token: write
 
-#     steps:
-#       - name: Deploy to GitHub Pages
-#         uses: actions/deploy-pages@v4
+    steps:
+      - name: Deploy to GitHub Pages
+        uses: actions/deploy-pages@v4
