@@ -17,9 +17,15 @@ jobs:
         fetch-depth: 0
         persist-credentials: false
 
+<<<<<<< HEAD
     - uses: actions/setup-node@v4
       with:
         node-version-file: '.nvmrc'
+=======
+    - uses: actions/setup-node@v3
+      with:
+        node-version: '16.x'
+>>>>>>> b7384b5fad (Revert "script adjustment/fix")
         registry-url: 'https://registry.npmjs.org'
         scope: '@rancher'
 
