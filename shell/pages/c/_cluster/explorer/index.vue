@@ -48,6 +48,7 @@ import { NAME as EXPLORER } from '@shell/config/product/explorer';
 import TabTitle from '@shell/components/TabTitle';
 import { STATES_ENUM } from '@shell/plugins/dashboard-store/resource-class';
 import capitalize from 'lodash/capitalize';
+import paginationUtils from '@shell/utils/pagination-utils';
 
 export const RESOURCES = [NAMESPACE, INGRESS, PV, WORKLOAD_TYPES.DEPLOYMENT, WORKLOAD_TYPES.STATEFUL_SET, WORKLOAD_TYPES.JOB, WORKLOAD_TYPES.DAEMON_SET, SERVICE];
 
@@ -122,6 +123,8 @@ export default {
         this.loadAgents();
       }
     }
+
+    this.showCertificates = !paginationUtils.isSteveCacheEnabled({ rootGetters: this.$store.getters });
   },
 
   data() {
@@ -156,6 +159,7 @@ export default {
       clusterCounts,
       selectedTab:        'cluster-events',
       extensionCards:     getApplicableExtensionEnhancements(this, ExtensionPoint.CARD, CardLocation.CLUSTER_DASHBOARD_CARD, this.$route),
+      showCertificates:   false,
     };
   },
 
@@ -739,6 +743,7 @@ export default {
           <AlertTable v-if="selectedTab === 'cluster-alerts'" />
         </Tab>
         <Tab
+          v-if="showCertificates"
           name="cluster-certs"
           :label="t('clusterIndexPage.sections.certs.label')"
           :weight="1"
