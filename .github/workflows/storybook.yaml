@@ -1,3 +1,4 @@
+<<<<<<< HEAD
 name: storybook
 env:
     STORYBOOK_TOKEN: ${{ secrets.STORYBOOK_TOKEN }}
@@ -29,3 +30,32 @@ jobs:
     - name: Publish Storybook
       if: ${{ github.event_name == 'push' && github.repository_owner == 'rancher'}}
       run: .github/workflows/scripts/publish-storybook
+=======
+# name: storybook
+# env:
+#     STORYBOOK_TOKEN: ${{ secrets.STORYBOOK_TOKEN }}
+# on:
+#   push:
+#     branches:
+#       - master
+#   pull_request:
+#     branches:
+#       - master
+# jobs:
+#   storybook:
+#     runs-on: ubuntu-latest
+#     steps:
+#     - uses: actions/checkout@v4
+#     - name: Use Node.js
+#       uses: actions/setup-node@v4
+#       with:
+#         node-version: '16.20.2'
+#     - name: Install packages
+#       run: yarn install
+#     - name: Build Storybook
+#       run: |
+#         yarn build-storybook
+#     - name: Publish Storybook
+#       if: ${{ github.event_name == 'push' && github.repository_owner == 'rancher'}}
+#       run: .github/workflows/scripts/publish-storybook
+>>>>>>> 25d643d2d3 (comment workflows)
