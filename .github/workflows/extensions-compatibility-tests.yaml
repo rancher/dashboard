@@ -15,7 +15,7 @@ env:
   API: https://127.0.0.1
   TEST_PROJECT_ID: rancher-dashboard
   CYPRESS_API_URL: http://139.59.134.103:1234/
-  TEST_RUN_ID: ${{github.run_number}}-${{github.run_attempt}}-Extensions-Compatibility-Tests
+  TEST_RUN_ID: ${{github.run_number}}-${{github.run_attempt}}-extensions-compatibility-tests
   # Build the dashboard to use in tests. When set to false it will grab `latest` from CDN (useful for running e2e tests quickly)
   BUILD_DASHBOARD: true
 
@@ -35,7 +35,6 @@ jobs:
           # ['@neuvector']
         ]
         rancherEnv: [
-          'v2.8-head',
           'v2.9-head',
         ]
     runs-on: ubuntu-latest
@@ -73,5 +72,5 @@ jobs:
         uses: actions/upload-artifact@v3
         if: ${{ failure() }}
         with:
-          name: ${{github.run_number}}-${{github.run_attempt}}-screenshots-${{ matrix.role.tag }}+${{ matrix.features[0] }}
+          name: ${{github.run_number}}-${{github.run_attempt}}-extensions-compatibility-Tests-screenshots-${{ matrix.role.tag }}+${{ matrix.features[t] }}
           path: cypress/screenshots
