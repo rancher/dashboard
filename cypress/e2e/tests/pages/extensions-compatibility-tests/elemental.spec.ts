@@ -16,7 +16,7 @@ const EXTENSION_NAME = 'elemental';
 // const UI_PLUGINS_PARTNERS_REPO_NAME = 'partner-extensions';
 
 describe('Extensions Compatibility spec', { tags: ['@elemental', '@adminUser'] }, () => {
-  before(() => {
+  beforeEach(() => {
     cy.login();
   });
 
