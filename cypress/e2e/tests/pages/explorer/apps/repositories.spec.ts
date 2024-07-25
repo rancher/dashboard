@@ -176,7 +176,8 @@ describe('Apps', () => {
         appRepoList.waitForPage();
 
         // Nav back to the summary page for a specific chart
-        cy.intercept('GET', '/v1/catalog.cattle.io.clusterrepos/rancher-charts?*', cy.spy().as('rancherCharts2'));
+        // Note we're intercepting a more precise url here to avoid any icon requests made from the charts list
+        cy.intercept('GET', '/v1/catalog.cattle.io.clusterrepos/rancher-charts?link=info&chartName=rancher-backup&version=*', cy.spy().as('rancherCharts2'));
         ChartPage.navTo(clusterId, 'Rancher Backups');
         chartPage.waitForPage('repo-type=cluster&repo=rancher-charts&chart=rancher-backup');
         // The specific version of the chart (and any other) should NOT be fetched
