@@ -126,6 +126,8 @@ export default defineComponent({
     return { timer };
   },
 
+  emits: ['click'],
+
   data() {
     return { phase: this.currentPhase };
   },
@@ -225,12 +227,7 @@ export default defineComponent({
   },
 
   methods: {
-    clicked($event: MouseEvent) {
-      if ($event) {
-        $event.stopPropagation();
-        $event.preventDefault();
-      }
-
+    clicked() {
       if ( this.isDisabled ) {
         return;
       }
