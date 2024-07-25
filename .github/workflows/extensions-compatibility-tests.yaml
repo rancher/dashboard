@@ -70,7 +70,7 @@ jobs:
       
       # this is where docker is set up with the enviroment... 
       - name: Run Rancher 2.8
-        run: export RANCHER_VERSION_E2E=v2.8-head; yarn e2e:docker # runs scripts/e2e-docker-start
+        run: export RANCHER_VERSION_E2E="v2.8-head" && yarn e2e:docker # runs scripts/e2e-docker-start
         # env:
         #   RANCHER_VERSION_E2E: v2.8-head
       
