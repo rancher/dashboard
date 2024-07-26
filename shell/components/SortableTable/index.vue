@@ -1054,7 +1054,7 @@ export default {
                     <li
                       v-for="(act, i) in hiddenActions"
                       :key="i"
-                      v-close-popover
+                      v-close-popper
                       v-clean-tooltip="{
                         content: actionTooltip,
                         placement: 'right'

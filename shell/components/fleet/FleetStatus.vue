@@ -156,7 +156,7 @@ function toPercent(value, min, max) {
           @click="showMenu(true)"
           @focus.capture="showMenu(true)"
         >
-          <v-popover
+          <v-dropdown
             ref="popover"
             placement="bottom-end"
             offset="-10"
@@ -184,7 +184,7 @@ function toPercent(value, min, max) {
                 </li>
               </ul>
             </template>
-          </v-popover>
+          </v-dropdown>
         </div>
       </div>
       <div

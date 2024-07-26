@@ -85,7 +85,7 @@ export default {
 </script>
 
 <template>
-  <v-popover
+  <v-dropdown
     v-if="show"
     class="text-center hand"
     placement="top"
@@ -128,7 +128,7 @@ export default {
         </tbody>
       </table>
     </template>
-  </v-popover>
+  </v-dropdown>
   <div
     v-else
     class="text-center text-muted"

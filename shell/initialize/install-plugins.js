@@ -1,7 +1,7 @@
 import PortalVue from 'portal-vue';
 import VueResize from 'vue-resize';
 import ShortKey from 'vue-shortkey';
-import VTooltip from 'v-tooltip';
+import FloatingVue from 'floating-vue';
 import vSelect from 'vue-select';
 import 'vue-resize/dist/vue-resize.css';
 
@@ -30,11 +30,13 @@ import steveCreateWorker from '@shell/plugins/steve-create-worker';
 import version from '@shell/plugins/version';
 import emberCookie from '@shell/plugins/ember-cookie';
 
+import 'floating-vue/dist/style.css';
+
 export async function installPlugins(vueApp) {
   vueApp.use(globalFormatters);
   vueApp.use(PortalVue);
   vueApp.use(VueResize);
-  vueApp.use(VTooltip);
+  vueApp.use(FloatingVue);
   vueApp.use(ShortKey, { prevent: ['input', 'textarea', 'select'] });
   vueApp.use(VueCodemirror);
   vueApp.component('v-select', vSelect);

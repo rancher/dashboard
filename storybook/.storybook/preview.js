@@ -1,7 +1,7 @@
 import Vue from 'vue';
 import Vuex from 'vuex';
 import vSelect from 'vue-select';
-import VTooltip from 'v-tooltip';
+import FloatingVue from 'floating-vue';
 import { themes } from '@storybook/theming';
 import { get } from '../../shell/utils/object';
 import IntlMessageFormat from 'intl-messageformat';
@@ -28,7 +28,7 @@ Vue.use(i18n);
 Vue.use(Vuex);
 Vue.use(ShortKey, { prevent: ['input', 'textarea', 'select'] });
 Vue.component('v-select', vSelect);
-Vue.use(VTooltip);
+Vue.use(FloatingVue);
 
 Vue.component('router-link', {
   props:   ['to'],
