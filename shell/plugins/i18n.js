@@ -29,9 +29,9 @@ export function stringFor(store, key, args, raw = false, escapehtml = true) {
 }
 
 function directive(el, binding, vnode /*, oldVnode */) {
-  const { context } = vnode;
+  const { instance } = binding;
   const raw = binding.modifiers && binding.modifiers.raw === true;
-  const str = stringFor(context.$store, binding.value, {}, raw);
+  const str = stringFor(instance.$store, binding.value, {}, raw);
 
   if ( binding.arg ) {
     el.setAttribute(binding.arg, str);
@@ -70,10 +70,10 @@ const i18n = {
     // InnerHTML: <some-tag v-t="'some.key'" />
     // As an attribute: <some-tag v-t:title="'some.key'" />
     vueApp.directive('t', {
-      bind() {
+      beforeMount() {
         directive(...arguments);
       },
-      update() {
+      updated() {
         directive(...arguments);
       },
     });
