@@ -26,3 +26,29 @@ API=https://your-rancher yarn dev
 
 > Note: `API` is the URL of a deployed Rancher environment (backend API)
 
+## Troubleshooting 
+
+If `yarn dev` fails with the following error:
+
+```
+Error: error:0308010C:digital envelope routines::unsupported
+    at new Hash (node:internal/crypto/hash:71:19)
+    at Object.createHash (node:crypto:130:10)
+
+...
+
+    at FSReqCallback.readFileAfterClose [as oncomplete] (node:internal/fs/read_file_context:68:3) {
+  opensslErrorStack: [ 'error:03000086:digital envelope routines::initialization error' ],
+  library: 'digital envelope routines',
+  reason: 'unsupported',
+  code: 'ERR_OSSL_EVP_UNSUPPORTED'
+}
+```
+
+You can force Node to use the legacy openssl provider via:
+
+```
+export NODE_OPTIONS=--openssl-legacy-provider
+```
+
+The need for this option will be removed as soon as later Node versions get supported.
