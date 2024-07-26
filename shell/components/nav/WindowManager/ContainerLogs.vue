@@ -605,7 +605,7 @@ export default {
         </div>
 
         <div class="log-action log-action-group ml-5">
-          <v-popover
+          <v-dropdown
             trigger="click"
             placement="top"
           >
@@ -641,7 +641,7 @@ export default {
                 </div>
               </div>
             </template>
-          </v-popover>
+          </v-dropdown>
         </div>
 
         <div class="log-action log-action-group ml-5">

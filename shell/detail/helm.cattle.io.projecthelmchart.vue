@@ -154,7 +154,7 @@ export default {
             @click="showMenu(true)"
             @focus.capture="showMenu(true)"
           >
-            <v-popover
+            <v-dropdown
               ref="popover"
               placement="bottom-end"
               offset="-10"
@@ -194,7 +194,7 @@ export default {
                   </li>
                 </ul>
               </template>
-            </v-popover>
+            </v-dropdown>
           </div>
           <a
             :class="{disabled: !grafanaServiceEndpointEnabled}"

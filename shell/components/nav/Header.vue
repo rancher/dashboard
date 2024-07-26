@@ -598,7 +598,7 @@ export default {
           @click="showPageActionsMenu(true)"
           @focus.capture="showPageActionsMenu(true)"
         />
-        <v-popover
+        <v-dropdown
           ref="pageActions"
           placement="bottom-end"
           offset="0"
@@ -634,7 +634,7 @@ export default {
               </li>
             </ul>
           </template>
-        </v-popover>
+        </v-dropdown>
       </div>
 
       <div class="header-spacer" />
@@ -647,7 +647,7 @@ export default {
         @click="showMenu(true)"
         @focus.capture="showMenu(true)"
       >
-        <v-popover
+        <v-dropdown
           ref="popover"
           placement="bottom-end"
           offset="-10"
@@ -738,7 +738,7 @@ export default {
               </router-link>
             </ul>
           </template>
-        </v-popover>
+        </v-dropdown>
       </div>
     </div>
   </header>

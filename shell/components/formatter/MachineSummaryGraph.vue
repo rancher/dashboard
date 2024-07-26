@@ -29,7 +29,7 @@ export default {
 </script>
 
 <template>
-  <v-popover
+  <v-dropdown
     class="text-center hand machine-summary-graph"
     placement="top"
     :open-group="row.id"
@@ -75,7 +75,7 @@ export default {
         class="count"
       >{{ ready }} of {{ row.desired }}</span>
     </div>
-  </v-popover>
+  </v-dropdown>
 </template>
 
 <style lang="scss" scoped>

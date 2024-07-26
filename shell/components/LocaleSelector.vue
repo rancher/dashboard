@@ -51,7 +51,7 @@ export default {
   <div>
     <div v-if="mode === 'login'">
       <div v-if="showLocale">
-        <v-popover
+        <v-dropdown
           popover-class="localeSelector"
           placement="top"
           trigger="click"
@@ -84,7 +84,7 @@ export default {
               </li>
             </ul>
           </template>
-        </v-popover>
+        </v-dropdown>
       </div>
     </div>
     <div v-else>

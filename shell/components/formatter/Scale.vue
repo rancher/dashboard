@@ -49,7 +49,7 @@ export default {
 </script>
 
 <template>
-  <v-popover
+  <v-dropdown
     :class="{'hand': showHover}"
     placement="top"
     :open-group="row.id"
@@ -122,7 +122,7 @@ export default {
         </tbody>
       </table>
     </template>
-  </v-popover>
+  </v-dropdown>
 </template>
 
 <style lang="scss">

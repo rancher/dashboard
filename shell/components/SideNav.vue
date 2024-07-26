@@ -438,7 +438,7 @@ export default {
 
       <!-- locale selector -->
       <span v-if="isSingleProduct">
-        <v-popover
+        <v-dropdown
           popover-class="localeSelector"
           placement="top"
           trigger="click"
@@ -465,7 +465,7 @@ export default {
               </li>
             </ul>
           </template>
-        </v-popover>
+        </v-dropdown>
       </span>
     </div>
     <!-- SideNav footer alternative -->
