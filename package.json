@@ -7,7 +7,7 @@
   "private": true,
   "version": "0.0.0",
   "engines": {
-    "node": ">=14"
+    "node": ">=16"
   },
   "workspaces": [
     "pkg/rancher-components"

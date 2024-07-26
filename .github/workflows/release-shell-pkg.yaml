@@ -17,9 +17,9 @@ jobs:
         fetch-depth: 0
         persist-credentials: false
 
-    - uses: actions/setup-node@v3
+    - uses: actions/setup-node@v4
       with:
-        node-version: '16.x'
+        node-version-file: '.nvmrc'
 
     - name: Validate Plugin build system
       run: ./shell/scripts/test-plugins-build.sh
@@ -35,9 +35,9 @@ jobs:
         echo $YARN_REGISTRY
         cat ./shell/package.json
 
-    - uses: actions/setup-node@v3
+    - uses: actions/setup-node@v4
       with:
-        node-version: '16.x'
+        node-version-file: '.nvmrc'
         registry-url: 'https://registry.npmjs.org'
         scope: '@rancher'
     
