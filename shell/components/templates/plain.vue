@@ -29,8 +29,6 @@ export default {
     Inactivity
   },
 
-  middleware: ['authenticated'],
-
   mixins: [Brand, BrowserTabVisibility],
 
   data() {
