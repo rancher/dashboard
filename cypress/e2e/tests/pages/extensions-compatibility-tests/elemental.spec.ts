@@ -1,6 +1,4 @@
 import ExtensionsPagePo from '@/cypress/e2e/po/pages/extensions.po';
-import ReposListPagePo from '@/cypress/e2e/po/pages/chart-repositories.po';
-import AppClusterRepoEditPo from '@/cypress/e2e/po/edit/catalog.cattle.io.clusterrepo.po';
 
 import HomePagePo from '@/cypress/e2e/po/pages/home.po';
 import AboutPagePo from '@/cypress/e2e/po/pages/about.po';
@@ -14,37 +12,13 @@ describe('Extensions Compatibility spec', { tags: ['@elemental', '@adminUser'] }
 
   it('add main extensions repository', () => {
     // // This should be in a `before` however is flaky. Move it to an `it` to let cypress retry
-    // const extensionsPo = new ExtensionsPagePo();
+    const extensionsPo = new ExtensionsPagePo();
 
-    // extensionsPo.goTo();
-    // extensionsPo.waitForPage();
-    // extensionsPo.extensionTabInstalledClick(); // Avoid nav guard failures that probably auto move user to this tab
-
-    // // install the rancher plugin examples
-    // extensionsPo.addExtensionsRepository('https://github.com/rancher/ui-plugin-charts', 'main', 'Rancher Extensions');
-
-    // const appRepoList = new ReposListPagePo('local', 'apps');
-
-    // appRepoList.goTo();
-    // appRepoList.waitForGoTo('/v1/catalog.cattle.io.clusterrepos?exclude=metadata.managedFields');
-    // appRepoList.create();
-
-    const appRepoCreate = new AppClusterRepoEditPo('local', 'create');
-
-    appRepoCreate.goTo();
-    appRepoCreate.waitForPage();
-
-    appRepoCreate.nameNsDescription().name().set('rancher-extensions');
-    appRepoCreate.selectRadioOptionGitRepo(1);
-    // fill the git repo form
-    appRepoCreate.enterGitRepoName('https://github.com/rancher/ui-plugin-charts');
-    appRepoCreate.enterGitBranchName('main');
-    appRepoCreate.create().click();
-
-    cy.wait(5000); // eslint-disable-line cypress/no-unnecessary-waiting
+    extensionsPo.addExtensionsRepositoryNew('https://github.com/rancher/ui-plugin-charts', 'main', 'rancher-extensions');
   });
 
-  it('can navigate to About page', () => {
+  // TODO: TO REMOVE ONCE EVERYTHING IS GOOD!
+  it('can navigate to About page (get version from about page screenshots to make sure we are on the right system)', () => {
     const aboutPage = new AboutPagePo();
 
     HomePagePo.goToAndWaitForGet();
