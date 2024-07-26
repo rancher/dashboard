@@ -1,0 +1,78 @@
+name: Extensions Compatibility Tests
+on:
+  schedule:
+    - cron: "0 0 * * *" # runs at midnight every day
+  # TODO: DELETE THIS!!!! JUST FOR TESTING PURPOSES!
+  pull_request:
+    branches:
+      - master
+
+env:
+  TEST_USERNAME: admin
+  TEST_PASSWORD: password
+  CATTLE_BOOTSTRAP_PASSWORD: password
+  TEST_BASE_URL: https://127.0.0.1:8005
+  API: https://127.0.0.1
+  TEST_PROJECT_ID: rancher-dashboard
+  CYPRESS_API_URL: http://139.59.134.103:1234/
+  TEST_RUN_ID: ${{github.run_number}}-${{github.run_attempt}}-extensions-compatibility-tests
+  # Build the dashboard to use in tests. When set to false it will grab `latest` from CDN (useful for running e2e tests quickly)
+  BUILD_DASHBOARD: true
+
+jobs:
+  e2e-test-extensions-compatibility:
+    if: "!contains( github.event.pull_request.labels.*.name, 'ci/skip-e2e')"
+    strategy:
+      fail-fast: false
+      matrix:
+        role: [
+          { username: 'admin', tag: '@adminUser' }, 
+          # { username: 'standard_user', tag: '@standardUser' }
+        ]
+        features:  [
+          ['@elemental'],
+          # ['@kubewarden'],
+          # ['@neuvector']
+        ]
+        rancherEnv: [
+          # ['v2.9-head', 'master'],
+          ['v2.8-head', 'release-2.8']
+        ]
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v3
+        with:
+          ref: matrix.rancherEnv[1]
+          fetch-depth: 1
+      - name: Setup env
+        uses: ./.github/actions/setup
+      
+      # this is where docker is set up with the enviroment
+      - name: Run Rancher ${{ matrix.rancherEnv }}
+        run: export RANCHER_VERSION_E2E=${{ matrix.rancherEnv[0] }} && yarn e2e:docker
+      
+      ## this is just setting up rancher and user
+      - name: Setup Rancher and user
+        run: |
+          yarn e2e:prod
+        env: 
+          GREP_TAGS: ${{ matrix.role.tag }}Setup+${{ matrix.features[0] }} --@jenkins ${{ matrix.role.tag }}Setup+${{ matrix.features[0] }} --@jenkins
+          TEST_USERNAME: ${{ matrix.role.username }}
+          TEST_ONLY: setup
+
+      # This is the actual triggering of the e2e test specs
+      - name: Run user tests
+        run: |
+          export SPEC_FILE="cypress/e2e/tests/pages/extensions-compatibility-tests/elemental.spec.ts" && yarn e2e:prod
+          [ "$BUILD_DASHBOARD" != "false" ] || exit 0
+        env: 
+          TEST_SKIP: setup
+          GREP_TAGS: ${{ matrix.role.tag }}+${{ matrix.features[0] }} --@jenkins ${{ matrix.role.tag }}+${{ matrix.features[0] }} --@jenkins
+          TEST_USERNAME: ${{ matrix.role.username }}
+          
+      - name: Upload screenshots
+        uses: actions/upload-artifact@v3
+        if: ${{ failure() }}
+        with:
+          name: ${{github.run_number}}-${{github.run_attempt}}-extensions-compatibility-tests-screenshots-${{ matrix.role.tag }}+${{ matrix.features[0] }}
+          path: cypress/screenshots
