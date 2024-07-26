@@ -42,7 +42,7 @@ jobs:
     steps:
       - uses: actions/checkout@v3
         with:
-          ref: matrix.rancherEnv[1]
+          ref: ${{ matrix.rancherEnv[1] }}
           fetch-depth: 1
       - name: Setup env
         uses: ./.github/actions/setup
