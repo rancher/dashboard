@@ -5,6 +5,7 @@ const fs = require('fs');
 const glob = require('glob');
 const semver = require('semver');
 const path = require('path');
+
 /**
  * Init logger
  */
@@ -524,7 +525,7 @@ const eslintUpdates = () => {
     });
 
     // Add the new rules if they don't exist
-    const eslintConfigPath = path.join(__dirname, `../${ file }`);
+    const eslintConfigPath = path.join(process.cwd(), `${ file }`);
     const eslintConfig = require(eslintConfigPath);
 
     Object.keys(newRules).forEach((rule) => {

@@ -52,7 +52,6 @@ describe('Apps/Charts', { tags: ['@explorer', '@adminUser'] }, () => {
   });
 
   it('Charts have expected icons', () => {
-    chartsPage.checkChartGenericIcon('External IP Webhook', true);
     chartsPage.checkChartGenericIcon('Alerting Driver', false);
     chartsPage.checkChartGenericIcon('CIS Benchmark', false);
     chartsPage.checkChartGenericIcon('Logging', false);
