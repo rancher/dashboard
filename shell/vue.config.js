@@ -108,7 +108,8 @@ const getLoaders = (SHELL_ABS) => {
     // TODO: Browser support; also add explanation to this TODO
     // ['@babel/plugin-transform-modules-commonjs'],
     ['@babel/plugin-proposal-private-property-in-object', { loose: true }],
-    ['@babel/plugin-proposal-class-properties', { loose: true }]
+    ['@babel/plugin-proposal-class-properties', { loose: true }],
+    ['@babel/plugin-proposal-private-methods', { loose: true }],
   ];
 
   if (instrumentCode) {
@@ -160,11 +161,11 @@ const getLoaders = (SHELL_ABS) => {
           options: {
             presets: [
               [
-                require.resolve('@nuxt/babel-preset-app'),
+                '@babel/preset-env',
                 {
-                  corejs:  { version: 3 },
-                  targets: { browsers: ['last 2 versions'] },
-                  modern:  true
+                  corejs:      { version: 3 },
+                  targets:     { browsers: ['last 2 versions'] },
+                  useBuiltIns: 'usage',
                 }
               ],
               '@babel/preset-typescript',
