@@ -1142,7 +1142,7 @@ export const actions = {
     commit('catalog/reset');
 
     const router = state.$router;
-    const route = router.currentRoute;
+    const route = router.currentRoute.value;
 
     if ( route.name === 'index' ) {
       router.replace('/auth/login');
