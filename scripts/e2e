@@ -1,4 +1,5 @@
 #!/usr/bin/env bash
+echo "e2e script!"
 ID="$(echo ${TEST_RUN_ID:-`date +%s` } | tr '[:upper:]' '[:lower:]' | tr ' ' '-')"
 echo "$ID"
 

@@ -8,6 +8,8 @@ EMBER_DIST=${DIR}/dist_ember
 RANCHER_IMG_VERSION=v2.8-head
 HAS_ARGS="false"
 
+echo "e2e docker start script!"
+
 # check if script invoke contains any argument. If so, adjust RANCHER_IMG_VERSION
 if [ $# -eq 1 ]; then
   RANCHER_IMG_VERSION=$1
