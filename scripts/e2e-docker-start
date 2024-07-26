@@ -16,7 +16,7 @@ fi
 
 if [ "$HAS_ARGS" == "false" ]; then
   # this flow is what test.yaml is expected to to be following
-  echo "normal flow without args. Defaults to v2.9-head"
+  echo "normal flow without args. Defaults to v2.8-head"
 
   docker run -d --restart=unless-stopped -p 80:80 -p 443:443 \
     -v ${DASHBOARD_DIST}:/usr/share/rancher/ui-dashboard/dashboard \
