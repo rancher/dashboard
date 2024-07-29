@@ -39,8 +39,8 @@ const {
   validateDeleteInactiveUserAfter,
   validateDurationAgainstAuthUserSession,
   setValidation,
-  removeCronValidation,
-  addCronValidation,
+  removeValidation,
+  addValidation,
   isFormValid,
 } = useUserRetentionValidation(disableAfterPeriod, deleteAfterPeriod, authUserSessionTtlMinutes);
 let settings: { [id: string]: Setting } = {};
@@ -84,7 +84,7 @@ watch([disableAfterPeriod, deleteAfterPeriod], ([newDisableAfterPeriod, newDelet
       userRetentionSettings[key] = null;
     });
 
-    removeCronValidation();
+    removeValidation(SETTING.USER_RETENTION_CRON);
 
     return;
   }
@@ -92,7 +92,7 @@ watch([disableAfterPeriod, deleteAfterPeriod], ([newDisableAfterPeriod, newDelet
   ids.filter((id) => ![SETTING.DISABLE_INACTIVE_USER_AFTER, SETTING.DELETE_INACTIVE_USER_AFTER].includes(id))
     .forEach(assignSettings);
 
-  addCronValidation();
+  addValidation(SETTING.USER_RETENTION_CRON);
 });
 
 const assignSettings = (key: string) => {

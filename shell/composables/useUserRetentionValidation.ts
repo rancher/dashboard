@@ -10,15 +10,23 @@ import dayjs from 'dayjs';
 import duration from 'dayjs/plugin/duration';
 dayjs.extend(duration);
 
+type SettingValidation = 'user-retention-cron' | 'disable-inactive-user-after' | 'delete-inactive-user-after';
+
+type Validation = {
+  [SETTING.DISABLE_INACTIVE_USER_AFTER]?: boolean;
+  [SETTING.DELETE_INACTIVE_USER_AFTER]?: boolean;
+  [SETTING.USER_RETENTION_CRON]?: boolean;
+}
+
 interface UseUserRetentionValidation {
   validateUserRetentionCron: (cronSetting: string | null) => string | undefined;
   validateDisableInactiveUserAfterDuration: (duration: string) => string | undefined;
   validateDeleteInactiveUserAfterDuration: (duration: string) => string | undefined;
   validateDeleteInactiveUserAfter: (duration: string) => string | undefined;
   validateDurationAgainstAuthUserSession: (duration: string) => string | undefined;
-  setValidation: (formField: string, isValid: boolean) => void;
-  removeCronValidation: () => void;
-  addCronValidation: () => void;
+  setValidation: (formField: SettingValidation, isValid: boolean) => void;
+  removeValidation : (setting: SettingValidation) => void;
+  addValidation: (setting: SettingValidation) => void;
   isFormValid: ComputedRef<boolean>;
 }
 
@@ -37,7 +45,7 @@ export const useUserRetentionValidation = (disableAfterPeriod: Ref<boolean>, del
   /**
    * Tracks the validation state for user retention fields
    */
-  const validation = ref({
+  const validation = ref<Validation>({
     [SETTING.DISABLE_INACTIVE_USER_AFTER]: true,
     [SETTING.DELETE_INACTIVE_USER_AFTER]:  true,
     [SETTING.USER_RETENTION_CRON]:         true,
@@ -49,20 +57,20 @@ export const useUserRetentionValidation = (disableAfterPeriod: Ref<boolean>, del
     return !Object.values(validations).includes(false);
   });
 
-  const setValidation = (formField: string, isValid: boolean) => {
+  const setValidation = (formField: SettingValidation, isValid: boolean) => {
     validation.value[formField] = isValid;
   };
 
-  const removeCronValidation = () => {
-    const { [SETTING.USER_RETENTION_CRON]: _, ...rest } = validation.value;
+  const removeValidation = (setting: SettingValidation) => {
+    const { [setting]: _, ...rest } = validation.value;
 
     validation.value = rest;
   };
 
-  const addCronValidation = () => {
+  const addValidation = (setting: SettingValidation) => {
     validation.value = {
       ...validation.value,
-      [SETTING.USER_RETENTION_CRON]: true,
+      [setting]: true,
     };
   };
 
@@ -186,8 +194,8 @@ export const useUserRetentionValidation = (disableAfterPeriod: Ref<boolean>, del
     validateDeleteInactiveUserAfter,
     validateDurationAgainstAuthUserSession,
     setValidation,
-    removeCronValidation,
-    addCronValidation,
+    removeValidation,
+    addValidation,
     isFormValid,
   };
 };
