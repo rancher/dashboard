@@ -22,6 +22,14 @@ interface UseUserRetentionValidation {
   isFormValid: ComputedRef<boolean>;
 }
 
+class ExpectedValidationError extends Error {
+  isExpected = true;
+  constructor(message: string) {
+    super(message);
+    this.name = 'ExpectedError';
+  }
+}
+
 export const useUserRetentionValidation = (disableAfterPeriod: Ref<boolean>, deleteAfterPeriod: Ref<boolean>, authUserSessionTtlMinutes: Ref<Setting | null>): UseUserRetentionValidation => {
   const store = useStore();
   const { t } = useI18n(store);
@@ -68,7 +76,7 @@ export const useUserRetentionValidation = (disableAfterPeriod: Ref<boolean>, del
     const match = duration?.match(durationPattern);
 
     if (!match) {
-      throw new Error('Invalid duration format. Accepted duration units are Hours, Minutes, and Seconds ({h|m|s})');
+      throw new ExpectedValidationError('Invalid duration format. Accepted duration units are Hours, Minutes, and Seconds ({h|m|s})');
     }
 
     const hours = match[1] ? parseInt(match[1]) : 0;
@@ -140,8 +148,11 @@ export const useUserRetentionValidation = (disableAfterPeriod: Ref<boolean>, del
         return `Invalid value: "${ duration }": must be at least 336h0m0s`;
       }
     } catch (error: any) {
-      // eslint-disable-next-line no-console
-      console.warn(error.message, 'Will fail validation if `validationDuration()` validator in in use.');
+      if (error instanceof ExpectedValidationError) {
+
+      } else {
+        return error.message;
+      }
     }
   };
 
@@ -160,8 +171,11 @@ export const useUserRetentionValidation = (disableAfterPeriod: Ref<boolean>, del
         return `Invalid value: "${ duration }": must be at least ${ SETTING.AUTH_USER_SESSION_TTL_MINUTES } (${ authUserSessionTtlMinutes.value?.value }m)`;
       }
     } catch (error: any) {
-      // eslint-disable-next-line no-console
-      console.warn(error.message, 'Will fail validation if `validationDuration()` validator in in use.');
+      if (error instanceof ExpectedValidationError) {
+
+      } else {
+        return error.message;
+      }
     }
   };
 
