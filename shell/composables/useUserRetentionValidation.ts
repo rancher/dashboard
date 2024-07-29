@@ -12,6 +12,7 @@ dayjs.extend(duration);
 
 interface UseUserRetentionValidation {
   validateUserRetentionCron: (cronSetting: string | null) => string | undefined;
+  validateDuration: (duration: string) => string | undefined;
   validateDeleteInactiveUserAfter: (duration: string) => string | undefined;
   validateDurationAgainstAuthUserSession: (duration: string) => string | undefined;
   setValidation: (formField: string, isValid: boolean) => void;
@@ -98,6 +99,14 @@ export const useUserRetentionValidation = (disableAfterPeriod: Ref<boolean>, del
     }
   };
 
+  const validateDuration = (duration: string): string | undefined => {
+    try {
+      parseDuration(duration);
+    } catch (error: any) {
+      return error.message;
+    }
+  };
+
   /**
    * Asserts that the provided duration is greater than the default minimum of
    * 336h
@@ -114,7 +123,8 @@ export const useUserRetentionValidation = (disableAfterPeriod: Ref<boolean>, del
         return `Invalid value: "${ duration }": must be at least 336h0m0s`;
       }
     } catch (error: any) {
-      return error.message;
+      // eslint-disable-next-line no-console
+      console.warn(error.message, 'Will fail validation if `validationDuration()` validator in in use.');
     }
   };
 
@@ -133,12 +143,14 @@ export const useUserRetentionValidation = (disableAfterPeriod: Ref<boolean>, del
         return `Invalid value: "${ duration }": must be at least ${ SETTING.AUTH_USER_SESSION_TTL_MINUTES } (${ authUserSessionTtlMinutes.value?.value }m)`;
       }
     } catch (error: any) {
-      return error.message;
+      // eslint-disable-next-line no-console
+      console.warn(error.message, 'Will fail validation if `validationDuration()` validator in in use.');
     }
   };
 
   return {
     validateUserRetentionCron,
+    validateDuration,
     validateDeleteInactiveUserAfter,
     validateDurationAgainstAuthUserSession,
     setValidation,
