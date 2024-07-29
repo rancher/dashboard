@@ -155,13 +155,13 @@ describe('validateDurationAgainstAuthUserSession', () => {
   });
 });
 
-describe('validateDuration', () => {
+describe('validateDurations', () => {
   it('should return an errror message when the duration is in an invalid format', () => {
     const authUserSessionTtlMinutes = ref<Setting>(mockAuthUserSessionTtlMinutes);
 
-    const { validateDuration } = useUserRetentionValidation(ref(false), ref(false), authUserSessionTtlMinutes);
+    const { validateDeleteInactiveUserAfterDuration } = useUserRetentionValidation(ref(false), ref(true), authUserSessionTtlMinutes);
 
-    const result = validateDuration('960');
+    const result = validateDeleteInactiveUserAfterDuration('960');
 
     expect(result).toStrictEqual('Invalid duration format. Accepted duration units are Hours, Minutes, and Seconds ({h|m|s})');
   });
@@ -169,9 +169,9 @@ describe('validateDuration', () => {
   it('should return undefined with a valid duration string', () => {
     const authUserSessionTtlMinutes = ref<Setting>(mockAuthUserSessionTtlMinutes);
 
-    const { validateDuration } = useUserRetentionValidation(ref(false), ref(false), authUserSessionTtlMinutes);
+    const { validateDeleteInactiveUserAfterDuration } = useUserRetentionValidation(ref(false), ref(false), authUserSessionTtlMinutes);
 
-    const result = validateDuration('960m');
+    const result = validateDeleteInactiveUserAfterDuration('960m');
 
     expect(result).toBeUndefined();
   });

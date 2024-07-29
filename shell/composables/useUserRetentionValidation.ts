@@ -12,7 +12,8 @@ dayjs.extend(duration);
 
 interface UseUserRetentionValidation {
   validateUserRetentionCron: (cronSetting: string | null) => string | undefined;
-  validateDuration: (duration: string) => string | undefined;
+  validateDisableInactiveUserAfterDuration: (duration: string) => string | undefined;
+  validateDeleteInactiveUserAfterDuration: (duration: string) => string | undefined;
   validateDeleteInactiveUserAfter: (duration: string) => string | undefined;
   validateDurationAgainstAuthUserSession: (duration: string) => string | undefined;
   setValidation: (formField: string, isValid: boolean) => void;
@@ -99,7 +100,23 @@ export const useUserRetentionValidation = (disableAfterPeriod: Ref<boolean>, del
     }
   };
 
-  const validateDuration = (duration: string): string | undefined => {
+  const validateDisableInactiveUserAfterDuration = (duration: string): string | undefined => {
+    if (!disableAfterPeriod.value) {
+      return;
+    }
+
+    try {
+      parseDuration(duration);
+    } catch (error: any) {
+      return error.message;
+    }
+  };
+
+  const validateDeleteInactiveUserAfterDuration = (duration: string): string | undefined => {
+    if (!deleteAfterPeriod.value) {
+      return;
+    }
+
     try {
       parseDuration(duration);
     } catch (error: any) {
@@ -150,7 +167,8 @@ export const useUserRetentionValidation = (disableAfterPeriod: Ref<boolean>, del
 
   return {
     validateUserRetentionCron,
-    validateDuration,
+    validateDisableInactiveUserAfterDuration,
+    validateDeleteInactiveUserAfterDuration,
     validateDeleteInactiveUserAfter,
     validateDurationAgainstAuthUserSession,
     setValidation,
