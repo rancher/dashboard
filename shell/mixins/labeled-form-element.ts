@@ -155,6 +155,8 @@ export default Vue.extend({
         const message = requiredRule(value);
 
         if (!!message) {
+          this.$emit('update:validation', false);
+
           return message;
         }
       }
@@ -167,8 +169,12 @@ export default Vue.extend({
         }
       }
       if (ruleMessages.length > 0 && (this.blurred || this.focused || !this.requireDirty)) {
+        this.$emit('update:validation', false);
+
         return ruleMessages.join(', ');
       } else {
+        this.$emit('update:validation', true);
+
         return undefined;
       }
     }
