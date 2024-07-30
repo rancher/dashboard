@@ -7,8 +7,12 @@ import { onClickOption, calculatePosition } from '@shell/utils/select';
 
 export default {
   components: { LabeledTooltip },
-  mixins:     [LabeledFormElement, VueSelectOverrides],
-  props:      {
+  mixins:     [
+    LabeledFormElement,
+    VueSelectOverrides
+  ],
+  emits: ['createdListItem', 'on-focus', 'on-blur'],
+  props: {
     appendToBody: {
       default: true,
       type:    Boolean,

@@ -34,7 +34,7 @@ export default {
     BadgeState,
     CommunityLinks,
     SingleClusterInfo,
-    TabTitle
+    TabTitle,
   },
 
   mixins: [PageHeaderActions],
@@ -82,7 +82,10 @@ export default {
     ];
 
     return {
-      HIDE_HOME_PAGE_CARDS, fullVersion, pageActions, vendor: getVendor(),
+      HIDE_HOME_PAGE_CARDS,
+      fullVersion,
+      pageActions,
+      vendor: getVendor(),
     };
   },
 
