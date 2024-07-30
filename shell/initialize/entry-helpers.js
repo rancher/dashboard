@@ -1,7 +1,6 @@
 import Vue from 'vue';
 import { updatePageTitle } from '@shell/utils/title';
 import { getVendor } from '@shell/config/private-label';
-import { withQuery } from 'ufo';
 
 // Global variable used on mount, updated on route change and used in the render function
 let app;
@@ -51,39 +50,6 @@ export const loadDebugger = (vueApp) => {
       }
     };
   }
-};
-
-/**
- * TODO: Define this logic use case
- * @param {*} fn
- * @param {*} context
- * @returns
- */
-export const promisify = (fn, context) => {
-  let promise;
-
-  if (fn.length === 2) {
-    console.warn('Callback-based fetch or middleware calls are deprecated. Please switch to promises or async/await syntax'); // eslint-disable-line no-console
-
-    // fn(context, callback)
-    promise = new Promise((resolve) => {
-      fn(context, (err, data) => {
-        if (err) {
-          context.error(err);
-        }
-        data = data || {};
-        resolve(data);
-      });
-    });
-  } else {
-    promise = fn(context);
-  }
-
-  if (promise && promise instanceof Promise && typeof promise.then === 'function') {
-    return promise;
-  }
-
-  return Promise.resolve(promise);
 };
 
 export const globalHandleError = (error) => Vue.config.errorHandler && Vue.config.errorHandler(error);
@@ -266,59 +232,13 @@ export const setContext = async(app, context) => {
   if (!app.context) {
     app.context = {
       isDev:   true,
-      isHMR:   false,
       app,
       store:   app.store,
       payload: context.payload,
       error:   context.error,
       base:    app.router.options.base,
-      env:     {
-        commit: 'head', version: '0.1.2', dev: true, pl: 1, perfTest: false, rancherEnv: 'web', api: 'http://localhost:8989'
-      }
     };
     // Only set once
-
-    if (context.req) {
-      app.context.req = context.req;
-    }
-    if (context.res) {
-      app.context.res = context.res;
-    }
-
-    app.context.redirect = (status, path, query) => {
-      if (!status) {
-        return;
-      }
-      app.context._redirected = true;
-      // if only 1 or 2 arguments: redirect('/') or redirect('/', { foo: 'bar' })
-      let pathType = typeof path;
-
-      if (typeof status !== 'number' && (pathType === 'undefined' || pathType === 'object')) {
-        query = path || {};
-        path = status;
-        pathType = typeof path;
-        status = 302;
-      }
-      if (pathType === 'object') {
-        path = app.router.resolve(path).route.fullPath;
-      }
-      // "/absolute/route", "./relative/route" or "../relative/route"
-      if (/(^[.]{1,2}\/)|(^\/(?!\/))/.test(path)) {
-        app.context.next({
-          path,
-          query,
-          status
-        });
-      } else {
-        path = withQuery(path, query);
-
-        // https://developer.mozilla.org/en-US/docs/Web/API/Location/replace
-        window.location.replace(path);
-
-        // Throw a redirect error
-        throw new Error('ERR_REDIRECT');
-      }
-    };
   }
 
   // Dynamic keys
@@ -337,7 +257,6 @@ export const setContext = async(app, context) => {
 
   app.context.next = context.next;
   app.context._redirected = false;
-  app.context.isHMR = Boolean(context.isHMR);
   app.context.params = app.context.route.params || {};
   app.context.query = app.context.route.query || {};
 };
