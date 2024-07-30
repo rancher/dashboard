@@ -95,6 +95,8 @@ export default function(context, inject, vueApp) {
 
           removed.then(() => {
             element.onload = () => {
+              element.parentElement.removeChild(element);
+
               if (!window[id]) {
                 return reject(new Error('Could not load plugin code'));
               }
@@ -124,7 +126,9 @@ export default function(context, inject, vueApp) {
             };
 
             element.onerror = (e) => {
-            // Massage the error into something useful
+              element.parentElement.removeChild(element);
+
+              // Massage the error into something useful
               const errorMessage = `Failed to load script from '${ e.target.src }'`;
 
               console.error(errorMessage, e); // eslint-disable-line no-console
