@@ -14,7 +14,14 @@ export default {
   name: 'LabeledSelect',
 
   components: { LabeledTooltip },
-  mixins:     [CompactInput, LabeledFormElement, VueSelectOverrides, LabeledSelectPagination],
+  mixins:     [
+    CompactInput,
+    LabeledFormElement,
+    VueSelectOverrides,
+    LabeledSelectPagination
+  ],
+
+  emits: ['on-open', 'on-close', 'selecting'],
 
   props: {
     appendToBody: {
