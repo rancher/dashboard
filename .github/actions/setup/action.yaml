@@ -4,9 +4,9 @@ description: Setup node, python and call bootstrap script
 runs:
   using: 'composite'
   steps:
-    - uses: actions/setup-node@v3
+    - uses: actions/setup-node@v4
       with:
-        node-version: '14.x'
+        node-version-file: '.nvmrc'
         cache: 'yarn'
 
     - name: Install packages

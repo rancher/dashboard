@@ -48,17 +48,17 @@ jobs:
           version: v3.8.0
 
       - name: Setup Nodejs and npm
-        uses: actions/setup-node@v3
+        uses: actions/setup-node@v4
         with:
-          node-version: '16'
+          node-version-file: '.nvmrc'
 
       - name: Setup yarn
         run: npm install -g yarn
 
       - name: Setup Nodejs with yarn caching
-        uses: actions/setup-node@v3
+        uses: actions/setup-node@v4
         with:
-          node-version: '16'
+          node-version-file: '.nvmrc'
           cache: yarn
 
       - name: Install dependencies

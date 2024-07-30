@@ -174,9 +174,9 @@ jobs:
       - uses: actions/checkout@v3
         with:
           fetch-depth: 1
-      - uses: actions/setup-node@v3
+      - uses: actions/setup-node@v4
         with:
-          node-version: '16.x'
+          node-version-file: '.nvmrc'
       
       - name: Install packages
         run: yarn install:ci
@@ -205,9 +205,9 @@ jobs:
   #       with:
   #         fetch-depth: 1
 
-  #     - uses: actions/setup-node@v3
+  #     - uses: actions/setup-node@v4
   #       with:
-  #         node-version: '16.x'
+  #         node-version-file: '.nvmrc'
 
   #     - name: Download Coverage Artifacts
   #       uses: actions/download-artifact@v3
@@ -226,9 +226,9 @@ jobs:
       - uses: actions/checkout@v3
         with:
           fetch-depth: 1
-      - uses: actions/setup-node@v3
+      - uses: actions/setup-node@v4
         with:
-          node-version: '16.x'
+          node-version-file: '.nvmrc'
       - name: Check e2e tags
         run: |
           ./scripts/check-e2e-tests-for-tags
