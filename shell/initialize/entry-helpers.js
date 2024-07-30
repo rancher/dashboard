@@ -54,16 +54,6 @@ export const loadDebugger = (vueApp) => {
 };
 
 /**
- * Handle errors with a redirect
- * @param {*} context
- * @param {*} message
- */
-const errorRedirect = (context, message) => {
-  context.$store.commit('setError', { error: new Error(message) });
-  context.$router.replace('/fail-whale');
-};
-
-/**
  * TODO: Define this logic use case
  * @param {*} fn
  * @param {*} context
@@ -141,40 +131,7 @@ async function render(to, from, next) {
     this.$loading.start();
   }
 
-  // Get route's matched components
-  const matches = [];
-  const Components = getMatchedComponents(to, matches);
-
   try {
-    // Call .validate()
-    let isValid = true;
-
-    try {
-      for (const Component of Components) {
-        if (typeof Component.options.validate !== 'function') {
-          continue;
-        }
-
-        isValid = await Component.options.validate(app.context);
-
-        if (!isValid) {
-          break;
-        }
-      }
-    } catch (validationError) {
-      // ...If .validate() threw an error
-      errorRedirect(this, new Error(`${ validationError.statusCode || '500' }: ${ validationError.message }`));
-
-      return next();
-    }
-
-    // ...If .validate() returned false
-    if (!isValid) {
-      errorRedirect(this, new Error('404: This page could not be found'));
-
-      return next();
-    }
-
     // If not redirected
     if (!nextCalled) {
       if (this.$loading.finish && !this.$loading.manual) {
@@ -254,31 +211,6 @@ export async function mountApp(appPartials, VueClass) {
   });
 }
 
-/**
- * Extend component properties
- * @param {*} Component
- * @returns
- */
-const patchComponent = (Component) => {
-  // If Component already sanitized
-  if (Component.options && Component._Ctor === Component) {
-    return Component;
-  }
-  if (!Component.options) {
-    Component = Vue.extend(Component); // fix issue #6
-    Component._Ctor = Component;
-  } else {
-    Component._Ctor = Component;
-    Component.extendOptions = Component.options;
-  }
-  // If no component name defined, set file path as name, (also fixes #5703)
-  if (!Component.options.name && Component.options.__file) {
-    Component.options.name = Component.options.__file;
-  }
-
-  return Component;
-};
-
 export const getMatchedComponents = (route, matches = false, prop = 'components') => {
   return Array.prototype.concat.apply([], route.matched.map((match, index) => {
     return Object.keys(match[prop]).map((key) => {
@@ -289,65 +221,6 @@ export const getMatchedComponents = (route, matches = false, prop = 'components'
   }));
 };
 
-const getComponent = async(unknownComponent) => {
-  let componentView;
-
-  // If component is a function, resolve it
-  if (typeof unknownComponent === 'function' && !unknownComponent.options) {
-    try {
-      componentView = await unknownComponent();
-    } catch (error) {
-      // Handle webpack chunk loading errors
-      // This may be due to a new deployment or a network problem
-      if (
-        error &&
-        error.name === 'ChunkLoadError' &&
-        typeof window !== 'undefined' &&
-        window.sessionStorage
-      ) {
-        const timeNow = Date.now();
-        const previousReloadTime = parseInt(window.sessionStorage.getItem('nuxt-reload'));
-
-        // check for previous reload time not to reload infinitely
-        if (!previousReloadTime || previousReloadTime + 60000 < timeNow) {
-          window.sessionStorage.setItem('nuxt-reload', timeNow);
-          window.location.reload(true /* skip cache */);
-        }
-      }
-
-      throw error;
-    }
-  }
-
-  return componentView || unknownComponent;
-};
-
-/**
- * Patch all the matched components of a given route
- * @param {*} route
- * @returns
- */
-const patchMatchedComponents = (route) => Array.prototype.concat.apply(
-  [],
-  route.matched.map(
-    (match, index) => Object
-      .keys(match.components)
-      .reduce(async(acc, key) => {
-        if (match.components[key]) {
-          const component = await getComponent(match.components[key], match.instances[key], match, key, index);
-          const patchedComponent = patchComponent(component);
-
-          match.components[key] = patchedComponent;
-          acc.push(patchedComponent);
-        } else {
-          delete match.components[key];
-        }
-
-        return acc;
-      }, [])
-  )
-);
-
 /**
    * Merge route meta with component meta and update matched components
    * @param {*} route
@@ -357,15 +230,28 @@ export const getRouteData = async(route) => {
   if (!route) {
     return;
   }
-  // Make sure the components are resolved (code-splitting)
-  await Promise.all(patchMatchedComponents(route));
-  const meta = getMatchedComponents(route).map(
-    (matchedComponent, index) => ({ ...matchedComponent.options.meta, ...(route.matched[index] || {}).meta })
-  );
+
+  // Ensure we're working with the _value property of the route object
+  const routeValue = route._value || route;
+
+  if (!routeValue.matched) {
+    // eslint-disable-next-line no-console
+    console.warn('Route matched property is undefined:', routeValue);
+
+    return routeValue;
+  }
+
+  const meta = routeValue.matched.map((record) => {
+    // Merge component meta and route record meta
+    const componentMeta = record.components?.default?.meta || {};
+    const recordMeta = record.meta || {};
+
+    return { ...componentMeta, ...recordMeta };
+  });
 
   // Send back a copy of route with meta based on Component definition
   return {
-    ...route,
+    ...routeValue,
     meta
   };
 };
