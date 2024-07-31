@@ -55,7 +55,7 @@ jobs:
         compression-level: 9
   e2e-test-extensions-compatibility:
     if: "!contains( github.event.pull_request.labels.*.name, 'ci/skip-e2e')"
-    # needs: e2e-ui-build
+    needs: e2e-ui-build
     strategy:
       fail-fast: false
       matrix:
