@@ -1,6 +1,4 @@
 import Vue from 'vue';
-import { updatePageTitle } from '@shell/utils/title';
-import { getVendor } from '@shell/config/private-label';
 
 // Global variable used on mount, updated on route change and used in the render function
 let app;
@@ -110,11 +108,6 @@ export async function mountApp(appPartials, VueClass) {
 
   // Add beforeEach router hooks
   router.beforeEach(render.bind(vueApp));
-  router.afterEach((from, to) => {
-    if (from?.name !== to?.name) {
-      updatePageTitle(getVendor());
-    }
-  });
 
   vueApp.$mount('#app');
 }

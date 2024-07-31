@@ -7,6 +7,7 @@ import { install as installProducts } from '@shell/config/router/navigation-guar
 import { install as installHistory } from '@shell/config/router/navigation-guards/history';
 import { install as installClusters } from '@shell/config/router/navigation-guards/clusters';
 import { install as installHandleInstallRedirect } from '@shell/config/router/navigation-guards/install-redirect';
+import { install as installPageTitle } from '@shell/config/router/navigation-guards/page-title';
 
 /**
  * Install our router navigation guards. i.e. router.beforeEach(), router.afterEach()
@@ -15,7 +16,7 @@ export function installNavigationGuards(router, context) {
   // NOTE: the order of the installation matters.
   // Be intentional when adding, removing or modifying the guards that are installed.
 
-  const navigationGuardInstallers = [installLoadInitialSettings, installAttemptFirstLogin, installAuthentication, installProducts, installHistory, installClusters, installRuntimeExtensionRoute, installI18N, installHandleInstallRedirect];
+  const navigationGuardInstallers = [installLoadInitialSettings, installAttemptFirstLogin, installAuthentication, installProducts, installHistory, installClusters, installRuntimeExtensionRoute, installI18N, installHandleInstallRedirect, installPageTitle];
 
   navigationGuardInstallers.forEach((installer) => installer(router, context));
 }
