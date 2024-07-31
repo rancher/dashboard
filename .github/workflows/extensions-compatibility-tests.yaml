@@ -5,7 +5,7 @@ on:
   # TODO: DELETE THIS!!!! JUST FOR TESTING PURPOSES!
   pull_request:
     branches:
-      - master
+      - release-2.9
 
 env:
   TEST_USERNAME: admin
@@ -31,7 +31,7 @@ jobs:
     steps:
      - uses: actions/checkout@v3
        with:
-        ref: master
+        ref: release-2.9
         fetch-depth: 1
      - name: Setup env
        uses: ./.github/actions/setup
@@ -68,7 +68,7 @@ jobs:
           # ['@neuvector']
         ]
         rancherEnv: [
-          ['v2.9-head', 'master']
+          ['v2.9-head', 'release-2.9']
         ]
     runs-on: ubuntu-latest
     steps:
