@@ -108,7 +108,7 @@ export const SETTING = {
   USER_LAST_LOGIN_DEFAULT:              'user-last-login-default',
   DISABLE_INACTIVE_USER_AFTER:          'disable-inactive-user-after',
   DELETE_INACTIVE_USER_AFTER:           'delete-inactive-user-after',
-};
+} as const;
 
 // These are the settings that are allowed to be edited via the UI
 export const ALLOWED_SETTINGS: GlobalSetting = {

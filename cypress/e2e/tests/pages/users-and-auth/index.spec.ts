@@ -48,7 +48,7 @@ describe('Auth Index', { testIsolation: 'off', tags: ['@explorer', '@adminUser']
     const userRetentionPo = new UserRetentionPo();
 
     userRetentionPo.disableAfterPeriodCheckbox().set();
-    userRetentionPo.disableAfterPeriodInput().set('30d');
+    userRetentionPo.disableAfterPeriodInput().set('300h');
     userRetentionPo.userRetentionCron().set('0 0 1 1 *');
 
     userRetentionPo.saveButton().expectToBeEnabled();

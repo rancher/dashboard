@@ -6,71 +6,19 @@ import UserRetentionHeader from '@shell/components/user.retention/user-retention
 import Footer from '@shell/components/form/Footer.vue';
 import { useStore } from '@shell/composables/useStore';
 import { useI18n } from '@shell/composables/useI18n';
+import { useUserRetentionValidation } from '@shell/composables/useUserRetentionValidation';
 import { MANAGEMENT } from '@shell/config/types';
 import { SETTING } from '@shell/config/settings';
 import { isAdminUser } from '@shell/store/type-map';
+
+import type { Setting } from '@shell/types/resources/settings';
 
 import Banner from '@components/Banner/Banner.vue';
 import Checkbox from '@components/Form/Checkbox/Checkbox.vue';
 import LabeledInput from '@components/Form/LabeledInput/LabeledInput.vue';
 import { ToggleSwitch } from '@components/Form/ToggleSwitch';
 
-import { isValidCron } from 'cron-validator';
 import dayjs from 'dayjs';
-
-type Links = {
-  remove: string;
-  self: string;
-  update: string;
-  view: string;
-};
-
-type FieldsV1 = {
-  'f:customized': {};
-  'f:default': {};
-  'f:source': {};
-  'f:value': {};
-};
-
-type ManagedFields = {
-  apiVersion: string;
-  fieldsType: string;
-  fieldsV1: FieldsV1;
-  manager: string;
-  operation: string;
-  time: string;
-};
-
-type Metadata = {
-  creationTimestamp: string;
-  fields: string[];
-  generation: number;
-  managedFields: ManagedFields[];
-  name: string;
-  relationships: null;
-  resourceVersion: string;
-  state: {
-    error: boolean;
-    message: string;
-    name: string;
-    transitioning: boolean;
-  };
-  uid: string;
-};
-
-type Setting = {
-  id: string;
-  type: string;
-  links: Links;
-  apiVersion: string;
-  customized: boolean;
-  default: string;
-  kind: string;
-  metadata: Metadata;
-  source: string;
-  value: string | null;
-  save: () => void;
-};
 
 const store = useStore();
 const userRetentionSettings = reactive<{[id: string]: string | null }>({
@@ -80,9 +28,21 @@ const userRetentionSettings = reactive<{[id: string]: string | null }>({
   [SETTING.USER_RETENTION_DRY_RUN]:      null,
   [SETTING.USER_LAST_LOGIN_DEFAULT]:     null,
 });
+const authUserSessionTtlMinutes = ref<Setting | null>(null);
 const disableAfterPeriod = ref(false);
 const deleteAfterPeriod = ref(false);
 const loading = ref(true);
+const {
+  validateUserRetentionCron,
+  validateDisableInactiveUserAfterDuration,
+  validateDeleteInactiveUserAfterDuration,
+  validateDeleteInactiveUserAfter,
+  validateDurationAgainstAuthUserSession,
+  setValidation,
+  removeValidation,
+  addValidation,
+  isFormValid,
+} = useUserRetentionValidation(disableAfterPeriod, deleteAfterPeriod, authUserSessionTtlMinutes);
 let settings: { [id: string]: Setting } = {};
 
 /**
@@ -124,7 +84,7 @@ watch([disableAfterPeriod, deleteAfterPeriod], ([newDisableAfterPeriod, newDelet
       userRetentionSettings[key] = null;
     });
 
-    validateUserRetentionCron();
+    removeValidation(SETTING.USER_RETENTION_CRON);
 
     return;
   }
@@ -132,7 +92,7 @@ watch([disableAfterPeriod, deleteAfterPeriod], ([newDisableAfterPeriod, newDelet
   ids.filter((id) => ![SETTING.DISABLE_INACTIVE_USER_AFTER, SETTING.DELETE_INACTIVE_USER_AFTER].includes(id))
     .forEach(assignSettings);
 
-  validateUserRetentionCron();
+  addValidation(SETTING.USER_RETENTION_CRON);
 });
 
 const assignSettings = (key: string) => {
@@ -166,40 +126,14 @@ onMounted(async() => {
 
   ids.forEach(assignSettings);
 
+  authUserSessionTtlMinutes.value = await fetchSetting(SETTING.AUTH_USER_SESSION_TTL_MINUTES);
+
   disableAfterPeriod.value = !!userRetentionSettings[SETTING.DISABLE_INACTIVE_USER_AFTER];
   deleteAfterPeriod.value = !!userRetentionSettings[SETTING.DELETE_INACTIVE_USER_AFTER];
   loading.value = false;
-
-  validateUserRetentionCron();
 });
 
-const isFormValid = ref(false);
 const { t } = useI18n(store);
-const validateUserRetentionCron = () => {
-  const { [SETTING.USER_RETENTION_CRON]: cronSetting } = userRetentionSettings;
-
-  // Only require user retention cron when disable or delete after are active
-  if (!disableAfterPeriod.value && !deleteAfterPeriod.value) {
-    isFormValid.value = true;
-
-    return;
-  }
-
-  if (!cronSetting) {
-    isFormValid.value = false;
-
-    return;
-  }
-
-  if (typeof cronSetting === 'string' && !isValidCron(cronSetting)) {
-    isFormValid.value = false;
-
-    return t('user.retention.edit.form.cron.errorMessage');
-  }
-
-  isFormValid.value = true;
-};
-
 const error = ref<string | null>(null);
 const save = async(btnCB: (arg: boolean) => void) => {
   try {
@@ -268,6 +202,8 @@ onBeforeRouteUpdate((_to: unknown, _from: unknown) => {
           class="input-field"
           :label="t('user.retention.edit.form.disableAfter.input.label')"
           :disabled="!disableAfterPeriod"
+          :rules="[validateDisableInactiveUserAfterDuration, validateDurationAgainstAuthUserSession]"
+          @update:validation="e => setValidation(SETTING.DISABLE_INACTIVE_USER_AFTER, e)"
         />
       </div>
       <div class="input-fieldset">
@@ -284,6 +220,8 @@ onBeforeRouteUpdate((_to: unknown, _from: unknown) => {
           :label="t('user.retention.edit.form.deleteAfter.input.label')"
           :sub-label="t('user.retention.edit.form.deleteAfter.input.subLabel')"
           :disabled="!deleteAfterPeriod"
+          :rules="[validateDeleteInactiveUserAfterDuration, validateDurationAgainstAuthUserSession, validateDeleteInactiveUserAfter]"
+          @update:validation="e => setValidation(SETTING.DELETE_INACTIVE_USER_AFTER, e)"
         />
       </div>
       <template
@@ -299,7 +237,8 @@ onBeforeRouteUpdate((_to: unknown, _from: unknown) => {
             :tooltip="t('user.retention.edit.form.cron.subLabel')"
             :rules="[validateUserRetentionCron]"
             :label="t('user.retention.edit.form.cron.label')"
-            @input="validateUserRetentionCron"
+            :require-dirty="false"
+            @update:validation="e => setValidation(SETTING.USER_RETENTION_CRON, e)"
           />
         </div>
         <div class="input-fieldset condensed pt-12">
