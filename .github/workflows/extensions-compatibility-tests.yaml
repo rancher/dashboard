@@ -1,4 +1,4 @@
-name: Extensions Compatibility Tests
+name: Extensions Compatibility Tests 2.9
 on:
   schedule:
     - cron: "0 0 * * *" # runs at midnight every day
