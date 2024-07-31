@@ -67,30 +67,10 @@ async function render(to, from, next) {
     return next();
   }
 
-  // nextCalled is true when redirected
-  let nextCalled = false;
-  const _next = (path) => {
-    if (from.path === path.path && this.$loading.finish) {
-      this.$loading.finish();
-    }
-
-    if (from.path !== path.path && this.$loading.pause) {
-      this.$loading.pause();
-    }
-
-    if (nextCalled) {
-      return;
-    }
-
-    nextCalled = true;
-    next(path);
-  };
-
   // Update context
   await setContext(app, {
     route: to,
     from,
-    next:  _next.bind(this)
   });
 
   if (this.$loading.start && !this.$loading.manual) {
@@ -98,14 +78,11 @@ async function render(to, from, next) {
   }
 
   try {
-    // If not redirected
-    if (!nextCalled) {
-      if (this.$loading.finish && !this.$loading.manual) {
-        this.$loading.finish();
-      }
-
-      next();
+    if (this.$loading.finish && !this.$loading.manual) {
+      this.$loading.finish();
     }
+
+    next();
   } catch (err) {
     const error = err || {};
 
@@ -128,11 +105,6 @@ export async function mountApp(appPartials, VueClass) {
   // Create Vue instance
   const vueApp = new VueClass(app);
 
-  // Mounts Vue app to DOM element
-  const mount = () => {
-    vueApp.$mount('#app');
-  };
-
   // Initialize error handler
   vueApp.$loading = {}; // To avoid error while vueApp.$nuxt does not exist
 
@@ -144,37 +116,7 @@ export async function mountApp(appPartials, VueClass) {
     }
   });
 
-  // First render on client-side
-  const clientFirstMount = () => {
-    mount();
-  };
-
-  // fix: force next tick to avoid having same timestamp when an error happen on spa fallback
-  await new Promise((resolve) => setTimeout(resolve, 0));
-  render.call(vueApp, router.currentRoute, router.currentRoute, (path) => {
-    // If not redirected
-    if (!path) {
-      clientFirstMount();
-
-      return;
-    }
-
-    // Add a one-time afterEach hook to
-    // mount the app wait for redirect and route gets resolved
-    const unregisterHook = router.afterEach((to, from) => {
-      unregisterHook();
-      clientFirstMount();
-    });
-
-    // Push the path and let route to be resolved
-    router.push(path, undefined, (err) => {
-      if (err) {
-        const errorHandler = vueApp?.config?.errorHandler || console.error; // eslint-disable-line no-console
-
-        errorHandler(err);
-      }
-    });
-  });
+  vueApp.$mount('#app');
 }
 
 export const getMatchedComponents = (route, matches = false, prop = 'components') => {
