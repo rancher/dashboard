@@ -310,6 +310,7 @@ jobs:
 
 <<<<<<< HEAD
 <<<<<<< HEAD
+<<<<<<< HEAD
 
   lint:
     runs-on: ubuntu-latest
@@ -330,38 +331,17 @@ jobs:
 =======
 >>>>>>> f0bfe54175 (comment workflows)
 >>>>>>> aef1a47c78 (comment workflows)
+=======
+>>>>>>> 087a32130d (update)
   check-i18n:
     runs-on: ubuntu-latest
     steps:
       - uses: actions/checkout@v4
         with:
           fetch-depth: 1
-<<<<<<< HEAD
-<<<<<<< HEAD
       - uses: actions/setup-node@v4
         with:
           node-version-file: '.nvmrc'
-=======
-#   check-i18n:
-#     runs-on: ubuntu-latest
-#     steps:
-#       - uses: actions/checkout@v3
-#         with:
-#           fetch-depth: 1
-#       - uses: actions/setup-node@v3
-#         with:
-#           node-version: '16.x'
->>>>>>> d05c7b9587 (bind to only v2.9 to check if tests pass + comment other workflows)
-=======
-      - uses: actions/setup-node@v3
-        with:
-          node-version: '16.x'
->>>>>>> f0bfe54175 (comment workflows)
-=======
-      - uses: actions/setup-node@v4
-        with:
-          node-version-file: '.nvmrc'
->>>>>>> 46989f9ad6 (use same version as master for test.yaml)
       
       - name: Install packages
         run: yarn install:ci
@@ -389,6 +369,7 @@ jobs:
           fetch-depth: 1
 >>>>>>> aef1a47c78 (comment workflows)
 
+<<<<<<< HEAD
 <<<<<<< HEAD
 #       - name: Run tests
 #         uses: ./.github/actions/lint
@@ -438,24 +419,10 @@ jobs:
 =======
 =======
 =======
+=======
+>>>>>>> 087a32130d (update)
       - name: Run tests
         uses: ./.github/actions/lint
-<<<<<<< HEAD
-<<<<<<< HEAD
->>>>>>> f0bfe54175 (comment workflows)
-  
-=======
->>>>>>> 15910841c9 (see if setup runs)
-  coverage:
-    runs-on: ubuntu-latest
-    needs:
-      - unit-test
-    steps:
-      - uses: actions/checkout@v3
-        with:
-          fetch-depth: 1
-=======
->>>>>>> 46989f9ad6 (use same version as master for test.yaml)
 
   # coverage:
   #   runs-on: ubuntu-latest
@@ -481,25 +448,6 @@ jobs:
   #     - name: Upload tests coverage report to Codecov
   #       run: ./codecov --verbose upload-process -t ${{ secrets.CODECOV_TOKEN }} -n ${{github.run_number}}-${{github.run_attempt}}-coverage -F unit -f ./coverage/coverage-unit.json
 
-<<<<<<< HEAD
->>>>>>> 7cea97aad2 (comment workflows)
-#   check-e2e-tags:
-#     runs-on: ubuntu-latest
-#     steps:
-#       - uses: actions/checkout@v3
-#         with:
-#           fetch-depth: 1
-#       - uses: actions/setup-node@v3
-#         with:
-#           node-version: '16.x'
-#       - name: Check e2e tags
-#         run: |
-#           ./scripts/check-e2e-tests-for-tags
-<<<<<<< HEAD
->>>>>>> d05c7b9587 (bind to only v2.9 to check if tests pass + comment other workflows)
-=======
->>>>>>> 7cea97aad2 (comment workflows)
-=======
   check-e2e-tags:
     runs-on: ubuntu-latest
     steps:
@@ -511,9 +459,4 @@ jobs:
           node-version-file: '.nvmrc'
       - name: Check e2e tags
         run: |
-<<<<<<< HEAD
           ./scripts/check-e2e-tests-for-tags
->>>>>>> f0bfe54175 (comment workflows)
-=======
-          ./scripts/check-e2e-tests-for-tags
->>>>>>> 46989f9ad6 (use same version as master for test.yaml)
