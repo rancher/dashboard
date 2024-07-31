@@ -2,12 +2,14 @@
 // So it can be disabled just on this file that does nothing else, instead of every file that uses
 // an import with a variable in the path.
 
+import { defineAsyncComponent } from 'vue';
+
 export function importCloudCredential(name) {
   if (!name) {
     throw new Error('Name required');
   }
 
-  return () => import(/* webpackChunkName: "cloud-credential" */ `@shell/cloud-credential/${name}`);
+  return defineAsyncComponent(() => import(/* webpackChunkName: "cloud-credential" */ `@shell/cloud-credential/${name}`));
 }
 
 export function importMachineConfig(name) {
@@ -15,7 +17,7 @@ export function importMachineConfig(name) {
     throw new Error('Name required');
   }
 
-  return () => import(/* webpackChunkName: "machine-config" */ `@shell/machine-config/${name}`);
+  return defineAsyncComponent(() => import(/* webpackChunkName: "machine-config" */ `@shell/machine-config/${name}`));
 }
 
 export function importLogin(name) {
@@ -23,7 +25,7 @@ export function importLogin(name) {
     throw new Error('Name required');
   }
 
-  return () => import(/* webpackChunkName: "login" */ `@shell/components/auth/login/${name}`);
+  return defineAsyncComponent(() => import(/* webpackChunkName: "login" */ `@shell/components/auth/login/${name}`));
 }
 
 export function importChart(name) {
@@ -31,7 +33,7 @@ export function importChart(name) {
     throw new Error('Name required');
   }
 
-  return () => import(/* webpackChunkName: "chart" */ `@shell/chart/${name}`);
+  return defineAsyncComponent(() => import(/* webpackChunkName: "chart" */ `@shell/chart/${name}`));
 }
 
 export function importList(name) {
@@ -39,7 +41,7 @@ export function importList(name) {
     throw new Error('Name required');
   }
 
-  return () => import(/* webpackChunkName: "list" */ `@shell/list/${name}`);
+  return defineAsyncComponent(() => import(/* webpackChunkName: "list" */ `@shell/list/${name}`));
 }
 
 export function importDetail(name) {
@@ -47,7 +49,7 @@ export function importDetail(name) {
     throw new Error('Name required');
   }
 
-  return () => import(/* webpackChunkName: "detail" */ `@shell/detail/${name}`);
+  return defineAsyncComponent(() => import(/* webpackChunkName: "detail" */ `@shell/detail/${name}`));
 }
 
 export function importEdit(name) {
@@ -55,7 +57,7 @@ export function importEdit(name) {
     throw new Error('Name required');
   }
 
-  return () => import(/* webpackChunkName: "edit" */ `@shell/edit/${name}`);
+  return defineAsyncComponent(() => import(/* webpackChunkName: "edit" */ `@shell/edit/${name}`));
 }
 
 export function importDialog(name) {
@@ -63,7 +65,7 @@ export function importDialog(name) {
     throw new Error('Name required');
   }
 
-  return () => import(/* webpackChunkName: "dialog" */ `@shell/dialog/${name}`);
+  return defineAsyncComponent(() => import(/* webpackChunkName: "dialog" */ `@shell/dialog/${name}`));
 }
 
 export function importWindowComponent(name) {
@@ -71,7 +73,7 @@ export function importWindowComponent(name) {
     throw new Error('Name required');
   }
 
-  return () => import(/* webpackChunkName: "components/nav" */ `@shell/components/nav/WindowManager/${name}`);
+  return defineAsyncComponent(() => import(/* webpackChunkName: "components/nav" */ `@shell/components/nav/WindowManager/${name}`));
 }
 
 export function loadProduct(name) {
@@ -100,7 +102,7 @@ export function loadTranslation(name) {
 }
 
 export function importCustomPromptRemove(name) {
-  return () => import(/* webpackChunkName: "custom-prompt-remove" */ `@shell/promptRemove/${ name }`);
+  return defineAsyncComponent(() => import(/* webpackChunkName: "custom-prompt-remove" */ `@shell/promptRemove/${ name }`));
 }
 
 export function resolveList(key) {
