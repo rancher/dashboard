@@ -106,7 +106,7 @@ jobs:
       # This is the actual triggering of the e2e test specs
       - name: Run user tests
         run: |
-          echo "something 2.8 actual tests" export SPEC_FILE="cypress/e2e/tests/pages/extensions-compatibility-tests/elemental.spec.ts" && yarn e2e:prod
+          echo "something 2.8 actual tests" && export SPEC_FILE="cypress/e2e/tests/pages/extensions-compatibility-tests/elemental.spec.ts" && yarn e2e:prod
           [ "$BUILD_DASHBOARD" != "false" ] || exit 0
         env: 
           TEST_SKIP: setup
