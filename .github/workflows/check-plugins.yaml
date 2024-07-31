@@ -1,16 +1,8 @@
-<<<<<<< HEAD
-<<<<<<< HEAD
-=======
->>>>>>> 25d6584234 (comment workflows)
 name: check-plugins-build
 on:
   pull_request:
     branches:
-<<<<<<< HEAD
-      - master
-=======
       - master-bananas
->>>>>>> 25d6584234 (comment workflows)
 env:
   TEST_PERSIST_BUILD: true
 jobs:
@@ -22,43 +14,10 @@ jobs:
     - name: Setup Node.js
       uses: actions/setup-node@v4
       with:
-<<<<<<< HEAD
-<<<<<<< HEAD
         node-version-file: '.nvmrc'
-=======
-        node-version: '16.20.2'
->>>>>>> b7384b5fad (Revert "script adjustment/fix")
     - name: Validate Plugin build system
       run: ./shell/scripts/test-plugins-build.sh
       shell: bash
-=======
-# name: check-plugins-build
-# on:
-#   pull_request:
-#     branches:
-#       - master
-# env:
-#   TEST_PERSIST_BUILD: true
-# jobs:
-#   validate:
-#     runs-on: ubuntu-latest
-#     steps:
-#     - name: Checkout
-#       uses: actions/checkout@v4
-#     - name: Setup Node.js
-#       uses: actions/setup-node@v4
-#       with:
-#         node-version: '16.20.2'
-#     - name: Validate Plugin build system
-#       run: ./shell/scripts/test-plugins-build.sh
-#       shell: bash
->>>>>>> 25d643d2d3 (comment workflows)
-=======
-        node-version: '16.20.2'
-    - name: Validate Plugin build system
-      run: ./shell/scripts/test-plugins-build.sh
-      shell: bash
->>>>>>> 25d6584234 (comment workflows)
 
     - name: Upload files
       uses: actions/upload-artifact@v3

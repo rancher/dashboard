@@ -1,64 +1,22 @@
 name: Publish Docusaurus
 
-<<<<<<< HEAD
-<<<<<<< HEAD
-=======
->>>>>>> 25d6584234 (comment workflows)
 on:
   push:
     branches:
       - master
-<<<<<<< HEAD
-  pull_request:
-    branches:
-      - master
-=======
   # pull_request:
   #   branches:
   #     - master
->>>>>>> 25d6584234 (comment workflows)
 jobs:
   build:
     name: Build
     runs-on: ubuntu-latest
     steps:
       - uses: actions/checkout@v2
-<<<<<<< HEAD
-<<<<<<< HEAD
       - uses: actions/setup-node@v4
         with:
           node-version-file: '.nvmrc'
-=======
-      - uses: actions/setup-node@v3
-        with:
-          node-version: 16.x
->>>>>>> b7384b5fad (Revert "script adjustment/fix")
           cache: yarn
-=======
-# on:
-#   push:
-#     branches:
-#       - master
-#   pull_request:
-#     branches:
-#       - master
-# jobs:
-#   build:
-#     name: Build
-#     runs-on: ubuntu-latest
-#     steps:
-#       - uses: actions/checkout@v2
-#       - uses: actions/setup-node@v3
-#         with:
-#           node-version: 16.x
-#           cache: yarn
->>>>>>> 25d643d2d3 (comment workflows)
-=======
-      - uses: actions/setup-node@v3
-        with:
-          node-version: 16.x
-          cache: yarn
->>>>>>> 25d6584234 (comment workflows)
 
       - name: Install dependencies
         run: cd docusaurus/ && yarn install:ci
