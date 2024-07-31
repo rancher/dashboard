@@ -13,15 +13,9 @@ jobs:
       - uses: actions/checkout@v4
         with:
           fetch-depth: 1
-<<<<<<< HEAD
       - uses: actions/setup-node@v4
         with:
           node-version-file: '.nvmrc'
-=======
-      - uses: actions/setup-node@v3
-        with:
-          node-version: '14.x'
->>>>>>> b7384b5fad (Revert "script adjustment/fix")
       
       - name: Install packages
         run: yarn install
@@ -35,15 +29,9 @@ jobs:
       - uses: actions/checkout@v4
         with:
           fetch-depth: 1
-<<<<<<< HEAD
       - uses: actions/setup-node@v4
         with:
           node-version-file: '.nvmrc'
-=======
-      - uses: actions/setup-node@v3
-        with:
-          node-version: '14.x'
->>>>>>> b7384b5fad (Revert "script adjustment/fix")
       
       - name: Install packages
         run: yarn install

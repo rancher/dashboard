@@ -48,29 +48,17 @@ jobs:
           version: v3.8.0
 
       - name: Setup Nodejs and npm
-<<<<<<< HEAD
         uses: actions/setup-node@v4
         with:
           node-version-file: '.nvmrc'
-=======
-        uses: actions/setup-node@v3
-        with:
-          node-version: '16'
->>>>>>> b7384b5fad (Revert "script adjustment/fix")
 
       - name: Setup yarn
         run: npm install -g yarn
 
       - name: Setup Nodejs with yarn caching
-<<<<<<< HEAD
         uses: actions/setup-node@v4
         with:
           node-version-file: '.nvmrc'
-=======
-        uses: actions/setup-node@v3
-        with:
-          node-version: '16'
->>>>>>> b7384b5fad (Revert "script adjustment/fix")
           cache: yarn
 
       - name: Install dependencies
