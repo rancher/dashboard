@@ -10,6 +10,8 @@ export default {
 
   components: { Favorite, TabTitle },
 
+  emits: ['selected'],
+
   props: {
     type: {
       type:     Object,
@@ -82,8 +84,6 @@ export default {
     v-slot="{ href, navigate, isActive, isExactActive }"
     custom
     :to="type.route"
-    :exact="type.exact"
-    :exact-path="type['exact-path']"
   >
     <li
       class="child nav-type"

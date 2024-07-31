@@ -5,6 +5,8 @@ export default {
 
   components: { Type },
 
+  emits: ['expand', 'close'],
+
   props: {
     depth: {
       type:    Number,
