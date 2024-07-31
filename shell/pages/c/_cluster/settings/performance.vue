@@ -212,7 +212,7 @@ export default {
             color="warning"
           />
           <Checkbox
-            v-model="value.serverPagination.enabled"
+            :model="value.serverPagination.enabled"
             :mode="mode"
             :label="t('performance.serverPagination.checkboxLabel')"
             class="mt-10 mb-20"
