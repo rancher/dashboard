@@ -238,5 +238,9 @@ export default {
 
   .sub-header {
     grid-area: sub-header;
+
+    a {
+      display: inline-block;
+    }
   }
 </style>
