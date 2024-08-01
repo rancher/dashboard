@@ -73,27 +73,27 @@ export default {
     };
   },
 
-  async middleware({ store, redirect } ) {
-    const isFirstLogin = calcIsFirstLogin(store);
-    const mustChangePassword = await calcMustChangePassword(store);
+  async beforeCreate() {
+    const isFirstLogin = calcIsFirstLogin(this.$store);
+    const mustChangePassword = await calcMustChangePassword(this.$store);
 
     if (isFirstLogin) {
       // Always show setup if this is the first log in
       return;
     } else if (mustChangePassword) {
       // If the password needs changing and this isn't the first log in ensure we have the password
-      if (!!store.getters['auth/initialPass']) {
+      if (!!this.$store.getters['auth/initialPass']) {
         // Got it... show setup
         return;
       }
       // Haven't got it... redirect to log in so we get it
-      await store.dispatch('auth/logout', null, { root: true });
+      await this.$store.dispatch('auth/logout', null, { root: true });
 
-      return redirect(302, `/auth/login?${ LOGGED_OUT }`);
+      return this.$router.replace(`/auth/login?${ LOGGED_OUT }`);
     }
 
     // For all other cases we don't need to show setup
-    return redirect('/');
+    return this.$router.replace('/');
   },
 
   components: {

@@ -1,19 +1,17 @@
 <script>
-import { NAME, CHART_NAME } from '@shell/config/product/gatekeeper';
-import InstallRedirect from '@shell/utils/install-redirect';
 import ChartHeading from '@shell/components/ChartHeading';
 import SortableTable from '@shell/components/SortableTable';
 import { Banner } from '@components/Banner';
 import { CONSTRAINT_VIOLATION_CONSTRAINT_LINK, CONSTRAINT_VIOLATION_COUNT, CONSTRAINT_VIOLATION_TEMPLATE_LINK } from '@shell/config/table-headers';
 import { GATEKEEPER } from '@shell/config/types';
+import Loading from '@shell/components/Loading';
 
 export const OPA_GATE_KEEPER_ID = 'cluster/rancher-charts/rancher-gatekeeper';
 
 export default {
   components: {
-    ChartHeading, SortableTable, Banner
+    ChartHeading, SortableTable, Banner, Loading
   },
-  middleware: InstallRedirect(NAME, CHART_NAME),
   async fetch() {
     const constraints = this.constraint ? [this.constraint] : await this.$store.dispatch('cluster/findAll', { type: GATEKEEPER.SPOOFED.CONSTRAINT });
 
@@ -50,7 +48,8 @@ export default {
 </script>
 
 <template>
-  <div>
+  <Loading v-if="$fetchState.pending" />
+  <div v-else>
     <ChartHeading
       :label="t('gatekeeperIndex.poweredBy')"
       url="https://github.com/open-policy-agent/gatekeeper"
