@@ -11,7 +11,7 @@ import LabeledSelect from '@shell/components/form/LabeledSelect';
 import YamlEditor from '@shell/components/YamlEditor';
 import { LEGACY } from '@shell/store/features';
 import semver from 'semver';
-import { _EDIT, _VIEW } from '@shell/config/query-params';
+import { _CREATE, _EDIT, _VIEW } from '@shell/config/query-params';
 
 const HARVESTER = 'harvester';
 
@@ -34,6 +34,11 @@ export default {
     value: {
       type:     Object,
       required: true,
+    },
+
+    liveValue: {
+      type:    Object,
+      default: () => {}
     },
 
     provider: {
@@ -105,6 +110,10 @@ export default {
     },
     cloudProviderOptions: {
       type:     Array,
+      required: true
+    },
+    canMigrateAzureOnEdit: {
+      type:     Boolean,
       required: true
     }
   },
@@ -377,9 +386,11 @@ export default {
     },
 
     canNotEditCloudProvider() {
-      const canNotEdit = this.isEdit;
+      if (!this.isEdit) {
+        return false;
+      }
 
-      return canNotEdit;
+      return !this.canMigrateAzureOnEdit;
     },
 
     /**
@@ -393,7 +404,14 @@ export default {
      * Display warning about unsupported Azure provider if k8s >= 1.30
      */
     showCloudProviderUnsupportedAzureWarning() {
-      return this.mode !== _VIEW && (semver.gte(this.value.spec.kubernetesVersion, 'v1.30.0') || this.agentConfig['cloud-provider-name'] === 'azure');
+      return this.mode == _CREATE && (semver.gte(this.value.spec.kubernetesVersion, 'v1.30.0') || this.agentConfig['cloud-provider-name'] === 'azure');
+    },
+
+    /**
+     * Display warning about Azure provider migration from k8s versions >= 1.27 to External provider
+     */
+    showCloudProviderMigrateAzureWarning() {
+      return this.mode == _EDIT && this.canMigrateAzureOnEdit;
     }
   },
 
@@ -435,6 +453,12 @@ export default {
       color="warning"
     >
       <span v-clean-html="t('cluster.banner.cloudProviderUnsupportedAzure', {}, true)" />
+    </Banner>
+    <Banner
+      v-if="showCloudProviderMigrateAzureWarning"
+      color="warning"
+    >
+      <span v-clean-html="t('cluster.banner.cloudProviderMigrateAzure', {}, true)" />
     </Banner>
     <Banner
       v-if="showCloudProviderAmazonAdditionalConfigWarning"

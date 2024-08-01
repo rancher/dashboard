@@ -601,6 +601,7 @@ export default {
       const out = [{
         label: this.$store.getters['i18n/t']('cluster.rke2.cloudProvider.defaultValue.label'),
         value: '',
+        disabled: this.canMigrateAzureOnEdit
       }];
 
       if (!!this.agentArgs['cloud-provider-name']?.options) {
@@ -612,13 +613,19 @@ export default {
           // If we have a preferred provider... only show default, preferred and external
           const isPreferred = opt === preferred;
           const isExternal = opt === 'external';
+          const isAzure = opt === 'azure';
+  
           let disabled = false;
 
           if ((this.isHarvesterExternalCredential || this.isHarvesterIncompatible) && isPreferred) {
             disabled = true;
           }
 
-          if (opt === 'azure' && semver.gte(this.value.spec.kubernetesVersion, 'v1.30.0')) {
+          if (isAzure && semver.gte(this.value.spec.kubernetesVersion, 'v1.30.0')) {
+            disabled = true;
+          }
+
+          if (!isAzure && !isExternal && this.canMigrateAzureOnEdit) {
             disabled = true;
           }
 
@@ -638,9 +645,19 @@ export default {
         out.unshift({ label: `${ cur } (Current)`, value: cur });
       }
 
-      // console.log(this.agentConfig?.['cloud-provider-name']);
-
       return out;
+    },
+
+    canMigrateAzureOnEdit() {
+      if (!this.isEdit) {
+        return false;
+      }
+
+      return this.isLiveAzureProvider && semver.satisfies(this.liveValue?.spec?.kubernetesVersion, '>=v1.27 || <1.30');
+    },
+
+    isLiveAzureProvider() {
+      return this.liveValue.agentConfig['cloud-provider-name'] === 'azure';
     },
 
     canManageMembers() {
@@ -2250,6 +2267,7 @@ export default {
             :show-cni="showCni"
             :show-cloud-provider="showCloudProvider"
             :cloud-provider-options="cloudProviderOptions"
+            :can-migrate-azure-on-edit="canMigrateAzureOnEdit"
             @cilium-values-changed="handleCiliumValuesChanged"
             @enabled-system-services-changed="handleEnabledSystemServicesChanged"
             @kubernetes-changed="handleKubernetesChange"
