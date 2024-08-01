@@ -4,7 +4,6 @@ import AppView from '@shell/initialize/App';
 import { setContext, getRouteData } from '@shell/initialize/entry-helpers';
 import { extendRouter } from '@shell/config/router';
 import { extendStore } from '@shell/config/store';
-import { UPGRADED, _FLAGGED, _UNFLAG } from '@shell/config/query-params';
 import { installInjectedPlugins } from '@shell/initialize/install-plugins.js';
 import { normalizeURL } from 'ufo';
 
@@ -101,20 +100,6 @@ async function extendApp(vueApp) {
         unregister();
         resolve();
       });
-    });
-
-    router.afterEach((to) => {
-      const upgraded = to.query[UPGRADED] === _FLAGGED;
-
-      if ( upgraded ) {
-        router.applyQuery({ [UPGRADED]: _UNFLAG });
-
-        store.dispatch('growl/success', {
-          title:   store.getters['i18n/t']('serverUpgrade.title'),
-          message: store.getters['i18n/t']('serverUpgrade.message'),
-          timeout: 0,
-        });
-      }
     });
   });
 
