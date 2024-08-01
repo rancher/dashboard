@@ -1443,10 +1443,6 @@ cluster:
     placeholder: A unique name for the cluster
   directoryConfig:
     title: Data directory configuration
-    checkboxText: Use the same path for System-agent, Provisioning and K8s Distro data directories configuration
-    common: 
-      label: Data directory configuration path
-      tooltip: Data directory configuration for System-agent, Provisioning and K8s Distro
     systemAgent: 
       label: System-agent directory path
       tooltip: Data directory for the system-agent connection info and plans
