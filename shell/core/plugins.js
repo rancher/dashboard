@@ -90,13 +90,15 @@ export default function(context, inject, vueApp) {
               delete window[oldPlugin.id];
 
               delete plugins[oldPlugin.id];
+
+              const oldElement = document.getElementById(oldPlugin.id);
+
+              oldElement.parentElement.removeChild(oldElement);
             });
           }
 
           removed.then(() => {
             element.onload = () => {
-              element.parentElement.removeChild(element);
-
               if (!window[id]) {
                 return reject(new Error('Could not load plugin code'));
               }
