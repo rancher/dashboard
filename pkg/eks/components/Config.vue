@@ -349,7 +349,7 @@ export default defineComponent({
           :disabled="mode!=='create'"
           :mode="mode"
           label-key="eks.encryptSecrets.label"
-          data-testid="eks-encrypt-secrets-checkbox"
+          data-testid="eks-secrets-encryption-checkbox"
           @input="$emit('update:secretsEncryption', $event)"
         />
       </div>
