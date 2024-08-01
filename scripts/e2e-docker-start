@@ -16,6 +16,9 @@ if [ $# -eq 1 ]; then
   HAS_ARGS="true"
 fi
 
+echo "HAS_ARGS: ${HAS_ARGS}"
+echo "RANCHER_IMG_VERSION: ${RANCHER_IMG_VERSION}"
+
 if [ "$HAS_ARGS" == "false" ]; then
   # this flow is what test.yaml is expected to to be following
   echo "normal flow without args. Defaults to v2.9-head"
