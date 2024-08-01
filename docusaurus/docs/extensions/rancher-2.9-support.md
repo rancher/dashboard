@@ -27,7 +27,7 @@ These changes bring Shell versions in line with standard versioning patterns. On
 
 ## How to update your extension for Rancher 2.9.0
 
-- In the root of your extension repository, update `package.json` `@rancher/shell` to the new `2.1.0` version and `yarn install` to fetch it. Then do a local build of your extensions and `Developer Load` them on the desired Rancher version to confirm everything works as expected. Check documentation about a Developer Load [here](./extensions-getting-started#test-built-extension-by-doing-a-developer-load).
+- In the root of your extension repository, update `package.json` `@rancher/shell` to the new `2.0.1` version and `yarn install` to fetch it. Then do a local build of your extensions and `Developer Load` them on the desired Rancher version to confirm everything works as expected. Check documentation about a Developer Load [here](./extensions-getting-started#test-built-extension-by-doing-a-developer-load).
 
 - Before publishing it, add annotation(s) to your extension `pkg/<-YOUR EXTENSION->/package.json` like:
 
