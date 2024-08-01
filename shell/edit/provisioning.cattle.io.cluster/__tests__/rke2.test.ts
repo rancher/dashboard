@@ -22,6 +22,7 @@ const defaultStubs = {
   BadgeState:               true,
   Checkbox:                 true,
   ClusterMembershipEditor:  true,
+  ClusterAppearance:        true,
   DrainOptions:             true,
   LabeledInput:             true,
   Labels:                   true,
@@ -53,11 +54,23 @@ const defaultStubs = {
 const mockAgentArgs = { 'cloud-provider-name': { options: [], profile: { options: [{ anything: 'yes' }] } } };
 
 const defaultComputed = {
+  appsOSWarning() {
+    return false;
+  },
   showForm() {
     return true;
   },
   versionOptions() {
     return [
+      {
+        id: 'v1.31.0+rke2r1', value: 'v1.31.0+rke2r1', serverArgs: {}, agentArgs: mockAgentArgs, charts: {}
+      },
+      {
+        id: 'v1.30.0+rke2r1', value: 'v1.30.0+rke2r1', serverArgs: {}, agentArgs: mockAgentArgs, charts: {}
+      },
+      {
+        id: 'v1.29.1+rke2r1', value: 'v1.29.1+rke2r1', serverArgs: {}, agentArgs: mockAgentArgs, charts: {}
+      },
       {
         id: 'v1.25.0+rke2r1', value: 'v1.25.0+rke2r1', serverArgs: {}, agentArgs: mockAgentArgs, charts: {}
       },
@@ -331,5 +344,197 @@ describe('component: rke2', () => {
 
       expect(agent.element).toBeDefined();
     });
+  });
+
+  it.each([
+    ['v1.25.0+k3s1', 'azure', true],
+    ['v1.31.0+k3s1', 'harvester', true],
+    ['v1.29.0+k3s1', 'harvester', false],
+  ])('should set isAzureProviderUnsupported', (k8s, cloudProvider, value) => {
+    const wrapper = mount(rke2, {
+      propsData: {
+        mode:  _CREATE,
+        value: {
+          spec: {
+            ...defaultSpec,
+            kubernetesVersion: k8s
+          },
+          agentConfig: { 'cloud-provider-name': cloudProvider }
+        },
+        provider: 'custom'
+      },
+      data:     () => ({}),
+      computed: defaultComputed,
+      mocks:    {
+        ...defaultMocks,
+        $store: { dispatch: () => jest.fn(), getters: defaultGetters },
+      },
+      stubs: defaultStubs
+    });
+
+    expect((wrapper.vm as any).isAzureProviderUnsupported).toBe(value);
+  });
+
+  it.each([
+    ['edit', 'v1.31.0+k3s1', 'azure', false],
+    ['edit', 'v1.26.0+k3s1', 'azure', false],
+    ['edit', 'v1.28.0+k3s1', 'harvester', false],
+    ['edit', 'v1.28.0+k3s1', 'azure', true],
+    ['create', 'v1.28.0+k3s1', 'azure', false],
+    ['view', 'v1.28.0+k3s1', 'azure', false],
+  ])('should set canAzureMigrateOnEdit', (mode, k8s, liveCloudProvider, value) => {
+    const wrapper = mount(rke2, {
+      propsData: {
+        mode,
+        liveValue: {
+          spec: {
+            ...defaultSpec,
+            kubernetesVersion: k8s
+          },
+          agentConfig: { 'cloud-provider-name': liveCloudProvider }
+        },
+        value: {
+          spec: {
+            ...defaultSpec,
+            kubernetesVersion: k8s
+          },
+          agentConfig: { 'cloud-provider-name': liveCloudProvider }
+        },
+        provider: 'custom'
+      },
+      data:     () => ({}),
+      computed: defaultComputed,
+      mocks:    {
+        ...defaultMocks,
+        $store: { dispatch: () => jest.fn(), getters: defaultGetters },
+      },
+      stubs: defaultStubs
+    });
+
+    expect((wrapper.vm as any).canAzureMigrateOnEdit).toBe(value);
+  });
+
+  it.each([
+    ['', 'v1.32.0+rke2r1', 'amazon', 'v1.32.0+rke2r1'],
+    ['', 'v1.29.0+rke2r1', 'amazon', 'v1.29.0+rke2r1'],
+    ['', 'v1.29.0+rke2r1', 'azure', 'v1.29.0+rke2r1'],
+    ['not', 'v1.31.0+rke2r1', 'azure', undefined],
+  ])('should %p include version %p if Cloud Provider is %p', async(_, k8s, liveCloudProvider, value) => {
+    const wrapper = mount(rke2, {
+      propsData: {
+        mode:  'create',
+        value: {
+          spec: {
+            ...defaultSpec,
+            kubernetesVersion: k8s
+          },
+          agentConfig: { 'cloud-provider-name': liveCloudProvider }
+        },
+        provider: 'custom'
+      },
+      data:     () => ({}),
+      computed: {
+        appsOSWarning: () => false,
+        showForm:      () => false,
+      },
+      mocks: {
+        ...defaultMocks,
+        $store: { dispatch: () => jest.fn(), getters: defaultGetters },
+      },
+      stubs: defaultStubs
+    });
+
+    wrapper.setData({
+      rke2Versions: [{
+        id:         k8s,
+        version:    k8s,
+        serverArgs: true
+      }]
+    });
+
+    expect((wrapper.vm as any).versionOptions[0]?.value).toBe(value);
+  });
+
+  it.each([
+    ['enable', 'v1.28.0+rke2r1', false],
+    ['disable', 'v1.32.0+rke2r1', true],
+  ])('should %p Azure provider option if version is %p', async(_, k8s, value) => {
+    const wrapper = mount(rke2, {
+      propsData: {
+        mode:  'create',
+        value: {
+          spec: {
+            ...defaultSpec,
+            kubernetesVersion: k8s
+          },
+          agentConfig: { 'cloud-provider-name': 'azure' }
+        },
+        provider: 'custom'
+      },
+      data: () => ({
+        agentArgs: {
+          'cloud-provider-name': {
+            options: [
+              'azure',
+              'amazon'
+            ]
+          }
+        }
+      }),
+      computed: defaultComputed,
+      mocks:    {
+        ...defaultMocks,
+        $store: { dispatch: () => jest.fn(), getters: defaultGetters },
+      },
+      stubs: defaultStubs
+    });
+
+    const azureOption = (wrapper.vm as any).cloudProviderOptions.find((o: any) => o.value === 'azure');
+
+    expect(azureOption.disabled).toBe(value);
+  });
+
+  it.each([
+    ['enable', 'azure', 'v1.28.0+rke2r1', false], // azure provider / current
+    ['enable', 'external', 'v1.28.0+rke2r1', false], // external provider
+    ['enable', 'azure', 'v1.26.0+rke2r1', false], // version mismatch
+    ['disable', 'amazon', 'v1.26.0+rke2r1', true],
+    ['enable', '', 'v1.28.0+rke2r1', true], // default provider
+  ])('should %p provider option %p in edit mode if live provider is Azure and 1.27 <= k8s < 1.30', async(_, cloudProvider, k8s, value) => {
+    const wrapper = mount(rke2, {
+      propsData: {
+        mode:  'edit',
+        value: {
+          spec: {
+            ...defaultSpec,
+            kubernetesVersion: k8s
+          },
+          agentConfig: { 'cloud-provider-name': 'azure' }
+        },
+        provider: 'custom'
+      },
+      data: () => ({
+        canAzureMigrateOnEdit: true,
+        agentArgs:             {
+          'cloud-provider-name': {
+            options: [
+              'azure',
+              'amazon',
+              'external'
+            ]
+          }
+        }
+      }),
+      computed: defaultComputed,
+      mocks:    {
+        ...defaultMocks,
+        $store: { dispatch: () => jest.fn(), getters: defaultGetters },
+      },
+      stubs: defaultStubs
+    });
+
+    const azureOption = (wrapper.vm as any).cloudProviderOptions.find((o: any) => o.value === cloudProvider);
+
+    expect(azureOption.disabled).toBe(value);
   });
 });
