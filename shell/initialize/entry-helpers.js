@@ -1,8 +1,5 @@
 import Vue from 'vue';
 
-// Global variable used on mount, updated on route change and used in the render function
-let app;
-
 /**
  * Add error handler debugging capabilities
  * @param {*} vueApp Vue instance
@@ -53,61 +50,18 @@ export const loadDebugger = (vueApp) => {
 export const globalHandleError = (error) => Vue.config.errorHandler && Vue.config.errorHandler(error);
 
 /**
- * Render function used by the router guards
- * @param {*} to Route
- * @param {*} from Route
- * @param {*} next callback
- * @param {*} app
- * @returns
- */
-async function render(to, from, next) {
-  if (this._routeChanged === false && this._paramChanged === false && this._queryChanged === false) {
-    return next();
-  }
-
-  // Update context
-  await setContext(app, {
-    route: to,
-    from,
-  });
-
-  if (this.$loading.start && !this.$loading.manual) {
-    this.$loading.start();
-  }
-
-  try {
-    if (this.$loading.finish && !this.$loading.manual) {
-      this.$loading.finish();
-    }
-
-    next();
-  } catch (err) {
-    const error = err || {};
-
-    globalHandleError(error);
-
-    next();
-  }
-}
-
-/**
  * Mounts the Vue app to the DOM element
  * @param {Object} appPartials - App view partials
  * @param {Object} VueClass - Vue instance
  */
 export async function mountApp(appPartials, VueClass) {
   // Set global variables
-  app = appPartials.app;
-  const router = appPartials.router;
-
+  const app = appPartials.app;
   // Create Vue instance
   const vueApp = new VueClass(app);
 
   // Initialize error handler
   vueApp.$loading = {}; // To avoid error while vueApp.$nuxt does not exist
-
-  // Add beforeEach router hooks
-  router.beforeEach(render.bind(vueApp));
 
   vueApp.$mount('#app');
 }
