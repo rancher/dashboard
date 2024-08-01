@@ -323,6 +323,11 @@ export default {
         allValidK3sVersions = this.filterOutDeprecatedPatchVersions(allValidK3sVersions, cur);
       }
 
+      if (this.agentConfig?.['cloud-provider-name'] === 'azure') {
+        allValidRke2Versions = allValidRke2Versions.filter((v) => semver.lt(v.value, 'v1.30.0'));
+        allValidK3sVersions = allValidK3sVersions.filter((v) => semver.lt(v.value, 'v1.30.0'));
+      }
+
       const showRke2 = allValidRke2Versions.length && !existingK3s;
       const showK3s = allValidK3sVersions.length && !existingRke2;
       const out = [];
@@ -613,6 +618,10 @@ export default {
             disabled = true;
           }
 
+          if (opt === 'azure' && semver.gte(this.value.spec.kubernetesVersion, 'v1.30.0')) {
+            disabled = true;
+          }
+
           if (showAllOptions || isPreferred || isExternal) {
             out.push({
               label: this.$store.getters['i18n/withFallback'](`cluster.cloudProvider."${ opt }".label`, null, opt),
@@ -628,6 +637,8 @@ export default {
       if (cur && !out.find((x) => x.value === cur)) {
         out.unshift({ label: `${ cur } (Current)`, value: cur });
       }
+
+      // console.log(this.agentConfig?.['cloud-provider-name']);
 
       return out;
     },

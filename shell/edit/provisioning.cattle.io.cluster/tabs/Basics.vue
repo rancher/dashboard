@@ -11,7 +11,7 @@ import LabeledSelect from '@shell/components/form/LabeledSelect';
 import YamlEditor from '@shell/components/YamlEditor';
 import { LEGACY } from '@shell/store/features';
 import semver from 'semver';
-import { _EDIT } from '@shell/config/query-params';
+import { _EDIT, _VIEW } from '@shell/config/query-params';
 
 const HARVESTER = 'harvester';
 
@@ -387,6 +387,13 @@ export default {
      */
     showCloudProviderAmazonAdditionalConfigWarning() {
       return !!semver.gte(this.value.spec.kubernetesVersion, 'v1.27.0') && this.agentConfig?.['cloud-provider-name'] === 'aws';
+    },
+
+    /**
+     * Display warning about unsupported Azure provider if k8s >= 1.30
+     */
+    showCloudProviderUnsupportedAzureWarning() {
+      return this.mode !== _VIEW && (semver.gte(this.value.spec.kubernetesVersion, 'v1.30.0') || this.agentConfig['cloud-provider-name'] === 'azure');
     }
   },
 
@@ -422,6 +429,12 @@ export default {
       <span
         v-clean-html="t('cluster.harvester.warning.cloudProvider.incompatible', null, true)"
       />
+    </Banner>
+    <Banner
+      v-if="showCloudProviderUnsupportedAzureWarning"
+      color="warning"
+    >
+      <span v-clean-html="t('cluster.banner.cloudProviderUnsupportedAzure', {}, true)" />
     </Banner>
     <Banner
       v-if="showCloudProviderAmazonAdditionalConfigWarning"
