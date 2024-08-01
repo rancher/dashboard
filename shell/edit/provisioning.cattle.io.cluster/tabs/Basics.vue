@@ -11,7 +11,7 @@ import LabeledSelect from '@shell/components/form/LabeledSelect';
 import YamlEditor from '@shell/components/YamlEditor';
 import { LEGACY } from '@shell/store/features';
 import semver from 'semver';
-import { _CREATE, _EDIT, _VIEW } from '@shell/config/query-params';
+import { _CREATE, _EDIT } from '@shell/config/query-params';
 
 const HARVESTER = 'harvester';
 
@@ -34,11 +34,6 @@ export default {
     value: {
       type:     Object,
       required: true,
-    },
-
-    liveValue: {
-      type:    Object,
-      default: () => {}
     },
 
     provider: {
@@ -112,7 +107,11 @@ export default {
       type:     Array,
       required: true
     },
-    canMigrateAzureOnEdit: {
+    isAzureProviderUnsupported: {
+      type:     Boolean,
+      required: true
+    },
+    canAzureMigrateOnEdit: {
       type:     Boolean,
       required: true
     }
@@ -390,7 +389,7 @@ export default {
         return false;
       }
 
-      return !this.canMigrateAzureOnEdit;
+      return !this.canAzureMigrateOnEdit;
     },
 
     /**
@@ -404,14 +403,14 @@ export default {
      * Display warning about unsupported Azure provider if k8s >= 1.30
      */
     showCloudProviderUnsupportedAzureWarning() {
-      return this.mode == _CREATE && (semver.gte(this.value.spec.kubernetesVersion, 'v1.30.0') || this.agentConfig['cloud-provider-name'] === 'azure');
+      return this.mode === _CREATE && this.isAzureProviderUnsupported;
     },
 
     /**
      * Display warning about Azure provider migration from k8s versions >= 1.27 to External provider
      */
     showCloudProviderMigrateAzureWarning() {
-      return this.mode == _EDIT && this.canMigrateAzureOnEdit;
+      return this.mode === _EDIT && this.canAzureMigrateOnEdit;
     }
   },
 

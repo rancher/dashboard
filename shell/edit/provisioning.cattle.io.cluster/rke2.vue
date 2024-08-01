@@ -89,6 +89,8 @@ const NODE_TOTAL = {
 const CLUSTER_AGENT_CUSTOMIZATION = 'clusterAgentDeploymentCustomization';
 const FLEET_AGENT_CUSTOMIZATION = 'fleetAgentDeploymentCustomization';
 
+const isAzureK8sUnsupported = (version) => semver.gte(version, 'v1.30.0');
+
 export default {
   components: {
     AgentEnv,
@@ -311,6 +313,7 @@ export default {
       const cur = this.liveValue?.spec?.kubernetesVersion || '';
       const existingRke2 = this.mode === _EDIT && cur.includes('rke2');
       const existingK3s = this.mode === _EDIT && cur.includes('k3s');
+      const isAzure = this.agentConfig?.['cloud-provider-name'] === 'azure';
 
       let allValidRke2Versions = this.getAllOptionsAfterCurrentVersion(this.rke2Versions, (existingRke2 ? cur : null), this.defaultRke2);
       let allValidK3sVersions = this.getAllOptionsAfterCurrentVersion(this.k3sVersions, (existingK3s ? cur : null), this.defaultK3s);
@@ -323,9 +326,9 @@ export default {
         allValidK3sVersions = this.filterOutDeprecatedPatchVersions(allValidK3sVersions, cur);
       }
 
-      if (this.agentConfig?.['cloud-provider-name'] === 'azure') {
-        allValidRke2Versions = allValidRke2Versions.filter((v) => semver.lt(v.value, 'v1.30.0'));
-        allValidK3sVersions = allValidK3sVersions.filter((v) => semver.lt(v.value, 'v1.30.0'));
+      if (isAzure) {
+        allValidRke2Versions = allValidRke2Versions.filter((v) => !isAzureK8sUnsupported(v.value));
+        allValidK3sVersions = allValidK3sVersions.filter((v) => !isAzureK8sUnsupported(v.value));
       }
 
       const showRke2 = allValidRke2Versions.length && !existingK3s;
@@ -599,9 +602,9 @@ export default {
 
     cloudProviderOptions() {
       const out = [{
-        label: this.$store.getters['i18n/t']('cluster.rke2.cloudProvider.defaultValue.label'),
-        value: '',
-        disabled: this.canMigrateAzureOnEdit
+        label:    this.$store.getters['i18n/t']('cluster.rke2.cloudProvider.defaultValue.label'),
+        value:    '',
+        disabled: this.canAzureMigrateOnEdit
       }];
 
       if (!!this.agentArgs['cloud-provider-name']?.options) {
@@ -614,18 +617,18 @@ export default {
           const isPreferred = opt === preferred;
           const isExternal = opt === 'external';
           const isAzure = opt === 'azure';
-  
+
           let disabled = false;
 
           if ((this.isHarvesterExternalCredential || this.isHarvesterIncompatible) && isPreferred) {
             disabled = true;
           }
 
-          if (isAzure && semver.gte(this.value.spec.kubernetesVersion, 'v1.30.0')) {
+          if (isAzure && isAzureK8sUnsupported(this.value.spec.kubernetesVersion)) {
             disabled = true;
           }
 
-          if (!isAzure && !isExternal && this.canMigrateAzureOnEdit) {
+          if (!isAzure && !isExternal && this.canAzureMigrateOnEdit) {
             disabled = true;
           }
 
@@ -648,16 +651,18 @@ export default {
       return out;
     },
 
-    canMigrateAzureOnEdit() {
+    isAzureProviderUnsupported() {
+      return isAzureK8sUnsupported(this.value.spec.kubernetesVersion) || this.agentConfig['cloud-provider-name'] === 'azure';
+    },
+
+    canAzureMigrateOnEdit() {
       if (!this.isEdit) {
         return false;
       }
 
-      return this.isLiveAzureProvider && semver.satisfies(this.liveValue?.spec?.kubernetesVersion, '>=v1.27 || <1.30');
-    },
+      const isAzureLiveProvider = this.liveValue.agentConfig['cloud-provider-name'] === 'azure';
 
-    isLiveAzureProvider() {
-      return this.liveValue.agentConfig['cloud-provider-name'] === 'azure';
+      return isAzureLiveProvider && semver.satisfies(this.liveValue?.spec?.kubernetesVersion, '>=v1.27 || <1.30');
     },
 
     canManageMembers() {
@@ -2267,7 +2272,8 @@ export default {
             :show-cni="showCni"
             :show-cloud-provider="showCloudProvider"
             :cloud-provider-options="cloudProviderOptions"
-            :can-migrate-azure-on-edit="canMigrateAzureOnEdit"
+            :is-azure-provider-unsupported="isAzureProviderUnsupported"
+            :can-azure-migrate-on-edit="canAzureMigrateOnEdit"
             @cilium-values-changed="handleCiliumValuesChanged"
             @enabled-system-services-changed="handleEnabledSystemServicesChanged"
             @kubernetes-changed="handleKubernetesChange"
