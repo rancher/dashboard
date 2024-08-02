@@ -7,6 +7,7 @@ import RoleListPo from '@/cypress/e2e/po/lists/role-list.po';
 import BurgerMenuPo from '@/cypress/e2e/po/side-bars/burger-side-menu.po';
 import ProductNavPo from '@/cypress/e2e/po/side-bars/product-side-nav.po';
 import ClusterPage from '@/cypress/e2e/po/pages/cluster-page.po';
+import PaginationPo from '~/cypress/e2e/po/components/pagination.po';
 
 export default class RolesPo extends ClusterPage {
   static goTo(path: string): Cypress.Chainable<Cypress.AUTWindow> {
@@ -62,5 +63,9 @@ export default class RolesPo extends ClusterPage {
    */
   list(tabIdSelector: 'GLOBAL' | 'CLUSTER' | 'NAMESPACE') {
     return new RoleListPo(`#${ tabIdSelector } [data-testid="sortable-table-list-container"]`);
+  }
+
+  paginatedTab(tabIdSelector: 'GLOBAL' | 'CLUSTER' | 'NAMESPACE') {
+    return new PaginationPo(`#${ tabIdSelector } div.paging`);
   }
 }

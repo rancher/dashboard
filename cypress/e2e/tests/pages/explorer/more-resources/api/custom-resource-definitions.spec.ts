@@ -13,6 +13,10 @@ describe('CustomResourceDefinitions', { testIsolation: 'off', tags: ['@explorer'
   });
 
   describe('List', { tags: ['@vai', '@adminUser'] }, () => {
+    before(() => {
+      cy.tableRowsPerPageAndNamespaceFilter(10, 'local', 'none', '{\"local\":[]}');
+    });
+
     it('can create a crd and see it in list view', () => {
       crdsPage.goTo();
       crdsPage.waitForPage();
@@ -33,6 +37,7 @@ describe('CustomResourceDefinitions', { testIsolation: 'off', tags: ['@explorer'
         .click();
       cy.wait('@createCRD').its('response.statusCode').should('eq', 201);
       crdsPage.waitForPage();
+      crdsPage.sortableTable().filter(crdName);
       crdsPage.sortableTable().rowWithName(crdName)
         .column(1)
         .scrollIntoView()
@@ -46,9 +51,11 @@ describe('CustomResourceDefinitions', { testIsolation: 'off', tags: ['@explorer'
         .each((el, i) => {
           expect(el.text().trim()).to.eq(expectedHeaders[i]);
         });
+      crdsPage.sortableTable().filter('{selectAll}{del}');
     });
 
     it('pagination is visible and user is able to navigate through crd data', () => {
+      HomePagePo.goTo();
       // get crd count
       cy.getRancherResource('v1', 'apiextensions.k8s.io.customresourcedefinitions').then((resp: Cypress.Response<any>) => {
         const count = resp.body.count;
@@ -67,7 +74,7 @@ describe('CustomResourceDefinitions', { testIsolation: 'off', tags: ['@explorer'
 
         // check text before navigation
         crdsPage.sortableTable().pagination().paginationText().then((el) => {
-          expect(el.trim()).to.eq(`1 - 100 of ${ count } CustomResourceDefinitions`);
+          expect(el.trim()).to.eq(`1 - 10 of ${ count } CustomResourceDefinitions`);
         });
 
         // navigate to next page - right button
@@ -75,7 +82,7 @@ describe('CustomResourceDefinitions', { testIsolation: 'off', tags: ['@explorer'
 
         // check text and buttons after navigation
         crdsPage.sortableTable().pagination().paginationText().then((el) => {
-          expect(el.trim()).to.eq(`101 - ${ count } of ${ count } CustomResourceDefinitions`);
+          expect(el.trim()).to.eq(`11 - 20 of ${ count } CustomResourceDefinitions`);
         });
         crdsPage.sortableTable().pagination().beginningButton().isEnabled();
         crdsPage.sortableTable().pagination().leftButton().isEnabled();
@@ -85,7 +92,7 @@ describe('CustomResourceDefinitions', { testIsolation: 'off', tags: ['@explorer'
 
         // check text and buttons after navigation
         crdsPage.sortableTable().pagination().paginationText().then((el) => {
-          expect(el.trim()).to.eq(`1 - 100 of ${ count } CustomResourceDefinitions`);
+          expect(el.trim()).to.eq(`1 - 10 of ${ count } CustomResourceDefinitions`);
         });
         crdsPage.sortableTable().pagination().beginningButton().isDisabled();
         crdsPage.sortableTable().pagination().leftButton().isDisabled();
@@ -95,7 +102,7 @@ describe('CustomResourceDefinitions', { testIsolation: 'off', tags: ['@explorer'
 
         // check text after navigation
         crdsPage.sortableTable().pagination().paginationText().then((el) => {
-          expect(el.trim()).to.eq(`101 - ${ count } of ${ count } CustomResourceDefinitions`);
+          expect(el.trim()).to.contain(`${ count - (count % 10) + 1 } - ${ count } of ${ count } CustomResourceDefinitions`);
         });
 
         // navigate to first page - beginning button
@@ -103,7 +110,7 @@ describe('CustomResourceDefinitions', { testIsolation: 'off', tags: ['@explorer'
 
         // check text and buttons after navigation
         crdsPage.sortableTable().pagination().paginationText().then((el) => {
-          expect(el.trim()).to.eq(`1 - 100 of ${ count } CustomResourceDefinitions`);
+          expect(el.trim()).to.eq(`1 - 10 of ${ count } CustomResourceDefinitions`);
         });
         crdsPage.sortableTable().pagination().beginningButton().isDisabled();
         crdsPage.sortableTable().pagination().leftButton().isDisabled();
@@ -130,20 +137,21 @@ describe('CustomResourceDefinitions', { testIsolation: 'off', tags: ['@explorer'
       crdsPage.waitForPage();
       crdsPage.sortableTable().checkVisible();
       crdsPage.sortableTable().checkNoRowsNotVisible();
+      crdsPage.sortableTable().filter('apps');
 
       let indexBeforeSort: number;
 
       crdsPage.sortableTable().rowNames().then((rows) => {
         const sortedRows = rows.sort();
 
-        indexBeforeSort = sortedRows.indexOf(crdName);
+        indexBeforeSort = sortedRows.indexOf('apps.catalog.cattle.io');
       });
 
       // check table is sorted by `name` in ASC order by default
       crdsPage.sortableTable().tableHeaderRow().checkSortOrder(2, 'down');
 
       // crd name should be visible on first page (sorted in ASC order)
-      crdsPage.sortableTable().rowElementWithPartialName(crdName).scrollIntoView().should('be.visible');
+      crdsPage.sortableTable().rowElementWithPartialName('apps.catalog.cattle.io').scrollIntoView().should('be.visible');
 
       // sort by name in DESC order
       crdsPage.sortableTable().sort(2).click();
@@ -163,8 +171,8 @@ describe('CustomResourceDefinitions', { testIsolation: 'off', tags: ['@explorer'
       generateCrdsDataSmall();
       HomePagePo.goTo(); // this is needed here for the intercept to work
       CustomResourceDefinitionsPagePo.navTo();
-      crdsPage.waitForPage();
       cy.wait('@crdsDataSmall');
+      crdsPage.waitForPage();
 
       crdsPage.sortableTable().checkVisible();
       crdsPage.sortableTable().checkLoadingIndicatorNotVisible();
