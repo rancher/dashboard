@@ -8,16 +8,39 @@ EMBER_DIST=${DIR}/dist_ember
 
 # Image version
 RANCHER_IMG_VERSION=v2.9-head
+HAS_ARGS="false"
 
-docker run -d --restart=unless-stopped -p 80:80 -p 443:443 \
-  -v ${DASHBOARD_DIST}:/usr/share/rancher/ui-dashboard/dashboard \
-  -v ${EMBER_DIST}:/usr/share/rancher/ui \
-  -e CATTLE_UI_OFFLINE_PREFERRED=true \
-  -e CATTLE_BOOTSTRAP_PASSWORD=password \
-  -e CATTLE_PASSWORD_MIN_LENGTH=3 \
-  --name cypress \
-  --privileged \
-  rancher/rancher:${RANCHER_IMG_VERSION}
+# check if script invoke contains any argument. If so, adjust RANCHER_IMG_VERSION
+if [ $# -eq 1 ]; then
+  RANCHER_IMG_VERSION=$1
+  HAS_ARGS="true"
+fi
+
+if [ "$HAS_ARGS" == "false" ]; then
+  # this flow is what test.yaml is expected to to be following
+  echo "normal flow without args. Defaults to v2.9-head"
+
+  docker run -d --restart=unless-stopped -p 80:80 -p 443:443 \
+    -v ${DASHBOARD_DIST}:/usr/share/rancher/ui-dashboard/dashboard \
+    -v ${EMBER_DIST}:/usr/share/rancher/ui \
+    -e CATTLE_UI_OFFLINE_PREFERRED=true \
+    -e CATTLE_BOOTSTRAP_PASSWORD=password \
+    -e CATTLE_PASSWORD_MIN_LENGTH=3 \
+    --name cypress \
+    --privileged \
+    rancher/rancher:${RANCHER_IMG_VERSION}
+else
+  # We will only hit this scenario for the extensions-compatibility-tests workflow and if it's not a -head version
+  echo "special flow with version arg... RANCHER_IMG_VERSION=${RANCHER_IMG_VERSION}"
+
+  docker run -d --restart=unless-stopped -p 80:80 -p 443:443 \
+    -e CATTLE_UI_OFFLINE_PREFERRED=true \
+    -e CATTLE_BOOTSTRAP_PASSWORD=password \
+    -e CATTLE_PASSWORD_MIN_LENGTH=3 \
+    --name cypress \
+    --privileged \
+    rancher/rancher:${RANCHER_IMG_VERSION}
+fi
 
 docker ps
 
