@@ -113,15 +113,15 @@ export default {
     this.kontainerDrivers = res.kontainerDrivers || [];
 
     if ( !this.value.spec ) {
-      set(this.value, 'spec', {});
+      this.value.spec = {};
     }
 
     if ( !this.value.id ) {
       if ( !this.value.metadata ) {
-        set(this.value, 'metadata', {});
+        this.value.metadata = {};
       }
 
-      set(this.value.metadata, 'namespace', DEFAULT_WORKSPACE);
+      this.value.metadata.namespace = DEFAULT_WORKSPACE;
     }
 
     // For the node drivers, look for custom UI that we can use to show an icon (if not built-in)
