@@ -2,6 +2,10 @@ import PagePo from '@/cypress/e2e/po/pages/page.po';
 import { InstallChartPage } from '@/cypress/e2e/po/pages/explorer/charts/install-charts.po';
 import Kubectl from '@/cypress/e2e/po/components/kubectl.po';
 import ChartInstalledAppsPagePo from '@/cypress/e2e/po/pages/chart-installed-apps.po';
+import ProductNavPo from '@/cypress/e2e/po/side-bars/product-side-nav.po';
+import BaseResourceList from '@/cypress/e2e/po/lists/base-resource-list.po';
+import CodeMirrorPo from '@/cypress/e2e/po/components/code-mirror.po';
+import AsyncButtonPo from '@/cypress/e2e/po/components/async-button.po';
 
 const installChart = new InstallChartPage();
 const terminal = new Kubectl();
@@ -41,5 +45,27 @@ export default class ExtensionsCompatibiliyPo extends PagePo {
     // timeout to give time for everything to be setup, otherwise the extension
     // won't find the chart and show the correct screen
     return cy.wait(5000);
+  }
+
+  sideMenuNavTo(label: string) {
+    const sideNav = new ProductNavPo();
+
+    sideNav.navToSideMenuEntryByLabel(label);
+  }
+
+  genericListView(): BaseResourceList {
+    return new BaseResourceList(this.self());
+  }
+
+  createFromYamlClick(): Cypress.Chainable {
+    return this.genericListView().masthead().createYaml();
+  }
+
+  genericYamlEditor(): CodeMirrorPo {
+    return CodeMirrorPo.bySelector(this.self(), '[data-testid="yaml-editor-code-mirror"]');
+  }
+
+  saveEditYamlForm(): AsyncButtonPo {
+    return new AsyncButtonPo('[data-testid="action-button-async-button"]', this.self());
   }
 }
