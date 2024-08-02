@@ -91,13 +91,15 @@ export default class ExtensionsPagePo extends PagePo {
    * @param name - A name for the repository
    * @returns {Cypress.Chainable}
    */
-  addExtensionsRepositoryNew(repo: string, branch: string, name: string, waitForActiveState = true): Cypress.Chainable {
+  addExtensionsRepositoryDirectLink(repo: string, branch: string, name: string, waitForActiveState = true): Cypress.Chainable {
     const appRepoList = new RepositoriesPagePo('local', 'apps');
     const appRepoCreate = new AppClusterRepoEditPo('local', 'create');
 
     appRepoCreate.goTo();
     appRepoCreate.waitForPage();
 
+    appRepoCreate.nameNsDescription().name().self().scrollIntoView()
+      .should('be.visible');
     appRepoCreate.nameNsDescription().name().set(name);
     appRepoCreate.selectRadioOptionGitRepo(1);
     // fill the git repo form
@@ -139,6 +141,14 @@ export default class ExtensionsPagePo extends PagePo {
   // ------------------ extension install modal ------------------
   extensionInstallModal() {
     return this.self().get('[data-modal="installPluginDialog"]');
+  }
+
+  installModalSelectVersionLabel(label: string): Cypress.Chainable {
+    const selectVersion = new LabeledSelectPo(this.extensionInstallModal().getId('install-ext-modal-select-version'));
+
+    selectVersion.toggle();
+
+    return selectVersion.setOptionAndClick(label);
   }
 
   installModalSelectVersionClick(optionIndex: number): Cypress.Chainable {

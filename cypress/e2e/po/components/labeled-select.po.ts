@@ -5,6 +5,12 @@ export default class LabeledSelectPo extends ComponentPo {
     return this.self().click();
   }
 
+  setOptionAndClick(label: string) {
+    this.self().get('input[type="search"]').type(label);
+
+    return this.clickOption(1);
+  }
+
   clickOption(optionIndex: number) {
     return this.self().get(`.vs__dropdown-menu .vs__dropdown-option:nth-child(${ optionIndex })`).click();
   }
