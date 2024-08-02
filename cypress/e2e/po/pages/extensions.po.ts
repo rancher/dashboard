@@ -143,6 +143,14 @@ export default class ExtensionsPagePo extends PagePo {
     return this.self().get('[data-modal="installPluginDialog"]');
   }
 
+  installModalSelectVersionLabel(label: string): Cypress.Chainable {
+    const selectVersion = new LabeledSelectPo(this.extensionInstallModal().getId('install-ext-modal-select-version'));
+
+    selectVersion.toggle();
+
+    return selectVersion.setOptionAndClick(label);
+  }
+
   installModalSelectVersionClick(optionIndex: number): Cypress.Chainable {
     const selectVersion = new LabeledSelectPo(this.extensionInstallModal().getId('install-ext-modal-select-version'));
 
