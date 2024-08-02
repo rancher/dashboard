@@ -1,8 +1,7 @@
 import ExtensionsPagePo from '@/cypress/e2e/po/pages/extensions.po';
 import ElementalPo from '@/cypress/e2e/po/pages/extensions-compatibility-tests/elemental.po';
-
-import HomePagePo from '@/cypress/e2e/po/pages/home.po';
-import AboutPagePo from '@/cypress/e2e/po/pages/about.po';
+import { NamespaceFilterPo } from '@/cypress/e2e/po/components/namespace-filter.po';
+import * as jsyaml from 'js-yaml';
 
 const EXTENSION_NAME = 'elemental';
 const EXTENSION_VERSION = '1.3.1-rc7';
@@ -11,7 +10,10 @@ const EXTENSION_BRANCH = 'gh-pages';
 const EXTENSION_CLUSTER_REPO_NAME = 'elemental-ui-extension';
 const EXTENSION_CHART_CREATION = 'chartCreation';
 
+const MACHINE_INV_NAME = 'machine-inventory-1';
+
 const elementalPo = new ElementalPo();
+const namespacePicker = new NamespaceFilterPo();
 
 describe('Extensions Compatibility spec', { tags: ['@elemental', '@adminUser'] }, () => {
   beforeEach(() => {
@@ -60,11 +62,36 @@ describe('Extensions Compatibility spec', { tags: ['@elemental', '@adminUser'] }
     elementalPo.installOperatorBtnClick();
 
     elementalPo.waitForInstallChartPage();
+
+    // we need to change the namespace picker in order for the install check on the list view
+    namespacePicker.toggle();
+    namespacePicker.clickOptionByLabel('All Namespaces');
+    namespacePicker.closeDropdown();
+
     elementalPo.chartInstallNext();
     elementalPo.chartInstallClick();
     elementalPo.chartInstallWaitForInstallationAndCloseTerminal(EXTENSION_CHART_CREATION);
 
     elementalPo.goTo();
     elementalPo.waitForTitle('[data-testid="elemental-main-title"]', 'OS Management Dashboard');
+  });
+
+  it('Should create an Elemental resource via YAML (Inventory of Machines)', () => {
+    elementalPo.goTo();
+    elementalPo.sideMenuNavTo('Inventory of Machines');
+    elementalPo.createFromYamlClick();
+
+    elementalPo.genericYamlEditor().value().then((val) => {
+      // convert yaml into json to update values
+      const json: any = jsyaml.load(val);
+
+      json.metadata.name = MACHINE_INV_NAME;
+
+      elementalPo.genericYamlEditor().set(jsyaml.dump(json));
+      elementalPo.saveEditYamlForm().click();
+
+      elementalPo.waitForPageWithSpecificUrl('/elemental/c/_/elemental.cattle.io.machineinventory');
+      elementalPo.genericListView().rowWithName(MACHINE_INV_NAME).column(2).should('contain', MACHINE_INV_NAME);
+    });
   });
 });

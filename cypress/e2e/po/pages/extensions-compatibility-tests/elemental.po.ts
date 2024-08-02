@@ -6,7 +6,7 @@ export default class ElementalPo extends ExtensionsCompatibiliyPo {
     return super.goTo(ElementalPo.url);
   }
 
-  constructor(url: string) {
+  constructor() {
     super(ElementalPo.url);
   }
 
