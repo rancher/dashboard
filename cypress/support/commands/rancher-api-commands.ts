@@ -864,3 +864,15 @@ Cypress.Commands.add('fetchRevision', () => {
       return res.body.revision;
     });
 });
+
+Cypress.Commands.add('tableRowsPerPage', (rows: number) => {
+  return cy.getRancherResource('v3', 'users?me=true').then((resp: Cypress.Response<any>) => {
+    const userId = resp.body.data[0].id.trim();
+
+    cy.setRancherResource('v1', `userpreferences`, userId, {
+      id:   `${ userId }`,
+      type: 'userpreference',
+      data: { 'per-page': `${ rows }` }
+    });
+  });
+});

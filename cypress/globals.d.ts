@@ -89,6 +89,8 @@ declare global {
       deleteRancherResource(prefix: 'v3' | 'v1' | 'k8s', resourceType: string, resourceId: string, failOnStatusCode?: boolean): Chainable;
       deleteNodeTemplate(nodeTemplateId: string, timeout?: number)
 
+      tableRowsPerPage(rows: number)
+
       /**
        * update namespace filter
        * @param clusterName

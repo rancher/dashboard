@@ -73,7 +73,7 @@ describe('Workspaces', { testIsolation: 'off', tags: ['@fleet', '@adminUser'] },
       // create workspaces
       let i = 0;
 
-      while (i < 100) {
+      while (i < 25) {
         const workspaceName = `e2e-${ Cypress._.uniqueId(Date.now().toString()) }`;
         const workspaceDesc = `e2e-desc-${ Cypress._.uniqueId(Date.now().toString()) }`;
 
@@ -95,6 +95,8 @@ describe('Workspaces', { testIsolation: 'off', tags: ['@fleet', '@adminUser'] },
     });
 
     it('pagination is visible and user is able to navigate through workspace data', () => {
+      cy.tableRowsPerPage(10);
+      cy.reload(true);
       // get fleet workspace count
       cy.getRancherResource('v1', 'management.cattle.io.fleetworkspaces').then((resp: Cypress.Response<any>) => {
         const count = resp.body.count;
@@ -113,7 +115,7 @@ describe('Workspaces', { testIsolation: 'off', tags: ['@fleet', '@adminUser'] },
 
         // check text before navigation
         fleetWorkspacesPage.sortableTable().pagination().paginationText().then((el) => {
-          expect(el.trim()).to.eq(`1 - 100 of ${ count } Workspaces`);
+          expect(el.trim()).to.eq(`1 - 10 of ${ count } Workspaces`);
         });
 
         // navigate to next page - right button
@@ -121,7 +123,7 @@ describe('Workspaces', { testIsolation: 'off', tags: ['@fleet', '@adminUser'] },
 
         // check text and buttons after navigation
         fleetWorkspacesPage.sortableTable().pagination().paginationText().then((el) => {
-          expect(el.trim()).to.eq(`101 - ${ count } of ${ count } Workspaces`);
+          expect(el.trim()).to.eq(`11 - 20 of ${ count } Workspaces`);
         });
         fleetWorkspacesPage.sortableTable().pagination().beginningButton().isEnabled();
         fleetWorkspacesPage.sortableTable().pagination().leftButton().isEnabled();
@@ -131,7 +133,7 @@ describe('Workspaces', { testIsolation: 'off', tags: ['@fleet', '@adminUser'] },
 
         // check text and buttons after navigation
         fleetWorkspacesPage.sortableTable().pagination().paginationText().then((el) => {
-          expect(el.trim()).to.eq(`1 - 100 of ${ count } Workspaces`);
+          expect(el.trim()).to.eq(`1 - 10 of ${ count } Workspaces`);
         });
         fleetWorkspacesPage.sortableTable().pagination().beginningButton().isDisabled();
         fleetWorkspacesPage.sortableTable().pagination().leftButton().isDisabled();
@@ -140,11 +142,11 @@ describe('Workspaces', { testIsolation: 'off', tags: ['@fleet', '@adminUser'] },
         fleetWorkspacesPage.sortableTable().pagination().endButton().click();
 
         // check row count on last page
-        fleetWorkspacesPage.sortableTable().checkRowCount(false, count - 100);
+        fleetWorkspacesPage.sortableTable().checkRowCount(false, count - 20);
 
         // check text after navigation
         fleetWorkspacesPage.sortableTable().pagination().paginationText().then((el) => {
-          expect(el.trim()).to.eq(`101 - ${ count } of ${ count } Workspaces`);
+          expect(el.trim()).to.eq(`21 - ${ count } of ${ count } Workspaces`);
         });
 
         // navigate to first page - beginning button
@@ -152,7 +154,7 @@ describe('Workspaces', { testIsolation: 'off', tags: ['@fleet', '@adminUser'] },
 
         // check text and buttons after navigation
         fleetWorkspacesPage.sortableTable().pagination().paginationText().then((el) => {
-          expect(el.trim()).to.eq(`1 - 100 of ${ count } Workspaces`);
+          expect(el.trim()).to.eq(`1 - 10 of ${ count } Workspaces`);
         });
         fleetWorkspacesPage.sortableTable().pagination().beginningButton().isDisabled();
         fleetWorkspacesPage.sortableTable().pagination().leftButton().isDisabled();
@@ -160,12 +162,16 @@ describe('Workspaces', { testIsolation: 'off', tags: ['@fleet', '@adminUser'] },
     });
 
     it('filter workspace', () => {
+      const rowsPerPage = 10;
+
+      cy.tableRowsPerPage(rowsPerPage);
+      cy.reload(true);
       FleetWorkspaceListPagePo.navTo();
       fleetWorkspacesPage.waitForPage();
 
       fleetWorkspacesPage.sortableTable().checkVisible();
       fleetWorkspacesPage.sortableTable().checkLoadingIndicatorNotVisible();
-      fleetWorkspacesPage.sortableTable().checkRowCount(false, 100);
+      fleetWorkspacesPage.sortableTable().checkRowCount(false, rowsPerPage);
 
       // filter by name
       fleetWorkspacesPage.sortableTable().filter(workspaceNameList[0]);
