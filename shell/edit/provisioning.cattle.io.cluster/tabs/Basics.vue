@@ -450,12 +450,14 @@ export default {
     <Banner
       v-if="showCloudProviderUnsupportedAzureWarning"
       color="warning"
+      data-testid="clusterBasics__showCloudProviderUnsupportedAzureWarning"
     >
       <span v-clean-html="t('cluster.banner.cloudProviderUnsupportedAzure', {}, true)" />
     </Banner>
     <Banner
       v-if="showCloudProviderMigrateAzureWarning"
       color="warning"
+      data-testid="clusterBasics__showCloudProviderMigrateAzureWarning"
     >
       <span v-clean-html="t('cluster.banner.cloudProviderMigrateAzure', {}, true)" />
     </Banner>
@@ -497,6 +499,7 @@ export default {
         <LabeledSelect
           v-if="agentConfig"
           v-model="agentConfig['cloud-provider-name']"
+          data-testid="clusterBasics__cloudProvider"
           :mode="mode"
           :disabled="canNotEditCloudProvider"
           :options="cloudProviderOptions"
