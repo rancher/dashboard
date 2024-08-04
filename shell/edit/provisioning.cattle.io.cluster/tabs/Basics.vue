@@ -403,14 +403,14 @@ export default {
      * Display warning about unsupported Azure provider if k8s >= 1.30
      */
     showCloudProviderUnsupportedAzureWarning() {
-      return this.mode === _CREATE && this.isAzureProviderUnsupported;
+      return this.showCloudProvider && this.mode === _CREATE && this.isAzureProviderUnsupported;
     },
 
     /**
      * Display warning about Azure provider migration from k8s versions >= 1.27 to External provider
      */
     showCloudProviderMigrateAzureWarning() {
-      return this.mode === _EDIT && this.canAzureMigrateOnEdit;
+      return this.showCloudProvider && this.mode === _EDIT && this.canAzureMigrateOnEdit;
     }
   },
 
