@@ -360,8 +360,10 @@ const vueSyntaxUpdates = () => {
     // TODO: Add missing import
 
     [/( {4,}default)\(\)\s*\{([\s\S]*?)this\.([\s\S]*?\}\s*\})/g, (_, before, middle, after) => `${ before }(props) {${ middle }props.${ after }`, 'https://v3-migration.vuejs.org/breaking-changes/props-default-this.html'],
-    [`value=`, `modelValue=`],
-    [`@input=`, `@update:modelValue=`],
+    // [`value=`, `modelValue=`],
+    // [`@input=`, `@update:modelValue=`],
+    [/\@input=\"((?!.*plainInputEvent).+)\"/g, (_, betweenQuotes) => `@update:value="${ betweenQuotes }"`], // Matches @input while avoiding `@input="($plainInputEvent) => onInput($plainInputEvent)"` which we used on plain <input elements since they differ in vue3
+    [`v-model=`, `v-model:value=`],
     // [`v-bind.sync=`, `:modelValue=`, `https://v3-migration.vuejs.org/breaking-changes/v-model.html#using-v-bind-sync`],
     // ['v-model=', ':modelValue=', ''],
     [/:([a-z-0-9]+)\.sync/g, (_, propName) => `v-model:${ propName }`, `https://v3-migration.vuejs.org/breaking-changes/v-model.html#migration-strategy`],
