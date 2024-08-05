@@ -162,7 +162,7 @@ export default {
           :mode="mode"
           :label="t('persistentVolumeClaim.name')"
           :required="true"
-          @update:value="$emit('input', value)"
+          @update:value="$emit('update:value', value)"
         />
       </div>
     </div>

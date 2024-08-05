@@ -97,7 +97,7 @@ export default {
         limitsGpu
       } = this;
 
-      this.$emit('input', cleanUp({
+      this.$emit('update:value', cleanUp({
         limitsCpu,
         limitsMemory,
         requestsCpu,

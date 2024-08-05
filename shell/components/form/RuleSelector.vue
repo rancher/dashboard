@@ -70,7 +70,7 @@ export default {
         return this.value;
       },
       set(localValue) {
-        this.$emit('input', localValue);
+        this.$emit('update:value', localValue);
       }
     }
   },

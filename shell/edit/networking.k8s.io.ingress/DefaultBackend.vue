@@ -75,7 +75,7 @@ export default {
       set(backend, this.value.servicePortPath, this.servicePort);
       set(this.value.spec, this.value.defaultBackendPath, backend);
 
-      this.$emit('input', this.value);
+      this.$emit('update:value', this.value);
     }
   },
   watch: {

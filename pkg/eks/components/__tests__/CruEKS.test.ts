@@ -97,13 +97,13 @@ describe('eKS provisioning form', () => {
 
     const nameInput = wrapper.find('[data-testid="eks-name-input"]');
 
-    nameInput.vm.$emit('input', 'abc');
+    nameInput.vm.$emit('update:value', 'abc');
     await wrapper.vm.$nextTick();
     expect(wrapper.vm.config.displayName).toStrictEqual('abc');
     expect(wrapper.vm.normanCluster.name).toStrictEqual('abc');
     expect(nameInput.props().value).toStrictEqual('abc');
 
-    nameInput.vm.$emit('input', 'def');
+    nameInput.vm.$emit('update:value', 'def');
     await wrapper.vm.$nextTick();
     expect(wrapper.vm.config.displayName).toStrictEqual('def');
     expect(wrapper.vm.normanCluster.name).toStrictEqual('def');

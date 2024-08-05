@@ -38,7 +38,7 @@ export default {
         :disabled="disabled"
         :tooltip="displayTooltip"
         :searchable="question.searchable"
-        @input="$emit('input', $event)"
+        @update:value="$emit('update:value', $event)"
       />
     </div>
     <div

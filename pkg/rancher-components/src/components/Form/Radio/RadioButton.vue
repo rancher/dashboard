@@ -126,7 +126,7 @@ export default defineComponent({
         return;
       }
 
-      this.$emit('input', this.val);
+      this.$emit('update:value', this.val);
     },
   }
 });

@@ -114,7 +114,7 @@ export default {
         return;
       }
 
-      this.$emit('input', this.rows);
+      this.$emit('update:value', this.rows);
     }
   },
 };

@@ -162,9 +162,9 @@ export default {
   watch: {
     credentialId(val) {
       if ( val === _NEW || val === _NONE ) {
-        this.$emit('input', null);
+        this.$emit('update:value', null);
       } else {
-        this.$emit('input', val);
+        this.$emit('update:value', val);
       }
     },
   },

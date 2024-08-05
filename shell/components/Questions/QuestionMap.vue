@@ -9,7 +9,7 @@ export default {
 
   methods: {
     update(val) {
-      this.$emit('input', val);
+      this.$emit('update:value', val);
     }
   }
 };

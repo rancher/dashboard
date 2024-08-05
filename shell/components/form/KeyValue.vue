@@ -513,7 +513,7 @@ export default {
       }
       this.lastUpdated = out;
 
-      this.$emit('input', out);
+      this.$emit('update:value', out);
     },
     onPaste(index, event) {
       const text = event.clipboardData.getData('text/plain');

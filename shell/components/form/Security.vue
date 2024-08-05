@@ -113,7 +113,7 @@ export default {
         runAsUser:                this.runAsUser,
       };
 
-      this.$emit('input', securityContext);
+      this.$emit('update:value', securityContext);
     }
 
   }

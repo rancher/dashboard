@@ -88,7 +88,7 @@ export default {
       set(out.backend, this.ingress.servicePortPath, servicePort);
       set(out.backend, this.ingress.serviceNamePath, serviceName);
 
-      this.$emit('input', out);
+      this.$emit('update:value', out);
     },
     updatePathTypeAndPath(values) {
       this.path = values.text;

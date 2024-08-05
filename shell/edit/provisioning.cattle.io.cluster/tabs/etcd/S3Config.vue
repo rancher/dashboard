@@ -67,7 +67,7 @@ export default {
     update() {
       const out = { ...this.config };
 
-      this.$emit('input', out);
+      this.$emit('update:value', out);
     },
   },
 };

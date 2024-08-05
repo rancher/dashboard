@@ -42,7 +42,7 @@ export default {
       },
 
       set(localValue) {
-        this.$emit('input', localValue);
+        this.$emit('update:value', localValue);
       }
     },
 

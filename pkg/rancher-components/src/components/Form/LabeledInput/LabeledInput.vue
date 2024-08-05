@@ -251,7 +251,7 @@ export default defineComponent({
     delayInput(val: string | Event): void {
       const value = typeof val === 'string' ? val : (val?.target as HTMLInputElement)?.value;
 
-      this.$emit('input', value);
+      this.$emit('update:value', value);
     },
 
     /**

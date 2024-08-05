@@ -457,22 +457,22 @@ export default {
 
     update() {
       if ( (!this.selected || [AUTH_TYPE._SSH, AUTH_TYPE._BASIC, AUTH_TYPE._S3, AUTH_TYPE._NONE].includes(this.selected))) {
-        this.$emit('input', null);
+        this.$emit('update:value', null);
       } else if ( this.selected.includes(':') ) {
         // Cloud creds
-        this.$emit('input', this.selected);
+        this.$emit('update:value', this.selected);
       } else {
         const split = this.selected.split('/');
 
         if ( this.limitToNamespace ) {
-          this.$emit('input', split[1]);
+          this.$emit('update:value', split[1]);
         } else {
           const out = {
             namespace: split[0],
             name:      split[1]
           };
 
-          this.$emit('input', out);
+          this.$emit('update:value', out);
         }
       }
 

@@ -129,12 +129,12 @@ describe('gke node pool', () => {
 
     const versionUpgradeCheckbox = wrapper.find('[data-testid="gke-k8s-upgrade-checkbox"]');
 
-    versionUpgradeCheckbox.vm.$emit('input', true);
+    versionUpgradeCheckbox.vm.$emit('update:value', true);
     await wrapper.vm.$nextTick();
 
     expect(wrapper.emitted()?.['update:version']?.[0][0]).toBe('1.23.4');
 
-    versionUpgradeCheckbox.vm.$emit('input', false);
+    versionUpgradeCheckbox.vm.$emit('update:value', false);
     await wrapper.vm.$nextTick();
 
     expect(wrapper.emitted()?.['update:version']?.[1][0]).toBe('1.20.4');

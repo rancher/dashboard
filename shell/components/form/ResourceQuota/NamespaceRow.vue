@@ -163,7 +163,7 @@ export default {
         addSuffixSpace: false
       });
 
-      this.$emit('input', this.type, value);
+      this.$emit('update:value', this.type, value);
     }
   }
 };

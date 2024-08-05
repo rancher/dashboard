@@ -138,7 +138,7 @@ export default {
         out.requiredDuringSchedulingIgnoredDuringExecution = requiredDuringSchedulingIgnoredDuringExecution;
       }
 
-      this.$emit('input', out);
+      this.$emit('update:value', out);
     },
 
     remove() {

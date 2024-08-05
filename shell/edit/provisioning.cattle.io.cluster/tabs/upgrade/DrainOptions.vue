@@ -70,7 +70,7 @@ export default {
         out.timeout = 0;
       }
 
-      this.$emit('input', out);
+      this.$emit('update:value', out);
     },
   },
 };

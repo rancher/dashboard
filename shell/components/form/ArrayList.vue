@@ -192,7 +192,7 @@ export default {
           out.push(value);
         }
       }
-      this.$emit('input', out);
+      this.$emit('update:value', out);
     },
 
     /**

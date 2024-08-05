@@ -105,7 +105,7 @@ export default defineComponent({
 
     validAZ(neu) {
       this.pool['_validAZ'] = neu;
-      this.$emit('input');
+      this.$emit('update:value');
     }
   },
 
@@ -151,13 +151,13 @@ export default defineComponent({
     addTaint(): void {
       this.taints.push({ taint: '', _id: randomStr() });
       this.pool['nodeTaints'] = this.taints.map((keyedTaint: any => keyedTaint.taint));
-      this.$emit('input');
+      this.$emit('update:value');
     },
 
     updateTaint(keyedTaint: any, idx: any): void {
       this.taints[idx] = keyedTaint;
       this.pool['nodeTaints'] = this.taints.map((keyedTaint: any => keyedTaint.taint));
-      this.$emit('input');
+      this.$emit('update:value');
     },
 
     removeTaint(idx: number): void {

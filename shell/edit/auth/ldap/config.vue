@@ -94,7 +94,7 @@ export default {
 </script>
 
 <template>
-  <div @update:value="$emit('input', model)">
+  <div @update:value="$emit('update:value', model)">
     <template>
       <div class="row mb-20">
         <div class="col span-6">
