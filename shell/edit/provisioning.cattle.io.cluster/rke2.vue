@@ -340,7 +340,7 @@ export default {
           out.push({ kind: 'group', label: this.t('cluster.provider.rke2') });
         }
 
-      out.push(...allValidRke2Versions);
+        out.push(...allValidRke2Versions);
       }
 
       if (showK3s) {
