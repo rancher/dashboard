@@ -411,7 +411,7 @@ export default {
                   v-if="!firstLogin"
                   id="username"
                   ref="username"
-                  v-model.trim="username"
+                  v-model:value.trim="username"
                   data-testid="local-login-username"
                   :label="t('login.username')"
                   autocomplete="username"
