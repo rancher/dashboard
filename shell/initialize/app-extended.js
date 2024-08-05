@@ -1,3 +1,6 @@
+// Taken from @nuxt/vue-app/template/index.js
+// This file was generated during Nuxt migration
+// TODO: Add more clarification to this comment
 import AppView from '@shell/initialize/App';
 import { setContext, getRouteData } from '@shell/initialize/entry-helpers';
 import { extendRouter } from '@shell/config/router';
