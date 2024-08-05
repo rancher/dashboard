@@ -91,10 +91,6 @@ export default {
     ...mapGetters(['currentCluster', 'defaultClusterId', 'releaseNotesUrl']),
     mcm: mapFeature(MULTI_CLUSTER),
 
-    mgmtClusters() {
-      return this.$store.getters['management/all'](MANAGEMENT.CLUSTER);
-    },
-
     provClusters() {
       return this.$store.getters['management/all'](CAPI.RANCHER_CLUSTER);
     },
@@ -211,15 +207,7 @@ export default {
     },
 
     kubeClusters() {
-      const filteredClusters = filterHiddenLocalCluster(filterOnlyKubernetesClusters(this.provClusters || [], this.$store), this.$store);
-
-      return filteredClusters.map((provCluster) => {
-        const mgmtCluster = this.mgmtClusters?.find((c) => provCluster.mgmt?.id === c.id);
-
-        provCluster.description = provCluster.description || mgmtCluster?.description;
-
-        return provCluster;
-      });
+      return filterHiddenLocalCluster(filterOnlyKubernetesClusters(this.provClusters || [], this.$store), this.$store);
     }
   },
 

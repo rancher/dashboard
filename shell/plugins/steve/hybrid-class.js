@@ -100,8 +100,4 @@ export default class HybridModel extends Resource {
   get state() {
     return this.stateObj?.name || 'unknown';
   }
-
-  get description() {
-    return this.metadata?.annotations?.[DESCRIPTION] || this.spec?.description || this._description;
-  }
 }

@@ -986,4 +986,8 @@ export default class ProvCluster extends SteveModel {
       'spec.rkeConfig.machinePools.dynamicSchemaSpec',
     ];
   }
+
+  get description() {
+    return super.description || this.mgmt?.description;
+  }
 }
