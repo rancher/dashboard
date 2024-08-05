@@ -89,7 +89,7 @@ const NODE_TOTAL = {
 const CLUSTER_AGENT_CUSTOMIZATION = 'clusterAgentDeploymentCustomization';
 const FLEET_AGENT_CUSTOMIZATION = 'fleetAgentDeploymentCustomization';
 
-const isAzureK8sUnsupported = (version) => semver.gte(version, 'v1.30.0');
+const isAzureK8sUnsupported = (version) => semver.gte(version, '1.30.0');
 
 export default {
   components: {
@@ -340,7 +340,7 @@ export default {
           out.push({ kind: 'group', label: this.t('cluster.provider.rke2') });
         }
 
-        out.push(...allValidRke2Versions);
+      out.push(...allValidRke2Versions);
       }
 
       if (showK3s) {
@@ -662,7 +662,9 @@ export default {
 
       const isAzureLiveProvider = this.liveValue.agentConfig['cloud-provider-name'] === 'azure';
 
-      return isAzureLiveProvider && semver.satisfies(this.liveValue?.spec?.kubernetesVersion, '>=v1.27 || <1.30');
+      return isAzureLiveProvider &&
+        semver.gte(this.liveValue?.spec?.kubernetesVersion, '1.27.0') &&
+        semver.lt(this.liveValue?.spec?.kubernetesVersion, '1.30.0');
     },
 
     canManageMembers() {
