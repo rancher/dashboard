@@ -10,7 +10,7 @@ import { addParams } from '@shell/utils/url';
 import { isEmpty } from '@shell/utils/object';
 import { HARVESTER_NAME as HARVESTER } from '@shell/config/features';
 import { isHarvesterCluster } from '@shell/utils/cluster';
-import HybridModel from '@shell/plugins/steve/hybrid-class';
+import SteveModel from '@shell/plugins/steve/steve-class';
 import { LINUX, WINDOWS } from '@shell/store/catalog';
 import { KONTAINER_TO_DRIVER } from './management.cattle.io.kontainerdriver';
 import { PINNED_CLUSTERS } from '@shell/store/prefs';
@@ -27,7 +27,7 @@ function findRelationship(verb, type, relationships = []) {
   return relationships.find((r) => r[from] === type)?.[id];
 }
 
-export default class MgmtCluster extends HybridModel {
+export default class MgmtCluster extends SteveModel {
   get details() {
     const out = [
       {
