@@ -56,10 +56,16 @@ export const globalHandleError = (error) => vueApp.config.errorHandler && vueApp
  * @param {Object} vueApp- Vue instance
  */
 export async function mountApp(appPartials, vueApp) {
-  // Initialize error handler
+  // Set global variables
+  const app = appPartials.app;
+  const router = appPartials.router;
+
+  vueApp.use(router);
+  vueApp.use(app.store);
+
   vueApp.$loading = {}; // To avoid error while vueApp.$loading does not exist
 
-  vueApp.$mount('#app');
+  vueApp.mount('#app');
 }
 
 export const getMatchedComponents = (route, matches = false, prop = 'components') => {
