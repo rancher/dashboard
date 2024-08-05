@@ -64,13 +64,13 @@ export default defineComponent({
     scopeMode(neu) {
       switch (neu) {
       case GKEOauthScopeOptions.DEFAULT:
-        this.$emit('input', getGoogleAuthDefaultURLs());
+        this.$emit('update:value', getGoogleAuthDefaultURLs());
         break;
       case GKEOauthScopeOptions.FULL:
-        this.$emit('input', [googleFullAuthUrl]);
+        this.$emit('update:value', [googleFullAuthUrl]);
         break;
       default:
-        this.$emit('input', []);
+        this.$emit('update:value', []);
       }
     }
   },
@@ -85,7 +85,7 @@ export default defineComponent({
     setScopeValue(scopeKey: keyof typeof GKEOauthScopeFormOptions, neu: string) {
       const newScopes = addGKEAuthScope(this.value, scopeKey, neu);
 
-      this.$emit('input', newScopes);
+      this.$emit('update:value', newScopes);
     },
 
     nextScopeKey(index: number) {

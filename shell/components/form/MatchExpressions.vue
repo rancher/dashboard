@@ -228,9 +228,9 @@ export default {
         }).filter((x) => !!x);
 
         if ( isArray(this.value) || this.matchingSelectorDisplay ) {
-          this.$emit('input', out);
+          this.$emit('update:value', out);
         } else {
-          this.$emit('input', simplify(out));
+          this.$emit('update:value', simplify(out));
         }
       });
     }

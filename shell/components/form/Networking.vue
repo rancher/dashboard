@@ -137,7 +137,7 @@ export default {
         hostNetwork: this.networkMode.value
       };
 
-      this.$emit('input', out);
+      this.$emit('update:value', out);
     }
   }
 };

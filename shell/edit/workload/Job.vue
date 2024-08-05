@@ -117,7 +117,7 @@ export default {
 
         spec.template.spec.terminationGracePeriodSeconds = this.terminationGracePeriodSeconds;
 
-        this.$emit('input', spec);
+        this.$emit('update:value', spec);
       } else {
         const spec = {
           ...this.value,
@@ -139,7 +139,7 @@ export default {
 
         spec.jobTemplate.spec.template.spec.terminationGracePeriodSeconds = this.terminationGracePeriodSeconds;
 
-        this.$emit('input', spec);
+        this.$emit('update:value', spec);
       }
     },
 

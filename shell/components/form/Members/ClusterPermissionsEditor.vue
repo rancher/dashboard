@@ -218,7 +218,7 @@ export default {
 
         const bindings = await Promise.all(bindingPromises);
 
-        this.$emit('input', bindings);
+        this.$emit('update:value', bindings);
       }
     }
   },

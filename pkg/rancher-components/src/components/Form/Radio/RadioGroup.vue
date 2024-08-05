@@ -162,7 +162,7 @@ export default defineComponent({
         newIndex = 0;
       }
 
-      this.$emit('input', opts[newIndex].value);
+      this.$emit('update:value', opts[newIndex].value);
     }
   }
 });
@@ -207,7 +207,9 @@ export default defineComponent({
       @keyup.up.stop="clickNext(-1)"
     >
       <div
-        v-for="(option, i) in normalizedOptions" :key="i">
+        v-for="(option, i) in normalizedOptions"
+        :key="i"
+      >
         <slot
           :v-bind="$attrs"
           :option="option"
@@ -223,7 +225,6 @@ export default defineComponent({
             :val="option.value"
             :disabled="isDisabled"
             :mode="mode"
-            
           />
         </slot>
       </div>

@@ -34,7 +34,7 @@ export default {
       const value = this.value[i];
 
       value['enabled'] = !!value.enabled;
-      this.$emit('input', this.value);
+      this.$emit('update:value', this.value);
     },
   }
 };

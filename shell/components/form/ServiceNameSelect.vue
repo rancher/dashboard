@@ -91,12 +91,12 @@ export default {
 
   methods: {
     changeSelected() {
-      this.$emit('input', this.serviceName);
+      this.$emit('update:value', this.serviceName);
     },
 
     clearSearch(event) {
       this.selected = '';
-      this.$emit('input', null);
+      this.$emit('update:value', null);
 
       event.preventDefault();
     },

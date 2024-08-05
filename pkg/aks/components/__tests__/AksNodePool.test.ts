@@ -221,7 +221,7 @@ describe('aks node pool component', () => {
 
     expect(labelInput.props().value).toStrictEqual(labels);
 
-    labelInput.vm.$emit('input', newLabels);
+    labelInput.vm.$emit('update:value', newLabels);
     await wrapper.vm.$nextTick();
 
     expect(wrapper.props().pool.nodeLabels).toStrictEqual(newLabels);

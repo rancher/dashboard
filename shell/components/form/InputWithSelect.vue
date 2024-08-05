@@ -104,7 +104,7 @@ export default {
     },
 
     change() {
-      this.$emit('input', { selected: this.selected, text: this.string });
+      this.$emit('update:value', { selected: this.selected, text: this.string });
     },
   },
 

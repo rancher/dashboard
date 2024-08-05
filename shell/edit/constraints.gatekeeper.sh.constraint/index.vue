@@ -177,7 +177,7 @@ export default {
   created() {
     this.registerBeforeHook(this.willSave, 'willSave');
     if (!this.value.save) {
-      this.$emit('input', merge(this.value, this.emptyDefaults));
+      this.$emit('update:value', merge(this.value, this.emptyDefaults));
     }
   },
 

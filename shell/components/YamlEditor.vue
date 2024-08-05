@@ -169,14 +169,14 @@ export default {
 
     onInput(value) {
       if ( !this.asObject ) {
-        this.$emit('input', ...arguments);
+        this.$emit('update:value', ...arguments);
       }
 
       try {
         const parsed = jsyaml.load(value);
 
         if ( this.asObject ) {
-          this.$emit('input', parsed);
+          this.$emit('update:value', parsed);
         } else {
           this.$emit('newObject', parsed);
         }

@@ -139,7 +139,7 @@ export default {
     }
 
     if ( this.value === undefined && def !== undefined ) {
-      this.$emit('input', def);
+      this.$emit('update:value', def);
     }
   },
 };

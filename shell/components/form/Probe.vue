@@ -111,7 +111,7 @@ export default {
       const probe = this.probe;
 
       if ( this.isNone ) {
-        this.$emit('input', null);
+        this.$emit('update:value', null);
 
         return;
       }
@@ -136,7 +136,7 @@ export default {
         break;
       }
 
-      this.$emit('input', probe);
+      this.$emit('update:value', probe);
     }
   },
 };

@@ -47,7 +47,7 @@ export default {
      * @param {string} event
      */
     setIcon(event) {
-      this.$emit('input', event);
+      this.$emit('update:value', event);
     },
     setError(error) {
       this.$emit('error', error);

@@ -55,7 +55,7 @@ export default {
         if ((this.paths?.length === 1 && this.pathObjectIsEmpty(this.paths[0])) || this.paths?.length === 0) {
           delete out.http;
         }
-        this.$emit('input', out);
+        this.$emit('update:value', out);
       });
     },
     pathObjectIsEmpty(pathObject) {

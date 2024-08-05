@@ -213,7 +213,7 @@ export default {
         delete value._showHost;
         out.push(value);
       }
-      this.$emit('input', out);
+      this.$emit('update:value', out);
     },
 
     setServiceType(row) {

@@ -214,7 +214,7 @@ export default {
     updateRow() {
       if (!this.name?.length && !this.refName?.length) {
         if (this.type !== 'fieldRef') {
-          this.$emit('input', null);
+          this.$emit('update:value', null);
 
           return;
         }
@@ -251,7 +251,7 @@ export default {
         out.prefix = this.name;
         out[this.type] = { name: this.refName, optional: false };
       }
-      this.$emit('input', out);
+      this.$emit('update:value', out);
     },
     get
   }

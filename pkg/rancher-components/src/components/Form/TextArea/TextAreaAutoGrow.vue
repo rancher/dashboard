@@ -118,7 +118,7 @@ export default defineComponent({
     onInput(event: Event): void {
       const val = (event?.target as HTMLInputElement)?.value;
 
-      this.$emit('input', val);
+      this.$emit('update:value', val);
       this.queueResize();
     },
 

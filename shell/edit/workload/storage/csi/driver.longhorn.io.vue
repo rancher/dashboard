@@ -39,7 +39,7 @@ export default {
         :value="value"
         :mode="mode"
         :as-map="true"
-        @update:value="$emit('input', value)"
+        @update:value="$emit('update:value', value)"
       />
     </div>
   </div>

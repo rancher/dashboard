@@ -63,7 +63,7 @@ export default {
         out.secretName = null;
       }
 
-      this.$emit('input', out);
+      this.$emit('update:value', out);
     },
     onSecretInput(e) {
       this.secretName = e && typeof e === 'object' ? e.label : e;

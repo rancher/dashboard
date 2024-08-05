@@ -186,12 +186,12 @@ describe('eKS K8s configuration', () => {
 
     const secretsEncryptionCheckbox = wrapper.find('[data-testid="eks-secrets-encryption-checkbox"]');
 
-    secretsEncryptionCheckbox.vm.$emit('input', true);
+    secretsEncryptionCheckbox.vm.$emit('update:value', true);
     await wrapper.vm.$nextTick();
     expect(wrapper.emitted('update:secretsEncryption')).toHaveLength(1);
     expect(wrapper.emitted('update:secretsEncryption')?.[0]?.[0]).toBe(true);
 
-    secretsEncryptionCheckbox.vm.$emit('input', false);
+    secretsEncryptionCheckbox.vm.$emit('update:value', false);
     await wrapper.vm.$nextTick();
     expect(wrapper.emitted('update:secretsEncryption')).toHaveLength(2);
     expect(wrapper.emitted('update:secretsEncryption')?.[1]?.[0]).toBe(false);

@@ -219,7 +219,7 @@ export default {
       }
 
       this.$emit('valid', isValid);
-      this.$emit('input', {
+      this.$emit('update:value', {
         password:          this.password,
         userChangeOnLogin: this.userChangeOnLogin
       });

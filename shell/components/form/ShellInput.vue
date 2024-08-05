@@ -44,7 +44,7 @@ export default {
       if ( userValue ) {
         out = userValue.match(/('[^']+')|("[^"]+")|\S+/g).map((string) => string.replace(/^'|'$|^"|"$/g, ''));
       }
-      this.$emit('input', out);
+      this.$emit('update:value', out);
     },
   }
 };

@@ -159,7 +159,7 @@ export default {
         return newRule;
       });
 
-      this.$emit('input', rules);
+      this.$emit('update:value', rules);
     },
 
     addToleration() {

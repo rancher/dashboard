@@ -196,7 +196,7 @@ export default {
         break;
       }
 
-      this.$emit('input', this.value);
+      this.$emit('update:value', this.value);
     },
 
     updateWithUnits({ selected:units, text:value }, target) {

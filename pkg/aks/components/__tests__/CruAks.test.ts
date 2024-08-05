@@ -390,7 +390,7 @@ describe('aks provisioning form', () => {
     expect(logAnalyticsWorkspaceGroupInput.exists()).toBe(false);
     expect(wrapper.vm.$data.config.monitoring).toBeFalsy();
 
-    monitoringCheckbox.vm.$emit('input', true);
+    monitoringCheckbox.vm.$emit('update:value', true);
     await wrapper.vm.$nextTick();
     expect(wrapper.vm.$data.config.monitoring).toBe(true);
     logAnalyticsWorkspaceNameInput = wrapper.find('[data-testid="aks-log-analytics-workspace-name-input"]');
@@ -471,7 +471,7 @@ describe('aks provisioning form', () => {
 
     expect(monitoringCheckbox.props().value).toBe(true);
 
-    monitoringCheckbox.vm.$emit('input', false);
+    monitoringCheckbox.vm.$emit('update:value', false);
     await wrapper.vm.$nextTick();
     expect(wrapper.vm.$data.config.monitoring).toBeFalsy();
     expect(wrapper.vm.$data.config.logAnalyticsWorkspaceGroup).toBeNull();

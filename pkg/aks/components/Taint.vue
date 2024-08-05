@@ -50,7 +50,7 @@ export default defineComponent({
     update() {
       const out = formatTaint(this.key, this.value, this.effect);
 
-      this.$emit('input', out);
+      this.$emit('update:value', out);
     }
   },
 

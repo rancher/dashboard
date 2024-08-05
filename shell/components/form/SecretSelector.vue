@@ -103,9 +103,9 @@ export default {
         const correctedName = isNone ? undefined : name;
 
         if (this.showKeySelector) {
-          this.$emit('input', { [this.mountKey]: { secretKeyRef: { [this.nameKey]: correctedName, [this.keyKey]: '' } } });
+          this.$emit('update:value', { [this.mountKey]: { secretKeyRef: { [this.nameKey]: correctedName, [this.keyKey]: '' } } });
         } else {
-          this.$emit('input', correctedName);
+          this.$emit('update:value', correctedName);
         }
       }
     },
@@ -115,7 +115,7 @@ export default {
         return this.value?.[this.mountKey]?.secretKeyRef?.[this.keyKey] || '';
       },
       set(key) {
-        this.$emit('input', { [this.mountKey]: { secretKeyRef: { [this.nameKey]: this.name, [this.keyKey]: key } } });
+        this.$emit('update:value', { [this.mountKey]: { secretKeyRef: { [this.nameKey]: this.name, [this.keyKey]: key } } });
       }
     },
 

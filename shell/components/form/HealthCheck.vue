@@ -32,7 +32,7 @@ export default {
     update() {
       const { readinessProbe, livenessProbe, startupProbe } = this;
 
-      this.$emit('input', {
+      this.$emit('update:value', {
         readinessProbe, livenessProbe, startupProbe
       } );
     }

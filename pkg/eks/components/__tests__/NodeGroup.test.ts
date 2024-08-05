@@ -250,7 +250,7 @@ describe('eKS Node Groups: create', () => {
 
     expect(tagsInput.props().value).toStrictEqual({});
 
-    tagsInput.vm.$emit('input', { abc: 'def' });
+    tagsInput.vm.$emit('update:value', { abc: 'def' });
 
     await wrapper.vm.$nextTick();
 
@@ -345,7 +345,7 @@ describe('eks node groups: edit', () => {
 
     const upgradeVersionCheckbox = wrapper.find('[data-testid="eks-version-upgrade-checkbox"]');
 
-    upgradeVersionCheckbox.vm.$emit('input', true);
+    upgradeVersionCheckbox.vm.$emit('update:value', true);
     await wrapper.vm.$nextTick();
 
     expect(wrapper.emitted('update:version')?.[0]?.[0]).toBe('1.24');
@@ -371,7 +371,7 @@ describe('eks node groups: edit', () => {
 
     const upgradeVersionCheckbox = wrapper.find('[data-testid="eks-version-upgrade-checkbox"]');
 
-    upgradeVersionCheckbox.vm.$emit('input', true);
+    upgradeVersionCheckbox.vm.$emit('update:value', true);
     await wrapper.vm.$nextTick();
 
     expect(wrapper.emitted('update:poolIsUpgrading')?.[0]?.[0]).toBe(true);
@@ -402,7 +402,7 @@ describe('eks node groups: edit', () => {
 
     expect(upgradeVersionCheckbox.props().value).toBe(true);
 
-    upgradeVersionCheckbox.vm.$emit('input', false);
+    upgradeVersionCheckbox.vm.$emit('update:value', false);
     await wrapper.vm.$nextTick();
 
     expect(wrapper.emitted('update:poolIsUpgrading')?.[0]?.[0]).toBe(false);
@@ -431,7 +431,7 @@ describe('eks node groups: edit', () => {
 
     expect(upgradeVersionCheckbox.props().value).toBe(true);
 
-    upgradeVersionCheckbox.vm.$emit('input', false);
+    upgradeVersionCheckbox.vm.$emit('update:value', false);
     await wrapper.vm.$nextTick();
 
     expect(wrapper.emitted('update:version')?.[0]?.[0]).toBe('1.23');
@@ -498,7 +498,7 @@ describe('eks node groups: edit', () => {
     await wrapper.vm.$nextTick();
     expect(ec2KeyDropdown.props().options).toHaveLength(2);
 
-    ec2KeyDropdown.vm.$emit('input', '123-abc');
+    ec2KeyDropdown.vm.$emit('update:value', '123-abc');
     await wrapper.vm.$nextTick();
 
     expect(wrapper.emitted('update:ec2SshKey')?.[1]?.[0]).toBe('123-abc');

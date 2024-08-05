@@ -37,7 +37,7 @@ export default {
       add-label="Add Rule"
       :mode="mode"
       :default-add-value="defaultAddValue"
-      @input="(e) => $emit('input', e)"
+      @update:value="(e) => $emit('update:value', e)"
     >
       <template #default="props">
         <div class="row">

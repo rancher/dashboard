@@ -104,7 +104,7 @@ export default {
 
   methods: {
     update() {
-      this.$emit('input', this.value);
+      this.$emit('update:value', this.value);
     },
 
     valuesChanged(value) {
