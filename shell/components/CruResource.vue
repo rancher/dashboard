@@ -443,6 +443,7 @@ export default {
     </p>
     <component
       :is="(isView? 'div' : 'form')"
+      :value="resource"
       data-testid="cru-form"
       class="create-resource-container cru__form"
       @submit.prevent
@@ -594,12 +595,13 @@ export default {
                   <template
                     v-for="(_, slot) of $slots"
                     :key="slot"
-                    v-slot:[slot]="scope"
                   >
-                    <slot
-                      :name="slot"
-                      v-bind="scope"
-                    />
+                    <template v-if="typeof $slots[slot] === 'function'">
+                      <slot
+                        :name="slot"
+                        v-bind="{ ...$slots[slot]() }"
+                      />
+                    </template>
                   </template>
                   <div class="controls-steps">
                     <button
@@ -676,14 +678,14 @@ export default {
             <template
               v-for="(_, slot) of $slots"
               :key="slot"
-              v-slot:[slot]="scope"
             >
-              <slot
-                :name="slot"
-                v-bind="scope"
-              />
+              <template v-if="typeof $slots[slot] === 'function'">
+                <slot
+                  :name="slot"
+                  v-bind="{ ...$slots[slot]() }"
+                />
+              </template>
             </template>
-
             <template #default>
               <div v-if="!isView">
                 <button
