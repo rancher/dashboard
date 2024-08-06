@@ -60,7 +60,7 @@ export default {
   >
     <NameNsDescription
       ref="nd"
-      v-model="value"
+      v-model="localValue"
       :mode="mode"
     />
 

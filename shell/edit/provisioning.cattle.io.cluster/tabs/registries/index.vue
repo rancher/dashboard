@@ -130,12 +130,12 @@ export default {
             :label-key="value.isK3s ? 'cluster.privateRegistry.docsLinkK3s' : 'cluster.privateRegistry.docsLinkRke2'"
           />
           <RegistryMirrors
-            v-model="value"
+            v-model="localValue"
             class="mt-20"
             :mode="mode"
           />
           <RegistryConfigs
-            v-model="value"
+            v-model="localValue"
             class="mt-20"
             :mode="mode"
             :cluster-register-before-hook="registerBeforeHook"

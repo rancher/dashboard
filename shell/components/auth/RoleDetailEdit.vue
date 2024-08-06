@@ -598,7 +598,7 @@ export default {
     </template>
     <template v-else>
       <NameNsDescription
-        v-model="value"
+        v-model="localValue"
         :namespaced="isNamespaced"
         :mode="mode"
         name-key="displayName"

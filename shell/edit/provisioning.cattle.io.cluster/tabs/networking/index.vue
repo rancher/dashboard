@@ -183,7 +183,7 @@ export default {
     </div>
 
     <ACE
-      v-model="value"
+      v-model="localValue"
       :mode="mode"
     />
   </div>

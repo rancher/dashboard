@@ -143,7 +143,7 @@ export default {
 
 <template>
   <ResourceTabs
-    v-model="value"
+    v-model="localValue"
     :mode="mode"
   >
     <Tab

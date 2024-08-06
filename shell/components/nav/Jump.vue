@@ -71,7 +71,7 @@ export default {
   <div>
     <input
       ref="input"
-      v-model="value"
+      v-model="localValue"
       :placeholder="t('nav.resourceSearch.placeholder')"
       class="search"
       @keyup.esc="$emit('closeSearch')"

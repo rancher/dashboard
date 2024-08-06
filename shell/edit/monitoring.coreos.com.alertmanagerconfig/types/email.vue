@@ -163,7 +163,7 @@ export default {
       </Banner>
     </div>
     <TLS
-      v-model="value"
+      v-model="localValue"
       class="mb-20"
       :mode="mode"
       :namespace="namespace"

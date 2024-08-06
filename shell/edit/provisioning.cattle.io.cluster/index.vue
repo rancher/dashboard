@@ -639,7 +639,7 @@ export default {
 
     <Import
       v-if="isImport"
-      v-model="value"
+      v-model="localValue"
       :mode="mode"
       :provider="subType"
     />
@@ -648,7 +648,7 @@ export default {
       <component
         :is="selectedSubType.component"
         v-if="selectedSubType && selectedSubType.component"
-        v-model="value"
+        v-model="localValue"
         :initial-value="initialValue"
         :live-value="liveValue"
         :mode="mode"
@@ -657,7 +657,7 @@ export default {
       />
       <Rke2Config
         v-else
-        v-model="value"
+        v-model="localValue"
         :initial-value="initialValue"
         :live-value="liveValue"
         :mode="mode"

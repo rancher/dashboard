@@ -75,7 +75,7 @@ export default {
     <ResourcesSummary :value="value.status.resourceCounts" />
 
     <ResourceTabs
-      v-model="value"
+      v-model="localValue"
       mode="view"
       class="mt-20"
     >

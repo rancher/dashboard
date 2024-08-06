@@ -92,7 +92,7 @@ export default defineComponent({
     </td>
     <td :style="{'width': '40%'}">
       <LabeledInput
-        v-model="value"
+        v-model="localValue"
         :mode="mode"
         type="text"
         :rules="[()=>validationMessage]"

@@ -117,7 +117,7 @@ export default {
 <template>
   <form>
     <NameNsDescription
-      v-model="value"
+      v-model="localValue"
       :mode="mode"
       :namespaced="isNamespaced"
     />

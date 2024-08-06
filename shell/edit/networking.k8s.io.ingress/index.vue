@@ -279,7 +279,7 @@ export default {
         :error="tabErrors.rules"
       >
         <Rules
-          v-model="value"
+          v-model="localValue"
           :mode="mode"
           :service-targets="serviceTargets"
           :certificates="certificates"
@@ -293,7 +293,7 @@ export default {
         :error="tabErrors.defaultBackend"
       >
         <DefaultBackend
-          v-model="value"
+          v-model="localValue"
           :service-targets="serviceTargets"
           :mode="mode"
           :rules="defaultBackendPathRules"
@@ -306,7 +306,7 @@ export default {
         :weight="2"
       >
         <Certificates
-          v-model="value"
+          v-model="localValue"
           :mode="mode"
           :certificates="certificates"
           :rules="{host: fvGetAndReportPathRules('spec.tls.hosts')}"
@@ -318,7 +318,7 @@ export default {
         :weight="1"
       >
         <IngressClass
-          v-model="value"
+          v-model="localValue"
           :mode="mode"
           :ingress-classes="ingressClasses"
         />

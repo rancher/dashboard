@@ -321,7 +321,7 @@ export default {
       @error="e=>errors = e"
     >
       <NameNsDescription
-        v-model="value"
+        v-model="localValue"
         :mode="mode"
         :namespaced="!isCloud"
       />
@@ -390,7 +390,7 @@ export default {
           :weight="-1"
         >
           <Labels
-            v-model="value"
+            v-model="localValue"
             :mode="mode"
           />
         </Tab>

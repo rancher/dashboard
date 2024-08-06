@@ -4,6 +4,7 @@ import i18n from '@shell/plugins/i18n';
 import VTooltip from 'v-tooltip';
 import vSelect from 'vue-select';
 import cleanTooltipDirective from '@shell/directives/clean-tooltip';
+import localValue from '@shell/mixins/local-value';
 import cleanHtmlDirective from '@shell/directives/clean-html';
 import '@shell/plugins/replaceall';
 
@@ -19,6 +20,7 @@ Vue.use(VTooltip);
 Vue.component('v-select', vSelect);
 Vue.directive('clean-html', cleanHtmlDirective);
 Vue.directive('clean-tooltip', cleanTooltipDirective);
+Vue.mixin(localValue);
 
 /**
  * Global configuration for Jest tests
