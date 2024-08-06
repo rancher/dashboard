@@ -169,7 +169,6 @@ export default {
         :is="asLink ? 'a' : 'div'"
         v-for="(slide, i) in sliders"
         :id="`slide` + i"
-        :key="i"
         ref="slide"
         :key="get(slide, keyField)"
         class="slide"
