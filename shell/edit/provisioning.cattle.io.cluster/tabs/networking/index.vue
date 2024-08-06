@@ -63,7 +63,15 @@ export default {
     },
     isView() {
       return this.mode === _VIEW;
-    }
+    },
+    localValue: {
+      get() {
+        return this.value;
+      },
+      set(newValue) {
+        this.$emit('update:value', newValue);
+      }
+    },
   },
 };
 </script>
@@ -183,7 +191,7 @@ export default {
     </div>
 
     <ACE
-      :value="value"
+      v-model:value="localValue"
       :mode="mode"
       @update:value="$emit('input', $event)"
     />
