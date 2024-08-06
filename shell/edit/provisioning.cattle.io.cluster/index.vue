@@ -51,6 +51,10 @@ export default {
 
   mixins: [CreateEditView],
 
+  emits: ['set-subtype'],
+
+  inheritAttrs: false,
+
   props: {
     realMode: {
       type:     String,
