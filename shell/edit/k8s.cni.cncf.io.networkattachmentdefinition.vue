@@ -60,8 +60,9 @@ export default {
   >
     <NameNsDescription
       ref="nd"
-      v-model="value"
+      :value="value"
       :mode="mode"
+      @input="$emit('input', $event)"
     />
 
     <Tabbed

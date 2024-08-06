@@ -88,13 +88,14 @@ export default {
   </div>
   <div v-else>
     <Questions
-      v-model="value"
+      :value="value"
       :mode="mode"
       :tabbed="false"
       :source="fields"
       :ignore-variables="cloudCredentialKeys"
       :target-namespace="value.metadata.namespace"
       :disabled="disabled"
+      @input="$emit('input', $event)"
     />
   </div>
 </template>

@@ -25,9 +25,10 @@ export default {
     label-key="generic.labelsAndAnnotations"
   >
     <Labels
-      v-model="value"
+      :value="value"
       :mode="mode"
       :display-side-by-side="false"
+      @input="$emit('input', $event)"
     />
   </Tab>
 </template>

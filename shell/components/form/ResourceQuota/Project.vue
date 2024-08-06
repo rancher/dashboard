@@ -73,10 +73,11 @@ export default {
     >
       <template #columns="props">
         <Row
-          v-model="value"
+          :value="value"
           :mode="mode"
           :types="remainingTypes(typeValues[props.i])"
           :type="typeValues[props.i]"
+          @input="$emit('input', $event)"
           @type-change="updateType(props.i, $event)"
         />
       </template>

@@ -1453,7 +1453,7 @@ export default {
             </div>
           </div>
           <NameNsDescription
-            v-model="value"
+            :value="value"
             :description-hidden="true"
             :mode="mode"
             :name-disabled="nameDisabled"
@@ -1464,6 +1464,7 @@ export default {
             :extra-columns="showProject ? ['project'] : []"
             :show-spacer="false"
             :horizontal="false"
+            @input="$emit('input', $event)"
             @isNamespaceNew="isNamespaceNew = $event"
           >
             <template

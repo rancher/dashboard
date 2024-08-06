@@ -523,9 +523,10 @@ export default {
     <template #stepRepoInfo>
       <NameNsDescription
         v-if="!isView"
-        v-model="value"
+        :value="value"
         :namespaced="false"
         :mode="mode"
+        @input="$emit('input', $event)"
         @change="onUpdateRepoName"
       />
 

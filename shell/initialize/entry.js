@@ -2,6 +2,7 @@ import Vue from 'vue';
 import fetch from 'unfetch';
 import { extendApp } from './app-extended.js';
 import fetchMixin from '@shell/mixins/fetch.client.js';
+import localValue from '@shell/mixins/local-value.js';
 import { loadDebugger, mountApp } from '@shell/initialize/entry-helpers';
 import { installDirectives } from '@shell/initialize/install-directives.js';
 import { installComponents } from '@shell/initialize/install-components.js';
@@ -9,6 +10,7 @@ import { installPlugins } from '@shell/initialize/install-plugins.js';
 
 // Fetch mixin
 Vue.mixin(fetchMixin);
+Vue.mixin(localValue);
 
 // Bulk install components
 installComponents(Vue);

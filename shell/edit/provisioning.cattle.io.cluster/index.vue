@@ -639,30 +639,33 @@ export default {
 
     <Import
       v-if="isImport"
-      v-model="value"
+      :value="value"
       :mode="mode"
       :provider="subType"
+      @input="$emit('input', $event)"
     />
     <template v-else-if="subType">
       <!-- allow extensions to provide their own cluster provisioning form -->
       <component
         :is="selectedSubType.component"
         v-if="selectedSubType && selectedSubType.component"
-        v-model="value"
+        :value="value"
         :initial-value="initialValue"
         :live-value="liveValue"
         :mode="mode"
         :provider="subType"
         :provider-config="selectedSubType.providerConfig"
+        @input="$emit('input', $event)"
       />
       <Rke2Config
         v-else
-        v-model="value"
+        :value="value"
         :initial-value="initialValue"
         :live-value="liveValue"
         :mode="mode"
         :provider="subType"
         :provider-config="selectedSubType.providerConfig"
+        @input="$emit('input', $event)"
       />
     </template>
 
