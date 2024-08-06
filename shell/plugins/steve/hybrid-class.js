@@ -1,4 +1,4 @@
-import { ANNOTATIONS_TO_IGNORE_REGEX, LABELS_TO_IGNORE_REGEX, DESCRIPTION } from '@shell/config/labels-annotations';
+import { ANNOTATIONS_TO_IGNORE_REGEX, LABELS_TO_IGNORE_REGEX } from '@shell/config/labels-annotations';
 import omitBy from 'lodash/omitBy';
 import pickBy from 'lodash/pickBy';
 import Vue from 'vue';
