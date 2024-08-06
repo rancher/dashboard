@@ -323,12 +323,12 @@ export default {
       } else {
         this.value.metadata['name'] = val;
       }
-      this.$emit('change');
+      this.$emit('update:value', this.value);
     },
 
     namespace(val) {
       this.updateNamespace(val);
-      this.$emit('change');
+      this.$emit('update:value', this.value);
     },
 
     description(val) {
@@ -337,7 +337,7 @@ export default {
       } else {
         this.value.setAnnotation(DESCRIPTION, val);
       }
-      this.$emit('change');
+      this.$emit('update:value', this.value);
     },
   },
 
@@ -386,7 +386,7 @@ export default {
           true,
         );
         this.$emit('isNamespaceNew', true);
-        nextTick(() => this.$refs.namespace.focus());
+        this.$nextTick(() => this.$refs.namespace.focus());
       } else {
         this.createNamespace = false;
         this.$store.dispatch(
