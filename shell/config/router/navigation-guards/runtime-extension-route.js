@@ -17,11 +17,11 @@ export async function runtimeExtensionRoute(to, from, next, { store }) {
     const newLocation = await dynamicPluginLoader.check({ route: { path: window.location.pathname }, store });
 
     // If we have a new location, double check that it's actually valid
-    const resolvedRoute = newLocation ? store.app.router.resolve(newLocation) : null;
+    const resolvedRoute = newLocation?.path ? store.app.router.resolve({ path: newLocation.path.replace(/^\/{0,1}dashboard/, '') }) : null;
 
     if (resolvedRoute?.route.matched.length) {
       // Note - don't use `redirect` or `store.app.route` (breaks feature by failing to run middleware in default layout)
-      return next(newLocation);
+      return next(resolvedRoute.resolved.path);
     }
   } catch (e) {
     console.error('Failed to load harvester', e); // eslint-disable-line no-console

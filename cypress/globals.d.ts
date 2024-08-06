@@ -145,6 +145,11 @@ declare global {
 
       // Check css var
       shouldHaveCssVar(name: string, value: string);
+
+      /**
+       * Fetch the steve `revision` / timestamp of request
+       */
+      fetchRevision(): Chainable<string>;
     }
   }
 }

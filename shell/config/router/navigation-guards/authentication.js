@@ -56,6 +56,7 @@ export async function authenticate(to, from, next, { store }) {
       }
     }
 
+    // GC should be notified of route change before any find/get request is made that might be used for that page
     store.dispatch('gcStartIntervals');
   }
 

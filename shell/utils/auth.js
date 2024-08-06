@@ -187,9 +187,7 @@ export function setProduct(store, to) {
   (product && !store.getters['type-map/isProductRegistered'](product))) {
     const error = new Error(store.getters['i18n/t']('nav.failWhale.productNotFound', { productNotFound: product }, true));
 
-    store.dispatch('loadingError', error);
-
-    throw new Error('loadingError', new Error(store.getters['i18n/t']('nav.failWhale.productNotFound', { productNotFound: product }, true)));
+    return store.dispatch('loadingError', error);
   }
 
   if ( !product ) {

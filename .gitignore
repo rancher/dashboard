@@ -113,3 +113,6 @@ scripts/standalone/node
 # yarn.lock files
 docusaurus/yarn.lock
 storybook/yarn.lock
+
+# GitHub actions scripts output
+codecov

@@ -3,11 +3,11 @@ import { NAME } from '@/pkg/harvester-manager/config/harvester-manager';
 import { HCI } from '@shell/config/types';
 
 export default {
-  middleware({ redirect, route } ) {
-    return redirect({
+  beforeCreate() {
+    this.$router.replace({
       name:   'c-cluster-product-resource',
       params: {
-        ...route.params,
+        ...this.$router.currentRoute.params,
         product:  NAME,
         resource: HCI.CLUSTER
       }
