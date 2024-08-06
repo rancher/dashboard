@@ -176,7 +176,7 @@ export default {
     @cancel="done"
   >
     <NameNsDescription
-      v-model="value"
+      :value="value"
       :name-editable="true"
       :mode="mode"
       :namespaced="false"
@@ -185,6 +185,7 @@ export default {
       name-key="spec.displayName"
       :normalize-name="false"
       :rules="{ name: fvGetAndReportPathRules('spec.displayName'), namespace: [], description: [] }"
+      @input="$emit('input', $event)"
     />
     <Tabbed :side-tabs="true">
       <Tab
@@ -211,9 +212,10 @@ export default {
         :weight="9"
       >
         <ResourceQuota
-          v-model="value"
+          :value="value"
           :mode="canEditTabElements"
           :types="isHarvester ? HARVESTER_TYPES : RANCHER_TYPES"
+          @input="$emit('input', $event)"
           @remove="removeQuota"
         />
       </Tab>

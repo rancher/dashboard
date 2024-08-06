@@ -234,8 +234,9 @@ export default {
     </div>
     <div class="spacer" />
     <ResourceTabs
-      v-model="value"
+      :value="value"
       :mode="mode"
+      @input="$emit('input', $event)"
     >
       <Tab
         name="pods"

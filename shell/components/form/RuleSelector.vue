@@ -109,12 +109,13 @@ export default {
     :class="{[mode]: true}"
   >
     <ArrayList
-      v-model="localValue"
+      :value="value"
       :protip="false"
       :show-header="true"
       :add-label="addLabel"
       :default-add-value="defaultAddValue"
       :mode="mode"
+      @input="$emit('input', $event)"
     >
       <template v-slot:column-headers>
         <div class="box">

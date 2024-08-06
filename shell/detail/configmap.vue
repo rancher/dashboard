@@ -49,7 +49,10 @@ export default {
 </script>
 
 <template>
-  <ResourceTabs v-model="value">
+  <ResourceTabs
+    :value="value"
+    @input="$emit('input', $event)"
+  >
     <Tab
       name="data"
       label-key="secret.data"

@@ -70,8 +70,9 @@ export default {
   <Loading v-if="$fetchState.pending" />
   <ResourceTabs
     v-else
-    v-model="value"
+    :value="value"
     :default-tab="defaultTab"
+    @input="$emit('input', $event)"
   >
     <Tab
       v-if="showRegistration"
