@@ -173,7 +173,7 @@ export default {
           </div>
         </div>
       </div>
-      <codemirror
+      <!-- <codemirror
         ref="codeMirrorRef"
         :value="value"
         :options="combinedOptions"
@@ -183,7 +183,7 @@ export default {
         @changes="onChanges"
         @focus="onFocus"
         @blur="onBlur"
-      />
+      /> -->
     </div>
     <div v-else>
       Loading...

@@ -2156,9 +2156,7 @@ export default {
         :rules="{ name: fvGetAndReportPathRules('metadata.name') }"
         @update:value="$emit('input', $event)"
       >
-        <template
-          slot="customize"
-        >
+        <template #customize>
           <ClusterAppearance
             :name="clusterName"
             :currentCluster="currentCluster"

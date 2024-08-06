@@ -229,7 +229,7 @@ export default {
       </div>
       <div class="col span-4">
         <LabeledInput
-          v-model.number="value.pool.quantity"
+          v-model:value.number="value.pool.quantity"
           :mode="mode"
           :label="t('cluster.machinePool.quantity.label')"
           :disabled="busy"

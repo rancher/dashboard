@@ -21,7 +21,7 @@ export default {
     LabeledSelectPagination
   ],
 
-  emits: ['on-open', 'on-close', 'selecting'],
+  emits: ['on-open', 'on-close', 'selecting', 'update:validation'],
 
   props: {
     appendToBody: {
@@ -297,7 +297,7 @@ export default {
       :filterable="isFilterable"
       :searchable="isSearchable"
       :selectable="selectable"
-      :value="value != null && !loading ? value : ''"
+      :model-value="value != null && !loading ? value : ''"
       :dropdown-should-open="dropdownShouldOpen"
 
       @search:blur="onBlur"
