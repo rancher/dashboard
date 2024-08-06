@@ -2,8 +2,41 @@ import semver from 'semver';
 import { CAPI } from '@shell/config/labels-annotations';
 import { MANAGEMENT, VIRTUAL_HARVESTER_PROVIDER } from '@shell/config/types';
 import { SETTING } from '@shell/config/settings';
+import { PaginationFilterField, PaginationParamFilter } from 'types/store/pagination.types';
 
-// Filter out any clusters that are not Kubernetes Clusters
+/**
+ * TODO: RC
+ *
+ * @export
+ * @param {*} store
+ * @returns PaginationParamFilter | null
+ */
+export function paginationFilterOnlyKubeClusters(store) {
+  const openHarvesterContainerWorkload = store.getters['features/get']('harvester-baremetal-container-workload');
+
+  if (!openHarvesterContainerWorkload) {
+    return null;
+  }
+
+  return PaginationParamFilter.createMultipleFields([
+    new PaginationFilterField({
+      field:  `metadata.labels."${ CAPI.PROVIDER }"`, // TODO: RC
+      equals: false,
+      value:  VIRTUAL_HARVESTER_PROVIDER,
+      exact:  true
+    }),
+    new PaginationFilterField({
+      field:  `status.provider`, // TODO: RC
+      equals: false,
+      value:  VIRTUAL_HARVESTER_PROVIDER,
+      exact:  true
+    }),
+  ]);
+}
+
+/**
+ * Filter out any clusters that are not Kubernetes Clusters
+ **/
 export function filterOnlyKubernetesClusters(mgmtClusters, store) {
   const openHarvesterContainerWorkload = store.getters['features/get']('harvester-baremetal-container-workload');
 

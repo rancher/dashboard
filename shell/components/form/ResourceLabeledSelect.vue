@@ -52,7 +52,7 @@ export enum RESOURCE_LABEL_SELECT_MODE {
 }
 
 /**
- * Convience wrapper around the LabelSelect component to support pagination
+ * Convenance wrapper around the LabelSelect component to support pagination
  *
  * Handles
  *

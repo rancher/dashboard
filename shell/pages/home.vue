@@ -3,7 +3,7 @@ import { mapPref, AFTER_LOGIN_ROUTE, READ_WHATS_NEW, HIDE_HOME_PAGE_CARDS } from
 import { Banner } from '@components/Banner';
 import BannerGraphic from '@shell/components/BannerGraphic';
 import IndentedPanel from '@shell/components/IndentedPanel';
-import ResourceTable from '@shell/components/ResourceTable.vue';
+import PaginatedResourceTable from '@shell/components/PaginatedResourceTable.vue';
 import { BadgeState } from '@components/BadgeState';
 import CommunityLinks from '@shell/components/CommunityLinks';
 import SingleClusterInfo from '@shell/components/SingleClusterInfo';
@@ -18,7 +18,7 @@ import PageHeaderActions from '@shell/mixins/page-actions';
 import { getVendor } from '@shell/config/private-label';
 import { mapFeature, MULTI_CLUSTER } from '@shell/store/features';
 import { BLANK_CLUSTER } from '@shell/store/store-types.js';
-import { filterOnlyKubernetesClusters, filterHiddenLocalCluster } from '@shell/utils/cluster';
+import { filterOnlyKubernetesClusters, filterHiddenLocalCluster, paginationFilterOnlyKubeClusters } from '@shell/utils/cluster';
 import TabTitle from '@shell/components/TabTitle';
 
 import { RESET_CARDS_ACTION, SET_LOGIN_ACTION } from '@shell/config/page-actions';
@@ -30,7 +30,7 @@ export default {
     Banner,
     BannerGraphic,
     IndentedPanel,
-    ResourceTable,
+    PaginatedResourceTable,
     BadgeState,
     CommunityLinks,
     SingleClusterInfo,
@@ -87,6 +87,9 @@ export default {
       fullVersion,
       pageActions,
       vendor: getVendor(),
+
+      // resource:                 CAPI.RANCHER_CLUSTER,
+      // paginationRequestFilters: paginationFilterOnlyKubeClusters(this.$store)
     };
   },
 
@@ -378,7 +381,7 @@ export default {
               v-if="mcm"
               class="col span-12"
             >
-              <ResourceTable
+              <PaginatedResourceTable
                 :schema="provClusterSchema"
                 :table-actions="false"
                 :row-actions="false"
@@ -386,7 +389,7 @@ export default {
                 :rows="kubeClusters"
                 :headers="clusterHeaders"
                 :loading="!kubeClusters"
-                :namespaced="nonStandardNamespaces"
+                :namespaced="false"
               >
                 <template #header-left>
                   <div class="row table-heading">
@@ -497,7 +500,7 @@ export default {
                     {{ t('landing.clusters.explore') }}
                   </button>
                 </template> -->
-              </ResourceTable>
+              </PaginatedResourceTable>
             </div>
             <div
               v-else
