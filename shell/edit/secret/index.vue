@@ -321,9 +321,10 @@ export default {
       @error="e=>errors = e"
     >
       <NameNsDescription
-        v-model="value"
+        :value="value"
         :mode="mode"
         :namespaced="!isCloud"
+        @input="$emit('input', $event)"
       />
 
       <div
@@ -390,8 +391,9 @@ export default {
           :weight="-1"
         >
           <Labels
-            v-model="value"
+            :value="value"
             :mode="mode"
+            @input="$emit('input', $event)"
           />
         </Tab>
       </Tabbed>

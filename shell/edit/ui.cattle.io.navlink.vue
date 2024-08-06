@@ -291,7 +291,7 @@ export default {
     @cancel="done()"
   >
     <NameNsDescription
-      v-model="value"
+      :value="value"
       :namespaced="false"
       :namespace-disabled="true"
       :mode="mode"
@@ -303,6 +303,7 @@ export default {
       description-placeholder="navLink.label.placeholder"
       data-testid="Navlink-name-field"
       :rules="{ name: fvGetAndReportPathRules('metadata.name'), namespace: [], description: [] }"
+      @input="$emit('input', $event)"
     />
 
     <div class="spacer" />

@@ -91,9 +91,10 @@ export default {
 </script>
 <template>
   <ResourceTabs
-    v-model="value"
+    :value="value"
     mode="view"
     class="mt-20"
+    @input="$emit('input', $event)"
   >
     <Tab
       :label="t('ingress.rules.title')"
@@ -101,10 +102,11 @@ export default {
       :weight="1"
     >
       <Rules
-        v-model="value"
+        :value="value"
         :mode="mode"
         :service-targets="serviceTargets"
         :certificates="certificates"
+        @input="$emit('input', $event)"
       />
     </Tab>
   </ResourceTabs>
