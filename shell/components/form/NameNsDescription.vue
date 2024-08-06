@@ -1,5 +1,4 @@
 <script>
-import { createApp } from 'vue';
 import { mapGetters, mapActions } from 'vuex';
 import { get, set } from '@shell/utils/object';
 import { sortBy } from '@shell/utils/sort';
@@ -9,7 +8,6 @@ import { _VIEW, _EDIT, _CREATE } from '@shell/config/query-params';
 import { LabeledInput } from '@components/Form/LabeledInput';
 import LabeledSelect from '@shell/components/form/LabeledSelect';
 import { normalizeName } from '@shell/utils/kube';
-const vueApp = createApp({});
 
 export default {
   name:       'NameNsDescription',
@@ -321,7 +319,7 @@ export default {
       }
 
       if (this.nameKey) {
-        set(this.value, this.nameKey, val);
+        this.value[this.nameKey] = val;
       } else {
         this.value.metadata['name'] = val;
       }
@@ -335,7 +333,7 @@ export default {
 
     description(val) {
       if (this.descriptionKey) {
-        set(this.value, this.descriptionKey, val);
+        this.value[this.descriptionKey] = val;
       } else {
         this.value.setAnnotation(DESCRIPTION, val);
       }
@@ -362,7 +360,7 @@ export default {
       }
 
       if (this.namespaceKey) {
-        set(this.value, this.namespaceKey, val);
+        this.value[this.namespaceKey] = val;
       } else {
         this.value.metadata.namespace = val;
       }

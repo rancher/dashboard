@@ -2,7 +2,6 @@ import cloneDeep from 'lodash/cloneDeep';
 import flattenDeep from 'lodash/flattenDeep';
 import compact from 'lodash/compact';
 import { JSONPath } from 'jsonpath-plus';
-import { createApp } from 'vue';
 import transform from 'lodash/transform';
 import isObject from 'lodash/isObject';
 import isArray from 'lodash/isArray';
@@ -10,7 +9,6 @@ import isEqual from 'lodash/isEqual';
 import difference from 'lodash/difference';
 import { splitObjectPath, joinObjectPath } from '@shell/utils/string';
 import { addObject } from '@shell/utils/array';
-const vueApp = createApp({});
 
 export function set(obj, path, value) {
   let ptr = obj;

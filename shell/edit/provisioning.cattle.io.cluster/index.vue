@@ -10,7 +10,6 @@ import {
 } from '@shell/config/query-params';
 import { mapGetters } from 'vuex';
 import { sortBy } from '@shell/utils/sort';
-import { set } from '@shell/utils/object';
 import { PROVISIONER, _RKE1, _RKE2 } from '@shell/store/prefs';
 import { filterAndArrangeCharts } from '@shell/store/catalog';
 import { CATALOG } from '@shell/config/labels-annotations';
