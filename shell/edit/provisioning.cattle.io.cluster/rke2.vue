@@ -775,6 +775,14 @@ export default {
       } else {
         return this.$store.getters['customisation/getPreviewCluster'];
       }
+    },
+    localValue: {
+      get() {
+        return this.value;
+      },
+      set(newValue) {
+        this.$emit('update:value', newValue);
+      }
     }
   },
 
@@ -2137,7 +2145,7 @@ export default {
     >
       <NameNsDescription
         v-if="!isView"
-        :value="value"
+        v-model:value="localValue"
         :mode="mode"
         :namespaced="needsNamespace"
         :namespace-options="allNamespaces"
@@ -2259,7 +2267,7 @@ export default {
           <!-- Basic -->
           <Basics
             ref="tab-Basics"
-            :value="value"
+            v-model:value="localValue"
             :live-value="liveValue"
             :mode="mode"
             :provider="provider"
@@ -2298,7 +2306,7 @@ export default {
           :weight="10"
         >
           <MemberRoles
-            :value="value"
+            v-model:value="localValue"
             :mode="mode"
             :on-membership-update="onMembershipUpdate"
             @update:value="$emit('input', $event)"
@@ -2310,7 +2318,7 @@ export default {
           label-key="cluster.tabs.etcd"
         >
           <Etcd
-            :value="value"
+            v-model:value="localValue"
             :mode="mode"
             :s3-backup="s3Backup"
             :register-before-hook="registerBeforeHook"
@@ -2328,7 +2336,7 @@ export default {
           label-key="cluster.tabs.networking"
         >
           <Networking
-            :value="value"
+            v-model:value="localValue"
             :mode="mode"
             :selected-version="selectedVersion"
             :truncate-limit="truncateLimit"
@@ -2343,7 +2351,7 @@ export default {
           label-key="cluster.tabs.upgrade"
         >
           <Upgrade
-            :value="value"
+            v-model:value="localValue"
             :mode="mode"
             @update:value="$emit('input', $event)"
           />
@@ -2355,7 +2363,7 @@ export default {
           label-key="cluster.tabs.registry"
         >
           <Registries
-            :value="value"
+            v-model:value="localValue"
             :mode="mode"
             :register-before-hook="registerBeforeHook"
             :show-custom-registry-input="showCustomRegistryInput"
@@ -2378,7 +2386,7 @@ export default {
         >
           <AddOnConfig
             ref="tab-addOnConfig"
-            :value="value"
+            v-model:value="localValue"
             :mode="mode"
             :version-info="versionInfo"
             :addon-versions="addonVersions"
@@ -2428,7 +2436,7 @@ export default {
           :weight="-1"
         >
           <Advanced
-            :value="value"
+            v-model:value="localValue"
             :mode="mode"
             :have-arg-info="haveArgInfo"
             :selected-version="selectedVersion"
@@ -2437,12 +2445,12 @@ export default {
         </Tab>
 
         <AgentEnv
-          :value="value"
+          v-model:value="localValue"
           :mode="mode"
           @update:value="$emit('input', $event)"
         />
         <Labels
-          :value="value"
+          v-model:value="localValue"
           :mode="mode"
           @update:value="$emit('input', $event)"
         />
