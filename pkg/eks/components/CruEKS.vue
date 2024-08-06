@@ -688,6 +688,7 @@ export default defineComponent({
           :ebs-c-s-i-driver.sync="config.ebsCSIDriver"
           :service-role.sync="config.serviceRole"
           :kms-key.sync="config.kmsKey"
+          :secrets-encryption.sync="config.secretsEncryption"
           :tags.sync="config.tags"
           :mode="mode"
           :config="config"

@@ -59,6 +59,11 @@ export default defineComponent({
       default: ''
     },
 
+    secretsEncryption: {
+      type:    Boolean,
+      default: false
+    },
+
     serviceRole: {
       type:    String,
       default: ''
@@ -101,7 +106,6 @@ export default defineComponent({
       canReadKms:            false,
       supportedVersionRange,
       customServiceRole:     !!this.serviceRole && !!this.serviceRole.length,
-      encryptSecrets:        false,
       loadingVersions:       false,
       loadingKms:            false,
       allKubernetesVersions: eksVersions as string[],
@@ -131,7 +135,7 @@ export default defineComponent({
       immediate: true
     },
 
-    'encryptSecrets'(neu) {
+    'secretsEncryption'(neu) {
       if (!neu) {
         this.$emit('update:kmsKey', '');
       }
@@ -341,16 +345,17 @@ export default defineComponent({
     <div class="row mb-10">
       <div class="col span-6">
         <Checkbox
-          v-model="encryptSecrets"
+          :value="secretsEncryption"
           :disabled="mode!=='create'"
           :mode="mode"
           label-key="eks.encryptSecrets.label"
-          data-testid="eks-encrypt-secrets-checkbox"
+          data-testid="eks-secrets-encryption-checkbox"
+          @input="$emit('update:secretsEncryption', $event)"
         />
       </div>
     </div>
     <div
-      v-if="encryptSecrets"
+      v-if="secretsEncryption"
       class="row mb-10"
     >
       <div

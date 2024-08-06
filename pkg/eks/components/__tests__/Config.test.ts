@@ -157,14 +157,140 @@ describe('eKS K8s configuration', () => {
     expect(wrapper.exists()).toBe(true);
 
     let kmsDropdown = wrapper.find('[data-testid="eks-kms-dropdown"]');
+    let kmsTextInput = wrapper.find('[data-testid="eks-kms-input"]');
+
+    expect(kmsTextInput.exists()).toBe(false);
+    expect(kmsDropdown.exists()).toBe(false);
+
+    wrapper.setData({ canReadKms: true });
+    wrapper.setProps({ secretsEncryption: true });
+
+    await wrapper.vm.$nextTick();
+    kmsDropdown = wrapper.find('[data-testid="eks-kms-dropdown"]');
+    kmsTextInput = wrapper.find('[data-testid="eks-kms-input"]');
+
+    expect(kmsTextInput.exists()).toBe(false);
+    expect(kmsDropdown.exists()).toBe(true);
+  });
+
+  it('should update the secretsEncryption prop when the kms key checkbox is checked', async() => {
+    const setup = requiredSetup();
+
+    const wrapper = shallowMount(Config, { propsData: { config: { amazonCredentialSecret: '', region: '' } }, ...setup });
+
+    wrapper.setData({ canReadKms: true });
+
+    await setCredential(wrapper);
+
+    expect(wrapper.emitted('update:secretsEncryption')).toBeUndefined();
+
+    const secretsEncryptionCheckbox = wrapper.find('[data-testid="eks-secrets-encryption-checkbox"]');
+
+    secretsEncryptionCheckbox.vm.$emit('input', true);
+    await wrapper.vm.$nextTick();
+    expect(wrapper.emitted('update:secretsEncryption')).toHaveLength(1);
+    expect(wrapper.emitted('update:secretsEncryption')?.[0]?.[0]).toBe(true);
+
+    secretsEncryptionCheckbox.vm.$emit('input', false);
+    await wrapper.vm.$nextTick();
+    expect(wrapper.emitted('update:secretsEncryption')).toHaveLength(2);
+    expect(wrapper.emitted('update:secretsEncryption')?.[1]?.[0]).toBe(false);
+  });
+
+  it('should set the kmsKey to an empty string if secretsEncryption is disabled', async() => {
+    const setup = requiredSetup();
+
+    const wrapper = shallowMount(Config, {
+      propsData: {
+        config:            { amazonCredentialSecret: '', region: '' },
+        secretsEncryption: true,
+        kmsKey:            '123abc'
+      },
+      ...setup
+    });
+
+    await setCredential(wrapper);
+    expect(wrapper.exists()).toBe(true);
+    expect(wrapper.emitted('update:kmsKey')).toBeUndefined();
+
+    wrapper.setData({ canReadKms: true });
+    wrapper.setProps({ secretsEncryption: false });
+
+    await wrapper.vm.$nextTick();
+
+    expect(wrapper.emitted('update:kmsKey')).toHaveLength(1);
+    expect(wrapper.emitted('update:kmsKey')?.[0]?.[0]).toBe('');
+  });
+
+  // load kms key arn into dropdown
+  it('should populate a dropdown with kms key arns from aws api call', async() => {
+    const setup = requiredSetup();
+
+    const wrapper = shallowMount(Config, {
+      propsData: {
+        config:            { amazonCredentialSecret: '', region: '' },
+        secretsEncryption: true,
+        kmsKey:            '123abc'
+      },
+      ...setup
+    });
+
+    await setCredential(wrapper);
+    const kmsDropdown = wrapper.find('[data-testid="eks-kms-dropdown"]');
+
+    expect(kmsDropdown.props().options).toStrictEqual(['arn:aws:kms:us-west-2:testdata2134',
+      'arn:aws:kms:us-west-2:testdata6543',
+      'arn:aws:kms:us-west-2:testdata3454',
+      'arn:aws:kms:us-west-2:testdata8762']);
+  });
+
+  // set canReadKms false if data fetch fails; show text input for kmsKey instead
+  it('should show a text input for kms key arns if no data if the api call throws an error', async() => {
+    const failingStoreMock = {
+      ...mockedStore({ value: '<=1.27.x' }),
+      dispatch: () => {
+        return {
+          listKeys: () => {
+            throw new Error('failed to load keys blah blah');
+          },
+          describeAddonVersions: () => {
+            return describeAddonVersionsResponseData;
+          }
+
+        };
+      }
+    };
+
+    const setup = {
+      mixins: [mockedValidationMixin],
+      mocks:  {
+        $store:      failingStoreMock,
+        $route:      mockedRoute,
+        $fetchState: {},
+      }
+    };
+
+    const wrapper = shallowMount(Config, {
+      propsData: {
+        config:            { amazonCredentialSecret: '', region: '' },
+        secretsEncryption: true,
+        kmsKey:            '123abc'
+      },
+      ...setup
+    });
+
+    await setCredential(wrapper);
+
+    expect(wrapper.exists()).toBe(true);
+
+    expect(wrapper.vm.canReadKms).toBe(false);
+    const kmsDropdown = wrapper.find('[data-testid="eks-kms-dropdown"]');
 
     expect(kmsDropdown.exists()).toBe(false);
 
-    wrapper.setData({ encryptSecrets: true, canReadKms: true });
-    await wrapper.vm.$nextTick();
-    kmsDropdown = wrapper.find('[data-testid="eks-kms-dropdown"]');
+    const kmsTextInput = wrapper.find('[data-testid="eks-kms-input"]');
 
-    expect(kmsDropdown.exists()).toBe(true);
+    expect(kmsTextInput.exists()).toBe(true);
   });
 
   it('should show an input for service role if the custom service role radio option is selected', async() => {
