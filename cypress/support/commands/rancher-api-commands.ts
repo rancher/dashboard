@@ -854,3 +854,13 @@ Cypress.Commands.add('createFleetWorkspace', (name: string, description?: string
       }
     });
 });
+
+/**
+ * Fetch the steve `revision` / timestamp of request
+ */
+Cypress.Commands.add('fetchRevision', () => {
+  return cy.getRancherResource('v1', 'management.cattle.io.settings', undefined, 200)
+    .then((res) => {
+      return res.body.revision;
+    });
+});
