@@ -3,12 +3,12 @@ import { mapPref, AFTER_LOGIN_ROUTE, READ_WHATS_NEW, HIDE_HOME_PAGE_CARDS } from
 import { Banner } from '@components/Banner';
 import BannerGraphic from '@shell/components/BannerGraphic';
 import IndentedPanel from '@shell/components/IndentedPanel';
-import SortableTable from '@shell/components/SortableTable';
+import ResourceTable from '@shell/components/ResourceTable.vue';
 import { BadgeState } from '@components/BadgeState';
 import CommunityLinks from '@shell/components/CommunityLinks';
 import SingleClusterInfo from '@shell/components/SingleClusterInfo';
 import { mapGetters, mapState } from 'vuex';
-import { MANAGEMENT, CAPI } from '@shell/config/types';
+import { MANAGEMENT, CAPI, SCHEMA } from '@shell/config/types';
 import { NAME as MANAGER } from '@shell/config/product/manager';
 import { STATE } from '@shell/config/table-headers';
 import { MODE, _IMPORT } from '@shell/config/query-params';
@@ -30,7 +30,7 @@ export default {
     Banner,
     BannerGraphic,
     IndentedPanel,
-    SortableTable,
+    ResourceTable,
     BadgeState,
     CommunityLinks,
     SingleClusterInfo,
@@ -40,7 +40,8 @@ export default {
   mixins: [PageHeaderActions],
 
   fetch() {
-    if ( this.$store.getters['management/schemaFor'](CAPI.RANCHER_CLUSTER) ) {
+    this.provClusterSchema = this.$store.getters['management/schemaFor'](CAPI.RANCHER_CLUSTER);
+    if ( this.provClusterSchema ) {
       this.$store.dispatch('management/findAll', { type: CAPI.RANCHER_CLUSTER });
     }
 
@@ -82,7 +83,10 @@ export default {
     ];
 
     return {
-      HIDE_HOME_PAGE_CARDS, fullVersion, pageActions, vendor: getVendor(),
+      HIDE_HOME_PAGE_CARDS,
+      fullVersion,
+      pageActions,
+      vendor: getVendor(),
     };
   },
 
@@ -208,6 +212,13 @@ export default {
 
     kubeClusters() {
       return filterHiddenLocalCluster(filterOnlyKubernetesClusters(this.provClusters || [], this.$store), this.$store);
+    },
+
+    nonStandardNamespaces() {
+      // Show the namespace grouping option if there's clusters with namespaces other than 'fleet-default' or 'fleet-local'
+      // This will be used when there's clusters from extension based provisioners
+      // We should re-visit this for scaling reasons
+      return this.kubeClusters.some((c) => c.metadata.namespace !== 'fleet-local' && c.metadata.namespace !== 'fleet-default');
     }
   },
 
@@ -296,6 +307,7 @@ export default {
 };
 
 </script>
+
 <template>
   <div
     v-if="managementReady"
@@ -366,13 +378,15 @@ export default {
               v-if="mcm"
               class="col span-12"
             >
-              <SortableTable
+              <ResourceTable
+                :schema="provClusterSchema"
                 :table-actions="false"
                 :row-actions="false"
                 key-field="id"
                 :rows="kubeClusters"
                 :headers="clusterHeaders"
                 :loading="!kubeClusters"
+                :namespaced="nonStandardNamespaces"
               >
                 <template #header-left>
                   <div class="row table-heading">
@@ -483,7 +497,7 @@ export default {
                     {{ t('landing.clusters.explore') }}
                   </button>
                 </template> -->
-              </SortableTable>
+              </ResourceTable>
             </div>
             <div
               v-else
@@ -498,6 +512,7 @@ export default {
     </IndentedPanel>
   </div>
 </template>
+
 <style lang='scss' scoped>
   .home-panels {
     display: flex;
@@ -587,6 +602,7 @@ export default {
     }
   }
 </style>
+
 <style lang="scss">
 .home-page {
   .search {
