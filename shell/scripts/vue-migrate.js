@@ -360,12 +360,15 @@ const vueSyntaxUpdates = () => {
     // TODO: Add missing import
 
     [/( {4,}default)\(\)\s*\{([\s\S]*?)this\.([\s\S]*?\}\s*\})/g, (_, before, middle, after) => `${ before }(props) {${ middle }props.${ after }`, 'https://v3-migration.vuejs.org/breaking-changes/props-default-this.html'],
-    // [`value=`, `modelValue=`],
-    [/value:\s*{[\s\S]*?},?\s*/g, removePlaceholder, 'Read issue for more info https://github.com/rancher/dashboard/issues/11029'],
+
+    // [/value:\s*{[\s\S]*?},?\s*/g, removePlaceholder, 'Read issue for more info https://github.com/rancher/dashboard/issues/11029'],
+    [/value:\s*{[\s\S]*?},?\s*/g, (match) => match.replace(/value/g, 'modelValue'), 'Read issue for more info https://github.com/rancher/dashboard/issues/11029'],
+
     [`@input=`, `@update:modelValue=`],
     // [`v-bind.sync=`, `:modelValue=`, `https://v3-migration.vuejs.org/breaking-changes/v-model.html#using-v-bind-sync`],
-    // ['v-model=', ':modelValue=', ''],
+
     [/:([a-z-0-9]+)\.sync/g, (_, propName) => `v-model:${ propName }`, `https://v3-migration.vuejs.org/breaking-changes/v-model.html#migration-strategy`],
+
     [`click.native`, `click`, `https://v3-migration.vuejs.org/breaking-changes/v-model.html#using-v-bind-sync`],
     [`v-on="$listeners"`, removePlaceholder, `removed and integrated with $attrs https://v3-migration.vuejs.org/breaking-changes/listeners-removed.html`],
     [`:listeners="$listeners"`, `:v-bind="$attrs"`, `removed and integrated with $attrs https://v3-migration.vuejs.org/breaking-changes/listeners-removed.html`],
