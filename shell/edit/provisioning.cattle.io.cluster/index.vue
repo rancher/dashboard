@@ -626,7 +626,7 @@ export default {
             class="grouped-type"
           >
             <ToggleSwitch
-              v-model:value="provisioner"
+              v-model="provisioner"
               data-testid="cluster-manager-create-rke-switch"
               class="rke-switch"
               :off-value="_RKE1"
