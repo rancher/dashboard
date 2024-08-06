@@ -59,7 +59,6 @@ export default {
         :key="i"
       >
         <div
-          :key="i+'key'"
           class="kv-item key"
           :class="{'link-hidden': !row.enabled}"
         >
@@ -67,7 +66,6 @@ export default {
         </div>
 
         <div
-          :key="i+'value'"
           class="kv-item value"
           :class="{'link-hidden': !row.enabled}"
         >
@@ -89,7 +87,6 @@ export default {
         </div>
         <div
           v-else
-          :key="i+'show'"
         />
       </template>
     </div>

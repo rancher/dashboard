@@ -215,7 +215,6 @@ export default {
             <div
               v-for="(b, i) in breadcrumbs"
               v-else
-              :key="i"
               :key="b.id"
             >
               <span
