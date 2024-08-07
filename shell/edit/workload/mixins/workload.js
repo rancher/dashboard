@@ -184,25 +184,17 @@ export default {
           name:            `container-0`,
         }];
 
-        const metadata = { ...this.value.metadata };
-
-        const podSpec = { template: { spec: { containers: podContainers, initContainers: [] }, metadata } };
+        const podSpec = {
+          containers:     podContainers,
+          initContainers: [],
+        };
 
         this.$set(this.value, 'spec', podSpec);
       }
     }
 
-    // EDIT view for POD
-    // Transform it from POD world to workload
-    if ((this.mode === _EDIT || this.mode === _VIEW || this.realMode === _CLONE ) && this.value.type === 'pod') {
-      const podSpec = { ...this.value.spec };
-      const metadata = { ...this.value.metadata };
-
-      this.$set(this.value.spec, 'template', { spec: podSpec, metadata });
-    }
-
     const spec = this.value.spec;
-    let podTemplateSpec = type === WORKLOAD_TYPES.CRON_JOB ? spec.jobTemplate.spec.template.spec : spec?.template?.spec;
+    let podTemplateSpec = type === WORKLOAD_TYPES.CRON_JOB ? spec.jobTemplate.spec.template.spec : this.value.type === POD ? spec : spec?.template?.spec;
 
     let containers = podTemplateSpec.containers || [];
     let container;
@@ -341,10 +333,20 @@ export default {
     // if this is a cronjob, grab pod spec from within job template spec
     podTemplateSpec: {
       get() {
-        return this.isCronJob ? this.spec.jobTemplate.spec.template.spec : this.spec?.template?.spec;
+        if (this.isCronJob) {
+          return this.spec.jobTemplate.spec.template.spec;
+        }
+
+        if (this.isPod) {
+          return this.spec;
+        }
+
+        return this.spec?.template?.spec;
       },
       set(neu) {
-        if (this.isCronJob) {
+        if (this.isPod) {
+          this.spec = { ...this.spec, ...neu };
+        } else if (this.isCronJob) {
           this.$set(this.spec.jobTemplate.spec.template, 'spec', neu);
         } else {
           this.$set(this.spec.template, 'spec', neu);
@@ -362,6 +364,14 @@ export default {
           return this.spec.jobTemplate.metadata.labels;
         }
 
+        if (this.isPod) {
+          if (!this.metadata) {
+            this.metadata = { ...this.metadata, labels: {} };
+          }
+
+          return this.metadata.labels;
+        }
+
         if (!this.spec.template.metadata) {
           this.$set(this.spec.template, 'metadata', { labels: {} });
         }
@@ -371,6 +381,8 @@ export default {
       set(neu) {
         if (this.isCronJob) {
           this.$set(this.spec.jobTemplate.metadata, 'labels', neu);
+        } else if (this.isPod) {
+          this.$set(this.metadata, 'labels', neu);
         } else {
           this.$set(this.spec.template.metadata, 'labels', neu);
         }
@@ -386,6 +398,15 @@ export default {
 
           return this.spec.jobTemplate.metadata.annotations;
         }
+
+        if (this.isPod) {
+          if (!this.metadata) {
+            this.metadata = { ...this.metadata, annotations: {} };
+          }
+
+          return this.metadata?.annotations;
+        }
+
         if (!this.spec.template.metadata) {
           this.$set(this.spec.template, 'metadata', { annotations: {} });
         }
@@ -395,6 +416,8 @@ export default {
       set(neu) {
         if (this.isCronJob) {
           this.$set(this.spec.jobTemplate.metadata, 'annotations', neu);
+        } else if (this.isPod) {
+          this.$set(this.metadata, 'annotations', neu);
         } else {
           this.$set(this.spec.template.metadata, 'annotations', neu);
         }
@@ -719,23 +742,18 @@ export default {
       ]);
     },
 
-    saveWorkload() {
+    updateWorkloadManifest(manifest) {
       if (
         this.type !== WORKLOAD_TYPES.JOB &&
         this.type !== WORKLOAD_TYPES.CRON_JOB &&
+        this.type !== POD &&
         (this.mode === _CREATE || this.realMode === _CLONE)
       ) {
         this.spec.selector = { matchLabels: this.value.workloadSelector };
         Object.assign(this.value.metadata.labels, this.value.workloadSelector);
       }
 
-      let template;
-
-      if (this.type === WORKLOAD_TYPES.CRON_JOB) {
-        template = this.spec.jobTemplate;
-      } else {
-        template = this.spec.template;
-      }
+      let { spec, metadata } = manifest;
 
       // WORKLOADS
       if (
@@ -743,17 +761,17 @@ export default {
         this.type !== WORKLOAD_TYPES.CRON_JOB &&
         (this.mode === _CREATE || this.realMode === _CLONE)
       ) {
-        if (!template.metadata) {
-          template.metadata = { labels: this.value.workloadSelector };
+        if (!metadata) {
+          metadata = { labels: this.value.workloadSelector };
         } else {
-          Object.assign(template.metadata.labels, this.value.workloadSelector);
+          Object.assign(metadata.labels, this.value.workloadSelector);
         }
       }
 
-      if (template.spec.containers && template.spec.containers[0]) {
-        const containerResources = template.spec.containers[0].resources;
+      if (spec.containers && spec.containers[0]) {
+        const containerResources = spec.containers[0].resources;
         const nvidiaGpuLimit =
-          template.spec.containers[0].resources?.limits?.[GPU_KEY];
+          spec.containers[0].resources?.limits?.[GPU_KEY];
 
         // Though not required, requests are also set to mirror the ember ui
         if (nvidiaGpuLimit > 0) {
@@ -773,42 +791,42 @@ export default {
               delete containerResources.requests;
             }
             if (Object.keys(containerResources).length === 0) {
-              delete template.spec.containers[0].resources;
+              delete spec.containers[0].resources;
             }
           } catch {}
         }
       }
 
-      const nodeAffinity = template?.spec?.affinity?.nodeAffinity || {};
-      const podAffinity = template?.spec?.affinity?.podAffinity || {};
-      const podAntiAffinity = template?.spec?.affinity?.podAntiAffinity || {};
+      const nodeAffinity = spec?.affinity?.nodeAffinity || {};
+      const podAffinity = spec?.affinity?.podAffinity || {};
+      const podAntiAffinity = spec?.affinity?.podAntiAffinity || {};
 
       this.fixNodeAffinity(nodeAffinity);
       this.fixPodAffinity(podAffinity);
 
       // The fields are being removed because they are not allowed to be editabble
       if (this.mode === _EDIT) {
-        if (template?.spec?.affinity && Object.keys(template?.spec?.affinity).length === 0) {
-          delete template.spec.affinity;
+        if (spec?.affinity && Object.keys(spec?.affinity).length === 0) {
+          delete spec.affinity;
         }
 
         // Removing `affinity` fixes the issue with setting the `imagePullSecrets`
         // However, this field should not be set. Therefore this is explicitly removed.
-        if (template?.spec?.imagePullSecrets && template?.spec?.imagePullSecrets.length === 0) {
-          delete template.spec.imagePullSecrets;
+        if (spec?.imagePullSecrets && spec?.imagePullSecrets.length === 0) {
+          delete spec.imagePullSecrets;
         }
       }
 
       this.fixPodAffinity(podAntiAffinity);
       this.fixPodSecurityContext(this.podTemplateSpec);
 
-      template.metadata.namespace = this.value.metadata.namespace;
+      metadata.namespace = this.value.metadata.namespace;
 
       // Handle the case where the user has changed the name of the workload
       // Only do this for clone. Not allowed for edit
       if (this.realMode === _CLONE) {
-        template.metadata.name = this.value.metadata.name;
-        template.metadata.description = this.value.metadata.description;
+        metadata.name = this.value.metadata.name;
+        metadata.description = this.value.metadata.description;
       }
 
       // delete this.value.kind;
@@ -831,6 +849,24 @@ export default {
       // ports contain info used to create services after saving
       this.portsForServices = ports;
       Object.assign(this.value, { spec: this.spec });
+    },
+
+    saveWorkload() {
+      if (this.type === POD) {
+        this.updateWorkloadManifest(this);
+
+        return;
+      }
+
+      let template;
+
+      if (this.type === WORKLOAD_TYPES.CRON_JOB) {
+        template = this.spec.jobTemplate;
+      } else {
+        template = this.spec.template;
+      }
+
+      this.updateWorkloadManifest(template);
     },
 
     // node and pod affinity are formatted incorrectly from API; fix before saving
