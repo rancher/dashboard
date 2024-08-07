@@ -88,7 +88,7 @@ export default {
       this.value['spec'] = { retentionCount: 10 };
     }
     let s3 = {};
-    let useEncryption = false;
+    let useEncryption = true;
     let setSchedule = false;
     let storageSource = 'useDefault';
 
