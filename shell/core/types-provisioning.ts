@@ -59,6 +59,16 @@ export interface ClusterProvisionerContext {
 export interface IClusterProvisioner {
 
   /**
+   * Indicates if this provisioner/helper should be used for the given cluster.
+   *
+   * This allows the provisioner to determine if it should be used for a cluster based on attributes/metadata of its choosing
+   *
+   * @param cluster The cluster (`provisioning.cattle.io.cluster`)
+   * @returns Whether to use this provisioner for the given cluster.
+   */
+  // static useForModel?(cluster: any): boolean;
+
+  /**
    * Unique ID of the Cluster Provisioner
    * If this overlaps with the name of an existing provisioner (seen in the type query param while creating a cluster) this provisioner will overwrite the built-in ui
    */
@@ -257,4 +267,12 @@ export interface IClusterProvisioner {
    * @returns Array of errors. If there are no errors the array will be empty
    */
   provision?(cluster: any, pools: any[]): Promise<any[]>;
+
+  /**
+   * Optionally Process the available actions for a cluster and return a (possibly modified) set of actions
+   *
+   * @param cluster The cluster (`provisioning.cattle.io.cluster`)
+   * @returns List of actions for the cluster
+   */
+  availableActions?(cluster: any, actions: any[]): any[] | undefined;
 }

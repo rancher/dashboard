@@ -4931,6 +4931,7 @@ resourceTable:
     node: Group by Node
     role: Group by Role
     cluster: Group by Cluster
+    hostCluster: Group by Host Cluster
   groupLabel:
     cluster: "<span>Cluster:</span> {name}"
     notInACluster: Not in a Cluster
