@@ -441,7 +441,7 @@ const printLogs = (dev, dashboardVersion, resourceBase, routerBasePath, pl, ranc
 };
 
 /**
- * Expose a function that can be used by an app to provide a nuxt configuration for building an application
+ * Expose a function that can be used by an app to provide a configuration for building an application
  * This takes the directory of the application as the first argument so that we can derive folder locations
  * from it, rather than from the location of this file
  */

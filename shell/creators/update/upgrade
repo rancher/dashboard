@@ -42,7 +42,7 @@ if [ "${HAS_SHELL}" != "1" ]; then
 fi
 
 # Copy files for the top-level folder (from the app creator)
-rsync --exclude nuxt.config.js ${SCRIPT_DIR}/app/files/* .
+rsync ${SCRIPT_DIR}/app/files/* .
 
 # Go through each folder in the pkg folder and update their files
 for pkg in ./pkg/*

@@ -1,5 +1,3 @@
-// Taken from @nuxt/vue-app/template/client.js
-
 import Vue from 'vue';
 import fetch from 'unfetch';
 import { extendApp } from './app-extended.js';
