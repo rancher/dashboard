@@ -63,7 +63,7 @@ export const DEFAULT_NODE_GROUP_CONFIG = {
   _isNew:               true,
 };
 
-const DEFAULT_EKS_CONFIG = {
+export const DEFAULT_EKS_CONFIG = {
   publicAccess:        true,
   privateAccess:       false,
   publicAccessSources: [],

@@ -1,16 +1,7 @@
 import flushPromises from 'flush-promises';
 import { shallowMount, Wrapper } from '@vue/test-utils';
 import { EKSConfig, EKSNodeGroup } from 'types';
-import CruEKS from '@pkg/eks/components/CruEKS.vue';
-
-const mockedValidationMixin = {
-  computed: {
-    fvFormIsValid:                jest.fn(),
-    type:                         jest.fn(),
-    fvUnreportedValidationErrors: jest.fn(),
-  },
-  methods: { fvGetAndReportPathRules: jest.fn() }
-};
+import CruEKS, { DEFAULT_EKS_CONFIG } from '@pkg/eks/components/CruEKS.vue';
 
 const mockedStore = (versionSetting: any) => {
   return {
@@ -24,7 +15,9 @@ const mockedStore = (versionSetting: any) => {
         return versionSetting;
       },
       'management/schemaFor': jest.fn(),
-      'rancher/create':       () => {}
+      'rancher/create':       () => {
+        return {};
+      }
     },
     dispatch: jest.fn()
   };
@@ -34,7 +27,7 @@ const mockedRoute = { query: {} };
 
 const requiredSetup = (versionSetting = { value: '<=1.27.x' }) => {
   return {
-    mixins: [mockedValidationMixin],
+    mixins: [],
     mocks:  {
       $store:      mockedStore(versionSetting),
       $route:      mockedRoute,
@@ -171,5 +164,53 @@ describe('eKS provisioning form', () => {
     await wrapper.vm.$nextTick();
 
     expect(configComponent.props().enableNetworkPolicy).toBe(true);
+  });
+
+  it('should show an error and prevent saving if no node groups are defined', async() => {
+    const wrapper = shallowMount(CruEKS, {
+      propsData: { value: {}, mode: 'create' },
+      ...requiredSetup()
+    });
+
+    await setCredential(wrapper, { ...DEFAULT_EKS_CONFIG });
+    wrapper.vm.addGroup();
+
+    const nameInput = wrapper.find('[data-testid="eks-name-input"]');
+
+    nameInput.vm.$emit('input', 'abc');
+    await wrapper.vm.$nextTick();
+
+    expect(wrapper.vm.fvUnreportedValidationErrors).toStrictEqual([]);
+
+    wrapper.vm.removeGroup(0);
+
+    expect(wrapper.vm.nodeGroups).toStrictEqual([]);
+
+    expect(wrapper.vm.fvFormIsValid).toBe(false);
+    expect(wrapper.vm.fvUnreportedValidationErrors).toStrictEqual(['eks.errors.nodeGroupsRequired']);
+  });
+
+  it('should NOT show an error nor prevent saving if no node groups are defined in an IMPORTED cluster', async() => {
+    const wrapper = shallowMount(CruEKS, {
+      propsData: { value: {}, mode: 'edit' },
+      ...requiredSetup()
+    });
+
+    await setCredential(wrapper, { ...DEFAULT_EKS_CONFIG, imported: true });
+    wrapper.vm.addGroup();
+
+    const nameInput = wrapper.find('[data-testid="eks-name-input"]');
+
+    nameInput.vm.$emit('input', 'abc');
+    await wrapper.vm.$nextTick();
+
+    expect(wrapper.vm.fvUnreportedValidationErrors).toStrictEqual([]);
+
+    wrapper.vm.removeGroup(0);
+
+    expect(wrapper.vm.nodeGroups).toStrictEqual([]);
+
+    expect(wrapper.vm.fvFormIsValid).toBe(true);
+    expect(wrapper.vm.fvUnreportedValidationErrors).toStrictEqual([]);
   });
 });
