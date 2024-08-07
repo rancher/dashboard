@@ -1,6 +1,6 @@
 #!/usr/bin/env sh
 
-SCRIPT_DIR=$( cd -- "$( dirname -- "${BASH_SOURCE[0]}" )" &> /dev/null && pwd )
+SCRIPT_DIR=$( cd -- "$( dirname -- "${BASH_SOURCE[0]}" )"/.. &> /dev/null && pwd )
 
 echo "Upgrading Rancher Shell"
 
@@ -25,7 +25,7 @@ fi
 
 if [[ $(git diff --stat) != '' ]] && [ "${FORCE}" == "false" ]; then
   echo "Git repository is not clean. Re-run with -f to ignore this check"
-  echo "Note: This action will update yuor files - running in a clean git repsository will ensure you have visibility over changes made"
+  echo "Note: This action will update your files - running in a clean git repsository will ensure you have visibility over changes made"
   exit 1 
 fi
 
