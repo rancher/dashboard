@@ -161,6 +161,14 @@ const minLessThanMax = (ctx: CruEKSContext) => {
   };
 };
 
+const nodeGroupsRequired = (ctx: CruEKSContext) => {
+  return (): string | undefined => {
+    const nodeGroups = ctx.nodeGroups || [];
+
+    return !nodeGroups.length ? ctx.t('eks.errors.nodeGroupsRequired') : undefined;
+  };
+};
+
 export default {
   clusterNameRequired,
   nodeGroupNamesRequired,
@@ -173,5 +181,6 @@ export default {
   subnets,
   publicPrivateAccess,
   minMaxDesired,
-  minLessThanMax
+  minLessThanMax,
+  nodeGroupsRequired
 };

@@ -63,7 +63,7 @@ export const DEFAULT_NODE_GROUP_CONFIG = {
   _isNew:               true,
 };
 
-const DEFAULT_EKS_CONFIG = {
+export const DEFAULT_EKS_CONFIG = {
   publicAccess:        true,
   privateAccess:       false,
   publicAccessSources: [],
@@ -206,6 +206,10 @@ export default defineComponent({
         path:  'minMaxDesired',
         rules: ['minMaxDesired', 'minLessThanMax']
       },
+      {
+        path:  'nodeGroupsRequired',
+        rules: ['nodeGroupsRequired']
+      }
       ],
 
       loadingInstanceTypes:   false,
@@ -273,8 +277,10 @@ export default defineComponent({
     ...mapGetters({ t: 'i18n/t' }),
 
     fvExtraRules(): {[key:string]: Function} {
+      let out: any = {};
+
       if (this.hasCredential) {
-        return {
+        out = {
           nameRequired:           EKSValidators.clusterNameRequired(this),
           nodeGroupNamesRequired: EKSValidators.nodeGroupNamesRequired(this),
           nodeGroupNamesUnique:   EKSValidators.nodeGroupNamesUnique(this),
@@ -288,9 +294,12 @@ export default defineComponent({
           minMaxDesired:          EKSValidators.minMaxDesired(this),
           minLessThanMax:         EKSValidators.minLessThanMax(this),
         };
+        if (!this.config?.imported) {
+          out.nodeGroupsRequired = EKSValidators.nodeGroupsRequired(this);
+        }
       }
 
-      return {};
+      return out;
     },
 
     // upstreamSpec will be null if the user created a cluster with some invalid options such that it ultimately fails to create anything in aks
