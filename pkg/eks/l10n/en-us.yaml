@@ -36,6 +36,7 @@ eks:
     publicOrPrivate: At least one of public or private access must be enabled.
     minMaxDesired: The node group desired size may not be less than the minimum size nor greater than the maximum size.
     minLessThanMax: The node group minimum size may not be greater than the maximum size.
+    nodeGroupsRequired: Clusters must have at least one node group.
   label: Amazon EKS
   nodeGroups:
     desiredSize:
