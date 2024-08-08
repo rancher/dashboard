@@ -1,5 +1,5 @@
 /* eslint-disable @typescript-eslint/explicit-module-boundary-types */
-import { Router, createRouterMatcher } from 'vue-router';
+import { createRouterMatcher } from 'vue-router';
 
 interface RouteInfo {
   parent?: string;

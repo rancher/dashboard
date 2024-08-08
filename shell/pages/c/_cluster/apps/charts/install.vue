@@ -34,11 +34,9 @@ import { exceptionToErrorsArray } from '@shell/utils/error';
 import { clone, diff, get, set } from '@shell/utils/object';
 import { ignoreVariables } from './install.helpers';
 import { findBy, insertAt } from '@shell/utils/array';
-import { createApp } from 'vue';
 import { saferDump } from '@shell/utils/create-yaml';
 import { LINUX, WINDOWS } from '@shell/store/catalog';
 import { SETTING } from '@shell/config/settings';
-const vueApp = createApp({});
 
 const VALUES_STATE = {
   FORM: 'FORM',
@@ -1356,10 +1354,10 @@ export default {
       <template
         v-for="customStep of customSteps"
         v-slot:[customStep.name]
+        :key="customStep.name"
       >
         <component
           :is="customStep.component"
-          :key="customStep.name"
           @update="updateStep(customStep.name, $event)"
           @errors="e=>errors.push(...e)"
         />

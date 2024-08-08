@@ -1,7 +1,7 @@
 import { mount } from '@vue/test-utils';
 import MatchExpressions from '@shell/components/form/MatchExpressions.vue';
 import { _CREATE } from '@shell/config/query-params';
-import Vue, { nextTick } from 'vue';
+import { nextTick } from 'vue';
 
 describe('component: MatchExpressions', () => {
   it('should display all the inputs', () => {

@@ -8,11 +8,9 @@ import {
   _UNFLAG,
   _EDIT
 } from '@shell/config/query-params';
-import { createApp } from 'vue';
 import SteveModel from '@shell/plugins/steve/steve-class';
 import { STATES_ENUM } from '@shell/plugins/dashboard-store/resource-class';
 import { STORAGE_CLASS } from '@shell/config/types';
-const vueApp = createApp({});
 
 export default class PVC extends SteveModel {
   applyDefaults(_, realMode) {

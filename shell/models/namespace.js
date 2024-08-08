@@ -8,11 +8,9 @@ import { get, set } from '@shell/utils/object';
 import { escapeHtml } from '@shell/utils/string';
 import { insertAt, isArray } from '@shell/utils/array';
 import SteveModel from '@shell/plugins/steve/steve-class';
-import { createApp } from 'vue';
 import { HARVESTER_NAME as HARVESTER } from '@shell/config/features';
 import { hasPSALabels, getPSATooltipsDescription, getPSALabels } from '@shell/utils/pod-security-admission';
 import { PSAIconsDisplay, PSALabelsNamespaceVersion } from '@shell/config/pod-security-admission';
-const vueApp = createApp({});
 
 const OBSCURE_NAMESPACE_PREFIX = [
   'c-', // cluster namespace

@@ -1,9 +1,6 @@
 <script>
-import { createApp } from 'vue';
-
 import { _VIEW } from '@shell/config/query-params';
 import { Checkbox } from '@components/Form/Checkbox';
-const vueApp = createApp({});
 
 export default {
   name: 'DefaultLinksEditor',

@@ -1,4 +1,4 @@
-import Vuex, { createStore } from 'vuex';
+import { createStore } from 'vuex';
 import { ensureSupportLink } from '@shell/config/home-links.js';
 import { getters, state, mutations } from '@shell/store/i18n.js';
 

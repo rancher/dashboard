@@ -1,6 +1,6 @@
 /* eslint-disable no-console */
 import { escapeHtml } from '../utils/string';
-import Vue, { watchEffect, ref, h } from 'vue';
+import { watchEffect, ref, h } from 'vue';
 import { useStore } from '../composables/useStore';
 
 export function stringFor(store, key, args, raw = false, escapehtml = true) {
