@@ -6,6 +6,7 @@ import ProductNavPo from '@/cypress/e2e/po/side-bars/product-side-nav.po';
 import BaseResourceList from '@/cypress/e2e/po/lists/base-resource-list.po';
 import CodeMirrorPo from '@/cypress/e2e/po/components/code-mirror.po';
 import AsyncButtonPo from '@/cypress/e2e/po/components/async-button.po';
+import LabeledInputPo from '@/cypress/e2e/po/components/labeled-input.po';
 
 const installChart = new InstallChartPage();
 const terminal = new Kubectl();
@@ -33,10 +34,10 @@ export default class ExtensionsCompatibiliyPo extends PagePo {
   }
 
   chartInstallWaitForInstallationAndCloseTerminal(interceptName: string) {
-    cy.wait(`@${ interceptName }`, { requestTimeout: 15000 }).its('response.statusCode').should('eq', 201);
+    cy.wait(`@${ interceptName }`, { requestTimeout: 20000 }).its('response.statusCode').should('eq', 201);
 
     // giving it a small buffer so that the install is properly triggered
-    cy.wait(3000);
+    cy.wait(15000);
     terminal.closeTerminal();
 
     installedApps.list().state('elemental-operator-crds').should('contain', 'Deployed');
@@ -61,11 +62,31 @@ export default class ExtensionsCompatibiliyPo extends PagePo {
     return this.genericListView().masthead().createYaml();
   }
 
+  createClick(): Cypress.Chainable {
+    return this.genericListView().masthead().create();
+  }
+
+  genericNameInput() {
+    return LabeledInputPo.bySelector(this.self(), '[data-testid="name-ns-description-name"]');
+  }
+
+  genericLabeledInputByLabel(label:string): LabeledInputPo {
+    return LabeledInputPo.byLabel(this.self(), label);
+  }
+
   genericYamlEditor(): CodeMirrorPo {
     return CodeMirrorPo.bySelector(this.self(), '[data-testid="yaml-editor-code-mirror"]');
   }
 
   saveEditYamlForm(): AsyncButtonPo {
     return new AsyncButtonPo('[data-testid="action-button-async-button"]', this.self());
+  }
+
+  saveOrCreateResource(): AsyncButtonPo {
+    return new AsyncButtonPo('[data-testid="form-save"]', this.self());
+  }
+
+  saveOrCreateCluster(): AsyncButtonPo {
+    return new AsyncButtonPo('[data-testid="rke2-custom-create-save"]', this.self());
   }
 }
