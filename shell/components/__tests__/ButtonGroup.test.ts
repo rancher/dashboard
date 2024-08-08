@@ -19,7 +19,7 @@ describe('component: ButtonGroup', () => {
     ];
 
     const wrapper = shallowMount(ButtonGroup, {
-      propsData: {
+      props: {
         options,
         value: 'val1'
       }
@@ -61,7 +61,7 @@ describe('component: ButtonGroup', () => {
     ];
 
     const wrapper = shallowMount(ButtonGroup, {
-      propsData: {
+      props: {
         options,
         activeClass:   'bg-another-active-class',
         inactiveClass: 'bg-some-inactive-class',
@@ -105,7 +105,7 @@ describe('component: ButtonGroup', () => {
     ];
 
     const wrapper = shallowMount(ButtonGroup, {
-      propsData: {
+      props: {
         options,
         value: 'val1'
       }

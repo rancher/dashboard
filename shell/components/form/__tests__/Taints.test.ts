@@ -1,3 +1,4 @@
+import { nextTick } from 'vue';
 import { mount } from '@vue/test-utils';
 import Taints from '@shell/components/form/Taints.vue';
 
@@ -6,7 +7,7 @@ describe('component: Taints', () => {
     const customEffects = { FOO_EFFECT: 'foo', BAR_EFFECT: 'bar' };
 
     const wrapper = mount(Taints, {
-      propsData: {
+      props: {
         value:        [{ effect: 'FOO_EFFECT', value: 'abc' }],
         effectValues: customEffects
       }
@@ -22,7 +23,7 @@ describe('component: Taints', () => {
     const taintKV = wrapper.find('[data-testid="taints-keyvalue"]');
 
     taintKV.vm.add();
-    await wrapper.vm.$nextTick();
+    await nextTick();
 
     const secondEffectInput = wrapper.find('[data-testid="taints-effect-row-1"]');
 
@@ -41,7 +42,7 @@ describe('component: Taints', () => {
 
     ];
 
-    const wrapper = mount(Taints, { propsData: { value: [{ effect: '', value: 'abc' }] } });
+    const wrapper = mount(Taints, { props: { value: [{ effect: '', value: 'abc' }] } });
 
     const firstEffectInput = wrapper.find('[data-testid="taints-effect-row-0"]');
 
@@ -52,12 +53,12 @@ describe('component: Taints', () => {
   });
 
   it('should set the effect value to NoSchedule by default', async() => {
-    const wrapper = mount(Taints, { propsData: { value: [] } });
+    const wrapper = mount(Taints, { props: { value: [] } });
 
     const taintKV = wrapper.find('[data-testid="taints-keyvalue"]');
 
     taintKV.vm.add();
-    await wrapper.vm.$nextTick();
+    await nextTick();
 
     const effectInput = wrapper.find('[data-testid="taints-effect-row-0"]');
 

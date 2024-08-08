@@ -40,17 +40,19 @@ describe('service edit', () => {
   const createComponent = (propsData: any) => {
     wrapper = shallowMount(ServicePage,
       {
-        propsData,
-        mixins: [createEditViewMock, formValidationMock],
-        mocks:  {
-          $store: {
-            getters: {
-              'management/all': jest.fn(),
-              'i18n/t':         jest.fn()
-            }
-          }
-        },
+        props:    propsData,
+        mixins:   [createEditViewMock, formValidationMock],
         computed: { provisioningCluster: jest.fn() },
+        global:   {
+          mocks: {
+            $store: {
+              getters: {
+                'management/all': jest.fn(),
+                'i18n/t':         jest.fn()
+              }
+            }
+          },
+        },
       }
     );
   };

@@ -1,3 +1,4 @@
+import { nextTick } from 'vue';
 /* eslint-disable jest/no-hooks */
 import { mount, Wrapper } from '@vue/test-utils';
 import DirectoryConfig from '@shell/edit/provisioning.cattle.io.cluster/tabs/DirectoryConfig.vue';
@@ -90,7 +91,7 @@ describe('component: DirectoryConfig', () => {
     const commonInput = wrapper.find('[data-testid="rke2-directory-config-common-data-dir"]');
 
     commonInput.setValue(inputPath);
-    await wrapper.vm.$nextTick();
+    await nextTick();
 
     expect(wrapper.vm.value.systemAgent).toStrictEqual(inputPath);
     expect(wrapper.vm.value.provisioning).toStrictEqual(inputPath);
@@ -107,8 +108,8 @@ describe('component: DirectoryConfig', () => {
     const checkbox = wrapper.find('[data-testid="rke2-directory-config-individual-config-checkbox"]');
 
     await checkbox.find('label').trigger('click');
-    await checkbox.vm.$nextTick();
-    await wrapper.vm.$nextTick();
+    await nextTick();
+    await nextTick();
 
     expect(wrapper.vm.isSettingCommonConfig).toBe(false);
 
@@ -119,7 +120,7 @@ describe('component: DirectoryConfig', () => {
     systemAgentInput.setValue(inputPath);
     provisioningInput.setValue(inputPath);
     k8sDistroInput.setValue(inputPath);
-    await wrapper.vm.$nextTick();
+    await nextTick();
 
     expect(wrapper.vm.value.systemAgent).toStrictEqual(inputPath);
     expect(wrapper.vm.value.provisioning).toStrictEqual(inputPath);

@@ -1,5 +1,5 @@
-import { createLocalVue } from '@vue/test-utils';
-import Vuex from 'vuex';
+import '@vue/test-utils';
+import Vuex, { createStore } from 'vuex';
 import ChartMixin from '@shell/mixins/chart';
 import { OPA_GATE_KEEPER_ID } from '@shell/pages/c/_cluster/gatekeeper/index.vue';
 
@@ -18,14 +18,11 @@ describe('chartMixin', () => {
     ],
   };
 
-  const localVue = createLocalVue();
-
   localVue.use(Vuex);
-  localVue.mixin(ChartMixin);
 
   it.each(testCases.opa)(
     'should add OPA deprecation warning properly', async(chartId, expected) => {
-      const store = new Vuex.Store({
+      const store = createStore({
         actions: { 'catalog/load': () => {} },
         getters: {
           currentCluster: () => {},
@@ -58,7 +55,7 @@ describe('chartMixin', () => {
       const id = 'cattle-fleet-local-system/fleet-agent-local';
       const data = isEdit ? { existing: { id, upgradeAvailable } } : undefined;
 
-      const store = new Vuex.Store({
+      const store = createStore({
         getters: {
           currentCluster: () => {},
           isRancher:      () => true,

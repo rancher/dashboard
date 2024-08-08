@@ -11,7 +11,7 @@ const colorStops = {
 describe('component: PercentageBar', () => {
   it('should render component with the correct data applied', () => {
     const wrapper = shallowMount(PercentageBar as unknown as ExtendedVue<Vue, {}, {}, {}, DefaultProps>, {
-      propsData: {
+      props: {
         value:              25,
         preferredDirection: PreferredDirection.MORE,
         showPercentage:     true,

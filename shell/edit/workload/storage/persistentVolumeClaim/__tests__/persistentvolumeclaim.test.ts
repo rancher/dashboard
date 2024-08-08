@@ -7,24 +7,28 @@ describe('component: PVC', () => {
   it.skip('should initialize storage class on create mode', async() => {
     const name = 'test';
     const wrapper = mount(PVC, {
-      propsData: {
+      props: {
         savePvcHookName: '',
         value:           { spec: { resources: { requests: {} } } }
       },
-      mocks: {
-        $store: {
-          getters: {
-            'cluster/findAll': [{
-              metadata: {
-                name,
-                annotations: { 'storageclass.beta.kubernetes.io/is-default-class': true }
-              }
-            }],
-            'i18n/t': jest.fn()
+
+      global: {
+        mocks: {
+          $store: {
+            getters: {
+              'cluster/findAll': [{
+                metadata: {
+                  name,
+                  annotations: { 'storageclass.beta.kubernetes.io/is-default-class': true }
+                }
+              }],
+              'i18n/t': jest.fn()
+            }
           }
-        }
+        },
+
+        stubs: { LabeledSelect: { template: '<input />' } },
       },
-      stubs: { LabeledSelect: { template: '<input />' } }
     });
 
     const inputElement = wrapper.find('[data-testid="storage-class-name"]').element as HTMLInputElement;

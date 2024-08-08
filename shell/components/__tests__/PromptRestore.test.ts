@@ -1,6 +1,7 @@
+import { nextTick } from 'vue';
 import { shallowMount } from '@vue/test-utils';
 import PromptRestore from '@shell/components/PromptRestore.vue';
-import Vuex from 'vuex';
+import Vuex, { createStore } from 'vuex';
 import { ExtendedVue, Vue } from 'vue/types/vue';
 import { DefaultProps } from 'vue/types/options';
 import { CAPI, NORMAN } from '@shell/config/types';
@@ -68,7 +69,7 @@ describe('component: PromptRestore', () => {
   ];
 
   it.each(rke2TestCases)('should list RKE2 snapshots properly', async(snapShots, expected) => {
-    const store = new Vuex.Store({
+    const store = createStore({
       modules: {
         'action-menu': {
           namespaced: true,
@@ -88,12 +89,12 @@ describe('component: PromptRestore', () => {
     });
 
     const wrapper = shallowMount(PromptRestore as unknown as ExtendedVue<Vue, {}, {}, {}, DefaultProps>, {
-      store,
-      plugins: [Vuex]
+      plugins: [Vuex],
+      global:  { plugins: [store] }
     });
 
     await wrapper.vm.fetchSnapshots();
-    await wrapper.vm.$nextTick();
+    await nextTick();
 
     expect(wrapper.vm.clusterSnapshots).toHaveLength(expected);
   });
@@ -107,7 +108,7 @@ describe('component: PromptRestore', () => {
   ];
 
   it.each(rke1TestCases)('should list RKE1 snapshots properly', async(snapShots, expected) => {
-    const store = new Vuex.Store({
+    const store = createStore({
       modules: {
         'action-menu': {
           namespaced: true,
@@ -126,12 +127,12 @@ describe('component: PromptRestore', () => {
     });
 
     const wrapper = shallowMount(PromptRestore as unknown as ExtendedVue<Vue, {}, {}, {}, DefaultProps>, {
-      store,
-      plugins: [Vuex]
+      plugins: [Vuex],
+      global:  { plugins: [store] }
     });
 
     await wrapper.vm.fetchSnapshots();
-    await wrapper.vm.$nextTick();
+    await nextTick();
 
     expect(wrapper.vm.clusterSnapshots).toHaveLength(expected);
   });

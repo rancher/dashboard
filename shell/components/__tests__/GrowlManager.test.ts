@@ -1,6 +1,7 @@
+import { nextTick } from 'vue';
 import { shallowMount } from '@vue/test-utils';
 import GrowlManager from '@shell/components/GrowlManager.vue';
-import Vuex from 'vuex';
+import Vuex, { createStore } from 'vuex';
 import { ExtendedVue, Vue } from 'vue/types/vue';
 import { DefaultProps } from 'vue/types/options';
 
@@ -32,10 +33,10 @@ describe('component: GrowlManager', () => {
 
     const wrapper = shallowMount(GrowlManager as unknown as ExtendedVue<Vue, {}, {}, {}, DefaultProps>, {
       computed: { stack: () => stackMock },
-      mocks:    { $store: mockStore }
+      global:   { mocks: { $store: mockStore } }
     });
 
-    await wrapper.vm.$nextTick();
+    await nextTick();
 
     const growlMainContainer = wrapper.find('.growl-container');
     const growlListContainer = wrapper.find('.growl-list');
@@ -64,10 +65,10 @@ describe('component: GrowlManager', () => {
 
     const wrapper = shallowMount(GrowlManager as unknown as ExtendedVue<Vue, {}, {}, {}, DefaultProps>, {
       computed: { stack: () => stackMock },
-      mocks:    { $store: mockStore }
+      global:   { mocks: { $store: mockStore } }
     });
 
-    await wrapper.vm.$nextTick();
+    await nextTick();
 
     const growlFirstItemClose = wrapper.find('.growl-list [data-testid="growl-list-item-0"] .close.icon');
     const spyClose = jest.spyOn(wrapper.vm, 'close');
@@ -88,7 +89,7 @@ describe('component: GrowlManager', () => {
 
     const wrapper = shallowMount(GrowlManager as unknown as ExtendedVue<Vue, {}, {}, {}, DefaultProps>, {
       computed: { stack: () => stackMock },
-      mocks:    { $store: mockStore }
+      global:   { mocks: { $store: mockStore } }
     });
 
     const clearAllButton = wrapper.find('button[type="button"]');
@@ -97,14 +98,14 @@ describe('component: GrowlManager', () => {
 
     clearAllButton.trigger('click');
 
-    await wrapper.vm.$nextTick();
+    await nextTick();
 
     expect(spyCloseAll).toHaveBeenCalledTimes(1);
     expect(spyDispatch).toHaveBeenCalledTimes(1);
   });
 
   it('growl should auto remove itself after set interval of 1 second', async() => {
-    const store = new Vuex.Store({
+    const store = createStore({
       modules: {
         growl: {
           namespaced: true,
@@ -123,8 +124,8 @@ describe('component: GrowlManager', () => {
     jest.useFakeTimers();
 
     const wrapper = shallowMount(GrowlManager as unknown as ExtendedVue<Vue, {}, {}, {}, DefaultProps>, {
-      store,
-      plugins: [Vuex]
+      plugins: [Vuex],
+      global:  { plugins: [store] }
     });
 
     const spyCloseExpired = jest.spyOn(wrapper.vm, 'closeExpired');
@@ -134,7 +135,7 @@ describe('component: GrowlManager', () => {
     // this is to trigger the watch so that autoRemove can do its part
     store.commit('growl/updateStack');
 
-    await wrapper.vm.$nextTick();
+    await nextTick();
 
     jest.advanceTimersByTime(1001);
 

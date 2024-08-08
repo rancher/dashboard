@@ -56,8 +56,8 @@ describe('component: WorkloadDetailEndpoints', () => {
     [withoutAddresses, basicNodesOutput, ['https://some-external-ip:443']],
   ])('should display a link given the appropriate conditions', (value:any[], nodesOutput:any[], expectationArr:any[]) => {
     const wrapper = mount(WorkloadDetailEndpoints, {
-      propsData: { value: JSON.stringify(value) },
-      mocks:     { $store: { getters: { 'cluster/all': () => nodesOutput } } }
+      props:  { value: JSON.stringify(value) },
+      global: { mocks: { $store: { getters: { 'cluster/all': () => nodesOutput } } } }
     });
 
     wrapper.vm.parsed.forEach((endpoint:{[key: string]: string}, i:number) => {
@@ -69,8 +69,8 @@ describe('component: WorkloadDetailEndpoints', () => {
     [withoutAddresses, [], ['[some-translation]:443']],
   ])('should render a Tag component with the appropriate content', (value:any[], nodesOutput:any[], expectationArr:any[]) => {
     const wrapper = mount(WorkloadDetailEndpoints, {
-      propsData: { value: JSON.stringify(value) },
-      mocks:     { $store: { getters: { 'cluster/all': () => nodesOutput, 'i18n/t': () => 'some-translation' } } }
+      props:  { value: JSON.stringify(value) },
+      global: { mocks: { $store: { getters: { 'cluster/all': () => nodesOutput, 'i18n/t': () => 'some-translation' } } } }
     });
 
     wrapper.vm.parsed.forEach((endpoint:{[key: string]: string}, i:number) => {

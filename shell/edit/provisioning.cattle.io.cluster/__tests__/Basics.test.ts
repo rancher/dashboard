@@ -1,3 +1,4 @@
+import { nextTick } from 'vue';
 import { mount } from '@vue/test-utils';
 import Basics from '@shell/edit/provisioning.cattle.io.cluster/tabs/Basics.vue';
 import Checkbox from '@components/Form/Checkbox/Checkbox.vue';
@@ -109,7 +110,7 @@ function createBasicsTab(version : string, userChartValues: any, options = {}) {
   const k8s = mockVersionOptions.find((v) => v.id === version) || mockVersionOptions[0];
   const label = 'whatever';
   const wrapper = mount(Basics, {
-    propsData: {
+    props: {
       mode:  'create',
       value: {
         spec: {
@@ -141,12 +142,17 @@ function createBasicsTab(version : string, userChartValues: any, options = {}) {
       cloudProviderOptions:        [{ label: 'Default - RKE2 Embedded', value: '' }],
       ...options
     },
+
     computed: defaultComputed,
-    mocks:    {
-      ...defaultMocks,
-      $store: { getters: defaultGetters },
+
+    global: {
+      mocks: {
+        ...defaultMocks,
+        $store: { getters: defaultGetters },
+      },
+
+      stubs: defaultCiliumStubs,
     },
-    stubs: defaultCiliumStubs
   });
 
   return wrapper;
@@ -166,7 +172,7 @@ describe('component: Basics', () => {
   it.each(mockVersionOptions)('should display PSA option', (k8s) => {
     const label = 'whatever';
     const wrapper = mount(Basics, {
-      propsData: {
+      props: {
         mode:  'create',
         value: {
           spec: {
@@ -194,12 +200,17 @@ describe('component: Basics', () => {
         unsupportedCloudProvider:    false,
         cloudProviderOptions:        [{ label: 'Default - RKE2 Embedded', value: '' }],
       },
+
       computed: defaultComputed,
-      mocks:    {
-        ...defaultMocks,
-        $store: { getters: defaultGetters },
+
+      global: {
+        mocks: {
+          ...defaultMocks,
+          $store: { getters: defaultGetters },
+        },
+
+        stubs: defaultStubs,
       },
-      stubs: defaultStubs
     });
 
     const select = wrapper.find('[data-testid="rke2-custom-edit-psa"]');
@@ -217,7 +228,7 @@ describe('component: Basics', () => {
   ])('should display for version %p PSA option label %p', (k8s, partialLabel) => {
     const label = `cluster.rke2.defaultPodSecurityAdmissionConfigurationTemplateName.option.${ partialLabel }`;
     const wrapper = mount(Basics, {
-      propsData: {
+      props: {
         mode:  'create',
         value: {
           spec: {
@@ -245,12 +256,17 @@ describe('component: Basics', () => {
         unsupportedCloudProvider:    false,
         cloudProviderOptions:        [{ label: 'Default - RKE2 Embedded', value: '' }],
       },
+
       computed: defaultComputed,
-      mocks:    {
-        ...defaultMocks,
-        $store: { getters: defaultGetters },
+
+      global: {
+        mocks: {
+          ...defaultMocks,
+          $store: { getters: defaultGetters },
+        },
+
+        stubs: defaultStubs,
       },
-      stubs: defaultStubs
     });
 
     const select = wrapper.find('[data-testid="rke2-custom-edit-psa"]');
@@ -266,7 +282,7 @@ describe('component: Basics', () => {
     const label = 'whatever';
     const k8s = 'v1.25.0+rke2r1';
     const wrapper = mount(Basics, {
-      propsData: {
+      props: {
         mode:  'create',
         value: {
           agentConfig: { profile: cis, 'cloud-provider-name': '' },
@@ -299,12 +315,17 @@ describe('component: Basics', () => {
         unsupportedCloudProvider:    false,
         cloudProviderOptions:        [{ label: 'Default - RKE2 Embedded', value: '' }],
       },
+
       computed: { ...defaultComputed },
-      mocks:    {
-        ...defaultMocks,
-        $store: { getters: defaultGetters },
+
+      global: {
+        mocks: {
+          ...defaultMocks,
+          $store: { getters: defaultGetters },
+        },
+
+        stubs: defaultStubs,
       },
-      stubs: defaultStubs
     });
 
     const select = wrapper.find('[data-testid="rke2-custom-edit-psa"]');
@@ -322,8 +343,8 @@ describe('component: Basics', () => {
 
       // Click the checkbox - should enable ipv6
       await ipv6Checkbox.find('label').trigger('click');
-      await ipv6Checkbox.vm.$nextTick();
-      await wrapper.vm.$nextTick();
+      await nextTick();
+      await nextTick();
 
       // Check and update user values with the emitted value
       let latest = (wrapper.emitted()['cilium-values-changed'] || [])[0][0];
@@ -334,8 +355,8 @@ describe('component: Basics', () => {
 
       // Click the checkbox to turn ipv6 off again
       await ipv6Checkbox.find('label').trigger('click');
-      await ipv6Checkbox.vm.$nextTick();
-      await wrapper.vm.$nextTick();
+      await nextTick();
+      await nextTick();
 
       // Update from the emitted value
       latest = (wrapper.emitted()['cilium-values-changed'] || [])[1][0];
@@ -352,8 +373,8 @@ describe('component: Basics', () => {
 
       // Click the checkbox - should enable ipv6
       await ipv6Checkbox.find('label').trigger('click');
-      await ipv6Checkbox.vm.$nextTick();
-      await wrapper.vm.$nextTick();
+      await nextTick();
+      await nextTick();
 
       // Check and update user values with the emitted value
       let latest = (wrapper.emitted()['cilium-values-changed'] || [])[0][0];
@@ -364,8 +385,8 @@ describe('component: Basics', () => {
 
       // Click the checkbox to turn ipv6 off again
       await ipv6Checkbox.find('label').trigger('click');
-      await ipv6Checkbox.vm.$nextTick();
-      await wrapper.vm.$nextTick();
+      await nextTick();
+      await nextTick();
 
       // Update from the emitted value
       latest = (wrapper.emitted()['cilium-values-changed'] || [])[1][0];
@@ -412,8 +433,8 @@ describe('component: Basics', () => {
 
     // Click the checkbox - should enable bandwidth manager
     await bmCheckbox.find('label').trigger('click');
-    await bmCheckbox.vm.$nextTick();
-    await wrapper.vm.$nextTick();
+    await nextTick();
+    await nextTick();
 
     // Check and update user values with the emitted value
     let latest = (wrapper.emitted()['cilium-values-changed'] || [])[0][0];
@@ -424,8 +445,8 @@ describe('component: Basics', () => {
 
     // Click the checkbox to turn ipv6 off again
     await bmCheckbox.find('label').trigger('click');
-    await bmCheckbox.vm.$nextTick();
-    await wrapper.vm.$nextTick();
+    await nextTick();
+    await nextTick();
 
     // Update from the emitted value
     latest = (wrapper.emitted()['cilium-values-changed'] || [])[1][0];
@@ -440,8 +461,8 @@ describe('component: Basics', () => {
 
     // Click the checkbox - should enable bandwidth manager
     await bmCheckbox.find('label').trigger('click');
-    await bmCheckbox.vm.$nextTick();
-    await wrapper.vm.$nextTick();
+    await nextTick();
+    await nextTick();
 
     let latest = (wrapper.emitted()['cilium-values-changed'] || [])[0][0];
 
@@ -449,8 +470,8 @@ describe('component: Basics', () => {
 
     // Click the checkbox - should enable ipv6
     await ipv6Checkbox.find('label').trigger('click');
-    await ipv6Checkbox.vm.$nextTick();
-    await wrapper.vm.$nextTick();
+    await nextTick();
+    await nextTick();
 
     // Check and update user values with the emitted value
     latest = (wrapper.emitted()['cilium-values-changed'] || [])[1][0];
@@ -479,8 +500,8 @@ describe('component: Basics', () => {
 
     // Click the checkbox to turn bandwidth manager off again
     await bmCheckbox.find('label').trigger('click');
-    await bmCheckbox.vm.$nextTick();
-    await wrapper.vm.$nextTick();
+    await nextTick();
+    await nextTick();
 
     latest = (wrapper.emitted()['cilium-values-changed'] || [])[2][0];
 

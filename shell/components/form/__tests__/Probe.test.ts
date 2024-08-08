@@ -16,8 +16,8 @@ describe('component: Probe', () => {
       'failureThreshold',
     ])('should emit an update on %p input', (field) => {
       const wrapper = mount(Probe as unknown as ExtendedVue<Vue, {}, {}, {}, DefaultProps>, {
-        propsData: { mode: _EDIT },
-        data:      () => ({ kind })
+        props: { mode: _EDIT },
+        data:  () => ({ kind })
       });
       const input = wrapper.find(`[data-testid="input-probe-${ field }"]`).find('input');
       const newValue = 123;
@@ -33,8 +33,8 @@ describe('component: Probe', () => {
       'timeoutSeconds',
     ])('should emit an update on %p input and blur', (field) => {
       const wrapper = mount(Probe as unknown as ExtendedVue<Vue, {}, {}, {}, DefaultProps>, {
-        propsData: { mode: _EDIT },
-        data:      () => ({ kind })
+        props: { mode: _EDIT },
+        data:  () => ({ kind })
       });
       const input = wrapper.find(`[data-testid="input-probe-${ field }"]`).find('input');
       const newValue = 123;
@@ -49,7 +49,7 @@ describe('component: Probe', () => {
   it.each([
     'kind',
   ])('should emit an update on %p selection change', async(field) => {
-    const wrapper = mount(Probe as unknown as ExtendedVue<Vue, {}, {}, {}, DefaultProps>, { propsData: { mode: _EDIT } });
+    const wrapper = mount(Probe as unknown as ExtendedVue<Vue, {}, {}, {}, DefaultProps>, { props: { mode: _EDIT } });
 
     const select = wrapper.find(`[data-testid="input-probe-${ field }"]`);
 
