@@ -4,7 +4,7 @@ import { NamespaceFilterPo } from '@/cypress/e2e/po/components/namespace-filter.
 import * as jsyaml from 'js-yaml';
 
 const EXTENSION_NAME = 'elemental';
-const EXTENSION_VERSION = '2.0.0-rc1';
+const EXTENSION_VERSION = '2.0.0-rc2';
 const EXTENSION_REPO = 'https://github.com/rancher/elemental-ui';
 const EXTENSION_BRANCH = 'gh-pages';
 const EXTENSION_CLUSTER_REPO_NAME = 'elemental-ui-extension';
@@ -112,9 +112,24 @@ describe('Extensions Compatibility spec', { tags: ['@elemental', '@adminUser'] }
   });
 
   it('Should create an Elemental resource via YAML (Inventory of Machines)', () => {
+    function poolingSchemaDefinition() {
+      cy
+        .request('GET', 'v1/schemaDefinitions/elemental.cattle.io.machineinventory')
+        .then((resp) => {
+          if (resp.status === 200) {
+            return;
+          }
+
+          cy.wait(5000); // let's wait for a bit so that we don't overload the server
+          poolingSchemaDefinition();
+        });
+    }
+
     elementalPo.goTo();
     elementalPo.sideMenuNavTo('Inventory of Machines');
-    elementalPo.createFromYamlClick();
+    // after we hit create from YAML we need to pool for the schemaDefinition since
+    // that takes while to be available https://docs.cypress.io/api/commands/request#Request-Polling
+    elementalPo.createFromYamlClick().then(poolingSchemaDefinition);
 
     elementalPo.genericYamlEditor().value().then((val) => {
       // convert yaml into json to update values

@@ -45,7 +45,7 @@ export default class ExtensionsCompatibiliyPo extends PagePo {
 
     // timeout to give time for everything to be setup, otherwise the extension
     // won't find the chart and show the correct screen
-    return cy.wait(5000);
+    return cy.wait(10000);
   }
 
   sideMenuNavTo(label: string) {
