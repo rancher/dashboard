@@ -97,7 +97,7 @@ export default {
           @input="$emit('registry-host-changed', $event)"
         />
         <SelectOrCreateAuthSecret
-          v-model:value="registrySecret"
+          :value="registrySecret"
           :register-before-hook="registerBeforeHook"
           :hook-priority="1"
           :mode="mode"
@@ -108,7 +108,7 @@ export default {
           :namespace="value.metadata.namespace"
           generate-name="registryconfig-auth-"
           :cache-secrets="true"
-          @input="$emit('registry-secret-changed', $event)"
+          @update:value="$emit('registry-secret-changed', $event)"
         />
       </div>
     </div>

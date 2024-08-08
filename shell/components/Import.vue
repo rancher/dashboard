@@ -139,11 +139,12 @@ export default {
             </div>
             <div class="col span-6">
               <LabeledSelect
-                v-model:value="defaultNamespace"
+                :value="defaultNamespace"
                 class="pull-right"
                 :options="namespaceOptions"
                 label-key="import.defaultNamespace.label"
                 mode="edit"
+                @update:value="newValue => defaultNamespace = newValue"
               />
             </div>
           </div>
