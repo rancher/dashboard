@@ -347,10 +347,11 @@ describe('component: rke2', () => {
   });
 
   it.each([
-    ['v1.25.0+k3s1', 'azure', true],
-    ['v1.31.0+k3s1', 'harvester', true],
-    ['v1.29.0+k3s1', 'harvester', false],
-  ])('should set isAzureProviderUnsupported', (k8s, cloudProvider, value) => {
+    ['v1.25.0+k3s1', [{ value: 'aws' }, { value: 'azure' }], 'azure', true],
+    ['v1.31.0+k3s1', [{ value: 'aws' }, { value: 'azure' }], 'harvester', true],
+    ['v1.29.0+k3s1', [{ value: 'aws' }, { value: 'azure' }], 'harvester', false],
+    ['v1.31.0+k3s1', [{ value: 'aws' }], 'azure', false],
+  ])('should set isAzureProviderUnsupported', (k8s, providerOptions, cloudProvider, value) => {
     const wrapper = mount(rke2, {
       propsData: {
         mode:  _CREATE,
@@ -364,8 +365,11 @@ describe('component: rke2', () => {
         provider: 'custom'
       },
       data:     () => ({}),
-      computed: defaultComputed,
-      mocks:    {
+      computed: {
+        ...defaultComputed,
+        cloudProviderOptions: () => providerOptions
+      },
+      mocks: {
         ...defaultMocks,
         $store: { dispatch: () => jest.fn(), getters: defaultGetters },
       },
