@@ -130,6 +130,25 @@ export const SCOPED_RESOURCES = {
       resources: [
         'Clusters'
       ]
+    },
+    neuvectorApi: {
+      resources: [
+        'AdmissionControl',
+        'AuditEvents',
+        'Authentication',
+        'Authorization',
+        'CIScan',
+        'Cluster',
+        'Compliance',
+        'Events',
+        'Federation',
+        'RegistryScan',
+        'RuntimePolicy',
+        'RuntimeScan',
+        'SecurityEvents',
+        'SystemConfig',
+        'Vulnerability',
+      ]
     }
   },
   clusterScopedApiGroups: {
@@ -201,11 +220,21 @@ export const SCOPED_RESOURCES = {
     },
     neuvectorApi: {
       resources: [
-        'nv-perm.admctrl',
-        'nv-perm.authentication',
-        'nv-perm.ci-scan',
-        'nv-perm.fed',
-        'nv-perm.vulnerability'
+        'AdmissionControl',
+        'AuditEvents',
+        'Authentication',
+        'Authorization',
+        'CIScan',
+        'Cluster',
+        'Compliance',
+        'Events',
+        'Federation',
+        'RegistryScan',
+        'RuntimePolicy',
+        'RuntimeScan',
+        'SecurityEvents',
+        'SystemConfig',
+        'Vulnerability',
       ]
     }
   },
@@ -378,16 +407,16 @@ export const SCOPED_RESOURCES = {
     },
     neuvectorApi: {
       resources: [
-        'nv-perm.all-permissions',
-        'nv-perm.audit-events',
-        'nv-perm.authorization',
-        'nv-perm.compliance',
-        'nv-perm.events',
-        'nv-perm.reg-scan',
-        'nv-perm.rt-policy',
-        'nv-perm.rt-scan',
-        'nv-perm.security-events',
-        'nv-perm.config',
+        'AuditEvents',
+        'Authorization',
+        'Compliance',
+        'Events',
+        'Namespace',
+        'RegistryScan',
+        'RuntimePolicy',
+        'RuntimeScan',
+        'SecurityEvents',
+        'SystemConfig',
       ]
     }
   }
