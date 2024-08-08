@@ -150,13 +150,13 @@ export default defineComponent({
   methods: {
     addTaint(): void {
       this.taints.push({ taint: '', _id: randomStr() });
-      this.pool['nodeTaints'] = this.taints.map((keyedTaint: any => keyedTaint.taint));
+      this.pool['nodeTaints'] = this.taints.map((keyedTaint: any) => keyedTaint.taint);
       this.$emit('update:value');
     },
 
     updateTaint(keyedTaint: any, idx: any): void {
       this.taints[idx] = keyedTaint;
-      this.pool['nodeTaints'] = this.taints.map((keyedTaint: any => keyedTaint.taint));
+      this.pool['nodeTaints'] = this.taints.map((keyedTaint: any) => keyedTaint.taint);
       this.$emit('update:value');
     },
 
@@ -166,7 +166,7 @@ export default defineComponent({
       neu.splice(idx, 1).map((keyedTaint) => keyedTaint.taint);
 
       this['taints'] = neu;
-      this.pool['nodeTaints'] = neu.map((taint => taint.taint));
+      this.pool['nodeTaints'] = neu.map((taint) => taint.taint);
     },
 
     availabilityZonesSupport() {
@@ -396,7 +396,9 @@ export default defineComponent({
           </tr>
           <template v-if="taints && taints.length">
             <Taint
-              v-for="(keyedTaint, i) in taints" :key="i":taint="keyedTaint.taint"
+              v-for="(keyedTaint, i) in taints"
+              :key="i"
+              :taint="keyedTaint.taint"
               :mode="mode"
               :rules="validationRules.taints"
               :data-testid="`aks-pool-taint-${i}`"

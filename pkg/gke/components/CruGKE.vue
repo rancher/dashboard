@@ -755,23 +755,23 @@ export default defineComponent({
               v-model:name="pool.name"
               v-model:initial-node-count="pool.initialNodeCount"
               v-model:max-pods-constraint="pool.maxPodsConstraint"
+              v-model:autoscaling="pool.autoscaling.enabled"
+              v-model:min-node-count="pool.autoscaling.minNodeCount"
+              v-model:max-node-count="pool.autoscaling.maxNodeCount"
+              v-model:auto-repair="pool.management.autoRepair"
+              v-model:auto-upgrade="pool.management.autoUpgrade"
+              v-model:oauth-scopes="pool.config.oauthScopes"
               :rules="{
                 diskSizeGb: fvGetAndReportPathRules('diskSizeGb'),
                 initialNodeCount: fvGetAndReportPathRules('initialNodeCount'),
                 ssdCount: fvGetAndReportPathRules('ssdCount'),
                 poolName: fvGetAndReportPathRules('poolName'),
               }"
-              v-model:autoscaling="pool.autoscaling.enabled"
               :mode="mode"
-              v-model:min-node-count="pool.autoscaling.minNodeCount"
               :cluster-kubernetes-version="config.kubernetesVersion"
-              v-model:max-node-count="pool.autoscaling.maxNodeCount"
               :machine-type-options="machineTypeOptions"
-              v-model:auto-repair="pool.management.autoRepair"
               :service-account-options="serviceAccountOptions"
-              v-model:auto-upgrade="pool.management.autoUpgrade"
               :loading-machine-types="loadingMachineTypes"
-              v-model:oauth-scopes="pool.config.oauthScopes"
               :loading-service-accounts="loadingServiceAccounts"
               :is-new="pool._isNewOrUnprovisioned"
             />
@@ -815,6 +815,14 @@ export default defineComponent({
             v-model:cluster-secondary-range-name="config.ipAllocationPolicy.clusterSecondaryRangeName"
             v-model:services-secondary-range-name="config.ipAllocationPolicy.servicesSecondaryRangeName"
             v-model:cluster-ipv4-cidr-block="config.ipAllocationPolicy.clusterIpv4CidrBlock"
+            v-model:services-ipv4-cidr-block="config.ipAllocationPolicy.servicesIpv4CidrBlock"
+            v-model:node-ipv4-cidr-block="config.ipAllocationPolicy.nodeIpv4CidrBlock"
+            v-model:subnetwork-name="config.ipAllocationPolicy.subnetworkName"
+            v-model:enable-private-endpoint="config.privateClusterConfig.enablePrivateEndpoint"
+            v-model:enable-private-nodes="config.privateClusterConfig.enablePrivateNodes"
+            v-model:master-ipv4-cidr-block="config.privateClusterConfig.masterIpv4CidrBlock"
+            v-model:enable-master-authorized-network="config.masterAuthorizedNetworks.enabled"
+            v-model:master-authorized-network-cidr-blocks="config.masterAuthorizedNetworks.cidrBlocks"
             :rules="{
               masterIpv4CidrBlock: fvGetAndReportPathRules('masterIpv4CidrBlock'),
               clusterIpv4CidrBlock: fvGetAndReportPathRules('clusterIpv4CidrBlock'),
@@ -822,21 +830,13 @@ export default defineComponent({
               servicesIpv4CidrBlock: fvGetAndReportPathRules('servicesIpv4CidrBlock'),
               clusterIpv4Cidr: fvGetAndReportPathRules('clusterIpv4Cidr')
             }"
-            v-model:services-ipv4-cidr-block="config.ipAllocationPolicy.servicesIpv4CidrBlock"
             :mode="mode"
-            v-model:node-ipv4-cidr-block="config.ipAllocationPolicy.nodeIpv4CidrBlock"
             :zone="config.zone"
-            v-model:subnetwork-name="config.ipAllocationPolicy.subnetworkName"
             :region="config.region"
-            v-model:enable-private-endpoint="config.privateClusterConfig.enablePrivateEndpoint"
             :cloud-credential-id="config.googleCredentialSecret"
-            v-model:enable-private-nodes="config.privateClusterConfig.enablePrivateNodes"
             :project-id="config.projectID"
-            v-model:master-ipv4-cidr-block="config.privateClusterConfig.masterIpv4CidrBlock"
             :original-version="originalVersion"
-            v-model:enable-master-authorized-network="config.masterAuthorizedNetworks.enabled"
             :cluster-id="normanCluster.id"
-            v-model:master-authorized-network-cidr-blocks="config.masterAuthorizedNetworks.cidrBlocks"
             :cluster-name="config.clusterName"
             :is-new-or-unprovisioned="isNewOrUnprovisioned"
           />
