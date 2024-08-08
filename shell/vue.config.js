@@ -165,7 +165,7 @@ module.exports = function(dir, _appConfig) {
   // Dashboard nuxt configuration
   // ===============================================================================================
 
-  require('events').EventEmitter.defaultMaxListeners = 20;
+  require('events').EventEmitter.defaultMaxListeners = 50;
   require('dotenv').config();
 
   let routerBasePath = '/';
@@ -246,22 +246,32 @@ module.exports = function(dir, _appConfig) {
   const config = {
     // Vue server
     devServer: {
-      https: (devPorts ? {
-        key:  fs.readFileSync(path.resolve(__dirname, 'server/server.key')),
-        cert: fs.readFileSync(path.resolve(__dirname, 'server/server.crt'))
-      } : null),
+      server: {
+        type:    'https',
+        options: {
+          key:  fs.readFileSync(path.resolve(__dirname, 'server/server.key')),
+          cert: fs.readFileSync(path.resolve(__dirname, 'server/server.crt'))
+        }
+      },
       port:   (devPorts ? 8005 : 80),
       host:   '0.0.0.0',
       // TODO: Verify after migration completed
       client: { webSocketURL: `https://0.0.0.0:${ devPorts ? 8005 : 80 }` },
       proxy,
-      onBeforeSetupMiddleware(server) {
+      setupMiddlewares(middlewares, devServer) {
         const socketProxies = {};
-        const app = server.app;
+
+        if (!devServer) {
+          console.error('webpack-dev-server is not defined');
+
+          return middlewares;
+        }
+
+        const app = devServer.app;
 
         // Close down quickly in response to CTRL + C
         process.once('SIGINT', () => {
-          server.close();
+          devServer.close();
           console.log('\n'); // eslint-disable-line no-console
           process.exit(1);
         });
@@ -272,7 +282,7 @@ module.exports = function(dir, _appConfig) {
           console.log('Installing HAR file middleware'); // eslint-disable-line no-console
           app.use(har.harProxy(harData, process.env.HAR_DIR));
 
-          server.webSocketProxies.push({
+          devServer.webSocketProxies.push({
             upgrade(req, socket, head) {
               const responseHeaders = ['HTTP/1.1 101 Web Socket Protocol Handshake', 'Upgrade: WebSocket', 'Connection: Upgrade'];
 
@@ -294,7 +304,7 @@ module.exports = function(dir, _appConfig) {
         });
 
         // TODO: Verify after migration completed
-        server?.webSocketProxies.push({
+        devServer.webSocketProxies.push({
           upgrade(req, socket, head) {
             const path = Object.keys(socketProxies).find((path) => req.url.startsWith(path));
 
@@ -311,7 +321,9 @@ module.exports = function(dir, _appConfig) {
             }
           }
         });
-      },
+
+        return middlewares;
+      }
     },
     transpileDependencies: true,
     publicPath:            resourceBase || undefined,
