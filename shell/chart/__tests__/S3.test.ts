@@ -1,3 +1,4 @@
+import { nextTick } from 'vue';
 /* eslint-disable jest/no-hooks */
 import { mount } from '@vue/test-utils';
 
@@ -13,7 +14,10 @@ describe('rancher-backup: S3', () => {
       'cluster/paginationEnabled': () => false
     }
   };
-  const wrapper = mount(S3, { plugins: [Vuex], mocks: { $store: mockStore, $fetchState: { pending: false } } });
+  const wrapper = mount(S3, {
+    plugins: [Vuex],
+    global:  { mocks: { $store: mockStore, $fetchState: { pending: false } } }
+  });
 
   it('should emit invalid when form is not filled', () => {
     expect(wrapper.emitted('valid')).toHaveLength(1);
@@ -39,14 +43,14 @@ describe('rancher-backup: S3', () => {
     for (const testCase of testCases) {
       bucketName.setValue(testCase.bucketNameInput);
       endpoint.setValue(testCase.endpointInput);
-      await wrapper.vm.$nextTick();
+      await nextTick();
       expect(wrapper.emitted('valid')).toHaveLength(1);
       expect(wrapper.emitted('valid')![0][0]).toBe(false);
     }
 
     bucketName.setValue('val1');
     endpoint.setValue('val2');
-    await wrapper.vm.$nextTick();
+    await nextTick();
     expect(wrapper.emitted('valid')).toHaveLength(2);
     expect(wrapper.emitted('valid')![1][0]).toBe(true);
   });

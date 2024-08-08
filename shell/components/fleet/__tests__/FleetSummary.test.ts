@@ -295,7 +295,10 @@ describe('component: FleetSummary', () => {
     [[...mockedBundlesInRepo, ...mockedBundlesOutOfRepo], '2'],
     [mockedBundlesInRepo, '2'],
   ])('displays the number of bundles associated with the current gitrepo', (bundles: any[], bundleCount: string) => {
-    const wrapper = mount(FleetSummary, { propsData: { bundles, value: mockRepo }, mocks: { $store: mockStore } });
+    const wrapper = mount(FleetSummary, {
+      props:  { bundles, value: mockRepo },
+      global: { mocks: { $store: mockStore } }
+    });
 
     const bundleCountEl = wrapper.find('[data-testid="gitrepo-bundle-summary"] .count');
 
@@ -307,7 +310,10 @@ describe('component: FleetSummary', () => {
     [mockedBundlesInRepo, '2'],
 
   ])('displays the number of deployments associated with the current gitrepo', (bundles: any[], bundleCount: string) => {
-    const wrapper = mount(FleetSummary, { propsData: { bundles, value: mockRepo }, mocks: { $store: mockStore } });
+    const wrapper = mount(FleetSummary, {
+      props:  { bundles, value: mockRepo },
+      global: { mocks: { $store: mockStore } }
+    });
 
     const bundleCountEl = wrapper.find('[data-testid="gitrepo-deployment-summary"] .count');
 

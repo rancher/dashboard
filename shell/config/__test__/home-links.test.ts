@@ -1,4 +1,4 @@
-import Vuex from 'vuex';
+import Vuex, { createStore } from 'vuex';
 import { ensureSupportLink } from '@shell/config/home-links.js';
 import { getters, state, mutations } from '@shell/store/i18n.js';
 
@@ -11,7 +11,7 @@ jest.mock('@shell/assets/translations/en-us.yaml', () => ({
 }));
 
 describe('fx: ensureSupportLink', () => {
-  const store = new Vuex.Store({
+  const store = createStore({
     state,
     getters: {
       'i18n/selectedLocaleLabel': getters.selectedLocaleLabel,

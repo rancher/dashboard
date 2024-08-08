@@ -30,9 +30,9 @@ describe('view: fleet.cattle.io.gitrepo should', () => {
     metadata: { namespace: 'test' }, spec: { template: {}, correctDrift: { enabled: false } }, targetInfo: { mode: 'all' },
   };
   const wrapper = mount(GitRepo, {
-    plugins:   [Vuex],
-    propsData: { value: values },
-    mocks
+    plugins: [Vuex],
+    props:   { value: values },
+    global:  { mocks }
   });
 
   it('should have self-healing checkbox and banner', () => {

@@ -44,20 +44,22 @@ describe.each([
     data() {
       return { throttleTime: 0 };
     },
-    propsData: {
+    props: {
       namespace:     mock.defaultNamespace,
       allNamespaces: mock.allNamespaces,
       allPods:       mock.allPods,
       type:          'ingress',
       mode
     },
-    mocks: {
-      $store: {
-        getters: {
-          'i18n/exists': mockExists,
-          'i18n/t':      (key: string, matchData: MatchData) => matchData ? `${ key }-${ matchData.total }` : key,
+    global: {
+      mocks: {
+        $store: {
+          getters: {
+            'i18n/exists': mockExists,
+            'i18n/t':      (key: string, matchData: MatchData) => matchData ? `${ key }-${ matchData.total }` : key,
+          }
         }
-      }
+      },
     }
   });
 

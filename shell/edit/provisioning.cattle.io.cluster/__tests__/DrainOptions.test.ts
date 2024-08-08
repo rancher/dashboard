@@ -6,8 +6,8 @@ import { ExtendedVue, Vue } from 'vue/types/vue';
 describe('drain options', () => {
   it('should update an empty value with default drain options', () => {
     const wrapper = mount(DrainOptions as unknown as ExtendedVue<Vue, {}, {}, {}, DefaultProps>, {
-      propsData: { value: { }, mode: 'create' },
-      mocks:     { $store: { getters: { 'i18n/t': jest.fn() } } },
+      props:  { value: { }, mode: 'create' },
+      global: { mocks: { $store: { getters: { 'i18n/t': jest.fn() } } } },
 
     });
 
@@ -33,8 +33,8 @@ describe('drain options', () => {
       timeout:            90,
     };
     const wrapper = mount(DrainOptions as unknown as ExtendedVue<Vue, {}, {}, {}, DefaultProps>, {
-      propsData: { value: upgradeStrategy, mode: 'create' },
-      mocks:     { $store: { getters: { 'i18n/t': jest.fn() } } },
+      props:  { value: upgradeStrategy, mode: 'create' },
+      global: { mocks: { $store: { getters: { 'i18n/t': jest.fn() } } } },
 
     });
 

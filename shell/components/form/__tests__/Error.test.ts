@@ -8,7 +8,7 @@ describe('component: Error', () => {
     const value = 'testValue';
     const rules: Rule[] = [];
 
-    const wrapper = mount(Error, { propsData: { value, rules } });
+    const wrapper = mount(Error, { props: { value, rules } });
 
     const element = wrapper.find('[data-testid="error-span"]');
 
@@ -18,7 +18,7 @@ describe('component: Error', () => {
     const value = 'testValue';
     const rules: Rule[] = [() => undefined, () => undefined];
 
-    const wrapper = mount(Error, { propsData: { value, rules } });
+    const wrapper = mount(Error, { props: { value, rules } });
 
     const element = wrapper.find('[data-testid="error-span"]');
 
@@ -28,7 +28,7 @@ describe('component: Error', () => {
     const value = 'testValue';
     const rules: Rule[] = [(val) => val];
 
-    const wrapper = mount(Error, { propsData: { value, rules } });
+    const wrapper = mount(Error, { props: { value, rules } });
     const element = wrapper.find('[data-testid="error-span"]');
 
     expect(element.text()).toBe('testValue');
@@ -37,7 +37,7 @@ describe('component: Error', () => {
     const value = 'testValue';
     const rules: Rule[] = [() => 'testError', () => undefined];
 
-    const wrapper = mount(Error, { propsData: { value, rules } });
+    const wrapper = mount(Error, { props: { value, rules } });
 
     const element = wrapper.find('[data-testid="error-span"]');
 
@@ -47,7 +47,7 @@ describe('component: Error', () => {
     const value = 'testValue';
     const rules: Rule[] = [() => 'testError1', () => 'testError2'];
 
-    const wrapper = mount(Error, { propsData: { value, rules } });
+    const wrapper = mount(Error, { props: { value, rules } });
 
     const element = wrapper.find('[data-testid="error-span"]');
 

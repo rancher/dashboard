@@ -4,18 +4,20 @@ import Email from '@shell/edit/monitoring.coreos.com.receiver/types/email.vue';
 describe('page: Routes and Receivers', () => {
   it('should have host field with a valid integer value under Email form', () => {
     const wrapper = mount(Email, {
-      propsData: {
+      props: {
         mode:  'create',
         value: {}
       },
-      mocks: {
-        t:      (text: string) => text, // Mock i18n global function used as alternative to the getter
-        $store: {
-          getters: {
-            'i18n/t':      jest.fn(),
-            'i18n/exists': jest.fn()
+      global: {
+        mocks: {
+          t:      (text: string) => text, // Mock i18n global function used as alternative to the getter
+          $store: {
+            getters: {
+              'i18n/t':      jest.fn(),
+              'i18n/exists': jest.fn()
+            }
           }
-        }
+        },
       },
     });
 
@@ -28,18 +30,20 @@ describe('page: Routes and Receivers', () => {
   });
   it('should have port field with a valid integer value under Email form', () => {
     const wrapper = mount(Email, {
-      propsData: {
+      props: {
         mode:  'create',
         value: {}
       },
-      mocks: {
-        t:      (text: string) => text, // Mock i18n global function used as alternative to the getter
-        $store: {
-          getters: {
-            'i18n/t':      jest.fn(),
-            'i18n/exists': jest.fn()
+      global: {
+        mocks: {
+          t:      (text: string) => text, // Mock i18n global function used as alternative to the getter
+          $store: {
+            getters: {
+              'i18n/t':      jest.fn(),
+              'i18n/exists': jest.fn()
+            }
           }
-        }
+        },
       },
     });
 

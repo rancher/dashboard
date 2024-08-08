@@ -7,7 +7,7 @@ let wrapper: Wrapper<InstanceType<typeof AppModal>>;
 describe('appModal', () => {
   beforeEach(() => {
     wrapper = shallowMount(AppModal, {
-      propsData: {
+      props: {
         clickToClose: true,
         width:        600,
       },
@@ -16,7 +16,7 @@ describe('appModal', () => {
   });
 
   afterEach(() => {
-    wrapper.destroy();
+    wrapper.unmount();
   });
 
   it('renders modal content', () => {

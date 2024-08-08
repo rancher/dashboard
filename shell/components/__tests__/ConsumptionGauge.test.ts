@@ -9,7 +9,7 @@ describe('component: ConsumptionGauge', () => {
     };
 
     const wrapper = mount(ConsumptionGauge, {
-      propsData: {
+      props: {
         resourceName: 'some-resource-name',
         capacity:     1000,
         used:         200,
@@ -46,7 +46,7 @@ describe('component: ConsumptionGauge', () => {
     };
 
     const wrapper = mount(ConsumptionGauge, {
-      propsData: {
+      props: {
         resourceName:       'some-resource-name',
         capacity:           1000,
         used:               200,
@@ -70,7 +70,7 @@ describe('component: ConsumptionGauge', () => {
     };
 
     const wrapper = mount(ConsumptionGauge, {
-      propsData: {
+      props: {
         resourceName: 'some-resource-name',
         capacity:     1000,
         used:         200,

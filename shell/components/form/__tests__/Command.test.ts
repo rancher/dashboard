@@ -5,8 +5,8 @@ import { _EDIT } from '@shell/config/query-params';
 describe('component: Command', () => {
   it('should display all the inputs', () => {
     const wrapper = mount(Command, {
-      propsData: { mode: _EDIT },
-      data:      () => ({ stdin: true })
+      props: { mode: _EDIT },
+      data:  () => ({ stdin: true })
     });
 
     const inputWraps = wrapper.findAll('[data-testid^=input-command-]');
@@ -19,7 +19,7 @@ describe('component: Command', () => {
     'args',
     'workingDir',
   ])('should emit an update on %p input', (field) => {
-    const wrapper = mount(Command, { propsData: { mode: _EDIT } });
+    const wrapper = mount(Command, { props: { mode: _EDIT } });
     const input = wrapper.find(`[data-testid="input-command-${ field }"]`).find('input');
     const newValue = 123;
 
@@ -32,8 +32,8 @@ describe('component: Command', () => {
     'tty',
   ])('should emit an update on %p checkbox change', (field) => {
     const wrapper = mount(Command, {
-      propsData: { mode: _EDIT },
-      data:      () => ({ stdin: true })
+      props: { mode: _EDIT },
+      data:  () => ({ stdin: true })
     });
     const checkboxLabel = wrapper
       .find(`[data-testid="input-command-${ field }"]`)
@@ -48,8 +48,8 @@ describe('component: Command', () => {
     'stdin',
   ])('should emit an update on %p selection change', async(field) => {
     const wrapper = mount(Command, {
-      propsData: { mode: _EDIT },
-      data:      () => ({ stdin: true })
+      props: { mode: _EDIT },
+      data:  () => ({ stdin: true })
     });
     const select = wrapper.find(`[data-testid="input-command-${ field }"]`);
 
