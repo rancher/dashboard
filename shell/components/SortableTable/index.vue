@@ -20,14 +20,10 @@ import actions from './actions';
 import AdvancedFiltering from './advanced-filtering';
 import LabeledSelect from '@shell/components/form/LabeledSelect';
 import { getParent } from '@shell/utils/dom';
+import { FORMATTERS } from '@shell/components/SortableTable/sortable-config';
 
 // Uncomment for table performance debugging
 // import tableDebug from './debug';
-
-// Its quicker to render if we directly supply the components for the formatters
-// rather than just the name of a global component - so create a map of the formatter comoponents
-// NOTE: This is populated by a plugin (formatters.js) to avoid issues with plugins
-export const FORMATTERS = {};
 
 // @TODO:
 // Fixed header/scrolling

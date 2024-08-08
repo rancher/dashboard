@@ -14,7 +14,6 @@ module.exports = {
     'no-new':                   'off',
     'no-plusplus':              'off',
     'no-useless-escape':        'off',
-    'nuxt/no-cjs-in-config':    'off',
     strict:                     'off',
     'unicorn/no-new-buffer':    'off',
     'vue/no-unused-components': 'warn',

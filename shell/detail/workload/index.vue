@@ -2,7 +2,7 @@
 import CreateEditView from '@shell/mixins/create-edit-view';
 import { NAMESPACE as NAMESPACE_COL } from '@shell/config/table-headers';
 import {
-  POD, WORKLOAD_TYPES, SCALABLE_WORKLOAD_TYPES, SERVICE, INGRESS, NODE, NAMESPACE,
+  POD, WORKLOAD_TYPES, SCALABLE_WORKLOAD_TYPES, SERVICE, INGRESS, NODE, NAMESPACE, WORKLOAD_TYPE_TO_KIND_MAPPING, METRICS_SUPPORTED_KINDS
 } from '@shell/config/types';
 import ResourceTable from '@shell/components/ResourceTable';
 import Tab from '@shell/components/Tabbed/Tab';
@@ -20,24 +20,6 @@ import { PROJECT } from '@shell/config/labels-annotations';
 const SCALABLE_TYPES = Object.values(SCALABLE_WORKLOAD_TYPES);
 const WORKLOAD_METRICS_DETAIL_URL = '/api/v1/namespaces/cattle-monitoring-system/services/http:rancher-monitoring-grafana:80/proxy/d/rancher-workload-pods-1/rancher-workload-pods?orgId=1';
 const WORKLOAD_METRICS_SUMMARY_URL = '/api/v1/namespaces/cattle-monitoring-system/services/http:rancher-monitoring-grafana:80/proxy/d/rancher-workload-1/rancher-workload?orgId=1';
-
-export const WORKLOAD_TYPE_TO_KIND_MAPPING = {
-  // Each deployment creates a replicaset and the metrics are published for a replicaset.
-  [WORKLOAD_TYPES.DEPLOYMENT]:             'ReplicaSet',
-  [WORKLOAD_TYPES.CRON_JOB]:               'CronJob',
-  [WORKLOAD_TYPES.DAEMON_SET]:             'DaemonSet',
-  [WORKLOAD_TYPES.JOB]:                    'Job',
-  [WORKLOAD_TYPES.STATEFUL_SET]:           'StatefulSet',
-  [WORKLOAD_TYPES.REPLICA_SET]:            'ReplicaSet',
-  [WORKLOAD_TYPES.REPLICATION_CONTROLLER]: 'ReplicationController',
-};
-
-const METRICS_SUPPORTED_KINDS = [
-  WORKLOAD_TYPES.DAEMON_SET,
-  WORKLOAD_TYPES.REPLICA_SET,
-  WORKLOAD_TYPES.STATEFUL_SET,
-  WORKLOAD_TYPES.DEPLOYMENT
-];
 
 export default {
   components: {

@@ -15,7 +15,7 @@ const oldInfoLogger = console.info; // eslint-disable-line no-console
 // TODO: Add explanation of this logic
 console.info = () => {}; // eslint-disable-line no-console
 
-const { createProxyMiddleware } = require('http-proxy-middleware');
+const createProxyMiddleware = require('http-proxy-middleware');
 
 console.info = oldInfoLogger; // eslint-disable-line no-console
 

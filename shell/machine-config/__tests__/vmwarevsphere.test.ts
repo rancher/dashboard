@@ -1,5 +1,6 @@
 import { mount } from '@vue/test-utils';
-import vmwarevsphere, { DEFAULT_VALUES, SENTINEL } from '@shell/machine-config/vmwarevsphere.vue';
+import vmwarevsphere from '@shell/machine-config/vmwarevsphere.vue';
+import { DEFAULT_VALUES, SENTINEL } from '@shell/machine-config/vmwarevsphere-config';
 
 describe('component: vmwarevsphere', () => {
   const defaultGetters = { 'i18n/t': jest.fn().mockImplementation((key: string) => key) };

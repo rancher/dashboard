@@ -12,7 +12,6 @@ dist-pkg
 .DS_Store
 shell/utils/dynamic-importer.js
 ksconfig.json
-nuxt
 storybook-static/
 utils/dynamic-importer.js
 shell/assets/fonts
