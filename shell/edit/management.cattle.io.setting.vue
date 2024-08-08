@@ -4,6 +4,7 @@ import { LabeledInput } from '@components/Form/LabeledInput';
 import LabeledSelect from '@shell/components/form/LabeledSelect';
 import CreateEditView from '@shell/mixins/create-edit-view';
 import { TextAreaAutoGrow } from '@components/Form/TextArea';
+import { Banner } from '@components/Banner';
 import formRulesGenerator from '@shell/utils/validators/formRules/index';
 
 import { ALLOWED_SETTINGS, SETTING } from '@shell/config/settings';
@@ -18,7 +19,8 @@ export default {
     LabeledInput,
     LabeledSelect,
     RadioGroup,
-    TextAreaAutoGrow
+    TextAreaAutoGrow,
+    Banner,
   },
 
   mixins: [CreateEditView, FormValidation],
@@ -63,7 +65,11 @@ export default {
 
           return factoryArg ? rule(factoryArg) : rule;
         }) : {};
-    }
+    },
+
+    showWarningBanner() {
+      return this.setting?.warning;
+    },
   },
 
   methods: {
@@ -118,6 +124,13 @@ export default {
     @finish="saveSettings"
     @cancel="done"
   >
+    <Banner
+      v-if="showWarningBanner"
+      color="warning"
+      :label="t(`advancedSettings.warnings.${ setting.warning }`)"
+      data-testid="advanced_settings_warning_banner"
+    />
+
     <h4>{{ description }}</h4>
 
     <h5
