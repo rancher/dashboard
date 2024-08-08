@@ -20,7 +20,7 @@ import { Banner } from '@components/Banner';
 import { clone, get } from '@shell/utils/object';
 import { uniq, removeObject } from '@shell/utils/array';
 
-import { _CREATE } from '@shell/config/query-params';
+import { _CREATE, _VIEW } from '@shell/config/query-params';
 
 import { mapGetters } from 'vuex';
 import {
@@ -376,7 +376,7 @@ export default {
     if (this.value.vgpuInfo) {
       const vGPURequests = JSON.parse(this.value.vgpuInfo)?.vGPURequests;
 
-      vGpus = vGPURequests?.map((r) => r?.name).filter((r) => r) || [];
+      vGpus = vGPURequests?.map((r) => r?.deviceName).filter((f) => f) || [];
     }
 
     return {
@@ -482,10 +482,14 @@ export default {
     },
 
     vGpuOptions() {
-      return uniq([
+      const vGpuTypes = uniq([
         ...this.vGpusInit,
-        ...Object.keys(this.vGpuDevices).filter((k) => this.vGpuDevices[k].enabled && this.vGpuDevices[k].allocatable > 0),
+        ...Object.values(this.vGpuDevices)
+          .filter((vGpu) => vGpu.enabled && vGpu.allocatable > 0 && !!vGpu.type)
+          .map((vGpu) => vGpu.type),
       ]);
+
+      return vGpuTypes;
     }
   },
 
@@ -884,13 +888,14 @@ export default {
     },
 
     updateVGpu() {
-      const vGPURequests = this.vGpus?.filter((name) => name).reduce((acc, name) => ([
-        ...acc,
-        {
-          name,
-          deviceName: this.vGpuDevices[name]?.type,
-        }
-      ]), []);
+      /**
+       * We are assigning the first vGpu profile found for each vGpu type selected by the user.
+       * This will not work if we will remove the limit of only one vGpu assignable to each cluster.
+       */
+      const vGPURequests = this.vGpus?.filter((f) => f).map((deviceName) => ({
+        name: Object.values(this.vGpuDevices).filter((f) => f.type === deviceName)?.[0]?.id || '',
+        deviceName,
+      })) || [];
 
       this.value.vgpuInfo = vGPURequests.length > 0 ? JSON.stringify({ vGPURequests }) : '';
     },
@@ -1091,19 +1096,23 @@ export default {
     },
 
     vGpuOptionLabel(opt) {
-      const vGpu = this.vGpuDevices[opt];
+      let label = opt.replace(VGPU_PREFIX.NVIDIA, '');
 
-      if (vGpu) {
-        let label = `${ vGpu.type?.replace(VGPU_PREFIX.NVIDIA, '') } - ${ vGpu.id }`;
-
-        if (vGpu.allocatable > 0) {
-          label += ` (allocatable: ${ vGpu.allocatable })`;
-        }
-
+      if (this.mode === _VIEW) {
         return label;
       }
 
-      return opt;
+      /**
+       * We get the allocatable label from the first vGpu profile found for each vGpu type.
+       * This is consistent as long as vGpu profiles with the same vGpu type, have the same allocable number.
+       */
+      const vGpu = Object.values(this.vGpuDevices).filter((f) => f.type === opt)?.[0];
+
+      if (vGpu?.allocatable > 0) {
+        label += ` (allocatable: ${ vGpu.allocatable })`;
+      }
+
+      return label;
     }
   }
 };
