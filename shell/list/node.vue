@@ -21,6 +21,7 @@ import { COLUMN_BREAKPOINTS } from '@shell/types/store/type-map';
 
 import ResourceFetch from '@shell/mixins/resource-fetch';
 import { mapGetters } from 'vuex';
+import { FetchPageSecondaryResourcesOpts } from 'components/PaginatedResourceTable.vue';
 
 export default defineComponent({
   name:       'ListNode',
@@ -36,10 +37,12 @@ export default defineComponent({
       type:     String,
       required: true,
     },
+
     schema: {
       type:     Object,
       required: true,
     },
+
     useQueryParamsForSimpleFiltering: {
       type:    Boolean,
       default: false
@@ -209,8 +212,8 @@ export default defineComponent({
      *
      * So when we have a page.... use those entries as filters when fetching the other resources
      */
-    async fetchPageSecondaryResources(force = false) {
-      if (!this.rows?.length) {
+    async fetchPageSecondaryResources({ canPaginate, force, page }: FetchPageSecondaryResourcesOpts) {
+      if (!page?.length) {
         return;
       }
 
@@ -220,7 +223,7 @@ export default defineComponent({
         const opt: ActionFindPageArgs = {
           force,
           pagination: new FilterArgs({
-            filters: PaginationParamFilter.createMultipleFields(this.rows.map((r: any) => new PaginationFilterField({
+            filters: PaginationParamFilter.createMultipleFields(page.map((r: any) => new PaginationFilterField({
               field: 'status.nodeName',
               value: r.id
             }))),
@@ -242,7 +245,7 @@ export default defineComponent({
             namespaced: namespace,
             pagination: new FilterArgs({
               filters: PaginationParamFilter.createMultipleFields(
-                this.rows.reduce((res: PaginationFilterField[], r: any ) => {
+                page.reduce((res: PaginationFilterField[], r: any ) => {
                   const name = r.metadata?.annotations?.[CAPI_ANNOTATIONS.MACHINE_NAME];
 
                   if (name) {
@@ -268,7 +271,7 @@ export default defineComponent({
           force,
           pagination: new FilterArgs({
             filters: PaginationParamFilter.createMultipleFields(
-              this.rows.map((r: any) => new PaginationFilterField({
+              page.map((r: any) => new PaginationFilterField({
                 field: 'spec.nodeName',
                 value: r.id,
               }))

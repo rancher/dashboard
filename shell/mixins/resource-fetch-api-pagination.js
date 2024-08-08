@@ -68,7 +68,9 @@ export default {
     },
 
     namespaceFilterChanged(neu) {
-      if (!this.canPaginate || !this.schema?.attributes?.namespaced) {
+      if (!this.canPaginate || !this.schema?.attributes?.namespaced || !this.namespaced) {
+        this.debouncedSetPagination({ ...this.pPagination }); // TODO: RC remove?
+
         return;
       }
 
@@ -166,7 +168,7 @@ export default {
         return;
       }
 
-      return this.resource && this.$store.getters[`${ this.currentProduct?.inStore }/paginationEnabled`]?.(this.resource.id || this.resource);
+      return this.resource && this.$store.getters[`${ this.inStore }/paginationEnabled`]?.(this.resource.id || this.resource);
     },
 
     paginationResult() {
@@ -182,7 +184,7 @@ export default {
         return;
       }
 
-      return this.$store.getters[`${ this.currentProduct?.inStore }/havePage`](this.resource);
+      return this.$store.getters[`${ this.inStore }/havePage`](this.resource);
     },
 
     /**
@@ -197,6 +199,10 @@ export default {
       */
     showDynamicRancherNamespaces() {
       return this.$store.getters['prefs/get'](ALL_NAMESPACES);
+    },
+
+    inStore() {
+      return this.$store.getters['currentStore'](this.resource) || this.currentProduct?.inStore;
     }
   },
 
@@ -298,7 +304,9 @@ export default {
         return;
       }
 
-      await this.fetchPageSecondaryResources();
+      await this.fetchPageSecondaryResources({
+        canPaginate: this.canPaginate, force: false, page: this.rows
+      });
     }
   },
 };

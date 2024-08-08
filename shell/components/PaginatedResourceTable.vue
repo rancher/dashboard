@@ -3,10 +3,20 @@ import { defineComponent } from 'vue';
 import ResourceFetch from '@shell/mixins/resource-fetch';
 import ResourceTable from '@shell/components/ResourceTable.vue';
 
+export type FetchSecondaryResourcesOpts = { }
+export type FetchSecondaryResources = (opts: FetchSecondaryResourcesOpts) => Promise<any>
+
+export type FetchPageSecondaryResourcesOpts = { canPaginate: boolean, force: boolean, page: any[] }
+export type FetchPageSecondaryResources = (opts: FetchPageSecondaryResourcesOpts) => Promise<any>
+
 /**
- * Wraps ResourceTable with the plumbing required to handle Server-Side Pagination (mainly mixins)
+ * This is meant to enable ResourceList like capabilities outside of List pages / components
  *
- * This can be used in places outside of standard List pages (list nodes, generic list, etc) where paginated lists are required (for example home page)
+ * Specifically
+ * - Resource Fetch features, including server-side pagination
+ * - Some plumbing
+ *
+ * This avoids polluting the owning component with mixins
  *
  */
 export default defineComponent({
@@ -18,40 +28,98 @@ export default defineComponent({
 
   props: {
     schema: {
-      type:    Object,
+      type:     Object,
+      required: true,
+    },
+
+    headers: {
+      type:    Array,
       default: null,
     },
+
+    paginationHeaders: {
+      type:    Array,
+      default: null,
+    },
+
+    namespaced: {
+      type:    Boolean,
+      default: null, // Automatic from schema
+    },
+
+    /**
+     * Information may be required from resources other than the primary one shown per row
+     *
+     * This will fetch them ALL and will be run in a non-server-side pagination world
+     */
+    fetchSecondaryResources: {
+      type:    Function,
+      default: null,
+    },
+
+    /**
+     * Information may be required from resources other than the primary one shown per row
+     *
+     * This will fetch only those relevent to the current page using server-side pagination based filters
+     *
+     * called from shell/mixins/resource-fetch-api-pagination.js
+     */
+    fetchPageSecondaryResources: {
+      type:    Function,
+      default: null,
+    }
+  },
+
+  data() {
+    return { resource: this.schema.id };
+  },
+
+  async fetch() {
+    await this.$fetchType(this.resource, [], this.inStore);
+
+    if (this.canPaginate && this.fetchSecondaryResources) {
+      await this.fetchSecondaryResources({ });
+    }
+  },
+
+  computed: {
+    safeHeaders() {
+      const customHeaders = this.canPaginate ? this.paginationHeaders : this.headers;
+
+      return customHeaders || this.$store.getters['type-map/headersFor'](this.schema, this.canPaginate);
+    }
   }
 });
 
 </script>
 
 <template>
-  <!-- :schema="provClusterSchema"
-    :table-actions="false"
-    :row-actions="false"
-    key-field="id"
-    :rows="kubeClusters"
-    :headers="clusterHeaders"
-    :loading="!kubeClusters"
-    :namespaced="nonStandardNamespaces" -->
-  <ResourceTable
-    :schema="schema"
-    v-bind="$attrs"
-    :external-pagination-enabled="canPaginate"
-    :external-pagination-result="paginationResult"
-    :request-filters="paginationRequestFilters"
-    @pagination-changed="paginationChanged"
-  >
-    <!-- Pass down templates provided by the caller -->
-    <template
-      v-for="(_, slot) of $scopedSlots"
-      v-slot:[slot]="scope"
+  <div>
+    <ResourceTable
+      v-bind="$attrs"
+      :schema="schema"
+      :rows="rows"
+      :alt-loading="canPaginate"
+      :loading="loading"
+
+      :headers="safeHeaders"
+      :namespaced="namespaced"
+
+      :external-pagination-enabled="canPaginate"
+      :external-pagination-result="paginationResult"
+      @pagination-changed="paginationChanged"
+      v-on="$listeners"
     >
-      <slot
-        :name="slot"
-        v-bind="scope"
-      />
-    </template>
-  </ResourceTable>
+      <!-- Pass down templates provided by the caller -->
+      <template
+        v-for="(_, slot) of $scopedSlots"
+        v-slot:[slot]="scope"
+      >
+        <slot
+          :name="slot"
+          v-bind="scope"
+        />
+      </template>
+    </ResourceTable>
+  </div>
 </template>

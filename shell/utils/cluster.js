@@ -5,7 +5,7 @@ import { SETTING } from '@shell/config/settings';
 import { PaginationFilterField, PaginationParamFilter } from 'types/store/pagination.types';
 
 /**
- * TODO: RC
+ * The vai backed api's `filter` equivalent of `filterOnlyKubernetesClusters`
  *
  * @export
  * @param {*} store
@@ -17,6 +17,8 @@ export function paginationFilterOnlyKubeClusters(store) {
   if (!openHarvesterContainerWorkload) {
     return null;
   }
+
+  // TODO: RC TEST
 
   return PaginationParamFilter.createMultipleFields([
     new PaginationFilterField({

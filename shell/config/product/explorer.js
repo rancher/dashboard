@@ -9,6 +9,7 @@ import {
   NORMAN,
   SNAPSHOT,
   VIRTUAL_TYPES,
+  CAPI,
 } from '@shell/config/types';
 
 import {
@@ -60,6 +61,7 @@ export function init(store) {
       [MANAGEMENT.PROJECT_ROLE_TEMPLATE_BINDING]: 'management',
       [NORMAN.CLUSTER_ROLE_TEMPLATE_BINDING]:     'rancher',
       [NORMAN.PROJECT_ROLE_TEMPLATE_BINDING]:     'rancher',
+      [CAPI.RANCHER_CLUSTER]:                     'management',
     }
   });
 

@@ -4,6 +4,7 @@ import { NAMESPACE_FILTER_ALL_SYSTEM, NAMESPACE_FILTER_ALL_USER, NAMESPACE_FILTE
 import Namespace from '@shell/models/namespace';
 import { uniq } from '@shell/utils/array';
 import {
+  CAPI,
   CONFIG_MAP, MANAGEMENT, NAMESPACE, NODE, POD
 } from '@shell/config/types';
 import { Schema } from 'plugins/steve/schema';
@@ -122,11 +123,27 @@ class StevePaginationUtils extends NamespaceProjectFilters {
     [MANAGEMENT.NODE]: [
       { field: 'status.nodeName' },
     ],
+    [MANAGEMENT.NODE_POOL]: [
+      // { field: 'spec.clusterName' },  // Pending API support // TODO: RC
+    ],
+    [MANAGEMENT.NODE_TEMPLATE]: [
+      // { field: 'spec.clusterName' },  // Pending API support // TODO: RC
+    ],
     [CONFIG_MAP]: [
       { field: 'metadata.labels[harvesterhci.io/cloud-init-template]' }
     ],
     [NAMESPACE]: [
       { field: 'metadata.labels[field.cattle.io/projectId]' }
+    ],
+    [CAPI.MACHINE]: [
+      // { field: 'spec.clusterName' } // Pending API support // TODO: RC
+    ],
+    [CAPI.RANCHER_CLUSTER]: [
+      // { field: `metadata.labels."${ CAPI.PROVIDER }"` } // Pending API support // TODO: RC
+      // { field: `status.provider` } // Pending API support // TODO: RC
+      // { field: 'status.allocatable.cpu' } // Pending API support // TODO: RC
+      // { field: 'status.allocatable.memory' } // Pending API support // TODO: RC
+      // { field: 'status.allocatable.pods' } // Pending API support // TODO: RC
     ]
   }
 

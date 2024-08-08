@@ -1,6 +1,7 @@
 // Settings
 import { GC_DEFAULTS, GC_PREFERENCES } from '@shell/utils/gc/gc-types';
 import { PaginationSettings } from '@shell/types/resources/settings';
+import { CAPI } from 'config/types';
 
 interface GlobalSettingRuleset {
   name: string,
@@ -253,8 +254,17 @@ export const DEFAULT_PERF_SETTING: PerfSettings = {
             generic: true,
           }
         }
+      },
+      // TODO: RC enable for cluster management??
+      management: {
+        resources: {
+          enableAll:  false,
+          enableSome: {
+            enabled: [CAPI.RANCHER_CLUSTER],
+            generic: false,
+          }
+        }
       }
     }
   }
-
 };
