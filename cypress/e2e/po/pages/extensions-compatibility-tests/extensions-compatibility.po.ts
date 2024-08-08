@@ -21,8 +21,8 @@ export default class ExtensionsCompatibiliyPo extends PagePo {
     return this.title(selector).should('contain', title);
   }
 
-  waitForInstallChartPage() {
-    return installChart.waitForChartPage('rancher-charts', 'elemental');
+  waitForInstallChartPage(repoName:string, chartName:string) {
+    return installChart.waitForChartPage(repoName, chartName);
   }
 
   chartInstallNext() {
@@ -33,15 +33,16 @@ export default class ExtensionsCompatibiliyPo extends PagePo {
     return installChart.installChart();
   }
 
-  chartInstallWaitForInstallationAndCloseTerminal(interceptName: string) {
+  chartInstallWaitForInstallationAndCloseTerminal(interceptName: string, installableParts: Array<String>) {
     cy.wait(`@${ interceptName }`, { requestTimeout: 20000 }).its('response.statusCode').should('eq', 201);
 
     // giving it a small buffer so that the install is properly triggered
     cy.wait(15000);
     terminal.closeTerminal();
 
-    installedApps.list().state('elemental-operator-crds').should('contain', 'Deployed');
-    installedApps.list().state('elemental-operator').should('contain', 'Deployed');
+    installableParts.forEach((item:string) => {
+      installedApps.list().state(item).should('contain', 'Deployed');
+    });
 
     // timeout to give time for everything to be setup, otherwise the extension
     // won't find the chart and show the correct screen

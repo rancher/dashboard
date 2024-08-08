@@ -28,7 +28,8 @@ jobs:
           { username: 'admin', tag: '@adminUser' }
         ]
         features:  [
-          ['@elemental', 'elemental']
+          ['@elemental', 'elemental'],
+          ['@kubewarden', 'kubewarden']
         ]
         rancherEnv: [
           ['v2.9-head', 'master']

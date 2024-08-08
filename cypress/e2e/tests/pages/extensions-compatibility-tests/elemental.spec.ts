@@ -71,7 +71,7 @@ describe('Extensions Compatibility spec', { tags: ['@elemental', '@adminUser'] }
 
     elementalPo.installOperatorBtnClick();
 
-    elementalPo.waitForInstallChartPage();
+    elementalPo.waitForInstallChartPage('rancher-charts', 'elemental');
 
     // we need to change the namespace picker in order for the install check on the list view
     namespacePicker.toggle();
@@ -80,7 +80,7 @@ describe('Extensions Compatibility spec', { tags: ['@elemental', '@adminUser'] }
 
     elementalPo.chartInstallNext();
     elementalPo.chartInstallClick();
-    elementalPo.chartInstallWaitForInstallationAndCloseTerminal(EXTENSION_CHART_CREATION);
+    elementalPo.chartInstallWaitForInstallationAndCloseTerminal(EXTENSION_CHART_CREATION, ['elemental-operator-crds', 'elemental-operator']);
 
     elementalPo.goTo();
     elementalPo.waitForTitle('[data-testid="elemental-main-title"]', 'OS Management Dashboard');
@@ -114,7 +114,11 @@ describe('Extensions Compatibility spec', { tags: ['@elemental', '@adminUser'] }
   it('Should create an Elemental resource via YAML (Inventory of Machines)', () => {
     function poolingSchemaDefinition() {
       cy
-        .request('GET', 'v1/schemaDefinitions/elemental.cattle.io.machineinventory')
+        .request({
+          url:              'v1/schemaDefinitions/elemental.cattle.io.machineinventory',
+          method:           'GET',
+          failOnStatusCode: false
+        })
         .then((resp) => {
           if (resp.status === 200) {
             return;
