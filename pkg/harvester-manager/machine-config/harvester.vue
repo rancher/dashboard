@@ -1381,6 +1381,10 @@ export default {
           {{ t("harvesterManager.vGpu.title") }}
         </h3>
         <div>
+          <Banner
+            color="warning"
+            :label="t('cluster.credential.harvester.vGpus.warnings.minimumAllocatable')"
+          />
           <ArrayListSelect
             v-model="vGpus"
             class="mt-20"
