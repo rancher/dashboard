@@ -1,9 +1,7 @@
-import { createApp } from 'vue';
 import ProvCluster from '@shell/models/provisioning.cattle.io.cluster';
 import { DEFAULT_WORKSPACE, HCI, MANAGEMENT } from '@shell/config/types';
 import { HARVESTER_NAME, HARVESTER_NAME as VIRTUAL } from '@shell/config/features';
 import { SETTING } from '@shell/config/settings';
-const vueApp = createApp({});
 
 export default class HciCluster extends ProvCluster {
   get stateObj() {

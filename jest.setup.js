@@ -25,13 +25,13 @@ vueApp.component('v-select', vSelect);
 
 config.global.components['v-select'] = vSelect;
 config.global.plugins = [FloatingVue];
-config.global.mocks['t'] = key => `%${key}%`
+config.global.mocks['t'] = (key) => `%${ key }%`;
 config.global.mocks['$store'] = {
-  getters: {},
+  getters:  {},
   dispatch: jest.fn(),
-  commit: jest.fn(),
-}
-  
+  commit:   jest.fn(),
+};
+
 /**
  * Global configuration for Jest tests
  */
@@ -60,10 +60,10 @@ beforeEach(() => {
   // config.mocks['$plugin'] = { getDynamic: () => undefined };
 
   config.global.mocks['$store'] = { getters: { 'i18n/t': jest.fn() } };
-  config.global.directives['t'] = key => `%${key}%`;
+  config.global.directives['t'] = (key) => `%${ key }%`;
   config.global.directives['clean-tooltip'] = cleanTooltipDirective ;
   config.global.directives['clean-html'] = cleanHtmlDirective;
-  
+
   // Overrides some components
   // config.stubs['my-component'] = { template: "<div></div> "};
 });

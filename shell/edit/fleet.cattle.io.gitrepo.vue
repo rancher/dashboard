@@ -1,5 +1,4 @@
 <script>
-import { createApp } from 'vue';
 import { exceptionToErrorsArray } from '@shell/utils/error';
 import { mapGetters } from 'vuex';
 import {
@@ -26,7 +25,6 @@ import { CAPI, CATALOG, FLEET as FLEET_LABELS } from '@shell/config/labels-annot
 import { SECRET_TYPES } from '@shell/config/secret';
 import { checkSchemasForFindAllHash } from '@shell/utils/auth';
 import Checkbox from '@components/Form/Checkbox/Checkbox.vue';
-const vueApp = createApp({});
 
 const _VERIFY = 'verify';
 const _SKIP = 'skip';

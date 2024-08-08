@@ -1,5 +1,4 @@
 <script>
-import { createApp } from 'vue';
 import { _VIEW } from '@shell/config/query-params';
 import { Banner } from '@components/Banner';
 import ArrayListGrouped from '@shell/components/form/ArrayListGrouped';
@@ -7,7 +6,6 @@ import MatchExpressions from '@shell/components/form/MatchExpressions';
 import ArrayList from '@shell/components/form/ArrayList';
 import { Checkbox } from '@components/Form/Checkbox';
 import DirectoryConfig from '@shell/edit/provisioning.cattle.io.cluster/tabs/DirectoryConfig.vue';
-const vueApp = createApp({});
 
 export default {
   components: {

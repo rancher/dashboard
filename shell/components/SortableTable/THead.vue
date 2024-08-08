@@ -227,7 +227,7 @@ export default {
         :width="expandWidth"
       />
       <th
-        v-for="(col, i) in columns"
+        v-for="(col) in columns"
         v-show="!hasAdvancedFiltering || (hasAdvancedFiltering && col.isColVisible)"
         :key="col.name"
         :align="col.align || 'left'"

@@ -1,5 +1,4 @@
 <script>
-import { createApp } from 'vue';
 import CreateEditView from '@shell/mixins/create-edit-view';
 import Footer from '@shell/components/form/Footer';
 import { LabeledInput } from '@components/Form/LabeledInput';
@@ -10,7 +9,6 @@ import SelectOrCreateAuthSecret from '@shell/components/form/SelectOrCreateAuthS
 import InfoBox from '@shell/components/InfoBox';
 import { Checkbox } from '@components/Form/Checkbox';
 import { MANAGEMENT, NAMESPACE, CLUSTER_REPO_TYPES } from '@shell/config/types';
-const vueApp = createApp({});
 
 export default {
   name: 'CruCatalogRepo',

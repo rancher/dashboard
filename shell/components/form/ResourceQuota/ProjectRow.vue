@@ -2,8 +2,6 @@
 import Select from '@shell/components/form/Select';
 import UnitInput from '@shell/components/form/UnitInput';
 import { ROW_COMPUTED } from './shared';
-import { createApp } from 'vue';
-const vueApp = createApp({});
 
 export default {
   components: { Select, UnitInput },
@@ -75,13 +73,13 @@ export default {
     <Select
       class="mr-10"
       :mode="mode"
-      :value="type"
+      :modelValue="type"
       :options="types"
       data-testid="projectrow-type-input"
-      @update:value="updateType($event)"
+      @update:modelValue="updateType($event)"
     />
     <UnitInput
-      :value="resourceQuotaLimit[type]"
+      :modelValue="resourceQuotaLimit[type]"
       class="mr-10"
       :mode="mode"
       :placeholder="typeOption.placeholder"
@@ -90,10 +88,10 @@ export default {
       :base-unit="typeOption.baseUnit"
       :output-modifier="true"
       data-testid="projectrow-project-quota-input"
-      @update:value="updateQuotaLimit('resourceQuota', type, $event)"
+      @update:modelValue="updateQuotaLimit('resourceQuota', type, $event)"
     />
     <UnitInput
-      :value="namespaceDefaultResourceQuotaLimit[type]"
+      :modelValue="namespaceDefaultResourceQuotaLimit[type]"
       :mode="mode"
       :placeholder="typeOption.placeholder"
       :increment="typeOption.increment"
@@ -101,7 +99,7 @@ export default {
       :base-unit="typeOption.baseUnit"
       :output-modifier="true"
       data-testid="projectrow-namespace-quota-input"
-      @update:value="updateQuotaLimit('namespaceDefaultResourceQuota', type, $event)"
+      @update:modelValue="updateQuotaLimit('namespaceDefaultResourceQuota', type, $event)"
     />
   </div>
 </template>

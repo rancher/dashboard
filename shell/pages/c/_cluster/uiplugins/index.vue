@@ -1,5 +1,4 @@
 <script>
-import { createApp } from 'vue';
 import { mapGetters } from 'vuex';
 import { mapPref, PLUGIN_DEVELOPER } from '@shell/store/prefs';
 import { sortBy } from '@shell/utils/sort';
@@ -39,7 +38,6 @@ import {
   UI_PLUGINS_PARTNERS_REPO_URL
 } from '@shell/config/uiplugins';
 import TabTitle from '@shell/components/TabTitle';
-const vueApp = createApp({});
 
 const MAX_DESCRIPTION_LENGTH = 200;
 

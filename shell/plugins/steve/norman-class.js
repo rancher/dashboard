@@ -1,6 +1,5 @@
 import { ANNOTATIONS_TO_IGNORE_REGEX, LABELS_TO_IGNORE_REGEX } from '@shell/config/labels-annotations';
 import pickBy from 'lodash/pickBy';
-import Vue from 'vue';
 import { findBy } from '@shell/utils/array';
 import { matchesSomeRegex, coerceStringTypeToScalarType } from '@shell/utils/string';
 import Resource, { DNS_LIKE_TYPES } from '@shell/plugins/dashboard-store/resource-class';

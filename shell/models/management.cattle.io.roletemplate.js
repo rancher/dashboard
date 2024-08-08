@@ -1,10 +1,8 @@
-import { createApp } from 'vue';
 import { get } from '@shell/utils/object';
 import { DESCRIPTION } from '@shell/config/labels-annotations';
 import { NORMAN } from '@shell/config/types';
 import SteveDescriptionModel from '@shell/plugins/steve/steve-description-class';
 import { AS, MODE, _CLONE, _UNFLAG } from '@shell/config/query-params';
-const vueApp = createApp({});
 
 export const CATTLE_API_GROUP = '.cattle.io';
 

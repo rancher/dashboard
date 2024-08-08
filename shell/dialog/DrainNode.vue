@@ -1,5 +1,4 @@
 <script>
-import { createApp } from 'vue';
 import AsyncButton from '@shell/components/AsyncButton';
 import { Banner } from '@components/Banner';
 import { Card } from '@components/Card';
@@ -8,7 +7,6 @@ import UnitInput from '@shell/components/form/UnitInput';
 import { _EDIT, _VIEW } from '@shell/config/query-params';
 
 import { exceptionToErrorsArray } from '@shell/utils/error';
-const vueApp = createApp({});
 
 export default {
   components: {
@@ -149,7 +147,7 @@ export default {
     >
       <div>
         <RadioGroup
-          v-model:value="body.deleteLocalData"
+          v-model="body.deleteLocalData"
           name="deleteLocalData"
           :options="radioOptions"
           :row="true"
@@ -160,7 +158,7 @@ export default {
           </template>
         </RadioGroup>
         <RadioGroup
-          v-model:value="body.force"
+          v-model="body.force"
           name="force"
           :options="radioOptions"
           :row="true"
@@ -171,7 +169,7 @@ export default {
           </template>
         </RadioGroup>
         <RadioGroup
-          v-model:value="gracePeriod"
+          v-model="gracePeriod"
           name="gracePeriod"
           :options="gracePeriodOptions"
           class="mb-15"
@@ -181,7 +179,7 @@ export default {
           </template>
         </RadioGroup>
         <UnitInput
-          v-model:value="body.gracePeriod"
+          v-model="body.gracePeriod"
           :mode="gracePeriod ? EDIT : VIEW"
           type="number"
           min="1"
@@ -190,7 +188,7 @@ export default {
           class="mb-10"
         />
         <RadioGroup
-          v-model:value="timeout"
+          v-model="timeout"
           name="timeout"
           :options="timeoutOptions"
           class="mb-15"
@@ -200,7 +198,7 @@ export default {
           </template>
         </RadioGroup>
         <UnitInput
-          v-model:value="body.timeout"
+          v-model="body.timeout"
           :mode="timeout ? EDIT : VIEW"
           type="number"
           min="1"

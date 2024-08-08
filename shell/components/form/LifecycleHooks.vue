@@ -1,10 +1,7 @@
 <script>
-import { createApp } from 'vue';
-
 import HookOption from '@shell/components/form/HookOption';
 import { _VIEW } from '@shell/config/query-params';
 import { isEmpty } from '@shell/utils/object';
-const vueApp = createApp({});
 
 export default {
   components: { HookOption },

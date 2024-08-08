@@ -1,8 +1,6 @@
 import { SETTING } from '@shell/config/settings';
 import { MANAGEMENT, STEVE } from '@shell/config/types';
 import { clone } from '@shell/utils/object';
-import { createApp } from 'vue';
-const vueApp = createApp({});
 
 const definitions = {};
 /**

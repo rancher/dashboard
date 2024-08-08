@@ -113,7 +113,6 @@ export default {
       v-for="(port, index) in parsed"
       v-else
       :key="index"
-      :key="index"
       class="text-small"
     >
       <span v-clean-html="port.label" />
