@@ -8,7 +8,7 @@ SCRIPT_DIR="$( cd -- "$( dirname -- "${BASH_SOURCE[0]}" )" &> /dev/null && pwd )
 BASE_DIR="$( cd $SCRIPT_DIR && cd ../.. & pwd)"
 SHELL_DIR=$BASE_DIR/shell/
 SHELL_VERSION="99.99.99"
-DEFAULT_YARN_REGISTRY="https://registry.npmjs.org"
+DEFAULT_YARN_REGISTRY="https://registry.yarnpkg.com/"
 VERDACCIO_YARN_REGISTRY="http://localhost:4873"
 
 echo ${SCRIPT_DIR}
@@ -209,10 +209,8 @@ function clone_repo_test_extension_build() {
   popd
 
   # delete folder
-  if [ $TEST_PERSIST_BUILD != "true" ]; then
-    echo "Removing folder ${BASE_DIR}/$REPO_NAME"
-    rm -rf ${BASE_DIR}/$REPO_NAME
-  fi
+  echo "Removing folder ${BASE_DIR}/$REPO_NAME"
+  rm -rf ${BASE_DIR}/$REPO_NAME
   yarn config set registry ${DEFAULT_YARN_REGISTRY}
 }
 
@@ -220,5 +218,6 @@ function clone_repo_test_extension_build() {
 # Don't forget to add the unit tests exception to clone_repo_test_extension_build function if a new extension has those
 clone_repo_test_extension_build "kubewarden-ui" "kubewarden"
 clone_repo_test_extension_build "elemental-ui" "elemental"
+clone_repo_test_extension_build "capi-ui-extension" "capi"
 
 echo "All done"
