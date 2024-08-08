@@ -604,7 +604,7 @@ export default {
 
     <template v-if="hasCisOverride">
       <Checkbox
-        v-model:value="cisOverride"
+        :value="cisOverride"
         :mode="mode"
         :label="t('cluster.rke2.cis.override')"
         @update:value="$emit('psa-default-changed')"
