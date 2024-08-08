@@ -27,19 +27,36 @@ const defaultComputed = {
 const mockAgentArgs = { 'cloud-provider-name': { options: [], profile: { options: [{ anything: 'yes' }] } } };
 const mockServerArgs = { disable: {}, cni: { options: [] } };
 
-const rke2Versions =
-  [
-    {
-      id: 'v1.25.0+rke2r1', value: 'v1.25.0+rke2r1', serverArgs: mockServerArgs, agentArgs: mockAgentArgs, charts: {}
-    },
-    {
-      id: 'v1.24.0+rke2r1', value: 'v1.24.0+rke2r1', serverArgs: mockServerArgs, agentArgs: mockAgentArgs, charts: {}
-    },
-    {
-      id: 'v1.23.0+rke2r1', value: 'v1.23.0+rke2r1', serverArgs: mockServerArgs, agentArgs: mockAgentArgs, charts: {}
-    }
-  ];
+const rke2Versions = [
+  {
+    id: 'v1.31.0+rke2r1', value: 'v1.31.0+rke2r1', serverArgs: mockServerArgs, agentArgs: mockAgentArgs, charts: {}
+  },
+  {
+    id: 'v1.30.0+rke2r1', value: 'v1.30.0+rke2r1', serverArgs: mockServerArgs, agentArgs: mockAgentArgs, charts: {}
+  },
+  {
+    id: 'v1.29.1+rke2r1', value: 'v1.29.1+rke2r1', serverArgs: mockServerArgs, agentArgs: mockAgentArgs, charts: {}
+  },
+  {
+    id: 'v1.25.0+rke2r1', value: 'v1.25.0+rke2r1', serverArgs: mockServerArgs, agentArgs: mockAgentArgs, charts: {}
+  },
+  {
+    id: 'v1.24.0+rke2r1', value: 'v1.24.0+rke2r1', serverArgs: mockServerArgs, agentArgs: mockAgentArgs, charts: {}
+  },
+  {
+    id: 'v1.23.0+rke2r1', value: 'v1.23.0+rke2r1', serverArgs: mockServerArgs, agentArgs: mockAgentArgs, charts: {}
+  }
+];
 const k3sVersions = [
+  {
+    id: 'v1.31.0+k3s1', value: 'v1.31.0+k3s1', serverArgs: mockServerArgs, agentArgs: mockAgentArgs, charts: {}
+  },
+  {
+    id: 'v1.30.0+k3s1', value: 'v1.30.0+k3s1', serverArgs: mockServerArgs, agentArgs: mockAgentArgs, charts: {}
+  },
+  {
+    id: 'v1.29.1+k3s1', value: 'v1.29.1+k3s1', serverArgs: mockServerArgs, agentArgs: mockAgentArgs, charts: {}
+  },
   {
     id: 'v1.25.0+k3s1', value: 'v1.25.0+k3s1', serverArgs: mockServerArgs, agentArgs: mockAgentArgs, charts: {}
   },
@@ -88,7 +105,7 @@ const newOffValue = { ipv6: { enabled: false } };
 const bmOnValue = { bandwidthManager: { enabled: true } };
 const bmOffValue = { bandwidthManager: { enabled: false } };
 
-function createBasicsTab(version : string, userChartValues: any) {
+function createBasicsTab(version : string, userChartValues: any, options = {}) {
   const k8s = mockVersionOptions.find((v) => v.id === version) || mockVersionOptions[0];
   const label = 'whatever';
   const wrapper = mount(Basics, {
@@ -122,6 +139,7 @@ function createBasicsTab(version : string, userChartValues: any) {
       showCloudProvider:           false,
       unsupportedCloudProvider:    false,
       cloudProviderOptions:        [{ label: 'Default - RKE2 Embedded', value: '' }],
+      ...options
     },
     computed: defaultComputed,
     mocks:    {
@@ -469,5 +487,60 @@ describe('component: Basics', () => {
     const expected = '{"bandwidthManager":{"test":true,"enabled":true},"ipv6":{"test":true,"enabled":false}}';
 
     expect(JSON.stringify(latest)).toStrictEqual(expected);
+  });
+
+  it.each([
+    ['create', true, true, '%cluster.banner.cloudProviderUnsupportedAzure%'],
+    ['create', false, true, undefined],
+    ['create', true, false, undefined],
+    ['edit', true, true, undefined],
+    ['view', true, true, undefined],
+  ])('should display Unsupported Azure provider warning message', (mode, showCloudProvider, isAzureProviderUnsupported, warningMessage) => {
+    const wrapper = createBasicsTab('v1.31.0+rke2r1', {}, {
+      mode,
+      showCloudProvider,
+      isAzureProviderUnsupported,
+      canAzureMigrateOnEdit: true
+    });
+
+    const cloudProviderUnsupportedAzureWarningMessage = wrapper.find('[data-testid="clusterBasics__showCloudProviderUnsupportedAzureWarning"]')?.element?.textContent;
+
+    expect(cloudProviderUnsupportedAzureWarningMessage).toBe(warningMessage);
+  });
+
+  it.each([
+    ['edit', true, true, '%cluster.banner.cloudProviderMigrateAzure%'],
+    ['edit', false, true, undefined],
+    ['edit', true, false, undefined],
+    ['create', true, true, undefined],
+    ['view', true, true, undefined],
+  ])('should display Azure Migration warning message', (mode, showCloudProvider, canAzureMigrateOnEdit, warningMessage) => {
+    const wrapper = createBasicsTab('v1.31.0+rke2r1', {}, {
+      mode,
+      showCloudProvider,
+      canAzureMigrateOnEdit,
+      isAzureProviderUnsupported: true,
+    });
+
+    const cloudProviderMigrateAzureWarningMessage = wrapper.find('[data-testid="clusterBasics__showCloudProviderMigrateAzureWarning"]')?.element?.textContent;
+
+    expect(cloudProviderMigrateAzureWarningMessage).toBe(warningMessage);
+  });
+
+  it.each([
+    ['create', true, false],
+    ['edit', false, true],
+    ['edit', true, false],
+    ['view', true, false],
+  ])('should disable Cloud Provider', (mode, canAzureMigrateOnEdit, disabled) => {
+    const wrapper = createBasicsTab('v1.31.0+rke2r1', {}, {
+      mode,
+      showCloudProvider: true,
+      canAzureMigrateOnEdit,
+    });
+
+    const cloudProvider = wrapper.find('[data-testid="clusterBasics__cloudProvider"]');
+
+    expect(cloudProvider.props().disabled).toBe(disabled);
   });
 });

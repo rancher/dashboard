@@ -11,7 +11,7 @@ import LabeledSelect from '@shell/components/form/LabeledSelect';
 import YamlEditor from '@shell/components/YamlEditor';
 import { LEGACY } from '@shell/store/features';
 import semver from 'semver';
-import { _EDIT } from '@shell/config/query-params';
+import { _CREATE, _EDIT } from '@shell/config/query-params';
 
 const HARVESTER = 'harvester';
 
@@ -105,6 +105,14 @@ export default {
     },
     cloudProviderOptions: {
       type:     Array,
+      required: true
+    },
+    isAzureProviderUnsupported: {
+      type:     Boolean,
+      required: true
+    },
+    canAzureMigrateOnEdit: {
+      type:     Boolean,
       required: true
     }
   },
@@ -377,9 +385,11 @@ export default {
     },
 
     canNotEditCloudProvider() {
-      const canNotEdit = this.isEdit;
+      if (!this.isEdit) {
+        return false;
+      }
 
-      return canNotEdit;
+      return !this.canAzureMigrateOnEdit;
     },
 
     /**
@@ -387,6 +397,20 @@ export default {
      */
     showCloudProviderAmazonAdditionalConfigWarning() {
       return !!semver.gte(this.value.spec.kubernetesVersion, 'v1.27.0') && this.agentConfig?.['cloud-provider-name'] === 'aws';
+    },
+
+    /**
+     * Display warning about unsupported Azure provider if k8s >= 1.30
+     */
+    showCloudProviderUnsupportedAzureWarning() {
+      return this.showCloudProvider && this.mode === _CREATE && this.isAzureProviderUnsupported;
+    },
+
+    /**
+     * Display warning about Azure provider migration from k8s versions >= 1.27 to External provider
+     */
+    showCloudProviderMigrateAzureWarning() {
+      return this.showCloudProvider && this.mode === _EDIT && this.canAzureMigrateOnEdit;
     }
   },
 
@@ -422,6 +446,20 @@ export default {
       <span
         v-clean-html="t('cluster.harvester.warning.cloudProvider.incompatible', null, true)"
       />
+    </Banner>
+    <Banner
+      v-if="showCloudProviderUnsupportedAzureWarning"
+      color="warning"
+      data-testid="clusterBasics__showCloudProviderUnsupportedAzureWarning"
+    >
+      <span v-clean-html="t('cluster.banner.cloudProviderUnsupportedAzure', {}, true)" />
+    </Banner>
+    <Banner
+      v-if="showCloudProviderMigrateAzureWarning"
+      color="warning"
+      data-testid="clusterBasics__showCloudProviderMigrateAzureWarning"
+    >
+      <span v-clean-html="t('cluster.banner.cloudProviderMigrateAzure', {}, true)" />
     </Banner>
     <Banner
       v-if="showCloudProviderAmazonAdditionalConfigWarning"
@@ -461,6 +499,7 @@ export default {
         <LabeledSelect
           v-if="agentConfig"
           v-model="agentConfig['cloud-provider-name']"
+          data-testid="clusterBasics__cloudProvider"
           :mode="mode"
           :disabled="canNotEditCloudProvider"
           :options="cloudProviderOptions"
