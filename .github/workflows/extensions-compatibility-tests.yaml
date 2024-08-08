@@ -28,9 +28,7 @@ jobs:
           { username: 'admin', tag: '@adminUser' }
         ]
         features:  [
-          ['@elemental'],
-          # ['@kubewarden'],
-          # ['@neuvector']
+          ['@elemental', 'elemental']
         ]
         rancherEnv: [
           ['v2.9-head', 'master']
@@ -53,18 +51,18 @@ jobs:
         run: |
           yarn e2e:prod
         env: 
-          GREP_TAGS: ${{ matrix.role.tag }}Setup+${{ matrix.features[0] }} --@jenkins ${{ matrix.role.tag }}Setup+${{ matrix.features[1] || matrix.features[0] }} --@jenkins
+          GREP_TAGS: ${{ matrix.role.tag }}Setup+${{ matrix.features[0] }} --@jenkins ${{ matrix.role.tag }}Setup+${{ matrix.features[0] }} --@jenkins
           TEST_USERNAME: ${{ matrix.role.username }}
           TEST_ONLY: setup
 
       # This is the actual triggering of the e2e test specs
       - name: Run user tests
         run: |
-          export SPEC_FILE="cypress/e2e/tests/pages/extensions-compatibility-tests/elemental.spec.ts" && yarn e2e:prod
+          export SPEC_FILE="cypress/e2e/tests/pages/extensions-compatibility-tests/${{ matrix.features[1] }}.spec.ts" && yarn e2e:prod
           [ "$BUILD_DASHBOARD" != "false" ] || exit 0
         env: 
           TEST_SKIP: setup
-          GREP_TAGS: ${{ matrix.role.tag }}+${{ matrix.features[0] }} --@jenkins ${{ matrix.role.tag }}+${{ matrix.features[1] || matrix.features[0] }} --@jenkins
+          GREP_TAGS: ${{ matrix.role.tag }}+${{ matrix.features[0] }} --@jenkins ${{ matrix.role.tag }}+${{ matrix.features[0] }} --@jenkins
           TEST_USERNAME: ${{ matrix.role.username }}
           
       - name: Upload screenshots
