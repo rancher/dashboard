@@ -221,3 +221,5 @@ clone_repo_test_extension_build "elemental-ui" "elemental"
 clone_repo_test_extension_build "capi-ui-extension" "capi"
 
 echo "All done"
+# Force an exit
+exit 0
