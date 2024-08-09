@@ -7,4 +7,4 @@ runs:
     - name: Setup Node.js
       shell: bash
       run: |
-        sudo zypper install jq
+        zypper install jq

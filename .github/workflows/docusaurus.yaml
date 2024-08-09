@@ -3,10 +3,10 @@ name: Publish Docusaurus
 on:
   push:
     branches:
-      - master
+      - masteraaaaa
   pull_request:
     branches:
-      - master
+      - masteraaaaa
 jobs:
   build:
     name: Build
