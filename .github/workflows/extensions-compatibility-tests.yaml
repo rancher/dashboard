@@ -1,11 +1,7 @@
-name: Extensions Compatibility Tests 2.10
+name: Extensions Compatibility Tests
 on:
   schedule:
     - cron: "0 0 * * *" # runs at midnight every day
-  # TODO: DELETE THIS!!!! JUST FOR TESTING PURPOSES!
-  pull_request:
-    branches:
-      - master
 
 env:
   TEST_USERNAME: admin
@@ -28,24 +24,23 @@ jobs:
           { username: 'admin', tag: '@adminUser' }
         ]
         features:  [
-          ['@elemental', 'elemental'],
-          ['@kubewarden', 'kubewarden']
+          ['@elemental', 'elemental']
         ]
         rancherEnv: [
-          ['v2.9-head', 'master']
+          ['2.10', 'v2.9-head'],
+          ['2.9', 'v2.9-head']
         ]
     runs-on: ubuntu-latest
     steps:
       - uses: actions/checkout@v3
         with:
-          # ref: ${{ matrix.rancherEnv[1] }} TODO: should be removed after it get's merged
           fetch-depth: 1
       - name: Setup env
         uses: ./.github/actions/setup
       
       # this is where docker is set up with the enviroment
-      - name: Run Rancher ${{ matrix.rancherEnv[0] }} - branch:${{ matrix.rancherEnv[1] }}
-        run: export RANCHER_VERSION_E2E=${{ matrix.rancherEnv[0] }} && yarn e2e:docker
+      - name: Run Rancher system ${{ matrix.rancherEnv[0] }} - image:${{ matrix.rancherEnv[1] }}
+        run: export RANCHER_VERSION_E2E=${{ matrix.rancherEnv[1] }} && yarn e2e:docker
       
       ## this is just setting up rancher and user
       - name: Setup Rancher and user

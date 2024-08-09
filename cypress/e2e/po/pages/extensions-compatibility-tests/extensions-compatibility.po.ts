@@ -7,6 +7,7 @@ import BaseResourceList from '@/cypress/e2e/po/lists/base-resource-list.po';
 import CodeMirrorPo from '@/cypress/e2e/po/components/code-mirror.po';
 import AsyncButtonPo from '@/cypress/e2e/po/components/async-button.po';
 import LabeledInputPo from '@/cypress/e2e/po/components/labeled-input.po';
+import CheckboxInputPo from '@/cypress/e2e/po/components/checkbox-input.po';
 
 const installChart = new InstallChartPage();
 const terminal = new Kubectl();
@@ -89,5 +90,9 @@ export default class ExtensionsCompatibiliyPo extends PagePo {
 
   saveOrCreateCluster(): AsyncButtonPo {
     return new AsyncButtonPo('[data-testid="rke2-custom-create-save"]', this.self());
+  }
+
+  genericCheckboxByLabel(label:string): CheckboxInputPo {
+    return CheckboxInputPo.byLabel(this.self(), label);
   }
 }
