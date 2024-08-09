@@ -6,5 +6,8 @@ runs:
   steps:
     - name: Setup Node.js
       shell: bash
+      # if we have jq, no op
+      # if no jq install it if we have zypper
+      # if no jq and no zypper we'll return a non-zero response
       run: |
-        zypper -n install jq
+        jq || zypper && zypper -n install jq

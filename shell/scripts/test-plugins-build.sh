@@ -115,7 +115,7 @@ if [ "${SKIP_STANDALONE}" == "false" ]; then
 
   echo "Building skeleton app"
 
-  FORCE_COLOR=true yarn build | cat
+  NODE_OPTIONS=--max_old_space_size=4096 FORCE_COLOR=true yarn build | cat
 
   # Package creator
   echo "Verifying package creator package"

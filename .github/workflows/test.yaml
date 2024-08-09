@@ -71,6 +71,7 @@ jobs:
 
   e2e-test:
     if: "!contains( github.event.pull_request.labels.*.name, 'ci/skip-e2e')"
+    needs: e2e-ui-build
     container: registry.suse.com/bci/nodejs:20
     runs-on: org-${{ github.repository_owner_id }}-amd64-k8s
     strategy:
