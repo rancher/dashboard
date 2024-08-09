@@ -485,7 +485,7 @@ export default {
       const vGpuTypes = uniq([
         ...this.vGpusInit,
         ...Object.values(this.vGpuDevices)
-          .filter((vGpu) => vGpu.enabled && vGpu.allocatable > 0 && !!vGpu.type)
+          .filter((vGpu) => vGpu.enabled && !!vGpu.type && (vGpu.allocatable === null || vGpu.allocatable > 0))
           .map((vGpu) => vGpu.type),
       ]);
 
@@ -706,24 +706,34 @@ export default {
         const url = `/k8s/clusters/${ clusterId }/v1`;
 
         const vGpus = await this.$store.dispatch('cluster/request', { url: `${ url }/${ HCI.VGPU_DEVICE }` });
-        const harvesterCluster = await this.$store.dispatch('cluster/request', { url: `${ url }/harvester/cluster/local` });
 
-        let deviceCapacity = {};
+        let deviceCapacity = null;
 
-        if (harvesterCluster?.links?.deviceCapacity) {
-          deviceCapacity = await this.$store.dispatch('cluster/request', { url: harvesterCluster?.links?.deviceCapacity });
+        try {
+          const harvesterCluster = await this.$store.dispatch('cluster/request', { url: `${ url }/harvester/cluster/local` });
+
+          if (harvesterCluster?.links?.deviceCapacity) {
+            deviceCapacity = await this.$store.dispatch('cluster/request', { url: harvesterCluster?.links?.deviceCapacity });
+          }
+        } catch (e) {
         }
 
         this.vGpuDevices = (vGpus?.data || [])
           .reduce((acc, v) => {
             const type = v.spec.vGPUTypeName ? `${ VGPU_PREFIX.NVIDIA }${ v.spec.vGPUTypeName.replace(' ', '_') }` : '';
 
+            let allocatable = null;
+
+            if (deviceCapacity) {
+              allocatable = deviceCapacity[type] ? Number(deviceCapacity[type]) : 0;
+            }
+
             return {
               ...acc,
               [v.id]: {
-                id:          v.id,
-                enabled:     v.spec.enabled,
-                allocatable: deviceCapacity[type] ? Number(deviceCapacity[type]) : 0,
+                id:      v.id,
+                enabled: v.spec.enabled,
+                allocatable,
                 type,
               },
             };
@@ -1108,8 +1118,10 @@ export default {
        */
       const vGpu = Object.values(this.vGpuDevices).filter((f) => f.type === opt)?.[0];
 
-      if (vGpu?.allocatable > 0) {
-        label += ` (allocatable: ${ vGpu.allocatable })`;
+      if (vGpu?.allocatable === null) {
+        label += ` (${ this.t('harvesterManager.vGpu.allocatableUnknown') })`;
+      } else if(vGpu?.allocatable > 0) {
+        label += ` (${ this.t('harvesterManager.vGpu.allocatable') }: ${ vGpu.allocatable })`;
       }
 
       return label;
