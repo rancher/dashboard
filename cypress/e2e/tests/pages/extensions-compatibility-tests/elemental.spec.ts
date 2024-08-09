@@ -124,7 +124,9 @@ describe('Extensions Compatibility spec', { tags: ['@elemental', '@adminUser'] }
             return;
           }
 
-          cy.wait(5000); // let's wait for a bit so that we don't overload the server
+          // let's wait for a bit so that we don't overload the server
+          // with requests
+          cy.wait(5000); // eslint-disable-line cypress/no-unnecessary-waiting
           poolingSchemaDefinition();
         });
     }

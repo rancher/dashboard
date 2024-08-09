@@ -38,7 +38,7 @@ export default class ExtensionsCompatibiliyPo extends PagePo {
     cy.wait(`@${ interceptName }`, { requestTimeout: 20000 }).its('response.statusCode').should('eq', 201);
 
     // giving it a small buffer so that the install is properly triggered
-    cy.wait(15000);
+    cy.wait(15000); // eslint-disable-line cypress/no-unnecessary-waiting
     terminal.closeTerminal();
 
     installableParts.forEach((item:string) => {
@@ -47,7 +47,7 @@ export default class ExtensionsCompatibiliyPo extends PagePo {
 
     // timeout to give time for everything to be setup, otherwise the extension
     // won't find the chart and show the correct screen
-    return cy.wait(10000);
+    return cy.wait(10000); // eslint-disable-line cypress/no-unnecessary-waiting
   }
 
   sideMenuNavTo(label: string) {
