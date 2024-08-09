@@ -99,9 +99,7 @@ jobs:
       - name: Setup env
         uses: ./.github/actions/setup
       - name: Set up docker
-        uses: docker/setup-qemu-action@v3
-        with:
-          platforms: amd64
+        uses: ./.github/actions/setup-docker
       # Installing fixed version of Chrome since latest version does not work (117-118 didn't work)
       # Leaving this here again in case we need to pin to a specific Chrome version in the future
       # - name: Install Chrome 116

@@ -1,0 +1,13 @@
+name: Setup Docker
+description: Setup Docker
+
+runs:
+  using: 'composite'
+  steps:
+    - name: Setup Docker
+      shell: bash
+      # if we have docker, no op
+      # if no docker and have zypper, install docker with zypper
+      # if no docker and no zypper, return a non-zero response
+      run: |
+        docker || zypper && zypper -n install docker
