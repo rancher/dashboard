@@ -34,7 +34,7 @@ describe('Extensions Compatibility spec', { tags: ['@elemental', '@adminUser'] }
     // // This should be in a `before` however is flaky. Move it to an `it` to let cypress retry
     const extensionsPo = new ExtensionsPagePo();
 
-    extensionsPo.addExtensionsRepositoryDirectLink(EXTENSION_REPO, EXTENSION_BRANCH, EXTENSION_CLUSTER_REPO_NAME, false);
+    extensionsPo.addExtensionsRepositoryDirectLink(EXTENSION_REPO, EXTENSION_BRANCH, EXTENSION_CLUSTER_REPO_NAME, true);
   });
 
   it('Should install an extension', () => {
