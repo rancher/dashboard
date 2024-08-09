@@ -11,3 +11,4 @@ runs:
       # if no docker and no zypper, return a non-zero response
       run: |
         docker || zypper && zypper -n install docker
+        systemctl start docker
