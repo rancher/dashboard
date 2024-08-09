@@ -15,6 +15,19 @@ export default {
     // add to window so we can listen when ready
     window.$globalApp = this;
 
+    // This is needed for Harvester https://github.com/rancher/dashboard/issues/10681
+    const isHarvester = this.$globalApp?.$store.getters['currentCluster']?.isHarvester;
+
+    if (!isHarvester) {
+      Object.defineProperty(window, '$nuxt', {
+        get() {
+          console.warn('window.$nuxt is deprecated. It would be best to stop using globalState all together. For an alternative you can use window.$globalApp.'); // eslint-disable-line no-console
+
+          return window.$globalApp;
+        }
+      });
+    }
+
     this.refreshOnlineStatus();
     // Setup the listeners
     window.addEventListener('online', this.refreshOnlineStatus);
