@@ -246,6 +246,7 @@ module.exports = function(dir, _appConfig) {
   const config = {
     // Vue server
     devServer: {
+      client: { webSocketURL: `wss://0.0.0.0:${ devPorts ? 8005 : 80 }` },
       server: {
         type:    'https',
         options: {
@@ -253,11 +254,8 @@ module.exports = function(dir, _appConfig) {
           cert: fs.readFileSync(path.resolve(__dirname, 'server/server.crt'))
         }
       },
-      port:   (devPorts ? 8005 : 80),
-      host:   '0.0.0.0',
-      // TODO: Verify after migration completed
-      client: { webSocketURL: `https://0.0.0.0:${ devPorts ? 8005 : 80 }` },
-      proxy,
+      port: (devPorts ? 8005 : 80),
+      host: '0.0.0.0',
       setupMiddlewares(middlewares, devServer) {
         const socketProxies = {};
 
