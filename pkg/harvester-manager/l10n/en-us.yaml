@@ -24,3 +24,5 @@ harvesterManager:
     title: VGPUs
     label: VGPU type
     placeholder: 'Please select a VGPU'
+    allocatable: allocatable
+    allocatableUnknown: missing allocation info
