@@ -493,6 +493,7 @@ authConfig:
     table:
       server: Server IP 地址
       clientId: 客户端 ID
+    searchUsingServiceAccount: 使用 Service Account 进行搜索
   saml:
     entityID: Entity ID 字段
     UID: UID 字段

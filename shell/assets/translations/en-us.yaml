@@ -502,6 +502,7 @@ authConfig:
     table:
       server: Server
       clientId: Client ID
+    searchUsingServiceAccount: Search using the Service Account
   saml:
     entityID: Entity ID Field
     UID: UID Field
