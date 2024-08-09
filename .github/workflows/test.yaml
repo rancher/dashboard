@@ -25,7 +25,7 @@ env:
   CYPRESS_API_URL: http://139.59.134.103:1234/
   TEST_RUN_ID: ${{github.run_number}}-${{github.run_attempt}}-${{github.event.pull_request.title || github.event.head_commit.message}}
   # Build the dashboard to use in tests. When set to false it will grab `latest` from CDN (useful for running e2e tests quickly)
-  BUILD_DASHBOARD: true
+  BUILD_DASHBOARD: false # TODO: RC
 
   E2E_BUILD_DIST_NAME: dist
   E2E_BUILD_DIST_DIR: dist
@@ -46,11 +46,10 @@ jobs:
           fetch-depth: 1
       - name: Setup env
         uses: ./.github/actions/setup
-      - name: Make Safe
+      - name: Ensure repo dir is accepted as safe by git (diff user)
         shell: bash
         run: |
-          echo $PWD
-          git config --global --add safe.directory /__w/dashboard/dashboard
+          git config --global --add safe.directory $PWD
       - name: Build e2e
         run: yarn e2e:build
       - name: Upload e2e build
@@ -70,81 +69,81 @@ jobs:
           retention-days: 10
           compression-level: 9
 
-  # e2e-test:
-  #   if: "!contains( github.event.pull_request.labels.*.name, 'ci/skip-e2e')"
-  #   needs: e2e-ui-build
-  #   strategy:
-  #     fail-fast: false
-  #     matrix:
-  #       role: [
-  #         { username: 'admin', tag: '@adminUser' }, 
-  #         { username: 'standard_user', tag: '@standardUser' }
-  #       ]
-  #       features:  [
-  #         ['@navigation', '@extensions'],
-  #         ['@charts'],
-  #         ['@explorer'],
-  #         ['@fleet'],
-  #         ['@generic', '@globalSettings'],
-  #         ['@manager'],
-  #         ['@userMenu', '@usersAndAuths'],
-  #         ['@components'],
-  #         ['@vai']
-  #       ]
-  #   runs-on: ubuntu-latest
-  #   steps:
-  #     - uses: actions/checkout@v4
-  #       with:
-  #         fetch-depth: 1
-  #     - name: Setup env
-  #       uses: ./.github/actions/setup
+  e2e-test:
+    if: "!contains( github.event.pull_request.labels.*.name, 'ci/skip-e2e')"
+    container: registry.suse.com/bci/nodejs:20
+    strategy:
+      fail-fast: false
+      matrix:
+        role: [
+          { username: 'admin', tag: '@adminUser' },
+          { username: 'standard_user', tag: '@standardUser' }
+        ]
+        features:  [
+          ['@navigation', '@extensions'],
+          ['@charts'],
+          ['@explorer'],
+          ['@fleet'],
+          ['@generic', '@globalSettings'],
+          ['@manager'],
+          ['@userMenu', '@usersAndAuths'],
+          ['@components'],
+          ['@vai']
+        ]
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+        with:
+          fetch-depth: 1
+      - name: Setup env
+        uses: ./.github/actions/setup
 
-  #     # Installing fixed version of Chrome since latest version does not work (117-118 didn't work)
-  #     # Leaving this here again in case we need to pin to a specific Chrome version in the future
-  #     # - name: Install Chrome 116
-  #     #   run: |
-  #     #     sudo apt-get install -y wget
-  #     #     cd /tmp
-  #     #     wget -q http://mirror.cs.uchicago.edu/google-chrome/pool/main/g/google-chrome-stable/google-chrome-stable_116.0.5845.187-1_amd64.deb
-  #     #     sudo apt-get install -y --allow-downgrades ./google-chrome-stable_116.0.5845.187-1_amd64.deb
-  #     #     google-chrome --version
+      # Installing fixed version of Chrome since latest version does not work (117-118 didn't work)
+      # Leaving this here again in case we need to pin to a specific Chrome version in the future
+      # - name: Install Chrome 116
+      #   run: |
+      #     sudo apt-get install -y wget
+      #     cd /tmp
+      #     wget -q http://mirror.cs.uchicago.edu/google-chrome/pool/main/g/google-chrome-stable/google-chrome-stable_116.0.5845.187-1_amd64.deb
+      #     sudo apt-get install -y --allow-downgrades ./google-chrome-stable_116.0.5845.187-1_amd64.deb
+      #     google-chrome --version
 
-  #     - name: Download e2e build
-  #       uses:  actions/download-artifact@v4
-  #       with:
-  #        name: ${{ env.E2E_BUILD_DIST_NAME }}
-  #        path: ${{ env.E2E_BUILD_DIST_DIR }}
-  #     - name: Download e2e build ember
-  #       uses:  actions/download-artifact@v4
-  #       with:
-  #        name: ${{ env.E2E_BUILD_DIST_EMBER_NAME }}
-  #        path: ${{ env.E2E_BUILD_DIST_EMBER_DIR }}
+      - name: Download e2e build
+        uses:  actions/download-artifact@v4
+        with:
+         name: ${{ env.E2E_BUILD_DIST_NAME }}
+         path: ${{ env.E2E_BUILD_DIST_DIR }}
+      - name: Download e2e build ember
+        uses:  actions/download-artifact@v4
+        with:
+         name: ${{ env.E2E_BUILD_DIST_EMBER_NAME }}
+         path: ${{ env.E2E_BUILD_DIST_EMBER_DIR }}
       
-  #     - name: Run Rancher
-  #       run: yarn e2e:docker
+      - name: Run Rancher
+        run: yarn e2e:docker
       
-  #     - name: Setup Rancher and user
-  #       run: |
-  #         yarn e2e:prod
-  #       env: 
-  #         GREP_TAGS: ${{ matrix.role.tag }}Setup+${{ matrix.features[0] }} --@jenkins ${{ matrix.role.tag }}Setup+${{ matrix.features[1] || matrix.features[0] }} --@jenkins
-  #         TEST_USERNAME: admin
-  #         TEST_ONLY: setup
-  #     - name: Run user tests
-  #       run: |
-  #         yarn e2e:prod
-  #         [ "$BUILD_DASHBOARD" != "false" ] || exit 0
-  #       env: 
-  #         TEST_SKIP: setup
-  #         GREP_TAGS: ${{ matrix.role.tag }}+${{ matrix.features[0] }} --@jenkins ${{ matrix.role.tag }}+${{ matrix.features[1] || matrix.features[0] }} --@jenkins
-  #         TEST_USERNAME: ${{ matrix.role.username }}
+      - name: Setup Rancher and user
+        run: |
+          yarn e2e:prod
+        env:
+          GREP_TAGS: ${{ matrix.role.tag }}Setup+${{ matrix.features[0] }} --@jenkins ${{ matrix.role.tag }}Setup+${{ matrix.features[1] || matrix.features[0] }} --@jenkins
+          TEST_USERNAME: admin
+          TEST_ONLY: setup
+      - name: Run user tests
+        run: |
+          yarn e2e:prod
+          [ "$BUILD_DASHBOARD" != "false" ] || exit 0
+        env:
+          TEST_SKIP: setup
+          GREP_TAGS: ${{ matrix.role.tag }}+${{ matrix.features[0] }} --@jenkins ${{ matrix.role.tag }}+${{ matrix.features[1] || matrix.features[0] }} --@jenkins
+          TEST_USERNAME: ${{ matrix.role.username }}
           
-  #     - name: Upload screenshots
-  #       uses: actions/upload-artifact@v4
-  #       if: ${{ failure() }}
-  #       with:
-  #         name: ${{github.run_number}}-${{github.run_attempt}}-screenshots-${{ matrix.role.tag }}+${{ matrix.features[0] }}
-  #         path: cypress/screenshots
+      - name: Upload screenshots
+        uses: actions/upload-artifact@v4
+        if: ${{ failure() }}
+        with:
+          name: ${{github.run_number}}-${{github.run_attempt}}-screenshots-${{ matrix.role.tag }}+${{ matrix.features[0] }}
+          path: cypress/screenshots
 
   # unit-test:
   #   container: registry.suse.com/bci/nodejs:20
