@@ -1,0 +1,10 @@
+name: Setup jq
+description: Setup jq
+
+runs:
+  using: 'composite'
+  steps:
+    - name: Setup Node.js
+      shell: bash
+      run: |
+        sudo zypper install jq

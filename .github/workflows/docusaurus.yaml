@@ -14,11 +14,8 @@ jobs:
     runs-on: org-${{ github.repository_owner_id }}-amd64-k8s
     steps:
       - uses: actions/checkout@v2
-      - uses: actions/setup-node@v4
-        with:
-          node-version-file: '.nvmrc'
-          cache: yarn
-
+      - name: Setup Node
+        uses: ./.github/actions/setup-node
       - name: Install dependencies
         run: cd docusaurus/ && yarn install:ci
       - name: Build website
