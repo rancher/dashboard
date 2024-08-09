@@ -1,11 +1,11 @@
 name: Tests
 on:
-  push:
-    branches:
-      - 'release-2.8*'
-  pull_request:
-    branches:
-      - 'release-2.8*'
+  # push:
+  #   branches:
+  #     - 'release-2.8*'
+  # pull_request:
+  #   branches:
+  #     - 'release-2.8*'
   workflow_dispatch:
     inputs:
       environment:
