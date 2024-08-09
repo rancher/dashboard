@@ -1,14 +1,14 @@
-import ExtensionsPagePo from '@/cypress/e2e/po/pages/extensions.po';
+// import ExtensionsPagePo from '@/cypress/e2e/po/pages/extensions.po';
 import KubewardenPo from '@/cypress/e2e/po/pages/extensions-compatibility-tests/kubewarden.po';
 import { NamespaceFilterPo } from '@/cypress/e2e/po/components/namespace-filter.po';
-import * as jsyaml from 'js-yaml';
+// import * as jsyaml from 'js-yaml';
 
-const EXTENSION_NAME = 'kubewarden';
-const EXTENSION_VERSION = '2.0.0';
-const EXTENSION_REPO = 'https://github.com/rancher/kubewarden-ui';
-const EXTENSION_BRANCH = 'gh-pages';
-const EXTENSION_CLUSTER_REPO_NAME = 'kubewarden-ui-extension';
-const EXTENSION_KW_REPO_ADD = 'addKwRepo';
+// const EXTENSION_NAME = 'kubewarden';
+// const EXTENSION_VERSION = '2.0.0';
+// const EXTENSION_REPO = 'https://github.com/rancher/kubewarden-ui';
+// const EXTENSION_BRANCH = 'gh-pages';
+// const EXTENSION_CLUSTER_REPO_NAME = 'kubewarden-ui-extension';
+// const EXTENSION_KW_REPO_ADD = 'addKwRepo';
 const EXTENSION_CHART_CREATION = 'chartCreation';
 
 const kubewardenPo = new KubewardenPo();
