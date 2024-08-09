@@ -10,7 +10,8 @@ on:
       - master
 jobs:
   storybook:
-    runs-on: ubuntu-latest
+    container: registry.suse.com/bci/nodejs:20
+    runs-on: org-${{ github.repository_owner_id }}-amd64-k8s
     steps:
     - uses: actions/checkout@v4
     - name: Use Node.js
