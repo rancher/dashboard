@@ -1,5 +1,6 @@
 import ExtensionsCompatibiliyPo from '@/cypress/e2e/po/pages/extensions-compatibility-tests/extensions-compatibility.po';
 import Kubectl from '~/cypress/e2e/po/components/kubectl.po';
+import LabeledSelectPo from '@/cypress/e2e/po/components/labeled-select.po';
 export default class KubewardenPo extends ExtensionsCompatibiliyPo {
   static url = '/c/local/kubewarden';
   static goTo(): Cypress.Chainable<Cypress.AUTWindow> {
@@ -40,5 +41,13 @@ export default class KubewardenPo extends ExtensionsCompatibiliyPo {
 
   defaultPolicyServerInstallClick() {
     return this.self().getId('kw-defaults-banner-button').click();
+  }
+
+  rancherMonitoringInstallIntoProjectSelect(optionIndex: number): Cypress.Chainable {
+    const selectProject = new LabeledSelectPo('.labeled-select.edit');
+
+    selectProject.toggle();
+
+    return selectProject.clickOption(optionIndex);
   }
 }

@@ -8,6 +8,7 @@ import CodeMirrorPo from '@/cypress/e2e/po/components/code-mirror.po';
 import AsyncButtonPo from '@/cypress/e2e/po/components/async-button.po';
 import LabeledInputPo from '@/cypress/e2e/po/components/labeled-input.po';
 import CheckboxInputPo from '@/cypress/e2e/po/components/checkbox-input.po';
+import TabbedPo from '@/cypress/e2e/po/components/tabbed.po';
 
 const installChart = new InstallChartPage();
 const terminal = new Kubectl();
@@ -22,6 +23,10 @@ export default class ExtensionsCompatibiliyPo extends PagePo {
     return this.title(selector).should('contain', title);
   }
 
+  goToInstallChartPage(clusterId:string, queryParams = '') {
+    return installChart.goTo(clusterId, queryParams);
+  }
+
   waitForInstallChartPage(repoName:string, chartName:string) {
     return installChart.waitForChartPage(repoName, chartName);
   }
@@ -34,11 +39,11 @@ export default class ExtensionsCompatibiliyPo extends PagePo {
     return installChart.installChart();
   }
 
-  chartInstallWaitForInstallationAndCloseTerminal(interceptName: string, installableParts: Array<String>) {
+  chartInstallWaitForInstallationAndCloseTerminal(interceptName: string, installableParts: Array<String>, beforeTimeout = 15000) {
     cy.wait(`@${ interceptName }`, { requestTimeout: 20000 }).its('response.statusCode').should('eq', 201);
 
     // giving it a small buffer so that the install is properly triggered
-    cy.wait(15000); // eslint-disable-line cypress/no-unnecessary-waiting
+    cy.wait(beforeTimeout); // eslint-disable-line cypress/no-unnecessary-waiting
     terminal.closeTerminal();
 
     installableParts.forEach((item:string) => {
@@ -48,6 +53,30 @@ export default class ExtensionsCompatibiliyPo extends PagePo {
     // timeout to give time for everything to be setup, otherwise the extension
     // won't find the chart and show the correct screen
     return cy.wait(10000); // eslint-disable-line cypress/no-unnecessary-waiting
+  }
+
+  chartInstallWaitForUpgradeAndCloseTerminal(interceptName: string, beforeTimeout = 15000) {
+    cy.wait(`@${ interceptName }`, { requestTimeout: 20000 }).its('response.statusCode').should('eq', 201);
+
+    // giving it a small buffer so that the install is properly triggered
+    cy.wait(beforeTimeout); // eslint-disable-line cypress/no-unnecessary-waiting
+    terminal.closeTerminal();
+
+    cy.get('.masthead-state.badge-state').invoke('text').should('contain', 'Deployed');
+
+    // timeout to give time for everything to be setup, otherwise the extension
+    // won't find the chart and show the correct screen
+    return cy.wait(10000); // eslint-disable-line cypress/no-unnecessary-waiting
+  }
+
+  genericWaitForAppToInstall(appName: string, isTerminalOp = true) {
+    if (isTerminalOp) {
+      cy.wait(15000); // eslint-disable-line cypress/no-unnecessary-waiting
+      terminal.closeTerminal();
+    }
+    installedApps.list().state(appName).should('contain', 'Deployed');
+
+    return cy.wait(5000); // eslint-disable-line cypress/no-unnecessary-waiting
   }
 
   sideMenuNavTo(label: string) {
@@ -94,5 +123,11 @@ export default class ExtensionsCompatibiliyPo extends PagePo {
 
   genericCheckboxByLabel(label:string): CheckboxInputPo {
     return CheckboxInputPo.byLabel(this.self(), label);
+  }
+
+  clickGenericLateralTab(selector: string) {
+    const tab = new TabbedPo();
+
+    return tab.clickTabWithSelector(selector);
   }
 }
