@@ -1357,6 +1357,9 @@ cluster:
         networkName: Network Name
         macAddress: Mac Address
         macFormat: 'Invalid MAC address format.'
+      vGpus:
+        errors:
+          notAllocatable: '[{vGpu}] vGPU device is not allocatable; required: {allocated}, allocatable: {allocatable}'
       volume:
         title: Volumes
         volume: Volume

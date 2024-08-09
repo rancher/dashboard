@@ -609,6 +609,8 @@ export default {
 
       this.validatorDiskAndNetowrk(errors);
 
+      this.validatorVGpus(errors);
+
       podAffinityValidator(this.vmAffinity.affinity, this.$store.getters, errors);
 
       return { errors };
@@ -674,6 +676,39 @@ export default {
 
         this.value.networkName = interfaces[0].networkName;
       }
+    },
+
+    validatorVGpus(errors) {
+      const notAllocatable = this.vGpus
+        .map((type) => {
+          const allocated = this.machinePools.reduce((acc, machinePool) => {
+            const vGPURequests = JSON.parse(machinePool?.config?.vgpuInfo || '')?.vGPURequests;
+
+            const vGpuTypes = vGPURequests?.map((r) => r?.deviceName).filter((f) => f) || [];
+
+            if (vGpuTypes.includes(type)) {
+              return acc + machinePool.pool.quantity;
+            }
+
+            return acc;
+          }, 0);
+
+          return {
+            vGpu: Object.values(this.vGpuDevices).filter((f) => f.type === type)?.[0],
+            allocated
+          };
+        })
+        .filter(({ vGpu, allocated }) => vGpu && vGpu.allocatable > 0 && vGpu.allocatable < allocated);
+
+      notAllocatable.forEach(({ vGpu, allocated }) => {
+        const message = this.$store.getters['i18n/t']('cluster.credential.harvester.vGpus.errors.notAllocatable', {
+          vGpu:        vGpu?.type,
+          allocated,
+          allocatable: vGpu?.allocatable
+        });
+
+        errors.push(message);
+      });
     },
 
     valuesChanged(value, type) {
@@ -1120,7 +1155,7 @@ export default {
 
       if (vGpu?.allocatable === null) {
         label += ` (${ this.t('harvesterManager.vGpu.allocatableUnknown') })`;
-      } else if(vGpu?.allocatable > 0) {
+      } else if (vGpu?.allocatable > 0) {
         label += ` (${ this.t('harvesterManager.vGpu.allocatable') }: ${ vGpu.allocatable })`;
       }
 
