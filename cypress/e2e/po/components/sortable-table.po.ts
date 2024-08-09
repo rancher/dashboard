@@ -252,4 +252,8 @@ export default class SortableTablePo extends ComponentPo {
   pagination() {
     return new PaginationPo();
   }
+
+  paginationGlobalUsersRoles() {
+    return new PaginationPo('#GLOBAL div.paging');
+  }
 }

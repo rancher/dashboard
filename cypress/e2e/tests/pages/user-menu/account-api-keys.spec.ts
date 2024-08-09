@@ -110,7 +110,7 @@ describe('Account and API Keys', { testIsolation: 'off' }, () => {
       // create tokens
       let i = 0;
 
-      while (i < 100) {
+      while (i < 25) {
         cy.createToken(tokenDesc, 3600000, false).then((resp: Cypress.Response<any>) => {
           const tokenId = resp.body.id;
 
@@ -129,6 +129,12 @@ describe('Account and API Keys', { testIsolation: 'off' }, () => {
     });
 
     it('pagination is visible and user is able to navigate through tokens data', () => {
+      cy.tableRowsPerPage(10);
+      cy.reload(true);
+      // The tokens count returned just before the assertions are out of sync with the created tokens during the setup
+      // Waiting seems to mitigate this sync issue. This behavior seems consistent/reproducible on HA Rancher
+      // eslint-disable-next-line cypress/no-unnecessary-waiting
+      cy.wait(30000);
       // get tokens count
       cy.getRancherResource('v3', 'tokens').then((resp: Cypress.Response<any>) => {
         const count = resp.body.data.length - 1;
@@ -147,7 +153,7 @@ describe('Account and API Keys', { testIsolation: 'off' }, () => {
 
         // check text before navigation
         accountPage.sortableTable().pagination().paginationText().then((el) => {
-          expect(el.trim()).to.eq(`1 - 100 of ${ count } API Keys`);
+          expect(el.trim()).to.eq(`1 - 10 of ${ count } API Keys`);
         });
 
         // navigate to next page - right button
@@ -155,7 +161,7 @@ describe('Account and API Keys', { testIsolation: 'off' }, () => {
 
         // check text and buttons after navigation
         accountPage.sortableTable().pagination().paginationText().then((el) => {
-          expect(el.trim()).to.eq(`101 - ${ count } of ${ count } API Keys`);
+          expect(el.trim()).to.eq(`11 - 20 of ${ count } API Keys`);
         });
         accountPage.sortableTable().pagination().beginningButton().isEnabled();
         accountPage.sortableTable().pagination().leftButton().isEnabled();
@@ -165,7 +171,7 @@ describe('Account and API Keys', { testIsolation: 'off' }, () => {
 
         // check text and buttons after navigation
         accountPage.sortableTable().pagination().paginationText().then((el) => {
-          expect(el.trim()).to.eq(`1 - 100 of ${ count } API Keys`);
+          expect(el.trim()).to.eq(`1 - 10 of ${ count } API Keys`);
         });
         accountPage.sortableTable().pagination().beginningButton().isDisabled();
         accountPage.sortableTable().pagination().leftButton().isDisabled();
@@ -174,11 +180,11 @@ describe('Account and API Keys', { testIsolation: 'off' }, () => {
         accountPage.sortableTable().pagination().endButton().click();
 
         // check row count on last page
-        accountPage.sortableTable().checkRowCount(false, count - 100);
+        accountPage.sortableTable().checkRowCount(false, count - 20);
 
         // check text after navigation
         accountPage.sortableTable().pagination().paginationText().then((el) => {
-          expect(el.trim()).to.eq(`101 - ${ count } of ${ count } API Keys`);
+          expect(el.trim()).to.eq(`21 - ${ count } of ${ count } API Keys`);
         });
 
         // navigate to first page - beginning button
@@ -186,7 +192,7 @@ describe('Account and API Keys', { testIsolation: 'off' }, () => {
 
         // check text and buttons after navigation
         accountPage.sortableTable().pagination().paginationText().then((el) => {
-          expect(el.trim()).to.eq(`1 - 100 of ${ count } API Keys`);
+          expect(el.trim()).to.eq(`1 - 10 of ${ count } API Keys`);
         });
         accountPage.sortableTable().pagination().beginningButton().isDisabled();
         accountPage.sortableTable().pagination().leftButton().isDisabled();
@@ -199,7 +205,7 @@ describe('Account and API Keys', { testIsolation: 'off' }, () => {
 
       accountPage.sortableTable().checkVisible();
       accountPage.sortableTable().checkLoadingIndicatorNotVisible();
-      accountPage.sortableTable().checkRowCount(false, 100);
+      accountPage.sortableTable().checkRowCount(false, 10);
 
       // filter by access key (id)
       accountPage.sortableTable().filter(tokenIdsList[0]);

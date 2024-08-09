@@ -12,6 +12,22 @@ describe('Pods', { testIsolation: 'off', tags: ['@explorer', '@adminUser'] }, ()
     cy.login();
   });
 
+  describe('List small', { tags: ['@vai', '@adminUser'] }, () => {
+    it('pagination is hidden', () => {
+      // generate small set of pods data
+      generatePodsDataSmall();
+      HomePagePo.goTo(); // this is needed here for the intercept to work
+      WorkloadsPodsListPagePo.navTo();
+      cy.wait('@podsDataSmall');
+      workloadsPodPage.waitForPage();
+
+      workloadsPodPage.sortableTable().checkVisible();
+      workloadsPodPage.sortableTable().checkLoadingIndicatorNotVisible();
+      workloadsPodPage.sortableTable().checkRowCount(false, 3);
+      workloadsPodPage.sortableTable().pagination().checkNotExists();
+    });
+  });
+
   describe('List', { tags: ['@vai', '@adminUser'] }, () => {
     const uniquePod = 'aaa-e2e-test-pod-name';
     const podNamesList = [];
@@ -29,7 +45,7 @@ describe('Pods', { testIsolation: 'off', tags: ['@explorer', '@adminUser'] }, ()
         // create pods
         let i = 0;
 
-        while (i < 100) {
+        while (i < 25) {
           const podName = `e2e-${ Cypress._.uniqueId(Date.now().toString()) }`;
 
           cy.createPod(nsName1, podName, 'nginx:latest', false).then(() => {
@@ -52,9 +68,18 @@ describe('Pods', { testIsolation: 'off', tags: ['@explorer', '@adminUser'] }, ()
     });
 
     it('pagination is visible and user is able to navigate through pods data', () => {
+      cy.tableRowsPerPage(10);
+      cy.reload(true);
+      // The pods count returned just before the assertions are out of sync with the created pods during the setup
+      // Waiting seems to mitigate this sync issue. This behavior seems consistent/reproducible on HA Rancher
+      // eslint-disable-next-line cypress/no-unnecessary-waiting
+      cy.wait(30000);
+
       // get pods count
       cy.getRancherResource('v1', 'pods').then((resp: Cypress.Response<any>) => {
-        const count = resp.body.count;
+        // only retrieve the test data objects
+        const rExp = /(e2e-test-\d{13}-ns\d|default)/;
+        const count = resp.body.data.filter((item: { metadata: { namespace: string; }; }) => rExp.test(item.metadata.namespace)).length;
 
         WorkloadsPodsListPagePo.navTo();
         workloadsPodPage.waitForPage();
@@ -70,7 +95,7 @@ describe('Pods', { testIsolation: 'off', tags: ['@explorer', '@adminUser'] }, ()
 
         // check text before navigation
         workloadsPodPage.sortableTable().pagination().paginationText().then((el) => {
-          expect(el.trim()).to.eq(`1 - 100 of ${ count } Pods`);
+          expect(el.trim()).to.eq(`1 - 10 of ${ count } Pods`);
         });
 
         // navigate to next page - right button
@@ -78,7 +103,7 @@ describe('Pods', { testIsolation: 'off', tags: ['@explorer', '@adminUser'] }, ()
 
         // check text and buttons after navigation
         workloadsPodPage.sortableTable().pagination().paginationText().then((el) => {
-          expect(el.trim()).to.eq(`101 - ${ count } of ${ count } Pods`);
+          expect(el.trim()).to.eq(`11 - 20 of ${ count } Pods`);
         });
         workloadsPodPage.sortableTable().pagination().beginningButton().isEnabled();
         workloadsPodPage.sortableTable().pagination().leftButton().isEnabled();
@@ -88,7 +113,7 @@ describe('Pods', { testIsolation: 'off', tags: ['@explorer', '@adminUser'] }, ()
 
         // check text and buttons after navigation
         workloadsPodPage.sortableTable().pagination().paginationText().then((el) => {
-          expect(el.trim()).to.eq(`1 - 100 of ${ count } Pods`);
+          expect(el.trim()).to.eq(`1 - 10 of ${ count } Pods`);
         });
         workloadsPodPage.sortableTable().pagination().beginningButton().isDisabled();
         workloadsPodPage.sortableTable().pagination().leftButton().isDisabled();
@@ -98,7 +123,7 @@ describe('Pods', { testIsolation: 'off', tags: ['@explorer', '@adminUser'] }, ()
 
         // check text after navigation
         workloadsPodPage.sortableTable().pagination().paginationText().then((el) => {
-          expect(el.trim()).to.eq(`101 - ${ count } of ${ count } Pods`);
+          expect(el.trim()).to.eq(`21 - ${ count } of ${ count } Pods`);
         });
 
         // navigate to first page - beginning button
@@ -106,7 +131,7 @@ describe('Pods', { testIsolation: 'off', tags: ['@explorer', '@adminUser'] }, ()
 
         // check text and buttons after navigation
         workloadsPodPage.sortableTable().pagination().paginationText().then((el) => {
-          expect(el.trim()).to.eq(`1 - 100 of ${ count } Pods`);
+          expect(el.trim()).to.eq(`1 - 10 of ${ count } Pods`);
         });
         workloadsPodPage.sortableTable().pagination().beginningButton().isDisabled();
         workloadsPodPage.sortableTable().pagination().leftButton().isDisabled();
@@ -114,12 +139,16 @@ describe('Pods', { testIsolation: 'off', tags: ['@explorer', '@adminUser'] }, ()
     });
 
     it('filter pods', () => {
+      const rowsPerPage = 10;
+
+      cy.tableRowsPerPage(rowsPerPage);
+      cy.reload(true);
       WorkloadsPodsListPagePo.navTo();
       workloadsPodPage.waitForPage();
 
       workloadsPodPage.sortableTable().checkVisible();
       workloadsPodPage.sortableTable().checkLoadingIndicatorNotVisible();
-      workloadsPodPage.sortableTable().checkRowCount(false, 100);
+      workloadsPodPage.sortableTable().checkRowCount(false, rowsPerPage);
 
       // filter by name
       workloadsPodPage.sortableTable().filter(podNamesList[0]);
@@ -133,8 +162,12 @@ describe('Pods', { testIsolation: 'off', tags: ['@explorer', '@adminUser'] }, ()
     });
 
     it('sorting changes the order of paginated pods data', () => {
+      cy.tableRowsPerPage(10);
+      cy.reload(true);
       WorkloadsPodsListPagePo.navTo();
       workloadsPodPage.waitForPage();
+      // use filter to only show test data
+      workloadsPodPage.sortableTable().filter('e2e-');
 
       // check table is sorted by name in ASC order by default
       workloadsPodPage.sortableTable().tableHeaderRow().checkSortOrder(2, 'down');
@@ -154,20 +187,6 @@ describe('Pods', { testIsolation: 'off', tags: ['@explorer', '@adminUser'] }, ()
 
       // pod name should be visible on last page (sorted in DESC order)
       workloadsPodPage.sortableTable().rowElementWithName(podNamesList[0]).scrollIntoView().should('be.visible');
-    });
-
-    it('pagination is hidden', () => {
-      // generate small set of pods data
-      generatePodsDataSmall();
-      HomePagePo.goTo(); // this is needed here for the intercept to work
-      WorkloadsPodsListPagePo.navTo();
-      workloadsPodPage.waitForPage();
-      cy.wait('@podsDataSmall');
-
-      workloadsPodPage.sortableTable().checkVisible();
-      workloadsPodPage.sortableTable().checkLoadingIndicatorNotVisible();
-      workloadsPodPage.sortableTable().checkRowCount(false, 3);
-      workloadsPodPage.sortableTable().pagination().checkNotExists();
     });
 
     after('clean up', () => {

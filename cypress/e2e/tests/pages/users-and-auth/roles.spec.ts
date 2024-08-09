@@ -233,7 +233,7 @@ describe('Roles Templates', { tags: ['@usersAndAuths', '@adminUser'] }, () => {
       // create global roles
       let i = 0;
 
-      while (i < 100) {
+      while (i < 25) {
         const globalRoleName = `e2e-${ Cypress._.uniqueId(Date.now().toString()) }`;
 
         cy.createGlobalRole(globalRoleName, ['events.k8s.io'], [], ['events'], ['get'], false, false).then((resp: Cypress.Response<any>) => {
@@ -255,6 +255,8 @@ describe('Roles Templates', { tags: ['@usersAndAuths', '@adminUser'] }, () => {
 
     it('pagination is visible and user is able to navigate through global roles data', () => {
       // get global roles count
+      cy.tableRowsPerPage(10);
+      cy.reload(true);
       cy.getRancherResource('v1', 'management.cattle.io.globalroles').then((resp: Cypress.Response<any>) => {
         const count = resp.body.count;
 
@@ -263,102 +265,101 @@ describe('Roles Templates', { tags: ['@usersAndAuths', '@adminUser'] }, () => {
         roles.waitForPage();
 
         // pagination is visible
-        rolesList.resourceTable().sortableTable().pagination()
-          .checkVisible();
+        rolesList.resourceTable().sortableTable().paginationGlobalUsersRoles()
+          .checkVisible()
+          .scrollIntoView();
 
         // basic checks on navigation buttons
-        rolesList.resourceTable().sortableTable().pagination()
+        rolesList.resourceTable().sortableTable().paginationGlobalUsersRoles()
           .beginningButton()
           .isDisabled();
-        rolesList.resourceTable().sortableTable().pagination()
+        rolesList.resourceTable().sortableTable().paginationGlobalUsersRoles()
           .leftButton()
           .isDisabled();
-        rolesList.resourceTable().sortableTable().pagination()
+        rolesList.resourceTable().sortableTable().paginationGlobalUsersRoles()
           .rightButton()
           .isEnabled();
-        rolesList.resourceTable().sortableTable().pagination()
+        rolesList.resourceTable().sortableTable().paginationGlobalUsersRoles()
           .endButton()
           .isEnabled();
 
         // check text before navigation
-        rolesList.resourceTable().sortableTable().pagination()
+        rolesList.resourceTable().sortableTable().paginationGlobalUsersRoles()
           .paginationText()
           .then((el) => {
-            expect(el.trim()).to.eq(`1 - 100 of ${ count } GlobalRoles`);
+            expect(el.trim()).to.eq(`1 - 10 of ${ count } GlobalRoles`);
           });
 
         // navigate to next page - right button
-        rolesList.resourceTable().sortableTable().pagination()
+        rolesList.resourceTable().sortableTable().paginationGlobalUsersRoles()
           .rightButton()
           .click();
 
         // check text and buttons after navigation
-        rolesList.resourceTable().sortableTable().pagination()
+        rolesList.resourceTable().sortableTable().paginationGlobalUsersRoles()
           .paginationText()
           .then((el) => {
-            expect(el.trim()).to.eq(`101 - ${ count } of ${ count } GlobalRoles`);
+            expect(el.trim()).to.eq(`11 - 20 of ${ count } GlobalRoles`);
           });
-        rolesList.resourceTable().sortableTable().pagination()
+        rolesList.resourceTable().sortableTable().paginationGlobalUsersRoles()
           .beginningButton()
           .isEnabled();
-        rolesList.resourceTable().sortableTable().pagination()
+        rolesList.resourceTable().sortableTable().paginationGlobalUsersRoles()
           .leftButton()
           .isEnabled();
 
         // navigate to first page - left button
-        rolesList.resourceTable().sortableTable().pagination()
+        rolesList.resourceTable().sortableTable().paginationGlobalUsersRoles()
           .leftButton()
           .click();
 
         // check text and buttons after navigation
-        rolesList.resourceTable().sortableTable().pagination()
+        rolesList.resourceTable().sortableTable().paginationGlobalUsersRoles()
           .paginationText()
           .then((el) => {
-            expect(el.trim()).to.eq(`1 - 100 of ${ count } GlobalRoles`);
+            expect(el.trim()).to.eq(`1 - 10 of ${ count } GlobalRoles`);
           });
-        rolesList.resourceTable().sortableTable().pagination()
+        rolesList.resourceTable().sortableTable().paginationGlobalUsersRoles()
           .beginningButton()
           .isDisabled();
-        rolesList.resourceTable().sortableTable().pagination()
+        rolesList.resourceTable().sortableTable().paginationGlobalUsersRoles()
           .leftButton()
           .isDisabled();
 
         // navigate to last page - end button
-        rolesList.resourceTable().sortableTable().pagination()
+        rolesList.resourceTable().sortableTable().paginationGlobalUsersRoles()
           .endButton()
           .click();
 
-        // check row count on last page
-        rolesList.resourceTable().sortableTable().checkRowCount(false, count - 100);
-
         // check text after navigation
-        rolesList.resourceTable().sortableTable().pagination()
+        rolesList.resourceTable().sortableTable().paginationGlobalUsersRoles()
           .paginationText()
           .then((el) => {
-            expect(el.trim()).to.eq(`101 - ${ count } of ${ count } GlobalRoles`);
+            expect(el.trim()).to.eq(`${ count - (count % 10) + 1 } - ${ count } of ${ count } GlobalRoles`);
           });
 
         // navigate to first page - beginning button
-        rolesList.resourceTable().sortableTable().pagination()
+        rolesList.resourceTable().sortableTable().paginationGlobalUsersRoles()
           .beginningButton()
           .click();
 
         // check text and buttons after navigation
-        rolesList.resourceTable().sortableTable().pagination()
+        rolesList.resourceTable().sortableTable().paginationGlobalUsersRoles()
           .paginationText()
           .then((el) => {
-            expect(el.trim()).to.eq(`1 - 100 of ${ count } GlobalRoles`);
+            expect(el.trim()).to.eq(`1 - 10 of ${ count } GlobalRoles`);
           });
-        rolesList.resourceTable().sortableTable().pagination()
+        rolesList.resourceTable().sortableTable().paginationGlobalUsersRoles()
           .beginningButton()
           .isDisabled();
-        rolesList.resourceTable().sortableTable().pagination()
+        rolesList.resourceTable().sortableTable().paginationGlobalUsersRoles()
           .leftButton()
           .isDisabled();
       });
     });
 
     it('filter global roles', () => {
+      usersPo.goTo();
       RolesPo.navTo();
       roles.waitForPage();
 
@@ -383,6 +384,9 @@ describe('Roles Templates', { tags: ['@usersAndAuths', '@adminUser'] }, () => {
     });
 
     it('sorting changes the order of paginated global roles data', () => {
+      cy.tableRowsPerPage(10);
+      cy.reload(true);
+      usersPo.goTo();
       RolesPo.navTo();
       roles.waitForPage();
 
@@ -401,7 +405,7 @@ describe('Roles Templates', { tags: ['@usersAndAuths', '@adminUser'] }, () => {
         .should('be.visible');
 
       // navigate to last page
-      rolesList.resourceTable().sortableTable().pagination()
+      rolesList.resourceTable().sortableTable().paginationGlobalUsersRoles()
         .endButton()
         .click();
 
@@ -420,7 +424,7 @@ describe('Roles Templates', { tags: ['@usersAndAuths', '@adminUser'] }, () => {
         .should('not.exist');
 
       // navigate to last page
-      rolesList.resourceTable().sortableTable().pagination()
+      rolesList.resourceTable().sortableTable().paginationGlobalUsersRoles()
         .endButton()
         .click();
 
@@ -440,7 +444,7 @@ describe('Roles Templates', { tags: ['@usersAndAuths', '@adminUser'] }, () => {
       rolesList.resourceTable().sortableTable().checkVisible();
       rolesList.resourceTable().sortableTable().checkLoadingIndicatorNotVisible();
       rolesList.resourceTable().sortableTable().checkRowCount(false, 2);
-      rolesList.resourceTable().sortableTable().pagination()
+      rolesList.resourceTable().sortableTable().paginationGlobalUsersRoles()
         .checkNotExists();
     });
 

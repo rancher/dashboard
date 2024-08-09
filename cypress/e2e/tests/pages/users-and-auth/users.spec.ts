@@ -274,7 +274,7 @@ describe('Users', { tags: ['@usersAndAuths', '@adminUser'] }, () => {
       // create users
       let i = 0;
 
-      while (i < 100) {
+      while (i < 25) {
         const userName = `e2e-${ Cypress._.uniqueId(Date.now().toString()) }`;
 
         cy.createUser({ username: userName }).then((resp: Cypress.Response<any>) => {
@@ -324,7 +324,7 @@ describe('Users', { tags: ['@usersAndAuths', '@adminUser'] }, () => {
         usersPo.list().resourceTable().sortableTable().pagination()
           .paginationText()
           .then((el) => {
-            expect(el.trim()).to.eq(`1 - 100 of ${ count } Users`);
+            expect(el.trim()).to.eq(`1 - 10 of ${ count } Users`);
           });
 
         // navigate to next page - right button
@@ -336,7 +336,7 @@ describe('Users', { tags: ['@usersAndAuths', '@adminUser'] }, () => {
         usersPo.list().resourceTable().sortableTable().pagination()
           .paginationText()
           .then((el) => {
-            expect(el.trim()).to.eq(`101 - ${ count } of ${ count } Users`);
+            expect(el.trim()).to.eq(`11 - 20 of ${ count } Users`);
           });
         usersPo.list().resourceTable().sortableTable().pagination()
           .beginningButton()
@@ -354,7 +354,7 @@ describe('Users', { tags: ['@usersAndAuths', '@adminUser'] }, () => {
         usersPo.list().resourceTable().sortableTable().pagination()
           .paginationText()
           .then((el) => {
-            expect(el.trim()).to.eq(`1 - 100 of ${ count } Users`);
+            expect(el.trim()).to.eq(`1 - 10 of ${ count } Users`);
           });
         usersPo.list().resourceTable().sortableTable().pagination()
           .beginningButton()
@@ -369,13 +369,13 @@ describe('Users', { tags: ['@usersAndAuths', '@adminUser'] }, () => {
           .click();
 
         // check row count on last page
-        usersPo.list().resourceTable().sortableTable().checkRowCount(false, count - 100);
+        usersPo.list().resourceTable().sortableTable().checkRowCount(false, count - 20);
 
         // check text after navigation
         usersPo.list().resourceTable().sortableTable().pagination()
           .paginationText()
           .then((el) => {
-            expect(el.trim()).to.eq(`101 - ${ count } of ${ count } Users`);
+            expect(el.trim()).to.eq(`21 - ${ count } of ${ count } Users`);
           });
 
         // navigate to first page - beginning button
@@ -387,7 +387,7 @@ describe('Users', { tags: ['@usersAndAuths', '@adminUser'] }, () => {
         usersPo.list().resourceTable().sortableTable().pagination()
           .paginationText()
           .then((el) => {
-            expect(el.trim()).to.eq(`1 - 100 of ${ count } Users`);
+            expect(el.trim()).to.eq(`1 - 10 of ${ count } Users`);
           });
         usersPo.list().resourceTable().sortableTable().pagination()
           .beginningButton()
