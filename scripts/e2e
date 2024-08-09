@@ -2,4 +2,13 @@
 ID="$(echo ${TEST_RUN_ID:-`date +%s` } | tr '[:upper:]' '[:lower:]' | tr ' ' '-')"
 echo "$ID"
 
-CYPRESS_coverage=true CYPRESS_API_URL='http://139.59.134.103:1234' cy2 run --group "$GREP_TAGS" --browser chrome --record --key rancher-dashboard --parallel --ci-build-id "$ID"
+
+
+# check if script invoke contains any argument. If so, add spec to run
+if [ $# -eq 1 ]; then
+  echo "on the e2e script file where SPEC=$1"
+  CYPRESS_coverage=true CYPRESS_API_URL='http://139.59.134.103:1234' cy2 run --spec "$1" --group "$GREP_TAGS" --browser chrome --record --key rancher-dashboard --parallel --ci-build-id "$ID"
+else
+  echo "normal e2e script"
+  CYPRESS_coverage=true CYPRESS_API_URL='http://139.59.134.103:1234' cy2 run --group "$GREP_TAGS" --browser chrome --record --key rancher-dashboard --parallel --ci-build-id "$ID"
+fi
