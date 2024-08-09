@@ -279,11 +279,12 @@ export default {
         :error="tabErrors.rules"
       >
         <Rules
-          v-model="value"
+          :value="value"
           :mode="mode"
           :service-targets="serviceTargets"
           :certificates="certificates"
           :rules="rulesPathRules"
+          @input="$emit('input', $event)"
         />
       </Tab>
       <Tab
@@ -293,10 +294,11 @@ export default {
         :error="tabErrors.defaultBackend"
       >
         <DefaultBackend
-          v-model="value"
+          :value="value"
           :service-targets="serviceTargets"
           :mode="mode"
           :rules="defaultBackendPathRules"
+          @input="$emit('input', $event)"
         />
       </Tab>
       <Tab
@@ -306,10 +308,11 @@ export default {
         :weight="2"
       >
         <Certificates
-          v-model="value"
+          :value="value"
           :mode="mode"
           :certificates="certificates"
           :rules="{host: fvGetAndReportPathRules('spec.tls.hosts')}"
+          @input="$emit('input', $event)"
         />
       </Tab>
       <Tab
@@ -318,9 +321,10 @@ export default {
         :weight="1"
       >
         <IngressClass
-          v-model="value"
+          :value="value"
           :mode="mode"
           :ingress-classes="ingressClasses"
+          @input="$emit('input', $event)"
         />
       </Tab>
       <Tab

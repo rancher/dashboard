@@ -29,7 +29,7 @@ export default {
       <div class="col span-12 mt-10">
         <KeyValue
           :key="question.variable"
-          v-model="value"
+          :value="value"
           :title="question.label"
           :mode="mode"
           :protip="false"

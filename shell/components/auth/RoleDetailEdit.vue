@@ -598,13 +598,14 @@ export default {
     </template>
     <template v-else>
       <NameNsDescription
-        v-model="value"
+        :value="value"
         :namespaced="isNamespaced"
         :mode="mode"
         name-key="displayName"
         description-key="description"
         label="Name"
         :rules="{ name: fvGetAndReportPathRules('displayName') }"
+        @input="$emit('input', $event)"
       />
       <div
         v-if="isRancherType"

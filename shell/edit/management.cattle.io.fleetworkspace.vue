@@ -172,9 +172,10 @@ export default {
     @cancel="done"
   >
     <NameNsDescription
-      v-model="value"
+      :value="value"
       :mode="mode"
       :namespaced="false"
+      @input="$emit('input', $event)"
     />
 
     <Tabbed
@@ -199,8 +200,9 @@ export default {
         label-key="generic.labelsAndAnnotations"
       >
         <Labels
-          v-model="value"
+          :value="value"
           :mode="mode"
+          @input="$emit('input', $event)"
         />
       </Tab>
       <Tab

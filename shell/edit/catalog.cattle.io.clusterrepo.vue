@@ -117,9 +117,10 @@ export default {
 <template>
   <form>
     <NameNsDescription
-      v-model="value"
+      :value="value"
       :mode="mode"
       :namespaced="isNamespaced"
+      @input="$emit('input', $event)"
     />
 
     <h2>{{ t('catalog.repo.target.label') }}</h2>

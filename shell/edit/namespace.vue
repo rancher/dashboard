@@ -199,9 +199,10 @@ export default {
       </template>
     </NameNsDescription>
     <ResourceTabs
-      v-model="value"
+      :value="value"
       :mode="mode"
       :side-tabs="true"
+      @input="$emit('input', $event)"
     >
       <Tab
         v-if="showResourceQuota"
@@ -227,10 +228,11 @@ export default {
           </div>
         </div>
         <ResourceQuota
-          v-model="value"
+          :value="value"
           :mode="mode"
           :project="project"
           :types="isStandaloneHarvester ? HARVESTER_TYPES : RANCHER_TYPES"
+          @input="$emit('input', $event)"
         />
       </Tab>
       <Tab

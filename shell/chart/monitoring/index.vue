@@ -306,13 +306,14 @@ export default {
     >
       <div>
         <Prometheus
-          v-model="value"
+          :value="value"
           v-bind="$attrs"
           :access-modes="accessModes"
           :mode="mode"
           :storage-classes="storageClasses"
           :prometheus-pods="prometheusResources"
           :filteredWorkloads="filteredWorkloads"
+          @input="$emit('input', $event)"
         />
       </div>
     </Tab>
@@ -323,9 +324,10 @@ export default {
     >
       <div>
         <Alerting
-          v-model="value"
+          :value="value"
           :mode="mode"
           :monitoringSecrets="monitoringSecrets"
+          @input="$emit('input', $event)"
         />
       </div>
     </Tab>
@@ -336,11 +338,12 @@ export default {
     >
       <div>
         <Grafana
-          v-model="value"
+          :value="value"
           :access-modes="accessModes"
           :mode="mode"
           :pvcs="pvcs"
           :storage-classes="storageClasses"
+          @input="$emit('input', $event)"
         />
       </div>
     </Tab>

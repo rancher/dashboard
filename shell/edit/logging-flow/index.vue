@@ -339,9 +339,10 @@ export default {
   >
     <NameNsDescription
       v-if="!isView"
-      v-model="value"
+      :value="value"
       :mode="mode"
       :namespaced="value.type !== LOGGING.CLUSTER_FLOW"
+      @input="$emit('input', $event)"
     />
 
     <Tabbed

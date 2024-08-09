@@ -112,13 +112,14 @@ export default {
     <div class="mt-20">
       <NameNsDescription
         v-if="!isView"
-        v-model="value"
+        :value="value"
         :mode="mode"
         :namespaced="false"
         name-label="cluster.name.label"
         name-placeholder="cluster.name.placeholder"
         description-label="cluster.description.label"
         description-placeholder="cluster.description.placeholder"
+        @input="$emit('input', $event)"
       />
     </div>
 
@@ -141,12 +142,14 @@ export default {
         />
       </Tab>
       <AgentEnv
-        v-model="value"
+        :value="value"
         :mode="mode"
+        @input="$emit('input', $event)"
       />
       <Labels
-        v-model="value"
+        :value="value"
         :mode="mode"
+        @input="$emit('input', $event)"
       />
     </Tabbed>
   </CruResource>

@@ -2137,7 +2137,7 @@ export default {
     >
       <NameNsDescription
         v-if="!isView"
-        v-model="value"
+        :value="value"
         :mode="mode"
         :namespaced="needsNamespace"
         :namespace-options="allNamespaces"
@@ -2146,6 +2146,7 @@ export default {
         description-label="cluster.description.label"
         description-placeholder="cluster.description.placeholder"
         :rules="{ name: fvGetAndReportPathRules('metadata.name') }"
+        @input="$emit('input', $event)"
       >
         <template
           slot="customize"
@@ -2255,7 +2256,7 @@ export default {
           <!-- Basic -->
           <Basics
             ref="tab-Basics"
-            v-model="value"
+            :value="value"
             :live-value="liveValue"
             :mode="mode"
             :provider="provider"
@@ -2276,6 +2277,7 @@ export default {
             :cloud-provider-options="cloudProviderOptions"
             :is-azure-provider-unsupported="isAzureProviderUnsupported"
             :can-azure-migrate-on-edit="canAzureMigrateOnEdit"
+            @input="$emit('input', $event)"
             @cilium-values-changed="handleCiliumValuesChanged"
             @enabled-system-services-changed="handleEnabledSystemServicesChanged"
             @kubernetes-changed="handleKubernetesChange"
@@ -2293,9 +2295,10 @@ export default {
           :weight="10"
         >
           <MemberRoles
-            v-model="value"
+            :value="value"
             :mode="mode"
             :on-membership-update="onMembershipUpdate"
+            @input="$emit('input', $event)"
           />
         </Tab>
         <!-- etcd -->
@@ -2304,11 +2307,12 @@ export default {
           label-key="cluster.tabs.etcd"
         >
           <Etcd
-            v-model="value"
+            :value="value"
             :mode="mode"
             :s3-backup="s3Backup"
             :register-before-hook="registerBeforeHook"
             :selected-version="selectedVersion"
+            @input="$emit('input', $event)"
             @s3-backup-changed="handleS3BackupChanged"
             @config-etcd-expose-metrics-changed="handleConfigEtcdExposeMetricsChanged"
           />
@@ -2321,10 +2325,11 @@ export default {
           label-key="cluster.tabs.networking"
         >
           <Networking
-            v-model="value"
+            :value="value"
             :mode="mode"
             :selected-version="selectedVersion"
             :truncate-limit="truncateLimit"
+            @input="$emit('input', $event)"
             @truncate-hostname="truncateHostname"
           />
         </Tab>
@@ -2335,8 +2340,9 @@ export default {
           label-key="cluster.tabs.upgrade"
         >
           <Upgrade
-            v-model="value"
+            :value="value"
             :mode="mode"
+            @input="$emit('input', $event)"
           />
         </Tab>
 
@@ -2346,13 +2352,14 @@ export default {
           label-key="cluster.tabs.registry"
         >
           <Registries
-            v-model="value"
+            :value="value"
             :mode="mode"
             :register-before-hook="registerBeforeHook"
             :show-custom-registry-input="showCustomRegistryInput"
             :registry-host="registryHost"
             :registry-secret="registrySecret"
             :show-custom-registry-advanced-input="showCustomRegistryAdvancedInput"
+            @input="$emit('input', $event)"
             @update-configs-changed="updateConfigs"
             @custom-registry-changed="toggleCustomRegistry"
             @registry-host-changed="handleRegistryHostChanged"
@@ -2368,13 +2375,14 @@ export default {
         >
           <AddOnConfig
             ref="tab-addOnConfig"
-            v-model="value"
+            :value="value"
             :mode="mode"
             :version-info="versionInfo"
             :addon-versions="addonVersions"
             :addons-rev="addonsRev"
             :user-chart-values-temp="userChartValuesTemp"
             :init-yaml-editor="initYamlEditor"
+            @input="$emit('input', $event)"
             @update-questions="syncChartValues"
             @update-values="updateValues"
             @additional-manifest-changed="updateAdditionalManifest"
@@ -2417,20 +2425,23 @@ export default {
           :weight="-1"
         >
           <Advanced
-            v-model="value"
+            :value="value"
             :mode="mode"
             :have-arg-info="haveArgInfo"
             :selected-version="selectedVersion"
+            @input="$emit('input', $event)"
           />
         </Tab>
 
         <AgentEnv
-          v-model="value"
+          :value="value"
           :mode="mode"
+          @input="$emit('input', $event)"
         />
         <Labels
-          v-model="value"
+          :value="value"
           :mode="mode"
+          @input="$emit('input', $event)"
         />
 
         <!-- Extension tabs -->

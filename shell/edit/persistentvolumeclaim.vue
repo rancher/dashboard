@@ -234,10 +234,11 @@ export default {
     />
 
     <ResourceTabs
-      v-model="value"
+      :value="value"
       :mode="mode"
       :side-tabs="true"
       :default-tab="defaultTab"
+      @input="$emit('input', $event)"
     >
       <Tab
         name="volumeclaim"

@@ -139,11 +139,12 @@ export default {
   >
     <NameNsDescription
       v-if="!isView"
-      v-model="value"
+      :value="value"
       :mode="mode"
       :namespaced="false"
       namespace-label="nameNsDescription.workspace.label"
       :namespace-type="FLEET_WORKSPACE"
+      @input="$emit('input', $event)"
     />
 
     <h2 v-t="'fleet.clusterGroup.selector.label'" />
