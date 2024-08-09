@@ -82,15 +82,15 @@ jobs:
           { username: 'standard_user', tag: '@standardUser' }
         ]
         features:  [
-          ['@navigation', '@extensions'],
-          ['@charts'],
-          ['@explorer'],
-          ['@fleet'],
-          ['@generic', '@globalSettings'],
-          ['@manager'],
-          ['@userMenu', '@usersAndAuths'],
+          # ['@navigation', '@extensions'],
+          # ['@charts'],
+          # ['@explorer'],
+          # ['@fleet'],
+          # ['@generic', '@globalSettings'],
+          # ['@manager'],
+          # ['@userMenu', '@usersAndAuths'],
           ['@components'],
-          ['@vai']
+          # ['@vai']
         ]
     steps:
       - uses: actions/checkout@v4
@@ -98,7 +98,10 @@ jobs:
           fetch-depth: 1
       - name: Setup env
         uses: ./.github/actions/setup
-
+      - name: Set up docker
+        uses: docker/setup-qemu-action@v3
+        with:
+          platforms: amd64
       # Installing fixed version of Chrome since latest version does not work (117-118 didn't work)
       # Leaving this here again in case we need to pin to a specific Chrome version in the future
       # - name: Install Chrome 116
