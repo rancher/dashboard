@@ -246,7 +246,7 @@ module.exports = function(dir, _appConfig) {
   const config = {
     // Vue server
     devServer: {
-      client: { webSocketURL: `wss://0.0.0.0:${ devPorts ? 8005 : 80 }` },
+      client: { webSocketURL: { hostname: '0.0.0.0', port: devPorts ? 8005 : 80 } },
       server: {
         type:    'https',
         options: {
@@ -413,7 +413,8 @@ module.exports = function(dir, _appConfig) {
       const watcherIgnoresPaths = [...watcherIgnores, ...ignoredPkgs];
       const combinedRegex = new RegExp(watcherIgnoresPaths.map(({ source }) => source).join('|'));
 
-      config.watchOptions.ignored = combinedRegex;
+      // TODO: Figure out a fix to have livereload watch less files
+      // config.watchOptions.ignored = combinedRegex;
 
       if (dev) {
         config.devtool = 'cheap-module-source-map';
