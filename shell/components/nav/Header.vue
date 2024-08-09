@@ -1,7 +1,7 @@
 <script>
 import { mapGetters } from 'vuex';
 import debounce from 'lodash/debounce';
-import { NORMAN, STEVE } from '@shell/config/types';
+import { NORMAN, STEVE, MANAGEMENT } from '@shell/config/types';
 import { ucFirst } from '@shell/utils/string';
 import { isAlternate, isMac } from '@shell/utils/platform';
 import Import from '@shell/components/Import';
@@ -20,6 +20,7 @@ import { ActionLocation, ExtensionPoint } from '@shell/core/types';
 import { getApplicableExtensionEnhancements } from '@shell/core/plugin-helpers';
 import IconOrSvg from '@shell/components/IconOrSvg';
 import { wait } from '@shell/utils/async';
+import { authProvidersInfo, parseAuthProvidersInfo } from '@shell/utils/auth';
 
 export default {
 
@@ -43,11 +44,17 @@ export default {
     }
   },
 
+  fetch() {
+    // fetch needed data to check if any auth provider is enabled
+    authProvidersInfo(this.$store);
+  },
+
   data() {
     const searchShortcut = isMac ? '(\u2318-K)' : '(Ctrl+K)';
     const shellShortcut = '(Ctrl+`)';
 
     return {
+      authInfo:               {},
       show:                   false,
       showTooltip:            false,
       kubeConfigCopying:      false,
@@ -65,6 +72,26 @@ export default {
   computed: {
     ...mapGetters(['clusterReady', 'isExplorer', 'isRancher', 'currentCluster',
       'currentProduct', 'rootProduct', 'backToRancherLink', 'backToRancherGlobalLink', 'pageActions', 'isSingleProduct', 'isRancherInHarvester', 'showTopLevelMenu']),
+
+    authProviderEnabled() {
+      const authProviders = this.$store.getters['management/all'](MANAGEMENT.AUTH_CONFIG);
+      const authInfo = parseAuthProvidersInfo(authProviders);
+
+      return authInfo.enabled?.[0] || {};
+    },
+
+    shouldShowSloLogoutModal() {
+      if (this.isAuthLocalProvider) {
+        // If the user logged in as a local user... they cannot log out as if they were an auth config user
+        return false;
+      }
+
+      const {
+        logoutAllSupported, logoutAllEnabled, logoutAllForced, configType
+      } = this.authProviderEnabled;
+
+      return configType === 'saml' && logoutAllSupported && logoutAllEnabled && !logoutAllForced;
+    },
 
     appName() {
       return getProduct();
@@ -210,6 +237,13 @@ export default {
   },
 
   methods: {
+    showSloModal() {
+      this.$store.dispatch('management/promptModal', {
+        component:      'SloDialog',
+        componentProps: { authProvider: this.authProviderEnabled },
+        modalWidth:     '500px'
+      });
+    },
     // Sizes the product area of the header such that it shrinks to ensure the whole header bar can be shown
     // where possible - we use a minimum width of 32px which is enough to just show the product icon
     layoutHeader() {
@@ -678,6 +712,7 @@ export default {
               data-testid="user-menu-dropdown"
               @click.stop="showMenu(false)"
             >
+              <!-- username and icon -->
               <li
                 v-if="authEnabled"
                 class="user-info"
@@ -691,6 +726,7 @@ export default {
                   </template>
                 </div>
               </li>
+              <!-- preferences -->
               <router-link
                 v-if="showPreferencesLink"
                 v-slot="{ href, navigate }"
@@ -705,6 +741,7 @@ export default {
                   <a :href="href">{{ t('nav.userMenu.preferences') }}</a>
                 </li>
               </router-link>
+              <!-- account & api keys -->
               <router-link
                 v-if="showAccountAndApiKeyLink"
                 v-slot="{ href, navigate }"
@@ -719,8 +756,18 @@ export default {
                   <a :href="href">{{ t('nav.userMenu.accountAndKeys', {}, true) }}</a>
                 </li>
               </router-link>
+              <!-- SLO modal -->
+              <li
+                v-if="authEnabled && shouldShowSloLogoutModal"
+                class="user-menu-item no-link"
+                @click="showSloModal"
+                @keypress.enter="showSloModal"
+              >
+                <span>{{ t('nav.userMenu.logOut') }}</span>
+              </li>
+              <!-- logout -->
               <router-link
-                v-if="authEnabled"
+                v-else-if="authEnabled"
                 v-slot="{ href, navigate }"
                 custom
                 :to="generateLogoutRoute"
@@ -1100,8 +1147,8 @@ export default {
   }
 
   .user-menu-item {
-    a {
-      cursor: hand;
+    a, &.no-link > span {
+      cursor: pointer;
       padding: 0px 10px;
 
       &:hover {
@@ -1116,6 +1163,12 @@ export default {
         margin: 0 2px;
         padding: 10px 8px;
       }
+    }
+
+    &.no-link > span {
+      display: flex;
+      justify-content: space-between;
+      padding: 10px;
     }
 
     div.menu-separator {

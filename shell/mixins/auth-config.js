@@ -7,6 +7,21 @@ import { set } from '@shell/utils/object';
 import { exceptionToErrorsArray } from '@shell/utils/error';
 import difference from 'lodash/difference';
 
+export const SLO_OPTION_VALUES = {
+  /**
+   * Log out of only rancher, leaving auth provider logged in
+   */
+  rancher: 'rancher',
+  /**
+   * Log out of rancher AND auth provider
+   */
+  all:     'all',
+  /**
+   * Offer user chose of `rancher` or `all`
+   */
+  both:    'both',
+};
+
 export default {
   beforeCreate() {
     const { query } = this.$route;
@@ -30,6 +45,7 @@ export default {
       originalModel:  null,
       principals:     [],
       authConfigName: this.$route.params.id,
+      sloType:        '',
     };
   },
 
@@ -103,6 +119,17 @@ export default {
       if (this.value.configType === 'saml') {
         if (!this.model.rancherApiHost || !this.model.rancherApiHost.length) {
           this.$set(this.model, 'rancherApiHost', this.serverUrl);
+        }
+
+        // setting data for SLO
+        if (this.model && Object.keys(this.model).includes('logoutAllSupported')) {
+          if (!this.model.logoutAllEnabled && !this.model.logoutAllForced) {
+            this.sloType = SLO_OPTION_VALUES.rancher;
+          } else if (this.model.logoutAllEnabled && this.model.logoutAllForced) {
+            this.sloType = SLO_OPTION_VALUES.all;
+          } else if (this.model.logoutAllEnabled && !this.model.logoutAllForced) {
+            this.sloType = SLO_OPTION_VALUES.both;
+          }
         }
       }
 
