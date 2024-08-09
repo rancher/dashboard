@@ -38,8 +38,8 @@ env:
 jobs:
   e2e-ui-build:
     if: "!contains( github.event.pull_request.labels.*.name, 'ci/skip-e2e')"
-    container: ${{CONTAINER}}
-    runs-on: ${{RUNS_ON}}
+    container: registry.suse.com/bci/nodejs:20
+    runs-on: org-${{ github.repository_owner_id }}-amd64-k8s
     steps:
       - uses: actions/checkout@v4
         with:
@@ -142,8 +142,8 @@ jobs:
   #         path: cypress/screenshots
 
   unit-test:
-    container: ${{CONTAINER}}
-    runs-on: ${{RUNS_ON}}
+    container: registry.suse.com/bci/nodejs:20
+    runs-on: org-${{ github.repository_owner_id }}-amd64-k8s
     steps:
       - uses: actions/checkout@v4
         with:
@@ -165,8 +165,8 @@ jobs:
           path: coverage-artifacts/**/*
 
   i18n:
-    container: ${{CONTAINER}}
-    runs-on: ${{RUNS_ON}}
+    container: registry.suse.com/bci/nodejs:20
+    runs-on: org-${{ github.repository_owner_id }}-amd64-k8s
     steps:
       - uses: actions/checkout@v4
         with:
@@ -176,8 +176,8 @@ jobs:
         uses: ./.github/actions/i18n-lint
 
   lint:
-    container: ${{CONTAINER}}
-    runs-on: ${{RUNS_ON}}
+    container: registry.suse.com/bci/nodejs:20
+    runs-on: org-${{ github.repository_owner_id }}-amd64-k8s
     steps:
       - uses: actions/checkout@v4
         with:
@@ -187,8 +187,8 @@ jobs:
         uses: ./.github/actions/lint
       
   check-i18n:
-    container: ${{CONTAINER}}
-    runs-on: ${{RUNS_ON}}
+    container: registry.suse.com/bci/nodejs:20
+    runs-on: org-${{ github.repository_owner_id }}-amd64-k8s
     steps:
       - uses: actions/checkout@v4
         with:
@@ -230,8 +230,8 @@ jobs:
   #       run: ./codecov --verbose upload-process -t ${{ secrets.CODECOV_TOKEN }} -n ${{github.run_number}}-${{github.run_attempt}}-coverage -F unit -f ./coverage/coverage-unit.json
 
   check-e2e-tags:
-    container: ${{CONTAINER}}
-    runs-on: ${{RUNS_ON}}
+    container: registry.suse.com/bci/nodejs:20
+    runs-on: org-${{ github.repository_owner_id }}-amd64-k8s
     steps:
       - uses: actions/checkout@v4
         with:
