@@ -72,6 +72,7 @@ jobs:
   e2e-test:
     if: "!contains( github.event.pull_request.labels.*.name, 'ci/skip-e2e')"
     container: registry.suse.com/bci/nodejs:20
+    runs-on: org-${{ github.repository_owner_id }}-amd64-k8s
     strategy:
       fail-fast: false
       matrix:
@@ -90,7 +91,6 @@ jobs:
           ['@components'],
           ['@vai']
         ]
-    runs-on: ubuntu-latest
     steps:
       - uses: actions/checkout@v4
         with:
@@ -145,68 +145,68 @@ jobs:
           name: ${{github.run_number}}-${{github.run_attempt}}-screenshots-${{ matrix.role.tag }}+${{ matrix.features[0] }}
           path: cypress/screenshots
 
-  # unit-test:
-  #   container: registry.suse.com/bci/nodejs:20
-  #   runs-on: org-${{ github.repository_owner_id }}-amd64-k8s
-  #   steps:
-  #     - uses: actions/checkout@v4
-  #       with:
-  #         fetch-depth: 1
+  unit-test:
+    container: registry.suse.com/bci/nodejs:20
+    runs-on: org-${{ github.repository_owner_id }}-amd64-k8s
+    steps:
+      - uses: actions/checkout@v4
+        with:
+          fetch-depth: 1
       
-  #     - name: Run tests
-  #       uses: ./.github/actions/unit-tests
+      - name: Run tests
+        uses: ./.github/actions/unit-tests
 
-  #     - name: Collect Coverage
-  #       run: |
-  #         mkdir -p coverage-artifacts/coverage
-  #         cp coverage/unit/coverage-final.json coverage-artifacts/coverage/coverage-unit.json
-  #         cp -r coverage/unit/ coverage-artifacts/coverage/unit/
+      - name: Collect Coverage
+        run: |
+          mkdir -p coverage-artifacts/coverage
+          cp coverage/unit/coverage-final.json coverage-artifacts/coverage/coverage-unit.json
+          cp -r coverage/unit/ coverage-artifacts/coverage/unit/
 
-  #     - name: Upload coverage
-  #       uses: actions/upload-artifact@v4
-  #       with:
-  #         name: ${{github.run_number}}-${{github.run_attempt}}-coverage
-  #         path: coverage-artifacts/**/*
+      - name: Upload coverage
+        uses: actions/upload-artifact@v4
+        with:
+          name: ${{github.run_number}}-${{github.run_attempt}}-coverage
+          path: coverage-artifacts/**/*
 
-  # i18n:
-  #   container: registry.suse.com/bci/nodejs:20
-  #   runs-on: org-${{ github.repository_owner_id }}-amd64-k8s
-  #   steps:
-  #     - uses: actions/checkout@v4
-  #       with:
-  #         fetch-depth: 1
+  i18n:
+    container: registry.suse.com/bci/nodejs:20
+    runs-on: org-${{ github.repository_owner_id }}-amd64-k8s
+    steps:
+      - uses: actions/checkout@v4
+        with:
+          fetch-depth: 1
 
-  #     - name: Run i18n lint
-  #       uses: ./.github/actions/i18n-lint
+      - name: Run i18n lint
+        uses: ./.github/actions/i18n-lint
 
-  # lint:
-  #   container: registry.suse.com/bci/nodejs:20
-  #   runs-on: org-${{ github.repository_owner_id }}-amd64-k8s
-  #   steps:
-  #     - uses: actions/checkout@v4
-  #       with:
-  #         fetch-depth: 1
+  lint:
+    container: registry.suse.com/bci/nodejs:20
+    runs-on: org-${{ github.repository_owner_id }}-amd64-k8s
+    steps:
+      - uses: actions/checkout@v4
+        with:
+          fetch-depth: 1
 
-  #     - name: Run tests
-  #       uses: ./.github/actions/lint
+      - name: Run tests
+        uses: ./.github/actions/lint
       
-  # check-i18n:
-  #   container: registry.suse.com/bci/nodejs:20
-  #   runs-on: org-${{ github.repository_owner_id }}-amd64-k8s
-  #   steps:
-  #     - uses: actions/checkout@v4
-  #       with:
-  #         fetch-depth: 1
-  #     - name: Setup Node
-  #       uses: ./.github/actions/setup-node
+  check-i18n:
+    container: registry.suse.com/bci/nodejs:20
+    runs-on: org-${{ github.repository_owner_id }}-amd64-k8s
+    steps:
+      - uses: actions/checkout@v4
+        with:
+          fetch-depth: 1
+      - name: Setup Node
+        uses: ./.github/actions/setup-node
       
-  #     - name: Install packages
-  #       run: yarn install:ci
+      - name: Install packages
+        run: yarn install:ci
       
-  #     - name: Run i18n string check
-  #       run: |
-  #         # Falure won't fail the job (remove -x when all current issues are fixed)
-  #         ./scripts/check-i18n -s -x
+      - name: Run i18n string check
+        run: |
+          # Falure won't fail the job (remove -x when all current issues are fixed)
+          ./scripts/check-i18n -s -x
 
   # coverage:
   #   runs-on: ubuntu-latest
@@ -232,16 +232,16 @@ jobs:
   #     - name: Upload tests coverage report to Codecov
   #       run: ./codecov --verbose upload-process -t ${{ secrets.CODECOV_TOKEN }} -n ${{github.run_number}}-${{github.run_attempt}}-coverage -F unit -f ./coverage/coverage-unit.json
 
-  # check-e2e-tags:
-  #   container: registry.suse.com/bci/nodejs:20
-  #   runs-on: org-${{ github.repository_owner_id }}-amd64-k8s
-  #   steps:
-  #     - uses: actions/checkout@v4
-  #       with:
-  #         fetch-depth: 1
-  #     - uses: actions/setup-node@v4
-  #       with:
-  #         node-version-file: '.nvmrc'
-  #     - name: Check e2e tags
-  #       run: |
-  #         ./scripts/check-e2e-tests-for-tags
+  check-e2e-tags:
+    container: registry.suse.com/bci/nodejs:20
+    runs-on: org-${{ github.repository_owner_id }}-amd64-k8s
+    steps:
+      - uses: actions/checkout@v4
+        with:
+          fetch-depth: 1
+      - uses: actions/setup-node@v4
+        with:
+          node-version-file: '.nvmrc'
+      - name: Check e2e tags
+        run: |
+          ./scripts/check-e2e-tests-for-tags

@@ -4,10 +4,10 @@ env:
 on:
   push:
     branches:
-      - masteraaaa
+      - master
   pull_request:
     branches:
-      - masteraaaa
+      - master
 jobs:
   storybook:
     container: registry.suse.com/bci/nodejs:20
