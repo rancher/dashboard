@@ -652,7 +652,10 @@ export default {
     },
 
     isAzureProviderUnsupported() {
-      return isAzureK8sUnsupported(this.value.spec.kubernetesVersion) || this.agentConfig['cloud-provider-name'] === 'azure';
+      const isAzureAvailable = !!this.cloudProviderOptions.find((p) => p.value === 'azure');
+      const isAzureSelected = this.agentConfig['cloud-provider-name'] === 'azure';
+
+      return isAzureAvailable && (isAzureK8sUnsupported(this.value.spec.kubernetesVersion) || isAzureSelected);
     },
 
     canAzureMigrateOnEdit() {
