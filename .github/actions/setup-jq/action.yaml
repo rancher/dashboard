@@ -1,0 +1,13 @@
+name: Setup jq
+description: Setup jq
+
+runs:
+  using: 'composite'
+  steps:
+    - name: Setup Node.js
+      shell: bash
+      # if we have jq, no op
+      # if no jq and have zypper, install jq with zypper
+      # if no jq and no zypper, return a non-zero response
+      run: |
+        jq || zypper && zypper -n install jq

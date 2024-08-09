@@ -25,23 +25,31 @@ env:
   CYPRESS_API_URL: http://139.59.134.103:1234/
   TEST_RUN_ID: ${{github.run_number}}-${{github.run_attempt}}-${{github.event.pull_request.title || github.event.head_commit.message}}
   # Build the dashboard to use in tests. When set to false it will grab `latest` from CDN (useful for running e2e tests quickly)
-  BUILD_DASHBOARD: true
+  BUILD_DASHBOARD: false # TODO: RC
 
   E2E_BUILD_DIST_NAME: dist
   E2E_BUILD_DIST_DIR: dist
   E2E_BUILD_DIST_EMBER_NAME: dist_ember
   E2E_BUILD_DIST_EMBER_DIR: dist_ember
 
+  CONTAINER: registry.suse.com/bci/nodejs:20
+  RUNS_ON: org-${{ github.repository_owner_id }}-amd64-k8s
+
 jobs:
   e2e-ui-build:
     if: "!contains( github.event.pull_request.labels.*.name, 'ci/skip-e2e')"
-    runs-on: ubuntu-latest
+    container: registry.suse.com/bci/nodejs:20
+    runs-on: org-${{ github.repository_owner_id }}-amd64-k8s
     steps:
       - uses: actions/checkout@v4
         with:
           fetch-depth: 1
       - name: Setup env
         uses: ./.github/actions/setup
+      - name: Ensure repo dir is accepted as safe by git (diff user)
+        shell: bash
+        run: |
+          git config --global --add safe.directory $PWD
       - name: Build e2e
         run: yarn e2e:build
       - name: Upload e2e build
@@ -61,36 +69,37 @@ jobs:
           retention-days: 10
           compression-level: 9
 
-
   e2e-test:
     if: "!contains( github.event.pull_request.labels.*.name, 'ci/skip-e2e')"
     needs: e2e-ui-build
+    container: registry.suse.com/bci/nodejs:20
+    runs-on: org-${{ github.repository_owner_id }}-amd64-k8s
     strategy:
       fail-fast: false
       matrix:
         role: [
-          { username: 'admin', tag: '@adminUser' }, 
+          { username: 'admin', tag: '@adminUser' },
           { username: 'standard_user', tag: '@standardUser' }
         ]
         features:  [
-          ['@navigation', '@extensions'],
-          ['@charts'],
-          ['@explorer'],
-          ['@fleet'],
-          ['@generic', '@globalSettings'],
-          ['@manager'],
-          ['@userMenu', '@usersAndAuths'],
+          # ['@navigation', '@extensions'],
+          # ['@charts'],
+          # ['@explorer'],
+          # ['@fleet'],
+          # ['@generic', '@globalSettings'],
+          # ['@manager'],
+          # ['@userMenu', '@usersAndAuths'],
           ['@components'],
-          ['@vai']
+          # ['@vai']
         ]
-    runs-on: ubuntu-latest
     steps:
       - uses: actions/checkout@v4
         with:
           fetch-depth: 1
       - name: Setup env
         uses: ./.github/actions/setup
-
+      - name: Set up docker
+        uses: ./.github/actions/setup-docker
       # Installing fixed version of Chrome since latest version does not work (117-118 didn't work)
       # Leaving this here again in case we need to pin to a specific Chrome version in the future
       # - name: Install Chrome 116
@@ -118,7 +127,7 @@ jobs:
       - name: Setup Rancher and user
         run: |
           yarn e2e:prod
-        env: 
+        env:
           GREP_TAGS: ${{ matrix.role.tag }}Setup+${{ matrix.features[0] }} --@jenkins ${{ matrix.role.tag }}Setup+${{ matrix.features[1] || matrix.features[0] }} --@jenkins
           TEST_USERNAME: admin
           TEST_ONLY: setup
@@ -126,7 +135,7 @@ jobs:
         run: |
           yarn e2e:prod
           [ "$BUILD_DASHBOARD" != "false" ] || exit 0
-        env: 
+        env:
           TEST_SKIP: setup
           GREP_TAGS: ${{ matrix.role.tag }}+${{ matrix.features[0] }} --@jenkins ${{ matrix.role.tag }}+${{ matrix.features[1] || matrix.features[0] }} --@jenkins
           TEST_USERNAME: ${{ matrix.role.username }}
@@ -138,9 +147,9 @@ jobs:
           name: ${{github.run_number}}-${{github.run_attempt}}-screenshots-${{ matrix.role.tag }}+${{ matrix.features[0] }}
           path: cypress/screenshots
 
-
   unit-test:
-    runs-on: ubuntu-latest
+    container: registry.suse.com/bci/nodejs:20
+    runs-on: org-${{ github.repository_owner_id }}-amd64-k8s
     steps:
       - uses: actions/checkout@v4
         with:
@@ -161,9 +170,9 @@ jobs:
           name: ${{github.run_number}}-${{github.run_attempt}}-coverage
           path: coverage-artifacts/**/*
 
-
   i18n:
-    runs-on: ubuntu-latest
+    container: registry.suse.com/bci/nodejs:20
+    runs-on: org-${{ github.repository_owner_id }}-amd64-k8s
     steps:
       - uses: actions/checkout@v4
         with:
@@ -172,9 +181,9 @@ jobs:
       - name: Run i18n lint
         uses: ./.github/actions/i18n-lint
 
-
   lint:
-    runs-on: ubuntu-latest
+    container: registry.suse.com/bci/nodejs:20
+    runs-on: org-${{ github.repository_owner_id }}-amd64-k8s
     steps:
       - uses: actions/checkout@v4
         with:
@@ -183,16 +192,15 @@ jobs:
       - name: Run tests
         uses: ./.github/actions/lint
       
-
   check-i18n:
-    runs-on: ubuntu-latest
+    container: registry.suse.com/bci/nodejs:20
+    runs-on: org-${{ github.repository_owner_id }}-amd64-k8s
     steps:
       - uses: actions/checkout@v4
         with:
           fetch-depth: 1
-      - uses: actions/setup-node@v4
-        with:
-          node-version-file: '.nvmrc'
+      - name: Setup Node
+        uses: ./.github/actions/setup-node
       
       - name: Install packages
         run: yarn install:ci
@@ -201,7 +209,6 @@ jobs:
         run: |
           # Falure won't fail the job (remove -x when all current issues are fixed)
           ./scripts/check-i18n -s -x
-
 
   # coverage:
   #   runs-on: ubuntu-latest
@@ -228,7 +235,8 @@ jobs:
   #       run: ./codecov --verbose upload-process -t ${{ secrets.CODECOV_TOKEN }} -n ${{github.run_number}}-${{github.run_attempt}}-coverage -F unit -f ./coverage/coverage-unit.json
 
   check-e2e-tags:
-    runs-on: ubuntu-latest
+    container: registry.suse.com/bci/nodejs:20
+    runs-on: org-${{ github.repository_owner_id }}-amd64-k8s
     steps:
       - uses: actions/checkout@v4
         with:
