@@ -25,7 +25,7 @@ export default {
     label-key="generic.labelsAndAnnotations"
   >
     <Labels
-      v-model="value"
+      v-model="localValue"
       :mode="mode"
       :display-side-by-side="false"
     />

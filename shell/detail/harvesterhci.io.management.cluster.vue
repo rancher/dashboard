@@ -70,7 +70,7 @@ export default {
   <Loading v-if="$fetchState.pending" />
   <ResourceTabs
     v-else
-    v-model="value"
+    v-model="localValue"
     :default-tab="defaultTab"
   >
     <Tab

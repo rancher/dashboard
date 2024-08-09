@@ -203,7 +203,7 @@ export default {
             />
             <PolicyRules
               v-if="hasIngressPolicies"
-              v-model="value"
+              v-model="localValue"
               type="ingress"
               :mode="mode"
               :all-namespaces="allNamespaces"
@@ -227,7 +227,7 @@ export default {
             />
             <PolicyRules
               v-if="hasEgressPolicies"
-              v-model="value"
+              v-model="localValue"
               type="egress"
               :mode="mode"
               :all-namespaces="allNamespaces"

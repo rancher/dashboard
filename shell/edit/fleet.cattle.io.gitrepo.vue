@@ -523,7 +523,7 @@ export default {
     <template #stepRepoInfo>
       <NameNsDescription
         v-if="!isView"
-        v-model="value"
+        v-model="localValue"
         :namespaced="false"
         :mode="mode"
         @change="onUpdateRepoName"

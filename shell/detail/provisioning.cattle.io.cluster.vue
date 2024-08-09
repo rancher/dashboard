@@ -737,7 +737,7 @@ export default {
       :label="$fetchState.error"
     />
     <ResourceTabs
-      v-model="value"
+      v-model="localValue"
       :default-tab="defaultTab"
       :need-related="hasLocalAccess"
       :extension-params="extCustomParams"

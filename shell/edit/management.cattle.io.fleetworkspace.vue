@@ -172,7 +172,7 @@ export default {
     @cancel="done"
   >
     <NameNsDescription
-      v-model="value"
+      v-model="localValue"
       :mode="mode"
       :namespaced="false"
     />
@@ -199,7 +199,7 @@ export default {
         label-key="generic.labelsAndAnnotations"
       >
         <Labels
-          v-model="value"
+          v-model="localValue"
           :mode="mode"
         />
       </Tab>

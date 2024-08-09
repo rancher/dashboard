@@ -88,7 +88,7 @@ export default {
   </div>
   <div v-else>
     <Questions
-      v-model="value"
+      v-model="localValue"
       :mode="mode"
       :tabbed="false"
       :source="fields"
