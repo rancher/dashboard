@@ -1,4 +1,5 @@
 <script lang="ts">
+// @ts-nocheck
 import { defineComponent } from 'vue';
 import Select from '@shell/components/form/Select.vue';
 import LabeledInput from '@components/Form/LabeledInput/LabeledInput.vue';

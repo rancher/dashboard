@@ -1,4 +1,5 @@
 <script lang="ts">
+// @ts-nocheck
 import { defineComponent, PropType } from 'vue';
 import { mapGetters } from 'vuex';
 

@@ -1,12 +1,7 @@
 /* eslint-disable jest/no-hooks */
-import { mount, createLocalVue } from '@vue/test-utils';
+import { mount } from '@vue/test-utils';
 
 import S3 from '@shell/chart/rancher-backup/S3';
-import Vuex from 'vuex';
-
-const localVue = createLocalVue();
-
-localVue.use(Vuex);
 
 describe('rancher-backup: S3', () => {
   const mockStore = {

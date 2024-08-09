@@ -33,7 +33,7 @@ export default {
       $event.stopPropagation();
       $event.preventDefault();
 
-      copyTextToClipboard(this.$slots.default[0].text).then(() => {
+      copyTextToClipboard(this.$slots.default()[0].text).then(() => {
         this.copied = true;
 
         setTimeout(() => {
