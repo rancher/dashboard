@@ -6,7 +6,19 @@ let NEXT_ID = 1;
 export const BEFORE_SAVE_HOOKS = '_beforeSaveHooks';
 export const AFTER_SAVE_HOOKS = '_afterSaveHooks';
 
+/***
+ * Note - To avoid TS component errors this mixin should not be imported via `mixin`,
+ *
+ * Instead the contents should be spread into the appropriate components section
+ *
+ * ```
+ * methods: {
+ *   ...ChildHook.methods
+ * ```
+ ***/
+
 export default {
+
   methods: {
     registerBeforeHook(boundFn, name, priority = 99, boundFnContext) {
       this._registerHook(BEFORE_SAVE_HOOKS, boundFn, name, priority, boundFnContext);
