@@ -156,9 +156,8 @@ export default defineComponent({
         {
           ...STEVE_NAME_COL,
           canBeVariable: true,
-          // value:         'nameDisplay',// TODO: RC
-          // sort:          ['nameSort'],// TODO: RC
-          getValue:      (row: ProvCluster) => row.mgmt?.nameDisplay // TODO: RC
+          // TODO: RC ISSUE describe. search sort on prov meta namespace
+          getValue:      (row: ProvCluster) => row.mgmt?.nameDisplay
         },
         {
           label:     this.t('landing.clusters.provider'),
@@ -167,6 +166,7 @@ export default defineComponent({
           name:      'Provider',
           sort:      false,
           search:    false,
+          // TODO: RC ISSUE describe. search sort on prov meta namespace
           formatter: 'ClusterProvider'
         },
         {
@@ -198,6 +198,8 @@ export default defineComponent({
           delayLoading: true
         },
       ],
+
+      clusterCount: 0,
     };
   },
 
@@ -260,14 +262,16 @@ export default defineComponent({
       }
     },
 
-    async fetchPageSecondaryResources({ canPaginate, force, page }: FetchPageSecondaryResourcesOpts) {
-      console.warn('home', 'fetchPageSecondaryResources', {
-        canPaginate, force, page
-      });
-
+    async fetchPageSecondaryResources({
+      canPaginate, force, page, pagResult
+    }: FetchPageSecondaryResourcesOpts) {
       if (!canPaginate || !page?.length) {
+        this.clusterCount = 0;
+
         return;
       }
+
+      this.clusterCount = pagResult.count;
 
       if ( this.canViewMgmtClusters ) {
         const opt: ActionFindPageArgs = {
@@ -516,10 +520,9 @@ export default defineComponent({
                     <h2 class="mb-0">
                       {{ t('landing.clusters.title') }}
                     </h2>
-                    <!-- TODO: RC kubeClusters no longer exists.  -->
                     <BadgeState
-                      v-if="kubeClusters"
-                      :label="kubeClusters.length.toString()"
+                      v-if="clusterCount"
+                      :label="clusterCount"
                       color="role-tertiary ml-20 mr-20"
                     />
                   </div>

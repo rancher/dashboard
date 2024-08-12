@@ -2,11 +2,12 @@
 import { defineComponent } from 'vue';
 import ResourceFetch from '@shell/mixins/resource-fetch';
 import ResourceTable from '@shell/components/ResourceTable.vue';
+import { StorePaginationResult } from 'types/store/pagination.types';
 
 export type FetchSecondaryResourcesOpts = { }
 export type FetchSecondaryResources = (opts: FetchSecondaryResourcesOpts) => Promise<any>
 
-export type FetchPageSecondaryResourcesOpts = { canPaginate: boolean, force: boolean, page: any[] }
+export type FetchPageSecondaryResourcesOpts = { canPaginate: boolean, force: boolean, page: any[], pagResult: StorePaginationResult }
 export type FetchPageSecondaryResources = (opts: FetchPageSecondaryResourcesOpts) => Promise<any>
 
 /**

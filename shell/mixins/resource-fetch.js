@@ -98,7 +98,7 @@ export default {
         await this.$fetch();
         if (this.canPaginate && this.fetchPageSecondaryResources) {
           this.fetchPageSecondaryResources({
-            canPaginate: this.canPaginate, force: true, page: this.rows
+            canPaginate: this.canPaginate, force: true, page: this.rows, pagResult: this.paginationResult
           });
         }
       }

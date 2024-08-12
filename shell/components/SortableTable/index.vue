@@ -1547,11 +1547,7 @@ export default {
     opacity: 0.5;
     pointer-events: none;
   }
-
-  // TODO: RC TEST with <ResourceList :has-advanced-filtering="true" />
-  // .manual-refresh {
-  //   height: 40px;
-  // }
+  // TODO: RC ISSUE describe
   .advanced-filter-group {
     position: relative;
     margin-left: 10px;

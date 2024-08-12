@@ -79,8 +79,6 @@ export default {
 
     namespaceFilterChanged(neu) {
       if (!this.canPaginate || !this.schema?.attributes?.namespaced || !this.namespaced) {
-        this.debouncedSetPagination({ ...this.pPagination }); // TODO: RC remove?
-
         return;
       }
 
@@ -320,7 +318,7 @@ export default {
       }
 
       await this.fetchPageSecondaryResources({
-        canPaginate: this.canPaginate, force: false, page: this.rows
+        canPaginate: this.canPaginate, force: false, page: this.rows, pagResult: this.paginationResult
       });
     }
   },

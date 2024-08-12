@@ -18,17 +18,17 @@ export function paginationFilterOnlyKubeClusters(store) {
     return null;
   }
 
-  // TODO: RC TEST
+  // TODO: RC ISSUE describe
 
   return PaginationParamFilter.createMultipleFields([
     new PaginationFilterField({
-      field:  `metadata.labels."${ CAPI.PROVIDER }"`, // TODO: RC
+      field:  `metadata.labels."${ CAPI.PROVIDER }"`, // TODO: API blocked on missing label
       equals: false,
       value:  VIRTUAL_HARVESTER_PROVIDER,
       exact:  true
     }),
     new PaginationFilterField({
-      field:  `status.provider`, // TODO: RC
+      field:  `status.provider`, // TODO: API blocked on missing label
       equals: false,
       value:  VIRTUAL_HARVESTER_PROVIDER,
       exact:  true
