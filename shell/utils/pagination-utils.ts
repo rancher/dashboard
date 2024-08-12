@@ -44,6 +44,7 @@ class PaginationUtils {
     store: string,
     resource?: {
       id: string,
+      context?: string,
     }
   }) {
     // Cache must be enabled to support pagination api
@@ -95,7 +96,21 @@ class PaginationUtils {
       return true;
     }
 
-    if (storeSettings.resources.enableSome.enabled.includes(enabledFor.resource.id)) {
+    if (storeSettings.resources.enableSome.enabled.find((setting) => {
+      if (typeof setting === 'string') {
+        return setting === enabledFor.resource?.id;
+      }
+
+      if (setting.resource === enabledFor.resource?.id) {
+        if (!!setting.context) {
+          return enabledFor.resource?.context ? setting.context.includes(enabledFor.resource.context) : false;
+        }
+
+        return true;
+      }
+
+      return false;
+    })) {
       return true;
     }
 

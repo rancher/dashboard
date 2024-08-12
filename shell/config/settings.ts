@@ -255,12 +255,11 @@ export const DEFAULT_PERF_SETTING: PerfSettings = {
           }
         }
       },
-      // TODO: RC enable for cluster management??
       management: {
         resources: {
           enableAll:  false,
           enableSome: {
-            enabled: [CAPI.RANCHER_CLUSTER],
+            enabled: [{ resource: CAPI.RANCHER_CLUSTER, context: ['home'] }],
             generic: false,
           }
         }

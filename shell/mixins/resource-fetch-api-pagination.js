@@ -13,6 +13,16 @@ import stevePaginationUtils from '@shell/plugins/steve/steve-pagination-utils';
  */
 export default {
 
+  props: {
+    /**
+     * Where in the ui this mixin is used. For instance the home page cluster list would be `home`
+     */
+    context: {
+      type:    String,
+      default: null,
+    },
+  },
+
   data() {
     return {
       forceUpdateLiveAndDelayed: 0,
@@ -168,7 +178,12 @@ export default {
         return;
       }
 
-      return this.resource && this.$store.getters[`${ this.inStore }/paginationEnabled`]?.(this.resource.id || this.resource);
+      const args = {
+        id:      this.resource.id || this.resource,
+        context: this.context,
+      };
+
+      return this.resource && this.$store.getters[`${ this.inStore }/paginationEnabled`]?.(args);
     },
 
     paginationResult() {

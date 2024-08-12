@@ -503,6 +503,7 @@ export default defineComponent({
                 key-field="id"
                 :headers="headers"
                 :pagination-headers="paginationHeaders"
+                context="home"
 
                 :namespaced="false"
                 :request-filters="paginationRequestFilters"
