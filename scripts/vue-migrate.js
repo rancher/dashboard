@@ -225,7 +225,7 @@ const packageUpdatesResolution = (file, oldContent) => {
  * Verify GitHub Actions use of current node version, e.g. node-version: '<18'
  */
 const gitHubActionsUpdates = () => {
-  const files = glob.sync(params.paths || '.github/workflows/**.{yml,yaml}', { ignore });
+  const files = glob.sync(params.paths || '.github/{actions,workflows}/**.{yml,yaml}', { ignore });
 
   files.forEach((file) => {
     let content = fs.readFileSync(file, 'utf8');
@@ -359,10 +359,11 @@ const vueSyntaxUpdates = () => {
 
     [/( {4,}default)\(\)\s*\{([\s\S]*?)this\.([\s\S]*?\}\s*\})/g, (_, before, middle, after) => `${ before }(props) {${ middle }props.${ after }`, 'https://v3-migration.vuejs.org/breaking-changes/props-default-this.html'],
     // [`value=`, `modelValue=`],
-    [/value:\s*{[\s\S]*?},?\s*/g, removePlaceholder, 'Read issue for more info https://github.com/rancher/dashboard/issues/11029'],
+    // [/value:\s*{[\s\S]*?},?\s*/g, removePlaceholder, 'Read issue for more info https://github.com/rancher/dashboard/issues/11029'],
     [`@input=`, `@update:modelValue=`],
     // [`v-bind.sync=`, `:modelValue=`, `https://v3-migration.vuejs.org/breaking-changes/v-model.html#using-v-bind-sync`],
     // ['v-model=', ':modelValue=', ''],
+    [/:([a-z-0-9]+)\.sync/g, (_, propName) => `v-model:${ propName }`, `https://v3-migration.vuejs.org/breaking-changes/v-model.html#migration-strategy`],
     [`click.native`, `click`, `https://v3-migration.vuejs.org/breaking-changes/v-model.html#using-v-bind-sync`],
     [`v-on="$listeners"`, removePlaceholder, `removed and integrated with $attrs https://v3-migration.vuejs.org/breaking-changes/listeners-removed.html`],
     [`:listeners="$listeners"`, `:v-bind="$attrs"`, `removed and integrated with $attrs https://v3-migration.vuejs.org/breaking-changes/listeners-removed.html`],
@@ -522,7 +523,7 @@ const eslintUpdates = () => {
     });
 
     // Add the new rules if they don't exist
-    const eslintConfigPath = path.join(__dirname, `../${ file }`);
+    const eslintConfigPath = path.join(process.cwd(), `${ file }`);
     const eslintConfig = require(eslintConfigPath);
 
     Object.keys(newRules).forEach((rule) => {
@@ -607,7 +608,6 @@ const replaceCases = (fileType, files, replacementCases, printText) => {
         }
       } else {
         // Regex case
-        // TODO: Fix issue not replacing all
         if (text.test(content) && replacement) {
           content = content.replace(new RegExp(text, 'g'), replacement === removePlaceholder ? '' : replacement);
           if (!matchedCases.includes(`${ text }, ${ replacement }, ${ notes }`)) {
