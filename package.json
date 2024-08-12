@@ -186,6 +186,7 @@
     "jest": "27.5.1",
     "jest-serializer-vue": "2.0.2",
     "lodash.debounce": "4.0.8",
+    "node-polyfill-webpack-plugin": "^4.0.0",
     "nodemon": "2.0.22",
     "nyc": "15.1.0",
     "start-server-and-test": "1.13.1",
