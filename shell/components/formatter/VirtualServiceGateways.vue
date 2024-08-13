@@ -91,7 +91,9 @@ export default {
 <template>
   <span>
     <span
-      v-for="(gateway, i) in gateways" :key="i">
+      v-for="(gateway, i) in gateways"
+      :key="i"
+    >
       <template v-if="i < 5">
         <router-link :to="gatewayLinks(gateway)">
           {{ gatewayLinks(gateway).params.id }}

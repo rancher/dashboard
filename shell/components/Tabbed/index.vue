@@ -251,8 +251,9 @@ export default {
       @keydown.up.prevent="selectNext(-1)"
     >
       <li
-         v-for="(tab, i) in sortedTabs" :key="i" 
+        v-for="(tab, i) in sortedTabs"
         :id="tab.name"
+        :key="i"
         :key="tab.name"
         :data-testid="tab.name"
         :class="{tab: true, active: tab.active, disabled: tab.disabled, error: (tab.error)}"

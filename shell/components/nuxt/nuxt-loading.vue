@@ -23,7 +23,7 @@ export default {
       return this.rtl ? (this.reversed ? '0px' : 'auto') : (!this.reversed ? '0px' : 'auto');
     }
   },
-  beforeDestroy() {
+  beforeUnmount() {
     this.clear();
   },
   methods: {

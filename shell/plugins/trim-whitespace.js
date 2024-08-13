@@ -1,6 +1,6 @@
 import { createApp } from 'vue';
-const vueApp = createApp({});
 import trimWhitespaceDirective from '@shell/directives/trim-whitespace';
+const vueApp = createApp({});
 
 export default trimWhitespaceDirective;
 /* eslint-disable-next-line no-console */

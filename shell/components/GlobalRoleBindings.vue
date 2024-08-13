@@ -325,7 +325,9 @@ export default {
   <div v-else>
     <form v-if="selectedRoles">
       <div
-        v-for="(sortedRole, roleType) in sortedRoles" :key="roleType"class="role-group mb-10"
+        v-for="(sortedRole, roleType) in sortedRoles"
+        :key="roleType"
+        class="role-group mb-10"
       >
         <Card
           v-if="Object.keys(sortedRole).length"
@@ -346,7 +348,9 @@ export default {
               :class="'checkbox-section--' + roleType"
             >
               <div
-                 v-for="(role, i) in sortedRoles[roleType]" :key="i" class="checkbox mb-10 mr-10"
+                v-for="(role, i) in sortedRoles[roleType]"
+                :key="i"
+                class="checkbox mb-10 mr-10"
               >
                 <Checkbox
                   v-model:value="selectedRoles"

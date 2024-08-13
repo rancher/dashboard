@@ -69,8 +69,10 @@ export default {
   data() {
     if (!this?.value?.spec?.type) {
       if (!this.value?.spec) {
-        this.value['spec'] = {ports:           [],
-          sessionAffinity: 'None',};
+        this.value['spec'] = {
+          ports:           [],
+          sessionAffinity: 'None'
+        };
       }
     }
 

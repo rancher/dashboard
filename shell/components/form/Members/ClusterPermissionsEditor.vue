@@ -268,7 +268,9 @@ export default {
           :class="{'two-column': useTwoColumnsForCustom}"
         >
           <div
-             v-for="(permission, i) in customPermissionsUpdate" :key="i" >
+            v-for="(permission, i) in customPermissionsUpdate"
+            :key="i"
+          >
             <Checkbox
               v-model:value="permission.value"
               :disabled="permission.locked"

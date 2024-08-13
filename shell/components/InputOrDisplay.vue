@@ -1,7 +1,7 @@
 <script>
 import { createApp } from 'vue';
-const vueApp = createApp({});
 import { _VIEW } from '@shell/config/query-params';
+const vueApp = createApp({});
 
 const component = vueApp.component('InputOrDisplay', {
   render(h) {

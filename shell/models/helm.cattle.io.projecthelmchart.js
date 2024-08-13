@@ -1,7 +1,7 @@
 import SteveModel from '@shell/plugins/steve/steve-class';
 import { createApp } from 'vue';
-const vueApp = createApp({});
 import { NAMESPACE, MANAGEMENT, HELM } from '@shell/config/types';
+const vueApp = createApp({});
 
 export default class ProjectHelmChart extends SteveModel {
   applyDefaults() {

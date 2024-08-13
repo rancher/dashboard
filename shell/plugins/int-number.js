@@ -1,6 +1,6 @@
 import { createApp } from 'vue';
-const vueApp = createApp({});
 import intNumberDirective from '@shell/directives/int-number';
+const vueApp = createApp({});
 
 export default intNumberDirective;
 /* eslint-disable-next-line no-console */

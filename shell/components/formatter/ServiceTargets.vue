@@ -110,8 +110,9 @@ export default {
       />
     </div>
     <div
-      v-for="(port, index) in parsed" :key="index"
+      v-for="(port, index) in parsed"
       v-else
+      :key="index"
       :key="index"
       class="text-small"
     >

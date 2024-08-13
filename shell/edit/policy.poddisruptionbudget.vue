@@ -27,10 +27,12 @@ export default {
 
   data() {
     if ( !this.value.spec ) {
-      this.value['spec'] = {selector: {
+      this.value['spec'] = {
+        selector: {
           matchExpressions: [],
           matchLabels:      {},
-        }};
+        }
+      };
     }
 
     return { POD };

@@ -236,7 +236,10 @@ export default {
       class="list-unstyled body"
       v-bind="$attrs"
     >
-      <template v-for="(child, idx) in group[childrenKey]" :key="idx">
+      <template
+        v-for="(child, idx) in group[childrenKey]"
+        :key="idx"
+      >
         <li
           v-if="child.divider"
           :key="idx"

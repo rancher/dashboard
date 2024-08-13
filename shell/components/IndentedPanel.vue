@@ -5,7 +5,6 @@ export default {};
 <template>
   <div
     class="indented-panel"
-    
   >
     <slot />
   </div>

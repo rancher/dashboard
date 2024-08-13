@@ -1203,7 +1203,9 @@ export default {
       >
         <transition-group>
           <div
-            v-for="(disk, i) in disks" :key="i">
+            v-for="(disk, i) in disks"
+            :key="i"
+          >
             <InfoBox
               class="box"
               :class="[disks.length === i +1 ? 'mb-10' : 'mb-20']"
@@ -1317,7 +1319,9 @@ export default {
 
       <h2>{{ t('cluster.credential.harvester.network.title') }}</h2>
       <div
-        v-for="(network, i) in interfaces" :key="i">
+        v-for="(network, i) in interfaces"
+        :key="i"
+      >
         <InfoBox
           class="box"
           :class="[interfaces.length === i +1 ? 'mb-10' : 'mb-20']"
@@ -1482,7 +1486,9 @@ export default {
     </div>
     <div v-if="errors.length">
       <div
-        v-for="(err, idx) in errors" :key="idx">
+        v-for="(err, idx) in errors"
+        :key="idx"
+      >
         <Banner
           color="error"
           :label="stringify(err.Message || err)"

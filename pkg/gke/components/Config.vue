@@ -455,7 +455,9 @@ export default defineComponent({
           class="text-muted"
         >&mdash;</span>
         <Checkbox
-           v-for="(zoneOpt, i) in extraZoneOptions" :key="i" :label="zoneOpt.name"
+          v-for="(zoneOpt, i) in extraZoneOptions"
+          :key="i"
+          :label="zoneOpt.name"
           :value="locations.includes(zoneOpt.name)"
           :data-testid="`gke-extra-zones-${zoneOpt.name}`"
           :disabled="!isNewOrUnprovisioned"

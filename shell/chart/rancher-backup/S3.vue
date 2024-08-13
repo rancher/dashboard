@@ -36,7 +36,7 @@ export default {
     this.$emit('valid', this.valid);
   },
 
-  beforeDestroy() {
+  beforeUnmount() {
     this.$emit('valid', true);
   },
 

@@ -172,7 +172,9 @@ export default {
           </div>
           <div class="boxes">
             <div
-               v-for="(key, i) in promos" :key="i" class="box"
+              v-for="(key, i) in promos"
+              :key="i"
+              class="box"
             >
               <h2>{{ t(`${key}.title`) }}</h2>
               <div>{{ t(`${key}.text`) }}</div>

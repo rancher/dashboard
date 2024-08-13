@@ -140,7 +140,6 @@ export default {
       :loading="loading"
       :use-query-params-for-simple-filtering="useQueryParamsForSimpleFiltering"
       key-field="_key"
-      
     >
       <template #cell:repo="{ row }">
         <Link

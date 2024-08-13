@@ -190,6 +190,5 @@ export default defineComponent({
     :loading="$fetchState.pending"
     :options="allOfType"
     :paginate="paginateType"
-    
   />
 </template>

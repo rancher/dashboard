@@ -88,7 +88,9 @@ export default {
       :key="addonsRev"
     >
       <div
-         v-for="(v, i) in addonVersions" :key="i" >
+        v-for="(v, i) in addonVersions"
+        :key="i"
+      >
         <h3>{{ labelForAddon(v.name) }}</h3>
         <Questions
           v-if="versionInfo[v.name] && versionInfo[v.name].questions && v.name && userChartValuesTemp[v.name]"

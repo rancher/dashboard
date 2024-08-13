@@ -213,8 +213,9 @@ export default {
               {{ $t('kubectl-explain.title') }}
             </div>
             <div
-              v-for="(b, i) in breadcrumbs" :key="i"
+              v-for="(b, i) in breadcrumbs"
               v-else
+              :key="i"
               :key="b.id"
             >
               <span

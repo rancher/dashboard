@@ -218,7 +218,9 @@ export default {
         </h3>
         <div class="plugin-versions mb-10">
           <div
-             v-for="(v, i) in info.versions" :key="i" >
+            v-for="(v, i) in info.versions"
+            :key="i"
+          >
             <a
               v-clean-tooltip="handleVersionBtnTooltip(v)"
               class="version-link"

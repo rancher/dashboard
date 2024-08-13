@@ -174,7 +174,9 @@ export default {
         class="yaml-editor"
       />
       <Banner
-        v-for="(err, i) in errors" :key="i"color="error"
+        v-for="(err, i) in errors"
+        :key="i"
+        color="error"
         :label="err"
       />
     </template>

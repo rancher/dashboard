@@ -1,5 +1,4 @@
 import { createApp } from 'vue';
-const vueApp = createApp({});
 import { convert, matching, convertSelectorObj } from '@shell/utils/selector';
 import jsyaml from 'js-yaml';
 import { escapeHtml, randomStr } from '@shell/utils/string';
@@ -12,6 +11,7 @@ import {
   STATES_ENUM, colorForState, mapStateToEnum, primaryDisplayStatusFromCount, stateDisplay, stateSort
 } from '@shell/plugins/dashboard-store/resource-class';
 import { NAME } from '@shell/config/product/explorer';
+const vueApp = createApp({});
 
 function quacksLikeAHash(str) {
   if (str.match(/^[a-f0-9]{40,}$/i)) {

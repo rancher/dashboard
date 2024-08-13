@@ -192,7 +192,9 @@ export default {
       <span />
     </div>
     <div
-      v-for="(rule, index) in rules" :key="index"class="rule"
+      v-for="(rule, index) in rules"
+      :key="index"
+      class="rule"
     >
       <div class="col">
         <LabeledInput

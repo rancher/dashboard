@@ -157,7 +157,8 @@ export default {
 
   methods: {
     initSpec() {
-      this.value['spec'] = {type:           'io.k8s.api.autoscaling.v1.horizontalpodautoscalerspec',
+      this.value['spec'] = {
+        type:           'io.k8s.api.autoscaling.v1.horizontalpodautoscalerspec',
         minReplicas:    1,
         maxReplicas:    10,
         scaleTargetRef: {
@@ -165,7 +166,8 @@ export default {
           kind:       '',
           name:       '',
         },
-        metrics: [{ ...this.defaultResourceMetric }],};
+        metrics: [{ ...this.defaultResourceMetric }]
+      };
     },
     async loadWorkloads() {
       await Promise.all(

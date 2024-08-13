@@ -81,7 +81,7 @@ export default defineComponent({
   mounted() {
     document.addEventListener('keydown', this.handleEscapeKey);
   },
-  beforeDestroy() {
+  beforeUnmount() {
     document.removeEventListener('keydown', this.handleEscapeKey);
   },
   methods: {

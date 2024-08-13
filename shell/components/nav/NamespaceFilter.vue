@@ -381,7 +381,7 @@ export default {
     }
   },
 
-  beforeDestroy() {
+  beforeUnmount() {
     this.removeCloseKeyHandler();
   },
 
@@ -742,7 +742,8 @@ export default {
           {{ t('namespaceFilter.selected.label', { total }) }}
         </div>
         <div
-          v-for="(ns, j) in value" :key="j"
+          v-for="(ns, j) in value"
+          :key="j"
           ref="value"
           :key="ns.id"
           :data-testid="`namespaces-value-${j}`"
@@ -831,8 +832,9 @@ export default {
         role="list"
       >
         <div
-          v-for="(opt, i) in cachedFiltered" :key="i"
+          v-for="(opt, i) in cachedFiltered"
           :id="opt.elementId"
+          :key="i"
           :key="opt.id"
           tabindex="0"
           class="ns-option"

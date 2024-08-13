@@ -194,7 +194,7 @@ export default {
     }
   },
 
-  beforeDestroy() {
+  beforeUnmount() {
     if ( this.logSocket ) {
       this.logSocket.disconnect();
       this.logSocket = null;
@@ -943,7 +943,9 @@ export default {
           <tbody class="logs-body">
             <template v-if="logs.length">
               <tr
-                 v-for="(line, i) in logs" :key="i" >
+                v-for="(line, i) in logs"
+                :key="i"
+              >
                 <td
                   v-clean-html="format(line.time)"
                   class="time"

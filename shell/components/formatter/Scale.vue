@@ -109,7 +109,9 @@ export default {
       >
         <tbody>
           <tr
-             v-for="(obj, i) in row.scaleParts" :key="i" >
+            v-for="(obj, i) in row.scaleParts"
+            :key="i"
+          >
             <td :class="{'text-left': true, [obj.textColor]: true}">
               {{ obj.label }}
             </td>
