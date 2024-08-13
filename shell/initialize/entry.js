@@ -6,6 +6,7 @@ import { installDirectives } from '@shell/initialize/install-directives.js';
 import { installComponents } from '@shell/initialize/install-components.js';
 import { installPlugins } from '@shell/initialize/install-plugins.js';
 import App from '@shell/initialize/App.vue';
+import { createApp } from 'vue';
 
 const vueApp = createApp(App);
 
