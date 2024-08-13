@@ -156,12 +156,12 @@ export default {
             <input
               v-else
               ref="port"
-              v-model.number="row.port"
+              :value="row.port"
               type="number"
               min="1"
               max="65535"
               placeholder="e.g. 8080"
-              @input="queueUpdate"
+              @input="($plainInputEvent) => queueUpdate($plainInputEvent)"
             >
           </td>
           <td class="protocol">
@@ -195,12 +195,12 @@ export default {
             <span v-if="isView">{{ row.targetPort }}</span>
             <input
               v-else
-              v-model.number="row.targetPort"
+              :value="row.targetPort"
               type="number"
               min="1"
               max="65535"
               placeholder="e.g. 80"
-              @input="queueUpdate"
+              @input="($plainInputEvent) => queueUpdate($plainInputEvent)"
             >
           </td>
           <td class="expose">

@@ -302,7 +302,7 @@ export default {
           v-model="row.key"
           :mode="mode"
           :data-testid="`input-match-expression-key-control-${index}`"
-          @input="update"
+          @input="($plainInputEvent) => update($plainInputEvent)"
         >
         <LabeledSelect
           v-else
@@ -346,11 +346,11 @@ export default {
         </div>
         <input
           v-else
-          v-model="row.values"
+          :value="row.values"
           :mode="mode"
           :disabled="row.operator==='Exists' || row.operator==='DoesNotExist'"
           :data-testid="`input-match-expression-values-control-${index}`"
-          @input="update"
+          @input="($plainInputEvent) => update($plainInputEvent)"
         >
       </div>
       <div

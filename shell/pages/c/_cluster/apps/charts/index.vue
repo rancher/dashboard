@@ -456,11 +456,12 @@ export default {
       <div class="filter-block">
         <input
           ref="searchQuery"
-          v-model="searchQuery"
+          :value="searchQuery"
           type="search"
           class="input-sm"
           :placeholder="t('catalog.charts.search')"
           data-testid="charts-filter-input"
+          @input="($plainInputEvent) => searchQuery = $plainInputEvent"
         >
 
         <button

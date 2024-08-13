@@ -1136,10 +1136,11 @@ export default {
             >
               <input
                 ref="advancedSearchQuery"
-                v-model="advFilterSearchTerm"
+                :value="advFilterSearchTerm"
                 type="search"
                 class="advanced-search-box"
                 :placeholder="t('sortableTable.filterFor')"
+                @input="($plainInputEvent) => advFilterSearchTerm = $plainInputEvent.target.value"
               >
               <div class="middle-block">
                 <span>{{ t('sortableTable.in') }}</span>
@@ -1177,10 +1178,11 @@ export default {
           <input
             v-else-if="search"
             ref="searchQuery"
-            v-model="eventualSearchQuery"
+            :value="eventualSearchQuery"
             type="search"
             class="input-sm search-box"
             :placeholder="t('sortableTable.search')"
+            @input="($plainInputEvent) => eventualSearchQuery = $plainInputEvent"
           >
           <slot name="header-button" />
         </div>
