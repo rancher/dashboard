@@ -255,7 +255,7 @@ export default {
 
       <PodAffinity
         v-if="canEditAffinity"
-        v-model="value"
+        :value="value"
         field="overrideAffinity"
         :mode="mode"
         class="mt-0 mb-20"
@@ -263,6 +263,7 @@ export default {
         :force-input-namespace-selection="true"
         :remove-labeled-input-namespace-label="true"
         data-testid="pod-affinity"
+        @input="$emit('input', $event)"
       />
 
       <div

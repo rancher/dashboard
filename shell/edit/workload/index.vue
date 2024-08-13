@@ -366,8 +366,9 @@ export default {
               :weight="tabWeightMap['labels']"
             >
               <Labels
-                v-model="value"
+                :value="value"
                 :mode="mode"
+                @input="$emit('input', $event)"
               />
             </Tab>
             <Tab

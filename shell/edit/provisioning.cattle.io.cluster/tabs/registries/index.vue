@@ -130,15 +130,17 @@ export default {
             :label-key="value.isK3s ? 'cluster.privateRegistry.docsLinkK3s' : 'cluster.privateRegistry.docsLinkRke2'"
           />
           <RegistryMirrors
-            v-model="value"
+            :value="value"
             class="mt-20"
             :mode="mode"
+            @input="$emit('input', $event)"
           />
           <RegistryConfigs
-            v-model="value"
+            :value="value"
             class="mt-20"
             :mode="mode"
             :cluster-register-before-hook="registerBeforeHook"
+            @input="$emit('input', $event)"
             @updateConfigs="$emit('update-configs-changed', $event)"
           />
         </AdvancedSection>

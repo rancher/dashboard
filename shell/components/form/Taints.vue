@@ -56,7 +56,7 @@ export default {
 <template>
   <div class="taints">
     <KeyValue
-      v-model="localValue"
+      :value="value"
       data-testid="taints-keyvalue"
       :title="t('tableHeaders.taints')"
       :mode="mode"
@@ -69,6 +69,7 @@ export default {
       :preserve-keys="['effect']"
       :add-label="t('labels.addTaint')"
       :disabled="disabled"
+      @input="$emit('input', $event)"
     >
       <template #label:effect>
         {{ t('tableHeaders.effect') }}

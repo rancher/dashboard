@@ -276,7 +276,7 @@ export default {
       @error="e=>errors = e"
     >
       <NameNsDescription
-        v-model="value"
+        :value="value"
         :name-editable="true"
         name-key="_name"
         description-key="description"
@@ -284,6 +284,7 @@ export default {
         name-placeholder="cluster.credential.name.placeholder"
         :mode="mode"
         :namespaced="false"
+        @input="$emit('input', $event)"
         @change="handleNameRequiredValidation"
       />
       <keep-alive>
