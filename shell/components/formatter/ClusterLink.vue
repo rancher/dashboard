@@ -93,7 +93,7 @@ export default {
     color: var(--error);
     margin-left: 4px;
   }
-  ::v-deep {
+  :deep() {
     .labeled-tooltip, .status-icon {
       position: relative;
       display: inline;

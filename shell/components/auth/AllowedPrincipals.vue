@@ -48,9 +48,9 @@ export default {
 
   created() {
     if ( !this.authConfig.accessMode ) {
-      this.$set(this.authConfig, 'accessMode', 'restricted');
+      this.authConfig['accessMode'] = 'restricted';
     } if (!this.authConfig.allowedPrincipalIds) {
-      this.$set(this.authConfig, 'allowedPrincipalIds', []);
+      this.authConfig['allowedPrincipalIds'] = [];
     }
   },
 
@@ -69,7 +69,7 @@ export default {
     <div class="row">
       <div class="col span-6">
         <RadioGroup
-          v-model="authConfig.accessMode"
+          v-model:value="authConfig.accessMode"
           name="accessMode"
           :mode="mode"
           :options="accessModeOptions"
@@ -85,14 +85,13 @@ export default {
         <ArrayList
           v-if="accessMode!=='unrestricted'"
           key="allowedPrincipalIds"
-          v-model="authConfig.allowedPrincipalIds"
+          v-model:value="authConfig.allowedPrincipalIds"
           title-key="authConfig.allowedPrincipalIds.label"
           :mode="mode"
           :protip="false"
         >
           <template #value="{row}">
             <Principal
-              :key="row.value"
               :value="row.value"
             />
           </template>

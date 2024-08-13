@@ -176,7 +176,7 @@ export default {
       <div class="col span-6">
         <LabeledSelect
           v-if="showShareIP"
-          v-model="sharedService"
+          v-model:value="sharedService"
           :mode="mode"
           :options="serviceOptions"
           :label="t('servicesPage.harvester.shareIP.label')"
@@ -184,7 +184,7 @@ export default {
         />
         <LabeledSelect
           v-else
-          v-model="ipam"
+          v-model:value="ipam"
           :mode="mode"
           :options="ipamOptions"
           :label="t('servicesPage.harvester.ipam.label')"

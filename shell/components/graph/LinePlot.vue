@@ -134,19 +134,14 @@ export default {
     :viewBox="`0 0 ${graphWidth+2} ${graphHeight+2}`"
   >
     <g
-      v-for="(set, i) in dataSets"
-      :key="i"
-      :class="`lines--${i}`"
+      v-for="(set, i) in dataSets" :key="i":class="`lines--${i}`"
     >
       <path
-        :key="i"
         :d="lines[i]"
         class="line"
       />
       <circle
-        v-for="(point, index) in set.points"
-        :key="`${index}--circle`"
-        class="data-circle"
+        v-for="(point, index) in set.points" :key="index"class="data-circle"
         r="4"
         :cx="scaleX([0, 10], index)"
         :cy="scaleY(set.domain, point)"

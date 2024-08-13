@@ -23,9 +23,7 @@ export default {
 <template>
   <span>
     <span
-      v-for="(el, i) in value"
-      :key="el.key"
-    >
+      v-for="(el, i) in value" :key="i">
       <Link
         :row="el"
         :value="el"

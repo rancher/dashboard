@@ -25,7 +25,7 @@ export default {
 
   created() {
     if (!this.value.kind) {
-      this.$set(this.value, 'kind', 'Shared');
+      this.value['kind'] = 'Shared';
     }
   },
 
@@ -37,7 +37,7 @@ export default {
     <div class="row mb-10">
       <div class="col span-6">
         <LabeledInput
-          v-model="value.name"
+          v-model:value="value.name"
           :required="true"
           :mode="mode"
           :label="t('workload.storage.volumeName')"
@@ -45,7 +45,7 @@ export default {
       </div>
       <div class="col span-6">
         <Checkbox
-          v-model="value.azureDisk.readOnly"
+          v-model:value="value.azureDisk.readOnly"
           :mode="mode"
           :label="t('workload.storage.readOnly')"
         />
@@ -54,7 +54,7 @@ export default {
     <div class="row mb-10">
       <div class="col span-6">
         <LabeledInput
-          v-model="value.azureDisk.diskName"
+          v-model:value="value.azureDisk.diskName"
           :mode="mode"
           :required="true"
           :label="t('workload.storage.csi.diskName')"
@@ -72,7 +72,7 @@ export default {
     <div class="row mb-10">
       <div class="col span-6">
         <RadioGroup
-          v-model="value.azureDisk.kind"
+          v-model:value="value.azureDisk.kind"
           :mode="mode"
           name="kind"
           :label="t('workload.storage.csi.kind.label')"
@@ -82,7 +82,7 @@ export default {
       </div>
       <div class="col span-6">
         <RadioGroup
-          v-model="value.azureDisk.cachingMode"
+          v-model:value="value.azureDisk.cachingMode"
           name="cachingMode"
           :mode="mode"
           :label="t('workload.storage.csi.cachingMode.label')"
@@ -94,7 +94,7 @@ export default {
     <div class="row">
       <div class="col span-6">
         <LabeledInput
-          v-model="value.azureDisk.fsType"
+          v-model:value="value.azureDisk.fsType"
           :mode="mode"
           :label="t('workload.storage.csi.fsType')"
         />

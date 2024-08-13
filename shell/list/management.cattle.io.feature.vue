@@ -201,8 +201,7 @@ export default {
       :force-update-live-and-delayed="forceUpdateLiveAndDelayed"
     >
       <template
-        slot="cell:name"
-        slot-scope="scope"
+        cell:name="scope"
       >
         <div class="feature-name">
           <div>{{ scope.row.nameDisplay }}</div>
@@ -253,7 +252,7 @@ export default {
                   class="row mt-10"
                 >
                   <LabeledInput
-                    v-model="serverUrl"
+                    v-model:value="serverUrl"
                     :label="t('setup.serverUrl.label')"
                   />
                   <div class="col pl-5">
@@ -329,7 +328,7 @@ export default {
       box-shadow: none;
     }
 
-    ::v-deep .card-actions {
+    :deep() .card-actions {
       display: flex;
       justify-content: center;
     }

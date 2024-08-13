@@ -1,5 +1,6 @@
 <script>
-import Vue from 'vue';
+import { createApp } from 'vue';
+const vueApp = createApp({});
 import AsyncButton from '@shell/components/AsyncButton';
 import { Banner } from '@components/Banner';
 import { Card } from '@components/Card';
@@ -79,7 +80,7 @@ export default {
     },
     'body.gracePeriod'(neu) {
       if (neu && neu < 1) {
-        Vue.set(this.body, 'gracePeriod', 1);
+        this.body['gracePeriod'] = 1;
       }
     },
     timeout(neu) {
@@ -90,9 +91,9 @@ export default {
     'body.timeout'(neu) {
       if (neu) {
         if (neu < 1) {
-          Vue.set(this.body, 'timeout', 1);
+          this.body['timeout'] = 1;
         } else if (neu > 10800) {
-          Vue.set(this.body, 'timeout', 10800);
+          this.body['timeout'] = 10800;
         }
       }
     },
@@ -148,7 +149,7 @@ export default {
     >
       <div>
         <RadioGroup
-          v-model="body.deleteLocalData"
+          v-model:value="body.deleteLocalData"
           name="deleteLocalData"
           :options="radioOptions"
           :row="true"
@@ -159,7 +160,7 @@ export default {
           </template>
         </RadioGroup>
         <RadioGroup
-          v-model="body.force"
+          v-model:value="body.force"
           name="force"
           :options="radioOptions"
           :row="true"
@@ -170,7 +171,7 @@ export default {
           </template>
         </RadioGroup>
         <RadioGroup
-          v-model="gracePeriod"
+          v-model:value="gracePeriod"
           name="gracePeriod"
           :options="gracePeriodOptions"
           class="mb-15"
@@ -180,7 +181,7 @@ export default {
           </template>
         </RadioGroup>
         <UnitInput
-          v-model="body.gracePeriod"
+          v-model:value="body.gracePeriod"
           :mode="gracePeriod ? EDIT : VIEW"
           type="number"
           min="1"
@@ -189,7 +190,7 @@ export default {
           class="mb-10"
         />
         <RadioGroup
-          v-model="timeout"
+          v-model:value="timeout"
           name="timeout"
           :options="timeoutOptions"
           class="mb-15"
@@ -199,7 +200,7 @@ export default {
           </template>
         </RadioGroup>
         <UnitInput
-          v-model="body.timeout"
+          v-model:value="body.timeout"
           :mode="timeout ? EDIT : VIEW"
           type="number"
           min="1"
@@ -209,9 +210,7 @@ export default {
         />
       </div>
       <Banner
-        v-for="(err, i) in errors"
-        :key="i"
-        color="error"
+        v-for="(err, i) in errors" :key="i"color="error"
         :label="err"
       />
     </div>

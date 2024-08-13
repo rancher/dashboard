@@ -61,9 +61,9 @@ export default {
     if ( newCloudCred ) {
       this.value.metadata.namespace = DEFAULT_WORKSPACE;
 
-      this.$set(this.value.metadata, 'name', '');
+      this.value.metadata['name'] = '';
 
-      this.$set(this.value, 'data', {});
+      this.value['data'] = {};
     }
 
     const secretTypes = [
@@ -269,13 +269,13 @@ export default {
         }
       }
 
-      this.$set(this.value, '_type', type);
+      this.value['_type'] = type;
       this.$emit('set-subtype', this.typeDisplay(type, driver));
 
       this.secretType = type;
 
       if (this.mode === _CREATE && type === 'custom') {
-        this.$set(this.value, '_type', '');
+        this.value['_type'] = '';
       }
     },
 
@@ -297,7 +297,7 @@ export default {
 
     selectCustomType(type) {
       if (type !== 'custom') {
-        this.$set(this.value, '_type', type);
+        this.value['_type'] = type;
       }
     }
   },
@@ -324,7 +324,7 @@ export default {
         :value="value"
         :mode="mode"
         :namespaced="!isCloud"
-        @input="$emit('input', $event)"
+        @update:value="$emit('input', $event)"
       />
 
       <div
@@ -333,7 +333,7 @@ export default {
       >
         <div class="col span-3">
           <LabeledSelect
-            v-model="secretType"
+            v-model:value="secretType"
             :options="secretTypes"
             :searchable="false"
             :mode="mode"
@@ -341,7 +341,7 @@ export default {
             :reduce="(e) => e.value"
             label-key="secret.type"
             required
-            @input="selectCustomType"
+            @update:value="selectCustomType"
           />
         </div>
 
@@ -349,7 +349,7 @@ export default {
           <LabeledInput
             v-if="showCustomSecretType"
             ref="customType"
-            v-model="value._type"
+            v-model:value="value._type"
             v-focus
             label-key="secret.customType"
             :mode="mode"
@@ -393,7 +393,7 @@ export default {
           <Labels
             :value="value"
             :mode="mode"
-            @input="$emit('input', $event)"
+            @update:value="$emit('input', $event)"
           />
         </Tab>
       </Tabbed>

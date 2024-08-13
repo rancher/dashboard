@@ -54,7 +54,7 @@ export default {
   beforeUpdate() {
     for (const rule of this.value.spec.rules) {
       if (!rule.vKey) {
-        this.$set(rule, 'vKey', random32(1));
+        rule['vKey'] = random32(1);
       }
     }
   },
@@ -134,7 +134,7 @@ export default {
   </div>
   <div v-else>
     <ArrayListGrouped
-      v-model="value.spec.rules"
+      v-model:value="value.spec.rules"
       :add-label="t('ingress.rules.addRule')"
       :default-add-value="{}"
       :mode="mode"
@@ -144,7 +144,7 @@ export default {
         <Rule
           ref="lastRule"
           :key="props.row.value.vKey"
-          v-model="props.row.value"
+          v-model:value="props.row.value"
           :service-targets="serviceTargets"
           :ingress="value"
           :rules="rules"

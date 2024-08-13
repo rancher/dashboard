@@ -36,7 +36,7 @@ export default {
     <div class="row mb-10">
       <div class="col span-6">
         <LabeledInput
-          v-model="value.hostname"
+          v-model:value="value.hostname"
           :mode="mode"
           :disabled="disabled"
           :label="t('logging.logdna.hostname')"
@@ -44,7 +44,7 @@ export default {
       </div>
       <div class="col span-6">
         <LabeledInput
-          v-model="value.app"
+          v-model:value="value.app"
           :mode="mode"
           :disabled="disabled"
           :label="t('logging.logdna.app')"
@@ -60,7 +60,7 @@ export default {
     <div class="row">
       <div class="col span-6">
         <LabeledInput
-          v-model="value.api_key"
+          v-model:value="value.api_key"
           :mode="mode"
           :disabled="disabled"
           :label="t('logging.logdna.apiKey')"

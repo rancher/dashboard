@@ -38,7 +38,7 @@ export default {
           type: NORMAN.CLOUD_CREDENTIAL,
           id:   this.credentialId,
         });
-        this.$set(this.value, 'clientIdentifier', this.credential.decodedData.clientIdentifier);
+        this.value['clientIdentifier'] = this.credential.decodedData.clientIdentifier;
       }
     } catch (e) {
       this.credential = null;
@@ -179,9 +179,7 @@ export default {
   />
   <div v-else-if="errors.length">
     <div
-      v-for="(err, idx) in errors"
-      :key="idx"
-    >
+      v-for="(err, idx) in errors" :key="idx">
       <Banner
         color="error"
         :label="stringify(err)"
@@ -192,7 +190,7 @@ export default {
     <div class="row mt-20">
       <div class="col span-6">
         <LabeledSelect
-          v-model="value.serverLocation"
+          v-model:value="value.serverLocation"
           :mode="mode"
           :options="locationChoices"
           :searchable="true"
@@ -203,7 +201,7 @@ export default {
       </div>
       <div class="col span-6">
         <LabeledSelect
-          v-model="value.serverType"
+          v-model:value="value.serverType"
           :mode="mode"
           :options="typeChoices"
           :searchable="true"
@@ -216,7 +214,7 @@ export default {
     <div class="row mt-20">
       <div class="col span-3">
         <LabeledInput
-          v-model="type.metadata.cpu"
+          v-model:value="type.metadata.cpu"
           :mode="mode"
           :disabled="true"
           :label="t('cluster.machineConfig.pnap.serverCpu.label')"
@@ -224,7 +222,7 @@ export default {
       </div>
       <div class="col span-3">
         <LabeledInput
-          v-model="type.metadata.coresPerCpu"
+          v-model:value="type.metadata.coresPerCpu"
           :mode="mode"
           :disabled="true"
           :label="t('cluster.machineConfig.pnap.serverCoresPerCpu.label')"
@@ -232,7 +230,7 @@ export default {
       </div>
       <div class="col span-3">
         <LabeledInput
-          v-model="type.metadata.cpuCount"
+          v-model:value="type.metadata.cpuCount"
           :mode="mode"
           :disabled="true"
           :label="t('cluster.machineConfig.pnap.serverCpuCount.label')"
@@ -240,7 +238,7 @@ export default {
       </div>
       <div class="col span-3">
         <LabeledInput
-          v-model="type.metadata.cpuFrequency"
+          v-model:value="type.metadata.cpuFrequency"
           :mode="mode"
           :disabled="true"
           :label="t('cluster.machineConfig.pnap.serverCpuFrequency.label')"
@@ -250,7 +248,7 @@ export default {
     <div class="row mt-20">
       <div class="col span-3">
         <LabeledInput
-          v-model="type.metadata.ramInGb"
+          v-model:value="type.metadata.ramInGb"
           :mode="mode"
           :disabled="true"
           :label="t('cluster.machineConfig.pnap.serverRam.label')"
@@ -258,7 +256,7 @@ export default {
       </div>
       <div class="col span-3">
         <LabeledInput
-          v-model="type.metadata.storage"
+          v-model:value="type.metadata.storage"
           :mode="mode"
           :disabled="true"
           :label="t('cluster.machineConfig.pnap.serverStorage.label')"
@@ -266,7 +264,7 @@ export default {
       </div>
       <div class="col span-3">
         <LabeledInput
-          v-model="type.metadata.network"
+          v-model:value="type.metadata.network"
           :mode="mode"
           :disabled="true"
           :label="t('cluster.machineConfig.pnap.serverNetwork.label')"
@@ -274,7 +272,7 @@ export default {
       </div>
       <div class="col span-3">
         <LabeledSelect
-          v-model="value.serverOs"
+          v-model:value="value.serverOs"
           :mode="mode"
           :options="osChoices"
           :searchable="true"

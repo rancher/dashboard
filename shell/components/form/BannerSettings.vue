@@ -109,7 +109,7 @@ export default ({
       <div class="row">
         <div class="col span-6">
           <LabeledInput
-            v-model="value[bannerType].text"
+            v-model:value="value[bannerType].text"
             :disabled="isUiDisabled"
             :label="t('banner.text')"
             type="multiline"
@@ -125,7 +125,7 @@ export default ({
             class="mt-10"
           >
             <Checkbox
-              v-model="showAsDialog"
+              v-model:value="showAsDialog"
               name="bannerDecoration"
               class="banner-decoration-checkbox"
               :mode="mode"
@@ -133,7 +133,7 @@ export default ({
               :tooltip="t('banner.showAsDialog.tooltip')"
             />
             <LabeledInput
-              v-model="buttonText"
+              v-model:value="buttonText"
               :disabled="!showAsDialog || isUiDisabled"
               :label="t('banner.buttonText')"
             />
@@ -141,7 +141,7 @@ export default ({
         </div>
         <div class="col span-2">
           <RadioGroup
-            v-model="value[bannerType].textAlignment"
+            v-model:value="value[bannerType].textAlignment"
             name="bannerAlignment"
             :data-testid="`banner_alignment_radio_options${bannerType}`"
             :label="t('banner.bannerAlignment.label')"
@@ -155,11 +155,9 @@ export default ({
             {{ t('banner.bannerDecoration.label') }}
           </h3>
           <div
-            v-for="o in textDecorationOptions"
-            :key="o.style"
-          >
+             v-for="(o, i) in textDecorationOptions" :key="i" >
             <Checkbox
-              v-model="value[bannerType][o.style]"
+              v-model:value="value[bannerType][o.style]"
               name="bannerDecoration"
               :data-testid="`banner_decoration_checkbox${bannerType}${o.label}`"
               class="banner-decoration-checkbox"
@@ -170,7 +168,7 @@ export default ({
         </div>
         <div class="col span-2">
           <LabeledSelect
-            v-model="value[bannerType].fontSize"
+            v-model:value="value[bannerType].fontSize"
             :data-testid="`banner_font_size_options${bannerType}`"
             :disabled="isUiDisabled"
             :label="t('banner.bannerFontSize.label')"
@@ -181,7 +179,7 @@ export default ({
       <div class="row mt-10">
         <div class="col span-6">
           <ColorInput
-            v-model="value[bannerType].color"
+            v-model:value="value[bannerType].color"
             :default-value="themeVars.bannerTextColor"
             :label="t('banner.textColor')"
             :mode="mode"
@@ -189,7 +187,7 @@ export default ({
         </div>
         <div class="col span-6">
           <ColorInput
-            v-model="value[bannerType].background"
+            v-model:value="value[bannerType].background"
             :default-value="themeVars.bannerBgColor"
             :label="t('banner.background')"
             :mode="mode"

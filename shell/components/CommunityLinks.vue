@@ -103,9 +103,7 @@ export default {
         </h2>
       </template>
       <div
-        v-for="link in options"
-        :key="link.label"
-        class="support-link"
+         v-for="(link, i) in options" :key="i" class="support-link"
       >
         <router-link
           v-if="link.value.startsWith('/') "

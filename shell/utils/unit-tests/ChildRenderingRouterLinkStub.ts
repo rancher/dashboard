@@ -24,7 +24,7 @@ export function createChildRenderingRouterLinkStub(slotProps?: RouterLinkSlotArg
   return {
     ...RouterLinkStub,
     render() {
-      return this.$scopedSlots.default({
+      return this.$slots.default()({
         href:          slotProps?.href || '',
         route:         slotProps?.route || ({} as any),
         navigate:      slotProps?.navigate || (() => {}),

@@ -603,9 +603,7 @@ export default {
   >
     <template #subtypes>
       <div
-        v-for="(obj, i) in groupedSubTypes"
-        :key="obj.id"
-        class="mb-20"
+        v-for="(obj, i) in groupedSubTypes" :key="i"class="mb-20"
         style="width: 100%;"
       >
         <h4>
@@ -614,7 +612,7 @@ export default {
             class="grouped-type"
           >
             <ToggleSwitch
-              v-model="provisioner"
+              v-model:value="provisioner"
               data-testid="cluster-manager-create-rke-switch"
               class="rke-switch"
               :off-value="_RKE1"
@@ -642,7 +640,7 @@ export default {
       :value="value"
       :mode="mode"
       :provider="subType"
-      @input="$emit('input', $event)"
+      @update:value="$emit('input', $event)"
     />
     <template v-else-if="subType">
       <!-- allow extensions to provide their own cluster provisioning form -->
@@ -655,7 +653,7 @@ export default {
         :mode="mode"
         :provider="subType"
         :provider-config="selectedSubType.providerConfig"
-        @input="$emit('input', $event)"
+        @update:value="$emit('input', $event)"
       />
       <Rke2Config
         v-else
@@ -665,7 +663,7 @@ export default {
         :mode="mode"
         :provider="subType"
         :provider-config="selectedSubType.providerConfig"
-        @input="$emit('input', $event)"
+        @update:value="$emit('input', $event)"
       />
     </template>
 

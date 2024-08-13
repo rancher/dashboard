@@ -200,8 +200,7 @@ export default {
     <div class="input-container">
       <!-- key by namespace to ensure label select current page is recreated on ns change -->
       <ResourceLabeledSelect
-        :key="namespace"
-        v-model="name"
+        v-model:value="name"
         :disabled="!isView && disabled"
         :label="secretNameLabel"
         :mode="mode"
@@ -212,7 +211,7 @@ export default {
       />
       <LabeledSelect
         v-if="showKeySelector"
-        v-model="key"
+        v-model:value="key"
         class="col span-6"
         :disabled="isKeyDisabled"
         :options="keys"

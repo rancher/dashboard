@@ -28,14 +28,13 @@ export default {
     <div class="row">
       <div class="col span-12 mt-10">
         <KeyValue
-          :key="question.variable"
           :value="value"
           :title="question.label"
           :mode="mode"
           :protip="false"
           :disabled="disabled"
           :title-protip="displayTooltip"
-          @input="update"
+          @update:value="update"
         />
       </div>
     </div>

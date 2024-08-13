@@ -89,7 +89,7 @@ export default {
         class="col span-6"
       >
         <LabeledInput
-          v-model="serverConfig['cluster-cidr']"
+          v-model:value="serverConfig['cluster-cidr']"
           :mode="mode"
           :disabled="isEdit"
           :label="t('cluster.rke2.address.clusterCidr.label')"
@@ -100,7 +100,7 @@ export default {
         class="col span-6"
       >
         <LabeledInput
-          v-model="serverConfig['service-cidr']"
+          v-model:value="serverConfig['service-cidr']"
           :mode="mode"
           :disabled="isEdit"
           :label="t('cluster.rke2.address.serviceCidr.label')"
@@ -114,7 +114,7 @@ export default {
         class="col span-6"
       >
         <LabeledInput
-          v-model="serverConfig['cluster-dns']"
+          v-model:value="serverConfig['cluster-dns']"
           :mode="mode"
           :disabled="isEdit"
           :label="t('cluster.rke2.address.dns.label')"
@@ -125,7 +125,7 @@ export default {
         class="col span-6"
       >
         <LabeledInput
-          v-model="serverConfig['cluster-domain']"
+          v-model:value="serverConfig['cluster-domain']"
           :mode="mode"
           :disabled="isEdit"
           :label="t('cluster.rke2.address.domain.label')"
@@ -139,7 +139,7 @@ export default {
     >
       <div class="col span-6">
         <LabeledInput
-          v-model="serverConfig['service-node-port-range']"
+          v-model:value="serverConfig['service-node-port-range']"
           :mode="mode"
           :label="t('cluster.rke2.address.nodePortRange.label')"
         />
@@ -155,7 +155,7 @@ export default {
           :mode="mode"
           :label="t('cluster.rke2.truncateHostnames')"
           data-testid="network-tab-truncate-hostname"
-          @input="$emit('truncate-hostname', $event)"
+          @update:value="$emit('truncate-hostname', $event)"
         />
         <Banner
           v-if="hostnameTruncationManuallySet"
@@ -174,7 +174,7 @@ export default {
     >
       <div class="col span-6">
         <ArrayList
-          v-model="serverConfig['tls-san']"
+          v-model:value="serverConfig['tls-san']"
           :protip="false"
           :mode="mode"
           :title="t('cluster.rke2.address.tlsSan.label')"
@@ -185,7 +185,7 @@ export default {
     <ACE
       :value="value"
       :mode="mode"
-      @input="$emit('input', $event)"
+      @update:value="$emit('input', $event)"
     />
   </div>
 </template>

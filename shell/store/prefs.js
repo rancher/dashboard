@@ -1,7 +1,8 @@
 import { SETTING } from '@shell/config/settings';
 import { MANAGEMENT, STEVE } from '@shell/config/types';
 import { clone } from '@shell/utils/object';
-import Vue from 'vue';
+import { createApp } from 'vue';
+const vueApp = createApp({});
 
 const definitions = {};
 /**
@@ -239,7 +240,7 @@ export const getters = {
 
 export const mutations = {
   load(state, { key, value }) {
-    Vue.set(state.data, key, value);
+    state.data[key] = value;
   },
 
   cookiesLoaded(state) {
@@ -302,9 +303,9 @@ export const actions = {
           }
 
           if ( definition.parseJSON ) {
-            Vue.set(server.data, key, JSON.stringify(value));
+            server.data[key] = JSON.stringify(value);
           } else {
-            Vue.set(server.data, key, value);
+            server.data[key] = value;
           }
 
           await server.save({ redirectUnauthorized: false });

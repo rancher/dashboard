@@ -93,7 +93,7 @@ export default {
 
         <LabeledInput
           ref="templateName"
-          v-model="name"
+          v-model:value="name"
           :label="t('promptSaveAsRKETemplate.name')"
           :required="true"
         />

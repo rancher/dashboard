@@ -371,9 +371,7 @@ export default {
         <div class="more-info">
           <table>
             <tr
-              v-for="(item, i) in moreInfo"
-              :key="i"
-            >
+              v-for="(item, i) in moreInfo" :key="i">
               <td
                 v-if="item.type !== 'single-error'"
                 :class="{'align-middle': item.type === 'state-badge'}"

@@ -62,7 +62,7 @@ export default {
       ref="nd"
       :value="value"
       :mode="mode"
-      @input="$emit('input', $event)"
+      @update:value="$emit('input', $event)"
     />
 
     <Tabbed
@@ -78,7 +78,7 @@ export default {
       >
         <KeyValue
           key="config"
-          v-model="config"
+          v-model:value="config"
           :mode="mode"
           :read-allowed="false"
           :value-multiline="false"

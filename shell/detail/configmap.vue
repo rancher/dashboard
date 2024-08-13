@@ -51,16 +51,14 @@ export default {
 <template>
   <ResourceTabs
     :value="value"
-    @input="$emit('input', $event)"
+    @update:value="$emit('input', $event)"
   >
     <Tab
       name="data"
       label-key="secret.data"
     >
       <div
-        v-for="(row,idx) in parsedRows"
-        :key="idx"
-        class="mb-20"
+        v-for="(row,idx) in parsedRows" :key="idx"class="mb-20"
       >
         <DetailText
           :value="row.value"

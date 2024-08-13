@@ -263,9 +263,7 @@ export default {
   <div v-else>
     <div class="detail mb-20">
       <div
-        v-for="item in details"
-        :key="item.label"
-      >
+         v-for="(item, i) in details" :key="i" >
         <span class="text-label">{{ item.label }}</span>:
         <component
           :is="item.component"
@@ -292,7 +290,7 @@ export default {
       </div>
       <div class="col span-4">
         <LabeledSelect
-          v-model="clusterReport"
+          v-model:value="clusterReport"
           :label="t('cis.reports')"
           :options="clusterReports"
           :get-option-label="reportLabel"

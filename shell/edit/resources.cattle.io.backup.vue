@@ -85,7 +85,7 @@ export default {
 
   data() {
     if (!this.value.spec) {
-      this.$set(this.value, 'spec', { retentionCount: 10 });
+      this.value['spec'] = { retentionCount: 10 };
     }
     let s3 = {};
     let useEncryption = false;
@@ -168,13 +168,13 @@ export default {
       if (neu === 'useDefault') {
         delete this.value.spec.storageLocation;
       } else {
-        this.$set(this.value.spec, 'storageLocation', { s3: this.s3 });
+        this.value.spec['storageLocation'] = { s3: this.s3 };
       }
     },
 
     resourceSet(neu) {
       if (neu?.metadata?.name) {
-        this.$set(this.value.spec, 'resourceSetName', neu?.metadata?.name);
+        this.value.spec['resourceSetName'] = neu?.metadata?.name;
       }
     },
 
@@ -216,7 +216,7 @@ export default {
       <template v-if="!!resourceSet">
         <div class="bordered-section">
           <RadioGroup
-            v-model="setSchedule"
+            v-model:value="setSchedule"
             :mode="mode"
             :label="t('backupRestoreOperator.schedule.label')"
             name="setSchedule"
@@ -229,7 +229,7 @@ export default {
           >
             <div class="col span-6">
               <LabeledInput
-                v-model="value.spec.schedule"
+                v-model:value="value.spec.schedule"
                 type="cron"
                 :mode="mode"
                 :label="t('backupRestoreOperator.schedule.label')"
@@ -238,7 +238,7 @@ export default {
             </div>
             <div class="col span-6">
               <UnitInput
-                v-model="value.spec.retentionCount"
+                v-model:value="value.spec.retentionCount"
                 :suffix="t('backupRestoreOperator.retentionCount.units', {count: value.spec.retentionCount || 0})"
                 :mode="mode"
                 :label="t('backupRestoreOperator.retentionCount.label')"
@@ -251,7 +251,7 @@ export default {
           <div class="row">
             <div class="col span-12">
               <RadioGroup
-                v-model="useEncryption"
+                v-model:value="useEncryption"
                 name="useEncryption"
                 :label="t('backupRestoreOperator.encryption')"
                 :options="encryptionOptions.options"
@@ -267,7 +267,7 @@ export default {
           >
             <div class="col span-6">
               <LabeledSelect
-                v-model="value.spec.encryptionConfigSecretName"
+                v-model:value="value.spec.encryptionConfigSecretName"
                 :tooltip="t('backupRestoreOperator.encryptionConfigName.backuptip', { ns: chartNamespace}, true)"
                 :hover-tooltip="true"
                 :mode="mode"
@@ -286,7 +286,7 @@ export default {
             >{{ t('backupRestoreOperator.s3.titles.location') }}</span>
             <RadioGroup
               v-else
-              v-model="storageSource"
+              v-model:value="storageSource"
               name="storageSource"
               :label="t('backupRestoreOperator.s3.titles.location')"
               :options="storageOptions.options"

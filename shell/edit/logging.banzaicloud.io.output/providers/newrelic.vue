@@ -37,7 +37,7 @@ export default {
     <div class="row">
       <div class="col span-6">
         <LabeledInput
-          v-model="value.base_uri"
+          v-model:value="value.base_uri"
           :mode="mode"
           :disabled="disabled"
           :label="t('logging.newrelic.baseURI')"
@@ -48,7 +48,7 @@ export default {
     <div class="row">
       <div class="col span-6">
         <SecretSelector
-          v-model="value.api_key"
+          v-model:value="value.api_key"
           :mode="mode"
           :namespace="namespace"
           :disabled="disabled"
@@ -58,7 +58,7 @@ export default {
       </div>
       <div class="col span-6">
         <SecretSelector
-          v-model="value.license_key"
+          v-model:value="value.license_key"
           :mode="mode"
           :namespace="namespace"
           :disabled="disabled"

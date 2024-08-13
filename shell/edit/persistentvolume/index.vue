@@ -70,11 +70,11 @@ export default {
     };
     const defaultAccessModes = ['ReadWriteOnce'];
 
-    this.$set(this.value, 'spec', this.value.spec || {});
-    this.$set(this.value.spec, 'accessModes', this.value.spec.accessModes || defaultAccessModes);
-    this.$set(this.value.spec, 'capacity', this.value.spec.capacity || {});
-    this.$set(this.value.spec.capacity, 'storage', this.value.spec.capacity.storage || '10Gi');
-    this.$set(this.value.spec, 'storageClassName', this.value.spec.storageClassName || NONE_OPTION.value);
+    this.value['spec'] = this.value.spec || {};
+    this.value.spec['accessModes'] = this.value.spec.accessModes || defaultAccessModes;
+    this.value.spec['capacity'] = this.value.spec.capacity || {};
+    this.value.spec.capacity['storage'] = this.value.spec.capacity.storage || '10Gi';
+    this.value.spec['storageClassName'] = this.value.spec.storageClassName || NONE_OPTION.value;
 
     const foundPlugin = this.value.isLonghorn ? LONGHORN_PLUGIN : VOLUME_PLUGINS.find((plugin) => this.value.spec[plugin.value]);
     const plugin = (foundPlugin || VOLUME_PLUGINS[0]).value;
@@ -130,14 +130,14 @@ export default {
           const defaultValue = { required: { nodeSelectorTerms: [] } };
 
           if (!this.value.spec.nodeAffinity?.required?.nodeSelectorTerms) {
-            this.$set(this.value.spec, 'nodeAffinity', this.value.spec.nodeAffinity || defaultValue);
-            this.$set(this.value.spec.nodeAffinity, 'required', this.value.spec.nodeAffinity.required || defaultValue.required);
-            this.$set(this.value.spec.nodeAffinity.required, 'nodeSelectorTerms', this.value.spec.nodeAffinity.required.nodeSelectorTerms || defaultValue.required.nodeSelectorTerms);
+            this.value.spec['nodeAffinity'] = this.value.spec.nodeAffinity || defaultValue;
+            this.value.spec.nodeAffinity['required'] = this.value.spec.nodeAffinity.required || defaultValue.required;
+            this.value.spec.nodeAffinity.required['nodeSelectorTerms'] = this.value.spec.nodeAffinity.required.nodeSelectorTerms || defaultValue.required.nodeSelectorTerms;
           }
 
-          this.$set(this.value.spec.nodeAffinity.required, 'nodeSelectorTerms', value);
+          this.value.spec.nodeAffinity.required['nodeSelectorTerms'] = value;
         } else {
-          this.$set(this.value.spec.nodeAffinity, 'nodeAffinity', undefined);
+          this.value.spec.nodeAffinity['nodeAffinity'] = undefined;
         }
       }
     },
@@ -181,7 +181,7 @@ export default {
     checkboxSetter(key, value) {
       if (value) {
         this.value.spec.accessModes.push(key);
-        this.$set(this.value, 'accessModes', uniq(this.value.spec.accessModes));
+        this.value['accessModes'] = uniq(this.value.spec.accessModes);
       } else {
         const indexOf = this.value.spec.accessModes.indexOf(key);
 
@@ -195,18 +195,18 @@ export default {
     },
     willSave() {
       if (this.value.spec.storageClassName === this.NONE_OPTION.value) {
-        this.$set(this.value.spec, 'storageClassName', null);
+        this.value.spec['storageClassName'] = null;
       }
 
       if (!this.isCreate) {
-        this.$set(this.value.spec, 'nodeAffinity', this.initialNodeAffinity);
+        this.value.spec['nodeAffinity'] = this.initialNodeAffinity;
       }
     },
     updatePlugin(value) {
       const plugin = this.plugin === LONGHORN_PLUGIN.value ? 'csi' : this.plugin;
 
       delete this.value.spec[plugin];
-      this.$set(this, 'plugin', value);
+      this['plugin'] = value;
     }
   }
 };
@@ -262,12 +262,12 @@ export default {
           :options="plugins"
           :mode="modeOverride"
           :required="true"
-          @input="updatePlugin($event)"
+          @update:value="updatePlugin($event)"
         />
       </div>
       <div class="col span-6">
         <UnitInput
-          v-model="value.spec.capacity.storage"
+          v-model:value="value.spec.capacity.storage"
           :required="true"
           :label="t('persistentVolume.capacity.label')"
           :increment="1024"
@@ -300,21 +300,21 @@ export default {
             <h3>{{ t('persistentVolume.customize.accessModes.label') }}</h3>
             <div>
               <Checkbox
-                v-model="readWriteOnce"
+                v-model:value="readWriteOnce"
                 :label="t('persistentVolume.customize.accessModes.readWriteOnce')"
                 :mode="mode"
               />
             </div>
             <div>
               <Checkbox
-                v-model="readOnlyMany"
+                v-model:value="readOnlyMany"
                 :label="t('persistentVolume.customize.accessModes.readOnlyMany')"
                 :mode="mode"
               />
             </div>
             <div>
               <Checkbox
-                v-model="readWriteMany"
+                v-model:value="readWriteMany"
                 :label="t('persistentVolume.customize.accessModes.readWriteMany')"
                 :mode="mode"
               />
@@ -322,7 +322,7 @@ export default {
           </div>
           <div class="col span-6">
             <ArrayList
-              v-model="value.spec.mountOptions"
+              v-model:value="value.spec.mountOptions"
               :mode="mode"
               :title="t('persistentVolume.customize.mountOptions.label')"
               :add-label="t('persistentVolume.customize.mountOptions.addLabel')"
@@ -332,7 +332,7 @@ export default {
         <div class="row mb-20">
           <div class="col span-6">
             <LabeledSelect
-              v-model="value.spec.storageClassName"
+              v-model:value="value.spec.storageClassName"
               :label="t('persistentVolume.customize.assignToStorageClass.label')"
               :options="storageClassOptions"
               :loading="isLoadingSecondaryResources"
@@ -348,14 +348,14 @@ export default {
               >*</span>
             </h3>
             <ArrayListGrouped
-              v-model="nodeSelectorTerms"
+              v-model:value="nodeSelectorTerms"
               :mode="modeOverride"
               :default-add-value="{matchExpressions:[]}"
               :add-label="t('workload.scheduling.affinity.addNodeSelector')"
             >
               <template #default="props">
                 <MatchExpressions
-                  v-model="props.row.value.matchExpressions"
+                  v-model:value="props.row.value.matchExpressions"
                   :mode="modeOverride"
                   class="col span-12"
                   :type="NODE"

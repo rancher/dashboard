@@ -141,7 +141,7 @@ export default {
       />
       <div class="options">
         <RadioGroup
-          v-model="rotateAllServices"
+          v-model:value="rotateAllServices"
           name="service-mode"
           :options="[
             {
@@ -155,7 +155,7 @@ export default {
           ]"
         />
         <Select
-          v-model="selectedService"
+          v-model:value="selectedService"
           :options="serviceOptions"
           class="service-select"
           :class="{'invisible': rotateAllServices}"

@@ -320,7 +320,7 @@ export default {
     parseDeploymentValues(name) {
       let out = {};
 
-      this.$set(this.deploymentValues.metadata, 'name', name);
+      this.deploymentValues.metadata['name'] = name;
 
       const addLabel = { [UI_PLUGIN_LABELS.CATALOG_IMAGE]: name };
       const addTo = ['metadata.labels', 'spec.selector.matchLabels', 'spec.template.metadata.labels'];
@@ -471,7 +471,7 @@ export default {
           <div class="custom mt-10">
             <div class="fields">
               <LabeledSelect
-                v-model="imagePullSecrets"
+                v-model:value="imagePullSecrets"
                 :label="t('plugins.manageCatalog.imageLoad.fields.imagePullSecrets.label')"
                 :tooltip="t('plugins.manageCatalog.imageLoad.fields.imagePullSecrets.tooltip')"
                 :multiple="true"

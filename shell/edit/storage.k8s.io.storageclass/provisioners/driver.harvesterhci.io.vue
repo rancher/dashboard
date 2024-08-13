@@ -95,7 +95,7 @@ export default {
       >
         <div class="col span-6">
           <LabeledInput
-            v-model="value.parameters.hostStorageClass"
+            v-model:value="value.parameters.hostStorageClass"
             :label="t('storageClass.harvesterhci.hostStorageClass.label')"
             :placeholder="t('storageClass.harvesterhci.hostStorageClass.placeholder')"
             :mode="mode"
@@ -104,7 +104,7 @@ export default {
         </div>
       </div>
       <KeyValue
-        v-model="parameters"
+        v-model:value="parameters"
         :add-label="t('storageClass.longhorn.addLabel')"
         :read-allowed="false"
         :mode="mode"

@@ -192,27 +192,25 @@ export default {
       <span />
     </div>
     <div
-      v-for="(rule, index) in rules"
-      :key="rule.vKey"
-      class="rule"
+      v-for="(rule, index) in rules" :key="index"class="rule"
     >
       <div class="col">
         <LabeledInput
-          v-model="rule.key"
+          v-model:value="rule.key"
           :mode="mode"
           :data-testid="`toleration-key-index${ index }`"
           class="height-adjust-input"
-          @input="update"
+          @update:value="update"
         />
       </div>
       <div class="col">
         <Select
           id="operator"
-          v-model="rule.operator"
+          v-model:value="rule.operator"
           :options="operatorOpts"
           :mode="mode"
           :data-testid="`toleration-operator-index${ index }`"
-          @input="update"
+          @update:value="update"
         />
       </div>
       <template v-if="rule.operator==='Exists'">
@@ -228,32 +226,32 @@ export default {
       <template v-else>
         <div class="col">
           <LabeledInput
-            v-model="rule.value"
+            v-model:value="rule.value"
             :mode="mode"
             :data-testid="`toleration-value-index${ index }`"
             class="height-adjust-input"
-            @input="update"
+            @update:value="update"
           />
         </div>
       </template>
       <div class="col">
         <Select
-          v-model="rule.effect"
+          v-model:value="rule.effect"
           :options="effectOpts"
           :mode="mode"
           :data-testid="`toleration-effect-index${ index }`"
-          @input="e=>updateEffect(e, rule)"
+          @update:value="e=>updateEffect(e, rule)"
         />
       </div>
       <div class="col">
         <UnitInput
-          v-model="rule.tolerationSeconds"
+          v-model:value="rule.tolerationSeconds"
           :disabled="rule.effect !== 'NoExecute'"
           :mode="mode"
           suffix="Seconds"
           :data-testid="`toleration-seconds-index${ index }`"
           class="height-adjust-input"
-          @input="update"
+          @update:value="update"
         />
       </div>
       <div class="col remove">

@@ -122,7 +122,7 @@ export default {
     </div>
     <div class="mb-30">
       <Checkbox
-        v-model="forceDelete"
+        v-model:value="forceDelete"
         :label="t('promptForceRemove.forceDelete')"
       />
     </div>
@@ -131,9 +131,7 @@ export default {
       label-key="promptForceRemove.podRemoveWarning"
     />
     <Banner
-      v-for="(error, i) in errors"
-      :key="i"
-      class=""
+      v-for="(error, i) in errors" :key="i"class=""
       color="error"
       :label="error"
     />

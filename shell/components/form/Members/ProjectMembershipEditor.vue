@@ -59,6 +59,6 @@ export default {
     :mode="mode"
     parent-key="projectId"
     :parent-id="parentId"
-    v-on="$listeners"
+    
   />
 </template>

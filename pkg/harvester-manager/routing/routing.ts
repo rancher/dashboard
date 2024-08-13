@@ -1,4 +1,4 @@
-import { RouteConfig } from 'vue-router';
+import { RouteRecordRaw } from 'vue-router';
 import { PRODUCT_NAME } from '../config/harvester-manager';
 
 import Root from '../pages/c/_cluster/index.vue';

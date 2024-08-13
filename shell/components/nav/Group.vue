@@ -236,7 +236,7 @@ export default {
       class="list-unstyled body"
       v-bind="$attrs"
     >
-      <template v-for="(child, idx) in group[childrenKey]">
+      <template v-for="(child, idx) in group[childrenKey]" :key="idx">
         <li
           v-if="child.divider"
           :key="idx"
@@ -392,8 +392,8 @@ export default {
     }
   }
 
-  .body ::v-deep > .child.router-link-active,
-  .header ::v-deep > .child.router-link-exact-active {
+  .body :deep() > .child.router-link-active,
+  .header :deep() > .child.router-link-exact-active {
     padding: 0;
 
     A, A I {
@@ -407,7 +407,7 @@ export default {
     }
   }
 
-  .body ::v-deep > .child {
+  .body :deep() > .child {
     A {
       border-left: solid 5px transparent;
       line-height: 16px;

@@ -169,9 +169,7 @@ export default {
         />
       </div>
       <div
-        v-for="(row, idx) in rows"
-        :key="idx"
-        class="ports-row"
+        v-for="(row, idx) in rows" :key="idx"class="ports-row"
         :class="{'show-protocol':showProtocol, 'show-node-port':showNodePort}"
       >
         <div
@@ -209,9 +207,9 @@ export default {
           <span v-if="isView">{{ row.protocol }}</span>
           <Select
             v-else
-            v-model="row.protocol"
+            v-model:value="row.protocol"
             :options="protocolOptions"
-            @input="queueUpdate"
+            @update:value="queueUpdate"
           />
         </div>
         <div class="target-port">
@@ -317,7 +315,7 @@ export default {
       height: 100%;
     }
 
-    .port-protocol ::v-deep {
+    .port-protocol :deep() {
       .unlabeled-select {
         .v-select.inline {
           margin-top: 2px;

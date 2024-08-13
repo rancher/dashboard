@@ -133,7 +133,7 @@ export default {
       >
         <form>
           <LabeledSelect
-            v-model="moveTo"
+            v-model:value="moveTo"
             :label="t('assignTo.workspace')"
             :options="workspaceOptions"
             placement="bottom"
@@ -141,16 +141,14 @@ export default {
 
           <KeyValue
             key="labels"
-            v-model="labels"
+            v-model:value="labels"
             class="mt-20"
             :add-label="t('labels.addSetLabel')"
             :read-allowed="false"
           />
 
           <Banner
-            v-for="(err, i) in errors"
-            :key="i"
-            color="error"
+            v-for="(err, i) in errors" :key="i"color="error"
             :label="err"
           />
         </form>

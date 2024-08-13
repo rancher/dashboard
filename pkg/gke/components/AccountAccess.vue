@@ -117,7 +117,7 @@ export default defineComponent({
         :value="project"
         label-key="gke.project.label"
         required
-        @input="$emit('update:project', $event)"
+        @update:value="$emit('update:project', $event)"
       />
     </div>
     <div
@@ -133,7 +133,7 @@ export default defineComponent({
         :showing-form="!credential"
         class="select-credential"
         :cancel="()=>$emit('cancel-credential')"
-        @input="$emit('update:credential', $event)"
+        @update:value="$emit('update:credential', $event)"
         @credential-created="parseNewCredential"
       />
     </div>

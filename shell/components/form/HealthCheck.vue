@@ -45,7 +45,7 @@ export default {
     <div>
       <div class="row">
         <Probe
-          v-model="readinessProbe"
+          v-model:value="readinessProbe"
           class="col span-12"
           :mode="mode"
           :label="t('workload.container.healthCheck.readinessProbe')"
@@ -59,7 +59,7 @@ export default {
     <div>
       <div class="row">
         <Probe
-          v-model="livenessProbe"
+          v-model:value="livenessProbe"
           class="col span-12"
           :mode="mode"
           :label="t('workload.container.healthCheck.livenessProbe')"
@@ -72,7 +72,7 @@ export default {
 
     <div class="row">
       <Probe
-        v-model="startupProbe"
+        v-model:value="startupProbe"
         class="col span-12"
         :mode="mode"
         :label="t('workload.container.healthCheck.startupProbe')"

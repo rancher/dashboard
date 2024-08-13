@@ -31,7 +31,7 @@ export default {
     <div class="chart-readmes">
       <Markdown
         v-if="appReadme"
-        v-model="appReadme"
+        v-model:value="appReadme"
         class="md md-desc mb-20"
         @loaded="appReadmeLoaded = true"
       />
@@ -43,7 +43,7 @@ export default {
       </h1>
       <Markdown
         v-if="readme"
-        v-model="readme"
+        v-model:value="readme"
         class="md md-desc"
         @loaded="readmeLoaded = true"
       />
@@ -63,7 +63,7 @@ export default {
     max-width: 100%;
     line-height: 1.6;
 
-    ::v-deep {
+    :deep() {
       * + H1,
       * + H2,
       * + H3,
@@ -74,7 +74,7 @@ export default {
       }
     }
 
-    ::v-deep code {
+    :deep() code {
       font-size: 13.5px;
       white-space: break-spaces;
       word-wrap: break-word;
@@ -83,16 +83,16 @@ export default {
       border: 0;
     }
 
-    ::v-deep pre {
+    :deep() pre {
       white-space: break-spaces;
       word-break: break-word;
     }
 
-    ::v-deep  > h1:first-of-type {
+    :deep()  > h1:first-of-type {
       display: none;
     }
 
-    ::v-deep p {
+    :deep() p {
       margin-bottom: 0.5em;
     }
   }

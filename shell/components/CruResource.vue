@@ -454,9 +454,7 @@ export default {
         class="cru__errors"
       >
         <Banner
-          v-for="(err, i) in errors"
-          :key="i"
-          color="error"
+          v-for="(err, i) in errors" :key="i"color="error"
           :data-testid="`error-banner${i}`"
           :label="stringify(mappedErrors[err].message)"
           :icon="mappedErrors[err].icon"
@@ -473,9 +471,7 @@ export default {
           :subtypes="subtypes"
         >
           <div
-            v-for="subtype in subtypes"
-            :key="subtype.id"
-            class="subtype-banner"
+             v-for="(subtype, i) in subtypes" :key="i" class="subtype-banner"
             :class="{ selected: subtype.id === _selectedSubtype }"
             :data-testid="`subtype-banner-item-${subtype.id}`"
             @click="selectType(subtype.id, $event)"
@@ -564,7 +560,7 @@ export default {
               #stepContainer="{activeStep}"
               class="step-container"
             >
-              <template v-for="step in steps">
+              <template  v-for="(step, i) in steps" :key="i" >
                 <div
                   v-if="step.name === activeStep.name || step.hidden"
                   :key="step.name"
@@ -589,7 +585,7 @@ export default {
                 >
                   <!-- Pass down templates provided by the caller -->
                   <template
-                    v-for="(_, slot) of $scopedSlots"
+                    v-for="(_, slot) of $slots" :key="slot"
                     v-slot:[slot]="scope"
                   >
                     <slot
@@ -670,7 +666,7 @@ export default {
           >
             <!-- Pass down templates provided by the caller -->
             <template
-              v-for="(_, slot) of $scopedSlots"
+              v-for="(_, slot) of $slots" :key="slot"
               v-slot:[slot]="scope"
             >
               <slot

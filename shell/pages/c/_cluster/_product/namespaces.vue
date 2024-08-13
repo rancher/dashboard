@@ -64,7 +64,7 @@ export default {
       :groupable="false"
       group-tooltip="resourceTable.groupBy.project"
       key-field="_key"
-      v-on="$listeners"
+      
     >
       <template #cell:project="{row}">
         <span v-if="row.project">{{ row.project.nameDisplay }}</span>

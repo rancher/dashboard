@@ -347,7 +347,7 @@ export default {
   <div class="root resource-yaml">
     <YamlEditor
       ref="yamleditor"
-      v-model="currentYaml"
+      v-model:value="currentYaml"
       :initial-yaml-values="initialYaml"
       class="yaml-editor flex-content"
       :editor-mode="editorMode"

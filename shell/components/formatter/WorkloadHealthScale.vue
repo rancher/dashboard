@@ -1,5 +1,6 @@
 <script>
-import Vue from 'vue';
+import { createApp } from 'vue';
+const vueApp = createApp({});
 import ProgressBarMulti from '@shell/components/ProgressBarMulti';
 import PlusMinus from '@shell/components/form/PlusMinus';
 import { POD, SCALABLE_WORKLOAD_TYPES } from '@shell/config/types';
@@ -95,7 +96,7 @@ export default {
       await this.scale(true);
     },
     async scale(isUp) {
-      Vue.set(this, 'disabled', true);
+      this['disabled'] = true;
       try {
         if (isUp) {
           await this.row.scaleUp();
@@ -109,7 +110,7 @@ export default {
         },
         { root: true });
       }
-      Vue.set(this, 'disabled', false);
+      this['disabled'] = false;
     },
 
     insideBounds(bounding, bounds) {
@@ -201,9 +202,7 @@ export default {
     >
       <div>
         <div
-          v-for="obj in parts"
-          :key="obj.label"
-          class="counts"
+           v-for="(obj, i) in parts" :key="i" class="counts"
         >
           <span class="counts-label">{{ obj.label }}</span>
           <span>{{ obj.value }}</span>

@@ -63,7 +63,7 @@ export default {
     @finish="save"
   >
     <LabeledInput
-      v-model="name"
+      v-model:value="name"
       :label="t('managementNode.customName')"
       :mode="mode"
     />

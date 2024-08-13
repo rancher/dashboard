@@ -83,7 +83,7 @@ export default defineComponent({
   <tr class="taint">
     <td :style="{'width': '40%'}">
       <LabeledInput
-        v-model="key"
+        v-model:value="key"
         :mode="mode"
         :rules="[()=>validationMessage]"
         type="text"
@@ -92,7 +92,7 @@ export default defineComponent({
     </td>
     <td :style="{'width': '40%'}">
       <LabeledInput
-        v-model="value"
+        v-model:value="value"
         :mode="mode"
         type="text"
         :rules="[()=>validationMessage]"
@@ -101,7 +101,7 @@ export default defineComponent({
     </td>
     <td :style="{'width': '15%'}">
       <Select
-        v-model="effect"
+        v-model:value="effect"
         :mode="mode"
         :options="effectOptions"
         label="effect"

@@ -28,7 +28,7 @@ const getElement = (vnode) => {
   }
 };
 
-function inserted(_el, _binding, vnode) {
+function mounted(_el, _binding, vnode) {
   const element = getElement(vnode);
 
   if (element) {
