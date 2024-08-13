@@ -93,8 +93,9 @@ export default {
       </div>
       <input
         id="confirm"
-        v-model="confirmName"
+        :value="confirmName"
         type="text"
+        @input="($plainInputEvent) => confirmName = $plainInputEvent"
       >
       <div class="text-info mt-20">
         {{ protip }}

@@ -673,7 +673,7 @@ export default {
               :disabled="isView || disabled || !keyEditable || isProtected(row.key)"
               :placeholder="_keyPlaceholder"
               :data-testid="`input-kv-item-key-${i}`"
-              @input="queueUpdate"
+              @input="($plainInputEvent) => queueUpdate($plainInputEvent)"
               @paste="onPaste(i, $event)"
             >
           </slot>
@@ -729,7 +729,7 @@ export default {
               />
               <input
                 v-else
-                v-model="row[valueName]"
+                :value="row[valueName]"
                 :disabled="isView || disabled || isProtected(row.key)"
                 :type="valueConcealed ? 'password' : 'text'"
                 :placeholder="_valuePlaceholder"
@@ -737,7 +737,7 @@ export default {
                 autocapitalize="off"
                 spellcheck="false"
                 :data-testid="`input-kv-item-value-${i}`"
-                @input="queueUpdate"
+                @input="($plainInputEvent) => queueUpdate($plainInputEvent)"
               >
               <FileSelector
                 v-if="parseValueFromFile && readAllowed && !isView && isValueFieldEmpty(row[valueName])"

@@ -129,9 +129,9 @@ export default {
     >
       <input
         ref="first"
-        v-model="path"
+        :value="path"
         :placeholder="t('ingress.rules.path.placeholder', undefined, true)"
-        @input="queueUpdate"
+        @input="($plainInputEvent) => {path = $plainInputEvent.target.value; queueUpdate($plainInputEvent);}"
       >
     </div>
     <div
