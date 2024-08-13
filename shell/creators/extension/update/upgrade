@@ -19,13 +19,13 @@ fi
 # Check for a clean git repository
 if [ ! -d ".git" ] && [ "${FORCE}" == "false" ]; then
   echo "Not runnning in a git repository. Re-run with -f to ignore this check"
-  echo "Note: This action will update yuor files - running in a git repsository will ensure you have visibility over changes made"
+  echo "Note: This action will update your files - running in a git repository will ensure you have visibility over changes made"
   exit 1 
 fi
 
 if [[ $(git diff --stat) != '' ]] && [ "${FORCE}" == "false" ]; then
   echo "Git repository is not clean. Re-run with -f to ignore this check"
-  echo "Note: This action will update your files - running in a clean git repsository will ensure you have visibility over changes made"
+  echo "Note: This action will update your files - running in a clean git repository will ensure you have visibility over changes made"
   exit 1 
 fi
 

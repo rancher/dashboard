@@ -46,14 +46,8 @@ echo "Publishing version: $PKG_VERSION"
 cp -R ${SHELL_DIR}/creators/extension ${PKG_DIST}
 
 sed -i.bak -e "s/\"0.0.0/"\"$PKG_VERSION"/g" ${PKG_DIST}/extension/package.json
-sed -i.bak -e "s/\"0.0.0/"\"$PKG_VERSION"/g" ${PKG_DIST}/extension/app/package.json
-sed -i.bak -e "s/\"0.0.0/"\"$PKG_VERSION"/g" ${PKG_DIST}/extension/pkg/package.json
-sed -i.bak -e "s/\"0.0.0/"\"$PKG_VERSION"/g" ${PKG_DIST}/extension/update/package.json
 
 rm ${PKG_DIST}/extension/package.json.bak
-rm ${PKG_DIST}/extension/app/package.json.bak
-rm ${PKG_DIST}/extension/pkg/package.json.bak
-rm ${PKG_DIST}/extension/update/package.json.bak
 
 function publish() {
   NAME=$1

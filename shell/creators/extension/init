@@ -43,11 +43,6 @@ if ( !extensionName && !updateOnly && !skeletonOnly ) {
   process.exit(1);
 }
 
-if ( !appName ) {
-  console.error('Error: The application name is not defined.');
-  process.exit(1);
-}
-
 const basePath = process.cwd();
 let skeletonPath;
 let isInsideSkeleton = false;
@@ -55,8 +50,16 @@ let directoryExists = false;
 
 // Check if we are inside a skeleton application by looking for package.json
 if ( fs.existsSync(path.join(basePath, 'package.json')) ) {
-  isInsideSkeleton = true;
-  skeletonPath = basePath;
+  // Check for @rancher/shell dependency
+  const packageJsonPath = path.join(basePath, 'package.json');
+  const packageJson = require(packageJsonPath);
+
+  if ( !packageJson.dependencies || !packageJson.dependencies['@rancher/shell'] ) {
+    throw new Error('@rancher/shell dependency is missing in package.json.');
+  } else {
+    isInsideSkeleton = true;
+    skeletonPath = basePath;
+  }
 } else {
   // If not inside a skeleton, check if a directory with the appName already exists
   skeletonPath = path.join(basePath, appName);

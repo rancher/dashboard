@@ -44,6 +44,7 @@ let ignoreShellPkgPathCheck = false;
 if ( args.length > 3 ) {
   for ( let i = 3; i < args.length; i++ ) {
     switch (args[i]) {
+    case '--skip-templates':
     case '-t':
       addTypeFolders = false;
       break;

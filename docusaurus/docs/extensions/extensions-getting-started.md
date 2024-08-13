@@ -75,7 +75,6 @@ There are a few options available to be passed as an argument to the `@rancher/e
 |           `-l`            | This will automatically add the [`.gitlab-ci.yml`](https://github.com/rancher/dashboard/blob/master/shell/creators/extension/app/files/.gitlab-ci.yml) pipeline file for integration with GitLab                                                                                              |
 |           `-w`            | Does not add the Github workflow files [`build-extension-catalog.yml`, `build-extension-charts.yml`](https://github.com/rancher/dashboard/tree/master/shell/creators/extension/app/files/.github/workflows) to be used as Github actions. These files will be added automatically by default. |
 |           `-t`            | Does not add the template folders automatically into the Extension package. These folders will be added automatically by default                                                                                                                                                              |
-|           `-i`            | Ignores the check for the `@rancher/shell` dependency.                                                                                                                                                                                                                                        |
 
 ---
 

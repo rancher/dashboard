@@ -45,6 +45,7 @@ if ( args.length > 3 ) {
     case '-l':
       addGitlabWorkflow = true;
       break;
+    case '--skip-workflow':
     case '-w':
       addWorkflowFolder = false;
       break;
@@ -114,12 +115,12 @@ if ( addWorkflowFolder ) {
     fs.mkdirSync(workflowDir, { recursive: true });
   }
 
-  const files = [
+  const workflowFiles = [
     'build-extension-catalog.yml',
     'build-extension-charts.yml'
   ];
 
-  files.forEach((fileName) => {
+  workflowFiles.forEach((fileName) => {
     const dest = path.join(workflowDir, fileName); // Destination in the skeleton application
     const src = path.join(__dirname, 'files/.github/workflows', fileName); // Source in the package
 
@@ -138,7 +139,7 @@ files.forEach((file) => {
   if (!fs.existsSync(dest)) {
     console.log(`  Adding file: ${ file }`);
 
-    const folder = path.dirname(file);
+    const folder = path.dirname(dest);
 
     fs.ensureDirSync(folder);
 
@@ -147,6 +148,6 @@ files.forEach((file) => {
   }
 });
 
-console.log('');
+console.log('Skeleton Application creation complete.\n');
 
 /* eslint-enable no-console */
