@@ -38,9 +38,9 @@ export default defineComponent({
   created() {
     if (this.mode !== _CREATE) {
       if (this.value && this.value.length === 1 && this.value[0] === googleFullAuthUrl) {
-        this.$set(this, 'scopeMode', GKEOauthScopeOptions.FULL);
+        this['scopeMode'] = GKEOauthScopeOptions.FULL;
       } else if (isEqual(this.value, getGoogleAuthDefaultURLs())) {
-        this.$set(this, 'scopeMode', GKEOauthScopeOptions.DEFAULT);
+        this['scopeMode'] = GKEOauthScopeOptions.DEFAULT;
       }
     }
   },
@@ -102,7 +102,7 @@ export default defineComponent({
     <div class="row mb-10">
       <div class="col span-6">
         <RadioGroup
-          v-model="scopeMode"
+          v-model:value="scopeMode"
           :label="t('gke.authScopes.modeLabel')"
           name="scope-mode"
           :mode="mode"
@@ -112,7 +112,7 @@ export default defineComponent({
       </div>
     </div>
     <div v-if="scopeMode==='custom'">
-      <template v-for="(scopeKey, index) in Object.keys(formOptions)">
+      <template v-for="(scopeKey, index) in Object.keys(formOptions)" :key="index">
         <div
           v-if="!(index%2)"
           :key="scopeKey"

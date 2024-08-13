@@ -1,5 +1,6 @@
 <script>
-import Vue from 'vue';
+import { createApp } from 'vue';
+const vueApp = createApp({});
 import merge from 'lodash/merge';
 import { ucFirst } from '@shell/utils/string';
 import { isSimpleKeyValue } from '@shell/utils/object';
@@ -68,18 +69,18 @@ export default {
     };
 
     if (this.mode === _CREATE) {
-      this.$set(this.value, 'spec', merge(this.value.spec, emptySpec));
+      this.value['spec'] = merge(this.value.spec, emptySpec);
 
       if (!this.value.spec.match.scope) {
-        this.$set(this.value.spec.match, 'scope', SCOPE_OPTIONS[0].value);
+        this.value.spec.match['scope'] = SCOPE_OPTIONS[0].value;
       }
     } else {
-      this.$set(this.value.spec, 'match', this.value.spec.match || {});
-      this.$set(this.value.spec.match, 'kinds', this.value.spec.match.kinds || [{}]);
-      this.$set(this.value.spec.match, 'labelSelector', this.value.spec.match.labelSelector || {});
-      this.$set(this.value.spec.match.labelSelector, 'matchExpressions', this.value.spec.match.labelSelector.matchExpressions || []);
-      this.$set(this.value.spec.match, 'namespaceSelector', this.value.spec.match.namespaceSelector || {});
-      this.$set(this.value.spec.match.namespaceSelector, 'labelSelector', this.value.spec.match.namespaceSelector.labelSelector || []);
+      this.value.spec['match'] = this.value.spec.match || {};
+      this.value.spec.match['kinds'] = this.value.spec.match.kinds || [{}];
+      this.value.spec.match['labelSelector'] = this.value.spec.match.labelSelector || {};
+      this.value.spec.match.labelSelector['matchExpressions'] = this.value.spec.match.labelSelector.matchExpressions || [];
+      this.value.spec.match['namespaceSelector'] = this.value.spec.match.namespaceSelector || {};
+      this.value.spec.match.namespaceSelector['labelSelector'] = this.value.spec.match.namespaceSelector.labelSelector || [];
     }
 
     const parametersYaml = saferDump(this.value?.spec?.parameters);
@@ -197,12 +198,12 @@ export default {
      */
     purgeNamespacesField(value) {
       if (value?.spec?.match?.namespaces && (value.spec.match.namespaces.length === 0)) {
-        Vue.delete(value.spec.match, 'namespaces');
+        delete value.spec.match['namespaces'];
       }
     },
 
     updateType(type) {
-      this.$set(this.value, 'type', type);
+      this.value['type'] = type;
     },
     onTabChanged({ tab }) {
       // This is necessary to force the yamlEditor to adjust the size once it has space to fill.
@@ -211,7 +212,7 @@ export default {
       }
     },
     selectTemplateSubtype(subType) {
-      this.$set(this.value, 'kind', subType);
+      this.value['kind'] = subType;
       this.$emit('set-subtype', subType);
     },
     onScopeChange(newScope) {
@@ -252,7 +253,7 @@ export default {
         <div class="col span-12">
           <h3>Enforcement Action</h3>
           <RadioGroup
-            v-model="value.spec.enforcementAction"
+            v-model:value="value.spec.enforcementAction"
             name="enforcementAction"
             class="enforcement-action"
             :options="enforcementActionOptions"
@@ -273,9 +274,9 @@ export default {
           <div class="row">
             <div class="col span-6">
               <Scope
-                v-model="value.spec.match.scope"
+                v-model:value="value.spec.match.scope"
                 :mode="mode"
-                @input="onScopeChange($event)"
+                @update:value="onScopeChange($event)"
               />
             </div>
           </div>
@@ -285,7 +286,7 @@ export default {
           >
             <div class="col span-12">
               <NamespaceList
-                v-model="value.spec.match.namespaces"
+                v-model:value="value.spec.match.namespaces"
                 :label="t('gatekeeperConstraint.tab.namespaces.sub.namespaces')"
                 tooltip="If defined, a constraint will only apply to resources in a listed namespace."
                 :mode="mode"
@@ -300,7 +301,7 @@ export default {
           >
             <div class="col span-12">
               <NamespaceList
-                v-model="value.spec.match.excludedNamespaces"
+                v-model:value="value.spec.match.excludedNamespaces"
                 :label="t('gatekeeperConstraint.tab.namespaces.sub.excludedNamespaces')"
                 tooltip="If defined, a constraint will only apply to resources not in a listed namespace."
                 :mode="mode"
@@ -312,7 +313,7 @@ export default {
             <div class="col span-12">
               <h3>{{ t('gatekeeperConstraint.tab.namespaces.sub.namespaceSelector.title') }}</h3>
               <RuleSelector
-                v-model="value.spec.match.namespaceSelector.matchExpressions"
+                v-model:value="value.spec.match.namespaceSelector.matchExpressions"
                 add-label="Add Namespace Selector"
                 :mode="mode"
               />
@@ -327,7 +328,7 @@ export default {
           <div class="row">
             <div class="col span-12">
               <MatchKinds
-                v-model="value.spec.match.kinds"
+                v-model:value="value.spec.match.kinds"
                 :mode="mode"
               />
             </div>
@@ -336,7 +337,7 @@ export default {
             <div class="col span-12">
               <h3>{{ t('gatekeeperConstraint.tab.rules.sub.labelSelector.title') }}</h3>
               <RuleSelector
-                v-model="value.spec.match.labelSelector.matchExpressions"
+                v-model:value="value.spec.match.labelSelector.matchExpressions"
                 :add-label="t('gatekeeperConstraint.tab.rules.sub.labelSelector.addLabel')"
                 :mode="mode"
               />
@@ -350,7 +351,7 @@ export default {
         >
           <YamlEditor
             ref="yamlEditor"
-            v-model="parametersYaml"
+            v-model:value="parametersYaml"
             class="yaml-editor"
             :editor-mode="editorMode"
             @newObject="$set(value.spec, 'parameters', $event)"

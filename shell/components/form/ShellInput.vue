@@ -82,7 +82,7 @@ export function unparse(xs) {
 
 <template>
   <LabeledInput
-    v-model="userValue"
+    v-model:value="userValue"
     v-bind="$attrs"
     @input="update($event)"
   />

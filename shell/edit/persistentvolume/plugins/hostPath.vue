@@ -50,8 +50,8 @@ export default {
       },
     ];
 
-    this.$set(this.value.spec, 'hostPath', this.value.spec.hostPath || {});
-    this.$set(this.value.spec.hostPath, 'type', this.value.spec.hostPath.type || mustBeOptions[0].value);
+    this.value.spec['hostPath'] = this.value.spec.hostPath || {};
+    this.value.spec.hostPath['type'] = this.value.spec.hostPath.type || mustBeOptions[0].value;
 
     return { mustBeOptions };
   },
@@ -63,7 +63,7 @@ export default {
     <div class="row mb-20">
       <div class="col span-6">
         <LabeledInput
-          v-model="value.spec.hostPath.path"
+          v-model:value="value.spec.hostPath.path"
           :mode="mode"
           :label="t('persistentVolume.hostPath.pathOnTheNode.label')"
           :placeholder="t('persistentVolume.hostPath.pathOnTheNode.placeholder')"
@@ -71,7 +71,7 @@ export default {
       </div>
       <div class="col span-6">
         <LabeledSelect
-          v-model="value.spec.hostPath.type"
+          v-model:value="value.spec.hostPath.type"
           :mode="mode"
           :label="t('persistentVolume.hostPath.mustBe.label')"
           :options="mustBeOptions"

@@ -86,26 +86,24 @@ export default {
       <span />
     </div>
     <div
-      v-for="(volumeMount, i) in volumeMounts"
-      :key="i"
-      class="mount-rows"
+      v-for="(volumeMount, i) in volumeMounts" :key="i"class="mount-rows"
     >
       <div>
         <LabeledInput
           :id="`mount-path-${i}`"
-          v-model="volumeMount.mountPath"
+          v-model:value="volumeMount.mountPath"
           :mode="mode"
         />
       </div>
       <div>
         <LabeledInput
-          v-model="volumeMount.subPath"
+          v-model:value="volumeMount.subPath"
           :mode="mode"
         />
       </div>
       <div class="read-only">
         <Checkbox
-          v-model="volumeMount.readOnly"
+          v-model:value="volumeMount.readOnly"
           :mode="mode"
         />
       </div>

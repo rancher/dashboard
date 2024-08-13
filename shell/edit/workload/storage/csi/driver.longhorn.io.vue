@@ -25,7 +25,7 @@ export default {
 
     for (const key in defaults) {
       if (!this.value[key]) {
-        this.$set(this.value, key, defaults[key]);
+        this.value[key] = defaults[key];
       }
     }
   }
@@ -39,7 +39,7 @@ export default {
         :value="value"
         :mode="mode"
         :as-map="true"
-        @input="$emit('input', value)"
+        @update:value="$emit('input', value)"
       />
     </div>
   </div>

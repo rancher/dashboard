@@ -217,7 +217,7 @@ export default {
       />
       <form>
         <LabeledSelect
-          v-model="selectedRevision"
+          v-model:value="selectedRevision"
           class="provider"
           :label="t('promptRollback.dropdownTitle')"
           :placeholder="t('promptRollback.placeholder')"
@@ -226,16 +226,14 @@ export default {
         />
       </form>
       <Banner
-        v-for="(error, i) in errors"
-        :key="i"
-        class=""
+        v-for="(error, i) in errors" :key="i"class=""
         color="error"
         :label="error"
       />
       <YamlEditor
         v-if="selectedRevision && showDiff"
         :key="selectedRevisionId"
-        v-model="sanitizedSelectedRevision"
+        v-model:value="sanitizedSelectedRevision"
         :initial-yaml-values="sanitizeYaml(currentRevision)"
         class="mt-10 "
         :editor-mode="editorMode"
@@ -278,7 +276,7 @@ export default {
 .prompt-rollback {
   margin: 0;
 
-  & ::v-deep .card-actions {
+  & :deep() .card-actions {
     display: grid;
   }
 }
@@ -286,7 +284,7 @@ export default {
 .yaml-editor {
   max-height: 70vh;
 
-  & ::v-deep.root {
+  & :deep().root {
     max-height: 65vh;
   }
 }
@@ -301,7 +299,7 @@ export default {
   }
 }
 
-::v-deep .card-body {
+:deep() .card-body {
   max-height: calc(95vh - 135px);
   overflow: hidden;
 }

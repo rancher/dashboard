@@ -75,7 +75,7 @@ export default {
       placeholder-key="cluster.credential.aws.accessKey.placeholder"
       type="text"
       :mode="mode"
-      @input="value.setData('accessKey', $event);"
+      @update:value="value.setData('accessKey', $event);"
     />
     <LabeledInput
       :value="value.decodedData.secretKey"
@@ -84,7 +84,7 @@ export default {
       placeholder-key="cluster.credential.aws.secretKey.placeholder"
       type="password"
       :mode="mode"
-      @input="value.setData('secretKey', $event);"
+      @update:value="value.setData('secretKey', $event);"
     />
     <LabeledSelect
       :value="value.decodedData.defaultRegion"
@@ -94,7 +94,7 @@ export default {
       :mode="mode"
       :taggable="true"
       :options="knownRegions"
-      @input="value.setData('defaultRegion', $event);"
+      @update:value="value.setData('defaultRegion', $event);"
     />
     <p
       v-clean-html="t('cluster.credential.aws.defaultRegion.help', {}, true)"

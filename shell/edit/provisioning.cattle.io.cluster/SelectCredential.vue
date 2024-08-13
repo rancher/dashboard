@@ -250,7 +250,7 @@ export default {
       />
 
       <NameNsDescription
-        v-model="newCredential"
+        v-model:value="newCredential"
         :namespaced="false"
         :description-hidden="true"
         name-key="name"
@@ -263,7 +263,7 @@ export default {
       <component
         :is="createComponent"
         ref="create"
-        v-model="newCredential"
+        v-model:value="newCredential"
         mode="create"
         :driver-name="driverName"
         @validationChanged="createValidationChanged"
@@ -277,7 +277,7 @@ export default {
       />
 
       <LabeledSelect
-        v-model="credentialId"
+        v-model:value="credentialId"
         :label="t('cluster.credential.label')"
         :options="options"
         option-key="value"

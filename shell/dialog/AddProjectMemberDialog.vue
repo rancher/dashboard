@@ -129,7 +129,7 @@ export default {
         {{ error }}
       </Banner>
       <ProjectMemberEditor
-        v-model="member"
+        v-model:value="member"
         :use-two-columns-for-custom="true"
       />
     </div>

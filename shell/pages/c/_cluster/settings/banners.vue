@@ -231,12 +231,12 @@ export default {
               :value="bannerVal.showHeader === 'true'"
               :label="t('banner.showHeader')"
               :mode="mode"
-              @input="e=>$set(bannerVal, 'showHeader', e.toString())"
+              @update:value="e=>$set(bannerVal, 'showHeader', e.toString())"
             />
           </div>
         </div>
         <BannerSettings
-          v-model="bannerVal"
+          v-model:value="bannerVal"
           banner-type="bannerHeader"
           :mode="headerMode"
         />
@@ -266,12 +266,12 @@ export default {
               :value="bannerVal.showFooter === 'true'"
               :label="t('banner.showFooter')"
               :mode="mode"
-              @input="e=>$set(bannerVal, 'showFooter', e.toString())"
+              @update:value="e=>$set(bannerVal, 'showFooter', e.toString())"
             />
           </div>
         </div>
         <BannerSettings
-          v-model="bannerVal"
+          v-model:value="bannerVal"
           banner-type="bannerFooter"
           :mode="footerMode"
         />
@@ -303,12 +303,12 @@ export default {
               :value="bannerVal.showConsent === 'true'"
               :label="t('banner.showConsent')"
               :mode="mode"
-              @input="e => $set(bannerVal, 'showConsent', e.toString())"
+              @update:value="e => $set(bannerVal, 'showConsent', e.toString())"
             />
           </div>
         </div>
         <BannerSettings
-          v-model="bannerVal"
+          v-model:value="bannerVal"
           banner-type="bannerConsent"
           :mode="consentMode"
         />
@@ -317,14 +317,13 @@ export default {
         {{ t('notifications.loginError.header') }}
       </h2>
       <NotificationSettings
-        v-model="bannerVal.loginError"
+        v-model:value="bannerVal.loginError"
         :mode="mode"
         :label="t('notifications.loginError.messageLabel')"
       />
     </div>
-    <template v-for="err in errors">
+    <template  v-for="(err, i) in errors" :key="i" >
       <Banner
-        :key="err"
         color="error"
         :label="err"
       />

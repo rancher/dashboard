@@ -413,7 +413,7 @@ export default {
       :done-route="doneRoute"
       :done-override="value.doneOverride"
       :class="{'flex-content': flexContent}"
-      @input="$emit('input', $event)"
+      @update:value="$emit('input', $event)"
     />
 
     <component
@@ -429,7 +429,7 @@ export default {
       :live-value="liveModel"
       :real-mode="realMode"
       :class="{'flex-content': flexContent}"
-      @input="$emit('input', $event)"
+      @update:value="$emit('input', $event)"
       @set-subtype="setSubtype"
     />
 

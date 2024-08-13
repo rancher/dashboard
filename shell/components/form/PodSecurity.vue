@@ -55,7 +55,7 @@ export default {
     <div class="row">
       <div class="col span-6">
         <RadioGroup
-          v-model="shareProcessNamespace"
+          v-model:value="shareProcessNamespace"
           name="shareProcessNamespace"
           :label="t('workload.container.security.shareProcessNamespace')"
           :labels="['No', 'Yes']"
@@ -65,7 +65,7 @@ export default {
       </div>
       <div class="col span-6">
         <RadioGroup
-          v-model="runasNonRoot"
+          v-model:value="runasNonRoot"
           name="runasNonRoot"
           :label="t('workload.container.security.runAsNonRoot')"
           :options="[false, true]"
@@ -102,7 +102,7 @@ export default {
           <t k="workload.container.security.supplementalGroups" />
         </h5>
         <ArrayList
-          v-model="supplementalGroups"
+          v-model:value="supplementalGroups"
           :add-label="t('workload.container.security.addGroupIDs')"
           :mode="mode"
         />
@@ -126,7 +126,7 @@ export default {
     <div class="row">
       <div class="col span-6">
         <RadioGroup
-          v-model="hostIPC"
+          v-model:value="hostIPC"
           name="hostIPC"
           :label="t('workload.container.security.hostIPC')"
           :labels="['No', 'Yes']"
@@ -136,7 +136,7 @@ export default {
       </div>
       <div class="col span-6">
         <RadioGroup
-          v-model="hostPID"
+          v-model:value="hostPID"
           name="hostPID"
           :label="t('workload.container.security.hostPID')"
           :labels="['No', 'Yes']"
@@ -151,7 +151,7 @@ export default {
     <div class="row">
       <div class="col span-12">
         <KeyValue
-          v-model="sysctls"
+          v-model:value="sysctls"
           :title="t('workload.container.security.sysctls')"
           :key-label="t('workload.container.security.sysctlsKey')"
           :mode="mode"

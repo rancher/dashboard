@@ -104,13 +104,13 @@ export default {
       class="text-small"
     >
       <Endpoints
-        v-model="parsed"
+        v-model:value="parsed"
         :row="{}"
         :col="{}"
       />
     </div>
     <div
-      v-for="(port, index) in parsed"
+      v-for="(port, index) in parsed" :key="index"
       v-else
       :key="index"
       class="text-small"

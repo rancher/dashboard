@@ -86,10 +86,10 @@ export default {
       </div>
       <div>
         <Checkbox
-          v-model="promptConfirmation"
+          v-model:value="promptConfirmation"
           :label="t('promptRemove.promptConfirmation')"
           class="mt-10"
-          @input="update()"
+          @update:value="update()"
         />
       </div>
       <div class="text-info mt-20">

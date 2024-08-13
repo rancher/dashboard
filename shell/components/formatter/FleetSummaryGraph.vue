@@ -81,9 +81,7 @@ export default {
       >
         <tbody>
           <tr
-            v-for="obj in stateParts"
-            :key="obj.label"
-          >
+             v-for="(obj, i) in stateParts" :key="i" >
             <td
               class="text-left pr-20"
               :class="{ [obj.textColor]: true }"

@@ -117,7 +117,7 @@ export default {
     showLdap(neu, old) {
       if (neu && !this.model.openLdapConfig) {
         // Use a spread of config, so that if don't make changes to the defaults if the user edits them
-        this.$set(this.model, 'openLdapConfig', { ...LDAP_DEFAULTS });
+        this.model['openLdapConfig'] = { ...LDAP_DEFAULTS };
       }
     },
     // sloType is defined on shell/mixins/auth-config.js
@@ -241,7 +241,7 @@ export default {
         <div class="row mb-20">
           <div class="col span-6">
             <LabeledInput
-              v-model="model.displayNameField"
+              v-model:value="model.displayNameField"
               :label="t(`authConfig.saml.displayName`)"
               :mode="mode"
               required
@@ -249,7 +249,7 @@ export default {
           </div>
           <div class="col span-6">
             <LabeledInput
-              v-model="model.userNameField"
+              v-model:value="model.userNameField"
               :label="t(`authConfig.saml.userName`)"
               :mode="mode"
               required
@@ -260,7 +260,7 @@ export default {
         <div class="row mb-20">
           <div class="col span-6">
             <LabeledInput
-              v-model="model.uidField"
+              v-model:value="model.uidField"
               :label="t(`authConfig.saml.UID`)"
               :mode="mode"
               required
@@ -268,7 +268,7 @@ export default {
           </div>
           <div class="col span-6">
             <LabeledInput
-              v-model="model.groupsField"
+              v-model:value="model.groupsField"
               :label="t(`authConfig.saml.groups`)"
               :mode="mode"
               required
@@ -282,14 +282,14 @@ export default {
             class="col span-6"
           >
             <LabeledInput
-              v-model="model.entityID"
+              v-model:value="model.entityID"
               :label="t(`authConfig.saml.entityID`)"
               :mode="mode"
             />
           </div>
           <div class="col span-6">
             <LabeledInput
-              v-model="model.rancherApiHost"
+              v-model:value="model.rancherApiHost"
               :label="t(`authConfig.saml.api`)"
               :mode="mode"
               required
@@ -300,7 +300,7 @@ export default {
         <div class="row mb-20">
           <div class="col span-4">
             <LabeledInput
-              v-model="model.spKey"
+              v-model:value="model.spKey"
               :label="t(`authConfig.saml.key.label`)"
               :placeholder="t(`authConfig.saml.key.placeholder`)"
               :mode="mode"
@@ -316,7 +316,7 @@ export default {
           </div>
           <div class="col span-4">
             <LabeledInput
-              v-model="model.spCert"
+              v-model:value="model.spCert"
               :label="t(`authConfig.saml.cert.label`)"
               :placeholder="t(`authConfig.saml.cert.placeholder`)"
               :mode="mode"
@@ -332,7 +332,7 @@ export default {
           </div>
           <div class="col span-4">
             <LabeledInput
-              v-model="model.idpMetadataContent"
+              v-model:value="model.idpMetadataContent"
               :label="t(`authConfig.saml.metadata.label`)"
               :placeholder="t(`authConfig.saml.metadata.placeholder`)"
               :mode="mode"
@@ -384,7 +384,7 @@ export default {
           </div>
           <div class="row">
             <Checkbox
-              v-model="showLdap"
+              v-model:value="showLdap"
               :mode="mode"
               :label="t('authConfig.saml.showLdap')"
             />
@@ -392,7 +392,7 @@ export default {
           <div class="row mt-20 mb-20">
             <config
               v-if="showLdap && model.openLdapConfig"
-              v-model="model.openLdapConfig"
+              v-model:value="model.openLdapConfig"
               :type="NAME"
               :mode="mode"
               :is-create="!model.enabled"
@@ -407,7 +407,7 @@ export default {
   .banner {
     display: block;
 
-    &::v-deep code {
+    &:deep() code {
       padding: 0 3px;
       margin: 0 3px;
     }

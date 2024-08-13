@@ -129,13 +129,13 @@ export default {
           class="col span-6"
         >
           <RadioGroup
-            v-model="privileged"
+            v-model:value="privileged"
             name="privileged"
             :label="t('workload.container.security.privileged.label')"
             :options="[false,true]"
             :labels="[t('workload.container.security.privileged.false'), t('workload.container.security.privileged.true')]"
             :mode="mode"
-            @input="update"
+            @update:value="update"
           />
         </div>
         <div
@@ -144,14 +144,14 @@ export default {
           class="col span-6"
         >
           <RadioGroup
-            v-model="allowPrivilegeEscalation"
+            v-model:value="allowPrivilegeEscalation"
             name="allowPrivilegeEscalation"
             :label="t('workload.container.security.allowPrivilegeEscalation.label')"
             :disabled="privileged"
             :options="[false,true]"
             :labels="[t('workload.container.security.allowPrivilegeEscalation.false'), t('workload.container.security.allowPrivilegeEscalation.true')]"
             :mode="mode"
-            @input="update"
+            @update:value="update"
           />
         </div>
       </div>
@@ -165,13 +165,13 @@ export default {
           class="col span-6"
         >
           <RadioGroup
-            v-model="runAsNonRoot"
+            v-model:value="runAsNonRoot"
             name="runasNonRoot"
             :label="t('workload.container.security.runAsNonRoot.label')"
             :options="[false, true]"
             :labels="[t('workload.container.security.runAsNonRoot.false'), t('workload.container.security.runAsNonRoot.true')]"
             :mode="mode"
-            @input="update"
+            @update:value="update"
           />
         </div>
         <div
@@ -179,13 +179,13 @@ export default {
           class="col span-6"
         >
           <RadioGroup
-            v-model="readOnlyRootFilesystem"
+            v-model:value="readOnlyRootFilesystem"
             name="readOnlyRootFilesystem"
             :label="t('workload.container.security.readOnlyRootFilesystem.label')"
             :options="[false, true]"
             :labels="[t('workload.container.security.readOnlyRootFilesystem.false'), t('workload.container.security.readOnlyRootFilesystem.true')]"
             :mode="mode"
-            @input="update"
+            @update:value="update"
           />
         </div>
       </div>
@@ -201,7 +201,7 @@ export default {
           v-model.number="runAsUser"
           :label="t('workload.container.security.runAsUser')"
           :mode="mode"
-          @input="update"
+          @update:value="update"
         />
       </div>
     </div>
@@ -212,7 +212,7 @@ export default {
         class="col span-6"
       >
         <LabeledSelect
-          v-model="add"
+          v-model:value="add"
           :taggable="true"
           :close-on-select="false"
           :mode="mode"
@@ -220,7 +220,7 @@ export default {
           :label="t('workload.container.security.addCapabilities')"
           :options="allCapabilities"
           :disabled="mode==='view'"
-          @input="update"
+          @update:value="update"
         />
       </div>
       <div
@@ -228,7 +228,7 @@ export default {
         class="col span-6"
       >
         <LabeledSelect
-          v-model="drop"
+          v-model:value="drop"
           :close-on-select="false"
           :taggable="true"
           :multiple="true"
@@ -236,7 +236,7 @@ export default {
           :label="t('workload.container.security.dropCapabilities')"
           :options="allCapabilities"
           :disabled="mode==='view'"
-          @input="update"
+          @update:value="update"
         />
       </div>
     </div>

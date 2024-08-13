@@ -1,5 +1,6 @@
 <script>
-import Vue from 'vue';
+import { createApp } from 'vue';
+const vueApp = createApp({});
 import ResourceTable from '@shell/components/ResourceTable';
 import { AGE } from '@shell/config/table-headers';
 import ResourceFetch from '@shell/mixins/resource-fetch';
@@ -33,7 +34,7 @@ export default {
       hasScheduledScanConfig: fetchSpecsScheduledScanConfig(this.schema),
     });
 
-    Vue.set(this, 'hasScheduledScanConfig', res.hasScheduledScanConfig);
+    this['hasScheduledScanConfig'] = res.hasScheduledScanConfig;
   },
 
   data() {

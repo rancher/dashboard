@@ -144,9 +144,7 @@ export default {
       </thead>
       <tbody>
         <tr
-          v-for="(row, idx) in rows"
-          :key="idx"
-        >
+          v-for="(row, idx) in rows" :key="idx">
           <td
             v-if="padLeft"
             class="left"
@@ -168,8 +166,8 @@ export default {
             <span v-if="isView">{{ row.protocol }}</span>
             <select
               v-else
-              v-model="row.protocol"
-              @input="queueUpdate"
+              v-model:value="row.protocol"
+              @update:value="queueUpdate"
             >
               <option value="HTTP">
                 HTTP
@@ -207,18 +205,18 @@ export default {
             <span v-if="isView">{{ row.expose ? "Yes" : "No" }}</span>
             <Checkbox
               v-else
-              v-model="row.expose"
+              v-model:value="row.expose"
               type="checkbox"
-              @input="queueUpdate"
+              @update:value="queueUpdate"
             />
           </td>
           <td class="hostPort">
             <span v-if="isView">{{ row.hostPort ? "Yes" : "No" }}</span>
             <Checkbox
               v-else
-              v-model="row.hostPort"
+              v-model:value="row.hostPort"
               type="checkbox"
-              @input="queueUpdate"
+              @update:value="queueUpdate"
             />
           </td>
           <td

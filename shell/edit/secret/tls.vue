@@ -62,7 +62,7 @@ export default {
     <div class="row mb-20">
       <div class="col span-6">
         <LabeledInput
-          v-model="key"
+          v-model:value="key"
           type="multiline"
           :label="t('secret.certificate.privateKey')"
           :mode="mode"
@@ -76,7 +76,7 @@ export default {
       </div>
       <div class="col span-6">
         <LabeledInput
-          v-model="crt"
+          v-model:value="crt"
           required
           type="multiline"
           :label="t('secret.certificate.certificate')"

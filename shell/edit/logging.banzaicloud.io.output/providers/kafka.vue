@@ -45,7 +45,7 @@ export default {
     <div class="row">
       <div class="col span-6">
         <LabeledInput
-          v-model="value.brokers"
+          v-model:value="value.brokers"
           :mode="mode"
           :disabled="disabled"
           :label="t('logging.kafka.brokers')"
@@ -53,7 +53,7 @@ export default {
       </div>
       <div class="col span-6">
         <LabeledInput
-          v-model="value.default_topic"
+          v-model:value="value.default_topic"
           :mode="mode"
           :disabled="disabled"
           :label="t('logging.kafka.defaultTopic')"
@@ -69,7 +69,7 @@ export default {
     <div class="row mb-10">
       <div class="col span-6">
         <SecretSelector
-          v-model="value.username"
+          v-model:value="value.username"
           :mode="mode"
           :namespace="namespace"
           :disabled="disabled"
@@ -79,7 +79,7 @@ export default {
       </div>
       <div class="col span-6">
         <SecretSelector
-          v-model="value.password"
+          v-model:value="value.password"
           :mode="mode"
           :namespace="namespace"
           :disabled="disabled"
@@ -91,7 +91,7 @@ export default {
     <div class="row">
       <div class="col span-6">
         <LabeledInput
-          v-model="value.scram_mechanism"
+          v-model:value="value.scram_mechanism"
           :mode="mode"
           :disabled="disabled"
           :label="t('logging.kafka.scramMechanism')"
@@ -107,7 +107,7 @@ export default {
     <div class="row mb-10">
       <div class="col span-6">
         <Checkbox
-          v-model="value.sasl_over_ssl"
+          v-model:value="value.sasl_over_ssl"
           :mode="mode"
           :disabled="disabled"
           :label="t('logging.kafka.saslOverSsl')"
@@ -117,7 +117,7 @@ export default {
     <div class="row mb-10">
       <div class="col span-6">
         <SecretSelector
-          v-model="value.ssl_ca_cert"
+          v-model:value="value.ssl_ca_cert"
           mount-key="mountFrom"
           :mode="mode"
           :namespace="namespace"
@@ -128,7 +128,7 @@ export default {
       </div>
       <div class="col span-6">
         <SecretSelector
-          v-model="value.ssl_client_cert"
+          v-model:value="value.ssl_client_cert"
           mount-key="mountFrom"
           :mode="mode"
           :namespace="namespace"
@@ -141,7 +141,7 @@ export default {
     <div class="row mb-10">
       <div class="col span-6">
         <SecretSelector
-          v-model="value.ssl_client_cert_chain"
+          v-model:value="value.ssl_client_cert_chain"
           mount-key="mountFrom"
           :mode="mode"
           :namespace="namespace"
@@ -152,7 +152,7 @@ export default {
       </div>
       <div class="col span-6">
         <SecretSelector
-          v-model="value.ssl_client_cert_key"
+          v-model:value="value.ssl_client_cert_key"
           mount-key="mountFrom"
           :mode="mode"
           :namespace="namespace"

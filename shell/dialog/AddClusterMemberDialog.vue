@@ -48,7 +48,7 @@ export default {
       class="pl-10 pr-10"
     >
       <ClusterPermissionsEditor
-        v-model="bindings"
+        v-model:value="bindings"
         :use-two-columns-for-custom="true"
       />
     </div>

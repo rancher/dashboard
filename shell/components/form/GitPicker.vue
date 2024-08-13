@@ -415,7 +415,7 @@ export default defineComponent({
     <div class="row">
       <div class="spacer">
         <LabeledInput
-          v-model="selectedAccOrOrg"
+          v-model:value="selectedAccOrOrg"
           data-testid="git_picker-username-or-org"
           :tooltip="t(`gitPicker.${ type }.username.tooltip`)"
           :label="t(`gitPicker.${ type }.username.inputLabel`)"
@@ -423,7 +423,7 @@ export default defineComponent({
           :rules="[reposRules]"
           :delay="debounceTime"
           :status="status(hasError.repo)"
-          @input="fetchRepos"
+          @update:value="fetchRepos"
         />
       </div>
 
@@ -432,7 +432,7 @@ export default defineComponent({
         class="spacer"
       >
         <LabeledSelect
-          v-model="selectedRepo"
+          v-model:value="selectedRepo"
           :required="true"
           :label="t(`gitPicker.${ type }.repo.inputLabel`)"
           :options="preparedRepos"
@@ -443,7 +443,7 @@ export default defineComponent({
           :status="status(hasError.repo)"
           :option-label="'name'"
           @search="onSearchRepo"
-          @input="fetchBranches"
+          @update:value="fetchBranches"
         />
       </div>
       <!-- Deals with Branches  -->
@@ -452,7 +452,7 @@ export default defineComponent({
         class="spacer"
       >
         <LabeledSelect
-          v-model="selectedBranch"
+          v-model:value="selectedBranch"
           :required="true"
           :label="t(`gitPicker.${ type }.branch.inputLabel`)"
           :options="preparedBranches"
@@ -463,7 +463,7 @@ export default defineComponent({
           :status="status(hasError.branch)"
           :option-label="'name'"
           @search="onSearchBranch"
-          @input="fetchCommits"
+          @update:value="fetchCommits"
         />
       </div>
       <!-- Deals with Commits, display & allow to pick from it  -->
@@ -488,7 +488,7 @@ export default defineComponent({
             <RadioButton
               :value="selectedCommitId"
               :val="row.commitId"
-              @input="final($event)"
+              @update:value="final($event)"
             />
           </template>
 

@@ -37,7 +37,7 @@ export default {
     <div class="row">
       <div class="col span-6">
         <LabeledInput
-          v-model="value.stream_name"
+          v-model:value="value.stream_name"
           :mode="mode"
           :disabled="disabled"
           :label="t('logging.kinesisStream.streamName')"
@@ -53,7 +53,7 @@ export default {
     <div class="row">
       <div class="col span-6">
         <SecretSelector
-          v-model="value.aws_key_id"
+          v-model:value="value.aws_key_id"
           :mode="mode"
           :namespace="namespace"
           :disabled="disabled"
@@ -63,7 +63,7 @@ export default {
       </div>
       <div class="col span-6">
         <SecretSelector
-          v-model="value.aws_sec_key"
+          v-model:value="value.aws_sec_key"
           :mode="mode"
           :namespace="namespace"
           :disabled="disabled"

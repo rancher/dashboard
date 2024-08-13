@@ -110,15 +110,13 @@ export default {
           {{ t('moveModal.description') }}
           <ul class="namespaces">
             <li
-              v-for="namespace in toMove"
-              :key="namespace.id"
-            >
+               v-for="(namespace, i) in toMove" :key="i" >
               {{ namespace.nameDisplay }}
             </li>
           </ul>
         </div>
         <LabeledSelect
-          v-model="targetProject"
+          v-model:value="targetProject"
           :options="projectOptions"
           :label="t('moveModal.targetProject')"
         />

@@ -85,7 +85,7 @@ export default {
       {{ t('registryMirror.description') }}
     </p>
     <ArrayListGrouped
-      v-model="entries"
+      v-model:value="entries"
       :add-label="t('registryMirror.addLabel')"
       :default-add-value="defaultAddValue"
       :initial-empty-row="true"
@@ -96,7 +96,7 @@ export default {
         <div class="row">
           <div class="col span-6">
             <LabeledInput
-              v-model="row.value.hostname"
+              v-model:value="row.value.hostname"
               :label="t('registryMirror.hostnameLabel')"
               :placeholder="t('registryMirror.hostnamePlaceholder')"
               :mode="mode"
@@ -104,7 +104,7 @@ export default {
           </div>
           <div class="col span-6">
             <LabeledInput
-              v-model="row.value.endpoints"
+              v-model:value="row.value.endpoints"
               :label="t('registryMirror.endpointsLabel')"
               :placeholder="t('registryMirror.endpointsPlaceholder')"
               :mode="mode"
@@ -121,7 +121,7 @@ export default {
               />
             </h3>
             <KeyValue
-              v-model="row.value.rewrite"
+              v-model:value="row.value.rewrite"
               :mode="mode"
               :add-label="t('registryMirrorRewrite.addLabel')"
               :read-allowed="false"

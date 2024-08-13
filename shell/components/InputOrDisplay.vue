@@ -1,8 +1,9 @@
 <script>
-import Vue from 'vue';
+import { createApp } from 'vue';
+const vueApp = createApp({});
 import { _VIEW } from '@shell/config/query-params';
 
-const component = Vue.component('InputOrDisplay', {
+const component = vueApp.component('InputOrDisplay', {
   render(h) {
     if (this.isView) {
       return h('div',

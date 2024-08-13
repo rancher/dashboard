@@ -1113,7 +1113,7 @@ export default {
       }
 
       this.$refs.userDataYamlEditor.updateValue(userDataYaml);
-      this.$set(this, 'userData', userDataYaml);
+      this['userData'] = userDataYaml;
     },
 
     vGpuOptionLabel(opt) {
@@ -1135,7 +1135,7 @@ export default {
       <div class="row mt-20">
         <div class="col span-6">
           <UnitInput
-            v-model="value.cpuCount"
+            v-model:value="value.cpuCount"
             v-int-number
             label-key="cluster.credential.harvester.cpu"
             suffix="C"
@@ -1149,7 +1149,7 @@ export default {
 
         <div class="col span-6">
           <UnitInput
-            v-model="value.memorySize"
+            v-model:value="value.memorySize"
             v-int-number
             label-key="cluster.credential.harvester.memory"
             output-as="string"
@@ -1165,7 +1165,7 @@ export default {
       <div class="row mt-20">
         <div class="col span-6">
           <LabeledSelect
-            v-model="value.vmNamespace"
+            v-model:value="value.vmNamespace"
             :mode="mode"
             :options="namespaceOptions"
             :searchable="true"
@@ -1180,7 +1180,7 @@ export default {
 
         <div class="col span-6">
           <LabeledInput
-            v-model="value.sshUser"
+            v-model:value="value.sshUser"
             label-key="cluster.credential.harvester.sshUser"
             :required="true"
             :mode="mode"
@@ -1197,15 +1197,13 @@ export default {
         {{ t('cluster.credential.harvester.volume.title') }}
       </h2>
       <draggable
-        v-model="disks"
+        v-model:value="disks"
         :disabled="isView"
         @end="update"
       >
         <transition-group>
           <div
-            v-for="(disk, i) in disks"
-            :key="`${disk.bootOrder}${i}`"
-          >
+            v-for="(disk, i) in disks" :key="i">
             <InfoBox
               class="box"
               :class="[disks.length === i +1 ? 'mb-10' : 'mb-20']"
@@ -1227,7 +1225,7 @@ export default {
                 <div class="col span-6">
                   <LabeledSelect
                     v-if="disk.hasOwnProperty('imageName')"
-                    v-model="disk.imageName"
+                    v-model:value="disk.imageName"
                     :mode="mode"
                     :options="imageOptions"
                     :required="true"
@@ -1236,24 +1234,24 @@ export default {
                     label-key="cluster.credential.harvester.image"
                     :placeholder="t('cluster.harvester.machinePool.image.placeholder')"
                     @on-open="onOpen"
-                    @input="update"
+                    @update:value="update"
                   />
 
                   <LabeledSelect
                     v-else
-                    v-model="disk.storageClassName"
+                    v-model:value="disk.storageClassName"
                     :options="storageClassOptions"
                     label-key="cluster.credential.harvester.volume.storageClass"
                     :mode="mode"
                     :disabled="disabled"
                     :required="true"
-                    @input="update"
+                    @update:value="update"
                   />
                 </div>
 
                 <div class="col span-6">
                   <UnitInput
-                    v-model="disk.size"
+                    v-model:value="disk.size"
                     v-int-number
                     label-key="cluster.credential.harvester.disk"
                     output-as="string"
@@ -1262,7 +1260,7 @@ export default {
                     :disabled="disabled"
                     required
                     :placeholder="t('cluster.harvester.machinePool.disk.placeholder')"
-                    @input="update"
+                    @update:value="update"
                   />
                 </div>
               </div>
@@ -1319,9 +1317,7 @@ export default {
 
       <h2>{{ t('cluster.credential.harvester.network.title') }}</h2>
       <div
-        v-for="(network, i) in interfaces"
-        :key="i"
-      >
+        v-for="(network, i) in interfaces" :key="i">
         <InfoBox
           class="box"
           :class="[interfaces.length === i +1 ? 'mb-10' : 'mb-20']"
@@ -1346,22 +1342,22 @@ export default {
           >
             <div class="col span-6">
               <LabeledSelect
-                v-model="network.networkName"
+                v-model:value="network.networkName"
                 :mode="mode"
                 :options="networkOptions"
                 :required="true"
                 label-key="cluster.credential.harvester.network.networkName"
                 :placeholder="t('cluster.harvester.machinePool.network.placeholder')"
-                @input="update"
+                @update:value="update"
               />
             </div>
 
             <!-- <div class="col span-6">
               <LabeledInput
-                v-model="network.macAddress"
+                v-model:value="network.macAddress"
                 label-key="cluster.credential.harvester.network.macAddress"
                 :mode="mode"
-                @input="update"
+                @update:value="update"
               />
             </div> -->
           </div>
@@ -1382,7 +1378,7 @@ export default {
         </h3>
         <div>
           <ArrayListSelect
-            v-model="vGpus"
+            v-model:value="vGpus"
             class="mt-20"
             :array-list-props="{
               addAllowed: true,
@@ -1397,7 +1393,7 @@ export default {
             }"
             :options="vGpuOptions"
             label-key="harvesterManager.vGpu.label"
-            @input="updateVGpu"
+            @update:value="updateVGpu"
           />
         </div>
 
@@ -1407,30 +1403,30 @@ export default {
         <div>
           <LabeledSelect
             v-if="isCreate"
-            v-model="userDataTemplate"
+            v-model:value="userDataTemplate"
             class="mb-10"
             :options="userDataOptions"
             label-key="cluster.credential.harvester.userData.label"
             :mode="mode"
             :disabled="disabled"
-            @input="updateUserData"
+            @update:value="updateUserData"
           />
 
           <YamlEditor
             ref="userDataYamlEditor"
-            v-model="userData"
+            v-model:value="userData"
             class="yaml-editor mb-10"
             :editor-mode="mode === 'view' ? 'VIEW_CODE' : 'EDIT_CODE'"
             :disabled="disabled"
           />
 
           <Checkbox
-            v-model="installAgent"
+            v-model:value="installAgent"
             class="check mb-20"
             type="checkbox"
             label-key="cluster.credential.harvester.installGuestAgent"
             :mode="mode"
-            @input="updateAgent"
+            @update:value="updateAgent"
           />
         </div>
 
@@ -1438,7 +1434,7 @@ export default {
         <div>
           <LabeledSelect
             v-if="isCreate"
-            v-model="networkData"
+            v-model:value="networkData"
             class="mb-10"
             :options="networkDataOptions"
             label-key="cluster.credential.harvester.networkData.label"
@@ -1465,7 +1461,7 @@ export default {
         <NodeAffinity
           :mode="mode"
           :value="vmAffinity.affinity.nodeAffinity"
-          @input="updateNodeScheduling"
+          @update:value="updateNodeScheduling"
         />
 
         <h3 class="mt-20">
@@ -1486,9 +1482,7 @@ export default {
     </div>
     <div v-if="errors.length">
       <div
-        v-for="(err, idx) in errors"
-        :key="idx"
-      >
+        v-for="(err, idx) in errors" :key="idx">
         <Banner
           color="error"
           :label="stringify(err.Message || err)"
@@ -1501,7 +1495,7 @@ export default {
 <style lang="scss" scoped>
 $yaml-height: 200px;
 
-::v-deep .yaml-editor {
+:deep() .yaml-editor {
   flex: 1;
   min-height: $yaml-height;
   & .code-mirror .CodeMirror {
@@ -1511,7 +1505,7 @@ $yaml-height: 200px;
   }
 }
 
-::v-deep .info-box {
+:deep() .info-box {
   margin-bottom: 10px;
 }
 

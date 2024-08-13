@@ -39,7 +39,7 @@ export default {
   },
   data() {
     if (!this.value.spec[this.type]) {
-      this.$set(this.value.spec, this.type, []);
+      this.value.spec[this.type] = [];
     }
 
     return {};
@@ -69,16 +69,14 @@ export default {
           @removeTab="removePolicyRule"
         >
           <Tab
-            v-for="(policyRule, idx) in value.spec[type]"
-            :key="'filtered-rule-' + type + idx"
-            :name="'rule-' + type + idx"
+            v-for="(policyRule, idx) in value.spec[type]" :key="idx":name="'rule-' + type + idx"
             :label="policyRouleLabel(idx)"
             :show-header="false"
             class="container-group"
           >
             <PolicyRule
               ref="lastRule"
-              v-model="value.spec[type][idx]"
+              v-model:value="value.spec[type][idx]"
               :mode="mode"
               :type="type"
               :namespace="value.metadata.namespace"

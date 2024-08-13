@@ -1352,7 +1352,7 @@ export default {
 
     // Set busy before save and clear after save
     async saveOverride(btnCb) {
-      this.$set(this, 'busy', true);
+      this['busy'] = true;
 
       // If the provider is from an extension, let it do the provision step
       if (this.extensionProvider?.provision) {
@@ -1360,7 +1360,7 @@ export default {
         const okay = (errors || []).length === 0;
 
         this.errors = errors;
-        this.$set(this, 'busy', false);
+        this['busy'] = false;
 
         btnCb(okay);
 
@@ -1372,7 +1372,7 @@ export default {
 
       // Default save
       return this._doSaveOverride((done) => {
-        this.$set(this, 'busy', false);
+        this['busy'] = false;
 
         return btnCb(done);
       });
@@ -1624,7 +1624,7 @@ export default {
     },
 
     onMembershipUpdate(update) {
-      this.$set(this, 'membershipUpdate', update);
+      this['membershipUpdate'] = update;
     },
 
     async initRegistry() {
@@ -1966,9 +1966,9 @@ export default {
      */
     machinePoolValidationChanged(id, value) {
       if (value === undefined) {
-        this.$delete(this.machinePoolValidation, id);
+        delete this.machinePoolValidation[id];
       } else {
-        this.$set(this.machinePoolValidation, id, value);
+        this.machinePoolValidation[id] = value;
       }
     },
     handleEnabledSystemServicesChanged(val) {
@@ -2120,7 +2120,7 @@ export default {
     </div>
     <SelectCredential
       v-if="needCredential"
-      v-model="credentialId"
+      v-model:value="credentialId"
       :mode="mode"
       :provider="provider"
       :cancel="cancelCredential"
@@ -2146,7 +2146,7 @@ export default {
         description-label="cluster.description.label"
         description-placeholder="cluster.description.placeholder"
         :rules="{ name: fvGetAndReportPathRules('metadata.name') }"
-        @input="$emit('input', $event)"
+        @update:value="$emit('input', $event)"
       >
         <template
           slot="customize"
@@ -2208,7 +2208,7 @@ export default {
           @addTab="addMachinePool($event)"
           @removeTab="removeMachinePool($event)"
         >
-          <template v-for="(obj, idx) in machinePools">
+          <template v-for="(obj, idx) in machinePools" :key="idx">
             <Tab
               v-if="!obj.remove"
               :key="obj.id"
@@ -2277,7 +2277,7 @@ export default {
             :cloud-provider-options="cloudProviderOptions"
             :is-azure-provider-unsupported="isAzureProviderUnsupported"
             :can-azure-migrate-on-edit="canAzureMigrateOnEdit"
-            @input="$emit('input', $event)"
+            @update:value="$emit('input', $event)"
             @cilium-values-changed="handleCiliumValuesChanged"
             @enabled-system-services-changed="handleEnabledSystemServicesChanged"
             @kubernetes-changed="handleKubernetesChange"
@@ -2298,7 +2298,7 @@ export default {
             :value="value"
             :mode="mode"
             :on-membership-update="onMembershipUpdate"
-            @input="$emit('input', $event)"
+            @update:value="$emit('input', $event)"
           />
         </Tab>
         <!-- etcd -->
@@ -2312,7 +2312,7 @@ export default {
             :s3-backup="s3Backup"
             :register-before-hook="registerBeforeHook"
             :selected-version="selectedVersion"
-            @input="$emit('input', $event)"
+            @update:value="$emit('input', $event)"
             @s3-backup-changed="handleS3BackupChanged"
             @config-etcd-expose-metrics-changed="handleConfigEtcdExposeMetricsChanged"
           />
@@ -2329,7 +2329,7 @@ export default {
             :mode="mode"
             :selected-version="selectedVersion"
             :truncate-limit="truncateLimit"
-            @input="$emit('input', $event)"
+            @update:value="$emit('input', $event)"
             @truncate-hostname="truncateHostname"
           />
         </Tab>
@@ -2342,7 +2342,7 @@ export default {
           <Upgrade
             :value="value"
             :mode="mode"
-            @input="$emit('input', $event)"
+            @update:value="$emit('input', $event)"
           />
         </Tab>
 
@@ -2359,7 +2359,7 @@ export default {
             :registry-host="registryHost"
             :registry-secret="registrySecret"
             :show-custom-registry-advanced-input="showCustomRegistryAdvancedInput"
-            @input="$emit('input', $event)"
+            @update:value="$emit('input', $event)"
             @update-configs-changed="updateConfigs"
             @custom-registry-changed="toggleCustomRegistry"
             @registry-host-changed="handleRegistryHostChanged"
@@ -2382,7 +2382,7 @@ export default {
             :addons-rev="addonsRev"
             :user-chart-values-temp="userChartValuesTemp"
             :init-yaml-editor="initYamlEditor"
-            @input="$emit('input', $event)"
+            @update:value="$emit('input', $event)"
             @update-questions="syncChartValues"
             @update-values="updateValues"
             @additional-manifest-changed="updateAdditionalManifest"
@@ -2396,7 +2396,7 @@ export default {
         >
           <AgentConfiguration
             v-if="value.spec.clusterAgentDeploymentCustomization"
-            v-model="value.spec.clusterAgentDeploymentCustomization"
+            v-model:value="value.spec.clusterAgentDeploymentCustomization"
             data-testid="rke2-cluster-agent-config"
             type="cluster"
             :mode="mode"
@@ -2410,7 +2410,7 @@ export default {
         >
           <AgentConfiguration
             v-if="value.spec.fleetAgentDeploymentCustomization"
-            v-model="value.spec.fleetAgentDeploymentCustomization"
+            v-model:value="value.spec.fleetAgentDeploymentCustomization"
             data-testid="rke2-fleet-agent-config"
             type="fleet"
             :mode="mode"
@@ -2429,19 +2429,19 @@ export default {
             :mode="mode"
             :have-arg-info="haveArgInfo"
             :selected-version="selectedVersion"
-            @input="$emit('input', $event)"
+            @update:value="$emit('input', $event)"
           />
         </Tab>
 
         <AgentEnv
           :value="value"
           :mode="mode"
-          @input="$emit('input', $event)"
+          @update:value="$emit('input', $event)"
         />
         <Labels
           :value="value"
           :mode="mode"
-          @input="$emit('input', $event)"
+          @update:value="$emit('input', $event)"
         />
 
         <!-- Extension tabs -->

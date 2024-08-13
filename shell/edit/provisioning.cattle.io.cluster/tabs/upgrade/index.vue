@@ -44,14 +44,14 @@ export default {
       <div class="col span-6">
         <h3>{{ t('cluster.rke2.controlPlaneConcurrency.header') }}</h3>
         <LabeledInput
-          v-model="rkeConfig.upgradeStrategy.controlPlaneConcurrency"
+          v-model:value="rkeConfig.upgradeStrategy.controlPlaneConcurrency"
           :mode="mode"
           :label="t('cluster.rke2.controlPlaneConcurrency.label')"
           :tooltip="t('cluster.rke2.controlPlaneConcurrency.toolTip')"
         />
         <div class="spacer" />
         <DrainOptions
-          v-model="rkeConfig.upgradeStrategy.controlPlaneDrainOptions"
+          v-model:value="rkeConfig.upgradeStrategy.controlPlaneDrainOptions"
           :mode="mode"
         />
       </div>
@@ -60,14 +60,14 @@ export default {
           {{ t('cluster.rke2.workNode.label') }}
         </h3>
         <LabeledInput
-          v-model="rkeConfig.upgradeStrategy.workerConcurrency"
+          v-model:value="rkeConfig.upgradeStrategy.workerConcurrency"
           :mode="mode"
           :label="t('cluster.rke2.workerConcurrency.label')"
           :tooltip="t('cluster.rke2.workerConcurrency.toolTip')"
         />
         <div class="spacer" />
         <DrainOptions
-          v-model="rkeConfig.upgradeStrategy.workerDrainOptions"
+          v-model:value="rkeConfig.upgradeStrategy.workerDrainOptions"
           :mode="mode"
         />
       </div>

@@ -40,7 +40,7 @@ export default defineComponent({
      */
     items: {
       type: Array as PropType<string[]>,
-      default() {
+      default(props) {
         return [];
       },
     },
@@ -106,7 +106,7 @@ export default defineComponent({
      * Create an array of error messages, one for each current error
      */
     errorMessagesArray(): string[] {
-      return (Object.keys(this.errors) as Error[])
+      return (Object.keys(props.errors) as Error[])
         .filter((f) => this.errors[f] && this.errorMessages[f])
         .map((k) => this.errorMessages[k]);
     },
@@ -432,9 +432,7 @@ export default defineComponent({
       @dblclick="onClickEmptyBody()"
     >
       <div
-        v-for="(item, index) in items"
-        :key="item"
-        :ref="item"
+        v-for="(item, index) in items" :key="index":ref="item"
         :class="{
           selected: selected === item,
           readonly
@@ -460,7 +458,7 @@ export default defineComponent({
           :data-testid="`item-edit-${item}`"
           class="edit-input static"
           :value="value != null ? value : item"
-          @input="onChange($event, index)"
+          @update:value="onChange($event, index)"
           @blur.prevent="updateItem(item)"
           @keydown.native.enter="updateItem(item, !errors.duplicate)"
         />
@@ -476,7 +474,7 @@ export default defineComponent({
           type="text"
           :value="value"
           :placeholder="placeholder"
-          @input="onChange($event)"
+          @update:value="onChange($event)"
           @blur.prevent="saveItem"
           @keydown.native.enter="saveItem(!errors.duplicate)"
         />
@@ -515,9 +513,7 @@ export default defineComponent({
           class="icon icon-warning icon-lg"
         />
         <span
-          v-for="(msg, idx) in errorMessagesArray"
-          :key="idx"
-          :data-testid="`span-error-message-${msg}`"
+          v-for="(msg, idx) in errorMessagesArray" :key="idx":data-testid="`span-error-message-${msg}`"
           class="error"
         >
           {{ idx > 0 ? '; ' : '' }}
@@ -637,7 +633,7 @@ export default defineComponent({
   }
 }
 
-::v-deep {
+:deep() {
   .labeled-input INPUT.no-label,
   .labeled-input INPUT:hover.no-label,
   .labeled-input INPUT:focus.no-label {

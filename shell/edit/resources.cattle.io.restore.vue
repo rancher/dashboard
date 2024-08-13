@@ -81,7 +81,7 @@ export default {
 
   data() {
     if (!this.value.spec) {
-      this.$set(this.value, 'spec', { prune: true, deleteTimeoutSeconds: 10 });
+      this.value['spec'] = { prune: true, deleteTimeoutSeconds: 10 };
     }
 
     if (!this.value.metadata.name) {
@@ -160,7 +160,7 @@ export default {
         delete this.value.spec.storageLocation;
         delete this.value.spec.backupFilename;
       } else if (!this.value.spec.storageLocation && neu === 'configureS3') {
-        this.$set(this.value.spec, 'storageLocation', { s3: {} });
+        this.value.spec['storageLocation'] = { s3: {} };
         this.s3 = this.value.spec.storageLocation.s3;
       }
       if (neu === 'useBackup') {
@@ -198,7 +198,7 @@ export default {
       if (neu.spec.encryptionConfigSecretName && this.encryptionSecretNames.includes(neu.spec.encryptionConfigSecretName)) {
         out.encryptionConfigSecretName = neu.spec.encryptionConfigSecretName;
       }
-      this.$set(this.value, 'spec', { ...this.value.spec, ...out });
+      this.value['spec'] = { ...this.value.spec, ...out };
 
       this.targetBackup = neu;
     }
@@ -223,7 +223,7 @@ export default {
         <div class="row mb-10">
           <div class="col span-12">
             <RadioGroup
-              v-model="storageSource"
+              v-model:value="storageSource"
               name="storageSource"
               :label="t('backupRestoreOperator.s3.titles.backupLocation')"
               :options="radioOptions.options"
@@ -234,7 +234,7 @@ export default {
         </div>
         <template v-if="storageSource === 'configureS3'">
           <S3
-            v-model="s3"
+            v-model:value="s3"
             :mode="mode"
           />
         </template>
@@ -250,7 +250,7 @@ export default {
               :mode="mode"
               option-label="metadata.name"
               :label="t('backupRestoreOperator.targetBackup')"
-              @input="updateTargetBackup"
+              @update:value="updateTargetBackup"
             />
           </div>
         </div>
@@ -264,7 +264,7 @@ export default {
         >
           <div class="col span-6">
             <LabeledInput
-              v-model="value.spec.backupFilename"
+              v-model:value="value.spec.backupFilename"
               :spellcheck="false"
               required
               :mode="mode"
@@ -274,7 +274,7 @@ export default {
           <div class="col span-6">
             <LabeledSelect
               v-if="isEncrypted"
-              v-model="value.spec.encryptionConfigSecretName"
+              v-model:value="value.spec.encryptionConfigSecretName"
               :status="mode === 'view' ? null : 'warning'"
               :tooltip="mode === 'view' ? null : t('backupRestoreOperator.encryptionConfigName.restoretip')"
               :hover-tooltip="true"
@@ -290,7 +290,7 @@ export default {
         >
           <div class="col span-6">
             <Checkbox
-              v-model="value.spec.prune"
+              v-model:value="value.spec.prune"
               class="mb-5"
               :label="t('backupRestoreOperator.prune.label')"
               :mode="mode"
@@ -306,7 +306,7 @@ export default {
             </Checkbox>
             <UnitInput
               v-if="value.spec.prune"
-              v-model="value.spec.deleteTimeoutSeconds"
+              v-model:value="value.spec.deleteTimeoutSeconds"
               :suffix="t('suffix.seconds', {count: value.spec.deleteTimeoutSeconds})"
               :mode="mode"
               :label="t('backupRestoreOperator.deleteTimeout.label')"

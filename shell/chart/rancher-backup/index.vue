@@ -183,7 +183,7 @@ export default {
         :label="t('backupRestoreOperator.deployment.storage.tip')"
       />
       <RadioGroup
-        v-model="storageSource"
+        v-model:value="storageSource"
         name="storageSource"
         :label="t('backupRestoreOperator.deployment.storage.label')"
         class="mb-10"
@@ -201,8 +201,7 @@ export default {
           <template v-if="storageSource === 'pickSC'">
             <div class="col span-6">
               <LabeledSelect
-                :key="storageSource"
-                v-model="storageClass"
+                v-model:value="storageClass"
                 :get-option-label="opt => opt.id || opt"
                 :label="t('backupRestoreOperator.deployment.storage.storageClass.label')"
                 :tooltip="reclaimWarning ? t('backupRestoreOperator.deployment.storage.warning', {type: 'Storage Class'}) : null"
@@ -215,7 +214,7 @@ export default {
             </div>
             <div class="col span-6">
               <LabeledInput
-                v-model="value.persistence.size"
+                v-model:value="value.persistence.size"
                 :mode="mode"
                 :label="t('backupRestoreOperator.deployment.size')"
               />
@@ -226,8 +225,7 @@ export default {
             class="col span-6"
           >
             <LabeledSelect
-              :key="storageSource"
-              v-model="persistentVolume"
+              v-model:value="persistentVolume"
               :get-option-label="opt => opt.id || opt"
               :label="t('backupRestoreOperator.deployment.storage.persistentVolume.label')"
               :tooltip="reclaimWarning ? t('backupRestoreOperator.deployment.storage.warning', {type: 'Persistent Volume'}) : null"
@@ -244,7 +242,7 @@ export default {
 </template>
 
 <style lang='scss' scoped>
-::v-deep .radio-group.label>SPAN {
+:deep() .radio-group.label>SPAN {
   font-size: 1em;
 }
 </style>

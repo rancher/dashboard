@@ -303,19 +303,19 @@ export default {
       <div class="fields">
         <Checkbox
           v-if="isChange"
-          v-model="form.deleteKeys"
+          v-model:value="form.deleteKeys"
           label-key="changePassword.deleteKeys.label"
           class="mt-10"
         />
         <Checkbox
           v-if="isCreateEdit"
-          v-model="userChangeOnLogin"
+          v-model:value="userChangeOnLogin"
           label-key="changePassword.changeOnLogin.label"
           class="mt-10 type"
         />
         <Checkbox
           v-if="isCreateEdit"
-          v-model="isRandomGenerated"
+          v-model:value="isRandomGenerated"
           label-key="changePassword.generatePassword.label"
           class="mt-10 type"
         />
@@ -341,7 +341,7 @@ export default {
         >
         <Password
           v-if="isChange"
-          v-model="passwordCurrent"
+          v-model:value="passwordCurrent"
           data-testid="account__current_password"
           class="mt-10"
           :required="true"
@@ -353,7 +353,7 @@ export default {
         >
           <div :class="{'col': isCreateEdit, 'span-8': isCreateEdit}">
             <Password
-              v-model="passwordGen"
+              v-model:value="passwordGen"
               class="mt-10"
               :is-random="true"
               :required="false"
@@ -368,7 +368,7 @@ export default {
         >
           <div :class="{'col': isCreateEdit, 'span-4': isCreateEdit}">
             <Password
-              v-model="passwordNew"
+              v-model:value="passwordNew"
               data-testid="account__new_password"
               class="mt-10"
               :label="t('changePassword.userGen.newPassword.label')"
@@ -378,7 +378,7 @@ export default {
           </div>
           <div :class="{'col': isCreateEdit, 'span-4': isCreateEdit}">
             <Password
-              v-model="passwordConfirm"
+              v-model:value="passwordConfirm"
               data-testid="account__confirm_password"
               class="mt-10"
               :label="t('changePassword.userGen.confirmPassword.label')"
@@ -391,7 +391,7 @@ export default {
       </div>
       <Checkbox
         v-if="isChange"
-        v-model="isRandomGenerated"
+        v-model:value="isRandomGenerated"
         label-key="changePassword.generatePassword.label"
         class="mt-10 type"
       />
@@ -403,9 +403,7 @@ export default {
     >
       <div :class="{'col': isCreateEdit, 'span-8': isCreateEdit}">
         <Banner
-          v-for="(err, i) in errorMessages"
-          :key="i"
-          color="error"
+          v-for="(err, i) in errorMessages" :key="i"color="error"
           :label="err"
           class="mb-0"
         />

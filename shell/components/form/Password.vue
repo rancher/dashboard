@@ -94,7 +94,7 @@ export default {
   <div class="password">
     <LabeledInput
       ref="input"
-      v-model="password"
+      v-model:value="password"
       v-bind="attributes"
       :type="isRandom || reveal ? 'text' : 'password'"
       :readonly="isRandom"

@@ -92,7 +92,7 @@ export default {
       });
     },
     onMembershipUpdate(update) {
-      this.$set(this, 'membershipUpdate', update);
+      this['membershipUpdate'] = update;
     },
   },
 };
@@ -119,7 +119,7 @@ export default {
         name-placeholder="cluster.name.placeholder"
         description-label="cluster.description.label"
         description-placeholder="cluster.description.placeholder"
-        @input="$emit('input', $event)"
+        @update:value="$emit('input', $event)"
       />
     </div>
 
@@ -144,12 +144,12 @@ export default {
       <AgentEnv
         :value="value"
         :mode="mode"
-        @input="$emit('input', $event)"
+        @update:value="$emit('input', $event)"
       />
       <Labels
         :value="value"
         :mode="mode"
-        @input="$emit('input', $event)"
+        @update:value="$emit('input', $event)"
       />
     </Tabbed>
   </CruResource>

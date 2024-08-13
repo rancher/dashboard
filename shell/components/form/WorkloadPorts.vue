@@ -223,7 +223,7 @@ export default {
         const portSpec = findBy(this.loadBalancerServicePorts, 'name', _name);
 
         if (portSpec) {
-          this.$set(row, '_listeningPort', portSpec.port);
+          row['_listeningPort'] = portSpec.port;
 
           row._serviceType = 'LoadBalancer';
 
@@ -233,7 +233,7 @@ export default {
         const portSpec = findBy(this.nodePortServicePorts, 'name', _name);
 
         if (portSpec) {
-          this.$set(row, '_listeningPort', portSpec.nodePort);
+          row['_listeningPort'] = portSpec.nodePort;
 
           row._serviceType = 'NodePort';
 
@@ -268,9 +268,7 @@ export default {
       {{ t('workload.container.ports.detailedDescription') }}
     </p>
     <div
-      v-for="(row, idx) in rows"
-      :key="idx"
-      class="ports-row"
+      v-for="(row, idx) in rows" :key="idx"class="ports-row"
       :class="{
         'show-host':row._showHost,
         'loadBalancer': row._serviceType === 'LoadBalancer',
@@ -280,23 +278,23 @@ export default {
     >
       <div class="service-type">
         <LabeledSelect
-          v-model="row._serviceType"
+          v-model:value="row._serviceType"
           :mode="mode"
           :label="t('workload.container.ports.createService')"
           :options="serviceTypes"
           :disabled="canNotAccessService"
           :tooltip="serviceTypeTooltip"
-          @input="queueUpdate"
+          @update:value="queueUpdate"
         />
       </div>
 
       <div class="portName">
         <LabeledInput
           ref="name"
-          v-model="row.name"
+          v-model:value="row.name"
           :mode="mode"
           :label="t('workload.container.ports.name')"
-          @input="queueUpdate"
+          @update:value="queueUpdate"
         />
       </div>
 
@@ -310,18 +308,18 @@ export default {
           placeholder="e.g. 8080"
           :label="t('workload.container.ports.containerPort')"
           :required="row._serviceType === 'LoadBalancer' "
-          @input="queueUpdate"
+          @update:value="queueUpdate"
         />
       </div>
 
       <div class="protocol col">
         <LabeledSelect
-          v-model="row.protocol"
+          v-model:value="row.protocol"
           :mode="mode"
           :options="workloadPortOptions"
           :multiple="false"
           :label="t('workload.container.ports.protocol')"
-          @input="queueUpdate"
+          @update:value="queueUpdate"
         />
       </div>
 
@@ -338,7 +336,7 @@ export default {
           max="65535"
           placeholder="e.g. 80"
           :label="t('workload.container.ports.hostPort')"
-          @input="queueUpdate"
+          @update:value="queueUpdate"
         />
       </div>
 
@@ -348,11 +346,11 @@ export default {
       >
         <LabeledInput
           ref="port"
-          v-model="row.hostIP"
+          v-model:value="row.hostIP"
           :mode="mode"
           placeholder="e.g. 1.1.1.1"
           :label="t('workload.container.ports.hostIP')"
-          @input="queueUpdate"
+          @update:value="queueUpdate"
         />
       </div>
 
@@ -378,29 +376,29 @@ export default {
           :mode="mode"
           :label="t('workload.container.ports.listeningPort')"
           :required="row._serviceType === 'LoadBalancer' "
-          @input="queueUpdate"
+          @update:value="queueUpdate"
         />
       </div>
 
       <div v-if="showIpam && row._serviceType === 'LoadBalancer' && row.protocol === 'TCP'">
         <div v-if="idx === ipamIndex">
           <LabeledSelect
-            v-model="row._ipam"
+            v-model:value="row._ipam"
             :mode="mode"
             :options="ipamOptions"
             :label="t('servicesPage.harvester.ipam.label')"
             :disabled="mode === 'edit'"
-            @input="queueUpdate"
+            @update:value="queueUpdate"
           />
         </div>
         <div v-else>
           <LabeledSelect
-            v-model="rows[ipamIndex]._ipam"
+            v-model:value="rows[ipamIndex]._ipam"
             :mode="mode"
             :options="ipamOptions"
             :label="t('servicesPage.harvester.ipam.label')"
             :disabled="true"
-            @input="queueUpdate"
+            @update:value="queueUpdate"
           />
         </div>
       </div>
@@ -502,11 +500,11 @@ $checkbox: 75;
     padding: 5px 0;
   }
 }
-.ports-row .protocol ::v-deep .unlabeled-select,
-.ports-row .protocol ::v-deep .unlabeled-select .v-select {
+.ports-row .protocol :deep() .unlabeled-select,
+.ports-row .protocol :deep() .unlabeled-select .v-select {
   height: 100%;
 }
-.ports-row .protocol ::v-deep .unlabeled-select .vs__dropdown-toggle {
+.ports-row .protocol :deep() .unlabeled-select .vs__dropdown-toggle {
   padding-top: 12px;
 }
 </style>

@@ -275,7 +275,7 @@ export default {
           />
           <LabeledSelect
             v-if="showVersionSelector"
-            v-model="version"
+            v-model:value="version"
             label-key="plugins.install.version"
             :options="versionOptions"
             class="version-selector mt-10"

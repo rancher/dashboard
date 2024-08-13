@@ -549,7 +549,7 @@ export default {
     >
       <div :class="firstCol">
         <LabeledSelect
-          v-model="selected"
+          v-model:value="selected"
           data-testid="auth-secret-select"
           :mode="mode"
           :label-key="labelKey"
@@ -561,7 +561,7 @@ export default {
       <template v-if="selected === SSH">
         <div :class="moreCols">
           <LabeledInput
-            v-model="publicKey"
+            v-model:value="publicKey"
             data-testid="auth-secret-ssh-public-key"
             :mode="mode"
             type="multiline"
@@ -570,7 +570,7 @@ export default {
         </div>
         <div :class="moreCols">
           <LabeledInput
-            v-model="privateKey"
+            v-model:value="privateKey"
             data-testid="auth-secret-ssh-private-key"
             :mode="mode"
             type="multiline"
@@ -581,7 +581,7 @@ export default {
       <template v-else-if="selected === BASIC">
         <div :class="moreCols">
           <LabeledInput
-            v-model="publicKey"
+            v-model:value="publicKey"
             data-testid="auth-secret-basic-username"
             :mode="mode"
             label-key="selectOrCreateAuthSecret.basic.username"
@@ -589,7 +589,7 @@ export default {
         </div>
         <div :class="moreCols">
           <LabeledInput
-            v-model="privateKey"
+            v-model:value="privateKey"
             data-testid="auth-secret-basic-password"
             :mode="mode"
             type="password"
@@ -600,7 +600,7 @@ export default {
       <template v-else-if="selected === S3">
         <div :class="moreCols">
           <LabeledInput
-            v-model="publicKey"
+            v-model:value="publicKey"
             data-testid="auth-secret-s3-public-key"
             :mode="mode"
             label-key="selectOrCreateAuthSecret.s3.accessKey"
@@ -608,7 +608,7 @@ export default {
         </div>
         <div :class="moreCols">
           <LabeledInput
-            v-model="privateKey"
+            v-model:value="privateKey"
             data-testid="auth-secret-s3-private-key"
             :mode="mode"
             type="password"

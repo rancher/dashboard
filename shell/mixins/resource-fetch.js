@@ -1,4 +1,5 @@
-import Vue from 'vue';
+import { createApp } from 'vue';
+const vueApp = createApp({});
 import { mapGetters } from 'vuex';
 import { COUNT, MANAGEMENT } from '@shell/config/types';
 import { SETTING, DEFAULT_PERF_SETTING } from '@shell/config/settings';
@@ -139,7 +140,7 @@ export default {
           force:            this.paginating !== null // Fix for manual refresh (before ripped out).
         };
 
-        Vue.set(this, 'paginating', true);
+        this['paginating'] = true;
 
         const that = this;
 
@@ -147,7 +148,7 @@ export default {
           type,
           opt
         })
-          .finally(() => Vue.set(that, 'paginating', false));
+          .finally(() => (that['paginating'] = false));
       }
 
       let incremental = 0;

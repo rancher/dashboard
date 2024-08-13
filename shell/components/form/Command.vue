@@ -1,5 +1,6 @@
 <script>
-import Vue from 'vue';
+import { createApp } from 'vue';
+const vueApp = createApp({});
 
 import { LabeledInput } from '@components/Form/LabeledInput';
 import ShellInput from '@shell/components/form/ShellInput';
@@ -111,9 +112,9 @@ export default {
         const val = out[prop];
 
         if (val === '' || typeof val === 'undefined' || val === null) {
-          Vue.delete(this.value, prop);
+          delete this.value[prop];
         } else {
-          Vue.set(this.value, prop, val);
+          this.value[prop] = val;
         }
       }
 
@@ -131,11 +132,11 @@ export default {
       >
         <slot name="entrypoint">
           <ShellInput
-            v-model="command"
+            v-model:value="command"
             :mode="mode"
             :label="t('workload.container.command.command')"
             :placeholder="t('generic.placeholder', {text: '/bin/sh'}, true)"
-            @input="update"
+            @update:value="update"
           />
         </slot>
       </div>
@@ -145,11 +146,11 @@ export default {
       >
         <slot name="command">
           <ShellInput
-            v-model="args"
+            v-model:value="args"
             :mode="mode"
             :label="t('workload.container.command.args')"
             :placeholder="t('generic.placeholder', {text: '/usr/sbin/httpd -f httpd.conf'}, true)"
-            @input="update"
+            @update:value="update"
           />
         </slot>
       </div>
@@ -161,11 +162,11 @@ export default {
         data-testid="input-command-workingDir"
       >
         <LabeledInput
-          v-model="workingDir"
+          v-model:value="workingDir"
           :mode="mode"
           :label="t('workload.container.command.workingDir')"
           :placeholder="t('generic.placeholder', {text: '/myapp'}, true)"
-          @input="update"
+          @update:value="update"
         />
       </div>
       <div class="col span-6">
@@ -178,11 +179,11 @@ export default {
             data-testid="input-command-stdin"
           >
             <LabeledSelect
-              v-model="stdinSelect"
+              v-model:value="stdinSelect"
               :label="t('workload.container.command.stdin')"
               :options="commandOptions"
               :mode="mode"
-              @input="update"
+              @update:value="update"
             />
           </div>
           <div
@@ -191,10 +192,10 @@ export default {
             data-testid="input-command-tty"
           >
             <Checkbox
-              v-model="tty"
+              v-model:value="tty"
               :mode="mode"
               :label="t('workload.container.command.tty')"
-              @input="update"
+              @update:value="update"
             />
           </div>
         </div>

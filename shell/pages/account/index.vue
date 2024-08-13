@@ -153,7 +153,6 @@ export default {
     <h2 v-t="'accountAndKeys.account.title'" />
     <div class="account">
       <Principal
-        :key="principal.id"
         :value="principal.id"
         :use-muted="false"
         :show-labels="true"

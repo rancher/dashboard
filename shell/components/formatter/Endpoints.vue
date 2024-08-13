@@ -82,7 +82,7 @@ export default {
 
 <template>
   <span>
-    <template v-for="(endpoint, index) in parsed">
+    <template v-for="(endpoint, index) in parsed" :key="index">
       <span
         v-if="endpoint.display"
         :key="endpoint.display"

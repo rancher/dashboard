@@ -83,7 +83,7 @@ export default {
       :value="value"
       :mode="mode"
       :namespaced="isNamespaced"
-      @input="$emit('input', $event)"
+      @update:value="$emit('input', $event)"
     />
 
     <hr class="mt-20 mb-20">

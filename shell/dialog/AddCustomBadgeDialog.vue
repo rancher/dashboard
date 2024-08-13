@@ -183,9 +183,9 @@ export default {
           delete norman.annotations[CLUSTER_BADGE.ICON_TEXT];
           delete norman.annotations[CLUSTER_BADGE.TEXT];
 
-          this.$set(norman.annotations, CLUSTER_BADGE.COLOR, this.badgeColorPicker ? this.badgeBgColor : 'transparent');
-          this.$set(norman.annotations, CLUSTER_BADGE.ICON_TEXT, this.letter.toUpperCase());
-          this.$set(norman.annotations, CLUSTER_BADGE.TEXT, this.badgeComment);
+          norman.annotations[CLUSTER_BADGE.COLOR] = this.badgeColorPicker ? this.badgeBgColor : 'transparent';
+          norman.annotations[CLUSTER_BADGE.ICON_TEXT] = this.letter.toUpperCase();
+          norman.annotations[CLUSTER_BADGE.TEXT] = this.badgeComment;
 
           await norman.save();
 
@@ -257,7 +257,7 @@ export default {
         <!-- Badge abbreviation toggle & customisation -->
         <div class="badge-customisation-badge">
           <Checkbox
-            v-model="badgeAsIcon"
+            v-model:value="badgeAsIcon"
             :label="t('clusterBadge.modal.badgeAsIcon')"
 
             :tooltip="t('clusterBadge.modal.maxCharsTooltip')"
@@ -275,7 +275,7 @@ export default {
         <!-- Comment toggle & customisation section -->
         <div>
           <Checkbox
-            v-model="useCustomComment"
+            v-model:value="useCustomComment"
             :label="t('clusterBadge.modal.checkbox')"
           />
 
@@ -290,11 +290,11 @@ export default {
         <!-- Color toggle & customisation section -->
         <div class="badge-customisation-color">
           <Checkbox
-            v-model="badgeColorPicker"
+            v-model:value="badgeColorPicker"
             :label="t('clusterBadge.modal.badgeBgColor')"
           />
           <ColorInput
-            v-model="badgeBgColor"
+            v-model:value="badgeBgColor"
             :disabled="!badgeColorPicker"
             :default-value="badgeBgColor"
           />
@@ -307,9 +307,7 @@ export default {
       class="bottom"
     >
       <Banner
-        v-for="(err, i) in errors"
-        :key="i"
-        color="error"
+        v-for="(err, i) in errors" :key="i"color="error"
         :label="err"
       />
       <div class="buttons">
@@ -414,7 +412,7 @@ export default {
       padding: 2px 10px;
     }
 
-    ::v-deep .badge-icon-text input {
+    :deep() .badge-icon-text input {
       text-transform: uppercase;
     }
   }

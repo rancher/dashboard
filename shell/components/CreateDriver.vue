@@ -69,7 +69,7 @@ export default {
     </div>
     <div class="col span-6">
       <ArrayList
-        v-model="value.whitelistDomains"
+        v-model:value="value.whitelistDomains"
         :protip="false"
         :mode="mode"
         :title="t('drivers.add.whitelist')"

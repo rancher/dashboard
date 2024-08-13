@@ -84,7 +84,7 @@ export default {
           </h3>
           <ToggleSwitch
             v-if="value.hasSystemLabels"
-            v-model="toggler"
+            v-model:value="toggler"
             name="label-system-toggle"
             :on-label="t('labels.labels.show')"
           />
@@ -107,7 +107,7 @@ export default {
                 :mode="mode"
                 :read-allowed="false"
                 :value-can-be-empty="true"
-                @input="value.setLabels($event)"
+                @update:value="value.setLabels($event)"
               />
             </template>
           </slot>
@@ -130,7 +130,7 @@ export default {
         :title-protip="annotationTitleTooltip"
         :read-allowed="false"
         :value-can-be-empty="true"
-        @input="value.setAnnotations($event)"
+        @update:value="value.setAnnotations($event)"
       />
     </div>
   </div>

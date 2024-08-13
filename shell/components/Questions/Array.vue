@@ -18,13 +18,12 @@ export default {
   <div class="row">
     <div class="col span-6">
       <ArrayList
-        :key="question.variable"
         :value="value"
         :title="question.label"
         :mode="mode"
         :disabled="disabled"
         :protip="displayTooltip"
-        @input="update"
+        @update:value="update"
       />
     </div>
     <div

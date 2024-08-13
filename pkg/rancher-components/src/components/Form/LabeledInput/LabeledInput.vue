@@ -319,7 +319,7 @@ export default defineComponent({
         :placeholder="_placeholder"
         autocapitalize="off"
         :class="{ conceal: type === 'multiline-password' }"
-        @input="onInput"
+        @update:value="onInput"
         @focus="onFocus"
         @blur="onBlur"
       />

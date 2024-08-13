@@ -63,7 +63,7 @@ export default {
       const region = this.value.region || this.credential?.decodedData.defaultRegion || this.$store.getters['aws/defaultRegion'];
 
       if ( !this.value.region ) {
-        this.$set(this.value, 'region', region);
+        this.value['region'] = region;
       }
 
       this.ec2Client = await this.$store.dispatch('aws/ec2', { region, cloudCredentialId: this.credentialId });
@@ -100,18 +100,18 @@ export default {
       }
 
       if ( !this.value.zone ) {
-        this.$set(this.value, 'zone', 'a');
+        this.value['zone'] = 'a';
       }
 
       if ( !this.value.instanceType ) {
-        this.$set(this.value, 'instanceType', this.$store.getters['aws/defaultInstanceType']);
+        this.value['instanceType'] = this.$store.getters['aws/defaultInstanceType'];
       }
 
       this.initNetwork();
       this.initTags();
 
       if ( !this.value.securityGroup?.length ) {
-        this.$set(this.value, 'securityGroup', [DEFAULT_GROUP]);
+        this.value['securityGroup'] = [DEFAULT_GROUP];
       }
 
       if ( this.value.securityGroup?.length === 1 && this.value.securityGroup[0] === DEFAULT_GROUP ) {
@@ -374,7 +374,7 @@ export default {
         ary.push(k, tags[k]);
       }
 
-      this.$set(this.value, 'tags', ary.join(','));
+      this.value['tags'] = ary.join(',');
     },
 
     test() {
@@ -396,9 +396,7 @@ export default {
     <template v-else>
       <div v-if="errors.length">
         <div
-          v-for="(err, idx) in errors"
-          :key="idx"
-        >
+          v-for="(err, idx) in errors" :key="idx">
           <Banner
             color="error"
             :label="stringify(err)"
@@ -410,7 +408,7 @@ export default {
         <div class="row mb-20">
           <div class="col span-6">
             <LabeledSelect
-              v-model="value.region"
+              v-model:value="value.region"
               :mode="mode"
               :options="regionOptions"
               :required="true"
@@ -421,7 +419,7 @@ export default {
           </div>
           <div class="col span-6">
             <LabeledSelect
-              v-model="value.zone"
+              v-model:value="value.zone"
               :mode="mode"
               :options="zoneOptions"
               :required="true"
@@ -433,7 +431,7 @@ export default {
         <div class="row mb-20">
           <div class="col span-9">
             <LabeledSelect
-              v-model="value.instanceType"
+              v-model:value="value.instanceType"
               :mode="mode"
               :options="instanceOptions"
               :required="true"
@@ -454,7 +452,7 @@ export default {
           </div>
           <div class="col span-3">
             <UnitInput
-              v-model="value.rootSize"
+              v-model:value="value.rootSize"
               output-as="string"
               :mode="mode"
               :disabled="disabled"
@@ -477,7 +475,7 @@ export default {
               :label="t('cluster.machineConfig.amazonEc2.selectedNetwork.label')"
               data-testid="amazonEc2__selectedNetwork"
               option-key="value"
-              @input="updateNetwork($event)"
+              @update:value="updateNetwork($event)"
             >
               <template v-slot:option="opt">
                 <div :class="{'vpc': opt.kind === 'vpc', 'vpc-subnet': opt.kind !== 'vpc'}">
@@ -488,7 +486,7 @@ export default {
           </div>
           <div class="col span-6">
             <LabeledInput
-              v-model="value.iamInstanceProfile"
+              v-model:value="value.iamInstanceProfile"
               :mode="mode"
               :disabled="disabled"
               :required="isIamInstanceProfileNameRequired"
@@ -502,7 +500,7 @@ export default {
           <div class="row mt-20">
             <div class="col span-6">
               <LabeledInput
-                v-model="value.ami"
+                v-model:value="value.ami"
                 :mode="mode"
                 :disabled="disabled"
                 :placeholder="t('cluster.machineConfig.amazonEc2.ami.placeholder')"
@@ -511,7 +509,7 @@ export default {
             </div>
             <div class="col span-6">
               <LabeledInput
-                v-model="value.sshUser"
+                v-model:value="value.sshUser"
                 :mode="mode"
                 :label="t('cluster.machineConfig.amazonEc2.sshUser.label')"
                 :disabled="!value.ami || disabled"
@@ -533,7 +531,7 @@ export default {
                 </span>
               </h3>
               <RadioGroup
-                v-model="securityGroupMode"
+                v-model:value="securityGroupMode"
                 name="securityGroupMode"
                 :mode="mode"
                 :disabled="!value.vpcId || disabled"
@@ -542,7 +540,7 @@ export default {
               />
               <LabeledSelect
                 v-if="value.vpcId && securityGroupMode === 'custom'"
-                v-model="value.securityGroup"
+                v-model:value="value.securityGroup"
                 :mode="mode"
                 :disabled="!value.vpcId || disabled"
                 :options="securityGroupOptions"
@@ -556,7 +554,7 @@ export default {
           <div class="row mt-20">
             <div class="col span-6">
               <LabeledInput
-                v-model="value.volumeType"
+                v-model:value="value.volumeType"
                 :mode="mode"
                 :disabled="disabled"
                 :label="t('cluster.machineConfig.amazonEc2.volumeType.label')"
@@ -568,7 +566,7 @@ export default {
           <div class="row mt-20">
             <div class="col span-12">
               <Checkbox
-                v-model="value.encryptEbsVolume"
+                v-model:value="value.encryptEbsVolume"
                 :mode="mode"
                 :label="t('cluster.machineConfig.amazonEc2.encryptEbsVolume')"
               />
@@ -578,7 +576,7 @@ export default {
               >
                 <LabeledSelect
                   v-if="canReadKms"
-                  v-model="value.kmsKey"
+                  v-model:value="value.kmsKey"
                   :mode="mode"
                   :options="kmsOptions"
                   :disabled="disabled"
@@ -586,7 +584,7 @@ export default {
                 />
                 <template v-else>
                   <LabeledInput
-                    v-model="value.kmsKey"
+                    v-model:value="value.kmsKey"
                     :mode="mode"
                     :disabled="disabled"
                     :label="t('cluster.machineConfig.amazonEc2.kmsKey.label')"
@@ -601,7 +599,7 @@ export default {
           <div class="row mt-20">
             <div class="col span-6">
               <Checkbox
-                v-model="value.requestSpotInstance"
+                v-model:value="value.requestSpotInstance"
                 :mode="mode"
                 :label="t('cluster.machineConfig.amazonEc2.requestSpotInstance')"
               />
@@ -610,7 +608,7 @@ export default {
                 class="mt-10"
               >
                 <UnitInput
-                  v-model="value.spotPrice"
+                  v-model:value="value.spotPrice"
                   output-as="string"
                   :mode="mode"
                   :disabled="disabled"
@@ -626,7 +624,7 @@ export default {
             <div class="col span-12">
               <div>
                 <Checkbox
-                  v-model="value.privateAddressOnly"
+                  v-model:value="value.privateAddressOnly"
                   :mode="mode"
                   :disabled="disabled"
                   :label="t('cluster.machineConfig.amazonEc2.privateAddressOnly')"
@@ -634,7 +632,7 @@ export default {
               </div>
               <div>
                 <Checkbox
-                  v-model="value.useEbsOptimizedInstance"
+                  v-model:value="value.useEbsOptimizedInstance"
                   :mode="mode"
                   :disabled="disabled"
                   :label="t('cluster.machineConfig.amazonEc2.useEbsOptimizedInstance')"
@@ -642,7 +640,7 @@ export default {
               </div>
               <div>
                 <Checkbox
-                  v-model="value.httpEndpoint"
+                  v-model:value="value.httpEndpoint"
                   value-when-true="enabled"
                   :mode="mode"
                   :disabled="disabled"
@@ -651,7 +649,7 @@ export default {
               </div>
               <div>
                 <Checkbox
-                  v-model="value.httpTokens"
+                  v-model:value="value.httpTokens"
                   value-when-true="required"
                   :mode="mode"
                   :disabled="!value.httpEndpoint || disabled"
@@ -670,7 +668,7 @@ export default {
                 :label="t('cluster.machineConfig.amazonEc2.tagTitle')"
                 :add-label="t('labels.addTag')"
                 :disabled="disabled"
-                @input="updateTags"
+                @update:value="updateTags"
               />
             </div>
           </div>

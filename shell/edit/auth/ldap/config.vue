@@ -94,12 +94,12 @@ export default {
 </script>
 
 <template>
-  <div @input="$emit('input', model)">
+  <div @update:value="$emit('input', model)">
     <template>
       <div class="row mb-20">
         <div class="col span-6">
           <LabeledInput
-            v-model="hostname"
+            v-model:value="hostname"
             required
             :mode="mode"
             :hoover-tooltip="true"
@@ -117,13 +117,13 @@ export default {
             :step="1"
             :mode="mode"
             :label="t('authConfig.ldap.port')"
-            @input="e=>$set(model, 'port', e.replace(/[^0-9]*/g, ''))"
+            @update:value="e=>$set(model, 'port', e.replace(/[^0-9]*/g, ''))"
           />
         </div>
 
         <div class="col">
           <Checkbox
-            v-model="model.tls"
+            v-model:value="model.tls"
             :mode="mode"
             class="full-height"
             :label="t('authConfig.ldap.tls')"
@@ -131,7 +131,7 @@ export default {
         </div>
         <div class="col span-1">
           <Checkbox
-            v-model="model.starttls"
+            v-model:value="model.starttls"
             :tooltip="t('authConfig.ldap.starttls.tip')"
             :mode="mode"
             class="full-height"
@@ -145,7 +145,7 @@ export default {
       >
         <div class="col span-12">
           <LabeledInput
-            v-model="model.certificate"
+            v-model:value="model.certificate"
             required
             type="multiline"
             :mode="mode"
@@ -162,7 +162,7 @@ export default {
       <div class="row mb-20">
         <div class="col span-6">
           <UnitInput
-            v-model="model.connectionTimeout"
+            v-model:value="model.connectionTimeout"
             required
             :mode="mode"
             :label="t('authConfig.ldap.serverConnectionTimeout')"
@@ -180,7 +180,7 @@ export default {
           class="col span-6"
         >
           <LabeledInput
-            v-model="model.serviceAccountUsername"
+            v-model:value="model.serviceAccountUsername"
             required
             :mode="mode"
             :label="t('authConfig.ldap.serviceAccountDN')"
@@ -192,7 +192,7 @@ export default {
           class="col span-6"
         >
           <LabeledInput
-            v-model="model.serviceAccountDistinguishedName"
+            v-model:value="model.serviceAccountDistinguishedName"
             required
             :mode="mode"
             :label="t('authConfig.ldap.serviceAccountDN')"
@@ -200,7 +200,7 @@ export default {
         </div>
         <div class="col span-6">
           <LabeledInput
-            v-model="model.serviceAccountPassword"
+            v-model:value="model.serviceAccountPassword"
             required
             type="password"
             :mode="mode"
@@ -214,7 +214,7 @@ export default {
       >
         <div class="col span-6">
           <LabeledInput
-            v-model="model.defaultLoginDomain"
+            v-model:value="model.defaultLoginDomain"
             :hoover-tooltip="true"
             :tooltip="t('authConfig.ldap.defaultLoginDomain.hint')"
             :placeholder="t('authConfig.ldap.defaultLoginDomain.placeholder')"
@@ -226,7 +226,7 @@ export default {
       <div class="row mb-20">
         <div class="col span-6">
           <LabeledInput
-            v-model="model.userSearchBase"
+            v-model:value="model.userSearchBase"
             required
             :mode="mode"
             :label="t('authConfig.ldap.userSearchBase.label')"
@@ -235,7 +235,7 @@ export default {
         </div>
         <div class="col span-6">
           <LabeledInput
-            v-model="model.groupSearchBase"
+            v-model:value="model.groupSearchBase"
             :mode="mode"
             :placeholder="t('authConfig.ldap.groupSearchBase.placeholder')"
             :label="t('authConfig.ldap.groupSearchBase.label')"
@@ -263,14 +263,14 @@ export default {
       <div class="row mb-20">
         <div class="col span-6">
           <LabeledInput
-            v-model="model.userObjectClass"
+            v-model:value="model.userObjectClass"
             :mode="mode"
             :label="t('authConfig.ldap.objectClass')"
           />
         </div>
         <div class="col span-6">
           <LabeledInput
-            v-model="model.groupObjectClass"
+            v-model:value="model.groupObjectClass"
             :mode="mode"
             :label="t('authConfig.ldap.objectClass')"
           />
@@ -279,14 +279,14 @@ export default {
       <div class="row mb-20">
         <div class="col span-6">
           <LabeledInput
-            v-model="model.userNameAttribute"
+            v-model:value="model.userNameAttribute"
             :mode="mode"
             :label="t('authConfig.ldap.usernameAttribute')"
           />
         </div>
         <div class="col span-6">
           <LabeledInput
-            v-model="model.groupNameAttribute"
+            v-model:value="model.groupNameAttribute"
             :mode="mode"
             :label="t('authConfig.ldap.nameAttribute')"
           />
@@ -295,14 +295,14 @@ export default {
       <div class="row mb-20">
         <div class="col span-6">
           <LabeledInput
-            v-model="model.userLoginAttribute"
+            v-model:value="model.userLoginAttribute"
             :mode="mode"
             :label="t('authConfig.ldap.loginAttribute')"
           />
         </div>
         <div class="col span-6">
           <LabeledInput
-            v-model="model.groupMemberUserAttribute"
+            v-model:value="model.groupMemberUserAttribute"
             :mode="mode"
             :label="t('authConfig.ldap.groupMemberUserAttribute')"
           />
@@ -311,14 +311,14 @@ export default {
       <div class="row mb-20">
         <div class="col span-6">
           <LabeledInput
-            v-model="model.userMemberAttribute"
+            v-model:value="model.userMemberAttribute"
             :mode="mode"
             :label="t('authConfig.ldap.userMemberAttribute')"
           />
         </div>
         <div class="col span-6">
           <LabeledInput
-            v-model="model.groupSearchAttribute"
+            v-model:value="model.groupSearchAttribute"
             :mode="mode"
             :label="t('authConfig.ldap.searchAttribute')"
           />
@@ -327,14 +327,14 @@ export default {
       <div class="row mb-20">
         <div class="col span-6">
           <LabeledInput
-            v-model="model.userSearchAttribute"
+            v-model:value="model.userSearchAttribute"
             :mode="mode"
             :label="t('authConfig.ldap.searchAttribute')"
           />
         </div>
         <div class="col span-6">
           <LabeledInput
-            v-model="model.groupSearchFilter"
+            v-model:value="model.groupSearchFilter"
             :mode="mode"
             :label="t('authConfig.ldap.searchFilter')"
           />
@@ -343,14 +343,14 @@ export default {
       <div class="row mb-20">
         <div class="col span-6">
           <LabeledInput
-            v-model="model.userSearchFilter"
+            v-model:value="model.userSearchFilter"
             :mode="mode"
             :label="t('authConfig.ldap.searchFilter')"
           />
         </div>
         <div class="col span-6">
           <LabeledInput
-            v-model="model.groupMemberMappingAttribute"
+            v-model:value="model.groupMemberMappingAttribute"
             :mode="mode"
             :label="t('authConfig.ldap.groupMemberMappingAttribute')"
           />
@@ -359,14 +359,14 @@ export default {
       <div class="row mb-20">
         <div class="col span-6">
           <LabeledInput
-            v-model="model.userEnabledAttribute"
+            v-model:value="model.userEnabledAttribute"
             :mode="mode"
             :label="t('authConfig.ldap.userEnabledAttribute')"
           />
         </div>
         <div class="col span-6">
           <LabeledInput
-            v-model="model.groupDNAttribute"
+            v-model:value="model.groupDNAttribute"
             :mode="mode"
             :label="t('authConfig.ldap.groupDNAttribute')"
           />
@@ -375,7 +375,7 @@ export default {
       <div class="row mb-20">
         <div class="col span-6">
           <LabeledInput
-            v-model="model.disabledStatusBitmask"
+            v-model:value="model.disabledStatusBitmask"
             :mode="mode"
             :label="t('authConfig.ldap.disabledStatusBitmask')"
           />
@@ -385,7 +385,7 @@ export default {
           class=" col span-6"
         >
           <RadioGroup
-            v-model="model.nestedGroupMembershipEnabled"
+            v-model:value="model.nestedGroupMembershipEnabled"
             :mode="mode"
             name="nested"
             class="full-height"

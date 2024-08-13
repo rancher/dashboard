@@ -101,9 +101,9 @@ export default {
         const dec = parseInt(neu, 8);
 
         if (isconfigMap) {
-          this.$set(this.value.configMap, 'defaultMode', dec);
+          this.value.configMap['defaultMode'] = dec;
         } else {
-          this.$set(this.value.secret, 'defaultMode', dec);
+          this.value.secret['defaultMode'] = dec;
         }
       },
     },
@@ -114,9 +114,9 @@ export default {
       },
       set(neu) {
         if (this.type === 'configMap') {
-          this.$set(this.value.configMap, 'optional', neu);
+          this.value.configMap['optional'] = neu;
         } else {
-          this.$set(this.value.secret, 'optional', neu);
+          this.value.secret['optional'] = neu;
         }
       }
     },
@@ -133,7 +133,7 @@ export default {
       <div class="row mb-10">
         <div class="col span-6">
           <LabeledInput
-            v-model="value.name"
+            v-model:value="value.name"
             :required="true"
             :mode="mode"
             :label="t('workload.storage.volumeName')"
@@ -142,7 +142,7 @@ export default {
 
         <div class="col span-6">
           <LabeledInput
-            v-model="defaultMode"
+            v-model:value="defaultMode"
             :mode="mode"
             :label="t('workload.storage.defaultMode')"
           />
@@ -152,7 +152,7 @@ export default {
         <div class="col span-6">
           <LabeledSelect
             v-if="type==='secret'"
-            v-model="value[type].secretName"
+            v-model:value="value[type].secretName"
             :options="secretNames"
             :mode="mode"
             :required="true"
@@ -161,7 +161,7 @@ export default {
           />
           <LabeledSelect
             v-else-if="type==='configMap'"
-            v-model="value[type].name"
+            v-model:value="value[type].name"
             :options="configMapNames"
             :required="true"
             :mode="mode"
@@ -171,7 +171,7 @@ export default {
         </div>
         <div class="col span-6">
           <RadioGroup
-            v-model="optional"
+            v-model:value="optional"
             :mode="mode"
             name="optional"
             :row="true"

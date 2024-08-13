@@ -130,7 +130,7 @@ export default {
       mode="view"
       class="mt-20"
       :need-related="false"
-      @input="$emit('input', $event)"
+      @update:value="$emit('input', $event)"
     >
       <Tab
         v-if="!!allBundles.length"

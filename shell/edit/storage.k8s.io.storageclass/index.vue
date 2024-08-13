@@ -68,11 +68,11 @@ export default {
       }
     ];
 
-    this.$set(this.value, 'parameters', this.value.parameters || {});
-    this.$set(this.value, 'provisioner', this.value.provisioner || PROVISIONER_OPTIONS[0].value);
-    this.$set(this.value, 'allowVolumeExpansion', this.value.allowVolumeExpansion || allowVolumeExpansionOptions[1].value);
-    this.$set(this.value, 'reclaimPolicy', this.value.reclaimPolicy || reclaimPolicyOptions[0].value);
-    this.$set(this.value, 'volumeBindingMode', this.value.volumeBindingMode || volumeBindingModeOptions[0].value);
+    this.value['parameters'] = this.value.parameters || {};
+    this.value['provisioner'] = this.value.provisioner || PROVISIONER_OPTIONS[0].value;
+    this.value['allowVolumeExpansion'] = this.value.allowVolumeExpansion || allowVolumeExpansionOptions[1].value;
+    this.value['reclaimPolicy'] = this.value.reclaimPolicy || reclaimPolicyOptions[0].value;
+    this.value['volumeBindingMode'] = this.value.volumeBindingMode || volumeBindingModeOptions[0].value;
 
     return {
       reclaimPolicyOptions,
@@ -151,7 +151,7 @@ export default {
 
   watch: {
     provisionerWatch() {
-      this.$set(this.value, 'parameters', {});
+      this.value['parameters'] = {};
     }
   },
 
@@ -170,8 +170,8 @@ export default {
     updateProvisioner(event) {
       const provisioner = event.labelKey ? event.labelKey : event;
 
-      this.$set(this.value, 'provisioner', provisioner);
-      this.$set(this.value, 'allowVolumeExpansion', provisioner === 'driver.longhorn.io');
+      this.value['provisioner'] = provisioner;
+      this.value['allowVolumeExpansion'] = provisioner === 'driver.longhorn.io';
     },
     willSave() {
       Object.keys(this.value.parameters).forEach((key) => {
@@ -225,7 +225,7 @@ export default {
       :searchable="true"
       :taggable="true"
       class="mb-20"
-      @input="updateProvisioner($event)"
+      @update:value="updateProvisioner($event)"
     />
     <Banner
       v-if="provisionerIsDeprecated"
@@ -260,7 +260,7 @@ export default {
             <div class="row mb-20">
               <div class="col span-12">
                 <RadioGroup
-                  v-model="value.reclaimPolicy"
+                  v-model:value="value.reclaimPolicy"
                   name="reclaimPolicy"
                   :label="t('storageClass.customize.reclaimPolicy.label')"
                   :mode="modeOverride"
@@ -271,7 +271,7 @@ export default {
             <div class="row mb-20">
               <div class="col span-12">
                 <RadioGroup
-                  v-model="value.allowVolumeExpansion"
+                  v-model:value="value.allowVolumeExpansion"
                   name="allowVolumeExpansion"
                   :label="t('storageClass.customize.allowVolumeExpansion.label')"
                   :mode="mode"
@@ -283,7 +283,7 @@ export default {
           <div class="col span-6">
             <h3>{{ t('storageClass.customize.mountOptions.label') }}</h3>
             <ArrayList
-              v-model="value.mountOptions"
+              v-model:value="value.mountOptions"
               :mode="mode"
               :label="t('storageClass.customize.mountOptions.label')"
               :add-label="t('storageClass.customize.mountOptions.addLabel')"
@@ -293,7 +293,7 @@ export default {
         <div class="row">
           <div class="col span-6">
             <RadioGroup
-              v-model="value.volumeBindingMode"
+              v-model:value="value.volumeBindingMode"
               name="volumeBindingMode"
               :label="t('storageClass.customize.volumeBindingMode.label')"
               :mode="modeOverride"

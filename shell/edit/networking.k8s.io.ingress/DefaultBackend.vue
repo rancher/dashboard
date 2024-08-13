@@ -97,7 +97,7 @@ export default {
     >
       <div class="col span-4">
         <LabeledSelect
-          v-model="serviceName"
+          v-model:value="serviceName"
           :taggable="true"
           :mode="mode"
           :label="t('ingress.defaultBackend.targetService.label')"
@@ -106,7 +106,7 @@ export default {
           :status="serviceTargetStatus"
           :tooltip="serviceTargetTooltip"
           :rules="rules.name"
-          @input="update(); servicePort = ''"
+          @update:value="update(); servicePort = ''"
         />
       </div>
       <div
@@ -120,17 +120,17 @@ export default {
           :label="t('ingress.defaultBackend.port.label')"
           :placeholder="t('ingress.defaultBackend.port.placeholder')"
           :rules="rules.port"
-          @input="update"
+          @update:value="update"
         />
         <LabeledSelect
           v-else
-          v-model="servicePort"
+          v-model:value="servicePort"
           :mode="mode"
           :options="portOptions"
           :label="t('ingress.defaultBackend.port.label')"
           :placeholder="t('ingress.defaultBackend.port.placeholder')"
           :rules="rules.port"
-          @input="update"
+          @update:value="update"
         />
       </div>
     </div>

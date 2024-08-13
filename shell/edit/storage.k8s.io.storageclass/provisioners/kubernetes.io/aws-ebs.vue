@@ -75,9 +75,9 @@ export default {
     ];
 
     if (this.mode === _CREATE) {
-      this.$set(this.value.parameters, 'type', this.value.parameters.type || volumeTypeOptions[0].value);
-      this.$set(this.value.parameters, 'encrypted', this.value.parameters.encrypted || encryptionOptions[0].value);
-      this.$set(this.value.parameters, 'iopsPerGB', this.value.parameters.iopsPerGB || '0');
+      this.value.parameters['type'] = this.value.parameters.type || volumeTypeOptions[0].value;
+      this.value.parameters['encrypted'] = this.value.parameters.encrypted || encryptionOptions[0].value;
+      this.value.parameters['iopsPerGB'] = this.value.parameters.iopsPerGB || '0';
     }
 
     return {
@@ -96,7 +96,7 @@ export default {
         return Number.parseInt(this.value.parameters.iopsPerGB);
       },
       set(value) {
-        this.$set(this.value.parameters, 'iopsPerGB', value.toString());
+        this.value.parameters['iopsPerGB'] = value.toString();
       }
     }
   }
@@ -107,7 +107,7 @@ export default {
     <div class="row mb-20">
       <div class="col span-6">
         <RadioGroup
-          v-model="value.parameters.type"
+          v-model:value="value.parameters.type"
           name="volumeType"
           :label="t('storageClass.aws-ebs.volumeType.label')"
           :mode="mode"
@@ -115,14 +115,14 @@ export default {
         />
         <UnitInput
           v-if="value.parameters.type === 'io1' || value.parameters.type === 'gp3'"
-          v-model="iopsPerGB"
+          v-model:value="iopsPerGB"
           class="mt-10"
           :label="t('storageClass.aws-ebs.volumeType.provisionedIops.label')"
           :suffix="t('storageClass.aws-ebs.volumeType.provisionedIops.suffix')"
           :mode="mode"
         />
         <LabeledInput
-          v-model="value.parameters.fsType"
+          v-model:value="value.parameters.fsType"
           class="mt-10"
           :placeholder="t('storageClass.aws-ebs.filesystemType.placeholder')"
           :label="t('storageClass.aws-ebs.filesystemType.label')"
@@ -133,7 +133,7 @@ export default {
     <div class="row mb-20">
       <div class="col span-6">
         <RadioGroup
-          v-model="availabilityZone"
+          v-model:value="availabilityZone"
           name="availabilityZone"
           :label="t('storageClass.aws-ebs.availabilityZone.label')"
           :mode="mode"
@@ -141,7 +141,7 @@ export default {
         />
         <LabeledInput
           v-if="availabilityZone === 'manual'"
-          v-model="value.parameters.zones"
+          v-model:value="value.parameters.zones"
           class="mt-10"
           :placeholder="t('storageClass.aws-ebs.availabilityZone.placeholder')"
           :mode="mode"
@@ -151,7 +151,7 @@ export default {
     <div class="row">
       <div class="col span-6">
         <RadioGroup
-          v-model="value.parameters.encrypted"
+          v-model:value="value.parameters.encrypted"
           name="encryption"
           :label="t('storageClass.aws-ebs.encryption.label')"
           :mode="mode"
@@ -161,7 +161,7 @@ export default {
       <div class="col span-6">
         <RadioGroup
           v-if="value.parameters.encrypted === 'true'"
-          v-model="keyId"
+          v-model:value="keyId"
           class="mt-10"
           name="keyId"
           :label="t('storageClass.aws-ebs.keyId.label')"
@@ -170,7 +170,7 @@ export default {
         />
         <LabeledInput
           v-if="keyId === 'manual'"
-          v-model="value.parameters.kmsKeyId"
+          v-model:value="value.parameters.kmsKeyId"
           class="mt-10"
           :mode="mode"
         />

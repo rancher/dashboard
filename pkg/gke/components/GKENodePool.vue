@@ -373,7 +373,7 @@ export default defineComponent({
       <div class="col span-6">
         <Checkbox
           v-if="upgradeAvailable"
-          v-model="upgradeKubernetesVersion"
+          v-model:value="upgradeKubernetesVersion"
           :mode="mode"
           :label="t('gke.version.upgrade', {clusterKubernetesVersion, version: initialVersion})"
           data-testid="gke-k8s-upgrade-checkbox"

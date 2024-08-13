@@ -77,9 +77,7 @@ export default {
   />
   <div v-else-if="errors.length">
     <div
-      v-for="(err, idx) in errors"
-      :key="idx"
-    >
+      v-for="(err, idx) in errors" :key="idx">
       <Banner
         color="error"
         :label="stringify(err)"
@@ -95,7 +93,7 @@ export default {
       :ignore-variables="cloudCredentialKeys"
       :target-namespace="value.metadata.namespace"
       :disabled="disabled"
-      @input="$emit('input', $event)"
+      @update:value="$emit('input', $event)"
     />
   </div>
 </template>

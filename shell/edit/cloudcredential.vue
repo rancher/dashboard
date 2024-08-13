@@ -241,7 +241,7 @@ export default {
         set(this.value, `${ field }credentialConfig`, {});
       }
 
-      this.$set(this.value, '_type', type);
+      this.value['_type'] = type;
       this.$emit('set-subtype', this.typeDisplay(type, driver));
     },
 
@@ -284,7 +284,7 @@ export default {
         name-placeholder="cluster.credential.name.placeholder"
         :mode="mode"
         :namespaced="false"
-        @input="$emit('input', $event)"
+        @update:value="$emit('input', $event)"
         @change="handleNameRequiredValidation"
       />
       <keep-alive>

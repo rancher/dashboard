@@ -163,7 +163,7 @@ export default {
           const countIndex = cluster?.counts?.findIndex((c) => c.resource === res.item.resource);
 
           if ( (countIndex && countIndex !== -1) || countIndex === 0 ) {
-            this.$set(cluster?.counts[countIndex], 'durationMs', res.durationMs);
+            cluster?.counts[countIndex]['durationMs'] = res.durationMs;
           }
         }
       });
@@ -321,9 +321,7 @@ export default {
         </thead>
         <tbody>
           <tr
-            v-for="(item, objKey) in systemInformation"
-            :key="objKey"
-          >
+            v-for="(item, objKey) in systemInformation" :key="objKey">
             <template v-if="item.value.length">
               <td>{{ item.label }}</td>
               <td>{{ item.value }}</td>
@@ -340,9 +338,7 @@ export default {
       </h2>
       <div class="resources-count-container">
         <table
-          v-for="cluster in finalCounts"
-          :key="cluster.id"
-          class="full-width"
+           v-for="(cluster, i) in finalCounts" :key="i" class="full-width"
         >
           <thead @click="toggleTable(cluster.id)">
             <th colspan="4">
@@ -375,9 +371,7 @@ export default {
             </tr>
 
             <tr
-              v-for="item in cluster.counts"
-              :key="item.resource"
-            >
+               v-for="(item, i) in cluster.counts" :key="i" >
               <template v-if="item.count > 0">
                 <td scope="row">
                   {{ item.resource }}
