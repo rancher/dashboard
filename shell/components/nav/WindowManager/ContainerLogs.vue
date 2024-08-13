@@ -8,11 +8,11 @@ import LabeledSelect from '@shell/components/form/LabeledSelect';
 import { Checkbox } from '@components/Form/Checkbox';
 import AsyncButton from '@shell/components/AsyncButton';
 import Select from '@shell/components/form/Select';
-import VirtualList from 'vue-virtual-scroll-list';
 import LogItem from '@shell/components/LogItem';
 
 import { escapeRegex } from '@shell/utils/string';
 import { HARVESTER_NAME as VIRTUAL } from '@shell/config/features';
+import debounce from 'lodash/debounce';
 
 import Socket, {
   EVENT_CONNECTED,
@@ -88,7 +88,7 @@ export default {
     LabeledSelect,
     Checkbox,
     AsyncButton,
-    VirtualList,
+    LogItem
   },
 
   props: {
@@ -130,18 +130,19 @@ export default {
 
   data() {
     return {
-      container:   this.initialContainer || this.pod?.defaultContainerName,
-      socket:      null,
-      isOpen:      false,
-      isFollowing: true,
-      timestamps:  this.$store.getters['prefs/get'](LOGS_TIME),
-      wrap:        this.$store.getters['prefs/get'](LOGS_WRAP),
-      previous:    false,
-      search:      '',
-      backlog:     [],
-      lines:       [],
-      now:         new Date(),
-      logItem:     LogItem
+      container:      this.initialContainer || this.pod?.defaultContainerName,
+      socket:         null,
+      isOpen:         false,
+      isFollowing:    true,
+      timestamps:     this.$store.getters['prefs/get'](LOGS_TIME),
+      wrap:           this.$store.getters['prefs/get'](LOGS_WRAP),
+      previous:       false,
+      search:         '',
+      backlog:        [],
+      lines:          [],
+      now:            new Date(),
+      scrollPosition: 0,
+      currentIndex: 0
     };
   },
 
@@ -285,6 +286,10 @@ export default {
     await this.connect();
     this.boundFlush = this.flush.bind(this);
     this.timerFlush = setInterval(this.boundFlush, 100);
+    const virtualList = this.$refs.virtualList;
+
+    this._onScroll = this.onScroll.bind(this);
+    virtualList?.$el?.addEventListener('scroll', this._onScroll);
   },
 
   methods: {
@@ -425,12 +430,41 @@ export default {
       }
     },
 
-    updateFollowing() {
-      const virtualList = this.$refs.virtualList;
+    // onScroll() {
+    //   const virtualListScroller = this.$refs.virtualList.$refs.scroller;
+    //   const endIndex = virtualListScroller.$_endIndex;
 
-      if (virtualList) {
-        this.isFollowing = virtualList.getScrollSize() - virtualList.getClientSize() === virtualList.getOffset();
-      }
+    //   console.log(`endIndex: ${endIndex} this.currentIndex: ${this.currentIndex} this.filtered.length: ${this.filtered.length}`)
+
+    //   // While we are following, app will be scrolling down, but scroll up only happens if user does it.
+    //   if (endIndex < this.currentIndex) {
+    //     this.isFollowing = false;
+    //   } else if( endIndex === this.filtered.length){
+    //     this.isFollowing = true; 
+    //   }
+
+    //   this.currentIndex = endIndex;
+    // },
+
+    onScroll(event) {
+      const virtualListScroller = this.$refs.virtualList.$refs.scroller;
+      console.log(event)
+      const currentScrollPosition = virtualListScroller.$_lastUpdateScrollPosition;
+
+      // While we are following, app will be scrolling down, but scroll up only happens if user does it.
+      console.log(`currentScrollPosition: ${currentScrollPosition} this.scrollPosition: ${this.scrollPosition}`)
+      console.log(`virtualListScroller.$_endIndex: ${virtualListScroller.$_endIndex}  this.filtered.length: ${this.filtered.length}`)
+      
+      
+      if (currentScrollPosition < this.scrollPosition) {
+        this.isFollowing = false;
+      } 
+    //   else if( currentScrollPosition > this.scrollPosition && virtualListScroller.$_endIndex === this.filtered.length ){
+    //     console.log()
+    //     this.isFollowing = true;
+    //   }
+      this.scrollPosition = currentScrollPosition;
+
     },
 
     parseRange(range) {
@@ -500,10 +534,11 @@ export default {
     },
 
     follow() {
+      this.isFollowing = true;
       const virtualList = this.$refs.virtualList;
 
       if (virtualList) {
-        virtualList.$el.scrollTop = virtualList.getScrollSize();
+        virtualList.scrollToBottom();
       }
     },
 
@@ -535,6 +570,9 @@ export default {
         this.socket = null;
       }
       clearInterval(this.timerFlush);
+      const virtualList = this.$refs.virtualList;
+
+      virtualList?.$el.removeEventListener('scroll', this._onScroll);
     },
   },
 };
@@ -544,6 +582,7 @@ export default {
   <Window
     :active="active"
     :before-close="cleanup"
+    data-testid="container-logs"
   >
     <template #title>
       <div class="wm-button-bar">
@@ -666,17 +705,30 @@ export default {
         ref="body"
         :class="{'logs-container': true, 'open': isOpen, 'closed': !isOpen, 'show-times': timestamps && filtered.length, 'wrap-lines': wrap}"
       >
-        <VirtualList
+        <DynamicScroller
           v-show="filtered.length"
           ref="virtualList"
-          data-key="id"
-          :data-sources="filtered"
-          :data-component="logItem"
-          direction="vertical"
-          class="virtual-list"
-          :keeps="200"
-          @scroll="updateFollowing"
-        />
+          class="scroller"
+          :items="filtered"
+          :minItemSize="40"
+          key-field="id"
+          :emitUpdate="false"
+        >
+          <template v-slot="{ item, index, active }">
+            <DynamicScrollerItem
+              :item="item"
+              :active="active"
+              :size-dependencies="[
+                item.msg,
+              ]"
+              :data-index="index"
+            >
+              <div class="item">
+                <LogItem :source="item" />
+              </div>
+            </DynamicScrollerItem>
+          </template>
+        </DynamicScroller>
         <template v-if="!filtered.length">
           <div v-if="search">
             <span class="msg text-muted">{{ t('wm.containerLogs.noMatch') }}</span>
@@ -691,6 +743,12 @@ export default {
 </template>
 
 <style lang="scss" scoped>
+.scroller {
+  height: 100%;
+}
+.item{
+    padding: 5px;
+}
   .wm-button-bar {
     display: flex;
 

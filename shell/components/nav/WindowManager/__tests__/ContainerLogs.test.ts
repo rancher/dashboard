@@ -28,8 +28,10 @@ const getDefaultOptions = () => {
           'i18n/t':       jest.fn(),
           currentProduct: { inStore: 'cluster' }
         }
-      }
-    }
+      },
+      $refs: { virtualList: { $el: { addEventListener: jest.fn() } } },
+    },
+    stubs: { DynamicScroller: true }
   };
 };
 

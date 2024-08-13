@@ -123,7 +123,7 @@
     "vue-select": "3.18.3",
     "vue-server-renderer": "2.6.14",
     "vue-shortkey": "3.1.7",
-    "vue-virtual-scroll-list": "^2.3.4",
+    "vue-virtual-scroller": "1.1.2",
     "vuedraggable": "2.24.3",
     "vuex": "3.6.2",
     "xterm": "5.2.1",

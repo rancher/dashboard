@@ -5,6 +5,7 @@ import VTooltip from 'v-tooltip';
 import vSelect from 'vue-select';
 import cleanTooltipDirective from '@shell/directives/clean-tooltip';
 import cleanHtmlDirective from '@shell/directives/clean-html';
+import VueVirtualScroller from 'vue-virtual-scroller';
 import '@shell/plugins/replaceall';
 
 import Vue from 'vue';
@@ -15,7 +16,12 @@ global.TextDecoder = TextDecoder;
 
 Vue.config.productionTip = false;
 Vue.use(i18n);
+Vue.use(VueVirtualScroller);
+Vue.component('DynamicScroller', VueVirtualScroller.DynamicScroller);
+Vue.component('dynamicscroller', VueVirtualScroller.DynamicScroller);
+Vue.component('dynamicscrolleritem', VueVirtualScroller.DynamicScrollerItem);
 Vue.use(VTooltip);
+
 Vue.component('v-select', vSelect);
 Vue.directive('clean-html', cleanHtmlDirective);
 Vue.directive('clean-tooltip', cleanTooltipDirective);

@@ -3,7 +3,9 @@ import VueResize from 'vue-resize';
 import ShortKey from 'vue-shortkey';
 import VTooltip from 'v-tooltip';
 import vSelect from 'vue-select';
+import VueVirtualScroller from 'vue-virtual-scroller';
 import 'vue-resize/dist/vue-resize.css';
+import 'vue-virtual-scroller/dist/vue-virtual-scroller.css';
 
 import '@shell/plugins/extend-router';
 import '@shell/plugins/formatters';
@@ -37,6 +39,7 @@ export async function installPlugins(vueApp) {
   vueApp.use(VTooltip);
   vueApp.use(ShortKey, { prevent: ['input', 'textarea', 'select'] });
   vueApp.use(VueCodemirror);
+  vueApp.use(VueVirtualScroller);
   vueApp.component('v-select', vSelect);
 }
 
