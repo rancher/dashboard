@@ -1,6 +1,5 @@
 <script>
 import { createApp } from 'vue';
-const vueApp = createApp({});
 import merge from 'lodash/merge';
 import { ucFirst } from '@shell/utils/string';
 import { isSimpleKeyValue } from '@shell/utils/object';
@@ -19,6 +18,7 @@ import { saferDump } from '@shell/utils/create-yaml';
 import NamespaceList, { NAMESPACE_FILTERS_HELPER } from './NamespaceList';
 import MatchKinds from './MatchKinds';
 import Scope, { SCOPE_OPTIONS } from './Scope';
+const vueApp = createApp({});
 
 function findConstraintTypes(schemas) {
   return schemas

@@ -1,8 +1,8 @@
 import { createApp } from 'vue';
-const vueApp = createApp({});
 import { createRouter } from 'vue-router';
 import Routes from '@shell/config/router/routes';
 import { installNavigationGuards } from '@shell/config/router/navigation-guards';
+const vueApp = createApp({});
 
 vueApp.use(Router);
 

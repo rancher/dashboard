@@ -487,7 +487,9 @@ export default {
     </div>
 
     <Banner
-       v-for="(err, i) in loadingErrors" :key="i" color="error"
+      v-for="(err, i) in loadingErrors"
+      :key="i"
+      color="error"
       :label="err"
     />
 

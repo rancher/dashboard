@@ -733,7 +733,9 @@ export default {
   />
   <div v-else-if="errors.length">
     <div
-      v-for="(err, idx) in errors" :key="idx">
+      v-for="(err, idx) in errors"
+      :key="idx"
+    >
       <Banner
         color="error"
         :label="stringify(err)"

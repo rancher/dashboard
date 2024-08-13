@@ -1,6 +1,6 @@
 import { createApp } from 'vue';
-const vueApp = createApp({});
 import cleanHtmlDirective from '@shell/directives/clean-html';
+const vueApp = createApp({});
 
 export default cleanHtmlDirective;
 

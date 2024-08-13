@@ -127,7 +127,7 @@ export default {
     },
 
     projectName(newProjectName) {
-      this['project'] = this.projects.find((p => p.id.includes(newProjectName)));
+      this['project'] = this.projects.find((p) => p.id.includes(newProjectName));
     }
   },
 

@@ -1,6 +1,6 @@
 import { createApp } from 'vue';
-const vueApp = createApp({});
 import cleanTooltipDirective from '@shell/directives/clean-tooltip';
+const vueApp = createApp({});
 
 export default cleanTooltipDirective;
 /* eslint-disable-next-line no-console */

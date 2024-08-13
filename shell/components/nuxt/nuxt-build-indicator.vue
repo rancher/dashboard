@@ -93,7 +93,7 @@ export default {
     }
     this.sseConnect();
   },
-  beforeDestroy() {
+  beforeUnmount() {
     this.sseClose();
     clearInterval(this._progressAnimation);
   },

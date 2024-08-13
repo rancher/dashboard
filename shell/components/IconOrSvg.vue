@@ -17,9 +17,9 @@
  * show with the desired colors for the theme.
  */
 import { createApp } from 'vue';
-const vueApp = createApp({});
 import { Solver } from '@shell/utils/svg-filter';
 import { colorToRgb, mapStandardColors, normalizeHex } from '@shell/utils/color';
+const vueApp = createApp({});
 
 const filterCache = {};
 const cssCache = {};

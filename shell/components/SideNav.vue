@@ -400,7 +400,10 @@ export default {
   <nav class="side-nav">
     <!-- Actual nav -->
     <div class="nav">
-      <template  v-for="((g), i) in groups" :key="i" >
+      <template
+        v-for="((g), i) in groups"
+        :key="i"
+      >
         <Group
           ref="groups"
           :key="g.name"
@@ -454,7 +457,9 @@ export default {
               style="margin: -1px;"
             >
               <li
-                v-for="(label, name) in availableLocales" :key="name"class="hand"
+                v-for="(label, name) in availableLocales"
+                :key="name"
+                class="hand"
                 @click="switchLocale(name)"
               >
                 {{ label }}

@@ -292,7 +292,7 @@ export default {
       :selectable="selectable"
       :value="value != null && !loading ? value : ''"
       :dropdown-should-open="dropdownShouldOpen"
-      
+
       @search:blur="onBlur"
       @search:focus="onFocus"
       @search="onSearch"
@@ -338,7 +338,8 @@ export default {
       </template>
       <!-- Pass down templates provided by the caller -->
       <template
-        v-for="(_, slot) of $slots" :key="slot"
+        v-for="(_, slot) of $slots"
+        :key="slot"
         #[slot]="scope"
       >
         <slot

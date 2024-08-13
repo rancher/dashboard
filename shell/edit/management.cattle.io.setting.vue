@@ -181,7 +181,9 @@ export default {
     />
 
     <Banner
-      v-for="(err, i) in fvGetPathErrors(['value'])" :key="i"color="error"
+      v-for="(err, i) in fvGetPathErrors(['value'])"
+      :key="i"
+      color="error"
       :label="err"
       data-testid="setting-error-banner"
     />

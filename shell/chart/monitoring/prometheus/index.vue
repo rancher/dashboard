@@ -193,7 +193,9 @@ export default {
           :raw="true"
         />
         <div
-           v-for="(wl, i) in mappedFilteredWorkloads" :key="i" class="mt-10"
+          v-for="(wl, i) in mappedFilteredWorkloads"
+          :key="i"
+          class="mt-10"
         >
           <router-link
             :to="wl.link"

@@ -88,13 +88,16 @@ export default {
 
 <template>
   <span class="name-container">
-    <template v-for="(type, key, i) in types" :key="i">
+    <template
+      v-for="(type, key, i) in types"
+      :key="i"
+    >
       <div
         class="logo"
       >
         <img :src="type.logo">
       </div>
-      <span >
+      <span>
         <span
           v-if="i<Object.keys(types).length-1"
           class="comma"

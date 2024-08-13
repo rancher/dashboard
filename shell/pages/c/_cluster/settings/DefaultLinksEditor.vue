@@ -1,9 +1,9 @@
 <script>
 import { createApp } from 'vue';
-const vueApp = createApp({});
 
 import { _VIEW } from '@shell/config/query-params';
 import { Checkbox } from '@components/Form/Checkbox';
+const vueApp = createApp({});
 
 export default {
   name: 'DefaultLinksEditor',
@@ -57,7 +57,10 @@ export default {
       </label>
       <label class="text-label" />
 
-      <template v-for="(row,i) in value" :key="i">
+      <template
+        v-for="(row,i) in value"
+        :key="i"
+      >
         <div
           :key="i+'key'"
           class="kv-item key"

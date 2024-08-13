@@ -322,7 +322,10 @@ export default {
         :label="t('notifications.loginError.messageLabel')"
       />
     </div>
-    <template  v-for="(err, i) in errors" :key="i" >
+    <template
+      v-for="(err, i) in errors"
+      :key="i"
+    >
       <Banner
         color="error"
         :label="err"

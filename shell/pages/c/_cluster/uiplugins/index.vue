@@ -1,6 +1,5 @@
 <script>
 import { createApp } from 'vue';
-const vueApp = createApp({});
 import { mapGetters } from 'vuex';
 import { mapPref, PLUGIN_DEVELOPER } from '@shell/store/prefs';
 import { sortBy } from '@shell/utils/sort';
@@ -40,6 +39,7 @@ import {
   UI_PLUGINS_PARTNERS_REPO_URL
 } from '@shell/config/uiplugins';
 import TabTitle from '@shell/components/TabTitle';
+const vueApp = createApp({});
 
 const MAX_DESCRIPTION_LENGTH = 200;
 
@@ -477,7 +477,7 @@ export default {
   },
 
   // Forget the types when we leave the page
-  beforeDestroy() {
+  beforeUnmount() {
     this.$store.dispatch('management/forgetType', UI_PLUGIN);
     this.$store.dispatch('management/forgetType', CATALOG.OPERATION);
     this.$store.dispatch('management/forgetType', CATALOG.APP);
@@ -797,7 +797,9 @@ export default {
             />
             <template v-else>
               <div
-                v-for="(plugin, i) in list" :key="i"class="plugin"
+                v-for="(plugin, i) in list"
+                :key="i"
+                class="plugin"
                 :data-testid="`extension-card-${plugin.name}`"
                 @click="showPluginDetail(plugin)"
               >

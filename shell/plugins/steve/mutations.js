@@ -12,9 +12,9 @@ import {
 } from '@shell/plugins/dashboard-store/mutations';
 import { perfLoadAll } from '@shell/plugins/steve/performanceTesting';
 import { createApp } from 'vue';
-const vueApp = createApp({});
 import { classify } from '@shell/plugins/dashboard-store/classify';
 import SteveSchema from '@shell/models/steve-schema';
+const vueApp = createApp({});
 
 function registerNamespace(state, namespace) {
   let cache = state.podsByNamespace[namespace];

@@ -156,7 +156,7 @@ export default {
     this.$emit('validationChanged', true);
   },
 
-  beforeDestroy() {
+  beforeUnmount() {
     // Ensure we emit validation event so parent can forget any validation for this Machine Pool when it is removed
     this.$emit('validationChanged', undefined);
   },

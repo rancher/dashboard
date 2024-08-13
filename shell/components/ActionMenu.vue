@@ -256,7 +256,9 @@ export default {
       :style="style"
     >
       <li
-        v-for="(opt, i) in menuOptions" :key="i":disabled="opt.disabled"
+        v-for="(opt, i) in menuOptions"
+        :key="i"
+        :disabled="opt.disabled"
         :class="{divider: opt.divider}"
         :data-testid="componentTestid + '-' + i + '-item'"
         @click="execute(opt, $event)"

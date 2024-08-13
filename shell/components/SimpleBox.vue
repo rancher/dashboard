@@ -32,7 +32,6 @@ export default {
     v-if="shown"
     class="simple-box"
     data-testid="simple-box-container"
-    
   >
     <div
       v-if="title || canClose || $slots.title"

@@ -177,7 +177,9 @@ function toPercent(value, min, max) {
                 @click.stop="showMenu(false)"
               >
                 <li
-                  v-for="(val, idx) in values" :key="idx">
+                  v-for="(val, idx) in values"
+                  :key="idx"
+                >
                   <span>{{ val.label }}</span><span class="list-count">{{ val.count }}</span>
                 </li>
               </ul>
@@ -190,7 +192,9 @@ function toPercent(value, min, max) {
         :class="{progress: true, multi: pieces.length > 1}"
       >
         <div
-          v-for="(piece, idx) of pieces" :key="idx"v-trim-whitespace
+          v-for="(piece, idx) of pieces"
+          :key="idx"
+          v-trim-whitespace
           :primary-color-var="piece.color"
           :class="{'piece': true, [piece.color]: true}"
           :style="piece.style"
