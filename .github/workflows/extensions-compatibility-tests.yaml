@@ -16,8 +16,6 @@ env:
   TEST_PROJECT_ID: rancher-dashboard
   CYPRESS_API_URL: http://139.59.134.103:1234/
   TEST_RUN_ID: ${{github.run_number}}-${{github.run_attempt}}-extensions-compatibility-tests
-  # Build the dashboard to use in tests. When set to false it will grab `latest` from CDN (useful for running e2e tests quickly)
-  BUILD_DASHBOARD: true
 
 jobs:
   e2e-test-extensions-compatibility:
@@ -59,7 +57,6 @@ jobs:
       - name: Run user tests
         run: |
           export SPEC_FILE="cypress/e2e/tests/pages/extensions-compatibility-tests/${{ matrix.features[1] }}.spec.ts" && yarn e2e:prod
-          [ "$BUILD_DASHBOARD" != "false" ] || exit 0
         env: 
           TEST_SKIP: setup
           GREP_TAGS: ${{ matrix.role.tag }}+${{ matrix.features[0] }} --@jenkins ${{ matrix.role.tag }}+${{ matrix.features[0] }} --@jenkins
