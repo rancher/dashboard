@@ -3,9 +3,10 @@ import flushPromises from 'flush-promises';
 import { shallowMount, Wrapper } from '@vue/test-utils';
 import CruAks from '@pkg/aks/components/CruAks.vue';
 // eslint-disable-next-line jest/no-mocks-import
-import { mockRegions, mockVersionsSorted } from '@pkg/aks/util/__mocks__/aks';
+import { mockRegions, mockVersionsSorted } from '../../util/__mocks__/aks';
 import { AKSNodePool } from 'types';
 import { _EDIT, _CREATE } from '@shell/config/query-params';
+import { nodePoolNames } from '../../util/validators';
 
 const mockedValidationMixin = {
   computed: {
@@ -475,5 +476,22 @@ describe('aks provisioning form', () => {
     expect(wrapper.vm.$data.config.monitoring).toBeFalsy();
     expect(wrapper.vm.$data.config.logAnalyticsWorkspaceGroup).toBeNull();
     expect(wrapper.vm.$data.config.logAnalyticsWorkspaceName).toBeNull();
+  });
+
+  it('should use a valid value for the default pool name', async() => {
+    const wrapper = shallowMount(CruAks, {
+      propsData: { value: {}, mode: _CREATE },
+      ...requiredSetup()
+    });
+
+    await setCredential(wrapper);
+
+    wrapper.vm.addPool();
+    await wrapper.vm.$nextTick();
+
+    expect(wrapper.vm.nodePools).toHaveLength(1);
+    const nodeName = wrapper.vm.nodePools[0].name;
+
+    expect(nodePoolNames({ t: (str:string) => str })(nodeName)).toBeUndefined();
   });
 });
