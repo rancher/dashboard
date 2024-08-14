@@ -115,7 +115,7 @@ const i18n = {
         if (this.raw) {
           return h(
             this.tag,
-            { domProps: { innerHTML: this.msg } }
+            { innerHTML: this.msg }
           );
         } else {
           return h(
