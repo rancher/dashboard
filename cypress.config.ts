@@ -2,7 +2,7 @@
 import { defineConfig } from 'cypress';
 import { removeDirectory } from 'cypress-delete-downloads-folder';
 import { getSpecPattern } from '@/scripts/cypress';
-// Required for env vars to be available in cypress //
+// Required for env vars to be available in cypress
 require('dotenv').config();
 
 /**

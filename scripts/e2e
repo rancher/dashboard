@@ -7,7 +7,7 @@ SPEC_ARG=""
 # check if script invoke contains any argument. If so, add spec to run
 if [ $# -eq 1 ]; then
   echo "Running e2e tests with spec: $1"
-  SPEC_ARG='--spec "'${1}'"'
+  SPEC_ARG="--spec ${1}"
 fi
 
 CYPRESS_coverage=true CYPRESS_API_URL='http://139.59.134.103:1234' cy2 run ${SPEC_ARG} --group "$GREP_TAGS" --browser chrome --record --key rancher-dashboard --parallel --ci-build-id "$ID"
