@@ -37,7 +37,7 @@ const sidebars = {
             type: 'doc',
             id:   'extensions/changelog',
           },
-          items: ['extensions/rancher-2.9-support']
+          items: ['extensions/rancher-2.9-support', 'extensions/rancher-2.10-support']
         },
         'extensions/support-matrix',
         'extensions/extensions-getting-started',
