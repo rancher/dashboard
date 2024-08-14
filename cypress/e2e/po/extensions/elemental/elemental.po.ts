@@ -1,4 +1,4 @@
-import ExtensionsCompatibiliyPo from '@/cypress/e2e/po/pages/extensions-compatibility-tests/extensions-compatibility.po';
+import ExtensionsCompatibiliyPo from '@/cypress/e2e/po/extensions/extensions-compatibility.po';
 import BannersPo from '@/cypress/e2e/po/components/banners.po';
 import LabeledSelectPo from '@/cypress/e2e/po/components/labeled-select.po';
 import RadioGroupInputPo from '@/cypress/e2e/po/components/radio-group-input.po';
