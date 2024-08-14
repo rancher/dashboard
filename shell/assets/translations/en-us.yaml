@@ -1388,7 +1388,7 @@ cluster:
         macFormat: 'Invalid MAC address format.'
       vGpus:
         warnings:
-          minimumAllocatable: It's highly recommended to select a vGPU with a number of allocatable devices greater then the number of nodes (Machine Count) to avoid "un-schedulable" errors after cluster updates.
+          minimumAllocatable: It's highly recommended to select a vGPU with a number of allocatable devices greater than the number of nodes (Machine Count) to avoid "un-schedulable" errors after cluster updates.
         errors:
           notAllocatable: '[{vGpu}] vGPU device is not allocatable; required: {allocated}, allocatable: {allocatable}'
       volume:
