@@ -442,54 +442,52 @@ export default {
       v-else
       class="plugin-install-dialog"
     >
-      <template>
-        <div>
-          <h4>
-            {{ t('plugins.manageCatalog.imageLoad.load') }}
-          </h4>
-          <p>
-            {{ t('plugins.manageCatalog.imageLoad.prompt') }}
-          </p>
+      <div>
+        <h4>
+          {{ t('plugins.manageCatalog.imageLoad.load') }}
+        </h4>
+        <p>
+          {{ t('plugins.manageCatalog.imageLoad.prompt') }}
+        </p>
 
-          <div class="custom mt-10">
-            <Banner
-              color="info"
-              :label="t('plugins.manageCatalog.imageLoad.banner')"
-              class="mt-10"
+        <div class="custom mt-10">
+          <Banner
+            color="info"
+            :label="t('plugins.manageCatalog.imageLoad.banner')"
+            class="mt-10"
+          />
+        </div>
+
+        <div class="custom mt-10">
+          <div class="fields">
+            <LabeledInput
+              v-model.trim="deploymentValues.spec.template.spec.containers[0].image"
+              label-key="plugins.manageCatalog.imageLoad.fields.image.label"
+              placeholder-key="plugins.manageCatalog.imageLoad.fields.image.placeholder"
             />
           </div>
-
-          <div class="custom mt-10">
-            <div class="fields">
-              <LabeledInput
-                v-model.trim="deploymentValues.spec.template.spec.containers[0].image"
-                label-key="plugins.manageCatalog.imageLoad.fields.image.label"
-                placeholder-key="plugins.manageCatalog.imageLoad.fields.image.placeholder"
-              />
-            </div>
-          </div>
-          <div class="custom mt-10">
-            <div class="fields">
-              <LabeledSelect
-                v-model:value="imagePullSecrets"
-                :label="t('plugins.manageCatalog.imageLoad.fields.imagePullSecrets.label')"
-                :tooltip="t('plugins.manageCatalog.imageLoad.fields.imagePullSecrets.tooltip')"
-                :multiple="true"
-                :taggable="true"
-                :options="imagePullNamespacedSecrets"
-                option-label="metadata.name"
-                :reduce="service => service.metadata.name"
-              />
-              <Banner
-                color="warning"
-                class="mt-10"
-              >
-                <span v-clean-html="t('plugins.manageCatalog.imageLoad.fields.secrets.banner', {}, true)" />
-              </Banner>
-            </div>
+        </div>
+        <div class="custom mt-10">
+          <div class="fields">
+            <LabeledSelect
+              v-model:value="imagePullSecrets"
+              :label="t('plugins.manageCatalog.imageLoad.fields.imagePullSecrets.label')"
+              :tooltip="t('plugins.manageCatalog.imageLoad.fields.imagePullSecrets.tooltip')"
+              :multiple="true"
+              :taggable="true"
+              :options="imagePullNamespacedSecrets"
+              option-label="metadata.name"
+              :reduce="service => service.metadata.name"
+            />
+            <Banner
+              color="warning"
+              class="mt-10"
+            >
+              <span v-clean-html="t('plugins.manageCatalog.imageLoad.fields.secrets.banner', {}, true)" />
+            </Banner>
           </div>
         </div>
-      </template>
+      </div>
 
       <div class="custom mt-10">
         <div class="fields">

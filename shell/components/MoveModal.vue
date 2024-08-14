@@ -99,13 +99,12 @@ export default {
       class="move-modal-card"
       :show-highlight-border="false"
     >
-      <h4
-        slot="title"
-        class="text-default-text"
-      >
-        {{ t('moveModal.title') }}
-      </h4>
-      <div slot="body">
+      <template #title>
+        <h4 class="text-default-text">
+          {{ t('moveModal.title') }}
+        </h4>
+      </template>
+      <template #body>
         <div>
           {{ t('moveModal.description') }}
           <ul class="namespaces">
@@ -122,7 +121,7 @@ export default {
           :options="projectOptions"
           :label="t('moveModal.targetProject')"
         />
-      </div>
+      </template>
       <template #actions>
         <button
           class="btn role-secondary"

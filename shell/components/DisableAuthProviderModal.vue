@@ -47,17 +47,16 @@ export default {
       class="disable-auth-provider"
       :show-highlight-border="false"
     >
-      <h4
-        slot="title"
-        class="text-default-text"
-      >
-        {{ t('promptRemove.title') }}
-      </h4>
-      <div slot="body">
+      <template #title>
+        <h4 class="text-default-text">
+          {{ t('promptRemove.title') }}
+        </h4>
+      </template>
+      <template #body>
         <div class="mb-10">
           <p v-clean-html="t('promptRemove.attemptingToRemoveAuthConfig', null, true)" />
         </div>
-      </div>
+      </template>
       <template #actions>
         <button
           class="btn role-secondary"
