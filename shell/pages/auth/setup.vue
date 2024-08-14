@@ -328,7 +328,7 @@ export default {
               <LabeledInput
                 v-if="useRandom"
                 ref="password"
-                v-model.trim="password"
+                v-model:value.trim="password"
                 :type="useRandom ? 'text' : 'password'"
                 :disabled="useRandom"
                 data-testid="setup-password-random"
@@ -352,7 +352,7 @@ export default {
               <Password
                 v-else
                 ref="password"
-                v-model.trim="password"
+                v-model:value.trim="password"
                 :label="t('setup.newPassword')"
                 data-testid="setup-password"
                 :required="true"
@@ -360,7 +360,7 @@ export default {
             </div>
             <Password
               v-show="!useRandom"
-              v-model.trim="confirm"
+              v-model:value.trim="confirm"
               autocomplete="new-password"
               data-testid="setup-password-confirm"
               :label="t('setup.confirmPassword')"
