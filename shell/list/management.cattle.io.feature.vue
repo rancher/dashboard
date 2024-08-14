@@ -227,13 +227,12 @@ export default {
         class="prompt-update"
         :show-highlight-border="false"
       >
-        <h4
-          slot="title"
-          class="text-default-text"
-        >
-          Are you sure?
-        </h4>
-        <div slot="body">
+        <template #title>
+          <h4 class="text-default-text">
+            Are you sure?
+          </h4>
+        </template>
+        <template #body>
           <div
             v-if="update"
             class="mb-10"
@@ -273,7 +272,7 @@ export default {
           <div class="text-error mb-10">
             {{ error }}
           </div>
-        </div>
+        </template>
         <template #actions>
           <button
             class="btn role-secondary"
@@ -294,21 +293,19 @@ export default {
         class="prompt-update"
         :show-highlight-border="false"
       >
-        <h4
-          slot="title"
-          class="text-default-text"
-        >
-          {{ t('featureFlags.restart.title') }}
-        </h4>
-        <div
-          slot="body"
-          class="waiting"
-        >
-          <p>{{ t('featureFlags.restart.wait') }}</p>
-          <span class="restarting-icon">
-            <i class=" icon icon-spinner icon-spin" />
-          </span>
-        </div>
+        <template #title>
+          <h4 class="text-default-text">
+            {{ t('featureFlags.restart.title') }}
+          </h4>
+        </template>
+        <template #body>
+          <div class="waiting">
+            <p>{{ t('featureFlags.restart.wait') }}</p>
+            <span class="restarting-icon">
+              <i class=" icon icon-spinner icon-spin" />
+            </span>
+          </div>
+        </template>
         <template #actions>
           <button
             class="btn role-secondary"
