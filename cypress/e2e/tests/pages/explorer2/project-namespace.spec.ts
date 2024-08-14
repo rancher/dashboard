@@ -1,6 +1,6 @@
 import ProjectsNamespacesPagePo from '@/cypress/e2e/po/pages/explorer/projects-namespaces.po';
 
-describe('Projects/Namespaces', { tags: ['@explorer', '@adminUser'] }, () => {
+describe('Projects/Namespaces', { tags: ['@explorer2', '@adminUser'] }, () => {
   const projectsNamespacesPage = new ProjectsNamespacesPagePo('local');
 
   beforeEach(() => {

@@ -383,10 +383,17 @@ describe('Roles Templates', { tags: ['@usersAndAuths', '@adminUser'] }, () => {
         // navigate to last page - end button
         paginatedRoleTab.endButton().click();
 
+        // row count on last page
+        let lastPageCount = count % 10;
+
+        if (lastPageCount === 0) {
+          lastPageCount = 10;
+        }
+
         // check text after navigation
         paginatedRoleTab.paginationText()
           .then((el) => {
-            expect(el.trim()).to.eq(`${ count - (count % 10) + 1 } - ${ count } of ${ count } GlobalRoles`);
+            expect(el.trim()).to.eq(`${ count - (lastPageCount) + 1 } - ${ count } of ${ count } GlobalRoles`);
           });
 
         // navigate to first page - beginning button

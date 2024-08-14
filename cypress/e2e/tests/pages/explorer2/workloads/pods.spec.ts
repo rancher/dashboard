@@ -5,7 +5,7 @@ import PromptRemove from '@/cypress/e2e/po/prompts/promptRemove.po';
 import HomePagePo from '@/cypress/e2e/po/pages/home.po';
 import { generatePodsDataSmall } from '@/cypress/e2e/blueprints/explorer/workloads/pods/pods-get';
 
-describe('Pods', { testIsolation: 'off', tags: ['@explorer', '@adminUser'] }, () => {
+describe('Pods', { testIsolation: 'off', tags: ['@explorer2', '@adminUser'] }, () => {
   const workloadsPodPage = new WorkloadsPodsListPagePo('local');
 
   before(() => {
@@ -100,9 +100,16 @@ describe('Pods', { testIsolation: 'off', tags: ['@explorer', '@adminUser'] }, ()
         // navigate to last page - end button
         workloadsPodPage.sortableTable().pagination().endButton().click();
 
+        // row count on last page
+        let lastPageCount = count % 10;
+
+        if (lastPageCount === 0) {
+          lastPageCount = 10;
+        }
+
         // check text after navigation
         workloadsPodPage.sortableTable().pagination().paginationText().then((el) => {
-          expect(el.trim()).to.eq(`${ count - (count % 10) + 1 } - ${ count } of ${ count } Pods`);
+          expect(el.trim()).to.eq(`${ count - (lastPageCount) + 1 } - ${ count } of ${ count } Pods`);
         });
 
         // navigate to first page - beginning button

@@ -76,6 +76,7 @@ jobs:
           ['@navigation', '@extensions'],
           ['@charts'],
           ['@explorer'],
+          ['@explorer2'],
           ['@fleet'],
           ['@generic', '@globalSettings'],
           ['@manager'],

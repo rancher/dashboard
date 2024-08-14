@@ -182,9 +182,16 @@ describe('Account and API Keys', { testIsolation: 'off' }, () => {
         // navigate to last page - end button
         accountPage.sortableTable().pagination().endButton().click();
 
+        // row count on last page
+        let lastPageCount = count % 10;
+
+        if (lastPageCount === 0) {
+          lastPageCount = 10;
+        }
+
         // check text after navigation
         accountPage.sortableTable().pagination().paginationText().then((el) => {
-          expect(el.trim()).to.eq(`${ count - (count % 10) + 1 } - ${ count } of ${ count } API Keys`);
+          expect(el.trim()).to.eq(`${ count - (lastPageCount) + 1 } - ${ count } of ${ count } API Keys`);
         });
 
         // navigate to first page - beginning button
