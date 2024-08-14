@@ -225,6 +225,7 @@ export default defineComponent({
             :val="option.value"
             :disabled="isDisabled"
             :mode="mode"
+            @update:value="$emit('update:value', $event)"
           />
         </slot>
       </div>
