@@ -9,6 +9,8 @@ import AsyncButtonPo from '@/cypress/e2e/po/components/async-button.po';
 import LabeledInputPo from '@/cypress/e2e/po/components/labeled-input.po';
 import CheckboxInputPo from '@/cypress/e2e/po/components/checkbox-input.po';
 import TabbedPo from '@/cypress/e2e/po/components/tabbed.po';
+import ResourceTablePo from '@/cypress/e2e/po/components/resource-table.po';
+import LabeledSelectPo from '@/cypress/e2e/po/components/labeled-select.po';
 
 const installChart = new InstallChartPage();
 const terminal = new Kubectl();
@@ -39,8 +41,8 @@ export default class ExtensionsCompatibiliyPo extends PagePo {
     return installChart.installChart();
   }
 
-  chartInstallWaitForInstallationAndCloseTerminal(interceptName: string, installableParts: Array<String>, beforeTimeout = 15000) {
-    cy.wait(`@${ interceptName }`, { requestTimeout: 20000 }).its('response.statusCode').should('eq', 201);
+  chartInstallWaitForInstallationAndCloseTerminal(interceptName: string, installableParts: Array<String>, beforeTimeout = 15000, requestTimeout = 20000) {
+    cy.wait(`@${ interceptName }`, { requestTimeout }).its('response.statusCode').should('eq', 201);
 
     // giving it a small buffer so that the install is properly triggered
     cy.wait(beforeTimeout); // eslint-disable-line cypress/no-unnecessary-waiting
@@ -71,22 +73,28 @@ export default class ExtensionsCompatibiliyPo extends PagePo {
 
   genericWaitForAppToInstall(appName: string, isTerminalOp = true) {
     if (isTerminalOp) {
-      cy.wait(15000); // eslint-disable-line cypress/no-unnecessary-waiting
+      cy.wait(20000); // eslint-disable-line cypress/no-unnecessary-waiting
       terminal.closeTerminal();
     }
     installedApps.list().state(appName).should('contain', 'Deployed');
 
-    return cy.wait(5000); // eslint-disable-line cypress/no-unnecessary-waiting
+    return cy.wait(10000); // eslint-disable-line cypress/no-unnecessary-waiting
   }
 
   sideMenuNavTo(label: string) {
     const sideNav = new ProductNavPo();
 
-    sideNav.navToSideMenuEntryByLabel(label);
+    sideNav.navToSideMenuEntryByExactLabel(label);
   }
 
   genericListView(): BaseResourceList {
     return new BaseResourceList(this.self());
+  }
+
+  goToDetailsPage(elemName: string) {
+    const resourceTable = new ResourceTablePo(this.self());
+
+    return resourceTable.sortableTable().detailsPageLinkWithName(elemName).click();
   }
 
   createFromYamlClick(): Cypress.Chainable {
@@ -99,6 +107,10 @@ export default class ExtensionsCompatibiliyPo extends PagePo {
 
   genericNameInput() {
     return LabeledInputPo.bySelector(this.self(), '[data-testid="name-ns-description-name"]');
+  }
+
+  genericNamespaceInput(): LabeledSelectPo {
+    return new LabeledSelectPo('[data-testid="name-ns-description-namespace"]');
   }
 
   genericLabeledInputByLabel(label:string): LabeledInputPo {
@@ -125,7 +137,7 @@ export default class ExtensionsCompatibiliyPo extends PagePo {
     return CheckboxInputPo.byLabel(this.self(), label);
   }
 
-  clickGenericLateralTab(selector: string) {
+  clickGenericTab(selector: string) {
     const tab = new TabbedPo();
 
     return tab.clickTabWithSelector(selector);
