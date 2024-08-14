@@ -104,11 +104,7 @@ export default defineComponent({
 </script>
 
 <template>
-  <mounting-portal
-    mountTo="#modals"
-    name="source"
-    append
-  >
+  <teleport to="#modals">
     <transition
       name="modal-fade"
       appear
@@ -130,7 +126,7 @@ export default defineComponent({
         </div>
       </div>
     </transition>
-  </mounting-portal>
+  </teleport>
 </template>
 
 <style lang="scss">
