@@ -49,20 +49,20 @@ export default {
       class="prompt-password"
       :show-highlight-border="false"
     >
-      <h4
-        slot="title"
-        class="text-default-text"
-      >
-        {{ t("changePassword.title") }}
-      </h4>
-      <div slot="body">
+      <template #title>
+        <h4 class="text-default-text">
+          {{ t("changePassword.title") }}
+        </h4>
+      </template>
+
+      <template #body>
         <form @submit.prevent>
           <ChangePassword
             ref="changePassword"
             @valid="valid = $event"
           />
         </form>
-      </div>
+      </template>
 
       <template #actions>
         <!-- type reset is required by lastpass -->
