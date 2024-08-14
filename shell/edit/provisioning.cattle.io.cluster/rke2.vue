@@ -89,6 +89,8 @@ const NODE_TOTAL = {
 const CLUSTER_AGENT_CUSTOMIZATION = 'clusterAgentDeploymentCustomization';
 const FLEET_AGENT_CUSTOMIZATION = 'fleetAgentDeploymentCustomization';
 
+const isAzureK8sUnsupported = (version) => semver.gte(version, '1.30.0');
+
 export default {
   components: {
     AgentEnv,
@@ -311,6 +313,7 @@ export default {
       const cur = this.liveValue?.spec?.kubernetesVersion || '';
       const existingRke2 = this.mode === _EDIT && cur.includes('rke2');
       const existingK3s = this.mode === _EDIT && cur.includes('k3s');
+      const isAzure = this.agentConfig?.['cloud-provider-name'] === 'azure';
 
       let allValidRke2Versions = this.getAllOptionsAfterCurrentVersion(this.rke2Versions, (existingRke2 ? cur : null), this.defaultRke2);
       let allValidK3sVersions = this.getAllOptionsAfterCurrentVersion(this.k3sVersions, (existingK3s ? cur : null), this.defaultK3s);
@@ -321,6 +324,11 @@ export default {
         // opts in to showing deprecated versions, we don't filter them.
         allValidRke2Versions = this.filterOutDeprecatedPatchVersions(allValidRke2Versions, cur);
         allValidK3sVersions = this.filterOutDeprecatedPatchVersions(allValidK3sVersions, cur);
+      }
+
+      if (isAzure) {
+        allValidRke2Versions = allValidRke2Versions.filter((v) => !isAzureK8sUnsupported(v.value));
+        allValidK3sVersions = allValidK3sVersions.filter((v) => !isAzureK8sUnsupported(v.value));
       }
 
       const showRke2 = allValidRke2Versions.length && !existingK3s;
@@ -594,8 +602,9 @@ export default {
 
     cloudProviderOptions() {
       const out = [{
-        label: this.$store.getters['i18n/t']('cluster.rke2.cloudProvider.defaultValue.label'),
-        value: '',
+        label:    this.$store.getters['i18n/t']('cluster.rke2.cloudProvider.defaultValue.label'),
+        value:    '',
+        disabled: this.canAzureMigrateOnEdit
       }];
 
       if (!!this.agentArgs['cloud-provider-name']?.options) {
@@ -607,9 +616,19 @@ export default {
           // If we have a preferred provider... only show default, preferred and external
           const isPreferred = opt === preferred;
           const isExternal = opt === 'external';
+          const isAzure = opt === 'azure';
+
           let disabled = false;
 
           if ((this.isHarvesterExternalCredential || this.isHarvesterIncompatible) && isPreferred) {
+            disabled = true;
+          }
+
+          if (isAzure && isAzureK8sUnsupported(this.value.spec.kubernetesVersion)) {
+            disabled = true;
+          }
+
+          if (!isAzure && !isExternal && this.canAzureMigrateOnEdit) {
             disabled = true;
           }
 
@@ -630,6 +649,25 @@ export default {
       }
 
       return out;
+    },
+
+    isAzureProviderUnsupported() {
+      const isAzureAvailable = !!this.cloudProviderOptions.find((p) => p.value === 'azure');
+      const isAzureSelected = this.agentConfig['cloud-provider-name'] === 'azure';
+
+      return isAzureAvailable && (isAzureK8sUnsupported(this.value.spec.kubernetesVersion) || isAzureSelected);
+    },
+
+    canAzureMigrateOnEdit() {
+      if (!this.isEdit) {
+        return false;
+      }
+
+      const isAzureLiveProvider = this.liveValue.agentConfig['cloud-provider-name'] === 'azure';
+
+      return isAzureLiveProvider &&
+        semver.gte(this.liveValue?.spec?.kubernetesVersion, '1.27.0') &&
+        semver.lt(this.liveValue?.spec?.kubernetesVersion, '1.30.0');
     },
 
     canManageMembers() {
@@ -2239,6 +2277,8 @@ export default {
             :show-cni="showCni"
             :show-cloud-provider="showCloudProvider"
             :cloud-provider-options="cloudProviderOptions"
+            :is-azure-provider-unsupported="isAzureProviderUnsupported"
+            :can-azure-migrate-on-edit="canAzureMigrateOnEdit"
             @cilium-values-changed="handleCiliumValuesChanged"
             @enabled-system-services-changed="handleEnabledSystemServicesChanged"
             @kubernetes-changed="handleKubernetesChange"
