@@ -350,13 +350,12 @@ export default {
       class="prompt-remove"
       :show-highlight-border="false"
     >
-      <h4
-        slot="title"
-        class="text-default-text"
-      >
-        {{ t('promptRemove.title') }}
-      </h4>
-      <div slot="body">
+      <template #title>
+        <h4 class="text-default-text">
+          {{ t('promptRemove.title') }}
+        </h4>
+      </template>
+      <template #body>
         <div class="mb-10">
           <template v-if="!hasCustomRemove">
             {{ t('promptRemove.attemptingToRemove', { type }) }} <span
@@ -364,31 +363,29 @@ export default {
             />
           </template>
 
-          <template>
-            <component
-              :is="removeComponent"
-              v-if="hasCustomRemove"
-              ref="customPrompt"
-              v-model:value="toRemove"
-              v-bind="_data"
-              :close="close"
-              :needs-confirm="needsConfirm"
-              :value="toRemove"
-              :names="names"
-              :type="type"
-              :done-location="doneLocation"
-              @errors="e => error = e"
-              @done="done"
+          <component
+            :is="removeComponent"
+            v-if="hasCustomRemove"
+            ref="customPrompt"
+            v-model:value="toRemove"
+            v-bind="_data"
+            :close="close"
+            :needs-confirm="needsConfirm"
+            :value="toRemove"
+            :names="names"
+            :type="type"
+            :done-location="doneLocation"
+            @errors="e => error = e"
+            @done="done"
+          />
+          <div
+            v-if="needsConfirm"
+            class="mt-10"
+          >
+            <span
+              v-clean-html="t('promptRemove.confirmName', { nameToMatch: escapeHtml(nameToMatch) }, true)"
             />
-            <div
-              v-if="needsConfirm"
-              class="mt-10"
-            >
-              <span
-                v-clean-html="t('promptRemove.confirmName', { nameToMatch: escapeHtml(nameToMatch) }, true)"
-              />
-            </div>
-          </template>
+          </div>
         </div>
         <LabeledInput
           v-if="needsConfirm"
@@ -417,7 +414,7 @@ export default {
             class="mt-10 type"
             @update:value="chartAddCrdToRemove"
           />
-        </labeledinput>
+        </LabeledInput>
         <template v-else>
           <div class="text-warning mb-10 mt-10">
             {{ warning }}
@@ -426,7 +423,7 @@ export default {
             {{ error }}
           </div>
         </template>
-      </div>
+      </template>
       <template #actions>
         <button
           class="btn role-secondary"
