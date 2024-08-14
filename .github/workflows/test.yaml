@@ -1,13 +1,13 @@
 name: Tests
 on:
-  push:
-    branches:
-      - master
-      - 'release-*'
-  pull_request:
-    branches:
-      - master
-      - 'release-*'
+  # push:
+  #   branches:
+  #     - master
+  #     - 'release-*'
+  # pull_request:
+  #   branches:
+  #     - master
+  #     - 'release-*'
   workflow_dispatch:
     inputs:
       environment:
@@ -42,6 +42,9 @@ jobs:
     runs-on: ubuntu-latest
     steps:
 <<<<<<< HEAD
+<<<<<<< HEAD
+=======
+>>>>>>> c4682884ea (revert test.yaml)
       - uses: actions/checkout@v4
         with:
           fetch-depth: 1
@@ -67,6 +70,7 @@ jobs:
           compression-level: 9
 
 
+<<<<<<< HEAD
 =======
      - uses: actions/checkout@v3
        with:
@@ -92,6 +96,8 @@ jobs:
         retention-days: 10
         compression-level: 9
 >>>>>>> aef1a47c78 (comment workflows)
+=======
+>>>>>>> c4682884ea (revert test.yaml)
   e2e-test:
     if: "!contains( github.event.pull_request.labels.*.name, 'ci/skip-e2e')"
     needs: e2e-ui-build
@@ -116,10 +122,14 @@ jobs:
     runs-on: ubuntu-latest
     steps:
 <<<<<<< HEAD
+<<<<<<< HEAD
       - uses: actions/checkout@v4
 =======
       - uses: actions/checkout@v3
 >>>>>>> aef1a47c78 (comment workflows)
+=======
+      - uses: actions/checkout@v4
+>>>>>>> c4682884ea (revert test.yaml)
         with:
           fetch-depth: 1
       - name: Setup env
@@ -228,15 +238,20 @@ jobs:
           
       - name: Upload screenshots
 <<<<<<< HEAD
+<<<<<<< HEAD
         uses: actions/upload-artifact@v4
 =======
         uses: actions/upload-artifact@v3
 >>>>>>> aef1a47c78 (comment workflows)
+=======
+        uses: actions/upload-artifact@v4
+>>>>>>> c4682884ea (revert test.yaml)
         if: ${{ failure() }}
         with:
           name: ${{github.run_number}}-${{github.run_attempt}}-screenshots-${{ matrix.role.tag }}+${{ matrix.features[0] }}
           path: cypress/screenshots
 
+<<<<<<< HEAD
 <<<<<<< HEAD
 
   unit-test:
@@ -249,6 +264,13 @@ jobs:
     steps:
       - uses: actions/checkout@v3
 >>>>>>> aef1a47c78 (comment workflows)
+=======
+
+  unit-test:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+>>>>>>> c4682884ea (revert test.yaml)
         with:
           fetch-depth: 1
       
@@ -292,15 +314,16 @@ jobs:
 >>>>>>> 991e9241ec (bind to only v2.9 to check if tests pass + comment other workflows)
 =======
       - name: Upload coverage
-        uses: actions/upload-artifact@v3
+        uses: actions/upload-artifact@v4
         with:
           name: ${{github.run_number}}-${{github.run_attempt}}-coverage
           path: coverage-artifacts/**/*
 
+
   i18n:
     runs-on: ubuntu-latest
     steps:
-      - uses: actions/checkout@v3
+      - uses: actions/checkout@v4
         with:
           fetch-depth: 1
 >>>>>>> aef1a47c78 (comment workflows)
@@ -311,6 +334,9 @@ jobs:
 <<<<<<< HEAD
 <<<<<<< HEAD
 <<<<<<< HEAD
+<<<<<<< HEAD
+=======
+>>>>>>> c4682884ea (revert test.yaml)
 
   lint:
     runs-on: ubuntu-latest
@@ -323,6 +349,7 @@ jobs:
         uses: ./.github/actions/lint
       
 
+<<<<<<< HEAD
 =======
 <<<<<<< HEAD
 >>>>>>> 991e9241ec (bind to only v2.9 to check if tests pass + comment other workflows)
@@ -333,6 +360,8 @@ jobs:
 >>>>>>> aef1a47c78 (comment workflows)
 =======
 >>>>>>> 087a32130d (update)
+=======
+>>>>>>> c4682884ea (revert test.yaml)
   check-i18n:
     runs-on: ubuntu-latest
     steps:
@@ -351,6 +380,7 @@ jobs:
           # Falure won't fail the job (remove -x when all current issues are fixed)
           ./scripts/check-i18n -s -x
 
+<<<<<<< HEAD
 <<<<<<< HEAD
 <<<<<<< HEAD
 =======
@@ -423,6 +453,8 @@ jobs:
 >>>>>>> 087a32130d (update)
       - name: Run tests
         uses: ./.github/actions/lint
+=======
+>>>>>>> c4682884ea (revert test.yaml)
 
   # coverage:
   #   runs-on: ubuntu-latest
@@ -451,7 +483,7 @@ jobs:
   check-e2e-tags:
     runs-on: ubuntu-latest
     steps:
-      - uses: actions/checkout@v3
+      - uses: actions/checkout@v4
         with:
           fetch-depth: 1
       - uses: actions/setup-node@v4
