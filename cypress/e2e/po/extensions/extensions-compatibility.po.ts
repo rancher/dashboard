@@ -11,7 +11,7 @@ import CheckboxInputPo from '@/cypress/e2e/po/components/checkbox-input.po';
 
 const installChart = new InstallChartPage();
 const terminal = new Kubectl();
-const installedApps = new ChartInstalledAppsPagePo();
+const installedApps = new ChartInstalledAppsPagePo('local', 'apps');
 
 export default class ExtensionsCompatibiliyPo extends PagePo {
   title(selector: string): Cypress.Chainable<string> {

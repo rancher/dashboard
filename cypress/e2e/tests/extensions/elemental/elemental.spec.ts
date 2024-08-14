@@ -1,5 +1,5 @@
 import ExtensionsPagePo from '@/cypress/e2e/po/pages/extensions.po';
-import ElementalPo from '@/cypress/e2e/po/pages/extensions-compatibility-tests/elemental.po';
+import ElementalPo from '@/cypress/e2e/po/extensions/elemental/elemental.po';
 import { NamespaceFilterPo } from '@/cypress/e2e/po/components/namespace-filter.po';
 import * as jsyaml from 'js-yaml';
 
@@ -112,7 +112,10 @@ describe('Extensions Compatibility spec', { tags: ['@elemental', '@adminUser'] }
   });
 
   it('Should create an Elemental resource via YAML (Inventory of Machines)', () => {
-    function poolingSchemaDefinition() {
+    const maxPollingRetries = 36;
+    let pollingCounter = 0;
+
+    function pollingSchemaDefinition() {
       cy
         .request({
           url:              'v1/schemaDefinitions/elemental.cattle.io.machineinventory',
@@ -120,14 +123,16 @@ describe('Extensions Compatibility spec', { tags: ['@elemental', '@adminUser'] }
           failOnStatusCode: false
         })
         .then((resp) => {
-          if (resp.status === 200) {
+          pollingCounter++;
+
+          if (resp.status === 200 || pollingCounter === maxPollingRetries) {
             return;
           }
 
           // let's wait for a bit so that we don't overload the server
           // with requests
           cy.wait(5000); // eslint-disable-line cypress/no-unnecessary-waiting
-          poolingSchemaDefinition();
+          pollingSchemaDefinition();
         });
     }
 
@@ -135,7 +140,7 @@ describe('Extensions Compatibility spec', { tags: ['@elemental', '@adminUser'] }
     elementalPo.sideMenuNavTo('Inventory of Machines');
     // after we hit create from YAML we need to pool for the schemaDefinition since
     // that takes while to be available https://docs.cypress.io/api/commands/request#Request-Polling
-    elementalPo.createFromYamlClick().then(poolingSchemaDefinition);
+    elementalPo.createFromYamlClick().then(pollingSchemaDefinition);
 
     elementalPo.genericYamlEditor().value().then((val) => {
       // convert yaml into json to update values
