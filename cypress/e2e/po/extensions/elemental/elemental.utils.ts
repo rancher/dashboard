@@ -1,27 +1,36 @@
-import ExtensionsCompatibiliyPo from '@/cypress/e2e/po/extensions/extensions-compatibility.po';
+import ExtensionsCompatibilityUtils from '~/cypress/e2e/po/extensions/extensions-compatibility.utils';
 import BannersPo from '@/cypress/e2e/po/components/banners.po';
 import LabeledSelectPo from '@/cypress/e2e/po/components/labeled-select.po';
 import RadioGroupInputPo from '@/cypress/e2e/po/components/radio-group-input.po';
-export default class ElementalPo extends ExtensionsCompatibiliyPo {
-  static url = '/elemental/c/_/dashboard';
-  static goTo(): Cypress.Chainable<Cypress.AUTWindow> {
-    return super.goTo(ElementalPo.url);
-  }
+import PagePo from '@/cypress/e2e/po/pages/page.po';
+
+class DashboardPagePo extends PagePo {
+  private static url = '/elemental/c/_/dashboard';
 
   constructor() {
-    super(ElementalPo.url);
+    super(DashboardPagePo.url);
   }
 
-  installOperatorBtnClick(): Cypress.Chainable {
+  waitForTitle(): Cypress.Chainable {
+    return this.self().find('h1').should('contain', 'OS Management');
+  }
+
+  installOperator(): Cypress.Chainable {
     return this.self().getId('charts-install-button').click();
   }
 
-  dashboardCreateElementalClusterClick() {
+  createElementalCluster() {
     return this.self().getId('button-create-elemental-cluster').click();
   }
 
-  dashboardCreateUpdateGroupClick() {
+  createUpdateGroupClick() {
     return this.self().getId('create-update-group-btn').click();
+  }
+}
+
+export default class ElementalPo extends ExtensionsCompatibilityUtils {
+  dashboard() {
+    return new DashboardPagePo();
   }
 
   elementalClusterSelectorTemplateBanner() {

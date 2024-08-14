@@ -1,7 +1,9 @@
 import ExtensionsPagePo from '@/cypress/e2e/po/pages/extensions.po';
-import ElementalPo from '@/cypress/e2e/po/extensions/elemental/elemental.po';
+import ElementalPo from '~/cypress/e2e/po/extensions/elemental/elemental.utils';
 import { NamespaceFilterPo } from '@/cypress/e2e/po/components/namespace-filter.po';
 import * as jsyaml from 'js-yaml';
+import LabeledInputPo from '@/cypress/e2e/po/components/labeled-input.po';
+import { MEDIUM_TIMEOUT_OPT } from '~/cypress/support/utils/timeouts';
 
 const EXTENSION_NAME = 'elemental';
 const EXTENSION_VERSION = '2.0.0-rc2';
@@ -23,7 +25,7 @@ const UPDATE_GROUP_NAME = 'update-group-1';
 const UPDATE_GROUP_IMAGE_PATH = 'some/path';
 
 const elementalPo = new ElementalPo();
-const namespacePicker = new NamespaceFilterPo();
+const namespaceFilter = new NamespaceFilterPo();
 
 describe('Extensions Compatibility spec', { tags: ['@elemental', '@adminUser'] }, () => {
   beforeEach(() => {
@@ -53,7 +55,7 @@ describe('Extensions Compatibility spec', { tags: ['@elemental', '@adminUser'] }
     extensionsPo.installModalInstallClick();
 
     // let's check the extension reload banner and reload the page
-    extensionsPo.extensionReloadBanner().should('be.visible');
+    extensionsPo.extensionReloadBanner().should('be.visible', MEDIUM_TIMEOUT_OPT);
     extensionsPo.extensionReloadClick();
 
     // make sure extension card is in the installed tab
@@ -66,49 +68,49 @@ describe('Extensions Compatibility spec', { tags: ['@elemental', '@adminUser'] }
   it('Should setup all of the needed backend parts', () => {
     cy.intercept('POST', 'v1/catalog.cattle.io.clusterrepos/rancher-charts?action=install').as(EXTENSION_CHART_CREATION);
 
-    elementalPo.goTo();
-    elementalPo.waitForTitle('h1', 'OS Management');
+    elementalPo.dashboard().goTo();
+    elementalPo.dashboard().waitForTitle();
 
-    elementalPo.installOperatorBtnClick();
-
-    elementalPo.waitForInstallChartPage('rancher-charts', 'elemental');
+    elementalPo.dashboard().installOperator();
+    elementalPo.chartInstallPage().waitForChartPage('rancher-charts', 'elemental');
 
     // we need to change the namespace picker in order for the install check on the list view
-    namespacePicker.toggle();
-    namespacePicker.clickOptionByLabel('All Namespaces');
-    namespacePicker.closeDropdown();
+    namespaceFilter.toggle();
+    namespaceFilter.clickOptionByLabel('All Namespaces');
+    namespaceFilter.closeDropdown();
 
-    elementalPo.chartInstallNext();
-    elementalPo.chartInstallClick();
-    elementalPo.chartInstallWaitForInstallationAndCloseTerminal(EXTENSION_CHART_CREATION, ['elemental-operator-crds', 'elemental-operator']);
+    elementalPo.chartInstallPage().nextPage();
+    elementalPo.chartInstallPage().installChart();
+    elementalPo.appsPage().waitForInstallCloseTerminal(EXTENSION_CHART_CREATION, ['elemental-operator-crds', 'elemental-operator']);
 
-    elementalPo.goTo();
-    elementalPo.waitForTitle('[data-testid="elemental-main-title"]', 'OS Management Dashboard');
+    elementalPo.dashboard().goTo();
+    cy.get('[data-testid="elemental-main-title"]').invoke('text').should('contain', 'OS Management Dashboard');
   });
 
   it('Should create an Elemental registration endpoint', () => {
     cy.intercept('POST', 'v1/elemental.cattle.io.machineregistrations/fleet-default').as('machineRegCreation');
 
-    elementalPo.goTo();
-    elementalPo.sideMenuNavTo('Registration Endpoints');
-    elementalPo.createClick();
+    elementalPo.dashboard().goTo();
+    elementalPo.dashboard().productNav().navToSideMenuEntryByLabel('Registration Endpoints');
 
-    elementalPo.genericNameInput().set(REG_ENDPOINT_NAME);
-    elementalPo.genericYamlEditor().value().then((val) => {
+    elementalPo.genericResourceList().masthead().create();
+    elementalPo.genericNameNsDescription().name().set(REG_ENDPOINT_NAME);
+    elementalPo.genericCodeMirror().value()
+      .then((val) => {
       // convert yaml into json to update values
-      const json: any = jsyaml.load(val);
+        const json: any = jsyaml.load(val);
 
-      json.config.elemental.install.device = REG_ENDPOINT_DEVICE_PATH;
+        json.config.elemental.install.device = REG_ENDPOINT_DEVICE_PATH;
 
-      elementalPo.genericYamlEditor().set(jsyaml.dump(json));
-      elementalPo.saveOrCreateResource().click();
+        elementalPo.genericCodeMirror().set(jsyaml.dump(json));
+        elementalPo.genericResourceDetail().cruResource().saveOrCreate().click();
 
-      cy.wait('@machineRegCreation', { requestTimeout: 15000 }).then(({ response }) => {
-        expect(response?.statusCode).to.eq(201);
-        expect(response?.body.metadata).to.have.property('name', REG_ENDPOINT_NAME);
-        expect(response?.body.spec.config.elemental.install).to.have.property('device', REG_ENDPOINT_DEVICE_PATH);
+        cy.wait('@machineRegCreation', { requestTimeout: 15000 }).then(({ response }) => {
+          expect(response?.statusCode).to.eq(201);
+          expect(response?.body.metadata).to.have.property('name', REG_ENDPOINT_NAME);
+          expect(response?.body.spec.config.elemental.install).to.have.property('device', REG_ENDPOINT_DEVICE_PATH);
+        });
       });
-    });
   });
 
   it('Should create an Elemental resource via YAML (Inventory of Machines)', () => {
@@ -129,6 +131,10 @@ describe('Extensions Compatibility spec', { tags: ['@elemental', '@adminUser'] }
             return;
           }
 
+          if (pollingCounter === maxPollingRetries) {
+            throw new Error('schemaDefinition polling failed');
+          }
+
           // let's wait for a bit so that we don't overload the server
           // with requests
           cy.wait(5000); // eslint-disable-line cypress/no-unnecessary-waiting
@@ -136,35 +142,40 @@ describe('Extensions Compatibility spec', { tags: ['@elemental', '@adminUser'] }
         });
     }
 
-    elementalPo.goTo();
-    elementalPo.sideMenuNavTo('Inventory of Machines');
+    elementalPo.dashboard().goTo();
+    elementalPo.dashboard().productNav().navToSideMenuEntryByLabel('Inventory of Machines');
+
     // after we hit create from YAML we need to pool for the schemaDefinition since
     // that takes while to be available https://docs.cypress.io/api/commands/request#Request-Polling
-    elementalPo.createFromYamlClick().then(pollingSchemaDefinition);
+    elementalPo.genericResourceList().masthead().createYaml().then(pollingSchemaDefinition);
 
-    elementalPo.genericYamlEditor().value().then((val) => {
+    elementalPo.genericResourceDetail().resourceYaml().codeMirror().value()
+      .then((val) => {
       // convert yaml into json to update values
-      const json: any = jsyaml.load(val);
+        const json: any = jsyaml.load(val);
 
-      json.metadata.name = MACHINE_INV_NAME;
+        json.metadata.name = MACHINE_INV_NAME;
 
-      elementalPo.genericYamlEditor().set(jsyaml.dump(json));
-      elementalPo.saveEditYamlForm().click();
+        elementalPo.genericResourceDetail().resourceYaml().codeMirror().set(jsyaml.dump(json));
+        elementalPo.genericResourceDetail().resourceYaml().saveOrCreate().click();
 
-      elementalPo.waitForPageWithSpecificUrl('/elemental/c/_/elemental.cattle.io.machineinventory');
-      elementalPo.genericListView().rowWithName(MACHINE_INV_NAME).column(2).should('contain', MACHINE_INV_NAME);
-    });
+        elementalPo.genericPage('/elemental/c/_/elemental.cattle.io.machineinventory').waitForPage();
+        elementalPo.genericResourceList().resourceTable().sortableTable().rowWithName(MACHINE_INV_NAME)
+          .column(2)
+          .should('contain', MACHINE_INV_NAME);
+      });
   });
 
   it('Should create an Elemental cluster, targeting all of the inventory of machines', () => {
     cy.intercept('POST', 'v1/provisioning.cattle.io.clusters').as('elementalClusterCreation');
 
-    elementalPo.goTo();
-    elementalPo.dashboardCreateElementalClusterClick();
+    elementalPo.dashboard().goTo();
+    elementalPo.dashboard().createElementalCluster();
 
-    elementalPo.genericNameInput().set(ELEMENTAL_CLUSTER_NAME);
+    elementalPo.genericNameNsDescription().name().set(ELEMENTAL_CLUSTER_NAME);
     elementalPo.elementalClusterSelectorTemplateBanner().banner().contains(ELEMENTAL_CLUSTER_BANNER_TEXT);
-    elementalPo.saveOrCreateCluster().click();
+    // hit create button
+    cy.get('[data-testid="rke2-custom-create-save"]').click();
 
     cy.wait('@elementalClusterCreation', { requestTimeout: 15000 }).then(({ response }) => {
       expect(response?.statusCode).to.eq(201);
@@ -176,16 +187,16 @@ describe('Extensions Compatibility spec', { tags: ['@elemental', '@adminUser'] }
   it('Should create an Upgrade Group', () => {
     cy.intercept('POST', 'v1/elemental.cattle.io.managedosimages').as('elementalUpdateGroupCreation');
 
-    elementalPo.goTo();
-    elementalPo.dashboardCreateUpdateGroupClick();
+    elementalPo.dashboard().goTo();
+    elementalPo.dashboard().createUpdateGroupClick();
 
-    elementalPo.genericNameInput().set(UPDATE_GROUP_NAME);
+    elementalPo.genericNameNsDescription().name().set(UPDATE_GROUP_NAME);
     elementalPo.updateGroupTargetClustersSelect().toggle();
     elementalPo.updateGroupTargetClustersSelect().clickOptionWithLabel(ELEMENTAL_CLUSTER_NAME);
     elementalPo.updateGroupImageOption().set(1);
 
-    elementalPo.genericLabeledInputByLabel('Image path').set(UPDATE_GROUP_IMAGE_PATH);
-    elementalPo.saveOrCreateResource().click();
+    LabeledInputPo.byLabel(cy.get('.dashboard-root'), 'Image path').set(UPDATE_GROUP_IMAGE_PATH);
+    elementalPo.genericResourceDetail().cruResource().saveOrCreate().click();
 
     cy.wait('@elementalUpdateGroupCreation', { requestTimeout: 15000 }).then(({ response }) => {
       expect(response?.statusCode).to.eq(201);
