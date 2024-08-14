@@ -2,10 +2,6 @@ name: Extensions Compatibility Tests
 on:
   schedule:
     - cron: "0 0 * * *" # runs at midnight every day
-  # TO DELETE! WANT TO SEE THIS RUN ONE MORE TIME...
-  pull_request:
-    branches:
-      - master
 
 env:
   TEST_USERNAME: admin

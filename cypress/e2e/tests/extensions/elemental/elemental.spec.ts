@@ -37,6 +37,8 @@ describe('Extensions Compatibility spec', { tags: ['@elemental', '@adminUser'] }
     const extensionsPo = new ExtensionsPagePo();
 
     extensionsPo.addExtensionsRepositoryDirectLink(EXTENSION_REPO, EXTENSION_BRANCH, EXTENSION_CLUSTER_REPO_NAME, true);
+    // let's wait a bit so that the repo is available in extensions screen
+    cy.wait(10000); // eslint-disable-line cypress/no-unnecessary-waiting
   });
 
   it('Should install an extension', () => {
