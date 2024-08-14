@@ -1,6 +1,7 @@
 #!/usr/bin/env node
 /* eslint-disable no-console */
 
+const { execSync } = require('child_process');
 const path = require('path');
 const fs = require('fs-extra');
 
@@ -94,7 +95,11 @@ Object.keys(targets).forEach((target) => {
 const creatorPkgData = fs.readFileSync(path.join(__dirname, 'package.json'));
 const creatorPkg = JSON.parse(creatorPkgData);
 
-pkg.dependencies['@rancher/shell'] = `^${ creatorPkg.version }`;
+// Fetch the latest version of @rancher/shell
+const shellVersion = execSync('npm view @rancher/shell version').toString().trim();
+
+// Set the latest version of @rancher/shell in the dependencies
+pkg.dependencies['@rancher/shell'] = `^${ shellVersion }`;
 
 // Rest of dependencies are in the _pkgs property of package.json - copy then across
 if (creatorPkg._pkgs) {

@@ -1,6 +1,7 @@
 #!/usr/bin/env node
 /* eslint-disable no-console */
 
+const { execSync } = require('child_process');
 const fs = require('fs-extra');
 const path = require('path');
 const https = require('https');
@@ -27,8 +28,6 @@ const typeFolders = [
   'detail'
 ];
 
-const shellPkgPath = 'node_modules/@rancher/shell';
-
 console.log('');
 console.log('Creating Skeleton UI Package');
 
@@ -39,7 +38,6 @@ const folder = path.resolve('.');
 const pkgFolder = path.join(folder, 'pkg', name);
 
 let addTypeFolders = true;
-let ignoreShellPkgPathCheck = false;
 
 if ( args.length > 3 ) {
   for ( let i = 3; i < args.length; i++ ) {
@@ -48,19 +46,10 @@ if ( args.length > 3 ) {
     case '-t':
       addTypeFolders = false;
       break;
-    case '-i':
-      ignoreShellPkgPathCheck = true;
-      break;
     default:
       break;
     }
   }
-}
-
-if (!ignoreShellPkgPathCheck && !fs.existsSync(path.join(pkgFolder, `../../${ shellPkgPath }/package.json`))) {
-  console.log('');
-  console.log('@rancher/shell not found in node_modules! Please do "yarn install" and make sure you run this command from the base folder of your app');
-  process.exit(1);
 }
 
 const isNodeModulesShell = !fs.existsSync(path.join(folder, 'shell'));
@@ -126,13 +115,11 @@ function fetchLatestVersion() {
 
           pkg.rancher = { annotations: { 'catalog.cattle.io/rancher-version': `>= ${ release.tag_name }` } };
 
-          // read shell version from node_modules/@rancher/shell/package.json
-          const shellPkgRawData = fs.readFileSync(path.join(pkgFolder, `../../${ shellPkgPath }/package.json`));
-          const shellPkg = JSON.parse(shellPkgRawData);
-          const latestShellVersion = shellPkg.version || null;
+          // Fetch the latest version of @rancher/shell
+          const latestShellVersion = execSync('npm view @rancher/shell version').toString().trim() || null;
 
           if (!latestShellVersion) {
-            console.log('Could not get a shell version from node_modules/@rancher/shell/package.json in app');
+            console.log('Could not get a shell version from npm, skipping adding catalog.cattle.io/ui-extensions-version annotation to package.json');
           } else {
             const splitShellVersion = latestShellVersion.split('.');
             const majorVersion = splitShellVersion[0];

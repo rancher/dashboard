@@ -10,6 +10,7 @@ let extensionName = '';
 let appName = '';
 let updateOnly = false;
 let skeletonOnly = false;
+let ignoreShellDepCheck = false;
 
 args.forEach((arg, index) => {
   switch (arg) {
@@ -29,6 +30,9 @@ args.forEach((arg, index) => {
   case '--skeleton-only':
   case '-s':
     skeletonOnly = true;
+    break;
+  case '-i':
+    ignoreShellDepCheck = true;
     break;
   default:
     if ( !arg.startsWith('-') && extensionName === '' ) {
@@ -54,7 +58,7 @@ if ( fs.existsSync(path.join(basePath, 'package.json')) ) {
   const packageJsonPath = path.join(basePath, 'package.json');
   const packageJson = require(packageJsonPath);
 
-  if ( !packageJson.dependencies || !packageJson.dependencies['@rancher/shell'] ) {
+  if ( !ignoreShellDepCheck && (!packageJson.dependencies || !packageJson.dependencies['@rancher/shell']) ) {
     throw new Error('@rancher/shell dependency is missing in package.json.');
   } else {
     isInsideSkeleton = true;
@@ -103,10 +107,6 @@ try {
 
     // Change working directory to the newly created skeleton app
     process.chdir(skeletonPath);
-
-    // Install dependencies after creating the skeleton
-    console.log(`Installing dependencies in ${ appName }...`);
-    execSync(`yarn install`, { stdio: 'inherit' });
   } else if ( isInsideSkeleton ) {
     // If skeleton exists, ensure the working directory is set correctly
     process.chdir(skeletonPath);
@@ -134,6 +134,10 @@ try {
   }
 
   console.log('Extension created successfully.');
+
+  if ( skeletonOnly || !isInsideSkeleton ) {
+    console.log(`To begin, run: \n\n\tcd ${ appName } && yarn install\n`);
+  }
 } catch (error) {
   console.error('Error creating extension:', error);
   process.exit(1);

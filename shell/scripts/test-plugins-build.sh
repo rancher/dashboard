@@ -73,7 +73,7 @@ export YARN_REGISTRY=$VERDACCIO_YARN_REGISTRY
 export NUXT_TELEMETRY_DISABLED=1
 
 # Remove test package from previous run, if present
-if [ $TEST_PERSIST_BUILD != "true" ]; then
+if [ "${TEST_PERSIST_BUILD}" != "true" ]; then
   echo "Removing folder ${BASE_DIR}/pkg/test-pkg"
   rm -rf ${BASE_DIR}/pkg/test-pkg
 fi
@@ -107,26 +107,18 @@ if [ "${SKIP_STANDALONE}" == "false" ]; then
 
   echo "Using temporary directory ${DIR}"
 
-  echo "Verifying app creator package"
+  echo "Verifying extension creator"
 
-  yarn create @rancher/app test-app
-  pushd test-app
+  FORCE_COLOR=true yarn create @rancher/extension test-pkg --app-name test-app | cat
+
+  pushd test-app > /dev/null
+
   yarn install
-
-  echo "Building skeleton app"
-
   FORCE_COLOR=true yarn build | cat
-
-  # Package creator
-  echo "Verifying package creator package"
-  yarn create @rancher/pkg test-pkg -i
-
-  echo "Building test package"
-  FORCE_COLOR=true yarn build-pkg test-pkg | cat
 
   # Add test list component to the test package
   # Validates rancher-components imports
-  mkdir pkg/test-pkg/list
+  mkdir -p pkg/test-pkg/list
   cp ${SHELL_DIR}/list/catalog.cattle.io.clusterrepo.vue pkg/test-pkg/list
 
   FORCE_COLOR=true yarn build-pkg test-pkg | cat
@@ -134,7 +126,7 @@ if [ "${SKIP_STANDALONE}" == "false" ]; then
   echo "Cleaning temporary dir"
   popd > /dev/null
 
-  if [ $TEST_PERSIST_BUILD != "true" ]; then
+  if [ "${TEST_PERSIST_BUILD}" != "true" ]; then
     echo "Removing folder ${DIR}"
     rm -rf ${DIR}
   fi
@@ -147,15 +139,16 @@ echo "Validating in-tree package"
 
 yarn install
 
-if [ $TEST_PERSIST_BUILD != "true" ]; then
+if [ "${TEST_PERSIST_BUILD}" != "true" ]; then
   echo "Removing folder ./pkg/test-pkg"
   rm -rf ./pkg/test-pkg
 fi
 
-yarn create @rancher/pkg test-pkg -t -i
+yarn create @rancher/extension test-pkg -i
 cp ${SHELL_DIR}/list/catalog.cattle.io.clusterrepo.vue ./pkg/test-pkg/list
 FORCE_COLOR=true yarn build-pkg test-pkg | cat
-if [ $TEST_PERSIST_BUILD != "true" ]; then
+
+if [ "${TEST_PERSIST_BUILD}" != "true" ]; then
   echo "Removing folder ./pkg/test-pkg"
   rm -rf ./pkg/test-pkg
 fi
@@ -170,7 +163,7 @@ function clone_repo_test_extension_build() {
   # set registry to default (to install all of the other dependencies)
   yarn config set registry ${DEFAULT_YARN_REGISTRY}
 
-  if [ $TEST_PERSIST_BUILD != "true" ]; then
+  if [ "${TEST_PERSIST_BUILD}" != "true" ]; then
     echo "Removing folder ${BASE_DIR}/$REPO_NAME"
     rm -rf ${BASE_DIR}/$REPO_NAME
   fi
