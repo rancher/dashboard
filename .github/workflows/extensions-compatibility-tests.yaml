@@ -56,7 +56,7 @@ jobs:
       # This is the actual triggering of the e2e test specs
       - name: Run user tests
         run: |
-          export SPEC_FILE="cypress/e2e/tests/pages/extensions-compatibility-tests/${{ matrix.features[1] }}.spec.ts" && yarn e2e:prod
+          export SPEC_FILE="cypress/e2e/tests/extensions/${{ matrix.features[1] }}/${{ matrix.features[1] }}.spec.ts" && yarn e2e:prod
         env: 
           TEST_SKIP: setup
           GREP_TAGS: ${{ matrix.role.tag }}+${{ matrix.features[0] }} --@jenkins ${{ matrix.role.tag }}+${{ matrix.features[0] }} --@jenkins
