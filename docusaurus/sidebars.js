@@ -30,7 +30,15 @@ const sidebars = {
       },
       items: [
         'extensions/introduction',
-        'extensions/rancher-2.9-support',
+        {
+          type:  'category',
+          label: 'Changelog',
+          link:  {
+            type: 'doc',
+            id:   'extensions/changelog',
+          },
+          items: ['extensions/rancher-2.9-support']
+        },
         'extensions/support-matrix',
         'extensions/extensions-getting-started',
         'extensions/extensions-configuration',
