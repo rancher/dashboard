@@ -47,7 +47,8 @@ export default {
     if ( this.hasListComponent ) {
       // If you provide your own list then call its fetch
       const importer = this.listComponent;
-      const component = (await importer())?.default;
+
+      const component = await importer.__asyncLoader();
 
       if ( component?.typeDisplay ) {
         this.customTypeDisplay = component.typeDisplay.apply(this);
