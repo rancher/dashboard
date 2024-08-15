@@ -9,9 +9,19 @@ EMBER_DIST=${DIR}/dist_ember
 # Image version
 RANCHER_IMG_VERSION=v2.9-head
 
-docker run -d --restart=unless-stopped -p 80:80 -p 443:443 \
-  -v ${DASHBOARD_DIST}:/usr/share/rancher/ui-dashboard/dashboard \
-  -v ${EMBER_DIST}:/usr/share/rancher/ui \
+# Docker volume args when mounting the locally-built UI into the container
+VOLUME_ARGS="-v ${DASHBOARD_DIST}:/usr/share/rancher/ui-dashboard/dashboard -v ${EMBER_DIST}:/usr/share/rancher/ui"
+
+# check if script invoke contains any argument. If so, adjust RANCHER_IMG_VERSION
+if [ $# -eq 1 ]; then
+  RANCHER_IMG_VERSION=$1
+  # When an image is specified, we use that image, including its front-end, so we don't want the volume args to mount the locally-built UI
+  VOLUME_ARGS=""
+fi
+
+echo "Using Rancher image version: ${RANCHER_IMG_VERSION}"
+
+docker run -d --restart=unless-stopped -p 80:80 -p 443:443 ${VOLUME_ARGS} \
   -e CATTLE_UI_OFFLINE_PREFERRED=true \
   -e CATTLE_BOOTSTRAP_PASSWORD=password \
   -e CATTLE_PASSWORD_MIN_LENGTH=3 \
