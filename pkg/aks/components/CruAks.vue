@@ -926,7 +926,7 @@ export default defineComponent({
       const _id = randomStr();
 
       if (!this.nodePools.length) {
-        poolName = 'agentPool';
+        poolName = 'agentpool';
         // there must be at least one System pool so if it's the first pool, default to that
         mode = 'System' as AKSPoolMode;
       }
