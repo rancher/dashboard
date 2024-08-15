@@ -23,7 +23,7 @@ describe('component: LabeledInput', () => {
   it('using mode "multiline" should emit input value correctly', () => {
     const value = 'any-string';
     const delay = 1;
-    const wrapper = mount(LabeledInput as any, {
+    const wrapper = mount(LabeledInput, {
       propsData: { delay, multiline: true },
       mocks:     { $store: { getters: { 'i18n/t': jest.fn() } } }
     });

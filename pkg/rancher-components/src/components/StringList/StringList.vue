@@ -1,5 +1,5 @@
 <script lang="ts">
-import Vue, { PropType, defineComponent } from 'vue';
+import { PropType, defineComponent } from 'vue';
 
 import LabeledInput from '@components/Form/LabeledInput/LabeledInput.vue';
 import { findStringIndex, hasDuplicatedStrings } from '@shell/utils/array';
@@ -219,7 +219,7 @@ export default defineComponent({
     },
 
     setFocus(refId: string) {
-      this.$nextTick(() => (this.getElemByRef(refId) as Vue & HTMLElement)?.focus());
+      this.$nextTick(() => (this.getElemByRef(refId) as HTMLElement)?.focus());
     },
 
     /**
@@ -256,7 +256,7 @@ export default defineComponent({
     },
 
     toggleErrorClass(refId: string, val: boolean) {
-      const input = (this.getElemByRef(refId) as Vue)?.$el;
+      const input = (this.getElemByRef(refId))?.$el;
 
       if (input) {
         if (val) {
@@ -462,7 +462,7 @@ export default defineComponent({
           :value="value != null ? value : item"
           @update:value="onChange($event, index)"
           @blur.prevent="updateItem(item)"
-          @keydown.native.enter="updateItem(item, !errors.duplicate)"
+          @keydown.enter="updateItem(item, !errors.duplicate)"
         />
       </div>
       <div
@@ -478,7 +478,7 @@ export default defineComponent({
           :placeholder="placeholder"
           @update:value="onChange($event)"
           @blur.prevent="saveItem"
-          @keydown.native.enter="saveItem(!errors.duplicate)"
+          @keydown.enter="saveItem(!errors.duplicate)"
         />
       </div>
     </div>
