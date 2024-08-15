@@ -136,10 +136,10 @@ export default {
       const url = this.oidcUrls.url.replaceAll(' ', '');
       const realmsPath = isKeycloak ? 'auth/realms' : 'realms';
 
-      this.model.issuer = `${ url }/${ realmsPath }/${ this.oidcUrls.realm || '' }`;
+      this.$set(this.model, 'issuer', `${ url }/${ realmsPath }/${ this.oidcUrls.realm || '' }`);
 
       if ( isKeycloak ) {
-        this.model.authEndpoint = `${ this.model.issuer || '' }/protocol/openid-connect/auth`;
+        this.$set(this.model, 'authEndpoint', `${ this.model.issuer || '' }/protocol/openid-connect/auth`);
       }
     },
 
