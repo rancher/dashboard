@@ -39,12 +39,9 @@ export default {
   <div class="pgb">
     <template
       v-for="(role, i) in boundRoles"
-      :key="i"
+      :key="role.id"
     >
-      <router-link
-        :key="role.id"
-        :to="role.detailLocation"
-      >
+      <router-link :to="role.detailLocation">
         {{ role.label }}
       </router-link>
       <template v-if="i + 1 < boundRoles.length">

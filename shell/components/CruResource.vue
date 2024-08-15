@@ -686,8 +686,11 @@ export default {
                 />
               </template>
             </template>
-            <template #default>
-              <div v-if="!isView">
+            <template
+              v-if="!isView"
+              #default
+            >
+              <div>
                 <button
                   v-if="showYaml"
                   :data-testid="componentTestid + '-yaml'"
