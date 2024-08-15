@@ -20,7 +20,7 @@ describe('component: Job', () => {
 
       input.setValue(newValue);
 
-      expect(wrapper.emitted('input')).toHaveLength(1);
+      expect(wrapper.emitted('update:value')).toHaveLength(1);
     });
 
     it.each([
@@ -39,7 +39,7 @@ describe('component: Job', () => {
 
       radioOption.trigger('click');
 
-      expect(wrapper.emitted('input')).toHaveLength(1);
+      expect(wrapper.emitted('update:value')).toHaveLength(1);
     });
   });
 
@@ -66,7 +66,7 @@ describe('component: Job', () => {
       input.setValue(newValue);
       input.trigger('blur');
 
-      expect(wrapper.emitted('input')).toHaveLength(1);
+      expect(wrapper.emitted('update:value')).toHaveLength(1);
     });
   });
 });

@@ -37,6 +37,6 @@ describe('component: FileImageSelector', () => {
     const fs = wrapper.findComponent(FileSelector);
 
     await fs.vm.$emit('selected');
-    expect(wrapper.emitted('input')).toHaveLength(1);
+    expect(wrapper.emitted('update:value')).toHaveLength(1);
   });
 });

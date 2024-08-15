@@ -40,7 +40,7 @@ export default defineComponent({
      */
     items: {
       type: Array as PropType<string[]>,
-      default(props) {
+      default() {
         return [];
       },
     },
@@ -106,7 +106,7 @@ export default defineComponent({
      * Create an array of error messages, one for each current error
      */
     errorMessagesArray(): string[] {
-      return (Object.keys(props.errors) as Error[])
+      return (Object.keys(this.errors) as Error[])
         .filter((f) => this.errors[f] && this.errorMessages[f])
         .map((k) => this.errorMessages[k]);
     },
@@ -432,7 +432,9 @@ export default defineComponent({
       @dblclick="onClickEmptyBody()"
     >
       <div
-        v-for="(item, index) in items" :key="index":ref="item"
+        v-for="(item, index) in items"
+        :key="index"
+        :ref="item"
         :class="{
           selected: selected === item,
           readonly
@@ -513,7 +515,9 @@ export default defineComponent({
           class="icon icon-warning icon-lg"
         />
         <span
-          v-for="(msg, idx) in errorMessagesArray" :key="idx":data-testid="`span-error-message-${msg}`"
+          v-for="(msg, idx) in errorMessagesArray"
+          :key="idx"
+          :data-testid="`span-error-message-${msg}`"
           class="error"
         >
           {{ idx > 0 ? '; ' : '' }}

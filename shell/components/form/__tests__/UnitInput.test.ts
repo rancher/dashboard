@@ -18,7 +18,7 @@ describe('component: UnitInput', () => {
     await input.setValue(4);
     input.trigger(event);
 
-    expect(wrapper.emitted('input')).toHaveLength(1);
+    expect(wrapper.emitted('update:value')).toHaveLength(1);
   });
 
   it.each([
@@ -79,7 +79,7 @@ describe('component: UnitInput', () => {
     await inputWrapper.setValue(3);
     inputWrapper.trigger('blur');
 
-    expect(wrapper.emitted('input')![0][0]).toBe(expected);
+    expect(wrapper.emitted('update:value')![0][0]).toBe(expected);
   });
 
   it('should display defined SI unit', async() => {
@@ -96,7 +96,7 @@ describe('component: UnitInput', () => {
     await input.setValue(2);
     input.trigger('blur');
 
-    expect(wrapper.emitted('input')![0][0]).toContain(UNITS[inputExponent]);
+    expect(wrapper.emitted('update:value')![0][0]).toContain(UNITS[inputExponent]);
   });
 
   it.each([
@@ -127,7 +127,7 @@ describe('component: UnitInput', () => {
     input.setValue(2);
     input.trigger('blur');
 
-    expect(typeof wrapper.emitted('input')![0][0]).toBe(outputAs);
+    expect(typeof wrapper.emitted('update:value')![0][0]).toBe(outputAs);
   });
 
   it.each([
@@ -167,7 +167,7 @@ describe('component: UnitInput', () => {
     input.setValue(value);
     input.trigger('blur');
 
-    expect(wrapper.emitted('input')![0][0]).toBe(expectation);
+    expect(wrapper.emitted('update:value')![0][0]).toBe(expectation);
   });
 
   it('should not correct value to a valid integer while typing', () => {
@@ -185,7 +185,7 @@ describe('component: UnitInput', () => {
     jest.advanceTimersByTime(delay);
     jest.useRealTimers();
 
-    expect(wrapper.emitted('input')).toHaveLength(1);
-    expect(wrapper.emitted('input')![0][0]).toBe(value);
+    expect(wrapper.emitted('update:value')).toHaveLength(1);
+    expect(wrapper.emitted('update:value')![0][0]).toBe(value);
   });
 });

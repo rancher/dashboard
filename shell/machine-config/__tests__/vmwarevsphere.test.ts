@@ -12,11 +12,13 @@ describe('component: vmwarevsphere', () => {
       disabled:     false,
       provider:     'vmwarevsphere'
     },
-    mocks: {
-      $fetchState: { pending: false },
-      $store:      { getters: defaultGetters },
-    },
-    stubs: { CodeMirror: true },
+    global: {
+      mocks: {
+        $fetchState: { pending: false },
+        $store:      { getters: defaultGetters },
+      },
+      stubs: { CodeMirror: true },
+    }
   };
   const defaultCreateSetup = {
     ...baseSetup,

@@ -1,6 +1,6 @@
 /* eslint-disable jest/no-mocks-import */
 import flushPromises from 'flush-promises';
-import { shallowMount, Wrapper } from '@vue/test-utils';
+import { shallowMount, VueWrapper } from '@vue/test-utils';
 import { EKSConfig } from 'types';
 import Config from '@pkg/eks/components/Config.vue';
 import listKeysResponseData from '../__mocks__/listKeys';
@@ -25,7 +25,7 @@ const mockedStore = (versionSetting: any) => {
       currentStore:           () => 'current_store',
       'management/schemaFor': jest.fn(),
       'rancher/create':       () => {},
-      'management/byId':      () => {
+      'management/byId':      (_id: string) => {
         return versionSetting;
       },
     },
@@ -56,7 +56,7 @@ const requiredSetup = (versionSetting = { value: '<=1.27.x' }) => {
   };
 };
 
-const setCredential = async(wrapper :Wrapper<any>, config = {} as EKSConfig) => {
+const setCredential = async(wrapper: VueWrapper<any>, config = {} as EKSConfig) => {
   config.amazonCredentialSecret = 'foo';
   config.region = 'bar';
   wrapper.setData({ config });
@@ -68,7 +68,18 @@ describe('eKS K8s configuration', () => {
     const setup = requiredSetup();
     const spy = jest.spyOn(setup.mocks.$store, 'dispatch');
 
-    const wrapper = shallowMount(Config, { propsData: { config: { amazonCredentialSecret: '', region: '' } }, ...setup });
+    const wrapper = shallowMount(
+      Config,
+      {
+        propsData:
+        {
+          config: {
+            amazonCredentialSecret: '',
+            region:                 ''
+          }
+        },
+        global: { ...setup }
+      });
 
     expect(wrapper.exists()).toBe(true);
     expect(spy).toHaveBeenCalledTimes(0);

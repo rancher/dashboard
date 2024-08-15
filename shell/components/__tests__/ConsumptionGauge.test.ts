@@ -36,8 +36,8 @@ describe('component: ConsumptionGauge', () => {
 
     // checking PercentageBar component render
     expect(percentageBar.exists()).toBe(true);
-    expect(percentageBar.props().value).toBe(20);
-    expect(percentageBar.props().colorStops).toBe(colorStops);
+    expect(Number(percentageBar.attributes().value)).toBe(20);
+    expect(percentageBar.props().colorStops).toStrictEqual(colorStops);
   });
 
   it('usedAsResourceName should render secondary title instead of main h3 title', () => {
