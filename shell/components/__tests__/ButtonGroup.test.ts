@@ -115,7 +115,7 @@ describe('component: ButtonGroup', () => {
 
     firstBtn.trigger('click');
 
-    expect(wrapper.emitted('input')).toHaveLength(1);
-    expect(wrapper.emitted('input')![0][0]).toBe('val1');
+    expect(wrapper.emitted('update:value')).toHaveLength(1);
+    expect(wrapper.emitted('update:value')![0][0]).toBe('val1');
   });
 });

@@ -46,7 +46,7 @@ export default defineComponent({
   methods: {
     toggle(neu: StateType | null) {
       this.state = neu === null ? !this.state : neu;
-      this.$emit('input', this.state ? this.onValue : this.offValue);
+      this.$emit('update:value', this.state ? this.onValue : this.offValue);
     }
   }
 });
@@ -63,7 +63,7 @@ export default defineComponent({
       <input
         type="checkbox"
         :checked="state"
-        @update:value="toggle(null)"
+        @input="toggle(null)"
       >
       <span class="slider round" />
     </label>

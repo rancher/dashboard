@@ -552,7 +552,7 @@ function maybeFn(val) {
 }
 
 export default class Resource {
-  constructor(data, ctx, rehydrateNamespace = null, setClone = false) {
+  constructor(data, ctx = {}, rehydrateNamespace = null, setClone = false) {
     for ( const k in data ) {
       this[k] = data[k];
     }

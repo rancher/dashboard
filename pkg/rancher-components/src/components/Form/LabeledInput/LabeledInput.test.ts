@@ -16,8 +16,8 @@ describe('component: LabeledInput', () => {
     jest.advanceTimersByTime(delay);
     jest.useRealTimers();
 
-    expect(wrapper.emitted('input')).toHaveLength(1);
-    expect(wrapper.emitted('input')![0][0]).toBe(value);
+    expect(wrapper.emitted('update:value')).toHaveLength(1);
+    expect(wrapper.emitted('update:value')![0][0]).toBe(value);
   });
 
   it('using mode "multiline" should emit input value correctly', () => {
@@ -34,7 +34,7 @@ describe('component: LabeledInput', () => {
     jest.advanceTimersByTime(delay);
     jest.useRealTimers();
 
-    expect(wrapper.emitted('input')).toHaveLength(1);
-    expect(wrapper.emitted('input')![0][0]).toBe(value);
+    expect(wrapper.emitted('update:value')).toHaveLength(1);
+    expect(wrapper.emitted('update:value')![0][0]).toBe(value);
   });
 });
