@@ -98,7 +98,7 @@ export default {
           const interval = group.interval;
 
           if (isString(interval)) {
-            group['interval'] = interval.includes('s' ? interval : `${ interval }s`);
+            group['interval'] = interval.includes('s') ? interval : `${ interval }s`;
           } else {
             group['interval'] = `${ interval }s`;
           }

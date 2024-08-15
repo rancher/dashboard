@@ -669,11 +669,11 @@ export default {
             <input
               v-else
               ref="key"
-              v-model:value="row[keyName]"
+              v-model="row[keyName]"
               :disabled="isView || disabled || !keyEditable || isProtected(row.key)"
               :placeholder="_keyPlaceholder"
               :data-testid="`input-kv-item-key-${i}`"
-              @input="($plainInputEvent) => queueUpdate($plainInputEvent)"
+              @input="queueUpdate"
               @paste="onPaste(i, $event)"
             >
           </slot>
@@ -749,8 +749,8 @@ export default {
           </slot>
         </div>
         <div
-          v-for="(c, i) in extraColumns"
-          :key="i"
+          v-for="(c, j) in extraColumns"
+          :key="`${i}-${j}`"
           class="kv-item extra"
         >
           <slot

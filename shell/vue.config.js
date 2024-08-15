@@ -72,7 +72,7 @@ module.exports = function(dir, _appConfig) {
   const excludes = appConfig.excludes || [];
 
   const watcherIgnores = [
-    /.shell/,
+    /node_modules/,
     /dist-pkg/,
     /scripts\/standalone/
   ];
@@ -260,6 +260,7 @@ module.exports = function(dir, _appConfig) {
         const socketProxies = {};
 
         if (!devServer) {
+          // eslint-disable-next-line no-console
           console.error('webpack-dev-server is not defined');
 
           return middlewares;
@@ -413,8 +414,7 @@ module.exports = function(dir, _appConfig) {
       const watcherIgnoresPaths = [...watcherIgnores, ...ignoredPkgs];
       const combinedRegex = new RegExp(watcherIgnoresPaths.map(({ source }) => source).join('|'));
 
-      // TODO: Figure out a fix to have livereload watch less files
-      // config.watchOptions.ignored = combinedRegex;
+      config.watchOptions.ignored = combinedRegex;
 
       if (dev) {
         config.devtool = 'cheap-module-source-map';

@@ -794,7 +794,7 @@ export default {
         <div class="ns-input">
           <input
             ref="filter"
-            v-model:value="filter"
+            v-model="filter"
             tabindex="0"
             class="ns-filter-input"
             @keydown="inputKeyHandler($event)"

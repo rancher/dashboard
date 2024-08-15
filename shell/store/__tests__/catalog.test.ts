@@ -1,7 +1,6 @@
 import { CATALOG } from '@shell/config/types';
 import { state, getters, actions, mutations } from '../catalog';
-import Vuex, { createStore } from 'vuex';
-import '@vue/test-utils';
+import { createStore } from 'vuex';
 
 const clusterRepo = { _key: 'testClusterRepo' };
 const repoChartName = 'abc';
@@ -46,8 +45,6 @@ describe('catalog', () => {
         mutations,
         actions,
       };
-
-      localVue.use(Vuex);
 
       return {
         modules: {
@@ -102,8 +99,6 @@ describe('catalog', () => {
     };
 
     it('no force', async() => {
-      localVue.use(Vuex);
-
       const store = createStore(constructStore());
 
       // Validate initial state of store
@@ -131,8 +126,6 @@ describe('catalog', () => {
     });
 
     it('force', async() => {
-      localVue.use(Vuex);
-
       const store = createStore(constructStore());
 
       // Validate initial state of store
@@ -175,8 +168,6 @@ describe('catalog', () => {
     });
 
     it('force + reset', async() => {
-      localVue.use(Vuex);
-
       const store = createStore(constructStore());
 
       // Validate initial state of store

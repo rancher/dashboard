@@ -299,10 +299,10 @@ export default {
         </div>
         <input
           v-else-if="!hasKeySelectOptions"
-          v-model:value="row.key"
+          v-model="row.key"
           :mode="mode"
           :data-testid="`input-match-expression-key-control-${index}`"
-          @input="($plainInputEvent) => update($plainInputEvent)"
+          @input="update"
         >
         <LabeledSelect
           v-else

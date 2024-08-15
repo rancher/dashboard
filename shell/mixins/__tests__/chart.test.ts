@@ -1,7 +1,7 @@
-import '@vue/test-utils';
-import Vuex, { createStore } from 'vuex';
+import { createStore } from 'vuex';
 import ChartMixin from '@shell/mixins/chart';
 import { OPA_GATE_KEEPER_ID } from '@shell/pages/c/_cluster/gatekeeper/index.vue';
+import { mount } from '@vue/test-utils';
 
 describe('chartMixin', () => {
   const testCases = {
@@ -17,8 +17,6 @@ describe('chartMixin', () => {
       [true, false, 1],
     ],
   };
-
-  localVue.use(Vuex);
 
   it.each(testCases.opa)(
     'should add OPA deprecation warning properly', async(chartId, expected) => {
@@ -37,8 +35,7 @@ describe('chartMixin', () => {
         }
       });
 
-      const vm = localVue.extend({});
-      const instance = new vm({ store });
+      const instance = mount({ store, mixins: { ChartMixin } as any });
 
       instance.$route = { query: { chart: 'chart_name' } };
 
@@ -69,8 +66,9 @@ describe('chartMixin', () => {
         }
       });
 
-      const vm = localVue.extend({});
-      const instance = new vm({ store, data });
+      const instance = mount({
+        store, mixins: { ChartMixin } as any, data: () => data
+      });
 
       instance.$route = { query: { chart: 'chart_name' } };
 
