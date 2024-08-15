@@ -167,7 +167,7 @@ export default {
                 {{ t('monitoring.tabs.prometheus') }} <i class="icon icon-chevron-down" />
               </div>
               <template
-                slot="popover"
+                #popover
                 class="resources-status-list"
               >
                 <ul

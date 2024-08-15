@@ -169,7 +169,7 @@ function toPercent(value, min, max) {
               {{ meta.readyCount }} / {{ meta.total }} {{ title }} ready <i class="icon toggle icon-chevron-down" />
             </div>
             <template
-              slot="popover"
+              #popover
               class="resources-status-list"
             >
               <ul

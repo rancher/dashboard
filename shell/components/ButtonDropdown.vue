@@ -193,7 +193,7 @@ export default {
     @search:focus="onFocus"
     @update:value="$emit('click-action', $event)"
   >
-    <template slot="no-options">
+    <template #no-options>
       <slot name="no-options" />
     </template>
 

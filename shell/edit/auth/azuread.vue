@@ -330,7 +330,7 @@ export default {
           :disable="disable"
           :edit="goToEdit"
         >
-          <template slot="rows">
+          <template #rows>
             <tr>
               <td>{{ t(`authConfig.azuread.tenantId.label`) }}:</td>
               <td>{{ model.tenantId }}</td>
@@ -358,7 +358,7 @@ export default {
           </template>
           <template
             v-if="needsUpdate"
-            slot="actions"
+            #actions
           >
             <button
               type="button"

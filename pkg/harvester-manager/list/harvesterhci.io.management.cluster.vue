@@ -123,7 +123,7 @@ export default {
 
       <template
         v-if="canCreateCluster"
-        slot="extraActions"
+        #extraActions
       >
         <router-link
           :to="importLocation"

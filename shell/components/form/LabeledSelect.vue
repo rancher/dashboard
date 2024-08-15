@@ -355,28 +355,29 @@ export default {
         />
       </template>
 
-      <div
-        v-if="canPaginate && totalResults"
-        slot="list-footer"
-        class="pagination-slot"
-      >
-        <div class="load-more">
-          <i
-            v-if="paginating"
-            class="icon icon-spinner icon-spin"
-          />
-          <div v-else>
-            <a
-              v-if="canLoadMore"
-              @click="loadMore"
-            > {{ t('labelSelect.pagination.more') }}</a>
+      <template #list-footer>
+        <div
+          v-if="canPaginate && totalResults"
+          class="pagination-slot"
+        >
+          <div class="load-more">
+            <i
+              v-if="paginating"
+              class="icon icon-spinner icon-spin"
+            />
+            <div v-else>
+              <a
+                v-if="canLoadMore"
+                @click="loadMore"
+              > {{ t('labelSelect.pagination.more') }}</a>
+            </div>
+          </div>
+
+          <div class="count">
+            {{ optionCounts }}
           </div>
         </div>
-
-        <div class="count">
-          {{ optionCounts }}
-        </div>
-      </div>
+      </template>
       <template #no-options="{ search }">
         <div class="no-options-slot">
           <div

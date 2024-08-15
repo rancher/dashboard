@@ -117,7 +117,7 @@ export default {
     v-bind="config"
     @close="$emit('close')"
   >
-    <template slot="body">
+    <template #body>
       <div class="pl-10 pr-10 mt-20 mb-20 body">
         <div v-if="allToDelete.length === 1">
           {{ t('promptRemove.attemptingToRemove', { type }) }} <b>{{ safeMachinesToDelete[0].nameDisplay }}</b>

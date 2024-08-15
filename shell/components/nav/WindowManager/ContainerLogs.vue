@@ -614,7 +614,7 @@ export default {
               <i class="icon icon-chevron-up" />
             </button>
 
-            <template slot="popover">
+            <template #popover>
               <div class="filter-popup">
                 <LabeledSelect
                   v-model:value="range"
