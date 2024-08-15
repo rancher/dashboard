@@ -44,7 +44,7 @@ export default {
   },
 
   async fetch() {
-    props.principals = await this.$store.dispatch('rancher/findAll', {
+    this.principals = await this.$store.dispatch('rancher/findAll', {
       type: NORMAN.PRINCIPAL,
       opt:  { url: '/v3/principals' }
     });

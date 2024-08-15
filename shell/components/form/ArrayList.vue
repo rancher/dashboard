@@ -294,12 +294,11 @@ export default {
               <input
                 v-else
                 ref="value"
-                v-model:value="row.value"
+                v-model="row.value"
                 :data-testid="`input-${idx}`"
                 :placeholder="valuePlaceholder"
                 :disabled="isView || disabled"
                 @paste="onPaste(idx, $event)"
-                @update:value="queueUpdate"
               >
             </slot>
           </div>

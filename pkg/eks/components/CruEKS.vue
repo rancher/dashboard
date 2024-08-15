@@ -648,15 +648,6 @@ export default defineComponent({
             v-model:image-id="node.imageId"
             v-model:instance-type="node.instanceType"
             v-model:spot-instance-types="node.spotInstanceTypes"
-            :rules="{
-              nodegroupName: fvGetAndReportPathRules('nodegroupNames'),
-              maxSize: fvGetAndReportPathRules('maxSize'),
-              minSize: fvGetAndReportPathRules('minSize'),
-              desiredSize: fvGetAndReportPathRules('desiredSize'),
-              instanceType: fvGetAndReportPathRules('instanceType'),
-              diskSize: fvGetAndReportPathRules('diskSize'),
-              minMaxDesired: fvGetAndReportPathRules('minMaxDesired')
-            }"
             v-model:user-data="node.userData"
             v-model:gpu="node.gpu"
             v-model:desired-size="node.desiredSize"
@@ -666,6 +657,15 @@ export default defineComponent({
             v-model:labels="node.labels"
             v-model:version="node.version"
             v-model:pool-is-upgrading="node._isUpgrading"
+            :rules="{
+              nodegroupName: fvGetAndReportPathRules('nodegroupNames'),
+              maxSize: fvGetAndReportPathRules('maxSize'),
+              minSize: fvGetAndReportPathRules('minSize'),
+              desiredSize: fvGetAndReportPathRules('desiredSize'),
+              instanceType: fvGetAndReportPathRules('instanceType'),
+              diskSize: fvGetAndReportPathRules('diskSize'),
+              minMaxDesired: fvGetAndReportPathRules('minMaxDesired')
+            }"
             :cluster-version="config.kubernetesVersion"
             :original-cluster-version="originalVersion"
             :region="config.region"

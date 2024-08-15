@@ -12,7 +12,7 @@ import {
   LocationConfig,
   ExtensionPoint,
 
-  PluginRouteConfig, RegisterStore, UnregisterStore, CoreStoreSpecifics, CoreStoreConfig, OnNavToPackage, OnNavAwayFromPackage, OnLogOut
+  PluginRouteRecordRaw, RegisterStore, UnregisterStore, CoreStoreSpecifics, CoreStoreConfig, OnNavToPackage, OnNavAwayFromPackage, OnLogOut
 } from './types';
 import coreStore, { coreStoreModule, coreStoreState } from '@shell/plugins/dashboard-store';
 
@@ -26,7 +26,7 @@ export class Plugin implements IPlugin {
   public locales: { locale: string, label: string}[] = [];
   public products: ProductFunction[] = [];
   public productNames: string[] = [];
-  public routes: { parent?: string, route: RouteConfig }[] = [];
+  public routes: { parent?: string, route: RouteRecordRaw }[] = [];
   public stores: { storeName: string, register: RegisterStore, unregister: UnregisterStore }[] = [];
   public onEnter: OnNavToPackage = () => Promise.resolve();
   public onLeave: OnNavAwayFromPackage = () => Promise.resolve();
@@ -97,10 +97,10 @@ export class Plugin implements IPlugin {
     this.register('l10n', locale, fn);
   }
 
-  addRoutes(routes: PluginRouteConfig[] | RouteConfig[]) {
-    routes.forEach((r: PluginRouteConfig | RouteConfig) => {
+  addRoutes(routes: PluginRouteRecordRaw[] | RouteRecordRaw[]) {
+    routes.forEach((r: PluginRouteRecordRaw | RouteRecordRaw) => {
       if (Object.keys(r).includes('parent')) {
-        const pConfig = r as PluginRouteConfig;
+        const pConfig = r as PluginRouteRecordRaw;
 
         if (pConfig.parent) {
           this.addRoute(pConfig.parent, pConfig.route);
@@ -108,21 +108,21 @@ export class Plugin implements IPlugin {
           this.addRoute(pConfig.route);
         }
       } else {
-        this.addRoute(r as RouteConfig);
+        this.addRoute(r as RouteRecordRaw);
       }
     });
   }
 
-  addRoute(parentOrRoute: RouteConfig | string, optionalRoute?: RouteConfig): void {
+  addRoute(parentOrRoute: RouteRecordRaw | string, optionalRoute?: RouteRecordRaw): void {
     // Always add the pkg name to the route metadata
     const hasParent = typeof (parentOrRoute) === 'string';
     const parent: string | undefined = hasParent ? parentOrRoute as string : undefined;
-    const route: RouteConfig = hasParent ? optionalRoute as RouteConfig : parentOrRoute as RouteConfig;
+    const route: RouteRecordRaw = hasParent ? optionalRoute as RouteRecordRaw : parentOrRoute as RouteRecordRaw;
 
     let parentOverride;
 
     if (!parent) {
-      // TODO: Inspecting the route object in the browser clearly indicates it's not a RouteConfig. The type needs to be changed or at least extended.
+      // TODO: Inspecting the route object in the browser clearly indicates it's not a RouteRecordRaw. The type needs to be changed or at least extended.
       const typelessRoute: any = route;
 
       if (typelessRoute.component?.layout) {

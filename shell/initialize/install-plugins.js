@@ -117,8 +117,6 @@ function inject(key, value, context, vueApp) {
     if (!Object.prototype.hasOwnProperty.call(vueApp.config.globalProperties, key)) {
       Object.defineProperty(vueApp.config.globalProperties, key, {
         get() {
-          console.log('WHAT IS THIS', { that: this, key });
-
           return app.context[key];
         }
       });

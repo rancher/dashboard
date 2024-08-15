@@ -459,8 +459,8 @@ export default {
       :weight="g.weight"
     >
       <div
-        v-for="(q, i) in g.questions"
-        :key="i"
+        v-for="(q, j) in g.questions"
+        :key="`${i}-${j}`"
         class="row question"
       >
         <div class="col span-12">
@@ -487,8 +487,8 @@ export default {
         {{ g.label }}
       </h3>
       <div
-        v-for="(q, i) in g.questions"
-        :key="i"
+        v-for="(q, j) in g.questions"
+        :key="`${i}-${j}`"
         class="row question"
       >
         <div class="col span-12">

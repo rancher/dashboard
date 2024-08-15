@@ -1,6 +1,6 @@
 <script>
 import { mapGetters, mapActions } from 'vuex';
-import { get, set } from '@shell/utils/object';
+import { get } from '@shell/utils/object';
 import { sortBy } from '@shell/utils/sort';
 import { NAMESPACE } from '@shell/config/types';
 import { DESCRIPTION } from '@shell/config/labels-annotations';

@@ -92,6 +92,7 @@ export const getRouteData = async(route) => {
   const routeValue = route._value || route;
 
   if (!routeValue.matched) {
+    // eslint-disable-next-line no-console
     console.warn('Route matched property is undefined:', routeValue);
 
     return routeValue;

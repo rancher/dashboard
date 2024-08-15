@@ -168,8 +168,8 @@ export default {
             <span v-if="isView">{{ row.protocol }}</span>
             <select
               v-else
-              v-model:value="row.protocol"
-              @update:value="queueUpdate"
+              v-model="row.protocol"
+              @input="queueUpdate"
             >
               <option value="HTTP">
                 HTTP

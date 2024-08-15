@@ -1,4 +1,5 @@
 module.exports = {
+  env:     { jest: true },
   extends: [
     '.eslintrc.default.js'
   ],
@@ -69,7 +70,7 @@ module.exports = {
         'vue/component-definition-name-casing': 'off',
         'no-unreachable-loop':                  'off',
         'computed-property-spacing':            'off'
-      }
+      },
     },
     {
       files: [
