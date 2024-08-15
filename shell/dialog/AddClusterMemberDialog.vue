@@ -37,40 +37,39 @@ export default {
     class="prompt-rotate"
     :show-highlight-border="false"
   >
-    <h4
-      slot="title"
-      v-clean-html="t('addClusterMemberDialog.title')"
-      class="text-default-text"
-    />
-
-    <div
-      slot="body"
-      class="pl-10 pr-10"
-    >
-      <ClusterPermissionsEditor
-        v-model:value="bindings"
-        :use-two-columns-for-custom="true"
+    <template #title>
+      <h4
+        v-clean-html="t('addClusterMemberDialog.title')"
+        class="text-default-text"
       />
-    </div>
+    </template>
 
-    <div
-      slot="actions"
-      class="buttons"
-    >
-      <button
-        class="btn role-secondary mr-10"
-        @click="close"
-      >
-        {{ t('generic.cancel') }}
-      </button>
+    <template #body>
+      <div class="pl-10 pr-10">
+        <ClusterPermissionsEditor
+          v-model:value="bindings"
+          :use-two-columns-for-custom="true"
+        />
+      </div>
+    </template>
 
-      <button
-        class="btn role-primary"
-        @click="apply"
-      >
-        {{ t('generic.add') }}
-      </button>
-    </div>
+    <template #actions>
+      <div class="buttons">
+        <button
+          class="btn role-secondary mr-10"
+          @click="close"
+        >
+          {{ t('generic.cancel') }}
+        </button>
+
+        <button
+          class="btn role-primary"
+          @click="apply"
+        >
+          {{ t('generic.add') }}
+        </button>
+      </div>
+    </template>
   </Card>
 </template>
 <style lang='scss' scoped>

@@ -212,120 +212,117 @@ export default {
     class="prompt-badge"
     :show-highlight-border="false"
   >
-    <h4
-      slot="title"
-      class="text-default-text"
-    >
-      {{ t('clusterBadge.modal.title') }}
-    </h4>
+    <template #title>
+      <h4 class="text-default-text">
+        {{ t('clusterBadge.modal.title') }}
+      </h4>
+    </template>
 
-    <div
-      slot="body"
-      class="cluster-badge-body"
-    >
-      <div>{{ t('clusterBadge.modal.previewTitle') }}</div>
-      <div class="badge-preview">
-        <div class="badge-preview-sidenav">
-          <p> {{ t('clusterBadge.modal.previewSide') }}</p>
+    <template #body>
+      <div class="cluster-badge-body">
+        <div>{{ t('clusterBadge.modal.previewTitle') }}</div>
+        <div class="badge-preview">
+          <div class="badge-preview-sidenav">
+            <p> {{ t('clusterBadge.modal.previewSide') }}</p>
 
-          <div>
-            <ClusterIconMenu :cluster="previewCluster" />
-            <span>{{ clusterName }}</span>
-          </div>
-        </div>
-        <span class="badge-preview-separator" />
-        <div class="badge-preview-header">
-          <p> {{ t('clusterBadge.modal.previewHeader') }}</p>
-          <div
-            class="col span-12"
-          >
-            <ClusterProviderIcon
-              :cluster="{...previewCluster, badge: displayClusterPrevIcon}"
-            />
-            <div class="cluster-name">
-              {{ previewName }}
+            <div>
+              <ClusterIconMenu :cluster="previewCluster" />
+              <span>{{ clusterName }}</span>
             </div>
-            <ClusterBadge
-              v-if="useCustomComment"
-              :cluster="previewCluster"
+          </div>
+          <span class="badge-preview-separator" />
+          <div class="badge-preview-header">
+            <p> {{ t('clusterBadge.modal.previewHeader') }}</p>
+            <div
+              class="col span-12"
+            >
+              <ClusterProviderIcon
+                :cluster="{...previewCluster, badge: displayClusterPrevIcon}"
+              />
+              <div class="cluster-name">
+                {{ previewName }}
+              </div>
+              <ClusterBadge
+                v-if="useCustomComment"
+                :cluster="previewCluster"
+              />
+            </div>
+          </div>
+        </div>
+
+        <div class="badge-customisation">
+          <!-- Badge abbreviation toggle & customisation -->
+          <div class="badge-customisation-badge">
+            <Checkbox
+              v-model:value="badgeAsIcon"
+              :label="t('clusterBadge.modal.badgeAsIcon')"
+
+              :tooltip="t('clusterBadge.modal.maxCharsTooltip')"
+            />
+
+            <LabeledInput
+              v-model.trim="letter"
+              :disabled="!badgeAsIcon"
+              class="badge-icon-text"
+              :label="t('clusterBadge.modal.iconText')"
+              :maxlength="3"
+            />
+          </div>
+
+          <!-- Comment toggle & customisation section -->
+          <div>
+            <Checkbox
+              v-model:value="useCustomComment"
+              :label="t('clusterBadge.modal.checkbox')"
+            />
+
+            <LabeledInput
+              v-model.trim="badgeComment"
+              :disabled="!useCustomComment"
+              :label="t('clusterBadge.modal.comment')"
+              :maxlength="32"
+            />
+          </div>
+
+          <!-- Color toggle & customisation section -->
+          <div class="badge-customisation-color">
+            <Checkbox
+              v-model:value="badgeColorPicker"
+              :label="t('clusterBadge.modal.badgeBgColor')"
+            />
+            <ColorInput
+              v-model:value="badgeBgColor"
+              :disabled="!badgeColorPicker"
+              :default-value="badgeBgColor"
             />
           </div>
         </div>
       </div>
+    </template>
 
-      <div class="badge-customisation">
-        <!-- Badge abbreviation toggle & customisation -->
-        <div class="badge-customisation-badge">
-          <Checkbox
-            v-model:value="badgeAsIcon"
-            :label="t('clusterBadge.modal.badgeAsIcon')"
-
-            :tooltip="t('clusterBadge.modal.maxCharsTooltip')"
-          />
-
-          <LabeledInput
-            v-model.trim="letter"
-            :disabled="!badgeAsIcon"
-            class="badge-icon-text"
-            :label="t('clusterBadge.modal.iconText')"
-            :maxlength="3"
-          />
-        </div>
-
-        <!-- Comment toggle & customisation section -->
-        <div>
-          <Checkbox
-            v-model:value="useCustomComment"
-            :label="t('clusterBadge.modal.checkbox')"
-          />
-
-          <LabeledInput
-            v-model.trim="badgeComment"
-            :disabled="!useCustomComment"
-            :label="t('clusterBadge.modal.comment')"
-            :maxlength="32"
-          />
-        </div>
-
-        <!-- Color toggle & customisation section -->
-        <div class="badge-customisation-color">
-          <Checkbox
-            v-model:value="badgeColorPicker"
-            :label="t('clusterBadge.modal.badgeBgColor')"
-          />
-          <ColorInput
-            v-model:value="badgeBgColor"
-            :disabled="!badgeColorPicker"
-            :default-value="badgeBgColor"
-          />
-        </div>
-      </div>
-    </div>
-
-    <div
-      slot="actions"
-      class="bottom"
-    >
-      <Banner
-        v-for="(err, i) in errors"
-        :key="i"
-        color="error"
-        :label="err"
-      />
-      <div class="buttons">
-        <button
-          class="btn role-secondary mr-10"
-          @click="close"
-        >
-          {{ t('generic.cancel') }}
-        </button>
-        <AsyncButton
-          :action-label="t('clusterBadge.modal.buttonAction')"
-          :disabled="!canSubmit"
-          @click="apply"
+    <template #actions>
+      <div class="bottom">
+        <Banner
+          v-for="(err, i) in errors"
+          :key="i"
+          color="error"
+          :label="err"
         />
+        <div class="buttons">
+          <button
+            class="btn role-secondary mr-10"
+            @click="close"
+          >
+            {{ t('generic.cancel') }}
+          </button>
+          <AsyncButton
+            :action-label="t('clusterBadge.modal.buttonAction')"
+            :disabled="!canSubmit"
+            @click="apply"
+          />
+        </div>
       </div>
-    </div>
+    </template>
   </Card>
 </template>
 <style lang='scss' scoped>

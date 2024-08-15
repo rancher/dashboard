@@ -165,9 +165,7 @@ export default {
           :disable="disable"
           :edit="goToEdit"
         >
-          <template
-            slot="rows"
-          >
+          <template #rows>
             <tr><td>{{ t(`authConfig.saml.displayName`) }}: </td><td>{{ model.displayNameField }}</td></tr>
             <tr><td>{{ t(`authConfig.saml.userName`) }}: </td><td>{{ model.userNameField }}</td></tr>
             <tr><td>{{ t(`authConfig.saml.UID`) }}: </td><td>{{ model.uidField }}</td></tr>
@@ -181,7 +179,7 @@ export default {
 
           <template
             v-if="supportsLDAPSearch"
-            slot="footer"
+            #footer
           >
             <Banner
               v-if="showLdap"

@@ -242,7 +242,7 @@ export default {
       :load-resources="loadResources"
       :load-indeterminate="loadIndeterminate"
     >
-      <template slot="extraActions">
+      <template #extraActions>
         <slot name="extraActions" />
       </template>
     </Masthead>

@@ -372,7 +372,7 @@ export default {
     >
       <template
         v-if="showCreateNsButton"
-        slot="extraActions"
+        #extraActions
       >
         <router-link
           :to="createNamespaceLocationFlatList()"
