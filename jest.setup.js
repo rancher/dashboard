@@ -4,7 +4,6 @@ import { config } from '@vue/test-utils';
 import i18n from '@shell/plugins/i18n';
 import FloatingVue from 'floating-vue';
 import vSelect from 'vue-select';
-import localValue from '@shell/mixins/local-value';
 import cleanTooltipDirective from '@shell/directives/clean-tooltip';
 import cleanHtmlDirective from '@shell/directives/clean-html';
 import '@shell/plugins/replaceall';
@@ -16,7 +15,6 @@ global.TextEncoder = TextEncoder;
 global.TextDecoder = TextDecoder;
 
 // vueApp.config.productionTip = false;
-vueApp.mixin(localValue);
 vueApp.use(i18n, { store: { dispatch() {} } });
 vueApp.use(FloatingVue);
 vueApp.directive('clean-html', cleanHtmlDirective);
@@ -31,6 +29,22 @@ config.global.mocks['$store'] = {
   dispatch: jest.fn(),
   commit:   jest.fn(),
 };
+
+config.global.directives = {
+  ...config.global.directives,
+  t: {
+    mounted(el, binding) {
+      el.textContent = `%${ binding.value }%`;
+    },
+    updated(el, binding) {
+      el.textContent = `%${ binding.value }%`;
+    }
+  },
+  'clean-tooltip': cleanTooltipDirective,
+  'clean-html':    cleanHtmlDirective,
+};
+
+config.global.stubs['t'] = { template: '<span><slot /></span>' };
 
 /**
  * Global configuration for Jest tests
@@ -60,22 +74,6 @@ beforeEach(() => {
   // config.mocks['$plugin'] = { getDynamic: () => undefined };
 
   config.global.mocks['$store'] = { getters: { 'i18n/t': jest.fn() } };
-  config.global.directives['t'] = (key) => `%${ key }%`;
-  config.global.directives['clean-tooltip'] = cleanTooltipDirective ;
-  config.global.directives['clean-html'] = cleanHtmlDirective;
-
   // Overrides some components
   // config.stubs['my-component'] = { template: "<div></div> "};
-});
-
-/**
- * Clean up after each test
- */
-afterEach(() => {
-});
-
-/**
- * Clean up after all tests
- */
-afterAll(() => {
 });
