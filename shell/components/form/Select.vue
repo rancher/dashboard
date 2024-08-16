@@ -219,6 +219,7 @@ export default {
       [status]: status,
       taggable: $attrs.taggable,
       taggable: $attrs.multiple,
+      [$attrs.class]: $attrs.class
     }"
     @focus="focusSearch"
   >
