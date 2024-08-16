@@ -1,7 +1,7 @@
 import { RancherSetupLoginPagePo } from '@/cypress/e2e/po/pages/rancher-setup-login.po';
 import { RancherSetupConfigurePage } from '@/cypress/e2e/po/pages/rancher-setup-configure.po';
 import HomePagePo from '@/cypress/e2e/po/pages/home.po';
-import { PARTIAL_SETTING_THRESHOLD } from '@/cypress/support/utils/settings-utils';
+// import { PARTIAL_SETTING_THRESHOLD } from '@/cypress/support/utils/settings-utils';
 import { serverUrlLocalhostCases, urlWithTrailingForwardSlash, httpUrl, nonUrlCases } from '@/cypress/e2e/blueprints/global_settings/settings-data';
 
 // Cypress or the GrepTags avoid to run multiples times the same test for each tag used.
