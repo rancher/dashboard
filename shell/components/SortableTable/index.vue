@@ -545,9 +545,9 @@ export default {
     showHeaderRow() {
       return this.search ||
         this.tableActions ||
-        this.$slots['header-left']()?.length ||
-        this.$slots['header-middle']()?.length ||
-        this.$slots['header-right']()?.length;
+        (this.$slots['header-left'] && this.$slots['header-left']()?.length) ||
+        (this.$slots['header-middle'] && this.$slots['header-middle']()?.length) ||
+        (this.$slots['header-right'] && this.$slots['header-right']()?.length);
     },
 
     columns() {
