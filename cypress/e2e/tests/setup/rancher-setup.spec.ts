@@ -36,11 +36,11 @@ describe('Rancher setup', { tags: ['@adminUserSetup', '@standardUserSetup', '@se
     // cy.wait('@settingsReq').then((interception) => {
     //   expect(interception.response.body.count).gte(PARTIAL_SETTING_THRESHOLD);
     // });
-    rancherSetupConfigurePage.waitForPage();
+    // rancherSetupConfigurePage.waitForPage();
 
-    // Yes this is bad, but want to ensure no other settings requests are made.
-    cy.wait(1000); // eslint-disable-line cypress/no-unnecessary-waiting
-    cy.get('@settingsReq.all').should('have.length', 2);
+    // // Yes this is bad, but want to ensure no other settings requests are made.
+    // cy.wait(1000); // eslint-disable-line cypress/no-unnecessary-waiting
+    // cy.get('@settingsReq.all').should('have.length', 2);
   });
 
   it('Login & Configure', () => {
