@@ -132,6 +132,13 @@ export class Plugin implements IPlugin {
         console.warn(`Layouts have been deprecated. We still have parent routes which use the same name and styling as the previous layouts. You should specify a parent, we're currently setting the parent to 'default'`); // eslint-disable-line no-console
         parentOverride = 'default';
       }
+
+      // Fix for Home page components with wrong layout - need to ensure the parentOverride is set
+      if (typelessRoute.component) {
+        if (typelessRoute.name === 'home' && typelessRoute.path === '/home') {
+          parentOverride = 'home_layout';
+        }
+      }
     }
 
     route.meta = {
