@@ -401,7 +401,7 @@ export default {
           />
         </div>
         <template v-if="hasLocal">
-          <form
+          <div
             v-if="showLocal"
             :class="{'mt-30': !hasLoginMessage}"
           >
@@ -452,7 +452,7 @@ export default {
                 </div>
               </div>
             </div>
-          </form>
+          </div>
           <div
             v-if="hasLocal && !showLocal"
             class="mt-20 text-center"
