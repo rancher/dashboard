@@ -1,9 +1,7 @@
 import { nextTick } from 'vue';
-import { shallowMount } from '@vue/test-utils';
+import { shallowMount, mount } from '@vue/test-utils';
 import GrowlManager from '@shell/components/GrowlManager.vue';
-import Vuex, { createStore } from 'vuex';
-import { ExtendedVue, Vue } from 'vue/types/vue';
-import { DefaultProps } from 'vue/types/options';
+import { createStore } from 'vuex';
 
 const stackMock = [
   {
@@ -31,7 +29,7 @@ describe('component: GrowlManager', () => {
       dispatch: () => jest.fn()
     };
 
-    const wrapper = shallowMount(GrowlManager as unknown as ExtendedVue<Vue, {}, {}, {}, DefaultProps>, {
+    const wrapper = shallowMount(GrowlManager, {
       computed: { stack: () => stackMock },
       global:   { mocks: { $store: mockStore } }
     });
@@ -63,7 +61,7 @@ describe('component: GrowlManager', () => {
       dispatch: () => jest.fn()
     };
 
-    const wrapper = shallowMount(GrowlManager as unknown as ExtendedVue<Vue, {}, {}, {}, DefaultProps>, {
+    const wrapper = shallowMount(GrowlManager, {
       computed: { stack: () => stackMock },
       global:   { mocks: { $store: mockStore } }
     });
@@ -87,7 +85,7 @@ describe('component: GrowlManager', () => {
       dispatch: () => jest.fn()
     };
 
-    const wrapper = shallowMount(GrowlManager as unknown as ExtendedVue<Vue, {}, {}, {}, DefaultProps>, {
+    const wrapper = shallowMount(GrowlManager, {
       computed: { stack: () => stackMock },
       global:   { mocks: { $store: mockStore } }
     });
@@ -105,11 +103,13 @@ describe('component: GrowlManager', () => {
   });
 
   it('growl should auto remove itself after set interval of 1 second', async() => {
+    jest.useFakeTimers();
+
     const store = createStore({
       modules: {
         growl: {
           namespaced: true,
-          state:      { stack: [] },
+          state:      () => ({ stack: [] }),
           actions:    { clear: jest.fn() },
           mutations:  {
             updateStack: (state) => {
@@ -121,18 +121,18 @@ describe('component: GrowlManager', () => {
       getters: { 'i18n/t': () => jest.fn() }
     });
 
-    jest.useFakeTimers();
-
-    const wrapper = shallowMount(GrowlManager as unknown as ExtendedVue<Vue, {}, {}, {}, DefaultProps>, {
-      plugins: [Vuex],
-      global:  { plugins: [store] }
+    const wrapper = mount(GrowlManager, {
+      global: {
+        plugins: [store],
+        mocks:   { $store: store }
+      }
     });
 
     const spyCloseExpired = jest.spyOn(wrapper.vm, 'closeExpired');
 
     expect(spyCloseExpired).not.toHaveBeenCalled();
 
-    // this is to trigger the watch so that autoRemove can do its part
+    // Trigger the watch by committing to the store
     store.commit('growl/updateStack');
 
     await nextTick();
@@ -140,5 +140,7 @@ describe('component: GrowlManager', () => {
     jest.advanceTimersByTime(1001);
 
     expect(spyCloseExpired).toHaveBeenCalledTimes(1);
+
+    jest.useRealTimers();
   });
 });

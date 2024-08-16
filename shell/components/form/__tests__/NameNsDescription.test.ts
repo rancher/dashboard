@@ -61,7 +61,6 @@ describe('component: NameNsDescription', () => {
               'i18n/t':            jest.fn(),
             },
           },
-          $refs: { name: { focus: jest.fn() } },
         },
       },
     });

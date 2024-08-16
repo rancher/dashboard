@@ -8,7 +8,7 @@ describe('component: Collapse.vue', () => {
     it('is closed', () => {
       const content = wrapper.find(`[data-testid="collapse-content"]`);
 
-      expect(content.element).toBeUndefined();
+      expect(content.exists()).toBe(false);
     });
 
     it('icon is chevron right', () => {

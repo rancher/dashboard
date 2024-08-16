@@ -66,11 +66,11 @@ describe('component: WorkloadDetailEndpoints', () => {
   });
 
   it.each([
-    [withoutAddresses, [], ['[some-translation]:443']],
+    [withoutAddresses, [], ['[%servicesPage.anyNode%]:443']],
   ])('should render a Tag component with the appropriate content', (value:any[], nodesOutput:any[], expectationArr:any[]) => {
     const wrapper = mount(WorkloadDetailEndpoints, {
       props:  { value: JSON.stringify(value) },
-      global: { mocks: { $store: { getters: { 'cluster/all': () => nodesOutput, 'i18n/t': () => 'some-translation' } } } }
+      global: { mocks: { $store: { getters: { 'cluster/all': () => nodesOutput } } } }
     });
 
     wrapper.vm.parsed.forEach((endpoint:{[key: string]: string}, i:number) => {
