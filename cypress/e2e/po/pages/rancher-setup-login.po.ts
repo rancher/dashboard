@@ -19,7 +19,7 @@ export class RancherSetupLoginPagePo extends PagePo {
 
   bootstrapLogin() {
     this.canSubmit().should('eq', true);
-    this.password().set(Cypress.env('bootstrapPassword'));
+    this.password().set('sleeper yo');
     this.canSubmit().should('eq', true);
     this.submit();
   }
