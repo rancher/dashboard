@@ -41,6 +41,7 @@ export default [
     path:      '',
     component: () => interopDefault(import('@shell/components/templates/home.vue')),
     meta:      { requiresAuthentication: true },
+    name:      'home_layout',
     children:  [
       {
         path:      '/home',
