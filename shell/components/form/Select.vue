@@ -241,8 +241,9 @@ export default {
       :reduce="(x) => reduce(x)"
       :searchable="isSearchable"
       :selectable="selectable"
-      :value="value != null ? value : ''"
+      :modelValue="value != null ? value : ''"
 
+      @update:modelValue="$emit('update:value', $event)"
       @search:blur="onBlur"
       @search:focus="onFocus"
       @open="resizeHandler"
