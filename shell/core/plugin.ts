@@ -134,10 +134,8 @@ export class Plugin implements IPlugin {
       }
 
       // Fix for Home page components with wrong layout - need to ensure the parentOverride is set
-      if (typelessRoute.component) {
-        if (typelessRoute.name === 'home' && typelessRoute.path === '/home') {
-          parentOverride = 'home_layout';
-        }
+      if (typelessRoute.component && typelessRoute.name === 'home' && typelessRoute.path === '/home') {
+        parentOverride = 'home_layout';
       }
     }
 
