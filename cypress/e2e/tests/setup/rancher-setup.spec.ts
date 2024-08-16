@@ -1,7 +1,7 @@
 import { RancherSetupLoginPagePo } from '@/cypress/e2e/po/pages/rancher-setup-login.po';
 import { RancherSetupConfigurePage } from '@/cypress/e2e/po/pages/rancher-setup-configure.po';
 import HomePagePo from '@/cypress/e2e/po/pages/home.po';
-// import { PARTIAL_SETTING_THRESHOLD } from '@/cypress/support/utils/settings-utils';
+import { PARTIAL_SETTING_THRESHOLD } from '@/cypress/support/utils/settings-utils';
 import { serverUrlLocalhostCases, urlWithTrailingForwardSlash, httpUrl, nonUrlCases } from '@/cypress/e2e/blueprints/global_settings/settings-data';
 
 // Cypress or the GrepTags avoid to run multiples times the same test for each tag used.
@@ -14,34 +14,35 @@ describe('Rancher setup', { tags: ['@adminUserSetup', '@standardUserSetup', '@se
   it('Requires initial setup', () => {
     homePage.goTo();
 
+    rancherSetupLoginPage.goTo();
     rancherSetupLoginPage.waitForPage();
     rancherSetupLoginPage.hasInfoMessage();
   });
 
-  // it('Confirm correct number of settings requests made', () => {
-  //   cy.intercept('GET', '/v1/management.cattle.io.settings?exclude=metadata.managedFields').as('settingsReq');
+  it('Confirm correct number of settings requests made', () => {
+    cy.intercept('GET', '/v1/management.cattle.io.settings?exclude=metadata.managedFields').as('settingsReq');
 
-  //   rancherSetupLoginPage.goTo();
+    rancherSetupLoginPage.goTo();
 
-  //   // First request will fetch a partial list of settings
-  //   cy.wait('@settingsReq').then((interception) => {
-  //     expect(interception.response.body.count).lessThan(PARTIAL_SETTING_THRESHOLD);
-  //   });
-  //   cy.get('@settingsReq.all').should('have.length', 1);
+    // First request will fetch a partial list of settings
+    cy.wait('@settingsReq').then((interception) => {
+      expect(interception.response.body.count).lessThan(PARTIAL_SETTING_THRESHOLD);
+    });
+    cy.get('@settingsReq.all').should('have.length', 1);
 
-  //   rancherSetupLoginPage.waitForPage();
-  //   rancherSetupLoginPage.bootstrapLogin();
+    rancherSetupLoginPage.waitForPage();
+    rancherSetupLoginPage.bootstrapLogin();
 
-  //   // // Second request (after user is logged in) will return the full list
-  //   // cy.wait('@settingsReq').then((interception) => {
-  //   //   expect(interception.response.body.count).gte(PARTIAL_SETTING_THRESHOLD);
-  //   // });
-  //   // rancherSetupConfigurePage.waitForPage();
+    // Second request (after user is logged in) will return the full list
+    cy.wait('@settingsReq').then((interception) => {
+      expect(interception.response.body.count).gte(PARTIAL_SETTING_THRESHOLD);
+    });
+    rancherSetupConfigurePage.waitForPage();
 
-  //   // // Yes this is bad, but want to ensure no other settings requests are made.
-  //   // cy.wait(1000); // eslint-disable-line cypress/no-unnecessary-waiting
-  //   // cy.get('@settingsReq.all').should('have.length', 2);
-  // });
+    // Yes this is bad, but want to ensure no other settings requests are made.
+    cy.wait(1000); // eslint-disable-line cypress/no-unnecessary-waiting
+    cy.get('@settingsReq.all').should('have.length', 2);
+  });
 
   it('Login & Configure', () => {
     cy.intercept('POST', '/v3-public/localProviders/local?action=login').as('bootstrapReq');
