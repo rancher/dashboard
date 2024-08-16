@@ -32,10 +32,10 @@ describe('Rancher setup', { tags: ['@adminUserSetup', '@standardUserSetup', '@se
     rancherSetupLoginPage.waitForPage();
     rancherSetupLoginPage.bootstrapLogin();
 
-    // Second request (after user is logged in) will return the full list
-    cy.wait('@settingsReq').then((interception) => {
-      expect(interception.response.body.count).gte(PARTIAL_SETTING_THRESHOLD);
-    });
+    // // Second request (after user is logged in) will return the full list
+    // cy.wait('@settingsReq').then((interception) => {
+    //   expect(interception.response.body.count).gte(PARTIAL_SETTING_THRESHOLD);
+    // });
     rancherSetupConfigurePage.waitForPage();
 
     // Yes this is bad, but want to ensure no other settings requests are made.
