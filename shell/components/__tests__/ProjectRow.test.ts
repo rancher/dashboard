@@ -34,11 +34,8 @@ describe('component: ProjectRow.vue', () => {
   });
 
   it('triggering "updateQuotaLimit" should trigger Vue.set with the correct data', () => {
-    const vueSet = jest.spyOn(Vue, 'set');
-
     wrapper.vm.updateQuotaLimit('resourceQuota', CONFIGMAP_STRING, 10);
 
-    expect(vueSet).toHaveBeenCalledTimes(1);
     expect(wrapper.vm.value).toStrictEqual({
       spec: {
         namespaceDefaultResourceQuota: { limit: {} },

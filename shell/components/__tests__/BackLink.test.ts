@@ -24,7 +24,7 @@ describe('component: BackLink', () => {
     // assertion regarding the text will have to be pointed to whatever t() returns on the test
     expect(link.text()).toBe('%generic.back%');
     expect(link.classes()).toContain('back-link');
-    expect(link.props().to).toBe(linkRoute);
+    expect(link.props().to).toStrictEqual(linkRoute);
 
     expect(icon.exists()).toBe(true);
     expect(icon.classes()).toContain('icon');

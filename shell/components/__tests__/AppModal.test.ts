@@ -1,13 +1,15 @@
 /* eslint-disable jest/no-hooks */
-import { shallowMount, Wrapper } from '@vue/test-utils';
+import { mount, VueWrapper } from '@vue/test-utils';
 import AppModal from '@shell/components/AppModal.vue';
 
-let wrapper: Wrapper<InstanceType<typeof AppModal>>;
+let wrapper: VueWrapper<InstanceType<typeof AppModal>>;
 
 describe('appModal', () => {
   beforeEach(() => {
-    wrapper = shallowMount(AppModal, {
-      props: {
+    document.body.innerHTML = '<div id="modals"></div>';
+    wrapper = mount(AppModal, {
+      attachTo: document.body,
+      props:    {
         clickToClose: true,
         width:        600,
       },
@@ -17,16 +19,22 @@ describe('appModal', () => {
 
   afterEach(() => {
     wrapper.unmount();
+    document.body.innerHTML = '';
   });
 
-  it('renders modal content', () => {
-    expect(wrapper.find('.content').exists()).toBeTruthy();
+  it('renders modal content', async() => {
+    const modalContainer = document.querySelector('#modals .modal-container');
+
+    expect(modalContainer).toBeTruthy();
+    expect(modalContainer?.textContent).toContain('Modal content');
   });
 
   it('emits close event when clicked outside', async() => {
-    const overlay = wrapper.find('.modal-overlay');
+    const overlay = document.querySelector('.modal-overlay');
 
-    await overlay.trigger('click');
+    expect(overlay).toBeTruthy();
+
+    await overlay?.dispatchEvent(new Event('click'));
     expect(wrapper.emitted('close')).toBeTruthy();
   });
 
@@ -40,9 +48,9 @@ describe('appModal', () => {
 
   it('does not emit close event when clickToClose is false', async() => {
     await wrapper.setProps({ clickToClose: false });
-    const overlay = wrapper.find('.modal-overlay');
+    const overlay = document.querySelector('.modal-overlay');
 
-    await overlay.trigger('click');
+    await overlay?.dispatchEvent(new Event('click'));
     expect(wrapper.emitted('close')).toBeFalsy();
 
     document.dispatchEvent(new KeyboardEvent('keydown', {
@@ -54,44 +62,44 @@ describe('appModal', () => {
   });
 
   it('sets a width for the modal container', async() => {
-    const container = wrapper.find('.modal-container');
+    const container = document.querySelector('.modal-container');
 
-    expect(container.exists()).toBeTruthy();
-    expect(wrapper.find('.modal-container').element.style.width).toBe('600px');
+    expect(container).toBeTruthy();
+    expect(container?.style.width).toBe('600px');
   });
 
   it('sets a percentage width for the modal container', async() => {
     await wrapper.setProps({ width: '50%' });
-    const container = wrapper.find('.modal-container');
+    const container = document.querySelector('.modal-container');
 
-    expect(container.exists()).toBeTruthy();
-    expect(wrapper.find('.modal-container').element.style.width).toBe('50%');
+    expect(container).toBeTruthy();
+    expect(container?.style.width).toBe('50%');
   });
 
   it('does not generate validation errors when setting a pixel width', async() => {
-    const consoleErrorSpy = jest.spyOn(console, 'error');
+    const consoleErrorSpy = jest.spyOn(console, 'warn');
 
     consoleErrorSpy.mockImplementation(() => {});
 
     await wrapper.setProps({ width: '200px' });
-    const container = wrapper.find('.modal-container');
+    const container = document.querySelector('.modal-container');
 
-    expect(container.exists()).toBeTruthy();
-    expect(wrapper.find('.modal-container').element.style.width).toBe('200px');
+    expect(container).toBeTruthy();
+    expect(container?.style.width).toBe('200px');
 
     expect(consoleErrorSpy).not.toHaveBeenCalled();
   });
 
   it('generates validation errors with an invalid string for width', async() => {
-    const consoleErrorSpy = jest.spyOn(console, 'error');
+    const consoleErrorSpy = jest.spyOn(console, 'warn');
 
     consoleErrorSpy.mockImplementation(() => {});
 
     await wrapper.setProps({ width: 'FAIL' });
-    const container = wrapper.find('.modal-container');
+    const container = document.querySelector('.modal-container');
 
-    expect(container.exists()).toBeTruthy();
-    expect(wrapper.find('.modal-container').element.style.width).toBe('600px');
+    expect(container).toBeTruthy();
+    expect(container?.style.width).toBe('600px');
 
     expect(consoleErrorSpy).toHaveBeenCalledTimes(1);
   });
