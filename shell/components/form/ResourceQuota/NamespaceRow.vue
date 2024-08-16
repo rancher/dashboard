@@ -184,7 +184,7 @@ export default {
       <PercentageBar
         v-clean-tooltip="tooltip"
         class="percentage-bar"
-        :value="percentageUsed"
+        :modelValue="percentageUsed"
         :slices="slices"
         :color-stops="{'100': '--primary'}"
       />
