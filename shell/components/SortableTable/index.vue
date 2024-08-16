@@ -545,9 +545,9 @@ export default {
     showHeaderRow() {
       return this.search ||
         this.tableActions ||
-        (this.$slots['header-left'] && this.$slots['header-left']()?.length) ||
-        (this.$slots['header-middle'] && this.$slots['header-middle']()?.length) ||
-        (this.$slots['header-right'] && this.$slots['header-right']()?.length);
+        this.$slots['header-left']?.() ||
+        this.$slots['header-middle']?.() ||
+        this.$slots['header-right']?.();
     },
 
     columns() {
@@ -1084,14 +1084,14 @@ export default {
           </slot>
         </div>
         <div
-          v-if="!hasAdvancedFiltering && ($slots['header-middle'] && $slots['header-middle'].length)"
+          v-if="!hasAdvancedFiltering && $slots['header-middle']"
           class="middle"
         >
           <slot name="header-middle" />
         </div>
 
         <div
-          v-if="search || hasAdvancedFiltering || isTooManyItemsToAutoUpdate || ($slots['header-right'] && $slots['header-right'].length)"
+          v-if="search || hasAdvancedFiltering || isTooManyItemsToAutoUpdate || $slots['header-right']"
           class="search row"
           data-testid="search-box-filter-row"
         >
