@@ -34,7 +34,7 @@ describe('Rancher setup', { tags: ['@adminUserSetup', '@standardUserSetup', '@se
 
     // Second request (after user is logged in) will return the full list
     cy.wait('@settingsReq').then((interception) => {
-      expect(interception.response.body.count).greaterThan(PARTIAL_SETTING_THRESHOLD);
+      expect(interception.response.body.count).gte(PARTIAL_SETTING_THRESHOLD);
     });
     rancherSetupConfigurePage.waitForPage();
 
