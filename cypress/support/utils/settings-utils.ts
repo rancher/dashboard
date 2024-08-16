@@ -5,4 +5,4 @@
  * (tests will check that the pre-authed setting count is less than this, and the post-authed count is greater than)
  *
  */
-export const PARTIAL_SETTING_THRESHOLD = 13;
+export const PARTIAL_SETTING_THRESHOLD = 11;
