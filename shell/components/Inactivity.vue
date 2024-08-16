@@ -198,7 +198,7 @@ export default {
       <PercentageBar
         v-if="!isInactive"
         class="mt-20"
-        :value="timerPercentageLeft"
+        :modelValue="timerPercentageLeft"
         :color-stops="colorStops"
       />
     </template>
