@@ -250,7 +250,7 @@ export default {
       <div class="row mt-20">
         <div class="col span-4">
           <LabeledSelect
-            v-model.number="perPage"
+            v-model:value="perPage"
             data-testid="prefs__displaySetting__perPage"
             :label="t('prefs.perPage.label')"
             :options="perPageOptions"
