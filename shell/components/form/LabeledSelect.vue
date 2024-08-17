@@ -297,9 +297,10 @@ export default {
       :filterable="isFilterable"
       :searchable="isSearchable"
       :selectable="selectable"
-      :model-value="value != null && !loading ? value : ''"
+      :modelValue="value != null && !loading ? value : ''"
       :dropdown-should-open="dropdownShouldOpen"
 
+      @update:modelValue="$emit('selecting', $event); $emit('update:value', $event)"
       @search:blur="onBlur"
       @search:focus="onFocus"
       @search="onSearch"
