@@ -75,7 +75,7 @@ export default {
         if (overviewRoute && grp.overview) {
           const route = this.$router.resolve(overviewRoute || {});
 
-          return this.$route.fullPath.split('#')[0] === route?.route?.fullPath;
+          return this.$route.fullPath.split('#')[0] === route?.fullPath;
         }
       }
 
