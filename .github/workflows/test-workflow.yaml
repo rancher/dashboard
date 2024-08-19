@@ -21,20 +21,26 @@ jobs:
       #     echo "Workflow successful"
 
       - name: The step to call the action in success
+        env:
+          SLACK_URL: ${{ secrets.SLACK_WEBHOOK_URL }}
         if: success()
         shell: bash
         run: |
-          curl -H "Content-type: application/json" \
+          curl -X POST \
+          -H "Content-type: application/json; charset=utf-8" \
           --data '{"name": "Extensions tests v2.10 - master - Elemental", "status": "Workflow succedded!" }' \
-          -X POST ${{ secrets.SLACK_WEBHOOK_URL }}
+          $SLACK_URL
 
       - name: The step to call the action in failure
+        env:
+          SLACK_URL: ${{ secrets.SLACK_WEBHOOK_URL }}
         if: failure()
         shell: bash
         run: |
-          curl -H "Content-type: application/json" \
+          curl -X POST \
+          -H "Content-type: application/json; charset=utf-8" \
           --data '{"name": "Extensions tests v2.10 - master - Elemental", "status": "Workflow failed!" }' \
-          -X POST ${{ secrets.SLACK_WEBHOOK_URL }}
+          $SLACK_URL
 
 # curl -H "Content-type: application/json" \
 # --data '{"channel":"C123456","blocks":[{"type":"section","text":{"type":"mrkdwn","text":"Hi I am a bot that can post *_fancy_* messages to any public channel."}}]}' \
