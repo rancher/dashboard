@@ -205,77 +205,75 @@ export default {
         {{ t(`advancedSettings.descriptions.${ 'ui-banners' }`, {}, true) }}
       </label>
 
-      <template>
-        <!-- Header Settings -->
-        <h2 class="mt-40 mb-10 setting-title">
-          {{ t('banner.headerBanner') }}
-          <i
-            v-if="!!uiBannerIndividual.bannerHeader"
-            class="icon icon-lock"
-          />
-        </h2>
-        <div
+      <!-- Header Settings -->
+      <h2 class="mt-40 mb-10 setting-title">
+        {{ t('banner.headerBanner') }}
+        <i
           v-if="!!uiBannerIndividual.bannerHeader"
-          class="row mb-10"
-        >
-          <Banner
-            color="warning"
-            class="mt-0"
-            :label="t('banner.individualSetting', {name: 'ui-banner-header'}, true)"
+          class="icon icon-lock"
+        />
+      </h2>
+      <div
+        v-if="!!uiBannerIndividual.bannerHeader"
+        class="row mb-10"
+      >
+        <Banner
+          color="warning"
+          class="mt-0"
+          :label="t('banner.individualSetting', {name: 'ui-banner-header'}, true)"
+        />
+      </div>
+      <div class="row mb-20">
+        <div class="col span-6">
+          <Checkbox
+            :disabled="!!uiBannerIndividual.bannerHeader"
+            :value="bannerVal.showHeader === 'true'"
+            :label="t('banner.showHeader')"
+            :mode="mode"
+            @update:value="e=> bannerVal.showHeader=e.toString()"
           />
         </div>
-        <div class="row mb-20">
-          <div class="col span-6">
-            <Checkbox
-              :disabled="!!uiBannerIndividual.bannerHeader"
-              :value="bannerVal.showHeader === 'true'"
-              :label="t('banner.showHeader')"
-              :mode="mode"
-              @update:value="e=>$set(bannerVal, 'showHeader', e.toString())"
-            />
-          </div>
-        </div>
-        <BannerSettings
-          v-model:value="bannerVal"
-          banner-type="bannerHeader"
-          :mode="headerMode"
-        />
+      </div>
+      <BannerSettings
+        v-model:value="bannerVal"
+        banner-type="bannerHeader"
+        :mode="headerMode"
+      />
 
-        <!-- Footer settings -->
-        <h2 class="mt-40 mb-10 setting-title">
-          {{ t('banner.footerBanner') }}
-          <i
-            v-if="!!uiBannerIndividual.bannerFooter"
-            class="icon icon-lock"
-          />
-        </h2>
-        <div
+      <!-- Footer settings -->
+      <h2 class="mt-40 mb-10 setting-title">
+        {{ t('banner.footerBanner') }}
+        <i
           v-if="!!uiBannerIndividual.bannerFooter"
-          class="row mb-10"
-        >
-          <Banner
-            color="warning"
-            class="mt-0"
-            :label="t('banner.individualSetting', {name: 'ui-banner-footer'}, true)"
+          class="icon icon-lock"
+        />
+      </h2>
+      <div
+        v-if="!!uiBannerIndividual.bannerFooter"
+        class="row mb-10"
+      >
+        <Banner
+          color="warning"
+          class="mt-0"
+          :label="t('banner.individualSetting', {name: 'ui-banner-footer'}, true)"
+        />
+      </div>
+      <div class="row mb-20">
+        <div class="col span-6">
+          <Checkbox
+            :disabled="!!uiBannerIndividual.bannerFooter"
+            :value="bannerVal.showFooter === 'true'"
+            :label="t('banner.showFooter')"
+            :mode="mode"
+            @update:value="e=>bannerVal.showFooter = e.toString()"
           />
         </div>
-        <div class="row mb-20">
-          <div class="col span-6">
-            <Checkbox
-              :disabled="!!uiBannerIndividual.bannerFooter"
-              :value="bannerVal.showFooter === 'true'"
-              :label="t('banner.showFooter')"
-              :mode="mode"
-              @update:value="e=>$set(bannerVal, 'showFooter', e.toString())"
-            />
-          </div>
-        </div>
-        <BannerSettings
-          v-model:value="bannerVal"
-          banner-type="bannerFooter"
-          :mode="footerMode"
-        />
-      </template>
+      </div>
+      <BannerSettings
+        v-model:value="bannerVal"
+        banner-type="bannerFooter"
+        :mode="footerMode"
+      />
 
       <!-- Consent settings -->
       <h2 class="mt-40 mb-10 setting-title">
@@ -295,24 +293,22 @@ export default {
           :label="t('banner.individualSetting', {name: 'ui-banner-login-consent'}, true)"
         />
       </div>
-      <template>
-        <div class="row mb-20">
-          <div class="col span-6">
-            <Checkbox
-              :disabled="!!uiBannerIndividual.bannerConsent"
-              :value="bannerVal.showConsent === 'true'"
-              :label="t('banner.showConsent')"
-              :mode="mode"
-              @update:value="e => $set(bannerVal, 'showConsent', e.toString())"
-            />
-          </div>
+      <div class="row mb-20">
+        <div class="col span-6">
+          <Checkbox
+            :disabled="!!uiBannerIndividual.bannerConsent"
+            :value="bannerVal.showConsent === 'true'"
+            :label="t('banner.showConsent')"
+            :mode="mode"
+            @update:value="e => bannerVal.showConsent = e.toString()"
+          />
         </div>
-        <BannerSettings
-          v-model:value="bannerVal"
-          banner-type="bannerConsent"
-          :mode="consentMode"
-        />
-      </template>
+      </div>
+      <BannerSettings
+        v-model:value="bannerVal"
+        banner-type="bannerConsent"
+        :mode="consentMode"
+      />
       <h2 class="mt-40 mb-40">
         {{ t('notifications.loginError.header') }}
       </h2>
