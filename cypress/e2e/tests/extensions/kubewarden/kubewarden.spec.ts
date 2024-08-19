@@ -3,7 +3,6 @@ import KubewardenPo from '@/cypress/e2e/po/extensions/kubewarden/kubewarden.util
 import { NamespaceFilterPo } from '@/cypress/e2e/po/components/namespace-filter.po';
 import ChartInstalledAppsPagePo from '@/cypress/e2e/po/pages/chart-installed-apps.po';
 import ProjectsNamespacesPagePo from '@/cypress/e2e/po/pages/explorer/projects-namespaces.po';
-import ProductNavPo from '@/cypress/e2e/po/side-bars/product-side-nav.po';
 import { IngressPagePo } from '@/cypress/e2e/po/pages/explorer/ingress.po';
 import TabbedPo from '@/cypress/e2e/po/components/tabbed.po';
 // import * as jsyaml from 'js-yaml';
