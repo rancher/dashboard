@@ -1,4 +1,4 @@
-import { shallowMount, Wrapper } from '@vue/test-utils';
+import { shallowMount, VueWrapper } from '@vue/test-utils';
 import { _CLONE } from '@shell/config/query-params';
 import ServicePage from '@shell/edit/service.vue';
 
@@ -24,18 +24,19 @@ const createEditViewMock = {
     doneParams: () => ({}),
   },
   methods: {
-    done:         jest.fn(),
-    conflict:     jest.fn(() => Promise.resolve([])),
-    save:         jest.fn(() => Promise.resolve()),
-    actuallySave: jest.fn(() => Promise.resolve()),
-    setErrors:    jest.fn()
+    done:               jest.fn(),
+    conflict:           jest.fn(() => Promise.resolve([])),
+    save:               jest.fn(() => Promise.resolve()),
+    actuallySave:       jest.fn(() => Promise.resolve()),
+    setErrors:          jest.fn(),
+    registerBeforeHook: jest.fn(),
   }
 };
 
 const formValidationMock = {};
 
 describe('service edit', () => {
-  let wrapper: Wrapper<InstanceType<typeof ServicePage>>;
+  let wrapper: VueWrapper<InstanceType<typeof ServicePage>>;
 
   const createComponent = (propsData: any) => {
     wrapper = shallowMount(ServicePage,

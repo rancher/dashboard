@@ -8,19 +8,22 @@ describe('view: nodedriver should', () => {
   const url = 'http://test.com';
   let wrapper: any;
   const requiredSetup = () => ({
-    mocks: {
-      $store: {
-        getters: {
-          currentStore:              () => 'current_store',
-          'current_store/schemaFor': jest.fn(),
-          'current_store/all':       jest.fn(),
-          'i18n/t':                  (val: string) => val,
-          'i18n/exists':             jest.fn(),
+    global: {
+      mocks: {
+        $store: {
+          getters: {
+            currentStore:              () => 'current_store',
+            'current_store/schemaFor': jest.fn(),
+            'current_store/all':       jest.fn(),
+            'i18n/t':                  (val: string) => val,
+            'i18n/exists':             jest.fn(),
+          },
+          dispatch: jest.fn()
         },
-        dispatch: jest.fn()
+        $route:  { query: { AS: '' }, name: 'your_route_name' },
+        $router: { applyQuery: jest.fn() },
       },
-      $route:  { query: { AS: '' } },
-      $router: { applyQuery: jest.fn() },
+
     },
     propsData: {
       value: {
@@ -51,7 +54,7 @@ describe('view: nodedriver should', () => {
   });
 
   it('have "Create" button enabled when required fields are filled in', async() => {
-    const urlField = wrapper.find('[data-testid="driver-create-url-field"]').find('input');
+    const urlField = wrapper.find('[data-testid="driver-create-url-field"]');
     const saveButton = wrapper.find('[data-testid="node-driver-edit-save"]').element as HTMLInputElement;
 
     urlField.setValue(url);
@@ -61,48 +64,26 @@ describe('view: nodedriver should', () => {
     expect(saveButton.disabled).toBe(false);
   });
 
-  it('have "Create" button enabled and disabled depending on validation results', async() => {
-    const urlField = wrapper.find('[data-testid="driver-create-url-field"]').find('input');
-    const uiurlField = wrapper.find('[data-testid="driver-create-uiurl-field"]').find('input');
-    const checksumField = wrapper.find('[data-testid="driver-create-checksum-field"]').find('input');
+  it.each`
+    url                    | uiurl                  | checksum             | expected
+    ${ '1111' }            | ${ 'http://test.com' } | ${ 'aaaaaBBBBdddd' } | ${ true }
+    ${ 'http://test.com' } | ${ '1111' }            | ${ 'aaaaaBBBBdddd' } | ${ true }
+    ${ 'http://test.com' } | ${ 'http://test.com' } | ${ '!!!' }           | ${ true }
+    ${ 'http://test.com' } | ${ 'http://test.com' } | ${ 'aaaaaBBBBdddd' } | ${ false }
+  `('have "Create" button enabled and disabled depending on validation results', async({
+    url, uiurl, checksum, expected
+  }) => {
+    const urlField = wrapper.find('[data-testid="driver-create-url-field"]');
+    const uiurlField = wrapper.find('[data-testid="driver-create-uiurl-field"]');
+    const checksumField = wrapper.find('[data-testid="driver-create-checksum-field"]');
     const saveButton = wrapper.find('[data-testid="node-driver-edit-save"]').element as HTMLInputElement;
 
-    const testCases = [
-      {
-        url:      '1111',
-        uiurl:    'http://test.com',
-        checksum: 'aaaaaBBBBdddd',
-        result:   true
-      },
-      {
-        url:      'http://test.com',
-        uiurl:    '1111',
-        checksum: 'aaaaaBBBBdddd',
-        result:   true
-      },
-      {
-        url:      'http://test.com',
-        uiurl:    'http://test.com',
-        checksum: '!!!',
-        result:   true
-      },
-      {
-        url:      'http://test.com',
-        uiurl:    'http://test.com',
-        checksum: 'aaaaaBBBBdddd',
-        result:   false
-      }
-    ];
+    urlField.setValue(url);
+    uiurlField.setValue(uiurl);
+    checksumField.setValue(checksum);
 
-    for (const testCase of testCases) {
-      urlField.setValue(testCase.url);
-      await nextTick();
-      uiurlField.setValue(testCase.uiurl);
-      await nextTick();
-      checksumField.setValue(testCase.checksum);
-      await nextTick();
+    await nextTick();
 
-      expect(saveButton.disabled).toBe(testCase.result);
-    }
+    expect(saveButton.disabled).toBe(expected);
   });
 });
