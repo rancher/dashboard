@@ -4,10 +4,10 @@ on:
     branches:
       - master
       - 'release-*'
-  # pull_request:
-  #   branches:
-  #     - master
-  #     - 'release-*'
+  pull_request:
+    branches:
+      - master
+      - 'release-*'
   workflow_dispatch:
     inputs:
       environment:
