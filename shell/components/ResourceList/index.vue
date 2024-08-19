@@ -232,7 +232,10 @@ export default {
       {{ t('resourceList.nsFilteringGeneric') }}
     </template>
   </IconMessage>
-  <div v-else>
+  <div
+    v-else
+    class="outlet"
+  >
     <Masthead
       v-if="showMasthead"
       :type-display="customTypeDisplay"
@@ -253,7 +256,9 @@ export default {
       :location="extensionLocation"
     />
 
-    <div v-if="hasListComponent">
+    <div
+      v-if="hasListComponent"
+    >
       <component
         :is="listComponent"
         :incremental-loading-indicator="showIncrementalLoadingIndicator"
