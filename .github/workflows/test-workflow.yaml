@@ -1,0 +1,42 @@
+name: test-slack-msg
+on:
+  pull_request:
+    branches:
+      - master
+      - 'release-*'
+
+jobs:
+  test-wf:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v1
+      - name: Try to fail
+        run: exit 1
+
+      # - name: Check status step
+      #   id: check-step
+      #   if: success()
+      #   shell: bash
+      #   run: |
+      #     echo "Workflow successful"
+
+      - name: The step to call the action in success
+        if: success()
+        shell: bash
+        run: |
+          curl -H "Content-type: application/json" \
+          --data '{"name": "Extensions tests ${{ "v2.10 - master - Elemental" }}", "status": "Workflow succedded!" }' \
+          -X POST https://slack.com/api/chat.postMessage
+
+      - name: The step to call the action in failure
+        if: failure()
+        shell: bash
+        run: |
+          curl -H "Content-type: application/json" \
+          --data '{"name": "Extensions tests ${{ "v2.10 - master - Elemental" }}", "status": "Workflow failed!" }' \
+          -X POST https://slack.com/api/chat.postMessage
+
+# curl -H "Content-type: application/json" \
+# --data '{"channel":"C123456","blocks":[{"type":"section","text":{"type":"mrkdwn","text":"Hi I am a bot that can post *_fancy_* messages to any public channel."}}]}' \
+# -H "Authorization: Bearer xoxb-not-a-real-token-this-will-not-work" \
+# -X POST https://slack.com/api/chat.postMessage
