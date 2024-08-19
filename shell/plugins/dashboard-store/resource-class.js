@@ -600,6 +600,14 @@ export default class Resource {
     return this.$ctx.rootState;
   }
 
+  get '$plugin'() {
+    return this.$ctx.rootState?.$plugin;
+  }
+
+  get '$axios'() {
+    return this.$ctx.rootState?.$axios;
+  }
+
   get customValidationRules() {
     return [
       /**

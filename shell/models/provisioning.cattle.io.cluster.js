@@ -5,18 +5,47 @@ import SteveModel from '@shell/plugins/steve/steve-class';
 import { findBy } from '@shell/utils/array';
 import { get, set } from '@shell/utils/object';
 import { sortBy } from '@shell/utils/sort';
-import { ucFirst } from '@shell/utils/string';
+import { escapeHtml, ucFirst } from '@shell/utils/string';
 import { compare } from '@shell/utils/version';
 import { AS, MODE, _VIEW, _YAML } from '@shell/config/query-params';
 import { HARVESTER_NAME as HARVESTER } from '@shell/config/features';
 import { CAPI as CAPI_ANNOTATIONS, NODE_ARCHITECTURE } from '@shell/config/labels-annotations';
 import capitalize from 'lodash/capitalize';
+import { ModelExtensions } from '@shell/utils/model-extensions';
 
 /**
  * Class representing Cluster resource.
  * @extends SteveModel
  */
 export default class ProvCluster extends SteveModel {
+  /**
+   * Instance of model extensions utility that we can use for accessing model helpers provided by extensions
+   */
+  get modelExtensions() {
+    if (!this.__modelExtensions) {
+      this.__modelExtensions = new ModelExtensions(this, 'provisioner', (model) => model.machineProvider);
+    }
+
+    return this.__modelExtensions;
+  }
+
+  /**
+   * customProvisionerHelper returns a custom helper if applicable that can be used for this cluster
+   */
+  get customProvisionerHelper() {
+    return this.modelExtensions.modelHelper;
+  }
+
+  // Ensure we remove the properties for the model extension from the model on save
+  // Otherwise we get a problem when editing a cluster
+  cleanForSave(data, forNew) {
+    super.cleanForSave(data, forNew);
+    delete data.__modelExtensions;
+    delete data.__modelHelper;
+
+    return data;
+  }
+
   get details() {
     const out = [
       {
@@ -166,7 +195,15 @@ export default class ProvCluster extends SteveModel {
         enabled: canSaveRKETemplate,
       }, { divider: true }];
 
-    return actions.concat(out);
+    const all = actions.concat(out);
+
+    // If we have a helper that wants to modify the available actions, let it do it
+    if (this.customProvisionerHelper?.availableActions) {
+      // Provider can either modify the provided list or return one of its own
+      return this.customProvisionerHelper?.availableActions(this, all) || all;
+    }
+
+    return all;
   }
 
   get normanCluster() {
@@ -479,6 +516,10 @@ export default class ProvCluster extends SteveModel {
   }
 
   get machineProviderDisplay() {
+    if (this.customProvisionerHelper?.machineProviderDisplay) {
+      return this.customProvisionerHelper?.machineProviderDisplay(this);
+    }
+
     if ( this.isImported ) {
       return null;
     }
@@ -935,6 +976,26 @@ export default class ProvCluster extends SteveModel {
 
     if ( res?._status === 204 ) {
       await this.$dispatch('ws.resource.remove', { data: this });
+    }
+
+    // If this cluster has a custom provisioner, allow it to do custom deletion
+    if (this.customProvisionerHelper?.postDelete) {
+      return this.customProvisionerHelper?.postDelete(this);
+    }
+  }
+
+  get groupByParent() {
+    // Customer helper can report if the cluster has a parent cluster
+    return this.customProvisionerHelper?.parentCluster(this);
+  }
+
+  get groupByLabel() {
+    const name = this.groupByParent;
+
+    if (name) {
+      return this.$rootGetters['i18n/t']('resourceTable.groupLabel.cluster', { name: escapeHtml(name) });
+    } else {
+      return this.$rootGetters['i18n/t']('resourceTable.groupLabel.notInACluster');
     }
   }
 

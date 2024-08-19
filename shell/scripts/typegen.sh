@@ -25,6 +25,7 @@ ${BASE_DIR}/node_modules/.bin/tsc shell/config/labels-annotations.js --declarati
 # store
 ${BASE_DIR}/node_modules/.bin/tsc shell/store/features.js --declaration --allowJs --emitDeclarationOnly --outDir ${SHELL_DIR}/tmp/store > /dev/null
 ${BASE_DIR}/node_modules/.bin/tsc shell/store/prefs.js --declaration --allowJs --emitDeclarationOnly --outDir ${SHELL_DIR}/tmp/store > /dev/null
+${BASE_DIR}/node_modules/.bin/tsc shell/store/plugins.js --declaration --allowJs --emitDeclarationOnly --outDir ${SHELL_DIR}/tmp/store > /dev/null
 
 # plugins
 ${BASE_DIR}/node_modules/.bin/tsc shell/plugins/dashboard-store/normalize.js --declaration --allowJs --emitDeclarationOnly --outDir ${SHELL_DIR}/tmp/plugins/dashboard-store/ > /dev/null
