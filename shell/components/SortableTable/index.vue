@@ -1182,7 +1182,7 @@ export default {
             type="search"
             class="input-sm search-box"
             :placeholder="t('sortableTable.search')"
-            @input="($plainInputEvent) => eventualSearchQuery = $plainInputEvent"
+            @input="($plainInputEvent) => eventualSearchQuery = $plainInputEvent.target.value"
           >
           <slot name="header-button" />
         </div>
