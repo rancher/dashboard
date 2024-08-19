@@ -20,7 +20,7 @@ jobs:
         run: |
           curl -X POST \
           -H "Content-type: application/json; charset=utf-8" \
-          --data '{"name": "Extensions tests v2.10 - master - Elemental", "status": "Workflow succedded! ✅", "workflow_run": "${{ github.run_id }}" }' \
+          --data '{"name": "Extensions tests v2.10 - master - Elemental", "status": "Workflow succedded! ✅", "workflow_run": ${{ github.run_id }} }' \
           $SLACK_URL
 
       - name: The step to call the action in failure
@@ -31,5 +31,5 @@ jobs:
         run: |
           curl -X POST \
           -H "Content-type: application/json; charset=utf-8" \
-          --data '{"name": "Extensions tests v2.10 - master - Elemental", "status": "Workflow failed! 🆘", "workflow_run": "${{ github.run_id }}" }' \
+          --data '{"name": "Extensions tests v2.10 - master - Elemental", "status": "Workflow failed! 🆘", "workflow_run": ${{ github.run_id }} }' \
           $SLACK_URL
