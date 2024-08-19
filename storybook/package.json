@@ -34,5 +34,8 @@
     "shell": "file:./..",
     "tsconfig-paths-webpack-plugin": "^4.0.0",
     "vue-loader": "15.10.1"
+  },
+  "resolutions": {
+    "@storybook/components": "^7.6.17"
   }
 }
