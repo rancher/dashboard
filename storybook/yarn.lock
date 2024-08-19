@@ -3956,21 +3956,7 @@
     prettier "^2.8.0"
     recast "^0.23.1"
 
-"@storybook/components@6.5.16", "@storybook/components@^6.0.0":
-  version "6.5.16"
-  resolved "https://registry.npmjs.org/@storybook/components/-/components-6.5.16.tgz#f8dc51213bc08fe32154be964e1e8b0e2f670ed6"
-  integrity sha512-LzBOFJKITLtDcbW9jXl0/PaG+4xAz25PK8JxPZpIALbmOpYWOAPcO6V9C2heX6e6NgWFMUxjplkULEk9RCQMNA==
-  dependencies:
-    "@storybook/client-logger" "6.5.16"
-    "@storybook/csf" "0.0.2--canary.4566f4d.1"
-    "@storybook/theming" "6.5.16"
-    core-js "^3.8.2"
-    memoizerific "^1.11.3"
-    qs "^6.10.0"
-    regenerator-runtime "^0.13.7"
-    util-deprecate "^1.0.2"
-
-"@storybook/components@7.6.20":
+"@storybook/components@6.5.16", "@storybook/components@7.6.20", "@storybook/components@^6.0.0", "@storybook/components@^7.6.17":
   version "7.6.20"
   resolved "https://registry.npmjs.org/@storybook/components/-/components-7.6.20.tgz#09d044923142d2e087a1c4a43dec6731a42d2871"
   integrity sha512-0d8u4m558R+W5V+rseF/+e9JnMciADLXTpsILrG+TBhwECk0MctIWW18bkqkujdCm8kDZr5U2iM/5kS1Noy7Ug==
