@@ -4,11 +4,14 @@ import LabeledSelectPo from '@/cypress/e2e/po/components/labeled-select.po';
 import SortableTablePo from '@/cypress/e2e/po/components/sortable-table.po';
 import AsyncButtonPo from '@/cypress/e2e/po/components/async-button.po';
 import PagePo from '@/cypress/e2e/po/pages/page.po';
+<<<<<<< HEAD
 import NameNsDescription from '@/cypress/e2e/po/components/name-ns-description.po';
 import BaseResourceList from '@/cypress/e2e/po/lists/base-resource-list.po';
 import CodeMirrorPo from '@/cypress/e2e/po/components/code-mirror.po';
 import TabbedPo from '@/cypress/e2e/po/components/tabbed.po';
 import ResourceDetailPo from '@/cypress/e2e/po/edit/resource-detail.po';
+=======
+>>>>>>> 7c0eacee5a (redo PR based on previous PR 11626 and taking into account changes to the utils files + comment unwanted workflow runs)
 
 class KubewardenDashboardPagePo extends PagePo {
   static url = '/c/local/kubewarden';
@@ -21,11 +24,19 @@ class KubewardenDashboardPagePo extends PagePo {
   }
 
   waitForTitlePreControllerInstall(): Cypress.Chainable {
+<<<<<<< HEAD
     return this.self().find('[data-testid="kw-install-title"]').should('contain', 'Kubewarden');
   }
 
   waitForTitleAfterControllerInstall(): Cypress.Chainable {
     return this.self().find('[data-testid="kw-dashboard-title"]').should('contain', 'Welcome to Kubewarden');
+=======
+    return this.self().find('h1').should('contain', 'OS Management');
+  }
+
+  waitForTitleAfterControllerInstall(): Cypress.Chainable {
+    return this.self().find('[data-testid="kw-dashboard-title"]').should('contain', 'Welcome to Kubewardent');
+>>>>>>> 7c0eacee5a (redo PR based on previous PR 11626 and taking into account changes to the utils files + comment unwanted workflow runs)
   }
 
   startBackendInstallClick(): Cypress.Chainable {
@@ -60,6 +71,7 @@ class KubewardenPolicyServerListPagePo extends PagePo {
   }
 }
 
+<<<<<<< HEAD
 class KubewardenPolicyServerEditPagePo extends PagePo {
   private static createPath(clusterId: string, id?: string ) {
     const root = `/c/${ clusterId }/kubewarden/policies.kubewarden.io.policyserver`;
@@ -110,6 +122,16 @@ class KubewardenPolicyServerDetailPagePo extends PagePo {
 
   constructor(clusterId = 'local', id: string) {
     super(KubewardenPolicyServerDetailPagePo.createPath(clusterId, id));
+=======
+class KubewardenPolicyServerDetailPagePo extends PagePo {
+  static url = '/c/local/kubewarden/policies.kubewarden.io.policyserver';
+  static goTo(): Cypress.Chainable<Cypress.AUTWindow> {
+    return super.goTo(KubewardenPolicyServerDetailPagePo.url);
+  }
+
+  constructor() {
+    super(KubewardenPolicyServerDetailPagePo.url);
+>>>>>>> 7c0eacee5a (redo PR based on previous PR 11626 and taking into account changes to the utils files + comment unwanted workflow runs)
   }
 
   metricsAddServiceMonitorClick() {
@@ -121,12 +143,15 @@ class KubewardenPolicyServerDetailPagePo extends PagePo {
   }
 }
 
+<<<<<<< HEAD
 class AdmissionPoliciesListPo extends BaseResourceList {
   state(name: string) {
     return this.resourceTable().sortableTable().rowWithName(name).column(1);
   }
 }
 
+=======
+>>>>>>> 7c0eacee5a (redo PR based on previous PR 11626 and taking into account changes to the utils files + comment unwanted workflow runs)
 class KubewardenAdmissionPoliciesListPagePo extends PagePo {
   static url = '/c/local/kubewarden/policies.kubewarden.io.admissionpolicy';
   static goTo(): Cypress.Chainable<Cypress.AUTWindow> {
@@ -141,6 +166,7 @@ class KubewardenAdmissionPoliciesListPagePo extends PagePo {
     this.self().getId('action-button-async-button').click();
   }
 
+<<<<<<< HEAD
   artifactHubPoliciesTable() {
     return new SortableTablePo(this.self().get('.sortable-table'));
   }
@@ -174,10 +200,22 @@ class KubewardenAdmissionPoliciesEditPagePo extends PagePo {
   }
 
   admissionPolicyCreateBtn(): AsyncButtonPo {
+=======
+  apOfficialPoliciesTable() {
+    return new SortableTablePo(this.self().get('.sortable-table'));
+  }
+
+  apOfficialPoliciesTableRowClick(policyName: string) {
+    this.apOfficialPoliciesTable().rowElementWithName(policyName).scrollIntoView().click();
+  }
+
+  apCreateBtn(): AsyncButtonPo {
+>>>>>>> 7c0eacee5a (redo PR based on previous PR 11626 and taking into account changes to the utils files + comment unwanted workflow runs)
     return new AsyncButtonPo('[data-testid="kw-policy-create-finish-button"]', this.self());
   }
 }
 
+<<<<<<< HEAD
 export class KubewardenResourceComplianceReportPagePo extends PagePo {
   clickComplianceTab() {
     return new TabbedPo().clickTabWithSelector('[data-testid="btn-policy-report-tab"]');
@@ -188,6 +226,8 @@ export class KubewardenResourceComplianceReportPagePo extends PagePo {
   }
 }
 
+=======
+>>>>>>> 7c0eacee5a (redo PR based on previous PR 11626 and taking into account changes to the utils files + comment unwanted workflow runs)
 export default class KubewardenPo extends ExtensionsCompatibilityUtils {
   dashboard() {
     return new KubewardenDashboardPagePo();
@@ -197,22 +237,30 @@ export default class KubewardenPo extends ExtensionsCompatibilityUtils {
     return new KubewardenPolicyServerListPagePo();
   }
 
+<<<<<<< HEAD
   policyServerEdit(clusterId = 'local', id?: string) {
     return new KubewardenPolicyServerEditPagePo(clusterId, id);
   }
 
   policyServerDetail(clusterId = 'local', id: string) {
     return new KubewardenPolicyServerDetailPagePo(clusterId, id);
+=======
+  policyServerDetail() {
+    return new KubewardenPolicyServerDetailPagePo();
+>>>>>>> 7c0eacee5a (redo PR based on previous PR 11626 and taking into account changes to the utils files + comment unwanted workflow runs)
   }
 
   admissionPoliciesList() {
     return new KubewardenAdmissionPoliciesListPagePo();
   }
 
+<<<<<<< HEAD
   admissionPoliciesEdit(clusterId = 'local', id?: string) {
     return new KubewardenAdmissionPoliciesEditPagePo(clusterId, id);
   }
 
+=======
+>>>>>>> 7c0eacee5a (redo PR based on previous PR 11626 and taking into account changes to the utils files + comment unwanted workflow runs)
   kubectlShell() {
     return new Kubectl();
   }
@@ -234,6 +282,7 @@ export default class KubewardenPo extends ExtensionsCompatibilityUtils {
   }
 
   waitForNamespaceCreation(interceptName: string, namespaceToCheck: string) {
+<<<<<<< HEAD
     cy.wait(`@${ interceptName }`, { requestTimeout: 20000 }).then(({ response }) => {
       expect(response?.statusCode).to.eq(201);
       expect(response?.body.metadata).to.have.property('name', namespaceToCheck);
@@ -252,6 +301,22 @@ export default class KubewardenPo extends ExtensionsCompatibilityUtils {
       cy.wait(beforeTimeout); // eslint-disable-line cypress/no-unnecessary-waiting
 
       return this.admissionPoliciesList().list().state(name).should('contain', 'Active');
+=======
+    cy.wait(`@${ interceptName }`, { requestTimeout: 15000 }).then(({ response }) => {
+      expect(response?.statusCode).to.eq(201);
+      expect(response?.body.metadata).to.have.property('name', namespaceToCheck);
+      cy.wait(3000); // eslint-disable-line cypress/no-unnecessary-waiting
+    });
+  }
+
+  waitForApCreation(interceptName: string, name: string) {
+    cy.wait(`@${ interceptName }`, { requestTimeout: 15000 }).then(({ response }) => {
+      expect(response?.statusCode).to.eq(201);
+      expect(response?.body).to.have.property('id', `default/${ name }`);
+      expect(response?.body.spec).to.have.property('mode', 'protect');
+      expect(response?.body.spec.settings).to.have.property('requireTLS', true);
+      cy.wait(3000); // eslint-disable-line cypress/no-unnecessary-waiting
+>>>>>>> 7c0eacee5a (redo PR based on previous PR 11626 and taking into account changes to the utils files + comment unwanted workflow runs)
     });
   }
 }
