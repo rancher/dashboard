@@ -8,9 +8,9 @@ jobs:
   test-wf:
     runs-on: ubuntu-latest
     steps:
-      - uses: actions/checkout@v1
-      - name: Try to fail
-        run: exit 1
+      # - uses: actions/checkout@v1
+      # - name: Try to fail
+      #   run: exit 1
 
       - name: The step to call the action in success
         env:
