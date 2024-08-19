@@ -106,7 +106,7 @@ export default class SortableTablePo extends ComponentPo {
   }
 
   rowElementWithName(name: string, options?: GetOptions) {
-    return this.self().contains('tbody tr', new RegExp(` ${ name } `), options);
+    return this.self().contains('tbody tr', new RegExp(`${ name }`), options);
   }
 
   rowElementWithPartialName(name: string) {
