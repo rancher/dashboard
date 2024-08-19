@@ -19,17 +19,12 @@ describe('page: prefs should', () => {
     const wrapper = shallowMount(Preferences, {
       props: { value: 'asd' },
 
-      computed: {
-        pm: jest.fn(),
-        am: jest.fn(),
-      },
-
       global: {
         mocks: {
           $store: {
             getters: {
               'prefs/options':        () => format,
-              'prefs/get':            jest.fn(),
+              'prefs/get':            jest.fn().mockReturnValue('YYYY-MM-DD HH:mm:ss'),
               'management/schemaFor': jest.fn(),
               isSingleProduct:        jest.fn(),
               'i18n/t':               jest.fn(),
@@ -70,17 +65,12 @@ describe('page: prefs should', () => {
     const wrapper = shallowMount(Preferences, {
       props: { value: 'asd' },
 
-      computed: {
-        pm: jest.fn(),
-        am: jest.fn(),
-      },
-
       global: {
         mocks: {
           $store: {
             getters: {
               'prefs/options':        () => format,
-              'prefs/get':            jest.fn(),
+              'prefs/get':            jest.fn().mockReturnValue('YYYY-MM-DD HH:mm:ss'),
               'management/schemaFor': jest.fn(),
               isSingleProduct:        jest.fn(),
               'i18n/t':               jest.fn(),
