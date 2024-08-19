@@ -1,0 +1,35 @@
+name: Testing Slack Messaging
+on:
+  pull_request:
+    branches:
+      - master
+
+jobs:
+  test-wf:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v1
+      - name: Try to fail
+        run: exit 1
+
+      - name: The step to call the action in success
+        env:
+          SLACK_URL: ${{ secrets.SLACK_WEBHOOK_URL }}
+        if: success()
+        shell: bash
+        run: |
+          curl -X POST \
+          -H "Content-type: application/json; charset=utf-8" \
+          --data '{"name": "Extensions tests v2.10 - master - Elemental", "status": "Workflow succedded!" }' \
+          $SLACK_URL
+
+      - name: The step to call the action in failure
+        env:
+          SLACK_URL: ${{ secrets.SLACK_WEBHOOK_URL }}
+        if: failure()
+        shell: bash
+        run: |
+          curl -X POST \
+          -H "Content-type: application/json; charset=utf-8" \
+          --data '{"name": "Extensions tests v2.10 - master - Elemental", "status": "Workflow failed!" }' \
+          $SLACK_URL
