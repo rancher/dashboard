@@ -8,6 +8,7 @@ describe('fx: isDevBuild', () => {
     'whatever-head',
     'whatever-rc1',
     'whatever-alpha1',
+    'whatever-main'
   ])(
     'should exclude version type %p', (version: string) => {
       const result = isDevBuild(version);

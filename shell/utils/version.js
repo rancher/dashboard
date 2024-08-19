@@ -75,7 +75,7 @@ export function isPrerelease(version) {
 }
 
 export function isDevBuild(version) {
-  if ( ['dev', 'master', 'head'].includes(version) || version.endsWith('-head') || version.match(/-rc\d+$/) || version.match(/-alpha\d+$/) ) {
+  if ( ['dev', 'master', 'head'].includes(version) || version.endsWith('-head') || version.match(/-rc\d+$/) || version.match(/-alpha\d+$/) || version.endsWith('-main') ) {
     return true;
   }
 
