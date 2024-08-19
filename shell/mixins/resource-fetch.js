@@ -14,6 +14,8 @@ export default {
     ResourceFetchApiPagination
   ],
 
+  inheritAttrs: false,
+
   data() {
     // fetching the settings related to manual refresh from global settings
     const perfSetting = this.$store.getters['management/byId'](MANAGEMENT.SETTING, SETTING.UI_PERFORMANCE);
