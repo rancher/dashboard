@@ -26,7 +26,7 @@ jobs:
         run: |
           curl -H "Content-type: application/json" \
           --data '{"name": "Extensions tests v2.10 - master - Elemental", "status": "Workflow succedded!" }' \
-          -X POST https://slack.com/api/chat.postMessage
+          -X POST ${{ secrets.SLACK_WEBHOOK_URL }}
 
       - name: The step to call the action in failure
         if: failure()
@@ -34,7 +34,7 @@ jobs:
         run: |
           curl -H "Content-type: application/json" \
           --data '{"name": "Extensions tests v2.10 - master - Elemental", "status": "Workflow failed!" }' \
-          -X POST https://slack.com/api/chat.postMessage
+          -X POST ${{ secrets.SLACK_WEBHOOK_URL }}
 
 # curl -H "Content-type: application/json" \
 # --data '{"channel":"C123456","blocks":[{"type":"section","text":{"type":"mrkdwn","text":"Hi I am a bot that can post *_fancy_* messages to any public channel."}}]}' \
