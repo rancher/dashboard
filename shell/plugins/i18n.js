@@ -98,6 +98,10 @@ const i18n = {
         escapehtml: {
           type:    Boolean,
           default: true,
+        },
+        class: {
+          type:    String,
+          default: ''
         }
       },
       setup(props, ctx) {
@@ -115,11 +119,12 @@ const i18n = {
         if (this.raw) {
           return h(
             this.tag,
-            { innerHTML: this.msg }
+            { class: this.class, innerHTML: this.msg }
           );
         } else {
           return h(
             this.tag,
+            { class: this.class },
             [this.msg]
           );
         }
