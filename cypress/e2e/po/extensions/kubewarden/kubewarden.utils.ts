@@ -5,6 +5,7 @@ import SortableTablePo from '@/cypress/e2e/po/components/sortable-table.po';
 import AsyncButtonPo from '@/cypress/e2e/po/components/async-button.po';
 import PagePo from '@/cypress/e2e/po/pages/page.po';
 import NameNsDescription from '@/cypress/e2e/po/components/name-ns-description.po';
+import BaseResourceList from '@/cypress/e2e/po/lists/base-resource-list.po';
 
 class KubewardenDashboardPagePo extends PagePo {
   static url = '/c/local/kubewarden';
@@ -78,6 +79,12 @@ class KubewardenPolicyServerDetailPagePo extends PagePo {
   }
 }
 
+class AdmissionPoliciesListPo extends BaseResourceList {
+  state(name: string) {
+    return this.resourceTable().sortableTable().rowWithName(name).column(1);
+  }
+}
+
 class KubewardenAdmissionPoliciesListPagePo extends PagePo {
   static url = '/c/local/kubewarden/policies.kubewarden.io.admissionpolicy';
   static goTo(): Cypress.Chainable<Cypress.AUTWindow> {
@@ -100,14 +107,14 @@ class KubewardenAdmissionPoliciesListPagePo extends PagePo {
     this.apOfficialPoliciesTable().rowElementWithName(policyName).scrollIntoView().click();
   }
 
-  apCreateBtn(): AsyncButtonPo {
-    return new AsyncButtonPo('[data-testid="kw-policy-create-finish-button"]', this.self());
+  list(): AdmissionPoliciesListPo {
+    return new AdmissionPoliciesListPo('[data-testid="kw-ap-policy-list"]');
   }
 }
 
 class KubewardenAdmissionPoliciesEditPagePo extends PagePo {
   private static createPath(clusterId: string, id?: string ) {
-    const root = `/c/${ clusterId }/kubewarden/policies.kubewarden.io.policyserver`;
+    const root = `/c/${ clusterId }/kubewarden/policies.kubewarden.io.admissionpolicy`;
 
     return id ? `${ root }/${ id }?mode=edit` : `${ root }/create`;
   }
@@ -122,6 +129,10 @@ class KubewardenAdmissionPoliciesEditPagePo extends PagePo {
 
   nameNsDescription() {
     return new NameNsDescription(this.self());
+  }
+
+  admissionPolicyCreateBtn(): AsyncButtonPo {
+    return new AsyncButtonPo('[data-testid="kw-policy-create-finish-button"]', this.self());
   }
 }
 
@@ -167,20 +178,24 @@ export default class KubewardenPo extends ExtensionsCompatibilityUtils {
   }
 
   waitForNamespaceCreation(interceptName: string, namespaceToCheck: string) {
-    cy.wait(`@${ interceptName }`, { requestTimeout: 15000 }).then(({ response }) => {
+    cy.wait(`@${ interceptName }`, { requestTimeout: 20000 }).then(({ response }) => {
       expect(response?.statusCode).to.eq(201);
       expect(response?.body.metadata).to.have.property('name', namespaceToCheck);
-      cy.wait(3000); // eslint-disable-line cypress/no-unnecessary-waiting
+      cy.wait(5000); // eslint-disable-line cypress/no-unnecessary-waiting
     });
   }
 
-  waitForAdmissionPolicyCreation(interceptName: string, name: string) {
-    cy.wait(`@${ interceptName }`, { requestTimeout: 15000 }).then(({ response }) => {
+  waitForAdmissionPolicyCreation(interceptName: string, name: string, namespace: string, beforeTimeout = 70000) {
+    cy.wait(`@${ interceptName }`, { requestTimeout: 20000 }).then(({ response }) => {
       expect(response?.statusCode).to.eq(201);
-      expect(response?.body).to.have.property('id', `default/${ name }`);
+      expect(response?.body).to.have.property('id', `${ namespace }/${ name }`);
       expect(response?.body.spec).to.have.property('mode', 'protect');
       expect(response?.body.spec.settings).to.have.property('requireTLS', true);
-      cy.wait(3000); // eslint-disable-line cypress/no-unnecessary-waiting
+
+      // giving it a buffer so that the state is propagated successfully
+      cy.wait(beforeTimeout); // eslint-disable-line cypress/no-unnecessary-waiting
+
+      return this.admissionPoliciesList().list().state(name).should('contain', 'Active');
     });
   }
 }
