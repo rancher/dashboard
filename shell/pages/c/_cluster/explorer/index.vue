@@ -477,7 +477,10 @@ export default {
           resource: SECRET,
         }
       };
-    }
+    },
+    hasNodes() {
+      return this.nodes?.length > 0;
+    },
   },
 
   methods: {
@@ -598,7 +601,7 @@ export default {
         >{{ currentCluster.kubernetesVersionExtension }}</span>
       </div>
       <div
-        v-if="nodes.length > 0"
+        v-if="hasNodes"
         data-testid="architecture__label"
       >
         <label>{{ t('glance.architecture') }}: </label>

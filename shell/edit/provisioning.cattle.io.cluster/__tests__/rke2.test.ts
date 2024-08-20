@@ -53,43 +53,6 @@ const defaultStubs = {
 
 const mockAgentArgs = { 'cloud-provider-name': { options: [], profile: { options: [{ anything: 'yes' }] } } };
 
-const defaultComputed = {
-  appsOSWarning() {
-    return false;
-  },
-  showForm() {
-    return true;
-  },
-  versionOptions() {
-    return [
-      {
-        id: 'v1.31.0+rke2r1', value: 'v1.31.0+rke2r1', serverArgs: {}, agentArgs: mockAgentArgs, charts: {}
-      },
-      {
-        id: 'v1.30.0+rke2r1', value: 'v1.30.0+rke2r1', serverArgs: {}, agentArgs: mockAgentArgs, charts: {}
-      },
-      {
-        id: 'v1.29.1+rke2r1', value: 'v1.29.1+rke2r1', serverArgs: {}, agentArgs: mockAgentArgs, charts: {}
-      },
-      {
-        id: 'v1.25.0+rke2r1', value: 'v1.25.0+rke2r1', serverArgs: {}, agentArgs: mockAgentArgs, charts: {}
-      },
-      {
-        id: 'v1.24.0+rke2r1', value: 'v1.24.0+rke2r1', serverArgs: {}, agentArgs: mockAgentArgs, charts: {}
-      },
-      {
-        id: 'v1.23.0+rke2r1', value: 'v1.23.0+rke2r1', serverArgs: {}, agentArgs: mockAgentArgs, charts: {}
-      },
-      {
-        id: 'v1.25.0+k3s1', value: 'v1.25.0+k3s1', serverArgs: {}, agentArgs: mockAgentArgs, charts: {}
-      },
-      {
-        id: 'v1.24.0+k3s1', value: 'v1.24.0+k3s1', serverArgs: {}, agentArgs: mockAgentArgs, charts: {}
-      }
-    ];
-  }
-};
-
 const defaultGetters = {
   currentStore:                      () => 'current_store',
   'management/schemaFor':            jest.fn(),
@@ -144,12 +107,11 @@ describe('component: rke2', () => {
         provider,
       },
 
-      computed: defaultComputed,
-
       global: {
         mocks: {
           ...defaultMocks,
-          $store: { dispatch: () => jest.fn(), getters: defaultGetters },
+          $store:  { dispatch: () => jest.fn(), getters: defaultGetters },
+          $plugin: { getDynamic: jest.fn(() => undefined ) }
         },
 
         stubs: defaultStubs,
@@ -174,13 +136,13 @@ describe('component: rke2', () => {
         provider: 'custom'
       },
 
-      data:     () => ({ credentialId: 'I am authenticated' }),
-      computed: defaultComputed,
+      data: () => ({ credentialId: 'I am authenticated' }),
 
       global: {
         mocks: {
           ...defaultMocks,
-          $store: { dispatch: () => jest.fn(), getters: defaultGetters },
+          $store:  { dispatch: () => jest.fn(), getters: defaultGetters },
+          $plugin: { getDynamic: jest.fn(() => undefined ) },
         },
 
         stubs: defaultStubs,
@@ -205,13 +167,13 @@ describe('component: rke2', () => {
         provider: 'custom'
       },
 
-      data:     () => ({ credentialId: 'I am authenticated' }),
-      computed: defaultComputed,
+      data: () => ({ credentialId: 'I am authenticated' }),
 
       global: {
         mocks: {
           ...defaultMocks,
-          $store: { dispatch: () => jest.fn(), getters: defaultGetters },
+          $store:  { dispatch: () => jest.fn(), getters: defaultGetters },
+          $plugin: { getDynamic: jest.fn(() => undefined ) },
         },
 
         stubs: defaultStubs,
@@ -253,8 +215,6 @@ describe('component: rke2', () => {
         machinePools: [],
       }),
 
-      computed: defaultComputed,
-
       global: {
         mocks: {
           ...defaultMocks,
@@ -269,6 +229,7 @@ describe('component: rke2', () => {
             },
             getters: defaultGetters
           },
+          $plugin: { getDynamic: jest.fn(() => undefined ) },
         },
 
         stubs: defaultStubs,
@@ -281,7 +242,7 @@ describe('component: rke2', () => {
 
     await wrapper.vm._doSaveOverride(jest.fn());
 
-    expect(wrapper.vm.chartValues[HARVESTER_CLOUD_PROVIDER].cloudConfigPath).toStrictEqual('my-k8s-distro-path/etc/config-files/cloud-provider-config');
+    expect(wrapper.vm.chartValues[`${ HARVESTER_CLOUD_PROVIDER }.cloudConfigPath`]).toStrictEqual('my-k8s-distro-path/etc/config-files/cloud-provider-config');
   });
 
   // TODO: Complete test after implementing fetch https://github.com/rancher/dashboard/issues/9322
@@ -298,8 +259,6 @@ describe('component: rke2', () => {
           provider: 'custom'
         },
 
-        computed: defaultComputed,
-
         global: {
           mocks: {
             ...defaultMocks,
@@ -311,6 +270,7 @@ describe('component: rke2', () => {
                 'management/findAll': () => ([]),
               }
             },
+            $plugin: { getDynamic: jest.fn(() => undefined ) },
           },
 
           stubs: defaultStubs,
@@ -348,8 +308,6 @@ describe('component: rke2', () => {
           provider: 'custom'
         },
 
-        computed: defaultComputed,
-
         global: {
           mocks: {
             ...defaultMocks,
@@ -361,6 +319,7 @@ describe('component: rke2', () => {
                 'management/findAll': () => ([]),
               }
             },
+            $plugin: { getDynamic: jest.fn(() => undefined ) },
           },
 
           stubs: defaultStubs,
@@ -394,13 +353,15 @@ describe('component: rke2', () => {
         },
         provider: 'custom'
       },
-      data:     () => ({}),
-      computed: defaultComputed,
-      mocks:    {
-        ...defaultMocks,
-        $store: { dispatch: () => jest.fn(), getters: defaultGetters },
-      },
-      stubs: defaultStubs
+      data:   () => ({}),
+      global: {
+        mocks: {
+          ...defaultMocks,
+          $store:  { dispatch: () => jest.fn(), getters: defaultGetters },
+          $plugin: { getDynamic: jest.fn(() => undefined ) },
+        },
+        stubs: defaultStubs
+      }
     });
 
     expect((wrapper.vm as any).isAzureProviderUnsupported).toBe(value);
@@ -433,13 +394,14 @@ describe('component: rke2', () => {
         },
         provider: 'custom'
       },
-      data:     () => ({}),
-      computed: defaultComputed,
-      mocks:    {
-        ...defaultMocks,
-        $store: { dispatch: () => jest.fn(), getters: defaultGetters },
-      },
-      stubs: defaultStubs
+      global: {
+        mocks: {
+          ...defaultMocks,
+          $store:  { dispatch: () => jest.fn(), getters: defaultGetters },
+          $plugin: { getDynamic: jest.fn(() => undefined ) },
+        },
+        stubs: defaultStubs
+      }
     });
 
     expect((wrapper.vm as any).canAzureMigrateOnEdit).toBe(value);
@@ -463,16 +425,15 @@ describe('component: rke2', () => {
         },
         provider: 'custom'
       },
-      data:     () => ({}),
-      computed: {
-        appsOSWarning: () => false,
-        showForm:      () => false,
-      },
-      mocks: {
-        ...defaultMocks,
-        $store: { dispatch: () => jest.fn(), getters: defaultGetters },
-      },
-      stubs: defaultStubs
+      data:   () => ({}),
+      global: {
+        mocks: {
+          ...defaultMocks,
+          $store:  { dispatch: () => jest.fn(), getters: defaultGetters },
+          $plugin: { getDynamic: jest.fn(() => undefined ) },
+        },
+        stubs: defaultStubs
+      }
     });
 
     wrapper.setData({
@@ -512,12 +473,14 @@ describe('component: rke2', () => {
           }
         }
       }),
-      computed: defaultComputed,
-      mocks:    {
-        ...defaultMocks,
-        $store: { dispatch: () => jest.fn(), getters: defaultGetters },
-      },
-      stubs: defaultStubs
+      global: {
+        mocks: {
+          ...defaultMocks,
+          $store:  { dispatch: () => jest.fn(), getters: defaultGetters },
+          $plugin: { getDynamic: jest.fn(() => undefined ) },
+        },
+        stubs: defaultStubs
+      }
     });
 
     const azureOption = (wrapper.vm as any).cloudProviderOptions.find((o: any) => o.value === 'azure');
@@ -556,12 +519,14 @@ describe('component: rke2', () => {
           }
         }
       }),
-      computed: defaultComputed,
-      mocks:    {
-        ...defaultMocks,
-        $store: { dispatch: () => jest.fn(), getters: defaultGetters },
-      },
-      stubs: defaultStubs
+      global: {
+        mocks: {
+          ...defaultMocks,
+          $store:  { dispatch: () => jest.fn(), getters: defaultGetters },
+          $plugin: { getDynamic: jest.fn(() => undefined ) },
+        },
+        stubs: defaultStubs
+      }
     });
 
     const azureOption = (wrapper.vm as any).cloudProviderOptions.find((o: any) => o.value === cloudProvider);

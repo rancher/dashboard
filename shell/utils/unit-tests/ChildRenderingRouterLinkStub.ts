@@ -1,12 +1,12 @@
 import { RouterLinkStub } from '@vue/test-utils';
-import { NavigationFailure, Route } from 'vue-router';
+import { NavigationFailure, RouteLocationNormalized } from 'vue-router';
 
 /**
  * See {@link RouterLinkSlotArgument} in vue-router
  */
 export interface RouterLinkSlotArgumentOptional {
     href?: string;
-    route?: Route;
+    route?: RouteLocationNormalized;
     navigate?: (e?: MouseEvent) => Promise<undefined | NavigationFailure>;
     isActive?: boolean;
     isExactActive?: boolean;
@@ -24,9 +24,9 @@ export function createChildRenderingRouterLinkStub(slotProps?: RouterLinkSlotArg
   return {
     ...RouterLinkStub,
     render() {
-      return this.$slots.default()({
+      return this.$slots.default({
         href:          slotProps?.href || '',
-        route:         slotProps?.route || ({} as any),
+        route:         slotProps?.route || undefined,
         navigate:      slotProps?.navigate || (() => {}),
         isActive:      slotProps?.isActive || false,
         isExactActive: slotProps?.isExactActive || false,
