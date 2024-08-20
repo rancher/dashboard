@@ -4,6 +4,7 @@ import LabeledSelectPo from '@/cypress/e2e/po/components/labeled-select.po';
 import SortableTablePo from '@/cypress/e2e/po/components/sortable-table.po';
 import AsyncButtonPo from '@/cypress/e2e/po/components/async-button.po';
 import PagePo from '@/cypress/e2e/po/pages/page.po';
+import NameNsDescription from '@/cypress/e2e/po/components/name-ns-description.po';
 
 class KubewardenDashboardPagePo extends PagePo {
   static url = '/c/local/kubewarden';
@@ -16,11 +17,11 @@ class KubewardenDashboardPagePo extends PagePo {
   }
 
   waitForTitlePreControllerInstall(): Cypress.Chainable {
-    return this.self().find('h1').should('contain', 'OS Management');
+    return this.self().find('[data-testid="kw-install-title"]').should('contain', 'Kubewarden');
   }
 
   waitForTitleAfterControllerInstall(): Cypress.Chainable {
-    return this.self().find('[data-testid="kw-dashboard-title"]').should('contain', 'Welcome to Kubewardent');
+    return this.self().find('[data-testid="kw-dashboard-title"]').should('contain', 'Welcome to Kubewarden');
   }
 
   startBackendInstallClick(): Cypress.Chainable {
@@ -56,13 +57,16 @@ class KubewardenPolicyServerListPagePo extends PagePo {
 }
 
 class KubewardenPolicyServerDetailPagePo extends PagePo {
-  static url = '/c/local/kubewarden/policies.kubewarden.io.policyserver';
-  static goTo(): Cypress.Chainable<Cypress.AUTWindow> {
-    return super.goTo(KubewardenPolicyServerDetailPagePo.url);
+  private static createPath(clusterId: string, id: string) {
+    return `/c/${ clusterId }/kubewarden/policies.kubewarden.io.policyserver/${ id }`;
   }
 
-  constructor() {
-    super(KubewardenPolicyServerDetailPagePo.url);
+  goTo(clusterId: string, id:string): Cypress.Chainable<Cypress.AUTWindow> {
+    return super.goTo(KubewardenPolicyServerDetailPagePo.createPath(clusterId, id));
+  }
+
+  constructor(clusterId = 'local', id: string) {
+    super(KubewardenPolicyServerDetailPagePo.createPath(clusterId, id));
   }
 
   metricsAddServiceMonitorClick() {
@@ -92,12 +96,32 @@ class KubewardenAdmissionPoliciesListPagePo extends PagePo {
     return new SortableTablePo(this.self().get('.sortable-table'));
   }
 
-  apOfficialPoliciesTableRowClick(policyName: string) {
+  admissionPolicyOfficialPoliciesTableRowClick(policyName: string) {
     this.apOfficialPoliciesTable().rowElementWithName(policyName).scrollIntoView().click();
   }
 
   apCreateBtn(): AsyncButtonPo {
     return new AsyncButtonPo('[data-testid="kw-policy-create-finish-button"]', this.self());
+  }
+}
+
+class KubewardenAdmissionPoliciesEditPagePo extends PagePo {
+  private static createPath(clusterId: string, id?: string ) {
+    const root = `/c/${ clusterId }/kubewarden/policies.kubewarden.io.policyserver`;
+
+    return id ? `${ root }/${ id }?mode=edit` : `${ root }/create`;
+  }
+
+  goTo(clusterId: string, id?: string): Cypress.Chainable<Cypress.AUTWindow> {
+    return super.goTo(KubewardenAdmissionPoliciesEditPagePo.createPath(clusterId, id));
+  }
+
+  constructor(clusterId = 'local', id?: string) {
+    super(KubewardenAdmissionPoliciesEditPagePo.createPath(clusterId, id));
+  }
+
+  nameNsDescription() {
+    return new NameNsDescription(this.self());
   }
 }
 
@@ -110,12 +134,16 @@ export default class KubewardenPo extends ExtensionsCompatibilityUtils {
     return new KubewardenPolicyServerListPagePo();
   }
 
-  policyServerDetail() {
-    return new KubewardenPolicyServerDetailPagePo();
+  policyServerDetail(clusterId = 'local', id: string) {
+    return new KubewardenPolicyServerDetailPagePo(clusterId, id);
   }
 
   admissionPoliciesList() {
     return new KubewardenAdmissionPoliciesListPagePo();
+  }
+
+  admissionPoliciesEdit(clusterId = 'local', id?: string) {
+    return new KubewardenAdmissionPoliciesEditPagePo(clusterId, id);
   }
 
   kubectlShell() {
@@ -146,7 +174,7 @@ export default class KubewardenPo extends ExtensionsCompatibilityUtils {
     });
   }
 
-  waitForApCreation(interceptName: string, name: string) {
+  waitForAdmissionPolicyCreation(interceptName: string, name: string) {
     cy.wait(`@${ interceptName }`, { requestTimeout: 15000 }).then(({ response }) => {
       expect(response?.statusCode).to.eq(201);
       expect(response?.body).to.have.property('id', `default/${ name }`);
