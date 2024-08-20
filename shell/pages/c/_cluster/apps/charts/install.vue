@@ -910,7 +910,7 @@ export default {
 
         if ( hasChartComponent ) {
           this.valuesComponent = this.$store.getters['type-map/importChart'](component);
-          const loaded = await this.valuesComponent();
+          const loaded = await this.valuesComponent.__asyncLoader();
 
           this.showValuesComponent = true;
           this.componentHasTabs = loaded?.default?.hasTabs || false;
