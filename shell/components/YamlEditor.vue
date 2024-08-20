@@ -247,7 +247,7 @@ export default {
   </div>
 </template>
 
-<style lang="scss" scoped>
+<style lang="scss">
 .yaml-editor {
   display: flex;
   flex-direction: column;
@@ -256,7 +256,7 @@ export default {
     flex: 1;
   }
 
-  :deep() .code-mirror  {
+  .codemirror-container  {
     position: relative;
 
     .CodeMirror {

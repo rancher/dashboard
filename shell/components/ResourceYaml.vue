@@ -351,7 +351,6 @@ export default {
       :initial-yaml-values="initialYaml"
       class="yaml-editor flex-content"
       :editor-mode="editorMode"
-      @onInput="onInput"
       @onReady="onReady"
       @onChanges="onChanges"
     />
