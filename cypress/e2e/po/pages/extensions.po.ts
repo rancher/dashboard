@@ -118,6 +118,10 @@ export default class ExtensionsPagePo extends PagePo {
     return this.self().getId(`extension-card-${ extensionName }`);
   }
 
+  extensionCardVersion(extensionName: string): Cypress.Chainable {
+    return this.extensionCard(extensionName).find('.plugin-version > span').invoke('text');
+  }
+
   extensionCardClick(extensionName: string): Cypress.Chainable {
     return this.extensionCard(extensionName).click();
   }
@@ -191,6 +195,10 @@ export default class ExtensionsPagePo extends PagePo {
 
   extensionDetailsTitle(): Cypress.Chainable<string> {
     return this.extensionDetails().getId('extension-details-title').invoke('text');
+  }
+
+  extensionDetailsVersion(): Cypress.Chainable<string> {
+    return this.extensionDetails().find('.version-link').invoke('text');
   }
 
   extensionDetailsCloseClick(): Cypress.Chainable {
