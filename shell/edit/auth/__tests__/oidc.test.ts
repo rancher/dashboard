@@ -30,43 +30,39 @@ const mockModel = {
   type:         'genericOIDCConfig',
 };
 
-const mockedAuthConfigMixin = {
-  data() {
-    return {
-      isEnabling:     false,
-      editConfig:     false,
-      model:          { ...mockModel },
-      serverSetting:  null,
-      errors:         [],
-      originalModel:  null,
-      principals:     [],
-      authConfigName: 'oidc',
-    };
-  },
-  computed: {},
-  methods:  {}
-};
-
 describe('oidc.vue', () => {
   let wrapper: any;
   const requiredSetup = () => ({
-    mixins: [mockedAuthConfigMixin],
-    mocks:  {
-      $fetchState: { pending: false },
-      $store:      {
-        getters: {
-          currentStore:              () => 'current_store',
-          'current_store/schemaFor': jest.fn(),
-          'current_store/all':       jest.fn(),
-          'i18n/t':                  (val: string) => val,
-          'i18n/exists':             jest.fn(),
-        },
-        dispatch: jest.fn()
-      },
-      $route:  { query: { AS: '' }, params: { id: 'oicd' } },
-      $router: { applyQuery: jest.fn() },
+    data() {
+      return {
+        isEnabling:     false,
+        editConfig:     false,
+        model:          { ...mockModel },
+        serverSetting:  null,
+        errors:         [],
+        originalModel:  null,
+        principals:     [],
+        authConfigName: 'oidc',
+      };
     },
-    propsData: {
+    global: {
+      mocks: {
+        $fetchState: { pending: false },
+        $store:      {
+          getters: {
+            currentStore:              () => 'current_store',
+            'current_store/schemaFor': jest.fn(),
+            'current_store/all':       jest.fn(),
+            'i18n/t':                  (val: string) => val,
+            'i18n/exists':             jest.fn(),
+          },
+          dispatch: jest.fn()
+        },
+        $route:  { query: { AS: '' }, params: { id: 'oicd' } },
+        $router: { applyQuery: jest.fn() },
+      },
+    },
+    props: {
       value: { applicationSecret: '' },
       mode:  _EDIT,
     },

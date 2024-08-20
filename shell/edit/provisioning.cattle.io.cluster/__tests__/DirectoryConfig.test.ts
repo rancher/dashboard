@@ -219,7 +219,7 @@ describe('component: DirectoryConfig', () => {
     expect(k8sDistroInput.exists()).toBe(false);
 
     expect(checkbox.find('label').classes('disabled')).toBe(true);
-    expect(commonInput.attributes('disabled')).toBe('disabled');
+    expect(commonInput.attributes('disabled')).toBe('');
   });
 
   it('on a mode different than _CREATE all visible inputs should be disabled (with different values)', () => {
@@ -251,8 +251,8 @@ describe('component: DirectoryConfig', () => {
     expect(k8sDistroInput.exists()).toBe(true);
 
     expect(checkbox.find('label').classes('disabled')).toBe(true);
-    expect(systemAgentInput.attributes('disabled')).toBe('disabled');
-    expect(provisioningInput.attributes('disabled')).toBe('disabled');
-    expect(k8sDistroInput.attributes('disabled')).toBe('disabled');
+    expect(systemAgentInput.attributes('disabled')).toBe('');
+    expect(provisioningInput.attributes('disabled')).toBe('');
+    expect(k8sDistroInput.attributes('disabled')).toBe('');
   });
 });

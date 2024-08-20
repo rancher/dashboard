@@ -15,7 +15,6 @@ describe('component: Type', () => {
     const defaultRouteTypeProp = {
       name:  'route-type',
       route: 'route',
-      exact: true,
       mode:  TYPE_MODES.FAVORITE
     };
 
@@ -34,15 +33,14 @@ describe('component: Type', () => {
 
           global: {
             directives: { cleanHtml: (identity) => identity },
-
-            stubs: { routerLink: RouterLinkStub },
+            mocks:      { $store: storeMock },
+            stubs:      { routerLink: RouterLinkStub },
           },
         });
 
         const linkStub = wrapper.findComponent(RouterLinkStub);
 
         expect(linkStub.props().to).toBe(defaultRouteTypeProp.route);
-        expect(linkStub.props().exact).toBe(defaultRouteTypeProp.exact);
       });
 
       it('should use router-link-slot href prop', () => {

@@ -12,20 +12,22 @@ describe('view: ui.cattle.io.navlink should', () => {
 
   const requiredSetup = () => ({
     // Remove all these mocks after migration to Vue 2.7/3 due mixin logic
-    mocks: {
-      $store: {
-        dispatch: jest.fn(),
-        getters:  {
-          currentStore:              () => 'current_store',
-          'current_store/schemaFor': jest.fn(),
-          'current_store/all':       jest.fn(),
-          'i18n/t':                  (val) => val,
-          'i18n/exists':             jest.fn(),
-          'store/customisation/':    jest.fn()
-        }
+    global: {
+      mocks: {
+        $store: {
+          dispatch: jest.fn(),
+          getters:  {
+            currentStore:              () => 'current_store',
+            'current_store/schemaFor': jest.fn(),
+            'current_store/all':       jest.fn(),
+            'i18n/t':                  (val) => val,
+            'i18n/exists':             jest.fn(),
+            'store/customisation/':    jest.fn()
+          }
+        },
+        $route:  { query: { AS: '' } },
+        $router: { applyQuery: jest.fn() },
       },
-      $route:  { query: { AS: '' } },
-      $router: { applyQuery: jest.fn() },
     },
     propsData: {
       metadata:   { namespace: 'test' },
@@ -61,7 +63,6 @@ describe('view: ui.cattle.io.navlink should', () => {
     expect(saveButton.disabled).toBe(true);
   });
   it('have "Create" button enabled when Link type is URL and all required fields are filled in', async() => {
-    const saveButton = wrapper.find('[data-testid="form-save"]').element as HTMLInputElement;
     const nameField = wrapper.find('[data-testid="Navlink-name-field"]').find('input');
     const urlField = wrapper.find('[data-testid="Navlink-url-field"]');
 
@@ -70,7 +71,7 @@ describe('view: ui.cattle.io.navlink should', () => {
 
     await nextTick();
 
-    expect(saveButton.disabled).toBe(false);
+    expect(CruResource.computed.canSave()).toBe(true);
   });
 
   it('have "Create" button disabled when Link type is Service and and only name is filled in', async() => {

@@ -81,7 +81,7 @@ export default {
         :label="t('cluster.directoryConfig.checkboxText')"
         :disabled="disableEditInput"
         data-testid="rke2-directory-config-individual-config-checkbox"
-        @input="handleCommonConfig"
+        @update:value="handleCommonConfig"
       />
       <LabeledInput
         v-if="isSettingCommonConfig"
