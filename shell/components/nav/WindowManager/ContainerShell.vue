@@ -380,6 +380,7 @@ export default {
   <Window
     :active="active"
     :before-close="cleanup"
+    class="container-shell"
   >
     <template #title>
       <Select
@@ -445,51 +446,51 @@ export default {
   .xterm-char-measure-element {
     position: static;
   }
-</style>
 
-<style lang="scss" scoped>
-.text-warning {
-  animation: flasher 2.5s linear infinite;
-}
-
-@keyframes flasher {
-  50% {
-    opacity: 0;
+.container-shell {
+  .text-warning {
+    animation: flasher 2.5s linear infinite;
   }
-}
 
-.shell-container {
-  height: 100%;
-  overflow: hidden;
-  .resize-observer {
-    display: none;
+  @keyframes flasher {
+    50% {
+      opacity: 0;
+    }
   }
-}
 
-.shell-body {
-  padding: calc(2 * var(--outline-width));
-  height: 100%;
-
-  & > .terminal.focus {
-    outline: var(--outline-width) solid var(--outline);
+  .shell-container {
+    height: 100%;
+    overflow: hidden;
+    .resize-observer {
+      display: none;
+    }
   }
-}
 
-.containerPicker {
-  :deep() &.unlabeled-select {
-    display: inline-block;
-    min-width: 200px;
+  .shell-body {
+    padding: calc(2 * var(--outline-width));
+    height: 100%;
+
+    & > .terminal.focus {
+      outline: var(--outline-width) solid var(--outline);
+    }
+  }
+
+  .containerPicker {
+    :deep() &.unlabeled-select {
+      display: inline-block;
+      min-width: 200px;
+      height: 30px;
+      min-height: 30px;
+      width: initial;
+    }
+  }
+
+  .status {
+    align-items: center;
+    display: flex;
+    min-width: 80px;
     height: 30px;
-    min-height: 30px;
-    width: initial;
+    margin-left: 10px;
   }
-}
-
-.status {
-  align-items: center;
-  display: flex;
-  min-width: 80px;
-  height: 30px;
-  margin-left: 10px;
 }
 </style>
