@@ -6,6 +6,7 @@ import AsyncButtonPo from '@/cypress/e2e/po/components/async-button.po';
 import PagePo from '@/cypress/e2e/po/pages/page.po';
 import NameNsDescription from '@/cypress/e2e/po/components/name-ns-description.po';
 import BaseResourceList from '@/cypress/e2e/po/lists/base-resource-list.po';
+import CodeMirrorPo from '@/cypress/e2e/po/components/code-mirror.po';
 
 class KubewardenDashboardPagePo extends PagePo {
   static url = '/c/local/kubewarden';
@@ -54,6 +55,45 @@ class KubewardenPolicyServerListPagePo extends PagePo {
 
   constructor() {
     super(KubewardenPolicyServerListPagePo.url);
+  }
+}
+
+class KubewardenPolicyServerEditPagePo extends PagePo {
+  private static createPath(clusterId: string, id?: string ) {
+    const root = `/c/${ clusterId }/kubewarden/policies.kubewarden.io.policyserver`;
+
+    return id ? `${ root }/${ id }?mode=edit` : `${ root }/create`;
+  }
+
+  goTo(clusterId: string, id?:string): Cypress.Chainable<Cypress.AUTWindow> {
+    return super.goTo(KubewardenPolicyServerEditPagePo.createPath(clusterId, id));
+  }
+
+  constructor(clusterId = 'local', id?: string) {
+    super(KubewardenPolicyServerEditPagePo.createPath(clusterId, id));
+  }
+
+  editYamlBtnClick():Cypress.Chainable {
+    return this.self().get('[data-testid="kw-policy-server-config-yaml-option"] [data-testid="button-group-child-1"]').click();
+  }
+
+  // the edit view of the policy server is not a generic resource edit/yaml view, so let's go
+  // straight to the source
+  codeMirror() {
+    return CodeMirrorPo.bySelector(this.self(), '[data-testid="yaml-editor-code-mirror"]');
+  }
+
+  saveForm(): AsyncButtonPo {
+    return new AsyncButtonPo('[data-testid="form-save"]', this.self());
+  }
+
+  waitForPolicyServerCreation(interceptName: string, nameToCheck: string) {
+    cy.wait(`@${ interceptName }`, { requestTimeout: 20000 }).then(({ response }) => {
+      expect(response?.statusCode).to.eq(201);
+      expect(response?.body.metadata).to.have.property('name', nameToCheck);
+
+      cy.wait(5000); // eslint-disable-line cypress/no-unnecessary-waiting
+    });
   }
 }
 
@@ -143,6 +183,10 @@ export default class KubewardenPo extends ExtensionsCompatibilityUtils {
 
   policyServerList() {
     return new KubewardenPolicyServerListPagePo();
+  }
+
+  policyServerEdit(clusterId = 'local', id?: string) {
+    return new KubewardenPolicyServerEditPagePo(clusterId, id);
   }
 
   policyServerDetail(clusterId = 'local', id: string) {

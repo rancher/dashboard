@@ -7,7 +7,7 @@ import IngressEditPagePo from '@/cypress/e2e/po/edit/ingress.po';
 import { IngressPagePo } from '@/cypress/e2e/po/pages/explorer/ingress.po';
 import { CronjobListPagePo } from '@/cypress/e2e/po/pages/explorer/cronjob.po';
 import TabbedPo from '@/cypress/e2e/po/components/tabbed.po';
-// import * as jsyaml from 'js-yaml';
+import * as jsyaml from 'js-yaml';
 
 const EXTENSION_NAME = 'kubewarden';
 const EXTENSION_VERSION = '2.0.0';
@@ -26,6 +26,9 @@ const INGRESS_POLICY_NAME = 'some-ingress-policy-name';
 const INGRESS_NAME = 'some-ingress-name';
 const INGRESS_CREATION = 'ingressCreation';
 const AP_CREATION = 'apCreation';
+const POLICY_SERVER_CREATION = 'psCreation';
+
+const POLICY_SERVER_YAML_NAME = 'some-policy-server-yaml-name';
 
 const kubewardenPo = new KubewardenPo();
 const namespaceFilter = new NamespaceFilterPo();
@@ -299,9 +302,67 @@ EOF`;
       .should('be.visible');
   });
 
-  // it('Should create a Policy Server via YAML', () => {
-  // // create a working Policy Server via YAML
-  // });
+  it('Should create a Policy Server via YAML', () => {
+    cy.intercept('POST', 'v1/policies.kubewarden.io.policyservers').as(POLICY_SERVER_CREATION);
+
+    const maxPollingRetries = 36;
+    let pollingCounter = 0;
+
+    function pollingSchemaDefinition() {
+      cy
+        .request({
+          url:              'v1/schemaDefinitions/policies.kubewarden.io.policyserver',
+          method:           'GET',
+          failOnStatusCode: false
+        })
+        .then((resp) => {
+          pollingCounter++;
+
+          if (resp.status === 200 || pollingCounter === maxPollingRetries) {
+            return;
+          }
+
+          if (pollingCounter === maxPollingRetries) {
+            throw new Error('schemaDefinition polling failed');
+          }
+
+          // let's wait for a bit so that we don't overload the server
+          // with requests
+          cy.wait(5000); // eslint-disable-line cypress/no-unnecessary-waiting
+          pollingSchemaDefinition();
+        });
+    }
+
+    kubewardenPo.policyServerEdit('local').goTo('local');
+    kubewardenPo.policyServerEdit('local').waitForPage().then(pollingSchemaDefinition);
+
+    // after we hit create from YAML we need to pool for the schemaDefinition since
+    // that takes while to be available https://docs.cypress.io/api/commands/request#Request-Polling
+    kubewardenPo.policyServerEdit('local').editYamlBtnClick().then(pollingSchemaDefinition);
+
+    kubewardenPo.policyServerEdit('local').codeMirror().value()
+      .then((val) => {
+      // convert yaml into json to update values
+        const json: any = jsyaml.load(val);
+
+        json.metadata.name = POLICY_SERVER_YAML_NAME;
+
+        kubewardenPo.policyServerEdit('local').codeMirror().set(jsyaml.dump(json));
+        kubewardenPo.policyServerEdit('local').saveForm().click();
+        kubewardenPo.policyServerEdit('local').waitForPolicyServerCreation(POLICY_SERVER_CREATION, POLICY_SERVER_YAML_NAME);
+
+        kubewardenPo.policyServerList().waitForPage();
+        kubewardenPo.genericResourceList().resourceTable().sortableTable().rowWithName(POLICY_SERVER_YAML_NAME)
+          .column(2)
+          .should('contain', POLICY_SERVER_YAML_NAME);
+
+        // Active state needs a time buffer to kick in
+        cy.wait(10000); // eslint-disable-line cypress/no-unnecessary-waiting
+        kubewardenPo.genericResourceList().resourceTable().sortableTable().rowWithName(POLICY_SERVER_YAML_NAME)
+          .column(1)
+          .should('contain', 'Active');
+      });
+  });
 
   it('Should uninstall the extension', () => {
     const extensionsPo = new ExtensionsPagePo();
