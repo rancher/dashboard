@@ -85,7 +85,7 @@ export default class Workload extends WorkloadService {
     return out;
   }
 
-  applyDefaults(vm) {
+  applyDefaults() {
     const { spec = {} } = this;
 
     if (this.type === WORKLOAD_TYPES.CRON_JOB) {
@@ -118,7 +118,7 @@ export default class Workload extends WorkloadService {
         spec.selector = {};
       }
     }
-    vm.$set(this, 'spec', spec);
+    this.spec = spec;
   }
 
   toggleRollbackModal( workload = this ) {
