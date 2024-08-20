@@ -553,7 +553,8 @@ export default {
         this.tableActions ||
         this.$scopedSlots['header-left'] ||
         this.$scopedSlots['header-middle'] ||
-        this.$scopedSlots['header-right'];
+        this.$scopedSlots['header-right'] ||
+        this.isTooManyItemsToAutoUpdate;
     },
 
     columns() {

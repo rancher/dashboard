@@ -1,4 +1,6 @@
-import { STATE, NAME as NAME_COL, NAMESPACE as NAMESPACE_COL, AGE } from '@shell/config/table-headers';
+import {
+  STATE, NAME as NAME_COL, NAMESPACE as NAMESPACE_COL, AGE, OBJECT
+} from '@shell/config/table-headers';
 
 // This file contains table headers
 // These table headers are used for server side pagination
@@ -42,6 +44,11 @@ export const STEVE_NAMESPACE_COL = {
   value:  'metadata.namespace',
   sort:   'metadata.namespace',
   search: 'metadata.namespace',
+};
+
+export const STEVE_EVENT_OBJECT = {
+  ...OBJECT,
+  sort: 'involvedObject.kind',
 };
 
 export const STEVE_LIST_GROUPS = [{

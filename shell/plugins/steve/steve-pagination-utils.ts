@@ -5,7 +5,7 @@ import Namespace from '@shell/models/namespace';
 import { uniq } from '@shell/utils/array';
 import {
   CAPI,
-  CONFIG_MAP, MANAGEMENT, NAMESPACE, NODE, POD
+  CONFIG_MAP, EVENT, MANAGEMENT, NAMESPACE, NODE, POD
 } from '@shell/config/types';
 import { Schema } from 'plugins/steve/schema';
 
@@ -144,6 +144,12 @@ class StevePaginationUtils extends NamespaceProjectFilters {
       // { field: 'status.allocatable.cpu' } // Pending API support // TODO: RC
       // { field: 'status.allocatable.memory' } // Pending API support // TODO: RC
       // { field: 'status.allocatable.pods' } // Pending API support // TODO: RC
+    ],
+    [EVENT]: [
+      // { field: '_type' }, // Pending API support // TODO: RC
+      // { field: 'reason' }, // Pending API support // TODO: RC
+      // { field: 'involvedObject.kind' }, // Pending API support // TODO: RC
+      // { field: 'message' }, // Pending API support // TODO: RC
     ]
   }
 

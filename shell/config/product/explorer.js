@@ -25,7 +25,7 @@ import {
 
 import { DSL } from '@shell/store/type-map';
 import {
-  STEVE_AGE_COL, STEVE_LIST_GROUPS, STEVE_NAMESPACE_COL, STEVE_NAME_COL, STEVE_STATE_COL
+  STEVE_AGE_COL, STEVE_EVENT_OBJECT, STEVE_LIST_GROUPS, STEVE_NAMESPACE_COL, STEVE_NAME_COL, STEVE_STATE_COL
 } from '@shell/config/pagination-table-headers';
 
 import { COLUMN_BREAKPOINTS } from '@shell/types/store/type-map';
@@ -182,7 +182,7 @@ export function init(store) {
   configureType(SNAPSHOT, { depaginate: true });
   configureType(NORMAN.ETCD_BACKUP, { depaginate: true });
 
-  configureType(EVENT, { limit: 500 });
+  // configureType(EVENT, { limit: 500 }); // TODO: RC search for where EVENT is requested
   weightType(EVENT, -1, true);
 
   configureType(POD, {
@@ -256,7 +256,35 @@ export function init(store) {
 
   headers(INGRESS, [STATE, NAME_COL, NAMESPACE_COL, INGRESS_TARGET, INGRESS_DEFAULT_BACKEND, INGRESS_CLASS, AGE]);
   headers(SERVICE, [STATE, NAME_COL, NAMESPACE_COL, TARGET_PORT, SELECTOR, SPEC_TYPE, AGE]);
-  headers(EVENT, [STATE, { ...LAST_SEEN_TIME, defaultSort: true }, EVENT_TYPE, REASON, OBJECT, 'Subobject', 'Source', MESSAGE, 'First Seen', 'Count', NAME_COL, NAMESPACE_COL]);
+
+  const eventLastSeenTime = {
+    ...LAST_SEEN_TIME,
+    defaultSort: true,
+  };
+
+  headers(EVENT,
+    [STATE, eventLastSeenTime, EVENT_TYPE, REASON, OBJECT, 'Subobject', 'Source', MESSAGE, 'First Seen', 'Count', NAME_COL, NAMESPACE_COL],
+    [
+      STEVE_STATE_COL, {
+        ...eventLastSeenTime,
+        value: 'metadata.fields.0',
+        sort:  'metadata.fields.0',
+      }, {
+        ...EVENT_TYPE,
+        value: '_type',
+        sort:  '_type', // TODO: RC API request
+      },
+      REASON,
+      STEVE_EVENT_OBJECT,
+      'Subobject',
+      'Source',
+      MESSAGE,
+      'First Seen',
+      'Count',
+      STEVE_NAME_COL,
+      STEVE_NAMESPACE_COL,
+    ]
+  );
   headers(HPA, [STATE, NAME_COL, HPA_REFERENCE, MIN_REPLICA, MAX_REPLICA, CURRENT_REPLICA, AGE]);
   headers(WORKLOAD, [STATE, NAME_COL, NAMESPACE_COL, TYPE, WORKLOAD_IMAGES, WORKLOAD_ENDPOINTS, POD_RESTARTS, AGE, WORKLOAD_HEALTH_SCALE]);
   headers(WORKLOAD_TYPES.DEPLOYMENT, [STATE, NAME_COL, NAMESPACE_COL, WORKLOAD_IMAGES, WORKLOAD_ENDPOINTS, 'Ready', 'Up-to-date', 'Available', POD_RESTARTS, AGE, WORKLOAD_HEALTH_SCALE]);

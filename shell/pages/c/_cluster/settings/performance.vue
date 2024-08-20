@@ -5,6 +5,7 @@ import AsyncButton from '@shell/components/AsyncButton';
 import { Banner } from '@components/Banner';
 import { LabeledInput } from '@components/Form/LabeledInput';
 import { MANAGEMENT } from '@shell/config/types';
+import Vue from 'vue';
 import { DEFAULT_PERF_SETTING, SETTING } from '@shell/config/settings';
 import { _EDIT, _VIEW } from '@shell/config/query-params';
 import UnitInput from '@shell/components/form/UnitInput';
@@ -185,6 +186,11 @@ export default {
           body:  this.t(`performance.${ l10n[property] }.incompatibleDescription`, {}, true),
         },
       });
+    },
+
+    setDefaults() {
+      Vue.set(this, 'value', { ...DEFAULT_PERF_SETTING });
+      console.warn(this.value, DEFAULT_PERF_SETTING);
     }
   },
 };
@@ -196,6 +202,14 @@ export default {
     <h1 class="mb-20">
       {{ t('performance.label') }}
     </h1>
+    <button
+      class="btn btn-sm role-primary"
+      style="width: fit-content;"
+      @click.prevent="setDefaults()"
+    >
+      <!-- TODO: RC tidy  -->
+      Populate with Defaults
+    </button>
     <div>
       <div class="ui-perf-setting">
         <!-- Server Side Pagination -->

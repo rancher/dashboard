@@ -1,7 +1,7 @@
 // Settings
 import { GC_DEFAULTS, GC_PREFERENCES } from '@shell/utils/gc/gc-types';
 import { PaginationSettings } from '@shell/types/resources/settings';
-import { CAPI } from 'config/types';
+import { CAPI, EVENT, SCHEMA, NAMESPACE } from '@shell/config/types';
 
 interface GlobalSettingRuleset {
   name: string,
@@ -250,8 +250,8 @@ export const DEFAULT_PERF_SETTING: PerfSettings = {
         resources: {
           enableAll:  false,
           enableSome: {
-            enabled: ['configmap', 'secret', 'pod', 'node'],
-            generic: true,
+            enabled: ['configmap', 'secret', 'pod', 'node', EVENT],
+            generic: false,
           }
         }
       },
