@@ -173,17 +173,17 @@ export default {
           </div>
         </div>
       </div>
-      <!-- <codemirror
+      <Codemirror
         ref="codeMirrorRef"
         :value="value"
         :options="combinedOptions"
         :disabled="isDisabled"
         @ready="onReady"
-        @update:value="onInput"
+        @input="onInput"
         @changes="onChanges"
         @focus="onFocus"
         @blur="onBlur"
-      /> -->
+      />
     </div>
     <div v-else>
       Loading...
@@ -194,7 +194,7 @@ export default {
 <style lang="scss">
   $code-mirror-animation-time: 0.1s;
 
-  .code-mirror {
+  .codemirror-container {
     z-index: 0;
 
     // Keyboard mapping overlap
