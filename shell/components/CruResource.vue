@@ -53,7 +53,7 @@ export default {
     },
 
     resource: {
-      type:     Object,
+      type:     [String, Object],
       required: true
     },
 
