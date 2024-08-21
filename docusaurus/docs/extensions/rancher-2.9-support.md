@@ -2,7 +2,12 @@
 
 ## What happened
 
-Rancher 2.9.0 contains many improvements, unfortunately some make necessary changes that may invalidate certain versions of Rancher Extensions working with certain versions of Rancher.  
+Rancher 2.9.0 contains many improvements, unfortunately some make necessary changes that may invalidate certain versions of Rancher Extensions working with certain versions of Rancher. In a nutshell:
+
+- “Schema diet initiative” changes. Affects how Rancher Dashboard deals with k8s resources and it’s schemas in the scope of the application  
+
+- “defineComponent” changes. Outdated JS notations that are overall not compatible with our path towards Vue3
+
 To support these changes we have made some important changes to Rancher Shell (our core JS package) which helps and protects version compatibility.
 
 
