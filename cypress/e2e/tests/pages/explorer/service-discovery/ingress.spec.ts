@@ -16,12 +16,12 @@ describe('Ingresses', { testIsolation: 'off', tags: ['@explorer', '@adminUser'] 
       },
     });
 
-    cy.title().should('eq', 'Rancher - local - Ingresses');
-
     const warnMsg = "pathExistsInSchema requires schema networking.k8s.io.ingress to have resources fields via schema definition but none were found. has the schema 'fetchResourceFields' been called?";
 
     // testing https://github.com/rancher/dashboard/issues/11086
     cy.get('@consoleWarn').should('not.be.calledWith', warnMsg);
+
+    cy.title().should('eq', 'Rancher - local - Ingresses');
   });
 
   describe('List', { tags: ['@vai', '@adminUser'] }, () => {

@@ -56,7 +56,8 @@ describe('Cluster Dashboard', { testIsolation: 'off', tags: ['@explorer', '@admi
   });
 
   it('has the correct title', () => {
-    ClusterDashboardPagePo.goTo('local');
+    clusterDashboard.goTo('local');
+    clusterDashboard.waitForPage(undefined, 'cluster-events');
 
     cy.title().should('eq', 'Rancher - local - Cluster Dashboard');
   });
