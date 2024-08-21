@@ -173,9 +173,11 @@ export default {
       this.$store.dispatch('cluster/promptModal', {
         component:      'GenericPrompt',
         componentProps: {
-          applyMode:   'enable',
+          applyMode: 'enable',
+          confirm:   (confirmed) => {
+            this.value[property].enabled = confirmed;
+          },
           applyAction: (buttonDone) => {
-            this.value[property].enabled = true;
             (incompatible[property] || []).forEach((incompatible) => {
               this.value[incompatible].enabled = false;
             });
