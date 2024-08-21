@@ -124,7 +124,7 @@ export default {
     sloType(neu) {
       switch (neu) {
       case SLO_OPTION_VALUES.rancher:
-        this.$set(this.model, 'logoutAllEnabled', false);
+        this.model.logoutAllEnabled = false;
         this.$set(this.model, 'logoutAllForced', false);
         break;
       case SLO_OPTION_VALUES.all:
