@@ -98,6 +98,11 @@ export default defineComponent({
       type:    Number,
       default: 0
     },
+
+    class: {
+      type:    String,
+      default: ''
+    }
   },
 
   setup(props, { emit }) {
@@ -202,6 +207,10 @@ export default defineComponent({
 
       return undefined;
     },
+
+    className() {
+      return this.class;
+    }
   },
 
   created() {
@@ -252,6 +261,7 @@ export default defineComponent({
     delayInput(val: string | Event): void {
       const value = typeof val === 'string' ? val : (val?.target as HTMLInputElement)?.value;
 
+      console.log('ouch', value);
       this.$emit('update:value', value);
     },
 
@@ -289,7 +299,8 @@ export default defineComponent({
       suffix: hasSuffix,
       'has-tooltip': hasTooltip,
       'compact-input': isCompact,
-      hideArrows
+      hideArrows,
+      [className]: true
     }"
   >
     <slot name="label">
