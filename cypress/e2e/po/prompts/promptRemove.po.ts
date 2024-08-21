@@ -28,6 +28,6 @@ export default class PromptRemove extends ComponentPo {
 
   // Get the warning message
   warning() {
-    return this.self().get('[warning] .text-warning');
+    return this.self().get('.card-body .text-warning');
   }
 }
