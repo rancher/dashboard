@@ -1,6 +1,6 @@
 <script>
 import { mapGetters, mapActions } from 'vuex';
-import { get } from '@shell/utils/object';
+import { get, set } from '@shell/utils/object';
 import { sortBy } from '@shell/utils/sort';
 import { NAMESPACE } from '@shell/config/types';
 import { DESCRIPTION } from '@shell/config/labels-annotations';
@@ -319,7 +319,7 @@ export default {
       }
 
       if (this.nameKey) {
-        this.value[this.nameKey] = val;
+        set(this.value, this.nameKey, val);
       } else {
         this.value.metadata['name'] = val;
       }
@@ -333,7 +333,7 @@ export default {
 
     description(val) {
       if (this.descriptionKey) {
-        this.value[this.descriptionKey] = val;
+        set(this.value, this.descriptionKey, val);
       } else {
         this.value.setAnnotation(DESCRIPTION, val);
       }
@@ -360,7 +360,7 @@ export default {
       }
 
       if (this.namespaceKey) {
-        this.value[this.namespaceKey] = val;
+        set(this.value, this.namespaceKey, val);
       } else {
         this.value.metadata.namespace = val;
       }
