@@ -2,7 +2,6 @@ import ChartMixin from '@shell/mixins/chart';
 import { OPA_GATE_KEEPER_ID } from '@shell/pages/c/_cluster/gatekeeper/index.vue';
 import { mount } from '@vue/test-utils';
 
-
 describe('chartMixin', () => {
   const testCases = {
     opa: [
@@ -87,7 +86,7 @@ describe('chartMixin', () => {
       const instance = mount(
         DummyComponent,
         {
-          data: () => data
+          data:   () => data,
           global: {
             mocks: {
               $store: mockStore,
