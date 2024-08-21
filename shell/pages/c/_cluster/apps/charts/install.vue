@@ -255,7 +255,7 @@ export default {
         chart values. If so, load that component.
 
         This will set this.valuesComponent,
-        this.componentHasTabs and this.showValuesComponent.
+        this.showValuesComponent.
       */
       await this.loadValuesComponent();
     }
@@ -414,7 +414,6 @@ export default {
       showQuestions:           true,
       showSlideIn:             false,
       shownReadmeWindows:      [],
-      componentHasTabs:        false,
       showCommandStep:         false,
       showCustomRegistryInput: false,
       isNamespaceNew:          false,
@@ -910,18 +909,13 @@ export default {
 
         if ( hasChartComponent ) {
           this.valuesComponent = this.$store.getters['type-map/importChart'](component);
-          const loaded = await this.valuesComponent.__asyncLoader();
-
           this.showValuesComponent = true;
-          this.componentHasTabs = loaded?.default?.hasTabs || false;
         } else {
           this.valuesComponent = null;
-          this.componentHasTabs = false;
           this.showValuesComponent = false;
         }
       } else {
         this.valuesComponent = null;
-        this.componentHasTabs = false;
         this.showValuesComponent = false;
       }
     },
@@ -1597,48 +1591,21 @@ export default {
           <div class="scroll__content">
             <!-- Values (as Custom Component in ./shell/charts/) -->
             <template v-if="valuesComponent && showValuesComponent">
-              <Tabbed
-                v-if="componentHasTabs"
-                ref="tabs"
-                :side-tabs="true"
-                :hide-single-tab="true"
-                :class="{'with-name': showNameEditor}"
+              <component
+                :is="valuesComponent"
+                v-if="valuesComponent"
+                v-model:value="chartValues"
+                :mode="mode"
+                :chart="chart"
                 class="step__values__content"
-                @changed="tabChanged($event)"
-              >
-                <component
-                  :is="valuesComponent"
-                  v-model:value="chartValues"
-                  :mode="mode"
-                  :chart="chart"
-                  class="step__values__content"
-                  :existing="existing"
-                  :version="version"
-                  :version-info="versionInfo"
-                  :auto-install-info="autoInstallInfo"
-                  @warn="e=>errors.push(e)"
-                  @register-before-hook="registerBeforeHook"
-                  @register-after-hook="registerAfterHook"
-                  @valid="updateStepTwoReady($event)"
-                />
-              </Tabbed>
-              <template v-else>
-                <component
-                  :is="valuesComponent"
-                  v-if="valuesComponent"
-                  v-model:value="chartValues"
-                  :mode="mode"
-                  :chart="chart"
-                  class="step__values__content"
-                  :existing="existing"
-                  :version="version"
-                  :version-info="versionInfo"
-                  :auto-install-info="autoInstallInfo"
-                  @warn="e=>errors.push(e)"
-                  @register-before-hook="registerBeforeHook"
-                  @register-after-hook="registerAfterHook"
-                />
-              </template>
+                :existing="existing"
+                :version="version"
+                :version-info="versionInfo"
+                :auto-install-info="autoInstallInfo"
+                @warn="e=>errors.push(e)"
+                @register-before-hook="registerBeforeHook"
+                @register-after-hook="registerAfterHook"
+              />
             </template>
 
             <!-- Values (as Questions, abstracted component based on question.yaml configuration from repositories)  -->
