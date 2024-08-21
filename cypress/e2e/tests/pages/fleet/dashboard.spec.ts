@@ -17,7 +17,7 @@ describe('Fleet Dashboard', { tags: ['@fleet', '@adminUser'] }, () => {
   });
 
   it('has the correct title', () => {
-    fleetDashboardPage.goTo();
+    cy.get('.fleet-empty-dashboard').should('be.visible');
 
     cy.title().should('eq', 'Rancher - Continuous Delivery - Dashboard');
   });

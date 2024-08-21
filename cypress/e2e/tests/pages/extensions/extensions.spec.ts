@@ -33,6 +33,7 @@ describe('Extensions page', { tags: ['@extensions', '@adminUser'] }, () => {
     const extensionsPo = new ExtensionsPagePo();
 
     extensionsPo.goTo();
+    extensionsPo.waitForTitle();
 
     cy.title().should('eq', 'Rancher - Extensions');
   });
