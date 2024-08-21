@@ -415,14 +415,14 @@ export default {
             @update:value="chartAddCrdToRemove"
           />
         </LabeledInput>
-        <template v-else>
+        <div v-else-if="!hasCustomRemove">
           <div class="text-warning mb-10 mt-10">
             {{ warning }}
           </div>
           <div class="text-error mb-10 mt-10">
             {{ error }}
           </div>
-        </template>
+        </div>
       </template>
       <template #actions>
         <button
