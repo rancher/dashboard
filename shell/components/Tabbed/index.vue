@@ -170,10 +170,8 @@ export default {
        * Exclude logic with URL anchor (hash) for projects without routing logic (vue-router)
        */
       if ( this.useHash ) {
-        const {
-          $route: { hash: routeHash },
-          $router: { currentRoute },
-        } = this;
+        const currentRoute = this.$router.currentRoute._value;
+        const routeHash = currentRoute.hash;
 
         if (this.useHash && routeHash !== hashName) {
           const kurrentRoute = { ...currentRoute };
