@@ -65,6 +65,16 @@ export default {
   computed: {
     ...mapGetters({ t: 'i18n/t' }),
 
+    loggedOutSuccessMsg() {
+      if (this.isSlo) {
+        return this.t('login.loggedOutFromSlo');
+      } else if (this.isSsoLogout) {
+        return this.t('login.loggedOutFromSso');
+      }
+
+      return this.t('login.loggedOut');
+    },
+
     singleProvider() {
       return this.providers.length === 1 ? this.providers[0] : undefined;
     },
@@ -324,7 +334,7 @@ export default {
             v-else-if="loggedOut"
             class="text-success text-center"
           >
-            {{ isSsoLogout ? t('login.loggedOutFromSso') : t('login.loggedOut') }}
+            {{ loggedOutSuccessMsg }}
           </h4>
           <h4
             v-else-if="timedOut"
