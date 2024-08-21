@@ -8,7 +8,7 @@ export default class ResourceYamlPo extends ComponentPo {
   }
 
   body(): Cypress.Chainable {
-    return this.self().find('.vue-codemirror');
+    return this.self().find('.codemirror-container');
   }
 
   footer(): Cypress.Chainable {
