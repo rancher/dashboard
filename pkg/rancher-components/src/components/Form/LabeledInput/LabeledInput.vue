@@ -261,7 +261,6 @@ export default defineComponent({
     delayInput(val: string | Event): void {
       const value = typeof val === 'string' ? val : (val?.target as HTMLInputElement)?.value;
 
-      console.log('ouch', value);
       this.$emit('update:value', value);
     },
 
@@ -297,7 +296,7 @@ export default defineComponent({
       disabled: isDisabled,
       [status]: status,
       suffix: hasSuffix,
-      'has-tooltip': hasTooltip,
+      'v-popper--has-tooltip': hasTooltip,
       'compact-input': isCompact,
       hideArrows,
       [className]: true
