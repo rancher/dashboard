@@ -174,7 +174,8 @@
   display: inline;
 }
 
-.tooltip, .popover {
+.tooltip,
+.popover {
   &[aria-hidden='true'] {
     // This removes it from the layout of ButtondropDown (so it doesn't render huge for SSR) but
     // still allows it to maintain it's dimensions for v-tooltip to calculate the appropriate position.
@@ -192,6 +193,6 @@
 }
 
 //icon tooltip
-.icon-info.has-tooltip {
+.icon-info.v-popper--has-tooltip {
   font-size: 14px;
 }

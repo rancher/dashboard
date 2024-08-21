@@ -260,7 +260,7 @@ export default {
           >
             <template #label>
               <label
-                class="has-tooltip"
+                class="v-popper--has-tooltip"
                 :style="{'color':'var(--input-label)'}"
               >
                 {{ t('workload.upgrading.terminationGracePeriodSeconds.label') }}
@@ -321,7 +321,7 @@ export default {
         >
           <template #label>
             <label
-              class="has-tooltip"
+              class="v-popper--has-tooltip"
               :style="{'color':'var(--input-label)'}"
             >
               {{ t('workload.upgrading.terminationGracePeriodSeconds.label') }}
