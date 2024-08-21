@@ -47,7 +47,7 @@ describe('Performance', { testIsolation: 'off', tags: ['@globalSettings', '@admi
       // // Clicking the refresh button should close the modal and restart the page
       // performancePage.inactivityModal().get("[data-testid='card-actions-slot']").contains('Refresh').click();
       expect(performancePage.inactivityModalCard().getCardActions().contains('Refresh').click());
-      expect(performancePage.inactivityModalCard().getModal().should('be.not.visible'));
+      expect(performancePage.inactivityModalCard().shouldNotExist());
     });
 
     it('should reset the settings', () => {
