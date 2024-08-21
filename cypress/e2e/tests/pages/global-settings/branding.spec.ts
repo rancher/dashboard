@@ -94,7 +94,7 @@ describe('Branding', { testIsolation: 'off' }, () => {
     brandingPage.applyAndWait('**/ui-pl', 200);
     BurgerMenuPo.toggle();
     burgerMenuPo.home().click();
-    cy.title().should('eq', settings.privateLabel.original);
+    cy.title({ timeout: 2000 }).should('eq', settings.privateLabel.original);
   });
 
   it('Logo', { tags: ['@globalSettings', '@adminUser'] }, () => {
