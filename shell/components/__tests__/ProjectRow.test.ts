@@ -1,7 +1,6 @@
 import ProjectRow from '@shell/components/form/ResourceQuota/ProjectRow.vue';
 import { RANCHER_TYPES } from '@shell/components/form/ResourceQuota/shared';
 import { shallowMount } from '@vue/test-utils';
-import Vue from 'vue';
 
 const CONFIGMAP_STRING = RANCHER_TYPES[0].value;
 
