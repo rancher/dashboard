@@ -18,7 +18,7 @@ describe('component: UnitInput', () => {
     await input.setValue(4);
 
     expect(wrapper.emitted('update:value')).toBeTruthy();
-    expect(wrapper.emitted('update:value')[2]).toEqual([4]);
+    expect(wrapper.emitted('update:value')[2]).toStrictEqual([4]);
   });
 
   it.each([
