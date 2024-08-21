@@ -115,6 +115,7 @@ export default {
 
   watch: {
     bannerSetting: {
+      deep: true,
       handler(neu) {
         if (neu?.value && neu.value !== '') {
           try {
