@@ -10,15 +10,28 @@ const IGNORED_ANNOTATIONS = [
   'deprecated.deployment.rollback.to',
 ];
 
+const replicasRegEx = /Replicas: (\d+)/;
+
 export default class Deployment extends Workload {
   get replicaSetId() {
-    const set = this.metadata?.relationships?.find((relationship) => {
-      return relationship.rel === 'owner' &&
-            relationship.toType === WORKLOAD_TYPES.REPLICA_SET &&
-            relationship.message.split(':')[1].trim() > 0;
+    const relationships = this.metadata?.relationships || [];
+    
+    // Find all relevant ReplicaSet relationships
+    const replicaSetRelationships = relationships.filter((relationship) => 
+      relationship.rel === 'owner' && relationship.toType === WORKLOAD_TYPES.REPLICA_SET
+    );
+
+    // Filter the ReplicaSets based on replicas > 0
+    const activeReplicaSet = replicaSetRelationships.find((relationship) => {
+      const replicasMatch = relationship.message?.match(replicasRegEx);
+      const replicas = replicasMatch ? parseInt(replicasMatch[1], 10) : 0;
+      return replicas > 0;
     });
 
-    return set?.toId?.replace(`${ this.namespace }/`, '');
+    // If no active ReplicaSet is found, fall back to the first one from the list
+    const selectedReplicaSet = activeReplicaSet || replicaSetRelationships[0];
+
+    return selectedReplicaSet?.toId?.replace(`${this.namespace}/`, '');
   }
 
   async rollBack(cluster, deployment, revision) {
