@@ -6,6 +6,7 @@ import NameNsDescriptionPo from '@/cypress/e2e/po/components/name-ns-description
 import RepositoriesPagePo from '@/cypress/e2e/po/pages/chart-repositories.po';
 import BannersPo from '@/cypress/e2e/po/components/banners.po';
 import ChartRepositoriesCreateEditPo from '@/cypress/e2e/po/edit/chart-repositories.po';
+import AppClusterRepoEditPo from '@/cypress/e2e/po/edit/catalog.cattle.io.clusterrepo.po';
 import { LONG_TIMEOUT_OPT } from '@/cypress/support/utils/timeouts';
 
 export default class ExtensionsPagePo extends PagePo {
@@ -83,6 +84,35 @@ export default class ExtensionsPagePo extends PagePo {
     appRepoList.list().state(name).should('contain', 'Active');
   }
 
+  /**
+   * Adds a cluster repo for extensions
+   * @param repo - The repository url (e.g. https://github.com/rancher/ui-plugin-examples)
+   * @param branch - The git branch to target
+   * @param name - A name for the repository
+   * @returns {Cypress.Chainable}
+   */
+  addExtensionsRepositoryDirectLink(repo: string, branch: string, name: string, waitForActiveState = true): Cypress.Chainable {
+    const appRepoList = new RepositoriesPagePo('local', 'apps');
+    const appRepoCreate = new AppClusterRepoEditPo('local', 'create');
+
+    appRepoCreate.goTo();
+    appRepoCreate.waitForPage();
+
+    appRepoCreate.nameNsDescription().name().self().scrollIntoView()
+      .should('be.visible');
+    appRepoCreate.nameNsDescription().name().set(name);
+    appRepoCreate.selectRadioOptionGitRepo(1);
+    // fill the git repo form
+    appRepoCreate.enterGitRepoName(repo);
+    appRepoCreate.enterGitBranchName(branch);
+    appRepoCreate.create().click();
+
+    if (waitForActiveState) {
+      appRepoList.waitForPage();
+      appRepoList.list().state(name).should('contain', 'Active');
+    }
+  }
+
   // ------------------ extension card ------------------
   extensionCard(extensionName: string) {
     return this.self().getId(`extension-card-${ extensionName }`);
@@ -111,6 +141,14 @@ export default class ExtensionsPagePo extends PagePo {
   // ------------------ extension install modal ------------------
   extensionInstallModal() {
     return this.self().get('[data-modal="installPluginDialog"]');
+  }
+
+  installModalSelectVersionLabel(label: string): Cypress.Chainable {
+    const selectVersion = new LabeledSelectPo(this.extensionInstallModal().getId('install-ext-modal-select-version'));
+
+    selectVersion.toggle();
+
+    return selectVersion.setOptionAndClick(label);
   }
 
   installModalSelectVersionClick(optionIndex: number): Cypress.Chainable {
