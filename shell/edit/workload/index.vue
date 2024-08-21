@@ -215,7 +215,7 @@ export default {
                 <div class="row mb-20">
                   <div class="col span-6">
                     <LabeledInput
-                      v-model.trim="allContainers[i].image"
+                      v-model:value.trim="allContainers[i].image"
                       :mode="mode"
                       :label="t('workload.container.image')"
                       :placeholder="t('generic.placeholder', {text: 'nginx:latest'}, true)"
