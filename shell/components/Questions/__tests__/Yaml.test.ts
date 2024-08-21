@@ -118,7 +118,7 @@ describe('the yaml Component', () => {
 
     expect(inputFields).toHaveLength(1);
 
-    const labelFields = wrapper.findAll('[data-testid="yaml-row-var_name"] .has-tooltip');
+    const labelFields = wrapper.findAll('[data-testid="yaml-row-var_name"] .v-popper--has-tooltip');
 
     expect(labelFields).toHaveLength(1);
   });
