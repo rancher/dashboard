@@ -301,7 +301,7 @@ export default {
             />
             <Password
               v-if="!haveCurrent"
-              v-model.trim="current"
+              v-model:value.trim="current"
               autocomplete="current-password"
               type="password"
               :label="t('setup.currentPassword')"
