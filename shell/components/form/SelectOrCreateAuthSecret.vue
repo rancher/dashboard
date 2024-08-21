@@ -165,27 +165,12 @@ export default {
       this.allCloudCreds = [];
     }
 
-    let selected = this.preSelect?.selected || AUTH_TYPE._NONE;
-
     if ( !this.value ) {
       this.publicKey = this.preSelect?.publicKey || '';
       this.privateKey = this.preSelect?.privateKey || '';
     }
 
-    if ( this.value ) {
-      if ( typeof this.value === 'object' ) {
-        selected = `${ this.value.namespace }/${ this.value.name }`;
-      } else if ( this.value.includes('/') || this.value.includes(':') ) {
-        selected = this.value;
-      } else if ( this.namespace ) {
-        selected = `${ this.namespace }/${ this.value }`;
-      } else {
-        selected = this.value;
-      }
-    }
-
-    this.selected = selected;
-
+    this.updateSelectedFromValue();
     this.update();
   },
 
@@ -381,6 +366,7 @@ export default {
     selected:   'update',
     publicKey:  'updateKeyVal',
     privateKey: 'updateKeyVal',
+    value:      'updateSelectedFromValue',
 
     async namespace(ns) {
       if (ns && !this.selected.startsWith(`${ ns }/`)) {
@@ -407,6 +393,23 @@ export default {
   },
 
   methods: {
+    updateSelectedFromValue() {
+      let selected = this.preSelect?.selected || AUTH_TYPE._NONE;
+
+      if ( this.value ) {
+        if ( typeof this.value === 'object' ) {
+          selected = `${ this.value.namespace }/${ this.value.name }`;
+        } else if ( this.value.includes('/') || this.value.includes(':') ) {
+          selected = this.value;
+        } else if ( this.namespace ) {
+          selected = `${ this.namespace }/${ this.value }`;
+        } else {
+          selected = this.value;
+        }
+      }
+
+      this.selected = selected;
+    },
     async filterSecretsByApi() {
       const findPageArgs = {
         // Of type ActionFindPageArgs
