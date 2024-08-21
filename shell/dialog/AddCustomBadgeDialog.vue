@@ -261,7 +261,7 @@ export default {
             />
 
             <LabeledInput
-              v-model.trim="letter"
+              v-model:value.trim="letter"
               :disabled="!badgeAsIcon"
               class="badge-icon-text"
               :label="t('clusterBadge.modal.iconText')"
@@ -277,7 +277,7 @@ export default {
             />
 
             <LabeledInput
-              v-model.trim="badgeComment"
+              v-model:value.trim="badgeComment"
               :disabled="!useCustomComment"
               :label="t('clusterBadge.modal.comment')"
               :maxlength="32"
