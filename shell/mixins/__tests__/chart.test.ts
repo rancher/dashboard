@@ -1,7 +1,7 @@
-import { createStore } from 'vuex';
 import ChartMixin from '@shell/mixins/chart';
 import { OPA_GATE_KEEPER_ID } from '@shell/pages/c/_cluster/gatekeeper/index.vue';
 import { mount } from '@vue/test-utils';
+
 
 describe('chartMixin', () => {
   const testCases = {
@@ -20,28 +20,40 @@ describe('chartMixin', () => {
 
   it.each(testCases.opa)(
     'should add OPA deprecation warning properly', async(chartId, expected) => {
-      const store = createStore({
-        actions: { 'catalog/load': () => {} },
-        getters: {
+      const mockStore = {
+        dispatch: jest.fn(() => Promise.resolve()),
+        getters:  {
           currentCluster: () => {},
           isRancher:      () => true,
           'catalog/repo': () => {
             return () => 'repo';
           },
           'catalog/chart': () => {
-            return () => ({ id: chartId });
+            return { id: chartId };
           },
           'i18n/t': () => jest.fn()
         }
-      });
+      };
 
-      const instance = mount({ store, mixins: { ChartMixin } as any });
+      const DummyComponent = {
+        mixins:   [ChartMixin],
+        template: '<div></div>',
+      };
 
-      instance.$route = { query: { chart: 'chart_name' } };
+      const instance = mount(
+        DummyComponent,
+        {
+          global: {
+            mocks: {
+              $store: mockStore,
+              $route: { query: { chart: 'chart_name' } }
+            }
+          }
+        });
 
-      await instance.fetchChart();
+      await instance.vm.fetchChart();
 
-      const warnings = instance.warnings;
+      const warnings = instance.vm.warnings;
 
       expect(warnings).toHaveLength(expected);
     }
@@ -52,27 +64,39 @@ describe('chartMixin', () => {
       const id = 'cattle-fleet-local-system/fleet-agent-local';
       const data = isEdit ? { existing: { id, upgradeAvailable } } : undefined;
 
-      const store = createStore({
-        getters: {
+      const mockStore = {
+        dispatch: jest.fn(() => Promise.resolve()),
+        getters:  {
           currentCluster: () => {},
           isRancher:      () => true,
           'catalog/repo': () => {
             return () => 'repo';
           },
           'catalog/chart': () => {
-            return () => ({ id });
+            return { id };
           },
           'i18n/t': () => jest.fn()
         }
-      });
+      };
 
-      const instance = mount({
-        store, mixins: { ChartMixin } as any, data: () => data
-      });
+      const DummyComponent = {
+        mixins:   [ChartMixin],
+        template: '<div></div>',
+      };
 
-      instance.$route = { query: { chart: 'chart_name' } };
+      const instance = mount(
+        DummyComponent,
+        {
+          data: () => data
+          global: {
+            mocks: {
+              $store: mockStore,
+              $route: { query: { chart: 'chart_name' } }
+            }
+          }
+        });
 
-      const warnings = instance.warnings;
+      const warnings = instance.vm.warnings;
 
       expect(warnings).toHaveLength(expected as number);
     }

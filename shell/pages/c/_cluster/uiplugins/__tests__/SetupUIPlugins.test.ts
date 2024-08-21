@@ -16,9 +16,11 @@ const mockedStore = () => {
 
 const requiredSetup = () => {
   return {
-    mocks: {
-      $store:  mockedStore(),
-      $router: { push: jest.fn() }
+    global: {
+      mocks: {
+        $store:  mockedStore(),
+        $router: { push: jest.fn() }
+      }
     }
   };
 };

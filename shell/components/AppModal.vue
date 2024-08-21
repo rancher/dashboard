@@ -57,9 +57,13 @@ export default defineComponent({
   },
   computed: {
     modalWidth(): string {
-      const uom = typeof (this.width) === 'number' ? 'px' : '';
+      if (this.isValidWidth(this.width)) {
+        const uom = typeof (this.width) === 'number' ? 'px' : '';
 
-      return `${ this.width }${ uom }`;
+        return `${ this.width }${ uom }`;
+      }
+
+      return '600px';
     },
     stylesPropToObj(): object {
       return this.styles.split(';')
@@ -98,6 +102,17 @@ export default defineComponent({
       if (this.clickToClose && event.key === 'Escape') {
         this.$emit('close');
       }
+    },
+    isValidWidth(value: number | string) {
+      if (typeof value === 'number') {
+        return value > 0;
+      }
+
+      if (typeof value === 'string') {
+        return /^(0*(?:[1-9][0-9]*|0)\.?\d*)+(px|%)$/.test(value);
+      }
+
+      return false;
     }
   }
 });

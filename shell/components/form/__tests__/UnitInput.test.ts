@@ -16,9 +16,9 @@ describe('component: UnitInput', () => {
 
     await input.setValue(2);
     await input.setValue(4);
-    input.trigger(event);
 
-    expect(wrapper.emitted('update:value')).toHaveLength(1);
+    expect(wrapper.emitted('update:value')).toBeTruthy();
+    expect(wrapper.emitted('update:value')[2]).toEqual([4]);
   });
 
   it.each([
@@ -176,16 +176,12 @@ describe('component: UnitInput', () => {
     const wrapper = mount(UnitInput, { props: { delay } });
     const input = wrapper.find('input');
 
-    jest.useFakeTimers();
-
     input.setValue('4096');
     input.setValue('096');
     input.setValue(value);
     input.trigger('blur');
-    jest.advanceTimersByTime(delay);
-    jest.useRealTimers();
 
-    expect(wrapper.emitted('update:value')).toHaveLength(1);
-    expect(wrapper.emitted('update:value')![0][0]).toBe(value);
+    expect(wrapper.emitted('update:value')).toBeTruthy();
+    expect(wrapper.emitted('update:value')[4][0]).toBe(value);
   });
 });

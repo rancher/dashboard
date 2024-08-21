@@ -25,8 +25,6 @@ describe('rancher-backup: S3', () => {
   });
 
   it('should emit valid when required fields are filled', async() => {
-    const bucketName = wrapper.find('[data-testid="S3-bucketName"]').find('input');
-    const endpoint = wrapper.find('[data-testid="S3-endpoint"]').find('input');
     const testCases = [
       {
         bucketNameInput: 'val',
@@ -41,15 +39,24 @@ describe('rancher-backup: S3', () => {
     ];
 
     for (const testCase of testCases) {
-      bucketName.setValue(testCase.bucketNameInput);
-      endpoint.setValue(testCase.endpointInput);
+      wrapper.setProps({
+        value: {
+          bucketName: testCase.bucketNameInput,
+          endpoint:   testCase.endpointInput
+        }
+      });
+
       await nextTick();
       expect(wrapper.emitted('valid')).toHaveLength(1);
       expect(wrapper.emitted('valid')![0][0]).toBe(false);
     }
 
-    bucketName.setValue('val1');
-    endpoint.setValue('val2');
+    wrapper.setProps({
+      value: {
+        bucketName: 'val1',
+        endpoint:   'val2'
+      }
+    });
     await nextTick();
     expect(wrapper.emitted('valid')).toHaveLength(2);
     expect(wrapper.emitted('valid')![1][0]).toBe(true);

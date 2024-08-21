@@ -1,17 +1,17 @@
 import { mount } from '@vue/test-utils';
 import DrainOptions from '@shell/edit/provisioning.cattle.io.cluster/tabs/upgrade/DrainOptions';
-import { DefaultProps } from 'vue/types/options';
-import { ExtendedVue, Vue } from 'vue/types/vue';
 
 describe('drain options', () => {
   it('should update an empty value with default drain options', () => {
-    const wrapper = mount(DrainOptions as unknown as ExtendedVue<Vue, {}, {}, {}, DefaultProps>, {
-      props:  { value: { }, mode: 'create' },
-      global: { mocks: { $store: { getters: { 'i18n/t': jest.fn() } } } },
+    const wrapper = mount(
+      DrainOptions,
+      {
+        props:  { value: { }, mode: 'create' },
+        global: { mocks: { $store: { getters: { 'i18n/t': jest.fn() } } } },
 
-    });
+      });
 
-    expect(wrapper.emitted('input')?.[0]?.[0]).toStrictEqual({
+    expect(wrapper.emitted('update:value')?.[0]?.[0]).toStrictEqual({
       deleteEmptyDirData:              true,
       disableEviction:                 false,
       enabled:                         false,
@@ -32,13 +32,15 @@ describe('drain options', () => {
       ignoreDaemonSets:   false,
       timeout:            90,
     };
-    const wrapper = mount(DrainOptions as unknown as ExtendedVue<Vue, {}, {}, {}, DefaultProps>, {
-      props:  { value: upgradeStrategy, mode: 'create' },
-      global: { mocks: { $store: { getters: { 'i18n/t': jest.fn() } } } },
+    const wrapper = mount(
+      DrainOptions,
+      {
+        props:  { value: upgradeStrategy, mode: 'create' },
+        global: { mocks: { $store: { getters: { 'i18n/t': jest.fn() } } } },
 
-    });
+      });
 
-    expect(wrapper.emitted('input')?.[0]?.[0]).toStrictEqual({
+    expect(wrapper.emitted('update:value')?.[0]?.[0]).toStrictEqual({
       deleteEmptyDirData:              false,
       disableEviction:                 false,
       enabled:                         false,

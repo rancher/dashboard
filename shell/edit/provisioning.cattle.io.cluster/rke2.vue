@@ -708,7 +708,7 @@ export default {
       const { linuxWorkerCount, windowsWorkerCount } = this.value?.mgmt?.status || {};
 
       if (!windowsWorkerCount) {
-        if (!!this.machinePools.find((pool) => {
+        if (!!this.machinePools?.find((pool) => {
           return pool?.config?.os === 'windows';
         })) {
           return this.t('cluster.banner.os', { newOS: 'Windows', existingOS: 'Linux' });

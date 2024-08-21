@@ -1,4 +1,4 @@
-import { mount, Wrapper } from '@vue/test-utils';
+import { mount, VueWrapper } from '@vue/test-utils';
 import AsyncButton, { ASYNC_BUTTON_STATES } from '@shell/components/AsyncButton.vue';
 
 describe('component: AsyncButton', () => {
@@ -6,7 +6,7 @@ describe('component: AsyncButton', () => {
     const mockExists = jest.fn().mockReturnValue(true);
     const mockT = jest.fn().mockReturnValue('some-string');
 
-    const wrapper: Wrapper<InstanceType<typeof AsyncButton> & { [key: string]: any }> = mount(AsyncButton, {
+    const wrapper: VueWrapper<InstanceType<typeof AsyncButton>> = mount(AsyncButton, {
       global: {
         mocks: {
           $store: {
@@ -14,9 +14,9 @@ describe('component: AsyncButton', () => {
               'i18n/exists': mockExists,
               'i18n/t':      mockT
             }
-          }
-        },
-      }
+          },
+        }
+      },
     });
 
     const button = wrapper.find('button');
@@ -28,10 +28,10 @@ describe('component: AsyncButton', () => {
     expect(button.exists()).toBe(true);
     expect(button.classes()).toContain('btn');
     expect(button.classes()).toContain('role-primary');
-    expect(button.props().name).toBeNull();
-    expect(button.props().type).toBe('button');
-    expect(button.props().disabled).toBe(false);
-    expect(button.props().tabIndex).toBeNull();
+    expect(button.element.name).toBe('');
+    expect(button.element.tagName.toLowerCase()).toBe('button');
+    expect(button.element.getAttribute('disabled')).toBeNull();
+    expect(button.element.getAttribute('tabindex')).toBeNull();
     // we are mocking the getters, so it's to expect to find an icon
     expect(icon.exists()).toBe(true);
     expect(icon.classes()).toContain('icon');
@@ -45,7 +45,7 @@ describe('component: AsyncButton', () => {
   it('click on async button should emit click with a proper state of waiting, disabled and spinning ::: CB true', () => {
     jest.useFakeTimers();
 
-    const wrapper: Wrapper<InstanceType<typeof AsyncButton> & { [key: string]: any }> = mount(AsyncButton, {
+    const wrapper: VueWrapper<InstanceType<typeof AsyncButton>> = mount(AsyncButton, {
       global: {
         mocks: {
           $store: {
@@ -84,7 +84,7 @@ describe('component: AsyncButton', () => {
   it('click on async button should emit click and update state properly ::: CB false', () => {
     jest.useFakeTimers();
 
-    const wrapper: Wrapper<InstanceType<typeof AsyncButton> & { [key: string]: any }> = mount(AsyncButton, {
+    const wrapper: VueWrapper<InstanceType<typeof AsyncButton>> = mount(AsyncButton, {
       global: {
         mocks: {
           $store: {
@@ -118,7 +118,7 @@ describe('component: AsyncButton', () => {
   });
 
   it('click on async button should emit click and update state properly ::: CB "cancelled"', () => {
-    const wrapper: Wrapper<InstanceType<typeof AsyncButton> & { [key: string]: any }> = mount(AsyncButton, {
+    const wrapper: VueWrapper<InstanceType<typeof AsyncButton>> = mount(AsyncButton, {
       global: {
         mocks: {
           $store: {

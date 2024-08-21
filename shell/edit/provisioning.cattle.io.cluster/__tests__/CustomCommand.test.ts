@@ -56,9 +56,9 @@ describe('component: CustomCommand', () => {
       worker:       true,
     });
 
-    const element = wrapper.find('[data-testid="node-role-warning"]').element;
+    const element = wrapper.find('[data-testid="node-role-warning"]');
 
-    expect(element).toBeUndefined();
+    expect(element.exists()).toBe(false);
   });
 
   describe('should display warning message if at least one of the node roles is unselected', () => {

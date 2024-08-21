@@ -25,7 +25,7 @@ describe('cloud credentials: Azure', () => {
   it('should pass all the correct fields when checking if credentials are valid', async() => {
     const spyDispatch = jest.spyOn(mockStore, 'dispatch');
 
-    wrapper.setData({
+    wrapper.setProps({
       value: {
         decodedData: {
           environment:    'my-env',
@@ -38,6 +38,7 @@ describe('cloud credentials: Azure', () => {
 
     await wrapper.vm.test();
 
+    expect(spyDispatch).toHaveBeenCalledTimes(1);
     expect(spyDispatch).toHaveBeenCalledWith('management/request', {
       data: {
         environment:    'my-env',
