@@ -349,7 +349,7 @@ export default {
           type="button"
           class="btn role-tertiary add"
           :disabled="loading || disableAdd"
-          :data-testid="`array-list-button${addLabel && _addLabel ? ('-'+_addLabel).replace(' ', '-').toLowerCase() : ''}`"
+          data-testid="array-list-button"
           @click="add()"
         >
           <i
