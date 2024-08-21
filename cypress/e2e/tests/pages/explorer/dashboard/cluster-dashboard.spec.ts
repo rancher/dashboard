@@ -169,7 +169,8 @@ describe('Cluster Dashboard', { testIsolation: 'off', tags: ['@explorer', '@admi
   });
 
   it('can view deployments', () => {
-    ClusterDashboardPagePo.navTo();
+    clusterDashboard.goTo();
+    clusterDashboard.waitForPage();
     cy.getRancherResource('v1', 'apps.deployments', '?exclude=metadata.managedFields').then((resp: Cypress.Response<any>) => {
       const count = resp.body['count'];
 
@@ -184,7 +185,7 @@ describe('Cluster Dashboard', { testIsolation: 'off', tags: ['@explorer', '@admi
   });
 
   it('can view nodes', () => {
-    ClusterDashboardPagePo.navTo();
+    clusterDashboard.goTo();
     clusterDashboard.waitForPage();
 
     cy.getRancherResource('v1', 'nodes', '?exclude=metadata.managedFields').then((resp: Cypress.Response<any>) => {
@@ -232,7 +233,7 @@ describe('Cluster Dashboard', { testIsolation: 'off', tags: ['@explorer', '@admi
       });
     });
 
-    ClusterDashboardPagePo.navTo();
+    clusterDashboard.goTo();
     clusterDashboard.waitForPage(undefined, 'cluster-events');
 
     // Check events
