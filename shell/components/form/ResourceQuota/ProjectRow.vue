@@ -71,15 +71,15 @@ export default {
     class="row"
   >
     <Select
+      :value="type"
       class="mr-10"
       :mode="mode"
-      :modelValue="type"
       :options="types"
       data-testid="projectrow-type-input"
-      @update:modelValue="updateType($event)"
+      @update:value="updateType($event)"
     />
     <UnitInput
-      :modelValue="resourceQuotaLimit[type]"
+      :value="resourceQuotaLimit[type]"
       class="mr-10"
       :mode="mode"
       :placeholder="typeOption.placeholder"
@@ -88,10 +88,10 @@ export default {
       :base-unit="typeOption.baseUnit"
       :output-modifier="true"
       data-testid="projectrow-project-quota-input"
-      @update:modelValue="updateQuotaLimit('resourceQuota', type, $event)"
+      @update:value="updateQuotaLimit('resourceQuota', type, $event)"
     />
     <UnitInput
-      :modelValue="namespaceDefaultResourceQuotaLimit[type]"
+      :value="namespaceDefaultResourceQuotaLimit[type]"
       :mode="mode"
       :placeholder="typeOption.placeholder"
       :increment="typeOption.increment"
@@ -99,7 +99,7 @@ export default {
       :base-unit="typeOption.baseUnit"
       :output-modifier="true"
       data-testid="projectrow-namespace-quota-input"
-      @update:modelValue="updateQuotaLimit('namespaceDefaultResourceQuota', type, $event)"
+      @update:value="updateQuotaLimit('namespaceDefaultResourceQuota', type, $event)"
     />
   </div>
 </template>
