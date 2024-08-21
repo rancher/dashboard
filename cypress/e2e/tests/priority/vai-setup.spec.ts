@@ -29,13 +29,14 @@ describe('Setup Vai', { testIsolation: 'off', tags: ['@vai', '@adminUser'] }, ()
     performancePage.waitForPage();
 
     performancePage.serverSidePaginationCheckbox().checkVisible();
-
     performancePage.serverSidePaginationCheckbox().isUnchecked();
+
     performancePage.serverSidePaginationCheckbox().set();
-    performancePage.serverSidePaginationCheckbox().isChecked();
 
     performancePage.incompatibleModal().checkVisible();
     performancePage.incompatibleModal().submit('Enable');
+
+    performancePage.serverSidePaginationCheckbox().isChecked();
 
     performancePage.applyButton().click();
   });

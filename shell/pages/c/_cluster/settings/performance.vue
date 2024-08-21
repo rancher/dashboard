@@ -173,9 +173,11 @@ export default {
       this.$store.dispatch('cluster/promptModal', {
         component:      'GenericPrompt',
         componentProps: {
-          applyMode:   'enable',
+          applyMode: 'enable',
+          confirm:   (confirmed) => {
+            this.value[property].enabled = confirmed;
+          },
           applyAction: (buttonDone) => {
-            this.value[property].enabled = true;
             (incompatible[property] || []).forEach((incompatible) => {
               this.value[incompatible].enabled = false;
             });
@@ -212,7 +214,7 @@ export default {
             color="warning"
           />
           <Checkbox
-            v-model="value.serverPagination.enabled"
+            :value="value.serverPagination.enabled"
             :mode="mode"
             :label="t('performance.serverPagination.checkboxLabel')"
             class="mt-10 mb-20"
