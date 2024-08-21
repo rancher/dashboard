@@ -23,6 +23,8 @@ export default {
     ContainerResourceLimit, CruResource, Labels, NameNsDescription, ProjectMembershipEditor, ResourceQuota, Tabbed, Tab, Banner
   },
 
+  inheritAttrs: false,
+
   mixins: [CreateEditView, FormValidation],
   data() {
     this.value['spec'] = this.value.spec || {};
@@ -215,7 +217,6 @@ export default {
           :value="value"
           :mode="canEditTabElements"
           :types="isHarvester ? HARVESTER_TYPES : RANCHER_TYPES"
-          @update:value="$emit('input', $event)"
           @remove="removeQuota"
         />
       </Tab>
