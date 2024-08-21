@@ -15,6 +15,16 @@ export default defineComponent({
   inheritAttrs: false,
 
   props: {
+    value: {
+      type:     String,
+      required: true
+    },
+
+    class: {
+      type:    String,
+      default: ''
+    },
+
     /**
      * Sets the edit mode for Text Area.
      * @values _EDIT, _VIEW
@@ -89,6 +99,10 @@ export default defineComponent({
      */
     style(): string {
       return `height: ${ this.curHeight }px; overflow: ${ this.overflow };`;
+    },
+
+    className(): string {
+      return this.class;
     }
   },
 
@@ -162,11 +176,12 @@ export default defineComponent({
     :disabled="isDisabled"
     :style="style"
     :placeholder="placeholder"
+    :class="className"
     class="no-resize no-ease"
     v-bind="$attrs"
     :spellcheck="spellcheck"
     @paste="$emit('paste', $event)"
-    @update:value="onInput($event)"
+    @input="onInput($event)"
     @focus="$emit('focus', $event)"
     @blur="$emit('blur', $event)"
   />
