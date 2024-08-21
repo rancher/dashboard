@@ -143,7 +143,7 @@ export default {
     >
       <div class="col span-6">
         <LabeledInput
-          v-model.trim="value.spec.gitRepo"
+          v-model:value.trim="value.spec.gitRepo"
           :required="true"
           :label="t('catalog.repo.gitRepo.label')"
           :placeholder="t('catalog.repo.gitRepo.placeholder', null, true)"
@@ -153,7 +153,7 @@ export default {
       </div>
       <div class="col span-6">
         <LabeledInput
-          v-model.trim="value.spec.gitBranch"
+          v-model:value.trim="value.spec.gitBranch"
           :sub-label="!value.spec.gitBranch ? t('catalog.repo.gitBranch.defaultMessage', null, true) : undefined"
           :label="t('catalog.repo.gitBranch.label')"
           :placeholder="t('catalog.repo.gitBranch.placeholder', null, true)"
@@ -168,7 +168,7 @@ export default {
         {{ t('catalog.repo.oci.info') }}
       </InfoBox>
       <LabeledInput
-        v-model.trim="value.spec.url"
+        v-model:value.trim="value.spec.url"
         :required="true"
         :label="t('catalog.repo.oci.urlLabel')"
         :placeholder="t('catalog.repo.oci.placeholder', null, true)"
@@ -179,7 +179,7 @@ export default {
 
     <LabeledInput
       v-else
-      v-model.trim="value.spec.url"
+      v-model:value.trim="value.spec.url"
       :required="true"
       :label="t('catalog.repo.url.label')"
       :placeholder="t('catalog.repo.url.placeholder', null, true)"
@@ -232,7 +232,7 @@ export default {
       <div class="row mb-10 mt-10">
         <div class="col span-4">
           <LabeledInput
-            v-model.trim="ociMinWait"
+            v-model:value.trim="ociMinWait"
             :label="t('catalog.repo.oci.exponentialBackOff.minWait.label')"
             :placeholder="!ociMinWait ? t('catalog.repo.oci.exponentialBackOff.minWait.placeholder') : undefined"
             :mode="mode"
@@ -244,7 +244,7 @@ export default {
         </div>
         <div class="col span-4">
           <LabeledInput
-            v-model.trim="ociMaxWait"
+            v-model:value.trim="ociMaxWait"
             :label="t('catalog.repo.oci.exponentialBackOff.maxWait.label')"
             :placeholder="!ociMaxWait ? t('catalog.repo.oci.exponentialBackOff.maxWait.placeholder') : undefined"
             :mode="mode"
@@ -256,7 +256,7 @@ export default {
         </div>
         <div class="col span-4">
           <LabeledInput
-            v-model.trim="ociMaxRetries"
+            v-model:value.trim="ociMaxRetries"
             :label="t('catalog.repo.oci.exponentialBackOff.maxRetries.label')"
             :placeholder="!ociMaxRetries ? t('catalog.repo.oci.exponentialBackOff.maxRetries.placeholder') : undefined"
             :mode="mode"

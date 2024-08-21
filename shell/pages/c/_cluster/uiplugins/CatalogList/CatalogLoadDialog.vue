@@ -461,7 +461,7 @@ export default {
         <div class="custom mt-10">
           <div class="fields">
             <LabeledInput
-              v-model.trim="deploymentValues.spec.template.spec.containers[0].image"
+              v-model:value.trim="deploymentValues.spec.template.spec.containers[0].image"
               label-key="plugins.manageCatalog.imageLoad.fields.image.label"
               placeholder-key="plugins.manageCatalog.imageLoad.fields.image.placeholder"
             />
