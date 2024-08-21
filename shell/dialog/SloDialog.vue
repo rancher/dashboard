@@ -54,12 +54,11 @@ export default {
         {{ t('promptSlo.title', { name }) }}
       </h4>
     </template>
-    <div
-      slot="body"
-      class="pl-10 pr-10 mt-20 mb-20"
-    >
-      {{ t('promptSlo.text', { name }) }}
-    </div>
+    <template #body>
+      <div class="pl-10 pr-10 mt-20 mb-20">
+        {{ t('promptSlo.text', { name }) }}
+      </div>
+    </template>
     <template #actions>
       <div class="btn-block">
         <button
