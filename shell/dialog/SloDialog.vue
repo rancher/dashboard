@@ -49,12 +49,11 @@ export default {
     class="prompt-remove"
     :show-highlight-border="false"
   >
-    <h4
-      slot="title"
-      class="text-default-text"
-    >
-      {{ t('promptSlo.title', { name }) }}
-    </h4>
+    <template #title>
+      <h4 class="text-default-text">
+        {{ t('promptSlo.title', { name }) }}
+      </h4>
+    </template>
     <div
       slot="body"
       class="pl-10 pr-10 mt-20 mb-20"
