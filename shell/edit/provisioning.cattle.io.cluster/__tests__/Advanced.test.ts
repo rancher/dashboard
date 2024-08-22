@@ -45,6 +45,7 @@ describe('component: Advanced', () => {
         mountOptions
       );
 
+      // eslint-disable-next-line no-console
       console.log(wrapper.html());
       const inputElem = wrapper.find('[data-testid="array-list-box0"]');
 
