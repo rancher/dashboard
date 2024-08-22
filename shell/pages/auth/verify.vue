@@ -60,7 +60,7 @@ export default {
       }
     }
 
-    // check for existance of IS_SLO query param to differenciate between a login and a logout
+    // check for existence of IS_SLO query param to differentiate between a login and a logout
     if (this.isSlo) {
       this.$store.dispatch('auth/uiLogout');
 
