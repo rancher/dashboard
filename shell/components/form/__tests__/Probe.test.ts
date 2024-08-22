@@ -57,6 +57,6 @@ describe('component: Probe', () => {
     await wrapper.trigger('keydown.down');
     await wrapper.trigger('keydown.enter');
 
-    expect(wrapper.emitted('input')).toHaveLength(2);
+    expect(wrapper.emitted('update:value')).toHaveLength(2);
   });
 });

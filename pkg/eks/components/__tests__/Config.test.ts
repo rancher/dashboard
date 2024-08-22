@@ -47,8 +47,8 @@ const mockedRoute = { query: {} };
 
 const requiredSetup = (versionSetting = { value: '<=1.27.x' }) => {
   return {
-    mixins: [mockedValidationMixin],
-    mocks:  {
+    // mixins: [mockedValidationMixin],
+    mocks: {
       $store:      mockedStore(versionSetting),
       $route:      mockedRoute,
       $fetchState: {},
@@ -71,12 +71,14 @@ describe('eKS K8s configuration', () => {
     const wrapper = shallowMount(
       Config,
       {
-        propsData:
-        {
-          config: {
-            amazonCredentialSecret: '',
-            region:                 ''
-          }
+        data() {
+          return {
+            config: {
+              amazonCredentialSecret: '',
+              region:                 ''
+            }
+
+          };
         },
         global: { ...setup }
       });
@@ -92,7 +94,17 @@ describe('eKS K8s configuration', () => {
     const setup = requiredSetup();
     const spy = jest.spyOn(setup.mocks.$store, 'dispatch');
 
-    const wrapper = shallowMount(Config, { propsData: { config: { amazonCredentialSecret: '', region: '' } }, ...setup });
+    const wrapper = shallowMount(
+      Config,
+      {
+        props: {
+          config: {
+            amazonCredentialSecret: '',
+            region:                 ''
+          }
+        },
+        global: { ...setup }
+      });
 
     expect(wrapper.exists()).toBe(true);
     expect(spy).toHaveBeenCalledTimes(0);
@@ -110,7 +122,17 @@ describe('eKS K8s configuration', () => {
     const setup = requiredSetup();
     const spy = jest.spyOn(setup.mocks.$store, 'dispatch');
 
-    const wrapper = shallowMount(Config, { propsData: { config: { amazonCredentialSecret: '', region: '' } }, ...setup });
+    const wrapper = shallowMount(
+      Config,
+      {
+        propsData: {
+          config: {
+            amazonCredentialSecret: '',
+            region:                 ''
+          }
+        },
+        global: { ...setup }
+      });
 
     expect(spy).toHaveBeenCalledTimes(0);
     await setCredential(wrapper);
@@ -126,15 +148,26 @@ describe('eKS K8s configuration', () => {
   it('should set the cluster kubernetes version to the latest available version after versions have been loaded', async() => {
     const setup = requiredSetup({ value: '>=1.25' });
 
-    const wrapper = shallowMount(Config, { propsData: { config: { amazonCredentialSecret: '', region: '' } }, ...setup });
+    const wrapper = shallowMount(
+      Config,
+      {
+        propsData: {
+          config: {
+            amazonCredentialSecret: '',
+            region:                 ''
+          }
+        },
+        global: { ...setup }
+      });
 
     // when the component loads initially it uses fallback data for k8s versions
     expect(wrapper.emitted('update:kubernetesVersion')?.[0]?.[0]).toBe(versionsFallbackData[0]);
     expect(wrapper.emitted('update:kubernetesVersion')).toHaveLength(1);
 
     await setCredential(wrapper);
+
     // once a credential is provided, the component fetches k8s versions from aws api - ensure that it updates the default version to the latest from THIS data set instead
-    expect(wrapper.emitted('update:kubernetesVersion')?.[1]?.[0]).toBe('2.0');
+    expect(wrapper.emitted('update:kubernetesVersion')?.[0]?.[0]).toBe('2.0');
     expect(wrapper.emitted('update:kubernetesVersion')).toHaveLength(2);
   });
 
@@ -147,7 +180,7 @@ describe('eKS K8s configuration', () => {
         kubernetesVersion: '1.23',
         mode:              _EDIT
       },
-      ...setup
+      global: { ...setup }
     });
 
     // make sure the version isn't overwritten with fallback version data
@@ -162,7 +195,17 @@ describe('eKS K8s configuration', () => {
   it('should show an input for a KMS key when the encrypt secrets checkbox is checked', async() => {
     const setup = requiredSetup();
 
-    const wrapper = shallowMount(Config, { propsData: { config: { amazonCredentialSecret: '', region: '' } }, ...setup });
+    const wrapper = shallowMount(
+      Config,
+      {
+        propsData: {
+          config: {
+            amazonCredentialSecret: '',
+            region:                 ''
+          }
+        },
+        global: { ...setup }
+      });
 
     await setCredential(wrapper);
     expect(wrapper.exists()).toBe(true);
@@ -187,7 +230,17 @@ describe('eKS K8s configuration', () => {
   it('should update the secretsEncryption prop when the kms key checkbox is checked', async() => {
     const setup = requiredSetup();
 
-    const wrapper = shallowMount(Config, { propsData: { config: { amazonCredentialSecret: '', region: '' } }, ...setup });
+    const wrapper = shallowMount(
+      Config,
+      {
+        propsData: {
+          config: {
+            amazonCredentialSecret: '',
+            region:                 ''
+          }
+        },
+        global: { ...setup }
+      });
 
     wrapper.setData({ canReadKms: true });
 
@@ -217,7 +270,7 @@ describe('eKS K8s configuration', () => {
         secretsEncryption: true,
         kmsKey:            '123abc'
       },
-      ...setup
+      global: { ...setup }
     });
 
     await setCredential(wrapper);
@@ -243,7 +296,7 @@ describe('eKS K8s configuration', () => {
         secretsEncryption: true,
         kmsKey:            '123abc'
       },
-      ...setup
+      global: { ...setup }
     });
 
     await setCredential(wrapper);
@@ -287,7 +340,7 @@ describe('eKS K8s configuration', () => {
         secretsEncryption: true,
         kmsKey:            '123abc'
       },
-      ...setup
+      global: { ...setup }
     });
 
     await setCredential(wrapper);
@@ -307,7 +360,17 @@ describe('eKS K8s configuration', () => {
   it('should show an input for service role if the custom service role radio option is selected', async() => {
     const setup = requiredSetup();
 
-    const wrapper = shallowMount(Config, { propsData: { config: { amazonCredentialSecret: '', region: '' } }, ...setup });
+    const wrapper = shallowMount(
+      Config,
+      {
+        propsData: {
+          config: {
+            amazonCredentialSecret: '',
+            region:                 ''
+          }
+        },
+        global: { ...setup }
+      });
 
     await setCredential(wrapper);
     expect(wrapper.exists()).toBe(true);
@@ -329,7 +392,7 @@ describe('eKS K8s configuration', () => {
         config:          { amazonCredentialSecret: '', region: '' },
         originalVersion: '1.26'
       },
-      ...setup
+      global: { ...setup }
     });
 
     await setCredential(wrapper);
@@ -350,7 +413,17 @@ describe('eKS K8s configuration', () => {
   ])('should only show kubernetes versions within the supported version range global setting', async(versionSettingValue, expectedVersions) => {
     const setup = requiredSetup({ value: versionSettingValue });
 
-    const wrapper = shallowMount(Config, { propsData: { config: { amazonCredentialSecret: '', region: '' } }, ...setup });
+    const wrapper = shallowMount(
+      Config,
+      {
+        propsData: {
+          config: {
+            amazonCredentialSecret: '',
+            region:                 ''
+          }
+        },
+        global: { ...setup }
+      });
 
     await setCredential(wrapper);
     expect(wrapper.exists()).toBe(true);
@@ -369,7 +442,7 @@ describe('eKS K8s configuration', () => {
         config: { amazonCredentialSecret: '', region: '' },
         originalVersion
       },
-      ...setup
+      global: { ...setup }
     });
 
     await setCredential(wrapper);
@@ -390,7 +463,7 @@ describe('eKS K8s configuration', () => {
         },
         originalVersion: '1.26',
       },
-      ...setup
+      global: { ...setup }
     });
 
     await setCredential(wrapper);
@@ -412,7 +485,7 @@ describe('eKS K8s configuration', () => {
         },
         originalVersion: '1.26',
       },
-      ...setup
+      global: { ...setup }
     });
 
     await setCredential(wrapper);
@@ -433,7 +506,7 @@ describe('eKS K8s configuration', () => {
         },
         originalVersion: '1.26',
       },
-      ...setup
+      global: { ...setup }
     });
 
     await setCredential(wrapper);

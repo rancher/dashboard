@@ -13,11 +13,13 @@ describe('component: RegistryConfigs', () => {
       mode:                      _EDIT,
       clusterRegisterBeforeHook: () => {}
     },
-    stubs: {
-      SelectOrCreateAuthSecret: true,
-      SecretSelector:           true,
-    },
-    mocks: { $store: { getters: { 'i18n/t': jest.fn() } } }
+    global: {
+      stubs: {
+        SelectOrCreateAuthSecret: true,
+        SecretSelector:           true,
+      },
+      mocks: { $store: { getters: { 'i18n/t': jest.fn() } } }
+    }
   };
 
   describe('key CA Cert Bundle', () => {
@@ -53,6 +55,7 @@ describe('component: RegistryConfigs', () => {
       const registry = wrapper.find('[data-testid^="registry-caBundle"]');
 
       await registry.setValue('ssh key');
+
       wrapper.vm.update();
 
       expect(wrapper.emitted('updateConfigs')![0][0]['foo']['caBundle']).toBe('c3NoIGtleQ==');

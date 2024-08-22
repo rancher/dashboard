@@ -142,7 +142,7 @@ describe('component: NamespaceFilter', () => {
     });
 
     it('should contain no options', async() => {
-      const text = 'no options';
+      const text = '%namespaceFilter.noMatchingOptions%';
       const wrapper = mount(NamespaceFilter, {
         computed: {
           filtered: () => [],

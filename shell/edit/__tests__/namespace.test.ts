@@ -1,14 +1,12 @@
 import { mount } from '@vue/test-utils';
 import Namespace from '@shell/edit/namespace.vue';
-import { DefaultProps } from 'vue/types/options';
-import { ExtendedVue, Vue } from 'vue/types/vue';
 
 describe('view Namespace should', () => {
   it('retrieve resource limits from project', () => {
     const name = 'my project name';
     const limits = 'whatever';
     const project = { id: name, spec: { containerDefaultResourceLimit: limits } };
-    const wrapper = mount(Namespace as unknown as ExtendedVue<Vue, {}, {}, {}, DefaultProps>, {
+    const wrapper = mount(Namespace, {
       props: {
         value: {
           metadata:     { labels: { 'field.cattle.io/projectId': name } },
@@ -45,6 +43,7 @@ describe('view Namespace should', () => {
       },
     });
 
+    // TODO: Stubs are overwriting child component content. What is this actually testing?
     const limitsUi = wrapper.find('[data-testid="limits"]');
 
     expect(limitsUi.vm.$attrs.value).toStrictEqual(limits);

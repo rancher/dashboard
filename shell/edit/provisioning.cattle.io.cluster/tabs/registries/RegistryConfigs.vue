@@ -1,6 +1,5 @@
 <script>
 import ArrayListGrouped from '@shell/components/form/ArrayListGrouped';
-import { set } from '@shell/utils/object';
 import { LabeledInput } from '@components/Form/LabeledInput';
 import { Checkbox } from '@components/Form/Checkbox';
 import SelectOrCreateAuthSecret from '@shell/components/form/SelectOrCreateAuthSecret';
@@ -103,7 +102,7 @@ export default {
         delete configs[h].hostname;
       }
 
-      set(this.value, 'spec.rkeConfig.registries.configs', configs);
+      this.value.spec.rkeConfig.registries.configs = configs;
       this.$emit('updateConfigs', configs);
     },
 

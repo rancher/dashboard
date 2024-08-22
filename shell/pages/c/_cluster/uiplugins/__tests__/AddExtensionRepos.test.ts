@@ -34,8 +34,8 @@ describe('component: AddExtensionRepos', () => {
     jest.useFakeTimers();
 
     const wrapper = mount(AddExtensionRepos, {
-      ...requiredSetup(),
       global: {
+        ...requiredSetup(),
         // since vue-js-modal uses transitions, we need disable
         // the default behaviour of transition-stubbing that vue-test-utils has...
         stubs: { transition: false },
@@ -68,8 +68,8 @@ describe('component: AddExtensionRepos', () => {
     jest.useFakeTimers();
 
     const wrapper = mount(AddExtensionRepos, {
-      ...requiredSetup(),
       global: {
+        ...requiredSetup(),
         // since vue-js-modal uses transitions, we need disable
         // the default behaviour of transition-stubbing that vue-test-utils has...
         stubs: { transition: false },

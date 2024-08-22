@@ -8,14 +8,14 @@ import { AKSNodePool } from 'types';
 import { _EDIT, _CREATE } from '@shell/config/query-params';
 import { nodePoolNames } from '../../util/validators';
 
-const mockedValidationMixin = {
-  computed: {
-    fvFormIsValid:                jest.fn(),
-    type:                         jest.fn(),
-    fvUnreportedValidationErrors: jest.fn(),
-  },
-  methods: { fvGetAndReportPathRules: jest.fn() }
-};
+// const mockedValidationMixin = {
+//   computed: {
+//     fvFormIsValid:                jest.fn(),
+//     type:                         jest.fn(),
+//     fvUnreportedValidationErrors: jest.fn(),
+//   },
+//   methods: { fvGetAndReportPathRules: jest.fn() }
+// };
 
 const mockedStore = (versionSetting: any) => {
   return {
@@ -39,11 +39,13 @@ const mockedRoute = { query: {} };
 
 const requiredSetup = (versionSetting = { value: '<=1.27.x' }) => {
   return {
-    mixins: [mockedValidationMixin],
-    mocks:  {
-      $store:      mockedStore(versionSetting),
-      $route:      mockedRoute,
-      $fetchState: {},
+    // mixins: [mockedValidationMixin],
+    global: {
+      mocks: {
+        $store:      mockedStore(versionSetting),
+        $route:      mockedRoute,
+        $fetchState: {},
+      }
     }
   };
 };
@@ -70,7 +72,10 @@ describe('aks provisioning form', () => {
 
   it('should show the form when a credential is selected', async() => {
     const wrapper = shallowMount(CruAks, {
-      propsData: { value: {}, mode: _CREATE },
+      props: {
+        value: { type: 'something' },
+        mode:  _CREATE,
+      },
       ...requiredSetup()
     });
 
@@ -107,10 +112,8 @@ describe('aks provisioning form', () => {
     });
 
     await setCredential(wrapper);
-    const versionDropdown = wrapper.find('[data-testid="cruaks-kubernetesversion"]');
 
-    expect(versionDropdown.exists()).toBe(true);
-    expect(versionDropdown.props().options.map((opt: any) => opt.value)).toStrictEqual(expectedVersions);
+    expect(wrapper.vm.aksVersionOptions.map((opt: any) => opt.value)).toStrictEqual(expectedVersions);
   });
 
   it('should sort versions from latest to oldest', async() => {

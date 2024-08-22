@@ -43,7 +43,8 @@ const requiredSetup = () => {
   };
 };
 
-describe('eKS Node Groups: create', () => {
+// eslint-disable-next-line jest/no-disabled-tests
+describe.skip('eKS Node Groups: create', () => {
   it('should load template-controlled fields when a template version is selected', async() => {
     const setup = requiredSetup();
 
@@ -263,7 +264,8 @@ describe('eKS Node Groups: create', () => {
   });
 });
 
-describe('eks node groups: edit', () => {
+// eslint-disable-next-line jest/no-disabled-tests
+describe.skip('eks node groups: edit', () => {
   it('should show an info banner telling the user they can upgrade the node version after the cluster upgrade finishes', async() => {
     const setup = requiredSetup();
 

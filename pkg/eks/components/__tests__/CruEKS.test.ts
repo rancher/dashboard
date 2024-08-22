@@ -27,11 +27,12 @@ const mockedRoute = { query: {} };
 
 const requiredSetup = (versionSetting = { value: '<=1.27.x' }) => {
   return {
-    mixins: [],
-    mocks:  {
-      $store:      mockedStore(versionSetting),
-      $route:      mockedRoute,
-      $fetchState: {},
+    global: {
+      mocks: {
+        $store:      mockedStore(versionSetting),
+        $route:      mockedRoute,
+        $fetchState: {},
+      }
     }
   };
 };

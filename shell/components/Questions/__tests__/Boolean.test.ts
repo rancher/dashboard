@@ -25,6 +25,7 @@ describe('the Boolean Component', () => {
 
     const inputFields = wrapper.findAll('[data-testid="boolean-input-var_name"] input[type=checkbox]');
 
+    // TODO: UNIT TEST - Default stubs give us a tab stub, rendering no input fields
     expect(inputFields).toHaveLength(1);
 
     const descriptionFields = wrapper.findAll('[data-testid="boolean-description-var_name"]');

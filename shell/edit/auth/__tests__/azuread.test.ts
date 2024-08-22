@@ -28,41 +28,37 @@ const mockModel = {
   type:     'azureADConfig',
 };
 
-const mockedAuthConfigMixin = {
-  data() {
-    return {
-      sEnabling:      false,
-      editConfig:     false,
-      model:          { mockModel },
-      serverSetting:  null,
-      errors:         [],
-      originalModel:  null,
-      principals:     [],
-      authConfigName: 'azuread',
-    };
-  },
-  computed: {},
-  methods:  {}
-};
-
 describe('edit: azureAD should', () => {
   let wrapper: any;
   const requiredSetup = () => ({
-    mixins: [mockedAuthConfigMixin],
-    mocks:  {
-      $fetchState: { pending: false },
-      $store:      {
-        getters: {
-          currentStore:              () => 'current_store',
-          'current_store/schemaFor': jest.fn(),
-          'current_store/all':       jest.fn(),
-          'i18n/t':                  (val: string) => val,
-          'i18n/exists':             jest.fn(),
+    data() {
+      return {
+        isEnabling:     true,
+        editConfig:     false,
+        model:          mockModel,
+        serverSetting:  null,
+        errors:         [],
+        originalModel:  null,
+        principals:     [],
+        authConfigName: 'azuread',
+      };
+    },
+    global: {
+      mocks: {
+        $fetchState: { pending: false },
+        $store:      {
+          getters: {
+            currentStore:              () => 'current_store',
+            'current_store/schemaFor': jest.fn(),
+            'current_store/all':       jest.fn(),
+            'i18n/t':                  (val: string) => val,
+            'i18n/exists':             jest.fn(),
+          },
+          dispatch: jest.fn()
         },
-        dispatch: jest.fn()
+        $route:  { query: { AS: '' }, params: { id: 'azure' } },
+        $router: { applyQuery: jest.fn() },
       },
-      $route:  { query: { AS: '' }, params: { id: 'azure' } },
-      $router: { applyQuery: jest.fn() },
     },
     propsData: {
       value: { applicationSecret: '' },
@@ -115,9 +111,9 @@ describe('edit: azureAD should', () => {
       result:            false
     },
   ])('has "Create" button enabled and disabled depending on validation results when endpoint is standard', async(testCase) => {
-    const tenantIdInputField = wrapper.find('[data-testid="input-azureAD-tenantId"]').find('input');
-    const applicationIdInputField = wrapper.find('[data-testid="input-azureAD-applcationId"]').find('input');
-    const applicationSecretInputField = wrapper.find('[data-testid="input-azureAD-applicationSecret"]').find('input');
+    const tenantIdInputField = wrapper.find('[data-testid="input-azureAD-tenantId"]');
+    const applicationIdInputField = wrapper.find('[data-testid="input-azureAD-applcationId"]');
+    const applicationSecretInputField = wrapper.find('[data-testid="input-azureAD-applicationSecret"]');
     const saveButton = wrapper.find('[data-testid="form-save"]').element as HTMLInputElement;
 
     tenantIdInputField.setValue(testCase.tenantId);
@@ -125,6 +121,7 @@ describe('edit: azureAD should', () => {
     applicationSecretInputField.setValue(testCase.applicationSecret);
     await nextTick();
 
+    // TODO: This appears to be close.. It looks like form validation is failing for some reason on the final test iteration.
     expect(saveButton.disabled).toBe(testCase.result);
   });
 
@@ -207,9 +204,9 @@ describe('edit: azureAD should', () => {
       result:        false
     }
   ])('has "Create" button enabled and disabled depending on validation results when endpoint is custom', async(testCase) => {
-    const tenantIdInputField = wrapper.find('[data-testid="input-azureAD-tenantId"]').find('input');
-    const applicationIdInputField = wrapper.find('[data-testid="input-azureAD-applcationId"]').find('input');
-    const applicationSecretInputField = wrapper.find('[data-testid="input-azureAD-applicationSecret"]').find('input');
+    const tenantIdInputField = wrapper.find('[data-testid="input-azureAD-tenantId"]');
+    const applicationIdInputField = wrapper.find('[data-testid="input-azureAD-applcationId"]');
+    const applicationSecretInputField = wrapper.find('[data-testid="input-azureAD-applicationSecret"]');
 
     const endpointsRG = wrapper.find('[data-testid="endpoints-radio-input"]');
     const customButton = endpointsRG.findAll('.radio-label').at(2);

@@ -22,6 +22,7 @@ describe('page: LonghornOverview', () => {
     $store:      {
       dispatch: () => jest.fn,
       getters:  {
+        currentCluster:      () => ({ id: '_' }),
         currentProduct:      () => 'cluster',
         'cluster/findAll':   () => jest.fn(),
         'cluster/schemaFor': () => jest.fn(),
@@ -62,8 +63,7 @@ describe('page: LonghornOverview', () => {
     }
 
     const wrapper = createWrapper({
-      computed: { currentCluster: () => ({ id: '_' }) },
-      stubs:    {
+      stubs: {
         Banner:    { template: '<span />' },
         LazyImage: { template: '<span />' },
       }
