@@ -1,7 +1,6 @@
 <script>
 import { CAPI, MANAGEMENT } from '@shell/config/types';
 import AsyncButton from '@shell/components/AsyncButton';
-import PromptModal from '@shell/components/PromptModal';
 import { downloadFile } from '@shell/utils/download';
 import { filterOnlyKubernetesClusters, filterHiddenLocalCluster } from '@shell/utils/cluster';
 import { sortBy } from '@shell/utils/sort';
@@ -9,7 +8,7 @@ import { sortBy } from '@shell/utils/sort';
 export default {
   name: 'Diagnostic',
 
-  components: { AsyncButton, PromptModal },
+  components: { AsyncButton },
 
   async fetch() {
     const provClusters = await this.$store.dispatch('management/findAll', { type: CAPI.RANCHER_CLUSTER });
@@ -391,8 +390,6 @@ export default {
         </table>
       </div>
     </div>
-
-    <PromptModal />
   </div>
 </template>
 
