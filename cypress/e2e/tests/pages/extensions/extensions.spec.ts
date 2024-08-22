@@ -17,6 +17,44 @@ describe('Extensions page', { tags: ['@extensions', '@adminUser'] }, () => {
     cy.login();
   });
 
+  it('versions for built-in extensions should display as expected', () => {
+    const pluginVersion = '1.0.0';
+    const extensionsPo = new ExtensionsPagePo();
+
+    extensionsPo.goTo();
+    extensionsPo.waitForPage(null, 'available');
+    extensionsPo.extensionTabInstalledClick();
+    extensionsPo.waitForPage(null, 'installed');
+
+    // AKS Provisioning
+    extensionsPo.extensionCardVersion('aks').should('contain', pluginVersion);
+    extensionsPo.extensionCardClick('aks');
+    extensionsPo.extensionDetailsTitle().should('contain', 'AKS Provisioning');
+    extensionsPo.extensionDetailsVersion().should('contain', pluginVersion);
+    extensionsPo.extensionDetailsCloseClick();
+
+    // EKS Provisioning
+    extensionsPo.extensionCardVersion('eks').should('contain', pluginVersion);
+    extensionsPo.extensionCardClick('eks');
+    extensionsPo.extensionDetailsTitle().should('contain', 'EKS Provisioning');
+    extensionsPo.extensionDetailsVersion().should('contain', pluginVersion);
+    extensionsPo.extensionDetailsCloseClick();
+
+    // GKE Provisioning
+    extensionsPo.extensionCardVersion('gke').should('contain', pluginVersion);
+    extensionsPo.extensionCardClick('gke');
+    extensionsPo.extensionDetailsTitle().should('contain', 'GKE Provisioning');
+    extensionsPo.extensionDetailsVersion().should('contain', pluginVersion);
+    extensionsPo.extensionDetailsCloseClick();
+
+    // Virtualization Manager
+    extensionsPo.extensionCardVersion('harvester-manager').should('contain', pluginVersion);
+    extensionsPo.extensionCardClick('harvester-manager');
+    extensionsPo.extensionDetailsTitle().should('contain', 'Virtualization Manager');
+    extensionsPo.extensionDetailsVersion().should('contain', pluginVersion);
+    extensionsPo.extensionDetailsCloseClick();
+  });
+
   it('add repository', () => {
     // This should be in a `before` however is flaky. Move it to an `it` to let cypress retry
     const extensionsPo = new ExtensionsPagePo();
