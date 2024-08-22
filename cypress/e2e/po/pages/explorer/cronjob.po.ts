@@ -1,17 +1,17 @@
 import PagePo from '@/cypress/e2e/po/pages/page.po';
 import BaseResourceList from '@/cypress/e2e/po/lists/base-resource-list.po';
 
-class JobDetailPagePo extends PagePo {
+class CronjobDetailPagePo extends PagePo {
   private static createPath(clusterId: string, id: string) {
     return `/c/${ clusterId }/explorer/batch.job/${ id }`;
   }
 
   goTo(clusterId: string, id:string): Cypress.Chainable<Cypress.AUTWindow> {
-    return super.goTo(JobDetailPagePo.createPath(clusterId, id));
+    return super.goTo(CronjobDetailPagePo.createPath(clusterId, id));
   }
 
   constructor(clusterId = 'local', id: string) {
-    super(JobDetailPagePo.createPath(clusterId, id));
+    super(CronjobDetailPagePo.createPath(clusterId, id));
   }
 
   successfulCountCheck(countExpected: number, timeout = 15000) {
@@ -48,6 +48,6 @@ export class CronjobListPagePo extends PagePo {
   }
 
   jobDetail(clusterId = 'local', id: string) {
-    return new JobDetailPagePo(clusterId, id);
+    return new CronjobDetailPagePo(clusterId, id);
   }
 }

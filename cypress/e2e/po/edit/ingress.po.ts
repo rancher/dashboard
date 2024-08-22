@@ -1,6 +1,6 @@
 import PagePo from '@/cypress/e2e/po/pages/page.po';
 import NameNsDescription from '@/cypress/e2e/po/components/name-ns-description.po';
-import AsyncButtonPo from '@/cypress/e2e/po/components/async-button.po';
+import ResourceDetailPo from '@/cypress/e2e/po/edit/resource-detail.po';
 
 export default class IngressEditPagePo extends PagePo {
   private static createPath(clusterId: string, id?: string ) {
@@ -21,7 +21,7 @@ export default class IngressEditPagePo extends PagePo {
     return new NameNsDescription(this.self());
   }
 
-  saveForm(): AsyncButtonPo {
-    return new AsyncButtonPo('[data-testid="form-save"]', this.self());
+  saveCreateForm(): ResourceDetailPo {
+    return new ResourceDetailPo(this.self());
   }
 }

@@ -7,6 +7,8 @@ import PagePo from '@/cypress/e2e/po/pages/page.po';
 import NameNsDescription from '@/cypress/e2e/po/components/name-ns-description.po';
 import BaseResourceList from '@/cypress/e2e/po/lists/base-resource-list.po';
 import CodeMirrorPo from '@/cypress/e2e/po/components/code-mirror.po';
+import TabbedPo from '@/cypress/e2e/po/components/tabbed.po';
+import ResourceDetailPo from '@/cypress/e2e/po/edit/resource-detail.po';
 
 class KubewardenDashboardPagePo extends PagePo {
   static url = '/c/local/kubewarden';
@@ -83,8 +85,8 @@ class KubewardenPolicyServerEditPagePo extends PagePo {
     return CodeMirrorPo.bySelector(this.self(), '[data-testid="yaml-editor-code-mirror"]');
   }
 
-  saveForm(): AsyncButtonPo {
-    return new AsyncButtonPo('[data-testid="form-save"]', this.self());
+  saveCreateForm(): ResourceDetailPo {
+    return new ResourceDetailPo(this.self());
   }
 
   waitForPolicyServerCreation(interceptName: string, nameToCheck: string) {
@@ -173,6 +175,16 @@ class KubewardenAdmissionPoliciesEditPagePo extends PagePo {
 
   admissionPolicyCreateBtn(): AsyncButtonPo {
     return new AsyncButtonPo('[data-testid="kw-policy-create-finish-button"]', this.self());
+  }
+}
+
+export class KubewardenResourceComplianceReportPagePo extends PagePo {
+  clickComplianceTab() {
+    return new TabbedPo().clickTabWithSelector('[data-testid="btn-policy-report-tab"]');
+  }
+
+  complianceSortableTable() {
+    return new SortableTablePo(this.self().get('#policy-report-tab .sortable-table'));
   }
 }
 

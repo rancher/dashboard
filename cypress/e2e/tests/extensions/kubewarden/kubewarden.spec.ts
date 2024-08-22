@@ -281,7 +281,7 @@ EOF`;
     ingressPageEditPo.nameNsDescription().namespace().toggle();
     ingressPageEditPo.nameNsDescription().namespace().clickOptionWithLabel(DUMMY_NAMESPACE);
     ingressPageEditPo.nameNsDescription().name().set(INGRESS_NAME);
-    ingressPageEditPo.saveForm().click();
+    ingressPageEditPo.saveCreateForm().cruResource().saveOrCreate().click();
     ingressPageListPo.waitForIngressCreation(INGRESS_CREATION, INGRESS_NAME, DUMMY_NAMESPACE);
 
     // 4. go to audit-scanner cron job and run it
@@ -295,10 +295,12 @@ EOF`;
     // 5. go to the given namespace and check the compliance report to confirm the result
     projectsNamespacesPage.namespaceDetail('local', DUMMY_NAMESPACE).goTo('local', DUMMY_NAMESPACE);
     projectsNamespacesPage.namespaceDetail('local', DUMMY_NAMESPACE).waitForPage();
-    projectsNamespacesPage.namespaceDetail('local', DUMMY_NAMESPACE).clickComplianceTab();
-    projectsNamespacesPage.namespaceDetail('local', DUMMY_NAMESPACE).complianceSortableTable().rowElementWithPartialName(INGRESS_POLICY_NAME).scrollIntoView()
+    projectsNamespacesPage.namespaceDetail('local', DUMMY_NAMESPACE).kubewardenComplianceReport().clickComplianceTab();
+    projectsNamespacesPage.namespaceDetail('local', DUMMY_NAMESPACE).kubewardenComplianceReport().complianceSortableTable().rowElementWithPartialName(INGRESS_POLICY_NAME)
+      .scrollIntoView()
       .should('be.visible');
-    projectsNamespacesPage.namespaceDetail('local', DUMMY_NAMESPACE).complianceSortableTable().rowElementWithPartialName(INGRESS_NAME).scrollIntoView()
+    projectsNamespacesPage.namespaceDetail('local', DUMMY_NAMESPACE).kubewardenComplianceReport().complianceSortableTable().rowElementWithPartialName(INGRESS_NAME)
+      .scrollIntoView()
       .should('be.visible');
   });
 
@@ -348,7 +350,8 @@ EOF`;
         json.metadata.name = POLICY_SERVER_YAML_NAME;
 
         kubewardenPo.policyServerEdit('local').codeMirror().set(jsyaml.dump(json));
-        kubewardenPo.policyServerEdit('local').saveForm().click();
+        kubewardenPo.policyServerEdit('local').saveCreateForm().cruResource().saveOrCreate()
+          .click();
         kubewardenPo.policyServerEdit('local').waitForPolicyServerCreation(POLICY_SERVER_CREATION, POLICY_SERVER_YAML_NAME);
 
         kubewardenPo.policyServerList().waitForPage();

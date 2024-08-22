@@ -3,8 +3,7 @@ import LabeledInputPo from '@/cypress/e2e/po/components/labeled-input.po';
 import ResourceListMastheadPo from '@/cypress/e2e/po/components/ResourceList/resource-list-masthead.po';
 import NameNsDescription from '@/cypress/e2e/po/components/name-ns-description.po';
 import AsyncButtonPo from '@/cypress/e2e/po/components/async-button.po';
-import TabbedPo from '@/cypress/e2e/po/components/tabbed.po';
-import SortableTablePo from '@/cypress/e2e/po/components/sortable-table.po';
+import { KubewardenResourceComplianceReportPagePo } from '@/cypress/e2e/po/extensions/kubewarden/kubewarden.utils';
 
 class ProjectNamespaceDetailPagePo extends PagePo {
   private static createPath(clusterId: string, id: string) {
@@ -19,12 +18,8 @@ class ProjectNamespaceDetailPagePo extends PagePo {
     super(ProjectNamespaceDetailPagePo.createPath(clusterId, id));
   }
 
-  clickComplianceTab() {
-    return new TabbedPo().clickTabWithSelector('[data-testid="btn-policy-report-tab"]');
-  }
-
-  complianceSortableTable() {
-    return new SortableTablePo(this.self().get('#policy-report-tab .sortable-table'));
+  kubewardenComplianceReport() {
+    return new KubewardenResourceComplianceReportPagePo('');
   }
 }
 
