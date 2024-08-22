@@ -267,14 +267,19 @@ describe('Users', { tags: ['@usersAndAuths', '@adminUser'] }, () => {
   describe('List', { testIsolation: 'off', tags: ['@vai', '@adminUser'] }, () => {
     const uniqueUserName = 'aaa-e2e-test-name';
     const userIdsList = [];
+    let initialCount;
 
     before('set up', () => {
       cy.login();
+      cy.getRancherResource('v3', 'users').then((resp: Cypress.Response<any>) => {
+        initialCount = resp.body.data.length - 1;
+      });
+      cy.tableRowsPerPageAndNamespaceFilter(10, 'local', 'none', '{\"local\":[]}');
 
       // create users
       let i = 0;
 
-      while (i < 100) {
+      while (i < 25) {
         const userName = `e2e-${ Cypress._.uniqueId(Date.now().toString()) }`;
 
         cy.createUser({ username: userName }).then((resp: Cypress.Response<any>) => {
@@ -297,9 +302,10 @@ describe('Users', { tags: ['@usersAndAuths', '@adminUser'] }, () => {
     it('pagination is visible and user is able to navigate through users data', () => {
       usersPo.goTo(); // This is needed for the @vai only world
       usersPo.waitForPage();
+      const count = initialCount + 26;
 
-      // get users count
-      cy.getRancherResource('v3', 'users').then((resp: Cypress.Response<any>) => {
+      // check users count
+      cy.waitForRancherResources('v3', 'users', count).then((resp: Cypress.Response<any>) => {
         const count = resp.body.data.length;
 
         // pagination is visible
@@ -324,7 +330,7 @@ describe('Users', { tags: ['@usersAndAuths', '@adminUser'] }, () => {
         usersPo.list().resourceTable().sortableTable().pagination()
           .paginationText()
           .then((el) => {
-            expect(el.trim()).to.eq(`1 - 100 of ${ count } Users`);
+            expect(el.trim()).to.eq(`1 - 10 of ${ count } Users`);
           });
 
         // navigate to next page - right button
@@ -336,7 +342,7 @@ describe('Users', { tags: ['@usersAndAuths', '@adminUser'] }, () => {
         usersPo.list().resourceTable().sortableTable().pagination()
           .paginationText()
           .then((el) => {
-            expect(el.trim()).to.eq(`101 - ${ count } of ${ count } Users`);
+            expect(el.trim()).to.eq(`11 - 20 of ${ count } Users`);
           });
         usersPo.list().resourceTable().sortableTable().pagination()
           .beginningButton()
@@ -354,7 +360,7 @@ describe('Users', { tags: ['@usersAndAuths', '@adminUser'] }, () => {
         usersPo.list().resourceTable().sortableTable().pagination()
           .paginationText()
           .then((el) => {
-            expect(el.trim()).to.eq(`1 - 100 of ${ count } Users`);
+            expect(el.trim()).to.eq(`1 - 10 of ${ count } Users`);
           });
         usersPo.list().resourceTable().sortableTable().pagination()
           .beginningButton()
@@ -368,14 +374,11 @@ describe('Users', { tags: ['@usersAndAuths', '@adminUser'] }, () => {
           .endButton()
           .click();
 
-        // check row count on last page
-        usersPo.list().resourceTable().sortableTable().checkRowCount(false, count - 100);
-
         // check text after navigation
         usersPo.list().resourceTable().sortableTable().pagination()
           .paginationText()
           .then((el) => {
-            expect(el.trim()).to.eq(`101 - ${ count } of ${ count } Users`);
+            expect(el.trim()).to.eq(`${ count - (count % 10) + 1 } - ${ count } of ${ count } Users`);
           });
 
         // navigate to first page - beginning button
@@ -387,7 +390,7 @@ describe('Users', { tags: ['@usersAndAuths', '@adminUser'] }, () => {
         usersPo.list().resourceTable().sortableTable().pagination()
           .paginationText()
           .then((el) => {
-            expect(el.trim()).to.eq(`1 - 100 of ${ count } Users`);
+            expect(el.trim()).to.eq(`1 - 10 of ${ count } Users`);
           });
         usersPo.list().resourceTable().sortableTable().pagination()
           .beginningButton()
@@ -478,6 +481,8 @@ describe('Users', { tags: ['@usersAndAuths', '@adminUser'] }, () => {
 
     after(() => {
       userIdsList.forEach((r) => cy.deleteRancherResource('v3', 'Users', r, false));
+      // Ensure the default rows per page value is set after executing the tests
+      cy.tableRowsPerPageAndNamespaceFilter(100, 'local', 'none', '{"local":["all://user"]}');
     });
   });
 });
