@@ -61,7 +61,7 @@ export class HeaderPo extends ComponentPo {
   }
 
   getKubectlExplainTooltipContent(): Cypress.Chainable {
-    return cy.get('.tooltip.vue-tooltip-theme .tooltip-inner');
+    return cy.get('.v-popper--theme-tooltip .v-popper__inner');
   }
 
   resourceSearchButton(): Cypress.Chainable {
