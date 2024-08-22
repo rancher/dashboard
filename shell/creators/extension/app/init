@@ -1,5 +1,7 @@
 #!/usr/bin/env node
+/* eslint-disable no-console */
 
+const { execSync } = require('child_process');
 const path = require('path');
 const fs = require('fs-extra');
 
@@ -25,7 +27,7 @@ console.log('Creating Skeleton Application');
 const args = process.argv;
 let appFolder = path.resolve('.');
 
-if (args.length === 3) {
+if ( args.length > 2 ) {
   const name = args[2];
   const folder = path.resolve('.');
 
@@ -35,6 +37,7 @@ if (args.length === 3) {
 }
 
 let addGitlabWorkflow = false;
+let addWorkflowFolder = true;
 
 // Check for Gitlab integration option
 if ( args.length > 3 ) {
@@ -42,6 +45,10 @@ if ( args.length > 3 ) {
     switch (args[i]) {
     case '-l':
       addGitlabWorkflow = true;
+      break;
+    case '--skip-workflow':
+    case '-w':
+      addWorkflowFolder = false;
       break;
     default:
       break;
@@ -53,10 +60,9 @@ if ( addGitlabWorkflow ) {
   files.push('.gitlab-ci.yml');
 }
 
-// Check that there is a package file
-
 let setName = false;
 
+// Check that there is a package file
 if (!fs.existsSync(path.join(appFolder, './package.json'))) {
   console.log('  Adding package.json');
   fs.copySync(path.join(__dirname, 'app.package.json'), path.join(appFolder, 'package.json'));
@@ -89,7 +95,11 @@ Object.keys(targets).forEach((target) => {
 const creatorPkgData = fs.readFileSync(path.join(__dirname, 'package.json'));
 const creatorPkg = JSON.parse(creatorPkgData);
 
-pkg.dependencies['@rancher/shell'] = `^${ creatorPkg.version }`;
+// Fetch the latest version of @rancher/shell
+const shellVersion = execSync('npm view @rancher/shell version').toString().trim();
+
+// Set the latest version of @rancher/shell in the dependencies
+pkg.dependencies['@rancher/shell'] = `^${ shellVersion }`;
 
 // Rest of dependencies are in the _pkgs property of package.json - copy then across
 if (creatorPkg._pkgs) {
@@ -100,6 +110,32 @@ if (creatorPkg._pkgs) {
 
 fs.writeFileSync(path.join(appFolder, 'package.json'), JSON.stringify(pkg, null, 2));
 
+// Add workflow folder if needed
+if ( addWorkflowFolder ) {
+  // Point to the workflow directory inside the skeleton application
+  const workflowDir = path.join(appFolder, '.github/workflows');
+
+  if ( !fs.existsSync(workflowDir) ) {
+    console.log('  Creating folder: .github/workflows');
+    fs.mkdirSync(workflowDir, { recursive: true });
+  }
+
+  const workflowFiles = [
+    'build-extension-catalog.yml',
+    'build-extension-charts.yml'
+  ];
+
+  workflowFiles.forEach((fileName) => {
+    const dest = path.join(workflowDir, fileName); // Destination in the skeleton application
+    const src = path.join(__dirname, 'files/.github/workflows', fileName); // Source in the package
+
+    if ( !fs.existsSync(dest) ) {
+      console.log(`  Adding file ${ fileName } to root workflows`);
+      fs.copySync(src, dest);
+    }
+  });
+}
+
 // Copy base files
 files.forEach((file) => {
   const src = path.join(__dirname, 'files', file);
@@ -108,7 +144,7 @@ files.forEach((file) => {
   if (!fs.existsSync(dest)) {
     console.log(`  Adding file: ${ file }`);
 
-    const folder = path.dirname(file);
+    const folder = path.dirname(dest);
 
     fs.ensureDirSync(folder);
 
@@ -117,4 +153,6 @@ files.forEach((file) => {
   }
 });
 
-console.log('');
+console.log('Skeleton Application creation complete.\n');
+
+/* eslint-enable no-console */

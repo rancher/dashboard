@@ -34,9 +34,7 @@ fi
 
 PKG_DIST=$BASE_DIR/dist-pkg/creators
 mkdir -p ${PKG_DIST}
-rm -rf ${PKG_DIST}/app
-rm -rf ${PKG_DIST}/pkg
-rm -rf ${PKG_DIST}/update
+rm -rf ${PKG_DIST}/extension
 
 pushd ${SHELL_DIR} >/dev/null
 
@@ -45,17 +43,11 @@ popd >/dev/null
 
 echo "Publishing version: $PKG_VERSION"
 
-cp -R ${SHELL_DIR}/creators/app ${PKG_DIST}
-cp -R ${SHELL_DIR}/creators/pkg ${PKG_DIST}
-cp -R ${SHELL_DIR}/creators/update ${PKG_DIST}
+cp -R ${SHELL_DIR}/creators/extension ${PKG_DIST}
 
-sed -i.bak -e "s/\"0.0.0/"\"$PKG_VERSION"/g" ${PKG_DIST}/app/package.json
-sed -i.bak -e "s/\"0.0.0/"\"$PKG_VERSION"/g" ${PKG_DIST}/pkg/package.json
-sed -i.bak -e "s/\"0.0.0/"\"$PKG_VERSION"/g" ${PKG_DIST}/update/package.json
+sed -i.bak -e "s/\"0.0.0/"\"$PKG_VERSION"/g" ${PKG_DIST}/extension/package.json
 
-rm ${PKG_DIST}/app/package.json.bak
-rm ${PKG_DIST}/pkg/package.json.bak
-rm ${PKG_DIST}/update/package.json.bak
+rm ${PKG_DIST}/extension/package.json.bak
 
 function publish() {
   NAME=$1
@@ -73,15 +65,13 @@ function publish() {
 
   if [ "$NAME" == "Update" ]; then
     # Add files from the app and pkg creators to the update package
-    mkdir -p ./app
-    mkdir -p ./pkg
-    cp -R ${BASE_DIR}/shell/creators/app/* ./app
-    cp -R ${BASE_DIR}/shell/creators/pkg/* ./pkg
+    mkdir -p ./extension
+    cp -R ${BASE_DIR}/shell/creators/extension/* ./extension
     # Remove index.ts from pkg files, as we don't want to replace that
-    rm -f ./pkg/files/index.ts
+    rm -f ./extension/pkg/files/index.ts
 
-    # Update the package.json for the app
-    cd app
+    # Update the package.json for the extension
+    cd extension
     node ${SCRIPT_DIR}/record-deps.js
     cd ..
   fi
@@ -105,9 +95,7 @@ ${SCRIPT_DIR}/typegen.sh
 
 # Publish the packages - don't tag the git repo and don't auto-increment the version number
 publish "Shell" ${SHELL_DIR}
-publish "Application creator" ${PKG_DIST}/app/
-publish "Package creator" ${PKG_DIST}/pkg/
-publish "Update" ${PKG_DIST}/update/
+publish "Extension creator" ${PKG_DIST}/extension/
 
 echo "Done"
 
