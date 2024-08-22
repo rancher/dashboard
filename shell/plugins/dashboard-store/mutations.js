@@ -1,4 +1,4 @@
-import { markRaw } from 'vue';
+import { markRaw, reactive } from 'vue';
 import { addObject, addObjects, clear, removeObject } from '@shell/utils/array';
 import { SCHEMA, COUNT } from '@shell/config/types';
 import { normalizeType, keyFieldFor } from '@shell/plugins/dashboard-store/normalize';
@@ -324,7 +324,7 @@ export function loadAll(state, {
   }
 
   const keyField = getters.keyFieldForType(type);
-  const proxies = data.map((x) => classify(ctx, x));
+  const proxies = reactive(data.map((x) => classify(ctx, x)));
   const cache = registerType(state, type);
 
   clear(cache.list);
@@ -454,7 +454,7 @@ export default {
     }
 
     const keyField = ctx.getters.keyFieldForType(type);
-    const proxies = data.map((x) => classify(ctx, x));
+    const proxies = reactive(data.map((x) => classify(ctx, x)));
     const cache = registerType(state, type);
 
     clear(cache.list);
