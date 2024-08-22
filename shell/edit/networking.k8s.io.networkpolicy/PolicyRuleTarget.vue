@@ -135,15 +135,6 @@ export default {
         });
       }
     },
-    updateMatches() {
-      return {
-        handler: throttle(function() {
-          this.matchingNamespaces = this.getMatchingNamespaces();
-          this.matchingPods = this.getMatchingPods();
-        }, this.throttle, { leading: true }),
-        immediate: true
-      };
-    },
     matchingNamespacesAndPods() {
       return {
         policyNamespace: this.namespace,
@@ -153,16 +144,40 @@ export default {
     }
   },
   watch: {
-    namespace:                    'updateMatches',
-    allNamespaces:                'updateMatches',
-    'value.podSelector':          'updateMatches',
-    'value.namespaceSelector':    'updateMatches',
-    'value.ipBlock.cidr':         'validateCIDR',
-    'value.ipBlock.except':       'validateCIDR',
-    podSelectorExpressions:       'updateMatches',
-    namespaceSelectorExpressions: 'updateMatches',
+    namespace: {
+      handler:   'updateMatches',
+      immediate: true
+    },
+    allNamespaces: {
+      handler:   'updateMatches',
+      immediate: true
+    },
+    'value.podSelector': {
+      handler:   'updateMatches',
+      immediate: true
+    },
+    'value.namespaceSelector': {
+      handler:   'updateMatches',
+      immediate: true
+    },
+    'value.ipBlock.cidr':   'validateCIDR',
+    'value.ipBlock.except': 'validateCIDR',
+    podSelectorExpressions: {
+      handler:   'updateMatches',
+      immediate: true
+    },
+    namespaceSelectorExpressions: {
+      handler:   'updateMatches',
+      immediate: true
+    }
   },
   methods: {
+    updateMatches() {
+      throttle(() => {
+        this.matchingNamespaces = this.getMatchingNamespaces();
+        this.matchingPods = this.getMatchingPods();
+      }, this.throttle, { leading: true })();
+    },
     validateCIDR() {
       const exceptCidrs = this.value[TARGET_OPTIONS.IP_BLOCK]?.except || [];
 

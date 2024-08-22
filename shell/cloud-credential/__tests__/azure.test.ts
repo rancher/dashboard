@@ -11,10 +11,10 @@ describe('cloud credentials: Azure', () => {
     props: {
       value: {
         decodedData: {
-          environment:    '',
-          subscriptionId: '',
-          clientId:       '',
-          clientSecret:   '',
+          environment:    'my-env',
+          subscriptionId: 'my-sub-id',
+          clientId:       'my-c-id',
+          clientSecret:   'my-c-secret',
         },
         setData: jest.fn()
       }
@@ -24,17 +24,6 @@ describe('cloud credentials: Azure', () => {
 
   it('should pass all the correct fields when checking if credentials are valid', async() => {
     const spyDispatch = jest.spyOn(mockStore, 'dispatch');
-
-    wrapper.setProps({
-      value: {
-        decodedData: {
-          environment:    'my-env',
-          subscriptionId: 'my-sub-id',
-          clientId:       'my-c-id',
-          clientSecret:   'my-c-secret',
-        }
-      }
-    });
 
     await wrapper.vm.test();
 
