@@ -128,7 +128,7 @@ export default defineComponent({
     updateLabels(): void {
       const nonPSALabels = pickBy(this.labels, (_, key) => !key.includes(this.labelsPrefix));
       const labels = PSAModes.reduce((acc, mode) => {
-        return this.psaControls[mode].active || this.labelsAlwaysActive ? {
+        return this.psaControls[mode]?.active || this.labelsAlwaysActive ? {
           ...acc,
           // Set default level if none
           [`${ this.labelsPrefix }${ mode }`]:         this.psaControls[mode].level || PSADefaultLevel,
