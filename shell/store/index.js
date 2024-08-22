@@ -2,7 +2,7 @@ import { BACK_TO } from '@shell/config/local-storage';
 import { setBrand, setVendor } from '@shell/config/private-label';
 import { NAME as EXPLORER } from '@shell/config/product/explorer';
 import {
-  LOGGED_OUT, IS_SSO, TIMED_OUT, UPGRADED, _FLAGGED
+  LOGGED_OUT, IS_SSO, IS_SLO, TIMED_OUT, UPGRADED, _FLAGGED
 } from '@shell/config/query-params';
 import { SETTING } from '@shell/config/settings';
 import {
@@ -1160,6 +1160,9 @@ export const actions = {
 
       // adds IS_SSO query param to login route if logout came with an auth provider enabled
       QUERY += (IS_SSO in route.query) ? `&${ IS_SSO }` : '';
+
+      // adds IS_SLO query param to login route if logout came with an auth provider with Single Logout enabled
+      QUERY += (IS_SLO in route.query) ? `&${ IS_SLO }` : '';
 
       // Go back to login and force a full page reload, this ensures we unload any dangling resources the user is no longer authorized to use (like extensions).
       // We use document instead of router because router does a clunky job of visiting a new page and reloading. In this case it would cause the login page to flash before actually reloading.

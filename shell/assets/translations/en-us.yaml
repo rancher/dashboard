@@ -507,6 +507,11 @@ authConfig:
     UID: UID Field
     adfs: Configure an AD FS account
     api: '{vendor} API Host'
+    sloTitle: Log Out behavior
+    sloOptions:
+      onlyRancher: Log out of Rancher and not {name}
+      logoutAll: Log out of Rancher and {name} (includes all other applications registered with {name})
+      choose: Allow the user to choose one of the above in an additional log out step
     cert:
       label: Certificate
       placeholder: Paste in the certificate, starting with -----BEGIN CERTIFICATE-----
@@ -3265,6 +3270,7 @@ login:
   welcome: Welcome to {vendor}
   loggedOut: You have been logged out.
   loggedOutFromSso: You've been logged out of Rancher, however you may still be logged in to your single sign-on identity provider.
+  loggedOutFromSlo: You've been logged out of Rancher and from your single sign-on identity provider.
   loginAgain: Log in again to continue.
   serverError:
     authFailedCreds: "Logging in failed: Check credentials, or your account may not be authorized to log in."
@@ -3289,6 +3295,10 @@ login:
 
 logout:
   message: Logging Out...
+  error: 'An error occurred logging out: {msg}'
+  specificError:
+    unknown: Unknown.\n\nPlease contact your system administrator.
+    500: "Server-side error.\n\nPlease contact your system administrator."
 
 managementNode:
   customName: Custom Name
@@ -4647,6 +4657,15 @@ promptScaleMachineDown:
   attemptingToRemove: "You are attempting to delete {count} {type}"
   retainedMachine1: At least one Machine must exist for roles Control Plane and Etcd.
   retainedMachine2: <b>{ name }</b> will remain
+
+promptSlo:
+  title: "Log out"
+  text: "Log out of only Rancher, or all {name} applications."
+  rancher:
+    active: Only log out of Rancher
+  all:
+    active: Log out of {name}
+    waiting: Logging Out
 
 promptRemove:
   title: Are you sure?
