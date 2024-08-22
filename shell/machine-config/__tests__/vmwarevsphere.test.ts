@@ -118,7 +118,7 @@ describe('component: vmwarevsphere', () => {
 
   describe('mapHostOptionsToContent', () => {
     const hostPlaceholder = {
-      label: 'cluster.machineConfig.vsphere.hostOptions.any',
+      label: '%cluster.machineConfig.vsphere.hostOptions.any%',
       value: SENTINEL
     };
     const testCases = [

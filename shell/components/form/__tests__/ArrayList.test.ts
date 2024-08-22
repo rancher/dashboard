@@ -78,12 +78,15 @@ describe('the ArrayList', () => {
     it('should emit value with updated row text', () => {
       const text = 'test';
       const expectation = [text];
-      const wrapper = mount(ArrayList as unknown as ExtendedVue<Vue, {}, {}, {}, DefaultProps>, { props: { value: [''] } });
+      const wrapper = mount(
+        ArrayList as unknown as ExtendedVue<Vue, {}, {}, {}, DefaultProps>,
+        { props: { value: [''] } }
+      );
       const event = { preventDefault: jest.fn(), clipboardData: { getData: jest.fn().mockReturnValue(text) } } as any;
 
       wrapper.vm.onPaste(0, event);
 
-      expect(wrapper.emitted().input?.[0][0]).toStrictEqual(expectation);
+      expect(wrapper.emitted('update:value')?.[0][0]).toStrictEqual(expectation);
     });
 
     it('should emit value with multiple rows', () => {
@@ -95,7 +98,7 @@ describe('the ArrayList', () => {
 
       wrapper.vm.onPaste(0, event);
 
-      expect(wrapper.emitted().input?.[0][0]).toStrictEqual(expectation);
+      expect(wrapper.emitted('update:value')?.[0][0]).toStrictEqual(expectation);
     });
 
     it('should allow emit multiline pasted values if enabled', () => {
@@ -112,7 +115,7 @@ describe('the ArrayList', () => {
 
       wrapper.vm.onPaste(0, event);
 
-      expect(wrapper.emitted().input?.[0][0]).toStrictEqual(expectation);
+      expect(wrapper.emitted('update:value')?.[0][0]).toStrictEqual(expectation);
     });
   });
 });

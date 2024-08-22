@@ -42,7 +42,7 @@ describe('component: LiveDate', () => {
 
     const element = wrapper.find('span');
 
-    expect(element.text()).toContain('5 secs');
+    expect(element.text()).toContain('5 %unit.sec%');
   });
 
   // this test calls a component method directly: we're testing this because it's how 'live' formatters are used in sortabletable
@@ -59,7 +59,7 @@ describe('component: LiveDate', () => {
     await wrapper.vm.liveUpdate(Date.now());
 
     element = wrapper.find('span');
-    expect(element.text()).toContain('1 sec');
+    expect(element.text()).toContain('1 %unit.sec%');
   });
 
   it('should include ago suffix if enabled', async() => {
@@ -70,13 +70,13 @@ describe('component: LiveDate', () => {
 
     const element = wrapper.find('span');
 
-    expect(element.text()).toContain('5 secs ago');
+    expect(element.text()).toContain('5 %unit.sec% ago');
   });
 
   it.each([
-    [86400000, '1 day'],
-    [82800000, '23 hours'],
-    [3540000, '59 mins']
+    [86400000, '1 %unit.day%'],
+    [82800000, '23 %unit.hour%'],
+    [3540000, '59 %unit.min%']
   ])('should use the largest sensible time unit', async(msAgo, displayValue) => {
     const wrapper = await mount(LiveDate as unknown as ExtendedVue<Vue, {}, {}, {}, DefaultProps>, {
       props:  { value: Date.now() - msAgo },

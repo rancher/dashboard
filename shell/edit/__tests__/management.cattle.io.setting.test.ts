@@ -5,19 +5,21 @@ import { SETTING } from '@shell/config/settings';
 describe('view: management.cattle.io.setting should', () => {
   const requiredSetup = () => ({
     // Remove all these mocks after migration to Vue 2.7/3 due mixin logic
-    mocks: {
-      $store: {
-        getters: {
-          currentStore:              () => 'current_store',
-          'current_store/schemaFor': jest.fn(),
-          'current_store/all':       jest.fn(),
-          'i18n/t':                  jest.fn(),
-          'i18n/exists':             jest.fn(),
+    global: {
+      mocks: {
+        $store: {
+          getters: {
+            currentStore:              () => 'current_store',
+            'current_store/schemaFor': jest.fn(),
+            'current_store/all':       jest.fn(),
+            'i18n/t':                  jest.fn(),
+            'i18n/exists':             jest.fn(),
+          },
+          dispatch: jest.fn(),
         },
-        dispatch: jest.fn(),
-      },
-      $route:  { query: { AS: '' } },
-      $router: { applyQuery: jest.fn() },
+        $route:  { query: { AS: '' } },
+        $router: { applyQuery: jest.fn() },
+      }
     }
   });
 

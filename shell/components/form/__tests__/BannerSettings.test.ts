@@ -22,6 +22,7 @@ describe('view: management.cattle.io.setting should', () => {
       },
       $route:  { query: { AS: '' } },
       $router: { applyQuery: jest.fn() },
+      stubs:   { TypeDescription: true }
     }
   });
 
@@ -33,8 +34,6 @@ describe('view: management.cattle.io.setting should', () => {
         bannerType: 'foo'
       },
 
-      computed: { hideDescriptions: () => true },
-
       data: () => ({
         vendor:      'Rancher',
         uiPLSetting: { vendor: 'Rancher' },
@@ -45,9 +44,7 @@ describe('view: management.cattle.io.setting should', () => {
         errors: [],
       }),
 
-      ...requiredSetup(),
-
-      global: { stubs: { TypeDescription: true } },
+      global: { ...requiredSetup() },
     });
 
     const colorInputPreview = wrapper.find('[data-testid="color-input-color-input_preview-container"]');

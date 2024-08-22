@@ -1,7 +1,7 @@
 import { nextTick } from 'vue';
 import { shallowMount } from '@vue/test-utils';
 import PromptRestore from '@shell/components/PromptRestore.vue';
-import Vuex, { createStore } from 'vuex';
+import { createStore } from 'vuex';
 import { ExtendedVue, Vue } from 'vue/types/vue';
 import { DefaultProps } from 'vue/types/options';
 import { CAPI, NORMAN } from '@shell/config/types';
@@ -88,10 +88,10 @@ describe('component: PromptRestore', () => {
       actions: { 'management/findAll': jest.fn().mockResolvedValue(snapShots), 'rancher/findAll': jest.fn().mockResolvedValue([]) }
     });
 
-    const wrapper = shallowMount(PromptRestore as unknown as ExtendedVue<Vue, {}, {}, {}, DefaultProps>, {
-      plugins: [Vuex],
-      global:  { plugins: [store] }
-    });
+    const wrapper = shallowMount(
+      PromptRestore as unknown as ExtendedVue<Vue, {}, {}, {}, DefaultProps>,
+      { global: { mocks: { $store: store } } }
+    );
 
     await wrapper.vm.fetchSnapshots();
     await nextTick();
@@ -126,10 +126,10 @@ describe('component: PromptRestore', () => {
       actions: { 'rancher/findAll': jest.fn().mockResolvedValue(snapShots) }
     });
 
-    const wrapper = shallowMount(PromptRestore as unknown as ExtendedVue<Vue, {}, {}, {}, DefaultProps>, {
-      plugins: [Vuex],
-      global:  { plugins: [store] }
-    });
+    const wrapper = shallowMount(
+      PromptRestore as unknown as ExtendedVue<Vue, {}, {}, {}, DefaultProps>,
+      { global: { mocks: { $store: store } } }
+    );
 
     await wrapper.vm.fetchSnapshots();
     await nextTick();

@@ -25,7 +25,7 @@ describe('component: Command', () => {
 
     input.setValue(newValue);
 
-    expect(wrapper.emitted('input')).toHaveLength(1);
+    expect(wrapper.emitted('update:value')).toHaveLength(1);
   });
 
   it.each([
@@ -41,7 +41,7 @@ describe('component: Command', () => {
 
     checkboxLabel.trigger('click');
 
-    expect(wrapper.emitted('input')).toHaveLength(1);
+    expect(wrapper.emitted('update:value')).toHaveLength(1);
   });
 
   it.each([
@@ -57,7 +57,7 @@ describe('component: Command', () => {
     await wrapper.trigger('keydown.down');
     await wrapper.trigger('keydown.enter');
 
-    expect(wrapper.emitted('input')).toHaveLength(1);
+    expect(wrapper.emitted('update:value')).toHaveLength(1);
   });
 });
 //

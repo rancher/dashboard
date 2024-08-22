@@ -8,20 +8,22 @@ describe('edit: management.cattle.io.setting should', () => {
   const ERROR_BANNER_SELECTOR = '[data-testid="banner-close"]';
   const requiredSetup = () => ({
     // Remove all these mocks after migration to Vue 2.7/3 due mixin logic
-    mocks: {
-      $store: {
-        dispatch: jest.fn(),
-        getters:  {
-          currentStore:              () => 'current_store',
-          'current_store/schemaFor': jest.fn(),
-          'current_store/all':       jest.fn(),
-          'i18n/t':                  jest.fn(),
-          'i18n/exists':             jest.fn(),
-          namespaces:                () => ({})
-        }
-      },
-      $route:  { query: { AS: '' }, name: '' },
-      $router: { applyQuery: jest.fn() }
+    global: {
+      mocks: {
+        $store: {
+          dispatch: jest.fn(),
+          getters:  {
+            currentStore:              () => 'current_store',
+            'current_store/schemaFor': jest.fn(),
+            'current_store/all':       jest.fn(),
+            'i18n/t':                  jest.fn(),
+            'i18n/exists':             jest.fn(),
+            namespaces:                () => ({})
+          }
+        },
+        $route:  { query: { AS: '' }, name: '' },
+        $router: { applyQuery: jest.fn() }
+      }
     }
   });
 

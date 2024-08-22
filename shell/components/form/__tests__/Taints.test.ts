@@ -17,10 +17,10 @@ describe('component: Taints', () => {
 
     expect(firstEffectInput.exists()).toBe(true);
 
-    expect(firstEffectInput.props().value).toBe('FOO_EFFECT');
-    expect(firstEffectInput.props().options).toStrictEqual([{ value: 'FOO_EFFECT', label: 'foo' }, { value: 'BAR_EFFECT', label: 'bar' }]);
+    expect(firstEffectInput.attributes().value).toBe('FOO_EFFECT');
+    expect(wrapper.vm.effectOptions).toStrictEqual([{ value: 'FOO_EFFECT', label: 'foo' }, { value: 'BAR_EFFECT', label: 'bar' }]);
 
-    const taintKV = wrapper.find('[data-testid="taints-keyvalue"]');
+    const taintKV = wrapper.findComponent('[data-testid="taints-keyvalue"]');
 
     taintKV.vm.add();
     await nextTick();
@@ -29,7 +29,7 @@ describe('component: Taints', () => {
 
     expect(secondEffectInput.exists()).toBe(true);
 
-    expect(secondEffectInput.props().value).toStrictEqual('FOO_EFFECT');
+    expect(secondEffectInput.attributes().value).toStrictEqual('FOO_EFFECT');
     expect(wrapper.vm.defaultAddData).toStrictEqual({ effect: 'FOO_EFFECT' });
   });
 
@@ -48,14 +48,14 @@ describe('component: Taints', () => {
 
     expect(firstEffectInput.exists()).toBe(true);
 
-    expect(firstEffectInput.props().value).toBe('');
-    expect(firstEffectInput.props().options).toStrictEqual(expectedEffectOptions);
+    expect(firstEffectInput.attributes().value).toBe('');
+    expect(wrapper.vm.effectOptions).toStrictEqual(expectedEffectOptions);
   });
 
   it('should set the effect value to NoSchedule by default', async() => {
     const wrapper = mount(Taints, { props: { value: [] } });
 
-    const taintKV = wrapper.find('[data-testid="taints-keyvalue"]');
+    const taintKV = wrapper.findComponent('[data-testid="taints-keyvalue"]');
 
     taintKV.vm.add();
     await nextTick();
@@ -64,7 +64,7 @@ describe('component: Taints', () => {
 
     expect(effectInput.exists()).toBe(true);
 
-    expect(effectInput.props().value).toStrictEqual('NoSchedule');
+    expect(effectInput.attributes().value).toStrictEqual('NoSchedule');
 
     expect(wrapper.vm.defaultAddData).toStrictEqual({ effect: 'NoSchedule' });
   });

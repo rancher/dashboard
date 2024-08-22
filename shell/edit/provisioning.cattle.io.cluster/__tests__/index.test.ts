@@ -1,5 +1,5 @@
 import { shallowMount } from '@vue/test-utils';
-import Vuex, { createStore } from 'vuex';
+import { createStore } from 'vuex';
 import ClusterCreate from '@shell/edit/provisioning.cattle.io.cluster/index.vue';
 
 describe('component: Cluster: Create', () => {
@@ -53,13 +53,9 @@ describe('component: Cluster: Create', () => {
         componentTestid: 'cluster-manager-create',
       },
 
-      mixins:  [],
-      plugins: [Vuex],
-
       global: {
-        plugins: [store],
-
         mocks: {
+          $store:      store,
           $route:      { params: {}, query: {} },
           $router:     { applyQuery: jest.fn() },
           $fetchState: { pending: false },
@@ -69,8 +65,8 @@ describe('component: Cluster: Create', () => {
       },
     });
 
-    const element = wrapper.find('[data-testid="cluster-manager-create-rke-switch"]').element;
+    const element = wrapper.find('[data-testid="cluster-manager-create-rke-switch"]');
 
-    expect(element).not.toBeDefined();
+    expect(element.exists()).toBe(false);
   });
 });
