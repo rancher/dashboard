@@ -200,9 +200,7 @@ export default {
       :use-query-params-for-simple-filtering="useQueryParamsForSimpleFiltering"
       :force-update-live-and-delayed="forceUpdateLiveAndDelayed"
     >
-      <template
-        cell:name="scope"
-      >
+      <template #cell:name="scope">
         <div class="feature-name">
           <div>{{ scope.row.nameDisplay }}</div>
           <i
