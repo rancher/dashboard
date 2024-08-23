@@ -9,16 +9,17 @@ BASE_DIR="$(
 SHELL_DIR=$BASE_DIR/shell
 CREATORS_DIR=$BASE_DIR/shell/creators/extension
 
-# let's get the package name and version from the tag
-cat "BASE_DIR: ${BASE_DIR}" 
-cat "TAG: ${TAG}"
+echo "TAG ${TAG}"
 
+# let's get the package name and version from the tag
+# first step string split
 IFS='-pkg-v'
 
 read -r TEMP_STR <<<$TAG
 
 echo "TEMP_STR ${TEMP_STR}"
 
+# final step string split
 IFS=' '
 
 read -r PKG_NAME PKG_VERSION <<<$TEMP_STR
@@ -26,6 +27,7 @@ read -r PKG_NAME PKG_VERSION <<<$TEMP_STR
 echo "PKG_NAME ${PKG_NAME}"
 echo "PKG_VERSION ${PKG_VERSION}"
 
+# version comparison checks
 if [ "$PKG_NAME" == "shell" ]; then
   SHELL_VERSION=$(jq -r .version ${SHELL_DIR}/package.json)
   if [ "$SHELL_VERSION" == "$PKG_VERSION" ]; then

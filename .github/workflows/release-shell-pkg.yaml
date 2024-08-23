@@ -23,6 +23,8 @@ jobs:
         node-version-file: '.nvmrc'
 
     - name: Check Tags Version Matching
+      env:
+        TAG: ${{github.ref_name}}
       run: ./.github/workflows/scripts/check-package-tag-version.sh
       shell: bash
 
