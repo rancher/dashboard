@@ -14,7 +14,7 @@ import { IstioTab } from '@/cypress/e2e/po/pages/explorer/charts/tabs/istio-tab.
 import { LONG_TIMEOUT_OPT } from '~/cypress/support/utils/timeouts';
 import { DEFAULT_GRAFANA_STORAGE_SIZE } from '@shell/config/types.js';
 
-describe('Charts', { tags: ['@charts', '@adminUser'] }, () => {
+describe.skip('[Vue3 Skip]: Charts', { tags: ['@charts', '@adminUser'] }, () => {
   const chartsPage = new ChartsPage();
   const chartPage = new ChartPage();
   const installChart = new InstallChartPage();

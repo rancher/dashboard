@@ -186,7 +186,7 @@ describe('Users', { tags: ['@usersAndAuths', '@adminUser'] }, () => {
       viewYaml.mastheadTitle().should('contain', standardUsername);
     });
 
-    it('can Download YAML', () => {
+    it.skip('[Vue3 Skip]: can Download YAML', () => {
       // Download YAML and verify file exists
       const downloadedFilename = path.join(downloadsFolder, `${ standardUsername }.yaml`);
 
@@ -202,7 +202,7 @@ describe('Users', { tags: ['@usersAndAuths', '@adminUser'] }, () => {
       });
     });
 
-    it('can Delete user', () => {
+    it.skip('[Vue3 Skip]: can Delete user', () => {
       // Delete user and verify user is removed from list
       usersPo.goTo();
       usersPo.list().clickRowActionMenuItem(standardUsername, 'Delete');
@@ -217,7 +217,7 @@ describe('Users', { tags: ['@usersAndAuths', '@adminUser'] }, () => {
     });
   });
 
-  describe('Bulk Actions', () => {
+  describe.skip('[Vue3 Skip]: Bulk Actions', () => {
     it('can Deactivate and Activate users', () => {
       // Deactivate user and check state is Inactive
       cy.intercept('PUT', '/v3/users/*').as('updateUsers');

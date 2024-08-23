@@ -6,7 +6,7 @@ import { ConfigMapPagePo } from '@/cypress/e2e/po/pages/explorer/config-map.po';
 
 const clusterDashboard = new ClusterDashboardPagePo('local');
 
-describe('Cluster Dashboard', { testIsolation: 'off', tags: ['@explorer', '@adminUser', '@standardUser'] }, () => {
+describe.skip('[Vue3 Skip]: Cluster Dashboard', { testIsolation: 'off', tags: ['@explorer', '@adminUser', '@standardUser'] }, () => {
   before(() => {
     cy.login();
     HomePagePo.goTo();

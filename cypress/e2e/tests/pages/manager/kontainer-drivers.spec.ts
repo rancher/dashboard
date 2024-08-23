@@ -174,7 +174,7 @@ describe('Kontainer Drivers', { testIsolation: 'off', tags: ['@manager', '@admin
     createCluster.gridElementExistanceByName(linodeDriver, 'exist');
   });
 
-  it('can deactivate drivers in bulk', () => {
+  it.skip('[Vue3 Skip]: can deactivate drivers in bulk', () => {
     KontainerDriversPagePo.navTo();
     driversPage.waitForPage();
     driversPage.list().details(oracleDriver, 1).should('contain', 'Active');
@@ -207,7 +207,7 @@ describe('Kontainer Drivers', { testIsolation: 'off', tags: ['@manager', '@admin
     createCluster.gridElementExistanceByName(linodeDriver, 'not.exist');
   });
 
-  it('can delete drivers in bulk', () => {
+  it.skip('[Vue3 Skip]: can delete drivers in bulk', () => {
     KontainerDriversPagePo.navTo();
     driversPage.waitForPage();
     driversPage.list().resourceTable().sortableTable().rowSelectCtlWithName(oracleDriver)

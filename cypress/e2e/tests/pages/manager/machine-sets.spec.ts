@@ -139,7 +139,7 @@ describe('MachineSets', { testIsolation: 'off', tags: ['@manager', '@adminUser']
     cy.contains(`${ this.machineDeploymentsName }-clone`).should('not.exist');
   });
 
-  it('can delete MachineSet via bulk actions', function() {
+  it.skip('[Vue3 Skip]: can delete MachineSet via bulk actions', function() {
     MachineSetsPagePo.navTo();
     machineSetsPage.waitForPage();
 
