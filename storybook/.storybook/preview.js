@@ -5,7 +5,7 @@ import { themes } from '@storybook/theming';
 import installShortcut from './theme-shortcut';
 import withEvents from 'storybook-auto-events';
 import cleanTooltipDirective  from '@shell/directives/clean-tooltip';
-import ShortKey from 'vue-shortkey';
+import ShortKey from '@shell/plugins/shortkey';
 import cleanHtmlDirective from '@shell/directives/clean-html';
 import store from './store'
 
