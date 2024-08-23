@@ -1,9 +1,10 @@
-<script>
+<script lang="ts">
+import { defineComponent } from 'vue';
 import { mapPref, AFTER_LOGIN_ROUTE, READ_WHATS_NEW, HIDE_HOME_PAGE_CARDS } from '@shell/store/prefs';
 import { Banner } from '@components/Banner';
 import BannerGraphic from '@shell/components/BannerGraphic';
 import IndentedPanel from '@shell/components/IndentedPanel';
-import SortableTable from '@shell/components/SortableTable';
+import PaginatedResourceTable, { FetchPageSecondaryResourcesOpts, FetchSecondaryResourcesOpts } from '@shell/components/PaginatedResourceTable.vue';
 import { BadgeState } from '@components/BadgeState';
 import CommunityLinks from '@shell/components/CommunityLinks';
 import SingleClusterInfo from '@shell/components/SingleClusterInfo';
@@ -18,19 +19,23 @@ import PageHeaderActions from '@shell/mixins/page-actions';
 import { getVendor } from '@shell/config/private-label';
 import { mapFeature, MULTI_CLUSTER } from '@shell/store/features';
 import { BLANK_CLUSTER } from '@shell/store/store-types.js';
-import { filterOnlyKubernetesClusters, filterHiddenLocalCluster } from '@shell/utils/cluster';
+import { filterOnlyKubernetesClusters, filterHiddenLocalCluster, paginationFilterOnlyKubeClusters } from '@shell/utils/cluster';
 import TabTitle from '@shell/components/TabTitle';
+import { ActionFindPageArgs } from '@shell/types/store/dashboard-store.types';
 
 import { RESET_CARDS_ACTION, SET_LOGIN_ACTION } from '@shell/config/page-actions';
+import { STEVE_NAME_COL, STEVE_STATE_COL } from 'config/pagination-table-headers';
+import { PaginationParamFilter, FilterArgs, PaginationFilterField } from 'types/store/pagination.types';
+import ProvCluster from 'models/provisioning.cattle.io.cluster';
 
-export default {
+export default defineComponent({
   name:       'Home',
   layout:     'home',
   components: {
     Banner,
     BannerGraphic,
     IndentedPanel,
-    SortableTable,
+    PaginatedResourceTable,
     BadgeState,
     CommunityLinks,
     SingleClusterInfo,
@@ -39,99 +44,53 @@ export default {
 
   mixins: [PageHeaderActions],
 
-  fetch() {
-    if ( this.$store.getters['management/schemaFor'](CAPI.RANCHER_CLUSTER) ) {
-      this.$store.dispatch('management/findAll', { type: CAPI.RANCHER_CLUSTER });
-    }
-
-    if ( this.$store.getters['management/schemaFor'](MANAGEMENT.CLUSTER) ) {
-      this.$store.dispatch('management/findAll', { type: MANAGEMENT.CLUSTER });
-    }
-
-    if ( this.$store.getters['management/canList'](CAPI.MACHINE) ) {
-      this.$store.dispatch('management/findAll', { type: CAPI.MACHINE });
-    }
-
-    if ( this.$store.getters['management/canList'](MANAGEMENT.NODE) ) {
-      this.$store.dispatch('management/findAll', { type: MANAGEMENT.NODE });
-    }
-
-    // We need to fetch node pools and node templates in order to correctly show the provider for RKE1 clusters
-    if ( this.$store.getters['management/canList'](MANAGEMENT.NODE_POOL) ) {
-      this.$store.dispatch('management/findAll', { type: MANAGEMENT.NODE_POOL });
-    }
-
-    if ( this.$store.getters['management/canList'](MANAGEMENT.NODE_TEMPLATE) ) {
-      this.$store.dispatch('management/findAll', { type: MANAGEMENT.NODE_TEMPLATE });
-    }
-  },
-
   data() {
-    const fullVersion = getVersionInfo(this.$store).fullVersion;
-    // Page actions don't change on the Home Page
-    const pageActions = [
-      {
-        labelKey: 'nav.header.setLoginPage',
-        action:   SET_LOGIN_ACTION
-      },
-      { separator: true },
-      {
-        labelKey: 'nav.header.restoreCards',
-        action:   RESET_CARDS_ACTION
-      },
-    ];
-
     return {
-      HIDE_HOME_PAGE_CARDS, fullVersion, pageActions, vendor: getVendor(),
-    };
-  },
+      HIDE_HOME_PAGE_CARDS,
+      fullVersion: getVersionInfo(this.$store).fullVersion,
+      // Page actions don't change on the Home Page
+      pageActions: [
+        {
+          labelKey: 'nav.header.setLoginPage',
+          action:   SET_LOGIN_ACTION
+        },
+        { separator: true },
+        {
+          labelKey: 'nav.header.restoreCards',
+          action:   RESET_CARDS_ACTION
+        },
+      ],
+      vendor: getVendor(),
 
-  computed: {
-    ...mapState(['managementReady']),
-    ...mapGetters(['currentCluster', 'defaultClusterId', 'releaseNotesUrl']),
-    mcm: mapFeature(MULTI_CLUSTER),
+      paginationRequestFilters: paginationFilterOnlyKubeClusters(this.$store),
 
-    provClusters() {
-      return this.$store.getters['management/all'](CAPI.RANCHER_CLUSTER);
-    },
+      provClusterSchema: this.$store.getters['management/schemaFor'](CAPI.RANCHER_CLUSTER),
 
-    // User can go to Cluster Management if they can see the cluster schema
-    canManageClusters() {
-      const schema = this.$store.getters['management/schemaFor'](CAPI.RANCHER_CLUSTER);
+      canViewMgmtClusters:  !!this.$store.getters['management/schemaFor'](MANAGEMENT.CLUSTER),
+      canViewMachine:       !!this.$store.getters['management/canList'](CAPI.MACHINE),
+      canViewMgmtNodes:     !!this.$store.getters['management/canList'](MANAGEMENT.NODE),
+      canViewMgmtPools:     !!this.$store.getters['management/canList'](MANAGEMENT.NODE_POOL),
+      canViewMgmtTemplates: !!this.$store.getters['management/canList'](MANAGEMENT.NODE_TEMPLATE),
 
-      return !!schema;
-    },
-
-    canCreateCluster() {
-      const schema = this.$store.getters['management/schemaFor'](CAPI.RANCHER_CLUSTER);
-
-      return !!schema?.collectionMethods.find((x) => x.toLowerCase() === 'post');
-    },
-
-    manageLocation() {
-      return {
+      manageLocation: {
         name:   'c-cluster-product-resource',
         params: {
           product:  MANAGER,
           cluster:  BLANK_CLUSTER,
           resource: CAPI.RANCHER_CLUSTER
         },
-      };
-    },
+      },
 
-    createLocation() {
-      return {
+      createLocation: {
         name:   'c-cluster-product-resource-create',
         params: {
           product:  MANAGER,
           cluster:  BLANK_CLUSTER,
           resource: CAPI.RANCHER_CLUSTER
         },
-      };
-    },
+      },
 
-    importLocation() {
-      return {
+      importLocation: {
         name:   'c-cluster-product-resource-create',
         params: {
           product:  MANAGER,
@@ -139,22 +98,9 @@ export default {
           resource: CAPI.RANCHER_CLUSTER
         },
         query: { [MODE]: _IMPORT }
-      };
-    },
+      },
 
-    afterLoginRoute: mapPref(AFTER_LOGIN_ROUTE),
-    homePageCards:   mapPref(HIDE_HOME_PAGE_CARDS),
-
-    readWhatsNewAlready() {
-      return readReleaseNotes(this.$store);
-    },
-
-    showSetLoginBanner() {
-      return this.homePageCards?.setLoginPage;
-    },
-
-    clusterHeaders() {
-      return [
+      headers: [
         STATE,
         {
           name:          'name',
@@ -162,7 +108,7 @@ export default {
           value:         'nameDisplay',
           sort:          ['nameSort'],
           canBeVariable: true,
-          getValue:      (row) => row.mgmt?.nameDisplay
+          getValue:      (row: ProvCluster) => row.mgmt?.nameDisplay
         },
         {
           label:     this.t('landing.clusters.provider'),
@@ -203,12 +149,79 @@ export default {
         //   name:  'explorer',
         //   label:  this.t('landing.clusters.explorer')
         // }
-      ];
+      ],
+
+      paginationHeaders: [
+        STEVE_STATE_COL,
+        {
+          ...STEVE_NAME_COL,
+          canBeVariable: true,
+          // TODO: RC ISSUE describe. search sort on prov meta namespace
+          getValue:      (row: ProvCluster) => row.mgmt?.nameDisplay
+        },
+        {
+          label:     this.t('landing.clusters.provider'),
+          subLabel:  this.t('landing.clusters.distro'),
+          value:     'mgmt.status.provider',
+          name:      'Provider',
+          sort:      false,
+          search:    false,
+          // TODO: RC ISSUE describe. search sort on prov meta namespace
+          formatter: 'ClusterProvider'
+        },
+        {
+          label:    this.t('landing.clusters.kubernetesVersion'),
+          subLabel: this.t('landing.clusters.architecture'),
+          name:     'kubernetesVersion',
+        },
+        {
+          label:  this.t('tableHeaders.cpu'),
+          value:  '',
+          name:   'cpu',
+          sort:   ['status.allocatable.cpu'],
+          search: false,
+        },
+        {
+          label:  this.t('tableHeaders.memory'),
+          value:  '',
+          name:   'memory',
+          sort:   ['status.allocatable.memory'],
+          search: false,
+        },
+        {
+          label:        this.t('tableHeaders.pods'),
+          name:         'pods',
+          value:        '',
+          sort:         ['status.allocatable.pods'],
+          search:       false,
+          formatter:    'PodsUsage',
+          delayLoading: true
+        },
+      ],
+
+      clusterCount: 0,
+    };
+  },
+
+  computed: {
+    ...mapState(['managementReady']),
+    ...mapGetters(['currentCluster', 'defaultClusterId', 'releaseNotesUrl']),
+    mcm: mapFeature(MULTI_CLUSTER),
+
+    canCreateCluster() {
+      return !!this.provClusterSchema?.collectionMethods.find((x: string) => x.toLowerCase() === 'post');
     },
 
-    kubeClusters() {
-      return filterHiddenLocalCluster(filterOnlyKubernetesClusters(this.provClusters || [], this.$store), this.$store);
-    }
+    afterLoginRoute: mapPref(AFTER_LOGIN_ROUTE),
+    homePageCards:   mapPref(HIDE_HOME_PAGE_CARDS),
+
+    readWhatsNewAlready() {
+      return readReleaseNotes(this.$store);
+    },
+
+    showSetLoginBanner() {
+      return this.homePageCards?.setLoginPage;
+    },
   },
 
   async created() {
@@ -226,11 +239,129 @@ export default {
   },
 
   methods: {
+    fetchSecondaryResources(opts: FetchSecondaryResourcesOpts) {
+      if ( this.canViewMgmtClusters ) {
+        this.$store.dispatch('management/findAll', { type: MANAGEMENT.CLUSTER });
+      }
+
+      if ( this.canViewMachine ) {
+        this.$store.dispatch('management/findAll', { type: CAPI.MACHINE });
+      }
+
+      if ( this.canViewMgmtNodes ) {
+        this.$store.dispatch('management/findAll', { type: MANAGEMENT.NODE });
+      }
+
+      // We need to fetch node pools and node templates in order to correctly show the provider for RKE1 clusters
+      if ( this.canViewMgmtPools ) {
+        this.$store.dispatch('management/findAll', { type: MANAGEMENT.NODE_POOL });
+      }
+
+      if ( this.canViewMgmtTemplates ) {
+        this.$store.dispatch('management/findAll', { type: MANAGEMENT.NODE_TEMPLATE });
+      }
+    },
+
+    async fetchPageSecondaryResources({
+      canPaginate, force, page, pagResult
+    }: FetchPageSecondaryResourcesOpts) {
+      if (!canPaginate || !page?.length) {
+        this.clusterCount = 0;
+
+        return;
+      }
+
+      this.clusterCount = pagResult.count;
+
+      if ( this.canViewMgmtClusters ) {
+        const opt: ActionFindPageArgs = {
+          force,
+          pagination: new FilterArgs({}),
+          // TODO: RC API blocked on missing id
+          // pagination: new FilterArgs({
+          //   filters: PaginationParamFilter.createMultipleFields(page.map((r: any) => new PaginationFilterField({
+          //     field: 'id',
+          //     value: r.status?.clusterName // TODO: handle empty status
+          //   }))),
+          // })
+        };
+
+        this.$store.dispatch(`management/findPage`, { type: MANAGEMENT.CLUSTER, opt });
+      }
+
+      if ( this.canViewMgmtClusters ) {
+        const opt: ActionFindPageArgs = {
+          force,
+          pagination: new FilterArgs({}),
+          // TODO: RC API blocked on missing spec.clusterName
+          // pagination: new FilterArgs({
+          //   filters: PaginationParamFilter.createMultipleFields(page.map((r: any) => new PaginationFilterField({
+          //     field: 'spec.clusterName',// TODO: handle empty spec
+          //     value: r.metadata.name
+          //   }))),
+          // })
+        };
+
+        this.$store.dispatch(`management/findPage`, { type: CAPI.MACHINE, opt });
+      }
+
+      if ( this.canViewMgmtNodes ) {
+        const opt: ActionFindPageArgs = {
+          force,
+          pagination: new FilterArgs({}),
+          // TODO: RC API blocked on missing id
+          // pagination: new FilterArgs({
+          //   filters: PaginationParamFilter.createMultipleFields(page.map((r: any) => new PaginationFilterField({
+          //     field: 'id',
+          //     value: r.mgmtClusterId (partial)
+          //   }))),
+          // })
+        };
+
+        this.$store.dispatch(`management/findPage`, { type: MANAGEMENT.NODE, opt });
+      }
+
+      // We need to fetch node pools and node templates in order to correctly show the provider for RKE1 clusters
+      if ( this.canViewMgmtPools && this.canViewMgmtTemplates) {
+        const poolOpt: ActionFindPageArgs = {
+          force,
+          pagination: new FilterArgs({}),
+          // TODO: RC API blocked on missing spec.clusterName
+          // pagination: new FilterArgs({
+          //   filters: PaginationParamFilter.createMultipleFields(page.map((r: any) => new PaginationFilterField({
+          //     field: 'spec.clusterName',
+          //     value: r.status?.clusterName// TODO: handle empty spec
+          //   }))),
+          // })
+        };
+
+        this.$store.dispatch(`management/findPage`, { type: MANAGEMENT.NODE_POOL, opt: poolOpt });
+
+        const templateOpt: ActionFindPageArgs = {
+          force,
+          pagination: new FilterArgs({}),
+          // TODO: RC API blocked on missing spec.clusterName
+          // pagination: new FilterArgs({
+          //   filters: PaginationParamFilter.createMultipleFields(page.map((r: any) => new PaginationFilterField({
+          //     field: 'spec.clusterName',
+          //     value: r.status?.clusterName// TODO: handle empty spec
+          //   }))),
+          // })
+        };
+
+        this.$store.dispatch(`management/findPage`, { type: MANAGEMENT.NODE_TEMPLATE, opt: templateOpt });
+      }
+    },
+
+    filterRows(rows: ProvCluster[] = []) { // TODO: RC shouldn't this be passed in??
+      return filterHiddenLocalCluster(filterOnlyKubernetesClusters(rows, this.$store), this.$store);
+    },
+
     /**
      * Define actions for each navigation link
      * @param {*} action
      */
-    handlePageAction(action) {
+    handlePageAction(action: any) {
       switch (action.action) {
       case RESET_CARDS_ACTION:
         this.resetCards();
@@ -244,21 +375,22 @@ export default {
       }
     },
 
-    cpuUsed(cluster) {
+    cpuUsed(cluster: any) {
       return parseSi(cluster.status.requested?.cpu);
     },
 
-    cpuAllocatable(cluster) {
+    cpuAllocatable(cluster: any) {
       return parseSi(cluster.status.allocatable?.cpu);
     },
-    memoryAllocatable(cluster) {
+
+    memoryAllocatable(cluster: any) {
       const parsedAllocatable = (parseSi(cluster.status.allocatable?.memory) || 0).toString();
       const format = createMemoryFormat(parsedAllocatable);
 
       return formatSi(parsedAllocatable, format);
     },
 
-    memoryReserved(cluster) {
+    memoryReserved(cluster: any) {
       const memValues = createMemoryValues(cluster?.status?.allocatable?.memory, cluster?.status?.requested?.memory);
 
       return `${ memValues.useful }/${ memValues.total } ${ memValues.units }`;
@@ -293,9 +425,10 @@ export default {
       }
     }
   }
-};
+});
 
 </script>
+
 <template>
   <div
     v-if="managementReady"
@@ -366,13 +499,21 @@ export default {
               v-if="mcm"
               class="col span-12"
             >
-              <SortableTable
+              <!-- // TODO: RC check loading indicator when pagination off -->
+              <PaginatedResourceTable
+                :schema="provClusterSchema"
                 :table-actions="false"
                 :row-actions="false"
                 key-field="id"
-                :rows="kubeClusters"
-                :headers="clusterHeaders"
-                :loading="!kubeClusters"
+                :headers="headers"
+                :pagination-headers="paginationHeaders"
+                context="home"
+
+                :namespaced="false"
+                :request-filters="paginationRequestFilters"
+                manualRefreshButtonSize="sm"
+                :fetchSecondaryResources="fetchSecondaryResources"
+                :fetchPageSecondaryResources="fetchPageSecondaryResources"
               >
                 <template #header-left>
                   <div class="row table-heading">
@@ -380,19 +521,19 @@ export default {
                       {{ t('landing.clusters.title') }}
                     </h2>
                     <BadgeState
-                      v-if="kubeClusters"
-                      :label="kubeClusters.length.toString()"
+                      v-if="clusterCount"
+                      :label="clusterCount"
                       color="role-tertiary ml-20 mr-20"
                     />
                   </div>
                 </template>
                 <template
-                  v-if="canCreateCluster || canManageClusters"
+                  v-if="canCreateCluster || !!provClusterSchema"
                   #header-middle
                 >
                   <div class="table-heading">
                     <router-link
-                      v-if="canManageClusters"
+                      v-if="!!provClusterSchema"
                       :to="manageLocation"
                       class="btn btn-sm role-secondary"
                       data-testid="cluster-management-manage-button"
@@ -483,7 +624,7 @@ export default {
                     {{ t('landing.clusters.explore') }}
                   </button>
                 </template> -->
-              </SortableTable>
+              </PaginatedResourceTable>
             </div>
             <div
               v-else
@@ -498,6 +639,7 @@ export default {
     </IndentedPanel>
   </div>
 </template>
+
 <style lang='scss' scoped>
   .home-panels {
     display: flex;
@@ -587,6 +729,7 @@ export default {
     }
   }
 </style>
+
 <style lang="scss">
 .home-page {
   .search {

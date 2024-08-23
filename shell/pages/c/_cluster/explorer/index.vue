@@ -459,16 +459,6 @@ export default {
       return !!this.currentCluster?.spec?.description;
     },
 
-    allEventsLink() {
-      return {
-        name:   'c-cluster-product-resource',
-        params: {
-          product:  EXPLORER,
-          resource: EVENT,
-        }
-      };
-    },
-
     allSecretsLink() {
       return {
         name:   'c-cluster-product-resource',
@@ -723,11 +713,6 @@ export default {
           :label="t('clusterIndexPage.sections.events.label')"
           :weight="2"
         >
-          <span class="events-table-link">
-            <router-link :to="allEventsLink">
-              <span>{{ t('glance.eventsTable') }}</span>
-            </router-link>
-          </span>
           <EventsTable />
         </Tab>
         <Tab
@@ -888,7 +873,7 @@ export default {
   }
 }
 
-.events-table-link, .cert-table-link {
+.cert-table-link {
   display: flex;
   justify-content: flex-end;
   margin-bottom: 20px;

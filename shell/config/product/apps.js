@@ -10,6 +10,7 @@ import {
 
 import { CATALOG } from '@shell/config/types';
 import { DSL } from '@shell/store/type-map';
+import { STEVE_AGE_COL, STEVE_NAMESPACE_COL, STEVE_NAME_COL, STEVE_STATE_COL } from 'config/pagination-table-headers';
 
 export const NAME = 'apps';
 
@@ -75,41 +76,75 @@ export function init(store) {
     dashIfEmpty: true,
   };
 
-  headers(CATALOG.APP, [STATE, NAME_COL, NAMESPACE, CHART, CHART_UPGRADE, APP_SUMMARY, AGE]);
+  headers(CATALOG.APP,
+    [STATE, NAME_COL, NAMESPACE, CHART, CHART_UPGRADE, APP_SUMMARY, AGE],
+    [STEVE_STATE_COL, STEVE_NAME_COL, STEVE_NAMESPACE_COL, {
+      ...CHART,
+      sort:   false, // 'spec.chart.metadata.name' // TODO: RC works at moment, won't soon?
+      search: false,
+    }, {
+      ...CHART_UPGRADE,
+      sort:   false,
+      search: false,
+    },
+    APP_SUMMARY,
+    STEVE_AGE_COL]
+  );
   headers(CATALOG.REPO, [STATE, NAME_COL, NAMESPACE, repoType, repoUrl, repoBranch, AGE]);
-  headers(CATALOG.CLUSTER_REPO, [STATE, NAME_COL, repoType, repoUrl, repoBranch, AGE]);
+  headers(CATALOG.CLUSTER_REPO,
+    [STATE, NAME_COL, repoType, repoUrl, repoBranch, AGE],
+    [STEVE_STATE_COL, STEVE_NAME_COL, {
+      ...repoType,
+      // spec.gitRepo 'git || spec.url oci | http || ?
+      sort:   ['spec.gitRepo'],
+      search: false,
+    }, {
+      ...repoUrl,
+      // urlDisplay --> status.url || spec.gitRepo || spec.url
+      sort:   false,
+      search: false,
+    },
+    repoBranch]
+  );
+
+  const opAction = {
+    name:     'action',
+    label:    'Action',
+    sort:     'status.action',
+    value:    'status.action',
+    labelKey: 'catalog.operation.tableHeaders.action',
+  };
+  const opReleaseNs = {
+    name:     'releaseNamespace',
+    label:    'Tgt Namespace',
+    sort:     'status.namespace',
+    value:    'status.namespace',
+    labelKey: 'catalog.operation.tableHeaders.releaseNamespace',
+  };
+  const opReleaseName = {
+    name:     'releaseName',
+    label:    'Tgt Release',
+    sort:     'status.releaseName',
+    value:    'status.releaseName',
+    labelKey: 'catalog.operation.tableHeaders.releaseName',
+  };
+
   headers(CATALOG.OPERATION, [
     STATE,
     NAME_COL,
     NAMESPACE,
-    {
-      name:     'action',
-      label:    'Action',
-      sort:     'status.action',
-      value:    'status.action',
-      labelKey: 'catalog.operation.tableHeaders.action',
-    },
-    {
-      name:     'releaseNamespace',
-      label:    'Tgt Namespace',
-      sort:     'status.namespace',
-      value:    'status.namespace',
-      labelKey: 'catalog.operation.tableHeaders.releaseNamespace',
-    },
-    {
-      name:     'releaseName',
-      label:    'Tgt Release',
-      sort:     'status.releaseName',
-      value:    'status.releaseName',
-      labelKey: 'catalog.operation.tableHeaders.releaseName',
-    },
+    opAction,
+    opReleaseNs,
+    opReleaseName,
     AGE
+  ],
+  [
+    STEVE_STATE_COL,
+    STEVE_NAME_COL,
+    STEVE_NAMESPACE_COL,
+    opAction,
+    opReleaseNs,
+    opReleaseName,
+    STEVE_AGE_COL
   ]);
 }
-
-//   name:      'cpu',
-//   labelKey:  'tableHeaders.cpu',
-//   sort:      'cpu',
-//   value:     'cpuUsagePercentage',
-//   formatter: 'PercentageBar'
-// };

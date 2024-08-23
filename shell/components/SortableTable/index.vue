@@ -335,7 +335,13 @@ export default {
     externalPaginationResult: {
       type:    Object,
       default: null
+    },
+
+    manualRefreshButtonSize: {
+      type:    String,
+      default: ''
     }
+
   },
 
   data() {
@@ -545,9 +551,10 @@ export default {
     showHeaderRow() {
       return this.search ||
         this.tableActions ||
-        this.$slots['header-left']?.length ||
-        this.$slots['header-middle']?.length ||
-        this.$slots['header-right']?.length;
+        this.$scopedSlots['header-left'] ||
+        this.$scopedSlots['header-middle'] ||
+        this.$scopedSlots['header-right'] ||
+        this.isTooManyItemsToAutoUpdate;
     },
 
     columns() {
@@ -1084,14 +1091,14 @@ export default {
           </slot>
         </div>
         <div
-          v-if="!hasAdvancedFiltering && ($slots['header-middle'] && $slots['header-middle'].length)"
+          v-if="!hasAdvancedFiltering && $scopedSlots['header-middle']"
           class="middle"
         >
           <slot name="header-middle" />
         </div>
 
         <div
-          v-if="search || hasAdvancedFiltering || isTooManyItemsToAutoUpdate || ($slots['header-right'] && $slots['header-right'].length)"
+          v-if="search || hasAdvancedFiltering || isTooManyItemsToAutoUpdate || $scopedSlots['header-right']"
           class="search row"
           data-testid="search-box-filter-row"
         >
@@ -1116,6 +1123,7 @@ export default {
             v-if="isTooManyItemsToAutoUpdate"
             class="manual-refresh"
             mode="manual-refresh"
+            :size="manualRefreshButtonSize"
             :current-phase="refreshButtonPhase"
             @click="debouncedRefreshTableData"
           />
@@ -1540,10 +1548,7 @@ export default {
     opacity: 0.5;
     pointer-events: none;
   }
-
-  .manual-refresh {
-    height: 40px;
-  }
+  // TODO: RC ISSUE describe
   .advanced-filter-group {
     position: relative;
     margin-left: 10px;

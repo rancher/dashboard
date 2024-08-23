@@ -1,6 +1,12 @@
 // Settings
 import { GC_DEFAULTS, GC_PREFERENCES } from '@shell/utils/gc/gc-types';
 import { PaginationSettings } from '@shell/types/resources/settings';
+import {
+  CAPI, EVENT, SCHEMA, NAMESPACE, CATALOG,
+  HPA,
+  INGRESS,
+  SERVICE
+} from '@shell/config/types';
 
 interface GlobalSettingRuleset {
   name: string,
@@ -249,12 +255,20 @@ export const DEFAULT_PERF_SETTING: PerfSettings = {
         resources: {
           enableAll:  false,
           enableSome: {
-            enabled: ['configmap', 'secret', 'pod', 'node'],
+            enabled: ['configmap', 'secret', 'pod', 'node', EVENT, CATALOG.APP, CATALOG.CLUSTER_REPO, CATALOG.OPERATION, HPA, INGRESS, SERVICE],
             generic: true,
+          }
+        }
+      },
+      management: {
+        resources: {
+          enableAll:  false,
+          enableSome: {
+            enabled: [{ resource: CAPI.RANCHER_CLUSTER, context: ['home'] }],
+            generic: false,
           }
         }
       }
     }
   }
-
 };

@@ -89,13 +89,13 @@ export default {
 
     const hasListComponent = getters['type-map/hasCustomList'](resource);
 
-    const inStore = getters['currentStore'](resource);
-    const schema = getters[`${ inStore }/schemaFor`](resource);
+    const derpinStore = getters['currentStore'](resource); // TODO: RC fix in parent commit (dupe inStore props)
+    const schema = getters[`${ derpinStore }/schemaFor`](resource);
 
     const showMasthead = getters[`type-map/optionsFor`](resource).showListMasthead;
 
     return {
-      inStore,
+      // inStore,
       schema,
       hasListComponent,
       showMasthead:                     showMasthead === undefined ? true : showMasthead,

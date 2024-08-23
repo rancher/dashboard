@@ -59,13 +59,36 @@ export default {
     }
   },
 
+  props: {
+    /**
+     * Add additional filtering to the rows
+     *
+     * Should only be used when we have all results, otherwise we're filtering a page...
+     */
+    localFilter: {
+      type:    Function,
+      default: null,
+    },
+
+    /**
+     * Add additional filtering to the pagination api request
+     */
+    apiFilter: {
+      type:    Function,
+      default: null,
+    },
+
+  },
+
   computed: {
     ...mapGetters({ refreshFlag: 'resource-fetch/refreshFlag' }),
     rows() {
       const currResource = this.fetchedResourceType.find((item) => item.type === this.resource);
 
       if (currResource) {
-        return this.$store.getters[`${ currResource.currStore }/all`](this.resource);
+        const rows = this.$store.getters[`${ currResource.currStore }/all`](this.resource);
+
+        return this.localFilter ? this.localFilter(rows) : rows;
       } else {
         return [];
       }
@@ -85,7 +108,9 @@ export default {
       if (this.init && neu) {
         await this.$fetch();
         if (this.canPaginate && this.fetchPageSecondaryResources) {
-          this.fetchPageSecondaryResources(true);
+          this.fetchPageSecondaryResources({
+            canPaginate: this.canPaginate, force: true, page: this.rows, pagResult: this.paginationResult
+          });
         }
       }
     }
@@ -138,6 +163,10 @@ export default {
           pagination:       { ...this.pagination },
           force:            this.paginating !== null // Fix for manual refresh (before ripped out).
         };
+
+        if (this.apiFilter) {
+          opt.paginating = this.apiFilter(opt.pagination);
+        }
 
         Vue.set(this, 'paginating', true);
 

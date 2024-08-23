@@ -1,11 +1,9 @@
 <script>
-import ResourceTable from '@shell/components/ResourceTable';
-import ResourceFetch from '@shell/mixins/resource-fetch';
+import PaginatedResourceTable from '@shell/components/PaginatedResourceTable.vue';
 
 export default {
   name:       'ListApps',
-  components: { ResourceTable },
-  mixins:     [ResourceFetch],
+  components: { PaginatedResourceTable },
 
   props: {
     resource: {
@@ -25,20 +23,15 @@ export default {
 
   async fetch() {
     await this.$store.dispatch('catalog/load');
-
-    await this.$fetchType(this.resource);
   },
 };
 </script>
 
 <template>
-  <ResourceTable
+  <PaginatedResourceTable
     class="apps"
     :schema="schema"
-    :rows="rows"
-    :loading="loading"
     :use-query-params-for-simple-filtering="useQueryParamsForSimpleFiltering"
-    :force-update-live-and-delayed="forceUpdateLiveAndDelayed"
     data-testid="installed-app-catalog-list"
   >
     <template #cell:upgrade="{row}">
@@ -56,7 +49,7 @@ export default {
         class="text-muted"
       />
     </template>
-  </ResourceTable>
+  </PaginatedResourceTable>
 </template>
 
 <style scoped>

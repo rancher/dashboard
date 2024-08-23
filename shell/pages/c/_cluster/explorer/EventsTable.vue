@@ -1,16 +1,14 @@
 <script>
 
-import SortableTable from '@shell/components/SortableTable';
 import { MESSAGE, NAME, OBJECT, REASON } from '@shell/config/table-headers';
 import { EVENT } from '@shell/config/types';
-import { fetchClusterResources } from './explorer-utils';
+import PaginatedResourceTable from '@shell/components/PaginatedResourceTable.vue';
+import { STEVE_EVENT_OBJECT, STEVE_NAME_COL } from '@shell/config/pagination-table-headers';
+import { headerFromSchemaColString } from '@shell/store/type-map.utils';
+import { NAME as EXPLORER } from '@shell/config/product/explorer';
 
 export default {
-  components: { SortableTable },
-
-  async fetch() {
-    this.events = await fetchClusterResources(this.$store, EVENT);
-  },
+  components: { PaginatedResourceTable },
 
   data() {
     const reason = {
@@ -23,8 +21,7 @@ export default {
       reason,
       OBJECT,
       MESSAGE,
-      NAME,
-      {
+      NAME, {
         name:        'date',
         label:       'Date',
         labelKey:    'clusterIndexPage.sections.events.date.label',
@@ -36,9 +33,36 @@ export default {
       },
     ];
 
+    const schema = this.$store.getters['cluster/schemaFor'](EVENT);
+
+    const paginationHeaders = [
+      reason,
+      STEVE_EVENT_OBJECT,
+      MESSAGE,
+      {
+        ...STEVE_NAME_COL,
+        defaultSort: false,
+      },
+      headerFromSchemaColString('First Seen', schema, this.$store.getters, true),
+      {
+        ...headerFromSchemaColString('Last Seen', schema, this.$store.getters, true),
+        defaultSort: true,
+      },
+      headerFromSchemaColString('Count', schema, this.$store.getters, true),
+    ];
+
     return {
-      events: [],
+      schema,
+      events:        [],
       eventHeaders,
+      paginationHeaders,
+      allEventsLink: {
+        name:   'c-cluster-product-resource',
+        params: {
+          product:  EXPLORER,
+          resource: EVENT,
+        }
+      }
     };
   },
 
@@ -63,16 +87,35 @@ export default {
 </script>
 
 <template>
-  <SortableTable
-    :loading="$fetchState.pending"
-    :rows="events"
+  <!-- TODO: RC test paging (create events) -->
+  <!-- TODO: RC test no-vai again -->
+  <PaginatedResourceTable
+    :schema="schema"
     :headers="eventHeaders"
+    :pagination-headers="paginationHeaders"
+
     key-field="id"
     :search="false"
     :table-actions="false"
     :row-actions="false"
-    :paging="true"
+    :groupable="false"
     :rows-per-page="10"
-    default-sort-by="date"
-  />
+  >
+    <template slot="header-right">
+      <router-link
+        :to="allEventsLink"
+        class="events-link"
+      >
+        <span>{{ t('glance.eventsTable') }}</span>
+      </router-link>
+    </template>
+  </PaginatedResourceTable>
 </template>
+
+<style lang="scss" scoped>
+.events-link {
+  align-self: center;
+  padding-right: 20px;
+  min-width: 200px;
+}
+</style>

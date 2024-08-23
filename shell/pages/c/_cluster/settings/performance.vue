@@ -5,6 +5,7 @@ import AsyncButton from '@shell/components/AsyncButton';
 import { Banner } from '@components/Banner';
 import { LabeledInput } from '@components/Form/LabeledInput';
 import { MANAGEMENT } from '@shell/config/types';
+import Vue from 'vue';
 import { DEFAULT_PERF_SETTING, SETTING } from '@shell/config/settings';
 import { _EDIT, _VIEW } from '@shell/config/query-params';
 import UnitInput from '@shell/components/form/UnitInput';
@@ -103,14 +104,14 @@ export default {
           resources.push(this.t('performance.serverPagination.resources.all'));
         } else {
           settings.resources.enableSome.enabled.forEach((resource) => {
-            resources.push(resource);
+            resources.push(!!resource.length ? resource : `${ resource.resource } (${ resource.context })`);
           });
           if (settings.resources.enableSome.generic) {
             resources.push(this.t('performance.serverPagination.resources.generic', {}, true));
           }
         }
 
-        storeResources.push(`${ store }: ${ resources.join(', ') }`);
+        storeResources.push(`Store Name: ${ store }, Resources ${ resources.join(', ') }`);
       });
 
       return storeResources.join('. ');
@@ -187,6 +188,10 @@ export default {
           body:  this.t(`performance.${ l10n[property] }.incompatibleDescription`, {}, true),
         },
       });
+    },
+
+    setDefaults() {
+      Vue.set(this, 'value', { ...DEFAULT_PERF_SETTING });
     }
   },
 };
@@ -198,6 +203,14 @@ export default {
     <h1 class="mb-20">
       {{ t('performance.label') }}
     </h1>
+    <button
+      class="btn btn-sm role-primary"
+      style="width: fit-content;"
+      @click.prevent="setDefaults()"
+    >
+      <!-- TODO: RC tidy  -->
+      Populate with Defaults
+    </button>
     <div>
       <div class="ui-perf-setting">
         <!-- Server Side Pagination -->
