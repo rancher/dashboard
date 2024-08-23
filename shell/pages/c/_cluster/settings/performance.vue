@@ -104,14 +104,14 @@ export default {
           resources.push(this.t('performance.serverPagination.resources.all'));
         } else {
           settings.resources.enableSome.enabled.forEach((resource) => {
-            resources.push(resource);
+            resources.push(!!resource.length ? resource : `${ resource.resource } (${ resource.context })`);
           });
           if (settings.resources.enableSome.generic) {
             resources.push(this.t('performance.serverPagination.resources.generic', {}, true));
           }
         }
 
-        storeResources.push(`${ store }: ${ resources.join(', ') }`);
+        storeResources.push(`Store Name: ${ store }, Resources ${ resources.join(', ') }`);
       });
 
       return storeResources.join('. ');
@@ -190,7 +190,6 @@ export default {
 
     setDefaults() {
       Vue.set(this, 'value', { ...DEFAULT_PERF_SETTING });
-      console.warn(this.value, DEFAULT_PERF_SETTING);
     }
   },
 };

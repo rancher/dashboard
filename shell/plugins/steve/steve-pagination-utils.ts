@@ -5,6 +5,7 @@ import Namespace from '@shell/models/namespace';
 import { uniq } from '@shell/utils/array';
 import {
   CAPI,
+  CATALOG,
   CONFIG_MAP, EVENT, MANAGEMENT, NAMESPACE, NODE, POD
 } from '@shell/config/types';
 import { Schema } from 'plugins/steve/schema';
@@ -150,6 +151,16 @@ class StevePaginationUtils extends NamespaceProjectFilters {
       // { field: 'reason' }, // Pending API support // TODO: RC
       // { field: 'involvedObject.kind' }, // Pending API support // TODO: RC
       // { field: 'message' }, // Pending API support // TODO: RC
+    ],
+    [CATALOG.CLUSTER_REPO]: [
+      // { field: 'spec.gitRepo' }, // Pending API support // TODO: RC
+      // { field: 'spec.gitBranch' }, // Pending API support // TODO: RC
+      // { field: `metadata.annotations.\"clusterrepo.cattle.io/hidden\"` } // Pending API support // TODO: RC
+    ],
+    [CATALOG.OPERATION]: [
+      // { field: 'status.action' }, // Pending API support // TODO: RC
+      // { field: 'status.namespace' }, // Pending API support // TODO: RC
+      // { field: 'status.releaseName' }, // Pending API support // TODO: RC
     ]
   }
 

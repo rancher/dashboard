@@ -353,7 +353,7 @@ export default defineComponent({
       }
     },
 
-    filterRows(rows: ProvCluster[] = []) {
+    filterRows(rows: ProvCluster[] = []) { // TODO: RC shouldn't this be passed in??
       return filterHiddenLocalCluster(filterOnlyKubernetesClusters(rows, this.$store), this.$store);
     },
 
