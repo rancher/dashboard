@@ -47,9 +47,10 @@ Cypress.Commands.add('interceptAllRequests', (method = '/GET/POST/PUT/PATCH/', u
  * Logout of Rancher
  */
 Cypress.Commands.add('logout', () => {
-  cy.intercept('POST', '/v3/tokens?action=logout').as('loggedOut');
+  // Commented the incercept here as per issue: https://github.com/rancher/rancher/issues/46795
+  //   cy.intercept('POST', '/v3/tokens?action=logout').as('loggedOut');
   cy.visit('/auth/logout?logged-out=true');
-  cy.wait('@loggedOut').its('response.statusCode').should('eq', 200);
+  //   cy.wait('@loggedOut').its('response.statusCode').should('eq', 200);
 });
 
 Cypress.Commands.add('iFrame', () => {
