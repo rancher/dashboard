@@ -254,8 +254,55 @@ export function init(store) {
     STEVE_AGE_COL
   ]);
 
-  headers(INGRESS, [STATE, NAME_COL, NAMESPACE_COL, INGRESS_TARGET, INGRESS_DEFAULT_BACKEND, INGRESS_CLASS, AGE]);
-  headers(SERVICE, [STATE, NAME_COL, NAMESPACE_COL, TARGET_PORT, SELECTOR, SPEC_TYPE, AGE]);
+  headers(INGRESS,
+    [STATE, NAME_COL, NAMESPACE_COL, INGRESS_TARGET, INGRESS_DEFAULT_BACKEND, INGRESS_CLASS, AGE],
+    [
+      STEVE_STATE_COL,
+      STEVE_NAMESPACE_COL,
+      STEVE_NAMESPACE_COL,
+      {
+        ...INGRESS_TARGET,
+        sort:   'spec.rules[0].host', // TODO: RC is this from fields? if not add to index list
+        search: 'spec.rules', // TODO: RC test
+      },
+      {
+        ...INGRESS_DEFAULT_BACKEND,
+        sort:   false,
+        search: false,
+      },
+      {
+        ...INGRESS_CLASS,
+        sort:   'spec.ingressClassName',
+        search: 'spec.ingressClassName', // TODO: RC is this from fields? if not add to index list
+      },
+      STEVE_AGE_COL
+    ]
+  );
+  // TODO: RC test  HPA, ingress and service list
+  headers(SERVICE,
+    [STATE, NAME_COL, NAMESPACE_COL, TARGET_PORT, SELECTOR, SPEC_TYPE, AGE],
+    [
+      STEVE_STATE_COL,
+      STEVE_NAMESPACE_COL,
+      STEVE_NAMESPACE_COL,
+      {
+        ...TARGET_PORT,
+        sort:   'spec.targetPort', /// / TODO: RC is this from fields? if not add to index list
+        search: 'spec.targetPort', // TODO: RC is this from fields? if not add to index list
+      },
+      {
+        ...SELECTOR,
+        sort:   'spec.selector', /// / TODO: RC is this from fields? if not add to index list
+        search: 'spec.selector', // TODO: RC is this from fields? if not add to index list
+      },
+      {
+        ...SPEC_TYPE,
+        sort:   'spec.type', // TODO: RC is this from fields? if not add to index list
+        search: 'spec.type', // TODO: RC is this from fields? if not add to index list
+      },
+      STEVE_AGE_COL
+    ]
+  );
 
   const eventLastSeenTime = {
     ...LAST_SEEN_TIME,
@@ -285,7 +332,17 @@ export function init(store) {
       STEVE_NAMESPACE_COL,
     ]
   );
-  headers(HPA, [STATE, NAME_COL, HPA_REFERENCE, MIN_REPLICA, MAX_REPLICA, CURRENT_REPLICA, AGE]);
+  headers(HPA,
+    [STATE, NAME_COL, HPA_REFERENCE, MIN_REPLICA, MAX_REPLICA, CURRENT_REPLICA, AGE],
+    [
+      STEVE_STATE_COL,
+      STEVE_NAME_COL,
+      HPA_REFERENCE, // spec.scaleTargetRef.name TODO: RC is this from fields? if not add to index list
+      MIN_REPLICA, // spec.minReplicas TODO: RC is this from fields? if not add to index list
+      MAX_REPLICA, // spec.maxReplicas TODO: RC is this from fields? if not add to index list
+      CURRENT_REPLICA, // spec.currentReplicas TODO: RC is this from fields? if not add to index list
+    ]
+  );
   headers(WORKLOAD, [STATE, NAME_COL, NAMESPACE_COL, TYPE, WORKLOAD_IMAGES, WORKLOAD_ENDPOINTS, POD_RESTARTS, AGE, WORKLOAD_HEALTH_SCALE]);
   headers(WORKLOAD_TYPES.DEPLOYMENT, [STATE, NAME_COL, NAMESPACE_COL, WORKLOAD_IMAGES, WORKLOAD_ENDPOINTS, 'Ready', 'Up-to-date', 'Available', POD_RESTARTS, AGE, WORKLOAD_HEALTH_SCALE]);
   headers(WORKLOAD_TYPES.DAEMON_SET, [STATE, NAME_COL, NAMESPACE_COL, WORKLOAD_IMAGES, WORKLOAD_ENDPOINTS, 'Ready', 'Current', 'Desired', POD_RESTARTS, AGE, WORKLOAD_HEALTH_SCALE]);

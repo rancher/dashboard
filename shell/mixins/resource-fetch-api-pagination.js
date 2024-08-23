@@ -176,6 +176,10 @@ export default {
         return;
       }
 
+      if (!this.resource) {
+        return false;
+      }
+
       const args = {
         id:      this.resource.id || this.resource,
         context: this.context,
