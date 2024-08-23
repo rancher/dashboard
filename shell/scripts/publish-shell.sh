@@ -6,7 +6,6 @@ BASE_DIR="$(
   pwd
 )"
 SHELL_DIR=$BASE_DIR/shell/
-TMP_DIR=$BASE_DIR/tmp
 PUBLISH_ARGS="--no-git-tag-version --access public $PUBLISH_ARGS"
 FORCE_PUBLISH_TO_NPM="false"
 DEFAULT_YARN_REGISTRY="https://registry.npmjs.org"
