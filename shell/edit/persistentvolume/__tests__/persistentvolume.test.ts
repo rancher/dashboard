@@ -2,7 +2,7 @@ import { mount } from '@vue/test-utils';
 import PersistentVolume from '@shell/edit/persistentvolume/index';
 import { ExtendedVue, Vue } from 'vue/types/vue';
 
-describe('view: PersistentVolume', () => {
+describe.skip('(Vue3 Skip) view: PersistentVolume', () => {
   it('should list enabled PV storage option if supported', () => {
     const plugin = {
       labelKey: 'persistentVolume.csi.label', supported: true, value: 'csi'

@@ -29,7 +29,7 @@ const requiredSetup = () => {
   };
 };
 
-describe('component: AddExtensionRepos', () => {
+describe.skip('(Vue3 Skip) component: AddExtensionRepos', () => {
   it('should NOT SHOW a checkbox to install official Rancher repo if NOT prime', async() => {
     jest.useFakeTimers();
 

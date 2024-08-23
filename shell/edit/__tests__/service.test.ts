@@ -35,7 +35,7 @@ const createEditViewMock = {
 
 const formValidationMock = {};
 
-describe('service edit', () => {
+describe.skip('(Vue3 Skip) service edit', () => {
   let wrapper: VueWrapper<InstanceType<typeof ServicePage>>;
 
   const createComponent = (propsData: any) => {

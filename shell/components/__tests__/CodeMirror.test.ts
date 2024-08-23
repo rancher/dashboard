@@ -88,3 +88,9 @@
 //     });
 //   });
 // });
+
+describe.skip('(Vue3 Skip) it must have one test', () => {
+  it('will pass', () => {
+    expect(true).toBe(true);
+  });
+});

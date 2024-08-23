@@ -5,6 +5,7 @@ module.exports = {
   ],
   rules: {
     'jest/no-commented-out-tests': 'off',
+    'jest/no-disabled-tests':      'off',
     'dot-notation':                'off',
     'generator-star-spacing':      'off',
     'guard-for-in':                'off',

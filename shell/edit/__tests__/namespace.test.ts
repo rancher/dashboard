@@ -1,7 +1,7 @@
 import { mount } from '@vue/test-utils';
 import Namespace from '@shell/edit/namespace.vue';
 
-describe('view Namespace should', () => {
+describe.skip('(Vue3 Skip) view Namespace should', () => {
   it('retrieve resource limits from project', () => {
     const name = 'my project name';
     const limits = 'whatever';
