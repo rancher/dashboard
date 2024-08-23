@@ -280,9 +280,10 @@ export default {
     v-if="$fetchState.pending"
     mode="relative"
   />
-  <div
+  <form
     v-else
     class="setup"
+    @submit.prevent
   >
     <div class="row">
       <div class="col span-6 form-col">
@@ -466,7 +467,7 @@ export default {
         file-name="login-landscape.svg"
       />
     </div>
-  </div>
+  </form>
 </template>
 
 <style lang="scss" scoped>

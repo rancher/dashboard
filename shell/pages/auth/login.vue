@@ -417,9 +417,10 @@ export default {
           />
         </div>
         <template v-if="hasLocal">
-          <div
+          <form
             v-if="showLocal"
             :class="{'mt-30': !hasLoginMessage}"
+            @submit.prevent
           >
             <div class="span-6 offset-3">
               <div class="mb-20">
@@ -468,7 +469,7 @@ export default {
                 </div>
               </div>
             </div>
-          </div>
+          </form>
           <div
             v-if="hasLocal && !showLocal"
             class="mt-20 text-center"
