@@ -165,27 +165,12 @@ export default {
       this.allCloudCreds = [];
     }
 
-    let selected = this.preSelect?.selected || AUTH_TYPE._NONE;
-
     if ( !this.value ) {
       this.publicKey = this.preSelect?.publicKey || '';
       this.privateKey = this.preSelect?.privateKey || '';
     }
 
-    if ( this.value ) {
-      if ( typeof this.value === 'object' ) {
-        selected = `${ this.value.namespace }/${ this.value.name }`;
-      } else if ( this.value.includes('/') || this.value.includes(':') ) {
-        selected = this.value;
-      } else if ( this.namespace ) {
-        selected = `${ this.namespace }/${ this.value }`;
-      } else {
-        selected = this.value;
-      }
-    }
-
-    this.selected = selected;
-
+    this.updateSelectedFromValue();
     this.update();
   },
 
@@ -381,6 +366,7 @@ export default {
     selected:   'update',
     publicKey:  'updateKeyVal',
     privateKey: 'updateKeyVal',
+    value:      'updateSelectedFromValue',
 
     async namespace(ns) {
       if (ns && !this.selected.startsWith(`${ ns }/`)) {
@@ -407,6 +393,23 @@ export default {
   },
 
   methods: {
+    updateSelectedFromValue() {
+      let selected = this.preSelect?.selected || AUTH_TYPE._NONE;
+
+      if ( this.value ) {
+        if ( typeof this.value === 'object' ) {
+          selected = `${ this.value.namespace }/${ this.value.name }`;
+        } else if ( this.value.includes('/') || this.value.includes(':') ) {
+          selected = this.value;
+        } else if ( this.namespace ) {
+          selected = `${ this.namespace }/${ this.value }`;
+        } else {
+          selected = this.value;
+        }
+      }
+
+      this.selected = selected;
+    },
     async filterSecretsByApi() {
       const findPageArgs = {
         // Of type ActionFindPageArgs
@@ -457,22 +460,22 @@ export default {
 
     update() {
       if ( (!this.selected || [AUTH_TYPE._SSH, AUTH_TYPE._BASIC, AUTH_TYPE._S3, AUTH_TYPE._NONE].includes(this.selected))) {
-        this.$emit('input', null);
+        this.$emit('update:value', null);
       } else if ( this.selected.includes(':') ) {
         // Cloud creds
-        this.$emit('input', this.selected);
+        this.$emit('update:value', this.selected);
       } else {
         const split = this.selected.split('/');
 
         if ( this.limitToNamespace ) {
-          this.$emit('input', split[1]);
+          this.$emit('update:value', split[1]);
         } else {
           const out = {
             namespace: split[0],
             name:      split[1]
           };
 
-          this.$emit('input', out);
+          this.$emit('update:value', out);
         }
       }
 
@@ -549,7 +552,7 @@ export default {
     >
       <div :class="firstCol">
         <LabeledSelect
-          v-model="selected"
+          v-model:value="selected"
           data-testid="auth-secret-select"
           :mode="mode"
           :label-key="labelKey"
@@ -561,7 +564,7 @@ export default {
       <template v-if="selected === SSH">
         <div :class="moreCols">
           <LabeledInput
-            v-model="publicKey"
+            v-model:value="publicKey"
             data-testid="auth-secret-ssh-public-key"
             :mode="mode"
             type="multiline"
@@ -570,7 +573,7 @@ export default {
         </div>
         <div :class="moreCols">
           <LabeledInput
-            v-model="privateKey"
+            v-model:value="privateKey"
             data-testid="auth-secret-ssh-private-key"
             :mode="mode"
             type="multiline"
@@ -581,7 +584,7 @@ export default {
       <template v-else-if="selected === BASIC">
         <div :class="moreCols">
           <LabeledInput
-            v-model="publicKey"
+            v-model:value="publicKey"
             data-testid="auth-secret-basic-username"
             :mode="mode"
             label-key="selectOrCreateAuthSecret.basic.username"
@@ -589,7 +592,7 @@ export default {
         </div>
         <div :class="moreCols">
           <LabeledInput
-            v-model="privateKey"
+            v-model:value="privateKey"
             data-testid="auth-secret-basic-password"
             :mode="mode"
             type="password"
@@ -600,7 +603,7 @@ export default {
       <template v-else-if="selected === S3">
         <div :class="moreCols">
           <LabeledInput
-            v-model="publicKey"
+            v-model:value="publicKey"
             data-testid="auth-secret-s3-public-key"
             :mode="mode"
             label-key="selectOrCreateAuthSecret.s3.accessKey"
@@ -608,7 +611,7 @@ export default {
         </div>
         <div :class="moreCols">
           <LabeledInput
-            v-model="privateKey"
+            v-model:value="privateKey"
             data-testid="auth-secret-s3-private-key"
             :mode="mode"
             type="password"

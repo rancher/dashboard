@@ -37,13 +37,13 @@ export default {
       add-label="Add Rule"
       :mode="mode"
       :default-add-value="defaultAddValue"
-      @input="(e) => $emit('input', e)"
+      @update:value="(e) => $emit('update:value', e)"
     >
       <template #default="props">
         <div class="row">
           <div class="api-groups col span-6">
             <ArrayList
-              v-model="props.row.value.apiGroups"
+              v-model:value="props.row.value.apiGroups"
               :protip="false"
               :show-header="true"
               value-label="ApiGroups"
@@ -54,7 +54,7 @@ export default {
           </div>
           <div class="kinds col span-6">
             <ArrayList
-              v-model="props.row.value.kinds"
+              v-model:value="props.row.value.kinds"
               :protip="false"
               :show-header="true"
               value-label="Kinds"

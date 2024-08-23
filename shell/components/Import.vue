@@ -139,11 +139,12 @@ export default {
             </div>
             <div class="col span-6">
               <LabeledSelect
-                v-model="defaultNamespace"
+                :value="defaultNamespace"
                 class="pull-right"
                 :options="namespaceOptions"
                 label-key="import.defaultNamespace.label"
                 mode="edit"
+                @update:value="newValue => defaultNamespace = newValue"
               />
             </div>
           </div>
@@ -170,7 +171,7 @@ export default {
       <YamlEditor
         v-else
         ref="yamleditor"
-        v-model="currentYaml"
+        v-model:value="currentYaml"
         class="yaml-editor"
       />
       <Banner
@@ -229,7 +230,7 @@ export default {
     min-height: $min;
     max-height: $max;
 
-    ::v-deep .code-mirror {
+    :deep() .code-mirror {
       .CodeMirror {
         position: initial;
       }

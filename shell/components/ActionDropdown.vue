@@ -46,7 +46,7 @@ export default {
 
   methods: {
     hasSlot(name = 'default') {
-      return !!this.$slots[name] || !!this.$scopedSlots[name];
+      return !!this.$slots[name] || !!this.$slots.name();
     },
 
     // allows parent components to programmatically open the dropdown
@@ -62,7 +62,7 @@ export default {
       class="dropdown-button bg-primary"
       :class="{'one-action':!dualAction, [buttonSize]:true, 'disabled': disableButton}"
     >
-      <v-popover
+      <v-dropdown
         placement="bottom"
         :container="false"
         :disabled="disableButton"
@@ -85,7 +85,7 @@ export default {
         <template #popover>
           <slot name="popover-content" />
         </template>
-      </v-popover>
+      </v-dropdown>
     </div>
   </div>
 </template>

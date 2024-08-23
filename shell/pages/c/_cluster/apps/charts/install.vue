@@ -34,7 +34,6 @@ import { exceptionToErrorsArray } from '@shell/utils/error';
 import { clone, diff, get, set } from '@shell/utils/object';
 import { ignoreVariables } from './install.helpers';
 import { findBy, insertAt } from '@shell/utils/array';
-import Vue from 'vue';
 import { saferDump } from '@shell/utils/create-yaml';
 import { LINUX, WINDOWS } from '@shell/store/catalog';
 import { SETTING } from '@shell/config/settings';
@@ -256,7 +255,7 @@ export default {
         chart values. If so, load that component.
 
         This will set this.valuesComponent,
-        this.componentHasTabs and this.showValuesComponent.
+        this.showValuesComponent.
       */
       await this.loadValuesComponent();
     }
@@ -415,7 +414,6 @@ export default {
       showQuestions:           true,
       showSlideIn:             false,
       shownReadmeWindows:      [],
-      componentHasTabs:        false,
       showCommandStep:         false,
       showCustomRegistryInput: false,
       isNamespaceNew:          false,
@@ -835,7 +833,7 @@ export default {
     this.preFormYamlOption = this.valuesComponent || this.hasQuestions ? VALUES_STATE.FORM : VALUES_STATE.YAML;
   },
 
-  beforeDestroy() {
+  beforeUnmount() {
     this.shownReadmeWindows.forEach((name) => this.$store.dispatch('wm/close', name, { root: true }));
   },
 
@@ -911,18 +909,13 @@ export default {
 
         if ( hasChartComponent ) {
           this.valuesComponent = this.$store.getters['type-map/importChart'](component);
-          const loaded = await this.valuesComponent();
-
           this.showValuesComponent = true;
-          this.componentHasTabs = loaded?.default?.hasTabs || false;
         } else {
           this.valuesComponent = null;
-          this.componentHasTabs = false;
           this.showValuesComponent = false;
         }
       } else {
         this.valuesComponent = null;
-        this.componentHasTabs = false;
         this.showValuesComponent = false;
       }
     },
@@ -1323,7 +1316,7 @@ export default {
 
       if (step) {
         for (const prop in update) {
-          Vue.set(step, prop, update[prop]);
+          step[prop] = update[prop];
         }
       }
     }
@@ -1355,10 +1348,10 @@ export default {
       <template
         v-for="customStep of customSteps"
         v-slot:[customStep.name]
+        :key="customStep.name"
       >
         <component
           :is="customStep.component"
-          :key="customStep.name"
           @update="updateStep(customStep.name, $event)"
           @errors="e=>errors.push(...e)"
         />
@@ -1401,16 +1394,16 @@ export default {
             class="mb-15"
           >
             <Banner
-              v-for="msg in requires"
-              :key="msg"
+              v-for="(msg, i) in requires"
+              :key="i"
               color="error"
             >
               <span v-clean-html="msg" />
             </Banner>
 
             <Banner
-              v-for="msg in warnings"
-              :key="msg"
+              v-for="(msg, i) in warnings"
+              :key="i"
               color="warning"
             >
               <span v-clean-html="msg" />
@@ -1428,7 +1421,7 @@ export default {
                 :value="query.versionName"
                 :options="filteredVersions"
                 :selectable="version => !version.disabled"
-                @input="selectVersion"
+                @update:value="selectVersion"
               />
               <!-- Can't find the chart for the app, let the user try to select one -->
               <LabeledSelect
@@ -1439,7 +1432,7 @@ export default {
                 :selectable="option => !option.disabled"
                 :get-option-label="opt => getOptionLabel(opt)"
                 option-key="key"
-                @input="selectChart($event)"
+                @update:value="selectChart($event)"
               >
                 <template v-slot:option="opt">
                   <template v-if="opt.kind === 'divider'">
@@ -1453,7 +1446,7 @@ export default {
             </div>
           </div>
           <NameNsDescription
-            v-model="value"
+            v-model:value="value"
             :description-hidden="true"
             :mode="mode"
             :name-disabled="nameDisabled"
@@ -1471,7 +1464,7 @@ export default {
               #project
             >
               <LabeledSelect
-                v-model="project"
+                v-model:value="project"
                 :disabled="!namespaceIsNew"
                 :label="t('catalog.install.project')"
                 option-key="id"
@@ -1483,14 +1476,14 @@ export default {
             </template>
           </NameNsDescription>
           <Checkbox
-            v-model="showCommandStep"
+            v-model:value="showCommandStep"
             class="mb-20"
             :label="t('catalog.install.steps.helmCli.checkbox', { action, existing: !!existing })"
           />
 
           <Checkbox
             v-if="showCustomRegistry"
-            v-model="showCustomRegistryInput"
+            v-model:value="showCustomRegistryInput"
             class="mb-20"
             :label="t('catalog.chart.registry.custom.checkBoxLabel')"
             :tooltip="t('catalog.chart.registry.tooltip')"
@@ -1499,7 +1492,7 @@ export default {
             <div class="col span-6">
               <LabeledInput
                 v-if="showCustomRegistryInput"
-                v-model="customRegistrySetting"
+                v-model:value="customRegistrySetting"
                 label-key="catalog.chart.registry.custom.inputLabel"
                 placeholder-key="catalog.chart.registry.custom.placeholder"
                 :min-height="30"
@@ -1535,7 +1528,7 @@ export default {
               :value="query.versionName"
               :options="filteredVersions"
               :selectable="version => !version.disabled"
-              @input="selectVersion"
+              @update:value="selectVersion"
             />
           </div>
           <div class="step__values__controls--spacer">
@@ -1563,7 +1556,7 @@ export default {
         </Banner>
         <div class="step__values__controls">
           <ButtonGroup
-            v-model="preFormYamlOption"
+            v-model:value="preFormYamlOption"
             data-testid="btn-group-options-view"
             :options="formYamlOptions"
             inactive-class="bg-disabled btn-sm"
@@ -1575,7 +1568,7 @@ export default {
           </div>
           <ButtonGroup
             v-if="showDiff"
-            v-model="diffMode"
+            v-model:value="diffMode"
             :options="yamlDiffModeOptions"
             inactive-class="bg-disabled btn-sm"
             active-class="bg-primary btn-sm"
@@ -1598,48 +1591,21 @@ export default {
           <div class="scroll__content">
             <!-- Values (as Custom Component in ./shell/charts/) -->
             <template v-if="valuesComponent && showValuesComponent">
-              <Tabbed
-                v-if="componentHasTabs"
-                ref="tabs"
-                :side-tabs="true"
-                :hide-single-tab="true"
-                :class="{'with-name': showNameEditor}"
+              <component
+                :is="valuesComponent"
+                v-if="valuesComponent"
+                v-model:value="chartValues"
+                :mode="mode"
+                :chart="chart"
                 class="step__values__content"
-                @changed="tabChanged($event)"
-              >
-                <component
-                  :is="valuesComponent"
-                  v-model="chartValues"
-                  :mode="mode"
-                  :chart="chart"
-                  class="step__values__content"
-                  :existing="existing"
-                  :version="version"
-                  :version-info="versionInfo"
-                  :auto-install-info="autoInstallInfo"
-                  @warn="e=>errors.push(e)"
-                  @register-before-hook="registerBeforeHook"
-                  @register-after-hook="registerAfterHook"
-                  @valid="updateStepTwoReady($event)"
-                />
-              </Tabbed>
-              <template v-else>
-                <component
-                  :is="valuesComponent"
-                  v-if="valuesComponent"
-                  v-model="chartValues"
-                  :mode="mode"
-                  :chart="chart"
-                  class="step__values__content"
-                  :existing="existing"
-                  :version="version"
-                  :version-info="versionInfo"
-                  :auto-install-info="autoInstallInfo"
-                  @warn="e=>errors.push(e)"
-                  @register-before-hook="registerBeforeHook"
-                  @register-after-hook="registerAfterHook"
-                />
-              </template>
+                :existing="existing"
+                :version="version"
+                :version-info="versionInfo"
+                :auto-install-info="autoInstallInfo"
+                @warn="e=>errors.push(e)"
+                @register-before-hook="registerBeforeHook"
+                @register-after-hook="registerAfterHook"
+              />
             </template>
 
             <!-- Values (as Questions, abstracted component based on question.yaml configuration from repositories)  -->
@@ -1653,7 +1619,7 @@ export default {
               @changed="tabChanged($event)"
             >
               <Questions
-                v-model="chartValues"
+                v-model:value="chartValues"
                 :in-store="inStore"
                 :mode="mode"
                 :source="versionInfo"
@@ -1666,7 +1632,7 @@ export default {
             <template v-else>
               <YamlEditor
                 ref="yaml"
-                v-model="valuesYaml"
+                v-model:value="valuesYaml"
                 class="step__values__content"
                 :scrolling="true"
                 :initial-yaml-values="originalYamlValues"
@@ -1697,47 +1663,47 @@ export default {
         <div>
           <Checkbox
             v-if="existing"
-            v-model="customCmdOpts.cleanupOnFail"
+            v-model:value="customCmdOpts.cleanupOnFail"
             :label="t('catalog.install.helm.cleanupOnFail')"
           />
         </div>
         <div>
           <Checkbox
             v-if="!existing"
-            v-model="customCmdOpts.crds"
+            v-model:value="customCmdOpts.crds"
             :label="t('catalog.install.helm.crds')"
           />
         </div>
         <div>
           <Checkbox
-            v-model="customCmdOpts.hooks"
+            v-model:value="customCmdOpts.hooks"
             :label="t('catalog.install.helm.hooks')"
           />
         </div>
         <div>
           <Checkbox
             v-if="existing"
-            v-model="customCmdOpts.force"
+            v-model:value="customCmdOpts.force"
             :label="t('catalog.install.helm.force')"
           />
         </div>
         <div>
           <Checkbox
             v-if="existing"
-            v-model="customCmdOpts.resetValues"
+            v-model:value="customCmdOpts.resetValues"
             :label="t('catalog.install.helm.resetValues')"
           />
         </div>
         <div>
           <Checkbox
             v-if="!existing"
-            v-model="customCmdOpts.openApi"
+            v-model:value="customCmdOpts.openApi"
             :label="t('catalog.install.helm.openapi')"
           />
         </div>
         <div>
           <Checkbox
-            v-model="customCmdOpts.wait"
+            v-model:value="customCmdOpts.wait"
             :label="t('catalog.install.helm.wait')"
           />
         </div>
@@ -1767,7 +1733,7 @@ export default {
           class="mt-10"
         >
           <LabeledInput
-            v-model="customCmdOpts.description"
+            v-model:value="customCmdOpts.description"
             label-key="catalog.install.helm.description.label"
             placeholder-key="catalog.install.helm.description.placeholder"
             :min-height="30"
@@ -1914,7 +1880,7 @@ export default {
     // Hack - We're adding an absolute tag under the logo that we want to consume space without breaking vertical alignment of row.
     // W  ith the slots available this isn't possible without adding tag specific styles to the root wizard classes
     &.windowsIncompatible {
-      ::v-deep .header {
+      :deep() .header {
         padding-bottom: 15px;
       }
     }
@@ -1956,7 +1922,7 @@ export default {
       &__content {
         flex: 1;
 
-        ::v-deep .tab-container {
+        :deep() .tab-container {
           overflow: auto;
         }
       }
@@ -2016,7 +1982,7 @@ export default {
 
       padding-bottom: 10px;
 
-      ::v-deep .chart-readmes {
+      :deep() .chart-readmes {
         flex: 1;
         overflow: auto;
       }
@@ -2044,7 +2010,7 @@ export default {
     }
   }
 
-  ::v-deep .yaml-editor {
+  :deep() .yaml-editor {
     flex: 1
   }
 

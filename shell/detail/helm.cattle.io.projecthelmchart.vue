@@ -154,7 +154,7 @@ export default {
             @click="showMenu(true)"
             @focus.capture="showMenu(true)"
           >
-            <v-popover
+            <v-dropdown
               ref="popover"
               placement="bottom-end"
               offset="-10"
@@ -167,7 +167,7 @@ export default {
                 {{ t('monitoring.tabs.prometheus') }} <i class="icon icon-chevron-down" />
               </div>
               <template
-                slot="popover"
+                #popover
                 class="resources-status-list"
               >
                 <ul
@@ -194,7 +194,7 @@ export default {
                   </li>
                 </ul>
               </template>
-            </v-popover>
+            </v-dropdown>
           </div>
           <a
             :class="{disabled: !grafanaServiceEndpointEnabled}"

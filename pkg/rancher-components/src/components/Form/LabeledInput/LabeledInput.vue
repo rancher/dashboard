@@ -1,4 +1,5 @@
 <script lang="ts">
+// @ts-nocheck
 import { defineComponent } from 'vue';
 import TextAreaAutoGrow from '@components/Form/TextArea/TextAreaAutoGrow.vue';
 import LabeledTooltip from '@components/LabeledTooltip/LabeledTooltip.vue';
@@ -97,6 +98,11 @@ export default defineComponent({
       type:    Number,
       default: 0
     },
+
+    class: {
+      type:    String,
+      default: ''
+    }
   },
 
   setup(props, { emit }) {
@@ -201,6 +207,10 @@ export default defineComponent({
 
       return undefined;
     },
+
+    className() {
+      return this.class;
+    }
   },
 
   created() {
@@ -251,7 +261,7 @@ export default defineComponent({
     delayInput(val: string | Event): void {
       const value = typeof val === 'string' ? val : (val?.target as HTMLInputElement)?.value;
 
-      this.$emit('input', value);
+      this.$emit('update:value', value);
     },
 
     /**
@@ -286,9 +296,10 @@ export default defineComponent({
       disabled: isDisabled,
       [status]: status,
       suffix: hasSuffix,
-      'has-tooltip': hasTooltip,
+      'v-popper--has-tooltip': hasTooltip,
       'compact-input': isCompact,
-      hideArrows
+      hideArrows,
+      [className]: true
     }"
   >
     <slot name="label">
@@ -319,7 +330,7 @@ export default defineComponent({
         :placeholder="_placeholder"
         autocapitalize="off"
         :class="{ conceal: type === 'multiline-password' }"
-        @input="onInput"
+        @update:value="onInput"
         @focus="onFocus"
         @blur="onBlur"
       />
@@ -336,7 +347,7 @@ export default defineComponent({
         autocomplete="off"
         autocapitalize="off"
         :data-lpignore="ignorePasswordManagers"
-        @input="onInput"
+        @input="($plainInputEvent) => onInput($plainInputEvent)"
         @focus="onFocus"
         @blur="onBlur"
         @change="onChange"

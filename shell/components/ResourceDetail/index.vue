@@ -273,6 +273,7 @@ export default {
       model:           null,
       notFound:        null,
       canViewChart:    true,
+      canViewYaml:     null,
     };
   },
 
@@ -413,15 +414,15 @@ export default {
       :done-route="doneRoute"
       :done-override="value.doneOverride"
       :class="{'flex-content': flexContent}"
-      @input="$emit('input', $event)"
+      @update:value="$emit('input', $event)"
     />
 
     <component
       :is="showComponent"
       v-else
       ref="comp"
-      :value="value"
-      v-bind="_data"
+      v-model:value="value"
+      v-bind="$data"
       :done-params="doneParams"
       :done-route="doneRoute"
       :mode="mode"
@@ -429,7 +430,7 @@ export default {
       :live-value="liveModel"
       :real-mode="realMode"
       :class="{'flex-content': flexContent}"
-      @input="$emit('input', $event)"
+      @update:value="$emit('input', $event)"
       @set-subtype="setSubtype"
     />
 

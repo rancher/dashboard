@@ -1,6 +1,4 @@
 <script>
-import Vue from 'vue';
-
 import { _VIEW } from '@shell/config/query-params';
 import { Checkbox } from '@components/Form/Checkbox';
 
@@ -32,8 +30,8 @@ export default {
     showhide(row, i, e) {
       const value = this.value[i];
 
-      Vue.set(value, 'enabled', !!value.enabled);
-      this.$emit('input', this.value);
+      value['enabled'] = !!value.enabled;
+      this.$emit('update:value', this.value);
     },
   }
 };
@@ -56,9 +54,11 @@ export default {
       </label>
       <label class="text-label" />
 
-      <template v-for="(row,i) in value">
+      <template
+        v-for="(row,i) in value"
+        :key="i"
+      >
         <div
-          :key="i+'key'"
           class="kv-item key"
           :class="{'link-hidden': !row.enabled}"
         >
@@ -66,7 +66,6 @@ export default {
         </div>
 
         <div
-          :key="i+'value'"
           class="kv-item value"
           :class="{'link-hidden': !row.enabled}"
         >
@@ -80,7 +79,7 @@ export default {
         >
           <Checkbox
             v-if="!isView"
-            v-model="row.enabled"
+            v-model:value="row.enabled"
             label-key="customLinks.settings.showLabel"
             :data-testid="`custom-links__checkbox-${i}`"
             @input="showhide(row, i, $event)"
@@ -88,7 +87,6 @@ export default {
         </div>
         <div
           v-else
-          :key="i+'show'"
         />
       </template>
     </div>

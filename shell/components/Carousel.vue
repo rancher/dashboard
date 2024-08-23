@@ -111,7 +111,7 @@ export default {
     },
   },
 
-  beforeDestroy() {
+  beforeUnmount() {
     if (this.autoScrollSlideInterval) {
       clearInterval(this.autoScrollSlideInterval);
     }

@@ -248,9 +248,9 @@ export const state = () => {
     isRancherInHarvester:    false,
     targetRoute:             null,
     rootProduct:             undefined,
-    $router:                 markRaw(undefined),
-    $route:                  markRaw(undefined),
-    $plugin:                 markRaw(undefined),
+    $router:                 markRaw({}),
+    $route:                  markRaw({}),
+    $plugin:                 markRaw({}),
   };
 };
 
@@ -734,15 +734,15 @@ export const mutations = {
   },
 
   setRouter(state, router) {
-    state.$router = markRaw(router);
+    state.$router = markRaw(router || {});
   },
 
   setRoute(state, route) {
-    state.$route = markRaw(route);
+    state.$route = markRaw(route || {});
   },
 
   setPlugin(state, pluginDefinition) {
-    state.$plugin = markRaw(pluginDefinition);
+    state.$plugin = markRaw(pluginDefinition || {});
   }
 };
 
@@ -1142,7 +1142,7 @@ export const actions = {
     commit('catalog/reset');
 
     const router = state.$router;
-    const route = router.currentRoute;
+    const route = router.currentRoute.value;
 
     if ( route.name === 'index' ) {
       router.replace('/auth/login');

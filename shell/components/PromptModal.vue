@@ -74,7 +74,7 @@ export default {
 
     // We're using register instead of just making use of $refs because the $refs is always undefined when referencing the component
     registerBackgroundClosing(fn) {
-      this.$set(this, 'backgroundClosing', fn);
+      this['backgroundClosing'] = fn;
     }
   },
 };

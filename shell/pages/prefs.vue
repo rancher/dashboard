@@ -197,7 +197,7 @@ export default {
       <hr>
       <h4 v-t="'prefs.theme.label'" />
       <ButtonGroup
-        v-model="theme"
+        v-model:value="theme"
         data-testid="prefs__themeOptions"
         :options="themeOptions"
       />
@@ -230,7 +230,7 @@ export default {
       <div class="row mt-20">
         <div class="col span-4">
           <LabeledSelect
-            v-model="dateFormat"
+            v-model:value="dateFormat"
             data-testid="prefs__displaySetting__dateFormat"
             :label="t('prefs.dateFormat.label')"
             option-key="value"
@@ -239,7 +239,7 @@ export default {
         </div>
         <div class="col span-4">
           <LabeledSelect
-            v-model="timeFormat"
+            v-model:value="timeFormat"
             data-testid="prefs__displaySetting__timeFormat"
             :label="t('prefs.timeFormat.label')"
             :options="timeOptions"
@@ -250,7 +250,7 @@ export default {
       <div class="row mt-20">
         <div class="col span-4">
           <LabeledSelect
-            v-model.number="perPage"
+            v-model:value="perPage"
             data-testid="prefs__displaySetting__perPage"
             :label="t('prefs.perPage.label')"
             :options="perPageOptions"
@@ -266,7 +266,7 @@ export default {
       <hr>
       <h4 v-t="'prefs.confirmationSetting.title'" />
       <Checkbox
-        v-model="scalingDownPrompt"
+        v-model:value="scalingDownPrompt"
         data-testid="prefs__scalingDownPrompt"
         :label="t('prefs.confirmationSetting.scalingDownPrompt')"
         class="mt-10"
@@ -277,21 +277,21 @@ export default {
       <hr>
       <h4 v-t="'prefs.advFeatures.title'" />
       <Checkbox
-        v-model="viewInApi"
+        v-model:value="viewInApi"
         data-testid="prefs__viewInApi"
         :label="t('prefs.advFeatures.viewInApi', {}, true)"
         class="mt-10"
       />
       <br>
       <Checkbox
-        v-model="allNamespaces"
+        v-model:value="allNamespaces"
         data-testid="prefs__allNamespaces"
         :label="t('prefs.advFeatures.allNamespaces', {}, true)"
         class="mt-20"
       />
       <br>
       <Checkbox
-        v-model="themeShortcut"
+        v-model:value="themeShortcut"
         data-testid="prefs__themeShortcut"
         :label="t('prefs.advFeatures.themeShortcut', {}, true)"
         class="mt-20"
@@ -299,7 +299,7 @@ export default {
       <br>
       <Checkbox
         v-if="!isSingleProduct"
-        v-model="hideDescriptions"
+        v-model:value="hideDescriptions"
         data-testid="prefs__hideDescriptions"
         :label="t('prefs.hideDesc.label')"
         class="mt-20"
@@ -307,7 +307,7 @@ export default {
       <template v-if="admin">
         <br>
         <Checkbox
-          v-model="pluginDeveloper"
+          v-model:value="pluginDeveloper"
           :label="t('prefs.advFeatures.pluginDeveloper', {}, true)"
           class="mt-20"
         />
@@ -318,7 +318,7 @@ export default {
       <hr>
       <h4 v-t="'prefs.keymap.label'" />
       <ButtonGroup
-        v-model="keymap"
+        v-model:value="keymap"
         data-testid="prefs__keymapOptions"
         :options="keymapOptions"
       />
@@ -331,7 +331,7 @@ export default {
       <hr>
       <h4 v-t="'prefs.helm.label'" />
       <ButtonGroup
-        v-model="showPreRelease"
+        v-model:value="showPreRelease"
         data-testid="prefs__helmOptions"
         :options="helmOptions"
       />

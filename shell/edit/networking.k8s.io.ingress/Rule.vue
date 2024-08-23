@@ -55,7 +55,7 @@ export default {
         if ((this.paths?.length === 1 && this.pathObjectIsEmpty(this.paths[0])) || this.paths?.length === 0) {
           delete out.http;
         }
-        this.$emit('input', out);
+        this.$emit('update:value', out);
       });
     },
     pathObjectIsEmpty(pathObject) {
@@ -113,11 +113,11 @@ export default {
       >
         <LabeledInput
           ref="host"
-          v-model="host"
+          v-model:value="host"
           :label="t('ingress.rules.requestHost.label')"
           :placeholder="t('ingress.rules.requestHost.placeholder')"
           :rules="rules.requestHost"
-          @input="update"
+          @update:value="update"
         />
       </div>
       <div
@@ -147,18 +147,20 @@ export default {
       </div>
       <div class="col" />
     </div>
-    <template v-for="(path, i) in paths">
+    <template
+      v-for="(path, i) in paths"
+      :key="path.id"
+    >
       <RulePath
         ref="paths"
-        :key="path.id"
-        v-model="paths[i]"
+        v-model:value="paths[i]"
         class="row mb-10"
         :rule-mode="ruleMode"
         :service-targets="serviceTargets"
         :ingress="ingress"
         :rules="{path: rules.path, port: rules.port, target: rules.target}"
         @remove="(e) => removePath(i)"
-        @input="update"
+        @update:value="update"
       />
     </template>
     <button

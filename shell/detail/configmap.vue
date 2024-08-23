@@ -51,7 +51,7 @@ export default {
 <template>
   <ResourceTabs
     :value="value"
-    @input="$emit('input', $event)"
+    @update:value="$emit('input', $event)"
   >
     <Tab
       name="data"

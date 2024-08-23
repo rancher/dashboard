@@ -19,7 +19,7 @@ export default {
 
     showMyGroupTypes: {
       type: Array,
-      default() {
+      default(props) {
         return ['group', 'user'];
       },
     },
@@ -174,7 +174,7 @@ export default {
 <template>
   <LabeledSelect
     ref="labeled-select"
-    v-model="newValue"
+    v-model:value="newValue"
     v-clean-tooltip="{
       content: tooltipContent,
       placement: 'bottom',
@@ -208,7 +208,6 @@ export default {
 
     <template #option="option">
       <Principal
-        :key="option.label"
         :value="option.label"
         :use-muted="false"
       />
@@ -219,7 +218,6 @@ export default {
       #selected-option="option"
     >
       <Principal
-        :key="option.label"
         :value="option.label"
         :use-muted="false"
         class="mt-10 mb-10"

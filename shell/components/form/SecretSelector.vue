@@ -103,9 +103,9 @@ export default {
         const correctedName = isNone ? undefined : name;
 
         if (this.showKeySelector) {
-          this.$emit('input', { [this.mountKey]: { secretKeyRef: { [this.nameKey]: correctedName, [this.keyKey]: '' } } });
+          this.$emit('update:value', { [this.mountKey]: { secretKeyRef: { [this.nameKey]: correctedName, [this.keyKey]: '' } } });
         } else {
-          this.$emit('input', correctedName);
+          this.$emit('update:value', correctedName);
         }
       }
     },
@@ -115,7 +115,7 @@ export default {
         return this.value?.[this.mountKey]?.secretKeyRef?.[this.keyKey] || '';
       },
       set(key) {
-        this.$emit('input', { [this.mountKey]: { secretKeyRef: { [this.nameKey]: this.name, [this.keyKey]: key } } });
+        this.$emit('update:value', { [this.mountKey]: { secretKeyRef: { [this.nameKey]: this.name, [this.keyKey]: key } } });
       }
     },
 
@@ -200,8 +200,7 @@ export default {
     <div class="input-container">
       <!-- key by namespace to ensure label select current page is recreated on ns change -->
       <ResourceLabeledSelect
-        :key="namespace"
-        v-model="name"
+        v-model:value="name"
         :disabled="!isView && disabled"
         :label="secretNameLabel"
         :mode="mode"
@@ -212,7 +211,7 @@ export default {
       />
       <LabeledSelect
         v-if="showKeySelector"
-        v-model="key"
+        v-model:value="key"
         class="col span-6"
         :disabled="isKeyDisabled"
         :options="keys"

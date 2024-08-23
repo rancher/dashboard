@@ -26,8 +26,8 @@ export default {
     }
   },
   data() {
-    this.$set(this.value, 'http_config', this.value.http_config || {});
-    this.$set(this.value, 'send_resolved', typeof this.value.send_resolved === 'boolean' ? this.value.send_resolved : true);
+    this.value['http_config'] = this.value.http_config || {};
+    this.value['send_resolved'] = typeof this.value.send_resolved === 'boolean' ? this.value.send_resolved : true;
 
     const integrationMapping = {
       'Events API v2': 'routing_key',
@@ -62,7 +62,7 @@ export default {
     <div class="row mb-20">
       <div class="col span-6">
         <LabeledSelect
-          v-model="integrationType"
+          v-model:value="integrationType"
           :options="integrationTypeOptions"
           :mode="mode"
           label="Integration Type"
@@ -70,7 +70,7 @@ export default {
       </div>
       <div class="col span-6">
         <LabeledInput
-          v-model="value[integrationMapping[integrationType]]"
+          v-model:value="value[integrationMapping[integrationType]]"
           :mode="mode"
           label="Default Integration Key"
         />
@@ -79,7 +79,7 @@ export default {
     <div class="row mb-20">
       <div class="col span-12">
         <LabeledInput
-          v-model="value.http_config.proxy_url"
+          v-model:value="value.http_config.proxy_url"
           :mode="mode"
           label="Proxy URL"
           placeholder="e.g. http://my-proxy/"
@@ -88,7 +88,7 @@ export default {
     </div>
     <div class="row">
       <Checkbox
-        v-model="value.send_resolved"
+        v-model:value="value.send_resolved"
         :mode="mode"
         label="Enable send resolved alerts"
       />

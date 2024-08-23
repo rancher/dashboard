@@ -56,7 +56,7 @@ export default {
       :resource="resource"
       :type-display="t('drivers.kontainer.title')"
     >
-      <template slot="extraActions">
+      <template #extraActions>
         <AsyncButton
           v-if="canRefreshK8sMetadata"
           mode="refresh"

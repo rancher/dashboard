@@ -78,7 +78,7 @@ export default {
       :value="value"
       mode="view"
       class="mt-20"
-      @input="$emit('input', $event)"
+      @update:value="$emit('input', $event)"
     >
       <Tab
         label="Git Repos"

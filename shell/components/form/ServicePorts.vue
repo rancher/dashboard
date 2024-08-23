@@ -114,7 +114,7 @@ export default {
         return;
       }
 
-      this.$emit('input', this.rows);
+      this.$emit('update:value', this.rows);
     }
   },
 };
@@ -183,10 +183,10 @@ export default {
           <input
             v-else
             ref="port-name"
-            v-model.number="row.name"
+            :value="row.name"
             type="text"
             :placeholder="t('servicePorts.rules.name.placeholder')"
-            @input="queueUpdate"
+            @input="($plainInputEvent) => queueUpdate($plainInputEvent)"
           >
         </div>
         <div class="port">
@@ -194,12 +194,12 @@ export default {
           <input
             v-else
             ref="port"
-            v-model.number="row.port"
+            :value="row.port"
             type="number"
             min="1"
             max="65535"
             :placeholder="t('servicePorts.rules.listening.placeholder')"
-            @input="queueUpdate"
+            @input="($plainInputEvent) => queueUpdate($plainInputEvent)"
           >
         </div>
         <div
@@ -209,18 +209,18 @@ export default {
           <span v-if="isView">{{ row.protocol }}</span>
           <Select
             v-else
-            v-model="row.protocol"
+            v-model:value="row.protocol"
             :options="protocolOptions"
-            @input="queueUpdate"
+            @update:value="queueUpdate"
           />
         </div>
         <div class="target-port">
           <span v-if="isView">{{ row.targetPort }}</span>
           <input
             v-else
-            v-model="row.targetPort"
+            :value="row.targetPort"
             :placeholder="t('servicePorts.rules.target.placeholder')"
-            @input="queueUpdate"
+            @input="($plainInputEvent) => queueUpdate($plainInputEvent)"
           >
         </div>
         <div
@@ -230,12 +230,12 @@ export default {
           <span v-if="isView">{{ row.nodePort }}</span>
           <input
             v-else
-            v-model.number="row.nodePort"
+            :value="row.nodePort"
             type="number"
             min="1"
             max="65535"
             :placeholder="t('servicePorts.rules.node.placeholder')"
-            @input="queueUpdate"
+            @input="($plainInputEvent) => queueUpdate($plainInputEvent)"
           >
         </div>
         <div
@@ -317,7 +317,7 @@ export default {
       height: 100%;
     }
 
-    .port-protocol ::v-deep {
+    .port-protocol :deep() {
       .unlabeled-select {
         .v-select.inline {
           margin-top: 2px;

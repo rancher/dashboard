@@ -39,10 +39,10 @@ export default {
     if (this.type === WORKLOAD_TYPES.CRON_JOB) {
       // Initialize both value specs if empty
       if (!this.value.jobTemplate) {
-        this.$set(this.value, 'jobTemplate', { spec: {} });
+        this.value['jobTemplate'] = { spec: {} };
       }
       if (!this.value.jobTemplate.spec.template) {
-        this.$set(this.value.jobTemplate.spec, 'template', { spec: {} });
+        this.value.jobTemplate.spec['template'] = { spec: {} };
       }
       const {
         concurrencyPolicy = 'Allow',
@@ -71,7 +71,7 @@ export default {
       };
     } else {
       if (!this.value.template) {
-        this.$set(this.value, 'template', { spec: {} });
+        this.value['template'] = { spec: {} };
       }
       const {
         completions,
@@ -117,7 +117,7 @@ export default {
 
         spec.template.spec.terminationGracePeriodSeconds = this.terminationGracePeriodSeconds;
 
-        this.$emit('input', spec);
+        this.$emit('update:value', spec);
       } else {
         const spec = {
           ...this.value,
@@ -139,7 +139,7 @@ export default {
 
         spec.jobTemplate.spec.template.spec.terminationGracePeriodSeconds = this.terminationGracePeriodSeconds;
 
-        this.$emit('input', spec);
+        this.$emit('update:value', spec);
       }
     },
 
@@ -155,7 +155,7 @@ export default {
         class="col span-6"
       >
         <UnitInput
-          v-model="completions"
+          v-model:value="completions"
           :mode="mode"
           :suffix="t('suffix.times', {count: completions})"
           label-key="workload.job.completions.label"
@@ -168,7 +168,7 @@ export default {
         class="col span-6"
       >
         <UnitInput
-          v-model="parallelism"
+          v-model:value="parallelism"
           :mode="mode"
           :suffix="t('suffix.times', {count: parallelism})"
           label-key="workload.job.parallelism.label"
@@ -183,7 +183,7 @@ export default {
         class="col span-6"
       >
         <UnitInput
-          v-model="backoffLimit"
+          v-model:value="backoffLimit"
           :mode="mode"
           :suffix="t('suffix.times', {count: backoffLimit})"
           label-key="workload.job.backoffLimit.label"
@@ -196,7 +196,7 @@ export default {
         class="col span-6"
       >
         <UnitInput
-          v-model="activeDeadlineSeconds"
+          v-model:value="activeDeadlineSeconds"
           :mode="mode"
           :suffix="t('suffix.seconds', {count: activeDeadlineSeconds})"
           label-key="workload.job.activeDeadlineSeconds.label"
@@ -239,7 +239,7 @@ export default {
           class="col span-6"
         >
           <UnitInput
-            v-model="startingDeadlineSeconds"
+            v-model:value="startingDeadlineSeconds"
             :mode="mode"
             :suffix="t('suffix.seconds', {count: startingDeadlineSeconds})"
             label-key="workload.job.startingDeadlineSeconds.label"
@@ -252,7 +252,7 @@ export default {
           class="col span-6"
         >
           <UnitInput
-            v-model="terminationGracePeriodSeconds"
+            v-model:value="terminationGracePeriodSeconds"
             :suffix="terminationGracePeriodSeconds == 1 ? 'Second' : 'Seconds'"
             :label="t('workload.upgrading.activeDeadlineSeconds.label')"
             :mode="mode"
@@ -260,7 +260,7 @@ export default {
           >
             <template #label>
               <label
-                class="has-tooltip"
+                class="v-popper--has-tooltip"
                 :style="{'color':'var(--input-label)'}"
               >
                 {{ t('workload.upgrading.terminationGracePeriodSeconds.label') }}
@@ -280,7 +280,7 @@ export default {
           class="col span-6"
         >
           <RadioGroup
-            v-model="concurrencyPolicy"
+            v-model:value="concurrencyPolicy"
             :mode="mode"
             :label="t('workload.upgrading.concurrencyPolicy.label')"
             name="concurrency"
@@ -294,7 +294,7 @@ export default {
           class="col span-6"
         >
           <RadioGroup
-            v-model="suspend"
+            v-model:value="suspend"
             :mode="mode"
             :label="t('workload.job.suspend')"
             name="suspend"
@@ -314,14 +314,14 @@ export default {
         class="col span-6"
       >
         <UnitInput
-          v-model="terminationGracePeriodSeconds"
+          v-model:value="terminationGracePeriodSeconds"
           :suffix="terminationGracePeriodSeconds == 1 ? 'Second' : 'Seconds'"
           :label="t('workload.upgrading.activeDeadlineSeconds.label')"
           :mode="mode"
         >
           <template #label>
             <label
-              class="has-tooltip"
+              class="v-popper--has-tooltip"
               :style="{'color':'var(--input-label)'}"
             >
               {{ t('workload.upgrading.terminationGracePeriodSeconds.label') }}

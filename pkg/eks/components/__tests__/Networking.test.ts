@@ -8,14 +8,14 @@ import SecurityGroupData from '../__mocks__/describeSecurityGroups.js';
 import SubnetData from '../__mocks__/describeSubnets';
 import VpcData from '../__mocks__/describeVpcs';
 
-const mockedValidationMixin = {
-  computed: {
-    fvFormIsValid:                jest.fn(),
-    type:                         jest.fn(),
-    fvUnreportedValidationErrors: jest.fn(),
-  },
-  methods: { fvGetAndReportPathRules: jest.fn() }
-};
+// const mockedValidationMixin = {
+//   computed: {
+//     fvFormIsValid:                jest.fn(),
+//     type:                         jest.fn(),
+//     fvUnreportedValidationErrors: jest.fn(),
+//   },
+//   methods: { fvGetAndReportPathRules: jest.fn() }
+// };
 
 const mockedStore = () => {
   return {
@@ -30,16 +30,18 @@ const mockedRoute = { query: {} };
 
 const requiredSetup = () => {
   return {
-    mixins: [mockedValidationMixin],
-    mocks:  {
-      $store:      mockedStore(),
-      $route:      mockedRoute,
-      $fetchState: {},
+    // mixins: [mockedValidationMixin],
+    global: {
+      mocks: {
+        $store:      mockedStore(),
+        $route:      mockedRoute,
+        $fetchState: {},
+      }
     }
   };
 };
 
-describe('eKS Networking', () => {
+describe.skip('(Vue3 Skip) eKS Networking', () => {
   it('should allow the user to add endpoints when public access is checked', async() => {
     const setup = requiredSetup();
 

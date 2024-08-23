@@ -8,7 +8,7 @@ import LabeledSelect from '@shell/components/form/LabeledSelect';
 import { Checkbox } from '@components/Form/Checkbox';
 import AsyncButton from '@shell/components/AsyncButton';
 import Select from '@shell/components/form/Select';
-import VirtualList from 'vue-virtual-scroll-list';
+import VirtualList from 'vue3-virtual-scroll-list';
 import LogItem from '@shell/components/LogItem';
 
 import { escapeRegex } from '@shell/utils/string';
@@ -277,7 +277,7 @@ export default {
 
   },
 
-  beforeDestroy() {
+  beforeUnmount() {
     this.cleanup();
   },
 
@@ -549,7 +549,7 @@ export default {
       <div class="wm-button-bar">
         <Select
           v-if="containerChoices.length > 0"
-          v-model="container"
+          v-model:value="container"
           :disabled="containerChoices.length === 1"
           class="containerPicker"
           :options="containerChoices"
@@ -599,13 +599,13 @@ export default {
             <Checkbox
               :label="t('wm.containerLogs.previous')"
               :value="previous"
-              @input="togglePrevious"
+              @update:value="togglePrevious"
             />
           </div>
         </div>
 
         <div class="log-action log-action-group ml-5">
-          <v-popover
+          <v-dropdown
             trigger="click"
             placement="top"
           >
@@ -614,42 +614,43 @@ export default {
               <i class="icon icon-chevron-up" />
             </button>
 
-            <template slot="popover">
+            <template #popover>
               <div class="filter-popup">
                 <LabeledSelect
-                  v-model="range"
+                  v-model:value="range"
                   class="range"
                   :label="t('wm.containerLogs.range.label')"
                   :options="rangeOptions"
                   :clearable="false"
                   placement="top"
-                  @input="toggleRange($event)"
+                  @update:value="toggleRange($event)"
                 />
                 <div>
                   <Checkbox
                     :label="t('wm.containerLogs.wrap')"
                     :value="wrap"
-                    @input="toggleWrap "
+                    @update:value="toggleWrap "
                   />
                 </div>
                 <div>
                   <Checkbox
                     :label="t('wm.containerLogs.timestamps')"
                     :value="timestamps"
-                    @input="toggleTimestamps"
+                    @update:value="toggleTimestamps"
                   />
                 </div>
               </div>
             </template>
-          </v-popover>
+          </v-dropdown>
         </div>
 
         <div class="log-action log-action-group ml-5">
           <input
-            v-model="search"
+            :value="search"
             class="input-sm"
             type="search"
             :placeholder="t('wm.containerLogs.search')"
+            @input="($plainInputEvent) => search = $plainInputEvent.target.value"
           >
         </div>
 
@@ -716,11 +717,11 @@ export default {
       opacity: 0.25;
     }
 
-    &.wrap-lines ::v-deep .msg {
+    &.wrap-lines :deep() .msg {
       white-space: pre-wrap;
     }
 
-    &.show-times ::v-deep .time {
+    &.show-times :deep() .time {
       display: initial;
       width: auto;
     }
@@ -728,7 +729,7 @@ export default {
   }
 
   .containerPicker {
-    ::v-deep &.unlabeled-select {
+    :deep() &.unlabeled-select {
       display: inline-block;
       min-width: 200px;
       height: 30px;

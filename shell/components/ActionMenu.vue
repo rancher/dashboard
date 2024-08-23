@@ -257,7 +257,7 @@ export default {
     >
       <li
         v-for="(opt, i) in menuOptions"
-        :key="opt.action"
+        :key="i"
         :disabled="opt.disabled"
         :class="{divider: opt.divider}"
         :data-testid="componentTestid + '-' + i + '-item'"

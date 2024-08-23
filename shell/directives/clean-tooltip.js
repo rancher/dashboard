@@ -1,4 +1,4 @@
-import { VTooltip } from 'v-tooltip';
+import { VTooltip } from 'floating-vue';
 import { purifyHTML } from '@shell/plugins/clean-html';
 
 function purifyContent(value) {

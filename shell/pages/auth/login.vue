@@ -289,7 +289,7 @@ export default {
           this.$store.dispatch('auth/setInitialPass', this.password);
           this.$router.push({ name: 'auth-setup' });
         } else {
-          this.$router.replace('/');
+          this.$router.push({ name: 'index' });
         }
       } catch (err) {
         this.err = err;
@@ -407,7 +407,7 @@ export default {
           <component
             :is="providerComponents[idx]"
             v-for="(name, idx) in providers"
-            :key="name"
+            :key="idx"
             class="mb-10"
             :focus-on-mount="(idx === 0 && !showLocal)"
             :name="name"
@@ -420,6 +420,7 @@ export default {
           <form
             v-if="showLocal"
             :class="{'mt-30': !hasLoginMessage}"
+            @submit.prevent
           >
             <div class="span-6 offset-3">
               <div class="mb-20">
@@ -427,7 +428,7 @@ export default {
                   v-if="!firstLogin"
                   id="username"
                   ref="username"
-                  v-model.trim="username"
+                  v-model:value.trim="username"
                   data-testid="local-login-username"
                   :label="t('login.username')"
                   autocomplete="username"
@@ -437,7 +438,7 @@ export default {
                 <Password
                   id="password"
                   ref="password"
-                  v-model="password"
+                  v-model:value="password"
                   data-testid="local-login-password"
                   :label="t('login.password')"
                   autocomplete="password"
@@ -461,7 +462,7 @@ export default {
                   class="mt-20"
                 >
                   <Checkbox
-                    v-model="remember"
+                    v-model:value="remember"
                     :label="t('login.remember.label')"
                     type="checkbox"
                   />
@@ -556,7 +557,7 @@ export default {
         margin-bottom: 0;
         border-left: 0;
 
-        ::v-deep code {
+        :deep() code {
           font-size: 12px;
           padding: 0;
         }

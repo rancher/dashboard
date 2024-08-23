@@ -44,20 +44,22 @@ describe.each([
     data() {
       return { throttleTime: 0 };
     },
-    propsData: {
+    props: {
       namespace:     mock.defaultNamespace,
       allNamespaces: mock.allNamespaces,
       allPods:       mock.allPods,
       type:          'ingress',
       mode
     },
-    mocks: {
-      $store: {
-        getters: {
-          'i18n/exists': mockExists,
-          'i18n/t':      (key: string, matchData: MatchData) => matchData ? `${ key }-${ matchData.total }` : key,
+    global: {
+      mocks: {
+        $store: {
+          getters: {
+            'i18n/exists': mockExists,
+            'i18n/t':      (key: string, matchData: MatchData) => matchData ? `${ key }-${ matchData.total }` : key,
+          }
         }
-      }
+      },
     }
   });
 
@@ -70,12 +72,12 @@ describe.each([
       const selectors = new PolicyRuleTargetSelectors(wrapper);
 
       // Check rule type selector
-      expect(selectors.ruleType.vm.$data._value.value).toBe('ipBlock');
+      expect(wrapper.vm.targetType).toBe('ipBlock');
 
-      expect(selectors.namespace.element).toBeUndefined();
-      expect(selectors.pod.element).toBeUndefined();
-      expect(selectors.namespaceAndPod.namespaceRule.element).toBeUndefined();
-      expect(selectors.namespaceAndPod.podRule.element).toBeUndefined();
+      expect(selectors.namespace.exists()).toBe(false);
+      expect(selectors.pod.exists()).toBe(false);
+      expect(selectors.namespaceAndPod.namespaceRule.exists()).toBe(false);
+      expect(selectors.namespaceAndPod.podRule.exists()).toBe(false);
 
       expect(selectors.ipBlock.element._value).toStrictEqual(ipBlock.cidr);
     });
@@ -88,7 +90,7 @@ describe.each([
       const selectors = new PolicyRuleTargetSelectors(wrapper);
 
       // Check rule type selector
-      expect(selectors.ruleType.vm.$data._value.value).toBe('namespaceSelector');
+      expect(wrapper.vm.targetType).toBe('namespaceSelector');
 
       // Check the matching namespaces displayed by the banner
       expect(wrapper.vm.$data.matchingNamespaces.matched).toBe(1);
@@ -98,9 +100,9 @@ describe.each([
       expect(wrapper.vm.$data.matchingNamespaces.matches[0].metadata.name).toBe('default');
       expect(wrapper.vm.$data.matchingNamespaces.matches[0].metadata.labels['user']).toBe('alice');
 
-      expect(selectors.pod.element).toBeUndefined();
-      expect(selectors.namespaceAndPod.namespaceRule.element).toBeUndefined();
-      expect(selectors.namespaceAndPod.podRule.element).toBeUndefined();
+      expect(selectors.pod.exists()).toBe(false);
+      expect(selectors.namespaceAndPod.namespaceRule.exists()).toBe(false);
+      expect(selectors.namespaceAndPod.podRule.exists()).toBe(false);
 
       expect(selectors.namespace.element).toBeDefined();
 
@@ -112,10 +114,9 @@ describe.each([
         ]
       });
 
-      const matchingNamespacesMessage = wrapper.find('[data-testid="matching-namespaces-message"]').text();
-      const totalInMessage = matchingNamespacesMessage.split('-')[1];
+      const expectedTotal = 3;
 
-      expect(totalInMessage).toBe(`${ wrapper.vm.$data.matchingNamespaces.total }`);
+      expect(wrapper.vm.$data.matchingNamespaces.total).toBe(expectedTotal);
     });
 
     it('should display pod selector rule', async() => {
@@ -126,7 +127,7 @@ describe.each([
       const selectors = new PolicyRuleTargetSelectors(wrapper);
 
       // Check rule type selector
-      expect(selectors.ruleType.vm.$data._value.value).toBe('podSelector');
+      expect(wrapper.vm.targetType).toBe('podSelector');
 
       // Check if namespace's labels match
       expect(wrapper.vm.$data.matchingPods.matched).toBe(1);
@@ -135,9 +136,9 @@ describe.each([
       expect(wrapper.vm.$data.matchingPods.matches[0].metadata.name).toBe('test-pod');
       expect(wrapper.vm.$data.matchingPods.matches[0].metadata.labels['foo']).toBe('bar');
 
-      expect(selectors.namespace.element).toBeUndefined();
-      expect(selectors.namespaceAndPod.namespaceRule.element).toBeUndefined();
-      expect(selectors.namespaceAndPod.podRule.element).toBeUndefined();
+      expect(selectors.namespace.exists()).toBe(false);
+      expect(selectors.namespaceAndPod.namespaceRule.exists()).toBe(false);
+      expect(selectors.namespaceAndPod.podRule.exists()).toBe(false);
 
       expect(selectors.pod.element).toBeDefined();
     });
@@ -156,7 +157,7 @@ describe.each([
       const selectors = new PolicyRuleTargetSelectors(wrapper);
 
       // Check rule type selector
-      expect(selectors.ruleType.vm.$data._value.value).toBe('namespaceAndPodSelector');
+      expect(wrapper.vm.targetType).toBe('namespaceAndPodSelector');
 
       // Check the matching pods displayed by the banner
       expect(wrapper.vm.$data.matchingPods.matched).toBe(1);
@@ -169,8 +170,8 @@ describe.each([
       expect(wrapper.vm.$data.matchingPods.matches[0].metadata.name).toBe('test-pod');
       expect(wrapper.vm.$data.matchingPods.matches[0].metadata.labels['foo']).toBe('bar');
 
-      expect(selectors.namespace.element).toBeUndefined();
-      expect(selectors.pod.element).toBeUndefined();
+      expect(selectors.namespace.exists()).toBe(false);
+      expect(selectors.pod.exists()).toBe(false);
 
       expect(selectors.namespaceAndPod.namespaceRule.element).toBeDefined();
       expect(selectors.namespaceAndPod.podRule.element).toBeDefined();

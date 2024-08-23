@@ -94,11 +94,11 @@ export default {
         switch (type) {
         case LINK_TYPE_URL:
           delete this.value.spec.toService;
-          this.$set(this.value.spec, 'toURL', '');
+          this.value.spec['toURL'] = '';
           break;
         case LINK_TYPE_SERVICE:
           delete this.value.spec.toURL;
-          this.$set(this.value.spec, 'toService', {});
+          this.value.spec['toService'] = {};
           break;
         // No default
         }
@@ -172,10 +172,10 @@ export default {
       switch (value) {
       case LINK_TARGET_SELF:
       case LINK_TARGET_BLANK:
-        this.$set(this.value.spec, 'target', value);
+        this.value.spec['target'] = value;
         break;
       default:
-        this.$set(this.value.spec, 'target', this.targetName);
+        this.value.spec['target'] = this.targetName;
         break;
       }
     },
@@ -214,13 +214,13 @@ export default {
     setDefaultValues() {
       if (!this.value.spec) {
         // Link to URL is set as default option from the data
-        this.$set(this.value, 'spec', { toURL: '' });
+        this.value['spec'] = { toURL: '' };
       }
       if (!this.value.metadata) {
-        this.$set(this.value, 'metadata', {});
+        this.value['metadata'] = {};
       }
       if (!this.value.spec.target) {
-        this.$set(this.value.spec, 'target', LINK_TARGET_BLANK);
+        this.value.spec['target'] = LINK_TARGET_BLANK;
       }
     },
     /**
@@ -231,8 +231,8 @@ export default {
       if (service) {
         const { name, namespace } = service;
 
-        this.$set(this.value.spec.toService, 'name', name);
-        this.$set(this.value.spec.toService, 'namespace', namespace);
+        this.value.spec.toService['name'] = name;
+        this.value.spec.toService['namespace'] = namespace;
       }
     },
     /**
@@ -250,7 +250,7 @@ export default {
      * Generate automatically kebab case for the displayed label
      */
     setName() {
-      this.$set(this.value.metadata, 'name', normalizeName(this.value.spec.label));
+      this.value.metadata['name'] = normalizeName(this.value.spec.label);
     },
     /**
      * Get error chained validation based on existing label
@@ -303,7 +303,7 @@ export default {
       description-placeholder="navLink.label.placeholder"
       data-testid="Navlink-name-field"
       :rules="{ name: fvGetAndReportPathRules('metadata.name'), namespace: [], description: [] }"
-      @input="$emit('input', $event)"
+      @update:value="$emit('input', $event)"
     />
 
     <div class="spacer" />
@@ -311,7 +311,7 @@ export default {
     <div class="row mb-20">
       <div class="col span-6">
         <RadioGroup
-          v-model="linkType"
+          v-model:value="linkType"
           name="type"
           :mode="mode"
           :options="urlTypeOptions"
@@ -323,7 +323,7 @@ export default {
     <template v-if="isURL">
       <div class="row mb-20">
         <LabeledInput
-          v-model="value.spec.toURL"
+          v-model:value="value.spec.toURL"
           :mode="mode"
           :label="t('navLink.tabs.link.toURL.label')"
           :required="isURL"
@@ -337,7 +337,7 @@ export default {
       <div class="row mb-20">
         <div class="col span-2">
           <LabeledSelect
-            v-model="value.spec.toService.scheme"
+            v-model:value="value.spec.toService.scheme"
             :mode="mode"
             :label="t('navLink.tabs.link.toService.scheme.label')"
             :required="isService"
@@ -349,7 +349,7 @@ export default {
         </div>
         <div class="col span-5">
           <LabeledSelect
-            v-model="currentService"
+            v-model:value="currentService"
             :mode="mode"
             :label="t('navLink.tabs.link.toService.service.label')"
             :options="mappedServices"
@@ -357,12 +357,12 @@ export default {
             :placeholder="t('navLink.tabs.link.toService.service.placeholder')"
             :rules="fvGetAndReportPathRules('spec.toService.namespace')"
             data-testid="Navlink-currentService-field"
-            @input="setService"
+            @update:value="setService"
           />
         </div>
         <div class="col span-2">
           <LabeledInput
-            v-model="value.spec.toService.port"
+            v-model:value="value.spec.toService.port"
             :mode="mode"
             :label="t('navLink.tabs.link.toService.port.label')"
             type="number"
@@ -371,7 +371,7 @@ export default {
         </div>
         <div class="col span-3">
           <LabeledInput
-            v-model="value.spec.toService.path"
+            v-model:value="value.spec.toService.path"
             :mode="mode"
             :label="t('navLink.tabs.link.toService.path.label')"
             :placeholder="t('navLink.tabs.link.toService.path.placeholder')"
@@ -384,20 +384,20 @@ export default {
     <div class="row mb-20">
       <div class="col span-6">
         <RadioGroup
-          v-model="currentTarget"
+          v-model:value="currentTarget"
           name="type"
           :mode="mode"
           :options="targetOptions"
-          @input="setTargetValue($event)"
+          @update:value="setTargetValue($event)"
         />
       </div>
       <div class="col span-6">
         <LabeledInput
           v-if="isNamedWindow"
-          v-model="targetName"
+          v-model:value="targetName"
           :mode="mode"
           :label="t('navLink.tabs.target.namedValue.label')"
-          @input="setTargetValue($event);"
+          @update:value="setTargetValue($event);"
         />
       </div>
     </div>
@@ -407,7 +407,7 @@ export default {
     <div class="row mb-20">
       <div class="col span-6">
         <LabeledInput
-          v-model="value.spec.group"
+          v-model:value="value.spec.group"
           :mode="mode"
           :tooltip="t('navLink.tabs.group.group.tooltip')"
           :label="t('navLink.tabs.group.group.label')"
@@ -415,7 +415,7 @@ export default {
       </div>
       <div class="col span-6">
         <LabeledInput
-          v-model="value.spec.sideLabel"
+          v-model:value="value.spec.sideLabel"
           :mode="mode"
           :label="t('navLink.tabs.group.sideLabel.label')"
         />
@@ -425,7 +425,7 @@ export default {
     <div class="row mb-20">
       <div class="col span-6">
         <LabeledInput
-          v-model="value.spec.description"
+          v-model:value="value.spec.description"
           :mode="mode"
           :label="t('navLink.tabs.group.description.label')"
         />
@@ -440,13 +440,13 @@ export default {
     </div>
     <div class="row">
       <FileImageSelector
-        v-model="value.spec.iconSrc"
+        v-model:value="value.spec.iconSrc"
         :read-as-data-url="true"
         :mode="mode"
         :label="t('navLink.tabs.groupImage.iconSrc.label')"
         accept="image/jpeg,image/png,image/svg+xml"
         @error="setImageError"
-        @input="setIcon"
+        @update:value="setIcon"
       />
     </div>
     <Banner

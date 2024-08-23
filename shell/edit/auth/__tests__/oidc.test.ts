@@ -1,3 +1,4 @@
+import { nextTick } from 'vue';
 /* eslint-disable jest/no-hooks */
 import { mount } from '@vue/test-utils';
 import { _EDIT } from '@shell/config/query-params';
@@ -29,43 +30,39 @@ const mockModel = {
   type:         'genericOIDCConfig',
 };
 
-const mockedAuthConfigMixin = {
-  data() {
-    return {
-      isEnabling:     false,
-      editConfig:     false,
-      model:          { ...mockModel },
-      serverSetting:  null,
-      errors:         [],
-      originalModel:  null,
-      principals:     [],
-      authConfigName: 'oidc',
-    };
-  },
-  computed: {},
-  methods:  {}
-};
-
 describe('oidc.vue', () => {
   let wrapper: any;
   const requiredSetup = () => ({
-    mixins: [mockedAuthConfigMixin],
-    mocks:  {
-      $fetchState: { pending: false },
-      $store:      {
-        getters: {
-          currentStore:              () => 'current_store',
-          'current_store/schemaFor': jest.fn(),
-          'current_store/all':       jest.fn(),
-          'i18n/t':                  (val: string) => val,
-          'i18n/exists':             jest.fn(),
-        },
-        dispatch: jest.fn()
-      },
-      $route:  { query: { AS: '' }, params: { id: 'oicd' } },
-      $router: { applyQuery: jest.fn() },
+    data() {
+      return {
+        isEnabling:     false,
+        editConfig:     false,
+        model:          { ...mockModel },
+        serverSetting:  null,
+        errors:         [],
+        originalModel:  null,
+        principals:     [],
+        authConfigName: 'oidc',
+      };
     },
-    propsData: {
+    global: {
+      mocks: {
+        $fetchState: { pending: false },
+        $store:      {
+          getters: {
+            currentStore:              () => 'current_store',
+            'current_store/schemaFor': jest.fn(),
+            'current_store/all':       jest.fn(),
+            'i18n/t':                  (val: string) => val,
+            'i18n/exists':             jest.fn(),
+          },
+          dispatch: jest.fn()
+        },
+        $route:  { query: { AS: '' }, params: { id: 'oicd' } },
+        $router: { applyQuery: jest.fn() },
+      },
+    },
+    props: {
       value: { applicationSecret: '' },
       mode:  _EDIT,
     },
@@ -75,12 +72,12 @@ describe('oidc.vue', () => {
     wrapper = mount(oidc, { ...requiredSetup() });
   });
   afterEach(() => {
-    wrapper.destroy();
+    wrapper.unmount();
   });
 
   it('have "Create" button enabled when provider is enabled and not editing config', async() => {
     wrapper.setData({ model: { enabled: true }, editConfig: false });
-    await wrapper.vm.$nextTick();
+    await nextTick();
 
     const saveButton = wrapper.find('[data-testid="form-save"]').element as HTMLInputElement;
 
@@ -89,7 +86,7 @@ describe('oidc.vue', () => {
 
   it('have "Create" button disabled when provider is disabled and editing config before fields are filled in', async() => {
     wrapper.setData({ model: {}, editConfig: true });
-    await wrapper.vm.$nextTick();
+    await nextTick();
 
     const saveButton = wrapper.find('[data-testid="form-save"]').element as HTMLInputElement;
 
@@ -98,7 +95,7 @@ describe('oidc.vue', () => {
 
   it('have "Create" button disabled when provider is disabled and editing config after required fields and scope is missing openid', async() => {
     wrapper.setData({ oidcUrls: { url: validUrl, realm: validRealm } });
-    await wrapper.vm.$nextTick();
+    await nextTick();
 
     const saveButton = wrapper.find('[data-testid="form-save"]').element as HTMLInputElement;
 
@@ -107,7 +104,7 @@ describe('oidc.vue', () => {
 
   it('have "Create" button enabled when customEndpoint is disabled and required fields are filled in', async() => {
     wrapper.setData({ oidcUrls: { url: validUrl, realm: validRealm }, oidcScope: validScope.split(' ') });
-    await wrapper.vm.$nextTick();
+    await nextTick();
 
     const saveButton = wrapper.find('[data-testid="form-save"]').element as HTMLInputElement;
 
@@ -116,7 +113,7 @@ describe('oidc.vue', () => {
 
   it('have "Create" button enabled when customEndpoint is enabled and required fields are filled in', async() => {
     wrapper.setData({ customEndpoint: { value: true }, oidcScope: validScope.split(' ') });
-    await wrapper.vm.$nextTick();
+    await nextTick();
 
     const saveButton = wrapper.find('[data-testid="form-save"]').element as HTMLInputElement;
 
@@ -125,12 +122,12 @@ describe('oidc.vue', () => {
 
   it('updates issuer endpoint when oidcUrls.url and oidcUrls.realm changes', async() => {
     wrapper.setData({ oidcUrls: { url: validUrl } });
-    await wrapper.vm.$nextTick();
+    await nextTick();
 
     expect(wrapper.vm.model.issuer).toBe(`${ validUrl }/realms/`);
 
     wrapper.setData({ oidcUrls: { realm: validRealm } });
-    await wrapper.vm.$nextTick();
+    await nextTick();
 
     expect(wrapper.vm.model.issuer).toBe(`${ validUrl }/realms/${ validRealm }`);
   });

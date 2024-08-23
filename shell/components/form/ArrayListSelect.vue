@@ -52,7 +52,7 @@ export default {
   methods: {
     updateRow(index, value) {
       this.value.splice(index, 1, value);
-      this.$emit('input', this.value);
+      this.$emit('update:value', this.value);
     },
     calculateOptions(value) {
       const valueOption = this.options.find((o) => o.value === value);
@@ -76,7 +76,7 @@ export default {
     :loading="loading"
     :defaultAddValue="defaultAddValue"
     :disabled="disabled"
-    @input="$emit('input', $event)"
+    @update:value="$emit('update:value', $event)"
   >
     <template v-slot:columns="scope">
       <Select
@@ -84,14 +84,14 @@ export default {
         v-bind="selectProps"
         :options="calculateOptions(scope.row.value)"
         :get-option-label="getOptionLabel"
-        @input="updateRow(scope.i, $event)"
+        @update:value="updateRow(scope.i, $event)"
       />
     </template>
   </ArrayList>
 </template>
 
 <style lang="scss" scoped>
-::v-deep .unlabeled-select {
+:deep() .unlabeled-select {
   height: 61px;
   }
 </style>

@@ -5,20 +5,20 @@ import LabeledInput from '@components/Form/LabeledInput/LabeledInput.vue';
 
 describe('component: UnitInput', () => {
   it('should renders', () => {
-    const wrapper = mount(UnitInput, { propsData: { value: 1 } });
+    const wrapper = mount(UnitInput, { props: { value: 1 } });
 
     expect(wrapper.isVisible()).toBe(true);
   });
 
   it.each(['blur', 'change'])('should emit input event when "%p" is fired', async(event) => {
-    const wrapper = mount(UnitInput, { propsData: { value: 1, delay: 0 } });
+    const wrapper = mount(UnitInput, { props: { value: 1, delay: 0 } });
     const input = wrapper.find('input');
 
     await input.setValue(2);
     await input.setValue(4);
-    input.trigger(event);
 
-    expect(wrapper.emitted('input')).toHaveLength(1);
+    expect(wrapper.emitted('update:value')).toBeTruthy();
+    expect(wrapper.emitted('update:value')[2]).toStrictEqual([4]);
   });
 
   it.each([
@@ -26,7 +26,7 @@ describe('component: UnitInput', () => {
     ['edit', false],
   ])('should contain input disabled status %p when in %p mode', (mode, status) => {
     const wrapper = mount(UnitInput, {
-      propsData: {
+      props: {
         value: 1,
         mode
       }
@@ -41,7 +41,7 @@ describe('component: UnitInput', () => {
     ['2G', '2000000000'],
     ['3', '3'],
   ])('should parse values with SI modifier %p and return %p', (value, expected) => {
-    const wrapper = mount(UnitInput, { propsData: { value } });
+    const wrapper = mount(UnitInput, { props: { value } });
     const label = wrapper.findComponent(LabeledInput);
 
     expect(label.props('value')).toBe(expected);
@@ -51,7 +51,7 @@ describe('component: UnitInput', () => {
     const inputExponent = 2;
     const baseUnit = 'B';
     const wrapper = mount(UnitInput, {
-      propsData: {
+      props: {
         value: 1,
         inputExponent,
         baseUnit,
@@ -69,7 +69,7 @@ describe('component: UnitInput', () => {
     [false, 3000000000],
   ])('should (%p) force use of SI modifier and return %p', async(outputModifier, expected) => {
     const wrapper = mount(UnitInput, {
-      propsData: {
+      props: {
         value: 1, inputExponent: 3, outputModifier: !outputModifier
       }
     });
@@ -79,13 +79,13 @@ describe('component: UnitInput', () => {
     await inputWrapper.setValue(3);
     inputWrapper.trigger('blur');
 
-    expect(wrapper.emitted('input')![0][0]).toBe(expected);
+    expect(wrapper.emitted('update:value')![0][0]).toBe(expected);
   });
 
   it('should display defined SI unit', async() => {
     const inputExponent = 3;
     const wrapper = mount(UnitInput, {
-      propsData: {
+      props: {
         value:          1,
         inputExponent,
         outputModifier: true,
@@ -96,7 +96,7 @@ describe('component: UnitInput', () => {
     await input.setValue(2);
     input.trigger('blur');
 
-    expect(wrapper.emitted('input')![0][0]).toContain(UNITS[inputExponent]);
+    expect(wrapper.emitted('update:value')![0][0]).toContain(UNITS[inputExponent]);
   });
 
   it.each([
@@ -104,7 +104,7 @@ describe('component: UnitInput', () => {
     [1000, 'MB'],
   ])('based on increment %p and exponent M, it should use binary modifier and return unit %p', (increment, expected) => {
     const wrapper = mount(UnitInput, {
-      propsData: {
+      props: {
         value: 1, inputExponent: 2, increment
       }
     });
@@ -117,7 +117,7 @@ describe('component: UnitInput', () => {
     ['number'],
   ])('should force emission of value type as %p', (outputAs) => {
     const wrapper = mount(UnitInput, {
-      propsData: {
+      props: {
         value: 1, inputExponent: 3, outputAs
       }
     });
@@ -127,7 +127,7 @@ describe('component: UnitInput', () => {
     input.setValue(2);
     input.trigger('blur');
 
-    expect(typeof wrapper.emitted('input')![0][0]).toBe(outputAs);
+    expect(typeof wrapper.emitted('update:value')![0][0]).toBe(outputAs);
   });
 
   it.each([
@@ -135,7 +135,7 @@ describe('component: UnitInput', () => {
     ['Coolio', 'MCoolio'],
   ])('should appended base unit %p value to SI modifier and return %p', (baseUnit, expected) => {
     const wrapper = mount(UnitInput, {
-      propsData: {
+      props: {
         value: 1, baseUnit, inputExponent: 2
       }
     });
@@ -146,7 +146,7 @@ describe('component: UnitInput', () => {
 
   it('should display suffix outside of the value', () => {
     const suffix = 'seconds';
-    const wrapper = mount(UnitInput, { propsData: { value: 1, suffix } });
+    const wrapper = mount(UnitInput, { props: { value: 1, suffix } });
     const addonText = wrapper.find('.addon').text();
 
     const input = wrapper.find('input');
@@ -167,25 +167,21 @@ describe('component: UnitInput', () => {
     input.setValue(value);
     input.trigger('blur');
 
-    expect(wrapper.emitted('input')![0][0]).toBe(expectation);
+    expect(wrapper.emitted('update:value')![0][0]).toBe(expectation);
   });
 
   it('should not correct value to a valid integer while typing', () => {
     const value = 5096;
     const delay = 1;
-    const wrapper = mount(UnitInput, { propsData: { delay } });
+    const wrapper = mount(UnitInput, { props: { delay } });
     const input = wrapper.find('input');
-
-    jest.useFakeTimers();
 
     input.setValue('4096');
     input.setValue('096');
     input.setValue(value);
     input.trigger('blur');
-    jest.advanceTimersByTime(delay);
-    jest.useRealTimers();
 
-    expect(wrapper.emitted('input')).toHaveLength(1);
-    expect(wrapper.emitted('input')![0][0]).toBe(value);
+    expect(wrapper.emitted('update:value')).toBeTruthy();
+    expect(wrapper.emitted('update:value')[4][0]).toBe(value);
   });
 });

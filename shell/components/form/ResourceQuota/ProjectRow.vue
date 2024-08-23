@@ -2,7 +2,6 @@
 import Select from '@shell/components/form/Select';
 import UnitInput from '@shell/components/form/UnitInput';
 import { ROW_COMPUTED } from './shared';
-import Vue from 'vue';
 
 export default {
   components: { Select, UnitInput },
@@ -47,10 +46,10 @@ export default {
   methods: {
     updateType(type) {
       if (typeof this.value.spec.resourceQuota?.limit[this.type] !== 'undefined') {
-        this.$delete(this.value.spec.resourceQuota.limit, this.type);
+        delete this.value.spec.resourceQuota.limit[this.type];
       }
       if (typeof this.value.spec.namespaceDefaultResourceQuota?.limit[this.type] !== 'undefined') {
-        this.$delete(this.value.spec.namespaceDefaultResourceQuota.limit, this.type);
+        delete this.value.spec.namespaceDefaultResourceQuota.limit[this.type];
       }
 
       this.$emit('type-change', type);
@@ -58,10 +57,10 @@ export default {
 
     updateQuotaLimit(prop, type, val) {
       if (!this.value.spec[prop]) {
-        Vue.set(this.value.spec, prop, { limit: { } });
+        this.value.spec[prop] = { limit: { } };
       }
 
-      Vue.set(this.value.spec[prop].limit, type, val);
+      this.value.spec[prop].limit[type] = val;
     }
   },
 };
@@ -72,12 +71,12 @@ export default {
     class="row"
   >
     <Select
+      :value="type"
       class="mr-10"
       :mode="mode"
-      :value="type"
       :options="types"
       data-testid="projectrow-type-input"
-      @input="updateType($event)"
+      @update:value="updateType($event)"
     />
     <UnitInput
       :value="resourceQuotaLimit[type]"
@@ -89,7 +88,7 @@ export default {
       :base-unit="typeOption.baseUnit"
       :output-modifier="true"
       data-testid="projectrow-project-quota-input"
-      @input="updateQuotaLimit('resourceQuota', type, $event)"
+      @update:value="updateQuotaLimit('resourceQuota', type, $event)"
     />
     <UnitInput
       :value="namespaceDefaultResourceQuotaLimit[type]"
@@ -100,7 +99,7 @@ export default {
       :base-unit="typeOption.baseUnit"
       :output-modifier="true"
       data-testid="projectrow-namespace-quota-input"
-      @input="updateQuotaLimit('namespaceDefaultResourceQuota', type, $event)"
+      @update:value="updateQuotaLimit('namespaceDefaultResourceQuota', type, $event)"
     />
   </div>
 </template>

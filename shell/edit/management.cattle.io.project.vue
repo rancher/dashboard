@@ -23,10 +23,12 @@ export default {
     ContainerResourceLimit, CruResource, Labels, NameNsDescription, ProjectMembershipEditor, ResourceQuota, Tabbed, Tab, Banner
   },
 
+  inheritAttrs: false,
+
   mixins: [CreateEditView, FormValidation],
   data() {
-    this.$set(this.value, 'spec', this.value.spec || {});
-    this.$set(this.value.spec, 'podSecurityPolicyTemplateId', this.value.status?.podSecurityPolicyTemplateId || '');
+    this.value['spec'] = this.value.spec || {};
+    this.value.spec['podSecurityPolicyTemplateId'] = this.value.status?.podSecurityPolicyTemplateId || '';
 
     return {
       projectRoleTemplateBindingSchema: this.$store.getters[`management/schemaFor`](MANAGEMENT.PROJECT_ROLE_TEMPLATE_BINDING),
@@ -96,9 +98,9 @@ export default {
     }
   },
   created() {
-    this.$set(this.value.metadata, 'namespace', this.$store.getters['currentCluster'].id);
-    this.$set(this.value, 'spec', this.value.spec || {});
-    this.$set(this.value.spec, 'containerDefaultResourceLimit', this.value.spec.containerDefaultResourceLimit || {});
+    this.value.metadata['namespace'] = this.$store.getters['currentCluster'].id;
+    this.value['spec'] = this.value.spec || {};
+    this.value.spec['containerDefaultResourceLimit'] = this.value.spec.containerDefaultResourceLimit || {};
   },
   methods: {
     async save(saveCb) {
@@ -141,11 +143,11 @@ export default {
     },
 
     onHasOwnerChanged(hasOwner) {
-      this.$set(this, 'membershipHasOwner', hasOwner);
+      this['membershipHasOwner'] = hasOwner;
     },
 
     onMembershipUpdate(update) {
-      this.$set(this, 'membershipUpdate', update);
+      this['membershipUpdate'] = update;
     },
 
     removeQuota(key) {
@@ -185,7 +187,7 @@ export default {
       name-key="spec.displayName"
       :normalize-name="false"
       :rules="{ name: fvGetAndReportPathRules('spec.displayName'), namespace: [], description: [] }"
-      @input="$emit('input', $event)"
+      @update:value="$emit('input', $event)"
     />
     <Tabbed :side-tabs="true">
       <Tab
@@ -215,7 +217,6 @@ export default {
           :value="value"
           :mode="canEditTabElements"
           :types="isHarvester ? HARVESTER_TYPES : RANCHER_TYPES"
-          @input="$emit('input', $event)"
           @remove="removeQuota"
         />
       </Tab>
@@ -225,7 +226,7 @@ export default {
         :weight="8"
       >
         <ContainerResourceLimit
-          v-model="value.spec.containerDefaultResourceLimit"
+          v-model:value="value.spec.containerDefaultResourceLimit"
           :mode="canEditTabElements"
           :show-tip="false"
           :register-before-hook="registerBeforeHook"

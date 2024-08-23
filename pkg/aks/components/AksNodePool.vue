@@ -92,8 +92,8 @@ export default defineComponent({
         delete this.pool.minCount;
         delete this.pool.maxCount;
       } else {
-        this.$set(this.pool, 'minCount', 1);
-        this.$set(this.pool, 'maxCount', 3);
+        this.pool['minCount'] = 1;
+        this.pool['maxCount'] = 3;
       }
     },
 
@@ -104,8 +104,8 @@ export default defineComponent({
     },
 
     validAZ(neu) {
-      this.$set(this.pool, '_validAZ', neu);
-      this.$emit('input');
+      this.pool['_validAZ'] = neu;
+      this.$emit('update:value');
     }
   },
 
@@ -139,9 +139,9 @@ export default defineComponent({
       },
       set(neu: boolean) {
         if (neu) {
-          this.$set(this.pool, 'orchestratorVersion', this.clusterVersion);
+          this.pool['orchestratorVersion'] = this.clusterVersion;
         } else {
-          this.$set(this.pool, 'orchestratorVersion', this.originalOrchestratorVersion);
+          this.pool['orchestratorVersion'] = this.originalOrchestratorVersion;
         }
       }
     },
@@ -150,14 +150,14 @@ export default defineComponent({
   methods: {
     addTaint(): void {
       this.taints.push({ taint: '', _id: randomStr() });
-      this.$set(this.pool, 'nodeTaints', this.taints.map((keyedTaint: any) => keyedTaint.taint));
-      this.$emit('input');
+      this.pool['nodeTaints'] = this.taints.map((keyedTaint: any) => keyedTaint.taint);
+      this.$emit('update:value');
     },
 
     updateTaint(keyedTaint: any, idx: any): void {
       this.taints[idx] = keyedTaint;
-      this.$set(this.pool, 'nodeTaints', this.taints.map((keyedTaint: any) => keyedTaint.taint));
-      this.$emit('input');
+      this.pool['nodeTaints'] = this.taints.map((keyedTaint: any) => keyedTaint.taint);
+      this.$emit('update:value');
     },
 
     removeTaint(idx: number): void {
@@ -165,8 +165,8 @@ export default defineComponent({
 
       neu.splice(idx, 1).map((keyedTaint) => keyedTaint.taint);
 
-      this.$set(this, 'taints', neu);
-      this.$set(this.pool, 'nodeTaints', neu.map((taint) => taint.taint));
+      this['taints'] = neu;
+      this.pool['nodeTaints'] = neu.map((taint) => taint.taint);
     },
 
     availabilityZonesSupport() {
@@ -186,7 +186,7 @@ export default defineComponent({
         class="col span-6"
       >
         <Checkbox
-          v-model="willUpgrade"
+          v-model:value="willUpgrade"
           :mode="mode"
           :label="t('aks.nodePools.orchestratorVersion.upgrade', {from: originalOrchestratorVersion, to: clusterVersion})"
           data-testid="aks-pool-upgrade-checkbox"
@@ -197,7 +197,7 @@ export default defineComponent({
         class="col span-3"
       >
         <LabeledInput
-          v-model="pool.orchestratorVersion"
+          v-model:value="pool.orchestratorVersion"
           :mode="mode"
           label-key="aks.nodePools.orchestratorVersion.label"
           disabled
@@ -220,7 +220,7 @@ export default defineComponent({
     <div class="row mb-10">
       <div class="col span-3">
         <LabeledInput
-          v-model="pool.name"
+          v-model:value="pool.name"
           :mode="mode"
           label-key="generic.name"
           required
@@ -230,7 +230,7 @@ export default defineComponent({
       </div>
       <div class="col span-3">
         <LabeledSelect
-          v-model="pool.vmSize"
+          v-model:value="pool.vmSize"
           :options="vmSizeOptions"
           label-key="aks.nodePools.vmSize.label"
           :loading="loadingVmSizes"
@@ -241,7 +241,7 @@ export default defineComponent({
       </div>
       <div class="col span-3">
         <LabeledSelect
-          v-model="pool.availabilityZones"
+          v-model:value="pool.availabilityZones"
           :options="availabilityZoneOptions"
           label-key="aks.nodePools.availabilityZones.label"
           :mode="mode"
@@ -254,13 +254,13 @@ export default defineComponent({
       </div>
       <div class="col span-2">
         <RadioGroup
-          v-model="pool.mode"
+          v-model:value="pool.mode"
           :mode="mode"
           :options="modeOptions"
           :name="`${pool._id}-mode`"
           :row="true"
           label-key="generic.mode"
-          @input="$emit('validationChanged')"
+          @update:value="$emit('validationChanged')"
         >
           <template #label>
             <span class="text-label">{{ t('aks.nodePools.mode.label') }}</span>
@@ -272,7 +272,7 @@ export default defineComponent({
     <div class="row mb-10">
       <div class="col span-3">
         <LabeledSelect
-          v-model="pool.osDiskType"
+          v-model:value="pool.osDiskType"
           :options="osDiskTypeOptions"
           label-key="aks.nodePools.osDiskType.label"
           :mode="mode"
@@ -281,7 +281,7 @@ export default defineComponent({
       </div>
       <div class="col span-3">
         <UnitInput
-          v-model="pool.osDiskSizeGB"
+          v-model:value="pool.osDiskSizeGB"
           label-key="aks.nodePools.osDiskSize.label"
           :mode="mode"
           suffix="GB"
@@ -317,7 +317,7 @@ export default defineComponent({
       </div>
       <div class="col span-3">
         <LabeledInput
-          v-model="pool.maxSurge"
+          v-model:value="pool.maxSurge"
           :mode="mode"
           label-key="aks.nodePools.maxSurge.label"
         />
@@ -326,7 +326,7 @@ export default defineComponent({
     <div class="row mb-10">
       <div class="col span-3">
         <Checkbox
-          v-model="pool.enableAutoScaling"
+          v-model:value="pool.enableAutoScaling"
           :mode="mode"
           label-key="aks.nodePools.enableAutoScaling.label"
         />
@@ -397,12 +397,12 @@ export default defineComponent({
           <template v-if="taints && taints.length">
             <Taint
               v-for="(keyedTaint, i) in taints"
-              :key="keyedTaint._id"
+              :key="i"
               :taint="keyedTaint.taint"
               :mode="mode"
               :rules="validationRules.taints"
               :data-testid="`aks-pool-taint-${i}`"
-              @input="e=>updateTaint({_id:keyedTaint._id, taint: e}, i)"
+              @update:value="e=>updateTaint({_id:keyedTaint._id, taint: e}, i)"
               @remove="removeTaint(i)"
             />
           </template>
@@ -447,7 +447,7 @@ export default defineComponent({
           />
         </div>
         <KeyValue
-          v-model="pool.nodeLabels"
+          v-model:value="pool.nodeLabels"
           :mode="mode"
           :value-can-be-empty="true"
           :add-label="t('aks.nodePools.labels.add')"
@@ -466,7 +466,7 @@ export default defineComponent({
 }
 .taints {
   width: 100%;
-  th,::v-deep td{
+  th,:deep() td{
     text-align: left;
     padding-right: 10px;
     font-weight: inherit;

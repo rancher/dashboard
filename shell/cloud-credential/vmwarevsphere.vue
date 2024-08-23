@@ -55,7 +55,7 @@ export default {
           placeholder-key="cluster.credential.vmwarevsphere.server.placeholder"
           :required="true"
           :mode="mode"
-          @input="value.setData('vcenter', $event);"
+          @update:value="value.setData('vcenter', $event);"
         />
       </div>
       <div class="col span-6">
@@ -67,7 +67,7 @@ export default {
           min="1"
           max="65535"
           :mode="mode"
-          @input="value.setData('vcenterPort', $event);"
+          @update:value="value.setData('vcenterPort', $event);"
         />
       </div>
     </div>
@@ -78,7 +78,7 @@ export default {
           label-key="cluster.credential.vmwarevsphere.username.label"
           :required="true"
           :mode="mode"
-          @input="value.setData('username', $event);"
+          @update:value="value.setData('username', $event);"
         />
       </div>
       <div class="col span-6">
@@ -88,7 +88,7 @@ export default {
           :required="true"
           type="password"
           :mode="mode"
-          @input="value.setData('password', $event);"
+          @update:value="value.setData('password', $event);"
         />
       </div>
     </div>

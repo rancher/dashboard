@@ -104,7 +104,7 @@ export default {
     },
 
     change() {
-      this.$emit('input', { selected: this.selected, text: this.string });
+      this.$emit('update:value', { selected: this.selected, text: this.string });
     },
   },
 
@@ -120,11 +120,11 @@ export default {
   <div
     :class="{ 'select-after': !selectBeforeText }"
     class="input-container row"
-    @input="change"
+    @update:value="change"
   >
     <LabeledSelect
       v-if="selectLabel"
-      v-model="selected"
+      v-model:value="selected"
       :label="selectLabel"
       :class="{ 'in-input': !isView}"
       :options="options"
@@ -139,11 +139,11 @@ export default {
       :placement="$attrs.placement ? $attrs.placement : null"
       :v-bind="$attrs"
       :rules="selectRules"
-      @input="change"
+      @update:value="change"
     />
     <Select
       v-else
-      v-model="selected"
+      v-model:value="selected"
       :options="options"
       :searchable="searchable"
       :disabled="disabled || isView"
@@ -156,12 +156,12 @@ export default {
       :option-label="optionLabel"
       :placement="$attrs.placement ? $attrs.placement : null"
       :v-bind="$attrs"
-      @input="change"
+      @update:value="change"
     />
     <LabeledInput
       v-if="textLabel || textRules.length > 0"
       ref="text"
-      v-model="string"
+      v-model:value="string"
       class="input-string col span-8"
       :label="textLabel"
       :placeholder="placeholder"
@@ -276,18 +276,18 @@ export default {
       border: 1px solid var(--outline) !important;
     }
 
-    &.labeled-select.focused ::v-deep,
-    &.unlabeled-select.focused ::v-deep {
+    &.labeled-select.focused :deep(),
+    &.unlabeled-select.focused :deep() {
       outline: none;
     }
 
-    &.labeled-select:not(.disabled):not(.view) ::v-deep,
-    &.unlabeled-select:not(.disabled):not(.view) ::v-deep {
+    &.labeled-select:not(.disabled):not(.view) :deep(),
+    &.unlabeled-select:not(.disabled):not(.view) :deep() {
       border: solid 1px var(--input-border);
     }
 
-    &.labeled-select ::v-deep,
-    &.unlabeled-select ::v-deep {
+    &.labeled-select :deep(),
+    &.unlabeled-select :deep() {
       box-shadow: none;
       width: 20%;
       margin-right: 1px; // push the input box right so the full focus outline of the select can be seen, z-index borks

@@ -159,7 +159,7 @@ export default {
     };
   },
 
-  beforeDestroy() {
+  beforeUnmount() {
     // Remove the data and stop watching resources that were fetched in this page
     // Events in particular can lead to change messages having to be processed when we are no longer interested in events
     this.$store.dispatch('cluster/forgetType', EVENT);
@@ -477,7 +477,10 @@ export default {
           resource: SECRET,
         }
       };
-    }
+    },
+    hasNodes() {
+      return this.nodes?.length > 0;
+    },
   },
 
   methods: {
@@ -598,7 +601,7 @@ export default {
         >{{ currentCluster.kubernetesVersionExtension }}</span>
       </div>
       <div
-        v-if="nodes.length > 0"
+        v-if="hasNodes"
         data-testid="architecture__label"
       >
         <label>{{ t('glance.architecture') }}: </label>
@@ -692,8 +695,8 @@ export default {
 
     <div v-if="clusterServices">
       <div
-        v-for="service in clusterServices"
-        :key="service.name"
+        v-for="(service, i) in clusterServices"
+        :key="i"
         class="k8s-service-status"
         :class="{[service.status]: true }"
         :data-testid="`k8s-service-${ service.name }`"
@@ -866,7 +869,7 @@ export default {
   align-items: center;
 }
 
-.etcd-metrics ::v-deep .external-link {
+.etcd-metrics :deep() .external-link {
   top: -107px;
 }
 

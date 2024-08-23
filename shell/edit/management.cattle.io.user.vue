@@ -205,7 +205,7 @@ export default {
         <div class="col span-4">
           <LabeledInput
             ref="name"
-            v-model="form.username"
+            v-model:value="form.username"
             label-key="user.edit.credentials.username.label"
             placeholder-key="user.edit.credentials.username.placeholder"
             :required="isCreate"
@@ -216,7 +216,7 @@ export default {
         </div>
         <div class="col span-4">
           <LabeledInput
-            v-model="form.displayName"
+            v-model:value="form.displayName"
             label-key="user.edit.credentials.displayName.label"
             placeholder-key="user.edit.credentials.displayName.placeholder"
             :disabled="isView"
@@ -226,7 +226,7 @@ export default {
       <div class="row mt-20 mb-10">
         <div class="col span-8">
           <LabeledInput
-            v-model="form.description"
+            v-model:value="form.description"
             label-key="user.edit.credentials.userDescription.label"
             placeholder-key="user.edit.credentials.userDescription.placeholder"
             :disabled="isView"
@@ -237,7 +237,7 @@ export default {
       <ChangePassword
         v-if="!isView"
         ref="changePassword"
-        v-model="form.password"
+        v-model:value="form.password"
         :mode="mode"
         :must-change-password="value.mustChangePassword"
         @valid="validation.password = $event"

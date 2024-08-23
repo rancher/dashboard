@@ -137,7 +137,7 @@ export default {
       const applicationSecret = this.getNewApplicationSecret();
 
       if (applicationSecret) {
-        this.$set(this.model, 'applicationSecret', applicationSecret);
+        this.model['applicationSecret'] = applicationSecret;
       }
 
       return {
@@ -186,7 +186,7 @@ export default {
         this.model.rancherUrl = this.model.rancherUrl || this.replyUrl;
 
         if (this.model.applicationSecret) {
-          this.$set(this, 'applicationSecret', this.model.applicationSecret);
+          this['applicationSecret'] = this.model.applicationSecret;
         }
       }
     },
@@ -206,14 +206,7 @@ export default {
         const endpointType = this.oldEndpoint && endpoint !== 'custom' ? OLD_ENDPOINTS : ENDPOINT_MAPPING;
 
         Object.keys(endpointType[endpoint]).forEach((key) => {
-          this.$set(
-            this.model,
-            key,
-            endpointType[endpoint][key].replace(
-              TENANT_ID_TOKEN,
-              this.model.tenantId
-            )
-          );
+          this.model.key = endpointType[endpoint][key].replace(TENANT_ID_TOKEN, this.model.tenantId);
         });
       }
     },
@@ -330,7 +323,7 @@ export default {
           :disable="disable"
           :edit="goToEdit"
         >
-          <template slot="rows">
+          <template #rows>
             <tr>
               <td>{{ t(`authConfig.azuread.tenantId.label`) }}:</td>
               <td>{{ model.tenantId }}</td>
@@ -358,7 +351,7 @@ export default {
           </template>
           <template
             v-if="needsUpdate"
-            slot="actions"
+            #actions
           >
             <button
               type="button"
@@ -403,7 +396,7 @@ export default {
           <div class="col span-6">
             <LabeledInput
               id="tenant-id"
-              v-model="model.tenantId"
+              v-model:value="model.tenantId"
               :label="t('authConfig.azuread.tenantId.label')"
               :mode="mode"
               :required="true"
@@ -418,7 +411,7 @@ export default {
           <div class="col span-6">
             <LabeledInput
               id="application-id"
-              v-model="model.applicationId"
+              v-model:value="model.applicationId"
               :label="t('authConfig.azuread.applicationId.label')"
               :mode="mode"
               :required="true"
@@ -430,7 +423,7 @@ export default {
           <div class="col span-6">
             <LabeledInput
               id="application-secret"
-              v-model="model.applicationSecret"
+              v-model:value="model.applicationSecret"
               type="password"
               :label="t('authConfig.azuread.applicationSecret.label')"
               :required="true"
@@ -443,17 +436,17 @@ export default {
         <div class="row mb-20">
           <div class="col span-12">
             <Checkbox
-              v-model="isGroupMembershipFilterEnabled"
+              v-model:value="isGroupMembershipFilterEnabled"
               class="mb-10 mr-10"
               :mode="mode"
               :label="t('authConfig.azuread.groupMembershipFilter.enable')"
               :tooltip="t('authConfig.azuread.groupMembershipFilter.tooltip')"
               data-testid="checkbox-azureAD-groupMembershipFilter"
-              @input="toggleGroupMembershipFilter"
+              @update:value="toggleGroupMembershipFilter"
             />
             <div v-if="isGroupMembershipFilterEnabled">
               <LabeledInput
-                v-model="model.groupMembershipFilter"
+                v-model:value="model.groupMembershipFilter"
                 :label="t('authConfig.azuread.groupMembershipFilter.label')"
                 placeholder="e.g. (displayName eq 'group1') or (displayName eq 'group2')"
                 :mode="mode"
@@ -471,7 +464,7 @@ export default {
           </div>
         </div>
         <RadioGroup
-          v-model="endpoint"
+          v-model:value="endpoint"
           class="mb-20"
           :required="true"
           :label="t('authConfig.azuread.endpoints.label')"
@@ -485,7 +478,7 @@ export default {
           <div class="row mb-20">
             <div class="col span-6">
               <LabeledInput
-                v-model="model.endpoint"
+                v-model:value="model.endpoint"
                 :label="t('authConfig.azuread.endpoint.label')"
                 :mode="mode"
                 :required="true"
@@ -495,7 +488,7 @@ export default {
             </div>
             <div class="col span-6">
               <LabeledInput
-                v-model="model.graphEndpoint"
+                v-model:value="model.graphEndpoint"
                 :label="t('authConfig.azuread.graphEndpoint.label')"
                 :required="true"
                 :rules="fvGetAndReportPathRules('graphEndpoint')"
@@ -507,7 +500,7 @@ export default {
           <div class="row mb-20">
             <div class="col span-6">
               <LabeledInput
-                v-model="model.tokenEndpoint"
+                v-model:value="model.tokenEndpoint"
                 :label="t('authConfig.azuread.tokenEndpoint.label')"
                 :mode="mode"
                 :required="true"
@@ -517,7 +510,7 @@ export default {
             </div>
             <div class="col span-6">
               <LabeledInput
-                v-model="model.authEndpoint"
+                v-model:value="model.authEndpoint"
                 :label="t('authConfig.azuread.authEndpoint.label')"
                 :required="true"
                 :rules="fvGetAndReportPathRules('authEndpoint')"

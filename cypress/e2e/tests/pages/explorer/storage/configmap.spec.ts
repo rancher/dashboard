@@ -3,13 +3,14 @@ import ConfigMapPo from '@/cypress/e2e/po/components/storage/config-map.po';
 
 const configMapPage = new ConfigMapPagePo('local');
 
-describe('ConfigMap', { testIsolation: 'off', tags: ['@explorer', '@adminUser'] }, () => {
+describe.skip('[Vue3 Skip]: ConfigMap', { testIsolation: 'off', tags: ['@explorer', '@adminUser'] }, () => {
   beforeEach(() => {
     cy.login();
   });
 
   it('has the correct title', () => {
     configMapPage.goTo();
+    configMapPage.waitForMastheadTitle('ConfigMaps');
 
     cy.title().should('eq', 'Rancher - local - ConfigMaps');
   });

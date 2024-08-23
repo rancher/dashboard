@@ -191,9 +191,9 @@ export default {
     :selectable="selectable"
     @search:blur="onBlur"
     @search:focus="onFocus"
-    @input="$emit('click-action', $event)"
+    @update:value="$emit('click-action', $event)"
   >
-    <template slot="no-options">
+    <template #no-options>
       <slot name="no-options" />
     </template>
 
@@ -210,7 +210,8 @@ export default {
     </template>
     <!-- Pass down templates provided by the caller -->
     <template
-      v-for="(_, slot) of $scopedSlots"
+      v-for="(_, slot) of $slots"
+      :key="slot"
       v-slot:[slot]="scope"
     >
       <slot
@@ -224,7 +225,7 @@ export default {
 
 <style lang='scss' scoped>
 .button-dropdown.btn-sm {
-  ::v-deep > .vs__dropdown-toggle {
+  :deep() > .vs__dropdown-toggle {
     .vs__actions {
       &:after {
         font-size: 1.6rem;
@@ -233,7 +234,7 @@ export default {
   }
 }
 .button-dropdown.btn-lg {
-  ::v-deep > .vs__dropdown-toggle {
+  :deep() > .vs__dropdown-toggle {
     .vs__actions {
       &:after {
         font-size: 2.6rem;
@@ -247,28 +248,28 @@ export default {
   color: var(--link);
   padding: 0;
 
-  &.vs--open ::v-deep {
+  &.vs--open :deep() {
     outline: none;
     box-shadow: none;
   }
 
   &:hover {
-    ::v-deep .vs__dropdown-toggle .vs__actions,
-    ::v-deep .vs__selected-options {
+    :deep() .vs__dropdown-toggle .vs__actions,
+    :deep() .vs__selected-options {
       background: var(--accent-btn-hover);
     }
-    ::v-deep .vs__selected-options .vs__selected button {
+    :deep() .vs__selected-options .vs__selected button {
       background-color: transparent;
       color: var(--accent-btn-hover-text);
     }
-    ::v-deep .vs__dropdown-toggle .vs__actions {
+    :deep() .vs__dropdown-toggle .vs__actions {
       &:after {
         color: var(--accent-btn-hover-text);
       }
     }
   }
 
-  ::v-deep > .vs__dropdown-toggle {
+  :deep() > .vs__dropdown-toggle {
     width: 100%;
     display: grid;
     grid-template-columns: 75% 25%;
@@ -284,7 +285,7 @@ export default {
     }
   }
 
-  ::v-deep .vs__selected-options {
+  :deep() .vs__selected-options {
     .vs__selected {
       margin: unset;
       border: none;
@@ -305,7 +306,7 @@ export default {
     }
   }
 
-  ::v-deep .vs__dropdown-menu {
+  :deep() .vs__dropdown-menu {
     min-width: unset;
     width: fit-content;
   }

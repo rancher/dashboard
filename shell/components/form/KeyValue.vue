@@ -306,7 +306,7 @@ export default {
   },
   watch: {
     /**
-     * KV works with v-model=value
+     * KV works with v-model:value=value
      * value is transformed into this.rows (base64 decode, mark supported etc)
      * on input, this.update constructs a new value from this.rows and emits
      * if the parent component changes value, KV needs to re-compute this.rows
@@ -428,7 +428,7 @@ export default {
         return (row.value.length || row.key.length);
       });
 
-      this.$set(this, 'rows', cleaned);
+      this['rows'] = cleaned;
     },
     onFileSelected(file) {
       const { name, value } = this.fileModifier(file.name, file.value);
@@ -513,7 +513,7 @@ export default {
       }
       this.lastUpdated = out;
 
-      this.$emit('input', out);
+      this.$emit('update:value', out);
     },
     onPaste(index, event) {
       const text = event.clipboardData.getData('text/plain');
@@ -566,7 +566,7 @@ export default {
      * Set focus on CodeMirror fields
      */
     onFocusMarkdownMultiline(idx, value) {
-      this.$set(this.codeMirrorFocus, idx, value);
+      this.codeMirrorFocus[idx] = value;
     },
     onValueFileSelected(idx, file) {
       const { name, value } = file;
@@ -616,8 +616,8 @@ export default {
           {{ _valueLabel }}
         </label>
         <label
-          v-for="c in extraColumns"
-          :key="c"
+          v-for="(c, i) in extraColumns"
+          :key="i"
         >
           <slot :name="'label:'+c">{{ c }}</slot>
         </label>
@@ -639,10 +639,10 @@ export default {
       <template
         v-for="(row,i) in filteredRows"
         v-else
+        :key="i"
       >
         <!-- Key -->
         <div
-          :key="i+'key'"
           class="kv-item key"
         >
           <slot
@@ -657,14 +657,14 @@ export default {
             <Select
               v-if="keyOptions"
               ref="key"
-              v-model="row[keyName]"
+              v-model:value="row[keyName]"
               :searchable="true"
               :disabled="disabled || isProtected(row.key)"
               :clearable="false"
               :taggable="keyTaggable"
               :options="calculateOptions(row[keyName])"
               :data-testid="`select-kv-item-key-${i}`"
-              @input="queueUpdate"
+              @update:value="queueUpdate"
             />
             <input
               v-else
@@ -681,7 +681,6 @@ export default {
 
         <!-- Value -->
         <div
-          :key="i+'value'"
           :data-testid="`kv-item-value-${i}`"
           class="kv-item value"
         >
@@ -717,7 +716,7 @@ export default {
               />
               <TextAreaAutoGrow
                 v-else-if="valueMultiline"
-                v-model="row[valueName]"
+                v-model:value="row[valueName]"
                 data-testid="value-multiline"
                 :class="{'conceal': valueConcealed}"
                 :disabled="disabled || isProtected(row.key)"
@@ -725,11 +724,11 @@ export default {
                 :placeholder="_valuePlaceholder"
                 :min-height="40"
                 :spellcheck="false"
-                @input="queueUpdate"
+                @update:value="queueUpdate"
               />
               <input
                 v-else
-                v-model="row[valueName]"
+                :value="row[valueName]"
                 :disabled="isView || disabled || isProtected(row.key)"
                 :type="valueConcealed ? 'password' : 'text'"
                 :placeholder="_valuePlaceholder"
@@ -737,7 +736,7 @@ export default {
                 autocapitalize="off"
                 spellcheck="false"
                 :data-testid="`input-kv-item-value-${i}`"
-                @input="queueUpdate"
+                @input="($plainInputEvent) => queueUpdate($plainInputEvent)"
               >
               <FileSelector
                 v-if="parseValueFromFile && readAllowed && !isView && isValueFieldEmpty(row[valueName])"
@@ -750,8 +749,8 @@ export default {
           </slot>
         </div>
         <div
-          v-for="c in extraColumns"
-          :key="i + c"
+          v-for="(c, j) in extraColumns"
+          :key="`${i}-${j}`"
           class="kv-item extra"
         >
           <slot

@@ -53,43 +53,6 @@ const defaultStubs = {
 
 const mockAgentArgs = { 'cloud-provider-name': { options: [], profile: { options: [{ anything: 'yes' }] } } };
 
-const defaultComputed = {
-  appsOSWarning() {
-    return false;
-  },
-  showForm() {
-    return true;
-  },
-  versionOptions() {
-    return [
-      {
-        id: 'v1.31.0+rke2r1', value: 'v1.31.0+rke2r1', serverArgs: {}, agentArgs: mockAgentArgs, charts: {}
-      },
-      {
-        id: 'v1.30.0+rke2r1', value: 'v1.30.0+rke2r1', serverArgs: {}, agentArgs: mockAgentArgs, charts: {}
-      },
-      {
-        id: 'v1.29.1+rke2r1', value: 'v1.29.1+rke2r1', serverArgs: {}, agentArgs: mockAgentArgs, charts: {}
-      },
-      {
-        id: 'v1.25.0+rke2r1', value: 'v1.25.0+rke2r1', serverArgs: {}, agentArgs: mockAgentArgs, charts: {}
-      },
-      {
-        id: 'v1.24.0+rke2r1', value: 'v1.24.0+rke2r1', serverArgs: {}, agentArgs: mockAgentArgs, charts: {}
-      },
-      {
-        id: 'v1.23.0+rke2r1', value: 'v1.23.0+rke2r1', serverArgs: {}, agentArgs: mockAgentArgs, charts: {}
-      },
-      {
-        id: 'v1.25.0+k3s1', value: 'v1.25.0+k3s1', serverArgs: {}, agentArgs: mockAgentArgs, charts: {}
-      },
-      {
-        id: 'v1.24.0+k3s1', value: 'v1.24.0+k3s1', serverArgs: {}, agentArgs: mockAgentArgs, charts: {}
-      }
-    ];
-  }
-};
-
 const defaultGetters = {
   currentStore:                      () => 'current_store',
   'management/schemaFor':            jest.fn(),
@@ -130,7 +93,7 @@ describe('component: rke2', () => {
   ])('should allow creation of RKE2 cluster with provider %p if pool machines are missing (%p)', (provider, result) => {
     const k8s = 'v1.25.0+rke2r1';
     const wrapper = mount(rke2, {
-      propsData: {
+      props: {
         mode:  _CREATE,
         value: {
           spec: {
@@ -143,12 +106,16 @@ describe('component: rke2', () => {
         selectedVersion: { agentArgs: mockAgentArgs },
         provider,
       },
-      computed: defaultComputed,
-      mocks:    {
-        ...defaultMocks,
-        $store: { dispatch: () => jest.fn(), getters: defaultGetters },
+
+      global: {
+        mocks: {
+          ...defaultMocks,
+          $store:  { dispatch: () => jest.fn(), getters: defaultGetters },
+          $plugin: { getDynamic: jest.fn(() => undefined ) }
+        },
+
+        stubs: defaultStubs,
       },
-      stubs: defaultStubs
     });
 
     expect((wrapper.vm as any).validationPassed).toBe(result);
@@ -157,7 +124,7 @@ describe('component: rke2', () => {
   it('should allow creation of K3 clusters if pool machines are missing', () => {
     const k8s = 'v1.25.0+k3s1';
     const wrapper = mount(rke2, {
-      propsData: {
+      props: {
         mode:  _CREATE,
         value: {
           spec: {
@@ -168,13 +135,18 @@ describe('component: rke2', () => {
         },
         provider: 'custom'
       },
-      data:     () => ({ credentialId: 'I am authenticated' }),
-      computed: defaultComputed,
-      mocks:    {
-        ...defaultMocks,
-        $store: { dispatch: () => jest.fn(), getters: defaultGetters },
+
+      data: () => ({ credentialId: 'I am authenticated' }),
+
+      global: {
+        mocks: {
+          ...defaultMocks,
+          $store:  { dispatch: () => jest.fn(), getters: defaultGetters },
+          $plugin: { getDynamic: jest.fn(() => undefined ) },
+        },
+
+        stubs: defaultStubs,
       },
-      stubs: defaultStubs
     });
 
     expect((wrapper.vm as any).validationPassed).toBe(true);
@@ -183,7 +155,7 @@ describe('component: rke2', () => {
   it('should initialize machine pools with drain before delete true', async() => {
     const k8s = 'v1.25.0+k3s1';
     const wrapper = mount(rke2, {
-      propsData: {
+      props: {
         mode:  _CREATE,
         value: {
           spec: {
@@ -194,13 +166,18 @@ describe('component: rke2', () => {
         },
         provider: 'custom'
       },
-      data:     () => ({ credentialId: 'I am authenticated' }),
-      computed: defaultComputed,
-      mocks:    {
-        ...defaultMocks,
-        $store: { dispatch: () => jest.fn(), getters: defaultGetters },
+
+      data: () => ({ credentialId: 'I am authenticated' }),
+
+      global: {
+        mocks: {
+          ...defaultMocks,
+          $store:  { dispatch: () => jest.fn(), getters: defaultGetters },
+          $plugin: { getDynamic: jest.fn(() => undefined ) },
+        },
+
+        stubs: defaultStubs,
       },
-      stubs: defaultStubs
     });
 
     await wrapper.vm.initSpecs();
@@ -219,7 +196,7 @@ describe('component: rke2', () => {
     newSpec.rkeConfig.dataDirectories = { k8sDistro: 'my-k8s-distro-path' };
 
     const wrapper = mount(rke2, {
-      propsData: {
+      props: {
         mode:  _CREATE,
         value: {
           spec: {
@@ -231,27 +208,32 @@ describe('component: rke2', () => {
         },
         provider: 'custom'
       },
+
       data: () => ({
         credentialId: 'I am authenticated',
         credential:   { decodedData: { clusterId: 'some-cluster-id' } },
         machinePools: [],
       }),
-      computed: defaultComputed,
-      mocks:    {
-        ...defaultMocks,
-        $store: {
-          // mock secret creation on "createKubeconfigSecret"
-          dispatch: (action: any, opts: any) => {
-            if (action === 'management/create' && opts.type === SECRET) {
-              return { save: () => jest.fn };
-            } else {
-              return jest.fn();
-            }
+
+      global: {
+        mocks: {
+          ...defaultMocks,
+          $store: {
+            // mock secret creation on "createKubeconfigSecret"
+            dispatch: (action: any, opts: any) => {
+              if (action === 'management/create' && opts.type === SECRET) {
+                return { save: () => jest.fn };
+              } else {
+                return jest.fn();
+              }
+            },
+            getters: defaultGetters
           },
-          getters: defaultGetters
+          $plugin: { getDynamic: jest.fn(() => undefined ) },
         },
+
+        stubs: defaultStubs,
       },
-      stubs: defaultStubs
     });
 
     // we need to mock the "save" method from the create-edit-view-mixin
@@ -260,7 +242,7 @@ describe('component: rke2', () => {
 
     await wrapper.vm._doSaveOverride(jest.fn());
 
-    expect(wrapper.vm.chartValues[HARVESTER_CLOUD_PROVIDER].cloudConfigPath).toStrictEqual('my-k8s-distro-path/etc/config-files/cloud-provider-config');
+    expect(wrapper.vm.chartValues[`${ HARVESTER_CLOUD_PROVIDER }.cloudConfigPath`]).toStrictEqual('my-k8s-distro-path/etc/config-files/cloud-provider-config');
   });
 
   // TODO: Complete test after implementing fetch https://github.com/rancher/dashboard/issues/9322
@@ -268,7 +250,7 @@ describe('component: rke2', () => {
   describe.skip('should initialize agent configuration values', () => {
     it('adding default values if none', async() => {
       const wrapper = shallowMount(rke2, {
-        propsData: {
+        props: {
           mode:  'create',
           value: {
             spec:        { ...defaultSpec },
@@ -276,19 +258,23 @@ describe('component: rke2', () => {
           },
           provider: 'custom'
         },
-        computed: defaultComputed,
-        mocks:    {
-          ...defaultMocks,
-          $store: {
-            getters:  defaultGetters,
-            dispatch: {
-              'management/request': jest.fn(),
-              'management/find':    jest.fn(),
-              'management/findAll': () => ([]),
-            }
+
+        global: {
+          mocks: {
+            ...defaultMocks,
+            $store: {
+              getters:  defaultGetters,
+              dispatch: {
+                'management/request': jest.fn(),
+                'management/find':    jest.fn(),
+                'management/findAll': () => ([]),
+              }
+            },
+            $plugin: { getDynamic: jest.fn(() => undefined ) },
           },
+
+          stubs: defaultStubs,
         },
-        stubs: defaultStubs
       });
       const defaultAgentConfig = {
         clusterAgentDeploymentCustomization: {
@@ -313,7 +299,7 @@ describe('component: rke2', () => {
 
     it('should display agent configuration tab', async() => {
       const wrapper = shallowMount(rke2, {
-        propsData: {
+        props: {
           mode:  'create',
           value: {
             spec:        { ...defaultSpec },
@@ -321,19 +307,23 @@ describe('component: rke2', () => {
           },
           provider: 'custom'
         },
-        computed: defaultComputed,
-        mocks:    {
-          ...defaultMocks,
-          $store: {
-            getters:  defaultGetters,
-            dispatch: {
-              'management/request': jest.fn(),
-              'management/find':    jest.fn(),
-              'management/findAll': () => ([]),
-            }
+
+        global: {
+          mocks: {
+            ...defaultMocks,
+            $store: {
+              getters:  defaultGetters,
+              dispatch: {
+                'management/request': jest.fn(),
+                'management/find':    jest.fn(),
+                'management/findAll': () => ([]),
+              }
+            },
+            $plugin: { getDynamic: jest.fn(() => undefined ) },
           },
+
+          stubs: defaultStubs,
         },
-        stubs: defaultStubs
       });
       const agent = wrapper.find('[data-testid="rke2-cluster-agent-config"]');
 
@@ -363,13 +353,15 @@ describe('component: rke2', () => {
         },
         provider: 'custom'
       },
-      data:     () => ({}),
-      computed: defaultComputed,
-      mocks:    {
-        ...defaultMocks,
-        $store: { dispatch: () => jest.fn(), getters: defaultGetters },
-      },
-      stubs: defaultStubs
+      data:   () => ({}),
+      global: {
+        mocks: {
+          ...defaultMocks,
+          $store:  { dispatch: () => jest.fn(), getters: defaultGetters },
+          $plugin: { getDynamic: jest.fn(() => undefined ) },
+        },
+        stubs: defaultStubs
+      }
     });
 
     expect((wrapper.vm as any).isAzureProviderUnsupported).toBe(value);
@@ -402,13 +394,14 @@ describe('component: rke2', () => {
         },
         provider: 'custom'
       },
-      data:     () => ({}),
-      computed: defaultComputed,
-      mocks:    {
-        ...defaultMocks,
-        $store: { dispatch: () => jest.fn(), getters: defaultGetters },
-      },
-      stubs: defaultStubs
+      global: {
+        mocks: {
+          ...defaultMocks,
+          $store:  { dispatch: () => jest.fn(), getters: defaultGetters },
+          $plugin: { getDynamic: jest.fn(() => undefined ) },
+        },
+        stubs: defaultStubs
+      }
     });
 
     expect((wrapper.vm as any).canAzureMigrateOnEdit).toBe(value);
@@ -432,16 +425,15 @@ describe('component: rke2', () => {
         },
         provider: 'custom'
       },
-      data:     () => ({}),
-      computed: {
-        appsOSWarning: () => false,
-        showForm:      () => false,
-      },
-      mocks: {
-        ...defaultMocks,
-        $store: { dispatch: () => jest.fn(), getters: defaultGetters },
-      },
-      stubs: defaultStubs
+      data:   () => ({}),
+      global: {
+        mocks: {
+          ...defaultMocks,
+          $store:  { dispatch: () => jest.fn(), getters: defaultGetters },
+          $plugin: { getDynamic: jest.fn(() => undefined ) },
+        },
+        stubs: defaultStubs
+      }
     });
 
     wrapper.setData({
@@ -481,12 +473,14 @@ describe('component: rke2', () => {
           }
         }
       }),
-      computed: defaultComputed,
-      mocks:    {
-        ...defaultMocks,
-        $store: { dispatch: () => jest.fn(), getters: defaultGetters },
-      },
-      stubs: defaultStubs
+      global: {
+        mocks: {
+          ...defaultMocks,
+          $store:  { dispatch: () => jest.fn(), getters: defaultGetters },
+          $plugin: { getDynamic: jest.fn(() => undefined ) },
+        },
+        stubs: defaultStubs
+      }
     });
 
     const azureOption = (wrapper.vm as any).cloudProviderOptions.find((o: any) => o.value === 'azure');
@@ -525,12 +519,14 @@ describe('component: rke2', () => {
           }
         }
       }),
-      computed: defaultComputed,
-      mocks:    {
-        ...defaultMocks,
-        $store: { dispatch: () => jest.fn(), getters: defaultGetters },
-      },
-      stubs: defaultStubs
+      global: {
+        mocks: {
+          ...defaultMocks,
+          $store:  { dispatch: () => jest.fn(), getters: defaultGetters },
+          $plugin: { getDynamic: jest.fn(() => undefined ) },
+        },
+        stubs: defaultStubs
+      }
     });
 
     const azureOption = (wrapper.vm as any).cloudProviderOptions.find((o: any) => o.value === cloudProvider);

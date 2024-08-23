@@ -95,7 +95,7 @@ export default {
       :ignore-variables="cloudCredentialKeys"
       :target-namespace="value.metadata.namespace"
       :disabled="disabled"
-      @input="$emit('input', $event)"
+      @update:value="$emit('input', $event)"
     />
   </div>
 </template>

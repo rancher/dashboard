@@ -326,7 +326,7 @@ export default {
     <form v-if="selectedRoles">
       <div
         v-for="(sortedRole, roleType) in sortedRoles"
-        :key="getUnique(roleType)"
+        :key="roleType"
         class="role-group mb-10"
       >
         <Card
@@ -348,20 +348,19 @@ export default {
               :class="'checkbox-section--' + roleType"
             >
               <div
-                v-for="role in sortedRoles[roleType]"
-                :key="getUnique(roleType, role.id)"
+                v-for="(role, i) in sortedRoles[roleType]"
+                :key="i"
                 class="checkbox mb-10 mr-10"
               >
                 <Checkbox
-                  :key="getUnique(roleType, role.id, 'checkbox')"
-                  v-model="selectedRoles"
+                  v-model:value="selectedRoles"
                   :value-when-true="role.id"
                   :disabled="!!assignOnlyRoles[role.id]"
                   :label="role.nameDisplay"
                   :description="role.descriptionDisplay"
                   :mode="mode"
                   :data-testId="'grb-checkbox-' + role.id"
-                  @input="checkboxChanged"
+                  @update:value="checkboxChanged"
                 >
                   <template #label>
                     <div class="checkbox-label-slot">

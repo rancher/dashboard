@@ -231,7 +231,7 @@ export default {
     <ResourceTabs
       :value="value"
       :mode="mode"
-      @input="$emit('input', $event)"
+      @update:value="$emit('input', $event)"
     >
       <Tab
         v-if="globalBindings"

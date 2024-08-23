@@ -14,7 +14,7 @@ export default {
     },
   },
   data() {
-    this.$set(this.value.spec, 'local', this.value.spec.local || {});
+    this.value.spec['local'] = this.value.spec.local || {};
 
     return { };
   },
@@ -26,7 +26,7 @@ export default {
     <div class="row mb-20">
       <div class="col span-6">
         <LabeledInput
-          v-model="value.spec.local.path"
+          v-model:value="value.spec.local.path"
           :mode="mode"
           :label="t('persistentVolume.local.path.label')"
           :placeholder="t('persistentVolume.local.path.placeholder')"

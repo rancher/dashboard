@@ -236,7 +236,7 @@ export default {
     <ResourceTabs
       :value="value"
       :mode="mode"
-      @input="$emit('input', $event)"
+      @update:value="$emit('input', $event)"
     >
       <Tab
         name="pods"

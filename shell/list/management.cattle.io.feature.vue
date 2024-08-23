@@ -200,10 +200,7 @@ export default {
       :use-query-params-for-simple-filtering="useQueryParamsForSimpleFiltering"
       :force-update-live-and-delayed="forceUpdateLiveAndDelayed"
     >
-      <template
-        slot="cell:name"
-        slot-scope="scope"
-      >
+      <template #cell:name="scope">
         <div class="feature-name">
           <div>{{ scope.row.nameDisplay }}</div>
           <i
@@ -228,13 +225,12 @@ export default {
         class="prompt-update"
         :show-highlight-border="false"
       >
-        <h4
-          slot="title"
-          class="text-default-text"
-        >
-          Are you sure?
-        </h4>
-        <div slot="body">
+        <template #title>
+          <h4 class="text-default-text">
+            Are you sure?
+          </h4>
+        </template>
+        <template #body>
           <div
             v-if="update"
             class="mb-10"
@@ -253,7 +249,7 @@ export default {
                   class="row mt-10"
                 >
                   <LabeledInput
-                    v-model="serverUrl"
+                    v-model:value="serverUrl"
                     :label="t('setup.serverUrl.label')"
                   />
                   <div class="col pl-5">
@@ -274,7 +270,7 @@ export default {
           <div class="text-error mb-10">
             {{ error }}
           </div>
-        </div>
+        </template>
         <template #actions>
           <button
             class="btn role-secondary"
@@ -295,21 +291,19 @@ export default {
         class="prompt-update"
         :show-highlight-border="false"
       >
-        <h4
-          slot="title"
-          class="text-default-text"
-        >
-          {{ t('featureFlags.restart.title') }}
-        </h4>
-        <div
-          slot="body"
-          class="waiting"
-        >
-          <p>{{ t('featureFlags.restart.wait') }}</p>
-          <span class="restarting-icon">
-            <i class=" icon icon-spinner icon-spin" />
-          </span>
-        </div>
+        <template #title>
+          <h4 class="text-default-text">
+            {{ t('featureFlags.restart.title') }}
+          </h4>
+        </template>
+        <template #body>
+          <div class="waiting">
+            <p>{{ t('featureFlags.restart.wait') }}</p>
+            <span class="restarting-icon">
+              <i class=" icon icon-spinner icon-spin" />
+            </span>
+          </div>
+        </template>
         <template #actions>
           <button
             class="btn role-secondary"
@@ -329,7 +323,7 @@ export default {
       box-shadow: none;
     }
 
-    ::v-deep .card-actions {
+    :deep() .card-actions {
       display: flex;
       justify-content: center;
     }

@@ -156,7 +156,7 @@ function toPercent(value, min, max) {
           @click="showMenu(true)"
           @focus.capture="showMenu(true)"
         >
-          <v-popover
+          <v-dropdown
             ref="popover"
             placement="bottom-end"
             offset="-10"
@@ -169,7 +169,7 @@ function toPercent(value, min, max) {
               {{ meta.readyCount }} / {{ meta.total }} {{ title }} ready <i class="icon toggle icon-chevron-down" />
             </div>
             <template
-              slot="popover"
+              #popover
               class="resources-status-list"
             >
               <ul
@@ -184,7 +184,7 @@ function toPercent(value, min, max) {
                 </li>
               </ul>
             </template>
-          </v-popover>
+          </v-dropdown>
         </div>
       </div>
       <div

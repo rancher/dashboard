@@ -91,12 +91,12 @@ export default {
 
   methods: {
     changeSelected() {
-      this.$emit('input', this.serviceName);
+      this.$emit('update:value', this.serviceName);
     },
 
     clearSearch(event) {
       this.selected = '';
-      this.$emit('input', null);
+      this.$emit('update:value', null);
 
       event.preventDefault();
     },
@@ -123,7 +123,7 @@ export default {
     </div>
     <div class="row span-6">
       <LabeledSelect
-        v-model="selected"
+        v-model:value="selected"
         :label="selectLabel"
         class="mr-10"
         :class="{ 'in-input': !isView }"
@@ -139,7 +139,7 @@ export default {
         :placement="$attrs.placement ? $attrs.placement : null"
         :v-bind="$attrs"
         :loading="loading"
-        @input="changeSelected"
+        @update:value="changeSelected"
       />
       <button
         v-if="!isView"

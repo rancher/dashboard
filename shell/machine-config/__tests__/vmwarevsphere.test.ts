@@ -12,11 +12,13 @@ describe('component: vmwarevsphere', () => {
       disabled:     false,
       provider:     'vmwarevsphere'
     },
-    mocks: {
-      $fetchState: { pending: false },
-      $store:      { getters: defaultGetters },
-    },
-    stubs: { CodeMirror: true },
+    global: {
+      mocks: {
+        $fetchState: { pending: false },
+        $store:      { getters: defaultGetters },
+      },
+      stubs: { CodeMirror: true },
+    }
   };
   const defaultCreateSetup = {
     ...baseSetup,
@@ -116,7 +118,7 @@ describe('component: vmwarevsphere', () => {
 
   describe('mapHostOptionsToContent', () => {
     const hostPlaceholder = {
-      label: 'cluster.machineConfig.vsphere.hostOptions.any',
+      label: '%cluster.machineConfig.vsphere.hostOptions.any%',
       value: SENTINEL
     };
     const testCases = [

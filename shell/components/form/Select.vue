@@ -7,8 +7,12 @@ import { onClickOption, calculatePosition } from '@shell/utils/select';
 
 export default {
   components: { LabeledTooltip },
-  mixins:     [LabeledFormElement, VueSelectOverrides],
-  props:      {
+  mixins:     [
+    LabeledFormElement,
+    VueSelectOverrides
+  ],
+  emits: ['createdListItem', 'on-focus', 'on-blur'],
+  props: {
     appendToBody: {
       default: true,
       type:    Boolean,
@@ -215,6 +219,7 @@ export default {
       [status]: status,
       taggable: $attrs.taggable,
       taggable: $attrs.multiple,
+      [$attrs.class]: $attrs.class
     }"
     @focus="focusSearch"
   >
@@ -237,8 +242,9 @@ export default {
       :reduce="(x) => reduce(x)"
       :searchable="isSearchable"
       :selectable="selectable"
-      :value="value != null ? value : ''"
-      v-on="$listeners"
+      :modelValue="value != null ? value : ''"
+
+      @update:modelValue="$emit('update:value', $event)"
       @search:blur="onBlur"
       @search:focus="onFocus"
       @open="resizeHandler"
@@ -251,7 +257,8 @@ export default {
       </template>
       <!-- Pass down templates provided by the caller -->
       <template
-        v-for="(_, slot) of $scopedSlots"
+        v-for="(_, slot) of $slots"
+        :key="slot"
         v-slot:[slot]="scope"
       >
         <slot
@@ -278,22 +285,22 @@ export default {
   .unlabeled-select {
     position: relative;
 
-    ::v-deep .v-select.select-input-view {
+    :deep() .v-select.select-input-view {
       .vs__actions {
         visibility: hidden;
       }
     }
 
-    & .vs--multiple ::v-deep .vs__selected-options .vs__selected {
+    & .vs--multiple :deep() .vs__selected-options .vs__selected {
       width: auto;
     }
 
-    ::v-deep .labeled-tooltip.error .status-icon {
+    :deep() .labeled-tooltip.error .status-icon {
       top: 7px;
       right: 2px;
     }
 
-    ::v-deep .vs__selected-options {
+    :deep() .vs__selected-options {
       display: flex;
       margin: 3px;
 
@@ -302,13 +309,13 @@ export default {
       }
     }
 
-    ::v-deep .v-select.vs--open {
+    :deep() .v-select.vs--open {
       .vs__dropdown-toggle {
         color: var(--outline) !important;
       }
     }
 
-    ::v-deep .v-select.vs--open {
+    :deep() .v-select.vs--open {
       .vs__dropdown-toggle {
         color: var(--outline) !important;
       }

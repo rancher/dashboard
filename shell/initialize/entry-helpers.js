@@ -1,4 +1,5 @@
-import Vue from 'vue';
+import { createApp } from 'vue';
+const vueApp = createApp({});
 
 /**
  * Add error handler debugging capabilities
@@ -47,23 +48,24 @@ export const loadDebugger = (vueApp) => {
   }
 };
 
-export const globalHandleError = (error) => Vue.config.errorHandler && Vue.config.errorHandler(error);
+export const globalHandleError = (error) => vueApp.config.errorHandler && vueApp.config.errorHandler(error);
 
 /**
  * Mounts the Vue app to the DOM element
  * @param {Object} appPartials - App view partials
- * @param {Object} VueClass - Vue instance
+ * @param {Object} vueApp- Vue instance
  */
-export async function mountApp(appPartials, VueClass) {
+export async function mountApp(appPartials, vueApp) {
   // Set global variables
   const app = appPartials.app;
-  // Create Vue instance
-  const vueApp = new VueClass(app);
+  const router = appPartials.router;
 
-  // Initialize error handler
+  vueApp.use(router);
+  vueApp.use(app.store);
+
   vueApp.$loading = {}; // To avoid error while vueApp.$loading does not exist
 
-  vueApp.$mount('#app');
+  vueApp.mount('#app');
 }
 
 export const getMatchedComponents = (route, matches = false, prop = 'components') => {
@@ -104,7 +106,6 @@ export const getRouteData = async(route) => {
     return { ...componentMeta, ...recordMeta };
   });
 
-  // Send back a copy of route with meta based on Component definition
   return {
     ...routeValue,
     meta
@@ -146,6 +147,6 @@ export const setContext = async(app, context) => {
 
   app.context.next = context.next;
   app.context._redirected = false;
-  app.context.params = app.context.route.params || {};
-  app.context.query = app.context.route.query || {};
+  app.context.params = app.context.route?.params || {};
+  app.context.query = app.context.route?.query || {};
 };

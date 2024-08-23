@@ -38,7 +38,7 @@ export default {
 
   data() {
     if (!this.value.spec) {
-      this.$set(this.value, 'spec', {});
+      this.value['spec'] = {};
     }
 
     return { allBenchmarks: [], name: this.value.metadata.name };
@@ -128,7 +128,7 @@ export default {
         <div class="row">
           <div class="col span-6">
             <LabeledSelect
-              v-model="value.spec.benchmarkVersion"
+              v-model:value="value.spec.benchmarkVersion"
               :mode="mode"
               :label="t('cis.benchmarkVersion')"
               :options="compatibleBenchmarkNames"
@@ -139,7 +139,7 @@ export default {
         <div class="row">
           <div class="col span-6">
             <ArrayList
-              v-model="value.spec.skipTests"
+              v-model:value="value.spec.skipTests"
               :title="t('cis.testsToSkip')"
               :value-placeholder="t('cis.testID')"
               :mode="mode"

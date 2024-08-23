@@ -179,7 +179,7 @@ export default {
       if (this.mode === _EDIT && !this.value?.location) {
         for (const key in this.defaultConfig) {
           if (this.value[key] === undefined) {
-            this.$set(this.value, key, this.defaultConfig[key]);
+            this.value[key] = this.defaultConfig[key];
           }
         }
       }
@@ -410,7 +410,7 @@ export default {
     if (this.mode === 'create') {
       for (const key in this.defaultConfig) {
         if (this.value[key] === undefined) {
-          this.$set(this.value, key, this.defaultConfig[key]);
+          this.value[key] = this.defaultConfig[key];
         }
       }
       merge(this.value, this.defaultConfig);
@@ -485,7 +485,7 @@ export default {
         ary.push(k, tags[k]);
       }
 
-      this.$set(this.value, 'tags', ary.join(','));
+      this.value['tags'] = ary.join(',');
     },
     handleAzChange() {
       if (this.value.availabilitySet) {
@@ -529,7 +529,7 @@ export default {
           :label="t('cluster.machineConfig.azure.location.label')"
           :disabled="disabled"
           data-testid="machineConfig-azure-location"
-          @input="setLocation"
+          @update:value="setLocation"
         />
       </div>
       <div data-testid="machineConfig-azure-environment-value">
@@ -547,7 +547,7 @@ export default {
     <div class="row mt-20">
       <div class="col span-4">
         <LabeledInput
-          v-model="value.resourceGroup"
+          v-model:value="value.resourceGroup"
           :mode="mode"
           :label="t('cluster.machineConfig.azure.resourceGroup.label')"
           :disabled="disabled"
@@ -559,7 +559,7 @@ export default {
         class="col span-4"
       >
         <LabeledInput
-          v-model="value.availabilitySet"
+          v-model:value="value.availabilitySet"
           :mode="mode"
           :label="t('cluster.machineConfig.azure.availabilitySet.label')"
           :tooltip="t('cluster.machineConfig.azure.availabilitySet.description')"
@@ -576,13 +576,13 @@ export default {
         />
         <LabeledSelect
           v-else
-          v-model="value.availabilityZone"
+          v-model:value="value.availabilityZone"
           :mode="mode"
           :options="availableZones"
           :label="t('cluster.machineConfig.azure.availabilityZone.label')"
           :tooltip="t('cluster.machineConfig.azure.availabilityZone.description')"
           :disabled="disabled || !!vmAvailabilityZoneWarning"
-          @input="handleAzChange"
+          @update:value="handleAzChange"
         />
         <Banner
           v-if="vmAvailabilityZoneWarning"
@@ -592,7 +592,7 @@ export default {
       </div>
       <div class="col span-4">
         <RadioGroup
-          v-model="useAvailabilitySet"
+          v-model:value="useAvailabilitySet"
           name="etcd-s3"
           :options="[true, false]"
           :labels="[t('cluster.machineConfig.azure.availabilitySet.label'),t('cluster.machineConfig.azure.availabilityZone.label')]"
@@ -604,7 +604,7 @@ export default {
     <div class="row mt-20">
       <div class="col span-6">
         <LabeledInput
-          v-model="value.image"
+          v-model:value="value.image"
           :mode="mode"
           :label="t('cluster.machineConfig.azure.image.label')"
           :tooltip="t('cluster.machineConfig.azure.image.help')"
@@ -618,7 +618,7 @@ export default {
         />
         <LabeledSelect
           v-else
-          v-model="value.size"
+          v-model:value="value.size"
           :mode="mode"
           :options="vmSizeOptionsForDropdown"
           :get-option-label="getVmSizeOptionLabel"
@@ -648,7 +648,7 @@ export default {
         <div class="row mt-20">
           <div class="col span-6">
             <LabeledInput
-              v-model="value.faultDomainCount"
+              v-model:value="value.faultDomainCount"
               :mode="mode"
               :label="t('cluster.machineConfig.azure.faultDomainCount.label')"
               :tooltip="t('cluster.machineConfig.azure.faultDomainCount.help')"
@@ -657,7 +657,7 @@ export default {
           </div>
           <div class="col span-6">
             <LabeledInput
-              v-model="value.updateDomainCount"
+              v-model:value="value.updateDomainCount"
               :mode="mode"
               :label="t('cluster.machineConfig.azure.updateDomainCount.label')"
               :tooltip="t('cluster.machineConfig.azure.updateDomainCount.help')"
@@ -671,7 +671,7 @@ export default {
       <div class="row mt-20">
         <div class="col span-6">
           <LabeledInput
-            v-model="value.plan"
+            v-model:value="value.plan"
             :mode="mode"
             :label="t('cluster.machineConfig.azure.plan.label')"
             :placeholder="t('cluster.machineConfig.azure.plan.placeholder')"
@@ -684,7 +684,7 @@ export default {
       <div class="row mt-20 mb-20">
         <div class="col span-6">
           <LabeledInput
-            v-model="value.subnet"
+            v-model:value="value.subnet"
             :mode="mode"
             :label="t('cluster.machineConfig.azure.subnet.label')"
             :disabled="disabled"
@@ -692,7 +692,7 @@ export default {
         </div>
         <div class="col span-6">
           <LabeledInput
-            v-model="value.subnetPrefix"
+            v-model:value="value.subnetPrefix"
             :mode="mode"
             :label="t('cluster.machineConfig.azure.subnetPrefix.label')"
             :disabled="disabled"
@@ -702,7 +702,7 @@ export default {
       <div class="row mt-20">
         <div class="col span-6">
           <Checkbox
-            v-model="value.acceleratedNetworking"
+            v-model:value="value.acceleratedNetworking"
             :disabled="(!value.acceleratedNetworking && !selectedVmSizeSupportsAN)"
             :mode="mode"
             :label="t('cluster.machineConfig.azure.acceleratedNetworking.label')"
@@ -717,7 +717,7 @@ export default {
       <div class="row mt-20">
         <div class="col span-6">
           <LabeledInput
-            v-model="value.vnet"
+            v-model:value="value.vnet"
             :mode="mode"
             :label="t('cluster.machineConfig.azure.vnet.label')"
             :placeholder="t('cluster.machineConfig.azure.vnet.placeholder')"
@@ -727,17 +727,17 @@ export default {
         <div class="col span-6 inline-banner-container">
           <h3><t k="cluster.machineConfig.azure.publicIpOptions.header" /></h3>
           <Checkbox
-            v-model="value.noPublicIp"
+            v-model:value="value.noPublicIp"
             :mode="mode"
             :label="t('cluster.machineConfig.azure.publicIpOptions.noPublic.label')"
           />
           <Checkbox
-            v-model="value.staticPublicIp"
+            v-model:value="value.staticPublicIp"
             :mode="mode"
             :label="t('cluster.machineConfig.azure.publicIpOptions.staticPublicIp.label')"
           />
           <Checkbox
-            v-model="value.enablePublicIpStandardSku"
+            v-model:value="value.enablePublicIpStandardSku"
             :mode="mode"
             :label="t('cluster.machineConfig.azure.publicIpOptions.standardSKU.label')"
           />
@@ -766,12 +766,12 @@ export default {
       <div class="row mt-20">
         <div class="col span-6">
           <Checkbox
-            v-model="value.usePrivateIp"
+            v-model:value="value.usePrivateIp"
             :mode="mode"
             :label="t('cluster.machineConfig.azure.usePrivateIp.label')"
           />
           <LabeledInput
-            v-model="value.privateIpAddress"
+            v-model:value="value.privateIpAddress"
             :mode="mode"
             class="mt-10"
             :label="t('cluster.machineConfig.azure.privateIp.label')"
@@ -782,7 +782,7 @@ export default {
       <div class="row mt-20">
         <div class="col span-6">
           <LabeledInput
-            v-model="value.nsg"
+            v-model:value="value.nsg"
             :mode="mode"
             class="mt-10"
             :label="t('cluster.machineConfig.azure.nsg.label')"
@@ -792,7 +792,7 @@ export default {
         </div>
         <div class="col span-6">
           <LabeledInput
-            v-model="value.dns"
+            v-model:value="value.dns"
             :mode="mode"
             class="mt-10"
             :label="t('cluster.machineConfig.azure.dns.label')"
@@ -806,7 +806,7 @@ export default {
       <div class="row mt-20 mb-20">
         <div class="col span-6">
           <LabeledSelect
-            v-model="value.storageType"
+            v-model:value="value.storageType"
             :mode="mode"
             :options="storageTypes"
             :searchable="false"
@@ -824,7 +824,7 @@ export default {
         </div>
         <div class="col span-6 inline-banner-container">
           <Checkbox
-            v-model="value.managedDisks"
+            v-model:value="value.managedDisks"
             :mode="mode"
             :label="t('cluster.machineConfig.azure.managedDisks.label')"
             :disabled="disabled"
@@ -839,7 +839,7 @@ export default {
       <div class="row">
         <div class="col span-6">
           <LabeledInput
-            v-model="value.diskSize"
+            v-model:value="value.diskSize"
             :mode="mode"
             :label="t('cluster.machineConfig.azure.managedDisksSize.label')"
             :disabled="disabled"
@@ -847,7 +847,7 @@ export default {
         </div>
         <div class="col span-6">
           <LabeledInput
-            v-model="value.sshUser"
+            v-model:value="value.sshUser"
             :mode="mode"
             :label="t('cluster.machineConfig.azure.sshUser.label')"
             :disabled="disabled"
@@ -857,7 +857,7 @@ export default {
       <div class="row mt-20">
         <div class="col span-6">
           <ArrayList
-            v-model="value.openPort"
+            v-model:value="value.openPort"
             table-class="fixed"
             :mode="mode"
             :title="t('cluster.machineConfig.azure.openPort.label')"
@@ -880,7 +880,7 @@ export default {
             :add-label="t('labels.addTag')"
             :initial-empty-row="true"
             :disabled="disabled"
-            @input="updateTags"
+            @update:value="updateTags"
           />
         </div>
       </div>

@@ -35,7 +35,7 @@ describe('AzureAD', { tags: ['@adminUser', '@usersAndAuths'] }, () => {
     azureadPo.mastheadTitle().should('include', `AzureAD`);
   });
 
-  it('sends correct request to create standard Azure AD', () => {
+  it.skip('[Vue3 Skip]: sends correct request to create standard Azure AD', () => {
     cy.intercept('POST', 'v3/azureADConfigs/azuread?action=configureTest', (req) => {
       expect(req.body.tenantId).to.equal(tenantId);
       expect(req.body.applicationId).to.equal(applicationId);

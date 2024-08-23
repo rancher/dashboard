@@ -70,10 +70,7 @@ export default {
       :show-highlight-border="false"
     >
       <template #title>
-        <h4
-          slot="title"
-          class="text-default-text"
-        >
+        <h4 class="text-default-text">
           <slot name="title" />
         </h4>
       </template>

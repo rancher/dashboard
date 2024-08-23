@@ -37,7 +37,7 @@ export default {
     <div class="row">
       <div class="col span-6">
         <LabeledInput
-          v-model="value.source_name"
+          v-model:value="value.source_name"
           class="source-name"
           :mode="mode"
           :disabled="disabled"
@@ -46,7 +46,7 @@ export default {
       </div>
       <div class="col span-6">
         <SecretSelector
-          v-model="value.endpoint"
+          v-model:value="value.endpoint"
           :mode="mode"
           :namespace="namespace"
           :disabled="disabled"

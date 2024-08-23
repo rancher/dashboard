@@ -71,7 +71,7 @@ export default {
   <div>
     <input
       ref="input"
-      v-model="value"
+      :value="value"
       :placeholder="t('nav.resourceSearch.placeholder')"
       class="search"
       @keyup.esc="$emit('closeSearch')"
@@ -91,7 +91,7 @@ export default {
           :fixed-open="true"
           @close="$emit('closeSearch')"
         >
-          <template slot="accordion">
+          <template #accordion>
             <h6>{{ g.label }}</h6>
           </template>
         </Group>

@@ -57,7 +57,7 @@ export default {
   },
 
   data() {
-    this.$set(this.value, 'spec', this.value.spec || {});
+    this.value['spec'] = this.value.spec || {};
 
     return {
       fleetClusters:            null,
@@ -175,7 +175,7 @@ export default {
       :value="value"
       :mode="mode"
       :namespaced="false"
-      @input="$emit('input', $event)"
+      @update:value="$emit('input', $event)"
     />
 
     <Tabbed
@@ -202,7 +202,7 @@ export default {
         <Labels
           :value="value"
           :mode="mode"
-          @input="$emit('input', $event)"
+          @update:value="$emit('input', $event)"
         />
       </Tab>
       <Tab
@@ -229,7 +229,7 @@ export default {
 
         <ArrayList
           key="labels"
-          v-model="allowedTargetNamespaces"
+          v-model:value="allowedTargetNamespaces"
           :add-label="t('fleet.restrictions.addLabel')"
           :mode="mode"
           :title="t('fleet.restrictions.addTitle')"

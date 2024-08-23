@@ -26,9 +26,9 @@ export default {
       }
     ];
 
-    this.$set(this.value.spec, 'portworxVolume', this.value.spec.portworxVolume || {});
-    this.$set(this.value.spec.portworxVolume, 'readOnly', this.value.spec.portworxVolume.readOnly || false);
-    this.$set(this.value.spec.portworxVolume, 'secretRef', this.value.spec.portworxVolume.secretRef || {});
+    this.value.spec['portworxVolume'] = this.value.spec.portworxVolume || {};
+    this.value.spec.portworxVolume['readOnly'] = this.value.spec.portworxVolume.readOnly || false;
+    this.value.spec.portworxVolume['secretRef'] = this.value.spec.portworxVolume.secretRef || {};
 
     return { readOnlyOptions };
   },
@@ -40,7 +40,7 @@ export default {
     <div class="row mb-20">
       <div class="col span-6">
         <LabeledInput
-          v-model="value.spec.portworxVolume.volumeID"
+          v-model:value="value.spec.portworxVolume.volumeID"
           :mode="mode"
           :label="t('persistentVolume.portworxVolume.volumeId.label')"
           :placeholder="t('persistentVolume.portworxVolume.volumeId.placeholder')"
@@ -48,7 +48,7 @@ export default {
       </div>
       <div class="col span-6">
         <LabeledInput
-          v-model="value.spec.portworxVolume.fsType"
+          v-model:value="value.spec.portworxVolume.fsType"
           :mode="mode"
           :label="t('persistentVolume.shared.filesystemType.label')"
           :placeholder="t('persistentVolume.shared.filesystemType.placeholder')"
@@ -58,7 +58,7 @@ export default {
     <div class="row mb-20">
       <div class="col span-6">
         <RadioGroup
-          v-model="value.spec.portworxVolume.readOnly"
+          v-model:value="value.spec.portworxVolume.readOnly"
           name="readOnly"
           :mode="mode"
           :label="t('persistentVolume.shared.readOnly.label')"

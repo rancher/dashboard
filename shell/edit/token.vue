@@ -178,7 +178,7 @@ export default {
     <div class="pl-10 pr-10">
       <LabeledInput
         key="description"
-        v-model="value.description"
+        v-model:value="value.description"
         :placeholder="t('accountAndKeys.apiKeys.add.description.placeholder')"
         label-key="accountAndKeys.apiKeys.add.description.label"
         mode="edit"
@@ -186,7 +186,7 @@ export default {
       />
 
       <LabeledSelect
-        v-model="value.clusterId"
+        v-model:value="value.clusterId"
         class="mt-20 scope-select"
         label-key="accountAndKeys.apiKeys.add.scope"
         :options="scopes"
@@ -198,7 +198,7 @@ export default {
 
       <div class="ml-10">
         <RadioGroup
-          v-model="form.expiryType"
+          v-model:value="form.expiryType"
           :options="expiryOptions"
           data-testid="expiry__options"
           class="mr-20"
@@ -206,13 +206,14 @@ export default {
         />
         <div class="ml-20 mt-10 expiry">
           <input
-            v-model="form.customExpiry"
+            :value="form.customExpiry"
             :disabled="form.expiryType !== 'custom'"
             type="number"
             :mode="mode"
+            @input="($plainInputEvent) => form.customExpiry = $plainInputEvent"
           >
           <Select
-            v-model="form.customExpiryUnits"
+            v-model:value="form.customExpiryUnits"
             :disabled="form.expiryType !== 'custom'"
             :options="expiryUnitsOptions"
             :clearable="false"

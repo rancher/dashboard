@@ -49,7 +49,7 @@ export default {
 </script>
 
 <template>
-  <v-popover
+  <v-dropdown
     :class="{'hand': showHover}"
     placement="top"
     :open-group="row.id"
@@ -109,8 +109,8 @@ export default {
       >
         <tbody>
           <tr
-            v-for="obj in row.scaleParts"
-            :key="obj.label"
+            v-for="(obj, i) in row.scaleParts"
+            :key="i"
           >
             <td :class="{'text-left': true, [obj.textColor]: true}">
               {{ obj.label }}
@@ -122,7 +122,7 @@ export default {
         </tbody>
       </table>
     </template>
-  </v-popover>
+  </v-dropdown>
 </template>
 
 <style lang="scss">

@@ -19,11 +19,11 @@ export default {
     }
 
     const afterLoginRouteObject = this.$store.getters['prefs/afterLoginRoute'];
-    const targetRoute = this.$router.resolve(afterLoginRouteObject);
+    const targetRoute = afterLoginRouteObject ? this.$router.resolve(afterLoginRouteObject) : null;
 
     // If target route is /, then we will loop with endless redirect - so detect that here and
     // redirect to /home, which is what we would do below, if there was no `afterLoginRouteObject`
-    if (targetRoute?.route?.fullPath === '/') {
+    if (targetRoute?.fullPath === '/') {
       return this.$router.replace(dashboardHome);
     }
 

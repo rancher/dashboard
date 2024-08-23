@@ -10,7 +10,6 @@ import {
 } from '@shell/config/query-params';
 import { mapGetters } from 'vuex';
 import { sortBy } from '@shell/utils/sort';
-import { set } from '@shell/utils/object';
 import { PROVISIONER, _RKE1, _RKE2 } from '@shell/store/prefs';
 import { filterAndArrangeCharts } from '@shell/store/catalog';
 import { CATALOG } from '@shell/config/labels-annotations';
@@ -51,6 +50,10 @@ export default {
   },
 
   mixins: [CreateEditView],
+
+  emits: ['set-subtype'],
+
+  inheritAttrs: false,
 
   props: {
     realMode: {
@@ -113,15 +116,15 @@ export default {
     this.kontainerDrivers = res.kontainerDrivers || [];
 
     if ( !this.value.spec ) {
-      set(this.value, 'spec', {});
+      this.value.spec = {};
     }
 
     if ( !this.value.id ) {
       if ( !this.value.metadata ) {
-        set(this.value, 'metadata', {});
+        this.value.metadata = {};
       }
 
-      set(this.value.metadata, 'namespace', DEFAULT_WORKSPACE);
+      this.value.metadata.namespace = DEFAULT_WORKSPACE;
     }
 
     // For the node drivers, look for custom UI that we can use to show an icon (if not built-in)
@@ -475,6 +478,15 @@ export default {
     firstCustomClusterItem() {
       return this.groupedSubTypes.findIndex((obj) => ['custom', 'custom1', 'custom2'].includes(obj.name));
     },
+
+    localValue: {
+      get() {
+        return this.value;
+      },
+      set(newValue) {
+        this.$emit('update:value', newValue);
+      }
+    },
   },
 
   methods: {
@@ -604,7 +616,7 @@ export default {
     <template #subtypes>
       <div
         v-for="(obj, i) in groupedSubTypes"
-        :key="obj.id"
+        :key="i"
         class="mb-20"
         style="width: 100%;"
       >
@@ -614,7 +626,7 @@ export default {
             class="grouped-type"
           >
             <ToggleSwitch
-              v-model="provisioner"
+              v-model:value="provisioner"
               data-testid="cluster-manager-create-rke-switch"
               class="rke-switch"
               :off-value="_RKE1"
@@ -639,33 +651,33 @@ export default {
 
     <Import
       v-if="isImport"
-      :value="value"
+      v-model:value="localValue"
       :mode="mode"
       :provider="subType"
-      @input="$emit('input', $event)"
+      @update:value="$emit('input', $event)"
     />
     <template v-else-if="subType">
       <!-- allow extensions to provide their own cluster provisioning form -->
       <component
         :is="selectedSubType.component"
         v-if="selectedSubType && selectedSubType.component"
-        :value="value"
+        v-model:value="localValue"
         :initial-value="initialValue"
         :live-value="liveValue"
         :mode="mode"
         :provider="subType"
         :provider-config="selectedSubType.providerConfig"
-        @input="$emit('input', $event)"
+        @update:value="$emit('input', $event)"
       />
       <Rke2Config
         v-else
-        :value="value"
+        v-model:value="localValue"
         :initial-value="initialValue"
         :live-value="liveValue"
         :mode="mode"
         :provider="subType"
         :provider-config="selectedSubType.providerConfig"
-        @input="$emit('input', $event)"
+        @update:value="$emit('input', $event)"
       />
     </template>
 

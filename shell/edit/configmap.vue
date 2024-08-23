@@ -75,10 +75,10 @@ export default {
     },
 
     updateValue(val, type) {
-      this.$set(this.value, type, {});
+      this.value[type] = {};
 
       Object.keys(val).forEach((key) => {
-        this.$set(this.value[type], key, val[key]);
+        this.value[type][key] = val[key];
       });
     },
   }
@@ -113,7 +113,7 @@ export default {
       >
         <KeyValue
           key="data"
-          v-model="data"
+          v-model:value="data"
           :mode="mode"
           :protip="t('configmap.tabs.data.protip')"
           :initial-empty-row="true"
@@ -131,7 +131,7 @@ export default {
       >
         <KeyValue
           key="binaryData"
-          v-model="binaryData"
+          v-model:value="binaryData"
           :initial-empty-row="true"
           :handle-base64="true"
           :add-allowed="true"

@@ -48,7 +48,7 @@ export default {
     <ResourceTabs
       :value="value"
       :mode="mode"
-      @input="$emit('input', $event)"
+      @update:value="$emit('input', $event)"
     >
       <Tab
         name="taints"
@@ -56,7 +56,7 @@ export default {
         :weight="0"
       >
         <Taints
-          v-model="value.spec.taints"
+          v-model:value="value.spec.taints"
           :mode="mode"
         />
       </Tab>

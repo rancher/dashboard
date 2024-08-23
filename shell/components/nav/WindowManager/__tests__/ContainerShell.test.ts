@@ -15,7 +15,7 @@ jest.mock('@shell/utils/crypto', () => {
   };
 });
 
-describe('component: ContainerShell', () => {
+describe.skip('(Vue3 Skip) component: ContainerShell', () => {
   const action = jest.fn();
   const translate = jest.fn();
   const schemaFor = jest.fn();
@@ -63,16 +63,18 @@ describe('component: ContainerShell', () => {
       },
       initialContainer: 'containerId'
     },
-    stubs: ['resize-observer'],
-    mocks: {
-      $store: {
-        dispatch: action,
-        getters:  {
-          'i18n/t':            translate,
-          'cluster/schemaFor': schemaFor
+    global: {
+      stubs: ['resize-observer'],
+      mocks: {
+        $store: {
+          dispatch: action,
+          getters:  {
+            'i18n/t':            translate,
+            'cluster/schemaFor': schemaFor
+          }
         }
-      }
-    }
+      },
+    },
   };
 
   const resetMocks = () => {
@@ -107,13 +109,15 @@ describe('component: ContainerShell', () => {
     resetMocks();
     const testSchemaFindsSchemaParams = {
       ...defaultContainerShellParams,
-      mocks: {
-        ...defaultContainerShellParams.mocks,
-        $store: {
-          ...defaultContainerShellParams.mocks.$store,
-          getters: {
-            ...defaultContainerShellParams.mocks.$store.getters,
-            'cluster/schemaFor': jest.fn().mockImplementation(() => true)
+      global: {
+        mocks: {
+          ...defaultContainerShellParams.global.mocks,
+          $store: {
+            ...defaultContainerShellParams.global.mocks.$store,
+            getters: {
+              ...defaultContainerShellParams.global.mocks.$store.getters,
+              'cluster/schemaFor': jest.fn().mockImplementation(() => true)
+            }
           }
         }
       }

@@ -173,7 +173,7 @@ export default {
           </div>
         </div>
       </div>
-      <codemirror
+      <Codemirror
         ref="codeMirrorRef"
         :value="value"
         :options="combinedOptions"
@@ -194,7 +194,7 @@ export default {
 <style lang="scss">
   $code-mirror-animation-time: 0.1s;
 
-  .code-mirror {
+  .codemirror-container {
     z-index: 0;
 
     // Keyboard mapping overlap

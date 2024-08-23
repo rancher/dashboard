@@ -1,4 +1,5 @@
 <script lang="ts">
+// @ts-nocheck
 import { defineComponent } from 'vue';
 import debounce from 'lodash/debounce';
 import { _EDIT, _VIEW } from '@shell/config/query-params';
@@ -14,6 +15,16 @@ export default defineComponent({
   inheritAttrs: false,
 
   props: {
+    value: {
+      type:     String,
+      required: true
+    },
+
+    class: {
+      type:    String,
+      default: ''
+    },
+
     /**
      * Sets the edit mode for Text Area.
      * @values _EDIT, _VIEW
@@ -88,6 +99,10 @@ export default defineComponent({
      */
     style(): string {
       return `height: ${ this.curHeight }px; overflow: ${ this.overflow };`;
+    },
+
+    className(): string {
+      return this.class;
     }
   },
 
@@ -118,7 +133,7 @@ export default defineComponent({
     onInput(event: Event): void {
       const val = (event?.target as HTMLInputElement)?.value;
 
-      this.$emit('input', val);
+      this.$emit('update:value', val);
       this.queueResize();
     },
 
@@ -161,6 +176,7 @@ export default defineComponent({
     :disabled="isDisabled"
     :style="style"
     :placeholder="placeholder"
+    :class="className"
     class="no-resize no-ease"
     v-bind="$attrs"
     :spellcheck="spellcheck"

@@ -11,7 +11,7 @@ describe('component: ClusterBadge', () => {
       }
     };
 
-    const wrapper = shallowMount(ClusterBadge, { propsData: { cluster: clusterProp } });
+    const wrapper = shallowMount(ClusterBadge, { props: { cluster: clusterProp } });
 
     const elem = wrapper.find('div');
 
@@ -23,7 +23,7 @@ describe('component: ClusterBadge', () => {
   it('should NOT render component if there is no badge property in object', () => {
     const clusterProp = {};
 
-    const wrapper = shallowMount(ClusterBadge, { propsData: { cluster: clusterProp } });
+    const wrapper = shallowMount(ClusterBadge, { props: { cluster: clusterProp } });
 
     const elem = wrapper.find('div');
 

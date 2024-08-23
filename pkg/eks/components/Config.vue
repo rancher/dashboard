@@ -292,7 +292,7 @@ export default defineComponent({
           :searchable="true"
           data-testid="eks-version-dropdown"
           :disabled="!canUpgrade && hasUpgradesAvailable"
-          @input="$emit('update:kubernetesVersion', $event)"
+          @update:value="$emit('update:kubernetesVersion', $event)"
         />
       </div>
       <div class="col span-3">
@@ -301,7 +301,7 @@ export default defineComponent({
           label-key="eks.enableNetworkPolicy.label"
           :value="enableNetworkPolicy"
           :disabled="!isNewOrUnprovisioned"
-          @input="$emit('update:enableNetworkPolicy', $event)"
+          @update:value="$emit('update:enableNetworkPolicy', $event)"
         />
       </div>
       <div class="col span-3">
@@ -310,14 +310,14 @@ export default defineComponent({
           label-key="eks.ebsCSIDriver.label"
           :value="ebsCSIDriver"
           :disabled="!isNewOrUnprovisioned"
-          @input="$emit('update:ebsCSIDriver', $event)"
+          @update:value="$emit('update:ebsCSIDriver', $event)"
         />
       </div>
     </div>
     <div class="row mb-10">
       <div class="col span-6">
         <RadioGroup
-          v-model="customServiceRole"
+          v-model:value="customServiceRole"
           :mode="mode"
           :options="serviceRoleOptions"
           name="serviceRoleMode"
@@ -337,7 +337,7 @@ export default defineComponent({
           label-key="eks.serviceRole.label"
           :loading="loadingIam"
           data-testid="eks-service-role-dropdown"
-          @input="$emit('update:serviceRole', $event.RoleName)"
+          @update:value="$emit('update:serviceRole', $event.RoleName)"
         />
       </div>
     </div>
@@ -350,7 +350,7 @@ export default defineComponent({
           :mode="mode"
           label-key="eks.encryptSecrets.label"
           data-testid="eks-secrets-encryption-checkbox"
-          @input="$emit('update:secretsEncryption', $event)"
+          @update:value="$emit('update:secretsEncryption', $event)"
         />
       </div>
     </div>
@@ -370,7 +370,7 @@ export default defineComponent({
           :label="t('cluster.machineConfig.amazonEc2.kmsKey.label')"
           data-testid="eks-kms-dropdown"
           :disabled="mode!=='create'"
-          @input="$emit('update:kmsKey', $event)"
+          @update:value="$emit('update:kmsKey', $event)"
         />
         <template v-else>
           <LabeledInput
@@ -380,7 +380,7 @@ export default defineComponent({
             :tooltip="t('cluster.machineConfig.amazonEc2.kmsKey.text')"
             data-testid="eks-kms-input"
             :disabled="mode!=='create'"
-            @input="$emit('update:kmsKey', $event)"
+            @update:value="$emit('update:kmsKey', $event)"
           />
         </template>
       </div>
@@ -393,7 +393,7 @@ export default defineComponent({
         :title="t('eks.tags.label')"
         :as-map="true"
         :read-allowed="false"
-        @input="$emit('update:tags', $event)"
+        @update:value="$emit('update:tags', $event)"
       >
         <template #title>
           <label class="text-label">{{ t('eks.tags.label') }}</label>

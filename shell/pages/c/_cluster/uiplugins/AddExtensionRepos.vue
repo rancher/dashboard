@@ -127,7 +127,7 @@ export default {
         class="mb-15"
       >
         <Checkbox
-          v-model="addRepos.official"
+          v-model:value="addRepos.official"
           :disabled="hasRancherUIPluginsRepo"
           :primary="true"
           label-key="plugins.setup.install.addRancherRepo"
@@ -145,7 +145,7 @@ export default {
         class="mb-15"
       >
         <Checkbox
-          v-model="addRepos.partners"
+          v-model:value="addRepos.partners"
           :disabled="hasRancherUIPartnersPluginsRepo"
           :primary="true"
           label-key="plugins.setup.install.addPartnersRancherRepo"
