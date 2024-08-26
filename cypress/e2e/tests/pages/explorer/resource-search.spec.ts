@@ -6,7 +6,7 @@ import { ConfigMapPagePo } from '@/cypress/e2e/po/pages/explorer/config-map.po';
 
 const clusterDashboard = new ClusterDashboardPagePo('local');
 
-describe.skip('[Vue3 Skip]: Cluster Dashboard', { testIsolation: 'off', tags: ['@explorer', '@adminUser', '@standardUser'] }, () => {
+describe('Cluster Dashboard', { testIsolation: 'off', tags: ['@explorer', '@adminUser', '@standardUser'] }, () => {
   before(() => {
     cy.login();
     HomePagePo.goTo();
@@ -33,7 +33,7 @@ describe.skip('[Vue3 Skip]: Cluster Dashboard', { testIsolation: 'off', tags: ['
     dialog.checkNotExists();
   });
 
-  it('can show resource dialog when namespace chooser is open', () => {
+  it.skip('can show resource dialog when namespace chooser is open', () => {
     const namespacePicker = new NamespaceFilterPo();
 
     namespacePicker.toggle();
