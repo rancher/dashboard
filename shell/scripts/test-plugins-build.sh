@@ -88,9 +88,15 @@ rm ${SHELL_DIR}/package.json.bak
 # We might have bumped the version number but its not published yet, so this will fail
 sed -i.bak -e "s/\"version\": \"[0-9]*.[0-9]*.[0-9]*\(-alpha\.[0-9]*\|-release[0-9]*.[0-9]*.[0-9]*\|-rc\.[0-9]*\)\{0,1\}\",/\"version\": \"${SHELL_VERSION}\",/g" ${BASE_DIR}/pkg/rancher-components/package.json
 
-# Publish shell
-echo "Publishing shell packages to local registry"
+# Publish shell pkg (tag is needed as publish-shell is optimized to work with release-shell-pkg workflow)
+echo "Publishing Shell package to local registry"
 yarn install
+export TAG="shell-pkg-${SHELL_VERSION}"
+${SHELL_DIR}/scripts/publish-shell.sh
+
+# Publish creators pkg (tag is needed as publish-shell is optimized to work with release-shell-pkg workflow)
+echo "Publishing Creators package to local registry"
+export TAG="creators-pkg-${SHELL_VERSION}"
 ${SHELL_DIR}/scripts/publish-shell.sh
 
 # Publish rancher components

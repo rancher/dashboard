@@ -10,6 +10,12 @@ PUBLISH_ARGS="--no-git-tag-version --access public $PUBLISH_ARGS"
 FORCE_PUBLISH_TO_NPM="false"
 DEFAULT_YARN_REGISTRY="https://registry.npmjs.org"
 
+# if TAG doesn't exist, we can exit as it's needed for any type of publish
+if [ -z "$TAG" ]; then
+  echo "You need to set the TAG variable first!"
+  exit 1
+fi
+
 if [ ! -d "${BASE_DIR}/node_modules" ]; then
   echo "You need to run 'yarn install' first"
   exit 1
@@ -36,21 +42,6 @@ rm -rf ${PKG_DIST}/extension
 
 pushd ${SHELL_DIR} >/dev/null
 
-# if TAG doesn't exist, then we are on one of the other flows that use publish-shell
-# which require the overwrite of the released version of the creators package
-if [ -z "$TAG" ]; then
-  PKG_VERSION=$(node -p "require('./package.json').version")
-  popd >/dev/null
-
-  echo "Publishing shell and creators pkg with same version: $PKG_VERSION"
-
-  cp -R ${SHELL_DIR}/creators/extension ${PKG_DIST}
-
-  sed -i.bak -e "s/\"0.0.0/"\"$PKG_VERSION"/g" ${PKG_DIST}/extension/package.json
-
-  rm ${PKG_DIST}/extension/package.json.bak
-fi
-
 function publish() {
   NAME=$1
   FOLDER=$2
@@ -73,19 +64,6 @@ function publish() {
     cp -R ${BASE_DIR}/pkg/rancher-components/src/components ./rancher-components/
   fi
 
-  if [ "$NAME" == "Update" ]; then
-    # Add files from the app and pkg creators to the update package
-    mkdir -p ./extension
-    cp -R ${BASE_DIR}/shell/creators/extension/* ./extension
-    # Remove index.ts from pkg files, as we don't want to replace that
-    rm -f ./extension/pkg/files/index.ts
-
-    # Update the package.json for the extension
-    cd extension
-    node ${SCRIPT_DIR}/record-deps.js
-    cd ..
-  fi
-
   # Make a note of dependency versions, if required
   node ${SCRIPT_DIR}/record-deps.js
 
@@ -103,40 +81,27 @@ function publish() {
 # Generate the type definitions for the shell
 ${SCRIPT_DIR}/typegen.sh
 
-
-# Since the publish-shell script is used in a couple of different places
-# we have to be careful not to disrupt it's logic too much
-# otherwise we risk breaking those other flows
-
-# if tag exists, then we call the publish we need with an extra argument
-# this is the path of the release-shell-pkg workflow
-if [ -n "$TAG" ]; then
-  echo "TAG ${TAG}"
+echo "TAG ${TAG}"
   
   # let's get the package name and version from the tag
-  PKG_NAME=$(sed 's/-pkg-v.*//' <<<$TAG)
-  PKG_V=$(sed 's/.*-pkg-v//'<<<$TAG)
+PKG_NAME=$(sed 's/-pkg-v.*//' <<< "$TAG")
+PKG_V=$(sed 's/.*-pkg-v//'<<< "$TAG")
 
-  echo "PKG_NAME ${PKG_NAME}"
-  echo "PKG_V ${PKG_V}"
+echo "PKG_NAME ${PKG_NAME}"
+echo "PKG_V ${PKG_V}"
 
-  # there can only be two types of tags, which have been verified in the workflow
-  # with the "Check Tags Version Matching" step in the workflow
-  if [ "$PKG_NAME" == "shell" ]; then
+# version comparison checks
+case $PKG_NAME in
+  shell)
     echo "Publishing only Shell pkg via tagged release"
     publish "Shell" ${SHELL_DIR} ${PKG_V}
-  else
+    ;;
+  creators)
     echo "Publishing only Creators pkg via tagged release"
     publish "Extension creator" ${PKG_DIST}/extension/ ${PKG_V}
-  fi
-else
-  # other workflows...
-  # Publish the packages - don't tag the git repo and don't auto-increment the version number
-  publish "Shell" ${SHELL_DIR}
-  publish "Extension creator" ${PKG_DIST}/extension/
-
-  echo "Done"
-fi
-
-
-
+    ;;
+  *)
+    echo "something went wrong with the tagging name => TAG: ${TAG} , PKG_NAME: ${PKG_NAME}. Admissable names are 'shell' and 'creator'"
+    exit 1
+    ;;
+esac
