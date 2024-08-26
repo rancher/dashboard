@@ -1,6 +1,9 @@
 {
   "name": "@rancher/components",
-  "repository": "git://github.com:rancher/dashboard.git",
+  "repository": {
+    "type": "git",
+    "url": "git://github.com/rancher/dashboard.git"
+  },
   "license": "Apache-2.0",
   "version": "0.3.0-alpha.1",
   "module": "./main.js",
