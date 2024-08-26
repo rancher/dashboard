@@ -104,7 +104,7 @@ describe('Extensions Compatibility spec', { tags: ['@neuvector', '@adminUser'] }
         });
     }
 
-    neuvectorPo.appsPage().waitForInstallCloseTerminal(EXTENSION_CHART_CREATION, ['neuvector-crd', 'neuvector']).then(pollingAuthControlRequest);
+    neuvectorPo.appsPage().waitForInstallCloseTerminal(EXTENSION_CHART_CREATION, ['neuvector-crd', 'neuvector'], 30000).then(pollingAuthControlRequest);
 
     neuvectorPo.dashboard().goTo();
     neuvectorPo.dashboard().waitForTitleAfterControllerInstall();
