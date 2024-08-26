@@ -687,14 +687,14 @@ export default defineComponent({
     @finish="save"
   >
     <template>
-      <AccountAccess
+      <!-- <AccountAccess
         v-model:credential="config.googleCredentialSecret"
         v-model:project="config.projectID"
         v-model:is-authenticated="isAuthenticated"
         :mode="mode"
         @error="e=>errors.push(e)"
         @cancel-credential="cancelCredential"
-      />
+      /> -->
 
       <div
         v-if="isAuthenticated"
