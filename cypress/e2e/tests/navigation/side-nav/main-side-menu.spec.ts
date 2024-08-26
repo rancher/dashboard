@@ -23,7 +23,7 @@ describe('Side Menu: main', () => {
       HomePagePo.goTo();
     });
 
-    it.skip('[Vue3 Skip]: Pressing keyboard combo should display appropriate icon on cluster menu icon box', { tags: ['@navigation', '@adminUser'] }, () => {
+    it('Pressing keyboard combo should display appropriate icon on cluster menu icon box', { tags: ['@navigation', '@adminUser'] }, () => {
       const sideNav = new ProductNavPo();
       const pagePoFake = new PagePo('');
 

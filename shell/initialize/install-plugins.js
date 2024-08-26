@@ -1,6 +1,5 @@
 import PortalVue from 'portal-vue';
 import VueResize from 'vue-resize';
-import ShortKey from 'vue-shortkey';
 import FloatingVue from 'floating-vue';
 import vSelect from 'vue-select';
 import 'vue-resize/dist/vue-resize.css';
@@ -29,6 +28,7 @@ import replaceAll from '@shell/plugins/replaceall';
 import steveCreateWorker from '@shell/plugins/steve-create-worker';
 import version from '@shell/plugins/version';
 import emberCookie from '@shell/plugins/ember-cookie';
+import ShortKey from '@shell/plugins/shortkey';
 
 import 'floating-vue/dist/style.css';
 
