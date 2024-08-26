@@ -28,6 +28,7 @@ jobs:
         features:  [
           ['@elemental', 'elemental'],
           ['@kubewarden', 'kubewarden'],
+          ['@neuvector', 'neuvector'],
         ]
         rancherEnv: [
           # ['2.10', 'v2.10-befdf11fc6753ed4a2322b28c5f3ebe7f47e4d96-head'],

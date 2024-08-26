@@ -1,7 +1,4 @@
 import ExtensionsCompatibilityUtils from '~/cypress/e2e/po/extensions/extensions-compatibility.utils';
-import BannersPo from '@/cypress/e2e/po/components/banners.po';
-import LabeledSelectPo from '@/cypress/e2e/po/components/labeled-select.po';
-import RadioGroupInputPo from '@/cypress/e2e/po/components/radio-group-input.po';
 import PagePo from '@/cypress/e2e/po/pages/page.po';
 
 class NeuvectorDashboardPagePo extends PagePo {
@@ -19,7 +16,7 @@ class NeuvectorDashboardPagePo extends PagePo {
   }
 
   waitForTitleAfterControllerInstall(): Cypress.Chainable {
-    return this.self().find('[data-testid="kw-dashboard-title"]').should('contain', 'Welcome to Kubewarden');
+    return this.self().find('[data-testid="nv-dashboard-title"]').should('contain', 'Dashboard');
   }
 
   controllerInstallBtnClick(): Cypress.Chainable {
@@ -31,16 +28,4 @@ export default class NeuvectorPo extends ExtensionsCompatibilityUtils {
   dashboard() {
     return new NeuvectorDashboardPagePo();
   }
-
-  // elementalClusterSelectorTemplateBanner() {
-  //   return new BannersPo('[provider="machineinventoryselectortemplate"] .banner.warning');
-  // }
-
-  // updateGroupTargetClustersSelect() {
-  //   return new LabeledSelectPo('[data-testid="cluster-target"]');
-  // }
-
-  // updateGroupImageOption() {
-  //   return new RadioGroupInputPo('[data-testid="upgrade-choice-selector"]');
-  // }
 }
