@@ -29,9 +29,9 @@ jobs:
     - name: Check Tags Version Matching
       env:
         # TAG: ${{github.ref_name}}
-        TAG: "shell-pkg-v2.0.1"
+        TAG: shell-pkg-v2.0.1
       run: ./.github/workflows/scripts/check-package-tag-version.sh
-      shell: bash
+      # shell: bash
 
     - name: Validate Plugin build system
       run: ./shell/scripts/test-plugins-build.sh
@@ -60,5 +60,5 @@ jobs:
       run: ./shell/scripts/publish-shell.sh --npm
       env:
         # TAG: ${{github.ref_name}}
-        TAG: "shell-pkg-v2.0.1"
+        TAG: shell-pkg-v2.0.1
         NODE_AUTH_TOKEN: ${{ secrets.NPM_TOKEN }}
