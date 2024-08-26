@@ -12,17 +12,8 @@ CREATORS_DIR=$BASE_DIR/shell/creators/extension
 echo "TAG ${TAG}"
 
 # let's get the package name and version from the tag
-# first step string split
-IFS='-pkg-v'
-
-read -r TEMP_STR <<<$TAG
-
-echo "TEMP_STR ${TEMP_STR}"
-
-# final step string split
-IFS=' '
-
-read -r PKG_NAME PKG_VERSION <<<$TEMP_STR
+PKG_NAME=$(sed 's/-pkg-v.*//' <<<$TAG)
+PKG_VERSION=$(sed 's/.*-pkg-v//'<<<$TAG)
 
 echo "PKG_NAME ${PKG_NAME}"
 echo "PKG_VERSION ${PKG_VERSION}"

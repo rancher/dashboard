@@ -112,18 +112,10 @@ ${SCRIPT_DIR}/typegen.sh
 # this is the path of the release-shell-pkg workflow
 if [ -n "$TAG" ]; then
   echo "TAG ${TAG}"
-  # let's get the package name
-  # first step string split
-  IFS='-pkg-v'
-
-  read -r TEMP_STR <<<$TAG
-
-  echo "TEMP_STR ${TEMP_STR}"
-
-  # final step string split
-  IFS=' '
-
-  read -r PKG_NAME PKG_V <<<$TEMP_STR
+  
+  # let's get the package name and version from the tag
+  PKG_NAME=$(sed 's/-pkg-v.*//' <<<$TAG)
+  PKG_V=$(sed 's/.*-pkg-v//'<<<$TAG)
 
   echo "PKG_NAME ${PKG_NAME}"
   echo "PKG_V ${PKG_V}"
