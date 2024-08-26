@@ -72,7 +72,7 @@ describe('Side Menu: main', () => {
       cy.url().should('include', 'https://ranchermanager.docs.rancher.com/v2.9/how-to-guides/new-user-guides/launch-kubernetes-with-rancher/rke1-vs-rke2-differences#cluster-api');
     });
 
-    it.skip('[Vue3 Skip]: Local cluster should show a name and description on the side menu and display a tooltip when hovering it show the full name and description', { tags: ['@navigation', '@adminUser'] }, () => {
+    it('Local cluster should show a name and description on the side menu and display a tooltip when hovering it show the full name and description', { tags: ['@navigation', '@adminUser'] }, () => {
       BurgerMenuPo.toggle();
 
       const burgerMenuPo = new BurgerMenuPo();

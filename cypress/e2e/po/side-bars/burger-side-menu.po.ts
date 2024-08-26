@@ -158,7 +158,7 @@ export default class BurgerMenuPo extends ComponentPo {
   }
 
   getClusterDescriptionTooltipContent(): Cypress.Chainable {
-    return cy.get('.menu-description-tooltip .tooltip-inner');
+    return cy.get('.v-popper__popper .v-popper__inner');
   }
 
   /**
