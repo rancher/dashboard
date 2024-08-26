@@ -1,6 +1,6 @@
 /* eslint-disable jest/no-mocks-import */
 import flushPromises from 'flush-promises';
-import { shallowMount, VueWrapper } from '@vue/test-utils';
+import { shallowMount, VueWrapper, mount } from '@vue/test-utils';
 import { EKSConfig } from 'types';
 import Config from '@pkg/eks/components/Config.vue';
 import listKeysResponseData from '../__mocks__/listKeys';
@@ -59,26 +59,24 @@ const requiredSetup = (versionSetting = { value: '<=1.27.x' }) => {
 const setCredential = async(wrapper: VueWrapper<any>, config = {} as EKSConfig) => {
   config.amazonCredentialSecret = 'foo';
   config.region = 'bar';
-  wrapper.setData({ config });
+  await wrapper.setProps({ config });
   await flushPromises();
 };
 
-describe.skip('(Vue3 Skip) eKS K8s configuration', () => {
+describe('eKS K8s configuration', () => {
   it('should load eks versions and kms keys when the credential or region is set', async() => {
     const setup = requiredSetup();
     const spy = jest.spyOn(setup.mocks.$store, 'dispatch');
 
-    const wrapper = shallowMount(
+    const wrapper = mount(
       Config,
       {
-        data() {
-          return {
-            config: {
-              amazonCredentialSecret: '',
-              region:                 ''
-            }
+        propsData: {
+          config: {
+            amazonCredentialSecret: '',
+            region:                 ''
+          }
 
-          };
         },
         global: { ...setup }
       });
@@ -86,6 +84,7 @@ describe.skip('(Vue3 Skip) eKS K8s configuration', () => {
     expect(wrapper.exists()).toBe(true);
     expect(spy).toHaveBeenCalledTimes(0);
     await setCredential(wrapper);
+
     expect(spy).toHaveBeenCalledWith('aws/eks', { cloudCredentialId: 'foo', region: 'bar' });
     expect(spy).toHaveBeenCalledWith('aws/kms', { cloudCredentialId: 'foo', region: 'bar' });
   });
@@ -111,7 +110,7 @@ describe.skip('(Vue3 Skip) eKS K8s configuration', () => {
     await setCredential(wrapper);
     expect(spy).toHaveBeenCalledTimes(4);
 
-    wrapper.setData({ config: { amazonCredentialSecret: 'foo', region: 'rab' } });
+    wrapper.setProps({ config: { amazonCredentialSecret: 'foo', region: 'rab' } });
     await flushPromises();
     expect(spy).toHaveBeenCalledTimes(6);
     expect(spy).toHaveBeenCalledWith('aws/eks', { cloudCredentialId: 'foo', region: 'rab' });
@@ -138,7 +137,7 @@ describe.skip('(Vue3 Skip) eKS K8s configuration', () => {
     await setCredential(wrapper);
     expect(spy).toHaveBeenCalledTimes(4);
 
-    wrapper.setData({ config: { amazonCredentialSecret: 'oof', region: 'bar' } });
+    wrapper.setProps({ config: { amazonCredentialSecret: 'oof', region: 'bar' } });
     await flushPromises();
     expect(spy).toHaveBeenCalledTimes(6);
     expect(spy).toHaveBeenCalledWith('aws/eks', { cloudCredentialId: 'oof', region: 'bar' });
@@ -167,7 +166,7 @@ describe.skip('(Vue3 Skip) eKS K8s configuration', () => {
     await setCredential(wrapper);
 
     // once a credential is provided, the component fetches k8s versions from aws api - ensure that it updates the default version to the latest from THIS data set instead
-    expect(wrapper.emitted('update:kubernetesVersion')?.[0]?.[0]).toBe('2.0');
+    expect(wrapper.emitted('update:kubernetesVersion')?.[1]?.[0]).toBe('2.0');
     expect(wrapper.emitted('update:kubernetesVersion')).toHaveLength(2);
   });
 
@@ -248,7 +247,7 @@ describe.skip('(Vue3 Skip) eKS K8s configuration', () => {
 
     expect(wrapper.emitted('update:secretsEncryption')).toBeUndefined();
 
-    const secretsEncryptionCheckbox = wrapper.find('[data-testid="eks-secrets-encryption-checkbox"]');
+    const secretsEncryptionCheckbox = wrapper.getComponent('[data-testid="eks-secrets-encryption-checkbox"]');
 
     secretsEncryptionCheckbox.vm.$emit('update:value', true);
     await wrapper.vm.$nextTick();
@@ -300,7 +299,7 @@ describe.skip('(Vue3 Skip) eKS K8s configuration', () => {
     });
 
     await setCredential(wrapper);
-    const kmsDropdown = wrapper.find('[data-testid="eks-kms-dropdown"]');
+    const kmsDropdown = wrapper.getComponent('[data-testid="eks-kms-dropdown"]');
 
     expect(kmsDropdown.props().options).toStrictEqual(['arn:aws:kms:us-west-2:testdata2134',
       'arn:aws:kms:us-west-2:testdata6543',
@@ -398,12 +397,12 @@ describe.skip('(Vue3 Skip) eKS K8s configuration', () => {
     await setCredential(wrapper);
     expect(wrapper.exists()).toBe(true);
 
-    let versionOptions = wrapper.find('[data-testid="eks-version-dropdown"]').vm.options;
+    let versionOptions = wrapper.getComponent('[data-testid="eks-version-dropdown"]').vm.options;
 
     expect(versionOptions).not.toContain('1.25');
     wrapper.setProps({ originalVersion: '1.27' });
     await wrapper.vm.$nextTick();
-    versionOptions = wrapper.find('[data-testid="eks-version-dropdown"]').vm.options;
+    versionOptions = wrapper.getComponent('[data-testid="eks-version-dropdown"]').vm.options;
     expect(versionOptions).not.toContain('1.26');
   });
 
@@ -427,7 +426,7 @@ describe.skip('(Vue3 Skip) eKS K8s configuration', () => {
 
     await setCredential(wrapper);
     expect(wrapper.exists()).toBe(true);
-    const versionOptions = (wrapper.find('[data-testid="eks-version-dropdown"]').vm.options || []).map((opt: {label: string, value: string, disabled?:boolean}) => opt.value);
+    const versionOptions = (wrapper.getComponent('[data-testid="eks-version-dropdown"]').vm.options || []).map((opt: {label: string, value: string, disabled?:boolean}) => opt.value);
 
     expect(versionOptions).toStrictEqual(expectedVersions);
   });
@@ -447,7 +446,7 @@ describe.skip('(Vue3 Skip) eKS K8s configuration', () => {
 
     await setCredential(wrapper);
 
-    const versionOptions = wrapper.find('[data-testid="eks-version-dropdown"]').vm.options || [];
+    const versionOptions = wrapper.getComponent('[data-testid="eks-version-dropdown"]').vm.options || [];
 
     expect(versionOptions.filter((opt: {label: string, value: string, disabled?:boolean}) => opt.disabled).map((opt: {label: string, value: string, disabled?:boolean}) => opt.value)).toStrictEqual(disabledVersions);
 
@@ -456,20 +455,22 @@ describe.skip('(Vue3 Skip) eKS K8s configuration', () => {
 
   it('should not allow the user to upgrade if any node groups are of a lower version', async() => {
     const setup = requiredSetup({ value: '>1.24' });
-    const wrapper = shallowMount(Config, {
+    const eksConfig: EKSConfig = {
+      amazonCredentialSecret: '', region: '', nodeGroups: [{ version: '1.27' }, { version: '1.25' }]
+    };
+    const wrapper = mount(Config, {
       propsData: {
-        config: {
-          amazonCredentialSecret: '', region: '', nodeGroups: [{ version: '1.26' }, { version: '1.25' }]
-        },
-        originalVersion: '1.26',
+        config:          eksConfig,
+        originalVersion: '1.27',
       },
       global: { ...setup }
     });
 
-    await setCredential(wrapper);
+    await setCredential(wrapper, eksConfig);
 
-    const versionDropdown = wrapper.find('[data-testid="eks-version-dropdown"]');
-    const upgradesDisallowedBanner = wrapper.find('[data-testid="eks-version-upgrade-disallowed-banner"]');
+    const versionDropdown = wrapper.getComponent('[data-testid="eks-version-dropdown"]');
+
+    const upgradesDisallowedBanner = wrapper.getComponent('[data-testid="eks-version-upgrade-disallowed-banner"]');
 
     expect(versionDropdown.props().disabled).toBe(true);
     expect(upgradesDisallowedBanner.isVisible()).toBe(true);
@@ -478,20 +479,20 @@ describe.skip('(Vue3 Skip) eKS K8s configuration', () => {
   // setting/unsetting _isUpgrading is tested in ./NodeGroup.test.ts
   it('should not allow the user to upgrade if any node groups are currently being upgraded', async() => {
     const setup = requiredSetup({ value: '>1.24' });
+    const eksConfig: EKSConfig = {
+      amazonCredentialSecret: '', region: '', nodeGroups: [{ version: '1.27' }, { version: '1.27', _isUpgrading: true }]
+    };
     const wrapper = shallowMount(Config, {
       propsData: {
-        config: {
-          amazonCredentialSecret: '', region: '', nodeGroups: [{ version: '1.26' }, { version: '1.26', _isUpgrading: true }]
-        },
-        originalVersion: '1.26',
+        config:          eksConfig,
+        originalVersion: '1.27',
       },
       global: { ...setup }
     });
 
-    await setCredential(wrapper);
-
-    const versionDropdown = wrapper.find('[data-testid="eks-version-dropdown"]');
-    const upgradesDisallowedBanner = wrapper.find('[data-testid="eks-version-upgrade-disallowed-banner"]');
+    await setCredential(wrapper, eksConfig);
+    const versionDropdown = wrapper.getComponent('[data-testid="eks-version-dropdown"]');
+    const upgradesDisallowedBanner = wrapper.getComponent('[data-testid="eks-version-upgrade-disallowed-banner"]');
 
     expect(versionDropdown.props().disabled).toBe(true);
     expect(upgradesDisallowedBanner.isVisible()).toBe(true);
@@ -499,20 +500,21 @@ describe.skip('(Vue3 Skip) eKS K8s configuration', () => {
 
   it('should allow the user to upgrade if all node groups are the same version as the current cluster version', async() => {
     const setup = requiredSetup({ value: '>1.24' });
+    const eksConfig: EKSConfig = {
+      amazonCredentialSecret: '', region: '', nodeGroups: [{ version: '1.27' }, { version: '1.27' }]
+    };
     const wrapper = shallowMount(Config, {
       propsData: {
-        config: {
-          amazonCredentialSecret: '', region: '', nodeGroups: [{ version: '1.26' }, { version: '1.26' }]
-        },
-        originalVersion: '1.26',
+        config:          eksConfig,
+        originalVersion: '1.27',
       },
       global: { ...setup }
     });
 
     await setCredential(wrapper);
 
-    const versionDropdown = wrapper.find('[data-testid="eks-version-dropdown"]');
-    const upgradesDisallowedBanner = wrapper.find('[data-testid="eks-version-upgrade-disallowed-banner"]');
+    const versionDropdown = wrapper.getComponent('[data-testid="eks-version-dropdown"]');
+    const upgradesDisallowedBanner = wrapper.findComponent('[data-testid="eks-version-upgrade-disallowed-banner"]');
 
     expect(versionDropdown.props().disabled).toBe(false);
     expect(upgradesDisallowedBanner.exists()).toBe(false);
