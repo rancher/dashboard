@@ -91,12 +91,12 @@ sed -i.bak -e "s/\"version\": \"[0-9]*.[0-9]*.[0-9]*\(-alpha\.[0-9]*\|-release[0
 # Publish shell pkg (tag is needed as publish-shell is optimized to work with release-shell-pkg workflow)
 echo "Publishing Shell package to local registry"
 yarn install
-export TAG="shell-pkg-${SHELL_VERSION}"
+export TAG="shell-pkg-v${SHELL_VERSION}"
 ${SHELL_DIR}/scripts/publish-shell.sh
 
 # Publish creators pkg (tag is needed as publish-shell is optimized to work with release-shell-pkg workflow)
 echo "Publishing Creators package to local registry"
-export TAG="creators-pkg-${SHELL_VERSION}"
+export TAG="creators-pkg-v${SHELL_VERSION}"
 ${SHELL_DIR}/scripts/publish-shell.sh
 
 # Publish rancher components
