@@ -1,10 +1,6 @@
 name: Publish Shell Package
 
 on:
-  # TO DELETE!!! JUST FOR TESTING...
-  pull_request:
-    branches:
-      - master
   push:
     tags:
         - 'shell-pkg-v*'
@@ -28,10 +24,9 @@ jobs:
 
     - name: Check Tags Version Matching
       env:
-        # TAG: ${{github.ref_name}}
-        TAG: shell-pkg-v2.0.1
+        TAG: ${{github.ref_name}}
       run: ./.github/workflows/scripts/check-package-tag-version.sh
-      # shell: bash
+      shell: bash
 
     - name: Validate Plugin build system
       run: ./shell/scripts/test-plugins-build.sh
@@ -59,6 +54,5 @@ jobs:
     - name: Publish Shell Package to npm
       run: ./shell/scripts/publish-shell.sh --npm
       env:
-        # TAG: ${{github.ref_name}}
-        TAG: shell-pkg-v2.0.1
+        TAG: ${{github.ref_name}}
         NODE_AUTH_TOKEN: ${{ secrets.NPM_TOKEN }}
