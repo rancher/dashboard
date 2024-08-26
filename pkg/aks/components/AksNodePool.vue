@@ -145,6 +145,10 @@ export default defineComponent({
         }
       }
     },
+
+    upgradeLabel(): string {
+      return this.t('aks.nodePools.orchestratorVersion.upgrade', { from: this.originalOrchestratorVersion, to: this.clusterVersion });
+    },
   },
 
   methods: {
@@ -188,7 +192,7 @@ export default defineComponent({
         <Checkbox
           v-model:value="willUpgrade"
           :mode="mode"
-          :label="t('aks.nodePools.orchestratorVersion.upgrade', {from: originalOrchestratorVersion, to: clusterVersion})"
+          :label="upgradeLabel"
           data-testid="aks-pool-upgrade-checkbox"
         />
       </div>

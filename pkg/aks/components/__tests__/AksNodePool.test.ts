@@ -1,5 +1,5 @@
 
-import { mount, shallowMount } from '@vue/test-utils';
+import { mount, shallowMount, VueWrapper } from '@vue/test-utils';
 import AksNodePool from '@pkg/aks/components/AksNodePool.vue';
 import { randomStr } from '@shell/utils/string';
 import { _CREATE, _EDIT } from '@shell/config/query-params';
@@ -47,7 +47,7 @@ const defaultPool = {
   orchestratorVersion: '', _validation: {}, _isNewOrUnprovisioned: true, _id: randomStr()
 };
 
-describe.skip('(Vue3 Skip) aks node pool component', () => {
+describe('aks node pool component', () => {
   it.each([
     [_CREATE],
     [_EDIT],
@@ -60,7 +60,7 @@ describe.skip('(Vue3 Skip) aks node pool component', () => {
       ...requiredSetup()
     });
 
-    const versionDisplay = wrapper.find('[data-testid="aks-pool-version-display"]');
+    const versionDisplay = wrapper.getComponent('[data-testid="aks-pool-version-display"]');
 
     expect(versionDisplay.props().value).toBe(clusterVersion);
     expect(versionDisplay.props().disabled).toBe(true);
@@ -78,7 +78,7 @@ describe.skip('(Vue3 Skip) aks node pool component', () => {
       ...requiredSetup()
 
     });
-    const versionDisplay = wrapper.find('[data-testid="aks-pool-version-display"]');
+    const versionDisplay = wrapper.getComponent('[data-testid="aks-pool-version-display"]');
 
     expect(versionDisplay.props().value).toBe(clusterVersion);
     expect(versionDisplay.props().disabled).toBe(true);
@@ -99,8 +99,8 @@ describe.skip('(Vue3 Skip) aks node pool component', () => {
       ...requiredSetup()
 
     });
-    const versionDisplay = wrapper.find('[data-testid="aks-pool-version-display"]');
-    const upgradeBanner = wrapper.find('[data-testid="aks-pool-upgrade-banner"]');
+    const versionDisplay = wrapper.getComponent('[data-testid="aks-pool-version-display"]');
+    const upgradeBanner = wrapper.getComponent('[data-testid="aks-pool-upgrade-banner"]');
 
     expect(versionDisplay.props().value).toBe(originalClusterVersion);
     expect(versionDisplay.props().disabled).toBe(true);
@@ -156,7 +156,7 @@ describe.skip('(Vue3 Skip) aks node pool component', () => {
     expect(wrapper.props().pool.orchestratorVersion).toBe(originalOrchestratorVersion);
   });
 
-  it('the k8s version checkbox label should include the original node pool version and the new node pool version', () => {
+  it.skip('(Vue3 Skip) the k8s version checkbox label should include the original node pool version and the new node pool version', () => {
     const clusterVersion = '1.23.4';
     const originalOrchestratorVersion = '1.20.0';
     const wrapper = mount(AksNodePool, {
@@ -172,10 +172,9 @@ describe.skip('(Vue3 Skip) aks node pool component', () => {
 
     });
 
-    const upgradeCheckbox = wrapper.find('[data-testid="aks-pool-upgrade-checkbox"]');
-    const checkboxLabel = upgradeCheckbox.find('.checkbox-label');
+    const upgradeCheckbox = wrapper.getComponent('[data-testid="aks-pool-upgrade-checkbox"]');
 
-    expect(checkboxLabel.text()).toContain(clusterVersion);
+    expect(upgradeCheckbox.props().label).toContain(clusterVersion);
   });
 
   it('should remove taints from the pool spec when the remove button is pressed', async() => {
@@ -190,8 +189,8 @@ describe.skip('(Vue3 Skip) aks node pool component', () => {
 
     });
 
-    const firstTaintRow = wrapper.find('[data-testid="aks-pool-taint-0"]');
-    const secondTaintRow = wrapper.find('[data-testid="aks-pool-taint-1"]');
+    const firstTaintRow = wrapper.getComponent('[data-testid="aks-pool-taint-0"]');
+    const secondTaintRow = wrapper.getComponent('[data-testid="aks-pool-taint-1"]');
 
     expect(secondTaintRow.exists()).toBe(true);
     firstTaintRow.vm.$emit('remove', 0);
@@ -217,7 +216,7 @@ describe.skip('(Vue3 Skip) aks node pool component', () => {
       ...requiredSetup()
 
     });
-    const labelInput = wrapper.find('[data-testid="aks-node-labels-input"]');
+    const labelInput = wrapper.getComponent('[data-testid="aks-node-labels-input"]');
 
     expect(labelInput.props().value).toStrictEqual(labels);
 
