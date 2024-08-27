@@ -9,7 +9,7 @@ export default {
   components: { LabeledTooltip },
   mixins:     [
     LabeledFormElement,
-    VueSelectOverrides
+    VueSelectOverrides,
   ],
   emits: ['createdListItem', 'on-focus', 'on-blur'],
   props: {
@@ -203,6 +203,9 @@ export default {
       } else {
         return undefined;
       }
+    },
+    canPaginate() {
+      return false;
     }
   }
 };
