@@ -347,7 +347,7 @@ export default defineComponent({
         autocomplete="off"
         autocapitalize="off"
         :data-lpignore="ignorePasswordManagers"
-        @input="($plainInputEvent) => onInput($plainInputEvent)"
+        @input="onInput"
         @focus="onFocus"
         @blur="onBlur"
         @change="onChange"

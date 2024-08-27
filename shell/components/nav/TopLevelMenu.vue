@@ -527,9 +527,8 @@ export default {
               >
                 <input
                   ref="clusterFilter"
-                  :value="clusterFilter"
+                  v-model="clusterFilter"
                   :placeholder="t('nav.search.placeholder')"
-                  @input="($plainInputEvent) => clusterFilter = $plainInputEvent.target.value"
                 >
                 <i
                   class="magnifier icon icon-search"

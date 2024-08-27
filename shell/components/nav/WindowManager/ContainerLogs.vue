@@ -646,11 +646,10 @@ export default {
 
         <div class="log-action log-action-group ml-5">
           <input
-            :value="search"
+            v-model="search"
             class="input-sm"
             type="search"
             :placeholder="t('wm.containerLogs.search')"
-            @input="($plainInputEvent) => search = $plainInputEvent.target.value"
           >
         </div>
 
