@@ -6,7 +6,6 @@ import 'vue-resize/dist/vue-resize.css';
 
 // import '@shell/plugins/extend-router';
 import '@shell/plugins/formatters';
-// import '@shell/plugins/vue-js-modal';
 import '@shell/plugins/js-yaml';
 
 import i18n from '@shell/plugins/i18n';
