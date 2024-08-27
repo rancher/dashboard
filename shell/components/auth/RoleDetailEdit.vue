@@ -730,7 +730,7 @@ export default {
                     :disabled="isBuiltin"
                     :mode="mode"
                     :data-testid="`grant-resources-api-groups${props.i}`"
-                    @input="($plainInputEvent) => setRule('apiGroups', props.row.value, $plainInputEvent.target.value)"
+                    @input="setRule('apiGroups', props.row.value, $event.target.value)"
                   >
                 </div>
                 <div
@@ -742,7 +742,7 @@ export default {
                     :disabled="isBuiltin"
                     :mode="mode"
                     :data-testid="`grant-resources-non-resource-urls${props.i}`"
-                    @input="($plainInputEvent) => setRule('nonResourceURLs', props.row.value, $plainInputEvent.target.value)"
+                    @input="setRule('nonResourceURLs', props.row.value, $event.target.value)"
                   >
                 </div>
               </div>

@@ -728,7 +728,7 @@ export default {
               />
               <input
                 v-else
-                :value="row[valueName]"
+                v-model="row[valueName]"
                 :disabled="isView || disabled || isProtected(row.key)"
                 :type="valueConcealed ? 'password' : 'text'"
                 :placeholder="_valuePlaceholder"
@@ -736,7 +736,7 @@ export default {
                 autocapitalize="off"
                 spellcheck="false"
                 :data-testid="`input-kv-item-value-${i}`"
-                @input="($plainInputEvent) => queueUpdate($plainInputEvent)"
+                @input="queueUpdate"
               >
               <FileSelector
                 v-if="parseValueFromFile && readAllowed && !isView && isValueFieldEmpty(row[valueName])"
