@@ -374,11 +374,18 @@ describe('Users', { tags: ['@usersAndAuths', '@adminUser'] }, () => {
           .endButton()
           .click();
 
+        // row count on last page
+        let lastPageCount = count % 10;
+
+        if (lastPageCount === 0) {
+          lastPageCount = 10;
+        }
+
         // check text after navigation
         usersPo.list().resourceTable().sortableTable().pagination()
           .paginationText()
           .then((el) => {
-            expect(el.trim()).to.eq(`${ count - (count % 10) + 1 } - ${ count } of ${ count } Users`);
+            expect(el.trim()).to.eq(`${ count - (lastPageCount) + 1 } - ${ count } of ${ count } Users`);
           });
 
         // navigate to first page - beginning button

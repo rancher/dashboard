@@ -1,6 +1,6 @@
 import { WorkloadsDaemonsetsListPagePo, WorkLoadsDaemonsetsEditPagePo } from '@/cypress/e2e/po/pages/explorer/workloads-daemonsets.po';
 
-describe('Cluster Explorer', { tags: ['@explorer', '@adminUser'] }, () => {
+describe('Cluster Explorer', { tags: ['@explorer2', '@adminUser'] }, () => {
   beforeEach(() => {
     cy.login();
   });

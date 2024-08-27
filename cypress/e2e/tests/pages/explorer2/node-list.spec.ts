@@ -4,7 +4,7 @@ import ClusterDashboardPagePo from '@/cypress/e2e/po/pages/explorer/cluster-dash
 import HomePagePo from '@/cypress/e2e/po/pages/home.po';
 import ProductNavPo from '@/cypress/e2e/po/side-bars/product-side-nav.po';
 
-describe('Nodes list', { tags: ['@explorer', '@adminUser'], testIsolation: 'off' }, () => {
+describe('Nodes list', { tags: ['@explorer2', '@adminUser'], testIsolation: 'off' }, () => {
   before(() => {
     cy.login();
     HomePagePo.goTo();

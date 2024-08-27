@@ -3,7 +3,7 @@ import { StorageClassesPagePo } from '@/cypress/e2e/po/pages/explorer/storage-cl
 
 const storageClassesPagePo = new StorageClassesPagePo();
 
-describe('StorageClasses', { testIsolation: 'off', tags: ['@explorer', '@adminUser'] }, () => {
+describe('StorageClasses', { testIsolation: 'off', tags: ['@explorer2', '@adminUser'] }, () => {
   before(() => {
     cy.login();
   });

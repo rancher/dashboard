@@ -100,9 +100,16 @@ describe('CustomResourceDefinitions', { testIsolation: 'off', tags: ['@explorer'
         // navigate to last page - end button
         crdsPage.sortableTable().pagination().endButton().click();
 
+        // row count on last page
+        let lastPageCount = count % 10;
+
+        if (lastPageCount === 0) {
+          lastPageCount = 10;
+        }
+
         // check text after navigation
         crdsPage.sortableTable().pagination().paginationText().then((el) => {
-          expect(el.trim()).to.contain(`${ count - (count % 10) + 1 } - ${ count } of ${ count } CustomResourceDefinitions`);
+          expect(el.trim()).to.contain(`${ count - (lastPageCount) + 1 } - ${ count } of ${ count } CustomResourceDefinitions`);
         });
 
         // navigate to first page - beginning button

@@ -3,7 +3,7 @@ import { PersistentVolumeClaimsPagePo } from '@/cypress/e2e/po/pages/explorer/pe
 
 const persistentVolumeClaimsPage = new PersistentVolumeClaimsPagePo();
 
-describe('PersistentVolumeClaims', { testIsolation: 'off', tags: ['@explorer', '@adminUser'] }, () => {
+describe('PersistentVolumeClaims', { testIsolation: 'off', tags: ['@explorer2', '@adminUser'] }, () => {
   before(() => {
     cy.login();
   });

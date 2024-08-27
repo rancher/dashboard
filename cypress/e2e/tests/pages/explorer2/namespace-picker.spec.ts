@@ -21,7 +21,7 @@ describe('Namespace picker', { testIsolation: 'off' }, () => {
     namespacePicker.closeDropdown();
   });
 
-  it('can filter workloads by project/namespace from the picker dropdown', { tags: ['@explorer', '@adminUser'] }, () => {
+  it('can filter workloads by project/namespace from the picker dropdown', { tags: ['@explorer2', '@adminUser'] }, () => {
     // Verify 'Namespace: cattle-fleet-system' appears once when filtering by Namespace
     // Verify multiple namespaces within Project: System display when filtering by Project
 
@@ -61,7 +61,7 @@ describe('Namespace picker', { testIsolation: 'off' }, () => {
     workloadsPodPage.sortableTable().groupElementWithName('cattle-fleet-system').scrollIntoView().should('be.visible');
   });
 
-  it('can select only one of the top 5 resource filters at a time', { tags: ['@explorer', '@adminUser', '@standardUser'] }, () => {
+  it('can select only one of the top 5 resource filters at a time', { tags: ['@explorer2', '@adminUser', '@standardUser'] }, () => {
     // Verify that user can only select one of the first 5 options
 
     namespacePicker.toggle();
@@ -92,7 +92,7 @@ describe('Namespace picker', { testIsolation: 'off' }, () => {
     namespacePicker.checkIcon().should('have.length', 1);
   });
 
-  it('can select multiple projects/namespaces', { tags: ['@explorer', '@adminUser'] }, () => {
+  it('can select multiple projects/namespaces', { tags: ['@explorer2', '@adminUser'] }, () => {
     // Verify that user can select multiple options (other than the first 5 options)
 
     namespacePicker.toggle();
@@ -126,7 +126,7 @@ describe('Namespace picker', { testIsolation: 'off' }, () => {
     namespacePicker.moreOptionsSelected().should('have.class', 'v-popper--has-tooltip');
   });
 
-  it('can deselect options', { tags: ['@explorer', '@adminUser', '@standardUser'] }, () => {
+  it('can deselect options', { tags: ['@explorer2', '@adminUser', '@standardUser'] }, () => {
     namespacePicker.toggle();
 
     // Select 'default' option
@@ -153,7 +153,7 @@ describe('Namespace picker', { testIsolation: 'off' }, () => {
     namespacePicker.checkIcon().should('have.length', 1);
   });
 
-  it('can filter options by name', { tags: ['@explorer', '@adminUser', '@standardUser'] }, () => {
+  it('can filter options by name', { tags: ['@explorer2', '@adminUser', '@standardUser'] }, () => {
     namespacePicker.toggle();
 
     // filter 'cattle-fleet'
@@ -174,7 +174,7 @@ describe('Namespace picker', { testIsolation: 'off' }, () => {
     namespacePicker.checkIcon().should('have.length', 1);
   });
 
-  it('newly created project/namespace appears in namespace picker', { tags: ['@explorer', '@adminUser'] }, () => {
+  it('newly created project/namespace appears in namespace picker', { tags: ['@explorer2', '@adminUser'] }, () => {
     const projName = `project${ +new Date() }`;
     const nsName = `namespace${ +new Date() }`;
 

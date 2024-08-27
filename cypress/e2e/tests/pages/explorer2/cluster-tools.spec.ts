@@ -5,7 +5,7 @@ import PromptRemove from '@/cypress/e2e/po/prompts/promptRemove.po';
 
 const clusterTools = new ClusterToolsPagePo('local');
 
-describe('Cluster Tools', { tags: ['@explorer', '@adminUser'] }, () => {
+describe('Cluster Tools', { tags: ['@explorer2', '@adminUser'] }, () => {
   beforeEach(() => {
     cy.login();
   });
