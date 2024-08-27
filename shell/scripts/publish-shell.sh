@@ -11,7 +11,7 @@ PUBLISH_ARGS="--no-git-tag-version --access public $PUBLISH_ARGS"
 FORCE_PUBLISH_TO_NPM="false"
 DEFAULT_YARN_REGISTRY="https://registry.npmjs.org"
 
-# if TAG doesn't exist, we can exit as it's needed for any type of publish
+# if TAG doesn't exist, we can exit as it's needed for any type of publish.
 if [ -z "$TAG" ]; then
   echo "You need to set the TAG variable first!"
   exit 1
