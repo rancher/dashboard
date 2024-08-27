@@ -20,7 +20,7 @@ echo "PKG_VERSION ${PKG_VERSION}"
 
 # version comparison checks
 case $PKG_NAME in
-  shell)
+  "shell")
     SHELL_VERSION=$(jq -r .version ${SHELL_DIR}/package.json)
     if [ "$SHELL_VERSION" == "$PKG_VERSION" ]; then
       echo "tag check: shell versions match"
@@ -30,7 +30,7 @@ case $PKG_NAME in
       exit 1
     fi
     ;;
-  creators)
+  "creators")
     CREATORS_VERSION=$(jq -r .version ${CREATORS_DIR}/package.json)
     if [ "$CREATORS_VERSION" == "$PKG_VERSION" ]; then
       echo "tag check: creators versions match"

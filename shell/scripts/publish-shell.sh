@@ -6,6 +6,7 @@ BASE_DIR="$(
   pwd
 )"
 SHELL_DIR=$BASE_DIR/shell/
+CREATORS_DIR=$BASE_DIR/shell/creators/extension
 PUBLISH_ARGS="--no-git-tag-version --access public $PUBLISH_ARGS"
 FORCE_PUBLISH_TO_NPM="false"
 DEFAULT_YARN_REGISTRY="https://registry.npmjs.org"
@@ -30,15 +31,6 @@ fi
 if [ "$FORCE_PUBLISH_TO_NPM" == "true" ]; then
   export YARN_REGISTRY=$DEFAULT_YARN_REGISTRY
 fi
-
-# We use the version from the shell package for the creator packages
-# Need to copy them to a temporary location, so we can patch the version number
-# before publishing
-
-# To set a token for NPM registry auth: `npm config set //registry.npmjs.org/:_authToken <TOKEN>``
-PKG_DIST=$BASE_DIR/dist-pkg/creators
-mkdir -p ${PKG_DIST}
-rm -rf ${PKG_DIST}/extension
 
 pushd ${SHELL_DIR} >/dev/null
 
@@ -92,13 +84,13 @@ echo "PKG_V ${PKG_V}"
 
 # version comparison checks
 case $PKG_NAME in
-  shell)
+  "shell")
     echo "Publishing only Shell pkg via tagged release"
     publish "Shell" ${SHELL_DIR} ${PKG_V}
     ;;
-  creators)
+  "creators")
     echo "Publishing only Creators pkg via tagged release"
-    publish "Extension creator" ${PKG_DIST}/extension/ ${PKG_V}
+    publish "Extension creator" ${CREATORS_DIR} ${PKG_V}
     ;;
   *)
     echo "something went wrong with the tagging name => TAG: ${TAG} , PKG_NAME: ${PKG_NAME}. Admissable names are 'shell' and 'creator'"
