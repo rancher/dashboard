@@ -17,7 +17,7 @@ describe('Extensions page', { tags: ['@extensions', '@adminUser'] }, () => {
     cy.login();
   });
 
-  it.skip('[Vue3 Skip]: versions for built-in extensions should display as expected', () => {
+  it('versions for built-in extensions should display as expected', () => {
     const pluginVersion = '1.0.0';
     const extensionsPo = new ExtensionsPagePo();
 
@@ -76,7 +76,7 @@ describe('Extensions page', { tags: ['@extensions', '@adminUser'] }, () => {
     cy.title().should('eq', 'Rancher - Extensions');
   });
 
-  it.skip('[Vue3 Skip]: Should check the feature flag', () => {
+  it('Should check the feature flag', () => {
     const extensionsPo = new ExtensionsPagePo();
 
     extensionsPo.goTo();
@@ -103,7 +103,7 @@ describe('Extensions page', { tags: ['@extensions', '@adminUser'] }, () => {
     extensionsPo.waitForPage();
     extensionsPo.waitForTitle();
 
-    cy.wait.skip('[Vue3 Skip]: @getFeatureFlag').then(() => {
+    cy.wait('@getFeatureFlag').then(() => {
       extensionsPo.extensionTabs.checkVisible();
     });
   });
@@ -188,7 +188,7 @@ describe('Extensions page', { tags: ['@extensions', '@adminUser'] }, () => {
     extensionsPo.repoBanner().checkNotExists();
   });
 
-  it.skip('[Vue3 Skip]: Should toggle the extension details', () => {
+  it('Should toggle the extension details', () => {
     const extensionsPo = new ExtensionsPagePo();
 
     extensionsPo.goTo();
