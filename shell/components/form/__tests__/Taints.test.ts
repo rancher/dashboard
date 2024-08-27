@@ -2,7 +2,7 @@ import { nextTick } from 'vue';
 import { mount } from '@vue/test-utils';
 import Taints from '@shell/components/form/Taints.vue';
 
-describe.skip('(Vue3 Skip) component: Taints', () => {
+describe('component: Taints', () => {
   it('should accept custom effect values', async() => {
     const customEffects = { FOO_EFFECT: 'foo', BAR_EFFECT: 'bar' };
 
@@ -13,11 +13,11 @@ describe.skip('(Vue3 Skip) component: Taints', () => {
       }
     });
 
-    const firstEffectInput = wrapper.find('[data-testid="taints-effect-row-0"]');
+    const firstEffectInput = wrapper.findComponent('[data-testid="taints-effect-row-0"]');
 
     expect(firstEffectInput.exists()).toBe(true);
 
-    expect(firstEffectInput.attributes().value).toBe('FOO_EFFECT');
+    expect(firstEffectInput.props().modelValue).toBe('FOO_EFFECT');
     expect(wrapper.vm.effectOptions).toStrictEqual([{ value: 'FOO_EFFECT', label: 'foo' }, { value: 'BAR_EFFECT', label: 'bar' }]);
 
     const taintKV = wrapper.findComponent('[data-testid="taints-keyvalue"]');
@@ -25,11 +25,11 @@ describe.skip('(Vue3 Skip) component: Taints', () => {
     taintKV.vm.add();
     await nextTick();
 
-    const secondEffectInput = wrapper.find('[data-testid="taints-effect-row-1"]');
+    const secondEffectInput = wrapper.findComponent('[data-testid="taints-effect-row-1"]');
 
     expect(secondEffectInput.exists()).toBe(true);
 
-    expect(secondEffectInput.attributes().value).toStrictEqual('FOO_EFFECT');
+    expect(secondEffectInput.props().modelValue).toBe('FOO_EFFECT');
     expect(wrapper.vm.defaultAddData).toStrictEqual({ effect: 'FOO_EFFECT' });
   });
 
@@ -44,11 +44,11 @@ describe.skip('(Vue3 Skip) component: Taints', () => {
 
     const wrapper = mount(Taints, { props: { value: [{ effect: '', value: 'abc' }] } });
 
-    const firstEffectInput = wrapper.find('[data-testid="taints-effect-row-0"]');
+    const firstEffectInput = wrapper.findComponent('[data-testid="taints-effect-row-0"]');
 
     expect(firstEffectInput.exists()).toBe(true);
 
-    expect(firstEffectInput.attributes().value).toBe('');
+    expect(firstEffectInput.props().modelValue).toBe('');
     expect(wrapper.vm.effectOptions).toStrictEqual(expectedEffectOptions);
   });
 
@@ -60,11 +60,11 @@ describe.skip('(Vue3 Skip) component: Taints', () => {
     taintKV.vm.add();
     await nextTick();
 
-    const effectInput = wrapper.find('[data-testid="taints-effect-row-0"]');
+    const effectInput = wrapper.findComponent('[data-testid="taints-effect-row-0"]');
 
     expect(effectInput.exists()).toBe(true);
 
-    expect(effectInput.attributes().value).toStrictEqual('NoSchedule');
+    expect(effectInput.props().modelValue).toStrictEqual('NoSchedule');
 
     expect(wrapper.vm.defaultAddData).toStrictEqual({ effect: 'NoSchedule' });
   });
