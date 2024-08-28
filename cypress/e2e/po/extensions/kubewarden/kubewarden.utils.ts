@@ -141,12 +141,12 @@ class KubewardenAdmissionPoliciesListPagePo extends PagePo {
     this.self().getId('action-button-async-button').click();
   }
 
-  apOfficialPoliciesTable() {
+  artifactHubPoliciesTable() {
     return new SortableTablePo(this.self().get('.sortable-table'));
   }
 
   admissionPolicyOfficialPoliciesTableRowClick(policyName: string) {
-    this.apOfficialPoliciesTable().rowElementWithName(policyName).scrollIntoView().click();
+    this.artifactHubPoliciesTable().rowElementWithName(policyName).scrollIntoView().click();
   }
 
   list(): AdmissionPoliciesListPo {
