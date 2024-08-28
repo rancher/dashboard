@@ -1,6 +1,7 @@
 <script>
 import { saveAs } from 'file-saver';
 import AnsiUp from 'ansi_up';
+import { shallowRef } from "vue"
 import { addParams } from '@shell/utils/url';
 import { base64DecodeToBuffer } from '@shell/utils/crypto';
 import { LOGS_RANGE, LOGS_TIME, LOGS_WRAP } from '@shell/store/prefs';
@@ -89,6 +90,7 @@ export default {
     Checkbox,
     AsyncButton,
     VirtualList,
+    LogItem
   },
 
   props: {
@@ -141,7 +143,7 @@ export default {
       backlog:     [],
       lines:       [],
       now:         new Date(),
-      logItem:     LogItem
+      logItem:     shallowRef( LogItem ) 
     };
   },
 
