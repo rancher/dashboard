@@ -1,7 +1,6 @@
 #!/usr/bin/env node
 /* eslint-disable no-console */
 
-const { execSync } = require('child_process');
 const path = require('path');
 const fs = require('fs-extra');
 
@@ -26,6 +25,7 @@ console.log('Creating Skeleton Application');
 
 const args = process.argv;
 let appFolder = path.resolve('.');
+let shellVersion = '';
 
 if ( args.length > 2 ) {
   const name = args[2];
@@ -40,7 +40,9 @@ let addGitlabWorkflow = false;
 let addWorkflowFolder = true;
 
 // Check for Gitlab integration option
-if ( args.length > 3 ) {
+if ( args.length >= 3 ) {
+  shellVersion = args[3];
+
   for (let i = 3; i < args.length; i++) {
     switch (args[i]) {
     case '-l':
@@ -95,10 +97,7 @@ Object.keys(targets).forEach((target) => {
 const creatorPkgData = fs.readFileSync(path.join(__dirname, 'package.json'));
 const creatorPkg = JSON.parse(creatorPkgData);
 
-// Fetch the latest version of @rancher/shell
-const shellVersion = execSync('npm view @rancher/shell version').toString().trim();
-
-// Set the latest version of @rancher/shell in the dependencies
+// Set the package version of @rancher/shell in the dependencies
 pkg.dependencies['@rancher/shell'] = `^${ shellVersion }`;
 
 // Rest of dependencies are in the _pkgs property of package.json - copy then across

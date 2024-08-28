@@ -4,14 +4,16 @@
   "version": "0.1.0",
   "license": "Apache-2.0",
   "author": "SUSE",
-  "private": false,
-  "bin": "./init",
+  "packageManager": "yarn@4.4.1",
+  "bin": {
+    "create-extension": "./init"
+  },
   "files": [
     "**/*",
     "init"
   ],
   "engines": {
-    "node": ">=12"
+    "node": ">=20"
   },
   "_requires": [
     "core-js",

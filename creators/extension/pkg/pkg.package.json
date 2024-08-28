@@ -6,7 +6,7 @@
   "rancher": true,
   "scripts": {},
   "engines": {
-    "node": ">=12"
+    "node": ">=20"
   },
   "devDependencies": {
     "@vue/cli-plugin-babel": "~5.0.0",

@@ -4,6 +4,7 @@
 const { execSync } = require('child_process');
 const fs = require('fs');
 const path = require('path');
+const creatorPkg = require('./package.json');
 
 const args = process.argv.slice(2);
 let extensionName = '';
@@ -11,6 +12,7 @@ let appName = '';
 let updateOnly = false;
 let skeletonOnly = false;
 let ignoreShellDepCheck = false;
+let tagUsed = ''; // To store the inferred tag
 
 args.forEach((arg, index) => {
   switch (arg) {
@@ -46,6 +48,45 @@ if ( !extensionName && !updateOnly && !skeletonOnly ) {
   console.error('Please provide an extension name.');
   process.exit(1);
 }
+
+// Infer the tag used based on the installed version and dist-tags
+try {
+  const packageName = creatorPkg.name;
+  const currentVersion = creatorPkg.version;
+
+  // Fetch the dist-tags from npm
+  const distTags = JSON.parse(execSync(`npm view ${ packageName } dist-tags --json`).toString());
+
+  // Find the tag matching the current version
+  tagUsed = Object.keys(distTags).find((tag) => distTags[tag] === currentVersion) || 'latest';
+
+  console.log(`Inferred tag used: ${ tagUsed }`);
+} catch (error) {
+  console.error('Error inferring tag:', error.message);
+  process.exit(1);
+}
+
+// Now, check the version of `@rancher/shell` package based on the inferred tag
+let shellVersion = 'latest';
+const shellPackageName = '@rancher/shell';
+
+try {
+  // Fetch the version of the `@rancher/shell` package that corresponds to the inferred tag
+  const tagVersion = execSync(`npm view ${ shellPackageName } dist-tags.${ tagUsed }`).toString().trim();
+
+  if (tagVersion) {
+    shellVersion = tagVersion;
+  } else {
+    const latestVersion = execSync(`npm view ${ shellPackageName } version`).toString().trim();
+
+    shellVersion = latestVersion;
+  }
+} catch (error) {
+  console.error(`  Failed to determine version for ${ shellPackageName }:`, error.message);
+  process.exit(1);
+}
+
+console.log(`  Using version ${ shellVersion } for ${ shellPackageName }`);
 
 const basePath = process.cwd();
 let skeletonPath;
@@ -98,7 +139,7 @@ try {
   if ( !isInsideSkeleton && !skeletonExists ) {
     console.log(`Creating skeleton application: ${ appName }...`);
     // Pass all arguments to the app/init script
-    execSync(`node ${ path.join(__dirname, 'app', 'init') } ${ appName } ${ args.join(' ') }`, { stdio: 'inherit' });
+    execSync(`node ${ path.join(__dirname, 'app', 'init') } ${ appName }  ${ shellVersion } ${ args.join(' ') }`, { stdio: 'inherit' });
 
     // Ensure the skeleton path directory is created before attempting to change directory
     if ( !fs.existsSync(skeletonPath) ) {
@@ -124,7 +165,7 @@ try {
   // Check for package existence and create it if necessary
   if ( !pkgExists ) {
     console.log(`Creating package: ${ extensionName }...`);
-    execSync(`node ${ path.join(__dirname, 'pkg', 'init') } ${ extensionName } ${ args.join(' ') }`, { stdio: 'inherit' });
+    execSync(`node ${ path.join(__dirname, 'pkg', 'init') } ${ extensionName } ${ shellVersion } ${ args.join(' ') }`, { stdio: 'inherit' });
   }
 
   if ( args.includes('--update') || args.includes('-u') ) {
