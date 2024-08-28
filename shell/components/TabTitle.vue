@@ -32,7 +32,7 @@ export default {
   methods: {
     // This isn't a computed prop because it would trigger a recompute when the $slots changed
     computeTitle() {
-      if (!this.$slots.default || this.$slots.default()[0].type.description !== 'Text') {
+      if (!this.$slots.default || (typeof this.$slots.default()[0].children) !== 'string') {
         console.error('The <TabTitle> component only supports text as the child.'); // eslint-disable-line no-console
 
         return [];
