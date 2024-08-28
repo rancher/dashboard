@@ -152,13 +152,17 @@ export default {
       }
 
       for ( const id of types ) {
-        let bannerImage, bannerAbbrv;
+        let bannerAbbrv;
 
-        try {
-          bannerImage = require(`~shell/assets/images/providers/${ id }.svg`);
-        } catch (e) {
-          bannerImage = null;
-          bannerAbbrv = this.initialDisplayFor(id);
+        let bannerImage = this.$store.app.$plugin.getDynamic('image', `providers/${ id }.svg`);
+
+        if (!bannerImage) {
+          try {
+            bannerImage = require(`~shell/assets/images/providers/${ id }.svg`);
+          } catch (e) {
+            bannerImage = null;
+            bannerAbbrv = this.initialDisplayFor(id);
+          }
         }
 
         out.push({
