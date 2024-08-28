@@ -8,7 +8,7 @@ SCRIPT_DIR="$( cd -- "$( dirname -- "${BASH_SOURCE[0]}" )" &> /dev/null && pwd )
 BASE_DIR="$( cd $SCRIPT_DIR && cd ../.. & pwd)"
 SHELL_DIR=$BASE_DIR/shell/
 SHELL_VERSION="99.99.99"
-DEFAULT_YARN_REGISTRY="https://registry.npmjs.org"
+DEFAULT_YARN_REGISTRY="https://registry.yarnpkg.com/"
 VERDACCIO_YARN_REGISTRY="http://localhost:4873"
 
 echo ${SCRIPT_DIR}
@@ -73,7 +73,7 @@ export YARN_REGISTRY=$VERDACCIO_YARN_REGISTRY
 export NUXT_TELEMETRY_DISABLED=1
 
 # Remove test package from previous run, if present
-if [ $TEST_PERSIST_BUILD != "true" ]; then
+if [ "${TEST_PERSIST_BUILD}" != "true" ]; then
   echo "Removing folder ${BASE_DIR}/pkg/test-pkg"
   rm -rf ${BASE_DIR}/pkg/test-pkg
 fi
@@ -88,9 +88,15 @@ rm ${SHELL_DIR}/package.json.bak
 # We might have bumped the version number but its not published yet, so this will fail
 sed -i.bak -e "s/\"version\": \"[0-9]*.[0-9]*.[0-9]*\(-alpha\.[0-9]*\|-release[0-9]*.[0-9]*.[0-9]*\|-rc\.[0-9]*\)\{0,1\}\",/\"version\": \"${SHELL_VERSION}\",/g" ${BASE_DIR}/pkg/rancher-components/package.json
 
-# Publish shell
-echo "Publishing shell packages to local registry"
+# Publish shell pkg (tag is needed as publish-shell is optimized to work with release-shell-pkg workflow)
+echo "Publishing Shell package to local registry"
 yarn install
+export TAG="shell-pkg-v${SHELL_VERSION}"
+${SHELL_DIR}/scripts/publish-shell.sh
+
+# Publish creators pkg (tag is needed as publish-shell is optimized to work with release-shell-pkg workflow)
+echo "Publishing Creators package to local registry"
+export TAG="creators-pkg-v${SHELL_VERSION}"
 ${SHELL_DIR}/scripts/publish-shell.sh
 
 # Publish rancher components
@@ -107,26 +113,18 @@ if [ "${SKIP_STANDALONE}" == "false" ]; then
 
   echo "Using temporary directory ${DIR}"
 
-  echo "Verifying app creator package"
+  echo "Verifying extension creator"
 
-  yarn create @rancher/app test-app
-  pushd test-app
+  FORCE_COLOR=true yarn create @rancher/extension test-pkg --app-name test-app | cat
+
+  pushd test-app > /dev/null
+
   yarn install
-
-  echo "Building skeleton app"
-
   FORCE_COLOR=true yarn build | cat
-
-  # Package creator
-  echo "Verifying package creator package"
-  yarn create @rancher/pkg test-pkg -i
-
-  echo "Building test package"
-  FORCE_COLOR=true yarn build-pkg test-pkg | cat
 
   # Add test list component to the test package
   # Validates rancher-components imports
-  mkdir pkg/test-pkg/list
+  mkdir -p pkg/test-pkg/list
   cp ${SHELL_DIR}/list/catalog.cattle.io.clusterrepo.vue pkg/test-pkg/list
 
   FORCE_COLOR=true yarn build-pkg test-pkg | cat
@@ -134,7 +132,7 @@ if [ "${SKIP_STANDALONE}" == "false" ]; then
   echo "Cleaning temporary dir"
   popd > /dev/null
 
-  if [ $TEST_PERSIST_BUILD != "true" ]; then
+  if [ "${TEST_PERSIST_BUILD}" != "true" ]; then
     echo "Removing folder ${DIR}"
     rm -rf ${DIR}
   fi
@@ -147,15 +145,16 @@ echo "Validating in-tree package"
 
 yarn install
 
-if [ $TEST_PERSIST_BUILD != "true" ]; then
+if [ "${TEST_PERSIST_BUILD}" != "true" ]; then
   echo "Removing folder ./pkg/test-pkg"
   rm -rf ./pkg/test-pkg
 fi
 
-yarn create @rancher/pkg test-pkg -t -i
+yarn create @rancher/extension test-pkg -i
 cp ${SHELL_DIR}/list/catalog.cattle.io.clusterrepo.vue ./pkg/test-pkg/list
 FORCE_COLOR=true yarn build-pkg test-pkg | cat
-if [ $TEST_PERSIST_BUILD != "true" ]; then
+
+if [ "${TEST_PERSIST_BUILD}" != "true" ]; then
   echo "Removing folder ./pkg/test-pkg"
   rm -rf ./pkg/test-pkg
 fi
@@ -170,7 +169,7 @@ function clone_repo_test_extension_build() {
   # set registry to default (to install all of the other dependencies)
   yarn config set registry ${DEFAULT_YARN_REGISTRY}
 
-  if [ $TEST_PERSIST_BUILD != "true" ]; then
+  if [ "${TEST_PERSIST_BUILD}" != "true" ]; then
     echo "Removing folder ${BASE_DIR}/$REPO_NAME"
     rm -rf ${BASE_DIR}/$REPO_NAME
   fi
@@ -209,10 +208,8 @@ function clone_repo_test_extension_build() {
   popd
 
   # delete folder
-  if [ $TEST_PERSIST_BUILD != "true" ]; then
-    echo "Removing folder ${BASE_DIR}/$REPO_NAME"
-    rm -rf ${BASE_DIR}/$REPO_NAME
-  fi
+  echo "Removing folder ${BASE_DIR}/$REPO_NAME"
+  rm -rf ${BASE_DIR}/$REPO_NAME
   yarn config set registry ${DEFAULT_YARN_REGISTRY}
 }
 
@@ -220,5 +217,6 @@ function clone_repo_test_extension_build() {
 # Don't forget to add the unit tests exception to clone_repo_test_extension_build function if a new extension has those
 clone_repo_test_extension_build "kubewarden-ui" "kubewarden"
 clone_repo_test_extension_build "elemental-ui" "elemental"
+clone_repo_test_extension_build "capi-ui-extension" "capi"
 
 echo "All done"
