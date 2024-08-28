@@ -679,6 +679,12 @@ export default {
 
       return null;
     },
+    onFocus(e) {
+      // differentiates between focused by mouse click vs keyboard navigation so doesn't cause a race condition
+      if (e.relatedTarget !== null) {
+        this.open();
+      }
+    },
   }
 };
 </script>
@@ -689,7 +695,7 @@ export default {
     class="ns-filter"
     data-testid="namespaces-filter"
     tabindex="0"
-    @focus="open()"
+    @focus="onFocus($event)"
   >
     <div
       v-if="isOpen"
