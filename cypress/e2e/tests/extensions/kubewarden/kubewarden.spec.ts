@@ -3,18 +3,11 @@ import KubewardenPo from '@/cypress/e2e/po/extensions/kubewarden/kubewarden.util
 import { NamespaceFilterPo } from '@/cypress/e2e/po/components/namespace-filter.po';
 import ChartInstalledAppsPagePo from '@/cypress/e2e/po/pages/chart-installed-apps.po';
 import ProjectsNamespacesPagePo from '@/cypress/e2e/po/pages/explorer/projects-namespaces.po';
-<<<<<<< HEAD
 import IngressEditPagePo from '@/cypress/e2e/po/edit/ingress.po';
 import { IngressPagePo } from '@/cypress/e2e/po/pages/explorer/ingress.po';
 import { CronjobListPagePo } from '@/cypress/e2e/po/pages/explorer/cronjob.po';
 import TabbedPo from '@/cypress/e2e/po/components/tabbed.po';
 import * as jsyaml from 'js-yaml';
-=======
-import ProductNavPo from '@/cypress/e2e/po/side-bars/product-side-nav.po';
-import { IngressPagePo } from '@/cypress/e2e/po/pages/explorer/ingress.po';
-import TabbedPo from '@/cypress/e2e/po/components/tabbed.po';
-// import * as jsyaml from 'js-yaml';
->>>>>>> 7c0eacee5a (redo PR based on previous PR 11626 and taking into account changes to the utils files + comment unwanted workflow runs)
 
 const EXTENSION_NAME = 'kubewarden';
 const EXTENSION_VERSION = '2.0.0';
@@ -30,35 +23,26 @@ const DUMMY_NAMESPACE = 'another-dummy-namespace';
 const NAMESPACE_CREATION = 'namespaceCreation';
 
 const INGRESS_POLICY_NAME = 'some-ingress-policy-name';
-<<<<<<< HEAD
 const INGRESS_NAME = 'some-ingress-name';
 const INGRESS_CREATION = 'ingressCreation';
 const AP_CREATION = 'apCreation';
 const POLICY_SERVER_CREATION = 'psCreation';
 
 const POLICY_SERVER_YAML_NAME = 'some-policy-server-yaml-name';
-=======
-const AP_CREATION = 'apCreation';
->>>>>>> 7c0eacee5a (redo PR based on previous PR 11626 and taking into account changes to the utils files + comment unwanted workflow runs)
 
 const kubewardenPo = new KubewardenPo();
 const namespaceFilter = new NamespaceFilterPo();
 const installedApps = new ChartInstalledAppsPagePo('local', 'apps');
 const projectsNamespacesPage = new ProjectsNamespacesPagePo('local');
-<<<<<<< HEAD
 const ingressPageListPo = new IngressPagePo();
 const ingressPageEditPo = new IngressEditPagePo('local');
 const cronjobListPagePo = new CronjobListPagePo();
-=======
-const ingressPagePo = new IngressPagePo();
->>>>>>> 7c0eacee5a (redo PR based on previous PR 11626 and taking into account changes to the utils files + comment unwanted workflow runs)
 
 describe('Extensions Compatibility spec', { tags: ['@kubewarden', '@adminUser'] }, () => {
   beforeEach(() => {
     cy.login();
   });
 
-<<<<<<< HEAD
   it('add extension repository', () => {
     // // This should be in a `before` however is flaky. Move it to an `it` to let cypress retry
     const extensionsPo = new ExtensionsPagePo();
@@ -93,41 +77,6 @@ describe('Extensions Compatibility spec', { tags: ['@kubewarden', '@adminUser'] 
     extensionsPo.extensionDetailsTitle().should('contain', EXTENSION_NAME);
     extensionsPo.extensionDetailsCloseClick();
   });
-=======
-  //   it('add extension repository', () => {
-  //     // // This should be in a `before` however is flaky. Move it to an `it` to let cypress retry
-  //     const extensionsPo = new ExtensionsPagePo();
-
-  //     extensionsPo.addExtensionsRepositoryDirectLink(EXTENSION_REPO, EXTENSION_BRANCH, EXTENSION_CLUSTER_REPO_NAME, true);
-  //     cy.wait(10000); // eslint-disable-line cypress/no-unnecessary-waiting
-  //   });
-
-  //   it('Should install an extension', () => {
-  //     const extensionsPo = new ExtensionsPagePo();
-
-  //     extensionsPo.goTo();
-
-  //     extensionsPo.extensionTabAvailableClick();
-
-  //     // click on install button on card
-  //     extensionsPo.extensionCardInstallClick(EXTENSION_NAME);
-  //     extensionsPo.extensionInstallModal().should('be.visible');
-
-  //     // select version and click install
-  //     extensionsPo.installModalSelectVersionLabel(EXTENSION_VERSION);
-  //     extensionsPo.installModalInstallClick();
-
-  //     // let's check the extension reload banner and reload the page
-  //     extensionsPo.extensionReloadBanner().should('be.visible');
-  //     extensionsPo.extensionReloadClick();
-
-  //     // make sure extension card is in the installed tab
-  //     extensionsPo.extensionTabInstalledClick();
-  //     extensionsPo.extensionCardClick(EXTENSION_NAME);
-  //     extensionsPo.extensionDetailsTitle().should('contain', EXTENSION_NAME);
-  //     extensionsPo.extensionDetailsCloseClick();
-  //   });
->>>>>>> 7c0eacee5a (redo PR based on previous PR 11626 and taking into account changes to the utils files + comment unwanted workflow runs)
 
   it('Should setup all of the needed backend parts', () => {
     cy.intercept('POST', 'v1/catalog.cattle.io.clusterrepos/rancher-charts?action=install').as(RANCHER_CHART_CREATION);
@@ -137,21 +86,13 @@ describe('Extensions Compatibility spec', { tags: ['@kubewarden', '@adminUser'] 
     kubewardenPo.dashboard().goTo();
     kubewardenPo.dashboard().waitForTitlePreControllerInstall();
 
-<<<<<<< HEAD
     // we need to change the namespace picker in order for the install check
     // so that we can see all apps on the list view and check their statuses
-=======
-    // we need to change the namespace picker in order for the install check on the list view
->>>>>>> 7c0eacee5a (redo PR based on previous PR 11626 and taking into account changes to the utils files + comment unwanted workflow runs)
     namespaceFilter.toggle();
     namespaceFilter.clickOptionByLabel('All Namespaces');
     namespaceFilter.closeDropdown();
 
-<<<<<<< HEAD
     // start install steps (kw dashboard/main page)
-=======
-    // start install steps
->>>>>>> 7c0eacee5a (redo PR based on previous PR 11626 and taking into account changes to the utils files + comment unwanted workflow runs)
     kubewardenPo.dashboard().startBackendInstallClick();
 
     // 1 - install cert manager
@@ -186,7 +127,6 @@ describe('Extensions Compatibility spec', { tags: ['@kubewarden', '@adminUser'] 
     installedApps.goTo();
     installedApps.waitForPage();
 
-<<<<<<< HEAD
     // ***** 5 - Install Tracing parts *****
     // 5.1 - Open Telemetry Operator as per https://docs.kubewarden.io/next/howtos/telemetry/opentelemetry-qs#install-opentelemetry
     const addOTCommand = `helm repo add open-telemetry https://open-telemetry.github.io/opentelemetry-helm-charts
@@ -197,18 +137,6 @@ helm install --wait \
   --version 0.56.0 \
   --set "manager.collectorImage.repository=otel/opentelemetry-collector-contrib" \
   my-opentelemetry-operator open-telemetry/opentelemetry-operator`;
-=======
-    // 5 - Install Tracing parts
-    // 5.1 - Open Telemetry Operator as per https://docs.kubewarden.io/next/howtos/telemetry/opentelemetry-qs#install-opentelemetry
-    const addOTCommand = `helm repo add open-telemetry https://open-telemetry.github.io/opentelemetry-helm-charts
-
-  helm install --wait \
-    --namespace open-telemetry \
-    --create-namespace \
-    --version 0.56.0 \
-    --set "manager.collectorImage.repository=otel/opentelemetry-collector-contrib" \
-    my-opentelemetry-operator open-telemetry/opentelemetry-operator`;
->>>>>>> 7c0eacee5a (redo PR based on previous PR 11626 and taking into account changes to the utils files + comment unwanted workflow runs)
 
     kubewardenPo.kubectlShell().openTerminal();
     kubewardenPo.kubectlShell().executeCommand(addOTCommand, false);
@@ -217,21 +145,12 @@ helm install --wait \
     // 5.2 - Jaeger Operator as per https://docs.kubewarden.io/next/howtos/telemetry/tracing-qs#install-jaeger
     const addJaegerOperatorCommand = `helm repo add jaegertracing https://jaegertracing.github.io/helm-charts
 
-<<<<<<< HEAD
 helm upgrade -i --wait \
   --namespace jaeger \
   --create-namespace \
   --version 2.49.0 \
   jaeger-operator jaegertracing/jaeger-operator \
   --set rbac.clusterRole=true`;
-=======
-  helm upgrade -i --wait \
-    --namespace jaeger \
-    --create-namespace \
-    --version 2.49.0 \
-    jaeger-operator jaegertracing/jaeger-operator \
-    --set rbac.clusterRole=true`;
->>>>>>> 7c0eacee5a (redo PR based on previous PR 11626 and taking into account changes to the utils files + comment unwanted workflow runs)
 
     kubewardenPo.kubectlShell().openTerminal();
     kubewardenPo.kubectlShell().executeCommand(addJaegerOperatorCommand, false);
@@ -239,7 +158,6 @@ helm upgrade -i --wait \
 
     // 5.3 - Create Jaeger Resource as per https://docs.kubewarden.io/next/howtos/telemetry/tracing-qs#install-jaeger
     const createJaegerResource = `kubectl apply -f - <<EOF
-<<<<<<< HEAD
 apiVersion: jaegertracing.io/v1
 kind: Jaeger
 metadata:
@@ -251,19 +169,6 @@ spec:
     annotations:
       kubernetes.io/ingress.class: nginx
 EOF`;
-=======
-  apiVersion: jaegertracing.io/v1
-  kind: Jaeger
-  metadata:
-    name: my-open-telemetry
-    namespace: jaeger
-  spec:
-    ingress:
-      enabled: true
-      annotations:
-        kubernetes.io/ingress.class: nginx
-  EOF`;
->>>>>>> 7c0eacee5a (redo PR based on previous PR 11626 and taking into account changes to the utils files + comment unwanted workflow runs)
 
     kubewardenPo.kubectlShell().openTerminal();
     kubewardenPo.kubectlShell().executeCommand(createJaegerResource, false);
@@ -278,17 +183,12 @@ EOF`;
       .getMenuItem('Edit/Upgrade')
       .click();
     kubewardenPo.chartInstallPage().nextPage();
-<<<<<<< HEAD
     new TabbedPo().clickTabWithSelector('[data-testid="btn-Telemetry"]'); // go to Telemetry tab
-=======
-    new TabbedPo().clickTabWithSelector('[data-testid="btn-Telemetry"]');
->>>>>>> 7c0eacee5a (redo PR based on previous PR 11626 and taking into account changes to the utils files + comment unwanted workflow runs)
     kubewardenPo.chartInstallPage().getCheckboxByLabel('Enable Tracing').set();
     kubewardenPo.chartInstallPage().getCheckboxByLabel('Jaeger endpoint insecure TLS configuration').set();
     kubewardenPo.chartInstallPage().installChart();
     kubewardenPo.appsPage().waitForUpgradeAndCloseTerminal(MAIN_EXTENSION_CHART_UPGRADE, 60000);
 
-<<<<<<< HEAD
     // 6 - ***** Install Metrics part *****
 
     // 6.1 - Install Rancher Monitoring app
@@ -297,16 +197,6 @@ EOF`;
     kubewardenPo.chartInstallPage().waitForChartPage('rancher-charts', 'rancher-monitoring');
     // monitoring chart install page takes a bit to come up. The search for "rancherMonitoringInstallIntoProjectSelect"
     // might fail because of this. Let's give it a time buffer here
-=======
-    // 6 - Install Metrics part
-    // 6.1 - Install Rancher Monitoring app
-    // needs to be a manual visit as the goTo + createPath were adding unnecessary chars
-    // that made url assertion fail
-    cy.visit('c/local/apps/charts/install?repo-type=cluster&repo=rancher-charts&chart=rancher-monitoring');
-    kubewardenPo.chartInstallPage().waitForChartPage('rancher-charts', 'rancher-monitoring');
-    // monitoring chart install page takes a bit to come up. The search for "rancherMonitoringInstallIntoProjectSelect"
-    // might fail because of this. Let's give it a 10s buffer here
->>>>>>> 7c0eacee5a (redo PR based on previous PR 11626 and taking into account changes to the utils files + comment unwanted workflow runs)
     cy.wait(10000); // eslint-disable-line cypress/no-unnecessary-waiting
     kubewardenPo.rancherMonitoringInstallIntoProjectSelect(3); // System option
     kubewardenPo.chartInstallPage().nextPage();
@@ -315,7 +205,6 @@ EOF`;
     kubewardenPo.chartInstallPage().installChart();
     kubewardenPo.appsPage().waitForInstallCloseTerminal(RANCHER_CHART_CREATION, ['rancher-monitoring', 'rancher-monitoring-crd'], 180000, 30000);
 
-<<<<<<< HEAD
     // 6.2 - Add Service Monitor
     kubewardenPo.policyServerDetail('local', 'default').goTo('local', 'default');
     kubewardenPo.policyServerDetail('local', 'default').waitForPage();
@@ -328,17 +217,6 @@ EOF`;
     // 6.3 - Add Grafana Dashboards
     kubewardenPo.policyServerDetail('local', 'default').metricsAddGrafanaDasboardClick();
     // buffer for Grafana Dashboards to install and be available
-=======
-    cy.visit('/c/local/kubewarden/policies.kubewarden.io.policyserver/default');
-    new TabbedPo().clickTabWithSelector('[data-testid="btn-policy-metrics"]');
-    // 6.2 - Add Service Monitor
-    kubewardenPo.policyServerDetail().metricsAddServiceMonitorClick();
-    // buffer for service monitor to install and be available
-    cy.wait(10000); // eslint-disable-line cypress/no-unnecessary-waiting
-    // 6.3 - Add Grafana Dashboards
-    // buffer for Grafana Dashboards to install and be available
-    kubewardenPo.policyServerDetail().metricsAddGrafanaDasboardClick();
->>>>>>> 7c0eacee5a (redo PR based on previous PR 11626 and taking into account changes to the utils files + comment unwanted workflow runs)
     cy.wait(10000); // eslint-disable-line cypress/no-unnecessary-waiting
 
     // 6.4 - Enable Metrics in kubewarden operator chart
@@ -349,11 +227,7 @@ EOF`;
       .getMenuItem('Edit/Upgrade')
       .click();
     kubewardenPo.chartInstallPage().nextPage();
-<<<<<<< HEAD
     new TabbedPo().clickTabWithSelector('[data-testid="btn-Telemetry"]'); // go to Telemetry tab
-=======
-    new TabbedPo().clickTabWithSelector('[data-testid="btn-Telemetry"]');
->>>>>>> 7c0eacee5a (redo PR based on previous PR 11626 and taking into account changes to the utils files + comment unwanted workflow runs)
     kubewardenPo.chartInstallPage().getCheckboxByLabel('Enable Metrics').set();
     kubewardenPo.chartInstallPage().installChart();
     kubewardenPo.appsPage().waitForUpgradeAndCloseTerminal(MAIN_EXTENSION_CHART_UPGRADE, 60000);
@@ -361,7 +235,6 @@ EOF`;
 
   it('Should create an Admission Policy and report it in the compliance tab of a namespace', () => {
     cy.intercept('POST', 'v1/namespaces').as(NAMESPACE_CREATION);
-<<<<<<< HEAD
     cy.intercept('POST', `v1/policies.kubewarden.io.admissionpolicies/${ DUMMY_NAMESPACE }`).as(AP_CREATION);
     cy.intercept('POST', 'v1/networking.k8s.io.ingresses').as(INGRESS_CREATION);
 
@@ -376,31 +249,12 @@ EOF`;
     kubewardenPo.waitForNamespaceCreation(NAMESPACE_CREATION, DUMMY_NAMESPACE);
 
     // 2. create a new admission policy
-=======
-    cy.intercept('POST', 'v1/policies.kubewarden.io.admissionpolicies/default').as(AP_CREATION);
-    // create a new namespace
-    // create an AP -> keep it protect mode
-    // prepare a resource to trigger that specific AP
-    // go to cron job and force run it
-    // go to a given namespace and check the compliance report to see the result
-
-    // projectsNamespacesPage.goTo();
-    // projectsNamespacesPage.waitForPage();
-    // projectsNamespacesPage.flatListClick(); // easier to trigger a namespace creation
-    // projectsNamespacesPage.createProjectNamespaceClick();
-    // projectsNamespacesPage.name().set(DUMMY_NAMESPACE);
-    // projectsNamespacesPage.buttonSubmit().click();
-
-    // kubewardenPo.waitForNamespaceCreation(NAMESPACE_CREATION, DUMMY_NAMESPACE);
-
->>>>>>> 7c0eacee5a (redo PR based on previous PR 11626 and taking into account changes to the utils files + comment unwanted workflow runs)
     kubewardenPo.dashboard().goTo();
     kubewardenPo.dashboard().waitForTitleAfterControllerInstall();
 
     kubewardenPo.dashboard().productNav().navToSideMenuEntryByExactLabel('AdmissionPolicies');
     kubewardenPo.admissionPoliciesList().waitForPage();
 
-<<<<<<< HEAD
     // 2.1 whitelist url for artifacthub
     kubewardenPo.genericResourceList().masthead().create();
     kubewardenPo.admissionPoliciesList().addToArtifactHubClick();
@@ -534,56 +388,4 @@ EOF`;
     extensionsPo.extensionCardClick(EXTENSION_NAME);
     extensionsPo.extensionDetailsTitle().should('contain', EXTENSION_NAME);
   });
-=======
-    kubewardenPo.genericResourceList().masthead().create();
-    // kubewardenPo.admissionPoliciesList().addToArtifactHubClick();
-    // // let's wait for the whitelisting to do it's thing
-    // cy.wait(10000); // eslint-disable-line cypress/no-unnecessary-waiting
-
-    kubewardenPo.admissionPoliciesList().apOfficialPoliciesTableRowClick('Ingress Policy');
-
-    kubewardenPo.genericNamespaceInput().toggle();
-    kubewardenPo.genericNamespaceInput().clickOptionWithLabel(DUMMY_NAMESPACE);
-    kubewardenPo.genericNameInput().set(INGRESS_POLICY_NAME);
-    new TabbedPo().clickTabWithSelector('[data-testid="btn-Settings"]');
-    kubewardenPo.chartInstallPage().getCheckboxByLabel('Require TLS').set();
-
-    // kubewardenPo.apCreateBtn().click();
-    // kubewardenPo.waitForApCreation(AP_CREATION, INGRESS_POLICY_NAME);
-
-    // HERE WE'LL NEED TO WAIT FOR THE POLICY TO COME UP!
-
-    // kubewardenPo.dashboard().productNav().navToSideMenuGroupByLabel('Service Discovery');
-    // kubewardenPo.dashboard().productNav().navToSideMenuEntryByLabel('Ingresses');
-
-    // ingressPagePo.waitForPage();
-    // ingressPagePo.clickCreate();
-  });
-
-  // it('Should create a Policy Server via YAML', () => {
-  // // create a working Policy Server via YAML
-  // });
-
-  // it('Should uninstall the extension', () => {
-  //   const extensionsPo = new ExtensionsPagePo();
-
-  //   extensionsPo.goTo();
-  //   extensionsPo.extensionTabInstalledClick();
-
-  //   // click on uninstall button on card
-  //   extensionsPo.extensionCardUninstallClick(EXTENSION_NAME);
-  //   extensionsPo.extensionUninstallModal().should('be.visible');
-  //   extensionsPo.uninstallModaluninstallClick();
-  //   extensionsPo.extensionReloadBanner().should('be.visible');
-
-  //   // let's check the extension reload banner and reload the page
-  //   extensionsPo.extensionReloadBanner().should('be.visible');
-  //   extensionsPo.extensionReloadClick();
-
-  //   // make sure extension card is in the available tab
-  //   extensionsPo.extensionTabAvailableClick();
-  //   extensionsPo.extensionCardClick(EXTENSION_NAME);
-  //   extensionsPo.extensionDetailsTitle().should('contain', EXTENSION_NAME);
-  // });
->>>>>>> 7c0eacee5a (redo PR based on previous PR 11626 and taking into account changes to the utils files + comment unwanted workflow runs)
 });
