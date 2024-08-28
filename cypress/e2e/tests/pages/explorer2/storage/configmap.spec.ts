@@ -3,7 +3,7 @@ import ConfigMapPo from '@/cypress/e2e/po/components/storage/config-map.po';
 
 const configMapPage = new ConfigMapPagePo('local');
 
-describe.skip('ConfigMap', { testIsolation: 'off', tags: ['@explorer2', '@adminUser'] }, () => {
+describe('ConfigMap', { testIsolation: 'off', tags: ['@explorer2', '@adminUser'] }, () => {
   beforeEach(() => {
     cy.login();
   });
