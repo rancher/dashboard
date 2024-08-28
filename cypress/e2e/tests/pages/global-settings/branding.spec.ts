@@ -97,7 +97,7 @@ describe('Branding', { testIsolation: 'off' }, () => {
     cy.title({ timeout: 2000 }).should('eq', settings.privateLabel.original);
   });
 
-  it.skip('[Vue3 Skip]: Logo', { tags: ['@globalSettings', '@adminUser'] }, () => {
+  it('Logo', { tags: ['@globalSettings', '@adminUser'] }, () => {
     const prefPage = new PreferencesPagePo();
 
     BrandingPagePo.navTo();
@@ -174,7 +174,7 @@ describe('Branding', { testIsolation: 'off' }, () => {
     });
   });
 
-  it.skip('[Vue3 Skip]: Banner', { tags: ['@globalSettings', '@adminUser'] }, () => {
+  it('Banner', { tags: ['@globalSettings', '@adminUser'] }, () => {
     const prefPage = new PreferencesPagePo();
 
     BrandingPagePo.navTo();
@@ -240,7 +240,7 @@ describe('Branding', { testIsolation: 'off' }, () => {
     });
   });
 
-  it.skip('[Vue3 Skip]: Login Background', { tags: ['@globalSettings', '@adminUser'] }, () => {
+  it('Login Background', { tags: ['@globalSettings', '@adminUser'] }, () => {
     const prefPage = new PreferencesPagePo();
 
     BrandingPagePo.navTo();
