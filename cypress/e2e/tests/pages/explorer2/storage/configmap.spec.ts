@@ -10,7 +10,7 @@ describe('ConfigMap', { testIsolation: 'off', tags: ['@explorer2', '@adminUser']
 
   it('has the correct title', () => {
     configMapPage.goTo();
-    configMapPage.waitForMastheadTitle('ConfigMaps');
+    configMapPage.title().should('include', `ConfigMaps`);
 
     cy.title().should('eq', 'Rancher - local - ConfigMaps');
   });
