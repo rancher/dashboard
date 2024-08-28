@@ -56,8 +56,8 @@ function publish() {
     cp -R ${BASE_DIR}/pkg/rancher-components/src/components ./rancher-components/
   fi
 
-  # If we need to release shell as well, we tag it as v2
-  PUBLISH_ARGS="--no-git-tag-version --access public --tag v2"
+  # If we need to release shell as well, we tag it as v1
+  PUBLISH_ARGS="--no-git-tag-version --access public --tag v1"
 
   # Make a note of dependency versions, if required
   node ${SCRIPT_DIR}/record-deps.js
