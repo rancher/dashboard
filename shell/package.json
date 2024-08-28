@@ -129,6 +129,8 @@
     "vue-server-renderer": "2.7.16",
     "vue-template-compiler": "2.7.16",
     "vue3-virtual-scroll-list": "0.2.1",
+    "primevue": "4.0.4",
+    "vue-virtual-scroller": "1.1.2",
     "vuedraggable": "2.24.3",
     "vuex": "~4.0.0",
     "webpack-bundle-analyzer": "4.5.0",

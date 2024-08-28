@@ -30,6 +30,9 @@ import emberCookie from '@shell/plugins/ember-cookie';
 import ShortKey from '@shell/plugins/shortkey';
 
 import 'floating-vue/dist/style.css';
+import PrimeVue from 'primevue/config';
+import VueVirtualScroller from 'vue-virtual-scroller';
+import 'vue-virtual-scroller/dist/vue-virtual-scroller.css';
 
 export async function installPlugins(vueApp) {
   vueApp.use(globalFormatters);
@@ -38,6 +41,8 @@ export async function installPlugins(vueApp) {
   vueApp.use(FloatingVue);
   vueApp.use(ShortKey, { prevent: ['input', 'textarea', 'select'] });
   vueApp.use(InstallCodemirro);
+  vueApp.use(PrimeVue.Config);
+  vueApp.use(VueVirtualScroller);
   vueApp.component('v-select', vSelect);
 }
 
