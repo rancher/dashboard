@@ -158,7 +158,7 @@ describe('Cluster Management Helm Repositories', { testIsolation: 'off', tags: [
     repositoriesPage.list().details(`${ this.repoName }ssh`, 1).contains('Active').should('be.visible');
   });
 
-  it.skip('[Vue3 Skip]: can delete repositories via bulk actions', function() {
+  it('can delete repositories via bulk actions', function() {
     ChartRepositoriesPagePo.navTo();
     repositoriesPage.waitForPage();
 
