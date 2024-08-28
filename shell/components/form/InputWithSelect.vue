@@ -94,6 +94,12 @@ export default {
     };
   },
 
+  computed: {
+    canPaginate() {
+      return false;
+    }
+  },
+
   methods: {
     focus() {
       const comp = this.$refs.text;

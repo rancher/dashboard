@@ -85,8 +85,11 @@ export default {
 
     serviceName() {
       return this.reduce(this.selected);
-    }
+    },
 
+    canPaginate() {
+      return false;
+    },
   },
 
   methods: {
