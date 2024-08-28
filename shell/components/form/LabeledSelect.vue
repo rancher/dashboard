@@ -247,6 +247,7 @@ export default {
   <div
     ref="select"
     class="labeled-select"
+    v-bind="$attrs"
     :class="{
       disabled: isView || disabled,
       focused,
