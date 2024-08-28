@@ -9,7 +9,7 @@ import Tabbed from '@shell/components/Tabbed';
 
 export default {
   name: 'CruConfigMap',
-
+  inheritAttrs: false,
   components: {
     CruResource,
     NameNsDescription,
