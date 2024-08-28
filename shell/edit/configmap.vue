@@ -8,9 +8,9 @@ import Tab from '@shell/components/Tabbed/Tab';
 import Tabbed from '@shell/components/Tabbed';
 
 export default {
-  name: 'CruConfigMap',
+  name:         'CruConfigMap',
   inheritAttrs: false,
-  components: {
+  components:   {
     CruResource,
     NameNsDescription,
     KeyValue,
