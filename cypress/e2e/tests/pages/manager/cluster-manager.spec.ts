@@ -599,7 +599,7 @@ describe('Cluster Manager', { testIsolation: 'off', tags: ['@manager', '@adminUs
     clusterDashboard.waitForPage(undefined, 'cluster-events');
   });
 
-  it.skip('[Vue3 Skip]: can download YAML via bulk actions', () => {
+  it('can download YAML via bulk actions', () => {
     // Delete downloads directory. Need a fresh start to avoid conflicting file names
     cy.deleteDownloadsFolder();
 

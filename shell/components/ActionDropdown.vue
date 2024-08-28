@@ -82,7 +82,7 @@ export default {
             Button <i class="icon icon-chevron-down" />
           </button>
         </slot>
-        <template #popover>
+        <template #popper>
           <slot name="popover-content" />
         </template>
       </v-dropdown>
@@ -123,7 +123,17 @@ export default {
   $sm-trigger-padding: 10px 10px 10px 10px;
   $lg-trigger-padding: 18px 10px 10px 10px;
 
-  .v-popover {
+  .btn-xs .v-popper__inner {
+    padding: $xs-trigger-padding;
+  }
+  .btn-sm .v-popper__inner {
+    padding: $sm-trigger-padding;
+  }
+  .btn-lg .v-popper__inner {
+    padding: $lg-trigger-padding;
+  }
+
+  .v-popper__inner {
     .text-right {
       margin-top: 5px;
     }
@@ -135,15 +145,7 @@ export default {
         i {
           transform: scale(1);
         }
-        &.btn-xs {
-          padding: $xs-trigger-padding;
-        }
-        &.btn-sm {
-          padding: $sm-trigger-padding;
-        }
-        &.btn-lg {
-          padding: $lg-trigger-padding;
-        }
+
         &:focus {
           outline-style: none;
           box-shadow: none;
@@ -194,14 +196,19 @@ export default {
       }
     }
   }
-  .popover {
+
+  .v-popper {
     border: none;
   }
-  .tooltip {
+  .v-popper--theme-dropdown {
     margin-top: 0px;
 
-    &[x-placement^="bottom"] {
-      .tooltip-arrow {
+    .v-popper__arrow-container {
+      .v-popper__arrow-inner {
+        display: none;
+      }
+
+      .v-popper__arrow-outer {
         border-bottom-color: var(--dropdown-border);
 
         &:after {
@@ -210,7 +217,7 @@ export default {
       }
     }
 
-    .tooltip-inner {
+    .v-popper__inner {
       color: var(--dropdown-text);
       background-color: var(--dropdown-bg);
       border: 1px solid var(--dropdown-border);
