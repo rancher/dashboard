@@ -670,21 +670,18 @@ export default {
         ref="body"
         :class="{'logs-container': true, 'open': isOpen, 'closed': !isOpen, 'show-times': timestamps && filtered.length, 'wrap-lines': wrap}"
       >
-        <VirtualScroller
+      <VirtualScroller
             v-show="filtered.length"
             ref="virtualList"
-            orientation="horizontal"
+            orientation="vertical"
             :items="filtered"
+            :step="10"
+            :numToleratedItems="200"
         >
-            <template v-slot:item="{ item }">
+            <template v-slot:item="{ item, options }">
+                <div :class="['flex items-center p-2', { 'bg-surface-100 dark:bg-surface-700': options.odd }]" >
                     <LogItem :source="item" />
-                    <!-- <div>{{ item }}</div> -->
-                
-                <!-- <div :class="['flex items-center p-2', { 'bg-surface-100 dark:bg-surface-700': options.odd }]" style="height: 50px">
-                    <template v-for="(el, id) of item" :key="id">
-                        <div style="width: 100px">{{ el }}</div>
-                    </template>
-                </div> -->
+                </div>
             </template>
         </VirtualScroller>
         <!-- <VirtualList
