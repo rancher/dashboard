@@ -286,7 +286,7 @@ export default {
             name="concurrency"
             :options="['Allow', 'Forbid', 'Replace']"
             :labels="[t('workload.upgrading.concurrencyPolicy.options.allow'), t('workload.upgrading.concurrencyPolicy.options.forbid'), t('workload.upgrading.concurrencyPolicy.options.replace')]"
-            @input="update"
+            @update:value="update"
           />
         </div>
         <div
@@ -300,7 +300,7 @@ export default {
             name="suspend"
             :options="[true, false]"
             :labels="['Yes', 'No']"
-            @input="update"
+            @update:value="update"
           />
         </div>
       </div>
