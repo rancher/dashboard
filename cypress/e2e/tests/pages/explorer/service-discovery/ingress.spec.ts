@@ -8,7 +8,7 @@ describe('Ingresses', { testIsolation: 'off', tags: ['@explorer', '@adminUser'] 
     cy.login();
   });
 
-  it.skip('[Vue3 Skip]: does not show console warning due to lack of secondary schemas needed to load data on list view', () => {
+  it('does not show console warning due to lack of secondary schemas needed to load data on list view', () => {
     // pattern as per https://docs.cypress.io/faq/questions/using-cypress-faq#How-do-I-spy-on-consolelog
     cy.visit(ingressPagePo.urlPath(), {
       onBeforeLoad(win) {

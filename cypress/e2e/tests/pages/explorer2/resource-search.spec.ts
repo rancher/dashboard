@@ -33,7 +33,7 @@ describe('Cluster Dashboard', { testIsolation: 'off', tags: ['@explorer2', '@adm
     dialog.checkNotExists();
   });
 
-  it.skip('can show resource dialog when namespace chooser is open', () => {
+  it('can show resource dialog when namespace chooser is open', () => {
     const namespacePicker = new NamespaceFilterPo();
 
     namespacePicker.toggle();

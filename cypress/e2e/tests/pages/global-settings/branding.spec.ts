@@ -62,7 +62,7 @@ describe('Branding', { testIsolation: 'off' }, () => {
     brandingPage.waitForPageWithClusterId();
   });
 
-  it.skip('[Vue3 Skip]: Private Label', { tags: ['@globalSettings', '@adminUser'] }, () => {
+  it('Private Label', { tags: ['@globalSettings', '@adminUser'] }, () => {
     const brandingPage = new BrandingPagePo();
 
     BrandingPagePo.navTo();
