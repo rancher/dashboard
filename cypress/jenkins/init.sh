@@ -80,9 +80,10 @@ corral config vars set volume_iops "${AWS_VOLUME_IOPS}"
 corral config vars set azure_subscription_id "${AZURE_AKS_SUBSCRIPTION_ID}"
 corral config vars set azure_client_id "${AZURE_CLIENT_ID}"
 corral config vars set azure_client_secret "${AZURE_CLIENT_SECRET}"
+corral config vars set create_initial_clusters "${CREATE_INITIAL_CLUSTERS}"
 
-if [[ "${JOB_TYPE}" == "recurring" ]]; then 
-  RANCHER_TYPE="recurring"
+create_initial_clusters() {
+  shopt -u nocasematch
   if [[ -n "${RANCHER_IMAGE_TAG}" ]]; then
     TARFILE="helm-v${HELM_VERSION}-linux-amd64.tar.gz"
     curl -L -o "${TARFILE}" "https://get.helm.sh/${TARFILE}"
@@ -144,10 +145,21 @@ if [[ "${JOB_TYPE}" == "recurring" ]]; then
   corral config vars set server_count "${SERVER_COUNT:-3}"
   corral create --skip-cleanup --recreate --debug rancher \
     "dist/aws-k3s-rancher-${CERT_MANAGER_VERSION}-${RANCHER_VERSION//v}-${K3S_KUBERNETES_VERSION}"
+}
+
+
+if [[ "${JOB_TYPE}" == "recurring" ]]; then 
+  RANCHER_TYPE="recurring"
+  create_initial_clusters
 fi
 
 if [[ "${JOB_TYPE}" == "existing" ]]; then
   RANCHER_TYPE="existing"
+  shopt -s nocasematch
+  if [[ "${CREATE_INITIAL_CLUSTERS}" == "yes" ]]; then
+    create_initial_clusters
+  fi
+  shopt -u nocasematch
 fi
 
 echo "Rancher type: ${RANCHER_TYPE}"
