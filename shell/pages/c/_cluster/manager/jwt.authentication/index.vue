@@ -194,7 +194,10 @@ export default {
 
 <template>
   <Loading v-if="$fetchState.pending" />
-  <div v-else>
+  <div
+    v-else
+    class="outlet"
+  >
     <Masthead
       :schema="schema"
       :resource="resource"
