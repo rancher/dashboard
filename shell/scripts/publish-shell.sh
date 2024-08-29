@@ -7,7 +7,7 @@ BASE_DIR="$(
 )"
 SHELL_DIR=$BASE_DIR/shell/
 CREATORS_DIR=$BASE_DIR/shell/creators/extension
-PUBLISH_ARGS="--no-git-tag-version --access public $PUBLISH_ARGS"
+PUBLISH_ARGS="--no-git-tag-version --access public $NPM_TAG"
 FORCE_PUBLISH_TO_NPM="false"
 DEFAULT_YARN_REGISTRY="https://registry.npmjs.org"
 
@@ -44,6 +44,11 @@ function publish() {
   # because of the check in the "Check Tags Version Matching" step in the workflow
   if [ -n "$3" ]; then
     PKG_VERSION=$3
+  fi
+
+  # if the PKG_VERSION has a - it means it will be a pre-release
+  if [[ $PKG_VERSION == *"-"* ]]; then
+    PUBLISH_ARGS="--no-git-tag-version --access public --tag pre-release"
   fi
 
   echo "Publishing ${NAME} from ${FOLDER}"
