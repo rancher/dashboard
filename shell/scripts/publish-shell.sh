@@ -7,7 +7,7 @@ BASE_DIR="$(
 )"
 SHELL_DIR=$BASE_DIR/shell/
 CREATORS_DIR=$BASE_DIR/shell/creators/extension
-PUBLISH_ARGS="--no-git-tag-version --access public $PUBLISH_ARGS"
+PUBLISH_ARGS="--no-git-tag-version --access public $NPM_TAG"
 FORCE_PUBLISH_TO_NPM="false"
 DEFAULT_YARN_REGISTRY="https://registry.npmjs.org"
 
@@ -56,8 +56,13 @@ function publish() {
     cp -R ${BASE_DIR}/pkg/rancher-components/src/components ./rancher-components/
   fi
 
-  # If we need to release shell as well, we tag it as v2
-  PUBLISH_ARGS="--no-git-tag-version --access public --tag v2"
+  # if the PKG_VERSION has a - it means it will be a pre-release of legacy-v2
+  if [[ $PKG_VERSION == *“-”* ]]; then
+    PUBLISH_ARGS="--no-git-tag-version --access public --tag pre-release-legacy-v2"
+  else
+    # If we need to release shell, we tag it as legacy-v2
+    PUBLISH_ARGS="--no-git-tag-version --access public --tag legacy-v2"
+  fi
 
   # Make a note of dependency versions, if required
   node ${SCRIPT_DIR}/record-deps.js
