@@ -138,12 +138,12 @@
   }
 }
 
-.popover {
+.v-popper__popper {
   $color: var(--popover-bg);
   border: 1px solid var(--border);
   border-radius: var(--border-radius);
 
-  .popover-inner {
+  .v-popper__inner {
     background: $color;
     color: var(--popover-text);
     padding: 10px;
@@ -155,12 +155,12 @@
     }
   }
 
-  .popover-arrow {
+  .v-popper__arrow-container {
     border-color: transparent;
   }
 
   &[x-placement^="bottom"] {
-    .popover-arrow {
+    .v-popper__arrow-container {
       &:after {
         // border-bottom-color: var(--popover-bg);
         border-bottom-width: 0;
@@ -175,7 +175,7 @@
 }
 
 .tooltip,
-.popover {
+.v-popper {
   &[aria-hidden='true'] {
     // This removes it from the layout of ButtondropDown (so it doesn't render huge for SSR) but
     // still allows it to maintain it's dimensions for v-tooltip to calculate the appropriate position.
