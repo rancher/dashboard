@@ -735,8 +735,18 @@ export default {
                     <a :href="href">{{ t('nav.userMenu.accountAndKeys', {}, true) }}</a>
                   </li>
                 </router-link>
+                <!-- SLO modal -->
+                <li
+                  v-if="authEnabled && shouldShowSloLogoutModal"
+                  class="user-menu-item no-link"
+                  @click="showSloModal"
+                  @keypress.enter="showSloModal"
+                >
+                  <span>{{ t('nav.userMenu.logOut') }}</span>
+                </li>
+                <!-- logout -->
                 <router-link
-                  v-if="authEnabled"
+                  v-else-if="authEnabled"
                   v-slot="{ href, navigate }"
                   custom
                   :to="generateLogoutRoute"
@@ -1139,6 +1149,7 @@ export default {
       display: flex;
       justify-content: space-between;
       padding: 10px;
+      color: var(--link);
     }
 
     div.menu-separator {
