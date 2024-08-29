@@ -19,7 +19,7 @@ describe('Cluster Explorer', () => {
 
     describe('Create: Deployments', () => {
       beforeEach(() => {
-        cy.interceptAllRequests('POST');
+        cy.intercept('POST', '/v1/apps.deployments').as('createDeployment');
       });
 
       it('should be able to create a new deployment with basic options', () => {
@@ -30,7 +30,7 @@ describe('Cluster Explorer', () => {
 
         deploymentsCreatePage.createWithUI(name, containerImage, namespace);
 
-        cy.wait('@interceptAllRequests0').then(({ request, response }) => {
+        cy.wait('@createDeployment').then(({ request, response }) => {
           expect(request.body).to.deep.eq(deploymentCreateRequest);
           expect(response.statusCode).to.eq(201);
           expect(response.body.metadata.name).to.eq(name);
