@@ -129,8 +129,7 @@ export default {
       return {
         content:   tooltip,
         placement: 'bottom',
-        delay:     { show: 500 },
-        html:      true
+        delay:     { show: 500 }
       };
     },
 

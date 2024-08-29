@@ -3,6 +3,7 @@ import { createApp } from 'vue';
 import { config } from '@vue/test-utils';
 import i18n from '@shell/plugins/i18n';
 import FloatingVue from 'floating-vue';
+import { floatingVueOptions } from '@shell/plugins/floating-vue';
 import vSelect from 'vue-select';
 import cleanTooltipDirective from '@shell/directives/clean-tooltip';
 import cleanHtmlDirective from '@shell/directives/clean-html';
@@ -16,7 +17,7 @@ global.TextDecoder = TextDecoder;
 
 // vueApp.config.productionTip = false;
 vueApp.use(i18n, { store: { dispatch() {} } });
-vueApp.use(FloatingVue);
+vueApp.use(FloatingVue, floatingVueOptions);
 vueApp.directive('clean-html', cleanHtmlDirective);
 vueApp.directive('clean-tooltip', cleanTooltipDirective);
 vueApp.component('v-select', vSelect);
