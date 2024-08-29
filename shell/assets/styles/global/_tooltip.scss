@@ -149,6 +149,7 @@
     padding: 10px;
     border-radius: var(--border-radius);
     box-shadow: 0 5px 20px var(--shadow);
+    border: none;
 
     a {
       color: var(--popover-text);
@@ -167,10 +168,9 @@
       }
     }
   }
-
 }
 
-.v-popover {
+.v-popper {
   display: inline;
 }
 

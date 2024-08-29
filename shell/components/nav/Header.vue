@@ -664,6 +664,7 @@ export default {
         class="user user-menu"
         data-testid="nav_header_showUserMenu"
         tabindex="0"
+        @blur="showMenu(false)"
         @click="showMenu(true)"
         @focus.capture="showMenu(true)"
       >
@@ -671,6 +672,8 @@ export default {
           :triggers="[]"
           :shown="isPopoverOpen"
           :autoHide="false"
+          :flip="false"
+          :container="false"
         >
           <div class="user-image text-right hand">
             <img
@@ -1011,7 +1014,7 @@ export default {
         outline: none;
         width: var(--header-height);
 
-        .v-popover {
+        .v-popper {
           display: flex;
           :deep() .trigger{
           .user-image {
@@ -1026,7 +1029,7 @@ export default {
         }
 
         &:focus {
-          .v-popover {
+          .v-popper {
             :deep() .trigger {
               line-height: 0;
               .user-image {
@@ -1084,7 +1087,7 @@ export default {
     }
   }
 
-  .popover .popover-inner {
+  .v-popper__popper .v-popper__inner {
     padding: 0;
     border-radius: 0;
   }
@@ -1096,18 +1099,21 @@ export default {
   }
 
   .user-menu {
+    :deep() .v-popper__arrow-container {
+      display: none;
+    }
     // Remove the default padding on the popup so that the hover on menu items goes full width of the menu
-    :deep() .popover-inner {
-      padding: 10px 0;
+    :deep() .v-popper__inner {
+      padding: 0 0 10px 0;
     }
 
-    :deep() .v-popover {
+    :deep() .v-popper {
       display: flex;
     }
   }
 
   .actions {
-    :deep() .popover:focus {
+    :deep() .v-popper:focus {
       outline: 0;
     }
 
