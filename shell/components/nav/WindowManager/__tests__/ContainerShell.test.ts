@@ -156,7 +156,6 @@ describe('component: ContainerShell', () => {
     resetMocks();
     const wrapper = await wrapperPostMounted(defaultContainerShellParams);
 
-    // expect(Socket.mock.instances).toBe(true);
     const socketParams = Socket.mock.calls[0][0]
       .split('?')[1]
       .split('&')

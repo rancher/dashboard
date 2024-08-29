@@ -34,11 +34,13 @@ const mockedRoute = { query: {} };
 
 const requiredSetup = () => {
   return {
-    mixins: [mockedValidationMixin],
-    mocks:  {
-      $store:      mockedStore(),
-      $route:      mockedRoute,
-      $fetchState: {},
+    global: {
+      mixins: [mockedValidationMixin],
+      mocks:  {
+        $store:      mockedStore(),
+        $route:      mockedRoute,
+        $fetchState: {},
+      }
     }
   };
 };
@@ -156,7 +158,7 @@ describe('aks node pool component', () => {
     expect(wrapper.props().pool.orchestratorVersion).toBe(originalOrchestratorVersion);
   });
 
-  it.skip('(Vue3 Skip) the k8s version checkbox label should include the original node pool version and the new node pool version', () => {
+  it('the k8s version checkbox label should include the original node pool version and the new node pool version', () => {
     const clusterVersion = '1.23.4';
     const originalOrchestratorVersion = '1.20.0';
     const wrapper = mount(AksNodePool, {
