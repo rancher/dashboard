@@ -526,6 +526,9 @@ module.exports = function(dir, _appConfig) {
       }
     },
     configureWebpack(config) {
+      // TODO VUE3: We may want to look into what we want the value to actually be. For the time being this was causing a warning in our CLI because it would set process.env.NODE_ENV to 'development' even thought it was
+      //            already set to 'dev' and we're using 'dev' in other locations so I don't think we want to do that. Config details found here: https://webpack.js.org/configuration/optimization/#optimizationnodeenv.
+      config.optimization.nodeEnv = false;
       config.resolve.alias['~'] = dir;
       config.resolve.alias['@'] = dir;
       config.resolve.alias['~assets'] = path.join(__dirname, 'assets');
@@ -534,7 +537,7 @@ module.exports = function(dir, _appConfig) {
       config.resolve.alias['@pkg'] = path.join(dir, 'pkg');
       config.resolve.alias['./node_modules'] = path.join(dir, 'node_modules');
       config.resolve.alias['@components'] = COMPONENTS_DIR;
-      config.resolve.alias['vue$'] = path.resolve(process.cwd(), 'node_modules', 'vue', 'dist', dev ? 'vue.js' : 'vue.min.js');
+      config.resolve.alias['vue$'] = dev ? path.resolve(process.cwd(), 'node_modules', 'vue') : 'vue';
       config.resolve.modules.push(__dirname);
       config.plugins.push(getVirtualModules(dir, includePkg));
       config.plugins.push(getAutoImport());
