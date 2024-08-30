@@ -3,7 +3,7 @@
   "version": "0.1.0",
   "private": false,
   "engines": {
-    "node": ">=20"
+    "node": ">=16"
   },
   "dependencies": {
     "cache-loader": "^4.1.0",
