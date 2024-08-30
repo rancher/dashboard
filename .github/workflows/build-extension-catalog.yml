@@ -28,7 +28,10 @@ jobs:
 
     steps:
       - name: Checkout repository
-        uses: actions/checkout@v3
+        uses: actions/checkout@v4
+
+      - name: Enable Corepack
+        run: corepack enable
 
       - name: Configure Git
         run: |
@@ -47,19 +50,14 @@ jobs:
         with:
           version: v3.8.0
 
-      - name: Setup Nodejs and npm
-        uses: actions/setup-node@v3
-        with:
-          node-version: '16'
-
-      - name: Setup yarn
-        run: npm install -g yarn
-
       - name: Setup Nodejs with yarn caching
-        uses: actions/setup-node@v3
+        uses: actions/setup-node@v4
         with:
           node-version: '16'
           cache: yarn
+
+      - name: Setup yarn
+        run: npm install -g yarn
 
       - name: Install dependencies
         run: yarn
@@ -75,9 +73,9 @@ jobs:
       - name: Build and push UI image
         run: |
           publish="yarn publish-pkgs -cp -r ${{ inputs.registry_target }} -o ${{ github.repository_owner }}"
-          
+
           if [[ -n "${{ inputs.tagged_release }}" ]]; then
             publish="$publish -t ${{ inputs.tagged_release }}"
           fi
-          
+
           $publish
