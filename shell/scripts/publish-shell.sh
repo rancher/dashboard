@@ -6,10 +6,10 @@ BASE_DIR="$(
   pwd
 )"
 SHELL_DIR=$BASE_DIR/shell/
-CREATORS_DIR=$BASE_DIR/shell/creators/extension
-PUBLISH_ARGS="--no-git-tag-version --access public $NPM_TAG"
+CREATORS_DIR=$BASE_DIR/creators/extension
+PUBLISH_ARGS="--no-git-tag-version --access public --registry $NPM_REGISTRY $NPM_TAG"
 FORCE_PUBLISH_TO_NPM="false"
-DEFAULT_YARN_REGISTRY="https://registry.npmjs.org"
+DEFAULT_NPM_REGISTRY="https://registry.npmjs.org"
 
 # if TAG doesn't exist, we can exit as it's needed for any type of publish.
 if [ -z "$TAG" ]; then
@@ -29,7 +29,7 @@ if [ "$1" == "--npm" ]; then
 fi
 
 if [ "$FORCE_PUBLISH_TO_NPM" == "true" ]; then
-  export YARN_REGISTRY=$DEFAULT_YARN_REGISTRY
+  export NPM_REGISTRY=$DEFAULT_NPM_REGISTRY
 fi
 
 pushd ${SHELL_DIR} >/dev/null
@@ -48,7 +48,7 @@ function publish() {
 
   # if the PKG_VERSION has a - it means it will be a pre-release
   if [[ $PKG_VERSION == *"-"* ]]; then
-    PUBLISH_ARGS="--no-git-tag-version --access public --tag pre-release"
+    PUBLISH_ARGS="--no-git-tag-version --access public --registry $NPM_REGISTRY --tag pre-release"
   fi
 
   echo "Publishing ${NAME} from ${FOLDER}"
@@ -64,7 +64,9 @@ function publish() {
   # Make a note of dependency versions, if required
   node ${SCRIPT_DIR}/record-deps.js
 
-  yarn publish . --new-version ${PKG_VERSION} ${PUBLISH_ARGS}
+  echo "Publishing to registry: $NPM_REGISTRY"
+
+  npm publish ${PUBLISH_ARGS}
   RET=$?
 
   popd >/dev/null
@@ -75,9 +77,6 @@ function publish() {
   fi
 }
 
-# Generate the type definitions for the shell
-${SCRIPT_DIR}/typegen.sh
-
 echo "TAG ${TAG}"
   
   # let's get the package name and version from the tag
@@ -86,6 +85,11 @@ PKG_V=$(sed 's/.*-pkg-v//'<<< "$TAG")
 
 echo "PKG_NAME ${PKG_NAME}"
 echo "PKG_V ${PKG_V}"
+
+# Generate the type definitions for the shell
+if [ ${PKG_NAME} == "shell" ]; then
+  ${SCRIPT_DIR}/typegen.sh
+fi
 
 # version comparison checks
 case $PKG_NAME in
