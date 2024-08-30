@@ -81,12 +81,17 @@ fi
 # We need to patch the version number of the shell, otherwise if we are running
 # with the currently published version, things will fail as those versions
 # are already published and Verdaccio will check, since it is a read-through cache
-sed -i.bak -e "s/\"version\": \"[0-9]*.[0-9]*.[0-9]*\(-alpha\.[0-9]*\|-release[0-9]*.[0-9]*.[0-9]*\|-rc\.[0-9]*\)\{0,1\}\",/\"version\": \"${SHELL_VERSION}\",/g" ${SHELL_DIR}/package.json
-rm ${SHELL_DIR}/package.json.bak
+update_version_in_package_json() {
+  local package_json_path="$1"
+  local version="$2"
 
-# Same as above for Rancher Components
-# We might have bumped the version number but its not published yet, so this will fail
-sed -i.bak -e "s/\"version\": \"[0-9]*.[0-9]*.[0-9]*\(-alpha\.[0-9]*\|-release[0-9]*.[0-9]*.[0-9]*\|-rc\.[0-9]*\)\{0,1\}\",/\"version\": \"${SHELL_VERSION}\",/g" ${BASE_DIR}/pkg/rancher-components/package.json
+  sed -i.bak -e "s/\"version\": \"[0-9]*.[0-9]*.[0-9]*\(-alpha\.[0-9]*\|-release[0-9]*.[0-9]*.[0-9]*\|-rc\.[0-9]*\)\{0,1\}\",/\"version\": \"${version}\",/g" "$package_json_path"
+  rm "${package_json_path}.bak"
+}
+
+update_version_in_package_json "${SHELL_DIR}/package.json" "${SHELL_VERSION}"
+update_version_in_package_json "${BASE_DIR}/pkg/rancher-components/package.json" "${SHELL_VERSION}"
+update_version_in_package_json "${BASE_DIR}/creators/extension/package.json" "${SHELL_VERSION}"
 
 # Publish shell pkg (tag is needed as publish-shell is optimized to work with release-shell-pkg workflow)
 echo "Publishing Shell package to local registry"
