@@ -108,6 +108,7 @@ ${SHELL_DIR}/scripts/publish-shell.sh
 yarn build:lib
 
 npm set registry ${VERDACCIO_NPM_REGISTRY}
+yarn config set registry ${VERDACCIO_NPM_REGISTRY}
 yarn publish:lib
 
 # We pipe into cat for cleaner logging - we need to set pipefail
