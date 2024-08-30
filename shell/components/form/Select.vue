@@ -81,6 +81,11 @@ export default {
       type:    Boolean,
       default: true
     },
+
+    compact: {
+      type:    Boolean,
+      default: null
+    },
   },
 
   methods: {
@@ -206,6 +211,11 @@ export default {
     },
     canPaginate() {
       return false;
+    },
+    deClassedAttrs() {
+      const { class: _, ...rest } = this.$attrs;
+
+      return rest;
     }
   }
 };
@@ -222,13 +232,14 @@ export default {
       [status]: status,
       taggable: $attrs.taggable,
       taggable: $attrs.multiple,
+      'compact-input': compact,
       [$attrs.class]: $attrs.class
     }"
     @focus="focusSearch"
   >
     <v-select
       ref="select-input"
-      v-bind="$attrs"
+      v-bind="deClassedAttrs"
       class="inline"
       :class="{'select-input-view': mode === 'view'}"
       :autoscroll="true"
@@ -325,5 +336,10 @@ export default {
     }
 
     @include input-status-color;
+
+    &.compact-input {
+      min-height: $unlabeled-input-height;
+      line-height: $input-line-height;
+    }
   }
 </style>
