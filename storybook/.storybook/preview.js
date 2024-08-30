@@ -1,6 +1,7 @@
 import  { setup }  from '@storybook/vue3';
 import vSelect from 'vue-select';
 import FloatingVue from 'floating-vue';
+import { floatingVueOptions } from '@shell/plugins/floating-vue';
 import { themes } from '@storybook/theming';
 import installShortcut from './theme-shortcut';
 import withEvents from 'storybook-auto-events';
@@ -14,7 +15,7 @@ import i18n from '../../shell/plugins/i18n';
 
 setup((vueApp) => {
   vueApp.use(i18n, { store: { dispatch() {} } });
-  vueApp.use(FloatingVue);
+  vueApp.use(FloatingVue, floatingVueOptions);
   vueApp.directive('clean-html', cleanHtmlDirective);
   vueApp.directive('clean-tooltip', cleanTooltipDirective);
   vueApp.component('v-select', vSelect);
