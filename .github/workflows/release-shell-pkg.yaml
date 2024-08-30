@@ -3,8 +3,8 @@ name: Publish Shell Package
 on:
   push:
     tags:
-        - 'shell-pkg-v*'
-        - 'creators-pkg-v*'
+      - 'shell-pkg-v*'
+      - 'creators-pkg-v*'
 
 jobs:
   build:
@@ -22,15 +22,15 @@ jobs:
         with:
           node-version-file: '.nvmrc'
 
-    - name: Check Tags Version Matching
-      env:
-        TAG: ${{github.ref_name}}
-      run: ./.github/workflows/scripts/check-package-tag-version.sh
-      shell: bash
+      - name: Check Tags Version Matching
+        env:
+          TAG: ${{github.ref_name}}
+        run: ./.github/workflows/scripts/check-package-tag-version.sh
+        shell: bash
 
-    - name: Validate Plugin build system
-      run: ./shell/scripts/test-plugins-build.sh
-      shell: bash
+      - name: Validate Plugin build system
+        run: ./shell/scripts/test-plugins-build.sh
+        shell: bash
 
       # Reset the local (ci) repository state because
       # The previous step (Validate Plugin build system) changes
@@ -51,8 +51,8 @@ jobs:
       - name: Install packages
         run: yarn install --frozen-lockfile
 
-    - name: Publish Shell Package to npm
-      run: ./shell/scripts/publish-shell.sh --npm
-      env:
-        TAG: ${{github.ref_name}}
-        NODE_AUTH_TOKEN: ${{ secrets.NPM_TOKEN }}
+      - name: Publish Shell Package to npm
+        run: ./shell/scripts/publish-shell.sh --npm
+        env:
+          TAG: ${{github.ref_name}}
+          NODE_AUTH_TOKEN: ${{ secrets.NPM_TOKEN }}
