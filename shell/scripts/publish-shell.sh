@@ -6,7 +6,7 @@ BASE_DIR="$(
   pwd
 )"
 SHELL_DIR=$BASE_DIR/shell/
-CREATORS_DIR=$BASE_DIR/shell/creators/extension
+CREATORS_DIR=$BASE_DIR/creators/extension
 PUBLISH_ARGS="--no-git-tag-version --access public --registry $NPM_REGISTRY $NPM_TAG"
 FORCE_PUBLISH_TO_NPM="false"
 DEFAULT_NPM_REGISTRY="https://registry.npmjs.org"
@@ -48,7 +48,7 @@ function publish() {
 
   # if the PKG_VERSION has a - it means it will be a pre-release
   if [[ $PKG_VERSION == *"-"* ]]; then
-    PUBLISH_ARGS="--no-git-tag-version --access public --tag pre-release"
+    PUBLISH_ARGS="--no-git-tag-version --access public --registry $NPM_REGISTRY --tag pre-release"
   fi
 
   echo "Publishing ${NAME} from ${FOLDER}"
@@ -77,9 +77,6 @@ function publish() {
   fi
 }
 
-# Generate the type definitions for the shell
-${SCRIPT_DIR}/typegen.sh
-
 echo "TAG ${TAG}"
   
   # let's get the package name and version from the tag
@@ -88,6 +85,11 @@ PKG_V=$(sed 's/.*-pkg-v//'<<< "$TAG")
 
 echo "PKG_NAME ${PKG_NAME}"
 echo "PKG_V ${PKG_V}"
+
+# Generate the type definitions for the shell
+if [ ${PKG_NAME} == "shell" ]; then
+  ${SCRIPT_DIR}/typegen.sh
+fi
 
 # version comparison checks
 case $PKG_NAME in
