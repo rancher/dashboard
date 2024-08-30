@@ -1,0 +1,56 @@
+#!/usr/bin/env node
+
+const path = require('path');
+const fs = require('fs-extra');
+const { spawnSync } = require('child_process');
+
+const scriptFolder = __dirname;
+const dest = path.resolve('.');
+
+// Remove first two args
+let args = process.argv;
+args.splice(0, 2);
+
+const res = spawnSync(`${__dirname}/upgrade`, args, {
+  cwd: dest,
+  shell: false,
+  stdio: [ 'ignore', process.stdout, process.stderr ],
+});
+
+if (res.status !== 0) {
+  process.exit(res.status);
+}
+
+// Read the existing package.json
+let rawdata = fs.readFileSync(path.join(dest, 'package.json'));
+const appPackage = JSON.parse(rawdata);
+
+// Read the package.json from the app creator
+rawdata = fs.readFileSync(path.join(scriptFolder, 'app', 'package.json'));
+const latestPackage = JSON.parse(rawdata);
+
+// Read the package.json from the upgrade creator
+rawdata = fs.readFileSync(path.join(scriptFolder, 'package.json'));
+const upgradePackage = JSON.parse(rawdata);
+
+// Update dependency versions to match the latest from the creator
+Object.keys(latestPackage._pkgs).forEach((key) => {
+  appPackage.dependencies[key] = latestPackage._pkgs[key];
+});
+
+// Add in the webpack resolution
+appPackage.resolutions = appPackage.resolutions || {};
+appPackage.resolutions['**/webpack'] = '4';
+
+// Update the version of @rancher/shell
+const shellVersion = upgradePackage.version;
+
+appPackage.dependencies['@rancher/shell'] = shellVersion;
+
+fs.writeFileSync(path.join(dest, 'package.json'), JSON.stringify(appPackage, null, 2) + '\n');
+
+spawnSync(`yarn`, ['install'], {
+  cwd: dest,
+  shell: false,
+  stdio: [ 'ignore', process.stdout, process.stderr ],
+});

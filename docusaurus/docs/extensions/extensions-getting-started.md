@@ -32,6 +32,55 @@ This will create a new folder `my-app` and populate it with the minimum files ne
 
 > Note: The skeleton application references the Rancher dashboard code via the `@rancher/shell` npm module.
 
+### Installing Rancher
+
+See <https://ranchermanager.docs.rancher.com/getting-started/installation-and-upgrade>. Note: Not all Linux distros and versions are supported. To make sure your OS is compatible with Rancher, see the support maintenance terms for the specific Rancher version that you are using: https://www.suse.com/suse-rancher/support-matrix/all-supported-versions
+
+The above linked installation docs cover two methods confirmed to work with the Dashboard:
+
+- [Single Docker Container](https://ranchermanager.docs.rancher.com/getting-started/installation-and-upgrade/other-installation-methods/rancher-on-a-single-node-with-docker)
+- [Kube Cluster (via Helm)](https://ranchermanager.docs.rancher.com/getting-started/installation-and-upgrade/install-upgrade-on-a-kubernetes-cluster)
+
+To use the most recent version of Rancher that is actively in development, use the version tag `v2.10-head` when installing Rancher. For example, the Docker installation command would look like this:
+
+```bash
+sudo docker run -d --restart=unless-stopped -p 80:80 -p 443:443 --privileged -e CATTLE_BOOTSTRAP_PASSWORD=OPTIONAL_PASSWORD_HERE rancher/rancher:v2.10-head
+```
+
+Dashboard provides convenience methods to start and stop Rancher in a single docker container
+
+```bash
+yarn run docker:local:start
+yarn run docker:local:stop  // default user password as "password"
+```
+
+Note that for Rancher to provision and manage downstream clusters, the Rancher server URL must be accessible from the Internet. If you’re running Rancher in Docker Desktop, the Rancher server URL is `https://localhost`. To make Rancher accessible to downstream clusters for development, you can:
+
+- Use ngrok to test provisioning with a local rancher server
+- Install Rancher on a virtual machine in Digital Ocean or Amazon EC2
+- Change the Rancher server URL using `<dashboard url>c/local/settings/management.cattle.io.setting`
+
+Also for consideration:
+
+- [K3d](https://k3d.io/v4.4.8/#installation) lets you immediately install a Kubernetes cluster in a Docker container and interact with it with kubectl for development and testing purposes.
+
+You should be able to reach the older Ember UI by navigating to the Rancher API url. This same API Url will be used later when starting up the Dashboard.
+
+#### **_Extension Options_**
+
+There are a few options available to be passed as an argument to the `@rancher/extension` script:
+
+|          Option           | Description                                                                                                                                                                                                                                                                             |
+| :-----------------------: | --------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------- |
+|     `--update \| -u`      | This will update all dependencies within the extension to match the declared versions in the shell. Update can be ran independently or along with creating an extension (e.g. `yarn create @rancher/extension my-extension --update`                                                    |
+| `--app-name \| -a <name>` | Allows specifying a different name for the skeleton application instead of using the extension name.                                                                                                                                                                                    |
+|  `--skeleton-only \| -s`  | Installs only the skeleton application without creating the extension package.                                                                                                                                                                                                          |
+|           `-l`            | This will automatically add the [`.gitlab-ci.yml`](https://github.com/rancher/dashboard/blob/master/creators/extension/app/files/.gitlab-ci.yml) pipeline file for integration with GitLab                                                                                              |
+|           `-w`            | Does not add the Github workflow files [`build-extension-catalog.yml`, `build-extension-charts.yml`](https://github.com/rancher/dashboard/tree/master/creators/extension/app/files/.github/workflows) to be used as Github actions. These files will be added automatically by default. |
+|           `-t`            | Does not add the template folders automatically into the Extension package. These folders will be added automatically by default                                                                                                                                                        |
+
+---
+
 You can run the app with:
 
 ```sh
@@ -60,9 +109,10 @@ yarn create @rancher/pkg test [OPTIONS]
 
 This will create a new UI Package in the `./pkg/test` folder.
 
-#### ___Extension Options___
+#### **_Extension Options_**
 
 There are two options that can be passed to the `@rancher/pkg` script:
+
 - `-t`: Creates additional boilerplate directories for types, including: 'l10n', 'models', 'edit', 'list', and 'detail'
 - `-w`: Creates a workflow file ('build-extension.yml') to be used as a Github action. This will automatically build your extension and release a Helm chart.
 
@@ -73,21 +123,21 @@ There are two options that can be passed to the `@rancher/pkg` script:
 Replace the contents of the file `./pkg/test/index.ts` with:
 
 ```ts
-import { importTypes } from '@rancher/auto-import';
-import { IPlugin } from '@shell/core/types';
-import extensionRouting from './routing/extension-routing';
+import { importTypes } from "@rancher/auto-import";
+import { IPlugin } from "@shell/core/types";
+import extensionRouting from "./routing/extension-routing";
 
 // Init the package
-export default function(plugin: IPlugin) {
+export default function (plugin: IPlugin) {
   // Auto-import model, detail, edit from the folders
   importTypes(plugin);
 
   // Provide extension metadata from package.json
   // it will grab information such as `name` and `description`
-  plugin.metadata = require('./package.json');
+  plugin.metadata = require("./package.json");
 
   // Load a product
-  plugin.addProduct(require('./product'));
+  plugin.addProduct(require("./product"));
 
   // Add Vue Routes
   plugin.addRoutes(extensionRouting);
@@ -97,27 +147,27 @@ export default function(plugin: IPlugin) {
 Next, create a new file `./pkg/test/product.ts` with this content:
 
 ```ts
-import { IPlugin } from '@shell/core/types';
+import { IPlugin } from "@shell/core/types";
 
 export function init($plugin: IPlugin, store: any) {
-  const YOUR_PRODUCT_NAME = 'myProductName';
-  const BLANK_CLUSTER = '_';
+  const YOUR_PRODUCT_NAME = "myProductName";
+  const BLANK_CLUSTER = "_";
 
   const { product } = $plugin.DSL(store, YOUR_PRODUCT_NAME);
 
   product({
-    icon:    'gear',
-    inStore: 'management',
-    weight:  100,
-    to:      {
-      name:      `${ YOUR_PRODUCT_NAME }-c-cluster`,
-      path:      `/${ YOUR_PRODUCT_NAME }/c/:cluster/dashboard`,
-      params:      {
+    icon: "gear",
+    inStore: "management",
+    weight: 100,
+    to: {
+      name: `${YOUR_PRODUCT_NAME}-c-cluster`,
+      path: `/${YOUR_PRODUCT_NAME}/c/:cluster/dashboard`,
+      params: {
         product: YOUR_PRODUCT_NAME,
         cluster: BLANK_CLUSTER,
-        pkg:     YOUR_PRODUCT_NAME
-      }
-    }
+        pkg: YOUR_PRODUCT_NAME,
+      },
+    },
   });
 }
 ```
@@ -126,22 +176,22 @@ And finally create a file + folder `/routing/extension-routing.js` with the cont
 
 ```js
 // Don't forget to create a VueJS page called index.vue in the /pages folder!!!
-import Dashboard from '../pages/index.vue';
+import Dashboard from "../pages/index.vue";
 
-const BLANK_CLUSTER = '_';
-const YOUR_PRODUCT_NAME = 'myProductName';
+const BLANK_CLUSTER = "_";
+const YOUR_PRODUCT_NAME = "myProductName";
 
 const routes = [
   {
-    name:      `${ YOUR_PRODUCT_NAME }-c-cluster`,
-    path:      `/${ YOUR_PRODUCT_NAME }/c/:cluster`,
+    name: `${YOUR_PRODUCT_NAME}-c-cluster`,
+    path: `/${YOUR_PRODUCT_NAME}/c/:cluster`,
     component: Dashboard,
-    meta:      {
+    meta: {
       product: YOUR_PRODUCT_NAME,
       cluster: BLANK_CLUSTER,
-      pkg:     YOUR_PRODUCT_NAME
-    }
-  }
+      pkg: YOUR_PRODUCT_NAME,
+    },
+  },
 ];
 
 export default routes;
@@ -159,6 +209,7 @@ API=<Rancher Backend URL> yarn dev
 ```
 
 Open a web browser to https://127.0.0.1:8005 and you'll see a new 'MyProductName' nav item in the top-level slide-in menu.
+
 <div style={{textAlign: 'center'}}>
 
 ![MyProductName Nav Item](./screenshots/global-nav.png)
@@ -191,12 +242,11 @@ the extension with hot-reloading. To test loading the extension dynamically, we 
 To do this, edit the file `vue.config.js` in the root `my-app` folder, and add the name of the package you want to exclude, such as:
 
 ```js
-const config = require('@rancher/shell/vue.config');
+const config = require("@rancher/shell/vue.config");
 
 module.exports = config(__dirname, {
-  excludes: ['test'],
+  excludes: ["test"],
 });
-
 ```
 
 Now restart your app by running the UI again with:
@@ -208,7 +258,6 @@ API=<Rancher Backend URL> yarn dev
 Open a web browser to https://127.0.0.1:8005 and you'll see that the Example nav item is not present - since the extension was not loaded.
 
 > Note: You need to be an admin user to test Extensions in the Rancher UI
-
 
 ### Test built extension by doing a Developer load
 
@@ -254,12 +303,11 @@ This illustrates dynamically loading an extension.
 
 You'll notice that if you reload the Rancher UI, the extension is not persistent and will need to be added again. You can make it persistent by checking the `Persist extension by creating custom resource` checkbox in the Developer Load dialog.
 
-
 ## Creating a Release
 
 Creating a Release for your extension is the official avenue for loading extensions into any Rancher instance. As mentioned in the [Introduction](./introduction.md), the extension can be packaged into a Helm chart and added as a Helm repository to be easily accessible from your Rancher Manager.
 
-We have created [a workflow](https://github.com/rancher/dashboard/tree/master/shell/creators/pkg/files/.github/workflows) for [Github Actions](https://docs.github.com/en/actions) which will automatically build, package, and release your extension as a Helm chart for use within your Github repository, and an [Extension Catalog Image](./advanced/air-gapped-environments) (ECI) which is published into a specified container registry (`ghcr.io` by default). Depending on the use case, you can utilize the Github repository as a [Helm repository](https://helm.sh/docs/topics/chart_repository/) endpoint which we can use to consume the chart in Rancher, or you can import the ECI into the Extension Catalog list and serve the Helm charts locally.
+We have created [workflows](https://github.com/rancher/dashboard/tree/master/creators/extension/app/files/.github/workflows) for [Github Actions](https://docs.github.com/en/actions) which will automatically build, package, and release your extension as a Helm chart for use within your Github repository, and an [Extension Catalog Image](./advanced/air-gapped-environments) (ECI) which is published into a specified container registry (`ghcr.io` by default). Depending on the use case, you can utilize the Github repository as a [Helm repository](https://helm.sh/docs/topics/chart_repository/) endpoint which we can use to consume the chart in Rancher, or you can import the ECI into the Extension Catalog list and serve the Helm charts locally.
 
 > Note: If you wish to build and publish the Helm chart or the ECI manually or with specific configurations, you can follow the steps listed in the [Publishing an Extension](./publishing) section.
 
@@ -305,7 +353,7 @@ This will create a `.github` directory within the root folder of your app which 
 
 ### Consuming the Helm chart
 
-After releasing the Helm chart you will be able to consume this from the Rancher UI by adding your Helm repository's URL to the App -> Repository list. If you used the automated workflow to release the Helm chart, you can find the URL within your Github repository under the "github-pages" Environment. 
+After releasing the Helm chart you will be able to consume this from the Rancher UI by adding your Helm repository's URL to the App -> Repository list. If you used the automated workflow to release the Helm chart, you can find the URL within your Github repository under the "github-pages" Environment.
 
 The URL should be listed as: `https://<organization>.github.io/<repository>`
 
