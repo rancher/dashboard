@@ -295,7 +295,6 @@ export default {
     },
 
     showPageActionsMenu(show) {
-      console.log('METHOD TRIGGERED', show);
       this.isPageActionMenuOpen = show;
     },
 
@@ -619,6 +618,7 @@ export default {
         <i
           data-testid="page-actions-menu"
           class="icon icon-actions"
+          tabindex="0"
           @blur="showPageActionsMenu(false)"
           @click="showPageActionsMenu(true)"
           @focus.capture="showPageActionsMenu(true)"
