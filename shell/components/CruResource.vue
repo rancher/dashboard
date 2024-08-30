@@ -598,12 +598,13 @@ export default {
                   <!-- Pass down templates provided by the caller -->
                   <template
                     v-for="(_, slot) of $slots"
+                    #[slot]="scope"
                     :key="slot"
                   >
                     <template v-if="shouldProvideSlot(slot)">
                       <slot
                         :name="slot"
-                        v-bind="{ ...$slots[slot]() }"
+                        v-bind="scope"
                       />
                     </template>
                   </template>
@@ -681,12 +682,13 @@ export default {
             <!-- Pass down templates provided by the caller -->
             <template
               v-for="(_, slot) of $slots"
+              #[slot]="scope"
               :key="slot"
             >
               <template v-if="shouldProvideSlot(slot)">
                 <slot
                   :name="slot"
-                  v-bind="{ ...$slots[slot]() }"
+                  v-bind="scope"
                 />
               </template>
             </template>

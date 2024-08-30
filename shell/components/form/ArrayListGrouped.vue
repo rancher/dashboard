@@ -95,12 +95,15 @@ export default {
     <!-- Pass down templates provided by the caller -->
     <template
       v-for="(_, slot) of $slots"
-      v-slot:[slot]="scope"
+      #[slot]="scope"
+      :key="slot"
     >
-      <slot
-        :name="slot"
-        v-bind="scope"
-      />
+      <template v-if="typeof $slots[slot] === 'function'">
+        <slot
+          :name="slot"
+          v-bind="scope"
+        />
+      </template>
     </template>
   </ArrayList>
 </template>
