@@ -30,12 +30,13 @@ import emberCookie from '@shell/plugins/ember-cookie';
 import ShortKey from '@shell/plugins/shortkey';
 
 import 'floating-vue/dist/style.css';
+import { floatingVueOptions } from '@shell/plugins/floating-vue';
 
 export async function installPlugins(vueApp) {
   vueApp.use(globalFormatters);
   vueApp.use(PortalVue);
   vueApp.use(VueResize);
-  vueApp.use(FloatingVue);
+  vueApp.use(FloatingVue, floatingVueOptions);
   vueApp.use(ShortKey, { prevent: ['input', 'textarea', 'select'] });
   vueApp.use(InstallCodemirro);
   vueApp.component('v-select', vSelect);
