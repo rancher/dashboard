@@ -439,9 +439,9 @@ export default {
       <!-- locale selector -->
       <span v-if="isSingleProduct">
         <v-dropdown
-          popover-class="localeSelector"
+          popperClass="localeSelector"
           placement="top"
-          trigger="click"
+          :triggers="['click']"
         >
           <a
             data-testid="locale-selector"
@@ -450,7 +450,7 @@ export default {
             {{ locale }}
           </a>
 
-          <template #popover>
+          <template #popper>
             <ul
               class="list-unstyled dropdown"
               style="margin: -1px;"

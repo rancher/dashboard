@@ -168,21 +168,20 @@ function toPercent(value, min, max) {
             <div class="meta-title">
               {{ meta.readyCount }} / {{ meta.total }} {{ title }} ready <i class="icon toggle icon-chevron-down" />
             </div>
-            <template
-              #popover
-              class="resources-status-list"
-            >
-              <ul
-                class="list-unstyled dropdown"
-                @click.stop="showMenu(false)"
-              >
-                <li
-                  v-for="(val, idx) in values"
-                  :key="idx"
+            <template #popper>
+              <div class="resources-status-list">
+                <ul
+                  class="list-unstyled dropdown"
+                  @click.stop="showMenu(false)"
                 >
-                  <span>{{ val.label }}</span><span class="list-count">{{ val.count }}</span>
-                </li>
-              </ul>
+                  <li
+                    v-for="(val, idx) in values"
+                    :key="idx"
+                  >
+                    <span>{{ val.label }}</span><span class="list-count">{{ val.count }}</span>
+                  </li>
+                </ul>
+              </div>
             </template>
           </v-dropdown>
         </div>

@@ -692,6 +692,7 @@ export default {
                       v-tooltip="getTooltipConfig(c)"
                       class="cluster-name"
                     >
+                      <!-- HERE LOCAL CLUSTER! -->
                       <p>{{ c.label }}</p>
                       <p
                         v-if="c.description"
@@ -903,15 +904,15 @@ export default {
   }
 
   .localeSelector {
-    .popover-inner {
+    .v-popper__inner {
       padding: 10px 0;
     }
 
-    .popover-arrow {
+    .v-popper__arrow-container {
       display: none;
     }
 
-    .popover:focus {
+    .v-popper:focus {
       outline: 0;
     }
   }
@@ -1450,15 +1451,15 @@ export default {
   }
 
   .localeSelector {
-    :deep() .popover-inner {
+    :deep() .v-popper__inner {
       padding: 50px 0;
     }
 
-    :deep() .popover-arrow {
+    :deep() .v-popper__arrow-container {
       display: none;
     }
 
-    :deep() .popover:focus {
+    :deep() .v-popper:focus {
       outline: 0;
     }
 

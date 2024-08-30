@@ -57,7 +57,7 @@ export default {
       authInfo:               {},
       show:                   false,
       showTooltip:            false,
-      isPopoverOpen:          false,
+      isUserMenuOpen:         false,
       isPageActionMenuOpen:   false,
       kubeConfigCopying:      false,
       searchShortcut,
@@ -275,7 +275,7 @@ export default {
       }
     },
     showMenu(show) {
-      this.isPopoverOpen = show;
+      this.isUserMenuOpen = show;
     },
 
     openImport() {
@@ -295,6 +295,7 @@ export default {
     },
 
     showPageActionsMenu(show) {
+      console.log('METHOD TRIGGERED', show);
       this.isPageActionMenuOpen = show;
     },
 
@@ -626,11 +627,11 @@ export default {
           :triggers="[]"
           :shown="isPageActionMenuOpen"
           :autoHide="false"
+          :flip="false"
+          :content="false"
         >
           <template #popper>
-            <div
-              class="user-menu"
-            >
+            <div class="user-menu">
               <ul
                 data-testid="page-actions-dropdown"
                 class="list-unstyled dropdown"
@@ -670,7 +671,7 @@ export default {
       >
         <v-dropdown
           :triggers="[]"
-          :shown="isPopoverOpen"
+          :shown="isUserMenuOpen"
           :autoHide="false"
           :flip="false"
           :container="false"

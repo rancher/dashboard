@@ -82,7 +82,7 @@ export default {
             Button <i class="icon icon-chevron-down" />
           </button>
         </slot>
-        <template #popover>
+        <template #popper>
           <slot name="popover-content" />
         </template>
       </v-dropdown>
@@ -123,7 +123,7 @@ export default {
   $sm-trigger-padding: 10px 10px 10px 10px;
   $lg-trigger-padding: 18px 10px 10px 10px;
 
-  .v-popover {
+  .v-popper {
     .text-right {
       margin-top: 5px;
     }
@@ -179,7 +179,7 @@ export default {
       &>.btn {
         padding: 15px 35px 15px 15px;
       }
-      .v-popover{
+      .v-popper{
         .trigger{
           position: absolute;
           top: 0px;
@@ -194,23 +194,19 @@ export default {
       }
     }
   }
-  .popover {
+  .v-popper__popper {
     border: none;
   }
-  .tooltip {
+  .v-popper__popper {
     margin-top: 0px;
 
-    &[x-placement^="bottom"] {
-      .tooltip-arrow {
-        border-bottom-color: var(--dropdown-border);
-
-        &:after {
-          border-bottom-color: var(--dropdown-bg);
-        }
+    &[data-popper-placement^="bottom"] {
+      .v-popper__arrow-container {
+        display: none;
       }
     }
 
-    .tooltip-inner {
+    .v-popper__inner {
       color: var(--dropdown-text);
       background-color: var(--dropdown-bg);
       border: 1px solid var(--dropdown-border);

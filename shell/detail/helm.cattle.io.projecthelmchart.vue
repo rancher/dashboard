@@ -166,33 +166,32 @@ export default {
               <div class="meta-title">
                 {{ t('monitoring.tabs.prometheus') }} <i class="icon icon-chevron-down" />
               </div>
-              <template
-                #popover
-                class="resources-status-list"
-              >
-                <ul
-                  class="list-unstyled dropdown"
-                  @click.stop="showMenu(false)"
-                >
-                  <li>
-                    <a
-                      :href="`${value.status.dashboardValues.prometheusURL}/graph`"
-                      target="_blank"
-                    >{{ t('monitoring.overview.linkedList.prometheusPromQl.label') }} <i class="icon icon-external-link" /></a>
-                  </li>
-                  <li>
-                    <a
-                      :href="`${value.status.dashboardValues.prometheusURL}/rules`"
-                      target="_blank"
-                    >{{ t('monitoring.overview.linkedList.prometheusRules.label') }} <i class="icon icon-external-link" /></a>
-                  </li>
-                  <li>
-                    <a
-                      :href="`${value.status.dashboardValues.prometheusURL}/targets`"
-                      target="_blank"
-                    >{{ t('monitoring.overview.linkedList.prometheusTargets.label') }} <i class="icon icon-external-link" /></a>
-                  </li>
-                </ul>
+              <template #popper>
+                <div class="resources-status-list">
+                  <ul
+                    class="list-unstyled dropdown"
+                    @click.stop="showMenu(false)"
+                  >
+                    <li>
+                      <a
+                        :href="`${value.status.dashboardValues.prometheusURL}/graph`"
+                        target="_blank"
+                      >{{ t('monitoring.overview.linkedList.prometheusPromQl.label') }} <i class="icon icon-external-link" /></a>
+                    </li>
+                    <li>
+                      <a
+                        :href="`${value.status.dashboardValues.prometheusURL}/rules`"
+                        target="_blank"
+                      >{{ t('monitoring.overview.linkedList.prometheusRules.label') }} <i class="icon icon-external-link" /></a>
+                    </li>
+                    <li>
+                      <a
+                        :href="`${value.status.dashboardValues.prometheusURL}/targets`"
+                        target="_blank"
+                      >{{ t('monitoring.overview.linkedList.prometheusTargets.label') }} <i class="icon icon-external-link" /></a>
+                    </li>
+                  </ul>
+                </div>
               </template>
             </v-dropdown>
           </div>

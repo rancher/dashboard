@@ -105,7 +105,7 @@ export default {
     </router-link>
     <span v-else>{{ displayLabel }}</span>
 
-    <template #popover>
+    <template #popper>
       <table
         v-if="show"
         class="fixed"
