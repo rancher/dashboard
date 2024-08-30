@@ -181,7 +181,7 @@ export default {
     :clearable="false"
     :close-on-select="closeOnSelect"
     :filterable="false"
-    :value="buttonLabel"
+    :modelValue="buttonLabel"
     :options="dropdownOptions"
     :map-keydown="mappedKeys"
     :get-option-key="
@@ -191,7 +191,7 @@ export default {
     :selectable="selectable"
     @search:blur="onBlur"
     @search:focus="onFocus"
-    @update:value="$emit('click-action', $event)"
+    @update:modelValue="$emit('click-action', $event)"
   >
     <template #no-options>
       <slot name="no-options" />
