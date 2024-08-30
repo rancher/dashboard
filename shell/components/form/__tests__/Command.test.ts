@@ -22,7 +22,7 @@ describe('component: Command', () => {
     const wrapper = mount(Command, { props: { mode: _EDIT } });
     const inputComponent = wrapper.getComponent(`[data-testid="input-command-${ field }"]>*`);
 
-    const newValue = [123'];
+    const newValue = ['123'];
 
     inputComponent.vm.$emit('update:value', newValue);
 

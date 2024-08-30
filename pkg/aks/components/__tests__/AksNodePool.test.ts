@@ -1,5 +1,5 @@
 
-import { mount, shallowMount, VueWrapper } from '@vue/test-utils';
+import { mount, shallowMount } from '@vue/test-utils';
 import AksNodePool from '@pkg/aks/components/AksNodePool.vue';
 import { randomStr } from '@shell/utils/string';
 import { _CREATE, _EDIT } from '@shell/config/query-params';
