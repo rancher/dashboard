@@ -6,6 +6,7 @@ import CodeMirror from '@shell/components/CodeMirror';
 import jsyaml from 'js-yaml';
 import ArrayListGrouped from '@shell/components/form/ArrayListGrouped';
 import { randomStr } from '@shell/utils/string';
+import { uniq } from '@shell/utils/array';
 
 export default {
   name: 'Storage',
@@ -89,13 +90,13 @@ export default {
       const customVolumeTypes = require
         .context('@shell/edit/workload/storage', false, /^.*\.vue$/)
         .keys()
-        .map((path) => path.replace(/(\.\/)|(.vue)/g, ''))
+        .map((path) => path.replace(/(\.\/)|(.vue)/g, '').split('/').findLast(() => true))
         .filter((file) => !excludedFiles.includes(file));
 
-      return [
+      return uniq([
         ...customVolumeTypes,
         ...defaultVolumeTypes
-      ]
+      ])
         .sort()
         .map((volumeType) => ({
           label:  this.t(`workload.storage.subtypes.${ volumeType }`),
