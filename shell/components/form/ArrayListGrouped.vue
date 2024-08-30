@@ -37,7 +37,16 @@ export default {
       type:    String,
       default: _EDIT,
     },
+
+    value: {
+      type:    Object,
+      default: () => {
+        return {};
+      },
+    },
   },
+
+  emits: ['update:value', 'add', 'remove'],
 
   computed: {
     isView() {
@@ -67,6 +76,7 @@ export default {
 <template>
   <ArrayList
     class="array-list-grouped"
+    :value="value"
     v-bind="$attrs"
     :add-allowed="canAdd && !isView"
     :mode="mode"
