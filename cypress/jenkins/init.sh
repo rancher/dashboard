@@ -135,7 +135,7 @@ create_initial_clusters() {
 
   corral config vars set instance_type "${AWS_INSTANCE_TYPE}"
   corral config vars set aws_hostname_prefix "jenkins-${prefix_random}"
-  echo "Corral Package string: ${CERT_MANAGER_VERSION}-${RANCHER_VERSION//v}-${K3S_KUBERNETES_VERSION}"
+  echo "Corral Package string: ${K3S_KUBERNETES_VERSION}-${RANCHER_VERSION//v}-${CERT_MANAGER_VERSION}"
   corral config vars set aws_hostname_prefix "jenkins-${prefix_random}-i"
   corral config vars set server_count 1
   corral create --skip-cleanup --recreate --debug importcluster \
@@ -144,7 +144,7 @@ create_initial_clusters() {
   corral config vars set aws_hostname_prefix "jenkins-${prefix_random}"
   corral config vars set server_count "${SERVER_COUNT:-3}"
   corral create --skip-cleanup --recreate --debug rancher \
-    "dist/aws-k3s-rancher-${CERT_MANAGER_VERSION}-${RANCHER_VERSION//v}-${K3S_KUBERNETES_VERSION}"
+    "dist/aws-k3s-rancher-${K3S_KUBERNETES_VERSION}-${RANCHER_VERSION//v}-${CERT_MANAGER_VERSION}"
 }
 
 
