@@ -144,33 +144,19 @@ export default {
 
     addVolume(type) {
       const name = `vol-${ randomStr(5).toLowerCase() }`;
+      const newVolume = { name, _type: type };
 
       if (type === 'createPVC') {
-        this.value.volumes.push({
-          _type:                 'createPVC',
-          persistentVolumeClaim: {},
-          name,
-        });
+        newVolume.persistentVolumeClaim = {};
       } else if (type === 'csi') {
-        this.value.volumes.push({
-          _type: type,
-          csi:   { volumeAttributes: {} },
-          name,
-        });
+        newVolume.csi = { volumeAttributes: {} };
       } else if (type === 'emptyDir') {
-        this.value.volumes.push({
-          _type:    type,
-          emptyDir: { medium: '' },
-          name,
-        });
+        newVolume.emptyDir = { medium: '' };
       } else {
-        this.value.volumes.push({
-          _type:  type,
-          [type]: {},
-          name,
-        });
+        newVolume[type] = {};
       }
 
+      this.value.volumes = [...this.value.volumes, newVolume];
       // this.container.volumeMounts.push({ name });
     },
 
