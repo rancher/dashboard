@@ -13,7 +13,7 @@ const targets = {
 const files = [
   'tsconfig.json',
   'vue.config.js',
-  '.gitignore',
+  'gitignore',
   '.eslintignore',
   '.eslintrc.js',
   'babel.config.js',
@@ -137,8 +137,9 @@ if ( addWorkflowFolder ) {
 
 // Copy base files
 files.forEach((file) => {
+  const destinationFile = file === 'gitignore' ? '.gitignore' : file;
   const src = path.join(__dirname, 'files', file);
-  const dest = path.join(appFolder, file);
+  const dest = path.join(appFolder, destinationFile);
 
   if (!fs.existsSync(dest)) {
     console.log(`  Adding file: ${ file }`);
