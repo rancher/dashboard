@@ -246,6 +246,7 @@ export default {
           :mode="mode"
           :namespace="value"
           :register-before-hook="registerBeforeHook"
+          data-testid="namespace-container-resource-limit"
         />
       </Tab>
       <Tab
