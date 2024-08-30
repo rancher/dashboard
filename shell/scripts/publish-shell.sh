@@ -6,10 +6,16 @@ BASE_DIR="$(
   pwd
 )"
 SHELL_DIR=$BASE_DIR/shell/
-TMP_DIR=$BASE_DIR/tmp
-PUBLISH_ARGS="--no-git-tag-version --access public $PUBLISH_ARGS"
+CREATORS_DIR=$BASE_DIR/shell/creators/extension
+PUBLISH_ARGS="--no-git-tag-version --access public $NPM_TAG"
 FORCE_PUBLISH_TO_NPM="false"
 DEFAULT_YARN_REGISTRY="https://registry.npmjs.org"
+
+# if TAG doesn't exist, we can exit as it's needed for any type of publish.
+if [ -z "$TAG" ]; then
+  echo "You need to set the TAG variable first!"
+  exit 1
+fi
 
 if [ ! -d "${BASE_DIR}/node_modules" ]; then
   echo "You need to run 'yarn install' first"
@@ -26,32 +32,24 @@ if [ "$FORCE_PUBLISH_TO_NPM" == "true" ]; then
   export YARN_REGISTRY=$DEFAULT_YARN_REGISTRY
 fi
 
-# We use the version from the shell package for the creator packages
-# Need to copy them to a temporary location, so we can patch the version number
-# before publishing
-
-# To set a token for NPM registry auth: `npm config set //registry.npmjs.org/:_authToken <TOKEN>``
-
-PKG_DIST=$BASE_DIR/dist-pkg/creators
-mkdir -p ${PKG_DIST}
-rm -rf ${PKG_DIST}/extension
-
 pushd ${SHELL_DIR} >/dev/null
-
-PKG_VERSION=$(node -p "require('./package.json').version")
-popd >/dev/null
-
-echo "Publishing version: $PKG_VERSION"
-
-cp -R ${SHELL_DIR}/creators/extension ${PKG_DIST}
-
-sed -i.bak -e "s/\"0.0.0/"\"$PKG_VERSION"/g" ${PKG_DIST}/extension/package.json
-
-rm ${PKG_DIST}/extension/package.json.bak
 
 function publish() {
   NAME=$1
   FOLDER=$2
+
+  # if we pass a third arg, that is the version number
+  # that we want to actually publish on NPM
+  # they should match with the package.json version stated 
+  # because of the check in the "Check Tags Version Matching" step in the workflow
+  if [ -n "$3" ]; then
+    PKG_VERSION=$3
+  fi
+
+  # if the PKG_VERSION has a - it means it will be a pre-release
+  if [[ $PKG_VERSION == *"-"* ]]; then
+    PUBLISH_ARGS="--no-git-tag-version --access public --tag pre-release"
+  fi
 
   echo "Publishing ${NAME} from ${FOLDER}"
   pushd ${FOLDER} >/dev/null
@@ -61,19 +59,6 @@ function publish() {
     echo "Adding Rancher Components"
     rm -rf ./rancher-components
     cp -R ${BASE_DIR}/pkg/rancher-components/src/components ./rancher-components/
-  fi
-
-  if [ "$NAME" == "Update" ]; then
-    # Add files from the app and pkg creators to the update package
-    mkdir -p ./extension
-    cp -R ${BASE_DIR}/shell/creators/extension/* ./extension
-    # Remove index.ts from pkg files, as we don't want to replace that
-    rm -f ./extension/pkg/files/index.ts
-
-    # Update the package.json for the extension
-    cd extension
-    node ${SCRIPT_DIR}/record-deps.js
-    cd ..
   fi
 
   # Make a note of dependency versions, if required
@@ -93,10 +78,27 @@ function publish() {
 # Generate the type definitions for the shell
 ${SCRIPT_DIR}/typegen.sh
 
-# Publish the packages - don't tag the git repo and don't auto-increment the version number
-publish "Shell" ${SHELL_DIR}
-publish "Extension creator" ${PKG_DIST}/extension/
+echo "TAG ${TAG}"
+  
+  # let's get the package name and version from the tag
+PKG_NAME=$(sed 's/-pkg-v.*//' <<< "$TAG")
+PKG_V=$(sed 's/.*-pkg-v//'<<< "$TAG")
 
-echo "Done"
+echo "PKG_NAME ${PKG_NAME}"
+echo "PKG_V ${PKG_V}"
 
-
+# version comparison checks
+case $PKG_NAME in
+  "shell")
+    echo "Publishing only Shell pkg via tagged release"
+    publish "Shell" ${SHELL_DIR} ${PKG_V}
+    ;;
+  "creators")
+    echo "Publishing only Creators pkg via tagged release"
+    publish "Extension creator" ${CREATORS_DIR} ${PKG_V}
+    ;;
+  *)
+    echo "something went wrong with the tagging name => TAG: ${TAG} , PKG_NAME: ${PKG_NAME}. Admissable names are 'shell' and 'creator'"
+    exit 1
+    ;;
+esac
