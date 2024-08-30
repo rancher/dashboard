@@ -29,7 +29,7 @@ if [ "$1" == "--npm" ]; then
 fi
 
 if [ "$FORCE_PUBLISH_TO_NPM" == "true" ]; then
-  export YARN_REGISTRY=$DEFAULT_YARN_REGISTRY
+  export NPM_REGISTRY=$DEFAULT_NPM_REGISTRY
 fi
 
 pushd ${SHELL_DIR} >/dev/null
@@ -63,6 +63,8 @@ function publish() {
 
   # Make a note of dependency versions, if required
   node ${SCRIPT_DIR}/record-deps.js
+
+  echo "Publishing to registry: $NPM_REGISTRY"
 
   npm publish ${PUBLISH_ARGS}
   RET=$?
