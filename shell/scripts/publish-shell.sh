@@ -7,9 +7,9 @@ BASE_DIR="$(
 )"
 SHELL_DIR=$BASE_DIR/shell/
 CREATORS_DIR=$BASE_DIR/shell/creators/extension
-PUBLISH_ARGS="--no-git-tag-version --access public $NPM_TAG"
+PUBLISH_ARGS="--no-git-tag-version --access public --registry $NPM_REGISTRY $NPM_TAG"
 FORCE_PUBLISH_TO_NPM="false"
-DEFAULT_YARN_REGISTRY="https://registry.npmjs.org"
+DEFAULT_NPM_REGISTRY="https://registry.npmjs.org"
 
 # if TAG doesn't exist, we can exit as it's needed for any type of publish.
 if [ -z "$TAG" ]; then
