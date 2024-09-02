@@ -1,5 +1,5 @@
 <script lang="ts">
-import Vue from 'vue';
+import { defineComponent, PropType, inject } from 'vue';
 import typeHelper from '@shell/utils/type-helpers';
 
 export const ASYNC_BUTTON_STATES = {
@@ -14,7 +14,14 @@ const TOOLTIP = 'tooltip';
 
 export type AsyncButtonCallback = (success: boolean) => void;
 
-export default Vue.extend({
+interface NonReactiveProps {
+  timer: NodeJS.Timeout | undefined;
+}
+
+const provideProps: NonReactiveProps = { timer: undefined };
+
+// i18n-uses asyncButton.*
+export default defineComponent({
   props: {
     /**
      * Mode maps to keys in asyncButton.* translations
@@ -37,7 +44,7 @@ export default Vue.extend({
       default: false,
     },
     type: {
-      type:    String,
+      type:    String as PropType<'button' | 'submit' | 'reset' | undefined>,
       default: 'button'
     },
     tabIndex: {
@@ -113,7 +120,13 @@ export default Vue.extend({
 
   },
 
-  data(): { phase: string, timer?: NodeJS.Timeout} {
+  setup() {
+    const timer = inject('timer', provideProps.timer);
+
+    return { timer };
+  },
+
+  data() {
     return { phase: this.currentPhase };
   },
 
@@ -245,7 +258,7 @@ export default Vue.extend({
         this.phase = (success ? ASYNC_BUTTON_STATES.SUCCESS : ASYNC_BUTTON_STATES.ERROR );
         this.timer = setTimeout(() => {
           this.timerDone();
-        }, this.delay );
+        }, this.delay);
       }
     },
 
@@ -273,15 +286,24 @@ export default Vue.extend({
     :data-testid="componentTestid + '-async-button'"
     @click="clicked"
   >
+    <span v-if="mode === 'manual-refresh'">{{ t('action.refresh') }}</span>
     <i
       v-if="displayIcon"
-      v-tooltip="tooltip"
+      v-clean-tooltip="tooltip"
       :class="{icon: true, 'icon-lg': true, [displayIcon]: true}"
     />
     <span
       v-if="labelAs === 'text' && displayLabel"
-      v-tooltip="tooltip"
-      v-html="displayLabel"
+      v-clean-tooltip="tooltip"
+      v-clean-html="displayLabel"
     />
   </button>
 </template>
+
+<style lang="scss" scoped>
+// refresh mode has icon + text. We need to fix the positioning of the icon and sizing
+.manual-refresh i {
+  margin: 0 0 0 8px !important;
+  font-size: 1rem !important;
+}
+</style>

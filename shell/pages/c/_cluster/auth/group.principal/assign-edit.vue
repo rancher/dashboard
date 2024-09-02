@@ -6,7 +6,7 @@ import { NORMAN } from '@shell/config/types';
 import { _VIEW, _EDIT } from '@shell/config/query-params';
 import { exceptionToErrorsArray } from '@shell/utils/error';
 import { NAME } from '@shell/config/product/auth';
-import { BLANK_CLUSTER } from '@shell/store';
+import { BLANK_CLUSTER } from '@shell/store/store-types.js';
 
 export default {
   components: {

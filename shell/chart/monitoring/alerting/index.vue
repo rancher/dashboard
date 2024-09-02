@@ -5,8 +5,6 @@ import { Checkbox } from '@components/Form/Checkbox';
 import LabeledSelect from '@shell/components/form/LabeledSelect';
 import { RadioGroup } from '@components/Form/Radio';
 
-const DEFAULT_MONITORING_NAMESPACE = 'cattle-monitoring-system';
-
 export default {
   components: {
     Checkbox,
@@ -20,7 +18,7 @@ export default {
       default: 'create',
     },
 
-    secrets: {
+    monitoringSecrets: {
       type:    Array,
       default: () => [],
     },
@@ -43,13 +41,8 @@ export default {
 
   computed: {
     allSecrets() {
-      const { secrets } = this;
-
-      return secrets
-        .filter(
-          sec => sec.metadata.namespace === DEFAULT_MONITORING_NAMESPACE
-        )
-        .map(sec => ({ label: sec.metadata.name, value: sec.metadata.name }));
+      return this.monitoringSecrets
+        .map((sec) => ({ label: sec.metadata.name, value: sec.metadata.name }));
     },
 
     canUseExistingSecret() {
@@ -62,22 +55,15 @@ export default {
     },
 
     existingSecret() {
-      return this.secrets.find(
-        sec => sec?.metadata?.name ===
-            'alertmanager-rancher-monitoring-alertmanager' &&
-          sec?.metadata?.namespace === DEFAULT_MONITORING_NAMESPACE
-      );
+      return this.monitoringSecrets
+        .find((sec) => sec?.metadata?.name === 'alertmanager-rancher-monitoring-alertmanager');
     },
 
     filteredSecrets() {
-      const { secrets } = this;
       const filtered = [];
 
-      secrets.forEach((secret) => {
-        if (
-          secret.metadata.name &&
-          secret.metadata.namespace === DEFAULT_MONITORING_NAMESPACE
-        ) {
+      this.monitoringSecrets.forEach((secret) => {
+        if ( secret.metadata.name ) {
           filtered.push(secret.metadata.name);
         }
       });
@@ -93,7 +79,7 @@ export default {
   },
 
   watch: {
-    filteredSecrets(newValue, oldValue) {
+    filteredSecrets(newValue) {
       if (isEmpty(newValue)) {
         this.$set(
           this.value.alertmanager.alertmanagerSpec,

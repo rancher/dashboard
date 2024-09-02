@@ -5,7 +5,6 @@ import Tab from '@shell/components/Tabbed/Tab';
 import DashboardMetrics from '@shell/components/DashboardMetrics';
 import AlertTable from '@shell/components/AlertTable';
 import { Banner } from '@components/Banner';
-import { parse as parseUrl } from '@shell/utils/url';
 import { ENDPOINTS } from '@shell/config/types';
 import { allHash } from '@shell/utils/promise';
 
@@ -33,33 +32,34 @@ export default {
     };
   },
   computed: {
-    relativeDashboardValues() {
-      const { alertmanagerURL, grafanaURL, prometheusURL } = this?.value?.status?.dashboardValues;
+    // there is a since-fixed bug in some versions of prom federator where this url is missing the trailing slash, which causes a redirect to an invalid grafana url
+    grafanaURL() {
+      const { grafanaURL } = this.value.status.dashboardValues;
 
-      return {
-        alertmanagerURL: this.makeRelativeURL(alertmanagerURL),
-        grafanaURL:      this.makeRelativeURL(grafanaURL),
-        prometheusURL:   this.makeRelativeURL(prometheusURL)
-      };
+      if (!grafanaURL.endsWith('/')) {
+        return `${ grafanaURL }/`;
+      }
+
+      return grafanaURL;
     },
     monitoringNamespace() {
-      // arbitrarily picking the alertmanagerURL here, they're all going to be the same.
-      return this.pullKeyFromUrl(this.relativeDashboardValues.alertmanagerURL, 'namespaces');
+      // picking the prometheusURL here, they're all going to be the same, but alertmanager and grafana can be deactivated
+      return this.pullKeyFromUrl(this.value.status.dashboardValues.prometheusURL, 'namespaces');
     },
     alertServiceEndpoint() {
-      return this.pullServiceEndpointFromUrl(this.relativeDashboardValues.alertmanagerURL);
+      return this.pullServiceEndpointFromUrl(this.value.status.dashboardValues.alertmanagerURL);
     },
     alertServiceEndpointEnabled() {
       return this.checkEndpointEnabled(this.alertServiceEndpoint);
     },
     grafanaServiceEndpoint() {
-      return this.pullServiceEndpointFromUrl(this.relativeDashboardValues.grafanaURL);
+      return this.pullServiceEndpointFromUrl(this.value.status.dashboardValues.grafanaURL);
     },
     grafanaServiceEndpointEnabled() {
       return this.checkEndpointEnabled(this.grafanaServiceEndpoint);
     },
     prometheusServiceEndpoint() {
-      return this.pullServiceEndpointFromUrl(this.relativeDashboardValues.prometheusURL);
+      return this.pullServiceEndpointFromUrl(this.value.status.dashboardValues.prometheusURL);
     },
     prometheusServiceEndpointEnabled() {
       return this.checkEndpointEnabled(this.prometheusServiceEndpoint);
@@ -83,21 +83,7 @@ export default {
 
       return !isEmpty(endpoint) && !isEmpty(endpoint?.subsets);
     },
-    makeRelativeURL(url) {
-      if (!url) {
-        return '';
-      }
 
-      // most of the downstream components that use these URL expect the everything before and including the clusterid stripped out of the URL
-      const parsedUrl = parseUrl(url);
-      // we really just need the remaining bit of the url but the destructure makes it clear what we're leaving behind
-      // eslint-disable-next-line no-unused-vars
-      const [_empty, _k8s, _clusters, _clusterId, ...restUrl] = parsedUrl.relative.split('/');
-      // the above processing strips out the leading '/' which we need
-      const relativeUrl = `/${ restUrl.join('/') }`;
-
-      return relativeUrl;
-    },
     pullKeyFromUrl(url = '', key) {
       const splitUrl = url.split('/');
       const keyIndex = splitUrl.indexOf(key);
@@ -138,10 +124,11 @@ export default {
         <template #default="props">
           <DashboardMetrics
             v-if="props.active && grafanaServiceEndpointEnabled"
-            :detail-url="`${relativeDashboardValues.grafanaURL}/d/rancher-pod-1/rancher-pod?orgId=1&kiosk`"
-            :summary-url="`${relativeDashboardValues.grafanaURL}/d/rancher-workload-1/rancher-workload?orgId=1&kiosk`"
+            :detail-url="`${value.status.dashboardValues.grafanaURL}/d/rancher-pod-1/rancher-pod?orgId=1&kiosk`"
+            :summary-url="`${value.status.dashboardValues.grafanaURL}/d/rancher-workload-1/rancher-workload?orgId=1&kiosk`"
             graph-height="825px"
             project
+            :modify-prefix="false"
           />
         </template>
       </Tab>
@@ -211,7 +198,7 @@ export default {
           </div>
           <a
             :class="{disabled: !grafanaServiceEndpointEnabled}"
-            :href="value.status.dashboardValues.grafanaURL"
+            :href="grafanaURL"
             target="_blank"
           > {{ t('monitoring.overview.linkedList.grafana.label') }} <i class="icon icon-external-link" /></a>
           <a

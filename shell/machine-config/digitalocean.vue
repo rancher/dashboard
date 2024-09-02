@@ -44,7 +44,7 @@ export default {
 
       let defaultRegion = 'sfo3';
 
-      if ( !this.regionOptions.find(x => x.value === defaultRegion) ) {
+      if ( !this.regionOptions.find((x) => x.value === defaultRegion) ) {
         defaultRegion = this.regionOptions[0]?.value;
       }
 
@@ -58,8 +58,8 @@ export default {
 
       let defaultSize = 's-2vcpu-4gb';
 
-      if ( !this.instanceOptions.find(x => x.value === defaultSize) ) {
-        defaultSize = this.instanceOptions.find(x => x.memoryGb >= 4)?.value;
+      if ( !this.instanceOptions.find((x) => x.value === defaultSize) ) {
+        defaultSize = this.instanceOptions.find((x) => x.memoryGb >= 4)?.value;
 
         if ( !defaultSize ) {
           defaultSize = this.instanceOptions[0].value;
@@ -74,7 +74,7 @@ export default {
 
       let defaultImage = 'ubuntu-20-04-x64';
 
-      if ( !this.imageOptions.find(x => x.value === defaultImage) ) {
+      if ( !this.imageOptions.find((x) => x.value === defaultImage) ) {
         defaultImage = this.imageOptions[0].value;
       }
 

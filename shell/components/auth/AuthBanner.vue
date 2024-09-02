@@ -73,6 +73,12 @@ export default {
     >
       <slot name="rows" />
     </table>
+
+    <slot
+      v-if="$slots.footer"
+      name="footer"
+    />
+
     <DisableAuthProviderModal
       ref="disableAuthProviderModal"
       @disable="disable"

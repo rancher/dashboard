@@ -31,40 +31,72 @@ export default {
   computed: {
     hasBinaryData() {
       return Object.keys(this.binaryData).length > 0;
-    }
+    },
+    /**
+     * Keep all newlines from end, see: https://yaml-multiline.info
+     * Apply to 'data' field
+     */
+    yamlModifiers() {
+      return {
+        data: Object.keys(this.data).reduce((acc, key) => ({
+          ...acc,
+          lineWidth: -1,
+          [key]:     { chomping: '+' },
+        }), {}),
+      };
+    },
+
+    validationPassed() {
+      return !!this.value.name;
+    },
   },
 
   watch: {
-    data(neu, old) {
+    data(neu) {
       this.updateValue(neu, 'data');
     },
-    binaryData(neu, old) {
+    binaryData(neu) {
       this.updateValue(neu, 'binaryData');
     },
   },
 
   methods: {
+    async saveConfigMap(saveCb) {
+      this.errors = [];
+      const yaml = await this.$refs.cru.createResourceYaml(this.yamlModifiers);
+
+      try {
+        await this.value.saveYaml(yaml);
+        this.done();
+      } catch (err) {
+        this.errors.push(err);
+        saveCb(false);
+      }
+    },
+
     updateValue(val, type) {
       this.$set(this.value, type, {});
 
       Object.keys(val).forEach((key) => {
         this.$set(this.value[type], key, val[key]);
       });
-    }
+    },
   }
 };
 </script>
 
 <template>
   <CruResource
+    ref="cru"
     :done-route="doneRoute"
     :mode="mode"
     :resource="value"
     :subtypes="[]"
-    :validation-passed="true"
+    :validation-passed="validationPassed"
+    :yaml-modifiers="yamlModifiers"
     :errors="errors"
     @error="e=>errors = e"
-    @finish="save"
+    @finish="saveConfigMap"
     @cancel="done"
   >
     <NameNsDescription
@@ -86,6 +118,8 @@ export default {
           :protip="t('configmap.tabs.data.protip')"
           :initial-empty-row="true"
           :value-can-be-empty="true"
+          :value-trim="false"
+          :value-markdown-multiline="true"
           :read-multiple="true"
           :read-accept="'*'"
         />

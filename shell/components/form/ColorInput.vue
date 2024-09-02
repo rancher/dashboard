@@ -76,6 +76,7 @@ export default {
       :raw="true"
     />{{ label }}</label>
     <div
+      :data-testid="componentTestid + '-color-input_preview-container'"
       class="preview-container"
       @click.stop="$refs.input.click($event)"
     >

@@ -1,0 +1,359 @@
+import { Canvas, Meta, Story, ArgsTable, Source } from '@storybook/addon-docs';
+import AsyncButton from '@shell/components/AsyncButton';
+
+<Meta 
+  title="Form/Button"
+  component={AsyncButton}
+/>
+
+export const Template = (args, { argTypes, events }) => ({
+  components: { AsyncButton },
+  props:      Object.keys(argTypes),
+  template:   `<AsyncButton v-bind="$props"></AsyncButton>`
+});
+
+# Button
+
+Button with async feature.
+
+## Description
+
+Further usage case are present in the [documentation](https://rancher.github.io/dashboard/code-base-works/forms-and-validation).
+
+
+### Button types
+
+Note: Simple button component is not present in this UI Kit and it's simply repeated the markup like:
+
+```html
+          <button
+            class="btn role-primary"
+            @click="buttonAction"
+          >
+            {{ buttonText }}
+          </button>
+```
+
+
+#### Primary Button
+
+Use class `role-primary`:
+
+<br/>
+<button className="btn role-primary">Primary Button</button>
+<button className="btn role-primary" disabled>Primary Button</button>
+<button className="btn role-primary focused">Primary Button (Focus)</button>
+<button className="btn role-primary _hover">Primary Button (Hover)</button>
+
+#### Secondary Button
+
+Use class `role-secondary`:
+
+<br/>
+<button className="btn role-secondary">Secondary Button</button>
+<button className="btn role-secondary" disabled>Secondary Button</button>
+<button className="btn role-secondary focused">Secondary Button (Focus)</button>
+<button className="btn role-secondary _hover">Secondary Button (Hover)</button>
+
+#### Tertiary Button
+
+Use class `role-tertiary`:
+
+<br/>
+<button className="btn role-tertiary">Tertiary Button</button>
+<button className="btn role-tertiary" disabled>Tertiary Button</button>
+<button className="btn role-tertiary focused">Tertiary Button (Focus)</button>
+<button className="btn role-tertiary _hover">Tertiary Button (Hover)</button>
+
+
+### Default
+
+<Canvas>
+  <Story
+    name="Default"
+    args={{}}>
+    {Template.bind({})}
+  </Story>
+</Canvas>
+
+
+### Phases
+
+The `AsyncButton` component includes 4 different phases: `action`, `waiting`, `success`, `error`. 
+These values can be enforced with `currentPhase`.
+
+<Canvas>
+  <Story
+    name="Phase: action"
+    args={{
+      currentPhase: `action`
+    }}>
+    {Template.bind({})}
+  </Story>
+</Canvas>
+
+<Canvas>
+  <Story
+    name="Phase: waiting"
+    args={{
+      currentPhase: `waiting`
+    }}>
+    {Template.bind({})}
+  </Story>
+</Canvas>
+
+<Canvas>
+  <Story
+    name="Phase: success"
+    args={{
+      currentPhase: `success`
+    }}>
+    {Template.bind({})}
+  </Story>
+</Canvas>
+
+<Canvas>
+  <Story
+    name="Phase: error"
+    args={{
+      currentPhase: `error`
+    }}>
+    {Template.bind({})}
+  </Story>
+</Canvas>
+
+#### Manual Phases
+
+It is possible to avoid automatic cycles of the button enabling the `manual` prop.
+
+<Canvas>
+  <Story
+    name="Manual"
+    args={{
+      manual: true
+    }}>
+    {Template.bind({})}
+  </Story>
+</Canvas>
+
+
+#### Phase class overrides
+
+Phase style can be changed by overriding the current class.
+
+The props used for each state are: `actionColor`, `waitingColor`, `successColor`, `errorColor`.
+
+Example removing default values:
+
+<Canvas>
+  <Story
+    name="Phase class: action"
+    args={{
+      actionColor: `action`,
+      currentPhase: `action`
+    }}>
+    {Template.bind({})}
+  </Story>
+</Canvas>
+
+<Canvas>
+  <Story
+    name="Phase class: waiting"
+    args={{
+      waitingColor: `waiting`,
+      currentPhase: `waiting`
+    }}>
+    {Template.bind({})}
+  </Story>
+</Canvas>
+
+<Canvas>
+  <Story
+    name="Phase class: success"
+    args={{
+      successColor: `success`,
+      currentPhase: `success`
+    }}>
+    {Template.bind({})}
+  </Story>
+</Canvas>
+
+<Canvas>
+  <Story
+    name="Phase class: error"
+    args={{
+      errorColor: `error`,
+      currentPhase: `error`
+    }}>
+    {Template.bind({})}
+  </Story>
+</Canvas>
+
+#### Phase labels overrides
+
+Phase labels can be changed by overriding the label, usually for UX purposes, e.g. waiting labelling.
+
+The props used for each state are: `actionLabel`, `waitingLabel`, `successLabel`, `errorLabel`.
+
+
+<Canvas>
+  <Story
+    name="Phase label: action"
+    args={{
+      actionLabel: `Custom action`,
+      currentPhase: `action`
+    }}>
+    {Template.bind({})}
+  </Story>
+</Canvas>
+
+<Canvas>
+  <Story
+    name="Phase label: waiting"
+    args={{
+      waitingLabel: `Custom waiting`,
+      currentPhase: `waiting`
+    }}>
+    {Template.bind({})}
+  </Story>
+</Canvas>
+
+<Canvas>
+  <Story
+    name="Phase label: success"
+    args={{
+      successLabel: `Custom success`,
+      currentPhase: `success`
+    }}>
+    {Template.bind({})}
+  </Story>
+</Canvas>
+
+<Canvas>
+  <Story
+    name="Phase label: error"
+    args={{
+      errorLabel: `Custom error`,
+      currentPhase: `error`
+    }}>
+    {Template.bind({})}
+  </Story>
+</Canvas>
+
+
+### Modes
+
+The modes are used to define a set of i18n labels for the 4 phases.
+
+<Canvas>
+  <Story
+    name="Modes: edit"
+    args={{
+      mode: 'edit',
+    }}>
+    {Template.bind({})}
+  </Story>
+</Canvas>
+
+<Canvas>
+  <Story
+    name="Modes: continue"
+    args={{
+      mode: 'continue',
+    }}>
+    {Template.bind({})}
+  </Story>
+</Canvas>
+
+<Canvas>
+  <Story
+    name="Modes: apply"
+    args={{
+      mode: 'apply',
+    }}>
+    {Template.bind({})}
+  </Story>
+</Canvas>
+
+### Delay
+
+Default time to disable the button without prior feedback.
+
+<Canvas>
+  <Story
+    name="Delay"
+    args={{
+      delay: 200,
+    }}>
+    {Template.bind({})}
+  </Story>
+</Canvas>
+
+### Disabled
+
+Enforce disabled status.
+
+<Canvas>
+  <Story
+    name="Disabled"
+    args={{
+      disabled: true,
+    }}>
+    {Template.bind({})}
+  </Story>
+</Canvas>
+
+
+### Types
+
+<Canvas>
+  <Story
+    name="Types: submit"
+    args={{
+      type: 'submit',
+    }}>
+    {Template.bind({})}
+  </Story>
+</Canvas>
+
+<Canvas>
+  <Story
+    name="Types: button"
+    args={{
+      type: 'button',
+    }}>
+    {Template.bind({})}
+  </Story>
+</Canvas>
+
+
+### Icon
+
+Add icon to the button, based on existing value.
+List is available [here](https://rancher.github.io/icons/).
+
+<Canvas>
+  <Story
+    name="Icon"
+    args={{
+      icon: 'icon-copy',
+    }}>
+    {Template.bind({})}
+  </Story>
+</Canvas>
+
+### Size
+
+Define button size from existing classes: 
+Note: This case seems not used.
+
+
+<Canvas>
+  <Story
+    name="Size: sm"
+    args={{
+      size: 'sm',
+    }}>
+    {Template.bind({})}
+  </Story>
+</Canvas>

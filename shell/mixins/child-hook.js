@@ -20,19 +20,19 @@ export default {
       });
     },
 
-    registerAfterHook(boundFn, name, priority) {
-      this._registerHook(AFTER_SAVE_HOOKS, boundFn, name, priority);
+    registerAfterHook(boundFn, name, priority = 99, boundFnContext) {
+      this._registerHook(AFTER_SAVE_HOOKS, boundFn, name, priority, boundFnContext);
     },
 
     async applyHooks(key, ...args) {
-      if ( !key ) {
+      if (!key) {
         throw new Error('Must specify key');
       }
 
       const hooks = sortBy(this[key] || [], ['priority', 'name']);
       const out = {};
 
-      for ( const x of hooks ) {
+      for (const x of hooks) {
         console.debug('Applying hook', x.name); // eslint-disable-line no-console
         out[x.name] = await x.fn.apply(x.fnContext || this, args);
       }

@@ -2,20 +2,20 @@
 import CreateEditView from '@shell/mixins/create-edit-view';
 import { NAMESPACE as NAMESPACE_COL } from '@shell/config/table-headers';
 import {
-  POD, WORKLOAD_TYPES, SCALABLE_WORKLOAD_TYPES, SERVICE, INGRESS, NODE
+  POD, WORKLOAD_TYPES, SCALABLE_WORKLOAD_TYPES, SERVICE, INGRESS, NODE, NAMESPACE,
 } from '@shell/config/types';
-import SortableTable from '@shell/components/SortableTable';
+import ResourceTable from '@shell/components/ResourceTable';
 import Tab from '@shell/components/Tabbed/Tab';
 import Loading from '@shell/components/Loading';
 import ResourceTabs from '@shell/components/form/ResourceTabs';
 import CountGauge from '@shell/components/CountGauge';
 import { allHash } from '@shell/utils/promise';
 import DashboardMetrics from '@shell/components/DashboardMetrics';
-import V1WorkloadMetrics from '@shell/mixins/v1-workload-metrics';
 import { mapGetters } from 'vuex';
 import { allDashboardsExist } from '@shell/utils/grafana';
 import PlusMinus from '@shell/components/form/PlusMinus';
-import { matches } from '~shell/utils/selector';
+import { matches } from '@shell/utils/selector';
+import { PROJECT } from '@shell/config/labels-annotations';
 
 const SCALABLE_TYPES = Object.values(SCALABLE_WORKLOAD_TYPES);
 const WORKLOAD_METRICS_DETAIL_URL = '/api/v1/namespaces/cattle-monitoring-system/services/http:rancher-monitoring-grafana:80/proxy/d/rancher-workload-pods-1/rancher-workload-pods?orgId=1';
@@ -46,11 +46,11 @@ export default {
     Loading,
     ResourceTabs,
     CountGauge,
-    SortableTable,
+    ResourceTable,
     PlusMinus
   },
 
-  mixins: [CreateEditView, V1WorkloadMetrics],
+  mixins: [CreateEditView],
 
   async fetch() {
     let hasNodes = false;
@@ -65,6 +65,7 @@ export default {
     } catch {}
 
     const hash = {
+      // See https://github.com/rancher/dashboard/issues/10417, all pods bad, come from a locally applied selector in the workload model
       allPods:      this.$store.dispatch('cluster/findAll', { type: POD }),
       allServices:  this.$store.dispatch('cluster/findAll', { type: SERVICE }),
       allIngresses: this.$store.dispatch('cluster/findAll', { type: INGRESS }),
@@ -85,31 +86,45 @@ export default {
     const isMetricsSupportedKind = METRICS_SUPPORTED_KINDS.includes(this.value.type);
 
     this.showMetrics = isMetricsSupportedKind && await allDashboardsExist(this.$store, this.currentCluster.id, [WORKLOAD_METRICS_DETAIL_URL, WORKLOAD_METRICS_SUMMARY_URL]);
+    if (!this.showMetrics) {
+      const namespace = await this.$store.dispatch('cluster/find', { type: NAMESPACE, id: this.value.metadata.namespace });
 
+      const projectId = namespace?.metadata?.labels[PROJECT];
+
+      if (projectId) {
+        this.WORKLOAD_PROJECT_METRICS_DETAIL_URL = `/api/v1/namespaces/cattle-project-${ projectId }-monitoring/services/http:cattle-project-${ projectId }-monitoring-grafana:80/proxy/d/rancher-pod-containers-1/rancher-workload-pods?orgId=1'`;
+        this.WORKLOAD_PROJECT_METRICS_SUMMARY_URL = `/api/v1/namespaces/cattle-project-${ projectId }-monitoring/services/http:cattle-project-${ projectId }-monitoring-grafana:80/proxy/d/rancher-pod-1/rancher-workload?orgId=1`;
+
+        this.showProjectMetrics = await allDashboardsExist(this.$store, this.currentCluster.id, [this.WORKLOAD_PROJECT_METRICS_DETAIL_URL, this.WORKLOAD_PROJECT_METRICS_SUMMARY_URL], 'cluster', projectId);
+      }
+    }
     this.findMatchingServices();
     this.findMatchingIngresses();
   },
 
   data() {
     return {
-      allPods:           [],
-      allServices:       [],
-      allIngresses:      [],
-      matchingServices:  [],
-      matchingIngresses: [],
-      allJobs:           [],
-      allNodes:          [],
+      allPods:                         [],
+      allServices:                     [],
+      allIngresses:                    [],
+      matchingServices:                [],
+      matchingIngresses:               [],
+      allJobs:                         [],
+      allNodes:                        [],
       WORKLOAD_METRICS_DETAIL_URL,
       WORKLOAD_METRICS_SUMMARY_URL,
-      showMetrics:       false,
+      POD_PROJECT_METRICS_DETAIL_URL:  '',
+      POD_PROJECT_METRICS_SUMMARY_URL: '',
+      showMetrics:                     false,
+      showProjectMetrics:              false,
     };
   },
 
   computed: {
     ...mapGetters(['currentCluster']),
 
-    isActive() {
-      return this.value.metadata.state.name === 'active';
+    isScalable() {
+      return this.value?.canUpdate;
     },
 
     isJob() {
@@ -200,7 +215,7 @@ export default {
     },
 
     podHeaders() {
-      return this.$store.getters['type-map/headersFor'](this.podSchema).filter(h => h !== NAMESPACE_COL);
+      return this.$store.getters['type-map/headersFor'](this.podSchema).filter((h) => h !== NAMESPACE_COL);
     },
 
     graphVarsWorkload() {
@@ -219,14 +234,14 @@ export default {
       const podGauges = Object.values(this.value.podGauges);
       const total = this.value.pods.length;
 
-      return !podGauges.find(pg => pg.count === total);
+      return !podGauges.find((pg) => pg.count === total);
     },
 
     showJobGaugeCircles() {
       const jobGauges = Object.values(this.value.jobGauges);
       const total = this.isCronJob ? this.totalRuns : this.value.pods.length;
 
-      return !jobGauges.find(jg => jg.count === total);
+      return !jobGauges.find((jg) => jg.count === total);
     },
 
     canScale() {
@@ -335,7 +350,7 @@ export default {
         class="text-right"
         :label="t('tableHeaders.scale')"
         :value="value.spec.replicas"
-        :disabled="!isActive"
+        :disabled="!isScalable"
         @minus="scaleDown"
         @plus="scaleUp"
       />
@@ -380,12 +395,12 @@ export default {
         :label="t('tableHeaders.jobs')"
         :weight="4"
       >
-        <SortableTable
+        <ResourceTable
           :rows="value.jobs"
           :headers="jobHeaders"
           key-field="id"
           :schema="jobSchema"
-          :show-groups="false"
+          :groupable="false"
           :search="false"
         />
       </Tab>
@@ -395,7 +410,7 @@ export default {
         :label="t('tableHeaders.pods')"
         :weight="4"
       >
-        <SortableTable
+        <ResourceTable
           v-if="value.pods"
           :rows="value.pods"
           :headers="podHeaders"
@@ -422,17 +437,20 @@ export default {
         </template>
       </Tab>
       <Tab
-        v-if="v1MonitoringUrl"
-        name="v1Metrics"
-        :label="t('node.detail.tab.metrics')"
-        :weight="10"
+        v-if="showProjectMetrics"
+        :label="t('workload.container.titles.metrics')"
+        name="workload-metrics"
+        :weight="3"
       >
-        <div id="ember-anchor">
-          <EmberPage
-            inline="ember-anchor"
-            :src="v1MonitoringUrl"
+        <template #default="props">
+          <DashboardMetrics
+            v-if="props.active"
+            :detail-url="WORKLOAD_PROJECT_METRICS_DETAIL_URL"
+            :summary-url="WORKLOAD_PROJECT_METRICS_SUMMARY_URL"
+            :vars="graphVars"
+            graph-height="550px"
           />
-        </div>
+        </template>
       </Tab>
       <Tab
         v-if="!isJob && !isCronJob"
@@ -458,13 +476,13 @@ export default {
         >
           {{ t('workload.detail.serviceListCaption') }}
         </p>
-        <SortableTable
+        <ResourceTable
           v-if="serviceSchema && matchingServices.length > 0"
           :rows="matchingServices"
           :headers="serviceHeaders"
           key-field="id"
           :schema="serviceSchema"
-          :show-groups="false"
+          :groupable="false"
           :search="false"
           :table-actions="false"
         />
@@ -499,13 +517,13 @@ export default {
         >
           {{ t('workload.detail.ingressListCaption') }}
         </p>
-        <SortableTable
+        <ResourceTable
           v-if="ingressSchema && matchingIngresses.length > 0"
           :rows="matchingIngresses"
           :headers="ingressHeaders"
           key-field="id"
           :schema="ingressSchema"
-          :show-groups="false"
+          :groupable="false"
           :search="false"
           :table-actions="false"
         />

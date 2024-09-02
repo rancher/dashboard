@@ -13,12 +13,18 @@ import ArrayType from './Array';
 import MapType from './QuestionMap';
 import ReferenceType from './Reference';
 import CloudCredentialType from './CloudCredential';
+import RadioType from './Radio';
+import YamlType from './Yaml';
+import Loading from '@shell/components/Loading';
 
 export const knownTypes = {
   string:          StringType,
-  hostname:        StringType, // @TODO
+  hostname:        StringType,
   multiline:       StringType,
   password:        StringType,
+  ipaddr:          StringType,
+  cidr:            StringType,
+  cron:            StringType,
   boolean:         BooleanType,
   enum:            EnumType,
   int:             IntType,
@@ -30,6 +36,8 @@ export const knownTypes = {
   storageclass:    ReferenceType,
   pvc:             ReferenceType,
   cloudcredential: CloudCredentialType,
+  radio:           RadioType,
+  yaml:            YamlType,
 };
 
 export function componentForQuestion(q) {
@@ -67,9 +75,9 @@ function migrate(expr) {
   let out;
 
   if ( expr.includes('||') ) {
-    out = expr.split('||').map(x => migrate(x)).join(' || ');
+    out = expr.split('||').map((x) => migrate(x)).join(' || ');
   } else if ( expr.includes('&&') ) {
-    out = expr.split('&&').map(x => migrate(x)).join(' && ');
+    out = expr.split('&&').map((x) => migrate(x)).join(' && ');
   } else {
     const parts = expr.match(/^(.*)(!?=)(.*)$/);
 
@@ -108,7 +116,11 @@ function migrate(expr) {
 }
 
 export default {
-  components: { Tab, ...knownTypes },
+  components: {
+    ...knownTypes,
+    Tab,
+    Loading,
+  },
 
   props: {
     mode: {
@@ -155,6 +167,13 @@ export default {
     emit: {
       type:    Boolean,
       default: false,
+    }
+  },
+
+  async fetch() {
+    // If this source is a schema, ensure the schema's `resourceFields` is populated
+    if (this.source.type === 'schema' && this.source.requiresResourceFields) {
+      await this.source.fetchResourceFields();
     }
   },
 
@@ -251,7 +270,7 @@ export default {
       }
 
       if ( this.tabbed === 'multiple' ) {
-        return this.groups.length > 1;
+        return !!this.groups.length;
       }
 
       return true;
@@ -311,9 +330,9 @@ export default {
       let result;
 
       if ( get(or, 'length') > 1 ) {
-        result = or.some(showIf => this.calExpression(showIf, allQuestions));
+        result = or.some((showIf) => this.calExpression(showIf, allQuestions));
       } else {
-        result = and.every(showIf => this.calExpression(showIf, allQuestions));
+        result = and.every((showIf) => this.calExpression(showIf, allQuestions));
       }
 
       return result;
@@ -368,7 +387,7 @@ export default {
       return null;
     },
     getAnswer(variable, questions) {
-      const found = questions.find(q => q.variable === variable);
+      const found = questions.find((q) => q.variable === variable);
 
       if ( found ) {
         // Equivalent to finding question.answer in Ember
@@ -427,7 +446,11 @@ export default {
 </script>
 
 <template>
-  <form v-if="asTabs">
+  <Loading
+    v-if="$fetchState.pending"
+    mode="relative"
+  />
+  <form v-else-if="asTabs">
     <Tab
       v-for="g in groups"
       :key="g.name"

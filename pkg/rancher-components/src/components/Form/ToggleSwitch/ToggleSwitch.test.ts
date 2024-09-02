@@ -1,7 +1,7 @@
 import { shallowMount, Wrapper } from '@vue/test-utils';
 import { ToggleSwitch } from './index';
 
-describe('ToggleSwitch.vue', () => {
+describe('toggleSwitch.vue', () => {
   it('renders falsy by default', () => {
     const wrapper = shallowMount(ToggleSwitch);
 

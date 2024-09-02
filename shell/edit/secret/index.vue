@@ -141,9 +141,9 @@ export default {
       // Cloud credentials
       if ( this.isCloud ) {
         const machineTypes = uniq(this.nodeDrivers
-          .filter(x => x.spec.active)
-          .map(x => x.spec.displayName || x.id)
-          .map(x => this.$store.getters['plugins/credentialDriverFor'](x))
+          .filter((x) => x.spec.active)
+          .map((x) => x.spec.displayName || x.id)
+          .map((x) => this.$store.getters['plugins/credentialDriverFor'](x))
         );
 
         for ( const id of machineTypes ) {

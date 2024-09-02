@@ -31,6 +31,7 @@ export default {
   <div
     v-if="shown"
     class="simple-box"
+    data-testid="simple-box-container"
     v-on="$listeners"
   >
     <div

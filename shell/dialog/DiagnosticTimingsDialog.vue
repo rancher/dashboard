@@ -68,8 +68,8 @@ export default {
   >
     <h4
       slot="title"
+      v-clean-html="title"
       class="text-default-text"
-      v-html="title"
     />
 
     <template slot="body">
@@ -111,6 +111,7 @@ export default {
 
         <AsyncButton
           :mode="applyMode"
+          data-testid="download-diagnostics-modal-action"
           @click="apply"
         />
       </div>

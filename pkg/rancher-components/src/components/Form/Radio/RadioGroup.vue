@@ -1,14 +1,15 @@
 <script lang="ts">
-import Vue, { PropType } from 'vue';
+import { PropType, defineComponent } from 'vue';
 import { _VIEW } from '@shell/config/query-params';
 import RadioButton from '@components/Form/Radio/RadioButton.vue';
 
 interface Option {
   value: unknown,
-  label: string
+  label: string,
+  description?: string,
 }
 
-export default Vue.extend({
+export default defineComponent({
   components: { RadioButton },
   props:      {
     /**
@@ -152,7 +153,7 @@ export default Vue.extend({
      */
     clickNext(direction: number): void {
       const opts = this.normalizedOptions;
-      const selected = opts.find(x => x.value === this.value);
+      const selected = opts.find((x) => x.value === this.value);
       let newIndex = (selected ? opts.indexOf(selected) : -1) + direction;
 
       if (newIndex >= opts.length) {
@@ -169,6 +170,7 @@ export default Vue.extend({
 
 <template>
   <div>
+    <!-- Label -->
     <div
       v-if="label || labelKey || tooltip || tooltipKey || $slots.label"
       class="radio-group label"
@@ -184,17 +186,19 @@ export default Vue.extend({
           </template>
           <i
             v-if="tooltipKey"
-            v-tooltip="t(tooltipKey)"
+            v-clean-tooltip="t(tooltipKey)"
             class="icon icon-info icon-lg"
           />
           <i
             v-else-if="tooltip"
-            v-tooltip="tooltip"
+            v-clean-tooltip="tooltip"
             class="icon icon-info icon-lg"
           />
         </h3>
       </slot>
     </div>
+
+    <!-- Group -->
     <div
       class="radio-group"
       :class="{'row':row}"
@@ -209,8 +213,10 @@ export default Vue.extend({
         <slot
           :listeners="$listeners"
           :option="option"
+          :is-disabled="isDisabled"
           :name="i"
         >
+          <!-- Default input -->
           <RadioButton
             :key="name+'-'+i"
             :name="name"

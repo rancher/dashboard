@@ -1,0 +1,27 @@
+# Disable checks and annotations in the PR
+github_checks: false
+coverage:
+  status:
+    project: no
+    patch: no
+    changes: no
+
+# Configure comment in the PR
+comment:
+  layout: "reach, diff, flags, tree, header"
+  behavior: default
+  require_changes: false
+  require_base: no
+  require_head: yes
+
+# Generate flags
+flags:
+  shell:
+    paths: 
+    - shell
+  epinio:
+    paths: 
+    - pkg/epinio
+  rancher-components:
+    paths: 
+    - pkg/rancher-components

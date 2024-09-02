@@ -1,7 +1,6 @@
 {
   "files.exclude": {
     ".eslintcache": true,
-    ".nuxt*": true,
     "yarn-error.log": true,
     "pkg/**/.shell": true,
     "pkg/**/node_modules": true
@@ -13,26 +12,41 @@
   "editor.codeActionsOnSave": {
     "source.fixAll.eslint": "explicit"
   },
+  "eslint.workingDirectories": ["./", "./pkg/rancher-components/"],
   "javascript.preferences.importModuleSpecifier": "non-relative",
   "typescript.preferences.importModuleSpecifier": "non-relative",
   "cSpell.words": [
+    "apiserver",
     "autoscroll",
+    "banzaicloud",
     "cacerts",
+    "CAPI",
     "chainable",
+    "clusterroletemplatebindings",
     "Codecov",
+    "createapp",
     "epinio",
+    "fleetworkspaces",
     "hevi",
+    "Istio",
     "kube",
     "kubeconfig",
     "kubectl",
     "Kubernetes",
     "kubevirt",
+    "mgmt",
+    "neuvector",
     "nuxt",
     "overcommit",
+    "prefs",
     "prepending",
+    "projectsnamespaces",
     "protip",
+    "PSPS",
+    "PVC",
     "pvcs",
     "shortkey",
+    "storageclass",
     "testid",
     "tolerations",
     "userpreferences",
@@ -40,4 +54,5 @@
     "vuex",
     "whatsnew"
   ],
+  "typescript.tsdk": "node_modules/typescript/lib"
 }

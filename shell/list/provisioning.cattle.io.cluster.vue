@@ -9,10 +9,11 @@ import { filterOnlyKubernetesClusters, filterHiddenLocalCluster } from '@shell/u
 import { mapFeature, HARVESTER as HARVESTER_FEATURE } from '@shell/store/features';
 import { NAME as EXPLORER } from '@shell/config/product/explorer';
 import ResourceFetch from '@shell/mixins/resource-fetch';
+import { BadgeState } from '@components/BadgeState';
 
 export default {
   components: {
-    Banner, ResourceTable, Masthead
+    Banner, ResourceTable, Masthead, BadgeState
   },
   mixins: [ResourceFetch],
   props:  {
@@ -33,40 +34,41 @@ export default {
   },
 
   async fetch() {
+    this.$initializeFetchData(CAPI.RANCHER_CLUSTER);
     const hash = {
       rancherClusters: this.$fetchType(CAPI.RANCHER_CLUSTER),
-      normanClusters:  this.$store.dispatch('rancher/findAll', { type: NORMAN.CLUSTER }),
-      mgmtClusters:    this.$store.dispatch('management/findAll', { type: MANAGEMENT.CLUSTER }),
+      normanClusters:  this.$fetchType(NORMAN.CLUSTER, [], 'rancher'),
+      mgmtClusters:    this.$fetchType(MANAGEMENT.CLUSTER),
     };
 
     if ( this.$store.getters['management/canList'](SNAPSHOT) ) {
-      hash.etcdSnapshots = this.$store.dispatch('management/findAll', { type: SNAPSHOT });
+      hash.etcdSnapshots = this.$fetchType(SNAPSHOT);
     }
 
     if ( this.$store.getters['management/canList'](CAPI.MACHINE) ) {
-      hash.capiMachines = this.$store.dispatch('management/findAll', { type: CAPI.MACHINE });
+      hash.capiMachines = this.$fetchType(CAPI.MACHINE);
     }
 
     if ( this.$store.getters['management/canList'](MANAGEMENT.NODE) ) {
-      hash.mgmtNodes = this.$store.dispatch('management/findAll', { type: MANAGEMENT.NODE });
+      hash.mgmtNodes = this.$fetchType(MANAGEMENT.NODE);
     }
 
     if ( this.$store.getters['management/canList'](MANAGEMENT.NODE_POOL) ) {
-      hash.mgmtPools = this.$store.dispatch('management/findAll', { type: MANAGEMENT.NODE_POOL });
+      hash.mgmtPools = this.$fetchType(MANAGEMENT.NODE_POOL);
     }
 
     if ( this.$store.getters['management/canList'](MANAGEMENT.NODE_TEMPLATE) ) {
-      hash.mgmtTemplates = this.$store.dispatch('management/findAll', { type: MANAGEMENT.NODE_TEMPLATE });
+      hash.mgmtTemplates = this.$fetchType(MANAGEMENT.NODE_TEMPLATE);
     }
 
     if ( this.$store.getters['management/canList'](CAPI.MACHINE_DEPLOYMENT) ) {
-      hash.machineDeployments = this.$store.dispatch('management/findAll', { type: CAPI.MACHINE_DEPLOYMENT });
+      hash.machineDeployments = this.$fetchType(CAPI.MACHINE_DEPLOYMENT);
     }
 
     // Fetch RKE template revisions so we can show when an updated template is available
     // This request does not need to be blocking
     if ( this.$store.getters['management/canList'](MANAGEMENT.RKE_TEMPLATE_REVISION) ) {
-      this.$store.dispatch('management/findAll', { type: MANAGEMENT.RKE_TEMPLATE_REVISION });
+      this.$fetchType(MANAGEMENT.RKE_TEMPLATE_REVISION);
     }
 
     const res = await allHash(hash);
@@ -86,7 +88,7 @@ export default {
     filteredRows() {
       // If Harvester feature is enabled, hide Harvester Clusters
       if (this.harvesterEnabled) {
-        return filterHiddenLocalCluster(filterOnlyKubernetesClusters(this.rows), this.$store);
+        return filterHiddenLocalCluster(filterOnlyKubernetesClusters(this.rows, this.$store), this.$store);
       }
 
       // Otherwise, show Harvester clusters - these will be shown with a warning
@@ -102,7 +104,7 @@ export default {
         return 0;
       }
 
-      return this.rows.length - filterOnlyKubernetesClusters(this.rows).length;
+      return this.rows.length - filterOnlyKubernetesClusters(this.rows, this.$store).length;
     },
 
     createLocation() {
@@ -129,10 +131,17 @@ export default {
     canImport() {
       const schema = this.$store.getters['management/schemaFor'](CAPI.RANCHER_CLUSTER);
 
-      return !!schema?.collectionMethods.find(x => x.toLowerCase() === 'post');
+      return !!schema?.collectionMethods.find((x) => x.toLowerCase() === 'post');
     },
 
     harvesterEnabled: mapFeature(HARVESTER_FEATURE),
+
+    nonStandardNamespaces() {
+      // Show the namespace grouping option if there's clusters with namespaces other than 'fleet-default' or 'fleet-local'
+      // This will be used when there's clusters from extension based provisioners
+      // We should re-visit this for scaling reasons
+      return this.filteredRows.some((c) => c.metadata.namespace !== 'fleet-local' && c.metadata.namespace !== 'fleet-default');
+    }
   },
 
   $loadingResources() {
@@ -167,38 +176,78 @@ export default {
         v-if="canImport"
         slot="extraActions"
       >
-        <n-link
+        <router-link
           :to="importLocation"
           class="btn role-primary mr-10"
           data-testid="cluster-manager-list-import"
         >
           {{ t('cluster.importAction') }}
-        </n-link>
+        </router-link>
       </template>
     </Masthead>
 
     <ResourceTable
       :schema="schema"
       :rows="filteredRows"
-      :namespaced="false"
+      :namespaced="nonStandardNamespaces"
       :loading="loading"
       :use-query-params-for-simple-filtering="useQueryParamsForSimpleFiltering"
       :data-testid="'cluster-list'"
       :force-update-live-and-delayed="forceUpdateLiveAndDelayed"
     >
+      <!-- Why are state column and subrow overwritten here? -->
+      <!-- for rke1 clusters, where they try to use the mgmt cluster stateObj instead of prov cluster stateObj,  -->
+      <!-- updates were getting lost. This isn't performant as normal columns, but the list shouldn't grow -->
+      <!-- big enough for the performance to matter -->
+      <template #cell:state="{row}">
+        <BadgeState
+          :color="row.stateBackground"
+          :label="row.stateDisplay"
+        />
+      </template>
+      <template #sub-row="{fullColspan, row, keyField, componentTestid, i, onRowMouseEnter, onRowMouseLeave}">
+        <tr
+          v-if="row.stateDescription"
+          :key="row[keyField] + '-description'"
+          :data-testid="componentTestid + '-' + i + '-row-description'"
+          class="state-description sub-row"
+          @mouseenter="onRowMouseEnter"
+          @mouseleave="onRowMouseLeave"
+        >
+          <td>&nbsp;</td>
+          <td
+            :colspan="fullColspan - 1"
+            :class="{ 'text-error' : row.stateObj.error }"
+          >
+            {{ row.stateDescription }}
+          </td>
+        </tr>
+      </template>
       <template #cell:summary="{row}">
         <span v-if="!row.stateParts.length">{{ row.nodes.length }}</span>
       </template>
+      <template #col:kubernetesVersion="{row}">
+        <td class="col-name">
+          <span>
+            {{ row.kubernetesVersion }}
+          </span>
+          <div
+            v-clean-tooltip="{content: row.architecture.tooltip, placement: 'left'}"
+            class="text-muted"
+          >
+            {{ row.architecture.label }}
+          </div>
+        </td>
+      </template>
       <template #cell:explorer="{row}">
-        <span v-if="row.mgmt && row.mgmt.isHarvester" />
-        <n-link
-          v-else-if="row.mgmt && row.mgmt.isReady && !row.hasError"
+        <router-link
+          v-if="row.mgmt && row.mgmt.isReady && !row.hasError"
           data-testid="cluster-manager-list-explore-management"
           class="btn btn-sm role-secondary"
           :to="{name: 'c-cluster', params: {cluster: row.mgmt.id}}"
         >
           {{ t('cluster.explore') }}
-        </n-link>
+        </router-link>
         <button
           v-else
           data-testid="cluster-manager-list-explore"

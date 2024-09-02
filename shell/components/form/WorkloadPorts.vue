@@ -50,11 +50,13 @@ export default {
         row._showHost = true;
       }
 
+      row._ipam = '';
+
       return row;
     });
 
     // show host port column if existing port data has any host ports defined
-    const showHostPorts = !!rows.some(row => !!row.hostPort);
+    const showHostPorts = !!rows.some((row) => !!row.hostPort);
 
     return {
       rows,
@@ -108,15 +110,15 @@ export default {
     },
 
     clusterIPServicePorts() {
-      return ((this.services.filter(svc => svc.spec.type === 'ClusterIP') || [])[0] || {})?.spec?.ports;
+      return ((this.services.filter((svc) => svc.spec.type === 'ClusterIP') || [])[0] || {})?.spec?.ports;
     },
 
     loadBalancerServicePorts() {
-      return ((this.services.filter(svc => svc.spec.type === 'LoadBalancer') || [])[0] || {})?.spec?.ports;
+      return ((this.services.filter((svc) => svc.spec.type === 'LoadBalancer') || [])[0] || {})?.spec?.ports;
     },
 
     nodePortServicePorts() {
-      return ((this.services.filter(svc => svc.spec.type === 'NodePort') || [])[0] || {})?.spec?.ports;
+      return ((this.services.filter((svc) => svc.spec.type === 'NodePort') || [])[0] || {})?.spec?.ports;
     },
 
     ipamOptions() {
@@ -130,11 +132,11 @@ export default {
     },
 
     ipamIndex() {
-      return this.rows.findIndex(row => row._serviceType === 'LoadBalancer' && row.protocol === 'TCP');
+      return this.rows.findIndex((row) => row._serviceType === 'LoadBalancer' && row.protocol === 'TCP');
     },
 
     serviceWithIpam() {
-      return this.services.find(s => s?.metadata?.annotations[HCI_LABELS_ANNOTATIONS.CLOUD_PROVIDER_IPAM]);
+      return this.services.find((s) => s?.metadata?.annotations[HCI_LABELS_ANNOTATIONS.CLOUD_PROVIDER_IPAM]);
     },
 
     showIpam() {
@@ -157,7 +159,7 @@ export default {
     },
 
     provisioningCluster() {
-      const out = this.$store.getters['management/all'](CAPI.RANCHER_CLUSTER).find(c => c?.status?.clusterName === this.currentCluster.metadata.name);
+      const out = this.$store.getters['management/all'](CAPI.RANCHER_CLUSTER).find((c) => c?.status?.clusterName === this.currentCluster.metadata.name);
 
       return out;
     },
@@ -259,6 +261,12 @@ export default {
 
 <template>
   <div :style="{'width':'100%'}">
+    <p
+      v-if="rows.length > 0"
+      class="padded"
+    >
+      {{ t('workload.container.ports.detailedDescription') }}
+    </p>
     <div
       v-for="(row, idx) in rows"
       :key="idx"
@@ -270,7 +278,7 @@ export default {
         'show-ipam': showIpam,
       }"
     >
-      <div class="service-type col">
+      <div class="service-type">
         <LabeledSelect
           v-model="row._serviceType"
           :mode="mode"
@@ -438,7 +446,7 @@ $checkbox: 75;
 }
 .ports-headers, .ports-row{
   display: grid;
-  grid-template-columns: 20% 32% 145px 90px .5fr .5fr;
+  grid-template-columns: 28% 28% 15% 10% 75px 0.5fr;
   grid-column-gap: $column-gutter;
   margin-bottom: 10px;
   align-items: center;

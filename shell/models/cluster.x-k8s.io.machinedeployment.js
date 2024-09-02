@@ -6,8 +6,8 @@ import { exceptionToErrorsArray } from '@shell/utils/error';
 import { handleConflict } from '@shell/plugins/dashboard-store/normalize';
 import { MACHINE_ROLES } from '@shell/config/labels-annotations';
 import { notOnlyOfRole } from '@shell/models/cluster.x-k8s.io.machine';
-import { isAlternate } from '@shell/utils/platform';
-import { SCALE_POOL_PROMPT } from '@shell/store/prefs';
+import { KIND } from '../config/elemental-types';
+import { KIND as HARVESTER_KIND } from '../config/harvester-manager-types';
 
 export default class CapiMachineDeployment extends SteveModel {
   get cluster() {
@@ -34,6 +34,10 @@ export default class CapiMachineDeployment extends SteveModel {
 
   get groupByPoolShortLabel() {
     return `${ this.$rootGetters['i18n/t']('resourceTable.groupLabel.machinePool', { name: escapeHtml(this.nameDisplay) }) }`;
+  }
+
+  get infrastructureRefKind() {
+    return this.spec?.template?.spec?.infrastructureRef?.kind;
   }
 
   get templateType() {
@@ -66,6 +70,19 @@ export default class CapiMachineDeployment extends SteveModel {
     return this.template?.providerSize || this.t('node.list.poolDescription.noSize');
   }
 
+  get providerSummary() {
+    if (this.template) {
+      switch (this.infrastructureRefKind) {
+      case HARVESTER_KIND.MACHINE_TEMPLATE:
+        return null;
+      default:
+        return `${ this.providerDisplay } \u2013  ${ this.providerLocation } / ${ this.providerSize } (${ this.providerName })`;
+      }
+    }
+
+    return null;
+  }
+
   get desired() {
     return this.spec?.replicas || 0;
   }
@@ -96,28 +113,10 @@ export default class CapiMachineDeployment extends SteveModel {
 
   // use this pool's definition in the cluster's rkeConfig to scale, not this.spec.replicas
   get inClusterSpec() {
-    const machineConfigName = this.template.metadata.annotations['rke.cattle.io/cloned-from-name'];
+    const machineConfigName = this.template?.metadata?.annotations['rke.cattle.io/cloned-from-name'];
     const machinePools = this.cluster.spec.rkeConfig.machinePools;
 
-    return machinePools.find(pool => pool.machineConfigRef.name === machineConfigName);
-  }
-
-  toggleScaleDownModal( event, resources = this ) {
-    // Check if the user held alt key when an action is clicked.
-    const alt = isAlternate(event);
-    const showScalePoolPrompt = this.$rootGetters['prefs/get'](SCALE_POOL_PROMPT);
-
-    // Prompt if showScalePoolPrompt pref not store and user did not held alt key
-    if (!alt && !showScalePoolPrompt) {
-      this.$dispatch('promptModal', {
-        component:  'ScalePoolDownDialog',
-        resources,
-        modalWidth: '450px'
-      });
-    } else {
-      // User held alt key, so don't prompt
-      this.scalePool(-1);
-    }
+    return machinePools.find((pool) => pool.machineConfigRef.name === machineConfigName);
   }
 
   scalePool(delta, save = true, depth = 0) {
@@ -142,11 +141,11 @@ export default class CapiMachineDeployment extends SteveModel {
     }
 
     this.scaleTimer = setTimeout(() => {
-      this.cluster.save().catch((err) => {
+      this.cluster.save().catch(async(err) => {
         let errors = exceptionToErrorsArray(err);
 
         if ( err.status === 409 && depth < 2 ) {
-          const conflicts = handleConflict(initialValue, value, liveModel, this.$rootGetters, this.$store);
+          const conflicts = await handleConflict(initialValue, value, liveModel, this.$rootGetters, { dispatch: this.$dispatch }, 'management');
 
           if ( conflicts === false ) {
             // It was automatically figured out, save again
@@ -167,7 +166,7 @@ export default class CapiMachineDeployment extends SteveModel {
 
   // prevent scaling pool to 0 if it would scale down the only etcd or control plane node
   canScaleDownPool() {
-    if (!this.canUpdate || this.inClusterSpec?.quantity === 0) {
+    if (!this.canUpdate || this.inClusterSpec?.quantity === 0 || this.infrastructureRefKind === KIND.MACHINE_INV_SELECTOR_TEMPLATES) {
       return false;
     }
 
@@ -179,7 +178,12 @@ export default class CapiMachineDeployment extends SteveModel {
     return notOnlyOfRole(this, this.cluster.machines);
   }
 
+  // prevent scaling up pool for Elemental machines
   canScaleUpPool() {
+    if (this.infrastructureRefKind === KIND.MACHINE_INV_SELECTOR_TEMPLATES) {
+      return false;
+    }
+
     return true;
   }
 
@@ -217,7 +221,7 @@ export default class CapiMachineDeployment extends SteveModel {
         value:     this.ready,
         sort:      4,
       },
-    ].filter(x => x.value > 0);
+    ].filter((x) => x.value > 0);
 
     return sortBy(out, 'sort:desc');
   }

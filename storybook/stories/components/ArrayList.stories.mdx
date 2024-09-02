@@ -1,0 +1,323 @@
+import { Meta, Canvas, Story, ArgsTable, Source } from '@storybook/addon-docs';
+import ArrayList from '@shell/components/form/ArrayList';
+import { _EDIT, _VIEW } from "@shell/config/query-params";
+
+<Meta 
+  title="Components/ArrayList"
+  component={ArrayList}
+/>
+
+export const slots = [
+  ['titleSlot', 'title'],
+  ['columnHeadersSlot', 'column-headers'],
+  ['columnsSlot', 'columns'],
+  ['valueSlot', 'value'],
+  ['removeButtonSlot', 'remove-button'],
+  ['emptySlot', 'empty'],
+  ['addSlot', 'add'],
+];
+
+export const textSlotArea = (text) => `<div style="background: red; color: white">${text}</div>`;
+export const getSlots = (list, args) => list.map(([key, name]) => `<template v-if="${key in args}" v-slot:${name}>${args[key]}</template>`).join('\n')
+
+export const Template = (args, { argTypes }) => ({
+  components: { ArrayList },
+  props:      Object.keys(argTypes),
+  template:   `<ArrayList v-bind="$props">
+                  ${getSlots(slots, args)}
+  </ArrayList>`,
+})
+
+# ArrayList
+The ArrayList is used to input a list of strings. The list is of variable length.
+
+## With list
+<Canvas>
+  <Story
+    name="With list"
+    args={{
+       value: ["First value", "Second value", "Third value"],
+    }}>
+  >
+    {Template.bind({})}
+  </Story>
+</Canvas>
+
+## No list
+
+This will show only the button to add values.
+
+<Canvas>
+  <Story
+    name="No list"
+    args={{}}>
+  >
+    {Template.bind({})}
+  </Story>
+</Canvas>
+
+## Multiline value
+
+Allow to use multiline values for the list. This will prevent generating multiple rows for each line.
+
+<Canvas>
+  <Story
+    name="Multiline value"
+    args={{
+      value: [`Multiline
+value
+example
+      `],
+       valueMultiline: true,
+    }}>
+    {Template.bind({})}
+  </Story>
+</Canvas>
+
+## Empty Value
+
+<Canvas>
+  <Story
+    name="Empty Value"
+    args={{
+       initialEmptyRow: true,
+       addLabel: "Add",
+       removeLabel: "Remove"
+    }}>
+    {Template.bind({})}
+  </Story>
+</Canvas>
+
+## Title and tip
+
+Add cusom title and tip. The second requires a title to be shown.
+
+<Canvas>
+  <Story
+    name="Title and tip"
+    args={{
+       title: 'This is a title',
+       protip: 'This is a tip',
+    }}>
+    {Template.bind({})}
+  </Story>
+</Canvas>
+
+## Input label and placeholder
+
+Add a label to the input. Custom value is set with `valueLabel`.
+
+<Canvas>
+  <Story
+    name="Input label and placeholder"
+    args={{
+      value: [''],
+      valueLabel: 'Custom label value',
+      valuePlaceholder: 'Custom placeholder',
+      showHeader: true,
+    }}>
+    {Template.bind({})}
+  </Story>
+</Canvas>
+
+## Read-only Mode
+
+<Canvas>
+  <Story
+    name="Disabled"
+    args={{
+      value: ['string 1', 'string 2'],
+      mode: _VIEW,
+      addLabel: "Add",
+      removeLabel: "Remove"
+    }}>
+    {Template.bind({})}
+  </Story>
+</Canvas>
+
+## Disable add/remove buttons
+
+<Canvas>
+  <Story
+    name="Disable add/remove buttons"
+    args={{
+      value: ['string 1', 'string 2'],
+      addAllowed: false,
+      removeAllowed: false,
+    }}>
+  >
+    {Template.bind({})}
+  </Story>
+</Canvas>
+
+## Custom buttons text
+
+<Canvas>
+  <Story
+    name="Custom buttons text"
+    args={{
+       addLabel: "Custom add",
+       removeLabel: "Custom remove"
+    }}>
+  >
+    {Template.bind({})}
+  </Story>
+</Canvas>
+
+## Default add value
+
+Allow to automatically add default values on new rows.
+
+<Canvas>
+  <Story
+    name="Default add value"
+    args={{
+       defaultAddValue: "Default value",
+    }}>
+  >
+    {Template.bind({})}
+  </Story>
+</Canvas>
+
+## Loading status
+
+<Canvas>
+  <Story
+    name="Loading status"
+    args={{
+      loading: true,
+       value: ["Existing value"],
+    }}>
+  >
+    {Template.bind({})}
+  </Story>
+</Canvas>
+
+## Validation
+
+<Canvas>
+  <Story
+    name="Validation"
+    args={{
+      rules: [(value) => value !== 'Change for error' ? 'Please add at least one value' : void 0],
+      value: ["Change for error", "Already error"],
+    }}>
+  >
+    {Template.bind({})}
+  </Story>
+</Canvas>
+
+## Slots
+
+### Title Slot
+
+Customize title for complex cases. It requires `title` and will replace its content.
+
+<Canvas>
+  <Story
+    name="Title Slot"
+    args={{
+      title: 'Anything',
+      titleSlot: textSlotArea(`Title`)
+    }}>
+    {Template.bind({})}
+  </Story>
+</Canvas>
+
+### Column Headers Slot
+
+Customize headers for complex cases. It requires `showHeader` prop to be set to `true`.
+
+<Canvas>
+  <Story
+    name="Column Headers Slot"
+    args={{
+      value: [''],
+      showHeader: true,
+      columnHeadersSlot: textSlotArea(`Column Headers`)
+    }}>
+    {Template.bind({})}
+  </Story>
+</Canvas>
+
+### Columns Slot
+
+<Canvas>
+  <Story
+    name="Columns Slot"
+    args={{
+      value: [''],
+      columnsSlot: textSlotArea(`Columns`)
+    }}>
+    {Template.bind({})}
+  </Story>
+</Canvas>
+
+### Value Slot
+
+<Canvas>
+  <Story
+    name="Value Slot"
+    args={{
+      value: [''],
+      valueSlot: textSlotArea(`Value element, usually text`)
+    }}>
+    {Template.bind({})}
+  </Story>
+</Canvas>
+
+### Remove Button Slot
+
+<Canvas>
+  <Story
+    name="Remove Button Slot"
+    args={{
+      value: [''],
+      removeButtonSlot: textSlotArea(`Remove Button, e.g. custom button`)
+    }}>
+    {Template.bind({})}
+  </Story>
+</Canvas>
+
+### Empty Slot
+
+Customize displayed values in case of no value, e.g. custom user friendly images.
+
+<Canvas>
+  <Story
+    name="Empty Slot"
+    args={{
+      emptySlot: textSlotArea(`Empty element placeholder`)
+    }}>
+    {Template.bind({})}
+  </Story>
+</Canvas>
+
+### Add Slot
+
+Customize add button with other elements.
+
+<Canvas>
+  <Story
+    name="Add Slot"
+    args={{
+      value: [''],
+      addSlot: textSlotArea(`Add element, e.g. button`)
+    }}>
+    {Template.bind({})}
+  </Story>
+</Canvas>
+
+
+### Import 
+<Source
+  language='ts'
+  code={`
+     import ArrayList from '@shell/components/form/ArrayList';
+  `}
+/>
+
+
+### Props table
+
+<ArgsTable of={ArrayList} />

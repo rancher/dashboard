@@ -6,7 +6,7 @@ const SCHEMA_FLUSH_TIMEOUT = 2500;
 
 const state = {
   store:      '', // Store name
-  flushTimer: undefined, // Timer to flush the schema chaneg queue
+  flushTimer: undefined, // Timer to flush the schema change queue
   queue:      [], // Schema change queue
   schemas:    {} // Map of schema id to hash to track when a schema actually changes
 };
@@ -42,6 +42,25 @@ function load(data) {
   self.postMessage({ load: data });
 }
 
+// used for dispatching a function in the worker, primarily for redirecting messages intended for the advanced worker back to the UI thread
+function redispatch(msg) {
+  self.postMessage({ redispatch: msg });
+}
+
+/**
+ * These actions aren't applicable to the basic worker, so bounce back to ui thread
+ *
+ * These are called when a queue of actions is flushed. Queue is populated from requests made before we know if worker is basic or advanced.
+ */
+const advancedWorkerActions = {
+  watch: (msg) => {
+    redispatch({ send: msg });
+  },
+  createWatcher: (msg) => {
+    redispatch({ subscribe: msg });
+  }
+};
+
 const workerActions = {
   onmessage: (e) => {
     /* on the off chance there's more than key in the message, we handle them in the order that they "keys" method provides which is
@@ -75,7 +94,6 @@ const workerActions = {
 
       state.schemas[schema.id] = hashObj(schema);
     });
-    // console.log(JSON.parse(JSON.stringify(state.resources.schemas)));
   },
 
   // Called when schema is updated
@@ -87,11 +105,12 @@ const workerActions = {
   // Remove the cached schema
   removeSchema: (id) => {
     // Remove anything in the queue related to the schema - we don't want to send any pending updates later for a schema that has been removed
-    state.queue = state.queue.filter(schema => schema.id !== id);
+    state.queue = state.queue.filter((schema) => schema.id !== id);
 
     // Delete the schema from the map, so if it comes back we don't ignore it if the hash is the same
     delete state.schemas[id];
-  }
+  },
+  ...advancedWorkerActions
 };
 
-onmessage = workerActions.onmessage; // bind everything to the worker's onmessage handler via the workerAction
+self.onmessage = workerActions.onmessage; // bind everything to the worker's onmessage handler via the workerAction

@@ -13,6 +13,8 @@ export const UI_MANAGED = 'management.cattle.io/ui-managed';
 export const CREATOR_ID = 'field.cattle.io/creatorId';
 export const RESOURCE_QUOTA = 'field.cattle.io/resourceQuota';
 export const AZURE_MIGRATED = 'auth.cattle.io/azuread-endpoint-migrated';
+export const WORKSPACE_ANNOTATION = 'objectset.rio.cattle.io/id';
+export const NODE_ARCHITECTURE = 'kubernetes.io/arch';
 
 export const KUBERNETES = {
   SERVICE_ACCOUNT_UID:  'kubernetes.io/service-account.uid',
@@ -53,7 +55,11 @@ export const CAPI = {
   DELETE_MACHINE:       'cluster.x-k8s.io/delete-machine',
   PROVIDER:             'provider.cattle.io',
   SECRET_AUTH:          'v2prov-secret-authorized-for-cluster',
-  SECRET_WILL_DELETE:   'v2prov-authorized-secret-deletes-on-cluster-removal'
+  SECRET_WILL_DELETE:   'v2prov-authorized-secret-deletes-on-cluster-removal',
+  /**
+   * Annotation for overriding the cluster provider,
+   */
+  UI_CUSTOM_PROVIDER:   'ui.rancher/provider'
 };
 
 export const CATALOG = {
@@ -96,13 +102,16 @@ export const CATALOG = {
 
   MIGRATED: 'apps.cattle.io/migrated',
   MANAGED:  'catalog.cattle.io/managed',
+
+  HIDDEN_REPO: 'clusterrepo.cattle.io/hidden'
 };
 
 export const FLEET = {
   CLUSTER_DISPLAY_NAME: 'management.cattle.io/cluster-display-name',
   CLUSTER_NAME:         'management.cattle.io/cluster-name',
   BUNDLE_ID:            'fleet.cattle.io/bundle-id',
-  MANAGED:              'fleet.cattle.io/managed'
+  MANAGED:              'fleet.cattle.io/managed',
+  CLUSTER:              'fleet.cattle.io/cluster'
 };
 
 export const RBAC = { PRODUCT: 'management.cattle.io/ui-product' };
@@ -134,6 +143,7 @@ export const HCI = {
   NETWORK_ROUTE:       'network.harvesterhci.io/route',
   IMAGE_NAME:          'harvesterhci.io/image-name',
   NETWORK_TYPE:        'network.harvesterhci.io/type',
+  PRIMARY_SERVICE:     'cloudprovider.harvesterhci.io/primary-service',
 };
 
 // Annotations that can be on management.cattle.io.cluster to configure a custom badge
@@ -143,6 +153,22 @@ export const CLUSTER_BADGE = {
   TEXT:      'ui.rancher/badge-text',
   // Badge color - as a hex color - e.g. #ff00ff
   COLOR:     'ui.rancher/badge-color',
-  // Custom icon text - max 2 characters
+  // Custom icon text - max 3 characters
   ICON_TEXT: 'ui.rancher/badge-icon-text',
 };
+
+export const SYSTEM_LABELS = [
+  'io.cattle.lifecycle.',
+  'beta.kubernetes.io',
+  'failure-domain.beta.kubernetes.io',
+  'node-role.kubernetes.io',
+  'kubernetes.io',
+  'cattle.io',
+  'authz.management.cattle.io',
+  'rke.cattle.io',
+  'field.cattle.io',
+  'workload.user.cattle.io',
+  'k3s.io',
+  'node.kubernetes.io',
+  'egress.rke2.io'
+];

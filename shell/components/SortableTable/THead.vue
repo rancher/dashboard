@@ -136,6 +136,9 @@ export default {
     isIndeterminate() {
       return this.howMuchSelected === SOME;
     },
+    hasColumnWithSubLabel() {
+      return this.columns.some((col) => col.subLabel);
+    }
   },
 
   methods: {
@@ -162,15 +165,13 @@ export default {
       const menu = document.querySelector('.table-options-container');
       const elem = document.querySelector('.table-options-btn');
 
-      if (!this.tableColsMenuPosition) {
-        this.tableColsMenuPosition = fitOnScreen(menu, ev || elem, {
-          overlapX:  true,
-          fudgeX:    26,
-          fudgeY:    -22,
-          positionX: CENTER,
-          positionY: AUTO,
-        });
-      }
+      this.tableColsMenuPosition = fitOnScreen(menu, ev || elem, {
+        overlapX:  true,
+        fudgeX:    326,
+        fudgeY:    -22,
+        positionX: CENTER,
+        positionY: AUTO,
+      });
 
       // toggle visibility
       this.tableColsOptionsVisibility = !this.tableColsOptionsVisibility;
@@ -191,6 +192,16 @@ export default {
         value
       });
     },
+
+    tooltip(col) {
+      if (!col.tooltip) {
+        return null;
+      }
+
+      const exists = this.$store.getters['i18n/exists'];
+
+      return exists(col.tooltip) ? this.t(col.tooltip) : col.tooltip;
+    },
   }
 
 };
@@ -198,15 +209,15 @@ export default {
 
 <template>
   <thead>
-    <tr :class="{'loading': loading}">
+    <tr :class="{'loading': loading, 'top-aligned': hasColumnWithSubLabel}">
       <th
         v-if="tableActions"
         :width="checkWidth"
-        align="middle"
       >
         <Checkbox
           v-model="isAll"
           class="check"
+          data-testid="sortable-table_check_select_all"
           :indeterminate="isIndeterminate"
           :disabled="noRows || noResults"
         />
@@ -228,14 +239,25 @@ export default {
           class="table-header-container"
           :class="{ 'not-filterable': hasAdvancedFiltering && !col.isFilter }"
         >
-          <span
-            v-if="col.sort"
-            v-tooltip="col.tooltip"
+          <div
+            v-clean-tooltip="tooltip(col)"
+            class="content"
           >
-            <span v-html="labelFor(col)" />
+            <span v-clean-html="labelFor(col)" />
+            <span
+              v-if="col.subLabel"
+              class="text-muted"
+            >
+              {{ col.subLabel }}
+            </span>
+          </div>
+          <div
+            v-if="col.sort"
+            class="sort"
+          >
             <i
               v-show="hasAdvancedFiltering && !col.isFilter"
-              v-tooltip="t('sortableTable.tableHeader.noFilter')"
+              v-clean-tooltip="t('sortableTable.tableHeader.noFilter')"
               class="icon icon-info not-filter-icon"
             />
             <span class="icon-stack">
@@ -249,11 +271,7 @@ export default {
                 class="icon icon-sort-up icon-stack-1x"
               />
             </span>
-          </span>
-          <span
-            v-else
-            v-tooltip="col.tooltip"
-          >{{ labelFor(col) }}</span>
+          </div>
         </div>
       </th>
       <th
@@ -338,7 +356,7 @@ export default {
         }
       }
       .table-options-container {
-        width: 320px;
+        width: 350px;
         border: 1px solid var(--primary);
         background-color: var(--body-bg);
         padding: 20px;
@@ -359,11 +377,10 @@ export default {
           list-style: none;
           margin: 0;
           padding: 0;
-          display: flex;
-          flex-wrap: wrap;
+          max-height: 200px;
+          overflow-y: auto;
 
           li {
-            flex: 1 1 136px;
             margin: 0;
             padding: 0;
 
@@ -386,6 +403,11 @@ export default {
       }
     }
 
+    .top-aligned th {
+      vertical-align: top;
+      padding-top: 10px;
+    }
+
     thead {
       tr {
         background-color: var(--sortable-table-header-bg);
@@ -405,11 +427,11 @@ export default {
       color: var(--body-text);
 
       .table-header-container {
-        display: inherit;
+        display: flex;
 
-        > span {
+        .content {
           display: flex;
-          align-items: center;
+          flex-direction: column;
         }
 
         &.not-filterable {
@@ -476,12 +498,10 @@ export default {
     }
   </style>
   <style lang="scss">
+    .table-options-checkbox .checkbox-custom {
+      min-width: 14px;
+    }
     .table-options-checkbox .checkbox-label {
       color: var(--body-text);
-      text-overflow: ellipsis;
-      width: 100px;
-      display: inline-block;
-      white-space: nowrap;
-      overflow: hidden;
     }
   </style>

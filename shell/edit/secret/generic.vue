@@ -35,7 +35,7 @@ export default {
       if (!VALID_DATA_KEY.test(name)) {
         name = name
           .split('')
-          .map(c => VALID_DATA_KEY.test(c) ? c : '_')
+          .map((c) => VALID_DATA_KEY.test(c) ? c : '_')
           .join('');
       }
 

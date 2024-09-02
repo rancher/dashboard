@@ -8,6 +8,7 @@ import { insertAt } from '@shell/utils/array';
 import { downloadUrl } from '@shell/utils/download';
 import findLast from 'lodash/findLast';
 import HybridModel from '@shell/plugins/steve/hybrid-class';
+import { notOnlyOfRole } from '@shell/models/cluster.x-k8s.io.machine';
 
 export default class MgmtNode extends HybridModel {
   get _availableActions() {
@@ -21,11 +22,12 @@ export default class MgmtNode extends HybridModel {
     };
 
     const scaleDown = {
-      action:   'scaleDown',
-      enabled:  !!this.canScaleDown,
-      icon:     'icon icon-minus icon-fw',
-      label:    this.t('node.actions.scaleDown'),
-      bulkable: true,
+      action:     'scaleDown',
+      bulkAction: 'scaleDown',
+      enabled:    !!this.canScaleDown,
+      icon:       'icon icon-minus icon-fw',
+      label:      this.t('node.actions.scaleDown'),
+      bulkable:   true,
     };
 
     insertAt(out, 0, { divider: true });
@@ -105,16 +107,16 @@ export default class MgmtNode extends HybridModel {
     }
   }
 
-  async scaleDown(resources) {
-    const safeResources = Array.isArray(resources) ? resources : [this];
-
-    await Promise.all(safeResources.map((node) => {
-      return node.norman?.doAction('scaledown');
-    }));
+  async scaleDown(resources = this) {
+    this.$dispatch('promptModal', {
+      resources,
+      component:  'ScaleMachineDownDialog',
+      modalWidth: '450px'
+    });
   }
 
   get provisioningCluster() {
-    return this.$getters['all'](CAPI.RANCHER_CLUSTER).find(c => c.mgmtClusterId === this.mgmtClusterId);
+    return this.$getters['all'](CAPI.RANCHER_CLUSTER).find((c) => c.mgmtClusterId === this.mgmtClusterId);
   }
 
   get doneOverride() {
@@ -125,11 +127,14 @@ export default class MgmtNode extends HybridModel {
     return false;
   }
 
+  get addresses() {
+    return this.status?.addresses || this.status?.internalNodeStatus?.addresses || [];
+  }
+
   get internalIp() {
     // This shows in the IP address column for RKE1 nodes in the
     // list of nodes in the cluster detail page of Cluster Management.
-
-    const internal = this.status?.addresses?.find(({ type }) => {
+    const internal = this.addresses.find(({ type }) => {
       return type === ADDRESSES.INTERNAL_IP;
     });
 
@@ -147,8 +152,7 @@ export default class MgmtNode extends HybridModel {
   }
 
   get externalIp() {
-    const addresses = this.status?.addresses || [];
-    const statusAddress = findLast(addresses, address => address.type === 'ExternalIP')?.address;
+    const statusAddress = findLast(this.addresses, (address) => address.type === 'ExternalIP')?.address;
 
     if (statusAddress) {
       return statusAddress;
@@ -164,10 +168,12 @@ export default class MgmtNode extends HybridModel {
   }
 
   get canScaleDown() {
-    const isInOnlyPool = this.pool?.provisioningCluster?.pools?.length === 1;
-    const isOnlyNode = this.pool?.nodes?.length === 1;
+    if (!this.isEtcd && !this.isControlPlane) {
+      return true;
+    }
+
     const hasAction = this.norman?.actions?.scaledown;
 
-    return hasAction && (!isInOnlyPool || !isOnlyNode);
+    return hasAction && notOnlyOfRole(this, this.provisioningCluster?.nodes);
   }
 }

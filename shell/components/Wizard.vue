@@ -18,6 +18,7 @@ Wizard will emit these events:
     finish
 */
 
+// i18n-uses wizard.next, wizard.edit, wizard.create, wizard.view, wizard.finish
 export default {
   name: 'Wizard',
 
@@ -117,11 +118,11 @@ export default {
 
   computed: {
     errorStrings() {
-      return ( this.errors || [] ).map(x => stringify(x));
+      return ( this.errors || [] ).map((x) => stringify(x));
     },
 
     activeStepIndex() {
-      return this.visibleSteps.findIndex(s => s.name === this.activeStep.name);
+      return this.visibleSteps.findIndex((s) => s.name === this.activeStep.name);
     },
 
     showPrevious() {
@@ -153,7 +154,7 @@ export default {
     },
 
     readySteps() {
-      return this.visibleSteps.filter(step => step.ready);
+      return this.visibleSteps.filter((step) => step.ready);
     },
 
     showSteps() {
@@ -161,11 +162,11 @@ export default {
     },
 
     stepsLoaded() {
-      return !this.steps.some(step => step.loading === true);
+      return !this.steps.some((step) => step.loading === true);
     },
 
     visibleSteps() {
-      return this.steps.filter(step => !step.hidden);
+      return this.steps.filter((step) => !step.hidden);
     },
 
     nextButtonStyle() {
@@ -182,6 +183,12 @@ export default {
         this.activeStep = this.visibleSteps[this.initStepIndex];
         this.goToStep(this.activeStepIndex + 1);
       }
+    },
+    errors() {
+      // Ensurce we scroll the errors into view
+      this.$nextTick(() => {
+        this.$refs.wizard.scrollTop = this.$refs.wizard.scrollHeight;
+      });
     }
   },
 
@@ -234,7 +241,7 @@ export default {
         return false;
       }
 
-      const idx = this.visibleSteps.findIndex(s => s.name === step.name);
+      const idx = this.visibleSteps.findIndex((s) => s.name === step.name);
 
       if (idx === 0 && !this.editFirstStep) {
         return false;
@@ -253,7 +260,10 @@ export default {
 </script>
 
 <template>
-  <div class="outer-container">
+  <div
+    ref="wizard"
+    class="outer-container"
+  >
     <Loading
       v-if="!stepsLoaded"
       mode="relative"
@@ -397,10 +407,14 @@ export default {
             color="error"
             :label="err"
             :closable="true"
+            class="footer-error"
             @close="errors.splice(idx, 1)"
           />
         </div>
-        <div class="controls-row pt-20">
+        <div
+          id="wizard-footer-controls"
+          class="controls-row pt-20"
+        >
           <slot
             name="cancel"
             :cancel="cancel"
@@ -468,12 +482,14 @@ $spacer: 10px;
   flex-direction: column;
   flex: 1;
   padding: 0;
+  justify-content: flex-start;
 }
 
 .header {
   display: flex;
   align-content: space-between;
   align-items: center;
+  margin-bottom: 2*$spacer;
 
   border-bottom: var(--header-border-size) solid var(--header-border);
 
@@ -521,20 +537,12 @@ $spacer: 10px;
           align-items: center;
           width: 40px;
           overflow: visible;
-          padding-top: 15px;
+          padding-top: 7px;
 
-          .cru__content & {
-            padding-top: 0;
-
-          }
           & > span {
-            padding-bottom: 5px;
+            padding-bottom: 3px;
             margin-bottom: 5px;
             white-space: nowrap;
-
-            .cru__content & {
-              padding-bottom: 3px;
-            }
           }
         }
 
@@ -561,7 +569,7 @@ $spacer: 10px;
         flex-basis: 100%;
         border-top: 1px solid var(--border);
         position: relative;
-        top: 28px;
+        top: 17px;
 
         .cru__content & {
           top: 13px;
@@ -591,6 +599,7 @@ $spacer: 10px;
         display: flex;
         align-items: center;
         justify-content: space-evenly;
+        position: relative;
 
         & > .subtitle {
           margin-right: 20px;
@@ -638,15 +647,21 @@ $spacer: 10px;
   height: 0;
   overflow-y: auto;
   padding: 20px 2px 2px 2px; // Handle borders flush against edge
-
   display: flex;
   flex-direction: column;
 
   &__step {
+    overflow: hidden;
     display: flex;
     flex-direction: column;
     flex: 1;
   }
+}
+
+// We have to account for the absolute position of the .controls-row
+.footer-error {
+  margin-top: -40px;
+  margin-bottom: 70px;
 }
 
   .controls-row {
@@ -654,7 +669,6 @@ $spacer: 10px;
     // Overrides outlet padding
     margin-left: -$space-m;
     margin-right: -$space-m;
-    margin-bottom: -$space-m;
     padding: $space-s $space-m;
 
     display: flex;
@@ -662,7 +676,10 @@ $spacer: 10px;
     padding-top: $spacer;
 
     border-top: var(--header-border-size) solid var(--header-border);
-
+    position: absolute;
+    bottom: 0;
+    width: 100%;
+    background: var(--body-bg);
     .controls-steps {
 
       .btn {
@@ -670,11 +687,5 @@ $spacer: 10px;
       }
     }
   }
-
-.wizard {
-  .header {
-    margin-bottom: 2*$spacer;
-  }
-}
 
 </style>

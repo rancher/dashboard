@@ -14,7 +14,10 @@ export default {
   computed: {
     useForIcon() {
       return !!this.cluster?.badge?.iconText;
-    }
+    },
+    showBorders() {
+      return this.cluster?.badge?.color === 'transparent';
+    },
   }
 };
 </script>
@@ -28,12 +31,13 @@ export default {
     <div
       v-if="useForIcon"
       class="cluster-badge-logo"
+      :class="{ 'cluster-icon-border': showBorders}"
       :style="{ backgroundColor: cluster.badge.color, color: cluster.badge.textColor }"
     >
       {{ cluster.badge.iconText }}
     </div>
     <!-- eslint-disable -->
-    <svg v-else-if="cluster.isLocal" class="cluster-local-logo" version="1.1" id="Layer_1" xmlns="http://www.w3.org/2000/svg" xmlns:xlink="http://www.w3.org/1999/xlink" x="0px" y="0px" viewBox="0 0 100 100" style="enable-background:new 0 0 100 100;" xml:space="preserve">
+    <svg v-else-if="cluster.isLocal && !cluster.isHarvester" class="cluster-local-logo" version="1.1" id="Layer_1" xmlns="http://www.w3.org/2000/svg" xmlns:xlink="http://www.w3.org/1999/xlink" x="0px" y="0px" viewBox="0 0 100 100" style="enable-background:new 0 0 100 100;" xml:space="preserve">
       <g>
         <g>
           <path class="rancher-icon-fill" d="M26.0862026,44.4953918H8.6165142c-5.5818157,0-9.3979139-4.6252708-8.4802637-10.1311035l2.858391-17.210701
@@ -69,7 +73,13 @@ export default {
     display: flex;
     height: 32px;
     justify-content: center;
-    width: 32px;
+    width: 42px;
+
+    &-border {
+      border: 1px solid var(--border);
+      border-radius: 5px;
+      color: var(--body-text) !important; // !important is needed to override the color set by the badge when there's a transparent background.
+    }
   }
 
   .cluster-icon-small {
@@ -96,8 +106,9 @@ export default {
     width: 25px;
   }
   .cluster-badge-logo {
-    width: 32px;
+    min-width: 42px;
     height: 32px;
+    padding: 0px 5px;
     display: flex;
     align-items: center;
     justify-content: center;

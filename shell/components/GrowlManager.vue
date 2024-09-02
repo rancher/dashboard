@@ -10,7 +10,7 @@ export default {
     ...mapState('growl', ['stack']),
 
     shouldRun() {
-      return this.stack.length && this.stack.find(x => x.timeout > 0);
+      return this.stack.length && this.stack.find((x) => x.timeout > 0);
     }
   },
 
@@ -99,15 +99,17 @@ export default {
             <i :class="{icon: true, ['icon-'+growl.icon]: true}" />
           </div>
           <div class="growl-text">
-            <div>{{ growl.title }}</div>
+            <i
+              class="close hand icon icon-close"
+              @click="close(growl)"
+            />
+            <div class="growl-text-title">
+              {{ growl.title }}
+            </div>
             <p v-if="growl.message">
               {{ growl.message }}
             </p>
           </div>
-          <i
-            class="close hand icon icon-close"
-            @click="close(growl)"
-          />
         </div>
       </div>
     </div>
@@ -135,7 +137,7 @@ export default {
     width: 100%;
 
     @media only screen and (min-width: map-get($breakpoints, '--viewport-7')) {
-      width: 350px;
+      width: 420px;
     }
   }
 
@@ -149,13 +151,15 @@ export default {
     margin: 10px;
     position: relative;
     word-break: break-all;
-
-    .close {
-      padding: 5px;
-    }
+    box-shadow: 0 3px 5px 0px var(--shadow);
 
     .icon-container {
       align-self: center;
+      flex-basis: 10%;
+      padding: 10px 20px 10px 10px;
+      i {
+        font-size: 24px;
+      }
     }
 
     .growl-message {
@@ -164,28 +168,27 @@ export default {
       &.growl-center {
         align-items: center;
       }
-    }
 
-    .growl-text {
-      flex-basis: 90%;
-      padding: 10px 10px 10px 0;
-      word-break: break-word;
-      white-space: normal;
+      .growl-text {
+        position: relative;
+        flex-basis: 90%;
+        padding: 10px 10px 10px 0;
+        word-break: break-word;
+        white-space: normal;
 
-      > div {
-        font-size: 16px;
-      }
+        .close {
+          position: absolute;
+          top: 12px;
+          right: 10px;
+        }
+        .growl-text-title {
+          font-size: 16px;
+          margin-bottom: 20px;
+        }
 
-      > P {
-        margin-top: 5px;
-      }
-    }
-
-    .icon-container {
-      flex-basis: 10%;
-      padding: 10px;
-      i {
-        font-size: 24px;
+        > P {
+          margin-top: 5px;
+        }
       }
     }
   }

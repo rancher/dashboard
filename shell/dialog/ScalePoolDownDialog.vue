@@ -38,7 +38,7 @@ export default {
 
     // Check for showScalePoolPrompt pref
     // If it is not set, set it to true and update promt checkbox
-    if ( showScalePoolPrompt === '' ) {
+    if ( showScalePoolPrompt === null ) {
       this.promptConfirmation = true;
       this.$store.dispatch('prefs/set', { key: SCALE_POOL_PROMPT, value: true });
     } else {

@@ -2,10 +2,8 @@
 import CreateEditView from '@shell/mixins/create-edit-view';
 import { LabeledInput } from '@components/Form/LabeledInput';
 import { azureEnvironments } from '@shell/machine-config/azure';
+import { parseAzureError } from '@shell/utils/azure';
 import LabeledSelect from '@shell/components/form/LabeledSelect';
-
-const AZURE_ERROR_MSG_REGEX = /^.*Message=\"(.*)\"$/;
-const AZURE_ERROR_JSON_REGEX = /^.*Response body: ({.*})/;
 
 export default {
   components: { LabeledInput, LabeledSelect },
@@ -40,6 +38,7 @@ export default {
         clientId,
         clientSecret,
         subscriptionId,
+        environment,
       } = this.value.decodedData;
 
       try {
@@ -50,6 +49,7 @@ export default {
             clientId,
             clientSecret,
             subscriptionId,
+            environment,
           },
           redirectUnauthorized: false,
         });
@@ -57,21 +57,10 @@ export default {
         return true;
       } catch (e) {
         if (e.error) {
-          // Try and parse the response from Azure a couple of ways
-          const msgMatch = e.error.match(AZURE_ERROR_MSG_REGEX);
+          const parsed = parseAzureError(e.error);
 
-          if (msgMatch?.length === 2) {
-            return { errors: [msgMatch[1]] };
-          } else {
-            const jsonMatch = e.error.match(AZURE_ERROR_JSON_REGEX);
-
-            if (jsonMatch?.length === 2) {
-              try {
-                const errorObj = JSON.parse(jsonMatch[1]);
-
-                return { errors: [errorObj.error_description] };
-              } catch (e) {}
-            }
+          if (parsed) {
+            return { errors: [parsed] };
           }
         }
 
@@ -96,6 +85,7 @@ export default {
           :searchable="false"
           :required="true"
           :label="t('cluster.credential.azure.environment.label')"
+          data-testid="azure-cloud-credentials-environment"
           @input="value.setData('environment', $event)"
         />
       </div>
@@ -106,6 +96,7 @@ export default {
           type="text"
           :mode="mode"
           :required="true"
+          data-testid="azure-cloud-credentials-subscription-id"
           @input="value.setData('subscriptionId', $event)"
         />
       </div>
@@ -118,6 +109,7 @@ export default {
           type="text"
           :mode="mode"
           :required="true"
+          data-testid="azure-cloud-credentials-client-id"
           @input="value.setData('clientId', $event)"
         />
       </div>
@@ -128,6 +120,7 @@ export default {
           type="password"
           :mode="mode"
           :required="true"
+          data-testid="azure-cloud-credentials-client-secret"
           @input="value.setData('clientSecret', $event)"
         />
       </div>

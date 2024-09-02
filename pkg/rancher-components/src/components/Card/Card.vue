@@ -1,7 +1,7 @@
 <script lang="ts">
-import Vue from 'vue';
+import { defineComponent, PropType } from 'vue';
 
-export default Vue.extend({
+export default defineComponent({
   name:  'Card',
   props: {
     /**
@@ -22,7 +22,7 @@ export default Vue.extend({
      * The function to invoke when the default action button is clicked.
      */
     buttonAction: {
-      type:    Function,
+      type:    Function as PropType<(event: MouseEvent) => void>,
       default: (): void => { }
     },
     /**
@@ -58,6 +58,7 @@ export default Vue.extend({
   <div
     class="card-container"
     :class="{'highlight-border': showHighlightBorder, 'card-sticky': sticky}"
+    data-testid="card"
   >
     <div class="card-wrap">
       <div
@@ -150,7 +151,7 @@ export default Vue.extend({
 
       .card-body {
         justify-content: flex-start;
-        overflow: scroll;
+        overflow: auto;
       }
 
       > * {

@@ -36,8 +36,8 @@ export default {
   <div class="line">
     <span class="time">{{ format(source.time) }}</span>
     <span
+      v-clean-html="source.msg"
       class="msg"
-      v-html="source.msg"
     />
   </div>
 </template>

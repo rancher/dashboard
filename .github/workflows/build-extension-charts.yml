@@ -1,0 +1,128 @@
+name: Build and Release Extension Charts
+
+on:
+  workflow_call:
+    inputs:
+      target_branch:
+        required: true
+        type: string
+      tagged_release:
+        required: false
+        type: string
+
+env:
+  ACTIONS_RUNNER_DEBUG: false
+  CI_COMMIT_MESSAGE: CI Build Artifacts
+
+defaults:
+  run:
+    shell: bash
+    working-directory: ./
+
+jobs:
+  build-extension-artifact:
+    name: Build extension artifact
+    runs-on: ubuntu-latest
+    permissions:
+      actions: write
+      contents: read
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v3
+        with:
+          fetch-depth: 0
+
+      - name: Configure Git
+        run: |
+          git config user.name 'github-actions[bot]'
+          git config user.email 'github-actions[bot]@users.noreply.github.com'
+
+      - name: Setup Helm
+        uses: azure/setup-helm@v3
+        with:
+          version: v3.8.0
+
+      - name: Setup Nodejs and npm
+        uses: actions/setup-node@v3
+        with:
+          node-version: '16'
+
+      - name: Setup yarn
+        run: npm install -g yarn
+
+      - name: Setup Nodejs with yarn caching
+        uses: actions/setup-node@v3
+        with:
+          node-version: '16'
+          cache: yarn
+
+      - name: Install dependencies
+        run: yarn
+
+      - name: Parse Extension Name
+        if: github.ref_type == 'tag'
+        id: parsed-name
+        env:
+          GH_TOKEN: ${{ github.token }}
+        run: |
+          yarn parse-tag-name ${{ inputs.tagged_release }} ${{ github.run_id }} "charts"
+
+      - name: Run build script
+        shell: bash
+        id: build_script
+        run: |
+          publish="yarn publish-pkgs -s ${{ github.repository }} -b ${{ inputs.target_branch }}"
+
+          if [[ -n "${{ inputs.tagged_release }}" ]]; then
+            publish="$publish -t ${{ inputs.tagged_release }}"
+          fi
+          
+          $publish
+
+      - name: Upload charts artifact
+        if: github.ref_type == 'tag' || (github.ref == 'refs/heads/main' && github.event_name != 'pull_request')
+        uses: actions/upload-artifact@v3
+        with:
+          name: charts
+          path: tmp
+
+  release:
+    name: Release Build
+    if: github.ref_type == 'tag' || (github.ref == 'refs/heads/main' && github.event_name != 'pull_request')
+    needs: build-extension-artifact
+    runs-on: ubuntu-latest
+    permissions:
+      actions: write
+      contents: write
+      deployments: write
+      pages: write
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v3
+        with:
+          ref: "${{ inputs.target_branch }}"
+
+      - name: Configure Git
+        run: |
+          git config user.name 'github-actions[bot]'
+          git config user.email 'github-actions[bot]@users.noreply.github.com'
+
+      - name: Download build artifact
+        uses: actions/download-artifact@v3
+        with:
+          name: charts
+
+      - name: Commit build
+        run: |
+          git add ./{assets,charts,extensions,index.yaml}
+          git commit -a -m "${{ env.CI_COMMIT_MESSAGE }}"
+          git push
+
+      - name: Run chart-releaser
+        uses: helm/chart-releaser-action@v1.4.1
+        with:
+          charts_dir: ./charts/*
+        env:
+          CR_TOKEN: '${{ secrets.GITHUB_TOKEN }}'
+          CR_SKIP_EXISTING: true
+

@@ -21,7 +21,7 @@ export const mutations = {
 };
 
 export const getters = {
-  fromCache: state => ({ credentialId, key }) => {
+  fromCache: (state) => ({ credentialId, key }) => {
     return state.cache[credentialId]?.[key];
   },
 };

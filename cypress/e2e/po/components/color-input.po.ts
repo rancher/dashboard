@@ -2,7 +2,7 @@ import ComponentPo from '@/cypress/e2e/po/components/component.po';
 
 export default class ColorInputPo extends ComponentPo {
   value() {
-    return this.self().find('.color-value').invoke('text').then(text => text.toLowerCase());
+    return this.self().find('.color-value').invoke('text').then((text) => text.toLowerCase());
   }
 
   previewColor() {

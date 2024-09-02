@@ -2,7 +2,7 @@ type UriField = 'source' | 'protocol' | 'authority' | 'userInfo' | 'user' | 'pas
 type UriFields = {
   [key in UriField]: string; // eslint-disable-line no-unused-vars
 }
-type QueryParams = {
+export type QueryParams = {
   [key: string]: string
 }
 
@@ -48,7 +48,7 @@ export function removeParam(url: string, key: string): string {
   return stringify(parsed);
 }
 
-export function parseLinkHeader(str: string) {
+export function parseLinkHeader(str: string): Record<string, string> {
   const out: { [key: string]: string} = { };
   const lines = (str || '').split(',');
 

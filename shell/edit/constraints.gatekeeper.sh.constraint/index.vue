@@ -21,12 +21,12 @@ import Scope, { SCOPE_OPTIONS } from './Scope';
 
 function findConstraintTypes(schemas) {
   return schemas
-    .filter(schema => schema?.attributes?.group === 'constraints.gatekeeper.sh');
+    .filter((schema) => schema?.attributes?.group === 'constraints.gatekeeper.sh');
 }
 
 function findConstraintTypesIds(schemas) {
   return findConstraintTypes(schemas)
-    .map(schema => schema.id);
+    .map((schema) => schema.id);
 }
 
 const CONSTRAINT_PREFIX = 'constraints.gatekeeper.sh.';
@@ -145,8 +145,8 @@ export default {
     },
     systemNamespaceIds() {
       return this.$store.getters['cluster/all'](NAMESPACE)
-        .filter(namespace => namespace.isSystem)
-        .map(namespace => namespace.id);
+        .filter((namespace) => namespace.isSystem)
+        .map((namespace) => namespace.id);
     },
     emptyDefaults() {
       return {

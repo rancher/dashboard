@@ -11,6 +11,7 @@ const SECURE = 'wss://';
 
 const STATE_DISCONNECTED = 'disconnected';
 
+export const addEventListener = EventTarget.addEventListener;
 export const STATE_CONNECTING = 'connecting';
 export const STATE_CONNECTED = 'connected';
 const STATE_CLOSING = 'closing';
@@ -26,6 +27,8 @@ export const EVENT_DISCONNECT_ERROR = 'disconnect_error';
 
 export const NO_WATCH = 'NO_WATCH';
 export const NO_SCHEMA = 'NO_SCHEMA';
+export const NO_PERMS = 'NO_PERMS';
+export const REVISION_TOO_OLD = 'TOO_OLD';
 
 export default class Socket extends EventTarget {
   url;
@@ -48,6 +51,7 @@ export default class Socket extends EventTarget {
   disconnectCallBacks = [];
   disconnectedAt = 0;
   closingId = 0;
+  autoReconnectUrl = null;
 
   constructor(url, autoReconnect = true, frameTimeout = null, protocol = null, maxTries = null, idAsTimestamp = false) {
     super();
@@ -198,6 +202,13 @@ export default class Socket extends EventTarget {
     this.autoReconnect = autoReconnect;
   }
 
+  /**
+   * Supply an async fn that will provide a new url to reconnect to
+   */
+  setAutoReconnectUrl(autoReconnectUrl) {
+    this.autoReconnectUrl = autoReconnectUrl;
+  }
+
   // "Private"
   _close() {
     const socket = this.socket;
@@ -328,12 +339,28 @@ export default class Socket extends EventTarget {
         // dispatch an event which will trigger a growl from steve-plugin sockets warning users that we've given up trying to reconnect
         this.dispatchEvent(new CustomEvent(EVENT_DISCONNECT_ERROR));
       } else {
-        this._log('closed. Attempting to reconnect');
-        const delay = Math.max(1000, Math.min(1000 * this.tries, 30000));
+        const reconnect = () => {
+          this._log('closed. Attempting to reconnect');
+          const delay = Math.max(1000, Math.min(1000 * this.tries, 30000));
 
-        this.reconnectTimer = setTimeout(() => {
-          this.connect();
-        }, delay);
+          this.reconnectTimer = setTimeout(() => {
+            this.connect();
+          }, delay);
+        };
+
+        if (this.autoReconnectUrl) {
+          this.autoReconnectUrl()
+            .then((url) => {
+              this.setUrl(url);
+
+              reconnect();
+            })
+            .catch((e) => {
+              console.error('Failed to fetch socket auto reconnect url', e); // eslint-disable-line no-console
+            });
+        } else {
+          reconnect();
+        }
       }
     } else {
       this.state = STATE_DISCONNECTED;

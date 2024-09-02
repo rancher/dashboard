@@ -38,7 +38,7 @@ export default {
     },
     // get size of largest data set to scale x-axis
     largestSetSize() {
-      return this.dataSets.map(set => set.points.length).reduce((a, b) => Math.max(a, b));
+      return this.dataSets.map((set) => set.points.length).reduce((a, b) => Math.max(a, b));
     },
     lines() {
       const vm = this;
@@ -51,7 +51,7 @@ export default {
 
         const path = d3.line()
           .x((d, i) => vm.scaleX(range, i))
-          .y(d => vm.scaleY(domain, d));
+          .y((d) => vm.scaleY(domain, d));
 
         paths.push(path(dataSet));
       }
@@ -68,7 +68,7 @@ export default {
           const group = d3.selectAll(`.lines--${ i }`).selectAll('*').nodes();
 
           if (group) {
-            group.forEach(element => vm.animateLine(element));
+            group.forEach((element) => vm.animateLine(element));
           }
         });
       },

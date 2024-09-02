@@ -47,7 +47,7 @@ export default {
       this.$set(this, 'principalId', principalId);
     },
     async saveOverride() {
-      const asyncBindings = this.binding.roleTemplateIds.map(roleTemplateId => this.$store.dispatch(`management/create`, {
+      const asyncBindings = this.binding.roleTemplateIds.map((roleTemplateId) => this.$store.dispatch(`management/create`, {
         type:             MANAGEMENT.PROJECT_ROLE_TEMPLATE_BINDING,
         roleTemplateName: roleTemplateId,
         principalName:    this.member.principalId,
@@ -56,7 +56,7 @@ export default {
 
       const bindings = await Promise.all(asyncBindings);
 
-      await Promise.all(bindings.map(binding => binding.save()));
+      await Promise.all(bindings.map((binding) => binding.save()));
       await this.$store.dispatch(`management/findAll`, { type: MANAGEMENT.PROJECT_ROLE_TEMPLATE_BINDING, opt: { force: true } });
 
       this.$router.replace(this.doneLocationOverride);

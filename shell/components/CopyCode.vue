@@ -1,5 +1,7 @@
 <script>
 import { isArray } from '@shell/utils/array';
+import { copyTextToClipboard } from '@shell/utils/clipboard';
+import { exceptionToErrorsArray } from '@shell/utils/error';
 
 function flatten(node) {
   if ( node.text ) {
@@ -27,14 +29,16 @@ export default {
 
       const content = flatten(this.$slots.default).trim();
 
-      this.$copyText(content).then(() => {
+      copyTextToClipboard(content).then(() => {
         this.copied = true;
 
         setTimeout(() => {
           this.copied = false;
         }, 2000);
+        this.$emit('copied');
+      }).catch((e) => {
+        this.$emit('error', exceptionToErrorsArray(e));
       });
-      this.$emit('copied');
     },
   },
 
@@ -53,7 +57,7 @@ export default {
 
 <template>
   <code
-    v-tooltip="tooltip"
+    v-clean-tooltip="tooltip"
     class="copy"
     @click.stop.prevent="clicked"
   ><slot /></code>

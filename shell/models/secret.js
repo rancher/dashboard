@@ -6,6 +6,10 @@ import { SERVICE_ACCOUNT } from '@shell/config/types';
 import { set } from '@shell/utils/object';
 import { NAME as MANAGER } from '@shell/config/product/manager';
 import SteveModel from '@shell/plugins/steve/steve-class';
+import { colorForState, stateDisplay, STATES_ENUM } from '@shell/plugins/dashboard-store/resource-class';
+import { diffFrom } from '@shell/utils/time';
+import day from 'dayjs';
+import { steveCleanForDownload } from '@shell/plugins/steve/resource-utils';
 
 export const TYPES = {
   OPAQUE:           'Opaque',
@@ -23,7 +27,12 @@ export const TYPES = {
   RKE_AUTH_CONFIG:  'rke.cattle.io/auth-config'
 };
 
+/** Class a cert as expiring if in eight days */
+const certExpiringPeriod = 1000 * 60 * 60 * 24 * 8;
+
 export default class Secret extends SteveModel {
+  _cachedCertInfo;
+
   get hasSensitiveData() {
     return true;
   }
@@ -46,7 +55,7 @@ export default class Secret extends SteveModel {
     if (annotations[CERTMANAGER.ISSUER]) {
       return annotations[CERTMANAGER.ISSUER];
     } else if (this.isCertificate) {
-      return this.certInfo?.issuer;
+      return this.cachedCertInfo?.issuer;
     } else {
       return null;
     }
@@ -54,7 +63,7 @@ export default class Secret extends SteveModel {
 
   get notAfter() {
     if (this.isCertificate) {
-      return this.certInfo?.notAfter;
+      return this.cachedCertInfo?.notAfter;
     } else {
       return null;
     }
@@ -62,7 +71,7 @@ export default class Secret extends SteveModel {
 
   get cn() {
     if (this.isCertificate) {
-      return this.certInfo?.cn;
+      return this.cachedCertInfo?.cn;
     }
 
     return null;
@@ -80,14 +89,13 @@ export default class Secret extends SteveModel {
   // use text-warning' or 'text-error' if cert is expiring within 8 days or is expired
   get dateClass() {
     if (this.isCertificate) {
-      const eightDays = 691200000;
-
-      if (this.timeTilExpiration > eightDays ) {
-        return '';
-      } else if (this.timeTilExpiration > 0) {
+      switch (this.certState) {
+      case STATES_ENUM.EXPIRING:
         return 'text-warning';
-      } else {
+      case STATES_ENUM.EXPIRED:
         return 'text-error';
+      default:
+        return '';
       }
     }
 
@@ -248,7 +256,7 @@ export default class Secret extends SteveModel {
   // parse TLS certs and return issuer, notAfter, cn, sans
   get certInfo() {
     const pem = base64Decode(this.data['tls.crt']);
-    let issuer, notAfter, cn, sans, x;
+    let issuer, notBefore, notAfter, cn, sans, x;
     const END_MARKER = '-----END CERTIFICATE-----';
 
     if (pem) {
@@ -266,6 +274,7 @@ export default class Secret extends SteveModel {
         const issuerString = x.getIssuerString();
 
         issuer = issuerString.slice(issuerString.indexOf('CN=') + 3);
+        notBefore = r.zulutodate(x.getNotBefore());
         notAfter = r.zulutodate(x.getNotAfter());
 
         const cnString = x.getSubjectString();
@@ -281,25 +290,39 @@ export default class Secret extends SteveModel {
         sans = [];
       }
 
-      return {
-        issuer, notAfter, cn, sans
+      const certInfo = {
+        issuer, notBefore, notAfter, cn, sans
       };
+
+      return certInfo;
     }
 
     return null;
   }
 
+  get cachedCertInfo() {
+    if (!this._cachedCertInfo) {
+      this._cachedCertInfo = this.certInfo;
+    }
+
+    return this._cachedCertInfo;
+  }
+
   // use for + n more name display
   get unrepeatedSans() {
     if (this._type === TYPES.TLS ) {
-      if (this.certInfo?.sans?.filter) {
-        const commonBases = this.certInfo?.sans.filter(name => name.indexOf('*.') === 0 || name.indexOf('www.') === 0).map(name => name.substr(name.indexOf('.')));
-        const displaySans = removeObjects(this.certInfo?.sans, commonBases);
+      const certInfo = this.cachedCertInfo;
+
+      if (certInfo?.sans?.filter) {
+        const commonBases = certInfo?.sans
+          .filter((name) => name.indexOf('*.') === 0 || name.indexOf('www.') === 0)
+          .map((name) => name.substr(name.indexOf('.')));
+        const displaySans = removeObjects(certInfo?.sans, commonBases);
 
         return displaySans;
       }
 
-      return this.certInfo?.sans || [];
+      return certInfo?.sans?.array || certInfo?.sans || [];
     }
 
     return null;
@@ -307,14 +330,26 @@ export default class Secret extends SteveModel {
 
   get timeTilExpiration() {
     if (this._type === TYPES.TLS) {
-      const expiration = this.certInfo.notAfter;
+      const certInfo = this.cachedCertInfo;
+
+      if (!certInfo?.notAfter) {
+        return null;
+      }
+
+      const expiration = certInfo.notAfter;
       const timeThen = expiration.valueOf();
       const timeNow = Date.now();
 
-      return timeThen - timeNow;
+      const timeTilExpiration = timeThen - timeNow;
+
+      return timeTilExpiration < 0 ? 0 : timeTilExpiration;
     }
 
     return null;
+  }
+
+  get timeTilExpirationDate() {
+    return this.timeTilExpiration > 0 ? this.cachedCertInfo?.notAfter?.valueOf() : null;
   }
 
   get decodedData() {
@@ -356,5 +391,78 @@ export default class Secret extends SteveModel {
     } else {
       return 'c-cluster-product-resource';
     }
+  }
+
+  get certLifetime() {
+    if (this._type === TYPES.TLS) {
+      const certInfo = this.cachedCertInfo;
+
+      if (certInfo) {
+        return diffFrom(day(certInfo.notBefore), day(certInfo.notAfter), (key, args) => this.t(key, args)).string;
+      }
+    }
+
+    return null;
+  }
+
+  /**
+   * Get the model `state` for secrets of type cert
+   */
+  get certState() {
+    if (this._type !== TYPES.TLS) {
+      return undefined;
+    }
+
+    if (typeof this.timeTilExpiration !== 'number' || this.timeTilExpiration > certExpiringPeriod ) {
+      return '';
+    } else if (this.timeTilExpiration > 0) {
+      return STATES_ENUM.EXPIRING;
+    } else {
+      return STATES_ENUM.EXPIRED;
+    }
+  }
+
+  /**
+   * Get the model `state display` for secrets of type cert
+   */
+  get certStateDisplay() {
+    if (this._type !== TYPES.TLS) {
+      return undefined;
+    }
+
+    return stateDisplay(this.certState);
+  }
+
+  /**
+   * Get the model `state background` for secrets of type cert
+   */
+  get certStateBackground() {
+    if (this._type !== TYPES.TLS) {
+      return undefined;
+    }
+
+    const color = colorForState(this.certState);
+
+    return color.replace('text-', 'bg-');
+  }
+
+  cleanForSave(data, forNew) {
+    const val = super.cleanForSave(data, forNew);
+
+    // Secrets on create with _type will return validation error
+    // Secrets on edit without _type will return http error
+    if (forNew) {
+      delete val._type;
+    }
+
+    return val;
+  }
+
+  async cleanForDownload(yaml) {
+    // secret resource contains the type attribute
+    // ref: https://kubernetes.io/docs/reference/kubernetes-api/config-and-storage-resources/secret-v1/
+    // ref: https://kubernetes.io/docs/concepts/configuration/secret/#secret-types
+
+    return steveCleanForDownload(yaml, { rootKeys: ['id', 'links', 'actions'] });
   }
 }

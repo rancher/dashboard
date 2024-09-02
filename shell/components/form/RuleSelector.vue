@@ -96,7 +96,7 @@ export default {
     },
     onValueInput(scope, rawValue) {
       scope.row.value.values = rawValue.split(',')
-        .map(entry => entry.trim());
+        .map((entry) => entry.trim());
       scope.queueUpdate();
     }
   },

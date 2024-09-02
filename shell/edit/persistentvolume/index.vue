@@ -13,9 +13,9 @@ import NodeAffinity from '@shell/components/form/NodeAffinity';
 import { Checkbox } from '@components/Form/Checkbox';
 import uniq from 'lodash/uniq';
 import UnitInput from '@shell/components/form/UnitInput';
+import { VOLUME_PLUGINS, LONGHORN_PLUGIN } from '@shell/config/persistentVolume';
 import { NODE, PVC, STORAGE_CLASS } from '@shell/config/types';
 import Loading from '@shell/components/Loading';
-import { LONGHORN_PLUGIN, VOLUME_PLUGINS } from '@shell/models/persistentvolume';
 import { _CREATE, _VIEW } from '@shell/config/query-params';
 import { clone } from '@shell/utils/object';
 import InfoBox from '@shell/components/InfoBox';
@@ -53,7 +53,7 @@ export default {
             var:         'currentClaim',
             classify:    true,
             parsingFunc: (data) => {
-              return data.find(claim => claim.spec.volumeName === this.value.name);
+              return data.find((claim) => claim.spec.volumeName === this.value.name);
             }
           }
         ]
@@ -76,7 +76,7 @@ export default {
     this.$set(this.value.spec.capacity, 'storage', this.value.spec.capacity.storage || '10Gi');
     this.$set(this.value.spec, 'storageClassName', this.value.spec.storageClassName || NONE_OPTION.value);
 
-    const foundPlugin = this.value.isLonghorn ? LONGHORN_PLUGIN : VOLUME_PLUGINS.find(plugin => this.value.spec[plugin.value]);
+    const foundPlugin = this.value.isLonghorn ? LONGHORN_PLUGIN : VOLUME_PLUGINS.find((plugin) => this.value.spec[plugin.value]);
     const plugin = (foundPlugin || VOLUME_PLUGINS[0]).value;
 
     return {
@@ -145,7 +145,7 @@ export default {
       return this.plugin === 'local';
     },
     plugins() {
-      return VOLUME_PLUGINS.filter(plugin => this.showUnsupportedStorage || plugin.supported);
+      return VOLUME_PLUGINS.filter((plugin) => this.showUnsupportedStorage || plugin.supported);
     }
   },
 
@@ -163,7 +163,7 @@ export default {
               {
                 var:         'storageClassOptions',
                 parsingFunc: (data) => {
-                  const storageClassOptions = data.map(s => ({
+                  const storageClassOptions = data.map((s) => ({
                     label: s.metadata.name,
                     value: s.metadata.name
                   }));
@@ -237,9 +237,9 @@ export default {
       <div class="row">
         <div class="col span-6 text-center">
           <label class="text-muted">Persistent Volume Claim:</label>&nbsp;
-          <n-link :to="currentClaim.detailLocation">
+          <router-link :to="currentClaim.detailLocation">
             {{ currentClaim.namespacedName }}
-          </n-link>
+          </router-link>
         </div>
         <div class="col span-6 text-center">
           <label class="text-muted">Age:</label>&nbsp;
@@ -258,6 +258,7 @@ export default {
           :label="t('persistentVolume.plugin.label')"
           :localized-label="true"
           option-label="labelKey"
+          data-testid="persistent-volume-plugin-select"
           :options="plugins"
           :mode="modeOverride"
           :required="true"

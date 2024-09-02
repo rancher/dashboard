@@ -26,6 +26,12 @@ export default {
       type:    Boolean,
       default: true,
     },
+    // change the grafana url prefix for local clusters in certain monitoring versions
+    // project monitoring (projectHelmCharts) supply a grafana url that never needs to be modified in this way
+    modifyPrefix: {
+      type:    Boolean,
+      default: true
+    }
   },
   data() {
     return {
@@ -66,6 +72,7 @@ export default {
     >
       <GrafanaDashboard
         v-if="graphOptions.type === 'detail'"
+        key="'detail'"
         class="col span-12 detail"
         :background-color="graphBackgroundColor"
         :theme="theme"
@@ -73,9 +80,11 @@ export default {
         :range="graphOptions.range"
         :url="detailUrl"
         :vars="vars"
+        :modify-prefix="modifyPrefix"
       />
       <GrafanaDashboard
         v-else
+        key="'summary'"
         class="col span-12 summary"
         :background-color="graphBackgroundColor"
         :theme="theme"
@@ -83,6 +92,7 @@ export default {
         :range="graphOptions.range"
         :url="summaryUrl"
         :vars="vars"
+        :modify-prefix="modifyPrefix"
       />
     </div>
   </div>
@@ -108,7 +118,7 @@ export default {
     .external-link {
       position: absolute;
       left: 10px;
-      top: -45px;
+      top: -47px;
     }
   }
 }

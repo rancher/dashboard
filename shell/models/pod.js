@@ -3,6 +3,7 @@ import { colorForState, stateDisplay } from '@shell/plugins/dashboard-store/reso
 import { NODE, WORKLOAD_TYPES } from '@shell/config/types';
 import { escapeHtml, shortenedImage } from '@shell/utils/string';
 import WorkloadService from '@shell/models/workload.service';
+import { deleteProperty } from '@shell/utils/object';
 
 export const WORKLOAD_PRIORITY = {
   [WORKLOAD_TYPES.DEPLOYMENT]:             1,
@@ -15,6 +16,36 @@ export const WORKLOAD_PRIORITY = {
 };
 
 export default class Pod extends WorkloadService {
+  _os = undefined;
+
+  get inStore() {
+    return this.$rootGetters['currentProduct'].inStore;
+  }
+
+  set os(operatingSystem) {
+    this._os = operatingSystem;
+  }
+
+  get os() {
+    if (this._os) {
+      return this._os;
+    }
+
+    return this?.node?.status?.nodeInfo?.operatingSystem;
+  }
+
+  get node() {
+    try {
+      const schema = this.$store.getters[`cluster/schemaFor`](NODE);
+
+      if (schema) {
+        this.$dispatch(`find`, { type: NODE, id: this.spec.nodeName });
+      }
+    } catch {}
+
+    return this.$getters['byId'](NODE, this.spec.nodeName);
+  }
+
   get _availableActions() {
     const out = super._availableActions;
 
@@ -57,7 +88,7 @@ export default class Pod extends WorkloadService {
 
   get defaultContainerName() {
     const containers = this.spec.containers;
-    const desirable = containers.filter(c => c.name !== 'istio-proxy');
+    const desirable = containers.filter((c) => c.name !== 'istio-proxy');
 
     if ( desirable.length ) {
       return desirable[0].name;
@@ -111,7 +142,7 @@ export default class Pod extends WorkloadService {
   }
 
   get imageNames() {
-    return this.spec.containers.map(container => shortenedImage(container.image));
+    return this.spec.containers.map((container) => shortenedImage(container.image));
   }
 
   get workloadRef() {
@@ -127,6 +158,10 @@ export default class Pod extends WorkloadService {
     });
 
     return workloads[0];
+  }
+
+  get ownedByWorkload() {
+    return !!this.workloadRef;
   }
 
   get details() {
@@ -181,6 +216,21 @@ export default class Pod extends WorkloadService {
     return 0;
   }
 
+  processSaveResponse(res) {
+    if (res._headers && res._headers.warning) {
+      const warnings = res._headers.warning.split('299') || [];
+      const hasPsaWarnings = warnings.filter((warning) => warning.includes('violate PodSecurity')).length;
+
+      if (hasPsaWarnings) {
+        this.$dispatch('growl/warning', {
+          title:   this.$rootGetters['i18n/t']('growl.podSecurity.title'),
+          message: this.$rootGetters['i18n/t']('growl.podSecurity.message'),
+          timeout: 5000,
+        }, { root: true });
+      }
+    }
+  }
+
   save() {
     const prev = { ...this };
 
@@ -206,5 +256,24 @@ export default class Pod extends WorkloadService {
 
       return Promise.reject(e);
     });
+  }
+
+  cleanForSave(data) {
+    const val = super.cleanForSave(data);
+
+    // remove fields from containers
+    val.spec?.containers?.forEach((container) => {
+      this.cleanContainerForSave(container);
+    });
+
+    // remove fields from initContainers
+    val.spec?.initContainers?.forEach((container) => {
+      this.cleanContainerForSave(container);
+    });
+
+    // This is probably added by generic workload components that shouldn't be added to pods
+    deleteProperty(val, 'spec.selector');
+
+    return val;
   }
 }

@@ -40,7 +40,7 @@ export default {
         return this.value.hec_port;
       },
       set(port) {
-        updatePort(value => this.$set(this.value, 'hec_port', value), port);
+        updatePort((value) => this.$set(this.value, 'hec_port', value), port);
       }
     }
   }

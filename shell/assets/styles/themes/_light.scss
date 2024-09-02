@@ -11,7 +11,7 @@ $dark      : #B6B6C2;
 //light border and buttons
 $medium    : #DCDEE7;
 
-//light inputs 
+//light inputs
 $light     : #EEEFF4;
 
 //light sidebar and box
@@ -84,9 +84,9 @@ BODY, .theme-light {
   --link-border             : #{$link};
   --link-banner-bg          : #{rgba($link, 0.15)};
   --link-light-bg           : #{rgba($link, 0.05)};
- 
 
-  
+
+
   .text-link {
     color: var(--link) !important;
   }
@@ -251,7 +251,7 @@ BODY, .theme-light {
   --warning-light-bg           : #{rgba($warning, 0.05)};
 
   .text-warning {
-    color: var(--error) !important;
+    color: var(--warning) !important;
   }
 
   .bg-warning {
@@ -301,7 +301,7 @@ BODY, .theme-light {
       background: var(--error-active-bg);
       }
   }
-  
+
 
   --body-bg                    : #{$lightest};
   --body-text                  : #{$darkest};
@@ -320,13 +320,14 @@ BODY, .theme-light {
   --header-height              : 55px;
   --header-border              : #{$medium};
   --header-border-size         : 1px;
-  --nav-width                  : 230px;
+  --nav-width                  : 250px;
   --nav-bg                     : #{$lightest};
   --nav-active                 : #{$light};
   --nav-hover                  : #{$medium};
   --nav-expander-hover         : #{darken($medium, 10%)};
   --nav-border                 : #{$medium};
   --nav-border-size            : 1px;
+  --nav-icon-badge-bg          : #{$lightest};
 
   --footer-bg                  : transparent;
   --footer-height              : 0px;
@@ -375,6 +376,7 @@ BODY, .theme-light {
   --dropdown-hover-bg          : var(--link);
   --dropdown-disabled-text     : var(--muted);
   --dropdown-disabled-bg       : #{$disabled};
+  --dropdown-group-text        : #{$darker};
   --dropdown-highlight-text    : var(--link);
 
   --card-badge-text            : #ffffff;

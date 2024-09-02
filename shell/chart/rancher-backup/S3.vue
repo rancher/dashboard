@@ -2,14 +2,16 @@
 import { LabeledInput } from '@components/Form/LabeledInput';
 import { Checkbox } from '@components/Form/Checkbox';
 import FileSelector from '@shell/components/form/FileSelector';
-import LabeledSelect from '@shell/components/form/LabeledSelect';
+import ResourceLabeledSelect from '@shell/components/form/ResourceLabeledSelect';
 import { mapGetters } from 'vuex';
+import { SECRET } from '@shell/config/types';
+
 export default {
   components: {
     LabeledInput,
     Checkbox,
     FileSelector,
-    LabeledSelect,
+    ResourceLabeledSelect,
   },
 
   props: {
@@ -24,9 +26,23 @@ export default {
       default: 'create'
     },
 
-    secrets: {
-      type:    Array,
-      default: () => []
+  },
+
+  data() {
+    return { SECRET };
+  },
+
+  mounted() {
+    this.$emit('valid', this.valid);
+  },
+
+  beforeDestroy() {
+    this.$emit('valid', true);
+  },
+
+  watch: {
+    valid() {
+      this.$emit('valid', this.valid);
     }
   },
 
@@ -45,6 +61,9 @@ export default {
         this.$set(this.value, 'credentialSecretNamespace', namespace);
       }
     },
+    valid() {
+      return !!this.value.endpoint && !!this.value.bucketName;
+    },
     ...mapGetters({ t: 'i18n/t' })
   },
 
@@ -58,7 +77,7 @@ export default {
         // eslint-disable-next-line no-console
         console.warn(e);
       }
-    }
+    },
   },
 
   created() {
@@ -75,20 +94,22 @@ export default {
   <div>
     <div class="row mb-10">
       <div class="col span-6">
-        <LabeledSelect
+        <ResourceLabeledSelect
           v-model="credentialSecret"
           :get-option-label="opt=>opt.metadata.name || ''"
           option-key="id"
           :mode="mode"
-          :options="secrets"
           :label="t('backupRestoreOperator.s3.credentialSecretName')"
+          :resource-type="SECRET"
         />
       </div>
       <div class="col span-6">
         <LabeledInput
           v-model="value.bucketName"
+          data-testid="S3-bucketName"
           :mode="mode"
           :label="t('backupRestoreOperator.s3.bucketName')"
+          required
         />
       </div>
     </div>
@@ -114,6 +135,8 @@ export default {
           v-model="value.endpoint"
           :mode="mode"
           :label="t('backupRestoreOperator.s3.endpoint')"
+          data-testid="S3-endpoint"
+          required
         />
         <Checkbox
           v-model="value.insecureTLSSkipVerify"
@@ -139,7 +162,7 @@ export default {
           />
           <div class="ca-tooltip">
             <i
-              v-tooltip="t('backupRestoreOperator.s3.endpointCA.prompt')"
+              v-clean-tooltip="t('backupRestoreOperator.s3.endpointCA.prompt')"
               class="icon icon-info"
             />
           </div>

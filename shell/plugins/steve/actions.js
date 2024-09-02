@@ -1,24 +1,24 @@
 import https from 'https';
 import { addParam, parse as parseUrl, stringify as unParseUrl } from '@shell/utils/url';
 import { handleSpoofedRequest, loadSchemas } from '@shell/plugins/dashboard-store/actions';
-import { set } from '@shell/utils/object';
+import { dropKeys, set } from '@shell/utils/object';
 import { deferred } from '@shell/utils/promise';
 import { streamJson, streamingSupported } from '@shell/utils/stream';
 import isObject from 'lodash/isObject';
 import { classify } from '@shell/plugins/dashboard-store/classify';
 import { NAMESPACE } from '@shell/config/types';
-import jsyaml from 'js-yaml';
+import { handleKubeApiHeaderWarnings } from '@shell/plugins/steve/header-warnings';
+import { steveCleanForDownload } from '@shell/plugins/steve/resource-utils';
 
 export default {
 
-  // Need to override this, so that thhe 'this' context is correct (this class not the base class)
+  // Need to override this, so that the 'this' context is correct (this class not the base class)
   async loadSchemas(ctx, watch = true) {
     return await loadSchemas(ctx, watch);
   },
 
   async request({ state, dispatch, rootGetters }, pOpt ) {
     const opt = pOpt.opt || pOpt;
-
     const spoofedRes = await handleSpoofedRequest(rootGetters, 'cluster', opt);
 
     if (spoofedRes) {
@@ -85,7 +85,7 @@ export default {
 
     while (true) {
       try {
-        const out = await makeRequest(this, opt);
+        const out = await makeRequest(this, opt, rootGetters);
 
         if (!opt.depaginate) {
           return out;
@@ -116,7 +116,7 @@ export default {
       }
     }
 
-    function makeRequest(that, opt) {
+    function makeRequest(that, opt, rootGetters) {
       return that.$axios(opt).then((res) => {
         let out;
 
@@ -127,6 +127,8 @@ export default {
         }
 
         finishDeferred(key, 'resolve', out);
+
+        handleKubeApiHeaderWarnings(res, dispatch, rootGetters, opt.method);
 
         return out;
       });
@@ -224,7 +226,7 @@ export default {
     if ( opt.load !== false && res.type === 'collection' ) {
       await dispatch('loadMulti', res.data);
 
-      return res.data.map(x => getters.byId(x.type, x.id) || x);
+      return res.data.map((x) => getters.byId(x.type, x.id) || x);
     } else if ( opt.load !== false && res.type && res.id ) {
       return dispatch('load', { data: res });
     } else {
@@ -256,7 +258,7 @@ export default {
     if ( opt.load !== false && res.type === 'collection' ) {
       await dispatch('loadMulti', res.data);
 
-      return res.data.map(x => getters.byId(x.type, x.id) || x);
+      return res.data.map((x) => getters.byId(x.type, x.id) || x);
     } else if ( opt.load !== false && res.type && res.id ) {
       return dispatch('load', { data: res });
     } else {
@@ -327,31 +329,7 @@ export default {
 
   // remove fields added by steve before showing/downloading yamls
   cleanForDownload(ctx, yaml) {
-    if (!yaml) {
-      return;
-    }
-    const rootKeys = [
-      'id',
-      'links',
-      'type',
-      'actions'
-    ];
-    const metadataKeys = [
-      'fields',
-      'relationships',
-      'state',
-    ];
-    const conditionKeys = [
-      'error',
-      'transitioning',
-    ];
-    const obj = jsyaml.load(yaml);
-
-    dropKeys(obj, rootKeys);
-    dropKeys(obj?.metadata, metadataKeys);
-    (obj?.status?.conditions || []).forEach(condition => dropKeys(condition, conditionKeys));
-
-    return jsyaml.dump(obj);
+    return steveCleanForDownload(yaml);
   }
 };
 
@@ -392,16 +370,6 @@ function dropUnderscores(obj) {
         dropUnderscores(v);
       }
     }
-  }
-}
-
-function dropKeys(obj, keys) {
-  if ( !obj ) {
-    return;
-  }
-
-  for ( const k of keys ) {
-    delete obj[k];
   }
 }
 

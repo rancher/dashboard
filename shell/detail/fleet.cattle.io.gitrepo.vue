@@ -1,4 +1,5 @@
 <script>
+import Loading from '@shell/components/Loading';
 import ResourceTabs from '@shell/components/form/ResourceTabs';
 import FleetSummary from '@shell/components/fleet/FleetSummary';
 import { Banner } from '@components/Banner';
@@ -8,12 +9,13 @@ import { FLEET } from '@shell/config/types';
 import { isHarvesterCluster } from '@shell/utils/cluster';
 import FleetBundles from '@shell/components/fleet/FleetBundles.vue';
 import { resourceCounts } from '@shell/components/ResourceSummary.vue';
-import { allHash } from '~shell/utils/promise';
+import { checkSchemasForFindAllHash } from '@shell/utils/auth';
 
 export default {
   name: 'DetailGitRepo',
 
   components: {
+    Loading,
     FleetResources,
     FleetSummary,
     Banner,
@@ -31,20 +33,22 @@ export default {
 
   data() {
     return {
-      allFleet:   [],
-      allBundles: []
+      allFleetClusters:     [],
+      allBundles:           [],
+      allBundleDeployments: [],
     };
   },
-
   computed: {
-
     gitRepoHasClusters() {
-      return this.value.status.desiredReadyClusters;
+      return this.value?.clusterResourceStatus?.length;
+    },
+    clusterSchema() {
+      return this.$store.getters['management/schemaFor'](FLEET.CLUSTER);
     },
     harvesterClusters() {
       const harvester = {};
 
-      this.allFleet.forEach((c) => {
+      this.allFleetClusters.forEach((c) => {
         if (isHarvesterCluster(c)) {
           harvester[c.metadata.name] = c;
         }
@@ -52,7 +56,6 @@ export default {
 
       return harvester;
     },
-
     bundleCounts() {
       return resourceCounts(this.$store, FLEET.BUNDLE);
     },
@@ -74,23 +77,41 @@ export default {
     },
   },
   async fetch() {
-    const { $store } = this;
+    const allDispatches = await checkSchemasForFindAllHash({
+      allBundles: {
+        inStoreType: 'management',
+        type:        FLEET.BUNDLE
+      },
 
-    const allDispatches = await allHash({
-      allBundles:    $store.dispatch('management/findAll', { type: FLEET.BUNDLE }),
-      allFleet:      $store.dispatch('management/findAll', { type: FLEET.CLUSTER }),
-      clusterGroups: $store.dispatch('management/findAll', { type: FLEET.CLUSTER_GROUP }),
-    });
+      allBundleDeployments: {
+        inStoreType: 'management',
+        type:        FLEET.BUNDLE_DEPLOYMENT
+      },
 
-    this.allBundles = allDispatches.allBundles;
-    this.allFleet = allDispatches.allFleet;
+      allFleetClusters: {
+        inStoreType: 'management',
+        type:        FLEET.CLUSTER
+      },
+      clusterGroups: {
+        inStoreType: 'management',
+        type:        FLEET.CLUSTER_GROUP
+      }
+    }, this.$store);
+
+    this.allBundleDeployments = allDispatches.allBundleDeployments || [];
+    this.allBundles = allDispatches.allBundles || [];
+    this.allFleetClusters = allDispatches.allFleetClusters || [];
   },
 
 };
 </script>
 
 <template>
-  <div class="mt-20">
+  <Loading v-if="$fetchState.pending" />
+  <div
+    v-else
+    class="mt-20"
+  >
     <FleetSummary
       v-if="gitRepoHasClusters"
       :value="value"
@@ -111,6 +132,7 @@ export default {
       :need-related="false"
     >
       <Tab
+        v-if="!!allBundles.length"
         label="Bundles"
         name="bundles"
         :weight="30"

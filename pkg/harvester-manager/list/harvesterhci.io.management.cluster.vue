@@ -70,12 +70,12 @@ export default {
     canCreateCluster() {
       const schema = this.$store.getters['management/schemaFor'](CAPI.RANCHER_CLUSTER);
 
-      return !!schema?.collectionMethods.find(x => x.toLowerCase() === 'post');
+      return !!schema?.collectionMethods.find((x) => x.toLowerCase() === 'post');
     },
 
     rows() {
       return this.hciClusters.filter((c) => {
-        const cluster = this.mgmtClusters.find(cluster => cluster?.metadata?.name === c?.status?.clusterName);
+        const cluster = this.mgmtClusters.find((cluster) => cluster?.metadata?.name === c?.status?.clusterName);
 
         return isHarvesterCluster(cluster);
       });
@@ -125,12 +125,12 @@ export default {
         v-if="canCreateCluster"
         slot="extraActions"
       >
-        <n-link
+        <router-link
           :to="importLocation"
           class="btn role-primary"
         >
           {{ t('cluster.importAction') }}
-        </n-link>
+        </router-link>
       </template>
     </Masthead>
 
@@ -163,12 +163,12 @@ export default {
       </template>
 
       <template #cell:harvester="{row}">
-        <n-link
+        <router-link
           class="btn btn-sm role-primary"
           :to="row.detailLocation"
         >
           {{ t('harvesterManager.manage') }}
-        </n-link>
+        </router-link>
       </template>
     </ResourceTable>
     <div v-else>
@@ -186,7 +186,7 @@ export default {
         <div>{{ t('harvesterManager.cluster.description') }}</div>
       </div>
       <div class="tagline sub-tagline">
-        <div v-html="t('harvesterManager.cluster.learnMore', {}, true)" />
+        <div v-clean-html="t('harvesterManager.cluster.learnMore', {}, true)" />
       </div>
     </div>
   </div>

@@ -1,7 +1,6 @@
-import Vue from 'vue';
 import { CATALOG, CLUSTER_BADGE } from '@shell/config/labels-annotations';
 import { NODE, FLEET, MANAGEMENT, CAPI } from '@shell/config/types';
-import { insertAt } from '@shell/utils/array';
+import { insertAt, addObject, removeObject } from '@shell/utils/array';
 import { downloadFile } from '@shell/utils/download';
 import { parseSi } from '@shell/utils/units';
 import { parseColor, textColor } from '@shell/utils/color';
@@ -11,15 +10,24 @@ import { addParams } from '@shell/utils/url';
 import { isEmpty } from '@shell/utils/object';
 import { HARVESTER_NAME as HARVESTER } from '@shell/config/features';
 import { isHarvesterCluster } from '@shell/utils/cluster';
-import HybridModel from '@shell/plugins/steve/hybrid-class';
+import SteveModel from '@shell/plugins/steve/steve-class';
 import { LINUX, WINDOWS } from '@shell/store/catalog';
 import { KONTAINER_TO_DRIVER } from './management.cattle.io.kontainerdriver';
+import { PINNED_CLUSTERS } from '@shell/store/prefs';
+import { copyTextToClipboard } from '@shell/utils/clipboard';
 
 // See translation file cluster.providers for list of providers
 // If the logo is not named with the provider name, add an override here
 const PROVIDER_LOGO_OVERRIDE = {};
 
-export default class MgmtCluster extends HybridModel {
+function findRelationship(verb, type, relationships = []) {
+  const from = `${ verb }Type`;
+  const id = `${ verb }Id`;
+
+  return relationships.find((r) => r[from] === type)?.[id];
+}
+
+export default class MgmtCluster extends SteveModel {
   get details() {
     const out = [
       {
@@ -76,10 +84,14 @@ export default class MgmtCluster extends HybridModel {
   get machinePools() {
     const pools = this.$getters['all'](MANAGEMENT.NODE_POOL);
 
-    return pools.filter(x => x.spec?.clusterName === this.id);
+    return pools.filter((x) => x.spec?.clusterName === this.id);
   }
 
   get provisioner() {
+    if (this.status?.provider ) {
+      return this.status.provider;
+    }
+
     // For imported K3s clusters, this.status.driver is 'k3s.'
     return this.status?.driver ? this.status.driver : 'imported';
   }
@@ -196,7 +208,7 @@ export default class MgmtCluster extends HybridModel {
   }
 
   get kubernetesVersionExtension() {
-    if ( this.kubernetesVersion.match(/[+-]]/) ) {
+    if ( this.kubernetesVersion.match(/[+-]/) ) {
       return this.kubernetesVersion.replace(/^.*([+-])/, '$1');
     }
 
@@ -254,7 +266,11 @@ export default class MgmtCluster extends HybridModel {
   }
 
   get providerLogo() {
-    const provider = this.status?.provider || 'kubernetes';
+    let provider = this.status?.provider || 'kubernetes';
+
+    if (this.isHarvester) {
+      provider = HARVESTER;
+    }
     // Only interested in the part before the period
     const prv = provider.split('.')[0];
     // Allow overrides if needed
@@ -274,26 +290,19 @@ export default class MgmtCluster extends HybridModel {
   }
 
   get providerMenuLogo() {
-    if (this?.status?.provider === HARVESTER) {
-      return require(`~shell/assets/images/providers/kubernetes.svg`);
-    }
-
     return this.providerLogo;
   }
 
   get providerNavLogo() {
-    if (this?.status?.provider === HARVESTER && this.$rootGetters['currentProduct'].inStore !== HARVESTER) {
-      return require(`~shell/assets/images/providers/kubernetes.svg`);
-    }
-
     return this.providerLogo;
   }
 
   // Custom badge to show for the Cluster (if the appropriate annotations are set)
   get badge() {
-    const text = this.metadata?.annotations?.[CLUSTER_BADGE.TEXT];
+    const icon = this.metadata?.annotations?.[CLUSTER_BADGE.ICON_TEXT];
+    const comment = this.metadata?.annotations?.[CLUSTER_BADGE.TEXT];
 
-    if (!text) {
+    if (!icon && !comment) {
       return undefined;
     }
 
@@ -301,10 +310,10 @@ export default class MgmtCluster extends HybridModel {
     const iconText = this.metadata?.annotations[CLUSTER_BADGE.ICON_TEXT] || '';
 
     return {
-      text,
+      text:      comment || undefined,
       color,
       textColor: textColor(parseColor(color)),
-      iconText:  iconText.substr(0, 2)
+      iconText:  iconText.substr(0, 3)
     };
   }
 
@@ -400,19 +409,23 @@ export default class MgmtCluster extends HybridModel {
   }
 
   async copyKubeConfig() {
-    const config = await this.generateKubeConfig();
+    try {
+      const config = await this.generateKubeConfig();
 
-    Vue.prototype.$copyText(config);
+      if (config) {
+        await copyTextToClipboard(config);
+      }
+    } catch {}
   }
 
   async fetchNodeMetrics() {
     const nodes = await this.$dispatch('cluster/findAll', { type: NODE }, { root: true });
     const nodeMetrics = await this.$dispatch('cluster/findAll', { type: NODE }, { root: true });
 
-    const someNonWorkerRoles = nodes.some(node => node.hasARole && !node.isWorker);
+    const someNonWorkerRoles = nodes.some((node) => node.hasARole && !node.isWorker);
 
     const metrics = nodeMetrics.filter((metric) => {
-      const node = nodes.find(nd => nd.id === metric.id);
+      const node = nodes.find((nd) => nd.id === metric.id);
 
       return node && (!someNonWorkerRoles || node.isWorker);
     });
@@ -434,7 +447,7 @@ export default class MgmtCluster extends HybridModel {
   }
 
   get nodes() {
-    return this.$getters['all'](MANAGEMENT.NODE).filter(node => node.id.startsWith(this.id));
+    return this.$getters['all'](MANAGEMENT.NODE).filter((node) => node.id.startsWith(this.id));
   }
 
   get provClusterId() {
@@ -444,9 +457,32 @@ export default class MgmtCluster extends HybridModel {
     // cluster has the less human readable management cluster ID in it: fleet-default/c-khk48
 
     const verb = this.isLocal || isRKE1 || this.isHostedKubernetesProvider ? 'to' : 'from';
-    const from = `${ verb }Type`;
-    const id = `${ verb }Id`;
+    const res = findRelationship(verb, CAPI.RANCHER_CLUSTER, this.metadata?.relationships);
 
-    return this.metadata.relationships.find(r => r[from] === CAPI.RANCHER_CLUSTER)?.[id];
+    if (res) {
+      return res;
+    }
+
+    return findRelationship(verb === 'to' ? 'from' : 'to', CAPI.RANCHER_CLUSTER, this.metadata?.relationships);
+  }
+
+  get pinned() {
+    return this.$rootGetters['prefs/get'](PINNED_CLUSTERS).includes(this.id);
+  }
+
+  pin() {
+    const types = this.$rootGetters['prefs/get'](PINNED_CLUSTERS) || [];
+
+    addObject(types, this.id);
+
+    this.$dispatch('prefs/set', { key: PINNED_CLUSTERS, value: types }, { root: true });
+  }
+
+  unpin() {
+    const types = this.$rootGetters['prefs/get'](PINNED_CLUSTERS) || [];
+
+    removeObject(types, this.id);
+
+    this.$dispatch('prefs/set', { key: PINNED_CLUSTERS, value: types }, { root: true });
   }
 }

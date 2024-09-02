@@ -1,5 +1,5 @@
 <script lang="ts">
-import Vue from 'vue';
+import { defineComponent } from 'vue';
 import debounce from 'lodash/debounce';
 import { _EDIT, _VIEW } from '@shell/config/query-params';
 
@@ -10,7 +10,7 @@ declare module 'vue/types/vue' {
   }
 }
 
-export default Vue.extend({
+export default defineComponent({
   inheritAttrs: false,
 
   props: {
@@ -115,7 +115,9 @@ export default Vue.extend({
     /**
      * Emits the input event and resizes the Text Area.
     */
-    onInput(val: string): void {
+    onInput(event: Event): void {
+      const val = (event?.target as HTMLInputElement)?.value;
+
       this.$emit('input', val);
       this.queueResize();
     },
@@ -155,6 +157,7 @@ export default Vue.extend({
 <template>
   <textarea
     ref="ta"
+    :data-testid="$attrs['data-testid'] ? $attrs['data-testid'] : 'text-area-auto-grow'"
     :disabled="isDisabled"
     :style="style"
     :placeholder="placeholder"
@@ -162,7 +165,7 @@ export default Vue.extend({
     v-bind="$attrs"
     :spellcheck="spellcheck"
     @paste="$emit('paste', $event)"
-    @input="onInput($event.target.value)"
+    @input="onInput($event)"
     @focus="$emit('focus', $event)"
     @blur="$emit('blur', $event)"
   />

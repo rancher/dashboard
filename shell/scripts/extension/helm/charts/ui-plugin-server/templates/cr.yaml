@@ -1,0 +1,14 @@
+apiVersion: catalog.cattle.io/v1
+kind: UIPlugin
+metadata:
+  name: {{ include "extension-server.fullname" . }}
+  namespace: {{ .Release.Namespace }}
+  labels: {{ include "extension-server.labels" . | nindent 4 }}
+spec:
+  plugin:
+    name: {{ include "extension-server.fullname" . }}
+    version: {{ (semver (default .Chart.AppVersion .Values.plugin.versionOverride)).Original }}
+    endpoint: http://{{ include "extension-server.fullname" . }}.{{ .Release.Namespace }}.svc
+    noCache: {{ .Values.plugin.noCache }}
+    noAuth: {{ .Values.plugin.noAuth }}
+    metadata: {{ include "extension-server.pluginMetadata" . | indent 6 }}

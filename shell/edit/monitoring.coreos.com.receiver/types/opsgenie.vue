@@ -68,7 +68,7 @@ export default {
     this.$set(this.value, 'responders', this.value.responders || []);
 
     const responders = this.value.responders.map((responder) => {
-      const target = TARGETS.find(target => responder[target.value]);
+      const target = TARGETS.find((target) => responder[target.value]);
 
       return {
         type:   responder.type,
@@ -117,10 +117,10 @@ export default {
       row.value = text;
     },
     typeLabel(type) {
-      return TYPES.find(t => t.value === type).label;
+      return TYPES.find((t) => t.value === type).label;
     },
     targetLabel(target) {
-      return TARGETS.find(t => t.value === target).label;
+      return TARGETS.find((t) => t.value === target).label;
     }
   }
 };

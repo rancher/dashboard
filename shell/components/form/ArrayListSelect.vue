@@ -24,26 +24,38 @@ export default {
     loading: {
       type:    Boolean,
       default: false
+    },
+    disabled: {
+      type:    Boolean,
+      default: true
     }
   },
   computed: {
     filteredOptions() {
       return this.options
-        .filter(option => !this.value.includes(option.value));
+        .filter((option) => !this.value.includes(option.value));
     },
 
     addAllowed() {
-      return this.filteredOptions.length > 0;
+      return this.arrayListProps?.addAllowed || this.filteredOptions.length > 0;
+    },
+
+    defaultAddValue() {
+      return this.options[0]?.value;
+    },
+
+    getOptionLabel() {
+      return this.selectProps?.getOptionLabel ? (opt) => (this.selectProps?.getOptionLabel(opt) || opt) : undefined;
     }
   },
 
   methods: {
     updateRow(index, value) {
       this.value.splice(index, 1, value);
-      this.$emit(value);
+      this.$emit('input', this.value);
     },
     calculateOptions(value) {
-      const valueOption = this.options.find(o => o.value === value);
+      const valueOption = this.options.find((o) => o.value === value);
 
       if (valueOption) {
         return [valueOption, ...this.filteredOptions];
@@ -62,6 +74,8 @@ export default {
     class="array-list-select"
     :add-allowed="addAllowed || loading"
     :loading="loading"
+    :defaultAddValue="defaultAddValue"
+    :disabled="disabled"
     @input="$emit('input', $event)"
   >
     <template v-slot:columns="scope">
@@ -69,6 +83,7 @@ export default {
         :value="scope.row.value"
         v-bind="selectProps"
         :options="calculateOptions(scope.row.value)"
+        :get-option-label="getOptionLabel"
         @input="updateRow(scope.i, $event)"
       />
     </template>
@@ -77,6 +92,6 @@ export default {
 
 <style lang="scss" scoped>
 ::v-deep .unlabeled-select {
-    height: 61px;
-}
+  height: 61px;
+  }
 </style>

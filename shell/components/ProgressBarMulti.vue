@@ -68,7 +68,7 @@ export default {
       if ( !this.max ) {
         max = 100;
         if ( out.length ) {
-          max = out.map(x => x.value).reduce((a, b) => a + b);
+          max = out.map((x) => x.value).reduce((a, b) => a + b);
         }
       }
 
@@ -88,7 +88,7 @@ export default {
         obj.style = `width: ${ obj.percent }%`;
       }
 
-      return out.filter(obj => obj.percent);
+      return out.filter((obj) => obj.percent);
     },
   }
 };

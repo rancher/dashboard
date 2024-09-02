@@ -10,7 +10,7 @@ export function diffFrom(value, from, t) {
   const now = day();
 
   from = from || now;
-  const diff = value.diff(now, 'seconds');
+  const diff = value.diff(from, 'seconds');
 
   let absDiff = Math.abs(diff);
 
@@ -34,6 +34,7 @@ export function diffFrom(value, from, t) {
     diff,
     absDiff,
     label,
+    // i18n-uses unit.day, unit.hour, unit.min, unit.sec
     unitsKey: `unit.${ LABELS[i] }`,
     units:    LABELS[i],
     next,
@@ -94,6 +95,15 @@ export function elapsedTime(seconds) {
     return {
       diff:  60,
       label: `${ minutes }m`,
+    };
+  }
+
+  const days = Math.floor(seconds / (3600 * 24));
+
+  if (days > 1) {
+    return {
+      diff:  60,
+      label: `${ days }d${ hours - (days * 24) }h`,
     };
   }
 

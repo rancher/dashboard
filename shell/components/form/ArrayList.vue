@@ -47,20 +47,20 @@ export default {
       default: false,
     },
     addLabel: {
-      type: String,
-      default() {
-        return this.$store.getters['i18n/t']('generic.add');
-      },
+      type:    String,
+      default: '',
     },
     addAllowed: {
       type:    Boolean,
       default: true,
     },
+    addDisabled: {
+      type:    Boolean,
+      default: false,
+    },
     removeLabel: {
-      type: String,
-      default() {
-        return this.$store.getters['i18n/t']('generic.remove');
-      },
+      type:    String,
+      default: '',
     },
     removeAllowed: {
       type:    Boolean,
@@ -82,7 +82,7 @@ export default {
       default:   () => [],
       type:      Array,
       // we only want functions in the rules array
-      validator: rules => rules.every(rule => ['function'].includes(typeof rule))
+      validator: (rules) => rules.every((rule) => ['function'].includes(typeof rule))
     }
   },
   data() {
@@ -101,11 +101,21 @@ export default {
     return { rows, lastUpdateWasFromValue: false };
   },
   computed: {
+    _addLabel() {
+      return this.addLabel || this.t('generic.add');
+    },
+    _removeLabel() {
+      return this.removeLabel || this.t('generic.remove');
+    },
+
     isView() {
       return this.mode === _VIEW;
     },
     showAdd() {
       return this.addAllowed;
+    },
+    disableAdd() {
+      return this.addDisabled;
     },
     showRemove() {
       return this.removeAllowed;
@@ -124,7 +134,7 @@ export default {
   watch: {
     value() {
       this.lastUpdateWasFromValue = true;
-      this.rows = (this.value || []).map(v => ({ value: v }));
+      this.rows = (this.value || []).map((v) => ({ value: v }));
     },
     rows: {
       deep: true,
@@ -164,6 +174,10 @@ export default {
       removeAt(this.rows, index);
       this.queueUpdate();
     },
+
+    /**
+     * Cleanup rows and emit input
+     */
     update() {
       if ( this.isView ) {
         return;
@@ -180,15 +194,25 @@ export default {
       }
       this.$emit('input', out);
     },
+
+    /**
+     * Handle paste event, e.g. split multiple lines in rows
+     */
     onPaste(index, event) {
-      if (this.valueMultiline) {
-        return;
-      }
       event.preventDefault();
       const text = event.clipboardData.getData('text/plain');
-      const split = text.split('\n').map(value => ({ value }));
 
-      this.rows.splice(index, 1, ...split);
+      if (this.valueMultiline) {
+        // Allow to paste multiple lines
+        this.rows[index].value = text;
+      } else {
+        // Prevent to paste the value and emit text in multiple rows
+        const split = text.split('\n').map((value) => ({ value }));
+
+        event.preventDefault();
+        this.rows.splice(index, 1, ...split);
+      }
+
       this.update();
     }
   },
@@ -206,7 +230,7 @@ export default {
           {{ title }}
           <i
             v-if="showProtip"
-            v-tooltip="protip"
+            v-clean-tooltip="protip"
             class="icon icon-info"
           />
         </h3>
@@ -224,7 +248,7 @@ export default {
       <div
         v-for="(row, idx) in rows"
         :key="idx"
-        data-testid="array-list-box"
+        :data-testid="`array-list-box${ idx }`"
         class="box"
       >
         <slot
@@ -248,6 +272,7 @@ export default {
                 v-if="valueMultiline"
                 ref="value"
                 v-model="row.value"
+                :data-testid="`textarea-${idx}`"
                 :placeholder="valuePlaceholder"
                 :mode="mode"
                 :disabled="disabled"
@@ -258,6 +283,7 @@ export default {
                 v-else-if="rules.length > 0"
                 ref="value"
                 v-model="row.value"
+                :data-testid="`labeled-input-${idx}`"
                 :placeholder="valuePlaceholder"
                 :disabled="isView || disabled"
                 :rules="rules"
@@ -269,6 +295,7 @@ export default {
                 v-else
                 ref="value"
                 v-model="row.value"
+                :data-testid="`input-${idx}`"
                 :placeholder="valuePlaceholder"
                 :disabled="isView || disabled"
                 @paste="onPaste(idx, $event)"
@@ -294,24 +321,25 @@ export default {
               :data-testid="`remove-item-${idx}`"
               @click="remove(row, idx)"
             >
-              {{ removeLabel }}
+              {{ _removeLabel }}
             </button>
           </slot>
         </div>
       </div>
     </template>
-    <div
-      v-else-if="mode==='view'"
-      class="text-muted"
-    >
-      &mdash;
-    </div>
     <div v-else>
-      <slot name="empty" />
+      <slot name="empty">
+        <div
+          v-if="mode==='view'"
+          class="text-muted"
+        >
+          &mdash;
+        </div>
+      </slot>
     </div>
     <div
       v-if="showAdd && !isView"
-      class="footer"
+      class="footer mt-20"
     >
       <slot
         v-if="showAdd"
@@ -321,7 +349,7 @@ export default {
         <button
           type="button"
           class="btn role-tertiary add"
-          :disabled="loading"
+          :disabled="loading || disableAdd"
           data-testid="array-list-button"
           @click="add()"
         >
@@ -329,7 +357,7 @@ export default {
             v-if="loading"
             class="mr-5 icon icon-spinner icon-spin icon-lg"
           />
-          {{ addLabel }}
+          {{ _addLabel }}
         </button>
       </slot>
     </div>

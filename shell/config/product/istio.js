@@ -1,4 +1,4 @@
-import { AGE, NAME as NAME_HEADER, STATE } from '@shell/config/table-headers';
+import { AGE, NAME as NAME_HEADER, NAMESPACE as NAMESPACE_HEADER, STATE } from '@shell/config/table-headers';
 import { ISTIO } from '@shell/config/types';
 import { DSL, IF_HAVE } from '@shell/store/type-map';
 
@@ -14,9 +14,10 @@ export function init(store) {
   } = DSL(store, NAME);
 
   product({
-    ifHaveGroup: /^(.*\.)*istio\.io$/,
-    ifHave:      IF_HAVE.NOT_V1_ISTIO,
-    icon:        'istio',
+    ifHaveGroup:         /^(.*\.)*istio\.io$/,
+    ifHave:              IF_HAVE.NOT_V1_ISTIO,
+    icon:                'istio',
+    showNamespaceFilter: true,
   });
 
   virtualType({
@@ -42,7 +43,9 @@ export function init(store) {
     'networking.istio.io.envoyfilter',
     'networking.istio.io.serviceentry',
     'networking.istio.io.sidecar',
-    'networking.istio.io.workloadentrie',
+    'networking.istio.io.proxyconfig',
+    'networking.istio.io.workloadentry',
+    'networking.istio.io.workloadgroup',
   ], 'Networking');
 
   basicType([
@@ -58,9 +61,16 @@ export function init(store) {
     'security.istio.io.requestauthentication',
   ], 'Security');
 
+  basicType([
+    'install.istio.io.istiooperator',
+    'telemetry.istio.io.telemetry',
+    'extensions.istio.io.wasmplugin',
+  ], 'Advanced');
+
   headers(ISTIO.VIRTUAL_SERVICE, [
     STATE,
     NAME_HEADER,
+    NAMESPACE_HEADER,
     {
       name:      'gateways',
       label:     'Gateways',

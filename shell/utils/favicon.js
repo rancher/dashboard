@@ -8,10 +8,9 @@ export function haveSetFavIcon() {
 }
 
 export function setFavIcon(store) {
-  const app = store.app;
   const res = store.getters['management/byId'](MANAGEMENT.SETTING, SETTING.FAVICON);
   const brandSetting = store.getters['management/byId'](MANAGEMENT.SETTING, SETTING.BRAND);
-  const link = findIconLink(app.head.link);
+  const link = findIconLink(document.head.getElementsByTagName('link'));
 
   if (link) {
     let brandImage;
@@ -37,7 +36,7 @@ function findIconLink(links) {
   for (let i = 0; i < links.length; i++) {
     const link = links[i];
 
-    if (link.rel === 'icon') {
+    if (link.rel?.includes('icon')) {
       return link;
     }
   }

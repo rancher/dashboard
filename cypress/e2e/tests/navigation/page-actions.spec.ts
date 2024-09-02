@@ -1,7 +1,7 @@
 import PageActions from '@/cypress/e2e/po/side-bars/page-actions.po';
 import HomePagePo from '@/cypress/e2e/po/pages/home.po';
 
-describe('Page Actions', () => {
+describe('Page Actions', { tags: ['@navigation', '@adminUser', '@standardUser'] }, () => {
   beforeEach(() => {
     cy.login();
 

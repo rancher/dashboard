@@ -1,5 +1,5 @@
 import { formatPercent } from '@shell/utils/string';
-import { CAPI as CAPI_ANNOTATIONS, NODE_ROLES, RKE } from '@shell/config/labels-annotations.js';
+import { CAPI as CAPI_ANNOTATIONS, NODE_ROLES, RKE, SYSTEM_LABELS } from '@shell/config/labels-annotations.js';
 import {
   CAPI, MANAGEMENT, METRIC, NORMAN, POD
 } from '@shell/config/types';
@@ -76,7 +76,8 @@ export default class ClusterNode extends SteveModel {
   }
 
   openSsh() {
-    this.provisionedMachine.openSsh();
+    // Pass in the name of the node, so we display that rather than the name of the provisioned machine
+    this.provisionedMachine.openSsh(this.nameDisplay);
   }
 
   downloadKeys() {
@@ -91,22 +92,43 @@ export default class ClusterNode extends SteveModel {
     return this.metadata.name;
   }
 
-  get internalIp() {
-    const addresses = this.status?.addresses || [];
+  get addresses() {
+    return this.status?.addresses || [];
+  }
 
-    return findLast(addresses, address => address.type === 'InternalIP')?.address;
+  get internalIp() {
+    return findLast(this.addresses, (address) => address.type === 'InternalIP')?.address;
   }
 
   get externalIp() {
-    const addresses = this.status?.addresses || [];
     const annotationAddress = this.metadata.annotations[RKE.EXTERNAL_IP];
-    const statusAddress = findLast(addresses, address => address.type === 'ExternalIP')?.address;
+    const statusAddress = findLast(this.addresses, (address) => address.type === 'ExternalIP')?.address;
 
     return statusAddress || annotationAddress;
   }
 
   get labels() {
     return this.metadata?.labels || {};
+  }
+
+  get customLabelCount() {
+    return this.customLabels.length;
+  }
+
+  get customLabels() {
+    const parsedLabels = [];
+
+    if (this.labels) {
+      for (const k in this.labels) {
+        const [prefix] = k.split('/');
+
+        if (!SYSTEM_LABELS.includes(prefix)) {
+          parsedLabels.push(`${ k }=${ this.labels[k] }`);
+        }
+      }
+    }
+
+    return parsedLabels;
   }
 
   get isWorker() {
@@ -165,7 +187,7 @@ export default class ClusterNode extends SteveModel {
   }
 
   get cpuCapacity() {
-    return parseSi(this.status.allocatable.cpu);
+    return parseSi(this.status.allocatable?.cpu);
   }
 
   get cpuUsagePercentage() {
@@ -181,15 +203,23 @@ export default class ClusterNode extends SteveModel {
   }
 
   get ramCapacity() {
-    return parseSi(this.status.capacity.memory);
+    return parseSi(this.status.capacity?.memory);
   }
 
   get ramUsagePercentage() {
     return ((this.ramUsage * 100) / this.ramCapacity).toString();
   }
 
+  get ramReserved() {
+    return parseSi(this.status?.allocatable?.memory);
+  }
+
+  get ramReservedPercentage() {
+    return ((this.ramUsage * 100) / this.ramReserved).toString();
+  }
+
   get podUsage() {
-    return calculatePercentage(this.status.allocatable.pods, this.status.capacity.pods);
+    return calculatePercentage(this.status.allocatable?.pods, this.status.capacity?.pods);
   }
 
   get podConsumedUsage() {
@@ -197,11 +227,11 @@ export default class ClusterNode extends SteveModel {
   }
 
   get podCapacity() {
-    return Number.parseInt(this.status.capacity.pods);
+    return Number.parseInt(this.status.capacity?.pods);
   }
 
   get podConsumed() {
-    const runningPods = this.pods.filter(pod => pod.state === 'running');
+    const runningPods = this.pods.filter((pod) => pod.state === 'running');
 
     return runningPods.length || 0;
   }
@@ -231,7 +261,7 @@ export default class ClusterNode extends SteveModel {
   }
 
   get drainedState() {
-    const sNodeCondition = this.managementNode?.status.conditions.find(c => c.type === 'Drained');
+    const sNodeCondition = this.managementNode?.status.conditions.find((c) => c.type === 'Drained');
 
     if (sNodeCondition) {
       if (sNodeCondition.status === 'True') {
@@ -380,7 +410,7 @@ export default class ClusterNode extends SteveModel {
   get pods() {
     const allPods = this.$rootGetters['cluster/all'](POD);
 
-    return allPods.filter(pod => pod.spec.nodeName === this.name);
+    return allPods.filter((pod) => pod.spec.nodeName === this.name);
   }
 
   get confirmRemove() {
@@ -419,6 +449,10 @@ export default class ClusterNode extends SteveModel {
 
   get provider() {
     return this.$rootGetters['currentCluster'].provisioner.toLowerCase();
+  }
+
+  get displayTaintsAndLabels() {
+    return !!this.spec.taints?.length || !!this.customLabelCount;
   }
 }
 

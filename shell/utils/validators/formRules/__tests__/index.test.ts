@@ -43,19 +43,85 @@ describe('formRules', () => {
     expect(formRuleResult).toStrictEqual(expectedResult);
   });
 
-  it('"isHttps" : returns undefined when valid https url value is supplied', () => {
+  it('"https" : returns undefined when valid https url value is supplied', () => {
     const testValue = 'https://url.com';
-    const formRuleResult = formRules.isHttps('server-url')(testValue);
+    const formRuleResult = formRules.https(testValue);
 
     expect(formRuleResult).toBeUndefined();
   });
 
-  it('"isHttps" : returns correct message when http url value is supplied', () => {
+  it('"https" : returns correct message when http url value is supplied', () => {
     const testValue = 'http://url.com';
-    const formRuleResult = formRules.isHttps('server-url')(testValue);
+    const formRuleResult = formRules.https(testValue);
     const expectedResult = JSON.stringify({ message: 'validation.setting.serverUrl.https' });
 
     expect(formRuleResult).toStrictEqual(expectedResult);
+  });
+
+  describe('localhost', () => {
+    const message = JSON.stringify({ message: 'validation.setting.serverUrl.localhost' });
+    const testCases = [
+      ['http://LOCALhosT:8005', message],
+      ['http://localhost:8005', message],
+      ['https://localhost:8005', message],
+      ['localhost', message],
+      ['http://127.0.0.1', message],
+      ['https://127.0.0.1', message],
+      ['127.0.0.1', message],
+      ['https://test.com', undefined],
+      ['https://test.com/localhost', undefined],
+      [undefined, undefined]
+    ];
+
+    it.each(testCases)(
+      'should return undefined or correct message based on the provided url',
+      (url, expected) => {
+        const formRuleResult = formRules.localhost(url);
+
+        expect(formRuleResult).toStrictEqual(expected);
+      }
+    );
+  });
+
+  describe('trailingForwardSlash', () => {
+    const message = JSON.stringify({ message: 'validation.setting.serverUrl.trailingForwardSlash' });
+    const testCases = [
+      ['https://test.com', undefined],
+      ['https://test.com/', message],
+      ['https://', undefined],
+      ['/', undefined],
+      [undefined, undefined]
+    ];
+
+    it.each(testCases)(
+      'should return undefined or correct message based on the provided url',
+      (url, expected) => {
+        const formRuleResult = formRules.trailingForwardSlash(url);
+
+        expect(formRuleResult).toStrictEqual(expected);
+      }
+    );
+  });
+
+  describe('alphanumeric', () => {
+    const message = JSON.stringify({ message: 'validation.alphanumeric', key: 'testDisplayKey' });
+    const testCases = [
+      ['', undefined],
+      ['aaaAAAA111', undefined],
+      ['aaaAAAA111//', message],
+      ['/', message],
+      ['+1', message],
+      [undefined, undefined]
+    ];
+
+    it.each(testCases)(
+      'should return undefined or correct message based on the provided url',
+      (val, expected) => {
+        const formRuleResult = formRules.alphanumeric(val);
+
+        expect(formRuleResult).toStrictEqual(expected);
+      }
+    );
   });
 
   it('"interval" : returns undefined when valid hour interval value is supplied', () => {
@@ -393,6 +459,18 @@ describe('formRules', () => {
     expect(formRuleResult).toStrictEqual(expectedResult);
   });
 
+  it('"roleTemplateRules" : returns correct message when type is RBAC role rule defines both resources and nonResourceURLs', () => {
+    const testValue: [{}] = [
+      {
+        verbs: ['verb1'], resources: ['resource1'], apiGroups: ['apiGroup1'], nonResourceURLs: ['nonResourceUrl1']
+      }
+    ];
+    const formRuleResult = formRules.roleTemplateRules('rbac.authorization.k8s.io.role')(testValue);
+    const expectedResult = JSON.stringify({ message: 'validation.roleTemplate.roleTemplateRules.noResourceAndNonResource' });
+
+    expect(formRuleResult).toStrictEqual(expectedResult);
+  });
+
   it('"roleTemplateRules" : returns correct message when type is RBAC role and value is missing apiGroups', () => {
     const testValue: [{}] = [
       {
@@ -408,7 +486,7 @@ describe('formRules', () => {
   it('"roleTemplateRules" : returns undefined when type is not RBAC role and value contains valid rules', () => {
     const testValue: [{}] = [
       {
-        verbs: ['verb1'], nonResourceURLs: ['nonResourceURL1'], resources: ['resource1'], apiGroups: ['apiGroup1']
+        verbs: ['verb1'], resources: ['resource1'], apiGroups: ['apiGroup1']
       }
     ];
     const formRuleResult = formRules.roleTemplateRules('nonrbactype')(testValue);
@@ -1041,15 +1119,35 @@ describe('formRules', () => {
     ['minLength', 2, ['test'], ['x']],
     ['maxLength', 10, ['x'], ['wrong value']],
     ['betweenLengths', [2, 10], ['test'], ['x', 'wrong value']],
-  ])('%p with parameter %p should', (rule, argument, correctValues, wrongValues) => {
-    it.each(wrongValues as [])('return error for value %p', (wrong) => {
+  ])('given factory validator %p with parameter %p', (rule, argument, correctValues, wrongValues) => {
+    it.each(wrongValues as [])('should return error for value %p', (wrong) => {
       const formRuleResult = (formRules as any)[rule](argument)(wrong);
 
       expect(formRuleResult).not.toBeUndefined();
     });
 
-    it.each(correctValues as [])('return valid for value %p', (correct) => {
+    it.each(correctValues as [])('should return valid for value %p', (correct) => {
       const formRuleResult = (formRules as any)[rule](argument)(correct);
+
+      expect(formRuleResult).toBeUndefined();
+    });
+  });
+
+  describe.each([
+    ['requiredInt', [2, 2.2], ['e']],
+    ['isInteger', ['2', 2, 0], [2.2, 'e', '1.0']],
+    ['isPositive', ['0', 1], [-1]],
+    ['isOctal', ['0', 0, 10], ['01']],
+
+  ])('given validator %p', (rule, correctValues, wrongValues) => {
+    it.each(wrongValues as [])('should return error for value %p', (wrong) => {
+      const formRuleResult = (formRules as any)[rule](wrong);
+
+      expect(formRuleResult).not.toBeUndefined();
+    });
+
+    it.each(correctValues as [])('should return valid for value %p', (correct) => {
+      const formRuleResult = (formRules as any)[rule](correct);
 
       expect(formRuleResult).toBeUndefined();
     });

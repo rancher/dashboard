@@ -59,14 +59,14 @@ export default {
         }, {});
 
       // if there are keys other than those defined in RECEIVERS_TYPES and 'name', assume they're custom types and sum them under "custom"
-      const expectedKeys = RECEIVERS_TYPES.map(type => type.key).filter(key => key !== 'custom');
+      const expectedKeys = RECEIVERS_TYPES.map((type) => type.key).filter((key) => key !== 'custom');
 
       expectedKeys.push('name');
       const customKeys = Object.keys(receiver)
-        .filter(key => !expectedKeys.includes(key));
+        .filter((key) => !expectedKeys.includes(key));
 
       if (customKeys.length > 0) {
-        const customType = RECEIVERS_TYPES.find(type => type.name === 'custom');
+        const customType = RECEIVERS_TYPES.find((type) => type.name === 'custom');
         const customLabel = this.t(customType.label);
 
         types[customLabel] = { count: customKeys.length, logo: customType.logo };

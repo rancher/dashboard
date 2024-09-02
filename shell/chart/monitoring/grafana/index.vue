@@ -5,6 +5,7 @@ import LabeledSelect from '@shell/components/form/LabeledSelect';
 import KeyValue from '@shell/components/form/KeyValue';
 import ArrayList from '@shell/components/form/ArrayList';
 import StorageClassSelector from '@shell/chart/monitoring/StorageClassSelector';
+import { DEFAULT_GRAFANA_STORAGE_SIZE } from '@shell/config/types';
 
 export default {
   components: {
@@ -87,6 +88,9 @@ export default {
 
       return (storageClasses || []).length >= 1;
     },
+    showGrafanaResourceConfig() {
+      return this.value?.grafana?.resources?.requests && this.value?.grafana?.resources?.limits;
+    }
   },
   watch: {
     persistentStorageType(newType, oldType) {
@@ -136,7 +140,7 @@ export default {
         newValsOut = {
           accessModes:      null,
           storageClassName: null,
-          size:             null,
+          size:             DEFAULT_GRAFANA_STORAGE_SIZE,
           subPath:          null,
           type:             'pvc',
           annotations:      null,
@@ -148,7 +152,7 @@ export default {
         newValsOut = {
           accessModes:      null,
           storageClassName: null,
-          size:             null,
+          size:             DEFAULT_GRAFANA_STORAGE_SIZE,
           subPath:          null,
           type:             'statefulset',
           enabled:          true,
@@ -172,6 +176,58 @@ export default {
       <h3>{{ t('monitoring.grafana.title') }}</h3>
     </div>
     <div class="grafana-config">
+      <!-- Request and Limits -->
+      <!-- Note, we use the same labels for resource config as Prometheus since they are generic -->
+      <div
+        v-if="showGrafanaResourceConfig"
+        class="row"
+      >
+        <div class="col span-12 mt-5">
+          <h4 class="mb-0">
+            {{ t('monitoring.prometheus.config.resourceLimits') }}
+          </h4>
+        </div>
+      </div>
+      <div
+        v-if="showGrafanaResourceConfig"
+        class="row"
+      >
+        <div class="col span-6">
+          <LabeledInput
+            v-model="value.grafana.resources.requests.cpu"
+            data-testid="input-grafana-requests-cpu"
+            :label="t('monitoring.prometheus.config.requests.cpu')"
+            :mode="mode"
+          />
+        </div>
+        <div class="col span-6">
+          <LabeledInput
+            v-model="value.grafana.resources.requests.memory"
+            data-testid="input-grafana-requests-memory"
+            :label="t('monitoring.prometheus.config.requests.memory')"
+            :mode="mode"
+          />
+        </div>
+      </div>
+      <div class="row">
+        <div class="col span-6">
+          <LabeledInput
+            v-model="value.grafana.resources.limits.cpu"
+            data-testid="input-grafana-limits-cpu"
+            :label="t('monitoring.prometheus.config.limits.cpu')"
+            :mode="mode"
+          />
+        </div>
+        <div class="col span-6">
+          <LabeledInput
+            v-model="value.grafana.resources.limits.memory"
+            data-testid="input-grafana-limits-memory"
+            :label="t('monitoring.prometheus.config.limits.memory')"
+            :mode="mode"
+          />
+        </div>
+      </div>
+
       <div class="row pt-10 pb-10">
         <div class="col span-12 persistent-storage-config">
           <RadioGroup
@@ -181,6 +237,7 @@ export default {
             :labels="persistentStorageTypeLabels"
             :mode="mode"
             :options="persistentStorageTypes"
+            data-testid="radio-group-input-grafana-storage"
           />
         </div>
       </div>
@@ -204,6 +261,7 @@ export default {
               v-model="value.grafana.persistence.size"
               :label="t('monitoring.grafana.storage.size')"
               :mode="mode"
+              data-testid="grafana-storage-pvc-size"
             />
           </div>
           <div class="col span-6">
@@ -270,6 +328,7 @@ export default {
               v-model="value.grafana.persistence.size"
               :label="t('monitoring.grafana.storage.size')"
               :mode="mode"
+              data-testid="grafana-storage-statefulset-size"
             />
           </div>
           <div class="col span-6">

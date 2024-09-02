@@ -4,7 +4,10 @@ import { mapGetters } from 'vuex';
 import { mapPref, PLUGIN_DEVELOPER } from '@shell/store/prefs';
 import { sortBy } from '@shell/utils/sort';
 import { allHash } from '@shell/utils/promise';
-import { CATALOG, UI_PLUGIN, SERVICE } from '@shell/config/types';
+import { CATALOG, UI_PLUGIN, MANAGEMENT } from '@shell/config/types';
+import { SETTING } from '@shell/config/settings';
+import { fetchOrCreateSetting } from '@shell/utils/settings';
+import { getVersionData, isRancherPrime } from '@shell/config/version';
 import { CATALOG as CATALOG_ANNOTATIONS } from '@shell/config/labels-annotations';
 import { NAME as APP_PRODUCT } from '@shell/config/product/apps';
 import ActionMenu from '@shell/components/ActionMenu';
@@ -12,28 +15,50 @@ import Tabbed from '@shell/components/Tabbed/index.vue';
 import Tab from '@shell/components/Tabbed/Tab.vue';
 import IconMessage from '@shell/components/IconMessage.vue';
 import LazyImage from '@shell/components/LazyImage';
+import { BadgeState } from '@components/BadgeState';
 import UninstallDialog from './UninstallDialog.vue';
 import InstallDialog from './InstallDialog.vue';
+import CatalogLoadDialog from './CatalogList/CatalogLoadDialog.vue';
+import CatalogUninstallDialog from './CatalogList/CatalogUninstallDialog.vue';
 import DeveloperInstallDialog from './DeveloperInstallDialog.vue';
 import PluginInfoPanel from './PluginInfoPanel.vue';
-import SetupUIPlugins from './SetupUIPlugins';
-import RemoveUIPlugins from './RemoveUIPlugins';
+import SetupUIPlugins from './SetupUIPlugins.vue';
+import AddExtensionRepos from './AddExtensionRepos';
+import CatalogList from './CatalogList/index.vue';
+import Banner from '@components/Banner/Banner.vue';
 import {
   isUIPlugin,
   uiPluginAnnotation,
   uiPluginHasAnnotation,
   isSupportedChartVersion,
+  isChartVersionAvailableForInstall,
+  isChartVersionHigher,
   UI_PLUGIN_NAMESPACE,
-  UI_PLUGIN_CHART_ANNOTATIONS
+  UI_PLUGIN_CHART_ANNOTATIONS,
+  UI_PLUGINS_REPO_URL,
+  UI_PLUGINS_PARTNERS_REPO_URL
 } from '@shell/config/uiplugins';
+import TabTitle from '@shell/components/TabTitle';
 
 const MAX_DESCRIPTION_LENGTH = 200;
+
+const TABS_VALUES = {
+  INSTALLED: 'installed',
+  UPDATES:   'updates',
+  AVAILABLE: 'available',
+  ALL:       'all'
+};
 
 export default {
   components: {
     ActionMenu,
+    BadgeState,
     DeveloperInstallDialog,
     IconMessage,
+    CatalogList,
+    Banner,
+    CatalogLoadDialog,
+    CatalogUninstallDialog,
     InstallDialog,
     LazyImage,
     PluginInfoPanel,
@@ -41,33 +66,36 @@ export default {
     Tabbed,
     UninstallDialog,
     SetupUIPlugins,
-    RemoveUIPlugins,
+    AddExtensionRepos,
+    TabTitle
   },
 
   data() {
     return {
-      view:              '',
-      charts:            [],
-      installing:        {},
-      errors:            {},
-      plugins:           [], // The installed plugins
-      helmOps:           [], // Helm operations
-      loading:           true,
-      menuTargetElement: null,
-      menuTargetEvent:   null,
-      menuOpen:          false,
-      hasService:        false,
-      defaultIcon:       require('~shell/assets/images/generic-plugin.svg'),
-      reloadRequired:    false,
+      TABS_VALUES,
+      kubeVersion:                    null,
+      view:                           '',
+      installing:                     {},
+      errors:                         {},
+      plugins:                        [], // The installed plugins
+      helmOps:                        [], // Helm operations
+      addExtensionReposBannerSetting: undefined,
+      loading:                        true,
+      menuTargetElement:              null,
+      menuTargetEvent:                null,
+      menuOpen:                       false,
+      hasFeatureFlag:                 true,
+      defaultIcon:                    require('~shell/assets/images/generic-plugin.svg'),
+      reloadRequired:                 false,
+      rancherVersion:                 getVersionData()?.Version,
+      showCatalogList:                false
     };
   },
-
-  layout: 'plain',
 
   async fetch() {
     const hash = {};
 
-    const isSetup = await this.updateInstallStatus();
+    const isSetup = await this.updateInstallStatus(true);
 
     if (isSetup) {
       if (this.$store.getters['management/schemaFor'](UI_PLUGIN)) {
@@ -75,24 +103,32 @@ export default {
       }
     }
 
-    hash.load = await this.$store.dispatch('catalog/load');
+    hash.load = await this.$store.dispatch('catalog/load', { reset: true });
+
+    if (this.$store.getters['management/schemaFor'](MANAGEMENT.CLUSTER)) {
+      hash.localCluster = await this.$store.dispatch('management/find', { type: MANAGEMENT.CLUSTER, id: 'local' });
+    }
 
     if (this.$store.getters['management/schemaFor'](CATALOG.OPERATION)) {
       hash.helmOps = await this.$store.dispatch('management/findAll', { type: CATALOG.OPERATION });
     }
 
+    if (this.$store.getters['management/schemaFor'](CATALOG.CLUSTER_REPO)) {
+      hash.repos = await this.$store.dispatch('management/findAll', { type: CATALOG.CLUSTER_REPO }, { force: true });
+    }
+
     const res = await allHash(hash);
 
     this.plugins = res.plugins || [];
+    this.repos = res.repos || [];
     this.helmOps = res.helmOps || [];
+    this.kubeVersion = res.localCluster?.kubernetesVersionBase || [];
 
-    const c = this.$store.getters['catalog/rawCharts'];
-
-    this.charts = Object.values(c);
+    this.addExtensionReposBannerSetting = await fetchOrCreateSetting(this.$store, SETTING.ADD_EXTENSION_REPOS_BANNER_DISPLAY, 'true', true) || {};
 
     // If there are no plugins installed, default to the catalog view
     if (this.plugins.length === 0) {
-      this.$refs.tabs?.select('available');
+      this.$refs.tabs?.select(TABS_VALUES.AVAILABLE);
     }
 
     this.loading = false;
@@ -104,6 +140,24 @@ export default {
     ...mapGetters({ uiplugins: 'uiplugins/plugins' }),
     ...mapGetters({ uiErrors: 'uiplugins/errors' }),
     ...mapGetters({ theme: 'prefs/theme' }),
+
+    charts() {
+      const c = this.$store.getters['catalog/rawCharts'];
+
+      if ( c ) {
+        return Object.values(c);
+      }
+
+      return null;
+    },
+
+    showAddReposBanner() {
+      const hasExtensionReposBannerSetting = this.addExtensionReposBannerSetting?.value === 'true';
+      const uiPluginsRepoNotFound = isRancherPrime() && !this.repos?.find((r) => r.urlDisplay === UI_PLUGINS_REPO_URL);
+      const uiPluginsPartnersRepoNotFound = !this.repos?.find((r) => r.urlDisplay === UI_PLUGINS_PARTNERS_REPO_URL);
+
+      return hasExtensionReposBannerSetting && (uiPluginsRepoNotFound || uiPluginsPartnersRepoNotFound);
+    },
 
     applyDarkModeBg() {
       if (this.theme === 'dark') {
@@ -123,21 +177,28 @@ export default {
         enabled: true
       });
 
+      // Add link to add extensions repositories (Official, Partners, etc)
+      menuActions.push({
+        action:  'addRancherRepos',
+        label:   this.t('plugins.addRancherRepos'),
+        enabled: true
+      });
+
+      // Only show Manage Extension Catalogs when on main charts view
+      if (!this.showCatalogList) {
+        menuActions.push({
+          action:  'manageExtensionView',
+          label:   this.t('plugins.manageCatalog.label'),
+          enabled: true
+        });
+      }
+
       // Only show Developer Load action if the user has this enabled in preferences
       if (this.pluginDeveloper) {
         menuActions.push( { divider: true });
         menuActions.push({
           action:  'devLoad',
           label:   this.t('plugins.developer.label'),
-          enabled: true
-        });
-      }
-
-      if (this.hasService) {
-        menuActions.push( { divider: true });
-        menuActions.push({
-          action:  'removePluginSupport',
-          label:   this.t('plugins.setup.remove.label'),
           enabled: true
         });
       }
@@ -149,12 +210,12 @@ export default {
       const all = this.available;
 
       switch (this.view) {
-      case 'installed':
-        return all.filter(p => !!p.installed || !!p.installing);
-      case 'updates':
+      case TABS_VALUES.INSTALLED:
+        return all.filter((p) => !!p.installed || !!p.installing);
+      case TABS_VALUES.UPDATES:
         return this.updates;
-      case 'available':
-        return all.filter(p => !p.installed);
+      case TABS_VALUES.AVAILABLE:
+        return all.filter((p) => !p.installed);
       default:
         return all;
       }
@@ -166,44 +227,65 @@ export default {
 
     // Message to display when the tab view is empty (depends on the tab)
     emptyMessage() {
+      // i18n-uses plugins.empty.*
       return this.t(`plugins.empty.${ this.view }`);
     },
 
     updates() {
-      return this.available.filter(plugin => !!plugin.upgrade);
+      return this.available.filter((plugin) => !!plugin.upgrade);
     },
 
     available() {
-      let all = this.charts.filter(c => isUIPlugin(c));
+      let all = this.charts.filter((c) => isUIPlugin(c));
 
       // Filter out hidden charts
-      all = all.filter(c => !uiPluginHasAnnotation(c, CATALOG_ANNOTATIONS.HIDDEN, 'true'));
+      all = all.filter((c) => !uiPluginHasAnnotation(c, CATALOG_ANNOTATIONS.HIDDEN, 'true'));
 
       all = all.map((chart) => {
         // Label can be overridden by chart annotation
-        const label = uiPluginAnnotation(UI_PLUGIN_CHART_ANNOTATIONS.DISPLAY_NAME) || chart.chartNameDisplay;
+        const label = uiPluginAnnotation(chart, UI_PLUGIN_CHART_ANNOTATIONS.DISPLAY_NAME) || chart.chartNameDisplay;
         const item = {
-          name:           chart.chartNameDisplay,
+          name:         chart.chartName,
           label,
-          description:    chart.chartDescription,
-          id:             chart.id,
-          versions:       [],
-          displayVersion: chart.versions?.length > 0 ? chart.versions[0].version : '',
-          installed:      false,
-          builtin:        false,
-          experimental:   uiPluginHasAnnotation(chart, CATALOG_ANNOTATIONS.EXPERIMENTAL, 'true'),
-          certified:      uiPluginHasAnnotation(chart, CATALOG_ANNOTATIONS.CERTIFIED, CATALOG_ANNOTATIONS._RANCHER),
+          description:  chart.chartDescription,
+          id:           chart.id,
+          versions:     [],
+          installed:    false,
+          builtin:      false,
+          experimental: uiPluginHasAnnotation(chart, CATALOG_ANNOTATIONS.EXPERIMENTAL, 'true'),
+          certified:    uiPluginHasAnnotation(chart, CATALOG_ANNOTATIONS.CERTIFIED, CATALOG_ANNOTATIONS._RANCHER)
         };
 
-        this.latest = chart.versions[0];
         item.versions = [...chart.versions];
         item.chart = chart;
 
-        // Filter the versions, leaving only those that are compatible with this Rancher
-        item.versions = item.versions.filter(version => isSupportedChartVersion(version));
+        // Filter the versions available to install (plugins-api version and current dashboard version)
+        item.installableVersions = item.versions.filter((version) => isSupportedChartVersion({ version, kubeVersion: this.kubeVersion }) && isChartVersionAvailableForInstall({
+          version, rancherVersion: this.rancherVersion, kubeVersion: this.kubeVersion
+        }));
 
-        if (this.latest) {
-          item.icon = chart.icon || this.latest.annotations['catalog.cattle.io/ui-icon'];
+        // add prop to version object if version is compatible with the current dashboard version
+        item.versions = item.versions.map((version) => isChartVersionAvailableForInstall({
+          version, rancherVersion: this.rancherVersion, kubeVersion: this.kubeVersion
+        }, true));
+
+        const latestCompatible = item.installableVersions?.[0];
+        const latestNotCompatible = item.versions.find((version) => !version.isCompatibleWithUi || !version.isCompatibleWithKubeVersion);
+
+        if (latestCompatible) {
+          item.displayVersion = latestCompatible.version;
+          item.icon = latestCompatible.icon;
+        } else {
+          item.displayVersion = item.versions?.[0]?.version;
+          item.icon = chart.icon || latestCompatible?.annotations?.['catalog.cattle.io/ui-icon'];
+        }
+
+        if (latestNotCompatible && item.installableVersions.length && isChartVersionHigher(latestNotCompatible.version, item.installableVersions?.[0].version)) {
+          if (!item.isCompatibleWithUi) {
+            item.incompatibleRancherVersion = this.t('plugins.incompatibleRancherVersion', { version: latestNotCompatible.version, rancherVersion: latestNotCompatible.requiredUiVersion }, true);
+          } else if (!item.isCompatibleWithKubeVersion) {
+            item.incompatibleKubeVersion = this.t('plugins.incompatibleKubeVersion', { version: latestNotCompatible.version, kubeVersion: latestNotCompatible.requiredKubeVersion }, true);
+          }
         }
 
         if (this.installing[item.name]) {
@@ -214,17 +296,19 @@ export default {
       });
 
       // Remove charts with no installable versions
-      all = all.filter(c => c.versions.length > 0);
+      all = all.filter((c) => c.versions.length > 0);
 
       // Check that all of the loaded plugins are represented
       this.uiplugins.forEach((p) => {
-        const chart = all.find(c => c.name === p.name);
+        const chart = all.find((c) => c.name === p.name);
 
         if (!chart) {
-          // A pluign is loaded, but there is no chart, so add an item so that it shows up
+          // A plugin is loaded, but there is no chart, so add an item so that it shows up
+          const rancher = typeof p.metadata?.rancher === 'object' ? p.metadata.rancher : {};
+          const label = rancher.annotations?.[UI_PLUGIN_CHART_ANNOTATIONS.DISPLAY_NAME] || p.name;
           const item = {
             name:           p.name,
-            label:          p.name,
+            label,
             description:    p.metadata?.description,
             icon:           p.metadata?.icon,
             id:             p.id,
@@ -234,13 +318,17 @@ export default {
             builtin:        !!p.builtin,
           };
 
-          all.push(item);
+          // Built-in plugins can chose to be hidden - used where we implement as extensions
+          // but don't want to shows them individually on the extensions page
+          if (!(item.builtin && rancher[UI_PLUGIN_CHART_ANNOTATIONS.HIDDEN_BUILTIN])) {
+            all.push(item);
+          }
         }
       });
 
       // Go through the CRs for the plugins and wire them into the catalog
       this.plugins.forEach((p) => {
-        const chart = all.find(c => c.name === p.name);
+        const chart = all.find((c) => c.name === p.name);
 
         if (chart) {
           chart.installed = true;
@@ -251,8 +339,8 @@ export default {
           chart.installing = this.installing[chart.name];
 
           // Check for upgrade
-          if (chart.versions.length && p.version !== chart.versions[0].version) {
-            chart.upgrade = chart.versions[0].version;
+          if (chart.installableVersions?.length && p.version !== chart.installableVersions?.[0]?.version) {
+            chart.upgrade = chart.installableVersions[0].version;
           }
         } else {
           // No chart, so add a card for the plugin based on its Custom resource being present
@@ -275,7 +363,7 @@ export default {
 
       // Merge in the plugin load errors
       Object.keys(this.uiErrors).forEach((e) => {
-        const chart = all.find(c => c.name === e);
+        const chart = all.find((c) => c.name === e);
 
         if (chart) {
           const error = this.uiErrors[e];
@@ -290,23 +378,37 @@ export default {
 
       // Merge in the plugin load errors from help ops
       Object.keys(this.errors).forEach((e) => {
-        const chart = all.find(c => c.name === e);
+        const chart = all.find((c) => c.name === e);
 
         if (chart) {
           chart.helmError = !!this.errors[e];
         }
       });
 
-      // Clamp the lengths of the descriptions
       all.forEach((plugin) => {
+        // Clamp the lengths of the descriptions
         if (plugin.description && plugin.description.length > MAX_DESCRIPTION_LENGTH) {
           plugin.description = `${ plugin.description.substr(0, MAX_DESCRIPTION_LENGTH) } ...`;
+        }
+
+        // check if kube version compatibility is met for installed extension
+        if (plugin.uiplugin) {
+          const versionInstalled = plugin.uiplugin.spec?.plugin?.version;
+          const versionInstalledData = plugin.versions.find((v) => v.version === versionInstalled);
+
+          if (versionInstalledData) {
+            const kubeVersionToCheck = versionInstalledData.annotations?.[UI_PLUGIN_CHART_ANNOTATIONS.KUBE_VERSION];
+
+            if (this.kubeVersion && !isSupportedChartVersion({ version: versionInstalledData, kubeVersion: this.kubeVersion })) {
+              plugin.installedError = this.t('plugins.currentInstalledVersionBlockedByKubeVersion', { kubeVersion: this.kubeVersion, kubeVersionToCheck }, true);
+            }
+          }
         }
       });
 
       // Sort by name
       return sortBy(all, 'name', false);
-    },
+    }
   },
 
   watch: {
@@ -320,7 +422,7 @@ export default {
 
       // Go through the installed plugins
       (this.available || []).forEach((plugin) => {
-        const op = pluginOps.find(o => o.status?.releaseName === plugin.name);
+        const op = pluginOps.find((o) => o.status?.releaseName === plugin.name);
 
         if (op) {
           const active = op.metadata.state?.transitioning;
@@ -347,7 +449,7 @@ export default {
 
     plugins(neu, old) {
       const installed = this.$store.getters['uiplugins/plugins'];
-      const shouldHaveLoaded = (installed || []).filter(p => !this.uiErrors[p.name] && !p.builtin);
+      const shouldHaveLoaded = (installed || []).filter((p) => !this.uiErrors[p.name] && !p.builtin);
       let changes = 0;
 
       // Did the user remove an extension
@@ -356,9 +458,9 @@ export default {
       }
 
       neu.forEach((plugin) => {
-        const existing = installed.find(p => !p.removed && p.name === plugin.name && p.version === plugin.version);
+        const existing = installed.find((p) => !p.removed && p.name === plugin.name && p.version === plugin.version);
 
-        if (!existing && plugin.isCached) {
+        if (!existing && plugin.isInitialized) {
           if (!this.uiErrors[plugin.name]) {
             changes++;
           }
@@ -367,10 +469,10 @@ export default {
         }
       });
 
-      if (changes > 0 ) {
+      if (changes > 0) {
         Vue.set(this, 'reloadRequired', true);
       }
-    },
+    }
   },
 
   // Forget the types when we leave the page
@@ -382,37 +484,52 @@ export default {
   },
 
   methods: {
-    async updateInstallStatus() {
-      let hasService;
+    async refreshCharts(forceChartsUpdate = false) {
+      // we might need to force the request, so that we know at all times if what's the status of the offical and partners repos (installed or not)
+      // tied to the SetupUIPlugins, AddExtensionRepos checkboxes
+      await this.$store.dispatch('catalog/load', { reset: true, force: forceChartsUpdate });
+    },
+
+    async updateInstallStatus(forceChartsUpdate = false) {
+      let hasFeatureFlag;
 
       try {
-        const service = await this.$store.dispatch('management/find', {
-          type: SERVICE,
-          id:   `${ UI_PLUGIN_NAMESPACE }/ui-plugin-operator`,
-          opt:  { force: true },
-        });
-
-        hasService = !!service;
+        hasFeatureFlag = this.$store.getters['features/get']('uiextension');
       } catch (e) {
-        hasService = false;
+        console.warn('Failed to check for feature flag', e); // eslint-disable-line no-console
+        hasFeatureFlag = false;
       }
 
-      Vue.set(this, 'hasService', hasService);
+      if ( hasFeatureFlag || forceChartsUpdate ) {
+        this.refreshCharts(forceChartsUpdate);
+      }
 
-      return hasService;
+      Vue.set(this, 'hasFeatureFlag', hasFeatureFlag);
+
+      return hasFeatureFlag;
     },
 
     filterChanged(f) {
       this.view = f.selectedName;
     },
 
-    removePluginSupport() {
-      this.$refs.removeUIPlugins.showDialog();
+    // Developer Load is in the action menu
+    showDeveloperLoadDialog() {
+      this.$refs.developerInstallDialog.showDialog();
     },
 
-    // Developer Load is in the action menu
-    showDeveloperLoaddDialog() {
-      this.$refs.developerInstallDialog.showDialog();
+    showAddExtensionReposDialog() {
+      this.updateAddReposSetting();
+      this.refreshCharts(true);
+      this.$refs.addExtensionReposDialog.showDialog();
+    },
+
+    showCatalogLoadDialog() {
+      this.$refs.catalogLoadDialog.showDialog();
+    },
+
+    showCatalogUninstallDialog(ev) {
+      this.$refs.catalogUninstallDialog.showDialog(ev);
     },
 
     showInstallDialog(plugin, mode, ev) {
@@ -435,6 +552,10 @@ export default {
       if (plugin) {
         this.updatePluginInstallStatus(plugin.name, 'uninstall');
 
+        if (plugin.catalog) {
+          this.refreshCharts();
+        }
+
         // Clear the load error, if there was one
         this.$store.dispatch('uiplugins/setError', { name: plugin.name, error: false });
       }
@@ -443,7 +564,7 @@ export default {
     didInstall(plugin) {
       if (plugin) {
         // Change the view to installed if we started installing a plugin
-        this.$refs.tabs?.select('installed');
+        this.$refs.tabs?.select(TABS_VALUES.INSTALLED);
 
         // Clear the load error, if there was one previously
         this.$store.dispatch('uiplugins/setError', { name: plugin.name, error: false });
@@ -455,7 +576,6 @@ export default {
     },
 
     updatePluginInstallStatus(name, status) {
-      // console.log(`UPDATING PLUGIN STATUS: ${ name } ${ status }`);
       Vue.set(this.installing, name, status);
     },
 
@@ -484,6 +604,17 @@ export default {
           resource: CATALOG.CLUSTER_REPO
         }
       });
+    },
+
+    manageExtensionView() {
+      this.showCatalogList = !this.showCatalogList;
+    },
+
+    updateAddReposSetting() {
+      if (this.addExtensionReposBannerSetting?.value === 'true') {
+        this.addExtensionReposBannerSetting.value = 'false';
+        this.addExtensionReposBannerSetting.save();
+      }
     }
   }
 };
@@ -492,49 +623,82 @@ export default {
 <template>
   <div class="plugins">
     <div class="plugin-header">
-      <h2>{{ t('plugins.title') }}</h2>
-      <div
-        v-if="reloadRequired"
-        class="plugin-reload-banner mr-20"
-      >
-        <i class="icon icon-checkmark mr-10" />
-        <span>
-          {{ t('plugins.reload') }}
-        </span>
-        <button
-          class="ml-10 btn btn-sm role-primary"
-          @click="reload()"
+      <template v-if="showCatalogList">
+        <div class="catalog-title">
+          <h2
+            class="mb-0 mr-10"
+            data-testid="extensions-catalog-title"
+          >
+            <a
+              class="link"
+              @click="manageExtensionView()"
+            >
+              {{ t('plugins.manageCatalog.title') }}:
+            </a>
+            <t k="plugins.manageCatalog.subtitle" />
+          </h2>
+          <BadgeState
+            color="bg-warning"
+            :label="t('generic.experimental')"
+            class="badge"
+          />
+        </div>
+      </template>
+      <template v-else>
+        <h2 data-testid="extensions-page-title">
+          <TabTitle breadcrumb="vendor-only">
+            {{ t('plugins.title') }}
+          </TabTitle>
+        </h2>
+      </template>
+      <div class="actions-container">
+        <div
+          v-if="reloadRequired"
+          class="plugin-reload-banner mr-20"
+          data-testid="extension-reload-banner"
         >
-          {{ t('generic.reload') }}
-        </button>
+          <i class="icon icon-checkmark mr-10" />
+          <span>
+            {{ t('plugins.reload') }}
+          </span>
+          <button
+            class="ml-10 btn btn-sm role-primary"
+            data-testid="extension-reload-banner-reload-btn"
+            @click="reload()"
+          >
+            {{ t('generic.reload') }}
+          </button>
+        </div>
+        <div v-if="hasFeatureFlag && hasMenuActions">
+          <button
+            ref="actions"
+            aria-haspopup="true"
+            type="button"
+            class="btn role-multi-action actions"
+            data-testid="extensions-page-menu"
+            @click="setMenu"
+          >
+            <i class="icon icon-actions" />
+          </button>
+          <ActionMenu
+            :custom-actions="menuActions"
+            :open="menuOpen"
+            :use-custom-target-element="true"
+            :custom-target-element="menuTargetElement"
+            :custom-target-event="menuTargetEvent"
+            @close="setMenu(false)"
+            @devLoad="showDeveloperLoadDialog"
+            @manageRepos="manageRepos"
+            @addRancherRepos="showAddExtensionReposDialog"
+            @manageExtensionView="manageExtensionView"
+          />
+        </div>
       </div>
-      <button
-        v-if="hasService && hasMenuActions"
-        ref="actions"
-        aria-haspopup="true"
-        type="button"
-        class="btn actions role-secondary"
-        @click="setMenu"
-      >
-        <i class="icon icon-actions" />
-      </button>
-      <ActionMenu
-        v-if="hasService && hasMenuActions"
-        :custom-actions="menuActions"
-        :open="menuOpen"
-        :use-custom-target-element="true"
-        :custom-target-element="menuTargetElement"
-        :custom-target-event="menuTargetEvent"
-        @close="setMenu(false)"
-        @devLoad="showDeveloperLoaddDialog"
-        @removePluginSupport="removePluginSupport"
-        @manageRepos="manageRepos"
-      />
     </div>
 
     <PluginInfoPanel ref="infoPanel" />
 
-    <div v-if="!hasService">
+    <div v-if="!hasFeatureFlag">
       <div
         v-if="loading"
         class="data-loading"
@@ -548,202 +712,260 @@ export default {
       <SetupUIPlugins
         v-else
         class="setup-message"
-        @done="updateInstallStatus"
+        :has-feature-flag="hasFeatureFlag"
+        @done="updateInstallStatus(true)"
+        @refreshCharts="refreshCharts(true)"
       />
     </div>
     <div v-else>
-      <Tabbed
-        ref="tabs"
-        :tabs-only="true"
-        @changed="filterChanged"
-      >
-        <Tab
-          name="installed"
-          label-key="plugins.tabs.installed"
-          :weight="20"
+      <template v-if="showCatalogList">
+        <CatalogList
+          @showCatalogLoadDialog="showCatalogLoadDialog"
+          @showCatalogUninstallDialog="showCatalogUninstallDialog($event)"
         />
-        <Tab
-          name="available"
-          label-key="plugins.tabs.available"
-          :weight="19"
-        />
-        <Tab
-          name="updates"
-          label-key="plugins.tabs.updates"
-          :weight="18"
-          :badge="updates.length"
-        />
-        <Tab
-          name="all"
-          label-key="plugins.tabs.all"
-          :weight="17"
-        />
-      </Tabbed>
-      <div
-        v-if="loading"
-        class="data-loading"
-      >
-        <i class="icon-spin icon icon-spinner" />
-        <t
-          k="generic.loading"
-          :raw="true"
-        />
-      </div>
-      <div
-        v-else
-        class="plugin-list"
-        :class="{'v-margin': !list.length}"
-      >
-        <IconMessage
-          v-if="list.length === 0"
-          :vertical="true"
-          :subtle="true"
-          icon="icon-extension"
-          :message="emptyMessage"
-        />
-        <template v-else>
-          <div
-            v-for="plugin in list"
-            :key="plugin.name"
-            class="plugin"
-            @click="showPluginDetail(plugin)"
+      </template>
+      <template v-else>
+        <Banner
+          v-if="showAddReposBanner"
+          color="warning"
+          class="add-repos-banner mb-20"
+          data-testid="extensions-new-repos-banner"
+        >
+          <span>{{ t('plugins.addRepos.banner', {}, true) }}</span>
+          <button
+            class="ml-10 btn btn-sm role-primary"
+            data-testid="extensions-new-repos-banner-action-btn"
+            @click="showAddExtensionReposDialog()"
           >
-            <div
-              class="plugin-icon"
-              :class="applyDarkModeBg"
-            >
-              <LazyImage
-                v-if="plugin.icon"
-                :initial-src="defaultIcon"
-                :error-src="defaultIcon"
-                :src="plugin.icon"
-                class="icon plugin-icon-img"
-              />
-              <img
-                v-else
-                :src="defaultIcon"
-                class="icon plugin-icon-img"
-              >
-            </div>
-            <div class="plugin-metadata">
-              <div class="plugin-name">
-                {{ plugin.label }}
-              </div>
-              <div>{{ plugin.description }}</div>
-              <div class="plugin-version">
-                <span
-                  v-if="plugin.installing"
-                  class="plugin-installing"
-                >
-                  -
-                </span>
-                <span v-else>
-                  <span>{{ plugin.displayVersion }}</span>
-                  <span
-                    v-if="plugin.upgrade"
-                    v-tooltip="t('plugins.upgradeAvailable')"
-                  > -> {{ plugin.upgrade }}</span>
-                </span>
-              </div>
+            {{ t('plugins.addRepos.bannerBtn') }}
+          </button>
+        </Banner>
+
+        <Tabbed
+          ref="tabs"
+          :tabs-only="true"
+          data-testid="extension-tabs"
+          @changed="filterChanged"
+        >
+          <Tab
+            :name="TABS_VALUES.INSTALLED"
+            data-testid="extension-tab-installed"
+            label-key="plugins.tabs.installed"
+            :weight="20"
+          />
+          <Tab
+            :name="TABS_VALUES.AVAILABLE"
+            data-testid="extension-tab-available"
+            label-key="plugins.tabs.available"
+            :weight="19"
+          />
+          <Tab
+            :name="TABS_VALUES.UPDATES"
+            label-key="plugins.tabs.updates"
+            :weight="18"
+            :badge="updates.length"
+          />
+          <Tab
+            :name="TABS_VALUES.ALL"
+            label-key="plugins.tabs.all"
+            :weight="17"
+          />
+        </Tabbed>
+        <template>
+          <div
+            v-if="loading"
+            class="data-loading"
+          >
+            <i class="icon-spin icon icon-spinner" />
+            <t
+              k="generic.loading"
+              :raw="true"
+            />
+          </div>
+          <div
+            v-else
+            class="plugin-list"
+            :class="{'v-margin': !list.length}"
+          >
+            <IconMessage
+              v-if="list.length === 0"
+              :vertical="true"
+              :subtle="true"
+              icon="icon-extension"
+              :message="emptyMessage"
+            />
+            <template v-else>
               <div
-                v-if="plugin.builtin"
-                class="plugin-badges"
+                v-for="(plugin, i) in list"
+                :key="plugin.name + i"
+                class="plugin"
+                :data-testid="`extension-card-${plugin.name}`"
+                @click="showPluginDetail(plugin)"
               >
-                <div class="plugin-builtin">
-                  {{ t('plugins.labels.builtin') }}
-                </div>
-              </div>
-              <div
-                v-else
-                class="plugin-badges"
-              >
+                <!-- plugin icon -->
                 <div
-                  v-if="!plugin.certified"
-                  v-tooltip="t('plugins.descriptions.third-party')"
+                  class="plugin-icon"
+                  :class="applyDarkModeBg"
                 >
-                  {{ t('plugins.labels.third-party') }}
+                  <LazyImage
+                    v-if="plugin.icon"
+                    :initial-src="defaultIcon"
+                    :error-src="defaultIcon"
+                    :src="plugin.icon"
+                    class="icon plugin-icon-img"
+                  />
+                  <img
+                    v-else
+                    :src="defaultIcon"
+                    class="icon plugin-icon-img"
+                  >
                 </div>
-                <div
-                  v-if="plugin.experimental"
-                  v-tooltip="t('plugins.descriptions.experimental')"
-                >
-                  {{ t('plugins.labels.experimental') }}
-                </div>
-              </div>
-              <div class="plugin-spacer" />
-              <div class="plugin-actions">
-                <template v-if="plugin.error">
+                <!-- plugin card -->
+                <div class="plugin-metadata">
+                  <!-- plugin basic info -->
+                  <div class="plugin-name">
+                    {{ plugin.label }}
+                  </div>
+                  <div>{{ plugin.description }}</div>
+                  <div class="plugin-version">
+                    <span
+                      v-if="plugin.installing"
+                      class="plugin-installing"
+                    >
+                      -
+                    </span>
+                    <span v-else>
+                      <span>{{ plugin.displayVersion }}</span>
+                      <span
+                        v-if="plugin.upgrade"
+                        v-clean-tooltip="t('plugins.upgradeAvailable')"
+                      > -> {{ plugin.upgrade }}</span>
+                      <p
+                        v-if="plugin.installedError"
+                        class="incompatible"
+                      >
+                        <i class="icon icon-warning icon-lg text-warning" />
+                        <span>{{ plugin.installedError }}</span>
+                      </p>
+                      <p
+                        v-else-if="plugin.incompatibleRancherVersion"
+                        class="incompatible"
+                      >{{ plugin.incompatibleRancherVersion }}</p>
+                      <p
+                        v-else-if="plugin.incompatibleKubeVersion"
+                        class="incompatible"
+                      >{{ plugin.incompatibleKubeVersion }}</p>
+                    </span>
+                  </div>
+                  <!-- plugin badges -->
                   <div
-                    v-tooltip="plugin.error"
-                    class="plugin-error"
+                    v-if="plugin.builtin"
+                    class="plugin-badges"
                   >
-                    <i class="icon icon-warning" />
+                    <div class="plugin-builtin">
+                      {{ t('plugins.labels.builtin') }}
+                    </div>
                   </div>
-                </template>
-                <div
-                  v-if="plugin.helmError"
-                  v-tooltip="t('plugins.helmError')"
-                  class="plugin-error"
-                >
-                  <i class="icon icon-warning" />
-                </div>
+                  <div
+                    v-else
+                    class="plugin-badges"
+                  >
+                    <div
+                      v-if="!plugin.certified"
+                      v-clean-tooltip="t('plugins.descriptions.third-party')"
+                    >
+                      {{ t('plugins.labels.third-party') }}
+                    </div>
+                    <div
+                      v-if="plugin.experimental"
+                      v-clean-tooltip="t('plugins.descriptions.experimental')"
+                    >
+                      {{ t('plugins.labels.experimental') }}
+                    </div>
+                  </div>
+                  <div class="plugin-spacer" />
+                  <!-- plugin badges -->
+                  <div class="plugin-actions">
+                    <template v-if="plugin.error">
+                      <div
+                        v-clean-tooltip="plugin.error"
+                        class="plugin-error"
+                      >
+                        <i class="icon icon-warning" />
+                      </div>
+                    </template>
+                    <!-- plugin status -->
+                    <div
+                      v-if="plugin.helmError"
+                      v-clean-tooltip="t('plugins.helmError')"
+                      class="plugin-error"
+                    >
+                      <i class="icon icon-warning" />
+                    </div>
 
-                <div class="plugin-spacer" />
+                    <div class="plugin-spacer" />
 
-                <div
-                  v-if="plugin.installing"
-                  class="plugin-installing"
-                >
-                  <i class="version-busy icon icon-spin icon-spinner" />
-                  <div v-if="plugin.installing ==='install'">
-                    {{ t('plugins.labels.installing') }}
+                    <div
+                      v-if="plugin.installing"
+                      class="plugin-installing"
+                    >
+                      <i class="version-busy icon icon-spin icon-spinner" />
+                      <div v-if="plugin.installing ==='install'">
+                        {{ t('plugins.labels.installing') }}
+                      </div>
+                      <div v-else>
+                        {{ t('plugins.labels.uninstalling') }}
+                      </div>
+                    </div>
+                    <!-- plugin buttons -->
+                    <div
+                      v-else-if="plugin.installed"
+                      class="plugin-buttons"
+                    >
+                      <button
+                        v-if="!plugin.builtin"
+                        class="btn role-secondary"
+                        :data-testid="`extension-card-uninstall-btn-${plugin.name}`"
+                        @click="showUninstallDialog(plugin, $event)"
+                      >
+                        {{ t('plugins.uninstall.label') }}
+                      </button>
+                      <button
+                        v-if="plugin.upgrade"
+                        class="btn role-secondary"
+                        :data-testid="`extension-card-update-btn-${plugin.name}`"
+                        @click="showInstallDialog(plugin, 'update', $event)"
+                      >
+                        {{ t('plugins.update.label') }}
+                      </button>
+                      <button
+                        v-if="!plugin.upgrade && plugin.installableVersions && plugin.installableVersions.length > 1"
+                        class="btn role-secondary"
+                        :data-testid="`extension-card-rollback-btn-${plugin.name}`"
+                        @click="showInstallDialog(plugin, 'rollback', $event)"
+                      >
+                        {{ t('plugins.rollback.label') }}
+                      </button>
+                    </div>
+                    <div
+                      v-else-if="plugin.installableVersions && plugin.installableVersions.length"
+                      class="plugin-buttons"
+                    >
+                      <button
+                        class="btn role-secondary"
+                        :data-testid="`extension-card-install-btn-${plugin.name}`"
+                        @click="showInstallDialog(plugin, 'install', $event)"
+                      >
+                        {{ t('plugins.install.label') }}
+                      </button>
+                    </div>
                   </div>
-                  <div v-else>
-                    {{ t('plugins.labels.uninstalling') }}
-                  </div>
-                </div>
-                <div
-                  v-else-if="plugin.installed"
-                  class="plugin-buttons"
-                >
-                  <button
-                    v-if="!plugin.builtin"
-                    class="btn role-secondary"
-                    @click="showUninstallDialog(plugin, $event)"
-                  >
-                    {{ t('plugins.uninstall.label') }}
-                  </button>
-                  <button
-                    v-if="plugin.upgrade"
-                    class="btn role-secondary"
-                    @click="showInstallDialog(plugin, 'update', $event)"
-                  >
-                    {{ t('plugins.update.label') }}
-                  </button>
-                  <button
-                    v-if="!plugin.upgrade && plugin.versions.length > 1"
-                    class="btn role-secondary"
-                    @click="showInstallDialog(plugin, 'rollback', $event)"
-                  >
-                    {{ t('plugins.rollback.label') }}
-                  </button>
-                </div>
-                <div
-                  v-else
-                  class="plugin-buttons"
-                >
-                  <button
-                    class="btn role-secondary"
-                    @click="showInstallDialog(plugin, 'install', $event)"
-                  >
-                    {{ t('plugins.install.label') }}
-                  </button>
                 </div>
               </div>
-            </div>
+            </template>
           </div>
         </template>
-      </div>
+      </template>
     </div>
 
     <InstallDialog
@@ -756,13 +978,23 @@ export default {
       @closed="didUninstall"
       @update="updatePluginInstallStatus"
     />
+    <CatalogLoadDialog
+      ref="catalogLoadDialog"
+      @closed="didInstall"
+      @refresh="() => reloadRequired = true"
+    />
+    <CatalogUninstallDialog
+      ref="catalogUninstallDialog"
+      @closed="didUninstall"
+      @refresh="() => reloadRequired = true"
+    />
     <DeveloperInstallDialog
       ref="developerInstallDialog"
       @closed="didInstall"
     />
-    <RemoveUIPlugins
-      ref="removeUIPlugins"
-      @done="updateInstallStatus"
+    <AddExtensionRepos
+      ref="addExtensionReposDialog"
+      @done="updateInstallStatus(true)"
     />
   </div>
 </template>
@@ -826,11 +1058,28 @@ export default {
   .plugin-header {
     display: flex;
     align-items: center;
+    justify-content: space-between;
     margin-bottom: 10px;
+
+    .catalog-title {
+      display: flex;
+      flex-direction: row;
+      align-items: center;
+    }
 
     > h2 {
       flex: 1;
       margin-bottom: 0;
+    }
+
+    .link {
+      cursor: pointer;
+    }
+
+    .actions-container {
+      display: flex;
+      flex-direction: row;
+      justify-content: flex-end;
     }
 
     .btn.actions {
@@ -855,6 +1104,9 @@ export default {
       color: #888;
       width: 44px;
       height: 44px;
+      display: flex;
+      justify-content: center;
+      align-items: center;
 
       &.dark-mode {
         border-radius: calc(2 * var(--border-radius));
@@ -867,7 +1119,6 @@ export default {
         width: 40px;
         -o-object-fit: contain;
         object-fit: contain;
-        position: relative;
         top: 2px;
         left: 2px;
       }
@@ -928,6 +1179,11 @@ export default {
         height: 16px;
         width: 16px;
       }
+
+      .incompatible {
+        margin: 10px 0;
+        font-weight: bold;
+      }
     }
 
     .plugin-installing {
@@ -964,6 +1220,15 @@ export default {
         padding: 0 5px;
       }
     }
+  }
+  ::v-deep .checkbox-label {
+    font-weight: normal !important;
+  }
+
+  ::v-deep .add-repos-banner .banner__content {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
   }
 
   @media screen and (max-width: 1200px) {

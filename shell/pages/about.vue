@@ -6,11 +6,14 @@ import { MANAGEMENT } from '@shell/config/types';
 import { SETTING } from '@shell/config/settings';
 import { getVendor } from '@shell/config/private-label';
 import { downloadFile } from '@shell/utils/download';
+import { mapGetters } from 'vuex';
+import TabTitle from '@shell/components/TabTitle';
 
 export default {
-  layout:     'plain',
-  components: { BackLink, Loading },
-  mixins:     [BackRoute],
+  components: {
+    BackLink, Loading, TabTitle
+  },
+  mixins: [BackRoute],
   async fetch() {
     this.settings = await this.$store.dispatch(`management/findAll`, { type: MANAGEMENT.SETTING });
   },
@@ -22,33 +25,34 @@ export default {
     };
   },
   computed: {
+    ...mapGetters(['releaseNotesUrl']),
     rancherVersion() {
-      return this.settings.find(s => s.id === SETTING.VERSION_RANCHER);
+      return this.settings.find((s) => s.id === SETTING.VERSION_RANCHER);
     },
     appName() {
       return getVendor();
     },
     cliVersion() {
-      return this.settings.find(s => s.id === SETTING.VERSION_CLI);
+      return this.settings.find((s) => s.id === SETTING.VERSION_CLI);
     },
     helmVersion() {
-      return this.settings.find(s => s.id === SETTING.VERSION_HELM);
+      return this.settings.find((s) => s.id === SETTING.VERSION_HELM);
     },
     dockerMachineVersion() {
-      return this.settings.find(s => s.id === SETTING.VERSION_MACHINE);
+      return this.settings.find((s) => s.id === SETTING.VERSION_MACHINE);
     },
     downloads() {
       return [
-        this.createOSOption('about.os.mac', 'icon-apple', this.settings?.find(s => s.id === SETTING.CLI_URL.DARWIN)?.value, null),
-        this.createOSOption('about.os.linux', 'icon-linux', this.settings?.find(s => s.id === SETTING.CLI_URL.LINUX)?.value, this.downloadLinuxImages),
-        this.createOSOption('about.os.windows', 'icon-windows', this.settings?.find(s => s.id === SETTING.CLI_URL.WINDOWS)?.value, this.downloadWindowsImages)
+        this.createOSOption('about.os.mac', 'icon-apple', this.settings?.find((s) => s.id === SETTING.CLI_URL.DARWIN)?.value, null),
+        this.createOSOption('about.os.linux', 'icon-linux', this.settings?.find((s) => s.id === SETTING.CLI_URL.LINUX)?.value, this.downloadLinuxImages),
+        this.createOSOption('about.os.windows', 'icon-windows', this.settings?.find((s) => s.id === SETTING.CLI_URL.WINDOWS)?.value, this.downloadWindowsImages)
       ];
     },
     downloadImageList() {
-      return this.downloads.filter(d => !!d.imageList);
+      return this.downloads.filter((d) => !!d.imageList);
     },
     downloadCli() {
-      return this.downloads.filter(d => !!d.cliLink);
+      return this.downloads.filter((d) => !!d.cliLink);
     }
   },
   methods: {
@@ -95,13 +99,18 @@ export default {
   >
     <BackLink :link="backLink" />
     <div class="title-block mt-20 mb-40">
-      <h1 v-t="'about.title'" />
-      <n-link
+      <h1>
+        <TabTitle breadcrumb="vendor-only">
+          {{ t('about.title') }}
+        </TabTitle>
+      </h1>
+      <router-link
         :to="{ name: 'diagnostic' }"
         class="btn role-primary"
+        data-testid="about__diagnostics_button"
       >
         {{ t('about.diagnostic.title') }}
-      </n-link>
+      </router-link>
     </div>
     <h3>{{ t('about.versions.title') }}</h3>
     <table>
@@ -168,9 +177,13 @@ export default {
       </tr>
     </table>
     <p class="pt-20">
-      <nuxt-link :to="{ path: 'docs/whats-new'}">
+      <a
+        :href="releaseNotesUrl"
+        target="_blank"
+        rel="nofollow noopener noreferrer"
+      >
         {{ t('about.versions.releaseNotes') }}
-      </nuxt-link>
+      </a>
     </p>
     <template v-if="downloadImageList.length">
       <h3 class="pt-40">
@@ -189,6 +202,7 @@ export default {
           <td>
             <a
               v-if="d.imageList"
+              :data-testid="`image_list_download_link__${d.label}`"
               @click="d.imageList"
             >
               {{ t('asyncButton.download.action') }}

@@ -74,8 +74,8 @@ export default {
   >
     <h4
       slot="title"
+      v-clean-html="t('promptSaveAsRKETemplate.title', { cluster: cluster.displayName }, true)"
       class="text-default-text"
-      v-html="t('promptSaveAsRKETemplate.title', { cluster: cluster.displayName }, true)"
     />
 
     <div

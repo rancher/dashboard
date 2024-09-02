@@ -1,7 +1,9 @@
 import { _EDIT, _YAML } from '@shell/config/query-params';
+import { defineComponent } from 'vue';
+
 import impl from './impl';
 
-export default {
+export default defineComponent({
   ...impl,
 
   props: {
@@ -43,4 +45,4 @@ export default {
       default: false,
     },
   },
-};
+});

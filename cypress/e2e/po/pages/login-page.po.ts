@@ -4,7 +4,7 @@ import AsyncButtonPo from '@/cypress/e2e/po/components/async-button.po';
 import PasswordPo from '@/cypress/e2e/po/components/password.po';
 
 export class LoginPagePo extends PagePo {
-  static url: string = '/auth/login'
+  static url = '/auth/login'
   static goTo(): Cypress.Chainable<Cypress.AUTWindow> {
     return super.goTo(LoginPagePo.url);
   }
@@ -22,7 +22,7 @@ export class LoginPagePo extends PagePo {
   }
 
   canSubmit(): Cypress.Chainable<boolean> {
-    return this.submitButton().isDisabled().then(isDisabled => !isDisabled);
+    return this.submitButton().isDisabled().then((isDisabled) => !isDisabled);
   }
 
   submit(): Cypress.Chainable {
@@ -44,7 +44,23 @@ export class LoginPagePo extends PagePo {
     });
   }
 
-  private submitButton(): AsyncButtonPo {
+  submitButton(): AsyncButtonPo {
     return new AsyncButtonPo('[data-testid="login-submit"]', this.self());
+  }
+
+  /**
+   * Get login message
+   * @returns
+   */
+  loginPageMessage() {
+    return cy.getId('login__messages');
+  }
+
+  /**
+   * Get login background image
+   * @returns
+   */
+  loginBackgroundImage() {
+    return cy.getId('login-landscape__img');
   }
 }

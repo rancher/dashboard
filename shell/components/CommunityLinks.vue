@@ -1,5 +1,6 @@
 <script>
 import SimpleBox from '@shell/components/SimpleBox';
+import AppModal from '@shell/components/AppModal.vue';
 import Closeable from '@shell/mixins/closeable';
 import { MANAGEMENT } from '@shell/config/types';
 import { SETTING } from '@shell/config/settings';
@@ -7,10 +8,11 @@ import { mapGetters } from 'vuex';
 import { isRancherPrime } from '@shell/config/version';
 import { fetchLinks } from '@shell/config/home-links';
 
+// i18n-ignore footer.wechat.title, footer.wechat.modalText, footer.wechat.modalText2
 export default {
   name: 'CommunityLinks',
 
-  components: { SimpleBox },
+  components: { SimpleBox, AppModal },
 
   props: {
     linkOptions: {
@@ -28,11 +30,11 @@ export default {
   mixins: [Closeable],
 
   async fetch() {
-    this.links = await fetchLinks(this.$store, this.hasSupport, this.isSupportPage, str => this.t(str));
+    this.links = await fetchLinks(this.$store, this.hasSupport, this.isSupportPage, (str) => this.t(str));
   },
 
   data() {
-    return { links: {} };
+    return { links: {}, showWeChatModal: false };
   },
 
   computed: {
@@ -72,7 +74,7 @@ export default {
       }
 
       if (this.links.defaults) {
-        all.push(...this.links.defaults.filter(link => link.enabled));
+        all.push(...this.links.defaults.filter((link) => link.enabled));
       }
 
       return all;
@@ -80,10 +82,10 @@ export default {
   },
   methods: {
     show() {
-      this.$modal.show('wechat-modal');
+      this.showWeChatModal = true;
     },
     close() {
-      this.$modal.hide('wechat-modal');
+      this.showWeChatModal = false;
     }
   },
 };
@@ -105,12 +107,12 @@ export default {
         :key="link.label"
         class="support-link"
       >
-        <n-link
+        <router-link
           v-if="link.value.startsWith('/') "
           :to="link.value"
         >
           {{ link.label }}
-        </n-link>
+        </router-link>
         <a
           v-else
           :href="link.value"
@@ -131,13 +133,16 @@ export default {
         </a>
       </div>
     </SimpleBox>
-    <modal
+    <app-modal
+      v-if="showWeChatModal"
       name="wechat-modal"
       height="auto"
       :width="640"
+      @close="close"
     >
       <div class="wechat-modal">
         <h1>{{ t('footer.wechat.modalText') }}</h1>
+        <h1>{{ t('footer.wechat.modalText2') }}</h1>
         <div class="qr-img" />
         <div>
           <button
@@ -148,7 +153,7 @@ export default {
           </button>
         </div>
       </div>
-    </modal>
+    </app-modal>
   </div>
 </template>
 

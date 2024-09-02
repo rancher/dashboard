@@ -41,7 +41,7 @@ export default {
      */
     numberFormatter: {
       type:    Function,
-      default: value => Number.isInteger(value) ? value : value.toFixed(2)
+      default: (value) => Number.isInteger(value) ? value : value.toFixed(2)
     },
 
     /**
@@ -106,7 +106,10 @@ export default {
           {{ resourceName }}
         </h4>
         <span v-else>{{ t('node.detail.glance.consumptionGauge.used') }}</span>
-        <span>{{ t('node.detail.glance.consumptionGauge.amount', amountTemplateValues) }} <span class="ml-10 percentage">/&nbsp;{{ formattedPercentage }}</span></span>
+        <span class="numbers-stats">
+          {{ t('node.detail.glance.consumptionGauge.amount', amountTemplateValues) }}
+          <span class="percentage"><i>/&nbsp;</i>{{ formattedPercentage }}</span>
+        </span>
       </slot>
     </div>
     <div class="mt-10">
@@ -125,8 +128,20 @@ export default {
     flex-direction: row;
     justify-content: space-between;
 
+    &-stats {
+      display: flex;
+      flex-direction: row;
+      align-items: center;
+      gap: 10px;
+      align-self: baseline;
+
+    }
+
     .percentage {
       font-weight: bold;
+      i {
+        margin-right: 10px;
+      }
     }
   }
 }

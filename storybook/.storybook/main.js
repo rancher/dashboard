@@ -16,6 +16,13 @@ module.exports = {
     "storybook-dark-mode",
     "@storybook/addon-actions"
   ],
+  features: {
+    buildStoriesJson: true, // 👈 Enable this to build the stories.json file
+  },
+
+  core: {
+    disableTelemetry: true,
+  },
 
   staticDirs: [
     'public',
@@ -99,5 +106,5 @@ module.exports = {
     });
 
     return config;
-  },  
+  },
 }

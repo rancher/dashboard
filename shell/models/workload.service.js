@@ -10,8 +10,8 @@ export default class WorkloadService extends SteveModel {
   async getPortsWithServiceType() {
     const ports = [];
 
-    this.containers.forEach(container => ports.push(...(container.ports || [])));
-    (this.initContainers || []).forEach(container => ports.push(...(container.ports || [])));
+    this.containers.forEach((container) => ports.push(...(container.ports || [])));
+    (this.initContainers || []).forEach((container) => ports.push(...(container.ports || [])));
 
     // Only get services owned if we can access the service resource
     const canAccessServices = this.$getters['schemaFor'](SERVICE);
@@ -93,7 +93,7 @@ export default class WorkloadService extends SteveModel {
     const steveSelectorValue = this.workloadSelector[selectorKey];
     const allSvc = await this.$dispatch('cluster/findAll', { type: SERVICE, opt: { force } }, { root: true });
 
-    return (allSvc || []).filter(svc => (svc.spec?.selector || {})[selectorKey] === steveSelectorValue || (svc.spec?.selector || {})[selectorKey] === normanSelectorValue );
+    return (allSvc || []).filter((svc) => (svc.spec?.selector || {})[selectorKey] === steveSelectorValue || (svc.spec?.selector || {})[selectorKey] === normanSelectorValue );
   }
 
   get imageNames() {
@@ -304,21 +304,38 @@ export default class WorkloadService extends SteveModel {
       if (loadBalancer.id) {
         loadBalancerProxy = loadBalancer;
       } else {
-        loadBalancer = clone(loadBalancer);
-
-        const portsWithIpam = ports.filter(p => p._ipam) || [];
-
-        if (portsWithIpam.length > 0) {
-          loadBalancer.metadata.annotations[HCI_LABELS_ANNOTATIONS.CLOUD_PROVIDER_IPAM] = portsWithIpam[0]._ipam;
-        }
-
         loadBalancerProxy = await this.$dispatch(`cluster/create`, loadBalancer, { root: true });
       }
+
+      const portsWithIpam = ports.filter((p) => p._ipam) || [];
+
+      if (portsWithIpam.length > 0) {
+        loadBalancerProxy.metadata.annotations[HCI_LABELS_ANNOTATIONS.CLOUD_PROVIDER_IPAM] = portsWithIpam[0]._ipam;
+      }
+
       toSave.push(loadBalancerProxy);
     } else if (loadBalancer.id) {
       toRemove.push(loadBalancer);
     }
 
     return { toSave, toRemove };
+  }
+
+  cleanForSave(data) {
+    const val = super.cleanForSave(data);
+
+    delete val.__active;
+    delete val.type;
+
+    return val;
+  }
+
+  cleanContainerForSave(container) {
+    delete container.__active;
+    delete container.active;
+    delete container._init;
+    delete container.error;
+
+    return container;
   }
 }

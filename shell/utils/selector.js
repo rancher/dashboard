@@ -1,4 +1,5 @@
 import { isArray, addObject, findBy } from '@shell/utils/array';
+import { get } from '@shell/utils/object';
 
 const parseCache = {};
 
@@ -52,7 +53,7 @@ export function parse(labelSelector) {
     }
   }
 
-  const parts = labelSelector.split(/\s*,\s*/).filter(x => !!x);
+  const parts = labelSelector.split(/\s*,\s*/).filter((x) => !!x);
 
   for ( let rule of parts ) {
     rule = rule.trim();
@@ -121,7 +122,7 @@ export function convert(matchLabelsObj, matchExpressions) {
       out.push({
         key,
         operator: 'In',
-        values:   [value],
+        values:   isArray(value) ? value : [value],
       });
     }
   }
@@ -162,7 +163,7 @@ export function simplify(matchExpressionsInput) {
   return { matchLabels, matchExpressions };
 }
 
-export function matches(obj, selector) {
+export function matches(obj, selector, labelKey = 'metadata.labels') {
   let rules = [];
 
   if ( typeof selector === 'string' ) {
@@ -178,7 +179,7 @@ export function matches(obj, selector) {
     return false;
   }
 
-  const labels = obj?.metadata?.labels || {};
+  const labels = get(obj, labelKey) || {};
 
   for ( const rule of rules ) {
     const value = labels[rule.key];
@@ -197,7 +198,8 @@ export function matches(obj, selector) {
       }
       break;
     case 'In':
-      if ( !value || !rule.values.length || !rule.values.includes(value) ) {
+      // we need to cater empty strings because when creating a label with value = null it's translated into a empty string value ''
+      if ( !rule.values.length || !rule.values.includes(value) ) {
         return false;
       }
       break;
@@ -222,6 +224,6 @@ export function matches(obj, selector) {
   return true;
 }
 
-export function matching(ary, selector) {
-  return ary.filter(obj => matches(obj, selector));
+export function matching(ary, selector, labelKey) {
+  return ary.filter((obj) => matches(obj, selector, labelKey));
 }

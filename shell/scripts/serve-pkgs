@@ -2,12 +2,16 @@
 
 const fs = require('fs-extra');
 const path = require('path');
-
-console.log(__dirname);
+const { exit } = require('process');
 
 const dir = path.resolve('.');
 const pkgs = path.join(dir, 'dist-pkg');
 let port = 4500;
+
+if (!fs.existsSync(pkgs)) {
+  console.log(`\n\x1B[31m%s\x1B[0m\n`, `Error: The 'dist-pkg directory doesn't exist. You likely need to run the 'yarn build-pkg <pkg name>' command first.`);
+  exit(1);
+}
 
 const express = require('express');
 const serveStatic = require('serve-static');
@@ -47,8 +51,6 @@ if (process.env.PORT) {
 
 const base = `http://127.0.0.1:${ port }`;
 
-console.log('');
-console.log(`Serving catalog on ${ base }`);
 console.log('');
 console.log(`Serving packages:`);
 console.log('');

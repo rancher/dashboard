@@ -7,7 +7,7 @@ import SteveModel from '@shell/plugins/steve/steve-class';
 function tlsHosts(spec) {
   const tls = spec.tls || [];
 
-  return tls.flatMap(tls => tls.hosts || []);
+  return tls.flatMap((tls) => tls.hosts || []);
 }
 
 function isTlsHost(spec, host) {
@@ -33,7 +33,7 @@ export default class Ingress extends SteveModel {
   }
 
   get isTlsHost() {
-    return host => isTlsHost(this.spec, host);
+    return (host) => isTlsHost(this.spec, host);
   }
 
   targetTo(workloads, serviceName) {
@@ -44,8 +44,9 @@ export default class Ingress extends SteveModel {
     const isTargetsWorkload = serviceName.startsWith('ingress-');
     const id = `${ this.namespace }/${ serviceName }`;
 
-    if ( isTargetsWorkload ) {
-      const workload = workloads.find(w => w.id === (id));
+    if (isTargetsWorkload) {
+      // Need to expose workloadId's and fetch specific ones in IngressTarget?
+      const workload = workloads.find((w) => w.id === (id));
 
       return workload?.detailLocation || '';
     } else {
@@ -66,7 +67,7 @@ export default class Ingress extends SteveModel {
     return rules.flatMap((rule) => {
       const paths = rule?.http?.paths || [];
 
-      return paths.map(path => this.createPathForListPage(workloads, rule, path, certificates));
+      return paths.map((path) => this.createPathForListPage(workloads, rule, path, certificates));
     });
   }
 
@@ -120,7 +121,7 @@ export default class Ingress extends SteveModel {
       return hosts.includes(rule.host);
     });
 
-    return matchingCerts.map(cert => this.certLink(cert, certificates));
+    return matchingCerts.map((cert) => this.certLink(cert, certificates));
   }
 
   targetLink(workloads, serviceName) {

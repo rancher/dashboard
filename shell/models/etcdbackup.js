@@ -1,10 +1,11 @@
 import NormanModel from '@shell/plugins/steve/norman-class';
+import { STATES_ENUM } from '@shell/plugins/dashboard-store/resource-class';
 
 export default class Rke1EtcdBackup extends NormanModel {
   get _availableActions() {
     const restore = {
       action:  'promptRestore',
-      enabled: true,
+      enabled: this.state === STATES_ENUM.ACTIVE,
       icon:    'icon icon-fw icon-backup-restore',
       label:   'Restore'
     };

@@ -5,10 +5,9 @@
 import Socket, {
   NO_WATCH,
   NO_SCHEMA,
-  EVENT_MESSAGE,
   EVENT_CONNECTED,
+  REVISION_TOO_OLD
 } from '@shell/utils/socket';
-import { addParam } from '@shell/utils/url';
 
 export const WATCH_STATUSES = {
   /**
@@ -41,7 +40,7 @@ export const keyForSubscribe = ({
   resourceType, type, namespace, id, selector
 } = {}) => {
   return [(resourceType || type), namespace, id, selector] // each watch param in an array
-    .filter(param => !!param) // filter out all the empty ones // the filter makes these keys neater
+    .filter((param) => !!param) // filter out all the empty ones // the filter makes these keys neater
     .join('/'); // join into a string so we can use it as an object key
 };
 
@@ -64,7 +63,7 @@ export const watchKeyFromMessage = (msg) => {
 };
 
 const {
-  WATCH_PENDING, WATCH_REQUESTED, WATCHING, STOPPED, REMOVE_PENDING, REQUESTED_REMOVE
+  WATCH_PENDING, WATCH_REQUESTED, WATCHING, REMOVE_PENDING, REQUESTED_REMOVE
 } = WATCH_STATUSES;
 
 export default class ResourceWatcher extends Socket {
@@ -110,12 +109,13 @@ export default class ResourceWatcher extends Socket {
     return !!this.watches?.[watchKey];
   }
 
-  async watch(watchKey, providedResourceVersion, providedResourceVersionTime, providedKeyParts = {}, providedSkipResourceVersion) {
+  watch(watchKey, providedResourceVersion, providedResourceVersionTime, providedKeyParts = {}, providedSkipResourceVersion) {
     const {
       resourceType: providedResourceType,
       id: providedId,
       namespace: providedNamespace,
-      selector: providedSelector
+      selector: providedSelector,
+      force: providedForce,
     } = providedKeyParts;
 
     this.trace('watch:', 'requested', watchKey);
@@ -126,8 +126,10 @@ export default class ResourceWatcher extends Socket {
       return;
     }
 
-    if (this.watches?.[watchKey]?.error) {
-      this.trace('watch:', 'in error, aborting', watchKey);
+    if (!providedForce && this.watches?.[watchKey]?.error) {
+      if (this.watches?.[watchKey]?.error.reason !== REVISION_TOO_OLD) {
+        this.trace('watch:', 'in error, aborting', watchKey);
+      }
 
       return;
     }
@@ -136,7 +138,7 @@ export default class ResourceWatcher extends Socket {
     const id = providedId || this.watches?.[watchKey]?.id;
     const namespace = providedNamespace || this.watches?.[watchKey]?.namespace;
     const selector = providedSelector || this.watches?.[watchKey]?.selector;
-    let skipResourceVersion = this.watches?.[watchKey]?.skipResourceVersion || providedSkipResourceVersion;
+    const skipResourceVersion = this.watches?.[watchKey]?.skipResourceVersion || providedSkipResourceVersion;
 
     const watchObject = {
       resourceType,
@@ -145,47 +147,8 @@ export default class ResourceWatcher extends Socket {
       selector
     };
 
-    let resourceVersionTime = providedResourceVersionTime || this.watches?.[watchKey]?.resourceVersionTime;
-    let resourceVersion = providedResourceVersion || this.watches?.[watchKey]?.resourceVersion;
-
-    if (!skipResourceVersion && (!resourceVersion || Date.now() - resourceVersionTime > 300000)) { // 300000ms is 5minutes
-      this.trace('watch:', 'revision update required', watchKey);
-
-      const resourceUrl = this.baseUrl + resourceType;
-      const limitedResourceUrl = addParam(resourceUrl, 'limit', 1);
-      const opt = {
-        method:  'get',
-        headers: { accept: 'application/json' },
-      };
-
-      if (this.csrf) {
-        opt.headers['x-api-csrf'] = this.csrf;
-      }
-
-      await fetch(limitedResourceUrl, opt)
-        .then((res) => {
-          this.watches[watchKey] = { ...watchObject };
-          if (!res.ok) {
-            this.watches[watchKey].error = res.json();
-            console.warn(`Resource error retrieving resourceVersion`, resourceType, ':', res.json()); // eslint-disable-line no-console
-          } else {
-            this.watches[watchKey].error = undefined;
-          }
-
-          return res.json();
-        })
-        .then((res) => {
-          if (res.revision) {
-            resourceVersionTime = Date.now();
-            resourceVersion = res.revision;
-          } else if (!this.watches[watchKey].error) {
-            // if there wasn't a revision in the response and there wasn't an error we wrote to the watch then the resource doesn't get a revision and we can skip it on subsequent rewatches
-            skipResourceVersion = true;
-          }
-        });
-      // When this fails we should re-fetch all resources (aka same as resyncWatch, or we actually call it). #7917
-      // This would match the old approach
-    }
+    const resourceVersionTime = providedResourceVersionTime || this.watches?.[watchKey]?.resourceVersionTime;
+    const resourceVersion = providedResourceVersion || this.watches?.[watchKey]?.resourceVersion;
 
     const success = this.send(JSON.stringify({
       ...watchObject,
@@ -240,16 +203,21 @@ export default class ResourceWatcher extends Socket {
 
     if (eventName === 'resource.start' && this.watches?.[watchKey]?.status === WATCH_REQUESTED) {
       this.watches[watchKey].status = WATCHING;
+      delete this.watches[watchKey].error;
     } else if (eventName === 'resource.stop' && this.watches?.[watchKey]) {
-      if (this.watches?.[watchKey]?.status === REQUESTED_REMOVE) {
-        delete this.watches[watchKey];
-      } else {
-        this.watches[watchKey].status = STOPPED;
-        delete this.watches[watchKey].resourceVersion;
-        delete this.watches[watchKey].resourceVersionTime;
-        this.watch(watchKey);
-        this.dispatchEvent(new CustomEvent(EVENT_MESSAGE, { detail: event }));
-      }
+      // Find some way to resolve the correct resourceVersion from within the resourceWatcher until then:
+      // reset the watch in the resourceWatcher, we'll handle recovery up the chain. For now
+      // dispatch the event to the host process which should have a handler for resource.stop
+
+      // if (this.watches?.[watchKey]?.status === REQUESTED_REMOVE) {
+      this.watches[watchKey] = { error: this.watches[watchKey]?.error };
+      // } else {
+      //   this.watches[watchKey].status = STOPPED;
+      //   delete this.watches[watchKey].resourceVersion;
+      //   delete this.watches[watchKey].resourceVersionTime;
+      //   this.watch(watchKey);
+      //   this.dispatchEvent(new CustomEvent(EVENT_MESSAGE, { detail: event }));
+      // }
     } else if (eventName === 'resource.error') {
       const err = data?.error?.toLowerCase();
 
@@ -262,14 +230,20 @@ export default class ResourceWatcher extends Socket {
 
         this.watches[watchKey].error = { type: resourceType, reason: NO_SCHEMA };
       } else if ( err.includes('too old') ) {
-        // We don't actually know the gap between the requested revision and the oldest available revision.
-        // For this case we should re-fetch all resources (aka same as resyncWatch, or we actually call it). #7917
-        // This would match the old approach
         delete this.watches[watchKey].resourceVersion;
         delete this.watches[watchKey].resourceVersionTime;
         delete this.watches[watchKey].skipResourceVersion;
-        this.watch(watchKey);
+        this.watches[watchKey].error = { type: resourceType, reason: REVISION_TOO_OLD };
+        // Needs to match sub resyncWatch params
+        this.dispatchEvent(new CustomEvent('resync', {
+          detail: {
+            data: {
+              resourceType, id, namespace, selector
+            }
+          }
+        }));
       }
+      this.trace('_onmessage:', 'new error', this.watches[watchKey].error);
     }
 
     super._onmessage(event);

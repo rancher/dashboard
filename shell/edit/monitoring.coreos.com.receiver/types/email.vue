@@ -73,15 +73,25 @@ export default {
       </div>
     </div>
     <div class="row mb-20">
-      <div class="col span-6">
+      <div class="col span-4">
         <LabeledInput
-          v-model="value.smarthost"
+          v-model="value.host"
           :mode="mode"
           label="Host"
-          placeholder="e.g. 192.168.1.121:587"
+          data-testid="input-email-host"
+          placeholder="e.g. 192.168.1.121"
         />
       </div>
-      <div class="col span-6">
+      <div class="col span-4">
+        <LabeledInput
+          v-model="value.port"
+          :mode="mode"
+          label="Port"
+          data-testid="input-email-port"
+          placeholder="e.g. 80"
+        />
+      </div>
+      <div class="col span-4">
         <Checkbox
           v-model="value.require_tls"
           :mode="mode"

@@ -10,6 +10,11 @@ import { HIDE_SENSITIVE } from '@shell/store/prefs';
 import {
   AS, _DETAIL, _CONFIG, _YAML, MODE, _CREATE, _EDIT, _VIEW, _UNFLAG, _GRAPH
 } from '@shell/config/query-params';
+import { ExtensionPoint, PanelLocation } from '@shell/core/types';
+import ExtensionPanel from '@shell/components/ExtensionPanel';
+import TabTitle from '@shell/components/TabTitle';
+
+// i18n-uses resourceDetail.header.*
 
 /**
  * Resource Detail Masthead component.
@@ -21,7 +26,7 @@ export default {
   name: 'MastheadResourceDetail',
 
   components: {
-    BadgeState, Banner, ButtonGroup
+    BadgeState, Banner, ButtonGroup, ExtensionPanel, TabTitle
   },
   props: {
     value: {
@@ -83,7 +88,11 @@ export default {
   },
 
   data() {
-    return { DETAIL_VIEW: _DETAIL };
+    return {
+      DETAIL_VIEW:       _DETAIL,
+      extensionType:     ExtensionPoint.PANEL,
+      extensionLocation: PanelLocation.DETAILS_MASTHEAD,
+    };
   },
 
   computed: {
@@ -171,13 +180,16 @@ export default {
 
     project() {
       if (this.isNamespace) {
-        const id = (this.value?.metadata?.labels || {})[PROJECT];
-        const clusterId = this.$store.getters['currentCluster'].id;
+        const cluster = this.$store.getters['currentCluster'];
 
-        return this.$store.getters['management/byId'](MANAGEMENT.PROJECT, `${ clusterId }/${ id }`);
-      } else {
-        return null;
+        if (cluster) {
+          const id = (this.value?.metadata?.labels || {})[PROJECT];
+
+          return this.$store.getters['management/byId'](MANAGEMENT.PROJECT, `${ cluster.id }/${ id }`);
+        }
       }
+
+      return null;
     },
 
     banner() {
@@ -210,7 +222,7 @@ export default {
     },
 
     parent() {
-      const displayName = this.value.parentNameOverride || this.$store.getters['type-map/labelFor'](this.schema);
+      const displayName = this.value?.parentNameOverride || this.$store.getters['type-map/labelFor'](this.schema);
       const product = this.$store.getters['currentProduct'].name;
 
       const defaultLocation = {
@@ -364,7 +376,7 @@ export default {
     },
 
     hideNamespaceLocation() {
-      return this.$store.getters['currentProduct'].hideNamespaceLocation;
+      return this.$store.getters['currentProduct'].hideNamespaceLocation || this.value.namespaceLocation === null;
     },
   },
 
@@ -403,16 +415,29 @@ export default {
       <div class="title">
         <div class="primaryheader">
           <h1>
-            <nuxt-link
+            <TabTitle
+              v-if="isCreate"
+              :showChild="false"
+            >
+              {{ parent.displayName }}
+            </TabTitle>
+            <TabTitle
+              v-else
+              :showChild="false"
+            >
+              {{ displayName }}
+            </TabTitle>
+            <router-link
               v-if="location"
               :to="location"
             >
               {{ parent.displayName }}:
-            </nuxt-link>
+            </router-link>
             <span v-else>{{ parent.displayName }}:</span>
             <span v-if="value.detailPageHeaderActionOverride && value.detailPageHeaderActionOverride(realMode)">{{ value.detailPageHeaderActionOverride(realMode) }}</span>
             <t
               v-else
+              class="mastehead-resource-title"
               :k="'resourceDetail.header.' + realMode"
               :subtype="resourceSubtype"
               :name="displayName"
@@ -423,22 +448,32 @@ export default {
               class="masthead-state"
               :value="value"
             />
+            <span
+              v-if="!isCreate && value.injectionEnabled"
+              class="masthead-istio"
+            >
+              <i
+                v-clean-tooltip="t('projectNamespaces.isIstioInjectionEnabled')"
+                class="icon icon-sm icon-istio"
+              />
+            </span>
           </h1>
         </div>
         <div
           v-if="!isCreate"
           class="subheader"
         >
-          <span v-if="isNamespace && project">{{ t("resourceDetail.masthead.project") }}: <nuxt-link :to="project.detailLocation">{{ project.nameDisplay }}</nuxt-link></span>
-          <span v-else-if="isWorkspace">{{ t("resourceDetail.masthead.workspace") }}: <nuxt-link :to="workspaceLocation">{{ namespace }}</nuxt-link></span>
+          <span v-if="isNamespace && project">{{ t("resourceDetail.masthead.project") }}: <router-link :to="project.detailLocation">{{ project.nameDisplay }}</router-link></span>
+          <span v-else-if="isWorkspace">{{ t("resourceDetail.masthead.workspace") }}: <router-link :to="workspaceLocation">{{ namespace }}</router-link></span>
           <span v-else-if="namespace && !hasMultipleNamespaces">
             {{ t("resourceDetail.masthead.namespace") }}:
-            <nuxt-link
+            <router-link
               v-if="!hideNamespaceLocation"
               :to="namespaceLocation"
+              data-testid="masthead-subheader-namespace"
             >
               {{ namespace }}
-            </nuxt-link>
+            </router-link>
             <span v-else>
               {{ namespace }}
             </span>
@@ -451,7 +486,7 @@ export default {
         </div>
       </div>
       <slot name="right">
-        <div class="actions-container">
+        <div class="actions-container align-start">
           <div class="actions">
             <button
               v-if="detailsAction && currentView === DETAIL_VIEW && isView"
@@ -493,6 +528,13 @@ export default {
       </slot>
     </header>
 
+    <!-- Extension area -->
+    <ExtensionPanel
+      :resource="value"
+      :type="extensionType"
+      :location="extensionLocation"
+    />
+
     <Banner
       v-if="banner && isView && !parent.hideBanner"
       class="state-banner mb-10"
@@ -519,6 +561,10 @@ export default {
 
   HEADER {
     margin: 0;
+
+    .title {
+      overflow: hidden;
+    }
   }
 
   .primaryheader {
@@ -528,6 +574,17 @@ export default {
 
     h1 {
       margin: 0;
+      overflow: hidden;
+      display: flex;
+      flex-direction: row;
+      align-items: center;
+
+      .mastehead-resource-title {
+        padding: 0 8px;
+        text-overflow: ellipsis;
+        overflow: hidden;
+        white-space: nowrap;
+      }
     }
   }
 
@@ -550,9 +607,13 @@ export default {
 
   .masthead-state {
     font-size: initial;
-    display: inline-block;
-    position: relative;
-    top: -2px;
+  }
+
+  .masthead-istio {
+    .icon {
+      vertical-align: middle;
+      color: var(--primary);
+    }
   }
 
   .left-right-split {

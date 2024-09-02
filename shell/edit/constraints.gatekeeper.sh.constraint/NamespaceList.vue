@@ -24,7 +24,7 @@ export default {
     },
     namespaceFilter: {
       type:    Function,
-      default: namespace => true
+      default: (namespace) => true
     },
     addLabel: {
       type:    String,

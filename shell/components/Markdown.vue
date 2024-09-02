@@ -13,9 +13,8 @@ export default {
 
   data() {
     return {
-      loaded:    false,
-      marked:    null,
-      dompurify: null,
+      loaded: false,
+      marked: null,
     };
   },
 
@@ -26,20 +25,15 @@ export default {
         breaks:   true
       });
     },
-
-    sanitized() {
-      return this.dompurify.sanitize(this.html);
-    },
   },
 
   async mounted() {
     const marked = (await import(/* webpackChunkName: "markdown" */ 'marked'));
-    const dompurify = (await import(/* webpackChunkName: "markdown" */ 'dompurify')).default;
 
     const renderer = new marked.Renderer();
     const linkRenderer = renderer.link;
 
-    const base = this.$router.resolve(this.$route).href.replace(/#.*$/, '');
+    const base = this.$router ? this.$router.resolve(this.$route).href.replace(/#.*$/, '') : '';
 
     renderer.link = function(href, title, text) {
       let external = true;
@@ -63,11 +57,8 @@ export default {
       return rendered;
     };
 
-    dompurify.setConfig({ ADD_ATTR: ['target'] });
-
     this.marked = marked;
     this.markedRenderer = renderer;
-    this.dompurify = dompurify;
     this.loaded = true;
     this.$emit('loaded', true);
   }
@@ -77,8 +68,8 @@ export default {
 <template>
   <div
     v-if="loaded"
+    v-clean-html="html"
     class="markdown"
-    v-html="sanitized"
   />
   <Loading v-else />
 </template>
@@ -96,8 +87,20 @@ export default {
 }
 
 .markdown {
+    blockquote {
+      color: rgb(101, 109, 118);
+      border-left: 0.25em solid rgb(208, 215, 222);
+      padding: 0 1em;
+      margin-bottom: 16px;
+    }
+
+    table {
+      border-collapse: collapse;
+    }
+
     TH {
       text-align: left;
+      border: 1px solid #e3e7eb;
     }
 
     table tr th {
@@ -118,6 +121,7 @@ export default {
       text-align: left;
       margin: 0;
       padding: 6px 13px;
+      border: 1px solid #e3e7eb;
     }
 
     table tr th :first-child, table tr td :first-child {

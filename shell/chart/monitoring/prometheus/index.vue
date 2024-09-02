@@ -1,5 +1,4 @@
 <script>
-import isEmpty from 'lodash/isEmpty';
 import { mapGetters } from 'vuex';
 
 import { Banner } from '@components/Banner';
@@ -51,28 +50,26 @@ export default {
       default: () => ({}),
     },
 
-    workloads: {
+    filteredWorkloads: {
       type:    Array,
       default: () => ([]),
     },
   },
 
   data() {
-    return {
-      enablePersistentStorage: !!this.value?.prometheus?.prometheusSpec?.storageSpec?.volumeClaimTemplate?.spec,
-      warnUser:                false,
-    };
+    return { enablePersistentStorage: !!this.value?.prometheus?.prometheusSpec?.storageSpec?.volumeClaimTemplate?.spec };
   },
 
   computed: {
     ...mapGetters(['currentCluster']),
+
     matchExpressions: {
       get() {
         const selector = this.value?.prometheus?.prometheusSpec?.storageSpec?.volumeClaimTemplate?.spec?.selector;
         let matchExpressions;
 
         if (selector && selector?.matchExpressions) {
-          matchExpressions = convert((selector?.matchLabels || {}), selector.matchExpressions);
+          matchExpressions = convert((selector?.matchLabels || {}), selector?.matchExpressions);
 
           return matchExpressions;
         } else {
@@ -80,42 +77,21 @@ export default {
         }
       }
     },
-    filteredWorkloads() {
-      let { workloads } = this;
-      const { existing = false } = this.$attrs;
 
-      if (!existing) {
-        workloads = workloads.filter((workload) => {
-          if (
-            !isEmpty(workload?.spec?.template?.spec?.containers) &&
-            (workload.spec.template.spec.containers.find(c => c.image.includes('quay.io/coreos/prometheus-operator') ||
-              c.image.includes('rancher/coreos-prometheus-operator'))
-            )
-          ) {
-            if (!this.warnUser) {
-              this.warnUser = true;
-            }
-
-            return workload;
-          }
-        });
-      }
-
-      return workloads.map((wl) => {
-        return {
-          label: wl.id,
-          link:  {
-            name:   'c-cluster-product-resource-namespace-id',
-            params: {
-              cluster:   this.currentCluster.id,
-              product:   'explorer',
-              resource:  wl.type,
-              namespace: wl.metadata.namespace,
-              id:        wl.metadata.name
-            },
-          }
-        };
-      });
+    mappedFilteredWorkloads() {
+      return this.filteredWorkloads.map((wl) => ({
+        label: wl.id,
+        link:  {
+          name:   'c-cluster-product-resource-namespace-id',
+          params: {
+            cluster:   this.currentCluster.id,
+            product:   'explorer',
+            resource:  wl.type,
+            namespace: wl.metadata.namespace,
+            id:        wl.metadata.name
+          },
+        }
+      }));
     },
 
     podsAndNamespaces() {
@@ -154,7 +130,6 @@ export default {
             spec: {
               accessModes: ['ReadWriteOnce'],
               resources:   { requests: { storage: '50Gi' } },
-              selector:    { matchExpressions: [], matchLabels: {} },
             }
           }
         );
@@ -180,6 +155,23 @@ export default {
 
       this.$set(storageSpec.selector, 'matchLabels', matchLabels);
       this.$set(storageSpec.selector, 'matchExpressions', matchExpressions);
+
+      // Remove an empty selector object if present
+      // User can add a selector and then remove the selector - this will leave an empty structure as above
+      // We want to ensure we remove .selector.matchExpressions, .selector.matchLabels, and .selector if empty
+      // See: https://github.com/rancher/dashboard/issues/10016
+
+      if (storageSpec.selector.matchExpressions?.length === 0) {
+        delete storageSpec.selector.matchExpressions;
+      }
+
+      if (storageSpec.selector.matchLabels && Object.keys(storageSpec.selector.matchLabels).length === 0) {
+        delete storageSpec.selector.matchLabels;
+      }
+
+      if (Object.keys(storageSpec.selector).length === 0) {
+        delete storageSpec.selector;
+      }
     },
   },
 };
@@ -190,8 +182,9 @@ export default {
     <div class="title">
       <h3>{{ t('monitoring.prometheus.title') }}</h3>
     </div>
+    <!-- https://github.com/rancher/dashboard/issues/1167 -->
     <Banner
-      v-if="filteredWorkloads && warnUser"
+      v-if="mappedFilteredWorkloads.length"
       color="warning"
     >
       <template #default>
@@ -200,16 +193,16 @@ export default {
           :raw="true"
         />
         <div
-          v-for="wl in filteredWorkloads"
+          v-for="wl in mappedFilteredWorkloads"
           :key="wl.id"
           class="mt-10"
         >
-          <nuxt-link
+          <router-link
             :to="wl.link"
             class="btn role-tertiary"
           >
             {{ wl.label }}
-          </nuxt-link>
+          </router-link>
         </div>
       </template>
     </Banner>
@@ -311,6 +304,7 @@ export default {
         <div class="col span-6">
           <Checkbox
             v-model="enablePersistentStorage"
+            data-testid="checkbox-chart-enable-persistent-storage"
             :label="t('monitoring.prometheus.storage.label')"
           />
         </div>
@@ -325,7 +319,10 @@ export default {
             />
           </div>
           <div class="col span-6">
-            <div v-if="showStorageClasses">
+            <div
+              v-if="showStorageClasses"
+              data-testid="select-chart-prometheus-storage-class"
+            >
               <StorageClassSelector
                 :mode="mode"
                 :options="storageClasses"

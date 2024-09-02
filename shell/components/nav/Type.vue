@@ -1,12 +1,14 @@
 <script>
 import Favorite from '@shell/components/nav/Favorite';
-import { FAVORITE, USED } from '@shell/store/type-map';
+import { TYPE_MODES } from '@shell/store/type-map';
 
-const showFavoritesFor = [FAVORITE, USED];
+import TabTitle from '@shell/components/TabTitle';
+
+const showFavoritesFor = [TYPE_MODES.FAVORITE, TYPE_MODES.USED];
 
 export default {
 
-  components: { Favorite },
+  components: { Favorite, TabTitle },
 
   props: {
     type: {
@@ -26,10 +28,7 @@ export default {
   },
 
   data() {
-    return {
-      near: false,
-      over: false,
-    };
+    return { near: false };
   },
 
   computed: {
@@ -38,21 +37,28 @@ export default {
     },
 
     showCount() {
-      return typeof this.type.count !== 'undefined';
+      return this.count !== undefined && this.count !== null;
     },
+
+    namespaceIcon() {
+      return this.type.namespaced;
+    },
+
+    count() {
+      if (this.type.count !== undefined) {
+        return this.type.count;
+      }
+
+      const inStore = this.$store.getters['currentStore'](this.type.name);
+
+      return this.$store.getters[`${ inStore }/count`]({ name: this.type.name });
+    }
+
   },
 
   methods: {
     setNear(val) {
       this.near = val;
-    },
-
-    setOver(val) {
-      this.over = val;
-    },
-
-    removeFavorite() {
-      this.$store.dispatch('type-map/removeFavorite', this.type.name);
     },
 
     selectType() {
@@ -70,53 +76,74 @@ export default {
 </script>
 
 <template>
-  <n-link
+  <router-link
     v-if="type.route"
     :key="type.name"
+    v-slot="{ href, navigate, isActive, isExactActive }"
+    custom
     :to="type.route"
-    tag="li"
-    class="child nav-type"
-    :class="{'root': isRoot, [`depth-${depth}`]: true}"
     :exact="type.exact"
+    :exact-path="type['exact-path']"
   >
-    <a
-      @click="selectType"
-      @mouseenter="setNear(true)"
-      @mouseleave="setNear(false)"
+    <li
+      class="child nav-type"
+      :class="{'root': isRoot, [`depth-${depth}`]: true, 'router-link-active': isActive, 'router-link-exact-active': isExactActive}"
+      @click="navigate"
+      @keypress.enter="navigate"
     >
-      <span
-        v-if="type.labelKey"
-        class="label"
-      ><t :k="type.labelKey" /></span>
-      <span
-        v-else
-        class="label"
-        :class="{'no-icon': !type.icon}"
-        v-html="type.labelDisplay || type.label"
-      />
-      <span
-        v-if="showFavorite || showCount"
-        class="count"
+      <TabTitle
+        v-if="isExactActive"
+        :show-child="false"
       >
-        <Favorite
-          v-if="showFavorite"
-          :resource="type.name"
+        {{ type.labelKey ? t(type.labelKey) : (type.labelDisplay || type.label) }}
+      </TabTitle>
+      <a
+        :href="href"
+        @click="selectType(); navigate($event);"
+        @mouseenter="setNear(true)"
+        @mouseleave="setNear(false)"
+      >
+        <span
+          v-if="type.labelKey"
+          class="label"
+        ><t :k="type.labelKey" /></span>
+        <span
+          v-else
+          v-clean-html="type.labelDisplay || type.label"
+          class="label"
+          :class="{'no-icon': !type.icon}"
         />
-        {{ type.count }}
-      </span>
-    </a>
-  </n-link>
+        <span
+          v-if="showFavorite || namespaceIcon || showCount"
+          class="count"
+        >
+          <Favorite
+            v-if="showFavorite"
+            :resource="type.name"
+          />
+          <i
+            v-if="namespaceIcon"
+            class="icon icon-namespace"
+            :class="{'ns-and-icon': showCount}"
+            data-testid="type-namespaced"
+          />
+          <span
+            v-if="showCount"
+            data-testid="type-count"
+          >{{ count }}</span>
+        </span>
+      </a>
+    </li>
+  </router-link>
   <li
     v-else-if="type.link"
     class="child nav-type"
+    data-testid="link-type"
   >
     <a
       :href="type.link"
       :target="type.target"
       rel="noopener noreferrer nofollow"
-      @click="selectType"
-      @mouseenter="setNear(true)"
-      @mouseleave="setNear(false)"
     >
       <span class="label">{{ type.label }}&nbsp;<i class="icon icon-external-link" /></span>
     </a>
@@ -127,13 +154,16 @@ export default {
 </template>
 
 <style lang="scss" scoped>
+  .ns-and-icon {
+    margin-right: 4px;
+  }
+
   .child {
     margin: 0 var(--outline) 0 0;
 
     .label {
       align-items: center;
       grid-area: label;
-      display: flex;
       overflow: hidden;
       text-overflow: ellipsis;
 
@@ -166,6 +196,7 @@ export default {
       text-overflow: ellipsis;
       white-space: nowrap;
       color: var(--body-text);
+      height: 33px;
 
       &:hover {
         background: var(--nav-hover);
@@ -181,24 +212,38 @@ export default {
       grid-area: favorite;
       font-size: 12px;
       position: relative;
+      vertical-align: middle;
+      margin-right: 4px;
     }
 
     .count {
-      grid-area: count;
       font-size: 12px;
-      text-align: right;
       justify-items: center;
       padding-right: 4px;
+      display: flex;
+      align-items: center;
     }
 
     &.nav-type:not(.depth-0) {
       A {
-        font-size: 13px;
-        padding: 5.5px 7px 5.5px 10px;
+        padding-left: 16px;
       }
 
       ::v-deep .label I {
         padding-right: 2px;
+      }
+    }
+
+    &.nav-type:is(.depth-1) {
+      A {
+        font-size: 13px;
+        padding-left: 23px;
+      }
+    }
+
+    &.nav-type:not(.depth-0):not(.depth-1) {
+      A {
+        padding-left: 14px;
       }
     }
   }

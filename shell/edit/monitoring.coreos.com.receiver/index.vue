@@ -20,6 +20,7 @@ import CreateEditView from '@shell/mixins/create-edit-view';
 import jsyaml from 'js-yaml';
 import { RECEIVERS_TYPES } from '@shell/models/monitoring.coreos.com.receiver';
 import ButtonDropdown from '@shell/components/ButtonDropdown';
+import { _EDIT, _VIEW } from '@shell/config/query-params';
 
 export default {
   components: {
@@ -42,6 +43,18 @@ export default {
 
   data() {
     this.$set(this.value, 'spec', this.value.spec || {});
+
+    if (this.mode === _EDIT || this.mode === _VIEW) {
+      for (let i = 0; i < this.value.spec.email_configs.length; i++) {
+        if (this.value.spec.email_configs[i].smarthost) {
+          const hostPort = this.value.spec.email_configs[i].smarthost.split(':');
+
+          this.$set(this.value.spec.email_configs[i], 'host', hostPort[0] || '');
+          this.$set(this.value.spec.email_configs[i], 'port', hostPort[1] || '');
+          delete this.value.spec.email_configs[i]['smarthost'];
+        }
+      }
+    }
 
     RECEIVERS_TYPES.forEach((receiverType) => {
       this.$set(this.value.spec, receiverType.key, this.value.spec[receiverType.key] || []);
@@ -148,8 +161,26 @@ export default {
 
     createAddOptions(receiverType) {
       return receiverType.addOptions.map();
+    },
+
+    createSmarthost() {
+      if (this.value.spec.email_configs.length > 0) {
+        this.value.spec.email_configs.forEach((email) => {
+          if (email['port'] || email['host']) {
+            const hostValue = email.host ? `${ email.host }` : '';
+
+            email.smarthost = email.port ? `${ hostValue }:${ email.port }` : `${ hostValue }`;
+            delete email['port'];
+            delete email['host'];
+          }
+        });
+      }
     }
-  }
+  },
+
+  created() {
+    this.registerBeforeHook(this.createSmarthost, 'create-smarthost');
+  },
 };
 </script>
 

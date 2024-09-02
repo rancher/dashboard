@@ -1,8 +1,9 @@
 <script lang="ts">
-import Vue from 'vue';
+import { defineComponent } from 'vue';
 import { _VIEW } from '@shell/config/query-params';
+import { randomStr } from '@shell/utils/string';
 
-export default Vue.extend({
+export default defineComponent({
   props: {
     /**
      * The name of the input, for grouping.
@@ -17,7 +18,7 @@ export default Vue.extend({
      */
     val: {
       required:  true,
-      validator: x => true
+      validator: () => true
     },
 
     /**
@@ -25,7 +26,7 @@ export default Vue.extend({
      */
     value: {
       required:  true,
-      validator: x => true
+      validator: () => true
     },
 
     /**
@@ -71,7 +72,10 @@ export default Vue.extend({
   },
 
   data() {
-    return { isChecked: this.value === this.val };
+    return {
+      isChecked:    this.value === this.val,
+      randomString: `${ randomStr() }-radio`,
+    };
   },
 
   computed: {
@@ -96,6 +100,10 @@ export default Vue.extend({
     hasDescriptionSlot(): boolean {
       return !!this.$slots.description;
     },
+
+    hasLabelSlot(): boolean {
+      return !!this.$slots.label || !!this.$scopedSlots.label;
+    }
   },
 
   watch: {
@@ -111,13 +119,15 @@ export default Vue.extend({
     /**
      * Emits the input event.
      */
-    clicked({ target }: { target?: HTMLElement }) {
-      if (this.isDisabled || target?.tagName === 'A') {
+    clicked(event: MouseEvent | KeyboardEvent) {
+      const target = event.target;
+
+      if (this.isDisabled || (target instanceof HTMLElement && target.tagName === 'A')) {
         return;
       }
 
       this.$emit('input', this.val);
-    }
+    },
   }
 });
 </script>
@@ -130,7 +140,7 @@ export default Vue.extend({
     @click.stop="clicked($event)"
   >
     <input
-      :id="_uid+'-radio'"
+      :id="randomString"
       :disabled="isDisabled"
       :name="name"
       :value="''+val"
@@ -149,12 +159,19 @@ export default Vue.extend({
     />
     <div class="labeling">
       <label
-        v-if="label"
         :class="[ muteLabel ? 'text-muted' : '', 'radio-label', 'm-0']"
         :for="name"
-        v-html="label"
       >
-        <slot name="label">{{ label }}</slot>
+        <slot
+          v-if="hasLabelSlot"
+          name="label"
+        >
+          <!-- slot content -->
+        </slot>
+        <span
+          v-else-if="label"
+          v-clean-html="label"
+        />
       </label>
       <div
         v-if="descriptionKey || description"

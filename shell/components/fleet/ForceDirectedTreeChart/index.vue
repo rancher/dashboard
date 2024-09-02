@@ -57,7 +57,7 @@ export default {
           let hasStatusChange = false;
 
           flattenedData.forEach((item) => {
-            const index = this.allNodesData.findIndex(nodeData => item.matchingId === nodeData.data.matchingId);
+            const index = this.allNodesData.findIndex((nodeData) => item.matchingId === nodeData.data.matchingId);
 
             // apply status change to each node
             if (index > -1 && this.allNodesData[index].data.state !== item.state) {
@@ -334,6 +334,9 @@ export default {
     // set watcher for the chart data
     this.dataWatcher = this.$watch(this.fdcConfig.watcherProp, function(newValue) {
       this.watcherFunction(newValue);
+    }, {
+      deep:      true,
+      immediate: true
     });
   },
   unmounted() {
@@ -344,7 +347,10 @@ export default {
 
 <template>
   <div>
-    <div class="chart-container">
+    <div
+      class="chart-container"
+      data-testid="gitrepo_graph"
+    >
       <!-- loading status container -->
       <div
         v-if="!isChartFirstRenderAnimationFinished"
@@ -377,11 +383,11 @@ export default {
               <!-- title template -->
               <td v-if="item.type === 'title-link'">
                 <span v-if="item.valueObj.detailLocation">
-                  <n-link
+                  <router-link
                     :to="item.valueObj.detailLocation"
                   >
                     {{ item.valueObj.id }}
-                  </n-link>
+                  </router-link>
                 </span>
                 <span v-else>{{ item.valueObj.id }}</span>
               </td>

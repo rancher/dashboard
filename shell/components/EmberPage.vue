@@ -252,6 +252,7 @@ export default {
       if (iframeEl === null) {
         iframeEl = document.createElement('iframe');
         iframeEl.setAttribute('id', EMBER_FRAME);
+        iframeEl.setAttribute('data-testid', EMBER_FRAME);
         iframeEl.classList.add(EMBER_FRAME_HIDE_CLASS);
 
         if (this.inline) {
@@ -522,8 +523,8 @@ export default {
     />
     <div
       v-if="inline && !loaded"
+      v-clean-html="t('generic.loading', {}, true)"
       class="inline-loading"
-      v-html="t('generic.loading', {}, true)"
     />
     <div
       v-if="error"
@@ -596,11 +597,11 @@ export default {
 
   .ember-iframe {
     border: 0;
-    left: var(--nav-width);
+    left: calc(var(--nav-width) + $app-bar-collapsed-width);
     height: calc(100vh - var(--header-height));
     position: absolute;
     top: var(--header-height);
-    width: calc(100vw - var(--nav-width));
+    width: calc(100vw - var(--nav-width) - $app-bar-collapsed-width);
     visibility: show;
   }
 

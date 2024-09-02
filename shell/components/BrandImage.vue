@@ -14,29 +14,52 @@ export default {
       default: false
     }
   },
-  async fetch() {
-    this.managementSettings = await this.$store.getters['management/all'](MANAGEMENT.SETTING);
-  },
   data() {
-    return { managementSettings: [] };
+    const managementSettings = this.$store.getters['management/all'](MANAGEMENT.SETTING);
+
+    const uiLoginBackgroundLight = managementSettings?.filter((setting) => setting.id === SETTING.LOGIN_BACKGROUND_LIGHT)?.[0]?.value;
+    const uiLoginBackgroundDark = managementSettings?.filter((setting) => setting.id === SETTING.LOGIN_BACKGROUND_DARK)?.[0]?.value;
+
+    return {
+      managementSettings,
+
+      /**
+       * Login settings fields don't require reactivity; the correct value for those fields is the initial one.
+       * This will avoid side effects after the management store is reset when landing on login page.
+       */
+      uiLoginBackgroundLight,
+      uiLoginBackgroundDark,
+    };
   },
   computed: {
     ...mapGetters({ theme: 'prefs/theme' }),
 
     brand() {
-      const setting = this.managementSettings.filter(setting => setting.id === SETTING.BRAND)[0] || {};
+      const setting = this.managementSettings.filter((setting) => setting.id === SETTING.BRAND)[0] || {};
 
       return setting.value;
     },
 
     uiLogoLight() {
-      const setting = this.managementSettings.filter(setting => setting.id === SETTING.LOGO_LIGHT)[0] || {};
+      const setting = this.managementSettings.filter((setting) => setting.id === SETTING.LOGO_LIGHT)[0] || {};
 
       return setting.value;
     },
 
     uiLogoDark() {
-      const setting = this.managementSettings.filter(setting => setting.id === SETTING.LOGO_DARK)[0] || {};
+      const setting = this.managementSettings.filter((setting) => setting.id === SETTING.LOGO_DARK)[0] || {};
+
+      return setting.value;
+    },
+
+    uiBannerLight() {
+      const setting = this.managementSettings.filter((setting) => setting.id === SETTING.BANNER_LIGHT)[0] || {};
+
+      return setting.value;
+    },
+
+    uiBannerDark() {
+      const setting = this.managementSettings.filter((setting) => setting.id === SETTING.BANNER_DARK)[0] || {};
 
       return setting.value;
     },
@@ -59,6 +82,26 @@ export default {
 
         if (this.uiLogoLight) {
           return this.uiLogoLight;
+        }
+      }
+
+      if (this.fileName === 'banner.svg') {
+        if (this.theme === 'dark' && this.uiBannerDark) {
+          return this.uiBannerDark;
+        }
+
+        if (this.uiBannerLight) {
+          return this.uiBannerLight;
+        }
+      }
+
+      if (this.fileName === 'login-landscape.svg') {
+        if (this.theme === 'dark' && this.uiLoginBackgroundDark) {
+          return this.uiLoginBackgroundDark;
+        }
+
+        if (this.uiLoginBackgroundLight) {
+          return this.uiLoginBackgroundLight;
         }
       }
 

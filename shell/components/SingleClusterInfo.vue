@@ -13,10 +13,7 @@ export default {
   },
 
   async fetch() {
-    this.clusters = await this.$store.dispatch('management/findAll', {
-      type: MANAGEMENT.CLUSTER,
-      opt:  { url: MANAGEMENT.CLUSTER }
-    });
+    this.clusters = await this.$store.dispatch('management/findAll', { type: MANAGEMENT.CLUSTER });
   },
 
   data() {
@@ -37,7 +34,7 @@ export default {
     },
 
     accessibleResources() {
-      return RESOURCES.filter(resource => this.$store.getters['cluster/schemaFor'](resource));
+      return RESOURCES.filter((resource) => this.$store.getters['cluster/schemaFor'](resource));
     },
 
     totalCountGaugeInput() {
@@ -118,11 +115,11 @@ export default {
         class="glance-item"
       >
         <label>{{ t('glance.version') }}: </label>
+        <span>{{ clusterDetail.kubernetesVersionBase }}</span>
         <span
           v-if="clusterDetail.kubernetesVersionExtension"
-          style="font-size: 0.5em"
+          style="font-size: 0.75em"
         >{{ clusterDetail.kubernetesVersionExtension }}</span>
-        <span>{{ clusterDetail.kubernetesVersionBase }}</span>
       </div>
       <div class="glance-item">
         <label>{{ t('glance.created') }}: </label>
@@ -136,23 +133,23 @@ export default {
         {{ t('generic.links') }}
       </div>
       <div class="glance-item">
-        <nuxt-link
+        <router-link
           :to="exploreLink"
           class="cluster-link"
         >
           {{ t('nav.categories.explore') }}
-        </nuxt-link>
+        </router-link>
       </div>
       <div
         v-if="showClusterTools"
         class="glance-item"
       >
-        <nuxt-link
+        <router-link
           :to="clusterToolsLink"
           class="cluster-link"
         >
           {{ t('nav.clusterTools') }}
-        </nuxt-link>
+        </router-link>
       </div>
     </div>
   </div>

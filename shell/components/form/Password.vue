@@ -2,6 +2,7 @@
 import { mapGetters } from 'vuex';
 import { LabeledInput } from '@components/Form/LabeledInput';
 import { CHARSET, randomStr } from '@shell/utils/string';
+import { copyTextToClipboard } from '@shell/utils/clipboard';
 
 export default {
   components: { LabeledInput },
@@ -75,6 +76,7 @@ export default {
     }
   },
   methods: {
+    copyTextToClipboard,
     generatePassword() {
       this.password = randomStr(16, CHARSET.ALPHA_NUM);
     },
@@ -109,7 +111,7 @@ export default {
         >
           <a
             href="#"
-            @click.prevent.stop="$copyText(password)"
+            @click.prevent.stop="copyTextToClipboard(password)"
           >{{ t('action.copy') }}</a>
         </div>
         <div

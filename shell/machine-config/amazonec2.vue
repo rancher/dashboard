@@ -70,7 +70,7 @@ export default {
       this.kmsClient = await this.$store.dispatch('aws/kms', { region, cloudCredentialId: this.credentialId });
 
       if ( !this.instanceInfo ) {
-        this.instanceInfo = await this.$store.dispatch('aws/instanceInfo', { client: this.ec2Client } );
+        this.instanceInfo = await this.$store.dispatch('aws/describeInstanceTypes', { client: this.ec2Client } );
       }
 
       const hash = {};
@@ -212,7 +212,7 @@ export default {
       const subnetsByVpc = {};
 
       for ( const obj of this.vpcInfo.Vpcs ) {
-        const name = obj.Tags && obj.Tags?.length ? obj.Tags.find(t => t.Key === 'Name')?.Value : null;
+        const name = obj.Tags && obj.Tags?.length ? obj.Tags.find((t) => t.Key === 'Name')?.Value : null;
 
         vpcs.push({
           label:     name || obj.VpcId,
@@ -237,7 +237,7 @@ export default {
           subnetsByVpc[obj.VpcId] = entry;
         }
 
-        const name = obj.Tags && obj.Tags?.length ? obj.Tags.find(t => t.Key === 'Name')?.Value : null;
+        const name = obj.Tags && obj.Tags?.length ? obj.Tags.find((t) => t.Key === 'Name')?.Value : null;
 
         entry.push({
           label:     name || obj.SubnetId,
@@ -303,6 +303,7 @@ export default {
     },
 
     'value.region'() {
+      this.updateNetwork();
       this.$fetch();
     },
 
@@ -474,6 +475,7 @@ export default {
               :disabled="disabled"
               :placeholder="t('cluster.machineConfig.amazonEc2.selectedNetwork.placeholder')"
               :label="t('cluster.machineConfig.amazonEc2.selectedNetwork.label')"
+              data-testid="amazonEc2__selectedNetwork"
               option-key="value"
               @input="updateNetwork($event)"
             >

@@ -17,24 +17,29 @@ function reply(err, code) {
   }
 }
 
-export default {
-  layout: 'unauthenticated',
+function isSaml($route) {
+  const { query } = $route;
+  const configQuery = get(query, 'config');
 
-  async fetch({ store, route, redirect }) {
-    const code = route.query[GITHUB_CODE];
-    const stateStr = route.query[GITHUB_NONCE];
+  return samlProviders.includes(configQuery);
+}
+
+export default {
+  async fetch() {
+    const code = this.$route.query[GITHUB_CODE];
+    const stateStr = this.$route.query[GITHUB_NONCE];
     const {
       error, error_description: errorDescription, errorCode, errorMsg
-    } = route.query;
+    } = this.$route.query;
 
     if (error || errorDescription || errorCode || errorMsg) {
       let out = errorDescription || error || errorCode;
 
       if (errorMsg) {
-        out = store.getters['i18n/withFallback'](`login.serverError.${ errorMsg }`, null, errorMsg);
+        out = this.$store.getters['i18n/withFallback'](`login.serverError.${ errorMsg }`, null, errorMsg);
       }
 
-      redirect(`/auth/login?err=${ escape(out) }`);
+      this.$router.replace(`/auth/login?err=${ escape(out) }`);
 
       return;
     }
@@ -43,6 +48,17 @@ export default {
     try {
       parsed = JSON.parse(base64Decode((stateStr)));
     } catch (err) {
+      if (isSaml(this.$route)) {
+        // This is an ok failure. SAML has no state string so a failure is fine (see similar check in mounted).
+        // This whole file could be re-written with that in mind, but this change keeps things simple and fixes a breaking addition
+        return;
+      }
+      const out = this.$store.getters['i18n/t'](`login.error`);
+
+      console.error('Failed to parse nonce', stateStr, err); // eslint-disable-line no-console
+
+      this.$router.replace(`/auth/login?err=${ escape(out) }`);
+
       return;
     }
 
@@ -53,28 +69,28 @@ export default {
     }
 
     try {
-      const res = await store.dispatch('auth/verifyOAuth', {
+      const res = await this.$store.dispatch('auth/verifyOAuth', {
         code,
         nonce,
         provider
       });
 
       if ( res._status === 200) {
-        const backTo = route.query[BACK_TO] || '/';
+        const backTo = this.$route.query[BACK_TO] || '/';
 
         // Load plugins
         await loadPlugins({
-          app:     store.app,
-          store,
-          $plugin: store.$plugin
+          app:     this.$store.app,
+          store:   this.$store,
+          $plugin: this.$store.$plugin
         });
 
-        redirect(backTo);
+        this.$router.replace(backTo);
       } else {
-        redirect(`/auth/login?err=${ escape(res) }`);
+        this.$router.replace(`/auth/login?err=${ escape(res) }`);
       }
     } catch (err) {
-      redirect(`/auth/login?err=${ escape(err) }`);
+      this.$router.replace(`/auth/login?err=${ escape(err) }`);
     }
   },
 
@@ -111,12 +127,8 @@ export default {
         window.close();
       }
     } else {
-      const { query } = this.$route;
-
       if ( window.opener ) {
-        const configQuery = get(query, 'config');
-
-        if ( samlProviders.includes(configQuery) ) {
+        if (isSaml(this.$route)) {
           if ( window.opener.window.onAuthTest ) {
             reply(null, null);
           } else {

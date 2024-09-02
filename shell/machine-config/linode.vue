@@ -45,7 +45,7 @@ export default {
 
       let defaultRegion = 'us-west';
 
-      if ( !this.regionOptions.find(x => x.value === defaultRegion) ) {
+      if ( !this.regionOptions.find((x) => x.value === defaultRegion) ) {
         defaultRegion = this.regionOptions[0]?.value;
       }
 
@@ -59,8 +59,8 @@ export default {
 
       let defaultInstanceType = 'g6-standard-2';
 
-      if ( !this.instanceOptions.find(x => x.value === defaultInstanceType) ) {
-        defaultInstanceType = this.instanceOptions.find(x => x.memoryGb >= 4)?.value;
+      if ( !this.instanceOptions.find((x) => x.value === defaultInstanceType) ) {
+        defaultInstanceType = this.instanceOptions.find((x) => x.memoryGb >= 4)?.value;
 
         if ( !defaultInstanceType ) {
           defaultInstanceType = this.instanceOptions[0].value;
@@ -75,7 +75,7 @@ export default {
 
       let defaultImage = 'linode/ubuntu20.04';
 
-      if ( !this.imageOptions.find(x => x.value === defaultImage) ) {
+      if ( !this.imageOptions.find((x) => x.value === defaultImage) ) {
         defaultImage = this.imageOptions[0].value;
       }
 

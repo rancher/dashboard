@@ -3,8 +3,8 @@ import { Canvas, Meta, Story, ArgsTable, Source } from '@storybook/addon-docs';
 import StringList from '@/pkg/rancher-components/src/components/StringList/StringList';
 import { useArgs } from '@storybook/client-api';
 
-<Meta 
-  title="Components/StringList" 
+<Meta
+  title="Components/StringList"
   component={StringList}
   argTypes={{
     actionsPosition: {
@@ -57,6 +57,7 @@ It can be used to handle a list of strings.
 - An item can be edited by double click on it.
 - In case of the item name is already in the list, an error message is displayed on the bottom of the box.
 - Select an item and then click on minus button to remove it from the list.
+- If a bulk addition delimiter is set, the input value will be split into individual entries.
 
 <br/>
 

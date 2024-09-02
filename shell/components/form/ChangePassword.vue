@@ -342,6 +342,7 @@ export default {
         <Password
           v-if="isChange"
           v-model="passwordCurrent"
+          data-testid="account__current_password"
           class="mt-10"
           :required="true"
           :label="t('changePassword.currentPassword.label')"
@@ -368,6 +369,7 @@ export default {
           <div :class="{'col': isCreateEdit, 'span-4': isCreateEdit}">
             <Password
               v-model="passwordNew"
+              data-testid="account__new_password"
               class="mt-10"
               :label="t('changePassword.userGen.newPassword.label')"
               :required="userGeneratedPasswordsRequired"
@@ -377,6 +379,7 @@ export default {
           <div :class="{'col': isCreateEdit, 'span-4': isCreateEdit}">
             <Password
               v-model="passwordConfirm"
+              data-testid="account__confirm_password"
               class="mt-10"
               :label="t('changePassword.userGen.confirmPassword.label')"
               :required="userGeneratedPasswordsRequired"

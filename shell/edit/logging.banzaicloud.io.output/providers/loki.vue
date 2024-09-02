@@ -47,6 +47,8 @@ export default {
           :mode="mode"
           :disabled="disabled"
           class="url"
+          placeholder="https://127.0.0.1:8000"
+          data-testid="loki-url"
           :label="t('logging.loki.url')"
         />
       </div>

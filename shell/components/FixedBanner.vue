@@ -2,6 +2,7 @@
 import { MANAGEMENT } from '@shell/config/types';
 import { SETTING } from '@shell/config/settings';
 import isEmpty from 'lodash/isEmpty';
+import { getIndividualBanners, overlayIndividualBanners } from '@shell/utils/banners';
 
 export default {
   props: {
@@ -19,18 +20,13 @@ export default {
     },
   },
 
-  async fetch() {
-    this.bannerSetting = await this.$store.getters['management/byId'](MANAGEMENT.SETTING, SETTING.BANNERS);
-  },
-
   data() {
     return {
-      showDialog:    true,
-      showHeader:    false,
-      showFooter:    false,
-      showConsent:   false,
-      banner:        {},
-      bannerSetting: null
+      showDialog:  true,
+      showHeader:  false,
+      showFooter:  false,
+      showConsent: false,
+      banner:      {},
     };
   },
 
@@ -41,7 +37,7 @@ export default {
     handleLineBreaksConsentText(banner) {
       if (banner.text?.length) {
         // split text by newline char
-        const textArray = banner.text.split(/\\n/).filter(element => element);
+        const textArray = banner.text.split(/\\n/).filter((element) => element);
 
         if (textArray.length > 1) {
           textArray.forEach((str, i) => {
@@ -56,6 +52,14 @@ export default {
   },
 
   computed: {
+    uiBannerIndividual() {
+      return getIndividualBanners(this.$store);
+    },
+
+    bannerSetting() {
+      return this.$store.getters['management/all'](MANAGEMENT.SETTING).find((s) => s.id === SETTING.BANNERS);
+    },
+
     bannerStyle() {
       return {
         color:              this.banner.color,
@@ -74,7 +78,7 @@ export default {
       };
     },
     showBanner() {
-      if (!this.banner.text && !this.banner.background) {
+      if (!this.banner?.text && !this.banner?.background) {
         return false;
       }
 
@@ -93,47 +97,71 @@ export default {
     },
     showAsDialog() {
       return this.consent && !!this.banner.button;
+    },
+
+    // ID to place on the Banner DIV
+    id() {
+      if (this.header) {
+        return 'banner-header';
+      } else if (this.consent) {
+        return 'banner-consent';
+      } else if (this.footer) {
+        return 'banner-footer';
+      }
+
+      return 'banner';
     }
   },
 
   watch: {
-    bannerSetting(neu) {
-      if (neu?.value && neu.value !== '') {
-        try {
-          const parsed = JSON.parse(neu.value);
-          const {
-            bannerHeader, bannerFooter, bannerConsent, banner, showHeader, showFooter, showConsent
-          } = parsed;
-          let bannerContent = parsed?.banner || {};
+    bannerSetting: {
+      handler(neu) {
+        if (neu?.value && neu.value !== '') {
+          try {
+            const parsed = JSON.parse(neu.value);
 
-          if (isEmpty(banner)) {
-            if (showHeader && this.header) {
-              bannerContent = bannerHeader || {};
-            } else if (showConsent && this.consent) {
-              bannerContent = this.handleLineBreaksConsentText(bannerConsent) || {};
-            } else if (showFooter && this.footer) {
-              bannerContent = bannerFooter || {};
-            } else {
-              bannerContent = {};
+            overlayIndividualBanners(parsed, this.uiBannerIndividual);
+
+            const {
+              bannerHeader, bannerFooter, bannerConsent, banner, showHeader, showFooter, showConsent
+            } = parsed;
+            let bannerContent = parsed?.banner || {};
+
+            if (isEmpty(banner)) {
+              if (showHeader && this.header) {
+                bannerContent = bannerHeader || {};
+              } else if (showConsent && this.consent) {
+                bannerContent = this.handleLineBreaksConsentText(bannerConsent) || {};
+              } else if (showFooter && this.footer) {
+                bannerContent = bannerFooter || {};
+              } else {
+                bannerContent = {};
+              }
             }
-          }
 
-          this.showHeader = showHeader === 'true';
-          this.showFooter = showFooter === 'true';
-          this.showConsent = showConsent === 'true';
-          this.banner = bannerContent;
-        } catch {}
-      }
-    }
+            this.showHeader = showHeader === 'true';
+            this.showFooter = showFooter === 'true';
+            this.showConsent = showConsent === 'true';
+            this.banner = bannerContent;
+          } catch {}
+        }
+      },
+      immediate: true
+    },
+
   }
 };
 </script>
 
 <template>
-  <div v-if="showBanner">
+  <div
+    v-if="showBanner"
+    :id="id"
+  >
     <div
       v-if="!showAsDialog"
       class="banner"
+      data-testid="fixed__banner"
       :style="bannerStyle"
       :class="{'banner-consent': consent}"
     >

@@ -34,7 +34,7 @@ export default class Route extends SteveModel {
   }
 
   async save() {
-    const errors = await this.validationErrors(this);
+    const errors = this.validationErrors(this);
 
     if (!isEmpty(errors)) {
       return Promise.reject(errors);

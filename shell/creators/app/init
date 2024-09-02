@@ -4,14 +4,15 @@ const path = require('path');
 const fs = require('fs-extra');
 
 const targets = {
-  dev:   './node_modules/.bin/nuxt dev',
-  nuxt:  './node_modules/.bin/nuxt',
-  build: './node_modules/.bin/nuxt build'
+  dev:   'NODE_ENV=dev ./node_modules/.bin/vue-cli-service serve',
+  build: './node_modules/.bin/vue-cli-service build',
+  clean: './node_modules/@rancher/shell/scripts/clean'
 };
 
 const files = [
   'tsconfig.json',
-  'nuxt.config.js',
+  'vue.config.js',
+  '.gitignore',
   '.eslintignore',
   '.eslintrc.js',
   'babel.config.js',
@@ -24,13 +25,32 @@ console.log('Creating Skeleton Application');
 const args = process.argv;
 let appFolder = path.resolve('.');
 
-if (args.length == 3) {
+if (args.length === 3) {
   const name = args[2];
   const folder = path.resolve('.');
 
   appFolder = path.join(folder, name);
   console.log(`  Creating application folder: ${ appFolder }`);
   fs.ensureDirSync(appFolder);
+}
+
+let addGitlabWorkflow = false;
+
+// Check for Gitlab integration option
+if ( args.length > 3 ) {
+  for (let i = 3; i < args.length; i++) {
+    switch (args[i]) {
+    case '-l':
+      addGitlabWorkflow = true;
+      break;
+    default:
+      break;
+    }
+  }
+}
+
+if ( addGitlabWorkflow ) {
+  files.push('.gitlab-ci.yml');
 }
 
 // Check that there is a package file

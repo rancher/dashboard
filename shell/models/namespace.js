@@ -87,7 +87,7 @@ export default class Namespace extends SteveModel {
       return true;
     }
 
-    if ( this.metadata.name.endsWith('-system') ) {
+    if ( this.metadata.name.startsWith('cattle-') && this.metadata.name.endsWith('-system') ) {
       return true;
     }
 
@@ -105,7 +105,7 @@ export default class Namespace extends SteveModel {
   // These are namespaces that are created by rancher to serve purposes in the background but the user shouldn't have
   // to worry themselves about them.
   get isObscure() {
-    return OBSCURE_NAMESPACE_PREFIX.some(prefix => this.metadata.name.startsWith(prefix)) && this.isSystem;
+    return OBSCURE_NAMESPACE_PREFIX.some((prefix) => this.metadata.name.startsWith(prefix)) && this.isSystem;
   }
 
   get projectId() {
@@ -187,11 +187,7 @@ export default class Namespace extends SteveModel {
   }
 
   get _detailLocation() {
-    let _detailLocation = super._detailLocation;
-
-    if (this.$rootGetters['currentProduct'].hideNamespaceLocation) {
-      _detailLocation = false;
-    }
+    const _detailLocation = super._detailLocation;
 
     return _detailLocation;
   }
@@ -259,5 +255,9 @@ export default class Namespace extends SteveModel {
       this.metadata.labels = this.metadata.labels || {};
       this.metadata.labels[PROJECT] = project;
     }
+  }
+
+  get hideDetailLocation() {
+    return !!this.$rootGetters['currentProduct'].hideNamespaceLocation;
   }
 }

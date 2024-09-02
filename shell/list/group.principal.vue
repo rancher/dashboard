@@ -8,7 +8,7 @@ import { applyProducts } from '@shell/store/type-map';
 import { NAME } from '@shell/config/product/auth';
 import { MODE, _EDIT } from '@shell/config/query-params';
 import { mapState } from 'vuex';
-import { BLANK_CLUSTER } from '@shell/store';
+import { BLANK_CLUSTER } from '@shell/store/store-types.js';
 import { allHash } from '@shell/utils/promise';
 
 export default {
@@ -42,7 +42,7 @@ export default {
       providers: authConfigSchema ? this.$store.dispatch(`management/findAll`, { type: MANAGEMENT.AUTH_CONFIG }) : Promise.resolve([])
     });
 
-    const nonLocalAuthProvider = !!hash.providers.find(p => p.name !== 'local' && p.enabled === true);
+    const nonLocalAuthProvider = !!hash.providers.find((p) => p.name !== 'local' && p.enabled === true);
 
     this.canRefreshAccess = nonLocalAuthProvider && !!hash.user?.actions?.refreshauthprovideraccess;
     this.canCreateGlobalRoleBinding = nonLocalAuthProvider && grbSchema?.collectionMethods?.includes('POST');
@@ -134,13 +134,13 @@ export default {
           :class="{'mr-5': canCreateGlobalRoleBinding}"
           @click="refreshGroupMemberships"
         />
-        <n-link
+        <router-link
           v-if="canCreateGlobalRoleBinding"
           :to="assignLocation"
           class="btn role-primary"
         >
           {{ t("authGroups.actions.assignRoles") }}
-        </n-link>
+        </router-link>
       </template>
     </Masthead>
 

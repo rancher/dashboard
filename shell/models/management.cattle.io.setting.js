@@ -1,5 +1,6 @@
 import { ALLOWED_SETTINGS } from '@shell/config/settings';
 import HybridModel from '@shell/plugins/steve/hybrid-class';
+import { isServerUrl } from '@shell/utils/validators/setting';
 
 export default class Setting extends HybridModel {
   get fromEnv() {
@@ -12,7 +13,7 @@ export default class Setting extends HybridModel {
     let out = super._availableActions;
 
     // Some settings are not editable
-    if ( settingMetadata?.readOnly || this.fromEnv ) {
+    if ( settingMetadata?.readOnly ) {
       toFilter.push('goToEdit');
     }
 
@@ -21,7 +22,7 @@ export default class Setting extends HybridModel {
     });
 
     // Change the label on the first action (edit)
-    const editAction = out.find(action => action.action === 'goToEdit');
+    const editAction = out.find((action) => action.action === 'goToEdit');
 
     if (editAction) {
       editAction.label = this.t('advancedSettings.edit.label');
@@ -31,12 +32,15 @@ export default class Setting extends HybridModel {
   }
 
   get customValidationRules() {
-    return [
-      {
-        path:           'value',
-        translationKey: 'setting.serverUrl.https',
-        validators:     [`isHttps:${ this.metadata.name }`]
-      },
-    ];
+    const out = [];
+
+    if (isServerUrl(this.metadata.name)) {
+      out.push({
+        path:       'value',
+        validators: ['required', 'https', 'url', 'trailingForwardSlash']
+      });
+    }
+
+    return out;
   }
 }

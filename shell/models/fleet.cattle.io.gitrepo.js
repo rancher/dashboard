@@ -1,14 +1,19 @@
+import Vue from 'vue';
 import { convert, matching, convertSelectorObj } from '@shell/utils/selector';
 import jsyaml from 'js-yaml';
-import { escapeHtml } from '@shell/utils/string';
+import { escapeHtml, randomStr } from '@shell/utils/string';
 import { FLEET } from '@shell/config/types';
 import { FLEET as FLEET_ANNOTATIONS } from '@shell/config/labels-annotations';
 import { addObject, addObjects, findBy, insertAt } from '@shell/utils/array';
 import { set } from '@shell/utils/object';
 import SteveModel from '@shell/plugins/steve/steve-class';
+import {
+  STATES_ENUM, colorForState, mapStateToEnum, primaryDisplayStatusFromCount, stateDisplay, stateSort
+} from '@shell/plugins/dashboard-store/resource-class';
+import { NAME } from '@shell/config/product/explorer';
 
 function quacksLikeAHash(str) {
-  if ( str.match(/^[a-f0-9]{40,}$/i) ) {
+  if (str.match(/^[a-f0-9]{40,}$/i)) {
     return true;
   }
 
@@ -24,12 +29,14 @@ export default class GitRepo extends SteveModel {
 
     spec.repo = spec.repo || '';
 
-    if ( !spec.branch && !spec.revision ) {
+    if (!spec.branch && !spec.revision) {
       spec.branch = 'master';
     }
 
     spec.paths = spec.paths || [];
     spec.clientSecretName = spec.clientSecretName || null;
+
+    Vue.set(spec, 'correctDrift', { enabled: false });
 
     set(this, 'spec', spec);
     set(this, 'metadata', meta);
@@ -85,7 +92,7 @@ export default class GitRepo extends SteveModel {
   }
 
   get state() {
-    if ( this.spec?.paused === true ) {
+    if (this.spec?.paused === true) {
       return 'paused';
     }
 
@@ -96,42 +103,49 @@ export default class GitRepo extends SteveModel {
     const workspace = this.$getters['byId'](FLEET.WORKSPACE, this.metadata.namespace);
     const clusters = workspace?.clusters || [];
     const groups = workspace?.clusterGroups || [];
-    const out = [];
 
-    if ( workspace.id === 'fleet-local' ) {
+    if (workspace?.id === 'fleet-local') {
+      // should we be getting the clusters from workspace.clusters instead of having to rely on the groups,
+      // which takes an additional request to be done on the Fleet dashboard screen?
       const local = findBy(groups, 'id', 'fleet-local/default');
 
-      if ( local ) {
+      if (local) {
         return local.targetClusters;
       }
 
       return [];
     }
 
-    for ( const tgt of this.spec.targets ) {
-      if ( tgt.clusterName ) {
+    if (!this.spec.targets) {
+      return [];
+    }
+
+    const out = [];
+
+    for (const tgt of this.spec.targets) {
+      if (tgt.clusterName) {
         const cluster = findBy(clusters, 'metadata.name', tgt.clusterName);
 
-        if ( cluster ) {
+        if (cluster) {
           addObject(out, cluster);
         }
-      } else if ( tgt.clusterGroup ) {
+      } else if (tgt.clusterGroup) {
         const group = findBy(groups, {
           'metadata.namespace': this.metadata.namespace,
           'metadata.name':      tgt.clusterGroup,
         });
 
-        if ( group ) {
+        if (group) {
           addObjects(out, group.targetClusters);
         }
-      } else if ( tgt.clusterGroupSelector ) {
+      } else if (tgt.clusterGroupSelector) {
         const expressions = convertSelectorObj(tgt.clusterGroupSelector);
         const matchingGroups = matching(groups, expressions);
 
-        for ( const group of matchingGroups ) {
+        for (const group of matchingGroups) {
           addObjects(out, group.targetClusters);
         }
-      } else if ( tgt.clusterSelector ) {
+      } else if (tgt.clusterSelector) {
         const expressions = convertSelectorObj(tgt.clusterSelector);
         const matchingClusters = matching(clusters, expressions);
 
@@ -145,7 +159,7 @@ export default class GitRepo extends SteveModel {
   get github() {
     const match = this.spec.repo.match(/^https?:\/\/github\.com\/(.*?)(\.git)?\/*$/);
 
-    if ( match ) {
+    if (match) {
       return match[1];
     }
 
@@ -153,7 +167,7 @@ export default class GitRepo extends SteveModel {
   }
 
   get repoIcon() {
-    if ( this.github ) {
+    if (this.github) {
       return 'icon icon-github';
     }
 
@@ -167,7 +181,7 @@ export default class GitRepo extends SteveModel {
     repo = repo.replace(/^https:\/\//, '');
     repo = repo.replace(/\/+$/, '');
 
-    if ( this.github ) {
+    if (this.github) {
       return this.github;
     }
 
@@ -178,30 +192,19 @@ export default class GitRepo extends SteveModel {
     const spec = this.spec;
     const hash = this.status?.commit?.substr(0, 7);
 
-    if ( !spec || !spec.repo ) {
+    if (!spec || !spec.repo) {
       return null;
     }
 
-    if ( spec.revision && quacksLikeAHash(spec.revision) ) {
+    if (spec.revision && quacksLikeAHash(spec.revision)) {
       return spec.revision.substr(0, 7);
-    } else if ( spec.revision ) {
+    } else if (spec.revision) {
       return spec.revision;
-    } else if ( spec.branch ) {
+    } else if (spec.branch) {
       return spec.branch + (hash ? ` @ ${ hash }` : '');
     }
 
     return hash;
-  }
-
-  get clusterInfo() {
-    const ready = this.status?.readyClusters || 0;
-    const total = this.status?.desiredReadyClusters || 0;
-
-    return {
-      ready,
-      unready: total - ready,
-      total,
-    };
   }
 
   get targetInfo() {
@@ -214,7 +217,7 @@ export default class GitRepo extends SteveModel {
 
     advanced = jsyaml.dump(targets);
 
-    if ( advanced === '[]\n' ) {
+    if (advanced === '[]\n') {
       advanced = `# - name:
 #  clusterSelector:
 #    matchLabels:
@@ -234,39 +237,39 @@ export default class GitRepo extends SteveModel {
 `;
     }
 
-    if ( this.metadata.namespace === 'fleet-local' ) {
+    if (this.metadata.namespace === 'fleet-local') {
       mode = 'local';
-    } else if ( !targets.length ) {
+    } else if (!targets.length) {
       mode = 'none';
-    } else if ( targets.length === 1) {
+    } else if (targets.length === 1) {
       const target = targets[0];
 
       if (Object.keys(target).length > 1) {
         // There are multiple properties in a single target, so use the 'advanced' mode
         // (otherwise any existing content is nuked for what we provide)
         mode = 'advanced';
-      } else if ( target.clusterGroup ) {
+      } else if (target.clusterGroup) {
         clusterGroup = target.clusterGroup;
 
-        if ( !mode ) {
+        if (!mode) {
           mode = 'clusterGroup';
         }
-      } else if ( target.clusterName ) {
+      } else if (target.clusterName) {
         mode = 'cluster';
         cluster = target.clusterName;
-      } else if ( target.clusterSelector ) {
-        if ( Object.keys(target.clusterSelector).length === 0 ) {
+      } else if (target.clusterSelector) {
+        if (Object.keys(target.clusterSelector).length === 0) {
           mode = 'all';
         } else {
           const expressions = convert(target.clusterSelector.matchLabels, target.clusterSelector.matchExpressions);
 
-          if ( expressions.length === 1 &&
-              expressions[0].key === FLEET_ANNOTATIONS.CLUSTER_NAME &&
-              expressions[0].operator === 'In' &&
-              expressions[0].values.length === 1
+          if (expressions.length === 1 &&
+            expressions[0].key === FLEET_ANNOTATIONS.CLUSTER_NAME &&
+            expressions[0].operator === 'In' &&
+            expressions[0].values.length === 1
           ) {
             cluster = expressions[0].values[0];
-            if ( !mode ) {
+            if (!mode) {
               mode = 'cluster';
             }
           }
@@ -274,7 +277,7 @@ export default class GitRepo extends SteveModel {
       }
     }
 
-    if ( !mode ) {
+    if (!mode) {
       mode = 'advanced';
     }
 
@@ -290,7 +293,7 @@ export default class GitRepo extends SteveModel {
   get groupByLabel() {
     const name = this.metadata.namespace;
 
-    if ( name ) {
+    if (name) {
       return this.$rootGetters['i18n/t']('resourceTable.groupLabel.workspace', { name: escapeHtml(name) });
     } else {
       return this.$rootGetters['i18n/t']('resourceTable.groupLabel.notInAWorkspace');
@@ -300,14 +303,22 @@ export default class GitRepo extends SteveModel {
   get bundles() {
     const all = this.$getters['all'](FLEET.BUNDLE);
 
-    return all.filter(bundle => bundle.name.startsWith(`${ this.name }-`) &&
+    return all.filter((bundle) => bundle.repoName === this.name &&
       bundle.namespace === this.namespace &&
       bundle.namespacedName.startsWith(`${ this.namespace }:${ this.name }`));
   }
 
   get bundlesReady() {
     if (this.bundles && this.bundles.length) {
-      return this.bundles.filter(bundle => bundle.state === 'active');
+      return this.bundles.filter((bundle) => bundle.state === 'active');
+    }
+
+    return 0;
+  }
+
+  get targetClustersReady() {
+    if (this.targetClusters && this.targetClusters.length) {
+      return this.targetClusters.filter((cluster) => cluster.state === 'active');
     }
 
     return 0;
@@ -316,7 +327,131 @@ export default class GitRepo extends SteveModel {
   get bundleDeployments() {
     const bds = this.$getters['all'](FLEET.BUNDLE_DEPLOYMENT);
 
-    return bds.filter(bd => bd.metadata?.labels?.['fleet.cattle.io/repo-name'] === this.name);
+    return bds.filter((bd) => bd.metadata?.labels?.['fleet.cattle.io/repo-name'] === this.name);
+  }
+
+  get resourcesStatuses() {
+    const clusters = this.targetClusters || [];
+    const resources = this.status?.resources || [];
+    const conditions = this.status?.conditions || [];
+
+    const out = [];
+
+    for (const c of clusters) {
+      const clusterBundleDeploymentResources = this.bundleDeployments
+        .find((bd) => bd.metadata?.labels?.[FLEET_ANNOTATIONS.CLUSTER] === c.metadata.name)
+        ?.status?.resources || [];
+
+      resources.forEach((r, i) => {
+        let namespacedName = r.name;
+
+        if (r.namespace) {
+          namespacedName = `${ r.namespace }:${ r.name }`;
+        }
+
+        let state = r.state;
+        const perEntry = r.perClusterState?.find((x) => x.clusterId === c.id);
+        const tooMany = r.perClusterState?.length >= 10 || false;
+
+        if (perEntry) {
+          state = perEntry.state;
+        } else if (tooMany) {
+          state = STATES_ENUM.UNKNOWN;
+        } else {
+          state = STATES_ENUM.READY;
+        }
+
+        const color = colorForState(state).replace('text-', 'bg-');
+        const display = stateDisplay(state);
+
+        const detailLocation = {
+          name:   `c-cluster-product-resource${ r.namespace ? '-namespace' : '' }-id`,
+          params: {
+            product:   NAME,
+            cluster:   c.metadata.labels[FLEET_ANNOTATIONS.CLUSTER_NAME],
+            resource:  r.type,
+            namespace: r.namespace,
+            id:        r.name,
+          }
+        };
+
+        out.push({
+          key:                    `${ r.id }-${ c.id }-${ r.type }-${ r.namespace }-${ r.name }`,
+          tableKey:               `${ r.id }-${ c.id }-${ r.type }-${ r.namespace }-${ r.name }-${ randomStr(8) }`,
+          kind:                   r.kind,
+          apiVersion:             r.apiVersion,
+          type:                   r.type,
+          id:                     r.id,
+          namespace:              r.namespace,
+          name:                   r.name,
+          clusterId:              c.id,
+          clusterLabel:           c.metadata.labels[FLEET_ANNOTATIONS.CLUSTER_NAME],
+          clusterName:            c.nameDisplay,
+          state:                  mapStateToEnum(state),
+          stateBackground:        color,
+          stateDisplay:           display,
+          stateSort:              stateSort(color, display),
+          namespacedName,
+          detailLocation,
+          conditions:             conditions[i],
+          bundleDeploymentStatus: clusterBundleDeploymentResources?.[i],
+          creationTimestamp:      clusterBundleDeploymentResources?.[i]?.createdAt
+        });
+      });
+    }
+
+    return out;
+  }
+
+  get clusterInfo() {
+    const ready = this.status?.readyClusters || 0;
+    const total = this.status?.desiredReadyClusters || 0;
+
+    return {
+      ready,
+      unready: total - ready,
+      total,
+    };
+  }
+
+  get clusterResourceStatus() {
+    const clusterStatuses = this.resourcesStatuses.reduce((prev, curr) => {
+      const { clusterId, clusterLabel } = curr;
+
+      const state = curr.state;
+
+      if (!prev[clusterId]) {
+        prev[clusterId] = {
+          clusterLabel,
+          resourceCounts: { [state]: 0, desiredReady: 0 }
+
+        };
+      }
+
+      if (!prev[clusterId].resourceCounts[state]) {
+        prev[clusterId].resourceCounts[state] = 0;
+      }
+
+      prev[clusterId].resourceCounts[state] += 1;
+      prev[clusterId].resourceCounts.desiredReady += 1;
+
+      return prev;
+    }, {});
+
+    const values = Object.keys(clusterStatuses).map((key) => {
+      const { clusterLabel, resourceCounts } = clusterStatuses[key];
+
+      return {
+        clusterId: key,
+        clusterLabel, // FLEET LABEL
+        status:    {
+          displayStatus:  primaryDisplayStatusFromCount(resourceCounts),
+          resourceCounts: { ...resourceCounts }
+        }
+      };
+    });
+
+    return values;
   }
 
   get clustersList() {

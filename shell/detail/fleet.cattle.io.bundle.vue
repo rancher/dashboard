@@ -38,7 +38,7 @@ export default {
       if (this.hasRepoLabel) {
         const bundleResourceIds = this.bundleResourceIds;
 
-        return this.repo?.status?.resources.filter((resource) => {
+        return this.repo?.status?.resources?.filter((resource) => {
           return bundleResourceIds.includes(resource.name);
         });
       } else if (this.value?.spec?.resources?.length) {
@@ -67,7 +67,7 @@ export default {
     },
     bundleResourceIds() {
       if (this.value.status?.resourceKey) {
-        return this.value?.status?.resourceKey.map(item => item.name);
+        return this.value?.status?.resourceKey.map((item) => item.name);
       }
 
       return [];

@@ -1,6 +1,7 @@
 import HybridModel from '@shell/plugins/steve/hybrid-class';
 
 const HIDDEN = ['rke', 'rancherkubernetesengine'];
+
 const V2 = ['amazoneks', 'googlegke', 'azureaks'];
 const IMPORTABLE = ['amazoneks', 'googlegke', 'azureaks'];
 
@@ -15,8 +16,10 @@ export const KONTAINER_TO_DRIVER = {
   huaweicontainercloudengine:       'huaweicce', // Does this actually exist?
   huaweiengine:                     'huaweicce',
   linodekubernetesengine:           'linodelke', // Does this actually exist?
+  lke:                              'linodelke',
   lkeengine:                        'linodelke',
   okeengine:                        'oracleoke',
+  oke:                              'oracleoke',
   oraclecontainerengine:            'oracleoke', // Does this actually exist?
   rke2:                             'rke2',
   tencentengine:                    'tencenttke',
@@ -63,6 +66,18 @@ export default class KontainerDriver extends HybridModel {
   }
 
   get driverName() {
+    if (!this.spec.builtIn) {
+      // if the driver is not built in, there's a good change its a custom one
+      // custom drivers have a random id, so shouldn't be used as the type
+      // instead use the status.displayName. this will map to the name extracted from the binary
+      const driverName = this.status?.displayName?.toLowerCase();
+
+      if (driverName) {
+        // some drivers are built in but don't have the builtIn flag. ensure we pass these through K_TO_D
+        return KONTAINER_TO_DRIVER[driverName] || driverName;
+      }
+    }
+
     return KONTAINER_TO_DRIVER[this.id] || this.id;
   }
 }

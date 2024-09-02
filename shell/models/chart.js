@@ -2,7 +2,7 @@ import { compatibleVersionsFor } from '@shell/store/catalog';
 import {
   REPO_TYPE, REPO, CHART, VERSION, _FLAGGED, HIDE_SIDE_NAV
 } from '@shell/config/query-params';
-import { BLANK_CLUSTER } from '@shell/store';
+import { BLANK_CLUSTER } from '@shell/store/store-types.js';
 import SteveModel from '@shell/plugins/steve/steve-class';
 
 export default class Chart extends SteveModel {

@@ -143,8 +143,8 @@ export default {
   <div>
     <Banner
       v-if="mode !== view"
+      v-clean-html="t('monitoringReceiver.webhook.banner', {}, raw=true)"
       color="info"
-      v-html="t('monitoringReceiver.webhook.banner', {}, raw=true)"
     />
     <div class="row mb-20">
       <LabeledSelect
@@ -166,8 +166,8 @@ export default {
     </div>
     <Banner
       v-if="showNamespaceBanner"
+      v-clean-html="t('monitoringReceiver.webhook.modifyNamespace', {}, raw=true)"
       color="info"
-      v-html="t('monitoringReceiver.webhook.modifyNamespace', {}, raw=true)"
     />
     <div class="row mb-20">
       <div class="col span-12">

@@ -56,8 +56,13 @@ export default {
   },
 
   async fetch() {
+    const roleBindingRequestParams = { type: this.type, opt: { force: true } };
+
+    if (this.type === NORMAN.PROJECT_ROLE_TEMPLATE_BINDING && this.parentId) {
+      Object.assign(roleBindingRequestParams, { opt: { filter: { projectId: this.parentId.split('/').join(':') } } });
+    }
     const userHydration = [
-      this.schema ? this.$store.dispatch(`rancher/findAll`, { type: this.type, opt: { force: true } }) : [],
+      this.schema ? this.$store.dispatch(`rancher/findAll`, roleBindingRequestParams) : [],
       this.$store.dispatch('rancher/findAll', { type: NORMAN.PRINCIPAL }),
       this.$store.dispatch(`management/findAll`, { type: MANAGEMENT.ROLE_TEMPLATE }),
       this.$store.dispatch(`management/findAll`, { type: MANAGEMENT.USER })
@@ -65,7 +70,7 @@ export default {
     const [allBindings] = await Promise.all(userHydration);
 
     const bindings = allBindings
-      .filter(b => normalizeId(get(b, this.parentKey)) === normalizeId(this.parentId));
+      .filter((b) => normalizeId(get(b, this.parentKey)) === normalizeId(this.parentId));
 
     this.$set(this, 'lastSavedBindings', [...bindings]);
 
@@ -91,11 +96,11 @@ export default {
   computed: {
     newBindings() {
       return this.bindings
-        .filter(binding => !binding.id && !this.lastSavedBindings.includes(binding) && !binding.isDefaultBinding);
+        .filter((binding) => !binding.id && !this.lastSavedBindings.includes(binding) && !binding.isDefaultBinding);
     },
     removedBindings() {
       return this.lastSavedBindings
-        .filter(binding => !this.bindings.includes(binding));
+        .filter((binding) => !this.bindings.includes(binding));
     },
     membershipUpdate() {
       const newBindings = this.newBindings;
@@ -111,7 +116,7 @@ export default {
             return binding.save();
           });
 
-          const removedPromises = removedBindings.map(binding => binding.remove());
+          const removedPromises = removedBindings.map((binding) => binding.remove());
 
           return Promise.all([...savedPromises, ...removedPromises]);
         }

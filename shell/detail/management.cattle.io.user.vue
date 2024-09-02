@@ -123,8 +123,8 @@ export default {
         const roles = await this.$store.dispatch('management/findAll', { type: MANAGEMENT.GLOBAL_ROLE });
 
         const out = await Promise.all(roles
-          .filter(r => !r.isSpecial)
-          .map(r => this.$store.dispatch(`rancher/clone`, { resource: r }))
+          .filter((r) => !r.isSpecial)
+          .map((r) => this.$store.dispatch(`rancher/clone`, { resource: r }))
         );
 
         out.forEach((r) => {
@@ -134,9 +134,9 @@ export default {
         const globalRoleBindings = await this.$store.dispatch('management/findAll', { type: MANAGEMENT.GLOBAL_ROLE_BINDING });
 
         globalRoleBindings
-          .filter(binding => binding.userName === userId)
+          .filter((binding) => binding.userName === userId)
           .forEach((binding) => {
-            const globalRole = roles.find(r => r.id === binding.globalRoleName);
+            const globalRole = roles.find((r) => r.id === binding.globalRoleName);
 
             if (globalRole.id === 'admin') {
               this.isAdmin = true;
@@ -148,7 +148,7 @@ export default {
                 r.bound = binding?.metadata.creationTimestamp;
               });
             } else {
-              const entry = out.find(o => o.id === binding.globalRoleName);
+              const entry = out.find((o) => o.id === binding.globalRoleName);
 
               if (entry) {
                 entry.hasBound = true;
@@ -166,20 +166,20 @@ export default {
 
     fetchClusterRoles(userId) {
       const templateBindings = this.$store.getters['management/all'](MANAGEMENT.CLUSTER_ROLE_TEMPLATE_BINDING);
-      const userTemplateBindings = templateBindings.filter(binding => binding.userName === userId);
+      const userTemplateBindings = templateBindings.filter((binding) => binding.userName === userId);
 
       // Upfront load clusters
-      userTemplateBindings.map(b => this.$store.dispatch('management/find', { type: MANAGEMENT.CLUSTER, id: b.clusterName }));
+      userTemplateBindings.map((b) => this.$store.dispatch('management/find', { type: MANAGEMENT.CLUSTER, id: b.clusterName }));
 
       return userTemplateBindings;
     },
 
     fetchProjectRoles(userId) {
       const templateBindings = this.$store.getters['management/all'](MANAGEMENT.PROJECT_ROLE_TEMPLATE_BINDING );
-      const userTemplateBindings = templateBindings.filter(binding => binding.userName === userId);
+      const userTemplateBindings = templateBindings.filter((binding) => binding.userName === userId);
 
       // Upfront load projects
-      userTemplateBindings.map(b => this.$store.dispatch('management/find', { type: MANAGEMENT.PROJECT, id: b.projectId }));
+      userTemplateBindings.map((b) => this.$store.dispatch('management/find', { type: MANAGEMENT.PROJECT, id: b.projectId }));
 
       return userTemplateBindings;
     },
@@ -199,13 +199,13 @@ export default {
       const verbs = (rule.verbs || []);
       const permissions = [];
 
-      apiGroups.forEach(apiGroup => resources.forEach(resource => verbs.forEach(verb => permissions.push({
+      apiGroups.forEach((apiGroup) => resources.forEach((resource) => verbs.forEach((verb) => permissions.push({
         apiGroup,
         resource,
         verb
       }))));
 
-      return permissions.every(permission => this.hasPermission(globalRoleRules, permission));
+      return permissions.every((permission) => this.hasPermission(globalRoleRules, permission));
     },
     getEnabledRoles(globalRole, out) {
       const globalRoleRules = globalRole.rules || [];
@@ -216,7 +216,7 @@ export default {
           return false;
         }
 
-        return r.rules.every(rule => this.containsRule(globalRoleRules, rule));
+        return r.rules.every((rule) => this.containsRule(globalRoleRules, rule));
       });
     },
 

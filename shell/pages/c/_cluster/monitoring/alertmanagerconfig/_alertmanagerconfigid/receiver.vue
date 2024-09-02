@@ -23,12 +23,16 @@ export default {
 
   async fetch() {
     const inStore = this.$store.getters['currentProduct'].inStore;
+    const alertmanagerConfigSchema = this.$store.getters[`${ inStore }/schemaFor`](MONITORING.ALERTMANAGERCONFIG);
 
     this.receiverName = this.$route.query.receiverName;
 
     const alertmanagerConfigId = this.$route.params.alertmanagerconfigid;
     const originalAlertmanagerConfigResource = await this.$store.dispatch(`${ inStore }/find`, { type: MONITORING.ALERTMANAGERCONFIG, id: alertmanagerConfigId });
     const alertmanagerConfigResource = await this.$store.dispatch(`${ inStore }/clone`, { resource: originalAlertmanagerConfigResource });
+
+    await alertmanagerConfigSchema.fetchResourceFields();
+
     const mode = this.$route.query.mode;
 
     if (mode !== _CREATE) {
@@ -156,7 +160,7 @@ export default {
     // being saved. Therefore we take the save from the
     // AlertmanagerConfig resource and pass it into the
     // receiver config form.
-    saveOverride(buttonDone) {
+    async saveOverride(buttonDone) {
       if (this.alertmanagerConfigResource.yamlError) {
         this.alertmanagerConfigResource.errors = this.alertmanagerConfigResource.errors || [];
         this.alertmanagerConfigResource.errors.push(this.alertmanagerConfigResource.yamlError);
@@ -166,8 +170,18 @@ export default {
         return;
       }
 
-      this.alertmanagerConfigResource.save(...arguments);
-      this.redirectToAlertmanagerConfigDetail();
+      try {
+        await this.alertmanagerConfigResource.save(...arguments);
+
+        buttonDone(true);
+
+        this.redirectToAlertmanagerConfigDetail();
+      } catch (e) {
+        const msg = e?.message ? e.message : this.t('monitoring.alertmanagerConfig.error');
+
+        this.$refs.config.setError(msg);
+        buttonDone(false);
+      }
     },
     handleButtonGroupClick(event) {
       if (event === this.yaml) {
@@ -271,6 +285,7 @@ export default {
     />
     <ReceiverConfig
       v-if="(currentView === config || currentView === detail) && alertmanagerConfigResource"
+      ref="config"
       :value="receiverValue"
       :mode="mode"
       :alertmanager-config-id="alertmanagerConfigId"

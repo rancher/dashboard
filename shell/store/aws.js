@@ -4,7 +4,10 @@ import { FetchHttpHandler } from '@aws-sdk/fetch-http-handler';
 import { isArray, addObjects } from '@shell/utils/array';
 
 export const state = () => {
-  return {};
+  return {
+    instanceTypes: [],
+    clientInfo:    null
+  };
 };
 
 class Handler {
@@ -60,6 +63,21 @@ export const getters = {
 
   defaultInstanceType() {
     return 't3a.medium';
+  },
+
+  instanceTypes(state) {
+    return state.instanceTypes;
+  },
+
+  clientInfo(state) {
+    return state.clientInfo;
+  }
+};
+
+export const mutations = {
+  setInstanceTypes(state, { types, clientInfo }) {
+    state.instanceTypes = types;
+    state.clientInfo = clientInfo;
   }
 };
 
@@ -73,7 +91,11 @@ export const actions = {
   },
 
   kmsLib() {
-    return import(/* webpackChunkName: "aws-ec2" */ '@aws-sdk/client-kms');
+    return import(/* webpackChunkName: "aws-kms" */ '@aws-sdk/client-kms');
+  },
+
+  iamLib() {
+    return import(/* webpackChunkName: "aws-iam" */ '@aws-sdk/client-iam');
   },
 
   async ec2({ dispatch }, {
@@ -118,7 +140,29 @@ export const actions = {
     return client;
   },
 
-  async instanceInfo({ dispatch, rootGetters, state }, { client }) {
+  async iam({ dispatch }, {
+    region, cloudCredentialId, accessKey, secretKey
+  }) {
+    const lib = await dispatch('iamLib');
+
+    const client = new lib.IAM({
+      region,
+      credentialDefaultProvider: credentialDefaultProvider(accessKey, secretKey),
+      requestHandler:            new Handler(cloudCredentialId),
+    });
+
+    return client;
+  },
+
+  async describeInstanceTypes({
+    dispatch, rootGetters, state, commit
+  }, { client }) {
+    const cloudCredentialId = client?.config?.requestHandler?.cloudCredentialId;
+    const region = await client.config.region();
+
+    if (cloudCredentialId === rootGetters['aws/clientInfo']?.cloudCredentialId && region === rootGetters['aws/clientInfo']?.region) {
+      return rootGetters['aws/instanceTypes'];
+    }
     const data = await dispatch('depaginateList', { client, cmd: 'describeInstanceTypes' });
 
     const groups = (await import(/* webpackChunkName: "aws-data" */'@shell/assets/data/ec2-instance-groups.json')).default;
@@ -158,11 +202,12 @@ export const actions = {
 
       list.push({
         apiName,
-        currentGeneration: row.CurrentGeneration || false,
+        currentGeneration:     row.CurrentGeneration || false,
         groupLabel,
         instanceClass,
-        memoryBytes:       row.MemoryInfo.SizeInMiB * 1024 * 1024,
-        label:             rootGetters['i18n/t']('cluster.machineConfig.aws.sizeLabel', {
+        memoryBytes:           row.MemoryInfo.SizeInMiB * 1024 * 1024,
+        supportedUsageClasses: row.SupportedUsageClasses,
+        label:                 rootGetters['i18n/t']('cluster.machineConfig.aws.sizeLabel', {
           apiName,
           cpu:    row.VCpuInfo.DefaultVCpus,
           memory: row.MemoryInfo.SizeInMiB / 1024,
@@ -174,6 +219,8 @@ export const actions = {
     }
 
     const out = sortBy(list, ['currentGeneration:desc', 'groupLabel', 'instanceClass', 'memoryBytes', 'apiName']);
+
+    commit('setInstanceTypes', { types: out, clientInfo: { region, cloudCredentialId } });
 
     return out;
   },
@@ -190,7 +237,7 @@ export const actions = {
       const res = await client[cmd](opt);
 
       if ( !key ) {
-        key = Object.keys(res).find(x => isArray(res[x]));
+        key = Object.keys(res).find((x) => isArray(res[x]));
       }
 
       addObjects(out, res[key]);

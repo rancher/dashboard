@@ -58,7 +58,13 @@ export default {
     rawData: {
       type:    Boolean,
       default: false
-    }
+    },
+
+    accept: {
+      type:    String,
+      default: '*'
+    },
+
   },
 
   computed: {
@@ -142,6 +148,7 @@ export default {
     :disabled="disabled"
     type="button"
     class="file-selector btn"
+    data-testid="file-selector__uploader-button"
     @click="selectFile"
   >
     <span>{{ label }}</span>
@@ -151,6 +158,7 @@ export default {
       class="hide"
       :multiple="multiple"
       :webkitdirectory="directory"
+      :accept="accept"
       @change="fileChange"
     >
   </button>

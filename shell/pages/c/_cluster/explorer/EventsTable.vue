@@ -1,7 +1,7 @@
 <script>
 
 import SortableTable from '@shell/components/SortableTable';
-import { REASON } from '@shell/config/table-headers';
+import { MESSAGE, NAME, OBJECT, REASON } from '@shell/config/table-headers';
 import { EVENT } from '@shell/config/types';
 import { fetchClusterResources } from './explorer-utils';
 
@@ -21,14 +21,9 @@ export default {
 
     const eventHeaders = [
       reason,
-      {
-        name:          'resource',
-        label:         'Resource',
-        labelKey:      'clusterIndexPage.sections.events.resource.label',
-        value:         'displayInvolvedObject',
-        sort:          ['involvedObject.kind', 'involvedObject.name'],
-        canBeVariable: true,
-      },
+      OBJECT,
+      MESSAGE,
+      NAME,
       {
         name:        'date',
         label:       'Date',
@@ -45,6 +40,24 @@ export default {
       events: [],
       eventHeaders,
     };
+  },
+
+  mounted() {
+    this.dismissRouteHandler = this.$router.beforeEach(this.onRouteChange);
+  },
+
+  methods: {
+    async onRouteChange(to, from, next) {
+      if (this.$route.name !== to.name) {
+        await this.$store.dispatch('cluster/forgetType', EVENT);
+      }
+
+      next();
+    }
+  },
+
+  beforeDestroy() {
+    this.dismissRouteHandler();
   }
 };
 </script>
@@ -61,14 +74,5 @@ export default {
     :paging="true"
     :rows-per-page="10"
     default-sort-by="date"
-  >
-    <template #cell:resource="{row, value}">
-      <n-link :to="row.detailLocation">
-        {{ value }}
-      </n-link>
-      <div v-if="row.message">
-        {{ row.displayMessage }}
-      </div>
-    </template>
-  </SortableTable>
+  />
 </template>

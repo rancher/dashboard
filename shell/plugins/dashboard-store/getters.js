@@ -1,23 +1,24 @@
 
-import { SCHEMA } from '@shell/config/types';
+import { SCHEMA, COUNT } from '@shell/config/types';
 
 import { matches } from '@shell/utils/selector';
 import { typeMunge, typeRef, SIMPLE_TYPES } from '@shell/utils/create-yaml';
-import { splitObjectPath } from '@shell/utils/string';
-import { parseType } from '@shell/models/schema';
 import Resource from '@shell/plugins/dashboard-store/resource-class';
 import mutations from './mutations';
 import { keyFieldFor, normalizeType } from './normalize';
 import { lookup } from './model-loader';
 import garbageCollect from '@shell/utils/gc/gc';
+import paginationUtils from '@shell/utils/pagination-utils';
 
 export const urlFor = (state, getters) => (type, id, opt) => {
   opt = opt || {};
   type = getters.normalizeType(type);
   let url = opt.url;
 
+  let schema;
+
   if ( !url ) {
-    const schema = getters.schemaFor(type);
+    schema = getters.schemaFor(type);
 
     if ( !schema ) {
       throw new Error(`Unknown schema for type: ${ type }`);
@@ -40,13 +41,39 @@ export const urlFor = (state, getters) => (type, id, opt) => {
     url = `${ baseUrl }/${ url }`;
   }
 
-  url = getters.urlOptions(url, opt);
+  url = getters.urlOptions(url, opt, schema);
 
   return url;
 };
 
+/**
+ * Find the number of resources given
+ * - if the type is namespaced
+ * - if there are any counts per namespace
+ * - if there are no namespaces
+ * - if there is no total count
+ */
+function matchingCounts(typeObj, namespaces) {
+  // That was easy
+  if ( !typeObj.namespaced || !typeObj.byNamespace || namespaces === null || typeObj.count === null) {
+    return typeObj.count;
+  }
+
+  let out = 0;
+
+  // Otherwise start with 0 and count up
+  for ( const namespace of namespaces ) {
+    out += typeObj.byNamespace[namespace]?.count || 0;
+  }
+
+  return out;
+}
+
 export default {
 
+  /**
+   * Get all entries in the store. This might not mean all entries of this type
+   */
   all: (state, getters, rootState) => (type) => {
     type = getters.normalizeType(type);
 
@@ -64,19 +91,24 @@ export default {
     return state.types[type].list;
   },
 
-  matching: (state, getters, rootState) => (type, selector, namespace) => {
-    let all = getters['all'](type);
+  matching: (state, getters, rootState) => (type, selector, namespace, config = { skipSelector: false }) => {
+    let matching = getters['all'](type);
 
     // Filter first by namespace if one is provided, since this is efficient
-    if (namespace) {
-      all = all.filter(obj => obj.namespace === namespace);
+    if (namespace && typeof namespace === 'string') {
+      matching = matching.filter((obj) => obj.namespace === namespace);
     }
 
     garbageCollect.gcUpdateLastAccessed({
       state, getters, rootState
     }, type);
 
-    return all.filter((obj) => {
+    // Looks like a falsy selector is a thing, so if we're not interested in filtering by the selector... explicitly avoid it
+    if (config.skipSelector) {
+      return matching;
+    }
+
+    return matching.filter((obj) => {
       return matches(obj, selector);
     });
   },
@@ -94,30 +126,13 @@ export default {
     }
   },
 
+  /**
+   * Checks a schema for the given path
+   *
+   * Given that schema are primarily a rancher thing most logic is in the `steve` store
+   */
   pathExistsInSchema: (state, getters) => (type, path) => {
-    let schema = getters.schemaFor(type);
-    const parts = splitObjectPath(path);
-
-    while ( parts.length ) {
-      const key = parts.shift();
-
-      type = schema.resourceFields?.[key]?.type;
-
-      if ( !type ) {
-        return false;
-      }
-
-      if ( parts.length ) {
-        type = parseType(type).pop(); // Get the main part of array[map[something]] => something
-        schema = getters.schemaFor(type);
-
-        if ( !schema ) {
-          return false;
-        }
-      }
-    }
-
-    return true;
+    return false;
   },
 
   // @TODO resolve difference between this and schemaFor and have only one of them.
@@ -188,17 +203,28 @@ export default {
     return out;
   },
 
-  defaultFor: (state, getters) => (type) => {
-    const schema = getters['schemaFor'](type);
+  defaultFor: (state, getters) => (type, rootSchema, schemaDefinitions = null) => {
+    let resourceFields;
 
-    if ( !schema ) {
-      return null;
+    if (!schemaDefinitions) {
+      // Depth 0. Get the schemaDefinitions that will contain the child schema resourceFields for recursive calls
+
+      schemaDefinitions = rootSchema.schemaDefinitions || {}; // norman...
+      resourceFields = rootSchema.resourceFields || {};
+    } else {
+      if (rootSchema.requiresResourceFields) {
+        resourceFields = schemaDefinitions[type]?.resourceFields || {};
+      } else {
+        const schema = getters['schemaFor'](type);
+
+        resourceFields = schema?.resourceFields || {};
+      }
     }
 
     const out = {};
 
-    for ( const key in schema.resourceFields ) {
-      const field = schema.resourceFields[key];
+    for ( const key in resourceFields ) {
+      const field = resourceFields[key];
 
       if ( !field ) {
         // Not much to do here...
@@ -206,12 +232,12 @@ export default {
       }
 
       const type = typeMunge(field.type);
-      const mapOf = typeRef('map', type);
-      const arrayOf = typeRef('array', type);
+      const mapOf = typeRef('map', type, field);
+      const arrayOf = typeRef('array', type, field);
       const referenceTo = typeRef('reference', type);
 
       if ( mapOf || type === 'map' || type === 'json' ) {
-        out[key] = getters.defaultFor(type);
+        out[key] = getters.defaultFor(type, rootSchema, schemaDefinitions);
       } else if ( arrayOf || type === 'array' ) {
         out[key] = [];
       } else if ( referenceTo ) {
@@ -223,7 +249,7 @@ export default {
           out[key] = field['default'];
         }
       } else {
-        out[key] = getters.defaultFor(type);
+        out[key] = getters.defaultFor(type, rootSchema, schemaDefinitions);
       }
     }
 
@@ -274,6 +300,39 @@ export default {
     return false;
   },
 
+  havePaginatedPage: (state, getters) => (type, opt) => {
+    if (!opt.pagination) {
+      return false;
+    }
+
+    type = getters.normalizeType(type);
+    const entry = state.types[type];
+
+    if ( entry?.havePage ) {
+      const { namespace: aNamespace = undefined, pagination: aPagination } = entry.havePage.request;
+      const { namespace: bNamespace = undefined, pagination: bPagination } = {
+        namespace:  opt.namespaced,
+        pagination: opt.pagination
+      };
+
+      return entry.havePage && aNamespace === bNamespace && paginationUtils.paginationEqual(aPagination, bPagination);
+    }
+
+    return false;
+  },
+
+  haveNamespace: (state, getters) => (type) => {
+    type = getters.normalizeType(type);
+
+    return state.types[type]?.haveNamespace || null;
+  },
+
+  havePage: (state, getters) => (type) => {
+    type = getters.normalizeType(type);
+
+    return state.types[type]?.havePage || null;
+  },
+
   haveSelector: (state, getters) => (type, selector) => {
     type = getters.normalizeType(type);
     const entry = state.types[type];
@@ -295,7 +354,7 @@ export default {
 
   urlFor,
 
-  urlOptions: () => (url, opt) => {
+  urlOptions: () => (url, opt, schema) => {
     return url;
   },
 
@@ -334,5 +393,62 @@ export default {
 
   gcIgnoreTypes: () => {
     return {};
+  },
+
+  /**
+   * For the given type, and it's settings, find the number of resources associated with it
+   *
+   * This takes into account if the type is namespaced.
+   *
+   * Used in currently two places
+   * - Type
+   * - getTree
+   *
+   * @param typeObj see inners for properties. must have at least `name` (resource type)
+   *
+   */
+  count: (state, getters, rootState, rootGetters) => (typeObj) => {
+    let _typeObj = typeObj;
+    const { name: type, count } = _typeObj;
+
+    if (!type) {
+      throw new Error(`Resource type required to calc count: ${ JSON.stringify(typeObj) }`);
+    }
+
+    if (!count) {
+      const schema = getters.schemaFor(type);
+      const counts = getters.all(COUNT)?.[0]?.counts || {};
+      const count = counts[type];
+
+      // This object aligns with `Type.vue` `type`
+      _typeObj = {
+        count:       count ? count.summary.count || 0 : null,
+        byNamespace: count ? count.namespaces : {},
+        revision:    count ? count.revision : null,
+        namespaced:  schema?.attributes?.namespaced
+      };
+    }
+
+    const namespaces = _typeObj?.namespaced && !rootGetters.isAllNamespaces ? Object.keys(rootGetters.activeNamespaceCache || {}) : [];
+
+    return matchingCounts(_typeObj, namespaces.length ? namespaces : null);
+  },
+
+  generation: (state, getters) => (type) => {
+    type = getters.normalizeType(type);
+    const entry = state.types[type];
+
+    if ( entry ) {
+      return entry.generation;
+    }
+
+    return undefined;
+  },
+
+  paginationEnabled: (state, getters, rootState, rootGetters) => (type = null) => {
+    const store = state.config.namespace;
+    const resource = type ? { id: type } : null;
+
+    return paginationUtils.isEnabled({ rootGetters }, { store, resource });
   }
 };

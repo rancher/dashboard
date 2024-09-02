@@ -38,7 +38,7 @@ Object.keys(latestPackage._pkgs).forEach((key) => {
   appPackage.dependencies[key] = latestPackage._pkgs[key];
 });
 
-// Add in the weback resolution
+// Add in the webpack resolution
 appPackage.resolutions = appPackage.resolutions || {};
 appPackage.resolutions['**/webpack'] = '4';
 

@@ -39,8 +39,8 @@ export default {
   >
     <h4
       slot="title"
+      v-clean-html="t('addClusterMemberDialog.title')"
       class="text-default-text"
-      v-html="t('addClusterMemberDialog.title')"
     />
 
     <div

@@ -40,8 +40,8 @@ export default {
       @input="value.setData('accessToken', $event);"
     />
     <p
+      v-clean-html="t('cluster.credential.digitalocean.accessToken.help', {}, true)"
       class="text-muted mt-10"
-      v-html="t('cluster.credential.digitalocean.accessToken.help', {}, true)"
     />
   </div>
 </template>

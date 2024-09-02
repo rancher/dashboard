@@ -9,6 +9,7 @@ assignees: ''
 <!--------- For bugs and general issues --------->
 **Setup**
 - Rancher version:
+- Rancher UI Extensions:
 - Browser type & version:
 
 **Describe the bug**

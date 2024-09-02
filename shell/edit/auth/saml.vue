@@ -10,6 +10,32 @@ import AllowedPrincipals from '@shell/components/auth/AllowedPrincipals';
 import FileSelector from '@shell/components/form/FileSelector';
 import AuthBanner from '@shell/components/auth/AuthBanner';
 import config from '@shell/edit/auth/ldap/config';
+import AuthProviderWarningBanners from '@shell/edit/auth/AuthProviderWarningBanners';
+
+export const SHIBBOLETH = 'shibboleth';
+export const OKTA = 'okta';
+
+// Standard LDAP defaults
+const LDAP_DEFAULTS = {
+  connectionTimeout:            5000,
+  groupDNAttribute:             'entryDN',
+  groupMemberMappingAttribute:  'member',
+  groupMemberUserAttribute:     'entryDN',
+  groupNameAttribute:           'cn',
+  groupObjectClass:             'groupOfNames',
+  groupSearchAttribute:         'cn',
+  nestedGroupMembershipEnabled: false,
+  port:                         389,
+  servers:                      [],
+  starttls:                     false,
+  tls:                          false,
+  disabledStatusBitmask:        0,
+  userLoginAttribute:           'uid',
+  userMemberAttribute:          'memberOf',
+  userNameAttribute:            'cn',
+  userObjectClass:              'inetOrgPerson',
+  userSearchAttribute:          'uid|sn|givenName'
+};
 
 export default {
   components: {
@@ -21,12 +47,16 @@ export default {
     Checkbox,
     FileSelector,
     config,
-    AuthBanner
+    AuthBanner,
+    AuthProviderWarningBanners
   },
 
   mixins: [CreateEditView, AuthConfig],
   data() {
-    return { showLdap: false };
+    return {
+      showLdap:        false,
+      showLdapDetails: false,
+    };
   },
 
   computed: {
@@ -42,32 +72,32 @@ export default {
       return { enabled: true, ...this.model };
     },
 
+    // Does the auth provider support LDAP for search in addition to SAML?
+    supportsLDAPSearch() {
+      return this.NAME === SHIBBOLETH || this.NAME === OKTA;
+    },
+
+    ldapHosts() {
+      const hosts = this.model?.openLdapConfig.servers || [];
+
+      return hosts.join(',');
+    },
+
+    ldapProtocol() {
+      if (this.model?.openLdapConfig?.starttls) {
+        return this.t('authConfig.ldap.protocols.starttls');
+      } else if (this.model?.openLdapConfig?.tls) {
+        return this.t('authConfig.ldap.protocols.tls');
+      }
+
+      return this.t('authConfig.ldap.protocols.ldap');
+    }
   },
   watch: {
     showLdap(neu, old) {
       if (neu && !this.model.openLdapConfig) {
-        const config = {
-          connectionTimeout:            5000,
-          groupDNAttribute:             'entryDN',
-          groupMemberMappingAttribute:  'member',
-          groupMemberUserAttribute:     'entryDN',
-          groupNameAttribute:           'cn',
-          groupObjectClass:             'groupOfNames',
-          groupSearchAttribute:         'cn',
-          nestedGroupMembershipEnabled: false,
-          port:                         389,
-          servers:                      [],
-          starttls:                     false,
-          tls:                          false,
-          disabledStatusBitmask:        0,
-          userLoginAttribute:           'uid',
-          userMemberAttribute:          'memberOf',
-          userNameAttribute:            'cn',
-          userObjectClass:              'inetOrgPerson',
-          userSearchAttribute:          'uid|sn|givenName'
-        };
-
-        this.$set(this.model, 'openLdapConfig', config);
+        // Use a spread of config, so that if don't make changes to the defaults if the user edits them
+        this.$set(this.model, 'openLdapConfig', { ...LDAP_DEFAULTS });
       }
     }
   }
@@ -98,13 +128,56 @@ export default {
           :disable="disable"
           :edit="goToEdit"
         >
-          <template slot="rows">
+          <template
+            slot="rows"
+          >
             <tr><td>{{ t(`authConfig.saml.displayName`) }}: </td><td>{{ model.displayNameField }}</td></tr>
             <tr><td>{{ t(`authConfig.saml.userName`) }}: </td><td>{{ model.userNameField }}</td></tr>
             <tr><td>{{ t(`authConfig.saml.UID`) }}: </td><td>{{ model.uidField }}</td></tr>
             <tr><td>{{ t(`authConfig.saml.entityID`) }}: </td><td>{{ model.entityID }}</td></tr>
             <tr><td>{{ t(`authConfig.saml.api`) }}: </td><td>{{ model.rancherApiHost }}</td></tr>
             <tr><td>{{ t(`authConfig.saml.groups`) }}: </td><td>{{ model.groupsField }}</td></tr>
+          </template>
+
+          <template
+            v-if="supportsLDAPSearch"
+            slot="footer"
+          >
+            <Banner
+              v-if="showLdap"
+              color="success"
+              class="banner"
+            >
+              <div
+                class="advanced-ldap-banner"
+              >
+                <div>{{ t('authConfig.saml.search.on') }}</div>
+                <div>
+                  <a
+                    class="toggle-btn"
+                    @click="showLdapDetails = !showLdapDetails"
+                  >
+                    <template v-if="showLdapDetails">{{ t('authConfig.saml.search.hide') }}</template>
+                    <template v-else>{{ t('authConfig.saml.search.show') }}</template>
+                  </a>
+                </div>
+              </div>
+            </Banner>
+            <Banner
+              v-else
+              color="info"
+            >
+              {{ t('authConfig.saml.search.off') }}
+            </Banner>
+
+            <table v-if="showLdapDetails && model.openLdapConfig">
+              <tr><td>{{ t('authConfig.ldap.hostname.label') }}:</td><td>{{ ldapHosts }}</td></tr>
+              <tr><td>{{ t('authConfig.ldap.port') }}:</td><td>{{ model.openLdapConfig.port }}</td></tr>
+              <tr><td>{{ t('authConfig.ldap.protocol') }}:</td><td>{{ ldapProtocol }}</td></tr>
+              <tr><td>{{ t('authConfig.ldap.serviceAccountDN') }}:</td><td>{{ model.openLdapConfig.serviceAccountDistinguishedName }}</td></tr>
+              <tr><td>{{ t('authConfig.ldap.userSearchBase.label') }}:</td><td>{{ model.openLdapConfig.userSearchBase }}</td></tr>
+              <tr><td>{{ t('authConfig.ldap.groupSearchBase.label') }}:</td><td>{{ model.openLdapConfig.groupSearchBase }}</td></tr>
+            </table>
           </template>
         </AuthBanner>
 
@@ -118,10 +191,9 @@ export default {
       </template>
 
       <template v-else>
-        <Banner
+        <AuthProviderWarningBanners
           v-if="!model.enabled"
-          :label="t('authConfig.stateBanner.disabled', tArgs)"
-          color="warning"
+          :t-args="tArgs"
         />
 
         <h3>{{ t(`authConfig.saml.${NAME}`) }}</h3>
@@ -233,7 +305,16 @@ export default {
             />
           </div>
         </div>
-        <div v-if="NAME === 'shibboleth'">
+        <div v-if="supportsLDAPSearch">
+          <div class="row">
+            <h2>{{ t('authConfig.saml.search.title') }}</h2>
+          </div>
+          <div class="row">
+            <Banner
+              label-key="authConfig.saml.search.message"
+              color="info"
+            />
+          </div>
           <div class="row">
             <Checkbox
               v-model="showLdap"
@@ -243,25 +324,15 @@ export default {
           </div>
           <div class="row mt-20 mb-20">
             <config
-              v-if="showLdap"
+              v-if="showLdap && model.openLdapConfig"
               v-model="model.openLdapConfig"
               :type="NAME"
               :mode="mode"
+              :is-create="!model.enabled"
             />
           </div>
         </div>
       </template>
-      <div
-        v-if="!model.enabled"
-        class="row"
-      >
-        <div class="col span-12">
-          <Banner
-            color="info"
-            v-html="t('authConfig.associatedWarning', tArgs, true)"
-          />
-        </div>
-      </div>
     </CruResource>
   </div>
 </template>
@@ -272,6 +343,21 @@ export default {
     &::v-deep code {
       padding: 0 3px;
       margin: 0 3px;
+    }
+  }
+
+  // Banner shows message and link formatted right aligned
+  .advanced-ldap-banner {
+    display: flex;
+    flex: 1;
+
+    > :first-child {
+      flex: 1;
+    }
+
+    .toggle-btn {
+      cursor: pointer;
+      user-select: none;
     }
   }
 </style>

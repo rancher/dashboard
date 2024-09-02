@@ -34,7 +34,7 @@ export default {
           value: 'alibaba-cloud-sms'
         }
       ],
-      webhookType: RECEIVERS_TYPES.find(type => type.name === 'webhook'),
+      webhookType: RECEIVERS_TYPES.find((type) => type.name === 'webhook'),
       isView:      this.mode === _VIEW
     };
   },

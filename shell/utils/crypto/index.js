@@ -1,4 +1,4 @@
-/* eslint-disable node/no-deprecated-api, unicorn/no-new-buffer */
+/* eslint-disable node/no-deprecated-api */
 import { Buffer } from 'buffer';
 import Md5 from './browserMd5';
 import Sha256 from './browserSha256';
@@ -26,7 +26,7 @@ export function base64Encode(string, alphabet = NORMAL) {
       '/': '_',
     };
 
-    return buf.toString('base64').replace(/[+/]|=+$/g, char => m[char] || '');
+    return buf.toString('base64').replace(/[+/]|=+$/g, (char) => m[char] || '');
   }
 
   return buf.toString('base64');
@@ -45,7 +45,7 @@ export function base64DecodeToBuffer(string) {
 }
 
 export function base64Decode(string) {
-  return !string ? string : base64DecodeToBuffer(string.replace(/[-_]/g, char => char === '-' ? '+' : '/')).toString();
+  return !string ? string : base64DecodeToBuffer(string.replace(/[-_]/g, (char) => char === '-' ? '+' : '/')).toString();
 }
 
 export function md5(data, digest, callback) {

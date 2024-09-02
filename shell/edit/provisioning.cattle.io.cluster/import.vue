@@ -7,15 +7,15 @@ import NameNsDescription from '@shell/components/form/NameNsDescription';
 import Tab from '@shell/components/Tabbed/Tab';
 import Tabbed from '@shell/components/Tabbed';
 import { CAPI, HCI } from '@shell/config/types';
-import ClusterMembershipEditor from '@shell/components/form/Members/ClusterMembershipEditor';
+import ClusterMembershipEditor, { canViewClusterMembershipEditor } from '@shell/components/form/Members/ClusterMembershipEditor';
 import { Banner } from '@components/Banner';
-import { canViewClusterMembershipEditor } from '@shell/components/form/Members/ClusterMembershipEditor.vue';
-import { NAME as HARVESTER_MANAGER } from '@/pkg/harvester-manager/config/harvester-manager';
+
+import { NAME as HARVESTER_MANAGER } from '@shell/config/harvester-manager-types';
 import { HARVESTER as HARVESTER_FEATURE, mapFeature } from '@shell/store/features';
 import { addObject } from '@shell/utils/array';
 import { HIDE_DESC, mapPref } from '@shell/store/prefs';
-import Labels from './Labels';
-import AgentEnv from './AgentEnv';
+import Labels from '@shell/edit/provisioning.cattle.io.cluster/Labels';
+import AgentEnv from '@shell/edit/provisioning.cattle.io.cluster/AgentEnv';
 
 const HARVESTER_HIDE_KEY = 'cm-harvester-import';
 
@@ -135,31 +135,29 @@ export default {
     @finish="saveOverride"
     @error="e=>errors = e"
   >
-    <div class="mt-20">
-      <Banner
-        v-if="harvesterLocation"
-        color="info"
-        :closable="true"
-        class="mb-20"
-        @close="hideHarvesterNotice"
-      >
-        {{ t('cluster.harvester.importNotice') }}
-        <nuxt-link :to="harvesterLocation">
-          {{ t('product.harvesterManager') }}
-        </nuxt-link>
-      </Banner>
+    <Banner
+      v-if="harvesterLocation"
+      color="info"
+      :closable="true"
+      class="mb-20"
+      @close="hideHarvesterNotice"
+    >
+      {{ t('cluster.harvester.importNotice') }}
+      <router-link :to="harvesterLocation">
+        {{ t('product.harvesterManager') }}
+      </router-link>
+    </Banner>
 
-      <NameNsDescription
-        v-if="!isView"
-        v-model="value"
-        :mode="mode"
-        :namespaced="false"
-        name-label="cluster.name.label"
-        name-placeholder="cluster.name.placeholder"
-        description-label="cluster.description.label"
-        description-placeholder="cluster.description.placeholder"
-      />
-    </div>
+    <NameNsDescription
+      v-if="!isView"
+      v-model="value"
+      :mode="mode"
+      :namespaced="false"
+      name-label="cluster.name.label"
+      name-placeholder="cluster.name.placeholder"
+      description-label="cluster.description.label"
+      description-placeholder="cluster.description.placeholder"
+    />
 
     <Tabbed :side-tabs="true">
       <Tab

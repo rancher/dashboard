@@ -7,12 +7,10 @@ node_modules/
 .env
 .cache
 .next
-.nuxt
 dist
 dist-pkg
 .DS_Store
 dynamic-importer.js
 ksconfig.json
-nuxt.config.js
 shell/utils/dynamic-importer.js
 shell/assets/fonts

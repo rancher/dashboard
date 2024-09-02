@@ -40,12 +40,13 @@ export default {
   data() {
     const {
       strategy:strategyObj = {},
+      updateStrategy: updateStrategyObj = {},
       minReadySeconds = 0,
       progressDeadlineSeconds = 600,
       revisionHistoryLimit = 10,
       podManagementPolicy = 'OrderedReady'
     } = this.value;
-    const strategy = strategyObj.type || 'RollingUpdate';
+    const strategy = strategyObj.type || updateStrategyObj.type || 'RollingUpdate';
     let maxSurge = '25';
     let maxUnavailable = '25';
     let surgeUnits = '%';
@@ -97,7 +98,7 @@ export default {
       case WORKLOAD_TYPES.DAEMON_SET:
       case WORKLOAD_TYPES.STATEFUL_SET:
         return {
-          options: ['RollingUpdate', 'Delete'],
+          options: ['RollingUpdate', 'OnDelete'],
           labels:  [this.t('workload.upgrading.strategies.labels.rollingUpdate'), this.t('workload.upgrading.strategies.labels.delete')]
         };
       default:

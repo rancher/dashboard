@@ -20,12 +20,13 @@ import { Banner } from '@components/Banner';
 import Labels from '@shell/components/form/Labels';
 import HarvesterServiceAddOnConfig from '@shell/components/HarvesterServiceAddOnConfig';
 import { clone } from '@shell/utils/object';
-import { POD, CAPI } from '@shell/config/types';
+import { POD, CAPI, HCI } from '@shell/config/types';
 import { matching } from '@shell/utils/selector';
 import { HARVESTER_NAME as HARVESTER } from '@shell/config/features';
 import { allHash } from '@shell/utils/promise';
 import { isHarvesterSatisfiesVersion } from '@shell/utils/cluster';
 import { Port } from '@shell/utils/validators/formRules';
+import { _CLONE } from '@shell/config/query-params';
 
 const SESSION_AFFINITY_ACTION_VALUES = {
   NONE:     'None',
@@ -75,6 +76,17 @@ export default {
       }
     }
 
+    // Set clusterIP to an empty string, if it exists and the value is not None when clone a service
+    // Remove clusterIPs if it exists when clone a service
+    if (this.realMode === _CLONE) {
+      if (this.value?.spec?.clusterIP && this.value?.spec?.clusterIP !== 'None') {
+        this.value.spec.clusterIP = '';
+      }
+      if (this.value?.spec?.clusterIPs) {
+        this.$delete(this.value.spec, 'clusterIPs');
+      }
+    }
+
     const matchingPods = {
       matched: 0,
       matches: [],
@@ -89,7 +101,7 @@ export default {
       defaultServiceTypes:         DEFAULT_SERVICE_TYPES,
       saving:                      false,
       sessionAffinityActionLabels: Object.values(SESSION_AFFINITY_ACTION_LABELS)
-        .map(v => this.$store.getters['i18n/t'](v))
+        .map((v) => this.$store.getters['i18n/t'](v))
         .map(ucFirst),
       sessionAffinityActionOptions: Object.values(
         SESSION_AFFINITY_ACTION_VALUES
@@ -191,7 +203,7 @@ export default {
     },
 
     provisioningCluster() {
-      const out = this.$store.getters['management/all'](CAPI.RANCHER_CLUSTER).find(c => c?.status?.clusterName === this.currentCluster.metadata.name);
+      const out = this.$store.getters['management/all'](CAPI.RANCHER_CLUSTER).find((c) => c?.status?.clusterName === this.currentCluster.metadata.name);
 
       return out;
     },
@@ -242,7 +254,8 @@ export default {
   methods: {
     updateMatchingPods: throttle(function() {
       const { value: { spec: { selector = { } } } } = this;
-      const allInNamespace = this.allPods.filter(pod => pod.metadata.namespace === this.value?.metadata?.namespace);
+      // See https://github.com/rancher/dashboard/issues/10417, all pods bad, need to replace local selector somehow
+      const allInNamespace = this.allPods.filter((pod) => pod.metadata.namespace === this.value?.metadata?.namespace);
 
       if (isEmpty(selector)) {
         this.matchingPods = {
@@ -268,8 +281,9 @@ export default {
         const inStore = this.$store.getters['currentStore'](POD);
 
         const hash = {
-          provClusters: this.$store.dispatch('management/findAll', { type: CAPI.RANCHER_CLUSTER }),
-          pods:         this.$store.dispatch(`${ inStore }/findAll`, { type: POD }),
+          provClusters:     this.$store.dispatch('management/findAll', { type: CAPI.RANCHER_CLUSTER }),
+          pods:             this.$store.dispatch(`${ inStore }/findAll`, { type: POD }),
+          harvesterConfigs: this.$store.dispatch(`management/findAll`, { type: HCI.HARVESTER_CONFIG }),
         };
 
         const res = await allHash(hash);
@@ -328,6 +342,7 @@ export default {
     :validation-passed="fvFormIsValid"
     :errors="fvUnreportedValidationErrors"
     :apply-hooks="applyHooks"
+    :description="t('servicesPage.serviceListDescription')"
     @error="(e) => (errors = e)"
     @finish="save"
     @cancel="done"
@@ -385,10 +400,11 @@ export default {
         name="selectors"
         :label="t('servicesPage.selectors.label')"
       >
+        <p>{{ t('servicesPage.selectors.matchingPods.description') }}</p>
         <div class="row">
           <div class="col span-12">
             <Banner :color="(matchingPods.none ? 'warning' : 'success')">
-              <span v-html="t('servicesPage.selectors.matchingPods.matchesSome', matchingPods)" />
+              <span v-clean-html="t('servicesPage.selectors.matchingPods.matchesSome', matchingPods)" />
             </Banner>
           </div>
         </div>

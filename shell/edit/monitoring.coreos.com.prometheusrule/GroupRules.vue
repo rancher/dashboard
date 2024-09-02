@@ -1,12 +1,12 @@
 <script>
 import has from 'lodash/has';
-
 import { Banner } from '@components/Banner';
 import { removeAt } from '@shell/utils/array';
 import { _VIEW } from '@shell/config/query-params';
 import ArrayListGrouped from '@shell/components/form/ArrayListGrouped';
 import AlertingRule from './AlertingRule';
 import RecordingRule from './RecordingRule';
+import { clone } from '@shell/utils/object';
 
 export default {
   components: {
@@ -34,8 +34,10 @@ export default {
       expr:   '',
       for:    '0s',
       labels: {
-        severity:  'none',
-        namespace: 'default'
+        severity:     'none',
+        namespace:    'default',
+        cluster_id:   this.$store.getters['clusterId'],
+        cluster_name: this.$store.getters['currentCluster'].spec.displayName
       },
     };
 
@@ -50,18 +52,18 @@ export default {
     recordingRules() {
       const { value: rules } = this;
 
-      return rules.filter(rule => has(rule, 'record'));
+      return rules.filter((rule) => has(rule, 'record'));
     },
     alertingRules() {
       const { value: rules } = this;
 
-      return rules.filter(rule => has(rule, 'alert'));
+      return rules.filter((rule) => has(rule, 'alert'));
     },
     customRules() {
       const { value: rules } = this;
 
       return rules.filter(
-        rule => !has(rule, 'alert') && !has(rule, 'record')
+        (rule) => !has(rule, 'alert') && !has(rule, 'record')
       );
     },
     hideRecordingRulesOnView() {
@@ -76,12 +78,12 @@ export default {
     disableAddRecord() {
       const { value: rules } = this;
 
-      return rules.find(rule => has(rule, 'alert'));
+      return rules.find((rule) => has(rule, 'alert'));
     },
     disableAddAlert() {
       const { value: rules } = this;
 
-      return rules.find(rule => has(rule, 'record'));
+      return rules.find((rule) => has(rule, 'record'));
     },
   },
 
@@ -91,10 +93,20 @@ export default {
 
       switch (ruleType) {
       case 'record':
-        value.push({ record: '', expr: '' });
+        value.push({
+          record: '',
+          expr:   '',
+          labels: {
+            severity:     'none',
+            namespace:    'default',
+            cluster_id:   this.$store.getters['clusterId'],
+            cluster_name: this.$store.getters['currentCluster'].spec.displayName
+
+          },
+        });
         break;
       case 'alert':
-        value.push(this.defaultAlert);
+        value.push(clone(this.defaultAlert));
         break;
       default:
         break;
@@ -114,7 +126,7 @@ export default {
         <t k="prometheusRule.recordingRules.label" />
         <i
           v-if="disableAddRecord"
-          v-tooltip="t('validation.prometheusRule.groups.singleAlert')"
+          v-clean-tooltip="t('validation.prometheusRule.groups.singleAlert')"
           class="icon icon-info"
         />
       </h3>
@@ -132,6 +144,7 @@ export default {
             :disabled="disableAddRecord"
             type="button"
             class="btn role-tertiary"
+            data-testid="v2-monitoring-add-record"
             @click="addRule('record')"
           >
             <t k="prometheusRule.recordingRules.addLabel" />
@@ -157,7 +170,7 @@ export default {
           <t k="prometheusRule.alertingRules.label" />
           <i
             v-if="disableAddAlert"
-            v-tooltip="t('validation.prometheusRule.groups.singleAlert')"
+            v-clean-tooltip="t('validation.prometheusRule.groups.singleAlert')"
             class="icon icon-info"
           />
         </h3>
@@ -181,6 +194,7 @@ export default {
             :disabled="disableAddAlert"
             type="button"
             class="btn role-tertiary"
+            data-testid="v2-monitoring-add-alert"
             @click="addRule('alert')"
           >
             <t k="prometheusRule.alertingRules.addLabel" />

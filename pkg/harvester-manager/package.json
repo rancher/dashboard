@@ -1,9 +1,13 @@
 {
   "name": "harvester-manager",
-  "description": "harvester-manager plugin",
-  "version": "0.1.0",
+  "description": "Provides the Virtualization Management feature in Rancher Manager",
+  "version": "1.0.0",
   "private": false,
-  "rancher": true,
+  "rancher": {
+    "annotations": {
+      "catalog.cattle.io/display-name": "Virtualization Manager"
+    }
+  },
   "scripts": {
     "dev": "./node_modules/.bin/nuxt dev",
     "nuxt": "./node_modules/.bin/nuxt"
@@ -12,9 +16,9 @@
     "node": ">=12"
   },
   "devDependencies": {
-    "@vue/cli-plugin-babel": "~4.5.0",
-    "@vue/cli-service": "~4.5.0",
-    "@vue/cli-plugin-typescript": "^4.5.15"
+    "@vue/cli-plugin-babel": "4.5.18",
+    "@vue/cli-service": "4.5.18",
+    "@vue/cli-plugin-typescript": "4.5.18"
   },
   "browserslist": [
     "> 1%",

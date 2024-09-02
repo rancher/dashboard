@@ -1,4 +1,4 @@
-import Vue from 'vue';
+import Vue, { markRaw } from 'vue';
 import { addObject, addObjects, clear, removeObject } from '@shell/utils/array';
 import { SCHEMA, COUNT } from '@shell/config/types';
 import { normalizeType, keyFieldFor } from '@shell/plugins/dashboard-store/normalize';
@@ -14,18 +14,30 @@ function registerType(state, type) {
       list:          [],
       haveAll:       false,
       haveSelector:  {},
-      haveNamespace: undefined, // If the cached list only contains resources for a namespace, this will contain the ns name
-      revision:      0, // The highest known resourceVersion from the server for this type
-      generation:    0, // Updated every time something is loaded for this type
-      loadCounter:   0, // Used to cancel incremental loads if the page changes during load
+      /**
+       * If the cached list only contains resources for a namespace, this will contain the ns name
+       */
+      haveNamespace: undefined,
+      /**
+       * If the cached list only contains resources from a pagination request, this will contain the pagination settings (`StorePagination`)
+       */
+      havePage:      undefined,
+      /**
+       * The highest known resourceVersion from the server for this type
+       */
+      revision:      0,
+      /**
+       * Updated every time something is loaded for this type
+       */
+      generation:    0,
+      /**
+       * Used to cancel incremental loads if the page changes during load
+       */
+      loadCounter:   0,
+
+      // Not enumerable so they don't get sent back to the client for SSR
+      map: markRaw(new Map()),
     };
-
-    // Not enumerable so they don't get sent back to the client for SSR
-    Object.defineProperty(cache, 'map', { value: new Map() });
-
-    if ( process.server && !cache.list.__rehydrateAll ) {
-      Object.defineProperty(cache.list, '__rehydrateAll', { value: `${ state.config.namespace }/${ type }`, enumerable: true });
-    }
 
     Vue.set(state.types, type, cache);
   }
@@ -51,11 +63,28 @@ function replaceResource(existing, data, getters) {
   return replace(existing, data);
 }
 
-export function load(state, { data, ctx, existing }) {
+/**
+ * `load` can be called as part of a loop. to avoid common look ups create them up front and pass as `cachedArgs`
+ */
+export function createLoadArgs(ctx, dataType) {
   const { getters } = ctx;
-  let type = normalizeType(data.type);
+  const type = normalizeType(dataType);
   const keyField = getters.keyFieldForType(type);
   const opts = ctx.rootGetters[`type-map/optionsFor`](type);
+
+  return {
+    type, keyField, opts
+  };
+}
+
+export function load(state, {
+  data, ctx, existing, cachedArgs
+}) {
+  const { getters } = ctx;
+  // Optimisation. This can run once per resource loaded.., so pass in from parent
+  const { type: cachedType, keyField, opts } = cachedArgs || createLoadArgs(ctx, data.type);
+  let type = cachedType;
+
   const limit = opts?.limit;
 
   // Inject special fields for indexing schemas
@@ -69,37 +98,52 @@ export function load(state, { data, ctx, existing }) {
 
   cache.generation++;
 
-  let entry;
+  let entry = cache.map.get(id);
+  const inMap = !!entry;
 
+  //
+  // Determine the `entry` that should be in the local map and list cache
+  //
   if ( existing && !existing.id ) {
-    // A specific proxy instance to used was passed in (for create -> save),
-    // use it instead of making a new proxy
-    entry = replaceResource(existing, data, getters);
-    addObject(cache.list, entry);
-    cache.map.set(id, entry);
-    // console.log('### Mutation added from existing proxy', type, id);
-  } else {
-    entry = cache.map.get(id);
+    // A specific proxy instance to use was passed in (for create -> save), use it instead of making a new proxy
+    // `existing` is a classified resource created locally that is most probably not in the store (unless a slow connection means it's added by socket before the API responds)
+    // Note - `existing` has no `id` because the resource was created locally and not supplied by Rancher API
 
-    if ( entry ) {
-      // There's already an entry in the store, update it
-      replaceResource(entry, data, getters);
-      // console.log('### Mutation Updated', type, id);
+    // Get the latest and greatest version of the resource
+    const latestEntry = replaceResource(existing, data, getters);
+
+    if (inMap) {
+      // There's already an entry in the store, so merge changes into it. The list entry is a reference to the map (and vice versa)
+      entry = replaceResource(entry, latestEntry, getters);
+    } else {
+      // There's no entry, using existing proxy
+      entry = latestEntry;
+    }
+  } else {
+    if (inMap) {
+      // There's already an entry in the store, so merge changes into it. The list entry is a reference to the map (and vice versa)
+      entry = replaceResource(entry, data, getters);
     } else {
       // There's no entry, make a new proxy
       entry = classify(ctx, data);
-      addObject(cache.list, entry);
-      cache.map.set(id, entry);
-      // console.log('### Mutation', type, id);
-
-      // If there is a limit to the number of resources we can store for this type then
-      // remove the first one to keep the list size to that limit
-      if (limit && cache.list.length > limit) {
-        const rm = cache.list.shift();
-
-        cache.map.delete(rm.id);
-      }
     }
+  }
+
+  //
+  // Ensure the `entry` is in both both list and cache
+  // Note - We should be safe assuming the two collections have parity (not in map means not in list)
+  //
+  if (!inMap) {
+    cache.list.push(entry);
+    cache.map.set(id, entry);
+  }
+
+  // If there is a limit to the number of resources we can store for this type then
+  // remove the first one to keep the list size to that limit
+  if (limit && cache.list.length > limit) {
+    const rm = cache.list.shift();
+
+    cache.map.delete(rm.id);
   }
 
   if ( data.baseType ) {
@@ -121,6 +165,7 @@ export function forgetType(state, type) {
     cache.haveAll = false;
     cache.haveSelector = {};
     cache.haveNamespace = undefined;
+    cache.havePage = undefined;
     cache.revision = 0;
     cache.generation = 0;
     clear(cache.list);
@@ -209,9 +254,9 @@ export function batchChanges(state, { ctx, batch }) {
     const removeAtIndexes = [];
 
     // looping through the batch, executing changes, deferring creates and removes since they change the array length
-    Object.keys(batch[normalizedType]).forEach((id) => {
+    Object.keys(combinedBatch[normalizedType]).forEach((id) => {
       const index = typeCacheIndexMap[id];
-      const resource = batch[normalizedType][id];
+      const resource = combinedBatch[normalizedType][id];
 
       // an empty resource passed into batch changes is how we'll signal which ones to delete
       if (Object.keys(resource).length === 0 && index !== undefined) {
@@ -261,7 +306,8 @@ export function loadAll(state, {
   data,
   ctx,
   skipHaveAll,
-  namespace
+  namespace,
+  revision
 }) {
   const { getters } = ctx;
 
@@ -278,11 +324,12 @@ export function loadAll(state, {
   }
 
   const keyField = getters.keyFieldForType(type);
-  const proxies = data.map(x => classify(ctx, x));
+  const proxies = data.map((x) => classify(ctx, x));
   const cache = registerType(state, type);
 
   clear(cache.list);
   cache.map.clear();
+  cache.revision = revision || 0;
   cache.generation++;
 
   addObjects(cache.list, proxies);
@@ -293,11 +340,37 @@ export function loadAll(state, {
 
   // Allow requester to skip setting that everything has loaded
   if (!skipHaveAll) {
-    cache.haveNamespace = namespace;
-    cache.haveAll = !namespace;
+    if (namespace) {
+      cache.havePage = false;
+      cache.haveNamespace = namespace;
+      cache.haveAll = false;
+    } else {
+      cache.havePage = false;
+      cache.haveNamespace = false;
+      cache.haveAll = true;
+    }
   }
 
   return proxies;
+}
+
+/**
+ * Add a set of resources to the store for a given type
+ *
+ * Don't mark the 'haveAll' field - this is used for incremental loading
+ */
+export function loadAdd(state, { type, data: allLatest, ctx }) {
+  const { getters } = ctx;
+  const keyField = getters.keyFieldForType(type);
+  const cachedArgs = createLoadArgs(ctx, allLatest?.[0]?.type);
+
+  allLatest.forEach((entry) => {
+    const existing = state.types[type].map.get(entry[keyField]);
+
+    load(state, {
+      data: entry, ctx, existing, cachedArgs
+    });
+  });
 }
 
 export default {
@@ -312,23 +385,31 @@ export default {
     Object.assign(state.config, config);
   },
 
+  /**
+   * Load multiple different types of resources
+   */
   loadMulti(state, { data, ctx }) {
     // console.log('### Mutation loadMulti', data?.length);
+
     for ( const entry of data ) {
       load(state, { data: entry, ctx });
     }
   },
 
   loadSelector(state, {
-    type, entries, ctx, selector
+    type, entries, ctx, selector, revision
   }) {
     const cache = registerType(state, type);
+    const cachedArgs = createLoadArgs(ctx, entries?.[0]?.type);
 
     for ( const data of entries ) {
-      load(state, { data, ctx });
+      load(state, {
+        data, ctx, cachedArgs
+      });
     }
 
     cache.haveSelector[selector] = true;
+    cache.revision = revision || 0;
   },
 
   loadAll,
@@ -344,34 +425,54 @@ export default {
     // const allExisting = getters.all({type});
     const keyField = getters.keyFieldForType(type);
     const cache = state.types[type];
+    const cachedArgs = createLoadArgs(ctx, allLatest?.[0].type);
 
     allLatest.forEach((entry) => {
       const existing = state.types[type].map.get(entry[keyField]);
 
       load(state, {
-        data: entry, ctx, existing
+        data: entry, ctx, existing, cachedArgs
       });
     });
     cache.list.forEach((entry) => {
-      if (!allLatest.find(toLoadEntry => toLoadEntry.id === entry.id)) {
+      if (!allLatest.find((toLoadEntry) => toLoadEntry.id === entry.id)) {
         commit('remove', entry);
       }
     });
   },
 
-  // Add a set of resources to the store for a given type
-  // Don't mark the 'haveAll' field - this is used for incremental loading
-  loadAdd(state, { type, data: allLatest, ctx }) {
-    const { getters } = ctx;
-    const keyField = getters.keyFieldForType(type);
+  loadAdd,
 
-    allLatest.forEach((entry) => {
-      const existing = state.types[type].map.get(entry[keyField]);
+  loadPage(state, {
+    type,
+    data,
+    ctx,
+    pagination,
+  }) {
+    if (!data) {
+      return;
+    }
 
-      load(state, {
-        data: entry, ctx, existing
-      });
-    });
+    const keyField = ctx.getters.keyFieldForType(type);
+    const proxies = data.map((x) => classify(ctx, x));
+    const cache = registerType(state, type);
+
+    clear(cache.list);
+    cache.map.clear();
+    cache.generation++;
+
+    addObjects(cache.list, proxies);
+
+    for ( let i = 0 ; i < proxies.length ; i++ ) {
+      cache.map.set(proxies[i][keyField], proxies[i]);
+    }
+
+    // havePage is of type `StorePagination`
+    cache.havePage = pagination;
+    cache.haveNamespace = undefined;
+    cache.haveAll = undefined;
+
+    return proxies;
   },
 
   forgetAll(state, { type }) {

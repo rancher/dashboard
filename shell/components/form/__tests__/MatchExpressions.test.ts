@@ -21,7 +21,7 @@ describe('component: MatchExpressions', () => {
 
     const inputWraps = wrapper.findAll('[data-testid^=input-match-expression-]');
 
-    expect(inputWraps).toHaveLength(3);
+    expect(inputWraps).toHaveLength(8);
   });
 
   it.each([

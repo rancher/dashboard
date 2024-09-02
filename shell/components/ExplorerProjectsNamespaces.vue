@@ -1,21 +1,24 @@
 <script>
 import { mapGetters } from 'vuex';
-import ResourceTable from '@shell/components/ResourceTable';
+import ResourceTable, { defaultTableSortGenerationFn } from '@shell/components/ResourceTable';
 import { STATE, AGE, NAME } from '@shell/config/table-headers';
 import { uniq } from '@shell/utils/array';
 import { MANAGEMENT, NAMESPACE, VIRTUAL_TYPES } from '@shell/config/types';
-import { PROJECT_ID } from '@shell/config/query-params';
+import { PROJECT_ID, FLAT_VIEW } from '@shell/config/query-params';
+import { PanelLocation, ExtensionPoint } from '@shell/core/types';
+import ExtensionPanel from '@shell/components/ExtensionPanel';
 import Masthead from '@shell/components/ResourceList/Masthead';
 import { mapPref, GROUP_RESOURCES, ALL_NAMESPACES } from '@shell/store/prefs';
 import MoveModal from '@shell/components/MoveModal';
-import { defaultTableSortGenerationFn } from '@shell/components/ResourceTable.vue';
+
 import { NAMESPACE_FILTER_ALL_ORPHANS } from '@shell/utils/namespace-filter';
 import ResourceFetch from '@shell/mixins/resource-fetch';
+import DOMPurify from 'dompurify';
 
 export default {
   name:       'ListProjectNamespace',
   components: {
-    Masthead, MoveModal, ResourceTable
+    ExtensionPanel, Masthead, MoveModal, ResourceTable
   },
   mixins: [ResourceFetch],
 
@@ -55,6 +58,8 @@ export default {
       schema:                       null,
       projects:                     [],
       projectSchema:                null,
+      extensionType:                ExtensionPoint.PANEL,
+      extensionLocation:            PanelLocation.RESOURCE_LIST,
       MANAGEMENT,
       VIRTUAL_TYPES,
       defaultCreateProjectLocation: {
@@ -96,12 +101,12 @@ export default {
         NAME,
         this.groupPreference === 'none' ? project : null,
         AGE
-      ].filter(h => h);
+      ].filter((h) => h);
     },
     projectIdsWithNamespaces() {
       const ids = this.rows
-        .map(row => row.projectId)
-        .filter(id => id);
+        .map((row) => row.projectId)
+        .filter((id) => id);
 
       return uniq(ids);
     },
@@ -112,13 +117,17 @@ export default {
       // is updated if a new project is created or removed.
       const projectsInAllClusters = this.$store.getters['management/all'](MANAGEMENT.PROJECT);
 
-      const clustersInProjects = projectsInAllClusters.filter(project => project.spec.clusterName === clusterId);
+      if (this.currentProduct?.customNamespaceFilter && this.currentProduct?.inStore && this.$store.getters[`${ this.currentProduct.inStore }/filterProject`]) {
+        return this.$store.getters[`${ this.currentProduct.inStore }/filterProject`];
+      }
+
+      const clustersInProjects = projectsInAllClusters.filter((project) => project.spec.clusterName === clusterId);
 
       return clustersInProjects;
     },
     projectsWithoutNamespaces() {
       return this.activeProjects.filter((project) => {
-        return !this.projectIdsWithNamespaces.find(item => project?.id?.endsWith(`/${ item }`));
+        return !this.projectIdsWithNamespaces.find((item) => project?.id?.endsWith(`/${ item }`));
       });
     },
     // We're using this because we need to show projects as groups even if the project doesn't have any namespaces.
@@ -221,7 +230,7 @@ export default {
         return false;
       }
 
-      const someNamespacesAreNotInProject = !this.rows.some(row => !row.project);
+      const someNamespacesAreNotInProject = !this.rows.some((row) => !row.project);
 
       // Hide the "Not in a Project" group if the user is filtering
       // for specific namespaces or projects.
@@ -232,16 +241,23 @@ export default {
 
     notInProjectKey() {
       return this.$store.getters['i18n/t']('resourceTable.groupLabel.notInAProject');
+    },
+    showCreateNsButton() {
+      return this.groupPreference !== 'namespace';
     }
   },
   methods: {
-    getPSA(row) {
+    /**
+     * Get PSA HTML to be displayed in the tooltips
+     */
+    getPsaTooltip(row) {
       const dictionary = row.psaTooltipsDescription;
       const list = Object.values(dictionary)
         .sort()
-        .map(text => `<li>${ text }</li>`).join('');
+        .map((text) => `<li>${ text }</li>`).join('');
+      const title = `<p>${ this.t('podSecurityAdmission.name') }: </p>`;
 
-      return `<ul class="psa-tooltip">${ list }</ul>`;
+      return `${ title }<ul class="psa-tooltip">${ list }</ul>`;
     },
 
     userIsFilteringForSpecificNamespaceOrProject() {
@@ -276,6 +292,21 @@ export default {
 
       return location;
     },
+
+    createNamespaceLocationFlatList() {
+      const location = this.createNamespaceLocationOverride ? { ...this.createNamespaceLocationOverride } : {
+        name:   'c-cluster-product-resource-create',
+        params: {
+          product:  this.$store.getters['currentProduct']?.name,
+          resource: NAMESPACE
+        },
+      };
+
+      location.query = { [FLAT_VIEW]: true };
+
+      return location;
+    },
+
     showProjectAction(event, group) {
       const project = group.rows[0].project;
 
@@ -293,7 +324,10 @@ export default {
       const row = group.rows[0];
 
       if (row.isFake) {
-        return this.t('resourceTable.groupLabel.project', { name: row.project?.nameDisplay }, true);
+        return DOMPurify.sanitize(
+          this.t('resourceTable.groupLabel.project', { name: row.project?.nameDisplay }, true),
+          { ALLOWED_TAGS: ['span'] }
+        );
       }
 
       return row.groupByLabel;
@@ -335,10 +369,29 @@ export default {
       :show-incremental-loading-indicator="showIncrementalLoadingIndicator"
       :load-resources="loadResources"
       :load-indeterminate="loadIndeterminate"
+    >
+      <template
+        v-if="showCreateNsButton"
+        slot="extraActions"
+      >
+        <router-link
+          :to="createNamespaceLocationFlatList()"
+          class="btn role-primary mr-10"
+          data-testid="create_project_namespaces"
+        >
+          {{ t('projectNamespaces.createNamespace') }}
+        </router-link>
+      </template>
+    </Masthead>
+    <!-- Extensions area -->
+    <ExtensionPanel
+      :resource="{}"
+      :type="extensionType"
+      :location="extensionLocation"
     />
     <ResourceTable
       ref="table"
-      class="table"
+      class="table project-namespaces-table"
       v-bind="$attrs"
       :schema="schema"
       :headers="headers"
@@ -360,8 +413,8 @@ export default {
             class="group-tab"
           >
             <div
+              v-clean-html="projectLabel(group.group)"
               class="project-name"
-              v-html="projectLabel(group.group)"
             />
             <div
               v-if="projectDescription(group.group)"
@@ -371,13 +424,13 @@ export default {
             </div>
           </div>
           <div class="right">
-            <n-link
+            <router-link
               v-if="isNamespaceCreatable && (canSeeProjectlessNamespaces || group.group.key !== notInProjectKey)"
               class="create-namespace btn btn-sm role-secondary mr-5"
               :to="createNamespaceLocation(group.group)"
             >
               {{ t('projectNamespaces.createNamespace') }}
-            </n-link>
+            </router-link>
             <button
               type="button"
               class="project-action btn btn-sm role-multi-action actions mr-10"
@@ -398,18 +451,23 @@ export default {
       </template>
       <template #cell:name="{row}">
         <div class="namespace-name">
-          <n-link
-            v-if="row.detailLocation"
+          <router-link
+            v-if="row.detailLocation && !row.hideDetailLocation"
             :to="row.detailLocation"
           >
             {{ row.name }}
-          </n-link>
+          </router-link>
           <span v-else>
             {{ row.name }}
           </span>
           <i
+            v-if="row.injectionEnabled"
+            v-clean-tooltip="t('projectNamespaces.isIstioInjectionEnabled')"
+            class="icon icon-istio ml-5"
+          />
+          <i
             v-if="row.hasSystemLabels"
-            v-tooltip="getPSA(row)"
+            v-clean-tooltip="getPsaTooltip(row)"
             class="icon icon-lock ml-5"
           />
         </div>
@@ -447,6 +505,10 @@ export default {
 <style lang="scss" scoped>
 .project-namespaces {
   & ::v-deep {
+    .project-namespaces-table table {
+      table-layout: fixed;
+    }
+
     .project-name {
       line-height: 30px;
     }
@@ -455,6 +517,26 @@ export default {
       display: flex;
       flex-direction: row;
       justify-content: space-between;
+
+      .group-tab {
+        max-width: calc(100% - 230px);
+      }
+
+      .project-name {
+        display: flex;
+        flex-direction: row;
+        align-items: center;
+
+        span:first-child {
+          padding-right: 8px;
+        }
+
+        span:last-child {
+          text-overflow: ellipsis;
+          overflow: hidden;
+          white-space: nowrap;
+        }
+      }
 
       &.has-description {
         .right {
@@ -479,6 +561,10 @@ export default {
     .namespace-name {
       display: flex;
       align-items: center;
+
+      .icon-istio {
+        color: var(--primary);
+      }
     }
   }
 }
@@ -486,7 +572,7 @@ export default {
 <style lang="scss">
   .psa-tooltip {
     // These could pop up a lot as the mouse moves around, keep them as small and unintrusive as possible
-    // (easier to test with v-tooltip="{ content: getPSA(row), autoHide: false, show: true }")
+    // (easier to test with v-clean-tooltip="{ content: getPSA(row), autoHide: false, show: true }")
     margin: 3px 0;
     padding: 0 8px 0 22px;
   }

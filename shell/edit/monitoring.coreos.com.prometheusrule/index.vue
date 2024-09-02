@@ -42,7 +42,10 @@ export default {
   },
 
   data() {
-    return { fvFormRuleSets: [{ path: 'metadata.name', rules: ['dnsLabel'] }] };
+    return {
+      fvFormRuleSets:      [{ path: 'metadata.name', rules: ['dnsLabel'] }],
+      closedErrorMessages: []
+    };
   },
 
   computed: {
@@ -54,7 +57,7 @@ export default {
         return [this.t('validation.prometheusRule.noEdit')];
       }
 
-      return this.fvUnreportedValidationErrors;
+      return this.fvUnreportedValidationErrors.filter((e) => !this.closedErrorMessages.includes(e));
     }
   },
 
@@ -102,6 +105,8 @@ export default {
         }
       });
 
+      this.closedErrorMessages = [];
+
       return true;
     },
 
@@ -125,7 +130,7 @@ export default {
     :mode="mode"
     :resource="value"
     :validation-passed="fvFormIsValid"
-    @error="(e) => (errors = e)"
+    @error="(_, closedError) => closedErrorMessages.push(closedError)"
     @finish="save"
   >
     <div class="row">
@@ -161,6 +166,7 @@ export default {
                 :label="t('prometheusRule.groups.name')"
                 :mode="mode"
                 :required="true"
+                :data-testid="`v2-monitoring-prom-rules-group-name-${idx}`"
               />
             </div>
           </div>
@@ -174,6 +180,7 @@ export default {
                 "
                 :label="t('prometheusRule.groups.groupInterval.label')"
                 :mode="mode"
+                :data-testid="`v2-monitoring-prom-rules-group-interval-${idx}`"
                 @input="(e) => updateGroupInterval(filteredGroups[idx], e)"
               />
             </div>

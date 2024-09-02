@@ -1,17 +1,17 @@
 <script>
 import { mapGetters } from 'vuex';
-import $ from 'jquery';
 import { AUTO, CENTER, fitOnScreen } from '@shell/utils/position';
 import { isAlternate } from '@shell/utils/platform';
+import IconOrSvg from '@shell/components/IconOrSvg';
 
 const HIDDEN = 'hide';
 const CALC = 'calculate';
 const SHOW = 'show';
 
 export default {
-  name: 'ActionMenu',
-
-  props: {
+  name:       'ActionMenu',
+  components: { IconOrSvg },
+  props:      {
     customActions: {
       // Custom actions can be used if you need the action
       // menu to work for something that is not a Kubernetes
@@ -60,7 +60,7 @@ export default {
     customTargetEvent: {
       // The event details from the user's click can be used
       // for positioning the menu on the page.
-      type:    PointerEvent,
+      type:    [PointerEvent, MouseEvent],
       default: null
     },
 
@@ -148,7 +148,7 @@ export default {
 
     updateStyle() {
       if ( this.phase === SHOW && !this.useCustomTargetElement) {
-        const menu = $('.menu', this.$el)[0];
+        const menu = this.$el?.querySelector && this.$el.querySelector('.menu');
         const event = this.targetEvent;
         const elem = this.targetElem;
 
@@ -168,7 +168,7 @@ export default {
       }
 
       if ( this.open && this.useCustomTargetElement) {
-        const menu = $('.menu', this.$el)[0];
+        const menu = this.$el?.querySelector && this.$el.querySelector('.menu');
         const elem = this.customTargetElement;
 
         // If the action menu state is controlled with
@@ -194,7 +194,23 @@ export default {
         return;
       }
 
-      if (this.useCustomTargetElement) {
+      // this will come from extensions...
+      if (action.invoke) {
+        const fn = action.invoke;
+
+        if (fn && action.enabled) {
+          const resources = this.$store.getters['action-menu/resources'];
+          const opts = {
+            event,
+            action,
+            isAlt: isAlternate(event)
+          };
+
+          if (resources.length === 1) {
+            fn.apply(this, [opts, resources]);
+          }
+        }
+      } else if (this.useCustomTargetElement) {
         // If the state of this component is controlled
         // by props instead of Vuex, we assume you wouldn't want
         // the mutation to have a dependency on Vuex either.
@@ -247,12 +263,16 @@ export default {
         :data-testid="componentTestid + '-' + i + '-item'"
         @click="execute(opt, $event)"
       >
-        <i
-          v-if="opt.icon"
-          :class="{icon: true, [opt.icon]: true}"
+        <IconOrSvg
+          v-if="opt.icon || opt.svg"
+          :icon="opt.icon"
+          :src="opt.svg"
+          class="icon"
+          color="header"
         />
-        <span v-html="opt.label" />
+        <span v-clean-html="opt.label" />
       </li>
+
       <li
         v-if="!hasOptions(menuOptions)"
         class="no-actions"

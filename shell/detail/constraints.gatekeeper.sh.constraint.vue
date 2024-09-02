@@ -1,20 +1,28 @@
 <script>
 import CreateEditView from '@shell/mixins/create-edit-view';
 import SortableTable from '@shell/components/SortableTable';
-import { CONSTRAINT_VIOLATION_RESOURCE_LINK, CONSTRAINT_VIOLATION_MESSAGE, CONSTRAINT_VIOLATION_TYPE } from '@shell/config/table-headers';
+import Banner from '@components/Banner/Banner.vue';
+import {
+  CONSTRAINT_VIOLATION_RESOURCE_LINK,
+  CONSTRAINT_VIOLATION_MESSAGE,
+  CONSTRAINT_VIOLATION_TYPE,
+  CONSTRAINT_VIOLATION_NAMESPACE,
+} from '@shell/config/table-headers';
 
 export default {
-  components: { SortableTable },
+  components: { Banner, SortableTable },
   mixins:     [CreateEditView],
-  data(ctx) {
+  data() {
+    const headers = [
+      CONSTRAINT_VIOLATION_TYPE,
+      CONSTRAINT_VIOLATION_NAMESPACE,
+      CONSTRAINT_VIOLATION_RESOURCE_LINK,
+      CONSTRAINT_VIOLATION_MESSAGE
+    ];
+
     return {
-      headers: [
-        CONSTRAINT_VIOLATION_TYPE,
-        CONSTRAINT_VIOLATION_RESOURCE_LINK,
-        CONSTRAINT_VIOLATION_MESSAGE
-      ],
-      violations: this.value.violations
-        .map((violation, i) => ({ ...violation, id: i }))
+      headers,
+      violations: this.value.violations.map((violation, i) => ({ ...violation, id: i }))
     };
   }
 };
@@ -23,20 +31,29 @@ export default {
   <div>
     <div
       v-if="value.spec.enforcementAction"
-      class="row mt-40"
+      class="row mt-20"
     >
       <div class="col span-12">
-        <h3>Enforcement Action</h3>
+        <h3>
+          {{ t('gatekeeperConstraint.enforcement.action') }}
+        </h3>
         {{ value.spec.enforcementAction }}
       </div>
     </div>
-    <div class="row mt-40">
+    <div class="row mt-20">
       <div class="col span-12">
-        <h3>{{ t('gatekeeperConstraint.violations.title') }}</h3>
+        <h3 class="mb-20">
+          {{ t('gatekeeperConstraint.violations.title', { total: value.totalViolations }) }}
+        </h3>
+        <Banner
+          v-if="value.totalViolations !== value.violations.length"
+          color="info"
+        >
+          {{ t('gatekeeperConstraint.violations.notAll', { shown: value.violations.length }) }}
+        </Banner>
         <SortableTable
           :headers="headers"
           :rows="violations"
-          :search="false"
           :table-actions="false"
           :row-actions="false"
           :paging="true"

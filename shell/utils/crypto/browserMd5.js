@@ -80,7 +80,7 @@ Md5.prototype.digest = function(encoding) {
     out.setUint32(i * 4, this.state[i], true);
   }
 
-  // eslint-disable-next-line node/no-deprecated-api, unicorn/no-new-buffer
+  // eslint-disable-next-line node/no-deprecated-api
   const buff = new Buffer(out.buffer, out.byteOffset, out.byteLength);
 
   return encoding ? buff.toString(encoding) : buff;

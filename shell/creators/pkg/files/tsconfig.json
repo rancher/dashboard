@@ -23,7 +23,6 @@
       "@types/node",
       "@types/jest",
       "@types/lodash",
-      "@nuxt/types",
       "rancher",
       "shell"
     ],

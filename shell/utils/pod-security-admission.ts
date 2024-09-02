@@ -1,29 +1,24 @@
 import { reduce, filter, keys } from 'lodash';
 import { PSALabelPrefix, PSALabelsNamespaces } from '@shell/config/pod-security-admission';
 import { camelToTitle } from '@shell/utils/string';
-
-interface ResourcePartial {
-  metadata: {
-    labels: Record<string, string>
-  }
-}
+import { PSA } from '@shell/types/resources/pod-security-admission';
 
 /**
  * Return PSA labels present in the resource
  * @returns string[]
  */
-export const getPSALabels = (resource: ResourcePartial): string[] => filter(keys(resource?.metadata?.labels), key => PSALabelsNamespaces.includes(key));
+export const getPSALabels = (resource: PSA): string[] => filter(keys(resource?.metadata?.labels), (key) => PSALabelsNamespaces.includes(key));
 
 /**
  * Return boolean value if the label is a PSA label
  * @returns Boolean
  */
-export const hasPSALabels = (resource: ResourcePartial): boolean => getPSALabels(resource).length > 0;
+export const hasPSALabels = (resource: PSA): boolean => getPSALabels(resource).length > 0;
 
 /**
  * Generate tooltips dictionary from a given PSA namespaced label pair of key and values
  */
-export const getPSATooltipsDescription = (resource: ResourcePartial): Record<string, string> => reduce(
+export const getPSATooltipsDescription = (resource: PSA): Record<string, string> => reduce(
   resource?.metadata?.labels,
   (acc, value, key) => {
     const isPSA = PSALabelsNamespaces.includes(key);

@@ -1,0 +1,153 @@
+import { Canvas, Meta, Story, ArgsTable, Source } from '@storybook/addon-docs';
+import CodeMirror from '@shell/components/CodeMirror';
+
+<Meta 
+  title="Form/Editor"
+  component={CodeMirror}
+/>
+
+export const Template = (args, { argTypes, events }) => ({
+  components: { CodeMirror },
+  props:      Object.keys(argTypes),
+  template:   `<CodeMirror v-bind="$props"/>`
+});
+
+
+export const editorValueExample = `{
+  apiVersion: provisioning.cattle.io/v1
+kind: Cluster
+metadata:
+  name: #string
+  annotations:
+    {}
+  labels:
+    {}
+  namespace: fleet-default
+spec:
+  clusterAgentDeploymentCustomization:
+    appendTolerations:
+    overrideAffinity:
+  defaultPodSecurityAdmissionConfigurationTemplateName: ''
+  defaultPodSecurityPolicyTemplateName: ''
+  fleetAgentDeploymentCustomization:
+    overrideResourceRequirements:
+  kubernetesVersion: v1.26.6+rke2r1
+  localClusterAuthEndpoint:
+    caCerts: ''
+    enabled: false
+    fqdn: ''
+  rkeConfig:
+    chartValues:
+      rke2-calico: {}
+    etcd:
+      disableSnapshots: false
+      s3:
+      snapshotRetention: 5
+      snapshotScheduleCron: 0 */5 * * *
+    machineGlobalConfig:
+      cni: calico
+      disable-kube-proxy: false
+      etcd-expose-metrics: false
+      profile: null
+    machinePools:
+    machineSelectorConfig:
+      - config:
+          protect-kernel-defaults: false
+    registries:
+      configs:
+        {}
+        #  authConfigSecretName: string
+      mirrors:
+        {}
+        #  endpoint:
+    upgradeStrategy:
+      controlPlaneConcurrency: '1'
+      controlPlaneDrainOptions:
+        deleteEmptyDirData: true
+        disableEviction: false
+        enabled: false
+        force: false
+        gracePeriod: -1
+        ignoreDaemonSets: true
+        skipWaitForDeleteTimeoutSeconds: 0
+        timeout: 120
+      workerConcurrency: '1'
+      workerDrainOptions:
+        deleteEmptyDirData: true
+        disableEviction: false
+        enabled: false
+        force: false
+        gracePeriod: -1
+        ignoreDaemonSets: true
+        skipWaitForDeleteTimeoutSeconds: 0
+        timeout: 120
+  machineSelectorConfig:
+    - config: {}
+__clone: true
+}`
+
+# Editor
+
+YAML editor for Rancher based on CodeMirror library.
+
+### Description
+
+- Simple version for input editing
+- It can display diff
+
+<br/>
+
+#### YAML Editor
+
+Code Mirror is used mainly as YAML editor for all the K8S configurations.
+
+<Canvas>
+  <Story
+    name="Yaml"
+    args={{
+      value: editorValueExample,
+      mode: 'edit',
+      options: {},
+      asTextArea: false,
+      showKeyMapBox: true,
+    }}>
+    {Template.bind({})}
+  </Story>
+</Canvas>
+
+
+#### Textarea Input
+
+The input version is used mainly for cases where is necessary to display line breaks, e.g. ConfigMap chomping.
+
+<Canvas>
+  <Story
+    name="Textarea"
+    args={{
+      value: `
+Some
+values
+      `,
+      mode: 'edit',
+      options: {},
+      asTextArea: true,
+      showKeyMapBox: true,
+    }}>
+    {Template.bind({})}
+  </Story>
+</Canvas>
+
+### Import
+
+<Source
+  language='js'
+  light
+  format={false}
+  code={`
+    import CodeMirror from '@shell/components/CodeMirror';
+  `}
+/>
+
+### Props table
+
+<ArgsTable of={CodeMirror} />

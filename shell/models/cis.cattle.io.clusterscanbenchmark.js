@@ -13,6 +13,6 @@ export default class ClusterScanBenchmark extends SteveModel {
       return false;
     }
 
-    return relationships.filter(rel => rel.fromType === CATALOG.APP ).length > 0;
+    return relationships.filter((rel) => rel.fromType === CATALOG.APP ).length > 0;
   }
 }

@@ -6,6 +6,7 @@ export const LOCAL = 'local';
 export const SETUP = 'setup';
 export const STEP = 'step';
 export const LOGGED_OUT = 'logged-out';
+export const IS_SSO = 'is-sso';
 export const UPGRADED = 'upgraded';
 export const TIMED_OUT = 'timed-out';
 export const AUTH_TEST = 'test';
@@ -30,6 +31,7 @@ export const MODE = 'mode';
 export const _CREATE = 'create';
 export const _VIEW = 'view';
 export const _EDIT = 'edit';
+export const _LIST = 'list';
 export const _CLONE = 'clone';
 export const _STAGE = 'stage';
 export const _IMPORT = 'import';
@@ -49,6 +51,7 @@ export const _SPLIT = 'split';
 
 // CruResource
 export const SUB_TYPE = 'type';
+export const RKE_TYPE = 'rkeType';
 
 // App launch
 export const REPO_TYPE = 'repo-type';
@@ -72,3 +75,4 @@ export const CLOUD_CREDENTIAL = 'cloud';
 
 // NAMESPACE/PROJECT
 export const PROJECT_ID = 'projectId';
+export const FLAT_VIEW = 'flatView';

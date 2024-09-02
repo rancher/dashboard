@@ -1,4 +1,4 @@
-import { PSADimension, PSALevel, PSAMode } from '@shell/types/pod-security-admission';
+import { PSADimension, PSALevel, PSAMode } from '@shell/types/resources/pod-security-admission';
 
 /**
  * All the PSA labels are created with this prefix, so we can use this to identify them
@@ -18,7 +18,7 @@ export const PSALevels: PSALevel[] = ['privileged', 'baseline', 'restricted'];
 /**
  * Used for restrictions in templates
  */
-export const PSADimensions: PSADimension[] = ['Usernames', 'RuntimeClassNames', 'Namespaces'];
+export const PSADimensions: PSADimension[] = ['usernames', 'runtimeClasses', 'namespaces'];
 
 /**
  * For the UI, we prefer use this value as default one
@@ -79,4 +79,4 @@ export const PSALabelsNamespaces: string[] = [...PSALabelsNamespaceMode, ...PSAL
 /**
  * Generated table of icons with or hardcoded generated PSA labels
  */
-export const PSAIconsDisplay: Record<string, string> = Object.assign({}, ...PSALabelsNamespaces.map(psa => ({ [psa]: 'icon-pod_security' })));
+export const PSAIconsDisplay: Record<string, string> = Object.assign({}, ...PSALabelsNamespaces.map((psa) => ({ [psa]: 'icon-pod_security' })));

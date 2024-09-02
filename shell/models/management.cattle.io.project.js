@@ -30,7 +30,7 @@ function clearUnusedResourceQuotas(spec, types) {
       spec[type].usedLimit = null;
     }
 
-    if ( spec[type] && !isEmpty(spec[type]) && Object.keys(spec[type]).every( k => spec[type][k] === null ) ) {
+    if ( spec[type] && !isEmpty(spec[type]) && Object.keys(spec[type]).every( (k) => spec[type][k] === null ) ) {
       spec[type] = null;
     }
   });
@@ -98,37 +98,6 @@ export default class Project extends HybridModel {
     // removed, the resource should be replaced instead of merged,
     // and the PUT request should have a query param _replace=true.
     const newValue = await norman.save({ replace: forceReplaceOnReq });
-
-    let retryCount = 0;
-
-    const finishProjectCreation = async() => {
-      try {
-        await newValue.doAction('setpodsecuritypolicytemplate', { podSecurityPolicyTemplateId: this.spec.podSecurityPolicyTemplateId || null });
-      } catch (err) {
-        if ( err.status === 409 || err.status === 403 ) {
-          // The backend updates each new project soon after it is created,
-          // so there is a chance of a 409 resource conflict or forbidden error. If that happens,
-          // retry the action.
-
-          // The 403 permission error can happen due to the user requesting
-          // the project before the project is fully created and the project
-          // permissions are assigned to the user so we allow some
-          // time for that process to complete.
-
-          if (retryCount < 3) {
-            retryCount++;
-            await setTimeout(() => {
-              // Delay for three seconds to avoid another failure due to latency.
-              finishProjectCreation();
-            }, '3000');
-          } else {
-            throw err;
-          }
-        }
-      }
-    };
-
-    await finishProjectCreation();
 
     return newValue;
   }
@@ -200,7 +169,7 @@ export default class Project extends HybridModel {
   }
 
   get canEditYaml() {
-    return this.schema?.resourceMethods?.find(x => x === 'blocked-PUT') ? false : super.canUpdate;
+    return this.schema?.resourceMethods?.find((x) => x === 'blocked-PUT') ? false : super.canUpdate;
   }
 
   get confirmRemove() {

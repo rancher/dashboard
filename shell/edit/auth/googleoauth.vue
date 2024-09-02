@@ -7,11 +7,11 @@ import CruResource from '@shell/components/CruResource';
 import InfoBox from '@shell/components/InfoBox';
 import { Checkbox } from '@components/Form/Checkbox';
 import { LabeledInput } from '@components/Form/LabeledInput';
-import { Banner } from '@components/Banner';
 import AllowedPrincipals from '@shell/components/auth/AllowedPrincipals';
 import FileSelector from '@shell/components/form/FileSelector';
 import AuthBanner from '@shell/components/auth/AuthBanner';
 import CopyToClipboardText from '@shell/components/CopyToClipboardText';
+import AuthProviderWarningBanners from '@shell/edit/auth/AuthProviderWarningBanners';
 
 const NAME = 'googleoauth';
 
@@ -21,23 +21,19 @@ export default {
     CruResource,
     InfoBox,
     LabeledInput,
-    Banner,
     Checkbox,
     AllowedPrincipals,
     FileSelector,
     AuthBanner,
-    CopyToClipboardText
+    CopyToClipboardText,
+    AuthProviderWarningBanners
   },
 
   mixins: [CreateEditView, AuthConfig],
 
   computed: {
     tArgs() {
-      let hostname = '';
-
-      if (process.client) {
-        hostname = window.location.hostname;
-      }
+      const hostname = window.location.hostname;
 
       return {
         hostname,
@@ -104,10 +100,9 @@ export default {
       </template>
 
       <template v-else>
-        <Banner
+        <AuthProviderWarningBanners
           v-if="!model.enabled"
-          :label="t('authConfig.stateBanner.disabled', tArgs)"
-          color="warning"
+          :t-args="tArgs"
         />
         <div
           :style="{'align-items':'center'}"
@@ -141,7 +136,7 @@ export default {
           :step="1"
           class=" mt-20 mb-20"
         >
-          <h3 v-html="t('authConfig.googleoauth.steps.1.title', tArgs, true)" />
+          <h3 v-clean-html="t('authConfig.googleoauth.steps.1.title', tArgs, true)" />
           <ul class="mt-0 step-list">
             <li>{{ t('authConfig.googleoauth.steps.1.body.1', {}, true) }} </li>
             <li>
@@ -165,7 +160,7 @@ export default {
           class="mb-20"
         >
           <div class="row">
-            <h3 v-html="t('authConfig.googleoauth.steps.2.title', tArgs, true)" />
+            <h3 v-clean-html="t('authConfig.googleoauth.steps.2.title', tArgs, true)" />
           </div>
           <div class="row">
             <div class="col span-6">
@@ -211,11 +206,11 @@ export default {
           class="mb-20"
         >
           <div class="row">
-            <h3 v-html="t('authConfig.googleoauth.steps.3.title', tArgs, true)" />
+            <h3 v-clean-html="t('authConfig.googleoauth.steps.3.title', tArgs, true)" />
           </div>
           <div class="row">
             <div class="col span-6">
-              <div v-html="t('authConfig.googleoauth.steps.3.introduction', tArgs, true)" />
+              <div v-clean-html="t('authConfig.googleoauth.steps.3.introduction', tArgs, true)" />
               <ul class="mt-10 step-list">
                 <li>{{ t('authConfig.googleoauth.steps.3.body.1', {}, true) }} </li>
                 <li>{{ t('authConfig.googleoauth.steps.3.body.2', {}, true) }} </li>
@@ -241,18 +236,6 @@ export default {
             </div>
           </div>
         </InfoBox>
-
-        <div
-          v-if="!model.enabled"
-          class="row"
-        >
-          <div class="col span-12 google">
-            <Banner
-              color="info"
-              v-html="t('authConfig.associatedWarning', tArgs, true)"
-            />
-          </div>
-        </div>
       </template>
     </CruResource>
   </div>

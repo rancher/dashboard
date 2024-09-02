@@ -1,0 +1,171 @@
+aks:
+  label: Azure AKS
+  location:
+    label: Region
+    withAZ: Regions with Availability Zones
+    withoutAZ: Regions without Availability Zones
+    azWarning: No availablity zones are available for the selected region. For the most resiliency it is recommended to select a High Availablity region.
+  clusterResourceGroup:
+    label: Cluster Resource Group
+    placeholder: 'aks-resource-group'
+    tooltip: "Use an existing resource group or enter a new resource group name and one will be created for you. Note: Using a resource group containing an existing AKS cluster will create a new resource group. Azure AKS only allows one AKS cluster per resource group."
+  kubernetesVersion:
+    label: Kubernetes Version
+    current: '{version} (Current)'
+    notAvailableInRegion: This version is not available in the selected region.
+  nodeResourceGroup:
+    tooltip: 'The cluster resource group contains the Kubernetes Service resource. The node resource group contains all infrastructure resources associated with the cluster. If left blank, Azure will automatically create a name in the format MC_resource-group_cluster-name_location. This value cannot exceed 80 characters.'
+    label: Node Resource Group
+    placeholder: aks-node-resource-group
+  dnsPrefix:
+    label: DNS Prefix
+  outboundType:
+    label: Outbound Type
+    userDefined: User Defined Routing
+    loadbalancer: Loadbalancer (Default)
+    tooltip: User Defined Routing is only available when Load Balancer SKU is set to 'standard'.
+  nodePools:
+    title: Node Pools
+    notNamed: Not Named
+    vmSize:
+      label: VM Size
+      notAvailableInRegion: |-
+        {count, plural,
+        =1 {The VM size selected for the pool {pool} is not available in the selected region.}
+        other {The VM sizes selected for the following pools are not available in the selected region: }
+        }
+    availabilityZones:
+      label: Availability Zones
+    osType:
+      label: Operating System
+    osDiskType:
+      label: OS Disk Type
+    osDiskSize:
+      label: OS Disk Size
+    count:
+      label: Node Count
+    maxPods:
+      label: Max Pods per Node
+    maxSurge:
+      label: Max Surge
+    enableAutoScaling:
+      label: Enable Auto Scaling
+    minCount:
+      label: Minimum Nodes
+    maxCount:
+      label: Maximum Nodes
+    taints:
+      label: Taints
+      key: Key
+      value: Value
+      effect: Effect
+      addTaint: Add Taint
+      tooltip: Pods will only be scheduled on this node if they are configured to tolerate these taints. Each taint must be unique by key and effect pair.
+    mode:
+      systemRequired: At least one node pool must use the 'system' mode.
+      label: Mode
+    labels:
+      tooltip: Configure labels for all nodes in this Node Pool.
+      add: Add Label
+    orchestratorVersion: 
+      label: Node Pool Kubernetes Version
+      upgrade: Upgrade node pool Kubernetes version from {from} to {to}
+      warning: A new cluster version has been selected. Once the upgrade has completed, you can come back and upgrade the node pool version.
+  linuxAdminUsername:
+    label: Linux Admin Username
+    placeholder: azureuser
+  accordions:
+    basics: Basics
+    networking: Networking
+    clusterMembers: Cluster Members
+    labels: Labels and Annotations
+  containerMonitoring:
+    label: Configure Container Monitoring
+  logAnalyticsWorkspaceGroup:
+    label: Log Analytics Workspace Resource Group
+  logAnalyticsWorkspaceName:
+    label: Log Analytics Workspace Name
+  sshPublicKey:
+    label: SSH Public Key
+    placeholder: Paste in your SSH public key
+    readFromFile: Read from File
+  tags:
+    label: Tags
+    addLabel: Add Tag
+  loadBalancerSku:
+    label: Load Balancer SKU
+    tooltip: The Load Balancer SKU must be 'Standard' if availability zones have been selected
+  dns:
+    label: DNS Prefix
+    placeholder: aks-dns-xxxxxx
+  networkPlugin:
+    label: Network Plugin
+    options:
+      kubenet: Kubenet
+      azure: Azure CNI
+  networkPolicy:
+    label: Network Policy
+    tooltip: The Azure network policy is only available when the Azure network plugin is selected
+  virtualNetwork:
+    label: Virtual Network
+    notAvailableInRegion: This virtual network is not available in the selected region.
+  serviceCidr:
+    label: Kubernetes Service Address Range
+    placeholder: e.g. 172.17.0.1/16  
+    tooltip: This range must not overlap with any Subnet IP ranges.
+  podCidr:
+    label: Kubernetes Pod Address Range
+    placeholder: e.g. 172.17.0.1/16
+  dnsServiceIp:
+    label: Kubernetes DNS Service IP Address    
+    tooltip: This address must be within the Kubernetes service address range.
+  dockerBridgeCidr:
+    label: Docker Bridge Address
+    placeholder: e.g. 172.17.0.1/16
+    tooltip: This range must not be in any subnet ranges, or the Kubernetes service address range.
+  enableNetworkPolicy:
+    label: Project Network Isolation
+    tooltip: You must have a network selected to use Project Network Isolation.
+  httpApplicationRouting:
+    label: HTTP Application Routing
+  privateCluster:
+    label: Enable Private Cluster
+    warning:  AKS private clusters is an advanced use case which requires {vendor} to be running on the same NAT as the AKS nodes. Before enabling private clusters ensure you have read through the <a href="{docsBase}/reference-guides/cluster-configuration/rancher-server-configuration/aks-cluster-configuration#support-private-kubernetes-service" target="_blank" rel="nofollow noopener noreferrer">AKS cluster provisioning docs</a> for instructions on configuring AKS so nodes may communicate with {vendor}.
+  setAuthorizedIPRanges:
+    label: Set Authorized IP Ranges
+  authorizedIpRanges:
+    label: Authorized IP Ranges
+  privateDnsZone:
+    label: Private DNS Zone ID
+  userAssignedIdentity:
+    label: User Assigned Identity
+  managedIdentity:
+    label: Managed Identity
+  errors:
+    regions: 'An error occured while fetching the available regions: {e}'
+    vmSizes: 
+      fetching: 'An error occured while fetching the available VM sizes: {e}'
+      available: This size is not avaiable in the selected region
+    virtualNetworks: 'An error occured while fetching the available virtual networks: {e}'
+    kubernetesVersions: 'An error occured while fetching the available kubernetes versions: {e}'
+    clusterName: 
+      chars: Name may only contain lowercase alphanumerics, underscores, and hyphens.
+      startEnd: Name must start and end with an alphanumeric.
+      length: Name may not exceed 63 characters.
+    resourceGroup:
+      length: "{key} cannot exceed 80 characters."
+      chars: "{key} may only consist of underscores, periods, hyphens, parentheses, and letters or digits."
+      periodEnd: "{key} cannot end with a period."
+    authorizedIpRanges: "Authorized IP Ranges must be CIDR notation ipv4 ranges, or single ipv4 addresses."
+    ipv4Cidr: "{key} must be a valid CIDR notation ipv4 range."
+    ipv4: "{key} must be a valid ipv4 address."
+    outboundType: Load Balancer SKU must be 'standard' to use user defined routing.
+    availabilityZones: Availability zones are not available in the selected region.
+    privateDnsZone: Private DNS Zone Resource ID must be in the format /subscriptions/SUBSCRIPTION_ID/resourceGroups/RESOURCEGROUP_NAME/providers/Microsoft.Network/privateDnsZones/PRIVATE_DNS_ZONE_NAME. The Private DNS Zone Resource Name must be in the format privatelink.REGION.azmk8s.io, SUBZONE.privatelink.REGION.azmk8s.io, private.REGION.azmk8s.io, or SUBZONE.private.REGION.azmk8s.io
+    poolName: Node pool names must be 1-12 characters long, consist only of lowercase letters and numbers, and start with a letter.
+    poolCount: Node count must be at least one.
+    poolMinMax: The minimum number of nodes must be less than or equal to the maximum number of nodes, and the node count must be between or equal to the minimum and maximum.
+    poolMin: The minimum number of nodes must be greater than 0 and at most 100.
+    poolMax: The maximum number of nodes must be greater than 0 and at most 100.
+    poolTaints: Taints must have both a key and value defined.
+    poolNamesUnique: Node pool names must be unique.

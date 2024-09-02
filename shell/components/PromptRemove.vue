@@ -9,11 +9,14 @@ import { uniq } from '@shell/utils/array';
 import AsyncButton from '@shell/components/AsyncButton';
 import { CATALOG as CATALOG_ANNOTATIONS } from '@shell/config/labels-annotations';
 import { CATALOG } from '@shell/config/types';
+import { LabeledInput } from '@components/Form/LabeledInput';
+import AppModal from '@shell/components/AppModal.vue';
+
 export default {
   name: 'PromptRemove',
 
   components: {
-    Card, Checkbox, AsyncButton
+    Card, Checkbox, AsyncButton, LabeledInput, AppModal
   },
   props: {
     /**
@@ -37,12 +40,13 @@ export default {
       preventDelete:       false,
       removeComponent:     this.$store.getters['type-map/importCustomPromptRemove'](resource),
       chartsToRemoveIsApp: false,
-      chartsDeleteCrd:     false
+      chartsDeleteCrd:     false,
+      showModal:           false,
     };
   },
   computed: {
     names() {
-      return this.toRemove.map(obj => obj.nameDisplay).slice(0, 5);
+      return this.toRemove.map((obj) => obj.nameDisplay).slice(0, 5);
     },
 
     nameToMatchPosition() {
@@ -100,6 +104,11 @@ export default {
       if (this.toRemove.length > 1) {
         return null;
       }
+
+      if (this.toRemove[0].doneLocationRemove) {
+        return this.toRemove[0].doneLocationRemove;
+      }
+
       const currentRoute = this.toRemove[0].currentRoute();
       const out = {};
       const params = { ...currentRoute.params };
@@ -164,7 +173,7 @@ export default {
           this.chartsToRemoveIsApp = true;
         }
 
-        this.$modal.show('promptRemove');
+        this.showModal = true;
 
         let { resource } = this.$route.params;
 
@@ -176,7 +185,7 @@ export default {
 
         this.removeComponent = this.$store.getters['type-map/importCustomPromptRemove'](resource);
       } else {
-        this.$modal.hide('promptRemove');
+        this.showModal = false;
       }
     },
 
@@ -184,7 +193,7 @@ export default {
     // if none found (delete is allowed), then check for any resources with a warning message
     toRemove(neu) {
       let message;
-      const preventDeletionMessages = neu.filter(item => item.preventDeletionMessage);
+      const preventDeletionMessages = neu.filter((item) => item.preventDeletionMessage);
 
       this.preventDelete = false;
 
@@ -192,7 +201,7 @@ export default {
         this.preventDelete = true;
         message = preventDeletionMessages[0].preventDeletionMessage;
       } else {
-        const warnDeletionMessages = neu.filter(item => item.warnDeletionMessage);
+        const warnDeletionMessages = neu.filter((item) => item.warnDeletionMessage);
 
         if (!!warnDeletionMessages.length) {
           message = warnDeletionMessages[0].warnDeletionMessage;
@@ -224,6 +233,7 @@ export default {
         // doneLocation will recompute to undefined when delete request completes
         this.cachedDoneLocation = { ...this.doneLocation };
       }
+
       if (this.hasCustomRemove && this.$refs?.customPrompt?.remove) {
         let handled = this.$refs.customPrompt.remove(btnCB);
 
@@ -247,7 +257,7 @@ export default {
           return;
         }
       }
-      const serialRemove = this.toRemove.some(resource => resource.removeSerially);
+      const serialRemove = this.toRemove.some((resource) => resource.removeSerially);
 
       if (serialRemove) {
         this.serialRemove(btnCB);
@@ -272,10 +282,16 @@ export default {
     },
     async parallelRemove(btnCB) {
       try {
+        if (typeof this.toRemove[0].bulkRemove !== 'undefined') {
+          await this.toRemove[0].bulkRemove(this.toRemove, {});
+        } else {
+          await Promise.all(this.toRemove.map((resource) => resource.remove()));
+        }
+
         const spoofedTypes = this.getSpoofedTypes(this.toRemove);
 
-        await Promise.all(this.toRemove.map(resource => resource.remove()));
         await this.refreshSpoofedTypes(spoofedTypes);
+
         this.done();
       } catch (err) {
         this.error = err.message || err;
@@ -289,7 +305,7 @@ export default {
       this.close();
     },
     getSpoofedTypes(resources) {
-      const uniqueResourceTypes = uniq(this.toRemove.map(resource => resource.type));
+      const uniqueResourceTypes = uniq(this.toRemove.map((resource) => resource.type));
 
       return uniqueResourceTypes.filter(this.$store.getters['type-map/isSpoofed']);
     },
@@ -297,7 +313,7 @@ export default {
     // If spoofed we need to reload the values as the server can't have watchers for them.
     refreshSpoofedTypes(types) {
       const inStore = this.$store.getters['currentProduct'].inStore;
-      const promises = types.map(type => this.$store.dispatch(`${ inStore }/findAll`, { type, opt: { force: true } }, { root: true }));
+      const promises = types.map((type) => this.$store.dispatch(`${ inStore }/findAll`, { type, opt: { force: true } }, { root: true }));
 
       return Promise.all(promises);
     },
@@ -321,13 +337,14 @@ export default {
 </script>
 
 <template>
-  <modal
-    class="remove-modal"
+  <app-modal
+    v-if="showModal"
+    custom-class="remove-modal"
     name="promptRemove"
     :width="400"
     height="auto"
     styles="max-height: 100vh;"
-    @closed="close"
+    @close="close"
   >
     <Card
       class="prompt-remove"
@@ -343,7 +360,7 @@ export default {
         <div class="mb-10">
           <template v-if="!hasCustomRemove">
             {{ t('promptRemove.attemptingToRemove', { type }) }} <span
-              v-html="resourceNames(names, plusMore, t)"
+              v-clean-html="resourceNames(names, plusMore, t)"
             />
           </template>
 
@@ -359,6 +376,7 @@ export default {
               :value="toRemove"
               :names="names"
               :type="type"
+              :done-location="doneLocation"
               @errors="e => error = e"
               @done="done"
             />
@@ -367,37 +385,47 @@ export default {
               class="mt-10"
             >
               <span
-                v-html="t('promptRemove.confirmName', { nameToMatch: escapeHtml(nameToMatch) }, true)"
+                v-clean-html="t('promptRemove.confirmName', { nameToMatch: escapeHtml(nameToMatch) }, true)"
               />
             </div>
           </template>
         </div>
-        <input
+        <LabeledInput
           v-if="needsConfirm"
           id="confirm"
           v-model="confirmName"
+          v-focus
           :data-testid="componentTestid + '-input'"
           type="text"
         >
-        <div class="text-warning mb-10 mt-10">
-          {{ warning }}
-        </div>
-        <div class="text-error mb-10 mt-10">
-          {{ error }}
-        </div>
-        <div
-          v-if="!needsConfirm"
-          class="text-info mt-20"
-        >
-          {{ protip }}
-        </div>
-        <Checkbox
-          v-if="chartsToRemoveIsApp"
-          v-model="chartsDeleteCrd"
-          label-key="promptRemoveApp.removeCrd"
-          class="mt-10 type"
-          @input="chartAddCrdToRemove"
-        />
+          <div class="text-warning mb-10 mt-10">
+            {{ warning }}
+          </div>
+          <div class="text-error mb-10 mt-10">
+            {{ error }}
+          </div>
+          <div
+            v-if="!needsConfirm"
+            class="text-info mt-20"
+          >
+            {{ protip }}
+          </div>
+          <Checkbox
+            v-if="chartsToRemoveIsApp"
+            v-model="chartsDeleteCrd"
+            label-key="promptRemoveApp.removeCrd"
+            class="mt-10 type"
+            @input="chartAddCrdToRemove"
+          />
+        </labeledinput>
+        <template v-else>
+          <div class="text-warning mb-10 mt-10">
+            {{ warning }}
+          </div>
+          <div class="text-error mb-10 mt-10">
+            {{ error }}
+          </div>
+        </template>
       </div>
       <template #actions>
         <button
@@ -416,7 +444,7 @@ export default {
         />
       </template>
     </Card>
-  </modal>
+  </app-modal>
 </template>
 
 <style lang='scss'>
@@ -427,15 +455,6 @@ export default {
     #confirm {
       width: 90%;
       margin-left: 3px;
-    }
-
-    .remove-modal {
-        border-radius: var(--border-radius);
-        overflow: scroll;
-        max-height: 100vh;
-        & ::-webkit-scrollbar-corner {
-          background: rgba(0,0,0,0);
-        }
     }
 
     .actions {

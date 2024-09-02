@@ -11,8 +11,7 @@ import LabeledSelect from '@shell/components/form/LabeledSelect';
 import { _CREATE, _VIEW } from '@shell/config/query-params';
 import { PROVISIONER_OPTIONS } from '@shell/models/storage.k8s.io.storageclass';
 import { mapFeature, UNSUPPORTED_STORAGE_DRIVERS } from '@shell/store/features';
-import { CSI_DRIVER } from '@shell/config/types';
-import { LONGHORN_DRIVER } from '@shell/models/persistentvolume';
+import { CSI_DRIVER, LONGHORN_DRIVER } from '@shell/config/types';
 
 export default {
   name: 'StorageClass',
@@ -125,7 +124,7 @@ export default {
         if (driver.metadata.name === LONGHORN_DRIVER || provisionerOptionsDrivers.includes(driver.metadata.name)) {
           return;
         }
-        const fallback = `${ driver.metadata.name }  ${ this.t('persistentVolume.csi.drivers.suffix') }`;
+        const fallback = `${ driver.metadata.name }  ${ this.t('persistentVolume.csi.suffix') }`;
 
         dropdownOptions.push({
           value: driver.metadata.name,
@@ -138,11 +137,16 @@ export default {
     },
 
     provisionerIsDeprecated() {
-      const provisionerOpt = PROVISIONER_OPTIONS.find(opt => opt.value === this.value.provisioner);
+      const provisionerOpt = PROVISIONER_OPTIONS.find((opt) => opt.value === this.value.provisioner);
 
       return provisionerOpt && provisionerOpt.deprecated !== undefined;
-    }
+    },
 
+    provisionerIsHideCustomize() {
+      const provisionerOpt = PROVISIONER_OPTIONS.find((opt) => opt.value === this.value.provisioner);
+
+      return provisionerOpt && provisionerOpt.hideCustomize !== undefined;
+    },
   },
 
   watch: {
@@ -157,7 +161,7 @@ export default {
 
   methods: {
     getComponent(name) {
-      const isCustom = !PROVISIONER_OPTIONS.find(o => o.value === name);
+      const isCustom = !PROVISIONER_OPTIONS.find((o) => o.value === name);
       const provisioner = isCustom ? 'custom' : name;
 
       return require(`./provisioners/${ provisioner }`).default;
@@ -177,7 +181,7 @@ export default {
       });
     },
     provisionerLabel(provisioner) {
-      const provisionerOpt = PROVISIONER_OPTIONS.find(opt => opt.value === provisioner);
+      const provisionerOpt = PROVISIONER_OPTIONS.find((opt) => opt.value === provisioner);
 
       return provisionerOpt?.labelKey ? this.t(provisionerOpt.labelKey) : provisioner;
     },
@@ -247,6 +251,7 @@ export default {
         />
       </Tab>
       <Tab
+        v-if="!provisionerIsHideCustomize"
         name="customize"
         :label="t('storageClass.customize.label')"
       >

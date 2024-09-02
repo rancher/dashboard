@@ -6,14 +6,12 @@ import Loading from '@shell/components/Loading';
 import NameNsDescription from '@shell/components/form/NameNsDescription';
 import Tabbed from '@shell/components/Tabbed';
 import Tab from '@shell/components/Tabbed/Tab';
-import {
-  LOGGING, NAMESPACE, NODE, POD, SCHEMA
-} from '@shell/config/types';
+import { LOGGING, NAMESPACE, NODE, SCHEMA } from '@shell/config/types';
 import jsyaml from 'js-yaml';
 import { createYaml } from '@shell/utils/create-yaml';
 import YamlEditor, { EDITOR_MODES } from '@shell/components/YamlEditor';
 import { allHash } from '@shell/utils/promise';
-import { isArray, uniq } from '@shell/utils/array';
+import { isArray } from '@shell/utils/array';
 import { matchRuleIsPopulated } from '@shell/models/logging.banzaicloud.io.flow';
 import LabeledSelect from '@shell/components/form/LabeledSelect';
 import { clone, set } from '@shell/utils/object';
@@ -55,7 +53,6 @@ export default {
     const hasAccessToOutputs = this.$store.getters[`cluster/schemaFor`](LOGGING.OUTPUT);
     const hasAccessToNamespaces = this.$store.getters[`cluster/schemaFor`](NAMESPACE);
     const hasAccessToNodes = this.$store.getters[`cluster/schemaFor`](NODE);
-    const hasAccessToPods = this.$store.getters[`cluster/schemaFor`](POD);
     const isFlow = this.value.type === LOGGING.FLOW;
 
     const getAllOrDefault = (type, hasAccess) => {
@@ -67,7 +64,6 @@ export default {
       allClusterOutputs: getAllOrDefault(LOGGING.CLUSTER_OUTPUT, hasAccessToClusterOutputs),
       allNamespaces:     getAllOrDefault(NAMESPACE, hasAccessToNamespaces),
       allNodes:          getAllOrDefault(NODE, hasAccessToNodes),
-      allPods:           getAllOrDefault(POD, hasAccessToPods),
     });
 
     for ( const k of Object.keys(hash) ) {
@@ -84,7 +80,8 @@ export default {
     if ( this.value.spec.filters?.length ) {
       filtersYaml = jsyaml.dump(this.value.spec.filters);
     } else {
-      filtersYaml = createYaml(schemas, LOGGING.SPOOFED.FILTERS, []);
+      // Note - no need to call fetchResourceFields here (spoofed type has popoulated resourceFields)
+      filtersYaml = createYaml(schemas, LOGGING.SPOOFED.FILTERS, {});
       // createYaml doesn't support passing reference types (array, map) as the first type. As such
       // I'm manipulating the output since I'm not sure it's something we want to actually support
       // seeing as it's really createResourceYaml and this here is a gray area between spoofed types
@@ -109,8 +106,8 @@ export default {
       matches.push(emptyMatch(true));
     }
 
-    const globalOutputRefs = (this.value.spec.globalOutputRefs || []).map(ref => ({ label: ref, value: ref }));
-    const localOutputRefs = (this.value.spec.localOutputRefs || []).map(ref => ({ label: ref, value: ref }));
+    const globalOutputRefs = (this.value.spec.globalOutputRefs || []).map((ref) => ({ label: ref, value: ref }));
+    const localOutputRefs = (this.value.spec.localOutputRefs || []).map((ref) => ({ label: ref, value: ref }));
 
     return {
       formSupported,
@@ -203,17 +200,6 @@ export default {
       return out;
     },
 
-    containerChoices() {
-      const out = [];
-
-      for ( const pod of this.allPods ) {
-        for ( const c of (pod.spec?.containers || []) ) {
-          out.push(c.name);
-        }
-      }
-
-      return uniq(out).sort();
-    },
   },
 
   watch: {
@@ -309,7 +295,7 @@ export default {
 
         const select = match.select || {};
         const exclude = match.exclude || {};
-        const allValuesAreEmpty = o => Object.values(o).every(isEmpty);
+        const allValuesAreEmpty = (o) => Object.values(o).every(isEmpty);
 
         return allValuesAreEmpty(select) && allValuesAreEmpty(exclude);
       });
@@ -329,7 +315,7 @@ export default {
       cm.execCommand('unfold');
     },
     isTag(options, option) {
-      return !options.find(o => o.value === option.value);
+      return !options.find((o) => o.value === option.value);
     }
   }
 };
@@ -385,7 +371,6 @@ export default {
               :mode="mode"
               :namespaces="namespaceChoices"
               :nodes="nodeChoices"
-              :containers="containerChoices"
               :is-cluster-flow="value.type === LOGGING.CLUSTER_FLOW"
               @remove="e=>removeMatch(props.row.i)"
               @input="e=>updateMatch(e,props.row.i)"
@@ -433,7 +418,7 @@ export default {
           <template #selected-option="option">
             <i
               v-if="isTag(clusterOutputChoices, option)"
-              v-tooltip="t('logging.flow.clusterOutputs.doesntExistTooltip')"
+              v-clean-tooltip="t('logging.flow.clusterOutputs.doesntExistTooltip')"
               class="icon icon-info status-icon text-warning"
             />
             {{ option.label }}
@@ -454,7 +439,7 @@ export default {
           <template #selected-option="option">
             <i
               v-if="isTag(outputChoices, option)"
-              v-tooltip="t('logging.flow.outputs.doesntExistTooltip')"
+              v-clean-tooltip="t('logging.flow.outputs.doesntExistTooltip')"
               class="icon icon-info status-icon text-warning"
             />
             {{ option.label }}

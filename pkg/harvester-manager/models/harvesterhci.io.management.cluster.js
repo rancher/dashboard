@@ -66,7 +66,7 @@ export default class HciCluster extends ProvCluster {
 
     if (uiOfflinePreferred === 'dynamic') {
       // We shouldn't need to worry about the version of the dashboard when embedded in harvester (aka in isSingleProduct)
-      const version = this.$rootGetters['management/byId'](MANAGEMENT.SETTING, 'server-version')?.value;
+      const version = this.$rootGetters['management/byId'](MANAGEMENT.SETTING, SETTING.VERSION_RANCHER)?.value;
 
       if (version.endsWith('-head')) {
         uiOfflinePreferred = 'false';
@@ -174,7 +174,7 @@ export default class HciCluster extends ProvCluster {
     const plugins = this.$rootState.$plugin.getPlugins();
     const loadedPkgs = Object.keys(plugins);
 
-    if (loadedPkgs.find(pkg => pkg === HARVESTER_NAME)) {
+    if (loadedPkgs.find((pkg) => pkg === HARVESTER_NAME)) {
       console.info('Harvester plugin built is built in, skipping load from external sources'); // eslint-disable-line no-console
 
       return;

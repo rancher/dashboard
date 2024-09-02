@@ -66,9 +66,9 @@ export default {
         </div>
       </div>
       <div
+        v-clean-html="t('principal.loading', null, true)"
         class="name"
         :class="{'text-muted': useMuted}"
-        v-html="t('principal.loading', null, true)"
       />
       <div class="description" />
     </template>

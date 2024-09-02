@@ -25,7 +25,7 @@ export default {
   },
 
   data() {
-    const volumeMounts = (this.container.volumeMounts || []).filter(mount => mount.name === this.name);
+    const volumeMounts = (this.container.volumeMounts || []).filter((mount) => mount.name === this.name);
 
     return { volumeMounts };
   },
@@ -34,7 +34,7 @@ export default {
 
   watch: {
     volumeMounts(neu) {
-      this.container.volumeMounts = (this.container.volumeMounts || []).filter(mount => mount.name && (mount.name !== this.name));
+      this.container.volumeMounts = (this.container.volumeMounts || []).filter((mount) => mount.name && (mount.name !== this.name));
       this.container.volumeMounts.push(...neu);
     },
 
@@ -138,13 +138,13 @@ export default {
 <style lang='scss'>
 .mount-headers, .mount-rows{
   display: grid;
-  grid-template-columns: 35% 35% auto auto;
+  grid-template-columns: 42% 42% 5% auto;
   grid-gap: $column-gutter;
   margin-bottom: 10px;
   align-items: center;
 
-  .remove {
-    text-align: right;
+  .remove BUTTON {
+    padding: 0px;
   }
 }
 

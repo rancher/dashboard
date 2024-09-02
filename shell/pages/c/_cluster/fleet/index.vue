@@ -3,45 +3,69 @@ import { mapState } from 'vuex';
 import { FLEET } from '@shell/config/types';
 import { WORKSPACE } from '@shell/store/prefs';
 import { STATES_ENUM, STATES, getStateLabel } from '@shell/plugins/dashboard-store/resource-class';
-import { allHash } from '@shell/utils/promise';
 import Loading from '@shell/components/Loading';
 import CollapsibleCard from '@shell/components/CollapsibleCard.vue';
 import ResourceTable from '@shell/components/ResourceTable';
 import CompoundStatusBadge from '@shell/components/CompoundStatusBadge';
+import { checkPermissions, checkSchemasForFindAllHash } from '@shell/utils/auth';
+import { WORKSPACE_ANNOTATION } from '@shell/config/labels-annotations';
+import { filterBy } from '@shell/utils/array';
+import FleetNoWorkspaces from '@shell/components/fleet/FleetNoWorkspaces.vue';
+import { NAME } from '@shell/config/product/fleet';
 
 export default {
-  name:       'ListGitRepo',
+  name:       'FleetDashboard',
   components: {
     Loading,
     ResourceTable,
     CollapsibleCard,
-    CompoundStatusBadge
+    CompoundStatusBadge,
+    FleetNoWorkspaces
   },
 
   async fetch() {
-    const hash = await allHash({
-      allBundles:      this.$store.dispatch('management/findAll', { type: FLEET.BUNDLE }),
-      gitRepos:        this.$store.dispatch('management/findAll', { type: FLEET.GIT_REPO }),
-      fleetWorkspaces: this.$store.dispatch('management/findAll', { type: FLEET.WORKSPACE }),
-    });
+    const hash = await checkSchemasForFindAllHash({
+      fleetWorkspaces: {
+        inStoreType:     'management',
+        type:            FLEET.WORKSPACE,
+        schemaValidator: (schema) => {
+          return !!schema?.links?.collection;
+        }
+      },
+      clusterGroups: {
+        inStoreType: 'management',
+        type:        FLEET.CLUSTER_GROUP
+      },
+      allBundles: {
+        inStoreType: 'management',
+        type:        FLEET.BUNDLE,
+      },
+      gitRepos: {
+        inStoreType: 'management',
+        type:        FLEET.GIT_REPO,
+      },
+      fleetClusters: {
+        inStoreType: 'management',
+        type:        FLEET.CLUSTER,
+      }
+    }, this.$store);
 
-    this.allBundles = hash.allBundles;
     this.gitRepos = hash.gitRepos;
-    this.fleetWorkspaces = hash.fleetWorkspaces;
+    this.fleetWorkspacesData = hash.fleetWorkspaces || [];
 
-    // init cards collapse flags
-    const workspaces = this.fleetWorkspaces.filter(ws => ws.repos.length);
+    try {
+      const permissions = await checkPermissions({ workspaces: { type: FLEET.WORKSPACE }, gitRepos: { type: FLEET.GIT_REPO, schemaValidator: (schema) => schema.resourceMethods.includes('PUT') } }, this.$store.getters);
 
-    if (workspaces.length) {
-      workspaces.forEach((ws) => {
-        this.$set(this.isCollapsed, ws.id, false);
-      });
+      this.permissions = permissions;
+    } catch (e) {
+      console.error(e); // eslint-disable-line no-console
     }
   },
 
   data() {
     return {
-      headers: [
+      admissableAreas: ['clusters', 'bundles', 'resources'],
+      headers:         [
         {
           name:          'name',
           labelKey:      'tableHeaders.repoName',
@@ -71,30 +95,54 @@ export default {
           sort:     'status.resourceCounts.ready',
         }
       ],
-      schema:          {},
-      allBundles:      null,
-      gitRepos:        null,
-      fleetWorkspaces: null,
-      isCollapsed:     {},
-      getStartedLink:  {
+      schema:              {},
+      allBundles:          [],
+      gitRepos:            [],
+      fleetWorkspacesData: [],
+      isCollapsed:         {},
+      permissions:         {},
+      getStartedLink:      {
         name:   'c-cluster-product-resource-create',
         params: {
-          product:  'fleet',
+          product:  NAME,
           resource: FLEET.GIT_REPO
         },
       }
     };
   },
   computed: {
-    ...mapState(['workspace']),
+    ...mapState(['workspace', 'allNamespaces']),
+    fleetWorkspaces() {
+      if (this.fleetWorkspacesData?.length) {
+        return this.fleetWorkspacesData;
+      }
+
+      // When user doesn't have access to the workspaces fall back to namespaces
+      return this.allNamespaces.filter((item) => {
+        return item.metadata.annotations[WORKSPACE_ANNOTATION] === WORKSPACE;
+      }).map(( obj ) => {
+        const repos = filterBy(this.gitRepos, 'metadata.namespace', obj.id);
+
+        return {
+          ...obj,
+          counts: {
+            clusters:      '-',
+            clusterGroups: '-',
+            gitRepos:      repos.length
+          },
+          repos,
+          nameDisplay: obj.id
+        };
+      });
+    },
     workspacesData() {
-      return this.fleetWorkspaces.filter(ws => ws.repos.length);
+      return this.fleetWorkspaces.filter((ws) => ws.repos && ws.repos.length);
     },
     emptyWorkspaces() {
-      return this.fleetWorkspaces.filter(ws => !ws.repos || !ws.repos.length);
+      return this.fleetWorkspaces.filter((ws) => !ws.repos || !ws.repos.length);
     },
     areAllCardsExpanded() {
-      return Object.keys(this.isCollapsed).every(key => !this.isCollapsed[key]);
+      return Object.keys(this.isCollapsed).every((key) => !this.isCollapsed[key]);
     }
   },
   methods: {
@@ -105,118 +153,88 @@ export default {
       this.$router.push({
         name:   'c-cluster-product-resource',
         params: {
-          product:  'fleet',
+          product:  NAME,
           resource: FLEET.GIT_REPO
         },
       });
     },
     getStatusInfo(area, row) {
+      const defaultStatusInfo = {
+        badgeClass: `${ STATES[STATES_ENUM.NOT_READY].color } badge-class-default`,
+        icon:       STATES[STATES_ENUM.NOT_READY].compoundIcon
+      };
+
       // classes are defined in the themes SASS files...
-      switch (area) {
-      case 'clusters':
-        if (row.clusterInfo?.ready === row.clusterInfo?.total && row.clusterInfo?.ready) {
-          return {
-            badgeClass: STATES[STATES_ENUM.ACTIVE].color,
-            icon:       STATES[STATES_ENUM.ACTIVE].compoundIcon
-          };
-        }
+      return this.getBadgeClassAndIcon(area, row) || defaultStatusInfo;
+    },
+    getBadgeClassAndIcon(area, row) {
+      let group;
 
+      if (!this.admissableAreas.includes(area)) {
+        return false;
+      }
+
+      if (area === 'clusters') {
+        group = row.targetClusters;
+      } else if (area === 'bundles') {
+        group = row.bundles;
+      } else if (area === 'resources') {
+        group = row.status?.resources;
+      }
+
+      if (group?.length && group?.every((item) => item.state?.toLowerCase() === STATES_ENUM.ACTIVE)) {
         return {
-          badgeClass: `${ STATES[STATES_ENUM.NOT_READY].color } badge-class-area-clusters`,
-          icon:       STATES[STATES_ENUM.NOT_READY].compoundIcon
+          badgeClass: STATES[STATES_ENUM.ACTIVE].color ? STATES[STATES_ENUM.ACTIVE].color : `${ STATES[STATES_ENUM.UNKNOWN].color } bg-unmapped-state`,
+          icon:       STATES[STATES_ENUM.ACTIVE].compoundIcon ? STATES[STATES_ENUM.ACTIVE].compoundIcon : `${ STATES[STATES_ENUM.UNKNOWN].compoundIcon } unmapped-icon`
         };
-      case 'bundles':
-        if (row.bundles?.length && row.bundles?.every(bundle => bundle.state?.toLowerCase() === STATES_ENUM.ACTIVE)) {
-          return {
-            badgeClass: STATES[STATES_ENUM.ACTIVE].color ? STATES[STATES_ENUM.ACTIVE].color : `${ STATES[STATES_ENUM.UNKNOWN].color } bg-unmapped-state`,
-            icon:       STATES[STATES_ENUM.ACTIVE].compoundIcon ? STATES[STATES_ENUM.ACTIVE].compoundIcon : `${ STATES[STATES_ENUM.UNKNOWN].compoundIcon } unmapped-icon`
-          };
-        }
-        if (row.bundles?.length && row.bundles?.some(bundle => bundle.state?.toLowerCase() === STATES_ENUM.ERR_APPLIED)) {
-          return {
-            badgeClass: STATES[STATES_ENUM.ERR_APPLIED].color ? STATES[STATES_ENUM.ERR_APPLIED].color : `${ STATES[STATES_ENUM.UNKNOWN].color } bg-unmapped-state`,
-            icon:       STATES[STATES_ENUM.ERR_APPLIED].compoundIcon ? STATES[STATES_ENUM.ERR_APPLIED].compoundIcon : `${ STATES[STATES_ENUM.UNKNOWN].compoundIcon } unmapped-icon`
-          };
-        }
-        if (row.bundles?.length && row.bundles?.some(bundle => bundle.state?.toLowerCase() === STATES_ENUM.NOT_READY)) {
-          return {
-            badgeClass: STATES[STATES_ENUM.NOT_READY].color ? STATES[STATES_ENUM.NOT_READY].color : `${ STATES[STATES_ENUM.UNKNOWN].color } bg-unmapped-state`,
-            icon:       STATES[STATES_ENUM.NOT_READY].compoundIcon ? STATES[STATES_ENUM.NOT_READY].compoundIcon : `${ STATES[STATES_ENUM.UNKNOWN].compoundIcon } unmapped-icon`
-          };
-        }
-
-        if (row.bundlesReady?.length === row.bundles?.length && row.bundlesReady && row.bundles?.length) {
-          return {
-            badgeClass: STATES[STATES_ENUM.ACTIVE].color,
-            icon:       STATES[STATES_ENUM.ACTIVE].compoundIcon
-          };
-        }
-
+      }
+      if (group?.length && group?.some((item) => item.state?.toLowerCase() === STATES_ENUM.ERR_APPLIED)) {
         return {
-          badgeClass: `${ STATES[STATES_ENUM.NOT_READY].color } badge-class-area-bundles`,
-          icon:       STATES[STATES_ENUM.NOT_READY].compoundIcon
+          badgeClass: STATES[STATES_ENUM.ERR_APPLIED].color ? STATES[STATES_ENUM.ERR_APPLIED].color : `${ STATES[STATES_ENUM.UNKNOWN].color } bg-unmapped-state`,
+          icon:       STATES[STATES_ENUM.ERR_APPLIED].compoundIcon ? STATES[STATES_ENUM.ERR_APPLIED].compoundIcon : `${ STATES[STATES_ENUM.UNKNOWN].compoundIcon } unmapped-icon`
         };
-      case 'resources':
-        if (row.status?.resources?.length && row.status?.resources?.every(resource => resource.state?.toLowerCase() === STATES_ENUM.ACTIVE)) {
-          return {
-            badgeClass: STATES[STATES_ENUM.ACTIVE].color ? STATES[STATES_ENUM.ACTIVE].color : `${ STATES[STATES_ENUM.UNKNOWN].color } bg-unmapped-state`,
-            icon:       STATES[STATES_ENUM.ACTIVE].compoundIcon ? STATES[STATES_ENUM.ACTIVE].compoundIcon : `${ STATES[STATES_ENUM.UNKNOWN].compoundIcon } unmapped-icon`
-          };
-        }
-        if (row.status?.resources?.length && row.status?.resources?.some(resource => resource.state?.toLowerCase() === STATES_ENUM.ERR_APPLIED)) {
-          return {
-            badgeClass: STATES[STATES_ENUM.ERR_APPLIED].color ? STATES[STATES_ENUM.ERR_APPLIED].color : `${ STATES[STATES_ENUM.UNKNOWN].color } bg-unmapped-state`,
-            icon:       STATES[STATES_ENUM.ERR_APPLIED].compoundIcon ? STATES[STATES_ENUM.ERR_APPLIED].compoundIcon : `${ STATES[STATES_ENUM.UNKNOWN].compoundIcon } unmapped-icon`
-          };
-        }
-        if (row.status?.resources?.length && row.status?.resources?.some(resource => resource.state?.toLowerCase() === STATES_ENUM.NOT_READY)) {
-          return {
-            badgeClass: STATES[STATES_ENUM.NOT_READY].color ? STATES[STATES_ENUM.NOT_READY].color : `${ STATES[STATES_ENUM.UNKNOWN].color } bg-unmapped-state`,
-            icon:       STATES[STATES_ENUM.NOT_READY].compoundIcon ? STATES[STATES_ENUM.NOT_READY].compoundIcon : `${ STATES[STATES_ENUM.UNKNOWN].compoundIcon } unmapped-icon`
-          };
-        }
+      }
+      if (group?.length && group?.some((item) => item.state?.toLowerCase() === STATES_ENUM.NOT_READY)) {
+        return {
+          badgeClass: STATES[STATES_ENUM.NOT_READY].color ? STATES[STATES_ENUM.NOT_READY].color : `${ STATES[STATES_ENUM.UNKNOWN].color } bg-unmapped-state`,
+          icon:       STATES[STATES_ENUM.NOT_READY].compoundIcon ? STATES[STATES_ENUM.NOT_READY].compoundIcon : `${ STATES[STATES_ENUM.UNKNOWN].compoundIcon } unmapped-icon`
+        };
+      }
 
+      if (area === 'resources') {
         if (row.status?.resourceCounts?.desiredReady === row.status?.resourceCounts?.ready && row.status?.resourceCounts?.desiredReady) {
           return {
             badgeClass: STATES[STATES_ENUM.ACTIVE].color,
             icon:       STATES[STATES_ENUM.ACTIVE].compoundIcon
           };
         }
-
-        return {
-          badgeClass: `${ STATES[STATES_ENUM.NOT_READY].color } badge-class-area-resources`,
-          icon:       STATES[STATES_ENUM.NOT_READY].compoundIcon
-        };
-      default:
-        return {
-          badgeClass: `${ STATES[STATES_ENUM.NOT_READY].color } badge-class-default`,
-          icon:       STATES[STATES_ENUM.NOT_READY].compoundIcon
-        };
       }
+
+      return {
+        badgeClass: `${ STATES[STATES_ENUM.NOT_READY].color } badge-class-area-${ area }`,
+        icon:       STATES[STATES_ENUM.NOT_READY].compoundIcon
+      };
     },
     getTooltipInfo(area, row) {
-      switch (area) {
-      case 'clusters':
-        if (row.clusterInfo?.total) {
-          return `Ready: ${ row.clusterInfo?.ready }<br>Total: ${ row.clusterInfo?.total }`;
-        }
+      let group;
 
-        return '';
-      case 'bundles':
-        if (row.bundles?.length) {
-          return this.generateTooltipData(row.bundles);
-        }
-
-        return '';
-      case 'resources':
-        if (row.status?.resources?.length) {
-          return this.generateTooltipData(row.status?.resources);
-        }
-
-        return '';
-      default:
+      if (!this.admissableAreas.includes(area)) {
         return {};
       }
+
+      if (area === 'clusters') {
+        group = row.targetClusters;
+      } else if (area === 'bundles') {
+        group = row.bundles;
+      } else if (area === 'resources') {
+        group = row.status?.resources;
+      }
+
+      if (group?.length) {
+        return this.generateTooltipData(group);
+      }
+
+      return '';
     },
     generateTooltipData(data) {
       const infoObj = {};
@@ -236,6 +254,23 @@ export default {
 
       return tooltipData;
     },
+    getBadgeValue(area, row) {
+      let value;
+
+      if (!this.admissableAreas.includes(area)) {
+        return 'N/A';
+      }
+
+      if (area === 'clusters') {
+        value = `${ row.targetClustersReady?.length || '0' }/${ row.targetClusters?.length || '?' }`;
+      } else if (area === 'bundles') {
+        value = `${ row.bundlesReady?.length || '0' }/${ row.bundles?.length || '?' }`;
+      } else if (area === 'resources') {
+        value = `${ row.status?.resourceCounts?.ready || '0' }/${ row.status?.resourceCounts?.desiredReady || '?' }`;
+      }
+
+      return value;
+    },
     toggleCollapse(val, key) {
       this.$set(this.isCollapsed, key, val);
     },
@@ -247,6 +282,14 @@ export default {
       });
     }
   },
+
+  watch: {
+    fleetWorkspaces(value) {
+      value?.filter((ws) => ws.repos?.length).forEach((ws) => {
+        this.$set(this.isCollapsed, ws.id, false);
+      });
+    }
+  }
 };
 </script>
 
@@ -254,6 +297,10 @@ export default {
   <div class="fleet-dashboard">
     <Loading v-if="$fetchState.pending" />
     <!-- no git repos -->
+    <FleetNoWorkspaces
+      v-else-if="!fleetWorkspacesData.length"
+      :can-view="permissions.workspaces"
+    />
     <div
       v-else-if="!gitRepos.length"
       class="fleet-empty-dashboard"
@@ -270,15 +317,17 @@ export default {
           {{ t('fleet.dashboard.learnMore') }} <i class="icon icon-external-link" />
         </a>
       </p>
-      <h3 class="mb-30">
-        {{ t('fleet.dashboard.noRepo', null, true) }}
-      </h3>
-      <n-link
-        :to="getStartedLink"
-        class="btn role-secondary"
-      >
-        {{ t('fleet.dashboard.getStarted') }}
-      </n-link>
+      <template v-if="permissions.gitRepos">
+        <h3 class="mb-30">
+          {{ t('fleet.dashboard.noRepo', null, true) }}
+        </h3>
+        <router-link
+          :to="getStartedLink"
+          class="btn role-secondary"
+        >
+          {{ t('fleet.dashboard.getStarted') }}
+        </router-link>
+      </template>
     </div>
     <!-- fleet dashboard with repos -->
     <div
@@ -323,6 +372,7 @@ export default {
         :title="`${t('resourceDetail.masthead.workspace')}: ${ws.nameDisplay}`"
         :is-collapsed="isCollapsed[ws.id]"
         :is-title-clickable="true"
+        :data-testid="`collapsible-card-${ ws.id }`"
         @toggleCollapse="toggleCollapse($event, ws.id)"
         @titleClick="setWorkspaceFilterAndLinkToGitRepo(ws.id)"
       >
@@ -354,27 +404,34 @@ export default {
             v-on="$listeners"
           >
             <template #cell:clustersReady="{row}">
+              <span v-if="ws.type === 'namespace'"> - </span>
               <CompoundStatusBadge
+                v-else
+                data-testid="clusters-ready"
                 :tooltip-text="getTooltipInfo('clusters', row)"
                 :badge-class="getStatusInfo('clusters', row).badgeClass"
                 :icon="getStatusInfo('clusters', row).icon"
-                :value="`${ row.clusterInfo.ready }/${ row.clusterInfo.total }`"
+                :value="getBadgeValue('clusters', row)"
               />
             </template>
             <template #cell:bundlesReady="{row}">
+              <span v-if="ws.type === 'namespace'"> - </span>
               <CompoundStatusBadge
+                v-else
+                data-testid="bundles-ready"
                 :tooltip-text="getTooltipInfo('bundles', row)"
                 :badge-class="getStatusInfo('bundles', row).badgeClass"
                 :icon="getStatusInfo('bundles', row).icon"
-                :value="`${ row.bundlesReady.length || 0 }/${ row.bundles.length }`"
+                :value="getBadgeValue('bundles', row)"
               />
             </template>
             <template #cell:resourcesReady="{row}">
               <CompoundStatusBadge
+                data-testid="resources-ready"
                 :tooltip-text="getTooltipInfo('resources', row)"
                 :badge-class="getStatusInfo('resources', row).badgeClass"
                 :icon="getStatusInfo('resources', row).icon"
-                :value="`${ row.status.resourceCounts.ready }/${ row.status.resourceCounts.desiredReady }`"
+                :value="getBadgeValue('resources', row)"
               />
             </template>
 
@@ -389,6 +446,9 @@ export default {
 </template>
 
 <style lang="scss" scoped>
+.fleet-dashboard {
+  min-height: 100vh;
+}
 .fleet-empty-dashboard {
   flex: 1;
   display: flex;

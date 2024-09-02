@@ -18,7 +18,7 @@
  */
 import Vue from 'vue';
 import { Solver } from '@shell/utils/svg-filter';
-import { colorToRgb, mapStandardColors } from '@shell/utils/color';
+import { colorToRgb, mapStandardColors, normalizeHex } from '@shell/utils/color';
 
 const filterCache = {};
 const cssCache = {};
@@ -63,8 +63,41 @@ export default {
 
   methods: {
     setColor() {
-      const uiColor = mapStandardColors(getComputedStyle(document.body).getPropertyValue(colors[this.color].color).trim());
-      const hoverColor = mapStandardColors(getComputedStyle(document.body).getPropertyValue(colors[this.color].hover).trim());
+      const currTheme = this.$store.getters['prefs/theme'];
+      let uiColor, hoverColor;
+
+      // grab css vars values based on the actual stylesheets, depending on the theme applied
+      // use for loops to minimize computation
+      for (let i = 0; i < Object.keys(document.styleSheets).length; i++) {
+        let found = false;
+        const stylesheet = document.styleSheets[i];
+
+        if (stylesheet && stylesheet.cssRules) {
+          for (let x = 0; x < Object.keys(stylesheet.cssRules).length; x++) {
+            const cssRules = stylesheet.cssRules[x];
+
+            if (cssRules.selectorText && ((currTheme === 'light' && (cssRules.selectorText.includes('body') || cssRules.selectorText.includes('BODY')) &&
+              cssRules.selectorText.includes('.theme-light') && cssRules.style.cssText.includes('--link:')) ||
+              (currTheme === 'dark' && cssRules.selectorText.includes('.theme-dark')))) {
+              // grab the colors to be used on the icon from the css rules
+              uiColor = mapStandardColors(cssRules.style.getPropertyValue(colors[this.color].color).trim());
+              hoverColor = mapStandardColors(cssRules.style.getPropertyValue(colors[this.color].hover).trim());
+
+              // normalize hex colors (#xxx to #xxxxxx)
+              uiColor = normalizeHex(uiColor);
+              hoverColor = normalizeHex(hoverColor);
+
+              found = true;
+              break;
+            }
+          }
+        }
+        if (found) {
+          break;
+        } else {
+          continue;
+        }
+      }
 
       const uiColorRGB = colorToRgb(uiColor);
       const hoverColorRGB = colorToRgb(hoverColor);
@@ -103,6 +136,9 @@ export default {
             ${ hoverFilter };
           }
           button:hover > img.${ className } {
+            ${ hoverFilter };
+          }
+          li:hover > img.${ className } {
             ${ hoverFilter };
           }
           a.option:hover > img.${ className } {

@@ -75,7 +75,7 @@ export default {
     <button
       v-for="(opt,idx) in optionObjects"
       :key="idx"
-      v-tooltip="opt.tooltipKey ? t(opt.tooltipKey) : opt.tooltip"
+      v-clean-tooltip="opt.tooltipKey ? t(opt.tooltipKey) : opt.tooltip"
       :data-testid="`button-group-child-${idx}`"
       type="button"
       :class="opt.class"

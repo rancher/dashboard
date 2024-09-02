@@ -3,20 +3,23 @@ import { mapGetters } from 'vuex';
 import debounce from 'lodash/debounce';
 import { NORMAN, STEVE } from '@shell/config/types';
 import { ucFirst } from '@shell/utils/string';
-import { isMac } from '@shell/utils/platform';
+import { isAlternate, isMac } from '@shell/utils/platform';
 import Import from '@shell/components/Import';
 import BrandImage from '@shell/components/BrandImage';
 import { getProduct } from '@shell/config/private-label';
 import ClusterProviderIcon from '@shell/components/ClusterProviderIcon';
 import ClusterBadge from '@shell/components/ClusterBadge';
-import { LOGGED_OUT } from '@shell/config/query-params';
+import AppModal from '@shell/components/AppModal';
+import { LOGGED_OUT, IS_SSO } from '@shell/config/query-params';
 import NamespaceFilter from './NamespaceFilter';
 import WorkspaceSwitcher from './WorkspaceSwitcher';
 import TopLevelMenu from './TopLevelMenu';
 import Jump from './Jump';
 import { allHash } from '@shell/utils/promise';
-
-const PAGE_HEADER_ACTION = 'page-action';
+import { ActionLocation, ExtensionPoint } from '@shell/core/types';
+import { getApplicableExtensionEnhancements } from '@shell/core/plugin-helpers';
+import IconOrSvg from '@shell/components/IconOrSvg';
+import { wait } from '@shell/utils/async';
 
 export default {
 
@@ -29,6 +32,8 @@ export default {
     BrandImage,
     ClusterBadge,
     ClusterProviderIcon,
+    IconOrSvg,
+    AppModal,
   },
 
   props: {
@@ -43,20 +48,23 @@ export default {
     const shellShortcut = '(Ctrl+`)';
 
     return {
-      show:              false,
-      showTooltip:       false,
-      kubeConfigCopying: false,
+      show:                   false,
+      showTooltip:            false,
+      kubeConfigCopying:      false,
       searchShortcut,
       shellShortcut,
       LOGGED_OUT,
-      navHeaderRight:    null,
+      navHeaderRight:         null,
+      extensionHeaderActions: getApplicableExtensionEnhancements(this, ExtensionPoint.ACTION, ActionLocation.HEADER, this.$route),
+      ctx:                    this,
+      showImportModal:        false,
+      showSearchModal:        false,
     };
   },
 
   computed: {
-    ...mapGetters(['clusterReady', 'isExplorer', 'isMultiCluster', 'isRancher', 'currentCluster',
-      'currentProduct', 'backToRancherLink', 'backToRancherGlobalLink', 'pageActions', 'isSingleProduct']),
-    ...mapGetters('type-map', ['activeProducts']),
+    ...mapGetters(['clusterReady', 'isExplorer', 'isRancher', 'currentCluster',
+      'currentProduct', 'rootProduct', 'backToRancherLink', 'backToRancherGlobalLink', 'pageActions', 'isSingleProduct', 'isRancherInHarvester', 'showTopLevelMenu']),
 
     appName() {
       return getProduct();
@@ -64,6 +72,14 @@ export default {
 
     authEnabled() {
       return this.$store.getters['auth/enabled'];
+    },
+
+    isAuthLocalProvider() {
+      return this.principal && this.principal.provider === 'local';
+    },
+
+    generateLogoutRoute() {
+      return this.isAuthLocalProvider ? { name: 'auth-logout', query: { [LOGGED_OUT]: true } } : { name: 'auth-logout', query: { [LOGGED_OUT]: true, [IS_SSO]: true } };
     },
 
     principal() {
@@ -79,15 +95,15 @@ export default {
     },
 
     showKubeShell() {
-      return !this.currentProduct?.hideKubeShell;
+      return !this.rootProduct?.hideKubeShell;
     },
 
     showKubeConfig() {
-      return !this.currentProduct?.hideKubeConfig;
+      return !this.rootProduct?.hideKubeConfig;
     },
 
     showCopyConfig() {
-      return !this.currentProduct?.hideCopyConfig;
+      return !this.rootProduct?.hideCopyConfig;
     },
 
     showPreferencesLink() {
@@ -102,7 +118,7 @@ export default {
     },
 
     showPageActions() {
-      return !this.featureRancherDesktop && this.pageActions?.length;
+      return !this.featureRancherDesktop && this.pageActions && this.pageActions.length;
     },
 
     showUserMenu() {
@@ -117,7 +133,7 @@ export default {
       // Don't show if the header is in 'simple' mode
       const notSimple = !this.simple;
       // One of these must be enabled, otherwise t here's no component to show
-      const validFilterSettings = this.currentProduct.showNamespaceFilter || this.currentProduct.showWorkspaceSwitcher;
+      const validFilterSettings = this.currentProduct?.showNamespaceFilter || this.currentProduct?.showWorkspaceSwitcher;
 
       return validClusterOrProduct && notSimple && validFilterSettings;
     },
@@ -131,17 +147,17 @@ export default {
     },
 
     prod() {
-      const name = this.currentProduct.name;
+      const name = this.rootProduct.name;
 
       return this.$store.getters['i18n/withFallback'](`product."${ name }"`, null, ucFirst(name));
     },
 
     showSearch() {
-      return this.currentProduct?.inStore === 'cluster';
+      return this.rootProduct?.inStore === 'cluster';
     },
 
     showImportYaml() {
-      return this.currentProduct?.inStore !== 'harvester';
+      return this.rootProduct?.inStore !== 'harvester';
     },
 
     nameTooltip() {
@@ -170,6 +186,14 @@ export default {
       if (nue && old && nue.id !== old.id) {
         this.checkClusterName();
       }
+    },
+    // since the Header is a "persistent component" we need to update it at every route change...
+    $route(nue) {
+      if (nue) {
+        this.extensionHeaderActions = getApplicableExtensionEnhancements(this, ExtensionPoint.ACTION, ActionLocation.HEADER, nue);
+
+        this.navHeaderRight = this.$plugin?.getDynamic('component', 'NavHeaderRight');
+      }
     }
   },
 
@@ -179,8 +203,6 @@ export default {
     window.addEventListener('resize', this.debouncedLayoutHeader);
 
     this.$nextTick(() => this.layoutHeader(null, true));
-
-    this.navHeaderRight = this.$plugin?.getDynamic('component', 'NavHeaderRight');
   },
 
   beforeDestroy() {
@@ -227,19 +249,19 @@ export default {
     },
 
     openImport() {
-      this.$modal.show('importModal');
+      this.showImportModal = true;
     },
 
     closeImport() {
-      this.$modal.hide('importModal');
+      this.showImportModal = false;
     },
 
     openSearch() {
-      this.$modal.show('searchModal');
+      this.showSearchModal = true;
     },
 
     hideSearch() {
-      this.$modal.hide('searchModal');
+      this.showSearchModal = false;
     },
 
     showPageActionsMenu(show) {
@@ -253,7 +275,7 @@ export default {
     },
 
     pageAction(action) {
-      this.$nuxt.$emit(PAGE_HEADER_ACTION, action);
+      this.$store.dispatch('handlePageAction', action);
     },
 
     checkClusterName() {
@@ -280,7 +302,7 @@ export default {
       // Make sure we wait at least 1 second so that the user can see the visual indication that the config has been copied
       allHash({
         copy:     this.currentCluster.copyKubeConfig(),
-        minDelay: new Promise(resolve => setTimeout(resolve, 1000))
+        minDelay: wait(1000),
       }).finally(() => {
         this.kubeConfigCopying = false;
 
@@ -288,6 +310,33 @@ export default {
           button.classList.remove('header-btn-active');
         }
       });
+    },
+
+    handleExtensionAction(action, event) {
+      const fn = action.invoke;
+      const opts = {
+        event,
+        action,
+        isAlt:   isAlternate(event),
+        product: this.currentProduct.name,
+        cluster: this.currentCluster,
+      };
+      const enabled = action.enabled ? action.enabled.apply(this, [this.ctx]) : true;
+
+      if (fn && enabled) {
+        fn.apply(this, [opts, [], { $route: this.$route }]);
+      }
+    },
+
+    handleExtensionTooltip(action) {
+      if (action.tooltipKey || action.tooltip) {
+        const tooltip = action.tooltipKey ? this.t(action.tooltipKey) : action.tooltip;
+        const shortcut = action.shortcutLabel ? action.shortcutLabel() : '';
+
+        return `${ tooltip } ${ shortcut }`;
+      }
+
+      return null;
     }
   }
 };
@@ -296,23 +345,24 @@ export default {
 <template>
   <header
     ref="header"
+    data-testid="header"
   >
     <div>
-      <TopLevelMenu v-if="isMultiCluster || !isSingleProduct" />
+      <TopLevelMenu v-if="showTopLevelMenu" />
     </div>
     <div
       class="menu-spacer"
       :class="{'isSingleProduct': isSingleProduct }"
     >
-      <n-link
-        v-if="isSingleProduct"
+      <router-link
+        v-if="isSingleProduct && !isRancherInHarvester"
         :to="singleProductLogoRoute"
       >
         <img
           class="side-menu-logo"
           :src="isSingleProduct.logo"
         >
-      </n-link>
+      </router-link>
     </div>
     <div
       v-if="!simple"
@@ -321,11 +371,11 @@ export default {
     >
       <div
         v-if="currentProduct && currentProduct.showClusterSwitcher"
-        v-tooltip="nameTooltip"
+        v-clean-tooltip="nameTooltip"
         class="cluster cluster-clipped"
       >
         <div
-          v-if="isSingleProduct"
+          v-if="isSingleProduct && !isRancherInHarvester"
           class="product-name"
         >
           {{ t(isSingleProduct.productNameKey) }}
@@ -392,6 +442,7 @@ export default {
       >
         <BrandImage
           class="side-menu-logo-img"
+          data-testid="header-side-menu__brand-img"
           file-name="rancher-logo.svg"
         />
       </div>
@@ -401,7 +452,6 @@ export default {
 
     <div class="rd-header-right">
       <component :is="navHeaderRight" />
-
       <div
         v-if="showFilter"
         class="top"
@@ -416,30 +466,34 @@ export default {
         <template v-if="currentProduct && currentProduct.showClusterSwitcher">
           <button
             v-if="showImportYaml"
-            v-tooltip="t('nav.import')"
+            v-clean-tooltip="t('nav.import')"
             :disabled="!importEnabled"
             type="button"
             class="btn header-btn role-tertiary"
+            data-testid="header-action-import-yaml"
             @click="openImport()"
           >
             <i class="icon icon-upload icon-lg" />
           </button>
-          <modal
+          <app-modal
+            v-if="showImportModal"
             class="import-modal"
             name="importModal"
             width="75%"
             height="auto"
             styles="max-height: 90vh;"
+            @close="closeImport"
           >
             <Import
               :cluster="currentCluster"
               @close="closeImport"
             />
-          </modal>
+          </app-modal>
 
           <button
             v-if="showKubeShell"
-            v-tooltip="t('nav.shellShortcut', {key: shellShortcut})"
+            id="btn-kubectl"
+            v-clean-tooltip="t('nav.shellShortcut', {key: shellShortcut})"
             v-shortkey="{windows: ['ctrl', '`'], mac: ['meta', '`']}"
             :disabled="!shellEnabled"
             type="button"
@@ -452,10 +506,11 @@ export default {
 
           <button
             v-if="showKubeConfig"
-            v-tooltip="t('nav.kubeconfig.download')"
+            v-clean-tooltip="t('nav.kubeconfig.download')"
             :disabled="!kubeConfigEnabled"
             type="button"
             class="btn header-btn role-tertiary"
+            data-testid="btn-download-kubeconfig"
             @click="currentCluster.downloadKubeConfig()"
           >
             <i class="icon icon-file icon-lg" />
@@ -463,10 +518,11 @@ export default {
 
           <button
             v-if="showCopyConfig"
-            v-tooltip="t('nav.kubeconfig.copy')"
+            v-clean-tooltip="t('nav.kubeconfig.copy')"
             :disabled="!kubeConfigEnabled"
             type="button"
             class="btn header-btn role-tertiary"
+            data-testid="btn-copy-kubeconfig"
             @click="copyKubeConfig($event)"
           >
             <i
@@ -482,24 +538,52 @@ export default {
 
         <button
           v-if="showSearch"
-          v-tooltip="t('nav.resourceSearch.toolTip', {key: searchShortcut})"
+          v-clean-tooltip="t('nav.resourceSearch.toolTip', {key: searchShortcut})"
           v-shortkey="{windows: ['ctrl', 'k'], mac: ['meta', 'k']}"
           type="button"
           class="btn header-btn role-tertiary"
+          data-testid="header-resource-search"
           @shortkey="openSearch()"
           @click="openSearch()"
         >
           <i class="icon icon-search icon-lg" />
         </button>
-        <modal
-          v-if="showSearch"
+        <app-modal
+          v-if="showSearch && showSearchModal"
           class="search-modal"
           name="searchModal"
           width="50%"
           height="auto"
+          @close="hideSearch()"
         >
           <Jump @closeSearch="hideSearch()" />
-        </modal>
+        </app-modal>
+      </div>
+
+      <!-- Extension header actions -->
+      <div
+        v-if="extensionHeaderActions.length"
+        class="header-buttons"
+      >
+        <button
+          v-for="action, i in extensionHeaderActions"
+          :key="`${action.label}${i}`"
+          v-clean-tooltip="handleExtensionTooltip(action)"
+          v-shortkey="action.shortcutKey"
+          :disabled="action.enabled ? !action.enabled(ctx) : false"
+          type="button"
+          class="btn header-btn role-tertiary"
+          :data-testid="`extension-header-action-${ action.labelKey || action.label }`"
+          @shortkey="handleExtensionAction(action, $event)"
+          @click="handleExtensionAction(action, $event)"
+        >
+          <IconOrSvg
+            class="icon icon-lg"
+            :icon="action.icon"
+            :src="action.svg"
+            color="header"
+          />
+        </button>
       </div>
 
       <div
@@ -557,6 +641,7 @@ export default {
       <div
         v-if="showUserMenu"
         class="user user-menu"
+        data-testid="nav_header_showUserMenu"
         tabindex="0"
         @blur="showMenu(false)"
         @click="showMenu(true)"
@@ -590,6 +675,7 @@ export default {
           >
             <ul
               class="list-unstyled dropdown"
+              data-testid="user-menu-dropdown"
               @click.stop="showMenu(false)"
             >
               <li
@@ -605,30 +691,51 @@ export default {
                   </template>
                 </div>
               </li>
-              <nuxt-link
+              <router-link
                 v-if="showPreferencesLink"
-                tag="li"
+                v-slot="{ href, navigate }"
+                custom
                 :to="{name: 'prefs'}"
-                class="user-menu-item"
               >
-                <a>{{ t('nav.userMenu.preferences') }}</a>
-              </nuxt-link>
-              <nuxt-link
+                <li
+                  class="user-menu-item"
+                  @click="navigate"
+                  @keypress.enter="navigate"
+                >
+                  <a :href="href">{{ t('nav.userMenu.preferences') }}</a>
+                </li>
+              </router-link>
+              <router-link
                 v-if="showAccountAndApiKeyLink"
-                tag="li"
+                v-slot="{ href, navigate }"
+                custom
                 :to="{name: 'account'}"
-                class="user-menu-item"
               >
-                <a>{{ t('nav.userMenu.accountAndKeys', {}, true) }}</a>
-              </nuxt-link>
-              <nuxt-link
+                <li
+                  class="user-menu-item"
+                  @click="navigate"
+                  @keypress.enter="navigate"
+                >
+                  <a :href="href">{{ t('nav.userMenu.accountAndKeys', {}, true) }}</a>
+                </li>
+              </router-link>
+              <router-link
                 v-if="authEnabled"
-                tag="li"
-                :to="{name: 'auth-logout', query: { [LOGGED_OUT]: true }}"
-                class="user-menu-item"
+                v-slot="{ href, navigate }"
+                custom
+                :to="generateLogoutRoute"
               >
-                <a @blur="showMenu(false)">{{ t('nav.userMenu.logOut') }}</a>
-              </nuxt-link>
+                <li
+                  class="user-menu-item"
+                  @click="navigate"
+                  @keypress.enter="navigate"
+                >
+                  <a
+                    :href="href"
+                    @blur="showMenu(false)"
+                  >{{ t('nav.userMenu.logOut') }}</a>
+                </li>
+              </router-link>
             </ul>
           </template>
         </v-popover>
@@ -638,6 +745,9 @@ export default {
 </template>
 
 <style lang="scss" scoped>
+  // It would be nice to grab this from `Group.vue`, but there's margin, padding and border, which is overkill to var
+  $side-menu-group-padding-left: 16px;
+
   HEADER {
     display: flex;
     z-index: z-index('mainHeader');
@@ -647,11 +757,16 @@ export default {
     }
 
     > .menu-spacer {
-      flex: 0 0 calc(var(--header-height) + 10px);
+      flex: 0 0 15px;
 
       &.isSingleProduct  {
         display: flex;
         justify-content: center;
+
+        // Align the icon with the side nav menu items ($side-menu-group-padding-left)
+        .side-menu-logo {
+          margin-left: $side-menu-group-padding-left;
+        }
       }
     }
 

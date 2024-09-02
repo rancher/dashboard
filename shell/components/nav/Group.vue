@@ -49,6 +49,10 @@ export default {
   },
 
   computed: {
+    isGroupActive() {
+      return this.isOverview || (this.hasActiveRoute() && this.isExpanded && this.showHeader);
+    },
+
     hasChildren() {
       return this.group.children?.length > 0;
     },
@@ -69,7 +73,7 @@ export default {
         if (overviewRoute && grp.overview) {
           const route = this.$router.resolve(overviewRoute || {});
 
-          return this.$route.fullPath === route?.route?.fullPath;
+          return this.$route.fullPath.split('#')[0] === route?.route?.fullPath;
         }
       }
 
@@ -96,8 +100,14 @@ export default {
       // Don't auto-select first group entry if we're already expanded and contain the currently-selected nav item
       if (this.hasActiveRoute() && this.isExpanded) {
         return;
-      }
+      } else {
+        // Remove all active class if click on group header and not active route
+        const headerEl = document.querySelectorAll('.header');
 
+        headerEl.forEach((el) => {
+          el.classList.remove('active');
+        });
+      }
       this.expandGroup();
 
       const items = this.group[this.childrenKey];
@@ -108,7 +118,7 @@ export default {
 
         // If there is a default type, use it
         if (this.group.defaultType) {
-          const found = items.findIndex(i => i.name === this.group.defaultType);
+          const found = items.findIndex((i) => i.name === this.group.defaultType);
 
           index = (found === -1) ? 0 : found;
         }
@@ -132,6 +142,11 @@ export default {
 
     // User clicked on the expander icon, so toggle the expansion so the user can see inside the group
     peek($event) {
+      // Add active class to the current header if click on chevron icon
+      $event.target.parentElement.classList.remove('active');
+      if (this.hasActiveRoute() && this.isExpanded) {
+        $event.target.parentElement.classList.add('active');
+      }
       this.isExpanded = !this.isExpanded;
       $event.stopPropagation();
     },
@@ -146,7 +161,7 @@ export default {
           return true;
         } else if (item.route) {
           const navLevels = ['cluster', 'product', 'resource'];
-          const matchesNavLevel = navLevels.filter(param => !this.$route.params[param] || this.$route.params[param] !== item.route.params[param]).length === 0;
+          const matchesNavLevel = navLevels.filter((param) => !this.$route.params[param] || this.$route.params[param] !== item.route.params[param]).length === 0;
           const withoutHash = this.$route.hash ? this.$route.fullPath.slice(0, this.$route.fullPath.indexOf(this.$route.hash)) : this.$route.fullPath;
           const withoutQuery = withoutHash.split('?')[0];
 
@@ -188,7 +203,7 @@ export default {
 <template>
   <div
     class="accordion"
-    :class="{[`depth-${depth}`]: true, 'expanded': isExpanded, 'has-children': hasChildren}"
+    :class="{[`depth-${depth}`]: true, 'expanded': isExpanded, 'has-children': hasChildren, 'group-highlight': isGroupActive}"
   >
     <div
       v-if="showHeader"
@@ -197,22 +212,22 @@ export default {
       @click="groupSelected()"
     >
       <slot name="header">
-        <n-link
+        <router-link
           v-if="hasOverview"
           :to="group.children[0].route"
           :exact="group.children[0].exact"
         >
-          <h6 v-html="group.labelDisplay || group.label" />
-        </n-link>
+          <h6 v-clean-html="group.labelDisplay || group.label" />
+        </router-link>
         <h6
           v-else
-          v-html="group.labelDisplay || group.label"
+          v-clean-html="group.labelDisplay || group.label"
         />
       </slot>
       <i
         v-if="!onlyHasOverview && canCollapse"
         class="icon toggle"
-        :class="{'icon-chevron-down': !isExpanded, 'icon-chevron-up': isExpanded}"
+        :class="{'icon-chevron-right': !isExpanded, 'icon-chevron-down': isExpanded}"
         @click="peek($event, true)"
       />
     </div>
@@ -267,8 +282,9 @@ export default {
     position: relative;
     cursor: pointer;
     color: var(--body-text);
+    height: 33px;
 
-    > H6 {
+    H6 {
       color: var(--body-text);
       user-select: none;
       text-transform: none;
@@ -277,38 +293,39 @@ export default {
 
     > A {
       display: block;
-      padding-left: 10px;
+      box-sizing:border-box;
+      height: 100%;
       &:hover{
-          text-decoration: none;
-        }
+        text-decoration: none;
+      }
       &:focus{
         outline:none;
       }
       > H6 {
-        font-size: 14px;
         text-transform: none;
+        padding: 8px 0 8px 16px;
       }
     }
-
-    &.active {
-      background-color: var(--nav-active);
-    }
-  }
-
-  .body {
-    margin-left: 10px;
   }
 
   .accordion {
     .header {
-      &:hover:not(.noHover) {
-        background-color: var(--nav-hover);
-      }
+      &.active {
+        color: var(--primary-hover-text);
+        background-color: var(--primary-hover-bg);
 
-      > I {
-        &:hover {
-          background-color: var(--nav-expander-hover);
+        h6 {
+          padding: 8px 0 8px 16px;
+          font-weight: bold;
+          color: var(--primary-hover-text);
         }
+
+        &:hover {
+          background-color: var(--primary-hover-bg);
+        }
+      }
+      &:hover:not(.active) {
+        background-color: var(--nav-hover);
       }
     }
   }
@@ -316,23 +333,21 @@ export default {
   .accordion {
     &.depth-0 {
       > .header {
-        padding: 8px 0;
 
         &.noHover {
           cursor: default;
         }
 
         > H6 {
-          font-size: 14px;
           text-transform: none;
-          padding-left: 10px;
+          padding: 8px 0 8px 16px;
         }
 
         > I {
           position: absolute;
           right: 0;
           top: 0;
-          padding: 10px 7px 9px 7px;
+          padding: 10px 10px 9px 7px;
           user-select: none;
         }
       }
@@ -340,24 +355,27 @@ export default {
       > .body {
         margin-left: 0;
       }
+
+      &.group-highlight {
+        background: var(--nav-active);
+      }
     }
 
     &.depth-1 {
       > .header {
+        padding-left: 20px;
         > H6 {
-          font-size: 13px;
-          line-height: 16px;
+          line-height: 18px;
           padding: 8px 0 7px 5px !important;
         }
         > I {
-          padding: 9px 7px 8px 7px !important;
+          padding: 10px 7px 9px 7px !important;
         }
       }
     }
 
     &:not(.depth-0) {
       > .header {
-        padding-left: 10px;
         > H6 {
           // Child groups that aren't linked themselves
           display: inline-block;
@@ -374,16 +392,18 @@ export default {
     }
   }
 
- .body ::v-deep > .child.nuxt-link-active,
- .header ::v-deep > .child.nuxt-link-exact-active {
+  .body ::v-deep > .child.router-link-active,
+  .header ::v-deep > .child.router-link-exact-active {
     padding: 0;
 
     A, A I {
-      color: var(--body-text);
+      color: var(--primary-hover-text);
     }
 
     A {
-      background-color: var(--nav-active);
+      color: var(--primary-hover-text);
+      background-color: var(--primary-hover-bg);
+      font-weight: bold;
     }
   }
 
@@ -391,11 +411,21 @@ export default {
     A {
       border-left: solid 5px transparent;
       line-height: 16px;
-      font-size: 13px;
+      font-size: 14px;
+      padding-left: 24px;
+      display: flex;
+      justify-content: space-between;
     }
 
     A:focus {
       outline: none;
+    }
+
+    &.root {
+      background: transparent;
+      A {
+        padding-left: 14px;
+      }
     }
   }
 </style>

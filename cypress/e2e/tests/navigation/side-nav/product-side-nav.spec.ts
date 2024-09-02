@@ -1,9 +1,10 @@
 import HomePagePo from '@/cypress/e2e/po/pages/home.po';
 import BurgerMenuPo from '@/cypress/e2e/po/side-bars/burger-side-menu.po';
 import ProductNavPo from '@/cypress/e2e/po/side-bars/product-side-nav.po';
+import WorkloadPagePo from '@/cypress/e2e/po/pages/explorer/workloads.po';
 
 Cypress.config();
-describe('Side navigation: Cluster ', () => {
+describe('Side navigation: Cluster ', { tags: ['@navigation', '@adminUser'] }, () => {
   beforeEach(() => {
     cy.login();
 
@@ -14,8 +15,7 @@ describe('Side navigation: Cluster ', () => {
     burgerMenuPo.clusters().eq(0).should('be.visible').click();
   });
 
-  // TODO: #5966: Verify cause of race condition issue making navigation link not trigger #5966
-  it.skip('Can access to first navigation link on click', () => {
+  it('Can access to first navigation link on click', () => {
     const productNavPo = new ProductNavPo();
 
     productNavPo.visibleNavTypes().eq(0).should('be.visible').click()
@@ -24,8 +24,7 @@ describe('Side navigation: Cluster ', () => {
       });
   });
 
-  // TODO: #5966: Verify cause of race condition issue making navigation link not trigger
-  it.skip('Can open second menu groups on click', () => {
+  it('Can open second menu groups on click', () => {
     const productNavPo = new ProductNavPo();
 
     productNavPo.groups().not('.expanded').eq(0)
@@ -44,18 +43,16 @@ describe('Side navigation: Cluster ', () => {
     cy.get('@openGroup').find('ul').should('have.length', 0);
   });
 
-  // TODO: #5966: Verify cause of race condition issue making navigation link not trigger
-  it.skip('Should flag second menu group as active on navigation', () => {
+  it('Should flag second menu group as active on navigation', () => {
     const productNavPo = new ProductNavPo();
 
     productNavPo.groups().not('.expanded').eq(0)
       .as('closedGroup');
     cy.get('@closedGroup').should('be.visible').click();
-    cy.get('@closedGroup').find('.nuxt-link-active').should('have.length.gt', 0);
+    cy.get('@closedGroup').find('.router-link-active').should('have.length.gt', 0);
   });
 
-  // TODO: #5966: Verify cause of race condition issue making navigation link not trigger
-  it.skip('Should access to every navigation provided from the server link, including nested cases, without errors', () => {
+  it('Should access to every navigation provided from the server link, including nested cases, without errors', () => {
     const productNavPo = new ProductNavPo();
     // iterate through top-level groups
 
@@ -78,8 +75,26 @@ describe('Side navigation: Cluster ', () => {
       productNavPo.visibleNavTypes().each((link, idx) => {
         productNavPo.visibleNavTypes().eq(idx)
           .click({ force: true })
-          .then(linkEl => cy.url().should('equal', linkEl.prop('href')));
+          .then((linkEl) => cy.url().should('contain', linkEl.prop('href')));
       });
+    });
+  });
+
+  it('Clicking on the tab header should navigate', () => {
+    const productNavPo = new ProductNavPo();
+    const group = productNavPo.groups().eq(1); // First group is 'Workloads'
+
+    // Select and expand current top-level group
+    group.click();
+    const workloads = new WorkloadPagePo();
+
+    workloads.waitForPage();
+
+    cy.url().then((workloadsUrl) => {
+      // Go to the second subgroup
+      productNavPo.visibleNavTypes().eq(1).click({ force: true });
+      // Clicking back should take us back to workloads
+      productNavPo.tabHeaders().eq(1).click(1, 1).then(() => cy.url().should('equal', workloadsUrl));
     });
   });
 });

@@ -10,13 +10,13 @@ describe('component: UnitInput', () => {
     expect(wrapper.isVisible()).toBe(true);
   });
 
-  it('should emit input event on value change', async() => {
+  it.each(['blur', 'change'])('should emit input event when "%p" is fired', async(event) => {
     const wrapper = mount(UnitInput, { propsData: { value: 1, delay: 0 } });
     const input = wrapper.find('input');
 
     await input.setValue(2);
     await input.setValue(4);
-    input.trigger('blur');
+    input.trigger(event);
 
     expect(wrapper.emitted('input')).toHaveLength(1);
   });

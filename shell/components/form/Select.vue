@@ -134,10 +134,26 @@ export default {
 
       return true;
     },
+    /**
+     * Get a unique value to represent the option
+     */
     getOptionKey(opt) {
+      // Use the property from a component level key
+      if (opt && this.optionKey) {
+        return get(opt, this.optionKey);
+      }
+
+      // Use the property from an option level key
+      // This doesn't seem right, think it was meant to represent the actual option key... rather than the key to find the option key
+      // This approach also doesn't appear in LabeledSelect
       if (opt?.optionKey) {
+        // opt.optionKey should in theory be optionKeyKey
         return get(opt, opt.optionKey);
       }
+
+      // There's no configuration to help us get a sensible key. Fall back on ..
+      // - the label
+      // - something random
 
       const label = this.getOptionLabel(opt);
 
@@ -155,11 +171,11 @@ export default {
   computed: {
     requiredField() {
       // using "any" for a type on "rule" here is dirty but the use of the optional chaining operator makes it safe for what we're doing here.
-      return (this.required || this.rules.some(rule => rule?.name === 'required'));
+      return (this.required || this.rules.some((rule) => rule?.name === 'required'));
     },
     validationMessage() {
       // we want to grab the required rule passed in if we can but if it's not there then we can just grab it from the formRulesGenerator
-      const requiredRule = this.rules.find(rule => rule?.name === 'required');
+      const requiredRule = this.rules.find((rule) => rule?.name === 'required');
       const ruleMessages = [];
       const value = this?.value;
 
@@ -230,7 +246,7 @@ export default {
     >
       <template #option="option">
         <div @mousedown="(e) => onClickOption(option, e)">
-          {{ option.label }}
+          {{ getOptionLabel(option.label) }}
         </div>
       </template>
       <!-- Pass down templates provided by the caller -->

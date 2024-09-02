@@ -60,6 +60,19 @@ export function escapeHtml(html) {
   });
 }
 
+/**
+ * Return HTML markup from escaped HTML string, allowing specific tags
+ * @param text string
+ * @returns string
+ */
+export function decodeHtml(text) {
+  const div = document.createElement('div');
+
+  div.innerHTML = text;
+
+  return div.textContent || div.innerText || '';
+}
+
 export function escapeRegex(string) {
   return string.replace(/[.*+?^${}()|[\]\\]/g, '\\$&'); // $& means the whole matched string
 }
@@ -129,6 +142,8 @@ export function formatPercent(value, maxPrecision = 2) {
 export function pluralize(str) {
   if ( str.match(/.*[^aeiou]y$/i) ) {
     return `${ str.substr(0, str.length - 1) }ies`;
+  } else if ( str.endsWith('ics') ) {
+    return str;
   } else if ( str.endsWith('s') ) {
     return `${ str }es`;
   } else {
@@ -257,7 +272,7 @@ const quotedMatch = /[^."']+|"([^"]*)"|'([^']*)'/g;
 export function splitObjectPath(path) {
   if ( path.includes('"') || path.includes("'") ) {
     // Path with quoted section
-    return path.match(quotedMatch).map(x => x.replace(/['"]/g, ''));
+    return path.match(quotedMatch).map((x) => x.replace(/['"]/g, ''));
   }
 
   // Regular path
@@ -293,4 +308,16 @@ export function isIpv4(ip) {
   const reg = /^((25[0-5]|2[0-4]\d|[01]?\d\d?)\.){3}(25[0-5]|2[0-4]\d|[01]?\d\d?)$/;
 
   return reg.test(ip);
+}
+
+export function sanitizeKey(k) {
+  return (k || '').replace(/[^a-z0-9./_-]/ig, '');
+}
+
+export function sanitizeValue(v) {
+  return (v || '').replace(/[^a-z0-9._-]/ig, '');
+}
+
+export function sanitizeIP(v) {
+  return (v || '').replace(/[^a-z0-9.:_-]/ig, '');
 }

@@ -110,7 +110,7 @@ export default {
         metadata: { annotations = {} },
         spec,
       } = this.value;
-      const ports = spec.ports;
+      const ports = spec.ports ?? [];
       const publicPorts = this.hasPublic ? JSON.parse(annotations[CATTLE_PUBLIC_ENDPOINTS]) : null;
 
       return ports.map((port) => {
@@ -132,7 +132,7 @@ export default {
       return this.$store.getters['cluster/schemaFor'](POD);
     },
     selectorTableRows() {
-      return Object.keys(this.value.spec?.selector || {}).map(key => ({
+      return Object.keys(this.value.spec?.selector || {}).map((key) => ({
         key,
         value: this.value.spec.selector[key],
       }));

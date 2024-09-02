@@ -1,8 +1,10 @@
 <script>
+import Vue from 'vue';
 import ResourceTable from '@shell/components/ResourceTable';
-import { get } from '@shell/utils/object';
 import { AGE } from '@shell/config/table-headers';
 import ResourceFetch from '@shell/mixins/resource-fetch';
+import { allHash } from '@shell/utils/promise';
+import { fetchSpecsScheduledScanConfig } from '@shell/models/cis.cattle.io.clusterscan';
 
 export default {
   components: { ResourceTable },
@@ -25,19 +27,23 @@ export default {
   },
 
   async fetch() {
-    await this.$fetchType(this.resource);
+    // Fetch the list and schema resource fields in parallel
+    const res = await allHash({
+      resources:              this.$fetchType(this.resource),
+      hasScheduledScanConfig: fetchSpecsScheduledScanConfig(this.schema),
+    });
+
+    Vue.set(this, 'hasScheduledScanConfig', res.hasScheduledScanConfig);
+  },
+
+  data() {
+    return { hasScheduledScanConfig: null };
   },
 
   computed: {
     // warning state and scheduling added in the same version of cis so a check for one is a check for the other
     hasWarningState() {
-      const specSchema = this.$store.getters['cluster/schemaFor'](get(this.schema, 'resourceFields.spec.type') || '');
-
-      if (!specSchema) {
-        return false;
-      }
-
-      return !!get(specSchema, 'resourceFields.scheduledScanConfig');
+      return this.hasScheduledScanConfig;
     },
 
     headers() {
@@ -46,7 +52,7 @@ export default {
       if (!this.hasWarningState) {
         const toRemove = ['warn', 'nextScanAt', 'lastRunTimestamp'];
 
-        const filtered = headersFromSchema.filter(header => !toRemove.includes(header.name));
+        const filtered = headersFromSchema.filter((header) => !toRemove.includes(header.name));
 
         filtered.push(AGE);
 
@@ -64,7 +70,7 @@ export default {
     :schema="schema"
     :rows="rows"
     :headers="headers"
-    :loading="loading"
+    :loading="$fetchState.pending"
     :use-query-params-for-simple-filtering="useQueryParamsForSimpleFiltering"
     :force-update-live-and-delayed="forceUpdateLiveAndDelayed"
   />

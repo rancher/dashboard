@@ -83,7 +83,7 @@ export default {
       class="pl-10 pr-10"
     >
       <span
-        v-html="t('promptForceRemove.removeWarning', { nameToMatch }, true)"
+        v-clean-html="t('promptForceRemove.removeWarning', { nameToMatch }, true)"
       />
       <div class="mt-10 mb-10">
         {{ t('promptForceRemove.confirmName') }}

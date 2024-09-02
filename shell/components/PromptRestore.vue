@@ -14,6 +14,8 @@ import { DATE_FORMAT, TIME_FORMAT } from '@shell/store/prefs';
 import { escapeHtml } from '@shell/utils/string';
 import day from 'dayjs';
 import { sortBy } from '@shell/utils/sort';
+import { STATES_ENUM } from '@shell/plugins/dashboard-store/resource-class';
+import AppModal from '@shell/components/AppModal.vue';
 
 export default {
   components: {
@@ -23,6 +25,7 @@ export default {
     Date,
     LabeledSelect,
     RadioGroup,
+    AppModal,
   },
 
   name: 'PromptRestore',
@@ -51,7 +54,7 @@ export default {
     // Was the dialog opened to restore a specific snapshot, or opened on a cluster to choose
     isCluster() {
       const isSnapshot = this.toRestore[0]?.type.toLowerCase() === NORMAN.ETCD_BACKUP ||
-        this.toRestore[0]?.type.toLowerCase() === SNAPSHOT;
+      this.toRestore[0]?.type.toLowerCase() === SNAPSHOT;
 
       return !isSnapshot;
     },
@@ -70,7 +73,7 @@ export default {
 
     clusterSnapshots() {
       if (this.sortedSnapshots) {
-        return this.sortedSnapshots.map(snapshot => ({ label: this.snapshotLabel(snapshot), value: snapshot.name }));
+        return this.sortedSnapshots.map((snapshot) => ({ label: this.snapshotLabel(snapshot), value: snapshot.name }));
       } else {
         return [];
       }
@@ -86,12 +89,10 @@ export default {
     async showPromptRestore(show) {
       if (show) {
         this.loaded = true;
-        this.$modal.show('promptRestore');
         await this.fetchSnapshots();
         this.selectDefaultSnapshot();
       } else {
         this.loaded = false;
-        this.$modal.hide('promptRestore');
       }
     }
   },
@@ -113,20 +114,21 @@ export default {
       const cluster = this.toRestore?.[0];
       let promise;
 
-      if (!cluster.isRke2) {
+      if (!cluster?.isRke2) {
         promise = this.$store.dispatch('rancher/findAll', { type: NORMAN.ETCD_BACKUP }).then((snapshots) => {
-          return snapshots.filter(s => s.clusterId === cluster.metadata.name);
+          return snapshots.filter((s) => s.state === STATES_ENUM.ACTIVE && s.clusterId === cluster.metadata.name);
         });
       } else {
         promise = this.$store.dispatch('management/findAll', { type: SNAPSHOT }).then((snapshots) => {
           const toRestoreClusterName = cluster?.clusterName || cluster?.metadata?.name;
 
-          return snapshots.filter(s => s.clusterName === toRestoreClusterName);
+          return snapshots.filter((s) => s?.snapshotFile?.status === STATES_ENUM.SUCCESSFUL && s.clusterName === toRestoreClusterName
+          );
         });
       }
 
       // Map of snapshots by name
-      const allSnapshosts = await promise.then((snapshots) => {
+      const allSnapshots = await promise.then((snapshots) => {
         return snapshots.reduce((v, s) => {
           v[s.name] = s;
 
@@ -136,7 +138,7 @@ export default {
         this.errors = exceptionToErrorsArray(err);
       });
 
-      this.allSnapshots = allSnapshosts;
+      this.allSnapshots = allSnapshots;
       this.sortedSnapshots = sortBy(Object.values(this.allSnapshots), ['snapshotFile.createdAt', 'created', 'metadata.creationTimestamp'], true);
     },
 
@@ -204,12 +206,14 @@ export default {
 </script>
 
 <template>
-  <modal
-    class="promptrestore-modal"
+  <app-modal
+    v-if="loaded"
+    custom-class="promptrestore-modal"
     name="promptRestore"
     styles="background-color: var(--nav-bg); border-radius: var(--border-radius); max-height: 100vh;"
     height="auto"
     :scrollable="true"
+    @close="close"
   >
     <Card
       v-if="loaded"
@@ -218,8 +222,8 @@ export default {
     >
       <h4
         slot="title"
+        v-clean-html="t('promptRestore.title', null, true)"
         class="text-default-text"
-        v-html="t('promptRestore.title', null, true)"
       />
 
       <div
@@ -287,7 +291,7 @@ export default {
         />
       </div>
     </Card>
-  </modal>
+  </app-modal>
 </template>
 
 <style lang='scss' scoped>
@@ -303,22 +307,22 @@ export default {
       min-height: 16px;
     }
 
-    ::v-deep .card-container .card-actions {
-      display: block;
-
-      button:not(:last-child) {
-        margin-right: 10px;
-      }
-
-      .banner {
-        display: flex;
-      }
-    }
-
     // Position dialog buttons on the right-hand side of the dialog
     .dialog-actions {
       display: flex;
       justify-content: flex-end;
+    }
+  }
+
+  .prompt-restore ::v-deep .card-wrap .card-actions {
+    display: block;
+
+    button:not(:last-child) {
+      margin-right: 10px;
+    }
+
+    .banner {
+      display: flex;
     }
   }
 </style>

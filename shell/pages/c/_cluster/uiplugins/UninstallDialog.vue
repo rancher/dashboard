@@ -1,24 +1,33 @@
 <script>
-import AsyncButton from '@shell/components/AsyncButton';
-import { CATALOG } from '@shell/config/types';
+import { mapGetters } from 'vuex';
 
+import AsyncButton from '@shell/components/AsyncButton';
+import AppModal from '@shell/components/AppModal.vue';
+import { CATALOG } from '@shell/config/types';
 import { UI_PLUGIN_NAMESPACE } from '@shell/config/uiplugins';
 
 export default {
-  components: { AsyncButton },
+  components: {
+    AsyncButton,
+    AppModal,
+  },
 
   data() {
-    return { plugin: undefined, busy: false };
+    return {
+      plugin: undefined, busy: false, showModal: false
+    };
   },
+
+  computed: { ...mapGetters({ allCharts: 'catalog/charts' }) },
 
   methods: {
     showDialog(plugin) {
       this.plugin = plugin;
       this.busy = false;
-      this.$modal.show('uninstallPluginDialog');
+      this.showModal = true;
     },
     closeDialog(result) {
-      this.$modal.hide('uninstallPluginDialog');
+      this.showModal = false;
       this.$emit('closed', result);
     },
     async uninstall() {
@@ -62,10 +71,12 @@ export default {
 </script>
 
 <template>
-  <modal
+  <app-modal
+    v-if="showModal"
     name="uninstallPluginDialog"
     height="auto"
     :scrollable="true"
+    @close="closeDialog(false)"
   >
     <div
       v-if="plugin"
@@ -84,18 +95,20 @@ export default {
           <button
             :disabled="busy"
             class="btn role-secondary"
+            data-testid="uninstall-ext-modal-cancel-btn"
             @click="closeDialog(false)"
           >
             {{ t('generic.cancel') }}
           </button>
           <AsyncButton
             mode="uninstall"
+            data-testid="uninstall-ext-modal-uninstall-btn"
             @click="uninstall()"
           />
         </div>
       </div>
     </div>
-  </modal>
+  </app-modal>
 </template>
 
 <style lang="scss" scoped>

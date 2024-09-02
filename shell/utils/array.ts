@@ -1,5 +1,5 @@
 import xor from 'lodash/xor';
-import { get } from '@shell/utils/object';
+import { get, isEqual } from '@shell/utils/object';
 
 export function removeObject<T>(ary: T[], obj: T): T[] {
   const idx = ary.indexOf(obj);
@@ -160,7 +160,7 @@ export function findStringIndex(items: string[], item: string, trim = true): num
 }
 
 export function hasDuplicatedStrings(items: string[], caseSensitive = true): boolean {
-  const normalizedItems = items.map(i => (caseSensitive ? i : i.toLowerCase()).trim());
+  const normalizedItems = items.map((i) => (caseSensitive ? i : i.toLowerCase()).trim());
 
   for (let i = 0; i < items.length; i++) {
     const index = findStringIndex(
@@ -180,6 +180,45 @@ export function sameContents<T>(aryA: T[], aryB: T[]): boolean {
   return xor(aryA, aryB).length === 0;
 }
 
+export function sameArrayObjects<T>(aryA: T[], aryB: T[], positionAgnostic = false): boolean {
+  if (!aryA && !aryB) {
+    // catch calls from js (where props aren't type checked)
+    return false;
+  }
+  if (aryA?.length !== aryB?.length) {
+    // catch one null and not t'other, and different lengths
+    return false;
+  }
+
+  if (positionAgnostic) {
+    const consumedB: { [pos: number]: boolean } = {};
+
+    aryB.forEach((_, index) => {
+      consumedB[index] = false;
+    });
+
+    for (let i = 0; i < aryA.length; i++) {
+      const a = aryA[i];
+
+      const validA = aryB.findIndex((arB, index) => isEqual(arB, a) && !consumedB[index] );
+
+      if (validA >= 0) {
+        consumedB[validA] = true;
+      } else {
+        return false;
+      }
+    }
+  } else {
+    for (let i = 0; i < aryA.length; i++) {
+      if (!isEqual(aryA[i], aryB[i])) {
+        return false;
+      }
+    }
+  }
+
+  return true;
+}
+
 export function uniq<T>(ary: T[]): T[] {
   const out: T[] = [];
 
@@ -188,10 +227,14 @@ export function uniq<T>(ary: T[]): T[] {
   return out;
 }
 
+export function concatStrings(a: string[], b: string[]): string[] {
+  return [...a.map((aa) => b.map((bb) => aa.concat(bb)))].reduce((acc, arr) => [...arr, ...acc], []);
+}
+
 interface KubeResource { metadata: { labels: { [name: string]: string} } } // Migrate to central kube types resource when those are brought in
 export function getUniqueLabelKeys<T extends KubeResource>(aryResources: T[]): string[] {
   const uniqueObj = aryResources.reduce((res, r) => {
-    Object.keys(r.metadata.labels).forEach(l => (res[l] = true));
+    Object.keys(r.metadata.labels).forEach((l) => (res[l] = true));
 
     return res;
   }, {} as {[label: string]: boolean});

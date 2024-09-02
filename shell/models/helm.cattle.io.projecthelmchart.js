@@ -13,7 +13,7 @@ export default class ProjectHelmChart extends SteveModel {
   get projectId() {
     const inStore = this.$rootGetters['currentProduct'].inStore;
     const all = this.$rootGetters[`${ inStore }/all`](NAMESPACE);
-    const { projectId } = all.find(namespace => namespace.id === this.metadata.namespace);
+    const { projectId } = all.find((namespace) => namespace.id === this.metadata.namespace);
 
     return projectId;
   }
@@ -22,13 +22,13 @@ export default class ProjectHelmChart extends SteveModel {
     const clusterId = this.$rootGetters['currentCluster']?.id;
     const project = this.$rootGetters['management/byId'](MANAGEMENT.PROJECT, `${ clusterId }/${ this.projectId }`);
 
-    return project.spec.displayName;
+    return project?.spec.displayName;
   }
 
   get namespaces() {
     const inStore = this.$rootGetters['currentProduct'].inStore;
     const all = this.$rootGetters[`${ inStore }/all`](NAMESPACE);
-    const namespaces = all.filter(namespace => namespace.projectId === this.projectId);
+    const namespaces = all.filter((namespace) => namespace.projectId === this.projectId);
 
     return [...namespaces];
   }

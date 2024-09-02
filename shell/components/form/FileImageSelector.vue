@@ -31,6 +31,10 @@ export default {
       type:    Number,
       default: 200000
     },
+    accept: {
+      type:    String,
+      default: 'image/*'
+    }
   },
   computed: {
     isView() {
@@ -44,6 +48,9 @@ export default {
      */
     setIcon(event) {
       this.$emit('input', event);
+    },
+    setError(error) {
+      this.$emit('error', error);
     }
   }
 };
@@ -58,7 +65,9 @@ export default {
     :read-as-data-url="true"
     :byte-limit="byteLimit"
     :label="label"
+    :accept="accept"
     @selected="setIcon"
+    @error="setError"
   />
 
   <div

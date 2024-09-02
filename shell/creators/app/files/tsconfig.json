@@ -31,7 +31,6 @@
     ],    
     "types": [
       "@types/node",
-      "@nuxt/types",
       "cypress",
       "rancher",
       "shell"

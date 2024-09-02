@@ -224,6 +224,7 @@ export default {
     :required="required"
     :placeholder="placeholder"
     :hide-arrows="hideArrows"
+    @change="update($event.target.value)"
     @blur="update($event.target.value)"
   >
     <template #suffix>

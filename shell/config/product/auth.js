@@ -27,7 +27,7 @@ export function init(store) {
 
   product({
     ifHaveType:          new RegExp(`${ MANAGEMENT.USER }|${ MANAGEMENT.AUTH_CONFIG }`, 'i'),
-    ifHaveVerb:          'PUT',
+    ifHaveVerb:          'GET',
     ifFeature:           MULTI_CLUSTER,
     inStore:             'management',
     icon:                'user',
@@ -43,7 +43,8 @@ export function init(store) {
     name:       'config',
     weight:     -1,
     route:      { name: 'c-cluster-auth-config' },
-    ifHaveType: MANAGEMENT.AUTH_CONFIG
+    ifHaveType: MANAGEMENT.AUTH_CONFIG,
+    ifHaveVerb: 'PUT'
   });
 
   virtualType({
@@ -103,8 +104,8 @@ export function init(store) {
       });
 
       const uniquePrincipalIds = uniq(globalRoleBindings
-        .filter(grb => !!grb.groupPrincipalName)
-        .map(grb => grb.groupPrincipalName)
+        .filter((grb) => !!grb.groupPrincipalName)
+        .map((grb) => grb.groupPrincipalName)
       );
 
       const allPrincipalsP = uniquePrincipalIds
@@ -124,8 +125,8 @@ export function init(store) {
       const allPrincipals = await Promise.all(allPrincipalsP);
 
       return allPrincipals
-        .filter(p => !!p)
-        .map(p => ({
+        .filter((p) => !!p)
+        .map((p) => ({
           ...p,
           type: NORMAN.SPOOFED.GROUP_PRINCIPAL
         }));
@@ -143,7 +144,7 @@ export function init(store) {
   weightType(NORMAN.SPOOFED.GROUP_PRINCIPAL, 101, true);
 
   virtualType({
-    labelKey:   'rbac.roletemplate.label',
+    labelKey:   'auth.roleTemplate',
     icon:       'user',
     namespaced: false,
     name:       ROLES_VIRTUAL_TYPE,
@@ -173,6 +174,7 @@ export function init(store) {
   componentForType(`${ MANAGEMENT.AUTH_CONFIG }/googleoauth`, 'auth/googleoauth');
   componentForType(`${ MANAGEMENT.AUTH_CONFIG }/azuread`, 'auth/azuread');
   componentForType(`${ MANAGEMENT.AUTH_CONFIG }/keycloakoidc`, 'auth/oidc');
+  componentForType(`${ MANAGEMENT.AUTH_CONFIG }/genericoidc`, 'auth/oidc');
 
   basicType([
     'config',

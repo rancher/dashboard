@@ -1,6 +1,7 @@
 <script>
 import CreateEditView from '@shell/mixins/create-edit-view';
-import { SECRET, LOGGING, SCHEMA } from '@shell/config/types';
+import Loading from '@shell/components/Loading';
+import { LOGGING, SCHEMA } from '@shell/config/types';
 import Tabbed from '@shell/components/Tabbed';
 import Tab from '@shell/components/Tabbed/Tab';
 import CruResource from '@shell/components/CruResource';
@@ -19,33 +20,58 @@ import YamlEditor, { EDITOR_MODES } from '@shell/components/YamlEditor';
 
 export default {
   components: {
-    Banner, CruResource, Labels, LabeledSelect, NameNsDescription, Tab, Tabbed, YamlEditor
-  },
+    Banner, CruResource, Labels, LabeledSelect, NameNsDescription, Tab, Tabbed, YamlEditor, Loading
+  }, //
 
   mixins: [CreateEditView],
 
   async fetch() {
-    await this.$store.dispatch('cluster/findAll', { type: SECRET });
+    const schemas = this.$store.getters['cluster/all'](SCHEMA);
+    const resourceSchema = this.$store.getters['cluster/byId'](SCHEMA, LOGGING.OUTPUT);
+    const schemaDefinition = await resourceSchema.fetchResourceFields();
+
+    let bufferYaml = '';
+
+    if ( !isEmpty(this.value.spec[this.selectedProvider]?.buffer) ) {
+      bufferYaml = jsyaml.dump(this.value.spec[this.selectedProvider].buffer);
+    } else if (schemaDefinition) {
+      bufferYaml = createYaml(
+        schemas,
+        `io.banzaicloud.logging.v1beta1.Output.spec.${ this.selectedProvider }.buffer`,
+        {},
+        true,
+        1,
+        '',
+        LOGGING.OUTPUT
+      );
+
+      // createYaml doesn't support passing reference types (array, map) as the first type. As such
+      // I'm manipulating the output since I'm not sure it's something we want to actually support
+      // seeing as it's really createResourceYaml and this here is a gray area between spoofed types
+      // and just a field within a spec.
+      bufferYaml = bufferYaml.substring(bufferYaml.indexOf('\n') + 1).replace(/# {2}/g, '#');
+    }
+
+    if (bufferYaml.length) {
+      this.bufferYaml = bufferYaml;
+      this.initialBufferYaml = bufferYaml;
+    }
   },
 
   data() {
-    const schemas = this.$store.getters['cluster/all'](SCHEMA);
-
     if (this.isCreate) {
       this.value.metadata.namespace = 'default';
     }
 
     set(this.value, 'spec', this.value.spec || {});
 
-    const providers = PROVIDERS.map(provider => ({
+    const providers = PROVIDERS.map((provider) => ({
       ...provider,
       value: provider.name,
       label: this.t(provider.labelKey)
     }));
 
     if (this.mode !== _VIEW) {
-      this.$set(this.value, 'spec', this.value.spec || {});
-
       providers.forEach((provider) => {
         this.$set(this.value.spec, provider.name, this.value.spec[provider.name] || clone(provider.default));
       });
@@ -58,28 +84,15 @@ export default {
       return !isEmpty(correctedSpecProvider) && !isEqual(correctedSpecProvider, provider.default);
     });
 
+    const hasMultipleProvidersSelected = selectedProviders?.length > 1;
+
     const selectedProvider = selectedProviders?.[0]?.value || providers[0].value;
 
-    let bufferYaml;
-
-    if ( !isEmpty(this.value.spec[selectedProvider]?.buffer) ) {
-      bufferYaml = jsyaml.dump(this.value.spec[selectedProvider].buffer);
-    } else {
-      bufferYaml = createYaml(schemas, `logging.banzaicloud.io.v1beta1.output.spec.${ selectedProvider }.buffer`, []);
-      // createYaml doesn't support passing reference types (array, map) as the first type. As such
-      // I'm manipulating the output since I'm not sure it's something we want to actually support
-      // seeing as it's really createResourceYaml and this here is a gray area between spoofed types
-      // and just a field within a spec.
-      bufferYaml = bufferYaml.substring(bufferYaml.indexOf('\n') + 1).replaceAll('#  ', '#');
-    }
-
     return {
-      bufferYaml,
-      initialBufferYaml:            bufferYaml,
+      bufferYaml: '',
       providers,
       selectedProvider,
-      hasMultipleProvidersSelected: selectedProviders.length > 1,
-      selectedProviders,
+      hasMultipleProvidersSelected,
       LOGGING
     };
   },
@@ -89,10 +102,13 @@ export default {
       return EDITOR_MODES;
     },
     enabledProviders() {
-      return this.providers.filter(p => p.enabled);
+      return this.providers.filter((p) => p.enabled);
+    },
+    isNamespaced() {
+      return this.value.type !== LOGGING?.CLUSTER_OUTPUT;
     },
     cruMode() {
-      if (this.selectedProviders.length > 1 || !this.value.allProvidersSupported) {
+      if (this.hasMultipleProvidersSelected || !this.value.allProvidersSupported) {
         return _VIEW;
       }
 
@@ -100,9 +116,6 @@ export default {
     }
   },
 
-  created() {
-    this.registerBeforeHook(this.willSave, 'willSave');
-  },
   methods: {
     getComponent(name) {
       return require(`./providers/${ name }`).default;
@@ -110,7 +123,22 @@ export default {
     launch(provider) {
       this.$refs.tabbed.select(provider.name);
     },
-    willSave() {
+    saveSettings(done) {
+      const t = this.$store.getters['i18n/t'];
+
+      if (this.selectedProvider === 'loki') {
+        const urlCheck = ['https://', 'http://'].some((checkValue) => this.value.spec['loki'].url.toLowerCase().startsWith(checkValue));
+        const isLokiHttps = this.value.spec['loki'].url ? urlCheck : undefined;
+
+        if (!isLokiHttps) {
+          this.errors = [t('logging.loki.urlInvalid')];
+
+          return done(false);
+        }
+      }
+
+      this.errors = [];
+
       this.value.spec = { [this.selectedProvider]: this.value.spec[this.selectedProvider] };
 
       const bufferJson = jsyaml.load(this.bufferYaml);
@@ -120,6 +148,7 @@ export default {
       } else {
         this.$delete(this.value.spec[this.selectedProvider], 'buffer');
       }
+      this.save(done);
     },
     tabChanged({ tab }) {
       if ( tab.name === 'buffer' ) {
@@ -141,7 +170,11 @@ export default {
 </script>
 
 <template>
-  <div class="output">
+  <Loading v-if="$fetchState.pending" />
+  <div
+    v-else
+    class="output"
+  >
     <CruResource
       :done-route="doneRoute"
       :mode="cruMode"
@@ -151,7 +184,7 @@ export default {
       :errors="errors"
       :can-yaml="true"
       @error="e=>errors = e"
-      @finish="save"
+      @finish="saveSettings"
       @cancel="done"
     >
       <NameNsDescription
@@ -160,10 +193,10 @@ export default {
         :mode="mode"
         label="generic.name"
         :register-before-hook="registerBeforeHook"
-        :namespaced="value.type !== LOGGING.CLUSTER_OUTPUT"
+        :namespaced="isNamespaced"
       />
       <Banner
-        v-if="selectedProviders.length > 1"
+        v-if="hasMultipleProvidersSelected"
         color="info"
       >
         This output is configured with multiple providers. We currently only support a single provider per output. You can view or edit the YAML.
@@ -242,6 +275,13 @@ export default {
   $logo: 60px;
 
 .output {
+  display: flex;
+  flex-direction: column;
+  flex-grow: 1;
+
+  .side-tabs {
+    flex: 1;
+  }
   .provider {
     h1 {
       display: inline-block;

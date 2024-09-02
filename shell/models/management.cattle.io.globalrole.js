@@ -4,7 +4,6 @@ import { CATTLE_API_GROUP, SUBTYPE_MAPPING, CREATE_VERBS } from '@shell/models/m
 import { uniq } from '@shell/utils/array';
 import { get } from '@shell/utils/object';
 import SteveDescriptionModel from '@shell/plugins/steve/steve-description-class';
-import Role from './rbac.authorization.k8s.io.role';
 import { AS, MODE, _CLONE, _UNFLAG } from '@shell/config/query-params';
 
 const BASE = 'user-base';
@@ -16,7 +15,14 @@ const GLOBAL = SUBTYPE_MAPPING.GLOBAL.key;
 
 export default class GlobalRole extends SteveDescriptionModel {
   get customValidationRules() {
-    return Role.customValidationRules();
+    return [
+      {
+        path:       'rules',
+        validators: [`roleTemplateRules:${ this.type }`],
+        nullable:   false,
+        type:       'array',
+      },
+    ];
   }
 
   get details() {
@@ -31,6 +37,7 @@ export default class GlobalRole extends SteveDescriptionModel {
   }
 
   get nameDisplay() {
+    // i18n-uses rbac.globalRoles.role.*.label
     const path = `rbac.globalRoles.role.${ this.id }.label`;
     const label = this.displayName || this.metadata?.name || this.id;
 
@@ -40,6 +47,7 @@ export default class GlobalRole extends SteveDescriptionModel {
   get descriptionDisplay() {
     return this.description ||
     this.metadata?.annotations?.[DESCRIPTION] ||
+    // i18n-uses rbac.globalRoles.role.*.description
     this.$rootGetters['i18n/withFallback'](`rbac.globalRoles.role.${ this.id }.description`, this.t(`rbac.globalRoles.unknownRole.description`));
   }
 
@@ -56,15 +64,15 @@ export default class GlobalRole extends SteveDescriptionModel {
   }
 
   get allResources() {
-    return this.$getters['all'](SCHEMA).filter(r => r.attributes?.kind);
+    return this.$getters['all'](SCHEMA).filter((r) => r.attributes?.kind);
   }
 
   get globalResources() {
-    return this.allResources.filter(r => r.attributes.group.includes(CATTLE_API_GROUP));
+    return this.allResources.filter((r) => r.attributes.group.includes(CATTLE_API_GROUP));
   }
 
   get resources() {
-    return uniq(this.globalResources.map(r => r.attributes?.resource)).sort();
+    return uniq(this.globalResources.map((r) => r.attributes?.resource)).sort();
   }
 
   get listLocation() {
@@ -117,7 +125,7 @@ export default class GlobalRole extends SteveDescriptionModel {
   get canCreate() {
     const schema = this.$getters['schemaFor'](this.type);
 
-    return schema?.resourceMethods.find(verb => CREATE_VERBS.has(verb));
+    return schema?.resourceMethods.find((verb) => CREATE_VERBS.has(verb));
   }
 
   goToClone(moreQuery = {}) {
@@ -136,6 +144,15 @@ export default class GlobalRole extends SteveDescriptionModel {
 
   async save() {
     const norman = await this.norman;
+
+    for (const rule of norman.rules) {
+      if (rule.nonResourceURLs && rule.nonResourceURLs.length) {
+        delete rule.resources;
+        delete rule.apiGroups;
+      } else {
+        delete rule.nonResourceURLs;
+      }
+    }
 
     return norman.save();
   }

@@ -1,12 +1,12 @@
 <script>
 import isEmpty from 'lodash/isEmpty';
-import { createYaml } from '@shell/utils/create-yaml';
+import { createYamlWithOptions } from '@shell/utils/create-yaml';
 import { clone, get } from '@shell/utils/object';
 import { SCHEMA, NAMESPACE } from '@shell/config/types';
 import ResourceYaml from '@shell/components/ResourceYaml';
 import { Banner } from '@components/Banner';
 import AsyncButton from '@shell/components/AsyncButton';
-import { mapGetters } from 'vuex';
+import { mapGetters, mapState, mapActions } from 'vuex';
 import { stringify, exceptionToErrorsArray } from '@shell/utils/error';
 import CruResourceFooter from '@shell/components/CruResourceFooter';
 
@@ -16,6 +16,8 @@ import {
 
 import { BEFORE_SAVE_HOOKS } from '@shell/mixins/child-hook';
 import Wizard from '@shell/components/Wizard';
+
+export const CONTEXT_HOOK_EDIT_YAML = 'show-preview-yaml';
 
 export default {
 
@@ -75,6 +77,14 @@ export default {
       default: () => []
     },
 
+    /**
+     * Set of maps to convert error messages to something more user friendly and apply icons
+     */
+    errorsMap: {
+      type:    Object,
+      default: null
+    },
+
     // Is the edit as yaml button allowed
     canYaml: {
       type:    Boolean,
@@ -93,10 +103,16 @@ export default {
       default: null,
     },
 
+    preventEnterSubmit: {
+      type:    Boolean,
+      default: false,
+    },
+
     applyHooks: {
       type:    Function,
       default: null,
     },
+
     steps: {
       type:    Array,
       default: () => []
@@ -128,31 +144,45 @@ export default {
     componentTestid: {
       type:    String,
       default: 'form'
+    },
+
+    description: {
+      type:    String,
+      default: ''
+    },
+
+    yamlModifiers: {
+      type:    Object,
+      default: undefined
     }
   },
 
   data(props) {
-    const yaml = this.createResourceYaml();
-
-    this.$on('createNamespace', (e) => {
-      // When createNamespace is set to true,
-      // the UI will attempt to create a new namespace
-      // before saving the resource.
-      this.createNamespace = e;
-    });
+    const inStore = this.$store.getters['currentStore'](this.resource);
+    const schema = this.$store.getters[`${ inStore }/schemaFor`](this.resource.type);
 
     return {
       isCancelModal:   false,
-      createNamespace: false,
       showAsForm:      this.$route.query[AS] !== _YAML,
-      resourceYaml:    yaml,
-      initialYaml:     yaml,
+      /**
+       * Initialised on demand (given that it needs to make a request to fetch schema definition)
+       */
+      resourceYaml:    null,
+      /**
+       * Initialised on demand (given that it needs to make a request to fetch schema definition)
+       */
+      initialYaml:     null,
+      /**
+       * Save a copy of the initial resource. This is used to calc the initial yaml later on
+       */
+      initialResource: clone(this.resource),
       abbrSizes:       {
         3: '24px',
         4: '18px',
         5: '16px',
         6: '14px'
-      }
+      },
+      schema
     };
   },
 
@@ -161,7 +191,7 @@ export default {
       const { validationPassed, showAsForm, steps } = this;
 
       if (showAsForm && steps?.length) {
-        return validationPassed && this.steps.every(step => step.ready);
+        return validationPassed && this.steps.every((step) => step.ready);
       }
 
       // Don't apply validation rules if the form is not shown.
@@ -174,15 +204,8 @@ export default {
       return this.validationPassed;
     },
 
-    canDiff() {
-      return this.initialYaml !== this.resourceYaml;
-    },
-
     canEditYaml() {
-      const inStore = this.$store.getters['currentStore'](this.resource);
-      const schema = this.$store.getters[`${ inStore }/schemaFor`](this.resource.type);
-
-      return !(schema?.resourceMethods?.includes('blocked-PUT'));
+      return !(this.schema?.resourceMethods?.includes('blocked-PUT'));
     },
 
     showYaml() {
@@ -218,6 +241,8 @@ export default {
     },
 
     ...mapGetters({ t: 'i18n/t' }),
+    ...mapState('cru-resource', ['createNamespace']),
+    ...mapActions('cru-resource', ['setCreateNamespace']),
 
     /**
      * Prevent issues for malformed types injection
@@ -225,12 +250,33 @@ export default {
     hasErrors() {
       return this.errors?.length && Array.isArray(this.errors);
     },
+
+    /**
+     * Replace returned string with new picked value and icon
+     */
+    mappedErrors() {
+      return !this.errors ? {} : this.errorsMap || this.errors.reduce((acc, error) => ({
+        ...acc,
+        [error]: {
+          message: error,
+          icon:    null
+        }
+      }), {});
+    },
   },
 
   created() {
     if ( this._selectedSubtype ) {
       this.$emit('select-type', this._selectedSubtype);
     }
+  },
+
+  mounted() {
+    this.$store.dispatch('cru-resource/setCreateNamespace', false);
+  },
+
+  beforeDestroy() {
+    this.$store.dispatch('cru-resource/setCreateNamespace', false);
   },
 
   methods: {
@@ -252,7 +298,7 @@ export default {
     closeError(index) {
       const errors = this.errors.filter((_, i) => i !== index);
 
-      this.$emit('error', errors);
+      this.$emit('error', errors, this.errors[index]);
     },
 
     emitOrRoute() {
@@ -270,8 +316,9 @@ export default {
       }
     },
 
-    createResourceYaml() {
-      const resource = this.resource;
+    async createResourceYaml(modifiers, resource = this.resource) {
+      // Required to populate yaml comments and default values
+      await this.schema?.fetchResourceFields();
 
       if ( typeof this.generateYaml === 'function' ) {
         return this.generateYaml.apply(this, resource);
@@ -280,18 +327,27 @@ export default {
         const schemas = this.$store.getters[`${ inStore }/all`](SCHEMA);
         const clonedResource = clone(resource);
 
-        const out = createYaml(schemas, resource.type, clonedResource);
+        const out = createYamlWithOptions(schemas, resource.type, clonedResource, modifiers);
 
         return out;
       }
     },
 
     async showPreviewYaml() {
+      // Required to populate yaml comments and default values
+      await this.schema?.fetchResourceFields();
+
       if ( this.applyHooks ) {
-        await this.applyHooks(BEFORE_SAVE_HOOKS);
+        try {
+          await this.applyHooks(BEFORE_SAVE_HOOKS, CONTEXT_HOOK_EDIT_YAML);
+        } catch (e) {
+          console.warn('Unable to show yaml: ', e); // eslint-disable-line no-console
+
+          return;
+        }
       }
 
-      const resourceYaml = this.createResourceYaml();
+      const resourceYaml = await this.createResourceYaml(this.yamlModifiers);
 
       this.resourceYaml = resourceYaml;
       this.showAsForm = false;
@@ -332,6 +388,10 @@ export default {
       const newNamespaceName = get(this.resource, this.namespaceKey);
       let namespaceAlreadyExists = false;
 
+      if (!this.createNamespace) {
+        return;
+      }
+
       try {
         // This is in a try-catch block because the call to fetch
         // a namespace throws an error if the namespace is not found.
@@ -350,6 +410,23 @@ export default {
           throw new Error(`Could not create the new namespace. ${ e.message }`);
         }
       }
+    },
+
+    onPressEnter(event) {
+      if (this.preventEnterSubmit) {
+        event.preventDefault();
+      }
+    }
+  },
+
+  watch: {
+    async showAsForm(neu) {
+      if (!neu) {
+        // Entering yaml mode
+        if (!this.initialYaml) {
+          this.initialYaml = await this.createResourceYaml(undefined, this.initialResource);
+        }
+      }
     }
   }
 };
@@ -358,11 +435,18 @@ export default {
 <template>
   <section class="cru">
     <slot name="noticeBanner" />
-    <form
+    <p
+      v-if="description"
+      class="description"
+    >
+      {{ description }}
+    </p>
+    <component
       :is="(isView? 'div' : 'form')"
+      data-testid="cru-form"
       class="create-resource-container cru__form"
       @submit.prevent
-      @keydown.enter.prevent
+      @keydown.enter="onPressEnter($event)"
     >
       <div
         v-if="hasErrors"
@@ -373,8 +457,9 @@ export default {
           v-for="(err, i) in errors"
           :key="i"
           color="error"
-          :label="stringify(err)"
-          :stacked="true"
+          :data-testid="`error-banner${i}`"
+          :label="stringify(mappedErrors[err].message)"
+          :icon="mappedErrors[err].icon"
           :closable="true"
           @close="closeError(i)"
         />
@@ -392,6 +477,7 @@ export default {
             :key="subtype.id"
             class="subtype-banner"
             :class="{ selected: subtype.id === _selectedSubtype }"
+            :data-testid="`subtype-banner-item-${subtype.id}`"
             @click="selectType(subtype.id, $event)"
           >
             <slot name="subtype-content">
@@ -429,7 +515,7 @@ export default {
                     <h5>
                       <span
                         v-if="$store.getters['i18n/exists'](subtype.label)"
-                        v-html="t(subtype.label)"
+                        v-clean-html="t(subtype.label)"
                       />
                       <span v-else>{{ subtype.label }}</span>
                     </h5>
@@ -448,7 +534,7 @@ export default {
                   >
                     <span
                       v-if="$store.getters['i18n/exists'](subtype.description)"
-                      v-html="t(subtype.description, {}, true)"
+                      v-clean-html="t(subtype.description, {}, true)"
                     />
                     <span v-else>{{ subtype.description }}</span>
                   </div>
@@ -618,8 +704,9 @@ export default {
         </slot>
       </template>
       <!------ YAML ------>
+      <!-- Hide this section until it's needed. This means we don't need to upfront create initialYaml -->
       <section
-        v-else
+        v-else-if="showYaml && !showAsForm"
         class="cru-resource-yaml-container resource-container cru__content"
       >
         <ResourceYaml
@@ -636,7 +723,7 @@ export default {
           class="resource-container cru__content"
           @error="e=>$emit('error', e)"
         >
-          <template #yamlFooter="{yamlSave, showPreview, yamlPreview, yamlUnpreview}">
+          <template #yamlFooter="{yamlSave, showPreview, yamlPreview, yamlUnpreview, canDiff}">
             <slot name="cru-yaml-footer">
               <CruResourceFooter
                 class="cru__footer"
@@ -693,7 +780,7 @@ export default {
           </template>
         </ResourceYaml>
       </section>
-    </form>
+    </component>
   </section>
 </template>
 
@@ -803,6 +890,11 @@ form.create-resource-container .cru {
     background-color: var(--header-bg);
     margin: 10px 0;
   }
+}
+
+.description {
+  margin-bottom: 15px;
+  margin-top: 5px;
 }
 
 </style>

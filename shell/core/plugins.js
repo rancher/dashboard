@@ -3,15 +3,14 @@ import { clearModelCache } from '@shell/plugins/dashboard-store/model-loader';
 import { Plugin } from './plugin';
 import { PluginRoutes } from './plugin-routes';
 import { UI_PLUGIN_BASE_URL } from '@shell/config/uiplugins';
+import { ExtensionPoint } from './types';
 
 const MODEL_TYPE = 'models';
 
-export default function({
-  app,
-  store,
-  $axios,
-  redirect
-}, inject) {
+export default function(context, inject, vueApp) {
+  const {
+    app, store, $axios, redirect
+  } = context;
   const dynamic = {};
   const validators = {};
   let _lastLoaded = 0;
@@ -21,355 +20,399 @@ export default function({
 
   const pluginRoutes = new PluginRoutes(app.router);
 
-  inject('plugin', {
+  const uiConfig = {};
+
+  for (const ep in ExtensionPoint) {
+    uiConfig[ExtensionPoint[ep]] = {};
+  }
+
+  inject(
+    'plugin',
+    {
     // Plugins should not use these - but we will pass them in for now as a 2nd argument
     // in case there are use cases not covered that require direct access - we may remove access later
-    internal() {
-      const internal = {
-        app,
-        store,
-        $axios,
-        redirect,
-        plugins: this
-      };
+      internal() {
+        const internal = {
+          app,
+          store,
+          $axios,
+          redirect,
+          plugins: this
+        };
 
-      return internal;
-    },
+        return internal;
+      },
 
-    // Load a plugin from a UI package
-    loadPluginAsync(plugin) {
-      const { name, version } = plugin;
-      const id = `${ name }-${ version }`;
-      let url;
+      // Load a plugin from a UI package
+      loadPluginAsync(plugin) {
+        const { name, version } = plugin;
+        const id = `${ name }-${ version }`;
+        let url;
 
-      if (plugin?.metadata?.direct === 'true') {
-        url = plugin.endpoint;
-      } else {
+        if (plugin?.metadata?.direct === 'true') {
+          url = plugin.endpoint;
+        } else {
         // See if the plugin has a main metadata property set
-        const main = plugin?.metadata?.main || `${ id }.umd.min.js`;
+          const main = plugin?.metadata?.main || `${ id }.umd.min.js`;
 
-        url = `${ UI_PLUGIN_BASE_URL }/${ name }/${ version }/plugin/${ main }`;
-      }
-
-      return this.loadAsync(id, url);
-    },
-
-    // Load a plugin from a UI package
-    loadAsync(id, mainFile) {
-      return new Promise((resolve, reject) => {
-        const moduleUrl = mainFile;
-        const element = document.createElement('script');
-
-        element.src = moduleUrl;
-        element.type = 'text/javascript';
-        element.async = true;
-
-        // id is `<product>-<version>`.
-        const oldPlugin = Object.values(plugins).find(p => id.startsWith(p.name));
-
-        let removed = Promise.resolve();
-
-        if (oldPlugin) {
-          // Uninstall existing plugin if there is one. This ensures that last loaded plugin is not always used
-          // (nav harv1-->harv2-->harv1 and harv2 would be shown)
-          removed = this.removePlugin(oldPlugin.name).then(() => {
-            delete window[oldPlugin.id];
-
-            delete plugins[oldPlugin.id];
-          });
+          url = `${ UI_PLUGIN_BASE_URL }/${ name }/${ version }/plugin/${ main }`;
         }
 
-        removed.then(() => {
-          element.onload = () => {
-            element.parentElement.removeChild(element);
+        return this.loadAsync(id, url);
+      },
 
-            if (!window[id]) {
-              return reject(new Error('Could not load plugin code'));
-            }
+      // Load a plugin from a UI package
+      loadAsync(id, mainFile) {
+        return new Promise((resolve, reject) => {
+        // The plugin is already loaded so we should avoid loading it again.
+        // This will primarily affect plugins that load prior to authentication and we attempt to load again after authentication.
+          if (document.getElementById(id)) {
+            return resolve();
+          }
+          const moduleUrl = mainFile;
+          const element = document.createElement('script');
 
-            // Update the timestamp that new plugins were loaded - may be needed
-            // to update caches when new plugins are loaded
-            _lastLoaded = new Date().getTime();
+          element.src = moduleUrl;
+          element.type = 'text/javascript';
+          element.async = true;
+          element.id = id;
+          element.dataset.purpose = 'extension';
 
-            // name is the name of the plugin, including the version number
-            const plugin = new Plugin(id);
+          // id is `<product>-<version>`.
+          const oldPlugin = Object.values(plugins).find((p) => id.startsWith(p.name));
 
-            plugins[id] = plugin;
+          let removed = Promise.resolve();
 
-            // Initialize the plugin
-            window[id].default(plugin, this.internal());
+          if (oldPlugin) {
+          // Uninstall existing plugin if there is one. This ensures that last loaded plugin is not always used
+          // (nav harv1-->harv2-->harv1 and harv2 would be shown)
+            removed = this.removePlugin(oldPlugin.name).then(() => {
+              delete window[oldPlugin.id];
 
-            // Uninstall existing plugin if there is one
-            this.removePlugin(plugin.name); // Removing this causes the plugin to not load on refresh
+              delete plugins[oldPlugin.id];
 
-            // Load all of the types etc from the plugin
-            this.applyPlugin(plugin);
+              const oldElement = document.getElementById(oldPlugin.id);
 
-            // Add the plugin to the store
-            store.dispatch('uiplugins/addPlugin', plugin);
+              oldElement.parentElement.removeChild(oldElement);
+            });
+          }
 
-            resolve();
-          };
+          removed.then(() => {
+            element.onload = () => {
+              if (!window[id]) {
+                return reject(new Error('Could not load plugin code'));
+              }
 
-          element.onerror = (e) => {
-            element.parentElement.removeChild(element);
-            // Massage the error into something useful
-            const errorMessage = `Failed to load script from '${ e.target.src }'`;
+              // Update the timestamp that new plugins were loaded - may be needed
+              // to update caches when new plugins are loaded
+              _lastLoaded = new Date().getTime();
+
+              // name is the name of the plugin, including the version number
+              const plugin = new Plugin(id);
+
+              plugins[id] = plugin;
+
+              // Initialize the plugin
+              window[id].default(plugin, this.internal());
+
+              // Uninstall existing plugin if there is one
+              this.removePlugin(plugin.name); // Removing this causes the plugin to not load on refresh
+
+              // Load all of the types etc from the plugin
+              this.applyPlugin(plugin);
+
+              // Add the plugin to the store
+              store.dispatch('uiplugins/addPlugin', plugin);
+
+              resolve();
+            };
+
+            element.onerror = (e) => {
+              element.parentElement.removeChild(element);
+
+              // Massage the error into something useful
+              const errorMessage = `Failed to load script from '${ e.target.src }'`;
+
+              console.error(errorMessage, e); // eslint-disable-line no-console
+              reject(new Error(errorMessage)); // This is more useful where it's used
+            };
+
+            document.head.appendChild(element);
+          }).catch((e) => {
+            const errorMessage = `Failed to unload old plugin${ oldPlugin?.id }`;
 
             console.error(errorMessage, e); // eslint-disable-line no-console
             reject(new Error(errorMessage)); // This is more useful where it's used
-          };
-
-          document.head.appendChild(element);
-        }).catch((e) => {
-          const errorMessage = `Failed to unload old plugin${ oldPlugin?.id }`;
-
-          console.error(errorMessage, e); // eslint-disable-line no-console
-          reject(new Error(errorMessage)); // This is more useful where it's used
+          });
         });
-      });
-    },
+      },
 
-    // Used by the dynamic loader when a plugin is included in the build
-    initPlugin(id, module) {
-      const plugin = new Plugin(id);
+      // Used by the dynamic loader when a plugin is included in the build
+      initPlugin(id, module) {
+        const plugin = new Plugin(id);
 
-      // Mark the plugin as being built-in
-      plugin.builtin = true;
+        // Mark the plugin as being built-in
+        plugin.builtin = true;
 
-      plugins[id] = plugin;
+        plugins[id] = plugin;
 
-      // Initialize the plugin
-      const p = module;
-
-      try {
-        p.default(plugin, this.internal());
-
-        // Uninstall existing product if there is one
-        this.removePlugin(plugin.name);
-
-        // Load all of the types etc from the plugin
-        this.applyPlugin(plugin);
-
-        // Add the plugin to the store
-        store.dispatch('uiplugins/addPlugin', plugin);
-      } catch (e) {
-        console.error(`Error loading plugin ${ plugin.name }`); // eslint-disable-line no-console
-        console.error(e); // eslint-disable-line no-console
-      }
-    },
-
-    async logout() {
-      const all = Object.values(plugins);
-
-      for (let i = 0; i < all.length; i++) {
-        const plugin = all[i];
-
-        if (plugin.builtin) {
-          continue;
-        }
+        // Initialize the plugin
+        const p = module;
 
         try {
-          await this.removePlugin(plugin.name);
+          p.default(plugin, this.internal());
+
+          // Uninstall existing product if there is one
+          this.removePlugin(plugin.name);
+
+          // Load all of the types etc from the plugin
+          this.applyPlugin(plugin);
+
+          // Add the plugin to the store
+          store.dispatch('uiplugins/addPlugin', plugin);
         } catch (e) {
-          console.error('Error removing plugin', e); // eslint-disable-line no-console
+          console.error(`Error loading plugin ${ plugin.name }`); // eslint-disable-line no-console
+          console.error(e); // eslint-disable-line no-console
+        }
+      },
+
+      async logout() {
+        const all = Object.values(plugins);
+
+        for (let i = 0; i < all.length; i++) {
+          const plugin = all[i];
+
+          if (plugin.builtin) {
+            continue;
+          }
+
+          try {
+            await this.removePlugin(plugin.name);
+          } catch (e) {
+            console.error('Error removing plugin', e); // eslint-disable-line no-console
+          }
+
+          delete plugins[plugin.id];
+        }
+      },
+
+      // Remove the plugin
+      async removePlugin(name) {
+        const plugin = Object.values(plugins).find((p) => p.name === name);
+
+        if (!plugin) {
+          return;
         }
 
-        delete plugins[plugin.name];
-      }
-    },
+        const promises = [];
 
-    // Remove the plugin
-    async removePlugin(name) {
-      const plugin = Object.values(plugins).find(p => p.name === name);
-
-      if (!plugin) {
-        return;
-      }
-
-      const promises = [];
-
-      plugin.productNames.forEach((product) => {
-        promises.push(store.dispatch('type-map/removeProduct', { product, plugin }));
-      });
-
-      // Remove all of the types
-      Object.keys(plugin.types).forEach((typ) => {
-        Object.keys(plugin.types[typ]).forEach((name) => {
-          this.unregister(typ, name);
-
-          if (typ === MODEL_TYPE) {
-            clearModelCache(name);
-          }
+        plugin.productNames.forEach((product) => {
+          promises.push(store.dispatch('type-map/removeProduct', { product, plugin }));
         });
-      });
 
-      // Remove locales
-      plugin.locales.forEach((localeObj) => {
-        promises.push(store.dispatch('i18n/removeLocale', localeObj));
-      });
+        // Remove all of the types
+        Object.keys(plugin.types).forEach((typ) => {
+          Object.keys(plugin.types[typ]).forEach((name) => {
+            this.unregister(typ, name);
 
-      if (plugin.types.models) {
+            if (typ === MODEL_TYPE) {
+              clearModelCache(name);
+            }
+          });
+        });
+
+        // Remove locales
+        plugin.locales.forEach((localeObj) => {
+          promises.push(store.dispatch('i18n/removeLocale', localeObj));
+        });
+
+        if (plugin.types.models) {
         // Ask the Steve stores to forget any data it has for models that we are removing
-        promises.push(...this.removeTypeFromStore(store, 'rancher', Object.keys(plugin.types.models)));
-        promises.push(...this.removeTypeFromStore(store, 'management', Object.keys(plugin.types.models)));
-      }
+          promises.push(...this.removeTypeFromStore(store, 'rancher', Object.keys(plugin.types.models)));
+          promises.push(...this.removeTypeFromStore(store, 'management', Object.keys(plugin.types.models)));
+        }
 
-      // Uninstall routes
-      pluginRoutes.uninstall(plugin);
+        // Call plugin uninstall hooks
+        plugin.uninstallHooks.forEach((fn) => fn(plugin, this.internal()));
 
-      // Call plugin uninstall hooks
-      plugin.uninstallHooks.forEach(fn => fn(plugin, this.internal()));
+        // Remove the plugin itself
+        promises.push( store.dispatch('uiplugins/removePlugin', name));
 
-      // Remove the plugin itself
-      promises.push( store.dispatch('uiplugins/removePlugin', name));
+        // Unregister vuex stores
+        plugin.stores.forEach((pStore) => pStore.unregister(store));
 
-      // Unregister vuex stores
-      plugin.stores.forEach(pStore => pStore.unregister(store));
+        // Remove validators
+        Object.keys(plugin.validators).forEach((key) => {
+          delete validators[key];
+        });
 
-      // Remove validators
-      Object.keys(plugin.validators).forEach((key) => {
-        delete validators[key];
-      });
+        await Promise.all(promises);
 
-      await Promise.all(promises);
+        // Update last load since we removed a plugin
+        _lastLoaded = new Date().getTime();
+      },
 
-      // Update last load since we removed a plugin
-      _lastLoaded = new Date().getTime();
-    },
+      removeTypeFromStore(store, storeName, types) {
+        return (types || []).map((type) => store.commit(`${ storeName }/forgetType`, type));
+      },
 
-    removeTypeFromStore(store, storeName, types) {
-      return (types || []).map(type => store.commit(`${ storeName }/forgetType`, type));
-    },
-
-    // Apply the plugin based on its metadata
-    applyPlugin(plugin) {
+      // Apply the plugin based on its metadata
+      applyPlugin(plugin) {
       // Types
-      Object.keys(plugin.types).forEach((typ) => {
-        Object.keys(plugin.types[typ]).forEach((name) => {
-          this.register(typ, name, plugin.types[typ][name]);
+        Object.keys(plugin.types).forEach((typ) => {
+          Object.keys(plugin.types[typ]).forEach((name) => {
+            this.register(typ, name, plugin.types[typ][name]);
+          });
         });
-      });
 
-      // l10n
-      Object.keys(plugin.l10n).forEach((name) => {
-        plugin.l10n[name].forEach((fn) => {
-          this.register('l10n', name, fn);
+        // UI Configuration - copy UI config from a plugin into the global uiConfig object
+        Object.keys(plugin.uiConfig).forEach((actionType) => {
+          Object.keys(plugin.uiConfig[actionType]).forEach((actionLocation) => {
+            plugin.uiConfig[actionType][actionLocation].forEach((action) => {
+              if (!uiConfig[actionType][actionLocation]) {
+                uiConfig[actionType][actionLocation] = [];
+              }
+              uiConfig[actionType][actionLocation].push(action);
+            });
+          });
         });
-      });
 
-      // Initialize the product if the store is ready
-      if (productsLoaded()) {
-        this.loadProducts([plugin]);
-      }
+        // l10n
+        Object.keys(plugin.l10n).forEach((name) => {
+          plugin.l10n[name].forEach((fn) => {
+            this.register('l10n', name, fn);
+          });
+        });
 
-      // Register vuex stores
-      plugin.stores.forEach(pStore => pStore.register()(store));
+        // Initialize the product if the store is ready
+        if (productsLoaded()) {
+          this.loadProducts([plugin]);
+        }
 
-      // Locales
-      plugin.locales.forEach((localeObj) => {
-        store.dispatch('i18n/addLocale', localeObj);
-      });
+        // Register vuex stores
+        plugin.stores.forEach((pStore) => pStore.register()(store));
 
-      // Routes
-      pluginRoutes.addRoutes(plugin, plugin.routes);
+        // Locales
+        plugin.locales.forEach((localeObj) => {
+          store.dispatch('i18n/addLocale', localeObj);
+        });
 
-      // Validators
-      Object.keys(plugin.validators).forEach((key) => {
-        validators[key] = plugin.validators[key];
-      });
-    },
+        // Routes
+        pluginRoutes.addRoutes(plugin, plugin.routes);
 
-    /**
+        // Validators
+        Object.keys(plugin.validators).forEach((key) => {
+          validators[key] = plugin.validators[key];
+        });
+      },
+
+      /**
      * Register 'something' that can be dynamically loaded - e.g. model, edit, create, list, i18n
      * @param {String} type type of thing to register, e.g. 'edit'
      * @param {String} name unique name of 'something'
      * @param {Function} fn function that dynamically loads the module for the thing being registered
      */
-    register(type, name, fn) {
-      if (!dynamic[type]) {
-        dynamic[type] = {};
-      }
-
-      // Accumulate l10n resources rather than replace
-      if (type === 'l10n') {
-        if (!dynamic[type][name]) {
-          dynamic[type][name] = [];
+      register(type, name, fn) {
+        if (!dynamic[type]) {
+          dynamic[type] = {};
         }
 
-        dynamic[type][name].push(fn);
-      } else {
-        dynamic[type][name] = fn;
-      }
-    },
-
-    unregister(type, name, fn) {
-      if (type === 'l10n') {
-        if (dynamic[type]?.[name]) {
-          const index = dynamic[type][name].find(func => func === fn);
-
-          if (index !== -1) {
-            dynamic[type][name].splice(index, 1);
+        // Accumulate l10n resources rather than replace
+        if (type === 'l10n') {
+          if (!dynamic[type][name]) {
+            dynamic[type][name] = [];
           }
+
+          dynamic[type][name].push(fn);
+        } else {
+          dynamic[type][name] = fn;
         }
-      } else if (dynamic[type]?.[name]) {
-        delete dynamic[type][name];
-      }
-    },
+      },
 
-    // For debugging
-    getAll() {
-      return dynamic;
-    },
+      unregister(type, name, fn) {
+        if (type === 'l10n') {
+          if (dynamic[type]?.[name]) {
+            const index = dynamic[type][name].find((func) => func === fn);
 
-    getPlugins() {
-      return plugins;
-    },
-
-    getDynamic(typeName, name) {
-      return dynamic[typeName]?.[name];
-    },
-
-    getValidator(name) {
-      return validators[name];
-    },
-
-    // Timestamp that a UI package was last loaded
-    // Typically used to invalidate caches (e.g. i18n) when new plugins are loaded
-    get lastLoad() {
-      return _lastLoaded;
-    },
-
-    listDynamic(typeName) {
-      if (!dynamic[typeName]) {
-        return [];
-      }
-
-      return Object.keys(dynamic[typeName]);
-    },
-
-    // Get the products provided by plugins
-    get products() {
-      return dynamic.products || [];
-    },
-
-    // Load all of the products provided by plugins
-    loadProducts(loadPlugins) {
-      if (!loadPlugins) {
-        loadPlugins = Object.values(plugins);
-      }
-
-      loadPlugins.forEach((plugin) => {
-        if (plugin.products) {
-          plugin.products.forEach(async(p) => {
-            const impl = await p;
-
-            if (impl.init) {
-              impl.init(plugin, store);
+            if (index !== -1) {
+              dynamic[type][name].splice(index, 1);
             }
-          });
+          }
+        } else if (dynamic[type]?.[name]) {
+          delete dynamic[type][name];
         }
-      });
+      },
+
+      // For debugging
+      getAll() {
+        return dynamic;
+      },
+
+      getPlugins() {
+        return plugins;
+      },
+
+      getDynamic(typeName, name) {
+        return dynamic[typeName]?.[name];
+      },
+
+      getValidator(name) {
+        return validators[name];
+      },
+
+      /**
+     * Return the UI configuration for the given type and location
+     */
+      getUIConfig(type, uiArea) {
+        return uiConfig[type][uiArea] || [];
+      },
+
+      /**
+     * Returns all UI Configuration (useful for debugging)
+     */
+      getAllUIConfig() {
+        return uiConfig;
+      },
+
+      // Timestamp that a UI package was last loaded
+      // Typically used to invalidate caches (e.g. i18n) when new plugins are loaded
+      get lastLoad() {
+        return _lastLoaded;
+      },
+
+      listDynamic(typeName) {
+        if (!dynamic[typeName]) {
+          return [];
+        }
+
+        return Object.keys(dynamic[typeName]);
+      },
+
+      // Get the products provided by plugins
+      get products() {
+        return dynamic.products || [];
+      },
+
+      // Load all of the products provided by plugins
+      loadProducts(loadPlugins) {
+        if (!loadPlugins) {
+          loadPlugins = Object.values(plugins);
+        }
+
+        loadPlugins.forEach((plugin) => {
+          if (plugin.products) {
+            plugin.products.forEach(async(p) => {
+              const impl = await p;
+
+              if (impl.init) {
+                impl.init(plugin, store);
+              }
+            });
+          }
+        });
+      },
     },
-  });
+    context,
+    vueApp
+  );
 }

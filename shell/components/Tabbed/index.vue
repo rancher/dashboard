@@ -19,6 +19,11 @@ export default {
       default: false
     },
 
+    hideSingleTab: {
+      type:    Boolean,
+      default: false
+    },
+
     showTabsAddRemove: {
       type:    Boolean,
       default: false
@@ -86,6 +91,11 @@ export default {
     sortedTabs() {
       return sortBy(this.tabs, ['weight:desc', 'labelDisplay', 'name']);
     },
+
+    // hide tabs based on tab count IF flag is active
+    hideTabs() {
+      return this.hideSingleTab && this.sortedTabs.length === 1;
+    }
   },
 
   watch: {
@@ -94,17 +104,17 @@ export default {
         defaultTab,
         useHash
       } = this;
-      const activeTab = tabs.find(t => t.active);
+      const activeTab = tabs.find((t) => t.active);
 
       const hash = useHash ? this.$route.hash : undefined;
       const windowHash = useHash ? hash.slice(1) : undefined;
-      const windowHashTabMatch = tabs.find(t => t.name === windowHash && !t.active);
+      const windowHashTabMatch = tabs.find((t) => t.name === windowHash && !t.active);
       const firstTab = head(tabs) || null;
 
       if (isEmpty(activeTab)) {
         if (useHash && !isEmpty(windowHashTabMatch)) {
           this.select(windowHashTabMatch.name);
-        } else if (!isEmpty(defaultTab) && !isEmpty(tabs.find(t => t.name === defaultTab))) {
+        } else if (!isEmpty(defaultTab) && !isEmpty(tabs.find((t) => t.name === defaultTab))) {
           this.select(defaultTab);
         } else if (firstTab?.name) {
           this.select(firstTab.name);
@@ -144,7 +154,7 @@ export default {
     },
 
     find(name) {
-      return this.sortedTabs.find(x => x.name === name );
+      return this.sortedTabs.find((x) => x.name === name );
     },
 
     select(name/* , event */) {
@@ -184,7 +194,7 @@ export default {
 
     selectNext(direction) {
       const { sortedTabs } = this;
-      const currentIdx = sortedTabs.findIndex(x => x.active);
+      const currentIdx = sortedTabs.findIndex((x) => x.active);
       const nextIdx = getCyclicalIdx(currentIdx, direction, sortedTabs.length);
       const nextName = sortedTabs[nextIdx].name;
 
@@ -208,13 +218,13 @@ export default {
     },
 
     tabAddClicked() {
-      const activeTabIndex = findIndex(this.tabs, tab => tab.active);
+      const activeTabIndex = findIndex(this.tabs, (tab) => tab.active);
 
       this.$emit('addTab', activeTabIndex);
     },
 
     tabRemoveClicked() {
-      const activeTabIndex = findIndex(this.tabs, tab => tab.active);
+      const activeTabIndex = findIndex(this.tabs, (tab) => tab.active);
 
       this.$emit('removeTab', activeTabIndex);
     },
@@ -223,13 +233,18 @@ export default {
 </script>
 
 <template>
-  <div :class="{'side-tabs': !!sideTabs, 'tabs-only': tabsOnly }">
+  <div
+    :class="{'side-tabs': !!sideTabs, 'tabs-only': tabsOnly }"
+    data-testid="tabbed"
+  >
     <ul
+      v-if="!hideTabs"
       ref="tablist"
       role="tablist"
       class="tabs"
       :class="{'clearfix':!sideTabs, 'vertical': sideTabs, 'horizontal': !sideTabs}"
       tabindex="0"
+      data-testid="tabbed-block"
       @keydown.right.prevent="selectNext(1)"
       @keydown.left.prevent="selectNext(-1)"
       @keydown.down.prevent="selectNext(1)"
@@ -239,10 +254,12 @@ export default {
         v-for="tab in sortedTabs"
         :id="tab.name"
         :key="tab.name"
+        :data-testid="tab.name"
         :class="{tab: true, active: tab.active, disabled: tab.disabled, error: (tab.error)}"
         role="presentation"
       >
         <a
+          :data-testid="`btn-${tab.name}`"
           :aria-controls="'#' + tab.name"
           :aria-selected="tab.active"
           role="tab"
@@ -255,7 +272,7 @@ export default {
           >{{ tab.badge }}</span>
           <i
             v-if="hasIcon(tab)"
-            v-tooltip="t('validation.tab')"
+            v-clean-tooltip="t('validation.tab')"
             class="conditions-alert-icon icon-error"
           />
         </a>
@@ -277,6 +294,7 @@ export default {
           <button
             type="button"
             class="btn bg-transparent"
+            data-testid="tab-list-add"
             @click="tabAddClicked"
           >
             <i class="icon icon-plus" />
@@ -285,6 +303,7 @@ export default {
             type="button"
             class="btn bg-transparent"
             :disabled="!sortedTabs.length"
+            data-testid="tab-list-remove"
             @click="tabRemoveClicked"
           >
             <i class="icon icon-minus" />

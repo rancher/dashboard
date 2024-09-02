@@ -4,20 +4,16 @@ import isEmpty from 'lodash/isEmpty';
 import InstallRedirect from '@shell/utils/install-redirect';
 import AlertTable from '@shell/components/AlertTable';
 import { NAME, CHART_NAME } from '@shell/config/product/monitoring';
-import { ENDPOINTS, MONITORING } from '@shell/config/types';
+import { CATALOG, MONITORING } from '@shell/config/types';
 import { allHash } from '@shell/utils/promise';
 import { findBy } from '@shell/utils/array';
-
-import { Banner } from '@components/Banner';
+import { getClusterPrefix } from '@shell/utils/grafana';
 import LazyImage from '@shell/components/LazyImage';
 import SimpleBox from '@shell/components/SimpleBox';
-import { haveV1MonitoringWorkloads } from '@shell/utils/monitoring';
-
-const CATTLE_MONITORING_NAMESPACE = 'cattle-monitoring-system';
+import { canViewAlertManagerLink, canViewGrafanaLink, canViewPrometheusLink } from '@shell/utils/monitoring';
 
 export default {
   components: {
-    Banner,
     LazyImage,
     SimpleBox,
     AlertTable
@@ -41,7 +37,6 @@ export default {
         prometheus:   false,
       },
       resources:     [MONITORING.ALERTMANAGER, MONITORING.PROMETHEUS],
-      v1Installed:   false,
       externalLinks: [
         {
           enabled:     false,
@@ -58,7 +53,7 @@ export default {
           iconSrc:     grafanaSrc,
           label:       'monitoring.overview.linkedList.grafana.label',
           description: 'monitoring.overview.linkedList.grafana.description',
-          link:        `/k8s/clusters/${ currentCluster.id }/api/v1/namespaces/cattle-monitoring-system/services/http:rancher-monitoring-grafana:80/proxy`,
+          link:        '',
         },
         {
           enabled:     false,
@@ -94,44 +89,41 @@ export default {
   methods: {
     async fetchDeps() {
       const { $store, externalLinks } = this;
+      const hash = {};
 
-      this.v1Installed = await haveV1MonitoringWorkloads($store);
+      if ($store.getters['cluster/canList'](CATALOG.APP)) {
+        hash.apps = $store.dispatch('cluster/findAll', { type: CATALOG.APP });
+      }
+      const res = await allHash(hash);
 
-      const hash = await allHash({ endpoints: $store.dispatch('cluster/findAll', { type: ENDPOINTS }) });
+      const canViewAlertManager = await canViewAlertManagerLink(this.$store);
+      const canViewGrafana = await canViewGrafanaLink(this.$store);
+      const canViewPrometheus = await canViewPrometheusLink(this.$store);
 
-      if (!isEmpty(hash.endpoints)) {
+      if (canViewAlertManager) {
         const amMatch = findBy(externalLinks, 'group', 'alertmanager');
+
+        amMatch.enabled = true;
+      }
+      if (canViewGrafana) {
         const grafanaMatch = findBy(externalLinks, 'group', 'grafana');
+        // Generate Grafana link
+        const currentCluster = this.$store.getters['currentCluster'];
+        const rancherMonitoring = !isEmpty(res.apps) ? findBy(res.apps, 'id', 'cattle-monitoring-system/rancher-monitoring') : '';
+        const clusterPrefix = getClusterPrefix(rancherMonitoring?.currentVersion || '', currentCluster.id);
+
+        grafanaMatch.link = `${ clusterPrefix }/api/v1/namespaces/cattle-monitoring-system/services/http:rancher-monitoring-grafana:80/proxy/`;
+        grafanaMatch.enabled = true;
+      }
+
+      if (canViewPrometheus) {
         const promeMatch = externalLinks.filter(
-          el => el.group === 'prometheus'
-        );
-        const alertmanager = findBy(
-          hash.endpoints,
-          'id',
-          `${ CATTLE_MONITORING_NAMESPACE }/rancher-monitoring-alertmanager`
-        );
-        const grafana = findBy(
-          hash.endpoints,
-          'id',
-          `${ CATTLE_MONITORING_NAMESPACE }/rancher-monitoring-grafana`
-        );
-        const prometheus = findBy(
-          hash.endpoints,
-          'id',
-          `${ CATTLE_MONITORING_NAMESPACE }/rancher-monitoring-prometheus`
+          (el) => el.group === 'prometheus'
         );
 
-        if (!isEmpty(alertmanager) && !isEmpty(alertmanager.subsets)) {
-          amMatch.enabled = true;
-        }
-        if (!isEmpty(grafana) && !isEmpty(grafana.subsets)) {
-          grafanaMatch.enabled = true;
-        }
-        if (!isEmpty(prometheus) && !isEmpty(prometheus.subsets)) {
-          promeMatch.forEach((match) => {
-            match.enabled = true;
-          });
-        }
+        promeMatch.forEach((match) => {
+          match.enabled = true;
+        });
       }
     },
   },
@@ -154,23 +146,12 @@ export default {
       </div>
     </header>
     <div>
-      <Banner
-        v-if="v1Installed"
-        color="warning"
-      >
-        <template #default>
-          <t
-            k="monitoring.v1Warning"
-            :raw="true"
-          />
-        </template>
-      </Banner>
       <div class="create-resource-container">
         <div class="subtypes-container">
           <a
             v-for="fel in externalLinks"
             :key="fel.label"
-            v-tooltip="
+            v-clean-tooltip="
               !fel.enabled ? t('monitoring.overview.linkedList.na') : undefined
             "
             :href="fel.enabled ? fel.link : void 0"
@@ -214,3 +195,10 @@ export default {
     </div>
   </section>
 </template>
+
+<style lang="scss" scoped>
+  .create-resource-container .subtype-banner {
+    min-height: 80px;
+    padding: 10px;
+  }
+</style>

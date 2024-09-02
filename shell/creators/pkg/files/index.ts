@@ -2,7 +2,7 @@ import { importTypes } from '@rancher/auto-import';
 import { IPlugin } from '@shell/core/types';
 
 // Init the package
-export default function(plugin: IPlugin) {
+export default function(plugin: IPlugin): void {
   // Auto-import model, detail, edit from the folders
   importTypes(plugin);
 

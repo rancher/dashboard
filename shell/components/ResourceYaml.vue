@@ -166,7 +166,7 @@ export default {
       try {
         const parsed = jsyaml.load(this.currentYaml);
         const annotations = Object.keys(parsed?.metadata?.annotations || {});
-        const regexes = ANNOTATIONS_TO_FOLD.map(x => ensureRegex(x));
+        const regexes = ANNOTATIONS_TO_FOLD.map((x) => ensureRegex(x));
 
         let foldAnnotations = false;
 
@@ -189,6 +189,11 @@ export default {
       } catch (e) {}
 
       cm.foldLinesMatching(/managedFields/);
+
+      // Allow the model to supply an array of json paths to fold other sections in the YAML for the given resource type
+      if (this.value?.yamlFolding) {
+        this.value.yamlFolding.forEach((path) => cm.foldYaml(path));
+      }
 
       // regardless of edit or create we should probably fold all the comments so they dont get out of hand.
       const saved = cm.getMode().fold;
@@ -357,9 +362,12 @@ export default {
       :yamlPreview="preview"
       :yamlSave="save"
       :yamlUnpreview="unpreview"
+      :canDiff="canDiff"
     >
       <Footer
         v-if="showFooter"
+        class="footer"
+        :class="{ 'edit': !isView }"
         :mode="mode"
         :errors="errors"
         @save="save"
@@ -403,11 +411,29 @@ export default {
 </template>
 
 <style lang='scss' scoped>
-.flex-content {
-  display: flex;
-  flex-direction: column;
-  flex-grow: 1;
-}
+  .flex-content {
+    display: flex;
+    flex-direction: column;
+    flex-grow: 1;
+  }
+
+  .footer {
+    margin-top: 20px;
+    right: 0;
+    position: sticky;
+    bottom: 0;
+    background-color: var(--header-bg);
+
+    // Overrides outlet padding
+    margin-left: -$space-m;
+    margin-right: -$space-m;
+    margin-bottom: -$space-m;
+    padding: $space-s $space-m;
+
+    &.edit {
+      border-top: var(--header-border-size) solid var(--header-border);
+    }
+  }
 </style>
 
 <style lang="scss">
@@ -418,6 +444,10 @@ export default {
 
   footer .actions {
     text-align: right;
+  }
+
+  .spacer-small {
+    padding: 0;
   }
 }
 

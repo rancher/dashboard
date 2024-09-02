@@ -79,7 +79,8 @@ export function init(store) {
           to:            { type: 'string' },
           send_resolved: { type: 'boolean' },
           from:          { type: 'string' },
-          smarthost:     { type: 'string' },
+          host:          { type: 'string' },
+          port:          { type: 'string' },
           require_tls:   { type: 'boolean' },
           auth_username: { type: 'string' },
           auth_password: { type: 'string' }

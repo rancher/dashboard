@@ -2,6 +2,7 @@ $header-font: 'Poppins', sans-serif;
 $body-font: 'Lato', arial, helvetica, sans-serif;
 $mono-font: 'Roboto Mono', monospace;
 
+$app-bar-collapsed-width: 70px;
 $max-width: 1440px !default;
 $min-width: 75% !default;
 $input-height: 61px;
@@ -52,9 +53,7 @@ $breakpoints: (
 
 $font-size-h2: 21px;
 
-/*
- * Global spacing variables
- */
+// Global spacing variables
 $space-s: 10px;
 $space-m: 20px;
 $space-l: 40px;

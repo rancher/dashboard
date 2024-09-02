@@ -47,11 +47,19 @@ export default {
   computed: {
     ...mapGetters(['clusterId']),
     trackStyle() {
-      const sliderItem = this.activeItemId * 100 / this.slider.length;
-      const width = 60 * this.slider.length;
+      let sliderItem = ( this.activeItemId + 1) * 100 / (this.slider.length + 2);
+      const width = 60 * (this.slider.length + 2);
+
+      if (this.slider.length === 1) {
+        sliderItem = 0;
+      }
 
       return `transform: translateX(-${ sliderItem }%); width: ${ width }%`;
     },
+
+    test() {
+      return 'test';
+    }
   },
 
   methods: {
@@ -64,26 +72,35 @@ export default {
     scrollSlide(i) {
       this.autoScroll = false;
       this.activeItemId = i;
-      setTimeout(() => {
-        this.slidePosition();
-      }, 400);
     },
 
-    nextPrev(item) {
+    nextPrev(direction) {
       this.autoScroll = false;
-      if (item === 'next' && this.activeItemId < this.slider.length - 1) {
-        this.activeItemId++;
-      }
+      const slideTrack = document.getElementById('slide-track');
 
-      if (item === 'prev' && this.activeItemId > 0) {
-        this.activeItemId--;
-      }
+      slideTrack.style.transition = `transform 450ms ease-in-out`;
 
-      this.slidePosition();
+      direction !== 'prev' ? (this.activeItemId++) : (this.activeItemId--);
+
+      slideTrack.addEventListener('transitionend', this.slideTransition);
+    },
+
+    slideTransition() {
+      const slideTrack = document.getElementById('slide-track');
+      const slidesArray = this.slider.length + 2;
+
+      if (this.activeItemId === -1) {
+        slideTrack.style.transition = 'none';
+        this.activeItemId = this.slider.length - 1;
+      }
+      if (this.activeItemId === slidesArray - 2) {
+        slideTrack.style.transition = 'none';
+        this.activeItemId = 0;
+      }
     },
 
     autoScrollSlide() {
-      if (this.activeItemId < this.slider.length && this.autoScroll ) {
+      if (this.activeItemId < (this.slider.length + 1) && this.autoScroll ) {
         this.activeItemId++;
       }
 
@@ -91,18 +108,7 @@ export default {
         this.autoScroll = false;
         this.activeItemId = 0;
       }
-      this.slidePosition();
     },
-
-    slidePosition() {
-      if (this.activeItemId <= 1) {
-        this.$refs.slide[this.slider.length - 1].style.left = '-93%';
-        this.$refs.slide[0].style.left = '7%';
-      } else {
-        this.$refs.slide[this.slider.length - 1].style.left = '7%';
-        this.$refs.slide[0].style.left = '107%';
-      }
-    }
   },
 
   beforeDestroy() {
@@ -112,35 +118,61 @@ export default {
   },
 
   mounted() {
+    const slideTrack = document.getElementById('slide-track');
+
+    if (this.slider.length === 1) {
+      slideTrack.style = 'transform:translateX(0%); width:100%; left:0';
+    } else {
+      const node = document.getElementById('slide0');
+
+      if (node) {
+        const clone = node.cloneNode(true);
+
+        slideTrack.appendChild(clone);
+      }
+
+      const nodeLast = document.getElementById(`slide${ this.slider.length - 1 }`);
+
+      if (nodeLast) {
+        const cloneLast = nodeLast.cloneNode(true);
+
+        slideTrack.insertBefore(cloneLast, slideTrack.children[0]);
+      }
+    }
+
     const lastSeenCluster = sessionStorage.getItem(carouselSeenStorageKey);
 
     if (lastSeenCluster !== this.clusterId) {
       // Session storage lasts until tab/window closed (retained on refresh)
       sessionStorage.setItem(carouselSeenStorageKey, this.clusterId);
-
-      this.autoScrollSlideInterval = setInterval(this.autoScrollSlide, 5000);
     }
-  },
+
+    this.autoScrollSlideInterval = setInterval(this.autoScrollSlide, 5000);
+  }
 
 };
 
 </script>
 
 <template>
-  <div class="slider">
+  <div
+    class="slider"
+    :class="{'disable': sliders.length === 1}"
+  >
     <div
       id="slide-track"
       ref="slider"
       :style="trackStyle"
       class="slide-track"
     >
-      <div
+      <component
         :is="asLink ? 'a' : 'div'"
         v-for="(slide, i) in sliders"
         :id="`slide` + i"
         ref="slide"
         :key="get(slide, keyField)"
         class="slide"
+        :class="{'singleSlide': sliders.length === 1}"
         :href="asLink ? get(slide, linkField) : null"
         :target="get(slide, targetField)"
         :rel="rel"
@@ -159,9 +191,12 @@ export default {
             <p>{{ slide.chartDescription }}</p>
           </div>
         </div>
-      </div>
+      </component>
     </div>
-    <div class="controls">
+    <div
+      class="controls"
+      :class="{'disable': sliders.length === 1}"
+    >
       <div
         v-for="(slide, i) in slider"
         :key="i"
@@ -173,7 +208,7 @@ export default {
     <div
       ref="prev"
       class="prev"
-      :class="[activeItemId === 0 ? 'disabled' : 'prev']"
+      :class="{'disable': sliders.length === 1}"
       @click="nextPrev('prev')"
     >
       <i class="icon icon-chevron-left icon-4x" />
@@ -181,7 +216,7 @@ export default {
     <div
       ref="next"
       class="next"
-      :class="[activeItemId === slider.length - 1 ? 'disabled' : 'next']"
+      :class="{'disable': sliders.length === 1}"
       @click="nextPrev('next')"
     >
       <i class="icon icon-chevron-right icon-4x" />
@@ -197,7 +232,19 @@ export default {
   place-items: center;
   overflow: hidden;
   margin-bottom: 30px;
-  min-width: 700px;
+  // min-width: 700px;
+
+  &.disable::before,
+  &.disable::after {
+    display: none;
+  }
+
+  &.disable:hover {
+    .prev,
+    .next {
+      display: none;
+    }
+  }
 
   &:hover {
     .prev,
@@ -212,6 +259,7 @@ export default {
   animation: scrolls 10s ;
   position: relative;
   transition: 1s ease-in-out;
+  left: 21%;
 }
 
 .slider-badge {
@@ -226,13 +274,12 @@ export default {
   position: relative;
   border: 1px solid var(--tabbed-border);
   border-radius: var(--border-radius);
-  left: 7%;
   cursor: pointer;
 
-  &:last-child {
-    left: -93%;
+  &.singleSlide {
+    width: 100%;
+    max-width: 100%;
   }
-
   .slide-header {
     background: var(--default);
     width: 100%;
@@ -241,6 +288,7 @@ export default {
   .slide-content {
     display: flex;
     padding: 30px;
+    height: 100%;
 
     .slide-img {
       width: 150px;
@@ -278,6 +326,9 @@ export default {
 .slider::before {
   left: 0;
   top: 0;
+  &.disable {
+    display: none;
+  }
 }
 .slider::after{
   right: -1px;
@@ -290,6 +341,10 @@ export default {
   display: flex;
   justify-content: center;
   margin-top: 10px;
+
+  &.disable {
+    display: none;
+  }
 
   .control-item {
     width: 10px;

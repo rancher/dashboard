@@ -98,7 +98,7 @@ export default {
     v-if="rows.length"
     class="grid"
   >
-    <div
+    <component
       :is="asLink ? 'a' : 'div'"
       v-for="(r, idx) in rows"
       :key="get(r, keyField)"
@@ -106,7 +106,7 @@ export default {
       :target="get(r, targetField)"
       :rel="rel"
       class="item"
-      :data-testid="componentTestid + '-' + idx"
+      :data-testid="componentTestid + '-' + get(r, nameField)"
       :class="{
         'has-description': !!get(r, descriptionField),
         'has-side-label': !!get(r, sideLabelField), [colorFor(r, idx)]: true, disabled: get(r, disabledField) === true
@@ -154,7 +154,7 @@ export default {
       >
         {{ get(r, descriptionField) }}
       </div>
-    </div>
+    </component>
   </div>
   <div
     v-else

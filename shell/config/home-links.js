@@ -2,7 +2,9 @@ import { DOCS_BASE } from '@shell/config/private-label';
 import { MANAGEMENT } from '@shell/config/types';
 import { SETTING } from '@shell/config/settings';
 import { allHash } from '@shell/utils/promise';
+import { isRancherPrime } from '@shell/config/version';
 
+// i18n-uses customLinks.defaults.*
 const DEFAULT_LINKS = [
   {
     key:     'docs',
@@ -26,10 +28,16 @@ const DEFAULT_LINKS = [
   },
   {
     key:     'getStarted',
-    value:   '/docs/getting-started',
+    value:   `${ DOCS_BASE }/getting-started/overview`,
     enabled: true,
   },
 ];
+
+const COLLECTIVE_LINK = {
+  key:     'suseCollective',
+  value:   'https://susecollective.suse.com/join/prime',
+  enabled: true,
+};
 
 const SUPPORT_LINK = {
   key:      'commercialSupport',
@@ -38,8 +46,17 @@ const SUPPORT_LINK = {
   readonly: true
 };
 
+const CN_FORUMS_LINK = {
+  key:     'cnforums',
+  value:   'https://forums.rancher.cn/',
+  enabled: true,
+};
+
 // We add a version attribute to the setting so we know what has been migrated and which version of the setting we have
 export const CUSTOM_LINKS_VERSION = 'v1';
+
+// Version with collective added (Prime)
+export const CUSTOM_LINKS_COLLECTIVE_VERSION = 'v1.1';
 
 // Fetch the settings required for the links, taking into account legacy settings if we have not migrated
 export async function fetchLinks(store, hasSupport, isSupportPage, t) {
@@ -57,14 +74,29 @@ export async function fetchLinks(store, hasSupport, isSupportPage, t) {
   }
 
   // If uiLinks is set and has the correct version, then we are okay, otherwise we need to migrate from the old settings
-  if (uiLinks?.version === CUSTOM_LINKS_VERSION) {
+  if (uiLinks?.version?.startsWith(CUSTOM_LINKS_VERSION)) {
+    // v1 > v1.1 migration
+    if (uiLinks?.version === CUSTOM_LINKS_VERSION) {
+      uiLinks.version = CUSTOM_LINKS_COLLECTIVE_VERSION;
+
+      // Add collective link so that it is enabled by default
+      if (!uiLinks.defaults.includes(COLLECTIVE_LINK.key)) {
+        uiLinks.defaults.push(COLLECTIVE_LINK.key);
+      }
+    }
+
     // Map out the default settings, as we only store keys of the ones to show
     if (uiLinks.defaults) {
       const defaults = [...DEFAULT_LINKS];
 
+      // Add prime link if necessary
+      if (isRancherPrime()) {
+        defaults.push(COLLECTIVE_LINK);
+      }
+
       // Map the link name stored to the default link, if it exists
       defaults.forEach((link) => {
-        const enabled = uiLinks.defaults.find(linkName => linkName === link.key);
+        const enabled = uiLinks.defaults.find((linkName) => linkName === link.key);
 
         link.enabled = !!enabled;
       });
@@ -72,7 +104,7 @@ export async function fetchLinks(store, hasSupport, isSupportPage, t) {
       uiLinks.defaults = defaults;
     }
 
-    return ensureSupportLink(uiLinks, hasSupport, isSupportPage, t);
+    return ensureSupportLink(uiLinks, hasSupport, isSupportPage, t, store);
   }
 
   // No new setting, so return the required structure
@@ -82,6 +114,11 @@ export async function fetchLinks(store, hasSupport, isSupportPage, t) {
     defaults: [...DEFAULT_LINKS],
     custom:   []
   };
+
+  // Add prime link if necessary
+  if (isRancherPrime()) {
+    links.defaults.push(COLLECTIVE_LINK);
+  }
 
   // There are two legacy settings:
   // SETTING.ISSUES - can specify a custom link to use for 'File an issue'
@@ -95,7 +132,7 @@ export async function fetchLinks(store, hasSupport, isSupportPage, t) {
     // Should we show the default set of links?
     if (uiCommunitySetting?.value === 'false') {
       // Hide all of the default links
-      links.defaults.forEach(link => (link.enabled = false));
+      links.defaults.forEach((link) => (link.enabled = false));
     }
 
     // Do we have a custom 'File an issue' link ?
@@ -106,7 +143,7 @@ export async function fetchLinks(store, hasSupport, isSupportPage, t) {
       });
 
       // Hide the default 'File an issue' link
-      const issueLink = links.defaults?.find(link => link.key === 'issues');
+      const issueLink = links.defaults?.find((link) => link.key === 'issues');
 
       if (issueLink) {
         issueLink.enabled = false;
@@ -117,17 +154,23 @@ export async function fetchLinks(store, hasSupport, isSupportPage, t) {
     console.warn('Could not parse legacy link settings', e); // eslint-disable-line no-console
   }
 
-  return ensureSupportLink(links, hasSupport, isSupportPage, t);
+  return ensureSupportLink(links, hasSupport, isSupportPage, t, store);
 }
 
 // Ensure the support link is added if needed
-function ensureSupportLink(links, hasSupport, isSupportPage, t) {
+export function ensureSupportLink(links, hasSupport, isSupportPage, t, store) {
   if (!hasSupport && !isSupportPage) {
-    const supportLink = links.defaults?.find(link => link.key === 'commercialSupport');
+    const supportLink = links.defaults?.find((link) => link.key === 'commercialSupport');
 
     if (!supportLink) {
       links.defaults.push(SUPPORT_LINK);
     }
+  }
+
+  const selectedLocaleLabel = store.getters['i18n/selectedLocaleLabel'];
+
+  if (selectedLocaleLabel === t('locale.zh-hans')) {
+    links.defaults.push(CN_FORUMS_LINK);
   }
 
   // Localise the default links

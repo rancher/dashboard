@@ -33,6 +33,7 @@ export default {
     <div class="graphic">
       <BrandImage
         class="banner"
+        data-testid="banner-brand__img"
         file-name="banner.svg"
         :draggable="false"
       />
@@ -46,13 +47,14 @@ export default {
     </div>
     <h1
       v-else-if="title"
+      v-clean-html="title"
       data-testid="banner-title"
       class="title"
-      v-html="title"
     />
     <div
       v-if="pref"
       class="close-button"
+      data-testid="graphic-banner-close"
       @click="hide()"
     >
       <i class="icon icon-close" />

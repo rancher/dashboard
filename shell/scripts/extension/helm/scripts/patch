@@ -1,0 +1,128 @@
+#!/bin/bash
+set -e
+
+cd $(dirname $0)/..
+
+if [[ -z ${CHART} ]]; then
+    # Assume that the chart is the main one found in this repository
+    CHART="./charts/ui-plugin-server"
+fi
+
+if ! [[ -d ${CHART} ]]; then
+    echo "${CHART} is not a directory"
+    exit 1
+fi
+
+if ! [[ -f ${CHART}/Chart.yaml ]]; then
+    echo "${CHART} is not a valid Helm chart: could not find Chart.yaml"
+    exit 1
+fi
+
+if ! [[ -f ${CHART}/values.yaml ]]; then
+    echo "${CHART} does not have default values: could not find values.yaml"
+    exit 1
+fi
+
+if [[ -z ${REGISTRY} ]]; then
+    # By default, we assume you are using DockerHub  
+    REGISTRY=""
+fi
+
+# Remove trailing slash if it exists
+REGISTRY=${REGISTRY%/}
+
+if [[ -z ${ORG} ]]; then
+    # By default, we assume this is a plugin hosted by Rancher
+    ORG=rancher
+fi
+
+if [[ -z ${PACKAGE_JSON} ]]; then
+    PACKAGE_JSON=plugin/package.json
+fi
+
+if ! [[ -f ${PACKAGE_JSON} ]]; then
+    echo "Could not find package.json at path ${PACKAGE_JSON}"
+    exit 1
+fi
+
+if [[ -z ${REPO} ]]; then
+    REPO=$(cat ${PACKAGE_JSON} | jq ".name" | tr -d '"')
+fi
+
+if [[ -z ${TAG} ]]; then
+    TAG=$(cat ${PACKAGE_JSON} | jq ".version" | tr -d '"')
+fi
+
+DESCRIPTION=$(cat ${PACKAGE_JSON} | jq ".description" | tr -d '"')
+ICON=$(cat ${PACKAGE_JSON} | jq ".icon" | tr -d '"')
+KEYWORDS=$(cat ${PACKAGE_JSON} | jq ".keywords")
+HOME=$(cat ${PACKAGE_JSON} | jq ".homepage" | tr -d '"')
+ANNOTATIONS=""
+NO_AUTH="false"
+
+if jq -e '.rancher.annotations | objects' ${PACKAGE_JSON} > /dev/null 2>&1; then
+    ANNOTATIONS=$(jq -r '.rancher.annotations | to_entries[] | @base64' < ${PACKAGE_JSON})
+fi
+
+# Check if the package file specifies noAuth
+if jq -e '.rancher.noAuth' ${PACKAGE_JSON} > /dev/null 2>&1; then
+    NO_AUTH=$(jq -r '.rancher.noAuth' < ${PACKAGE_JSON})
+    echo "noAuth: ${NO_AUTH}"
+fi
+
+if [[ -z ${ORG} ]] || [[ -z ${REPO} ]] || [[ -z ${TAG} ]]; then
+    echo "Usage: [CHART=charts/ui-plugin-server] [REGISTRY=""] [ORG=rancher] [REPO=<override-repo>] [TAG=<override-tag>] [PACKAGE_JSON=plugin/package.json] ./scripts/patch <chart>"
+    exit 1
+fi
+
+# Edit Chart information to match plugin using yq
+yq -i eval ".name = \"${REPO}\"" $CHART/Chart.yaml
+yq -i eval ".appVersion = \"${TAG}\"" $CHART/Chart.yaml
+yq -i eval ".version = \"${TAG}\"" $CHART/Chart.yaml
+
+if [[ -n "${DESCRIPTION}" ]]; then
+    if [[ "${DESCRIPTION}" == "null" ]]; then
+        yq -i eval "del(.description)" $CHART/Chart.yaml
+    else
+        yq -i eval ".description = \"${DESCRIPTION}\"" $CHART/Chart.yaml
+    fi
+fi
+
+if [[ -n "${ICON}" ]]; then
+    if [[ "${ICON}" == "null" ]]; then
+        yq -i eval "del(.icon)" $CHART/Chart.yaml
+    else
+        yq -i eval ".icon = \"${ICON}\"" $CHART/Chart.yaml
+    fi
+fi
+
+if [[ -n "${KEYWORDS}" ]]; then
+    if [[ "${KEYWORDS}" == "null" ]]; then
+        yq -i eval "del(.keywords)" $CHART/Chart.yaml
+    else
+        yq -i -I2 eval ".keywords = ${KEYWORDS}" $CHART/Chart.yaml
+    fi
+fi
+
+if [[ -n "${HOME}" ]]; then
+    if [[ "${HOME}" == "null" ]]; then
+        yq -i eval "del(.home)" $CHART/Chart.yaml
+    else
+        yq -i eval ".home = \"${HOME}\"" $CHART/Chart.yaml
+    fi
+fi
+
+if [[ -n "${ANNOTATIONS}" ]]; then
+    for ANNOTATION in ${ANNOTATIONS}; do
+        decoded_annotation=$(echo ${ANNOTATION} | base64 --decode)
+        key=$(echo ${decoded_annotation} | jq -r '.key')
+        value=$(echo ${decoded_annotation} | jq -r '.value')
+
+        yq -i eval ".plugin.metadata[\"${key}\"] = \"${value}\"" $CHART/values.yaml
+    done
+fi
+
+# If the extension has noAuth as true then patch this into the values.yaml to override the default of false
+if [ "${NO_AUTH}" == "true" ]; then
+    yq -i eval ".plugin.noAuth=true" $CHART/values.yaml
+fi

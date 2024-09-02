@@ -65,9 +65,9 @@ export default {
 
       let name = this.$route.name;
 
-      if ( name.endsWith('-id') ) {
+      if ( name?.endsWith('-id') ) {
         name = name.replace(/(-namespace)?-id$/, '');
-      } else if ( name.endsWith('-create') ) {
+      } else if ( name?.endsWith('-create') ) {
         name = name.replace(/-create$/, '');
       }
 
@@ -114,8 +114,8 @@ export default {
     // Detect and resolve conflicts from a 409 response.
     // If they are resolved, return a false-y value
     // Else they can't be resolved, return an array of errors to show to the user.
-    conflict() {
-      return handleConflict(this.initialValue.toJSON(), this.value, this.liveValue, this.$store.getters, this.$store);
+    async conflict() {
+      return await handleConflict(this.initialValue.toJSON(), this.value, this.liveValue, this.$store.getters, this.$store, this.storeOverride || this.$store.getters['currentStore'](this.value.type));
     },
 
     async save(buttonDone, url, depth = 0) {
@@ -124,7 +124,7 @@ export default {
       }
 
       try {
-        await this.applyHooks(BEFORE_SAVE_HOOKS);
+        await this.applyHooks(BEFORE_SAVE_HOOKS, this.value);
 
         // Remove the labels map if it's empty
         if ( this.value?.metadata?.labels && Object.keys(this.value.metadata.labels || {}).length === 0 ) {
@@ -152,14 +152,14 @@ export default {
           await this.$store.dispatch('cluster/findAll', { type: this.value.type, opt: { force: true } }, { root: true });
         }
 
-        await this.applyHooks(AFTER_SAVE_HOOKS);
+        await this.applyHooks(AFTER_SAVE_HOOKS, this.value);
         buttonDone && buttonDone(true);
 
         this.done();
       } catch (err) {
         // Conflict, the resource being edited has changed since starting editing
         if ( err.status === 409 && depth === 0 && this.isEdit) {
-          const errors = this.conflict();
+          const errors = await this.conflict();
 
           if ( errors === false ) {
             // It was automatically figured out, save again
@@ -187,6 +187,10 @@ export default {
       } else {
         await this.value.save();
       }
+    },
+
+    setErrors(errors) {
+      this.errors = errors;
     }
   },
 };

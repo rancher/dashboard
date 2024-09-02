@@ -83,7 +83,7 @@ export default {
 
   computed: {
     advFilterSelectOptions() {
-      return this.columnOptions.filter(c => c.isFilter && !c.preventFiltering);
+      return this.columnOptions.filter((c) => c.isFilter && !c.preventFiltering);
     },
 
     advGroupOptions() {
@@ -102,7 +102,7 @@ export default {
 
       this.columnOptions.forEach((advCol) => {
         if (advCol.isTableOption) {
-          const index = allCols.findIndex(col => col.name === advCol.name);
+          const index = allCols.findIndex((col) => col.name === advCol.name);
 
           if (index !== -1) {
             allCols[index].isColVisible = advCol.isColVisible;
@@ -122,7 +122,7 @@ export default {
       const headerProps = [];
 
       // Filter out any columns that are too heavy to show for large page sizes
-      const filteredHeaders = this.headers.slice().filter(c => (!c.maxPageSize || (c.maxPageSize && c.maxPageSize >= this.perPage)));
+      const filteredHeaders = this.headers.slice().filter((c) => (!c.maxPageSize || (c.maxPageSize && c.maxPageSize >= this.perPage)));
 
       // add table cols from config (headers)
       filteredHeaders.forEach((prop) => {
@@ -152,7 +152,7 @@ export default {
 
         // maintain current visibility of cols if they exist already
         if (this.columnOptions?.length) {
-          const opt = this.columnOptions.find(colOpt => colOpt.name === name && colOpt.label === label);
+          const opt = this.columnOptions.find((colOpt) => colOpt.name === name && colOpt.label === label);
 
           if (opt) {
             isColVisible = opt.isColVisible;
@@ -188,14 +188,14 @@ export default {
 
               // maintain current visibility of cols if they exist already
               if (this.columnOptions?.length) {
-                const opt = this.columnOptions.find(colOpt => colOpt.name === label && colOpt.label === label);
+                const opt = this.columnOptions.find((colOpt) => colOpt.name === label && colOpt.label === label);
 
                 if (opt) {
                   res.isColVisible = opt.isColVisible;
                 }
               }
 
-              if (!rowLabels.filter(row => row.label === label).length) {
+              if (!rowLabels.filter((row) => row.label === label).length) {
                 rowLabels.push(res);
               }
             });
@@ -262,7 +262,7 @@ export default {
 
     // cols visibility
     changeColVisibility(colData) {
-      const index = this.columnOptions.findIndex(col => col.label === colData.label);
+      const index = this.columnOptions.findIndex((col) => col.label === colData.label);
 
       if (index !== -1) {
         this.columnOptions[index].isColVisible = colData.value;

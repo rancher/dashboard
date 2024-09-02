@@ -39,6 +39,14 @@ export default class CatalogApp extends SteveModel {
     return out;
   }
 
+  get warnDeletionMessage() {
+    if (this.upgradeAvailable === false) {
+      return this.t('catalog.delete.warning.managed', { name: this.name });
+    }
+
+    return null;
+  }
+
   matchingChart(includeHidden) {
     const chart = this.spec?.chart;
 
@@ -89,7 +97,7 @@ export default class CatalogApp extends SteveModel {
     let versions = chart.versions;
 
     if (!showPreRelease) {
-      versions = chart.versions.filter(v => !isPrerelease(v.version));
+      versions = chart.versions.filter((v) => !isPrerelease(v.version));
     }
 
     versions = compatibleVersionsFor(chart, workerOSs, showPreRelease);
@@ -128,14 +136,14 @@ export default class CatalogApp extends SteveModel {
       return true;
     }
 
-    const versionInChart = chart.versions.find(version => version.version === thisVersion);
+    const versionInChart = chart.versions.find((version) => version.version === thisVersion);
 
     if (!versionInChart) {
       return true;
     }
     const compatibleVersions = compatibleVersionsFor(chart, workerOSs, true) || [];
 
-    const thisVersionCompatible = !!compatibleVersions.find(version => version.version === thisVersion);
+    const thisVersionCompatible = !!compatibleVersions.find((version) => version.version === thisVersion);
 
     return thisVersionCompatible;
   }
@@ -263,7 +271,7 @@ export default class CatalogApp extends SteveModel {
           });
 
         if (mcapps) {
-          return mcapps.find(mcapp => mcapp.spec?.targets?.find(target => target.appName === this.metadata?.name));
+          return mcapps.find((mcapp) => mcapp.spec?.targets?.find((target) => target.appName === this.metadata?.name));
         }
       } catch (e) {}
 

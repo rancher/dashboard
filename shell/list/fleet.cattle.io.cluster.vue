@@ -1,7 +1,7 @@
 <script>
 import FleetClusters from '@shell/components/fleet/FleetClusters';
 import { FLEET, MANAGEMENT } from '@shell/config/types';
-import { isHarvesterCluster } from '@shell/utils/cluster';
+import { filterOnlyKubernetesClusters } from '@shell/utils/cluster';
 import { Banner } from '@components/Banner';
 import ResourceFetch from '@shell/mixins/resource-fetch';
 
@@ -25,9 +25,11 @@ export default {
   },
 
   async fetch() {
-    await this.$store.dispatch('management/findAll', { type: FLEET.WORKSPACE });
-    this.allMgmt = await this.$store.dispatch('management/findAll', { type: MANAGEMENT.CLUSTER });
-    await this.$fetchType(FLEET.CLUSTER);
+    this.$initializeFetchData(this.resource);
+
+    this.$fetchType(FLEET.WORKSPACE);
+    await this.$fetchType(this.resource);
+    this.allMgmt = await this.$fetchType(MANAGEMENT.CLUSTER);
   },
 
   data() {
@@ -54,11 +56,11 @@ export default {
     },
 
     filteredRows() {
-      return this.fleetClusters.filter(c => !isHarvesterCluster(c));
+      return filterOnlyKubernetesClusters(this.fleetClusters, this.$store);
     },
 
     fleetClusters() {
-      return this.allClusters.filter(c => c.type === FLEET.CLUSTER);
+      return this.allClusters.filter((c) => c.type === FLEET.CLUSTER);
     },
 
     hiddenHarvesterCount() {

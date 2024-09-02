@@ -1,8 +1,6 @@
 <script>
 
 export default {
-  layout: 'plain',
-
   mounted() {
     const link = this.$store.getters['backToRancherLink'];
 

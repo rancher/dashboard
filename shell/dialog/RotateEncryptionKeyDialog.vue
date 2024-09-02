@@ -65,7 +65,7 @@ export default {
       if ( this.cluster.isRke1) {
         let etcdBackups = await this.$store.dispatch('rancher/findAll', { type: NORMAN.ETCD_BACKUP });
 
-        etcdBackups = etcdBackups.filter(backup => backup.clusterId === this.cluster.metadata.name);
+        etcdBackups = etcdBackups.filter((backup) => backup.clusterId === this.cluster.metadata.name);
 
         return etcdBackups;
       }
@@ -73,7 +73,7 @@ export default {
       if (this.cluster.isRke2) {
         let etcdBackups = await this.$store.dispatch('management/findAll', { type: SNAPSHOT });
 
-        etcdBackups = etcdBackups.filter(backup => backup.clusterId === this.cluster.id);
+        etcdBackups = etcdBackups.filter((backup) => backup.clusterId === this.cluster.id);
 
         return etcdBackups;
       }
@@ -124,8 +124,8 @@ export default {
   >
     <h4
       slot="title"
+      v-clean-html="t('promptRotateEncryptionKey.title')"
       class="text-default-text"
-      v-html="t('promptRotateEncryptionKey.title')"
     />
 
     <div

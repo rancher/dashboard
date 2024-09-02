@@ -39,7 +39,7 @@ export const mutations = {
 };
 
 export const getters = {
-  fromCache: state => ({ credentialId, key }) => {
+  fromCache: (state) => ({ credentialId, key }) => {
     return state.cache[credentialId]?.[key];
   },
 };
@@ -64,8 +64,8 @@ export const actions = {
     const regions = await dispatch('cachedCommand', { credentialId, command: 'regions' });
     const sizes = await dispatch('cachedCommand', { credentialId, command: 'sizes' });
 
-    const regionInfo = regions.regions.find(x => x.slug === region);
-    const available = sizes.sizes.filter(size => regionInfo.sizes.includes(size.slug)).map((size) => {
+    const regionInfo = regions.regions.find((x) => x.slug === region);
+    const available = sizes.sizes.filter((size) => regionInfo.sizes.includes(size.slug)).map((size) => {
       const match = size.slug.match(/^(so|gd|g|c|m|s).*-/);
       const plan = match ? match[1] : (size.slug.includes('-') ? 'standard' : 'other');
 
@@ -81,7 +81,7 @@ export const actions = {
       out.label = rootGetters['i18n/t']('cluster.machineConfig.digitalocean.sizeLabel', out);
 
       return out;
-    }).filter(size => size.plan !== 'other');
+    }).filter((size) => size.plan !== 'other');
 
     return sortBy(available, ['planSort', 'memoryGb', 'vcpus', 'disk']);
   },

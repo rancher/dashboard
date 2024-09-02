@@ -1,7 +1,10 @@
 <script>
+import { mapGetters } from 'vuex';
 import { MANAGEMENT, RBAC } from '@shell/config/types';
 import CruResource from '@shell/components/CruResource';
 import CreateEditView from '@shell/mixins/create-edit-view';
+import FormValidation from '@shell/mixins/form-validation';
+import Error from '@shell/components/form/Error';
 import { RadioGroup } from '@components/Form/Radio';
 import Select from '@shell/components/form/Select';
 import ArrayList from '@shell/components/form/ArrayList';
@@ -11,7 +14,8 @@ import Tabbed from '@shell/components/Tabbed';
 import { ucFirst } from '@shell/utils/string';
 import SortableTable from '@shell/components/SortableTable';
 import { _CLONE, _DETAIL } from '@shell/config/query-params';
-import { SCOPED_RESOURCES } from '@shell/config/roles';
+import { SCOPED_RESOURCES, SCOPED_RESOURCE_GROUPS } from '@shell/config/roles';
+import { Banner } from '@components/Banner';
 
 import { SUBTYPE_MAPPING, VERBS } from '@shell/models/management.cattle.io.roletemplate';
 import Loading from '@shell/components/Loading';
@@ -58,9 +62,11 @@ export default {
     Tabbed,
     SortableTable,
     Loading,
+    Error,
+    Banner
   },
 
-  mixins: [CreateEditView],
+  mixins: [CreateEditView, FormValidation],
 
   async fetch() {
     // We don't want to get all schemas from the cluster because there are
@@ -109,6 +115,9 @@ export default {
       scopedResources:      SCOPED_RESOURCES,
       defaultValue:         false,
       selectFocused:        null,
+      fvFormRuleSets:       [
+        { path: 'displayName', rules: ['required'] }
+      ],
     };
   },
 
@@ -146,12 +155,22 @@ export default {
       });
     }
 
+    if (this.value?.metadata?.name && !this.value.displayName) {
+      this.$set(this.value, 'displayName', this.value.metadata.name);
+    }
+
     this.$nextTick(() => {
       this.$emit('set-subtype', this.label);
     });
   },
 
   computed: {
+    ...mapGetters(['releaseNotesUrl']),
+
+    showRestrictedAdminDeprecationBanner() {
+      return this.value.subtype === GLOBAL && this.value.id === 'restricted-admin';
+    },
+
     label() {
       return this.t(`rbac.roletemplate.subtypes.${ this.value.subtype }.label`);
     },
@@ -176,16 +195,17 @@ export default {
       const scopes = Object.keys(this.scopedResources);
 
       scopes.forEach((scope) => {
-        if (scope === 'globalScopedApiGroups' && this.value.type !== MANAGEMENT.GLOBAL_ROLE) {
+        if (scope === SCOPED_RESOURCE_GROUPS.GLOBAL && this.value.type !== MANAGEMENT.GLOBAL_ROLE) {
           // If we are not in the global role creation form,
           // skip adding the global-scoped resources.
           return;
         }
-        if (scope === 'clusterScopedApiGroups' && (this.value.type === RBAC.ROLE || this.value.subtype === NAMESPACE)) {
+        if (scope === SCOPED_RESOURCE_GROUPS.CLUSTER && (this.value.type === RBAC.ROLE || this.value.subtype === NAMESPACE)) {
           // If we are in a project/namespace role creation form,
           // additionally skip adding the cluster-scoped resources.
           return;
         }
+
         const apiGroupsInScope = this.scopedResources[scope];
 
         const apiGroupNames = Object.keys(apiGroupsInScope);
@@ -211,6 +231,16 @@ export default {
             apiGroupLabel = scope.includes('cluster') ? labelForNoApiGroup : labelForNamespacedResourcesWithNoApiGroup;
             apiGroupValue = '';
           }
+
+          if (apiGroup === 'neuvectorApi') {
+            // Some NeuVector resources are namespaced, in which case they go under a different heading
+            const labelForClusterScoped = this.t('rbac.roletemplate.tabs.grantResources.neuvector.labelClusterScoped');
+            const labelForNamespaceScoped = this.t('rbac.roletemplate.tabs.grantResources.neuvector.labelNamespaceScoped');
+
+            apiGroupLabel = scope.includes('cluster') ? labelForClusterScoped : labelForNamespaceScoped;
+            apiGroupValue = 'permission.neuvector.com';
+          }
+
           options.push({
             kind:      'group',
             optionKey: apiGroupLabel,
@@ -319,7 +349,7 @@ export default {
       return this.createRules(this.value);
     },
     ruleHeaders() {
-      const verbHeaders = VERBS.map(verb => ({
+      const verbHeaders = VERBS.map((verb) => ({
         name:      verb,
         key:       ucFirst(verb),
         value:     this.verbKey(verb),
@@ -485,7 +515,7 @@ export default {
           const key = this.verbKey(verb);
 
           tableRule[key] = rule.verbs[0] === '*' || rule.verbs.includes(verb);
-          tableRule.hasCustomVerbs = rule.verbs.some(verb => !VERBS.includes(verb));
+          tableRule.hasCustomVerbs = rule.verbs.some((verb) => !VERBS.includes(verb));
         });
 
         return tableRule;
@@ -497,7 +527,7 @@ export default {
       }
 
       parent.roleTemplateNames
-        .map(rtn => this.$store.getters[`management/byId`](MANAGEMENT.ROLE_TEMPLATE, rtn))
+        .map((rtn) => this.$store.getters[`management/byId`](MANAGEMENT.ROLE_TEMPLATE, rtn))
         .forEach((rt) => {
           // Add Self
           res.push({
@@ -524,12 +554,20 @@ export default {
     :can-yaml="!isCreate"
     :mode="mode"
     :resource="value"
-    :errors="errors"
+    :errors="fvUnreportedValidationErrors"
+    :validation-passed="fvFormIsValid"
     :cancel-event="true"
     @error="e=>errors = e"
     @finish="save"
     @cancel="cancel"
   >
+    <Banner
+      v-if="showRestrictedAdminDeprecationBanner"
+      color="warning"
+      class="mb-20"
+    >
+      <span v-clean-html="t('rbac.globalRoles.role.restricted-admin.deprecation', { releaseNotesUrl }, true)" />
+    </Banner>
     <template v-if="isDetail">
       <SortableTable
         key-field="index"
@@ -568,6 +606,7 @@ export default {
         name-key="displayName"
         description-key="description"
         label="Name"
+        :rules="{ name: fvGetAndReportPathRules('displayName') }"
       />
       <div
         v-if="isRancherType"
@@ -579,6 +618,7 @@ export default {
             name="storageSource"
             :label="defaultLabel"
             class="mb-10"
+            data-testid="roletemplate-creator-default-options"
             :options="newUserDefaultOptions"
             :mode="mode"
           />
@@ -592,6 +632,7 @@ export default {
             name="storageSource"
             :label="t('rbac.roletemplate.locked.label')"
             class="mb-10"
+            data-testid="roletemplate-locked-options"
             :options="lockedOptions"
             :mode="mode"
           />
@@ -604,6 +645,11 @@ export default {
           :label="t('rbac.roletemplate.tabs.grantResources.label')"
           :weight="1"
         >
+          <Error
+            :value="value.rules"
+            :rules="fvGetAndReportPathRules('rules')"
+            as-banner
+          />
           <ArrayList
             v-model="value.rules"
             label="Resources"
@@ -627,7 +673,7 @@ export default {
                   <span class="text-label">
                     {{ t('rbac.roletemplate.tabs.grantResources.tableHeaders.resources') }}
                     <i
-                      v-tooltip="t('rbac.roletemplate.tabs.grantResources.resourceOptionInfo')"
+                      v-clean-tooltip="t('rbac.roletemplate.tabs.grantResources.resourceOptionInfo')"
                       class="icon icon-info"
                     />
                     <span
@@ -648,7 +694,7 @@ export default {
               </div>
             </template>
             <template #columns="props">
-              <div class="columns row">
+              <div class="columns row mr-20">
                 <div :class="ruleClass">
                   <Select
                     :value="props.row.value.verbs"
@@ -659,6 +705,7 @@ export default {
                     :options="verbOptions"
                     :multiple="true"
                     :mode="mode"
+                    :data-testid="`grant-resources-verbs${props.i}`"
                     @input="updateSelectValue(props.row.value, 'verbs', $event)"
                   />
                 </div>
@@ -667,9 +714,11 @@ export default {
                     :value="getRule('resources', props.row.value)"
                     :disabled="isBuiltin"
                     :options="resourceOptions"
+                    option-key="optionKey"
                     :searchable="true"
                     :taggable="true"
                     :mode="mode"
+                    :data-testid="`grant-resources-resources${props.i}`"
                     @input="setRule('resources', props.row.value, $event)"
                     @createdListItem="setRule('resources', props.row.value, $event)"
                   />
@@ -679,6 +728,7 @@ export default {
                     :value="getRule('apiGroups', props.row.value)"
                     :disabled="isBuiltin"
                     :mode="mode"
+                    :data-testid="`grant-resources-api-groups${props.i}`"
                     @input="setRule('apiGroups', props.row.value, $event.target.value)"
                   >
                 </div>
@@ -690,6 +740,7 @@ export default {
                     :value="getRule('nonResourceURLs', props.row.value)"
                     :disabled="isBuiltin"
                     :mode="mode"
+                    :data-testid="`grant-resources-non-resource-urls${props.i}`"
                     @input="setRule('nonResourceURLs', props.row.value, $event.target.value)"
                   >
                 </div>
@@ -713,7 +764,7 @@ export default {
             :mode="mode"
           >
             <template #columns="props">
-              <div class="columns row">
+              <div class="columns row mr-20">
                 <div class="col span-12">
                   <Select
                     v-model="props.row.value"

@@ -1,4 +1,5 @@
 <script>
+import { mapGetters } from 'vuex';
 import { _VIEW } from '@shell/config/query-params';
 import { get, set, isEmpty, clone } from '@shell/utils/object';
 import { POD, NODE, NAMESPACE } from '@shell/config/types';
@@ -12,6 +13,12 @@ import debounce from 'lodash/debounce';
 import ArrayListGrouped from '@shell/components/form/ArrayListGrouped';
 import { getUniqueLabelKeys } from '@shell/utils/array';
 
+const NAMESPACE_SELECTION_OPTION_VALUES = {
+  POD:      'pod',
+  ALL:      'all',
+  SELECTED: 'selected',
+};
+
 export default {
   components: {
     ArrayListGrouped, MatchExpressions, LabeledSelect, RadioGroup, LabeledInput
@@ -24,6 +31,13 @@ export default {
       default: () => {
         return {};
       }
+    },
+
+    // Field key on the value object to store the pod affinity - typically this is 'affinity'
+    // Cluster Agent Configuration uses a different field
+    field: {
+      type:    String,
+      default: 'affinity'
     },
 
     mode: {
@@ -40,6 +54,27 @@ export default {
       type:    Array,
       default: null
     },
+
+    allNamespacesOptionAvailable: {
+      default: false,
+      type:    Boolean
+    },
+
+    forceInputNamespaceSelection: {
+      default: false,
+      type:    Boolean
+    },
+
+    removeLabeledInputNamespaceLabel: {
+      default: false,
+      type:    Boolean
+    },
+
+    overwriteLabels: {
+      type:    Object,
+      default: null
+    },
+
     loading: {
       default: false,
       type:    Boolean
@@ -47,32 +82,38 @@ export default {
   },
 
   data() {
-    if (!this.value.affinity) {
-      this.$set(this.value, 'affinity', {});
+    if (!this.value[this.field]) {
+      this.$set(this.value, this.field, {});
     }
-    const { podAffinity = {}, podAntiAffinity = {} } = this.value.affinity;
+    const { podAffinity = {}, podAntiAffinity = {} } = this.value[this.field];
     const allAffinityTerms = [...(podAffinity.preferredDuringSchedulingIgnoredDuringExecution || []), ...(podAffinity.requiredDuringSchedulingIgnoredDuringExecution || [])].map((term) => {
-      const out = clone(term);
+      let out = clone(term);
 
       out._id = randomStr(4);
       out._anti = false;
       if (term.podAffinityTerm) {
         Object.assign(out, term.podAffinityTerm);
-        out._namespaces = (term.podAffinityTerm.namespaces || []).toString();
+        out = this.parsePodAffinityTerm(out);
+
         delete out.podAffinityTerm;
+      } else {
+        out = this.parsePodAffinityTerm(out);
       }
 
       return out;
     });
     const allAntiTerms = [...(podAntiAffinity.preferredDuringSchedulingIgnoredDuringExecution || []), ...(podAntiAffinity.requiredDuringSchedulingIgnoredDuringExecution || [])].map((term) => {
-      const out = clone(term);
+      let out = clone(term);
 
       out._id = randomStr(4);
       out._anti = true;
       if (term.podAffinityTerm) {
         Object.assign(out, term.podAffinityTerm);
-        out._namespaces = (term.podAffinityTerm.namespaces || []).toString();
+        out = this.parsePodAffinityTerm(out);
+
         delete out.podAffinityTerm;
+      } else {
+        out = this.parsePodAffinityTerm(out);
       }
 
       return out;
@@ -82,13 +123,21 @@ export default {
 
     return {
       allSelectorTerms,
-      defaultWeight: 1,
+      defaultWeight:   1,
       // rules in MatchExpressions.vue can not catch changes what happens on parent component
       // we need re-render it via key changing
-      rerenderNums:  randomStr(4)
+      rerenderNums:    randomStr(4),
+      NAMESPACE_SELECTION_OPTION_VALUES,
+      defaultAddValue: {
+        _namespaceOption: NAMESPACE_SELECTION_OPTION_VALUES.POD,
+        matchExpressions: [],
+        namespaces:       null,
+        _namespaces:      null,
+      }
     };
   },
   computed: {
+    ...mapGetters({ t: 'i18n/t' }),
     isView() {
       return this.mode === _VIEW;
     },
@@ -101,9 +150,14 @@ export default {
       return NODE;
     },
 
-    allNamespaces() {
+    labeledInputNamespaceLabel() {
+      return this.removeLabeledInputNamespaceLabel ? '' : this.overwriteLabels?.namespaceInputLabel || this.t('workload.scheduling.affinity.matchExpressions.inNamespaces');
+    },
+
+    allNamespacesOptions() {
       const inStore = this.$store.getters['currentStore'](NAMESPACE);
       const choices = this.namespaces || this.$store.getters[`${ inStore }/all`](NAMESPACE);
+
       const out = sortBy(choices.map((obj) => {
         return {
           label: obj.nameDisplay,
@@ -122,8 +176,50 @@ export default {
       return this.nodes.length;
     },
 
+    namespaceSelectionOptions() {
+      if (this.allNamespacesOptionAvailable) {
+        return [
+          NAMESPACE_SELECTION_OPTION_VALUES.POD,
+          NAMESPACE_SELECTION_OPTION_VALUES.ALL,
+          NAMESPACE_SELECTION_OPTION_VALUES.SELECTED
+        ];
+      }
+
+      return [
+        NAMESPACE_SELECTION_OPTION_VALUES.POD,
+        NAMESPACE_SELECTION_OPTION_VALUES.SELECTED
+      ];
+    },
+
+    namespaceSelectionLabels() {
+      if (this.overwriteLabels?.namespaceSelectionLabels) {
+        return this.overwriteLabels?.namespaceSelectionLabels;
+      }
+
+      if (this.allNamespacesOptionAvailable) {
+        return [
+          this.t('workload.scheduling.affinity.thisPodNamespace'),
+          this.t('workload.scheduling.affinity.allNamespaces'),
+          this.t('workload.scheduling.affinity.matchExpressions.inNamespaces')
+        ];
+      }
+
+      return [
+        this.t('workload.scheduling.affinity.thisPodNamespace'),
+        this.t('workload.scheduling.affinity.matchExpressions.inNamespaces')
+      ];
+    },
+
+    addLabel() {
+      return this.overwriteLabels?.addLabel || this.t('podAffinity.addLabel');
+    },
+
+    topologyKeyPlaceholder() {
+      return this.overwriteLabels?.topologyKeyPlaceholder || this.t('workload.scheduling.affinity.topologyKey.placeholder');
+    },
+
     hasNamespaces() {
-      return this.allNamespaces.length;
+      return this.allNamespacesOptions.length;
     },
   },
 
@@ -132,6 +228,20 @@ export default {
   },
 
   methods: {
+    parsePodAffinityTerm(out) {
+      if (out.namespaceSelector && typeof out.namespaceSelector === 'object' && !Object.keys(out.namespaceSelector).length && this.allNamespacesOptionAvailable) {
+        out._namespaceOption = NAMESPACE_SELECTION_OPTION_VALUES.ALL;
+      } else if (out.namespaces?.length) {
+        out._namespaceOption = NAMESPACE_SELECTION_OPTION_VALUES.SELECTED;
+      } else {
+        out._namespaceOption = NAMESPACE_SELECTION_OPTION_VALUES.POD;
+      }
+
+      out._namespaces = (out.namespaces || []).toString();
+
+      return out;
+    },
+
     update() {
       const podAffinity = { requiredDuringSchedulingIgnoredDuringExecution: [], preferredDuringSchedulingIgnoredDuringExecution: [] };
       const podAntiAffinity = { requiredDuringSchedulingIgnoredDuringExecution: [], preferredDuringSchedulingIgnoredDuringExecution: [] };
@@ -139,8 +249,9 @@ export default {
       this.allSelectorTerms.forEach((term) => {
         if (term._anti) {
           if (term.weight) {
-            const neu = { podAffinityTerm: term, weight: term.weight || this.defaultWeight };
+            const neu = { podAffinityTerm: { ...term }, weight: term.weight || this.defaultWeight };
 
+            delete neu.podAffinityTerm.weight;
             podAntiAffinity.preferredDuringSchedulingIgnoredDuringExecution.push(neu);
           } else {
             podAntiAffinity.requiredDuringSchedulingIgnoredDuringExecution.push(term);
@@ -154,24 +265,13 @@ export default {
         }
       });
 
-      Object.assign(this.value.affinity, { podAffinity, podAntiAffinity });
+      Object.assign(this.value[this.field], { podAffinity, podAntiAffinity });
       this.$emit('update', this.value);
     },
 
     remove() {
       this.rerenderNums = randomStr(4);
       this.queueUpdate();
-    },
-
-    addSelector() {
-      const neu = {
-        namespaces:    null,
-        labelSelector: { matchExpressions: [] },
-        topologyKey:   '',
-        _id:           randomStr(4)
-      };
-
-      this.allSelectorTerms.push(neu);
     },
 
     changePriority(term, idx) {
@@ -186,17 +286,44 @@ export default {
     },
 
     priorityDisplay(term) {
-      return term.weight ? this.t('workload.scheduling.affinity.preferred') : this.t('workload.scheduling.affinity.required');
+      return 'weight' in term ? this.t('workload.scheduling.affinity.preferred') : this.t('workload.scheduling.affinity.required');
     },
 
-    changeNamespaceMode(term, idx) {
-      if (term.namespaces) {
+    changeNamespaceMode(val, term, idx) {
+      this.$set(term, '_namespaceOption', val);
+
+      switch (val) {
+      case NAMESPACE_SELECTION_OPTION_VALUES.POD:
         term.namespaces = null;
         term._namespaces = null;
-      } else {
+
+        if (term.namespaceSelector || term.namespaceSelector === null) {
+          delete term.namespaceSelector;
+        }
+        break;
+      case NAMESPACE_SELECTION_OPTION_VALUES.ALL:
+        term.namespaceSelector = {};
+
+        if (term.namespaces || term.namespaces === null) {
+          delete term.namespaces;
+        }
+
+        if (term._namespaces || term._namespaces === null) {
+          delete term._namespaces;
+        }
+        break;
+
+      default:
         this.$set(term, 'namespaces', []);
         this.$set(term, '_namespaces', '');
+
+        if (term.namespaceSelector || term.namespaceSelector === null) {
+          delete term.namespaceSelector;
+        }
+
+        break;
       }
+
       this.$set(this.allSelectorTerms, idx, term);
       this.queueUpdate();
     },
@@ -205,11 +332,16 @@ export default {
       let nsArray = namespaces;
 
       // namespaces would be String if there is no namespace
-      if (!this.hasNamespaces) {
-        nsArray = namespaces.split(',').map(ns => ns.trim()).filter(ns => ns?.length);
+      if (typeof namespaces === 'string') {
+        nsArray = namespaces.split(',').map((ns) => ns.trim()).filter((ns) => ns?.length);
       }
 
       this.$set(term, 'namespaces', nsArray);
+      this.queueUpdate();
+    },
+
+    updateLabelSelector(e, props) {
+      this.set(props.row.value, 'labelSelector.matchExpressions', e);
       this.queueUpdate();
     },
 
@@ -231,9 +363,9 @@ export default {
       <ArrayListGrouped
         v-model="allSelectorTerms"
         class="mt-20"
-        :default-add-value="{ matchExpressions: [] }"
+        :default-add-value="defaultAddValue"
         :mode="mode"
-        :add-label="t('workload.scheduling.affinity.addNodeSelector')"
+        :add-label="addLabel"
         @remove="remove"
       >
         <template #default="props">
@@ -244,6 +376,7 @@ export default {
                 :options="[t('workload.scheduling.affinity.affinityOption'),t('workload.scheduling.affinity.antiAffinityOption')]"
                 :value="props.row.value._anti ?t('workload.scheduling.affinity.antiAffinityOption') :t('workload.scheduling.affinity.affinityOption') "
                 :label="t('workload.scheduling.affinity.type')"
+                :data-testid="`pod-affinity-type-index${props.i}`"
                 @input="$set(props.row.value, '_anti',!props.row.value._anti)"
               />
             </div>
@@ -254,41 +387,44 @@ export default {
                 :options="[t('workload.scheduling.affinity.preferred'),t('workload.scheduling.affinity.required')]"
                 :value="priorityDisplay(props.row.value)"
                 :label="t('workload.scheduling.affinity.priority')"
+                :data-testid="`pod-affinity-priority-index${props.i}`"
                 @input="changePriority(props.row.value, props.i)"
               />
             </div>
           </div>
           <div class="row">
             <RadioGroup
-              :options="[false, true]"
-              :labels="[t('workload.scheduling.affinity.thisPodNamespace'),t('workload.scheduling.affinity.matchExpressions.inNamespaces'),]"
+              :options="namespaceSelectionOptions"
+              :labels="namespaceSelectionLabels"
               :name="`namespaces-${props.row.value._id}`"
               :mode="mode"
-              :value="!!props.row.value.namespaces"
-              @input="changeNamespaceMode(props.row.value, props.i)"
+              :value="props.row.value._namespaceOption"
+              :data-testid="`pod-affinity-namespacetype-index${props.i}`"
+              @input="changeNamespaceMode($event, props.row.value, props.i)"
             />
           </div>
-          <div class="spacer" />
           <div
-            v-if="!!props.row.value.namespaces || !!get(props.row.value, 'podAffinityTerm.namespaces')"
-            class="row mb-20"
+            v-if="props.row.value._namespaceOption === NAMESPACE_SELECTION_OPTION_VALUES.SELECTED"
+            class="row mt-10 mb-20"
           >
             <LabeledSelect
-              v-if="hasNamespaces"
+              v-if="hasNamespaces && !forceInputNamespaceSelection"
               v-model="props.row.value.namespaces"
               :mode="mode"
               :multiple="true"
               :taggable="true"
-              :options="allNamespaces"
-              :label="t('workload.scheduling.affinity.matchExpressions.inNamespaces')"
+              :options="allNamespacesOptions"
+              :label="labeledInputNamespaceLabel"
+              :data-testid="`pod-affinity-namespace-select-index${props.i}`"
               @input="updateNamespaces(props.row.value, props.row.value.namespaces)"
             />
             <LabeledInput
               v-else
               v-model="props.row.value._namespaces"
               :mode="mode"
-              :label="t('workload.scheduling.affinity.matchExpressions.inNamespaces')"
-              :placeholder="t('cluster.credential.harvester.affinity.namespaces.placeholder')"
+              :label="labeledInputNamespaceLabel"
+              :placeholder="t('harvesterManager.affinity.namespaces.placeholder')"
+              :data-testid="`pod-affinity-namespace-input-index${props.i}`"
               @input="updateNamespaces(props.row.value, props.row.value._namespaces)"
             />
           </div>
@@ -299,11 +435,11 @@ export default {
             :type="pod"
             :value="get(props.row.value, 'labelSelector.matchExpressions')"
             :show-remove="false"
-            @input="e=>set(props.row.value, 'labelSelector.matchExpressions', e)"
+            :data-testid="`pod-affinity-expressions-index${props.i}`"
+            @input="e=>updateLabelSelector(e, props)"
           />
-          <div class="spacer" />
-          <div class="row">
-            <div class="col span-12">
+          <div class="row mt-20">
+            <div class="col span-9">
               <LabeledSelect
                 v-if="hasNodes"
                 v-model="props.row.value.topologyKey"
@@ -313,10 +449,11 @@ export default {
                 :mode="mode"
                 required
                 :label="t('workload.scheduling.affinity.topologyKey.label')"
-                :placeholder="t('workload.scheduling.affinity.topologyKey.placeholder')"
+                :placeholder="topologyKeyPlaceholder"
                 :options="existingNodeLabels"
                 :disabled="mode==='view'"
                 :loading="loading"
+                :data-testid="`pod-affinity-topology-select-index${props.i}`"
                 @input="update"
               />
               <LabeledInput
@@ -324,16 +461,16 @@ export default {
                 v-model="props.row.value.topologyKey"
                 :mode="mode"
                 :label="t('workload.scheduling.affinity.topologyKey.label')"
-                :placeholder="t('workload.scheduling.affinity.topologyKey.placeholder')"
+                :placeholder="topologyKeyPlaceholder"
                 required
+                :data-testid="`pod-affinity-topology-input-index${props.i}`"
                 @input="update"
               />
             </div>
-          </div>
-
-          <div class="spacer" />
-          <div class="row">
-            <div class="col span-6">
+            <div
+              v-if="'weight' in props.row.value"
+              class="col span-3"
+            >
               <LabeledInput
                 v-model.number="props.row.value.weight"
                 :mode="mode"
@@ -342,6 +479,7 @@ export default {
                 max="100"
                 :label="t('workload.scheduling.affinity.weight.label')"
                 :placeholder="t('workload.scheduling.affinity.weight.placeholder')"
+                :data-testid="`pod-affinity-weight-index${props.i}`"
               />
             </div>
           </div>

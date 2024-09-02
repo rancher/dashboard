@@ -19,12 +19,6 @@ export default {
       // Ensure we re-evaluate the redirect in case this auth provider has been disabled
       const authProvs = await authProvidersInfo(this.$store);
 
-      // Nuxt does not remove it's loading indicator - if we are not changing route, then hide it
-      // https://nuxtjs.org/docs/features/loading/
-      if (authProvs.enabledLocation) {
-        this.$nuxt.$loading.finish();
-      }
-
       next(!authProvs.enabledLocation);
     } else {
       next();

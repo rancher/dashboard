@@ -7,18 +7,17 @@ import { filterOnlyKubernetesClusters, filterHiddenLocalCluster } from '@shell/u
 import { sortBy } from '@shell/utils/sort';
 
 export default {
-  name:   'Diagnostic',
-  layout: 'plain',
+  name: 'Diagnostic',
 
   components: { AsyncButton, PromptModal },
 
   async fetch() {
     const provClusters = await this.$store.dispatch('management/findAll', { type: CAPI.RANCHER_CLUSTER });
-    const readyClusters = provClusters.filter(c => c.mgmt?.isReady);
-    const clusterForCounts = filterHiddenLocalCluster(filterOnlyKubernetesClusters(readyClusters), this.$store);
+    const readyClusters = provClusters.filter((c) => c.mgmt?.isReady);
+    const clusterForCounts = filterHiddenLocalCluster(filterOnlyKubernetesClusters(readyClusters, this.$store), this.$store);
     const finalCounts = [];
     const promises = [];
-    let topTenForResponseTime = [];
+    const topFifteenForResponseTime = [];
 
     clusterForCounts.forEach((cluster, i) => {
       // Necessary to retrieve the proper display name of the cluster
@@ -42,6 +41,7 @@ export default {
 
       if (counts) {
         const sanitizedCount = [];
+        let finalCount = [];
 
         Object.keys(counts).forEach((key) => {
           sanitizedCount[key] = counts[key].summary?.count;
@@ -53,20 +53,22 @@ export default {
 
         const sortedCount = sortBy(sanitizedCount, 'count:desc');
 
-        topTenForResponseTime = topTenForResponseTime.concat(sortedCount);
-        topTenForResponseTime = sortBy(topTenForResponseTime, 'count:desc');
-        topTenForResponseTime = topTenForResponseTime.splice(0, 15);
+        finalCount = finalCount.concat(sortedCount);
+        finalCount = sortBy(finalCount, 'count:desc');
+        finalCount = finalCount.splice(0, 15);
 
-        topTenForResponseTime.forEach((item, i) => {
-          topTenForResponseTime[i].id = finalCounts[index].id;
-          topTenForResponseTime[i].capiId = finalCounts[index].capiId;
+        finalCount.forEach((item, i) => {
+          finalCount[i].id = finalCounts[index].id;
+          finalCount[i].capiId = finalCounts[index].capiId;
         });
+
+        topFifteenForResponseTime.push(finalCount);
 
         finalCounts[index].counts = sortedCount;
       }
     });
 
-    this.topTenForResponseTime = topTenForResponseTime;
+    this.topFifteenForResponseTime = topFifteenForResponseTime;
     this.finalCounts = finalCounts;
   },
 
@@ -117,24 +119,14 @@ export default {
       systemInformation.jsMemory.value += `, ${ this.t('about.diagnostic.systemInformation.memUsedJsHeapSize', { usedJSHeapSize: window?.performance?.memory?.usedJSHeapSize }) }`;
     }
 
-    // scroll logs container to the bottom
-    this.scrollLogsToBottom();
-
     return {
       systemInformation,
-      topTenForResponseTime: null,
-      responseTimes:         null,
-      finalCounts:           null,
-      includeResponseTimes:  true,
-      storeMapping:          this.$store?._modules?.root?.state,
-      latestLogs:            console.logs // eslint-disable-line no-console
+      topFifteenForResponseTime: null,
+      responseTimes:             null,
+      finalCounts:               null,
+      includeResponseTimes:      true,
+      storeMapping:              this.$store?._modules?.root?.state,
     };
-  },
-
-  watch: {
-    latestLogs() {
-      this.scrollLogsToBottom();
-    }
   },
 
   computed: {
@@ -144,14 +136,6 @@ export default {
   },
 
   methods: {
-    scrollLogsToBottom() {
-      this.$nextTick(() => {
-        const logsContainer = document.querySelector('.logs-container');
-
-        logsContainer.scrollTop = logsContainer.scrollHeight;
-      });
-    },
-
     generateKey(data) {
       const randomize = Math.random() * 10000;
 
@@ -159,12 +143,10 @@ export default {
     },
 
     downloadData(btnCb) {
-      const date = new Date().toLocaleDateString();
-      const time = new Date().toLocaleTimeString();
-      const fileName = `rancher-diagnostic-data-${ date }-${ time.replaceAll(':', '_') }.json`;
+      // simplify filename due to e2e tests
+      const fileName = 'rancher-diagnostic-data.json';
       const data = {
         systemInformation: this.systemInformation,
-        logs:              this.latestLogs,
         storeMapping:      this.parseStoreData(this.storeMapping),
         resourceCounts:    this.finalCounts,
         responseTimes:     this.responseTimes
@@ -178,8 +160,8 @@ export default {
     setResourceResponseTiming(responseTimes) {
       responseTimes?.forEach((res) => {
         if ( res.outcome === 'success' ) {
-          const cluster = this.finalCounts.find(c => c.capiId === res.item.capiId);
-          const countIndex = cluster?.counts?.findIndex(c => c.resource === res.item.resource);
+          const cluster = this.finalCounts.find((c) => c.capiId === res.item.capiId);
+          const countIndex = cluster?.counts?.findIndex((c) => c.resource === res.item.resource);
 
           if ( (countIndex && countIndex !== -1) || countIndex === 0 ) {
             this.$set(cluster?.counts[countIndex], 'durationMs', res.durationMs);
@@ -193,29 +175,33 @@ export default {
     },
 
     nodeCount(counts) {
-      const resource = counts.findIndex(c => c.resource === 'node');
+      const resource = counts.findIndex((c) => c.resource === 'node');
 
       return counts[resource]?.count;
     },
 
     toggleTable(area) {
-      const itemIndex = this.finalCounts.findIndex(item => item.id === area);
+      const itemIndex = this.finalCounts.findIndex((item) => item.id === area);
 
       this.finalCounts[itemIndex].isTableVisible = !this.finalCounts[itemIndex].isTableVisible;
     },
 
     async gatherResponseTimes(btnCb) {
-      return await Promise.all(this.topTenForResponseTime.map((item) => {
-        const t = Date.now();
+      const promises = this.topFifteenForResponseTime.flatMap((cluster) => {
+        return cluster.map((item) => {
+          const t = Date.now();
 
-        return this.$store.dispatch('management/request', { url: `/k8s/clusters/${ item.capiId }/v1/${ item.resource }` })
-          .then(() => ({
-            outcome: 'success', item, durationMs: Date.now() - t
-          }))
-          .catch(() => ({
-            outcome: 'error', item, durationMs: Date.now() - t
-          }));
-      })).then((responseTimes) => {
+          return this.$store.dispatch('management/request', { url: `/k8s/clusters/${ item.capiId }/v1/${ item.resource }` })
+            .then(() => ({
+              outcome: 'success', item, durationMs: Date.now() - t
+            }))
+            .catch(() => ({
+              outcome: 'error', item, durationMs: Date.now() - t
+            }));
+        });
+      });
+
+      return await Promise.all(promises).then((responseTimes) => {
         this.responseTimes = responseTimes;
         this.setResourceResponseTiming(responseTimes);
         btnCb(true);
@@ -228,6 +214,8 @@ export default {
         'aws',
         'digitalocean',
         'linode',
+        'targetRoute', // contains circular references, isn't useful (added later to store)
+        '$router', // also contains a circular reference to $store, not useful for diagnostics
       ];
 
       const clearListsKeys = [
@@ -309,10 +297,12 @@ export default {
         <AsyncButton
           mode="timing"
           class="mr-20"
+          data-testid="diagnostics-generate-response-times"
           @click="gatherResponseTimes"
         />
         <AsyncButton
           mode="diagnostic"
+          data-testid="diagnostics-download-diagnostic-package"
           @click="promptDownload"
         />
       </div>
@@ -400,26 +390,6 @@ export default {
           </tbody>
         </table>
       </div>
-    </div>
-
-    <!-- Logs -->
-    <div class="mb-40">
-      <h2 class="mb-20">
-        {{ t('about.diagnostic.logs.subtitle') }}
-      </h2>
-      <ul class="logs-container">
-        <li
-          v-for="logEntry in latestLogs"
-          :key="generateKey(logEntry.timestamp)"
-          :class="logEntry.type"
-        >
-          <span class="log-entry-type">{{ logEntry.type }} :: </span>
-          <span
-            v-for="(arg, i) in logEntry.data"
-            :key="i"
-          >{{ arg }}</span>
-        </li>
-      </ul>
     </div>
 
     <PromptModal />

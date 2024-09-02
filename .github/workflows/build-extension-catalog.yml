@@ -1,0 +1,83 @@
+name: Build and release Extension Catalog Image to registry
+
+on:
+  workflow_call:
+    inputs:
+      registry_target:
+        required: true
+        type: string
+      registry_user:
+        required: true
+        type: string
+      tagged_release:
+        required: false
+        type: string
+    secrets:
+      registry_token:
+        required: true
+
+jobs:
+  build-extension-catalog:
+    name: Build container image
+    if: github.ref_type == 'tag' || (github.ref == 'refs/heads/main' && github.event_name != 'pull_request')
+    runs-on: ubuntu-latest
+    permissions:
+      actions: write
+      contents: read
+      packages: write
+
+    steps:
+      - name: Checkout repository
+        uses: actions/checkout@v3
+
+      - name: Configure Git
+        run: |
+          git config user.name 'github-actions[bot]'
+          git config user.email 'github-actions[bot]@users.noreply.github.com'
+
+      - name: Login to GitHub Container Registry
+        uses: docker/login-action@v2
+        with:
+          registry: ${{ inputs.registry_target }}
+          username: ${{ inputs.registry_user }}
+          password: ${{ secrets.registry_token }}
+
+      - name: Setup Helm
+        uses: azure/setup-helm@v3
+        with:
+          version: v3.8.0
+
+      - name: Setup Nodejs and npm
+        uses: actions/setup-node@v3
+        with:
+          node-version: '16'
+
+      - name: Setup yarn
+        run: npm install -g yarn
+
+      - name: Setup Nodejs with yarn caching
+        uses: actions/setup-node@v3
+        with:
+          node-version: '16'
+          cache: yarn
+
+      - name: Install dependencies
+        run: yarn
+
+      - name: Parse Extension Name
+        if: github.ref_type == 'tag'
+        id: parsed-name
+        env:
+          GH_TOKEN: ${{ github.token }}
+        run: |
+          yarn parse-tag-name ${{ inputs.tagged_release }} ${{ github.run_id }} "catalog"
+
+      - name: Build and push UI image
+        run: |
+          publish="yarn publish-pkgs -cp -r ${{ inputs.registry_target }} -o ${{ github.repository_owner }}"
+          
+          if [[ -n "${{ inputs.tagged_release }}" ]]; then
+            publish="$publish -t ${{ inputs.tagged_release }}"
+          fi
+          
+          $publish

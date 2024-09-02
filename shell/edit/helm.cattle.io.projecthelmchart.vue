@@ -31,12 +31,7 @@ export default {
   async fetch() {
     await this.$store.dispatch('catalog/load');
     const inStore = this.$store.getters['currentStore'](NAMESPACE);
-
-    // this seems excessive but if we're gonna pull up specific configMaps we need then we need the configmaps to be in the store.
-    // ToDo: try to find a better way of loading these or just load the ones we need
-    await this.$store.dispatch(`${ inStore }/findAll`, { type: CONFIG_MAP });
-
-    const federatorSystemNamespacesConfigMap = await this.getConfigMap('cattle-monitoring-system/prometheus-federator-system-namespaces');
+    const federatorSystemNamespacesConfigMap = await this.$store.dispatch('cluster/find', { type: CONFIG_MAP, id: 'cattle-monitoring-system/prometheus-federator-system-namespaces' });
 
     this.systemNamespaces = JSON.parse(federatorSystemNamespacesConfigMap?.data?.['system-namespaces.json']);
 
@@ -48,34 +43,53 @@ export default {
   },
 
   data() {
+    if (!this.value.spec.values) {
+      this.$set(this.value.spec, 'values', {});
+    }
+
     return {
-      systemNamespaces: null,
-      namespaces:       [],
-      loading:          true
+      systemNamespaces:           null,
+      namespaces:                 [],
+      loading:                    true,
+      inStore:                    this.$store.getters['currentStore'](),
+      selectedNamespaceQuestions: null,
     };
   },
 
+  watch: {
+    /**
+     * Given the current namespace, fetch a specific secret from within which will contain a questions.yaml
+     */
+    async currentNamespace(neu, old) {
+      if (!neu) {
+        return;
+      }
+
+      const configMapRelationship = neu.metadata?.relationships.find((relationship) => relationship?.toType === CONFIG_MAP);
+
+      if (!configMapRelationship?.toId) {
+        return;
+      }
+
+      const res = await this.$store.dispatch(`${ this.inStore }/find`, { type: CONFIG_MAP, id: configMapRelationship.toId });
+      const questionsYaml = res?.data?.['questions.yaml'];
+
+      if (!questionsYaml) {
+        return;
+      }
+      this.selectedNamespaceQuestions = jsyaml.load(questionsYaml)?.questions;
+    }
+  },
+
   computed: {
-    selectedNamespaceQuestions() {
-      const inStore = this.$store.getters['currentStore']();
-
-      const configMapRelationship = this.currentNamespace?.metadata?.relationships.find(relationship => relationship?.toType === 'configmap');
-
-      const questionsYaml = this.$store.getters[`${ inStore }/byId`](configMapRelationship?.toType, configMapRelationship?.toId)?.data?.['questions.yaml'];
-
-      return jsyaml.load(questionsYaml)?.questions;
-    },
     currentNamespace() {
-      return this.namespaces.find(namespace => namespace.id === this.value?.metadata?.namespace);
+      return this.namespaces.find((namespace) => namespace.id === this.value?.metadata?.namespace);
     }
   },
 
   methods: {
     getNamespaceConfigMapId(namespace) {
-      return this.currentNamespace?.metadata?.relationships.find(relationship => relationship?.toType === 'configmap')?.toId;
-    },
-    async getConfigMap(id) {
-      return await this.$store.dispatch('cluster/find', { type: CONFIG_MAP, id });
+      return this.currentNamespace?.metadata?.relationships.find((relationship) => relationship?.toType === 'configmap')?.toId;
     },
     namespaceFilter(namespace) {
       const excludeProjects = [...this.systemNamespaces?.systemProjectLabelValues || [], this.systemNamespaces?.projectReleaseLabelValue];
@@ -128,7 +142,7 @@ export default {
           :side-tabs="true"
         >
           <Questions
-            v-model="value"
+            v-model="value.spec.values"
             tabbed="multiple"
             :target-namespace="value.metadata.namespace"
             :source="selectedNamespaceQuestions"

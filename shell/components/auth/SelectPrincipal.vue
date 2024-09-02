@@ -76,7 +76,7 @@ export default {
         return true;
       })
         .sort((a, b) => a.name.localeCompare(b.name))
-        .map(x => x.id);
+        .map((x) => x.id);
 
       return out;
     },
@@ -100,7 +100,7 @@ export default {
         return;
       }
       if (this.principals) {
-        const selected = this.principals.find(p => p.id === this.newValue);
+        const selected = this.principals.find((p) => p.id === this.newValue);
 
         this.tooltipContent = selected?.name;
       } else {
@@ -159,7 +159,7 @@ export default {
 
         if ( this.searchStr === str ) {
           // If not, they've already typed something else
-          this.options = res.map(x => x.id);
+          this.options = res.map((x) => x.id);
         }
       } catch (e) {
         this.options = [];
@@ -175,7 +175,7 @@ export default {
   <LabeledSelect
     ref="labeled-select"
     v-model="newValue"
-    v-tooltip="{
+    v-clean-tooltip="{
       content: tooltipContent,
       placement: 'bottom',
       classes: ['select-principal-tooltip']

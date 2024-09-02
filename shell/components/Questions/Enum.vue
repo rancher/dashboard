@@ -4,7 +4,23 @@ import Question from './Question';
 
 export default {
   components: { LabeledSelect },
-  mixins:     [Question]
+  mixins:     [Question],
+  computed:   {
+    options() {
+      const options = this.question.options;
+
+      if (Array.isArray(options)) {
+        return options;
+      }
+
+      return Object.entries(options).map(([key, value]) => {
+        return {
+          value: key,
+          label: value,
+        };
+      });
+    }
+  }
 };
 </script>
 
@@ -14,11 +30,14 @@ export default {
       <LabeledSelect
         :mode="mode"
         :label="displayLabel"
-        :options="question.options"
+        :options="options"
         :placeholder="question.description"
         :required="question.required"
+        :multiple="question.multiple"
         :value="value"
         :disabled="disabled"
+        :tooltip="displayTooltip"
+        :searchable="question.searchable"
         @input="$emit('input', $event)"
       />
     </div>

@@ -1,10 +1,11 @@
 // Settings
-import { GC_DEFAULTS } from '../utils/gc/gc-types';
+import { GC_DEFAULTS, GC_PREFERENCES } from '@shell/utils/gc/gc-types';
+import { PaginationSettings } from '@shell/types/resources/settings';
 
 interface GlobalSettingRuleset {
   name: string,
   key?: string | number,
-  arg?: string | number | (string | number)[]
+  factoryArg?: string | number | (string | number)[]
 }
 
 interface GlobalSetting {
@@ -19,7 +20,8 @@ interface GlobalSetting {
     /**
      * Function used from the form validation
      */
-     ruleSet?: GlobalSettingRuleset[],
+    ruleSet?: GlobalSettingRuleset[],
+    warning?: string
   };
 }
 
@@ -42,7 +44,6 @@ export const SETTING = {
   HIDE_LOCAL_CLUSTER:                   'hide-local-cluster',
   AUTH_TOKEN_MAX_TTL_MINUTES:           'auth-token-max-ttl-minutes',
   KUBECONFIG_GENERATE_TOKEN:            'kubeconfig-generate-token',
-  KUBECONFIG_TOKEN_TTL_MINUTES:         'kubeconfig-token-ttl-minutes',
   KUBECONFIG_DEFAULT_TOKEN_TTL_MINUTES: 'kubeconfig-default-token-ttl-minutes',
   ENGINE_URL:                           'engine-install-url',
   ENGINE_ISO_URL:                       'engine-iso-url',
@@ -56,7 +57,7 @@ export const SETTING = {
   AUTH_USER_SESSION_TTL_MINUTES:        'auth-user-session-ttl-minutes',
   AUTH_USER_INFO_RESYNC_CRON:           'auth-user-info-resync-cron',
   AUTH_LOCAL_VALIDATE_DESC:             'auth-password-requirements-description',
-  CATTLE_PASSWORD_MIN_LENGTH:           'password-min-length',
+  PASSWORD_MIN_LENGTH:                  'password-min-length', // CATTLE_PASSWORD_MIN_LENGTH
   CLUSTER_TEMPLATE_ENFORCEMENT:         'cluster-template-enforcement',
   UI_INDEX:                             'ui-index',
   UI_DASHBOARD_INDEX:                   'ui-dashboard-index',
@@ -72,32 +73,67 @@ export const SETTING = {
   BRAND:                                'ui-brand',
   LOGO_LIGHT:                           'ui-logo-light',
   LOGO_DARK:                            'ui-logo-dark',
+  BANNER_LIGHT:                         'ui-banner-light',
+  BANNER_DARK:                          'ui-banner-dark',
+  LOGIN_BACKGROUND_LIGHT:               'ui-login-background-light',
+  LOGIN_BACKGROUND_DARK:                'ui-login-background-dark',
   PRIMARY_COLOR:                        'ui-primary-color',
   LINK_COLOR:                           'ui-link-color',
   COMMUNITY_LINKS:                      'ui-community-links',
   FAVICON:                              'ui-favicon',
   UI_PERFORMANCE:                       'ui-performance',
   UI_CUSTOM_LINKS:                      'ui-custom-links',
+  UI_SUPPORTED_K8S_VERSIONS:            'ui-k8s-supported-versions-range',
   /**
    * Allow the backend to force a light/dark theme. Used in non-rancher world and results in the theme used
    * both pre and post log in. If not present defaults to the usual process
    */
   THEME:                                'ui-theme',
-  SYSTEM_NAMESPACES:                    'system-namespaces'
+  SYSTEM_NAMESPACES:                    'system-namespaces',
+  /**
+   * Cluster Agent configuration
+   */
+  CLUSTER_AGENT_DEFAULT_AFFINITY:       'cluster-agent-default-affinity',
+  FLEET_AGENT_DEFAULT_AFFINITY:         'fleet-agent-default-affinity',
+  /**
+   * manage rancher repositories in extensions (official, partners repos)
+  */
+  ADD_EXTENSION_REPOS_BANNER_DISPLAY:   'display-add-extension-repos-banner',
+  AGENT_TLS_MODE:                       'agent-tls-mode',
+  /**
+   * User retention settings
+   */
+  USER_RETENTION_CRON:                  'user-retention-cron',
+  USER_RETENTION_DRY_RUN:               'user-retention-dry-run',
+  USER_LAST_LOGIN_DEFAULT:              'user-last-login-default',
+  DISABLE_INACTIVE_USER_AFTER:          'disable-inactive-user-after',
+  DELETE_INACTIVE_USER_AFTER:           'delete-inactive-user-after',
 };
 
 // These are the settings that are allowed to be edited via the UI
 export const ALLOWED_SETTINGS: GlobalSetting = {
-  [SETTING.CA_CERTS]:                   { kind: 'multiline', readOnly: true },
-  [SETTING.ENGINE_URL]:                 {},
-  [SETTING.ENGINE_ISO_URL]:             {},
-  [SETTING.CATTLE_PASSWORD_MIN_LENGTH]: {
+  [SETTING.CA_CERTS]:            { kind: 'multiline', readOnly: true },
+  [SETTING.ENGINE_URL]:          {},
+  [SETTING.ENGINE_ISO_URL]:      {},
+  [SETTING.PASSWORD_MIN_LENGTH]: {
     kind:    'integer',
     ruleSet: [
       {
-        name: 'betweenValues',
+        name:       'betweenValues',
+        key:        'Password',
+        factoryArg: [2, 256]
+      },
+      {
+        name: 'isInteger',
         key:  'Password',
-        arg:  [2, 256]
+      },
+      {
+        name: 'isPositive',
+        key:  'Password',
+      },
+      {
+        name: 'isOctal',
+        key:  'Password',
       }
     ],
   },
@@ -106,7 +142,6 @@ export const ALLOWED_SETTINGS: GlobalSetting = {
   [SETTING.AUTH_USER_SESSION_TTL_MINUTES]:        {},
   [SETTING.AUTH_TOKEN_MAX_TTL_MINUTES]:           {},
   [SETTING.KUBECONFIG_GENERATE_TOKEN]:            { kind: 'boolean' },
-  [SETTING.KUBECONFIG_TOKEN_TTL_MINUTES]:         {},
   [SETTING.KUBECONFIG_DEFAULT_TOKEN_TTL_MINUTES]: { kind: 'integer' },
   [SETTING.AUTH_USER_INFO_RESYNC_CRON]:           {},
   [SETTING.SERVER_URL]:                           { kind: 'url', canReset: true },
@@ -125,9 +160,59 @@ export const ALLOWED_SETTINGS: GlobalSetting = {
     options: ['prompt', 'in', 'out']
   },
   [SETTING.HIDE_LOCAL_CLUSTER]: { kind: 'boolean' },
+  [SETTING.AGENT_TLS_MODE]:     {
+    kind:    'enum',
+    options: ['strict', 'system-store'],
+    warning: 'agent-tls-mode'
+  },
 };
 
-export const DEFAULT_PERF_SETTING = {
+/**
+ * Settings on how to handle warnings returning in api responses, specifically which to show as growls
+ */
+export interface PerfSettingsWarningHeaders {
+  /**
+   * Warning is a string containing multiple entries. This determines how they are split up
+   *
+   * See https://github.com/kubernetes/enhancements/tree/master/keps/sig-api-machinery/1693-warnings#design-details
+   */
+  separator: string,
+  /**
+   * Show warnings in a notification if they're not in this block list
+   */
+  notificationBlockList: string[]
+}
+
+export interface PerfSettingsKubeApi {
+  /**
+   * Settings related to the response header `warnings` value
+   */
+  warningHeader: PerfSettingsWarningHeaders
+}
+
+export interface PerfSettings {
+  inactivity: {
+      enabled: boolean;
+      threshold: number;
+  };
+  incrementalLoading: {
+      enabled: boolean;
+      threshold: number;
+  };
+  manualRefresh: {};
+  disableWebsocketNotification: boolean;
+  garbageCollection: GC_PREFERENCES;
+  forceNsFilterV2: any;
+  advancedWorker: {};
+  kubeAPI: PerfSettingsKubeApi;
+  serverPagination: PaginationSettings;
+}
+
+export const DEFAULT_PERF_SETTING: PerfSettings = {
+  inactivity: {
+    enabled:   false,
+    threshold: 900,
+  },
   incrementalLoading: {
     enabled:   true,
     threshold: 1500,
@@ -138,9 +223,38 @@ export const DEFAULT_PERF_SETTING = {
   },
   disableWebsocketNotification: true,
   garbageCollection:            GC_DEFAULTS,
-  forceNsFilter:                {
-    enabled:   false,
-    threshold: 1500,
+  forceNsFilterV2:              { enabled: false },
+  advancedWorker:               { enabled: false },
+  kubeAPI:                      {
+    /**
+     * Settings related to the response header `warnings` value
+     */
+    warningHeader: {
+      /**
+       * Warning is a string containing multiple entries. This determines how they are split up
+       *
+       * See https://github.com/kubernetes/enhancements/tree/master/keps/sig-api-machinery/1693-warnings#design-details
+       */
+      separator:             '299 - ',
+      /**
+       * Show warnings in a notification if they're not in this block list
+       */
+      notificationBlockList: ['299 - unknown field']
+    }
   },
-  advancedWorker: { enabled: false },
+  serverPagination: {
+    enabled: false,
+    stores:  {
+      cluster: {
+        resources: {
+          enableAll:  false,
+          enableSome: {
+            enabled: ['configmap', 'secret', 'pod', 'node'],
+            generic: true,
+          }
+        }
+      }
+    }
+  }
+
 };

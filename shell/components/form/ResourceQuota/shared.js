@@ -130,14 +130,14 @@ export const HARVESTER_TYPES = [
 
 export const ROW_COMPUTED = {
   typeOption() {
-    return this.types.find(type => type.value === this.type);
+    return this.types.find((type) => type.value === this.type);
   }
 };
 
 export const QUOTA_COMPUTED = {
   mappedTypes() {
     return this.types
-      .map(type => ({
+      .map((type) => ({
         label:       this.t(type.labelKey),
         baseUnit:    type.baseUnitKey ? this.t(type.baseUnitKey) : undefined,
         placeholder: this.t(type.placeholderKey),

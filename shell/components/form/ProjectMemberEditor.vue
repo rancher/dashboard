@@ -7,6 +7,7 @@ import { Card } from '@components/Card';
 import { RadioGroup } from '@components/Form/Radio';
 import { Checkbox } from '@components/Form/Checkbox';
 import { DESCRIPTION } from '@shell/config/labels-annotations';
+import DOMPurify from 'dompurify';
 
 export default {
   components: {
@@ -159,10 +160,10 @@ export default {
     },
 
     options() {
-      const customRoles = this.customRoles.map(role => ({
-        label:       role.nameDisplay,
-        description: role.description || role.metadata?.annotations?.[DESCRIPTION] || this.t('projectMembers.projectPermissions.noDescription'),
-        value:       role.id
+      const customRoles = this.customRoles.map((role) => ({
+        label:       this.purifyOption(role.nameDisplay),
+        description: this.purifyOption(role.description || role.metadata?.annotations?.[DESCRIPTION] || this.t('projectMembers.projectPermissions.noDescription')),
+        value:       this.purifyOption(role.id),
       }));
 
       return [
@@ -188,6 +189,18 @@ export default {
           value:       'custom'
         }
       ];
+    },
+    customPermissionsUpdate() {
+      return this.customPermissions.reduce((acc, customPermissionsItem) => {
+        const lockedExist = this.roleTemplates.find((roleTemplateItem) => roleTemplateItem.displayName === customPermissionsItem.label);
+
+        if (lockedExist.locked) {
+          customPermissionsItem['locked'] = true;
+          customPermissionsItem['tooltip'] = this.t('members.clusterPermissions.custom.lockedRole');
+        }
+
+        return [...acc, customPermissionsItem];
+      }, []);
     }
   },
   watch: {
@@ -228,11 +241,14 @@ export default {
 
       if (permissionGroup === 'custom') {
         return this.customPermissions
-          .filter(permission => permission.value)
-          .map(permission => permission.key);
+          .filter((permission) => permission.value)
+          .map((permission) => permission.key);
       }
 
       return [permissionGroup];
+    },
+    purifyOption(option) {
+      return DOMPurify.sanitize(option, { ALLOWED_TAGS: ['span'] });
     }
   }
 };
@@ -277,13 +293,22 @@ export default {
           class="custom-permissions ml-20 mt-10"
           :class="{'two-column': useTwoColumnsForCustom}"
         >
-          <Checkbox
-            v-for="permission in customPermissions"
+          <div
+            v-for="permission in customPermissionsUpdate"
             :key="permission.key"
-            v-model="permission.value"
-            class="mb-5"
-            :label="permission.label"
-          />
+          >
+            <Checkbox
+              v-model="permission.value"
+              :disabled="permission.locked"
+              class="mb-5"
+              :label="permission.label"
+            />
+            <i
+              v-if="permission.locked"
+              v-clean-tooltip="permission.tooltip"
+              class="icon icon-lock icon-fw"
+            />
+          </div>
         </div>
       </template>
     </Card>
@@ -305,6 +330,10 @@ label.radio {
   grid-template-columns: 1fr 1fr 1fr;
   &.two-column {
     grid-template-columns: 1fr 1fr;
+  }
+
+  ::v-deep .checkbox-label {
+    margin-right: 0;
   }
 }
 </style>

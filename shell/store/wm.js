@@ -12,14 +12,15 @@ export const state = function() {
 };
 
 export const getters = {
-  byId: state => (id) => {
-    return state.tabs.find(x => x.id === id);
-  }
+  byId: (state) => (id) => {
+    return state.tabs.find((x) => x.id === id);
+  },
+  allTabs: (state) => state.tabs,
 };
 
 export const mutations = {
   addTab(state, tab) {
-    const existing = state.tabs.find(x => x.id === tab.id);
+    const existing = state.tabs.find((x) => x.id === tab.id);
 
     if ( !existing ) {
       addObject(state.tabs, tab);

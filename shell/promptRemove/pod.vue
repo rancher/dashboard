@@ -30,6 +30,16 @@ export default {
     type: {
       type:     String,
       required: true
+    },
+
+    close: {
+      type:     Function,
+      required: true
+    },
+
+    doneLocation: {
+      type:    Object,
+      default: () => {}
     }
   },
 
@@ -69,23 +79,21 @@ export default {
 
   methods: {
     async remove(confirm) {
-      const parentComponent = this.$parent.$parent.$parent;
-
       let goTo;
 
-      if (parentComponent.doneLocation) {
+      if (this.doneLocation) {
         // doneLocation will recompute to undefined when delete request completes
-        goTo = { ...parentComponent.doneLocation };
+        goTo = { ...this.doneLocation };
       }
 
       try {
-        await Promise.all(this.value.map(resource => this.removePod(resource)));
+        await Promise.all(this.value.map((resource) => this.removePod(resource)));
         if ( goTo && !isEmpty(goTo) ) {
-          parentComponent.currentRouter.push(goTo);
+          this.value?.[0]?.currentRouter().push(goTo);
         }
-        parentComponent.close();
+        this.close();
       } catch (err) {
-        parentComponent.error = err;
+        this.$emit('errors', err);
         confirm(false);
       }
     },
@@ -108,8 +116,8 @@ export default {
   <div class="mt-10">
     <div class="mb-30">
       {{ t('promptRemove.attemptingToRemove', { type }) }} <span
+        v-clean-html="podNames"
         class="machine-name"
-        v-html="podNames"
       />
     </div>
     <div class="mb-30">

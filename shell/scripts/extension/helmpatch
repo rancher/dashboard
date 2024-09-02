@@ -1,0 +1,67 @@
+#!/usr/bin/env node
+
+// Update Chart.yaml and values.yaml files
+
+const fs = require('fs');
+const path = require('path');
+const yaml = require('js-yaml');
+
+// TODO: Should already be in the template
+// const UI_PLUGIN_ANNOTATION_NAME = 'catalog.cattle.io/ui-component';
+// const UI_PLUGIN_ANNOTATION_VALUE = 'plugins';
+
+console.log('Helm file update');
+
+if (process.argv.length !== 4) {
+  console.log('Incorrect number of arguments');
+  process.exit(1);
+}
+
+const destFolder = process.argv[2];
+const pkgFilePath = process.argv[3];
+
+const pkgFile = JSON.parse(fs.readFileSync(pkgFilePath, 'utf8'));
+
+const chartFolder = destFolder;
+const chartFile = path.join(chartFolder, 'Chart.yaml');
+const valuesFile = path.join(chartFolder, 'values.yaml');
+
+if (!fs.existsSync(chartFolder)) {
+  console.log('Charts folder does not exist');
+  process.exit(1);
+}
+
+// --------------------------------------------------------------------------------
+// Chart.yaml
+// --------------------------------------------------------------------------------
+const chart = yaml.load(fs.readFileSync(chartFile, 'utf8'));
+let updated = false;
+
+// Add in annotations to match any rules in the package file
+if (pkgFile.rancher && typeof pkgFile.rancher === 'object') {
+  // See if there are any annotations and merge them in, if there are
+  if (pkgFile.rancher.annotations) {
+    chart.annotations = chart.annotations || {};
+    Object.keys(pkgFile.rancher.annotations).forEach((key) => {
+      chart.annotations[key] = pkgFile.rancher.annotations[key];
+      updated = true;
+    });
+  }
+}
+
+if (updated) {
+  // Write out updated file
+  const str = yaml.dump(chart);
+
+  fs.writeFileSync(chartFile, str, 'utf8');
+}
+
+// --------------------------------------------------------------------------------
+// values.yaml
+// --------------------------------------------------------------------------------
+
+const values = yaml.load(fs.readFileSync(valuesFile, 'utf8'));
+
+const valuesYaml = yaml.dump(values, { quotingType: '"' });
+
+fs.writeFileSync(valuesFile, valuesYaml, 'utf8');

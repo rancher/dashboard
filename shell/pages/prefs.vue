@@ -8,17 +8,19 @@ import ButtonGroup from '@shell/components/ButtonGroup';
 import { Checkbox } from '@components/Form/Checkbox';
 import LandingPagePreference from '@shell/components/LandingPagePreference';
 import {
-  mapPref, THEME, KEYMAP, DATE_FORMAT, TIME_FORMAT, ROWS_PER_PAGE, HIDE_DESC, SHOW_PRE_RELEASE, MENU_MAX_CLUSTERS,
+  mapPref, THEME, KEYMAP, DATE_FORMAT, TIME_FORMAT, ROWS_PER_PAGE, HIDE_DESC, SHOW_PRE_RELEASE,
   VIEW_IN_API, ALL_NAMESPACES, THEME_SHORTCUT, PLUGIN_DEVELOPER, SCALE_POOL_PROMPT
+  , MENU_MAX_CLUSTERS
 } from '@shell/store/prefs';
+
 import LabeledSelect from '@shell/components/form/LabeledSelect';
 import { addObject } from '@shell/utils/array';
 import LocaleSelector from '@shell/components/LocaleSelector';
+import TabTitle from '@shell/components/TabTitle';
 
 export default {
-  layout:     'plain',
   components: {
-    BackLink, ButtonGroup, LabeledSelect, Checkbox, LandingPagePreference, LocaleSelector
+    BackLink, ButtonGroup, LabeledSelect, Checkbox, LandingPagePreference, LocaleSelector, TabTitle
   },
   mixins: [BackRoute],
   data() {
@@ -34,7 +36,6 @@ export default {
     perPage:           mapPref(ROWS_PER_PAGE),
     hideDesc:          mapPref(HIDE_DESC),
     showPreRelease:    mapPref(SHOW_PRE_RELEASE),
-    menuMaxClusters:   mapPref(MENU_MAX_CLUSTERS),
     pluginDeveloper:   mapPref(PLUGIN_DEVELOPER),
     scalingDownPrompt: mapPref(SCALE_POOL_PROMPT),
 
@@ -70,7 +71,25 @@ export default {
     dateOptions() {
       const now = day();
 
-      return this.$store.getters['prefs/options'](DATE_FORMAT).map((value) => {
+      const currentDate = this.$store.getters['prefs/options'](DATE_FORMAT).map((value) => {
+        return now.format(value);
+      });
+
+      // Check for duplication of date (date with same digit in month and day) in options list eg. (3/3/2023)
+      const isDuplicate = currentDate.some((item, idx) => {
+        return currentDate.indexOf(item) !== idx;
+      });
+
+      return this.$store.getters['prefs/options'](DATE_FORMAT).map((value, index) => {
+        const updateValue = `${ now.format(value) } (${ value })`;
+
+        if (index > 1 && isDuplicate) {
+          return {
+            label: updateValue,
+            value
+          };
+        }
+
         return {
           label: now.format(value),
           value
@@ -113,7 +132,7 @@ export default {
     perPageOptions() {
       const t = this.$store.getters['i18n/t'];
 
-      return this.$store.getters['prefs/options'](ROWS_PER_PAGE).map(count => ({
+      return this.$store.getters['prefs/options'](ROWS_PER_PAGE).map((count) => ({
         label: t('prefs.perPage.value', { count }),
         value: count
       }));
@@ -122,7 +141,7 @@ export default {
     menuClusterOptions() {
       const t = this.$store.getters['i18n/t'];
 
-      return this.$store.getters['prefs/options'](MENU_MAX_CLUSTERS).map(count => ({
+      return this.$store.getters['prefs/options'](MENU_MAX_CLUSTERS).map((count) => ({
         label: t('prefs.clusterToShow.value', { count }),
         value: count
       }));
@@ -155,15 +174,21 @@ export default {
   <div>
     <BackLink :link="backLink" />
     <h1
-      v-t="'prefs.title'"
       class="mb-20"
-    />
+    >
+      <TabTitle breadcrumb="vendor-only">
+        {{ t('prefs.title') }}
+      </TabTitle>
+    </h1>
+
     <!-- Language -->
     <div class="mt-10 mb-10">
       <h4 v-t="'prefs.language'" />
       <div class="row">
         <div class="col span-4">
-          <LocaleSelector />
+          <LocaleSelector
+            data-testid="prefs__languageSelector"
+          />
         </div>
       </div>
     </div>
@@ -173,6 +198,7 @@ export default {
       <h4 v-t="'prefs.theme.label'" />
       <ButtonGroup
         v-model="theme"
+        data-testid="prefs__themeOptions"
         :options="themeOptions"
       />
       <div class="mt-10">
@@ -190,7 +216,9 @@ export default {
     >
       <hr>
       <h4 v-t="'prefs.landing.label'" />
-      <LandingPagePreference />
+      <LandingPagePreference
+        data-testid="prefs__landingPagePreference"
+      />
     </div>
     <!-- Display Settings -->
     <div class="mt-10 mb-10">
@@ -203,13 +231,16 @@ export default {
         <div class="col span-4">
           <LabeledSelect
             v-model="dateFormat"
+            data-testid="prefs__displaySetting__dateFormat"
             :label="t('prefs.dateFormat.label')"
+            option-key="value"
             :options="dateOptions"
           />
         </div>
         <div class="col span-4">
           <LabeledSelect
             v-model="timeFormat"
+            data-testid="prefs__displaySetting__timeFormat"
             :label="t('prefs.timeFormat.label')"
             :options="timeOptions"
           />
@@ -220,18 +251,9 @@ export default {
         <div class="col span-4">
           <LabeledSelect
             v-model.number="perPage"
+            data-testid="prefs__displaySetting__perPage"
             :label="t('prefs.perPage.label')"
             :options="perPageOptions"
-            option-key="value"
-            option-label="label"
-            placeholder="Select a row count"
-          />
-        </div>
-        <div class="col span-4">
-          <LabeledSelect
-            v-model.number="menuMaxClusters"
-            :label="t('prefs.clusterToShow.label')"
-            :options="menuClusterOptions"
             option-key="value"
             option-label="label"
             placeholder="Select a row count"
@@ -245,6 +267,7 @@ export default {
       <h4 v-t="'prefs.confirmationSetting.title'" />
       <Checkbox
         v-model="scalingDownPrompt"
+        data-testid="prefs__scalingDownPrompt"
         :label="t('prefs.confirmationSetting.scalingDownPrompt')"
         class="mt-10"
       />
@@ -255,18 +278,21 @@ export default {
       <h4 v-t="'prefs.advFeatures.title'" />
       <Checkbox
         v-model="viewInApi"
+        data-testid="prefs__viewInApi"
         :label="t('prefs.advFeatures.viewInApi', {}, true)"
         class="mt-10"
       />
       <br>
       <Checkbox
         v-model="allNamespaces"
+        data-testid="prefs__allNamespaces"
         :label="t('prefs.advFeatures.allNamespaces', {}, true)"
         class="mt-20"
       />
       <br>
       <Checkbox
         v-model="themeShortcut"
+        data-testid="prefs__themeShortcut"
         :label="t('prefs.advFeatures.themeShortcut', {}, true)"
         class="mt-20"
       />
@@ -274,6 +300,7 @@ export default {
       <Checkbox
         v-if="!isSingleProduct"
         v-model="hideDescriptions"
+        data-testid="prefs__hideDescriptions"
         :label="t('prefs.hideDesc.label')"
         class="mt-20"
       />
@@ -292,6 +319,7 @@ export default {
       <h4 v-t="'prefs.keymap.label'" />
       <ButtonGroup
         v-model="keymap"
+        data-testid="prefs__keymapOptions"
         :options="keymapOptions"
       />
     </div>
@@ -304,6 +332,7 @@ export default {
       <h4 v-t="'prefs.helm.label'" />
       <ButtonGroup
         v-model="showPreRelease"
+        data-testid="prefs__helmOptions"
         :options="helmOptions"
       />
     </div>

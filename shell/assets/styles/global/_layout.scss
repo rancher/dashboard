@@ -18,7 +18,6 @@ HEADER {
     'title actions'
     'state-banner state-banner';
   grid-template-columns: auto auto;
-  // margin-bottom: 20px;
   align-content: center;
   min-height: 48px;
 
@@ -40,6 +39,10 @@ HEADER {
     margin-left: 8px;
     align-self: center;
     text-align: right;
+
+    &.align-start {
+      align-self: start;
+    }
   }
 
   .role-multi-action {
@@ -51,3 +54,102 @@ HEADER {
   background-color: var(--nav-bg);
   height: var(--footer-height);
 }
+
+
+// !BEGIN This was all a part of default.vue but it wasn't scoped which meant it applied to all styles. Without layouts this style was being lazy loaded instead of on initial load. This was styling other layouts especially plain.vue.
+.dashboard-root {
+  display: flex;
+  flex-direction: column;
+  height: 100vh;
+}
+
+.dashboard-content {
+  display: grid;
+  position: relative;
+  flex: 1 1 auto;
+  overflow-y: auto;
+  min-height: 0px;
+
+  &.dashboard-padding-left {
+    padding-left: $app-bar-collapsed-width;
+
+    .overlay-content-mode {
+      left: calc(var(--nav-width) + $app-bar-collapsed-width);
+    }
+  }
+
+  &.pin-right {
+    grid-template-areas:
+      "header  header  header"
+      "nav      main     wm";
+    grid-template-rows: var(--header-height) auto;
+    grid-template-columns: var(--nav-width) auto var(--wm-width, 0px);
+  }
+
+  &.pin-bottom {
+    grid-template-areas:
+      "header  header"
+      "nav       main"
+      "wm         wm";
+    grid-template-rows: var(--header-height) auto var(--wm-height, 0px);
+    grid-template-columns: var(--nav-width) auto;
+  }
+
+  &.pin-left {
+    grid-template-areas:
+      "header  header  header"
+      "wm       nav     main";
+    grid-template-rows: var(--header-height) auto;
+    grid-template-columns: var(--wm-width, 0px) var(--nav-width) auto;
+  }
+
+  >HEADER {
+    grid-area: header;
+  }
+
+  .default-side-nav {
+    grid-area: nav;
+  }
+}
+
+.wm {
+  grid-area: wm;
+  overflow-y: hidden;
+  z-index: 1;
+}
+
+.localeSelector {
+  ::v-deep .popover-inner {
+    padding: 50px 0;
+  }
+
+  ::v-deep .popover-arrow {
+    display: none;
+  }
+
+  ::v-deep .popover:focus {
+    outline: 0;
+  }
+
+  li {
+    padding: 8px 20px;
+
+    &:hover {
+      background-color: var(--primary-hover-bg);
+      color: var(--primary-hover-text);
+      text-decoration: none;
+    }
+  }
+}
+
+.drag-start {
+  z-index: 1000;
+  opacity: 0.5;
+  transition: opacity .3s ease;
+}
+
+.drag-end {
+  opacity: 1;
+}
+
+// !END

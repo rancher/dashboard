@@ -54,7 +54,7 @@ export default {
         <h2>
           {{ t(`networkpolicy.${type}.ruleLabel`) }}
           <i
-            v-tooltip="t(`networkpolicy.${type}.ruleHint`)"
+            v-clean-tooltip="t(`networkpolicy.${type}.ruleHint`)"
             class="icon icon-info"
           />
         </h2>
@@ -73,6 +73,7 @@ export default {
               :namespace="namespace"
               :all-namespaces="allNamespaces"
               :all-pods="allPods"
+              :data-testid="`policy-rule-target-${props.i}`"
             />
           </template>
         </ArrayListGrouped>
@@ -83,7 +84,7 @@ export default {
         <h2>
           {{ t('networkpolicy.rules.ports.label') }}
           <i
-            v-tooltip="t(`networkpolicy.${type}.portHint`)"
+            v-clean-tooltip="t(`networkpolicy.${type}.portHint`)"
             class="icon icon-info"
           />
         </h2>

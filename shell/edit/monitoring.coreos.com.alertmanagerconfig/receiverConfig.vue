@@ -1,5 +1,4 @@
 <script>
-import { MONITORING } from '@shell/config/types';
 import ArrayListGrouped from '@shell/components/form/ArrayListGrouped';
 import Loading from '@shell/components/Loading';
 import { Banner } from '@components/Banner';
@@ -12,7 +11,11 @@ import CreateEditView from '@shell/mixins/create-edit-view';
 import jsyaml from 'js-yaml';
 import ButtonDropdown from '@shell/components/ButtonDropdown';
 import { _CREATE, _VIEW } from '@shell/config/query-params';
+import FormValidation from '@shell/mixins/form-validation';
+import { fetchAlertManagerConfigSpecs } from '@shell/utils/alertmanagerconfig';
 
+// i18n-uses monitoringReceiver.slack.*, monitoringReceiver.email.*, monitoringReceiver.pagerduty.*
+// i18n-uses monitoringReceiver.opsgenie.*, monitoringReceiver.webhook.*, monitoringReceiver.custom.*
 export const RECEIVERS_TYPES = [
   {
     name:  'slack',
@@ -100,18 +103,9 @@ export default {
     },
   },
 
-  mixins: [CreateEditView],
+  mixins: [CreateEditView, FormValidation],
 
-  data(props) {
-    const currentReceiver = {};
-    const mode = this.$route.query.mode;
-
-    if (mode === _CREATE) {
-      RECEIVERS_TYPES.forEach((receiverType) => {
-        this.$set(currentReceiver, receiverType.key, currentReceiver[receiverType.key] || []);
-      });
-    }
-
+  async fetch() {
     /**
      * example receiver value:
      * {
@@ -119,16 +113,13 @@ export default {
      *   slackConfigs: [...]
      * }
      */
-    const receiverSchema = this.$store.getters['cluster/schemaFor'](MONITORING.SPOOFED.ALERTMANAGERCONFIG_RECEIVER_SPEC);
-
-    // debugger;
+    const { receiverSchema } = await fetchAlertManagerConfigSpecs(this.$store);
 
     if (!receiverSchema) {
-      throw new Error("Can't render the form because the AlertmanagerConfig schema is not loaded yet.");
+      throw new Error("Can't render the form because the AlertmanagerConfig schema, or it's definitions, is not loaded yet.");
     }
 
     const expectedFields = Object.keys(receiverSchema.resourceFields);
-
     const suffix = {};
 
     Object.keys(this.value).forEach((key) => {
@@ -143,15 +134,31 @@ export default {
       suffixYaml = '';
     }
 
+    this.expectedFields = expectedFields;
+    this.suffixYaml = suffixYaml;
+  },
+
+  data(props) {
+    const currentReceiver = {};
+    const mode = this.$route.query.mode;
+
+    if (mode === _CREATE) {
+      RECEIVERS_TYPES.forEach((receiverType) => {
+        this.$set(currentReceiver, receiverType.key, currentReceiver[receiverType.key] || []);
+      });
+    }
+
     return {
-      create:        _CREATE,
+      create:         _CREATE,
       EDITOR_MODES,
-      expectedFields,
-      fileFound:     false,
-      receiverTypes: RECEIVERS_TYPES,
-      suffixYaml,
-      view:          _VIEW,
-      yamlError:     '',
+      fileFound:      false,
+      receiverTypes:  RECEIVERS_TYPES,
+      view:           _VIEW,
+      yamlError:      '',
+      fvFormRuleSets: [
+        { path: 'name', rules: ['required', 'duplicateName'] }
+      ],
+      fvReportedValidationPaths: ['value']
     };
   },
 
@@ -178,7 +185,19 @@ export default {
     receiverNameDisabled() {
       return this.$route.query.mode === _VIEW;
     },
+    fvExtraRules() {
+      return {
+        duplicateName: () => {
+          const receiversArray = this.alertmanagerConfigResource.spec.receivers;
+          const receiverNamesArray = receiversArray.map((R) => R.name);
+          const receiversSet = new Set(receiverNamesArray);
 
+          if (receiversArray.length !== receiversSet.size) {
+            return this.$store.getters['i18n/t']('monitoring.alerting.validation.duplicatedReceiverName', { name: this.value.name });
+          }
+        }
+      };
+    }
   },
 
   watch: {
@@ -235,6 +254,14 @@ export default {
     createAddOptions(receiverType) {
       return receiverType.addOptions.map();
     },
+
+    setError(err) {
+      if (!err) {
+        this.errors = [];
+      } else {
+        this.errors = [err];
+      }
+    }
   }
 };
 </script>
@@ -249,8 +276,9 @@ export default {
     :can-yaml="true"
     :errors="errors"
     :cancel-event="true"
+    :validation-passed="fvFormIsValid"
     @error="e=>errors = e"
-    @finish="saveOverride()"
+    @finish="saveOverride"
     @cancel="redirectAfterCancel"
   >
     <div class="row mb-10">
@@ -259,7 +287,10 @@ export default {
           v-model="value.name"
           :is-disabled="receiverNameDisabled"
           :label="t('generic.name')"
+          :required="true"
           :mode="mode"
+          :rules="fvGetAndReportPathRules('name')"
+          data-testid="v2-monitoring-receiver-name"
         />
       </div>
     </div>

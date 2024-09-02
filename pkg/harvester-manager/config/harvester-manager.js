@@ -3,7 +3,7 @@ import { HARVESTER, MULTI_CLUSTER } from '@shell/store/features';
 import { STATE, NAME as NAME_COL, AGE, VERSION } from '@shell/config/table-headers';
 import { allHash } from '@shell/utils/promise';
 import dynamicPluginLoader from '@shell/pkg/dynamic-plugin-loader';
-import { BLANK_CLUSTER } from '@shell/store';
+import { BLANK_CLUSTER } from '@shell/store/store-types.js';
 import { HARVESTER_NAME } from '@shell/config/features';
 
 export const PRODUCT_NAME = 'harvester-manager';
@@ -15,10 +15,10 @@ dynamicPluginLoader.register({
     // - directly (page refresh/load -> have path but no name)
     // - via router name (have name but no path)
     let clusterId;
-    const pathParts = route.path.split('/');
+    const pathParts = route.path?.replace(/^\/{0,1}dashboard/, '').split('/').filter((f) => !!f) || [];
 
-    if (pathParts?.[1] === HARVESTER_NAME && pathParts?.[3] ) {
-      clusterId = pathParts?.[3];
+    if (pathParts[0] === HARVESTER_NAME && pathParts[2] ) {
+      clusterId = pathParts[2];
     } else {
       const nameParts = route.name?.split('-');
 
@@ -30,7 +30,7 @@ dynamicPluginLoader.register({
     // If we have a cluster id, try to load the plugin via the harvester cluster's `loadClusterPlugin`
     if (clusterId) {
       const provClusters = await store.dispatch('management/findAll', { type: CAPI.RANCHER_CLUSTER });
-      const provCluster = provClusters.find(p => p.mgmt.id === clusterId);
+      const provCluster = provClusters.find((p) => p.mgmt.id === clusterId);
 
       if (provCluster) {
         const harvCluster = await store.dispatch('management/create', {
@@ -51,6 +51,8 @@ dynamicPluginLoader.register({
             return harvesterClustersLocation;
           }
         }
+      } else {
+        return harvesterClustersLocation;
       }
     }
   }
@@ -95,6 +97,7 @@ export function init($plugin, store) {
     showClusterSwitcher: false,
     weight:              100,
     to:                  harvesterClustersLocation,
+    category:            'hci',
   });
 
   configureType(HCI.CLUSTER, { showListMasthead: false });
@@ -104,7 +107,7 @@ export function init($plugin, store) {
     {
       ...VERSION,
       value:    'kubernetesVersion',
-      getValue: row => row.kubernetesVersion
+      getValue: (row) => row.kubernetesVersion
     },
     MACHINE_POOLS,
     AGE,

@@ -72,12 +72,12 @@ export const likelyFields = [
   'token', 'apikey',
   'secret',
   'clientid', 'clientsecret', 'subscriptionid', 'tenantid',
-].map(x => simplify(x));
+].map((x) => simplify(x));
 
 // Machine driver fields that are maaaaybe a credential field
 export const iffyFields = [
   'location', 'region',
-].map(x => simplify(x));
+].map((x) => simplify(x));
 
 // Machine driver fields that are safe to display the whole value
 export const fullFields = [
@@ -85,27 +85,28 @@ export const fullFields = [
   'accesskey',
   'accesskeyid',
   'clientid'
-].map(x => simplify(x));
+].map((x) => simplify(x));
 
 // Machine driver fields that are safe to display the beginning of
 export const prefixFields = [
   'token',
   'apikey',
   'secret',
-].map(x => simplify(x));
+].map((x) => simplify(x));
 
 // Machine driver fields that are safe to display the end of
 export const suffixFields = [
-].map(x => simplify(x));
+].map((x) => simplify(x));
 
 // Machine driver to cloud provider mapping
 const driverToCloudProviderMap = {
-  amazonec2:     'aws',
-  azure:         'azure',
-  digitalocean:  '', // Show restricted options
-  harvester:     'harvester',
-  linode:        '', // Show restricted options
-  vmwarevsphere: 'rancher-vsphere',
+  amazonec2:           'aws',
+  azure:               'azure',
+  digitalocean:        '', // Show restricted options
+  harvester:           'harvester',
+  linode:              '', // Show restricted options
+  vmwarevsphere:       'rancher-vsphere',
+  ovhcloudpubliccloud: '',
 
   custom: undefined // Show all options
 };
@@ -164,8 +165,10 @@ export const getters = {
   },
 
   fieldNamesForDriver(state, getters) {
-    return (name) => {
+    return async(name) => {
       const schema = getters.schemaForDriver(name);
+
+      await schema.fetchResourceFields();
 
       if ( !schema ) {
         // eslint-disable-next-line no-console
@@ -173,7 +176,7 @@ export const getters = {
 
         return [];
       }
-
+      // This is used in places where `createPopulated` has been called, which has called fetchResourceFields to populate resourceFields
       const out = Object.keys(schema?.resourceFields || {});
 
       removeObjects(out, ['apiVersion', 'dockerPort', 'kind', 'metadata']);
@@ -183,9 +186,11 @@ export const getters = {
   },
 
   fieldsForDriver(state, getters) {
-    return (name) => {
+    return async(name) => {
       const schema = getters.schemaForDriver(name);
-      const names = getters.fieldNamesForDriver(name);
+
+      await schema.fetchResourceFields();
+      const names = await getters.fieldNamesForDriver(name);
 
       const out = {};
 

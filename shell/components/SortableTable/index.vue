@@ -1,13 +1,13 @@
 <script>
 import { mapGetters } from 'vuex';
 import day from 'dayjs';
+import isEmpty from 'lodash/isEmpty';
 import { dasherize, ucFirst } from '@shell/utils/string';
 import { get, clone } from '@shell/utils/object';
 import { removeObject } from '@shell/utils/array';
 import { Checkbox } from '@components/Form/Checkbox';
 import AsyncButton, { ASYNC_BUTTON_STATES } from '@shell/components/AsyncButton';
 import ActionDropdown from '@shell/components/ActionDropdown';
-import $ from 'jquery';
 import throttle from 'lodash/throttle';
 import debounce from 'lodash/debounce';
 import THead from './THead';
@@ -19,6 +19,8 @@ import grouping from './grouping';
 import actions from './actions';
 import AdvancedFiltering from './advanced-filtering';
 import LabeledSelect from '@shell/components/form/LabeledSelect';
+import { getParent } from '@shell/utils/dom';
+
 // Uncomment for table performance debugging
 // import tableDebug from './debug';
 
@@ -27,30 +29,17 @@ import LabeledSelect from '@shell/components/form/LabeledSelect';
 // NOTE: This is populated by a plugin (formatters.js) to avoid issues with plugins
 export const FORMATTERS = {};
 
-export const COLUMN_BREAKPOINTS = {
-  /**
-   * Only show column if at tablet width or wider
-   */
-  TABLET:  'tablet',
-  /**
-   * Only show column if at laptop width or wider
-   */
-  LAPTOP:  'laptop',
-  /**
-   * Only show column if at desktop width or wider
-   */
-  DESKTOP: 'desktop'
-};
-
 // @TODO:
 // Fixed header/scrolling
 
 // Data Flow:
 // rows prop
-// -> arrangedRows (sorting.js)
-// -> filteredRows (filtering.js)
-// -> pagedRows    (paging.js)
-// -> groupedRows  (grouping.js)
+// --> sorting.js arrangedRows
+// --> filtering.js handleFiltering()
+// --> filtering.js filteredRows
+// --> paging.js pageRows
+// --> grouping.js groupedRows
+// --> index.vue displayedRows
 
 export default {
   name:       'SortableTable',
@@ -94,6 +83,16 @@ export default {
     },
 
     loading: {
+      type:     Boolean,
+      required: false
+    },
+
+    /**
+     * Alt Loading - True: Always show table rows and obscure them when `loading`. Intended for use with server-side pagination.
+     *
+     * Alt Loading - False: Hide the table rows when `loading`. Intended when all resources are provided up front.
+     */
+    altLoading: {
       type:     Boolean,
       required: false
     },
@@ -160,6 +159,11 @@ export default {
       // If there are sub-rows, your main row must have <tr class="main-row"> to identify it
       type:    Boolean,
       default: false,
+    },
+
+    subRowsDescription: {
+      type:    Boolean,
+      default: true,
     },
 
     subExpandable: {
@@ -264,7 +268,7 @@ export default {
      */
     noDataKey: {
       type:    String,
-      default: 'sortableTable.noData'
+      default: 'sortableTable.noData' // i18n-uses sortableTable.noData
     },
 
     /**
@@ -277,6 +281,14 @@ export default {
 
     sortGenerationFn: {
       type:    Function,
+      default: null,
+    },
+
+    /**
+     * The list will always be sorted by these regardless of what the user has selected
+     */
+    mandatorySort: {
+      type:    Array,
       default: null,
     },
 
@@ -311,6 +323,22 @@ export default {
     forceUpdateLiveAndDelayed: {
       type:    Number,
       default: 0
+    },
+
+    /**
+     * True if pagination is executed outside of the component
+     */
+    externalPaginationEnabled: {
+      type:    Boolean,
+      default: false
+    },
+
+    /**
+     * If `externalPaginationEnabled` is true this will be used as the current page
+     */
+    externalPaginationResult: {
+      type:    Object,
+      default: null
     }
   },
 
@@ -325,12 +353,18 @@ export default {
     }
 
     return {
-      currentPhase:     ASYNC_BUTTON_STATES.WAITING,
-      expanded:         {},
+      refreshButtonPhase:         ASYNC_BUTTON_STATES.WAITING,
+      expanded:                   {},
       searchQuery,
       eventualSearchQuery,
-      actionOfInterest: null,
-      loadingDelay:     false,
+      subMatches:                 null,
+      actionOfInterest:           null,
+      loadingDelay:               false,
+      debouncedPaginationChanged: null,
+      /**
+       * The is the bool the DOM uses to show loading state. it's proxied from `loading` to avoid blipping the indicator (see usages)
+       */
+      isLoading:                  false,
     };
   },
 
@@ -340,23 +374,25 @@ export default {
     }, 200);
 
     // Add scroll listener to the main element
-    const $main = $('main');
+    const $main = document.querySelector('main');
 
     this._onScroll = this.onScroll.bind(this);
-    $main.on('scroll', this._onScroll);
+    $main?.addEventListener('scroll', this._onScroll);
+
+    this.debouncedPaginationChanged();
   },
 
   beforeDestroy() {
-    clearTimeout(this.loadingDelayTimer);
     clearTimeout(this._scrollTimer);
     clearTimeout(this._loadingDelayTimer);
+    clearTimeout(this._altLoadingDelayTimer);
     clearTimeout(this._liveColumnsTimer);
     clearTimeout(this._delayedColumnsTimer);
     clearTimeout(this.manualRefreshTimer);
 
-    const $main = $('main');
+    const $main = document.querySelector('main');
 
-    $main.off('scroll', this._onScroll);
+    $main?.removeEventListener('scroll', this._onScroll);
   },
 
   watch: {
@@ -381,21 +417,27 @@ export default {
     descending(neu, old) {
       this.watcherUpdateLiveAndDelayed(neu, old);
     },
+
     searchQuery(neu, old) {
       this.watcherUpdateLiveAndDelayed(neu, old);
     },
+
     sortFields(neu, old) {
       this.watcherUpdateLiveAndDelayed(neu, old);
     },
+
     groupBy(neu, old) {
       this.watcherUpdateLiveAndDelayed(neu, old);
     },
+
     namespaces(neu, old) {
       this.watcherUpdateLiveAndDelayed(neu, old);
     },
+
     page(neu, old) {
       this.watcherUpdateLiveAndDelayed(neu, old);
     },
+
     forceUpdateLiveAndDelayed(neu, old) {
       this.watcherUpdateLiveAndDelayed(neu, old);
     },
@@ -411,24 +453,45 @@ export default {
       immediate: true
     },
 
-    isManualRefreshLoading: {
+    // this is the flag that indicates that manual refresh data has been loaded
+    // and we should update the deferred cols
+    manualRefreshLoadingFinished: {
       handler(neu, old) {
-        this.currentPhase = neu ? ASYNC_BUTTON_STATES.WAITING : ASYNC_BUTTON_STATES.ACTION;
-
-        // setTimeout is needed so that this is pushed further back on the JS computing queue
-        // because nextTick isn't enough to capture the DOM update for the manual refresh only scenario
-        if (old && !neu) {
-          this.manualRefreshTimer = setTimeout(() => {
-            this.watcherUpdateLiveAndDelayed(neu, old);
-          }, 1000);
+        // this is merely to update the manual refresh button status
+        this.refreshButtonPhase = !neu ? ASYNC_BUTTON_STATES.WAITING : ASYNC_BUTTON_STATES.ACTION;
+        if (neu && neu !== old) {
+          this.$nextTick(() => this.updateLiveAndDelayed());
         }
       },
       immediate: true
-    }
+    },
+
+    loading: {
+      handler(neu, old) {
+        // Always ensure the Refresh button phase aligns with loading state (to ensure external phase changes which can then reset the internal phase changed by click)
+        this.refreshButtonPhase = neu ? ASYNC_BUTTON_STATES.WAITING : ASYNC_BUTTON_STATES.ACTION;
+
+        if (this.altLoading) {
+          // Delay setting the actual loading indicator. This should avoid flashing up the indicator if the API responds quickly
+          if (neu) {
+            this._altLoadingDelayTimer = setTimeout(() => {
+              this.isLoading = true;
+            }, 200); // this should be higher than the targetted quick response
+          } else {
+            clearTimeout(this._altLoadingDelayTimer);
+            this.isLoading = false;
+          }
+        } else {
+          this.isLoading = neu;
+        }
+      },
+      immediate: true
+    },
   },
 
   created() {
     this.debouncedRefreshTableData = debounce(this.refreshTableData, 500);
+    this.debouncedPaginationChanged = debounce(this.paginationChanged, 50);
   },
 
   computed: {
@@ -439,7 +502,16 @@ export default {
     },
 
     initalLoad() {
-      return !!(!this.loading && !this._didinit && this.rows?.length);
+      return !!(!this.isLoading && !this._didinit && this.rows?.length);
+    },
+
+    manualRefreshLoadingFinished() {
+      const res = !!(!this.isLoading && this._didinit && this.rows?.length && !this.isManualRefreshLoading);
+
+      // Always ensure the Refresh button phase aligns with loading state (regardless of if manualRefreshLoadingFinished has changed or not)
+      this.refreshButtonPhase = !res || this.loading ? ASYNC_BUTTON_STATES.WAITING : ASYNC_BUTTON_STATES.ACTION;
+
+      return res;
     },
 
     fullColspan() {
@@ -484,10 +556,10 @@ export default {
 
     columns() {
       // Filter out any columns that are too heavy to show for large page sizes
-      const out = this.headers.slice().filter(c => !c.maxPageSize || (c.maxPageSize && c.maxPageSize >= this.perPage));
+      const out = this.headers.slice().filter((c) => !c.maxPageSize || (c.maxPageSize && c.maxPageSize >= this.perPage));
 
       if ( this.groupBy ) {
-        const entry = out.find(x => x.name === this.groupBy);
+        const entry = out.find((x) => x.name === this.groupBy);
 
         if ( entry ) {
           removeObject(out, entry);
@@ -495,10 +567,10 @@ export default {
       }
 
       // If all columns have a width, try to remove it from a column that can be variable (name)
-      const missingWidth = out.find(x => !x.width);
+      const missingWidth = out.find((x) => !x.width);
 
       if ( !missingWidth ) {
-        const variable = out.find(x => x.canBeVariable);
+        const variable = out.find((x) => x.canBeVariable);
 
         if ( variable ) {
           const neu = clone(variable);
@@ -539,18 +611,19 @@ export default {
         'body-dividers': this.bodyDividers,
         'overflow-y':    this.overflowY,
         'overflow-x':    this.overflowX,
+        'alt-loading':   this.altLoading && this.isLoading
       };
     },
 
     // Do we have any live columns?
     hasLiveColumns() {
-      const liveColumns = this.columns.find(c => c.formatter?.startsWith('Live') || c.liveUpdates);
+      const liveColumns = this.columns.find((c) => c.formatter?.startsWith('Live') || c.liveUpdates);
 
       return !!liveColumns;
     },
 
     hasDelayedColumns() {
-      const delaeydColumns = this.columns.find(c => c.delayLoading);
+      const delaeydColumns = this.columns.find((c) => c.delayLoading);
 
       return !!delaeydColumns;
     },
@@ -680,7 +753,7 @@ export default {
         return;
       }
 
-      const delayedColumns = this.$refs.column.filter(c => c.startDelayedLoading && !c.__delayedLoading);
+      const delayedColumns = this.$refs.column.filter((c) => c.startDelayedLoading && !c.__delayedLoading);
       // We add 100 pixels here - so we will render the delayed columns for a few extra rows below what is visible
       // This way if you scroll slowly, you won't see the columns being loaded
       const clientHeight = (window.innerHeight || document.documentElement.clientHeight) + 100;
@@ -715,7 +788,7 @@ export default {
       }
 
       const clientHeight = window.innerHeight || document.documentElement.clientHeight;
-      const liveColumns = this.$refs.column.filter(c => !!c.liveUpdate);
+      const liveColumns = this.$refs.column.filter((c) => !!c.liveUpdate);
       const now = day();
       let next = Number.MAX_SAFE_INTEGER;
 
@@ -767,6 +840,12 @@ export default {
       // console.warn(`Performance: Table valueFor: ${ col.name } ${ col.value }`); // eslint-disable-line no-console
 
       const expr = col.value || col.name;
+
+      if (!expr) {
+        console.error('No path has been defined for this column, unable to get value of cell', col); // eslint-disable-line no-console
+
+        return '';
+      }
       const out = get(row, expr);
 
       if ( out === null || out === undefined ) {
@@ -798,11 +877,11 @@ export default {
 
     // Can the action of interest be applied to the specified resource?
     canRunBulkActionOfInterest(resource) {
-      if (!this.actionOfInterest) {
+      if ( !this.actionOfInterest || isEmpty(resource?.availableActions) ) {
         return false;
       }
 
-      const matchingResourceAction = resource.availableActions.find(a => a.action === this.actionOfInterest.action);
+      const matchingResourceAction = resource.availableActions?.find((a) => a.action === this.actionOfInterest.action);
 
       return matchingResourceAction?.enabled;
     },
@@ -815,13 +894,12 @@ export default {
     },
 
     nearestCheckbox() {
-      const $cur = $(document.activeElement).closest('tr.main-row').find('.checkbox-custom');
-
-      return $cur[0];
+      return document.activeElement.closest('tr.main-row')?.querySelector('.checkbox-custom');
     },
 
     focusAdjacent(next = true) {
-      const all = $('.checkbox-custom', this.$el).toArray();
+      const all = Array.from(this.$el.querySelectorAll('.checkbox-custom'));
+
       const cur = this.nearestCheckbox();
       let idx = -1;
 
@@ -835,10 +913,14 @@ export default {
 
       if ( idx < 1 ) { // Don't go up to the check all button
         idx = 1;
+
+        return null;
       }
 
       if ( idx >= all.length ) {
         idx = all.length - 1;
+
+        return null;
       }
 
       if ( all[idx] ) {
@@ -850,21 +932,29 @@ export default {
 
     focusNext: throttle(function(event, more = false) {
       const elem = this.focusAdjacent(true);
-      const row = $(elem).parents('tr');
+      const row = getParent(elem, 'tr');
+
+      if (row?.classList.contains('row-selected')) {
+        return;
+      }
 
       this.keySelectRow(row, more);
     }, 50),
 
     focusPrevious: throttle(function(event, more = false) {
       const elem = this.focusAdjacent(false);
-      const row = $(elem).parents('tr');
+      const row = getParent(elem, 'tr');
+
+      if (row?.classList.contains('row-selected')) {
+        return;
+      }
 
       this.keySelectRow(row, more);
     }, 50),
 
     showSubRow(row, keyField) {
       const hasInjectedSubRows = this.subRows && (!this.subExpandable || this.expanded[get(row, keyField)]);
-      const hasStateDescription = row.stateDescription;
+      const hasStateDescription = this.subRowsDescription && row.stateDescription;
 
       return hasInjectedSubRows || hasStateDescription;
     },
@@ -883,13 +973,33 @@ export default {
         event,
         targetElement: this.$refs[`actionButton${ i }`][0],
       });
+    },
+
+    paginationChanged() {
+      if (!this.externalPaginationEnabled) {
+        return;
+      }
+
+      this.$emit('pagination-changed', {
+        page:    this.page,
+        perPage: this.perPage,
+        filter:  {
+          searchFields: this.searchFields,
+          searchQuery:  this.searchQuery
+        },
+        sort:       this.sortFields,
+        descending: this.descending
+      });
     }
   }
 };
 </script>
 
 <template>
-  <div ref="container">
+  <div
+    ref="container"
+    :data-testid="componentTestid + '-list-container'"
+  >
     <div
       :class="{'titled': $slots.title && $slots.title.length}"
       class="sortable-table-header"
@@ -910,7 +1020,7 @@ export default {
                 v-for="act in availableActions"
                 :id="act.action"
                 :key="act.action"
-                v-tooltip="actionTooltip"
+                v-clean-tooltip="actionTooltip"
                 type="button"
                 class="btn role-primary"
                 :class="{[bulkActionClass]:true}"
@@ -924,7 +1034,7 @@ export default {
                   v-if="act.icon"
                   :class="act.icon"
                 />
-                <span v-html="act.label" />
+                <span v-clean-html="act.label" />
               </button>
               <ActionDropdown
                 :class="bulkActionsDropdownClass"
@@ -949,7 +1059,7 @@ export default {
                       v-for="act in hiddenActions"
                       :key="act.action"
                       v-close-popover
-                      v-tooltip="{
+                      v-clean-tooltip="{
                         content: actionTooltip,
                         placement: 'right'
                       }"
@@ -962,7 +1072,7 @@ export default {
                         v-if="act.icon"
                         :class="act.icon"
                       />
-                      <span v-html="act.label" />
+                      <span v-clean-html="act.label" />
                     </li>
                   </ul>
                 </template>
@@ -987,6 +1097,7 @@ export default {
         <div
           v-if="search || hasAdvancedFiltering || isTooManyItemsToAutoUpdate || ($slots['header-right'] && $slots['header-right'].length)"
           class="search row"
+          data-testid="search-box-filter-row"
         >
           <ul
             v-if="hasAdvancedFiltering"
@@ -1007,10 +1118,9 @@ export default {
           <slot name="header-right" />
           <AsyncButton
             v-if="isTooManyItemsToAutoUpdate"
-            v-tooltip="t('performance.manualRefresh.buttonTooltip')"
             class="manual-refresh"
-            mode="refresh"
-            :current-phase="currentPhase"
+            mode="manual-refresh"
+            :current-phase="refreshButtonPhase"
             @click="debouncedRefreshTableData"
           />
           <div
@@ -1103,7 +1213,7 @@ export default {
         :default-sort-by="_defaultSortBy"
         :descending="descending"
         :no-rows="noRows"
-        :loading="loading && !loadingDelay"
+        :loading="isLoading && !loadingDelay"
         :no-results="noResults"
         @on-toggle-all="onToggleAll"
         @on-sort-change="changeSort"
@@ -1113,9 +1223,9 @@ export default {
       />
 
       <!-- Don't display anything if we're loading and the delay has yet to pass -->
-      <div v-if="loading && !loadingDelay" />
+      <div v-if="isLoading && !loadingDelay" />
 
-      <tbody v-else-if="loading">
+      <tbody v-else-if="isLoading && !altLoading">
         <slot name="loading">
           <tr>
             <td :colspan="fullColspan">
@@ -1323,6 +1433,9 @@ export default {
             :full-colspan="fullColspan"
             :row="row.row"
             :sub-matches="subMatches"
+            :keyField="keyField"
+            :componentTestid="componentTestid"
+            :i="i"
             :onRowMouseEnter="onRowMouseEnter"
             :onRowMouseLeave="onRowMouseLeave"
           >
@@ -1357,7 +1470,8 @@ export default {
       <button
         type="button"
         class="btn btn-sm role-multi-action"
-        :disabled="page == 1"
+        data-testid="pagination-first"
+        :disabled="page == 1 || loading"
         @click="goToPage('first')"
       >
         <i class="icon icon-chevron-beginning" />
@@ -1365,7 +1479,8 @@ export default {
       <button
         type="button"
         class="btn btn-sm role-multi-action"
-        :disabled="page == 1"
+        data-testid="pagination-prev"
+        :disabled="page == 1 || loading"
         @click="goToPage('prev')"
       >
         <i class="icon icon-chevron-left" />
@@ -1376,7 +1491,8 @@ export default {
       <button
         type="button"
         class="btn btn-sm role-multi-action"
-        :disabled="page == totalPages"
+        data-testid="pagination-next"
+        :disabled="page == totalPages || loading"
         @click="goToPage('next')"
       >
         <i class="icon icon-chevron-right" />
@@ -1384,7 +1500,8 @@ export default {
       <button
         type="button"
         class="btn btn-sm role-multi-action"
-        :disabled="page == totalPages"
+        data-testid="pagination-last"
+        :disabled="page == totalPages || loading"
         @click="goToPage('last')"
       >
         <i class="icon icon-chevron-end" />
@@ -1422,7 +1539,11 @@ export default {
   </div>
 </template>
 
-  <style lang="scss" scoped>
+<style lang="scss" scoped>
+  .sortable-table.alt-loading {
+    opacity: 0.5;
+    pointer-events: none;
+  }
 
   .manual-refresh {
     height: 40px;
@@ -1586,9 +1707,9 @@ export default {
     margin-left: 10px;
     min-width: 180px;
   }
-  </style>
+</style>
 
-  <style lang="scss">
+<style lang="scss">
   //
   // Important: Almost all selectors in here need to be ">"-ed together so they
   // apply only to the current table, not one nested inside another table.
@@ -1920,4 +2041,4 @@ export default {
       min-width: 200px;
     }
   }
-  </style>
+</style>

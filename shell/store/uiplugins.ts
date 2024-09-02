@@ -1,3 +1,4 @@
+/* eslint-disable @typescript-eslint/explicit-module-boundary-types */
 // We already have a 'plugins' store, which is for cluster drivers
 // This store is for the instsall UI plugins
 
@@ -43,7 +44,7 @@ export const mutations = {
   },
 
   removePlugin(state: UIPluginState, pluginName: string) {
-    const index = state.plugins.findIndex(p => p.name === pluginName);
+    const index = state.plugins.findIndex((p) => p.name === pluginName);
 
     if (index !== -1) {
       state.plugins.splice(index, 1);

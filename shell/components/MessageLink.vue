@@ -54,7 +54,7 @@ export default {
       />
       {{ prefix }}
     </slot>
-    <nuxt-link
+    <router-link
       :to="to"
       :target="target"
     >
@@ -66,7 +66,7 @@ export default {
         />
         {{ middle }}
       </slot>
-    </nuxt-link>
+    </router-link>
     <slot name="suffix">
       <t
         v-if="suffixLabel"

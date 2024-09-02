@@ -42,13 +42,8 @@ export default {
     },
 
     serverUrl() {
-      if (process.client) {
-        // Client-side rendered: use the current window location
-        return window.location.origin;
-      }
-
-      // Server-side rendered
-      return this.serverSetting || '';
+      // Client-side rendered: use the current window location
+      return window.location.origin;
     },
 
     baseUrl() {
@@ -60,6 +55,7 @@ export default {
     },
 
     displayName() {
+      // i18n-uses model.authConfig.provider.*
       return this.t(`model.authConfig.provider.${ this.NAME }`);
     },
 
@@ -196,7 +192,7 @@ export default {
           }
         }
         if (wasEnabled && configType === 'oauth') {
-          await this.model.save({ ignoreFields: ['oauthCredential', 'serviceAccountCredential'] });
+          await this.model.save({ ignoreFields: ['oauthCredential', 'serviceAccountCredential'] } );
         } else {
           await this.model.save();
         }
@@ -277,7 +273,7 @@ export default {
 
         // KeyCloakOIDCConfig --> OIDCConfig
         set(this.model, 'rancherUrl', `${ serverUrl }/verify-auth`);
-        set(this.model, 'scope', BASE_SCOPES.keycloakoidc[0]);
+        set(this.model, 'scope', this.model.id === 'keycloakoidc' ? BASE_SCOPES.keycloakoidc[0] : BASE_SCOPES.genericoidc[0]);
         break;
       }
 

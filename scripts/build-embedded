@@ -21,7 +21,7 @@ DIR=${GIT_TAG:-$COMMIT_BRANCH}
 OUTPUT_DIR=dist/${DIR}-embedded
 
 echo "Building..."
-NUXT_ENV_commit=${COMMIT} NUXT_ENV_version=${VERSION} OUTPUT_DIR=$OUTPUT_DIR ROUTER_BASE='/dashboard' yarn run build
+COMMIT=${COMMIT} VERSION=${VERSION} OUTPUT_DIR=$OUTPUT_DIR ROUTER_BASE='/dashboard/' RESOURCE_BASE='/dashboard/' yarn run build
 
 if [ -v EMBED_PKG ]; then
     echo "Build and embed plugin from: $EMBED_PKG"
@@ -45,8 +45,13 @@ find $OUTPUT_DIR -name "index.html" -mindepth 2 -exec rm {} \;
 find $OUTPUT_DIR -type d -empty -depth -exec rmdir {} \;
 
 TARBALL=${DIR}.tar.gz
+TARBALL_FILE_PATH=dist/${TARBALL}
+
+ENV_OUTPUT="${GITHUB_OUTPUT:-"temp-env"}"
+echo "BUILD_EMBEDED_TGZ=${TARBALL_FILE_PATH}" >> "$ENV_OUTPUT"
+
 echo "Compressing to ${TARBALL}..."
-tar -czf dist/${TARBALL} $OUTPUT_DIR/
+tar -czf ${TARBALL_FILE_PATH} $OUTPUT_DIR/
 
 echo "Cleaning up..."
 rm -r $OUTPUT_DIR

@@ -71,7 +71,7 @@ app.use(express.static(dist));
 app.use('*', (req, res, next) => {
   const accept = req.headers.accept || '';
   const acceptArray = accept.split(',');
-  const html = acceptArray.find(h => h.trim() === 'text/html');
+  const html = acceptArray.find((h) => h.trim() === 'text/html');
 
   if (html) {
     return res.sendFile(path.join(dist, 'index.html'));

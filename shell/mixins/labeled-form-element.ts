@@ -77,11 +77,21 @@ export default Vue.extend({
       type:    Boolean
     },
 
+    filterable: {
+      default: true,
+      type:    Boolean
+    },
+
     rules: {
       default:   () => [],
       type:      Array,
       // we only want functions in the rules array
       validator: (rules: any) => rules.every((rule: any) => ['function'].includes(typeof rule))
+    },
+
+    requireDirty: {
+      default: true,
+      type:    Boolean
     }
   },
 
@@ -111,7 +121,11 @@ export default Vue.extend({
     },
 
     isSearchable(): boolean {
-      const { searchable } = this;
+      const { searchable, canPaginate } = this as any; // This will be resolved when we migrate from mixin
+
+      if (canPaginate) {
+        return true;
+      }
       const options = ( this.options || [] );
 
       if (searchable || options.length >= 10) {
@@ -120,9 +134,20 @@ export default Vue.extend({
 
       return false;
     },
+
+    isFilterable(): boolean {
+      const { filterable, canPaginate } = this as any; // This will be resolved when we migrate from mixin
+
+      if (canPaginate) {
+        return false;
+      }
+
+      return filterable;
+    },
+
     validationMessage(): string | undefined {
       // we want to grab the required rule passed in if we can but if it's not there then we can just grab it from the formRulesGenerator
-      const requiredRule = this.rules.find((rule: any) => rule?.name === 'required');
+      const requiredRule = this.rules.find((rule: any) => rule?.name === 'required') as Function;
       const ruleMessages = [];
       const value = this?.value;
 
@@ -134,14 +159,14 @@ export default Vue.extend({
         }
       }
 
-      for (const rule of this.rules) {
+      for (const rule of this.rules as Function[]) {
         const message = rule(value);
 
         if (!!message && rule.name !== 'required') { // we're catching 'required' above so we can ignore it here
           ruleMessages.push(message);
         }
       }
-      if (ruleMessages.length > 0 && (this.blurred || this.focused)) {
+      if (ruleMessages.length > 0 && (this.blurred || this.focused || !this.requireDirty)) {
         return ruleMessages.join(', ');
       } else {
         return undefined;

@@ -1,0 +1,20 @@
+name: Build Dashboard (Release)
+on:
+  push:
+    tags:
+      - v2.9.*
+
+jobs:
+  build-validation:
+    name: Validate Code
+    uses: ./.github/workflows/build-test.yaml
+  build:
+    name: Build and Upload
+    uses: ./.github/workflows/build-and-upload.yaml
+    needs:
+      - build-validation
+    permissions:
+      contents: 'read'
+      id-token: 'write'
+    with:
+      CI_BUILD_TAG: ${{github.ref_name}}

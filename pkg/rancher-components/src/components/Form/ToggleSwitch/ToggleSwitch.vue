@@ -1,6 +1,9 @@
 <script lang="ts">
-import Vue from 'vue';
-export default Vue.extend({
+import { defineComponent } from 'vue';
+
+type StateType = boolean | 'true' | 'false' | undefined;
+
+export default defineComponent({
   props: {
     value: {
       type:    [Boolean, String, Number],
@@ -28,14 +31,7 @@ export default Vue.extend({
     },
   },
   data() {
-    return { state: false as boolean | string | number };
-  },
-
-  methods: {
-    toggle(neu: boolean | string | number) {
-      this.state = neu === null ? !this.state : neu;
-      this.$emit('input', this.state ? this.onValue : this.offValue);
-    }
+    return { state: false as StateType };
   },
 
   watch: {
@@ -44,6 +40,13 @@ export default Vue.extend({
         this.state = this.value === this.onValue;
       },
       immediate: true
+    }
+  },
+
+  methods: {
+    toggle(neu: StateType | null) {
+      this.state = neu === null ? !this.state : neu;
+      this.$emit('input', this.state ? this.onValue : this.offValue);
     }
   }
 });

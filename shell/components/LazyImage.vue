@@ -1,16 +1,14 @@
 <script>
-import $ from 'jquery';
-
 export default {
   props: {
     initialSrc: {
       type:    String,
-      default: require('~shell/assets/images/generic-catalog.svg'),
+      default: require('@shell/assets/images/generic-catalog.svg'),
     },
 
     errorSrc: {
       type:    String,
-      default: require('~shell/assets/images/generic-catalog.svg'),
+      default: require('@shell/assets/images/generic-catalog.svg'),
     },
 
     src: {
@@ -32,31 +30,31 @@ export default {
   },
 
   beforeDestroy() {
-    const $img = $(this.$refs.img);
+    const img = this.$refs.img;
 
-    if ( $img?.length ) {
-      $img.off('error', this.boundError);
+    if (img) {
+      img.removeEventListener('error', this.boundError);
     }
   },
 
   methods: {
     // Ensure we load the image when the source changes
     loadImage() {
-      const $img = $(this.$refs.img);
+      const img = this.$refs.img;
 
-      if ( this.src ) {
-        $img.attr('src', this.src);
+      if (this.src) {
+        img.setAttribute('src', this.src);
         this.boundError = this.onError.bind(this);
 
-        $img.on('error', this.boundError);
+        img.addEventListener('error', this.boundError);
       }
     },
 
     onError() {
-      const $img = $(this.$refs.img);
+      const img = this.$refs.img;
 
-      if ( $img?.length ) {
-        $img.attr('src', this.errorSrc);
+      if (img) {
+        img.setAttribute('src', this.errorSrc);
       }
     }
   }

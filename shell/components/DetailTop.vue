@@ -3,11 +3,13 @@ import Tag from '@shell/components/Tag';
 import isEmpty from 'lodash/isEmpty';
 import DetailText from '@shell/components/DetailText';
 import { _VIEW } from '@shell/config/query-params';
-
-export const SEPARATOR = { separator: true };
+import { ExtensionPoint, PanelLocation } from '@shell/core/types';
+import ExtensionPanel from '@shell/components/ExtensionPanel';
 
 export default {
-  components: { DetailText, Tag },
+  components: {
+    DetailText, Tag, ExtensionPanel
+  },
 
   props: {
     value: {
@@ -49,6 +51,8 @@ export default {
 
   data() {
     return {
+      extensionType:      ExtensionPoint.PANEL,
+      extensionLocation:  PanelLocation.DETAIL_TOP,
       annotationsVisible: false,
       showAllLabels:      false,
       view:               _VIEW
@@ -68,7 +72,7 @@ export default {
       const items = [
         ...(this.moreDetails || []),
         ...(this.value?.details || []),
-      ].filter(x => x.separator || (!!`${ x.content }` && x.content !== undefined && x.content !== null));
+      ].filter((x) => x.separator || (!!`${ x.content }` && x.content !== undefined && x.content !== null));
 
       const groups = [];
       let currentGroup = [];
@@ -90,7 +94,7 @@ export default {
     },
 
     labels() {
-      if (this.showAllLabels || !this.showFilteredSystemLabels) {
+      if (!this.showFilteredSystemLabels) {
         return this.value?.labels || {};
       }
 
@@ -181,14 +185,14 @@ export default {
         {{ t('resourceDetail.detailTop.namespaces') }}:
       </span>
       <span>
-        <nuxt-link
+        <router-link
           v-for="namespace in namespaces"
           :key="namespace.name"
           :to="namespace.detailLocation"
           class="namespaceLinkList"
         >
           {{ namespace.name }}
-        </nuxt-link>
+        </router-link>
       </span>
     </div>
 
@@ -246,9 +250,10 @@ export default {
           />
           <span
             v-if="internalTooltips[key]"
-            v-tooltip="prop ? `${key} : ${prop}` : key"
+            v-clean-tooltip="prop ? `${key} : ${prop}` : key"
           >
             <span>{{ internalTooltips[key] ? internalTooltips[key] : key }}</span>
+            <span v-if="showAllLabels">: {{ key }}</span>
           </span>
           <span v-else>{{ prop ? `${key} : ${prop}` : key }}</span>
         </Tag>
@@ -286,6 +291,13 @@ export default {
         />
       </div>
     </div>
+
+    <!-- Extensions area -->
+    <ExtensionPanel
+      :resource="value"
+      :type="extensionType"
+      :location="extensionLocation"
+    />
   </div>
 </template>
 

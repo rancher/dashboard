@@ -14,6 +14,7 @@ import { RadioGroup } from '@components/Form/Radio';
 import { get } from '@shell/utils/object';
 import { _VIEW, _CREATE } from '@shell/config/query-params';
 import { isValidCron } from 'cron-validator';
+import { fetchSpecsScheduledScanConfig } from '@shell/models/cis.cattle.io.clusterscan';
 
 const semver = require('semver');
 
@@ -39,8 +40,10 @@ export default {
 
   async fetch() {
     const hash = await allHash({
-      profiles:   this.$store.dispatch('cluster/findAll', { type: CIS.CLUSTER_SCAN_PROFILE }),
-      benchmarks: this.$store.dispatch('cluster/findAll', { type: CIS.BENCHMARK }),
+      profiles:               this.$store.dispatch('cluster/findAll', { type: CIS.CLUSTER_SCAN_PROFILE }),
+      benchmarks:             this.$store.dispatch('cluster/findAll', { type: CIS.BENCHMARK }),
+      // Ensure the clusterscan model has everything it needs
+      hasScheduledScanConfig: fetchSpecsScheduledScanConfig(this.schema),
     });
 
     try {
@@ -53,7 +56,7 @@ export default {
     // if mode is _CREATE and scanProfileName is defined, this is a clone
     // check if the profile referred to in the original spec still exists
     if (scanProfileName && this.mode === _CREATE) {
-      const proxyObj = this.allProfiles.filter(profile => profile.id === scanProfileName)[0];
+      const proxyObj = this.allProfiles.filter((profile) => profile.id === scanProfileName)[0];
 
       if (!proxyObj) {
         this.$set(this.value.spec, 'scanProfileName', '');
@@ -134,7 +137,7 @@ export default {
           });
         }
         if (name) {
-          const profile = this.allProfiles.find(profile => profile.id === name);
+          const profile = this.allProfiles.find((profile) => profile.id === name);
           const benchmarkVersion = profile?.spec?.benchmarkVersion;
           const benchmark = this.$store.getters['cluster/byId'](CIS.BENCHMARK, benchmarkVersion);
 
@@ -142,12 +145,12 @@ export default {
             return profile;
           }
         }
-        const cis16 = this.validProfiles.find(profile => profile.value === 'cis-1.6-profile');
+        const cis16 = this.validProfiles.find((profile) => profile.value === 'cis-1.6-profile');
 
         if (cis16) {
-          return this.allProfiles.find(profile => profile.id === 'cis-1.6-profile');
+          return this.allProfiles.find((profile) => profile.id === 'cis-1.6-profile');
         } else {
-          return this.allProfiles.find(profile => profile.id === 'cis-1.5-profile');
+          return this.allProfiles.find((profile) => profile.id === 'cis-1.5-profile');
         }
       }
 
@@ -266,7 +269,7 @@ export default {
           class="col span-6"
         >
           <span>{{ t('cis.scoreWarning.label') }}</span> <i
-            v-tooltip="t('cis.scoreWarning.protip')"
+            v-clean-tooltip="t('cis.scoreWarning.protip')"
             class="icon icon-info"
           />
           <RadioGroup
@@ -322,7 +325,7 @@ export default {
                 class="mt-0"
                 :color="hasAlertManager ? 'info' : 'warning'"
               >
-                <span v-html="t('cis.alertNeeded', {link: monitoringUrl}, true)" />
+                <span v-clean-html="t('cis.alertNeeded', {link: monitoringUrl}, true)" />
               </banner>
               <Checkbox
                 v-model="scanAlertRule.alertOnComplete"

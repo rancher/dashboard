@@ -202,16 +202,17 @@ export default {
             :mode="mode"
           />
         </template>
-
-        <button
-          v-if="!isView"
-          type="button"
-          class="btn role-link"
-          :disabled="mode==='view'"
-          @click.stop="removeHeader(index)"
-        >
-          <t k="generic.remove" />
-        </button>
+        <div class="remove">
+          <button
+            v-if="!isView"
+            type="button"
+            class="btn role-link ml0"
+            :disabled="mode==='view'"
+            @click.stop="removeHeader(index)"
+          >
+            <t k="generic.remove" />
+          </button>
+        </div>
       </div>
 
       <div>
@@ -243,6 +244,9 @@ export default {
 
   .labeled-select {
     min-height: $input-height;
+  }
+  .remove BUTTON {
+    padding: 0px;
   }
 }
 </style>

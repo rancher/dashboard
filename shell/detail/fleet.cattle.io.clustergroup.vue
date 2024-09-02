@@ -5,6 +5,7 @@ import FleetClusters from '@shell/components/fleet/FleetClusters';
 import ResourceTabs from '@shell/components/form/ResourceTabs';
 import Tab from '@shell/components/Tabbed/Tab';
 import { FLEET } from '@shell/config/types';
+import { allHash } from '@shell/utils/promise';
 
 export default {
   name: 'DetailClusterGroup',
@@ -25,7 +26,12 @@ export default {
   },
 
   async fetch() {
-    await this.$store.dispatch('management/findAll', { type: FLEET.CLUSTER });
+    const hash = {
+      workspaces:    this.$store.dispatch('cluster/findAll', { type: FLEET.WORKSPACE }),
+      FleetClusters: this.$store.dispatch('management/findAll', { type: FLEET.CLUSTER }),
+    };
+
+    await allHash(hash);
   },
 
   computed: {

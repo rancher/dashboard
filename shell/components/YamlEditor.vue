@@ -86,7 +86,7 @@ export default {
   },
 
   computed: {
-    cmOptions() {
+    codeMirrorOptions() {
       const readOnly = this.editorMode === EDITOR_MODES.VIEW_CODE;
 
       const gutters = [];
@@ -228,7 +228,8 @@ export default {
       ref="cm"
       :class="{fill: true, scrolling: scrolling}"
       :value="curValue"
-      :options="cmOptions"
+      :options="codeMirrorOptions"
+      :showKeyMapBox="true"
       :data-testid="componentTestid + '-code-mirror'"
       @onInput="onInput"
       @onReady="onReady"
@@ -241,6 +242,7 @@ export default {
       :side-by-side="diffMode === 'split'"
       :orig="original"
       :neu="curValue"
+      :footer-space="80"
     />
   </div>
 </template>

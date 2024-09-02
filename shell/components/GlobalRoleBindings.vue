@@ -8,6 +8,9 @@ import Loading from '@shell/components/Loading';
 import { addObjects, isArray } from '@shell/utils/array';
 import { Card } from '@components/Card';
 
+// i18n-uses rbac.globalRoles.types.*.label
+// i18n-uses rbac.globalRoles.types.*.description
+
 /**
  * Display checkboxes for each global role, checked for given user or principal (group). Can save changes.
  */
@@ -66,6 +69,7 @@ export default {
 
         const sort = (a, b) => a.nameDisplay.localeCompare(b.nameDisplay);
 
+        // global roles are not sorted
         this.sortedRoles.builtin = this.sortedRoles.builtin.sort(sort);
         this.sortedRoles.custom = this.sortedRoles.custom.sort(sort);
 
@@ -73,12 +77,33 @@ export default {
           this.globalRoleBindings = await this.$store.dispatch('management/findAll', { type: MANAGEMENT.GLOBAL_ROLE_BINDING, opt: { force: true } });
         }
 
+        // Sort the global roles - use the order defined in 'globalPermissions' and then add the remaining roles after
+        const globalRoles = [];
+        const globalRolesAdded = {};
+
+        this.globalPermissions.forEach((id) => {
+          const role = this.sortedRoles.global.find((r) => r.id === id);
+
+          if (role) {
+            globalRoles.push(role);
+            globalRolesAdded[id] = true;
+          }
+        });
+
+        // Remaining global roles
+        const remainingGlobalRoles = this.sortedRoles.global.filter((r) => !globalRolesAdded[r.id]);
+
+        this.sortedRoles.global = globalRoles;
+        this.sortedRoles.global.push(...remainingGlobalRoles);
+        // End sort of global roles
+
         this.update();
       }
     } catch (e) { }
   },
   data() {
     return {
+      // This not only identifies global roles but the order here is the order we want to display them in the UI
       globalPermissions: [
         'admin',
         'restricted-admin',
@@ -94,6 +119,7 @@ export default {
     };
   },
   computed: {
+    ...mapGetters(['releaseNotesUrl']),
     ...mapGetters({ t: 'i18n/t' }),
 
     isCreate() {
@@ -120,7 +146,7 @@ export default {
   },
   methods: {
     getRoleType(role) {
-      if (this.globalPermissions.find(p => p === role.id)) {
+      if (this.globalPermissions.find((p) => p === role.id)) {
         return 'global';
       } else if (role.builtin) {
         return 'builtin';
@@ -159,7 +185,7 @@ export default {
 
         Object.values(this.sortedRoles).forEach((roles) => {
           roles.forEach((mappedRole) => {
-            const boundRole = boundRoles.find(boundRole => boundRole.globalRoleName === mappedRole.id);
+            const boundRole = boundRoles.find((boundRole) => boundRole.globalRoleName === mappedRole.id);
 
             if (!!boundRole) {
               this.selectedRoles.push(mappedRole.id);
@@ -184,10 +210,10 @@ export default {
     },
     checkboxChanged() {
       const addRoles = this.selectedRoles
-        .filter(selected => !this.startingSelectedRoles.find(startingRole => startingRole.roleId === selected));
+        .filter((selected) => !this.startingSelectedRoles.find((startingRole) => startingRole.roleId === selected));
       const removeBindings = this.startingSelectedRoles
-        .filter(startingRole => !this.selectedRoles.find(selected => selected === startingRole.roleId))
-        .map(startingRole => startingRole.bindingId);
+        .filter((startingRole) => !this.selectedRoles.find((selected) => selected === startingRole.roleId))
+        .map((startingRole) => startingRole.bindingId);
 
       this.roleChanges = {
         initialRoles: this.startingSelectedRoles,
@@ -210,22 +236,22 @@ export default {
       } else {
         requestOptions.userName = userId || this.userId;
       }
-      const newBindings = await Promise.all(this.roleChanges.addRoles.map(role => this.$store.dispatch(`management/create`, {
+      const newBindings = await Promise.all(this.roleChanges.addRoles.map((role) => this.$store.dispatch(`management/create`, {
         ...requestOptions,
         globalRoleName: role,
       })));
 
       // Save all changes (and ensure user isn't logged out if they don't have permissions to make a change)
-      await Promise.all(newBindings.map(newBinding => newBinding.save({ redirectUnauthorized: false })));
+      await Promise.all(newBindings.map((newBinding) => newBinding.save({ redirectUnauthorized: false })));
     },
     async saveRemovedRoles() {
-      const existingBindings = await Promise.all(this.roleChanges.removeBindings.map(bindingId => this.$store.dispatch('management/find', {
+      const existingBindings = await Promise.all(this.roleChanges.removeBindings.map((bindingId) => this.$store.dispatch('management/find', {
         type: MANAGEMENT.GLOBAL_ROLE_BINDING,
         id:   bindingId
       })));
 
       // Save all changes (and ensure user isn't logged out if they don't have permissions to make a change)
-      await Promise.all(existingBindings.map(existingBinding => existingBinding.remove({ redirectUnauthorized: false })));
+      await Promise.all(existingBindings.map((existingBinding) => existingBinding.remove({ redirectUnauthorized: false })));
     },
     /**
      * userId is optional, used when a user has just been created
@@ -250,7 +276,7 @@ export default {
         });
       });
 
-      return allRolesRules.some(rule => this.isRuleValid(rule));
+      return allRolesRules.some((rule) => this.isRuleValid(rule));
     },
     isRuleValid(rule) {
       // Brought over from Ember
@@ -281,7 +307,7 @@ export default {
 
         if (isArray(verbs) && verbs.length > 1) {
           // console.log(`verbsRequiredForLogin status 1: `, restrictedTarget.every(rt => verbs.includes(rt)), verbs);
-          return restrictedTarget.every(rt => verbs.includes(rt));
+          return restrictedTarget.every((rt) => verbs.includes(rt));
         }
 
         // console.log(`verbsRequiredForLogin status 2: `, verbsRequiredForLogin.includes(verbs[0]), verbsRequiredForLogin, verbs);
@@ -334,6 +360,7 @@ export default {
                   :label="role.nameDisplay"
                   :description="role.descriptionDisplay"
                   :mode="mode"
+                  :data-testId="'grb-checkbox-' + role.id"
                   @input="checkboxChanged"
                 >
                   <template #label>
@@ -341,12 +368,17 @@ export default {
                       <span class="checkbox-label">{{ role.nameDisplay }}</span>
                       <i
                         v-if="!!assignOnlyRoles[role.id]"
-                        v-tooltip="t('rbac.globalRoles.assignOnlyRole')"
+                        v-clean-tooltip="t('rbac.globalRoles.assignOnlyRole')"
                         class="checkbox-info icon icon-info icon-lg"
                       />
                     </div>
                   </template>
                 </Checkbox>
+                <p
+                  v-if="role.id === 'restricted-admin'"
+                  v-clean-html="t('rbac.globalRoles.role.restricted-admin.deprecation', { releaseNotesUrl }, true)"
+                  class="deprecation-notice"
+                />
               </div>
             </div>
           </template>
@@ -364,6 +396,10 @@ export default {
 </style>
 <style lang='scss' scoped>
   $detailSize: 11px;
+
+  .deprecation-notice {
+    margin: 8px 0 8px 20px;
+  }
   .role-group {
     .type-title {
       display: flex;

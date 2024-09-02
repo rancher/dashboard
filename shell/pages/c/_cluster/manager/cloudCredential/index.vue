@@ -3,15 +3,22 @@ import Loading from '@shell/components/Loading';
 import ResourceTable from '@shell/components/ResourceTable';
 import Masthead from '@shell/components/ResourceList/Masthead';
 import { NORMAN, SECRET } from '@shell/config/types';
-import { AGE_NORMAN, DESCRIPTION, ID_UNLINKED, NAME_UNLINKED } from '@shell/config/table-headers';
+import {
+  AGE_NORMAN,
+  DESCRIPTION,
+  ID_UNLINKED,
+  NAME_UNLINKED,
+} from '@shell/config/table-headers';
 
 export default {
   components: {
-    Loading, ResourceTable, Masthead
+    Loading,
+    ResourceTable,
+    Masthead,
   },
 
   async fetch() {
-    if ( this.$store.getters['management/schemaFor'](SECRET) ) {
+    if (this.$store.getters['management/schemaFor'](SECRET) && !this.$store.getters[`cluster/paginationEnabled`](SECRET)) {
       // Having secrets allows showing the public portion of more types but not all users can see them.
       await this.$store.dispatch('management/findAll', { type: SECRET });
     }
@@ -37,12 +44,12 @@ export default {
         ID_UNLINKED,
         NAME_UNLINKED,
         {
-          name:        'apikey',
-          labelKey:    'tableHeaders.apikey',
-          value:       'publicData',
-          sort:        'publicData',
-          search:      'publicData',
-          dashIfEmpty: true,
+          name:      'apikey',
+          labelKey:  'tableHeaders.apikey',
+          value:     'publicData',
+          sort:      'publicData',
+          search:    'publicData',
+          formatter: 'CloudCredPublicData',
         },
         DESCRIPTION,
         AGE_NORMAN,
@@ -54,15 +61,12 @@ export default {
         name:   'c-cluster-manager-cloudCredential-create',
         params: {
           product:  this.$store.getters['currentProduct'].name,
-          resource: this.resource
+          resource: this.resource,
         },
       };
     },
   },
 
-  mounted() {
-    window.c = this;
-  },
 };
 </script>
 
@@ -75,7 +79,6 @@ export default {
       :create-location="createLocation"
       :type-display="t('manager.cloudCredentials.label')"
     />
-
     <ResourceTable
       :schema="schema"
       :rows="rows"
@@ -84,17 +87,7 @@ export default {
       group-by="providerDisplay"
     >
       <template #cell:id="{row}">
-        {{ row.id.replace('cattle-global-data:','') }}
-      </template>
-      <template #cell:apikey="{row}">
-        <span
-          v-if="row.publicData"
-          v-html="row.publicData"
-        />
-        <span
-          v-else
-          class="text-muted"
-        >&mdash;</span>
+        {{ row.id.replace('cattle-global-data:', '') }}
       </template>
     </ResourceTable>
   </div>

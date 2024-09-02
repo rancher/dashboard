@@ -135,39 +135,55 @@ export default {
 </script>
 
 <template>
-  <n-link
+  <router-link
     v-if="isInternal && href"
     :to="href"
+    class="link-text-icon"
   >
     <i
       v-if="beforeIconClass"
       :class="beforeIconClass"
-      style="position: relative; top: -2px;"
+      class="prefix"
     />
     {{ label }}
     <i
       v-if="afterIconClass"
       :class="afterIconClass"
-      style="position: relative; top: -2px;"
+      class="suffix"
     />
-  </n-link>
+  </router-link>
   <a
     v-else-if="href"
     :href="href"
     :rel="rel"
     :target="target"
+    class="link-text-icon"
   >
     <i
       v-if="beforeIconClass"
       :class="beforeIconClass"
-      style="position: relative; top: -2px;"
+      class="prefix"
     />
     {{ label }}
     <i
       v-if="afterIconClass"
       :class="afterIconClass"
-      style="position: relative; top: -2px;"
+      class="suffix"
     />
   </a>
   <span v-else> {{ href }} {{ label }}</span>
 </template>
+<style lang="scss" scoped>
+.link-text-icon {
+  display: flex;
+  align-items: top;
+
+  .prefix {
+    margin: 2px 2px 0 0;
+  }
+
+  .suffix {
+    margin: 2px 0 0 2px;
+  }
+}
+</style>

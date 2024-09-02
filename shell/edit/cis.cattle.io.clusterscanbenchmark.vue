@@ -2,15 +2,18 @@
 import createEditView from '@shell/mixins/create-edit-view';
 import CruResource from '@shell/components/CruResource';
 import LabeledSelect from '@shell/components/form/LabeledSelect';
+import ResourceLabeledSelect from '@shell/components/form/ResourceLabeledSelect';
 import { LabeledInput } from '@components/Form/LabeledInput';
 import NameNsDescription from '@shell/components/form/NameNsDescription';
 import { mapGetters } from 'vuex';
 import { CONFIG_MAP } from '@shell/config/types';
+import { PaginationParamFilter } from '@shell/types/store/pagination.types';
+
 const providers = ['aks', 'docker', 'eks', 'gke', 'k3s', 'minikube', 'rke-windows', 'rke', 'rke2'];
 
 export default {
   components: {
-    CruResource, LabeledSelect, LabeledInput, NameNsDescription
+    CruResource, LabeledSelect, ResourceLabeledSelect, LabeledInput, NameNsDescription
   },
 
   mixins: [createEditView],
@@ -29,16 +32,19 @@ export default {
 
   },
 
-  async fetch() {
-    this.configMaps = await this.$store.dispatch('cluster/findAll', { type: CONFIG_MAP });
-  },
-
   data() {
     if (!this.value.spec) {
       this.$set(this.value, 'spec', {});
     }
 
-    return { configMaps: [], providers };
+    return {
+      CONFIG_MAP,
+      providers,
+      configMapPaginateSettings: {
+        labelSelectOptions: { 'get-option-label': (opt) => opt?.metadata?.name || opt.id || opt },
+        requestSettings:    this.pageRequestSettings,
+      }
+    };
   },
 
   computed: {
@@ -55,7 +61,31 @@ export default {
         this.$set(this.value.spec, 'customBenchmarkConfigMapNamespace', namespace);
       }
     },
-    ...mapGetters({ t: 'i18n/t' })
+
+    ...mapGetters({ t: 'i18n/t' }),
+  },
+
+  methods: {
+    /**
+     * @param [LabelSelectPaginationFunctionOptions] opts
+     * @returns LabelSelectPaginationFunctionOptions
+     */
+    pageRequestSettings(opts) {
+      const { opts: { filter } } = opts;
+
+      return {
+        ...opts,
+        classify: true,
+        filters:  !!filter ? [PaginationParamFilter.createMultipleFields([
+          {
+            field: 'metadata.name', value: filter, equals: true
+          },
+          {
+            field: 'metadata.namespace', value: filter, equals: true
+          },
+        ])] : []
+      };
+    },
   }
 };
 </script>
@@ -89,13 +119,15 @@ export default {
         />
       </div>
       <div class="col span-6">
-        <LabeledSelect
+        <ResourceLabeledSelect
           v-model="customConfigMap"
           :clearable="true"
+          option-key="id"
           option-label="id"
-          :options="configMaps"
           :mode="mode"
           :label="t('cis.customConfigMap')"
+          :resource-type="CONFIG_MAP"
+          :paginated-resource-settings="configMapPaginateSettings"
         />
       </div>
     </div>

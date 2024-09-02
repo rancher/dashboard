@@ -47,8 +47,8 @@ export default {
         default: ''
       }
     ];
-    const authTypes = authOptions.map(option => option.value);
-    const authType = authTypes.find(authType => !isEmpty(this.value[authType])) || authTypes[0];
+    const authTypes = authOptions.map((option) => option.value);
+    const authType = authTypes.find((authType) => !isEmpty(this.value[authType])) || authTypes[0];
 
     this.initializeType(authOptions, authType);
 

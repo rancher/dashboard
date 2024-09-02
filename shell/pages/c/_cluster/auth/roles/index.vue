@@ -1,4 +1,5 @@
 <script>
+import { mapGetters } from 'vuex';
 import Tab from '@shell/components/Tabbed/Tab';
 import Tabbed from '@shell/components/Tabbed';
 import { MANAGEMENT } from '@shell/config/types';
@@ -6,7 +7,8 @@ import ResourceTable from '@shell/components/ResourceTable';
 import Loading from '@shell/components/Loading';
 import { SUBTYPE_MAPPING, CREATE_VERBS } from '@shell/models/management.cattle.io.roletemplate';
 import { NAME } from '@shell/config/product/auth';
-import { BLANK_CLUSTER } from '@shell/store';
+import { BLANK_CLUSTER } from '@shell/store/store-types.js';
+import { Banner } from '@components/Banner';
 
 const GLOBAL = SUBTYPE_MAPPING.GLOBAL.key;
 const CLUSTER = SUBTYPE_MAPPING.CLUSTER.key;
@@ -31,17 +33,15 @@ export default {
   name: 'Roles',
 
   components: {
-    Tab, Tabbed, ResourceTable, Loading
+    Tab, Tabbed, ResourceTable, Loading, Banner
   },
 
-  async asyncData({ store }) {
-    const globalRoleSchema = store.getters[`management/schemaFor`](MANAGEMENT.GLOBAL_ROLE);
-    const roleTemplatesSchema = store.getters[`management/schemaFor`](MANAGEMENT.ROLE_TEMPLATE);
+  async fetch() {
+    const globalRoleSchema = this.$store.getters[`management/schemaFor`](MANAGEMENT.GLOBAL_ROLE);
+    const roleTemplatesSchema = this.$store.getters[`management/schemaFor`](MANAGEMENT.ROLE_TEMPLATE);
 
-    return {
-      globalRoles:   globalRoleSchema ? await store.dispatch(`management/findAll`, { type: MANAGEMENT.GLOBAL_ROLE }) : [],
-      roleTemplates: roleTemplatesSchema ? await store.dispatch(`management/findAll`, { type: MANAGEMENT.ROLE_TEMPLATE }) : [],
-    };
+    this.$set(this, 'globalRoles', globalRoleSchema ? await this.$store.dispatch(`management/findAll`, { type: MANAGEMENT.GLOBAL_ROLE }) : []);
+    this.$set(this, 'roleTemplates', roleTemplatesSchema ? await this.$store.dispatch(`management/findAll`, { type: MANAGEMENT.ROLE_TEMPLATE }) : []);
   },
 
   data() {
@@ -49,13 +49,13 @@ export default {
     const roleTemplatesSchema = this.$store.getters[`management/schemaFor`](MANAGEMENT.ROLE_TEMPLATE);
 
     const roleTemplateHeaders = this.$store.getters['type-map/headersFor'](roleTemplatesSchema);
-    const defaultHeaderIndex = roleTemplateHeaders.findIndex(header => header.name === 'default');
+    const defaultHeaderIndex = roleTemplateHeaders.findIndex((header) => header.name === 'default');
 
     return {
       tabs: {
         [GLOBAL]: {
-          canFetch:       globalRoleSchema?.collectionMethods.find(verb => verb === 'GET'),
-          canCreate:      globalRoleSchema?.resourceMethods.find(verb => CREATE_VERBS.has(verb)),
+          canFetch:       globalRoleSchema?.collectionMethods.find((verb) => verb === 'GET'),
+          canCreate:      globalRoleSchema?.resourceMethods.find((verb) => CREATE_VERBS.has(verb)),
           weight:         3,
           labelKey:       SUBTYPE_MAPPING.GLOBAL.labelKey,
           schema:         globalRoleSchema,
@@ -65,8 +65,8 @@ export default {
           },
         },
         [CLUSTER]: {
-          canFetch:       roleTemplatesSchema?.collectionMethods.find(verb => verb === 'GET'),
-          canCreate:      roleTemplatesSchema?.resourceMethods.find(verb => CREATE_VERBS.has(verb)),
+          canFetch:       roleTemplatesSchema?.collectionMethods.find((verb) => verb === 'GET'),
+          canCreate:      roleTemplatesSchema?.resourceMethods.find((verb) => CREATE_VERBS.has(verb)),
           labelKey:       SUBTYPE_MAPPING.CLUSTER.labelKey,
           weight:         2,
           schema:         roleTemplatesSchema,
@@ -77,8 +77,8 @@ export default {
           },
         },
         [PROJECT]: {
-          canFetch:       roleTemplatesSchema?.collectionMethods.find(verb => verb === 'GET'),
-          canCreate:      roleTemplatesSchema?.resourceMethods.find(verb => CREATE_VERBS.has(verb)),
+          canFetch:       roleTemplatesSchema?.collectionMethods.find((verb) => verb === 'GET'),
+          canCreate:      roleTemplatesSchema?.resourceMethods.find((verb) => CREATE_VERBS.has(verb)),
           labelKey:       SUBTYPE_MAPPING.NAMESPACE.labelKey,
           weight:         1,
           schema:         roleTemplatesSchema,
@@ -100,16 +100,18 @@ export default {
   },
 
   computed: {
+    ...mapGetters(['releaseNotesUrl']),
+
     globalResources() {
       return this.globalRoles;
     },
 
     clusterResources() {
-      return this.roleTemplates.filter(r => r.context === SUBTYPE_MAPPING.CLUSTER.context);
+      return this.roleTemplates.filter((r) => r.context === SUBTYPE_MAPPING.CLUSTER.context);
     },
 
     namespaceResources() {
-      return this.roleTemplates.filter(r => r.context === SUBTYPE_MAPPING.NAMESPACE.context);
+      return this.roleTemplates.filter((r) => r.context === SUBTYPE_MAPPING.NAMESPACE.context);
     },
 
     type() {
@@ -154,23 +156,23 @@ export default {
 </script>
 
 <template>
-  <Loading v-if="!globalRoles || !roleTemplates" />
+  <Loading v-if="$fetchState.pending" />
   <div v-else>
     <header>
       <div class="title">
         <h1 class="m-0">
-          {{ t('rbac.roletemplate.label') }}
+          {{ t('auth.roleTemplate') }}
         </h1>
       </div>
       <div class="actions-container">
         <div class="actions">
-          <n-link
+          <router-link
             v-if="canCreate"
             :to="createLocation"
             class="btn role-primary"
           >
             {{ createLabel }}
-          </n-link>
+          </router-link>
         </div>
       </div>
     </header>
@@ -181,6 +183,12 @@ export default {
         :weight="tabs[GLOBAL].weight"
         :label-key="tabs[GLOBAL].labelKey"
       >
+        <Banner
+          color="warning"
+          class="mb-20"
+        >
+          <span v-clean-html="t('rbac.globalRoles.role.restricted-admin.deprecation', { releaseNotesUrl }, true)" />
+        </Banner>
         <ResourceTable
           :schema="tabs[GLOBAL].schema"
           :rows="globalResources"

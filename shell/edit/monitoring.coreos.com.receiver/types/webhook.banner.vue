@@ -22,7 +22,7 @@ export default {
 <template>
   <Banner
     v-if="model.length === 0 && !isView"
+    v-clean-html="t('monitoringReceiver.webhook.banner', {}, raw=true)"
     color="info"
-    v-html="t('monitoringReceiver.webhook.banner', {}, raw=true)"
   />
 </template>

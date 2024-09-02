@@ -4,7 +4,6 @@ import CreateEditView from '@shell/mixins/create-edit-view';
 import CruResource from '@shell/components/CruResource';
 import { RadioGroup } from '@components/Form/Radio';
 import { LabeledInput } from '@components/Form/LabeledInput';
-import { Banner } from '@components/Banner';
 import CopyToClipboard from '@shell/components/CopyToClipboard';
 import AllowedPrincipals from '@shell/components/auth/AllowedPrincipals';
 import { MANAGEMENT } from '@shell/config/types';
@@ -12,6 +11,7 @@ import { findBy } from '@shell/utils/array';
 import AuthConfig from '@shell/mixins/auth-config';
 import AuthBanner from '@shell/components/auth/AuthBanner';
 import InfoBox from '@shell/components/InfoBox';
+import AuthProviderWarningBanners from '@shell/edit/auth/AuthProviderWarningBanners';
 
 const NAME = 'github';
 
@@ -21,11 +21,11 @@ export default {
     CruResource,
     RadioGroup,
     LabeledInput,
-    Banner,
     CopyToClipboard,
     AllowedPrincipals,
     AuthBanner,
-    InfoBox
+    InfoBox,
+    AuthProviderWarningBanners
   },
 
   mixins: [CreateEditView, AuthConfig],
@@ -153,16 +153,16 @@ export default {
       </template>
 
       <template v-else>
-        <Banner
+        <AuthProviderWarningBanners
           v-if="!model.enabled"
-          :label="t('authConfig.stateBanner.disabled', tArgs)"
-          color="warning"
+          :t-args="tArgs"
         />
 
         <h3 v-t="`authConfig.${NAME}.target.label`" />
         <RadioGroup
           v-model="targetType"
           name="targetType"
+          data-testid="authConfig-gitHub"
           :options="['public','private']"
           :mode="mode"
           :labels="[ t(`authConfig.${NAME}.target.public`), t(`authConfig.${NAME}.target.private`)]"
@@ -187,9 +187,9 @@ export default {
           class="step-box"
         >
           <ul class="step-list">
-            <li v-html="t(`authConfig.${NAME}.form.prefix.1`, tArgs, true)" />
-            <li v-html="t(`authConfig.${NAME}.form.prefix.2`, tArgs, true)" />
-            <li v-html="t(`authConfig.${NAME}.form.prefix.3`, tArgs, true)" />
+            <li v-clean-html="t(`authConfig.${NAME}.form.prefix.1`, tArgs, true)" />
+            <li v-clean-html="t(`authConfig.${NAME}.form.prefix.2`, tArgs, true)" />
+            <li v-clean-html="t(`authConfig.${NAME}.form.prefix.3`, tArgs, true)" />
           </ul>
         </InfoBox>
         <InfoBox
@@ -200,7 +200,7 @@ export default {
             <li>
               {{ t(`authConfig.${NAME}.form.instruction`, tArgs, true) }}
               <ul class="mt-10">
-                <li><b>{{ t(`authConfig.${NAME}.form.app.label`) }}</b>: <span v-html="t(`authConfig.${NAME}.form.app.value`, tArgs, true)" /></li>
+                <li><b>{{ t(`authConfig.${NAME}.form.app.label`) }}</b>: <span v-clean-html="t(`authConfig.${NAME}.form.app.value`, tArgs, true)" /></li>
                 <li>
                   <b>{{ t(`authConfig.${NAME}.form.homepage.label`) }}</b>: {{ serverUrl }} <CopyToClipboard
                     label-as="tooltip"
@@ -209,7 +209,7 @@ export default {
                     action-color="bg-transparent"
                   />
                 </li>
-                <li><b>{{ t(`authConfig.${NAME}.form.description.label`) }}</b>: <span v-html="t(`authConfig.${NAME}.form.description.value`, tArgs, true)" /></li>
+                <li><b>{{ t(`authConfig.${NAME}.form.description.label`) }}</b>: <span v-clean-html="t(`authConfig.${NAME}.form.description.value`, tArgs, true)" /></li>
                 <li>
                   <b>{{ t(`authConfig.${NAME}.form.callback.label`) }}</b>: {{ serverUrl }} <CopyToClipboard
                     :text="serverUrl"
@@ -227,8 +227,8 @@ export default {
           class="mb-20"
         >
           <ul class="step-list">
-            <li v-html="t(`authConfig.${NAME}.form.suffix.1`, tArgs, true)" />
-            <li v-html="t(`authConfig.${NAME}.form.suffix.2`, tArgs, true)" />
+            <li v-clean-html="t(`authConfig.${NAME}.form.suffix.1`, tArgs, true)" />
+            <li v-clean-html="t(`authConfig.${NAME}.form.suffix.2`, tArgs, true)" />
           </ul>
         </InfoBox>
 
@@ -246,17 +246,6 @@ export default {
               type="password"
               :label="t(`authConfig.${NAME}.clientSecret.label`)"
               :mode="mode"
-            />
-          </div>
-        </div>
-        <div
-          v-if="!model.enabled"
-          class="row"
-        >
-          <div class="col span-12">
-            <Banner
-              color="info"
-              v-html="t('authConfig.associatedWarning', tArgs, true)"
             />
           </div>
         </div>

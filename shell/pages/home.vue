@@ -17,8 +17,9 @@ import { getVersionInfo, readReleaseNotes, markReadReleaseNotes, markSeenRelease
 import PageHeaderActions from '@shell/mixins/page-actions';
 import { getVendor } from '@shell/config/private-label';
 import { mapFeature, MULTI_CLUSTER } from '@shell/store/features';
-import { BLANK_CLUSTER } from '@shell/store';
+import { BLANK_CLUSTER } from '@shell/store/store-types.js';
 import { filterOnlyKubernetesClusters, filterHiddenLocalCluster } from '@shell/utils/cluster';
+import TabTitle from '@shell/components/TabTitle';
 
 import { RESET_CARDS_ACTION, SET_LOGIN_ACTION } from '@shell/config/page-actions';
 
@@ -33,13 +34,19 @@ export default {
     BadgeState,
     CommunityLinks,
     SingleClusterInfo,
+    TabTitle
   },
 
   mixins: [PageHeaderActions],
 
   fetch() {
-    this.$store.dispatch('management/findAll', { type: CAPI.RANCHER_CLUSTER });
-    this.$store.dispatch('management/findAll', { type: MANAGEMENT.CLUSTER });
+    if ( this.$store.getters['management/schemaFor'](CAPI.RANCHER_CLUSTER) ) {
+      this.$store.dispatch('management/findAll', { type: CAPI.RANCHER_CLUSTER });
+    }
+
+    if ( this.$store.getters['management/schemaFor'](MANAGEMENT.CLUSTER) ) {
+      this.$store.dispatch('management/findAll', { type: MANAGEMENT.CLUSTER });
+    }
 
     if ( this.$store.getters['management/canList'](CAPI.MACHINE) ) {
       this.$store.dispatch('management/findAll', { type: CAPI.MACHINE });
@@ -47,6 +54,15 @@ export default {
 
     if ( this.$store.getters['management/canList'](MANAGEMENT.NODE) ) {
       this.$store.dispatch('management/findAll', { type: MANAGEMENT.NODE });
+    }
+
+    // We need to fetch node pools and node templates in order to correctly show the provider for RKE1 clusters
+    if ( this.$store.getters['management/canList'](MANAGEMENT.NODE_POOL) ) {
+      this.$store.dispatch('management/findAll', { type: MANAGEMENT.NODE_POOL });
+    }
+
+    if ( this.$store.getters['management/canList'](MANAGEMENT.NODE_TEMPLATE) ) {
+      this.$store.dispatch('management/findAll', { type: MANAGEMENT.NODE_TEMPLATE });
     }
   },
 
@@ -72,7 +88,7 @@ export default {
 
   computed: {
     ...mapState(['managementReady']),
-    ...mapGetters(['currentCluster']),
+    ...mapGetters(['currentCluster', 'defaultClusterId', 'releaseNotesUrl']),
     mcm: mapFeature(MULTI_CLUSTER),
 
     provClusters() {
@@ -89,7 +105,7 @@ export default {
     canCreateCluster() {
       const schema = this.$store.getters['management/schemaFor'](CAPI.RANCHER_CLUSTER);
 
-      return !!schema?.collectionMethods.find(x => x.toLowerCase() === 'post');
+      return !!schema?.collectionMethods.find((x) => x.toLowerCase() === 'post');
     },
 
     manageLocation() {
@@ -146,19 +162,20 @@ export default {
           value:         'nameDisplay',
           sort:          ['nameSort'],
           canBeVariable: true,
-          getValue:      row => row.mgmt?.nameDisplay
+          getValue:      (row) => row.mgmt?.nameDisplay
         },
         {
           label:     this.t('landing.clusters.provider'),
+          subLabel:  this.t('landing.clusters.distro'),
           value:     'mgmt.status.provider',
           name:      'Provider',
           sort:      ['mgmt.status.provider'],
           formatter: 'ClusterProvider'
         },
         {
-          label: this.t('landing.clusters.kubernetesVersion'),
-          value: 'kubernetesVersion',
-          name:  'Kubernetes Version'
+          label:    this.t('landing.clusters.kubernetesVersion'),
+          subLabel: this.t('landing.clusters.architecture'),
+          name:     'kubernetesVersion',
         },
         {
           label: this.t('tableHeaders.cpu'),
@@ -178,7 +195,7 @@ export default {
           label:        this.t('tableHeaders.pods'),
           name:         'pods',
           value:        '',
-          sort:         ['status.allocatable.pods', 'status.available.pods'],
+          sort:         ['status.allocatable.pods', 'status.requested.pods'],
           formatter:    'PodsUsage',
           delayLoading: true
         },
@@ -189,10 +206,8 @@ export default {
       ];
     },
 
-    ...mapGetters(['currentCluster', 'defaultClusterId']),
-
     kubeClusters() {
-      return filterHiddenLocalCluster(filterOnlyKubernetesClusters(this.provClusters || []), this.$store);
+      return filterHiddenLocalCluster(filterOnlyKubernetesClusters(this.provClusters || [], this.$store), this.$store);
     }
   },
 
@@ -206,6 +221,8 @@ export default {
   beforeDestroy() {
     this.$store.dispatch('management/forgetType', CAPI.MACHINE);
     this.$store.dispatch('management/forgetType', MANAGEMENT.NODE);
+    this.$store.dispatch('management/forgetType', MANAGEMENT.NODE_POOL);
+    this.$store.dispatch('management/forgetType', MANAGEMENT.NODE_TEMPLATE);
   },
 
   methods: {
@@ -250,7 +267,6 @@ export default {
     showWhatsNew() {
       // Update the value, so that the message goes away
       markReadReleaseNotes(this.$store);
-      this.$router.push({ name: 'docs-doc', params: { doc: 'whats-new' } });
     },
 
     showUserPrefs() {
@@ -285,11 +301,18 @@ export default {
     v-if="managementReady"
     class="home-page"
   >
+    <TabTitle
+      :show-child="false"
+      :breadcrumb="false"
+    >
+      {{ vendor }}
+    </TabTitle>
     <BannerGraphic
       :small="true"
       :title="t('landing.welcomeToRancher', {vendor})"
       :pref="HIDE_HOME_PAGE_CARDS"
       pref-key="welcomeBanner"
+      data-testid="home-banner-graphic"
     />
     <IndentedPanel class="mt-20 mb-20">
       <div
@@ -301,13 +324,16 @@ export default {
             data-testid="changelog-banner"
             color="info whats-new"
           >
-            <div class="message">
+            <div>
               {{ t('landing.seeWhatsNew') }}
             </div>
             <a
               class="hand"
-              @click.prevent.stop="showWhatsNew"
-            ><span v-html="t('landing.whatsNewLink')" /></a>
+              :href="releaseNotesUrl"
+              target="_blank"
+              rel="noopener noreferrer nofollow"
+              @click.stop="showWhatsNew"
+            ><span v-clean-html="t('landing.whatsNewLink')" /></a>
           </Banner>
         </div>
       </div>
@@ -320,17 +346,18 @@ export default {
           >
             <div class="col span-12">
               <Banner
-                color="set-login-page"
+                color="set-login-page mt-0"
+                data-testid="set-login-page-banner"
                 :closable="true"
                 @close="closeSetLoginBanner()"
               >
-                <div class="message">
+                <div>
                   {{ t('landing.landingPrefs.title') }}
                 </div>
                 <a
                   class="hand mr-20"
                   @click.prevent.stop="showUserPrefs"
-                ><span v-html="t('landing.landingPrefs.userPrefs')" /></a>
+                ><span v-clean-html="t('landing.landingPrefs.userPrefs')" /></a>
               </Banner>
             </div>
           </div>
@@ -364,46 +391,71 @@ export default {
                   #header-middle
                 >
                   <div class="table-heading">
-                    <n-link
+                    <router-link
                       v-if="canManageClusters"
                       :to="manageLocation"
                       class="btn btn-sm role-secondary"
+                      data-testid="cluster-management-manage-button"
                     >
                       {{ t('cluster.manageAction') }}
-                    </n-link>
-                    <n-link
+                    </router-link>
+                    <router-link
                       v-if="canCreateCluster"
                       :to="importLocation"
                       class="btn btn-sm role-primary"
+                      data-testid="cluster-create-import-button"
                     >
                       {{ t('cluster.importAction') }}
-                    </n-link>
-                    <n-link
+                    </router-link>
+                    <router-link
                       v-if="canCreateCluster"
                       :to="createLocation"
                       class="btn btn-sm role-primary"
+                      data-testid="cluster-create-button"
                     >
                       {{ t('generic.create') }}
-                    </n-link>
+                    </router-link>
                   </div>
                 </template>
                 <template #col:name="{row}">
-                  <td>
+                  <td class="col-name">
                     <div class="list-cluster-name">
-                      <span v-if="row.mgmt">
-                        <n-link
+                      <p
+                        v-if="row.mgmt"
+                        class="cluster-name"
+                      >
+                        <router-link
                           v-if="row.mgmt.isReady && !row.hasError"
                           :to="{ name: 'c-cluster-explorer', params: { cluster: row.mgmt.id }}"
                         >
                           {{ row.nameDisplay }}
-                        </n-link>
+                        </router-link>
                         <span v-else>{{ row.nameDisplay }}</span>
-                      </span>
-                      <i
-                        v-if="row.unavailableMachines"
-                        v-tooltip="row.unavailableMachines"
-                        class="conditions-alert-icon icon-alert icon"
-                      />
+                        <i
+                          v-if="row.unavailableMachines"
+                          v-clean-tooltip="row.unavailableMachines"
+                          class="conditions-alert-icon icon-alert icon"
+                        />
+                      </p>
+                      <p
+                        v-if="row.description"
+                        class="cluster-description"
+                      >
+                        {{ row.description }}
+                      </p>
+                    </div>
+                  </td>
+                </template>
+                <template #col:kubernetesVersion="{row}">
+                  <td class="col-name">
+                    <span>
+                      {{ row.kubernetesVersion }}
+                    </span>
+                    <div
+                      v-clean-tooltip="{content: row.architecture.tooltip, placement: 'left'}"
+                      class="text-muted"
+                    >
+                      {{ row.architecture.label }}
                     </div>
                   </td>
                 </template>
@@ -424,9 +476,9 @@ export default {
                   </td>
                 </template>
                 <!-- <template #cell:explorer="{row}">
-                  <n-link v-if="row && row.isReady" class="btn btn-sm role-primary" :to="{name: 'c-cluster', params: {cluster: row.id}}">
+                  <router-link v-if="row && row.isReady" class="btn btn-sm role-primary" :to="{name: 'c-cluster', params: {cluster: row.id}}">
                     {{ t('landing.clusters.explore') }}
-                  </n-link>
+                  </router-link>
                   <button v-else :disabled="true" class="btn btn-sm role-primary">
                     {{ t('landing.clusters.explore') }}
                   </button>
@@ -461,8 +513,18 @@ export default {
       margin-left: 1.75%;
     }
   }
-  .banner.set-login-page .message, .whats-new .message  {
-    flex: 1;
+
+  .set-login-page, .whats-new {
+    > ::v-deep .banner__content {
+      display: flex;
+
+      > div {
+        flex: 1;
+      }
+      > a {
+        align-self: flex-end;
+      }
+    }
   }
 
   .banner.set-login-page {
@@ -494,9 +556,23 @@ export default {
     white-space: nowrap;
   }
 
+  .col-name {
+    max-width: 280px;
+  }
+
   .list-cluster-name {
-    align-items: center;
-    display: flex;
+
+    .cluster-name {
+      display: flex;
+      align-items: center;
+    }
+
+    .cluster-description {
+      white-space: nowrap;
+      overflow: hidden;
+      text-overflow: ellipsis;
+      color: var(--muted);
+    }
 
     .conditions-alert-icon {
       color: var(--error);

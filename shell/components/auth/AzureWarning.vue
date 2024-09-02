@@ -3,7 +3,7 @@
 import { NORMAN, MANAGEMENT } from '@shell/config/types';
 import { get } from '@shell/utils/object';
 import { AZURE_MIGRATED } from '@shell/config/labels-annotations';
-import { BLANK_CLUSTER } from '@shell/store';
+import { BLANK_CLUSTER } from '@shell/store/store-types.js';
 
 export default {
   async fetch() {
@@ -56,9 +56,9 @@ export default {
   >
     <p>
       {{ t('authConfig.azuread.updateEndpoint.banner.message') }}
-      <n-link :to="authConfigRoute">
+      <router-link :to="authConfigRoute">
         {{ t('authConfig.azuread.updateEndpoint.banner.linkText') }}
-      </n-link>
+      </router-link>
     </p>
   </div>
 </template>

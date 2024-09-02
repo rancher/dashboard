@@ -1,6 +1,6 @@
 @use "sass:math";
 
-@import "~shell/assets/styles/base/functions";
+@import "~shell/assets/styles/base/_functions";
 @import "~shell/assets/styles/base/_variables";
 
 
@@ -33,6 +33,10 @@ $DEFAULT_COLUMNS: 12;
 .row {
   display: flex;
   // margin-bottom: 20px;
+
+  &--y-center {
+    align-items: center;
+  }
 }
 
 .row:before,

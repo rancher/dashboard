@@ -1,4 +1,5 @@
 <script>
+import Vue from 'vue';
 import { exceptionToErrorsArray } from '@shell/utils/error';
 import { mapGetters } from 'vuex';
 import {
@@ -21,8 +22,10 @@ import { base64Decode, base64Encode } from '@shell/utils/crypto';
 import SelectOrCreateAuthSecret from '@shell/components/form/SelectOrCreateAuthSecret';
 import { _CREATE } from '@shell/config/query-params';
 import { isHarvesterCluster } from '@shell/utils/cluster';
-import { CAPI, CATALOG } from '@shell/config/labels-annotations';
+import { CAPI, CATALOG, FLEET as FLEET_LABELS } from '@shell/config/labels-annotations';
 import { SECRET_TYPES } from '@shell/config/secret';
+import { checkSchemasForFindAllHash } from '@shell/utils/auth';
+import Checkbox from '@components/Form/Checkbox/Checkbox.vue';
 
 const _VERIFY = 'verify';
 const _SKIP = 'skip';
@@ -32,6 +35,7 @@ export default {
   name: 'CruGitRepo',
 
   components: {
+    Checkbox,
     ArrayList,
     Banner,
     CruResource,
@@ -48,8 +52,20 @@ export default {
   mixins: [CreateEditView],
 
   async fetch() {
-    this.allClusters = await this.$store.dispatch('management/findAll', { type: FLEET.CLUSTER });
-    this.allClusterGroups = await this.$store.dispatch('management/findAll', { type: FLEET.CLUSTER_GROUP });
+    const hash = await checkSchemasForFindAllHash({
+      allClusters: {
+        inStoreType: 'management',
+        type:        FLEET.CLUSTER
+      },
+
+      allClusterGroups: {
+        inStoreType: 'management',
+        type:        FLEET.CLUSTER_GROUP
+      }
+    }, this.$store);
+
+    this.allClusters = hash.allClusters || [];
+    this.allClusterGroups = hash.allClusterGroups || [];
 
     let tls = _VERIFY;
 
@@ -65,6 +81,10 @@ export default {
     }
 
     this.tlsMode = tls;
+
+    if (this.value.spec.correctDrift === undefined) {
+      Vue.set(this.value.spec, 'correctDrift', { enabled: false });
+    }
 
     this.updateTargets();
   },
@@ -111,18 +131,18 @@ export default {
     const addRepositorySteps = [stepRepoInfo, stepTargetInfo].sort((a, b) => (b.weight || 0) - (a.weight || 0));
 
     return {
-      allClusters:          [],
-      allClusterGroups:     [],
-      allWorkspaces:        [],
-      tempCachedValues:     {},
-      username:             null,
-      password:             null,
-      publicKey:            null,
-      privateKey:           null,
-      tlsMode:              null,
-      caBundle:             null,
-      targetAdvancedErrors: null,
-      matchingClusters:     null,
+      allClusters:             [],
+      allClusterGroups:        [],
+      allWorkspaces:           [],
+      tempCachedValues:        {},
+      username:                null,
+      password:                null,
+      publicKey:               null,
+      privateKey:              null,
+      tlsMode:                 null,
+      caBundle:                null,
+      targetAdvancedErrors:    null,
+      matchingClusters:        null,
       ref,
       refValue,
       targetMode,
@@ -132,6 +152,7 @@ export default {
       stepRepoInfo,
       stepTargetInfo,
       addRepositorySteps,
+      displayHelmRepoURLRegex: false
     };
   },
 
@@ -170,7 +191,7 @@ export default {
         .filter((x) => {
           return x.metadata.namespace === this.value.metadata.namespace;
         })
-        .filter(x => !isHarvesterCluster(x))
+        .filter((x) => !isHarvesterCluster(x))
         .map((x) => {
           return { label: x.nameDisplay, value: `cluster://${ x.metadata.name }` };
         });
@@ -187,7 +208,7 @@ export default {
       }
 
       const groups = this.allClusterGroups
-        .filter(x => x.metadata.namespace === this.value.metadata.namespace)
+        .filter((x) => x.metadata.namespace === this.value.metadata.namespace)
         .map((x) => {
           return { label: x.nameDisplay, value: `group://${ x.metadata.name }` };
         });
@@ -208,16 +229,16 @@ export default {
 
     clusterNames() {
       const out = this.allClusters
-        .filter(x => x.metadata.namespace === this.value.metadata.namespace)
-        .map(x => x.metadata.name);
+        .filter((x) => x.metadata.namespace === this.value.metadata.namespace)
+        .map((x) => x.metadata.name);
 
       return out;
     },
 
     clusterGroupNames() {
       const out = this.allClusterGroups
-        .filter(x => x.metadata.namespace === this.value.metadata.namespace)
-        .map(x => x.metadata.name);
+        .filter((x) => x.metadata.namespace === this.value.metadata.namespace)
+        .map((x) => x.metadata.name);
 
       return out;
     },
@@ -232,8 +253,7 @@ export default {
 
     stepOneRequires() {
       return !!this.value.metadata.name && !!this.refValue;
-    }
-
+    },
   },
 
   watch: {
@@ -242,9 +262,8 @@ export default {
     targetCluster:              'updateTargets',
     targetClusterGroup:         'updateTargets',
     targetAdvanced:             'updateTargets',
-
-    tlsMode:  'updateTls',
-    caBundle: 'updateTls',
+    tlsMode:                    'updateTls',
+    caBundle:                   'updateTls',
 
     workspace(neu) {
       if ( this.isCreate ) {
@@ -270,6 +289,10 @@ export default {
 
     updateCachedAuthVal(val, key) {
       this.tempCachedValues[key] = typeof val === 'string' ? { selected: val } : { ...val };
+
+      if (key === 'helmSecretName') {
+        this.toggleHelmRepoURLRegex(val && val.selected !== AUTH_TYPE._NONE);
+      }
     },
 
     updateAuth(val, key) {
@@ -282,6 +305,14 @@ export default {
       }
 
       this.updateCachedAuthVal(val, key);
+    },
+
+    toggleHelmRepoURLRegex(active) {
+      this.displayHelmRepoURLRegex = active;
+
+      if (!active) {
+        delete this.value.spec?.helmRepoURLRegex;
+      }
     },
 
     updateTargets() {
@@ -382,8 +413,9 @@ export default {
           type:     SECRET,
           metadata: {
             namespace:    this.value.metadata.namespace,
-            generateName: 'auth-'
-          },
+            generateName: 'auth-',
+            labels:       { [FLEET_LABELS.MANAGED]: 'true' }
+          }
         });
 
         let type, publicField, privateField;
@@ -413,7 +445,7 @@ export default {
       await secret.save();
 
       await this.$nextTick(() => {
-        this.updateAuth(secret.id, name);
+        this.updateAuth(secret.metadata.name, name);
       });
 
       return secret;
@@ -497,6 +529,17 @@ export default {
         @change="onUpdateRepoName"
       />
 
+      <div class="row">
+        <div class="col span-6">
+          <Banner
+            color="info col span-6"
+          >
+            <div>
+              {{ t('fleet.gitRepo.repo.protocolBanner') }}
+            </div>
+          </Banner>
+        </div>
+      </div>
       <div
         class="row"
         :class="{'mt-20': isView}"
@@ -511,6 +554,7 @@ export default {
         </div>
         <div class="col span-6">
           <InputWithSelect
+            :data-testid="`gitrepo-${ref}`"
             :mode="mode"
             :select-label="t('fleet.gitRepo.ref.label')"
             :select-value="ref"
@@ -523,7 +567,6 @@ export default {
           />
         </div>
       </div>
-
       <SelectOrCreateAuthSecret
         :value="value.spec.clientSecretName"
         :register-before-hook="registerBeforeHook"
@@ -534,11 +577,12 @@ export default {
         :mode="mode"
         generate-name="gitrepo-auth-"
         label-key="fleet.gitRepo.auth.git"
+        :cache-secrets="true"
         @input="updateAuth($event, 'clientSecretName')"
         @inputauthval="updateCachedAuthVal($event, 'clientSecretName')"
       />
-
       <SelectOrCreateAuthSecret
+        data-testid="gitrepo-helm-auth"
         :value="value.spec.helmSecretName"
         :register-before-hook="registerBeforeHook"
         :namespace="value.metadata.namespace"
@@ -548,9 +592,26 @@ export default {
         generate-name="helmrepo-auth-"
         label-key="fleet.gitRepo.auth.helm"
         :pre-select="tempCachedValues.helmSecretName"
+        :cache-secrets="true"
         @input="updateAuth($event, 'helmSecretName')"
         @inputauthval="updateCachedAuthVal($event, 'helmSecretName')"
       />
+
+      <div
+        v-if="displayHelmRepoURLRegex"
+        class="row mt-20"
+      >
+        <div
+          class="col span-6"
+          data-testid="gitrepo-helm-repo-url-regex"
+        >
+          <LabeledInput
+            v-model="value.spec.helmRepoURLRegex"
+            :mode="mode"
+            label-key="fleet.gitRepo.helmRepoURLRegex"
+          />
+        </div>
+      </div>
 
       <template v-if="isTls">
         <div class="spacer" />
@@ -579,10 +640,41 @@ export default {
         </div>
       </template>
       <div class="spacer" />
+      <h2 v-t="'fleet.gitRepo.resources.label'" />
+      <div>
+        <Checkbox
+          v-model="value.spec.correctDrift.enabled"
+          data-testid="GitRepo-correctDrift-checkbox"
+          class="check"
+          type="checkbox"
+          label-key="fleet.gitRepo.resources.correctDrift"
+          :mode="mode"
+        />
+        <Banner
+          data-testid="GitRepo-correctDrift-banner"
+          color="info"
+        >
+          {{ t('fleet.gitRepo.resources.correctDriftBanner') }}
+        </Banner>
+      </div>
 
+      <Checkbox
+        v-model="value.spec.keepResources"
+        class="check"
+        type="checkbox"
+        label-key="fleet.gitRepo.resources.keepResources"
+        :mode="mode"
+      />
+      <Banner
+        color="info"
+      >
+        {{ t('fleet.gitRepo.resources.keepResourcesBanner') }}
+      </Banner>
+      <div class="spacer" />
       <h2 v-t="'fleet.gitRepo.paths.label'" />
       <ArrayList
         v-model="value.spec.paths"
+        data-testid="gitRepo-paths"
         :mode="mode"
         :initial-empty-row="false"
         :value-placeholder="t('fleet.gitRepo.paths.placeholder')"
@@ -606,6 +698,7 @@ export default {
               :mode="mode"
               :selectable="option => !option.disabled"
               :label="t('fleet.gitRepo.target.selectLabel')"
+              data-testid="fleet-gitrepo-target-cluster"
             >
               <template v-slot:option="opt">
                 <hr v-if="opt.kind === 'divider'">

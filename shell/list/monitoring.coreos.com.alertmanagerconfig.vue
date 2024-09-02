@@ -1,7 +1,6 @@
 <script>
 import ResourceTable from '@shell/components/ResourceTable';
 import { Banner } from '@components/Banner';
-import { MONITORING } from '@shell/config/types';
 import ResourceFetch from '@shell/mixins/resource-fetch';
 export default {
   name:       'ListApps',
@@ -25,12 +24,7 @@ export default {
   },
 
   async fetch() {
-    try {
-      await this.$store.dispatch('cluster/findAll', { type: MONITORING.ALERTMANAGERCONFIG });
-      await this.$fetchType(this.resource);
-    } catch (err) {
-      throw new Error(err);
-    }
+    await this.$fetchType(this.resource);
   }
 };
 </script>

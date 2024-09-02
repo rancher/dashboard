@@ -19,7 +19,7 @@ export default {
     // value may be JSON from "field.cattle.io/publicEndpoints" label
     parsed() {
       const nodes = this.nodes;
-      const nodeWithExternal = nodes.find(node => !!node.externalIp) || {};
+      const nodeWithExternal = nodes.find((node) => !!node.externalIp) || {};
       const externalIp = nodeWithExternal.externalIp;
 
       if ( this.value && this.value.length ) {
@@ -27,6 +27,7 @@ export default {
 
         try {
           out = JSON.parse(this.value);
+
           out.forEach((endpoint) => {
             let protocol = 'http';
 
@@ -34,10 +35,19 @@ export default {
               protocol = 'https';
             }
 
-            if (endpoint.addresses) {
+            const linkDefaultDisplay = endpoint.port ? `${ endpoint.port }/${ endpoint.protocol }` : endpoint.protocol;
+
+            // If there's an ingress and it has a hostname, we use the hostname address instead
+            // https://github.com/rancher/dashboard/issues/8087
+            if (endpoint.ingressName && endpoint.hostname) {
+              endpoint.link = `${ protocol }://${ endpoint.hostname }${ endpoint.path }`;
+              endpoint.linkDisplay = endpoint.link;
+            } else if (endpoint.addresses && endpoint.addresses.length) {
               endpoint.link = `${ protocol }://${ endpoint.addresses[0] }:${ endpoint.port }`;
+              endpoint.linkDisplay = linkDefaultDisplay;
             } else if (externalIp) {
               endpoint.link = `${ protocol }://${ externalIp }:${ endpoint.port }`;
+              endpoint.linkDisplay = linkDefaultDisplay;
             } else {
               endpoint.display = `[${ this.t('servicesPage.anyNode') }]:${ endpoint.port }`;
             }
@@ -46,26 +56,6 @@ export default {
           return out;
         } catch (err) {
           return this.value[0];
-        }
-      }
-
-      return null;
-    },
-
-    protocol() {
-      const { parsed } = this;
-
-      if ( parsed) {
-        if (this.parsed[0].protocol) {
-          return this.parsed[0].protocol;
-        }
-
-        const match = parsed.match(/^([^:]+):\/\//);
-
-        if ( match ) {
-          return match[1];
-        } else {
-          return 'link';
         }
       }
 
@@ -90,7 +80,7 @@ export default {
         :href="endpoint.link"
         target="_blank"
         rel="nofollow noopener noreferrer"
-      ><span v-if="endpoint.port">{{ endpoint.port }}/</span>{{ endpoint.protocol }}</a>
+      >{{ endpoint.linkDisplay }}</a>
     </template>
   </span>
 </template>

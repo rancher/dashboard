@@ -179,7 +179,7 @@ export default {
     },
 
     existingBindings() {
-      const roles = this.roles.map(x => x.name);
+      const roles = this.roles.map((x) => x.name);
 
       const out = this.allBindings.filter((binding) => {
         if ( binding.roleRef.kind !== this.roleScope || !binding.roleRef?.name) {
@@ -197,7 +197,7 @@ export default {
     },
 
     unremovedRows() {
-      return this.rows.filter(x => x.remove !== true);
+      return this.rows.filter((x) => x.remove !== true);
     },
   },
 

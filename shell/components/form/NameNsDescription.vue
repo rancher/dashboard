@@ -1,6 +1,6 @@
 <script>
 import Vue from 'vue';
-import { mapGetters } from 'vuex';
+import { mapGetters, mapActions } from 'vuex';
 import { get, set } from '@shell/utils/object';
 import { sortBy } from '@shell/utils/sort';
 import { NAMESPACE } from '@shell/config/types';
@@ -8,22 +8,13 @@ import { DESCRIPTION } from '@shell/config/labels-annotations';
 import { _VIEW, _EDIT, _CREATE } from '@shell/config/query-params';
 import { LabeledInput } from '@components/Form/LabeledInput';
 import LabeledSelect from '@shell/components/form/LabeledSelect';
-
-export function normalizeName(str) {
-  return (str || '')
-    .trim()
-    .toLowerCase()
-    .replace(/\s+/g, '-')
-    .replace(/-+/g, '-')
-    .replace(/^-+/, '')
-    .replace(/-+$/, '');
-}
+import { normalizeName } from '@shell/utils/kube';
 
 export default {
-  name:       'NameNsDescripiton',
+  name:       'NameNsDescription',
   components: {
     LabeledInput,
-    LabeledSelect
+    LabeledSelect,
   },
 
   props: {
@@ -101,9 +92,23 @@ export default {
       type:    Boolean,
       default: false
     },
+    /**
+     * Use these objects instead of namespaces
+     */
     namespacesOverride: {
       type:    Array,
       default: null,
+    },
+    /**
+     * User these namespaces instead of determining list within component
+     */
+    namespaceOptions: {
+      type:    Array,
+      default: null,
+    },
+    createNamespaceOverride: {
+      type:    Boolean,
+      default: false,
     },
     descriptionLabel: {
       type:    String,
@@ -169,7 +174,7 @@ export default {
     if (this.nameKey) {
       name = get(v, this.nameKey);
     } else {
-      name = metadata.name;
+      name = metadata?.name;
     }
 
     if (this.namespaced) {
@@ -209,7 +214,8 @@ export default {
   },
 
   computed: {
-    ...mapGetters(['currentProduct', 'currentCluster']),
+    ...mapGetters(['currentProduct', 'currentCluster', 'namespaces', 'allowedNamespaces']),
+    ...mapActions('cru-resource', ['setCreateNamespace']),
     namespaceReallyDisabled() {
       return (
         !!this.forceNamespace || this.namespaceDisabled || this.mode === _EDIT
@@ -220,36 +226,35 @@ export default {
       return this.nameDisabled || (this.mode === _EDIT && !this.nameEditable);
     },
 
-    namespaces() {
-      const currentStore = this.$store.getters['currentStore'](this.namespaceType);
-      const namespaces = this.namespacesOverride || this.$store.getters[`${ currentStore }/all`](this.namespaceType);
+    /**
+     * Map namespaces from the store to options, adding divider and create button
+     */
+    options() {
+      let namespaces;
 
-      const filtered = namespaces.filter( this.namespaceFilter || ((namespace) => {
-        // By default, include the namespace in the dropdown.
-        let out = true;
+      if (this.namespacesOverride) {
+        // Use the resources provided
+        namespaces = this.namespacesOverride;
+      } else {
+        if (this.namespaceOptions) {
+          // Use the namespaces provided
+          namespaces = (this.namespaceOptions.map((ns) => ns.name) || []).sort();
+        } else {
+          // Determine the namespaces
+          const namespaceObjs = this.isCreate ? this.allowedNamespaces() : this.namespaces();
 
-        if (this.currentProduct?.hideSystemResources) {
-          // Filter out the namespace
-          // if it is a system namespace or if it is managed by
-          // Fleet.
-          out = !namespace.isSystem && !namespace.isFleetManaged;
+          namespaces = Object.keys(namespaceObjs);
         }
+      }
 
-        if (this.mode === _CREATE) {
-          out = out && !!namespace.links.update;
-        }
-
-        return out;
-      }));
-
-      const withLabels = filtered.map(this.namespaceMapper || ((obj) => {
-        return {
+      const options = namespaces
+        .map((namespace) => ({ nameDisplay: namespace, id: namespace }))
+        .map(this.namespaceMapper || ((obj) => ({
           label: obj.nameDisplay,
           value: obj.id,
-        };
-      }));
+        })));
 
-      const sortedByLabel = sortBy(withLabels, 'label');
+      const sortedByLabel = sortBy(options, 'label');
 
       if (this.forceNamespace) {
         sortedByLabel.unshift({
@@ -258,27 +263,35 @@ export default {
         });
       }
 
-      const out = [];
-
-      if (this.canCreateNamespace) {
-        out.push({
-          label: this.t('namespace.createNamespace'),
-          value: '',
-          kind:  'highlighted'
-        });
-      }
-      out.push({
+      const createButton = {
+        label: this.t('namespace.createNamespace'),
+        value: '',
+        kind:  'highlighted'
+      };
+      const divider = {
         label:    'divider',
         disabled: true,
         kind:     'divider'
-      },
-      ...sortedByLabel);
+      };
 
-      return out;
+      const createOverhead = this.canCreateNamespace || this.createNamespaceOverride ? [createButton, divider] : [];
+
+      return [
+        ...createOverhead,
+        ...sortedByLabel
+      ];
     },
 
     isView() {
       return this.mode === _VIEW;
+    },
+
+    isCreate() {
+      return this.mode === _CREATE;
+    },
+
+    showCustomize() {
+      return this.mode === _CREATE && this.name && this.name.length > 0;
     },
 
     colSpan() {
@@ -296,13 +309,13 @@ export default {
 
     canCreateNamespace() {
       // Check if user can push to namespaces... and as the ns is outside of a project restrict to admins and cluster owners
-      return (this.nsSchema?.collectionMethods || []).includes('POST') && this.currentCluster.canUpdate;
+      return (this.nsSchema?.collectionMethods || []).includes('POST') && this.currentCluster?.canUpdate;
     }
   },
 
   watch: {
     name(val) {
-      if ( this.normalizeName ) {
+      if (this.normalizeName) {
         val = normalizeName(val);
       }
 
@@ -344,7 +357,7 @@ export default {
       }
 
       if (this.namespaced) {
-        this.$emit('isNamespaceNew', !val || (this.namespaces && !this.namespaces.find(n => n.value === val)));
+        this.$emit('isNamespaceNew', !val || (this.options && !this.options.find((n) => n.value === val)));
       }
 
       if (this.namespaceKey) {
@@ -362,21 +375,28 @@ export default {
     cancelCreateNamespace(e) {
       this.createNamespace = false;
       this.$parent.$emit('createNamespace', false);
-      this.namespace = this.$store.getters['defaultNamespace'];
+      // In practice we should always have a defaultNamespace... unless we're in non-kube extension world,  so fall back on options
+      this.namespace = this.$store.getters['defaultNamespace'] || this.options.find((o) => !!o.value)?.value;
     },
 
     selectNamespace(e) {
       if (!e || e.value === '') { // The blank value in the dropdown is labeled "Create a New Namespace"
         this.createNamespace = true;
-        this.$parent.$emit('createNamespace', true);
+        this.$store.dispatch(
+          'cru-resource/setCreateNamespace',
+          true,
+        );
         this.$emit('isNamespaceNew', true);
         Vue.nextTick(() => this.$refs.namespace.focus());
       } else {
         this.createNamespace = false;
-        this.$parent.$emit('createNamespace', false);
+        this.$store.dispatch(
+          'cru-resource/setCreateNamespace',
+          false,
+        );
         this.$emit('isNamespaceNew', false);
       }
-    }
+    },
   },
 };
 </script>
@@ -404,7 +424,7 @@ export default {
         @click="cancelCreateNamespace"
       >
         <i
-          v-tooltip="t('generic.cancel')"
+          v-clean-tooltip="t('generic.cancel')"
           class="icon icon-close align-value"
         />
       </button>
@@ -418,7 +438,7 @@ export default {
         v-show="!createNamespace"
         v-model="namespace"
         :clearable="true"
-        :options="namespaces"
+        :options="options"
         :disabled="namespaceReallyDisabled"
         :searchable="true"
         :mode="mode"
@@ -450,6 +470,8 @@ export default {
       />
     </div>
 
+    <slot name="customize" />
+    <!-- // TODO: here goes the custom component -->
     <div
       v-show="!descriptionHidden"
       :data-testid="componentTestid + '-description'"
@@ -496,13 +518,16 @@ button {
     padding-top: 7px;
   }
 }
+
 .row {
   &.name-ns-description {
     max-height: $input-height;
   }
+
   .namespace-select ::v-deep {
     .labeled-select {
       min-width: 40%;
+
       .v-select.inline {
         &.vs--single {
           padding-bottom: 2px;
@@ -518,9 +543,10 @@ button {
       max-height: initial;
     }
 
-    & > div > * {
+    &>div>* {
       margin-bottom: 20px;
     }
   }
+
 }
 </style>

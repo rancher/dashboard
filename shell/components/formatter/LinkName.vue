@@ -1,5 +1,6 @@
 <script>
 import { NAME as EXPLORER } from '@shell/config/product/explorer';
+import { canViewResource } from '@shell/utils/auth';
 
 export default {
   props: {
@@ -18,6 +19,11 @@ export default {
       default: '',
     },
 
+    objectId: {
+      type:    String,
+      default: '',
+    },
+
     product: {
       type:    String,
       default: EXPLORER,
@@ -31,11 +37,15 @@ export default {
       const params = {
         resource:  this.type,
         namespace: this.namespace,
-        id:        this.value,
+        id:        this.objectId ? this.objectId : this.value,
         product:   this.product || EXPLORER,
       };
 
       return { name, params };
+    },
+
+    canViewResource() {
+      return canViewResource(this.$store, this.type);
     }
   }
 };
@@ -43,8 +53,14 @@ export default {
 
 <template>
   <span v-if="value">
-    <nuxt-link :to="url">
+    <router-link
+      v-if="canViewResource"
+      :to="url"
+    >
       {{ value }}
-    </nuxt-link>
+    </router-link>
+    <template v-else>
+      {{ value }}
+    </template>
   </span>
 </template>

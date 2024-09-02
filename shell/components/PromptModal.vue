@@ -1,6 +1,7 @@
 <script>
 import { mapState } from 'vuex';
 import { isArray } from '@shell/utils/array';
+import AppModal from '@shell/components/AppModal.vue';
 
 /**
  * @name PromptModal
@@ -8,6 +9,8 @@ import { isArray } from '@shell/utils/array';
  */
 export default {
   name: 'PromptModal',
+
+  components: { AppModal },
 
   data() {
     return { opened: false, backgroundClosing: null };
@@ -42,18 +45,15 @@ export default {
       const isSticky = !!this.modalData?.modalSticky;
 
       return !isSticky ? '' : 'display: flex; flex-direction: column; ';
+    },
+    closeOnClickOutside() {
+      return this.modalData?.closeOnClickOutside;
     }
   },
 
   watch: {
     showModal(show) {
-      if (show) {
-        this.opened = true;
-        this.$modal.show('promptModal');
-      } else {
-        this.opened = false;
-        this.$modal.hide('promptModal');
-      }
+      this.opened = show;
     },
   },
 
@@ -68,6 +68,8 @@ export default {
       if (this.backgroundClosing) {
         this.backgroundClosing();
       }
+
+      this.opened = false;
     },
 
     // We're using register instead of just making use of $refs because the $refs is always undefined when referencing the component
@@ -79,23 +81,20 @@ export default {
 </script>
 
 <template>
-  <modal
-    class="promptModal-modal"
-    name="promptModal"
-    :styles="`background-color: var(--nav-bg); border-radius: var(--border-radius); ${stickyProps} max-height: 95vh; ${cssProps}`"
-    height="auto"
-    :scrollable="true"
-    @closed="close()"
+  <app-modal
+    v-if="opened && component"
+    :click-to-close="closeOnClickOutside"
+    :width="modalWidth"
+    @close="close()"
   >
     <component
       v-bind="modalData.componentProps || {}"
       :is="component"
-      v-if="opened && component"
       :resources="resources"
       :register-background-closing="registerBackgroundClosing"
       @close="close()"
     />
-  </modal>
+  </app-modal>
 </template>
 
 <style lang='scss'>
@@ -105,11 +104,6 @@ export default {
     max-height: 100vh;
     & ::-webkit-scrollbar-corner {
       background: rgba(0,0,0,0);
-    }
-    & .v--modal-box.v--modal {
-      width: var(--prompt-modal-width) !important;
-      left: unset !important;
-      margin: auto !important;
     }
   }
 </style>

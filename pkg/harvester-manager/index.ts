@@ -9,5 +9,8 @@ export default function(plugin: IPlugin) {
   // Provide plugin metadata from package.json
   plugin.metadata = require('./package.json');
 
+  // Built-in icon
+  plugin.metadata.icon = require('./icon.svg');
+
   plugin.addProduct(require('./config/harvester-manager'));
 }

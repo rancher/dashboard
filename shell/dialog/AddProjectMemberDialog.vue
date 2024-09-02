@@ -63,7 +63,7 @@ export default {
     async principalProperty() {
       const principal = await this.principal;
 
-      return principal.principalType === 'group' ? 'groupPrincipalId' : 'userPrincipalId';
+      return principal?.principalType === 'group' ? 'groupPrincipalId' : 'userPrincipalId';
     },
 
     close() {
@@ -77,7 +77,7 @@ export default {
 
     async createBindings() {
       const principalProperty = await this.principalProperty();
-      const promises = this.member.roleTemplateIds.map(roleTemplateId => this.$store.dispatch(`rancher/create`, {
+      const promises = this.member.roleTemplateIds.map((roleTemplateId) => this.$store.dispatch(`rancher/create`, {
         type:                NORMAN.PROJECT_ROLE_TEMPLATE_BINDING,
         roleTemplateId,
         [principalProperty]: this.member.principalId,
@@ -91,7 +91,7 @@ export default {
       this.error = null;
       this.createBindings()
         .then((bindings) => {
-          return Promise.all(bindings.map(b => b.save()));
+          return Promise.all(bindings.map((b) => b.save()));
         })
         .then(() => {
           btnCB(true);
@@ -114,8 +114,8 @@ export default {
   >
     <h4
       slot="title"
+      v-clean-html="t('addProjectMemberDialog.title')"
       class="text-default-text"
-      v-html="t('addProjectMemberDialog.title')"
     />
 
     <div

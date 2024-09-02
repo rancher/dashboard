@@ -1,0 +1,73 @@
+<!DOCTYPE html>
+<html lang="">
+
+<head>
+    <meta charset="utf-8">
+    <meta http-equiv="X-UA-Compatible" content="IE=edge">
+    <meta name="viewport" content="width=device-width,initial-scale=1.0">
+    <link rel="shortcut icon" type="image/x-icon" href="/favicon.png">
+    <title>Rancher</title>
+</head>
+
+<body>
+    <div id="app">
+        <script>
+            (() => {
+                // Has the user chosen to auto detect the theme.... or if they haven't chosen anything.. --> check the auto-detected theme via R_PCS
+                // Otherwise check if they've specifically selected a theme --> R_THEME
+                const isDark = document.cookie.includes('R_THEME=auto') || !document.cookie.includes('R_THEME') ?
+                    // User selected automatic theme, so use PCS (set when ui previously loaded and is either os theme or time of day based)
+                    document.cookie.includes('R_PCS=dark') :
+                    // Otherwise user selected light/dark theme directly
+                    document.cookie.includes('R_THEME=dark');
+
+                const color = isDark ? '#1b1c21' : '#FFF';
+                const style = document.createElement('style');
+                style.innerHTML = ':root { --loading-bg-color: ' + color + ';}';
+                document.getElementsByTagName('head')[0].prepend(style);
+            })();
+        </script>
+        <style>
+            .initial-load-spinner-container {
+                align-items: center;
+                background-color: var(--loading-bg-color);
+                display: flex;
+                justify-content: center;
+                height: 100vh;
+                left: 0;
+                position: absolute;
+                top: 0;
+                width: 100vw;
+            }
+
+            .initial-load-spinner {
+                animation: initial-load-animate 1s infinite linear;
+                background-color: var(--loading-bg-color);
+                box-sizing: border-box;
+                border: 5px solid #008ACF;
+                border-radius: 50%;
+                border-top-color: #00B2E2;
+                display: inline-block;
+                height: 80px;
+                margin: 0 auto;
+                width: 80px;
+            }
+
+            @keyframes initial-load-animate {
+                0% {
+                    transform: rotate(0deg);
+                }
+
+                100% {
+                    transform: rotate(359deg);
+                }
+            }
+        </style>
+        <div class="initial-load-spinner-container">
+            <i class="initial-load-spinner"></i>
+        </div>
+    </div>
+    <div id="modals"><!--Portal content here--></div>
+</body>
+
+</html>

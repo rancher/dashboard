@@ -6,7 +6,7 @@ describe('component: LinkDetail', () => {
     const location = 'route-somewhere';
     const wrapper = await mount(LinkDetail, {
       propsData: { row: { detailLocation: location }, value: 'test-name' },
-      stubs:     { nLink: RouterLinkStub }
+      stubs:     { 'router-link': RouterLinkStub }
     });
 
     const link = wrapper.findComponent(RouterLinkStub);
@@ -18,7 +18,7 @@ describe('component: LinkDetail', () => {
     const location = 'route-somewhere';
     const wrapper = await mount(LinkDetail, {
       propsData: { row: { detailLocation: location } },
-      stubs:     { nLink: RouterLinkStub }
+      stubs:     { 'router-link': RouterLinkStub }
     });
 
     const link = wrapper.findComponent(RouterLinkStub);
@@ -31,7 +31,7 @@ describe('component: LinkDetail', () => {
       propsData: {
         row: { detailLocation: null }, value: 'test-name', col: { }
       },
-      stubs: { nLink: RouterLinkStub }
+      stubs: { 'router-link': RouterLinkStub }
     });
     const span = wrapper.find('span span');
 
@@ -48,7 +48,7 @@ describe('component: LinkDetail', () => {
       propsData: {
         row: { detailLocation: location }, value: 'test-name', col: { }, getCustomDetailLink: () => 'custom-link'
       },
-      stubs: { nLink: RouterLinkStub }
+      stubs: { 'router-link': RouterLinkStub }
     });
 
     const link = wrapper.findComponent(RouterLinkStub);
@@ -62,7 +62,7 @@ describe('component: LinkDetail', () => {
       propsData: {
         row: { detailLocation: location, otherKey: 'other-location' }, value: 'test-name', col: { }, reference: 'otherKey'
       },
-      stubs: { nLink: RouterLinkStub }
+      stubs: { 'router-link': RouterLinkStub }
     });
 
     const link = wrapper.findComponent(RouterLinkStub);

@@ -29,7 +29,7 @@ export default {
       return { backgroundColor: `var(${ this.secondaryColor })` };
     },
     sliceStyles() {
-      return this.slices.map(slice => ({
+      return this.slices.map((slice) => ({
         left:       `${ slice }%`,
         visibility: slice < this.percentage ? 'visible' : 'hidden'
       }));

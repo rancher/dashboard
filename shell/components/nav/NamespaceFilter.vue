@@ -5,7 +5,6 @@ import { NAMESPACE, MANAGEMENT } from '@shell/config/types';
 import { sortBy } from '@shell/utils/sort';
 import { isArray, addObjects, findBy, filterBy } from '@shell/utils/array';
 import {
-  NAMESPACE_FILTER_SPECIAL as SPECIAL,
   NAMESPACE_FILTER_ALL_USER as ALL_USER,
   NAMESPACE_FILTER_ALL as ALL,
   NAMESPACE_FILTER_ALL_SYSTEM as ALL_SYSTEM,
@@ -13,26 +12,50 @@ import {
   NAMESPACE_FILTER_NAMESPACED_YES as NAMESPACED_YES,
   NAMESPACE_FILTER_NAMESPACED_NO as NAMESPACED_NO,
   createNamespaceFilterKey,
+  NAMESPACE_FILTER_KINDS,
+  NAMESPACE_FILTER_NS_FULL_PREFIX,
+  NAMESPACE_FILTER_P_FULL_PREFIX,
 } from '@shell/utils/namespace-filter';
 import { KEY } from '@shell/utils/platform';
+import pAndNFiltering from '@shell/plugins/steve/projectAndNamespaceFiltering.utils';
+import { SETTING } from '@shell/config/settings';
+import paginationUtils from '@shell/utils/pagination-utils';
+
+const forcedNamespaceValidTypes = [NAMESPACE_FILTER_KINDS.DIVIDER, NAMESPACE_FILTER_KINDS.PROJECT, NAMESPACE_FILTER_KINDS.NAMESPACE];
 
 export default {
+
   data() {
     return {
-      isOpen:         false,
-      filter:         '',
-      hidden:         0,
-      total:          0,
-      activeElement:  null,
-      cachedFiltered: [],
+      isOpen:              false,
+      filter:              '',
+      hidden:              0,
+      total:               0,
+      activeElement:       null,
+      cachedFiltered:      [],
+      NAMESPACE_FILTER_KINDS,
+      namespaceFilterMode: undefined,
     };
   },
 
+  async fetch() {
+    // Determine if filtering by specific namespaces/projects is required
+    // This is done once and up front
+    // - it doesn't need to be re-active
+    // - added it as a computed caused massive amounts of churn around the `filtered` watcher
+    await this.$store.dispatch('management/find', { type: MANAGEMENT.SETTING, id: SETTING.UI_PERFORMANCE });
+    this.namespaceFilterMode = this.calcNamespaceFilterMode();
+  },
+
   computed: {
-    ...mapGetters(['currentProduct', 'namespaceFilterMode']),
+    ...mapGetters(['currentProduct']),
 
     hasFilter() {
       return this.filter.length > 0;
+    },
+
+    paginatedListFilterMode() {
+      return this.$store.getters[`${ this.currentProduct.inStore }/paginationEnabled`](this.$route.params?.resource) ? paginationUtils.validNsProjectFilters : null;
     },
 
     filtered() {
@@ -40,23 +63,27 @@ export default {
 
       out = out.filter((item) => {
         // Filter out anything not applicable to singleton selection
-        if (this.namespaceFilterMode) {
+        if (this.namespaceFilterMode?.length) {
           // We always show dividers, projects and namespaces
-          if (!['divider', 'project', this.namespaceFilterMode].includes(item.kind)) {
-            // Hide any invalid option that's not selected
-            return this.value.findIndex(v => v.id === item.id) >= 0;
+          if (!forcedNamespaceValidTypes.includes(item.kind)) {
+            const validCustomType = this.namespaceFilterMode.find((prefix) => item.kind.startsWith(prefix));
+
+            if (!validCustomType) {
+              // Hide any invalid option that's not selected
+              return this.value.findIndex((v) => v.id === item.id) >= 0;
+            }
           }
         }
 
         // Filter by the current filter
         if (this.hasFilter) {
-          return item.kind !== SPECIAL && item.label.toLowerCase().includes(this.filter.toLowerCase());
+          return item.kind !== NAMESPACE_FILTER_KINDS.SPECIAL && item.label.toLowerCase().includes(this.filter.toLowerCase());
         }
 
         return true;
       });
 
-      if (out?.[0]?.kind === 'divider') {
+      if (out?.[0]?.kind === NAMESPACE_FILTER_KINDS.DIVIDER) {
         out.splice(0, 1);
       }
 
@@ -70,8 +97,17 @@ export default {
       out.forEach((i) => {
         i.selected = !!mapped[i.id] || (i.id === ALL && this.value && this.value.length === 0);
         i.elementId = (i.id || '').replace('://', '_');
-        // Are we in singleton resource type mode, if so is this an allowed type?
-        i.enabled = !this.namespaceFilterMode || i.kind === this.namespaceFilterMode;
+        i.enabled = true;
+        // Are we in restricted resource type mode, if so is this an allowed type?
+        if (this.namespaceFilterMode?.length) {
+          const isLastSelected = i.selected && (i.id === ALL || this.value.length === 1);
+          const kindAllowed = this.namespaceFilterMode.find((f) => f === i.kind);
+          const isNotInProjectGroup = i.id === ALL_ORPHANS;
+
+          i.enabled = (!isLastSelected && kindAllowed) && !isNotInProjectGroup;
+        } else if (this.paginatedListFilterMode?.length) {
+          i.enabled = !!i.id && paginationUtils.validateNsProjectFilter(i.id);
+        }
       });
 
       return out;
@@ -105,13 +141,27 @@ export default {
       const t = this.$store.getters['i18n/t'];
       let out = [];
 
+      const params = { ...this.$route.params };
+      const resource = params.resource;
+      // Sometimes, different pages may have different namespaces to filter
+      const notFilterNamespaces = this.$store.getters[`type-map/optionsFor`](resource).notFilterNamespace || [];
+
       // TODO: Add return info
       if (this.currentProduct?.customNamespaceFilter && this.currentProduct?.inStore) {
         // Sometimes the component can show before the 'currentProduct' has caught up, so access the product via the getter rather
         // than caching it in the `fetch`
+
+        // The namespace display on the list and edit pages should be the same as in the namespaceFilter component
+        if (this.$store.getters[`${ this.currentProduct.inStore }/filterNamespace`]) {
+          const allNamespaces = this.$store.getters[`${ this.currentProduct.inStore }/filterNamespace`](notFilterNamespaces);
+
+          this.$store.commit('changeAllNamespaces', allNamespaces);
+        }
+
         return this.$store.getters[`${ this.currentProduct.inStore }/namespaceFilterOptions`]({
           addNamespace,
-          divider
+          divider,
+          notFilterNamespaces
         });
       }
 
@@ -120,27 +170,27 @@ export default {
         out = [
           {
             id:    ALL,
-            kind:  SPECIAL,
+            kind:  NAMESPACE_FILTER_KINDS.SPECIAL,
             label: t('nav.ns.all'),
           },
           {
             id:    ALL_USER,
-            kind:  SPECIAL,
+            kind:  NAMESPACE_FILTER_KINDS.SPECIAL,
             label: t('nav.ns.user'),
           },
           {
             id:    ALL_SYSTEM,
-            kind:  SPECIAL,
+            kind:  NAMESPACE_FILTER_KINDS.SPECIAL,
             label: t('nav.ns.system'),
           },
           {
             id:    NAMESPACED_YES,
-            kind:  SPECIAL,
+            kind:  NAMESPACE_FILTER_KINDS.SPECIAL,
             label: t('nav.ns.namespaced'),
           },
           {
             id:    NAMESPACED_NO,
-            kind:  SPECIAL,
+            kind:  NAMESPACE_FILTER_KINDS.SPECIAL,
             label: t('nav.ns.clusterLevel'),
           },
         ];
@@ -210,8 +260,8 @@ export default {
           }
 
           out.push({
-            id:    `project://${ id }`,
-            kind:  'project',
+            id:    `${ NAMESPACE_FILTER_P_FULL_PREFIX }${ id }`,
+            kind:  NAMESPACE_FILTER_KINDS.PROJECT,
             label: t('nav.ns.project', { name: project.nameDisplay }),
           });
 
@@ -229,7 +279,7 @@ export default {
 
           out.push({
             id:       ALL_ORPHANS,
-            kind:     'project',
+            kind:     NAMESPACE_FILTER_KINDS.PROJECT,
             label:    t('nav.ns.orphan'),
             disabled: true,
           });
@@ -251,8 +301,8 @@ export default {
           out,
           namespaces.map((namespace) => {
             return {
-              id:    `ns://${ namespace.id }`,
-              kind:  'namespace',
+              id:    `${ NAMESPACE_FILTER_NS_FULL_PREFIX }${ namespace.id }`,
+              kind:  NAMESPACE_FILTER_KINDS.NAMESPACE,
               label: t('nav.ns.namespace', { name: namespace.nameDisplay }),
             };
           })
@@ -261,7 +311,7 @@ export default {
 
       function divider(out) {
         out.push({
-          kind:     'divider',
+          kind:     NAMESPACE_FILTER_KINDS.DIVIDER,
           label:    `Divider ${ out.length }`,
           disabled: true,
         });
@@ -269,16 +319,14 @@ export default {
     },
 
     isSingleSpecial() {
-      return this.value && this.value.length === 1 && this.value[0].kind === 'special';
+      return this.value && this.value.length === 1 && this.value[0].kind === NAMESPACE_FILTER_KINDS.SPECIAL;
     },
 
     value: {
       get() {
         // Use last picked filter from user preferences
         const prefs = this.$store.getters['prefs/get'](NAMESPACE_FILTERS);
-
-        const prefDefault = this.currentProduct?.customNamespaceFilter ? [] : [ALL_USER];
-        const values = prefs && prefs[this.key] ? prefs[this.key] : prefDefault;
+        const values = prefs && prefs[this.key] ? prefs[this.key] : this.defaultOption();
         const options = this.options;
 
         // Remove values that are not valid options
@@ -286,7 +334,7 @@ export default {
           .map((value) => {
             return findBy(options, 'id', value);
           })
-          .filter(x => !!x);
+          .filter((x) => !!x);
 
         return filters;
       },
@@ -294,22 +342,22 @@ export default {
       set(neu) {
         const old = (this.value || []).slice();
 
-        neu = neu.filter(x => !!x.id);
+        neu = neu.filter((x) => !!x.id);
 
         const last = neu[neu.length - 1];
-        const lastIsSpecial = last?.kind === SPECIAL;
-        const hadUser = !!old.find(x => x.id === ALL_USER);
-        const hadAll = !!old.find(x => x.id === ALL);
+        const lastIsSpecial = last?.kind === NAMESPACE_FILTER_KINDS.SPECIAL;
+        const hadUser = !!old.find((x) => x.id === ALL_USER);
+        const hadAll = !!old.find((x) => x.id === ALL);
 
         if (lastIsSpecial) {
           neu = [last];
         }
 
         if (neu.length > 1) {
-          neu = neu.filter(x => x.kind !== SPECIAL);
+          neu = neu.filter((x) => x.kind !== NAMESPACE_FILTER_KINDS.SPECIAL);
         }
 
-        if (neu.find(x => x.id === 'all')) {
+        if (neu.find((x) => x.id === 'all')) {
           neu = [];
         }
 
@@ -318,9 +366,9 @@ export default {
         // If there was something selected and you remove it, go back to user by default
         // Unless it was user or all
         if (neu.length === 0 && !hadUser && !hadAll) {
-          ids = this.currentProduct?.customNamespaceFilter ? [] : [ALL_USER];
+          ids = this.defaultOption();
         } else {
-          ids = neu.map(x => x.id);
+          ids = neu.map((x) => x.id);
         }
 
         this.$nextTick(() => {
@@ -371,17 +419,7 @@ export default {
         return namespaces;
       }
 
-      const isVirtualCluster = this.$store.getters['isVirtualCluster'];
-
       return namespaces.filter((namespace) => {
-        const isSettingSystemNamespace = this.$store.getters['systemNamespaces'].includes(namespace.metadata.name);
-        const systemNS = namespace.isSystem || namespace.isFleetManaged || isSettingSystemNamespace;
-
-        // For Harvester, filter out system namespaces AND obscure namespaces.
-        if (isVirtualCluster) {
-          return !systemNS && !namespace.isObscure;
-        }
-
         // Otherwise only filter out obscure namespaces, such as namespaces
         // that Rancher uses to manage RBAC for projects, which should not be
         // edited or deleted by Rancher users.
@@ -491,7 +529,7 @@ export default {
       }
     },
     mouseOver(event) {
-      const el = event?.path?.find(e => e.classList.contains('ns-option'));
+      const el = event?.path?.find((e) => e.classList.contains('ns-option'));
 
       this.activeElement = el;
     },
@@ -575,28 +613,27 @@ export default {
     },
     selectOption(option) {
       // Ignore click for a divider
-      if (option.kind === 'divider') {
+      if (option.kind === NAMESPACE_FILTER_KINDS.DIVIDER) {
         return;
       }
 
       const current = this.value;
-      const exists = current.findIndex(v => v.id === option.id);
-      const optionIsSelected = exists !== -1;
 
-      // Any type of mode means only a single resource can be selected. So clear out any stale
-      // values (multiple selected in another context OR a single one selected in this context)
-      if (this.namespaceFilterMode) {
-        if (current.length === 1 && optionIsSelected) {
-          // Don't deselect the only selected option
-          return;
-        }
-        current.length = 0;
+      // Remove invalid
+      if (!!this.namespaceFilterMode?.length) {
+        this.value.forEach((v) => {
+          if (!this.namespaceFilterMode.find((f) => f === v.kind)) {
+            const index = current.findIndex((c) => c.id === v.id);
+
+            current.splice(index, 1);
+          }
+        });
       }
 
-      const remove = !this.namespaceFilterMode && optionIsSelected;
+      const exists = current.findIndex((v) => v.id === option.id);
 
       // Remove if it exists (or always add if in singleton mode - we've reset the list above)
-      if (remove) {
+      if (exists !== -1) {
         current.splice(exists, 1);
       } else {
         current.push(option);
@@ -620,13 +657,35 @@ export default {
       this.selectOption(ns);
       event.preventDefault();
       event.stopPropagation();
-    }
+    },
+
+    defaultOption() {
+      // Note - This is one place where a default ns/project filter value is provided (ALL_USER)
+      // There's also..
+      // - dashboard root store `loadCluster` --> when `updateNamespaces` is dispatched
+      // - harvester root store `loadCluster` --> when `updateNamespaces` is dispatched (can be discarded)
+      // Due to this, we can't really set a nicer default when forced ns/project filtering is on (ALL_USER is invalid)
+      if (this.currentProduct?.customNamespaceFilter) {
+        return [];
+      }
+
+      return [ALL_USER];
+    },
+
+    calcNamespaceFilterMode() {
+      if (pAndNFiltering.isEnabled(this.$store.getters)) {
+        return [NAMESPACE_FILTER_KINDS.NAMESPACE, NAMESPACE_FILTER_KINDS.PROJECT];
+      }
+
+      return null;
+    },
   }
 };
 </script>
 
 <template>
   <div
+    v-if="!$fetchState.pending"
     class="ns-filter"
     data-testid="namespaces-filter"
     tabindex="0"
@@ -670,7 +729,7 @@ export default {
       <div
         v-else
         ref="values"
-        v-tooltip="tooltip"
+        v-clean-tooltip="tooltip"
         data-testid="namespaces-values"
         class="ns-values"
       >
@@ -690,8 +749,9 @@ export default {
           class="ns-value"
         >
           <div>{{ ns.label }}</div>
+          <!-- block user from removing the last selection if ns forced filtering is on -->
           <i
-            v-if="!namespaceFilterMode"
+            v-if="!namespaceFilterMode || value.length > 1"
             class="icon icon-close"
             :data-testid="`namespaces-values-close-${j}`"
             @click="removeOption(ns, $event)"
@@ -704,7 +764,7 @@ export default {
       <div
         v-if="hidden > 0"
         ref="more"
-        v-tooltip="tooltip"
+        v-clean-tooltip="tooltip"
         class="ns-more"
       >
         {{ t('namespaceFilter.more', { more: hidden }) }}
@@ -750,7 +810,7 @@ export default {
           class="ns-singleton-info"
         >
           <i
-            v-tooltip="t('resourceList.nsFilterToolTip', { mode: namespaceFilterMode})"
+            v-clean-tooltip="t('resourceList.nsFilterToolTip')"
             class="icon icon-info"
           />
         </div>
@@ -787,7 +847,7 @@ export default {
           @keydown="itemKeyHandler($event, opt)"
         >
           <div
-            v-if="opt.kind === 'divider'"
+            v-if="opt.kind === NAMESPACE_FILTER_KINDS.DIVIDER"
             class="ns-divider"
           />
           <div
@@ -795,7 +855,7 @@ export default {
             class="ns-item"
           >
             <i
-              v-if="opt.kind === 'namespace'"
+              v-if="opt.kind === NAMESPACE_FILTER_KINDS.NAMESPACE"
               class="icon icon-folder"
             />
             <div>{{ opt.label }}</div>
@@ -947,6 +1007,14 @@ export default {
             .ns-item {
               > * {
                 color: var(--dropdown-hover-bg);
+              }
+            }
+
+            &:focus {
+              .ns-item {
+                > * {
+                  color: var(--dropdown-hover-text);
+                }
               }
             }
           }

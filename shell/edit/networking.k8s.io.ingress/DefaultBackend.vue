@@ -44,12 +44,12 @@ export default {
       return this.mode === _VIEW;
     },
     portOptions() {
-      const service = this.serviceTargets.find(s => s.label === this.serviceName);
+      const service = this.serviceTargets.find((s) => s.label === this.serviceName);
 
       return service?.ports || [];
     },
     serviceTargetStatus() {
-      const isValueAnOption = !this.serviceName || this.serviceTargets.find(target => this.serviceName === target.value);
+      const isValueAnOption = !this.serviceName || this.serviceTargets.find((target) => this.serviceName === target.value);
 
       return isValueAnOption ? null : 'warning';
     },

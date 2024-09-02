@@ -14,7 +14,7 @@ export default {
     <span>{{ value.displayName }}</span>
     <i
       v-if="value.upgrade"
-      v-tooltip="t('cluster.rkeTemplateUpgrade', { name: value.upgrade })"
+      v-clean-tooltip="t('cluster.rkeTemplateUpgrade', { name: value.upgrade })"
       class="template-upgrade-icon icon-alert icon"
     />
   </div>

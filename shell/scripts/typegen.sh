@@ -13,22 +13,31 @@ echo "Generating ..."
 
 # utils
 ${BASE_DIR}/node_modules/.bin/tsc shell/utils/*.js --declaration --allowJs --emitDeclarationOnly --outDir ${SHELL_DIR}/tmp/utils > /dev/null
+${BASE_DIR}/node_modules/.bin/tsc shell/utils/validators/*.js --declaration --allowJs --emitDeclarationOnly --outDir ${SHELL_DIR}/tmp/utils/validators > /dev/null
+${BASE_DIR}/node_modules/.bin/tsc shell/utils/crypto/*.js --declaration --allowJs --emitDeclarationOnly --outDir ${SHELL_DIR}/tmp/utils/crypto > /dev/null
 
 # config
 ${BASE_DIR}/node_modules/.bin/tsc shell/config/query-params.js --declaration --allowJs --emitDeclarationOnly --outDir ${SHELL_DIR}/tmp/config > /dev/null
 ${BASE_DIR}/node_modules/.bin/tsc shell/config/table-headers.js --declaration --allowJs --emitDeclarationOnly --outDir ${SHELL_DIR}/tmp/config > /dev/null
 ${BASE_DIR}/node_modules/.bin/tsc shell/config/types.js --declaration --allowJs --emitDeclarationOnly --outDir ${SHELL_DIR}/tmp/config > /dev/null
+${BASE_DIR}/node_modules/.bin/tsc shell/config/labels-annotations.js --declaration --allowJs --emitDeclarationOnly --outDir ${SHELL_DIR}/tmp/config > /dev/null
 
 # store
 ${BASE_DIR}/node_modules/.bin/tsc shell/store/features.js --declaration --allowJs --emitDeclarationOnly --outDir ${SHELL_DIR}/tmp/store > /dev/null
+${BASE_DIR}/node_modules/.bin/tsc shell/store/prefs.js --declaration --allowJs --emitDeclarationOnly --outDir ${SHELL_DIR}/tmp/store > /dev/null
 
 # plugins
 ${BASE_DIR}/node_modules/.bin/tsc shell/plugins/dashboard-store/normalize.js --declaration --allowJs --emitDeclarationOnly --outDir ${SHELL_DIR}/tmp/plugins/dashboard-store/ > /dev/null
 ${BASE_DIR}/node_modules/.bin/tsc shell/plugins/dashboard-store/resource-class.js --declaration --allowJs --emitDeclarationOnly --outDir ${SHELL_DIR}/tmp/plugins/dashboard-store/ > /dev/null
+${BASE_DIR}/node_modules/.bin/tsc shell/plugins/dashboard-store/classify.js --declaration --allowJs --emitDeclarationOnly --outDir ${SHELL_DIR}/tmp/plugins/dashboard-store/ > /dev/null
+${BASE_DIR}/node_modules/.bin/tsc shell/plugins/dashboard-store/actions.js --declaration --allowJs --emitDeclarationOnly --outDir ${SHELL_DIR}/tmp/plugins/dashboard-store/ > /dev/null
 
-
-# mkixins
+# mixins
 ${BASE_DIR}/node_modules/.bin/tsc shell/mixins/create-edit-view/index.js --declaration --allowJs --emitDeclarationOnly --outDir ${SHELL_DIR}/tmp/mixins/create-edit-view > /dev/null
+
+# models
+${BASE_DIR}/node_modules/.bin/tsc shell/models/namespace.js --declaration --allowJs --emitDeclarationOnly --outDir ${SHELL_DIR}/tmp/models/ > /dev/null
+${BASE_DIR}/node_modules/.bin/tsc shell/models/networking.k8s.io.ingress.js --declaration --allowJs --emitDeclarationOnly --outDir ${SHELL_DIR}/tmp/models/ > /dev/null
 
 #./node_modules/.bin/tsc shell/plugins/dashboard-store/*.js --declaration --allowJs --emitDeclarationOnly --outDir ${SHELL_DIR}/tmp/plugins/dashboard-store > /dev/null
 

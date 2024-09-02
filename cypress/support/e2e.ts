@@ -1,5 +1,12 @@
 import '@cypress/code-coverage/support';
-import './commands';
+import './commands/commands';
+import './commands/chainable';
+import './commands/rancher-api-commands';
+import registerCypressGrep from '@cypress/grep/src/support';
+import { addCustomCommand } from 'cypress-delete-downloads-folder';
+
+registerCypressGrep();
+addCustomCommand();
 
 // TODO handle redirection errors better?
 // we see a lot of 'error navigation cancelled' uncaught exceptions that don't actually break anything; ignore them here

@@ -39,6 +39,7 @@ export default {
         :placeholder="question.description"
         :required="question.required"
         :value="value"
+        :tooltip="displayTooltip"
         @input="!$fetchState.pending && $emit('input', $event)"
       />
     </div>

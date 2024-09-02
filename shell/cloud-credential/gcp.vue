@@ -64,8 +64,8 @@ export default {
       @selected="onFileSelected"
     />
     <p
+      v-clean-html="t('cluster.credential.gcp.authEncodedJson.help', {}, true)"
       class="text-muted"
-      v-html="t('cluster.credential.gcp.authEncodedJson.help', {}, true)"
     />
   </div>
 </template>

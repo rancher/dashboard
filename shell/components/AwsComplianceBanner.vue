@@ -17,7 +17,7 @@ export default {
     // The notification will always come from the csp-adapter component & there will be no more than one
     // Backend will remove the notification when its no longer relevant
     awsNotification() {
-      return this.notifications.find(notification => notification.componentName === 'csp-adapter');
+      return this.notifications.find((notification) => notification.componentName === 'csp-adapter');
     }
   }
 };

@@ -23,13 +23,15 @@ export default {
         const encoded = base64Encode(credentials);
 
         const requestOptions = {
-          method:  'POST',
-          headers: { 'Content-Type': 'application/x-www-form-urlencoded', 'X-API-Auth-Header': `Basic ${ encoded }` },
-          body:    'grant_type=client_credentials'
+          url:                  'meta/proxy/auth.phoenixnap.com/auth/realms/BMC/protocol/openid-connect/token/',
+          method:               'POST',
+          headers:              { 'Content-Type': 'application/x-www-form-urlencoded', 'X-API-Auth-Header': `Basic ${ encoded }` },
+          data:                 'grant_type=client_credentials',
+          redirectUnauthorized: false,
         };
 
-        const response = await fetch('meta/proxy/auth.phoenixnap.com/auth/realms/BMC/protocol/openid-connect/token/', requestOptions);
-        const data = await response.json();
+        const response = await this.$store.dispatch('management/request', requestOptions);
+        const data = await response;
 
         if (data.access_token !== undefined && data.access_token !== null && data.access_token !== '') {
           return true;
@@ -70,8 +72,8 @@ export default {
     </div>
     <div class="row mt-5">
       <p
+        v-clean-html="t('cluster.credential.pnap.clientSecret.help', {}, true)"
         class="text-muted mt-10"
-        v-html="t('cluster.credential.pnap.clientSecret.help', {}, true)"
       />
     </div>
   </div>

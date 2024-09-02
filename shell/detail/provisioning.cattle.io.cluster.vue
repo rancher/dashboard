@@ -1,7 +1,7 @@
 <script>
 import Loading from '@shell/components/Loading';
 import { Banner } from '@components/Banner';
-import ResourceTable from '@shell/components/ResourceTable';
+import ResourceTable, { defaultTableSortGenerationFn } from '@shell/components/ResourceTable';
 import ResourceTabs from '@shell/components/form/ResourceTabs';
 import SortableTable from '@shell/components/SortableTable';
 import CopyCode from '@shell/components/CopyCode';
@@ -11,13 +11,14 @@ import { CAPI, MANAGEMENT, NORMAN, SNAPSHOT } from '@shell/config/types';
 import {
   STATE, NAME as NAME_COL, AGE, AGE_NORMAN, INTERNAL_EXTERNAL_IP, STATE_NORMAN, ROLES, MACHINE_NODE_OS, MANAGEMENT_NODE_OS, NAME,
 } from '@shell/config/table-headers';
+import { STATES_ENUM } from '@shell/plugins/dashboard-store/resource-class';
 import CustomCommand from '@shell/edit/provisioning.cattle.io.cluster/CustomCommand';
 import AsyncButton from '@shell/components/AsyncButton.vue';
 import AnsiUp from 'ansi_up';
 import day from 'dayjs';
 import { addParams } from '@shell/utils/url';
 import { base64Decode } from '@shell/utils/crypto';
-import { DATE_FORMAT, TIME_FORMAT } from '@shell/store/prefs';
+import { DATE_FORMAT, TIME_FORMAT, SCALE_POOL_PROMPT } from '@shell/store/prefs';
 import { escapeHtml } from '@shell/utils/string';
 import MachineSummaryGraph from '@shell/components/formatter/MachineSummaryGraph';
 import Socket, {
@@ -29,6 +30,7 @@ import Socket, {
 } from '@shell/utils/socket';
 import { get } from '@shell/utils/object';
 import CapiMachineDeployment from '@shell/models/cluster.x-k8s.io.machinedeployment';
+import { isAlternate } from '@shell/utils/platform';
 
 let lastId = 1;
 const ansiup = new AnsiUp();
@@ -79,7 +81,26 @@ export default {
 
   async fetch() {
     await this.value.waitForProvisioner();
-    const fetchOne = {};
+
+    const extClass = this.$plugin.getDynamic('provisioner', this.value.machineProvider);
+
+    if (extClass) {
+      this.extProvider = new extClass({
+        dispatch: this.$store.dispatch,
+        getters:  this.$store.getters,
+        axios:    this.$store.$axios,
+        $plugin:  this.$store.app.$plugin,
+        $t:       this.t
+      });
+      this.extDetailTabs = {
+        ...this.extDetailTabs,
+        ...this.extProvider.detailTabs
+      };
+      this.extCustomParams = { provider: this.value.machineProvider };
+    }
+
+    const schema = this.$store.getters[`management/schemaFor`](CAPI.RANCHER_CLUSTER);
+    const fetchOne = { schemaDefinitions: schema.fetchResourceFields() };
 
     if ( this.$store.getters['management/canList'](CAPI.MACHINE_DEPLOYMENT) ) {
       fetchOne.machineDeployments = this.$store.dispatch('management/findAll', { type: CAPI.MACHINE_DEPLOYMENT });
@@ -119,7 +140,7 @@ export default {
 
     if (fetchOneRes.normanClusters) {
       // Does the user have access to the local cluster? Need to in order to be able to show the 'Related Resources' tab
-      this.hasLocalAccess = !!fetchOneRes.normanClusters.find(c => c.internal);
+      this.hasLocalAccess = !!fetchOneRes.normanClusters.find((c) => c.internal);
     }
 
     const fetchTwo = {};
@@ -204,6 +225,18 @@ export default {
       logSocket: null,
       logs:      [],
 
+      extProvider:     null,
+      extCustomParams: null,
+      extDetailTabs:   {
+        machines:     true, // in this component
+        logs:         true, // in this component
+        registration: true, // in this component
+        snapshots:    true, // in this component
+        related:      true, // in ResourceTabs
+        events:       true, // in ResourceTabs
+        conditions:   true, // in ResourceTabs
+      },
+
       showWindowsWarning: false
     };
   },
@@ -218,8 +251,10 @@ export default {
 
   computed: {
     defaultTab() {
-      if (this.showRegistration && !this.machines?.length) {
-        return 'registration';
+      if (this.showRegistration) {
+        if (this.value.isRke2 ? !this.machines?.length : !this.nodes?.length) {
+          return 'registration';
+        }
       }
 
       if (this.showMachines) {
@@ -247,13 +282,33 @@ export default {
     },
 
     fakeMachines() {
+      const machineNameFn = (clusterName, machinePoolName) => `${ clusterName }-${ machinePoolName }`;
+
       // When we scale up, the quantity will change to N+1 - so from 0 to 1, the quantity changes,
       // but it takes tiem for the machine to appear, so the pool is empty, but if we just go off on a non-zero quqntity
       // then the pool would be hidden - so we find empty pool by checking the machines
       const emptyPools = (this.value.spec.rkeConfig?.machinePools || []).filter((mp) => {
-        const machinePrefix = `${ this.value.name }-${ mp.name }`;
+        const machineFullName = machineNameFn(this.value.name, mp.name);
+
         const machines = this.value.machines.filter((machine) => {
-          return machine.spec?.infrastructureRef?.name.startsWith(machinePrefix);
+          const isElementalCluster = machine.spec?.infrastructureRef?.apiVersion.startsWith('elemental.cattle.io');
+          const machinePoolInfName = machine.spec?.infrastructureRef?.name;
+
+          if (isElementalCluster) {
+            return machinePoolInfName.includes(machineFullName);
+          }
+
+          // if labels exist, then the machineFullName must unequivocally be equal to manchineLabelFullName (based on labels)
+          const machineLabelClusterName = machine.metadata?.labels?.['cluster.x-k8s.io/cluster-name'];
+          const machineLabelPoolName = machine.metadata?.labels?.['rke.cattle.io/rke-machine-pool-name'];
+
+          if (machineLabelClusterName && machineLabelPoolName) {
+            const manchineLabelFullName = machineNameFn(machineLabelClusterName, machineLabelPoolName);
+
+            return machineFullName === manchineLabelFullName;
+          }
+
+          return machinePoolInfName.startsWith(machineFullName);
         });
 
         return machines.length === 0;
@@ -280,14 +335,15 @@ export default {
         const templateNamePrefix = `${ pool.metadata.name }-`;
 
         // All of these properties are needed to ensure the pool displays correctly and that we can scale up and down
-        pool._template = this.machineTemplates.find(t => t.metadata.name.startsWith(templateNamePrefix));
+        pool._template = this.machineTemplates.find((t) => t.metadata.name.startsWith(templateNamePrefix));
         pool._cluster = this.value;
         pool._clusterSpec = mp;
 
         return {
-          poolId:     pool.id,
-          mainRowKey: 'isFake',
+          poolId:           pool.id,
+          mainRowKey:       'isFake',
           pool,
+          availableActions: []
         };
       });
     },
@@ -297,24 +353,27 @@ export default {
     },
 
     nodes() {
-      const nodes = this.allNodes.filter(x => x.mgmtClusterId === this.value.mgmtClusterId);
+      const nodes = this.allNodes.filter((x) => x.mgmtClusterId === this.value.mgmtClusterId);
 
       return [...nodes, ...this.fakeNodes];
     },
 
     fakeNodes() {
       // When a pool has no nodes it's not shown.... so add a fake node to it
-      const emptyNodePools = this.allNodePools.filter(x => x.spec.clusterName === this.value.mgmtClusterId && x.spec.quantity === 0);
+      const emptyNodePools = this.allNodePools.filter((x) => x.spec.clusterName === this.value.mgmtClusterId && x.spec.quantity === 0);
 
-      return emptyNodePools.map(np => ({
-        spec:       { nodePoolName: np.id.replace('/', ':') },
-        mainRowKey: 'isFake',
-        pool:       np,
+      return emptyNodePools.map((np) => ({
+        spec:             { nodePoolName: np.id.replace('/', ':') },
+        mainRowKey:       'isFake',
+        pool:             np,
+        availableActions: []
       }));
     },
 
     showMachines() {
-      return this.haveMachines && (this.value.isRke2 || !!this.machines.length);
+      const showMachines = this.haveMachines && (this.value.isRke2 || !!this.machines.length);
+
+      return showMachines && this.extDetailTabs.machines;
     },
 
     showNodes() {
@@ -323,17 +382,17 @@ export default {
 
     showSnapshots() {
       if (this.value.isRke1) {
-        return this.$store.getters['rancher/canList'](NORMAN.ETCD_BACKUP);
+        return this.$store.getters['rancher/canList'](NORMAN.ETCD_BACKUP) && this.extDetailTabs.snapshots;
       } else if (this.value.isRke2) {
-        return this.$store.getters['management/canList'](SNAPSHOT);
+        return this.$store.getters['management/canList'](SNAPSHOT) && this.extDetailTabs.snapshots;
       }
 
       return false;
     },
 
     showEksNodeGroupWarning() {
-      if ( this.value.provisioner === 'EKS' ) {
-        const desiredTotal = this.value.eksNodeGroups.filter(g => g.desiredSize === 0);
+      if ( this.value.provisioner === 'EKS' && this.value.state !== STATES_ENUM.ACTIVE) {
+        const desiredTotal = this.value.eksNodeGroups.filter((g) => g.desiredSize === 0);
 
         if ( desiredTotal.length === this.value.eksNodeGroups.length ) {
           return true;
@@ -389,7 +448,7 @@ export default {
         return [];
       }
 
-      return (this.etcdBackups || []).filter(x => x.clusterId === mgmtId);
+      return (this.etcdBackups || []).filter((x) => x.clusterId === mgmtId);
     },
 
     rke2Snapshots() {
@@ -453,16 +512,19 @@ export default {
         return false;
       }
 
-      if ( this.value.isImported ) {
-        return !this.value.mgmt?.isReady;
-      }
-
       if ( this.value.isCustom ) {
-        return true;
+        return this.extDetailTabs.registration;
       }
 
-      if ( this.value.isHostedKubernetesProvider && !this.isClusterReady ) {
-        return true;
+      if ( this.value.isImported ) {
+        return !this.value.mgmt?.isReady && this.extDetailTabs.registration;
+      }
+
+      // Hosted kubernetes providers with private endpoints need the registration tab
+      // https://github.com/rancher/dashboard/issues/6036
+      // https://github.com/rancher/dashboard/issues/4545
+      if ( this.value.isHostedKubernetesProvider && this.value.isPrivateHostedProvider && !this.isClusterReady ) {
+        return this.extDetailTabs.registration;
       }
 
       return false;
@@ -473,7 +535,9 @@ export default {
     },
 
     showLog() {
-      return this.value.mgmt?.hasLink('log');
+      const showLog = this.value.mgmt?.hasLink('log');
+
+      return showLog && this.extDetailTabs.logs;
     },
 
     dateTimeFormatStr() {
@@ -487,11 +551,23 @@ export default {
     },
 
     hasWindowsMachine() {
-      return this.machines.some(machine => get(machine, 'status.nodeInfo.operatingSystem') === 'windows');
+      return this.machines.some((machine) => get(machine, 'status.nodeInfo.operatingSystem') === 'windows');
     },
 
     snapshotsGroupBy() {
       return 'backupLocation';
+    },
+
+    extDetailTabsRelated() {
+      return this.extDetailTabs?.related;
+    },
+
+    extDetailTabsEvents() {
+      return this.extDetailTabs?.events;
+    },
+
+    extDetailTabsConditions() {
+      return this.extDetailTabs?.conditions;
     }
   },
 
@@ -500,6 +576,24 @@ export default {
   },
 
   methods: {
+    toggleScaleDownModal( event, resources ) {
+      // Check if the user held alt key when an action is clicked.
+      const alt = isAlternate(event);
+      const showScalePoolPrompt = this.$store.getters['prefs/get'](SCALE_POOL_PROMPT);
+
+      // Prompt if showScalePoolPrompt pref not store and user did not held alt key
+      if (!alt && !showScalePoolPrompt) {
+        this.$store.dispatch('management/promptModal', {
+          component:  'ScalePoolDownDialog',
+          resources,
+          modalWidth: '450px'
+        });
+      } else {
+        // User held alt key, so don't prompt
+        resources.scalePool(-1);
+      }
+    },
+
     async takeSnapshot(btnCb) {
       try {
         await this.value.takeSnapshot();
@@ -599,6 +693,26 @@ export default {
         return day(time).format(this.dateTimeFormatStr);
       }
     },
+
+    machineSortGenerationFn() {
+      // The sort generation function creates a unique value and is used to create a key including sort details.
+      // The unique key determines if the list is redrawn or a cached version is shown.
+      // Because we ensure the 'not in a pool' group is there via a row, and timing issues, the unqiue key doesn't change
+      // after a machine is added/removed... so the list won't update... so we need to inject a string to ensure the key is fresh
+      const base = defaultTableSortGenerationFn(this.machineSchema, this.$store);
+
+      return base + (!!this.fakeMachines.length ? '-fake' : '');
+    },
+
+    nodeSortGenerationFn() {
+      // The sort generation function creates a unique value and is used to create a key including sort details.
+      // The unique key determines if the list is redrawn or a cached version is shown.
+      // Because we ensure the 'not in a pool' group is there via a row, and timing issues, the unqiue key doesn't change
+      // after a machine is added/removed... so the list won't update... so we need to inject a string to ensure the key is fresh
+      const base = defaultTableSortGenerationFn(this.mgmtNodeSchema, this.$store);
+
+      return base + (!!this.fakeNodes.length ? '-fake' : '');
+    },
   }
 };
 </script>
@@ -626,6 +740,10 @@ export default {
       v-model="value"
       :default-tab="defaultTab"
       :need-related="hasLocalAccess"
+      :extension-params="extCustomParams"
+      :needRelated="extDetailTabsRelated"
+      :needEvents="extDetailTabsEvents"
+      :needConditions="extDetailTabsConditions"
     >
       <Tab
         v-if="showMachines"
@@ -642,6 +760,7 @@ export default {
           :group-by="value.isCustom ? null : 'poolId'"
           group-ref="pool"
           :group-sort="['pool.nameDisplay']"
+          :sort-generation-fn="machineSortGenerationFn"
         >
           <template #main-row:isFake="{fullColspan}">
             <tr class="main-row">
@@ -665,17 +784,17 @@ export default {
               >
                 <div
                   v-if="group && group.ref"
-                  v-html="group.ref.groupByPoolShortLabel"
+                  v-clean-html="group.ref.groupByPoolShortLabel"
                 />
                 <div
                   v-else
-                  v-html="t('resourceTable.groupLabel.notInANodePool')"
+                  v-clean-html="t('resourceTable.groupLabel.notInANodePool')"
                 />
                 <div
-                  v-if="group.ref && group.ref.template"
+                  v-if="group.ref && group.ref.providerSummary"
                   class="description text-muted text-small"
                 >
-                  {{ group.ref.providerDisplay }} &ndash;  {{ group.ref.providerLocation }} / {{ group.ref.providerSize }} ({{ group.ref.providerName }})
+                  {{ group.ref.providerSummary }}
                 </div>
               </div>
               <div
@@ -683,22 +802,23 @@ export default {
                 class="right group-header-buttons mr-20"
               >
                 <MachineSummaryGraph
+                  v-if="poolSummaryInfo[group.ref]"
                   :row="poolSummaryInfo[group.ref]"
                   :horizontal="true"
                   class="mr-20"
                 />
                 <template v-if="value.hasLink('update') && group.ref.showScalePool">
                   <button
-                    v-tooltip="t('node.list.scaleDown')"
+                    v-clean-tooltip="t('node.list.scaleDown')"
                     :disabled="!group.ref.canScaleDownPool()"
                     type="button"
                     class="btn btn-sm role-secondary"
-                    @click="group.ref.toggleScaleDownModal($event)"
+                    @click="toggleScaleDownModal($event, group.ref)"
                   >
                     <i class="icon icon-sm icon-minus" />
                   </button>
                   <button
-                    v-tooltip="t('node.list.scaleUp')"
+                    v-clean-tooltip="t('node.list.scaleUp')"
                     :disabled="!group.ref.canScaleUpPool()"
                     type="button"
                     class="btn btn-sm role-secondary ml-10"
@@ -712,6 +832,7 @@ export default {
           </template>
         </ResourceTable>
       </Tab>
+
       <Tab
         v-else-if="showNodes"
         name="node-pools"
@@ -726,6 +847,7 @@ export default {
           :group-by="value.isCustom ? null : 'spec.nodePoolName'"
           group-ref="pool"
           :group-sort="['pool.nameDisplay']"
+          :sort-generation-fn="nodeSortGenerationFn"
         >
           <template #main-row:isFake="{fullColspan}">
             <tr class="main-row">
@@ -749,11 +871,11 @@ export default {
               >
                 <div
                   v-if="group.ref"
-                  v-html="t('resourceTable.groupLabel.nodePool', { name: group.ref.spec.hostnamePrefix}, true)"
+                  v-clean-html="t('resourceTable.groupLabel.nodePool', { name: group.ref.spec.hostnamePrefix}, true)"
                 />
                 <div
                   v-else
-                  v-html="t('resourceTable.groupLabel.notInANodePool')"
+                  v-clean-html="t('resourceTable.groupLabel.notInANodePool')"
                 />
                 <div
                   v-if="group.ref && group.ref.nodeTemplate"
@@ -773,16 +895,16 @@ export default {
                 />
                 <template v-if="group.ref.hasLink('update')">
                   <button
-                    v-tooltip="t('node.list.scaleDown')"
-                    :disabled="group.ref.spec.quantity < 2"
+                    v-clean-tooltip="t('node.list.scaleDown')"
+                    :disabled="!group.ref.canScaleDownPool()"
                     type="button"
                     class="btn btn-sm role-secondary"
-                    @click="group.ref.scalePool(-1)"
+                    @click="toggleScaleDownModal($event, group.ref)"
                   >
                     <i class="icon icon-sm icon-minus" />
                   </button>
                   <button
-                    v-tooltip="t('node.list.scaleUp')"
+                    v-clean-tooltip="t('node.list.scaleUp')"
                     type="button"
                     class="btn btn-sm role-secondary ml-10"
                     @click="group.ref.scalePool(1)"
@@ -825,13 +947,13 @@ export default {
               >
                 <td
                   :key="line.id + '-time'"
+                  v-clean-html="format(line.time)"
                   class="time"
-                  v-html="format(line.time)"
                 />
                 <td
                   :key="line.id + '-msg'"
+                  v-clean-html="line.msg"
                   class="msg"
-                  v-html="line.msg"
                 />
               </tr>
             </template>
@@ -869,22 +991,22 @@ export default {
           @copied-windows="hasWindowsMachine ? null : showWindowsWarning = true"
         />
         <template v-else>
-          <h4 v-html="t('cluster.import.commandInstructions', null, true)" />
+          <h4 v-clean-html="t('cluster.import.commandInstructions', null, true)" />
           <CopyCode class="m-10 p-10">
             {{ clusterToken.command }}
           </CopyCode>
 
           <h4
+            v-clean-html="t('cluster.import.commandInstructionsInsecure', null, true)"
             class="mt-10"
-            v-html="t('cluster.import.commandInstructionsInsecure', null, true)"
           />
           <CopyCode class="m-10 p-10">
             {{ clusterToken.insecureCommand }}
           </CopyCode>
 
           <h4
+            v-clean-html="t('cluster.import.clusterRoleBindingInstructions', null, true)"
             class="mt-10"
-            v-html="t('cluster.import.clusterRoleBindingInstructions', null, true)"
           />
           <CopyCode class="m-10 p-10">
             {{ t('cluster.import.clusterRoleBindingCommand', null, true) }}
@@ -900,6 +1022,7 @@ export default {
       >
         <SortableTable
           class="snapshots"
+          :data-testid="'cluster-snapshots-list'"
           :headers="value.isRke1 ? rke1SnapshotHeaders : rke2SnapshotHeaders"
           default-sort-by="age"
           :table-actions="value.isRke1"

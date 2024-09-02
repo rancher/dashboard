@@ -25,11 +25,50 @@ export default {
       const key = this.idKey;
 
       this.selectedName = tab.selectedName;
-      const container = this.containerOptions.find( c => c[key] === tab.selectedName);
+      const container = this.containerOptions.find( (c) => c[key] === tab.selectedName);
 
       if ( container ) {
         this.selectContainer(container);
       }
+    },
+
+    /**
+     * Find error exceptions to be mapped for each case
+     */
+    mapError(error) {
+      const isObject = error && typeof error === 'object' && !Array.isArray(error);
+      // We have just 2 cases, so we'll set a ternary operation:
+      // - one is for when we submit a YAML edited form (object - YAMLexceptions)
+      // - other is for a string message
+      const errorMessage = isObject ? error.message || '' : error || '';
+
+      switch (true) {
+      case errorMessage.includes('violates PodSecurity'): {
+        const match = errorMessage.match(/\"(.*?)\"/gi);
+        const name = match[0];
+        const policy = match[1];
+
+        return {
+          message: `Pod ${ name } Security Policy Violation ${ policy }`,
+          icon:    'icon-pod_security'
+        };
+      }
+      default:
+        break;
+      }
+    },
+
+    /**
+     * Map all the error texts to a message and icon object
+     */
+    getErrorsMap(errors) {
+      return !errors || !Array.isArray(errors) ? {} : errors.reduce((acc, error) => ({
+        ...acc,
+        [error]: this.mapError(error) || {
+          message: error,
+          icon:    null
+        }
+      }), {});
     }
   }
 };
@@ -51,6 +90,7 @@ export default {
       :subtypes="workloadSubTypes"
       :apply-hooks="applyHooks"
       :value="value"
+      :errors-map="getErrorsMap(fvUnreportedValidationErrors)"
       @finish="save"
       @select-type="selectType"
       @error="e=>errors = e"
@@ -195,7 +235,7 @@ export default {
                   <div class="col span-6">
                     <LabeledSelect
                       v-model="imagePullSecrets"
-                      :label="t('workload.container.imagePullSecrets')"
+                      :label="t('workload.container.imagePullSecrets.label')"
                       :multiple="true"
                       :taggable="true"
                       :options="imagePullNamespacedSecrets"
@@ -203,13 +243,23 @@ export default {
                       option-label="metadata.name"
                       :reduce="service=>service.metadata.name"
                       :create-option="createOption"
+                      :tooltip="t('workload.container.imagePullSecrets.tooltip')"
                     />
                   </div>
                 </div>
               </div>
               <div class="spacer" />
               <div>
-                <h3>{{ t('workload.container.titles.ports') }}</h3>
+                <h3>
+                  {{ t('workload.container.ports.expose') }}
+                  <i
+                    v-clean-tooltip="t('workload.container.ports.toolTip')"
+                    class="icon icon-info"
+                  />
+                </h3>
+                <p class="padded">
+                  {{ t('workload.container.ports.description') }}
+                </p>
                 <div class="row">
                   <WorkloadPorts
                     v-model="allContainers[i].ports"
@@ -531,7 +581,7 @@ export default {
               class="btn-sm role-link"
               @click="addContainerBtn"
             >
-              <i class="icon icon-plus" /> {{ t('workload.container.addContainer') }}
+              <i class="icon icon-plus pr-5" /> {{ t('workload.container.addContainer') }}
             </button>
           </li>
         </template>
@@ -599,5 +649,8 @@ export default {
     border-bottom: 1px solid var(--border);
     margin-bottom: 10px;
   }
+}
+.padded {
+  padding-bottom: 10px;
 }
 </style>

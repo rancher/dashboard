@@ -3,18 +3,29 @@ on:
   pull_request:
     branches:
       - master
-
+env:
+  TEST_PERSIST_BUILD: true
 jobs:
   validate:
     runs-on: ubuntu-latest
     steps:
     - name: Checkout
-      uses: actions/checkout@v1
+      uses: actions/checkout@v4
     - name: Setup Node.js
-      uses: actions/setup-node@v2
+      uses: actions/setup-node@v4
       with:
-        node-version: '14.x'
+        node-version: '16.20.2'
     - name: Validate Plugin build system
       run: ./shell/scripts/test-plugins-build.sh
       shell: bash
 
+    - name: Upload files
+      uses: actions/upload-artifact@v3
+      if: failure()
+      with:
+        name: test
+        path: |
+          /tmp/tmp.**/test-app
+          !/tmp/tmp.**/test-app/node_modules/
+          !/tmp/tmp.**/test-app/pkg/test-pkg/node_modules/
+        retention-days: 2

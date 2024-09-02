@@ -146,7 +146,8 @@ export default {
 
   methods: {
     updateMatchingPods: throttle(function() {
-      const allInNamespace = this.allPods.filter(pod => pod.metadata.namespace === this.value.metadata.namespace);
+      // See https://github.com/rancher/dashboard/issues/10417, all pods bad, need to replace local selector somehow
+      const allInNamespace = this.allPods.filter((pod) => pod.metadata.namespace === this.value.metadata.namespace);
       const match = matching(allInNamespace, this.podSelectorExpressions);
       const matched = match.length || 0;
       const sample = match[0]?.nameDisplay;
@@ -198,6 +199,7 @@ export default {
               class="mt-20 mb-10"
               :mode="mode"
               :label="t('networkpolicy.ingress.enable')"
+              data-testid="network-policy-ingress-enable-checkbox"
             />
             <PolicyRules
               v-if="hasIngressPolicies"
@@ -241,7 +243,7 @@ export default {
             <h2>
               {{ t('networkpolicy.selectors.label') }}
               <i
-                v-tooltip="t('networkpolicy.selectors.hint')"
+                v-clean-tooltip="t('networkpolicy.selectors.hint')"
                 class="icon icon-info"
               />
             </h2>
@@ -258,7 +260,7 @@ export default {
             <div class="row">
               <div class="col span-12">
                 <Banner color="success">
-                  <span v-html="t('networkpolicy.selectors.matchingPods.matchesSome', matchingPods)" />
+                  <span v-clean-html="t('networkpolicy.selectors.matchingPods.matchesSome', matchingPods)" />
                 </Banner>
               </div>
             </div>

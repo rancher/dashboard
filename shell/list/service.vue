@@ -1,7 +1,6 @@
 <script>
 import ResourceTable from '@shell/components/ResourceTable';
 import { NODE } from '@shell/config/types';
-import { allHash } from '@shell/utils/promise';
 import ResourceFetch from '@shell/mixins/resource-fetch';
 
 export default {
@@ -29,22 +28,14 @@ export default {
   async fetch() {
     const store = this.$store;
     const inStore = store.getters['currentStore']();
-    let hasNodes = false;
 
-    try {
-      const schema = store.getters[`${ inStore }/schemaFor`](NODE);
+    this.$initializeFetchData(this.resource);
 
-      if (schema) {
-        hasNodes = true;
-      }
-    } catch {}
-
-    const hash = { rows: this.$fetchType(this.resource) };
-
-    if (hasNodes) {
-      hash.nodes = store.dispatch(`${ inStore }/findAll`, { type: NODE });
+    if (store.getters[`${ inStore }/schemaFor`](NODE)) {
+      this.$fetchType(NODE);
     }
-    await allHash(hash);
+
+    await this.$fetchType(this.resource);
   }
 };
 </script>

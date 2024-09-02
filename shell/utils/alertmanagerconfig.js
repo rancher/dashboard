@@ -5,6 +5,25 @@ import { get, set } from '@shell/utils/object';
 import isEmpty from 'lodash/isEmpty';
 import { ROOT_NAME } from '@shell/models/monitoring.coreos.com.route';
 
+/**
+ * Find secondary schema's related to the primary `monitoring.coreos.com.alertmanagerconfig` schema
+ */
+export const fetchAlertManagerConfigSpecs = async($store) => {
+  const schema = $store.getters['cluster/schemaFor'](MONITORING.ALERTMANAGERCONFIG);
+
+  if (!schema) {
+    return;
+  }
+
+  // Make the http request to fetch schema definitions for alertmanagerconfig
+  await schema.fetchResourceFields();
+
+  return {
+    receiverSchema: schema.schemaDefinitions?.[`${ schema.schemaDefinition.id }.spec.receivers`],
+    routeSchema:    schema.schemaDefinitions?.[`${ schema.schemaDefinition.id }.spec.route`],
+  };
+};
+
 const DEFAULT_SECRET_ID = 'cattle-monitoring-system/alertmanager-rancher-monitoring-alertmanager';
 const ALERTMANAGER_ID = 'cattle-monitoring-system/rancher-monitoring-alertmanager';
 
@@ -71,7 +90,7 @@ export async function updateConfig(dispatch, path, type, updateFn) {
   set(config, path, newValue);
 
   const routes = config.route.routes;
-  const rootIndex = routes.findIndex(route => route.name === ROOT_NAME);
+  const rootIndex = routes.findIndex((route) => route.name === ROOT_NAME);
 
   routes.forEach((route) => {
     if (route.name) {
@@ -97,8 +116,8 @@ export async function getAllReceivers(dispatch) {
   try {
     const { config, secret } = await loadConfig(dispatch);
     const receivers = config.receivers || [];
-    const receiversWithName = receivers.filter(receiver => receiver.name);
-    const mapped = receiversWithName.map(receiver => dispatch('cluster/create', {
+    const receiversWithName = receivers.filter((receiver) => receiver.name);
+    const mapped = receiversWithName.map((receiver) => dispatch('cluster/create', {
       id:   receiver.name,
       spec: receiver,
       type: MONITORING.SPOOFED.RECEIVER,
@@ -123,7 +142,7 @@ export async function getAllRoutes(dispatch) {
 
     routes.push(config.route);
 
-    const mapped = routes.map(route => dispatch('cluster/create', {
+    const mapped = routes.map((route) => dispatch('cluster/create', {
       id:   route.name,
       spec: route,
       type: MONITORING.SPOOFED.ROUTE,

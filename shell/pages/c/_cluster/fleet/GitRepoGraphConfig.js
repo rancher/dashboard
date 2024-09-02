@@ -61,7 +61,7 @@ export const gitRepoGraphConfig = {
         children:       []
       };
 
-      const bds = data.bundleDeployments.filter(bd => bundle.id === `${ bd.metadata?.labels?.['fleet.cattle.io/bundle-namespace'] }/${ bd.metadata?.labels?.['fleet.cattle.io/bundle-name'] }`);
+      const bds = data.bundleDeployments.filter((bd) => bundle.id === `${ bd.metadata?.labels?.['fleet.cattle.io/bundle-namespace'] }/${ bd.metadata?.labels?.['fleet.cattle.io/bundle-name'] }`);
 
       bds.forEach((bd) => {
         const bdLowercaseState = bd.state ? bd.state.toLowerCase() : 'unknown';

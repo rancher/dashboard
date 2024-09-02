@@ -1,0 +1,48 @@
+#!/bin/bash
+set -e
+set -x
+
+# Builds a production version of dashboard directly in the dist folder with the
+# base configured to be /dashboard so that this can be mapped or copied into a docker container
+# deploymet of Rancher
+
+# This is currently used by the e2e tests to build a version of dashboard and map this into
+# the docker container to avoid having to run a separate node process to serve up the dashboard static assets
+
+BUILD_DEBUG="${BUILD_DEBUG:-}"
+if [[ -n "${BUILD_DEBUG}" ]]; then
+    set -x
+    env
+fi
+
+# This can be used to skip building the dashboard if we're solely interested in testing tests / framework
+BUILD_DASHBOARD="${BUILD_DASHBOARD:-true}"
+
+cd $(dirname $0)/..
+
+OUTPUT_DIR="${E2E_BUILD_DIST_DIR:-dist}"
+
+# Note - When fetching dashboard / ui from CDN
+# we can't pull the `latest` or `latest2` directory and we don't build a tar.gz for latest builds...
+# ...so just fetch the latest index.html which references latest CDN bits
+
+if [ "$BUILD_DASHBOARD" == "true" ]; then
+    echo "Building production build for e2e ..."
+    yarn --pure-lockfile install
+
+    source scripts/version
+    echo "BRANCH: ${COMMIT_BRANCH:-<none>}"
+    echo "TAG: ${GIT_TAG:-<none>}"
+
+    echo "Building..."
+    COMMIT=${COMMIT} VERSION=${VERSION} OUTPUT_DIR=$OUTPUT_DIR ROUTER_BASE='/dashboard/' RESOURCE_BASE='/dashboard/' yarn run build
+else
+    curl https://releases.rancher.com/dashboard/latest/index.html -k -o $OUTPUT_DIR/index.html
+fi
+
+# Ensure we have the latest ember (rancher/ui) build as well
+OUTPUT_EMBER_DIR="${E2E_BUILD_DIST_EMBER_DIR:-dist_ember}"
+
+echo "Pulling latest rancher/ui"
+mkdir $OUTPUT_EMBER_DIR
+curl https://releases.rancher.com/ui/latest2/index.html -k -o $OUTPUT_EMBER_DIR/index.html

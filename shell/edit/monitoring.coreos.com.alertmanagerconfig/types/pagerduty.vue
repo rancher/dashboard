@@ -123,7 +123,6 @@ export default {
       }
     }
   }
-
 };
 </script>
 
@@ -185,10 +184,11 @@ export default {
     <div class="row mb-20">
       <div class="col span-12">
         <LabeledInput
-          v-model="value.httpConfig.proxyUrl"
+          v-model="value.httpConfig.proxyURL"
           :mode="mode"
           label="Proxy URL"
           placeholder="e.g. http://my-proxy/"
+          data-testid="v2-monitoring-receiver-pagerduty-proxy-url"
         />
       </div>
     </div>

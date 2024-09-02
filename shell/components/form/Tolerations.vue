@@ -27,7 +27,27 @@ export default {
   },
 
   data() {
-    return { rules: [...this.value] };
+    const rules = [];
+
+    // on creation in agent configuration, the backend "eats"
+    // the empty "effect" string, which doesn't happen on edit
+    // just to make sure we populate it correcty, let's consider
+    // no prop "effect" as an empty string which means all
+    // https://kubernetes.io/docs/reference/generated/kubernetes-api/v1.25/#toleration-v1-core
+    if (this.value.length) {
+      this.value.forEach((v) => {
+        if (!Object.keys(v).includes('effect')) {
+          rules.push({
+            ...v,
+            effect: ''
+          });
+        } else {
+          rules.push(v);
+        }
+      });
+    }
+
+    return { rules };
   },
 
   computed: {
@@ -83,7 +103,7 @@ export default {
       return [
         {
           label: this.t('workload.scheduling.tolerations.effectOptions.all'),
-          value: 'All'
+          value: ''
         },
         {
           label: this.t('workload.scheduling.tolerations.effectOptions.noSchedule'),
@@ -115,17 +135,43 @@ export default {
     },
 
     update() {
-      this.$emit('input', this.rules);
+      // let's delete the vKey prop as it's only poluting the data
+      const rules = this.rules.map((rule) => {
+        const newRule = { ...rule };
+
+        // prevent vKey from being sent as data
+        if (newRule.vKey) {
+          delete newRule.vKey;
+        }
+
+        // let's clear the value field if operator is Exists
+        if (newRule.operator === 'Exists' && newRule.value) {
+          newRule.value = null;
+        }
+
+        // remove effect from payload sent upstream, as it's empty
+        // it should be null, but the Select input doesn't seem to like it
+        // so we keep it as '' and sanitize it here
+        if (newRule.effect === '') {
+          delete newRule.effect;
+        }
+
+        return newRule;
+      });
+
+      this.$emit('input', rules);
     },
 
     addToleration() {
-      this.rules.push({ vKey: random32() });
+      this.rules.push({ vKey: random32(), effect: '' });
     },
 
     updateEffect(neu, rule) {
       if (neu !== 'NoExecute' && rule.tolerationSeconds) {
         delete rule.tolerationSeconds;
       }
+
+      this.update();
     }
   }
 
@@ -146,7 +192,7 @@ export default {
       <span />
     </div>
     <div
-      v-for="rule in rules"
+      v-for="(rule, index) in rules"
       :key="rule.vKey"
       class="rule"
     >
@@ -154,6 +200,9 @@ export default {
         <LabeledInput
           v-model="rule.key"
           :mode="mode"
+          :data-testid="`toleration-key-index${ index }`"
+          class="height-adjust-input"
+          @input="update"
         />
       </div>
       <div class="col">
@@ -162,6 +211,7 @@ export default {
           v-model="rule.operator"
           :options="operatorOpts"
           :mode="mode"
+          :data-testid="`toleration-operator-index${ index }`"
           @input="update"
         />
       </div>
@@ -171,6 +221,7 @@ export default {
             value="n/a"
             :mode="mode"
             disabled
+            class="height-adjust-input"
           />
         </div>
       </template>
@@ -179,6 +230,9 @@ export default {
           <LabeledInput
             v-model="rule.value"
             :mode="mode"
+            :data-testid="`toleration-value-index${ index }`"
+            class="height-adjust-input"
+            @input="update"
           />
         </div>
       </template>
@@ -187,6 +241,7 @@ export default {
           v-model="rule.effect"
           :options="effectOpts"
           :mode="mode"
+          :data-testid="`toleration-effect-index${ index }`"
           @input="e=>updateEffect(e, rule)"
         />
       </div>
@@ -196,14 +251,18 @@ export default {
           :disabled="rule.effect !== 'NoExecute'"
           :mode="mode"
           suffix="Seconds"
+          :data-testid="`toleration-seconds-index${ index }`"
+          class="height-adjust-input"
+          @input="update"
         />
       </div>
-      <div class="col">
+      <div class="col remove">
         <button
           v-if="!isView"
           type="button"
           class="btn role-link"
           :disabled="mode==='view'"
+          :data-testid="`toleration-remove-index${ index }`"
           @click="remove(rule)"
         >
           <t k="generic.remove" />
@@ -214,6 +273,7 @@ export default {
       v-if="!isView"
       type="button"
       class="btn role-tertiary"
+      data-testid="add-toleration-btn"
       @click="addToleration"
     >
       <t k="workload.scheduling.tolerations.addToleration" />
@@ -228,8 +288,8 @@ export default {
 
 .rule, .toleration-headers{
   display: grid;
-  grid-template-columns: 20% 10% 20% 15% 20% 10%;
-  grid-gap: $column-gutter;
+  grid-template-columns: 20% 10% 20% 15% 20% 15%;
+  grid-gap: 10px;
   align-items: center;
 }
 
@@ -243,5 +303,11 @@ export default {
 .toleration-headers SPAN {
   color: var(--input-label);
   margin-bottom: 10px;
+}
+.remove BUTTON {
+  padding: 0px;
+}
+.height-adjust-input {
+  min-height: 42px;
 }
 </style>

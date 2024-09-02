@@ -13,6 +13,7 @@ import Select from '@shell/components/form/Select';
 import CreateEditView from '@shell/mixins/create-edit-view';
 import { diffFrom } from '@shell/utils/time';
 import { filterHiddenLocalCluster, filterOnlyKubernetesClusters } from '@shell/utils/cluster';
+import { SETTING } from '@shell/config/settings';
 
 export default {
   components: {
@@ -29,7 +30,7 @@ export default {
 
   data() {
     // Get the setting that defines the max token TTL allowed (in minutes)
-    const maxTTLSetting = this.$store.getters['management/byId'](MANAGEMENT.SETTING, 'auth-token-max-ttl-minutes');
+    const maxTTLSetting = this.$store.getters['management/byId'](MANAGEMENT.SETTING, SETTING.AUTH_TOKEN_MAX_TTL_MINUTES);
     let maxTTL = 0;
 
     try {
@@ -57,8 +58,8 @@ export default {
     ...mapGetters({ t: 'i18n/t' }),
     scopes() {
       const all = this.$store.getters['management/all'](MANAGEMENT.CLUSTER);
-      const kubeClusters = filterHiddenLocalCluster(filterOnlyKubernetesClusters(all), this.$store);
-      let out = kubeClusters.map(opt => ({ value: opt.id, label: opt.nameDisplay }));
+      const kubeClusters = filterHiddenLocalCluster(filterOnlyKubernetesClusters(all, this.$store), this.$store);
+      let out = kubeClusters.map((opt) => ({ value: opt.id, label: opt.nameDisplay }));
 
       out = sortBy(out, ['label']);
       out.unshift( { value: '', label: this.t('accountAndKeys.apiKeys.add.noScope') } );
@@ -68,7 +69,7 @@ export default {
 
     expiryOptions() {
       const options = ['never', 'day', 'month', 'year', 'custom'];
-      let opts = options.map(opt => ({ value: opt, label: this.t(`accountAndKeys.apiKeys.add.expiry.options.${ opt }`) }));
+      let opts = options.map((opt) => ({ value: opt, label: this.t(`accountAndKeys.apiKeys.add.expiry.options.${ opt }`) }));
 
       // When the TTL is anything other than 0, present only two options
       // (1) The maximum allowed
@@ -78,7 +79,7 @@ export default {
         const expiry = now.add(this.maxTTL, 'minute');
         const max = diffFrom(expiry, now, this.t);
 
-        opts = opts.filter(opt => opt.value === 'custom');
+        opts = opts.filter((opt) => opt.value === 'custom');
         opts.unshift({ value: 'max', label: this.t('accountAndKeys.apiKeys.add.expiry.options.maximum', { value: max.string }) });
       }
 
@@ -88,7 +89,7 @@ export default {
       const options = ['minute', 'hour', 'day', 'month', 'year'];
       const filtered = this.filterOptionsForTTL(options);
 
-      return filtered.map(opt => ({ value: opt, label: this.t(`accountAndKeys.apiKeys.add.customExpiry.options.${ opt }`) }));
+      return filtered.map((opt) => ({ value: opt, label: this.t(`accountAndKeys.apiKeys.add.customExpiry.options.${ opt }`) }));
     },
   },
 
@@ -199,6 +200,7 @@ export default {
         <RadioGroup
           v-model="form.expiryType"
           :options="expiryOptions"
+          data-testid="expiry__options"
           class="mr-20"
           name="expiryGroup"
         />
@@ -273,6 +275,7 @@ export default {
       <div class="right">
         <button
           type="button"
+          data-testid="token_done_create_button"
           class="btn role-primary"
           @click="doneCreate"
         >
