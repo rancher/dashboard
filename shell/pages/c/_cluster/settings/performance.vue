@@ -443,7 +443,7 @@ export default {
         </div>
       </div>
     </div>
-    <template
+    <div
       v-for="(err, i) in errors"
       :key="i"
     >
@@ -451,7 +451,7 @@ export default {
         color="error"
         :label="err"
       />
-    </template>
+    </div>
     <div v-if="mode === 'edit'">
       <AsyncButton
         data-testid="performance__save-btn"
