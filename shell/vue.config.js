@@ -534,7 +534,7 @@ module.exports = function(dir, _appConfig) {
       config.resolve.alias['@pkg'] = path.join(dir, 'pkg');
       config.resolve.alias['./node_modules'] = path.join(dir, 'node_modules');
       config.resolve.alias['@components'] = COMPONENTS_DIR;
-      config.resolve.alias['vue$'] = dev ? path.resolve(process.cwd(), 'node_modules', 'vue') : 'vue';
+      config.resolve.alias['vue$'] = 'vue';
       config.resolve.modules.push(__dirname);
       config.plugins.push(getVirtualModules(dir, includePkg));
       config.plugins.push(getAutoImport());
