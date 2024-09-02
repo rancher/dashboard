@@ -1,7 +1,11 @@
 
+/* eslint-disable @typescript-eslint/explicit-module-boundary-types */
+
 import { TAB_PAGE } from '../routing/interview-routing';
 
-export function init($plugin: any, store: any) {
+export const TECH_INTERVIEW_NAME = 'interview';
+
+export function init($plugin: any, store: any): void {
   const {
     product,
     virtualType
@@ -17,6 +21,7 @@ export function init($plugin: any, store: any) {
     showNamespaceFilter:   false,
     customNamespaceFilter: false,
     weight:                99,
+    rootProduct:           TECH_INTERVIEW_NAME,
   });
 
   virtualType({

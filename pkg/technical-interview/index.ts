@@ -3,7 +3,7 @@ import { IPlugin } from '@shell/core/types';
 import interviewRoutes from './routing/interview-routing';
 
 // Init the package
-export default function(plugin: IPlugin) {
+export default function(plugin: IPlugin): void {
   // Auto-import model, detail, edit from the folders
   importTypes(plugin);
 

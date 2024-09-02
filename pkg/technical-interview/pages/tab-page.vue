@@ -1,14 +1,8 @@
 <script lang="ts">
-import Vue from 'vue';
+import { defineComponent } from 'vue';
 
-interface Data {
-}
-
-// Data, Methods, Computed, Props
-export default Vue.extend<Data, any, any, any>({
+export default defineComponent({
   components: {},
-
-  layout: 'plain',
 
   data() {
     return { };
