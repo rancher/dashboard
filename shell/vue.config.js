@@ -4,7 +4,7 @@ const webpack = require('webpack');
 const { generateDynamicTypeImport } = require('./pkg/auto-import');
 const CopyWebpackPlugin = require('copy-webpack-plugin');
 const serverMiddlewares = require('./server/server-middleware.js');
-const configHelper = require('./vue-config-helper.js');
+const { dev, devPorts, api, proxyWsOpts, proxyOpts, proxyMetaOpts, proxyPrimeOpts } = require('./vue-config-helper.js');
 const har = require('./server/har-file');
 const NodePolyfillPlugin = require('node-polyfill-webpack-plugin');
 const VirtualModulesPlugin = require('webpack-virtual-modules');
@@ -24,17 +24,12 @@ console.info = oldInfoLogger; // eslint-disable-line no-console
 // const { STANDARD } = require('./config/private-label');
 const STANDARD = 1;
 
-const dev = configHelper.dev;
-const devPorts = configHelper.devPorts;
-
 // human readable version used on rancher dashboard about page
 const dashboardVersion = process.env.DASHBOARD_VERSION;
 
 const pl = process.env.PL || STANDARD;
 const commit = process.env.COMMIT || 'head';
 const perfTest = (process.env.PERF_TEST === 'true'); // Enable performance testing when in dev
-
-const api = configHelper.api;
 
 /**
  * Paths to the shell folder when it is included as a node dependency
@@ -66,26 +61,26 @@ const getShellPaths = (dir) => {
 
 const getProxyConfig = (proxyConfig) => ({
   ...proxyConfig,
-  '/k8s':            configHelper.proxyWsOpts(api), // Straight to a remote cluster (/k8s/clusters/<id>/)
-  '/pp':             configHelper.proxyWsOpts(api), // For (epinio) standalone API
-  '/api':            configHelper.proxyWsOpts(api), // Management k8s API
-  '/apis':           configHelper.proxyWsOpts(api), // Management k8s API
-  '/v1':             configHelper.proxyWsOpts(api), // Management Steve API
-  '/v3':             configHelper.proxyWsOpts(api), // Rancher API
-  '/v3-public':      configHelper.proxyOpts(api), // Rancher Unauthed API
-  '/api-ui':         configHelper.proxyOpts(api), // Browser API UI
-  '/meta':           configHelper.proxyMetaOpts(api), // Browser API UI
-  '/v1-*':           configHelper.proxyOpts(api), // SAML, KDM, etc
-  '/rancherversion': configHelper.proxyPrimeOpts(api), // Rancher version endpoint
+  '/k8s':            proxyWsOpts(api), // Straight to a remote cluster (/k8s/clusters/<id>/)
+  '/pp':             proxyWsOpts(api), // For (epinio) standalone API
+  '/api':            proxyWsOpts(api), // Management k8s API
+  '/apis':           proxyWsOpts(api), // Management k8s API
+  '/v1':             proxyWsOpts(api), // Management Steve API
+  '/v3':             proxyWsOpts(api), // Rancher API
+  '/v3-public':      proxyOpts(api), // Rancher Unauthed API
+  '/api-ui':         proxyOpts(api), // Browser API UI
+  '/meta':           proxyMetaOpts(api), // Browser API UI
+  '/v1-*':           proxyOpts(api), // SAML, KDM, etc
+  '/rancherversion': proxyPrimeOpts(api), // Rancher version endpoint
   // These are for Ember embedding
-  '/c/*/edit':       configHelper.proxyOpts('https://127.0.0.1:8000'), // Can't proxy all of /c because that's used by Vue too
-  '/k/':             configHelper.proxyOpts('https://127.0.0.1:8000'),
-  '/g/':             configHelper.proxyOpts('https://127.0.0.1:8000'),
-  '/n/':             configHelper.proxyOpts('https://127.0.0.1:8000'),
-  '/p/':             configHelper.proxyOpts('https://127.0.0.1:8000'),
-  '/assets':         configHelper.proxyOpts('https://127.0.0.1:8000'),
-  '/translations':   configHelper.proxyOpts('https://127.0.0.1:8000'),
-  '/engines-dist':   configHelper.proxyOpts('https://127.0.0.1:8000'),
+  '/c/*/edit':       proxyOpts('https://127.0.0.1:8000'), // Can't proxy all of /c because that's used by Vue too
+  '/k/':             proxyOpts('https://127.0.0.1:8000'),
+  '/g/':             proxyOpts('https://127.0.0.1:8000'),
+  '/n/':             proxyOpts('https://127.0.0.1:8000'),
+  '/p/':             proxyOpts('https://127.0.0.1:8000'),
+  '/assets':         proxyOpts('https://127.0.0.1:8000'),
+  '/translations':   proxyOpts('https://127.0.0.1:8000'),
+  '/engines-dist':   proxyOpts('https://127.0.0.1:8000'),
 });
 
 /**
