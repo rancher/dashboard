@@ -29,8 +29,10 @@ export default class Kubectl extends ComponentPo {
    * @param command Kube command without the 'kubectl'
    * @returns executeCommand for method chanining
    */
-  executeCommand(command: string, wait = 3000) {
-    this.self().get(this.terminalRow).type(`${ this.kubeCommand } ${ command }{enter}`);
+  executeCommand(command: string, prependKubectl = true, wait = 3000) {
+    const parsedCommand = prependKubectl ? `${ this.kubeCommand } ${ command }{enter}` : `${ command }{enter}`;
+
+    this.self().get(this.terminalRow).type(parsedCommand);
     cy.wait(wait);
 
     return this;

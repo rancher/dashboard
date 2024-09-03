@@ -28,11 +28,11 @@ export default class ChartInstalledAppsPagePo extends PagePo {
     return new ChartInstalledAppsListPo('[data-testid="installed-app-catalog-list"]');
   }
 
-  waitForInstallCloseTerminal(interceptName: string, installableParts: Array<String>) {
-    cy.wait(`@${ interceptName }`, { requestTimeout: 20000 }).its('response.statusCode').should('eq', 201);
+  waitForInstallCloseTerminal(interceptName: string, installableParts: Array<String>, beforeTimeout = 15000, requestTimeout = 20000) {
+    cy.wait(`@${ interceptName }`, { requestTimeout }).its('response.statusCode').should('eq', 201);
 
     // giving it a small buffer so that the install is properly triggered
-    cy.wait(15000); // eslint-disable-line cypress/no-unnecessary-waiting
+    cy.wait(beforeTimeout); // eslint-disable-line cypress/no-unnecessary-waiting
     terminal.closeTerminal();
 
     installableParts.forEach((item:string) => {
@@ -41,6 +41,30 @@ export default class ChartInstalledAppsPagePo extends PagePo {
 
     // timeout to give time for everything to be setup, otherwise the extension
     // won't find the chart and show the correct screen
+    return cy.wait(10000); // eslint-disable-line cypress/no-unnecessary-waiting
+  }
+
+  waitForUpgradeAndCloseTerminal(interceptName: string, beforeTimeout = 15000) {
+    cy.wait(`@${ interceptName }`, { requestTimeout: 20000 }).its('response.statusCode').should('eq', 201);
+
+    // giving it a small buffer so that the install is properly triggered
+    cy.wait(beforeTimeout); // eslint-disable-line cypress/no-unnecessary-waiting
+    terminal.closeTerminal();
+
+    cy.get('.masthead-state.badge-state').invoke('text').should('contain', 'Deployed'); // badge on masthead
+
+    // timeout to give time for everything to be setup, otherwise the extension
+    // won't find the chart and show the correct screen
+    return cy.wait(10000); // eslint-disable-line cypress/no-unnecessary-waiting
+  }
+
+  waitForAppToInstall(appName: string, isTerminalOp = true) {
+    if (isTerminalOp) {
+      cy.wait(20000); // eslint-disable-line cypress/no-unnecessary-waiting
+      terminal.closeTerminal();
+    }
+    this.list().state(appName).should('contain', 'Deployed');
+
     return cy.wait(10000); // eslint-disable-line cypress/no-unnecessary-waiting
   }
 }
