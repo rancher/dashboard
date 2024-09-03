@@ -14,9 +14,9 @@ import { mapFeature, UNSUPPORTED_STORAGE_DRIVERS } from '@shell/store/features';
 import { CSI_DRIVER, LONGHORN_DRIVER } from '@shell/config/types';
 
 export default {
-  name: 'StorageClass',
+  name:         'StorageClass',
   inheritAttrs: false,
-  components: {
+  components:   {
     ArrayList,
     CruResource,
     LabeledSelect,

@@ -23,12 +23,12 @@ describe('Ingresses', { testIsolation: 'off', tags: ['@explorer', '@adminUser'] 
 
     cy.title().should('eq', 'Rancher - local - Ingresses');
   });
-  it('can open "Edit as YAML"', function() {
+  it('can open "Edit as YAML"', () => {
     ingressPagePo.goTo();
     ingressPagePo.clickCreate();
     ingressPagePo.createIngressForm().editAsYaml().click();
     ingressPagePo.createIngressForm().yamlEditor().checkExists();
-});
+  });
 
   describe('List', { tags: ['@vai', '@adminUser'] }, () => {
     before('set up', () => {

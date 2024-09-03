@@ -19,9 +19,9 @@ import Loading from '@shell/components/Loading';
 import { FilterArgs, PaginationParamFilter } from '@shell/types/store/pagination.types';
 
 export default {
-  name:       'CRUIngress',
+  name:         'CRUIngress',
   inheritAttrs: false,
-  components: {
+  components:   {
     IngressClass,
     Certificates,
     CruResource,

@@ -34,7 +34,7 @@ export default {
     MoveModal
   },
 
-  mixins: [CreateEditView],
+  mixins:       [CreateEditView],
   inheritAttrs: false,
 
   async fetch() {

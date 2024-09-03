@@ -42,6 +42,7 @@ export class IngressPagePo extends PagePo {
   listElementWithName(name:string) {
     return this.list().resourceTable().sortableTable().rowElementWithName(name);
   }
+
   createIngressForm(id? : string): IngressPageCreateEditPo {
     return new IngressPageCreateEditPo(id);
   }

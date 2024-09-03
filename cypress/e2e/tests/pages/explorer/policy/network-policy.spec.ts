@@ -67,11 +67,12 @@ describe('NetworkPolicies', { testIsolation: 'off', tags: ['@explorer', '@adminU
     networkPolicyPo.matchingNamespacesMessage(0).contains(`Matches ${ namespacesCount } of ${ namespacesCount }`);
     networkPolicyPo.matchingNamespacesMessage(1).contains(`Matches 0 of ${ namespacesCount }`);
   });
-  it('can open "Edit as YAML"', function() {
+  it('can open "Edit as YAML"', () => {
     NetworkPolicyPagePo.navTo();
     networkPolicyPage.clickCreate();
     const networkPolicyPo = new NetworkPolicyPo();
+
     networkPolicyPo.editAsYaml().click();
     networkPolicyPo.yamlEditor().checkExists();
-});
+  });
 });

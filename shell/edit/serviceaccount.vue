@@ -12,9 +12,9 @@ import LabeledSelect from '@shell/components/form/LabeledSelect';
 import { FilterArgs, PaginationParamFilter } from '@shell/types/store/pagination.types';
 
 export default {
-  name: 'ServiceAccount',
+  name:         'ServiceAccount',
   inheritAttrs: false,
-  components: {
+  components:   {
     CruResource,
     NameNsDescription,
     Checkbox,

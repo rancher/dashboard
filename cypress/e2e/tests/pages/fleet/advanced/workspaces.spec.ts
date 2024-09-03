@@ -234,12 +234,12 @@ describe('Workspaces', { testIsolation: 'off', tags: ['@fleet', '@adminUser'] },
     });
   });
   describe('Create', { tags: ['@vai', '@adminUser'] }, () => {
-    it('can open "Edit as YAML"', function() {
-        FleetWorkspaceListPagePo.navTo();
-        fleetWorkspacesPage.waitForPage();
-        fleetWorkspacesPage.clickCreate();
-        fleetWorkspacesPage.createFleetWorkspaceForm().editAsYaml().click();
-        fleetWorkspacesPage.createFleetWorkspaceForm().yamlEditor().checkExists();
-      });
-  })
+    it('can open "Edit as YAML"', () => {
+      FleetWorkspaceListPagePo.navTo();
+      fleetWorkspacesPage.waitForPage();
+      fleetWorkspacesPage.clickCreate();
+      fleetWorkspacesPage.createFleetWorkspaceForm().editAsYaml().click();
+      fleetWorkspacesPage.createFleetWorkspaceForm().yamlEditor().checkExists();
+    });
+  });
 });

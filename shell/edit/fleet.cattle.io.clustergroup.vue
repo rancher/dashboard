@@ -14,9 +14,9 @@ import throttle from 'lodash/throttle';
 import { allHash } from '@shell/utils/promise';
 
 export default {
-  name: 'CruClusterGroup',
+  name:         'CruClusterGroup',
   inheritAttrs: false,
-  components: {
+  components:   {
     Banner,
     CruResource,
     Labels,

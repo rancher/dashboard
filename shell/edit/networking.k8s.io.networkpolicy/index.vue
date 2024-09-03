@@ -25,7 +25,7 @@ export default {
   // Props are found in CreateEditView
   // props: {},
   inheritAttrs: false,
-  components: {
+  components:   {
     Banner,
     Checkbox,
     CruResource,

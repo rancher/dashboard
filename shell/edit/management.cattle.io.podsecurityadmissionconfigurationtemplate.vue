@@ -10,9 +10,9 @@ import { PSADimensions } from '@shell/config/pod-security-admission';
 import { MANAGEMENT } from '@shell/config/types';
 
 export default defineComponent({
-  mixins:     [CreateEditView],
+  mixins:       [CreateEditView],
   inheritAttrs: false,
-  components: {
+  components:   {
     CruResource,
     Loading,
     NameNsDescription,

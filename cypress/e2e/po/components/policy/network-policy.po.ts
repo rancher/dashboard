@@ -45,6 +45,7 @@ export default class NetworkPolicyPo extends CreateEditViewPo {
   saveCreateForm(): AsyncButtonPo {
     return new AsyncButtonPo('[data-testid="form-save"]', this.self());
   }
+
   editAsYaml() {
     return new AsyncButtonPo('[data-testid="form-yaml"]', this.self());
   }
@@ -52,5 +53,4 @@ export default class NetworkPolicyPo extends CreateEditViewPo {
   yamlEditor(): CodeMirrorPo {
     return CodeMirrorPo.bySelector(this.self(), '[data-testid="yaml-editor-code-mirror"]');
   }
-
 }

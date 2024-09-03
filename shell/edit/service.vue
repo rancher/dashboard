@@ -44,7 +44,7 @@ export default {
   // Props are found in CreateEditView
   // props: {},
   inheritAttrs: false,
-  components: {
+  components:   {
     ArrayList,
     Banner,
     CruResource,

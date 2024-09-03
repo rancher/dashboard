@@ -11,8 +11,8 @@ export default {
     LabeledInput
   },
   inheritAttrs: false,
-  mixins: [createEditView],
-  props:  {
+  mixins:       [createEditView],
+  props:        {
     value: {
       type:     Object,
       required: true,

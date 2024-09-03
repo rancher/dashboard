@@ -44,6 +44,7 @@ export class FleetWorkspaceListPagePo extends PagePo {
   sortableTable() {
     return this.workspacesList().resourceTable().sortableTable();
   }
+
   clickCreate() {
     return this.workspacesList().masthead().create();
   }

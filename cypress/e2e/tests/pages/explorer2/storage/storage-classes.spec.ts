@@ -50,12 +50,12 @@ describe('StorageClasses', { testIsolation: 'off', tags: ['@explorer2', '@adminU
       storageClassesPagePo.list().resourceTable().sortableTable().noRowsShouldNotExist();
       storageClassesPagePo.list().resourceTable().sortableTable().checkRowCount(false, 1);
     });
-    it('can open "Edit as YAML"', function() {
-        storageClassesPagePo.goTo();
-        storageClassesPagePo.waitForPage();
-        storageClassesPagePo.clickCreate();
-        storageClassesPagePo.createStorageClassesForm().editAsYaml().click();
-        storageClassesPagePo.createStorageClassesForm().yamlEditor().checkExists();
+    it('can open "Edit as YAML"', () => {
+      storageClassesPagePo.goTo();
+      storageClassesPagePo.waitForPage();
+      storageClassesPagePo.clickCreate();
+      storageClassesPagePo.createStorageClassesForm().editAsYaml().click();
+      storageClassesPagePo.createStorageClassesForm().yamlEditor().checkExists();
     });
 
     after('clean up', () => {

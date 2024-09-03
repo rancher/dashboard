@@ -18,9 +18,9 @@ import Banner from '@components/Banner/Banner.vue';
 import ArrayList from '@shell/components/form/ArrayList.vue';
 
 export default {
-  name: 'FleetCruWorkspace',
+  name:         'FleetCruWorkspace',
   inheritAttrs: false,
-  components: {
+  components:   {
     CruResource,
     Labels,
     Loading,
