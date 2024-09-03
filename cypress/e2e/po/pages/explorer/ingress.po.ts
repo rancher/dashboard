@@ -41,4 +41,17 @@ export class IngressPagePo extends PagePo {
   listElementWithName(name:string) {
     return this.list().resourceTable().sortableTable().rowElementWithName(name);
   }
+
+  waitForIngressCreation(interceptName: string, nameToCheck: string, namespaceToCheck?: string) {
+    cy.wait(`@${ interceptName }`, { requestTimeout: 20000 }).then(({ response }) => {
+      expect(response?.statusCode).to.eq(201);
+      expect(response?.body.metadata).to.have.property('name', nameToCheck);
+
+      if (namespaceToCheck) {
+        expect(response?.body.metadata).to.have.property('namespace', namespaceToCheck);
+      }
+
+      cy.wait(5000); // eslint-disable-line cypress/no-unnecessary-waiting
+    });
+  }
 }

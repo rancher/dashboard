@@ -2,6 +2,10 @@ name: Extensions Compatibility Tests
 on:
   schedule:
     - cron: "0 0 * * *" # runs at midnight every day
+  # TO DELETE!!!!!!!
+  pull_request:
+    branches:
+      - master
 
 env:
   TEST_USERNAME: admin
@@ -22,10 +26,12 @@ jobs:
           { username: 'admin', tag: '@adminUser' }
         ]
         features:  [
-          ['@elemental', 'elemental']
+          ['@elemental', 'elemental'],
+          ['@kubewarden', 'kubewarden'],
         ]
         rancherEnv: [
-          ['2.10', 'v2.9-head'],
+          # ['2.10', 'v2.10-befdf11fc6753ed4a2322b28c5f3ebe7f47e4d96-head'],
+          ['2.9', 'v2.9-head'],
           # ['2.9', 'v2.9-head']
         ]
     runs-on: ubuntu-latest
@@ -66,26 +72,26 @@ jobs:
           name: ${{github.run_number}}-${{github.run_attempt}}-extensions-compatibility-tests-screenshots-${{ matrix.role.tag }}+${{ matrix.features[0] }}
           path: cypress/screenshots
     
-      # Slack message with outcome - success
-      - name: Slack message in workflow success
-        env:
-          SLACK_URL: ${{ secrets.SLACK_WEBHOOK_URL }}
-        if: success()
-        shell: bash
-        run: |
-          curl -X POST \
-          -H "Content-type: application/json; charset=utf-8" \
-          --data '{"name": "${{ matrix.rancherEnv[0] }} - image:${{ matrix.rancherEnv[1] }} - ${{ matrix.features[1] }}", "status": "Workflow succedded! ✅", "workflow_run": ${{ github.run_id }} }' \
-          $SLACK_URL
+      # # Slack message with outcome - success
+      # - name: Slack message in workflow success
+      #   env:
+      #     SLACK_URL: ${{ secrets.SLACK_WEBHOOK_URL }}
+      #   if: success()
+      #   shell: bash
+      #   run: |
+      #     curl -X POST \
+      #     -H "Content-type: application/json; charset=utf-8" \
+      #     --data '{"name": "${{ matrix.rancherEnv[0] }} - image:${{ matrix.rancherEnv[1] }} - ${{ matrix.features[1] }}", "status": "Workflow succedded! ✅", "workflow_run": ${{ github.run_id }} }' \
+      #     $SLACK_URL
 
-      # Slack message with outcome - failure
-      - name: Slack message in workflow failure
-        env:
-          SLACK_URL: ${{ secrets.SLACK_WEBHOOK_URL }}
-        if: failure()
-        shell: bash
-        run: |
-          curl -X POST \
-          -H "Content-type: application/json; charset=utf-8" \
-          --data '{"name": "${{ matrix.rancherEnv[0] }} - image:${{ matrix.rancherEnv[1] }} - ${{ matrix.features[1] }}", "status": "Workflow failed! 🆘", "workflow_run": ${{ github.run_id }} }' \
-          $SLACK_URL
+      # # Slack message with outcome - failure
+      # - name: Slack message in workflow failure
+      #   env:
+      #     SLACK_URL: ${{ secrets.SLACK_WEBHOOK_URL }}
+      #   if: failure()
+      #   shell: bash
+      #   run: |
+      #     curl -X POST \
+      #     -H "Content-type: application/json; charset=utf-8" \
+      #     --data '{"name": "${{ matrix.rancherEnv[0] }} - image:${{ matrix.rancherEnv[1] }} - ${{ matrix.features[1] }}", "status": "Workflow failed! 🆘", "workflow_run": ${{ github.run_id }} }' \
+      #     $SLACK_URL

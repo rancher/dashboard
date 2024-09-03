@@ -1,6 +1,7 @@
 import PagePo from '@/cypress/e2e/po/pages/page.po';
 import AsyncButtonPo from '@/cypress/e2e/po/components/async-button.po';
 import TabbedPo from '~/cypress/e2e/po/components/tabbed.po';
+import CheckboxInputPo from '@/cypress/e2e/po/components/checkbox-input.po';
 
 export class InstallChartPage extends PagePo {
   private static createPath(clusterId: string) {
@@ -13,6 +14,10 @@ export class InstallChartPage extends PagePo {
 
   constructor(clusterId = 'local') {
     super(InstallChartPage.createPath(clusterId));
+  }
+
+  getCheckboxByLabel(label: string): CheckboxInputPo {
+    return CheckboxInputPo.byLabel(this.self(), label);
   }
 
   waitForChartPage(repository: string, chart: string) {

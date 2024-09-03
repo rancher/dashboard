@@ -46,6 +46,16 @@ export default class ProductNavPo extends ComponentPo {
   }
 
   /**
+   * Navigate to a side menu entry by label (exact match)
+   */
+  navToSideMenuEntryByExactLabel(label: string): Cypress.Chainable {
+    const regexp = new RegExp(`^${ label }$`);
+
+    return this.self().should('exist').find('.child.nav-type a .label').contains(regexp)
+      .click({ force: true });
+  }
+
+  /**
    * Check existence of menu group by label
    */
   navToSideMenuGroupByLabelExistence(label: string, assertion: string): Cypress.Chainable {
