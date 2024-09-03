@@ -4,7 +4,9 @@ const webpack = require('webpack');
 const { generateDynamicTypeImport } = require('./pkg/auto-import');
 const CopyWebpackPlugin = require('copy-webpack-plugin');
 const serverMiddlewares = require('./server/server-middleware.js');
-const { dev, devPorts, api, proxyWsOpts, proxyOpts, proxyMetaOpts, proxyPrimeOpts } = require('./vue-config-helper.js');
+const {
+  dev, devPorts, api, proxyWsOpts, proxyOpts, proxyMetaOpts, proxyPrimeOpts
+} = require('./vue-config-helper.js');
 const har = require('./server/har-file');
 const NodePolyfillPlugin = require('node-polyfill-webpack-plugin');
 const VirtualModulesPlugin = require('webpack-virtual-modules');
