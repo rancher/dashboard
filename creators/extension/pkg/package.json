@@ -27,7 +27,8 @@
     "qs": "6.11.1",
     "roarr": "7.0.4",
     "semver": "7.5.4",
-    "@vue/cli-service/html-webpack-plugin": "^5.0.0"
+    "@vue/cli-service/html-webpack-plugin": "^5.0.0",
+    "@achrinza/node-ipc": "9.2.9"
   },
   "dependencies": {
     "fs-extra": "^10.0.0"
