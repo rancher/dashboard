@@ -57,7 +57,7 @@ export default {
         theme:                   `base16-${ theme }`,
         lineNumbers:             true,
         line:                    true,
-        styleActiveLine:         true,
+        styleActiveLine:         false,
         lineWrapping:            true,
         foldGutter:              true,
         styleSelectedText:       true,
@@ -195,73 +195,8 @@ export default {
 <style lang="scss">
   $code-mirror-animation-time: 0.1s;
 
-  .codemirror-container {
-    z-index: 0;
-    font-size: inherit !important;
-
-    // Keyboard mapping overlap
-    .keymap.overlay {
-      position: absolute;
-      display: flex;
-      top: 7px;
-      right: 7px;
-      z-index: 1;
-      cursor: pointer;
-
-      .keymap-indicator {
-        width: 48px;
-        height: 32px;
-        display: flex;
-        align-items: center;
-        justify-content: center;
-        border: 1px solid transparent;
-        color: var(--darker);
-        background-color: var(--overlay-bg);
-        font-size: 12px;
-
-        .close-indicator {
-          width: 0;
-
-          .icon-close {
-            color: var(--primary);
-            opacity: 0;
-          }
-        }
-
-        .keymap-icon {
-          font-size: 24px;
-          opacity: 0.8;
-          transition: margin-right $code-mirror-animation-time ease-in-out;
-        }
-
-        &:hover {
-          border: 1px solid var(--primary);
-          border-radius: var(--border-radius);;
-
-          .close-indicator {
-            margin-left: -6px;
-            width: auto;
-
-            .icon-close {
-              opacity: 1;
-              transition: opacity $code-mirror-animation-time ease-in-out $code-mirror-animation-time; // Only animate when being shown
-            }
-          }
-
-          .keymap-icon {
-            opacity: 0.6;
-            margin-right: 10px;
-          }
-        }
-      }
-    }
-
-    .vue-codemirror .CodeMirror {
-      height: initial;
-      background: none
-    }
-
-    &.as-text-area {
+  .code-mirror {
+    &.as-text-area .codemirror-container{
       min-height: 40px;
       position: relative;
       display: block;
@@ -347,6 +282,168 @@ export default {
         color: var(--primary-text);
         background-color: var(--primary);
       }
+
+      .CodeMirror-gutter-wrapper,
+      .CodeMirror-gutters>*{
+        display:none;
+      }
     }
+  }
+
+  // add selector here to ensure lower rules that lost .vue-codemirror selector still have enough specificity to override library's styling
+  .code-mirror .codemirror-container {
+    z-index: 0;
+    font-size: inherit !important;
+
+    // Keyboard mapping overlap
+    .keymap.overlay {
+      position: absolute;
+      display: flex;
+      top: 7px;
+      right: 7px;
+      z-index: 1;
+      cursor: pointer;
+
+      .keymap-indicator {
+        width: 48px;
+        height: 32px;
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        border: 1px solid transparent;
+        color: var(--darker);
+        background-color: var(--overlay-bg);
+        font-size: 12px;
+
+        .close-indicator {
+          width: 0;
+
+          .icon-close {
+            color: var(--primary);
+            opacity: 0;
+          }
+        }
+
+        .keymap-icon {
+          font-size: 24px;
+          opacity: 0.8;
+          transition: margin-right $code-mirror-animation-time ease-in-out;
+        }
+
+        &:hover {
+          border: 1px solid var(--primary);
+          border-radius: var(--border-radius);;
+
+          .close-indicator {
+            margin-left: -6px;
+            width: auto;
+
+            .icon-close {
+              opacity: 1;
+              transition: opacity $code-mirror-animation-time ease-in-out $code-mirror-animation-time; // Only animate when being shown
+            }
+          }
+
+          .keymap-icon {
+            opacity: 0.6;
+            margin-right: 10px;
+          }
+        }
+      }
+    }
+
+    //rm no longer extant selector
+    .CodeMirror {
+      height: initial;
+      background: none
+    }
+
+    // &.as-text-area {
+    //   min-height: 40px;
+    //   position: relative;
+    //   display: block;
+    //   box-sizing: border-box;
+    //   width: 100%;
+    //   padding: 10px;
+    //   background-color: var(--input-bg);
+    //   border-radius: var(--border-radius);
+    //   border: solid var(--border-width) var(--input-border);
+    //   color: var(--input-text);
+
+    //   &:hover {
+    //     border-color: var(--input-hover-border);
+    //   }
+
+    //   &:focus, &.focus {
+    //     outline: none;
+    //     border-color: var(--outline);
+    //   }
+
+    //   .CodeMirror-wrap pre {
+    //     word-break: break-word;
+    //   }
+    //   .CodeMirror-code {
+    //     .CodeMirror-line {
+    //       &:not(:last-child)>span:after,
+    //       .cm-markdown-single-trailing-space-odd:before,
+    //       .cm-markdown-single-trailing-space-even:before {
+    //         color: var(--muted);
+    //         position: absolute;
+    //         line-height: 20px;
+    //         pointer-events: none;
+    //       }
+    //       &:not(:last-child)>span:after {
+    //         content: '↵';
+    //         margin-left: 2px;
+    //       }
+    //       .cm-markdown-single-trailing-space-odd:before,
+    //       .cm-markdown-single-trailing-space-even:before {
+    //         font-weight: bold;
+    //         content: '·';
+    //       }
+    //     }
+    //   }
+
+    //   .CodeMirror-lines {
+    //     color: var(--input-text);
+    //     padding: 0;
+
+    //     .CodeMirror-line > span > span {
+    //       &.cm-overlay {
+    //         font-family: monospace;
+    //       }
+    //     }
+
+    //     .CodeMirror-line > span {
+    //       font-family: $body-font;
+    //     }
+    //   }
+
+    //   .CodeMirror-sizer {
+    //     min-height: 20px;
+    //   }
+
+    //   .CodeMirror-selected {
+    //     background-color: var(--primary) !important;
+    //   }
+
+    //   .CodeMirror-selectedtext {
+    //     color: var(--primary-text);
+    //   }
+
+    //   .CodeMirror-line::selection,
+    //   .CodeMirror-line > span::selection,
+    //   .CodeMirror-line > span > span::selection {
+    //     color: var(--primary-text);
+    //     background-color: var(--primary);
+    //   }
+
+    //   .CodeMirror-line::-moz-selection,
+    //   .CodeMirror-line > span::-moz-selection,
+    //   .CodeMirror-line > span > span::-moz-selection {
+    //     color: var(--primary-text);
+    //     background-color: var(--primary);
+    //   }
+    // }
   }
 </style>
