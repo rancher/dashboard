@@ -10,6 +10,7 @@ export default {
     Loading,
     LabeledInput
   },
+  inheritAttrs: false,
   mixins: [createEditView],
   props:  {
     value: {

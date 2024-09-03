@@ -3,7 +3,7 @@ import { FleetDashboardPagePo } from '@/cypress/e2e/po/pages/fleet/fleet-dashboa
 import ProductNavPo from '@/cypress/e2e/po/side-bars/product-side-nav.po';
 import ResourceTablePo from '@/cypress/e2e/po/components/resource-table.po';
 import FleetClusterGroupsList from '@/cypress/e2e/po/lists/fleet/fleet.cattle.io.clustergroup';
-
+import FleetClusterGroupsCreateEditPo from '@/cypress/e2e/po/edit/fleet/fleet.cattle.io.clustergroup.po';
 export class FleetClusterGroupsListPagePo extends PagePo {
   static url = `/c/_/fleet/fleet.cattle.io.clustergroup`
 
@@ -38,5 +38,13 @@ export class FleetClusterGroupsListPagePo extends PagePo {
 
   resourceTable() {
     return new ResourceTablePo(this.self());
+  }
+
+  clickCreate() {
+    return this.clusterGroupsList().masthead().create();
+  }
+
+  createFleetClusterGroupsForm(id? : string): FleetClusterGroupsCreateEditPo {
+    return new FleetClusterGroupsCreateEditPo(id);
   }
 }

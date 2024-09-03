@@ -13,7 +13,7 @@ import { FilterArgs, PaginationParamFilter } from '@shell/types/store/pagination
 
 export default {
   name: 'ServiceAccount',
-
+  inheritAttrs: false,
   components: {
     CruResource,
     NameNsDescription,

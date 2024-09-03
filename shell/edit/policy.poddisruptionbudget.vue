@@ -12,7 +12,7 @@ import FormValidation from '@shell/mixins/form-validation';
 
 export default {
   name: 'PodDisruptionBudget',
-
+  inheritAttrs: false,
   components: {
     ResourceSelector,
     CruResource,

@@ -35,6 +35,7 @@ export default {
   },
 
   mixins: [CreateEditView],
+  inheritAttrs: false,
 
   async fetch() {
     if (this.$store.getters['management/schemaFor'](MANAGEMENT.PROJECT)) {

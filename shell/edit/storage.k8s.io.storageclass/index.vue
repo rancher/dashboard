@@ -15,7 +15,7 @@ import { CSI_DRIVER, LONGHORN_DRIVER } from '@shell/config/types';
 
 export default {
   name: 'StorageClass',
-
+  inheritAttrs: false,
   components: {
     ArrayList,
     CruResource,

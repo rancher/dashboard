@@ -20,6 +20,7 @@ import { FilterArgs, PaginationParamFilter } from '@shell/types/store/pagination
 
 export default {
   name:       'CRUIngress',
+  inheritAttrs: false,
   components: {
     IngressClass,
     Certificates,

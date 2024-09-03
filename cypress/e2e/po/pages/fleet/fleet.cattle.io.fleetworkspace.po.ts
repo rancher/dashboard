@@ -3,6 +3,7 @@ import { FleetDashboardPagePo } from '@/cypress/e2e/po/pages/fleet/fleet-dashboa
 import ProductNavPo from '@/cypress/e2e/po/side-bars/product-side-nav.po';
 import ResourceTablePo from '@/cypress/e2e/po/components/resource-table.po';
 import FleetWorkspaceList from '@/cypress/e2e/po/lists/fleet/fleet.cattle.io.workspace.po';
+import FleetWorkspaceCreateEditPo from '@/cypress/e2e/po/edit/fleet/fleet.cattle.io.fleetworkspace.po';
 
 export class FleetWorkspaceListPagePo extends PagePo {
   static url = `/c/_/fleet/management.cattle.io.fleetworkspace`
@@ -42,5 +43,12 @@ export class FleetWorkspaceListPagePo extends PagePo {
    */
   sortableTable() {
     return this.workspacesList().resourceTable().sortableTable();
+  }
+  clickCreate() {
+    return this.workspacesList().masthead().create();
+  }
+
+  createFleetWorkspaceForm(id? : string): FleetWorkspaceCreateEditPo {
+    return new FleetWorkspaceCreateEditPo(id);
   }
 }

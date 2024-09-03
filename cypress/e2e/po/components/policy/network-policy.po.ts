@@ -4,7 +4,7 @@ import LabeledInputPo from '@/cypress/e2e/po/components/labeled-input.po';
 import CheckboxInputPo from '@/cypress/e2e/po/components/checkbox-input.po';
 import LabeledSelectPo from '@/cypress/e2e/po/components/labeled-select.po';
 import BannersPo from '@/cypress/e2e/po/components/banners.po';
-
+import CodeMirrorPo from '@/cypress/e2e/po/components/code-mirror.po';
 export default class NetworkPolicyPo extends CreateEditViewPo {
   constructor(selector = '.dashboard-root') {
     super(selector);
@@ -45,4 +45,12 @@ export default class NetworkPolicyPo extends CreateEditViewPo {
   saveCreateForm(): AsyncButtonPo {
     return new AsyncButtonPo('[data-testid="form-save"]', this.self());
   }
+  editAsYaml() {
+    return new AsyncButtonPo('[data-testid="form-yaml"]', this.self());
+  }
+
+  yamlEditor(): CodeMirrorPo {
+    return CodeMirrorPo.bySelector(this.self(), '[data-testid="yaml-editor-code-mirror"]');
+  }
+
 }

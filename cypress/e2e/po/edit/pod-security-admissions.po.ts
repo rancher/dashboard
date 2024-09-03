@@ -3,6 +3,9 @@ import NameNsDescription from '@/cypress/e2e/po/components/name-ns-description.p
 import LabeledSelectPo from '@/cypress/e2e/po/components/labeled-select.po';
 import InputPo from '@/cypress/e2e/po/components/input.po';
 import CheckboxInputPo from '@/cypress/e2e/po/components/checkbox-input.po';
+import AsyncButtonPo from '@/cypress/e2e/po/components/async-button.po';
+import CodeMirrorPo from '@/cypress/e2e/po/components/code-mirror.po';
+
 export default class PodSecurityAdmissionsCreateEditPo extends PagePo {
   private static createPath(clusterId: string, id?: string ) {
     const root = `/c/${ clusterId }/manager/management.cattle.io.podsecurityadmissionconfigurationtemplate`;
@@ -45,5 +48,13 @@ export default class PodSecurityAdmissionsCreateEditPo extends PagePo {
     const setExemptionsInputbox = new InputPo(`[data-testid="pod-security-admission--psaExemptionsControl-${ optionIndex }-value"]`);
 
     setExemptionsInputbox.set(text);
+  }
+
+  editAsYaml() {
+    return new AsyncButtonPo('[data-testid="form-yaml"]', this.self());
+  }
+
+  yamlEditor(): CodeMirrorPo {
+    return CodeMirrorPo.bySelector(this.self(), '[data-testid="yaml-editor-code-mirror"]');
   }
 }

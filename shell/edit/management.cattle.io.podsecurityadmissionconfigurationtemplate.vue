@@ -11,6 +11,7 @@ import { MANAGEMENT } from '@shell/config/types';
 
 export default defineComponent({
   mixins:     [CreateEditView],
+  inheritAttrs: false,
   components: {
     CruResource,
     Loading,

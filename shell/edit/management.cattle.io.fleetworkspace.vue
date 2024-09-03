@@ -19,7 +19,7 @@ import ArrayList from '@shell/components/form/ArrayList.vue';
 
 export default {
   name: 'FleetCruWorkspace',
-
+  inheritAttrs: false,
   components: {
     CruResource,
     Labels,

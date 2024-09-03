@@ -24,7 +24,7 @@ import ResourceManager from '@shell/mixins/resource-manager';
 
 export default {
   name: 'PersistentVolume',
-
+  inheritAttrs: false,
   components: {
     ArrayList,
     ArrayListGrouped,
