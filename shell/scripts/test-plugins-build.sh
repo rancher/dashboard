@@ -108,7 +108,7 @@ ${SHELL_DIR}/scripts/publish-shell.sh
 yarn build:lib
 
 npm set registry ${VERDACCIO_NPM_REGISTRY}
-yarn config set registry ${VERDACCIO_NPM_REGISTRY}
+yarn config set npmRegistryServer ${VERDACCIO_NPM_REGISTRY}
 yarn publish:lib
 
 # We pipe into cat for cleaner logging - we need to set pipefail
@@ -175,7 +175,7 @@ function clone_repo_test_extension_build() {
   echo -e "\nSetting up $REPO_NAME repository locally\n"
 
   # set registry to default (to install all of the other dependencies)
-  yarn config set registry ${DEFAULT_NPM_REGISTRY}
+  yarn config set npmRegistryServer ${DEFAULT_NPM_REGISTRY}
 
   if [ "${TEST_PERSIST_BUILD}" != "true" ]; then
     echo "Removing folder ${BASE_DIR}/$REPO_NAME"
@@ -190,7 +190,7 @@ function clone_repo_test_extension_build() {
   yarn install
 
   # set registry to local verdaccio (to install new shell)
-  yarn config set registry ${VERDACCIO_NPM_REGISTRY}
+  yarn config set npmRegistryServer ${VERDACCIO_NPM_REGISTRY}
 
   # update package.json to use a specific version of shell
   sed -i.bak -e "s/\"\@rancher\/shell\": \"[0-9]*.[0-9]*.[0-9]*\",/\"\@rancher\/shell\": \"${SHELL_VERSION}\",/g" package.json
@@ -218,7 +218,7 @@ function clone_repo_test_extension_build() {
   # delete folder
   echo "Removing folder ${BASE_DIR}/$REPO_NAME"
   rm -rf ${BASE_DIR}/$REPO_NAME
-  yarn config set registry ${DEFAULT_NPM_REGISTRY}
+  yarn config set npmRegistryServer ${DEFAULT_NPM_REGISTRY}
 }
 
 # Here we just add the extension that we want to include as a check (all our official extensions should be included here)
