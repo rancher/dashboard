@@ -172,6 +172,7 @@ export default defineComponent({
 <template>
   <textarea
     ref="ta"
+    :value="value"
     :data-testid="$attrs['data-testid'] ? $attrs['data-testid'] : 'text-area-auto-grow'"
     :disabled="isDisabled"
     :style="style"

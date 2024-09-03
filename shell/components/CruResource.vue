@@ -416,6 +416,10 @@ export default {
       if (this.preventEnterSubmit) {
         event.preventDefault();
       }
+    },
+
+    shouldProvideSlot(slot) {
+      return slot !== 'default' && typeof this.$slots[slot] === 'function';
     }
   },
 
@@ -596,7 +600,7 @@ export default {
                     v-for="(_, slot) of $slots"
                     :key="slot"
                   >
-                    <template v-if="typeof $slots[slot] === 'function'">
+                    <template v-if="shouldProvideSlot(slot)">
                       <slot
                         :name="slot"
                         v-bind="{ ...$slots[slot]() }"
@@ -679,7 +683,7 @@ export default {
               v-for="(_, slot) of $slots"
               :key="slot"
             >
-              <template v-if="typeof $slots[slot] === 'function'">
+              <template v-if="shouldProvideSlot(slot)">
                 <slot
                   :name="slot"
                   v-bind="{ ...$slots[slot]() }"
