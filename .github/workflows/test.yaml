@@ -40,6 +40,8 @@ jobs:
       - uses: actions/checkout@v4
         with:
           fetch-depth: 1
+      - name: Enable Corepack
+        run: corepack enable
       - name: Setup env
         uses: ./.github/actions/setup
       - name: Build e2e
@@ -61,29 +63,30 @@ jobs:
           retention-days: 10
           compression-level: 9
 
-
   e2e-test:
     if: "!contains( github.event.pull_request.labels.*.name, 'ci/skip-e2e')"
     needs: e2e-ui-build
     strategy:
       fail-fast: false
       matrix:
-        role: [
-          { username: 'admin', tag: '@adminUser' }, 
-          { username: 'standard_user', tag: '@standardUser' }
-        ]
-        features:  [
-          ['@navigation', '@extensions'],
-          ['@charts'],
-          ['@explorer'],
-          ['@explorer2'],
-          ['@fleet'],
-          ['@generic', '@globalSettings'],
-          ['@manager'],
-          ['@userMenu', '@usersAndAuths'],
-          ['@components'],
-          ['@vai']
-        ]
+        role:
+          [
+            { username: 'admin', tag: '@adminUser' },
+            { username: 'standard_user', tag: '@standardUser' },
+          ]
+        features:
+          [
+            ['@navigation', '@extensions'],
+            ['@charts'],
+            ['@explorer'],
+            ['@explorer2'],
+            ['@fleet'],
+            ['@generic', '@globalSettings'],
+            ['@manager'],
+            ['@userMenu', '@usersAndAuths'],
+            ['@components'],
+            ['@vai'],
+          ]
     runs-on: ubuntu-latest
     steps:
       - uses: actions/checkout@v4
@@ -103,23 +106,23 @@ jobs:
           google-chrome --version
 
       - name: Download e2e build
-        uses:  actions/download-artifact@v4
+        uses: actions/download-artifact@v4
         with:
-         name: ${{ env.E2E_BUILD_DIST_NAME }}
-         path: ${{ env.E2E_BUILD_DIST_DIR }}
+          name: ${{ env.E2E_BUILD_DIST_NAME }}
+          path: ${{ env.E2E_BUILD_DIST_DIR }}
       - name: Download e2e build ember
-        uses:  actions/download-artifact@v4
+        uses: actions/download-artifact@v4
         with:
-         name: ${{ env.E2E_BUILD_DIST_EMBER_NAME }}
-         path: ${{ env.E2E_BUILD_DIST_EMBER_DIR }}
-      
+          name: ${{ env.E2E_BUILD_DIST_EMBER_NAME }}
+          path: ${{ env.E2E_BUILD_DIST_EMBER_DIR }}
+
       - name: Run Rancher
         run: yarn e2e:docker
-      
+
       - name: Setup Rancher and user
         run: |
           yarn e2e:prod
-        env: 
+        env:
           GREP_TAGS: ${{ matrix.role.tag }}Setup+${{ matrix.features[0] }} --@jenkins ${{ matrix.role.tag }}Setup+${{ matrix.features[1] || matrix.features[0] }} --@jenkins
           TEST_USERNAME: admin
           TEST_ONLY: setup
@@ -127,11 +130,11 @@ jobs:
         run: |
           yarn e2e:prod
           [ "$BUILD_DASHBOARD" != "false" ] || exit 0
-        env: 
+        env:
           TEST_SKIP: setup
           GREP_TAGS: ${{ matrix.role.tag }}+${{ matrix.features[0] }} --@jenkins ${{ matrix.role.tag }}+${{ matrix.features[1] || matrix.features[0] }} --@jenkins
           TEST_USERNAME: ${{ matrix.role.username }}
-          
+
       - name: Upload screenshots
         uses: actions/upload-artifact@v4
         if: ${{ failure() }}
@@ -139,14 +142,13 @@ jobs:
           name: ${{github.run_number}}-${{github.run_attempt}}-screenshots-${{ matrix.role.tag }}+${{ matrix.features[0] }}
           path: cypress/screenshots
 
-
   unit-test:
     runs-on: ubuntu-latest
     steps:
       - uses: actions/checkout@v4
         with:
           fetch-depth: 1
-      
+
       - name: Run tests
         uses: ./.github/actions/unit-tests
 
@@ -162,7 +164,6 @@ jobs:
           name: ${{github.run_number}}-${{github.run_attempt}}-coverage
           path: coverage-artifacts/**/*
 
-
   i18n:
     runs-on: ubuntu-latest
     steps:
@@ -173,7 +174,6 @@ jobs:
       - name: Run i18n lint
         uses: ./.github/actions/i18n-lint
 
-
   lint:
     runs-on: ubuntu-latest
     steps:
@@ -183,7 +183,6 @@ jobs:
 
       - name: Run tests
         uses: ./.github/actions/lint
-      
 
   check-i18n:
     runs-on: ubuntu-latest
@@ -194,15 +193,14 @@ jobs:
       - uses: actions/setup-node@v4
         with:
           node-version-file: '.nvmrc'
-      
+
       - name: Install packages
         run: yarn install:ci
-      
+
       - name: Run i18n string check
         run: |
           # Falure won't fail the job (remove -x when all current issues are fixed)
           ./scripts/check-i18n -s -x
-
 
   # coverage:
   #   runs-on: ubuntu-latest
