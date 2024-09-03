@@ -629,6 +629,9 @@ export default {
           :autoHide="false"
           :flip="false"
           :content="false"
+          :placement="'bottom-end'"
+          :distance="14"
+          :container="'#page-actions'"
         >
           <template #popper>
             <div class="user-menu">
@@ -675,6 +678,7 @@ export default {
           :autoHide="false"
           :flip="false"
           :container="false"
+          :placement="'bottom-end'"
         >
           <div class="user-image text-right hand">
             <img
@@ -1007,7 +1011,7 @@ export default {
         position: relative;
       }
 
-      .user-menu {
+      .user.user-menu {
         padding-top: 9.5px;
       }
 
@@ -1097,6 +1101,12 @@ export default {
     display: flex;
     align-items: center;
     color: var(--secondary);
+  }
+
+  #page-actions {
+    :deep() .v-popper__arrow-container {
+      display: none;
+    }
   }
 
   .user-menu {
