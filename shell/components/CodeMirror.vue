@@ -178,6 +178,7 @@ export default {
         :value="value"
         :options="combinedOptions"
         :disabled="isDisabled"
+        :original-style="true"
         @ready="onReady"
         @input="onInput"
         @changes="onChanges"
@@ -196,6 +197,7 @@ export default {
 
   .codemirror-container {
     z-index: 0;
+    font-size: inherit !important;
 
     // Keyboard mapping overlap
     .keymap.overlay {
