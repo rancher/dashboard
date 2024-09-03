@@ -9,9 +9,9 @@
     "node": ">=16"
   },
   "devDependencies": {
-    "@vue/cli-plugin-babel": "~5.0.0",
-    "@vue/cli-service": "~5.0.0",
-    "@vue/cli-plugin-typescript": "~5.0.0",
+    "@vue/cli-plugin-babel": "5.0.8",
+    "@vue/cli-service": "5.0.8",
+    "@vue/cli-plugin-typescript": "5.0.8",
     "cache-loader": "^4.1.0",
     "color": "4.2.3",
     "ip": "2.0.1",
