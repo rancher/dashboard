@@ -66,6 +66,7 @@ export default {
 
       if (this.asTextArea) {
         out.lineNumbers = false;
+        out.foldGutter = false;
         out.tabSize = 0;
         out.extraKeys = { Tab: false };
       }
@@ -282,15 +283,9 @@ export default {
         color: var(--primary-text);
         background-color: var(--primary);
       }
-
-      .CodeMirror-gutter-wrapper,
-      .CodeMirror-gutters>*{
-        display:none;
-      }
     }
   }
 
-  // add selector here to ensure lower rules that lost .vue-codemirror selector still have enough specificity to override library's styling
   .code-mirror .codemirror-container {
     z-index: 0;
     font-size: inherit !important;
@@ -358,92 +353,9 @@ export default {
       background: none
     }
 
-    // &.as-text-area {
-    //   min-height: 40px;
-    //   position: relative;
-    //   display: block;
-    //   box-sizing: border-box;
-    //   width: 100%;
-    //   padding: 10px;
-    //   background-color: var(--input-bg);
-    //   border-radius: var(--border-radius);
-    //   border: solid var(--border-width) var(--input-border);
-    //   color: var(--input-text);
+    .CodeMirror-foldgutter:empty {
+      display: none;
+    }
 
-    //   &:hover {
-    //     border-color: var(--input-hover-border);
-    //   }
-
-    //   &:focus, &.focus {
-    //     outline: none;
-    //     border-color: var(--outline);
-    //   }
-
-    //   .CodeMirror-wrap pre {
-    //     word-break: break-word;
-    //   }
-    //   .CodeMirror-code {
-    //     .CodeMirror-line {
-    //       &:not(:last-child)>span:after,
-    //       .cm-markdown-single-trailing-space-odd:before,
-    //       .cm-markdown-single-trailing-space-even:before {
-    //         color: var(--muted);
-    //         position: absolute;
-    //         line-height: 20px;
-    //         pointer-events: none;
-    //       }
-    //       &:not(:last-child)>span:after {
-    //         content: '↵';
-    //         margin-left: 2px;
-    //       }
-    //       .cm-markdown-single-trailing-space-odd:before,
-    //       .cm-markdown-single-trailing-space-even:before {
-    //         font-weight: bold;
-    //         content: '·';
-    //       }
-    //     }
-    //   }
-
-    //   .CodeMirror-lines {
-    //     color: var(--input-text);
-    //     padding: 0;
-
-    //     .CodeMirror-line > span > span {
-    //       &.cm-overlay {
-    //         font-family: monospace;
-    //       }
-    //     }
-
-    //     .CodeMirror-line > span {
-    //       font-family: $body-font;
-    //     }
-    //   }
-
-    //   .CodeMirror-sizer {
-    //     min-height: 20px;
-    //   }
-
-    //   .CodeMirror-selected {
-    //     background-color: var(--primary) !important;
-    //   }
-
-    //   .CodeMirror-selectedtext {
-    //     color: var(--primary-text);
-    //   }
-
-    //   .CodeMirror-line::selection,
-    //   .CodeMirror-line > span::selection,
-    //   .CodeMirror-line > span > span::selection {
-    //     color: var(--primary-text);
-    //     background-color: var(--primary);
-    //   }
-
-    //   .CodeMirror-line::-moz-selection,
-    //   .CodeMirror-line > span::-moz-selection,
-    //   .CodeMirror-line > span > span::-moz-selection {
-    //     color: var(--primary-text);
-    //     background-color: var(--primary);
-    //   }
-    // }
   }
 </style>
