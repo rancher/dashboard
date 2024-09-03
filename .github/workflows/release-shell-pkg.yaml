@@ -49,7 +49,7 @@ jobs:
           scope: '@rancher'
 
       - name: Install packages
-        run: yarn install --frozen-lockfile
+        run: yarn install --immutable
 
       - name: Publish Shell Package to npm
         run: ./shell/scripts/publish-shell.sh --npm
