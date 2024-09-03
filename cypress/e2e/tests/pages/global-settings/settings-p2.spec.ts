@@ -224,7 +224,7 @@ describe('Settings', { testIsolation: 'off' }, () => {
     settingsPage.settingsValue('ui-offline-preferred').contains(settings['ui-offline-preferred'].original);
   });
 
-  it.skip('[Vue3 Skip]: can update ui-brand', { tags: ['@globalSettings', '@adminUser'] }, () => {
+  it('can update ui-brand', { tags: ['@globalSettings', '@adminUser'] }, () => {
     const rancherLogo = '/img/rancher-logo.66cf5910.svg';
     const suseRancherLogo = '/img/rancher-logo.055089a3.svg';
 
@@ -398,7 +398,7 @@ describe('Settings', { testIsolation: 'off' }, () => {
     settingsPage.settingsValue('hide-local-cluster').contains(settings['hide-local-cluster'].original);
   });
 
-  it.skip('[Vue3 Skip]: can update system-default-registry', { tags: ['@globalSettings', '@adminUser'] }, () => {
+  it('can update system-default-registry', { tags: ['@globalSettings', '@adminUser'] }, () => {
     // Update setting
     SettingsPagePo.navTo();
     settingsPage.editSettingsByLabel('system-default-registry');
