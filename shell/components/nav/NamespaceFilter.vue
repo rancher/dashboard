@@ -836,7 +836,7 @@ export default {
           :key="opt.id"
           tabindex="0"
           class="ns-option"
-          :disabled="!opt.enabled"
+          :disabled="opt.enabled ? null : true"
           :class="{
             'ns-selected': opt.selected,
             'ns-single-match': cachedFiltered.length === 1 && !opt.selected,
