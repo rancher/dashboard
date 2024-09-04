@@ -37,7 +37,7 @@ describe('the Boolean Component', () => {
     expect(labelFields.at(0).text()).toBe('var_name');
   });
 
-  it.skip('description is present', () => {
+  it('description is present', () => {
     const wrapper = mount(Questions, {
       props: {
         value:           {},

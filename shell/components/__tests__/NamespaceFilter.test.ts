@@ -235,7 +235,7 @@ describe('component: NamespaceFilter', () => {
         },
       ];
 
-      await wrapper.find(`.icon-chevron-down`).trigger('click');
+      await wrapper.find(`[data-testid="namespaces-dropdown"]`).trigger('click');
       await wrapper.find(`[data-testid="namespaces-option-0"]`).trigger('click');
 
       expect(action).toHaveBeenCalledWith(actionName, value);

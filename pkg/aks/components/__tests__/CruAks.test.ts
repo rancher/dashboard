@@ -1,23 +1,12 @@
 import semver from 'semver';
 import flushPromises from 'flush-promises';
-import { shallowMount, Wrapper, config, mount } from '@vue/test-utils';
+import { shallowMount, Wrapper, mount } from '@vue/test-utils';
 import CruAks from '@pkg/aks/components/CruAks.vue';
 // eslint-disable-next-line jest/no-mocks-import
 import { mockRegions, mockVersionsSorted } from '../../util/__mocks__/aks';
 import { AKSNodePool } from 'types';
 import { _EDIT, _CREATE } from '@shell/config/query-params';
 import { nodePoolNames } from '../../util/validators';
-
-config.global.renderStubDefaultSlot = true;
-
-// const mockedValidationMixin = {
-//   computed: {
-//     fvFormIsValid:                jest.fn(),
-//     type:                         jest.fn(),
-//     fvUnreportedValidationErrors: jest.fn(),
-//   },
-//   methods: { fvGetAndReportPathRules: jest.fn() }
-// };
 
 const mockedStore = (versionSetting: any) => {
   return {
@@ -41,7 +30,6 @@ const mockedRoute = { query: {} };
 
 const requiredSetup = (versionSetting = { value: '<=1.27.x' }) => {
   return {
-    // mixins: [mockedValidationMixin],
     global: {
       mocks: {
         $store:      mockedStore(versionSetting),
