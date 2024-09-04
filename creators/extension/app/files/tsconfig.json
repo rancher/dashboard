@@ -10,7 +10,7 @@
     ],
     "esModuleInterop": true,
     "allowJs": true,
-    "sourceMap": true,
+    "sourceMap": false,
     "strict": true,
     "noEmit": true,
     "baseUrl": ".",
@@ -28,7 +28,7 @@
     "typeRoots": [
       "./node_modules",
       "./node_modules/@rancher/shell/types"
-    ],    
+    ],
     "types": [
       "@types/node",
       "cypress",
