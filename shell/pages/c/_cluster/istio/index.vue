@@ -86,7 +86,7 @@ export default {
           <div class="link-content">
             <a
               ref="kiali"
-              :disabled="!kialiUrl"
+              :disabled="!kialiUrl ? true : null"
               :href="kialiUrl"
               :target="target"
               :rel="rel"
@@ -122,7 +122,7 @@ export default {
           <div class="link-content">
             <a
               ref="jaeger"
-              :disabled="!jaegerUrl"
+              :disabled="!jaegerUrl ? true : null"
               :href="jaegerUrl"
               :target="target"
               :rel="rel"

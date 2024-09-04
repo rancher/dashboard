@@ -148,7 +148,7 @@ export default {
             <a
               v-if="row.isReady"
               class="link"
-              :disabled="navigating"
+              :disabled="navigating ? true : null"
               @click="goToCluster(row)"
             >{{ row.nameDisplay }}</a>
             <span v-else>
