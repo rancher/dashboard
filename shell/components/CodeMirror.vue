@@ -283,6 +283,10 @@ export default {
         color: var(--primary-text);
         background-color: var(--primary);
       }
+
+      .CodeMirror-gutters .CodeMirror-foldgutter:empty {
+        display: none;
+      }
     }
   }
 
@@ -353,8 +357,8 @@ export default {
       background: none
     }
 
-    .CodeMirror-foldgutter:empty {
-      display: none;
+    .CodeMirror-gutters {
+      background: inherit;
     }
 
   }
