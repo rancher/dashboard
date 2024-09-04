@@ -10,8 +10,7 @@
     "node": ">=20.0.0"
   },
   "workspaces": [
-    "pkg/rancher-components",
-    "creators/extension"
+    "pkg/rancher-components"
   ],
   "scripts": {
     "build-pkg": "yarn lint && ./shell/scripts/build-pkg.sh",
