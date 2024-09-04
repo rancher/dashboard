@@ -195,7 +195,7 @@ describe('component: NamespaceFilter', () => {
       expect(option).toContain(text);
     });
 
-    it.skip('(Vue3 skip) should set the option as user preference', async() => {
+    it('should set the option as user preference', async() => {
       const text = 'my option';
       const key = 'my key';
       const value = {
@@ -206,12 +206,13 @@ describe('component: NamespaceFilter', () => {
       const action = jest.fn();
 
       jest.spyOn(NamespaceFilter.computed.value, 'get').mockReturnValue([]);
+
       const wrapper = mount(NamespaceFilter, {
         computed: {
+          ...NamespaceFilter.computed,
           options:        () => [],
           currentProduct: () => undefined,
           key:            () => key,
-          value:          () => [{ label: text }]
         },
         global: {
           mocks: {
