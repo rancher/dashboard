@@ -707,7 +707,7 @@ export default {
     >
       <!-- No filters found or available -->
       <div
-        v-if="!value || value.length === 0"
+        v-if="value.length === 0"
         ref="values"
         data-testid="namespaces-values-none"
         class="ns-values"

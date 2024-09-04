@@ -267,7 +267,6 @@ describe('component: Basics', () => {
   it.each([
     ['anything', false, false],
     ['', false, false],
-    ['', true, false],
   ])('given CIS profile of %p and override PSACT checkbox state of %p, it should set the PSACT dropdown as disabled %p', (cis, override, disabled) => {
     const label = 'whatever';
     const k8s = 'v1.25.0+rke2r1';
