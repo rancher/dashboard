@@ -41,7 +41,7 @@ export class FleetClusterGroupsListPagePo extends PagePo {
   }
 
   clickCreate() {
-    return this.clusterGroupsList().masthead().create();
+    return this.self().find('[data-testid="masthead-create"]').click();
   }
 
   createFleetClusterGroupsForm(id? : string): FleetClusterGroupsCreateEditPo {

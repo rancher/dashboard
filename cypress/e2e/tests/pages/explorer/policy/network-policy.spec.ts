@@ -8,7 +8,7 @@ const networkPolicyDescription = 'Custom Network Policy Description';
 let namespacesCount;
 
 describe('NetworkPolicies', { testIsolation: 'off', tags: ['@explorer', '@adminUser'] }, () => {
-  beforeEach(() => {
+  before(() => {
     cy.intercept('GET', '/v1/namespaces?exclude=metadata.managedFields').as('getNamespaces');
     cy.login();
 
@@ -17,7 +17,7 @@ describe('NetworkPolicies', { testIsolation: 'off', tags: ['@explorer', '@adminU
     });
   });
 
-  afterEach(() => {
+  after(() => {
     // Deleting the created network policy
     networkPolicyPage.goTo();
     networkPolicyPage.waitForPage();
