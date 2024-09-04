@@ -34,7 +34,7 @@ HELM_VERSION="${HELM_VERSION:-3.13.2}"
 NODEJS_VERSION="${NODEJS_VERSION:-14.19.1}"
 CYPRESS_VERSION="${CYPRESS_VERSION:-13.2.0}"
 YARN_VERSION="${YARN_VERSION:-1.22.19}"
-KUBECTL_VERSION="${KUBECTL_VERSION:-v1.27.10}"
+KUBECTL_VERSION="${KUBECTL_VERSION:-v1.29.8}"
 YQ_BIN="mikefarah/yq/releases/latest/download/yq_linux_amd64"
 
 mkdir -p "${WORKSPACE}/bin"
@@ -47,6 +47,10 @@ chmod +x "${CORRAL}"
 
 curl -L -o "${GO_PKG_FILENAME}" "${GO_DL_PACKAGE}"
 tar -C "${WORKSPACE}" -xzf "${GO_PKG_FILENAME}"
+
+curl -sSL https://raw.githubusercontent.com/parleer/semver-bash/latest/semver -o semver
+chmod +x semver
+mv semver "${WORKSPACE}/bin"
 
 ls -al "${WORKSPACE}"
 export PATH=$PATH:"${WORKSPACE}/go/bin:${WORKSPACE}/bin"
@@ -163,6 +167,9 @@ if [[ "${JOB_TYPE}" == "existing" ]]; then
 fi
 
 echo "Rancher type: ${RANCHER_TYPE}"
+
+override_node=$(semver lt "${RANCHER_VERSION}" "2.9.99")
+if [[ ${override_node} -eq 0 && RANCHER_IMAGE_TAG != "head" ]]; then NODEJS_VERSION="16.20.2"; fi
 
 corral config vars set rancher_type "${RANCHER_TYPE}"
 corral config vars set nodejs_version "${NODEJS_VERSION}"
