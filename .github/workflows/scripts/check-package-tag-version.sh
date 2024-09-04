@@ -7,7 +7,7 @@ BASE_DIR="$(
   pwd
 )"
 SHELL_DIR=$BASE_DIR/shell
-CREATORS_DIR=$BASE_DIR/shell/creators/extension
+CREATORS_DIR=$BASE_DIR/creators/extension
 
 echo "TAG ${TAG}"
 
