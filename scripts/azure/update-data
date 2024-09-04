@@ -1,0 +1,175 @@
+#!/usr/bin/env node
+
+/**
+ * This script reads the Azure website and updates our hard-coded file it needed
+ */
+
+const fs = require('fs');
+const path = require('path');
+
+console.log('Updating Azure regions in Availability Zones');
+console.log('============================================');
+console.log('');
+
+const SCRIPT = process.argv[1];
+const DIR = path.resolve(SCRIPT, '../../..');
+const ENDPOINTS_URL = 'https://learn.microsoft.com/en-us/azure/reliability/availability-zones-service-support';
+const TS_FILE = path.resolve(DIR, 'pkg/aks/util/aks-regions.ts');
+const START_TEXT = 'Azure regions with availability zone support';
+const request = require('request');
+const COLUMN_REGEX = /<td>(.*)<\/td>/;
+
+function findRegions(body) {
+  let inTable = false;
+  const regions = [];
+
+  body.split('\n').forEach((line) => {
+    line = line.trim();
+
+    if (line.indexOf(START_TEXT) > 0) {
+      inTable = true;
+    } else if (inTable) {
+      if (line.indexOf('</table>') >= 0) {
+        inTable = false;
+      } else {
+        const m = line.match(COLUMN_REGEX);
+
+        if (m && m.length === 2) {
+          let region = m[1].toLowerCase();
+          region = region.replaceAll(' ', '');
+
+          if (region.length && !region.startsWith('*')) {
+            regions.push(region);
+          }
+        }
+      }
+    }
+  });
+
+  return regions;
+}
+
+function cleanItem(item) {
+  const p = item.split(':');
+
+  if (p.length === 2) {
+    return p[0];
+  }
+
+  return undefined;
+}
+
+function readExisting() {
+  const data = fs.readFileSync(TS_FILE).toString();
+  const items = [];
+
+  let processing = false;
+  let done = false;
+
+  data.split(/\r?\n/).forEach(line =>  {
+    line = line.trim();
+
+    if (!done) {
+      if (!processing) {
+        if (line.startsWith('export const ')) {
+          processing = true;
+        }
+      } else {
+        if (line === '} as any;') {
+          processing = false;
+          done = true;
+        } else {
+          const r = cleanItem(line);
+
+          if (r) {
+            items.push(r);
+          }
+        }
+      }
+    }
+  });
+
+  return items;
+}
+
+function writeNewFile(regions) {
+  let lines = ['export const regionsWithAvailabilityZones = {'];
+
+  let maxLength = 1;
+
+  regions.forEach((r) => {
+    if (r.length > maxLength) {
+      maxLength = r.length + 1; // Add room for :
+    }
+  });
+
+  regions.forEach((r) => {
+    const key = `${r}:`.padEnd(maxLength);
+
+    lines.push(`  ${ key } true,`)
+  });
+
+  lines.push('} as any;');
+  lines.push('');
+
+  fs.writeFileSync(TS_FILE, lines.join('\n'));
+}
+
+const existing = readExisting();
+
+request(ENDPOINTS_URL, function (error, res, body) {
+  if (error) {
+    console.error('Could not fetch data from Azure website');
+
+    process.exit(1);
+  }
+
+  if (res.statusCode !== 200) {
+    console.error(`Could not fetch Azure data - status ${ res.statusCode } ${ res.statusMessage }`);
+
+    process.exit(2);
+  }
+
+  const regions = findRegions(body);
+
+  if (regions.length === 0) {
+    console.error('Could not fetch data from Azure');
+    process.exit(3);
+  }
+
+  console.log(`Existing regions in our codebase: ${ existing.length }`);
+  console.log(existing);
+  console.log('');
+
+  console.log(`Regions from Azure: ${ regions.length }`);
+  console.log(regions);
+  console.log('');
+
+  const removed = [];
+
+  existing.forEach((r) => {
+    if (!regions.includes(r)) {
+      removed.push(r);
+    }
+  });
+
+  if (removed.length) {
+    console.log(`These region(s) have been removed: ${ removed.join(',') }`);
+  }
+
+  const added = [];
+
+  regions.forEach((r) => {
+    if (!existing.includes(r)) {
+      added.push(r);
+    }
+  });
+
+  if (added.length) {
+    console.log(`These region(s) have been added: ${ added.join(',') }`);
+  }
+
+  if (added.length || removed.length) {
+    writeNewFile(regions);
+  }
+});
