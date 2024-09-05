@@ -63,7 +63,7 @@ export default {
             {{ selectedLocaleLabel }}
             <i class="icon icon-fw icon-sort-down" />
           </a>
-          <template #popover>
+          <template #popper>
             <ul
               class="list-unstyled dropdown"
               style="margin: -1px;"

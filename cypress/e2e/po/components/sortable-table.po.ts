@@ -37,7 +37,7 @@ export default class SortableTablePo extends ComponentPo {
    * @returns
    */
   bulkActionDropDownPopOver() {
-    return this.bulkActionDropDown().find(`.v-popover .popover .popover-inner`);
+    return this.bulkActionDropDown().find(`.v-popper .v-popper__inner`);
   }
 
   /**

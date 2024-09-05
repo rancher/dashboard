@@ -174,7 +174,7 @@ describe('Kontainer Drivers', { testIsolation: 'off', tags: ['@manager', '@admin
     createCluster.gridElementExistanceByName(linodeDriver, 'exist');
   });
 
-  it.skip('[Vue3 Skip]: can deactivate drivers in bulk', () => {
+  it('can deactivate drivers in bulk', () => {
     KontainerDriversPagePo.navTo();
     driversPage.waitForPage();
     driversPage.list().details(oracleDriver, 1).should('contain', 'Active');

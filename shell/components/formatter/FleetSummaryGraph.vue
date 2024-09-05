@@ -74,7 +74,7 @@ export default {
     <span v-if="summary.desiredReady === summary.ready">{{ summary.ready }}</span>
     <span v-else>{{ summary.ready }} of {{ summary.desiredReady }}</span>
 
-    <template #popover>
+    <template #popper>
       <table
         v-if="show"
         class="fixed"

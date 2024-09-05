@@ -119,15 +119,15 @@ HEADER {
 }
 
 .localeSelector {
-  :deep(.popover-inner) {
+  :deep(.v-popper__inner) {
     padding: 50px 0;
   }
 
-  :deep(.popover-arrow) {
+  :deep(.v-popper__arrow-container) {
     display: none;
   }
 
-  :deep(.popover:focus) {
+  :deep(.v-popper:focus) {
     outline: 0;
   }
 

@@ -92,6 +92,7 @@ export default defineComponent({
         z-index: z-index(hoverOverContent);
      }
 
+    // I DON'T THINK iT NEEDS FiXING... I think we delete it... CHECK EDIT->PODS->GENERAL TAB-> PULL SECRETS ::TODO-ALEX
     .tooltip {
         position: absolute;
         width: calc(100% + 2px);

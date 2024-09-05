@@ -36,7 +36,7 @@ export default {
     trigger="click"
     offset="1"
   >
-    <template #popover>
+    <template #popper>
       <table class="fixed">
         <tbody>
           <tr

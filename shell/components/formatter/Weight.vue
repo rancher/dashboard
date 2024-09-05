@@ -110,7 +110,7 @@ export default {
       </div>
     </div>
 
-    <template #popover>
+    <template #popper>
       <div
         v-if="canAdjust"
         class="text-center pb-5"
