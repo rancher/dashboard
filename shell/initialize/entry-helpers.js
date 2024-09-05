@@ -1,6 +1,3 @@
-import { createApp } from 'vue';
-const vueApp = createApp({});
-
 /**
  * Add error handler debugging capabilities
  * @param {*} vueApp Vue instance
