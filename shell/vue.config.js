@@ -367,23 +367,23 @@ const getVirtualModulesAutoImport = (dir) => {
  * process.env.commit even though process and env aren't even defined objects. This could cause people to be mislead.
  */
 const createEnvVariablesPlugin = (routerBasePath, rancherEnv) => new webpack.DefinePlugin({
-  'process.env.commit':                    JSON.stringify(commit),
-  'process.env.version':                   JSON.stringify(dashboardVersion),
-  'process.env.dev':                       JSON.stringify(dev),
-  'process.env.pl':                        JSON.stringify(pl),
-  'process.env.perfTest':                  JSON.stringify(perfTest),
-  'process.env.loginLocaleSelector':       JSON.stringify(process.env.LOGIN_LOCALE_SELECTOR || 'true'),
-  'process.env.excludeOperatorPkg':        JSON.stringify(process.env.EXCLUDE_OPERATOR_PKG || 'false'),
-  'process.env.rancherEnv':                JSON.stringify(rancherEnv),
-  'process.env.harvesterPkgUrl':           JSON.stringify(process.env.HARVESTER_PKG_URL),
-  'process.env.api':                       JSON.stringify(api),
+  'process.env.commit':              JSON.stringify(commit),
+  'process.env.version':             JSON.stringify(dashboardVersion),
+  'process.env.dev':                 JSON.stringify(dev),
+  'process.env.pl':                  JSON.stringify(pl),
+  'process.env.perfTest':            JSON.stringify(perfTest),
+  'process.env.loginLocaleSelector': JSON.stringify(process.env.LOGIN_LOCALE_SELECTOR || 'true'),
+  'process.env.excludeOperatorPkg':  JSON.stringify(process.env.EXCLUDE_OPERATOR_PKG || 'false'),
+  'process.env.rancherEnv':          JSON.stringify(rancherEnv),
+  'process.env.harvesterPkgUrl':     JSON.stringify(process.env.HARVESTER_PKG_URL),
+  'process.env.api':                 JSON.stringify(api),
   // Store the Router Base as env variable that we can use in `shell/config/router.js`
-  'process.env.routerBase': JSON.stringify(routerBasePath),
-  
+  'process.env.routerBase':          JSON.stringify(routerBasePath),
+
   // These flags are strongly recommended by Vue 3: https://github.com/vuejs/core/tree/main/packages/vue#bundler-build-feature-flags
   __VUE_PROD_HYDRATION_MISMATCH_DETAILS__: 'false',
-  __VUE_OPTIONS_API__: 'true',
-  __VUE_PROD_DEVTOOLS__: 'false',
+  __VUE_OPTIONS_API__:                     'true',
+  __VUE_PROD_DEVTOOLS__:                   'false',
 });
 
 /**
