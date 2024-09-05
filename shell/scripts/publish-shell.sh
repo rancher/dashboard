@@ -46,11 +46,6 @@ function publish() {
     PKG_VERSION=$3
   fi
 
-  # if the PKG_VERSION has a - it means it will be a pre-release
-  if [[ $PKG_VERSION == *"-"* ]]; then
-    PUBLISH_ARGS="--no-git-tag-version --access public --registry $NPM_REGISTRY --tag pre-release"
-  fi
-
   echo "Publishing ${NAME} from ${FOLDER}"
   pushd ${FOLDER} >/dev/null
 
