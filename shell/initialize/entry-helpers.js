@@ -45,8 +45,6 @@ export const loadDebugger = (vueApp) => {
   }
 };
 
-export const globalHandleError = (error) => vueApp.config.errorHandler && vueApp.config.errorHandler(error);
-
 /**
  * Mounts the Vue app to the DOM element
  * @param {Object} appPartials - App view partials
