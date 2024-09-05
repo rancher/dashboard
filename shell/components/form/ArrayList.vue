@@ -86,7 +86,7 @@ export default {
     }
   },
   data() {
-    const input = (this.value || []).slice();
+    const input = (Array.isArray(this.value) ? this.value : []).slice();
     const rows = [];
 
     for ( const value of input ) {
