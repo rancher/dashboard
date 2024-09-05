@@ -17,9 +17,9 @@ export default {
     Taints,
   },
 
-  mixins: [createEditView],
-
-  props: {
+  mixins:       [createEditView],
+  inheritAttrs: false,
+  props:        {
     value: {
       type:     Object,
       required: true,

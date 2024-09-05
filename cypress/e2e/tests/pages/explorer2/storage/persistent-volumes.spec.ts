@@ -51,6 +51,14 @@ describe('PersistentVolumes', { testIsolation: 'off', tags: ['@explorer2', '@adm
       persistentVolumesPagePo.list().resourceTable().sortableTable().checkRowCount(false, 1);
     });
 
+    it('can open "Edit as YAML"', () => {
+      persistentVolumesPagePo.goTo();
+      persistentVolumesPagePo.waitForPage();
+      persistentVolumesPagePo.clickCreate();
+      persistentVolumesPagePo.createPersistentVolumesForm().editAsYaml().click();
+      persistentVolumesPagePo.createPersistentVolumesForm().yamlEditor().checkExists();
+    });
+
     after('clean up', () => {
       cy.updateNamespaceFilter('local', 'none', '{"local":["all://user"]}');
     });

@@ -34,7 +34,8 @@ export default {
     MoveModal
   },
 
-  mixins: [CreateEditView],
+  mixins:       [CreateEditView],
+  inheritAttrs: false,
 
   async fetch() {
     if (this.$store.getters['management/schemaFor'](MANAGEMENT.PROJECT)) {

@@ -43,8 +43,8 @@ const SESSION_STICKY_TIME_DEFAULT = 10800;
 export default {
   // Props are found in CreateEditView
   // props: {},
-
-  components: {
+  inheritAttrs: false,
+  components:   {
     ArrayList,
     Banner,
     CruResource,

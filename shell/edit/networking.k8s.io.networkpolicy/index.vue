@@ -24,8 +24,8 @@ const POLICY_TYPES = {
 export default {
   // Props are found in CreateEditView
   // props: {},
-
-  components: {
+  inheritAttrs: false,
+  components:   {
     Banner,
     Checkbox,
     CruResource,

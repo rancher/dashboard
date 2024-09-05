@@ -23,9 +23,9 @@ import { mapFeature, UNSUPPORTED_STORAGE_DRIVERS } from '@shell/store/features';
 import ResourceManager from '@shell/mixins/resource-manager';
 
 export default {
-  name: 'PersistentVolume',
-
-  components: {
+  name:         'PersistentVolume',
+  inheritAttrs: false,
+  components:   {
     ArrayList,
     ArrayListGrouped,
     Checkbox,

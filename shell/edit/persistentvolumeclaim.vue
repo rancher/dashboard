@@ -20,9 +20,9 @@ import ResourceManager from '@shell/mixins/resource-manager';
 const DEFAULT_STORAGE = '10Gi';
 
 export default {
-  name: 'PersistentVolumeClaim',
-
-  components: {
+  name:         'PersistentVolumeClaim',
+  inheritAttrs: false,
+  components:   {
     Banner,
     Checkbox,
     CruResource,
