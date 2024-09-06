@@ -71,7 +71,7 @@ eks:
     maxSize:
       label: Maximum ASG Size
     minSize:
-      label: Minumum ASG Size
+      label: Minimum ASG Size
     name:
       label: Node Group Name
     nodeRole:
