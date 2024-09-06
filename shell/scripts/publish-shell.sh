@@ -7,7 +7,6 @@ BASE_DIR="$(
 )"
 SHELL_DIR=$BASE_DIR/shell/
 CREATORS_DIR=$BASE_DIR/creators/extension
-PUBLISH_ARGS="--no-git-tag-version --access public --registry $NPM_REGISTRY"
 FORCE_PUBLISH_TO_NPM="false"
 DEFAULT_NPM_REGISTRY="https://registry.npmjs.org"
 
@@ -31,6 +30,8 @@ fi
 if [ "$FORCE_PUBLISH_TO_NPM" == "true" ]; then
   export NPM_REGISTRY=$DEFAULT_NPM_REGISTRY
 fi
+
+PUBLISH_ARGS="--no-git-tag-version --access public --registry $NPM_REGISTRY"
 
 pushd ${SHELL_DIR} >/dev/null
 
@@ -58,18 +59,18 @@ function publish() {
 
   # if the PKG_VERSION has a - it means it will be a pre-release of legacy-v2
   if [[ $PKG_VERSION == *"-"* ]]; then
-    NPM_TAG="--tag legacy-v2-pre-release"
+    PUBLISH_ARGS="$PUBLISH_ARGS --tag legacy-v2-pre-release"
   else
     # If we need to release shell, we tag it as legacy-v2
-    NPM_TAG="--tag legacy-v2"
+    PUBLISH_ARGS="$PUBLISH_ARGS --tag legacy-v2"
   fi
 
   # Make a note of dependency versions, if required
   node ${SCRIPT_DIR}/record-deps.js
 
-  echo "Publishing to registry: $NPM_REGISTRY with tag: $NPM_TAG"
+  echo "Publishing to registry: $NPM_REGISTRY with args: $PUBLISH_ARGS"
 
-  npm publish ${PUBLISH_ARGS} ${NPM_TAG}
+  npm publish ${PUBLISH_ARGS}
   RET=$?
 
   popd >/dev/null

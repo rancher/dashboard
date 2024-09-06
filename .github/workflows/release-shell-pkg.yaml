@@ -3,8 +3,8 @@ name: Publish Shell Package
 on:
   push:
     tags:
-      - "shell-pkg-v*"
-      - "creators-pkg-v*"
+      - 'shell-pkg-v*'
+      - 'creators-pkg-v*'
 
 jobs:
   build:
@@ -13,7 +13,7 @@ jobs:
       contents: read
       packages: write
     steps:
-      - uses: actions/checkout@v3
+      - uses: actions/checkout@v4
         with:
           fetch-depth: 0
           persist-credentials: false
@@ -24,8 +24,8 @@ jobs:
       - name: Setup Node.js
         uses: actions/setup-node@v4
         with:
-          node-version: "16.x"
-          cache: "yarn"
+          node-version: '16.x'
+          cache: 'yarn'
 
       - name: Check Tags Version Matching
         env:
@@ -49,9 +49,9 @@ jobs:
 
       - uses: actions/setup-node@v4
         with:
-          node-version: "16.x"
-          registry-url: "https://registry.npmjs.org"
-          scope: "@rancher"
+          node-version: '16.x'
+          registry-url: 'https://registry.npmjs.org'
+          scope: '@rancher'
 
       - name: Install packages
         run: yarn install --frozen-lockfile
