@@ -4,7 +4,7 @@
  * Due to current limitations of the fv mixin
  */
 
-import { get } from '@shell/utils/object';
+import { get, set } from '@shell/utils/object';
 import { LoadBalancerSku, OutboundType, AKSNodePool } from '../types';
 
 // no need to try to validate any fields if the user is still selecting a credential and the rest of the form isn't visible
@@ -152,11 +152,11 @@ export const nodePoolNames = (ctx: any) => {
         const name = pool.name || '';
 
         if (!isValid(name)) {
-          ctx.$set(pool._validation, '_validName', false);
+          set(pool._validation, '_validName', false);
 
           allAvailable = false;
         } else {
-          ctx.$set(pool._validation, '_validName', true);
+          set(pool._validation, '_validName', true);
         }
       });
       if (!allAvailable) {
