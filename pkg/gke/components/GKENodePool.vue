@@ -300,7 +300,7 @@ export default defineComponent({
           :disabled="!isNew"
           :rules="rules.poolName"
           required
-          @update:value="$emit('update:name', $event)"
+          @input="$emit('update:name', $event)"
         />
       </div>
       <div class="col span-4">
@@ -310,7 +310,7 @@ export default defineComponent({
           :value="initialNodeCount"
           label-key="gke.initialNodeCount.label"
           :rules="rules.initialNodeCount"
-          @update:value="$emit('update:initialNodeCount', $event)"
+          @input="$emit('update:initialNodeCount', $event)"
         />
       </div>
       <div class="col span-4">
@@ -319,7 +319,7 @@ export default defineComponent({
           :mode="mode"
           :value="maxPodsConstraint"
           label-key="gke.maxPodsConstraint.label"
-          @update:value="$emit('update:maxPodsConstraint', $event)"
+          @input="$emit('update:maxPodsConstraint', $event)"
         />
       </div>
     </div>
@@ -329,19 +329,19 @@ export default defineComponent({
           :mode="mode"
           :value="autoscaling"
           label-key="gke.autoscaling.label"
-          @update:value="$emit('update:autoscaling', $event)"
+          @input="$emit('update:autoscaling', $event)"
         />
         <Checkbox
           :mode="mode"
           :value="autoRepair"
           label-key="gke.autoRepair.label"
-          @update:value="$emit('update:autoRepair', $event)"
+          @input="$emit('update:autoRepair', $event)"
         />
         <Checkbox
           :mode="mode"
           :value="autoUpgrade"
           label-key="gke.autoUpgrade.label"
-          @update:value="$emit('update:autoUpgrade', $event)"
+          @input="$emit('update:autoUpgrade', $event)"
         />
       </div>
       <template v-if="autoscaling">
@@ -351,7 +351,7 @@ export default defineComponent({
             type="number"
             :value="minNodeCount"
             label-key="gke.minNodeCount.label"
-            @update:value="$emit('update:minNodeCount', $event)"
+            @input="$emit('update:minNodeCount', $event)"
           />
         </div>
         <div class="col span-4">
@@ -360,7 +360,7 @@ export default defineComponent({
             type="number"
             :value="maxNodeCount"
             label-key="gke.maxNodeCount.label"
-            @update:value="$emit('update:maxNodeCount', $event)"
+            @input="$emit('update:maxNodeCount', $event)"
           />
         </div>
       </template>
@@ -443,7 +443,7 @@ export default defineComponent({
           suffix="GB"
           :disabled="!isNew"
           :rules="rules.diskSizeGb"
-          @update:value="$emit('update:diskSizeGb', $event)"
+          @input="$emit('update:diskSizeGb', $event)"
         />
       </div>
       <div class="col span-4">
@@ -453,7 +453,7 @@ export default defineComponent({
           label-key="gke.localSsdCount.label"
           :disabled="!isNew"
           :rules="rules.ssdCount"
-          @update:value="$emit('update:localSsdCount', $event)"
+          @input="$emit('update:localSsdCount', $event)"
         />
       </div>
     </div>
@@ -464,7 +464,7 @@ export default defineComponent({
           :mode="mode"
           :value="preemptible"
           :disabled="!isNew"
-          @update:value="$emit('update:preemptible', $event)"
+          @input="$emit('update:preemptible', $event)"
         />
       </div>
     </div>
@@ -476,7 +476,7 @@ export default defineComponent({
           :disabled="!isNew"
           :effect-values="{NO_SCHEDULE:'NoSchedule', PREFER_NO_SCHEDULE: 'PreferNoSchedule', NO_EXECUTE: 'NoExecute'}"
           data-testid="gke-taints-comp"
-          @update:value="$emit('update:taints', $event)"
+          @input="$emit('update:taints', $event)"
         />
       </div>
     </div>
@@ -491,7 +491,7 @@ export default defineComponent({
           :title-protip="t('gke.nodeLabels.tooltip')"
           :add-label="t('gke.nodeLabels.add')"
           :disabled="!isNew"
-          @update:value="$emit('update:labels', $event)"
+          @input="$emit('update:labels', $event)"
         />
       </div>
     </div>
@@ -502,7 +502,7 @@ export default defineComponent({
           :value="tags"
           :title="t('gke.tags.label')"
           :add-label="t('gke.tags.add')"
-          @update:value="$emit('update:tags', $event)"
+          @input="$emit('update:tags', $event)"
         />
       </div>
     </div>
@@ -511,7 +511,7 @@ export default defineComponent({
       :mode="mode"
       :value="oauthScopes"
       :disabled="!isNew"
-      @update:value="$emit('update:oauthScopes', $event)"
+      @input="$emit('update:oauthScopes', $event)"
     />
   </div>
 </template>
