@@ -433,16 +433,29 @@ export default defineComponent({
           return this.canUseAvailabilityZones || !isUsingAvailabilityZones ? undefined : this.t('aks.errors.availabilityZones');
         },
 
-        poolCount: (count?: number) => {
+        poolCount: (count?: number, autoscale = false) => {
+          let min = 1;
+          let errMsg = this.t('aks.errors.poolCount');
+
+          if (autoscale) {
+            min = 0;
+            errMsg = this.t('aks.errors.poolAutoscaleCount');
+          }
           if (count || count === 0) {
-            return count >= 1 ? undefined : this.t('aks.errors.poolCount');
+            return count >= min ? undefined : errMsg;
           } else {
             let allValid = true;
 
             this.nodePools.forEach((pool: AKSNodePool) => {
-              const { count = 0 } = pool;
+              const { count = 0, enableAutoScaling } = pool;
 
-              if (count < 1) {
+              if (enableAutoScaling) {
+                min = 0;
+              } else {
+                min = 1;
+              }
+
+              if (count < min) {
                 this.$set(pool._validation, '_validCount', false);
                 allValid = false;
               } else {
@@ -456,14 +469,14 @@ export default defineComponent({
 
         poolMin: (min?:number) => {
           if (min || min === 0) {
-            return min <= 0 || min > 100 ? this.t('aks.errors.poolMin') : undefined;
+            return min < 0 || min > 1000 ? this.t('aks.errors.poolMin') : undefined;
           } else {
             let allValid = true;
 
             this.nodePools.forEach((pool: AKSNodePool) => {
               const poolMin = pool.minCount || 0;
 
-              if (pool.enableAutoScaling && (poolMin <= 0 || poolMin > 100)) {
+              if (pool.enableAutoScaling && (poolMin < 0 || poolMin > 1000)) {
                 this.$set(pool._validation, '_validMin', false);
                 allValid = false;
               } else {
@@ -477,14 +490,14 @@ export default defineComponent({
 
         poolMax: (max?:number) => {
           if (max || max === 0) {
-            return max <= 0 || max > 100 ? this.t('aks.errors.poolMax') : undefined;
+            return max < 0 || max > 1000 ? this.t('aks.errors.poolMax') : undefined;
           } else {
             let allValid = true;
 
             this.nodePools.forEach((pool: AKSNodePool) => {
               const poolMax = pool.maxCount || 0;
 
-              if (pool.enableAutoScaling && (poolMax <= 0 || poolMax > 100)) {
+              if (pool.enableAutoScaling && (poolMax < 0 || poolMax > 1000)) {
                 this.$set(pool._validation, '_validMax', false);
                 allValid = false;
               } else {
