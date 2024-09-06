@@ -68,10 +68,13 @@ export default {
     left: 0;
     right: 0;
     text-align: center;
-    z-index: z-index('loadingContent');
+
+    // Covers both default `content` mode, an often used `relative` mode and any other value of mode
+    z-index: z-index('loading');
 
     &-main-mode {
       top: var(--header-height);
+      z-index: z-index('loadingMain');
     }
 
     &-content-mode {
