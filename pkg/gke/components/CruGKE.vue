@@ -343,13 +343,13 @@ export default defineComponent({
           if (!this.isAuthenticated) {
             return;
           }
-          const valid = (input: number) => input >= 1;
+          const valid = (input?: number) => (!!input || input === 0) && input >= 0;
 
           if (val || val === 0) {
             return !valid(val) ? this.t('gke.errors.initialNodeCount') : null;
           }
 
-          return !!this.nodePools.find((pool: GKENodePool) => !valid(pool.initialNodeCount || 0) ) ? this.t('gke.errors.initialNodeCount') : null;
+          return !!this.nodePools.find((pool: GKENodePool) => !valid(pool.initialNodeCount) ) ? this.t('gke.errors.initialNodeCount') : null;
         },
 
         ssdCount: (val: number) => {
@@ -686,7 +686,7 @@ export default defineComponent({
     @error="e=>errors=e"
     @finish="save"
   >
-    <template>
+    <div>
       <AccountAccess
         v-model:credential="config.googleCredentialSecret"
         v-model:project="config.projectID"
@@ -884,7 +884,7 @@ export default defineComponent({
           />
         </Accordion>
       </div>
-    </template>
+    </div>
     <template
       v-if="!hasCredential"
       #form-footer
