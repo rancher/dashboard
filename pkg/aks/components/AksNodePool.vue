@@ -173,8 +173,8 @@ export default defineComponent({
       return this.validAZ ? undefined : this.t('aks.errors.availabilityZones');
     },
 
-    poolCountValidator(){
-      return val=>this.validationRules?.count?.[0](val, this.pool.enableAutoScaling)
+    poolCountValidator() {
+      return (val: number) => this.validationRules?.count?.[0](val, this.pool.enableAutoScaling);
     }
   },
 });
