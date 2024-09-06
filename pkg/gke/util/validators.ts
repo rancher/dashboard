@@ -1,5 +1,6 @@
 /* eslint-disable @typescript-eslint/explicit-module-boundary-types */
 import { get } from '@shell/utils/object';
+import { GKENodePool } from '../types';
 import ipaddr from 'ipaddr.js';
 
 // no need to try to validate any fields if the user is still selecting a credential and the rest of the form isn't visible
@@ -67,5 +68,20 @@ export const ipv4oripv6WithCidr = (ctx: any, labelKey: string, clusterPath: stri
     const isValid = ipaddr.isValidCIDR(toValidate);
 
     return isValid || !toValidate.length ? undefined : ctx.t('gke.errors.ipv4Cidr', { key: ctx.t(labelKey) || ctx.t('gke.errors.genericKey') });
+  };
+};
+
+export const GKEInitialCount = (ctx:any) => {
+  return (val?: number) => {
+    if (!ctx.isAuthenticated) {
+      return;
+    }
+    const valid = (input?: number) => (!!input || input === 0) && input >= 0 && input <= 1000;
+
+    if (val || val === 0) {
+      return !valid(val) ? ctx.t('gke.errors.initialNodeCount') : null;
+    }
+
+    return !!ctx.nodePools.find((pool: GKENodePool) => !valid(pool.initialNodeCount) ) ? ctx.t('gke.errors.initialNodeCount') : null;
   };
 };
