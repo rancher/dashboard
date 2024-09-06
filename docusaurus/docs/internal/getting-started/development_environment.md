@@ -90,7 +90,7 @@ Developers are free to use the IDE and modern browser of their choosing. Here's 
 
 ### Running the Dashboard
 
-See the [Running For Development](https://github.com/rancher/dashboard/blob/master/README.md#running-for-development) section on how to bring up the Dashboard locally
+See the [Quickstart](https://extensions.rancher.io/internal/getting-started/quickstart) section on how to bring up the Dashboard locally.
 
 > Troubleshooting: Multiple `Could not freeze errors` in `yarn dev` terminal
 >
