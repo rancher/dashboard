@@ -166,7 +166,7 @@ aks:
     poolCount: Node count must be at least one when autoscaling is disabled.
     poolAutoscaleCount: Node count cannot be less than zero.
     poolMinMax: The minimum number of nodes must be less than or equal to the maximum number of nodes, and the node count must be between or equal to the minimum and maximum.
-    poolMin: The minimum number of nodes must be greater than 0 and at most 100.
-    poolMax: The maximum number of nodes must be greater than 0 and at most 100.
+    poolMin: The minimum number of nodes must be greater than 0 and at most 1000.
+    poolMax: The maximum number of nodes must be greater than 0 and at most 1000.
     poolTaints: Taints must have both a key and value defined.
     poolNamesUnique: Node pool names must be unique.
