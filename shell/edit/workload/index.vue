@@ -421,7 +421,7 @@ export default {
               name="resources"
               :weight="tabWeightMap['resources']"
             >
-              <template>
+              <div>
                 <div>
                   <h3 class="mb-10">
                     <t k="workload.scheduling.titles.tolerations" />
@@ -456,7 +456,7 @@ export default {
                     </div>
                   </div>
                 </div>
-              </template>
+              </div>
             </Tab>
             <Tab
               :label="t('workload.container.titles.podScheduling')"
