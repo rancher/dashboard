@@ -297,7 +297,7 @@ export default defineComponent({
     >
       <div class="col span-3">
         <LabeledInput
-          v-model:value.number="pool.count"
+          v-model.number="pool.count"
           type="number"
           :mode="mode"
           label-key="aks.nodePools.count.label"
@@ -308,7 +308,7 @@ export default defineComponent({
       </div>
       <div class="col span-3">
         <LabeledInput
-          v-model:value.number="pool.maxPods"
+          v-model.number="pool.maxPods"
           type="number"
           :mode="mode"
           label-key="aks.nodePools.maxPods.label"
@@ -334,7 +334,7 @@ export default defineComponent({
       <template v-if="pool.enableAutoScaling">
         <div class="col span-3">
           <LabeledInput
-            v-model:value.number="pool.minCount"
+            v-model.number="pool.minCount"
             type="number"
             :mode="mode"
             label-key="aks.nodePools.minCount.label"
@@ -345,7 +345,7 @@ export default defineComponent({
         </div>
         <div class="col span-3">
           <LabeledInput
-            v-model:value.number="pool.maxCount"
+            v-model.number="pool.maxCount"
             type="number"
             :mode="mode"
             label-key="aks.nodePools.maxCount.label"
