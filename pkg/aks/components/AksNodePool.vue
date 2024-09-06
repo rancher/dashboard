@@ -297,18 +297,18 @@ export default defineComponent({
     >
       <div class="col span-3">
         <LabeledInput
-          v-model.number="pool.count"
+          v-model:value.number="pool.count"
           type="number"
           :mode="mode"
           label-key="aks.nodePools.count.label"
-          :rules="validationRules.count"
-          :min="1"
-          :max="100"
+          :rules="[val=>validationRules.count[0](val, pool.enableAutoScaling)]"
+          :min="pool.enableAutoScaling ? 0 : 1"
+          :max="1000"
         />
       </div>
       <div class="col span-3">
         <LabeledInput
-          v-model.number="pool.maxPods"
+          v-model:value.number="pool.maxPods"
           type="number"
           :mode="mode"
           label-key="aks.nodePools.maxPods.label"
@@ -334,24 +334,24 @@ export default defineComponent({
       <template v-if="pool.enableAutoScaling">
         <div class="col span-3">
           <LabeledInput
-            v-model.number="pool.minCount"
+            v-model:value.number="pool.minCount"
             type="number"
             :mode="mode"
             label-key="aks.nodePools.minCount.label"
             :rules="validationRules.min"
-            :min="1"
-            :max="100"
+            :min="0"
+            :max="1000"
           />
         </div>
         <div class="col span-3">
           <LabeledInput
-            v-model.number="pool.maxCount"
+            v-model:value.number="pool.maxCount"
             type="number"
             :mode="mode"
             label-key="aks.nodePools.maxCount.label"
             :rules="validationRules.max"
-            :min="1"
-            :max="100"
+            :min="0"
+            :max="1000"
           />
         </div>
       </template>
