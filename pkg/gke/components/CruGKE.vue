@@ -34,7 +34,7 @@ import type { getGKEMachineTypesResponse, getGKEServiceAccountsResponse } from '
 import type { GKEMachineTypeOption } from '../types/index.d.ts';
 import debounce from 'lodash/debounce';
 import {
-  clusterNameChars, clusterNameStartEnd, requiredInCluster, ipv4WithCidr, ipv4oripv6WithCidr
+  clusterNameChars, clusterNameStartEnd, requiredInCluster, ipv4WithCidr, ipv4oripv6WithCidr, GKEInitialCount
 } from '../util/validators';
 import { diffUpstreamSpec, syncUpstreamConfig } from '@shell/utils/kontainer';
 
@@ -322,6 +322,7 @@ export default defineComponent({
         nodeIpv4CidrBlockFormat:     ipv4WithCidr(this, 'gke.nodeIpv4CidrBlock.label', 'gkeConfig.ipAllocationPolicy.nodeIpv4CidrBlock'),
         servicesIpv4CidrBlockFormat: ipv4WithCidr(this, 'gke.servicesIpv4CidrBlock.label', 'gkeConfig.ipAllocationPolicy.servicesIpv4CidrBlock'),
         clusterIpv4CidrFormat:       ipv4oripv6WithCidr(this, 'gke.clusterIpv4Cidr.label', 'gkeConfig.clusterIpv4Cidr'),
+        initialNodeCount:            GKEInitialCount(this),
         /**
          * The nodepool validators below are performing double duty. When passed directly to an input, the val argument is provided and validated - this generates the error icon in the input component.
          * otherwise they're run in the fv mixin and ALL nodepools are validated - this disables the cruresource create button
@@ -337,19 +338,6 @@ export default defineComponent({
           }
 
           return !!this.nodePools.find((pool: GKENodePool) => !valid(pool.config.diskSizeGb || 0) ) ? this.t('gke.errors.diskSizeGb') : null;
-        },
-
-        initialNodeCount: (val: number) => {
-          if (!this.isAuthenticated) {
-            return;
-          }
-          const valid = (input?: number) => (!!input || input === 0) && input >= 0;
-
-          if (val || val === 0) {
-            return !valid(val) ? this.t('gke.errors.initialNodeCount') : null;
-          }
-
-          return !!this.nodePools.find((pool: GKENodePool) => !valid(pool.initialNodeCount) ) ? this.t('gke.errors.initialNodeCount') : null;
         },
 
         ssdCount: (val: number) => {
