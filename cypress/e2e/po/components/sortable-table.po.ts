@@ -80,11 +80,17 @@ export default class SortableTablePo extends ComponentPo {
    * @param searchText
    * @returns
    */
-  filter(searchText: string) {
-    return this.filterComponent()
+  filter(searchText: string, checkQuery = false) {
+    const res = this.filterComponent()
       .focus()
       .clear()
       .type(searchText);
+
+    if (checkQuery) {
+      cy.url().should('include', `q=${ searchText }`);
+    }
+
+    return res;
   }
 
   resetFilter() {

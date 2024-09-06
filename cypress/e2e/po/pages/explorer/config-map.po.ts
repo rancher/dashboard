@@ -39,7 +39,7 @@ export class ConfigMapPagePo extends PagePo {
   }
 
   searchForConfigMap(name: string) {
-    return this.list().resourceTable().sortableTable().filter(name);
+    return this.list().resourceTable().sortableTable().filter(name, true);
   }
 
   title() {
