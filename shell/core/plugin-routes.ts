@@ -1,6 +1,4 @@
 /* eslint-disable @typescript-eslint/explicit-module-boundary-types */
-import { createRouterMatcher } from 'vue-router';
-
 interface RouteInfo {
   parent?: string;
   route: any;
@@ -86,9 +84,16 @@ export class PluginRoutes {
       }
     });
 
-    const matcher = createRouterMatcher([...orderedPluginRoutes, ...allRoutes], {});
+    if ( orderedPluginRoutes.length === 0) {
+      return;
+    }
 
-    (this.router as any).matcher = (matcher as any);
+    // Remove all existing routes. Once we upgrade our router version we'll have access to clearRoutes() https://router.vuejs.org/api/interfaces/Router.html#clearRoutes
+    this.router.getRoutes().forEach((r: any) => this.router.removeRoute(r));
+
+    const allRoutesToAdd = [...orderedPluginRoutes, ...allRoutes];
+
+    allRoutesToAdd.forEach((r) => this.router.addRoute(r));
   }
 
   /**
