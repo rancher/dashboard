@@ -95,9 +95,9 @@ create_initial_clusters() {
     helm repo add rancher-latest https://releases.rancher.com/server-charts/latest
     helm repo update
     version_string=$(echo "${RANCHER_IMAGE_TAG}" | cut -f1 -d"-")
-    if [[ -z "${RANCHER_VERSION}" && "${RANCHER_IMAGE_TAG}" == "head" ]]; then
+    if [[ "${RANCHER_IMAGE_TAG}" == "head" ]]; then
         RANCHER_VERSION=$(helm search repo rancher-latest --devel --versions | sed -n '1!p' | head -1 | cut -f2 | tr -d '[:space:]')
-    elif [[ -z "${RANCHER_VERSION}" ]]; then
+    else
         RANCHER_VERSION=$(helm search repo rancher-latest --devel --versions | grep "${version_string}" | head -n 1 | cut -f2 | tr -d '[:space:]')
     fi
     corral config vars set rancher_image_tag "${RANCHER_IMAGE_TAG}"
