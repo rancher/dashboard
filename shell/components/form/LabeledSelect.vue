@@ -13,6 +13,8 @@ import { LABEL_SELECT_NOT_OPTION_KINDS } from '@shell/types/components/labeledSe
 export default {
   name: 'LabeledSelect',
 
+  inheritAttrs: false,
+
   components: { LabeledTooltip },
   mixins:     [
     CompactInput,
@@ -245,6 +247,7 @@ export default {
 
 <template>
   <div
+    v-bind="$attrs"
     ref="select"
     class="labeled-select"
     :class="{

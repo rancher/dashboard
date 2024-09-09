@@ -4,7 +4,6 @@ import ArrayList from '@shell/components/form/ArrayList';
 import Principal from '@shell/components/auth/Principal';
 import SelectPrincipal from '@shell/components/auth/SelectPrincipal';
 import { _EDIT } from '@shell/config/query-params';
-import { addObject } from '@shell/utils/array';
 
 export default {
   components: {
@@ -56,7 +55,11 @@ export default {
 
   methods: {
     addPrincipal(id) {
-      addObject(this.authConfig.allowedPrincipalIds, id);
+      const currentIds = this.authConfig.allowedPrincipalIds;
+      // add new id and remove duplicates
+      const updatedIds = [...new Set([...currentIds, id])];
+
+      this.authConfig.allowedPrincipalIds = updatedIds;
     },
   }
 };
