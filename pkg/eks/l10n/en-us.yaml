@@ -30,6 +30,7 @@ eks:
   errors:
     fetchingRegions: 'Error fetching regions: {err}'
     greaterThanZero: '{key} must be greater than zero.'
+    atLeastZero: '{key} must be at least zero.'
     minimumSubnets: You must use at least two subnets, and they should be in different availability zones.
     nodeGroups:
       nameUnique: Node group names must be unique within a cluster.
@@ -70,7 +71,7 @@ eks:
     maxSize:
       label: Maximum ASG Size
     minSize:
-      label: Minumum ASG Size
+      label: Minimum ASG Size
     name:
       label: Node Group Name
     nodeRole:
