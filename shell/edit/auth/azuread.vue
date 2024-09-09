@@ -206,7 +206,7 @@ export default {
         const endpointType = this.oldEndpoint && endpoint !== 'custom' ? OLD_ENDPOINTS : ENDPOINT_MAPPING;
 
         Object.keys(endpointType[endpoint]).forEach((key) => {
-          this.model.key = endpointType[endpoint][key].replace(TENANT_ID_TOKEN, this.model.tenantId);
+          this.model[key] = endpointType[endpoint][key].replace(TENANT_ID_TOKEN, this.model.tenantId);
         });
       }
     },
