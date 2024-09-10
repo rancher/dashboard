@@ -188,7 +188,7 @@ export default {
     :filterable="false"
     class="select-principal"
     :class="{'retain-selection': retainSelection}"
-    @input="add"
+    @update:value="add"
     @search="onSearch"
     @on-open="resetTooltipContent()"
     @on-close="setTooltipContent()"

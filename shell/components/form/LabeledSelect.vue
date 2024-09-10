@@ -13,6 +13,8 @@ import { LABEL_SELECT_NOT_OPTION_KINDS } from '@shell/types/components/labeledSe
 export default {
   name: 'LabeledSelect',
 
+  inheritAttrs: false,
+
   components: { LabeledTooltip },
   mixins:     [
     CompactInput,
@@ -247,17 +249,20 @@ export default {
   <div
     ref="select"
     class="labeled-select"
-    :class="{
-      disabled: isView || disabled,
-      focused,
-      [mode]: true,
-      [status]: status,
-      taggable: $attrs.taggable,
-      taggable: $attrs.multiple,
-      hoverable: hoverTooltip,
-      'compact-input': isCompact,
-      'no-label': !hasLabel,
-    }"
+    :class="[
+      $attrs.class,
+      {
+        disabled: isView || disabled,
+        focused,
+        [mode]: true,
+        [status]: status,
+        taggable: $attrs.taggable,
+        taggable: $attrs.multiple,
+        hoverable: hoverTooltip,
+        'compact-input': isCompact,
+        'no-label': !hasLabel
+      }
+    ]"
     @click="focusSearch"
     @focus="focusSearch"
   >

@@ -4,7 +4,7 @@ import ArrayList from '@shell/components/form/ArrayList';
 import Principal from '@shell/components/auth/Principal';
 import SelectPrincipal from '@shell/components/auth/SelectPrincipal';
 import { _EDIT } from '@shell/config/query-params';
-import { addObject } from '@shell/utils/array';
+import uniq from 'lodash/uniq';
 
 export default {
   components: {
@@ -56,7 +56,7 @@ export default {
 
   methods: {
     addPrincipal(id) {
-      addObject(this.authConfig.allowedPrincipalIds, id);
+      this.authConfig.allowedPrincipalIds = uniq([...this.authConfig.allowedPrincipalIds, id]);
     },
   }
 };
